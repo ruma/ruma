@@ -1,63 +1,257 @@
+#![allow(clippy::disallowed_types)]
+
 use std::{
+    collections::{HashMap, HashSet},
     fs::{self, File},
     io::{BufRead, BufReader},
-    path::Path,
+    path::{Path, PathBuf},
 };
+
+use html5gum::{Token, Tokenizer};
+use isahc::ReadResponseExt;
 
 use crate::Result;
 
-/// Authorized links to the old specs.
-const WHITELIST: &[&str] =
-    &["https://matrix.org/docs/spec/index.html#complete-list-of-room-versions"];
+/// A Matrix spec.
+#[derive(Debug, Clone, Copy)]
+enum Spec {
+    /// The old Matrix spec.
+    Old,
+    /// The new Matrix spec.
+    New,
+}
+
+impl Spec {
+    /// Authorized URLs pointing to the old specs.
+    const OLD_URL_WHITELIST: &'static [&'static str] =
+        &["https://matrix.org/docs/spec/index.html#complete-list-of-room-versions"];
+
+    /// Authorized versions in URLs pointing to the new specs.
+    const NEW_VERSION_WHITELIST: &'static [&'static str] =
+        &["v1.1", "v1.2", "v1.3", "v1.4", "v1.5", "unstable"];
+
+    /// Get the start of the URLs pointing to this `Spec`.
+    const fn url_prefix(&self) -> &'static str {
+        match self {
+            Spec::Old => "https://matrix.org/docs/spec/",
+            Spec::New => "https://spec.matrix.org/",
+        }
+    }
+}
+
+/// A link to the spec.
+struct SpecLink {
+    /// The URL of the link.
+    url: String,
+
+    /// The spec variant of the link.
+    spec: Spec,
+
+    /// The path of the file containing the link.
+    path: PathBuf,
+
+    /// The line in the file containing the link.
+    line: u16,
+}
+
+impl SpecLink {
+    /// Create a new `SpecLink`.
+    fn new(url: String, spec: Spec, path: PathBuf, line: u16) -> Self {
+        Self { url, spec, path, line }
+    }
+
+    /// Get the minimum length of the link.
+    ///
+    /// That is the length of the start of the URL used to detect the link.
+    const fn min_len(&self) -> usize {
+        self.spec.url_prefix().len()
+    }
+}
 
 pub(crate) fn check_spec_links(path: &Path) -> Result<()> {
-    println!("Checking Matrix Spec links are up-to-date...");
-    walk_dirs(path, "https://matrix.org/docs/spec/", |_| false)?;
-    walk_dirs(path, "https://spec.matrix.org/", |s| {
-        s.starts_with("v1.1")
-            || s.starts_with("v1.2")
-            || s.starts_with("v1.3")
-            || s.starts_with("v1.4")
-            || s.starts_with("v1.5")
-            || s.starts_with("unstable")
-    })?;
+    println!("Checking Matrix spec links are up-to-date...");
+    let links = collect_links(path)?;
+
+    check_whitelist(&links)?;
+    check_targets(&links)?;
+
     Ok(())
 }
 
-fn walk_dirs(path: &Path, split: &str, version_match: fn(&str) -> bool) -> Result<()> {
+/// Collect the spec links under `path` starting with one of the URL starts.
+///
+/// Returns a list of tuples with the link and the file that contains it.
+fn collect_links(path: &Path) -> Result<Vec<SpecLink>> {
+    let mut links = Vec::new();
+
     if path.is_dir() {
         for entry in fs::read_dir(path)? {
             let entry = entry?;
-            let path = entry.path();
-            if path.is_dir() {
-                walk_dirs(&path, split, version_match)?;
-            } else {
-                let mut buf = String::new();
-                let mut content = BufReader::new(File::open(&path)?);
+            links.extend(collect_links(&entry.path())?);
+        }
+    } else {
+        let mut buf = String::new();
+        let mut line: u16 = 0;
+        let mut content = BufReader::new(File::open(path)?);
 
-                // We can assume a spec link will never overflow to another line
-                while content.read_line(&mut buf)? > 0 {
-                    // If for some reason a line has 2 spec links
-                    for (idx, _) in buf.match_indices(split) {
-                        if !WHITELIST.iter().any(|url| buf[idx..].starts_with(url))
-                            && !version_match(&buf[idx + split.len()..])
-                        {
-                            return err(&path, &buf);
-                        }
-                    }
-                    buf.clear();
+        // We can assume a spec link will never overflow to another line.
+        while content.read_line(&mut buf)? > 0 {
+            line += 1;
+
+            for spec in [Spec::Old, Spec::New] {
+                // If for some reason a line has 2 spec links.
+                for (start_idx, _) in buf.match_indices(spec.url_prefix()) {
+                    links.push(SpecLink::new(
+                        get_full_link(&buf[start_idx..]),
+                        spec,
+                        path.to_owned(),
+                        line,
+                    ));
+                }
+            }
+
+            buf.clear();
+        }
+    }
+
+    Ok(links)
+}
+
+/// Get the full link starting at beginning of the given string.
+fn get_full_link(s: &str) -> String {
+    // We can assume a link will end either:
+    // - With a `)` (Markdown link syntax)
+    // - With a `>` (<link> syntax)
+    // - With a whitespace
+    // - At the end of the line if none of the above is met
+    if let Some(end_idx) = s.find(|c: char| matches!(c, ')' | '>') || c.is_ascii_whitespace()) {
+        s[..end_idx].to_owned()
+    } else {
+        s.to_owned()
+    }
+}
+
+/// Check if links are in the whitelists.
+///
+/// Don't stop at the first error to be able to fix all the wrong links once.
+fn check_whitelist(links: &[SpecLink]) -> Result<()> {
+    let mut err_nb: u16 = 0;
+
+    for link in links {
+        match link.spec {
+            Spec::Old => {
+                if !Spec::OLD_URL_WHITELIST.contains(&link.url.as_str()) {
+                    err_nb += 1;
+                    print_link_err("Old spec link not in whitelist", link);
+                }
+            }
+            Spec::New => {
+                if !Spec::NEW_VERSION_WHITELIST
+                    .iter()
+                    .any(|version| link.url[link.min_len()..].starts_with(version))
+                {
+                    err_nb += 1;
+                    print_link_err("New spec link with wrong version", link);
                 }
             }
         }
     }
+
+    if err_nb > 0 {
+        // Visual aid to separate the end error message.
+        println!();
+        return Err(format!("Found {err_nb} invalid spec links.").into());
+    }
+
     Ok(())
 }
 
-fn err(path: &Path, snippet: &str) -> Result<()> {
-    Err(format!(
-        "error: spec URL with wrong version number\nfile: {}\n\nsnippet:\n{}",
-        path.display(),
-        &snippet[0..25]
-    )
-    .into())
+/// Check if the URL points to a valid page and a valid fragment.
+fn check_targets(links: &[SpecLink]) -> Result<()> {
+    // Map page URL => IDs in the page.
+    let mut page_cache: HashMap<String, Result<HashSet<String>>> = HashMap::new();
+    let mut err_nb: u16 = 0;
+
+    for link in links {
+        let (url, fragment) =
+            link.url.split_once('#').map(|(u, f)| (u, Some(f))).unwrap_or((&link.url, None));
+
+        match page_cache.entry(url.to_owned()).or_insert_with(|| get_page_ids(url)) {
+            Ok(ids) => {
+                if let Some(fragment) = fragment {
+                    if !ids.contains(fragment) {
+                        err_nb += 1;
+                        print_link_err("Spec link with wrong fragment", link);
+                    }
+                }
+            }
+            Err(err) => {
+                err_nb += 1;
+                print_link_err(&format!("Spec link with wrong URL: {err}"), link);
+            }
+        }
+    }
+
+    if err_nb > 0 {
+        // Visual aid to separate the end error message.
+        println!();
+        return Err(format!("Found {err_nb} invalid spec links.").into());
+    }
+
+    Ok(())
+}
+
+/// Get the IDs in the given webpage.
+///
+/// Returns an error if the URL points to an invalid HTML page.
+fn get_page_ids(url: &str) -> Result<HashSet<String>> {
+    let mut page = isahc::get(url)?;
+
+    let html = page.text()?;
+    let mut ids = HashSet::new();
+
+    for token in Tokenizer::new(&html).infallible() {
+        let Token::StartTag(tag) = token else {
+            continue;
+        };
+
+        let Some(mut id) = tag.attributes.get(b"id".as_slice())
+        .and_then(|s| String::from_utf8(s.0.clone()).ok()) else {
+            continue;
+        };
+
+        id = uniquify_heading_id(id, &ids);
+        ids.insert(id);
+    }
+
+    Ok(ids)
+}
+
+/// Make sure the ID is unique in the page, if not make it unique.
+///
+/// This is necessary because Matrix spec pages do that in JavaScript, so IDs
+/// are not unique in the source.
+///
+/// This is a reimplementation of the algorithm used for the spec.
+///
+/// See <https://github.com/matrix-org/matrix-spec/blob/6b02e393082570db2d0a651ddb79a365bc4a0f8d/static/js/toc.js#L25-L37>.
+fn uniquify_heading_id(mut id: String, unique_ids: &HashSet<String>) -> String {
+    let base_id = id.clone();
+    let mut counter: u16 = 0;
+
+    while unique_ids.contains(&id) {
+        counter += 1;
+        id = format!("{base_id}-{counter}");
+    }
+
+    id
+}
+
+fn print_link_err(error: &str, link: &SpecLink) {
+    println!(
+        "\n{error}\nfile: {}:{}\nlink: {}",
+        link.path.display(),
+        link.line,
+        link.url.get(..80).unwrap_or(&link.url),
+    );
 }
