@@ -67,10 +67,8 @@ pub mod v3 {
         pub access_token: String,
 
         /// The hostname of the homeserver on which the account has been registered.
-        ///
-        /// Deprecated: Clients should instead use the `user_id.server_name()`
-        /// method if they require it.
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[deprecated = "Clients should instead use the `user_id.server_name()` method if they require it."]
         pub home_server: Option<OwnedServerName>,
 
         /// ID of the logged-in device.
@@ -124,6 +122,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given user ID, access token and device ID.
+        #[allow(deprecated)]
         pub fn new(user_id: OwnedUserId, access_token: String, device_id: OwnedDeviceId) -> Self {
             Self {
                 user_id,

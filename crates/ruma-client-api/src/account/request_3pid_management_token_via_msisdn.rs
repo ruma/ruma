@@ -45,9 +45,8 @@ pub mod v3 {
         pub next_link: Option<String>,
 
         /// Optional identity server hostname and access token.
-        ///
-        /// Deprecated since r0.6.0.
         #[serde(flatten, skip_serializing_if = "Option::is_none")]
+        #[deprecated(since = "0.6.0")]
         pub identity_server_info: Option<IdentityServerInfo>,
     }
 
@@ -74,6 +73,7 @@ pub mod v3 {
     impl Request {
         /// Creates a new `Request` with the given client secret, country code, phone number and
         /// send-attempt counter.
+        #[allow(deprecated)]
         pub fn new(
             client_secret: OwnedClientSecret,
             country: String,

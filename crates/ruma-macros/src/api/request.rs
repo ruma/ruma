@@ -81,7 +81,12 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
 
     Ok(quote! {
         #types_impls
-        #test
+
+        #[allow(deprecated)]
+        #[cfg(tests)]
+        mod __request {
+            #test
+        }
     })
 }
 
@@ -183,8 +188,12 @@ impl Request {
             #request_body_struct
             #request_query_struct
 
-            #outgoing_request_impl
-            #incoming_request_impl
+            #[allow(deprecated)]
+            mod __request_impls {
+                use super::*;
+                #outgoing_request_impl
+                #incoming_request_impl
+            }
         }
     }
 
@@ -242,6 +251,7 @@ impl Request {
         let path_fields = self.path_fields().map(|f| f.ident.as_ref().unwrap().to_string());
         let mut tests = quote! {
             #[::std::prelude::v1::test]
+            #[allow(deprecated)]
             fn path_parameters() {
                 let path_params = METADATA._path_parameters();
                 let request_path_fields: &[&::std::primitive::str] = &[#(#path_fields),*];
