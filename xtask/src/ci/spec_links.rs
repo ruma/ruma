@@ -1,7 +1,7 @@
 #![allow(clippy::disallowed_types)]
 
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     fs::{self, File},
     io::{BufRead, BufReader},
     path::{Path, PathBuf},
@@ -70,6 +70,15 @@ impl SpecLink {
     const fn min_len(&self) -> usize {
         self.spec.url_prefix().len()
     }
+}
+
+/// Whether an ID has duplicates.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum HasDuplicates {
+    /// The ID has duplicates.
+    Yes,
+    /// The ID doesn't have duplicates.
+    No,
 }
 
 pub(crate) fn check_spec_links(path: &Path) -> Result<()> {
@@ -173,7 +182,7 @@ fn check_whitelist(links: &[SpecLink]) -> Result<()> {
 /// Check if the URL points to a valid page and a valid fragment.
 fn check_targets(links: &[SpecLink]) -> Result<()> {
     // Map page URL => IDs in the page.
-    let mut page_cache: HashMap<String, Result<HashSet<String>>> = HashMap::new();
+    let mut page_cache: HashMap<String, Result<HashMap<String, HasDuplicates>>> = HashMap::new();
     let mut err_nb: u16 = 0;
 
     for link in links {
@@ -183,7 +192,16 @@ fn check_targets(links: &[SpecLink]) -> Result<()> {
         match page_cache.entry(url.to_owned()).or_insert_with(|| get_page_ids(url)) {
             Ok(ids) => {
                 if let Some(fragment) = fragment {
-                    if !ids.contains(fragment) {
+                    if let Some(has_duplicates) = ids.get(fragment) {
+                        // Don't allow links to the latest spec with duplicate IDs, they might point
+                        // to another part of the spec in a new version.
+                        if *has_duplicates == HasDuplicates::Yes
+                            && link.url[link.min_len()..].starts_with("latest/")
+                        {
+                            err_nb += 1;
+                            print_link_err("Spec link to latest version with non-unique ID", link);
+                        }
+                    } else {
                         err_nb += 1;
                         print_link_err("Spec link with wrong fragment", link);
                     }
@@ -208,24 +226,24 @@ fn check_targets(links: &[SpecLink]) -> Result<()> {
 /// Get the IDs in the given webpage.
 ///
 /// Returns an error if the URL points to an invalid HTML page.
-fn get_page_ids(url: &str) -> Result<HashSet<String>> {
+fn get_page_ids(url: &str) -> Result<HashMap<String, HasDuplicates>> {
     let mut page = isahc::get(url)?;
 
     let html = page.text()?;
-    let mut ids = HashSet::new();
+    let mut ids = HashMap::new();
 
     for token in Tokenizer::new(&html).infallible() {
         let Token::StartTag(tag) = token else {
             continue;
         };
 
-        let Some(mut id) = tag.attributes.get(b"id".as_slice())
+        let Some(id) = tag.attributes.get(b"id".as_slice())
         .and_then(|s| String::from_utf8(s.0.clone()).ok()) else {
             continue;
         };
 
-        id = uniquify_heading_id(id, &ids);
-        ids.insert(id);
+        let (id, has_duplicates) = uniquify_heading_id(id, &mut ids);
+        ids.insert(id, has_duplicates);
     }
 
     Ok(ids)
@@ -239,16 +257,22 @@ fn get_page_ids(url: &str) -> Result<HashSet<String>> {
 /// This is a reimplementation of the algorithm used for the spec.
 ///
 /// See <https://github.com/matrix-org/matrix-spec/blob/6b02e393082570db2d0a651ddb79a365bc4a0f8d/static/js/toc.js#L25-L37>.
-fn uniquify_heading_id(mut id: String, unique_ids: &HashSet<String>) -> String {
+fn uniquify_heading_id(
+    mut id: String,
+    unique_ids: &mut HashMap<String, HasDuplicates>,
+) -> (String, HasDuplicates) {
     let base_id = id.clone();
     let mut counter: u16 = 0;
+    let mut has_duplicates = HasDuplicates::No;
 
-    while unique_ids.contains(&id) {
+    while let Some(other_id_has_dup) = unique_ids.get_mut(&id) {
+        has_duplicates = HasDuplicates::Yes;
+        *other_id_has_dup = HasDuplicates::Yes;
         counter += 1;
         id = format!("{base_id}-{counter}");
     }
 
-    id
+    (id, has_duplicates)
 }
 
 fn print_link_err(error: &str, link: &SpecLink) {
