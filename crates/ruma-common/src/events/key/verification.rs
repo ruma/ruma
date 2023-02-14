@@ -54,10 +54,11 @@ pub enum KeyAgreementProtocol {
 #[non_exhaustive]
 pub enum MessageAuthenticationCode {
     /// The HKDF-HMAC-SHA256 MAC.
+    #[deprecated = "Since Matrix 1.6. Use HkdfHmacSha256V2 instead."]
     HkdfHmacSha256,
 
     /// The second version of the HKDF-HMAC-SHA256 MAC.
-    #[ruma_enum(rename = "hkdf-hmac-sha256.v2", alias = "org.matrix.msc3783.hkdf-hmac-sha256")]
+    #[ruma_enum(rename = "hkdf-hmac-sha256.v2")]
     HkdfHmacSha256V2,
 
     /// The HMAC-SHA256 MAC.
@@ -125,6 +126,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn deserialize_mac_method() {
         let json = json!(["hkdf-hmac-sha256", "hmac-sha256"]);
 
@@ -133,6 +135,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn serialize_mac_method() {
         let serialized = serde_json::to_string(&MessageAuthenticationCode::HkdfHmacSha256).unwrap();
         let deserialized: MessageAuthenticationCode = serde_json::from_str(&serialized).unwrap();

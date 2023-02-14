@@ -151,7 +151,9 @@ pub struct SasV1Content {
 
     /// The message authentication codes that the sending device understands.
     ///
-    /// Must include at least `hkdf-hmac-sha256`.
+    /// Must include at least `hkdf-hmac-sha256.v2`. Should also include `hkdf-hmac-sha256` for
+    /// compatibility with older clients, though this identifier is deprecated and will be
+    /// removed in a future version of the spec.
     pub message_authentication_codes: Vec<MessageAuthenticationCode>,
 
     /// The SAS methods the sending device (and the sending device's user) understands.
@@ -179,7 +181,9 @@ pub struct SasV1ContentInit {
 
     /// The message authentication codes that the sending device understands.
     ///
-    /// Should include at least `hkdf-hmac-sha256`.
+    /// Must include at least `hkdf-hmac-sha256.v2`. Should also include `hkdf-hmac-sha256` for
+    /// compatibility with older clients, though this identifier is deprecated and will be
+    /// removed in a future version of the spec.
     pub message_authentication_codes: Vec<MessageAuthenticationCode>,
 
     /// The SAS methods the sending device (and the sending device's user) understands.
@@ -230,7 +234,7 @@ mod tests {
                 SasV1ContentInit {
                     hashes: vec![HashAlgorithm::Sha256],
                     key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
-                    message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
+                    message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256V2],
                     short_authentication_string: vec![ShortAuthenticationString::Decimal],
                 }
                 .into(),
@@ -243,7 +247,7 @@ mod tests {
             "method": "m.sas.v1",
             "key_agreement_protocols": ["curve25519"],
             "hashes": ["sha256"],
-            "message_authentication_codes": ["hkdf-hmac-sha256"],
+            "message_authentication_codes": ["hkdf-hmac-sha256.v2"],
             "short_authentication_string": ["decimal"]
         });
 
@@ -300,7 +304,7 @@ mod tests {
                 SasV1ContentInit {
                     hashes: vec![HashAlgorithm::Sha256],
                     key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
-                    message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
+                    message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256V2],
                     short_authentication_string: vec![ShortAuthenticationString::Decimal],
                 }
                 .into(),
@@ -312,7 +316,7 @@ mod tests {
             "method": "m.sas.v1",
             "key_agreement_protocols": ["curve25519"],
             "hashes": ["sha256"],
-            "message_authentication_codes": ["hkdf-hmac-sha256"],
+            "message_authentication_codes": ["hkdf-hmac-sha256.v2"],
             "short_authentication_string": ["decimal"],
             "m.relates_to": {
                 "rel_type": "m.reference",
@@ -368,7 +372,7 @@ mod tests {
         assert_eq!(sas.key_agreement_protocols, vec![KeyAgreementProtocol::Curve25519]);
         assert_eq!(
             sas.message_authentication_codes,
-            vec![MessageAuthenticationCode::HkdfHmacSha256]
+            vec![MessageAuthenticationCode::HkdfHmacSha256V2]
         );
         assert_eq!(sas.short_authentication_string, vec![ShortAuthenticationString::Decimal]);
 
@@ -379,7 +383,7 @@ mod tests {
                 "method": "m.sas.v1",
                 "key_agreement_protocols": ["curve25519"],
                 "hashes": ["sha256"],
-                "message_authentication_codes": ["hkdf-hmac-sha256"],
+                "message_authentication_codes": ["hkdf-hmac-sha256.v2"],
                 "short_authentication_string": ["decimal"]
             },
             "type": "m.key.verification.start",
@@ -400,7 +404,7 @@ mod tests {
         assert_eq!(sas.key_agreement_protocols, vec![KeyAgreementProtocol::Curve25519]);
         assert_eq!(
             sas.message_authentication_codes,
-            vec![MessageAuthenticationCode::HkdfHmacSha256]
+            vec![MessageAuthenticationCode::HkdfHmacSha256V2]
         );
         assert_eq!(sas.short_authentication_string, vec![ShortAuthenticationString::Decimal]);
 
@@ -459,7 +463,7 @@ mod tests {
             "method": "m.sas.v1",
             "hashes": ["sha256"],
             "key_agreement_protocols": ["curve25519"],
-            "message_authentication_codes": ["hkdf-hmac-sha256"],
+            "message_authentication_codes": ["hkdf-hmac-sha256.v2"],
             "short_authentication_string": ["decimal"],
             "m.relates_to": {
                 "rel_type": "m.reference",
@@ -480,7 +484,7 @@ mod tests {
         assert_eq!(sas.key_agreement_protocols, vec![KeyAgreementProtocol::Curve25519]);
         assert_eq!(
             sas.message_authentication_codes,
-            vec![MessageAuthenticationCode::HkdfHmacSha256]
+            vec![MessageAuthenticationCode::HkdfHmacSha256V2]
         );
         assert_eq!(sas.short_authentication_string, vec![ShortAuthenticationString::Decimal]);
 
