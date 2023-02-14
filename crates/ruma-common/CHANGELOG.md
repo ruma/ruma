@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Add `MatrixVersion::V1_6`
+
 # 0.11.2
 
 Bug fixes:
