@@ -57,8 +57,7 @@ pub enum MessageAuthenticationCode {
     HkdfHmacSha256,
 
     /// The second version of the HKDF-HMAC-SHA256 MAC.
-    #[cfg(feature = "unstable-msc3783")]
-    #[ruma_enum(rename = "org.matrix.msc3783.hkdf-hmac-sha256")]
+    #[ruma_enum(rename = "hkdf-hmac-sha256.v2", alias = "org.matrix.msc3783.hkdf-hmac-sha256")]
     HkdfHmacSha256V2,
 
     /// The HMAC-SHA256 MAC.
@@ -147,13 +146,12 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "unstable-msc3783")]
-    fn serialize_mac_method_msc3783() {
+    fn serialize_mac_method_v2() {
         let serialized =
             serde_json::to_string(&MessageAuthenticationCode::HkdfHmacSha256V2).unwrap();
         let deserialized: MessageAuthenticationCode = serde_json::from_str(&serialized).unwrap();
 
-        assert_eq!(serialized, "\"org.matrix.msc3783.hkdf-hmac-sha256\"");
+        assert_eq!(serialized, "\"hkdf-hmac-sha256.v2\"");
         assert_eq!(deserialized, MessageAuthenticationCode::HkdfHmacSha256V2);
     }
 }
