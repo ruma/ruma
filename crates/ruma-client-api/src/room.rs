@@ -2,7 +2,6 @@
 
 pub mod aliases;
 pub mod create_room;
-#[cfg(feature = "unstable-msc3030")]
 pub mod get_event_by_timestamp;
 pub mod get_room_event;
 pub mod report_content;

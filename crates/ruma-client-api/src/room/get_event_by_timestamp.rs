@@ -2,10 +2,10 @@
 //!
 //! Get the ID of the event closest to the given timestamp.
 
-pub mod unstable {
-    //! `/unstable/` ([MSC3030])
+pub mod v1 {
+    //! `/v1/` ([spec])
     //!
-    //! [MSC3030]: https://github.com/matrix-org/matrix-spec-proposals/pull/3030
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv1roomsroomidtimestamp_to_event
 
     use ruma_common::{
         api::{request, response, Direction, Metadata},
@@ -18,6 +18,7 @@ pub mod unstable {
         authentication: AccessToken,
         history: {
             unstable => "/_matrix/client/unstable/org.matrix.msc3030/rooms/:room_id/timestamp_to_event",
+            1.6 => "/_matrix/client/v1/rooms/:room_id/timestamp_to_event",
         }
     };
 
