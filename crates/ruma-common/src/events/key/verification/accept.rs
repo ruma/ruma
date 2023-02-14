@@ -186,7 +186,7 @@ mod tests {
             method: AcceptMethod::SasV1(SasV1Content {
                 hash: HashAlgorithm::Sha256,
                 key_agreement_protocol: KeyAgreementProtocol::Curve25519,
-                message_authentication_code: MessageAuthenticationCode::HkdfHmacSha256,
+                message_authentication_code: MessageAuthenticationCode::HkdfHmacSha256V2,
                 short_authentication_string: vec![ShortAuthenticationString::Decimal],
                 commitment: Base64::new(b"hello".to_vec()),
             }),
@@ -198,7 +198,7 @@ mod tests {
             "commitment": "aGVsbG8",
             "key_agreement_protocol": "curve25519",
             "hash": "sha256",
-            "message_authentication_code": "hkdf-hmac-sha256",
+            "message_authentication_code": "hkdf-hmac-sha256.v2",
             "short_authentication_string": ["decimal"]
         });
 
@@ -232,7 +232,7 @@ mod tests {
             method: AcceptMethod::SasV1(SasV1Content {
                 hash: HashAlgorithm::Sha256,
                 key_agreement_protocol: KeyAgreementProtocol::Curve25519,
-                message_authentication_code: MessageAuthenticationCode::HkdfHmacSha256,
+                message_authentication_code: MessageAuthenticationCode::HkdfHmacSha256V2,
                 short_authentication_string: vec![ShortAuthenticationString::Decimal],
                 commitment: Base64::new(b"hello".to_vec()),
             }),
@@ -243,7 +243,7 @@ mod tests {
             "commitment": "aGVsbG8",
             "key_agreement_protocol": "curve25519",
             "hash": "sha256",
-            "message_authentication_code": "hkdf-hmac-sha256",
+            "message_authentication_code": "hkdf-hmac-sha256.v2",
             "short_authentication_string": ["decimal"],
             "m.relates_to": {
                 "rel_type": "m.reference",
@@ -262,7 +262,7 @@ mod tests {
             "method": "m.sas.v1",
             "hash": "sha256",
             "key_agreement_protocol": "curve25519",
-            "message_authentication_code": "hkdf-hmac-sha256",
+            "message_authentication_code": "hkdf-hmac-sha256.v2",
             "short_authentication_string": ["decimal"]
         });
 
@@ -277,7 +277,7 @@ mod tests {
         assert_eq!(sas.commitment.encode(), "aGVsbG8");
         assert_eq!(sas.hash, HashAlgorithm::Sha256);
         assert_eq!(sas.key_agreement_protocol, KeyAgreementProtocol::Curve25519);
-        assert_eq!(sas.message_authentication_code, MessageAuthenticationCode::HkdfHmacSha256);
+        assert_eq!(sas.message_authentication_code, MessageAuthenticationCode::HkdfHmacSha256V2);
         assert_eq!(sas.short_authentication_string, vec![ShortAuthenticationString::Decimal]);
 
         let json = json!({
@@ -306,7 +306,7 @@ mod tests {
         assert_eq!(sas.commitment.encode(), "aGVsbG8");
         assert_eq!(sas.hash, HashAlgorithm::Sha256);
         assert_eq!(sas.key_agreement_protocol, KeyAgreementProtocol::Curve25519);
-        assert_eq!(sas.message_authentication_code, MessageAuthenticationCode::HkdfHmacSha256);
+        assert_eq!(sas.message_authentication_code, MessageAuthenticationCode::HkdfHmacSha256V2);
         assert_eq!(sas.short_authentication_string, vec![ShortAuthenticationString::Decimal]);
 
         let json = json!({
@@ -340,7 +340,7 @@ mod tests {
             "method": "m.sas.v1",
             "hash": "sha256",
             "key_agreement_protocol": "curve25519",
-            "message_authentication_code": "hkdf-hmac-sha256",
+            "message_authentication_code": "hkdf-hmac-sha256.v2",
             "short_authentication_string": ["decimal"],
             "m.relates_to": {
                 "rel_type": "m.reference",
@@ -359,7 +359,7 @@ mod tests {
         assert_eq!(sas.commitment.encode(), "aGVsbG8");
         assert_eq!(sas.hash, HashAlgorithm::Sha256);
         assert_eq!(sas.key_agreement_protocol, KeyAgreementProtocol::Curve25519);
-        assert_eq!(sas.message_authentication_code, MessageAuthenticationCode::HkdfHmacSha256);
+        assert_eq!(sas.message_authentication_code, MessageAuthenticationCode::HkdfHmacSha256V2);
         assert_eq!(sas.short_authentication_string, vec![ShortAuthenticationString::Decimal]);
     }
 }
