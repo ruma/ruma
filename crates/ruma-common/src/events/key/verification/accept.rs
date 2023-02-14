@@ -287,7 +287,7 @@ mod tests {
                 "method": "m.sas.v1",
                 "key_agreement_protocol": "curve25519",
                 "hash": "sha256",
-                "message_authentication_code": "hkdf-hmac-sha256",
+                "message_authentication_code": "hkdf-hmac-sha256.v2",
                 "short_authentication_string": ["decimal"]
             },
             "type": "m.key.verification.accept",
