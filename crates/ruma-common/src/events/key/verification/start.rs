@@ -182,8 +182,8 @@ pub struct SasV1ContentInit {
     /// The message authentication codes that the sending device understands.
     ///
     /// Must include at least `hkdf-hmac-sha256.v2`. Should also include `hkdf-hmac-sha256` for
-    /// compatibility with older clients, though this identifier is deprecated and will be
-    /// removed in a future version of the spec.
+    /// compatibility with older clients, though this MAC is deprecated and will be removed in a
+    /// future version of the spec.
     pub message_authentication_codes: Vec<MessageAuthenticationCode>,
 
     /// The SAS methods the sending device (and the sending device's user) understands.
