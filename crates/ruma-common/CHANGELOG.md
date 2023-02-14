@@ -3,6 +3,7 @@
 Improvements:
 
 * Add `MatrixVersion::V1_6`
+* Stabilize support for fixed base64 for SAS verification (MSC3783 / Matrix 1.6)
 
 # 0.11.2
 
