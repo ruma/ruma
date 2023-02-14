@@ -47,14 +47,9 @@ pub struct Request {
     /// the response `state` field, and include the auth chains for these membership events in
     /// the response `auth_chain` field.
     ///
-    /// [Client-Server `/sync` response]: https://spec.matrix.org/v1.5/client-server-api/#get_matrixclientv3sync
-    #[cfg(feature = "unstable-msc3706")]
+    /// [Client-Server `/sync` response]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3sync
     #[ruma_api(query)]
-    #[serde(
-        rename = "org.matrix.msc3706.partial_state",
-        default,
-        skip_serializing_if = "ruma_common::serde::is_default"
-    )]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub omit_members: bool,
 }
 
@@ -69,13 +64,7 @@ pub struct Response {
 impl Request {
     /// Creates a new `Request` from the given room ID, event ID and PDU.
     pub fn new(room_id: OwnedRoomId, event_id: OwnedEventId, pdu: Box<RawJsonValue>) -> Self {
-        Self {
-            room_id,
-            event_id,
-            pdu,
-            #[cfg(feature = "unstable-msc3706")]
-            omit_members: false,
-        }
+        Self { room_id, event_id, pdu, omit_members: false }
     }
 }
 
@@ -97,27 +86,22 @@ pub struct RoomState {
     /// Whether `m.room.member` events have been omitted from `state`.
     ///
     /// Defaults to `false`.
-    #[cfg(feature = "unstable-msc3706")]
-    #[serde(
-        rename = "org.matrix.msc3706.partial_state",
-        default,
-        skip_serializing_if = "ruma_common::serde::is_default"
-    )]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub members_omitted: bool,
 
     /// The full set of authorization events that make up the state of the room,
     /// and their authorization events, recursively.
     ///
-    /// With the `unstable-msc3706` feature, if the request had `omit_members` set to `true`, then
-    /// any events that are returned in `state` may be omitted from `auth_chain`, whether or
-    /// not membership events are omitted from `state`.
+    /// If the request had `omit_members` set to `true`, then any events that are returned in
+    /// `state` may be omitted from `auth_chain`, whether or not membership events are omitted
+    /// from `state`.
     pub auth_chain: Vec<Box<RawJsonValue>>,
 
     /// The room state.
     ///
-    /// With the `unstable-msc3706` feature, if the request had `omit_members` set to `true`,
-    /// events of type `m.room.member` may be omitted from the response to reduce the size of
-    /// the response. If this is done, `members_omitted` must be set to `true`.
+    /// If the request had `omit_members` set to `true`, events of type `m.room.member` may be
+    /// omitted from the response to reduce the size of the response. If this is done,
+    /// `members_omitted` must be set to `true`.
     pub state: Vec<Box<RawJsonValue>>,
 
     /// The signed copy of the membership event sent to other servers by the
@@ -130,11 +114,7 @@ pub struct RoomState {
     /// A list of the servers active in the room (ie, those with joined members) before the join.
     ///
     /// Required if `members_omitted` is set to `true`.
-    #[cfg(feature = "unstable-msc3706")]
-    #[serde(
-        rename = "org.matrix.msc3706.servers_in_room",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub servers_in_room: Option<Vec<String>>,
 }
 
@@ -157,9 +137,7 @@ impl RoomState {
             auth_chain: Vec::new(),
             state: Vec::new(),
             event: None,
-            #[cfg(feature = "unstable-msc3706")]
             members_omitted: false,
-            #[cfg(feature = "unstable-msc3706")]
             servers_in_room: None,
         }
     }
@@ -174,9 +152,7 @@ impl RoomState {
             auth_chain: Vec::new(),
             state: Vec::new(),
             event: None,
-            #[cfg(feature = "unstable-msc3706")]
             members_omitted: false,
-            #[cfg(feature = "unstable-msc3706")]
             servers_in_room: None,
         }
     }
