@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Stabilize support for getting an event by timestamp (MSC3030 / Matrix 1.6)
+
 # 0.7.0
 
 Bug fixes:
