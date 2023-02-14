@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+- Move `.m.rule.roomnotif` push rule before `.m.rule.tombstone` in the server default push rules,
+  according to a spec clarification in Matrix 1.6
+
 Improvements:
 
 * Add `MatrixVersion::V1_6`

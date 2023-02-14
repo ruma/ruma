@@ -27,9 +27,9 @@ impl Ruleset {
                 ConditionalPushRule::invite_for_me(user_id),
                 ConditionalPushRule::member_event(),
                 ConditionalPushRule::contains_display_name(),
+                ConditionalPushRule::roomnotif(),
                 ConditionalPushRule::tombstone(),
                 ConditionalPushRule::server_acl(),
-                ConditionalPushRule::roomnotif(),
                 #[cfg(feature = "unstable-msc2677")]
                 ConditionalPushRule::reaction(),
             ]
@@ -390,16 +390,16 @@ pub enum PredefinedOverrideRuleId {
     /// `.m.rule.contains_display_name`
     ContainsDisplayName,
 
+    /// `.m.rule.roomnotif`
+    #[ruma_enum(rename = ".m.rule.roomnotif")]
+    RoomNotif,
+
     /// `.m.rule.tombstone`
     Tombstone,
 
     /// `.m.rule.room.server_acl`
     #[ruma_enum(rename = ".m.rule.room.server_acl")]
     RoomServerAcl,
-
-    /// `.m.rule.roomnotif`
-    #[ruma_enum(rename = ".m.rule.roomnotif")]
-    RoomNotif,
 
     /// `.m.rule.reaction`
     #[cfg(feature = "unstable-msc2677")]
