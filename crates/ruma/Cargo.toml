@@ -136,7 +136,6 @@ unstable-msc2746 = ["ruma-common/unstable-msc2746"]
 unstable-msc2870 = ["ruma-common/unstable-msc2870"]
 unstable-msc2965 = ["ruma-client-api?/unstable-msc2965"]
 unstable-msc2967 = ["ruma-client-api?/unstable-msc2967"]
-unstable-msc3030 = ["ruma-federation-api?/unstable-msc3030"]
 unstable-msc3202 = ["ruma-appservice-api?/unstable-msc3202"]
 unstable-msc3245 = ["ruma-common/unstable-msc3245"]
 unstable-msc3246 = ["ruma-common/unstable-msc3246"]
@@ -180,7 +179,6 @@ __ci = [
     "unstable-msc2870",
     "unstable-msc2965",
     "unstable-msc2967",
-    "unstable-msc3030",
     "unstable-msc3202",
     "unstable-msc3245",
     "unstable-msc3246",
