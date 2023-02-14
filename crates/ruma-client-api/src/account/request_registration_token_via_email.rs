@@ -43,7 +43,7 @@ pub mod v3 {
 
         /// Optional identity server hostname and access token.
         #[serde(flatten, skip_serializing_if = "Option::is_none")]
-        #[deprecated(since = "0.6.0")]
+        #[deprecated = "Since Matrix Client-Server API r0.6.0."]
         pub identity_server_info: Option<IdentityServerInfo>,
     }
 

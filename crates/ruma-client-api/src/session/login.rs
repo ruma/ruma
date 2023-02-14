@@ -68,7 +68,10 @@ pub mod v3 {
 
         /// The hostname of the homeserver on which the account has been registered.
         #[serde(skip_serializing_if = "Option::is_none")]
-        #[deprecated = "Clients should instead use the `user_id.server_name()` method if they require it."]
+        #[deprecated = "\
+            Since Matrix Client-Server API r0.4.0. Clients should instead use the \
+            `user_id.server_name()` method if they require it.\
+        "]
         pub home_server: Option<OwnedServerName>,
 
         /// ID of the logged-in device.
