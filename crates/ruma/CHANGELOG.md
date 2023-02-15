@@ -1,5 +1,14 @@
 # [unreleased]
 
+# 0.8.2
+
+Please refer to the changelogs of:
+
+* ruma-common 0.11.3
+* ruma-client-api 0.16.1
+* ruma-federation-api 0.7.1
+* ruma-identifiers-validation 0.9.1
+
 # 0.8.1
 
 Add the `server-util` feature, which activates a re-export of the new
