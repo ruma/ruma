@@ -23,7 +23,7 @@ ruma-macros = { version = "=0.11.3", path = "crates/ruma-macros" }
 ruma-push-gateway-api = { version = "0.7.1", path = "crates/ruma-push-gateway-api" }
 ruma-signatures = { version = "0.13.1", path = "crates/ruma-signatures" }
 ruma-server-util = { version = "0.1.1", path = "crates/ruma-server-util" }
-ruma-state-res = { version = "0.9.0", path = "crates/ruma-state-res" }
+ruma-state-res = { version = "0.9.1", path = "crates/ruma-state-res" }
 serde = { version = "1.0.147", features = ["derive"] }
 serde_html_form = "0.2.0"
 serde_json = "1.0.87"
