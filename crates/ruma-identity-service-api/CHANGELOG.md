@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.7.1
+
+Improvements:
+
+* Update links to the latest version of the Matrix spec
+
 # 0.7.0
 
 No changes for this version
