@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.9.1
+
+Improvements:
+
+* Update links to the latest version of the Matrix spec
+
 # 0.9.0
 
 Breaking changes:
