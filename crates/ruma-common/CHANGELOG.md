@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.11.3
+
 Bug fixes:
 
 - Move `.m.rule.roomnotif` push rule before `.m.rule.tombstone` in the server default push rules,
