@@ -35,11 +35,13 @@ pub mod v3 {
         pub event_id: OwnedEventId,
 
         /// Integer between -100 and 0 rating offensivness.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub score: Option<Int>,
 
         /// Reason to report content.
         ///
         /// May be blank.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub reason: Option<String>,
     }
 
