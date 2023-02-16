@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.16.2
+
 Bug fixes:
 
 - Don't serialize `None` as `null` in `report_content::v3::Request`
