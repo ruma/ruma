@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+- Make `in_reply_to` field of `Thread` optional
+  - It was wrong to be mandatory, spec was unclear (clarified [here](https://github.com/matrix-org/matrix-spec/pull/1439))
+
 # 0.11.3
 
 Bug fixes:
