@@ -5,7 +5,7 @@
 mod receipt_thread_serde;
 
 use std::{
-    collections::BTreeMap,
+    collections::{btree_map, BTreeMap},
     ops::{Deref, DerefMut},
 };
 
@@ -51,6 +51,24 @@ impl Deref for ReceiptEventContent {
 impl DerefMut for ReceiptEventContent {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
+    }
+}
+
+impl IntoIterator for ReceiptEventContent {
+    type Item = (OwnedEventId, Receipts);
+    type IntoIter = btree_map::IntoIter<OwnedEventId, Receipts>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl FromIterator<(OwnedEventId, Receipts)> for ReceiptEventContent {
+    fn from_iter<T>(iter: T) -> Self
+    where
+        T: IntoIterator<Item = (OwnedEventId, Receipts)>,
+    {
+        Self(BTreeMap::from_iter(iter))
     }
 }
 
