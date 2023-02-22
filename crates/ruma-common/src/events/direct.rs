@@ -3,7 +3,7 @@
 //! [`m.direct`]: https://spec.matrix.org/latest/client-server-api/#mdirect
 
 use std::{
-    collections::BTreeMap,
+    collections::{btree_map, BTreeMap},
     ops::{Deref, DerefMut},
 };
 
@@ -34,6 +34,24 @@ impl Deref for DirectEventContent {
 impl DerefMut for DirectEventContent {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
+    }
+}
+
+impl IntoIterator for DirectEventContent {
+    type Item = (OwnedUserId, Vec<OwnedRoomId>);
+    type IntoIter = btree_map::IntoIter<OwnedUserId, Vec<OwnedRoomId>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl FromIterator<(OwnedUserId, Vec<OwnedRoomId>)> for DirectEventContent {
+    fn from_iter<T>(iter: T) -> Self
+    where
+        T: IntoIterator<Item = (OwnedUserId, Vec<OwnedRoomId>)>,
+    {
+        Self(BTreeMap::from_iter(iter))
     }
 }
 
