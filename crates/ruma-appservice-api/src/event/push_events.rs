@@ -9,6 +9,11 @@ pub mod v1 {
 
     #[cfg(any(feature = "unstable-msc2409", feature = "unstable-msc3202"))]
     use std::collections::BTreeMap;
+    #[cfg(feature = "unstable-msc2409")]
+    use std::{
+        collections::btree_map,
+        ops::{Deref, DerefMut},
+    };
 
     #[cfg(any(feature = "unstable-msc2409", feature = "unstable-msc3202"))]
     use js_int::UInt;
@@ -282,6 +287,42 @@ pub mod v1 {
         /// Creates a new `ReceiptContent`.
         pub fn new(receipts: BTreeMap<OwnedRoomId, ReceiptMap>) -> Self {
             Self(receipts)
+        }
+    }
+
+    #[cfg(feature = "unstable-msc2409")]
+    impl Deref for ReceiptContent {
+        type Target = BTreeMap<OwnedRoomId, ReceiptMap>;
+
+        fn deref(&self) -> &Self::Target {
+            &self.0
+        }
+    }
+
+    #[cfg(feature = "unstable-msc2409")]
+    impl DerefMut for ReceiptContent {
+        fn deref_mut(&mut self) -> &mut Self::Target {
+            &mut self.0
+        }
+    }
+
+    #[cfg(feature = "unstable-msc2409")]
+    impl IntoIterator for ReceiptContent {
+        type Item = (OwnedRoomId, ReceiptMap);
+        type IntoIter = btree_map::IntoIter<OwnedRoomId, ReceiptMap>;
+
+        fn into_iter(self) -> Self::IntoIter {
+            self.0.into_iter()
+        }
+    }
+
+    #[cfg(feature = "unstable-msc2409")]
+    impl FromIterator<(OwnedRoomId, ReceiptMap)> for ReceiptContent {
+        fn from_iter<T>(iter: T) -> Self
+        where
+            T: IntoIterator<Item = (OwnedRoomId, ReceiptMap)>,
+        {
+            Self(BTreeMap::from_iter(iter))
         }
     }
 
