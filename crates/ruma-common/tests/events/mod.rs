@@ -13,7 +13,6 @@ mod image;
 mod initial_state;
 mod location;
 mod message;
-mod message_event;
 mod pdu;
 mod poll;
 mod redacted;

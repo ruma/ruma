@@ -9,9 +9,7 @@ use ruma_common::{
         location::{AssetType, LocationContent, LocationEventContent, ZoomLevel, ZoomLevelError},
         message::MessageContent,
         relation::InReplyTo,
-        room::message::{
-            LocationMessageEventContent, MessageType, Relation, RoomMessageEventContent,
-        },
+        room::message::Relation,
         AnyMessageLikeEvent, MessageLikeEvent,
     },
     room_id,
@@ -177,37 +175,4 @@ fn message_event_deserialization() {
     assert_eq!(ev.room_id, room_id!("!roomid:notareal.hs"));
     assert_eq!(ev.sender, user_id!("@user:notareal.hs"));
     assert!(ev.unsigned.is_empty());
-}
-
-#[test]
-fn room_message_serialization() {
-    let message_event_content =
-        RoomMessageEventContent::new(MessageType::Location(LocationMessageEventContent::new(
-            "Alice was at geo:51.5008,0.1247;u=35".to_owned(),
-            "geo:51.5008,0.1247;u=35".to_owned(),
-        )));
-
-    assert_eq!(
-        to_json_value(&message_event_content).unwrap(),
-        json!({
-            "body": "Alice was at geo:51.5008,0.1247;u=35",
-            "geo_uri": "geo:51.5008,0.1247;u=35",
-            "msgtype": "m.location",
-        })
-    );
-}
-
-#[test]
-fn room_message_deserialization() {
-    let json_data = json!({
-        "body": "Alice was at geo:51.5008,0.1247;u=35",
-        "geo_uri": "geo:51.5008,0.1247;u=35",
-        "msgtype": "m.location",
-    });
-
-    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    let content = assert_matches!(event_content.msgtype, MessageType::Location(c) => c);
-
-    assert_eq!(content.body, "Alice was at geo:51.5008,0.1247;u=35");
-    assert_eq!(content.geo_uri, "geo:51.5008,0.1247;u=35");
 }

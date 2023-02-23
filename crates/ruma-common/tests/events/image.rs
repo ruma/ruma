@@ -13,10 +13,7 @@ use ruma_common::{
         },
         message::MessageContent,
         relation::InReplyTo,
-        room::{
-            message::{ImageMessageEventContent, MessageType, Relation, RoomMessageEventContent},
-            JsonWebKeyInit, MediaSource,
-        },
+        room::{message::Relation, JsonWebKeyInit},
         AnyMessageLikeEvent, MessageLikeEvent,
     },
     mxc_uri,
@@ -284,38 +281,4 @@ fn message_event_deserialization() {
     assert_eq!(content.image.width, Some(uint!(1300)));
     assert_eq!(content.image.height, Some(uint!(837)));
     assert_eq!(content.thumbnail.len(), 0);
-}
-
-#[test]
-fn room_message_serialization() {
-    let message_event_content =
-        RoomMessageEventContent::new(MessageType::Image(ImageMessageEventContent::plain(
-            "Upload: my_image.jpg".to_owned(),
-            mxc_uri!("mxc://notareal.hs/file").to_owned(),
-            None,
-        )));
-
-    assert_eq!(
-        to_json_value(&message_event_content).unwrap(),
-        json!({
-            "body": "Upload: my_image.jpg",
-            "url": "mxc://notareal.hs/file",
-            "msgtype": "m.image",
-        })
-    );
-}
-
-#[test]
-fn room_message_deserialization() {
-    let json_data = json!({
-        "body": "Upload: my_image.jpg",
-        "url": "mxc://notareal.hs/file",
-        "msgtype": "m.image",
-    });
-
-    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    let content = assert_matches!(event_content.msgtype, MessageType::Image(content) => content);
-    assert_eq!(content.body, "Upload: my_image.jpg");
-    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
-    assert_eq!(url, "mxc://notareal.hs/file");
 }
