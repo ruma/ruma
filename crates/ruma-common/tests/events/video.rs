@@ -12,10 +12,7 @@ use ruma_common::{
         image::{ThumbnailContent, ThumbnailFileContent, ThumbnailFileContentInfo},
         message::MessageContent,
         relation::InReplyTo,
-        room::{
-            message::{MessageType, Relation, RoomMessageEventContent, VideoMessageEventContent},
-            JsonWebKeyInit, MediaSource,
-        },
+        room::{message::Relation, JsonWebKeyInit},
         video::{VideoContent, VideoEventContent},
         AnyMessageLikeEvent, MessageLikeEvent,
     },
@@ -297,38 +294,4 @@ fn message_event_deserialization() {
     assert_eq!(info.name.as_deref(), Some("my_gnome.webm"));
     assert_eq!(info.mimetype.as_deref(), Some("video/webm"));
     assert_eq!(info.size, Some(uint!(123_774)));
-}
-
-#[test]
-fn room_message_serialization() {
-    let message_event_content =
-        RoomMessageEventContent::new(MessageType::Video(VideoMessageEventContent::plain(
-            "Upload: my_video.mp4".to_owned(),
-            mxc_uri!("mxc://notareal.hs/file").to_owned(),
-            None,
-        )));
-
-    assert_eq!(
-        to_json_value(&message_event_content).unwrap(),
-        json!({
-            "body": "Upload: my_video.mp4",
-            "url": "mxc://notareal.hs/file",
-            "msgtype": "m.video",
-        })
-    );
-}
-
-#[test]
-fn room_message_deserialization() {
-    let json_data = json!({
-        "body": "Upload: my_video.mp4",
-        "url": "mxc://notareal.hs/file",
-        "msgtype": "m.video",
-    });
-
-    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    let content = assert_matches!(event_content.msgtype, MessageType::Video(content) => content);
-    assert_eq!(content.body, "Upload: my_video.mp4");
-    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
-    assert_eq!(url, "mxc://notareal.hs/file");
 }

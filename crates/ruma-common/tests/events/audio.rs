@@ -12,10 +12,7 @@ use ruma_common::{
         file::{EncryptedContentInit, FileContent, FileContentInfo},
         message::MessageContent,
         relation::InReplyTo,
-        room::{
-            message::{AudioMessageEventContent, MessageType, Relation, RoomMessageEventContent},
-            JsonWebKeyInit, MediaSource,
-        },
+        room::{message::Relation, JsonWebKeyInit},
         AnyMessageLikeEvent, MessageLikeEvent,
     },
     mxc_uri,
@@ -328,38 +325,4 @@ fn message_event_deserialization() {
     assert_eq!(info.size, Some(uint!(123_774)));
     assert_eq!(content.audio.duration, Some(Duration::from_millis(5_300)));
     assert_matches!(content.audio.waveform, None);
-}
-
-#[test]
-fn room_message_serialization() {
-    let message_event_content =
-        RoomMessageEventContent::new(MessageType::Audio(AudioMessageEventContent::plain(
-            "Upload: my_song.mp3".to_owned(),
-            mxc_uri!("mxc://notareal.hs/file").to_owned(),
-            None,
-        )));
-
-    assert_eq!(
-        to_json_value(&message_event_content).unwrap(),
-        json!({
-            "body": "Upload: my_song.mp3",
-            "url": "mxc://notareal.hs/file",
-            "msgtype": "m.audio",
-        })
-    );
-}
-
-#[test]
-fn room_message_deserialization() {
-    let json_data = json!({
-        "body": "Upload: my_song.mp3",
-        "url": "mxc://notareal.hs/file",
-        "msgtype": "m.audio",
-    });
-
-    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    let content = assert_matches!(event_content.msgtype, MessageType::Audio(content) => content);
-    assert_eq!(content.body, "Upload: my_song.mp3");
-    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
-    assert_eq!(url, "mxc://notareal.hs/file");
 }

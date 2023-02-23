@@ -10,7 +10,7 @@ use ruma_common::{
         message::{MessageContent, MessageEventContent, Text},
         notice::NoticeEventContent,
         relation::InReplyTo,
-        room::message::{EmoteMessageEventContent, MessageType, Relation, RoomMessageEventContent},
+        room::message::Relation,
         AnyMessageLikeEvent, MessageLikeEvent,
     },
     serde::CanBeEmpty,
@@ -296,63 +296,11 @@ fn message_event_deserialization() {
 }
 
 #[test]
-fn room_message_plain_text_deserialization() {
-    let json_data = json!({
-        "body": "test",
-        "msgtype": "m.text",
-    });
-
-    let content = assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent {
-            msgtype: MessageType::Text(content),
-            ..
-        }) => content
-    );
-    assert_eq!(content.body, "test");
-}
-
-#[test]
-fn room_message_html_and_text_deserialization() {
-    let json_data = json!({
-        "body": "test",
-        "formatted_body": "<h1>test</h1>",
-        "format": "org.matrix.custom.html",
-        "msgtype": "m.text",
-    });
-
-    let content = assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent {
-            msgtype: MessageType::Text(content),
-            ..
-        }) => content
-    );
-    assert_eq!(content.body, "test");
-    let formatted = content.formatted.unwrap();
-    assert_eq!(formatted.body, "<h1>test</h1>");
-}
-
-#[test]
 fn notice_event_serialization() {
     let content = NoticeEventContent::plain("Hello, I'm a robot!");
     assert_eq!(
         to_json_value(&content).unwrap(),
         json!({ "org.matrix.msc1767.text": "Hello, I'm a robot!" })
-    );
-}
-
-#[test]
-fn room_message_notice_serialization() {
-    let message_event_content =
-        RoomMessageEventContent::notice_plain("> <@test:example.com> test\n\ntest reply");
-
-    assert_eq!(
-        to_json_value(&message_event_content).unwrap(),
-        json!({
-            "body": "> <@test:example.com> test\n\ntest reply",
-            "msgtype": "m.notice",
-        })
     );
 }
 
@@ -421,23 +369,6 @@ fn notice_event_unstable_deserialization() {
 }
 
 #[test]
-fn room_message_notice_deserialization() {
-    let json_data = json!({
-        "body": "test",
-        "msgtype": "m.notice",
-    });
-
-    let content = assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent {
-            msgtype: MessageType::Notice(content),
-            ..
-        }) => content
-    );
-    assert_eq!(content.body, "test");
-}
-
-#[test]
 fn emote_event_serialization() {
     let content =
         EmoteEventContent::html("is testing some code…", "is testing some <code>code</code>…");
@@ -447,21 +378,6 @@ fn emote_event_serialization() {
         json!({
             "org.matrix.msc1767.html": "is testing some <code>code</code>…",
             "org.matrix.msc1767.text": "is testing some code…",
-        })
-    );
-}
-
-#[test]
-fn room_message_emote_serialization() {
-    let message_event_content = RoomMessageEventContent::new(MessageType::Emote(
-        EmoteMessageEventContent::plain("> <@test:example.com> test\n\ntest reply"),
-    ));
-
-    assert_eq!(
-        to_json_value(&message_event_content).unwrap(),
-        json!({
-            "body": "> <@test:example.com> test\n\ntest reply",
-            "msgtype": "m.emote",
         })
     );
 }
@@ -522,23 +438,6 @@ fn emote_event_unstable_deserialization() {
     let message = message_event.content.message;
     assert_eq!(message.find_plain(), Some("is testing some code…"));
     assert_eq!(message.find_html(), None);
-}
-
-#[test]
-fn room_message_emote_deserialization() {
-    let json_data = json!({
-        "body": "test",
-        "msgtype": "m.emote",
-    });
-
-    let content = assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent {
-            msgtype: MessageType::Emote(content),
-            ..
-        }) => content
-    );
-    assert_eq!(content.body, "test");
 }
 
 #[test]

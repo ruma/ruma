@@ -8,15 +8,18 @@ use ruma_common::{
         key::verification::VerificationMethod,
         room::{
             message::{
-                AudioMessageEventContent, ForwardThread, KeyVerificationRequestEventContent,
-                MessageType, OriginalRoomMessageEvent, RoomMessageEventContent,
-                TextMessageEventContent,
+                AudioMessageEventContent, EmoteMessageEventContent, FileMessageEventContent,
+                ForwardThread, ImageMessageEventContent, KeyVerificationRequestEventContent,
+                LocationMessageEventContent, MessageType, OriginalRoomMessageEvent,
+                RoomMessageEventContent, TextMessageEventContent, VideoMessageEventContent,
             },
-            MediaSource,
+            EncryptedFileInit, JsonWebKeyInit, MediaSource,
         },
         MessageLikeUnsigned,
     },
-    mxc_uri, room_id, user_id, MilliSecondsSinceUnixEpoch, OwnedDeviceId,
+    mxc_uri, room_id,
+    serde::Base64,
+    user_id, MilliSecondsSinceUnixEpoch, OwnedDeviceId,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -30,44 +33,6 @@ macro_rules! json_object {
             _map
         }
     };
-}
-
-#[test]
-fn serialization() {
-    let content =
-        RoomMessageEventContent::new(MessageType::Audio(AudioMessageEventContent::plain(
-            "test".into(),
-            mxc_uri!("mxc://example.org/ffed755USFFxlgbQYZGtryd").to_owned(),
-            None,
-        )));
-
-    assert_eq!(
-        to_json_value(content).unwrap(),
-        json!({
-            "body": "test",
-            "msgtype": "m.audio",
-            "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd",
-        })
-    );
-}
-
-#[test]
-fn content_serialization() {
-    let message_event_content =
-        RoomMessageEventContent::new(MessageType::Audio(AudioMessageEventContent::plain(
-            "test".into(),
-            mxc_uri!("mxc://example.org/ffed755USFFxlgbQYZGtryd").to_owned(),
-            None,
-        )));
-
-    assert_eq!(
-        to_json_value(&message_event_content).unwrap(),
-        json!({
-            "body": "test",
-            "msgtype": "m.audio",
-            "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd"
-        })
-    );
 }
 
 #[test]
@@ -91,7 +56,7 @@ fn custom_msgtype_serialization() {
 }
 
 #[test]
-fn custom_content_deserialization() {
+fn custom_msgtype_deserialization() {
     let json_data = json!({
         "msgtype": "my_custom_msgtype",
         "body": "my custom message",
@@ -112,7 +77,7 @@ fn custom_content_deserialization() {
 }
 
 #[test]
-fn formatted_body_serialization() {
+fn text_msgtype_formatted_body_serialization() {
     let message_event_content =
         RoomMessageEventContent::text_html("Hello, World!", "Hello, <em>World</em>!");
 
@@ -128,7 +93,7 @@ fn formatted_body_serialization() {
 }
 
 #[test]
-fn plain_text_content_serialization() {
+fn text_msgtype_plain_text_serialization() {
     let message_event_content =
         RoomMessageEventContent::text_plain("> <@test:example.com> test\n\ntest reply");
 
@@ -143,7 +108,7 @@ fn plain_text_content_serialization() {
 
 #[test]
 #[cfg(feature = "markdown")]
-fn markdown_content_serialization() {
+fn text_msgtype_markdown_serialization() {
     use ruma_common::events::room::message::TextMessageEventContent;
 
     let formatted_message = RoomMessageEventContent::new(MessageType::Text(
@@ -232,7 +197,7 @@ fn markdown_options() {
 }
 
 #[test]
-fn verification_request_deserialization() {
+fn verification_request_msgtype_deserialization() {
     let user_id = user_id!("@example2:localhost");
     let device_id: OwnedDeviceId = "XOWLHHFSWM".into();
 
@@ -264,7 +229,7 @@ fn verification_request_deserialization() {
 }
 
 #[test]
-fn verification_request_serialization() {
+fn verification_request_msgtype_serialization() {
     let user_id = user_id!("@example2:localhost").to_owned();
     let device_id: OwnedDeviceId = "XOWLHHFSWM".into();
     let body = "@example:localhost is requesting to verify your key, ...".to_owned();
@@ -288,30 +253,10 @@ fn verification_request_serialization() {
 }
 
 #[test]
-fn content_deserialization() {
-    let json_data = json!({
-        "body": "test",
-        "msgtype": "m.audio",
-        "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd"
-    });
-
-    let content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    let audio = assert_matches!(
-        content.msgtype,
-        MessageType::Audio(audio) => audio
-    );
-    assert_eq!(audio.body, "test");
-    assert_matches!(audio.info, None);
-    let url = assert_matches!(audio.source, MediaSource::Plain(url) => url);
-    assert_eq!(url, "mxc://example.org/ffed755USFFxlgbQYZGtryd");
-
-    assert_matches!(content.relates_to, None);
-}
-
-#[test]
 fn content_deserialization_failure() {
     let json_data = json!({
-        "body": "test","msgtype": "m.location",
+        "body": "test",
+        "msgtype": "m.location",
         "url": "http://example.com/audio.mp3"
     });
     assert_matches!(from_json_value::<RoomMessageEventContent>(json_data), Err(_));
@@ -528,4 +473,353 @@ fn make_replacement_with_reply() {
         * This is <em>an edited</em> reply.\
         "
     );
+}
+
+#[test]
+fn audio_msgtype_serialization() {
+    let message_event_content =
+        RoomMessageEventContent::new(MessageType::Audio(AudioMessageEventContent::plain(
+            "Upload: my_song.mp3".to_owned(),
+            mxc_uri!("mxc://notareal.hs/file").to_owned(),
+            None,
+        )));
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "Upload: my_song.mp3",
+            "url": "mxc://notareal.hs/file",
+            "msgtype": "m.audio",
+        })
+    );
+}
+
+#[test]
+fn audio_msgtype_deserialization() {
+    let json_data = json!({
+        "body": "Upload: my_song.mp3",
+        "url": "mxc://notareal.hs/file",
+        "msgtype": "m.audio",
+    });
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    let content = assert_matches!(event_content.msgtype, MessageType::Audio(content) => content);
+    assert_eq!(content.body, "Upload: my_song.mp3");
+    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
+    assert_eq!(url, "mxc://notareal.hs/file");
+}
+
+#[test]
+fn file_msgtype_plain_content_serialization() {
+    let message_event_content =
+        RoomMessageEventContent::new(MessageType::File(FileMessageEventContent::plain(
+            "Upload: my_file.txt".to_owned(),
+            mxc_uri!("mxc://notareal.hs/file").to_owned(),
+            None,
+        )));
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "Upload: my_file.txt",
+            "url": "mxc://notareal.hs/file",
+            "msgtype": "m.file",
+        })
+    );
+}
+
+#[test]
+fn file_msgtype_encrypted_content_serialization() {
+    let message_event_content =
+        RoomMessageEventContent::new(MessageType::File(FileMessageEventContent::encrypted(
+            "Upload: my_file.txt".to_owned(),
+            EncryptedFileInit {
+                url: mxc_uri!("mxc://notareal.hs/file").to_owned(),
+                key: JsonWebKeyInit {
+                    kty: "oct".to_owned(),
+                    key_ops: vec!["encrypt".to_owned(), "decrypt".to_owned()],
+                    alg: "A256CTR".to_owned(),
+                    k: Base64::parse("TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A").unwrap(),
+                    ext: true,
+                }
+                .into(),
+                iv: Base64::parse("S22dq3NAX8wAAAAAAAAAAA").unwrap(),
+                hashes: [(
+                    "sha256".to_owned(),
+                    Base64::parse("aWOHudBnDkJ9IwaR1Nd8XKoI7DOrqDTwt6xDPfVGN6Q").unwrap(),
+                )]
+                .into(),
+                v: "v2".to_owned(),
+            }
+            .into(),
+        )));
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "Upload: my_file.txt",
+            "file": {
+                "url": "mxc://notareal.hs/file",
+                "key": {
+                    "kty": "oct",
+                    "key_ops": ["encrypt", "decrypt"],
+                    "alg": "A256CTR",
+                    "k": "TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A",
+                    "ext": true
+                },
+                "iv": "S22dq3NAX8wAAAAAAAAAAA",
+                "hashes": {
+                    "sha256": "aWOHudBnDkJ9IwaR1Nd8XKoI7DOrqDTwt6xDPfVGN6Q"
+                },
+                "v": "v2",
+            },
+            "msgtype": "m.file",
+        })
+    );
+}
+
+#[test]
+fn file_msgtype_plain_content_deserialization() {
+    let json_data = json!({
+        "body": "Upload: my_file.txt",
+        "url": "mxc://notareal.hs/file",
+        "msgtype": "m.file",
+    });
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    let content = assert_matches!(event_content.msgtype, MessageType::File(content) => content);
+    assert_eq!(content.body, "Upload: my_file.txt");
+    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
+    assert_eq!(url, "mxc://notareal.hs/file");
+}
+
+#[test]
+fn file_msgtype_encrypted_content_deserialization() {
+    let json_data = json!({
+        "body": "Upload: my_file.txt",
+        "file": {
+            "url": "mxc://notareal.hs/file",
+            "key": {
+                "kty": "oct",
+                "key_ops": ["encrypt", "decrypt"],
+                "alg": "A256CTR",
+                "k": "TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A",
+                "ext": true
+            },
+            "iv": "S22dq3NAX8wAAAAAAAAAAA",
+            "hashes": {
+                "sha256": "aWOHudBnDkJ9IwaR1Nd8XKoI7DOrqDTwt6xDPfVGN6Q"
+            },
+            "v": "v2",
+        },
+        "msgtype": "m.file",
+    });
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    let content = assert_matches!(event_content.msgtype, MessageType::File(content) => content);
+    assert_eq!(content.body, "Upload: my_file.txt");
+    let encrypted_file = assert_matches!(content.source, MediaSource::Encrypted(f) => f);
+    assert_eq!(encrypted_file.url, "mxc://notareal.hs/file");
+}
+
+#[test]
+fn image_msgtype_serialization() {
+    let message_event_content =
+        RoomMessageEventContent::new(MessageType::Image(ImageMessageEventContent::plain(
+            "Upload: my_image.jpg".to_owned(),
+            mxc_uri!("mxc://notareal.hs/file").to_owned(),
+            None,
+        )));
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "Upload: my_image.jpg",
+            "url": "mxc://notareal.hs/file",
+            "msgtype": "m.image",
+        })
+    );
+}
+
+#[test]
+fn image_msgtype_deserialization() {
+    let json_data = json!({
+        "body": "Upload: my_image.jpg",
+        "url": "mxc://notareal.hs/file",
+        "msgtype": "m.image",
+    });
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    let content = assert_matches!(event_content.msgtype, MessageType::Image(content) => content);
+    assert_eq!(content.body, "Upload: my_image.jpg");
+    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
+    assert_eq!(url, "mxc://notareal.hs/file");
+}
+
+#[test]
+fn location_msgtype_serialization() {
+    let message_event_content =
+        RoomMessageEventContent::new(MessageType::Location(LocationMessageEventContent::new(
+            "Alice was at geo:51.5008,0.1247;u=35".to_owned(),
+            "geo:51.5008,0.1247;u=35".to_owned(),
+        )));
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "Alice was at geo:51.5008,0.1247;u=35",
+            "geo_uri": "geo:51.5008,0.1247;u=35",
+            "msgtype": "m.location",
+        })
+    );
+}
+
+#[test]
+fn location_msgtype_deserialization() {
+    let json_data = json!({
+        "body": "Alice was at geo:51.5008,0.1247;u=35",
+        "geo_uri": "geo:51.5008,0.1247;u=35",
+        "msgtype": "m.location",
+    });
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    let content = assert_matches!(event_content.msgtype, MessageType::Location(c) => c);
+
+    assert_eq!(content.body, "Alice was at geo:51.5008,0.1247;u=35");
+    assert_eq!(content.geo_uri, "geo:51.5008,0.1247;u=35");
+}
+
+#[test]
+fn text_msgtype_body_deserialization() {
+    let json_data = json!({
+        "body": "test",
+        "msgtype": "m.text",
+    });
+
+    let content = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data),
+        Ok(RoomMessageEventContent {
+            msgtype: MessageType::Text(content),
+            ..
+        }) => content
+    );
+    assert_eq!(content.body, "test");
+}
+
+#[test]
+fn text_msgtype_formatted_body_and_body_deserialization() {
+    let json_data = json!({
+        "body": "test",
+        "formatted_body": "<h1>test</h1>",
+        "format": "org.matrix.custom.html",
+        "msgtype": "m.text",
+    });
+
+    let content = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data),
+        Ok(RoomMessageEventContent {
+            msgtype: MessageType::Text(content),
+            ..
+        }) => content
+    );
+    assert_eq!(content.body, "test");
+    let formatted = content.formatted.unwrap();
+    assert_eq!(formatted.body, "<h1>test</h1>");
+}
+
+#[test]
+fn notice_msgtype_serialization() {
+    let message_event_content =
+        RoomMessageEventContent::notice_plain("> <@test:example.com> test\n\ntest reply");
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "> <@test:example.com> test\n\ntest reply",
+            "msgtype": "m.notice",
+        })
+    );
+}
+
+#[test]
+fn notice_msgtype_deserialization() {
+    let json_data = json!({
+        "body": "test",
+        "msgtype": "m.notice",
+    });
+
+    let content = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data),
+        Ok(RoomMessageEventContent {
+            msgtype: MessageType::Notice(content),
+            ..
+        }) => content
+    );
+    assert_eq!(content.body, "test");
+}
+
+#[test]
+fn emote_msgtype_serialization() {
+    let message_event_content = RoomMessageEventContent::new(MessageType::Emote(
+        EmoteMessageEventContent::plain("> <@test:example.com> test\n\ntest reply"),
+    ));
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "> <@test:example.com> test\n\ntest reply",
+            "msgtype": "m.emote",
+        })
+    );
+}
+
+#[test]
+fn emote_msgtype_deserialization() {
+    let json_data = json!({
+        "body": "test",
+        "msgtype": "m.emote",
+    });
+
+    let content = assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json_data),
+        Ok(RoomMessageEventContent {
+            msgtype: MessageType::Emote(content),
+            ..
+        }) => content
+    );
+    assert_eq!(content.body, "test");
+}
+
+#[test]
+fn video_msgtype_serialization() {
+    let message_event_content =
+        RoomMessageEventContent::new(MessageType::Video(VideoMessageEventContent::plain(
+            "Upload: my_video.mp4".to_owned(),
+            mxc_uri!("mxc://notareal.hs/file").to_owned(),
+            None,
+        )));
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "Upload: my_video.mp4",
+            "url": "mxc://notareal.hs/file",
+            "msgtype": "m.video",
+        })
+    );
+}
+
+#[test]
+fn video_msgtype_deserialization() {
+    let json_data = json!({
+        "body": "Upload: my_video.mp4",
+        "url": "mxc://notareal.hs/file",
+        "msgtype": "m.video",
+    });
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    let content = assert_matches!(event_content.msgtype, MessageType::Video(content) => content);
+    assert_eq!(content.body, "Upload: my_video.mp4");
+    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
+    assert_eq!(url, "mxc://notareal.hs/file");
 }
