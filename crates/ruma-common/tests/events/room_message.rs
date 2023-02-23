@@ -24,22 +24,19 @@ use ruma_common::{
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 macro_rules! json_object {
-    ( $($key:expr => $value:expr),* $(,)? ) => {
-        {
-            let mut _map = serde_json::Map::<String, serde_json::Value>::new();
-            $(
-                let _ = _map.insert($key, $value);
-            )*
-            _map
+    ( $($tt:tt)+ ) => {
+        match serde_json::json!({ $($tt)+ }) {
+            serde_json::value::Value::Object(map) => map,
+            _ => panic!("Not a JSON object"),
         }
-    };
+    }
 }
 
 #[test]
 fn custom_msgtype_serialization() {
     let json_data = json_object! {
-        "custom_field".into() => json!("baba"),
-        "another_one".into() => json!("abab"),
+        "custom_field": "baba",
+        "another_one": "abab",
     };
     let custom_msgtype =
         MessageType::new("my_custom_msgtype", "my message body".into(), json_data).unwrap();
@@ -65,8 +62,8 @@ fn custom_msgtype_deserialization() {
     });
 
     let expected_json_data = json_object! {
-        "custom_field".into() => json!("baba"),
-        "another_one".into() => json!("abab"),
+        "custom_field": "baba",
+        "another_one": "abab",
     };
 
     let custom_event: MessageType = from_json_value(json_data).unwrap();
