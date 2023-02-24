@@ -588,7 +588,7 @@ pub fn verify_event(
             // Since only ed25519 is supported right now, we don't actually need to check what the
             // algorithm is. If it split successfully, it's ed25519.
             if split_id(key_id).is_err() {
-                break;
+                continue;
             }
 
             if let Some(signature) = signature_set.get(key_id) {
