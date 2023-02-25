@@ -117,6 +117,18 @@ impl RoomEventFilter {
         Self { types: Some(vec![]), ..Default::default() }
     }
 
+    /// Creates a new `RoomEventFilter` with [room member lazy-loading] enabled.
+    ///
+    /// Redundant membership events are disabled.
+    ///
+    /// [room member lazy-loading]: https://spec.matrix.org/latest/client-server-api/#lazy-loading-room-members
+    pub fn with_lazy_loading() -> Self {
+        Self {
+            lazy_load_options: LazyLoadOptions::Enabled { include_redundant_members: false },
+            ..Default::default()
+        }
+    }
+
     /// Returns `true` if all fields are empty.
     pub fn is_empty(&self) -> bool {
         self.not_types.is_empty()
@@ -186,6 +198,15 @@ impl RoomFilter {
     /// Creates a new `RoomFilter` that can be used to ignore all room events (of any type).
     pub fn ignore_all() -> Self {
         Self { rooms: Some(vec![]), ..Default::default() }
+    }
+
+    /// Creates a new `RoomFilter` with [room member lazy-loading] enabled.
+    ///
+    /// Redundant membership events are disabled.
+    ///
+    /// [room member lazy-loading]: https://spec.matrix.org/latest/client-server-api/#lazy-loading-room-members
+    pub fn with_lazy_loading() -> Self {
+        Self { state: RoomEventFilter::with_lazy_loading(), ..Default::default() }
     }
 
     /// Returns `true` if all fields are empty.
@@ -309,6 +330,15 @@ impl FilterDefinition {
             presence: Filter::ignore_all(),
             ..Default::default()
         }
+    }
+
+    /// Creates a new `FilterDefinition` with [room member lazy-loading] enabled.
+    ///
+    /// Redundant membership events are disabled.
+    ///
+    /// [room member lazy-loading]: https://spec.matrix.org/latest/client-server-api/#lazy-loading-room-members
+    pub fn with_lazy_loading() -> Self {
+        Self { room: RoomFilter::with_lazy_loading(), ..Default::default() }
     }
 
     /// Returns `true` if all fields are empty.
