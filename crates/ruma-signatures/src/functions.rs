@@ -996,6 +996,42 @@ mod tests {
         assert!(format!("{error:?}").contains("Some(Verification equation was not satisfied)"));
     }
 
+    #[test]
+    fn verify_event_check_signatures_for_sender_is_allowed_with_unknonwn_algorithms_in_key_map(
+    ) {
+        let key_pair_sender = generate_key_pair();
+        let mut signed_event = serde_json::from_str(
+            r#"{
+                "auth_events": [],
+                "content": {},
+                "depth": 3,
+                "hashes": {
+                    "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+                },
+                "origin": "domain",
+                "origin_server_ts": 1000000,
+                "prev_events": [],
+                "room_id": "!x:domain",
+                "sender": "@name:domain-sender",
+                "type": "X",
+                "unsigned": {
+                    "age_ts": 1000000
+                }
+            }"#,
+        )
+        .unwrap();
+        sign_json("domain-sender", &key_pair_sender, &mut signed_event).unwrap();
+
+        let mut public_key_map = BTreeMap::new();
+        add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
+        add_invalid_key_to_map(&mut public_key_map, "domain-sender", &generate_key_pair());
+
+        let verification =
+            verify_event(&public_key_map, &signed_event, &RoomVersionId::V6).unwrap();
+
+        assert_eq!(verification, Verified::Signatures);
+    }
+
     fn generate_key_pair() -> Ed25519KeyPair {
         let key_content = Ed25519KeyPair::generate().unwrap();
         Ed25519KeyPair::from_der(&key_content, "1".to_owned())
@@ -1003,7 +1039,7 @@ mod tests {
     }
 
     fn add_key_to_map(public_key_map: &mut PublicKeyMap, name: &str, pair: &Ed25519KeyPair) {
-        let mut sender_key_map = PublicKeySet::new();
+        let sender_key_map = public_key_map.entry(name.to_string()).or_default();
         let encoded_public_key = Base64::new(pair.public_key().to_owned());
         let version = ServerSigningKeyId::from_parts(
             SigningKeyAlgorithm::Ed25519,
@@ -1011,7 +1047,20 @@ mod tests {
         );
 
         sender_key_map.insert(version.to_string(), encoded_public_key);
+    }
 
-        public_key_map.insert(name.to_owned(), sender_key_map);
+    fn add_invalid_key_to_map(
+        public_key_map: &mut PublicKeyMap,
+        name: &str,
+        pair: &Ed25519KeyPair,
+    ) {
+        let sender_key_map = public_key_map.entry(name.to_string()).or_default();
+        let encoded_public_key = Base64::new(pair.public_key().to_owned());
+        let version = ServerSigningKeyId::from_parts(
+            SigningKeyAlgorithm::from("an-unknown-algorithm"),
+            pair.version().try_into().unwrap(),
+        );
+
+        sender_key_map.insert(version.to_string(), encoded_public_key);
     }
 }
