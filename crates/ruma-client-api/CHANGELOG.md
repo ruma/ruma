@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+- Add convenience constructors for enabling lazy-loading in filters 
+
 # 0.16.2
 
 Bug fixes:
