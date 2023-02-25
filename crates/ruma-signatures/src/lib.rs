@@ -83,12 +83,6 @@ fn split_id(id: &str) -> Result<(Algorithm, String), Error> {
         return Err(Error::InvalidLength(signature_id_length));
     }
 
-    let version = signature_id[1];
-
-    if !version.bytes().all(|ch| ch.is_ascii_alphanumeric() || ch == b'_') {
-        return Err(Error::InvalidVersion(version.into()));
-    }
-
     let algorithm_input = signature_id[0];
 
     let algorithm = match algorithm_input {
