@@ -12,6 +12,7 @@ Improvements:
   - To remove a user-defined push rule
 - Add `AsRef<[u8]>` implementations for identifier types
 - Add `InitialStateEvent::{new, to_raw, to_raw_any}`
+- Add a convenience method to construct `RoomEncryptionEventContent` with the recommended defaults.
 
 # 0.11.3
 
