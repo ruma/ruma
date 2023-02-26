@@ -1,8 +1,8 @@
-use ruma_macros::StringEnum;
-
 ///! Constructors for [predefined push rules].
 ///!
 ///! [predefined push rules]: https://spec.matrix.org/latest/client-server-api/#predefined-rules
+use ruma_macros::StringEnum;
+
 use super::{
     Action::*, ConditionalPushRule, PatternedPushRule, PushCondition::*, RoomMemberCountIs,
     Ruleset, Tweak,
@@ -12,12 +12,12 @@ use crate::{PrivOwnedStr, UserId};
 impl Ruleset {
     /// The list of all [predefined push rules].
     ///
-    /// [predefined push rules]: https://spec.matrix.org/latest/client-server-api/#predefined-rules
-    ///
     /// # Parameters
     ///
     /// - `user_id`: the user for which to generate the default rules. Some rules depend on the
     ///   user's ID (for instance those to send notifications when they are mentioned).
+    ///
+    /// [predefined push rules]: https://spec.matrix.org/latest/client-server-api/#predefined-rules
     pub fn server_default(user_id: &UserId) -> Self {
         Self {
             content: [PatternedPushRule::contains_user_name(user_id)].into(),
