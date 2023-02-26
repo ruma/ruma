@@ -53,6 +53,11 @@ impl AnyPushRule {
         self.as_ref().rule_id()
     }
 
+    /// Whether the push rule is a server-default rule.
+    pub fn is_server_default(&self) -> bool {
+        self.as_ref().is_server_default()
+    }
+
     /// Check if the push rule applies to the event.
     ///
     /// # Arguments
@@ -165,6 +170,17 @@ impl<'a> AnyPushRuleRef<'a> {
             Self::Content(rule) => &rule.rule_id,
             Self::Room(rule) => rule.rule_id.as_ref(),
             Self::Sender(rule) => rule.rule_id.as_ref(),
+        }
+    }
+
+    /// Whether the push rule is a server-default rule.
+    pub fn is_server_default(self) -> bool {
+        match self {
+            Self::Override(rule) => rule.default,
+            Self::Underride(rule) => rule.default,
+            Self::Content(rule) => rule.default,
+            Self::Room(rule) => rule.default,
+            Self::Sender(rule) => rule.default,
         }
     }
 
