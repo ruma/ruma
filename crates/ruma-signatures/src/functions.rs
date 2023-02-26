@@ -578,47 +578,37 @@ pub fn verify_event(
             None => return Err(VerificationError::signature_not_found(entity_id)),
         };
 
-        let mut maybe_signature_and_public_key = None;
-
         let public_keys = public_key_map
             .get(entity_id.as_str())
             .ok_or_else(|| VerificationError::public_key_not_found(entity_id))?;
 
-        for (key_id, public_key) in public_keys {
+        for (key_id, signature) in signature_set {
             // Since only ed25519 is supported right now, we don't actually need to check what the
             // algorithm is. If it split successfully, it's ed25519.
             if split_id(key_id).is_err() {
                 continue;
             }
 
-            if let Some(signature) = signature_set.get(key_id) {
-                maybe_signature_and_public_key = Some(SignatureAndPubkey { signature, public_key });
+            let public_key = match public_keys.get(key_id) {
+                Some(public_key) => public_key,
+                None => return Err(VerificationError::UnknownPublicKeysForSignature.into()),
+            };
 
-                break;
-            }
+            let signature = match signature {
+                CanonicalJsonValue::String(signature) => signature,
+                _ => return Err(JsonError::not_of_type("signature", JsonType::String)),
+            };
+
+            let signature = Base64::<Standard>::parse(signature)
+                .map_err(|e| ParseError::base64("signature", signature, e))?;
+
+            verify_json_with(
+                &Ed25519Verifier,
+                public_key.as_bytes(),
+                signature.as_bytes(),
+                &canonical_json,
+            )?;
         }
-
-        let signature_and_pubkey = match maybe_signature_and_public_key {
-            Some(value) => value,
-            None => return Err(VerificationError::UnknownPublicKeysForSignature.into()),
-        };
-
-        let signature = match signature_and_pubkey.signature {
-            CanonicalJsonValue::String(signature) => signature,
-            _ => return Err(JsonError::not_of_type("signature", JsonType::String)),
-        };
-
-        let public_key = signature_and_pubkey.public_key;
-
-        let signature = Base64::<Standard>::parse(signature)
-            .map_err(|e| ParseError::base64("signature", signature, e))?;
-
-        verify_json_with(
-            &Ed25519Verifier,
-            public_key.as_bytes(),
-            signature.as_bytes(),
-            &canonical_json,
-        )?;
     }
 
     let calculated_hash = content_hash(object)?;
@@ -630,11 +620,6 @@ pub fn verify_event(
     }
 
     Ok(Verified::Signatures)
-}
-
-struct SignatureAndPubkey<'a> {
-    signature: &'a CanonicalJsonValue,
-    public_key: &'a Base64,
 }
 
 /// Internal implementation detail of the canonical JSON algorithm.
