@@ -2,7 +2,7 @@
 //!
 //! [`m.room.encryption`]: https://spec.matrix.org/latest/client-server-api/#mroomencryption
 
-use js_int::UInt;
+use js_int::{uint, UInt};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -37,5 +37,18 @@ impl RoomEncryptionEventContent {
     /// Creates a new `RoomEncryptionEventContent` with the given algorithm.
     pub fn new(algorithm: EventEncryptionAlgorithm) -> Self {
         Self { algorithm, rotation_period_ms: None, rotation_period_msgs: None }
+    }
+
+    /// Creates a new `RoomEncryptionEventContent` with the mandatory algorithm and the recommended
+    /// defaults.
+    ///
+    /// Note that changing the values of the fields is not a breaking change and you shouldn't rely
+    /// on those specific values.
+    pub fn with_recommended_defaults() -> Self {
+        Self {
+            algorithm: EventEncryptionAlgorithm::MegolmV1AesSha2,
+            rotation_period_ms: Some(uint!(604_800_000)),
+            rotation_period_msgs: Some(uint!(100)),
+        }
     }
 }
