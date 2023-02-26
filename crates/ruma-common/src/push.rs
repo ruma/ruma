@@ -311,6 +311,47 @@ impl Ruleset {
     pub fn get_actions<T>(&self, event: &Raw<T>, context: &PushConditionRoomCtx) -> &[Action] {
         self.get_match(event, context).map(|rule| rule.actions()).unwrap_or(&[])
     }
+
+    /// Removes a user-defined rule in the rule set.
+    ///
+    /// Returns an error if the parameters are invalid.
+    pub fn remove(
+        &mut self,
+        kind: RuleKind,
+        rule_id: impl AsRef<str>,
+    ) -> Result<(), RemovePushRuleError> {
+        let rule_id = rule_id.as_ref();
+
+        if let Some(rule) = self.get(kind.clone(), rule_id) {
+            if rule.is_server_default() {
+                return Err(RemovePushRuleError::ServerDefault);
+            }
+        } else {
+            return Err(RemovePushRuleError::NotFound);
+        }
+
+        match kind {
+            RuleKind::Override => {
+                self.override_.shift_remove(rule_id);
+            }
+            RuleKind::Underride => {
+                self.underride.shift_remove(rule_id);
+            }
+            RuleKind::Sender => {
+                self.sender.shift_remove(rule_id);
+            }
+            RuleKind::Room => {
+                self.room.shift_remove(rule_id);
+            }
+            RuleKind::Content => {
+                self.content.shift_remove(rule_id);
+            }
+            // This has been handled in the `self.get` call earlier.
+            RuleKind::_Custom(_) => unreachable!(),
+        }
+
+        Ok(())
+    }
 }
 
 /// A push rule is a single rule that states under what conditions an event should be passed onto a
@@ -899,6 +940,19 @@ where
     }
 
     Ok(())
+}
+
+/// The error type returned when trying to remove a user-defined push rule from a `Ruleset`.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum RemovePushRuleError {
+    /// The rule is a server-default rules and they can't be removed.
+    #[error("server-default rules cannot be removed")]
+    ServerDefault,
+
+    /// The rule was not found.
+    #[error("rule not found")]
+    NotFound,
 }
 
 #[cfg(test)]
