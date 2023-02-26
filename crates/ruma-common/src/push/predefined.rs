@@ -53,6 +53,72 @@ impl Ruleset {
             ..Default::default()
         }
     }
+
+    /// Update this ruleset with the given server-default push rules.
+    ///
+    /// This will replace the server-default rules in this ruleset (with `default` set to `true`)
+    /// with the given ones while keeping the `enabled` and `actions` fields in the same state.
+    ///
+    /// The default rules in this ruleset that are not in the new server-default rules are removed.
+    ///
+    /// # Parameters
+    ///
+    /// - `server_default`: the new server-default push rules. This ruleset must not contain
+    ///   non-default rules.
+    pub fn update_with_server_default(&mut self, mut new_server_default: Ruleset) {
+        // Copy the default rules states from the old rules to the new rules and remove the
+        // server-default rules from the old rules.
+        macro_rules! copy_rules_state {
+            ($new_ruleset:ident, $old_ruleset:ident, @fields $($field_name:ident),+) => {
+                $(
+                    $new_ruleset.$field_name = $new_ruleset
+                        .$field_name
+                        .into_iter()
+                        .map(|mut new_rule| {
+                            if let Some(old_rule) =
+                                $old_ruleset.$field_name.take(new_rule.rule_id.as_str())
+                            {
+                                new_rule.enabled = old_rule.enabled;
+                                new_rule.actions = old_rule.actions;
+                            }
+
+                            new_rule
+                        })
+                        .collect();
+                )+
+            };
+        }
+        copy_rules_state!(new_server_default, self, @fields override_, content, room, sender, underride);
+
+        // Remove the remaining server-default rules from the old rules.
+        macro_rules! remove_remaining_default_rules {
+            ($ruleset:ident, @fields $($field_name:ident),+) => {
+                $(
+                    $ruleset.$field_name.retain(|rule| !rule.default);
+                )+
+            };
+        }
+        remove_remaining_default_rules!(self, @fields override_, content, room, sender, underride);
+
+        // `.m.rule.master` comes before all other push rules, while the other server-default push
+        // rules come after.
+        if let Some(master_rule) =
+            new_server_default.override_.take(PredefinedOverrideRuleId::Master.as_str())
+        {
+            let (pos, _) = self.override_.insert_full(master_rule);
+            self.override_.move_index(pos, 0);
+        }
+
+        // Merge the new server-default rules into the old rules.
+        macro_rules! merge_rules {
+            ($old_ruleset:ident, $new_ruleset:ident, @fields $($field_name:ident),+) => {
+                $(
+                    $old_ruleset.$field_name.extend($new_ruleset.$field_name);
+                )+
+            };
+        }
+        merge_rules!(self, new_server_default, @fields override_, content, room, sender, underride);
+    }
 }
 
 /// Default override push rules
@@ -461,4 +527,76 @@ pub enum PredefinedContentRuleId {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
+}
+
+#[cfg(test)]
+mod tests {
+    use assert_matches::assert_matches;
+    use assign::assign;
+
+    use super::PredefinedOverrideRuleId;
+    use crate::{
+        push::{Action, ConditionalPushRule, ConditionalPushRuleInit, Ruleset},
+        user_id,
+    };
+
+    #[test]
+    fn update_with_server_default() {
+        let user_rule_id = "user_always_true";
+        let default_rule_id = ".default_always_true";
+
+        let override_ = [
+            // Default `.m.rule.master` push rule with non-default state.
+            assign!(ConditionalPushRule::master(), { enabled: true, actions: vec![Action::Notify]}),
+            // User-defined push rule.
+            ConditionalPushRuleInit {
+                actions: vec![],
+                default: false,
+                enabled: false,
+                rule_id: user_rule_id.to_owned(),
+                conditions: vec![],
+            }
+            .into(),
+            // Old server-default push rule.
+            ConditionalPushRuleInit {
+                actions: vec![],
+                default: true,
+                enabled: true,
+                rule_id: default_rule_id.to_owned(),
+                conditions: vec![],
+            }
+            .into(),
+        ]
+        .into_iter()
+        .collect();
+        let mut ruleset = Ruleset { override_, ..Default::default() };
+
+        let new_server_default = Ruleset::server_default(user_id!("@user:localhost"));
+
+        ruleset.update_with_server_default(new_server_default);
+
+        // Master rule is in first position.
+        let master_rule = &ruleset.override_[0];
+        assert_eq!(master_rule.rule_id, PredefinedOverrideRuleId::Master.as_str());
+
+        // `enabled` and `actions` have been copied from the old rules.
+        assert!(master_rule.enabled);
+        assert_eq!(master_rule.actions.len(), 1);
+        assert_matches!(master_rule.actions[0], Action::Notify);
+
+        // Non-server-default rule is still present and hasn't changed.
+        let user_rule = ruleset.override_.get(user_rule_id).unwrap();
+        assert!(!user_rule.enabled);
+        assert_eq!(user_rule.actions.len(), 0);
+
+        // Old server-default rule is gone.
+        assert_matches!(ruleset.override_.get(default_rule_id), None);
+
+        // New server-default rule is present and hasn't changed.
+        let member_event_rule =
+            ruleset.override_.get(PredefinedOverrideRuleId::MemberEvent.as_str()).unwrap();
+        assert!(member_event_rule.enabled);
+        assert_eq!(member_event_rule.actions.len(), 1);
+        assert_matches!(member_event_rule.actions[0], Action::DontNotify);
+    }
 }
