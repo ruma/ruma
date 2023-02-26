@@ -4,8 +4,9 @@ use std::{error::Error, fmt};
 pub use ruma_common::push::RuleKind;
 use ruma_common::{
     push::{
-        Action, ConditionalPushRule, ConditionalPushRuleInit, HttpPusherData, PatternedPushRule,
-        PatternedPushRuleInit, PushCondition, SimplePushRule, SimplePushRuleInit,
+        Action, AnyPushRule, AnyPushRuleRef, ConditionalPushRule, ConditionalPushRuleInit,
+        HttpPusherData, PatternedPushRule, PatternedPushRuleInit, PushCondition, SimplePushRule,
+        SimplePushRuleInit,
     },
     serde::{JsonObject, StringEnum},
 };
@@ -107,6 +108,27 @@ impl From<PatternedPushRuleInit> for PushRule {
     fn from(init: PatternedPushRuleInit) -> Self {
         let PatternedPushRuleInit { actions, default, enabled, rule_id, pattern } = init;
         Self { actions, default, enabled, rule_id, pattern: Some(pattern), conditions: None }
+    }
+}
+
+impl From<AnyPushRule> for PushRule {
+    fn from(push_rule: AnyPushRule) -> Self {
+        // The catch-all is unreachable if the "unstable-exhaustive-types" feature is enabled.
+        #[allow(unreachable_patterns)]
+        match push_rule {
+            AnyPushRule::Override(r) => r.into(),
+            AnyPushRule::Content(r) => r.into(),
+            AnyPushRule::Room(r) => r.into(),
+            AnyPushRule::Sender(r) => r.into(),
+            AnyPushRule::Underride(r) => r.into(),
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl<'a> From<AnyPushRuleRef<'a>> for PushRule {
+    fn from(push_rule: AnyPushRuleRef<'a>) -> Self {
+        push_rule.to_owned().into()
     }
 }
 
