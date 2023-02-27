@@ -50,7 +50,9 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          # FIXME: Remove pinning when clippy lint with clap issue is solved
+          # See https://github.com/clap-rs/clap/issues/4733
+          toolchain: nightly-2023-02-25
           override: true
 
       - uses: Swatinem/rust-cache@v1
@@ -208,7 +210,9 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          # FIXME: Remove pinning when clippy lint with clap issue is solved
+          # See https://github.com/clap-rs/clap/issues/4733
+          toolchain: nightly-2023-02-25
           override: true
           components: ${{ matrix.components }}
 
