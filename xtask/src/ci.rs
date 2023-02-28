@@ -10,9 +10,7 @@ mod spec_links;
 use spec_links::check_spec_links;
 
 const MSRV: &str = "1.64";
-// FIXME: Remove pinning when clippy lint with clap issue is solved
-// See https://github.com/clap-rs/clap/issues/4733
-const NIGHTLY: &str = "nightly-2023-02-25";
+const NIGHTLY: &str = "nightly";
 
 #[derive(Args)]
 pub struct CiArgs {
