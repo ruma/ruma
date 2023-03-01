@@ -97,6 +97,10 @@ pub struct Response {
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub initial: bool,
 
+    /// Matches the `txn_id` sent by the request. Please see [`Request::txn_id`].
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub txn_id: Option<String>,
+
     /// The token to supply in the `pos` param of the next `/sync` request.
     pub pos: String,
 
@@ -142,6 +146,7 @@ impl Response {
     pub fn new(pos: String) -> Self {
         Self {
             initial: Default::default(),
+            txn_id: None,
             pos,
             delta_token: Default::default(),
             lists: Default::default(),
