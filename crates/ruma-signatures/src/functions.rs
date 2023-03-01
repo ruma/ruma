@@ -1158,7 +1158,7 @@ mod tests {
     }
 
     fn add_key_to_map(public_key_map: &mut PublicKeyMap, name: &str, pair: &Ed25519KeyPair) {
-        let sender_key_map = public_key_map.entry(name.to_string()).or_default();
+        let sender_key_map = public_key_map.entry(name.to_owned()).or_default();
         let encoded_public_key = Base64::new(pair.public_key().to_owned());
         let version = ServerSigningKeyId::from_parts(
             SigningKeyAlgorithm::Ed25519,
@@ -1173,7 +1173,7 @@ mod tests {
         name: &str,
         pair: &Ed25519KeyPair,
     ) {
-        let sender_key_map = public_key_map.entry(name.to_string()).or_default();
+        let sender_key_map = public_key_map.entry(name.to_owned()).or_default();
         let encoded_public_key = Base64::new(pair.public_key().to_owned());
         let version = ServerSigningKeyId::from_parts(
             SigningKeyAlgorithm::from("an-unknown-algorithm"),
