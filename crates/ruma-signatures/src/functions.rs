@@ -799,8 +799,8 @@ mod tests {
 
     #[test]
     fn verify_event_check_signatures_for_both_sender_and_event_id() {
-        let key_pair_sender = generate_key_pair();
-        let key_pair_event = generate_key_pair();
+        let key_pair_sender = generate_key_pair("1");
+        let key_pair_event = generate_key_pair("2");
         let mut signed_event = serde_json::from_str(
             r#"{
                 "event_id": "$event_id:domain-event",
@@ -837,8 +837,8 @@ mod tests {
 
     #[test]
     fn verify_event_check_signatures_for_authorized_user() {
-        let key_pair_sender = generate_key_pair();
-        let key_pair_authorized = generate_key_pair();
+        let key_pair_sender = generate_key_pair("1");
+        let key_pair_authorized = generate_key_pair("2");
         let mut signed_event = serde_json::from_str(
             r#"{
                 "event_id": "$event_id:domain-event",
@@ -875,7 +875,7 @@ mod tests {
 
     #[test]
     fn verification_fails_if_missing_signatures_for_authorized_user() {
-        let key_pair_sender = generate_key_pair();
+        let key_pair_sender = generate_key_pair("1");
         let mut signed_event = serde_json::from_str(
             r#"{
                 "event_id": "$event_id:domain-event",
@@ -913,7 +913,7 @@ mod tests {
 
     #[test]
     fn verification_fails_if_required_keys_are_not_given() {
-        let key_pair_sender = generate_key_pair();
+        let key_pair_sender = generate_key_pair("1");
 
         let mut signed_event = serde_json::from_str(
             r#"{
@@ -950,7 +950,7 @@ mod tests {
 
     #[test]
     fn verify_event_fails_if_public_key_is_invalid() {
-        let key_pair_sender = generate_key_pair();
+        let key_pair_sender = generate_key_pair("1");
 
         let mut signed_event = serde_json::from_str(
             r#"{
@@ -976,7 +976,7 @@ mod tests {
 
         let mut public_key_map = PublicKeyMap::new();
         let mut sender_key_map = PublicKeySet::new();
-        let newly_generated_key_pair = generate_key_pair();
+        let newly_generated_key_pair = generate_key_pair("2");
         let encoded_public_key = Base64::new(newly_generated_key_pair.public_key().to_owned());
         let version = ServerSigningKeyId::from_parts(
             SigningKeyAlgorithm::Ed25519,
@@ -997,9 +997,8 @@ mod tests {
     }
 
     #[test]
-    fn verify_event_check_signatures_for_sender_is_allowed_with_unknonwn_algorithms_in_key_map(
-    ) {
-        let key_pair_sender = generate_key_pair();
+    fn verify_event_check_signatures_for_sender_is_allowed_with_unknown_algorithms_in_key_map() {
+        let key_pair_sender = generate_key_pair("1");
         let mut signed_event = serde_json::from_str(
             r#"{
                 "auth_events": [],
@@ -1024,7 +1023,7 @@ mod tests {
 
         let mut public_key_map = BTreeMap::new();
         add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
-        add_invalid_key_to_map(&mut public_key_map, "domain-sender", &generate_key_pair());
+        add_invalid_key_to_map(&mut public_key_map, "domain-sender", &generate_key_pair("2"));
 
         let verification =
             verify_event(&public_key_map, &signed_event, &RoomVersionId::V6).unwrap();
@@ -1032,9 +1031,162 @@ mod tests {
         assert_eq!(verification, Verified::Signatures);
     }
 
-    fn generate_key_pair() -> Ed25519KeyPair {
+    #[test]
+    fn verify_event_fails_with_missing_key_when_event_is_signed_multiple_times_by_same_entity() {
+        let key_pair_sender = generate_key_pair("1");
+        let secondary_key_pair_sender = generate_key_pair("2");
+        let mut signed_event = serde_json::from_str(
+            r#"{
+                "auth_events": [],
+                "content": {},
+                "depth": 3,
+                "hashes": {
+                    "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+                },
+                "origin": "domain",
+                "origin_server_ts": 1000000,
+                "prev_events": [],
+                "room_id": "!x:domain",
+                "sender": "@name:domain-sender",
+                "type": "X",
+                "unsigned": {
+                    "age_ts": 1000000
+                }
+            }"#,
+        )
+        .unwrap();
+        sign_json("domain-sender", &key_pair_sender, &mut signed_event).unwrap();
+        sign_json("domain-sender", &secondary_key_pair_sender, &mut signed_event).unwrap();
+
+        let mut public_key_map = BTreeMap::new();
+        add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
+
+        let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
+
+        assert_matches!(
+            verification_result,
+            Err(Error::Verification(VerificationError::UnknownPublicKeysForSignature))
+        );
+    }
+
+    #[test]
+    fn verify_event_checks_all_signatures_from_sender_entity() {
+        let key_pair_sender = generate_key_pair("1");
+        let secondary_key_pair_sender = generate_key_pair("2");
+        let mut signed_event = serde_json::from_str(
+            r#"{
+                "auth_events": [],
+                "content": {},
+                "depth": 3,
+                "hashes": {
+                    "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+                },
+                "origin": "domain",
+                "origin_server_ts": 1000000,
+                "prev_events": [],
+                "room_id": "!x:domain",
+                "sender": "@name:domain-sender",
+                "type": "X",
+                "unsigned": {
+                    "age_ts": 1000000
+                }
+            }"#,
+        )
+        .unwrap();
+        sign_json("domain-sender", &key_pair_sender, &mut signed_event).unwrap();
+        sign_json("domain-sender", &secondary_key_pair_sender, &mut signed_event).unwrap();
+
+        let mut public_key_map = BTreeMap::new();
+        add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
+        add_key_to_map(&mut public_key_map, "domain-sender", &secondary_key_pair_sender);
+
+        let verification =
+            verify_event(&public_key_map, &signed_event, &RoomVersionId::V6).unwrap();
+
+        assert_eq!(verification, Verified::Signatures);
+    }
+
+    #[test]
+    fn verify_event_not_signed_by_at_least_one_key_from_the_entity_should_fail() {
+        let key_pair_not_sender = generate_key_pair("1");
+        let mut signed_event = serde_json::from_str(
+            r#"{
+                "auth_events": [],
+                "content": {},
+                "depth": 3,
+                "hashes": {
+                    "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+                },
+                "origin": "domain",
+                "origin_server_ts": 1000000,
+                "prev_events": [],
+                "room_id": "!x:domain",
+                "sender": "@name:domain-sender",
+                "type": "X",
+                "unsigned": {
+                    "age_ts": 1000000
+                }
+            }"#,
+        )
+        .unwrap();
+        sign_json("domain", &key_pair_not_sender, &mut signed_event).unwrap();
+
+        let mut public_key_map = BTreeMap::new();
+        add_key_to_map(&mut public_key_map, "domain", &key_pair_not_sender);
+
+        let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
+
+        let entity = assert_matches!(
+            verification_result,
+            Err(Error::Verification(VerificationError::SignatureNotFound(entity))) => entity
+        );
+        assert_eq!(entity, "domain-sender");
+    }
+
+    #[test]
+    fn verify_event_with_single_key_with_unknown_algorithm_should_not_accept_event() {
+        let key_pair_sender = generate_key_pair("1");
+        let signed_event = serde_json::from_str(
+            r#"{
+                "auth_events": [],
+                "content": {},
+                "depth": 3,
+                "hashes": {
+                    "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+                },
+                "origin": "domain",
+                "origin_server_ts": 1000000,
+                "prev_events": [],
+                "room_id": "!x:domain",
+                "sender": "@name:domain-sender",
+                "type": "X",
+                "unsigned": {
+                    "age_ts": 1000000
+                },
+                "signatures": {
+                    "domain-sender": {
+                        "an-unknown-algorithm:1": "pE5UT/4JiY7YZDtZDOsEaxc0wblurdoYqNQx4bCXORA3vLFOGOK10Q/xXVLPWWgIKo15LNvWwWd/2YjmdPvYCg"
+                    }
+                }
+            }"#,
+        )
+        .unwrap();
+
+        let mut public_key_map = BTreeMap::new();
+        add_invalid_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
+
+        let error = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6).err().unwrap();
+
+        let entity = assert_matches!(
+            verification_result,
+            Err(Error::Verification(VerificationError::SignatureNotFound(entity))) => entity
+        );
+        assert_eq!(entity, "domain-sender");
+    }
+
+    fn generate_key_pair(name: &str) -> Ed25519KeyPair {
         let key_content = Ed25519KeyPair::generate().unwrap();
-        Ed25519KeyPair::from_der(&key_content, "1".to_owned())
+        Ed25519KeyPair::from_der(&key_content, name.to_owned())
             .unwrap_or_else(|_| panic!("{:?}", &key_content))
     }
 
