@@ -97,6 +97,7 @@ compat = [
     "ruma-common/compat",
     "ruma-client-api?/compat",
     "ruma-federation-api?/compat",
+    "ruma-signatures?/compat",
 ]
 
 # Specific compatibility for past ring public/private key documents.
