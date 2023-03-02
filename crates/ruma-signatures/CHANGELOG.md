@@ -1,8 +1,8 @@
 # [unreleased]
 
-Improvements:
+Bug fixes:
 
-* Ignore keys with unknown algorithms in `verify_events`
+- Ignore keys with unknown algorithms in `verify_events`
 
 # 0.13.1
 
