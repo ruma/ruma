@@ -467,7 +467,7 @@ pub struct ExtensionsConfig {
 
     /// Request to receipt information with the given config.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub receipts: Option<ReceiptConfig>,
+    pub receipts: Option<ReceiptsConfig>,
 
     /// Request to typing information with the given config.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -507,7 +507,7 @@ pub struct Extensions {
 
     /// Receipt data extension in response.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub receipts: Option<Receipt>,
+    pub receipts: Option<Receipts>,
 
     /// Typing data extension in response.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -630,7 +630,7 @@ pub struct AccountData {
 /// According to [MSC3960](https://github.com/matrix-org/matrix-spec-proposals/pull/3960)
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct ReceiptConfig {
+pub struct ReceiptsConfig {
     /// Activate or deactivate this extension. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
@@ -641,7 +641,7 @@ pub struct ReceiptConfig {
 /// According to [MSC3960](https://github.com/matrix-org/matrix-spec-proposals/pull/3960)
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct Receipt {
+pub struct Receipts {
     /// The empheral receipt room event for each room
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub rooms: BTreeMap<OwnedRoomId, Raw<AnyEphemeralRoomEvent>>,
