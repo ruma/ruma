@@ -467,7 +467,7 @@ pub struct ExtensionsConfig {
 
     /// Request to receipt information with the given config.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub receipt: Option<ReceiptConfig>,
+    pub receipts: Option<ReceiptConfig>,
 
     /// Request to typing information with the given config.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -483,7 +483,7 @@ impl ExtensionsConfig {
         self.to_device.is_none()
             && self.e2ee.is_none()
             && self.account_data.is_none()
-            && self.receipt.is_none()
+            && self.receipts.is_none()
             && self.typing.is_none()
             && self.other.is_empty()
     }
@@ -507,7 +507,7 @@ pub struct Extensions {
 
     /// Receipt data extension in response.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub receipt: Option<Receipt>,
+    pub receipts: Option<Receipt>,
 
     /// Typing data extension in response.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -522,7 +522,7 @@ impl Extensions {
         self.to_device.is_none()
             && self.e2ee.is_none()
             && self.account_data.is_none()
-            && self.receipt.is_none()
+            && self.receipts.is_none()
             && self.typing.is_none()
     }
 }
@@ -627,8 +627,7 @@ pub struct AccountData {
 
 /// Receipt extension configuration.
 ///
-/// Not yet part of the spec proposal. Taken from the reference implementation
-/// <https://github.com/matrix-org/sliding-sync/blob/main/sync3/extensions/receipts.go>
+/// According to [MSC3960](https://github.com/matrix-org/matrix-spec-proposals/pull/3960)
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ReceiptConfig {
@@ -639,8 +638,7 @@ pub struct ReceiptConfig {
 
 /// Receipt extension response data.
 ///
-/// Not yet part of the spec proposal. Taken from the reference implementation
-/// <https://github.com/matrix-org/sliding-sync/blob/main/sync3/extensions/receipts.go>
+/// According to [MSC3960](https://github.com/matrix-org/matrix-spec-proposals/pull/3960)
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Receipt {
