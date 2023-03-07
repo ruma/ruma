@@ -276,7 +276,14 @@ fn expand_owned_id(input: &ItemStruct) -> TokenStream {
         #[automatically_derived]
         impl #impl_generics AsRef<str> for #owned_ty {
             fn as_ref(&self) -> &str {
-                (*self.inner).as_ref()
+                self.inner.as_str()
+            }
+        }
+
+        #[automatically_derived]
+        impl #impl_generics AsRef<[u8]> for #owned_ty {
+            fn as_ref(&self) -> &[u8] {
+                self.inner.as_bytes()
             }
         }
 
