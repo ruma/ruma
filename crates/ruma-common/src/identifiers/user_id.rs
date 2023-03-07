@@ -289,7 +289,7 @@ mod tests {
         assert_eq!(
             <&UserId>::try_from("@carl:example.com:443")
                 .expect("Failed to create UserId.")
-                .as_ref(),
+                .as_str(),
             "@carl:example.com:443"
         );
     }

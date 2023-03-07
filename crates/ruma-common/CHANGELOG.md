@@ -10,6 +10,7 @@ Improvements:
 - Add convenience methods for `push::Ruleset`:
   - To update the server-default push rules
   - To remove a user-defined push rule
+- Add `AsRef<[u8]>` implementations for identifier types
 
 # 0.11.3
 

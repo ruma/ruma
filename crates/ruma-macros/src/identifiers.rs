@@ -143,6 +143,20 @@ pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
         }
 
         #[automatically_derived]
+        impl #impl_generics AsRef<[u8]> for #id_ty {
+            fn as_ref(&self) -> &[u8] {
+                self.as_bytes()
+            }
+        }
+
+        #[automatically_derived]
+        impl #impl_generics AsRef<[u8]> for Box<#id_ty> {
+            fn as_ref(&self) -> &[u8] {
+                self.as_bytes()
+            }
+        }
+
+        #[automatically_derived]
         impl #impl_generics From<&#id_ty> for String {
             fn from(id: &#id_ty) -> Self {
                 id.as_str().to_owned()

@@ -151,7 +151,7 @@ mod tests {
         assert_eq!(
             <&RoomOrAliasId>::try_from("#ruma:example.com")
                 .expect("Failed to create RoomAliasId.")
-                .as_ref(),
+                .as_str(),
             "#ruma:example.com"
         );
     }
@@ -161,7 +161,7 @@ mod tests {
         assert_eq!(
             <&RoomOrAliasId>::try_from("!29fhd83h92h0:example.com")
                 .expect("Failed to create RoomId.")
-                .as_ref(),
+                .as_str(),
             "!29fhd83h92h0:example.com"
         );
     }

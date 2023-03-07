@@ -218,7 +218,7 @@ mod tests {
         assert_eq!(
             <&RoomId>::try_from("!29fhd83h92h0:example.com")
                 .expect("Failed to create RoomId.")
-                .as_ref(),
+                .as_str(),
             "!29fhd83h92h0:example.com"
         );
     }
@@ -226,7 +226,7 @@ mod tests {
     #[test]
     fn empty_localpart() {
         assert_eq!(
-            <&RoomId>::try_from("!:example.com").expect("Failed to create RoomId.").as_ref(),
+            <&RoomId>::try_from("!:example.com").expect("Failed to create RoomId.").as_str(),
             "!:example.com"
         );
     }
@@ -268,7 +268,7 @@ mod tests {
         assert_eq!(
             <&RoomId>::try_from("!29fhd83h92h0:example.com:443")
                 .expect("Failed to create RoomId.")
-                .as_ref(),
+                .as_str(),
             "!29fhd83h92h0:example.com:443"
         );
     }
@@ -278,7 +278,7 @@ mod tests {
         assert_eq!(
             <&RoomId>::try_from("!29fhd83h92h0:example.com:5000")
                 .expect("Failed to create RoomId.")
-                .as_ref(),
+                .as_str(),
             "!29fhd83h92h0:example.com:5000"
         );
     }
