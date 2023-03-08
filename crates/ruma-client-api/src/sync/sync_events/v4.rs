@@ -12,8 +12,8 @@ use ruma_common::{
     api::{request, response, Metadata},
     events::{
         AnyEphemeralRoomEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
-        AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent, AnyToDeviceEvent,
-        StateEventType,
+        AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncStateEvent, AnySyncTimelineEvent,
+        AnyToDeviceEvent, StateEventType,
     },
     metadata,
     serde::{duration::opt_ms, Raw},
