@@ -642,9 +642,9 @@ pub struct ReceiptsConfig {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Receipts {
-    /// The empheral receipt room event for each room
+    /// The ephemeral receipt room event for each room
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub rooms: BTreeMap<OwnedRoomId, Raw<AnyEphemeralRoomEvent>>,
+    pub rooms: BTreeMap<OwnedRoomId, Raw<AnySyncEphemeralRoomEvent>>,
 }
 
 /// Typing extension configuration.
