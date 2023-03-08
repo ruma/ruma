@@ -11,9 +11,9 @@ use js_int::UInt;
 use ruma_common::{
     api::{request, response, Metadata},
     events::{
-        AnyEphemeralRoomEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
-        AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent, AnyToDeviceEvent,
-        StateEventType,
+        receipt::SyncReceiptEvent, typing::SyncTypingEvent, AnyGlobalAccountDataEvent,
+        AnyRoomAccountDataEvent, AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent,
+        AnyToDeviceEvent, StateEventType,
     },
     metadata,
     serde::{duration::opt_ms, Raw},
@@ -642,9 +642,9 @@ pub struct ReceiptsConfig {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Receipts {
-    /// The empheral receipt room event for each room
+    /// The ephemeral receipt room event for each room
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub rooms: BTreeMap<OwnedRoomId, Raw<AnyEphemeralRoomEvent>>,
+    pub rooms: BTreeMap<OwnedRoomId, Raw<SyncReceiptEvent>>,
 }
 
 /// Typing extension configuration.
@@ -668,5 +668,5 @@ pub struct TypingConfig {
 pub struct Typing {
     /// The empheral typing event for each room
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub rooms: BTreeMap<OwnedRoomId, Raw<AnyEphemeralRoomEvent>>,
+    pub rooms: BTreeMap<OwnedRoomId, Raw<SyncTypingEvent>>,
 }
