@@ -11,6 +11,7 @@ Improvements:
   - To update the server-default push rules
   - To remove a user-defined push rule
 - Add `AsRef<[u8]>` implementations for identifier types
+- Add `InitialStateEvent::{new, to_raw, to_raw_any}`
 
 # 0.11.3
 

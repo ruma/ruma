@@ -5,15 +5,16 @@ use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
-    EphemeralRoomEventContent, EventContent, EventContentFromType, GlobalAccountDataEventContent,
-    MessageLikeEventContent, MessageLikeEventType, MessageLikeUnsigned,
-    PossiblyRedactedStateEventContent, RedactContent, RedactedMessageLikeEventContent,
-    RedactedStateEventContent, RedactedUnsigned, RedactionDeHelper, RoomAccountDataEventContent,
-    StateEventType, StaticStateEventContent, ToDeviceEventContent,
+    EmptyStateKey, EphemeralRoomEventContent, EventContent, EventContentFromType,
+    GlobalAccountDataEventContent, MessageLikeEventContent, MessageLikeEventType,
+    MessageLikeUnsigned, PossiblyRedactedStateEventContent, RedactContent,
+    RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
+    RedactionDeHelper, RoomAccountDataEventContent, StateEventType, StaticStateEventContent,
+    ToDeviceEventContent,
 };
 use crate::{
-    serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
-    OwnedUserId, RoomId, UserId,
+    serde::{from_raw_json_value, Raw},
+    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId, UserId,
 };
 
 /// A global account data event.
@@ -312,6 +313,40 @@ pub struct InitialStateEvent<C: StaticStateEventContent> {
     ///
     /// Defaults to the empty string.
     pub state_key: C::StateKey,
+}
+
+impl<C: StaticStateEventContent> InitialStateEvent<C> {
+    /// Create a new `InitialStateEvent` for an event type with an empty state key.
+    ///
+    /// For cases where the state key is not empty, use a struct literal to create the event.
+    pub fn new(content: C) -> Self
+    where
+        C: StaticStateEventContent<StateKey = EmptyStateKey>,
+    {
+        Self { content, state_key: EmptyStateKey }
+    }
+
+    /// Shorthand for `Raw::new(self).unwrap()`.
+    ///
+    /// Since none of the content types in Ruma ever return an error in serialization, this will
+    /// never panic with `C` being a type from Ruma. However, if you use a custom content type
+    /// with a `Serialize` implementation that can error (for example because it contains an
+    /// `enum` with one or more variants that use the `#[serde(skip)]` attribute), this method
+    /// can panic.
+    pub fn to_raw(&self) -> Raw<Self> {
+        Raw::new(self).unwrap()
+    }
+
+    /// Shorthand for `self.to_raw().cast::<AnyInitialStateEvent>()`.
+    ///
+    /// Since none of the content types in Ruma ever return an error in serialization, this will
+    /// never panic with `C` being a type from Ruma. However, if you use a custom content type
+    /// with a `Serialize` implementation that can error (for example because it contains an
+    /// `enum` with one or more variants that use the `#[serde(skip)]` attribute), this method
+    /// can panic.
+    pub fn to_raw_any(&self) -> Raw<Self> {
+        self.to_raw().cast()
+    }
 }
 
 impl<C: StaticStateEventContent> Serialize for InitialStateEvent<C> {
