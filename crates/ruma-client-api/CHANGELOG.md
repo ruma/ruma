@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+- Define `rank` as an `Option<f64>` instead of an `Option<UInt>` in
+  `search::search_events::v3::SearchResult`
+
 Improvements:
 
 - Add convenience constructors for enabling lazy-loading in filters 
