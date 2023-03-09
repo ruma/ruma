@@ -435,7 +435,7 @@ pub mod v3 {
         ///
         /// Higher is closer.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub rank: Option<UInt>,
+        pub rank: Option<f64>,
 
         /// The event that matched.
         #[serde(skip_serializing_if = "Option::is_none")]
