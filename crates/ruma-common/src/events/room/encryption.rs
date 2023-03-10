@@ -45,6 +45,7 @@ impl RoomEncryptionEventContent {
     /// Note that changing the values of the fields is not a breaking change and you shouldn't rely
     /// on those specific values.
     pub fn with_recommended_defaults() -> Self {
+        // Defaults defined at <https://spec.matrix.org/latest/client-server-api/#mroomencryption>
         Self {
             algorithm: EventEncryptionAlgorithm::MegolmV1AesSha2,
             rotation_period_ms: Some(uint!(604_800_000)),
