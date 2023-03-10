@@ -5,9 +5,9 @@ use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
-    EmptyStateKey, EphemeralRoomEventContent, EventContent, EventContentFromType,
-    GlobalAccountDataEventContent, MessageLikeEventContent, MessageLikeEventType,
-    MessageLikeUnsigned, PossiblyRedactedStateEventContent, RedactContent,
+    AnyInitialStateEvent, EmptyStateKey, EphemeralRoomEventContent, EventContent,
+    EventContentFromType, GlobalAccountDataEventContent, MessageLikeEventContent,
+    MessageLikeEventType, MessageLikeUnsigned, PossiblyRedactedStateEventContent, RedactContent,
     RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
     RedactionDeHelper, RoomAccountDataEventContent, StateEventType, StaticStateEventContent,
     ToDeviceEventContent,
@@ -344,7 +344,7 @@ impl<C: StaticStateEventContent> InitialStateEvent<C> {
     /// with a `Serialize` implementation that can error (for example because it contains an
     /// `enum` with one or more variants that use the `#[serde(skip)]` attribute), this method
     /// can panic.
-    pub fn to_raw_any(&self) -> Raw<Self> {
+    pub fn to_raw_any(&self) -> Raw<AnyInitialStateEvent> {
         self.to_raw().cast()
     }
 }
