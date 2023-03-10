@@ -4,7 +4,7 @@ use serde::{
 };
 
 /// A type that can be used as the `state_key` for event types where that field is always empty.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 #[allow(clippy::exhaustive_structs)]
 pub struct EmptyStateKey;
 
