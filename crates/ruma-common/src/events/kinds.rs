@@ -349,6 +349,15 @@ impl<C: StaticStateEventContent> InitialStateEvent<C> {
     }
 }
 
+impl<C> Default for InitialStateEvent<C>
+where
+    C: StaticStateEventContent<StateKey = EmptyStateKey> + Default,
+{
+    fn default() -> Self {
+        Self { content: Default::default(), state_key: EmptyStateKey }
+    }
+}
+
 impl<C: StaticStateEventContent> Serialize for InitialStateEvent<C> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
