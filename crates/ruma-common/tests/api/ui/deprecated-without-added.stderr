@@ -1,19 +1,7 @@
-error: no rules expected the token `history_impl`
-  --> tests/api/ui/deprecated-without-added.rs:3:21
-   |
-3  |   const _: Metadata = metadata! {
-   |  _____________________^
-4  | |     method: GET,
-5  | |     rate_limited: false,
-6  | |     authentication: None,
-...  |
-10 | |     }
-11 | | };
-   | |_^ no rules expected this token in macro call
-   |
-note: while trying to match `field`
-  --> src/api.rs
-   |
-   |     ( @field method: $method:ident ) => { $crate::exports::http::Method::$method };
-   |        ^^^^^
-   = note: this error originates in the macro `$crate::metadata` which comes from the expansion of the macro `metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+error: no rules expected the token `deprecated`
+ --> tests/api/ui/deprecated-without-added.rs:9:16
+  |
+9 |         1.1 => deprecated,
+  |                ^^^^^^^^^^ no rules expected this token in macro call
+  |
+  = note: while trying to match sequence start
