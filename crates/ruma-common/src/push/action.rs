@@ -30,6 +30,13 @@ pub enum Action {
     _Custom(CustomAction),
 }
 
+impl Action {
+    /// Whether this action is an `Action::SetTweak(Tweak::Highlight(true))`.
+    pub fn is_highlight(&self) -> bool {
+        matches!(self, Action::SetTweak(Tweak::Highlight(true)))
+    }
+}
+
 /// The `set_tweak` action.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
