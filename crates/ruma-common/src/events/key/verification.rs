@@ -7,6 +7,8 @@
 //!
 //! [MSC2241]: https://github.com/matrix-org/matrix-spec-proposals/pull/2241
 
+use std::time::Duration;
+
 use crate::{serde::StringEnum, PrivOwnedStr};
 
 pub mod accept;
@@ -17,6 +19,19 @@ pub mod mac;
 pub mod ready;
 pub mod request;
 pub mod start;
+
+// For these two constants, see <https://spec.matrix.org/latest/client-server-api/#key-verification-framework>
+/// The amount of time after which a verification request should be ignored, relative to its
+/// `origin_server_ts` (for in-room events) or its `timestamp` (for to-device events).
+///
+/// This is defined as 10 minutes.
+pub const REQUEST_TIMESTAMP_TIMEOUT: Duration = Duration::from_secs(10 * 60);
+
+/// The amount of time after which a verification request should be ignored, relative to the
+/// time it was received by the client.
+///
+/// This is defined as 2 minutes.
+pub const REQUEST_RECEIVED_TIMEOUT: Duration = Duration::from_secs(2 * 60);
 
 /// A hash algorithm.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
