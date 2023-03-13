@@ -35,6 +35,19 @@ impl Action {
     pub fn is_highlight(&self) -> bool {
         matches!(self, Action::SetTweak(Tweak::Highlight(true)))
     }
+
+    /// Whether this action should trigger a notification.
+    pub fn should_notify(&self) -> bool {
+        matches!(self, Action::Notify | Action::Coalesce)
+    }
+
+    /// The sound that should be played with this action, if any.
+    pub fn sound(&self) -> Option<&str> {
+        match self {
+            Action::SetTweak(Tweak::Sound(sound)) => Some(sound),
+            _ => None,
+        }
+    }
 }
 
 /// The `set_tweak` action.
