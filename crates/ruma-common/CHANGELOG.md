@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+- Set the predefined server-default `.m.rule.tombstone` push rule as enabled by default, as defined
+  in the spec.
+
 Breaking changes:
 
 - Make `in_reply_to` field of `Thread` optional

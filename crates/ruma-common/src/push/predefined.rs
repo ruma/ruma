@@ -202,7 +202,7 @@ impl ConditionalPushRule {
         Self {
             actions: vec![Notify, SetTweak(Tweak::Highlight(true))],
             default: true,
-            enabled: false,
+            enabled: true,
             rule_id: PredefinedOverrideRuleId::Tombstone.to_string(),
             conditions: vec![
                 EventMatch { key: "type".into(), pattern: "m.room.tombstone".into() },
