@@ -119,7 +119,7 @@ pub struct OriginalMessageLikeEvent<C: MessageLikeEventContent> {
     pub room_id: OwnedRoomId,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: MessageLikeUnsigned,
+    pub unsigned: MessageLikeUnsigned<C>,
 }
 
 /// An unredacted message-like event without a `room_id`.
@@ -141,7 +141,7 @@ pub struct OriginalSyncMessageLikeEvent<C: MessageLikeEventContent> {
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: MessageLikeUnsigned,
+    pub unsigned: MessageLikeUnsigned<C>,
 }
 
 /// A redacted message-like event.
