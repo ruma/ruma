@@ -895,9 +895,8 @@ fn generate_event_content_impl<'a>(
         .then(|| {
             let possibly_redacted_ident = format_ident!("PossiblyRedacted{ident}");
 
-            let unsigned_type = unsigned_type.unwrap_or_else(
-                || quote! { #ruma_common::events::StateUnsigned<Self::PossiblyRedacted> },
-            );
+            let unsigned_type = unsigned_type
+                .unwrap_or_else(|| quote! { #ruma_common::events::StateUnsigned<Self> });
 
             quote! {
                 #[automatically_derived]
