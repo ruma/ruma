@@ -666,7 +666,7 @@ pub struct TypingConfig {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Typing {
-    /// The empheral typing event for each room
+    /// The ephemeral typing event for each room
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub rooms: BTreeMap<OwnedRoomId, Raw<SyncTypingEvent>>,
 }
