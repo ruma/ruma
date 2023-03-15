@@ -60,7 +60,7 @@ pub struct OriginalRoomRedactionEvent {
     pub room_id: OwnedRoomId,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: MessageLikeUnsigned,
+    pub unsigned: MessageLikeUnsigned<RoomRedactionEventContent>,
 }
 
 /// Redacted redaction event.
@@ -106,7 +106,7 @@ pub struct OriginalSyncRoomRedactionEvent {
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: MessageLikeUnsigned,
+    pub unsigned: MessageLikeUnsigned<RoomRedactionEventContent>,
 }
 
 /// Redacted redaction event without a `room_id`.

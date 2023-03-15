@@ -10,8 +10,10 @@ use serde::{Deserialize, Serialize};
 use super::AnyMessageLikeEvent;
 use crate::{
     serde::{Raw, StringEnum},
-    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedUserId, PrivOwnedStr,
+    OwnedEventId, PrivOwnedStr,
 };
+
+mod rel_serde;
 
 /// Information about the event a [rich reply] is replying to.
 ///
@@ -55,31 +57,6 @@ impl Annotation {
     /// Creates a new `Annotation` with the given event ID and key.
     pub fn new(event_id: OwnedEventId, key: String) -> Self {
         Self { event_id, key }
-    }
-}
-
-/// A bundled replacement.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct BundledReplacement {
-    /// The ID of the replacing event.
-    pub event_id: OwnedEventId,
-
-    /// The user ID of the sender of the latest replacement.
-    pub sender: OwnedUserId,
-
-    /// Timestamp in milliseconds on originating homeserver when the latest replacement was sent.
-    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
-}
-
-impl BundledReplacement {
-    /// Creates a new `BundledReplacement` with the given event ID, sender and timestamp.
-    pub fn new(
-        event_id: OwnedEventId,
-        sender: OwnedUserId,
-        origin_server_ts: MilliSecondsSinceUnixEpoch,
-    ) -> Self {
-        Self { event_id, sender, origin_server_ts }
     }
 }
 
@@ -221,12 +198,18 @@ impl ReferenceChunk {
 /// [Bundled aggregations] of related child events.
 ///
 /// [Bundled aggregations]: https://spec.matrix.org/latest/client-server-api/#aggregations
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct BundledRelations {
+pub struct BundledRelations<E> {
     /// Replacement relation.
     #[serde(rename = "m.replace", skip_serializing_if = "Option::is_none")]
-    pub replace: Option<Box<BundledReplacement>>,
+    pub replace: Option<Box<E>>,
+
+    /// Set when the above fails to deserialize.
+    ///
+    /// Intentionally *not* public.
+    #[serde(skip_serializing)]
+    has_invalid_replacement: bool,
 
     /// Thread relation.
     #[serde(rename = "m.thread", skip_serializing_if = "Option::is_none")]
@@ -237,15 +220,31 @@ pub struct BundledRelations {
     pub reference: Option<Box<ReferenceChunk>>,
 }
 
-impl BundledRelations {
+impl<E> BundledRelations<E> {
     /// Creates a new empty `BundledRelations`.
     pub const fn new() -> Self {
-        Self { replace: None, thread: None, reference: None }
+        Self { replace: None, has_invalid_replacement: false, thread: None, reference: None }
+    }
+
+    /// Whether this bundle contains a replacement relation.
+    ///
+    /// This may be `true` even if the `replace` field is `None`, because Matrix versions prior to
+    /// 1.7 had a different incompatible format for bundled replacements. Use this method to check
+    /// whether an event was replaced. If this returns `true` but `replace` is `None`, use one of
+    /// the endpoints from `ruma::api::client::relations` to fetch the relation details.
+    pub fn has_replacement(&self) -> bool {
+        self.replace.is_some() || self.has_invalid_replacement
     }
 
     /// Returns `true` if all fields are empty.
     pub fn is_empty(&self) -> bool {
         self.replace.is_none() && self.thread.is_none() && self.reference.is_none()
+    }
+}
+
+impl<E> Default for BundledRelations<E> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

@@ -74,7 +74,7 @@ impl StaticStateEventContent for CustomStateEventContent {
     // Like `StateUnsigned`, but without `prev_content`.
     // We don't care about `prev_content` since we'd only store the event type that is the same
     // as in the content.
-    type Unsigned = MessageLikeUnsigned;
+    type Unsigned = MessageLikeUnsigned<CustomMessageLikeEventContent>;
     type PossiblyRedacted = Self;
 }
 impl PossiblyRedactedStateEventContent for CustomStateEventContent {

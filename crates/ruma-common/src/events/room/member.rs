@@ -507,7 +507,7 @@ pub struct RoomMemberUnsigned {
     ///
     /// [Bundled aggregations]: https://spec.matrix.org/latest/client-server-api/#aggregations
     #[serde(rename = "m.relations", default)]
-    pub relations: BundledRelations,
+    pub relations: BundledRelations<OriginalSyncRoomMemberEvent>,
 }
 
 impl RoomMemberUnsigned {
