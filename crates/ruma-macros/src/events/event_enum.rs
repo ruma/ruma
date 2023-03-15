@@ -114,7 +114,7 @@ fn expand_event_enum(
     let ident = kind.to_event_enum_ident(var.into())?;
 
     let variant_decls = variants.iter().map(|v| v.decl());
-    let content: Vec<_> = events
+    let event_ty: Vec<_> = events
         .iter()
         .map(|event| {
             event
@@ -123,12 +123,12 @@ fn expand_event_enum(
         })
         .collect::<syn::Result<_>>()?;
 
-    let custom_ty = format_ident!("Custom{}Content", kind);
+    let custom_content_ty = format_ident!("Custom{}Content", kind);
 
     let deserialize_impl = expand_deserialize_impl(kind, var, events, ruma_common)?;
     let field_accessor_impl =
         expand_accessor_methods(kind, var, variants, &event_struct, ruma_common)?;
-    let from_impl = expand_from_impl(&ident, &content, variants);
+    let from_impl = expand_from_impl(&ident, &event_ty, variants);
 
     Ok(quote! {
         #( #attrs )*
@@ -138,12 +138,14 @@ fn expand_event_enum(
         pub enum #ident {
             #(
                 #docs
-                #variant_decls(#content),
+                #variant_decls(#event_ty),
             )*
             /// An event not defined by the Matrix specification
             #[doc(hidden)]
             _Custom(
-                #ruma_common::events::#event_struct<#ruma_common::events::_custom::#custom_ty>,
+                #ruma_common::events::#event_struct<
+                    #ruma_common::events::_custom::#custom_content_ty
+                >,
             ),
         }
 
@@ -213,10 +215,10 @@ fn expand_deserialize_impl(
 
 fn expand_from_impl(
     ty: &Ident,
-    content: &[TokenStream],
+    event_ty: &[TokenStream],
     variants: &[EventEnumVariant],
 ) -> TokenStream {
-    let from_impls = content.iter().zip(variants).map(|(content, variant)| {
+    let from_impls = event_ty.iter().zip(variants).map(|(event_ty, variant)| {
         let ident = &variant.ident;
         let attrs = &variant.attrs;
 
@@ -224,8 +226,8 @@ fn expand_from_impl(
             #[allow(unused_qualifications)]
             #[automatically_derived]
             #(#attrs)*
-            impl ::std::convert::From<#content> for #ty {
-                fn from(c: #content) -> Self {
+            impl ::std::convert::From<#event_ty> for #ty {
+                fn from(c: #event_ty) -> Self {
                     Self::#ident(c)
                 }
             }
