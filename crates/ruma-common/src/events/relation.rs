@@ -218,12 +218,12 @@ impl ReferenceChunk {
     }
 }
 
-/// [Bundled aggregations] of related child events.
+/// [Bundled aggregations] of related child events of a message-like event.
 ///
 /// [Bundled aggregations]: https://spec.matrix.org/latest/client-server-api/#aggregations
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct BundledRelations {
+pub struct BundledMessageLikeRelations {
     /// Replacement relation.
     #[serde(rename = "m.replace", skip_serializing_if = "Option::is_none")]
     pub replace: Option<Box<BundledReplacement>>,
@@ -237,8 +237,8 @@ pub struct BundledRelations {
     pub reference: Option<Box<ReferenceChunk>>,
 }
 
-impl BundledRelations {
-    /// Creates a new empty `BundledRelations`.
+impl BundledMessageLikeRelations {
+    /// Creates a new empty `BundledMessageLikeRelations`.
     pub const fn new() -> Self {
         Self { replace: None, thread: None, reference: None }
     }
@@ -246,6 +246,33 @@ impl BundledRelations {
     /// Returns `true` if all fields are empty.
     pub fn is_empty(&self) -> bool {
         self.replace.is_none() && self.thread.is_none() && self.reference.is_none()
+    }
+}
+
+/// [Bundled aggregations] of related child events of a state event.
+///
+/// [Bundled aggregations]: https://spec.matrix.org/latest/client-server-api/#aggregations
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct BundledStateRelations {
+    /// Thread relation.
+    #[serde(rename = "m.thread", skip_serializing_if = "Option::is_none")]
+    pub thread: Option<Box<BundledThread>>,
+
+    /// Reference relations.
+    #[serde(rename = "m.reference", skip_serializing_if = "Option::is_none")]
+    pub reference: Option<Box<ReferenceChunk>>,
+}
+
+impl BundledStateRelations {
+    /// Creates a new empty `BundledStateRelations`.
+    pub const fn new() -> Self {
+        Self { thread: None, reference: None }
+    }
+
+    /// Returns `true` if all fields are empty.
+    pub fn is_empty(&self) -> bool {
+        self.thread.is_none() && self.reference.is_none()
     }
 }
 

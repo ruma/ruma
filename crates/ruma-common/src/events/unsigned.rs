@@ -2,7 +2,8 @@ use js_int::Int;
 use serde::Deserialize;
 
 use super::{
-    relation::BundledRelations, room::redaction::RoomRedactionEventContent,
+    relation::{BundledMessageLikeRelations, BundledStateRelations},
+    room::redaction::RoomRedactionEventContent,
     PossiblyRedactedStateEventContent,
 };
 use crate::{
@@ -28,7 +29,7 @@ pub struct MessageLikeUnsigned {
     ///
     /// [Bundled aggregations]: https://spec.matrix.org/latest/client-server-api/#aggregations
     #[serde(rename = "m.relations", default)]
-    pub relations: BundledRelations,
+    pub relations: BundledMessageLikeRelations,
 }
 
 impl MessageLikeUnsigned {
@@ -71,7 +72,7 @@ pub struct StateUnsigned<C: PossiblyRedactedStateEventContent> {
     ///
     /// [Bundled aggregations]: https://spec.matrix.org/latest/client-server-api/#aggregations
     #[serde(rename = "m.relations", default)]
-    pub relations: BundledRelations,
+    pub relations: BundledStateRelations,
 }
 
 impl<C: PossiblyRedactedStateEventContent> StateUnsigned<C> {

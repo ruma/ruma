@@ -171,7 +171,7 @@ pub use self::{
     content::*,
     enums::*,
     kinds::*,
-    relation::BundledRelations,
+    relation::{BundledMessageLikeRelations, BundledStateRelations},
     state_key::EmptyStateKey,
     unsigned::{MessageLikeUnsigned, RedactedUnsigned, StateUnsigned, UnsignedRoomRedactionEvent},
 };

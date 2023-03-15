@@ -2,7 +2,7 @@ use ruma_macros::{event_enum, EventEnumFromEvent};
 use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use super::{room::encrypted, BundledRelations};
+use super::room::encrypted;
 use crate::{
     serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, RoomId,
     TransactionId, UserId,
@@ -184,9 +184,6 @@ impl AnyTimelineEvent {
 
         /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
         pub fn transaction_id(&self) -> Option<&TransactionId>;
-
-        /// Returns this event's `relations` from inside `unsigned`.
-        pub fn relations(&self) -> &BundledRelations;
     }
 
     /// Returns this event's `type`.
@@ -224,9 +221,6 @@ impl AnySyncTimelineEvent {
 
         /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
         pub fn transaction_id(&self) -> Option<&TransactionId>;
-
-        /// Returns this event's `relations` from inside `unsigned`, if that field exists.
-        pub fn relations(&self) -> &BundledRelations;
     }
 
     /// Returns this event's `type`.
