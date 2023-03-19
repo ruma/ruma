@@ -165,7 +165,7 @@ fn struct_init_fields<'a>(
         .map(|field| {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let cfg_attrs =
-                field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
+                field.attrs.iter().filter(|a| a.path().is_ident("cfg")).collect::<Vec<_>>();
 
             quote! {
                 #( #cfg_attrs )*

@@ -10,7 +10,7 @@ pub fn get_rename_rule(input: &ItemEnum) -> syn::Result<RenameRule> {
     let rules: Vec<_> = input
         .attrs
         .iter()
-        .filter(|attr| attr.path.is_ident("ruma_enum"))
+        .filter(|attr| attr.path().is_ident("ruma_enum"))
         .map(|attr| attr.parse_args::<RenameAllAttr>().map(RenameAllAttr::into_inner))
         .collect::<syn::Result<_>>()?;
 
@@ -28,7 +28,7 @@ pub fn get_enum_attributes(input: &Variant) -> syn::Result<EnumAttrs> {
     let mut attributes = EnumAttrs::default();
 
     for attr in &input.attrs {
-        if !attr.path.is_ident("ruma_enum") {
+        if !attr.path().is_ident("ruma_enum") {
             continue;
         }
 

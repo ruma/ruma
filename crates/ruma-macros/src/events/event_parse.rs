@@ -235,7 +235,7 @@ impl Parse for EventEnumEntry {
         let (ruma_enum_attrs, attrs) = input
             .call(Attribute::parse_outer)?
             .into_iter()
-            .partition::<Vec<_>, _>(|attr| attr.path.is_ident("ruma_enum"));
+            .partition::<Vec<_>, _>(|attr| attr.path().is_ident("ruma_enum"));
         let ev_type: LitStr = input.parse()?;
         let _: Token![=>] = input.parse()?;
         let ev_path = input.call(Path::parse_mod_style)?;
@@ -296,7 +296,7 @@ impl Parse for EventEnumInput {
 
             let content;
             braced!(content in input);
-            let events = content.parse_terminated::<_, Token![,]>(EventEnumEntry::parse)?;
+            let events = content.parse_terminated(EventEnumEntry::parse, Token![,])?;
             let events = events.into_iter().collect();
             enums.push(EventEnumDecl { attrs, kind, events });
         }

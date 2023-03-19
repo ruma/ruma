@@ -68,8 +68,7 @@ impl Parse for Metadata {
         let field_values;
         braced!(field_values in input);
 
-        let field_values =
-            field_values.parse_terminated::<FieldValue, Token![,]>(FieldValue::parse)?;
+        let field_values = field_values.parse_terminated(FieldValue::parse, Token![,])?;
 
         let mut description = None;
         let mut method = None;

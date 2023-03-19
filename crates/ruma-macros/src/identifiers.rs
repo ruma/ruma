@@ -29,7 +29,7 @@ pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
 
     let owned_decl = expand_owned_id(&input);
 
-    let meta = input.attrs.iter().filter(|attr| attr.path.is_ident("ruma_id")).try_fold(
+    let meta = input.attrs.iter().filter(|attr| attr.path().is_ident("ruma_id")).try_fold(
         IdZstMeta::default(),
         |meta, attr| {
             let list: Punctuated<IdZstMeta, Token![,]> =

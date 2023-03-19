@@ -21,5 +21,5 @@ proc-macro2 = "1.0.24"
 quote = "1.0.8"
 ruma-identifiers-validation = { workspace = true }
 serde = { workspace = true }
-syn = { version = "1.0.57", features = ["extra-traits", "full", "visit"] }
+syn = { version = "2.0.2", features = ["extra-traits", "full", "visit"] }
 toml = { version = "0.7.1", default-features = false, features = ["parse"] }

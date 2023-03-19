@@ -9,7 +9,7 @@ use syn::{
     parse::{Parse, ParseStream},
     parse_quote,
     punctuated::Punctuated,
-    DeriveInput, Field, Ident, LitStr, Meta, NestedMeta, Token, Type,
+    DeriveInput, Field, Ident, LitStr, Meta, Token, Type,
 };
 
 use crate::util::m_prefix_name_to_type_name;
@@ -277,7 +277,7 @@ pub fn expand_event_content(
     let content_meta = input
         .attrs
         .iter()
-        .filter(|attr| attr.path.is_ident("ruma_event"))
+        .filter(|attr| attr.path().is_ident("ruma_event"))
         .try_fold(ContentMeta::default(), |meta, attr| {
             let list: Punctuated<ContentMeta, Token![,]> =
                 attr.parse_args_with(Punctuated::parse_terminated)?;
@@ -404,7 +404,7 @@ fn generate_redacted_event_content<'a>(
                 .attrs
                 .iter()
                 .map(|a| -> syn::Result<_> {
-                    if a.path.is_ident("ruma_event") {
+                    if a.path().is_ident("ruma_event") {
                         if let EventFieldMeta::SkipRedaction = a.parse_args()? {
                             keep_field = true;
                         }
@@ -526,7 +526,7 @@ fn generate_possibly_redacted_event_content<'a>(
                 .attrs
                 .iter()
                 .map(|a| -> syn::Result<_> {
-                    if a.path.is_ident("ruma_event") {
+                    if a.path().is_ident("ruma_event") {
                         // Keep the field if it is not redacted.
                         if let EventFieldMeta::SkipRedaction = a.parse_args()? {
                             keep_field = true;
@@ -535,27 +535,29 @@ fn generate_possibly_redacted_event_content<'a>(
                         // Don't re-emit our `ruma_event` attributes.
                         Ok(None)
                     } else {
-                        if a.path.is_ident("serde") {
-                            let serde_meta = a.parse_meta()?;
-
-                            if let Meta::List(list) = serde_meta {
-                                for meta in list.nested.iter().filter_map(|nested_meta| match nested_meta {
-                                    NestedMeta::Meta(meta) => Some(meta),
-                                    NestedMeta::Lit(_) => None,
-                                }) {
+                        if a.path().is_ident("serde") {
+                            if let Meta::List(list) = &a.meta {
+                                let nested: Punctuated<Meta, Token![,]> =
+                                    list.parse_args_with(Punctuated::parse_terminated)?;
+                                for meta in &nested {
                                     if meta.path().is_ident("default") {
                                         // Keep the field if it deserializes to its default value.
                                         keep_field = true;
-                                    } else if !meta.path().is_ident("rename") && !meta.path().is_ident("alias") && unsupported_serde_attribute.is_none() {
-                                        // Error if the field is not kept and uses an unsupported serde attribute.
-                                        unsupported_serde_attribute = Some(
-                                            syn::Error::new_spanned(
+                                    } else if !meta.path().is_ident("rename")
+                                        && !meta.path().is_ident("alias")
+                                        && unsupported_serde_attribute.is_none()
+                                    {
+                                        // Error if the field is not kept and uses an unsupported
+                                        // serde attribute.
+                                        unsupported_serde_attribute =
+                                            Some(syn::Error::new_spanned(
                                                 meta,
-                                                 "Can't generate PossiblyRedacted struct with unsupported serde attribute\n\
+                                                "Can't generate PossiblyRedacted struct with \
+                                                 unsupported serde attribute\n\
                                                  Expected one of `default`, `rename` or `alias`\n\
-                                                 Use the `custom_possibly_redacted` attribute and create the struct manually"
-                                            )
-                                        );
+                                                 Use the `custom_possibly_redacted` attribute \
+                                                 and create the struct manually",
+                                            ));
                                     }
                                 }
                             }
@@ -584,7 +586,7 @@ fn generate_possibly_redacted_event_content<'a>(
                 field_changed = true;
 
                 let old_type = &f.ty;
-                let ty = parse_quote!{ Option<#old_type> };
+                let ty = parse_quote! { Option<#old_type> };
                 attrs.push(parse_quote! { #[serde(skip_serializing_if = "Option::is_none")] });
 
                 Ok(Field { attrs, ty, ..f.clone() })
@@ -805,12 +807,12 @@ fn generate_event_content_impl<'a>(
         .map(|type_prefix| {
             let type_fragment_field = fields
                 .find_map(|f| {
-                    f.attrs.iter().filter(|a| a.path.is_ident("ruma_event")).find_map(|a| {
-                        match a.parse_args() {
-                            Ok(EventFieldMeta::TypeFragment) => Some(Ok(f)),
-                            Ok(_) => None,
-                            Err(e) => Some(Err(e)),
-                        }
+                    f.attrs.iter().filter(|a| a.path().is_ident("ruma_event")).find_map(|a| match a
+                        .parse_args()
+                    {
+                        Ok(EventFieldMeta::TypeFragment) => Some(Ok(f)),
+                        Ok(_) => None,
+                        Err(e) => Some(Err(e)),
                     })
                 })
                 .transpose()?
@@ -923,7 +925,7 @@ fn generate_event_content_impl<'a>(
         };
         let fields_without_type_fragment = fields.filter(|f| {
             !f.attrs.iter().any(|a| {
-                a.path.is_ident("ruma_event") && matches!(a.parse_args(), Ok(EventFieldMeta::TypeFragment))
+                a.path().is_ident("ruma_event") && matches!(a.parse_args(), Ok(EventFieldMeta::TypeFragment))
             })
         }).collect::<Vec<_>>();
         let fields_ident_without_type_fragment = fields_without_type_fragment.iter().filter_map(|f| f.ident.as_ref());

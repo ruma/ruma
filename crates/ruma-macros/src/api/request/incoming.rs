@@ -33,7 +33,7 @@ impl Request {
 
         let (parse_query, query_vars) = if let Some(field) = self.query_map_field() {
             let cfg_attrs =
-                field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
+                field.attrs.iter().filter(|a| a.path().is_ident("cfg")).collect::<Vec<_>>();
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let parse = quote! {
                 #( #cfg_attrs )*
@@ -71,7 +71,7 @@ impl Request {
                 .header_fields()
                 .map(|(field, header_name)| {
                     let cfg_attrs =
-                        field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
+                        field.attrs.iter().filter(|a| a.path().is_ident("cfg")).collect::<Vec<_>>();
 
                     let field_name = &field.ident;
                     let header_name_string = header_name.to_string();
@@ -211,7 +211,7 @@ fn vars<'a>(
         .map(|field| {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let cfg_attrs =
-                field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
+                field.attrs.iter().filter(|a| a.path().is_ident("cfg")).collect::<Vec<_>>();
 
             let decl = quote! {
                 #( #cfg_attrs )*

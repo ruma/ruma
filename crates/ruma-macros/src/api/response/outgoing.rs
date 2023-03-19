@@ -46,7 +46,7 @@ impl Response {
                 response_field.as_body_field().map(|field| {
                     let field_name =
                         field.ident.as_ref().expect("expected field to have an identifier");
-                    let cfg_attrs = field.attrs.iter().filter(|a| a.path.is_ident("cfg"));
+                    let cfg_attrs = field.attrs.iter().filter(|a| a.path().is_ident("cfg"));
 
                     quote! {
                         #( #cfg_attrs )*

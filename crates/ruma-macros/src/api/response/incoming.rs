@@ -42,7 +42,7 @@ impl Response {
                 let field_name =
                     field.ident.as_ref().expect("expected field to have an identifier");
                 let cfg_attrs =
-                    field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
+                    field.attrs.iter().filter(|a| a.path().is_ident("cfg")).collect::<Vec<_>>();
 
                 fields.push(match &response_field.kind {
                     ResponseFieldKind::Body | ResponseFieldKind::NewtypeBody => {

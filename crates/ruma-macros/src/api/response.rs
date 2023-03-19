@@ -61,7 +61,7 @@ pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
     let mut manual_body_serde = false;
     let mut error_ty = None;
     for attr in input.attrs {
-        if !attr.path.is_ident("ruma_api") {
+        if !attr.path().is_ident("ruma_api") {
             continue;
         }
 
@@ -262,7 +262,7 @@ impl TryFrom<Field> for ResponseField {
         }
 
         let (mut api_attrs, attrs) =
-            field.attrs.into_iter().partition::<Vec<_>, _>(|attr| attr.path.is_ident("ruma_api"));
+            field.attrs.into_iter().partition::<Vec<_>, _>(|attr| attr.path().is_ident("ruma_api"));
         field.attrs = attrs;
 
         let kind_attr = match api_attrs.as_slice() {
