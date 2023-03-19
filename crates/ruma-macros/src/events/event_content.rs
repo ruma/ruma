@@ -807,12 +807,12 @@ fn generate_event_content_impl<'a>(
         .map(|type_prefix| {
             let type_fragment_field = fields
                 .find_map(|f| {
-                    f.attrs.iter().filter(|a| a.path().is_ident("ruma_event")).find_map(|a| match a
-                        .parse_args()
-                    {
-                        Ok(EventFieldMeta::TypeFragment) => Some(Ok(f)),
-                        Ok(_) => None,
-                        Err(e) => Some(Err(e)),
+                    f.attrs.iter().filter(|a| a.path().is_ident("ruma_event")).find_map(|attr| {
+                        match attr.parse_args() {
+                            Ok(EventFieldMeta::TypeFragment) => Some(Ok(f)),
+                            Ok(_) => None,
+                            Err(e) => Some(Err(e)),
+                        }
                     })
                 })
                 .transpose()?
@@ -820,7 +820,7 @@ fn generate_event_content_impl<'a>(
                     syn::Error::new_spanned(
                         event_type,
                         "event type with a `.*` suffix requires there to be a \
-                                 `#[ruma_event(type_fragment)]` field",
+                         `#[ruma_event(type_fragment)]` field",
                     )
                 })?
                 .ident
