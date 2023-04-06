@@ -1149,7 +1149,7 @@ mod tests {
         .map(|ev| (ev.event_type().with_state_key(ev.state_key().unwrap()), ev.event_id.clone()))
         .collect::<StateMap<_>>();
 
-        let ev_map = store.0.clone();
+        let ev_map = &store.0;
         let state_sets = [state_set_a, state_set_b];
         let resolved = match crate::resolve(
             &RoomVersionId::V6,
