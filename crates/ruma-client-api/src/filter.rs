@@ -289,8 +289,8 @@ pub struct FilterDefinition {
     ///
     /// If this list is absent then all fields are included. The entries may include '.' characters
     /// to indicate sub-fields. So ['content.body'] will include the 'body' field of the 'content'
-    /// object. A literal '.' character in a field name may be escaped using a '\'. A server may
-    /// include more fields than were requested.
+    /// object. A literal '.' or '\' character in a field name may be escaped using a '\'. A server
+    /// may include more fields than were requested.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub event_fields: Option<Vec<String>>,
 
