@@ -63,7 +63,10 @@ impl RoomVersionFeature {
 pub enum PushCondition {
     /// A glob pattern match on a field of the event.
     EventMatch {
-        /// The dot-separated field of the event to match.
+        /// The dot-separated path of the property of the event to match. See [MSC3873] for its
+        /// format.
+        ///
+        /// [MSC3873]: https://github.com/matrix-org/matrix-spec-proposals/pull/3873
         key: String,
 
         /// The glob-style pattern to match against.
@@ -428,6 +431,7 @@ impl FlattenedJson {
         match value {
             JsonValue::Object(fields) => {
                 for (key, value) in fields {
+                    let key = escape_key(&key);
                     let path = if path.is_empty() { key } else { format!("{path}.{key}") };
                     self.flatten_value(value, path);
                 }
@@ -445,6 +449,13 @@ impl FlattenedJson {
     pub fn get(&self, path: &str) -> Option<&str> {
         self.map.get(path).map(|s| s.as_str())
     }
+}
+
+/// Escape a key for path matching.
+///
+/// This escapes the dots (`.`) and backslashes (`\`) in the key with a backslash.
+fn escape_key(key: &str) -> String {
+    key.replace('\\', r"\\").replace('.', r"\.")
 }
 
 #[cfg(test)]
@@ -808,10 +819,13 @@ mod tests {
         let raw = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
                 "desc": "Level 0",
+                "desc.bis": "Level 0 bis",
                 "up": {
                     "desc": "Level 1",
+                    "desc.bis": "Level 1 bis",
                     "up": {
-                        "desc": "Level 2"
+                        "desc": "Level 2",
+                        "desc\\bis": "Level 2 bis"
                     }
                 }
             }"#,
@@ -823,8 +837,11 @@ mod tests {
             flattened.map,
             btreemap! {
                 "desc".into() => "Level 0".into(),
+                r"desc\.bis".into() => "Level 0 bis".into(),
                 "up.desc".into() => "Level 1".into(),
+                r"up.desc\.bis".into() => "Level 1 bis".into(),
                 "up.up.desc".into() => "Level 2".into(),
+                r"up.up.desc\\bis".into() => "Level 2 bis".into(),
             },
         );
     }

@@ -18,6 +18,7 @@ Improvements:
 - Add `AsRef<[u8]>` implementations for identifier types
 - Add `InitialStateEvent::{new, to_raw, to_raw_any}`
 - Add a convenience method to construct `RoomEncryptionEventContent` with the recommended defaults.
+- `PushCondition::EventMatch` and `FlattenedJson` now use escaped dotted paths, according to MSC3873
 
 # 0.11.3
 
