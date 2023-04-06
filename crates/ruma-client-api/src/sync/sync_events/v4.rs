@@ -13,7 +13,7 @@ use ruma_common::{
     events::{
         receipt::SyncReceiptEvent, typing::SyncTypingEvent, AnyGlobalAccountDataEvent,
         AnyRoomAccountDataEvent, AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent,
-        AnyToDeviceEvent, StateEventType,
+        AnyToDeviceEvent, StateEventType, TimelineEventType,
     },
     metadata,
     serde::{duration::opt_ms, Raw},
@@ -75,6 +75,16 @@ pub struct Request {
     /// name.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub lists: BTreeMap<String, SyncRequestList>,
+
+    /// An allow-list of event types which should be considered recent activity when sorting
+    /// `by_recency`. By omitting event types from this field, clients can ensure that
+    /// uninteresting events (e.g. a profil rename) do not cause a room to jump to the top of its
+    /// list(s). Empty or omitted `bump_event_types` have no effect; all events in a room will be
+    /// considered recent activity.
+    ///
+    /// This is currently per-connection, not per-list. Sticky.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub bump_event_types: Vec<TimelineEventType>,
 
     /// Specific rooms and event types that we want to receive events from.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
