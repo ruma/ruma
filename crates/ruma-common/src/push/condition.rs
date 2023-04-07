@@ -5,18 +5,21 @@ use regex::Regex;
 #[cfg(feature = "unstable-msc3931")]
 use ruma_macros::StringEnum;
 use serde::{Deserialize, Serialize};
-use serde_json::{to_value as to_json_value, value::Value as JsonValue};
-use tracing::{instrument, warn};
+use serde_json::value::Value as JsonValue;
 use wildmatch::WildMatch;
 
-use crate::{power_levels::NotificationPowerLevels, serde::Raw, OwnedRoomId, OwnedUserId, UserId};
+use crate::{power_levels::NotificationPowerLevels, OwnedRoomId, OwnedUserId, UserId};
 #[cfg(feature = "unstable-msc3931")]
 use crate::{PrivOwnedStr, RoomVersionId};
 
+mod flattened_json;
 mod push_condition_serde;
 mod room_member_count_is;
 
-pub use room_member_count_is::{ComparisonOperator, RoomMemberCountIs};
+pub use self::{
+    flattened_json::FlattenedJson,
+    room_member_count_is::{ComparisonOperator, RoomMemberCountIs},
+};
 
 /// Features supported by room versions.
 #[cfg(feature = "unstable-msc3931")]
@@ -410,61 +413,12 @@ impl StrExt for str {
     }
 }
 
-/// The flattened representation of a JSON object.
-#[derive(Clone, Debug)]
-pub struct FlattenedJson {
-    /// The internal map containing the flattened JSON as a pair path, value.
-    map: BTreeMap<String, String>,
-}
-
-impl FlattenedJson {
-    /// Create a `FlattenedJson` from `Raw`.
-    pub fn from_raw<T>(raw: &Raw<T>) -> Self {
-        let mut s = Self { map: BTreeMap::new() };
-        s.flatten_value(to_json_value(raw).unwrap(), "".into());
-        s
-    }
-
-    /// Flatten and insert the `value` at `path`.
-    #[instrument(skip(self, value))]
-    fn flatten_value(&mut self, value: JsonValue, path: String) {
-        match value {
-            JsonValue::Object(fields) => {
-                for (key, value) in fields {
-                    let key = escape_key(&key);
-                    let path = if path.is_empty() { key } else { format!("{path}.{key}") };
-                    self.flatten_value(value, path);
-                }
-            }
-            JsonValue::String(s) => {
-                if self.map.insert(path.clone(), s).is_some() {
-                    warn!("Duplicate path in flattened JSON: {path}");
-                }
-            }
-            JsonValue::Number(_) | JsonValue::Bool(_) | JsonValue::Array(_) | JsonValue::Null => {}
-        }
-    }
-
-    /// Value associated with the given `path`.
-    pub fn get(&self, path: &str) -> Option<&str> {
-        self.map.get(path).map(|s| s.as_str())
-    }
-}
-
-/// Escape a key for path matching.
-///
-/// This escapes the dots (`.`) and backslashes (`\`) in the key with a backslash.
-fn escape_key(key: &str) -> String {
-    key.replace('\\', r"\\").replace('.', r"\.")
-}
-
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;
 
     use assert_matches::assert_matches;
     use js_int::{int, uint};
-    use maplit::btreemap;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
@@ -795,54 +749,5 @@ mod tests {
 
         assert!(room_version_condition.applies(&simple_event, &context_matching));
         assert!(!room_version_condition.applies(&simple_event, &context_not_matching));
-    }
-
-    #[test]
-    fn flattened_json_values() {
-        let raw = serde_json::from_str::<Raw<JsonValue>>(
-            r#"{
-                "string": "Hello World",
-                "number": 10,
-                "array": [1, 2],
-                "boolean": true,
-                "null": null
-            }"#,
-        )
-        .unwrap();
-
-        let flattened = FlattenedJson::from_raw(&raw);
-        assert_eq!(flattened.map, btreemap! { "string".into() => "Hello World".into() });
-    }
-
-    #[test]
-    fn flattened_json_nested() {
-        let raw = serde_json::from_str::<Raw<JsonValue>>(
-            r#"{
-                "desc": "Level 0",
-                "desc.bis": "Level 0 bis",
-                "up": {
-                    "desc": "Level 1",
-                    "desc.bis": "Level 1 bis",
-                    "up": {
-                        "desc": "Level 2",
-                        "desc\\bis": "Level 2 bis"
-                    }
-                }
-            }"#,
-        )
-        .unwrap();
-
-        let flattened = FlattenedJson::from_raw(&raw);
-        assert_eq!(
-            flattened.map,
-            btreemap! {
-                "desc".into() => "Level 0".into(),
-                r"desc\.bis".into() => "Level 0 bis".into(),
-                "up.desc".into() => "Level 1".into(),
-                r"up.desc\.bis".into() => "Level 1 bis".into(),
-                "up.up.desc".into() => "Level 2".into(),
-                r"up.up.desc\\bis".into() => "Level 2 bis".into(),
-            },
-        );
     }
 }
