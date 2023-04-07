@@ -20,6 +20,7 @@ Improvements:
 - Add `InitialStateEvent::{new, to_raw, to_raw_any}`
 - Add a convenience method to construct `RoomEncryptionEventContent` with the recommended defaults.
 - `PushCondition::EventMatch` and `FlattenedJson` now use escaped dotted paths, according to MSC3873
+- Add unstable support for `event_property_is` push condition according to MSC3758
 
 # 0.11.3
 

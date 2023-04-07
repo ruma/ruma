@@ -106,6 +106,19 @@ pub enum PushCondition {
         feature: RoomVersionFeature,
     },
 
+    /// Exact value match on a property of the event.
+    #[cfg(feature = "unstable-msc3758")]
+    EventPropertyIs {
+        /// The dot-separated path of the property of the event to match. See [MSC3873] for its
+        /// format.
+        ///
+        /// [MSC3873]: https://github.com/matrix-org/matrix-spec-proposals/pull/3873
+        key: String,
+
+        /// The value to match against.
+        value: ScalarJsonValue,
+    },
+
     #[doc(hidden)]
     _Custom(_CustomPushCondition),
 }
@@ -176,6 +189,8 @@ impl PushCondition {
                 }
                 RoomVersionFeature::_Custom(_) => false,
             },
+            #[cfg(feature = "unstable-msc3758")]
+            Self::EventPropertyIs { key, value } => event.get(key).map_or(false, |v| v == value),
             Self::_Custom(_) => false,
         }
     }
@@ -769,5 +784,71 @@ mod tests {
 
         assert!(room_version_condition.applies(&simple_event, &context_matching));
         assert!(!room_version_condition.applies(&simple_event, &context_not_matching));
+    }
+
+    #[cfg(feature = "unstable-msc3758")]
+    #[test]
+    fn event_property_is_applies() {
+        use crate::push::condition::ScalarJsonValue;
+
+        let context = push_context();
+        let event_raw = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "sender": "@worthy_whale:server.name",
+                "content": {
+                    "msgtype": "m.text",
+                    "body": "Boom!",
+                    "org.fake.boolean": false,
+                    "org.fake.number": 13,
+                    "org.fake.null": null
+                }
+            }"#,
+        )
+        .unwrap();
+        let event = FlattenedJson::from_raw(&event_raw);
+
+        let string_match = PushCondition::EventPropertyIs {
+            key: "content.body".to_owned(),
+            value: "Boom!".into(),
+        };
+        assert!(string_match.applies(&event, &context));
+
+        let string_no_match =
+            PushCondition::EventPropertyIs { key: "content.body".to_owned(), value: "Boom".into() };
+        assert!(!string_no_match.applies(&event, &context));
+
+        let wrong_type =
+            PushCondition::EventPropertyIs { key: "content.body".to_owned(), value: false.into() };
+        assert!(!wrong_type.applies(&event, &context));
+
+        let bool_match = PushCondition::EventPropertyIs {
+            key: r"content.org\.fake\.boolean".to_owned(),
+            value: false.into(),
+        };
+        assert!(bool_match.applies(&event, &context));
+
+        let bool_no_match = PushCondition::EventPropertyIs {
+            key: r"content.org\.fake\.boolean".to_owned(),
+            value: true.into(),
+        };
+        assert!(!bool_no_match.applies(&event, &context));
+
+        let int_match = PushCondition::EventPropertyIs {
+            key: r"content.org\.fake\.number".to_owned(),
+            value: int!(13).into(),
+        };
+        assert!(int_match.applies(&event, &context));
+
+        let int_no_match = PushCondition::EventPropertyIs {
+            key: r"content.org\.fake\.number".to_owned(),
+            value: int!(130).into(),
+        };
+        assert!(!int_no_match.applies(&event, &context));
+
+        let null_match = PushCondition::EventPropertyIs {
+            key: r"content.org\.fake\.null".to_owned(),
+            value: ScalarJsonValue::Null,
+        };
+        assert!(null_match.applies(&event, &context));
     }
 }
