@@ -5,6 +5,8 @@ use crate::serde::from_raw_json_value;
 
 #[cfg(feature = "unstable-msc3931")]
 use super::RoomVersionFeature;
+#[cfg(feature = "unstable-msc3758")]
+use super::ScalarJsonValue;
 use super::{PushCondition, RoomMemberCountIs};
 
 impl Serialize for PushCondition {
@@ -37,6 +39,11 @@ impl<'de> Deserialize<'de> for PushCondition {
             }
             #[cfg(feature = "unstable-msc3931")]
             "org.matrix.msc3931.room_version_supports" => {
+                let helper: PushConditionSerDeHelper = from_raw_json_value(&json)?;
+                Ok(helper.into())
+            }
+            #[cfg(feature = "unstable-msc3758")]
+            "com.beeper.msc3758.exact_event_match" => {
                 let helper: PushConditionSerDeHelper = from_raw_json_value(&json)?;
                 Ok(helper.into())
             }
@@ -93,6 +100,10 @@ enum PushConditionSerDeHelper {
         /// The feature the room must support for the push rule to apply.
         feature: RoomVersionFeature,
     },
+
+    #[cfg(feature = "unstable-msc3758")]
+    #[serde(rename = "com.beeper.msc3758.exact_event_match")]
+    EventPropertyIs { key: String, value: ScalarJsonValue },
 }
 
 impl From<PushConditionSerDeHelper> for PushCondition {
@@ -110,6 +121,10 @@ impl From<PushConditionSerDeHelper> for PushCondition {
             PushConditionSerDeHelper::RoomVersionSupports { feature } => {
                 Self::RoomVersionSupports { feature }
             }
+            #[cfg(feature = "unstable-msc3758")]
+            PushConditionSerDeHelper::EventPropertyIs { key, value } => {
+                Self::EventPropertyIs { key, value }
+            }
         }
     }
 }
@@ -125,6 +140,8 @@ impl From<PushCondition> for PushConditionSerDeHelper {
             }
             #[cfg(feature = "unstable-msc3931")]
             PushCondition::RoomVersionSupports { feature } => Self::RoomVersionSupports { feature },
+            #[cfg(feature = "unstable-msc3758")]
+            PushCondition::EventPropertyIs { key, value } => Self::EventPropertyIs { key, value },
             PushCondition::_Custom(_) => unimplemented!(),
         }
     }
