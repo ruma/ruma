@@ -191,7 +191,7 @@ impl<'a> AnyPushRuleRef<'a> {
     /// * `event` - The flattened JSON representation of a room message event.
     /// * `context` - The context of the room at the time of the event.
     pub fn applies(self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
-        if event.get("sender").map_or(false, |sender| sender == context.user_id) {
+        if event.get_str("sender").map_or(false, |sender| sender == context.user_id) {
             return false;
         }
 

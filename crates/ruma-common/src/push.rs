@@ -38,8 +38,8 @@ pub use self::condition::RoomVersionFeature;
 pub use self::{
     action::{Action, Tweak},
     condition::{
-        ComparisonOperator, FlattenedJson, PushCondition, PushConditionRoomCtx, RoomMemberCountIs,
-        _CustomPushCondition,
+        ComparisonOperator, FlattenedJson, FlattenedJsonValue, PushCondition, PushConditionRoomCtx,
+        RoomMemberCountIs, _CustomPushCondition,
     },
     iter::{AnyPushRule, AnyPushRuleRef, RulesetIntoIter, RulesetIter},
     predefined::{
@@ -291,7 +291,7 @@ impl Ruleset {
     ) -> Option<AnyPushRuleRef<'_>> {
         let event = FlattenedJson::from_raw(event);
 
-        if event.get("sender").map_or(false, |sender| sender == context.user_id) {
+        if event.get_str("sender").map_or(false, |sender| sender == context.user_id) {
             // no need to look at the rules if the event was by the user themselves
             None
         } else {
@@ -601,7 +601,7 @@ impl PatternedPushRule {
         event: &FlattenedJson,
         context: &PushConditionRoomCtx,
     ) -> bool {
-        if event.get("sender").map_or(false, |sender| sender == context.user_id) {
+        if event.get_str("sender").map_or(false, |sender| sender == context.user_id) {
             return false;
         }
 

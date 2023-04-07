@@ -9,6 +9,7 @@ Breaking changes:
 
 - Make `in_reply_to` field of `Thread` optional
   - It was wrong to be mandatory, spec was unclear (clarified [here](https://github.com/matrix-org/matrix-spec/pull/1439))
+- `FlattenedJson::get` returns a `FlattenedJsonValue` instead of a string
 
 Improvements:
 

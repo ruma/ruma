@@ -17,7 +17,7 @@ mod push_condition_serde;
 mod room_member_count_is;
 
 pub use self::{
-    flattened_json::FlattenedJson,
+    flattened_json::{FlattenedJson, FlattenedJsonValue, ScalarJsonValue},
     room_member_count_is::{ComparisonOperator, RoomMemberCountIs},
 };
 
@@ -118,7 +118,7 @@ pub(super) fn check_event_match(
 ) -> bool {
     let value = match key {
         "room_id" => context.room_id.as_str(),
-        _ => match event.get(key) {
+        _ => match event.get_str(key) {
             Some(v) => v,
             None => return false,
         },
@@ -135,14 +135,14 @@ impl PushCondition {
     /// * `event` - The flattened JSON representation of a room message event.
     /// * `context` - The context of the room at the time of the event.
     pub fn applies(&self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
-        if event.get("sender").map_or(false, |sender| sender == context.user_id) {
+        if event.get_str("sender").map_or(false, |sender| sender == context.user_id) {
             return false;
         }
 
         match self {
             Self::EventMatch { key, pattern } => check_event_match(event, key, pattern, context),
             Self::ContainsDisplayName => {
-                let value = match event.get("content.body") {
+                let value = match event.get_str("content.body") {
                     Some(v) => v,
                     None => return false,
                 };
@@ -151,7 +151,7 @@ impl PushCondition {
             }
             Self::RoomMemberCount { is } => is.contains(&context.member_count),
             Self::SenderNotificationPermission { key } => {
-                let sender_id = match event.get("sender") {
+                let sender_id = match event.get_str("sender") {
                     Some(v) => match <&UserId>::try_from(v) {
                         Ok(u) => u,
                         Err(_) => return false,
