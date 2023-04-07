@@ -1,0 +1,69 @@
+# https://embarkstudios.github.io/cargo-deny/checks/cfg.html
+
+all-features = true
+exclude = [
+    # dev only dependency
+    "criterion"
+]
+
+[advisories]
+vulnerability = "deny"
+unmaintained = "deny"
+
+[licenses]
+default = "deny"
+unlicensed = "deny"
+allow = [
+    "Apache-2.0",
+    "BSD-3-Clause",
+    "ISC",
+    "MIT",
+    "OpenSSL",
+    "Unicode-DFS-2016",
+    "Zlib",
+]
+# MPL-2.0 is copyleft but not "infectuous" like GPL
+copyleft = "allow"
+private = { ignore = true }
+
+[[licenses.clarify]]
+name = "ring"
+version = "*"
+expression = "MIT AND ISC AND OpenSSL"
+license-files = [
+    { path = "LICENSE", hash = 0xbd0eed23 },
+]
+
+[bans]
+multiple-versions = "deny"
+wildcards = "deny"
+skip = [
+    # not a big deal, exotic OS support
+    { name = "hermit-abi" },
+    { name = "redox_syscall" },
+    # headers depends on old version
+    { name = "base64" },
+    # many crates haven't upgraded to 2.0 yet
+    { name = "syn" },
+
+    # ed25519-dalek issues...
+    { name = "block-buffer" },
+    { name = "digest" },
+    { name = "getrandom" },
+    { name = "rand" },
+    { name = "rand_core" },
+    { name = "rand_chacha" },
+    { name = "sha2" },
+]
+skip-tree = [
+    # happens often and not a huge deal
+    { name = "wasi" },
+    { name = "windows-sys" },
+
+    # markup5ever needs to upgrade
+    { name = "phf" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

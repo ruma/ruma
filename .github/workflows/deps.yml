@@ -1,0 +1,35 @@
+name: Dependencies
+
+env:
+  CARGO_TERM_COLOR: always
+
+on:
+  schedule:
+    # every monday at 4AM (UTC?)
+    - cron: '0 4 * * 1'
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  bans-licenses-sources:
+    name: Bans, Licenses, Sources
+    runs-on: ubuntu-latest
+    if: github.event.name != 'schedule'
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: EmbarkStudios/cargo-deny-action@v1
+        with:
+          command: check bans licenses sources
+
+  advisories:
+    name: Advisories
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: EmbarkStudios/cargo-deny-action@v1
+        with:
+          command: check advisories
