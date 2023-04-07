@@ -5,7 +5,7 @@ use crate::serde::from_raw_json_value;
 
 #[cfg(feature = "unstable-msc3931")]
 use super::RoomVersionFeature;
-#[cfg(feature = "unstable-msc3758")]
+#[cfg(any(feature = "unstable-msc3758", feature = "unstable-msc3966"))]
 use super::ScalarJsonValue;
 use super::{PushCondition, RoomMemberCountIs};
 
@@ -44,6 +44,11 @@ impl<'de> Deserialize<'de> for PushCondition {
             }
             #[cfg(feature = "unstable-msc3758")]
             "com.beeper.msc3758.exact_event_match" => {
+                let helper: PushConditionSerDeHelper = from_raw_json_value(&json)?;
+                Ok(helper.into())
+            }
+            #[cfg(feature = "unstable-msc3966")]
+            "org.matrix.msc3966.exact_event_property_contains" => {
                 let helper: PushConditionSerDeHelper = from_raw_json_value(&json)?;
                 Ok(helper.into())
             }
@@ -104,6 +109,10 @@ enum PushConditionSerDeHelper {
     #[cfg(feature = "unstable-msc3758")]
     #[serde(rename = "com.beeper.msc3758.exact_event_match")]
     EventPropertyIs { key: String, value: ScalarJsonValue },
+
+    #[cfg(feature = "unstable-msc3966")]
+    #[serde(rename = "org.matrix.msc3966.exact_event_property_contains")]
+    EventPropertyContains { key: String, value: ScalarJsonValue },
 }
 
 impl From<PushConditionSerDeHelper> for PushCondition {
@@ -125,6 +134,10 @@ impl From<PushConditionSerDeHelper> for PushCondition {
             PushConditionSerDeHelper::EventPropertyIs { key, value } => {
                 Self::EventPropertyIs { key, value }
             }
+            #[cfg(feature = "unstable-msc3966")]
+            PushConditionSerDeHelper::EventPropertyContains { key, value } => {
+                Self::EventPropertyContains { key, value }
+            }
         }
     }
 }
@@ -142,6 +155,10 @@ impl From<PushCondition> for PushConditionSerDeHelper {
             PushCondition::RoomVersionSupports { feature } => Self::RoomVersionSupports { feature },
             #[cfg(feature = "unstable-msc3758")]
             PushCondition::EventPropertyIs { key, value } => Self::EventPropertyIs { key, value },
+            #[cfg(feature = "unstable-msc3966")]
+            PushCondition::EventPropertyContains { key, value } => {
+                Self::EventPropertyContains { key, value }
+            }
             PushCondition::_Custom(_) => unimplemented!(),
         }
     }
