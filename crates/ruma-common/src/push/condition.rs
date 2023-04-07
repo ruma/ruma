@@ -424,7 +424,7 @@ mod tests {
     };
 
     use super::{FlattenedJson, PushCondition, PushConditionRoomCtx, RoomMemberCountIs, StrExt};
-    use crate::{power_levels::NotificationPowerLevels, room_id, serde::Raw, user_id};
+    use crate::{power_levels::NotificationPowerLevels, room_id, serde::Raw, user_id, OwnedUserId};
 
     #[test]
     fn serialize_event_match_condition() {
@@ -611,14 +611,15 @@ mod tests {
         assert!(!"lunc".matches_pattern("lunc?*", false));
     }
 
-    #[test]
-    fn conditions_apply_to_events() {
-        let first_sender = user_id!("@worthy_whale:server.name").to_owned();
+    fn sender() -> OwnedUserId {
+        user_id!("@worthy_whale:server.name").to_owned()
+    }
 
+    fn push_context() -> PushConditionRoomCtx {
         let mut users_power_levels = BTreeMap::new();
-        users_power_levels.insert(first_sender, int!(25));
+        users_power_levels.insert(sender(), int!(25));
 
-        let context = PushConditionRoomCtx {
+        PushConditionRoomCtx {
             room_id: room_id!("!room:server.name").to_owned(),
             member_count: uint!(3),
             user_id: user_id!("@gorilla:server.name").to_owned(),
@@ -628,9 +629,11 @@ mod tests {
             notification_power_levels: NotificationPowerLevels { room: int!(50) },
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
-        };
+        }
+    }
 
-        let first_event_raw = serde_json::from_str::<Raw<JsonValue>>(
+    fn first_flattened_event() -> FlattenedJson {
+        let raw = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
                 "sender": "@worthy_whale:server.name",
                 "content": {
@@ -640,19 +643,30 @@ mod tests {
             }"#,
         )
         .unwrap();
-        let first_event = FlattenedJson::from_raw(&first_event_raw);
 
-        let second_event_raw = serde_json::from_str::<Raw<JsonValue>>(
+        FlattenedJson::from_raw(&raw)
+    }
+
+    fn second_flattened_event() -> FlattenedJson {
+        let raw = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
                 "sender": "@party_bot:server.name",
                 "content": {
                     "msgtype": "m.notice",
-                    "body": "@room Ready to come to the party?"
+                    "body": "Everybody come to party!"
                 }
             }"#,
         )
         .unwrap();
-        let second_event = FlattenedJson::from_raw(&second_event_raw);
+
+        FlattenedJson::from_raw(&raw)
+    }
+
+    #[test]
+    fn event_match_applies() {
+        let context = push_context();
+        let first_event = first_flattened_event();
+        let second_event = second_flattened_event();
 
         let correct_room = PushCondition::EventMatch {
             key: "room_id".into(),
@@ -677,6 +691,12 @@ mod tests {
 
         assert!(!msgtype.applies(&first_event, &context));
         assert!(msgtype.applies(&second_event, &context));
+    }
+
+    #[test]
+    fn room_member_count_is_applies() {
+        let context = push_context();
+        let event = first_flattened_event();
 
         let member_count_eq =
             PushCondition::RoomMemberCount { is: RoomMemberCountIs::from(uint!(3)) };
@@ -685,14 +705,28 @@ mod tests {
         let member_count_lt =
             PushCondition::RoomMemberCount { is: RoomMemberCountIs::from(..uint!(3)) };
 
-        assert!(member_count_eq.applies(&first_event, &context));
-        assert!(member_count_gt.applies(&first_event, &context));
-        assert!(!member_count_lt.applies(&first_event, &context));
+        assert!(member_count_eq.applies(&event, &context));
+        assert!(member_count_gt.applies(&event, &context));
+        assert!(!member_count_lt.applies(&event, &context));
+    }
+
+    #[test]
+    fn contains_display_name_applies() {
+        let context = push_context();
+        let first_event = first_flattened_event();
+        let second_event = second_flattened_event();
 
         let contains_display_name = PushCondition::ContainsDisplayName;
 
         assert!(contains_display_name.applies(&first_event, &context));
         assert!(!contains_display_name.applies(&second_event, &context));
+    }
+
+    #[test]
+    fn sender_notification_permission_applies() {
+        let context = push_context();
+        let first_event = first_flattened_event();
+        let second_event = second_flattened_event();
 
         let sender_notification_permission =
             PushCondition::SenderNotificationPermission { key: "room".into() };
@@ -703,32 +737,18 @@ mod tests {
 
     #[cfg(feature = "unstable-msc3932")]
     #[test]
-    fn conditions_apply_to_events_in_room_with_feature() {
-        let first_sender = user_id!("@worthy_whale:server.name").to_owned();
-
-        let mut users_power_levels = BTreeMap::new();
-        users_power_levels.insert(first_sender, int!(25));
+    fn room_version_supports_applies() {
+        let context_not_matching = push_context();
 
         let context_matching = PushConditionRoomCtx {
             room_id: room_id!("!room:server.name").to_owned(),
             member_count: uint!(3),
             user_id: user_id!("@gorilla:server.name").to_owned(),
             user_display_name: "Groovy Gorilla".into(),
-            users_power_levels: users_power_levels.clone(),
+            users_power_levels: context_not_matching.users_power_levels.clone(),
             default_power_level: int!(50),
             notification_power_levels: NotificationPowerLevels { room: int!(50) },
             supported_features: vec![super::RoomVersionFeature::ExtensibleEvents],
-        };
-
-        let context_not_matching = PushConditionRoomCtx {
-            room_id: room_id!("!room:server.name").to_owned(),
-            member_count: uint!(3),
-            user_id: user_id!("@gorilla:server.name").to_owned(),
-            user_display_name: "Groovy Gorilla".into(),
-            users_power_levels,
-            default_power_level: int!(50),
-            notification_power_levels: NotificationPowerLevels { room: int!(50) },
-            supported_features: vec![],
         };
 
         let simple_event_raw = serde_json::from_str::<Raw<JsonValue>>(
