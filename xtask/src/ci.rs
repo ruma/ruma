@@ -1,3 +1,6 @@
+// Triggers at the `#[clap(subcommand)]` line, but not easily reproducible outside this crate.
+#![allow(unused_qualifications)]
+
 use std::path::PathBuf;
 
 use clap::{Args, Subcommand};
