@@ -14,7 +14,8 @@ use super::{
 };
 use crate::{
     serde::{from_raw_json_value, Raw},
-    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId, UserId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId,
+    RoomVersionId, UserId,
 };
 
 /// A global account data event.
@@ -551,6 +552,19 @@ where
         match self {
             Self::Original { content, .. } => content.event_type(),
             Self::Redacted(content) => content.event_type(),
+        }
+    }
+
+    /// Transform `self` into a redacted form (removing most or all fields) according to the spec.
+    ///
+    /// If `self` is already [`Redacted`](Self::Redacted), return the inner data unmodified.
+    ///
+    /// A small number of events have room-version specific redaction behavior, so a version has to
+    /// be specified.
+    pub fn redact(self, version: &RoomVersionId) -> C::Redacted {
+        match self {
+            FullStateEventContent::Original { content, .. } => content.redact(version),
+            FullStateEventContent::Redacted(content) => content,
         }
     }
 }
