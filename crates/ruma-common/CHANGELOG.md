@@ -22,6 +22,7 @@ Improvements:
 - `PushCondition::EventMatch` and `FlattenedJson` now use escaped dotted paths, according to MSC3873
 - Add unstable support for `event_property_is` push condition according to MSC3758
 - Add unstable support for `event_property_contains` push condition according to MSC3966
+- Add `FullStateEventContent::redact`
 
 # 0.11.3
 
