@@ -1,6 +1,7 @@
-///! Constructors for [predefined push rules].
-///!
-///! [predefined push rules]: https://spec.matrix.org/latest/client-server-api/#predefined-rules
+//! Constructors for [predefined push rules].
+//!
+//! [predefined push rules]: https://spec.matrix.org/latest/client-server-api/#predefined-rules
+
 use ruma_macros::StringEnum;
 
 use super::{
