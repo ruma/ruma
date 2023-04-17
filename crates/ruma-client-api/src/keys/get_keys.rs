@@ -46,15 +46,6 @@ pub mod v3 {
         ///
         /// An empty list indicates all devices for the corresponding user.
         pub device_keys: BTreeMap<OwnedUserId, Vec<OwnedDeviceId>>,
-
-        /// If the client is fetching keys as a result of a device update received in a sync
-        /// request, this should be the 'since' token of that sync request, or any later sync
-        /// token.
-        ///
-        /// This allows the server to ensure its response contains the keys advertised by the
-        /// notification in that sync.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub token: Option<String>,
     }
 
     /// Response type for the `get_keys` endpoint.
