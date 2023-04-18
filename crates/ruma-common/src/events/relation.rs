@@ -240,6 +240,14 @@ impl<E> BundledMessageLikeRelations<E> {
     pub fn is_empty(&self) -> bool {
         self.replace.is_none() && self.thread.is_none() && self.reference.is_none()
     }
+
+    /// Transform `BundledMessageLikeRelations<E>` to `BundledMessageLikeRelations<T>` using the
+    /// given closure to convert the `replace` field if it is `Some(_)`.
+    pub(crate) fn map_replace<T>(self, f: impl FnOnce(E) -> T) -> BundledMessageLikeRelations<T> {
+        let Self { replace, has_invalid_replacement, thread, reference } = self;
+        let replace = replace.map(|r| Box::new(f(*r)));
+        BundledMessageLikeRelations { replace, has_invalid_replacement, thread, reference }
+    }
 }
 
 impl<E> Default for BundledMessageLikeRelations<E> {

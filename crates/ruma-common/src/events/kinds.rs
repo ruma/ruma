@@ -145,6 +145,15 @@ pub struct OriginalSyncMessageLikeEvent<C: MessageLikeEventContent> {
     pub unsigned: MessageLikeUnsigned<C>,
 }
 
+impl<C: MessageLikeEventContent + RedactContent> OriginalSyncMessageLikeEvent<C>
+where
+    C::Redacted: RedactedMessageLikeEventContent,
+{
+    pub(crate) fn into_maybe_redacted(self) -> SyncMessageLikeEvent<C> {
+        SyncMessageLikeEvent::Original(self)
+    }
+}
+
 /// A redacted message-like event.
 ///
 /// `RedactedMessageLikeEvent` implements the comparison traits using only the `event_id` field, a

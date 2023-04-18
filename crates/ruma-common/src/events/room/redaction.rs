@@ -111,6 +111,12 @@ pub struct OriginalSyncRoomRedactionEvent {
     pub unsigned: RoomRedactionUnsigned,
 }
 
+impl OriginalSyncRoomRedactionEvent {
+    pub(crate) fn into_maybe_redacted(self) -> SyncRoomRedactionEvent {
+        SyncRoomRedactionEvent::Original(self)
+    }
+}
+
 /// Redacted redaction event without a `room_id`.
 #[derive(Clone, Debug, Event)]
 #[allow(clippy::exhaustive_structs)]

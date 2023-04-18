@@ -604,6 +604,34 @@ fn expand_accessor_methods(
         }
     });
 
+    let relations_accessor = (kind == EventKind::MessageLike).then(|| {
+        let variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
+
+        quote! {
+            /// Returns this event's `relations` from inside `unsigned`.
+            pub fn relations(
+                &self,
+            ) -> #ruma_common::events::BundledMessageLikeRelations<AnySyncMessageLikeEvent> {
+                match self {
+                    #(
+                        #variants(event) => event.as_original().map_or_else(
+                            ::std::default::Default::default,
+                            |ev| ev.unsigned.relations.clone().map_replace(|r| {
+                                ::std::convert::From::from(r.into_maybe_redacted())
+                            }),
+                        ),
+                    )*
+                    Self::_Custom(event) => event.as_original().map_or_else(
+                        ::std::default::Default::default,
+                        |ev| ev.unsigned.relations.clone().map_replace(|r| {
+                            AnySyncMessageLikeEvent::_Custom(r.into_maybe_redacted())
+                        }),
+                    ),
+                }
+            }
+        }
+    });
+
     let maybe_redacted_accessors = maybe_redacted.then(|| {
         let variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
 
@@ -634,6 +662,7 @@ fn expand_accessor_methods(
 
             #content_accessor
             #( #methods )*
+            #relations_accessor
             #state_key_accessor
             #maybe_redacted_accessors
         }
