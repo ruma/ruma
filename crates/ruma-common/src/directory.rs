@@ -20,7 +20,7 @@ pub struct PublicRoomsChunk {
     /// The canonical alias of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
-        feature = "compat",
+        feature = "compat-empty-string-null",
         serde(default, deserialize_with = "crate::serde::empty_string_as_none")
     )]
     pub canonical_alias: Option<OwnedRoomAliasId>,
@@ -49,11 +49,11 @@ pub struct PublicRoomsChunk {
 
     /// The URL for the room's avatar, if one is set.
     ///
-    /// If you activate the `compat` feature, this field being an empty string in JSON will result
-    /// in `None` here during deserialization.
+    /// If you activate the `compat-empty-string-null` feature, this field being an empty string in
+    /// JSON will result in `None` here during deserialization.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
-        feature = "compat",
+        feature = "compat-empty-string-null",
         serde(default, deserialize_with = "crate::serde::empty_string_as_none")
     )]
     pub avatar_url: Option<OwnedMxcUri>,
@@ -120,8 +120,11 @@ pub struct Filter {
     /// The room types to include in the results.
     ///
     /// Includes all room types if it is empty.
+    ///
+    /// If the `compat-null` feature is enabled, a `null` value is allowed in deserialization, and
+    /// treated the same way as an empty list.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    #[cfg_attr(feature = "compat", serde(deserialize_with = "crate::serde::none_as_default"))]
+    #[cfg_attr(feature = "compat-null", serde(deserialize_with = "crate::serde::none_as_default"))]
     pub room_types: Vec<RoomTypeFilter>,
 }
 

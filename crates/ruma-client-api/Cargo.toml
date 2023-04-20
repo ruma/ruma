@@ -16,7 +16,23 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-compat = []
+# OutgoingRequest and IncomingResponse implementations
+client = []
+# IncomingRequest and OutgoingResponse implementations
+server = []
+
+# Allow some mandatory fields in requests / responses to be missing, defaulting
+# them to an empty string in deserialization.
+compat-empty-string-null = []
+
+# Unset avatars by sending an empty string, same as what Element Web does, c.f.
+# https://github.com/matrix-org/matrix-spec/issues/378#issuecomment-1055831264
+compat-unset-avatar = []
+
+# Always serialize the threepids response field in `get_3pids::v3::Response`,
+# even if its value is an empty list.
+compat-get-3pids = []
+
 unstable-exhaustive-types = ["ruma-common/unstable-exhaustive-types"]
 unstable-msc2246 = []
 unstable-msc2666 = []
@@ -27,8 +43,6 @@ unstable-msc2965 = []
 unstable-msc2967 = []
 unstable-msc3488 = []
 unstable-msc3575 = []
-client = []
-server = []
 
 [dependencies]
 assign = { workspace = true }

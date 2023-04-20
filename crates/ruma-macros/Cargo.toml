@@ -14,9 +14,6 @@ rust-version = "1.64"
 [lib]
 proc-macro = true
 
-[features]
-compat = []
-
 [dependencies]
 once_cell = "1.13.0"
 proc-macro-crate = "1.0.0"

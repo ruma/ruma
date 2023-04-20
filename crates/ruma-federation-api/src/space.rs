@@ -17,9 +17,12 @@ pub mod get_hierarchy;
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SpaceHierarchyParentSummary {
     /// The canonical alias of the room, if any.
+    ///
+    /// If you activate the `compat-empty-string-null` feature, this field being an empty
+    /// string in JSON will result in `None` here during deserialization.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
-        feature = "compat",
+        feature = "compat-empty-string-null",
         serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
     )]
     pub canonical_alias: Option<OwnedRoomAliasId>,
@@ -48,11 +51,11 @@ pub struct SpaceHierarchyParentSummary {
 
     /// The URL for the room's avatar, if one is set.
     ///
-    /// If you activate the `compat` feature, this field being an empty string in JSON will result
-    /// in `None` here during deserialization.
+    /// If you activate the `compat-empty-string-null` feature, this field being an empty string in
+    /// JSON will result in `None` here during deserialization.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
-        feature = "compat",
+        feature = "compat-empty-string-null",
         serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
     )]
     pub avatar_url: Option<OwnedMxcUri>,
@@ -147,9 +150,12 @@ impl From<SpaceHierarchyParentSummaryInit> for SpaceHierarchyParentSummary {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SpaceHierarchyChildSummary {
     /// The canonical alias of the room, if any.
+    ///
+    /// If you activate the `compat-empty-string-null` feature, this field being an empty string in
+    /// JSON will result in `None` here during deserialization.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
-        feature = "compat",
+        feature = "compat-empty-string-null",
         serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
     )]
     pub canonical_alias: Option<OwnedRoomAliasId>,
@@ -178,11 +184,11 @@ pub struct SpaceHierarchyChildSummary {
 
     /// The URL for the room's avatar, if one is set.
     ///
-    /// If you activate the `compat` feature, this field being an empty string in JSON will result
-    /// in `None` here during deserialization.
+    /// If you activate the `compat-empty-string-null` feature, this field being an empty string in
+    /// JSON will result in `None` here during deserialization.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
-        feature = "compat",
+        feature = "compat-empty-string-null",
         serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
     )]
     pub avatar_url: Option<OwnedMxcUri>,

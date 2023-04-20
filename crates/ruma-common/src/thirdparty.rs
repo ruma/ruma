@@ -25,9 +25,9 @@ pub struct Protocol {
 
     /// A content URI representing an icon for the third party protocol.
     ///
-    /// If you activate the `compat` feature, this field being absent in JSON will result in an
-    /// empty string here during deserialization.
-    #[cfg_attr(feature = "compat", serde(default))]
+    /// If the `compat-optional` feature is enabled, this field being absent in JSON will result
+    /// in an empty string instead of an error when deserializing.
+    #[cfg_attr(feature = "compat-optional", serde(default))]
     pub icon: String,
 
     /// The type definitions for the fields defined in `user_fields` and `location_fields`.

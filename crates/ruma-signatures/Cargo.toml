@@ -14,7 +14,8 @@ edition = "2021"
 all-features = true
 
 [features]
-compat = []
+# Allow extra characters in signature IDs not allowed in the specification.
+compat-signature-id = []
 ring-compat = ["dep:subslice"]
 unstable-exhaustive-types = []
 
