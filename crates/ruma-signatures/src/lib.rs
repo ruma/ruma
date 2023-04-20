@@ -85,9 +85,9 @@ fn split_id(id: &str) -> Result<(Algorithm, String), Error> {
 
     let version = signature_id[1];
 
-    #[cfg(feature = "compat")]
+    #[cfg(feature = "compat-signature-id")]
     const EXTRA_ALLOWED: [u8; 3] = [b'_', b'+', b'/'];
-    #[cfg(not(feature = "compat"))]
+    #[cfg(not(feature = "compat-signature-id"))]
     const EXTRA_ALLOWED: [u8; 1] = [b'_'];
     if !version.bytes().all(|ch| ch.is_ascii_alphanumeric() || EXTRA_ALLOWED.contains(&ch)) {
         return Err(Error::InvalidVersion(version.into()));

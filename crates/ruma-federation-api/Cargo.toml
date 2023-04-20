@@ -16,7 +16,10 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-compat = []
+# Allow some mandatory fields in requests / responses to be missing, defaulting
+# them to an empty string in deserialization.
+compat-empty-string-null = []
+
 client = []
 server = []
 unstable-exhaustive-types = []

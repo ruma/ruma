@@ -33,18 +33,24 @@ pub mod v3 {
         ///
         /// `None` is used to unset the avatar.
         ///
-        /// If you activate the `compat` feature, this field being an empty string in JSON will
-        /// result in `None` here during deserialization.
+        /// If you activate the `compat-empty-string-null` feature, this field being an empty
+        /// string in JSON will result in `None` here during deserialization.
+        ///
+        /// If you active the `compat-unset-avatar` feature, this field being `None` will result
+        /// in an empty string in serialization, which is the same thing Element Web does (c.f.
+        /// <https://github.com/matrix-org/matrix-spec/issues/378#issuecomment-1055831264>).
         #[cfg_attr(
-            feature = "compat",
-            serde(
-                default,
-                deserialize_with = "ruma_common::serde::empty_string_as_none",
-                // https://github.com/matrix-org/matrix-spec/issues/378
-                serialize_with = "ruma_common::serde::none_as_empty_string"
-            )
+            feature = "compat-empty-string-null",
+            serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
         )]
-        #[cfg_attr(not(feature = "compat"), serde(skip_serializing_if = "Option::is_none"))]
+        #[cfg_attr(
+            feature = "compat-unset-avatar",
+            serde(serialize_with = "ruma_common::serde::none_as_empty_string")
+        )]
+        #[cfg_attr(
+            not(feature = "compat-unset-avatar"),
+            serde(skip_serializing_if = "Option::is_none")
+        )]
         pub avatar_url: Option<OwnedMxcUri>,
 
         /// The [BlurHash](https://blurha.sh) for the avatar pointed to by `avatar_url`.
@@ -100,7 +106,7 @@ pub mod v3 {
             assert_eq!(req.user_id, "@foo:bar.org");
             assert_eq!(req.avatar_url, None);
 
-            #[cfg(feature = "compat")]
+            #[cfg(feature = "compat-empty-string-null")]
             {
                 let req = Request::try_from_http_request(
                     http::Request::builder()

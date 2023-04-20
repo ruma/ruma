@@ -189,7 +189,12 @@ impl CiTask {
 
     /// Check ruma-common with onjy the required features with the stable version.
     fn stable_common(&self) -> Result<()> {
-        cmd!("rustup run stable cargo check -p ruma-common --no-default-features --features client,server").run().map_err(Into::into)
+        cmd!(
+            "rustup run stable cargo check -p ruma-common
+                --no-default-features --features client,server"
+        )
+        .run()
+        .map_err(Into::into)
     }
 
     /// Run tests on all crates with almost all features with the stable version.
@@ -204,7 +209,12 @@ impl CiTask {
 
     /// Test ruma-common with the compat feature with the stable version.
     fn test_common(&self) -> Result<()> {
-        cmd!("rustup run stable cargo test -p ruma-common --features events --features compat compat").run().map_err(Into::into)
+        cmd!(
+            "rustup run stable cargo test -p ruma-common
+                --features events,compat-empty-string-null,compat-user-id compat"
+        )
+        .run()
+        .map_err(Into::into)
     }
 
     /// Run all the tasks that use the nightly version.

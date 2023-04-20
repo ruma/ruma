@@ -188,7 +188,7 @@ mod tests {
         assert!(!user_id.is_historical());
     }
 
-    #[cfg(not(feature = "compat"))]
+    #[cfg(not(feature = "compat-user-id"))]
     #[test]
     fn invalid_user_id() {
         let localpart = "τ";
@@ -303,7 +303,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(feature = "compat"))]
+    #[cfg(not(feature = "compat-user-id"))]
     fn invalid_characters_in_user_id_localpart() {
         assert_eq!(
             <&UserId>::try_from("@te\nst:example.com").unwrap_err(),

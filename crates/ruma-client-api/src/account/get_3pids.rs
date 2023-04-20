@@ -33,8 +33,14 @@ pub mod v3 {
     pub struct Response {
         /// A list of third party identifiers the homeserver has associated with the user's
         /// account.
+        ///
+        /// If the `compat-get-3pids` feature is enabled, this field will always be serialized,
+        /// even if its value is an empty list.
         #[serde(default)]
-        #[cfg_attr(not(feature = "compat"), serde(skip_serializing_if = "Vec::is_empty"))]
+        #[cfg_attr(
+            not(feature = "compat-get-3pids"),
+            serde(skip_serializing_if = "Vec::is_empty")
+        )]
         pub threepids: Vec<ThirdPartyIdentifier>,
     }
 

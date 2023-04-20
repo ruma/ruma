@@ -23,7 +23,6 @@ server = []
 
 api = ["dep:http"]
 canonical-json = []
-compat = ["ruma-macros/compat", "ruma-identifiers-validation/compat"]
 events = []
 js = ["dep:js-sys", "getrandom?/js", "uuid?/js"]
 markdown = ["pulldown-cmark"]
@@ -53,6 +52,25 @@ unstable-msc3966 = []
 unstable-pdu = []
 unstable-sanitize = ["dep:html5ever", "dep:phf"]
 unstable-unspecified = []
+
+# Don't validate the version part in `KeyId`.
+compat-key-id = ["ruma-identifiers-validation/compat-key-id"]
+
+# Allow some user IDs that are invalid even with the specified historical
+# user ID scheme.
+compat-user-id = ["ruma-identifiers-validation/compat-user-id"]
+
+# Allow some mandatory fields to be missing, defaulting them to an empty string
+# in deserialization.
+compat-empty-string-null = []
+
+# Allow certain fields to be `null` for compatibility, treating that the same as
+# the field being absent.
+compat-null = []
+
+# Allow certain fields to be absent even though the spec marks them as
+# mandatory. Deserialization will yield a default value like an empty string.
+compat-optional = []
 
 [dependencies]
 base64 = { workspace = true }

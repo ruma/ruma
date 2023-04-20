@@ -36,11 +36,11 @@ pub mod v3 {
     pub struct Response {
         /// The user's avatar URL, if set.
         ///
-        /// If you activate the `compat` feature, this field being an empty string in JSON will
-        /// result in `None` here during deserialization.
+        /// If you activate the `compat-empty-string-null` feature, this field being an empty
+        /// string in JSON will result in `None` here during deserialization.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[cfg_attr(
-            feature = "compat",
+            feature = "compat-empty-string-null",
             serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
         )]
         pub avatar_url: Option<OwnedMxcUri>,
