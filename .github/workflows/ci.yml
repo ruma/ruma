@@ -53,10 +53,10 @@ jobs:
           toolchain: nightly
           override: true
 
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
 
       - name: Check spelling
-        uses: crate-ci/typos@v1.12.12
+        uses: crate-ci/typos@v1.14.8
 
       - name: Install cargo-sort
         uses: actions-rs/install@v0.1
@@ -112,7 +112,7 @@ jobs:
           toolchain: stable
           override: true
 
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
         with:
           # A stable compiler update should automatically not reuse old caches.
           # Add the MSRV as a stable cache key too so bumping it also gets us a
@@ -164,7 +164,7 @@ jobs:
           toolchain: stable
           override: true
 
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
 
       - name: Get xtask
         uses: actions/cache@v3
@@ -212,7 +212,7 @@ jobs:
           override: true
           components: ${{ matrix.components }}
 
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
 
       - name: Get xtask
         uses: actions/cache@v3
@@ -239,7 +239,7 @@ jobs:
           toolchain: nightly
           override: true
 
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
 
       - name: Get xtask
         uses: actions/cache@v3
