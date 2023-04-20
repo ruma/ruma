@@ -29,10 +29,7 @@ jobs:
 
       - name: Build
         if: steps.xtask-cache.outputs.cache-hit != 'true'
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: -p xtask
+        run: cargo build -p xtask
 
   style:
     name: Style
@@ -51,9 +48,9 @@ jobs:
         uses: crate-ci/typos@v1.14.8
 
       - name: Install cargo-sort
-        uses: actions-rs/install@v0.1
+        uses: taiki-e/cache-cargo-install-action@v1
         with:
-          crate: cargo-sort
+          tool: cargo-sort
 
       - name: Get xtask
         uses: actions/cache@v3
