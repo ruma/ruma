@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+- Add unstable support for MSC3983
+
 # 0.17.1
 
 Improvements:
