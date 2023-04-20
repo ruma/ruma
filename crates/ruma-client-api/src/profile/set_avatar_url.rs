@@ -40,6 +40,7 @@ pub mod v3 {
             serde(
                 default,
                 deserialize_with = "ruma_common::serde::empty_string_as_none",
+                // https://github.com/matrix-org/matrix-spec/issues/378
                 serialize_with = "ruma_common::serde::none_as_empty_string"
             )
         )]
