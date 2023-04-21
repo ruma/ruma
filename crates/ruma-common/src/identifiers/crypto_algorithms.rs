@@ -16,6 +16,12 @@ pub enum DeviceKeyAlgorithm {
     /// The Curve25519 ECDH algorithm.
     Curve25519,
 
+    /// The Curve25519 algorithm where one key is used for both DH and signatures.
+    Curve25519s,
+
+    /// The Curve25519 algorithm where one key is used for both DH and signatures.
+    SignedCurve25519s,
+
     /// The Curve25519 ECDH algorithm, but the key also contains signatures
     SignedCurve25519,
 
