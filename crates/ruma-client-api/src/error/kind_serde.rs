@@ -206,6 +206,8 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             },
             ErrCode::CannotLeaveServerNoticeRoom => ErrorKind::CannotLeaveServerNoticeRoom,
             ErrCode::WeakPassword => ErrorKind::WeakPassword,
+            #[cfg(feature = "unstable-msc2677")]
+            ErrCode::DuplicateAnnotation => ErrorKind::DuplicateAnnotation,
             #[cfg(feature = "unstable-msc2246")]
             ErrCode::NotYetUploaded => ErrorKind::NotYetUploaded,
             #[cfg(feature = "unstable-msc2246")]
@@ -253,6 +255,8 @@ enum ErrCode {
     ResourceLimitExceeded,
     CannotLeaveServerNoticeRoom,
     WeakPassword,
+    #[cfg(feature = "unstable-msc2677")]
+    DuplicateAnnotation,
     #[cfg(feature = "unstable-msc2246")]
     #[ruma_enum(rename = "FI.MAU.MSC2246_NOT_YET_UPLOADED", alias = "M_NOT_YET_UPLOADED")]
     NotYetUploaded,
