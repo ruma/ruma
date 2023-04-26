@@ -1,8 +1,5 @@
 name: Docs Preview
 
-env:
-  CARGO_TERM_COLOR: always
-
 on:
   workflow_run:
     workflows: [CI]
@@ -34,7 +31,7 @@ jobs:
             });
             let fs = require('fs');
             fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/docs.zip`, Buffer.from(download.data));
-      
+
       - name: Unzip artifact
         run: |
           unzip docs.zip
