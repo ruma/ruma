@@ -31,6 +31,7 @@ Improvements:
   - `user_can_send_message`
   - `user_can_send_state`
   - `user_can_trigger_room_notification`
+- Add `MessageType::sanitize` behind the `unstable-sanitize` feature
 
 # 0.11.3
 
