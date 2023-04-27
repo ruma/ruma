@@ -464,24 +464,24 @@ impl SlidingSyncRoom {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ExtensionsConfig {
     /// Request to devices messages with the given config.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub to_device: Option<ToDeviceConfig>,
+    #[serde(default, skip_serializing_if = "ToDeviceConfig::is_empty")]
+    pub to_device: ToDeviceConfig,
 
     /// Configure the end-to-end-encryption extension.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub e2ee: Option<E2EEConfig>,
+    #[serde(default, skip_serializing_if = "E2EEConfig::is_empty")]
+    pub e2ee: E2EEConfig,
 
     /// Configure the account data extension.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub account_data: Option<AccountDataConfig>,
+    #[serde(default, skip_serializing_if = "AccountDataConfig::is_empty")]
+    pub account_data: AccountDataConfig,
 
     /// Request to receipt information with the given config.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub receipts: Option<ReceiptsConfig>,
+    #[serde(default, skip_serializing_if = "ReceiptsConfig::is_empty")]
+    pub receipts: ReceiptsConfig,
 
     /// Request to typing information with the given config.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub typing: Option<TypingConfig>,
+    #[serde(default, skip_serializing_if = "TypingConfig::is_empty")]
+    pub typing: TypingConfig,
 
     /// Extensions may add further fields to the list.
     #[serde(flatten)]
@@ -489,12 +489,13 @@ pub struct ExtensionsConfig {
 }
 
 impl ExtensionsConfig {
-    fn is_empty(&self) -> bool {
-        self.to_device.is_none()
-            && self.e2ee.is_none()
-            && self.account_data.is_none()
-            && self.receipts.is_none()
-            && self.typing.is_none()
+    /// Whether all fields are empty or `None`.
+    pub fn is_empty(&self) -> bool {
+        self.to_device.is_empty()
+            && self.e2ee.is_empty()
+            && self.account_data.is_empty()
+            && self.receipts.is_empty()
+            && self.typing.is_empty()
             && self.other.is_empty()
     }
 }
@@ -508,32 +509,32 @@ pub struct Extensions {
     pub to_device: Option<ToDevice>,
 
     /// E2EE extension in response.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub e2ee: Option<E2EE>,
+    #[serde(default, skip_serializing_if = "E2EE::is_empty")]
+    pub e2ee: E2EE,
 
     /// Account data extension in response.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub account_data: Option<AccountData>,
+    #[serde(default, skip_serializing_if = "AccountData::is_empty")]
+    pub account_data: AccountData,
 
     /// Receipt data extension in response.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub receipts: Option<Receipts>,
+    #[serde(default, skip_serializing_if = "Receipts::is_empty")]
+    pub receipts: Receipts,
 
     /// Typing data extension in response.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub typing: Option<Typing>,
+    #[serde(default, skip_serializing_if = "Typing::is_empty")]
+    pub typing: Typing,
 }
 
 impl Extensions {
-    /// Whether extension data was given.
+    /// Whether the extension data is empty.
     ///
     /// True if neither to-device, e2ee nor account data are to be found.
     pub fn is_empty(&self) -> bool {
         self.to_device.is_none()
-            && self.e2ee.is_none()
-            && self.account_data.is_none()
-            && self.receipts.is_none()
-            && self.typing.is_none()
+            && self.e2ee.is_empty()
+            && self.account_data.is_empty()
+            && self.receipts.is_empty()
+            && self.typing.is_empty()
     }
 }
 
@@ -554,6 +555,13 @@ pub struct ToDeviceConfig {
     /// Give messages since this token only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub since: Option<String>,
+}
+
+impl ToDeviceConfig {
+    /// Whether all fields are empty or `None`.
+    pub fn is_empty(&self) -> bool {
+        self.enabled.is_none() && self.limit.is_none() && self.since.is_none()
+    }
 }
 
 /// To-device messages extension response.
@@ -579,6 +587,13 @@ pub struct E2EEConfig {
     /// Activate or deactivate this extension. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
+}
+
+impl E2EEConfig {
+    /// Whether all fields are empty or `None`.
+    pub fn is_empty(&self) -> bool {
+        self.enabled.is_none()
+    }
 }
 
 /// E2EE extension response data.
@@ -607,6 +622,15 @@ pub struct E2EE {
     pub device_unused_fallback_key_types: Option<Vec<DeviceKeyAlgorithm>>,
 }
 
+impl E2EE {
+    /// Whether all fields are empty or `None`.
+    pub fn is_empty(&self) -> bool {
+        self.device_lists.is_empty()
+            && self.device_one_time_keys_count.is_empty()
+            && self.device_unused_fallback_key_types.is_none()
+    }
+}
+
 /// Account-data extension configuration.
 ///
 /// Not yet part of the spec proposal. Taken from the reference implementation
@@ -617,6 +641,13 @@ pub struct AccountDataConfig {
     /// Activate or deactivate this extension. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
+}
+
+impl AccountDataConfig {
+    /// Whether all fields are empty or `None`.
+    pub fn is_empty(&self) -> bool {
+        self.enabled.is_none()
+    }
 }
 
 /// Account-data extension response data.
@@ -635,6 +666,13 @@ pub struct AccountData {
     pub rooms: BTreeMap<OwnedRoomId, Vec<Raw<AnyRoomAccountDataEvent>>>,
 }
 
+impl AccountData {
+    /// Whether all fields are empty or `None`.
+    pub fn is_empty(&self) -> bool {
+        self.global.is_empty() && self.rooms.is_empty()
+    }
+}
+
 /// Receipt extension configuration.
 ///
 /// According to [MSC3960](https://github.com/matrix-org/matrix-spec-proposals/pull/3960)
@@ -646,6 +684,13 @@ pub struct ReceiptsConfig {
     pub enabled: Option<bool>,
 }
 
+impl ReceiptsConfig {
+    /// Whether all fields are empty or `None`.
+    pub fn is_empty(&self) -> bool {
+        self.enabled.is_none()
+    }
+}
+
 /// Receipt extension response data.
 ///
 /// According to [MSC3960](https://github.com/matrix-org/matrix-spec-proposals/pull/3960)
@@ -655,6 +700,13 @@ pub struct Receipts {
     /// The ephemeral receipt room event for each room
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub rooms: BTreeMap<OwnedRoomId, Raw<SyncReceiptEvent>>,
+}
+
+impl Receipts {
+    /// Whether all fields are empty or `None`.
+    pub fn is_empty(&self) -> bool {
+        self.rooms.is_empty()
+    }
 }
 
 /// Typing extension configuration.
@@ -669,6 +721,13 @@ pub struct TypingConfig {
     pub enabled: Option<bool>,
 }
 
+impl TypingConfig {
+    /// Whether all fields are empty or `None`.
+    pub fn is_empty(&self) -> bool {
+        self.enabled.is_none()
+    }
+}
+
 /// Typing extension response data.
 ///
 /// Not yet part of the spec proposal. Taken from the reference implementation
@@ -679,4 +738,11 @@ pub struct Typing {
     /// The ephemeral typing event for each room
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub rooms: BTreeMap<OwnedRoomId, Raw<SyncTypingEvent>>,
+}
+
+impl Typing {
+    /// Whether all fields are empty or `None`.
+    pub fn is_empty(&self) -> bool {
+        self.rooms.is_empty()
+    }
 }
