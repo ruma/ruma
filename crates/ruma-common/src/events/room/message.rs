@@ -326,19 +326,13 @@ impl RoomMessageEventContent {
         mode: HtmlSanitizerMode,
         remove_reply_fallback: RemoveReplyFallback,
     ) {
-        if let MessageType::Emote(EmoteMessageEventContent { body, formatted, .. })
-        | MessageType::Notice(NoticeMessageEventContent { body, formatted, .. })
-        | MessageType::Text(TextMessageEventContent { body, formatted, .. }) = &mut self.msgtype
-        {
-            if let Some(formatted) = formatted {
-                formatted.sanitize_html(mode, remove_reply_fallback);
-            }
-            if remove_reply_fallback == RemoveReplyFallback::Yes
-                && matches!(self.relates_to, Some(Relation::Reply { .. }))
-            {
-                *body = remove_plain_reply_fallback(body).to_owned();
-            }
-        }
+        let remove_reply_fallback = if matches!(self.relates_to, Some(Relation::Reply { .. })) {
+            remove_reply_fallback
+        } else {
+            RemoveReplyFallback::No
+        };
+
+        self.msgtype.sanitize(mode, remove_reply_fallback);
     }
 }
 
@@ -556,6 +550,38 @@ impl MessageType {
             Self::Video(d) => Cow::Owned(serialize(d)),
             Self::VerificationRequest(d) => Cow::Owned(serialize(d)),
             Self::_Custom(c) => Cow::Borrowed(&c.data),
+        }
+    }
+
+    /// Sanitize this message.
+    ///
+    /// If this message contains HTML, this removes the [tags and attributes] that are not listed in
+    /// the Matrix specification.
+    ///
+    /// It can also optionally remove the [rich reply fallback] from the plain text and HTML
+    /// message. Note that you should be sure that the message is a reply, as there is no way to
+    /// differentiate plain text reply fallbacks and markdown quotes.
+    ///
+    /// This method is only effective on text, notice and emote messages.
+    ///
+    /// [tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
+    /// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
+    #[cfg(feature = "unstable-sanitize")]
+    pub fn sanitize(
+        &mut self,
+        mode: HtmlSanitizerMode,
+        remove_reply_fallback: RemoveReplyFallback,
+    ) {
+        if let MessageType::Emote(EmoteMessageEventContent { body, formatted, .. })
+        | MessageType::Notice(NoticeMessageEventContent { body, formatted, .. })
+        | MessageType::Text(TextMessageEventContent { body, formatted, .. }) = self
+        {
+            if let Some(formatted) = formatted {
+                formatted.sanitize_html(mode, remove_reply_fallback);
+            }
+            if remove_reply_fallback == RemoveReplyFallback::Yes {
+                *body = remove_plain_reply_fallback(body).to_owned();
+            }
         }
     }
 }
