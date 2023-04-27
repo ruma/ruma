@@ -82,7 +82,6 @@ pub mod v4 {
 
     use std::{collections::BTreeMap, time::Duration};
 
-    use js_int::UInt;
     use ruma_common::{
         api::{request, response, Metadata},
         encryption::OneTimeKey,
@@ -114,8 +113,7 @@ pub mod v4 {
         pub timeout: Option<Duration>,
 
         /// The keys to be claimed.
-        pub one_time_keys:
-            BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, BTreeMap<DeviceKeyAlgorithm, UInt>>>,
+        pub one_time_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Vec<DeviceKeyAlgorithm>>>,
     }
 
     /// Response type for the `claim_keys` endpoint.
@@ -132,10 +130,7 @@ pub mod v4 {
     impl Request {
         /// Creates a new `Request` with the given key claims and the recommended 10 second timeout.
         pub fn new(
-            one_time_keys: BTreeMap<
-                OwnedUserId,
-                BTreeMap<OwnedDeviceId, BTreeMap<DeviceKeyAlgorithm, UInt>>,
-            >,
+            one_time_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Vec<DeviceKeyAlgorithm>>>,
         ) -> Self {
             Self { timeout: Some(Duration::from_secs(10)), one_time_keys }
         }
