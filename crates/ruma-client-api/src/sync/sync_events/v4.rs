@@ -412,11 +412,10 @@ pub struct SlidingSyncRoom {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_dm: Option<bool>,
 
-    /// This is not-yet-accepted invite, with the following sync state events
-    /// the room must be considered in invite state as long as the Option is not None
-    /// even if there are no state events.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub invite_state: Vec<Raw<AnyStrippedStateEvent>>,
+    /// If this is `Some(_)`, this is a not-yet-accepted invite containing the given stripped state
+    /// events.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub invite_state: Option<Vec<Raw<AnyStrippedStateEvent>>>,
 
     /// Counts of unread notifications for this room.
     #[serde(flatten, default, skip_serializing_if = "UnreadNotificationsCount::is_empty")]
