@@ -224,34 +224,82 @@ impl RoomPowerLevels {
         self.users.get(user_id).map_or(self.users_default, |pl| *pl)
     }
 
+    /// Whether the given user can ban other users based on the power levels.
+    ///
+    /// Shorthand for `power_levels.user_can_do(user_id, PowerLevelAction::Ban)`.
+    pub fn user_can_ban(&self, user_id: &UserId) -> bool {
+        self.for_user(user_id) >= self.ban
+    }
+
+    /// Whether the given user can invite other users based on the power levels.
+    ///
+    /// Shorthand for `power_levels.user_can_do(user_id, PowerLevelAction::Invite)`.
+    pub fn user_can_invite(&self, user_id: &UserId) -> bool {
+        self.for_user(user_id) >= self.invite
+    }
+
+    /// Whether the given user can kick other users based on the power levels.
+    ///
+    /// Shorthand for `power_levels.user_can_do(user_id, PowerLevelAction::Kick)`.
+    pub fn user_can_kick(&self, user_id: &UserId) -> bool {
+        self.for_user(user_id) >= self.kick
+    }
+
+    /// Whether the given user can redact events based on the power levels.
+    ///
+    /// Shorthand for `power_levels.user_can_do(user_id, PowerLevelAction::Redact)`.
+    pub fn user_can_redact(&self, user_id: &UserId) -> bool {
+        self.for_user(user_id) >= self.redact
+    }
+
+    /// Whether the given user can send message events based on the power levels.
+    ///
+    /// Shorthand for `power_levels.user_can_do(user_id, PowerLevelAction::SendMessage(msg_type))`.
+    pub fn user_can_send_message(&self, user_id: &UserId, msg_type: MessageLikeEventType) -> bool {
+        self.for_user(user_id)
+            >= self
+                .events
+                .get(&msg_type.into())
+                .map(ToOwned::to_owned)
+                .unwrap_or(self.events_default)
+    }
+
+    /// Whether the given user can send state events based on the power levels.
+    ///
+    /// Shorthand for `power_levels.user_can_do(user_id, PowerLevelAction::SendState(state_type))`.
+    pub fn user_can_send_state(&self, user_id: &UserId, state_type: StateEventType) -> bool {
+        self.for_user(user_id)
+            >= self
+                .events
+                .get(&state_type.into())
+                .map(ToOwned::to_owned)
+                .unwrap_or(self.state_default)
+    }
+
+    /// Whether the given user can notify everybody in the room by writing `@room` in a message.
+    ///
+    /// Shorthand for `power_levels.user_can_do(user_id,
+    /// PowerLevelAction::TriggerNotification(NotificationPowerLevelType::Room))`.
+    pub fn user_can_trigger_room_notification(&self, user_id: &UserId) -> bool {
+        self.for_user(user_id) >= self.notifications.room
+    }
+
     /// Whether the given user can do the given action based on the power levels.
     pub fn user_can_do(&self, user_id: &UserId, action: PowerLevelAction) -> bool {
-        let user_pl = self.for_user(user_id);
-
         match action {
-            PowerLevelAction::Ban => user_pl >= self.ban,
-            PowerLevelAction::Invite => user_pl >= self.invite,
-            PowerLevelAction::Kick => user_pl >= self.kick,
-            PowerLevelAction::Redact => user_pl >= self.redact,
+            PowerLevelAction::Ban => self.user_can_ban(user_id),
+            PowerLevelAction::Invite => self.user_can_invite(user_id),
+            PowerLevelAction::Kick => self.user_can_kick(user_id),
+            PowerLevelAction::Redact => self.user_can_redact(user_id),
             PowerLevelAction::SendMessage(message_type) => {
-                user_pl
-                    >= self
-                        .events
-                        .get(&message_type.into())
-                        .map(ToOwned::to_owned)
-                        .unwrap_or(self.events_default)
+                self.user_can_send_message(user_id, message_type)
             }
             PowerLevelAction::SendState(state_type) => {
-                user_pl
-                    >= self
-                        .events
-                        .get(&state_type.into())
-                        .map(ToOwned::to_owned)
-                        .unwrap_or(self.state_default)
+                self.user_can_send_state(user_id, state_type)
             }
-            PowerLevelAction::TriggerNotification(notification_type) => match notification_type {
-                NotificationPowerLevelType::Room => user_pl >= self.notifications.room,
-            },
+            PowerLevelAction::TriggerNotification(NotificationPowerLevelType::Room) => {
+                self.user_can_trigger_room_notification(user_id)
+            }
         }
     }
 

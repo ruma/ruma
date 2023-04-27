@@ -23,6 +23,14 @@ Improvements:
 - Add unstable support for `event_property_is` push condition according to MSC3758
 - Add unstable support for `event_property_contains` push condition according to MSC3966
 - Add `FullStateEventContent::redact`
+- Add new methods for `RoomPowerLevels`:
+  - `user_can_ban`
+  - `user_can_invite`
+  - `user_can_kick`
+  - `user_can_redact`
+  - `user_can_send_message`
+  - `user_can_send_state`
+  - `user_can_trigger_room_notification`
 
 # 0.11.3
 
