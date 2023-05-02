@@ -1,5 +1,9 @@
 # [unreleased]
 
+- Don't consider empty localpart of a user ID as valid
+  - It is accepted under the `compat-user-id` feature, but not considered
+    fully-conforming
+
 # 0.9.1
 
 Improvements:
