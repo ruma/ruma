@@ -10,6 +10,9 @@ Breaking changes:
 - Make `in_reply_to` field of `Thread` optional
   - It was wrong to be mandatory, spec was unclear (clarified [here](https://github.com/matrix-org/matrix-spec/pull/1439))
 - `FlattenedJson::get` returns a `FlattenedJsonValue` instead of a string
+- Remove the `DontNotify` and `Coalesce` variants of `push::Action` according to MSC3987
+  - Old push rules will still deserialize successfully but the `Coalesce` variant will not return
+    `true` for `Action::should_notify()` anymore
 
 Improvements:
 

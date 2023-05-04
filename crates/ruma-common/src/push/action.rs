@@ -15,13 +15,6 @@ pub enum Action {
     /// Causes matching events to generate a notification.
     Notify,
 
-    /// Prevents matching events from generating a notification.
-    DontNotify,
-
-    /// Behaves like notify but homeservers may choose to coalesce multiple events
-    /// into a single notification.
-    Coalesce,
-
     /// Sets an entry in the 'tweaks' dictionary sent to the push gateway.
     SetTweak(Tweak),
 
@@ -38,7 +31,7 @@ impl Action {
 
     /// Whether this action should trigger a notification.
     pub fn should_notify(&self) -> bool {
-        matches!(self, Action::Notify | Action::Coalesce)
+        matches!(self, Action::Notify)
     }
 
     /// The sound that should be played with this action, if any.
@@ -91,8 +84,6 @@ impl<'de> Deserialize<'de> for Action {
         match &custom {
             CustomAction::String(s) => match s.as_str() {
                 "notify" => Ok(Action::Notify),
-                "dont_notify" => Ok(Action::DontNotify),
-                "coalesce" => Ok(Action::Coalesce),
                 _ => Ok(Action::_Custom(custom)),
             },
             CustomAction::Object(o) => {
@@ -113,8 +104,6 @@ impl Serialize for Action {
     {
         match self {
             Action::Notify => serializer.serialize_unit_variant("Action", 0, "notify"),
-            Action::DontNotify => serializer.serialize_unit_variant("Action", 1, "dont_notify"),
-            Action::Coalesce => serializer.serialize_unit_variant("Action", 2, "coalesce"),
             Action::SetTweak(kind) => kind.serialize(serializer),
             Action::_Custom(custom) => custom.serialize(serializer),
         }
