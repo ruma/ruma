@@ -7,6 +7,9 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixmediav3downloadservernamemediaidfilename
 
+    #[cfg(feature = "unstable-msc2246")]
+    use std::time::Duration;
+
     use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
     use ruma_common::{
         api::{request, response, Metadata},
@@ -49,6 +52,23 @@ pub mod v3 {
             skip_serializing_if = "ruma_common::serde::is_true"
         )]
         pub allow_remote: bool,
+
+        /// The maximum duration that the client is willing to wait to start receiving data, in the
+        /// case that the content has not yet been uploaded.
+        ///
+        /// The default value is 20 seconds.
+        ///
+        /// This uses the unstable prefix in
+        /// [MSC2246](https://github.com/matrix-org/matrix-spec-proposals/pull/2246).
+        #[ruma_api(query)]
+        #[cfg(feature = "unstable-msc2246")]
+        #[serde(
+            with = "ruma_common::serde::duration::ms",
+            default = "crate::media::default_download_timeout",
+            skip_serializing_if = "crate::media::is_default_download_timeout",
+            rename = "fi.mau.msc2246.max_stall_ms"
+        )]
+        pub timeout_ms: Duration,
     }
 
     /// Response type for the `get_media_content_as_filename` endpoint.
@@ -83,7 +103,14 @@ pub mod v3 {
     impl Request {
         /// Creates a new `Request` with the given media ID, server name and filename.
         pub fn new(media_id: String, server_name: OwnedServerName, filename: String) -> Self {
-            Self { media_id, server_name, filename, allow_remote: true }
+            Self {
+                media_id,
+                server_name,
+                filename,
+                allow_remote: true,
+                #[cfg(feature = "unstable-msc2246")]
+                timeout_ms: crate::media::default_download_timeout(),
+            }
         }
 
         /// Creates a new `Request` with the given url and filename.
