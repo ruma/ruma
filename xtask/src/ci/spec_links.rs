@@ -12,44 +12,28 @@ use isahc::ReadResponseExt;
 
 use crate::Result;
 
-/// A Matrix spec.
-#[derive(Debug, Clone, Copy)]
-enum Spec {
-    /// The old Matrix spec.
-    Old,
-    /// The new Matrix spec.
-    New,
-}
+/// Authorized URLs pointing to the old specs.
+const OLD_URL_WHITELIST: &[&str] =
+    &["https://spec.matrix.org/historical/index.html#complete-list-of-room-versions"];
 
-impl Spec {
-    /// Authorized URLs pointing to the old specs.
-    const OLD_URL_WHITELIST: &'static [&'static str] =
-        &["https://matrix.org/docs/spec/index.html#complete-list-of-room-versions"];
+/// Authorized versions in URLs pointing to the new specs.
+const NEW_VERSION_WHITELIST: &[&str] = &[
+    "v1.1", "v1.2", "v1.3", "v1.4", "v1.5", "v1.6",
+    "latest",
+    // This should only be enabled if a legitimate use case is found.
+    // "unstable",
+];
 
-    /// Authorized versions in URLs pointing to the new specs.
-    const NEW_VERSION_WHITELIST: &'static [&'static str] = &[
-        "v1.1", "v1.2", "v1.3", "v1.4", "v1.5", "v1.6",
-        "latest",
-        // This should only be enabled if a legitimate use case is found.
-        // "unstable",
-    ];
+/// The version of URLs pointing to the old spec.
+const OLD_VERSION: &str = "historical";
 
-    /// Get the start of the URLs pointing to this `Spec`.
-    const fn url_prefix(&self) -> &'static str {
-        match self {
-            Spec::Old => "https://matrix.org/docs/spec/",
-            Spec::New => "https://spec.matrix.org/",
-        }
-    }
-}
+/// The start of the URLs pointing to the spec.
+const URL_PREFIX: &str = "https://spec.matrix.org/";
 
 /// A link to the spec.
 struct SpecLink {
     /// The URL of the link.
     url: String,
-
-    /// The spec variant of the link.
-    spec: Spec,
 
     /// The path of the file containing the link.
     path: PathBuf,
@@ -60,15 +44,8 @@ struct SpecLink {
 
 impl SpecLink {
     /// Create a new `SpecLink`.
-    fn new(url: String, spec: Spec, path: PathBuf, line: u16) -> Self {
-        Self { url, spec, path, line }
-    }
-
-    /// Get the minimum length of the link.
-    ///
-    /// That is the length of the start of the URL used to detect the link.
-    const fn min_len(&self) -> usize {
-        self.spec.url_prefix().len()
+    fn new(url: String, path: PathBuf, line: u16) -> Self {
+        Self { url, path, line }
     }
 }
 
@@ -111,16 +88,9 @@ fn collect_links(path: &Path) -> Result<Vec<SpecLink>> {
         while content.read_line(&mut buf)? > 0 {
             line += 1;
 
-            for spec in [Spec::Old, Spec::New] {
-                // If for some reason a line has 2 spec links.
-                for (start_idx, _) in buf.match_indices(spec.url_prefix()) {
-                    links.push(SpecLink::new(
-                        get_full_link(&buf[start_idx..]),
-                        spec,
-                        path.to_owned(),
-                        line,
-                    ));
-                }
+            // If for some reason a line has 2 spec links.
+            for (start_idx, _) in buf.match_indices(URL_PREFIX) {
+                links.push(SpecLink::new(get_full_link(&buf[start_idx..]), path.to_owned(), line));
             }
 
             buf.clear();
@@ -151,22 +121,20 @@ fn check_whitelist(links: &[SpecLink]) -> Result<()> {
     let mut err_nb: u16 = 0;
 
     for link in links {
-        match link.spec {
-            Spec::Old => {
-                if !Spec::OLD_URL_WHITELIST.contains(&link.url.as_str()) {
-                    err_nb += 1;
-                    print_link_err("Old spec link not in whitelist", link);
-                }
+        let url_without_prefix = &link.url[URL_PREFIX.len()..];
+
+        if url_without_prefix.starts_with(OLD_VERSION) {
+            // Only old spec links in the whitelist are allowed.
+            if !OLD_URL_WHITELIST.contains(&link.url.as_str()) {
+                err_nb += 1;
+                print_link_err("Old spec link not in whitelist", link);
             }
-            Spec::New => {
-                if !Spec::NEW_VERSION_WHITELIST
-                    .iter()
-                    .any(|version| link.url[link.min_len()..].starts_with(version))
-                {
-                    err_nb += 1;
-                    print_link_err("New spec link with wrong version", link);
-                }
-            }
+        } else if !NEW_VERSION_WHITELIST
+            .iter()
+            .any(|version| url_without_prefix.starts_with(version))
+        {
+            err_nb += 1;
+            print_link_err("New spec link with wrong version", link);
         }
     }
 
@@ -196,7 +164,7 @@ fn check_targets(links: &[SpecLink]) -> Result<()> {
                         // Don't allow links to the latest spec with duplicate IDs, they might point
                         // to another part of the spec in a new version.
                         if *has_duplicates == HasDuplicates::Yes
-                            && link.url[link.min_len()..].starts_with("latest/")
+                            && link.url[URL_PREFIX.len()..].starts_with("latest/")
                         {
                             err_nb += 1;
                             print_link_err("Spec link to latest version with non-unique ID", link);

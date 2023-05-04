@@ -651,7 +651,7 @@ impl MatrixVersion {
     /// Get the default [`RoomVersionId`] for this `MatrixVersion`.
     pub fn default_room_version(&self) -> RoomVersionId {
         match self {
-            // <https://matrix.org/docs/spec/index.html#complete-list-of-room-versions>
+            // <https://spec.matrix.org/historical/index.html#complete-list-of-room-versions>
             MatrixVersion::V1_0
             // <https://spec.matrix.org/v1.1/rooms/#complete-list-of-room-versions>
             | MatrixVersion::V1_1
