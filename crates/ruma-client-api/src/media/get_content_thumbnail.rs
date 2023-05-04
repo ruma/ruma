@@ -7,6 +7,9 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixmediav3thumbnailservernamemediaid
 
+    #[cfg(feature = "unstable-msc2246")]
+    use std::time::Duration;
+
     use http::header::CONTENT_TYPE;
     use js_int::UInt;
     use ruma_common::{
@@ -66,18 +69,22 @@ pub mod v3 {
         )]
         pub allow_remote: bool,
 
-        /// How long to wait for the media to be uploaded
+        /// The maximum duration that the client is willing to wait to start receiving data, in the
+        /// case that the content has not yet been uploaded.
+        ///
+        /// The default value is 20 seconds.
         ///
         /// This uses the unstable prefix in
-        /// [MSC2246](https://github.com/matrix-org/matrix-spec-proposals/pull/2246)
+        /// [MSC2246](https://github.com/matrix-org/matrix-spec-proposals/pull/2246).
         #[ruma_api(query)]
         #[cfg(feature = "unstable-msc2246")]
         #[serde(
-            default,
-            skip_serializing_if = "ruma_common::serde::is_default",
+            with = "ruma_common::serde::duration::ms",
+            default = "crate::media::default_download_timeout",
+            skip_serializing_if = "crate::media::is_default_download_timeout",
             rename = "fi.mau.msc2246.max_stall_ms"
         )]
-        pub max_stall_ms: Option<UInt>,
+        pub timeout_ms: Duration,
     }
 
     /// Response type for the `get_content_thumbnail` endpoint.
@@ -117,7 +124,7 @@ pub mod v3 {
                 height,
                 allow_remote: true,
                 #[cfg(feature = "unstable-msc2246")]
-                max_stall_ms: None,
+                timeout_ms: crate::media::default_download_timeout(),
             }
         }
 
