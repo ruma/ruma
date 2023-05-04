@@ -90,12 +90,7 @@ pub mod v3 {
         pub fn from_url(url: &MxcUri, filename: String) -> Result<Self, IdParseError> {
             let (server_name, media_id) = url.parts()?;
 
-            Ok(Self {
-                media_id: media_id.to_owned(),
-                server_name: server_name.to_owned(),
-                filename,
-                allow_remote: true,
-            })
+            Ok(Self::new(media_id.to_owned(), server_name.to_owned(), filename))
         }
     }
 
