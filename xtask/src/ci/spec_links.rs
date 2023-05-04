@@ -123,7 +123,7 @@ fn check_whitelist(links: &[SpecLink]) -> Result<()> {
     for link in links {
         let url_without_prefix = &link.url[URL_PREFIX.len()..];
 
-        if url_without_prefix.starts_with(OLD_VERSION) {
+        if url_without_prefix.starts_with(&format!("{OLD_VERSION}/")) {
             // Only old spec links in the whitelist are allowed.
             if !OLD_URL_WHITELIST.contains(&link.url.as_str()) {
                 err_nb += 1;
@@ -131,7 +131,7 @@ fn check_whitelist(links: &[SpecLink]) -> Result<()> {
             }
         } else if !NEW_VERSION_WHITELIST
             .iter()
-            .any(|version| url_without_prefix.starts_with(version))
+            .any(|version| url_without_prefix.starts_with(&format!("{version}/")))
         {
             err_nb += 1;
             print_link_err("New spec link with wrong version", link);
