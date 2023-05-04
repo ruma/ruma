@@ -40,6 +40,11 @@ pub mod unstable {
         /// The content type of the file being uploaded.
         #[ruma_api(header = CONTENT_TYPE)]
         pub content_type: Option<String>,
+
+        /// The name of the file being uploaded.
+        #[ruma_api(query)]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub filename: Option<String>,
         // TODO: How does this and msc2448 (blurhash) interact?
     }
 
@@ -50,7 +55,7 @@ pub mod unstable {
     impl Request {
         /// Creates a new `Request` with the given file contents.
         pub fn new(media_id: String, server_name: OwnedServerName, file: Vec<u8>) -> Self {
-            Self { media_id, server_name, file, content_type: None }
+            Self { media_id, server_name, file, content_type: None, filename: None }
         }
 
         /// Creates a new `Request` with the given url and file contents.
