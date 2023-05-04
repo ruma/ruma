@@ -999,7 +999,7 @@ mod tests {
                 key: "room_id".into(),
                 pattern: "!roomid:matrix.org".into(),
             }],
-            actions: vec![Action::DontNotify],
+            actions: vec![],
             rule_id: "!roomid:matrix.org".into(),
             enabled: true,
             default: false,
@@ -1097,7 +1097,7 @@ mod tests {
     #[test]
     fn serialize_simple_push_rule() {
         let rule = SimplePushRule {
-            actions: vec![Action::DontNotify],
+            actions: vec![Action::Notify],
             default: false,
             enabled: false,
             rule_id: room_id!("!roomid:server.name").to_owned(),
@@ -1108,7 +1108,7 @@ mod tests {
             rule_value,
             json!({
                 "actions": [
-                    "dont_notify"
+                    "notify"
                 ],
                 "rule_id": "!roomid:server.name",
                 "default": false,
@@ -1492,7 +1492,7 @@ mod tests {
             }"#,
         )
         .unwrap();
-        assert_matches!(set.get_actions(&notice, context_one_to_one), [Action::DontNotify]);
+        assert_matches!(set.get_actions(&notice, context_one_to_one), []);
 
         let at_room = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
@@ -1583,7 +1583,7 @@ mod tests {
         assert_matches!(test_set.get_actions(&message, context_one_to_one), [Action::Notify]);
 
         let room = SimplePushRule {
-            actions: vec![Action::DontNotify],
+            actions: vec![Action::SetTweak(Tweak::Highlight(true))],
             default: false,
             enabled: true,
             rule_id: room_id!("!dm:server.name").to_owned(),
@@ -1591,7 +1591,10 @@ mod tests {
         set.room.insert(room);
 
         let test_set = set.clone();
-        assert_matches!(test_set.get_actions(&message, context_one_to_one), [Action::DontNotify]);
+        assert_matches!(
+            test_set.get_actions(&message, context_one_to_one),
+            [Action::SetTweak(Tweak::Highlight(true))]
+        );
 
         let content = PatternedPushRule {
             actions: vec![Action::SetTweak(Tweak::Sound("content".into()))],

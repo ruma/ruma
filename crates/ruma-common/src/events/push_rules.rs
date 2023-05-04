@@ -66,18 +66,14 @@ mod tests {
                     ],
                     "override": [
                         {
-                            "actions": [
-                                "dont_notify"
-                            ],
+                            "actions": [],
                             "conditions": [],
                             "default": true,
                             "enabled": false,
                             "rule_id": ".m.rule.master"
                         },
                         {
-                            "actions": [
-                                "dont_notify"
-                            ],
+                            "actions": [],
                             "conditions": [
                                 {
                                     "key": "content.msgtype",
