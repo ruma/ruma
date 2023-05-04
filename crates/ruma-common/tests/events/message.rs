@@ -129,6 +129,7 @@ fn markdown_content_serialization() {
 
 #[test]
 fn relates_to_content_serialization() {
+    #[rustfmt::skip] // rustfmt wants to merge the next two lines
     let message_event_content =
         assign!(MessageEventContent::plain("> <@test:example.com> test\n\ntest reply"), {
             relates_to: Some(Relation::Reply {
