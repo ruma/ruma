@@ -17,7 +17,7 @@ pub mod unstable {
         rate_limited: true,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/uk.half-shot.msc2666/user/mutual_rooms/:user_id",
+            unstable => "/_matrix/client/unstable/uk.half-shot.msc2666/user/mutual_rooms",
         }
     };
 
@@ -25,8 +25,13 @@ pub mod unstable {
     #[request(error = crate::Error)]
     pub struct Request {
         /// The user to search mutual rooms for.
-        #[ruma_api(path)]
+        #[ruma_api(query)]
         pub user_id: OwnedUserId,
+
+        /// An opaque string, used to paginate.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[ruma_api(query)]
+        pub batch_token: Option<String>,
     }
 
     /// Response type for the `mutual_rooms` endpoint.
@@ -34,19 +39,23 @@ pub mod unstable {
     pub struct Response {
         /// A list of rooms the user is in together with the authenticated user.
         pub joined: Vec<OwnedRoomId>,
+
+        /// An opaque string, returned when the server paginates this response.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub next_batch_token: Option<String>,
     }
 
     impl Request {
         /// Creates a new `Request` with the given user id.
-        pub fn new(user_id: OwnedUserId) -> Self {
-            Self { user_id }
+        pub fn new(user_id: OwnedUserId, batch_token: Option<String>) -> Self {
+            Self { user_id, batch_token }
         }
     }
 
     impl Response {
         /// Creates a `Response` with the given room ids.
-        pub fn new(joined: Vec<OwnedRoomId>) -> Self {
-            Self { joined }
+        pub fn new(joined: Vec<OwnedRoomId>, next_batch_token: Option<String>) -> Self {
+            Self { joined, next_batch_token }
         }
     }
 }
