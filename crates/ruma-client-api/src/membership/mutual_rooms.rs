@@ -28,7 +28,8 @@ pub mod unstable {
         #[ruma_api(query)]
         pub user_id: OwnedUserId,
 
-        /// An opaque string, used to paginate.
+        /// The `next_batch_token` returned from a previous response, to get the next batch of
+        /// rooms.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
         pub batch_token: Option<String>,
@@ -47,15 +48,25 @@ pub mod unstable {
 
     impl Request {
         /// Creates a new `Request` with the given user id.
-        pub fn new(user_id: OwnedUserId, batch_token: Option<String>) -> Self {
-            Self { user_id, batch_token }
+        pub fn new(user_id: OwnedUserId) -> Self {
+            Self { user_id, batch_token: None }
+        }
+
+        /// Creates a new `Request` with the given user id, together with a batch token.
+        pub fn with_token(user_id: OwnedUserId, token: String) -> Self {
+            Self { user_id, batch_token: Some(token) }
         }
     }
 
     impl Response {
         /// Creates a `Response` with the given room ids.
-        pub fn new(joined: Vec<OwnedRoomId>, next_batch_token: Option<String>) -> Self {
-            Self { joined, next_batch_token }
+        pub fn new(joined: Vec<OwnedRoomId>) -> Self {
+            Self { joined, next_batch_token: None }
+        }
+
+        /// Creates a `Response` with the given room ids, together with a batch token.
+        pub fn with_token(joined: Vec<OwnedRoomId>, token: String) -> Self {
+            Self { joined, next_batch_token: Some(token) }
         }
     }
 }
