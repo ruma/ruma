@@ -6,7 +6,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::AnswerSessionDescription;
-#[cfg(feature = "unstable-msc2746")]
+#[cfg(feature = "unstable-msc2747")]
 use super::CallCapabilities;
 use crate::{OwnedVoipId, VoipVersionId};
 
@@ -31,8 +31,8 @@ pub struct CallAnswerEventContent {
     /// The version of the VoIP specification this messages adheres to.
     pub version: VoipVersionId,
 
-    #[cfg(feature = "unstable-msc2746")]
-    /// **Added in VoIP version 1.** The VoIP capabilities of the client.
+    #[cfg(feature = "unstable-msc2747")]
+    /// The VoIP capabilities of the client.
     #[serde(default, skip_serializing_if = "CallCapabilities::is_default")]
     pub capabilities: CallCapabilities,
 }
@@ -50,7 +50,7 @@ impl CallAnswerEventContent {
             #[cfg(feature = "unstable-msc2746")]
             party_id: None,
             version,
-            #[cfg(feature = "unstable-msc2746")]
+            #[cfg(feature = "unstable-msc2747")]
             capabilities: Default::default(),
         }
     }
@@ -68,8 +68,14 @@ impl CallAnswerEventContent {
         answer: AnswerSessionDescription,
         call_id: OwnedVoipId,
         party_id: OwnedVoipId,
-        capabilities: CallCapabilities,
     ) -> Self {
-        Self { answer, call_id, party_id: Some(party_id), version: VoipVersionId::V1, capabilities }
+        Self {
+            answer,
+            call_id,
+            party_id: Some(party_id),
+            version: VoipVersionId::V1,
+            #[cfg(feature = "unstable-msc2747")]
+            capabilities: Default::default(),
+        }
     }
 }

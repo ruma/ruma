@@ -6,7 +6,7 @@ use js_int::UInt;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "unstable-msc2746")]
+#[cfg(feature = "unstable-msc2747")]
 use super::CallCapabilities;
 use super::OfferSessionDescription;
 #[cfg(feature = "unstable-msc2746")]
@@ -40,8 +40,8 @@ pub struct CallInviteEventContent {
     /// The version of the VoIP specification this messages adheres to.
     pub version: VoipVersionId,
 
-    #[cfg(feature = "unstable-msc2746")]
-    /// **Added in VoIP version 1.** The VoIP capabilities of the client.
+    #[cfg(feature = "unstable-msc2747")]
+    /// The VoIP capabilities of the client.
     #[serde(default, skip_serializing_if = "CallCapabilities::is_default")]
     pub capabilities: CallCapabilities,
 
@@ -71,7 +71,7 @@ impl CallInviteEventContent {
             lifetime,
             offer,
             version,
-            #[cfg(feature = "unstable-msc2746")]
+            #[cfg(feature = "unstable-msc2747")]
             capabilities: Default::default(),
             #[cfg(feature = "unstable-msc2746")]
             invitee: None,
@@ -92,7 +92,6 @@ impl CallInviteEventContent {
         party_id: OwnedVoipId,
         lifetime: UInt,
         offer: OfferSessionDescription,
-        capabilities: CallCapabilities,
     ) -> Self {
         Self {
             call_id,
@@ -100,7 +99,8 @@ impl CallInviteEventContent {
             lifetime,
             offer,
             version: VoipVersionId::V1,
-            capabilities,
+            #[cfg(feature = "unstable-msc2747")]
+            capabilities: Default::default(),
             invitee: None,
         }
     }
