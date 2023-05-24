@@ -168,8 +168,8 @@ impl VersionHistory {
     /// - In stable_paths:
     ///   - matrix versions are in ascending order
     ///   - no matrix version is referenced twice
-    /// - deprecated's version comes after the latest version mentioned in stable_paths, and only if
-    ///   any stable path is defined
+    /// - deprecated's version comes after the latest version mentioned in stable_paths, except for
+    ///   version 1.0, and only if any stable path is defined
     /// - removed comes after deprecated, or after the latest referenced stable_paths, like
     ///   deprecated
     pub const fn new(
@@ -268,8 +268,10 @@ impl VersionHistory {
         if let Some(deprecated) = deprecated {
             if let Some(prev_seen_version) = prev_seen_version {
                 let ord_result = prev_seen_version.const_ord(&deprecated);
-                if ord_result.is_eq() {
-                    // prev_seen_version == deprecated
+                if !deprecated.is_legacy() && ord_result.is_eq() {
+                    // prev_seen_version == deprecated, except for 1.0.
+                    // It is possible that an endpoint was both made stable and deprecated in the
+                    // legacy versions.
                     panic!("deprecated version is equal to latest stable path version")
                 } else if ord_result.is_gt() {
                     // prev_seen_version > deprecated
@@ -646,6 +648,15 @@ impl MatrixVersion {
         } else {
             cmp_u8(self_parts.1, other_parts.1)
         }
+    }
+
+    // Internal function to check if this version is the legacy (v1.0) version in const-fn contexts
+    const fn is_legacy(&self) -> bool {
+        let self_parts = self.into_parts();
+
+        use konst::primitive::cmp::cmp_u8;
+
+        cmp_u8(self_parts.0, 1).is_eq() && cmp_u8(self_parts.1, 0).is_eq()
     }
 
     /// Get the default [`RoomVersionId`] for this `MatrixVersion`.
