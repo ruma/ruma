@@ -1,4 +1,4 @@
-#![cfg(all(feature = "unstable-pdu"))]
+#![cfg(feature = "unstable-pdu")]
 
 use std::collections::BTreeMap;
 
