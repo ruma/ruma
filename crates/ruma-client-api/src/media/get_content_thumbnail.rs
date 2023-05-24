@@ -85,6 +85,14 @@ pub mod v3 {
             rename = "fi.mau.msc2246.max_stall_ms"
         )]
         pub timeout_ms: Duration,
+
+        /// Whether the server may return a 307 or 308 redirect response that points at the
+        /// relevant media content.
+        ///
+        /// Unless explicitly set to `true`, the server must return the media content itself.
+        #[ruma_api(query)]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        pub allow_redirect: bool,
     }
 
     /// Response type for the `get_content_thumbnail` endpoint.
@@ -125,6 +133,7 @@ pub mod v3 {
                 allow_remote: true,
                 #[cfg(feature = "unstable-msc2246")]
                 timeout_ms: crate::media::default_download_timeout(),
+                allow_redirect: false,
             }
         }
 
