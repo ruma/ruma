@@ -151,12 +151,16 @@ pub mod v3 {
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     #[serde(tag = "type", rename = "m.login.token")]
-    pub struct TokenLoginType {}
+    pub struct TokenLoginType {
+        /// Whether the homeserver supports the `POST /login/get_token` endpoint.
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        pub get_login_token: bool,
+    }
 
     impl TokenLoginType {
         /// Creates a new `TokenLoginType`.
         pub fn new() -> Self {
-            Self {}
+            Self { get_login_token: false }
         }
     }
 
@@ -409,7 +413,7 @@ pub mod v3 {
         fn serialize_sso_login_type() {
             let wrapper = to_json_value(Wrapper {
                 flows: vec![
-                    LoginType::Token(TokenLoginType {}),
+                    LoginType::Token(TokenLoginType::new()),
                     LoginType::Sso(SsoLoginType {
                         identity_providers: vec![IdentityProvider {
                             id: "oidc-github".into(),
