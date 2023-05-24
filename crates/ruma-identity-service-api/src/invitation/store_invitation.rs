@@ -140,10 +140,10 @@ pub mod v2 {
     #[allow(clippy::exhaustive_structs)]
     pub struct PublicKeys {
         /// The server's long-term public key.
-        pub server_key: String,
+        pub server_key: PublicKey,
 
         /// The generated ephemeral public key.
-        pub ephemeral_key: String,
+        pub ephemeral_key: PublicKey,
     }
 
     impl<'de> Deserialize<'de> for PublicKeys {
@@ -151,7 +151,7 @@ pub mod v2 {
         where
             D: serde::Deserializer<'de>,
         {
-            let [server_key, ephemeral_key] = <[String; 2]>::deserialize(deserializer)?;
+            let [server_key, ephemeral_key] = <[PublicKey; 2]>::deserialize(deserializer)?;
 
             Ok(Self { server_key, ephemeral_key })
         }
@@ -168,6 +168,25 @@ pub mod v2 {
             seq.serialize_element(&self.ephemeral_key)?;
 
             seq.end()
+        }
+    }
+
+    /// A server's long-term or ephemeral public key.
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    #[non_exhaustive]
+    pub struct PublicKey {
+        /// The public key, encoded using [unpadded Base64](https://spec.matrix.org/latest/appendices/#unpadded-base64).
+        pub public_key: String,
+
+        /// The URI of an endpoint where the validity of this key can be checked by passing it as a
+        /// `public_key` query parameter.
+        pub key_validity_url: String,
+    }
+
+    impl PublicKey {
+        /// Constructs a new `PublicKey` with the given encoded public key and key validity URL.
+        pub fn new(public_key: String, key_validity_url: String) -> Self {
+            Self { public_key, key_validity_url }
         }
     }
 }
