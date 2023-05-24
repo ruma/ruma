@@ -22,6 +22,8 @@ enum Field<'de> {
     RetryAfterMs,
     RoomVersion,
     AdminContact,
+    Status,
+    Body,
     Other(Cow<'de, str>),
 }
 
@@ -33,6 +35,8 @@ impl<'de> Field<'de> {
             "retry_after_ms" => Self::RetryAfterMs,
             "room_version" => Self::RoomVersion,
             "admin_contact" => Self::AdminContact,
+            "status" => Self::Status,
+            "body" => Self::Body,
             _ => Self::Other(s),
         }
     }
@@ -96,6 +100,8 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
         let mut retry_after_ms = None;
         let mut room_version = None;
         let mut admin_contact = None;
+        let mut status = None;
+        let mut body = None;
         let mut extra = BTreeMap::new();
 
         macro_rules! set_field {
@@ -118,6 +124,8 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             (@variant_containing retry_after_ms) => { ErrCode::LimitExceeded };
             (@variant_containing room_version) => { ErrCode::IncompatibleRoomVersion };
             (@variant_containing admin_contact) => { ErrCode::ResourceLimitExceeded };
+            (@variant_containing status) => { ErrCode::BadStatus };
+            (@variant_containing body) => { ErrCode::BadStatus };
             (@inner $field:ident) => {
                 {
                     if $field.is_some() {
@@ -135,6 +143,8 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                 Field::RetryAfterMs => set_field!(retry_after_ms),
                 Field::RoomVersion => set_field!(room_version),
                 Field::AdminContact => set_field!(admin_contact),
+                Field::Status => set_field!(status),
+                Field::Body => set_field!(body),
                 Field::Other(other) => match extra.entry(other.into_owned()) {
                     Entry::Vacant(v) => {
                         v.insert(map.next_value()?);
@@ -214,6 +224,20 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrCode::CannotOverwriteMedia => ErrorKind::CannotOverwriteMedia,
             #[cfg(feature = "unstable-msc3575")]
             ErrCode::UnknownPos => ErrorKind::UnknownPos,
+            ErrCode::UrlNotSet => ErrorKind::UrlNotSet,
+            ErrCode::BadStatus => ErrorKind::BadStatus {
+                status: status
+                    .map(|s| {
+                        from_json_value::<u16>(s)
+                            .map_err(de::Error::custom)?
+                            .try_into()
+                            .map_err(de::Error::custom)
+                    })
+                    .transpose()?,
+                body: body.map(from_json_value).transpose().map_err(de::Error::custom)?,
+            },
+            ErrCode::ConnectionFailed => ErrorKind::ConnectionFailed,
+            ErrCode::ConnectionTimeout => ErrorKind::ConnectionTimeout,
             ErrCode::_Custom(errcode) => ErrorKind::_Custom { errcode, extra },
         })
     }
@@ -265,6 +289,10 @@ enum ErrCode {
     CannotOverwriteMedia,
     #[cfg(feature = "unstable-msc3575")]
     UnknownPos,
+    UrlNotSet,
+    BadStatus,
+    ConnectionFailed,
+    ConnectionTimeout,
     _Custom(PrivOwnedStr),
 }
 

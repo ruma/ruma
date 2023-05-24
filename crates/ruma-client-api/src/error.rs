@@ -163,6 +163,24 @@ pub enum ErrorKind {
     #[cfg(feature = "unstable-msc3575")]
     UnknownPos,
 
+    /// M_URL_NOT_SET
+    UrlNotSet,
+
+    /// M_BAD_STATUS
+    BadStatus {
+        /// The HTTP status code of the response.
+        status: Option<http::StatusCode>,
+
+        /// The body of the response.
+        body: Option<String>,
+    },
+
+    /// M_CONNECTION_FAILED
+    ConnectionFailed,
+
+    /// M_CONNECTION_TIMEOUT
+    ConnectionTimeout,
+
     #[doc(hidden)]
     _Custom { errcode: PrivOwnedStr, extra: Extra },
 }
@@ -215,6 +233,10 @@ impl AsRef<str> for ErrorKind {
             Self::CannotOverwriteMedia => "M_CANNOT_OVERWRITE_MEDIA",
             #[cfg(feature = "unstable-msc3575")]
             Self::UnknownPos => "M_UNKNOWN_POS",
+            Self::UrlNotSet => "M_URL_NOT_SET",
+            Self::BadStatus { .. } => "M_BAD_STATUS",
+            Self::ConnectionFailed => "M_CONNECTION_FAILED",
+            Self::ConnectionTimeout => "M_CONNECTION_TIMEOUT",
             Self::_Custom { errcode, .. } => &errcode.0,
         }
     }
