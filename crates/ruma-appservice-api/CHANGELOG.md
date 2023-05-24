@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+- Add support for the appservice ping mechanism (MSC 2659 / Matrix 1.7)
+
 # 0.8.1
 
 Improvements:

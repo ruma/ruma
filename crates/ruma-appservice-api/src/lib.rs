@@ -10,6 +10,7 @@
 use serde::{Deserialize, Serialize};
 
 pub mod event;
+pub mod ping;
 pub mod query;
 pub mod thirdparty;
 
