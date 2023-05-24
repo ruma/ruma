@@ -188,8 +188,11 @@ fn hangup_content_serialization() {
 #[cfg(feature = "unstable-msc2746")]
 mod msc2746 {
     use assert_matches::assert_matches;
+    #[cfg(feature = "unstable-msc2747")]
     use assign::assign;
     use js_int::uint;
+    #[cfg(feature = "unstable-msc2747")]
+    use ruma_common::events::call::CallCapabilities;
     use ruma_common::{
         events::{
             call::{
@@ -200,8 +203,8 @@ mod msc2746 {
                 negotiate::CallNegotiateEventContent,
                 reject::CallRejectEventContent,
                 select_answer::CallSelectAnswerEventContent,
-                AnswerSessionDescription, CallCapabilities, OfferSessionDescription,
-                SessionDescription, SessionDescriptionType,
+                AnswerSessionDescription, OfferSessionDescription, SessionDescription,
+                SessionDescriptionType,
             },
             AnyMessageLikeEvent, MessageLikeEvent,
         },
@@ -216,7 +219,6 @@ mod msc2746 {
             "9876".into(),
             uint!(60000),
             OfferSessionDescription::new("not a real sdp".to_owned()),
-            CallCapabilities::new(),
         );
 
         assert_eq!(
@@ -265,7 +267,6 @@ mod msc2746 {
         assert_eq!(content.lifetime, uint!(60000));
         assert_eq!(content.version, VoipVersionId::V1);
         assert_eq!(content.offer.sdp, "not a real sdp");
-        assert!(!content.capabilities.dtmf);
     }
 
     #[test]
@@ -274,7 +275,34 @@ mod msc2746 {
             AnswerSessionDescription::new("not a real sdp".to_owned()),
             "abcdef".into(),
             "9876".into(),
-            assign!(CallCapabilities::new(), { dtmf: true }),
+        );
+
+        assert_eq!(
+            to_json_value(&content).unwrap(),
+            json!({
+                "call_id": "abcdef",
+                "party_id": "9876",
+                "version": "1",
+                "answer": {
+                    "type": "answer",
+                    "sdp": "not a real sdp",
+                },
+            })
+        );
+    }
+
+    #[cfg(feature = "unstable-msc2747")]
+    #[test]
+    fn answer_event_capabilities_serialization() {
+        let content = assign!(
+            CallAnswerEventContent::version_1(
+                AnswerSessionDescription::new("not a real sdp".to_owned()),
+                "abcdef".into(),
+                "9876".into()
+            ),
+            {
+                capabilities: assign!(CallCapabilities::new(), { dtmf: true }),
+            }
         );
 
         assert_eq!(
@@ -326,6 +354,7 @@ mod msc2746 {
         assert_eq!(content.party_id.unwrap(), "9876");
         assert_eq!(content.version.as_ref(), "org.matrix.1b");
         assert_eq!(content.answer.sdp, "not a real sdp");
+        #[cfg(feature = "unstable-msc2747")]
         assert!(content.capabilities.dtmf);
     }
 

@@ -107,7 +107,7 @@ impl OfferSessionDescription {
 }
 
 /// The capabilities of a client in a VoIP call.
-#[cfg(feature = "unstable-msc2746")]
+#[cfg(feature = "unstable-msc2747")]
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct CallCapabilities {
@@ -120,7 +120,7 @@ pub struct CallCapabilities {
     pub dtmf: bool,
 }
 
-#[cfg(feature = "unstable-msc2746")]
+#[cfg(feature = "unstable-msc2747")]
 impl CallCapabilities {
     /// Creates a default `CallCapabilities`.
     pub fn new() -> Self {
