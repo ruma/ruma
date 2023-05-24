@@ -4,6 +4,10 @@ Bug fixes:
 
 - Ignore keys with unknown algorithms in `verify_events`
 
+Improvements:
+
+- Remove `age_ts` from `REFERENCE_HASH_FIELDS_TO_REMOVE` according to a spec clarification
+
 # 0.13.1
 
 No changes for this version

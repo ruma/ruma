@@ -31,7 +31,7 @@ static CANONICAL_JSON_FIELDS_TO_REMOVE: &[&str] = &["signatures", "unsigned"];
 static CONTENT_HASH_FIELDS_TO_REMOVE: &[&str] = &["hashes", "signatures", "unsigned"];
 
 /// The fields to remove from a JSON object when creating a reference hash of an event.
-static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "unsigned"];
+static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["signatures", "unsigned"];
 
 /// Signs an arbitrary JSON object and adds the signature to an object under the key `signatures`.
 ///
