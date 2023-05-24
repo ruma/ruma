@@ -27,10 +27,16 @@ impl FlattenedJson {
     fn flatten_value(&mut self, value: JsonValue, path: String) {
         match value {
             JsonValue::Object(fields) => {
-                for (key, value) in fields {
-                    let key = escape_key(&key);
-                    let path = if path.is_empty() { key } else { format!("{path}.{key}") };
-                    self.flatten_value(value, path);
+                if fields.is_empty() {
+                    if self.map.insert(path.clone(), FlattenedJsonValue::EmptyObject).is_some() {
+                        warn!("Duplicate path in flattened JSON: {path}");
+                    }
+                } else {
+                    for (key, value) in fields {
+                        let key = escape_key(&key);
+                        let path = if path.is_empty() { key } else { format!("{path}.{key}") };
+                        self.flatten_value(value, path);
+                    }
                 }
             }
             value => {
@@ -211,6 +217,9 @@ pub enum FlattenedJsonValue {
 
     /// Represents an array.
     Array(Vec<ScalarJsonValue>),
+
+    /// Represents an empty object.
+    EmptyObject,
 }
 
 impl FlattenedJsonValue {
@@ -300,7 +309,7 @@ impl PartialEq<ScalarJsonValue> for FlattenedJsonValue {
             Self::Bool(b) => other.as_bool() == Some(*b),
             Self::Integer(i) => other.as_integer() == Some(*i),
             Self::String(s) => other.as_str() == Some(s),
-            Self::Array(_) => false,
+            Self::Array(_) | Self::EmptyObject => false,
         }
     }
 }
@@ -322,7 +331,8 @@ mod tests {
                 "number": 10,
                 "array": [1, 2],
                 "boolean": true,
-                "null": null
+                "null": null,
+                "empty_object": {}
             }"#,
         )
         .unwrap();
@@ -336,6 +346,7 @@ mod tests {
                 "array".into() => vec![int!(1).into(), int!(2).into()].into(),
                 "boolean".into() => true.into(),
                 "null".into() => FlattenedJsonValue::Null,
+                "empty_object".into() => FlattenedJsonValue::EmptyObject,
             }
         );
     }
