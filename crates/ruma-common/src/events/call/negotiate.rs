@@ -7,7 +7,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::SessionDescription;
-use crate::OwnedVoipId;
+use crate::{OwnedVoipId, VoipVersionId};
 
 /// **Added in VoIP version 1.** The content of an `m.call.negotiate` event.
 ///
@@ -29,6 +29,9 @@ pub struct CallNegotiateEventContent {
     /// this session.
     pub party_id: OwnedVoipId,
 
+    /// The version of the VoIP specification this messages adheres to.
+    pub version: VoipVersionId,
+
     /// The time in milliseconds that the negotiation is valid for.
     pub lifetime: UInt,
 
@@ -42,9 +45,21 @@ impl CallNegotiateEventContent {
     pub fn new(
         call_id: OwnedVoipId,
         party_id: OwnedVoipId,
+        version: VoipVersionId,
         lifetime: UInt,
         description: SessionDescription,
     ) -> Self {
-        Self { call_id, party_id, lifetime, description }
+        Self { call_id, party_id, version, lifetime, description }
+    }
+
+    /// Convenience method to create a version 1 `CallNegotiateEventContent` with all the required
+    /// fields.
+    pub fn version_1(
+        call_id: OwnedVoipId,
+        party_id: OwnedVoipId,
+        lifetime: UInt,
+        description: SessionDescription,
+    ) -> Self {
+        Self::new(call_id, party_id, VoipVersionId::V1, lifetime, description)
     }
 }

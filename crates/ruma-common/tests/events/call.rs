@@ -481,7 +481,7 @@ mod msc2746 {
 
     #[test]
     fn negotiate_event_serialization() {
-        let content = CallNegotiateEventContent::new(
+        let content = CallNegotiateEventContent::version_1(
             "abcdef".into(),
             "9876".into(),
             uint!(30000),
@@ -493,6 +493,7 @@ mod msc2746 {
             json!({
                 "call_id": "abcdef",
                 "party_id": "9876",
+                "version": "1",
                 "lifetime": 30000,
                 "description": {
                     "type": "offer",
@@ -508,6 +509,7 @@ mod msc2746 {
             "content": {
                 "call_id": "abcdef",
                 "party_id": "9876",
+                "version": "1",
                 "lifetime": 30000,
                 "description": {
                     "type": "pranswer",
