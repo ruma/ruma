@@ -136,7 +136,7 @@ fn parse_xmatrix_field<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<(S
 
 fn parse_xmatrix<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<XMatrix> {
     tokens.optional(|t| {
-        if !t.tokens(b"X-Matrix ".into_tokens()) {
+        if !t.tokens(b"X-Matrix ") {
             debug!("Failed to parse X-Matrix credentials, didn't start with 'X-Matrix '");
             return None;
         }
