@@ -18,6 +18,7 @@ const METADATA: Metadata = metadata! {
     authentication: ServerSignatures,
     history: {
         1.0 => "/_matrix/federation/v1/send_leave/:room_id/:event_id",
+        1.0 => deprecated,
     }
 };
 
