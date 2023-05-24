@@ -58,6 +58,13 @@ impl FlattenedJson {
     pub fn get_str(&self, path: &str) -> Option<&str> {
         self.map.get(path).and_then(|v| v.as_str())
     }
+
+    /// Whether this flattened JSON contains an `m.mentions` property under the `content` property.
+    pub fn contains_mentions(&self) -> bool {
+        self.map
+            .keys()
+            .any(|s| s == r"content.m\.mentions" || s.starts_with(r"content.m\.mentions."))
+    }
 }
 
 /// Escape a key for path matching.
@@ -381,5 +388,49 @@ mod tests {
                 r"up.up.desc\\bis".into() => true.into(),
             },
         );
+    }
+
+    #[test]
+    fn contains_mentions() {
+        let raw = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "m.mentions": {},
+                "content": {
+                    "body": "Text"
+                }
+            }"#,
+        )
+        .unwrap();
+
+        let flattened = FlattenedJson::from_raw(&raw);
+        assert!(!flattened.contains_mentions());
+
+        let raw = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "content": {
+                    "body": "Text",
+                    "m.mentions": {}
+                }
+            }"#,
+        )
+        .unwrap();
+
+        let flattened = FlattenedJson::from_raw(&raw);
+        assert!(flattened.contains_mentions());
+
+        let raw = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "content": {
+                    "body": "Text",
+                    "m.mentions": {
+                        "room": true
+                    }
+                }
+            }"#,
+        )
+        .unwrap();
+
+        let flattened = FlattenedJson::from_raw(&raw);
+        assert!(flattened.contains_mentions());
     }
 }

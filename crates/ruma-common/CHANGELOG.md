@@ -42,6 +42,7 @@ Improvements:
 - Add `MessageType::sanitize` behind the `unstable-sanitize` feature
 - Add `MatrixVersion::V1_7`
 - Stabilize support for annotations and reactions (MSC2677 / Matrix 1.7)
+- Add support for intentional mentions push rules (MSC3952 / Matrix 1.7)
 
 # 0.11.3
 

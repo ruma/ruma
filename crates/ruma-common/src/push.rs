@@ -484,6 +484,7 @@ impl ConditionalPushRule {
         #[cfg(feature = "unstable-msc3932")]
         {
             // These 3 rules always apply.
+            #[allow(deprecated)]
             if self.rule_id != PredefinedOverrideRuleId::Master.as_ref()
                 && self.rule_id != PredefinedOverrideRuleId::RoomNotif.as_ref()
                 && self.rule_id != PredefinedOverrideRuleId::ContainsDisplayName.as_ref()
@@ -501,6 +502,15 @@ impl ConditionalPushRule {
                     return false;
                 }
             }
+        }
+
+        // The old mention rules are disabled when an m.mentions field is present.
+        #[allow(deprecated)]
+        if (self.rule_id == PredefinedOverrideRuleId::RoomNotif.as_ref()
+            || self.rule_id == PredefinedOverrideRuleId::ContainsDisplayName.as_ref())
+            && event.contains_mentions()
+        {
+            return false;
         }
 
         self.conditions.iter().all(|cond| cond.applies(event, context))
@@ -601,6 +611,14 @@ impl PatternedPushRule {
         event: &FlattenedJson,
         context: &PushConditionRoomCtx,
     ) -> bool {
+        // The old mention rules are disabled when an m.mentions field is present.
+        #[allow(deprecated)]
+        if self.rule_id == PredefinedContentRuleId::ContainsUserName.as_ref()
+            && event.contains_mentions()
+        {
+            return false;
+        }
+
         if event.get_str("sender").map_or(false, |sender| sender == context.user_id) {
             return false;
         }
@@ -971,7 +989,13 @@ mod tests {
         condition::{PushCondition, PushConditionRoomCtx, RoomMemberCountIs},
         AnyPushRule, ConditionalPushRule, PatternedPushRule, Ruleset, SimplePushRule,
     };
-    use crate::{power_levels::NotificationPowerLevels, room_id, serde::Raw, user_id};
+    use crate::{
+        power_levels::NotificationPowerLevels,
+        push::{PredefinedContentRuleId, PredefinedOverrideRuleId},
+        room_id,
+        serde::Raw,
+        user_id,
+    };
 
     fn example_ruleset() -> Ruleset {
         let mut set = Ruleset::new();
@@ -1651,5 +1675,173 @@ mod tests {
             [Action::SetTweak(Tweak::Sound(sound))] => sound
         );
         assert_eq!(sound, "three");
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn old_mentions_apply() {
+        let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
+
+        let context = &PushConditionRoomCtx {
+            room_id: room_id!("!far_west:server.name").to_owned(),
+            member_count: uint!(100),
+            user_id: user_id!("@jj:server.name").to_owned(),
+            user_display_name: "Jolly Jumper".into(),
+            users_power_levels: BTreeMap::new(),
+            default_power_level: int!(50),
+            notification_power_levels: NotificationPowerLevels { room: int!(50) },
+            #[cfg(feature = "unstable-msc3931")]
+            supported_features: Default::default(),
+        };
+
+        let message = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "content": {
+                    "body": "jolly_jumper"
+                },
+                "type": "m.room.message"
+            }"#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            set.get_match(&message, context).unwrap().rule_id(),
+            PredefinedContentRuleId::ContainsUserName.as_ref()
+        );
+
+        let message = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "content": {
+                    "body": "jolly_jumper",
+                    "m.mentions": {}
+                },
+                "type": "m.room.message"
+            }"#,
+        )
+        .unwrap();
+
+        assert_ne!(
+            set.get_match(&message, context).unwrap().rule_id(),
+            PredefinedContentRuleId::ContainsUserName.as_ref()
+        );
+
+        let message = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "content": {
+                    "body": "Jolly Jumper"
+                },
+                "type": "m.room.message"
+            }"#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            set.get_match(&message, context).unwrap().rule_id(),
+            PredefinedOverrideRuleId::ContainsDisplayName.as_ref()
+        );
+
+        let message = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "content": {
+                    "body": "Jolly Jumper",
+                    "m.mentions": {}
+                },
+                "type": "m.room.message"
+            }"#,
+        )
+        .unwrap();
+
+        assert_ne!(
+            set.get_match(&message, context).unwrap().rule_id(),
+            PredefinedOverrideRuleId::ContainsDisplayName.as_ref()
+        );
+
+        let message = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "content": {
+                    "body": "@room"
+                },
+                "sender": "@admin:server.name",
+                "type": "m.room.message"
+            }"#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            set.get_match(&message, context).unwrap().rule_id(),
+            PredefinedOverrideRuleId::RoomNotif.as_ref()
+        );
+
+        let message = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "content": {
+                    "body": "@room",
+                    "m.mentions": {}
+                },
+                "sender": "@admin:server.name",
+                "type": "m.room.message"
+            }"#,
+        )
+        .unwrap();
+
+        assert_ne!(
+            set.get_match(&message, context).unwrap().rule_id(),
+            PredefinedOverrideRuleId::RoomNotif.as_ref()
+        );
+    }
+
+    #[test]
+    fn intentional_mentions_apply() {
+        let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
+
+        let context = &PushConditionRoomCtx {
+            room_id: room_id!("!far_west:server.name").to_owned(),
+            member_count: uint!(100),
+            user_id: user_id!("@jj:server.name").to_owned(),
+            user_display_name: "Jolly Jumper".into(),
+            users_power_levels: BTreeMap::new(),
+            default_power_level: int!(50),
+            notification_power_levels: NotificationPowerLevels { room: int!(50) },
+            #[cfg(feature = "unstable-msc3931")]
+            supported_features: Default::default(),
+        };
+
+        let message = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "content": {
+                    "body": "Hey jolly_jumper!",
+                    "m.mentions": {
+                        "user_ids": ["@jolly_jumper:server.name"]
+                    }
+                },
+                "sender": "@admin:server.name",
+                "type": "m.room.message"
+            }"#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            set.get_match(&message, context).unwrap().rule_id(),
+            PredefinedOverrideRuleId::IsUserMention.as_ref()
+        );
+
+        let message = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "content": {
+                    "body": "Listen room!",
+                    "m.mentions": {
+                        "room": true
+                    }
+                },
+                "sender": "@admin:server.name",
+                "type": "m.room.message"
+            }"#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            set.get_match(&message, context).unwrap().rule_id(),
+            PredefinedOverrideRuleId::IsRoomMention.as_ref()
+        );
     }
 }
