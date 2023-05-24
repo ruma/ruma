@@ -9,6 +9,7 @@ Breaking changes:
 Improvements:
 
 - Add convenience constructors for enabling lazy-loading in filters 
+- Add support for using an existing session to log in another (MSC3882 / Matrix 1.7)
 
 # 0.16.2
 
