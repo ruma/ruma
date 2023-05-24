@@ -74,6 +74,7 @@ mod tests {
     use serde_json::json;
 
     use super::{deserialize, serialize};
+    #[allow(deprecated)]
     use crate::membership::create_join_event::v1::RoomState;
 
     #[test]
@@ -87,6 +88,7 @@ mod tests {
             }
         ]);
 
+        #[allow(deprecated)]
         let RoomState { origin, auth_chain, state, event } = deserialize(response).unwrap();
         assert_eq!(origin, "example.com");
         assert_matches!(auth_chain.as_slice(), []);
@@ -96,6 +98,7 @@ mod tests {
 
     #[test]
     fn serialize_response() {
+        #[allow(deprecated)]
         let room_state = RoomState {
             origin: "matrix.org".into(),
             auth_chain: Vec::new(),
@@ -121,6 +124,7 @@ mod tests {
     #[test]
     fn too_short_array() {
         let json = json!([200]);
+        #[allow(deprecated)]
         let failed_room_state = deserialize::<RoomState, _>(json);
         assert_eq!(
             failed_room_state.unwrap_err().to_string(),
@@ -135,6 +139,7 @@ mod tests {
             "auth_chain": [],
             "state": []
         });
+        #[allow(deprecated)]
         let failed_room_state = deserialize::<RoomState, _>(json);
 
         assert_eq!(
@@ -146,6 +151,7 @@ mod tests {
     #[test]
     fn too_long_array() {
         let json = json!([200, { "origin": "", "auth_chain": [], "state": [] }, 200]);
+        #[allow(deprecated)]
         let RoomState { origin, auth_chain, state, event } = deserialize(json).unwrap();
         assert_eq!(origin, "");
         assert_matches!(auth_chain.as_slice(), []);

@@ -15,6 +15,7 @@ const METADATA: Metadata = metadata! {
     authentication: ServerSignatures,
     history: {
         1.0 => "/_matrix/federation/v1/send_join/:room_id/:event_id",
+        1.0 => deprecated,
     }
 };
 
@@ -109,6 +110,7 @@ impl RoomState {
     }
 }
 
+#[allow(deprecated)]
 #[cfg(all(test, feature = "server", not(feature = "unstable-unspecified")))]
 mod tests {
     use ruma_common::api::OutgoingResponse;

@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Deprecate the `v1/send_join` and `v1/send_leave` endpoints according to a spec clarification
+
 # 0.7.1
 
 Improvements:
