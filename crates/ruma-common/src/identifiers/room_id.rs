@@ -16,7 +16,7 @@ use super::{
 /// assert_eq!(<&RoomId>::try_from("!n8f893n9:example.com").unwrap(), "!n8f893n9:example.com");
 /// ```
 ///
-/// [room ID]: https://spec.matrix.org/latest/appendices/#room-ids-and-event-ids
+/// [room ID]: https://spec.matrix.org/latest/appendices/#room-ids
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
 #[ruma_id(validate = ruma_identifiers_validation::room_id::validate)]

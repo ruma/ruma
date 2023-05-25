@@ -22,7 +22,7 @@ use super::{server_name::ServerName, OwnedRoomAliasId, OwnedRoomId, RoomAliasId,
 /// );
 /// ```
 ///
-/// [room ID]: https://spec.matrix.org/latest/appendices/#room-ids-and-event-ids
+/// [room ID]: https://spec.matrix.org/latest/appendices/#room-ids
 /// [room alias ID]: https://spec.matrix.org/latest/appendices/#room-aliases
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]

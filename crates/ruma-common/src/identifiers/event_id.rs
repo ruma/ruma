@@ -33,7 +33,7 @@ use super::ServerName;
 /// );
 /// ```
 ///
-/// [event ID]: https://spec.matrix.org/latest/appendices/#room-ids-and-event-ids
+/// [event ID]: https://spec.matrix.org/latest/appendices/#event-ids
 /// [room versions]: https://spec.matrix.org/latest/rooms/#complete-list-of-room-versions
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
