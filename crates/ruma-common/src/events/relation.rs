@@ -197,7 +197,7 @@ impl ReferenceChunk {
 
 /// [Bundled aggregations] of related child events of a message-like event.
 ///
-/// [Bundled aggregations]: https://spec.matrix.org/latest/client-server-api/#aggregations
+/// [Bundled aggregations]: https://spec.matrix.org/latest/client-server-api/#aggregations-of-child-events
 #[derive(Clone, Debug, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct BundledMessageLikeRelations<E> {
@@ -258,7 +258,7 @@ impl<E> Default for BundledMessageLikeRelations<E> {
 
 /// [Bundled aggregations] of related child events of a state event.
 ///
-/// [Bundled aggregations]: https://spec.matrix.org/latest/client-server-api/#aggregations
+/// [Bundled aggregations]: https://spec.matrix.org/latest/client-server-api/#aggregations-of-child-events
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct BundledStateRelations {
