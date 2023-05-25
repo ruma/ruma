@@ -109,24 +109,3 @@ impl RoomState {
         Self { auth_chain: Vec::new(), state: Vec::new(), event: None }
     }
 }
-
-#[allow(deprecated)]
-#[cfg(all(test, feature = "server", not(feature = "unstable-unspecified")))]
-mod tests {
-    use ruma_common::api::OutgoingResponse;
-    use serde_json::{from_slice as from_json_slice, json, Value as JsonValue};
-
-    use super::{Response, RoomState};
-
-    #[test]
-    fn response_body() {
-        let res = Response::new(RoomState::new("ORIGIN".to_owned()))
-            .try_into_http_response::<Vec<u8>>()
-            .unwrap();
-
-        assert_eq!(
-            from_json_slice::<JsonValue>(res.body()).unwrap(),
-            json!([200, { "auth_chain": [], "origin": "ORIGIN", "state": [] }])
-        );
-    }
-}
