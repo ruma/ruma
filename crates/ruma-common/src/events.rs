@@ -149,7 +149,6 @@ pub mod policy;
 pub mod poll;
 pub mod presence;
 pub mod push_rules;
-#[cfg(feature = "unstable-msc2677")]
 pub mod reaction;
 pub mod receipt;
 pub mod relation;

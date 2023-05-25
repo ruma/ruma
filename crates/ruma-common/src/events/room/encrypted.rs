@@ -9,10 +9,8 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::message;
-#[cfg(feature = "unstable-msc2677")]
-use crate::events::relation::Annotation;
 use crate::{
-    events::relation::{InReplyTo, Reference, Thread},
+    events::relation::{Annotation, InReplyTo, Reference, Thread},
     OwnedDeviceId, OwnedEventId,
 };
 
@@ -106,7 +104,6 @@ pub enum Relation {
     Reference(Reference),
 
     /// An annotation to an event.
-    #[cfg(feature = "unstable-msc2677")]
     Annotation(Annotation),
 
     /// An event that belongs to a thread.

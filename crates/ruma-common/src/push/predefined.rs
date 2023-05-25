@@ -30,9 +30,8 @@ impl Ruleset {
                 ConditionalPushRule::contains_display_name(),
                 ConditionalPushRule::roomnotif(),
                 ConditionalPushRule::tombstone(),
-                ConditionalPushRule::server_acl(),
-                #[cfg(feature = "unstable-msc2677")]
                 ConditionalPushRule::reaction(),
+                ConditionalPushRule::server_acl(),
             ]
             .into(),
             underride: [
@@ -227,9 +226,9 @@ impl ConditionalPushRule {
         }
     }
 
-    /// Matches emoji reactions to a message
-    /// MSC2677: Annotations and Reactions
-    #[cfg(feature = "unstable-msc2677")]
+    /// Matches [reactions] to a message.
+    ///
+    /// [reactions]: https://spec.matrix.org/latest/client-server-api/#event-annotations-and-reactions
     pub fn reaction() -> Self {
         Self {
             actions: vec![],
@@ -469,7 +468,6 @@ pub enum PredefinedOverrideRuleId {
     RoomServerAcl,
 
     /// `.m.rule.reaction`
-    #[cfg(feature = "unstable-msc2677")]
     Reaction,
 
     #[doc(hidden)]

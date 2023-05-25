@@ -386,7 +386,6 @@ fn content_thread_deserialization() {
 }
 
 #[test]
-#[cfg(feature = "unstable-msc2677")]
 fn content_annotation_serialization() {
     use ruma_common::events::relation::Annotation;
 
@@ -421,7 +420,6 @@ fn content_annotation_serialization() {
 }
 
 #[test]
-#[cfg(feature = "unstable-msc2677")]
 fn content_annotation_deserialization() {
     let json = json!({
         "algorithm": "m.megolm.v1.aes-sha2",

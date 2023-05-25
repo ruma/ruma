@@ -36,6 +36,7 @@ Improvements:
   - `user_can_trigger_room_notification`
 - Add `MessageType::sanitize` behind the `unstable-sanitize` feature
 - Add `MatrixVersion::V1_7`
+- Stabilize support for annotations and reactions (MSC2677 / Matrix 1.7)
 
 # 0.11.3
 
