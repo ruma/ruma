@@ -2,10 +2,10 @@
 //!
 //! Create an MXC URI without content.
 
-pub mod unstable {
-    //! `/unstable/` ([spec])
+pub mod v1 {
+    //! `/v1/` ([spec])
     //!
-    //! [spec]: https://github.com/tulir/matrix-doc/blob/asynchronous_uploads/proposals/2246-asynchronous-uploads.md
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixmediav1create
 
     use ruma_common::{
         api::{request, response, Metadata},
@@ -18,6 +18,7 @@ pub mod unstable {
         authentication: AccessToken,
         history: {
             unstable => "/_matrix/media/unstable/fi.mau.msc2246/create",
+            1.7 => "/_matrix/media/v1/create",
         }
     };
 
