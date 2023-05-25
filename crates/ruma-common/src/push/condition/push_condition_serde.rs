@@ -5,9 +5,7 @@ use crate::serde::from_raw_json_value;
 
 #[cfg(feature = "unstable-msc3931")]
 use super::RoomVersionFeature;
-#[cfg(any(feature = "unstable-msc3758", feature = "unstable-msc3966"))]
-use super::ScalarJsonValue;
-use super::{PushCondition, RoomMemberCountIs};
+use super::{PushCondition, RoomMemberCountIs, ScalarJsonValue};
 
 impl Serialize for PushCondition {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -33,17 +31,13 @@ impl<'de> Deserialize<'de> for PushCondition {
             "event_match"
             | "contains_display_name"
             | "room_member_count"
-            | "sender_notification_permission" => {
+            | "sender_notification_permission"
+            | "event_property_is" => {
                 let helper: PushConditionSerDeHelper = from_raw_json_value(&json)?;
                 Ok(helper.into())
             }
             #[cfg(feature = "unstable-msc3931")]
             "org.matrix.msc3931.room_version_supports" => {
-                let helper: PushConditionSerDeHelper = from_raw_json_value(&json)?;
-                Ok(helper.into())
-            }
-            #[cfg(feature = "unstable-msc3758")]
-            "com.beeper.msc3758.exact_event_match" => {
                 let helper: PushConditionSerDeHelper = from_raw_json_value(&json)?;
                 Ok(helper.into())
             }
@@ -106,13 +100,17 @@ enum PushConditionSerDeHelper {
         feature: RoomVersionFeature,
     },
 
-    #[cfg(feature = "unstable-msc3758")]
-    #[serde(rename = "com.beeper.msc3758.exact_event_match")]
-    EventPropertyIs { key: String, value: ScalarJsonValue },
+    EventPropertyIs {
+        key: String,
+        value: ScalarJsonValue,
+    },
 
     #[cfg(feature = "unstable-msc3966")]
     #[serde(rename = "org.matrix.msc3966.exact_event_property_contains")]
-    EventPropertyContains { key: String, value: ScalarJsonValue },
+    EventPropertyContains {
+        key: String,
+        value: ScalarJsonValue,
+    },
 }
 
 impl From<PushConditionSerDeHelper> for PushCondition {
@@ -130,7 +128,6 @@ impl From<PushConditionSerDeHelper> for PushCondition {
             PushConditionSerDeHelper::RoomVersionSupports { feature } => {
                 Self::RoomVersionSupports { feature }
             }
-            #[cfg(feature = "unstable-msc3758")]
             PushConditionSerDeHelper::EventPropertyIs { key, value } => {
                 Self::EventPropertyIs { key, value }
             }
@@ -153,7 +150,6 @@ impl From<PushCondition> for PushConditionSerDeHelper {
             }
             #[cfg(feature = "unstable-msc3931")]
             PushCondition::RoomVersionSupports { feature } => Self::RoomVersionSupports { feature },
-            #[cfg(feature = "unstable-msc3758")]
             PushCondition::EventPropertyIs { key, value } => Self::EventPropertyIs { key, value },
             #[cfg(feature = "unstable-msc3966")]
             PushCondition::EventPropertyContains { key, value } => {

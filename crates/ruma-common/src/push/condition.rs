@@ -107,12 +107,10 @@ pub enum PushCondition {
     },
 
     /// Exact value match on a property of the event.
-    #[cfg(feature = "unstable-msc3758")]
     EventPropertyIs {
-        /// The dot-separated path of the property of the event to match. See [MSC3873] for its
-        /// format.
+        /// The [dot-separated path] of the property of the event to match.
         ///
-        /// [MSC3873]: https://github.com/matrix-org/matrix-spec-proposals/pull/3873
+        /// [dot-separated path]: https://spec.matrix.org/latest/appendices/#dot-separated-property-paths
         key: String,
 
         /// The value to match against.
@@ -202,7 +200,6 @@ impl PushCondition {
                 }
                 RoomVersionFeature::_Custom(_) => false,
             },
-            #[cfg(feature = "unstable-msc3758")]
             Self::EventPropertyIs { key, value } => event.get(key).map_or(false, |v| v == value),
             #[cfg(feature = "unstable-msc3966")]
             Self::EventPropertyContains { key, value } => event
@@ -805,7 +802,6 @@ mod tests {
         assert!(!room_version_condition.applies(&simple_event, &context_not_matching));
     }
 
-    #[cfg(feature = "unstable-msc3758")]
     #[test]
     fn event_property_is_applies() {
         use crate::push::condition::ScalarJsonValue;
