@@ -208,9 +208,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrCode::WeakPassword => ErrorKind::WeakPassword,
             #[cfg(feature = "unstable-msc2677")]
             ErrCode::DuplicateAnnotation => ErrorKind::DuplicateAnnotation,
-            #[cfg(feature = "unstable-msc2246")]
             ErrCode::NotYetUploaded => ErrorKind::NotYetUploaded,
-            #[cfg(feature = "unstable-msc2246")]
             ErrCode::CannotOverwriteMedia => ErrorKind::CannotOverwriteMedia,
             #[cfg(feature = "unstable-msc3575")]
             ErrCode::UnknownPos => ErrorKind::UnknownPos,
@@ -257,14 +255,9 @@ enum ErrCode {
     WeakPassword,
     #[cfg(feature = "unstable-msc2677")]
     DuplicateAnnotation,
-    #[cfg(feature = "unstable-msc2246")]
-    #[ruma_enum(rename = "FI.MAU.MSC2246_NOT_YET_UPLOADED", alias = "M_NOT_YET_UPLOADED")]
+    #[ruma_enum(alias = "FI.MAU.MSC2246_NOT_YET_UPLOADED")]
     NotYetUploaded,
-    #[cfg(feature = "unstable-msc2246")]
-    #[ruma_enum(
-        rename = "FI.MAU.MSC2246_CANNOT_OVERWRITE_MEDIA",
-        alias = "M_CANNOT_OVERWRITE_MEDIA"
-    )]
+    #[ruma_enum(alias = "FI.MAU.MSC2246_CANNOT_OVERWRITE_MEDIA")]
     CannotOverwriteMedia,
     #[cfg(feature = "unstable-msc3575")]
     UnknownPos,

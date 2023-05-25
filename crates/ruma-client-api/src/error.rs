@@ -154,12 +154,10 @@ pub enum ErrorKind {
     #[cfg(feature = "unstable-msc2677")]
     DuplicateAnnotation,
 
-    /// FI.MAU.MSC2246_NOT_YET_UPLOADED
-    #[cfg(feature = "unstable-msc2246")]
+    /// M_NOT_YET_UPLOADED
     NotYetUploaded,
 
-    /// FI.MAU.MSC2246_CANNOT_OVERWRITE_MEDIA
-    #[cfg(feature = "unstable-msc2246")]
+    /// M_CANNOT_OVERWRITE_MEDIA
     CannotOverwriteMedia,
 
     /// M_UNKNOWN_POS for sliding sync
@@ -215,10 +213,8 @@ impl AsRef<str> for ErrorKind {
             Self::BadAlias => "M_BAD_ALIAS",
             #[cfg(feature = "unstable-msc2677")]
             Self::DuplicateAnnotation => "M_DUPLICATE_ANNOTATION",
-            #[cfg(feature = "unstable-msc2246")]
-            Self::NotYetUploaded => "FI.MAU.MSC2246_NOT_YET_UPLOADED",
-            #[cfg(feature = "unstable-msc2246")]
-            Self::CannotOverwriteMedia => "FI.MAU.MSC2246_CANNOT_OVERWRITE_MEDIA",
+            Self::NotYetUploaded => "M_NOT_YET_UPLOADED",
+            Self::CannotOverwriteMedia => "M_CANNOT_OVERWRITE_MEDIA",
             #[cfg(feature = "unstable-msc3575")]
             Self::UnknownPos => "M_UNKNOWN_POS",
             Self::_Custom { errcode, .. } => &errcode.0,

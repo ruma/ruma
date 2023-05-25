@@ -11,6 +11,7 @@ Improvements:
 - Add convenience constructors for enabling lazy-loading in filters 
 - Add support for using an existing session to log in another (MSC3882 / Matrix 1.7)
 - Add support for media download redirects (MSC3860 / Matrix 1.7)
+- Stabilize support for asynchronous media uploads (MSC2246 / Matrix 1.7)
 
 # 0.16.2
 

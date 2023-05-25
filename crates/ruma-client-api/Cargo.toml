@@ -34,7 +34,6 @@ compat-unset-avatar = []
 compat-get-3pids = []
 
 unstable-exhaustive-types = ["ruma-common/unstable-exhaustive-types"]
-unstable-msc2246 = []
 unstable-msc2666 = []
 unstable-msc2448 = []
 unstable-msc2654 = []
