@@ -34,9 +34,8 @@ impl InReplyTo {
 
 /// An [annotation] for an event.
 ///
-/// [annotation]: https://github.com/matrix-org/matrix-spec-proposals/pull/2677
+/// [annotation]: https://spec.matrix.org/latest/client-server-api/#event-annotations-and-reactions
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg(feature = "unstable-msc2677")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "rel_type", rename = "m.annotation")]
 pub struct Annotation {
@@ -52,7 +51,6 @@ pub struct Annotation {
     pub key: String,
 }
 
-#[cfg(feature = "unstable-msc2677")]
 impl Annotation {
     /// Creates a new `Annotation` with the given event ID and key.
     pub fn new(event_id: OwnedEventId, key: String) -> Self {
@@ -290,7 +288,6 @@ impl BundledStateRelations {
 #[non_exhaustive]
 pub enum RelationType {
     /// `m.annotation`, an annotation, principally used by reactions.
-    #[cfg(feature = "unstable-msc2677")]
     Annotation,
 
     /// `m.replace`, a replacement.

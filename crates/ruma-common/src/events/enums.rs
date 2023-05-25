@@ -79,7 +79,6 @@ event_enum! {
         #[cfg(feature = "unstable-msc3381")]
         #[ruma_enum(alias = "m.poll.end")]
         "org.matrix.msc3381.v2.poll.end" => super::poll::end,
-        #[cfg(feature = "unstable-msc2677")]
         "m.reaction" => super::reaction,
         "m.room.encrypted" => super::room::encrypted,
         "m.room.message" => super::room::message,
@@ -313,7 +312,6 @@ impl AnyMessageLikeEventContent {
             | Self::KeyVerificationDone(KeyVerificationDoneEventContent { relates_to, .. }) => {
                 Some(encrypted::Relation::Reference(relates_to.clone()))
             },
-            #[cfg(feature = "unstable-msc2677")]
             Self::Reaction(ev) => Some(encrypted::Relation::Annotation(ev.relates_to.clone())),
             Self::RoomEncrypted(ev) => ev.relates_to.clone(),
             Self::RoomMessage(ev) => ev.relates_to.clone().map(Into::into),

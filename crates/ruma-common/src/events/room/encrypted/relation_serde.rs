@@ -1,8 +1,6 @@
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-#[cfg(feature = "unstable-msc2677")]
-use super::Annotation;
-use super::{InReplyTo, Reference, Relation, Replacement, Thread};
+use super::{Annotation, InReplyTo, Reference, Relation, Replacement, Thread};
 use crate::OwnedEventId;
 
 pub(crate) fn deserialize_relation<'de, D>(deserializer: D) -> Result<Option<Relation>, D::Error>
@@ -23,7 +21,6 @@ where
         Some(Relation::Reply { in_reply_to })
     } else {
         ev.relates_to.relation.map(|relation| match relation {
-            #[cfg(feature = "unstable-msc2677")]
             RelationJsonRepr::Annotation(a) => Relation::Annotation(a),
             RelationJsonRepr::Reference(r) => Relation::Reference(r),
             RelationJsonRepr::Replacement(Replacement { event_id }) => {
@@ -48,7 +45,6 @@ impl Serialize for Relation {
     {
         #[allow(clippy::needless_update)]
         let relates_to = match self {
-            #[cfg(feature = "unstable-msc2677")]
             Relation::Annotation(r) => RelatesToJsonRepr {
                 relation: Some(RelationJsonRepr::Annotation(r.clone())),
                 ..Default::default()
@@ -137,7 +133,6 @@ struct ThreadUnstableJsonRepr {
 #[serde(tag = "rel_type")]
 enum RelationJsonRepr {
     /// An annotation to an event.
-    #[cfg(feature = "unstable-msc2677")]
     #[serde(rename = "m.annotation")]
     Annotation(Annotation),
 
