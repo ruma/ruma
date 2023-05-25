@@ -151,7 +151,6 @@ pub enum ErrorKind {
     BadAlias,
 
     /// M_DUPLICATE_ANNOTATION
-    #[cfg(feature = "unstable-msc2677")]
     DuplicateAnnotation,
 
     /// FI.MAU.MSC2246_NOT_YET_UPLOADED
@@ -213,7 +212,6 @@ impl AsRef<str> for ErrorKind {
             Self::UnableToAuthorizeJoin => "M_UNABLE_TO_AUTHORISE_JOIN",
             Self::UnableToGrantJoin => "M_UNABLE_TO_GRANT_JOIN",
             Self::BadAlias => "M_BAD_ALIAS",
-            #[cfg(feature = "unstable-msc2677")]
             Self::DuplicateAnnotation => "M_DUPLICATE_ANNOTATION",
             #[cfg(feature = "unstable-msc2246")]
             Self::NotYetUploaded => "FI.MAU.MSC2246_NOT_YET_UPLOADED",
