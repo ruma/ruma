@@ -24,7 +24,7 @@ Improvements:
 - Add a convenience method to construct `RoomEncryptionEventContent` with the recommended defaults.
 - `PushCondition::EventMatch` and `FlattenedJson` now use escaped dotted paths, according to MSC3873
 - Add support for `event_property_is` push condition (MSC3758 / Matrix 1.7)
-- Add unstable support for `event_property_contains` push condition according to MSC3966
+- Add support for `event_property_contains` push condition (MSC3966 / Matrix 1.7)
 - Add `FullStateEventContent::redact`
 - Add new methods for `RoomPowerLevels`:
   - `user_can_ban`

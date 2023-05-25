@@ -32,17 +32,13 @@ impl<'de> Deserialize<'de> for PushCondition {
             | "contains_display_name"
             | "room_member_count"
             | "sender_notification_permission"
-            | "event_property_is" => {
+            | "event_property_is"
+            | "event_property_contains" => {
                 let helper: PushConditionSerDeHelper = from_raw_json_value(&json)?;
                 Ok(helper.into())
             }
             #[cfg(feature = "unstable-msc3931")]
             "org.matrix.msc3931.room_version_supports" => {
-                let helper: PushConditionSerDeHelper = from_raw_json_value(&json)?;
-                Ok(helper.into())
-            }
-            #[cfg(feature = "unstable-msc3966")]
-            "org.matrix.msc3966.exact_event_property_contains" => {
                 let helper: PushConditionSerDeHelper = from_raw_json_value(&json)?;
                 Ok(helper.into())
             }
@@ -105,8 +101,6 @@ enum PushConditionSerDeHelper {
         value: ScalarJsonValue,
     },
 
-    #[cfg(feature = "unstable-msc3966")]
-    #[serde(rename = "org.matrix.msc3966.exact_event_property_contains")]
     EventPropertyContains {
         key: String,
         value: ScalarJsonValue,
@@ -131,7 +125,6 @@ impl From<PushConditionSerDeHelper> for PushCondition {
             PushConditionSerDeHelper::EventPropertyIs { key, value } => {
                 Self::EventPropertyIs { key, value }
             }
-            #[cfg(feature = "unstable-msc3966")]
             PushConditionSerDeHelper::EventPropertyContains { key, value } => {
                 Self::EventPropertyContains { key, value }
             }
@@ -151,7 +144,6 @@ impl From<PushCondition> for PushConditionSerDeHelper {
             #[cfg(feature = "unstable-msc3931")]
             PushCondition::RoomVersionSupports { feature } => Self::RoomVersionSupports { feature },
             PushCondition::EventPropertyIs { key, value } => Self::EventPropertyIs { key, value },
-            #[cfg(feature = "unstable-msc3966")]
             PushCondition::EventPropertyContains { key, value } => {
                 Self::EventPropertyContains { key, value }
             }
