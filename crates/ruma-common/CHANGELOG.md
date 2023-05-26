@@ -13,6 +13,11 @@ Breaking changes:
 - Remove the `DontNotify` and `Coalesce` variants of `push::Action` according to MSC3987
   - Old push rules will still deserialize successfully but the `Coalesce` variant will not return
     `true` for `Action::should_notify()` anymore
+- Remove `AnswerSessionDescription` and `OfferSessionDescription` types, use `SessionDescription`
+  instead.
+  - Remove `SessionDescriptionType`, use a `String` instead. A clarification in MSC2746 / Matrix 1.7
+    explains that the `type` field should not be validated but passed as-is to the WebRTC API. It
+    also avoids an unnecessary conversion between the WebRTC API and the Ruma type.
 
 Improvements:
 

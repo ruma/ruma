@@ -5,9 +5,9 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::AnswerSessionDescription;
 #[cfg(feature = "unstable-msc2747")]
 use super::CallCapabilities;
+use super::SessionDescription;
 use crate::{OwnedVoipId, VoipVersionId};
 
 /// The content of an `m.call.answer` event.
@@ -18,7 +18,7 @@ use crate::{OwnedVoipId, VoipVersionId};
 #[ruma_event(type = "m.call.answer", kind = MessageLike)]
 pub struct CallAnswerEventContent {
     /// The VoIP session description object.
-    pub answer: AnswerSessionDescription,
+    pub answer: SessionDescription,
 
     /// A unique identifier for the call.
     pub call_id: OwnedVoipId,
@@ -39,11 +39,7 @@ pub struct CallAnswerEventContent {
 
 impl CallAnswerEventContent {
     /// Creates an `CallAnswerEventContent` with the given answer, call ID and VoIP version.
-    pub fn new(
-        answer: AnswerSessionDescription,
-        call_id: OwnedVoipId,
-        version: VoipVersionId,
-    ) -> Self {
+    pub fn new(answer: SessionDescription, call_id: OwnedVoipId, version: VoipVersionId) -> Self {
         Self {
             answer,
             call_id,
@@ -57,7 +53,7 @@ impl CallAnswerEventContent {
 
     /// Convenience method to create a VoIP version 0 `CallAnswerEventContent` with all the required
     /// fields.
-    pub fn version_0(answer: AnswerSessionDescription, call_id: OwnedVoipId) -> Self {
+    pub fn version_0(answer: SessionDescription, call_id: OwnedVoipId) -> Self {
         Self::new(answer, call_id, VoipVersionId::V0)
     }
 
@@ -65,7 +61,7 @@ impl CallAnswerEventContent {
     /// fields.
     #[cfg(feature = "unstable-msc2746")]
     pub fn version_1(
-        answer: AnswerSessionDescription,
+        answer: SessionDescription,
         call_id: OwnedVoipId,
         party_id: OwnedVoipId,
     ) -> Self {
