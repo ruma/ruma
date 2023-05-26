@@ -19,7 +19,6 @@ pub struct CallCandidatesEventContent {
     /// A unique identifier for the call.
     pub call_id: OwnedVoipId,
 
-    #[cfg(feature = "unstable-msc2746")]
     /// **Required in VoIP version 1.** The unique ID for this session for the duration of the
     /// call.
     ///
@@ -30,8 +29,8 @@ pub struct CallCandidatesEventContent {
 
     /// A list of candidates.
     ///
-    /// With the `unstable-msc2746` feature, in VoIP version 1, this list should end with a
-    /// `Candidate` with an empty `candidate` field when no more candidates will be sent.
+    /// In VoIP version 1, this list should end with a `Candidate` with an empty `candidate` field
+    /// when no more candidates will be sent.
     pub candidates: Vec<Candidate>,
 
     /// The version of the VoIP specification this messages adheres to.
@@ -42,13 +41,7 @@ impl CallCandidatesEventContent {
     /// Creates a new `CallCandidatesEventContent` with the given call id, candidate list and VoIP
     /// version.
     pub fn new(call_id: OwnedVoipId, candidates: Vec<Candidate>, version: VoipVersionId) -> Self {
-        Self {
-            call_id,
-            candidates,
-            version,
-            #[cfg(feature = "unstable-msc2746")]
-            party_id: None,
-        }
+        Self { call_id, candidates, version, party_id: None }
     }
 
     /// Convenience method to create a VoIP version 0 `CallCandidatesEventContent` with all the
@@ -59,7 +52,6 @@ impl CallCandidatesEventContent {
 
     /// Convenience method to create a VoIP version 1 `CallCandidatesEventContent` with all the
     /// required fields.
-    #[cfg(feature = "unstable-msc2746")]
     pub fn version_1(
         call_id: OwnedVoipId,
         party_id: OwnedVoipId,

@@ -23,7 +23,6 @@ pub struct CallAnswerEventContent {
     /// A unique identifier for the call.
     pub call_id: OwnedVoipId,
 
-    #[cfg(feature = "unstable-msc2746")]
     /// **Required in VoIP version 1.** A unique ID for this session for the duration of the call.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub party_id: Option<OwnedVoipId>,
@@ -43,7 +42,6 @@ impl CallAnswerEventContent {
         Self {
             answer,
             call_id,
-            #[cfg(feature = "unstable-msc2746")]
             party_id: None,
             version,
             #[cfg(feature = "unstable-msc2747")]
@@ -59,7 +57,6 @@ impl CallAnswerEventContent {
 
     /// Convenience method to create a VoIP version 1 `CallAnswerEventContent` with all the required
     /// fields.
-    #[cfg(feature = "unstable-msc2746")]
     pub fn version_1(
         answer: SessionDescription,
         call_id: OwnedVoipId,
