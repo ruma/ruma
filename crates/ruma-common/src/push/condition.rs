@@ -66,10 +66,9 @@ impl RoomVersionFeature {
 pub enum PushCondition {
     /// A glob pattern match on a field of the event.
     EventMatch {
-        /// The dot-separated path of the property of the event to match. See [MSC3873] for its
-        /// format.
+        /// The [dot-separated path] of the property of the event to match.
         ///
-        /// [MSC3873]: https://github.com/matrix-org/matrix-spec-proposals/pull/3873
+        /// [dot-separated path]: https://spec.matrix.org/latest/appendices/#dot-separated-property-paths
         key: String,
 
         /// The glob-style pattern to match against.
