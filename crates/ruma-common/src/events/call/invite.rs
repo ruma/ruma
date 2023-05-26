@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "unstable-msc2747")]
 use super::CallCapabilities;
-use super::OfferSessionDescription;
+use super::SessionDescription;
 #[cfg(feature = "unstable-msc2746")]
 use crate::OwnedUserId;
 use crate::{OwnedVoipId, VoipVersionId};
@@ -35,7 +35,7 @@ pub struct CallInviteEventContent {
     pub lifetime: UInt,
 
     /// The session description object.
-    pub offer: OfferSessionDescription,
+    pub offer: SessionDescription,
 
     /// The version of the VoIP specification this messages adheres to.
     pub version: VoipVersionId,
@@ -61,7 +61,7 @@ impl CallInviteEventContent {
     pub fn new(
         call_id: OwnedVoipId,
         lifetime: UInt,
-        offer: OfferSessionDescription,
+        offer: SessionDescription,
         version: VoipVersionId,
     ) -> Self {
         Self {
@@ -80,7 +80,7 @@ impl CallInviteEventContent {
 
     /// Convenience method to create a version 0 `CallInviteEventContent` with all the required
     /// fields.
-    pub fn version_0(call_id: OwnedVoipId, lifetime: UInt, offer: OfferSessionDescription) -> Self {
+    pub fn version_0(call_id: OwnedVoipId, lifetime: UInt, offer: SessionDescription) -> Self {
         Self::new(call_id, lifetime, offer, VoipVersionId::V0)
     }
 
@@ -91,7 +91,7 @@ impl CallInviteEventContent {
         call_id: OwnedVoipId,
         party_id: OwnedVoipId,
         lifetime: UInt,
-        offer: OfferSessionDescription,
+        offer: SessionDescription,
     ) -> Self {
         Self {
             call_id,

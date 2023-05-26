@@ -8,7 +8,7 @@ use ruma_common::{
             candidates::{CallCandidatesEventContent, Candidate},
             hangup::CallHangupEventContent,
             invite::CallInviteEventContent,
-            AnswerSessionDescription, OfferSessionDescription,
+            SessionDescription,
         },
         AnyMessageLikeEvent, AnySyncMessageLikeEvent, MessageLikeEvent,
     },
@@ -21,7 +21,7 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 #[test]
 fn answer_content_serialization() {
     let event_content = CallAnswerEventContent::version_0(
-        AnswerSessionDescription::new("not a real sdp".to_owned()),
+        SessionDescription::new("answer".to_owned(), "not a real sdp".to_owned()),
         "abcdef".into(),
     );
 
@@ -51,6 +51,7 @@ fn answer_content_deserialization() {
 
     let content = from_json_value::<CallAnswerEventContent>(json_data).unwrap();
 
+    assert_eq!(content.answer.session_type, "answer");
     assert_eq!(content.answer.sdp, "Hello");
     assert_eq!(content.call_id, "foofoo");
     assert_eq!(content.version, VoipVersionId::V0);
@@ -85,6 +86,7 @@ fn answer_event_deserialization() {
     assert!(message_event.unsigned.is_empty());
 
     let content = message_event.content;
+    assert_eq!(content.answer.session_type, "answer");
     assert_eq!(content.answer.sdp, "Hello");
     assert_eq!(content.call_id, "foofoo");
     assert_eq!(content.version, VoipVersionId::V0);
@@ -131,7 +133,7 @@ fn invite_content_serialization() {
     let event_content = CallInviteEventContent::version_0(
         "abcdef".into(),
         uint!(30000),
-        OfferSessionDescription::new("not a real sdp".to_owned()),
+        SessionDescription::new("offer".to_owned(), "not a real sdp".to_owned()),
     );
 
     assert_eq!(
@@ -203,8 +205,7 @@ mod msc2746 {
                 negotiate::CallNegotiateEventContent,
                 reject::CallRejectEventContent,
                 select_answer::CallSelectAnswerEventContent,
-                AnswerSessionDescription, OfferSessionDescription, SessionDescription,
-                SessionDescriptionType,
+                SessionDescription,
             },
             AnyMessageLikeEvent, MessageLikeEvent,
         },
@@ -218,7 +219,7 @@ mod msc2746 {
             "abcdef".into(),
             "9876".into(),
             uint!(60000),
-            OfferSessionDescription::new("not a real sdp".to_owned()),
+            SessionDescription::new("offer".to_owned(), "not a real sdp".to_owned()),
         );
 
         assert_eq!(
@@ -266,13 +267,14 @@ mod msc2746 {
         assert_eq!(content.party_id.unwrap(), "9876");
         assert_eq!(content.lifetime, uint!(60000));
         assert_eq!(content.version, VoipVersionId::V1);
+        assert_eq!(content.offer.session_type, "offer");
         assert_eq!(content.offer.sdp, "not a real sdp");
     }
 
     #[test]
     fn answer_event_serialization() {
         let content = CallAnswerEventContent::version_1(
-            AnswerSessionDescription::new("not a real sdp".to_owned()),
+            SessionDescription::new("answer".to_owned(), "not a real sdp".to_owned()),
             "abcdef".into(),
             "9876".into(),
         );
@@ -296,7 +298,7 @@ mod msc2746 {
     fn answer_event_capabilities_serialization() {
         let content = assign!(
             CallAnswerEventContent::version_1(
-                AnswerSessionDescription::new("not a real sdp".to_owned()),
+                SessionDescription::new("answer".to_owned(), "not a real sdp".to_owned()),
                 "abcdef".into(),
                 "9876".into()
             ),
@@ -353,6 +355,7 @@ mod msc2746 {
         assert_eq!(content.call_id, "abcdef");
         assert_eq!(content.party_id.unwrap(), "9876");
         assert_eq!(content.version.as_ref(), "org.matrix.1b");
+        assert_eq!(content.answer.session_type, "answer");
         assert_eq!(content.answer.sdp, "not a real sdp");
         #[cfg(feature = "unstable-msc2747")]
         assert!(content.capabilities.dtmf);
@@ -485,7 +488,7 @@ mod msc2746 {
             "abcdef".into(),
             "9876".into(),
             uint!(30000),
-            SessionDescription::new(SessionDescriptionType::Offer, "not a real sdp".to_owned()),
+            SessionDescription::new("offer".to_owned(), "not a real sdp".to_owned()),
         );
 
         assert_eq!(
@@ -512,7 +515,7 @@ mod msc2746 {
                 "version": "1",
                 "lifetime": 30000,
                 "description": {
-                    "type": "pranswer",
+                    "type": "answer",
                     "sdp": "not a real sdp",
                 }
             },
@@ -532,7 +535,7 @@ mod msc2746 {
         assert_eq!(content.call_id, "abcdef");
         assert_eq!(content.party_id, "9876");
         assert_eq!(content.lifetime, uint!(30000));
-        assert_eq!(content.description.session_type, SessionDescriptionType::PrAnswer);
+        assert_eq!(content.description.session_type, "answer");
         assert_eq!(content.description.sdp, "not a real sdp");
     }
 
