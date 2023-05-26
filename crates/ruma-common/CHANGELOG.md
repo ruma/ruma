@@ -18,6 +18,8 @@ Breaking changes:
   - Remove `SessionDescriptionType`, use a `String` instead. A clarification in MSC2746 / Matrix 1.7
     explains that the `type` field should not be validated but passed as-is to the WebRTC API. It
     also avoids an unnecessary conversion between the WebRTC API and the Ruma type.
+- The `reason` field in `CallHangupEventContent` is now required an defaults to `Reason::UserHangup`
+  (MSC2746 / Matrix 1.7)
 
 Improvements:
 
@@ -43,6 +45,7 @@ Improvements:
 - Add `MatrixVersion::V1_7`
 - Stabilize support for annotations and reactions (MSC2677 / Matrix 1.7)
 - Add support for intentional mentions push rules (MSC3952 / Matrix 1.7)
+- Stabilize support for VoIP signalling improvements (MSC2746 / Matrix 1.7)
 
 # 0.11.3
 

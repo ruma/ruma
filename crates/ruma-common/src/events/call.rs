@@ -6,11 +6,8 @@ pub mod answer;
 pub mod candidates;
 pub mod hangup;
 pub mod invite;
-#[cfg(feature = "unstable-msc2746")]
 pub mod negotiate;
-#[cfg(feature = "unstable-msc2746")]
 pub mod reject;
-#[cfg(feature = "unstable-msc2746")]
 pub mod select_answer;
 
 use serde::{Deserialize, Serialize};
@@ -31,9 +28,8 @@ pub struct SessionDescription {
 
     /// The SDP text of the session description.
     ///
-    /// With the `unstable-msc2746` feature, this field is unused if the type is `rollback` and
-    /// defaults to an empty string.
-    #[cfg_attr(feature = "unstable-msc2746", serde(default))]
+    /// Defaults to an empty string.
+    #[serde(default)]
     pub sdp: String,
 }
 

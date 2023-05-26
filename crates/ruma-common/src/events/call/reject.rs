@@ -1,6 +1,6 @@
-//! Types for the `m.call.reject` event [MSC2746].
+//! Types for the [`m.call.reject`] event.
 //!
-//! [MSC2746]: https://github.com/matrix-org/matrix-spec-proposals/pull/2746
+//! [`m.call.reject`]: https://spec.matrix.org/latest/client-server-api/#mcallreject
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

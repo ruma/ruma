@@ -34,7 +34,6 @@ pub enum VoipVersionId {
     V0,
 
     /// A version 1 VoIP call.
-    #[cfg(feature = "unstable-msc2746")]
     V1,
 
     #[doc(hidden)]
@@ -46,7 +45,6 @@ impl VoipVersionId {
     pub fn as_str(&self) -> &str {
         match &self {
             Self::V0 => "0",
-            #[cfg(feature = "unstable-msc2746")]
             Self::V1 => "1",
             Self::_Custom(PrivOwnedStr(s)) => s,
         }
@@ -133,7 +131,6 @@ where
     T: AsRef<str> + Into<Box<str>>,
 {
     match s.as_ref() {
-        #[cfg(feature = "unstable-msc2746")]
         "1" => VoipVersionId::V1,
         _ => VoipVersionId::_Custom(PrivOwnedStr(s.into())),
     }
@@ -174,7 +171,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "unstable-msc2746")]
     fn valid_version_1() {
         assert_eq!(VoipVersionId::try_from("1"), Ok(VoipVersionId::V1));
     }
@@ -199,13 +195,11 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "unstable-msc2746")]
     fn serialize_version_1() {
         assert_eq!(to_json_value(&VoipVersionId::V1).unwrap(), json!("1"));
     }
 
     #[test]
-    #[cfg(feature = "unstable-msc2746")]
     fn deserialize_version_1() {
         assert_eq!(from_json_value::<VoipVersionId>(json!("1")).unwrap(), VoipVersionId::V1);
     }

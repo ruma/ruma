@@ -1,6 +1,6 @@
-//! Types for the `m.call.select_answer` event [MSC2746].
+//! Types for the [`m.call.select_answer`] event.
 //!
-//! [MSC2746]: https://github.com/matrix-org/matrix-spec-proposals/pull/2746
+//! [`m.call.select_answer`]: https://spec.matrix.org/latest/client-server-api/#mcallselect_answer
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

@@ -9,9 +9,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "unstable-msc2747")]
 use super::CallCapabilities;
 use super::SessionDescription;
-#[cfg(feature = "unstable-msc2746")]
-use crate::OwnedUserId;
-use crate::{OwnedVoipId, VoipVersionId};
+use crate::{OwnedUserId, OwnedVoipId, VoipVersionId};
 
 /// The content of an `m.call.invite` event.
 ///
@@ -23,7 +21,6 @@ pub struct CallInviteEventContent {
     /// A unique identifier for the call.
     pub call_id: OwnedVoipId,
 
-    #[cfg(feature = "unstable-msc2746")]
     /// **Required in VoIP version 1.** A unique ID for this session for the duration of the call.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub party_id: Option<OwnedVoipId>,
@@ -45,7 +42,6 @@ pub struct CallInviteEventContent {
     #[serde(default, skip_serializing_if = "CallCapabilities::is_default")]
     pub capabilities: CallCapabilities,
 
-    #[cfg(feature = "unstable-msc2746")]
     /// **Added in VoIP version 1.** The intended target of the invite, if any.
     ///
     /// If this is `None`, the invite is intended for any member of the room, except the sender.
@@ -66,14 +62,12 @@ impl CallInviteEventContent {
     ) -> Self {
         Self {
             call_id,
-            #[cfg(feature = "unstable-msc2746")]
             party_id: None,
             lifetime,
             offer,
             version,
             #[cfg(feature = "unstable-msc2747")]
             capabilities: Default::default(),
-            #[cfg(feature = "unstable-msc2746")]
             invitee: None,
         }
     }
@@ -86,7 +80,6 @@ impl CallInviteEventContent {
 
     /// Convenience method to create a version 1 `CallInviteEventContent` with all the required
     /// fields.
-    #[cfg(feature = "unstable-msc2746")]
     pub fn version_1(
         call_id: OwnedVoipId,
         party_id: OwnedVoipId,

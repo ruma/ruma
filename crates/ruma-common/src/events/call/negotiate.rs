@@ -1,6 +1,6 @@
-//! Types for the `m.call.negotiate` event [MSC2746].
+//! Types for the [`m.call.negotiate`] event.
 //!
-//! [MSC2746]: https://github.com/matrix-org/matrix-spec-proposals/pull/2746
+//! [`m.call.negotiate`]: https://spec.matrix.org/latest/client-server-api/#mcallnegotiate
 
 use js_int::UInt;
 use ruma_macros::EventContent;
