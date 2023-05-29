@@ -61,6 +61,18 @@ pub struct Request {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub delta_token: Option<String>,
 
+    /// A unique string identifier for this connection to the server.
+    ///
+    /// Optional. If this is missing, only one sliding sync connection can be made to the server at
+    /// any one time. Clients need to set this to allow more than one connection concurrently,
+    /// so the server can distinguish between connections. This is NOT STICKY and must be
+    /// provided with every request, if your client needs more than one concurrent connection.
+    ///
+    /// Limitation: it must not contain more than 16 chars, due to it being required with every
+    /// request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub conn_id: Option<String>,
+
     /// Allows clients to know what request params reached the server,
     /// functionally similar to txn IDs on /send for events.
     #[serde(skip_serializing_if = "Option::is_none")]
