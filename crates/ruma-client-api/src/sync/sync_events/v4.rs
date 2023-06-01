@@ -76,16 +76,6 @@ pub struct Request {
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub lists: BTreeMap<String, SyncRequestList>,
 
-    /// An allow-list of event types which should be considered recent activity when sorting
-    /// `by_recency`. By omitting event types from this field, clients can ensure that
-    /// uninteresting events (e.g. a profil rename) do not cause a room to jump to the top of its
-    /// list(s). Empty or omitted `bump_event_types` have no effect; all events in a room will be
-    /// considered recent activity.
-    ///
-    /// This is currently per-connection, not per-list. Sticky.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub bump_event_types: Vec<TimelineEventType>,
-
     /// Specific rooms and event types that we want to receive events from.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub room_subscriptions: BTreeMap<OwnedRoomId, RoomSubscription>,
@@ -297,6 +287,19 @@ pub struct SyncRequestList {
     /// Filters to apply to the list before sorting. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filters: Option<SyncRequestListFilters>,
+
+    /// An allow-list of event types which should be considered recent activity when sorting
+    /// `by_recency`. By omitting event types from this field, clients can ensure that
+    /// uninteresting events (e.g. a profil rename) do not cause a room to jump to the top of its
+    /// list(s). Empty or omitted `bump_event_types` have no effect; all events in a room will be
+    /// considered recent activity.
+    ///
+    /// NB. Changes to bump_event_types will NOT cause the room list to be reordered;
+    /// it will only affect the ordering of rooms due to future updates.
+    ///
+    /// Sticky.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub bump_event_types: Vec<TimelineEventType>,
 }
 
 /// Configuration for requesting room details.
