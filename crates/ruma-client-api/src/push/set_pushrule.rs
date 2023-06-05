@@ -94,7 +94,7 @@ pub mod v3 {
             let body: RequestBody = self.rule.into();
 
             http::Request::builder()
-                .method(http::Method::GET)
+                .method(METADATA.method)
                 .uri(url)
                 .header(header::CONTENT_TYPE, "application/json")
                 .header(
