@@ -95,6 +95,14 @@ macro_rules! device_id {
     };
 }
 
+/// Shorthand for `OwnedDeviceId::from`.
+#[macro_export]
+macro_rules! owned_device_id {
+    ($s:expr) => {
+        <$crate::OwnedDeviceId as ::std::convert::From<_>>::from($s)
+    };
+}
+
 // A plain re-export shows up in rustdoc despite doc(hidden). Use a module instead.
 // Bug report: https://github.com/rust-lang/rust/issues/83939
 #[doc(hidden)]
@@ -113,11 +121,27 @@ macro_rules! device_key_id {
     };
 }
 
+/// Compile-time checked [`OwnedDeviceKeyId`] construction.
+#[macro_export]
+macro_rules! owned_device_key_id {
+    ($s:literal) => {
+        $crate::device_key_id!($s).to_owned()
+    };
+}
+
 /// Compile-time checked [`EventId`] construction.
 #[macro_export]
 macro_rules! event_id {
     ($s:literal) => {
         $crate::_macros::event_id!($crate, $s)
+    };
+}
+
+/// Compile-time checked [`OwnedEventId`] construction.
+#[macro_export]
+macro_rules! owned_event_id {
+    ($s:literal) => {
+        $crate::event_id($s).to_owned()
     };
 }
 
@@ -129,11 +153,27 @@ macro_rules! room_alias_id {
     };
 }
 
+/// Compile-time checked [`OwnedRoomAliasId`] construction.
+#[macro_export]
+macro_rules! owned_room_alias_id {
+    ($s:literal) => {
+        $crate::room_alias_id($s).to_owned()
+    };
+}
+
 /// Compile-time checked [`RoomId`] construction.
 #[macro_export]
 macro_rules! room_id {
     ($s:literal) => {
         $crate::_macros::room_id!($crate, $s)
+    };
+}
+
+/// Compile-time checked [`OwnedRoomId`] construction.
+#[macro_export]
+macro_rules! owned_room_id {
+    ($s:literal) => {
+        $crate::room_id($s).to_owned()
     };
 }
 
@@ -153,11 +193,27 @@ macro_rules! server_signing_key_id {
     };
 }
 
+/// Compile-time checked [`OwnedServerSigningKeyId`] construction.
+#[macro_export]
+macro_rules! owned_server_signing_key_id {
+    ($s:literal) => {
+        $crate::server_signing_key_id($s).to_owned()
+    };
+}
+
 /// Compile-time checked [`ServerName`] construction.
 #[macro_export]
 macro_rules! server_name {
     ($s:literal) => {
         $crate::_macros::server_name!($crate, $s)
+    };
+}
+
+/// Compile-time checked [`OwnedServerName`] construction.
+#[macro_export]
+macro_rules! owned_server_name {
+    ($s:literal) => {
+        $crate::server_name($s).to_owned()
     };
 }
 
@@ -174,6 +230,14 @@ macro_rules! session_id {
     }};
 }
 
+/// Compile-time checked [`OwnedSessionId`] construction.
+#[macro_export]
+macro_rules! owned_session_id {
+    ($s:literal) => {
+        $crate::session_id($s).to_owned()
+    };
+}
+
 /// Compile-time checked [`MxcUri`] construction.
 #[macro_export]
 macro_rules! mxc_uri {
@@ -182,10 +246,26 @@ macro_rules! mxc_uri {
     };
 }
 
+/// Compile-time checked [`OwnedMxcUri`] construction.
+#[macro_export]
+macro_rules! owned_mxc_uri {
+    ($s:literal) => {
+        $crate::mxc_uri($s).to_owned()
+    };
+}
+
 /// Compile-time checked [`UserId`] construction.
 #[macro_export]
 macro_rules! user_id {
     ($s:literal) => {
         $crate::_macros::user_id!($crate, $s)
+    };
+}
+
+/// Compile-time checked [`OwnedUserId`] construction.
+#[macro_export]
+macro_rules! owned_user_id {
+    ($s:literal) => {
+        $crate::user_id($s).to_owned()
     };
 }
