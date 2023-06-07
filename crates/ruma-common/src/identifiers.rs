@@ -105,7 +105,7 @@ pub mod _macros {
     };
 }
 
-/// Compile-time checked `DeviceKeyId` construction.
+/// Compile-time checked [`DeviceKeyId`] construction.
 #[macro_export]
 macro_rules! device_key_id {
     ($s:literal) => {
@@ -113,7 +113,7 @@ macro_rules! device_key_id {
     };
 }
 
-/// Compile-time checked `EventId` construction.
+/// Compile-time checked [`EventId`] construction.
 #[macro_export]
 macro_rules! event_id {
     ($s:literal) => {
@@ -121,7 +121,7 @@ macro_rules! event_id {
     };
 }
 
-/// Compile-time checked `RoomAliasId` construction.
+/// Compile-time checked [`RoomAliasId`] construction.
 #[macro_export]
 macro_rules! room_alias_id {
     ($s:literal) => {
@@ -129,7 +129,7 @@ macro_rules! room_alias_id {
     };
 }
 
-/// Compile-time checked `RoomId` construction.
+/// Compile-time checked [`RoomId`] construction.
 #[macro_export]
 macro_rules! room_id {
     ($s:literal) => {
@@ -137,7 +137,7 @@ macro_rules! room_id {
     };
 }
 
-/// Compile-time checked `RoomVersionId` construction.
+/// Compile-time checked [`RoomVersionId`] construction.
 #[macro_export]
 macro_rules! room_version_id {
     ($s:literal) => {
@@ -145,7 +145,7 @@ macro_rules! room_version_id {
     };
 }
 
-/// Compile-time checked `ServerSigningKeyId` construction.
+/// Compile-time checked [`ServerSigningKeyId`] construction.
 #[macro_export]
 macro_rules! server_signing_key_id {
     ($s:literal) => {
@@ -153,7 +153,7 @@ macro_rules! server_signing_key_id {
     };
 }
 
-/// Compile-time checked `ServerName` construction.
+/// Compile-time checked [`ServerName`] construction.
 #[macro_export]
 macro_rules! server_name {
     ($s:literal) => {
@@ -161,7 +161,7 @@ macro_rules! server_name {
     };
 }
 
-/// Compile-time checked `SessionId` construction.
+/// Compile-time checked [`SessionId`] construction.
 #[macro_export]
 macro_rules! session_id {
     ($s:literal) => {{
@@ -174,7 +174,7 @@ macro_rules! session_id {
     }};
 }
 
-/// Compile-time checked `MxcUri` construction.
+/// Compile-time checked [`MxcUri`] construction.
 #[macro_export]
 macro_rules! mxc_uri {
     ($s:literal) => {
@@ -182,7 +182,7 @@ macro_rules! mxc_uri {
     };
 }
 
-/// Compile-time checked `UserId` construction.
+/// Compile-time checked [`UserId`] construction.
 #[macro_export]
 macro_rules! user_id {
     ($s:literal) => {
