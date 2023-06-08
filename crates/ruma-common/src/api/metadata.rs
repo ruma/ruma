@@ -699,7 +699,7 @@ impl Display for MatrixVersion {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use http::Method;
 
     use super::{

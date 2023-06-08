@@ -1,6 +1,6 @@
 #![cfg(feature = "unstable-msc3551")]
 
-use assert_matches::assert_matches;
+use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
     event_id,
@@ -199,9 +199,9 @@ fn message_event_deserialization() {
         "type": "org.matrix.msc1767.file",
     });
 
-    let message_event = assert_matches!(
+    assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data),
-        Ok(AnyMessageLikeEvent::File(MessageLikeEvent::Original(message_event))) => message_event
+        Ok(AnyMessageLikeEvent::File(MessageLikeEvent::Original(message_event)))
     );
     assert_eq!(message_event.event_id, "$event:notareal.hs");
     let content = message_event.content;

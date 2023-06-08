@@ -1,4 +1,4 @@
-use assert_matches::assert_matches;
+use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
     events::{
@@ -36,9 +36,9 @@ fn deserialize_redaction() {
         "type": "m.room.redaction"
     });
 
-    let ev = assert_matches!(
+    assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data),
-        Ok(AnyMessageLikeEvent::RoomRedaction(RoomRedactionEvent::Original(ev))) => ev
+        Ok(AnyMessageLikeEvent::RoomRedaction(RoomRedactionEvent::Original(ev)))
     );
     assert_eq!(ev.content.reason.as_deref(), Some("being very unfriendly"));
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");

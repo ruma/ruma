@@ -1,4 +1,4 @@
-use assert_matches::assert_matches;
+use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
     events::{
@@ -63,17 +63,17 @@ fn deserialize_stripped_state_events() {
     });
 
     let ev = from_json_value::<AnyStrippedStateEvent>(name_event).unwrap();
-    let ev = assert_matches!(ev, AnyStrippedStateEvent::RoomName(ev) => ev);
+    assert_matches!(ev, AnyStrippedStateEvent::RoomName(ev));
     assert_eq!(ev.content.name.as_deref(), Some("Ruma"));
     assert_eq!(ev.sender.to_string(), "@example:localhost");
 
     let ev = from_json_value::<AnyStrippedStateEvent>(join_rules_event).unwrap();
-    let ev = assert_matches!(ev,AnyStrippedStateEvent::RoomJoinRules(ev)=>ev );
+    assert_matches!(ev, AnyStrippedStateEvent::RoomJoinRules(ev));
     assert_eq!(ev.content.join_rule, JoinRule::Public);
     assert_eq!(ev.sender.to_string(), "@example:localhost");
 
     let ev = from_json_value::<AnyStrippedStateEvent>(avatar_event).unwrap();
-    let ev = assert_matches!(ev, AnyStrippedStateEvent::RoomAvatar(ev) => ev);
+    assert_matches!(ev, AnyStrippedStateEvent::RoomAvatar(ev));
     assert_eq!(ev.content.url.unwrap(), mxc_uri!("mxc://example.com/iMag3"));
     assert_eq!(ev.sender.to_string(), "@example:localhost");
 

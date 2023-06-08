@@ -225,7 +225,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{Filter, RoomNetwork, RoomTypeFilter};
@@ -326,7 +326,7 @@ mod tests {
         assert_eq!(filter.room_types.len(), 3);
         assert_eq!(filter.room_types[0], RoomTypeFilter::Default);
         assert_eq!(filter.room_types[1], RoomTypeFilter::Space);
-        assert_matches!(filter.room_types[2], RoomTypeFilter::_Custom(_));
+        assert_matches!(&filter.room_types[2], RoomTypeFilter::_Custom(_));
         assert_eq!(filter.room_types[2].as_str(), Some("custom_type"));
     }
 }

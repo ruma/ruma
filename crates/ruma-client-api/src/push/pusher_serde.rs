@@ -79,7 +79,7 @@ impl<'de> Deserialize<'de> for PusherKind {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use ruma_common::{push::HttpPusherData, serde::JsonObject};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -148,11 +148,7 @@ mod tests {
             },
         });
 
-        let data = assert_matches!(
-            from_json_value(json).unwrap(),
-            PusherKind::Http(data) => data
-        );
-
+        assert_matches!(from_json_value(json).unwrap(), PusherKind::Http(data));
         assert_eq!(data.url, "http://localhost");
         assert_eq!(data.format, None);
     }
@@ -164,9 +160,7 @@ mod tests {
             "data": {}
         });
 
-        let custom =
-            assert_matches!(from_json_value(json).unwrap(), PusherKind::_Custom(custom) => custom);
-
+        assert_matches!(from_json_value(json).unwrap(), PusherKind::_Custom(custom));
         assert_eq!(custom.kind, "my.custom.kind");
         assert!(custom.data.is_empty());
     }

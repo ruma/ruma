@@ -55,4 +55,4 @@ serde_html_form = { workspace = true }
 serde_json = { workspace = true }
 
 [dev-dependencies]
-assert_matches = { workspace = true }
+assert_matches2 = { workspace = true }

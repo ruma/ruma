@@ -537,7 +537,7 @@ mod tests {
     #[cfg(feature = "unstable-msc2967")]
     #[test]
     fn deserialize_insufficient_scope() {
-        use assert_matches::assert_matches;
+        use assert_matches2::assert_matches;
         use ruma_common::api::EndpointError;
 
         use super::{AuthenticateError, Error, ErrorBody};
@@ -559,14 +559,10 @@ mod tests {
         let error = Error::from_http_response(response);
 
         assert_eq!(error.status_code, http::StatusCode::UNAUTHORIZED);
-        let (kind, message) =
-            assert_matches!(error.body, ErrorBody::Standard { kind, message } => (kind, message));
+        assert_matches!(error.body, ErrorBody::Standard { kind, message });
         assert_eq!(kind, ErrorKind::Forbidden);
         assert_eq!(message, "Insufficient privilege");
-        let scope = assert_matches::assert_matches!(
-            error.authenticate,
-            Some(AuthenticateError::InsufficientScope { scope }) => scope
-        );
+        assert_matches!(error.authenticate, Some(AuthenticateError::InsufficientScope { scope }));
         assert_eq!(scope, "something_privileged");
     }
 }

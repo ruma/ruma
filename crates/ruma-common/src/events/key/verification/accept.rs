@@ -163,7 +163,7 @@ impl From<SasV1ContentInit> for SasV1Content {
 mod tests {
     use std::collections::BTreeMap;
 
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
@@ -270,10 +270,7 @@ mod tests {
         let content = from_json_value::<ToDeviceKeyVerificationAcceptEventContent>(json).unwrap();
         assert_eq!(content.transaction_id, "456");
 
-        let sas = assert_matches!(
-            content.method,
-            AcceptMethod::SasV1(sas) => sas
-        );
+        assert_matches!(content.method, AcceptMethod::SasV1(sas));
         assert_eq!(sas.commitment.encode(), "aGVsbG8");
         assert_eq!(sas.hash, HashAlgorithm::Sha256);
         assert_eq!(sas.key_agreement_protocol, KeyAgreementProtocol::Curve25519);
@@ -299,10 +296,7 @@ mod tests {
         assert_eq!(ev.content.transaction_id, "456");
         assert_eq!(ev.sender, "@example:localhost");
 
-        let sas = assert_matches!(
-            ev.content.method,
-            AcceptMethod::SasV1(sas) => sas
-        );
+        assert_matches!(ev.content.method, AcceptMethod::SasV1(sas));
         assert_eq!(sas.commitment.encode(), "aGVsbG8");
         assert_eq!(sas.hash, HashAlgorithm::Sha256);
         assert_eq!(sas.key_agreement_protocol, KeyAgreementProtocol::Curve25519);
@@ -325,10 +319,7 @@ mod tests {
         assert_eq!(ev.content.transaction_id, "456");
         assert_eq!(ev.sender, "@example:localhost");
 
-        let custom = assert_matches!(
-            ev.content.method,
-            AcceptMethod::_Custom(custom) => custom
-        );
+        assert_matches!(ev.content.method, AcceptMethod::_Custom(custom));
         assert_eq!(custom.method, "m.sas.custom");
         assert_eq!(custom.data.get("test"), Some(&JsonValue::from("field")));
     }
@@ -352,10 +343,7 @@ mod tests {
         let content = from_json_value::<KeyVerificationAcceptEventContent>(json).unwrap();
         assert_eq!(content.relates_to.event_id, "$1598361704261elfgc:localhost");
 
-        let sas = assert_matches!(
-            content.method,
-            AcceptMethod::SasV1(sas) => sas
-        );
+        assert_matches!(content.method, AcceptMethod::SasV1(sas));
         assert_eq!(sas.commitment.encode(), "aGVsbG8");
         assert_eq!(sas.hash, HashAlgorithm::Sha256);
         assert_eq!(sas.key_agreement_protocol, KeyAgreementProtocol::Curve25519);

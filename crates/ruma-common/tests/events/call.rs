@@ -1,4 +1,4 @@
-use assert_matches::assert_matches;
+use assert_matches2::assert_matches;
 #[cfg(feature = "unstable-msc2747")]
 use assign::assign;
 use js_int::uint;
@@ -81,9 +81,9 @@ fn answer_v0_event_deserialization() {
         "type": "m.call.answer"
     });
 
-    let message_event = assert_matches!(
+    assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(message_event)) => message_event
+        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(message_event))
     );
     assert_eq!(message_event.event_id, "$h29iv0s8:example.com");
     assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
@@ -118,9 +118,9 @@ fn answer_v0_event_deserialization_then_convert_to_full() {
 
     let sync_ev: AnySyncMessageLikeEvent = from_json_value(json_data).unwrap();
 
-    let message_event = assert_matches!(
+    assert_matches!(
         sync_ev.into_full_event(rid.to_owned()),
-        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(message_event)) => message_event
+        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(message_event))
     );
     assert_eq!(message_event.event_id, "$h29iv0s8:example.com");
     assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
@@ -238,9 +238,9 @@ fn invite_v1_event_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    let message_event = assert_matches!(
+    assert_matches!(
         event,
-        AnyMessageLikeEvent::CallInvite(MessageLikeEvent::Original(message_event)) => message_event
+        AnyMessageLikeEvent::CallInvite(MessageLikeEvent::Original(message_event))
     );
     let content = message_event.content;
     assert_eq!(content.call_id, "abcdef");
@@ -327,9 +327,9 @@ fn answer_unknown_version_event_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    let message_event = assert_matches!(
+    assert_matches!(
         event,
-        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(message_event)) => message_event
+        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(message_event))
     );
     let content = message_event.content;
     assert_eq!(content.call_id, "abcdef");
@@ -402,9 +402,9 @@ fn candidates_v1_event_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    let message_event = assert_matches!(
+    assert_matches!(
         event,
-        AnyMessageLikeEvent::CallCandidates(MessageLikeEvent::Original(message_event)) => message_event
+        AnyMessageLikeEvent::CallCandidates(MessageLikeEvent::Original(message_event))
     );
     let content = message_event.content;
     assert_eq!(content.call_id, "abcdef");
@@ -451,9 +451,9 @@ fn hangup_v1_event_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    let message_event = assert_matches!(
+    assert_matches!(
         event,
-        AnyMessageLikeEvent::CallHangup(MessageLikeEvent::Original(message_event)) => message_event
+        AnyMessageLikeEvent::CallHangup(MessageLikeEvent::Original(message_event))
     );
     let content = message_event.content;
     assert_eq!(content.call_id, "abcdef");
@@ -507,9 +507,9 @@ fn negotiate_v1_event_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    let message_event = assert_matches!(
+    assert_matches!(
         event,
-        AnyMessageLikeEvent::CallNegotiate(MessageLikeEvent::Original(message_event)) => message_event
+        AnyMessageLikeEvent::CallNegotiate(MessageLikeEvent::Original(message_event))
     );
     let content = message_event.content;
     assert_eq!(content.call_id, "abcdef");
@@ -549,9 +549,9 @@ fn reject_v1_event_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    let message_event = assert_matches!(
+    assert_matches!(
         event,
-        AnyMessageLikeEvent::CallReject(MessageLikeEvent::Original(message_event)) => message_event
+        AnyMessageLikeEvent::CallReject(MessageLikeEvent::Original(message_event))
     );
     let content = message_event.content;
     assert_eq!(content.call_id, "abcdef");
@@ -592,9 +592,9 @@ fn select_v1_answer_event_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    let message_event = assert_matches!(
+    assert_matches!(
         event,
-        AnyMessageLikeEvent::CallSelectAnswer(MessageLikeEvent::Original(message_event)) => message_event
+        AnyMessageLikeEvent::CallSelectAnswer(MessageLikeEvent::Original(message_event))
     );
     let content = message_event.content;
     assert_eq!(content.call_id, "abcdef");

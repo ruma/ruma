@@ -36,7 +36,7 @@ impl From<Annotation> for ReactionEventContent {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::ReactionEventContent;
@@ -52,9 +52,9 @@ mod tests {
             }
         });
 
-        let relates_to = assert_matches!(
+        assert_matches!(
             from_json_value::<ReactionEventContent>(json),
-            Ok(ReactionEventContent { relates_to }) => relates_to
+            Ok(ReactionEventContent { relates_to })
         );
         assert_eq!(relates_to.event_id, "$1598361704261elfgc:localhost");
         assert_eq!(relates_to.key, "🦛");

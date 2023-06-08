@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use assert_matches::assert_matches;
+use assert_matches2::assert_matches;
 use js_int::uint;
 #[cfg(feature = "unstable-msc3246")]
 use ruma_common::events::audio::Amplitude;
@@ -287,9 +287,9 @@ fn message_event_deserialization() {
         "type": "org.matrix.msc1767.audio",
     });
 
-    let message_event = assert_matches!(
+    assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Audio(MessageLikeEvent::Original(message_event)) => message_event
+        AnyMessageLikeEvent::Audio(MessageLikeEvent::Original(message_event))
     );
 
     assert_eq!(message_event.event_id, "$event:notareal.hs");

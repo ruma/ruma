@@ -1,4 +1,4 @@
-use assert_matches::assert_matches;
+use assert_matches2::assert_matches;
 use ruma_common::events::AnyInitialStateEvent;
 use serde_json::json;
 
@@ -9,6 +9,6 @@ fn deserialize_initial_state_event() {
         "content": { "name": "foo" }
     }))
     .unwrap();
-    let ev = assert_matches!(ev, AnyInitialStateEvent::RoomName(ev) => ev);
+    assert_matches!(ev, AnyInitialStateEvent::RoomName(ev));
     assert_eq!(ev.content.name.as_deref(), Some("foo"));
 }

@@ -1,4 +1,4 @@
-use assert_matches::assert_matches;
+use assert_matches2::assert_matches;
 use ruma_common::{
     event_id,
     events::{
@@ -31,10 +31,7 @@ fn deserialize_room_message_content_without_relation() {
         "msgtype": "m.text",
     });
 
-    let text = assert_matches!(
-        from_json_value::<MessageType>(json_data),
-        Ok(MessageType::Text(text)) => text
-    );
+    assert_matches!(from_json_value::<MessageType>(json_data), Ok(MessageType::Text(text)));
     assert_eq!(text.body, "Hello, world!");
 }
 
@@ -45,13 +42,9 @@ fn convert_room_message_content_without_relation_to_full() {
         Some(Relation::Reply { in_reply_to: InReplyTo::new(event_id!("$eventId").to_owned()) });
     let new_content = RoomMessageEventContent::from(MessageType::from(content));
 
-    let (text, relates_to) = assert_matches!(
+    assert_matches!(
         new_content,
-        RoomMessageEventContent {
-            msgtype: MessageType::Text(text),
-            relates_to,
-            ..
-        } => (text, relates_to)
+        RoomMessageEventContent { msgtype: MessageType::Text(text), relates_to, .. }
     );
     assert_eq!(text.body, "Hello, world!");
     assert_matches!(relates_to, None);

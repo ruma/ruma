@@ -596,7 +596,7 @@ pub enum PredefinedContentRuleId {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use assign::assign;
 
     use super::PredefinedOverrideRuleId;
@@ -647,7 +647,7 @@ mod tests {
         // `enabled` and `actions` have been copied from the old rules.
         assert!(master_rule.enabled);
         assert_eq!(master_rule.actions.len(), 1);
-        assert_matches!(master_rule.actions[0], Action::Notify);
+        assert_matches!(&master_rule.actions[0], Action::Notify);
 
         // Non-server-default rule is still present and hasn't changed.
         let user_rule = ruleset.override_.get(user_rule_id).unwrap();

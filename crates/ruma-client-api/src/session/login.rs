@@ -356,7 +356,7 @@ pub mod v3 {
 
     #[cfg(test)]
     mod tests {
-        use assert_matches::assert_matches;
+        use assert_matches2::assert_matches;
         use serde_json::{from_value as from_json_value, json};
 
         use super::{LoginInfo, Token};
@@ -364,7 +364,7 @@ pub mod v3 {
 
         #[test]
         fn deserialize_login_type() {
-            let login = assert_matches!(
+            assert_matches!(
                 from_json_value(json!({
                     "type": "m.login.password",
                     "identifier": {
@@ -374,22 +374,19 @@ pub mod v3 {
                     "password": "ilovebananas"
                 }))
                 .unwrap(),
-                LoginInfo::Password(login) => login
+                LoginInfo::Password(login)
             );
-            let user = assert_matches!(
-                login.identifier,
-                UserIdentifier::UserIdOrLocalpart(user) => user
-            );
+            assert_matches!(login.identifier, UserIdentifier::UserIdOrLocalpart(user));
             assert_eq!(user, "cheeky_monkey");
             assert_eq!(login.password, "ilovebananas");
 
-            let token = assert_matches!(
+            assert_matches!(
                 from_json_value(json!({
                     "type": "m.login.token",
                     "token": "1234567890abcdef"
                 }))
                 .unwrap(),
-                LoginInfo::Token(Token { token }) => token
+                LoginInfo::Token(Token { token })
             );
             assert_eq!(token, "1234567890abcdef");
         }

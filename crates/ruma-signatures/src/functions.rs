@@ -725,7 +725,7 @@ fn is_third_party_invite(object: &CanonicalJsonObject) -> Result<bool, Error> {
 mod tests {
     use std::collections::BTreeMap;
 
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use ruma_common::{
         serde::Base64, CanonicalJsonValue, RoomVersionId, ServerSigningKeyId, SigningKeyAlgorithm,
     };
@@ -910,9 +910,9 @@ mod tests {
 
         let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V9);
 
-        let server = assert_matches!(
+        assert_matches!(
             verification_result,
-            Err(Error::Verification(VerificationError::SignatureNotFound(server))) => server
+            Err(Error::Verification(VerificationError::SignatureNotFound(server)))
         );
         assert_eq!(server, "domain-authorized");
     }
@@ -947,9 +947,9 @@ mod tests {
         let public_key_map = BTreeMap::new();
         let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
 
-        let entity = assert_matches!(
+        assert_matches!(
             verification_result,
-            Err(Error::Verification(VerificationError::PublicKeyNotFound(entity))) => entity
+            Err(Error::Verification(VerificationError::PublicKeyNotFound(entity)))
         );
         assert_eq!(entity, "domain-sender");
     }
@@ -993,9 +993,9 @@ mod tests {
 
         let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
 
-        let error = assert_matches!(
+        assert_matches!(
             verification_result,
-            Err(Error::Verification(VerificationError::Signature(error))) => error
+            Err(Error::Verification(VerificationError::Signature(error)))
         );
         // dalek doesn't expose InternalError :(
         // https://github.com/dalek-cryptography/ed25519-dalek/issues/174

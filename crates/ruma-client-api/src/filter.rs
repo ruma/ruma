@@ -368,7 +368,6 @@ can_be_empty!(RoomFilter);
 
 #[cfg(test)]
 mod tests {
-    use assert_matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{
@@ -421,7 +420,7 @@ mod tests {
             "contains_url": true,
         });
 
-        let filter: RoomEventFilter = assert_matches!(from_json_value(obj), Ok(f) => f);
+        let filter: RoomEventFilter = from_json_value(obj).unwrap();
 
         assert_eq!(filter.types, Some(vec!["m.room.message".to_owned()]));
         assert_eq!(filter.not_types, vec![""; 0]);

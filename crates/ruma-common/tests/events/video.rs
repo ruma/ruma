@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use assert_matches::assert_matches;
+use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
     event_id,
@@ -291,9 +291,9 @@ fn message_event_deserialization() {
         "type": "org.matrix.msc1767.video",
     });
 
-    let ev = assert_matches!(
+    assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data),
-        Ok(AnyMessageLikeEvent::Video(MessageLikeEvent::Original(ev))) => ev
+        Ok(AnyMessageLikeEvent::Video(MessageLikeEvent::Original(ev)))
     );
     assert_eq!(ev.event_id, "$event:notareal.hs");
     assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));

@@ -657,7 +657,7 @@ mod client_tests {
 mod server_tests {
     use std::time::Duration;
 
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use ruma_common::{api::IncomingRequest as _, presence::PresenceState};
 
     use super::{Filter, Request};
@@ -684,7 +684,7 @@ mod server_tests {
         )
         .unwrap();
 
-        let id = assert_matches!(req.filter, Some(Filter::FilterId(id)) => id);
+        assert_matches!(req.filter, Some(Filter::FilterId(id)));
         assert_eq!(id, "myfilter");
         assert_eq!(req.since.as_deref(), Some("myts"));
         assert!(!req.full_state);
@@ -733,7 +733,7 @@ mod server_tests {
         )
         .unwrap();
 
-        let id = assert_matches!(req.filter, Some(Filter::FilterId(id)) => id);
+        assert_matches!(req.filter, Some(Filter::FilterId(id)));
         assert_eq!(id, "EOKFFmdZYF");
         assert_eq!(req.since, None);
         assert!(!req.full_state);

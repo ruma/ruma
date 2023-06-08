@@ -104,7 +104,7 @@ criterion = { workspace = true, optional = true }
 js-sys = { version = "0.3", optional = true }
 
 [dev-dependencies]
-assert_matches = { workspace = true }
+assert_matches2 = { workspace = true }
 assign = { workspace = true }
 http = { workspace = true }
 maplit = { workspace = true }

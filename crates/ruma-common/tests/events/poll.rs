@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use assert_matches::assert_matches;
+use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
     event_id,
@@ -171,9 +171,9 @@ fn start_event_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    let message_event = assert_matches!(
+    assert_matches!(
         event,
-        AnyMessageLikeEvent::PollStart(MessageLikeEvent::Original(message_event)) => message_event
+        AnyMessageLikeEvent::PollStart(MessageLikeEvent::Original(message_event))
     );
     assert_eq!(
         message_event.content.text[0].body,
@@ -249,18 +249,14 @@ fn response_event_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    let message_event = assert_matches!(
+    assert_matches!(
         event,
         AnyMessageLikeEvent::PollResponse(MessageLikeEvent::Original(message_event))
-            => message_event
     );
     let selections = message_event.content.selections;
     assert_eq!(selections.len(), 1);
     assert_eq!(selections[0], "my-answer");
-    let event_id = assert_matches!(
-        message_event.content.relates_to,
-        Reference { event_id, .. } => event_id
-    );
+    assert_matches!(message_event.content.relates_to, Reference { event_id, .. });
     assert_eq!(event_id, "$related_event:notareal.hs");
 }
 
@@ -339,14 +335,8 @@ fn end_event_deserialization() {
     });
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-    let message_event = assert_matches!(
-        event,
-        AnyMessageLikeEvent::PollEnd(MessageLikeEvent::Original(message_event)) => message_event
-    );
+    assert_matches!(event, AnyMessageLikeEvent::PollEnd(MessageLikeEvent::Original(message_event)));
     assert_eq!(message_event.content.text[0].body, "The poll has closed. Top answer: Amazing!");
-    let event_id = assert_matches!(
-        message_event.content.relates_to,
-        Reference { event_id, .. } => event_id
-    );
+    assert_matches!(message_event.content.relates_to, Reference { event_id, .. });
     assert_eq!(event_id, "$related_event:notareal.hs");
 }

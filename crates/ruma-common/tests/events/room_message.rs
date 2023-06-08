@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use assert_matches::assert_matches;
+use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
     event_id,
@@ -212,10 +212,7 @@ fn verification_request_msgtype_deserialization() {
 
     let content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
 
-    let verification = assert_matches!(
-        content.msgtype,
-        MessageType::VerificationRequest(verification) => verification
-    );
+    assert_matches!(content.msgtype, MessageType::VerificationRequest(verification));
     assert_eq!(verification.body, "@example:localhost is requesting to verify your key, ...");
     assert_eq!(verification.to, user_id);
     assert_eq!(verification.from_device, device_id);
@@ -272,15 +269,15 @@ fn escape_tags_in_plain_reply_body() {
     let second_message = RoomMessageEventContent::text_plain("Usage: rm <path>")
         .make_reply_to(&first_message, ForwardThread::Yes);
 
-    let body = assert_matches!(
+    assert_matches!(
         first_message.content.msgtype,
-        MessageType::Text(TextMessageEventContent { body, formatted: None, .. }) => body
+        MessageType::Text(TextMessageEventContent { body, formatted: None, .. })
     );
     assert_eq!(body, "Usage: cp <source> <destination>");
 
-    let (body, formatted) = assert_matches!(
+    assert_matches!(
         second_message.msgtype,
-        MessageType::Text(TextMessageEventContent { body, formatted, .. }) => (body, formatted)
+        MessageType::Text(TextMessageEventContent { body, formatted, .. })
     );
     assert_eq!(
         body,
@@ -340,17 +337,17 @@ fn reply_sanitize() {
     )
     .make_reply_to(&second_message, ForwardThread::Yes);
 
-    let (body, formatted) = assert_matches!(
+    assert_matches!(
         first_message.content.msgtype,
-        MessageType::Text(TextMessageEventContent { body, formatted, .. }) => (body, formatted)
+        MessageType::Text(TextMessageEventContent { body, formatted, .. })
     );
     assert_eq!(body, "# This is the first message");
     let formatted = formatted.unwrap();
     assert_eq!(formatted.body, "<h1>This is the first message</h1>");
 
-    let (body, formatted) = assert_matches!(
+    assert_matches!(
         second_message.content.msgtype,
-        MessageType::Text(TextMessageEventContent { body, formatted, .. }) => (body, formatted)
+        MessageType::Text(TextMessageEventContent { body, formatted, .. })
     );
     assert_eq!(
         body,
@@ -375,9 +372,9 @@ fn reply_sanitize() {
         "
     );
 
-    let (body, formatted) = assert_matches!(
+    assert_matches!(
         final_reply.msgtype,
-        MessageType::Text(TextMessageEventContent { body, formatted, .. }) => (body, formatted)
+        MessageType::Text(TextMessageEventContent { body, formatted, .. })
     );
     assert_eq!(
         body,
@@ -413,9 +410,9 @@ fn make_replacement_no_reply() {
 
     let content = content.make_replacement(event_id, None);
 
-    let (body, formatted) = assert_matches!(
+    assert_matches!(
         content.msgtype,
-        MessageType::Text(TextMessageEventContent { body, formatted, .. }) => (body, formatted)
+        MessageType::Text(TextMessageEventContent { body, formatted, .. })
     );
     assert_eq!(body, "* This is _an edited_ message.");
     let formatted = formatted.unwrap();
@@ -444,9 +441,9 @@ fn make_replacement_with_reply() {
 
     let content = content.make_replacement(event_id, Some(&replied_to_message));
 
-    let (body, formatted) = assert_matches!(
+    assert_matches!(
         content.msgtype,
-        MessageType::Text(TextMessageEventContent { body, formatted, .. }) => (body, formatted)
+        MessageType::Text(TextMessageEventContent { body, formatted, .. })
     );
     assert_eq!(
         body,
@@ -500,9 +497,9 @@ fn audio_msgtype_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    let content = assert_matches!(event_content.msgtype, MessageType::Audio(content) => content);
+    assert_matches!(event_content.msgtype, MessageType::Audio(content));
     assert_eq!(content.body, "Upload: my_song.mp3");
-    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
+    assert_matches!(content.source, MediaSource::Plain(url));
     assert_eq!(url, "mxc://notareal.hs/file");
 }
 
@@ -584,9 +581,9 @@ fn file_msgtype_plain_content_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    let content = assert_matches!(event_content.msgtype, MessageType::File(content) => content);
+    assert_matches!(event_content.msgtype, MessageType::File(content));
     assert_eq!(content.body, "Upload: my_file.txt");
-    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
+    assert_matches!(content.source, MediaSource::Plain(url));
     assert_eq!(url, "mxc://notareal.hs/file");
 }
 
@@ -613,9 +610,9 @@ fn file_msgtype_encrypted_content_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    let content = assert_matches!(event_content.msgtype, MessageType::File(content) => content);
+    assert_matches!(event_content.msgtype, MessageType::File(content));
     assert_eq!(content.body, "Upload: my_file.txt");
-    let encrypted_file = assert_matches!(content.source, MediaSource::Encrypted(f) => f);
+    assert_matches!(content.source, MediaSource::Encrypted(encrypted_file));
     assert_eq!(encrypted_file.url, "mxc://notareal.hs/file");
 }
 
@@ -647,9 +644,9 @@ fn image_msgtype_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    let content = assert_matches!(event_content.msgtype, MessageType::Image(content) => content);
+    assert_matches!(event_content.msgtype, MessageType::Image(content));
     assert_eq!(content.body, "Upload: my_image.jpg");
-    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
+    assert_matches!(content.source, MediaSource::Plain(url));
     assert_eq!(url, "mxc://notareal.hs/file");
 }
 
@@ -680,8 +677,7 @@ fn location_msgtype_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    let content = assert_matches!(event_content.msgtype, MessageType::Location(c) => c);
-
+    assert_matches!(event_content.msgtype, MessageType::Location(content));
     assert_eq!(content.body, "Alice was at geo:51.5008,0.1247;u=35");
     assert_eq!(content.geo_uri, "geo:51.5008,0.1247;u=35");
 }
@@ -693,12 +689,9 @@ fn text_msgtype_body_deserialization() {
         "msgtype": "m.text",
     });
 
-    let content = assert_matches!(
+    assert_matches!(
         from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent {
-            msgtype: MessageType::Text(content),
-            ..
-        }) => content
+        Ok(RoomMessageEventContent { msgtype: MessageType::Text(content), .. })
     );
     assert_eq!(content.body, "test");
 }
@@ -712,12 +705,9 @@ fn text_msgtype_formatted_body_and_body_deserialization() {
         "msgtype": "m.text",
     });
 
-    let content = assert_matches!(
+    assert_matches!(
         from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent {
-            msgtype: MessageType::Text(content),
-            ..
-        }) => content
+        Ok(RoomMessageEventContent { msgtype: MessageType::Text(content), .. })
     );
     assert_eq!(content.body, "test");
     let formatted = content.formatted.unwrap();
@@ -745,12 +735,9 @@ fn notice_msgtype_deserialization() {
         "msgtype": "m.notice",
     });
 
-    let content = assert_matches!(
+    assert_matches!(
         from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent {
-            msgtype: MessageType::Notice(content),
-            ..
-        }) => content
+        Ok(RoomMessageEventContent { msgtype: MessageType::Notice(content), .. })
     );
     assert_eq!(content.body, "test");
 }
@@ -777,12 +764,9 @@ fn emote_msgtype_deserialization() {
         "msgtype": "m.emote",
     });
 
-    let content = assert_matches!(
+    assert_matches!(
         from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent {
-            msgtype: MessageType::Emote(content),
-            ..
-        }) => content
+        Ok(RoomMessageEventContent { msgtype: MessageType::Emote(content), .. })
     );
     assert_eq!(content.body, "test");
 }
@@ -815,8 +799,8 @@ fn video_msgtype_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    let content = assert_matches!(event_content.msgtype, MessageType::Video(content) => content);
+    assert_matches!(event_content.msgtype, MessageType::Video(content));
     assert_eq!(content.body, "Upload: my_video.mp4");
-    let url = assert_matches!(content.source, MediaSource::Plain(url) => url);
+    assert_matches!(content.source, MediaSource::Plain(url));
     assert_eq!(url, "mxc://notareal.hs/file");
 }

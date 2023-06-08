@@ -540,7 +540,7 @@ impl FromStr for MatrixUri {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use ruma_identifiers_validation::{
         error::{MatrixIdError, MatrixToError, MatrixUriError},
         Error,

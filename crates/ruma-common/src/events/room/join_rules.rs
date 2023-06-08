@@ -245,7 +245,7 @@ impl<'de> Deserialize<'de> for AllowRule {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
 
     use super::{AllowRule, JoinRule, OriginalSyncRoomJoinRulesEvent, RoomJoinRulesEventContent};
     use crate::room_id;

@@ -1,4 +1,4 @@
-use assert_matches::assert_matches;
+use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
     events::{AnyMessageLikeEvent, MessageLikeEvent},
@@ -33,9 +33,9 @@ fn deserialize_message_event() {
         "type": "m.call.answer"
     });
 
-    let message_event = assert_matches!(
+    assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(message_event)) => message_event
+        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(message_event))
     );
 
     assert_eq!(message_event.event_id, "$h29iv0s8:example.com");

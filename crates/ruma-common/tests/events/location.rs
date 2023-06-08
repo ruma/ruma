@@ -1,6 +1,6 @@
 #![cfg(feature = "unstable-msc3488")]
 
-use assert_matches::assert_matches;
+use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::uint;
 use ruma_common::{
@@ -120,11 +120,9 @@ fn zoomlevel_deserialization_pass() {
 
     assert_matches!(
         from_json_value::<LocationContent>(json_data).unwrap(),
-        LocationContent {
-            zoom_level: Some(zoom_level),
-            ..
-        } if zoom_level.get() == uint!(16)
+        LocationContent { zoom_level: Some(zoom_level), .. }
     );
+    assert_eq!(zoom_level.get(), uint!(16));
 }
 
 #[test]
@@ -167,9 +165,7 @@ fn message_event_deserialization() {
 
     let ev = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
 
-    let ev =
-        assert_matches!(ev, AnyMessageLikeEvent::Location(MessageLikeEvent::Original(ev)) => ev);
-
+    assert_matches!(ev, AnyMessageLikeEvent::Location(MessageLikeEvent::Original(ev)));
     assert_eq!(
         ev.content.text.find_plain(),
         Some("Alice was at geo:51.5008,0.1247;u=35 as of Sat Nov 13 18:50:58 2021")

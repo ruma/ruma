@@ -1,6 +1,6 @@
 #![cfg(feature = "unstable-msc1767")]
 
-use assert_matches::assert_matches;
+use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::uint;
 use ruma_common::{
@@ -229,9 +229,9 @@ fn relates_to_content_deserialization() {
     assert_eq!(content.text.find_plain(), Some("> <@test:example.com> test\n\ntest reply"));
     assert_eq!(content.text.find_html(), None);
 
-    let event_id = assert_matches!(
+    assert_matches!(
         content.relates_to,
-        Some(Relation::Reply { in_reply_to: InReplyTo { event_id, .. } }) => event_id
+        Some(Relation::Reply { in_reply_to: InReplyTo { event_id, .. } })
     );
     assert_eq!(event_id, "$15827405538098VGFWH:example.com");
 }
@@ -251,9 +251,9 @@ fn message_event_deserialization() {
         "type": "org.matrix.msc1767.message",
     });
 
-    let message_event = assert_matches!(
+    assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data),
-        Ok(AnyMessageLikeEvent::Message(MessageLikeEvent::Original(message_event))) => message_event
+        Ok(AnyMessageLikeEvent::Message(MessageLikeEvent::Original(message_event)))
     );
     assert_eq!(message_event.event_id, "$event:notareal.hs");
     assert_eq!(message_event.content.text.find_plain(), Some("Hello, World!"));
@@ -296,9 +296,9 @@ fn emote_event_deserialization() {
         "type": "org.matrix.msc1767.emote",
     });
 
-    let message_event = assert_matches!(
+    assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data),
-        Ok(AnyMessageLikeEvent::Emote(MessageLikeEvent::Original(message_event))) => message_event
+        Ok(AnyMessageLikeEvent::Emote(MessageLikeEvent::Original(message_event)))
     );
 
     assert_eq!(message_event.event_id, "$event:notareal.hs");

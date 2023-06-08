@@ -44,7 +44,7 @@ pub enum SecretEncryptedData {
 mod tests {
     use std::collections::BTreeMap;
 
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{SecretEncryptedData, SecretEventContent};
@@ -91,13 +91,9 @@ mod tests {
         let deserialized: SecretEventContent = from_json_value(json).unwrap();
         let secret_data = deserialized.encrypted.get("key_one").unwrap();
 
-        let (iv, ciphertext, mac) = assert_matches!(
+        assert_matches!(
             secret_data,
-            SecretEncryptedData::AesHmacSha2EncryptedData {
-                iv,
-                ciphertext,
-                mac
-            } => (iv, ciphertext, mac)
+            SecretEncryptedData::AesHmacSha2EncryptedData { iv, ciphertext, mac }
         );
         assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
         assert_eq!(ciphertext.encode(), "dGhpc2lzZGVmaW5pdGVseWNpcGhlcnRleHQ");

@@ -1,4 +1,4 @@
-use assert_matches::assert_matches;
+use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::{uint, UInt};
 use ruma_common::{
@@ -113,9 +113,9 @@ fn event_deserialization() {
         "type": "m.sticker"
     });
 
-    let message_event = assert_matches!(
+    assert_matches!(
         from_json_value::<AnyMessageLikeEvent>(json_data),
-        Ok(AnyMessageLikeEvent::Sticker(MessageLikeEvent::Original(message_event))) => message_event
+        Ok(AnyMessageLikeEvent::Sticker(MessageLikeEvent::Original(message_event)))
     );
 
     assert_eq!(message_event.event_id, "$h29iv0s8:example.com");
@@ -132,10 +132,7 @@ fn event_deserialization() {
     assert_eq!(content.info.size, Some(uint!(84242)));
     assert_eq!(content.url, "mxc://matrix.org/jxPXTKpyydzdHJkdFNZjTZrD");
 
-    let thumbnail_url = assert_matches!(
-        content.info.thumbnail_source,
-        Some(MediaSource::Plain(thumbnail_url)) => thumbnail_url
-    );
+    assert_matches!(content.info.thumbnail_source, Some(MediaSource::Plain(thumbnail_url)));
     assert_eq!(thumbnail_url, "mxc://matrix.org/irnsNRS2879");
     let thumbnail_info = content.info.thumbnail_info.unwrap();
     assert_eq!(thumbnail_info.width, Some(uint!(800)));

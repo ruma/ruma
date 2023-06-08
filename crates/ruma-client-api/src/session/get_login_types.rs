@@ -316,7 +316,7 @@ pub mod v3 {
 
     #[cfg(test)]
     mod tests {
-        use assert_matches::assert_matches;
+        use assert_matches2::assert_matches;
         use ruma_common::mxc_uri;
         use serde::{Deserialize, Serialize};
         use serde_json::{
@@ -341,7 +341,7 @@ pub mod v3 {
             }))
             .unwrap();
             assert_eq!(wrapper.flows.len(), 1);
-            assert_matches!(wrapper.flows[0], LoginType::Password(_));
+            assert_matches!(&wrapper.flows[0], LoginType::Password(_));
         }
 
         #[test]
@@ -356,10 +356,7 @@ pub mod v3 {
             }))
             .unwrap();
             assert_eq!(wrapper.flows.len(), 1);
-            let custom = assert_matches!(
-                &wrapper.flows[0],
-                LoginType::_Custom(custom) => custom
-            );
+            assert_matches!(&wrapper.flows[0], LoginType::_Custom(custom));
             assert_eq!(custom.type_, "io.ruma.custom");
             assert_eq!(custom.data.len(), 1);
             assert_eq!(custom.data.get("color"), Some(&JsonValue::from("green")));
@@ -390,10 +387,7 @@ pub mod v3 {
             assert_eq!(wrapper.flows.len(), 1);
             let flow = &wrapper.flows[0];
 
-            let identity_providers = assert_matches!(
-                flow,
-                LoginType::Sso(SsoLoginType { identity_providers }) => identity_providers
-            );
+            assert_matches!(flow, LoginType::Sso(SsoLoginType { identity_providers }));
             assert_eq!(identity_providers.len(), 2);
 
             let provider = &identity_providers[0];

@@ -51,7 +51,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use serde::{Deserialize, Serialize};
     use serde_json::json;
 
@@ -71,9 +71,9 @@ mod tests {
     fn deserialize_plain() {
         let json = json!({ "thumbnail_url": "mxc://notareal.hs/abcdef" });
 
-        let url = assert_matches!(
+        assert_matches!(
             serde_json::from_value::<ThumbnailSourceTest>(json),
-            Ok(ThumbnailSourceTest { source: Some(MediaSource::Plain(url)) }) => url
+            Ok(ThumbnailSourceTest { source: Some(MediaSource::Plain(url)) })
         );
         assert_eq!(url, "mxc://notareal.hs/abcdef");
     }
@@ -98,9 +98,9 @@ mod tests {
             },
         });
 
-        let file = assert_matches!(
+        assert_matches!(
             serde_json::from_value::<ThumbnailSourceTest>(json),
-            Ok(ThumbnailSourceTest { source: Some(MediaSource::Encrypted(file)) }) => file
+            Ok(ThumbnailSourceTest { source: Some(MediaSource::Encrypted(file)) })
         );
         assert_eq!(file.url, "mxc://notareal.hs/abcdef");
     }

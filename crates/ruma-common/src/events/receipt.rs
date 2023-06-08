@@ -211,7 +211,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{Receipt, ReceiptThread};
@@ -251,7 +251,7 @@ mod tests {
 
         let receipt = from_json_value::<Receipt>(json!({ "thread_id": "$abcdef76543" })).unwrap();
         assert_eq!(receipt.ts, None);
-        let event_id = assert_matches!(receipt.thread, ReceiptThread::Thread(event_id) => event_id);
+        assert_matches!(receipt.thread, ReceiptThread::Thread(event_id));
         assert_eq!(event_id, "$abcdef76543");
 
         let receipt = from_json_value::<Receipt>(json!({ "ts": 1_664_702_144_365_u64 })).unwrap();
@@ -269,7 +269,7 @@ mod tests {
             receipt.ts.unwrap(),
             MilliSecondsSinceUnixEpoch(1_664_702_144_365_u64.try_into().unwrap())
         );
-        assert_matches!(receipt.thread, ReceiptThread::_Custom(_));
+        assert_matches!(&receipt.thread, ReceiptThread::_Custom(_));
         assert_eq!(receipt.thread.as_str().unwrap(), "io.ruma.unknown");
     }
 }

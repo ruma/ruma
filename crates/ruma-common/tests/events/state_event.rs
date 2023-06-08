@@ -1,4 +1,4 @@
-use assert_matches::assert_matches;
+use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
     events::{
@@ -44,9 +44,9 @@ fn deserialize_aliases_content() {
 fn deserialize_aliases_with_prev_content() {
     let json_data = aliases_event_with_prev_content();
 
-    let ev = assert_matches!(
+    assert_matches!(
         from_json_value::<AnyStateEvent>(json_data),
-        Ok(AnyStateEvent::RoomAliases(StateEvent::Original(ev))) => ev
+        Ok(AnyStateEvent::RoomAliases(StateEvent::Original(ev)))
     );
     assert_eq!(ev.content.aliases, vec![room_alias_id!("#somewhere:localhost")]);
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
@@ -63,9 +63,9 @@ fn deserialize_aliases_sync_with_room_id() {
     // The same JSON can be used to create a sync event, it just ignores the `room_id` field
     let json_data = aliases_event_with_prev_content();
 
-    let ev = assert_matches!(
+    assert_matches!(
         from_json_value::<AnySyncStateEvent>(json_data),
-        Ok(AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(ev))) => ev
+        Ok(AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(ev)))
     );
     assert_eq!(ev.content.aliases, vec![room_alias_id!("#somewhere:localhost")]);
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
@@ -103,9 +103,9 @@ fn deserialize_avatar_without_prev_content() {
         "type": "m.room.avatar"
     });
 
-    let ev = assert_matches!(
+    assert_matches!(
         from_json_value::<AnyStateEvent>(json_data),
-        Ok(AnyStateEvent::RoomAvatar(StateEvent::Original(ev))) => ev
+        Ok(AnyStateEvent::RoomAvatar(StateEvent::Original(ev)))
     );
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
     assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
@@ -148,9 +148,9 @@ fn deserialize_member_event_with_top_level_membership_field() {
         }
     });
 
-    let ev = assert_matches!(
+    assert_matches!(
         from_json_value::<AnyTimelineEvent>(json_data),
-        Ok(AnyTimelineEvent::State(AnyStateEvent::RoomMember(StateEvent::Original(ev)))) => ev
+        Ok(AnyTimelineEvent::State(AnyStateEvent::RoomMember(StateEvent::Original(ev))))
     );
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
     assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
@@ -163,9 +163,9 @@ fn deserialize_full_event_convert_to_sync() {
     let json_data = aliases_event_with_prev_content();
 
     let full_ev: AnyStateEvent = from_json_value(json_data).unwrap();
-    let sync_ev = assert_matches!(
+    assert_matches!(
         AnySyncStateEvent::from(full_ev),
-        AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(ev)) => ev
+        AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(sync_ev))
     );
 
     assert_eq!(sync_ev.content.aliases, vec![room_alias_id!("#somewhere:localhost")]);

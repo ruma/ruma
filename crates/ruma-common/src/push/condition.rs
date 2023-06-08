@@ -444,7 +444,7 @@ impl StrExt for str {
 mod tests {
     use std::collections::BTreeMap;
 
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use js_int::{int, uint};
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
@@ -511,9 +511,9 @@ mod tests {
             "kind": "event_match",
             "pattern": "m.notice"
         });
-        let (key, pattern) = assert_matches!(
+        assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
-            PushCondition::EventMatch { key, pattern } => (key, pattern)
+            PushCondition::EventMatch { key, pattern }
         );
         assert_eq!(key, "content.msgtype");
         assert_eq!(pattern, "m.notice");
@@ -533,9 +533,9 @@ mod tests {
             "is": "2",
             "kind": "room_member_count"
         });
-        let is = assert_matches!(
+        assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
-            PushCondition::RoomMemberCount { is } => is
+            PushCondition::RoomMemberCount { is }
         );
         assert_eq!(is, RoomMemberCountIs::from(uint!(2)));
     }
@@ -546,9 +546,9 @@ mod tests {
             "key": "room",
             "kind": "sender_notification_permission"
         });
-        let key = assert_matches!(
+        assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
-            PushCondition::SenderNotificationPermission { key } => key
+            PushCondition::SenderNotificationPermission { key }
         );
         assert_eq!(key, "room");
     }

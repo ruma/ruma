@@ -1,4 +1,4 @@
-use assert_matches::assert_matches;
+use assert_matches2::assert_matches;
 use js_int::uint;
 use maplit::btreemap;
 use ruma_common::{event_id, events::receipt::ReceiptType, user_id, MilliSecondsSinceUnixEpoch};
@@ -32,9 +32,9 @@ fn deserialize_ephemeral_typing() {
         "type": "m.typing"
     });
 
-    let typing_event = assert_matches!(
+    assert_matches!(
         from_json_value::<AnyEphemeralRoomEvent>(json_data),
-        Ok(AnyEphemeralRoomEvent::Typing(typing_event)) => typing_event
+        Ok(AnyEphemeralRoomEvent::Typing(typing_event))
     );
     assert_eq!(typing_event.content.user_ids.len(), 1);
     assert_eq!(typing_event.content.user_ids[0], "@carl:example.com");
@@ -83,9 +83,9 @@ fn deserialize_ephemeral_receipt() {
         "type": "m.receipt"
     });
 
-    let receipt_event = assert_matches!(
+    assert_matches!(
         from_json_value::<AnyEphemeralRoomEvent>(json_data),
-        Ok(AnyEphemeralRoomEvent::Receipt(receipt_event)) => receipt_event
+        Ok(AnyEphemeralRoomEvent::Receipt(receipt_event))
     );
     let receipts = receipt_event.content.0;
     assert_eq!(receipts.len(), 1);

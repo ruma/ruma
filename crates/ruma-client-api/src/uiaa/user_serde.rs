@@ -105,7 +105,7 @@ impl<'de> Deserialize<'de> for UserIdentifier {
 #[cfg(test)]
 mod tests {
     use crate::uiaa::UserIdentifier;
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     #[test]
@@ -168,10 +168,7 @@ mod tests {
             "type": "m.id.user",
             "user": "@user:notareal.hs",
         });
-        let user = assert_matches!(
-            from_json_value(json),
-            Ok(UserIdentifier::UserIdOrLocalpart(user)) => user
-        );
+        assert_matches!(from_json_value(json), Ok(UserIdentifier::UserIdOrLocalpart(user)));
         assert_eq!(user, "@user:notareal.hs");
 
         let json = json!({
@@ -179,10 +176,7 @@ mod tests {
             "country": "33",
             "phone": "0102030405",
         });
-        let (country, phone) = assert_matches!(
-            from_json_value(json),
-            Ok(UserIdentifier::PhoneNumber { country, phone }) => (country, phone)
-        );
+        assert_matches!(from_json_value(json), Ok(UserIdentifier::PhoneNumber { country, phone }));
         assert_eq!(country, "33");
         assert_eq!(phone, "0102030405");
 
@@ -191,10 +185,7 @@ mod tests {
             "medium": "email",
             "address": "me@myprovider.net",
         });
-        let address = assert_matches!(
-            from_json_value(json),
-            Ok(UserIdentifier::Email { address }) => address
-        );
+        assert_matches!(from_json_value(json), Ok(UserIdentifier::Email { address }));
         assert_eq!(address, "me@myprovider.net");
 
         let json = json!({
@@ -202,10 +193,7 @@ mod tests {
             "medium": "msisdn",
             "address": "330102030405",
         });
-        let number = assert_matches!(
-            from_json_value(json),
-            Ok(UserIdentifier::Msisdn { number }) => number
-        );
+        assert_matches!(from_json_value(json), Ok(UserIdentifier::Msisdn { number }));
         assert_eq!(number, "330102030405");
 
         let json = json!({

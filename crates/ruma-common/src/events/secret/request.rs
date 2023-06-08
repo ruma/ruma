@@ -134,7 +134,7 @@ pub enum SecretName {
 
 #[cfg(test)]
 mod test {
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{RequestAction, SecretName, ToDeviceSecretRequestEventContent};
@@ -222,10 +222,7 @@ mod test {
         let content = from_json_value::<ToDeviceSecretRequestEventContent>(json).unwrap();
         assert_eq!(content.requesting_device_id, "ABCDEFG");
         assert_eq!(content.request_id, "randomly_generated_id_9573");
-        let secret = assert_matches!(
-            content.action,
-            RequestAction::Request(secret) => secret
-        );
+        assert_matches!(content.action, RequestAction::Request(secret));
         assert_eq!(secret.as_str(), "org.example.some.secret");
     }
 
@@ -255,10 +252,7 @@ mod test {
         let content = from_json_value::<ToDeviceSecretRequestEventContent>(json).unwrap();
         assert_eq!(content.requesting_device_id, "XYZxyz");
         assert_eq!(content.request_id, "this_is_a_request_id");
-        let secret = assert_matches!(
-            content.action,
-            RequestAction::Request(secret) => secret
-        );
+        assert_matches!(content.action, RequestAction::Request(secret));
         assert_eq!(secret, SecretName::RecoveryKey);
     }
 

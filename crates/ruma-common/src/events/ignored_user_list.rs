@@ -51,7 +51,7 @@ impl IgnoredUser {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::IgnoredUserListEventContent;
@@ -82,9 +82,9 @@ mod tests {
             "type": "m.ignored_user_list"
         });
 
-        let ev = assert_matches!(
+        assert_matches!(
             from_json_value::<AnyGlobalAccountDataEvent>(json),
-            Ok(AnyGlobalAccountDataEvent::IgnoredUserList(ev)) => ev
+            Ok(AnyGlobalAccountDataEvent::IgnoredUserList(ev))
         );
         assert_eq!(
             ev.content.ignored_users.keys().collect::<Vec<_>>(),

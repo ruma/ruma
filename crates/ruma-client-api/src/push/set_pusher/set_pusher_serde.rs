@@ -67,7 +67,7 @@ impl<'de> Deserialize<'de> for PusherAction {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::PusherAction;
@@ -130,11 +130,7 @@ mod tests {
             "data": {}
         });
 
-        let post_data = assert_matches!(
-            from_json_value(json).unwrap(),
-            PusherAction::Post(post_data) => post_data
-        );
-
+        assert_matches!(from_json_value(json).unwrap(), PusherAction::Post(post_data));
         assert!(!post_data.append);
 
         let pusher = post_data.pusher;
@@ -155,11 +151,7 @@ mod tests {
             "kind": null,
         });
 
-        let ids = assert_matches!(
-            from_json_value(json).unwrap(),
-            PusherAction::Delete(ids) => ids
-        );
-
+        assert_matches!(from_json_value(json).unwrap(), PusherAction::Delete(ids));
         assert_eq!(ids.pushkey, "abcdef");
         assert_eq!(ids.app_id, "my.matrix.app");
     }

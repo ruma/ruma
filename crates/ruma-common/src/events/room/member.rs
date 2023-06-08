@@ -535,7 +535,7 @@ impl CanBeEmpty for RoomMemberUnsigned {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use js_int::uint;
     use maplit::btreemap;
     use serde_json::{from_value as from_json_value, json};

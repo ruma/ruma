@@ -208,7 +208,7 @@ impl From<SasV1ContentInit> for SasV1Content {
 mod tests {
     use std::collections::BTreeMap;
 
-    use assert_matches::assert_matches;
+    use assert_matches2::assert_matches;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
@@ -364,10 +364,7 @@ mod tests {
         assert_eq!(content.from_device, "123");
         assert_eq!(content.transaction_id, "456");
 
-        let sas = assert_matches!(
-            content.method,
-            StartMethod::SasV1(sas) => sas
-        );
+        assert_matches!(content.method, StartMethod::SasV1(sas));
         assert_eq!(sas.hashes, vec![HashAlgorithm::Sha256]);
         assert_eq!(sas.key_agreement_protocols, vec![KeyAgreementProtocol::Curve25519]);
         assert_eq!(
@@ -396,10 +393,7 @@ mod tests {
         assert_eq!(ev.content.from_device, "123");
         assert_eq!(ev.content.transaction_id, "456");
 
-        let sas = assert_matches!(
-            ev.content.method,
-            StartMethod::SasV1(sas) => sas
-        );
+        assert_matches!(ev.content.method, StartMethod::SasV1(sas));
         assert_eq!(sas.hashes, vec![HashAlgorithm::Sha256]);
         assert_eq!(sas.key_agreement_protocols, vec![KeyAgreementProtocol::Curve25519]);
         assert_eq!(
@@ -425,10 +419,7 @@ mod tests {
         assert_eq!(ev.content.from_device, "123");
         assert_eq!(ev.content.transaction_id, "456");
 
-        let custom = assert_matches!(
-            ev.content.method,
-            StartMethod::_Custom(custom) => custom
-        );
+        assert_matches!(ev.content.method, StartMethod::_Custom(custom));
         assert_eq!(custom.method, "m.sas.custom");
         assert_eq!(custom.data.get("test"), Some(&JsonValue::from("field")));
 
@@ -449,10 +440,7 @@ mod tests {
         assert_eq!(ev.content.from_device, "123");
         assert_eq!(ev.content.transaction_id, "456");
 
-        let reciprocate = assert_matches!(
-            ev.content.method,
-            StartMethod::ReciprocateV1(reciprocate) => reciprocate
-        );
+        assert_matches!(ev.content.method, StartMethod::ReciprocateV1(reciprocate));
         assert_eq!(reciprocate.secret.encode(), "c2VjcmV0Cg");
     }
 
@@ -476,10 +464,7 @@ mod tests {
         assert_eq!(content.from_device, "123");
         assert_eq!(content.relates_to.event_id, "$1598361704261elfgc:localhost");
 
-        let sas = assert_matches!(
-            content.method,
-            StartMethod::SasV1(sas) => sas
-        );
+        assert_matches!(content.method, StartMethod::SasV1(sas));
         assert_eq!(sas.hashes, vec![HashAlgorithm::Sha256]);
         assert_eq!(sas.key_agreement_protocols, vec![KeyAgreementProtocol::Curve25519]);
         assert_eq!(
@@ -502,10 +487,7 @@ mod tests {
         assert_eq!(content.from_device, "123");
         assert_eq!(content.relates_to.event_id, "$1598361704261elfgc:localhost");
 
-        let reciprocate = assert_matches!(
-            content.method,
-            StartMethod::ReciprocateV1(reciprocate) => reciprocate
-        );
+        assert_matches!(content.method, StartMethod::ReciprocateV1(reciprocate));
         assert_eq!(reciprocate.secret.encode(), "c2VjcmV0Cg");
     }
 }
