@@ -45,7 +45,7 @@ pub mod v1 {
         /// The duration in milliseconds that the `POST /_matrix/app/v1/ping` request took from the
         /// homeserver's point of view.
         #[serde(with = "ruma_common::serde::duration::ms", rename = "duration_ms")]
-        duration: Duration,
+        pub duration: Duration,
     }
 
     impl Request {
