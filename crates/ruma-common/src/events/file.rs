@@ -70,7 +70,7 @@ impl FileEventContent {
     }
 
     /// Creates a new non-encrypted `FileEventContent` with the given plain text fallback
-    /// representation, url and file info.
+    /// representation, url and name.
     pub fn plain_with_plain_text(
         plain_text: impl Into<String>,
         url: OwnedMxcUri,
@@ -87,7 +87,7 @@ impl FileEventContent {
     }
 
     /// Creates a new encrypted `FileEventContent` with the given fallback representation, url,
-    /// encryption info and file info.
+    /// name and encryption info.
     pub fn encrypted(
         text: TextContentBlock,
         url: OwnedMxcUri,
@@ -105,7 +105,7 @@ impl FileEventContent {
     }
 
     /// Creates a new encrypted `FileEventContent` with the given plain text fallback
-    /// representation, url, encryption info and file info.
+    /// representation, url, name and encryption info.
     pub fn encrypted_with_plain_text(
         plain_text: impl Into<String>,
         url: OwnedMxcUri,

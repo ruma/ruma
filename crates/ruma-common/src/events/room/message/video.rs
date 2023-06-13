@@ -32,8 +32,7 @@ impl VideoMessageEventContent {
         Self { body, source, info: None }
     }
 
-    /// Creates a new non-encrypted `VideoMessageEventContent` with the given body, url and
-    /// optional extra info.
+    /// Creates a new non-encrypted `VideoMessageEventContent` with the given body and url.
     pub fn plain(body: String, url: OwnedMxcUri) -> Self {
         Self::new(body, MediaSource::Plain(url))
     }
