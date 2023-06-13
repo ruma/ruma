@@ -30,16 +30,21 @@ pub struct FileMessageEventContent {
 }
 
 impl FileMessageEventContent {
+    /// Creates a new `FileMessageEventContent` with the given body and source.
+    pub fn new(body: String, source: MediaSource) -> Self {
+        Self { body, filename: None, source, info: None }
+    }
+
     /// Creates a new non-encrypted `FileMessageEventContent` with the given body, url and
     /// optional extra info.
-    pub fn plain(body: String, url: OwnedMxcUri, info: Option<Box<FileInfo>>) -> Self {
-        Self { body, filename: None, source: MediaSource::Plain(url), info }
+    pub fn plain(body: String, url: OwnedMxcUri) -> Self {
+        Self::new(body, MediaSource::Plain(url))
     }
 
     /// Creates a new encrypted `FileMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self { body, filename: None, source: MediaSource::Encrypted(Box::new(file)), info: None }
+        Self::new(body, MediaSource::Encrypted(Box::new(file)))
     }
 }
 

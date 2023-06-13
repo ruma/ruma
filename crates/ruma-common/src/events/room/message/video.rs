@@ -27,16 +27,21 @@ pub struct VideoMessageEventContent {
 }
 
 impl VideoMessageEventContent {
+    /// Creates a new `VideoMessageEventContent` with the given body and source.
+    pub fn new(body: String, source: MediaSource) -> Self {
+        Self { body, source, info: None }
+    }
+
     /// Creates a new non-encrypted `VideoMessageEventContent` with the given body, url and
     /// optional extra info.
-    pub fn plain(body: String, url: OwnedMxcUri, info: Option<Box<VideoInfo>>) -> Self {
-        Self { body, source: MediaSource::Plain(url), info }
+    pub fn plain(body: String, url: OwnedMxcUri) -> Self {
+        Self::new(body, MediaSource::Plain(url))
     }
 
     /// Creates a new encrypted `VideoMessageEventContent` with the given body and encrypted
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
-        Self { body, source: MediaSource::Encrypted(Box::new(file)), info: None }
+        Self::new(body, MediaSource::Encrypted(Box::new(file)))
     }
 }
 

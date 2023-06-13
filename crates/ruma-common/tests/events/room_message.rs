@@ -475,7 +475,6 @@ fn audio_msgtype_serialization() {
         RoomMessageEventContent::new(MessageType::Audio(AudioMessageEventContent::plain(
             "Upload: my_song.mp3".to_owned(),
             mxc_uri!("mxc://notareal.hs/file").to_owned(),
-            None,
         )));
 
     assert_eq!(
@@ -509,7 +508,6 @@ fn file_msgtype_plain_content_serialization() {
         RoomMessageEventContent::new(MessageType::File(FileMessageEventContent::plain(
             "Upload: my_file.txt".to_owned(),
             mxc_uri!("mxc://notareal.hs/file").to_owned(),
-            None,
         )));
 
     assert_eq!(
@@ -622,7 +620,6 @@ fn image_msgtype_serialization() {
         RoomMessageEventContent::new(MessageType::Image(ImageMessageEventContent::plain(
             "Upload: my_image.jpg".to_owned(),
             mxc_uri!("mxc://notareal.hs/file").to_owned(),
-            None,
         )));
 
     assert_eq!(
@@ -777,7 +774,6 @@ fn video_msgtype_serialization() {
         RoomMessageEventContent::new(MessageType::Video(VideoMessageEventContent::plain(
             "Upload: my_video.mp4".to_owned(),
             mxc_uri!("mxc://notareal.hs/file").to_owned(),
-            None,
         )));
 
     assert_eq!(
