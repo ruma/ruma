@@ -58,7 +58,7 @@ pub mod v2 {
         /// The UNIX timestamp at which the association was verified.
         pub ts: MilliSecondsSinceUnixEpoch,
 
-        /// The signatures of the verifiying identity servers which show that the
+        /// The signatures of the verifying identity servers which show that the
         /// association should be trusted, if you trust the verifying identity services.
         pub signatures: ServerSignatures,
     }

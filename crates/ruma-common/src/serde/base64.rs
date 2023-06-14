@@ -63,7 +63,7 @@ impl<C: Base64Config, B> Base64<C, B> {
 }
 
 impl<C: Base64Config, B: AsRef<[u8]>> Base64<C, B> {
-    /// Create a `Base64` instance from raw bytes, to be base64-encoded in serialialization.
+    /// Create a `Base64` instance from raw bytes, to be base64-encoded in serialization.
     pub fn new(bytes: B) -> Self {
         Self { bytes, _phantom_conf: PhantomData }
     }

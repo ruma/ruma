@@ -64,7 +64,7 @@ pub mod v3 {
     }
 
     impl Response {
-        /// Creates a new `Response` with the gien algorithm, key count, etag and version.
+        /// Creates a new `Response` with the given algorithm, key count, etag and version.
         pub fn new(
             algorithm: Raw<BackupAlgorithm>,
             count: UInt,
