@@ -13,7 +13,7 @@ use tracing::debug;
 ///
 /// To get the serialized HTML, use its `Display` implementation.
 #[derive(Debug)]
-pub struct Fragment {
+pub(crate) struct Fragment {
     pub nodes: Vec<Node>,
 }
 
@@ -265,7 +265,7 @@ impl fmt::Display for Fragment {
 
 /// An HTML node.
 #[derive(Debug)]
-pub struct Node {
+pub(crate) struct Node {
     pub parent: Option<usize>,
     pub prev_sibling: Option<usize>,
     pub next_sibling: Option<usize>,
@@ -353,7 +353,7 @@ impl Node {
 
 /// The data of a `Node`.
 #[derive(Debug)]
-pub enum NodeData {
+pub(crate) enum NodeData {
     /// The root node of the `Fragment`.
     Document,
 
@@ -369,7 +369,7 @@ pub enum NodeData {
 
 /// The data of an HTML element.
 #[derive(Debug)]
-pub struct ElementData {
+pub(crate) struct ElementData {
     /// The qualified name of the element.
     pub name: QualName,
 

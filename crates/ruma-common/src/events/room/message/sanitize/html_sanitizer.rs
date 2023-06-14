@@ -11,7 +11,7 @@ use super::{
 ///
 /// [HTML tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
 #[derive(Debug, Clone)]
-pub struct HtmlSanitizer {
+pub(crate) struct HtmlSanitizer {
     /// The mode of the HTML sanitizer.
     mode: HtmlSanitizerMode,
 
