@@ -104,19 +104,19 @@ impl RelatesToJsonRepr {
 #[derive(Clone, Deserialize, Serialize)]
 struct ThreadStableJsonRepr {
     /// The ID of the root message in the thread.
-    pub event_id: OwnedEventId,
+    event_id: OwnedEventId,
 
     /// Whether the `m.in_reply_to` field is a fallback for older clients or a real reply in a
     /// thread.
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
-    pub is_falling_back: bool,
+    is_falling_back: bool,
 }
 
 /// A thread relation without the reply fallback, with unstable names.
 #[derive(Clone, Deserialize, Serialize)]
 struct ThreadUnstableJsonRepr {
     /// The ID of the root message in the thread.
-    pub event_id: OwnedEventId,
+    event_id: OwnedEventId,
 
     /// Whether the `m.in_reply_to` field is a fallback for older clients or a real reply in a
     /// thread.
@@ -125,7 +125,7 @@ struct ThreadUnstableJsonRepr {
         default,
         skip_serializing_if = "ruma_common::serde::is_default"
     )]
-    pub is_falling_back: bool,
+    is_falling_back: bool,
 }
 
 /// A relation, which associates new information to an existing event.
