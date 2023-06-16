@@ -43,7 +43,6 @@ impl Serialize for Relation {
     where
         S: Serializer,
     {
-        #[allow(clippy::needless_update)]
         let relates_to = match self {
             Relation::Annotation(r) => RelatesToJsonRepr {
                 relation: Some(RelationJsonRepr::Annotation(r.clone())),
@@ -67,7 +66,6 @@ impl Serialize for Relation {
                         event_id: event_id.clone(),
                         is_falling_back: *is_falling_back,
                     })),
-                    ..Default::default()
                 }
             }
             Relation::_Custom => RelatesToJsonRepr::default(),
