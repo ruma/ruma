@@ -39,7 +39,7 @@ mod tests {
     fn serialization_with_optional_fields_as_none() {
         let content = RoomNameEventContent { name: Some("The room name".to_owned()) };
 
-        let actual = to_json_value(&content).unwrap();
+        let actual = to_json_value(content).unwrap();
         let expected = json!({
             "name": "The room name",
         });
@@ -51,7 +51,7 @@ mod tests {
     fn serialization_with_all_fields() {
         let content = RoomNameEventContent { name: Some("The room name".to_owned()) };
 
-        let actual = to_json_value(&content).unwrap();
+        let actual = to_json_value(content).unwrap();
         let expected = json!({
             "name": "The room name",
         });
