@@ -48,6 +48,21 @@ impl AnyPushRule {
         self.as_ref().actions()
     }
 
+    /// Whether an event that matches the push rule should be highlighted.
+    pub fn triggers_highlight(&self) -> bool {
+        self.as_ref().triggers_highlight()
+    }
+
+    /// Whether an event that matches the push rule should trigger a notification.
+    pub fn triggers_notification(&self) -> bool {
+        self.as_ref().triggers_notification()
+    }
+
+    /// The sound that should be played when an event matches the push rule, if any.
+    pub fn triggers_sound(&self) -> Option<&str> {
+        self.as_ref().triggers_sound()
+    }
+
     /// Get the `rule_id` of the push rule.
     pub fn rule_id(&self) -> &str {
         self.as_ref().rule_id()
@@ -160,6 +175,21 @@ impl<'a> AnyPushRuleRef<'a> {
             Self::Room(rule) => &rule.actions,
             Self::Sender(rule) => &rule.actions,
         }
+    }
+
+    /// Whether an event that matches the push rule should be highlighted.
+    pub fn triggers_highlight(self) -> bool {
+        self.actions().iter().any(|a| a.is_highlight())
+    }
+
+    /// Whether an event that matches the push rule should trigger a notification.
+    pub fn triggers_notification(self) -> bool {
+        self.actions().iter().any(|a| a.should_notify())
+    }
+
+    /// The sound that should be played when an event matches the push rule, if any.
+    pub fn triggers_sound(self) -> Option<&'a str> {
+        self.actions().iter().find_map(|a| a.sound())
     }
 
     /// Get the `rule_id` of the push rule.
