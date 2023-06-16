@@ -68,7 +68,6 @@ where
     where
         S: Serializer,
     {
-        #[allow(clippy::needless_update)]
         let json_repr = match self {
             Relation::Reply { in_reply_to } => {
                 EventWithRelatesToJsonRepr::<C>::new(RelatesToJsonRepr {
@@ -94,7 +93,6 @@ where
                         event_id: event_id.clone(),
                         is_falling_back: *is_falling_back,
                     })),
-                    ..Default::default()
                 })
             }
             Relation::_Custom => EventWithRelatesToJsonRepr::<C>::default(),
