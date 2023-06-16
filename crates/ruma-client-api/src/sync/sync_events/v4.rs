@@ -569,6 +569,24 @@ pub struct ToDeviceConfig {
     /// Give messages since this token only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub since: Option<String>,
+
+    /// List of list names for which to-device events should be enabled.
+    ///
+    /// If not defined, will be enabled for *all* the lists appearing in the request.
+    /// If defined and empty, will be disabled for all the lists.
+    ///
+    /// Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lists: Option<Vec<String>>,
+
+    /// List of room names for which to-device events should be enabled.
+    ///
+    /// If not defined, will be enabled for *all* the rooms appearing in the `room_subscriptions`.
+    /// If defined and empty, will be disabled for all the rooms.
+    ///
+    /// Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rooms: Option<Vec<OwnedRoomId>>,
 }
 
 impl ToDeviceConfig {
@@ -655,6 +673,28 @@ pub struct AccountDataConfig {
     /// Activate or deactivate this extension. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
+
+    /// List of list names for which account data should be enabled.
+    ///
+    /// This is specific to room account data (e.g. user-defined room tags).
+    ///
+    /// If not defined, will be enabled for *all* the lists appearing in the request.
+    /// If defined and empty, will be disabled for all the lists.
+    ///
+    /// Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lists: Option<Vec<String>>,
+
+    /// List of room names for which account data should be enabled.
+    ///
+    /// This is specific to room account data (e.g. user-defined room tags).
+    ///
+    /// If not defined, will be enabled for *all* the rooms appearing in the `room_subscriptions`.
+    /// If defined and empty, will be disabled for all the rooms.
+    ///
+    /// Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rooms: Option<Vec<OwnedRoomId>>,
 }
 
 impl AccountDataConfig {
@@ -696,6 +736,24 @@ pub struct ReceiptsConfig {
     /// Activate or deactivate this extension. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
+
+    /// List of list names for which receipts should be enabled.
+    ///
+    /// If not defined, will be enabled for *all* the lists appearing in the request.
+    /// If defined and empty, will be disabled for all the lists.
+    ///
+    /// Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lists: Option<Vec<String>>,
+
+    /// List of room names for which receipts should be enabled.
+    ///
+    /// If not defined, will be enabled for *all* the rooms appearing in the `room_subscriptions`.
+    /// If defined and empty, will be disabled for all the rooms.
+    ///
+    /// Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rooms: Option<Vec<OwnedRoomId>>,
 }
 
 impl ReceiptsConfig {
@@ -733,6 +791,24 @@ pub struct TypingConfig {
     /// Activate or deactivate this extension. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
+
+    /// List of list names for which typing notifications should be enabled.
+    ///
+    /// If not defined, will be enabled for *all* the lists appearing in the request.
+    /// If defined and empty, will be disabled for all the lists.
+    ///
+    /// Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lists: Option<Vec<String>>,
+
+    /// List of room names for which typing notifications should be enabled.
+    ///
+    /// If not defined, will be enabled for *all* the rooms appearing in the `room_subscriptions`.
+    /// If defined and empty, will be disabled for all the rooms.
+    ///
+    /// Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rooms: Option<Vec<OwnedRoomId>>,
 }
 
 impl TypingConfig {
