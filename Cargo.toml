@@ -27,7 +27,7 @@ ruma-push-gateway-api = { version = "0.7.1", path = "crates/ruma-push-gateway-ap
 ruma-signatures = { version = "0.13.1", path = "crates/ruma-signatures" }
 ruma-server-util = { version = "0.1.1", path = "crates/ruma-server-util" }
 ruma-state-res = { version = "0.9.1", path = "crates/ruma-state-res" }
-serde = { version = "1.0.147", features = ["derive"] }
+serde = { version = "1.0.164", features = ["derive"] }
 serde_html_form = "0.2.0"
 serde_json = "1.0.87"
 thiserror = "1.0.37"
