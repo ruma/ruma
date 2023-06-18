@@ -60,9 +60,9 @@ pub struct RoomMessageEventContent {
     #[serde(flatten)]
     pub msgtype: MessageType,
 
-    /// Information about related messages for [rich replies].
+    /// Information about [related messages].
     ///
-    /// [rich replies]: https://spec.matrix.org/latest/client-server-api/#rich-replies
+    /// [related messages]: https://spec.matrix.org/latest/client-server-api/#forming-relationships-between-events
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation<MessageType>>,
 }
