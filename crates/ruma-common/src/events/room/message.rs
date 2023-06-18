@@ -295,11 +295,11 @@ impl RoomMessageEventContent {
         self
     }
 
-    /// Returns a reference to the `msgtype` string.
+    /// The type of the message.
     ///
     /// If you want to access the message type-specific data rather than the message type itself,
     /// use the `msgtype` *field*, not this method.
-    pub fn msgtype(&self) -> &str {
+    pub fn msgtype(&self) -> Msgtype {
         self.msgtype.msgtype()
     }
 
@@ -486,20 +486,20 @@ impl MessageType {
         Self::Notice(NoticeMessageEventContent::markdown(body))
     }
 
-    /// Returns a reference to the `msgtype` string.
-    pub fn msgtype(&self) -> &str {
+    /// The type of this message.
+    pub fn msgtype(&self) -> Msgtype {
         match self {
-            Self::Audio(_) => "m.audio",
-            Self::Emote(_) => "m.emote",
-            Self::File(_) => "m.file",
-            Self::Image(_) => "m.image",
-            Self::Location(_) => "m.location",
-            Self::Notice(_) => "m.notice",
-            Self::ServerNotice(_) => "m.server_notice",
-            Self::Text(_) => "m.text",
-            Self::Video(_) => "m.video",
-            Self::VerificationRequest(_) => "m.key.verification.request",
-            Self::_Custom(c) => &c.msgtype,
+            Self::Audio(_) => Msgtype::Audio,
+            Self::Emote(_) => Msgtype::Emote,
+            Self::File(_) => Msgtype::File,
+            Self::Image(_) => Msgtype::Image,
+            Self::Location(_) => Msgtype::Location,
+            Self::Notice(_) => Msgtype::Notice,
+            Self::ServerNotice(_) => Msgtype::ServerNotice,
+            Self::Text(_) => Msgtype::Text,
+            Self::Video(_) => Msgtype::Video,
+            Self::VerificationRequest(_) => Msgtype::VerificationRequest,
+            Self::_Custom(c) => c.msgtype.as_str().into(),
         }
     }
 
@@ -596,6 +596,46 @@ impl From<RoomMessageEventContent> for MessageType {
     fn from(content: RoomMessageEventContent) -> Self {
         content.msgtype
     }
+}
+
+/// The type of a message.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, PartialEq, Eq, StringEnum)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub enum Msgtype {
+    /// An audio message.
+    Audio,
+
+    /// An emote message.
+    Emote,
+
+    /// A file message.
+    File,
+
+    /// An image message.
+    Image,
+
+    /// A location message.
+    Location,
+
+    /// A notice message.
+    Notice,
+
+    /// A server notice message.
+    ServerNotice,
+
+    /// A text message.
+    Text,
+
+    /// A video message.
+    Video,
+
+    /// A request to initiate a key verification.
+    VerificationRequest,
+
+    /// A custom message.
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
 }
 
 /// Message event relationship.

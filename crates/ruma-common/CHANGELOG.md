@@ -20,6 +20,8 @@ Breaking changes:
     also avoids an unnecessary conversion between the WebRTC API and the Ruma type.
 - The `reason` field in `CallHangupEventContent` is now required an defaults to `Reason::UserHangup`
   (MSC2746 / Matrix 1.7)
+- `RoomMessageEventContent::msgtype()` and `MessageType::msgtype()` return a `Msgtype` instead of
+  a `&str`. It can be converted with `Msgtype::as_str()`.
 
 Improvements:
 

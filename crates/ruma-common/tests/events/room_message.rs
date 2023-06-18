@@ -68,7 +68,7 @@ fn custom_msgtype_deserialization() {
 
     let custom_event: MessageType = from_json_value(json_data).unwrap();
 
-    assert_eq!(custom_event.msgtype(), "my_custom_msgtype");
+    assert_eq!(custom_event.msgtype().as_str(), "my_custom_msgtype");
     assert_eq!(custom_event.body(), "my custom message");
     assert_eq!(custom_event.data(), Cow::Owned(expected_json_data));
 }
