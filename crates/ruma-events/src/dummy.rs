@@ -33,6 +33,57 @@ impl ToDeviceDummyEventContent {
     }
 }
 
+/// The content of a in-room `m.key.verification.accept` event.
+///
+/// Accepts a previously sent `m.key.verification.start` message.
+#[derive(Clone, Debug, EventContent)]
+#[ruma_event(type = "m.dummy", kind = MessageLike)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct DummyEventContent;
+
+impl DummyEventContent {
+    /// Create a new [`DummyEventContent`].
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl<'de> Deserialize<'de> for DummyEventContent {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> de::Visitor<'de> for Visitor {
+            type Value = DummyEventContent;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                formatter.write_str("a struct")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: de::MapAccess<'de>,
+            {
+                while map.next_entry::<de::IgnoredAny, de::IgnoredAny>()?.is_some() {}
+                Ok(DummyEventContent)
+            }
+        }
+
+        deserializer.deserialize_struct("DummyEventContent", &[], Visitor)
+    }
+}
+
+impl Serialize for DummyEventContent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_struct("DummyEventContent", 0)?.end()
+    }
+}
+
 impl<'de> Deserialize<'de> for ToDeviceDummyEventContent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where

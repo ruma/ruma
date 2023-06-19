@@ -93,6 +93,7 @@ event_enum! {
         #[cfg(feature = "unstable-msc3245")]
         #[ruma_enum(alias = "m.voice")]
         "org.matrix.msc3245.voice.v2" => super::voice,
+        "m.dummy" => super::dummy,
     }
 
     /// Any state event.
@@ -361,7 +362,8 @@ impl AnyMessageLikeEventContent {
             | Self::CallCandidates(_)
             | Self::RoomRedaction(_)
             | Self::Sticker(_)
-            | Self::_Custom { .. } => None,
+            | Self::Dummy(_) => None,
+            Self::_Custom { .. } => None,
         }
     }
 }
