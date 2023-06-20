@@ -3,7 +3,6 @@
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    event_id,
     events::{
         file::{CaptionContentBlock, EncryptedContentInit, FileContentBlock},
         image::{
@@ -15,7 +14,7 @@ use ruma_common::{
         room::{message::Relation, JsonWebKeyInit},
         AnyMessageLikeEvent, MessageLikeEvent,
     },
-    mxc_uri,
+    mxc_uri, owned_event_id,
     serde::{Base64, CanBeEmpty},
     MilliSecondsSinceUnixEpoch,
 };
@@ -123,7 +122,7 @@ fn image_event_serialization() {
     content.thumbnail = vec![thumbnail].into();
     content.caption = Some(CaptionContentBlock::plain("This is my house"));
     content.relates_to = Some(Relation::Reply {
-        in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
+        in_reply_to: InReplyTo::new(owned_event_id!("$replyevent:example.com")),
     });
 
     assert_eq!(

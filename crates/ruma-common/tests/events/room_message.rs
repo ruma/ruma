@@ -3,7 +3,6 @@ use std::borrow::Cow;
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    event_id,
     events::{
         key::verification::VerificationMethod,
         room::{
@@ -17,7 +16,7 @@ use ruma_common::{
         },
         MessageLikeUnsigned,
     },
-    mxc_uri, room_id,
+    mxc_uri, owned_event_id, owned_room_id, owned_user_id,
     serde::Base64,
     user_id, MilliSecondsSinceUnixEpoch, OwnedDeviceId,
 };
@@ -224,7 +223,7 @@ fn verification_request_msgtype_deserialization() {
 
 #[test]
 fn verification_request_msgtype_serialization() {
-    let user_id = user_id!("@example2:localhost").to_owned();
+    let user_id = owned_user_id!("@example2:localhost");
     let device_id: OwnedDeviceId = "XOWLHHFSWM".into();
     let body = "@example:localhost is requesting to verify your key, ...".to_owned();
 
@@ -260,10 +259,10 @@ fn content_deserialization_failure() {
 fn escape_tags_in_plain_reply_body() {
     let first_message = OriginalRoomMessageEvent {
         content: RoomMessageEventContent::text_plain("Usage: cp <source> <destination>"),
-        event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
+        event_id: owned_event_id!("$143273582443PhrSn:example.org"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
-        room_id: room_id!("!testroomid:example.org").to_owned(),
-        sender: user_id!("@user:example.org").to_owned(),
+        room_id: owned_room_id!("!testroomid:example.org"),
+        sender: owned_user_id!("@user:example.org"),
         unsigned: MessageLikeUnsigned::default(),
     };
     let second_message = RoomMessageEventContent::text_plain("Usage: rm <path>")
@@ -313,10 +312,10 @@ fn reply_sanitize() {
             "# This is the first message",
             "<h1>This is the first message</h1>",
         ),
-        event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
+        event_id: owned_event_id!("$143273582443PhrSn:example.org"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
-        room_id: room_id!("!testroomid:example.org").to_owned(),
-        sender: user_id!("@user:example.org").to_owned(),
+        room_id: owned_room_id!("!testroomid:example.org"),
+        sender: owned_user_id!("@user:example.org"),
         unsigned: MessageLikeUnsigned::default(),
     };
     let second_message = OriginalRoomMessageEvent {
@@ -325,10 +324,10 @@ fn reply_sanitize() {
             "This is the <em>second</em> message",
         )
         .make_reply_to(&first_message, ForwardThread::Yes),
-        event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
+        event_id: owned_event_id!("$143273582443PhrSn:example.org"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
-        room_id: room_id!("!testroomid:example.org").to_owned(),
-        sender: user_id!("@user:example.org").to_owned(),
+        room_id: owned_room_id!("!testroomid:example.org"),
+        sender: owned_user_id!("@user:example.org"),
         unsigned: MessageLikeUnsigned::default(),
     };
     let final_reply = RoomMessageEventContent::text_html(
@@ -406,7 +405,7 @@ fn make_replacement_no_reply() {
         "This is _an edited_ message.",
         "This is <em>an edited</em> message.",
     );
-    let event_id = event_id!("$143273582443PhrSn:example.org").to_owned();
+    let event_id = owned_event_id!("$143273582443PhrSn:example.org");
 
     let content = content.make_replacement(event_id, None);
 
@@ -426,10 +425,10 @@ fn make_replacement_with_reply() {
             "# This is the first message",
             "<h1>This is the first message</h1>",
         ),
-        event_id: event_id!("$143273582443PhrSn:example.org").to_owned(),
+        event_id: owned_event_id!("$143273582443PhrSn:example.org"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
-        room_id: room_id!("!testroomid:example.org").to_owned(),
-        sender: user_id!("@user:example.org").to_owned(),
+        room_id: owned_room_id!("!testroomid:example.org"),
+        sender: owned_user_id!("@user:example.org"),
         unsigned: MessageLikeUnsigned::default(),
     };
 
@@ -437,7 +436,7 @@ fn make_replacement_with_reply() {
         "This is _an edited_ reply.",
         "This is <em>an edited</em> reply.",
     );
-    let event_id = event_id!("$143273582443PhrSn:example.org").to_owned();
+    let event_id = owned_event_id!("$143273582443PhrSn:example.org");
 
     let content = content.make_replacement(event_id, Some(&replied_to_message));
 

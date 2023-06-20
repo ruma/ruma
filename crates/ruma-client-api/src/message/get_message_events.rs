@@ -120,7 +120,7 @@ pub mod v3 {
         ///
         /// ```rust
         /// # use ruma_client_api::message::get_message_events;
-        /// # let room_id = ruma_common::room_id!("!a:example.org").to_owned();
+        /// # let room_id = ruma_common::owned_room_id!("!a:example.org");
         /// # let token = "prev_batch token".to_owned();
         /// let request = get_message_events::v3::Request::backward(room_id).from(token);
         /// ```
@@ -137,7 +137,7 @@ pub mod v3 {
         ///
         /// ```rust
         /// # use ruma_client_api::message::get_message_events;
-        /// # let room_id = ruma_common::room_id!("!a:example.org").to_owned();
+        /// # let room_id = ruma_common::owned_room_id!("!a:example.org");
         /// # let token = "end token".to_owned();
         /// let request = get_message_events::v3::Request::forward(room_id).from(token);
         /// ```
@@ -175,7 +175,7 @@ pub mod v3 {
         use js_int::uint;
         use ruma_common::{
             api::{Direction, MatrixVersion, OutgoingRequest, SendAccessToken},
-            room_id,
+            owned_room_id,
         };
 
         use super::Request;
@@ -183,15 +183,15 @@ pub mod v3 {
 
         #[test]
         fn serialize_some_room_event_filter() {
-            let room_id = room_id!("!roomid:example.org").to_owned();
+            let room_id = owned_room_id!("!roomid:example.org");
             let rooms = vec![room_id.to_owned()];
             let filter = RoomEventFilter {
                 lazy_load_options: LazyLoadOptions::Enabled { include_redundant_members: true },
                 rooms: Some(rooms),
                 not_rooms: vec![
-                    room_id!("!room:example.org").to_owned(),
-                    room_id!("!room2:example.org").to_owned(),
-                    room_id!("!room3:example.org").to_owned(),
+                    owned_room_id!("!room:example.org"),
+                    owned_room_id!("!room2:example.org"),
+                    owned_room_id!("!room3:example.org"),
                 ],
                 not_types: vec!["type".into()],
                 ..Default::default()
@@ -224,7 +224,7 @@ pub mod v3 {
 
         #[test]
         fn serialize_default_room_event_filter() {
-            let room_id = room_id!("!roomid:example.org").to_owned();
+            let room_id = owned_room_id!("!roomid:example.org");
             let req = Request {
                 room_id,
                 from: Some("token".to_owned()),

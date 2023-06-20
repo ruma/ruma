@@ -1,7 +1,10 @@
 use assert_matches2::assert_matches;
 use js_int::uint;
 use maplit::btreemap;
-use ruma_common::{event_id, events::receipt::ReceiptType, user_id, MilliSecondsSinceUnixEpoch};
+use ruma_common::{
+    event_id, events::receipt::ReceiptType, owned_event_id, owned_user_id, user_id,
+    MilliSecondsSinceUnixEpoch,
+};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 use ruma_common::events::{
@@ -12,7 +15,7 @@ use ruma_common::events::{
 
 #[test]
 fn ephemeral_serialize_typing() {
-    let content = TypingEventContent::new(vec![user_id!("@carl:example.com").to_owned()]);
+    let content = TypingEventContent::new(vec![owned_user_id!("@carl:example.com")]);
 
     let actual = to_json_value(&content).unwrap();
     let expected = json!({
@@ -43,8 +46,8 @@ fn deserialize_ephemeral_typing() {
 
 #[test]
 fn ephemeral_serialize_receipt() {
-    let event_id = event_id!("$h29iv0s8:example.com").to_owned();
-    let user_id = user_id!("@carl:example.com").to_owned();
+    let event_id = owned_event_id!("$h29iv0s8:example.com");
+    let user_id = owned_user_id!("@carl:example.com");
 
     let content = ReceiptEventContent(btreemap! {
         event_id => btreemap! {

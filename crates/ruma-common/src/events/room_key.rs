@@ -44,7 +44,7 @@ impl ToDeviceRoomKeyEventContent {
 
 #[cfg(test)]
 mod tests {
-    use crate::{room_id, EventEncryptionAlgorithm};
+    use crate::{owned_room_id, EventEncryptionAlgorithm};
     use serde_json::{json, to_value as to_json_value};
 
     use super::ToDeviceRoomKeyEventContent;
@@ -53,7 +53,7 @@ mod tests {
     fn serialization() {
         let content = ToDeviceRoomKeyEventContent {
             algorithm: EventEncryptionAlgorithm::MegolmV1AesSha2,
-            room_id: room_id!("!testroomid:example.org").to_owned(),
+            room_id: owned_room_id!("!testroomid:example.org"),
             session_id: "SessId".into(),
             session_key: "SessKey".into(),
         };

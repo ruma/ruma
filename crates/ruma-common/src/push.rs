@@ -990,9 +990,9 @@ mod tests {
         AnyPushRule, ConditionalPushRule, PatternedPushRule, Ruleset, SimplePushRule,
     };
     use crate::{
+        owned_room_id, owned_user_id,
         power_levels::NotificationPowerLevels,
         push::{PredefinedContentRuleId, PredefinedOverrideRuleId},
-        room_id,
         serde::Raw,
         user_id,
     };
@@ -1124,7 +1124,7 @@ mod tests {
             actions: vec![Action::Notify],
             default: false,
             enabled: false,
-            rule_id: room_id!("!roomid:server.name").to_owned(),
+            rule_id: owned_room_id!("!roomid:server.name"),
         };
 
         let rule_value: JsonValue = to_json_value(rule).unwrap();
@@ -1425,9 +1425,9 @@ mod tests {
         let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
 
         let context_one_to_one = &PushConditionRoomCtx {
-            room_id: room_id!("!dm:server.name").to_owned(),
+            room_id: owned_room_id!("!dm:server.name"),
             member_count: uint!(2),
-            user_id: user_id!("@jj:server.name").to_owned(),
+            user_id: owned_user_id!("@jj:server.name"),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
             default_power_level: int!(50),
@@ -1437,9 +1437,9 @@ mod tests {
         };
 
         let context_public_room = &PushConditionRoomCtx {
-            room_id: room_id!("!far_west:server.name").to_owned(),
+            room_id: owned_room_id!("!far_west:server.name"),
             member_count: uint!(100),
-            user_id: user_id!("@jj:server.name").to_owned(),
+            user_id: owned_user_id!("@jj:server.name"),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
             default_power_level: int!(50),
@@ -1530,9 +1530,9 @@ mod tests {
     #[test]
     fn custom_ruleset_applies() {
         let context_one_to_one = &PushConditionRoomCtx {
-            room_id: room_id!("!dm:server.name").to_owned(),
+            room_id: owned_room_id!("!dm:server.name"),
             member_count: uint!(2),
-            user_id: user_id!("@jj:server.name").to_owned(),
+            user_id: owned_user_id!("@jj:server.name"),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
             default_power_level: int!(50),
@@ -1587,7 +1587,7 @@ mod tests {
             actions: vec![Action::Notify],
             default: false,
             enabled: true,
-            rule_id: user_id!("@rantanplan:server.name").to_owned(),
+            rule_id: owned_user_id!("@rantanplan:server.name"),
         };
         set.sender.insert(sender);
 
@@ -1598,7 +1598,7 @@ mod tests {
             actions: vec![Action::SetTweak(Tweak::Highlight(true))],
             default: false,
             enabled: true,
-            rule_id: room_id!("!dm:server.name").to_owned(),
+            rule_id: owned_room_id!("!dm:server.name"),
         };
         set.room.insert(room);
 
@@ -1671,9 +1671,9 @@ mod tests {
         let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
 
         let context = &PushConditionRoomCtx {
-            room_id: room_id!("!far_west:server.name").to_owned(),
+            room_id: owned_room_id!("!far_west:server.name"),
             member_count: uint!(100),
-            user_id: user_id!("@jj:server.name").to_owned(),
+            user_id: owned_user_id!("@jj:server.name"),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
             default_power_level: int!(50),
@@ -1783,9 +1783,9 @@ mod tests {
         let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
 
         let context = &PushConditionRoomCtx {
-            room_id: room_id!("!far_west:server.name").to_owned(),
+            room_id: owned_room_id!("!far_west:server.name"),
             member_count: uint!(100),
-            user_id: user_id!("@jj:server.name").to_owned(),
+            user_id: owned_user_id!("@jj:server.name"),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
             default_power_level: int!(50),

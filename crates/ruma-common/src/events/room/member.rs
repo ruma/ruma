@@ -542,8 +542,8 @@ mod tests {
 
     use super::{MembershipState, RoomMemberEventContent};
     use crate::{
-        events::OriginalStateEvent, mxc_uri, serde::CanBeEmpty, server_name, server_signing_key_id,
-        user_id, MilliSecondsSinceUnixEpoch,
+        events::OriginalStateEvent, mxc_uri, owned_server_signing_key_id, serde::CanBeEmpty,
+        server_name, user_id, MilliSecondsSinceUnixEpoch,
     };
 
     #[test]
@@ -667,7 +667,7 @@ mod tests {
             third_party_invite.signed.signatures,
             btreemap! {
                 server_name!("magic.forest").to_owned() => btreemap! {
-                    server_signing_key_id!("ed25519:3").to_owned() => "foobar".to_owned()
+                    owned_server_signing_key_id!("ed25519:3") => "foobar".to_owned()
                 }
             }
         );
@@ -737,7 +737,7 @@ mod tests {
             third_party_invite.signed.signatures,
             btreemap! {
                 server_name!("magic.forest").to_owned() => btreemap! {
-                    server_signing_key_id!("ed25519:3").to_owned() => "foobar".to_owned()
+                    owned_server_signing_key_id!("ed25519:3") => "foobar".to_owned()
                 }
             }
         );

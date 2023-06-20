@@ -5,7 +5,6 @@ use std::collections::BTreeMap;
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    event_id,
     events::{
         message::TextContentBlock,
         poll::{
@@ -19,6 +18,7 @@ use ruma_common::{
         relation::Reference,
         AnyMessageLikeEvent, MessageLikeEvent,
     },
+    owned_event_id,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -197,7 +197,7 @@ fn start_event_deserialization() {
 fn response_content_serialization() {
     let event_content = PollResponseEventContent::new(
         vec!["my-answer".to_owned()].into(),
-        event_id!("$related_event:notareal.hs").to_owned(),
+        owned_event_id!("$related_event:notareal.hs"),
     );
 
     assert_eq!(
@@ -216,7 +216,7 @@ fn response_content_serialization() {
 fn response_event_serialization() {
     let content = PollResponseEventContent::new(
         vec!["first-answer".to_owned(), "second-answer".to_owned()].into(),
-        event_id!("$related_event:notareal.hs").to_owned(),
+        owned_event_id!("$related_event:notareal.hs"),
     );
 
     assert_eq!(
@@ -264,7 +264,7 @@ fn response_event_deserialization() {
 fn end_content_serialization() {
     let event_content = PollEndEventContent::with_plain_text(
         "The poll has closed. Top answer: Amazing!",
-        event_id!("$related_event:notareal.hs").to_owned(),
+        owned_event_id!("$related_event:notareal.hs"),
     );
 
     assert_eq!(
@@ -285,7 +285,7 @@ fn end_content_serialization() {
 fn end_event_serialization() {
     let mut content = PollEndEventContent::with_plain_text(
         "The poll has closed. Top answer: Amazing!",
-        event_id!("$related_event:notareal.hs").to_owned(),
+        owned_event_id!("$related_event:notareal.hs"),
     );
     content.poll_results = Some(
         BTreeMap::from([

@@ -12,7 +12,7 @@ use ruma_common::{
         room::message::Relation,
         AnyMessageLikeEvent, MessageLikeEvent,
     },
-    room_id,
+    owned_event_id, room_id,
     serde::CanBeEmpty,
     user_id, MilliSecondsSinceUnixEpoch,
 };
@@ -57,7 +57,7 @@ fn event_serialization() {
         {
             ts: Some(MilliSecondsSinceUnixEpoch(uint!(1_636_829_458))),
             relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
+                in_reply_to: InReplyTo::new(owned_event_id!("$replyevent:example.com")),
             }),
         }
     );

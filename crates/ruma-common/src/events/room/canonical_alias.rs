@@ -42,12 +42,12 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::RoomCanonicalAliasEventContent;
-    use crate::{events::OriginalStateEvent, room_alias_id};
+    use crate::{events::OriginalStateEvent, owned_room_alias_id};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
         let content = RoomCanonicalAliasEventContent {
-            alias: Some(room_alias_id!("#somewhere:localhost").to_owned()),
+            alias: Some(owned_room_alias_id!("#somewhere:localhost")),
             alt_aliases: Vec::new(),
         };
 
@@ -126,7 +126,7 @@ mod tests {
 
     #[test]
     fn nonempty_field_as_some() {
-        let alias = Some(room_alias_id!("#somewhere:localhost").to_owned());
+        let alias = Some(owned_room_alias_id!("#somewhere:localhost"));
         let json_data = json!({
             "content": {
                 "alias": "#somewhere:localhost"

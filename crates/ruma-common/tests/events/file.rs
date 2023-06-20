@@ -3,7 +3,6 @@
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    event_id,
     events::{
         file::{EncryptedContentInit, FileEventContent},
         message::TextContentBlock,
@@ -11,7 +10,7 @@ use ruma_common::{
         room::{message::Relation, JsonWebKeyInit},
         AnyMessageLikeEvent, MessageLikeEvent,
     },
-    mxc_uri,
+    mxc_uri, owned_event_id,
     serde::{Base64, CanBeEmpty},
     MilliSecondsSinceUnixEpoch,
 };
@@ -101,7 +100,7 @@ fn file_event_serialization() {
     content.file.mimetype = Some("text/plain".to_owned());
     content.file.size = Some(uint!(774));
     content.relates_to = Some(Relation::Reply {
-        in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
+        in_reply_to: InReplyTo::new(owned_event_id!("$replyevent:example.com")),
     });
 
     assert_eq!(

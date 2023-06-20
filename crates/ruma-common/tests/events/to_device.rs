@@ -1,5 +1,5 @@
 use ruma_common::{
-    events::room_key::ToDeviceRoomKeyEventContent, room_id, EventEncryptionAlgorithm,
+    events::room_key::ToDeviceRoomKeyEventContent, owned_room_id, EventEncryptionAlgorithm,
 };
 use serde_json::{json, to_value as to_json_value};
 
@@ -7,7 +7,7 @@ use serde_json::{json, to_value as to_json_value};
 fn serialization() {
     let content = ToDeviceRoomKeyEventContent::new(
         EventEncryptionAlgorithm::MegolmV1AesSha2,
-        room_id!("!testroomid:example.org").to_owned(),
+        owned_room_id!("!testroomid:example.org"),
         "SessId".into(),
         "SessKey".into(),
     );

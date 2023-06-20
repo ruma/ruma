@@ -51,11 +51,11 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::KeyVerificationDoneEventContent;
-    use crate::{event_id, events::relation::Reference};
+    use crate::{events::relation::Reference, owned_event_id};
 
     #[test]
     fn serialization() {
-        let event_id = event_id!("$1598361704261elfgc:localhost").to_owned();
+        let event_id = owned_event_id!("$1598361704261elfgc:localhost");
 
         let json_data = json!({
             "m.relates_to": {

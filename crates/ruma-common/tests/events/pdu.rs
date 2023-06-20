@@ -9,7 +9,8 @@ use ruma_common::{
         pdu::{EventHash, Pdu, RoomV1Pdu, RoomV3Pdu},
         TimelineEventType,
     },
-    room_id, server_name, server_signing_key_id, user_id, MilliSecondsSinceUnixEpoch,
+    owned_event_id, owned_room_id, owned_server_signing_key_id, owned_user_id, server_name,
+    MilliSecondsSinceUnixEpoch,
 };
 use serde_json::{
     from_value as from_json_value, json, to_value as to_json_value,
@@ -21,7 +22,7 @@ fn serialize_pdu_as_v1() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
     inner_signature.insert(
-        server_signing_key_id!("ed25519:key_version").to_owned(),
+        owned_server_signing_key_id!("ed25519:key_version"),
         "86BytesOfSignatureOfTheRedactedEvent".into(),
     );
     signatures.insert(server_name!("example.com").to_owned(), inner_signature);
@@ -30,23 +31,23 @@ fn serialize_pdu_as_v1() {
     unsigned.insert("somekey".into(), to_raw_json_value(&json!({ "a": 456 })).unwrap());
 
     let v1_pdu = RoomV1Pdu {
-        room_id: room_id!("!n8f893n9:example.com").to_owned(),
-        event_id: event_id!("$somejoinevent:matrix.org").to_owned(),
-        sender: user_id!("@sender:example.com").to_owned(),
+        room_id: owned_room_id!("!n8f893n9:example.com"),
+        event_id: owned_event_id!("$somejoinevent:matrix.org"),
+        sender: owned_user_id!("@sender:example.com"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(1_592_050_773_658_u64.try_into().unwrap()),
         kind: TimelineEventType::RoomPowerLevels,
         content: to_raw_json_value(&json!({ "testing": 123 })).unwrap(),
         state_key: Some("state".into()),
         prev_events: vec![(
-            event_id!("$previousevent:matrix.org").to_owned(),
+            owned_event_id!("$previousevent:matrix.org"),
             EventHash::new("123567".into()),
         )],
         depth: uint!(2),
         auth_events: vec![(
-            event_id!("$someauthevent:matrix.org").to_owned(),
+            owned_event_id!("$someauthevent:matrix.org"),
             EventHash::new("21389CFEDABC".into()),
         )],
-        redacts: Some(event_id!("$9654:matrix.org").to_owned()),
+        redacts: Some(owned_event_id!("$9654:matrix.org")),
         unsigned,
         hashes: EventHash::new("1233543bABACDEF".into()),
         signatures,
@@ -86,7 +87,7 @@ fn serialize_pdu_as_v3() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
     inner_signature.insert(
-        server_signing_key_id!("ed25519:key_version").to_owned(),
+        owned_server_signing_key_id!("ed25519:key_version"),
         "86BytesOfSignatureOfTheRedactedEvent".into(),
     );
     signatures.insert(server_name!("example.com").to_owned(), inner_signature);
@@ -95,16 +96,16 @@ fn serialize_pdu_as_v3() {
     unsigned.insert("somekey".into(), to_raw_json_value(&json!({ "a": 456 })).unwrap());
 
     let v3_pdu = RoomV3Pdu {
-        room_id: room_id!("!n8f893n9:example.com").to_owned(),
-        sender: user_id!("@sender:example.com").to_owned(),
+        room_id: owned_room_id!("!n8f893n9:example.com"),
+        sender: owned_user_id!("@sender:example.com"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(1_592_050_773_658_u64.try_into().unwrap()),
         kind: TimelineEventType::RoomPowerLevels,
         content: to_raw_json_value(&json!({ "testing": 123 })).unwrap(),
         state_key: Some("state".into()),
-        prev_events: vec![event_id!("$previousevent:matrix.org").to_owned()],
+        prev_events: vec![owned_event_id!("$previousevent:matrix.org")],
         depth: uint!(2),
-        auth_events: vec![event_id!("$someauthevent:matrix.org").to_owned()],
-        redacts: Some(event_id!("$9654:matrix.org").to_owned()),
+        auth_events: vec![owned_event_id!("$someauthevent:matrix.org")],
+        redacts: Some(owned_event_id!("$9654:matrix.org")),
         unsigned,
         hashes: EventHash::new("1233543bABACDEF".into()),
         signatures,

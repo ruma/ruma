@@ -55,12 +55,12 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::IgnoredUserListEventContent;
-    use crate::{events::AnyGlobalAccountDataEvent, user_id};
+    use crate::{events::AnyGlobalAccountDataEvent, owned_user_id, user_id};
 
     #[test]
     fn serialization() {
         let ignored_user_list =
-            IgnoredUserListEventContent::users(vec![user_id!("@carl:example.com").to_owned()]);
+            IgnoredUserListEventContent::users(vec![owned_user_id!("@carl:example.com")]);
 
         let json = json!({
             "ignored_users": {

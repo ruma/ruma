@@ -125,9 +125,8 @@ pub fn plain_and_formatted_reply_body(
 #[cfg(test)]
 mod tests {
     use crate::{
-        event_id,
         events::{room::message::RoomMessageEventContent, MessageLikeUnsigned},
-        room_id, user_id, MilliSecondsSinceUnixEpoch,
+        owned_event_id, owned_room_id, owned_user_id, MilliSecondsSinceUnixEpoch,
     };
 
     use super::OriginalRoomMessageEvent;
@@ -137,10 +136,10 @@ mod tests {
         let (plain_quote, html_quote) =
             super::get_message_quote_fallbacks(&OriginalRoomMessageEvent {
                 content: RoomMessageEventContent::text_plain("multi\nline"),
-                event_id: event_id!("$1598361704261elfgc:localhost").to_owned(),
-                sender: user_id!("@alice:example.com").to_owned(),
+                event_id: owned_event_id!("$1598361704261elfgc:localhost"),
+                sender: owned_user_id!("@alice:example.com"),
                 origin_server_ts: MilliSecondsSinceUnixEpoch::now(),
-                room_id: room_id!("!n8f893n9:example.com").to_owned(),
+                room_id: owned_room_id!("!n8f893n9:example.com"),
                 unsigned: MessageLikeUnsigned::new(),
             });
 

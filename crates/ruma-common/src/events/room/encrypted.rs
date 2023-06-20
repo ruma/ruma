@@ -251,7 +251,7 @@ mod tests {
         EncryptedEventScheme, InReplyTo, MegolmV1AesSha2ContentInit, Relation,
         RoomEncryptedEventContent,
     };
-    use crate::{event_id, serde::Raw};
+    use crate::{owned_event_id, serde::Raw};
 
     #[test]
     fn serialization() {
@@ -266,7 +266,7 @@ mod tests {
                 .into(),
             ),
             relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo { event_id: event_id!("$h29iv0s8:example.com").to_owned() },
+                in_reply_to: InReplyTo { event_id: owned_event_id!("$h29iv0s8:example.com") },
             }),
         };
 

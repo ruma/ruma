@@ -40,7 +40,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::ReactionEventContent;
-    use crate::{event_id, events::relation::Annotation};
+    use crate::{events::relation::Annotation, owned_event_id};
 
     #[test]
     fn deserialize() {
@@ -63,7 +63,7 @@ mod tests {
     #[test]
     fn serialize() {
         let content = ReactionEventContent::new(Annotation::new(
-            event_id!("$my_reaction").to_owned(),
+            owned_event_id!("$my_reaction"),
             "🏠".to_owned(),
         ));
 

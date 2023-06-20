@@ -1,6 +1,5 @@
 use assert_matches2::assert_matches;
 use ruma_common::{
-    device_id, event_id,
     events::{
         relation::{InReplyTo, Reference, Thread},
         room::encrypted::{
@@ -8,6 +7,7 @@ use ruma_common::{
             RoomEncryptedEventContent,
         },
     },
+    owned_device_id, owned_event_id,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -22,7 +22,7 @@ fn encrypted_scheme() -> EncryptedEventScheme {
                         lDl5mzVO3tPnJMKZ0hn+AF"
                 .to_owned(),
             sender_key: "aV9BpqYFqJpKYmgERyGv/6QyKMcgLqxM05V0gvzg9Yk".to_owned(),
-            device_id: device_id!("DEVICE").to_owned(),
+            device_id: owned_device_id!("DEVICE"),
             session_id: "IkwqWxT2zy3DI1E/zM2Wq+CE8tr3eEpsxsVGjGrMPdw".to_owned(),
         }
         .into(),
@@ -86,9 +86,7 @@ fn content_no_relation_deserialization() {
 fn content_reply_serialization() {
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
-        Some(Relation::Reply {
-            in_reply_to: InReplyTo::new(event_id!("$replied_to_event").to_owned()),
-        }),
+        Some(Relation::Reply { in_reply_to: InReplyTo::new(owned_event_id!("$replied_to_event")) }),
     );
 
     assert_eq!(
@@ -155,7 +153,7 @@ fn content_reply_deserialization() {
 fn content_replacement_serialization() {
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
-        Some(Relation::Replacement(Replacement::new(event_id!("$replaced_event").to_owned()))),
+        Some(Relation::Replacement(Replacement::new(owned_event_id!("$replaced_event")))),
     );
 
     assert_eq!(
@@ -220,7 +218,7 @@ fn content_replacement_deserialization() {
 fn content_reference_serialization() {
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
-        Some(Relation::Reference(Reference::new(event_id!("$referenced_event").to_owned()))),
+        Some(Relation::Reference(Reference::new(owned_event_id!("$referenced_event")))),
     );
 
     assert_eq!(
@@ -286,8 +284,8 @@ fn content_thread_serialization() {
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
         Some(Relation::Thread(Thread::plain(
-            event_id!("$thread_root").to_owned(),
-            event_id!("$prev_event").to_owned(),
+            owned_event_id!("$thread_root"),
+            owned_event_id!("$prev_event"),
         ))),
     );
 
@@ -365,7 +363,7 @@ fn content_annotation_serialization() {
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
         Some(Relation::Annotation(Annotation::new(
-            event_id!("$annotated_event").to_owned(),
+            owned_event_id!("$annotated_event"),
             "some_key".to_owned(),
         ))),
     );

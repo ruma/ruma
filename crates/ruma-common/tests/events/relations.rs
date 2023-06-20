@@ -1,11 +1,11 @@
 use assert_matches2::assert_matches;
 use assign::assign;
 use ruma_common::{
-    event_id,
     events::{
         relation::{InReplyTo, Replacement, Thread},
         room::message::{MessageType, Relation, RoomMessageEventContent},
     },
+    owned_event_id,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -35,7 +35,7 @@ fn reply_deserialize() {
 #[test]
 fn reply_serialize() {
     let content = assign!(RoomMessageEventContent::text_plain("This is a reply"), {
-        relates_to: Some(Relation::Reply { in_reply_to: InReplyTo::new(event_id!("$1598361704261elfgc").to_owned()) }),
+        relates_to: Some(Relation::Reply { in_reply_to: InReplyTo::new(owned_event_id!("$1598361704261elfgc")) }),
     });
 
     assert_eq!(
@@ -59,7 +59,7 @@ fn replacement_serialize() {
         {
             relates_to: Some(Relation::Replacement(
                 Replacement::new(
-                    event_id!("$1598361704261elfgc").to_owned(),
+                    owned_event_id!("$1598361704261elfgc"),
                     RoomMessageEventContent::text_plain("This is the new content.").into(),
                 )
             ))
@@ -118,8 +118,8 @@ fn thread_plain_serialize() {
         {
             relates_to: Some(Relation::Thread(
                 Thread::plain(
-                    event_id!("$1598361704261elfgc").to_owned(),
-                    event_id!("$latesteventid").to_owned(),
+                    owned_event_id!("$1598361704261elfgc"),
+                    owned_event_id!("$latesteventid"),
                 ),
             )),
         }
@@ -149,8 +149,8 @@ fn thread_reply_serialize() {
         {
             relates_to: Some(Relation::Thread(
                 Thread::reply(
-                    event_id!("$1598361704261elfgc").to_owned(),
-                    event_id!("$repliedtoeventid").to_owned(),
+                    owned_event_id!("$1598361704261elfgc"),
+                    owned_event_id!("$repliedtoeventid"),
                 ),
             )),
         }

@@ -78,14 +78,13 @@ mod tests {
 
     use super::{KeyVerificationReadyEventContent, ToDeviceKeyVerificationReadyEventContent};
     use crate::{
-        event_id,
         events::{key::verification::VerificationMethod, relation::Reference},
-        OwnedDeviceId,
+        owned_event_id, OwnedDeviceId,
     };
 
     #[test]
     fn serialization() {
-        let event_id = event_id!("$1598361704261elfgc:localhost").to_owned();
+        let event_id = owned_event_id!("$1598361704261elfgc:localhost");
         let device: OwnedDeviceId = "123".into();
 
         let json_data = json!({

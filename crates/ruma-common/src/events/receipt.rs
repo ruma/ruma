@@ -215,7 +215,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{Receipt, ReceiptThread};
-    use crate::{event_id, MilliSecondsSinceUnixEpoch};
+    use crate::{owned_event_id, MilliSecondsSinceUnixEpoch};
 
     #[test]
     fn serialize_receipt() {
@@ -225,7 +225,7 @@ mod tests {
         receipt.thread = ReceiptThread::Main;
         assert_eq!(to_json_value(receipt.clone()).unwrap(), json!({ "thread_id": "main" }));
 
-        receipt.thread = ReceiptThread::Thread(event_id!("$abcdef76543").to_owned());
+        receipt.thread = ReceiptThread::Thread(owned_event_id!("$abcdef76543"));
         assert_eq!(to_json_value(receipt).unwrap(), json!({ "thread_id": "$abcdef76543" }));
 
         let mut receipt =

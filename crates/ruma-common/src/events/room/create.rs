@@ -91,12 +91,12 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{RoomCreateEventContent, RoomType};
-    use crate::{user_id, RoomVersionId};
+    use crate::{owned_user_id, RoomVersionId};
 
     #[test]
     fn serialization() {
         let content = RoomCreateEventContent {
-            creator: user_id!("@carl:example.com").to_owned(),
+            creator: owned_user_id!("@carl:example.com"),
             federate: false,
             room_version: RoomVersionId::V4,
             predecessor: None,
@@ -115,7 +115,7 @@ mod tests {
     #[test]
     fn space_serialization() {
         let content = RoomCreateEventContent {
-            creator: user_id!("@carl:example.com").to_owned(),
+            creator: owned_user_id!("@carl:example.com"),
             federate: false,
             room_version: RoomVersionId::V4,
             predecessor: None,

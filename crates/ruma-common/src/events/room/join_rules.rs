@@ -248,7 +248,7 @@ mod tests {
     use assert_matches2::assert_matches;
 
     use super::{AllowRule, JoinRule, OriginalSyncRoomJoinRulesEvent, RoomJoinRulesEventContent};
-    use crate::room_id;
+    use crate::owned_room_id;
 
     #[test]
     fn deserialize() {
@@ -277,8 +277,8 @@ mod tests {
             JoinRule::Restricted(restricted) => assert_eq!(
                 restricted.allow,
                 &[
-                    AllowRule::room_membership(room_id!("!mods:example.org").to_owned()),
-                    AllowRule::room_membership(room_id!("!users:example.org").to_owned())
+                    AllowRule::room_membership(owned_room_id!("!mods:example.org")),
+                    AllowRule::room_membership(owned_room_id!("!users:example.org"))
                 ]
             ),
             rule => panic!("Deserialized to wrong variant: {rule:?}"),

@@ -7,7 +7,6 @@ use js_int::uint;
 #[cfg(feature = "unstable-msc3246")]
 use ruma_common::events::audio::Amplitude;
 use ruma_common::{
-    event_id,
     events::{
         audio::{AudioDetailsContentBlock, AudioEventContent},
         file::{EncryptedContentInit, FileContentBlock},
@@ -16,7 +15,7 @@ use ruma_common::{
         room::{message::Relation, JsonWebKeyInit},
         AnyMessageLikeEvent, MessageLikeEvent,
     },
-    mxc_uri,
+    mxc_uri, owned_event_id,
     serde::{Base64, CanBeEmpty},
     MilliSecondsSinceUnixEpoch,
 };
@@ -122,7 +121,7 @@ fn event_serialization() {
     content.file.size = Some(uint!(897_774));
     content.audio_details = Some(AudioDetailsContentBlock::new(Duration::from_secs(123)));
     content.relates_to = Some(Relation::Reply {
-        in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
+        in_reply_to: InReplyTo::new(owned_event_id!("$replyevent:example.com")),
     });
 
     assert_eq!(

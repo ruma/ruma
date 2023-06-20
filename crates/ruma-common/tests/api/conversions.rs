@@ -6,7 +6,7 @@ use ruma_common::{
         request, response, IncomingRequest as _, MatrixVersion, Metadata, OutgoingRequest as _,
         OutgoingRequestAppserviceExt, SendAccessToken,
     },
-    metadata, user_id, OwnedUserId,
+    metadata, owned_user_id, user_id, OwnedUserId,
 };
 
 const METADATA: Metadata = metadata! {
@@ -59,7 +59,7 @@ fn request_serde() {
         q1: "query_param_special_chars %/&@!".to_owned(),
         q2: 55,
         bar: "barVal".to_owned(),
-        user: user_id!("@bazme:ruma.io").to_owned(),
+        user: owned_user_id!("@bazme:ruma.io"),
     };
 
     let http_req = req
@@ -88,7 +88,7 @@ fn invalid_uri_should_not_panic() {
         q1: "query_param_special_chars %/&@!".to_owned(),
         q2: 55,
         bar: "barVal".to_owned(),
-        user: user_id!("@bazme:ruma.io").to_owned(),
+        user: owned_user_id!("@bazme:ruma.io"),
     };
 
     let result = req.try_into_http_request::<Vec<u8>>(
@@ -107,7 +107,7 @@ fn request_with_user_id_serde() {
         q1: "query_param_special_chars %/&@!".to_owned(),
         q2: 55,
         bar: "barVal".to_owned(),
-        user: user_id!("@bazme:ruma.io").to_owned(),
+        user: owned_user_id!("@bazme:ruma.io"),
     };
 
     let user_id = user_id!("@_virtual_:ruma.io");
@@ -135,7 +135,7 @@ mod without_query {
             request, response, MatrixVersion, Metadata, OutgoingRequestAppserviceExt,
             SendAccessToken,
         },
-        metadata, user_id, OwnedUserId,
+        metadata, owned_user_id, user_id, OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -180,7 +180,7 @@ mod without_query {
             hello: "hi".to_owned(),
             world: "test".to_owned(),
             bar: "barVal".to_owned(),
-            user: user_id!("@bazme:ruma.io").to_owned(),
+            user: owned_user_id!("@bazme:ruma.io"),
         };
 
         let user_id = user_id!("@_virtual_:ruma.io");

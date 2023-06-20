@@ -376,8 +376,8 @@ pub mod v1 {
     mod tests {
         use js_int::uint;
         use ruma_common::{
-            event_id, events::TimelineEventType, room_alias_id, room_id, user_id,
-            SecondsSinceUnixEpoch,
+            events::TimelineEventType, owned_event_id, owned_room_alias_id, owned_room_id,
+            owned_user_id, SecondsSinceUnixEpoch,
         };
         use serde_json::{
             from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
@@ -413,10 +413,10 @@ pub mod v1 {
                 ]
             });
 
-            let eid = event_id!("$3957tyerfgewrf384").to_owned();
-            let rid = room_id!("!slw48wfj34rtnrf:example.com").to_owned();
-            let uid = user_id!("@exampleuser:matrix.org").to_owned();
-            let alias = room_alias_id!("#exampleroom:matrix.org").to_owned();
+            let eid = owned_event_id!("$3957tyerfgewrf384");
+            let rid = owned_room_id!("!slw48wfj34rtnrf:example.com");
+            let uid = owned_user_id!("@exampleuser:matrix.org");
+            let alias = owned_room_alias_id!("#exampleroom:matrix.org");
 
             let count = NotificationCounts { unread: uint!(2), ..NotificationCounts::default() };
 

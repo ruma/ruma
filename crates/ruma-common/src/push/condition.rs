@@ -451,7 +451,10 @@ mod tests {
     };
 
     use super::{FlattenedJson, PushCondition, PushConditionRoomCtx, RoomMemberCountIs, StrExt};
-    use crate::{power_levels::NotificationPowerLevels, room_id, serde::Raw, user_id, OwnedUserId};
+    use crate::{
+        owned_room_id, owned_user_id, power_levels::NotificationPowerLevels, serde::Raw,
+        OwnedUserId,
+    };
 
     #[test]
     fn serialize_event_match_condition() {
@@ -639,7 +642,7 @@ mod tests {
     }
 
     fn sender() -> OwnedUserId {
-        user_id!("@worthy_whale:server.name").to_owned()
+        owned_user_id!("@worthy_whale:server.name")
     }
 
     fn push_context() -> PushConditionRoomCtx {
@@ -647,9 +650,9 @@ mod tests {
         users_power_levels.insert(sender(), int!(25));
 
         PushConditionRoomCtx {
-            room_id: room_id!("!room:server.name").to_owned(),
+            room_id: owned_room_id!("!room:server.name"),
             member_count: uint!(3),
-            user_id: user_id!("@gorilla:server.name").to_owned(),
+            user_id: owned_user_id!("@gorilla:server.name"),
             user_display_name: "Groovy Gorilla".into(),
             users_power_levels,
             default_power_level: int!(50),
@@ -768,9 +771,9 @@ mod tests {
         let context_not_matching = push_context();
 
         let context_matching = PushConditionRoomCtx {
-            room_id: room_id!("!room:server.name").to_owned(),
+            room_id: owned_room_id!("!room:server.name"),
             member_count: uint!(3),
-            user_id: user_id!("@gorilla:server.name").to_owned(),
+            user_id: owned_user_id!("@gorilla:server.name"),
             user_display_name: "Groovy Gorilla".into(),
             users_power_levels: context_not_matching.users_power_levels.clone(),
             default_power_level: int!(50),

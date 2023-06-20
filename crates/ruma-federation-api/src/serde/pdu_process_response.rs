@@ -73,7 +73,7 @@ where
 mod tests {
     use std::collections::BTreeMap;
 
-    use ruma_common::{event_id, OwnedEventId};
+    use ruma_common::{event_id, owned_event_id, OwnedEventId};
     use serde_json::{json, value::Serializer as JsonSerializer};
 
     use super::{deserialize, serialize};
@@ -81,10 +81,8 @@ mod tests {
     #[test]
     fn serialize_error() {
         let mut response: BTreeMap<OwnedEventId, Result<(), String>> = BTreeMap::new();
-        response.insert(
-            event_id!("$someevent:matrix.org").to_owned(),
-            Err("Some processing error.".into()),
-        );
+        response
+            .insert(owned_event_id!("$someevent:matrix.org"), Err("Some processing error.".into()));
 
         let serialized = serialize(&response, JsonSerializer).unwrap();
         let json = json!({
@@ -96,7 +94,7 @@ mod tests {
     #[test]
     fn serialize_ok() {
         let mut response: BTreeMap<OwnedEventId, Result<(), String>> = BTreeMap::new();
-        response.insert(event_id!("$someevent:matrix.org").to_owned(), Ok(()));
+        response.insert(owned_event_id!("$someevent:matrix.org"), Ok(()));
 
         let serialized = serialize(&response, serde_json::value::Serializer).unwrap();
         let json = json!({

@@ -5,7 +5,6 @@ use std::time::Duration;
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    event_id,
     events::{
         file::{CaptionContentBlock, EncryptedContentInit, FileContentBlock},
         image::{Thumbnail, ThumbnailFileContentBlock, ThumbnailImageDetailsContentBlock},
@@ -15,7 +14,7 @@ use ruma_common::{
         video::{VideoDetailsContentBlock, VideoEventContent},
         AnyMessageLikeEvent, MessageLikeEvent,
     },
-    mxc_uri,
+    mxc_uri, owned_event_id,
     serde::{Base64, CanBeEmpty},
     MilliSecondsSinceUnixEpoch,
 };
@@ -128,7 +127,7 @@ fn event_serialization() {
     content.thumbnail = vec![thumbnail].into();
     content.caption = Some(CaptionContentBlock::plain("This is my awesome vintage lava lamp"));
     content.relates_to = Some(Relation::Reply {
-        in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com").to_owned()),
+        in_reply_to: InReplyTo::new(owned_event_id!("$replyevent:example.com")),
     });
 
     assert_eq!(

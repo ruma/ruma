@@ -4,7 +4,6 @@ use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::uint;
 use ruma_common::{
-    event_id,
     events::{
         emote::EmoteEventContent,
         message::{MessageEventContent, TextContentBlock, TextRepresentation},
@@ -12,6 +11,7 @@ use ruma_common::{
         room::message::Relation,
         AnyMessageLikeEvent, MessageLikeEvent,
     },
+    owned_event_id,
     serde::CanBeEmpty,
     MilliSecondsSinceUnixEpoch,
 };
@@ -134,7 +134,7 @@ fn relates_to_content_serialization() {
         assign!(MessageEventContent::plain("> <@test:example.com> test\n\ntest reply"), {
             relates_to: Some(Relation::Reply {
                 in_reply_to: InReplyTo::new(
-                    event_id!("$15827405538098VGFWH:example.com").to_owned(),
+                    owned_event_id!("$15827405538098VGFWH:example.com"),
                 ),
             }),
         });

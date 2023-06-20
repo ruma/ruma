@@ -67,13 +67,10 @@
 //! #     .await?;
 //!
 //! use ruma_client_api::alias::get_alias;
-//! use ruma_common::{api::MatrixVersion, room_alias_id, room_id};
+//! use ruma_common::{api::MatrixVersion, owned_room_alias_id, room_id};
 //!
-//! let response = client
-//!     .send_request(get_alias::v3::Request::new(
-//!         room_alias_id!("#example_room:example.com").to_owned(),
-//!     ))
-//!     .await?;
+//! let alias = owned_room_alias_id!("#example_room:example.com");
+//! let response = client.send_request(get_alias::v3::Request::new(alias)).await?;
 //!
 //! assert_eq!(response.room_id, room_id!("!n8f893n9:example.com"));
 //! # Result::<(), ruma_client::Error<_, _>>::Ok(())

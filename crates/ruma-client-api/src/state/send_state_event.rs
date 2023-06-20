@@ -210,12 +210,12 @@ pub mod v3 {
         use ruma_common::{
             api::{MatrixVersion, OutgoingRequest as _, SendAccessToken},
             events::{room::name::RoomNameEventContent, EmptyStateKey},
-            room_id,
+            owned_room_id,
         };
 
         // This used to panic in make_endpoint_url because of a mismatch in the path parameter count
         let req = Request::new(
-            room_id!("!room:server.tld").to_owned(),
+            owned_room_id!("!room:server.tld"),
             &EmptyStateKey,
             &RoomNameEventContent::new(Some("Test room".to_owned())),
         )

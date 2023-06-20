@@ -87,21 +87,19 @@ pub mod v3 {
         fn serialize_request() {
             use ruma_common::{
                 api::{MatrixVersion, OutgoingRequest, SendAccessToken},
-                user_id,
+                owned_user_id,
             };
 
             use crate::filter::FilterDefinition;
 
-            let req = super::Request::new(
-                user_id!("@foo:bar.com").to_owned(),
-                FilterDefinition::default(),
-            )
-            .try_into_http_request::<Vec<u8>>(
-                "https://matrix.org",
-                SendAccessToken::IfRequired("tok"),
-                &[MatrixVersion::V1_1],
-            )
-            .unwrap();
+            let req =
+                super::Request::new(owned_user_id!("@foo:bar.com"), FilterDefinition::default())
+                    .try_into_http_request::<Vec<u8>>(
+                        "https://matrix.org",
+                        SendAccessToken::IfRequired("tok"),
+                        &[MatrixVersion::V1_1],
+                    )
+                    .unwrap();
             assert_eq!(req.body(), b"{}");
         }
     }
