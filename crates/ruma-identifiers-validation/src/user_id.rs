@@ -1,7 +1,7 @@
 use crate::{parse_id, Error};
 
 pub fn validate(s: &str) -> Result<(), Error> {
-    let colon_idx = parse_id(s, &['@'])?;
+    let colon_idx = parse_id(s)?;
     let localpart = &s[1..colon_idx];
     let _ = localpart_is_fully_conforming(localpart)?;
 

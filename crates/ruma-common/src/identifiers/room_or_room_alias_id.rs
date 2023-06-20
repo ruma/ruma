@@ -1,7 +1,5 @@
 //! Matrix identifiers for places where a room ID or room alias ID are used interchangeably.
 
-use std::hint::unreachable_unchecked;
-
 use ruma_macros::IdZst;
 
 use super::{server_name::ServerName, OwnedRoomAliasId, OwnedRoomId, RoomAliasId, RoomId};
@@ -42,31 +40,17 @@ impl RoomOrAliasId {
 
     /// Whether this is a room id (starts with `'!'`)
     pub fn is_room_id(&self) -> bool {
-        self.variant() == Variant::RoomId
+        self.as_bytes()[0] == b'!'
     }
 
     /// Whether this is a room alias id (starts with `'#'`)
     pub fn is_room_alias_id(&self) -> bool {
-        self.variant() == Variant::RoomAliasId
+        self.as_bytes()[0] == b'#'
     }
 
     fn colon_idx(&self) -> usize {
         self.as_str().find(':').unwrap()
     }
-
-    fn variant(&self) -> Variant {
-        match self.as_str().bytes().next() {
-            Some(b'!') => Variant::RoomId,
-            Some(b'#') => Variant::RoomAliasId,
-            _ => unsafe { unreachable_unchecked() },
-        }
-    }
-}
-
-#[derive(PartialEq, Eq)]
-enum Variant {
-    RoomId,
-    RoomAliasId,
 }
 
 impl<'a> From<&'a RoomId> for &'a RoomOrAliasId {
@@ -92,52 +76,6 @@ impl From<OwnedRoomAliasId> for OwnedRoomOrAliasId {
     fn from(room_alias_id: OwnedRoomAliasId) -> Self {
         // FIXME: Don't allocate
         RoomOrAliasId::from_borrowed(room_alias_id.as_str()).to_owned()
-    }
-}
-
-impl<'a> TryFrom<&'a RoomOrAliasId> for &'a RoomId {
-    type Error = &'a RoomAliasId;
-
-    fn try_from(id: &'a RoomOrAliasId) -> Result<&'a RoomId, &'a RoomAliasId> {
-        match id.variant() {
-            Variant::RoomId => Ok(RoomId::from_borrowed(id.as_str())),
-            Variant::RoomAliasId => Err(RoomAliasId::from_borrowed(id.as_str())),
-        }
-    }
-}
-
-impl<'a> TryFrom<&'a RoomOrAliasId> for &'a RoomAliasId {
-    type Error = &'a RoomId;
-
-    fn try_from(id: &'a RoomOrAliasId) -> Result<&'a RoomAliasId, &'a RoomId> {
-        match id.variant() {
-            Variant::RoomAliasId => Ok(RoomAliasId::from_borrowed(id.as_str())),
-            Variant::RoomId => Err(RoomId::from_borrowed(id.as_str())),
-        }
-    }
-}
-
-impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomId {
-    type Error = OwnedRoomAliasId;
-
-    fn try_from(id: OwnedRoomOrAliasId) -> Result<OwnedRoomId, OwnedRoomAliasId> {
-        // FIXME: Don't allocate
-        match id.variant() {
-            Variant::RoomId => Ok(RoomId::from_borrowed(id.as_str()).to_owned()),
-            Variant::RoomAliasId => Err(RoomAliasId::from_borrowed(id.as_str()).to_owned()),
-        }
-    }
-}
-
-impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomAliasId {
-    type Error = OwnedRoomId;
-
-    fn try_from(id: OwnedRoomOrAliasId) -> Result<OwnedRoomAliasId, OwnedRoomId> {
-        // FIXME: Don't allocate
-        match id.variant() {
-            Variant::RoomAliasId => Ok(RoomAliasId::from_borrowed(id.as_str()).to_owned()),
-            Variant::RoomId => Err(RoomId::from_borrowed(id.as_str()).to_owned()),
-        }
     }
 }
 
