@@ -94,6 +94,8 @@ event_enum! {
         #[ruma_enum(alias = "m.voice")]
         "org.matrix.msc3245.voice.v2" => super::voice,
         "m.dummy" => super::dummy,
+        #[ruma_enum(alias = "m.room.receipt")]
+        "org.matrix.room_receipt" => super::room_receipt,
     }
 
     /// Any state event.
@@ -362,6 +364,7 @@ impl AnyMessageLikeEventContent {
             | Self::CallCandidates(_)
             | Self::RoomRedaction(_)
             | Self::Sticker(_)
+            | Self::RoomReceipt(_)
             | Self::Dummy(_) => None,
             Self::_Custom { .. } => None,
         }

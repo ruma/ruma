@@ -17,6 +17,7 @@ mod redacted;
 mod redaction;
 mod relations;
 mod room_message;
+mod room_receipt;
 mod state_event;
 mod sticker;
 mod stripped;
