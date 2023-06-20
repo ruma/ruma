@@ -141,7 +141,7 @@ macro_rules! event_id {
 #[macro_export]
 macro_rules! owned_event_id {
     ($s:literal) => {
-        $crate::event_id($s).to_owned()
+        $crate::event_id!($s).to_owned()
     };
 }
 
@@ -157,7 +157,7 @@ macro_rules! room_alias_id {
 #[macro_export]
 macro_rules! owned_room_alias_id {
     ($s:literal) => {
-        $crate::room_alias_id($s).to_owned()
+        $crate::room_alias_id!($s).to_owned()
     };
 }
 
@@ -173,7 +173,7 @@ macro_rules! room_id {
 #[macro_export]
 macro_rules! owned_room_id {
     ($s:literal) => {
-        $crate::room_id($s).to_owned()
+        $crate::room_id!($s).to_owned()
     };
 }
 
@@ -197,7 +197,7 @@ macro_rules! server_signing_key_id {
 #[macro_export]
 macro_rules! owned_server_signing_key_id {
     ($s:literal) => {
-        $crate::server_signing_key_id($s).to_owned()
+        $crate::server_signing_key_id!($s).to_owned()
     };
 }
 
@@ -213,7 +213,7 @@ macro_rules! server_name {
 #[macro_export]
 macro_rules! owned_server_name {
     ($s:literal) => {
-        $crate::server_name($s).to_owned()
+        $crate::server_name!($s).to_owned()
     };
 }
 
@@ -234,7 +234,7 @@ macro_rules! session_id {
 #[macro_export]
 macro_rules! owned_session_id {
     ($s:literal) => {
-        $crate::session_id($s).to_owned()
+        $crate::session_id!($s).to_owned()
     };
 }
 
@@ -250,7 +250,7 @@ macro_rules! mxc_uri {
 #[macro_export]
 macro_rules! owned_mxc_uri {
     ($s:literal) => {
-        $crate::mxc_uri($s).to_owned()
+        $crate::mxc_uri!($s).to_owned()
     };
 }
 
@@ -266,6 +266,6 @@ macro_rules! user_id {
 #[macro_export]
 macro_rules! owned_user_id {
     ($s:literal) => {
-        $crate::user_id($s).to_owned()
+        $crate::user_id!($s).to_owned()
     };
 }
