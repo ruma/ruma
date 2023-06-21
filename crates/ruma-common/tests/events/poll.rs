@@ -1,24 +1,25 @@
 #![cfg(feature = "unstable-msc3381")]
 
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, ops::Range};
 
 use assert_matches2::assert_matches;
-use js_int::uint;
+use js_int::{uint, UInt};
 use ruma_common::{
     events::{
         message::TextContentBlock,
         poll::{
+            compile_poll_results,
             end::PollEndEventContent,
-            response::PollResponseEventContent,
+            response::{OriginalSyncPollResponseEvent, PollResponseEventContent},
             start::{
-                PollAnswer, PollAnswers, PollAnswersError, PollContentBlock, PollKind,
-                PollStartEventContent,
+                OriginalSyncPollStartEvent, PollAnswer, PollAnswers, PollAnswersError,
+                PollContentBlock, PollKind, PollStartEventContent,
             },
         },
         relation::Reference,
         AnyMessageLikeEvent, MessageLikeEvent,
     },
-    owned_event_id,
+    owned_event_id, MilliSecondsSinceUnixEpoch,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -339,4 +340,304 @@ fn end_event_deserialization() {
     assert_eq!(message_event.content.text[0].body, "The poll has closed. Top answer: Amazing!");
     assert_matches!(message_event.content.relates_to, Reference { event_id, .. });
     assert_eq!(event_id, "$related_event:notareal.hs");
+}
+
+fn new_poll_response(
+    event_id: &str,
+    user_id: &str,
+    ts: UInt,
+    selections: &[&str],
+) -> OriginalSyncPollResponseEvent {
+    from_json_value(json!({
+      "type": "org.matrix.msc3381.v2.poll.response",
+      "sender": user_id,
+      "origin_server_ts": ts,
+      "event_id": event_id,
+      "content": {
+        "m.relates_to": {
+          "rel_type": "m.reference",
+          "event_id": "$poll_start_event_id"
+        },
+        "org.matrix.msc3381.v2.selections": selections,
+      }
+    }))
+    .unwrap()
+}
+
+fn generate_poll_responses(
+    range: Range<usize>,
+    selections: &[&str],
+) -> Vec<OriginalSyncPollResponseEvent> {
+    let mut responses = Vec::with_capacity(range.len());
+
+    for i in range {
+        let event_id = format!("$valid_event_{i}");
+        let user_id = format!("@valid_user_{i}:localhost");
+        let ts = 1000 + i as u16;
+
+        responses.push(new_poll_response(&event_id, &user_id, ts.into(), selections));
+    }
+
+    responses
+}
+
+#[test]
+fn compute_results() {
+    let poll: OriginalSyncPollStartEvent = from_json_value(json!({
+        "type": "org.matrix.msc3381.v2.poll.start",
+        "sender": "@alice:localhost",
+        "event_id": "$poll_start_event_id",
+        "origin_server_ts": 1,
+        "content": {
+          "org.matrix.msc1767.text": [
+            {
+              "mimetype": "text/plain",
+              "body": "What should we order for the party?\n1. Pizza 🍕\n2. Poutine 🍟\n3. Italian 🍝\n4. Wings 🔥"
+            }
+          ],
+          "org.matrix.msc3381.v2.poll": {
+            "kind": "m.disclosed",
+            "max_selections": 2,
+            "question": {
+              "org.matrix.msc1767.text": [{"body": "What should we order for the party?"}]
+            },
+            "answers": [
+              {"org.matrix.msc3381.v2.id": "pizza", "org.matrix.msc1767.text": [{"body": "Pizza 🍕"}]},
+              {"org.matrix.msc3381.v2.id": "poutine", "org.matrix.msc1767.text": [{"body": "Poutine 🍟"}]},
+              {"org.matrix.msc3381.v2.id": "italian", "org.matrix.msc1767.text": [{"body": "Italian 🍝"}]},
+              {"org.matrix.msc3381.v2.id": "wings", "org.matrix.msc1767.text": [{"body": "Wings 🔥"}]},
+            ]
+          }
+        }
+      })).unwrap();
+
+    // Populate responses.
+    let mut responses = generate_poll_responses(0..5, &["pizza"]);
+    responses.extend(generate_poll_responses(5..10, &["poutine"]));
+    responses.extend(generate_poll_responses(10..15, &["italian"]));
+    responses.extend(generate_poll_responses(15..20, &["wings"]));
+
+    let counted = compile_poll_results(&poll.content.poll, &responses, None);
+    assert_eq!(counted.get("pizza").unwrap().len(), 5);
+    assert_eq!(counted.get("poutine").unwrap().len(), 5);
+    assert_eq!(counted.get("italian").unwrap().len(), 5);
+    assert_eq!(counted.get("wings").unwrap().len(), 5);
+    let mut iter = counted.keys();
+    assert_eq!(iter.next(), Some(&"pizza"));
+    assert_eq!(iter.next(), Some(&"poutine"));
+    assert_eq!(iter.next(), Some(&"italian"));
+    assert_eq!(iter.next(), Some(&"wings"));
+    assert_eq!(iter.next(), None);
+
+    let poll_end = poll.compile_results(&responses);
+    let results = poll_end.poll_results.unwrap();
+    assert_eq!(*results.get("pizza").unwrap(), uint!(5));
+    assert_eq!(*results.get("poutine").unwrap(), uint!(5));
+    assert_eq!(*results.get("italian").unwrap(), uint!(5));
+    assert_eq!(*results.get("wings").unwrap(), uint!(5));
+    assert_eq!(
+        results.sorted().as_slice(),
+        &[("italian", uint!(5)), ("pizza", uint!(5)), ("poutine", uint!(5)), ("wings", uint!(5))]
+    );
+    assert_eq!(
+        poll_end.text.find_plain(),
+        Some("The poll has closed. Top answers: Pizza 🍕, Poutine 🍟, Italian 🍝, Wings 🔥")
+    );
+
+    responses.extend(vec![
+        new_poll_response(
+            "$multi_event_1",
+            "@multi_user_1:localhost",
+            uint!(2000),
+            &["poutine", "wings"],
+        ),
+        new_poll_response(
+            "$multi_event_2",
+            "@multi_user_2:localhost",
+            uint!(2200),
+            &["poutine", "italian"],
+        ),
+    ]);
+
+    let counted = compile_poll_results(&poll.content.poll, &responses, None);
+    assert_eq!(counted.get("pizza").unwrap().len(), 5);
+    assert_eq!(counted.get("poutine").unwrap().len(), 7);
+    assert_eq!(counted.get("italian").unwrap().len(), 6);
+    assert_eq!(counted.get("wings").unwrap().len(), 6);
+    let mut iter = counted.keys();
+    assert_eq!(iter.next(), Some(&"poutine"));
+    assert_eq!(iter.next(), Some(&"italian"));
+    assert_eq!(iter.next(), Some(&"wings"));
+    assert_eq!(iter.next(), Some(&"pizza"));
+    assert_eq!(iter.next(), None);
+
+    let poll_end = poll.compile_results(&responses);
+    let results = poll_end.poll_results.unwrap();
+    assert_eq!(*results.get("pizza").unwrap(), uint!(5));
+    assert_eq!(*results.get("poutine").unwrap(), uint!(7));
+    assert_eq!(*results.get("italian").unwrap(), uint!(6));
+    assert_eq!(*results.get("wings").unwrap(), uint!(6));
+    assert_eq!(
+        results.sorted().as_slice(),
+        &[("poutine", uint!(7)), ("italian", uint!(6)), ("wings", uint!(6)), ("pizza", uint!(5))]
+    );
+    assert_eq!(poll_end.text.find_plain(), Some("The poll has closed. Top answer: Poutine 🍟"));
+
+    responses.extend(vec![
+        new_poll_response(
+            "$multi_same_event_1",
+            "@multi_same_user_1:localhost",
+            uint!(3000),
+            &["poutine", "poutine"],
+        ),
+        new_poll_response(
+            "$multi_same_event_2",
+            "@multi_same_user_2:localhost",
+            uint!(3300),
+            &["pizza", "pizza"],
+        ),
+    ]);
+
+    let counted = compile_poll_results(&poll.content.poll, &responses, None);
+    assert_eq!(counted.get("pizza").unwrap().len(), 6);
+    assert_eq!(counted.get("poutine").unwrap().len(), 8);
+    assert_eq!(counted.get("italian").unwrap().len(), 6);
+    assert_eq!(counted.get("wings").unwrap().len(), 6);
+
+    let poll_end = poll.compile_results(&responses);
+    let results = poll_end.poll_results.unwrap();
+    assert_eq!(*results.get("pizza").unwrap(), uint!(6));
+    assert_eq!(*results.get("poutine").unwrap(), uint!(8));
+    assert_eq!(*results.get("italian").unwrap(), uint!(6));
+    assert_eq!(*results.get("wings").unwrap(), uint!(6));
+
+    let changing_user_1 = "@changing_user_1:localhost";
+    let changing_user_2 = "@changing_user_2:localhost";
+    let changing_user_3 = "@changing_user_3:localhost";
+
+    responses.extend(vec![
+        new_poll_response("$valid_for_now_event_1", changing_user_1, uint!(4000), &["wings"]),
+        new_poll_response("$valid_for_now_event_2", changing_user_2, uint!(4100), &["wings"]),
+        new_poll_response("$valid_for_now_event_3", changing_user_3, uint!(4200), &["wings"]),
+    ]);
+
+    let counted = compile_poll_results(&poll.content.poll, &responses, None);
+    assert_eq!(counted.get("pizza").unwrap().len(), 6);
+    assert_eq!(counted.get("poutine").unwrap().len(), 8);
+    assert_eq!(counted.get("italian").unwrap().len(), 6);
+    assert_eq!(counted.get("wings").unwrap().len(), 9);
+    let mut iter = counted.keys();
+    assert_eq!(iter.next(), Some(&"wings"));
+    assert_eq!(iter.next(), Some(&"poutine"));
+    assert_eq!(iter.next(), Some(&"pizza"));
+    assert_eq!(iter.next(), Some(&"italian"));
+    assert_eq!(iter.next(), None);
+
+    let poll_end = poll.compile_results(&responses);
+    let results = poll_end.poll_results.unwrap();
+    assert_eq!(*results.get("pizza").unwrap(), uint!(6));
+    assert_eq!(*results.get("poutine").unwrap(), uint!(8));
+    assert_eq!(*results.get("italian").unwrap(), uint!(6));
+    assert_eq!(*results.get("wings").unwrap(), uint!(9));
+    assert_eq!(
+        results.sorted().as_slice(),
+        &[("wings", uint!(9)), ("poutine", uint!(8)), ("italian", uint!(6)), ("pizza", uint!(6))]
+    );
+    assert_eq!(poll_end.text.find_plain(), Some("The poll has closed. Top answer: Wings 🔥"));
+
+    // Change with new selection.
+    responses.push(new_poll_response(
+        "$change_vote_event",
+        changing_user_1,
+        uint!(4400),
+        &["italian"],
+    ));
+
+    let counted = compile_poll_results(&poll.content.poll, &responses, None);
+    assert_eq!(counted.get("pizza").unwrap().len(), 6);
+    assert_eq!(counted.get("poutine").unwrap().len(), 8);
+    assert_eq!(counted.get("italian").unwrap().len(), 7);
+    assert_eq!(counted.get("wings").unwrap().len(), 8);
+
+    let poll_end = poll.compile_results(&responses);
+    let results = poll_end.poll_results.unwrap();
+    assert_eq!(*results.get("pizza").unwrap(), uint!(6));
+    assert_eq!(*results.get("poutine").unwrap(), uint!(8));
+    assert_eq!(*results.get("italian").unwrap(), uint!(7));
+    assert_eq!(*results.get("wings").unwrap(), uint!(8));
+
+    // Change with no selection.
+    responses.push(new_poll_response(
+        "$no_selection_vote_event",
+        changing_user_1,
+        uint!(4500),
+        &[],
+    ));
+
+    let counted = compile_poll_results(&poll.content.poll, &responses, None);
+    assert_eq!(counted.get("pizza").unwrap().len(), 6);
+    assert_eq!(counted.get("poutine").unwrap().len(), 8);
+    assert_eq!(counted.get("italian").unwrap().len(), 6);
+    assert_eq!(counted.get("wings").unwrap().len(), 8);
+
+    let poll_end = poll.compile_results(&responses);
+    let results = poll_end.poll_results.unwrap();
+    assert_eq!(*results.get("pizza").unwrap(), uint!(6));
+    assert_eq!(*results.get("poutine").unwrap(), uint!(8));
+    assert_eq!(*results.get("italian").unwrap(), uint!(6));
+    assert_eq!(*results.get("wings").unwrap(), uint!(8));
+
+    // Change with invalid selection.
+    responses.push(new_poll_response(
+        "$invalid_vote_event",
+        changing_user_2,
+        uint!(4500),
+        &["indian"],
+    ));
+
+    let counted = compile_poll_results(&poll.content.poll, &responses, None);
+    assert_eq!(counted.get("pizza").unwrap().len(), 6);
+    assert_eq!(counted.get("poutine").unwrap().len(), 8);
+    assert_eq!(counted.get("italian").unwrap().len(), 6);
+    assert_eq!(counted.get("wings").unwrap().len(), 7);
+
+    let poll_end = poll.compile_results(&responses);
+    let results = poll_end.poll_results.unwrap();
+    assert_eq!(*results.get("pizza").unwrap(), uint!(6));
+    assert_eq!(*results.get("poutine").unwrap(), uint!(8));
+    assert_eq!(*results.get("italian").unwrap(), uint!(6));
+    assert_eq!(*results.get("wings").unwrap(), uint!(7));
+
+    // Response older than most recent one is ignored.
+    responses.push(new_poll_response("$past_event", changing_user_3, uint!(1), &["pizza"]));
+
+    let counted = compile_poll_results(&poll.content.poll, &responses, None);
+    assert_eq!(counted.get("pizza").unwrap().len(), 6);
+    assert_eq!(counted.get("poutine").unwrap().len(), 8);
+    assert_eq!(counted.get("italian").unwrap().len(), 6);
+    assert_eq!(counted.get("wings").unwrap().len(), 7);
+
+    let poll_end = poll.compile_results(&responses);
+    let results = poll_end.poll_results.unwrap();
+    assert_eq!(*results.get("pizza").unwrap(), uint!(6));
+    assert_eq!(*results.get("poutine").unwrap(), uint!(8));
+    assert_eq!(*results.get("italian").unwrap(), uint!(6));
+    assert_eq!(*results.get("wings").unwrap(), uint!(7));
+
+    // Response in the future is ignored.
+    let future_ts = MilliSecondsSinceUnixEpoch::now().0 + uint!(100_000);
+    responses.push(new_poll_response("$future_event", changing_user_3, future_ts, &["pizza"]));
+
+    let counted = compile_poll_results(&poll.content.poll, &responses, None);
+    assert_eq!(counted.get("pizza").unwrap().len(), 6);
+    assert_eq!(counted.get("poutine").unwrap().len(), 8);
+    assert_eq!(counted.get("italian").unwrap().len(), 6);
+    assert_eq!(counted.get("wings").unwrap().len(), 7);
+
+    let poll_end = poll.compile_results(&responses);
+    let results = poll_end.poll_results.unwrap();
+    assert_eq!(*results.get("pizza").unwrap(), uint!(6));
+    assert_eq!(*results.get("poutine").unwrap(), uint!(8));
+    assert_eq!(*results.get("italian").unwrap(), uint!(6));
+    assert_eq!(*results.get("wings").unwrap(), uint!(7));
 }
