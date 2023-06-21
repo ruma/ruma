@@ -3,9 +3,10 @@
 use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::uint;
+#[cfg(feature = "unstable-msc3954")]
+use ruma_common::events::emote::EmoteEventContent;
 use ruma_common::{
     events::{
-        emote::EmoteEventContent,
         message::{MessageEventContent, TextContentBlock, TextRepresentation},
         relation::InReplyTo,
         room::message::Relation,
