@@ -15,6 +15,11 @@ use crate::{
 };
 
 /// The payload for a poll end event.
+///
+/// This type can be generated from the poll start and poll response events with
+/// [`OriginalSyncPollStartEvent::compile_results()`].
+///
+/// [`OriginalSyncPollStartEvent::compile_results()`]: super::start::OriginalSyncPollStartEvent::compile_results
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc3381.v2.poll.end", alias = "m.poll.end", kind = MessageLike)]
@@ -76,6 +81,17 @@ impl PollEndEventContent {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct PollResultsContentBlock(BTreeMap<String, UInt>);
+
+impl PollResultsContentBlock {
+    /// Get these results sorted from the highest number of votes to the lowest.
+    ///
+    /// Returns a list of `(answer ID, number of votes)`.
+    pub fn sorted(&self) -> Vec<(&str, UInt)> {
+        let mut sorted = self.0.iter().map(|(id, count)| (id.as_str(), *count)).collect::<Vec<_>>();
+        sorted.sort_by(|(_, a), (_, b)| b.cmp(a));
+        sorted
+    }
+}
 
 impl From<BTreeMap<String, UInt>> for PollResultsContentBlock {
     fn from(value: BTreeMap<String, UInt>) -> Self {

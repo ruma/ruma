@@ -12,6 +12,12 @@ use poll_answers_serde::PollAnswersDeHelper;
 
 use crate::{events::message::TextContentBlock, serde::StringEnum, PrivOwnedStr};
 
+use super::{
+    compile_poll_results,
+    end::{PollEndEventContent, PollResultsContentBlock},
+    response::OriginalSyncPollResponseEvent,
+};
+
 /// The payload for a poll start event.
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -56,6 +62,74 @@ impl PollStartEventContent {
             #[cfg(feature = "unstable-msc3955")]
             automated: false,
         }
+    }
+}
+
+impl OriginalSyncPollStartEvent {
+    /// Compile the results for this poll with the given response into a `PollEndEventContent`.
+    ///
+    /// It generates a default text representation of the results in English.
+    ///
+    /// This uses [`compile_poll_results()`] internally.
+    pub fn compile_results<'a>(
+        &'a self,
+        responses: impl IntoIterator<Item = &'a OriginalSyncPollResponseEvent>,
+    ) -> PollEndEventContent {
+        let computed = compile_poll_results(&self.content.poll, responses, None);
+
+        // Construct the results and get the top answer(s).
+        let mut top_answers = Vec::new();
+        let mut top_count = uint!(0);
+
+        let results =
+            PollResultsContentBlock::from_iter(computed.into_iter().map(|(id, users)| {
+                let count = users.len().try_into().unwrap_or(UInt::MAX);
+
+                if count >= top_count {
+                    top_answers.push(id);
+                    top_count = count;
+                }
+
+                (id.to_owned(), count)
+            }));
+
+        // Get the text representation of the best answers.
+        let top_answers_text = top_answers
+            .into_iter()
+            .map(|id| {
+                let text = &self
+                    .content
+                    .poll
+                    .answers
+                    .iter()
+                    .find(|a| a.id == id)
+                    .expect("top answer ID should be a valid answer ID")
+                    .text;
+                // Use the plain text representation, fallback to the first text representation or
+                // to the answer ID.
+                text.find_plain()
+                    .or_else(|| text.get(0).map(|t| t.body.as_ref()))
+                    .unwrap_or(id)
+                    .to_owned()
+            })
+            .collect::<Vec<_>>();
+
+        // Construct the plain text representation.
+        let plain_text = match top_answers_text.len() {
+            l if l > 1 => {
+                let answers = top_answers_text.join(", ");
+                format!("The poll has closed. Top answers: {answers}")
+            }
+            l if l == 1 => {
+                format!("The poll has closed. Top answer: {}", top_answers_text[0])
+            }
+            _ => "The poll has closed with no top answer".to_owned(),
+        };
+
+        let mut end = PollEndEventContent::with_plain_text(plain_text, self.event_id.clone());
+        end.poll_results = Some(results);
+
+        end
     }
 }
 

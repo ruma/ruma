@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{events::relation::Reference, OwnedEventId};
 
+use super::start::PollContentBlock;
+
 /// The payload for a poll response event.
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -52,6 +54,23 @@ impl SelectionsContentBlock {
     /// Whether this `SelectionsContentBlock` is empty.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+
+    /// Validate these selections against the given `PollContentBlock`.
+    ///
+    /// Returns the list of valid selections in this `SelectionsContentBlock`, or `None` if there is
+    /// no valid selection.
+    pub fn validate(&self, poll: &PollContentBlock) -> Option<impl Iterator<Item = &str>> {
+        // Vote is spoiled if any answer is unknown.
+        if self.0.iter().any(|s| !poll.answers.iter().any(|a| a.id == *s)) {
+            return None;
+        }
+
+        // Fallback to the maximum value for usize because we can't have more selections than that
+        // in memory.
+        let max_selections: usize = poll.max_selections.try_into().unwrap_or(usize::MAX);
+
+        Some(self.0.iter().take(max_selections).map(Deref::deref))
     }
 }
 
