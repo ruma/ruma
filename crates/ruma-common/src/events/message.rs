@@ -86,6 +86,8 @@ use serde::{Deserialize, Serialize};
 
 use super::room::message::Relation;
 
+pub(super) mod historical_serde;
+
 /// The payload for an extensible text message.
 ///
 /// This is the new primary type introduced in [MSC1767] and should only be sent in rooms with a

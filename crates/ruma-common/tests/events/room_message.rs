@@ -9,8 +9,8 @@ use ruma_common::{
             message::{
                 AudioMessageEventContent, EmoteMessageEventContent, FileMessageEventContent,
                 ForwardThread, ImageMessageEventContent, KeyVerificationRequestEventContent,
-                LocationMessageEventContent, MessageType, OriginalRoomMessageEvent,
-                RoomMessageEventContent, TextMessageEventContent, VideoMessageEventContent,
+                MessageType, OriginalRoomMessageEvent, RoomMessageEventContent,
+                TextMessageEventContent, VideoMessageEventContent,
             },
             EncryptedFileInit, JsonWebKeyInit, MediaSource,
         },
@@ -650,8 +650,11 @@ fn image_msgtype_deserialization() {
     assert_eq!(url, "mxc://notareal.hs/file");
 }
 
+#[cfg(not(feature = "unstable-msc3488"))]
 #[test]
 fn location_msgtype_serialization() {
+    use ruma_common::events::room::message::LocationMessageEventContent;
+
     let message_event_content =
         RoomMessageEventContent::new(MessageType::Location(LocationMessageEventContent::new(
             "Alice was at geo:51.5008,0.1247;u=35".to_owned(),

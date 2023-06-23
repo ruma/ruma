@@ -49,3 +49,82 @@ impl<'de> Deserialize<'de> for MessageType {
         })
     }
 }
+
+#[cfg(feature = "unstable-msc3488")]
+pub(in super::super) mod msc3488 {
+    use serde::{Deserialize, Serialize};
+
+    use crate::{
+        events::{
+            location::{AssetContent, LocationContent},
+            message::historical_serde::MessageContentBlockSerDeHelper,
+            room::message::{LocationInfo, LocationMessageEventContent},
+        },
+        MilliSecondsSinceUnixEpoch,
+    };
+
+    /// Deserialize helper type for `LocationMessageEventContent` with unstable fields from msc3488.
+    #[derive(Serialize, Deserialize)]
+    #[serde(tag = "msgtype", rename = "m.location")]
+    pub(in super::super) struct LocationMessageEventContentSerDeHelper {
+        pub body: String,
+
+        pub geo_uri: String,
+
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub info: Option<Box<LocationInfo>>,
+
+        #[serde(flatten)]
+        pub message: MessageContentBlockSerDeHelper,
+
+        #[serde(rename = "org.matrix.msc3488.location", skip_serializing_if = "Option::is_none")]
+        pub location: Option<LocationContent>,
+
+        #[serde(rename = "org.matrix.msc3488.asset", skip_serializing_if = "Option::is_none")]
+        pub asset: Option<AssetContent>,
+
+        #[serde(rename = "org.matrix.msc3488.ts", skip_serializing_if = "Option::is_none")]
+        pub ts: Option<MilliSecondsSinceUnixEpoch>,
+    }
+
+    impl From<LocationMessageEventContent> for LocationMessageEventContentSerDeHelper {
+        fn from(value: LocationMessageEventContent) -> Self {
+            let LocationMessageEventContent { body, geo_uri, info, message, location, asset, ts } =
+                value;
+
+            Self {
+                body,
+                geo_uri,
+                info,
+                message: message.map(Into::into).unwrap_or_default(),
+                location,
+                asset,
+                ts,
+            }
+        }
+    }
+
+    impl From<LocationMessageEventContentSerDeHelper> for LocationMessageEventContent {
+        fn from(value: LocationMessageEventContentSerDeHelper) -> Self {
+            let LocationMessageEventContentSerDeHelper {
+                body,
+                geo_uri,
+                info,
+                message,
+                location,
+                asset,
+                ts,
+            } = value;
+
+            LocationMessageEventContent {
+                body,
+                geo_uri,
+                info,
+                message: message.try_into().ok(),
+                location,
+                asset,
+                ts,
+            }
+        }
+    }
+}
