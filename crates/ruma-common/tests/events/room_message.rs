@@ -282,6 +282,7 @@ fn escape_tags_in_plain_reply_body() {
         body,
         "\
         > <@user:example.org> Usage: cp <source> <destination>\n\
+        \n\
         Usage: rm <path>\
         "
     );
@@ -352,6 +353,7 @@ fn reply_sanitize() {
         body,
         "\
         > <@user:example.org> # This is the first message\n\
+        \n\
         This is the _second_ message\
         "
     );
@@ -379,6 +381,7 @@ fn reply_sanitize() {
         body,
         "\
         > <@user:example.org> This is the _second_ message\n\
+        \n\
         This is **my** reply\
         "
     );
@@ -448,6 +451,7 @@ fn make_replacement_with_reply() {
         body,
         "\
         > <@user:example.org> # This is the first message\n\
+        \n\
         * This is _an edited_ reply.\
         "
     );

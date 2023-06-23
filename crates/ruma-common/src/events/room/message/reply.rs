@@ -113,7 +113,7 @@ pub fn plain_and_formatted_reply_body(
 ) -> (String, String) {
     let (quoted, quoted_html) = get_message_quote_fallbacks(original_message);
 
-    let plain = format!("{quoted}\n{body}");
+    let plain = format!("{quoted}\n\n{body}");
     let html = match formatted {
         Some(formatted) => format!("{quoted_html}{formatted}"),
         None => format!("{quoted_html}{}", EscapeHtmlEntities(body)),
