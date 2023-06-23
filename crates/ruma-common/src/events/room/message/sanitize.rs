@@ -71,6 +71,10 @@ pub fn remove_html_reply_fallback(s: &str) -> String {
 ///
 /// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
 pub fn remove_plain_reply_fallback(mut s: &str) -> &str {
+    if !s.starts_with("> ") {
+        return s;
+    }
+
     while s.starts_with("> ") {
         if let Some((_line, rest)) = s.split_once('\n') {
             s = rest;
@@ -79,7 +83,12 @@ pub fn remove_plain_reply_fallback(mut s: &str) -> &str {
         }
     }
 
-    s
+    // Strip the first line after the fallback if it is empty.
+    if let Some(rest) = s.strip_prefix('\n') {
+        rest
+    } else {
+        s
+    }
 }
 
 #[cfg(test)]
@@ -194,16 +203,18 @@ mod tests {
             remove_plain_reply_fallback(
                 "> <@user:notareal.hs> Replied to on\n\
                  > two lines\n\
+                 \n\
+                 \n\
                  This is my reply"
             ),
-            "This is my reply"
+            "\nThis is my reply"
         );
 
         assert_eq!(remove_plain_reply_fallback("\n> Not on first line"), "\n> Not on first line");
 
         assert_eq!(
             remove_plain_reply_fallback("> <@user:notareal.hs> Previous message\n\n> New quote"),
-            "\n> New quote"
+            "> New quote"
         );
     }
 }
