@@ -2,7 +2,7 @@ use assert_matches2::assert_matches;
 use assign::assign;
 use ruma_common::{
     events::{
-        relation::{InReplyTo, Replacement, Thread},
+        relation::{CustomRelation, InReplyTo, Replacement, Thread},
         room::message::{MessageType, Relation, RoomMessageEventContent},
     },
     owned_event_id,
@@ -248,4 +248,56 @@ fn thread_unstable_deserialize() {
     assert_eq!(thread.event_id, "$1598361704261elfgc");
     assert_eq!(thread.in_reply_to.unwrap().event_id, "$latesteventid");
     assert!(!thread.is_falling_back);
+}
+
+#[test]
+fn custom_deserialize() {
+    let json = json!({
+        "msgtype": "m.text",
+        "body": "<text msg>",
+        "m.relates_to": {
+            "rel_type": "io.ruma.unknown",
+            "event_id": "$related_event",
+            "key": "value",
+        },
+    });
+
+    assert_matches!(
+        from_json_value::<RoomMessageEventContent>(json),
+        Ok(RoomMessageEventContent {
+            msgtype: MessageType::Text(_),
+            relates_to: Some(relation),
+            ..
+        })
+    );
+    assert_eq!(relation.rel_type().unwrap().as_str(), "io.ruma.unknown");
+    assert_eq!(relation.event_id().as_str(), "$related_event");
+    let data = relation.data();
+    assert_eq!(data.get("key").unwrap().as_str(), Some("value"));
+}
+
+#[test]
+fn custom_serialize() {
+    let json = json!({
+        "rel_type": "io.ruma.unknown",
+        "event_id": "$related_event",
+        "key": "value",
+    });
+    let relation = from_json_value::<CustomRelation>(json).unwrap();
+
+    let mut content = RoomMessageEventContent::text_plain("<text msg>");
+    content.relates_to = Some(Relation::_Custom(relation));
+
+    assert_eq!(
+        to_json_value(&content).unwrap(),
+        json!({
+            "msgtype": "m.text",
+            "body": "<text msg>",
+            "m.relates_to": {
+                "rel_type": "io.ruma.unknown",
+                "event_id": "$related_event",
+                "key": "value",
+            },
+        })
+    );
 }

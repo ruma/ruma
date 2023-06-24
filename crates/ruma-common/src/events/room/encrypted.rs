@@ -2,7 +2,7 @@
 //!
 //! [`m.room.encrypted`]: https://spec.matrix.org/latest/client-server-api/#mroomencrypted
 
-use std::collections::BTreeMap;
+use std::{borrow::Cow, collections::BTreeMap};
 
 use js_int::UInt;
 use ruma_macros::EventContent;
@@ -10,11 +10,12 @@ use serde::{Deserialize, Serialize};
 
 use super::message;
 use crate::{
-    events::relation::{Annotation, InReplyTo, Reference, Thread},
-    OwnedDeviceId, OwnedEventId,
+    events::relation::{Annotation, CustomRelation, InReplyTo, Reference, RelationType, Thread},
+    serde::JsonObject,
+    EventId, OwnedDeviceId, OwnedEventId,
 };
 
-pub(crate) mod relation_serde;
+mod relation_serde;
 
 /// The content of an `m.room.encrypted` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
@@ -106,7 +107,54 @@ pub enum Relation {
     Thread(Thread),
 
     #[doc(hidden)]
-    _Custom,
+    _Custom(CustomRelation),
+}
+
+impl Relation {
+    /// The type of this `Relation`.
+    ///
+    /// Returns an `Option` because the `Reply` relation does not have a`rel_type` field.
+    pub fn rel_type(&self) -> Option<RelationType> {
+        match self {
+            Relation::Reply { .. } => None,
+            Relation::Replacement(_) => Some(RelationType::Replacement),
+            Relation::Reference(_) => Some(RelationType::Reference),
+            Relation::Annotation(_) => Some(RelationType::Annotation),
+            Relation::Thread(_) => Some(RelationType::Thread),
+            Relation::_Custom(c) => Some(c.rel_type.as_str().into()),
+        }
+    }
+
+    /// The ID of the event this relates to.
+    ///
+    /// This is the `event_id` field at the root of an `m.relates_to` object, except in the case of
+    /// a reply relation where it's the `event_id` field in the `m.in_reply_to` object.
+    pub fn event_id(&self) -> &EventId {
+        match self {
+            Relation::Reply { in_reply_to } => &in_reply_to.event_id,
+            Relation::Replacement(r) => &r.event_id,
+            Relation::Reference(r) => &r.event_id,
+            Relation::Annotation(a) => &a.event_id,
+            Relation::Thread(t) => &t.event_id,
+            Relation::_Custom(c) => &c.event_id,
+        }
+    }
+
+    /// The associated data.
+    ///
+    /// The returned JSON object won't contain the `rel_type` field, use
+    /// [`.rel_type()`][Self::rel_type] to access it. It also won't contain data
+    /// outside of `m.relates_to` (e.g. `m.new_content` for `m.replace` relations).
+    ///
+    /// Prefer to use the public variants of `Relation` where possible; this method is meant to
+    /// be used for custom relations only.
+    pub fn data(&self) -> Cow<'_, JsonObject> {
+        if let Relation::_Custom(c) = self {
+            Cow::Borrowed(&c.data)
+        } else {
+            Cow::Owned(self.serialize_data())
+        }
+    }
 }
 
 impl<C> From<message::Relation<C>> for Relation {
@@ -121,7 +169,7 @@ impl<C> From<message::Relation<C>> for Relation {
                 in_reply_to: t.in_reply_to,
                 is_falling_back: t.is_falling_back,
             }),
-            message::Relation::_Custom => Self::_Custom,
+            message::Relation::_Custom(c) => Self::_Custom(c),
         }
     }
 }
