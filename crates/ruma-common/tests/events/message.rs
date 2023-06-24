@@ -129,7 +129,7 @@ fn markdown_content_serialization() {
 }
 
 #[test]
-fn relates_to_content_serialization() {
+fn reply_content_serialization() {
     #[rustfmt::skip] // rustfmt wants to merge the next two lines
     let message_event_content =
         assign!(MessageEventContent::plain("> <@test:example.com> test\n\ntest reply"), {
@@ -214,7 +214,7 @@ fn html_and_text_content_deserialization() {
 }
 
 #[test]
-fn relates_to_content_deserialization() {
+fn reply_content_deserialization() {
     let json_data = json!({
         "org.matrix.msc1767.text": [
             { "body": "> <@test:example.com> test\n\ntest reply" },
@@ -235,6 +235,26 @@ fn relates_to_content_deserialization() {
         Some(Relation::Reply { in_reply_to: InReplyTo { event_id, .. } })
     );
     assert_eq!(event_id, "$15827405538098VGFWH:example.com");
+}
+
+#[test]
+fn thread_content_deserialization() {
+    let json_data = json!({
+        "org.matrix.msc1767.text": [
+            { "body": "Test in thread" },
+        ],
+        "m.relates_to": {
+            "rel_type": "m.thread",
+            "event_id": "$15827405538098VGFWH:example.com",
+        }
+    });
+
+    let content = from_json_value::<MessageEventContent>(json_data).unwrap();
+    assert_eq!(content.text.find_plain(), Some("Test in thread"));
+    assert_eq!(content.text.find_html(), None);
+
+    assert_matches!(content.relates_to, Some(Relation::Thread(thread)));
+    assert_eq!(thread.event_id, "$15827405538098VGFWH:example.com");
 }
 
 #[test]

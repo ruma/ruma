@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use super::AnyMessageLikeEvent;
 use crate::{
-    serde::{Raw, StringEnum},
+    serde::{JsonObject, Raw, StringEnum},
     OwnedEventId, PrivOwnedStr,
 };
 
@@ -81,8 +81,9 @@ impl<C> Replacement<C> {
 /// The content of a [thread] relation.
 ///
 /// [thread]: https://spec.matrix.org/latest/client-server-api/#threading
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(tag = "rel_type", rename = "m.thread")]
 pub struct Thread {
     /// The ID of the root message in the thread.
     pub event_id: OwnedEventId,
@@ -95,10 +96,12 @@ pub struct Thread {
     /// If this event is not a reply, this is used as a fallback mechanism for clients that do not
     /// support threads. This should point to the latest message-like event in the thread and
     /// `is_falling_back` must be set to `true`.
+    #[serde(rename = "m.in_reply_to", skip_serializing_if = "Option::is_none")]
     pub in_reply_to: Option<InReplyTo>,
 
     /// Whether the `m.in_reply_to` field is a fallback for older clients or a genuine reply in a
     /// thread.
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub is_falling_back: bool,
 }
 
@@ -301,4 +304,19 @@ pub enum RelationType {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
+}
+
+/// The payload for a custom relation.
+#[doc(hidden)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CustomRelation {
+    /// A custom relation type.
+    pub(super) rel_type: String,
+
+    /// The ID of the event this relation applies to.
+    pub(super) event_id: OwnedEventId,
+
+    /// Remaining event content.
+    #[serde(flatten)]
+    pub(super) data: JsonObject,
 }
