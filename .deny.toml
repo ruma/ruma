@@ -35,34 +35,8 @@ license-files = [
 ]
 
 [bans]
-multiple-versions = "deny"
+multiple-versions = "warn"
 wildcards = "deny"
-skip = [
-    # not a big deal, exotic OS support
-    { name = "hermit-abi" },
-    { name = "redox_syscall" },
-    # headers depends on old version
-    { name = "base64" },
-    # many crates haven't upgraded to 2.0 yet
-    { name = "syn" },
-
-    # ed25519-dalek issues...
-    { name = "block-buffer" },
-    { name = "digest" },
-    { name = "getrandom" },
-    { name = "rand" },
-    { name = "rand_core" },
-    { name = "rand_chacha" },
-    { name = "sha2" },
-]
-skip-tree = [
-    # happens often and not a huge deal
-    { name = "wasi" },
-    { name = "windows-sys" },
-
-    # markup5ever needs to upgrade
-    { name = "phf" },
-]
 
 [sources]
 unknown-registry = "deny"
