@@ -46,6 +46,8 @@ Improvements:
 - Stabilize support for annotations and reactions (MSC2677 / Matrix 1.7)
 - Add support for intentional mentions push rules (MSC3952 / Matrix 1.7)
 - Stabilize support for VoIP signalling improvements (MSC2746 / Matrix 1.7)
+- Make the generated and stripped plain text reply fallback behavior more compatible with most
+  of the Matrix ecosystem.
 
 # 0.11.3
 
