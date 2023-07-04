@@ -210,7 +210,7 @@ mod tests {
     #[test]
     fn deserialize_valid_room_id_or_alias_id_with_a_room_id() {
         assert_eq!(
-            serde_json::from_str::<OwnedRoomOrAliasId>(r##""!29fhd83h92h0:example.com""##)
+            serde_json::from_str::<OwnedRoomOrAliasId>(r#""!29fhd83h92h0:example.com""#)
                 .expect("Failed to convert JSON to RoomId"),
             <&RoomOrAliasId>::try_from("!29fhd83h92h0:example.com")
                 .expect("Failed to create RoomAliasId.")

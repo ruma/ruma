@@ -208,7 +208,7 @@ impl TreeSink for Fragment {
 
     fn add_attrs_if_missing(&mut self, target: &Self::Handle, attrs: Vec<Attribute>) {
         let target = self.nodes[*target].as_element_mut().unwrap();
-        target.attrs.extend(attrs.into_iter());
+        target.attrs.extend(attrs);
     }
 
     fn remove_from_parent(&mut self, target: &Self::Handle) {
