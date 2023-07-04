@@ -123,6 +123,9 @@ compat-unset-avatar = ["ruma-client-api?/compat-unset-avatar"]
 # Always serialize the threepids response field in `get_3pids::v3::Response`,
 # even if its value is an empty list.
 compat-get-3pids = ["ruma-client-api?/compat-get-3pids"]
+# Accept `message` as an alias for `error` in `upload_signatures::v3::Failure`,
+# since that's what Synapse sends.
+compat-upload-signatures = ["ruma-client-api?/compat-upload-signatures"]
 # Allow extra characters in signature IDs not allowed in the specification.
 compat-signature-id = ["ruma-signatures?/compat-signature-id"]
 
@@ -192,6 +195,7 @@ unstable-unspecified = [
 # Private feature, only used in test / benchmarking code
 __ci = [
     "full",
+    "compat-upload-signatures",
     "unstable-unspecified",
     "unstable-sanitize",
     "unstable-msc1767",

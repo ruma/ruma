@@ -33,6 +33,10 @@ compat-unset-avatar = []
 # even if its value is an empty list.
 compat-get-3pids = []
 
+# Accept `message` as an alias for `error` in `upload_signatures::v3::Failure`,
+# since that's what Synapse sends.
+compat-upload-signatures = []
+
 unstable-exhaustive-types = ["ruma-common/unstable-exhaustive-types"]
 unstable-msc2666 = []
 unstable-msc2448 = []

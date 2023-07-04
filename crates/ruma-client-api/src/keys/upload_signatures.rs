@@ -101,6 +101,7 @@ pub mod v3 {
         errcode: FailureErrorCode,
 
         /// Human-readable error message.
+        #[cfg_attr(feature = "compat-upload-signatures", serde(alias = "message"))]
         error: String,
     }
 
@@ -115,6 +116,33 @@ pub mod v3 {
 
         #[doc(hidden)]
         _Custom(PrivOwnedStr),
+    }
+
+    #[cfg(all(test, feature = "client", feature = "compat-upload-signatures"))]
+    mod tests {
+        use ruma_common::user_id;
+
+        use super::{FailureErrorCode, ResponseBody};
+
+        #[test]
+        fn deserialize_synapse_response() {
+            const JSON: &str = r#"{
+                "failures": {
+                    "@richvdh:sw1v.org": {
+                        "EOZDSWJVGZ": {
+                            "status": 400,
+                            "errcode": "M_INVALID_SIGNATURE",
+                            "message": "400: Invalid signature"
+                        }
+                    }
+                }
+            }"#;
+
+            let parsed: ResponseBody = serde_json::from_str(JSON).unwrap();
+            let failure = &parsed.failures[user_id!("@richvdh:sw1v.org")]["EOZDSWJVGZ"];
+            assert_eq!(failure.errcode, FailureErrorCode::InvalidSignature);
+            assert_eq!(failure.error, "400: Invalid signature");
+        }
     }
 }
 
