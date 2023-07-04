@@ -4,6 +4,9 @@ members = ["crates/*", "examples/*", "xtask"]
 default-members = ["crates/*"]
 resolver = "2"
 
+[workspace.package]
+rust-version = "1.64"
+
 [workspace.dependencies]
 assert_matches2 = "0.1.0"
 assign = "1.1.1"
