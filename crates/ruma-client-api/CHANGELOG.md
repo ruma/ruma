@@ -5,6 +5,7 @@ Breaking changes:
 - Define `rank` as an `Option<f64>` instead of an `Option<UInt>` in
   `search::search_events::v3::SearchResult`
 - Remove the `token` field from `keys::get_keys::Request`, according to a spec clarification.
+- `SpaceRoomJoinRule` has been moved to the `space` module of the ruma-common crate
 
 Improvements:
 
