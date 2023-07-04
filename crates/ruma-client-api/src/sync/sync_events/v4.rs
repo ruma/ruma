@@ -194,7 +194,7 @@ pub struct SyncRequestListFilters {
     /// unset, all rooms are included. Servers MUST NOT navigate subspaces. It is up to the
     /// client to give a complete list of spaces to navigate. Only rooms directly in these
     /// spaces will be returned.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub spaces: Vec<String>,
 
     /// Whether to return encrypted, non-encrypted rooms or both.
