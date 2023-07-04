@@ -9,7 +9,7 @@ readme = "README.md"
 license = "MIT"
 version = "0.8.2"
 edition = "2021"
-rust-version = "1.64"
+rust-version = { workspace = true }
 
 [package.metadata.docs.rs]
 all-features = true
