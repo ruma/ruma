@@ -7,7 +7,10 @@ use std::{collections::BTreeMap, error::Error, fmt, str::FromStr};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{serde::deserialize_cow_str, PrivOwnedStr};
+use crate::{
+    serde::{deserialize_as_optional_f64_or_string, deserialize_cow_str},
+    PrivOwnedStr,
+};
 
 /// Map of tag names to tag info.
 pub type Tags = BTreeMap<TagName, TagInfo>;
@@ -167,11 +170,18 @@ impl Serialize for TagName {
 }
 
 /// Information about a tag.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct TagInfo {
     /// Value to use for lexicographically ordering rooms with this tag.
+    ///
+    /// If you activate the `compat-tag-info` feature, this field can be decoded as a stringified
+    /// floating-point value, instead of a number as it should be according to the specification.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(
+        feature = "compat-tag-info",
+        serde(default, deserialize_with = "deserialize_as_optional_f64_or_string")
+    )]
     pub order: Option<f64>,
 }
 
@@ -185,7 +195,7 @@ impl TagInfo {
 #[cfg(test)]
 mod tests {
     use maplit::btreemap;
-    use serde_json::{json, to_value as to_json_value};
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{TagEventContent, TagInfo, TagName};
 
@@ -213,6 +223,24 @@ mod tests {
                 },
             })
         );
+    }
+
+    #[test]
+    fn deserialize_tag_info() {
+        let json = json!({});
+        assert_eq!(from_json_value::<TagInfo>(json).unwrap(), TagInfo::default());
+
+        let json = json!({ "order": null });
+        assert_eq!(from_json_value::<TagInfo>(json).unwrap(), TagInfo::default());
+
+        let json = json!({ "order": 0.42 });
+        assert_eq!(from_json_value::<TagInfo>(json).unwrap(), TagInfo { order: Some(0.42) });
+
+        let json = json!({ "order": "0.5" });
+        assert_eq!(from_json_value::<TagInfo>(json).unwrap(), TagInfo { order: Some(0.5) });
+
+        let json = json!({ "order": ".5" });
+        assert_eq!(from_json_value::<TagInfo>(json).unwrap(), TagInfo { order: Some(0.5) });
     }
 
     #[test]

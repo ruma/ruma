@@ -4,6 +4,8 @@ Bug fixes:
 
 - Set the predefined server-default `.m.rule.tombstone` push rule as enabled by default, as defined
   in the spec.
+- Parse `m.tag` `order` as a f64 value or a stringified f64 value, if the `compat-tag-info` feature
+  is enabled.
 
 Breaking changes:
 
