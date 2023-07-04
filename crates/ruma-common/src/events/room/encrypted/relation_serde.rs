@@ -1,41 +1,45 @@
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
 use super::{Annotation, InReplyTo, Reference, Relation, Replacement, Thread};
 use crate::OwnedEventId;
 
-pub(crate) fn deserialize_relation<'de, D>(deserializer: D) -> Result<Option<Relation>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let ev = EventWithRelatesToJsonRepr::deserialize(deserializer)?;
-
-    if let Some(
-        RelationJsonRepr::ThreadStable(ThreadStableJsonRepr { event_id, is_falling_back })
-        | RelationJsonRepr::ThreadUnstable(ThreadUnstableJsonRepr { event_id, is_falling_back }),
-    ) = ev.relates_to.relation
+impl<'de> Deserialize<'de> for Relation {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
     {
-        let in_reply_to = ev.relates_to.in_reply_to;
-        return Ok(Some(Relation::Thread(Thread { event_id, in_reply_to, is_falling_back })));
-    }
-    let rel = if let Some(in_reply_to) = ev.relates_to.in_reply_to {
-        Some(Relation::Reply { in_reply_to })
-    } else {
-        ev.relates_to.relation.map(|relation| match relation {
-            RelationJsonRepr::Annotation(a) => Relation::Annotation(a),
-            RelationJsonRepr::Reference(r) => Relation::Reference(r),
-            RelationJsonRepr::Replacement(Replacement { event_id }) => {
-                Relation::Replacement(Replacement { event_id })
-            }
-            RelationJsonRepr::ThreadStable(_) | RelationJsonRepr::ThreadUnstable(_) => {
-                unreachable!()
-            }
-            // FIXME: Maybe we should log this, though at this point we don't even have
-            // access to the rel_type of the unknown relation.
-            RelationJsonRepr::Unknown => Relation::_Custom,
-        })
-    };
+        let relates_to = RelatesToJsonRepr::deserialize(deserializer)?;
 
-    Ok(rel)
+        if let Some(
+            RelationJsonRepr::ThreadStable(ThreadStableJsonRepr { event_id, is_falling_back })
+            | RelationJsonRepr::ThreadUnstable(ThreadUnstableJsonRepr { event_id, is_falling_back }),
+        ) = relates_to.relation
+        {
+            let in_reply_to = relates_to.in_reply_to;
+            return Ok(Relation::Thread(Thread { event_id, in_reply_to, is_falling_back }));
+        }
+        let rel = if let Some(in_reply_to) = relates_to.in_reply_to {
+            Relation::Reply { in_reply_to }
+        } else if let Some(relation) = relates_to.relation {
+            match relation {
+                RelationJsonRepr::Annotation(a) => Relation::Annotation(a),
+                RelationJsonRepr::Reference(r) => Relation::Reference(r),
+                RelationJsonRepr::Replacement(Replacement { event_id }) => {
+                    Relation::Replacement(Replacement { event_id })
+                }
+                RelationJsonRepr::ThreadStable(_) | RelationJsonRepr::ThreadUnstable(_) => {
+                    unreachable!()
+                }
+                // FIXME: Maybe we should log this, though at this point we don't even have
+                // access to the rel_type of the unknown relation.
+                RelationJsonRepr::Unknown => Relation::_Custom,
+            }
+        } else {
+            return Err(de::Error::missing_field("m.in_reply_to or rel_type"));
+        };
+
+        Ok(rel)
+    }
 }
 
 impl Serialize for Relation {
@@ -71,14 +75,8 @@ impl Serialize for Relation {
             Relation::_Custom => RelatesToJsonRepr::default(),
         };
 
-        EventWithRelatesToJsonRepr { relates_to }.serialize(serializer)
+        relates_to.serialize(serializer)
     }
-}
-
-#[derive(Deserialize, Serialize)]
-struct EventWithRelatesToJsonRepr {
-    #[serde(rename = "m.relates_to", default, skip_serializing_if = "RelatesToJsonRepr::is_empty")]
-    relates_to: RelatesToJsonRepr,
 }
 
 /// Struct modeling the different ways relationships can be expressed in a `m.relates_to` field of
@@ -90,12 +88,6 @@ struct RelatesToJsonRepr {
 
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     relation: Option<RelationJsonRepr>,
-}
-
-impl RelatesToJsonRepr {
-    fn is_empty(&self) -> bool {
-        self.in_reply_to.is_none() && self.relation.is_none()
-    }
 }
 
 /// A thread relation without the reply fallback, with stable names.
