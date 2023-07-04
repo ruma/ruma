@@ -26,11 +26,7 @@ pub struct RoomEncryptedEventContent {
     pub scheme: EncryptedEventScheme,
 
     /// Information about related events.
-    #[serde(
-        flatten,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "relation_serde::deserialize_relation"
-    )]
+    #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation>,
 }
 
