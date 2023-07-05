@@ -1,4 +1,4 @@
-//! Types for the [`m.poll.start`] event.
+//! Types for the `m.poll.start` event.
 
 use std::ops::Deref;
 
@@ -21,14 +21,14 @@ use super::{
 /// The payload for a poll start event.
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "org.matrix.msc3381.v2.poll.start", alias = "m.poll.start", kind = MessageLike)]
+#[ruma_event(type = "m.poll.start", kind = MessageLike)]
 pub struct PollStartEventContent {
     /// The poll content of the message.
-    #[serde(rename = "org.matrix.msc3381.v2.poll")]
+    #[serde(rename = "m.poll")]
     pub poll: PollContentBlock,
 
     /// Text representation of the message, for clients that don't support polls.
-    #[serde(rename = "org.matrix.msc1767.text")]
+    #[serde(rename = "m.text")]
     pub text: TextContentBlock,
 
     /// Whether this message is automated.
@@ -184,7 +184,7 @@ impl PollContentBlock {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct PollQuestion {
     /// The text representation of the question.
-    #[serde(rename = "org.matrix.msc1767.text")]
+    #[serde(rename = "m.text")]
     pub text: TextContentBlock,
 }
 
@@ -201,11 +201,11 @@ impl From<TextContentBlock> for PollQuestion {
 pub enum PollKind {
     /// The results are revealed once the poll is closed.
     #[default]
-    #[ruma_enum(rename = "org.matrix.msc3381.v2.undisclosed")]
+    #[ruma_enum(rename = "m.undisclosed")]
     Undisclosed,
 
     /// The votes are visible up until and including when the poll is closed.
-    #[ruma_enum(rename = "org.matrix.msc3381.v2.disclosed")]
+    #[ruma_enum(rename = "m.disclosed")]
     Disclosed,
 
     #[doc(hidden)]
@@ -278,11 +278,11 @@ pub struct PollAnswer {
     /// The ID of the answer.
     ///
     /// This must be unique among the answers of a poll.
-    #[serde(rename = "org.matrix.msc3381.v2.id")]
+    #[serde(rename = "m.id")]
     pub id: String,
 
     /// The text representation of the answer.
-    #[serde(rename = "org.matrix.msc1767.text")]
+    #[serde(rename = "m.text")]
     pub text: TextContentBlock,
 }
 
