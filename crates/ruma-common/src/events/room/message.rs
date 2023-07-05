@@ -105,6 +105,22 @@ impl RoomMessageEventContent {
         Self::new(MessageType::notice_markdown(body))
     }
 
+    /// A constructor to create a plain text emote.
+    pub fn emote_plain(body: impl Into<String>) -> Self {
+        Self::new(MessageType::emote_plain(body))
+    }
+
+    /// A constructor to create an html emote.
+    pub fn emote_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self::new(MessageType::emote_html(body, html_body))
+    }
+
+    /// A constructor to create a markdown emote.
+    #[cfg(feature = "markdown")]
+    pub fn emote_markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self::new(MessageType::emote_markdown(body))
+    }
+
     /// Turns `self` into a reply to the given message.
     ///
     /// Takes the `body` / `formatted_body` (if any) in `self` for the main text and prepends a
@@ -484,6 +500,22 @@ impl MessageType {
     #[cfg(feature = "markdown")]
     pub fn notice_markdown(body: impl AsRef<str> + Into<String>) -> Self {
         Self::Notice(NoticeMessageEventContent::markdown(body))
+    }
+
+    /// A constructor to create a plain text emote.
+    pub fn emote_plain(body: impl Into<String>) -> Self {
+        Self::Emote(EmoteMessageEventContent::plain(body))
+    }
+
+    /// A constructor to create an html emote.
+    pub fn emote_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self::Emote(EmoteMessageEventContent::html(body, html_body))
+    }
+
+    /// A constructor to create a markdown emote.
+    #[cfg(feature = "markdown")]
+    pub fn emote_markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self::Emote(EmoteMessageEventContent::markdown(body))
     }
 
     /// Returns a reference to the `msgtype` string.
