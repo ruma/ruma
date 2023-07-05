@@ -1,4 +1,4 @@
-//! Types for the [`m.poll.response`] event.
+//! Types for the `m.poll.response` event.
 
 use std::{ops::Deref, vec};
 
@@ -12,10 +12,10 @@ use super::start::PollContentBlock;
 /// The payload for a poll response event.
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "org.matrix.msc3381.v2.poll.response", alias = "m.poll.response", kind = MessageLike)]
+#[ruma_event(type = "m.poll.response", kind = MessageLike)]
 pub struct PollResponseEventContent {
     /// The user's selection.
-    #[serde(rename = "org.matrix.msc3381.v2.selections")]
+    #[serde(rename = "m.selections")]
     pub selections: SelectionsContentBlock,
 
     /// Whether this message is automated.

@@ -68,14 +68,11 @@ event_enum! {
         #[ruma_enum(alias = "m.message")]
         "org.matrix.msc1767.message" => super::message,
         #[cfg(feature = "unstable-msc3381")]
-        #[ruma_enum(alias = "m.poll.start")]
-        "org.matrix.msc3381.v2.poll.start" => super::poll::start,
+        "m.poll.start" => super::poll::start,
         #[cfg(feature = "unstable-msc3381")]
-        #[ruma_enum(alias = "m.poll.response")]
-        "org.matrix.msc3381.v2.poll.response" => super::poll::response,
+        "m.poll.response" => super::poll::response,
         #[cfg(feature = "unstable-msc3381")]
-        #[ruma_enum(alias = "m.poll.end")]
-        "org.matrix.msc3381.v2.poll.end" => super::poll::end,
+        "m.poll.end" => super::poll::end,
         "m.reaction" => super::reaction,
         "m.room.encrypted" => super::room::encrypted,
         "m.room.message" => super::room::message,
