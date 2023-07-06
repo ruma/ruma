@@ -4,7 +4,7 @@ use std::fmt;
 
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, IdentFragment, ToTokens};
-use syn::{Attribute, Data, DataEnum, DeriveInput, Ident, LitStr, Path};
+use syn::{Attribute, Data, DataEnum, DeriveInput, Ident, LitStr};
 
 use super::event_parse::{EventEnumDecl, EventEnumEntry, EventKind};
 use crate::util::m_prefix_name_to_type_name;
@@ -114,14 +114,7 @@ fn expand_event_enum(
     let ident = kind.to_event_enum_ident(var.into())?;
 
     let variant_decls = variants.iter().map(|v| v.decl());
-    let event_ty: Vec<_> = events
-        .iter()
-        .map(|event| {
-            event
-                .stable_name()
-                .map(|stable_name| to_event_path(stable_name, &event.ev_path, kind, var))
-        })
-        .collect::<syn::Result<_>>()?;
+    let event_ty: Vec<_> = events.iter().map(|event| event.to_event_path(kind, var)).collect();
 
     let custom_content_ty = format_ident!("Custom{}Content", kind);
 
@@ -175,7 +168,7 @@ fn expand_deserialize_impl(
                 quote! { #(#attrs)* }
             };
             let self_variant = variant.ctor(quote! { Self });
-            let content = to_event_path(event.stable_name()?, &event.ev_path, kind, var);
+            let content = event.to_event_path(kind, var);
             let ev_types = event.aliases.iter().chain([&event.ev_type]);
 
             Ok(quote! {
@@ -314,13 +307,8 @@ fn expand_content_enum(
 
     let event_type_enum = kind.to_event_type_enum();
 
-    let content: Vec<_> = events
-        .iter()
-        .map(|event| {
-            let stable_name = event.stable_name()?;
-            Ok(to_event_content_path(kind, stable_name, &event.ev_path, None))
-        })
-        .collect::<syn::Result<_>>()?;
+    let content: Vec<_> =
+        events.iter().map(|event| event.to_event_content_path(kind, None)).collect();
 
     let variant_decls = variants.iter().map(|v| v.decl()).collect::<Vec<_>>();
     let variant_arms = variants.iter().map(|v| v.match_arm(quote! { Self })).collect::<Vec<_>>();
@@ -389,13 +377,8 @@ fn expand_full_content_enum(
 
     let event_type_enum = kind.to_event_type_enum();
 
-    let content: Vec<_> = events
-        .iter()
-        .map(|event| {
-            let stable_name = event.stable_name()?;
-            Ok(to_event_content_path(kind, stable_name, &event.ev_path, None))
-        })
-        .collect::<syn::Result<_>>()?;
+    let content: Vec<_> =
+        events.iter().map(|event| event.to_event_content_path(kind, None)).collect();
 
     let variant_decls = variants.iter().map(|v| v.decl()).collect::<Vec<_>>();
     let variant_arms = variants.iter().map(|v| v.match_arm(quote! { Self })).collect::<Vec<_>>();
@@ -669,41 +652,6 @@ fn expand_accessor_methods(
     })
 }
 
-fn to_event_path(
-    name: &LitStr,
-    path: &Path,
-    kind: EventKind,
-    var: EventEnumVariation,
-) -> TokenStream {
-    let event = m_prefix_name_to_type_name(name).unwrap();
-    let event_name = if kind == EventKind::ToDevice {
-        assert_eq!(var, EventEnumVariation::None);
-        format_ident!("ToDevice{}Event", event)
-    } else {
-        format_ident!("{}{}Event", var, event)
-    };
-    quote! { #path::#event_name }
-}
-
-fn to_event_content_path(
-    kind: EventKind,
-    name: &LitStr,
-    path: &Path,
-    prefix: Option<&str>,
-) -> TokenStream {
-    let event = m_prefix_name_to_type_name(name).unwrap();
-    let content_str = match kind {
-        EventKind::ToDevice => {
-            format_ident!("ToDevice{}{}EventContent", prefix.unwrap_or(""), event)
-        }
-        _ => format_ident!("{}{}EventContent", prefix.unwrap_or(""), event),
-    };
-
-    quote! {
-        #path::#content_str
-    }
-}
-
 fn field_return_type(name: &str, ruma_common: &TokenStream) -> TokenStream {
     match name {
         "origin_server_ts" => quote! { #ruma_common::MilliSecondsSinceUnixEpoch },
@@ -758,7 +706,7 @@ impl EventEnumEntry {
 
     pub(crate) fn to_variant(&self) -> syn::Result<EventEnumVariant> {
         let attrs = self.attrs.clone();
-        let ident = m_prefix_name_to_type_name(self.stable_name()?)?;
+        let ident = self.ident()?;
 
         Ok(EventEnumVariant { attrs, ident })
     }
@@ -772,7 +720,8 @@ impl EventEnumEntry {
                     Span::call_site(),
                     format!(
                         "A matrix event must declare a well-known type that starts with `m.` \
-                        either as the main type or as an alias, found `{}`",
+                        either as the main type or as an alias, or must declare the ident that \
+                        should be used if it is only an unstable type, found main type `{}`",
                         self.ev_type.value()
                     ),
                 )
@@ -780,14 +729,49 @@ impl EventEnumEntry {
         }
     }
 
-    pub(crate) fn docs(&self) -> syn::Result<TokenStream> {
-        let stable_name = self.stable_name()?;
+    pub(crate) fn ident(&self) -> syn::Result<Ident> {
+        if let Some(ident) = self.ident.clone() {
+            Ok(ident)
+        } else {
+            m_prefix_name_to_type_name(self.stable_name()?)
+        }
+    }
 
-        let mut doc = quote! {
-            #[doc = #stable_name]
+    fn to_event_path(&self, kind: EventKind, var: EventEnumVariation) -> TokenStream {
+        let path = &self.ev_path;
+        let ident = self.ident().unwrap();
+        let event_name = if kind == EventKind::ToDevice {
+            assert_eq!(var, EventEnumVariation::None);
+            format_ident!("ToDevice{ident}Event")
+        } else {
+            format_ident!("{}{ident}Event", var)
+        };
+        quote! { #path::#event_name }
+    }
+
+    fn to_event_content_path(&self, kind: EventKind, prefix: Option<&str>) -> TokenStream {
+        let path = &self.ev_path;
+        let ident = self.ident().unwrap();
+        let content_str = match kind {
+            EventKind::ToDevice => {
+                format_ident!("ToDevice{}{ident}EventContent", prefix.unwrap_or(""))
+            }
+            _ => format_ident!("{}{ident}EventContent", prefix.unwrap_or("")),
         };
 
-        if self.ev_type != *stable_name {
+        quote! {
+            #path::#content_str
+        }
+    }
+
+    pub(crate) fn docs(&self) -> syn::Result<TokenStream> {
+        let main_name = self.stable_name().unwrap_or(&self.ev_type);
+
+        let mut doc = quote! {
+            #[doc = #main_name]
+        };
+
+        if self.ev_type != *main_name {
             let unstable_name =
                 format!("This variant uses the unstable type `{}`.", self.ev_type.value());
 
