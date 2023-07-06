@@ -205,8 +205,9 @@ fn get_page_ids(url: &str) -> Result<HashMap<String, HasDuplicates>> {
             continue;
         };
 
-        let Some(id) = tag.attributes.get(b"id".as_slice())
-        .and_then(|s| String::from_utf8(s.0.clone()).ok()) else {
+        let Some(id) =
+            tag.attributes.get(b"id".as_slice()).and_then(|s| String::from_utf8(s.0.clone()).ok())
+        else {
             continue;
         };
 

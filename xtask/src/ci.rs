@@ -12,8 +12,8 @@ mod spec_links;
 
 use spec_links::check_spec_links;
 
-const MSRV: &str = "1.64";
-const NIGHTLY: &str = "nightly";
+const MSRV: &str = "1.65";
+const NIGHTLY: &str = "nightly-2023-07-03";
 
 #[derive(Args)]
 pub struct CiArgs {
@@ -211,7 +211,7 @@ impl CiTask {
     fn test_common(&self) -> Result<()> {
         cmd!(
             "rustup run stable cargo test -p ruma-common
-                --features events,compat-empty-string-null,compat-user-id compat"
+                --features events,compat-empty-string-null,compat-user-id,compat-tag-info compat"
         )
         .run()
         .map_err(Into::into)

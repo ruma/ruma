@@ -2,8 +2,8 @@
 
 use js_int::UInt;
 use ruma_common::{
-    directory::PublicRoomJoinRule, events::space::child::HierarchySpaceChildEvent, room::RoomType,
-    serde::Raw, OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId,
+    events::space::child::HierarchySpaceChildEvent, room::RoomType, serde::Raw,
+    space::SpaceRoomJoinRule, OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -62,7 +62,7 @@ pub struct SpaceHierarchyParentSummary {
 
     /// The join rule of the room.
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
-    pub join_rule: PublicRoomJoinRule,
+    pub join_rule: SpaceRoomJoinRule,
 
     /// The type of room from `m.room.create`, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -101,7 +101,7 @@ pub struct SpaceHierarchyParentSummaryInit {
     pub guest_can_join: bool,
 
     /// The join rule of the room.
-    pub join_rule: PublicRoomJoinRule,
+    pub join_rule: SpaceRoomJoinRule,
 
     /// The stripped `m.space.child` events of the space-room.
     ///
@@ -195,7 +195,7 @@ pub struct SpaceHierarchyChildSummary {
 
     /// The join rule of the room.
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
-    pub join_rule: PublicRoomJoinRule,
+    pub join_rule: SpaceRoomJoinRule,
 
     /// The type of room from `m.room.create`, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -229,7 +229,7 @@ pub struct SpaceHierarchyChildSummaryInit {
     pub guest_can_join: bool,
 
     /// The join rule of the room.
-    pub join_rule: PublicRoomJoinRule,
+    pub join_rule: SpaceRoomJoinRule,
 
     /// If the room is a restricted room, these are the room IDs which are specified by the join
     /// rules.

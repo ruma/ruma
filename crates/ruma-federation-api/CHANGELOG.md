@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+* Use `SpaceRoomJoinRule` for `SpaceHierarchy(Parent/Child)Summary(Init)`. Even if
+  (de)serialization worked before, it is more correct to expect any join rule, like in the CS API
+
 Improvements:
 
 * Deprecate the `v1/send_join` and `v1/send_leave` endpoints according to a spec clarification

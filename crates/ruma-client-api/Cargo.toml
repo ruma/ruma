@@ -9,7 +9,7 @@ readme = "README.md"
 repository = "https://github.com/ruma/ruma"
 version = "0.16.2"
 edition = "2021"
-rust-version = "1.64"
+rust-version = { workspace = true }
 
 [package.metadata.docs.rs]
 all-features = true
@@ -32,6 +32,10 @@ compat-unset-avatar = []
 # Always serialize the threepids response field in `get_3pids::v3::Response`,
 # even if its value is an empty list.
 compat-get-3pids = []
+
+# Accept `message` as an alias for `error` in `upload_signatures::v3::Failure`,
+# since that's what Synapse sends.
+compat-upload-signatures = []
 
 unstable-exhaustive-types = ["ruma-common/unstable-exhaustive-types"]
 unstable-msc2666 = []

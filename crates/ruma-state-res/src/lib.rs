@@ -1174,15 +1174,8 @@ mod tests {
                 .collect::<Vec<_>>()
         );
 
-        let expected = vec![
-            "$CREATE:foo",
-            "$IJR:foo",
-            "$PA:foo",
-            "$IMA:foo",
-            "$IMB:foo",
-            "$IMC:foo",
-            "$MB:foo",
-        ];
+        let expected =
+            ["$CREATE:foo", "$IJR:foo", "$PA:foo", "$IMA:foo", "$IMB:foo", "$IMC:foo", "$MB:foo"];
 
         for id in expected.iter().map(|i| event_id(i)) {
             // make sure our resolved events are equal to the expected list

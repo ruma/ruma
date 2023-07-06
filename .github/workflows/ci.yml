@@ -41,12 +41,14 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install rust nightly toolchain
-        uses: dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2023-07-03
 
       - uses: Swatinem/rust-cache@v2
 
       - name: Check spelling
-        uses: crate-ci/typos@v1.15.0
+        uses: crate-ci/typos@v1.15.10
 
       - name: Install cargo-sort
         uses: taiki-e/cache-cargo-install-action@v1
@@ -63,7 +65,7 @@ jobs:
         run: target/debug/xtask ci lint
 
   msrv:
-    name: Rust 1.64 / ${{ matrix.name }}
+    name: Rust 1.65 / ${{ matrix.name }}
     needs: xtask
     runs-on: ubuntu-latest
     strategy:
@@ -88,17 +90,17 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Install rust 1.64 toolchain
+      - name: Install rust 1.65 toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.64
+          toolchain: 1.65
 
       - uses: Swatinem/rust-cache@v2
         with:
           # A stable compiler update should automatically not reuse old caches.
           # Add the MSRV as a stable cache key too so bumping it also gets us a
           # fresh cache.
-          sharedKey: msrv1.64
+          sharedKey: msrv1.65
 
       - name: Get xtask
         uses: actions/cache@v3
@@ -182,8 +184,9 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install rust nightly toolchain
-        uses: dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: nightly-2023-07-03
           components: ${{ matrix.components }}
 
       - uses: Swatinem/rust-cache@v2
@@ -207,7 +210,9 @@ jobs:
 
       - name: Install nightly rust toolchain
         # Nightly needed for use of unstable options
-        uses: dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2023-07-03
 
       - uses: Swatinem/rust-cache@v2
 

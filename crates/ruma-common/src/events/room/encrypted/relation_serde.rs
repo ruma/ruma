@@ -1,159 +1,101 @@
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{de, ser::SerializeStruct, Deserialize, Deserializer, Serialize};
+use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
-use super::{Annotation, InReplyTo, Reference, Relation, Replacement, Thread};
-use crate::OwnedEventId;
+use super::{InReplyTo, Relation, Thread};
+use crate::{
+    serde::{from_raw_json_value, JsonObject},
+    OwnedEventId,
+};
 
-pub(crate) fn deserialize_relation<'de, D>(deserializer: D) -> Result<Option<Relation>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let ev = EventWithRelatesToJsonRepr::deserialize(deserializer)?;
-
-    if let Some(
-        RelationJsonRepr::ThreadStable(ThreadStableJsonRepr { event_id, is_falling_back })
-        | RelationJsonRepr::ThreadUnstable(ThreadUnstableJsonRepr { event_id, is_falling_back }),
-    ) = ev.relates_to.relation
+impl<'de> Deserialize<'de> for Relation {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
     {
-        let in_reply_to = ev.relates_to.in_reply_to;
-        return Ok(Some(Relation::Thread(Thread { event_id, in_reply_to, is_falling_back })));
-    }
-    let rel = if let Some(in_reply_to) = ev.relates_to.in_reply_to {
-        Some(Relation::Reply { in_reply_to })
-    } else {
-        ev.relates_to.relation.map(|relation| match relation {
-            RelationJsonRepr::Annotation(a) => Relation::Annotation(a),
-            RelationJsonRepr::Reference(r) => Relation::Reference(r),
-            RelationJsonRepr::Replacement(Replacement { event_id }) => {
-                Relation::Replacement(Replacement { event_id })
-            }
-            RelationJsonRepr::ThreadStable(_) | RelationJsonRepr::ThreadUnstable(_) => {
-                unreachable!()
-            }
-            // FIXME: Maybe we should log this, though at this point we don't even have
-            // access to the rel_type of the unknown relation.
-            RelationJsonRepr::Unknown => Relation::_Custom,
-        })
-    };
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
 
-    Ok(rel)
+        let RelationDeHelper { in_reply_to, rel_type } = from_raw_json_value(&json)?;
+
+        let rel = match (in_reply_to, rel_type.as_deref()) {
+            (None, None) => return Err(de::Error::missing_field("m.in_reply_to or rel_type")),
+            (_, Some("m.thread")) => Relation::Thread(from_raw_json_value(&json)?),
+            (in_reply_to, Some("io.element.thread")) => {
+                let ThreadUnstableDeHelper { event_id, is_falling_back } =
+                    from_raw_json_value(&json)?;
+                Relation::Thread(Thread { event_id, in_reply_to, is_falling_back })
+            }
+            (_, Some("m.annotation")) => Relation::Annotation(from_raw_json_value(&json)?),
+            (_, Some("m.reference")) => Relation::Reference(from_raw_json_value(&json)?),
+            (_, Some("m.replace")) => Relation::Replacement(from_raw_json_value(&json)?),
+            (Some(in_reply_to), _) => Relation::Reply { in_reply_to },
+            _ => Relation::_Custom(from_raw_json_value(&json)?),
+        };
+
+        Ok(rel)
+    }
+}
+
+#[derive(Default, Deserialize)]
+struct RelationDeHelper {
+    #[serde(rename = "m.in_reply_to")]
+    in_reply_to: Option<InReplyTo>,
+
+    rel_type: Option<String>,
+}
+
+/// A thread relation without the reply fallback, with unstable names.
+#[derive(Clone, Deserialize)]
+struct ThreadUnstableDeHelper {
+    event_id: OwnedEventId,
+
+    #[serde(rename = "io.element.show_reply", default)]
+    is_falling_back: bool,
+}
+
+impl Relation {
+    pub(super) fn serialize_data(&self) -> JsonObject {
+        match serde_json::to_value(self).expect("relation serialization to succeed") {
+            JsonValue::Object(mut obj) => {
+                obj.remove("rel_type");
+                obj
+            }
+            _ => panic!("all relations must serialize to objects"),
+        }
+    }
 }
 
 impl Serialize for Relation {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: Serializer,
+        S: serde::Serializer,
     {
-        let relates_to = match self {
-            Relation::Annotation(r) => RelatesToJsonRepr {
-                relation: Some(RelationJsonRepr::Annotation(r.clone())),
-                ..Default::default()
-            },
-            Relation::Reference(r) => RelatesToJsonRepr {
-                relation: Some(RelationJsonRepr::Reference(r.clone())),
-                ..Default::default()
-            },
-            Relation::Replacement(r) => RelatesToJsonRepr {
-                relation: Some(RelationJsonRepr::Replacement(r.clone())),
-                ..Default::default()
-            },
+        match self {
             Relation::Reply { in_reply_to } => {
-                RelatesToJsonRepr { in_reply_to: Some(in_reply_to.clone()), ..Default::default() }
+                let mut st = serializer.serialize_struct("Relation", 1)?;
+                st.serialize_field("m.in_reply_to", in_reply_to)?;
+                st.end()
             }
-            Relation::Thread(Thread { event_id, in_reply_to, is_falling_back }) => {
-                RelatesToJsonRepr {
-                    in_reply_to: in_reply_to.clone(),
-                    relation: Some(RelationJsonRepr::ThreadStable(ThreadStableJsonRepr {
-                        event_id: event_id.clone(),
-                        is_falling_back: *is_falling_back,
-                    })),
-                }
+            Relation::Replacement(data) => {
+                RelationSerHelper { rel_type: "m.replace", data }.serialize(serializer)
             }
-            Relation::_Custom => RelatesToJsonRepr::default(),
-        };
-
-        EventWithRelatesToJsonRepr { relates_to }.serialize(serializer)
+            Relation::Reference(data) => {
+                RelationSerHelper { rel_type: "m.reference", data }.serialize(serializer)
+            }
+            Relation::Annotation(data) => {
+                RelationSerHelper { rel_type: "m.annotation", data }.serialize(serializer)
+            }
+            Relation::Thread(data) => {
+                RelationSerHelper { rel_type: "m.thread", data }.serialize(serializer)
+            }
+            Relation::_Custom(c) => c.serialize(serializer),
+        }
     }
 }
 
-#[derive(Deserialize, Serialize)]
-struct EventWithRelatesToJsonRepr {
-    #[serde(rename = "m.relates_to", default, skip_serializing_if = "RelatesToJsonRepr::is_empty")]
-    relates_to: RelatesToJsonRepr,
-}
+#[derive(Serialize)]
+struct RelationSerHelper<'a, T> {
+    rel_type: &'a str,
 
-/// Struct modeling the different ways relationships can be expressed in a `m.relates_to` field of
-/// an event.
-#[derive(Default, Deserialize, Serialize)]
-struct RelatesToJsonRepr {
-    #[serde(rename = "m.in_reply_to", skip_serializing_if = "Option::is_none")]
-    in_reply_to: Option<InReplyTo>,
-
-    #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    relation: Option<RelationJsonRepr>,
-}
-
-impl RelatesToJsonRepr {
-    fn is_empty(&self) -> bool {
-        self.in_reply_to.is_none() && self.relation.is_none()
-    }
-}
-
-/// A thread relation without the reply fallback, with stable names.
-#[derive(Clone, Deserialize, Serialize)]
-struct ThreadStableJsonRepr {
-    /// The ID of the root message in the thread.
-    event_id: OwnedEventId,
-
-    /// Whether the `m.in_reply_to` field is a fallback for older clients or a real reply in a
-    /// thread.
-    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
-    is_falling_back: bool,
-}
-
-/// A thread relation without the reply fallback, with unstable names.
-#[derive(Clone, Deserialize, Serialize)]
-struct ThreadUnstableJsonRepr {
-    /// The ID of the root message in the thread.
-    event_id: OwnedEventId,
-
-    /// Whether the `m.in_reply_to` field is a fallback for older clients or a real reply in a
-    /// thread.
-    #[serde(
-        rename = "io.element.show_reply",
-        default,
-        skip_serializing_if = "ruma_common::serde::is_default"
-    )]
-    is_falling_back: bool,
-}
-
-/// A relation, which associates new information to an existing event.
-#[derive(Clone, Deserialize, Serialize)]
-#[serde(tag = "rel_type")]
-enum RelationJsonRepr {
-    /// An annotation to an event.
-    #[serde(rename = "m.annotation")]
-    Annotation(Annotation),
-
-    /// A reference to another event.
-    #[serde(rename = "m.reference")]
-    Reference(Reference),
-
-    /// An event that replaces another event.
-    #[serde(rename = "m.replace")]
-    Replacement(Replacement),
-
-    /// An event that belongs to a thread, with stable names.
-    #[serde(rename = "m.thread")]
-    ThreadStable(ThreadStableJsonRepr),
-
-    /// An event that belongs to a thread, with unstable names.
-    #[serde(rename = "io.element.thread")]
-    ThreadUnstable(ThreadUnstableJsonRepr),
-
-    /// An unknown relation type.
-    ///
-    /// Not available in the public API, but exists here so deserialization
-    /// doesn't fail with new / custom `rel_type`s.
-    #[serde(other)]
-    Unknown,
+    #[serde(flatten)]
+    data: &'a T,
 }

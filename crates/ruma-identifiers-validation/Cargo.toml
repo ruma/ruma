@@ -6,7 +6,7 @@ repository = "https://github.com/ruma/ruma"
 license = "MIT"
 version = "0.9.1"
 edition = "2021"
-rust-version = "1.64"
+rust-version = { workspace = true }
 
 [package.metadata.docs.rs]
 all-features = true

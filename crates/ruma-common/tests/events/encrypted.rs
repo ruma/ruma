@@ -1,7 +1,7 @@
 use assert_matches2::assert_matches;
 use ruma_common::{
     events::{
-        relation::{InReplyTo, Reference, Thread},
+        relation::{CustomRelation, InReplyTo, Reference, Thread},
         room::encrypted::{
             EncryptedEventScheme, MegolmV1AesSha2ContentInit, Relation, Replacement,
             RoomEncryptedEventContent,
@@ -427,4 +427,79 @@ fn content_annotation_deserialization() {
     assert_matches!(content.relates_to, Some(Relation::Annotation(annotation)));
     assert_eq!(annotation.event_id, "$annotated_event");
     assert_eq!(annotation.key, "some_key");
+}
+
+#[test]
+fn custom_relation_deserialization() {
+    let json = json!({
+        "algorithm": "m.megolm.v1.aes-sha2",
+        "sender_key": "aV9BpqYFqJpKYmgERyGv/6QyKMcgLqxM05V0gvzg9Yk",
+        "ciphertext": "AwgAEpABjy6BHczo7UZE3alyej6y2YQ5v+L9eB+fBqL7yteCPv8Jig\
+                      FCXKWWuwpbZ4nQpvhUbqW0ZX2474FQf0l1dXGQWDMm0VP5p20elkzSf\
+                      n0uzmHVKGQe+NHUKIczRWsUJ6AbrLBbfFKoIPwfbZ7nQQndjA6F0+PW\
+                      MoMQHqcrtROrCV/TMux6kDKp7h7O77Y6wp6LD4rU1lwTmKnMYkQGnju\
+                      c3+FAMvkow26TuS0/fhJG5m+f0GLlP8FQ3fu0Kjw2YUOLl/BU6gPWdk\
+                      lDl5mzVO3tPnJMKZ0hn+AF",
+        "session_id": "IkwqWxT2zy3DI1E/zM2Wq+CE8tr3eEpsxsVGjGrMPdw",
+        "device_id": "DEVICE",
+        "m.relates_to": {
+            "rel_type": "io.ruma.custom",
+            "event_id": "$related_event",
+            "field": "value",
+        },
+    });
+
+    let content = from_json_value::<RoomEncryptedEventContent>(json).unwrap();
+
+    assert_matches!(content.scheme, EncryptedEventScheme::MegolmV1AesSha2(encrypted_content));
+    assert_eq!(encrypted_content.session_id, "IkwqWxT2zy3DI1E/zM2Wq+CE8tr3eEpsxsVGjGrMPdw");
+    assert_eq!(
+        encrypted_content.ciphertext,
+        "AwgAEpABjy6BHczo7UZE3alyej6y2YQ5v+L9eB+fBqL7yteCPv8Jig\
+        FCXKWWuwpbZ4nQpvhUbqW0ZX2474FQf0l1dXGQWDMm0VP5p20elkzSf\
+        n0uzmHVKGQe+NHUKIczRWsUJ6AbrLBbfFKoIPwfbZ7nQQndjA6F0+PW\
+        MoMQHqcrtROrCV/TMux6kDKp7h7O77Y6wp6LD4rU1lwTmKnMYkQGnju\
+        c3+FAMvkow26TuS0/fhJG5m+f0GLlP8FQ3fu0Kjw2YUOLl/BU6gPWdk\
+        lDl5mzVO3tPnJMKZ0hn+AF"
+    );
+
+    let relation = content.relates_to.unwrap();
+    assert_eq!(relation.rel_type().unwrap().as_str(), "io.ruma.custom");
+    assert_eq!(relation.event_id(), "$related_event");
+    let data = relation.data();
+    assert_eq!(data.get("field").unwrap().as_str(), Some("value"));
+}
+
+#[test]
+fn custom_relation_serialization() {
+    let json = json!({
+        "rel_type": "io.ruma.custom",
+        "event_id": "$related_event",
+        "field": "value",
+    });
+    let relation = from_json_value::<CustomRelation>(json).unwrap();
+
+    let content =
+        RoomEncryptedEventContent::new(encrypted_scheme(), Some(Relation::_Custom(relation)));
+
+    assert_eq!(
+        to_json_value(&content).unwrap(),
+        json!({
+            "algorithm": "m.megolm.v1.aes-sha2",
+            "sender_key": "aV9BpqYFqJpKYmgERyGv/6QyKMcgLqxM05V0gvzg9Yk",
+            "ciphertext": "AwgAEpABjy6BHczo7UZE3alyej6y2YQ5v+L9eB+fBqL7yteCPv8Jig\
+                          FCXKWWuwpbZ4nQpvhUbqW0ZX2474FQf0l1dXGQWDMm0VP5p20elkzSf\
+                          n0uzmHVKGQe+NHUKIczRWsUJ6AbrLBbfFKoIPwfbZ7nQQndjA6F0+PW\
+                          MoMQHqcrtROrCV/TMux6kDKp7h7O77Y6wp6LD4rU1lwTmKnMYkQGnju\
+                          c3+FAMvkow26TuS0/fhJG5m+f0GLlP8FQ3fu0Kjw2YUOLl/BU6gPWdk\
+                          lDl5mzVO3tPnJMKZ0hn+AF",
+            "session_id": "IkwqWxT2zy3DI1E/zM2Wq+CE8tr3eEpsxsVGjGrMPdw",
+            "device_id": "DEVICE",
+            "m.relates_to": {
+                "rel_type": "io.ruma.custom",
+                "event_id": "$related_event",
+                "field": "value",
+            },
+        })
+    );
 }

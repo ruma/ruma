@@ -9,9 +9,9 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 use crate::{
-    events::relation::{InReplyTo, Replacement, Thread},
+    events::relation::{CustomRelation, InReplyTo, RelationType, Replacement, Thread},
     serde::{JsonObject, StringEnum},
-    OwnedEventId, PrivOwnedStr,
+    EventId, OwnedEventId, PrivOwnedStr,
 };
 
 mod audio;
@@ -103,6 +103,22 @@ impl RoomMessageEventContent {
     #[cfg(feature = "markdown")]
     pub fn notice_markdown(body: impl AsRef<str> + Into<String>) -> Self {
         Self::new(MessageType::notice_markdown(body))
+    }
+
+    /// A constructor to create a plain text emote.
+    pub fn emote_plain(body: impl Into<String>) -> Self {
+        Self::new(MessageType::emote_plain(body))
+    }
+
+    /// A constructor to create an html emote.
+    pub fn emote_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self::new(MessageType::emote_html(body, html_body))
+    }
+
+    /// A constructor to create a markdown emote.
+    #[cfg(feature = "markdown")]
+    pub fn emote_markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self::new(MessageType::emote_markdown(body))
     }
 
     /// Turns `self` into a reply to the given message.
@@ -486,6 +502,22 @@ impl MessageType {
         Self::Notice(NoticeMessageEventContent::markdown(body))
     }
 
+    /// A constructor to create a plain text emote.
+    pub fn emote_plain(body: impl Into<String>) -> Self {
+        Self::Emote(EmoteMessageEventContent::plain(body))
+    }
+
+    /// A constructor to create an html emote.
+    pub fn emote_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self::Emote(EmoteMessageEventContent::html(body, html_body))
+    }
+
+    /// A constructor to create a markdown emote.
+    #[cfg(feature = "markdown")]
+    pub fn emote_markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self::Emote(EmoteMessageEventContent::markdown(body))
+    }
+
     /// Returns a reference to the `msgtype` string.
     pub fn msgtype(&self) -> &str {
         match self {
@@ -616,7 +648,53 @@ pub enum Relation<C> {
     Thread(Thread),
 
     #[doc(hidden)]
-    _Custom,
+    _Custom(CustomRelation),
+}
+
+impl<C> Relation<C> {
+    /// The type of this `Relation`.
+    ///
+    /// Returns an `Option` because the `Reply` relation does not have a`rel_type` field.
+    pub fn rel_type(&self) -> Option<RelationType> {
+        match self {
+            Relation::Reply { .. } => None,
+            Relation::Replacement(_) => Some(RelationType::Replacement),
+            Relation::Thread(_) => Some(RelationType::Thread),
+            Relation::_Custom(c) => Some(c.rel_type.as_str().into()),
+        }
+    }
+
+    /// The ID of the event this relates to.
+    ///
+    /// This is the `event_id` field at the root of an `m.relates_to` object, except in the case of
+    /// a reply relation where it's the `event_id` field in the `m.in_reply_to` object.
+    pub fn event_id(&self) -> &EventId {
+        match self {
+            Relation::Reply { in_reply_to } => &in_reply_to.event_id,
+            Relation::Replacement(r) => &r.event_id,
+            Relation::Thread(t) => &t.event_id,
+            Relation::_Custom(c) => &c.event_id,
+        }
+    }
+
+    /// The associated data.
+    ///
+    /// The returned JSON object won't contain the `rel_type` field, use
+    /// [`.rel_type()`][Self::rel_type] to access it. It also won't contain data
+    /// outside of `m.relates_to` (e.g. `m.new_content` for `m.replace` relations).
+    ///
+    /// Prefer to use the public variants of `Relation` where possible; this method is meant to
+    /// be used for custom relations only.
+    pub fn data(&self) -> Cow<'_, JsonObject>
+    where
+        C: Clone,
+    {
+        if let Relation::_Custom(c) = self {
+            Cow::Borrowed(&c.data)
+        } else {
+            Cow::Owned(self.serialize_data())
+        }
+    }
 }
 
 /// The format for the formatted representation of a message body.
