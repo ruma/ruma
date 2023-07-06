@@ -49,6 +49,58 @@ where
     }
 }
 
+/// Take either a floating point number or a string and deserialize to an floating-point number.
+///
+/// To be used like this:
+/// `#[serde(deserialize_with = "deserialize_as_f64_or_string")]`
+pub fn deserialize_as_f64_or_string<'de, D>(de: D) -> Result<f64, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    struct F64OrStringVisitor;
+
+    impl<'de> Visitor<'de> for F64OrStringVisitor {
+        type Value = f64;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+            formatter.write_str("a double or a string")
+        }
+
+        fn visit_f32<E>(self, v: f32) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(v.into())
+        }
+
+        fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(v)
+        }
+
+        fn visit_str<E: de::Error>(self, v: &str) -> Result<Self::Value, E> {
+            v.parse().map_err(E::custom)
+        }
+    }
+
+    de.deserialize_any(F64OrStringVisitor)
+}
+
+#[derive(Deserialize)]
+struct F64OrStringWrapper(#[serde(deserialize_with = "deserialize_as_f64_or_string")] f64);
+
+/// Deserializes an `Option<f64>` as encoded as a f64 or a string.
+pub fn deserialize_as_optional_f64_or_string<'de, D>(
+    deserializer: D,
+) -> Result<Option<f64>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    Ok(Option::<F64OrStringWrapper>::deserialize(deserializer)?.map(|w| w.0))
+}
+
 /// Take either an integer number or a string and deserialize to an integer number.
 ///
 /// To be used like this:
@@ -160,7 +212,7 @@ where
         type Value = BTreeMap<T, Int>;
 
         fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-            formatter.write_str("a map with integers or stings as values")
+            formatter.write_str("a map with integers or strings as values")
         }
 
         fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {

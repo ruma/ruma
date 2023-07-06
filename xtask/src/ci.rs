@@ -211,7 +211,7 @@ impl CiTask {
     fn test_common(&self) -> Result<()> {
         cmd!(
             "rustup run stable cargo test -p ruma-common
-                --features events,compat-empty-string-null,compat-user-id compat"
+                --features events,compat-empty-string-null,compat-user-id,compat-tag-info compat"
         )
         .run()
         .map_err(Into::into)
