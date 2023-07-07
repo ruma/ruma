@@ -9,6 +9,8 @@ use serde::{Deserialize, Serialize};
 mod unstable_poll_answers_serde;
 mod unstable_poll_kind_serde;
 
+use crate::events::room::message::Relation;
+
 use self::unstable_poll_answers_serde::UnstablePollAnswersDeHelper;
 use super::{
     compile_unstable_poll_results, generate_poll_end_fallback_text,
@@ -29,7 +31,7 @@ use super::{
 /// [`PollStartEventContent`]: super::start::PollStartEventContent
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "org.matrix.msc3381.poll.start", kind = MessageLike)]
+#[ruma_event(type = "org.matrix.msc3381.poll.start", kind = MessageLike, without_relation)]
 pub struct UnstablePollStartEventContent {
     /// The poll content of the message.
     #[serde(rename = "org.matrix.msc3381.poll.start")]
@@ -38,18 +40,26 @@ pub struct UnstablePollStartEventContent {
     /// Text representation of the message, for clients that don't support polls.
     #[serde(rename = "org.matrix.msc1767.text")]
     pub text: Option<String>,
+
+    /// Information about related messages.
+    #[serde(
+        flatten,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "crate::events::room::message::relation_serde::deserialize_relation"
+    )]
+    pub relates_to: Option<Relation<UnstablePollStartEventContentWithoutRelation>>,
 }
 
 impl UnstablePollStartEventContent {
     /// Creates a new `PollStartEventContent` with the given poll content.
     pub fn new(poll_start: UnstablePollStartContentBlock) -> Self {
-        Self { poll_start, text: None }
+        Self { poll_start, text: None, relates_to: None }
     }
 
     /// Creates a new `PollStartEventContent` with the given plain text fallback
     /// representation and poll content.
     pub fn plain_text(text: impl Into<String>, poll_start: UnstablePollStartContentBlock) -> Self {
-        Self { poll_start, text: Some(text.into()) }
+        Self { poll_start, text: Some(text.into()), relates_to: None }
     }
 }
 

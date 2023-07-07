@@ -10,7 +10,11 @@ mod poll_answers_serde;
 
 use poll_answers_serde::PollAnswersDeHelper;
 
-use crate::{events::message::TextContentBlock, serde::StringEnum, PrivOwnedStr};
+use crate::{
+    events::{message::TextContentBlock, room::message::Relation},
+    serde::StringEnum,
+    PrivOwnedStr,
+};
 
 use super::{
     compile_poll_results,
@@ -30,7 +34,7 @@ use super::{
 /// [`UnstablePollStartEventContent`]: super::unstable_start::UnstablePollStartEventContent
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.poll.start", kind = MessageLike)]
+#[ruma_event(type = "m.poll.start", kind = MessageLike, without_relation)]
 pub struct PollStartEventContent {
     /// The poll content of the message.
     #[serde(rename = "m.poll")]
@@ -39,6 +43,14 @@ pub struct PollStartEventContent {
     /// Text representation of the message, for clients that don't support polls.
     #[serde(rename = "m.text")]
     pub text: TextContentBlock,
+
+    /// Information about related messages.
+    #[serde(
+        flatten,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "crate::events::room::message::relation_serde::deserialize_relation"
+    )]
+    pub relates_to: Option<Relation<PollStartEventContentWithoutRelation>>,
 
     /// Whether this message is automated.
     #[cfg(feature = "unstable-msc3955")]
@@ -57,6 +69,7 @@ impl PollStartEventContent {
         Self {
             poll,
             text,
+            relates_to: None,
             #[cfg(feature = "unstable-msc3955")]
             automated: false,
         }
@@ -65,12 +78,7 @@ impl PollStartEventContent {
     /// Creates a new `PollStartEventContent` with the given plain text fallback
     /// representation and poll content.
     pub fn with_plain_text(plain_text: impl Into<String>, poll: PollContentBlock) -> Self {
-        Self {
-            poll,
-            text: TextContentBlock::plain(plain_text),
-            #[cfg(feature = "unstable-msc3955")]
-            automated: false,
-        }
+        Self::new(TextContentBlock::plain(plain_text), poll)
     }
 }
 
