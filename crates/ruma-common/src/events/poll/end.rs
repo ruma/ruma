@@ -19,7 +19,14 @@ use crate::{
 /// This type can be generated from the poll start and poll response events with
 /// [`OriginalSyncPollStartEvent::compile_results()`].
 ///
+/// This is the event content that should be sent for room versions that support extensible events.
+/// As of Matrix 1.7, none of the stable room versions (1 through 10) support extensible events.
+///
+/// To send a poll end event for a room version that does not support extensible events, use
+/// [`UnstablePollEndEventContent`].
+///
 /// [`OriginalSyncPollStartEvent::compile_results()`]: super::start::OriginalSyncPollStartEvent::compile_results
+/// [`UnstablePollEndEventContent`]: super::unstable_end::UnstablePollEndEventContent
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.poll.end", kind = MessageLike)]

@@ -10,6 +10,14 @@ use crate::{events::relation::Reference, OwnedEventId};
 use super::start::PollContentBlock;
 
 /// The payload for a poll response event.
+///
+/// This is the event content that should be sent for room versions that support extensible events.
+/// As of Matrix 1.7, none of the stable room versions (1 through 10) support extensible events.
+///
+/// To send a poll response event for a room version that does not support extensible events, use
+/// [`UnstablePollResponseEventContent`].
+///
+/// [`UnstablePollResponseEventContent`]: super::unstable_response::UnstablePollResponseEventContent
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.poll.response", kind = MessageLike)]
