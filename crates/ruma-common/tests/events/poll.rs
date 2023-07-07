@@ -25,6 +25,7 @@ use ruma_common::{
             },
         },
         relation::Reference,
+        room::message::Relation,
         AnyMessageLikeEvent, MessageLikeEvent,
     },
     owned_event_id, MilliSecondsSinceUnixEpoch,
@@ -176,6 +177,33 @@ fn start_event_deserialization() {
                     },
                 ]
             },
+            "m.new_content": {
+                "m.text": [
+                    { "body": "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!" }
+                ],
+                "m.poll": {
+                    "question": { "m.text": [{ "body": "How's the weather?" }] },
+                    "max_selections": 2,
+                    "answers": [
+                        {
+                            "m.id": "not-bad",
+                            "m.text": [{ "body": "Not bad…" }],
+                        },
+                        {
+                            "m.id": "fine",
+                            "m.text": [{ "body": "Fine." }],
+                        },
+                        {
+                            "m.id": "amazing",
+                            "m.text": [{ "body": "Amazing!" }],
+                        },
+                    ]
+                },
+            },
+            "m.relates_to": {
+                "rel_type": "m.replace",
+                "event_id": "$previous_event_id",
+            },
         },
         "event_id": "$event:notareal.hs",
         "origin_server_ts": 134_829_848,
@@ -205,6 +233,7 @@ fn start_event_deserialization() {
     assert_eq!(answers[1].text[0].body, "Fine.");
     assert_eq!(answers[2].id, "amazing");
     assert_eq!(answers[2].text[0].body, "Amazing!");
+    assert_matches!(message_event.content.relates_to, Some(Relation::Replacement(_)));
 }
 
 #[test]
@@ -413,6 +442,31 @@ fn unstable_start_event_deserialization() {
                     },
                 ]
             },
+            "m.new_content": {
+                "org.matrix.msc1767.text": "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!",
+                "org.matrix.msc3381.poll.start": {
+                    "question": { "org.matrix.msc1767.text": "How's the weather?" },
+                    "max_selections": 2,
+                    "answers": [
+                        {
+                            "id": "not-bad",
+                            "org.matrix.msc1767.text": "Not bad…",
+                        },
+                        {
+                            "id": "fine",
+                            "org.matrix.msc1767.text": "Fine.",
+                        },
+                        {
+                            "id": "amazing",
+                            "org.matrix.msc1767.text": "Amazing!",
+                        },
+                    ]
+                },
+            },
+            "m.relates_to": {
+                "rel_type": "m.replace",
+                "event_id": "$previous_event_id",
+            },
         },
         "event_id": "$event:notareal.hs",
         "origin_server_ts": 134_829_848,
@@ -442,6 +496,7 @@ fn unstable_start_event_deserialization() {
     assert_eq!(answers[1].text, "Fine.");
     assert_eq!(answers[2].id, "amazing");
     assert_eq!(answers[2].text, "Amazing!");
+    assert_matches!(message_event.content.relates_to, Some(Relation::Replacement(_)));
 }
 
 #[test]
