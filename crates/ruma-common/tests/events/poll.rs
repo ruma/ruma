@@ -8,12 +8,20 @@ use ruma_common::{
     events::{
         message::TextContentBlock,
         poll::{
-            compile_poll_results,
+            compile_poll_results, compile_unstable_poll_results,
             end::PollEndEventContent,
             response::{OriginalSyncPollResponseEvent, PollResponseEventContent},
             start::{
                 OriginalSyncPollStartEvent, PollAnswer, PollAnswers, PollAnswersError,
                 PollContentBlock, PollKind, PollStartEventContent,
+            },
+            unstable_end::UnstablePollEndEventContent,
+            unstable_response::{
+                OriginalSyncUnstablePollResponseEvent, UnstablePollResponseEventContent,
+            },
+            unstable_start::{
+                OriginalSyncUnstablePollStartEvent, UnstablePollAnswer,
+                UnstablePollStartContentBlock, UnstablePollStartEventContent,
             },
         },
         relation::Reference,
@@ -348,6 +356,194 @@ fn end_event_deserialization() {
     assert_eq!(event_id, "$related_event:notareal.hs");
 }
 
+#[test]
+fn unstable_start_content_serialization() {
+    let event_content = UnstablePollStartEventContent::plain_text(
+        "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!",
+        UnstablePollStartContentBlock::new(
+            "How's the weather?",
+            vec![
+                UnstablePollAnswer::new("not-bad", "Not bad…"),
+                UnstablePollAnswer::new("fine", "Fine."),
+                UnstablePollAnswer::new("amazing", "Amazing!"),
+            ]
+            .try_into()
+            .unwrap(),
+        ),
+    );
+
+    assert_eq!(
+        to_json_value(&event_content).unwrap(),
+        json!({
+            "org.matrix.msc1767.text": "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!",
+            "org.matrix.msc3381.poll.start": {
+                "kind": "org.matrix.msc3381.poll.undisclosed",
+                "max_selections": 1,
+                "question": { "org.matrix.msc1767.text": "How's the weather?" },
+                "answers": [
+                    { "id": "not-bad", "org.matrix.msc1767.text": "Not bad…" },
+                    { "id": "fine", "org.matrix.msc1767.text":  "Fine." },
+                    { "id": "amazing", "org.matrix.msc1767.text":  "Amazing!" },
+                ],
+            },
+        })
+    );
+}
+
+#[test]
+fn unstable_start_event_deserialization() {
+    let json_data = json!({
+        "content": {
+            "org.matrix.msc1767.text": "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!",
+            "org.matrix.msc3381.poll.start": {
+                "question": { "org.matrix.msc1767.text": "How's the weather?" },
+                "max_selections": 2,
+                "answers": [
+                    {
+                        "id": "not-bad",
+                        "org.matrix.msc1767.text": "Not bad…",
+                    },
+                    {
+                        "id": "fine",
+                        "org.matrix.msc1767.text": "Fine.",
+                    },
+                    {
+                        "id": "amazing",
+                        "org.matrix.msc1767.text": "Amazing!",
+                    },
+                ]
+            },
+        },
+        "event_id": "$event:notareal.hs",
+        "origin_server_ts": 134_829_848,
+        "room_id": "!roomid:notareal.hs",
+        "sender": "@user:notareal.hs",
+        "type": "org.matrix.msc3381.poll.start",
+    });
+
+    let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
+    assert_matches!(
+        event,
+        AnyMessageLikeEvent::UnstablePollStart(MessageLikeEvent::Original(message_event))
+    );
+    assert_eq!(
+        message_event.content.text.unwrap(),
+        "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!"
+    );
+    let poll = message_event.content.poll_start;
+    assert_eq!(poll.question.text, "How's the weather?");
+    assert_eq!(poll.kind, PollKind::Undisclosed);
+    assert_eq!(poll.max_selections, uint!(2));
+    let answers = poll.answers;
+    assert_eq!(answers.len(), 3);
+    assert_eq!(answers[0].id, "not-bad");
+    assert_eq!(answers[0].text, "Not bad…");
+    assert_eq!(answers[1].id, "fine");
+    assert_eq!(answers[1].text, "Fine.");
+    assert_eq!(answers[2].id, "amazing");
+    assert_eq!(answers[2].text, "Amazing!");
+}
+
+#[test]
+fn unstable_response_content_serialization() {
+    let event_content = UnstablePollResponseEventContent::new(
+        vec!["my-answer".to_owned()],
+        owned_event_id!("$related_event:notareal.hs"),
+    );
+
+    assert_eq!(
+        to_json_value(&event_content).unwrap(),
+        json!({
+            "org.matrix.msc3381.poll.response": {
+                "answers": ["my-answer"],
+            },
+            "m.relates_to": {
+                "rel_type": "m.reference",
+                "event_id": "$related_event:notareal.hs",
+            }
+        })
+    );
+}
+
+#[test]
+fn unstable_response_event_deserialization() {
+    let json_data = json!({
+        "content": {
+            "org.matrix.msc3381.poll.response": {
+                "answers": ["my-answer"],
+            },
+            "m.relates_to": {
+                "rel_type": "m.reference",
+                "event_id": "$related_event:notareal.hs",
+            }
+        },
+        "event_id": "$event:notareal.hs",
+        "origin_server_ts": 134_829_848,
+        "room_id": "!roomid:notareal.hs",
+        "sender": "@user:notareal.hs",
+        "type": "org.matrix.msc3381.poll.response",
+    });
+
+    let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
+    assert_matches!(
+        event,
+        AnyMessageLikeEvent::UnstablePollResponse(MessageLikeEvent::Original(message_event))
+    );
+    let selections = message_event.content.poll_response.answers;
+    assert_eq!(selections.len(), 1);
+    assert_eq!(selections[0], "my-answer");
+    assert_matches!(message_event.content.relates_to, Reference { event_id, .. });
+    assert_eq!(event_id, "$related_event:notareal.hs");
+}
+
+#[test]
+fn unstable_end_content_serialization() {
+    let event_content = UnstablePollEndEventContent::new(
+        "The poll has closed. Top answer: Amazing!",
+        owned_event_id!("$related_event:notareal.hs"),
+    );
+
+    assert_eq!(
+        to_json_value(&event_content).unwrap(),
+        json!({
+            "org.matrix.msc1767.text":  "The poll has closed. Top answer: Amazing!",
+            "org.matrix.msc3381.poll.end": {},
+            "m.relates_to": {
+                "rel_type": "m.reference",
+                "event_id": "$related_event:notareal.hs",
+            }
+        })
+    );
+}
+
+#[test]
+fn unstable_end_event_deserialization() {
+    let json_data = json!({
+        "content": {
+            "org.matrix.msc1767.text":  "The poll has closed. Top answer: Amazing!",
+            "org.matrix.msc3381.poll.end": {},
+            "m.relates_to": {
+                "rel_type": "m.reference",
+                "event_id": "$related_event:notareal.hs",
+            }
+        },
+        "event_id": "$event:notareal.hs",
+        "origin_server_ts": 134_829_848,
+        "room_id": "!roomid:notareal.hs",
+        "sender": "@user:notareal.hs",
+        "type": "org.matrix.msc3381.poll.end",
+    });
+
+    let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
+    assert_matches!(
+        event,
+        AnyMessageLikeEvent::UnstablePollEnd(MessageLikeEvent::Original(message_event))
+    );
+    assert_eq!(message_event.content.text, "The poll has closed. Top answer: Amazing!");
+    assert_matches!(message_event.content.relates_to, Reference { event_id, .. });
+    assert_eq!(event_id, "$related_event:notareal.hs");
+}
+
 fn new_poll_response(
     event_id: &str,
     user_id: &str,
@@ -643,4 +839,92 @@ fn compute_results() {
     assert_eq!(*results.get("poutine").unwrap(), uint!(8));
     assert_eq!(*results.get("italian").unwrap(), uint!(6));
     assert_eq!(*results.get("wings").unwrap(), uint!(7));
+}
+
+fn new_unstable_poll_response(
+    event_id: &str,
+    user_id: &str,
+    ts: UInt,
+    selections: &[&str],
+) -> OriginalSyncUnstablePollResponseEvent {
+    from_json_value(json!({
+      "type": "org.matrix.msc3381.poll.response",
+      "sender": user_id,
+      "origin_server_ts": ts,
+      "event_id": event_id,
+      "content": {
+        "m.relates_to": {
+          "rel_type": "m.reference",
+          "event_id": "$poll_start_event_id"
+        },
+        "org.matrix.msc3381.poll.response": {
+            "answers": selections,
+        },
+      }
+    }))
+    .unwrap()
+}
+
+fn generate_unstable_poll_responses(
+    range: Range<usize>,
+    selections: &[&str],
+) -> Vec<OriginalSyncUnstablePollResponseEvent> {
+    let mut responses = Vec::with_capacity(range.len());
+
+    for i in range {
+        let event_id = format!("$valid_event_{i}");
+        let user_id = format!("@valid_user_{i}:localhost");
+        let ts = 1000 + i as u16;
+
+        responses.push(new_unstable_poll_response(&event_id, &user_id, ts.into(), selections));
+    }
+
+    responses
+}
+
+#[test]
+fn compute_unstable_results() {
+    let poll: OriginalSyncUnstablePollStartEvent = from_json_value(json!({
+        "type": "org.matrix.msc3381.poll.start",
+        "sender": "@alice:localhost",
+        "event_id": "$poll_start_event_id",
+        "origin_server_ts": 1,
+        "content": {
+          "org.matrix.msc1767.text": "What should we order for the party?\n1. Pizza 🍕\n2. Poutine 🍟\n3. Italian 🍝\n4. Wings 🔥",
+          "org.matrix.msc3381.poll.start": {
+            "kind": "org.matrix.msc3381.poll.disclosed",
+            "max_selections": 2,
+            "question": {
+              "org.matrix.msc1767.text": "What should we order for the party?",
+            },
+            "answers": [
+              { "id": "pizza", "org.matrix.msc1767.text": "Pizza 🍕" },
+              { "id": "poutine", "org.matrix.msc1767.text": "Poutine 🍟" },
+              { "id": "italian", "org.matrix.msc1767.text": "Italian 🍝" },
+              { "id": "wings", "org.matrix.msc1767.text": "Wings 🔥" },
+            ]
+          },
+        }
+      })).unwrap();
+
+    // Populate responses.
+    let mut responses = generate_unstable_poll_responses(0..5, &["pizza"]);
+    responses.extend(generate_unstable_poll_responses(5..6, &["poutine"]));
+    responses.extend(generate_unstable_poll_responses(6..8, &["italian"]));
+    responses.extend(generate_unstable_poll_responses(8..11, &["wings"]));
+
+    let counted = compile_unstable_poll_results(&poll.content.poll_start, &responses, None);
+    assert_eq!(counted.get("pizza").unwrap().len(), 5);
+    assert_eq!(counted.get("poutine").unwrap().len(), 1);
+    assert_eq!(counted.get("italian").unwrap().len(), 2);
+    assert_eq!(counted.get("wings").unwrap().len(), 3);
+    let mut iter = counted.keys();
+    assert_eq!(iter.next(), Some(&"pizza"));
+    assert_eq!(iter.next(), Some(&"wings"));
+    assert_eq!(iter.next(), Some(&"italian"));
+    assert_eq!(iter.next(), Some(&"poutine"));
+    assert_eq!(iter.next(), None);
+
+    let poll_end = poll.compile_results(&responses);
+    assert_eq!(poll_end.text, "The poll has closed. Top answer: Pizza 🍕");
 }

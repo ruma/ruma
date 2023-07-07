@@ -70,9 +70,18 @@ event_enum! {
         #[cfg(feature = "unstable-msc3381")]
         "m.poll.start" => super::poll::start,
         #[cfg(feature = "unstable-msc3381")]
+        #[ruma_enum(ident = UnstablePollStart)]
+        "org.matrix.msc3381.poll.start" => super::poll::unstable_start,
+        #[cfg(feature = "unstable-msc3381")]
         "m.poll.response" => super::poll::response,
         #[cfg(feature = "unstable-msc3381")]
+        #[ruma_enum(ident = UnstablePollResponse)]
+        "org.matrix.msc3381.poll.response" => super::poll::unstable_response,
+        #[cfg(feature = "unstable-msc3381")]
         "m.poll.end" => super::poll::end,
+        #[cfg(feature = "unstable-msc3381")]
+        #[ruma_enum(ident = UnstablePollEnd)]
+        "org.matrix.msc3381.poll.end" => super::poll::unstable_end,
         "m.reaction" => super::reaction,
         "m.room.encrypted" => super::room::encrypted,
         "m.room.message" => super::room::message,
@@ -293,7 +302,11 @@ impl AnyMessageLikeEventContent {
             start::KeyVerificationStartEventContent,
         };
         #[cfg(feature = "unstable-msc3381")]
-        use super::poll::{end::PollEndEventContent, response::PollResponseEventContent};
+        use super::poll::{
+            end::PollEndEventContent, response::PollResponseEventContent,
+            unstable_end::UnstablePollEndEventContent,
+            unstable_response::UnstablePollResponseEventContent,
+        };
 
         match self {
             #[rustfmt::skip]
@@ -329,11 +342,13 @@ impl AnyMessageLikeEventContent {
             Self::Video(ev) => ev.relates_to.clone().map(Into::into),
             #[cfg(feature = "unstable-msc3381")]
             Self::PollResponse(PollResponseEventContent { relates_to, .. })
-            | Self::PollEnd(PollEndEventContent { relates_to, .. }) => {
+            | Self::UnstablePollResponse(UnstablePollResponseEventContent { relates_to, .. })
+            | Self::PollEnd(PollEndEventContent { relates_to, .. })
+            | Self::UnstablePollEnd(UnstablePollEndEventContent { relates_to, .. }) => {
                 Some(encrypted::Relation::Reference(relates_to.clone()))
             }
             #[cfg(feature = "unstable-msc3381")]
-            Self::PollStart(_) => None,
+            Self::PollStart(_) | Self::UnstablePollStart(_) => None,
             Self::CallNegotiate(_)
             | Self::CallReject(_)
             | Self::CallSelectAnswer(_)
