@@ -102,9 +102,9 @@
 //! ));
 //! ```
 
-use serde::{de::IgnoredAny, Deserialize, Serializer};
+use serde::{de::IgnoredAny, Deserialize, Serialize, Serializer};
 
-use crate::{EventEncryptionAlgorithm, RoomVersionId};
+use crate::{EventEncryptionAlgorithm, OwnedUserId, RoomVersionId};
 
 // Needs to be public for trybuild tests
 #[doc(hidden)]
@@ -223,4 +223,38 @@ pub fn serialize_custom_event_error<T, S: Serializer>(_: &T, _: S) -> Result<S::
          To send custom events, turn them into `Raw<EnumType>` by going through
          `serde_json::value::to_raw_value` and `Raw::from_json`.",
     ))
+}
+
+/// Describes whether the event mentions other users or the room.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct Mentions {
+    /// The list of mentioned users.
+    ///
+    /// Defaults to an empty `Vec`.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub user_ids: Vec<OwnedUserId>,
+
+    /// Whether the whole room is mentioned.
+    ///
+    /// Defaults to `false`.
+    #[serde(default, skip_serializing_if = "crate::serde::is_default")]
+    pub room: bool,
+}
+
+impl Mentions {
+    /// Create a `Mentions` with the default values.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Create a `Mentions` for the given user IDs.
+    pub fn with_user_ids(user_ids: Vec<OwnedUserId>) -> Self {
+        Self { user_ids, ..Default::default() }
+    }
+
+    /// Create a `Mentions` for a room mention.
+    pub fn with_room_mention() -> Self {
+        Self { room: true, ..Default::default() }
+    }
 }

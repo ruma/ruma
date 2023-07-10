@@ -107,7 +107,7 @@ fn replacement_deserialize() {
         })
     );
     assert_eq!(replacement.event_id, "$1598361704261elfgc");
-    assert_matches!(replacement.new_content, MessageType::Text(text));
+    assert_matches!(replacement.new_content.msgtype, MessageType::Text(text));
     assert_eq!(text.body, "Hello! My name is bar");
 }
 

@@ -3,8 +3,11 @@
 use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use super::{relation_serde::deserialize_relation, MessageType, RoomMessageEventContent};
-use crate::serde::from_raw_json_value;
+use super::{
+    relation_serde::deserialize_relation, MessageType, RoomMessageEventContent,
+    RoomMessageEventContentWithoutRelation,
+};
+use crate::{events::Mentions, serde::from_raw_json_value};
 
 impl<'de> Deserialize<'de> for RoomMessageEventContent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -12,11 +15,33 @@ impl<'de> Deserialize<'de> for RoomMessageEventContent {
         D: de::Deserializer<'de>,
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+
         let mut deserializer = serde_json::Deserializer::from_str(json.get());
         let relates_to = deserialize_relation(&mut deserializer).map_err(de::Error::custom)?;
 
-        Ok(Self { msgtype: from_raw_json_value(&json)?, relates_to })
+        let MentionsDeHelper { mentions } = from_raw_json_value(&json)?;
+
+        Ok(Self { msgtype: from_raw_json_value(&json)?, relates_to, mentions })
     }
+}
+
+impl<'de> Deserialize<'de> for RoomMessageEventContentWithoutRelation {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+
+        let MentionsDeHelper { mentions } = from_raw_json_value(&json)?;
+
+        Ok(Self { msgtype: from_raw_json_value(&json)?, mentions })
+    }
+}
+
+#[derive(Deserialize)]
+struct MentionsDeHelper {
+    #[serde(rename = "m.mentions")]
+    mentions: Option<Mentions>,
 }
 
 /// Helper struct to determine the msgtype from a `serde_json::value::RawValue`

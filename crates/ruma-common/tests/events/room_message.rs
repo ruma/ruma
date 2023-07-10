@@ -9,12 +9,12 @@ use ruma_common::{
             message::{
                 AudioMessageEventContent, EmoteMessageEventContent, FileMessageEventContent,
                 ForwardThread, ImageMessageEventContent, KeyVerificationRequestEventContent,
-                MessageType, OriginalRoomMessageEvent, RoomMessageEventContent,
-                TextMessageEventContent, VideoMessageEventContent,
+                MessageType, OriginalRoomMessageEvent, OriginalSyncRoomMessageEvent, Relation,
+                RoomMessageEventContent, TextMessageEventContent, VideoMessageEventContent,
             },
             EncryptedFileInit, JsonWebKeyInit, MediaSource,
         },
-        MessageLikeUnsigned,
+        Mentions, MessageLikeUnsigned,
     },
     mxc_uri, owned_event_id, owned_room_id, owned_user_id,
     serde::Base64,
@@ -408,9 +408,22 @@ fn make_replacement_no_reply() {
         "This is _an edited_ message.",
         "This is <em>an edited</em> message.",
     );
-    let event_id = owned_event_id!("$143273582443PhrSn:example.org");
 
-    let content = content.make_replacement(event_id, None);
+    let original_message_json = json!({
+        "content": {
+            "body": "Hello, World!",
+            "msgtype": "m.text",
+        },
+        "event_id": "$143273582443PhrSn",
+        "origin_server_ts": 134_829_848,
+        "room_id": "!roomid:notareal.hs",
+        "sender": "@user:notareal.hs",
+        "type": "m.room.message",
+    });
+    let original_message: OriginalSyncRoomMessageEvent =
+        from_json_value(original_message_json).unwrap();
+
+    let content = content.make_replacement(&original_message, None);
 
     assert_matches!(
         content.msgtype,
@@ -419,6 +432,7 @@ fn make_replacement_no_reply() {
     assert_eq!(body, "* This is _an edited_ message.");
     let formatted = formatted.unwrap();
     assert_eq!(formatted.body, "* This is <em>an edited</em> message.");
+    assert_matches!(content.mentions, None);
 }
 
 #[test]
@@ -439,9 +453,22 @@ fn make_replacement_with_reply() {
         "This is _an edited_ reply.",
         "This is <em>an edited</em> reply.",
     );
-    let event_id = owned_event_id!("$143273582443PhrSn:example.org");
 
-    let content = content.make_replacement(event_id, Some(&replied_to_message));
+    let original_message_json = json!({
+        "content": {
+            "body": "Hello, World!",
+            "msgtype": "m.text",
+        },
+        "event_id": "$143273582443PhrSn",
+        "origin_server_ts": 134_829_848,
+        "room_id": "!roomid:notareal.hs",
+        "sender": "@user:notareal.hs",
+        "type": "m.room.message",
+    });
+    let original_message: OriginalSyncRoomMessageEvent =
+        from_json_value(original_message_json).unwrap();
+
+    let content = content.make_replacement(&original_message, Some(&replied_to_message));
 
     assert_matches!(
         content.msgtype,
@@ -470,6 +497,7 @@ fn make_replacement_with_reply() {
         * This is <em>an edited</em> reply.\
         "
     );
+    assert_matches!(content.mentions, None);
 }
 
 #[test]
@@ -805,4 +833,74 @@ fn video_msgtype_deserialization() {
     assert_eq!(content.body, "Upload: my_video.mp4");
     assert_matches!(content.source, MediaSource::Plain(url));
     assert_eq!(url, "mxc://notareal.hs/file");
+}
+
+#[test]
+fn set_mentions() {
+    let mut content = RoomMessageEventContent::text_plain("you!");
+    let mentions = content.mentions.take();
+    assert_matches!(mentions, None);
+
+    let user_id = owned_user_id!("@you:localhost");
+    content = content.set_mentions(Mentions::with_user_ids(vec![user_id.clone()]));
+    let mentions = content.mentions.unwrap();
+    assert_eq!(mentions.user_ids.as_slice(), &[user_id]);
+}
+
+#[test]
+fn make_replacement_set_mentions() {
+    let alice = owned_user_id!("@alice:localhost");
+    let bob = owned_user_id!("@bob:localhost");
+    let original_message_json = json!({
+        "content": {
+            "body": "Hello, World!",
+            "msgtype": "m.text",
+            "m.mentions": {
+                "user_ids": [alice],
+            }
+        },
+        "event_id": "$143273582443PhrSn",
+        "origin_server_ts": 134_829_848,
+        "room_id": "!roomid:notareal.hs",
+        "sender": "@user:notareal.hs",
+        "type": "m.room.message",
+    });
+    let original_message: OriginalSyncRoomMessageEvent =
+        from_json_value(original_message_json).unwrap();
+
+    let mut content = RoomMessageEventContent::text_html(
+        "This is _an edited_ message.",
+        "This is <em>an edited</em> message.",
+    );
+    content = content.make_replacement(&original_message, None);
+    let content_clone = content.clone();
+
+    assert_matches!(content.mentions, None);
+    assert_matches!(content.relates_to, Some(Relation::Replacement(replacement)));
+    let mentions = replacement.new_content.mentions.unwrap();
+    assert_eq!(mentions.user_ids.as_slice(), &[alice.clone()]);
+
+    content = content_clone.set_mentions(Mentions::with_user_ids(vec![alice.clone(), bob.clone()]));
+    let mentions = content.mentions.unwrap();
+    assert_eq!(mentions.user_ids.as_slice(), &[bob.clone()]);
+    assert_matches!(content.relates_to, Some(Relation::Replacement(replacement)));
+    let mentions = replacement.new_content.mentions.unwrap();
+    assert_eq!(mentions.user_ids.as_slice(), &[alice, bob]);
+}
+
+#[test]
+fn mentions_room_deserialization() {
+    let json_data = json!({
+        "body": "room!",
+        "msgtype": "m.text",
+        "m.mentions": {
+            "room": true,
+        },
+    });
+
+    let content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    assert_matches!(content.msgtype, MessageType::Text(text));
+    assert_eq!(text.body, "room!");
+    let mentions = content.mentions.unwrap();
+    assert!(mentions.room);
 }
