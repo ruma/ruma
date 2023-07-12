@@ -55,6 +55,7 @@ impl RoomVersionFeature {
             | RoomVersionId::V8
             | RoomVersionId::V9
             | RoomVersionId::V10
+            | RoomVersionId::V11
             | RoomVersionId::_Custom(_) => vec![],
         }
     }
