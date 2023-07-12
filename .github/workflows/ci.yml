@@ -237,11 +237,12 @@ jobs:
           name: docs
           path: docs.tar.zstd
 
-      - name: Deploy to docs repo
+      - name: Upload docs as pages artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: JamesIves/github-pages-deploy-action@4.1.4
+        uses: actions/upload-pages-artifact@v1
         with:
-          folder: target/doc
-          repository-name: ruma/docs.ruma.io
-          branch: main
-          ssh-key: ${{ secrets.DOCS_DEPLOY_KEY }}
+          path: target/doc
+
+      - name: Deploy to GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/deploy-pages@v2
