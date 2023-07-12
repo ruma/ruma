@@ -410,9 +410,6 @@ impl RoomMessageEventContent {
 }
 
 /// Form of [`RoomMessageEventContent`] without relation.
-///
-/// To construct this type, construct a [`RoomMessageEventContent`] and then use one of its ::from()
-/// / .into() methods.
 #[derive(Clone, Debug, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomMessageEventContentWithoutRelation {
@@ -430,6 +427,11 @@ pub struct RoomMessageEventContentWithoutRelation {
 }
 
 impl RoomMessageEventContentWithoutRelation {
+    /// Creates a new `RoomMessageEventContentWithoutRelation` with the given `MessageType`.
+    pub fn new(msgtype: MessageType) -> Self {
+        Self { msgtype, mentions: None }
+    }
+
     /// Transform `self` into a `RoomMessageEventContent` with the given relation.
     pub fn with_relation(
         self,
