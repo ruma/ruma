@@ -9,9 +9,12 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 use crate::{
-    events::relation::{CustomRelation, InReplyTo, RelationType, Replacement, Thread},
+    events::{
+        relation::{CustomRelation, InReplyTo, RelationType, Replacement, Thread},
+        Mentions,
+    },
     serde::{JsonObject, StringEnum},
-    EventId, OwnedEventId, PrivOwnedStr,
+    EventId, PrivOwnedStr,
 };
 
 mod audio;
@@ -64,13 +67,23 @@ pub struct RoomMessageEventContent {
     ///
     /// [related messages]: https://spec.matrix.org/latest/client-server-api/#forming-relationships-between-events
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    pub relates_to: Option<Relation<MessageType>>,
+    pub relates_to: Option<Relation<RoomMessageEventContentWithoutRelation>>,
+
+    /// The [mentions] of this event.
+    ///
+    /// This should always be set to avoid triggering the legacy mention push rules. It is
+    /// recommended to use [`Self::set_mentions()`] to set this field, that will take care of
+    /// populating the fields correctly if this is a replacement.
+    ///
+    /// [mentions]: https://spec.matrix.org/latest/client-server-api/#user-and-room-mentions
+    #[serde(rename = "m.mentions", skip_serializing_if = "Option::is_none")]
+    pub mentions: Option<Mentions>,
 }
 
 impl RoomMessageEventContent {
     /// Create a `RoomMessageEventContent` with the given `MessageType`.
     pub fn new(msgtype: MessageType) -> Self {
-        Self { msgtype, relates_to: None }
+        Self { msgtype, relates_to: None, mentions: None }
     }
 
     /// A constructor to create a plain text message.
@@ -247,6 +260,10 @@ impl RoomMessageEventContent {
     /// `original_message`.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
     ///
+    /// If the message that is replaced contains [`Mentions`], they are copied into
+    /// `m.new_content` to keep the same mentions, but not into `content` to avoid repeated
+    /// notifications.
+    ///
     /// # Panics
     ///
     /// Panics if `self` has a `formatted_body` with a format other than HTML.
@@ -255,13 +272,16 @@ impl RoomMessageEventContent {
     #[track_caller]
     pub fn make_replacement(
         mut self,
-        original_message_id: OwnedEventId,
+        original_message: &OriginalSyncRoomMessageEvent,
         replied_to_message: Option<&OriginalRoomMessageEvent>,
     ) -> Self {
         // Prepare relates_to with the untouched msgtype.
         let relates_to = Relation::Replacement(Replacement {
-            event_id: original_message_id,
-            new_content: self.msgtype.clone(),
+            event_id: original_message.event_id.clone(),
+            new_content: RoomMessageEventContentWithoutRelation {
+                msgtype: self.msgtype.clone(),
+                mentions: original_message.content.mentions.clone(),
+            },
         });
 
         let empty_formatted_body = || FormattedBody::html(String::new());
@@ -311,6 +331,43 @@ impl RoomMessageEventContent {
         self
     }
 
+    /// Set the [mentions] of this event.
+    ///
+    /// If this event is a replacement, it will update the mentions both in the `content` and the
+    /// `m.new_content` so only new mentions will trigger a notification. As such, this needs to be
+    /// called after [`Self::make_replacement()`].
+    ///
+    /// [mentions]: https://spec.matrix.org/latest/client-server-api/#user-and-room-mentions
+    pub fn set_mentions(mut self, mentions: Mentions) -> Self {
+        if let Some(Relation::Replacement(replacement)) = &mut self.relates_to {
+            let old_mentions = &replacement.new_content.mentions;
+
+            let new_mentions = if let Some(old_mentions) = old_mentions {
+                let mut new_mentions = Mentions::new();
+
+                new_mentions.user_ids = mentions
+                    .user_ids
+                    .iter()
+                    .filter(|u| !old_mentions.user_ids.contains(*u))
+                    .cloned()
+                    .collect();
+
+                new_mentions.room = mentions.room && !old_mentions.room;
+
+                new_mentions
+            } else {
+                mentions.clone()
+            };
+
+            replacement.new_content.mentions = Some(mentions);
+            self.mentions = Some(new_mentions);
+        } else {
+            self.mentions = Some(mentions);
+        }
+
+        self
+    }
+
     /// Returns a reference to the `msgtype` string.
     ///
     /// If you want to access the message type-specific data rather than the message type itself,
@@ -349,6 +406,44 @@ impl RoomMessageEventContent {
         };
 
         self.msgtype.sanitize(mode, remove_reply_fallback);
+    }
+}
+
+/// Form of [`RoomMessageEventContent`] without relation.
+///
+/// To construct this type, construct a [`RoomMessageEventContent`] and then use one of its ::from()
+/// / .into() methods.
+#[derive(Clone, Debug, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct RoomMessageEventContentWithoutRelation {
+    /// A key which identifies the type of message being sent.
+    ///
+    /// This also holds the specific content of each message.
+    #[serde(flatten)]
+    pub msgtype: MessageType,
+
+    /// The [mentions] of this event.
+    ///
+    /// [mentions]: https://spec.matrix.org/latest/client-server-api/#user-and-room-mentions
+    #[serde(rename = "m.mentions", skip_serializing_if = "Option::is_none")]
+    pub mentions: Option<Mentions>,
+}
+
+impl RoomMessageEventContentWithoutRelation {
+    /// Transform `self` into a `RoomMessageEventContent` with the given relation.
+    pub fn with_relation(
+        self,
+        relates_to: Option<Relation<RoomMessageEventContentWithoutRelation>>,
+    ) -> RoomMessageEventContent {
+        let Self { msgtype, mentions } = self;
+        RoomMessageEventContent { msgtype, relates_to, mentions }
+    }
+}
+
+impl From<RoomMessageEventContent> for RoomMessageEventContentWithoutRelation {
+    fn from(value: RoomMessageEventContent) -> Self {
+        let RoomMessageEventContent { msgtype, mentions, .. } = value;
+        Self { msgtype, mentions }
     }
 }
 
