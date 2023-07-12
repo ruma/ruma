@@ -204,6 +204,12 @@ jobs:
     name: Docs
     needs: xtask
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
