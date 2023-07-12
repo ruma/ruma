@@ -442,6 +442,12 @@ impl RoomMessageEventContentWithoutRelation {
     }
 }
 
+impl From<MessageType> for RoomMessageEventContentWithoutRelation {
+    fn from(msgtype: MessageType) -> Self {
+        Self::new(msgtype)
+    }
+}
+
 impl From<RoomMessageEventContent> for RoomMessageEventContentWithoutRelation {
     fn from(value: RoomMessageEventContent) -> Self {
         let RoomMessageEventContent { msgtype, mentions, .. } = value;
