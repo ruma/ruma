@@ -15,6 +15,7 @@ pub mod appservice;
 pub mod backup;
 pub mod config;
 pub mod context;
+pub mod dehydrated_device;
 pub mod device;
 pub mod directory;
 pub mod discovery;
