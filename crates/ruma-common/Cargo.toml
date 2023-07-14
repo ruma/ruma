@@ -82,7 +82,7 @@ http = { workspace = true, optional = true }
 indexmap = { version = "2.0.0", features = ["serde"] }
 js_int = { workspace = true, features = ["serde"] }
 js_option = "0.1.0"
-konst = { version = "0.3.5", features = ["alloc"], optional = true }
+konst = { version = "0.3.5", default-features = false, features = ["cmp", "iter", "parsing"], optional = true }
 percent-encoding = "2.1.0"
 phf = { version = "0.11.1", features = ["macros"], optional = true }
 pulldown-cmark = { version = "0.9.1", default-features = false, optional = true }
