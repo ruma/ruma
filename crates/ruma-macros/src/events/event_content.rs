@@ -923,12 +923,16 @@ fn generate_event_content_impl<'a>(
         let type_prefixes = quote! {
             [#(#type_prefixes,)*]
         };
-        let fields_without_type_fragment = fields.filter(|f| {
-            !f.attrs.iter().any(|a| {
-                a.path().is_ident("ruma_event") && matches!(a.parse_args(), Ok(EventFieldMeta::TypeFragment))
+        let fields_without_type_fragment = fields
+            .filter(|f| {
+                !f.attrs.iter().any(|a| {
+                    a.path().is_ident("ruma_event")
+                        && matches!(a.parse_args(), Ok(EventFieldMeta::TypeFragment))
+                })
             })
-        }).collect::<Vec<_>>();
-        let fields_ident_without_type_fragment = fields_without_type_fragment.iter().filter_map(|f| f.ident.as_ref());
+            .collect::<Vec<_>>();
+        let fields_ident_without_type_fragment =
+            fields_without_type_fragment.iter().filter_map(|f| f.ident.as_ref());
 
         quote! {
             impl #ruma_common::events::EventContentFromType for #ident {
