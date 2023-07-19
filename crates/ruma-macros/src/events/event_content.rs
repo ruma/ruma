@@ -12,7 +12,7 @@ use syn::{
     DeriveInput, Field, Ident, LitStr, Meta, Token, Type,
 };
 
-use crate::util::m_prefix_name_to_type_name;
+use crate::util::{m_prefix_name_to_type_name, PrivateField};
 
 use super::event_parse::{EventKind, EventKindVariation};
 
@@ -930,9 +930,10 @@ fn generate_event_content_impl<'a>(
                         && matches!(a.parse_args(), Ok(EventFieldMeta::TypeFragment))
                 })
             })
+            .map(PrivateField)
             .collect::<Vec<_>>();
         let fields_ident_without_type_fragment =
-            fields_without_type_fragment.iter().filter_map(|f| f.ident.as_ref());
+            fields_without_type_fragment.iter().filter_map(|f| f.0.ident.as_ref());
 
         quote! {
             impl #ruma_common::events::EventContentFromType for #ident {

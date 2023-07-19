@@ -75,6 +75,7 @@ impl<'de> Deserialize<'de> for MessageType {
     }
 }
 
+#[allow(unreachable_pub)] // https://github.com/rust-lang/rust/issues/112615
 #[cfg(feature = "unstable-msc3488")]
 pub(in super::super) mod msc3488 {
     use serde::{Deserialize, Serialize};

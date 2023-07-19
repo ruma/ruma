@@ -5,6 +5,7 @@
 //! See the documentation for the individual macros for usage details.
 
 #![warn(missing_docs)]
+#![allow(unreachable_pub)]
 // https://github.com/rust-lang/rust-clippy/issues/9029
 #![allow(clippy::derive_partial_eq_without_eq)]
 

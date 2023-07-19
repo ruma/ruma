@@ -248,7 +248,7 @@ impl From<AnyTimelineEvent> for AnySyncTimelineEvent {
 #[derive(Deserialize)]
 #[allow(clippy::exhaustive_structs)]
 struct EventDeHelper {
-    pub state_key: Option<de::IgnoredAny>,
+    state_key: Option<de::IgnoredAny>,
 }
 
 impl<'de> Deserialize<'de> for AnyTimelineEvent {

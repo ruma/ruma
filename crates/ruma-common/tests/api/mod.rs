@@ -1,4 +1,5 @@
 #![cfg(feature = "api")]
+#![allow(unreachable_pub)]
 
 mod conversions;
 mod header_override;

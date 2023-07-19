@@ -329,7 +329,7 @@ pub mod v3 {
 
         #[derive(Debug, Deserialize, Serialize)]
         struct Wrapper {
-            pub flows: Vec<LoginType>,
+            flows: Vec<LoginType>,
         }
 
         #[test]

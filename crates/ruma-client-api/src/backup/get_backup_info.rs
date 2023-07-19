@@ -2,6 +2,7 @@
 //!
 //! Get information about a specific backup.
 
+#[allow(unreachable_pub)] // https://github.com/rust-lang/rust/issues/112615
 pub mod v3 {
     //! `/v3/` ([spec])
     //!

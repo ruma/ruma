@@ -56,7 +56,7 @@ impl<'de> Deserialize<'de> for MediaSource {
         D: serde::Deserializer<'de>,
     {
         #[derive(Deserialize)]
-        pub struct MediaSourceJsonRepr {
+        struct MediaSourceJsonRepr {
             url: Option<OwnedMxcUri>,
             file: Option<Box<EncryptedFile>>,
         }

@@ -13,7 +13,7 @@ use super::{
     attribute::{DeriveResponseMeta, ResponseMeta},
     ensure_feature_presence,
 };
-use crate::util::import_ruma_common;
+use crate::util::{import_ruma_common, PrivateField};
 
 mod incoming;
 mod outgoing;
@@ -132,7 +132,8 @@ impl Response {
             });
 
             let serde_attr = self.has_newtype_body().then(|| quote! { #[serde(transparent)] });
-            let fields = self.fields.iter().filter_map(ResponseField::as_body_field);
+            let fields =
+                self.fields.iter().filter_map(ResponseField::as_body_field).map(PrivateField);
 
             quote! {
                 /// Data in the response body.

@@ -13,7 +13,7 @@ struct WrappedError {
     error: Option<String>,
 }
 
-pub fn serialize<S>(
+pub(crate) fn serialize<S>(
     response: &BTreeMap<OwnedEventId, Result<(), String>>,
     serializer: S,
 ) -> Result<S::Ok, S::Error>
@@ -34,7 +34,7 @@ where
 }
 
 #[allow(clippy::type_complexity)]
-pub fn deserialize<'de, D>(
+pub(crate) fn deserialize<'de, D>(
     deserializer: D,
 ) -> Result<BTreeMap<OwnedEventId, Result<(), String>>, D::Error>
 where

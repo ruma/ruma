@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use proc_macro_crate::{crate_name, FoundCrate};
-use quote::{format_ident, quote};
-use syn::{Ident, LitStr};
+use quote::{format_ident, quote, ToTokens};
+use syn::{Field, Ident, LitStr};
 
 pub(crate) fn import_ruma_common() -> TokenStream {
     if let Ok(FoundCrate::Name(name)) = crate_name("ruma-common") {
@@ -54,4 +54,22 @@ pub(crate) fn m_prefix_name_to_type_name(name: &LitStr) -> syn::Result<Ident> {
         .collect();
 
     Ok(Ident::new(&s, span))
+}
+
+/// Wrapper around [`syn::Field`] that emits the field without its visibility,
+/// thus making it private.
+pub struct PrivateField<'a>(pub &'a Field);
+
+impl ToTokens for PrivateField<'_> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let Field { attrs, vis: _, mutability, ident, colon_token, ty } = self.0;
+        assert_eq!(*mutability, syn::FieldMutability::None);
+
+        for attr in attrs {
+            attr.to_tokens(tokens);
+        }
+        ident.to_tokens(tokens);
+        colon_token.to_tokens(tokens);
+        ty.to_tokens(tokens);
+    }
 }

@@ -1,5 +1,7 @@
 //! Convenience methods and types to sanitize text messages.
 
+#![allow(unreachable_pub)] // https://github.com/rust-lang/rust/issues/112615
+
 #[cfg(feature = "unstable-sanitize")]
 mod html_fragment;
 #[cfg(feature = "unstable-sanitize")]

@@ -24,7 +24,7 @@ pub trait KeyPair: Sized {
     fn sign(&self, message: &[u8]) -> Signature;
 }
 
-pub const ED25519_OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.3.101.112");
+const ED25519_OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.3.101.112");
 
 /// An Ed25519 key pair.
 pub struct Ed25519KeyPair {
