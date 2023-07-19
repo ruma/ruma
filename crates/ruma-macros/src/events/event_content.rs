@@ -941,16 +941,24 @@ fn generate_event_content_impl<'a>(
                         #( #fields_without_type_fragment, )*
                     }
 
-                    if let ::std::option::Option::Some(type_fragment) = #type_prefixes.iter().find_map(|prefix| ev_type.strip_prefix(prefix)) {
+                    if let ::std::option::Option::Some(type_fragment) =
+                        #type_prefixes.iter().find_map(|prefix| ev_type.strip_prefix(prefix))
+                    {
                         let c: WithoutTypeFragment = #serde_json::from_str(content.get())?;
 
                         ::std::result::Result::Ok(Self {
-                            #( #fields_ident_without_type_fragment: c.#fields_ident_without_type_fragment, )*
+                            #(
+                                #fields_ident_without_type_fragment:
+                                    c.#fields_ident_without_type_fragment,
+                            )*
                             #type_fragment_field: type_fragment.to_owned(),
                         })
                     } else {
                         ::std::result::Result::Err(#serde::de::Error::custom(
-                            ::std::format!("expected event type starting with one of `{:?}`, found `{}`", #type_prefixes, ev_type)
+                            ::std::format!(
+                                "expected event type starting with one of `{:?}`, found `{}`",
+                                #type_prefixes, ev_type,
+                            )
                         ))
                     }
                 }
