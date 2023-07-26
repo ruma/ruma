@@ -17,7 +17,7 @@ use ruma_common::{
     },
     metadata,
     serde::{duration::opt_ms, Raw},
-    DeviceKeyAlgorithm, OwnedRoomId,
+    DeviceKeyAlgorithm, OwnedMxcUri, OwnedRoomId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -418,6 +418,10 @@ pub struct SlidingSyncRoom {
     /// The name of the room as calculated by the server.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+
+    /// The avatar of the room.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar: Option<OwnedMxcUri>,
 
     /// Was this an initial response.
     #[serde(skip_serializing_if = "Option::is_none")]

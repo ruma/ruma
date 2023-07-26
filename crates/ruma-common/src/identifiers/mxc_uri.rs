@@ -14,7 +14,6 @@ type Result<T, E = MxcUriError> = std::result::Result<T, E>;
 /// A URI that should be a Matrix-spec compliant [MXC URI].
 ///
 /// [MXC URI]: https://spec.matrix.org/latest/client-server-api/#matrix-content-mxc-uris
-
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
 pub struct MxcUri(str);
