@@ -10,7 +10,7 @@ use super::{
     attribute::{DeriveRequestMeta, RequestMeta},
     ensure_feature_presence,
 };
-use crate::util::import_ruma_common;
+use crate::util::{import_ruma_common, PrivateField};
 
 mod incoming;
 mod outgoing;
@@ -147,7 +147,8 @@ impl Request {
 
         let request_body_struct = self.has_body_fields().then(|| {
             let serde_attr = self.has_newtype_body().then(|| quote! { #[serde(transparent)] });
-            let fields = self.fields.iter().filter_map(RequestField::as_body_field);
+            let fields =
+                self.fields.iter().filter_map(RequestField::as_body_field).map(PrivateField);
 
             quote! {
                 /// Data in the request body.
@@ -162,9 +163,11 @@ impl Request {
 
         let request_query_def = if let Some(f) = self.query_map_field() {
             let field = Field { ident: None, colon_token: None, ..f.clone() };
+            let field = PrivateField(&field);
             Some(quote! { (#field); })
         } else if self.has_query_fields() {
-            let fields = self.fields.iter().filter_map(RequestField::as_query_field);
+            let fields =
+                self.fields.iter().filter_map(RequestField::as_query_field).map(PrivateField);
             Some(quote! { { #(#fields),* } })
         } else {
             None

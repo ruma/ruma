@@ -9,6 +9,7 @@ rustflags = [
     "-Wprivate_in_public",
     "-Wrust_2018_idioms",
     "-Wsemicolon_in_expressions_from_macros",
+    "-Wunreachable_pub",
     "-Wunused_import_braces",
     "-Wunused_qualifications",
     "-Wclippy::branches_sharing_code",

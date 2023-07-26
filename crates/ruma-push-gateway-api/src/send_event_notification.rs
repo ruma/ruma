@@ -305,7 +305,7 @@ pub mod v1 {
             Deserializer, Serializer,
         };
 
-        pub fn serialize<S>(tweak: &[Tweak], serializer: S) -> Result<S::Ok, S::Error>
+        pub(super) fn serialize<S>(tweak: &[Tweak], serializer: S) -> Result<S::Ok, S::Error>
         where
             S: Serializer,
         {
@@ -364,7 +364,7 @@ pub mod v1 {
             }
         }
 
-        pub fn deserialize<'de, D>(deserializer: D) -> Result<Vec<Tweak>, D::Error>
+        pub(super) fn deserialize<'de, D>(deserializer: D) -> Result<Vec<Tweak>, D::Error>
         where
             D: Deserializer<'de>,
         {

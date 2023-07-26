@@ -16,34 +16,34 @@ use crate::RoomVersion;
 #[derive(Deserialize)]
 struct IntRoomPowerLevelsEventContent {
     #[serde(default = "default_power_level")]
-    pub ban: Int,
+    ban: Int,
 
     #[serde(default)]
-    pub events: BTreeMap<TimelineEventType, Int>,
+    events: BTreeMap<TimelineEventType, Int>,
 
     #[serde(default)]
-    pub events_default: Int,
+    events_default: Int,
 
     #[serde(default)]
-    pub invite: Int,
+    invite: Int,
 
     #[serde(default = "default_power_level")]
-    pub kick: Int,
+    kick: Int,
 
     #[serde(default = "default_power_level")]
-    pub redact: Int,
+    redact: Int,
 
     #[serde(default = "default_power_level")]
-    pub state_default: Int,
+    state_default: Int,
 
     #[serde(default)]
-    pub users: BTreeMap<OwnedUserId, Int>,
+    users: BTreeMap<OwnedUserId, Int>,
 
     #[serde(default)]
-    pub users_default: Int,
+    users_default: Int,
 
     #[serde(default)]
-    pub notifications: IntNotificationPowerLevels,
+    notifications: IntNotificationPowerLevels,
 }
 
 impl From<IntRoomPowerLevelsEventContent> for RoomPowerLevelsEventContent {
@@ -80,7 +80,7 @@ impl From<IntRoomPowerLevelsEventContent> for RoomPowerLevelsEventContent {
 #[derive(Deserialize)]
 struct IntNotificationPowerLevels {
     #[serde(default = "default_power_level")]
-    pub room: Int,
+    room: Int,
 }
 
 impl Default for IntNotificationPowerLevels {

@@ -3,6 +3,7 @@
 //! This binary is integrated into the `cargo` command line by using an alias in
 //! `.cargo/config`. Run commands as `cargo xtask [command]`.
 
+#![allow(unreachable_pub)]
 #![allow(clippy::exhaustive_structs)]
 // https://github.com/rust-lang/rust-clippy/issues/9029
 #![allow(clippy::derive_partial_eq_without_eq)]

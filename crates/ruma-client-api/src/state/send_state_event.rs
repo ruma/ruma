@@ -201,7 +201,7 @@ pub mod v3 {
     struct RequestQuery {
         /// Timestamp to use for the `origin_server_ts` of the event.
         #[serde(rename = "ts", skip_serializing_if = "Option::is_none")]
-        pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
+        timestamp: Option<MilliSecondsSinceUnixEpoch>,
     }
 
     #[cfg(feature = "client")]

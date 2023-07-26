@@ -12,7 +12,7 @@ use syn::{
     DeriveInput, Field, Ident, LitStr, Meta, Token, Type,
 };
 
-use crate::util::m_prefix_name_to_type_name;
+use crate::util::{m_prefix_name_to_type_name, PrivateField};
 
 use super::event_parse::{EventKind, EventKindVariation};
 
@@ -923,12 +923,17 @@ fn generate_event_content_impl<'a>(
         let type_prefixes = quote! {
             [#(#type_prefixes,)*]
         };
-        let fields_without_type_fragment = fields.filter(|f| {
-            !f.attrs.iter().any(|a| {
-                a.path().is_ident("ruma_event") && matches!(a.parse_args(), Ok(EventFieldMeta::TypeFragment))
+        let fields_without_type_fragment = fields
+            .filter(|f| {
+                !f.attrs.iter().any(|a| {
+                    a.path().is_ident("ruma_event")
+                        && matches!(a.parse_args(), Ok(EventFieldMeta::TypeFragment))
+                })
             })
-        }).collect::<Vec<_>>();
-        let fields_ident_without_type_fragment = fields_without_type_fragment.iter().filter_map(|f| f.ident.as_ref());
+            .map(PrivateField)
+            .collect::<Vec<_>>();
+        let fields_ident_without_type_fragment =
+            fields_without_type_fragment.iter().filter_map(|f| f.0.ident.as_ref());
 
         quote! {
             impl #ruma_common::events::EventContentFromType for #ident {
@@ -941,16 +946,24 @@ fn generate_event_content_impl<'a>(
                         #( #fields_without_type_fragment, )*
                     }
 
-                    if let ::std::option::Option::Some(type_fragment) = #type_prefixes.iter().find_map(|prefix| ev_type.strip_prefix(prefix)) {
+                    if let ::std::option::Option::Some(type_fragment) =
+                        #type_prefixes.iter().find_map(|prefix| ev_type.strip_prefix(prefix))
+                    {
                         let c: WithoutTypeFragment = #serde_json::from_str(content.get())?;
 
                         ::std::result::Result::Ok(Self {
-                            #( #fields_ident_without_type_fragment: c.#fields_ident_without_type_fragment, )*
+                            #(
+                                #fields_ident_without_type_fragment:
+                                    c.#fields_ident_without_type_fragment,
+                            )*
                             #type_fragment_field: type_fragment.to_owned(),
                         })
                     } else {
                         ::std::result::Result::Err(#serde::de::Error::custom(
-                            ::std::format!("expected event type starting with one of `{:?}`, found `{}`", #type_prefixes, ev_type)
+                            ::std::format!(
+                                "expected event type starting with one of `{:?}`, found `{}`",
+                                #type_prefixes, ev_type,
+                            )
                         ))
                     }
                 }

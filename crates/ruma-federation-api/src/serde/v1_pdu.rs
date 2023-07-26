@@ -15,7 +15,7 @@ use serde::{
     ser::{Serialize, SerializeSeq, Serializer},
 };
 
-pub fn serialize<T, S>(val: &T, serializer: S) -> Result<S::Ok, S::Error>
+pub(crate) fn serialize<T, S>(val: &T, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
     T: Serialize,
@@ -26,7 +26,7 @@ where
     seq.end()
 }
 
-pub fn deserialize<'de, T, D>(deserializer: D) -> Result<T, D::Error>
+pub(crate) fn deserialize<'de, T, D>(deserializer: D) -> Result<T, D::Error>
 where
     D: Deserializer<'de>,
     T: Deserialize<'de>,

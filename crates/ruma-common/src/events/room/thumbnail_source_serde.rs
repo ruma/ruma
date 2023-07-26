@@ -10,7 +10,7 @@ use crate::OwnedMxcUri;
 use super::{EncryptedFile, MediaSource};
 
 /// Serializes a MediaSource to a thumbnail source.
-pub fn serialize<S>(source: &Option<MediaSource>, serializer: S) -> Result<S::Ok, S::Error>
+pub(crate) fn serialize<S>(source: &Option<MediaSource>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
@@ -27,12 +27,12 @@ where
 }
 
 /// Deserializes a thumbnail source to a MediaSource.
-pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<MediaSource>, D::Error>
+pub(crate) fn deserialize<'de, D>(deserializer: D) -> Result<Option<MediaSource>, D::Error>
 where
     D: Deserializer<'de>,
 {
     #[derive(Deserialize)]
-    pub struct ThumbnailSourceJsonRepr {
+    struct ThumbnailSourceJsonRepr {
         thumbnail_url: Option<OwnedMxcUri>,
         thumbnail_file: Option<Box<EncryptedFile>>,
     }

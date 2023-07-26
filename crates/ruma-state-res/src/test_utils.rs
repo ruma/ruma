@@ -29,11 +29,11 @@ use tracing::info;
 
 use crate::{auth_types_for_event, Error, Event, EventTypeExt, Result, StateMap};
 
-pub use event::PduEvent;
+pub(crate) use event::PduEvent;
 
 static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 
-pub fn do_check(
+pub(crate) fn do_check(
     events: &[Arc<PduEvent>],
     edges: Vec<Vec<OwnedEventId>>,
     expected_state_ids: Vec<OwnedEventId>,
@@ -206,10 +206,10 @@ pub fn do_check(
 }
 
 #[allow(clippy::exhaustive_structs)]
-pub struct TestStore<E: Event>(pub HashMap<OwnedEventId, Arc<E>>);
+pub(crate) struct TestStore<E: Event>(pub(crate) HashMap<OwnedEventId, Arc<E>>);
 
 impl<E: Event> TestStore<E> {
-    pub fn get_event(&self, _: &RoomId, event_id: &EventId) -> Result<Arc<E>> {
+    pub(crate) fn get_event(&self, _: &RoomId, event_id: &EventId) -> Result<Arc<E>> {
         self.0
             .get(event_id)
             .map(Arc::clone)
@@ -217,7 +217,7 @@ impl<E: Event> TestStore<E> {
     }
 
     /// Returns a Vec of the related auth events to the given `event`.
-    pub fn auth_event_ids(
+    pub(crate) fn auth_event_ids(
         &self,
         room_id: &RoomId,
         event_ids: Vec<E::Id>,
@@ -245,7 +245,7 @@ impl<E: Event> TestStore<E> {
 // A StateStore implementation for testing
 #[allow(clippy::type_complexity)]
 impl TestStore<PduEvent> {
-    pub fn set_up(
+    pub(crate) fn set_up(
         &mut self,
     ) -> (StateMap<OwnedEventId>, StateMap<OwnedEventId>, StateMap<OwnedEventId>) {
         let create_event = to_pdu_event::<&EventId>(
@@ -331,7 +331,7 @@ impl TestStore<PduEvent> {
     }
 }
 
-pub fn event_id(id: &str) -> OwnedEventId {
+pub(crate) fn event_id(id: &str) -> OwnedEventId {
     if id.contains('$') {
         return id.try_into().unwrap();
     }
@@ -339,39 +339,39 @@ pub fn event_id(id: &str) -> OwnedEventId {
     format!("${id}:foo").try_into().unwrap()
 }
 
-pub fn alice() -> &'static UserId {
+pub(crate) fn alice() -> &'static UserId {
     user_id!("@alice:foo")
 }
 
-pub fn bob() -> &'static UserId {
+pub(crate) fn bob() -> &'static UserId {
     user_id!("@bob:foo")
 }
 
-pub fn charlie() -> &'static UserId {
+pub(crate) fn charlie() -> &'static UserId {
     user_id!("@charlie:foo")
 }
 
-pub fn ella() -> &'static UserId {
+pub(crate) fn ella() -> &'static UserId {
     user_id!("@ella:foo")
 }
 
-pub fn zara() -> &'static UserId {
+pub(crate) fn zara() -> &'static UserId {
     user_id!("@zara:foo")
 }
 
-pub fn room_id() -> &'static RoomId {
+pub(crate) fn room_id() -> &'static RoomId {
     room_id!("!test:foo")
 }
 
-pub fn member_content_ban() -> Box<RawJsonValue> {
+pub(crate) fn member_content_ban() -> Box<RawJsonValue> {
     to_raw_json_value(&RoomMemberEventContent::new(MembershipState::Ban)).unwrap()
 }
 
-pub fn member_content_join() -> Box<RawJsonValue> {
+pub(crate) fn member_content_join() -> Box<RawJsonValue> {
     to_raw_json_value(&RoomMemberEventContent::new(MembershipState::Join)).unwrap()
 }
 
-pub fn to_init_pdu_event(
+pub(crate) fn to_init_pdu_event(
     id: &str,
     sender: &UserId,
     ev_type: TimelineEventType,
@@ -402,7 +402,7 @@ pub fn to_init_pdu_event(
     })
 }
 
-pub fn to_pdu_event<S>(
+pub(crate) fn to_pdu_event<S>(
     id: &str,
     sender: &UserId,
     ev_type: TimelineEventType,
@@ -442,7 +442,7 @@ where
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-pub fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
+pub(crate) fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
     vec![
         to_pdu_event::<&EventId>(
             "CREATE",
@@ -524,7 +524,7 @@ pub fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-pub fn INITIAL_EVENTS_CREATE_ROOM() -> HashMap<OwnedEventId, Arc<PduEvent>> {
+pub(crate) fn INITIAL_EVENTS_CREATE_ROOM() -> HashMap<OwnedEventId, Arc<PduEvent>> {
     vec![to_pdu_event::<&EventId>(
         "CREATE",
         alice(),
@@ -540,14 +540,14 @@ pub fn INITIAL_EVENTS_CREATE_ROOM() -> HashMap<OwnedEventId, Arc<PduEvent>> {
 }
 
 #[allow(non_snake_case)]
-pub fn INITIAL_EDGES() -> Vec<OwnedEventId> {
+pub(crate) fn INITIAL_EDGES() -> Vec<OwnedEventId> {
     vec!["START", "IMC", "IMB", "IJR", "IPOWER", "IMA", "CREATE"]
         .into_iter()
         .map(event_id)
         .collect::<Vec<_>>()
 }
 
-pub mod event {
+pub(crate) mod event {
     use ruma_common::{
         events::{pdu::Pdu, TimelineEventType},
         MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, UserId,
@@ -648,9 +648,9 @@ pub mod event {
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
     #[allow(clippy::exhaustive_structs)]
-    pub struct PduEvent {
-        pub event_id: OwnedEventId,
+    pub(crate) struct PduEvent {
+        pub(crate) event_id: OwnedEventId,
         #[serde(flatten)]
-        pub rest: Pdu,
+        pub(crate) rest: Pdu,
     }
 }

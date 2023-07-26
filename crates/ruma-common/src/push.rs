@@ -39,7 +39,7 @@ pub use self::{
     action::{Action, Tweak},
     condition::{
         ComparisonOperator, FlattenedJson, FlattenedJsonValue, PushCondition, PushConditionRoomCtx,
-        RoomMemberCountIs, _CustomPushCondition,
+        RoomMemberCountIs, ScalarJsonValue, _CustomPushCondition,
     },
     iter::{AnyPushRule, AnyPushRuleRef, RulesetIntoIter, RulesetIter},
     predefined::{

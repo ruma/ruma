@@ -5,7 +5,7 @@ use ed25519_dalek::{PublicKey, Verifier as _};
 use crate::{Error, ParseError, VerificationError};
 
 /// A digital signature verifier.
-pub trait Verifier {
+pub(crate) trait Verifier {
     /// Use a public key to verify a signature against the JSON object that was signed.
     ///
     /// # Parameters
@@ -23,7 +23,7 @@ pub trait Verifier {
 
 /// A verifier for Ed25519 digital signatures.
 #[derive(Debug, Default)]
-pub struct Ed25519Verifier;
+pub(crate) struct Ed25519Verifier;
 
 impl Verifier for Ed25519Verifier {
     fn verify_json(

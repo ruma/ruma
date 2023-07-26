@@ -106,7 +106,7 @@ impl fmt::Display for FormattedOrPlainBody<'_> {
 ///
 /// [HTML tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
 /// [rich reply fallbacks]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
-pub fn plain_and_formatted_reply_body(
+pub(crate) fn plain_and_formatted_reply_body(
     body: &str,
     formatted: Option<impl fmt::Display>,
     original_message: &OriginalRoomMessageEvent,
