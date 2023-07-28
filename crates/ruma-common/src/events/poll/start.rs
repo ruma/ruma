@@ -1,4 +1,4 @@
-//! Types for the [`m.poll.start`] event.
+//! Types for the `m.poll.start` event.
 
 use std::ops::Deref;
 
@@ -10,26 +10,47 @@ mod poll_answers_serde;
 
 use poll_answers_serde::PollAnswersDeHelper;
 
-use crate::{events::message::TextContentBlock, serde::StringEnum, PrivOwnedStr};
+use crate::{
+    events::{message::TextContentBlock, room::message::Relation},
+    serde::StringEnum,
+    PrivOwnedStr,
+};
 
 use super::{
     compile_poll_results,
     end::{PollEndEventContent, PollResultsContentBlock},
+    generate_poll_end_fallback_text,
     response::OriginalSyncPollResponseEvent,
 };
 
 /// The payload for a poll start event.
+///
+/// This is the event content that should be sent for room versions that support extensible events.
+/// As of Matrix 1.7, none of the stable room versions (1 through 10) support extensible events.
+///
+/// To send a poll start event for a room version that does not support extensible events, use
+/// [`UnstablePollStartEventContent`].
+///
+/// [`UnstablePollStartEventContent`]: super::unstable_start::UnstablePollStartEventContent
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "org.matrix.msc3381.v2.poll.start", alias = "m.poll.start", kind = MessageLike)]
+#[ruma_event(type = "m.poll.start", kind = MessageLike, without_relation)]
 pub struct PollStartEventContent {
     /// The poll content of the message.
-    #[serde(rename = "org.matrix.msc3381.v2.poll")]
+    #[serde(rename = "m.poll")]
     pub poll: PollContentBlock,
 
     /// Text representation of the message, for clients that don't support polls.
-    #[serde(rename = "org.matrix.msc1767.text")]
+    #[serde(rename = "m.text")]
     pub text: TextContentBlock,
+
+    /// Information about related messages.
+    #[serde(
+        flatten,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "crate::events::room::message::relation_serde::deserialize_relation"
+    )]
+    pub relates_to: Option<Relation<PollStartEventContentWithoutRelation>>,
 
     /// Whether this message is automated.
     #[cfg(feature = "unstable-msc3955")]
@@ -48,6 +69,7 @@ impl PollStartEventContent {
         Self {
             poll,
             text,
+            relates_to: None,
             #[cfg(feature = "unstable-msc3955")]
             automated: false,
         }
@@ -56,12 +78,7 @@ impl PollStartEventContent {
     /// Creates a new `PollStartEventContent` with the given plain text fallback
     /// representation and poll content.
     pub fn with_plain_text(plain_text: impl Into<String>, poll: PollContentBlock) -> Self {
-        Self {
-            poll,
-            text: TextContentBlock::plain(plain_text),
-            #[cfg(feature = "unstable-msc3955")]
-            automated: false,
-        }
+        Self::new(TextContentBlock::plain(plain_text), poll)
     }
 }
 
@@ -75,59 +92,32 @@ impl OriginalSyncPollStartEvent {
         &'a self,
         responses: impl IntoIterator<Item = &'a OriginalSyncPollResponseEvent>,
     ) -> PollEndEventContent {
-        let computed = compile_poll_results(&self.content.poll, responses, None);
+        let full_results = compile_poll_results(&self.content.poll, responses, None);
+        let results =
+            full_results.into_iter().map(|(id, users)| (id, users.len())).collect::<Vec<_>>();
 
         // Construct the results and get the top answer(s).
-        let mut top_answers = Vec::new();
-        let mut top_count = uint!(0);
-
-        let results =
-            PollResultsContentBlock::from_iter(computed.into_iter().map(|(id, users)| {
-                let count = users.len().try_into().unwrap_or(UInt::MAX);
-
-                if count >= top_count {
-                    top_answers.push(id);
-                    top_count = count;
-                }
-
-                (id.to_owned(), count)
-            }));
+        let poll_results = PollResultsContentBlock::from_iter(
+            results
+                .iter()
+                .map(|(id, count)| ((*id).to_owned(), (*count).try_into().unwrap_or(UInt::MAX))),
+        );
 
         // Get the text representation of the best answers.
-        let top_answers_text = top_answers
-            .into_iter()
-            .map(|id| {
-                let text = &self
-                    .content
-                    .poll
-                    .answers
-                    .iter()
-                    .find(|a| a.id == id)
-                    .expect("top answer ID should be a valid answer ID")
-                    .text;
-                // Use the plain text representation, fallback to the first text representation or
-                // to the answer ID.
-                text.find_plain()
-                    .or_else(|| text.get(0).map(|t| t.body.as_ref()))
-                    .unwrap_or(id)
-                    .to_owned()
+        let answers = self
+            .content
+            .poll
+            .answers
+            .iter()
+            .map(|a| {
+                let text = a.text.find_plain().unwrap_or(&a.id);
+                (a.id.as_str(), text)
             })
             .collect::<Vec<_>>();
-
-        // Construct the plain text representation.
-        let plain_text = match top_answers_text.len() {
-            l if l > 1 => {
-                let answers = top_answers_text.join(", ");
-                format!("The poll has closed. Top answers: {answers}")
-            }
-            l if l == 1 => {
-                format!("The poll has closed. Top answer: {}", top_answers_text[0])
-            }
-            _ => "The poll has closed with no top answer".to_owned(),
-        };
+        let plain_text = generate_poll_end_fallback_text(&answers, results.into_iter());
 
         let mut end = PollEndEventContent::with_plain_text(plain_text, self.event_id.clone());
-        end.poll_results = Some(results);
+        end.poll_results = Some(poll_results);
 
         end
     }
@@ -170,7 +160,7 @@ impl PollContentBlock {
         }
     }
 
-    fn default_max_selections() -> UInt {
+    pub(super) fn default_max_selections() -> UInt {
         uint!(1)
     }
 
@@ -184,7 +174,7 @@ impl PollContentBlock {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct PollQuestion {
     /// The text representation of the question.
-    #[serde(rename = "org.matrix.msc1767.text")]
+    #[serde(rename = "m.text")]
     pub text: TextContentBlock,
 }
 
@@ -201,11 +191,11 @@ impl From<TextContentBlock> for PollQuestion {
 pub enum PollKind {
     /// The results are revealed once the poll is closed.
     #[default]
-    #[ruma_enum(rename = "org.matrix.msc3381.v2.undisclosed")]
+    #[ruma_enum(rename = "m.undisclosed")]
     Undisclosed,
 
     /// The votes are visible up until and including when the poll is closed.
-    #[ruma_enum(rename = "org.matrix.msc3381.v2.disclosed")]
+    #[ruma_enum(rename = "m.disclosed")]
     Disclosed,
 
     #[doc(hidden)]
@@ -278,11 +268,11 @@ pub struct PollAnswer {
     /// The ID of the answer.
     ///
     /// This must be unique among the answers of a poll.
-    #[serde(rename = "org.matrix.msc3381.v2.id")]
+    #[serde(rename = "m.id")]
     pub id: String,
 
     /// The text representation of the answer.
-    #[serde(rename = "org.matrix.msc1767.text")]
+    #[serde(rename = "m.text")]
     pub text: TextContentBlock,
 }
 

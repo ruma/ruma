@@ -83,7 +83,7 @@ pub(in super::super) mod msc3488 {
     use crate::{
         events::{
             location::{AssetContent, LocationContent},
-            message::historical_serde::MessageContentBlockSerDeHelper,
+            message::historical_serde::MessageContentBlock,
             room::message::{LocationInfo, LocationMessageEventContent},
         },
         MilliSecondsSinceUnixEpoch,
@@ -101,7 +101,7 @@ pub(in super::super) mod msc3488 {
         pub info: Option<Box<LocationInfo>>,
 
         #[serde(flatten)]
-        pub message: MessageContentBlockSerDeHelper,
+        pub message: Option<MessageContentBlock>,
 
         #[serde(rename = "org.matrix.msc3488.location", skip_serializing_if = "Option::is_none")]
         pub location: Option<LocationContent>,
@@ -118,15 +118,7 @@ pub(in super::super) mod msc3488 {
             let LocationMessageEventContent { body, geo_uri, info, message, location, asset, ts } =
                 value;
 
-            Self {
-                body,
-                geo_uri,
-                info,
-                message: message.map(Into::into).unwrap_or_default(),
-                location,
-                asset,
-                ts,
-            }
+            Self { body, geo_uri, info, message: message.map(Into::into), location, asset, ts }
         }
     }
 
@@ -146,7 +138,7 @@ pub(in super::super) mod msc3488 {
                 body,
                 geo_uri,
                 info,
-                message: message.try_into().ok(),
+                message: message.map(Into::into),
                 location,
                 asset,
                 ts,

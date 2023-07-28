@@ -1,4 +1,4 @@
-//! Types for the [`m.poll.end`] event.
+//! Types for the `m.poll.end` event.
 
 use std::{
     collections::{btree_map, BTreeMap},
@@ -19,20 +19,24 @@ use crate::{
 /// This type can be generated from the poll start and poll response events with
 /// [`OriginalSyncPollStartEvent::compile_results()`].
 ///
+/// This is the event content that should be sent for room versions that support extensible events.
+/// As of Matrix 1.7, none of the stable room versions (1 through 10) support extensible events.
+///
+/// To send a poll end event for a room version that does not support extensible events, use
+/// [`UnstablePollEndEventContent`].
+///
 /// [`OriginalSyncPollStartEvent::compile_results()`]: super::start::OriginalSyncPollStartEvent::compile_results
+/// [`UnstablePollEndEventContent`]: super::unstable_end::UnstablePollEndEventContent
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "org.matrix.msc3381.v2.poll.end", alias = "m.poll.end", kind = MessageLike)]
+#[ruma_event(type = "m.poll.end", kind = MessageLike)]
 pub struct PollEndEventContent {
     /// The text representation of the results.
-    #[serde(rename = "org.matrix.msc1767.text")]
+    #[serde(rename = "m.text")]
     pub text: TextContentBlock,
 
     /// The sender's perspective of the results.
-    #[serde(
-        rename = "org.matrix.msc3381.v2.poll.results",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename = "m.poll.results", skip_serializing_if = "Option::is_none")]
     pub poll_results: Option<PollResultsContentBlock>,
 
     /// Whether this message is automated.

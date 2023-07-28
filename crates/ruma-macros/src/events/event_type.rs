@@ -40,6 +40,7 @@ pub fn expand_event_type_enum(
         aliases: vec![],
         ev_type: LitStr::new("m.presence", Span::call_site()),
         ev_path: parse_quote! { #ruma_common::events::presence },
+        ident: None,
     }];
     let mut all = input.enums.iter().map(|e| &e.events).collect::<Vec<_>>();
     all.push(&presence);

@@ -16,6 +16,7 @@ mod kw {
     syn::custom_keyword!(kind);
     syn::custom_keyword!(events);
     syn::custom_keyword!(alias);
+    syn::custom_keyword!(ident);
 }
 
 // If the variants of this enum change `to_event_path` needs to be updated as well.
@@ -228,6 +229,7 @@ pub struct EventEnumEntry {
     pub aliases: Vec<LitStr>,
     pub ev_type: LitStr,
     pub ev_path: Path,
+    pub ident: Option<Ident>,
 }
 
 impl Parse for EventEnumEntry {
@@ -242,24 +244,38 @@ impl Parse for EventEnumEntry {
         let has_suffix = ev_type.value().ends_with(".*");
 
         let mut aliases = Vec::with_capacity(ruma_enum_attrs.len());
-        for attr_list in ruma_enum_attrs {
-            for alias_attr in attr_list
-                .parse_args_with(Punctuated::<EventEnumAliasAttr, Token![,]>::parse_terminated)?
-            {
-                let alias = alias_attr.into_inner();
+        let mut ident = None;
 
-                if alias.value().ends_with(".*") == has_suffix {
-                    aliases.push(alias);
-                } else {
-                    return Err(syn::Error::new_spanned(
-                        &attr_list,
-                        "aliases should have the same `.*` suffix, or lack thereof, as the main event type",
-                    ));
+        for attr_list in ruma_enum_attrs {
+            for attr in attr_list
+                .parse_args_with(Punctuated::<EventEnumAttr, Token![,]>::parse_terminated)?
+            {
+                match attr {
+                    EventEnumAttr::Alias(alias) => {
+                        if alias.value().ends_with(".*") == has_suffix {
+                            aliases.push(alias);
+                        } else {
+                            return Err(syn::Error::new_spanned(
+                                &attr_list,
+                                "aliases should have the same `.*` suffix, or lack thereof, as the main event type",
+                            ));
+                        }
+                    }
+                    EventEnumAttr::Ident(i) => {
+                        if ident.is_some() {
+                            return Err(syn::Error::new_spanned(
+                                &attr_list,
+                                "multiple `ident` attributes found, there can be only one",
+                            ));
+                        }
+
+                        ident = Some(i);
+                    }
                 }
             }
         }
 
-        Ok(Self { attrs, aliases, ev_type, ev_path })
+        Ok(Self { attrs, aliases, ev_type, ev_path, ident })
     }
 }
 
@@ -304,19 +320,27 @@ impl Parse for EventEnumInput {
     }
 }
 
-pub struct EventEnumAliasAttr(LitStr);
-
-impl EventEnumAliasAttr {
-    pub fn into_inner(self) -> LitStr {
-        self.0
-    }
+pub enum EventEnumAttr {
+    Alias(LitStr),
+    Ident(Ident),
 }
 
-impl Parse for EventEnumAliasAttr {
+impl Parse for EventEnumAttr {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let _: kw::alias = input.parse()?;
-        let _: Token![=] = input.parse()?;
-        let s: LitStr = input.parse()?;
-        Ok(Self(s))
+        let lookahead = input.lookahead1();
+
+        if lookahead.peek(kw::alias) {
+            let _: kw::alias = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            let s: LitStr = input.parse()?;
+            Ok(Self::Alias(s))
+        } else if lookahead.peek(kw::ident) {
+            let _: kw::ident = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            let i: Ident = input.parse()?;
+            Ok(Self::Ident(i))
+        } else {
+            Err(lookahead.error())
+        }
     }
 }
