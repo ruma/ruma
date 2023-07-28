@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::PrivOwnedStr;
 
+pub mod delete_dehydrated_device;
 pub mod get_dehydrated_device;
 pub mod get_events;
 pub mod put_dehydrated_device;
