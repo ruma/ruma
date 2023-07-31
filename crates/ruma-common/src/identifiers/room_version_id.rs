@@ -123,7 +123,7 @@ impl PartialOrd for RoomVersionId {
     /// specification. This implementation only exists to be able to use `RoomVersionId`s or
     /// types containing `RoomVersionId`s as `BTreeMap` keys.
     fn partial_cmp(&self, other: &RoomVersionId) -> Option<Ordering> {
-        self.as_str().partial_cmp(other.as_str())
+        Some(self.cmp(other))
     }
 }
 
