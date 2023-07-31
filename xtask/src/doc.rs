@@ -1,6 +1,6 @@
 use clap::Args;
 
-use crate::{cmd, Result};
+use crate::{cmd, Result, NIGHTLY};
 
 #[derive(Args)]
 pub struct DocTask {
@@ -20,7 +20,7 @@ impl DocTask {
             rustdocflags += " -Dwarnings";
         }
 
-        let mut cmd = cmd!("rustup run nightly cargo doc --all-features --no-deps")
+        let mut cmd = cmd!("rustup run {NIGHTLY} cargo doc --all-features --no-deps")
             .env("RUSTDOCFLAGS", rustdocflags);
 
         if self.open {
