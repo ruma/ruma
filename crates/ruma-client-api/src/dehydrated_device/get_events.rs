@@ -41,11 +41,11 @@ pub mod unstable {
     /// Request type for the `dehydrated_device/{device_id}/events` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
-        /// The batch token to supply in the `since` param of the next `/events` request.
-        pub next_batch: String,
+        /// The batch token to supply in the `since` param of the next `/events` request. Will be
+        /// none if no further events can be found.
+        pub next_batch: Option<String>,
 
         /// Messages sent directly between devices.
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub events: Vec<Raw<AnyToDeviceEvent>>,
     }
 

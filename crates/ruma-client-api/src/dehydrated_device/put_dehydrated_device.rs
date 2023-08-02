@@ -35,15 +35,13 @@ pub mod unstable {
         pub device_id: OwnedDeviceId,
 
         /// The display name of the device.
-        pub initial_device_display_name: String,
+        pub initial_device_display_name: Option<String>,
 
         /// The data of the dehydrated device, containing the serialized and encrypted private
         /// parts of the [`DeviceKeys`].
         pub device_data: Raw<DehydratedDeviceData>,
 
-        /// Identity keys for the device.
-        ///
-        /// May be absent if no new identity keys are required.
+        /// Identity keys for the dehydrated device.
         pub device_keys: Raw<DeviceKeys>,
 
         /// One-time public keys for "pre-key" messages.
@@ -66,15 +64,14 @@ pub mod unstable {
         /// Creates a new Request.
         pub fn new(
             device_id: OwnedDeviceId,
-            initial_device_display_name: String,
             device_data: Raw<DehydratedDeviceData>,
             device_keys: Raw<DeviceKeys>,
         ) -> Self {
             Self {
                 device_id,
-                initial_device_display_name,
                 device_data,
                 device_keys,
+                initial_device_display_name: None,
                 one_time_keys: Default::default(),
                 fallback_keys: Default::default(),
             }
