@@ -5,7 +5,7 @@
 pub mod unstable {
     //! `msc3814` ([MSC])
     //!
-    //! [MSC]: https://github.com/uhoreg/matrix-doc/blob/shrivelled_sessions/proposals/3814-dehydrated-devices-with-ssss.md
+    //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3814
 
     use ruma_common::{
         api::{request, response, Metadata},
