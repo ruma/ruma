@@ -1,4 +1,4 @@
-//! Endpoints for managing devices.
+//! Endpoints for managing dehydrated devices.
 
 use ruma_common::serde::StringEnum;
 use serde::{Deserialize, Serialize};

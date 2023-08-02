@@ -1,4 +1,4 @@
-//! `GET /_matrix/client/*/dehydrated_device/{device_id}/events`
+//! `POST /_matrix/client/*/dehydrated_device/{device_id}/events`
 //!
 //! Get to-device events for a dehydrated device.
 
@@ -27,7 +27,7 @@ pub mod unstable {
     /// Request type for the `dehydrated_device/{device_id}/events` endpoint.
     #[request(error = crate::Error)]
     pub struct Request {
-        /// The unique ID of the device for which we would like to fetch events for.
+        /// The unique ID of the device for which we would like to fetch events.
         #[ruma_api(path)]
         pub device_id: OwnedDeviceId,
         /// A point in time to continue getting events from.
