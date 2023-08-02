@@ -55,4 +55,11 @@ pub mod unstable {
             Self { device_id, next_batch: None }
         }
     }
+
+    impl Response {
+        /// Create a new response with the given events.
+        pub fn new(events: Vec<Raw<AnyToDeviceEvent>>) -> Self {
+            Self { next_batch: None, events }
+        }
+    }
 }
