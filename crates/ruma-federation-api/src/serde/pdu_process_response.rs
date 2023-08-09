@@ -22,12 +22,7 @@ where
 {
     let mut map = serializer.serialize_map(Some(response.len()))?;
     for (key, value) in response {
-        let wrapped_error = WrappedError {
-            error: match value {
-                Ok(_) => None,
-                Err(error) => Some(error.clone()),
-            },
-        };
+        let wrapped_error = WrappedError { error: value.clone().err() };
         map.serialize_entry(&key, &wrapped_error)?;
     }
     map.end()
