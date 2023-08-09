@@ -3,7 +3,10 @@ use std::fmt;
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 
-use crate::serde::{CanBeEmpty, Raw};
+use crate::{
+    serde::{CanBeEmpty, Raw},
+    TransactionId,
+};
 
 use super::{
     EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEventType,
@@ -70,7 +73,12 @@ pub trait StaticStateEventContent: StateEventContent {
     type PossiblyRedacted: PossiblyRedactedStateEventContent;
 
     /// The type of the event's `unsigned` field.
-    type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + DeserializeOwned;
+    type Unsigned: Clone
+        + fmt::Debug
+        + Default
+        + CanBeEmpty
+        + DeserializeOwned
+        + OriginalStateUnsigned;
 }
 
 /// Content of a redacted state event.
@@ -102,4 +110,10 @@ where
     fn from_parts(_event_type: &str, content: &RawJsonValue) -> serde_json::Result<Self> {
         from_json_str(content.get())
     }
+}
+
+/// Unsigned data of an unredacted event.
+pub trait OriginalStateUnsigned {
+    /// The transaction ID if this event was sent from this session.
+    fn transaction_id(&self) -> Option<&TransactionId>;
 }

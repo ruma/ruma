@@ -14,7 +14,7 @@ use crate::{
     },
     serde::{from_raw_json_value, CanBeEmpty},
     EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedTransactionId,
-    OwnedUserId, RoomId, UserId,
+    OwnedUserId, RoomId, TransactionId, UserId,
 };
 
 /// A possibly-redacted redaction event.
@@ -207,6 +207,29 @@ impl RoomRedactionEvent {
             _ => None,
         }
     }
+
+    /// Get the inner content if this is an unredacted event.
+    pub fn original_content(&self) -> Option<&RoomRedactionEventContent> {
+        self.as_original().map(|ev| &ev.content)
+    }
+
+    /// Get the `TransactionId` from the unsigned data of this event.
+    pub fn transaction_id(&self) -> Option<&TransactionId> {
+        match self {
+            Self::Original(ev) => ev.unsigned.transaction_id.as_deref(),
+            _ => None,
+        }
+    }
+
+    /// Get the `BundledMessageLikeRelations` from the unsigned data of this event.
+    pub fn relations(
+        &self,
+    ) -> Option<&BundledMessageLikeRelations<OriginalSyncRoomRedactionEvent>> {
+        match self {
+            Self::Original(ev) => Some(&ev.unsigned.relations),
+            _ => None,
+        }
+    }
 }
 
 impl<'de> Deserialize<'de> for RoomRedactionEvent {
@@ -262,6 +285,29 @@ impl SyncRoomRedactionEvent {
     pub fn as_original(&self) -> Option<&OriginalSyncRoomRedactionEvent> {
         match self {
             Self::Original(v) => Some(v),
+            _ => None,
+        }
+    }
+
+    /// Get the inner content if this is an unredacted event.
+    pub fn original_content(&self) -> Option<&RoomRedactionEventContent> {
+        self.as_original().map(|ev| &ev.content)
+    }
+
+    /// Get the `TransactionId` from the unsigned data of this event.
+    pub fn transaction_id(&self) -> Option<&TransactionId> {
+        match self {
+            Self::Original(ev) => ev.unsigned.transaction_id.as_deref(),
+            _ => None,
+        }
+    }
+
+    /// Get the `BundledMessageLikeRelations` from the unsigned data of this event.
+    pub fn relations(
+        &self,
+    ) -> Option<&BundledMessageLikeRelations<OriginalSyncRoomRedactionEvent>> {
+        match self {
+            Self::Original(ev) => Some(&ev.unsigned.relations),
             _ => None,
         }
     }

@@ -450,16 +450,16 @@ fn expand_accessor_methods(
                 match self {
                     #(
                         #self_variants(event) => {
-                            event.as_original().map(|ev| #content_variants(ev.content.clone()))
+                            event.original_content().cloned().map(#content_variants)
                         }
                     )*
-                    Self::_Custom(event) => event.as_original().map(|ev| {
+                    Self::_Custom(event) => event.original_content().map(|content| {
                         #content_enum::_Custom {
                             event_type: crate::PrivOwnedStr(
                                 ::std::convert::From::from(
                                     ::std::string::ToString::to_string(
                                         &#ruma_common::events::EventContent::event_type(
-                                            &ev.content,
+                                            content,
                                         ),
                                     ),
                                 ),
@@ -597,16 +597,16 @@ fn expand_accessor_methods(
             ) -> #ruma_common::events::BundledMessageLikeRelations<AnySyncMessageLikeEvent> {
                 match self {
                     #(
-                        #variants(event) => event.as_original().map_or_else(
+                        #variants(event) => event.relations().cloned().map_or_else(
                             ::std::default::Default::default,
-                            |ev| ev.unsigned.relations.clone().map_replace(|r| {
+                            |rel| rel.map_replace(|r| {
                                 ::std::convert::From::from(r.into_maybe_redacted())
                             }),
                         ),
                     )*
-                    Self::_Custom(event) => event.as_original().map_or_else(
+                    Self::_Custom(event) => event.relations().cloned().map_or_else(
                         ::std::default::Default::default,
-                        |ev| ev.unsigned.relations.clone().map_replace(|r| {
+                        |rel| rel.map_replace(|r| {
                             AnySyncMessageLikeEvent::_Custom(r.into_maybe_redacted())
                         }),
                     ),
@@ -624,7 +624,7 @@ fn expand_accessor_methods(
                 match self {
                     #(
                         #variants(event) => {
-                            event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_deref())
+                            event.transaction_id()
                         }
                     )*
                     Self::_Custom(event) => {

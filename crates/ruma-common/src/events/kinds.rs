@@ -5,17 +5,17 @@ use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
-    AnyInitialStateEvent, EmptyStateKey, EphemeralRoomEventContent, EventContent,
-    EventContentFromType, GlobalAccountDataEventContent, MessageLikeEventContent,
-    MessageLikeEventType, MessageLikeUnsigned, PossiblyRedactedStateEventContent, RedactContent,
-    RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
-    RedactionDeHelper, RoomAccountDataEventContent, StateEventType, StaticStateEventContent,
-    ToDeviceEventContent,
+    AnyInitialStateEvent, BundledMessageLikeRelations, EmptyStateKey, EphemeralRoomEventContent,
+    EventContent, EventContentFromType, GlobalAccountDataEventContent, MessageLikeEventContent,
+    MessageLikeEventType, MessageLikeUnsigned, OriginalStateUnsigned,
+    PossiblyRedactedStateEventContent, RedactContent, RedactedMessageLikeEventContent,
+    RedactedStateEventContent, RedactedUnsigned, RedactionDeHelper, RoomAccountDataEventContent,
+    StateEventType, StaticStateEventContent, ToDeviceEventContent,
 };
 use crate::{
     serde::{from_raw_json_value, Raw},
     EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId,
-    RoomVersionId, UserId,
+    RoomVersionId, TransactionId, UserId,
 };
 
 /// A global account data event.
@@ -668,6 +668,27 @@ impl_possibly_redacted_event!(
                 _ => None,
             }
         }
+
+        /// Get the inner content if this is an unredacted event.
+        pub fn original_content(&self) -> Option<&C> {
+            self.as_original().map(|ev| &ev.content)
+        }
+
+        /// Get the `TransactionId` from the unsigned data of this event.
+        pub fn transaction_id(&self) -> Option<&TransactionId> {
+            match self {
+                Self::Original(ev) => ev.unsigned.transaction_id.as_deref(),
+                _ => None,
+            }
+        }
+
+        /// Get the `BundledMessageLikeRelations` from the unsigned data of this event.
+        pub fn relations(&self) -> Option<&BundledMessageLikeRelations<OriginalSyncMessageLikeEvent<C>>> {
+            match self {
+                Self::Original(ev) => Some(&ev.unsigned.relations),
+                _ => None,
+            }
+        }
     }
 );
 
@@ -679,6 +700,27 @@ impl_possibly_redacted_event!(
         pub fn as_original(&self) -> Option<&OriginalSyncMessageLikeEvent<C>> {
             match self {
                 Self::Original(v) => Some(v),
+                _ => None,
+            }
+        }
+
+        /// Get the inner content if this is an unredacted event.
+        pub fn original_content(&self) -> Option<&C> {
+            self.as_original().map(|ev| &ev.content)
+        }
+
+        /// Get the `TransactionId` from the unsigned data of this event.
+        pub fn transaction_id(&self) -> Option<&TransactionId> {
+            match self {
+                Self::Original(ev) => ev.unsigned.transaction_id.as_deref(),
+                _ => None,
+            }
+        }
+
+        /// Get the `BundledMessageLikeRelations` from the unsigned data of this event.
+        pub fn relations(&self) -> Option<&BundledMessageLikeRelations<OriginalSyncMessageLikeEvent<C>>> {
+            match self {
+                Self::Original(ev) => Some(&ev.unsigned.relations),
                 _ => None,
             }
         }
@@ -721,6 +763,19 @@ impl_possibly_redacted_event!(
                 _ => None,
             }
         }
+
+        /// Get the inner content if this is an unredacted event.
+        pub fn original_content(&self) -> Option<&C> {
+            self.as_original().map(|ev| &ev.content)
+        }
+
+        /// Get the `TransactionId` from the unsigned data of this event.
+        pub fn transaction_id(&self) -> Option<&TransactionId> {
+            match self {
+                Self::Original(ev) => ev.unsigned.transaction_id(),
+                _ => None,
+            }
+        }
     }
 );
 
@@ -741,6 +796,19 @@ impl_possibly_redacted_event!(
         pub fn as_original(&self) -> Option<&OriginalSyncStateEvent<C>> {
             match self {
                 Self::Original(v) => Some(v),
+                _ => None,
+            }
+        }
+
+        /// Get the inner content if this is an unredacted event.
+        pub fn original_content(&self) -> Option<&C> {
+            self.as_original().map(|ev| &ev.content)
+        }
+
+        /// Get the `TransactionId` from the unsigned data of this event.
+        pub fn transaction_id(&self) -> Option<&TransactionId> {
+            match self {
+                Self::Original(ev) => ev.unsigned.transaction_id(),
                 _ => None,
             }
         }

@@ -4,7 +4,8 @@ use serde::{de::DeserializeOwned, Deserialize};
 use super::{
     relation::{BundledMessageLikeRelations, BundledStateRelations},
     room::redaction::RoomRedactionEventContent,
-    MessageLikeEventContent, OriginalSyncMessageLikeEvent, PossiblyRedactedStateEventContent,
+    MessageLikeEventContent, OriginalStateUnsigned, OriginalSyncMessageLikeEvent,
+    PossiblyRedactedStateEventContent,
 };
 use crate::{
     serde::CanBeEmpty, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedTransactionId, OwnedUserId,
@@ -57,6 +58,12 @@ impl<C: MessageLikeEventContent> CanBeEmpty for MessageLikeUnsigned<C> {
     }
 }
 
+impl<C: MessageLikeEventContent> OriginalStateUnsigned for MessageLikeUnsigned<C> {
+    fn transaction_id(&self) -> Option<&crate::TransactionId> {
+        self.transaction_id.as_deref()
+    }
+}
+
 /// Extra information about a state event that is not incorporated into the event's hash.
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -106,6 +113,12 @@ impl<C: PossiblyRedactedStateEventContent> CanBeEmpty for StateUnsigned<C> {
 impl<C: PossiblyRedactedStateEventContent> Default for StateUnsigned<C> {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl<C: PossiblyRedactedStateEventContent> OriginalStateUnsigned for StateUnsigned<C> {
+    fn transaction_id(&self) -> Option<&crate::TransactionId> {
+        self.transaction_id.as_deref()
     }
 }
 

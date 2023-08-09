@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     events::{
-        AnyStrippedStateEvent, BundledStateRelations, EventContent,
+        AnyStrippedStateEvent, BundledStateRelations, EventContent, OriginalStateUnsigned,
         PossiblyRedactedStateEventContent, RedactContent, RedactedStateEventContent,
         StateEventType,
     },
@@ -530,6 +530,12 @@ impl CanBeEmpty for RoomMemberUnsigned {
             && self.prev_content.is_none()
             && self.invite_room_state.is_empty()
             && self.relations.is_empty()
+    }
+}
+
+impl OriginalStateUnsigned for RoomMemberUnsigned {
+    fn transaction_id(&self) -> Option<&crate::TransactionId> {
+        self.transaction_id.as_deref()
     }
 }
 
