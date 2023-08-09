@@ -8,6 +8,7 @@ resolver = "2"
 rust-version = "1.70"
 
 [workspace.dependencies]
+as_variant = "1.2.0"
 assert_matches2 = "0.1.0"
 assign = "1.1.1"
 base64 = "0.21.0"

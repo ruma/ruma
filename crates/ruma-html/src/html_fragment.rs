@@ -1,5 +1,6 @@
 use std::{collections::BTreeSet, fmt, io};
 
+use as_variant::as_variant;
 use html5ever::{
     local_name, namespace_url, ns, parse_fragment,
     serialize::{serialize, Serialize, SerializeOpts, Serializer, TraversalScope},
@@ -290,26 +291,17 @@ impl Node {
 
     /// Returns the `ElementData` of this `Node` if it is a `NodeData::Element`.
     pub fn as_element(&self) -> Option<&ElementData> {
-        match &self.data {
-            NodeData::Element(data) => Some(data),
-            _ => None,
-        }
+        as_variant!(&self.data, NodeData::Element)
     }
 
     /// Returns the mutable `ElementData` of this `Node` if it is a `NodeData::Element`.
     pub fn as_element_mut(&mut self) -> Option<&mut ElementData> {
-        match &mut self.data {
-            NodeData::Element(data) => Some(data),
-            _ => None,
-        }
+        as_variant!(&mut self.data, NodeData::Element)
     }
 
     /// Returns the mutable text content of this `Node`, if it is a `NodeData::Text`.
     pub fn as_text_mut(&mut self) -> Option<&mut StrTendril> {
-        match &mut self.data {
-            NodeData::Text(data) => Some(data),
-            _ => None,
-        }
+        as_variant!(&mut self.data, NodeData::Text)
     }
 }
 

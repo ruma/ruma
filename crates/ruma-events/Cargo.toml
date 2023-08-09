@@ -48,6 +48,7 @@ compat-optional = []
 compat-tag-info = []
 
 [dependencies]
+as_variant = { workspace = true }
 indexmap = { version = "2.0.0", features = ["serde"] }
 js_int = { workspace = true, features = ["serde"] }
 js_option = "0.1.0"

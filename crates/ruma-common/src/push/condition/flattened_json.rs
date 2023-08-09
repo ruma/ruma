@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 
+use as_variant::as_variant;
 use js_int::Int;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{to_value as to_json_value, value::Value as JsonValue};
@@ -122,26 +123,17 @@ impl ScalarJsonValue {
 
     /// If the `ScalarJsonValue` is a `Bool`, return the inner value.
     pub fn as_bool(&self) -> Option<bool> {
-        match self {
-            Self::Bool(b) => Some(*b),
-            _ => None,
-        }
+        as_variant!(self, Self::Bool).copied()
     }
 
     /// If the `ScalarJsonValue` is an `Integer`, return the inner value.
     pub fn as_integer(&self) -> Option<Int> {
-        match self {
-            Self::Integer(i) => Some(*i),
-            _ => None,
-        }
+        as_variant!(self, Self::Integer).copied()
     }
 
     /// If the `ScalarJsonValue` is a `String`, return a reference to the inner value.
     pub fn as_str(&self) -> Option<&str> {
-        match self {
-            Self::String(s) => Some(s),
-            _ => None,
-        }
+        as_variant!(self, Self::String)
     }
 }
 
@@ -249,34 +241,22 @@ impl FlattenedJsonValue {
 
     /// If the `FlattenedJsonValue` is a `Bool`, return the inner value.
     pub fn as_bool(&self) -> Option<bool> {
-        match self {
-            Self::Bool(b) => Some(*b),
-            _ => None,
-        }
+        as_variant!(self, Self::Bool).copied()
     }
 
     /// If the `FlattenedJsonValue` is an `Integer`, return the inner value.
     pub fn as_integer(&self) -> Option<Int> {
-        match self {
-            Self::Integer(i) => Some(*i),
-            _ => None,
-        }
+        as_variant!(self, Self::Integer).copied()
     }
 
     /// If the `FlattenedJsonValue` is a `String`, return a reference to the inner value.
     pub fn as_str(&self) -> Option<&str> {
-        match self {
-            Self::String(s) => Some(s),
-            _ => None,
-        }
+        as_variant!(self, Self::String)
     }
 
     /// If the `FlattenedJsonValue` is an `Array`, return a reference to the inner value.
     pub fn as_array(&self) -> Option<&[ScalarJsonValue]> {
-        match self {
-            Self::Array(a) => Some(a),
-            _ => None,
-        }
+        as_variant!(self, Self::Array)
     }
 }
 

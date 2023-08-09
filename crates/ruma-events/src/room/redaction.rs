@@ -2,6 +2,7 @@
 //!
 //! [`m.room.redaction`]: https://spec.matrix.org/latest/client-server-api/#mroomredaction
 
+use as_variant::as_variant;
 use js_int::Int;
 #[cfg(feature = "canonical-json")]
 use ruma_common::canonical_json::RedactionEvent;
@@ -313,10 +314,7 @@ impl RoomRedactionEvent {
 
     /// Get the inner `RoomRedactionEvent` if this is an unredacted event.
     pub fn as_original(&self) -> Option<&OriginalRoomRedactionEvent> {
-        match self {
-            Self::Original(v) => Some(v),
-            _ => None,
-        }
+        as_variant!(self, Self::Original)
     }
 }
 
@@ -368,10 +366,7 @@ impl SyncRoomRedactionEvent {
 
     /// Get the inner `SyncRoomRedactionEvent` if this is an unredacted event.
     pub fn as_original(&self) -> Option<&OriginalSyncRoomRedactionEvent> {
-        match self {
-            Self::Original(v) => Some(v),
-            _ => None,
-        }
+        as_variant!(self, Self::Original)
     }
 
     /// Convert this sync event into a full event (one with a `room_id` field).

@@ -1,5 +1,6 @@
 #![allow(clippy::exhaustive_structs)]
 
+use as_variant::as_variant;
 use ruma_common::{
     serde::{from_raw_json_value, Raw},
     EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId,
@@ -663,10 +664,7 @@ impl_possibly_redacted_event!(
 
         /// Get the inner `OriginalMessageLikeEvent` if this is an unredacted event.
         pub fn as_original(&self) -> Option<&OriginalMessageLikeEvent<C>> {
-            match self {
-                Self::Original(v) => Some(v),
-                _ => None,
-            }
+            as_variant!(self, Self::Original)
         }
     }
 );
@@ -677,10 +675,7 @@ impl_possibly_redacted_event!(
     ) {
         /// Get the inner `OriginalSyncMessageLikeEvent` if this is an unredacted event.
         pub fn as_original(&self) -> Option<&OriginalSyncMessageLikeEvent<C>> {
-            match self {
-                Self::Original(v) => Some(v),
-                _ => None,
-            }
+            as_variant!(self, Self::Original)
         }
 
         /// Convert this sync event into a full event (one with a `room_id` field).
@@ -716,10 +711,7 @@ impl_possibly_redacted_event!(
 
         /// Get the inner `OriginalStateEvent` if this is an unredacted event.
         pub fn as_original(&self) -> Option<&OriginalStateEvent<C>> {
-            match self {
-                Self::Original(v) => Some(v),
-                _ => None,
-            }
+            as_variant!(self, Self::Original)
         }
     }
 );
@@ -739,10 +731,7 @@ impl_possibly_redacted_event!(
 
         /// Get the inner `OriginalSyncStateEvent` if this is an unredacted event.
         pub fn as_original(&self) -> Option<&OriginalSyncStateEvent<C>> {
-            match self {
-                Self::Original(v) => Some(v),
-                _ => None,
-            }
+            as_variant!(self, Self::Original)
         }
 
         /// Convert this sync event into a full event (one with a `room_id` field).
