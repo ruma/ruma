@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 
+use as_variant::as_variant;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::value::{RawValue as RawJsonValue, Value as JsonValue};
 
@@ -36,10 +37,7 @@ impl Action {
 
     /// The sound that should be played with this action, if any.
     pub fn sound(&self) -> Option<&str> {
-        match self {
-            Action::SetTweak(Tweak::Sound(sound)) => Some(sound),
-            _ => None,
-        }
+        as_variant!(self, Action::SetTweak(Tweak::Sound(sound)) => sound)
     }
 }
 
