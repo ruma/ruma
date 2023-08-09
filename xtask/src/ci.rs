@@ -6,14 +6,13 @@ use std::path::PathBuf;
 use clap::{Args, Subcommand};
 use xshell::pushd;
 
-use crate::{cmd, Metadata, Result};
+use crate::{cmd, Metadata, Result, NIGHTLY};
 
 mod spec_links;
 
 use spec_links::check_spec_links;
 
 const MSRV: &str = "1.65";
-const NIGHTLY: &str = "nightly-2023-07-03";
 
 #[derive(Args)]
 pub struct CiArgs {

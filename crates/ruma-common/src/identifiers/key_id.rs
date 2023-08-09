@@ -84,7 +84,7 @@ impl<A, K: ?Sized> Eq for KeyId<A, K> {}
 
 impl<A, K: ?Sized> PartialOrd for KeyId<A, K> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        PartialOrd::partial_cmp(self.as_str(), other.as_str())
+        Some(self.cmp(other))
     }
 }
 

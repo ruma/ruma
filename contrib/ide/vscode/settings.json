@@ -1,5 +1,6 @@
 {
-    "rust-analyzer.cargo.features": ["full"],
-    "rust-analyzer.cargo.unsetTest": ["core", "ed25519_dalek"],
-    "rust-analyzer.checkOnSave.command": "clippy",
+    "rust-analyzer.cargo.features": [
+        "__ci"
+    ],
+    "rust-analyzer.checkOnSave.command": "clippy"
 }

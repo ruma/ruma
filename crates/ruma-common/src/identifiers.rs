@@ -103,10 +103,8 @@ macro_rules! owned_device_id {
     };
 }
 
-// A plain re-export shows up in rustdoc despite doc(hidden). Use a module instead.
-// Bug report: https://github.com/rust-lang/rust/issues/83939
 #[doc(hidden)]
-pub mod _macros {
+pub mod __private_macros {
     pub use ruma_macros::{
         device_key_id, event_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
         server_signing_key_id, user_id,
@@ -117,7 +115,7 @@ pub mod _macros {
 #[macro_export]
 macro_rules! device_key_id {
     ($s:literal) => {
-        $crate::_macros::device_key_id!($crate, $s)
+        $crate::__private_macros::device_key_id!($crate, $s)
     };
 }
 
@@ -133,7 +131,7 @@ macro_rules! owned_device_key_id {
 #[macro_export]
 macro_rules! event_id {
     ($s:literal) => {
-        $crate::_macros::event_id!($crate, $s)
+        $crate::__private_macros::event_id!($crate, $s)
     };
 }
 
@@ -149,7 +147,7 @@ macro_rules! owned_event_id {
 #[macro_export]
 macro_rules! room_alias_id {
     ($s:literal) => {
-        $crate::_macros::room_alias_id!($crate, $s)
+        $crate::__private_macros::room_alias_id!($crate, $s)
     };
 }
 
@@ -165,7 +163,7 @@ macro_rules! owned_room_alias_id {
 #[macro_export]
 macro_rules! room_id {
     ($s:literal) => {
-        $crate::_macros::room_id!($crate, $s)
+        $crate::__private_macros::room_id!($crate, $s)
     };
 }
 
@@ -181,7 +179,7 @@ macro_rules! owned_room_id {
 #[macro_export]
 macro_rules! room_version_id {
     ($s:literal) => {
-        $crate::_macros::room_version_id!($crate, $s)
+        $crate::__private_macros::room_version_id!($crate, $s)
     };
 }
 
@@ -189,7 +187,7 @@ macro_rules! room_version_id {
 #[macro_export]
 macro_rules! server_signing_key_id {
     ($s:literal) => {
-        $crate::_macros::server_signing_key_id!($crate, $s)
+        $crate::__private_macros::server_signing_key_id!($crate, $s)
     };
 }
 
@@ -205,7 +203,7 @@ macro_rules! owned_server_signing_key_id {
 #[macro_export]
 macro_rules! server_name {
     ($s:literal) => {
-        $crate::_macros::server_name!($crate, $s)
+        $crate::__private_macros::server_name!($crate, $s)
     };
 }
 
@@ -242,7 +240,7 @@ macro_rules! owned_session_id {
 #[macro_export]
 macro_rules! mxc_uri {
     ($s:literal) => {
-        $crate::_macros::mxc_uri!($crate, $s)
+        $crate::__private_macros::mxc_uri!($crate, $s)
     };
 }
 
@@ -258,7 +256,7 @@ macro_rules! owned_mxc_uri {
 #[macro_export]
 macro_rules! user_id {
     ($s:literal) => {
-        $crate::_macros::user_id!($crate, $s)
+        $crate::__private_macros::user_id!($crate, $s)
     };
 }
 

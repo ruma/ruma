@@ -45,6 +45,7 @@ unstable-msc2965 = []
 unstable-msc2967 = []
 unstable-msc3488 = []
 unstable-msc3575 = []
+unstable-msc3814 = []
 
 [dependencies]
 assign = { workspace = true }
