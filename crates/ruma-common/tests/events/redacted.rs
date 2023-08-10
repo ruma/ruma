@@ -22,7 +22,7 @@ fn unsigned() -> JsonValue {
     json!({
         "redacted_because": {
             "type": "m.room.redaction",
-            "content": RoomRedactionEventContent::with_reason("redacted because".into()),
+            "content": RoomRedactionEventContent::new_v1().with_reason("redacted because".into()),
             "redacts": "$h29iv0s8:example.com",
             "event_id": "$h29iv0s8:example.com",
             "origin_server_ts": 1,
