@@ -30,6 +30,8 @@ pub fn expand_event_type_enum(
             }
             EventKind::ToDevice => to_device.push(&event.events),
             EventKind::RoomRedaction
+            | EventKind::RoomRedactionV1
+            | EventKind::RoomRedactionV11
             | EventKind::Presence
             | EventKind::Decrypted
             | EventKind::HierarchySpaceChild => {}

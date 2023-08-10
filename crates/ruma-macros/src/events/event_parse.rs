@@ -75,6 +75,8 @@ pub enum EventKind {
     State,
     ToDevice,
     RoomRedaction,
+    RoomRedactionV1,
+    RoomRedactionV11,
     Presence,
     HierarchySpaceChild,
     Decrypted,
@@ -89,7 +91,9 @@ impl fmt::Display for EventKind {
             EventKind::MessageLike => write!(f, "MessageLikeEvent"),
             EventKind::State => write!(f, "StateEvent"),
             EventKind::ToDevice => write!(f, "ToDeviceEvent"),
-            EventKind::RoomRedaction => write!(f, "RoomRedactionEvent"),
+            EventKind::RoomRedaction => write!(f, "RedactionEvent"),
+            EventKind::RoomRedactionV1 => write!(f, "RedactionV1Event"),
+            EventKind::RoomRedactionV11 => write!(f, "RoomRedactionV11Event"),
             EventKind::Presence => write!(f, "PresenceEvent"),
             EventKind::HierarchySpaceChild => write!(f, "HierarchySpaceChildEvent"),
             EventKind::Decrypted => unreachable!(),
@@ -125,7 +129,11 @@ impl EventKind {
             (_, V::None)
             | (Self::Ephemeral | Self::MessageLike | Self::State, V::Sync)
             | (
-                Self::MessageLike | Self::RoomRedaction | Self::State,
+                Self::MessageLike
+                | Self::RoomRedaction
+                | Self::RoomRedactionV1
+                | Self::RoomRedactionV11
+                | Self::State,
                 V::Original | V::OriginalSync | V::Redacted | V::RedactedSync,
             )
             | (Self::State, V::Stripped | V::Initial) => Ok(format_ident!("{var}{self}")),
@@ -207,14 +215,18 @@ pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation
         "HierarchySpaceChildEvent" => {
             Some((EventKind::HierarchySpaceChild, EventKindVariation::Stripped))
         }
-        "OriginalRoomRedactionEvent" => Some((EventKind::RoomRedaction, EventKindVariation::None)),
-        "OriginalSyncRoomRedactionEvent" => {
-            Some((EventKind::RoomRedaction, EventKindVariation::OriginalSync))
+        "OriginalRedactionV1Event" => Some((EventKind::RoomRedactionV1, EventKindVariation::None)),
+        "OriginalRoomRedactionV11Event" => {
+            Some((EventKind::RoomRedactionV11, EventKindVariation::None))
         }
-        "RedactedRoomRedactionEvent" => {
-            Some((EventKind::RoomRedaction, EventKindVariation::Redacted))
+        "OriginalSyncRedactionV1Event" => {
+            Some((EventKind::RoomRedactionV1, EventKindVariation::OriginalSync))
         }
-        "RedactedSyncRoomRedactionEvent" => {
+        "OriginalSyncRoomRedactionV11Event" => {
+            Some((EventKind::RoomRedactionV11, EventKindVariation::OriginalSync))
+        }
+        "RedactedRedactionEvent" => Some((EventKind::RoomRedaction, EventKindVariation::Redacted)),
+        "RedactedSyncRedactionEvent" => {
             Some((EventKind::RoomRedaction, EventKindVariation::RedactedSync))
         }
         "DecryptedOlmV1Event" | "DecryptedMegolmV1Event" => {

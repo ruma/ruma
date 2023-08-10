@@ -24,6 +24,8 @@ Breaking changes:
   (MSC2746 / Matrix 1.7)
 - The `Replacement` relation for `RoomMessageEventContent` now takes a
   `RoomMessageEventContentWithoutRelation` instead of a `MessageType`
+- Make `RoomRedactionEvent` and associated types enums to handle the format where the `redacts` key
+  is moved inside the `content`, as introduced in room version 11, according to MSC2174 / MSC3820
 
 Improvements:
 

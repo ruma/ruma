@@ -5,7 +5,7 @@ use ruma_common::{
             aliases::RedactedRoomAliasesEventContent,
             create::{RedactedRoomCreateEventContent, RoomCreateEventContent},
             message::{RedactedRoomMessageEventContent, RoomMessageEventContent},
-            redaction::RoomRedactionEventContent,
+            redaction::v1::RoomRedactionV1EventContent,
         },
         AnyMessageLikeEvent, AnySyncMessageLikeEvent, AnySyncStateEvent, AnySyncTimelineEvent,
         AnyTimelineEvent, EventContentFromType, MessageLikeEvent, RedactContent,
@@ -22,7 +22,7 @@ fn unsigned() -> JsonValue {
     json!({
         "redacted_because": {
             "type": "m.room.redaction",
-            "content": RoomRedactionEventContent::with_reason("redacted because".into()),
+            "content": RoomRedactionV1EventContent::with_reason("redacted because".into()),
             "redacts": "$h29iv0s8:example.com",
             "event_id": "$h29iv0s8:example.com",
             "origin_server_ts": 1,

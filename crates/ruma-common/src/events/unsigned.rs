@@ -3,7 +3,7 @@ use serde::{de::DeserializeOwned, Deserialize};
 
 use super::{
     relation::{BundledMessageLikeRelations, BundledStateRelations},
-    room::redaction::RoomRedactionEventContent,
+    room::redaction::v1::RoomRedactionV1EventContent,
     MessageLikeEventContent, OriginalStateUnsigned, OriginalSyncMessageLikeEvent,
     PossiblyRedactedStateEventContent,
 };
@@ -149,7 +149,7 @@ impl RedactedUnsigned {
 #[non_exhaustive]
 pub struct UnsignedRoomRedactionEvent {
     /// Data specific to the event type.
-    pub content: RoomRedactionEventContent,
+    pub content: RoomRedactionV1EventContent,
 
     /// The globally unique event identifier for the user who sent the event.
     pub event_id: OwnedEventId,
@@ -162,5 +162,5 @@ pub struct UnsignedRoomRedactionEvent {
 
     /// Additional key-value pairs not signed by the homeserver.
     #[serde(default)]
-    pub unsigned: MessageLikeUnsigned<RoomRedactionEventContent>,
+    pub unsigned: MessageLikeUnsigned<RoomRedactionV1EventContent>,
 }

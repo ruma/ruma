@@ -711,7 +711,7 @@ fn generate_event_type_aliases(
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
     // The redaction module has its own event types.
-    if ident == "RoomRedactionEventContent" {
+    if ident.to_string().starts_with("RoomRedaction") {
         return Ok(quote! {});
     }
 

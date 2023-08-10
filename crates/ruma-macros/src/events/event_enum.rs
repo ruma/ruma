@@ -450,7 +450,7 @@ fn expand_accessor_methods(
                 match self {
                     #(
                         #self_variants(event) => {
-                            event.original_content().cloned().map(#content_variants)
+                            event.original_content().map(|c| #content_variants(c.clone()))
                         }
                     )*
                     Self::_Custom(event) => event.original_content().map(|content| {
@@ -597,9 +597,9 @@ fn expand_accessor_methods(
             ) -> #ruma_common::events::BundledMessageLikeRelations<AnySyncMessageLikeEvent> {
                 match self {
                     #(
-                        #variants(event) => event.relations().cloned().map_or_else(
+                        #variants(event) => event.relations().map_or_else(
                             ::std::default::Default::default,
-                            |rel| rel.map_replace(|r| {
+                            |rel| rel.clone().map_replace(|r| {
                                 ::std::convert::From::from(r.into_maybe_redacted())
                             }),
                         ),
