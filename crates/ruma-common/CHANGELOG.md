@@ -24,6 +24,11 @@ Breaking changes:
   (MSC2746 / Matrix 1.7)
 - The `Replacement` relation for `RoomMessageEventContent` now takes a
   `RoomMessageEventContentWithoutRelation` instead of a `MessageType`
+- Make the `redacts` field of `Original(Sync)RoomRedactionEvent` optional to handle the format
+  where the `redacts` key is moved inside the `content`, as introduced in room version 11,
+  according to MSC2174 / MSC3820
+    - `RoomRedactionEventContent::new()` was renamed to `new_v1()`, and `with_reason()` is no
+      longer a constructor but a builder-type method
 
 Improvements:
 
