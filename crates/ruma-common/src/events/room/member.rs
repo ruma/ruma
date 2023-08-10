@@ -164,12 +164,19 @@ impl RoomMemberEventContent {
 impl RedactContent for RoomMemberEventContent {
     type Redacted = RedactedRoomMemberEventContent;
 
-    fn redact(self, _version: &RoomVersionId) -> RedactedRoomMemberEventContent {
+    fn redact(self, version: &RoomVersionId) -> RedactedRoomMemberEventContent {
         RedactedRoomMemberEventContent {
             membership: self.membership,
-            join_authorized_via_users_server: match _version {
-                RoomVersionId::V9 | RoomVersionId::V10 => self.join_authorized_via_users_server,
-                _ => None,
+            join_authorized_via_users_server: match version {
+                RoomVersionId::V1
+                | RoomVersionId::V2
+                | RoomVersionId::V3
+                | RoomVersionId::V4
+                | RoomVersionId::V5
+                | RoomVersionId::V6
+                | RoomVersionId::V7
+                | RoomVersionId::V8 => None,
+                _ => self.join_authorized_via_users_server,
             },
         }
     }
