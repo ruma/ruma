@@ -343,9 +343,10 @@ pub fn auth_check<E: Event>(
         }
     } else {
         // If no power level event found the creator gets 100 everyone else gets 0
+        #[allow(deprecated)]
         from_json_str::<RoomCreateEventContent>(room_create_event.content().get())
             .ok()
-            .and_then(|create| (create.creator == *sender).then(|| int!(100)))
+            .and_then(|create| (create.creator.unwrap() == *sender).then(|| int!(100)))
             .unwrap_or_default()
     };
 
@@ -533,7 +534,9 @@ fn valid_membership_change(
                 let create_content =
                     from_json_str::<RoomCreateEventContent>(create_room.content().get())?;
 
-                if create_content.creator == sender && create_content.creator == target_user {
+                #[allow(deprecated)]
+                let creator = create_content.creator.unwrap();
+                if creator == sender && creator == target_user {
                     return Ok(true);
                 }
             }

@@ -113,6 +113,7 @@ fn deserialize_redacted_any_room_sync() {
 }
 
 #[test]
+#[allow(deprecated)]
 fn deserialize_redacted_state_event() {
     let redacted = json!({
         "content": {
@@ -133,7 +134,7 @@ fn deserialize_redacted_state_event() {
         ),)))
     );
     assert_eq!(redacted.event_id, "$h29iv0s8:example.com");
-    assert_eq!(redacted.content.creator, "@carl:example.com");
+    assert_eq!(redacted.content.creator.unwrap(), "@carl:example.com");
 }
 
 #[test]
@@ -213,6 +214,7 @@ fn redact_message_content() {
 }
 
 #[test]
+#[allow(deprecated)]
 fn redact_state_content() {
     let json = json!({
         "creator": "@carl:example.com",
@@ -227,5 +229,5 @@ fn redact_state_content() {
         content.redact(&RoomVersionId::V6),
         RedactedRoomCreateEventContent { creator, .. }
     );
-    assert_eq!(creator, "@carl:example.com");
+    assert_eq!(creator.unwrap(), "@carl:example.com");
 }
