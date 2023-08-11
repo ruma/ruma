@@ -260,15 +260,26 @@ static ALLOWED_KEYS: &[&str] = &[
 fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'static [&'static str] {
     match event_type {
         "m.room.member" => match version {
-            RoomVersionId::V9 | RoomVersionId::V10 => {
-                &["membership", "join_authorised_via_users_server"]
-            }
-            _ => &["membership"],
+            RoomVersionId::V1
+            | RoomVersionId::V2
+            | RoomVersionId::V3
+            | RoomVersionId::V4
+            | RoomVersionId::V5
+            | RoomVersionId::V6
+            | RoomVersionId::V7
+            | RoomVersionId::V8 => &["membership"],
+            _ => &["membership", "join_authorised_via_users_server"],
         },
         "m.room.create" => &["creator"],
         "m.room.join_rules" => match version {
-            RoomVersionId::V8 | RoomVersionId::V9 | RoomVersionId::V10 => &["join_rule", "allow"],
-            _ => &["join_rule"],
+            RoomVersionId::V1
+            | RoomVersionId::V2
+            | RoomVersionId::V3
+            | RoomVersionId::V4
+            | RoomVersionId::V5
+            | RoomVersionId::V6
+            | RoomVersionId::V7 => &["join_rule"],
+            _ => &["join_rule", "allow"],
         },
         "m.room.power_levels" => &[
             "ban",
