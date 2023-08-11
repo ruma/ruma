@@ -318,7 +318,6 @@ fn allowed_event_keys_for(version: &RoomVersionId) -> &'static [&'static str] {
             "depth",
             "prev_events",
             "auth_events",
-            "origin",
             "origin_server_ts",
         ],
     }
