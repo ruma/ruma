@@ -29,6 +29,10 @@ Breaking changes:
   according to MSC2174 / MSC3820
     - `RoomRedactionEventContent::new()` was renamed to `new_v1()`, and `with_reason()` is no
       longer a constructor but a builder-type method
+- Make the `creator` field of `RoomCreateEventContent` optional and deprecate it, as it was removed
+  in room version 11, according to MSC2175 / MSC3820
+    - `RoomCreateEventContent::new()` was renamed to `new_v1()`
+    - `RedactedRoomCreateEventContent` is now a typedef over `RoomCreateEventContent`
 
 Improvements:
 

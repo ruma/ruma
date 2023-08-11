@@ -162,7 +162,7 @@ pub mod v3 {
             creator: OwnedUserId,
             room_version: RoomVersionId,
         ) -> RoomCreateEventContent {
-            assign!(RoomCreateEventContent::new(creator), {
+            assign!(RoomCreateEventContent::new_v1(creator), {
                 federate: self.federate,
                 room_version: room_version,
                 predecessor: self.predecessor,
