@@ -198,7 +198,7 @@ pub fn redact_in_place(
 
     let mut old_event = mem::take(event);
 
-    for &key in ALLOWED_KEYS {
+    for &key in allowed_event_keys_for(version) {
         if let Some(value) = old_event.remove(key) {
             event.insert(key.to_owned(), value);
         }
@@ -276,24 +276,53 @@ fn object_retain_some_keys(
     Ok(())
 }
 
-/// The fields that are allowed to remain in an event during redaction.
-static ALLOWED_KEYS: &[&str] = &[
-    "event_id",
-    "type",
-    "room_id",
-    "sender",
-    "state_key",
-    "content",
-    "hashes",
-    "signatures",
-    "depth",
-    "prev_events",
-    "prev_state",
-    "auth_events",
-    "origin",
-    "origin_server_ts",
-    "membership",
-];
+/// The fields that are allowed to remain in an event during redaction depending on the room
+/// version.
+fn allowed_event_keys_for(version: &RoomVersionId) -> &'static [&'static str] {
+    match version {
+        RoomVersionId::V1
+        | RoomVersionId::V2
+        | RoomVersionId::V3
+        | RoomVersionId::V4
+        | RoomVersionId::V5
+        | RoomVersionId::V6
+        | RoomVersionId::V7
+        | RoomVersionId::V8
+        | RoomVersionId::V9
+        | RoomVersionId::V10 => &[
+            "event_id",
+            "type",
+            "room_id",
+            "sender",
+            "state_key",
+            "content",
+            "hashes",
+            "signatures",
+            "depth",
+            "prev_events",
+            "prev_state",
+            "auth_events",
+            "origin",
+            "origin_server_ts",
+            "membership",
+        ],
+        _ => &[
+            "event_id",
+            "type",
+            "room_id",
+            "sender",
+            "state_key",
+            "content",
+            "hashes",
+            "signatures",
+            "depth",
+            "prev_events",
+            "auth_events",
+            "origin",
+            "origin_server_ts",
+        ],
+    }
+}
 
 /// List of keys to preserve on an object.
 #[derive(Clone, Copy)]
@@ -354,6 +383,18 @@ static ROOM_POWER_LEVELS_V1: AllowedKeys = AllowedKeys::some(&[
     "users",
     "users_default",
 ]);
+/// Allowed keys in `m.room.power_levels`'s content according to room version 11.
+static ROOM_POWER_LEVELS_V11: AllowedKeys = AllowedKeys::some(&[
+    "ban",
+    "events",
+    "events_default",
+    "invite",
+    "kick",
+    "redact",
+    "state_default",
+    "users",
+    "users_default",
+]);
 
 /// Allowed keys in `m.room.aliases`'s content according to room version 1.
 static ROOM_ALIASES_V1: AllowedKeys = AllowedKeys::some(&["aliases"]);
@@ -365,6 +406,9 @@ static ROOM_SERVER_ACL_MSC2870: AllowedKeys =
 
 /// Allowed keys in `m.room.history_visibility`'s content according to room version 1.
 static ROOM_HISTORY_VISIBILITY_V1: AllowedKeys = AllowedKeys::some(&["history_visibility"]);
+
+/// Allowed keys in `m.room.redaction`'s content according to room version 11.
+static ROOM_REDACTION_V11: AllowedKeys = AllowedKeys::some(&["redacts"]);
 
 fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'static AllowedKeys {
     match event_type {
@@ -379,7 +423,19 @@ fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'stat
             | RoomVersionId::V8 => &ROOM_MEMBER_V1,
             _ => &ROOM_MEMBER_V9,
         },
-        "m.room.create" => &ROOM_CREATE_V1,
+        "m.room.create" => match version {
+            RoomVersionId::V1
+            | RoomVersionId::V2
+            | RoomVersionId::V3
+            | RoomVersionId::V4
+            | RoomVersionId::V5
+            | RoomVersionId::V6
+            | RoomVersionId::V7
+            | RoomVersionId::V8
+            | RoomVersionId::V9
+            | RoomVersionId::V10 => &ROOM_CREATE_V1,
+            _ => &AllowedKeys::All,
+        },
         "m.room.join_rules" => match version {
             RoomVersionId::V1
             | RoomVersionId::V2
@@ -390,7 +446,19 @@ fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'stat
             | RoomVersionId::V7 => &ROOM_JOIN_RULES_V1,
             _ => &ROOM_JOIN_RULES_V8,
         },
-        "m.room.power_levels" => &ROOM_POWER_LEVELS_V1,
+        "m.room.power_levels" => match version {
+            RoomVersionId::V1
+            | RoomVersionId::V2
+            | RoomVersionId::V3
+            | RoomVersionId::V4
+            | RoomVersionId::V5
+            | RoomVersionId::V6
+            | RoomVersionId::V7
+            | RoomVersionId::V8
+            | RoomVersionId::V9
+            | RoomVersionId::V10 => &ROOM_POWER_LEVELS_V1,
+            _ => &ROOM_POWER_LEVELS_V11,
+        },
         "m.room.aliases" => match version {
             RoomVersionId::V1
             | RoomVersionId::V2
@@ -404,6 +472,19 @@ fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'stat
         #[cfg(feature = "unstable-msc2870")]
         "m.room.server_acl" if version.as_str() == "org.matrix.msc2870" => &ROOM_SERVER_ACL_MSC2870,
         "m.room.history_visibility" => &ROOM_HISTORY_VISIBILITY_V1,
+        "m.room.redaction" => match version {
+            RoomVersionId::V1
+            | RoomVersionId::V2
+            | RoomVersionId::V3
+            | RoomVersionId::V4
+            | RoomVersionId::V5
+            | RoomVersionId::V6
+            | RoomVersionId::V7
+            | RoomVersionId::V8
+            | RoomVersionId::V9
+            | RoomVersionId::V10 => &AllowedKeys::None,
+            _ => &ROOM_REDACTION_V11,
+        },
         _ => &AllowedKeys::None,
     }
 }
@@ -621,6 +702,58 @@ mod tests {
                 "state_key": "room.com",
                 "room_id": "!room:room.com",
                 "type": "m.room.aliases",
+            })
+        );
+    }
+
+    #[test]
+    fn redact_allowed_keys_all() {
+        let original_event = json!({
+            "content": {
+              "m.federate": true,
+              "predecessor": {
+                "event_id": "$something",
+                "room_id": "!oldroom:example.org"
+              },
+              "room_version": "11",
+            },
+            "event_id": "$143273582443PhrSn",
+            "origin_server_ts": 1_432_735,
+            "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
+            "sender": "@example:example.org",
+            "state_key": "",
+            "type": "m.room.create",
+            "unsigned": {
+              "age": 1234,
+            },
+        });
+
+        assert_matches!(
+            CanonicalJsonValue::try_from(original_event),
+            Ok(CanonicalJsonValue::Object(mut object))
+        );
+
+        redact_in_place(&mut object, &RoomVersionId::V11, None).unwrap();
+
+        let redacted_event = to_json_value(&object).unwrap();
+
+        assert_eq!(
+            redacted_event,
+            json!({
+                "content": {
+                  "m.federate": true,
+                  "predecessor": {
+                    "event_id": "$something",
+                    "room_id": "!oldroom:example.org"
+                  },
+                  "room_version": "11",
+                },
+                "event_id": "$143273582443PhrSn",
+                "origin_server_ts": 1_432_735,
+                "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
+                "sender": "@example:example.org",
+                "state_key": "",
+                "type": "m.room.create",
             })
         );
     }
