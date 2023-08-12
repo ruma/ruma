@@ -692,7 +692,7 @@ fn servers_to_check_signatures(
         | RoomVersionId::V6
         | RoomVersionId::V7 => {}
         // TODO: And for all future versions that have join_authorised_via_users_server
-        RoomVersionId::V8 | RoomVersionId::V9 | RoomVersionId::V10 => {
+        RoomVersionId::V8 | RoomVersionId::V9 | RoomVersionId::V10 | RoomVersionId::V11 => {
             if let Some(authorized_user) = object
                 .get("content")
                 .and_then(|c| c.as_object())
