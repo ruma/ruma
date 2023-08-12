@@ -167,6 +167,7 @@ impl RedactContent for RoomMemberEventContent {
     fn redact(self, version: &RoomVersionId) -> RedactedRoomMemberEventContent {
         RedactedRoomMemberEventContent {
             membership: self.membership,
+            third_party_invite: self.third_party_invite.and_then(|i| i.redact(version)),
             join_authorized_via_users_server: match version {
                 RoomVersionId::V1
                 | RoomVersionId::V2
@@ -198,6 +199,11 @@ pub struct RedactedRoomMemberEventContent {
     /// The membership state of this user.
     pub membership: MembershipState,
 
+    /// If this member event is the successor to a third party invitation, this field will
+    /// contain information about that invitation.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub third_party_invite: Option<RedactedThirdPartyInvite>,
+
     /// An arbitrary user who has the power to issue invites.
     ///
     /// This is redacted in room versions 8 and below. It is used for validating
@@ -209,7 +215,7 @@ pub struct RedactedRoomMemberEventContent {
 impl RedactedRoomMemberEventContent {
     /// Create a `RedactedRoomMemberEventContent` with the given membership.
     pub fn new(membership: MembershipState) -> Self {
-        Self { membership, join_authorized_via_users_server: None }
+        Self { membership, third_party_invite: None, join_authorized_via_users_server: None }
     }
 
     /// Obtain the details about this event that are required to calculate a membership change.
@@ -320,6 +326,36 @@ impl ThirdPartyInvite {
     pub fn new(display_name: String, signed: SignedContent) -> Self {
         Self { display_name, signed }
     }
+
+    /// Transform `self` into a redacted form (removing most or all fields) according to the spec.
+    ///
+    /// Returns `None` if the field for this object was redacted in the given room version,
+    /// otherwise returns the redacted form.
+    fn redact(self, version: &RoomVersionId) -> Option<RedactedThirdPartyInvite> {
+        match version {
+            RoomVersionId::V1
+            | RoomVersionId::V2
+            | RoomVersionId::V3
+            | RoomVersionId::V4
+            | RoomVersionId::V5
+            | RoomVersionId::V6
+            | RoomVersionId::V7
+            | RoomVersionId::V8
+            | RoomVersionId::V9
+            | RoomVersionId::V10 => None,
+            _ => Some(RedactedThirdPartyInvite { signed: self.signed }),
+        }
+    }
+}
+
+/// Redacted information about a third party invitation.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct RedactedThirdPartyInvite {
+    /// A block of content which has been signed, which servers can use to verify the event.
+    ///
+    /// Clients should ignore this.
+    pub signed: SignedContent,
 }
 
 /// A block of content which has been signed, which servers can use to verify a third party

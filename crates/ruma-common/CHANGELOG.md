@@ -33,6 +33,11 @@ Breaking changes:
   in room version 11, according to MSC2175 / MSC3820
     - `RoomCreateEventContent::new()` was renamed to `new_v1()`
     - `RedactedRoomCreateEventContent` is now a typedef over `RoomCreateEventContent`
+- Add preserved fields to match the new redaction algorithm in room version 11, according to
+  MSC2176 / MSC3821 / MSC3820, for the following types:
+  - `RedactedRoomRedactionEventContent`,
+  - `RedactedRoomPowerLevelsEventContent`,
+  - `RedactedRoomMemberEventContent` 
 
 Improvements:
 
