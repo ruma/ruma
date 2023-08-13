@@ -74,6 +74,11 @@ pub struct RoomVersion {
     ///
     /// See: [MSC3667](https://github.com/matrix-org/matrix-spec-proposals/pull/3667) for more information.
     pub integer_power_levels: bool,
+    /// Determine the room creator using the `m.room.create` event's `sender`,
+    /// instead of the event content's `creator` field.
+    ///
+    /// See: [MSC2175](https://github.com/matrix-org/matrix-spec-proposals/pull/2175) for more information.
+    pub use_room_create_sender: bool,
 }
 
 impl RoomVersion {
@@ -90,6 +95,7 @@ impl RoomVersion {
         restricted_join_rules: false,
         knock_restricted_join_rule: false,
         integer_power_levels: false,
+        use_room_create_sender: false,
     };
 
     pub const V2: Self = Self { state_res: StateResolutionVersion::V2, ..Self::V1 };
@@ -117,6 +123,8 @@ impl RoomVersion {
     pub const V10: Self =
         Self { knock_restricted_join_rule: true, integer_power_levels: true, ..Self::V9 };
 
+    pub const V11: Self = Self { use_room_create_sender: true, ..Self::V10 };
+
     pub fn new(version: &RoomVersionId) -> Result<Self> {
         Ok(match version {
             RoomVersionId::V1 => Self::V1,
@@ -129,6 +137,7 @@ impl RoomVersion {
             RoomVersionId::V8 => Self::V8,
             RoomVersionId::V9 => Self::V9,
             RoomVersionId::V10 => Self::V10,
+            RoomVersionId::V11 => Self::V11,
             ver => return Err(Error::Unsupported(format!("found version `{ver}`"))),
         })
     }
