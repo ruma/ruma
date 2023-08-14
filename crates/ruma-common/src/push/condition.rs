@@ -157,7 +157,7 @@ impl PushCondition {
     /// * `event` - The flattened JSON representation of a room message event.
     /// * `context` - The context of the room at the time of the event.
     pub fn applies(&self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
-        if event.get_str("sender").map_or(false, |sender| sender == context.user_id) {
+        if event.get_str("sender").is_some_and(|sender| sender == context.user_id) {
             return false;
         }
 
@@ -198,11 +198,11 @@ impl PushCondition {
                 }
                 RoomVersionFeature::_Custom(_) => false,
             },
-            Self::EventPropertyIs { key, value } => event.get(key).map_or(false, |v| v == value),
+            Self::EventPropertyIs { key, value } => event.get(key).is_some_and(|v| v == value),
             Self::EventPropertyContains { key, value } => event
                 .get(key)
                 .and_then(FlattenedJsonValue::as_array)
-                .map_or(false, |a| a.contains(value)),
+                .is_some_and(|a| a.contains(value)),
             Self::_Custom(_) => false,
         }
     }
@@ -395,7 +395,7 @@ impl StrExt for str {
 
                     // Look if the match has word boundaries.
                     let word_boundary_start = !self.char_at(start).is_word_char()
-                        || self.find_prev_char(start).map_or(true, |c| !c.is_word_char());
+                        || !self.find_prev_char(start).is_some_and(|c| c.is_word_char());
 
                     if word_boundary_start {
                         let word_boundary_end = end == self.len()
