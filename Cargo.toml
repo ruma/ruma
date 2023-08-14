@@ -5,7 +5,7 @@ default-members = ["crates/*"]
 resolver = "2"
 
 [workspace.package]
-rust-version = "1.65"
+rust-version = "1.70"
 
 [workspace.dependencies]
 assert_matches2 = "0.1.0"

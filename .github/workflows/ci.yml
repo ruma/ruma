@@ -67,7 +67,7 @@ jobs:
         run: target/debug/xtask ci lint
 
   msrv:
-    name: Rust 1.65 / ${{ matrix.name }}
+    name: Rust 1.70 / ${{ matrix.name }}
     needs: xtask
     runs-on: ubuntu-latest
     strategy:
@@ -92,17 +92,17 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Install rust 1.65 toolchain
+      - name: Install rust 1.70 toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.65
+          toolchain: "1.70"
 
       - uses: Swatinem/rust-cache@v2
         with:
           # A stable compiler update should automatically not reuse old caches.
           # Add the MSRV as a stable cache key too so bumping it also gets us a
           # fresh cache.
-          sharedKey: msrv1.65
+          sharedKey: msrv1.70
 
       - name: Get xtask
         uses: actions/cache@v3
