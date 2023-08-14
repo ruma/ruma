@@ -1,5 +1,7 @@
 # [unreleased]
 
+- Bump MSRV to 1.70
+
 # 0.8.2
 
 Please refer to the changelogs of:
