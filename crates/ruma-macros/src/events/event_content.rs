@@ -238,7 +238,7 @@ impl TryFrom<ContentMeta> for ContentAttrs {
             ));
         }
 
-        if prefix.is_some() && !event_kind.map_or(false, |k| k.is_account_data()) {
+        if prefix.is_some() && !event_kind.is_some_and(|k| k.is_account_data()) {
             return Err(syn::Error::new_spanned(
                 event_type,
                 "only account data events may contain a `.*` suffix",

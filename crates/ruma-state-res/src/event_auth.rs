@@ -719,7 +719,7 @@ fn can_send_event(event: impl Event, ple: Option<impl Event>, user_level: Int) -
         return false;
     }
 
-    if event.state_key().map_or(false, |k| k.starts_with('@'))
+    if event.state_key().is_some_and(|k| k.starts_with('@'))
         && event.state_key() != Some(event.sender().as_str())
     {
         return false; // permission required to post in this room

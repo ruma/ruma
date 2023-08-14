@@ -115,10 +115,10 @@ impl Ruleset {
         if rule_id.contains('\\') {
             return Err(InsertPushRuleError::InvalidRuleId);
         }
-        if after.map_or(false, |s| s.starts_with('.')) {
+        if after.is_some_and(|s| s.starts_with('.')) {
             return Err(InsertPushRuleError::RelativeToServerDefaultRule);
         }
-        if before.map_or(false, |s| s.starts_with('.')) {
+        if before.is_some_and(|s| s.starts_with('.')) {
             return Err(InsertPushRuleError::RelativeToServerDefaultRule);
         }
 
@@ -291,7 +291,7 @@ impl Ruleset {
     ) -> Option<AnyPushRuleRef<'_>> {
         let event = FlattenedJson::from_raw(event);
 
-        if event.get_str("sender").map_or(false, |sender| sender == context.user_id) {
+        if event.get_str("sender").is_some_and(|sender| sender == context.user_id) {
             // no need to look at the rules if the event was by the user themselves
             None
         } else {
@@ -619,7 +619,7 @@ impl PatternedPushRule {
             return false;
         }
 
-        if event.get_str("sender").map_or(false, |sender| sender == context.user_id) {
+        if event.get_str("sender").is_some_and(|sender| sender == context.user_id) {
             return false;
         }
 
