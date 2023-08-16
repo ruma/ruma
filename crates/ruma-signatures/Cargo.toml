@@ -21,10 +21,9 @@ unstable-exhaustive-types = []
 
 [dependencies]
 base64 = { workspace = true }
-ed25519-dalek = "1.0.1"
+ed25519-dalek = { version = "2.0.0", features = ["hazmat", "rand_core"] }
 pkcs8 = { version = "0.9.0", features = ["alloc"] }
-# because dalek uses an older version of rand_core
-rand = { version = "0.7", features = ["getrandom"] }
+rand = { version = "0.8.5", features = ["getrandom"] }
 ruma-common = { workspace = true, features = ["canonical-json"] }
 serde_json = { workspace = true }
 sha2 = "0.10.6"

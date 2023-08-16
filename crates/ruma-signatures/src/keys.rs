@@ -5,9 +5,10 @@ use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
 };
 
-use ed25519_dalek::{ExpandedSecretKey, PublicKey, SecretKey};
+use ed25519_dalek::{hazmat::ExpandedSecretKey, SecretKey, SigningKey, VerifyingKey};
 use pkcs8::{AlgorithmIdentifier, ObjectIdentifier, PrivateKeyInfo};
 use ruma_common::serde::Base64;
+use sha2::Sha512;
 
 use crate::{signatures::Signature, Algorithm, Error, ParseError};
 
@@ -29,9 +30,7 @@ const ED25519_OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.3.101.112"
 /// An Ed25519 key pair.
 pub struct Ed25519KeyPair {
     extended_privkey: ExpandedSecretKey,
-
-    pubkey: PublicKey,
-
+    verifying_key: VerifyingKey,
     /// The specific name of the key pair.
     version: String,
 }
@@ -48,27 +47,22 @@ impl Ed25519KeyPair {
             return Err(ParseError::Oid { expected: ED25519_OID, found: oid }.into());
         }
 
-        let secret_key = SecretKey::from_bytes(Self::correct_privkey_from_octolet(privkey))
-            .map_err(ParseError::SecretKey)?;
-
-        let derived_pubkey = PublicKey::from(&secret_key);
+        let secret_key = Self::correct_privkey_from_octolet(privkey)?;
+        let signing_key = SigningKey::from_bytes(secret_key);
+        let verifying_key = signing_key.verifying_key();
 
         if let Some(oak_key) = pubkey {
             // If the document had a public key, we're verifying it.
 
-            if oak_key != derived_pubkey.as_bytes() {
+            if oak_key != verifying_key.as_bytes() {
                 return Err(ParseError::derived_vs_parsed_mismatch(
                     oak_key,
-                    derived_pubkey.as_bytes().to_vec(),
+                    verifying_key.as_bytes().to_vec(),
                 ));
             }
         }
 
-        Ok(Self {
-            extended_privkey: ExpandedSecretKey::from(&secret_key),
-            pubkey: derived_pubkey,
-            version,
-        })
+        Ok(Self { extended_privkey: ExpandedSecretKey::from(secret_key), verifying_key, version })
     }
 
     /// Initializes a new key pair.
@@ -133,11 +127,11 @@ impl Ed25519KeyPair {
     /// so convert it if it is wrongly formatted.
     ///
     /// See [RFC 8310 10.3](https://datatracker.ietf.org/doc/html/rfc8410#section-10.3) for more details
-    fn correct_privkey_from_octolet(key: &[u8]) -> &[u8] {
+    fn correct_privkey_from_octolet(key: &[u8]) -> Result<&SecretKey, ParseError> {
         if key.len() == 34 && key[..2] == [0x04, 0x20] {
-            &key[2..]
+            Ok(key[2..].try_into().unwrap())
         } else {
-            key
+            key.try_into().map_err(|_| ParseError::SecretKey)
         }
     }
 
@@ -153,14 +147,14 @@ impl Ed25519KeyPair {
     pub fn generate() -> Result<Vec<u8>, Error> {
         use pkcs8::der::Encode;
 
-        let secret = SecretKey::generate(&mut rand::rngs::OsRng);
-
-        let public = PublicKey::from(&secret);
+        let signing_key = SigningKey::generate(&mut rand::rngs::OsRng);
+        let secret = signing_key.to_bytes();
+        let public = signing_key.verifying_key();
 
         // Convert into nested OCTAL STRING
         // Per: https://datatracker.ietf.org/doc/html/rfc8410#section-10.3
         let mut private: Vec<u8> = vec![0x04, 0x20];
-        private.extend_from_slice(secret.as_bytes());
+        private.extend_from_slice(&secret);
 
         let pkinfo = PrivateKeyInfo {
             algorithm: AlgorithmIdentifier { oid: ED25519_OID, parameters: None },
@@ -178,7 +172,7 @@ impl Ed25519KeyPair {
 
     /// Returns the public key.
     pub fn public_key(&self) -> &[u8] {
-        self.pubkey.as_ref()
+        self.verifying_key.as_ref()
     }
 }
 
@@ -186,7 +180,13 @@ impl KeyPair for Ed25519KeyPair {
     fn sign(&self, message: &[u8]) -> Signature {
         Signature {
             algorithm: Algorithm::Ed25519,
-            signature: self.extended_privkey.sign(message, &self.pubkey).as_ref().to_vec(),
+            signature: ed25519_dalek::hazmat::raw_sign::<Sha512>(
+                &self.extended_privkey,
+                message,
+                &self.verifying_key,
+            )
+            .to_bytes()
+            .to_vec(),
             version: self.version.clone(),
         }
     }
@@ -196,7 +196,7 @@ impl Debug for Ed25519KeyPair {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         formatter
             .debug_struct("Ed25519KeyPair")
-            .field("public_key", &self.pubkey.as_bytes())
+            .field("verifying_key", &self.verifying_key.as_bytes())
             .field("version", &self.version)
             .finish()
     }
@@ -242,7 +242,7 @@ mod tests {
     fn well_formed_key() {
         let keypair = Ed25519KeyPair::from_der(WELL_FORMED_DOC, "".to_owned()).unwrap();
 
-        assert_eq!(keypair.pubkey.as_bytes(), WELL_FORMED_PUBKEY);
+        assert_eq!(keypair.verifying_key.as_bytes(), WELL_FORMED_PUBKEY);
     }
 
     #[cfg(feature = "ring-compat")]
