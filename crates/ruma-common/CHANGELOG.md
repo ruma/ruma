@@ -33,11 +33,6 @@ Breaking changes:
   in room version 11, according to MSC2175 / MSC3820 / Matrix 1.8
     - `RoomCreateEventContent::new()` was renamed to `new_v1()`
     - `RedactedRoomCreateEventContent` is now a typedef over `RoomCreateEventContent`
-- Add preserved fields to match the new redaction algorithm in room version 11, according to
-  MSC2176 / MSC3821 / MSC3820 / Matrix 1.8, for the following types:
-  - `RedactedRoomRedactionEventContent`,
-  - `RedactedRoomPowerLevelsEventContent`,
-  - `RedactedRoomMemberEventContent`
 - `RoomMessageEventContent::make_reply_to()` and `make_for_thread()` have an extra parameter to
   support the recommended behavior for intentional mentions in replies according to Matrix 1.7
 - In Markdown, soft line breaks are transformed into hard line breaks when compiled into HTML.
@@ -75,6 +70,13 @@ Improvements:
 - Make the generated and stripped plain text reply fallback behavior more compatible with most
   of the Matrix ecosystem.
 - Add support for intentional mentions according to MSC3952 / Matrix 1.7
+- Add support for room version 11 according to MSC3820
+  - Adapt the redaction algorithm in `canonical_json`
+  - Add preserved fields to match the new redaction algorithm, according to
+    MSC2176 / MSC3821, for the following types:
+    - `RedactedRoomRedactionEventContent`,
+    - `RedactedRoomPowerLevelsEventContent`,
+    - `RedactedRoomMemberEventContent` 
 
 # 0.11.3
 

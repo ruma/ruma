@@ -362,6 +362,14 @@ static ROOM_MEMBER_V1: AllowedKeys = AllowedKeys::some(&["membership"]);
 /// Allowed keys in `m.room.member`'s content according to room version 9.
 static ROOM_MEMBER_V9: AllowedKeys =
     AllowedKeys::some(&["membership", "join_authorised_via_users_server"]);
+/// Allowed keys in `m.room.member`'s content according to room version 11.
+static ROOM_MEMBER_V11: AllowedKeys = AllowedKeys::some_nested(
+    &["membership", "join_authorised_via_users_server"],
+    &[("third_party_invite", &ROOM_MEMBER_THIRD_PARTY_INVITE_V11)],
+);
+/// Allowed keys in the `third_party_invite` field of `m.room.member`'s content according to room
+/// version 11.
+static ROOM_MEMBER_THIRD_PARTY_INVITE_V11: AllowedKeys = AllowedKeys::some(&["signed"]);
 
 /// Allowed keys in `m.room.create`'s content according to room version 1.
 static ROOM_CREATE_V1: AllowedKeys = AllowedKeys::some(&["creator"]);
@@ -420,7 +428,8 @@ fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'stat
             | RoomVersionId::V6
             | RoomVersionId::V7
             | RoomVersionId::V8 => &ROOM_MEMBER_V1,
-            _ => &ROOM_MEMBER_V9,
+            RoomVersionId::V9 | RoomVersionId::V10 => &ROOM_MEMBER_V9,
+            _ => &ROOM_MEMBER_V11,
         },
         "m.room.create" => match version {
             RoomVersionId::V1
