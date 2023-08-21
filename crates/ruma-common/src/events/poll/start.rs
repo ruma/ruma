@@ -13,8 +13,7 @@ use poll_answers_serde::PollAnswersDeHelper;
 use super::{
     compile_poll_results,
     end::{PollEndEventContent, PollResultsContentBlock},
-    generate_poll_end_fallback_text,
-    response::OriginalSyncPollResponseEvent,
+    generate_poll_end_fallback_text, PollResponseData,
 };
 use crate::{
     events::{message::TextContentBlock, room::message::Relation},
@@ -89,7 +88,7 @@ impl OriginalSyncPollStartEvent {
     /// This uses [`compile_poll_results()`] internally.
     pub fn compile_results<'a>(
         &'a self,
-        responses: impl IntoIterator<Item = &'a OriginalSyncPollResponseEvent>,
+        responses: impl IntoIterator<Item = PollResponseData<'a>>,
     ) -> PollEndEventContent {
         let full_results = compile_poll_results(&self.content.poll, responses, None);
         let results =

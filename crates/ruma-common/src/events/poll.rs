@@ -4,16 +4,15 @@
 //!
 //! [MSC3381]: https://github.com/matrix-org/matrix-spec-proposals/pull/3381
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    ops::Deref,
+};
 
 use indexmap::IndexMap;
-use js_int::uint;
+use js_int::{uint, UInt};
 
-use self::{
-    response::OriginalSyncPollResponseEvent, start::PollContentBlock,
-    unstable_response::OriginalSyncUnstablePollResponseEvent,
-    unstable_start::UnstablePollStartContentBlock,
-};
+use self::{start::PollContentBlock, unstable_start::UnstablePollStartContentBlock};
 use crate::{MilliSecondsSinceUnixEpoch, UserId};
 
 pub mod end;
@@ -22,6 +21,14 @@ pub mod start;
 pub mod unstable_end;
 pub mod unstable_response;
 pub mod unstable_start;
+
+/// The data from a poll response necessary to compile poll results.
+#[derive(Debug, Clone, Copy)]
+pub struct PollResponseData<'a> {
+    sender: &'a UserId,
+    origin_server_ts: MilliSecondsSinceUnixEpoch,
+    selections: &'a [String],
+}
 
 /// Generate the current results with the given poll and responses.
 ///
@@ -36,7 +43,7 @@ pub mod unstable_start;
 /// lowest.
 pub fn compile_poll_results<'a>(
     poll: &'a PollContentBlock,
-    responses: impl IntoIterator<Item = &'a OriginalSyncPollResponseEvent>,
+    responses: impl IntoIterator<Item = PollResponseData<'a>>,
     end_timestamp: Option<MilliSecondsSinceUnixEpoch>,
 ) -> IndexMap<&'a str, BTreeSet<&'a UserId>> {
     let end_ts = end_timestamp.unwrap_or_else(MilliSecondsSinceUnixEpoch::now);
@@ -47,13 +54,20 @@ pub fn compile_poll_results<'a>(
             // Filter out responses after the end_timestamp.
             ev.origin_server_ts <= end_ts
         })
-        .fold(BTreeMap::new(), |mut acc, ev| {
+        .fold(BTreeMap::new(), |mut acc, data| {
             let response =
-                acc.entry(&*ev.sender).or_insert((MilliSecondsSinceUnixEpoch(uint!(0)), None));
+                acc.entry(data.sender).or_insert((MilliSecondsSinceUnixEpoch(uint!(0)), None));
 
             // Only keep the latest selections for each user.
-            if response.0 < ev.origin_server_ts {
-                *response = (ev.origin_server_ts, ev.content.selections.validate(poll));
+            if response.0 < data.origin_server_ts {
+                *response = (
+                    data.origin_server_ts,
+                    validate_selections(
+                        poll.answers.iter().map(|a| &a.id),
+                        poll.max_selections,
+                        data.selections,
+                    ),
+                );
             }
 
             acc
@@ -75,7 +89,7 @@ pub fn compile_poll_results<'a>(
 /// lowest.
 pub fn compile_unstable_poll_results<'a>(
     poll: &'a UnstablePollStartContentBlock,
-    responses: impl IntoIterator<Item = &'a OriginalSyncUnstablePollResponseEvent>,
+    responses: impl IntoIterator<Item = PollResponseData<'a>>,
     end_timestamp: Option<MilliSecondsSinceUnixEpoch>,
 ) -> IndexMap<&'a str, BTreeSet<&'a UserId>> {
     let end_ts = end_timestamp.unwrap_or_else(MilliSecondsSinceUnixEpoch::now);
@@ -86,19 +100,44 @@ pub fn compile_unstable_poll_results<'a>(
             // Filter out responses after the end_timestamp.
             ev.origin_server_ts <= end_ts
         })
-        .fold(BTreeMap::new(), |mut acc, ev| {
+        .fold(BTreeMap::new(), |mut acc, data| {
             let response =
-                acc.entry(&*ev.sender).or_insert((MilliSecondsSinceUnixEpoch(uint!(0)), None));
+                acc.entry(data.sender).or_insert((MilliSecondsSinceUnixEpoch(uint!(0)), None));
 
             // Only keep the latest selections for each user.
-            if response.0 < ev.origin_server_ts {
-                *response = (ev.origin_server_ts, ev.content.poll_response.validate(poll));
+            if response.0 < data.origin_server_ts {
+                *response = (
+                    data.origin_server_ts,
+                    validate_selections(
+                        poll.answers.iter().map(|a| &a.id),
+                        poll.max_selections,
+                        data.selections,
+                    ),
+                );
             }
 
             acc
         });
 
     aggregate_results(poll.answers.iter().map(|a| a.id.as_str()), users_selections)
+}
+
+/// Validate the selections of a response.
+fn validate_selections<'a, 'b>(
+    answer_ids: impl IntoIterator<Item = &'b String> + Clone,
+    max_selections: UInt,
+    selections: impl IntoIterator<Item = &'a String> + Clone,
+) -> Option<impl Iterator<Item = &'a str>> {
+    // Vote is spoiled if any answer is unknown.
+    if selections.clone().into_iter().any(|s| !answer_ids.clone().into_iter().any(|id| id == s)) {
+        return None;
+    }
+
+    // Fallback to the maximum value for usize because we can't have more selections than that
+    // in memory.
+    let max_selections: usize = max_selections.try_into().unwrap_or(usize::MAX);
+
+    Some(selections.into_iter().take(max_selections).map(Deref::deref))
 }
 
 // Aggregate the given selections by answer.

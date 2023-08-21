@@ -14,7 +14,7 @@ use super::{
     compile_unstable_poll_results, generate_poll_end_fallback_text,
     start::{PollAnswers, PollAnswersError, PollContentBlock, PollKind},
     unstable_end::UnstablePollEndEventContent,
-    unstable_response::OriginalSyncUnstablePollResponseEvent,
+    PollResponseData,
 };
 use crate::events::room::message::Relation;
 
@@ -71,7 +71,7 @@ impl OriginalSyncUnstablePollStartEvent {
     /// This uses [`compile_unstable_poll_results()`] internally.
     pub fn compile_results<'a>(
         &'a self,
-        responses: impl IntoIterator<Item = &'a OriginalSyncUnstablePollResponseEvent>,
+        responses: impl IntoIterator<Item = PollResponseData<'a>>,
     ) -> UnstablePollEndEventContent {
         let full_results = compile_unstable_poll_results(&self.content.poll_start, responses, None);
         let results =

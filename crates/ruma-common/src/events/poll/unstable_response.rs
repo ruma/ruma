@@ -1,12 +1,10 @@
 //! Types for the `org.matrix.msc3381.poll.response` event, the unstable version of
 //! `m.poll.response`.
 
-use std::ops::Deref;
-
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::unstable_start::UnstablePollStartContentBlock;
+use super::{unstable_start::UnstablePollStartContentBlock, validate_selections, PollResponseData};
 use crate::{events::relation::Reference, OwnedEventId};
 
 /// The payload for an unstable poll response event.
@@ -43,6 +41,28 @@ impl UnstablePollResponseEventContent {
     }
 }
 
+impl OriginalSyncUnstablePollResponseEvent {
+    /// Get the data from this reponse necessary to compile poll results.
+    pub fn data(&self) -> PollResponseData<'_> {
+        PollResponseData {
+            sender: &self.sender,
+            origin_server_ts: self.origin_server_ts,
+            selections: &self.content.poll_response.answers,
+        }
+    }
+}
+
+impl OriginalUnstablePollResponseEvent {
+    /// Get the data from this reponse necessary to compile poll results.
+    pub fn data(&self) -> PollResponseData<'_> {
+        PollResponseData {
+            sender: &self.sender,
+            origin_server_ts: self.origin_server_ts,
+            selections: &self.content.poll_response.answers,
+        }
+    }
+}
+
 /// An unstable block for poll response content.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -61,20 +81,14 @@ impl UnstablePollResponseContentBlock {
     ///
     /// Returns the list of valid selections in this `UnstablePollResponseContentBlock`, or `None`
     /// if there is no valid selection.
-    pub fn validate(
-        &self,
-        poll: &UnstablePollStartContentBlock,
-    ) -> Option<impl Iterator<Item = &str>> {
-        // Vote is spoiled if any answer is unknown.
-        if self.answers.iter().any(|s| !poll.answers.iter().any(|a| a.id == *s)) {
-            return None;
-        }
-
-        // Fallback to the maximum value for usize because we can't have more selections than that
-        // in memory.
-        let max_selections: usize = poll.max_selections.try_into().unwrap_or(usize::MAX);
-
-        Some(self.answers.iter().take(max_selections).map(Deref::deref))
+    pub fn validate<'a, 'b>(
+        &'a self,
+        poll: &'b UnstablePollStartContentBlock,
+    ) -> Option<impl Iterator<Item = &'a str> + 'b>
+    where
+        'a: 'b,
+    {
+        validate_selections(poll.answers.iter().map(|a| &a.id), poll.max_selections, &self.answers)
     }
 }
 

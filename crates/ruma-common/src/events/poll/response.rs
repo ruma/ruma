@@ -5,7 +5,7 @@ use std::{ops::Deref, vec};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::start::PollContentBlock;
+use super::{start::PollContentBlock, validate_selections, PollResponseData};
 use crate::{events::relation::Reference, OwnedEventId};
 
 /// The payload for a poll response event.
@@ -52,6 +52,28 @@ impl PollResponseEventContent {
     }
 }
 
+impl OriginalSyncPollResponseEvent {
+    /// Get the data from this reponse necessary to compile poll results.
+    pub fn data(&self) -> PollResponseData<'_> {
+        PollResponseData {
+            sender: &self.sender,
+            origin_server_ts: self.origin_server_ts,
+            selections: &self.content.selections,
+        }
+    }
+}
+
+impl OriginalPollResponseEvent {
+    /// Get the data from this reponse necessary to compile poll results.
+    pub fn data(&self) -> PollResponseData<'_> {
+        PollResponseData {
+            sender: &self.sender,
+            origin_server_ts: self.origin_server_ts,
+            selections: &self.content.selections,
+        }
+    }
+}
+
 /// A block for selections content.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -67,17 +89,14 @@ impl SelectionsContentBlock {
     ///
     /// Returns the list of valid selections in this `SelectionsContentBlock`, or `None` if there is
     /// no valid selection.
-    pub fn validate(&self, poll: &PollContentBlock) -> Option<impl Iterator<Item = &str>> {
-        // Vote is spoiled if any answer is unknown.
-        if self.0.iter().any(|s| !poll.answers.iter().any(|a| a.id == *s)) {
-            return None;
-        }
-
-        // Fallback to the maximum value for usize because we can't have more selections than that
-        // in memory.
-        let max_selections: usize = poll.max_selections.try_into().unwrap_or(usize::MAX);
-
-        Some(self.0.iter().take(max_selections).map(Deref::deref))
+    pub fn validate<'a, 'b>(
+        &'a self,
+        poll: &'b PollContentBlock,
+    ) -> Option<impl Iterator<Item = &'a str> + 'b>
+    where
+        'a: 'b,
+    {
+        validate_selections(poll.answers.iter().map(|a| &a.id), poll.max_selections, &self.0)
     }
 }
 
