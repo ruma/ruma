@@ -150,6 +150,7 @@ impl RoomMessageEventContent {
         mut self,
         original_message: &OriginalRoomMessageEvent,
         forward_thread: ForwardThread,
+        add_mentions: AddMentions,
     ) -> Self {
         let empty_formatted_body = || FormattedBody::html(String::new());
 
@@ -205,6 +206,17 @@ impl RoomMessageEventContent {
         };
         self.relates_to = Some(relates_to);
 
+        if add_mentions == AddMentions::Yes {
+            // Copy the mentioned users.
+            let mut user_ids = match &original_message.content.mentions {
+                Some(m) => m.user_ids.clone(),
+                None => Default::default(),
+            };
+            // Add the sender.
+            user_ids.insert(original_message.sender.clone());
+            self.mentions = Some(Mentions { user_ids, ..Default::default() });
+        }
+
         self
     }
 
@@ -227,9 +239,10 @@ impl RoomMessageEventContent {
         mut self,
         previous_message: &OriginalRoomMessageEvent,
         is_reply: ReplyWithinThread,
+        add_mentions: AddMentions,
     ) -> Self {
         if is_reply == ReplyWithinThread::Yes {
-            self = self.make_reply_to(previous_message, ForwardThread::No);
+            self = self.make_reply_to(previous_message, ForwardThread::No, add_mentions);
         }
 
         let thread_root = if let Some(Relation::Thread(Thread { event_id, .. })) =
@@ -323,7 +336,7 @@ impl RoomMessageEventContent {
 
         // Add reply fallback if needed.
         if let Some(original_message) = replied_to_message {
-            self = self.make_reply_to(original_message, ForwardThread::No);
+            self = self.make_reply_to(original_message, ForwardThread::No, AddMentions::No);
         }
 
         self.relates_to = Some(relates_to);
@@ -470,6 +483,24 @@ pub enum ForwardThread {
     /// Create a reply in the main conversation even if the original message is in a thread.
     ///
     /// This should be used if you client supports threads and you explicitly want that behavior.
+    No,
+}
+
+/// Whether or not to add intentional [`Mentions`] when sending a reply.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[allow(clippy::exhaustive_enums)]
+pub enum AddMentions {
+    /// Add automatic intentional mentions to the reply.
+    ///
+    /// Set this if your client supports intentional mentions.
+    ///
+    /// The sender of the original event will be added to the mentions of this message, along with
+    /// every user mentioned in the original event.
+    Yes,
+
+    /// Do not add intentional mentions to the reply.
+    ///
+    /// Set this if your client does not support intentional mentions.
     No,
 }
 
