@@ -53,7 +53,7 @@ impl PollResponseEventContent {
 }
 
 impl OriginalSyncPollResponseEvent {
-    /// Get the data from this reponse necessary to compile poll results.
+    /// Get the data from this response necessary to compile poll results.
     pub fn data(&self) -> PollResponseData<'_> {
         PollResponseData {
             sender: &self.sender,
@@ -64,7 +64,7 @@ impl OriginalSyncPollResponseEvent {
 }
 
 impl OriginalPollResponseEvent {
-    /// Get the data from this reponse necessary to compile poll results.
+    /// Get the data from this response necessary to compile poll results.
     pub fn data(&self) -> PollResponseData<'_> {
         PollResponseData {
             sender: &self.sender,
