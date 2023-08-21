@@ -1,8 +1,14 @@
 # [unreleased]
 
+Bug fixes:
+
 - Don't consider empty localpart of a user ID as valid
   - It is accepted under the `compat-user-id` feature, but not considered
     fully-conforming
+
+Improvements:
+
+- Allow `+` in the localpart of user IDs according to MSC4009
 
 # 0.9.1
 
