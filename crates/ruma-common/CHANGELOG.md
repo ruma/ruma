@@ -37,7 +37,9 @@ Breaking changes:
   MSC2176 / MSC3821 / MSC3820, for the following types:
   - `RedactedRoomRedactionEventContent`,
   - `RedactedRoomPowerLevelsEventContent`,
-  - `RedactedRoomMemberEventContent` 
+  - `RedactedRoomMemberEventContent`
+- `RoomMessageEventContent::make_reply_to()` and `make_for_thread()` have an extra parameter to
+  support the recommended behavior for intentional mentions in replies according to Matrix 1.7
 
 Improvements:
 
