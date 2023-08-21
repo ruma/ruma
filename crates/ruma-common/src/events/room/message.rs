@@ -350,6 +350,10 @@ impl RoomMessageEventContent {
     /// `m.new_content` so only new mentions will trigger a notification. As such, this needs to be
     /// called after [`Self::make_replacement()`].
     ///
+    /// It is not recommended to call this method after one that sets mentions automatically, like
+    /// [`Self::make_reply_to()`] as these will be overwritten. [`Self::add_mentions()`] should be
+    /// used instead.
+    ///
     /// [mentions]: https://spec.matrix.org/latest/client-server-api/#user-and-room-mentions
     pub fn set_mentions(mut self, mentions: Mentions) -> Self {
         if let Some(Relation::Replacement(replacement)) = &mut self.relates_to {
@@ -374,6 +378,28 @@ impl RoomMessageEventContent {
 
             replacement.new_content.mentions = Some(mentions);
             self.mentions = Some(new_mentions);
+        } else {
+            self.mentions = Some(mentions);
+        }
+
+        self
+    }
+
+    /// Add the given [mentions] to this event.
+    ///
+    /// If no [`Mentions`] was set on this events, this sets it. Otherwise, this updates the current
+    /// mentions by extending the previous `user_ids` with the new ones, and applies a logical OR to
+    /// the values of `room`.
+    ///
+    /// This is recommended over [`Self::set_mentions()`] to avoid to overwrite any mentions set
+    /// automatically by another method, like [`Self::make_reply_to()`]. However, this method has no
+    /// special support for replacements.
+    ///
+    /// [mentions]: https://spec.matrix.org/latest/client-server-api/#user-and-room-mentions
+    pub fn add_mentions(mut self, mentions: Mentions) -> Self {
+        if let Some(m) = &mut self.mentions {
+            m.user_ids.extend(mentions.user_ids);
+            m.room |= mentions.room;
         } else {
             self.mentions = Some(mentions);
         }
