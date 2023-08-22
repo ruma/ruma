@@ -10,7 +10,10 @@ mod value;
 use crate::RoomVersionId;
 #[cfg(feature = "events")]
 use crate::{
-    events::room::redaction::{OriginalRoomRedactionEvent, OriginalSyncRoomRedactionEvent},
+    events::room::redaction::{
+        OriginalRoomRedactionEvent, OriginalSyncRoomRedactionEvent, RoomRedactionEvent,
+        SyncRoomRedactionEvent,
+    },
     serde::Raw,
 };
 
@@ -147,6 +150,24 @@ impl TryFrom<&Raw<OriginalSyncRoomRedactionEvent>> for RedactedBecause {
     type Error = serde_json::Error;
 
     fn try_from(value: &Raw<OriginalSyncRoomRedactionEvent>) -> Result<Self, Self::Error> {
+        value.deserialize_as().map(Self)
+    }
+}
+
+#[cfg(feature = "events")]
+impl TryFrom<&Raw<RoomRedactionEvent>> for RedactedBecause {
+    type Error = serde_json::Error;
+
+    fn try_from(value: &Raw<RoomRedactionEvent>) -> Result<Self, Self::Error> {
+        value.deserialize_as().map(Self)
+    }
+}
+
+#[cfg(feature = "events")]
+impl TryFrom<&Raw<SyncRoomRedactionEvent>> for RedactedBecause {
+    type Error = serde_json::Error;
+
+    fn try_from(value: &Raw<SyncRoomRedactionEvent>) -> Result<Self, Self::Error> {
         value.deserialize_as().map(Self)
     }
 }
