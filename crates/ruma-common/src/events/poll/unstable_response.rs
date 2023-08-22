@@ -88,7 +88,8 @@ impl UnstablePollResponseContentBlock {
     where
         'a: 'b,
     {
-        validate_selections(poll.answers.iter().map(|a| &a.id), poll.max_selections, &self.answers)
+        let answer_ids = poll.answers.iter().map(|a| a.id.as_str()).collect();
+        validate_selections(answer_ids, poll.max_selections, &self.answers)
     }
 }
 

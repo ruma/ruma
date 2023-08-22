@@ -60,13 +60,10 @@ pub fn compile_poll_results<'a>(
 
             // Only keep the latest selections for each user.
             if response.0 < data.origin_server_ts {
+                let answer_ids = poll.answers.iter().map(|a| a.id.as_str()).collect();
                 *response = (
                     data.origin_server_ts,
-                    validate_selections(
-                        poll.answers.iter().map(|a| &a.id),
-                        poll.max_selections,
-                        data.selections,
-                    ),
+                    validate_selections(answer_ids, poll.max_selections, data.selections),
                 );
             }
 
@@ -106,13 +103,10 @@ pub fn compile_unstable_poll_results<'a>(
 
             // Only keep the latest selections for each user.
             if response.0 < data.origin_server_ts {
+                let answer_ids = poll.answers.iter().map(|a| a.id.as_str()).collect();
                 *response = (
                     data.origin_server_ts,
-                    validate_selections(
-                        poll.answers.iter().map(|a| &a.id),
-                        poll.max_selections,
-                        data.selections,
-                    ),
+                    validate_selections(answer_ids, poll.max_selections, data.selections),
                 );
             }
 
@@ -123,13 +117,13 @@ pub fn compile_unstable_poll_results<'a>(
 }
 
 /// Validate the selections of a response.
-fn validate_selections<'a, 'b>(
-    answer_ids: impl IntoIterator<Item = &'b String> + Clone,
+fn validate_selections<'a>(
+    answer_ids: BTreeSet<&str>,
     max_selections: UInt,
-    selections: impl IntoIterator<Item = &'a String> + Clone,
+    selections: &'a [String],
 ) -> Option<impl Iterator<Item = &'a str>> {
     // Vote is spoiled if any answer is unknown.
-    if selections.clone().into_iter().any(|s| !answer_ids.clone().into_iter().any(|id| id == s)) {
+    if selections.iter().any(|s| !answer_ids.contains(s.as_str())) {
         return None;
     }
 
@@ -137,10 +131,10 @@ fn validate_selections<'a, 'b>(
     // in memory.
     let max_selections: usize = max_selections.try_into().unwrap_or(usize::MAX);
 
-    Some(selections.into_iter().take(max_selections).map(Deref::deref))
+    Some(selections.iter().take(max_selections).map(Deref::deref))
 }
 
-// Aggregate the given selections by answer.
+/// Aggregate the given selections by answer.
 fn aggregate_results<'a>(
     answers: impl Iterator<Item = &'a str>,
     users_selections: BTreeMap<
@@ -203,13 +197,13 @@ fn generate_poll_end_fallback_text<'a>(
 
     // Construct the plain text representation.
     match top_answers_text.len() {
-        l if l > 1 => {
+        0 => "The poll has closed with no top answer".to_owned(),
+        1 => {
+            format!("The poll has closed. Top answer: {}", top_answers_text[0])
+        }
+        _ => {
             let answers = top_answers_text.join(", ");
             format!("The poll has closed. Top answers: {answers}")
         }
-        l if l == 1 => {
-            format!("The poll has closed. Top answer: {}", top_answers_text[0])
-        }
-        _ => "The poll has closed with no top answer".to_owned(),
     }
 }
