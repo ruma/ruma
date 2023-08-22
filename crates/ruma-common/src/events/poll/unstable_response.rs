@@ -81,13 +81,10 @@ impl UnstablePollResponseContentBlock {
     ///
     /// Returns the list of valid selections in this `UnstablePollResponseContentBlock`, or `None`
     /// if there is no valid selection.
-    pub fn validate<'a, 'b>(
+    pub fn validate<'a>(
         &'a self,
-        poll: &'b UnstablePollStartContentBlock,
-    ) -> Option<impl Iterator<Item = &'a str> + 'b>
-    where
-        'a: 'b,
-    {
+        poll: &UnstablePollStartContentBlock,
+    ) -> Option<impl Iterator<Item = &'a str>> {
         let answer_ids = poll.answers.iter().map(|a| a.id.as_str()).collect();
         validate_selections(answer_ids, poll.max_selections, &self.answers)
     }
