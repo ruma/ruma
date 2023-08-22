@@ -282,9 +282,8 @@ mod tests {
     use serde::Deserialize;
     use serde_json::{from_value as from_json_value, json};
 
-    use crate::{mxc_uri, serde::Base64};
-
     use super::{EncryptedFile, JsonWebKey, MediaSource};
+    use crate::{mxc_uri, serde::Base64};
 
     #[derive(Deserialize)]
     struct MsgWithAttachment {

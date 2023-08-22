@@ -17,7 +17,82 @@ use std::{convert::TryInto as _, error::Error as StdError};
 use bytes::BufMut;
 use serde::{Deserialize, Serialize};
 
+use self::error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
 use crate::UserId;
+
+/// Convenient constructor for [`Metadata`] constants.
+///
+/// Usage:
+///
+/// ```
+/// # use ruma_common::{metadata, api::Metadata};
+/// const _: Metadata = metadata! {
+///     method: GET, // one of the associated constants of http::Method
+///     rate_limited: true,
+///     authentication: AccessToken, // one of the variants of api::AuthScheme
+///
+///     // history of endpoint paths
+///     // there must be at least one path but otherwise everything is optional
+///     history: {
+///         unstable => "/_matrix/foo/org.bar.msc9000/baz",
+///         unstable => "/_matrix/foo/org.bar.msc9000/qux",
+///         1.0 => "/_matrix/media/r0/qux",
+///         1.1 => "/_matrix/media/v3/qux",
+///         1.2 => deprecated,
+///         1.3 => removed,
+///     }
+/// };
+/// ```
+#[macro_export]
+macro_rules! metadata {
+    ( $( $field:ident: $rhs:tt ),+ $(,)? ) => {
+        $crate::api::Metadata {
+            $( $field: $crate::metadata!(@field $field: $rhs) ),+
+        }
+    };
+
+    ( @field method: $method:ident ) => { $crate::exports::http::Method::$method };
+
+    ( @field authentication: $scheme:ident ) => { $crate::api::AuthScheme::$scheme };
+
+    ( @field history: {
+        $( unstable => $unstable_path:literal, )*
+        $( $( $version:literal => $rhs:tt, )+ )?
+    } ) => {
+        $crate::metadata! {
+            @history_impl
+            [ $($unstable_path),* ]
+            // Flip left and right to avoid macro parsing ambiguities
+            $( $( $rhs = $version ),+ )?
+        }
+    };
+
+    // Simple literal case: used for description, name, rate_limited
+    ( @field $_field:ident: $rhs:expr ) => { $rhs };
+
+    ( @history_impl
+        [ $($unstable_path:literal),* ]
+        $(
+            $( $stable_path:literal = $version:literal ),+
+            $(,
+                deprecated = $deprecated_version:literal
+                $(, removed = $removed_version:literal )?
+            )?
+        )?
+    ) => {
+        $crate::api::VersionHistory::new(
+            &[ $( $unstable_path ),* ],
+            &[ $($(
+                ($crate::api::MatrixVersion::from_lit(stringify!($version)), $stable_path)
+            ),+)? ],
+            $crate::metadata!(@optional_version $($( $deprecated_version )?)?),
+            $crate::metadata!(@optional_version $($($( $removed_version )?)?)?),
+        )
+    };
+
+    ( @optional_version ) => { None };
+    ( @optional_version $version:literal ) => { Some($crate::api::MatrixVersion::from_lit(stringify!($version))) }
+}
 
 /// Generates [`OutgoingRequest`] and [`IncomingRequest`] implementations.
 ///
@@ -134,7 +209,6 @@ use crate::UserId;
 /// }
 /// ```
 pub use ruma_macros::request;
-
 /// Generates [`OutgoingResponse`] and [`IncomingResponse`] implementations.
 ///
 /// The `OutgoingRequest` impl is feature-gated behind `cfg(feature = "client")`.
@@ -230,9 +304,7 @@ pub use ruma_macros::response;
 pub mod error;
 mod metadata;
 
-pub use metadata::{MatrixVersion, Metadata, VersionHistory, VersioningDecision};
-
-use error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
+pub use self::metadata::{MatrixVersion, Metadata, VersionHistory, VersioningDecision};
 
 /// An enum to control whether an access token should be added to outgoing requests
 #[derive(Clone, Copy, Debug)]
@@ -434,78 +506,4 @@ pub enum Direction {
     /// Return events forwards in time from the requested `from` token.
     #[serde(rename = "f")]
     Forward,
-}
-
-/// Convenient constructor for [`Metadata`] constants.
-///
-/// Usage:
-///
-/// ```
-/// # use ruma_common::{metadata, api::Metadata};
-/// const _: Metadata = metadata! {
-///     method: GET, // one of the associated constants of http::Method
-///     rate_limited: true,
-///     authentication: AccessToken, // one of the variants of api::AuthScheme
-///
-///     // history of endpoint paths
-///     // there must be at least one path but otherwise everything is optional
-///     history: {
-///         unstable => "/_matrix/foo/org.bar.msc9000/baz",
-///         unstable => "/_matrix/foo/org.bar.msc9000/qux",
-///         1.0 => "/_matrix/media/r0/qux",
-///         1.1 => "/_matrix/media/v3/qux",
-///         1.2 => deprecated,
-///         1.3 => removed,
-///     }
-/// };
-/// ```
-#[macro_export]
-macro_rules! metadata {
-    ( $( $field:ident: $rhs:tt ),+ $(,)? ) => {
-        $crate::api::Metadata {
-            $( $field: $crate::metadata!(@field $field: $rhs) ),+
-        }
-    };
-
-    ( @field method: $method:ident ) => { $crate::exports::http::Method::$method };
-
-    ( @field authentication: $scheme:ident ) => { $crate::api::AuthScheme::$scheme };
-
-    ( @field history: {
-        $( unstable => $unstable_path:literal, )*
-        $( $( $version:literal => $rhs:tt, )+ )?
-    } ) => {
-        $crate::metadata! {
-            @history_impl
-            [ $($unstable_path),* ]
-            // Flip left and right to avoid macro parsing ambiguities
-            $( $( $rhs = $version ),+ )?
-        }
-    };
-
-    // Simple literal case: used for description, name, rate_limited
-    ( @field $_field:ident: $rhs:expr ) => { $rhs };
-
-    ( @history_impl
-        [ $($unstable_path:literal),* ]
-        $(
-            $( $stable_path:literal = $version:literal ),+
-            $(,
-                deprecated = $deprecated_version:literal
-                $(, removed = $removed_version:literal )?
-            )?
-        )?
-    ) => {
-        $crate::api::VersionHistory::new(
-            &[ $( $unstable_path ),* ],
-            &[ $($(
-                ($crate::api::MatrixVersion::from_lit(stringify!($version)), $stable_path)
-            ),+)? ],
-            $crate::metadata!(@optional_version $($( $deprecated_version )?)?),
-            $crate::metadata!(@optional_version $($($( $removed_version )?)?)?),
-        )
-    };
-
-    ( @optional_version ) => { None };
-    ( @optional_version $version:literal ) => { Some($crate::api::MatrixVersion::from_lit(stringify!($version))) }
 }

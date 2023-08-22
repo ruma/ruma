@@ -2,16 +2,15 @@ use assert_matches2::assert_matches;
 use js_int::uint;
 use maplit::btreemap;
 use ruma_common::{
-    event_id, events::receipt::ReceiptType, owned_event_id, owned_user_id, user_id,
-    MilliSecondsSinceUnixEpoch,
+    event_id,
+    events::{
+        receipt::{Receipt, ReceiptEventContent, ReceiptType},
+        typing::TypingEventContent,
+        AnyEphemeralRoomEvent,
+    },
+    owned_event_id, owned_user_id, user_id, MilliSecondsSinceUnixEpoch,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
-
-use ruma_common::events::{
-    receipt::{Receipt, ReceiptEventContent},
-    typing::TypingEventContent,
-    AnyEphemeralRoomEvent,
-};
 
 #[test]
 fn ephemeral_serialize_typing() {

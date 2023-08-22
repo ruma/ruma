@@ -12,9 +12,8 @@ use syn::{
     DeriveInput, Field, Ident, LitStr, Meta, Token, Type,
 };
 
-use crate::util::{m_prefix_name_to_type_name, PrivateField};
-
 use super::event_parse::{EventKind, EventKindVariation};
+use crate::util::{m_prefix_name_to_type_name, PrivateField};
 
 mod kw {
     // This `content` field is kept when the event is redacted.

@@ -104,9 +104,10 @@ impl<'de> Deserialize<'de> for UserIdentifier {
 
 #[cfg(test)]
 mod tests {
-    use crate::uiaa::UserIdentifier;
     use assert_matches2::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+
+    use crate::uiaa::UserIdentifier;
 
     #[test]
     fn serialize() {

@@ -124,12 +124,11 @@ pub(crate) fn plain_and_formatted_reply_body(
 
 #[cfg(test)]
 mod tests {
+    use super::OriginalRoomMessageEvent;
     use crate::{
         events::{room::message::RoomMessageEventContent, MessageLikeUnsigned},
         owned_event_id, owned_room_id, owned_user_id, MilliSecondsSinceUnixEpoch,
     };
-
-    use super::OriginalRoomMessageEvent;
 
     #[test]
     fn fallback_multiline() {

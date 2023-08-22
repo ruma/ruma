@@ -6,7 +6,6 @@
 
 use std::{collections::BTreeMap, time::Duration};
 
-use super::{DeviceLists, UnreadNotificationsCount};
 use js_int::UInt;
 use ruma_common::{
     api::{request, response, Metadata},
@@ -20,6 +19,8 @@ use ruma_common::{
     DeviceKeyAlgorithm, MilliSecondsSinceUnixEpoch, OwnedMxcUri, OwnedRoomId,
 };
 use serde::{Deserialize, Serialize};
+
+use super::{DeviceLists, UnreadNotificationsCount};
 
 const METADATA: Metadata = metadata! {
     method: POST,
