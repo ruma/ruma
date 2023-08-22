@@ -9,8 +9,6 @@ use serde::{Deserialize, Serialize};
 mod unstable_poll_answers_serde;
 mod unstable_poll_kind_serde;
 
-use crate::events::room::message::Relation;
-
 use self::unstable_poll_answers_serde::UnstablePollAnswersDeHelper;
 use super::{
     compile_unstable_poll_results, generate_poll_end_fallback_text,
@@ -18,6 +16,7 @@ use super::{
     unstable_end::UnstablePollEndEventContent,
     unstable_response::OriginalSyncUnstablePollResponseEvent,
 };
+use crate::events::room::message::Relation;
 
 /// The payload for an unstable poll start event.
 ///

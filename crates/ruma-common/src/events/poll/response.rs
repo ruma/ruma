@@ -5,9 +5,8 @@ use std::{ops::Deref, vec};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{events::relation::Reference, OwnedEventId};
-
 use super::start::PollContentBlock;
+use crate::{events::relation::Reference, OwnedEventId};
 
 /// The payload for a poll response event.
 ///

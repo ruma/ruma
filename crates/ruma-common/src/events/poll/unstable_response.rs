@@ -6,9 +6,8 @@ use std::ops::Deref;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{events::relation::Reference, OwnedEventId};
-
 use super::unstable_start::UnstablePollStartContentBlock;
+use crate::{events::relation::Reference, OwnedEventId};
 
 /// The payload for an unstable poll response event.
 ///

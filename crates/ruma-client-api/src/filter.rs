@@ -10,9 +10,8 @@ use js_int::UInt;
 use ruma_common::{serde::StringEnum, OwnedRoomId, OwnedUserId};
 use serde::{Deserialize, Serialize};
 
-use crate::PrivOwnedStr;
-
 pub use self::{lazy_load::LazyLoadOptions, url::UrlFilter};
+use crate::PrivOwnedStr;
 
 /// Format to use for returned events.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]

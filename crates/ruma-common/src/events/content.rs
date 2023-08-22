@@ -3,12 +3,11 @@ use std::fmt;
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 
-use crate::serde::{CanBeEmpty, Raw};
-
 use super::{
     EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEventType,
     RoomAccountDataEventType, StateEventType, ToDeviceEventType,
 };
+use crate::serde::{CanBeEmpty, Raw};
 
 /// The base trait that all event content types implement.
 ///

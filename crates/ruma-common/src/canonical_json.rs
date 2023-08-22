@@ -7,14 +7,13 @@ use serde_json::Value as JsonValue;
 
 mod value;
 
+pub use self::value::{CanonicalJsonObject, CanonicalJsonValue};
 use crate::RoomVersionId;
 #[cfg(feature = "events")]
 use crate::{
     events::room::redaction::{OriginalRoomRedactionEvent, OriginalSyncRoomRedactionEvent},
     serde::Raw,
 };
-
-pub use self::value::{CanonicalJsonObject, CanonicalJsonValue};
 
 /// The set of possible errors when serializing to canonical JSON.
 #[cfg(feature = "canonical-json")]

@@ -59,10 +59,10 @@ impl FromIterator<(OwnedUserId, Vec<OwnedRoomId>)> for DirectEventContent {
 mod tests {
     use std::collections::BTreeMap;
 
-    use crate::{server_name, RoomId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{DirectEvent, DirectEventContent};
+    use crate::{server_name, RoomId, UserId};
 
     #[test]
     fn serialization() {

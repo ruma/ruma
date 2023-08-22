@@ -4,6 +4,11 @@
 // FIXME: Remove once lint doesn't trigger on std::convert::TryFrom in identifiers/macros.rs anymore
 #![allow(unused_qualifications)]
 
+#[doc(inline)]
+pub use ruma_identifiers_validation::error::{
+    Error as IdParseError, MatrixIdError, MatrixToError, MatrixUriError, MxcUriError,
+    VoipVersionIdError,
+};
 use serde::de::{self, Deserializer, Unexpected};
 
 #[doc(inline)]
@@ -33,11 +38,6 @@ pub use self::{
     user_id::{OwnedUserId, UserId},
     voip_id::{OwnedVoipId, VoipId},
     voip_version_id::VoipVersionId,
-};
-#[doc(inline)]
-pub use ruma_identifiers_validation::error::{
-    Error as IdParseError, MatrixIdError, MatrixToError, MatrixUriError, MxcUriError,
-    VoipVersionIdError,
 };
 
 pub mod matrix_uri;

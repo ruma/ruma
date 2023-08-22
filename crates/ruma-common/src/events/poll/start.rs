@@ -10,17 +10,16 @@ mod poll_answers_serde;
 
 use poll_answers_serde::PollAnswersDeHelper;
 
-use crate::{
-    events::{message::TextContentBlock, room::message::Relation},
-    serde::StringEnum,
-    PrivOwnedStr,
-};
-
 use super::{
     compile_poll_results,
     end::{PollEndEventContent, PollResultsContentBlock},
     generate_poll_end_fallback_text,
     response::OriginalSyncPollResponseEvent,
+};
+use crate::{
+    events::{message::TextContentBlock, room::message::Relation},
+    serde::StringEnum,
+    PrivOwnedStr,
 };
 
 /// The payload for a poll start event.

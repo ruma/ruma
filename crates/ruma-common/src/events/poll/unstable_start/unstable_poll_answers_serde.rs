@@ -2,9 +2,8 @@
 
 use serde::Deserialize;
 
-use crate::events::poll::start::{PollAnswers, PollAnswersError};
-
 use super::{UnstablePollAnswer, UnstablePollAnswers};
+use crate::events::poll::start::{PollAnswers, PollAnswersError};
 
 #[derive(Debug, Default, Deserialize)]
 pub(crate) struct UnstablePollAnswersDeHelper(Vec<UnstablePollAnswer>);

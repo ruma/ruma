@@ -9,13 +9,12 @@ use std::collections::{BTreeMap, BTreeSet};
 use indexmap::IndexMap;
 use js_int::uint;
 
-use crate::{MilliSecondsSinceUnixEpoch, UserId};
-
 use self::{
     response::OriginalSyncPollResponseEvent, start::PollContentBlock,
     unstable_response::OriginalSyncUnstablePollResponseEvent,
     unstable_start::UnstablePollStartContentBlock,
 };
+use crate::{MilliSecondsSinceUnixEpoch, UserId};
 
 pub mod end;
 pub mod response;

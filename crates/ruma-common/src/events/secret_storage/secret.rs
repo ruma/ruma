@@ -2,8 +2,9 @@
 
 use std::collections::BTreeMap;
 
-use crate::serde::Base64;
 use serde::{Deserialize, Serialize};
+
+use crate::serde::Base64;
 
 /// A secret and its encrypted contents.
 #[derive(Clone, Debug, Serialize, Deserialize)]
