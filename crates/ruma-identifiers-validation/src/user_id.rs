@@ -20,9 +20,9 @@ pub fn validate(s: &str) -> Result<(), Error> {
 pub fn localpart_is_fully_conforming(localpart: &str) -> Result<bool, Error> {
     // See https://spec.matrix.org/latest/appendices/#user-identifiers
     let is_fully_conforming = !localpart.is_empty()
-        && localpart
-            .bytes()
-            .all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'z' | b'-' | b'.' | b'=' | b'_' | b'/'));
+        && localpart.bytes().all(
+            |b| matches!(b, b'0'..=b'9' | b'a'..=b'z' | b'-' | b'.' | b'=' | b'_' | b'/' | b'+'),
+        );
 
     if !is_fully_conforming {
         // If it's not fully conforming, check if it contains characters that are also disallowed

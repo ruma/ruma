@@ -44,10 +44,10 @@ impl ToDeviceRoomKeyEventContent {
 
 #[cfg(test)]
 mod tests {
-    use crate::{owned_room_id, EventEncryptionAlgorithm};
     use serde_json::{json, to_value as to_json_value};
 
     use super::ToDeviceRoomKeyEventContent;
+    use crate::{owned_room_id, EventEncryptionAlgorithm};
 
     #[test]
     fn serialization() {

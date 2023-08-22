@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+- Add `RoomVersion::V11` according to MSC3820
+
 # 0.9.1
 
 No changes for this version

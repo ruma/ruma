@@ -102,6 +102,8 @@
 //! ));
 //! ```
 
+use std::collections::BTreeSet;
+
 use serde::{de::IgnoredAny, Deserialize, Serialize, Serializer};
 
 use crate::{EventEncryptionAlgorithm, OwnedUserId, RoomVersionId};
@@ -231,9 +233,9 @@ pub fn serialize_custom_event_error<T, S: Serializer>(_: &T, _: S) -> Result<S::
 pub struct Mentions {
     /// The list of mentioned users.
     ///
-    /// Defaults to an empty `Vec`.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub user_ids: Vec<OwnedUserId>,
+    /// Defaults to an empty `BTreeSet`.
+    #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
+    pub user_ids: BTreeSet<OwnedUserId>,
 
     /// Whether the whole room is mentioned.
     ///
@@ -249,8 +251,8 @@ impl Mentions {
     }
 
     /// Create a `Mentions` for the given user IDs.
-    pub fn with_user_ids(user_ids: Vec<OwnedUserId>) -> Self {
-        Self { user_ids, ..Default::default() }
+    pub fn with_user_ids(user_ids: impl IntoIterator<Item = OwnedUserId>) -> Self {
+        Self { user_ids: BTreeSet::from_iter(user_ids), ..Default::default() }
     }
 
     /// Create a `Mentions` for a room mention.

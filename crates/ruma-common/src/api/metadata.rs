@@ -358,19 +358,18 @@ impl VersionHistory {
             |version: MatrixVersion| versions.iter().all(|v| v.is_superset_of(version));
 
         // Check if all versions removed this endpoint.
-        if self.removed.map_or(false, greater_or_equal_all) {
+        if self.removed.is_some_and(greater_or_equal_all) {
             return VersioningDecision::Removed;
         }
 
         // Check if *any* version marks this endpoint as stable.
-        if self.added_in().map_or(false, greater_or_equal_any) {
-            let all_deprecated = self.deprecated.map_or(false, greater_or_equal_all);
+        if self.added_in().is_some_and(greater_or_equal_any) {
+            let all_deprecated = self.deprecated.is_some_and(greater_or_equal_all);
 
             return VersioningDecision::Stable {
-                any_deprecated: all_deprecated
-                    || self.deprecated.map_or(false, greater_or_equal_any),
+                any_deprecated: all_deprecated || self.deprecated.is_some_and(greater_or_equal_any),
                 all_deprecated,
-                any_removed: self.removed.map_or(false, greater_or_equal_any),
+                any_removed: self.removed.is_some_and(greater_or_equal_any),
             };
         }
 

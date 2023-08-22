@@ -1,24 +1,23 @@
 use assert_matches2::assert_matches;
 use js_int::int;
 use ruma_common::{
-    events::{MessageLikeEvent, StateEvent, SyncMessageLikeEvent, SyncStateEvent},
+    events::{
+        room::{
+            aliases::RoomAliasesEventContent,
+            message::{MessageType, RoomMessageEventContent},
+            power_levels::RoomPowerLevelsEventContent,
+        },
+        AnyEphemeralRoomEvent, AnyMessageLikeEvent, AnyStateEvent, AnySyncMessageLikeEvent,
+        AnySyncStateEvent, AnySyncTimelineEvent, AnyTimelineEvent, EphemeralRoomEventType,
+        GlobalAccountDataEventType, MessageLikeEvent, MessageLikeEventType,
+        OriginalMessageLikeEvent, OriginalStateEvent, OriginalSyncMessageLikeEvent,
+        OriginalSyncStateEvent, RoomAccountDataEventType, StateEvent, StateEventType,
+        SyncMessageLikeEvent, SyncStateEvent, ToDeviceEventType,
+    },
     room_alias_id,
     serde::test::serde_json_eq,
 };
 use serde_json::{from_value as from_json_value, json, Value as JsonValue};
-
-use ruma_common::events::{
-    room::{
-        aliases::RoomAliasesEventContent,
-        message::{MessageType, RoomMessageEventContent},
-        power_levels::RoomPowerLevelsEventContent,
-    },
-    AnyEphemeralRoomEvent, AnyMessageLikeEvent, AnyStateEvent, AnySyncMessageLikeEvent,
-    AnySyncStateEvent, AnySyncTimelineEvent, AnyTimelineEvent, EphemeralRoomEventType,
-    GlobalAccountDataEventType, MessageLikeEventType, OriginalMessageLikeEvent, OriginalStateEvent,
-    OriginalSyncMessageLikeEvent, OriginalSyncStateEvent, RoomAccountDataEventType, StateEventType,
-    ToDeviceEventType,
-};
 
 fn message_event() -> JsonValue {
     json!({

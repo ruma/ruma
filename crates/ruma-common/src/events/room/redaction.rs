@@ -4,18 +4,20 @@
 
 use js_int::Int;
 use ruma_macros::{Event, EventContent};
-use serde::{Deserialize, Deserializer, Serialize};
-use serde_json::value::RawValue as RawJsonValue;
+use serde::{Deserialize, Serialize};
+use tracing::error;
 
 use crate::{
     events::{
-        BundledMessageLikeRelations, EventContent, MessageLikeEventType, RedactedUnsigned,
-        RedactionDeHelper,
+        BundledMessageLikeRelations, EventContent, MessageLikeEventType, RedactContent,
+        RedactedMessageLikeEventContent, RedactedUnsigned, StaticEventContent,
     },
-    serde::{from_raw_json_value, CanBeEmpty},
+    serde::CanBeEmpty,
     EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedTransactionId,
-    OwnedUserId, RoomId, UserId,
+    OwnedUserId, RoomId, RoomVersionId, UserId,
 };
+
+mod event_serde;
 
 /// A possibly-redacted redaction event.
 #[allow(clippy::exhaustive_enums)]
@@ -40,14 +42,16 @@ pub enum SyncRoomRedactionEvent {
 }
 
 /// Redaction event.
-#[derive(Clone, Debug, Event)]
+#[derive(Clone, Debug)]
 #[allow(clippy::exhaustive_structs)]
 pub struct OriginalRoomRedactionEvent {
     /// Data specific to the event type.
     pub content: RoomRedactionEventContent,
 
     /// The ID of the event that was redacted.
-    pub redacts: OwnedEventId,
+    ///
+    /// This field is required in room versions prior to 11.
+    pub redacts: Option<OwnedEventId>,
 
     /// The globally unique event identifier for the user who sent the event.
     pub event_id: OwnedEventId,
@@ -63,6 +67,22 @@ pub struct OriginalRoomRedactionEvent {
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: RoomRedactionUnsigned,
+}
+
+impl From<OriginalRoomRedactionEvent> for OriginalSyncRoomRedactionEvent {
+    fn from(value: OriginalRoomRedactionEvent) -> Self {
+        let OriginalRoomRedactionEvent {
+            content,
+            redacts,
+            event_id,
+            sender,
+            origin_server_ts,
+            unsigned,
+            ..
+        } = value;
+
+        Self { content, redacts, event_id, sender, origin_server_ts, unsigned }
+    }
 }
 
 /// Redacted redaction event.
@@ -89,14 +109,16 @@ pub struct RedactedRoomRedactionEvent {
 }
 
 /// Redaction event without a `room_id`.
-#[derive(Clone, Debug, Event)]
+#[derive(Clone, Debug)]
 #[allow(clippy::exhaustive_structs)]
 pub struct OriginalSyncRoomRedactionEvent {
     /// Data specific to the event type.
     pub content: RoomRedactionEventContent,
 
     /// The ID of the event that was redacted.
-    pub redacts: OwnedEventId,
+    ///
+    /// This field is required in room versions prior to 11.
+    pub redacts: Option<OwnedEventId>,
 
     /// The globally unique event identifier for the user who sent the event.
     pub event_id: OwnedEventId,
@@ -112,6 +134,21 @@ pub struct OriginalSyncRoomRedactionEvent {
 }
 
 impl OriginalSyncRoomRedactionEvent {
+    /// Convert this sync event into a full event, one with a `room_id` field.
+    pub fn into_full_event(self, room_id: OwnedRoomId) -> OriginalRoomRedactionEvent {
+        let Self { content, redacts, event_id, sender, origin_server_ts, unsigned } = self;
+
+        OriginalRoomRedactionEvent {
+            content,
+            redacts,
+            event_id,
+            sender,
+            origin_server_ts,
+            room_id,
+            unsigned,
+        }
+    }
+
     pub(crate) fn into_maybe_redacted(self) -> SyncRoomRedactionEvent {
         SyncRoomRedactionEvent::Original(self)
     }
@@ -140,24 +177,84 @@ pub struct RedactedSyncRoomRedactionEvent {
 /// A redaction of an event.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.redaction", kind = MessageLike)]
+#[ruma_event(type = "m.room.redaction", kind = MessageLike, custom_redacted)]
 pub struct RoomRedactionEventContent {
+    /// The ID of the event that was redacted.
+    ///
+    /// This field is required starting from room version 11.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub redacts: Option<OwnedEventId>,
+
     /// The reason for the redaction, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
 }
 
 impl RoomRedactionEventContent {
-    /// Creates an empty `RoomRedactionEventContent`.
-    pub fn new() -> Self {
+    /// Creates an empty `RoomRedactionEventContent` according to room versions 1 through 10.
+    pub fn new_v1() -> Self {
         Self::default()
     }
 
-    /// Creates a new `RoomRedactionEventContent` with the given reason.
-    pub fn with_reason(reason: String) -> Self {
-        Self { reason: Some(reason) }
+    /// Creates a `RoomRedactionEventContent` with the required `redacts` field introduced in room
+    /// version 11.
+    pub fn new_v11(redacts: OwnedEventId) -> Self {
+        Self { redacts: Some(redacts), ..Default::default() }
+    }
+
+    /// Add the given reason to this `RoomRedactionEventContent`.
+    pub fn with_reason(mut self, reason: String) -> Self {
+        self.reason = Some(reason);
+        self
     }
 }
+
+impl RedactContent for RoomRedactionEventContent {
+    type Redacted = RedactedRoomRedactionEventContent;
+
+    fn redact(self, version: &RoomVersionId) -> Self::Redacted {
+        let redacts = match version {
+            RoomVersionId::V1
+            | RoomVersionId::V2
+            | RoomVersionId::V3
+            | RoomVersionId::V4
+            | RoomVersionId::V5
+            | RoomVersionId::V6
+            | RoomVersionId::V7
+            | RoomVersionId::V8
+            | RoomVersionId::V9
+            | RoomVersionId::V10 => None,
+            _ => self.redacts,
+        };
+
+        RedactedRoomRedactionEventContent { redacts }
+    }
+}
+
+/// A redacted redaction event.
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct RedactedRoomRedactionEventContent {
+    /// The ID of the event that was redacted.
+    ///
+    /// This field is required starting from room version 11.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub redacts: Option<OwnedEventId>,
+}
+
+impl EventContent for RedactedRoomRedactionEventContent {
+    type EventType = MessageLikeEventType;
+
+    fn event_type(&self) -> Self::EventType {
+        MessageLikeEventType::RoomRedaction
+    }
+}
+
+impl StaticEventContent for RedactedRoomRedactionEventContent {
+    const TYPE: &'static str = "m.room.redaction";
+}
+
+impl RedactedMessageLikeEventContent for RedactedRoomRedactionEventContent {}
 
 impl RoomRedactionEvent {
     /// Returns the `type` of this event.
@@ -200,27 +297,24 @@ impl RoomRedactionEvent {
         }
     }
 
+    /// Returns the ID of the event that this event redacts, according to the given room version.
+    ///
+    /// # Panics
+    ///
+    /// Panics if this is a non-redacted event and both `redacts` field are `None`, which is only
+    /// possible if the event was modified after being deserialized.
+    pub fn redacts(&self, room_version: &RoomVersionId) -> Option<&EventId> {
+        match self {
+            Self::Original(ev) => Some(ev.redacts(room_version)),
+            Self::Redacted(ev) => ev.content.redacts.as_deref(),
+        }
+    }
+
     /// Get the inner `RoomRedactionEvent` if this is an unredacted event.
     pub fn as_original(&self) -> Option<&OriginalRoomRedactionEvent> {
         match self {
             Self::Original(v) => Some(v),
             _ => None,
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for RoomRedactionEvent {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let RedactionDeHelper { unsigned } = from_raw_json_value(&json)?;
-
-        if unsigned.and_then(|u| u.redacted_because).is_some() {
-            Ok(Self::Redacted(from_raw_json_value(&json)?))
-        } else {
-            Ok(Self::Original(from_raw_json_value(&json)?))
         }
     }
 }
@@ -258,6 +352,19 @@ impl SyncRoomRedactionEvent {
         }
     }
 
+    /// Returns the ID of the event that this event redacts, according to the given room version.
+    ///
+    /// # Panics
+    ///
+    /// Panics if this is a non-redacted event and both `redacts` field are `None`, which is only
+    /// possible if the event was modified after being deserialized.
+    pub fn redacts(&self, room_version: &RoomVersionId) -> Option<&EventId> {
+        match self {
+            Self::Original(ev) => Some(ev.redacts(room_version)),
+            Self::Redacted(ev) => ev.content.redacts.as_deref(),
+        }
+    }
+
     /// Get the inner `SyncRoomRedactionEvent` if this is an unredacted event.
     pub fn as_original(&self) -> Option<&OriginalSyncRoomRedactionEvent> {
         match self {
@@ -284,19 +391,35 @@ impl From<RoomRedactionEvent> for SyncRoomRedactionEvent {
     }
 }
 
-impl<'de> Deserialize<'de> for SyncRoomRedactionEvent {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let RedactionDeHelper { unsigned } = from_raw_json_value(&json)?;
+impl OriginalRoomRedactionEvent {
+    /// Returns the ID of the event that this event redacts, according to the proper `redacts` field
+    /// for the given room version.
+    ///
+    /// If the `redacts` field is not the proper one for the given room version, this falls back to
+    /// the one that is available.
+    ///
+    /// # Panics
+    ///
+    /// Panics if both `redacts` field are `None`, which is only possible if the event was modified
+    /// after being deserialized.
+    pub fn redacts(&self, room_version: &RoomVersionId) -> &EventId {
+        redacts(room_version, self.redacts.as_deref(), self.content.redacts.as_deref())
+    }
+}
 
-        if unsigned.and_then(|u| u.redacted_because).is_some() {
-            Ok(Self::Redacted(from_raw_json_value(&json)?))
-        } else {
-            Ok(Self::Original(from_raw_json_value(&json)?))
-        }
+impl OriginalSyncRoomRedactionEvent {
+    /// Returns the ID of the event that this event redacts, according to the proper `redacts` field
+    /// for the given room version.
+    ///
+    /// If the `redacts` field is not the proper one for the given room version, this falls back to
+    /// the one that is available.
+    ///
+    /// # Panics
+    ///
+    /// Panics if both `redacts` field are `None`, which is only possible if the event was modified
+    /// after being deserialized.
+    pub fn redacts(&self, room_version: &RoomVersionId) -> &EventId {
+        redacts(room_version, self.redacts.as_deref(), self.content.redacts.as_deref())
     }
 }
 
@@ -344,4 +467,42 @@ impl CanBeEmpty for RoomRedactionUnsigned {
     fn is_empty(&self) -> bool {
         self.age.is_none() && self.transaction_id.is_none() && self.relations.is_empty()
     }
+}
+
+/// Returns the value of the proper `redacts` field for the given room version.
+///
+/// If the `redacts` field is not the proper one for the given room version, this falls back to
+/// the one that is available.
+///
+/// # Panics
+///
+/// Panics if both `redacts` and `content_redacts` are `None`.
+fn redacts<'a>(
+    room_version: &'_ RoomVersionId,
+    redacts: Option<&'a EventId>,
+    content_redacts: Option<&'a EventId>,
+) -> &'a EventId {
+    match room_version {
+            RoomVersionId::V1
+            | RoomVersionId::V2
+            | RoomVersionId::V3
+            | RoomVersionId::V4
+            | RoomVersionId::V5
+            | RoomVersionId::V6
+            | RoomVersionId::V7
+            | RoomVersionId::V8
+            | RoomVersionId::V9
+            | RoomVersionId::V10 => redacts
+                .or_else(|| {
+                    error!("Redacts field at event level not available, falling back to the one inside content");
+                    content_redacts
+        })
+                .expect("At least one redacts field is set"),
+            _ => content_redacts
+                .or_else(|| {
+                    error!("Redacts field inside content not available, falling back to the one at the event level");
+                    redacts
+        })
+                .expect("At least one redacts field is set"),
+        }
 }

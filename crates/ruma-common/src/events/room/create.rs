@@ -6,7 +6,9 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    events::EmptyStateKey, room::RoomType, OwnedEventId, OwnedRoomId, OwnedUserId, RoomVersionId,
+    events::{EmptyStateKey, RedactContent, RedactedStateEventContent},
+    room::RoomType,
+    OwnedEventId, OwnedRoomId, OwnedUserId, RoomVersionId,
 };
 
 /// The content of an `m.room.create` event.
@@ -16,13 +18,17 @@ use crate::{
 /// It acts as the root of all other events.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.create", kind = State, state_key_type = EmptyStateKey)]
+#[ruma_event(type = "m.room.create", kind = State, state_key_type = EmptyStateKey, custom_redacted)]
 pub struct RoomCreateEventContent {
     /// The `user_id` of the room creator.
     ///
     /// This is set by the homeserver.
-    #[ruma_event(skip_redaction)]
-    pub creator: OwnedUserId,
+    ///
+    /// This is required in room versions 1 trough 10, but is removed starting from room version
+    /// 11.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[deprecated = "Since Matrix 1.8. This field was removed in Room version 11, clients should use the event's sender instead"]
+    pub creator: Option<OwnedUserId>,
 
     /// Whether or not this room's data should be transferred to other homeservers.
     #[serde(
@@ -50,14 +56,56 @@ pub struct RoomCreateEventContent {
 }
 
 impl RoomCreateEventContent {
-    /// Creates a new `RoomCreateEventContent` with the given creator.
-    pub fn new(creator: OwnedUserId) -> Self {
+    /// Creates a new `RoomCreateEventContent` with the given creator, as required for room versions
+    /// 1 through 10.
+    pub fn new_v1(creator: OwnedUserId) -> Self {
+        #[allow(deprecated)]
         Self {
-            creator,
+            creator: Some(creator),
             federate: true,
             room_version: default_room_version_id(),
             predecessor: None,
             room_type: None,
+        }
+    }
+
+    /// Creates a new `RoomCreateEventContent` with the default values and no creator, as introduced
+    /// in room version 11.
+    ///
+    /// The room version is set to [`RoomVersionId::V11`].
+    pub fn new_v11() -> Self {
+        #[allow(deprecated)]
+        Self {
+            creator: None,
+            federate: true,
+            room_version: RoomVersionId::V11,
+            predecessor: None,
+            room_type: None,
+        }
+    }
+}
+
+impl RedactContent for RoomCreateEventContent {
+    type Redacted = RedactedRoomCreateEventContent;
+
+    fn redact(self, version: &RoomVersionId) -> Self::Redacted {
+        #[allow(deprecated)]
+        match version {
+            RoomVersionId::V1
+            | RoomVersionId::V2
+            | RoomVersionId::V3
+            | RoomVersionId::V4
+            | RoomVersionId::V5
+            | RoomVersionId::V6
+            | RoomVersionId::V7
+            | RoomVersionId::V8
+            | RoomVersionId::V9
+            | RoomVersionId::V10 => Self {
+                room_version: default_room_version_id(),
+                creator: self.creator,
+                ..Self::new_v11()
+            },
+            _ => self,
         }
     }
 }
@@ -85,6 +133,20 @@ fn default_room_version_id() -> RoomVersionId {
     RoomVersionId::V1
 }
 
+/// Redacted form of [`RoomCreateEventContent`].
+///
+/// The redaction rules of this event changed with room version 11:
+///
+/// - In room versions 1 through 10, the `creator` field was preserved during redaction, starting
+///   from room version 11 the field is removed.
+/// - In room versions 1 through 10, all the other fields were redacted, starting from room version
+///   11 all the fields are preserved.
+pub type RedactedRoomCreateEventContent = RoomCreateEventContent;
+
+impl RedactedStateEventContent for RedactedRoomCreateEventContent {
+    type StateKey = EmptyStateKey;
+}
+
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
@@ -95,8 +157,9 @@ mod tests {
 
     #[test]
     fn serialization() {
+        #[allow(deprecated)]
         let content = RoomCreateEventContent {
-            creator: owned_user_id!("@carl:example.com"),
+            creator: Some(owned_user_id!("@carl:example.com")),
             federate: false,
             room_version: RoomVersionId::V4,
             predecessor: None,
@@ -114,8 +177,9 @@ mod tests {
 
     #[test]
     fn space_serialization() {
+        #[allow(deprecated)]
         let content = RoomCreateEventContent {
-            creator: owned_user_id!("@carl:example.com"),
+            creator: Some(owned_user_id!("@carl:example.com")),
             federate: false,
             room_version: RoomVersionId::V4,
             predecessor: None,
@@ -133,6 +197,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn deserialization() {
         let json = json!({
             "creator": "@carl:example.com",
@@ -141,7 +206,7 @@ mod tests {
         });
 
         let content = from_json_value::<RoomCreateEventContent>(json).unwrap();
-        assert_eq!(content.creator, "@carl:example.com");
+        assert_eq!(content.creator.unwrap(), "@carl:example.com");
         assert!(content.federate);
         assert_eq!(content.room_version, RoomVersionId::V4);
         assert_matches!(content.predecessor, None);
@@ -149,6 +214,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn space_deserialization() {
         let json = json!({
             "creator": "@carl:example.com",
@@ -158,7 +224,7 @@ mod tests {
         });
 
         let content = from_json_value::<RoomCreateEventContent>(json).unwrap();
-        assert_eq!(content.creator, "@carl:example.com");
+        assert_eq!(content.creator.unwrap(), "@carl:example.com");
         assert!(content.federate);
         assert_eq!(content.room_version, RoomVersionId::V4);
         assert_matches!(content.predecessor, None);

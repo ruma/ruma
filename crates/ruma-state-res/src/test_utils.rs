@@ -27,9 +27,8 @@ use serde_json::{
 };
 use tracing::info;
 
+pub(crate) use self::event::PduEvent;
 use crate::{auth_types_for_event, Error, Event, EventTypeExt, Result, StateMap};
-
-pub(crate) use event::PduEvent;
 
 static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 

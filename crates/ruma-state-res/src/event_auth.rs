@@ -15,7 +15,10 @@ use ruma_common::{
     serde::{Base64, Raw},
     OwnedUserId, RoomVersionId, UserId,
 };
-use serde::{de::IgnoredAny, Deserialize};
+use serde::{
+    de::{Error as _, IgnoredAny},
+    Deserialize,
+};
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 use tracing::{debug, error, info, warn};
 
@@ -175,10 +178,12 @@ pub fn auth_check<E: Event>(
             return Ok(false);
         }
 
-        // If content has no creator field, reject
-        if content.creator.is_none() {
-            warn!("no creator field found in m.room.create content");
-            return Ok(false);
+        if !room_version.use_room_create_sender {
+            // If content has no creator field, reject
+            if content.creator.is_none() {
+                warn!("no creator field found in m.room.create content");
+                return Ok(false);
+            }
         }
 
         info!("m.room.create event was allowed");
@@ -343,10 +348,19 @@ pub fn auth_check<E: Event>(
         }
     } else {
         // If no power level event found the creator gets 100 everyone else gets 0
-        from_json_str::<RoomCreateEventContent>(room_create_event.content().get())
-            .ok()
-            .and_then(|create| (create.creator == *sender).then(|| int!(100)))
-            .unwrap_or_default()
+        let is_creator = if room_version.use_room_create_sender {
+            room_create_event.sender() == sender
+        } else {
+            #[allow(deprecated)]
+            from_json_str::<RoomCreateEventContent>(room_create_event.content().get())
+                .is_ok_and(|create| create.creator.unwrap() == *sender)
+        };
+
+        if is_creator {
+            int!(100)
+        } else {
+            int!(0)
+        }
     };
 
     // Allow if and only if sender's current power level is greater than
@@ -530,10 +544,21 @@ fn valid_membership_change(
             let no_more_prev_events = prev_events.next().is_none();
 
             if prev_event_is_create_event && no_more_prev_events {
-                let create_content =
-                    from_json_str::<RoomCreateEventContent>(create_room.content().get())?;
+                let is_creator = if room_version.use_room_create_sender {
+                    let creator = create_room.sender();
 
-                if create_content.creator == sender && create_content.creator == target_user {
+                    creator == sender && creator == target_user
+                } else {
+                    #[allow(deprecated)]
+                    let creator =
+                        from_json_str::<RoomCreateEventContent>(create_room.content().get())?
+                            .creator
+                            .ok_or_else(|| serde_json::Error::missing_field("creator"))?;
+
+                    creator == sender && creator == target_user
+                };
+
+                if is_creator {
                     return Ok(true);
                 }
             }
@@ -716,7 +741,7 @@ fn can_send_event(event: impl Event, ple: Option<impl Event>, user_level: Int) -
         return false;
     }
 
-    if event.state_key().map_or(false, |k| k.starts_with('@'))
+    if event.state_key().is_some_and(|k| k.starts_with('@'))
         && event.state_key() != Some(event.sender().as_str())
     {
         return false; // permission required to post in this room

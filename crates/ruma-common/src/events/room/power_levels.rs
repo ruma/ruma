@@ -9,9 +9,12 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    events::{EmptyStateKey, MessageLikeEventType, StateEventType, TimelineEventType},
+    events::{
+        EmptyStateKey, EventContent, MessageLikeEventType, RedactContent,
+        RedactedStateEventContent, StateEventType, StaticEventContent, TimelineEventType,
+    },
     power_levels::{default_power_level, NotificationPowerLevels},
-    OwnedUserId, UserId,
+    OwnedUserId, RoomVersionId, UserId,
 };
 
 /// The content of an `m.room.power_levels` event.
@@ -19,7 +22,7 @@ use crate::{
 /// Defines the power levels (privileges) of users in the room.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.power_levels", kind = State, state_key_type = EmptyStateKey)]
+#[ruma_event(type = "m.room.power_levels", kind = State, state_key_type = EmptyStateKey, custom_redacted)]
 pub struct RoomPowerLevelsEventContent {
     /// The level required to ban a user.
     #[serde(
@@ -27,7 +30,6 @@ pub struct RoomPowerLevelsEventContent {
         skip_serializing_if = "is_default_power_level",
         deserialize_with = "crate::serde::deserialize_v1_powerlevel"
     )]
-    #[ruma_event(skip_redaction)]
     pub ban: Int,
 
     /// The level required to send specific event types.
@@ -38,7 +40,6 @@ pub struct RoomPowerLevelsEventContent {
         skip_serializing_if = "BTreeMap::is_empty",
         deserialize_with = "crate::serde::btreemap_deserialize_v1_powerlevel_values"
     )]
-    #[ruma_event(skip_redaction)]
     pub events: BTreeMap<TimelineEventType, Int>,
 
     /// The default level required to send message events.
@@ -47,7 +48,6 @@ pub struct RoomPowerLevelsEventContent {
         skip_serializing_if = "crate::serde::is_default",
         deserialize_with = "crate::serde::deserialize_v1_powerlevel"
     )]
-    #[ruma_event(skip_redaction)]
     pub events_default: Int,
 
     /// The level required to invite a user.
@@ -64,7 +64,6 @@ pub struct RoomPowerLevelsEventContent {
         skip_serializing_if = "is_default_power_level",
         deserialize_with = "crate::serde::deserialize_v1_powerlevel"
     )]
-    #[ruma_event(skip_redaction)]
     pub kick: Int,
 
     /// The level required to redact an event.
@@ -73,7 +72,6 @@ pub struct RoomPowerLevelsEventContent {
         skip_serializing_if = "is_default_power_level",
         deserialize_with = "crate::serde::deserialize_v1_powerlevel"
     )]
-    #[ruma_event(skip_redaction)]
     pub redact: Int,
 
     /// The default level required to send state events.
@@ -82,7 +80,6 @@ pub struct RoomPowerLevelsEventContent {
         skip_serializing_if = "is_default_power_level",
         deserialize_with = "crate::serde::deserialize_v1_powerlevel"
     )]
-    #[ruma_event(skip_redaction)]
     pub state_default: Int,
 
     /// The power levels for specific users.
@@ -93,7 +90,6 @@ pub struct RoomPowerLevelsEventContent {
         skip_serializing_if = "BTreeMap::is_empty",
         deserialize_with = "crate::serde::btreemap_deserialize_v1_powerlevel_values"
     )]
-    #[ruma_event(skip_redaction)]
     pub users: BTreeMap<OwnedUserId, Int>,
 
     /// The default power level for every user in the room.
@@ -102,7 +98,6 @@ pub struct RoomPowerLevelsEventContent {
         skip_serializing_if = "crate::serde::is_default",
         deserialize_with = "crate::serde::deserialize_v1_powerlevel"
     )]
-    #[ruma_event(skip_redaction)]
     pub users_default: Int,
 
     /// The power level requirements for specific notification types.
@@ -138,6 +133,51 @@ impl Default for RoomPowerLevelsEventContent {
     }
 }
 
+impl RedactContent for RoomPowerLevelsEventContent {
+    type Redacted = RedactedRoomPowerLevelsEventContent;
+
+    fn redact(self, version: &RoomVersionId) -> Self::Redacted {
+        let Self {
+            ban,
+            events,
+            events_default,
+            invite,
+            kick,
+            redact,
+            state_default,
+            users,
+            users_default,
+            ..
+        } = self;
+
+        let invite = match version {
+            RoomVersionId::V1
+            | RoomVersionId::V2
+            | RoomVersionId::V3
+            | RoomVersionId::V4
+            | RoomVersionId::V5
+            | RoomVersionId::V6
+            | RoomVersionId::V7
+            | RoomVersionId::V8
+            | RoomVersionId::V9
+            | RoomVersionId::V10 => int!(0),
+            _ => invite,
+        };
+
+        RedactedRoomPowerLevelsEventContent {
+            ban,
+            events,
+            events_default,
+            invite,
+            kick,
+            redact,
+            state_default,
+            users,
+            users_default,
+        }
+    }
+}
+
 /// Used with `#[serde(skip_serializing_if)]` to omit default power levels.
 #[allow(clippy::trivially_copy_pass_by_ref)]
 fn is_default_power_level(l: &Int) -> bool {
@@ -169,6 +209,106 @@ impl StrippedRoomPowerLevelsEvent {
     pub fn power_levels(&self) -> RoomPowerLevels {
         self.content.clone().into()
     }
+}
+
+/// Redacted form of [`RoomPowerLevelsEventContent`].
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct RedactedRoomPowerLevelsEventContent {
+    /// The level required to ban a user.
+    #[serde(
+        default = "default_power_level",
+        skip_serializing_if = "is_default_power_level",
+        deserialize_with = "crate::serde::deserialize_v1_powerlevel"
+    )]
+    pub ban: Int,
+
+    /// The level required to send specific event types.
+    ///
+    /// This is a mapping from event type to power level required.
+    #[serde(
+        default,
+        skip_serializing_if = "BTreeMap::is_empty",
+        deserialize_with = "crate::serde::btreemap_deserialize_v1_powerlevel_values"
+    )]
+    pub events: BTreeMap<TimelineEventType, Int>,
+
+    /// The default level required to send message events.
+    #[serde(
+        default,
+        skip_serializing_if = "crate::serde::is_default",
+        deserialize_with = "crate::serde::deserialize_v1_powerlevel"
+    )]
+    pub events_default: Int,
+
+    /// The level required to invite a user.
+    ///
+    /// This field was redacted in room versions 1 through 10. Starting from room version 11 it is
+    /// preserved.
+    #[serde(
+        default,
+        skip_serializing_if = "crate::serde::is_default",
+        deserialize_with = "crate::serde::deserialize_v1_powerlevel"
+    )]
+    pub invite: Int,
+
+    /// The level required to kick a user.
+    #[serde(
+        default = "default_power_level",
+        skip_serializing_if = "is_default_power_level",
+        deserialize_with = "crate::serde::deserialize_v1_powerlevel"
+    )]
+    pub kick: Int,
+
+    /// The level required to redact an event.
+    #[serde(
+        default = "default_power_level",
+        skip_serializing_if = "is_default_power_level",
+        deserialize_with = "crate::serde::deserialize_v1_powerlevel"
+    )]
+    pub redact: Int,
+
+    /// The default level required to send state events.
+    #[serde(
+        default = "default_power_level",
+        skip_serializing_if = "is_default_power_level",
+        deserialize_with = "crate::serde::deserialize_v1_powerlevel"
+    )]
+    pub state_default: Int,
+
+    /// The power levels for specific users.
+    ///
+    /// This is a mapping from `user_id` to power level for that user.
+    #[serde(
+        default,
+        skip_serializing_if = "BTreeMap::is_empty",
+        deserialize_with = "crate::serde::btreemap_deserialize_v1_powerlevel_values"
+    )]
+    pub users: BTreeMap<OwnedUserId, Int>,
+
+    /// The default power level for every user in the room.
+    #[serde(
+        default,
+        skip_serializing_if = "crate::serde::is_default",
+        deserialize_with = "crate::serde::deserialize_v1_powerlevel"
+    )]
+    pub users_default: Int,
+}
+
+impl EventContent for RedactedRoomPowerLevelsEventContent {
+    type EventType = StateEventType;
+
+    fn event_type(&self) -> Self::EventType {
+        StateEventType::RoomPowerLevels
+    }
+}
+
+impl StaticEventContent for RedactedRoomPowerLevelsEventContent {
+    const TYPE: &'static str = "m.room.power_levels";
+}
+
+impl RedactedStateEventContent for RedactedRoomPowerLevelsEventContent {
+    type StateKey = EmptyStateKey;
 }
 
 /// The effective power levels of a room.
@@ -332,7 +472,7 @@ impl From<RedactedRoomPowerLevelsEventContent> for RoomPowerLevels {
             ban: c.ban,
             events: c.events,
             events_default: c.events_default,
-            invite: int!(0),
+            invite: c.invite,
             kick: c.kick,
             redact: c.redact,
             state_default: c.state_default,

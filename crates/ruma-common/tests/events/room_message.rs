@@ -7,10 +7,11 @@ use ruma_common::{
         key::verification::VerificationMethod,
         room::{
             message::{
-                AudioMessageEventContent, EmoteMessageEventContent, FileMessageEventContent,
-                ForwardThread, ImageMessageEventContent, KeyVerificationRequestEventContent,
-                MessageType, OriginalRoomMessageEvent, OriginalSyncRoomMessageEvent, Relation,
-                RoomMessageEventContent, TextMessageEventContent, VideoMessageEventContent,
+                AddMentions, AudioMessageEventContent, EmoteMessageEventContent,
+                FileMessageEventContent, ForwardThread, ImageMessageEventContent,
+                KeyVerificationRequestEventContent, MessageType, OriginalRoomMessageEvent,
+                OriginalSyncRoomMessageEvent, Relation, RoomMessageEventContent,
+                TextMessageEventContent, VideoMessageEventContent,
             },
             EncryptedFileInit, JsonWebKeyInit, MediaSource,
         },
@@ -265,8 +266,12 @@ fn escape_tags_in_plain_reply_body() {
         sender: owned_user_id!("@user:example.org"),
         unsigned: MessageLikeUnsigned::default(),
     };
-    let second_message = RoomMessageEventContent::text_plain("Usage: rm <path>")
-        .make_reply_to(&first_message, ForwardThread::Yes);
+    let second_message = RoomMessageEventContent::text_plain("Usage: rm <path>").make_reply_to(
+        &first_message,
+        ForwardThread::Yes,
+        AddMentions::No,
+    );
+    assert_matches!(second_message.mentions, None);
 
     assert_matches!(
         first_message.content.msgtype,
@@ -324,7 +329,7 @@ fn reply_sanitize() {
             "This is the _second_ message",
             "This is the <em>second</em> message",
         )
-        .make_reply_to(&first_message, ForwardThread::Yes),
+        .make_reply_to(&first_message, ForwardThread::Yes, AddMentions::No),
         event_id: owned_event_id!("$143273582443PhrSn:example.org"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
         room_id: owned_room_id!("!testroomid:example.org"),
@@ -335,7 +340,7 @@ fn reply_sanitize() {
         "This is **my** reply",
         "This is <strong>my</strong> reply",
     )
-    .make_reply_to(&second_message, ForwardThread::Yes);
+    .make_reply_to(&second_message, ForwardThread::Yes, AddMentions::No);
 
     assert_matches!(
         first_message.content.msgtype,
@@ -400,6 +405,43 @@ fn reply_sanitize() {
         This is <strong>my</strong> reply\
         "
     );
+}
+
+#[test]
+fn reply_add_mentions() {
+    let user = owned_user_id!("@user:example.org");
+    let friend = owned_user_id!("@friend:example.org");
+    let other_friend = owned_user_id!("@other_friend:example.org");
+
+    let mut first_message_content = RoomMessageEventContent::text_plain("My friend!");
+    first_message_content.mentions = Some(Mentions::with_user_ids([friend.clone()]));
+    let first_message = OriginalRoomMessageEvent {
+        content: first_message_content,
+        event_id: owned_event_id!("$143273582443PhrSn"),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
+        room_id: owned_room_id!("!testroomid:example.org"),
+        sender: user.clone(),
+        unsigned: MessageLikeUnsigned::default(),
+    };
+    let mut second_message = RoomMessageEventContent::text_plain("User! Other friend!")
+        .make_reply_to(&first_message, ForwardThread::Yes, AddMentions::Yes);
+
+    let mentions = second_message.mentions.clone().unwrap();
+    assert_eq!(mentions.user_ids, [friend.clone(), user.clone()].into());
+    assert!(!mentions.room);
+
+    second_message =
+        second_message.add_mentions(Mentions::with_user_ids([user.clone(), other_friend.clone()]));
+
+    let mentions = second_message.mentions.clone().unwrap();
+    assert_eq!(mentions.user_ids, [friend.clone(), other_friend.clone(), user.clone()].into());
+    assert!(!mentions.room);
+
+    second_message = second_message.add_mentions(Mentions::with_room_mention());
+
+    let mentions = second_message.mentions.unwrap();
+    assert_eq!(mentions.user_ids, [friend, other_friend, user].into());
+    assert!(mentions.room);
 }
 
 #[test]
@@ -844,7 +886,7 @@ fn set_mentions() {
     let user_id = owned_user_id!("@you:localhost");
     content = content.set_mentions(Mentions::with_user_ids(vec![user_id.clone()]));
     let mentions = content.mentions.unwrap();
-    assert_eq!(mentions.user_ids.as_slice(), &[user_id]);
+    assert_eq!(mentions.user_ids, [user_id].into());
 }
 
 #[test]
@@ -878,14 +920,14 @@ fn make_replacement_set_mentions() {
     assert_matches!(content.mentions, None);
     assert_matches!(content.relates_to, Some(Relation::Replacement(replacement)));
     let mentions = replacement.new_content.mentions.unwrap();
-    assert_eq!(mentions.user_ids.as_slice(), &[alice.clone()]);
+    assert_eq!(mentions.user_ids, [alice.clone()].into());
 
     content = content_clone.set_mentions(Mentions::with_user_ids(vec![alice.clone(), bob.clone()]));
     let mentions = content.mentions.unwrap();
-    assert_eq!(mentions.user_ids.as_slice(), &[bob.clone()]);
+    assert_eq!(mentions.user_ids, [bob.clone()].into());
     assert_matches!(content.relates_to, Some(Relation::Replacement(replacement)));
     let mentions = replacement.new_content.mentions.unwrap();
-    assert_eq!(mentions.user_ids.as_slice(), &[alice, bob]);
+    assert_eq!(mentions.user_ids, [alice, bob].into());
 }
 
 #[test]

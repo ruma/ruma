@@ -19,9 +19,8 @@ pub mod v3 {
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
 
-    use crate::PrivOwnedStr;
-
     pub use super::iter::SignedKeysIter;
+    use crate::PrivOwnedStr;
 
     const METADATA: Metadata = metadata! {
         method: POST,

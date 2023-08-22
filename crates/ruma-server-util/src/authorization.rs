@@ -1,7 +1,6 @@
 //! Common types for implementing federation authorization.
 
 use headers::{authorization::Credentials, HeaderValue};
-
 use ruma_common::{OwnedServerName, OwnedServerSigningKeyId};
 use tracing::debug;
 use yap::{IntoTokens, TokenLocation, Tokens};

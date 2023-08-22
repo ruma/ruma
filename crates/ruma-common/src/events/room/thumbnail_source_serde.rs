@@ -5,9 +5,8 @@ use serde::{
     Deserialize, Deserializer,
 };
 
-use crate::OwnedMxcUri;
-
 use super::{EncryptedFile, MediaSource};
+use crate::OwnedMxcUri;
 
 /// Serializes a MediaSource to a thumbnail source.
 pub(crate) fn serialize<S>(source: &Option<MediaSource>, serializer: S) -> Result<S::Ok, S::Error>

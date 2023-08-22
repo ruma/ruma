@@ -1,4 +1,4 @@
-//!Transparent base64 encoding / decoding as part of (de)serialization.
+//! Transparent base64 encoding / decoding as part of (de)serialization.
 
 use std::{fmt, marker::PhantomData};
 

@@ -6,7 +6,6 @@
 
 use std::{collections::BTreeMap, time::Duration};
 
-use super::{DeviceLists, UnreadNotificationsCount};
 use js_int::UInt;
 use ruma_common::{
     api::{request, response, Metadata},
@@ -17,9 +16,11 @@ use ruma_common::{
     },
     metadata,
     serde::{duration::opt_ms, Raw},
-    DeviceKeyAlgorithm, OwnedMxcUri, OwnedRoomId,
+    DeviceKeyAlgorithm, MilliSecondsSinceUnixEpoch, OwnedMxcUri, OwnedRoomId,
 };
 use serde::{Deserialize, Serialize};
+
+use super::{DeviceLists, UnreadNotificationsCount};
 
 const METADATA: Metadata = metadata! {
     method: POST,
@@ -468,6 +469,15 @@ pub struct SlidingSyncRoom {
     /// The number of timeline events which have just occurred and are not historical.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub num_live: Option<UInt>,
+
+    /// The timestamp of the room.
+    ///
+    /// It's not to be confused with `origin_server_ts` of the latest event in the
+    /// timeline. `bump_event_types` might "ignore” some events when computing the
+    /// timestamp of the room. Thus, using this `timestamp` value is more accurate than
+    /// relying on the latest event.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
 }
 
 impl SlidingSyncRoom {

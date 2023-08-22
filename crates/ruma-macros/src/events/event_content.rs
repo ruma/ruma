@@ -12,9 +12,8 @@ use syn::{
     DeriveInput, Field, Ident, LitStr, Meta, Token, Type,
 };
 
-use crate::util::{m_prefix_name_to_type_name, PrivateField};
-
 use super::event_parse::{EventKind, EventKindVariation};
+use crate::util::{m_prefix_name_to_type_name, PrivateField};
 
 mod kw {
     // This `content` field is kept when the event is redacted.
@@ -238,7 +237,7 @@ impl TryFrom<ContentMeta> for ContentAttrs {
             ));
         }
 
-        if prefix.is_some() && !event_kind.map_or(false, |k| k.is_account_data()) {
+        if prefix.is_some() && !event_kind.is_some_and(|k| k.is_account_data()) {
             return Err(syn::Error::new_spanned(
                 event_type,
                 "only account data events may contain a `.*` suffix",

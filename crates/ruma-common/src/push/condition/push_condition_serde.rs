@@ -1,11 +1,10 @@
 use serde::{de, Deserialize, Serialize, Serializer};
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::serde::from_raw_json_value;
-
 #[cfg(feature = "unstable-msc3931")]
 use super::RoomVersionFeature;
 use super::{PushCondition, RoomMemberCountIs, ScalarJsonValue};
+use crate::serde::from_raw_json_value;
 
 impl Serialize for PushCondition {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

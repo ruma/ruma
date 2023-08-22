@@ -24,6 +24,22 @@ Breaking changes:
   (MSC2746 / Matrix 1.7)
 - The `Replacement` relation for `RoomMessageEventContent` now takes a
   `RoomMessageEventContentWithoutRelation` instead of a `MessageType`
+- Make the `redacts` field of `Original(Sync)RoomRedactionEvent` optional to handle the format
+  where the `redacts` key is moved inside the `content`, as introduced in room version 11,
+  according to MSC2174 / MSC3820
+    - `RoomRedactionEventContent::new()` was renamed to `new_v1()`, and `with_reason()` is no
+      longer a constructor but a builder-type method
+- Make the `creator` field of `RoomCreateEventContent` optional and deprecate it, as it was removed
+  in room version 11, according to MSC2175 / MSC3820
+    - `RoomCreateEventContent::new()` was renamed to `new_v1()`
+    - `RedactedRoomCreateEventContent` is now a typedef over `RoomCreateEventContent`
+- Add preserved fields to match the new redaction algorithm in room version 11, according to
+  MSC2176 / MSC3821 / MSC3820, for the following types:
+  - `RedactedRoomRedactionEventContent`,
+  - `RedactedRoomPowerLevelsEventContent`,
+  - `RedactedRoomMemberEventContent`
+- `RoomMessageEventContent::make_reply_to()` and `make_for_thread()` have an extra parameter to
+  support the recommended behavior for intentional mentions in replies according to Matrix 1.7
 
 Improvements:
 

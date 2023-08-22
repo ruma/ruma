@@ -46,14 +46,16 @@
 
 use ruma_common::serde::{AsRefStr, DisplayAsRefStr};
 
-pub use error::{Error, JsonError, ParseError, VerificationError};
-pub use functions::{
-    canonical_json, content_hash, hash_and_sign_event, reference_hash, sign_json, verify_event,
-    verify_json,
+pub use self::{
+    error::{Error, JsonError, ParseError, VerificationError},
+    functions::{
+        canonical_json, content_hash, hash_and_sign_event, reference_hash, sign_json, verify_event,
+        verify_json,
+    },
+    keys::{Ed25519KeyPair, KeyPair, PublicKeyMap, PublicKeySet},
+    signatures::Signature,
+    verification::Verified,
 };
-pub use keys::{Ed25519KeyPair, KeyPair, PublicKeyMap, PublicKeySet};
-pub use signatures::Signature;
-pub use verification::Verified;
 
 mod error;
 mod functions;
