@@ -4,16 +4,15 @@
 //!
 //! [MSC3381]: https://github.com/matrix-org/matrix-spec-proposals/pull/3381
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    ops::Deref,
+};
 
 use indexmap::IndexMap;
-use js_int::uint;
+use js_int::{uint, UInt};
 
-use self::{
-    response::OriginalSyncPollResponseEvent, start::PollContentBlock,
-    unstable_response::OriginalSyncUnstablePollResponseEvent,
-    unstable_start::UnstablePollStartContentBlock,
-};
+use self::{start::PollContentBlock, unstable_start::UnstablePollStartContentBlock};
 use crate::{MilliSecondsSinceUnixEpoch, UserId};
 
 pub mod end;
@@ -22,6 +21,20 @@ pub mod start;
 pub mod unstable_end;
 pub mod unstable_response;
 pub mod unstable_start;
+
+/// The data from a poll response necessary to compile poll results.
+#[derive(Debug, Clone, Copy)]
+#[allow(clippy::exhaustive_structs)]
+pub struct PollResponseData<'a> {
+    /// The sender of the response.
+    pub sender: &'a UserId,
+
+    /// The time of creation of the response on the originating server.
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
+
+    /// The selections/answers of the response.
+    pub selections: &'a [String],
+}
 
 /// Generate the current results with the given poll and responses.
 ///
@@ -36,7 +49,7 @@ pub mod unstable_start;
 /// lowest.
 pub fn compile_poll_results<'a>(
     poll: &'a PollContentBlock,
-    responses: impl IntoIterator<Item = &'a OriginalSyncPollResponseEvent>,
+    responses: impl IntoIterator<Item = PollResponseData<'a>>,
     end_timestamp: Option<MilliSecondsSinceUnixEpoch>,
 ) -> IndexMap<&'a str, BTreeSet<&'a UserId>> {
     let end_ts = end_timestamp.unwrap_or_else(MilliSecondsSinceUnixEpoch::now);
@@ -47,13 +60,17 @@ pub fn compile_poll_results<'a>(
             // Filter out responses after the end_timestamp.
             ev.origin_server_ts <= end_ts
         })
-        .fold(BTreeMap::new(), |mut acc, ev| {
+        .fold(BTreeMap::new(), |mut acc, data| {
             let response =
-                acc.entry(&*ev.sender).or_insert((MilliSecondsSinceUnixEpoch(uint!(0)), None));
+                acc.entry(data.sender).or_insert((MilliSecondsSinceUnixEpoch(uint!(0)), None));
 
             // Only keep the latest selections for each user.
-            if response.0 < ev.origin_server_ts {
-                *response = (ev.origin_server_ts, ev.content.selections.validate(poll));
+            if response.0 < data.origin_server_ts {
+                let answer_ids = poll.answers.iter().map(|a| a.id.as_str()).collect();
+                *response = (
+                    data.origin_server_ts,
+                    validate_selections(answer_ids, poll.max_selections, data.selections),
+                );
             }
 
             acc
@@ -75,7 +92,7 @@ pub fn compile_poll_results<'a>(
 /// lowest.
 pub fn compile_unstable_poll_results<'a>(
     poll: &'a UnstablePollStartContentBlock,
-    responses: impl IntoIterator<Item = &'a OriginalSyncUnstablePollResponseEvent>,
+    responses: impl IntoIterator<Item = PollResponseData<'a>>,
     end_timestamp: Option<MilliSecondsSinceUnixEpoch>,
 ) -> IndexMap<&'a str, BTreeSet<&'a UserId>> {
     let end_ts = end_timestamp.unwrap_or_else(MilliSecondsSinceUnixEpoch::now);
@@ -86,13 +103,17 @@ pub fn compile_unstable_poll_results<'a>(
             // Filter out responses after the end_timestamp.
             ev.origin_server_ts <= end_ts
         })
-        .fold(BTreeMap::new(), |mut acc, ev| {
+        .fold(BTreeMap::new(), |mut acc, data| {
             let response =
-                acc.entry(&*ev.sender).or_insert((MilliSecondsSinceUnixEpoch(uint!(0)), None));
+                acc.entry(data.sender).or_insert((MilliSecondsSinceUnixEpoch(uint!(0)), None));
 
             // Only keep the latest selections for each user.
-            if response.0 < ev.origin_server_ts {
-                *response = (ev.origin_server_ts, ev.content.poll_response.validate(poll));
+            if response.0 < data.origin_server_ts {
+                let answer_ids = poll.answers.iter().map(|a| a.id.as_str()).collect();
+                *response = (
+                    data.origin_server_ts,
+                    validate_selections(answer_ids, poll.max_selections, data.selections),
+                );
             }
 
             acc
@@ -101,7 +122,25 @@ pub fn compile_unstable_poll_results<'a>(
     aggregate_results(poll.answers.iter().map(|a| a.id.as_str()), users_selections)
 }
 
-// Aggregate the given selections by answer.
+/// Validate the selections of a response.
+fn validate_selections<'a>(
+    answer_ids: BTreeSet<&str>,
+    max_selections: UInt,
+    selections: &'a [String],
+) -> Option<impl Iterator<Item = &'a str>> {
+    // Vote is spoiled if any answer is unknown.
+    if selections.iter().any(|s| !answer_ids.contains(s.as_str())) {
+        return None;
+    }
+
+    // Fallback to the maximum value for usize because we can't have more selections than that
+    // in memory.
+    let max_selections: usize = max_selections.try_into().unwrap_or(usize::MAX);
+
+    Some(selections.iter().take(max_selections).map(Deref::deref))
+}
+
+/// Aggregate the given selections by answer.
 fn aggregate_results<'a>(
     answers: impl Iterator<Item = &'a str>,
     users_selections: BTreeMap<
@@ -164,13 +203,13 @@ fn generate_poll_end_fallback_text<'a>(
 
     // Construct the plain text representation.
     match top_answers_text.len() {
-        l if l > 1 => {
+        0 => "The poll has closed with no top answer".to_owned(),
+        1 => {
+            format!("The poll has closed. Top answer: {}", top_answers_text[0])
+        }
+        _ => {
             let answers = top_answers_text.join(", ");
             format!("The poll has closed. Top answers: {answers}")
         }
-        l if l == 1 => {
-            format!("The poll has closed. Top answer: {}", top_answers_text[0])
-        }
-        _ => "The poll has closed with no top answer".to_owned(),
     }
 }
