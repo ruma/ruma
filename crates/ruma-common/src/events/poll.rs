@@ -52,13 +52,11 @@ pub fn compile_poll_results<'a>(
     responses: impl IntoIterator<Item = PollResponseData<'a>>,
     end_timestamp: Option<MilliSecondsSinceUnixEpoch>,
 ) -> IndexMap<&'a str, BTreeSet<&'a UserId>> {
-    let end_ts = end_timestamp.unwrap_or_else(MilliSecondsSinceUnixEpoch::now);
-
     let users_selections = responses
         .into_iter()
         .filter(|ev| {
             // Filter out responses after the end_timestamp.
-            ev.origin_server_ts <= end_ts
+            end_timestamp.map_or(true, |end_ts| ev.origin_server_ts <= end_ts)
         })
         .fold(BTreeMap::new(), |mut acc, data| {
             let response =
@@ -95,13 +93,11 @@ pub fn compile_unstable_poll_results<'a>(
     responses: impl IntoIterator<Item = PollResponseData<'a>>,
     end_timestamp: Option<MilliSecondsSinceUnixEpoch>,
 ) -> IndexMap<&'a str, BTreeSet<&'a UserId>> {
-    let end_ts = end_timestamp.unwrap_or_else(MilliSecondsSinceUnixEpoch::now);
-
     let users_selections = responses
         .into_iter()
         .filter(|ev| {
             // Filter out responses after the end_timestamp.
-            ev.origin_server_ts <= end_ts
+            end_timestamp.map_or(true, |end_ts| ev.origin_server_ts <= end_ts)
         })
         .fold(BTreeMap::new(), |mut acc, data| {
             let response =

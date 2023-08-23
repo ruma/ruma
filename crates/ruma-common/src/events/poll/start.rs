@@ -18,7 +18,7 @@ use super::{
 use crate::{
     events::{message::TextContentBlock, room::message::Relation},
     serde::StringEnum,
-    PrivOwnedStr,
+    MilliSecondsSinceUnixEpoch, PrivOwnedStr,
 };
 
 /// The payload for a poll start event.
@@ -90,7 +90,11 @@ impl OriginalSyncPollStartEvent {
         &'a self,
         responses: impl IntoIterator<Item = PollResponseData<'a>>,
     ) -> PollEndEventContent {
-        let full_results = compile_poll_results(&self.content.poll, responses, None);
+        let full_results = compile_poll_results(
+            &self.content.poll,
+            responses,
+            Some(MilliSecondsSinceUnixEpoch::now()),
+        );
         let results =
             full_results.into_iter().map(|(id, users)| (id, users.len())).collect::<Vec<_>>();
 
