@@ -52,29 +52,9 @@ pub fn compile_poll_results<'a>(
     responses: impl IntoIterator<Item = PollResponseData<'a>>,
     end_timestamp: Option<MilliSecondsSinceUnixEpoch>,
 ) -> IndexMap<&'a str, BTreeSet<&'a UserId>> {
-    let end_ts = end_timestamp.unwrap_or_else(MilliSecondsSinceUnixEpoch::now);
-
-    let users_selections = responses
-        .into_iter()
-        .filter(|ev| {
-            // Filter out responses after the end_timestamp.
-            ev.origin_server_ts <= end_ts
-        })
-        .fold(BTreeMap::new(), |mut acc, data| {
-            let response =
-                acc.entry(data.sender).or_insert((MilliSecondsSinceUnixEpoch(uint!(0)), None));
-
-            // Only keep the latest selections for each user.
-            if response.0 < data.origin_server_ts {
-                let answer_ids = poll.answers.iter().map(|a| a.id.as_str()).collect();
-                *response = (
-                    data.origin_server_ts,
-                    validate_selections(answer_ids, poll.max_selections, data.selections),
-                );
-            }
-
-            acc
-        });
+    let answer_ids = poll.answers.iter().map(|a| a.id.as_str()).collect();
+    let users_selections =
+        filter_selections(answer_ids, poll.max_selections, responses, end_timestamp);
 
     aggregate_results(poll.answers.iter().map(|a| a.id.as_str()), users_selections)
 }
@@ -95,36 +75,16 @@ pub fn compile_unstable_poll_results<'a>(
     responses: impl IntoIterator<Item = PollResponseData<'a>>,
     end_timestamp: Option<MilliSecondsSinceUnixEpoch>,
 ) -> IndexMap<&'a str, BTreeSet<&'a UserId>> {
-    let end_ts = end_timestamp.unwrap_or_else(MilliSecondsSinceUnixEpoch::now);
-
-    let users_selections = responses
-        .into_iter()
-        .filter(|ev| {
-            // Filter out responses after the end_timestamp.
-            ev.origin_server_ts <= end_ts
-        })
-        .fold(BTreeMap::new(), |mut acc, data| {
-            let response =
-                acc.entry(data.sender).or_insert((MilliSecondsSinceUnixEpoch(uint!(0)), None));
-
-            // Only keep the latest selections for each user.
-            if response.0 < data.origin_server_ts {
-                let answer_ids = poll.answers.iter().map(|a| a.id.as_str()).collect();
-                *response = (
-                    data.origin_server_ts,
-                    validate_selections(answer_ids, poll.max_selections, data.selections),
-                );
-            }
-
-            acc
-        });
+    let answer_ids = poll.answers.iter().map(|a| a.id.as_str()).collect();
+    let users_selections =
+        filter_selections(answer_ids, poll.max_selections, responses, end_timestamp);
 
     aggregate_results(poll.answers.iter().map(|a| a.id.as_str()), users_selections)
 }
 
 /// Validate the selections of a response.
 fn validate_selections<'a>(
-    answer_ids: BTreeSet<&str>,
+    answer_ids: &BTreeSet<&str>,
     max_selections: UInt,
     selections: &'a [String],
 ) -> Option<impl Iterator<Item = &'a str>> {
@@ -138,6 +98,34 @@ fn validate_selections<'a>(
     let max_selections: usize = max_selections.try_into().unwrap_or(usize::MAX);
 
     Some(selections.iter().take(max_selections).map(Deref::deref))
+}
+
+fn filter_selections<'a>(
+    answer_ids: BTreeSet<&str>,
+    max_selections: UInt,
+    responses: impl IntoIterator<Item = PollResponseData<'a>>,
+    end_timestamp: Option<MilliSecondsSinceUnixEpoch>,
+) -> BTreeMap<&'a UserId, (MilliSecondsSinceUnixEpoch, Option<impl Iterator<Item = &'a str>>)> {
+    responses
+        .into_iter()
+        .filter(|ev| {
+            // Filter out responses after the end_timestamp.
+            end_timestamp.map_or(true, |end_ts| ev.origin_server_ts <= end_ts)
+        })
+        .fold(BTreeMap::new(), |mut acc, data| {
+            let response =
+                acc.entry(data.sender).or_insert((MilliSecondsSinceUnixEpoch(uint!(0)), None));
+
+            // Only keep the latest selections for each user.
+            if response.0 < data.origin_server_ts {
+                *response = (
+                    data.origin_server_ts,
+                    validate_selections(&answer_ids, max_selections, data.selections),
+                );
+            }
+
+            acc
+        })
 }
 
 /// Aggregate the given selections by answer.

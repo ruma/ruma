@@ -16,7 +16,7 @@ use super::{
     unstable_end::UnstablePollEndEventContent,
     PollResponseData,
 };
-use crate::events::room::message::Relation;
+use crate::{events::room::message::Relation, MilliSecondsSinceUnixEpoch};
 
 /// The payload for an unstable poll start event.
 ///
@@ -73,7 +73,11 @@ impl OriginalSyncUnstablePollStartEvent {
         &'a self,
         responses: impl IntoIterator<Item = PollResponseData<'a>>,
     ) -> UnstablePollEndEventContent {
-        let full_results = compile_unstable_poll_results(&self.content.poll_start, responses, None);
+        let full_results = compile_unstable_poll_results(
+            &self.content.poll_start,
+            responses,
+            Some(MilliSecondsSinceUnixEpoch::now()),
+        );
         let results =
             full_results.into_iter().map(|(id, users)| (id, users.len())).collect::<Vec<_>>();
 
