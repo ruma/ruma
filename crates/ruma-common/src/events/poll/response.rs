@@ -94,7 +94,7 @@ impl SelectionsContentBlock {
         poll: &PollContentBlock,
     ) -> Option<impl Iterator<Item = &'a str>> {
         let answer_ids = poll.answers.iter().map(|a| a.id.as_str()).collect();
-        validate_selections(answer_ids, poll.max_selections, &self.0)
+        validate_selections(&answer_ids, poll.max_selections, &self.0)
     }
 }
 
