@@ -671,7 +671,8 @@ fn compute_results() {
     responses.extend(generate_poll_responses(10..15, &["italian"]));
     responses.extend(generate_poll_responses(15..20, &["wings"]));
 
-    let counted = compile_poll_results(&poll.content.poll, &responses, None);
+    let counted =
+        compile_poll_results(&poll.content.poll, responses.iter().map(|r| r.data()), None);
     assert_eq!(counted.get("pizza").unwrap().len(), 5);
     assert_eq!(counted.get("poutine").unwrap().len(), 5);
     assert_eq!(counted.get("italian").unwrap().len(), 5);
@@ -683,7 +684,7 @@ fn compute_results() {
     assert_eq!(iter.next(), Some(&"wings"));
     assert_eq!(iter.next(), None);
 
-    let poll_end = poll.compile_results(&responses);
+    let poll_end = poll.compile_results(responses.iter().map(|r| r.data()));
     let results = poll_end.poll_results.unwrap();
     assert_eq!(*results.get("pizza").unwrap(), uint!(5));
     assert_eq!(*results.get("poutine").unwrap(), uint!(5));
@@ -713,7 +714,8 @@ fn compute_results() {
         ),
     ]);
 
-    let counted = compile_poll_results(&poll.content.poll, &responses, None);
+    let counted =
+        compile_poll_results(&poll.content.poll, responses.iter().map(|r| r.data()), None);
     assert_eq!(counted.get("pizza").unwrap().len(), 5);
     assert_eq!(counted.get("poutine").unwrap().len(), 7);
     assert_eq!(counted.get("italian").unwrap().len(), 6);
@@ -725,7 +727,7 @@ fn compute_results() {
     assert_eq!(iter.next(), Some(&"pizza"));
     assert_eq!(iter.next(), None);
 
-    let poll_end = poll.compile_results(&responses);
+    let poll_end = poll.compile_results(responses.iter().map(|r| r.data()));
     let results = poll_end.poll_results.unwrap();
     assert_eq!(*results.get("pizza").unwrap(), uint!(5));
     assert_eq!(*results.get("poutine").unwrap(), uint!(7));
@@ -752,13 +754,14 @@ fn compute_results() {
         ),
     ]);
 
-    let counted = compile_poll_results(&poll.content.poll, &responses, None);
+    let counted =
+        compile_poll_results(&poll.content.poll, responses.iter().map(|r| r.data()), None);
     assert_eq!(counted.get("pizza").unwrap().len(), 6);
     assert_eq!(counted.get("poutine").unwrap().len(), 8);
     assert_eq!(counted.get("italian").unwrap().len(), 6);
     assert_eq!(counted.get("wings").unwrap().len(), 6);
 
-    let poll_end = poll.compile_results(&responses);
+    let poll_end = poll.compile_results(responses.iter().map(|r| r.data()));
     let results = poll_end.poll_results.unwrap();
     assert_eq!(*results.get("pizza").unwrap(), uint!(6));
     assert_eq!(*results.get("poutine").unwrap(), uint!(8));
@@ -775,7 +778,8 @@ fn compute_results() {
         new_poll_response("$valid_for_now_event_3", changing_user_3, uint!(4200), &["wings"]),
     ]);
 
-    let counted = compile_poll_results(&poll.content.poll, &responses, None);
+    let counted =
+        compile_poll_results(&poll.content.poll, responses.iter().map(|r| r.data()), None);
     assert_eq!(counted.get("pizza").unwrap().len(), 6);
     assert_eq!(counted.get("poutine").unwrap().len(), 8);
     assert_eq!(counted.get("italian").unwrap().len(), 6);
@@ -787,7 +791,7 @@ fn compute_results() {
     assert_eq!(iter.next(), Some(&"italian"));
     assert_eq!(iter.next(), None);
 
-    let poll_end = poll.compile_results(&responses);
+    let poll_end = poll.compile_results(responses.iter().map(|r| r.data()));
     let results = poll_end.poll_results.unwrap();
     assert_eq!(*results.get("pizza").unwrap(), uint!(6));
     assert_eq!(*results.get("poutine").unwrap(), uint!(8));
@@ -807,13 +811,14 @@ fn compute_results() {
         &["italian"],
     ));
 
-    let counted = compile_poll_results(&poll.content.poll, &responses, None);
+    let counted =
+        compile_poll_results(&poll.content.poll, responses.iter().map(|r| r.data()), None);
     assert_eq!(counted.get("pizza").unwrap().len(), 6);
     assert_eq!(counted.get("poutine").unwrap().len(), 8);
     assert_eq!(counted.get("italian").unwrap().len(), 7);
     assert_eq!(counted.get("wings").unwrap().len(), 8);
 
-    let poll_end = poll.compile_results(&responses);
+    let poll_end = poll.compile_results(responses.iter().map(|r| r.data()));
     let results = poll_end.poll_results.unwrap();
     assert_eq!(*results.get("pizza").unwrap(), uint!(6));
     assert_eq!(*results.get("poutine").unwrap(), uint!(8));
@@ -828,13 +833,14 @@ fn compute_results() {
         &[],
     ));
 
-    let counted = compile_poll_results(&poll.content.poll, &responses, None);
+    let counted =
+        compile_poll_results(&poll.content.poll, responses.iter().map(|r| r.data()), None);
     assert_eq!(counted.get("pizza").unwrap().len(), 6);
     assert_eq!(counted.get("poutine").unwrap().len(), 8);
     assert_eq!(counted.get("italian").unwrap().len(), 6);
     assert_eq!(counted.get("wings").unwrap().len(), 8);
 
-    let poll_end = poll.compile_results(&responses);
+    let poll_end = poll.compile_results(responses.iter().map(|r| r.data()));
     let results = poll_end.poll_results.unwrap();
     assert_eq!(*results.get("pizza").unwrap(), uint!(6));
     assert_eq!(*results.get("poutine").unwrap(), uint!(8));
@@ -849,13 +855,14 @@ fn compute_results() {
         &["indian"],
     ));
 
-    let counted = compile_poll_results(&poll.content.poll, &responses, None);
+    let counted =
+        compile_poll_results(&poll.content.poll, responses.iter().map(|r| r.data()), None);
     assert_eq!(counted.get("pizza").unwrap().len(), 6);
     assert_eq!(counted.get("poutine").unwrap().len(), 8);
     assert_eq!(counted.get("italian").unwrap().len(), 6);
     assert_eq!(counted.get("wings").unwrap().len(), 7);
 
-    let poll_end = poll.compile_results(&responses);
+    let poll_end = poll.compile_results(responses.iter().map(|r| r.data()));
     let results = poll_end.poll_results.unwrap();
     assert_eq!(*results.get("pizza").unwrap(), uint!(6));
     assert_eq!(*results.get("poutine").unwrap(), uint!(8));
@@ -865,13 +872,14 @@ fn compute_results() {
     // Response older than most recent one is ignored.
     responses.push(new_poll_response("$past_event", changing_user_3, uint!(1), &["pizza"]));
 
-    let counted = compile_poll_results(&poll.content.poll, &responses, None);
+    let counted =
+        compile_poll_results(&poll.content.poll, responses.iter().map(|r| r.data()), None);
     assert_eq!(counted.get("pizza").unwrap().len(), 6);
     assert_eq!(counted.get("poutine").unwrap().len(), 8);
     assert_eq!(counted.get("italian").unwrap().len(), 6);
     assert_eq!(counted.get("wings").unwrap().len(), 7);
 
-    let poll_end = poll.compile_results(&responses);
+    let poll_end = poll.compile_results(responses.iter().map(|r| r.data()));
     let results = poll_end.poll_results.unwrap();
     assert_eq!(*results.get("pizza").unwrap(), uint!(6));
     assert_eq!(*results.get("poutine").unwrap(), uint!(8));
@@ -882,13 +890,14 @@ fn compute_results() {
     let future_ts = MilliSecondsSinceUnixEpoch::now().0 + uint!(100_000);
     responses.push(new_poll_response("$future_event", changing_user_3, future_ts, &["pizza"]));
 
-    let counted = compile_poll_results(&poll.content.poll, &responses, None);
+    let counted =
+        compile_poll_results(&poll.content.poll, responses.iter().map(|r| r.data()), None);
     assert_eq!(counted.get("pizza").unwrap().len(), 6);
     assert_eq!(counted.get("poutine").unwrap().len(), 8);
     assert_eq!(counted.get("italian").unwrap().len(), 6);
     assert_eq!(counted.get("wings").unwrap().len(), 7);
 
-    let poll_end = poll.compile_results(&responses);
+    let poll_end = poll.compile_results(responses.iter().map(|r| r.data()));
     let results = poll_end.poll_results.unwrap();
     assert_eq!(*results.get("pizza").unwrap(), uint!(6));
     assert_eq!(*results.get("poutine").unwrap(), uint!(8));
@@ -968,7 +977,11 @@ fn compute_unstable_results() {
     responses.extend(generate_unstable_poll_responses(6..8, &["italian"]));
     responses.extend(generate_unstable_poll_responses(8..11, &["wings"]));
 
-    let counted = compile_unstable_poll_results(&poll.content.poll_start, &responses, None);
+    let counted = compile_unstable_poll_results(
+        &poll.content.poll_start,
+        responses.iter().map(|r| r.data()),
+        None,
+    );
     assert_eq!(counted.get("pizza").unwrap().len(), 5);
     assert_eq!(counted.get("poutine").unwrap().len(), 1);
     assert_eq!(counted.get("italian").unwrap().len(), 2);
@@ -980,6 +993,6 @@ fn compute_unstable_results() {
     assert_eq!(iter.next(), Some(&"poutine"));
     assert_eq!(iter.next(), None);
 
-    let poll_end = poll.compile_results(&responses);
+    let poll_end = poll.compile_results(responses.iter().map(|r| r.data()));
     assert_eq!(poll_end.text, "The poll has closed. Top answer: Pizza 🍕");
 }
