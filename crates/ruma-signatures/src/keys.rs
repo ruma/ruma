@@ -82,8 +82,6 @@ impl Ed25519KeyPair {
     /// generated from the private key. This is a fallback and extra validation against
     /// corruption or
     pub fn from_der(document: &[u8], version: String) -> Result<Self, Error> {
-        use pkcs8::der::Decode;
-
         #[cfg(feature = "ring-compat")]
         use self::compat::CompatibleDocument;
 
