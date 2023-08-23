@@ -24,10 +24,16 @@ pub mod unstable_start;
 
 /// The data from a poll response necessary to compile poll results.
 #[derive(Debug, Clone, Copy)]
+#[allow(clippy::exhaustive_structs)]
 pub struct PollResponseData<'a> {
-    sender: &'a UserId,
-    origin_server_ts: MilliSecondsSinceUnixEpoch,
-    selections: &'a [String],
+    /// The sender of the response.
+    pub sender: &'a UserId,
+
+    /// The time of creation of the response on the originating server.
+    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
+
+    /// The selections/answers of the response.
+    pub selections: &'a [String],
 }
 
 /// Generate the current results with the given poll and responses.
