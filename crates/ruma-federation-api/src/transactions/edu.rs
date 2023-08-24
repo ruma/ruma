@@ -313,7 +313,7 @@ impl SigningKeyUpdateContent {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use assert_matches2::assert_matches;
     use js_int::uint;
     use ruma_common::{events::ToDeviceEventType, room_id, user_id};
