@@ -37,7 +37,7 @@ impl<E: Ord, K: ?Sized> Signatures<E, K> {
         key_identifier: OwnedSigningKeyId<K>,
         value: String,
     ) -> Option<String> {
-        self.0.entry(entity).or_insert_with(Default::default).insert(key_identifier, value)
+        self.0.entry(entity).or_default().insert(key_identifier, value)
     }
 
     /// Returns a reference to the signatures corresponding to the entities.
