@@ -108,38 +108,78 @@ fn text_msgtype_plain_text_serialization() {
 fn text_msgtype_markdown_serialization() {
     use ruma_common::events::room::message::TextMessageEventContent;
 
-    let formatted_message = RoomMessageEventContent::new(MessageType::Text(
-        TextMessageEventContent::markdown("Testing **bold** and _italic_!"),
-    ));
+    let text = "Testing **bold** and _italic_!";
+    let formatted_message =
+        RoomMessageEventContent::new(MessageType::Text(TextMessageEventContent::markdown(text)));
     assert_eq!(
         to_json_value(&formatted_message).unwrap(),
         json!({
-            "body": "Testing **bold** and _italic_!",
+            "body": text,
             "formatted_body": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n",
             "format": "org.matrix.custom.html",
             "msgtype": "m.text"
         })
     );
 
-    let plain_message_simple = RoomMessageEventContent::new(MessageType::Text(
-        TextMessageEventContent::markdown("Testing a simple phrase…"),
-    ));
+    let text = "Testing a simple phrase…";
+    let plain_message_simple =
+        RoomMessageEventContent::new(MessageType::Text(TextMessageEventContent::markdown(text)));
     assert_eq!(
         to_json_value(&plain_message_simple).unwrap(),
         json!({
-            "body": "Testing a simple phrase…",
+            "body": text,
             "msgtype": "m.text"
         })
     );
 
-    let plain_message_paragraphs = RoomMessageEventContent::new(MessageType::Text(
-        TextMessageEventContent::markdown("Testing\n\nSeveral\n\nParagraphs."),
-    ));
+    let text = "Testing\n\nSeveral\n\nParagraphs.";
+    let plain_message_paragraphs =
+        RoomMessageEventContent::new(MessageType::Text(TextMessageEventContent::markdown(text)));
     assert_eq!(
         to_json_value(&plain_message_paragraphs).unwrap(),
         json!({
-            "body": "Testing\n\nSeveral\n\nParagraphs.",
+            "body": text,
             "formatted_body": "<p>Testing</p>\n<p>Several</p>\n<p>Paragraphs.</p>\n",
+            "format": "org.matrix.custom.html",
+            "msgtype": "m.text"
+        })
+    );
+
+    let text = r#"Testing
+
+A paragraph
+with
+a soft line break
+
+* item 1
+* item 2
+  item 2 (cont'd)
+* item 3
+
+```
+line 1
+line 2
+```"#;
+    let plain_message_paragraphs =
+        RoomMessageEventContent::new(MessageType::Text(TextMessageEventContent::markdown(text)));
+    assert_eq!(
+        to_json_value(&plain_message_paragraphs).unwrap(),
+        json!({
+            "body": text,
+            "formatted_body": r#"<p>Testing</p>
+<p>A paragraph<br />
+with<br />
+a soft line break</p>
+<ul>
+<li>item 1</li>
+<li>item 2<br />
+item 2 (cont'd)</li>
+<li>item 3</li>
+</ul>
+<pre><code>line 1
+line 2
+</code></pre>
+"#,
             "format": "org.matrix.custom.html",
             "msgtype": "m.text"
         })
