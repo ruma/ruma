@@ -55,26 +55,25 @@ impl FromIterator<(OwnedUserId, Vec<OwnedRoomId>)> for DirectEventContent {
     }
 }
 
-#[cfg(all(test, feature = "rand"))]
+#[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;
 
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{DirectEvent, DirectEventContent};
-    use crate::{server_name, RoomId, UserId};
+    use crate::{room_id, user_id};
 
     #[test]
     fn serialization() {
         let mut content = DirectEventContent(BTreeMap::new());
-        let server_name = server_name!("ruma.io");
-        let alice = UserId::new(server_name);
-        let rooms = vec![RoomId::new(server_name)];
+        let alice = user_id!("@alice:ruma.io");
+        let rooms = vec![room_id!("!1:ruma.io").to_owned()];
 
-        content.insert(alice.clone(), rooms.clone());
+        content.insert(alice.to_owned(), rooms.clone());
 
         let json_data = json!({
-            alice.to_string(): rooms,
+            alice: rooms,
         });
 
         assert_eq!(to_json_value(&content).unwrap(), json_data);
@@ -82,13 +81,12 @@ mod tests {
 
     #[test]
     fn deserialization() {
-        let server_name = server_name!("ruma.io");
-        let alice = UserId::new(server_name);
-        let rooms = vec![RoomId::new(server_name), RoomId::new(server_name)];
+        let alice = user_id!("@alice:ruma.io").to_owned();
+        let rooms = vec![room_id!("!1:ruma.io").to_owned(), room_id!("!2:ruma.io").to_owned()];
 
         let json_data = json!({
             "content": {
-                alice.to_string(): vec![rooms[0].to_string(), rooms[1].to_string()],
+                alice.to_string(): rooms,
             },
             "type": "m.direct"
         });
