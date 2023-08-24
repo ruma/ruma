@@ -26,15 +26,15 @@ Breaking changes:
   `RoomMessageEventContentWithoutRelation` instead of a `MessageType`
 - Make the `redacts` field of `Original(Sync)RoomRedactionEvent` optional to handle the format
   where the `redacts` key is moved inside the `content`, as introduced in room version 11,
-  according to MSC2174 / MSC3820
+  according to MSC2174 / MSC3820 / Matrix 1.8
     - `RoomRedactionEventContent::new()` was renamed to `new_v1()`, and `with_reason()` is no
       longer a constructor but a builder-type method
 - Make the `creator` field of `RoomCreateEventContent` optional and deprecate it, as it was removed
-  in room version 11, according to MSC2175 / MSC3820
+  in room version 11, according to MSC2175 / MSC3820 / Matrix 1.8
     - `RoomCreateEventContent::new()` was renamed to `new_v1()`
     - `RedactedRoomCreateEventContent` is now a typedef over `RoomCreateEventContent`
 - Add preserved fields to match the new redaction algorithm in room version 11, according to
-  MSC2176 / MSC3821 / MSC3820, for the following types:
+  MSC2176 / MSC3821 / MSC3820 / Matrix 1.8, for the following types:
   - `RedactedRoomRedactionEventContent`,
   - `RedactedRoomPowerLevelsEventContent`,
   - `RedactedRoomMemberEventContent`
@@ -63,7 +63,7 @@ Improvements:
   - `user_can_send_state`
   - `user_can_trigger_room_notification`
 - Add `MessageType::sanitize` behind the `unstable-sanitize` feature
-- Add `MatrixVersion::V1_7`
+- Add `MatrixVersion::V1_7` and `MatrixVersion::V1_8`
 - Stabilize support for annotations and reactions (MSC2677 / Matrix 1.7)
 - Add support for intentional mentions push rules (MSC3952 / Matrix 1.7)
 - Stabilize support for VoIP signalling improvements (MSC2746 / Matrix 1.7)

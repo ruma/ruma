@@ -8,7 +8,7 @@ Bug fixes:
 
 Improvements:
 
-- Allow `+` in the localpart of user IDs according to MSC4009
+- Allow `+` in the localpart of user IDs according to MSC4009 / Matrix 1.8
 
 # 0.9.1
 
