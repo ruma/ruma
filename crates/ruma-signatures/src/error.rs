@@ -22,9 +22,9 @@ pub enum Error {
     #[error("Parse error: {0}")]
     Parse(#[from] ParseError),
 
-    /// Wrapper for [`pkcs8::der::Error`].
+    /// Wrapper for [`pkcs8::Error`].
     #[error("DER Parse error: {0}")]
-    DerParse(pkcs8::der::Error),
+    DerParse(pkcs8::Error),
 
     /// The signature's ID does not have exactly two components separated by a colon.
     #[error("malformed signature ID: expected exactly 2 segment separated by a colon, found {0}")]
@@ -204,8 +204,8 @@ pub enum ParseError {
     },
 
     /// For when [`ed25519_dalek`] cannot parse a secret/private key.
-    #[error("Could not parse secret key: {0}")]
-    SecretKey(#[source] ed25519_dalek::SignatureError),
+    #[error("Could not parse secret key")]
+    SecretKey,
 
     /// For when [`ed25519_dalek`] cannot parse a public key.
     #[error("Could not parse public key: {0}")]
