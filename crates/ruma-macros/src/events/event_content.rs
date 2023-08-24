@@ -297,12 +297,30 @@ pub fn expand_event_content(
 
     let ident = &input.ident;
     let fields = match &input.data {
-        syn::Data::Struct(syn::DataStruct { fields, .. }) => fields.iter(),
+        syn::Data::Struct(syn::DataStruct { fields, .. }) => Some(fields.iter()),
         _ => {
-            return Err(syn::Error::new(
-                Span::call_site(),
-                "event content types need to be structs",
-            ));
+            if event_kind.is_some_and(|kind| needs_redacted(is_custom_redacted, kind)) {
+                return Err(syn::Error::new(
+                    Span::call_site(),
+                    "To generate a redacted event content, the event content type needs to be a struct. Disable this with the custom_redacted attribute",
+                ));
+            }
+
+            if event_kind.is_some_and(|kind| needs_possibly_redacted(is_custom_redacted, kind)) {
+                return Err(syn::Error::new(
+                    Span::call_site(),
+                    "To generate a possibly redacted event content, the event content type needs to be a struct. Disable this with the custom_possibly_redacted attribute",
+                ));
+            }
+
+            if has_without_relation {
+                return Err(syn::Error::new(
+                    Span::call_site(),
+                    "To generate an event content without relation, the event content type needs to be a struct. Disable this by removing the without_relation attribute",
+                ));
+            }
+
+            None
         }
     };
 
@@ -312,7 +330,7 @@ pub fn expand_event_content(
             generate_redacted_event_content(
                 ident,
                 &input.vis,
-                fields.clone(),
+                fields.clone().unwrap(),
                 &event_type,
                 kind,
                 state_key_type.as_ref(),
@@ -330,7 +348,7 @@ pub fn expand_event_content(
             generate_possibly_redacted_event_content(
                 ident,
                 &input.vis,
-                fields.clone(),
+                fields.clone().unwrap(),
                 &event_type,
                 state_key_type.as_ref(),
                 unsigned_type.clone(),
@@ -341,8 +359,13 @@ pub fn expand_event_content(
         });
 
     let event_content_without_relation = has_without_relation.then(|| {
-        generate_event_content_without_relation(ident, &input.vis, fields.clone(), ruma_events)
-            .unwrap_or_else(syn::Error::into_compile_error)
+        generate_event_content_without_relation(
+            ident,
+            &input.vis,
+            fields.clone().unwrap(),
+            ruma_events,
+        )
+        .unwrap_or_else(syn::Error::into_compile_error)
     });
 
     let event_content_impl = generate_event_content_impl(
@@ -444,7 +467,7 @@ fn generate_redacted_event_content<'a>(
     let redacted_event_content = generate_event_content_impl(
         &redacted_ident,
         vis,
-        kept_redacted_fields.iter(),
+        Some(kept_redacted_fields.iter()),
         event_type,
         Some(event_kind),
         EventKindContentVariation::Redacted,
@@ -599,7 +622,7 @@ fn generate_possibly_redacted_event_content<'a>(
         let possibly_redacted_event_content = generate_event_content_impl(
             &possibly_redacted_ident,
             vis,
-            possibly_redacted_fields.iter(),
+            Some(possibly_redacted_fields.iter()),
             event_type,
             Some(EventKind::State),
             EventKindContentVariation::PossiblyRedacted,
@@ -787,7 +810,7 @@ impl fmt::Display for EventKindContentVariation {
 fn generate_event_content_impl<'a>(
     ident: &Ident,
     vis: &syn::Visibility,
-    mut fields: impl Iterator<Item = &'a Field>,
+    mut fields: Option<impl Iterator<Item = &'a Field>>,
     event_type: &LitStr,
     event_kind: Option<EventKind>,
     variation: EventKindContentVariation,
@@ -805,6 +828,13 @@ fn generate_event_content_impl<'a>(
         .value()
         .strip_suffix('*')
         .map(|type_prefix| {
+            let Some(fields) = &mut fields else {
+                return Err(syn::Error::new_spanned(
+                    event_type,
+                    "event type with a `.*` suffix is required to be a struct",
+                ));
+            };
+
             let type_fragment_field = fields
                 .find_map(|f| {
                     f.attrs.iter().filter(|a| a.path().is_ident("ruma_event")).find_map(|attr| {
@@ -923,6 +953,7 @@ fn generate_event_content_impl<'a>(
             [#(#type_prefixes,)*]
         };
         let fields_without_type_fragment = fields
+            .unwrap()
             .filter(|f| {
                 !f.attrs.iter().any(|a| {
                     a.path().is_ident("ruma_event")
