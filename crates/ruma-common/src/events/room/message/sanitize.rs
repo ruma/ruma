@@ -1,19 +1,5 @@
 //! Convenience methods and types to sanitize text messages.
 
-/// Whether to remove the [rich reply fallback] while sanitizing.
-///
-/// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
-#[cfg(feature = "html")]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-#[allow(clippy::exhaustive_enums)]
-pub enum RemoveReplyFallback {
-    /// Remove the rich reply fallback.
-    Yes,
-
-    /// Don't remove the rich reply fallback.
-    No,
-}
-
 /// Remove the [rich reply fallback] of the given plain text string.
 ///
 /// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
