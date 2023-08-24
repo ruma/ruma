@@ -852,7 +852,7 @@ pub enum EventEnumVariation {
     Initial,
 }
 
-impl From<EventEnumVariation> for crate::events::event_parse::EventKindVariation {
+impl From<EventEnumVariation> for super::event_parse::EventKindVariation {
     fn from(v: EventEnumVariation) -> Self {
         match v {
             EventEnumVariation::None => Self::None,

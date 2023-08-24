@@ -14,7 +14,7 @@ use ruma_common::serde::Base64;
 use crate::{signatures::Signature, Algorithm, Error, ParseError};
 
 #[cfg(feature = "ring-compat")]
-pub mod compat;
+mod compat;
 
 /// A cryptographic key pair for digitally signing data.
 pub trait KeyPair: Sized {
