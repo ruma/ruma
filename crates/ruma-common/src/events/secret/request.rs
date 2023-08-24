@@ -133,7 +133,7 @@ pub enum SecretName {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use assert_matches2::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

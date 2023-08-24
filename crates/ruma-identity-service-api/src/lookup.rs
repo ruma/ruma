@@ -28,7 +28,7 @@ pub enum IdentifierHashingAlgorithm {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::IdentifierHashingAlgorithm;
 
     #[test]

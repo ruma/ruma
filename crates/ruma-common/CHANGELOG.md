@@ -40,6 +40,7 @@ Breaking changes:
   - `RedactedRoomMemberEventContent`
 - `RoomMessageEventContent::make_reply_to()` and `make_for_thread()` have an extra parameter to
   support the recommended behavior for intentional mentions in replies according to Matrix 1.7
+- In Markdown, soft line breaks are transformed into hard line breaks when compiled into HTML.
 
 Improvements:
 

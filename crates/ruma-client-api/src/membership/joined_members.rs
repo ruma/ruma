@@ -84,7 +84,7 @@ pub mod v3 {
     }
 
     #[cfg(test)]
-    mod test {
+    mod tests {
         use ruma_common::mxc_uri;
         use serde_json::{from_value as from_json_value, json};
 
