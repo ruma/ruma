@@ -1,11 +1,12 @@
 use std::fmt::{self, Write};
 
+#[cfg(feature = "html")]
+use ruma_html::{HtmlSanitizer, HtmlSanitizerMode, RemoveReplyFallback};
+
 use super::{
     sanitize::remove_plain_reply_fallback, FormattedBody, MessageType, OriginalRoomMessageEvent,
     Relation,
 };
-#[cfg(feature = "unstable-sanitize")]
-use super::{sanitize::HtmlSanitizer, HtmlSanitizerMode, RemoveReplyFallback};
 
 fn get_message_quote_fallbacks(original_message: &OriginalRoomMessageEvent) -> (String, String) {
     let get_quotes = |body: &str, formatted: Option<&FormattedBody>, is_emote: bool| {
@@ -13,9 +14,9 @@ fn get_message_quote_fallbacks(original_message: &OriginalRoomMessageEvent) -> (
         let is_reply = matches!(content.relates_to, Some(Relation::Reply { .. }));
         let emote_sign = is_emote.then_some("* ").unwrap_or_default();
         let body = is_reply.then(|| remove_plain_reply_fallback(body)).unwrap_or(body);
-        #[cfg(feature = "unstable-sanitize")]
+        #[cfg(feature = "html")]
         let html_body = FormattedOrPlainBody { formatted, body, is_reply };
-        #[cfg(not(feature = "unstable-sanitize"))]
+        #[cfg(not(feature = "html"))]
         let html_body = FormattedOrPlainBody { formatted, body };
 
         (
@@ -72,14 +73,14 @@ impl fmt::Display for EscapeHtmlEntities<'_> {
 struct FormattedOrPlainBody<'a> {
     formatted: Option<&'a FormattedBody>,
     body: &'a str,
-    #[cfg(feature = "unstable-sanitize")]
+    #[cfg(feature = "html")]
     is_reply: bool,
 }
 
 impl fmt::Display for FormattedOrPlainBody<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(formatted_body) = self.formatted {
-            #[cfg(feature = "unstable-sanitize")]
+            #[cfg(feature = "html")]
             if self.is_reply {
                 let sanitizer =
                     HtmlSanitizer::new(HtmlSanitizerMode::Strict, RemoveReplyFallback::Yes);
@@ -88,7 +89,7 @@ impl fmt::Display for FormattedOrPlainBody<'_> {
                 f.write_str(&formatted_body.body)
             }
 
-            #[cfg(not(feature = "unstable-sanitize"))]
+            #[cfg(not(feature = "html"))]
             f.write_str(&formatted_body.body)
         } else {
             write!(f, "{}", EscapeHtmlEntities(self.body))

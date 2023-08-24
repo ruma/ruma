@@ -13,8 +13,8 @@ use tracing::debug;
 ///
 /// To get the serialized HTML, use its `Display` implementation.
 #[derive(Debug)]
-pub(crate) struct Fragment {
-    pub nodes: Vec<Node>,
+pub struct Fragment {
+    pub(crate) nodes: Vec<Node>,
 }
 
 impl Fragment {
@@ -265,13 +265,14 @@ impl fmt::Display for Fragment {
 
 /// An HTML node.
 #[derive(Debug)]
-pub(crate) struct Node {
-    pub parent: Option<usize>,
-    pub prev_sibling: Option<usize>,
-    pub next_sibling: Option<usize>,
-    pub first_child: Option<usize>,
-    pub last_child: Option<usize>,
-    pub data: NodeData,
+#[non_exhaustive]
+pub struct Node {
+    pub(crate) parent: Option<usize>,
+    pub(crate) prev_sibling: Option<usize>,
+    pub(crate) next_sibling: Option<usize>,
+    pub(crate) first_child: Option<usize>,
+    pub(crate) last_child: Option<usize>,
+    pub(crate) data: NodeData,
 }
 
 impl Node {
@@ -313,7 +314,7 @@ impl Node {
 }
 
 impl Node {
-    pub fn serialize<S>(&self, fragment: &Fragment, serializer: &mut S) -> io::Result<()>
+    pub(crate) fn serialize<S>(&self, fragment: &Fragment, serializer: &mut S) -> io::Result<()>
     where
         S: Serializer,
     {
@@ -353,7 +354,8 @@ impl Node {
 
 /// The data of a `Node`.
 #[derive(Debug)]
-pub(crate) enum NodeData {
+#[allow(clippy::exhaustive_enums)]
+pub enum NodeData {
     /// The root node of the `Fragment`.
     Document,
 
@@ -369,7 +371,8 @@ pub(crate) enum NodeData {
 
 /// The data of an HTML element.
 #[derive(Debug)]
-pub(crate) struct ElementData {
+#[allow(clippy::exhaustive_structs)]
+pub struct ElementData {
     /// The qualified name of the element.
     pub name: QualName,
 

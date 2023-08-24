@@ -4,6 +4,8 @@
 
 use std::borrow::Cow;
 
+#[cfg(feature = "html")]
+use ruma_html::{sanitize_html, HtmlSanitizerMode, RemoveReplyFallback};
 use ruma_macros::EventContent;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
@@ -40,10 +42,8 @@ pub use key_verification_request::KeyVerificationRequestEventContent;
 pub use location::{LocationInfo, LocationMessageEventContent};
 pub use notice::NoticeMessageEventContent;
 pub use relation_serde::deserialize_relation;
-#[cfg(feature = "unstable-sanitize")]
-use sanitize::{
-    remove_plain_reply_fallback, sanitize_html, HtmlSanitizerMode, RemoveReplyFallback,
-};
+#[cfg(feature = "html")]
+use sanitize::remove_plain_reply_fallback;
 pub use server_notice::{LimitType, ServerNoticeMessageEventContent, ServerNoticeType};
 pub use text::TextMessageEventContent;
 pub use video::{VideoInfo, VideoMessageEventContent};
@@ -432,7 +432,7 @@ impl RoomMessageEventContent {
     ///
     /// [tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
     /// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
-    #[cfg(feature = "unstable-sanitize")]
+    #[cfg(feature = "html")]
     pub fn sanitize(
         &mut self,
         mode: HtmlSanitizerMode,
@@ -758,7 +758,7 @@ impl MessageType {
     ///
     /// [tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
     /// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
-    #[cfg(feature = "unstable-sanitize")]
+    #[cfg(feature = "html")]
     pub fn sanitize(
         &mut self,
         mode: HtmlSanitizerMode,
@@ -907,7 +907,7 @@ impl FormattedBody {
     ///
     /// [tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
     /// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
-    #[cfg(feature = "unstable-sanitize")]
+    #[cfg(feature = "html")]
     pub fn sanitize_html(
         &mut self,
         mode: HtmlSanitizerMode,

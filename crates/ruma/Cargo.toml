@@ -70,6 +70,7 @@ js = ["ruma-common/js"]
 # Convenience features
 rand = ["ruma-common/rand"]
 markdown = ["ruma-common/markdown"]
+html = ["dep:ruma-html", "ruma-common/html"]
 
 # Everything except compat, js and unstable features
 full = [
@@ -86,6 +87,7 @@ full = [
     "push-gateway-api",
     "rand",
     "markdown",
+    "html",
 ]
 
 # Enable all compatibility hacks. Deprecated.
@@ -189,7 +191,6 @@ unstable-msc3954 = ["ruma-common/unstable-msc3954"]
 unstable-msc3955 = ["ruma-common/unstable-msc3955"]
 unstable-msc3956 = ["ruma-common/unstable-msc3956"]
 unstable-pdu = ["ruma-common/unstable-pdu"]
-unstable-sanitize = ["ruma-common/unstable-sanitize"]
 unstable-unspecified = [
     "ruma-common/unstable-unspecified",
     "ruma-federation-api?/unstable-unspecified",
@@ -201,7 +202,6 @@ __ci = [
     "full",
     "compat-upload-signatures",
     "unstable-unspecified",
-    "unstable-sanitize",
     "unstable-msc1767",
     "unstable-msc2409",
     "unstable-msc2448",
@@ -239,6 +239,7 @@ js_option = "0.1.1"
 ruma-common = { workspace = true }
 
 ruma-client = { workspace = true, optional = true }
+ruma-html = { workspace = true, optional = true }
 ruma-server-util = { workspace = true, optional = true }
 ruma-signatures = { workspace = true, optional = true }
 ruma-state-res = { workspace = true, optional = true }

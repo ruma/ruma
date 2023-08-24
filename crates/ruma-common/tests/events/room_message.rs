@@ -349,7 +349,7 @@ fn escape_tags_in_plain_reply_body() {
 }
 
 #[test]
-#[cfg(feature = "unstable-sanitize")]
+#[cfg(feature = "html")]
 fn reply_sanitize() {
     use ruma_common::events::room::message::ForwardThread;
 
