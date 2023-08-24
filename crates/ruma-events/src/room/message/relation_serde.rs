@@ -2,7 +2,7 @@ use ruma_common::{serde::JsonObject, OwnedEventId};
 use serde::{de, Deserialize, Deserializer, Serialize};
 use serde_json::Value as JsonValue;
 
-use super::{InReplyTo, Relation, Replacement, Thread};
+use super::{InReplyTo, Relation, RelationWithoutReplacement, Replacement, Thread};
 use crate::relation::CustomRelation;
 
 /// Deserialize an event's `relates_to` field.
@@ -77,7 +77,7 @@ where
 }
 
 #[derive(Deserialize)]
-struct EventWithRelatesToDeHelper<C> {
+pub(crate) struct EventWithRelatesToDeHelper<C> {
     #[serde(rename = "m.relates_to")]
     relates_to: Option<RelatesToDeHelper>,
 
@@ -86,7 +86,7 @@ struct EventWithRelatesToDeHelper<C> {
 }
 
 #[derive(Deserialize)]
-struct RelatesToDeHelper {
+pub(crate) struct RelatesToDeHelper {
     #[serde(rename = "m.in_reply_to")]
     in_reply_to: Option<InReplyTo>,
 
@@ -96,14 +96,14 @@ struct RelatesToDeHelper {
 
 #[derive(Deserialize)]
 #[serde(untagged)]
-enum RelationDeHelper {
+pub(crate) enum RelationDeHelper {
     Known(KnownRelationDeHelper),
     Unknown(CustomRelation),
 }
 
 #[derive(Deserialize)]
 #[serde(tag = "rel_type")]
-enum KnownRelationDeHelper {
+pub(crate) enum KnownRelationDeHelper {
     #[serde(rename = "m.replace")]
     Replacement(ReplacementJsonRepr),
 
@@ -116,13 +116,13 @@ enum KnownRelationDeHelper {
 
 /// A replacement relation without `m.new_content`.
 #[derive(Deserialize, Serialize)]
-pub(super) struct ReplacementJsonRepr {
+pub(crate) struct ReplacementJsonRepr {
     event_id: OwnedEventId,
 }
 
 /// A thread relation without the reply fallback, with stable names.
 #[derive(Deserialize)]
-struct ThreadDeHelper {
+pub(crate) struct ThreadDeHelper {
     event_id: OwnedEventId,
 
     #[serde(default)]
@@ -131,7 +131,7 @@ struct ThreadDeHelper {
 
 /// A thread relation without the reply fallback, with unstable names.
 #[derive(Deserialize)]
-struct ThreadUnstableDeHelper {
+pub(crate) struct ThreadUnstableDeHelper {
     event_id: OwnedEventId,
 
     #[serde(rename = "io.element.show_reply", default)]
@@ -220,5 +220,40 @@ impl From<CustomRelation> for CustomSerHelper {
     fn from(value: CustomRelation) -> Self {
         let CustomRelation { rel_type, event_id, data } = value;
         Self { rel_type: Some(rel_type), event_id: Some(event_id), data, ..Default::default() }
+    }
+}
+
+impl From<&RelationWithoutReplacement> for RelationSerHelper {
+    fn from(value: &RelationWithoutReplacement) -> Self {
+        match value.clone() {
+            RelationWithoutReplacement::Reply { in_reply_to } => {
+                RelationSerHelper::Custom(in_reply_to.into())
+            }
+            RelationWithoutReplacement::Thread(t) => RelationSerHelper::Thread(t),
+            RelationWithoutReplacement::_Custom(c) => RelationSerHelper::Custom(c.into()),
+        }
+    }
+}
+
+impl Serialize for RelationWithoutReplacement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        RelationSerHelper::from(self).serialize(serializer)
+    }
+}
+
+impl RelationWithoutReplacement {
+    pub(super) fn serialize_data(&self) -> JsonObject {
+        let helper = RelationSerHelper::from(self);
+
+        match serde_json::to_value(helper).expect("relation serialization to succeed") {
+            JsonValue::Object(mut obj) => {
+                obj.remove("rel_type");
+                obj
+            }
+            _ => panic!("all relations must serialize to objects"),
+        }
     }
 }
