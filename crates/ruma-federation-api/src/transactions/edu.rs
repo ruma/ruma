@@ -316,10 +316,10 @@ impl SigningKeyUpdateContent {
 mod test {
     use assert_matches2::assert_matches;
     use js_int::uint;
-    use ruma_common::{room_id, user_id};
+    use ruma_common::{events::ToDeviceEventType, room_id, user_id};
     use serde_json::json;
 
-    use super::*;
+    use super::{DeviceListUpdateContent, Edu, ReceiptContent};
 
     #[test]
     fn device_list_update_edu() {
