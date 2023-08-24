@@ -945,10 +945,7 @@ pub(crate) fn parse_markdown(text: &str) -> Option<String> {
     let has_markdown = Parser::new_ext(text, OPTIONS).any(|ref event| {
         let is_text = matches!(event, Event::Text(_));
         let is_break = matches!(event, Event::SoftBreak | Event::HardBreak);
-        let is_first_paragraph_start = if matches!(event,
-            Event::Start(tag)
-                if matches!(tag, Tag::Paragraph)
-        ) {
+        let is_first_paragraph_start = if matches!(event, Event::Start(Tag::Paragraph)) {
             if found_first_paragraph {
                 false
             } else {
@@ -958,10 +955,7 @@ pub(crate) fn parse_markdown(text: &str) -> Option<String> {
         } else {
             false
         };
-        let is_paragraph_end = matches!(event,
-                Event::End(tag)
-                if matches!(tag, Tag::Paragraph)
-        );
+        let is_paragraph_end = matches!(event, Event::End(Tag::Paragraph));
 
         !is_text && !is_break && !is_first_paragraph_start && !is_paragraph_end
     });
