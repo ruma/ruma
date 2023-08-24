@@ -46,8 +46,6 @@ pub enum CiCmd {
     TestAll,
     /// Run doc tests with almost all features (stable)
     TestDoc,
-    /// Test ruma-common with the compat feature (stable)
-    TestCommon,
     /// Run all the tasks that use the nightly version
     Nightly,
     /// Check formatting (nightly)
@@ -103,7 +101,6 @@ impl CiTask {
             Some(CiCmd::StableCommon) => self.stable_common()?,
             Some(CiCmd::TestAll) => self.test_all()?,
             Some(CiCmd::TestDoc) => self.test_doc()?,
-            Some(CiCmd::TestCommon) => self.test_common()?,
             Some(CiCmd::Nightly) => self.nightly()?,
             Some(CiCmd::Fmt) => self.fmt()?,
             Some(CiCmd::NightlyFull) => self.nightly_full()?,
@@ -171,7 +168,7 @@ impl CiTask {
         self.stable_common()?;
         self.test_all()?;
         self.test_doc()?;
-        self.test_common()
+        Ok(())
     }
 
     /// Check all crates with all features with the stable version.
@@ -204,16 +201,6 @@ impl CiTask {
     /// Run doctests on all crates with almost all features with the stable version.
     fn test_doc(&self) -> Result<()> {
         cmd!("rustup run stable cargo test --doc --features __ci").run().map_err(Into::into)
-    }
-
-    /// Test ruma-common with the compat feature with the stable version.
-    fn test_common(&self) -> Result<()> {
-        cmd!(
-            "rustup run stable cargo test -p ruma-common
-                --features events,compat-empty-string-null,compat-user-id,compat-tag-info compat"
-        )
-        .run()
-        .map_err(Into::into)
     }
 
     /// Run all the tasks that use the nightly version.
