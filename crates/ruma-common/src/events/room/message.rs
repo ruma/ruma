@@ -942,7 +942,8 @@ pub(crate) fn parse_markdown(text: &str) -> Option<String> {
 
     let mut found_first_paragraph = false;
 
-    let has_markdown = Parser::new_ext(text, OPTIONS).any(|ref event| {
+    let parser_events: Vec<_> = Parser::new_ext(text, OPTIONS).collect();
+    let has_markdown = parser_events.iter().any(|ref event| {
         let is_text = matches!(event, Event::Text(_));
         let is_break = matches!(event, Event::SoftBreak | Event::HardBreak);
         let is_first_paragraph_start = if matches!(event, Event::Start(Tag::Paragraph)) {
@@ -965,7 +966,7 @@ pub(crate) fn parse_markdown(text: &str) -> Option<String> {
     }
 
     let mut html_body = String::new();
-    pulldown_cmark::html::push_html(&mut html_body, Parser::new_ext(text, OPTIONS));
+    pulldown_cmark::html::push_html(&mut html_body, parser_events.into_iter());
 
     Some(html_body)
 }
