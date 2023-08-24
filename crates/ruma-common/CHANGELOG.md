@@ -41,6 +41,8 @@ Breaking changes:
 - `RoomMessageEventContent::make_reply_to()` and `make_for_thread()` have an extra parameter to
   support the recommended behavior for intentional mentions in replies according to Matrix 1.7
 - In Markdown, soft line breaks are transformed into hard line breaks when compiled into HTML.
+- Move the HTML functions in `events::room::message::sanitize` to the ruma-html crate
+  - The `unstable-sanitize` cargo feature was renamed to `html`
 
 Improvements:
 
@@ -62,7 +64,7 @@ Improvements:
   - `user_can_send_message`
   - `user_can_send_state`
   - `user_can_trigger_room_notification`
-- Add `MessageType::sanitize` behind the `unstable-sanitize` feature
+- Add `MessageType::sanitize` behind the `html` feature
 - Add `MatrixVersion::V1_7` and `MatrixVersion::V1_8`
 - Stabilize support for annotations and reactions (MSC2677 / Matrix 1.7)
 - Add support for intentional mentions push rules (MSC3952 / Matrix 1.7)
@@ -275,7 +277,7 @@ Improvements:
 * Deserialize stringified integers for power levels without the `compat` feature
 * Add `JoinRule::KnockRestricted` (MSC3787)
 * Add `MatrixVersionId::V10` (MSC3604)
-* Add methods to sanitize messages according to the spec behind the `unstable-sanitize` feature
+* Add methods to sanitize messages according to the spec behind the `html` feature
   * Can also remove rich reply fallbacks
 * Implement `From<Owned*Id>` for `identifiers::matrix_uri::MatrixId`
 * Add unstable default push rule to ignore room server ACLs events (MSC3786)

@@ -20,6 +20,7 @@ ruma-common = { version = "0.11.3", path = "crates/ruma-common" }
 ruma-client = { version = "0.11.0", path = "crates/ruma-client" }
 ruma-client-api = { version = "0.16.2", path = "crates/ruma-client-api" }
 ruma-federation-api = { version = "0.7.1", path = "crates/ruma-federation-api" }
+ruma-html = { version = "0.1.0", path = "crates/ruma-html" }
 ruma-identifiers-validation = { version = "0.9.1", path = "crates/ruma-identifiers-validation" }
 ruma-identity-service-api = { version = "0.7.1", path = "crates/ruma-identity-service-api" }
 ruma-macros = { version = "=0.11.3", path = "crates/ruma-macros" }

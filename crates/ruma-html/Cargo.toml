@@ -1,0 +1,21 @@
+[package]
+name = "ruma-html"
+version = "0.1.0"
+description = "Opinionated HTML parsing and manipulating."
+homepage = "https://www.ruma.io/"
+keywords = ["matrix", "chat", "messaging", "ruma", "html", "parser"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/ruma/ruma"
+edition = "2021"
+rust-version = { workspace = true }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[dependencies]
+html5ever = "0.26.0"
+phf = { version = "0.11.1", features = ["macros"] }
+tracing = { workspace = true, features = ["attributes"] }
+wildmatch = "2.0.0"

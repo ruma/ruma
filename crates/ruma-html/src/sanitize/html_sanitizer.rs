@@ -2,16 +2,14 @@ use html5ever::{tendril::StrTendril, Attribute};
 use phf::{phf_map, phf_set, Map, Set};
 use wildmatch::WildMatch;
 
-use super::{
-    html_fragment::{ElementData, Fragment, NodeData},
-    HtmlSanitizerMode, RemoveReplyFallback,
-};
+use super::{HtmlSanitizerMode, RemoveReplyFallback};
+use crate::{ElementData, Fragment, NodeData};
 
 /// A sanitizer to filter [HTML tags and attributes] according to the Matrix specification.
 ///
 /// [HTML tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
 #[derive(Debug, Clone)]
-pub(crate) struct HtmlSanitizer {
+pub struct HtmlSanitizer {
     /// The mode of the HTML sanitizer.
     mode: HtmlSanitizerMode,
 
