@@ -23,31 +23,13 @@ server = []
 
 api = ["dep:http", "dep:konst"]
 canonical-json = []
-events = []
-html = ["dep:ruma-html"]
 js = ["dep:js-sys", "getrandom?/js", "uuid?/js"]
-markdown = ["pulldown-cmark"]
 rand = ["dep:rand", "dep:uuid"]
 unstable-exhaustive-types = []
-unstable-msc1767 = []
-unstable-msc2448 = []
-unstable-msc2747 = []
 unstable-msc2870 = []
-unstable-msc3245 = ["unstable-msc3246"]
-unstable-msc3246 = ["unstable-msc3927"]
-unstable-msc3381 = ["unstable-msc1767"]
-unstable-msc3488 = ["unstable-msc1767"]
-unstable-msc3551 = ["unstable-msc3956"]
-unstable-msc3552 = ["unstable-msc3551"]
-unstable-msc3553 = ["unstable-msc3552"]
-unstable-msc3554 = ["unstable-msc1767"]
-unstable-msc3927 = ["unstable-msc3551"]
+unstable-msc3381 = []
 unstable-msc3931 = []
 unstable-msc3932 = ["unstable-msc3931"]
-unstable-msc3954 = ["unstable-msc1767"]
-unstable-msc3955 = ["unstable-msc1767"]
-unstable-msc3956 = ["unstable-msc1767"]
-unstable-pdu = []
 unstable-unspecified = []
 
 # Don't validate the version part in `KeyId`.
@@ -69,9 +51,6 @@ compat-null = []
 # mandatory. Deserialization will yield a default value like an empty string.
 compat-optional = []
 
-# Allow TagInfo to contain a stringified floating-point value for the `order` field.
-compat-tag-info = []
-
 [dependencies]
 base64 = { workspace = true }
 bytes = "1.0.1"
@@ -80,13 +59,10 @@ getrandom = { version = "0.2.6", optional = true }
 http = { workspace = true, optional = true }
 indexmap = { version = "2.0.0", features = ["serde"] }
 js_int = { workspace = true, features = ["serde"] }
-js_option = "0.1.0"
 konst = { version = "0.3.5", default-features = false, features = ["cmp", "iter", "parsing"], optional = true }
 percent-encoding = "2.1.0"
-pulldown-cmark = { version = "0.9.1", default-features = false, optional = true }
 rand = { version = "0.8.3", optional = true }
 regex = { version = "1.5.6", default-features = false, features = ["std", "perf"] }
-ruma-html = { workspace = true, optional = true }
 ruma-identifiers-validation = { workspace = true }
 ruma-macros = { workspace = true }
 serde = { workspace = true }
@@ -98,20 +74,11 @@ url = "2.2.2"
 uuid = { version = "1.0.0", optional = true, features = ["v4"] }
 wildmatch = "2.0.0"
 
-# dev-dependencies can't be optional, so this is a regular dependency
-criterion = { workspace = true, optional = true }
-
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
 js-sys = { version = "0.3", optional = true }
 
 [dev-dependencies]
 assert_matches2 = { workspace = true }
 assign = { workspace = true }
-http = { workspace = true }
 maplit = { workspace = true }
 trybuild = "1.0.71"
-
-[[bench]]
-name = "event_deserialize"
-harness = false
-required-features = ["criterion", "events"]

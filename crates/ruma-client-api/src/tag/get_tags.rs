@@ -9,9 +9,9 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        events::tag::Tags,
         metadata, OwnedRoomId, OwnedUserId,
     };
+    use ruma_events::tag::Tags;
 
     const METADATA: Metadata = metadata! {
         method: GET,
@@ -59,10 +59,8 @@ pub mod v3 {
     #[cfg(all(test, feature = "server"))]
     mod server_tests {
         use assign::assign;
-        use ruma_common::{
-            api::OutgoingResponse,
-            events::tag::{TagInfo, Tags},
-        };
+        use ruma_common::api::OutgoingResponse;
+        use ruma_events::tag::{TagInfo, Tags};
         use serde_json::json;
 
         use super::Response;

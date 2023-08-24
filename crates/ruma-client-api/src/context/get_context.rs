@@ -10,11 +10,11 @@ pub mod v3 {
     use js_int::{uint, UInt};
     use ruma_common::{
         api::{request, response, Metadata},
-        events::{AnyStateEvent, AnyTimelineEvent},
         metadata,
         serde::Raw,
         OwnedEventId, OwnedRoomId,
     };
+    use ruma_events::{AnyStateEvent, AnyTimelineEvent};
 
     use crate::filter::RoomEventFilter;
 

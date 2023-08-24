@@ -43,6 +43,9 @@ Breaking changes:
 - In Markdown, soft line breaks are transformed into hard line breaks when compiled into HTML.
 - Move the HTML functions in `events::room::message::sanitize` to the ruma-html crate
   - The `unstable-sanitize` cargo feature was renamed to `html`
+- Removed the `events` module, it is once again its own crate (`ruma-events`)
+- Removed `From` and `TryFrom` implementations for `RedactedBecause` in favor of named constructors
+  (`from_json` and `from_raw_event`)
 
 Improvements:
 

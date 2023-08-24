@@ -21,6 +21,24 @@ pub(crate) fn import_ruma_common() -> TokenStream {
     }
 }
 
+pub(crate) fn import_ruma_events() -> TokenStream {
+    if let Ok(FoundCrate::Name(name)) = crate_name("ruma-events") {
+        let import = format_ident!("{name}");
+        quote! { ::#import }
+    } else if let Ok(FoundCrate::Name(name)) = crate_name("ruma") {
+        let import = format_ident!("{name}");
+        quote! { ::#import::events }
+    } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk") {
+        let import = format_ident!("{name}");
+        quote! { ::#import::ruma::events }
+    } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk-appservice") {
+        let import = format_ident!("{name}");
+        quote! { ::#import::ruma::events }
+    } else {
+        quote! { ::ruma_events }
+    }
+}
+
 /// CamelCase's a field ident like "foo_bar" to "FooBar".
 pub(crate) fn to_camel_case(name: &Ident) -> Ident {
     let span = name.span();

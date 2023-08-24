@@ -102,7 +102,7 @@ Improvements:
 * Add `ErrorKind::{UnableToAuthorizeJoin, UnableToGrantJoin}` encountered for restricted rooms
 * Add support for timestamp massaging (MSC3316)
 * Add support for querying relating events (MSC2675)
-* Move `filter::RelationType` to `ruma_common::events::relations`
+* Move `filter::RelationType` to `ruma_events::relations`
 * Add unstable support for discovering an OpenID Connect server (MSC2965)
 * Add `SpaceRoomJoinRule::KnockRestricted` (MSC3787)
 * Add unstable support for private read receipts (MSC2285)

@@ -5,11 +5,11 @@
 use js_int::UInt;
 use ruma_common::{
     api::{request, response, Metadata},
-    events::{room::member::RoomMemberEventContent, StateEventType},
     metadata,
     serde::Raw,
     MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName, OwnedUserId,
 };
+use ruma_events::{room::member::RoomMemberEventContent, StateEventType};
 use serde::{Deserialize, Serialize};
 
 const METADATA: Metadata = metadata! {

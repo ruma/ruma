@@ -80,7 +80,7 @@
 pub use ruma_client as client;
 #[cfg(feature = "events")]
 #[doc(inline)]
-pub use ruma_common::events;
+pub use ruma_events as events;
 #[cfg(feature = "html")]
 #[doc(inline)]
 pub use ruma_html as html;

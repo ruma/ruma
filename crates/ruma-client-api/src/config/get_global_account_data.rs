@@ -9,11 +9,11 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        events::{AnyGlobalAccountDataEventContent, GlobalAccountDataEventType},
         metadata,
         serde::Raw,
         OwnedUserId,
     };
+    use ruma_events::{AnyGlobalAccountDataEventContent, GlobalAccountDataEventType};
 
     const METADATA: Metadata = metadata! {
         method: GET,
@@ -47,7 +47,7 @@ pub mod v3 {
         /// types with a variable suffix (like [`SecretStorageKeyEventContent`]) to
         /// deserialize it.
         ///
-        /// [`SecretStorageKeyEventContent`]: ruma_common::events::secret_storage::key::SecretStorageKeyEventContent
+        /// [`SecretStorageKeyEventContent`]: ruma_events::secret_storage::key::SecretStorageKeyEventContent
         #[ruma_api(body)]
         pub account_data: Raw<AnyGlobalAccountDataEventContent>,
     }

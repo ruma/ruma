@@ -49,7 +49,7 @@ use self::{
         ord_as_ref_str::{expand_ord_as_ref_str, expand_partial_ord_as_ref_str},
         serialize_as_ref_str::expand_serialize_as_ref_str,
     },
-    util::import_ruma_common,
+    util::{import_ruma_common, import_ruma_events},
 };
 
 /// Generates an enum to represent the various Matrix event types.
@@ -101,7 +101,7 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
     tokens.into()
 }
 
-/// Generates an implementation of `ruma_common::events::EventContent`.
+/// Generates an implementation of `ruma_events::EventContent`.
 ///
 /// Also generates type aliases depending on the kind of event, with the final `Content` of the type
 /// name removed and prefixed added. For instance, a message-like event content type
@@ -118,10 +118,10 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 /// you generate documentation for binaries or private parts of a library.
 #[proc_macro_derive(EventContent, attributes(ruma_event))]
 pub fn derive_event_content(input: TokenStream) -> TokenStream {
-    let ruma_common = import_ruma_common();
+    let ruma_events = import_ruma_events();
     let input = parse_macro_input!(input as DeriveInput);
 
-    expand_event_content(&input, &ruma_common).unwrap_or_else(syn::Error::into_compile_error).into()
+    expand_event_content(&input, &ruma_events).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 /// Generates implementations needed to serialize and deserialize Matrix events.

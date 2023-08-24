@@ -9,14 +9,14 @@ use std::{collections::BTreeMap, time::Duration};
 use js_int::UInt;
 use ruma_common::{
     api::{request, response, Metadata},
-    events::{
-        receipt::SyncReceiptEvent, typing::SyncTypingEvent, AnyGlobalAccountDataEvent,
-        AnyRoomAccountDataEvent, AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent,
-        AnyToDeviceEvent, StateEventType, TimelineEventType,
-    },
     metadata,
     serde::{duration::opt_ms, Raw},
     DeviceKeyAlgorithm, MilliSecondsSinceUnixEpoch, OwnedMxcUri, OwnedRoomId,
+};
+use ruma_events::{
+    receipt::SyncReceiptEvent, typing::SyncTypingEvent, AnyGlobalAccountDataEvent,
+    AnyRoomAccountDataEvent, AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent,
+    AnyToDeviceEvent, StateEventType, TimelineEventType,
 };
 use serde::{Deserialize, Serialize};
 

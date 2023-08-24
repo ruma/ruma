@@ -10,11 +10,11 @@ pub mod v1 {
     use js_int::UInt;
     use ruma_common::{
         api::{request, response, Metadata},
-        events::AnyTimelineEvent,
         metadata,
         serde::{Raw, StringEnum},
         OwnedRoomId,
     };
+    use ruma_events::AnyTimelineEvent;
 
     use crate::PrivOwnedStr;
 

@@ -21,16 +21,16 @@ use event::PduEvent;
 use js_int::{int, uint};
 use maplit::{btreemap, hashmap, hashset};
 use ruma_common::{
-    events::{
-        pdu::{EventHash, Pdu, RoomV3Pdu},
-        room::{
-            join_rules::{JoinRule, RoomJoinRulesEventContent},
-            member::{MembershipState, RoomMemberEventContent},
-        },
-        StateEventType, TimelineEventType,
-    },
     room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, RoomVersionId,
     UserId,
+};
+use ruma_events::{
+    pdu::{EventHash, Pdu, RoomV3Pdu},
+    room::{
+        join_rules::{JoinRule, RoomJoinRulesEventContent},
+        member::{MembershipState, RoomMemberEventContent},
+    },
+    StateEventType, TimelineEventType,
 };
 use ruma_state_res::{self as state_res, Error, Event, Result, StateMap};
 use serde_json::{
@@ -529,10 +529,8 @@ impl EventTypeExt for &TimelineEventType {
 }
 
 mod event {
-    use ruma_common::{
-        events::{pdu::Pdu, TimelineEventType},
-        MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, UserId,
-    };
+    use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, UserId};
+    use ruma_events::{pdu::Pdu, TimelineEventType};
     use ruma_state_res::Event;
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;

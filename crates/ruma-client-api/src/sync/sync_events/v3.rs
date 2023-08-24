@@ -7,15 +7,15 @@ use std::{collections::BTreeMap, time::Duration};
 use js_int::UInt;
 use ruma_common::{
     api::{request, response, Metadata},
-    events::{
-        presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
-        AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncStateEvent, AnySyncTimelineEvent,
-        AnyToDeviceEvent,
-    },
     metadata,
     presence::PresenceState,
     serde::Raw,
     DeviceKeyAlgorithm, OwnedEventId, OwnedRoomId,
+};
+use ruma_events::{
+    presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
+    AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncStateEvent, AnySyncTimelineEvent,
+    AnyToDeviceEvent,
 };
 use serde::{Deserialize, Serialize};
 

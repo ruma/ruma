@@ -10,12 +10,12 @@ pub mod v1 {
     use js_int::{uint, UInt};
     use ruma_common::{
         api::{request, response, Metadata},
-        events::TimelineEventType,
         metadata,
         push::{PushFormat, Tweak},
         serde::StringEnum,
         OwnedEventId, OwnedRoomAliasId, OwnedRoomId, OwnedUserId, SecondsSinceUnixEpoch,
     };
+    use ruma_events::TimelineEventType;
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
     #[cfg(feature = "unstable-unspecified")]
@@ -376,9 +376,10 @@ pub mod v1 {
     mod tests {
         use js_int::uint;
         use ruma_common::{
-            events::TimelineEventType, owned_event_id, owned_room_alias_id, owned_room_id,
-            owned_user_id, SecondsSinceUnixEpoch,
+            owned_event_id, owned_room_alias_id, owned_room_id, owned_user_id,
+            SecondsSinceUnixEpoch,
         };
+        use ruma_events::TimelineEventType;
         use serde_json::{
             from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
         };

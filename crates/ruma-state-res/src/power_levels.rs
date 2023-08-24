@@ -2,11 +2,11 @@ use std::collections::BTreeMap;
 
 use js_int::Int;
 use ruma_common::{
-    events::{room::power_levels::RoomPowerLevelsEventContent, TimelineEventType},
     power_levels::{default_power_level, NotificationPowerLevels},
     serde::{btreemap_deserialize_v1_powerlevel_values, deserialize_v1_powerlevel},
     OwnedUserId,
 };
+use ruma_events::{room::power_levels::RoomPowerLevelsEventContent, TimelineEventType};
 use serde::Deserialize;
 use serde_json::{from_str as from_json_str, Error};
 use tracing::error;

@@ -12,11 +12,11 @@ pub mod v3 {
     use js_int::{uint, UInt};
     use ruma_common::{
         api::{request, response, Metadata},
-        events::{AnyStateEvent, AnyTimelineEvent},
         metadata,
         serde::{Raw, StringEnum},
         OwnedEventId, OwnedMxcUri, OwnedRoomId, OwnedUserId,
     };
+    use ruma_events::{AnyStateEvent, AnyTimelineEvent};
     use serde::{Deserialize, Serialize};
 
     use crate::{filter::RoomEventFilter, PrivOwnedStr};

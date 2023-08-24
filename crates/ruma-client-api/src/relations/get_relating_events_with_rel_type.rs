@@ -11,11 +11,11 @@ pub mod v1 {
     use js_int::UInt;
     use ruma_common::{
         api::{request, response, Metadata},
-        events::{relation::RelationType, AnyMessageLikeEvent},
         metadata,
         serde::Raw,
         OwnedEventId, OwnedRoomId,
     };
+    use ruma_events::{relation::RelationType, AnyMessageLikeEvent};
 
     const METADATA: Metadata = metadata! {
         method: GET,

@@ -2,18 +2,15 @@ use std::{borrow::Borrow, collections::BTreeSet};
 
 use js_int::{int, Int};
 use ruma_common::{
-    events::{
-        room::{
-            create::RoomCreateEventContent,
-            join_rules::{JoinRule, RoomJoinRulesEventContent},
-            member::{MembershipState, ThirdPartyInvite},
-            power_levels::RoomPowerLevelsEventContent,
-            third_party_invite::RoomThirdPartyInviteEventContent,
-        },
-        StateEventType, TimelineEventType,
-    },
     serde::{Base64, Raw},
     OwnedUserId, RoomVersionId, UserId,
+};
+use ruma_events::room::{
+    create::RoomCreateEventContent,
+    join_rules::{JoinRule, RoomJoinRulesEventContent},
+    member::{MembershipState, ThirdPartyInvite},
+    power_levels::RoomPowerLevelsEventContent,
+    third_party_invite::RoomThirdPartyInviteEventContent,
 };
 use serde::{
     de::{Error as _, IgnoredAny},
@@ -28,7 +25,7 @@ use crate::{
         deserialize_power_levels_content_invite, deserialize_power_levels_content_redact,
     },
     room_version::RoomVersion,
-    Error, Event, Result,
+    Error, Event, Result, StateEventType, TimelineEventType,
 };
 
 // FIXME: field extracting could be bundled for `content`
@@ -1009,7 +1006,7 @@ fn verify_third_party_invite(
 mod tests {
     use std::sync::Arc;
 
-    use ruma_common::events::{
+    use ruma_events::{
         room::{
             join_rules::{
                 AllowRule, JoinRule, Restricted, RoomJoinRulesEventContent, RoomMembership,

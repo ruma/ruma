@@ -10,17 +10,17 @@ pub mod v3 {
     use assign::assign;
     use ruma_common::{
         api::{request, response, Metadata},
-        events::{
-            room::{
-                create::{PreviousRoom, RoomCreateEventContent},
-                power_levels::RoomPowerLevelsEventContent,
-            },
-            AnyInitialStateEvent,
-        },
         metadata,
         room::RoomType,
         serde::{Raw, StringEnum},
         OwnedRoomId, OwnedUserId, RoomVersionId,
+    };
+    use ruma_events::{
+        room::{
+            create::{PreviousRoom, RoomCreateEventContent},
+            power_levels::RoomPowerLevelsEventContent,
+        },
+        AnyInitialStateEvent,
     };
     use serde::{Deserialize, Serialize};
 

@@ -31,8 +31,8 @@ impl NotificationPowerLevels {
         }
     }
 
-    #[cfg(feature = "events")]
-    pub(crate) fn is_default(&self) -> bool {
+    /// Whether all fields have their default values.
+    pub fn is_default(&self) -> bool {
         self.room == default_power_level()
     }
 }

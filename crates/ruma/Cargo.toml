@@ -17,9 +17,9 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 api = ["ruma-common/api"]
-canonical-json = ["ruma-common/canonical-json"]
+canonical-json = ["ruma-common/canonical-json", "ruma-events?/canonical-json"]
 client = ["dep:ruma-client"]
-events = ["ruma-common/events"]
+events = ["dep:ruma-events"]
 server-util = ["dep:ruma-server-util"]
 signatures = ["dep:ruma-signatures", "canonical-json"]
 state-res = ["dep:ruma-state-res"]
@@ -69,8 +69,8 @@ js = ["ruma-common/js"]
 
 # Convenience features
 rand = ["ruma-common/rand"]
-markdown = ["ruma-common/markdown"]
-html = ["dep:ruma-html", "ruma-common/html"]
+markdown = ["ruma-events?/markdown"]
+html = ["dep:ruma-html", "ruma-events?/html"]
 
 # Everything except compat, js and unstable features
 full = [
@@ -132,7 +132,7 @@ compat-upload-signatures = ["ruma-client-api?/compat-upload-signatures"]
 # Allow extra characters in signature IDs not allowed in the specification.
 compat-signature-id = ["ruma-signatures?/compat-signature-id"]
 # Allow TagInfo to contain a stringified floating-point value for the `order` field.
-compat-tag-info = ["ruma-common/compat-tag-info"]
+compat-tag-info = ["ruma-events?/compat-tag-info"]
 
 # Specific compatibility for past ring public/private key documents.
 ring-compat = ["dep:ruma-signatures", "ruma-signatures?/ring-compat"]
@@ -155,42 +155,39 @@ unstable-extensible-events = [
     "unstable-msc3954",
     "unstable-msc3955",
 ]
-unstable-msc1767 = ["ruma-common/unstable-msc1767"]
+unstable-msc1767 = ["ruma-events?/unstable-msc1767"]
 unstable-msc2409 = ["ruma-appservice-api?/unstable-msc2409"]
 unstable-msc2448 = [
     "ruma-client-api?/unstable-msc2448",
-    "ruma-common/unstable-msc2448",
+    "ruma-events?/unstable-msc2448",
     "ruma-federation-api?/unstable-msc2448"
 ]
 unstable-msc2654 = ["ruma-client-api?/unstable-msc2654"]
 unstable-msc2666 = ["ruma-client-api?/unstable-msc2666"]
-unstable-msc2747 = ["ruma-common/unstable-msc2747"]
+unstable-msc2747 = ["ruma-events?/unstable-msc2747"]
 unstable-msc2870 = ["ruma-common/unstable-msc2870"]
 unstable-msc2965 = ["ruma-client-api?/unstable-msc2965"]
 unstable-msc2967 = ["ruma-client-api?/unstable-msc2967"]
 unstable-msc3202 = ["ruma-appservice-api?/unstable-msc3202"]
-unstable-msc3245 = ["ruma-common/unstable-msc3245"]
-unstable-msc3246 = ["ruma-common/unstable-msc3246"]
-unstable-msc3381 = ["ruma-common/unstable-msc3381"]
-unstable-msc3488 = [
-    "ruma-client-api?/unstable-msc3488",
-    "ruma-common/unstable-msc3488",
-]
-unstable-msc3551 = ["ruma-common/unstable-msc3551"]
-unstable-msc3552 = ["ruma-common/unstable-msc3552"]
-unstable-msc3553 = ["ruma-common/unstable-msc3553"]
-unstable-msc3554 = ["ruma-common/unstable-msc3554"]
+unstable-msc3245 = ["ruma-events?/unstable-msc3245"]
+unstable-msc3246 = ["ruma-events?/unstable-msc3246"]
+unstable-msc3381 = ["ruma-common/unstable-msc3381", "ruma-events?/unstable-msc3381"]
+unstable-msc3488 = ["ruma-client-api?/unstable-msc3488", "ruma-events?/unstable-msc3488"]
+unstable-msc3551 = ["ruma-events?/unstable-msc3551"]
+unstable-msc3552 = ["ruma-events?/unstable-msc3552"]
+unstable-msc3553 = ["ruma-events?/unstable-msc3553"]
+unstable-msc3554 = ["ruma-events?/unstable-msc3554"]
 unstable-msc3575 = ["ruma-client-api?/unstable-msc3575"]
 unstable-msc3618 = ["ruma-federation-api?/unstable-msc3618"]
 unstable-msc3723 = ["ruma-federation-api?/unstable-msc3723"]
 unstable-msc3814 = ["ruma-client-api?/unstable-msc3814"]
-unstable-msc3927 = ["ruma-common/unstable-msc3927"]
+unstable-msc3927 = ["ruma-events?/unstable-msc3927"]
 unstable-msc3931 = ["ruma-common/unstable-msc3931"]
 unstable-msc3932 = ["ruma-common/unstable-msc3932"]
-unstable-msc3954 = ["ruma-common/unstable-msc3954"]
-unstable-msc3955 = ["ruma-common/unstable-msc3955"]
-unstable-msc3956 = ["ruma-common/unstable-msc3956"]
-unstable-pdu = ["ruma-common/unstable-pdu"]
+unstable-msc3954 = ["ruma-events?/unstable-msc3954"]
+unstable-msc3955 = ["ruma-events?/unstable-msc3955"]
+unstable-msc3956 = ["ruma-events?/unstable-msc3956"]
+unstable-pdu = ["ruma-events?/unstable-pdu"]
 unstable-unspecified = [
     "ruma-common/unstable-unspecified",
     "ruma-federation-api?/unstable-unspecified",
@@ -239,6 +236,7 @@ js_option = "0.1.1"
 ruma-common = { workspace = true }
 
 ruma-client = { workspace = true, optional = true }
+ruma-events = { workspace = true, optional = true }
 ruma-html = { workspace = true, optional = true }
 ruma-server-util = { workspace = true, optional = true }
 ruma-signatures = { workspace = true, optional = true }

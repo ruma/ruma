@@ -8,15 +8,7 @@ use serde_json::Value as JsonValue;
 mod value;
 
 pub use self::value::{CanonicalJsonObject, CanonicalJsonValue};
-use crate::RoomVersionId;
-#[cfg(feature = "events")]
-use crate::{
-    events::room::redaction::{
-        OriginalRoomRedactionEvent, OriginalSyncRoomRedactionEvent, RoomRedactionEvent,
-        SyncRoomRedactionEvent,
-    },
-    serde::Raw,
-};
+use crate::{serde::Raw, RoomVersionId};
 
 /// The set of possible errors when serializing to canonical JSON.
 #[cfg(feature = "canonical-json")]
@@ -124,52 +116,25 @@ pub fn to_canonical_value<T: Serialize>(
 }
 
 /// The value to put in `unsigned.redacted_because`.
-///
-/// See `From` implementations for ways to create an instance of this type.
 #[derive(Clone, Debug)]
 pub struct RedactedBecause(CanonicalJsonObject);
 
-impl From<CanonicalJsonObject> for RedactedBecause {
-    fn from(obj: CanonicalJsonObject) -> Self {
+impl RedactedBecause {
+    /// Create a `RedactedBecause` from an arbitrary JSON object.
+    pub fn from_json(obj: CanonicalJsonObject) -> Self {
         Self(obj)
     }
-}
 
-#[cfg(feature = "events")]
-impl TryFrom<&Raw<OriginalRoomRedactionEvent>> for RedactedBecause {
-    type Error = serde_json::Error;
-
-    fn try_from(value: &Raw<OriginalRoomRedactionEvent>) -> Result<Self, Self::Error> {
-        value.deserialize_as().map(Self)
+    /// Create a `RedactedBecause` from a redaction event.
+    ///
+    /// Fails if the raw event is not valid canonical JSON.
+    pub fn from_raw_event(ev: &Raw<impl RedactionEvent>) -> serde_json::Result<Self> {
+        ev.deserialize_as().map(Self)
     }
 }
 
-#[cfg(feature = "events")]
-impl TryFrom<&Raw<OriginalSyncRoomRedactionEvent>> for RedactedBecause {
-    type Error = serde_json::Error;
-
-    fn try_from(value: &Raw<OriginalSyncRoomRedactionEvent>) -> Result<Self, Self::Error> {
-        value.deserialize_as().map(Self)
-    }
-}
-
-#[cfg(feature = "events")]
-impl TryFrom<&Raw<RoomRedactionEvent>> for RedactedBecause {
-    type Error = serde_json::Error;
-
-    fn try_from(value: &Raw<RoomRedactionEvent>) -> Result<Self, Self::Error> {
-        value.deserialize_as().map(Self)
-    }
-}
-
-#[cfg(feature = "events")]
-impl TryFrom<&Raw<SyncRoomRedactionEvent>> for RedactedBecause {
-    type Error = serde_json::Error;
-
-    fn try_from(value: &Raw<SyncRoomRedactionEvent>) -> Result<Self, Self::Error> {
-        value.deserialize_as().map(Self)
-    }
-}
+/// Marker trait for redaction events.
+pub trait RedactionEvent {}
 
 /// Redacts an event using the rules specified in the Matrix client-server specification.
 ///

@@ -13,9 +13,9 @@ pub mod v1 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        events::{room::member::ThirdPartyInvite, StateEventType},
         metadata, OwnedRoomId, OwnedUserId,
     };
+    use ruma_events::{room::member::ThirdPartyInvite, StateEventType};
 
     const METADATA: Metadata = metadata! {
         method: PUT,
