@@ -69,6 +69,7 @@ Improvements:
 - Make the generated and stripped plain text reply fallback behavior more compatible with most
   of the Matrix ecosystem.
 - Add support for intentional mentions according to MSC3952 / Matrix 1.7
+- In Markdown, soft line breaks are transformed into hard line breaks when compiled into HTML.
 
 # 0.11.3
 
