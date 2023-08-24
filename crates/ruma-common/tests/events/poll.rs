@@ -886,12 +886,13 @@ fn compute_results() {
     assert_eq!(*results.get("italian").unwrap(), uint!(6));
     assert_eq!(*results.get("wings").unwrap(), uint!(7));
 
-    // Response in the future is ignored.
-    let future_ts = MilliSecondsSinceUnixEpoch::now().0 + uint!(100_000);
+    // Response later than end_timestamp is ignored.
+    let now = MilliSecondsSinceUnixEpoch::now();
+    let future_ts = now.0 + uint!(100_000);
     responses.push(new_poll_response("$future_event", changing_user_3, future_ts, &["pizza"]));
 
     let counted =
-        compile_poll_results(&poll.content.poll, responses.iter().map(|r| r.data()), None);
+        compile_poll_results(&poll.content.poll, responses.iter().map(|r| r.data()), Some(now));
     assert_eq!(counted.get("pizza").unwrap().len(), 6);
     assert_eq!(counted.get("poutine").unwrap().len(), 8);
     assert_eq!(counted.get("italian").unwrap().len(), 6);
@@ -903,6 +904,14 @@ fn compute_results() {
     assert_eq!(*results.get("poutine").unwrap(), uint!(8));
     assert_eq!(*results.get("italian").unwrap(), uint!(6));
     assert_eq!(*results.get("wings").unwrap(), uint!(7));
+
+    // Response in the future is not ignored if there is no end_timestamp.
+    let counted =
+        compile_poll_results(&poll.content.poll, responses.iter().map(|r| r.data()), None);
+    assert_eq!(counted.get("pizza").unwrap().len(), 7);
+    assert_eq!(counted.get("poutine").unwrap().len(), 8);
+    assert_eq!(counted.get("italian").unwrap().len(), 6);
+    assert_eq!(counted.get("wings").unwrap().len(), 6);
 }
 
 fn new_unstable_poll_response(

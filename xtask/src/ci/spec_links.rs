@@ -3,7 +3,7 @@
 use std::{
     collections::HashMap,
     fs::{self, File},
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader, ErrorKind},
     path::{Path, PathBuf},
 };
 
@@ -85,7 +85,23 @@ fn collect_links(path: &Path) -> Result<Vec<SpecLink>> {
         let mut content = BufReader::new(File::open(path)?);
 
         // We can assume a spec link will never overflow to another line.
-        while content.read_line(&mut buf)? > 0 {
+        loop {
+            match content.read_line(&mut buf) {
+                Ok(read) => {
+                    if read == 0 {
+                        break;
+                    }
+                }
+                Err(err) => {
+                    if err.kind() == ErrorKind::InvalidData {
+                        // The content is not UTF-8 text, skip.
+                        break;
+                    } else {
+                        return Err(err.into());
+                    }
+                }
+            };
+
             line += 1;
 
             // If for some reason a line has 2 spec links.
