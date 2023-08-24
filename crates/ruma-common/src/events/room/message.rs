@@ -942,10 +942,15 @@ pub(crate) fn parse_markdown(text: &str) -> Option<String> {
 
     let mut found_first_paragraph = false;
 
-    let parser_events: Vec<_> = Parser::new_ext(text, OPTIONS).collect();
+    let parser_events: Vec<_> = Parser::new_ext(text, OPTIONS)
+        .map(|event| match event {
+            Event::SoftBreak => Event::HardBreak,
+            _ => event,
+        })
+        .collect();
     let has_markdown = parser_events.iter().any(|ref event| {
         let is_text = matches!(event, Event::Text(_));
-        let is_break = matches!(event, Event::SoftBreak | Event::HardBreak);
+        let is_break = matches!(event, Event::HardBreak | Event::SoftBreak);
         let is_first_paragraph_start = if matches!(event, Event::Start(Tag::Paragraph)) {
             if found_first_paragraph {
                 false
