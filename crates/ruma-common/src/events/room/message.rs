@@ -950,7 +950,7 @@ pub(crate) fn parse_markdown(text: &str) -> Option<String> {
         .collect();
     let has_markdown = parser_events.iter().any(|ref event| {
         let is_text = matches!(event, Event::Text(_));
-        let is_break = matches!(event, Event::HardBreak | Event::SoftBreak);
+        let is_break = matches!(event, Event::HardBreak);
         let is_first_paragraph_start = if matches!(event, Event::Start(Tag::Paragraph)) {
             if found_first_paragraph {
                 false
