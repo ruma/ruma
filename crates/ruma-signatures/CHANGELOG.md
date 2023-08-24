@@ -1,5 +1,11 @@
 # [unreleased]
 
+Breaking changes:
+
+- Update `ed25519-dalek` crate
+  - `Ed25519KeyPair::generate()` returns a `Zeroizing<Vec<u8>>` on success
+  - `Ed25519KeyPair::public_key()` returns an array instead of a slice
+
 Bug fixes:
 
 - Ignore keys with unknown algorithms in `verify_events`
