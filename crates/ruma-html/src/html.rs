@@ -23,6 +23,9 @@ pub struct Html {
 
 impl Html {
     /// Construct a new `Html` by parsing the given string.
+    ///
+    /// This is infallible, any error encountered while parsing the HTML is logged with
+    /// `tracing::debug!`.
     pub fn parse(string: &str) -> Self {
         let sink = Self::default();
         let mut parser = parse_fragment(
