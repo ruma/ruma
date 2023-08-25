@@ -10,10 +10,10 @@
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
-mod html_fragment;
+mod html;
 mod sanitize;
 
 pub use self::{
-    html_fragment::{ElementData, Fragment, Node, NodeData},
+    html::{ElementData, Html, Node, NodeData},
     sanitize::*,
 };

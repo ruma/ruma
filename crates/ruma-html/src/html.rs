@@ -14,13 +14,13 @@ use tracing::debug;
 ///
 /// To get the serialized HTML, use its `Display` implementation.
 #[derive(Debug)]
-pub struct Fragment {
+pub struct Html {
     pub(crate) nodes: Vec<Node>,
 }
 
-impl Fragment {
-    /// Construct a new `Fragment` by parsing the given HTML.
-    pub fn parse_html(html: &str) -> Self {
+impl Html {
+    /// Construct a new `Html` by parsing the given string.
+    pub fn parse(string: &str) -> Self {
         let sink = Self::default();
         let mut parser = parse_fragment(
             sink,
@@ -28,11 +28,11 @@ impl Fragment {
             QualName::new(None, ns!(html), local_name!("div")),
             Vec::new(),
         );
-        parser.process(html.into());
+        parser.process(string.into());
         parser.finish()
     }
 
-    /// Construct a new `Node` with the given data and add it to this `Fragment`.
+    /// Construct a new `Node` with the given data and add it to this `Html`.
     ///
     /// Returns the index of the new node.
     pub fn new_node(&mut self, data: NodeData) -> usize {
@@ -40,7 +40,7 @@ impl Fragment {
         self.nodes.len() - 1
     }
 
-    /// Append the given node to the given parent in this `Fragment`.
+    /// Append the given node to the given parent in this `Html`.
     ///
     /// The node is detached from its previous position.
     pub fn append_node(&mut self, parent_id: usize, node_id: usize) {
@@ -56,7 +56,7 @@ impl Fragment {
         self.nodes[parent_id].last_child = Some(node_id);
     }
 
-    /// Insert the given node before the given sibling in this `Fragment`.
+    /// Insert the given node before the given sibling in this `Html`.
     ///
     /// The node is detached from its previous position.
     pub fn insert_before(&mut self, sibling_id: usize, node_id: usize) {
@@ -73,7 +73,7 @@ impl Fragment {
         self.nodes[sibling_id].prev_sibling = Some(node_id);
     }
 
-    /// Detach the given node from this `Fragment`.
+    /// Detach the given node from this `Html`.
     pub fn detach(&mut self, node_id: usize) {
         let (parent, prev_sibling, next_sibling) = {
             let node = &mut self.nodes[node_id];
@@ -94,13 +94,13 @@ impl Fragment {
     }
 }
 
-impl Default for Fragment {
+impl Default for Html {
     fn default() -> Self {
         Self { nodes: vec![Node::new(NodeData::Document)] }
     }
 }
 
-impl TreeSink for Fragment {
+impl TreeSink for Html {
     type Handle = usize;
     type Output = Self;
 
@@ -225,7 +225,7 @@ impl TreeSink for Fragment {
     }
 }
 
-impl Serialize for Fragment {
+impl Serialize for Html {
     fn serialize<S>(&self, serializer: &mut S, traversal_scope: TraversalScope) -> io::Result<()>
     where
         S: Serializer,
@@ -248,7 +248,7 @@ impl Serialize for Fragment {
     }
 }
 
-impl fmt::Display for Fragment {
+impl fmt::Display for Html {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut u8_vec = Vec::new();
         serialize(
@@ -306,7 +306,7 @@ impl Node {
 }
 
 impl Node {
-    pub(crate) fn serialize<S>(&self, fragment: &Fragment, serializer: &mut S) -> io::Result<()>
+    pub(crate) fn serialize<S>(&self, fragment: &Html, serializer: &mut S) -> io::Result<()>
     where
         S: Serializer,
     {
@@ -348,7 +348,7 @@ impl Node {
 #[derive(Debug)]
 #[allow(clippy::exhaustive_enums)]
 pub enum NodeData {
-    /// The root node of the `Fragment`.
+    /// The root node of the `Html`.
     Document,
 
     /// A text node.
@@ -374,7 +374,7 @@ pub struct ElementData {
 
 #[cfg(test)]
 mod tests {
-    use super::Fragment;
+    use super::Html;
 
     #[test]
     fn sanity() {
@@ -384,8 +384,8 @@ mod tests {
                 <p>This is some <em>text</em></p>\
             </div>\
         ";
-        assert_eq!(Fragment::parse_html(html).to_string(), html);
+        assert_eq!(Html::parse(html).to_string(), html);
 
-        assert_eq!(Fragment::parse_html("").to_string(), "");
+        assert_eq!(Html::parse("").to_string(), "");
     }
 }
