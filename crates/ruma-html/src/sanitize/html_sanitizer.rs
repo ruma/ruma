@@ -3,7 +3,7 @@ use phf::{phf_map, phf_set, Map, Set};
 use wildmatch::WildMatch;
 
 use super::{HtmlSanitizerMode, RemoveReplyFallback};
-use crate::{ElementData, Fragment, NodeData};
+use crate::{ElementData, Html, NodeData};
 
 /// A sanitizer to filter [HTML tags and attributes] according to the Matrix specification.
 ///
@@ -56,8 +56,8 @@ impl HtmlSanitizer {
     }
 
     /// Clean the given HTML string with this sanitizer.
-    pub fn clean(&self, html: &str) -> Fragment {
-        let mut fragment = Fragment::parse_html(html);
+    pub fn clean(&self, html: &str) -> Html {
+        let mut fragment = Html::parse(html);
 
         let root = fragment.nodes[0].first_child.unwrap();
         let mut next_child = fragment.nodes[root].first_child;
@@ -69,7 +69,7 @@ impl HtmlSanitizer {
         fragment
     }
 
-    fn clean_node(&self, fragment: &mut Fragment, node_id: usize, depth: u32) {
+    fn clean_node(&self, fragment: &mut Html, node_id: usize, depth: u32) {
         let action = self.node_action(fragment, node_id, depth);
 
         if action != NodeAction::Remove {
@@ -94,7 +94,7 @@ impl HtmlSanitizer {
         }
     }
 
-    fn node_action(&self, fragment: &Fragment, node_id: usize, depth: u32) -> NodeAction {
+    fn node_action(&self, fragment: &Html, node_id: usize, depth: u32) -> NodeAction {
         match &fragment.nodes[node_id].data {
             NodeData::Element(ElementData { name, attrs, .. }) => {
                 let tag: &str = &name.local;
