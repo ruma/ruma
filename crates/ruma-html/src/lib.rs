@@ -10,10 +10,12 @@
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
+mod helpers;
 mod html;
-mod sanitize;
+mod sanitizer_config;
 
 pub use self::{
+    helpers::*,
     html::{ElementData, Html, Node},
-    sanitize::*,
+    sanitizer_config::SanitizerConfig,
 };

@@ -10,9 +10,12 @@ use html5ever::{
 };
 use tracing::debug;
 
+use crate::SanitizerConfig;
+
 /// An HTML fragment.
 ///
-/// To get the serialized HTML, use its `Display` implementation.
+/// To get the serialized HTML, use its `Display` implementation. Due to the fact that the HTML is
+/// parsed, note that malformed HTML and comments will be stripped from the output.
 #[derive(Debug)]
 pub struct Html {
     pub(crate) nodes: Vec<Node>,
@@ -30,6 +33,20 @@ impl Html {
         );
         parser.process(string.into());
         parser.finish()
+    }
+
+    /// Sanitize this HTML according to the Matrix specification.
+    ///
+    /// This is equivalent to calling [`Self::sanitize_with()`] with a `config` value of
+    /// `SanitizerConfig::compat().remove_reply_fallback()`.
+    pub fn sanitize(&mut self) {
+        let config = SanitizerConfig::compat().remove_reply_fallback();
+        self.sanitize_with(config);
+    }
+
+    /// Sanitize this HTML according to the given configuration.
+    pub fn sanitize_with(&mut self, config: SanitizerConfig) {
+        config.clean(self);
     }
 
     /// Construct a new `Node` with the given data and add it to this `Html`.
