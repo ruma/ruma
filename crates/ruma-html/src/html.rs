@@ -35,7 +35,7 @@ impl Html {
     /// Construct a new `Node` with the given data and add it to this `Html`.
     ///
     /// Returns the index of the new node.
-    pub fn new_node(&mut self, data: NodeData) -> usize {
+    pub(crate) fn new_node(&mut self, data: NodeData) -> usize {
         self.nodes.push(Node::new(data));
         self.nodes.len() - 1
     }
@@ -43,7 +43,7 @@ impl Html {
     /// Append the given node to the given parent in this `Html`.
     ///
     /// The node is detached from its previous position.
-    pub fn append_node(&mut self, parent_id: usize, node_id: usize) {
+    pub(crate) fn append_node(&mut self, parent_id: usize, node_id: usize) {
         self.detach(node_id);
 
         self.nodes[node_id].parent = Some(parent_id);
@@ -59,7 +59,7 @@ impl Html {
     /// Insert the given node before the given sibling in this `Html`.
     ///
     /// The node is detached from its previous position.
-    pub fn insert_before(&mut self, sibling_id: usize, node_id: usize) {
+    pub(crate) fn insert_before(&mut self, sibling_id: usize, node_id: usize) {
         self.detach(node_id);
 
         self.nodes[node_id].parent = self.nodes[sibling_id].parent;
@@ -74,7 +74,7 @@ impl Html {
     }
 
     /// Detach the given node from this `Html`.
-    pub fn detach(&mut self, node_id: usize) {
+    pub(crate) fn detach(&mut self, node_id: usize) {
         let (parent, prev_sibling, next_sibling) = {
             let node = &mut self.nodes[node_id];
             (node.parent.take(), node.prev_sibling.take(), node.next_sibling.take())
@@ -278,7 +278,7 @@ pub struct Node {
 
 impl Node {
     /// Constructs a new `Node` with the given data.
-    pub fn new(data: NodeData) -> Self {
+    fn new(data: NodeData) -> Self {
         Self {
             parent: None,
             prev_sibling: None,
@@ -289,18 +289,18 @@ impl Node {
         }
     }
 
-    /// Returns the `ElementData` of this `Node` if it is a `NodeData::Element`.
+    /// Returns the data of this `Node` if it is an Element (aka an HTML tag).
     pub fn as_element(&self) -> Option<&ElementData> {
         as_variant!(&self.data, NodeData::Element)
     }
 
     /// Returns the mutable `ElementData` of this `Node` if it is a `NodeData::Element`.
-    pub fn as_element_mut(&mut self) -> Option<&mut ElementData> {
+    pub(crate) fn as_element_mut(&mut self) -> Option<&mut ElementData> {
         as_variant!(&mut self.data, NodeData::Element)
     }
 
     /// Returns the mutable text content of this `Node`, if it is a `NodeData::Text`.
-    pub fn as_text_mut(&mut self) -> Option<&mut StrTendril> {
+    fn as_text_mut(&mut self) -> Option<&mut StrTendril> {
         as_variant!(&mut self.data, NodeData::Text)
     }
 }
@@ -347,7 +347,7 @@ impl Node {
 /// The data of a `Node`.
 #[derive(Debug)]
 #[allow(clippy::exhaustive_enums)]
-pub enum NodeData {
+pub(crate) enum NodeData {
     /// The root node of the `Html`.
     Document,
 

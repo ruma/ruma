@@ -3,7 +3,7 @@ use phf::{phf_map, phf_set, Map, Set};
 use wildmatch::WildMatch;
 
 use super::{HtmlSanitizerMode, RemoveReplyFallback};
-use crate::{ElementData, Html, NodeData};
+use crate::html::{ElementData, Html, NodeData};
 
 /// A sanitizer to filter [HTML tags and attributes] according to the Matrix specification.
 ///
