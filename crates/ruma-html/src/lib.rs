@@ -14,6 +14,6 @@ mod html;
 mod sanitize;
 
 pub use self::{
-    html::{ElementData, Html, Node, NodeData},
+    html::{ElementData, Html, Node},
     sanitize::*,
 };
