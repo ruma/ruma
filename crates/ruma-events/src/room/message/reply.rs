@@ -1,7 +1,7 @@
 use std::fmt::{self, Write};
 
 #[cfg(feature = "html")]
-use ruma_html::{HtmlSanitizer, HtmlSanitizerMode, RemoveReplyFallback};
+use ruma_html::Html;
 
 use super::{
     sanitize::remove_plain_reply_fallback, FormattedBody, MessageType, OriginalRoomMessageEvent,
@@ -23,13 +23,13 @@ fn get_message_quote_fallbacks(original_message: &OriginalRoomMessageEvent) -> (
             format!("> {emote_sign}<{sender}> {body}").replace('\n', "\n> "),
             format!(
                 "<mx-reply>\
-                        <blockquote>\
-                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a> \
-                            {emote_sign}<a href=\"https://matrix.to/#/{sender}\">{sender}</a>\
-                            <br>\
-                            {html_body}\
-                        </blockquote>\
-                    </mx-reply>"
+                    <blockquote>\
+                        <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a> \
+                        {emote_sign}<a href=\"https://matrix.to/#/{sender}\">{sender}</a>\
+                        <br>\
+                        {html_body}\
+                    </blockquote>\
+                </mx-reply>"
             ),
         )
     };
@@ -82,9 +82,10 @@ impl fmt::Display for FormattedOrPlainBody<'_> {
         if let Some(formatted_body) = self.formatted {
             #[cfg(feature = "html")]
             if self.is_reply {
-                let sanitizer =
-                    HtmlSanitizer::new(HtmlSanitizerMode::Strict, RemoveReplyFallback::Yes);
-                write!(f, "{}", sanitizer.clean(&formatted_body.body))
+                let mut html = Html::parse(&formatted_body.body);
+                html.sanitize();
+
+                write!(f, "{html}")
             } else {
                 f.write_str(&formatted_body.body)
             }
