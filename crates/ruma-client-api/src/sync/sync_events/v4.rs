@@ -10,7 +10,7 @@ use js_int::UInt;
 use ruma_common::{
     api::{request, response, Metadata},
     metadata,
-    serde::{duration::opt_ms, Raw},
+    serde::{deserialize_cow_str, duration::opt_ms, Raw},
     DeviceKeyAlgorithm, MilliSecondsSinceUnixEpoch, OwnedMxcUri, OwnedRoomId, RoomId,
 };
 use ruma_events::{
@@ -743,6 +743,7 @@ impl AccountData {
 
 /// Single entry for a room-related read receipt configuration in `ReceiptsConfig`.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum RoomReceiptConfig {
     /// Get read receipts for all the subscribed rooms.
     AllSubscribed,
@@ -767,10 +768,10 @@ impl<'de> Deserialize<'de> for RoomReceiptConfig {
     where
         D: serde::de::Deserializer<'de>,
     {
-        match String::deserialize(deserializer)?.as_str() {
+        match deserialize_cow_str(deserializer)?.as_ref() {
             "*" => Ok(RoomReceiptConfig::AllSubscribed),
             other => Ok(RoomReceiptConfig::Room(
-                <&RoomId>::try_from(other).map_err(|err| D::Error::custom(err))?.to_owned(),
+                RoomId::parse(other).map_err(D::Error::custom)?.to_owned(),
             )),
         }
     }
