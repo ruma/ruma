@@ -10,15 +10,15 @@ use js_int::UInt;
 use ruma_common::{
     api::{request, response, Metadata},
     metadata,
-    serde::{duration::opt_ms, Raw},
-    DeviceKeyAlgorithm, MilliSecondsSinceUnixEpoch, OwnedMxcUri, OwnedRoomId,
+    serde::{deserialize_cow_str, duration::opt_ms, Raw},
+    DeviceKeyAlgorithm, MilliSecondsSinceUnixEpoch, OwnedMxcUri, OwnedRoomId, RoomId,
 };
 use ruma_events::{
     receipt::SyncReceiptEvent, typing::SyncTypingEvent, AnyGlobalAccountDataEvent,
     AnyRoomAccountDataEvent, AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent,
     AnyToDeviceEvent, StateEventType, TimelineEventType,
 };
-use serde::{Deserialize, Serialize};
+use serde::{de::Error as _, Deserialize, Serialize};
 
 use super::{DeviceLists, UnreadNotificationsCount};
 
@@ -741,6 +741,42 @@ impl AccountData {
     }
 }
 
+/// Single entry for a room-related read receipt configuration in `ReceiptsConfig`.
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub enum RoomReceiptConfig {
+    /// Get read receipts for all the subscribed rooms.
+    AllSubscribed,
+    /// Get read receipts for this particular room.
+    Room(OwnedRoomId),
+}
+
+impl Serialize for RoomReceiptConfig {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            RoomReceiptConfig::AllSubscribed => serializer.serialize_str("*"),
+            RoomReceiptConfig::Room(r) => r.serialize(serializer),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for RoomReceiptConfig {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        match deserialize_cow_str(deserializer)?.as_ref() {
+            "*" => Ok(RoomReceiptConfig::AllSubscribed),
+            other => Ok(RoomReceiptConfig::Room(
+                RoomId::parse(other).map_err(D::Error::custom)?.to_owned(),
+            )),
+        }
+    }
+}
+
 /// Receipt extension configuration.
 ///
 /// According to [MSC3960](https://github.com/matrix-org/matrix-spec-proposals/pull/3960)
@@ -767,7 +803,7 @@ pub struct ReceiptsConfig {
     ///
     /// Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub rooms: Option<Vec<OwnedRoomId>>,
+    pub rooms: Option<Vec<RoomReceiptConfig>>,
 }
 
 impl ReceiptsConfig {
@@ -848,5 +884,34 @@ impl Typing {
     /// Whether all fields are empty or `None`.
     pub fn is_empty(&self) -> bool {
         self.rooms.is_empty()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use ruma_common::owned_room_id;
+
+    use crate::sync::sync_events::v4::RoomReceiptConfig;
+
+    #[test]
+    fn serialize_room_receipt_config() {
+        let entry = RoomReceiptConfig::AllSubscribed;
+        assert_eq!(serde_json::to_string(&entry).unwrap().as_str(), r#""*""#);
+
+        let entry = RoomReceiptConfig::Room(owned_room_id!("!n8f893n9:example.com"));
+        assert_eq!(serde_json::to_string(&entry).unwrap().as_str(), r#""!n8f893n9:example.com""#);
+    }
+
+    #[test]
+    fn deserialize_room_receipt_config() {
+        assert_eq!(
+            serde_json::from_str::<RoomReceiptConfig>(r#""*""#).unwrap(),
+            RoomReceiptConfig::AllSubscribed
+        );
+
+        assert_eq!(
+            serde_json::from_str::<RoomReceiptConfig>(r#""!n8f893n9:example.com""#).unwrap(),
+            RoomReceiptConfig::Room(owned_room_id!("!n8f893n9:example.com"))
+        );
     }
 }
