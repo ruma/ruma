@@ -1,10 +1,11 @@
-use std::borrow::Cow;
+use std::{borrow::Cow, collections::BTreeSet};
 
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    mxc_uri, owned_event_id, owned_room_id, owned_user_id, serde::Base64, user_id,
-    MilliSecondsSinceUnixEpoch, OwnedDeviceId,
+    mxc_uri, owned_event_id, owned_room_id, owned_user_id, room_id,
+    serde::{Base64, Raw},
+    user_id, MilliSecondsSinceUnixEpoch, OwnedDeviceId,
 };
 use ruma_events::{
     key::verification::VerificationMethod,
@@ -18,7 +19,7 @@ use ruma_events::{
         },
         EncryptedFileInit, JsonWebKeyInit, MediaSource,
     },
-    Mentions, MessageLikeUnsigned,
+    AnySyncTimelineEvent, Mentions, MessageLikeUnsigned,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -481,6 +482,215 @@ fn reply_add_mentions() {
     let mentions = second_message.mentions.unwrap();
     assert_eq!(mentions.user_ids, [friend, other_friend, user].into());
     assert!(mentions.room);
+}
+
+#[test]
+fn reply_to_raw() {
+    let room_id = room_id!("!roomid:notareal.hs");
+    let event_id = owned_event_id!("$143273582443PhrSn");
+
+    let original_message: Raw<AnySyncTimelineEvent> = from_json_value(json!({
+        "content": {
+            "body": "Hello, World!",
+            "msgtype": "m.text",
+        },
+        "event_id": event_id,
+        "origin_server_ts": 134_829_848,
+        "sender": "@user:notareal.hs",
+        "type": "m.room.message",
+    }))
+    .unwrap();
+
+    let reply = RoomMessageEventContent::text_html(
+        "This is **my** reply",
+        "This is <strong>my</strong> reply",
+    )
+    .make_reply_to_raw(
+        &original_message,
+        event_id.clone(),
+        room_id,
+        ForwardThread::Yes,
+        AddMentions::No,
+    );
+
+    assert_matches!(reply.relates_to, Some(Relation::Reply { in_reply_to }));
+    assert_eq!(in_reply_to.event_id, event_id);
+
+    assert_matches!(reply.msgtype, MessageType::Text(text_msg));
+    assert_eq!(
+        text_msg.body,
+        "> <@user:notareal.hs> Hello, World!\n\
+         \n\
+         This is **my** reply"
+    );
+    assert_eq!(
+        text_msg.formatted.unwrap().body,
+        "<mx-reply>\
+            <blockquote>\
+                <a href=\"https://matrix.to/#/!roomid:notareal.hs/$143273582443PhrSn\">In reply to</a> \
+                <a href=\"https://matrix.to/#/@user:notareal.hs\">@user:notareal.hs</a>\
+                <br>\
+                Hello, World!\
+            </blockquote>\
+        </mx-reply>\
+        This is <strong>my</strong> reply"
+    );
+}
+
+#[test]
+fn reply_to_raw_no_body() {
+    let room_id = room_id!("!roomid:notareal.hs");
+    let event_id = owned_event_id!("$143273582443PhrSn");
+
+    let original_message: Raw<AnySyncTimelineEvent> = from_json_value(json!({
+        "content": {},
+        "event_id": event_id,
+        "origin_server_ts": 134_829_848,
+        "sender": "@user:notareal.hs",
+        "type": "m.room.message",
+    }))
+    .unwrap();
+
+    let reply = RoomMessageEventContent::text_html(
+        "This is **my** reply",
+        "This is <strong>my</strong> reply",
+    )
+    .make_reply_to_raw(
+        &original_message,
+        event_id.clone(),
+        room_id,
+        ForwardThread::Yes,
+        AddMentions::No,
+    );
+
+    assert_matches!(reply.relates_to, Some(Relation::Reply { in_reply_to }));
+    assert_eq!(in_reply_to.event_id, event_id);
+
+    assert_matches!(reply.msgtype, MessageType::Text(text_msg));
+    assert_eq!(text_msg.body, "This is **my** reply");
+    assert_eq!(text_msg.formatted.unwrap().body, "This is <strong>my</strong> reply");
+}
+
+#[test]
+fn reply_to_raw_no_sender() {
+    let room_id = room_id!("!roomid:notareal.hs");
+    let event_id = owned_event_id!("$143273582443PhrSn");
+
+    let original_message: Raw<AnySyncTimelineEvent> = from_json_value(json!({
+        "content": {
+            "body": "Hello, World!",
+            "msgtype": "m.text",
+        },
+        "event_id": event_id,
+        "origin_server_ts": 134_829_848,
+        "type": "m.room.message",
+    }))
+    .unwrap();
+
+    let reply = RoomMessageEventContent::text_html(
+        "This is **my** reply",
+        "This is <strong>my</strong> reply",
+    )
+    .make_reply_to_raw(
+        &original_message,
+        event_id.clone(),
+        room_id,
+        ForwardThread::Yes,
+        AddMentions::No,
+    );
+
+    assert_matches!(reply.relates_to, Some(Relation::Reply { in_reply_to }));
+    assert_eq!(in_reply_to.event_id, event_id);
+
+    assert_matches!(reply.msgtype, MessageType::Text(text_msg));
+    assert_eq!(text_msg.body, "This is **my** reply");
+    assert_eq!(text_msg.formatted.unwrap().body, "This is <strong>my</strong> reply");
+}
+
+#[test]
+fn reply_to_raw_forward_thread() {
+    let room_id = room_id!("!roomid:notareal.hs");
+    let event_id = owned_event_id!("$143273582443PhrSn");
+
+    let original_message: Raw<AnySyncTimelineEvent> = from_json_value(json!({
+        "content": {
+            "m.relates_to": {
+                "rel_type": "m.thread",
+                "event_id": "$threadroot",
+                "m.in_reply_to": {
+                    "event_id": "$repliedto",
+                },
+            },
+        },
+        "event_id": event_id,
+        "origin_server_ts": 134_829_848,
+        "sender": "@user:notareal.hs",
+        "type": "m.room.message",
+    }))
+    .unwrap();
+
+    let reply = RoomMessageEventContent::text_html(
+        "This is **my** reply",
+        "This is <strong>my</strong> reply",
+    )
+    .make_reply_to_raw(
+        &original_message,
+        event_id.clone(),
+        room_id,
+        ForwardThread::Yes,
+        AddMentions::No,
+    );
+
+    assert_matches!(reply.relates_to, Some(Relation::Thread(thread)));
+    assert_eq!(thread.event_id, "$threadroot");
+    assert_eq!(thread.in_reply_to.unwrap().event_id, event_id);
+
+    assert_matches!(reply.msgtype, MessageType::Text(text_msg));
+    assert_eq!(text_msg.body, "This is **my** reply");
+    assert_eq!(text_msg.formatted.unwrap().body, "This is <strong>my</strong> reply");
+}
+
+#[test]
+fn reply_to_raw_add_mentions() {
+    let room_id = room_id!("!roomid:notareal.hs");
+    let event_id = owned_event_id!("$143273582443PhrSn");
+
+    let user_id = owned_user_id!("@user:notareal.hs");
+    let other_user_id = owned_user_id!("@other_user:notareal.hs");
+
+    let original_message: Raw<AnySyncTimelineEvent> = from_json_value(json!({
+        "content": {
+            "m.mentions": {
+                "user_ids": [other_user_id],
+            },
+        },
+        "event_id": event_id,
+        "origin_server_ts": 134_829_848,
+        "sender": user_id,
+        "type": "m.room.message",
+    }))
+    .unwrap();
+
+    let reply = RoomMessageEventContent::text_html(
+        "This is **my** reply",
+        "This is <strong>my</strong> reply",
+    )
+    .make_reply_to_raw(
+        &original_message,
+        event_id.clone(),
+        room_id,
+        ForwardThread::Yes,
+        AddMentions::Yes,
+    );
+
+    assert_matches!(reply.relates_to, Some(Relation::Reply { in_reply_to }));
+    assert_eq!(in_reply_to.event_id, event_id);
+
+    assert_matches!(reply.msgtype, MessageType::Text(text_msg));
+    assert_eq!(text_msg.body, "This is **my** reply");
+    assert_eq!(text_msg.formatted.unwrap().body, "This is <strong>my</strong> reply");
+
+    assert_eq!(reply.mentions.unwrap().user_ids, BTreeSet::from([user_id, other_user_id]));
 }
 
 #[test]

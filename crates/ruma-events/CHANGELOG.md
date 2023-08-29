@@ -63,6 +63,7 @@ Improvements:
     - `RedactedRoomRedactionEventContent`,
     - `RedactedRoomPowerLevelsEventContent`,
     - `RedactedRoomMemberEventContent`
+- Add `RoomMessageEventContent::make_reply_to_raw` to build replies to any event
 
 # 0.26.1
 
