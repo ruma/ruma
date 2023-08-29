@@ -2,11 +2,12 @@
 //!
 //! [`m.room.message`]: https://spec.matrix.org/latest/client-server-api/#mroommessage
 
-use std::borrow::Cow;
+use std::{borrow::Cow, collections::BTreeSet};
 
+use as_variant::as_variant;
 use ruma_common::{
-    serde::{JsonObject, StringEnum},
-    EventId, OwnedEventId,
+    serde::{JsonObject, Raw, StringEnum},
+    EventId, OwnedEventId, OwnedUserId, RoomId, UserId,
 };
 #[cfg(feature = "html")]
 use ruma_html::{sanitize_html, HtmlSanitizerMode, RemoveReplyFallback};
@@ -16,7 +17,7 @@ use serde_json::Value as JsonValue;
 
 use crate::{
     relation::{CustomRelation, InReplyTo, RelationType, Replacement, Thread},
-    Mentions, PrivOwnedStr,
+    AnySyncTimelineEvent, Mentions, PrivOwnedStr,
 };
 
 mod audio;
@@ -49,6 +50,8 @@ use sanitize::remove_plain_reply_fallback;
 pub use server_notice::{LimitType, ServerNoticeMessageEventContent, ServerNoticeType};
 pub use text::TextMessageEventContent;
 pub use video::{VideoInfo, VideoMessageEventContent};
+
+use self::reply::OriginalEventData;
 
 /// The content of an `m.room.message` event.
 ///
@@ -149,11 +152,132 @@ impl RoomMessageEventContent {
     /// Panics if `self` has a `formatted_body` with a format other than HTML.
     #[track_caller]
     pub fn make_reply_to(
-        mut self,
+        self,
         original_message: &OriginalRoomMessageEvent,
         forward_thread: ForwardThread,
         add_mentions: AddMentions,
     ) -> Self {
+        let reply = self.make_reply_fallback(original_message.into());
+
+        let original_thread_id = if forward_thread == ForwardThread::Yes {
+            original_message
+                .content
+                .relates_to
+                .as_ref()
+                .and_then(as_variant!(Relation::Thread))
+                .map(|thread| thread.event_id.clone())
+        } else {
+            None
+        };
+
+        let original_user_mentions = (add_mentions == AddMentions::Yes).then(|| {
+            original_message
+                .content
+                .mentions
+                .as_ref()
+                .map(|m| m.user_ids.clone())
+                .unwrap_or_default()
+        });
+
+        reply.make_reply_tweaks(
+            original_message.event_id.clone(),
+            original_thread_id,
+            original_user_mentions,
+            Some(&original_message.sender),
+        )
+    }
+
+    /// Turns `self` into a reply to the given raw event.
+    ///
+    /// Takes the `body` / `formatted_body` (if any) in `self` for the main text and prepends a
+    /// quoted version of the `body` of `original_event` (if any). Also sets the `in_reply_to` field
+    /// inside `relates_to`, and optionally the `rel_type` to `m.thread` if the
+    /// `original_message is in a thread and thread forwarding is enabled.
+    ///
+    /// It is recommended to use [`Self::make_reply_to()`] for replies to `m.room.message` events,
+    /// as the generated fallback is better for some `msgtype`s.
+    ///
+    /// Note that except for the panic below, this is infallible. Which means that if a field is
+    /// missing when deserializing the data, the changes that require it will not be applied. It
+    /// will still at least apply the `m.in_reply_to` relation to this content.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `self` has a `formatted_body` with a format other than HTML.
+    #[track_caller]
+    pub fn make_reply_to_raw(
+        self,
+        original_event: &Raw<AnySyncTimelineEvent>,
+        original_event_id: OwnedEventId,
+        room_id: &RoomId,
+        forward_thread: ForwardThread,
+        add_mentions: AddMentions,
+    ) -> Self {
+        #[derive(Deserialize)]
+        struct ContentDeHelper {
+            body: Option<String>,
+            #[serde(flatten)]
+            formatted: Option<FormattedBody>,
+            #[cfg(feature = "unstable-msc1767")]
+            #[serde(rename = "org.matrix.msc1767")]
+            text: Option<String>,
+            #[serde(rename = "m.relates_to")]
+            relates_to: Option<crate::room::encrypted::Relation>,
+            #[serde(rename = "m.mentions")]
+            mentions: Option<Mentions>,
+        }
+
+        let sender = original_event.get_field::<OwnedUserId>("sender").ok().flatten();
+        let content = original_event.get_field::<ContentDeHelper>("content").ok().flatten();
+        let relates_to = content.as_ref().and_then(|c| c.relates_to.as_ref());
+
+        let content_body = content.as_ref().and_then(|c| {
+            let body = c.body.as_deref();
+            #[cfg(feature = "unstable-msc1767")]
+            let body = body.or(c.text.as_deref());
+
+            Some((c, body?))
+        });
+
+        // Only apply fallback if we managed to deserialize raw event.
+        let reply = if let (Some(sender), Some((content, body))) = (&sender, content_body) {
+            let is_reply =
+                matches!(content.relates_to, Some(crate::room::encrypted::Relation::Reply { .. }));
+            let data = OriginalEventData {
+                body,
+                formatted: content.formatted.as_ref(),
+                is_emote: false,
+                is_reply,
+                room_id,
+                event_id: &original_event_id,
+                sender,
+            };
+
+            self.make_reply_fallback(data)
+        } else {
+            self
+        };
+
+        let original_thread_id = if forward_thread == ForwardThread::Yes {
+            relates_to
+                .and_then(as_variant!(crate::room::encrypted::Relation::Thread))
+                .map(|thread| thread.event_id.clone())
+        } else {
+            None
+        };
+
+        let original_user_mentions = (add_mentions == AddMentions::Yes)
+            .then(|| content.and_then(|c| c.mentions).map(|m| m.user_ids).unwrap_or_default());
+
+        reply.make_reply_tweaks(
+            original_event_id,
+            original_thread_id,
+            original_user_mentions,
+            sender.as_deref(),
+        )
+    }
+
+    fn make_reply_fallback(mut self, original_event: OriginalEventData<'_>) -> Self {
         let empty_formatted_body = || FormattedBody::html(String::new());
 
         let (body, formatted) = {
@@ -190,32 +314,30 @@ impl RoomMessageEventContent {
             (*body, *formatted_body) = reply::plain_and_formatted_reply_body(
                 body.as_str(),
                 (!formatted_body.is_empty()).then_some(formatted_body.as_str()),
-                original_message,
+                original_event,
             );
         }
 
-        let relates_to = if let Some(Relation::Thread(Thread { event_id, .. })) = original_message
-            .content
-            .relates_to
-            .as_ref()
-            .filter(|_| forward_thread == ForwardThread::Yes)
-        {
-            Relation::Thread(Thread::plain(event_id.clone(), original_message.event_id.clone()))
+        self
+    }
+
+    fn make_reply_tweaks(
+        mut self,
+        original_event_id: OwnedEventId,
+        original_thread_id: Option<OwnedEventId>,
+        original_user_mentions: Option<BTreeSet<OwnedUserId>>,
+        original_sender: Option<&UserId>,
+    ) -> Self {
+        let relates_to = if let Some(event_id) = original_thread_id {
+            Relation::Thread(Thread::plain(event_id.to_owned(), original_event_id.to_owned()))
         } else {
-            Relation::Reply {
-                in_reply_to: InReplyTo { event_id: original_message.event_id.clone() },
-            }
+            Relation::Reply { in_reply_to: InReplyTo { event_id: original_event_id.to_owned() } }
         };
         self.relates_to = Some(relates_to);
 
-        if add_mentions == AddMentions::Yes {
-            // Copy the mentioned users.
-            let mut user_ids = match &original_message.content.mentions {
-                Some(m) => m.user_ids.clone(),
-                None => Default::default(),
-            };
+        if let (Some(sender), Some(mut user_ids)) = (original_sender, original_user_mentions) {
             // Add the sender.
-            user_ids.insert(original_message.sender.clone());
+            user_ids.insert(sender.to_owned());
             self.mentions = Some(Mentions { user_ids, ..Default::default() });
         }
 
