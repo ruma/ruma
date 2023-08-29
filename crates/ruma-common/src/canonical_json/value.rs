@@ -1,5 +1,6 @@
 use std::{collections::BTreeMap, fmt};
 
+use as_variant::as_variant;
 use js_int::{Int, UInt};
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
 use serde_json::{to_string as to_json_string, Value as JsonValue};
@@ -76,58 +77,37 @@ pub enum CanonicalJsonValue {
 impl CanonicalJsonValue {
     /// If the `CanonicalJsonValue` is a `Bool`, return the inner value.
     pub fn as_bool(&self) -> Option<bool> {
-        match self {
-            Self::Bool(b) => Some(*b),
-            _ => None,
-        }
+        as_variant!(self, Self::Bool).copied()
     }
 
     /// If the `CanonicalJsonValue` is an `Integer`, return the inner value.
     pub fn as_integer(&self) -> Option<Int> {
-        match self {
-            Self::Integer(i) => Some(*i),
-            _ => None,
-        }
+        as_variant!(self, Self::Integer).copied()
     }
 
     /// If the `CanonicalJsonValue` is a `String`, return a reference to the inner value.
     pub fn as_str(&self) -> Option<&str> {
-        match self {
-            Self::String(s) => Some(s),
-            _ => None,
-        }
+        as_variant!(self, Self::String)
     }
 
     /// If the `CanonicalJsonValue` is an `Array`, return a reference to the inner value.
     pub fn as_array(&self) -> Option<&[CanonicalJsonValue]> {
-        match self {
-            Self::Array(a) => Some(a),
-            _ => None,
-        }
+        as_variant!(self, Self::Array)
     }
 
     /// If the `CanonicalJsonValue` is an `Object`, return a reference to the inner value.
     pub fn as_object(&self) -> Option<&CanonicalJsonObject> {
-        match self {
-            Self::Object(o) => Some(o),
-            _ => None,
-        }
+        as_variant!(self, Self::Object)
     }
 
     /// If the `CanonicalJsonValue` is an `Array`, return a mutable reference to the inner value.
     pub fn as_array_mut(&mut self) -> Option<&mut Vec<CanonicalJsonValue>> {
-        match self {
-            Self::Array(a) => Some(a),
-            _ => None,
-        }
+        as_variant!(self, Self::Array)
     }
 
     /// If the `CanonicalJsonValue` is an `Object`, return a mutable reference to the inner value.
     pub fn as_object_mut(&mut self) -> Option<&mut CanonicalJsonObject> {
-        match self {
-            Self::Object(o) => Some(o),
-            _ => None,
-        }
+        as_variant!(self, Self::Object)
     }
 
     /// Returns `true` if the `CanonicalJsonValue` is a `Bool`.

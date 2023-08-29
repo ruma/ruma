@@ -17,24 +17,23 @@ pub mod v1 {
 
     #[cfg(any(feature = "unstable-msc2409", feature = "unstable-msc3202"))]
     use js_int::UInt;
-    #[cfg(feature = "unstable-msc2409")]
-    use ruma_common::events::AnyToDeviceEvent;
     #[cfg(any(feature = "unstable-msc2409", feature = "unstable-msc3202"))]
     use ruma_common::OwnedUserId;
     use ruma_common::{
         api::{request, response, Metadata},
-        events::AnyTimelineEvent,
         metadata,
         serde::Raw,
         OwnedTransactionId,
     };
     #[cfg(feature = "unstable-msc2409")]
     use ruma_common::{
-        events::receipt::Receipt, presence::PresenceState, serde::from_raw_json_value,
-        OwnedEventId, OwnedRoomId,
+        presence::PresenceState, serde::from_raw_json_value, OwnedEventId, OwnedRoomId,
     };
     #[cfg(feature = "unstable-msc3202")]
     use ruma_common::{DeviceKeyAlgorithm, OwnedDeviceId};
+    use ruma_events::AnyTimelineEvent;
+    #[cfg(feature = "unstable-msc2409")]
+    use ruma_events::{receipt::Receipt, AnyToDeviceEvent};
     #[cfg(feature = "unstable-msc2409")]
     use serde::Deserializer;
     #[cfg(any(feature = "unstable-msc2409", feature = "unstable-msc3202"))]

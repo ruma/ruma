@@ -1,13 +1,13 @@
 use subslice::SubsliceExt as _;
 
 #[derive(Debug)]
-pub enum CompatibleDocument<'a> {
+pub(super) enum CompatibleDocument<'a> {
     WellFormed(&'a [u8]),
     CleanedFromRing(Vec<u8>),
 }
 
 impl<'a> CompatibleDocument<'a> {
-    pub fn from_bytes(bytes: &'a [u8]) -> Self {
+    pub(super) fn from_bytes(bytes: &'a [u8]) -> Self {
         if is_ring(bytes) {
             Self::CleanedFromRing(fix_ring_doc(bytes.to_vec()))
         } else {

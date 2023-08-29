@@ -5,7 +5,8 @@ use std::{
     sync::Arc,
 };
 
-use ruma_common::{events::TimelineEventType, EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId};
+use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId};
+use ruma_events::TimelineEventType;
 use serde_json::value::RawValue as RawJsonValue;
 
 /// Abstraction of a PDU so users can have their own PDU types.

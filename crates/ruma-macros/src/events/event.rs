@@ -8,11 +8,11 @@ use super::{
     event_parse::{to_kind_variation, EventKind, EventKindVariation},
     util::is_non_stripped_room_event,
 };
-use crate::{import_ruma_common, util::to_camel_case};
+use crate::{import_ruma_events, util::to_camel_case};
 
 /// Derive `Event` macro code generation.
 pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
-    let ruma_common = import_ruma_common();
+    let ruma_events = import_ruma_events();
 
     let ident = &input.ident;
     let (kind, var) = to_kind_variation(ident).ok_or_else(|| {
@@ -42,12 +42,12 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
     let mut res = TokenStream::new();
 
     res.extend(
-        expand_deserialize_event(&input, var, &fields, &ruma_common)
+        expand_deserialize_event(&input, var, &fields, &ruma_events)
             .unwrap_or_else(syn::Error::into_compile_error),
     );
 
     if var.is_sync() {
-        res.extend(expand_sync_from_into_full(&input, kind, var, &fields, &ruma_common));
+        res.extend(expand_sync_from_into_full(&input, kind, var, &fields, &ruma_events));
     }
 
     if is_non_stripped_room_event(kind, var) {
@@ -61,10 +61,10 @@ fn expand_deserialize_event(
     input: &DeriveInput,
     var: EventKindVariation,
     fields: &[Field],
-    ruma_common: &TokenStream,
+    ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
-    let serde = quote! { #ruma_common::exports::serde };
-    let serde_json = quote! { #ruma_common::exports::serde_json };
+    let serde = quote! { #ruma_events::exports::serde };
+    let serde_json = quote! { #ruma_events::exports::serde_json };
 
     let ident = &input.ident;
     // we know there is a content field already
@@ -153,7 +153,7 @@ fn expand_deserialize_event(
         quote! {}
     };
     let where_clause = if is_generic {
-        let predicate = parse_quote! { C: #ruma_common::events::EventContentFromType };
+        let predicate = parse_quote! { C: #ruma_events::EventContentFromType };
         if let Some(mut where_clause) = where_clause.cloned() {
             where_clause.predicates.push(predicate);
             Some(where_clause)
@@ -251,7 +251,7 @@ fn expand_sync_from_into_full(
     kind: EventKind,
     var: EventKindVariation,
     fields: &[Field],
-    ruma_common: &TokenStream,
+    ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let ident = &input.ident;
     let full_struct = kind.to_event_ident(var.to_full())?;
@@ -274,7 +274,7 @@ fn expand_sync_from_into_full(
             /// Convert this sync event into a full event, one with a room_id field.
             pub fn into_full_event(
                 self,
-                room_id: #ruma_common::OwnedRoomId,
+                room_id: #ruma_events::exports::ruma_common::OwnedRoomId,
             ) -> #full_struct #ty_gen {
                 let Self { #( #fields, )* } = self;
                 #full_struct {

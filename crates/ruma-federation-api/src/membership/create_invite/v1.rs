@@ -4,11 +4,11 @@
 
 use ruma_common::{
     api::{request, response, Metadata},
-    events::{room::member::RoomMemberEventContent, AnyStrippedStateEvent, StateEventType},
     metadata,
     serde::Raw,
     MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName, OwnedUserId,
 };
+use ruma_events::{room::member::RoomMemberEventContent, AnyStrippedStateEvent, StateEventType};
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 

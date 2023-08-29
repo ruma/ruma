@@ -2,9 +2,10 @@
 
 use js_int::UInt;
 use ruma_common::{
-    events::space::child::HierarchySpaceChildEvent, room::RoomType, serde::Raw,
-    space::SpaceRoomJoinRule, OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId,
+    room::RoomType, serde::Raw, space::SpaceRoomJoinRule, OwnedMxcUri, OwnedRoomAliasId,
+    OwnedRoomId,
 };
+use ruma_events::space::child::HierarchySpaceChildEvent;
 use serde::{Deserialize, Serialize};
 
 pub mod get_hierarchy;

@@ -8,9 +8,9 @@ use crate::PrivOwnedStr;
 
 /// The rule used for users wishing to join a room.
 ///
-/// In contrast to the regular [`JoinRule`](crate::events::room::join_rules::JoinRule), this
-/// enum does not hold the conditions for joining restricted rooms. Instead, the server is assumed
-/// to only return rooms the user is allowed to join in a space hierarchy listing response.
+/// In contrast to the regular `JoinRule` in `ruma_events`, this enum does not hold the conditions
+/// for joining restricted rooms. Instead, the server is assumed to only return rooms the user is
+/// allowed to join in a space hierarchy listing response.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Default, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
@@ -29,15 +29,14 @@ pub enum SpaceRoomJoinRule {
     Private,
 
     /// Users can join the room if they are invited, or if they meet any of the conditions
-    /// described in a set of [`AllowRule`](crate::events::room::join_rules::AllowRule)s.
+    /// described in a set of allow rules.
     ///
     /// These rules are not made available as part of a space hierarchy listing response and can
     /// only be seen by users inside the room.
     Restricted,
 
     /// Users can join the room if they are invited, or if they meet any of the conditions
-    /// described in a set of [`AllowRule`](crate::events::room::join_rules::AllowRule)s, or
-    /// they can request an invite to the room.
+    /// described in a set of allow rules, or they can request an invite to the room.
     KnockRestricted,
 
     /// Anyone can join the room without any prior action.

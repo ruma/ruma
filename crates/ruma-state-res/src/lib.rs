@@ -7,12 +7,10 @@ use std::{
 
 use itertools::Itertools;
 use js_int::{int, Int};
-use ruma_common::{
-    events::{
-        room::member::{MembershipState, RoomMemberEventContent},
-        StateEventType, TimelineEventType,
-    },
-    EventId, MilliSecondsSinceUnixEpoch, RoomVersionId,
+use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, RoomVersionId};
+use ruma_events::{
+    room::member::{MembershipState, RoomMemberEventContent},
+    StateEventType, TimelineEventType,
 };
 use serde_json::from_str as from_json_str;
 use tracing::{debug, info, trace, warn};
@@ -646,12 +644,10 @@ mod tests {
     use js_int::{int, uint};
     use maplit::{hashmap, hashset};
     use rand::seq::SliceRandom;
-    use ruma_common::{
-        events::{
-            room::join_rules::{JoinRule, RoomJoinRulesEventContent},
-            StateEventType, TimelineEventType,
-        },
-        MilliSecondsSinceUnixEpoch, OwnedEventId, RoomVersionId,
+    use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedEventId, RoomVersionId};
+    use ruma_events::{
+        room::join_rules::{JoinRule, RoomJoinRulesEventContent},
+        StateEventType, TimelineEventType,
     };
     use serde_json::{json, value::to_raw_value as to_raw_json_value};
     use tracing::debug;

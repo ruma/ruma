@@ -11,12 +11,12 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        events::{AnyToDeviceEventContent, ToDeviceEventType},
         metadata,
         serde::Raw,
         to_device::DeviceIdOrAllDevices,
         OwnedTransactionId, OwnedUserId,
     };
+    use ruma_events::{AnyToDeviceEventContent, ToDeviceEventType};
 
     const METADATA: Metadata = metadata! {
         method: PUT,

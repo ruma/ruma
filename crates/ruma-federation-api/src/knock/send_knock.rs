@@ -9,11 +9,11 @@ pub mod v1 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        events::AnyStrippedStateEvent,
         metadata,
         serde::Raw,
         OwnedEventId, OwnedRoomId,
     };
+    use ruma_events::AnyStrippedStateEvent;
     use serde_json::value::RawValue as RawJsonValue;
 
     const METADATA: Metadata = metadata! {

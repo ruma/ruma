@@ -9,11 +9,11 @@ pub mod unstable {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        events::AnyToDeviceEvent,
         metadata,
         serde::Raw,
         OwnedDeviceId,
     };
+    use ruma_events::AnyToDeviceEvent;
 
     const METADATA: Metadata = metadata! {
         method: POST,

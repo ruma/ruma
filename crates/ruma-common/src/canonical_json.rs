@@ -8,15 +8,7 @@ use serde_json::Value as JsonValue;
 mod value;
 
 pub use self::value::{CanonicalJsonObject, CanonicalJsonValue};
-use crate::RoomVersionId;
-#[cfg(feature = "events")]
-use crate::{
-    events::room::redaction::{
-        OriginalRoomRedactionEvent, OriginalSyncRoomRedactionEvent, RoomRedactionEvent,
-        SyncRoomRedactionEvent,
-    },
-    serde::Raw,
-};
+use crate::{serde::Raw, RoomVersionId};
 
 /// The set of possible errors when serializing to canonical JSON.
 #[cfg(feature = "canonical-json")]
@@ -124,52 +116,25 @@ pub fn to_canonical_value<T: Serialize>(
 }
 
 /// The value to put in `unsigned.redacted_because`.
-///
-/// See `From` implementations for ways to create an instance of this type.
 #[derive(Clone, Debug)]
 pub struct RedactedBecause(CanonicalJsonObject);
 
-impl From<CanonicalJsonObject> for RedactedBecause {
-    fn from(obj: CanonicalJsonObject) -> Self {
+impl RedactedBecause {
+    /// Create a `RedactedBecause` from an arbitrary JSON object.
+    pub fn from_json(obj: CanonicalJsonObject) -> Self {
         Self(obj)
     }
-}
 
-#[cfg(feature = "events")]
-impl TryFrom<&Raw<OriginalRoomRedactionEvent>> for RedactedBecause {
-    type Error = serde_json::Error;
-
-    fn try_from(value: &Raw<OriginalRoomRedactionEvent>) -> Result<Self, Self::Error> {
-        value.deserialize_as().map(Self)
+    /// Create a `RedactedBecause` from a redaction event.
+    ///
+    /// Fails if the raw event is not valid canonical JSON.
+    pub fn from_raw_event(ev: &Raw<impl RedactionEvent>) -> serde_json::Result<Self> {
+        ev.deserialize_as().map(Self)
     }
 }
 
-#[cfg(feature = "events")]
-impl TryFrom<&Raw<OriginalSyncRoomRedactionEvent>> for RedactedBecause {
-    type Error = serde_json::Error;
-
-    fn try_from(value: &Raw<OriginalSyncRoomRedactionEvent>) -> Result<Self, Self::Error> {
-        value.deserialize_as().map(Self)
-    }
-}
-
-#[cfg(feature = "events")]
-impl TryFrom<&Raw<RoomRedactionEvent>> for RedactedBecause {
-    type Error = serde_json::Error;
-
-    fn try_from(value: &Raw<RoomRedactionEvent>) -> Result<Self, Self::Error> {
-        value.deserialize_as().map(Self)
-    }
-}
-
-#[cfg(feature = "events")]
-impl TryFrom<&Raw<SyncRoomRedactionEvent>> for RedactedBecause {
-    type Error = serde_json::Error;
-
-    fn try_from(value: &Raw<SyncRoomRedactionEvent>) -> Result<Self, Self::Error> {
-        value.deserialize_as().map(Self)
-    }
-}
+/// Marker trait for redaction events.
+pub trait RedactionEvent {}
 
 /// Redacts an event using the rules specified in the Matrix client-server specification.
 ///
@@ -206,9 +171,7 @@ pub fn redact(
 
 /// Redacts an event using the rules specified in the Matrix client-server specification.
 ///
-/// Functionally equivalent to `redact`, only;
-/// * upon error, the event is not touched.
-/// * this'll redact the event in-place.
+/// Functionally equivalent to `redact`, only this'll redact the event in-place.
 pub fn redact_in_place(
     event: &mut CanonicalJsonObject,
     version: &RoomVersionId,
@@ -216,7 +179,7 @@ pub fn redact_in_place(
 ) -> Result<(), RedactionError> {
     // Get the content keys here even if they're only needed inside the branch below, because we
     // can't teach rust that this is a disjoint borrow with `get_mut("content")`.
-    let allowed_content_keys: &[&str] = match event.get("type") {
+    let allowed_content_keys = match event.get("type") {
         Some(CanonicalJsonValue::String(event_type)) => {
             allowed_content_keys_for(event_type, version)
         }
@@ -230,12 +193,12 @@ pub fn redact_in_place(
             _ => return Err(RedactionError::not_of_type("content", JsonType::Object)),
         };
 
-        object_retain_keys(content, allowed_content_keys);
+        object_retain_keys(content, allowed_content_keys)?;
     }
 
     let mut old_event = mem::take(event);
 
-    for &key in ALLOWED_KEYS {
+    for &key in allowed_event_keys_for(version) {
         if let Some(value) = old_event.remove(key) {
             event.insert(key.to_owned(), value);
         }
@@ -259,78 +222,278 @@ pub fn redact_content_in_place(
     object: &mut CanonicalJsonObject,
     version: &RoomVersionId,
     event_type: impl AsRef<str>,
-) {
-    object_retain_keys(object, allowed_content_keys_for(event_type.as_ref(), version));
+) -> Result<(), RedactionError> {
+    object_retain_keys(object, allowed_content_keys_for(event_type.as_ref(), version))
 }
 
-fn object_retain_keys(object: &mut CanonicalJsonObject, keys: &[&str]) {
-    let mut old_content = mem::take(object);
+fn object_retain_keys(
+    object: &mut CanonicalJsonObject,
+    allowed_keys: &AllowedKeys,
+) -> Result<(), RedactionError> {
+    match *allowed_keys {
+        AllowedKeys::All => {}
+        AllowedKeys::Some { keys, nested } => {
+            object_retain_some_keys(object, keys, nested)?;
+        }
+        AllowedKeys::None => {
+            object.clear();
+        }
+    }
+
+    Ok(())
+}
+
+fn object_retain_some_keys(
+    object: &mut CanonicalJsonObject,
+    keys: &[&str],
+    nested: &[(&str, &AllowedKeys)],
+) -> Result<(), RedactionError> {
+    let mut old_object = mem::take(object);
+
+    for &(nested_key, nested_allowed_keys) in nested {
+        if let Some((key, mut nested_object_value)) = old_object.remove_entry(nested_key) {
+            let nested_object = match &mut nested_object_value {
+                CanonicalJsonValue::Object(map) => map,
+                _ => return Err(RedactionError::not_of_type(nested_key, JsonType::Object)),
+            };
+
+            object_retain_keys(nested_object, nested_allowed_keys)?;
+
+            // If the object is empty, it means none of the nested fields were found so we
+            // don't want to keep the object.
+            if !nested_object.is_empty() {
+                object.insert(key, nested_object_value);
+            }
+        }
+    }
 
     for &key in keys {
-        if let Some(value) = old_content.remove(key) {
-            object.insert(key.to_owned(), value);
+        if let Some((key, value)) = old_object.remove_entry(key) {
+            object.insert(key, value);
         }
+    }
+
+    Ok(())
+}
+
+/// The fields that are allowed to remain in an event during redaction depending on the room
+/// version.
+fn allowed_event_keys_for(version: &RoomVersionId) -> &'static [&'static str] {
+    match version {
+        RoomVersionId::V1
+        | RoomVersionId::V2
+        | RoomVersionId::V3
+        | RoomVersionId::V4
+        | RoomVersionId::V5
+        | RoomVersionId::V6
+        | RoomVersionId::V7
+        | RoomVersionId::V8
+        | RoomVersionId::V9
+        | RoomVersionId::V10 => &[
+            "event_id",
+            "type",
+            "room_id",
+            "sender",
+            "state_key",
+            "content",
+            "hashes",
+            "signatures",
+            "depth",
+            "prev_events",
+            "prev_state",
+            "auth_events",
+            "origin",
+            "origin_server_ts",
+            "membership",
+        ],
+        _ => &[
+            "event_id",
+            "type",
+            "room_id",
+            "sender",
+            "state_key",
+            "content",
+            "hashes",
+            "signatures",
+            "depth",
+            "prev_events",
+            "auth_events",
+            "origin_server_ts",
+        ],
     }
 }
 
-/// The fields that are allowed to remain in an event during redaction.
-static ALLOWED_KEYS: &[&str] = &[
-    "event_id",
-    "type",
-    "room_id",
-    "sender",
-    "state_key",
-    "content",
-    "hashes",
-    "signatures",
-    "depth",
-    "prev_events",
-    "prev_state",
-    "auth_events",
-    "origin",
-    "origin_server_ts",
-    "membership",
-];
+/// List of keys to preserve on an object.
+#[derive(Clone, Copy)]
+enum AllowedKeys {
+    /// All keys are preserved.
+    All,
+    /// Some keys are preserved.
+    Some {
+        /// The keys to preserve on this object.
+        keys: &'static [&'static str],
 
-fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'static [&'static str] {
+        /// Keys to preserve on nested objects.
+        ///
+        /// A list of `(nested_object_key, nested_allowed_keys)`.
+        nested: &'static [(&'static str, &'static AllowedKeys)],
+    },
+    /// No keys are preserved.
+    None,
+}
+
+impl AllowedKeys {
+    /// Creates an new `AllowedKeys::Some` with the given keys at this level.
+    const fn some(keys: &'static [&'static str]) -> Self {
+        Self::Some { keys, nested: &[] }
+    }
+
+    /// Creates an new `AllowedKeys::Some` with the given keys and nested keys.
+    const fn some_nested(
+        keys: &'static [&'static str],
+        nested: &'static [(&'static str, &'static AllowedKeys)],
+    ) -> Self {
+        Self::Some { keys, nested }
+    }
+}
+
+/// Allowed keys in `m.room.member`'s content according to room version 1.
+static ROOM_MEMBER_V1: AllowedKeys = AllowedKeys::some(&["membership"]);
+/// Allowed keys in `m.room.member`'s content according to room version 9.
+static ROOM_MEMBER_V9: AllowedKeys =
+    AllowedKeys::some(&["membership", "join_authorised_via_users_server"]);
+/// Allowed keys in `m.room.member`'s content according to room version 11.
+static ROOM_MEMBER_V11: AllowedKeys = AllowedKeys::some_nested(
+    &["membership", "join_authorised_via_users_server"],
+    &[("third_party_invite", &ROOM_MEMBER_THIRD_PARTY_INVITE_V11)],
+);
+/// Allowed keys in the `third_party_invite` field of `m.room.member`'s content according to room
+/// version 11.
+static ROOM_MEMBER_THIRD_PARTY_INVITE_V11: AllowedKeys = AllowedKeys::some(&["signed"]);
+
+/// Allowed keys in `m.room.create`'s content according to room version 1.
+static ROOM_CREATE_V1: AllowedKeys = AllowedKeys::some(&["creator"]);
+
+/// Allowed keys in `m.room.join_rules`'s content according to room version 1.
+static ROOM_JOIN_RULES_V1: AllowedKeys = AllowedKeys::some(&["join_rule"]);
+/// Allowed keys in `m.room.join_rules`'s content according to room version 8.
+static ROOM_JOIN_RULES_V8: AllowedKeys = AllowedKeys::some(&["join_rule", "allow"]);
+
+/// Allowed keys in `m.room.power_levels`'s content according to room version 1.
+static ROOM_POWER_LEVELS_V1: AllowedKeys = AllowedKeys::some(&[
+    "ban",
+    "events",
+    "events_default",
+    "kick",
+    "redact",
+    "state_default",
+    "users",
+    "users_default",
+]);
+/// Allowed keys in `m.room.power_levels`'s content according to room version 11.
+static ROOM_POWER_LEVELS_V11: AllowedKeys = AllowedKeys::some(&[
+    "ban",
+    "events",
+    "events_default",
+    "invite",
+    "kick",
+    "redact",
+    "state_default",
+    "users",
+    "users_default",
+]);
+
+/// Allowed keys in `m.room.aliases`'s content according to room version 1.
+static ROOM_ALIASES_V1: AllowedKeys = AllowedKeys::some(&["aliases"]);
+
+/// Allowed keys in `m.room.server_acl`'s content according to MSC2870.
+#[cfg(feature = "unstable-msc2870")]
+static ROOM_SERVER_ACL_MSC2870: AllowedKeys =
+    AllowedKeys::some(&["allow", "deny", "allow_ip_literals"]);
+
+/// Allowed keys in `m.room.history_visibility`'s content according to room version 1.
+static ROOM_HISTORY_VISIBILITY_V1: AllowedKeys = AllowedKeys::some(&["history_visibility"]);
+
+/// Allowed keys in `m.room.redaction`'s content according to room version 11.
+static ROOM_REDACTION_V11: AllowedKeys = AllowedKeys::some(&["redacts"]);
+
+fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'static AllowedKeys {
     match event_type {
         "m.room.member" => match version {
-            RoomVersionId::V9 | RoomVersionId::V10 => {
-                &["membership", "join_authorised_via_users_server"]
-            }
-            _ => &["membership"],
+            RoomVersionId::V1
+            | RoomVersionId::V2
+            | RoomVersionId::V3
+            | RoomVersionId::V4
+            | RoomVersionId::V5
+            | RoomVersionId::V6
+            | RoomVersionId::V7
+            | RoomVersionId::V8 => &ROOM_MEMBER_V1,
+            RoomVersionId::V9 | RoomVersionId::V10 => &ROOM_MEMBER_V9,
+            _ => &ROOM_MEMBER_V11,
         },
-        "m.room.create" => &["creator"],
+        "m.room.create" => match version {
+            RoomVersionId::V1
+            | RoomVersionId::V2
+            | RoomVersionId::V3
+            | RoomVersionId::V4
+            | RoomVersionId::V5
+            | RoomVersionId::V6
+            | RoomVersionId::V7
+            | RoomVersionId::V8
+            | RoomVersionId::V9
+            | RoomVersionId::V10 => &ROOM_CREATE_V1,
+            _ => &AllowedKeys::All,
+        },
         "m.room.join_rules" => match version {
-            RoomVersionId::V8 | RoomVersionId::V9 | RoomVersionId::V10 => &["join_rule", "allow"],
-            _ => &["join_rule"],
+            RoomVersionId::V1
+            | RoomVersionId::V2
+            | RoomVersionId::V3
+            | RoomVersionId::V4
+            | RoomVersionId::V5
+            | RoomVersionId::V6
+            | RoomVersionId::V7 => &ROOM_JOIN_RULES_V1,
+            _ => &ROOM_JOIN_RULES_V8,
         },
-        "m.room.power_levels" => &[
-            "ban",
-            "events",
-            "events_default",
-            "kick",
-            "redact",
-            "state_default",
-            "users",
-            "users_default",
-        ],
+        "m.room.power_levels" => match version {
+            RoomVersionId::V1
+            | RoomVersionId::V2
+            | RoomVersionId::V3
+            | RoomVersionId::V4
+            | RoomVersionId::V5
+            | RoomVersionId::V6
+            | RoomVersionId::V7
+            | RoomVersionId::V8
+            | RoomVersionId::V9
+            | RoomVersionId::V10 => &ROOM_POWER_LEVELS_V1,
+            _ => &ROOM_POWER_LEVELS_V11,
+        },
         "m.room.aliases" => match version {
             RoomVersionId::V1
             | RoomVersionId::V2
             | RoomVersionId::V3
             | RoomVersionId::V4
-            | RoomVersionId::V5 => &["aliases"],
+            | RoomVersionId::V5 => &ROOM_ALIASES_V1,
             // All other room versions, including custom ones, are treated by version 6 rules.
             // TODO: Should we return an error for unknown versions instead?
-            _ => &[],
+            _ => &AllowedKeys::None,
         },
         #[cfg(feature = "unstable-msc2870")]
-        "m.room.server_acl" if version.as_str() == "org.matrix.msc2870" => {
-            &["allow", "deny", "allow_ip_literals"]
-        }
-        "m.room.history_visibility" => &["history_visibility"],
-        _ => &[],
+        "m.room.server_acl" if version.as_str() == "org.matrix.msc2870" => &ROOM_SERVER_ACL_MSC2870,
+        "m.room.history_visibility" => &ROOM_HISTORY_VISIBILITY_V1,
+        "m.room.redaction" => match version {
+            RoomVersionId::V1
+            | RoomVersionId::V2
+            | RoomVersionId::V3
+            | RoomVersionId::V4
+            | RoomVersionId::V5
+            | RoomVersionId::V6
+            | RoomVersionId::V7
+            | RoomVersionId::V8
+            | RoomVersionId::V9
+            | RoomVersionId::V10 => &AllowedKeys::None,
+            _ => &ROOM_REDACTION_V11,
+        },
+        _ => &AllowedKeys::None,
     }
 }
 
@@ -338,10 +501,16 @@ fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'stat
 mod tests {
     use std::collections::BTreeMap;
 
+    use assert_matches2::assert_matches;
     use js_int::int;
-    use serde_json::{from_str as from_json_str, json, to_string as to_json_string};
+    use serde_json::{
+        from_str as from_json_str, json, to_string as to_json_string, to_value as to_json_value,
+    };
 
-    use super::{to_canonical_value, try_from_json_map, value::CanonicalJsonValue};
+    use super::{
+        redact_in_place, to_canonical_value, try_from_json_map, value::CanonicalJsonValue,
+    };
+    use crate::RoomVersionId;
 
     #[test]
     fn serialize_canon() {
@@ -430,5 +599,170 @@ mod tests {
         );
 
         assert_eq!(to_canonical_value(t).unwrap(), CanonicalJsonValue::Object(expected));
+    }
+
+    #[test]
+    fn redact_allowed_keys_some() {
+        let original_event = json!({
+            "content": {
+                "ban": 50,
+                "events": {
+                    "m.room.avatar": 50,
+                    "m.room.canonical_alias": 50,
+                    "m.room.history_visibility": 100,
+                    "m.room.name": 50,
+                    "m.room.power_levels": 100
+                },
+                "events_default": 0,
+                "invite": 0,
+                "kick": 50,
+                "redact": 50,
+                "state_default": 50,
+                "users": {
+                    "@example:localhost": 100
+                },
+                "users_default": 0
+            },
+            "event_id": "$15139375512JaHAW:localhost",
+            "origin_server_ts": 45,
+            "sender": "@example:localhost",
+            "room_id": "!room:localhost",
+            "state_key": "",
+            "type": "m.room.power_levels",
+            "unsigned": {
+                "age": 45
+            }
+        });
+
+        assert_matches!(
+            CanonicalJsonValue::try_from(original_event),
+            Ok(CanonicalJsonValue::Object(mut object))
+        );
+
+        redact_in_place(&mut object, &RoomVersionId::V1, None).unwrap();
+
+        let redacted_event = to_json_value(&object).unwrap();
+
+        assert_eq!(
+            redacted_event,
+            json!({
+                "content": {
+                    "ban": 50,
+                    "events": {
+                        "m.room.avatar": 50,
+                        "m.room.canonical_alias": 50,
+                        "m.room.history_visibility": 100,
+                        "m.room.name": 50,
+                        "m.room.power_levels": 100
+                    },
+                    "events_default": 0,
+                    "kick": 50,
+                    "redact": 50,
+                    "state_default": 50,
+                    "users": {
+                        "@example:localhost": 100
+                    },
+                    "users_default": 0
+                },
+                "event_id": "$15139375512JaHAW:localhost",
+                "origin_server_ts": 45,
+                "sender": "@example:localhost",
+                "room_id": "!room:localhost",
+                "state_key": "",
+                "type": "m.room.power_levels",
+            })
+        );
+    }
+
+    #[test]
+    fn redact_allowed_keys_none() {
+        let original_event = json!({
+            "content": {
+                "aliases": ["#somewhere:localhost"]
+            },
+            "event_id": "$152037280074GZeOm:localhost",
+            "origin_server_ts": 1,
+            "sender": "@example:localhost",
+            "state_key": "room.com",
+            "room_id": "!room:room.com",
+            "type": "m.room.aliases",
+            "unsigned": {
+                "age": 1
+            }
+        });
+
+        assert_matches!(
+            CanonicalJsonValue::try_from(original_event),
+            Ok(CanonicalJsonValue::Object(mut object))
+        );
+
+        redact_in_place(&mut object, &RoomVersionId::V10, None).unwrap();
+
+        let redacted_event = to_json_value(&object).unwrap();
+
+        assert_eq!(
+            redacted_event,
+            json!({
+                "content": {},
+                "event_id": "$152037280074GZeOm:localhost",
+                "origin_server_ts": 1,
+                "sender": "@example:localhost",
+                "state_key": "room.com",
+                "room_id": "!room:room.com",
+                "type": "m.room.aliases",
+            })
+        );
+    }
+
+    #[test]
+    fn redact_allowed_keys_all() {
+        let original_event = json!({
+            "content": {
+              "m.federate": true,
+              "predecessor": {
+                "event_id": "$something",
+                "room_id": "!oldroom:example.org"
+              },
+              "room_version": "11",
+            },
+            "event_id": "$143273582443PhrSn",
+            "origin_server_ts": 1_432_735,
+            "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
+            "sender": "@example:example.org",
+            "state_key": "",
+            "type": "m.room.create",
+            "unsigned": {
+              "age": 1234,
+            },
+        });
+
+        assert_matches!(
+            CanonicalJsonValue::try_from(original_event),
+            Ok(CanonicalJsonValue::Object(mut object))
+        );
+
+        redact_in_place(&mut object, &RoomVersionId::V11, None).unwrap();
+
+        let redacted_event = to_json_value(&object).unwrap();
+
+        assert_eq!(
+            redacted_event,
+            json!({
+                "content": {
+                  "m.federate": true,
+                  "predecessor": {
+                    "event_id": "$something",
+                    "room_id": "!oldroom:example.org"
+                  },
+                  "room_version": "11",
+                },
+                "event_id": "$143273582443PhrSn",
+                "origin_server_ts": 1_432_735,
+                "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
+                "sender": "@example:example.org",
+                "state_key": "",
+                "type": "m.room.create",
+            })
+        );
     }
 }

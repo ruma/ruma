@@ -9,17 +9,16 @@ use std::{
 
 use js_int::{int, uint};
 use ruma_common::{
-    event_id,
-    events::{
-        pdu::{EventHash, Pdu, RoomV3Pdu},
-        room::{
-            join_rules::{JoinRule, RoomJoinRulesEventContent},
-            member::{MembershipState, RoomMemberEventContent},
-        },
-        TimelineEventType,
+    event_id, room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId,
+    RoomVersionId, UserId,
+};
+use ruma_events::{
+    pdu::{EventHash, Pdu, RoomV3Pdu},
+    room::{
+        join_rules::{JoinRule, RoomJoinRulesEventContent},
+        member::{MembershipState, RoomMemberEventContent},
     },
-    room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, RoomVersionId,
-    UserId,
+    TimelineEventType,
 };
 use serde_json::{
     json,
@@ -547,10 +546,8 @@ pub(crate) fn INITIAL_EDGES() -> Vec<OwnedEventId> {
 }
 
 pub(crate) mod event {
-    use ruma_common::{
-        events::{pdu::Pdu, TimelineEventType},
-        MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, UserId,
-    };
+    use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, UserId};
+    use ruma_events::{pdu::Pdu, TimelineEventType};
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
 

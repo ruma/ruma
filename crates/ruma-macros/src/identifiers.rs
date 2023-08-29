@@ -129,6 +129,13 @@ pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
         }
 
         #[automatically_derived]
+        impl #impl_generics AsRef<#id_ty> for #id_ty {
+            fn as_ref(&self) -> &#id_ty {
+                self
+            }
+        }
+
+        #[automatically_derived]
         impl #impl_generics AsRef<str> for #id_ty {
             fn as_ref(&self) -> &str {
                 self.as_str()

@@ -1,0 +1,5 @@
+error: the `Event` derive only supports structs with named fields
+ --> tests/it/ui/05-named-fields.rs:6:12
+  |
+6 | pub struct OriginalStateEvent<C: StateEventContent>(C);
+  |            ^^^^^^^^^^^^^^^^^^

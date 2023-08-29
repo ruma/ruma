@@ -20,7 +20,8 @@ unstable-exhaustive-types = []
 [dependencies]
 itertools = "0.11.0"
 js_int = { workspace = true }
-ruma-common = { workspace = true, features = ["events"] }
+ruma-common = { workspace = true }
+ruma-events = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
@@ -32,7 +33,7 @@ criterion = { workspace = true, optional = true }
 [dev-dependencies]
 maplit = { workspace = true }
 rand = "0.8.3"
-ruma-common = { workspace = true, features = ["unstable-pdu"] }
+ruma-events = { workspace = true, features = ["unstable-pdu"] }
 tracing-subscriber = "0.3.16"
 
 [[bench]]

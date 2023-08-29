@@ -9,11 +9,11 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        events::room::member::RoomMemberEvent,
         metadata,
         serde::{Raw, StringEnum},
         OwnedRoomId,
     };
+    use ruma_events::room::member::RoomMemberEvent;
 
     use crate::PrivOwnedStr;
 

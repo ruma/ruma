@@ -9,13 +9,12 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        events::{
-            AnyGlobalAccountDataEventContent, GlobalAccountDataEventContent,
-            GlobalAccountDataEventType,
-        },
         metadata,
         serde::Raw,
         OwnedUserId,
+    };
+    use ruma_events::{
+        AnyGlobalAccountDataEventContent, GlobalAccountDataEventContent, GlobalAccountDataEventType,
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
 

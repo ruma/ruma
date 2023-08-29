@@ -9,9 +9,9 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        events::tag::TagInfo,
         metadata, OwnedRoomId, OwnedUserId,
     };
+    use ruma_events::tag::TagInfo;
 
     const METADATA: Metadata = metadata! {
         method: PUT,

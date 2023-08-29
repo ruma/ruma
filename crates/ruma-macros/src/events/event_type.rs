@@ -6,7 +6,7 @@ use super::event_parse::{EventEnumEntry, EventEnumInput, EventKind};
 
 pub fn expand_event_type_enum(
     input: EventEnumInput,
-    ruma_common: TokenStream,
+    ruma_events: TokenStream,
 ) -> syn::Result<TokenStream> {
     let mut timeline: Vec<&Vec<EventEnumEntry>> = vec![];
     let mut state: Vec<&Vec<EventEnumEntry>> = vec![];
@@ -39,7 +39,7 @@ pub fn expand_event_type_enum(
         attrs: vec![],
         aliases: vec![],
         ev_type: LitStr::new("m.presence", Span::call_site()),
-        ev_path: parse_quote! { #ruma_common::events::presence },
+        ev_path: parse_quote! { #ruma_events::presence },
         ident: None,
     }];
     let mut all = input.enums.iter().map(|e| &e.events).collect::<Vec<_>>();
@@ -48,31 +48,31 @@ pub fn expand_event_type_enum(
     let mut res = TokenStream::new();
 
     res.extend(
-        generate_enum("TimelineEventType", &timeline, &ruma_common)
+        generate_enum("TimelineEventType", &timeline, &ruma_events)
             .unwrap_or_else(syn::Error::into_compile_error),
     );
     res.extend(
-        generate_enum("StateEventType", &state, &ruma_common)
+        generate_enum("StateEventType", &state, &ruma_events)
             .unwrap_or_else(syn::Error::into_compile_error),
     );
     res.extend(
-        generate_enum("MessageLikeEventType", &message, &ruma_common)
+        generate_enum("MessageLikeEventType", &message, &ruma_events)
             .unwrap_or_else(syn::Error::into_compile_error),
     );
     res.extend(
-        generate_enum("EphemeralRoomEventType", &ephemeral, &ruma_common)
+        generate_enum("EphemeralRoomEventType", &ephemeral, &ruma_events)
             .unwrap_or_else(syn::Error::into_compile_error),
     );
     res.extend(
-        generate_enum("RoomAccountDataEventType", &room_account, &ruma_common)
+        generate_enum("RoomAccountDataEventType", &room_account, &ruma_events)
             .unwrap_or_else(syn::Error::into_compile_error),
     );
     res.extend(
-        generate_enum("GlobalAccountDataEventType", &global_account, &ruma_common)
+        generate_enum("GlobalAccountDataEventType", &global_account, &ruma_events)
             .unwrap_or_else(syn::Error::into_compile_error),
     );
     res.extend(
-        generate_enum("ToDeviceEventType", &to_device, &ruma_common)
+        generate_enum("ToDeviceEventType", &to_device, &ruma_events)
             .unwrap_or_else(syn::Error::into_compile_error),
     );
 

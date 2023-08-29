@@ -40,6 +40,7 @@
 //!
 //! * `rand`
 //! * `markdown`
+//! * `html`
 //!
 //! # Unstable features
 //!
@@ -52,8 +53,6 @@
 //!   subject to change or removal.
 //! * `unstable-unspecified` -- Undocumented Matrix features that may be subject to change or
 //!   removal.
-//! * `unstable-sanitize` -- Convenience methods for spec-compliant HTML sanitization that have not
-//!   been thoroughly tested.
 //!
 //! # Common features
 //!
@@ -81,7 +80,10 @@
 pub use ruma_client as client;
 #[cfg(feature = "events")]
 #[doc(inline)]
-pub use ruma_common::events;
+pub use ruma_events as events;
+#[cfg(feature = "html")]
+#[doc(inline)]
+pub use ruma_html as html;
 #[cfg(feature = "server-util")]
 #[doc(inline)]
 pub use ruma_server_util as server_util;

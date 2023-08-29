@@ -9,11 +9,11 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        events::AnyTimelineEvent,
         metadata,
         serde::Raw,
         OwnedEventId, OwnedRoomId,
     };
+    use ruma_events::AnyTimelineEvent;
 
     const METADATA: Metadata = metadata! {
         method: GET,

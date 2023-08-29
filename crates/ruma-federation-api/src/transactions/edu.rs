@@ -5,12 +5,12 @@ use std::collections::BTreeMap;
 use js_int::UInt;
 use ruma_common::{
     encryption::{CrossSigningKey, DeviceKeys},
-    events::{receipt::Receipt, AnyToDeviceEventContent, ToDeviceEventType},
     presence::PresenceState,
     serde::{from_raw_json_value, Raw},
     to_device::DeviceIdOrAllDevices,
     OwnedDeviceId, OwnedEventId, OwnedRoomId, OwnedTransactionId, OwnedUserId,
 };
+use ruma_events::{receipt::Receipt, AnyToDeviceEventContent, ToDeviceEventType};
 use serde::{de, Deserialize, Serialize};
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
@@ -316,7 +316,8 @@ impl SigningKeyUpdateContent {
 mod tests {
     use assert_matches2::assert_matches;
     use js_int::uint;
-    use ruma_common::{events::ToDeviceEventType, room_id, user_id};
+    use ruma_common::{room_id, user_id};
+    use ruma_events::ToDeviceEventType;
     use serde_json::json;
 
     use super::{DeviceListUpdateContent, Edu, ReceiptContent};

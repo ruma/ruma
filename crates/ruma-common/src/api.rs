@@ -14,6 +14,7 @@
 
 use std::{convert::TryInto as _, error::Error as StdError};
 
+use as_variant::as_variant;
 use bytes::BufMut;
 use serde::{Deserialize, Serialize};
 
@@ -328,20 +329,14 @@ impl<'a> SendAccessToken<'a> {
     ///
     /// Returns `Some(_)` if `self` contains an access token.
     pub fn get_required_for_endpoint(self) -> Option<&'a str> {
-        match self {
-            Self::IfRequired(tok) | Self::Always(tok) => Some(tok),
-            Self::None => None,
-        }
+        as_variant!(self, Self::IfRequired | Self::Always)
     }
 
     /// Get the access token for an endpoint that should not require one.
     ///
     /// Returns `Some(_)` only if `self` is `SendAccessToken::Always(_)`.
     pub fn get_not_required_for_endpoint(self) -> Option<&'a str> {
-        match self {
-            Self::Always(tok) => Some(tok),
-            Self::IfRequired(_) | Self::None => None,
-        }
+        as_variant!(self, Self::Always)
     }
 }
 

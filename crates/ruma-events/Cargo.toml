@@ -1,0 +1,82 @@
+[package]
+name = "ruma-events"
+version = "0.26.0"
+description = "Serializable types for the events in the Matrix specification."
+homepage = "https://www.ruma.io/"
+keywords = ["matrix", "chat", "messaging", "ruma"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/ruma/ruma"
+edition = "2021"
+rust-version = { workspace = true }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[features]
+canonical-json = ["ruma-common/canonical-json"]
+html = ["dep:ruma-html"]
+markdown = ["pulldown-cmark"]
+unstable-exhaustive-types = []
+unstable-msc1767 = []
+unstable-msc2448 = []
+unstable-msc2747 = []
+unstable-msc3245 = ["unstable-msc3246"]
+unstable-msc3246 = ["unstable-msc3927"]
+unstable-msc3381 = ["unstable-msc1767"]
+unstable-msc3488 = ["unstable-msc1767"]
+unstable-msc3551 = ["unstable-msc3956"]
+unstable-msc3552 = ["unstable-msc3551"]
+unstable-msc3553 = ["unstable-msc3552"]
+unstable-msc3554 = ["unstable-msc1767"]
+unstable-msc3927 = ["unstable-msc3551"]
+unstable-msc3954 = ["unstable-msc1767"]
+unstable-msc3955 = ["unstable-msc1767"]
+unstable-msc3956 = ["unstable-msc1767"]
+unstable-pdu = []
+
+# Allow some mandatory fields to be missing, defaulting them to an empty string
+# in deserialization.
+compat-empty-string-null = []
+
+# Allow certain fields to be absent even though the spec marks them as
+# mandatory. Deserialization will yield a default value like an empty string.
+compat-optional = []
+
+# Allow TagInfo to contain a stringified floating-point value for the `order` field.
+compat-tag-info = []
+
+[dependencies]
+as_variant = { workspace = true }
+indexmap = { version = "2.0.0", features = ["serde"] }
+js_int = { workspace = true, features = ["serde"] }
+js_option = "0.1.0"
+percent-encoding = "2.1.0"
+pulldown-cmark = { version = "0.9.1", default-features = false, optional = true }
+regex = { version = "1.5.6", default-features = false, features = ["std", "perf"] }
+ruma-common = { workspace = true }
+ruma-html = { workspace = true, optional = true }
+ruma-identifiers-validation = { workspace = true }
+ruma-macros = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true, features = ["raw_value"] }
+thiserror = { workspace = true }
+tracing = { workspace = true, features = ["attributes"] }
+url = "2.2.2"
+wildmatch = "2.0.0"
+
+# dev-dependencies can't be optional, so this is a regular dependency
+criterion = { workspace = true, optional = true }
+
+[dev-dependencies]
+assert_matches2 = { workspace = true }
+assign = { workspace = true }
+http = { workspace = true }
+maplit = { workspace = true }
+trybuild = "1.0.71"
+
+[[bench]]
+name = "event_deserialize"
+harness = false
+required-features = ["criterion"]

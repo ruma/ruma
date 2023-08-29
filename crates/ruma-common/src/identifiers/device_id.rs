@@ -40,10 +40,11 @@ impl DeviceId {
     }
 }
 
-#[cfg(all(test, feature = "rand"))]
+#[cfg(test)]
 mod tests {
     use super::{DeviceId, OwnedDeviceId};
 
+    #[cfg(feature = "rand")]
     #[test]
     fn generate_device_id() {
         assert_eq!(DeviceId::new().as_str().len(), 8);

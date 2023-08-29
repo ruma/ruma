@@ -135,9 +135,6 @@ jobs:
           - name: Run Doc Tests
             cmd: test-doc
 
-          - name: Test Common Features
-            cmd: test-common
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3

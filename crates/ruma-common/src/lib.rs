@@ -24,8 +24,6 @@ pub mod authentication;
 pub mod canonical_json;
 pub mod directory;
 pub mod encryption;
-#[cfg(feature = "events")]
-pub mod events;
 mod identifiers;
 mod percent_encode;
 pub mod power_levels;

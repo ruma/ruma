@@ -11,11 +11,11 @@ pub mod v3 {
 
     use ruma_common::{
         api::{response, Metadata},
-        events::{AnyStateEventContent, StateEventContent, StateEventType},
         metadata,
         serde::Raw,
         MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
     };
+    use ruma_events::{AnyStateEventContent, StateEventContent, StateEventType};
     use serde_json::value::to_raw_value as to_raw_json_value;
 
     const METADATA: Metadata = metadata! {
@@ -209,9 +209,9 @@ pub mod v3 {
     fn serialize() {
         use ruma_common::{
             api::{MatrixVersion, OutgoingRequest as _, SendAccessToken},
-            events::{room::name::RoomNameEventContent, EmptyStateKey},
             owned_room_id,
         };
+        use ruma_events::{room::name::RoomNameEventContent, EmptyStateKey};
 
         // This used to panic in make_endpoint_url because of a mismatch in the path parameter count
         let req = Request::new(

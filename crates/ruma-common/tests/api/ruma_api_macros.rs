@@ -1,11 +1,9 @@
 #![allow(clippy::exhaustive_structs)]
 
-#[cfg(feature = "events")]
 pub mod some_endpoint {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
         api::{request, response, Metadata},
-        events::{tag::TagEvent, AnyTimelineEvent},
         metadata,
         serde::Raw,
         OwnedUserId,
@@ -55,11 +53,14 @@ pub mod some_endpoint {
         pub optional_flag: Option<bool>,
 
         // Use `Raw` instead of the actual event to allow additional fields to be sent...
-        pub event: Raw<TagEvent>,
+        pub event: Raw<Event>,
 
         // ... and to allow unknown events when the endpoint deals with event collections.
-        pub list_of_events: Vec<Raw<AnyTimelineEvent>>,
+        pub list_of_events: Vec<Raw<Event>>,
     }
+
+    // Dummy type to avoid circular dev-dependency that rust-analyzer doesn't like
+    pub struct Event {}
 }
 
 pub mod newtype_body_endpoint {

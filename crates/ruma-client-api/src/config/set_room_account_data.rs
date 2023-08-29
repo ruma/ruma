@@ -9,12 +9,12 @@ pub mod v3 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        events::{
-            AnyRoomAccountDataEventContent, RoomAccountDataEventContent, RoomAccountDataEventType,
-        },
         metadata,
         serde::Raw,
         OwnedRoomId, OwnedUserId,
+    };
+    use ruma_events::{
+        AnyRoomAccountDataEventContent, RoomAccountDataEventContent, RoomAccountDataEventType,
     };
     use serde_json::value::to_raw_value as to_raw_json_value;
 

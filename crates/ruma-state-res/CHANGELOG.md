@@ -2,7 +2,7 @@
 
 Improvements:
 
-- Add `RoomVersion::V11` according to MSC3820
+- Add `RoomVersion::V11` according to MSC3820 / Matrix 1.8
 
 # 0.9.1
 
