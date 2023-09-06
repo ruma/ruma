@@ -133,6 +133,10 @@ pub mod macros {
     pub use ruma_macros::{Event, EventContent};
 }
 
+/// Re-export the Markdown parser.
+#[cfg(feature = "markdown")]
+pub use pulldown_cmark as markdown;
+
 #[cfg(feature = "unstable-msc3927")]
 pub mod audio;
 pub mod call;
