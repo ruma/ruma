@@ -35,6 +35,8 @@ mod text;
 mod video;
 
 pub use audio::{AudioInfo, AudioMessageEventContent};
+#[cfg(feature = "unstable-msc3245-v1-compat")]
+pub use audio::{UnstableAudioDetailsContentBlock, UnstableVoiceContentBlock};
 pub use emote::EmoteMessageEventContent;
 pub use file::{FileInfo, FileMessageEventContent};
 pub use image::ImageMessageEventContent;
