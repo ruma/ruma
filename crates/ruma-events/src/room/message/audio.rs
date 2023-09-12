@@ -4,6 +4,8 @@ use js_int::UInt;
 use ruma_common::OwnedMxcUri;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "unstable-msc3245-v1-compat")]
+use crate::audio::Amplitude;
 use crate::room::{EncryptedFile, MediaSource};
 
 /// The payload for an audio message.
@@ -21,12 +23,36 @@ pub struct AudioMessageEventContent {
     /// Metadata for the audio clip referred to in `source`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<AudioInfo>>,
+
+    /// Extensible event fallback data for audio messages, from the
+    /// [first version of MSC3245][msc].
+    ///
+    /// [msc]: https://github.com/matrix-org/matrix-spec-proposals/blob/83f6c5b469c1d78f714e335dcaa25354b255ffa5/proposals/3245-voice-messages.md
+    #[cfg(feature = "unstable-msc3245-v1-compat")]
+    #[serde(rename = "org.matrix.msc1767.audio", skip_serializing_if = "Option::is_none")]
+    pub audio: Option<UnstableAudioDetailsContentBlock>,
+
+    /// Extensible event fallback data for voice messages, from the
+    /// [first version of MSC3245][msc].
+    ///
+    /// [msc]: https://github.com/matrix-org/matrix-spec-proposals/blob/83f6c5b469c1d78f714e335dcaa25354b255ffa5/proposals/3245-voice-messages.md
+    #[cfg(feature = "unstable-msc3245-v1-compat")]
+    #[serde(rename = "org.matrix.msc3245.voice", skip_serializing_if = "Option::is_none")]
+    pub voice: Option<UnstableVoiceContentBlock>,
 }
 
 impl AudioMessageEventContent {
     /// Creates a new `AudioMessageEventContent` with the given body and source.
     pub fn new(body: String, source: MediaSource) -> Self {
-        Self { body, source, info: None }
+        Self {
+            body,
+            source,
+            info: None,
+            #[cfg(feature = "unstable-msc3245-v1-compat")]
+            audio: None,
+            #[cfg(feature = "unstable-msc3245-v1-compat")]
+            voice: None,
+        }
     }
 
     /// Creates a new non-encrypted `AudioMessageEventContent` with the given bod and url.
@@ -77,3 +103,32 @@ impl AudioInfo {
         Self::default()
     }
 }
+
+/// Extensible event fallback data for audio messages, from the
+/// [first version of MSC3245][msc].
+///
+/// [msc]: https://github.com/matrix-org/matrix-spec-proposals/blob/83f6c5b469c1d78f714e335dcaa25354b255ffa5/proposals/3245-voice-messages.md
+#[cfg(feature = "unstable-msc3245-v1-compat")]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct UnstableAudioDetailsContentBlock {
+    /// The duration of the audio in seconds.
+    #[serde(with = "ruma_common::serde::duration::secs")]
+    pub duration: Duration,
+
+    /// The waveform representation of the audio content, if any.
+    ///
+    /// This is optional and defaults to an empty array.
+    #[cfg(feature = "unstable-msc3246")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub waveform: Vec<Amplitude>,
+}
+
+/// Extensible event fallback data for voice messages, from the
+/// [first version of MSC3245][msc].
+///
+/// [msc]: https://github.com/matrix-org/matrix-spec-proposals/blob/83f6c5b469c1d78f714e335dcaa25354b255ffa5/proposals/3245-voice-messages.md
+#[cfg(feature = "unstable-msc3245-v1-compat")]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct UnstableVoiceContentBlock {}
