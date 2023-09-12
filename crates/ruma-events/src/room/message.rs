@@ -420,6 +420,13 @@ impl RoomMessageEventContent {
         self.msgtype.body()
     }
 
+    /// Apply the given new content from a [`Replacement`] to this message.
+    pub fn apply_replacement(&mut self, new_content: RoomMessageEventContentWithoutRelation) {
+        let RoomMessageEventContentWithoutRelation { msgtype, mentions } = new_content;
+        self.msgtype = msgtype;
+        self.mentions = mentions;
+    }
+
     /// Sanitize this message.
     ///
     /// If this message contains HTML, this removes the [tags and attributes] that are not listed in
