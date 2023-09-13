@@ -123,6 +123,9 @@ compat-optional = ["ruma-common/compat-optional"]
 # Unset avatars by sending an empty string, same as what Element Web does, c.f.
 # https://github.com/matrix-org/matrix-spec/issues/378#issuecomment-1055831264
 compat-unset-avatar = ["ruma-client-api?/compat-unset-avatar"]
+# Unset the room name by sending an empty string,
+# c.f. https://github.com/matrix-org/matrix-spec/issues/1632
+compat-unset-room-name = ["ruma-events?/compat-unset-room-name"]
 # Always serialize the threepids response field in `get_3pids::v3::Response`,
 # even if its value is an empty list.
 compat-get-3pids = ["ruma-client-api?/compat-get-3pids"]
