@@ -27,14 +27,16 @@ pub struct SpaceParentEventContent {
     /// together. In practice, well behaved rooms should only have one `canonical` parent, but
     /// given this is not enforced: if multiple are present the client should select the one with
     /// the lowest room ID, as determined via a lexicographic ordering of the Unicode code-points.
+    ///
+    /// Defaults to `false`.
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub canonical: bool,
 }
 
 impl SpaceParentEventContent {
-    /// Creates a new `SpaceParentEventContent` with the given routing servers and canonical flag.
-    pub fn new(via: Vec<OwnedServerName>, canonical: bool) -> Self {
-        Self { via, canonical }
+    /// Creates a new `SpaceParentEventContent` with the given routing servers.
+    pub fn new(via: Vec<OwnedServerName>) -> Self {
+        Self { via, canonical: false }
     }
 }
 
