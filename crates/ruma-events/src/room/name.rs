@@ -15,7 +15,19 @@ use crate::EmptyStateKey;
 #[ruma_event(type = "m.room.name", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomNameEventContent {
     /// The name of the room.
+    ///
+    /// If you activate the `compat-unset-room-name` feature, this field being `None` will result
+    /// in an empty string in serialization, (c.f.
+    /// <https://github.com/matrix-org/matrix-spec/issues/1632>).
     #[serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")]
+    #[cfg_attr(
+        feature = "compat-unset-room-name",
+        serde(serialize_with = "ruma_common::serde::none_as_empty_string")
+    )]
+    #[cfg_attr(
+        not(feature = "compat-unset-room-name"),
+        serde(skip_serializing_if = "Option::is_none")
+    )]
     pub name: Option<String>,
 }
 
