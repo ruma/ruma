@@ -27,6 +27,7 @@ Improvements:
 - Add `MatrixVersion::V1_7` and `MatrixVersion::V1_8`
 - Add support for room version 11 according to MSC3820 / Matrix 1.8
   - Adapt the redaction algorithm in `canonical_json`
+- Add unstable support for suppress edits push rule (MSC3958)
 
 # 0.11.3
 
