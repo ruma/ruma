@@ -38,6 +38,8 @@ pub struct SpaceChildEventContent {
     /// example by showing them eagerly in the room list. A child which is missing the `suggested`
     /// property is treated identically to a child with `"suggested": false`. A suggested child may
     /// be a room or a subspace.
+    ///
+    /// Defaults to `false`.
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub suggested: bool,
 }
