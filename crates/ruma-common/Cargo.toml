@@ -30,6 +30,7 @@ unstable-msc2870 = []
 unstable-msc3381 = []
 unstable-msc3931 = []
 unstable-msc3932 = ["unstable-msc3931"]
+unstable-msc3958 = []
 unstable-unspecified = []
 
 # Don't validate the version part in `KeyId`.
