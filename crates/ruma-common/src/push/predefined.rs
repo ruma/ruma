@@ -528,12 +528,12 @@ pub enum PredefinedOverrideRuleId {
     /// `.m.rule.tombstone`
     Tombstone,
 
+    /// `.m.rule.reaction`
+    Reaction,
+
     /// `.m.rule.room.server_acl`
     #[ruma_enum(rename = ".m.rule.room.server_acl")]
     RoomServerAcl,
-
-    /// `.m.rule.reaction`
-    Reaction,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
