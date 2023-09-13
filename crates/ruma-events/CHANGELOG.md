@@ -34,6 +34,7 @@ Breaking changes:
 - In Markdown, soft line breaks are transformed into hard line breaks when compiled into HTML.
 - Move the HTML functions in `events::room::message::sanitize` to the ruma-html crate
   - The `unstable-sanitize` cargo feature was renamed to `html`
+- Make `via` required in `Space(Child|Parent)EventContent` according to a spec clarification
 
 Improvements:
 
