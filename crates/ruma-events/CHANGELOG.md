@@ -1,3 +1,67 @@
+# [unreleased]
+
+The crate was split out of `ruma-common` again after the 0.11.3 release.
+
+Bug fixes:
+
+- Parse `m.tag` `order` as a f64 value or a stringified f64 value, if the `compat-tag-info` feature
+  is enabled.
+
+Breaking changes:
+
+- Make `in_reply_to` field of `Thread` optional
+  - It was wrong to be mandatory, spec was unclear (clarified [here](https://github.com/matrix-org/matrix-spec/pull/1439))
+- Remove `AnswerSessionDescription` and `OfferSessionDescription` types, use `SessionDescription`
+  instead.
+  - Remove `SessionDescriptionType`, use a `String` instead. A clarification in MSC2746 / Matrix 1.7
+    explains that the `type` field should not be validated but passed as-is to the WebRTC API. It
+    also avoids an unnecessary conversion between the WebRTC API and the Ruma type.
+- The `reason` field in `CallHangupEventContent` is now required and defaults to `Reason::UserHangup`
+  (MSC2746 / Matrix 1.7)
+- The `Replacement` relation for `RoomMessageEventContent` now takes a
+  `RoomMessageEventContentWithoutRelation` instead of a `MessageType`
+- Make the `redacts` field of `Original(Sync)RoomRedactionEvent` optional to handle the format
+  where the `redacts` key is moved inside the `content`, as introduced in room version 11,
+  according to MSC2174 / MSC3820 / Matrix 1.8
+    - `RoomRedactionEventContent::new()` was renamed to `new_v1()`, and `with_reason()` is no
+      longer a constructor but a builder-type method
+- Make the `creator` field of `RoomCreateEventContent` optional and deprecate it, as it was removed
+  in room version 11, according to MSC2175 / MSC3820 / Matrix 1.8
+    - `RoomCreateEventContent::new()` was renamed to `new_v1()`
+    - `RedactedRoomCreateEventContent` is now a typedef over `RoomCreateEventContent`
+- `RoomMessageEventContent::make_reply_to()` and `make_for_thread()` have an extra parameter to
+  support the recommended behavior for intentional mentions in replies according to Matrix 1.7
+- In Markdown, soft line breaks are transformed into hard line breaks when compiled into HTML.
+- Move the HTML functions in `events::room::message::sanitize` to the ruma-html crate
+  - The `unstable-sanitize` cargo feature was renamed to `html`
+
+Improvements:
+
+- Add `InitialStateEvent::{new, to_raw, to_raw_any}`
+- Add a convenience method to construct `RoomEncryptionEventContent` with the recommended defaults.
+- Add `FullStateEventContent::redact`
+- Add new methods for `RoomPowerLevels`:
+  - `user_can_ban`
+  - `user_can_invite`
+  - `user_can_kick`
+  - `user_can_redact`
+  - `user_can_send_message`
+  - `user_can_send_state`
+  - `user_can_trigger_room_notification`
+- Add `MessageType::sanitize` behind the `html` feature
+- Stabilize support for annotations and reactions (MSC2677 / Matrix 1.7)
+- Add support for intentional mentions push rules (MSC3952 / Matrix 1.7)
+- Stabilize support for VoIP signalling improvements (MSC2746 / Matrix 1.7)
+- Make the generated and stripped plain text reply fallback behavior more compatible with most
+  of the Matrix ecosystem.
+- Add support for intentional mentions according to MSC3952 / Matrix 1.7
+- Add support for room version 11 according to MSC3820 / Matrix 1.8
+  - Add preserved fields to match the new redaction algorithm, according to
+    MSC2176 / MSC3821, for the following types:
+    - `RedactedRoomRedactionEventContent`,
+    - `RedactedRoomPowerLevelsEventContent`,
+    - `RedactedRoomMemberEventContent`
+
 # 0.26.1
 
 Deprecation of the crate. It is now part of ruma-common 0.9.0.
