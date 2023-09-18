@@ -13,13 +13,12 @@ use serde::{Deserialize, Serialize};
 ///
 /// The `state_key` is the ID of a child room or space, and the content must contain a `via` key
 /// which gives a list of candidate servers that can be used to join the room.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.space.child", kind = State, state_key_type = OwnedRoomId)]
 pub struct SpaceChildEventContent {
     /// List of candidate servers that can be used to join the room.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub via: Option<Vec<OwnedServerName>>,
+    pub via: Vec<OwnedServerName>,
 
     /// Provide a default ordering of siblings in the room list.
     ///
@@ -39,14 +38,16 @@ pub struct SpaceChildEventContent {
     /// example by showing them eagerly in the room list. A child which is missing the `suggested`
     /// property is treated identically to a child with `"suggested": false`. A suggested child may
     /// be a room or a subspace.
+    ///
+    /// Defaults to `false`.
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub suggested: bool,
 }
 
 impl SpaceChildEventContent {
-    /// Creates a new `ChildEventContent`.
-    pub fn new() -> Self {
-        Self::default()
+    /// Creates a new `SpaceChildEventContent` with the given routing servers.
+    pub fn new(via: Vec<OwnedServerName>) -> Self {
+        Self { via, order: None, suggested: false }
     }
 }
 
@@ -79,7 +80,7 @@ mod tests {
     #[test]
     fn space_child_serialization() {
         let content = SpaceChildEventContent {
-            via: Some(vec![server_name!("example.com").to_owned()]),
+            via: vec![server_name!("example.com").to_owned()],
             order: Some("uwu".to_owned()),
             suggested: false,
         };
@@ -94,9 +95,9 @@ mod tests {
 
     #[test]
     fn space_child_empty_serialization() {
-        let content = SpaceChildEventContent { via: None, order: None, suggested: false };
+        let content = SpaceChildEventContent { via: vec![], order: None, suggested: false };
 
-        let json = json!({});
+        let json = json!({ "via": [] });
 
         assert_eq!(to_json_value(&content).unwrap(), json);
     }
@@ -119,9 +120,7 @@ mod tests {
         assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1_629_413_349)));
         assert_eq!(ev.sender, "@alice:example.org");
         assert_eq!(ev.state_key, "!a:example.org");
-        let via = ev.content.via.unwrap();
-        assert_eq!(via.len(), 1);
-        assert_eq!(via[0], "example.org");
+        assert_eq!(ev.content.via, ["example.org"]);
         assert_eq!(ev.content.order, None);
         assert!(!ev.content.suggested);
     }

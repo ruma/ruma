@@ -48,6 +48,10 @@ compat-empty-string-null = []
 # mandatory. Deserialization will yield a default value like an empty string.
 compat-optional = []
 
+# Unset the room name by sending an empty string,
+# c.f. https://github.com/matrix-org/matrix-spec/issues/1632
+compat-unset-room-name = []
+
 # Allow TagInfo to contain a stringified floating-point value for the `order` field.
 compat-tag-info = []
 

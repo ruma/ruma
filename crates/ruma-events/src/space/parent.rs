@@ -18,8 +18,7 @@ use serde::{Deserialize, Serialize};
 #[ruma_event(type = "m.space.parent", kind = State, state_key_type = OwnedRoomId)]
 pub struct SpaceParentEventContent {
     /// List of candidate servers that can be used to join the room.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub via: Option<Vec<OwnedServerName>>,
+    pub via: Vec<OwnedServerName>,
 
     /// Determines whether this is the main parent for the space.
     ///
@@ -28,14 +27,16 @@ pub struct SpaceParentEventContent {
     /// together. In practice, well behaved rooms should only have one `canonical` parent, but
     /// given this is not enforced: if multiple are present the client should select the one with
     /// the lowest room ID, as determined via a lexicographic ordering of the Unicode code-points.
+    ///
+    /// Defaults to `false`.
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub canonical: bool,
 }
 
 impl SpaceParentEventContent {
-    /// Creates a new `ParentEventContent` with the given canonical flag.
-    pub fn new(canonical: bool) -> Self {
-        Self { via: None, canonical }
+    /// Creates a new `SpaceParentEventContent` with the given routing servers.
+    pub fn new(via: Vec<OwnedServerName>) -> Self {
+        Self { via, canonical: false }
     }
 }
 
@@ -49,7 +50,7 @@ mod tests {
     #[test]
     fn space_parent_serialization() {
         let content = SpaceParentEventContent {
-            via: Some(vec![server_name!("example.com").to_owned()]),
+            via: vec![server_name!("example.com").to_owned()],
             canonical: true,
         };
 
@@ -63,9 +64,9 @@ mod tests {
 
     #[test]
     fn space_parent_empty_serialization() {
-        let content = SpaceParentEventContent { via: None, canonical: false };
+        let content = SpaceParentEventContent { via: vec![], canonical: false };
 
-        let json = json!({});
+        let json = json!({ "via": [] });
 
         assert_eq!(to_json_value(&content).unwrap(), json);
     }

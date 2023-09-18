@@ -20,12 +20,13 @@ use ruma_events::{
             OriginalSyncUnstablePollResponseEvent, UnstablePollResponseEventContent,
         },
         unstable_start::{
-            OriginalSyncUnstablePollStartEvent, UnstablePollAnswer, UnstablePollStartContentBlock,
-            UnstablePollStartEventContent,
+            NewUnstablePollStartEventContent, OriginalSyncUnstablePollStartEvent,
+            ReplacementUnstablePollStartEventContent, UnstablePollAnswer,
+            UnstablePollStartContentBlock, UnstablePollStartEventContent,
         },
     },
     relation::Reference,
-    room::message::Relation,
+    room::message::{Relation, RelationWithoutReplacement},
     AnyMessageLikeEvent, MessageLikeEvent,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
@@ -384,8 +385,8 @@ fn end_event_deserialization() {
 }
 
 #[test]
-fn unstable_start_content_serialization() {
-    let event_content = UnstablePollStartEventContent::plain_text(
+fn new_unstable_start_content_serialization() {
+    let event_content = NewUnstablePollStartEventContent::plain_text(
         "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!",
         UnstablePollStartContentBlock::new(
             "How's the weather?",
@@ -418,7 +419,58 @@ fn unstable_start_content_serialization() {
 }
 
 #[test]
-fn unstable_start_event_deserialization() {
+fn replacement_unstable_start_content_serialization() {
+    let replaces = owned_event_id!("$replacedevent");
+    let event_content = ReplacementUnstablePollStartEventContent::plain_text(
+        "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!",
+        UnstablePollStartContentBlock::new(
+            "How's the weather?",
+            vec![
+                UnstablePollAnswer::new("not-bad", "Not bad…"),
+                UnstablePollAnswer::new("fine", "Fine."),
+                UnstablePollAnswer::new("amazing", "Amazing!"),
+            ]
+            .try_into()
+            .unwrap(),
+        ),
+        replaces.clone(),
+    );
+
+    assert_eq!(
+        to_json_value(&event_content).unwrap(),
+        json!({
+            "m.new_content": {
+                "org.matrix.msc1767.text": "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!",
+                "org.matrix.msc3381.poll.start": {
+                    "kind": "org.matrix.msc3381.poll.undisclosed",
+                    "max_selections": 1,
+                    "question": { "org.matrix.msc1767.text": "How's the weather?" },
+                    "answers": [
+                        { "id": "not-bad", "org.matrix.msc1767.text": "Not bad…" },
+                        { "id": "fine", "org.matrix.msc1767.text":  "Fine." },
+                        { "id": "amazing", "org.matrix.msc1767.text":  "Amazing!" },
+                    ],
+                },
+            },
+            "m.relates_to": {
+                "rel_type": "m.replace",
+                "event_id": replaces,
+            },
+        })
+    );
+}
+
+#[test]
+fn unstable_start_event_content_deserialization_missing_poll_start() {
+    let json_data = json!({
+            "org.matrix.msc1767.text": "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!",
+    });
+
+    from_json_value::<UnstablePollStartEventContent>(json_data).unwrap_err();
+}
+
+#[test]
+fn new_unstable_start_event_deserialization() {
     let json_data = json!({
         "content": {
             "org.matrix.msc1767.text": "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!",
@@ -440,6 +492,45 @@ fn unstable_start_event_deserialization() {
                     },
                 ]
             },
+            "m.relates_to": {
+                "rel_type": "m.thread",
+                "event_id": "$previous_event_id",
+            },
+        },
+        "event_id": "$event:notareal.hs",
+        "origin_server_ts": 134_829_848,
+        "room_id": "!roomid:notareal.hs",
+        "sender": "@user:notareal.hs",
+        "type": "org.matrix.msc3381.poll.start",
+    });
+
+    let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
+    assert_matches!(
+        event,
+        AnyMessageLikeEvent::UnstablePollStart(MessageLikeEvent::Original(message_event))
+    );
+    assert_matches!(message_event.content, UnstablePollStartEventContent::New(content));
+
+    assert_eq!(content.text.unwrap(), "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!");
+    let poll = content.poll_start;
+    assert_eq!(poll.question.text, "How's the weather?");
+    assert_eq!(poll.kind, PollKind::Undisclosed);
+    assert_eq!(poll.max_selections, uint!(2));
+    let answers = poll.answers;
+    assert_eq!(answers.len(), 3);
+    assert_eq!(answers[0].id, "not-bad");
+    assert_eq!(answers[0].text, "Not bad…");
+    assert_eq!(answers[1].id, "fine");
+    assert_eq!(answers[1].text, "Fine.");
+    assert_eq!(answers[2].id, "amazing");
+    assert_eq!(answers[2].text, "Amazing!");
+    assert_matches!(content.relates_to, Some(RelationWithoutReplacement::Thread(_)));
+}
+
+#[test]
+fn replacement_unstable_start_event_deserialization() {
+    let json_data = json!({
+        "content": {
             "m.new_content": {
                 "org.matrix.msc1767.text": "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!",
                 "org.matrix.msc3381.poll.start": {
@@ -478,11 +569,13 @@ fn unstable_start_event_deserialization() {
         event,
         AnyMessageLikeEvent::UnstablePollStart(MessageLikeEvent::Original(message_event))
     );
-    assert_eq!(
-        message_event.content.text.unwrap(),
-        "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!"
-    );
-    let poll = message_event.content.poll_start;
+    assert_matches!(message_event.content, UnstablePollStartEventContent::Replacement(content));
+    assert!(content.text.is_none());
+    assert!(content.poll_start.is_none());
+
+    let new_content = content.relates_to.new_content;
+    assert_eq!(new_content.text.unwrap(), "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!");
+    let poll = new_content.poll_start;
     assert_eq!(poll.question.text, "How's the weather?");
     assert_eq!(poll.kind, PollKind::Undisclosed);
     assert_eq!(poll.max_selections, uint!(2));
@@ -494,7 +587,6 @@ fn unstable_start_event_deserialization() {
     assert_eq!(answers[1].text, "Fine.");
     assert_eq!(answers[2].id, "amazing");
     assert_eq!(answers[2].text, "Amazing!");
-    assert_matches!(message_event.content.relates_to, Some(Relation::Replacement(_)));
 }
 
 #[test]
@@ -985,7 +1077,7 @@ fn compute_unstable_results() {
     responses.extend(generate_unstable_poll_responses(8..11, &["wings"]));
 
     let counted = compile_unstable_poll_results(
-        &poll.content.poll_start,
+        poll.content.poll_start(),
         responses.iter().map(|r| r.data()),
         None,
     );

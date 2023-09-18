@@ -40,6 +40,8 @@ impl Ruleset {
                 ConditionalPushRule::tombstone(),
                 ConditionalPushRule::reaction(),
                 ConditionalPushRule::server_acl(),
+                #[cfg(feature = "unstable-msc3958")]
+                ConditionalPushRule::suppress_edits(),
             ]
             .into(),
             underride: [
@@ -306,6 +308,23 @@ impl ConditionalPushRule {
             ],
         }
     }
+
+    /// Matches [event replacements].
+    ///
+    /// [event replacements]: https://spec.matrix.org/latest/client-server-api/#event-replacements
+    #[cfg(feature = "unstable-msc3958")]
+    pub fn suppress_edits() -> Self {
+        Self {
+            actions: vec![],
+            default: true,
+            enabled: true,
+            rule_id: PredefinedOverrideRuleId::SuppressEdits.to_string(),
+            conditions: vec![EventPropertyIs {
+                key: r"content.m\.relates_to.rel_type".to_owned(),
+                value: "m.replace".into(),
+            }],
+        }
+    }
 }
 
 /// Default content push rules
@@ -528,12 +547,17 @@ pub enum PredefinedOverrideRuleId {
     /// `.m.rule.tombstone`
     Tombstone,
 
+    /// `.m.rule.reaction`
+    Reaction,
+
     /// `.m.rule.room.server_acl`
     #[ruma_enum(rename = ".m.rule.room.server_acl")]
     RoomServerAcl,
 
-    /// `.m.rule.reaction`
-    Reaction,
+    /// `.m.rule.suppress_edits`
+    #[cfg(feature = "unstable-msc3958")]
+    #[ruma_enum(rename = ".org.matrix.msc3958.suppress_edits")]
+    SuppressEdits,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
