@@ -15,42 +15,26 @@ use crate::EmptyStateKey;
 #[ruma_event(type = "m.room.name", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomNameEventContent {
     /// The name of the room.
-    ///
-    /// If you activate the `compat-unset-room-name` feature, this field being `None` will result
-    /// in an empty string in serialization, (c.f.
-    /// <https://github.com/matrix-org/matrix-spec/issues/1632>).
-    #[serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")]
-    #[cfg_attr(
-        feature = "compat-unset-room-name",
-        serde(serialize_with = "ruma_common::serde::none_as_empty_string")
-    )]
-    #[cfg_attr(
-        not(feature = "compat-unset-room-name"),
-        serde(skip_serializing_if = "Option::is_none")
-    )]
-    pub name: Option<String>,
+    pub name: String,
 }
 
 impl RoomNameEventContent {
     /// Create a new `RoomNameEventContent` with the given name.
-    pub fn new(name: Option<String>) -> Self {
-        let name = name.filter(|n| !n.is_empty());
+    pub fn new(name: String) -> Self {
         Self { name }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
-    use ruma_common::serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::RoomNameEventContent;
     use crate::OriginalStateEvent;
 
     #[test]
-    fn serialization_with_optional_fields_as_none() {
-        let content = RoomNameEventContent { name: Some("The room name".to_owned()) };
+    fn serialization() {
+        let content = RoomNameEventContent { name: "The room name".to_owned() };
 
         let actual = to_json_value(content).unwrap();
         let expected = json!({
@@ -61,99 +45,7 @@ mod tests {
     }
 
     #[test]
-    fn serialization_with_all_fields() {
-        let content = RoomNameEventContent { name: Some("The room name".to_owned()) };
-
-        let actual = to_json_value(content).unwrap();
-        let expected = json!({
-            "name": "The room name",
-        });
-
-        assert_eq!(actual, expected);
-    }
-
-    #[test]
-    fn absent_field_as_none() {
-        let json_data = json!({
-            "content": {},
-            "event_id": "$h29iv0s8:example.com",
-            "origin_server_ts": 1,
-            "room_id": "!n8f893n9:example.com",
-            "sender": "@carl:example.com",
-            "state_key": "",
-            "type": "m.room.name"
-        });
-        assert_eq!(
-            from_json_value::<OriginalStateEvent<RoomNameEventContent>>(json_data)
-                .unwrap()
-                .content
-                .name,
-            None
-        );
-    }
-
-    #[test]
-    fn json_with_empty_name_creates_content_as_none() {
-        let long_content_json = json!({ "name": "" });
-        let from_raw: Raw<RoomNameEventContent> = from_json_value(long_content_json).unwrap();
-        assert_matches!(from_raw.deserialize().unwrap(), RoomNameEventContent { name: None });
-    }
-
-    #[test]
-    fn new_with_empty_name_creates_content_as_none() {
-        assert_matches!(
-            RoomNameEventContent::new(Some("".to_owned())),
-            RoomNameEventContent { name: None }
-        );
-    }
-
-    #[test]
-    fn null_field_as_none() {
-        let json_data = json!({
-            "content": {
-                "name": null
-            },
-            "event_id": "$h29iv0s8:example.com",
-            "origin_server_ts": 1,
-            "room_id": "!n8f893n9:example.com",
-            "sender": "@carl:example.com",
-            "state_key": "",
-            "type": "m.room.name"
-        });
-        assert_eq!(
-            from_json_value::<OriginalStateEvent<RoomNameEventContent>>(json_data)
-                .unwrap()
-                .content
-                .name,
-            None
-        );
-    }
-
-    #[test]
-    fn empty_string_as_none() {
-        let json_data = json!({
-            "content": {
-                "name": ""
-            },
-            "event_id": "$h29iv0s8:example.com",
-            "origin_server_ts": 1,
-            "room_id": "!n8f893n9:example.com",
-            "sender": "@carl:example.com",
-            "state_key": "",
-            "type": "m.room.name"
-        });
-        assert_eq!(
-            from_json_value::<OriginalStateEvent<RoomNameEventContent>>(json_data)
-                .unwrap()
-                .content
-                .name,
-            None
-        );
-    }
-
-    #[test]
-    fn nonempty_field_as_some() {
-        let name = "The room name".try_into().ok();
+    fn deserialization() {
         let json_data = json!({
             "content": {
                 "name": "The room name"
@@ -171,7 +63,7 @@ mod tests {
                 .unwrap()
                 .content
                 .name,
-            name
+            "The room name"
         );
     }
 }

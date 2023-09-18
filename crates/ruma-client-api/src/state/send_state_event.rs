@@ -217,7 +217,7 @@ pub mod v3 {
         let req = Request::new(
             owned_room_id!("!room:server.tld"),
             &EmptyStateKey,
-            &RoomNameEventContent::new(Some("Test room".to_owned())),
+            &RoomNameEventContent::new("Test room".to_owned()),
         )
         .unwrap()
         .try_into_http_request::<Vec<u8>>(
