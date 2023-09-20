@@ -22,6 +22,7 @@ pub trait EventContent: Sized + Serialize {
     fn event_type(&self) -> Self::EventType;
 }
 
+/// Extension trait for [`Raw<T>`].
 pub trait RawExt<T: EventContentFromType> {
     /// Try to deserialize the JSON as an event's content with the given event type.
     fn deserialize_with_type(&self, event_type: T::EventType) -> serde_json::Result<T>;

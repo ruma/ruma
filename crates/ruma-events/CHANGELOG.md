@@ -35,6 +35,7 @@ Breaking changes:
 - Move the HTML functions in `events::room::message::sanitize` to the ruma-html crate
   - The `unstable-sanitize` cargo feature was renamed to `html`
 - Make `via` required in `Space(Child|Parent)EventContent` according to a spec clarification
+- Make `name` required in `RoomNameEventContent`, the wording of the spec was confusing
 
 Improvements:
 
@@ -62,6 +63,7 @@ Improvements:
     - `RedactedRoomRedactionEventContent`,
     - `RedactedRoomPowerLevelsEventContent`,
     - `RedactedRoomMemberEventContent`
+- Add `RoomMessageEventContent::make_reply_to_raw` to build replies to any event
 
 # 0.26.1
 

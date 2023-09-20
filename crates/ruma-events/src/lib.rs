@@ -100,6 +100,8 @@
 //! ));
 //! ```
 
+#![warn(missing_docs)]
+
 use std::{collections::BTreeSet, fmt};
 
 use ruma_common::{EventEncryptionAlgorithm, OwnedUserId, RoomVersionId};
