@@ -945,6 +945,9 @@ impl<C> TryFrom<Relation<C>> for RelationWithoutReplacement {
     }
 }
 
+/// Metadata about an event to be replaced.
+///
+/// To be used with [`RoomMessageEventContent::make_replacement`].
 #[derive(Debug)]
 pub struct ReplacementMetadata {
     event_id: OwnedEventId,
@@ -952,6 +955,7 @@ pub struct ReplacementMetadata {
 }
 
 impl ReplacementMetadata {
+    /// Creates a new `ReplacementMetadata` with the given event ID and mentions.
     pub fn new(event_id: OwnedEventId, mentions: Option<Mentions>) -> Self {
         Self { event_id, mentions }
     }
