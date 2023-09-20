@@ -6,7 +6,7 @@ use std::borrow::Cow;
 
 use ruma_common::{
     serde::{JsonObject, StringEnum},
-    EventId,
+    EventId, OwnedEventId,
 };
 #[cfg(feature = "html")]
 use ruma_html::{sanitize_html, HtmlSanitizerMode, RemoveReplyFallback};
@@ -264,7 +264,11 @@ impl RoomMessageEventContent {
         self
     }
 
-    /// Turns `self` into a [replacement] (or edit) for the message with the given event ID.
+    /// Turns `self` into a [replacement] (or edit) for a given message.
+    ///
+    /// The first argument after `self` can be `&OriginalRoomMessageEvent` or
+    /// `&OriginalSyncRoomMessageEvent` if you don't want to create `ReplacementMetadata` separately
+    /// before calling this function.
     ///
     /// This takes the content and sets it in `m.new_content`, and modifies the `content` to include
     /// a fallback.
@@ -287,15 +291,17 @@ impl RoomMessageEventContent {
     #[track_caller]
     pub fn make_replacement(
         mut self,
-        original_message: &OriginalSyncRoomMessageEvent,
+        metadata: impl Into<ReplacementMetadata>,
         replied_to_message: Option<&OriginalRoomMessageEvent>,
     ) -> Self {
+        let metadata = metadata.into();
+
         // Prepare relates_to with the untouched msgtype.
         let relates_to = Relation::Replacement(Replacement {
-            event_id: original_message.event_id.clone(),
+            event_id: metadata.event_id,
             new_content: RoomMessageEventContentWithoutRelation {
                 msgtype: self.msgtype.clone(),
-                mentions: original_message.content.mentions.clone(),
+                mentions: metadata.mentions,
             },
         });
 
@@ -936,6 +942,30 @@ impl<C> TryFrom<Relation<C>> for RelationWithoutReplacement {
         };
 
         Ok(rel)
+    }
+}
+
+#[derive(Debug)]
+pub struct ReplacementMetadata {
+    event_id: OwnedEventId,
+    mentions: Option<Mentions>,
+}
+
+impl ReplacementMetadata {
+    pub fn new(event_id: OwnedEventId, mentions: Option<Mentions>) -> Self {
+        Self { event_id, mentions }
+    }
+}
+
+impl From<&OriginalRoomMessageEvent> for ReplacementMetadata {
+    fn from(value: &OriginalRoomMessageEvent) -> Self {
+        ReplacementMetadata::new(value.event_id.to_owned(), value.content.mentions.clone())
+    }
+}
+
+impl From<&OriginalSyncRoomMessageEvent> for ReplacementMetadata {
+    fn from(value: &OriginalSyncRoomMessageEvent) -> Self {
+        ReplacementMetadata::new(value.event_id.to_owned(), value.content.mentions.clone())
     }
 }
 
