@@ -17,6 +17,7 @@ Breaking changes:
 
 Improvements:
 
+- Allow padding when decoding the `Base64` type from a string
 - Add convenience methods for `push::Ruleset`:
   - To update the server-default push rules
   - To remove a user-defined push rule
