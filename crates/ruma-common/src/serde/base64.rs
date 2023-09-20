@@ -56,8 +56,8 @@ impl Base64Config for UrlSafe {
 }
 
 impl<C: Base64Config, B> Base64<C, B> {
-    // See https://github.com/matrix-org/matrix-spec/issues/838
     const CONFIG: GeneralPurposeConfig = general_purpose::NO_PAD
+        // See https://github.com/matrix-org/matrix-spec/issues/838
         .with_decode_allow_trailing_bits(true)
         .with_decode_padding_mode(DecodePaddingMode::Indifferent);
     const ENGINE: GeneralPurpose = GeneralPurpose::new(&C::CONF.0, Self::CONFIG);
