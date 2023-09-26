@@ -12,5 +12,6 @@ use crate::macros::EventContent;
 #[ruma_event(type = "m.secret_storage.default_key", kind = GlobalAccountData)]
 pub struct SecretStorageDefaultKeyEventContent {
     /// The ID of the default key.
-    pub key: String,
+    #[serde(rename = "key")]
+    pub key_id: String,
 }
