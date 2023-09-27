@@ -33,6 +33,9 @@ unstable-msc3932 = ["unstable-msc3931"]
 unstable-msc3958 = []
 unstable-unspecified = []
 
+# Allow IDs to exceed 255 bytes.
+compat-arbitrary-length-ids = ["ruma-identifiers-validation/compat-arbitrary-length-ids"]
+
 # Don't validate the version part in `KeyId`.
 compat-key-id = ["ruma-identifiers-validation/compat-key-id"]
 

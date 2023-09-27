@@ -18,10 +18,12 @@ pub mod voip_version_id;
 pub use error::Error;
 
 /// All identifiers must be 255 bytes or less.
+#[cfg(not(feature = "compat-arbitrary-length-ids"))]
 const MAX_BYTES: usize = 255;
 
 /// Checks if an identifier is valid.
 fn validate_id(id: &str, valid_sigils: &[char]) -> Result<(), Error> {
+    #[cfg(not(feature = "compat-arbitrary-length-ids"))]
     if id.len() > MAX_BYTES {
         return Err(Error::MaximumLengthExceeded);
     }

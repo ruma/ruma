@@ -102,6 +102,10 @@ compat = [
     "compat-signature-id",
     "compat-tag-info",
 ]
+
+# Allow IDs to exceed 255 bytes.
+compat-arbitrary-length-ids = ["ruma-common/compat-arbitrary-length-ids"]
+
 # Don't validate the version part in `KeyId`.
 compat-key-id = ["ruma-common/compat-key-id"]
 
