@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.9.2
+
 Bug fixes:
 
 - Don't consider empty localpart of a user ID as valid
@@ -9,6 +11,8 @@ Bug fixes:
 Improvements:
 
 - Allow `+` in the localpart of user IDs according to MSC4009 / Matrix 1.8
+- Add `compat-arbitrary-length-ids` Cargo feature for opting out of 255-byte
+  length check for all ID types
 
 # 0.9.1
 
