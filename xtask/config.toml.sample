@@ -1,6 +1,7 @@
 [github]
 # The username to use for authentication.
 user = ""
-# The personal access token to use for authentication. Needs 'repo' scope.
-# See: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+# The personal access token to use for authentication. Needs permission to create releases.
+# Can be created at https://github.com/settings/personal-access-tokens/new
+# Docs at https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
 token = ""
