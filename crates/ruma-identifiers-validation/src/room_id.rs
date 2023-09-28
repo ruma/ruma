@@ -1,5 +1,5 @@
-use crate::{validate_delimited_id, Error};
+use crate::{validate_id, Error};
 
 pub fn validate(s: &str) -> Result<(), Error> {
-    validate_delimited_id(s, &['!'])
+    validate_id(s, b'!')
 }

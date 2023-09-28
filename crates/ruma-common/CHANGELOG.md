@@ -14,6 +14,9 @@ Breaking changes:
 - Removed the `events` module, it is once again its own crate (`ruma-events`)
 - Removed `From` and `TryFrom` implementations for `RedactedBecause` in favor of named constructors
   (`from_json` and `from_raw_event`)
+- Updated room IDs to not require a servername
+  - Removed `localpart` method from `RoomId` and `RoomOrAliasId`
+  - Changed `server_name` method on `RoomId` and `RoomOrAliasId` to return `Option<&str>`
 
 Improvements:
 

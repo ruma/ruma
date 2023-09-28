@@ -162,14 +162,18 @@ pub fn auth_check<E: Event>(
         }
 
         // If the domain of the room_id does not match the domain of the sender, reject
-        if incoming_event.room_id().server_name() != sender.server_name() {
-            warn!("creation events server does not match sender");
-            return Ok(false); // creation events room id does not match senders
+        let Some(room_id_server_name) = incoming_event.room_id().server_name() else {
+            warn!("room ID has no servername");
+            return Ok(false);
+        };
+
+        if room_id_server_name != sender.server_name() {
+            warn!("servername of room ID does not match servername of sender");
+            return Ok(false);
         }
 
-        let content: RoomCreateContentFields = from_json_str(incoming_event.content().get())?;
-
         // If content.room_version is present and is not a recognized version, reject
+        let content: RoomCreateContentFields = from_json_str(incoming_event.content().get())?;
         if content.room_version.map(|v| v.deserialize().is_err()).unwrap_or(false) {
             warn!("invalid room version found in m.room.create event");
             return Ok(false);

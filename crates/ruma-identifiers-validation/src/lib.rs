@@ -22,13 +22,13 @@ pub use error::Error;
 const MAX_BYTES: usize = 255;
 
 /// Checks if an identifier is valid.
-fn validate_id(id: &str, valid_sigils: &[char]) -> Result<(), Error> {
+fn validate_id(id: &str, first_byte: u8) -> Result<(), Error> {
     #[cfg(not(feature = "compat-arbitrary-length-ids"))]
     if id.len() > MAX_BYTES {
         return Err(Error::MaximumLengthExceeded);
     }
 
-    if !id.starts_with(valid_sigils) {
+    if id.as_bytes().first() != Some(&first_byte) {
         return Err(Error::MissingLeadingSigil);
     }
 
@@ -36,15 +36,15 @@ fn validate_id(id: &str, valid_sigils: &[char]) -> Result<(), Error> {
 }
 
 /// Checks an identifier that contains a localpart and hostname for validity.
-fn parse_id(id: &str, valid_sigils: &[char]) -> Result<usize, Error> {
-    validate_id(id, valid_sigils)?;
+fn parse_id(id: &str, first_byte: u8) -> Result<usize, Error> {
+    validate_id(id, first_byte)?;
     let colon_idx = id.find(':').ok_or(Error::MissingColon)?;
     server_name::validate(&id[colon_idx + 1..])?;
     Ok(colon_idx)
 }
 
 /// Checks an identifier that contains a localpart and hostname for validity.
-fn validate_delimited_id(id: &str, valid_sigils: &[char]) -> Result<(), Error> {
-    parse_id(id, valid_sigils)?;
+fn validate_delimited_id(id: &str, first_byte: u8) -> Result<(), Error> {
+    parse_id(id, first_byte)?;
     Ok(())
 }

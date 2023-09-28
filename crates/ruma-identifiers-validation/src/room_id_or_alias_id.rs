@@ -1,5 +1,9 @@
-use crate::{validate_delimited_id, Error};
+use crate::Error;
 
 pub fn validate(s: &str) -> Result<(), Error> {
-    validate_delimited_id(s, &['#', '!'])
+    match s.as_bytes().first() {
+        Some(b'#') => crate::room_alias_id::validate(s),
+        Some(b'!') => crate::room_id::validate(s),
+        _ => Err(Error::MissingLeadingSigil),
+    }
 }

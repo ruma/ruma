@@ -5,6 +5,7 @@ use ruma_macros::IdZst;
 use super::{
     matrix_uri::UriAction, MatrixToUri, MatrixUri, OwnedEventId, OwnedServerName, ServerName,
 };
+use crate::RoomOrAliasId;
 
 /// A Matrix [room ID].
 ///
@@ -33,14 +34,9 @@ impl RoomId {
         Self::from_borrowed(&format!("!{}:{server_name}", super::generate_localpart(18))).to_owned()
     }
 
-    /// Returns the rooms's unique ID.
-    pub fn localpart(&self) -> &str {
-        &self.as_str()[1..self.colon_idx()]
-    }
-
     /// Returns the server name of the room ID.
-    pub fn server_name(&self) -> &ServerName {
-        ServerName::from_borrowed(&self.as_str()[self.colon_idx() + 1..])
+    pub fn server_name(&self) -> Option<&ServerName> {
+        <&RoomOrAliasId>::from(self).server_name()
     }
 
     /// Create a `matrix.to` URI for this room ID.
@@ -202,10 +198,6 @@ impl RoomId {
             None,
         )
     }
-
-    fn colon_idx(&self) -> usize {
-        self.as_str().find(':').unwrap()
-    }
 }
 
 #[cfg(test)]
@@ -287,23 +279,25 @@ mod tests {
     }
 
     #[test]
-    fn missing_room_id_delimiter() {
-        assert_eq!(<&RoomId>::try_from("!29fhd83h92h0").unwrap_err(), IdParseError::MissingColon);
+    fn missing_server_name() {
+        assert_eq!(
+            <&RoomId>::try_from("!29fhd83h92h0").expect("Failed to create RoomId."),
+            "!29fhd83h92h0"
+        );
     }
 
     #[test]
     fn invalid_room_id_host() {
-        assert_eq!(
-            <&RoomId>::try_from("!29fhd83h92h0:/").unwrap_err(),
-            IdParseError::InvalidServerName
-        );
+        let room_id = <&RoomId>::try_from("!29fhd83h92h0:/").expect("Failed to create RoomId.");
+        assert_eq!(room_id, "!29fhd83h92h0:/");
+        assert_eq!(room_id.server_name(), None);
     }
 
     #[test]
     fn invalid_room_id_port() {
-        assert_eq!(
-            <&RoomId>::try_from("!29fhd83h92h0:example.com:notaport").unwrap_err(),
-            IdParseError::InvalidServerName
-        );
+        let room_id = <&RoomId>::try_from("!29fhd83h92h0:example.com:notaport")
+            .expect("Failed to create RoomId.");
+        assert_eq!(room_id, "!29fhd83h92h0:example.com:notaport");
+        assert_eq!(room_id.server_name(), None);
     }
 }

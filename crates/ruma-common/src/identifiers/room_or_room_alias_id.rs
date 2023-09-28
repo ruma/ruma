@@ -3,6 +3,7 @@
 use std::hint::unreachable_unchecked;
 
 use ruma_macros::IdZst;
+use tracing::warn;
 
 use super::{server_name::ServerName, OwnedRoomAliasId, OwnedRoomId, RoomAliasId, RoomId};
 
@@ -30,14 +31,22 @@ use super::{server_name::ServerName, OwnedRoomAliasId, OwnedRoomId, RoomAliasId,
 pub struct RoomOrAliasId(str);
 
 impl RoomOrAliasId {
-    /// Returns the local part (everything after the `!` or `#` and before the first colon).
-    pub fn localpart(&self) -> &str {
-        &self.as_str()[1..self.colon_idx()]
-    }
-
     /// Returns the server name of the room (alias) ID.
-    pub fn server_name(&self) -> &ServerName {
-        ServerName::from_borrowed(&self.as_str()[self.colon_idx() + 1..])
+    pub fn server_name(&self) -> Option<&ServerName> {
+        let colon_idx = self.as_str().find(':')?;
+        let server_name = &self.as_str()[colon_idx + 1..];
+        match server_name.try_into() {
+            Ok(parsed) => Some(parsed),
+            // Room aliases are verified to contain a server name at parse time
+            Err(e) => {
+                warn!(
+                    target: "ruma_common::identifiers::room_id",
+                    server_name,
+                    "Room ID contains colon but no valid server name afterwards: {e}",
+                );
+                None
+            }
+        }
     }
 
     /// Whether this is a room id (starts with `'!'`)
@@ -48,10 +57,6 @@ impl RoomOrAliasId {
     /// Whether this is a room alias id (starts with `'#'`)
     pub fn is_room_alias_id(&self) -> bool {
         self.variant() == Variant::RoomAliasId
-    }
-
-    fn colon_idx(&self) -> usize {
-        self.as_str().find(':').unwrap()
     }
 
     fn variant(&self) -> Variant {
