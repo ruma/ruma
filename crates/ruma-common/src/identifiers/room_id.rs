@@ -216,9 +216,7 @@ mod tests {
     #[test]
     fn valid_room_id() {
         assert_eq!(
-            <&RoomId>::try_from("!29fhd83h92h0:example.com")
-                .expect("Failed to create RoomId.")
-                .as_str(),
+            <&RoomId>::try_from("!29fhd83h92h0:example.com").expect("Failed to create RoomId."),
             "!29fhd83h92h0:example.com"
         );
     }
@@ -226,7 +224,7 @@ mod tests {
     #[test]
     fn empty_localpart() {
         assert_eq!(
-            <&RoomId>::try_from("!:example.com").expect("Failed to create RoomId.").as_str(),
+            <&RoomId>::try_from("!:example.com").expect("Failed to create RoomId."),
             "!:example.com"
         );
     }
@@ -266,9 +264,7 @@ mod tests {
     #[test]
     fn valid_room_id_with_explicit_standard_port() {
         assert_eq!(
-            <&RoomId>::try_from("!29fhd83h92h0:example.com:443")
-                .expect("Failed to create RoomId.")
-                .as_str(),
+            <&RoomId>::try_from("!29fhd83h92h0:example.com:443").expect("Failed to create RoomId."),
             "!29fhd83h92h0:example.com:443"
         );
     }
@@ -277,8 +273,7 @@ mod tests {
     fn valid_room_id_with_non_standard_port() {
         assert_eq!(
             <&RoomId>::try_from("!29fhd83h92h0:example.com:5000")
-                .expect("Failed to create RoomId.")
-                .as_str(),
+                .expect("Failed to create RoomId."),
             "!29fhd83h92h0:example.com:5000"
         );
     }
