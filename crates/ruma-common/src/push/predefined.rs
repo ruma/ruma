@@ -611,7 +611,7 @@ pub enum PredefinedOverrideRuleId {
     ///
     /// [MSC3930]: https://github.com/matrix-org/matrix-spec-proposals/pull/3930
     #[cfg(feature = "unstable-msc3930")]
-    #[ruma_enum(rename = ".org.matrix.msc3930.poll_response")]
+    #[ruma_enum(rename = ".org.matrix.msc3930.rule.poll_response")]
     PollResponse,
 
     #[doc(hidden)]
@@ -645,7 +645,7 @@ pub enum PredefinedUnderrideRuleId {
     ///
     /// [MSC3930]: https://github.com/matrix-org/matrix-spec-proposals/pull/3930
     #[cfg(feature = "unstable-msc3930")]
-    #[ruma_enum(rename = ".org.matrix.msc3930.poll_start_one_to_one")]
+    #[ruma_enum(rename = ".org.matrix.msc3930.rule.poll_start_one_to_one")]
     PollStartOneToOne,
 
     /// `.m.rule.poll_start`
@@ -654,7 +654,7 @@ pub enum PredefinedUnderrideRuleId {
     ///
     /// [MSC3930]: https://github.com/matrix-org/matrix-spec-proposals/pull/3930
     #[cfg(feature = "unstable-msc3930")]
-    #[ruma_enum(rename = ".org.matrix.msc3930.poll_start")]
+    #[ruma_enum(rename = ".org.matrix.msc3930.rule.poll_start")]
     PollStart,
 
     /// `.m.rule.poll_end_one_to_one`
@@ -663,7 +663,7 @@ pub enum PredefinedUnderrideRuleId {
     ///
     /// [MSC3930]: https://github.com/matrix-org/matrix-spec-proposals/pull/3930
     #[cfg(feature = "unstable-msc3930")]
-    #[ruma_enum(rename = ".org.matrix.msc3930.poll_end_one_to_one")]
+    #[ruma_enum(rename = ".org.matrix.msc3930.rule.poll_end_one_to_one")]
     PollEndOneToOne,
 
     /// `.m.rule.poll_end`
@@ -672,7 +672,7 @@ pub enum PredefinedUnderrideRuleId {
     ///
     /// [MSC3930]: https://github.com/matrix-org/matrix-spec-proposals/pull/3930
     #[cfg(feature = "unstable-msc3930")]
-    #[ruma_enum(rename = ".org.matrix.msc3930.poll_end")]
+    #[ruma_enum(rename = ".org.matrix.msc3930.rule.poll_end")]
     PollEnd,
 
     #[doc(hidden)]
