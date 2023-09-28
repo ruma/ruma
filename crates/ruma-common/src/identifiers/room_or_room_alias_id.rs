@@ -60,7 +60,7 @@ impl RoomOrAliasId {
     }
 
     fn variant(&self) -> Variant {
-        match self.as_str().bytes().next() {
+        match self.as_bytes().first() {
             Some(b'!') => Variant::RoomId,
             Some(b'#') => Variant::RoomAliasId,
             _ => unsafe { unreachable_unchecked() },
