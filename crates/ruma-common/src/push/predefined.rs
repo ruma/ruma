@@ -42,6 +42,8 @@ impl Ruleset {
                 ConditionalPushRule::server_acl(),
                 #[cfg(feature = "unstable-msc3958")]
                 ConditionalPushRule::suppress_edits(),
+                #[cfg(feature = "unstable-msc3930")]
+                ConditionalPushRule::poll_response(),
             ]
             .into(),
             underride: [
@@ -50,13 +52,13 @@ impl Ruleset {
                 ConditionalPushRule::room_one_to_one(),
                 ConditionalPushRule::message(),
                 ConditionalPushRule::encrypted(),
-                #[cfg(feature = "unstable-msc3381")]
+                #[cfg(feature = "unstable-msc3930")]
                 ConditionalPushRule::poll_start_one_to_one(),
-                #[cfg(feature = "unstable-msc3381")]
+                #[cfg(feature = "unstable-msc3930")]
                 ConditionalPushRule::poll_start(),
-                #[cfg(feature = "unstable-msc3381")]
+                #[cfg(feature = "unstable-msc3930")]
                 ConditionalPushRule::poll_end_one_to_one(),
-                #[cfg(feature = "unstable-msc3381")]
+                #[cfg(feature = "unstable-msc3930")]
                 ConditionalPushRule::poll_end(),
             ]
             .into(),
@@ -325,6 +327,26 @@ impl ConditionalPushRule {
             }],
         }
     }
+
+    /// Matches a poll response event sent in any room.
+    ///
+    /// This rule uses the unstable prefixes defined in [MSC3381] and [MSC3930].
+    ///
+    /// [MSC3381]: https://github.com/matrix-org/matrix-spec-proposals/pull/3381
+    /// [MSC3930]: https://github.com/matrix-org/matrix-spec-proposals/pull/3930
+    #[cfg(feature = "unstable-msc3930")]
+    pub fn poll_response() -> Self {
+        Self {
+            rule_id: PredefinedOverrideRuleId::PollResponse.to_string(),
+            default: true,
+            enabled: true,
+            conditions: vec![EventPropertyIs {
+                key: "type".to_owned(),
+                value: "org.matrix.msc3381.poll.response".into(),
+            }],
+            actions: vec![],
+        }
+    }
 }
 
 /// Default content push rules
@@ -436,8 +458,11 @@ impl ConditionalPushRule {
 
     /// Matches a poll start event sent in a room with exactly two members.
     ///
-    /// This rule should be kept in sync with `.m.rule.room_one_to_one` by the server.
-    #[cfg(feature = "unstable-msc3381")]
+    /// This rule uses the unstable prefixes defined in [MSC3381] and [MSC3930].
+    ///
+    /// [MSC3381]: https://github.com/matrix-org/matrix-spec-proposals/pull/3381
+    /// [MSC3930]: https://github.com/matrix-org/matrix-spec-proposals/pull/3930
+    #[cfg(feature = "unstable-msc3930")]
     pub fn poll_start_one_to_one() -> Self {
         Self {
             rule_id: PredefinedUnderrideRuleId::PollStartOneToOne.to_string(),
@@ -445,7 +470,10 @@ impl ConditionalPushRule {
             enabled: true,
             conditions: vec![
                 RoomMemberCount { is: RoomMemberCountIs::from(js_int::uint!(2)) },
-                EventMatch { key: "type".into(), pattern: "m.poll.start".into() },
+                EventPropertyIs {
+                    key: "type".to_owned(),
+                    value: "org.matrix.msc3381.poll.start".into(),
+                },
             ],
             actions: vec![Notify, SetTweak(Tweak::Sound("default".into()))],
         }
@@ -453,22 +481,31 @@ impl ConditionalPushRule {
 
     /// Matches a poll start event sent in any room.
     ///
-    /// This rule should be kept in sync with `.m.rule.message` by the server.
-    #[cfg(feature = "unstable-msc3381")]
+    /// This rule uses the unstable prefixes defined in [MSC3381] and [MSC3930].
+    ///
+    /// [MSC3381]: https://github.com/matrix-org/matrix-spec-proposals/pull/3381
+    /// [MSC3930]: https://github.com/matrix-org/matrix-spec-proposals/pull/3930
+    #[cfg(feature = "unstable-msc3930")]
     pub fn poll_start() -> Self {
         Self {
             rule_id: PredefinedUnderrideRuleId::PollStart.to_string(),
             default: true,
             enabled: true,
-            conditions: vec![EventMatch { key: "type".into(), pattern: "m.poll.start".into() }],
+            conditions: vec![EventPropertyIs {
+                key: "type".to_owned(),
+                value: "org.matrix.msc3381.poll.start".into(),
+            }],
             actions: vec![Notify],
         }
     }
 
     /// Matches a poll end event sent in a room with exactly two members.
     ///
-    /// This rule should be kept in sync with `.m.rule.room_one_to_one` by the server.
-    #[cfg(feature = "unstable-msc3381")]
+    /// This rule uses the unstable prefixes defined in [MSC3381] and [MSC3930].
+    ///
+    /// [MSC3381]: https://github.com/matrix-org/matrix-spec-proposals/pull/3381
+    /// [MSC3930]: https://github.com/matrix-org/matrix-spec-proposals/pull/3930
+    #[cfg(feature = "unstable-msc3930")]
     pub fn poll_end_one_to_one() -> Self {
         Self {
             rule_id: PredefinedUnderrideRuleId::PollEndOneToOne.to_string(),
@@ -476,7 +513,10 @@ impl ConditionalPushRule {
             enabled: true,
             conditions: vec![
                 RoomMemberCount { is: RoomMemberCountIs::from(js_int::uint!(2)) },
-                EventMatch { key: "type".into(), pattern: "m.poll.end".into() },
+                EventPropertyIs {
+                    key: "type".to_owned(),
+                    value: "org.matrix.msc3381.poll.end".into(),
+                },
             ],
             actions: vec![Notify, SetTweak(Tweak::Sound("default".into()))],
         }
@@ -484,14 +524,20 @@ impl ConditionalPushRule {
 
     /// Matches a poll end event sent in any room.
     ///
-    /// This rule should be kept in sync with `.m.rule.message` by the server.
-    #[cfg(feature = "unstable-msc3381")]
+    /// This rule uses the unstable prefixes defined in [MSC3381] and [MSC3930].
+    ///
+    /// [MSC3381]: https://github.com/matrix-org/matrix-spec-proposals/pull/3381
+    /// [MSC3930]: https://github.com/matrix-org/matrix-spec-proposals/pull/3930
+    #[cfg(feature = "unstable-msc3930")]
     pub fn poll_end() -> Self {
         Self {
             rule_id: PredefinedUnderrideRuleId::PollEnd.to_string(),
             default: true,
             enabled: true,
-            conditions: vec![EventMatch { key: "type".into(), pattern: "m.poll.end".into() }],
+            conditions: vec![EventPropertyIs {
+                key: "type".to_owned(),
+                value: "org.matrix.msc3381.poll.end".into(),
+            }],
             actions: vec![Notify],
         }
     }
@@ -559,6 +605,15 @@ pub enum PredefinedOverrideRuleId {
     #[ruma_enum(rename = ".org.matrix.msc3958.suppress_edits")]
     SuppressEdits,
 
+    /// `.m.rule.poll_response`
+    ///
+    /// This uses the unstable prefix defined in [MSC3930].
+    ///
+    /// [MSC3930]: https://github.com/matrix-org/matrix-spec-proposals/pull/3930
+    #[cfg(feature = "unstable-msc3930")]
+    #[ruma_enum(rename = ".org.matrix.msc3930.poll_response")]
+    PollResponse,
+
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
@@ -585,19 +640,39 @@ pub enum PredefinedUnderrideRuleId {
     Encrypted,
 
     /// `.m.rule.poll_start_one_to_one`
-    #[cfg(feature = "unstable-msc3381")]
+    ///
+    /// This uses the unstable prefix defined in [MSC3930].
+    ///
+    /// [MSC3930]: https://github.com/matrix-org/matrix-spec-proposals/pull/3930
+    #[cfg(feature = "unstable-msc3930")]
+    #[ruma_enum(rename = ".org.matrix.msc3930.poll_start_one_to_one")]
     PollStartOneToOne,
 
     /// `.m.rule.poll_start`
-    #[cfg(feature = "unstable-msc3381")]
+    ///
+    /// This uses the unstable prefix defined in [MSC3930].
+    ///
+    /// [MSC3930]: https://github.com/matrix-org/matrix-spec-proposals/pull/3930
+    #[cfg(feature = "unstable-msc3930")]
+    #[ruma_enum(rename = ".org.matrix.msc3930.poll_start")]
     PollStart,
 
     /// `.m.rule.poll_end_one_to_one`
-    #[cfg(feature = "unstable-msc3381")]
+    ///
+    /// This uses the unstable prefix defined in [MSC3930].
+    ///
+    /// [MSC3930]: https://github.com/matrix-org/matrix-spec-proposals/pull/3930
+    #[cfg(feature = "unstable-msc3930")]
+    #[ruma_enum(rename = ".org.matrix.msc3930.poll_end_one_to_one")]
     PollEndOneToOne,
 
     /// `.m.rule.poll_end`
-    #[cfg(feature = "unstable-msc3381")]
+    ///
+    /// This uses the unstable prefix defined in [MSC3930].
+    ///
+    /// [MSC3930]: https://github.com/matrix-org/matrix-spec-proposals/pull/3930
+    #[cfg(feature = "unstable-msc3930")]
+    #[ruma_enum(rename = ".org.matrix.msc3930.poll_end")]
     PollEnd,
 
     #[doc(hidden)]
