@@ -203,29 +203,25 @@ impl RoomId {
 #[cfg(test)]
 mod tests {
     use super::{OwnedRoomId, RoomId};
-    use crate::IdParseError;
+    use crate::{server_name, IdParseError};
 
     #[test]
     fn valid_room_id() {
-        assert_eq!(
-            <&RoomId>::try_from("!29fhd83h92h0:example.com").expect("Failed to create RoomId."),
-            "!29fhd83h92h0:example.com"
-        );
+        let room_id =
+            <&RoomId>::try_from("!29fhd83h92h0:example.com").expect("Failed to create RoomId.");
+        assert_eq!(room_id, "!29fhd83h92h0:example.com");
     }
 
     #[test]
     fn empty_localpart() {
-        assert_eq!(
-            <&RoomId>::try_from("!:example.com").expect("Failed to create RoomId."),
-            "!:example.com"
-        );
+        let room_id = <&RoomId>::try_from("!:example.com").expect("Failed to create RoomId.");
+        assert_eq!(room_id, "!:example.com");
+        assert_eq!(room_id.server_name(), Some(server_name!("example.com")));
     }
 
     #[cfg(feature = "rand")]
     #[test]
     fn generate_random_valid_room_id() {
-        use crate::server_name;
-
         let room_id = RoomId::new(server_name!("example.com"));
         let id_str = room_id.as_str();
 
@@ -255,10 +251,10 @@ mod tests {
 
     #[test]
     fn valid_room_id_with_explicit_standard_port() {
-        assert_eq!(
-            <&RoomId>::try_from("!29fhd83h92h0:example.com:443").expect("Failed to create RoomId."),
-            "!29fhd83h92h0:example.com:443"
-        );
+        let room_id =
+            <&RoomId>::try_from("!29fhd83h92h0:example.com:443").expect("Failed to create RoomId.");
+        assert_eq!(room_id, "!29fhd83h92h0:example.com:443");
+        assert_eq!(room_id.server_name(), Some(server_name!("example.com:443")));
     }
 
     #[test]
@@ -280,10 +276,9 @@ mod tests {
 
     #[test]
     fn missing_server_name() {
-        assert_eq!(
-            <&RoomId>::try_from("!29fhd83h92h0").expect("Failed to create RoomId."),
-            "!29fhd83h92h0"
-        );
+        let room_id = <&RoomId>::try_from("!29fhd83h92h0").expect("Failed to create RoomId.");
+        assert_eq!(room_id, "!29fhd83h92h0");
+        assert_eq!(room_id.server_name(), None);
     }
 
     #[test]
