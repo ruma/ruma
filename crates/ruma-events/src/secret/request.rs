@@ -6,7 +6,7 @@ use ruma_common::{serde::StringEnum, OwnedDeviceId, OwnedTransactionId};
 use ruma_macros::EventContent;
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 
-use crate::PrivOwnedStr;
+use crate::{GlobalAccountDataEventType, PrivOwnedStr};
 
 /// The content of an `m.secret.request` event.
 ///
@@ -131,6 +131,12 @@ pub enum SecretName {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
+}
+
+impl From<SecretName> for GlobalAccountDataEventType {
+    fn from(value: SecretName) -> Self {
+        GlobalAccountDataEventType::from(value.as_str())
+    }
 }
 
 #[cfg(test)]
