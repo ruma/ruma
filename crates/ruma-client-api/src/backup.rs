@@ -117,7 +117,10 @@ pub struct EncryptedSessionData {
     pub ciphertext: Base64,
 
     /// First 8 bytes of MAC key, encoded in base64.
-    pub mac: Base64,
+    pub mac: Option<Base64>,
+
+    /// MAC of the key, encoded in base64
+    pub mac2: Option<Base64>,
 }
 
 /// The encrypted algorithm-dependent data for backups.
@@ -134,12 +137,15 @@ pub struct EncryptedSessionDataInit {
     pub ciphertext: Base64,
 
     /// First 8 bytes of MAC key, encoded in base64.
-    pub mac: Base64,
+    pub mac: Option<Base64>,
+
+    /// MAC of the key, encoded in base64
+    pub mac2: Option<Base64>,
 }
 
 impl From<EncryptedSessionDataInit> for EncryptedSessionData {
     fn from(init: EncryptedSessionDataInit) -> Self {
-        let EncryptedSessionDataInit { ephemeral, ciphertext, mac } = init;
-        Self { ephemeral, ciphertext, mac }
+        let EncryptedSessionDataInit { ephemeral, ciphertext, mac, mac2 } = init;
+        Self { ephemeral, ciphertext, mac, mac2 }
     }
 }
