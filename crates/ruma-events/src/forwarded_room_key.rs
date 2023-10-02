@@ -45,7 +45,11 @@ pub struct ToDeviceForwardedRoomKeyEventContent {
     pub forwarding_curve25519_key_chain: Vec<String>,
 
     /// Used to mark key if allowed for shared history
-    #[serde(default, rename = "org.matrix.msc3061.shared_history")]
+    #[serde(
+        default,
+        rename = "org.matrix.msc3061.shared_history",
+        skip_serializing_if = "ruma_common::serde::is_default"
+    )]
     pub shared_history: bool,
 }
 
