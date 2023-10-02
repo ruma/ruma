@@ -2,9 +2,17 @@
 //!
 //! [`m.secret_storage.key.*`]: https://spec.matrix.org/latest/client-server-api/#key-storage
 
+use std::borrow::Cow;
+
 use js_int::{uint, UInt};
-use ruma_common::{serde::Base64, KeyDerivationAlgorithm};
+use ruma_common::{
+    serde::{Base64, JsonObject},
+    KeyDerivationAlgorithm,
+};
 use serde::{Deserialize, Serialize};
+use serde_json::Value as JsonValue;
+
+mod secret_encryption_algorithm_serde;
 
 use crate::macros::EventContent;
 
@@ -77,16 +85,49 @@ impl SecretStorageKeyEventContent {
 }
 
 /// An algorithm and its properties, used to encrypt a secret.
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(tag = "algorithm")]
+#[derive(Debug, Clone)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum SecretStorageEncryptionAlgorithm {
-    #[serde(rename = "m.secret_storage.v1.aes-hmac-sha2")]
     /// Encrypted using the `m.secret_storage.v1.aes-hmac-sha2` algorithm.
     ///
     /// Secrets using this method are encrypted using AES-CTR-256 and authenticated using
     /// HMAC-SHA-256.
     V1AesHmacSha2(SecretStorageV1AesHmacSha2Properties),
+
+    /// Encrypted using a custom algorithm.
+    #[doc(hidden)]
+    _Custom(CustomSecretEncryptionAlgorithm),
+}
+
+impl SecretStorageEncryptionAlgorithm {
+    /// The `algorithm` string.
+    pub fn algorithm(&self) -> &str {
+        match self {
+            Self::V1AesHmacSha2(_) => "m.secret_storage.v1.aes-hmac-sha2",
+            Self::_Custom(c) => &c.algorithm,
+        }
+    }
+
+    /// The algorithm-specific properties.
+    ///
+    /// The returned JSON object won't contain the `algorithm` field, use [`Self::algorithm()`] to
+    /// access it.
+    ///
+    /// Prefer to use the public variants of `SecretStorageEncryptionAlgorithm` where possible; this
+    /// method is meant to be used for custom algorithms only.
+    pub fn properties(&self) -> Cow<'_, JsonObject> {
+        fn serialize<T: Serialize>(obj: &T) -> JsonObject {
+            match serde_json::to_value(obj).expect("secret properties serialization to succeed") {
+                JsonValue::Object(obj) => obj,
+                _ => panic!("all secret properties must serialize to objects"),
+            }
+        }
+
+        match self {
+            Self::V1AesHmacSha2(p) => Cow::Owned(serialize(p)),
+            Self::_Custom(c) => Cow::Borrowed(&c.properties),
+        }
+    }
 }
 
 /// The key properties for the `m.secret_storage.v1.aes-hmac-sha2` algorithm.
@@ -108,6 +149,18 @@ impl SecretStorageV1AesHmacSha2Properties {
     }
 }
 
+/// The payload for a custom secret encryption algorithm.
+#[doc(hidden)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CustomSecretEncryptionAlgorithm {
+    /// The encryption algorithm to be used for the key.
+    algorithm: String,
+
+    /// Algorithm-specific properties.
+    #[serde(flatten)]
+    properties: JsonObject,
+}
+
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
@@ -125,7 +178,7 @@ mod tests {
     use crate::{EventContentFromType, GlobalAccountDataEvent};
 
     #[test]
-    fn test_key_description_serialization() {
+    fn key_description_serialization() {
         let mut content = SecretStorageKeyEventContent::new(
             "my_key".into(),
             SecretStorageEncryptionAlgorithm::V1AesHmacSha2(SecretStorageV1AesHmacSha2Properties {
@@ -146,7 +199,7 @@ mod tests {
     }
 
     #[test]
-    fn test_key_description_deserialization() {
+    fn key_description_deserialization() {
         let json = to_raw_json_value(&json!({
             "name": "my_key",
             "algorithm": "m.secret_storage.v1.aes-hmac-sha2",
@@ -172,7 +225,7 @@ mod tests {
     }
 
     #[test]
-    fn test_key_description_deserialization_without_name() {
+    fn key_description_deserialization_without_name() {
         let json = to_raw_json_value(&json!({
             "algorithm": "m.secret_storage.v1.aes-hmac-sha2",
             "iv": "YWJjZGVmZ2hpamtsbW5vcA",
@@ -197,7 +250,7 @@ mod tests {
     }
 
     #[test]
-    fn test_key_description_with_passphrase_serialization() {
+    fn key_description_with_passphrase_serialization() {
         let mut content = SecretStorageKeyEventContent {
             passphrase: Some(PassPhrase::new("rocksalt".into(), uint!(8))),
             ..SecretStorageKeyEventContent::new(
@@ -228,7 +281,7 @@ mod tests {
     }
 
     #[test]
-    fn test_key_description_with_passphrase_deserialization() {
+    fn key_description_with_passphrase_deserialization() {
         let json = to_raw_json_value(&json!({
             "name": "my_key",
             "algorithm": "m.secret_storage.v1.aes-hmac-sha2",
@@ -265,7 +318,7 @@ mod tests {
     }
 
     #[test]
-    fn test_event_serialization() {
+    fn event_serialization() {
         let mut content = SecretStorageKeyEventContent::new(
             "my_key_id".into(),
             SecretStorageEncryptionAlgorithm::V1AesHmacSha2(SecretStorageV1AesHmacSha2Properties {
@@ -286,7 +339,7 @@ mod tests {
     }
 
     #[test]
-    fn test_event_deserialization() {
+    fn event_deserialization() {
         let json = json!({
             "type": "m.secret_storage.key.my_key_id",
             "content": {
@@ -312,5 +365,34 @@ mod tests {
         );
         assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
         assert_eq!(mac.encode(), "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U");
+    }
+
+    #[test]
+    fn custom_algorithm_key_description_deserialization() {
+        let json = to_raw_json_value(&json!({
+            "name": "my_key",
+            "algorithm": "io.ruma.custom_alg",
+            "io.ruma.custom_prop1": "YWJjZGVmZ2hpamtsbW5vcA",
+            "io.ruma.custom_prop2": "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U"
+        }))
+        .unwrap();
+
+        let content =
+            SecretStorageKeyEventContent::from_parts("m.secret_storage.key.test", &json).unwrap();
+        assert_eq!(content.name.unwrap(), "my_key");
+        assert_matches!(content.passphrase, None);
+
+        let algorithm = content.algorithm;
+        assert_eq!(algorithm.algorithm(), "io.ruma.custom_alg");
+        let properties = algorithm.properties();
+        assert_eq!(properties.len(), 2);
+        assert_eq!(
+            properties.get("io.ruma.custom_prop1").unwrap().as_str(),
+            Some("YWJjZGVmZ2hpamtsbW5vcA")
+        );
+        assert_eq!(
+            properties.get("io.ruma.custom_prop2").unwrap().as_str(),
+            Some("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U")
+        );
     }
 }
