@@ -57,7 +57,7 @@ pub enum BackupAlgorithm {
 
 /// Information about the backup key.
 ///
-/// To create an instance of this type, first create a `KeyBackupDataInit` and convert it via
+/// To create an instance of this type, first create a [`KeyBackupDataInit`] and convert it via
 /// `KeyBackupData::from` / `.into()`.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -71,13 +71,13 @@ pub struct KeyBackupData {
     /// Whether the device backing up the key verified the device that the key is from.
     pub is_verified: bool,
 
-    /// Data about the session.
-    pub session_data: SessionData,
+    /// Encrypted data about the session.
+    pub session_data: EncryptedSessionData,
 }
 
 /// Information about the backup key.
 ///
-/// This struct will not be updated even if additional fields are added to `SessionData` in a
+/// This struct will not be updated even if additional fields are added to [`KeyBackupData`] in a
 /// new (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
 #[allow(clippy::exhaustive_structs)]
@@ -91,8 +91,8 @@ pub struct KeyBackupDataInit {
     /// Whether the device backing up the key verified the device that the key is from.
     pub is_verified: bool,
 
-    /// Data about the session.
-    pub session_data: SessionData,
+    /// Encrypted data about the session.
+    pub session_data: EncryptedSessionData,
 }
 
 impl From<KeyBackupDataInit> for KeyBackupData {
@@ -103,13 +103,13 @@ impl From<KeyBackupDataInit> for KeyBackupData {
     }
 }
 
-/// The algorithm used for storing backups.
+/// The encrypted algorithm-dependent data for backups.
 ///
-/// To create an instance of this type, first create a `SessionDataInit` and convert it via
-/// `SessionData::from` / `.into()`.
+/// To create an instance of this type, first create an [`EncryptedSessionDataInit`] and convert it
+/// via `EncryptedSessionData::from` / `.into()`.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct SessionData {
+pub struct EncryptedSessionData {
     /// Unpadded base64-encoded public half of the ephemeral key.
     pub ephemeral: Base64,
 
@@ -120,13 +120,13 @@ pub struct SessionData {
     pub mac: Base64,
 }
 
-/// The algorithm used for storing backups.
+/// The encrypted algorithm-dependent data for backups.
 ///
-/// This struct will not be updated even if additional fields are added to `SessionData` in a
-/// new (non-breaking) release of the Matrix specification.
+/// This struct will not be updated even if additional fields are added to [`EncryptedSessionData`]
+/// in a new (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
 #[allow(clippy::exhaustive_structs)]
-pub struct SessionDataInit {
+pub struct EncryptedSessionDataInit {
     /// Unpadded base64-encoded public half of the ephemeral key.
     pub ephemeral: Base64,
 
@@ -137,9 +137,9 @@ pub struct SessionDataInit {
     pub mac: Base64,
 }
 
-impl From<SessionDataInit> for SessionData {
-    fn from(init: SessionDataInit) -> Self {
-        let SessionDataInit { ephemeral, ciphertext, mac } = init;
+impl From<EncryptedSessionDataInit> for EncryptedSessionData {
+    fn from(init: EncryptedSessionDataInit) -> Self {
+        let EncryptedSessionDataInit { ephemeral, ciphertext, mac } = init;
         Self { ephemeral, ciphertext, mac }
     }
 }

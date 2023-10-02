@@ -6,6 +6,7 @@ Breaking changes:
   `search::search_events::v3::SearchResult`
 - Remove the `token` field from `keys::get_keys::Request`, according to a spec clarification.
 - `SpaceRoomJoinRule` has been moved to the `space` module of the ruma-common crate
+- `backup::SessionData(Init)` were renamed to `EncryptedSessionData(Init)`
 
 Improvements:
 
