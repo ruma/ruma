@@ -9,6 +9,7 @@ fn serialization() {
         owned_room_id!("!testroomid:example.org"),
         "SessId".into(),
         "SessKey".into(),
+        true,
     );
 
     assert_eq!(
@@ -18,6 +19,7 @@ fn serialization() {
             "room_id": "!testroomid:example.org",
             "session_id": "SessId",
             "session_key": "SessKey",
+            "org.matrix.msc3061.shared_history": true,
         })
     );
 }

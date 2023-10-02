@@ -26,6 +26,10 @@ pub struct ToDeviceRoomKeyEventContent {
 
     /// The key to be exchanged.
     pub session_key: String,
+
+    /// Used to mark key if allowed for shared history
+    #[serde(default, rename = "org.matrix.msc3061.shared_history")]
+    pub shared_history: bool,
 }
 
 impl ToDeviceRoomKeyEventContent {
@@ -36,8 +40,9 @@ impl ToDeviceRoomKeyEventContent {
         room_id: OwnedRoomId,
         session_id: String,
         session_key: String,
+        shared_history: bool,
     ) -> Self {
-        Self { algorithm, room_id, session_id, session_key }
+        Self { algorithm, room_id, session_id, session_key, shared_history }
     }
 }
 
@@ -56,6 +61,7 @@ mod tests {
             room_id: owned_room_id!("!testroomid:example.org"),
             session_id: "SessId".into(),
             session_key: "SessKey".into(),
+            shared_history: true,
         };
 
         assert_eq!(
@@ -65,6 +71,7 @@ mod tests {
                 "room_id": "!testroomid:example.org",
                 "session_id": "SessId",
                 "session_key": "SessKey",
+                "org.matrix.msc3061.shared_history": true,
             })
         );
     }
