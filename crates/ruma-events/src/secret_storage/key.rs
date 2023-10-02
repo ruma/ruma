@@ -62,7 +62,7 @@ pub struct SecretStorageKeyEventContent {
     ///
     /// Currently, only `m.secret_storage.v1.aes-hmac-sha2` is supported.
     #[serde(flatten)]
-    pub algorithm: SecretEncryptionAlgorithm,
+    pub algorithm: SecretStorageEncryptionAlgorithm,
 
     /// The passphrase from which to generate the key.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -71,7 +71,7 @@ pub struct SecretStorageKeyEventContent {
 
 impl SecretStorageKeyEventContent {
     /// Creates a `KeyDescription` with the given name.
-    pub fn new(key_id: String, algorithm: SecretEncryptionAlgorithm) -> Self {
+    pub fn new(key_id: String, algorithm: SecretStorageEncryptionAlgorithm) -> Self {
         Self { key_id, name: None, algorithm, passphrase: None }
     }
 }
@@ -80,13 +80,13 @@ impl SecretStorageKeyEventContent {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(tag = "algorithm")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub enum SecretEncryptionAlgorithm {
+pub enum SecretStorageEncryptionAlgorithm {
     #[serde(rename = "m.secret_storage.v1.aes-hmac-sha2")]
     /// Encrypted using the `m.secrect_storage.v1.aes-hmac-sha2` algorithm.
     ///
     /// Secrets using this method are encrypted using AES-CTR-256 and authenticated using
     /// HMAC-SHA-256.
-    SecretStorageV1AesHmacSha2 {
+    V1AesHmacSha2 {
         /// The 16-byte initialization vector, encoded as base64.
         iv: Base64,
 
@@ -105,14 +105,14 @@ mod tests {
         value::to_raw_value as to_raw_json_value,
     };
 
-    use super::{PassPhrase, SecretEncryptionAlgorithm, SecretStorageKeyEventContent};
+    use super::{PassPhrase, SecretStorageEncryptionAlgorithm, SecretStorageKeyEventContent};
     use crate::{EventContentFromType, GlobalAccountDataEvent};
 
     #[test]
     fn test_key_description_serialization() {
         let mut content = SecretStorageKeyEventContent::new(
             "my_key".into(),
-            SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
+            SecretStorageEncryptionAlgorithm::V1AesHmacSha2 {
                 iv: Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap(),
                 mac: Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap(),
             },
@@ -146,7 +146,7 @@ mod tests {
 
         assert_matches!(
             content.algorithm,
-            SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 { iv, mac }
+            SecretStorageEncryptionAlgorithm::V1AesHmacSha2 { iv, mac }
         );
         assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
         assert_eq!(mac.encode(), "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U");
@@ -168,7 +168,7 @@ mod tests {
 
         assert_matches!(
             content.algorithm,
-            SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 { iv, mac }
+            SecretStorageEncryptionAlgorithm::V1AesHmacSha2 { iv, mac }
         );
         assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
         assert_eq!(mac.encode(), "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U");
@@ -180,7 +180,7 @@ mod tests {
             passphrase: Some(PassPhrase::new("rocksalt".into(), uint!(8))),
             ..SecretStorageKeyEventContent::new(
                 "my_key".into(),
-                SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
+                SecretStorageEncryptionAlgorithm::V1AesHmacSha2 {
                     iv: Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap(),
                     mac: Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap(),
                 },
@@ -231,7 +231,7 @@ mod tests {
 
         assert_matches!(
             content.algorithm,
-            SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 { iv, mac }
+            SecretStorageEncryptionAlgorithm::V1AesHmacSha2 { iv, mac }
         );
         assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
         assert_eq!(mac.encode(), "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U");
@@ -241,7 +241,7 @@ mod tests {
     fn test_event_serialization() {
         let mut content = SecretStorageKeyEventContent::new(
             "my_key_id".into(),
-            SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 {
+            SecretStorageEncryptionAlgorithm::V1AesHmacSha2 {
                 iv: Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap(),
                 mac: Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap(),
             },
@@ -278,7 +278,7 @@ mod tests {
 
         assert_matches!(
             ev.content.algorithm,
-            SecretEncryptionAlgorithm::SecretStorageV1AesHmacSha2 { iv, mac }
+            SecretStorageEncryptionAlgorithm::V1AesHmacSha2 { iv, mac }
         );
         assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
         assert_eq!(mac.encode(), "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U");

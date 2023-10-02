@@ -38,6 +38,8 @@ Breaking changes:
   - The `unstable-sanitize` cargo feature was renamed to `html`
 - Make `via` required in `Space(Child|Parent)EventContent` according to a spec clarification
 - Make `name` required in `RoomNameEventContent`, the wording of the spec was confusing
+- Rename `SecretEncryptionAlgorithm` to `SecretStorageEncryptionAlgorithm` and its
+  `SecretStorageV1AesHmacSha2` variant to `V1AesHmacSha2`
 
 Improvements:
 
