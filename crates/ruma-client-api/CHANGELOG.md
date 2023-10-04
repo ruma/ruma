@@ -392,7 +392,7 @@ Improvements:
 
 Bug fixes:
 
-* Fix (de)serialization for `r0::media::get_content_thumnail::Response`
+* Fix (de)serialization for `r0::media::get_content_thumbnail::Response`
 * Make `r0::device::get_devices::Response::devices` public
 
 Breaking changes:
