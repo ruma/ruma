@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.8.0
+
 Breaking changes:
 
 * Fix the format of the keys in `invitation::store_invitation::v2::PublicKeys` according to a spec
