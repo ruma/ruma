@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.12.0
+
 Bug fixes:
 
 - Set the predefined server-default `.m.rule.tombstone` push rule as enabled by default, as defined
