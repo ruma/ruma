@@ -27,7 +27,9 @@ pub struct ToDeviceRoomKeyEventContent {
     /// The key to be exchanged.
     pub session_key: String,
 
-    /// Used to mark key if allowed for shared history
+    /// Used to mark key if allowed for shared history.
+    ///
+    /// Defaults to `false`.
     #[cfg(feature = "unstable-msc3061")]
     #[serde(
         default,
