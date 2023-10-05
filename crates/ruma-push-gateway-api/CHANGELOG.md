@@ -1,5 +1,9 @@
 # [unreleased]
 
+# 0.8.0
+
+No changes for this version
+
 # 0.7.1
 
 Improvements:
