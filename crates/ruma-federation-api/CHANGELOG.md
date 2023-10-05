@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.8.0
+
 Bug fixes:
 
 * Use `SpaceRoomJoinRule` for `SpaceHierarchy(Parent/Child)Summary(Init)`. Even if
