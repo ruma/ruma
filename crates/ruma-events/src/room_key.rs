@@ -47,7 +47,6 @@ impl ToDeviceRoomKeyEventContent {
         room_id: OwnedRoomId,
         session_id: String,
         session_key: String,
-        #[cfg(feature = "unstable-msc3061")] shared_history: bool,
     ) -> Self {
         Self {
             algorithm,

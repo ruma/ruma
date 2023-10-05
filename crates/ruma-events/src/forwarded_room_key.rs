@@ -92,10 +92,6 @@ pub struct ToDeviceForwardedRoomKeyEventContentInit {
     /// key is forwarded from A to B to C, this field is empty between A and B, and contains
     /// A's Curve25519 key between B and C.
     pub forwarding_curve25519_key_chain: Vec<String>,
-
-    /// Used to mark key if allowed for shared history
-    #[cfg(feature = "unstable-msc3061")]
-    pub shared_history: bool,
 }
 
 impl From<ToDeviceForwardedRoomKeyEventContentInit> for ToDeviceForwardedRoomKeyEventContent {
