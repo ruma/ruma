@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.17.0
+
 Breaking changes:
 
 - Define `rank` as an `Option<f64>` instead of an `Option<UInt>` in
