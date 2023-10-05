@@ -109,7 +109,7 @@ impl From<ToDeviceForwardedRoomKeyEventContentInit> for ToDeviceForwardedRoomKey
             sender_claimed_ed25519_key: init.sender_claimed_ed25519_key,
             forwarding_curve25519_key_chain: init.forwarding_curve25519_key_chain,
             #[cfg(feature = "unstable-msc3061")]
-            shared_history: init.shared_history,
+            shared_history: false,
         }
     }
 }
