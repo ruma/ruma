@@ -44,7 +44,9 @@ pub struct ToDeviceForwardedRoomKeyEventContent {
     /// A's Curve25519 key between B and C.
     pub forwarding_curve25519_key_chain: Vec<String>,
 
-    /// Used to mark key if allowed for shared history
+    /// Used to mark key if allowed for shared history.
+    ///
+    /// Defaults to `false`.
     #[cfg(feature = "unstable-msc3061")]
     #[serde(
         default,
