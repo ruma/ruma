@@ -53,7 +53,7 @@ impl ToDeviceRoomKeyEventContent {
             session_id,
             session_key,
             #[cfg(feature = "unstable-msc3061")]
-            shared_history,
+            shared_history: false,
         }
     }
 }
