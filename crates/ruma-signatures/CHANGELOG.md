@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.14.0
+
 Breaking changes:
 
 - Update `ed25519-dalek` crate
