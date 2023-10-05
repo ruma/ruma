@@ -45,6 +45,7 @@ pub struct ToDeviceForwardedRoomKeyEventContent {
     pub forwarding_curve25519_key_chain: Vec<String>,
 
     /// Used to mark key if allowed for shared history
+    #[cfg(feature = "unstable-msc3061")]
     #[serde(
         default,
         rename = "org.matrix.msc3061.shared_history",
@@ -91,6 +92,7 @@ pub struct ToDeviceForwardedRoomKeyEventContentInit {
     pub forwarding_curve25519_key_chain: Vec<String>,
 
     /// Used to mark key if allowed for shared history
+    #[cfg(feature = "unstable-msc3061")]
     pub shared_history: bool,
 }
 
@@ -104,6 +106,7 @@ impl From<ToDeviceForwardedRoomKeyEventContentInit> for ToDeviceForwardedRoomKey
             session_key: init.session_key,
             sender_claimed_ed25519_key: init.sender_claimed_ed25519_key,
             forwarding_curve25519_key_chain: init.forwarding_curve25519_key_chain,
+            #[cfg(feature = "unstable-msc3061")]
             shared_history: init.shared_history,
         }
     }
