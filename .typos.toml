@@ -6,3 +6,8 @@ Nd = "Nd"
 Wya = "Wya"
 # thead html tag is not a typo, upstream PR pending
 thead = "thead"
+
+# all of these are valid words, but should never appear in this repo
+sing = "sign"
+singed = "signed"
+singing = "signing"
