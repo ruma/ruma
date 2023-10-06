@@ -26,6 +26,17 @@ pub struct ToDeviceRoomKeyEventContent {
 
     /// The key to be exchanged.
     pub session_key: String,
+
+    /// Used to mark key if allowed for shared history.
+    ///
+    /// Defaults to `false`.
+    #[cfg(feature = "unstable-msc3061")]
+    #[serde(
+        default,
+        rename = "org.matrix.msc3061.shared_history",
+        skip_serializing_if = "ruma_common::serde::is_default"
+    )]
+    pub shared_history: bool,
 }
 
 impl ToDeviceRoomKeyEventContent {
@@ -37,7 +48,14 @@ impl ToDeviceRoomKeyEventContent {
         session_id: String,
         session_key: String,
     ) -> Self {
-        Self { algorithm, room_id, session_id, session_key }
+        Self {
+            algorithm,
+            room_id,
+            session_id,
+            session_key,
+            #[cfg(feature = "unstable-msc3061")]
+            shared_history: false,
+        }
     }
 }
 
@@ -56,8 +74,11 @@ mod tests {
             room_id: owned_room_id!("!testroomid:example.org"),
             session_id: "SessId".into(),
             session_key: "SessKey".into(),
+            #[cfg(feature = "unstable-msc3061")]
+            shared_history: true,
         };
 
+        #[cfg(not(feature = "unstable-msc3061"))]
         assert_eq!(
             to_json_value(content).unwrap(),
             json!({
@@ -65,6 +86,18 @@ mod tests {
                 "room_id": "!testroomid:example.org",
                 "session_id": "SessId",
                 "session_key": "SessKey",
+            })
+        );
+
+        #[cfg(feature = "unstable-msc3061")]
+        assert_eq!(
+            to_json_value(content).unwrap(),
+            json!({
+                "algorithm": "m.megolm.v1.aes-sha2",
+                "room_id": "!testroomid:example.org",
+                "session_id": "SessId",
+                "session_key": "SessKey",
+                "org.matrix.msc3061.shared_history": true,
             })
         );
     }

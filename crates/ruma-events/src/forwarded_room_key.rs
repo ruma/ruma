@@ -43,6 +43,17 @@ pub struct ToDeviceForwardedRoomKeyEventContent {
     /// key is forwarded from A to B to C, this field is empty between A and B, and contains
     /// A's Curve25519 key between B and C.
     pub forwarding_curve25519_key_chain: Vec<String>,
+
+    /// Used to mark key if allowed for shared history.
+    ///
+    /// Defaults to `false`.
+    #[cfg(feature = "unstable-msc3061")]
+    #[serde(
+        default,
+        rename = "org.matrix.msc3061.shared_history",
+        skip_serializing_if = "ruma_common::serde::is_default"
+    )]
+    pub shared_history: bool,
 }
 
 /// Initial set of fields of `ToDeviceForwardedRoomKeyEventContent`.
@@ -93,6 +104,8 @@ impl From<ToDeviceForwardedRoomKeyEventContentInit> for ToDeviceForwardedRoomKey
             session_key: init.session_key,
             sender_claimed_ed25519_key: init.sender_claimed_ed25519_key,
             forwarding_curve25519_key_chain: init.forwarding_curve25519_key_chain,
+            #[cfg(feature = "unstable-msc3061")]
+            shared_history: false,
         }
     }
 }
