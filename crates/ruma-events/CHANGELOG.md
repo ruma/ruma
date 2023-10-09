@@ -4,6 +4,8 @@ Improvements:
 
 - Calling `make_reply_to` or `make_reply_to_raw` with `AddMentions::Yes` no longer adds people
   mentioned in the original message to mentions (only the sender of the original message)
+- Add convenience constructors like `text_plain` to `RoomMessageEventContentWithoutRelation`
+  - These are the same that are already available on `RoomMessageEventContent`
 
 # 0.27.0
 

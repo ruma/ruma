@@ -26,6 +26,54 @@ impl RoomMessageEventContentWithoutRelation {
         Self { msgtype, mentions: None }
     }
 
+    /// A constructor to create a plain text message.
+    pub fn text_plain(body: impl Into<String>) -> Self {
+        Self::new(MessageType::text_plain(body))
+    }
+
+    /// A constructor to create an html message.
+    pub fn text_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self::new(MessageType::text_html(body, html_body))
+    }
+
+    /// A constructor to create a markdown message.
+    #[cfg(feature = "markdown")]
+    pub fn text_markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self::new(MessageType::text_markdown(body))
+    }
+
+    /// A constructor to create a plain text notice.
+    pub fn notice_plain(body: impl Into<String>) -> Self {
+        Self::new(MessageType::notice_plain(body))
+    }
+
+    /// A constructor to create an html notice.
+    pub fn notice_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self::new(MessageType::notice_html(body, html_body))
+    }
+
+    /// A constructor to create a markdown notice.
+    #[cfg(feature = "markdown")]
+    pub fn notice_markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self::new(MessageType::notice_markdown(body))
+    }
+
+    /// A constructor to create a plain text emote.
+    pub fn emote_plain(body: impl Into<String>) -> Self {
+        Self::new(MessageType::emote_plain(body))
+    }
+
+    /// A constructor to create an html emote.
+    pub fn emote_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self::new(MessageType::emote_html(body, html_body))
+    }
+
+    /// A constructor to create a markdown emote.
+    #[cfg(feature = "markdown")]
+    pub fn emote_markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self::new(MessageType::emote_markdown(body))
+    }
+
     /// Transform `self` into a `RoomMessageEventContent` with the given relation.
     pub fn with_relation(
         self,
