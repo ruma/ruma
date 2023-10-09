@@ -213,6 +213,18 @@ impl RoomMessageEventContentWithoutRelation {
         self.make_reply_tweaks(original_event_id, original_thread_id, sender_for_mentions)
     }
 
+    /// Add the given [mentions] to this event.
+    ///
+    /// If no [`Mentions`] was set on this events, this sets it. Otherwise, this updates the current
+    /// mentions by extending the previous `user_ids` with the new ones, and applies a logical OR to
+    /// the values of `room`.
+    ///
+    /// [mentions]: https://spec.matrix.org/latest/client-server-api/#user-and-room-mentions
+    pub fn add_mentions(mut self, mentions: Mentions) -> Self {
+        self.mentions.get_or_insert_with(Mentions::new).add(mentions);
+        self
+    }
+
     fn make_reply_tweaks(
         mut self,
         original_event_id: OwnedEventId,

@@ -10,6 +10,7 @@ Improvements:
   `RoomMessageEventContent`:
   - `make_reply_to`
   - `make_reply_to_raw`
+  - `add_mentions`
 
 # 0.27.0
 

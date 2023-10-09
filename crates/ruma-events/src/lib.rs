@@ -272,6 +272,11 @@ impl Mentions {
     pub fn with_room_mention() -> Self {
         Self { room: true, ..Default::default() }
     }
+
+    fn add(&mut self, mentions: Self) {
+        self.user_ids.extend(mentions.user_ids);
+        self.room |= mentions.room;
+    }
 }
 
 // Wrapper around `Box<str>` that cannot be used in a meaningful way outside of

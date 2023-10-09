@@ -348,13 +348,7 @@ impl RoomMessageEventContent {
     ///
     /// [mentions]: https://spec.matrix.org/latest/client-server-api/#user-and-room-mentions
     pub fn add_mentions(mut self, mentions: Mentions) -> Self {
-        if let Some(m) = &mut self.mentions {
-            m.user_ids.extend(mentions.user_ids);
-            m.room |= mentions.room;
-        } else {
-            self.mentions = Some(mentions);
-        }
-
+        self.mentions.get_or_insert_with(Mentions::new).add(mentions);
         self
     }
 
