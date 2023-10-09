@@ -277,6 +277,7 @@ impl RoomMessageEventContent {
         )
     }
 
+    #[track_caller]
     fn make_reply_fallback(mut self, original_event: OriginalEventData<'_>) -> Self {
         let empty_formatted_body = || FormattedBody::html(String::new());
 
