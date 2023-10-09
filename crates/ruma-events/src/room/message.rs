@@ -4,16 +4,16 @@
 
 use std::borrow::Cow;
 
-use as_variant::as_variant;
 use ruma_common::{
     serde::{JsonObject, Raw, StringEnum},
-    OwnedEventId, OwnedUserId, RoomId, UserId,
+    OwnedEventId, RoomId,
 };
 #[cfg(feature = "html")]
 use ruma_html::{sanitize_html, HtmlSanitizerMode, RemoveReplyFallback};
 use ruma_macros::EventContent;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
+use tracing::warn;
 
 use self::reply::OriginalEventData;
 #[cfg(feature = "html")]
@@ -157,29 +157,12 @@ impl RoomMessageEventContent {
     /// Panics if `self` has a `formatted_body` with a format other than HTML.
     #[track_caller]
     pub fn make_reply_to(
-        mut self,
+        self,
         original_message: &OriginalRoomMessageEvent,
         forward_thread: ForwardThread,
         add_mentions: AddMentions,
     ) -> Self {
-        self.msgtype.add_reply_fallback(original_message.into());
-        let original_event_id = original_message.event_id.clone();
-
-        let original_thread_id = if forward_thread == ForwardThread::Yes {
-            original_message
-                .content
-                .relates_to
-                .as_ref()
-                .and_then(as_variant!(Relation::Thread))
-                .map(|thread| thread.event_id.clone())
-        } else {
-            None
-        };
-
-        let sender_for_mentions =
-            (add_mentions == AddMentions::Yes).then_some(&*original_message.sender);
-
-        self.make_reply_tweaks(original_event_id, original_thread_id, sender_for_mentions)
+        self.without_relation().make_reply_to(original_message, forward_thread, add_mentions)
     }
 
     /// Turns `self` into a reply to the given raw event.
@@ -201,84 +184,20 @@ impl RoomMessageEventContent {
     /// Panics if `self` has a `formatted_body` with a format other than HTML.
     #[track_caller]
     pub fn make_reply_to_raw(
-        mut self,
+        self,
         original_event: &Raw<AnySyncTimelineEvent>,
         original_event_id: OwnedEventId,
         room_id: &RoomId,
         forward_thread: ForwardThread,
         add_mentions: AddMentions,
     ) -> Self {
-        #[derive(Deserialize)]
-        struct ContentDeHelper {
-            body: Option<String>,
-            #[serde(flatten)]
-            formatted: Option<FormattedBody>,
-            #[cfg(feature = "unstable-msc1767")]
-            #[serde(rename = "org.matrix.msc1767")]
-            text: Option<String>,
-            #[serde(rename = "m.relates_to")]
-            relates_to: Option<crate::room::encrypted::Relation>,
-        }
-
-        let sender = original_event.get_field::<OwnedUserId>("sender").ok().flatten();
-        let content = original_event.get_field::<ContentDeHelper>("content").ok().flatten();
-        let relates_to = content.as_ref().and_then(|c| c.relates_to.as_ref());
-
-        let content_body = content.as_ref().and_then(|c| {
-            let body = c.body.as_deref();
-            #[cfg(feature = "unstable-msc1767")]
-            let body = body.or(c.text.as_deref());
-
-            Some((c, body?))
-        });
-
-        // Only apply fallback if we managed to deserialize raw event.
-        if let (Some(sender), Some((content, body))) = (&sender, content_body) {
-            let is_reply =
-                matches!(content.relates_to, Some(crate::room::encrypted::Relation::Reply { .. }));
-            let data = OriginalEventData {
-                body,
-                formatted: content.formatted.as_ref(),
-                is_emote: false,
-                is_reply,
-                room_id,
-                event_id: &original_event_id,
-                sender,
-            };
-
-            self.msgtype.add_reply_fallback(data);
-        }
-
-        let original_thread_id = if forward_thread == ForwardThread::Yes {
-            relates_to
-                .and_then(as_variant!(crate::room::encrypted::Relation::Thread))
-                .map(|thread| thread.event_id.clone())
-        } else {
-            None
-        };
-
-        let sender_for_mentions = sender.as_deref().filter(|_| add_mentions == AddMentions::Yes);
-        self.make_reply_tweaks(original_event_id, original_thread_id, sender_for_mentions)
-    }
-
-    fn make_reply_tweaks(
-        mut self,
-        original_event_id: OwnedEventId,
-        original_thread_id: Option<OwnedEventId>,
-        sender_for_mentions: Option<&UserId>,
-    ) -> Self {
-        let relates_to = if let Some(event_id) = original_thread_id {
-            Relation::Thread(Thread::plain(event_id.to_owned(), original_event_id.to_owned()))
-        } else {
-            Relation::Reply { in_reply_to: InReplyTo { event_id: original_event_id.to_owned() } }
-        };
-        self.relates_to = Some(relates_to);
-
-        if let Some(sender) = sender_for_mentions {
-            self.mentions.get_or_insert_with(Mentions::new).user_ids.insert(sender.to_owned());
-        }
-
-        self
+        self.without_relation().make_reply_to_raw(
+            original_event,
+            original_event_id,
+            room_id,
+            forward_thread,
+            add_mentions,
+        )
     }
 
     /// Turns `self` into a new message for a thread, that is optionally a reply.
@@ -484,6 +403,14 @@ impl RoomMessageEventContent {
         };
 
         self.msgtype.sanitize(mode, remove_reply_fallback);
+    }
+
+    fn without_relation(self) -> RoomMessageEventContentWithoutRelation {
+        if self.relates_to.is_some() {
+            warn!("Overwriting existing relates_to value");
+        }
+
+        self.into()
     }
 }
 

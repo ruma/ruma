@@ -6,6 +6,10 @@ Improvements:
   mentioned in the original message to mentions (only the sender of the original message)
 - Add convenience constructors like `text_plain` to `RoomMessageEventContentWithoutRelation`
   - These are the same that are already available on `RoomMessageEventContent`
+- Add methods on `RoomMessageEventWithoutRelation` that were previously only available on
+  `RoomMessageEventContent`:
+  - `make_reply_to`
+  - `make_reply_to_raw`
 
 # 0.27.0
 
