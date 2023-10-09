@@ -15,6 +15,9 @@ use ruma_macros::EventContent;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
+use self::reply::OriginalEventData;
+#[cfg(feature = "html")]
+use self::sanitize::remove_plain_reply_fallback;
 use crate::{
     relation::{CustomRelation, InReplyTo, RelationType, Replacement, Thread},
     AnySyncTimelineEvent, Mentions, PrivOwnedStr,
@@ -35,23 +38,21 @@ mod server_notice;
 mod text;
 mod video;
 
-pub use audio::{AudioInfo, AudioMessageEventContent};
 #[cfg(feature = "unstable-msc3245-v1-compat")]
-pub use audio::{UnstableAudioDetailsContentBlock, UnstableVoiceContentBlock};
-pub use emote::EmoteMessageEventContent;
-pub use file::{FileInfo, FileMessageEventContent};
-pub use image::ImageMessageEventContent;
-pub use key_verification_request::KeyVerificationRequestEventContent;
-pub use location::{LocationInfo, LocationMessageEventContent};
-pub use notice::NoticeMessageEventContent;
-pub use relation_serde::deserialize_relation;
-#[cfg(feature = "html")]
-use sanitize::remove_plain_reply_fallback;
-pub use server_notice::{LimitType, ServerNoticeMessageEventContent, ServerNoticeType};
-pub use text::TextMessageEventContent;
-pub use video::{VideoInfo, VideoMessageEventContent};
-
-use self::reply::OriginalEventData;
+pub use self::audio::{UnstableAudioDetailsContentBlock, UnstableVoiceContentBlock};
+pub use self::{
+    audio::{AudioInfo, AudioMessageEventContent},
+    emote::EmoteMessageEventContent,
+    file::{FileInfo, FileMessageEventContent},
+    image::ImageMessageEventContent,
+    key_verification_request::KeyVerificationRequestEventContent,
+    location::{LocationInfo, LocationMessageEventContent},
+    notice::NoticeMessageEventContent,
+    relation_serde::deserialize_relation,
+    server_notice::{LimitType, ServerNoticeMessageEventContent, ServerNoticeType},
+    text::TextMessageEventContent,
+    video::{VideoInfo, VideoMessageEventContent},
+};
 
 /// The content of an `m.room.message` event.
 ///
