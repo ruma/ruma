@@ -152,12 +152,12 @@ impl RoomMessageEventContent {
     /// Panics if `self` has a `formatted_body` with a format other than HTML.
     #[track_caller]
     pub fn make_reply_to(
-        self,
+        mut self,
         original_message: &OriginalRoomMessageEvent,
         forward_thread: ForwardThread,
         add_mentions: AddMentions,
     ) -> Self {
-        let reply = self.make_reply_fallback(original_message.into());
+        self.msgtype.add_reply_fallback(original_message.into());
         let original_event_id = original_message.event_id.clone();
 
         let original_thread_id = if forward_thread == ForwardThread::Yes {
@@ -174,7 +174,7 @@ impl RoomMessageEventContent {
         let sender_for_mentions =
             (add_mentions == AddMentions::Yes).then_some(&*original_message.sender);
 
-        reply.make_reply_tweaks(original_event_id, original_thread_id, sender_for_mentions)
+        self.make_reply_tweaks(original_event_id, original_thread_id, sender_for_mentions)
     }
 
     /// Turns `self` into a reply to the given raw event.
@@ -196,7 +196,7 @@ impl RoomMessageEventContent {
     /// Panics if `self` has a `formatted_body` with a format other than HTML.
     #[track_caller]
     pub fn make_reply_to_raw(
-        self,
+        mut self,
         original_event: &Raw<AnySyncTimelineEvent>,
         original_event_id: OwnedEventId,
         room_id: &RoomId,
@@ -228,7 +228,7 @@ impl RoomMessageEventContent {
         });
 
         // Only apply fallback if we managed to deserialize raw event.
-        let reply = if let (Some(sender), Some((content, body))) = (&sender, content_body) {
+        if let (Some(sender), Some((content, body))) = (&sender, content_body) {
             let is_reply =
                 matches!(content.relates_to, Some(crate::room::encrypted::Relation::Reply { .. }));
             let data = OriginalEventData {
@@ -241,10 +241,8 @@ impl RoomMessageEventContent {
                 sender,
             };
 
-            self.make_reply_fallback(data)
-        } else {
-            self
-        };
+            self.msgtype.add_reply_fallback(data);
+        }
 
         let original_thread_id = if forward_thread == ForwardThread::Yes {
             relates_to
@@ -255,52 +253,7 @@ impl RoomMessageEventContent {
         };
 
         let sender_for_mentions = sender.as_deref().filter(|_| add_mentions == AddMentions::Yes);
-        reply.make_reply_tweaks(original_event_id, original_thread_id, sender_for_mentions)
-    }
-
-    #[track_caller]
-    fn make_reply_fallback(mut self, original_event: OriginalEventData<'_>) -> Self {
-        let empty_formatted_body = || FormattedBody::html(String::new());
-
-        let (body, formatted) = {
-            match &mut self.msgtype {
-                MessageType::Emote(m) => {
-                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
-                }
-                MessageType::Notice(m) => {
-                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
-                }
-                MessageType::Text(m) => {
-                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
-                }
-                MessageType::Audio(m) => (&mut m.body, None),
-                MessageType::File(m) => (&mut m.body, None),
-                MessageType::Image(m) => (&mut m.body, None),
-                MessageType::Location(m) => (&mut m.body, None),
-                MessageType::ServerNotice(m) => (&mut m.body, None),
-                MessageType::Video(m) => (&mut m.body, None),
-                MessageType::VerificationRequest(m) => (&mut m.body, None),
-                MessageType::_Custom(m) => (&mut m.body, None),
-            }
-        };
-
-        if let Some(f) = formatted {
-            assert_eq!(
-                f.format,
-                MessageFormat::Html,
-                "make_reply_to can't handle non-HTML formatted messages"
-            );
-
-            let formatted_body = &mut f.body;
-
-            (*body, *formatted_body) = reply::plain_and_formatted_reply_body(
-                body.as_str(),
-                (!formatted_body.is_empty()).then_some(formatted_body.as_str()),
-                original_event,
-            );
-        }
-
-        self
+        self.make_reply_tweaks(original_event_id, original_thread_id, sender_for_mentions)
     }
 
     fn make_reply_tweaks(
@@ -889,6 +842,49 @@ impl MessageType {
             if remove_reply_fallback == RemoveReplyFallback::Yes {
                 *body = remove_plain_reply_fallback(body).to_owned();
             }
+        }
+    }
+
+    #[track_caller]
+    fn add_reply_fallback(&mut self, original_event: OriginalEventData<'_>) {
+        let empty_formatted_body = || FormattedBody::html(String::new());
+
+        let (body, formatted) = {
+            match self {
+                MessageType::Emote(m) => {
+                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
+                }
+                MessageType::Notice(m) => {
+                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
+                }
+                MessageType::Text(m) => {
+                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
+                }
+                MessageType::Audio(m) => (&mut m.body, None),
+                MessageType::File(m) => (&mut m.body, None),
+                MessageType::Image(m) => (&mut m.body, None),
+                MessageType::Location(m) => (&mut m.body, None),
+                MessageType::ServerNotice(m) => (&mut m.body, None),
+                MessageType::Video(m) => (&mut m.body, None),
+                MessageType::VerificationRequest(m) => (&mut m.body, None),
+                MessageType::_Custom(m) => (&mut m.body, None),
+            }
+        };
+
+        if let Some(f) = formatted {
+            assert_eq!(
+                f.format,
+                MessageFormat::Html,
+                "can't add reply fallback to non-HTML formatted messages"
+            );
+
+            let formatted_body = &mut f.body;
+
+            (*body, *formatted_body) = reply::plain_and_formatted_reply_body(
+                body.as_str(),
+                (!formatted_body.is_empty()).then_some(formatted_body.as_str()),
+                original_event,
+            );
         }
     }
 }
