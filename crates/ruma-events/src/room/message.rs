@@ -359,42 +359,7 @@ impl RoomMessageEventContent {
             },
         });
 
-        let empty_formatted_body = || FormattedBody::html(String::new());
-
-        let (body, formatted) = {
-            match &mut self.msgtype {
-                MessageType::Emote(m) => {
-                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
-                }
-                MessageType::Notice(m) => {
-                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
-                }
-                MessageType::Text(m) => {
-                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
-                }
-                MessageType::Audio(m) => (&mut m.body, None),
-                MessageType::File(m) => (&mut m.body, None),
-                MessageType::Image(m) => (&mut m.body, None),
-                MessageType::Location(m) => (&mut m.body, None),
-                MessageType::ServerNotice(m) => (&mut m.body, None),
-                MessageType::Video(m) => (&mut m.body, None),
-                MessageType::VerificationRequest(m) => (&mut m.body, None),
-                MessageType::_Custom(m) => (&mut m.body, None),
-            }
-        };
-
-        // Add replacement fallback.
-        *body = format!("* {body}");
-
-        if let Some(f) = formatted {
-            assert_eq!(
-                f.format,
-                MessageFormat::Html,
-                "make_replacement can't handle non-HTML formatted messages"
-            );
-
-            f.body = format!("* {}", f.body);
-        }
+        self.msgtype.make_replacement_body();
 
         // Add reply fallback if needed.
         if let Some(original_message) = replied_to_message {
@@ -885,6 +850,45 @@ impl MessageType {
                 (!formatted_body.is_empty()).then_some(formatted_body.as_str()),
                 original_event,
             );
+        }
+    }
+
+    fn make_replacement_body(&mut self) {
+        let empty_formatted_body = || FormattedBody::html(String::new());
+
+        let (body, formatted) = {
+            match self {
+                MessageType::Emote(m) => {
+                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
+                }
+                MessageType::Notice(m) => {
+                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
+                }
+                MessageType::Text(m) => {
+                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
+                }
+                MessageType::Audio(m) => (&mut m.body, None),
+                MessageType::File(m) => (&mut m.body, None),
+                MessageType::Image(m) => (&mut m.body, None),
+                MessageType::Location(m) => (&mut m.body, None),
+                MessageType::ServerNotice(m) => (&mut m.body, None),
+                MessageType::Video(m) => (&mut m.body, None),
+                MessageType::VerificationRequest(m) => (&mut m.body, None),
+                MessageType::_Custom(m) => (&mut m.body, None),
+            }
+        };
+
+        // Add replacement fallback.
+        *body = format!("* {body}");
+
+        if let Some(f) = formatted {
+            assert_eq!(
+                f.format,
+                MessageFormat::Html,
+                "make_replacement can't handle non-HTML formatted messages"
+            );
+
+            f.body = format!("* {}", f.body);
         }
     }
 }
