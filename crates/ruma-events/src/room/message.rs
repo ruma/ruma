@@ -2,7 +2,7 @@
 //!
 //! [`m.room.message`]: https://spec.matrix.org/latest/client-server-api/#mroommessage
 
-use std::{borrow::Cow, collections::BTreeSet};
+use std::borrow::Cow;
 
 use as_variant::as_variant;
 use ruma_common::{
@@ -158,6 +158,7 @@ impl RoomMessageEventContent {
         add_mentions: AddMentions,
     ) -> Self {
         let reply = self.make_reply_fallback(original_message.into());
+        let original_event_id = original_message.event_id.clone();
 
         let original_thread_id = if forward_thread == ForwardThread::Yes {
             original_message
@@ -170,21 +171,10 @@ impl RoomMessageEventContent {
             None
         };
 
-        let original_user_mentions = (add_mentions == AddMentions::Yes).then(|| {
-            original_message
-                .content
-                .mentions
-                .as_ref()
-                .map(|m| m.user_ids.clone())
-                .unwrap_or_default()
-        });
+        let sender_for_mentions =
+            (add_mentions == AddMentions::Yes).then_some(&*original_message.sender);
 
-        reply.make_reply_tweaks(
-            original_message.event_id.clone(),
-            original_thread_id,
-            original_user_mentions,
-            Some(&original_message.sender),
-        )
+        reply.make_reply_tweaks(original_event_id, original_thread_id, sender_for_mentions)
     }
 
     /// Turns `self` into a reply to the given raw event.
@@ -223,8 +213,6 @@ impl RoomMessageEventContent {
             text: Option<String>,
             #[serde(rename = "m.relates_to")]
             relates_to: Option<crate::room::encrypted::Relation>,
-            #[serde(rename = "m.mentions")]
-            mentions: Option<Mentions>,
         }
 
         let sender = original_event.get_field::<OwnedUserId>("sender").ok().flatten();
@@ -266,15 +254,8 @@ impl RoomMessageEventContent {
             None
         };
 
-        let original_user_mentions = (add_mentions == AddMentions::Yes)
-            .then(|| content.and_then(|c| c.mentions).map(|m| m.user_ids).unwrap_or_default());
-
-        reply.make_reply_tweaks(
-            original_event_id,
-            original_thread_id,
-            original_user_mentions,
-            sender.as_deref(),
-        )
+        let sender_for_mentions = sender.as_deref().filter(|_| add_mentions == AddMentions::Yes);
+        reply.make_reply_tweaks(original_event_id, original_thread_id, sender_for_mentions)
     }
 
     #[track_caller]
@@ -326,8 +307,7 @@ impl RoomMessageEventContent {
         mut self,
         original_event_id: OwnedEventId,
         original_thread_id: Option<OwnedEventId>,
-        original_user_mentions: Option<BTreeSet<OwnedUserId>>,
-        original_sender: Option<&UserId>,
+        sender_for_mentions: Option<&UserId>,
     ) -> Self {
         let relates_to = if let Some(event_id) = original_thread_id {
             Relation::Thread(Thread::plain(event_id.to_owned(), original_event_id.to_owned()))
@@ -336,10 +316,8 @@ impl RoomMessageEventContent {
         };
         self.relates_to = Some(relates_to);
 
-        if let (Some(sender), Some(mut user_ids)) = (original_sender, original_user_mentions) {
-            // Add the sender.
-            user_ids.insert(sender.to_owned());
-            self.mentions = Some(Mentions { user_ids, ..Default::default() });
+        if let Some(sender) = sender_for_mentions {
+            self.mentions.get_or_insert_with(Mentions::new).user_ids.insert(sender.to_owned());
         }
 
         self
@@ -658,8 +636,7 @@ pub enum AddMentions {
     ///
     /// Set this if your client supports intentional mentions.
     ///
-    /// The sender of the original event will be added to the mentions of this message, along with
-    /// every user mentioned in the original event.
+    /// The sender of the original event will be added to the mentions of this message.
     Yes,
 
     /// Do not add intentional mentions to the reply.

@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+- Calling `make_reply_to` or `make_reply_to_raw` with `AddMentions::Yes` no longer adds people
+  mentioned in the original message to mentions (only the sender of the original message)
+
 # 0.27.0
 
 The crate was split out of `ruma-common` again after `ruma-common 0.11.3`.

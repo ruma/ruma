@@ -467,20 +467,20 @@ fn reply_add_mentions() {
         .make_reply_to(&first_message, ForwardThread::Yes, AddMentions::Yes);
 
     let mentions = second_message.mentions.clone().unwrap();
-    assert_eq!(mentions.user_ids, [friend.clone(), user.clone()].into());
+    assert_eq!(mentions.user_ids, [user.clone()].into());
     assert!(!mentions.room);
 
     second_message =
         second_message.add_mentions(Mentions::with_user_ids([user.clone(), other_friend.clone()]));
 
     let mentions = second_message.mentions.clone().unwrap();
-    assert_eq!(mentions.user_ids, [friend.clone(), other_friend.clone(), user.clone()].into());
+    assert_eq!(mentions.user_ids, [other_friend.clone(), user.clone()].into());
     assert!(!mentions.room);
 
     second_message = second_message.add_mentions(Mentions::with_room_mention());
 
     let mentions = second_message.mentions.unwrap();
-    assert_eq!(mentions.user_ids, [friend, other_friend, user].into());
+    assert_eq!(mentions.user_ids, [other_friend, user].into());
     assert!(mentions.room);
 }
 
@@ -690,7 +690,7 @@ fn reply_to_raw_add_mentions() {
     assert_eq!(text_msg.body, "This is **my** reply");
     assert_eq!(text_msg.formatted.unwrap().body, "This is <strong>my</strong> reply");
 
-    assert_eq!(reply.mentions.unwrap().user_ids, BTreeSet::from([user_id, other_user_id]));
+    assert_eq!(reply.mentions.unwrap().user_ids, BTreeSet::from([user_id]));
 }
 
 #[test]
