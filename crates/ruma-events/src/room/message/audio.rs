@@ -143,7 +143,7 @@ pub struct UnstableVoiceContentBlock {}
 
 #[cfg(feature = "unstable-msc3245-v1-compat")]
 impl UnstableVoiceContentBlock {
-    /// Creates a new `UnstableVoiceContentBlock`
+    /// Creates a new `UnstableVoiceContentBlock`.
     pub fn new() -> Self {
         Self {}
     }
