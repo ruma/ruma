@@ -124,6 +124,14 @@ pub struct UnstableAudioDetailsContentBlock {
     pub waveform: Vec<Amplitude>,
 }
 
+#[cfg(feature = "unstable-msc3245-v1-compat")]
+impl UnstableAudioDetailsContentBlock {
+    /// Creates a new `UnstableAudioDetailsContentBlock ` with the given duration and waveform
+    pub fn new(duration: Duration, waveform: Vec<Amplitude>) -> Self {
+        Self { duration, waveform }
+    }
+}
+
 /// Extensible event fallback data for voice messages, from the
 /// [first version of MSC3245][msc].
 ///
@@ -132,3 +140,11 @@ pub struct UnstableAudioDetailsContentBlock {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct UnstableVoiceContentBlock {}
+
+#[cfg(feature = "unstable-msc3245-v1-compat")]
+impl UnstableVoiceContentBlock {
+    /// Creates a new `UnstableVoiceContentBlock`
+    pub fn new() -> Self {
+        Self { }
+    }
+}
