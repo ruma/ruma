@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.27.1
+
 Improvements:
 
 - Calling `make_reply_to` or `make_reply_to_raw` with `AddMentions::Yes` no longer adds people
