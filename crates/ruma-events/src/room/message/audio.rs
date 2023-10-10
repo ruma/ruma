@@ -145,6 +145,6 @@ pub struct UnstableVoiceContentBlock {}
 impl UnstableVoiceContentBlock {
     /// Creates a new `UnstableVoiceContentBlock`
     pub fn new() -> Self {
-        Self { }
+        Self {}
     }
 }
