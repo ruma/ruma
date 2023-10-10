@@ -126,7 +126,7 @@ pub struct UnstableAudioDetailsContentBlock {
 
 #[cfg(feature = "unstable-msc3245-v1-compat")]
 impl UnstableAudioDetailsContentBlock {
-    /// Creates a new `UnstableAudioDetailsContentBlock ` with the given duration and waveform
+    /// Creates a new `UnstableAudioDetailsContentBlock ` with the given duration and waveform.
     pub fn new(duration: Duration, waveform: Vec<Amplitude>) -> Self {
         Self { duration, waveform }
     }
