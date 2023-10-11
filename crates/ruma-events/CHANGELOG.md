@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.27.3
+
+Improvements:
+
+- Improve compatibility of unstable voice messages
+
 # 0.27.2
 
 Improvements:
