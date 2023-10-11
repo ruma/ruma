@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.27.2
+
+Improvements:
+
+- Added constructors for `UnstableAudioDetailsContentBlock` and `UnstableVoiceContentBlock`
+
 # 0.27.1
 
 Improvements:
