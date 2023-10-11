@@ -119,7 +119,6 @@ pub struct UnstableAudioDetailsContentBlock {
     /// The waveform representation of the audio content, if any.
     ///
     /// This is optional and defaults to an empty array.
-    #[cfg(feature = "unstable-msc3246")]
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub waveform: Vec<Amplitude>,
 }
