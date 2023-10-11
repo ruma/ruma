@@ -119,9 +119,16 @@ pub struct UnstableAudioDetailsContentBlock {
     /// The waveform representation of the audio content, if any.
     ///
     /// This is optional and defaults to an empty array.
-    #[cfg(feature = "unstable-msc3246")]
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub waveform: Vec<Amplitude>,
+}
+
+#[cfg(feature = "unstable-msc3245-v1-compat")]
+impl UnstableAudioDetailsContentBlock {
+    /// Creates a new `UnstableAudioDetailsContentBlock ` with the given duration and waveform.
+    pub fn new(duration: Duration, waveform: Vec<Amplitude>) -> Self {
+        Self { duration, waveform }
+    }
 }
 
 /// Extensible event fallback data for voice messages, from the
@@ -129,6 +136,14 @@ pub struct UnstableAudioDetailsContentBlock {
 ///
 /// [msc]: https://github.com/matrix-org/matrix-spec-proposals/blob/83f6c5b469c1d78f714e335dcaa25354b255ffa5/proposals/3245-voice-messages.md
 #[cfg(feature = "unstable-msc3245-v1-compat")]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct UnstableVoiceContentBlock {}
+
+#[cfg(feature = "unstable-msc3245-v1-compat")]
+impl UnstableVoiceContentBlock {
+    /// Creates a new `UnstableVoiceContentBlock`.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
