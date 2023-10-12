@@ -14,7 +14,7 @@ use ruma_events::{
             AddMentions, AudioMessageEventContent, EmoteMessageEventContent,
             FileMessageEventContent, ForwardThread, ImageMessageEventContent,
             KeyVerificationRequestEventContent, MessageType, OriginalRoomMessageEvent,
-            OriginalSyncRoomMessageEvent, Relation, RoomMessageEventContent,
+            OriginalSyncRoomMessageEvent, Relation, ReplyWithinThread, RoomMessageEventContent,
             TextMessageEventContent, VideoMessageEventContent,
         },
         EncryptedFileInit, JsonWebKeyInit, MediaSource,
@@ -443,6 +443,43 @@ fn reply_sanitize() {
         This is <strong>my</strong> reply\
         "
     );
+}
+
+#[test]
+fn reply_thread_fallback() {
+    let thread_root = OriginalRoomMessageEvent {
+        content: RoomMessageEventContent::text_plain("Thread root"),
+        event_id: owned_event_id!("$thread_root"),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
+        room_id: owned_room_id!("!testroomid:example.org"),
+        sender: owned_user_id!("@user:example.org"),
+        unsigned: MessageLikeUnsigned::default(),
+    };
+    let threaded_message = OriginalRoomMessageEvent {
+        content: RoomMessageEventContent::text_plain("Threaded message").make_for_thread(
+            &thread_root,
+            ReplyWithinThread::No,
+            AddMentions::No,
+        ),
+        event_id: owned_event_id!("$threaded_message"),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
+        room_id: owned_room_id!("!testroomid:example.org"),
+        sender: owned_user_id!("@user:example.org"),
+        unsigned: MessageLikeUnsigned::default(),
+    };
+    let reply_as_thread_fallback = RoomMessageEventContent::text_plain(
+        "Reply from a thread-incapable client",
+    )
+    .make_reply_to(&threaded_message, ForwardThread::Yes, AddMentions::No);
+
+    let relation = reply_as_thread_fallback.relates_to.unwrap();
+    assert_matches!(relation, Relation::Thread(thread_info));
+    assert_eq!(
+        thread_info.in_reply_to.map(|in_reply_to| in_reply_to.event_id),
+        Some(threaded_message.event_id)
+    );
+    assert_eq!(thread_info.event_id, thread_root.event_id);
+    assert!(thread_info.is_falling_back);
 }
 
 #[test]
