@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.27.4
+
 Improvements:
 
 - Add `Thread::without_fallback` as a constructor that initializes the minimal
