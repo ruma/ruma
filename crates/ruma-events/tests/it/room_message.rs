@@ -351,8 +351,6 @@ fn escape_tags_in_plain_reply_body() {
 #[test]
 #[cfg(feature = "html")]
 fn reply_sanitize() {
-    use ruma_events::room::message::ForwardThread;
-
     let first_message = OriginalRoomMessageEvent {
         content: RoomMessageEventContent::text_html(
             "# This is the first message",
