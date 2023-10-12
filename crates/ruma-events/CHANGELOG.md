@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+- Add `Thread::without_fallback` as a constructor that initializes the minimal
+  set of required fields
+
 # 0.27.3
 
 Improvements:
