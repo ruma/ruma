@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.27.5
+
+Improvements:
+
+- Add the Ruma logo to the documentation as a favicon / sidebar logo
+
 # 0.27.4
 
 Improvements:
