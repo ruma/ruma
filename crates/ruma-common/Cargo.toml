@@ -2,7 +2,7 @@
 name = "ruma-common"
 version = "0.12.0"
 description = "Common types for other ruma crates."
-homepage = "https://www.ruma.io/"
+homepage = "https://ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
 readme = "README.md"
