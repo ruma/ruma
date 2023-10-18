@@ -20,6 +20,7 @@ pub mod encryption;
 pub mod guest_access;
 pub mod history_visibility;
 pub mod join_rules;
+pub mod matrix_rtc;
 pub mod member;
 pub mod message;
 pub mod name;
