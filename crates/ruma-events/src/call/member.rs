@@ -90,20 +90,22 @@ pub struct Membership {
 impl Membership {
     /// Application is "m.call" and scope is "m.room"
     pub fn is_room_call(&self) -> bool {
-        if let Application::Call(call) = &self.application {
-            return call.scope == CallScope::Room;
-        }
-        false
+        self.call_content().and_then(|call| Some(call.scope == CallScope::Room)).unwrap_or(false)
     }
 
     /// Application is "m.call"
     pub fn is_call(&self) -> bool {
-        match self.application {
-            Application::Call(_) => true,
-            _ => false,
-        }
+        self.call_content().is_some()
     }
 
+    /// Get a reference to the call content if the application is "m.call"
+    /// otherwise it returns None.
+    pub fn call_content(&self) -> Option<&CallApplicationContent> {
+        match &self.application {
+            Application::Call(call) => Some(call),
+            _ => None,
+        }
+    }
     /// Check if the event is expired.
     /// Defaults to using `created_ts` in the event content.
     /// If no `origin_server_ts` is provided and the event does not contain `created_ts`
@@ -176,7 +178,7 @@ pub struct CallApplicationContent {
 }
 
 /// The call scope defines different call ownership models.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum CallScope {
     /// A call which every user of a room can join and create.
     /// there is no particular name associated with it.
