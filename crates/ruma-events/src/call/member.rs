@@ -1,6 +1,7 @@
 //! Types for matrix rtc state events ([MSC3401]).
 //!
-//! [MSC3927]: https://github.com/matrix-org/matrix-spec-proposals/pull/3401
+//! This implements a newer/updated version of MSC3401
+//! [MSC3401]: https://github.com/matrix-org/matrix-spec-proposals/pull/3401
 
 use std::time::Duration;
 
