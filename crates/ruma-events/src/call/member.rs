@@ -253,7 +253,7 @@ mod tests {
 
         assert_eq!(
             call_member_event,
-            &serde_json::to_value(&create_call_member_event_content()).unwrap()
+            &serde_json::to_value(create_call_member_event_content()).unwrap()
         );
     }
 
