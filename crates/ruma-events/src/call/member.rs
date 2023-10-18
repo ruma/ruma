@@ -127,10 +127,13 @@ impl Membership {
     }
 }
 
-/// Description of the SFU/Foci a membership can be connected to
+/// Description of the SFU/Foci a membership can be connected to.
+/// Foci is singular for Focus a focus can be any server powering the matrixRTC session (SFU, MCU).
+/// It serves as a node to redistribute rtc streams.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum Foci {
     /// Livekit is one possible type of SFU/Foci that can be used for a matrixRTC session
     Livekit(LivekitFoci),
@@ -138,6 +141,7 @@ pub enum Foci {
 
 /// The fields to describe livekit as an `active_foci`
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[non_exhaustive]
 pub struct LivekitFoci {
     /// The alias where the livekit sessions can be reached
     #[serde(rename = "livekit_alias")]
@@ -153,6 +157,7 @@ pub struct LivekitFoci {
 /// possible applications.)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "application")]
+#[non_exhaustive]
 pub enum Application {
     #[serde(rename = "m.call")]
     /// A VoIP call
@@ -163,6 +168,7 @@ pub enum Application {
 
 /// Call specific parameters membership parameters.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[non_exhaustive]
 pub struct CallApplicationContent {
     /// An optional identifier for calls. Only relevant for some calls.
     pub call_id: String,
@@ -172,6 +178,7 @@ pub struct CallApplicationContent {
 
 /// The call scope defines different call ownership models.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[non_exhaustive]
 pub enum CallScope {
     /// A call which every user of a room can join and create.
     /// there is no particular name associated with it.
