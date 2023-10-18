@@ -120,7 +120,7 @@ pub struct EncryptedSessionData {
     pub mac: Base64,
 
     /// MAC of the key, encoded in base64
-    #[serde(rename="org.matrix.msc4048.mac2")]
+    #[serde(rename = "org.matrix.msc4048.mac2")]
     pub mac2: Option<Base64>,
 }
 
@@ -141,7 +141,7 @@ pub struct EncryptedSessionDataInit {
     pub mac: Base64,
 
     /// MAC of the key, encoded in base64
-    #[serde(rename="org.matrix.msc4048.mac2")]
+    #[serde(rename = "org.matrix.msc4048.mac2")]
     pub mac2: Option<Base64>,
 }
 
