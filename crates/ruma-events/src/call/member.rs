@@ -1,7 +1,7 @@
 //! Types for matrix rtc state events ([MSC3401]).
 //!
 //! This implements a newer/updated version of MSC3401
-//! [MSC3401]: https://github.com/matrix-org/matrix-spec-proposals/pull/3401
+//! [MSC3401](https://github.com/matrix-org/matrix-spec-proposals/pull/3401)
 
 use std::time::Duration;
 
@@ -32,8 +32,10 @@ impl CallMemberEventContent {
     }
 
     /// All non expired memberships in this member event
+    ///
     /// # Arguments
-    /// - [`origin_server_ts`] optionally the `origin_server_ts` can be passed as a fallback in case
+    ///
+    /// * `origin_server_ts` - optionally the `origin_server_ts` can be passed as a fallback in case
     ///   the Membership does not contain `created_ts`. (`origin_server_ts` will be ignored if
     ///   `created_ts` is `Some`)
     pub fn memberships(&self, origin_server_ts: Option<Timestamp>) -> Vec<&Membership> {
@@ -103,8 +105,10 @@ impl Membership {
     /// Defaults to using `created_ts` in the event content.
     /// If no `origin_server_ts` is provided and the event does not contain `created_ts`
     /// the event will be considered as not expired. (A warning will be logged)
+    ///
     /// # Arguments
-    ///  - [`origin_server_ts`] a fallback if `created_ts` is not present
+    ///
+    /// * `origin_server_ts` - a fallback if `created_ts` is not present
     pub fn is_expired(&self, origin_server_ts: Option<Timestamp>) -> bool {
         let ev_created_ts = match (self.created_ts, origin_server_ts) {
             (Some(created_ts), Some(_)) => Some(created_ts),
