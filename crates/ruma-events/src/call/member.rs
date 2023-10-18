@@ -4,6 +4,7 @@
 
 use std::time::Duration;
 
+use as_variant::as_variant;
 use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedUserId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -90,22 +91,15 @@ pub struct Membership {
 impl Membership {
     /// Application is "m.call" and scope is "m.room"
     pub fn is_room_call(&self) -> bool {
-        self.call_content().and_then(|call| Some(call.scope == CallScope::Room)).unwrap_or(false)
+        as_variant!(&self.application, Application::Call)
+            .is_some_and(|call| call.scope == CallScope::Room)
     }
 
     /// Application is "m.call"
     pub fn is_call(&self) -> bool {
-        self.call_content().is_some()
+        as_variant!(&self.application, Application::Call).is_some()
     }
 
-    /// Get a reference to the call content if the application is "m.call"
-    /// otherwise it returns None.
-    pub fn call_content(&self) -> Option<&CallApplicationContent> {
-        match &self.application {
-            Application::Call(call) => Some(call),
-            _ => None,
-        }
-    }
     /// Check if the event is expired.
     /// Defaults to using `created_ts` in the event content.
     /// If no `origin_server_ts` is provided and the event does not contain `created_ts`
