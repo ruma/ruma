@@ -119,7 +119,7 @@ event_enum! {
         "m.space.child" => super::space::child,
         "m.space.parent" => super::space::parent,
         #[ruma_enum(alias = "m.call.member")]
-        "org.matrix.msc3401.call.member" => super::room::matrix_rtc,
+        "org.matrix.msc3401.call.member" => super::call::member,
     }
 
     /// Any to-device event.

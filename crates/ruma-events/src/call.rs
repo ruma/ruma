@@ -6,6 +6,7 @@ pub mod answer;
 pub mod candidates;
 pub mod hangup;
 pub mod invite;
+pub mod member;
 pub mod negotiate;
 pub mod reject;
 pub mod select_answer;
