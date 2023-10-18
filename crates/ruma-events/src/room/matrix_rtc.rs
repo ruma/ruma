@@ -2,6 +2,8 @@
 //!
 //! [MSC3927]: https://github.com/matrix-org/matrix-spec-proposals/pull/3401
 
+use std::time::Duration;
+
 use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedUserId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -19,6 +21,42 @@ pub struct CallMemberEventContent {
     ///(can be multiple ones in cases the user participates with multiple devices or there are
     ///multiple RTC applications (e.g. a call and a spacial experience) running.)
     memberships: Vec<Membership>,
+}
+
+impl CallMemberEventContent {
+    /// Creates a new `CallMemberEventContent`.
+    pub fn new(memberships: Vec<Membership>) -> Self {
+        Self { memberships }
+    }
+
+    /// All non expired memberships in this member event
+    /// # Arguments
+    /// - [`origin_server_ts`] optionally the `origin_server_ts` can be passed as a fallback in case
+    ///   the Membership does not contain `created_ts`. (`origin_server_ts` will be ignored if
+    ///   `created_ts` is `Some`)
+    pub fn memberships(
+        &self,
+        origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
+    ) -> Vec<&Membership> {
+        self.memberships.iter().filter(|m| !m.is_expired(origin_server_ts)).collect()
+    }
+
+    /// All memberships in this event (including expired ones)
+    pub fn memberships_including_expired(&self) -> Vec<&Membership> {
+        self.memberships.iter().collect()
+    }
+
+    /// Each call member event contains the `origin_server_ts` and `content.create_ts`.
+    /// `content.create_ts` is undefined for the initial event of a session (because the
+    /// `origin_server_ts` is not known on the client).
+    /// In the rust sdk we want to copy over the `origin_server_ts` of the event into the content.
+    /// (This allows to use `MinimalStateEvents` and still be able to determine if a membership is
+    /// expired)
+    pub fn set_created_ts_if_none(&mut self, origin_server_ts: MilliSecondsSinceUnixEpoch) {
+        self.memberships.iter_mut().for_each(|m| {
+            m.created_ts = Some(m.created_ts.unwrap_or(origin_server_ts));
+        });
+    }
 }
 
 /// A membership describes one of the sessions this user currently partakes.
@@ -49,6 +87,50 @@ pub struct Membership {
     pub membership_id: String,
 }
 
+impl Membership {
+    /// Application is "m.call" and scope is "m.room"
+    pub fn is_room_call(&self) -> bool {
+        if let Application::Call(call) = &self.application {
+            return call.scope == CallScope::Room;
+        }
+        false
+    }
+
+    /// Application is "m.call"
+    pub fn is_call(&self) -> bool {
+        match self.application {
+            Application::Call(_) => true,
+            _ => false,
+        }
+    }
+
+    /// Check if the event is expired.
+    /// Defaults to using `created_ts` in the event content.
+    /// If no `origin_server_ts` is provided and the event does not contain `created_ts`
+    /// the event will be considered as not expired. (A warning will be logged)
+    /// # Arguments
+    ///  - [`origin_server_ts`] a fallback if `created_ts` is not present
+    pub fn is_expired(&self, origin_server_ts: Option<MilliSecondsSinceUnixEpoch>) -> bool {
+        let ev_created_ts = match (self.created_ts, origin_server_ts) {
+            (Some(created_ts), Some(_)) => Some(created_ts),
+            (None, Some(server_ts)) => Some(server_ts),
+            (Some(created_ts), None) => Some(created_ts),
+            _ => None,
+        };
+        if let Some(ev_created_ts) = ev_created_ts {
+            let now = MilliSecondsSinceUnixEpoch::now().to_system_time();
+            let expire_ts =
+                ev_created_ts.to_system_time().map(|t| t + Duration::from_millis(self.expires));
+            now > expire_ts
+        } else {
+            // This should not be reached since we only allow events that have copied over
+            // the origin server ts. `copy_origin_server_ts_to_membership`
+            warn!("Encountered a Call Member state event where the origin_ts (or origin_server_ts) could not be found.
+            It is treated as a non expired event but this might be wrong.");
+            false
+        }
+    }
+}
 
 /// Description of the SFU/Foci a membership can be connected to
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -106,4 +188,141 @@ pub enum CallScope {
     /// the owning user.
     #[serde(rename = "m.user")]
     User,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        Application, CallApplicationContent, CallMemberEventContent, CallScope, Foci, Membership,
+    };
+
+    fn _remove_whitespace(s: &str) -> String {
+        s.chars().filter(|c| !c.is_whitespace()).collect::<String>()
+    }
+    fn create_call_member_event_content() -> CallMemberEventContent {
+        CallMemberEventContent::new(vec![Membership {
+            application: Application::Call(CallApplicationContent {
+                call_id: "123456".to_owned(),
+                scope: CallScope::Room,
+            }),
+            device_id: "ABCDE".to_owned(),
+            expires: 36000,
+            foci_active: vec![Foci {
+                livekit_alias: "1".to_owned(),
+                livekit_service_url: "https://livekit.com".to_owned(),
+                foci_type: "livekit".to_owned(),
+            }],
+            membership_id: "0".to_owned(),
+            created_ts: None,
+        }])
+    }
+    #[test]
+    fn serialize_call_member_event_content() {
+        let call_member_event: &str = &_remove_whitespace(
+            r#"
+            {
+                "memberships": [
+                    {
+                        "application": "m.call",
+                        "call_id": "123456",
+                        "scope": "m.room",
+                        "device_id": "ABCDE",
+                        "expires": 36000,
+                        "foci_active": [
+                            {
+                                "livekit_alias": "1",
+                                "livekit_service_url": "https://livekit.com",
+                                "type": "livekit"
+                            }
+                        ],
+                        "membershipID": "0"
+                    }
+                ]
+            }
+            "#,
+        );
+        println!("{}", serde_json::to_string_pretty(&create_call_member_event_content()).unwrap());
+
+        assert_eq!(
+            call_member_event,
+            &serde_json::to_string(&create_call_member_event_content()).unwrap()
+        );
+    }
+
+    #[test]
+    fn deserialize_call_member_event_content() {
+        fn create_call_member_event_content() -> CallMemberEventContent {
+            CallMemberEventContent::new(vec![
+                Membership {
+                    application: Application::Call(CallApplicationContent {
+                        call_id: "123456".to_owned(),
+                        scope: CallScope::Room,
+                    }),
+                    device_id: "THIS_DEVICE".to_owned(),
+                    expires: 36000,
+                    foci_active: vec![Foci {
+                        livekit_alias: "room1".to_owned(),
+                        livekit_service_url: "https://livekit1.com".to_owned(), /* Url::parse("https://livekit.com"), */
+                        foci_type: "livekit".to_owned(),
+                    }],
+                    membership_id: "0".to_owned(),
+                },
+                Membership {
+                    application: Application::Call(CallApplicationContent {
+                        call_id: "".to_owned(),
+                        scope: CallScope::Room,
+                    }),
+                    device_id: "OTHER_DEVICE".to_owned(),
+                    expires: 36000,
+                    foci_active: vec![Foci {
+                        livekit_alias: "room2".to_owned(),
+                        livekit_service_url: "https://livekit2.com".to_owned(), /* Url::parse("https://livekit.com"), */
+                        foci_type: "livekit".to_owned(),
+                    }],
+                    membership_id: "0".to_owned(),
+                },
+            ])
+        }
+
+        let call_member_event: &str = &_remove_whitespace(
+            r#"
+            {
+                "memberships": [
+                    {
+                        "application": "m.call",
+                        "call_id": "123456",
+                        "scope": "m.room",
+                        "device_id": "THIS_DEVICE",
+                        "expires": 36000,
+                        "foci_active": [
+                            {
+                                "livekit_alias": "room1",
+                                "livekit_service_url": "https://livekit1.com",
+                                "type": "livekit"
+                            }
+                        ],
+                        "membershipID": "0"
+                    },
+                    {
+                        "application": "m.call",
+                        "call_id": "",
+                        "scope": "m.room",
+                        "device_id": "OTHER_DEVICE",
+                        "expires": 36000,
+                        "foci_active": [
+                            {
+                                "livekit_alias": "room2",
+                                "livekit_service_url": "https://livekit2.com",
+                                "type": "livekit"
+                            }
+                        ],
+                        "membershipID": "0"
+                    }
+                ]
+            }
+            "#,
+        );
+        let ev_content: CallMemberEventContent = serde_json::from_str(call_member_event).unwrap();
+        assert_eq!(ev_content, create_call_member_event_content());
+    }
 }
