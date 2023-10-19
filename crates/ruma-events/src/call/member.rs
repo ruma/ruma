@@ -31,7 +31,7 @@ pub struct CallMemberEventContent {
     ///
     /// Important: This includes expired memberships.
     /// To retrieve a list including only valid memberships,
-    /// see [`active_memberships``](CallMemberEventContent::active_memberships).
+    /// see [`active_memberships`](CallMemberEventContent::active_memberships).
     pub memberships: Vec<Membership>,
 }
 
@@ -349,6 +349,7 @@ mod tests {
                     "call_id": "123456",
                     "scope": "m.room",
                     "device_id": "ABCDE",
+                    #[allow(clippy::unreadable-literal)]
                     "expires": 3600000,
                     "foci_active": [
                         {
@@ -408,6 +409,7 @@ mod tests {
                     "call_id": "123456",
                     "scope": "m.room",
                     "device_id": "THIS_DEVICE",
+                    #[allow(clippy::unreadable-literal)]
                     "expires": 3600000,
                     "foci_active": [
                         {
@@ -423,6 +425,7 @@ mod tests {
                     "call_id": "",
                     "scope": "m.room",
                     "device_id": "OTHER_DEVICE",
+                    #[allow(clippy::unreadable-literal)]
                     "expires": 3600000,
                     "foci_active": [
                         {
