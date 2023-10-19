@@ -349,8 +349,7 @@ mod tests {
                     "call_id": "123456",
                     "scope": "m.room",
                     "device_id": "ABCDE",
-                    #[allow(clippy::unreadable-literal)]
-                    "expires": 3600000,
+                    "expires": 3_600_000,
                     "foci_active": [
                         {
                             "livekit_alias": "1",
@@ -409,8 +408,7 @@ mod tests {
                     "call_id": "123456",
                     "scope": "m.room",
                     "device_id": "THIS_DEVICE",
-                    #[allow(clippy::unreadable-literal)]
-                    "expires": 3600000,
+                    "expires": 3_600_000,
                     "foci_active": [
                         {
                             "livekit_alias": "room1",
@@ -425,8 +423,7 @@ mod tests {
                     "call_id": "",
                     "scope": "m.room",
                     "device_id": "OTHER_DEVICE",
-                    #[allow(clippy::unreadable-literal)]
-                    "expires": 3600000,
+                    "expires": 3_600_000,
                     "foci_active": [
                         {
                             "livekit_alias": "room2",
