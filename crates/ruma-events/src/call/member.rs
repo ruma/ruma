@@ -95,7 +95,7 @@ pub struct Membership {
     ///
     /// The time a member has joined is defined as:
     /// `MIN(content.created_ts, event.origin_server_ts)`
-    #[serde(with = "ruma_common::serde::duration::secs")]
+    #[serde(with = "ruma_common::serde::duration::ms")]
     pub expires: Duration,
 
     /// Stores a copy of the `origin_server_ts` of the initial session event.
@@ -157,6 +157,7 @@ impl Membership {
 }
 
 /// Initial set of fields of [`Membership`].
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct MembershipInit {
     /// The type of the matrixRTC session the membership belongs to.
     ///
@@ -239,7 +240,7 @@ impl LivekitFoci {
     ///
     /// * `alias` - The alias where the livekit sessions can be reached.
     /// * `service_url` - The url of the jwt server for the livekit instance.
-    fn new(alias: String, service_url: String) -> Self {
+    pub fn new(alias: String, service_url: String) -> Self {
         Self { alias, service_url }
     }
 }
@@ -283,7 +284,7 @@ impl CallApplicationContent {
     /// * `call_id` - An identifier for calls. All members using the same `call_id` will end up in
     ///   the same call. Does not need to be a uuid. `""` is used for room scoped calls.
     /// * `scope` - Who owns/joins/controls (can modify) the call.
-    fn new(call_id: String, scope: CallScope) -> Self {
+    pub fn new(call_id: String, scope: CallScope) -> Self {
         Self { call_id, scope }
     }
 }
@@ -348,7 +349,7 @@ mod tests {
                     "call_id": "123456",
                     "scope": "m.room",
                     "device_id": "ABCDE",
-                    "expires": 3600,
+                    "expires": 3600000,
                     "foci_active": [
                         {
                             "livekit_alias": "1",
@@ -407,7 +408,7 @@ mod tests {
                     "call_id": "123456",
                     "scope": "m.room",
                     "device_id": "THIS_DEVICE",
-                    "expires": 3600,
+                    "expires": 3600000,
                     "foci_active": [
                         {
                             "livekit_alias": "room1",
@@ -422,7 +423,7 @@ mod tests {
                     "call_id": "",
                     "scope": "m.room",
                     "device_id": "OTHER_DEVICE",
-                    "expires": 3600,
+                    "expires": 3600000,
                     "foci_active": [
                         {
                             "livekit_alias": "room2",
