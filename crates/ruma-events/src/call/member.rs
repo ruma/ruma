@@ -1,17 +1,20 @@
-//! Types for matrix rtc state events ([MSC3401]).
+//! Types for matrixRTC state events ([MSC3401]).
+
+//! This implements a newer/updated version of MSC3401.
 //!
-//! This implements a newer/updated version of MSC3401
-//! [MSC3401](https://github.com/matrix-org/matrix-spec-proposals/pull/3401)
+//! [MSC3401]: https://github.com/matrix-org/matrix-spec-proposals/pull/3401
 
 use std::time::Duration;
 
 use as_variant::as_variant;
-use ruma_common::{MilliSecondsSinceUnixEpoch as Timestamp, OwnedUserId};
+use ruma_common::{serde::StringEnum, MilliSecondsSinceUnixEpoch, OwnedUserId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 use tracing::warn;
 
-/// The member state event for a matrixRTC session
+use crate::PrivOwnedStr;
+
+/// The member state event for a matrixRTC session.
 ///
 /// This is the object containing all the data related to a matrix users participation in a
 /// matrixRTC session. It consists of memberships/sessions.
@@ -19,10 +22,17 @@ use tracing::warn;
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc3401.call.member", kind = State, state_key_type = OwnedUserId)]
 pub struct CallMemberEventContent {
-    ///A list of all the memberships that user currently has in this room.
-    ///(can be multiple ones in cases the user participates with multiple devices or there are
-    ///multiple RTC applications (e.g. a call and a spacial experience) running.)
-    memberships: Vec<Membership>,
+    /// A list of all the memberships that user currently has in this room.
+    ///
+    /// There can be multiple ones in cases the user participates with multiple devices or there
+    /// are multiple RTC applications running.
+    ///
+    /// e.g. a call and a spacial experience.
+    ///
+    /// Important: This includes expired memberships.
+    /// To retrieve a list including only valid memberships, see
+    /// [`active_memberships`](method@active_memberships).
+    pub memberships: Vec<Membership>,
 }
 
 impl CallMemberEventContent {
@@ -31,31 +41,34 @@ impl CallMemberEventContent {
         Self { memberships }
     }
 
-    /// All non expired memberships in this member event
+    /// All non expired memberships in this member event.
+    ///
+    /// In most cases you want tu use this method instead of the public memberships field.
+    /// The memberships field will also include expired events.
     ///
     /// # Arguments
     ///
     /// * `origin_server_ts` - optionally the `origin_server_ts` can be passed as a fallback in case
     ///   the Membership does not contain `created_ts`. (`origin_server_ts` will be ignored if
     ///   `created_ts` is `Some`)
-    pub fn memberships(&self, origin_server_ts: Option<Timestamp>) -> Vec<&Membership> {
+    pub fn active_memberships(
+        &self,
+        origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
+    ) -> Vec<&Membership> {
         self.memberships.iter().filter(|m| !m.is_expired(origin_server_ts)).collect()
     }
 
-    /// All memberships in this event (including expired ones)
-    pub fn memberships_including_expired(&self) -> Vec<&Membership> {
-        self.memberships.iter().collect()
-    }
-
+    /// Set the `created_ts` of each [Membership] in this event.
+    ///
     /// Each call member event contains the `origin_server_ts` and `content.create_ts`.
     /// `content.create_ts` is undefined for the initial event of a session (because the
     /// `origin_server_ts` is not known on the client).
     /// In the rust sdk we want to copy over the `origin_server_ts` of the event into the content.
     /// (This allows to use `MinimalStateEvents` and still be able to determine if a membership is
     /// expired)
-    pub fn set_created_ts_if_none(&mut self, origin_server_ts: Timestamp) {
+    pub fn set_created_ts_if_none(&mut self, origin_server_ts: MilliSecondsSinceUnixEpoch) {
         self.memberships.iter_mut().for_each(|m| {
-            m.created_ts = Some(m.created_ts.unwrap_or(origin_server_ts));
+            m.created_ts.get_or_insert(origin_server_ts);
         });
     }
 }
@@ -66,65 +79,77 @@ impl CallMemberEventContent {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Membership {
-    /// The type of the matrixRTC session the membership belongs to. (e.g. call, spacial,
-    /// document...)
+    /// The type of the matrixRTC session the membership belongs to.
+    ///
+    /// e.g. call, spacial, document...
     #[serde(flatten)]
     pub application: Application,
-    /// The device id of this membership. (The same user can join with their phone/computer)
+
+    /// The device id of this membership.
+    ///
+    /// The same user can join with their phone/computer.
     pub device_id: String,
+
     /// The duration in milliseconds relative to the time this membership joined
-    /// (`MIN(content.created_ts, event.origin_server_ts)`) during which the membership is valid.
-    pub expires: u64,
-    /// Contains the `origin_server_ts` of the initial session join.
+    /// during which the membership is valid.
+    ///
+    /// The time a member has joined is defined as:
+    /// `MIN(content.created_ts, event.origin_server_ts)`
+    #[serde(with = "ruma_common::serde::duration::secs")]
+    pub expires: Duration,
+
+    /// Stores a copy of the `origin_server_ts` of the initial session event.
+    ///
     /// If the membership is updated this field will be used to track to
-    /// original `origin_server_ts`
+    /// original `origin_server_ts`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub created_ts: Option<Timestamp>,
-    /// A list of the foci in use for this membership
+    pub created_ts: Option<MilliSecondsSinceUnixEpoch>,
+
+    /// A list of the foci in use for this membership.
     pub foci_active: Vec<Foci>,
-    /// The id of the membership. This is required to guarantee uniqueness of the event.
-    /// (Sending the same state event twice to synapse makes the HS drop the second one and return
-    /// 200)
+
+    /// The id of the membership.
+    ///
+    /// This is required to guarantee uniqueness of the event.
+    /// Sending the same state event twice to synapse makes the HS drop the second one and return
+    /// 200.
     #[serde(rename = "membershipID")]
     pub membership_id: String,
 }
 
 impl Membership {
-    /// Application is "m.call" and scope is "m.room"
+    /// The application of the membership is "m.call" and the scope is "m.room".
     pub fn is_room_call(&self) -> bool {
         as_variant!(&self.application, Application::Call)
             .is_some_and(|call| call.scope == CallScope::Room)
     }
 
-    /// Application is "m.call"
+    /// The application of the membership is "m.call".
     pub fn is_call(&self) -> bool {
         as_variant!(&self.application, Application::Call).is_some()
     }
 
-    /// Check if the event is expired.
-    /// Defaults to using `created_ts` in the event content.
+    /// Checks if the event is expired.
+    ///
+    /// Defaults to using `created_ts` of the `Membership`.
     /// If no `origin_server_ts` is provided and the event does not contain `created_ts`
-    /// the event will be considered as not expired. (A warning will be logged)
+    /// the event will be considered as not expired.
+    /// In this case, a warning will be logged.
     ///
     /// # Arguments
     ///
     /// * `origin_server_ts` - a fallback if `created_ts` is not present
-    pub fn is_expired(&self, origin_server_ts: Option<Timestamp>) -> bool {
-        let ev_created_ts = match (self.created_ts, origin_server_ts) {
-            (Some(created_ts), Some(_)) => Some(created_ts),
-            (None, Some(server_ts)) => Some(server_ts),
-            (Some(created_ts), None) => Some(created_ts),
-            _ => None,
-        };
+    pub fn is_expired(&self, origin_server_ts: Option<MilliSecondsSinceUnixEpoch>) -> bool {
+        let ev_created_ts = self.created_ts.or(origin_server_ts);
+
         if let Some(ev_created_ts) = ev_created_ts {
-            let now = Timestamp::now().to_system_time();
-            let expire_ts =
-                ev_created_ts.to_system_time().map(|t| t + Duration::from_millis(self.expires));
+            let now = MilliSecondsSinceUnixEpoch::now().to_system_time();
+            let expire_ts = ev_created_ts.to_system_time().map(|t| t + self.expires);
             now > expire_ts
         } else {
             // This should not be reached since we only allow events that have copied over
-            // the origin server ts. `copy_origin_server_ts_to_membership`
-            warn!("Encountered a Call Member state event where the origin_ts (or origin_server_ts) could not be found.
+            // the origin server ts. `set_created_ts_if_none`
+            warn!("Encountered a Call Member state event where the origin_ts (or origin_server_ts) could not be found.\
             It is treated as a non expired event but this might be wrong.");
             false
         }
@@ -132,68 +157,82 @@ impl Membership {
 }
 
 /// Description of the SFU/Foci a membership can be connected to.
-/// Foci is singular for Focus a focus can be any server powering the matrixRTC session (SFU, MCU).
-/// It serves as a node to redistribute rtc streams.
+///
+/// `Foci` is singular for focus. A focus can be any server powering the matrixRTC session (SFU,
+/// MCU). It serves as a node to redistribute RTC streams.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum Foci {
-    /// Livekit is one possible type of SFU/Foci that can be used for a matrixRTC session
+    /// Livekit is one possible type of SFU/Foci that can be used for a matrixRTC session.
     Livekit(LivekitFoci),
 }
 
-/// The fields to describe livekit as an `active_foci`
+/// The fields to describe livekit as an `active_foci`.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct LivekitFoci {
-    /// The alias where the livekit sessions can be reached
+    /// The alias where the livekit sessions can be reached.
     #[serde(rename = "livekit_alias")]
     pub alias: String,
-    /// The url of the jwt server of the used livekit instance
+
+    /// The url of the jwt server for the livekit instance.
     #[serde(rename = "livekit_service_url")]
     pub service_url: String,
 }
 
 /// The type of the matrixRTC session.
-/// (this is not the application/client used by the user but the
-/// type of matrixRTC session e.g. calling, third-room, whiteboard could be
-/// possible applications.)
+///
+/// This is not the application/client used by the user but the
+/// type of matrixRTC session e.g. calling (`m.call`), third-room, whiteboard could be
+/// possible applications.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "application")]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum Application {
     #[serde(rename = "m.call")]
-    /// A VoIP call
+    /// A VoIP call.
     Call(CallApplicationContent),
-    /// Any other application that is not Specced
-    Unknown(serde_json::Value),
 }
 
 /// Call specific parameters membership parameters.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct CallApplicationContent {
-    /// An optional identifier for calls. Only relevant for some calls.
+    /// An identifier for calls.
+    ///
+    /// All members using the same `call_id` will end up in the same call.
+    ///
+    /// Does not need to be a uuid.
+    ///
+    /// "" is used for room scoped calls.
     pub call_id: String,
+
     /// Who owns/joins/controls (can modify) the call.
     pub scope: CallScope,
 }
 
 /// The call scope defines different call ownership models.
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-#[non_exhaustive]
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, PartialEq, StringEnum)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[ruma_enum(rename_all = "m.snake_case")]
 pub enum CallScope {
     /// A call which every user of a room can join and create.
-    /// there is no particular name associated with it.
+    ///
+    /// There is no particular name associated with it.
+    ///
     /// There can only be one per room.
-    #[serde(rename = "m.room")]
     Room,
-    /// A user call is owned by a user. Each user can create one
-    /// there can be multiple per room. They are started and ended by
-    /// the owning user.
-    #[serde(rename = "m.user")]
+    /// A user call is owned by a user.
+    ///
+    /// Each user can create one there can be multiple per room. They are started and ended by the
+    /// owning user.
     User,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
 }
 
 #[cfg(test)]
@@ -208,9 +247,6 @@ mod tests {
         Membership,
     };
 
-    fn _remove_whitespace(s: &str) -> String {
-        s.chars().filter(|c| !c.is_whitespace()).collect::<String>()
-    }
     fn create_call_member_event_content() -> CallMemberEventContent {
         CallMemberEventContent::new(vec![Membership {
             application: Application::Call(CallApplicationContent {
@@ -218,7 +254,7 @@ mod tests {
                 scope: CallScope::Room,
             }),
             device_id: "ABCDE".to_owned(),
-            expires: 36000,
+            expires: Duration::from_secs(3600),
             foci_active: vec![Foci::Livekit(LivekitFoci {
                 alias: "1".to_owned(),
                 service_url: "https://livekit.com".to_owned(),
@@ -237,7 +273,7 @@ mod tests {
                     "call_id": "123456",
                     "scope": "m.room",
                     "device_id": "ABCDE",
-                    "expires": 36000,
+                    "expires": 3600,
                     "foci_active": [
                         {
                             "livekit_alias": "1",
@@ -249,7 +285,6 @@ mod tests {
                 }
             ]
         });
-        println!("{}", serde_json::to_string_pretty(&create_call_member_event_content()).unwrap());
 
         assert_eq!(
             call_member_event,
@@ -259,47 +294,45 @@ mod tests {
 
     #[test]
     fn deserialize_call_member_event_content() {
-        fn create_call_member_event_content() -> CallMemberEventContent {
-            CallMemberEventContent::new(vec![
-                Membership {
-                    application: Application::Call(CallApplicationContent {
-                        call_id: "123456".to_owned(),
-                        scope: CallScope::Room,
-                    }),
-                    device_id: "THIS_DEVICE".to_owned(),
-                    expires: 36000,
-                    foci_active: vec![Foci::Livekit(LivekitFoci {
-                        alias: "room1".to_owned(),
-                        service_url: "https://livekit1.com".to_owned(),
-                    })],
-                    membership_id: "0".to_owned(),
-                    created_ts: None,
-                },
-                Membership {
-                    application: Application::Call(CallApplicationContent {
-                        call_id: "".to_owned(),
-                        scope: CallScope::Room,
-                    }),
-                    device_id: "OTHER_DEVICE".to_owned(),
-                    expires: 36000,
-                    foci_active: vec![Foci::Livekit(LivekitFoci {
-                        alias: "room2".to_owned(),
-                        service_url: "https://livekit2.com".to_owned(),
-                    })],
-                    membership_id: "0".to_owned(),
-                    created_ts: None,
-                },
-            ])
-        }
+        let call_member_ev: CallMemberEventContent = CallMemberEventContent::new(vec![
+            Membership {
+                application: Application::Call(CallApplicationContent {
+                    call_id: "123456".to_owned(),
+                    scope: CallScope::Room,
+                }),
+                device_id: "THIS_DEVICE".to_owned(),
+                expires: Duration::from_secs(3600),
+                foci_active: vec![Foci::Livekit(LivekitFoci {
+                    alias: "room1".to_owned(),
+                    service_url: "https://livekit1.com".to_owned(),
+                })],
+                membership_id: "0".to_owned(),
+                created_ts: None,
+            },
+            Membership {
+                application: Application::Call(CallApplicationContent {
+                    call_id: "".to_owned(),
+                    scope: CallScope::Room,
+                }),
+                device_id: "OTHER_DEVICE".to_owned(),
+                expires: Duration::from_secs(3600),
+                foci_active: vec![Foci::Livekit(LivekitFoci {
+                    alias: "room2".to_owned(),
+                    service_url: "https://livekit2.com".to_owned(),
+                })],
+                membership_id: "0".to_owned(),
+                created_ts: None,
+            },
+        ]);
 
-        let call_member_event = json!({
+        let call_member_ev_json = json!({
             "memberships": [
                 {
                     "application": "m.call",
                     "call_id": "123456",
                     "scope": "m.room",
                     "device_id": "THIS_DEVICE",
-                    "expires": 36000,
+                    "expires": 3600,
                     "foci_active": [
                         {
                             "livekit_alias": "room1",
@@ -314,7 +347,7 @@ mod tests {
                     "call_id": "",
                     "scope": "m.room",
                     "device_id": "OTHER_DEVICE",
-                    "expires": 36000,
+                    "expires": 3600,
                     "foci_active": [
                         {
                             "livekit_alias": "room2",
@@ -327,8 +360,9 @@ mod tests {
             ]
         });
 
-        let ev_content: CallMemberEventContent = serde_json::from_value(call_member_event).unwrap();
-        assert_eq!(ev_content, create_call_member_event_content());
+        let ev_content: CallMemberEventContent =
+            serde_json::from_value(call_member_ev_json).unwrap();
+        assert_eq!(ev_content, call_member_ev);
     }
 
     fn timestamps() -> (TS, TS, TS) {
@@ -336,7 +370,7 @@ mod tests {
         let one_second_ago =
             now.to_system_time().unwrap().checked_sub(Duration::from_secs(1)).unwrap();
         let two_hours_ago =
-            now.to_system_time().unwrap().checked_sub(Duration::from_secs(60 * 24 * 2)).unwrap();
+            now.to_system_time().unwrap().checked_sub(Duration::from_secs(60 * 60 * 2)).unwrap();
         (
             now,
             TS::from_system_time(one_second_ago).unwrap(),
@@ -349,18 +383,14 @@ mod tests {
         let content = create_call_member_event_content();
         let (now, one_second_ago, two_hours_ago) = timestamps();
         assert_eq!(
-            content.memberships(Some(one_second_ago)),
+            content.active_memberships(Some(one_second_ago)),
             content.memberships.iter().collect::<Vec<&Membership>>()
         );
         assert_eq!(
-            content.memberships(Some(now)),
+            content.active_memberships(Some(now)),
             content.memberships.iter().collect::<Vec<&Membership>>()
         );
-        assert_eq!(content.memberships(Some(two_hours_ago)), vec![] as Vec<&Membership>);
-        assert_eq!(
-            content.memberships_including_expired(),
-            content.memberships.iter().collect::<Vec<&Membership>>()
-        );
+        assert_eq!(content.active_memberships(Some(two_hours_ago)), vec![] as Vec<&Membership>);
     }
 
     #[test]
@@ -374,13 +404,19 @@ mod tests {
         content_one_second_ago.set_created_ts_if_none(one_second_ago);
         content_two_hours_ago.set_created_ts_if_none(two_hours_ago);
         assert_eq!(
-            content_now.memberships(None),
+            content_now.active_memberships(None),
             content_now.memberships.iter().collect::<Vec<&Membership>>()
         );
-        assert_eq!(content_two_hours_ago.memberships(None), vec![] as Vec<&Membership>);
+
+        assert_eq!(content_two_hours_ago.active_memberships(None), vec![] as Vec<&Membership>);
         assert_eq!(
-            content_one_second_ago.memberships(None),
+            content_one_second_ago.active_memberships(None),
             content_one_second_ago.memberships.iter().collect::<Vec<&Membership>>()
         );
+
+        // created_ts should not be overwritten.
+        content_two_hours_ago.set_created_ts_if_none(one_second_ago);
+        // There still should be no active membership.
+        assert_eq!(content_two_hours_ago.active_memberships(None), vec![] as Vec<&Membership>);
     }
 }
