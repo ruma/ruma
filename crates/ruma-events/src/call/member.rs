@@ -194,8 +194,14 @@ pub struct MembershipInit {
 
 impl From<MembershipInit> for Membership {
     fn from(init: MembershipInit) -> Self {
-        let PusherInit { application, device_id, expires, created_ts, foci_active, membership_id } =
-            init;
+        let MembershipInit {
+            application,
+            device_id,
+            expires,
+            created_ts,
+            foci_active,
+            membership_id,
+        } = init;
         Self { application, device_id, expires, created_ts, foci_active, membership_id }
     }
 }
