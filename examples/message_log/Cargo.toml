@@ -6,6 +6,6 @@ publish = false
 
 [dependencies]
 anyhow = "1.0.37"
-ruma = { version = "0.9.1", path = "../../crates/ruma", features = ["client-api-c", "client-ext-client-api", "client-hyper-native-tls"] }
+ruma = { version = "0.9.2", path = "../../crates/ruma", features = ["client-api-c", "client-ext-client-api", "client-hyper-native-tls"] }
 tokio = { version = "1.0.1", features = ["macros", "rt"] }
 tokio-stream = { version = "0.1.1", default-features = false }

@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-ruma = { version = "0.9.1", path = "../../crates/ruma", features = ["client-api-c", "client-ext-client-api", "client-hyper-native-tls", "rand"] }
+ruma = { version = "0.9.2", path = "../../crates/ruma", features = ["client-api-c", "client-ext-client-api", "client-hyper-native-tls", "rand"] }
 
 anyhow = "1.0.37"
 tokio = { version = "1.0.1", features = ["macros", "rt"] }
