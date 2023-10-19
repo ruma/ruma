@@ -31,7 +31,7 @@ pub struct CallMemberEventContent {
     ///
     /// Important: This includes expired memberships.
     /// To retrieve a list including only valid memberships, see
-    /// [`active_memberships`](method@active_memberships).
+    /// [`active_memberships`].
     pub memberships: Vec<Membership>,
 }
 
