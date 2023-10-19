@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+- Add unstable support for `m.call.member` events
+  (unstable type `org.matrix.msc3401.call.member`)
+
 # 0.27.5
 
 Improvements:
