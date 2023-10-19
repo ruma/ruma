@@ -288,6 +288,7 @@ pub enum CallScope {
     ///
     /// There can only be one per room.
     Room,
+
     /// A user call is owned by a user.
     ///
     /// Each user can create one there can be multiple per room. They are started and ended by the
