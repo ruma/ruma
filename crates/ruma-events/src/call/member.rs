@@ -1,5 +1,5 @@
 //! Types for matrixRTC state events ([MSC3401]).
-
+//!
 //! This implements a newer/updated version of MSC3401.
 //!
 //! [MSC3401]: https://github.com/matrix-org/matrix-spec-proposals/pull/3401
@@ -17,7 +17,7 @@ use crate::PrivOwnedStr;
 /// The member state event for a matrixRTC session.
 ///
 /// This is the object containing all the data related to a matrix users participation in a
-/// matrixRTC session. It consists of memberships/sessions.
+/// matrixRTC session. It consists of memberships / sessions.
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc3401.call.member", kind = State, state_key_type = OwnedUserId)]
@@ -106,7 +106,7 @@ pub struct Membership {
     pub created_ts: Option<MilliSecondsSinceUnixEpoch>,
 
     /// A list of the foci in use for this membership.
-    pub foci_active: Vec<Foci>,
+    pub foci_active: Vec<Focus>,
 
     /// The id of the membership.
     ///
@@ -182,8 +182,8 @@ pub struct MembershipInit {
     /// original `origin_server_ts`.
     pub created_ts: Option<MilliSecondsSinceUnixEpoch>,
 
-    /// A list of the foci in use for this membership.
-    pub foci_active: Vec<Foci>,
+    /// A list of the focuses (foci) in use for this membership.
+    pub foci_active: Vec<Focus>,
 
     /// The id of the membership.
     ///
@@ -207,23 +207,23 @@ impl From<MembershipInit> for Membership {
     }
 }
 
-/// Description of the SFU/Foci a membership can be connected to.
+/// Description of the SFU/Focus a membership can be connected to.
 ///
-/// `Foci` is singular for focus. A focus can be any server powering the matrixRTC session (SFU,
+/// A focus can be any server powering the matrixRTC session (SFU,
 /// MCU). It serves as a node to redistribute RTC streams.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub enum Foci {
-    /// Livekit is one possible type of SFU/Foci that can be used for a matrixRTC session.
-    Livekit(LivekitFoci),
+pub enum Focus {
+    /// Livekit is one possible type of SFU/Focus that can be used for a matrixRTC session.
+    Livekit(LivekitFocus),
 }
 
 /// The fields to describe livekit as an `active_foci`.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct LivekitFoci {
+pub struct LivekitFocus {
     /// The alias where the livekit sessions can be reached.
     #[serde(rename = "livekit_alias")]
     pub alias: String,
@@ -233,8 +233,8 @@ pub struct LivekitFoci {
     pub service_url: String,
 }
 
-impl LivekitFoci {
-    /// Initialize a [`LivekitFoci`].
+impl LivekitFocus {
+    /// Initialize a [`LivekitFocus`].
     ///
     /// # Arguments
     ///
@@ -319,8 +319,8 @@ mod tests {
     use serde_json::json;
 
     use super::{
-        Application, CallApplicationContent, CallMemberEventContent, CallScope, Foci, LivekitFoci,
-        Membership,
+        Application, CallApplicationContent, CallMemberEventContent, CallScope, Focus,
+        LivekitFocus, Membership,
     };
 
     fn create_call_member_event_content() -> CallMemberEventContent {
@@ -331,7 +331,7 @@ mod tests {
             }),
             device_id: "ABCDE".to_owned(),
             expires: Duration::from_secs(3600),
-            foci_active: vec![Foci::Livekit(LivekitFoci {
+            foci_active: vec![Focus::Livekit(LivekitFocus {
                 alias: "1".to_owned(),
                 service_url: "https://livekit.com".to_owned(),
             })],
@@ -378,7 +378,7 @@ mod tests {
                 }),
                 device_id: "THIS_DEVICE".to_owned(),
                 expires: Duration::from_secs(3600),
-                foci_active: vec![Foci::Livekit(LivekitFoci {
+                foci_active: vec![Focus::Livekit(LivekitFocus {
                     alias: "room1".to_owned(),
                     service_url: "https://livekit1.com".to_owned(),
                 })],
@@ -392,7 +392,7 @@ mod tests {
                 }),
                 device_id: "OTHER_DEVICE".to_owned(),
                 expires: Duration::from_secs(3600),
-                foci_active: vec![Foci::Livekit(LivekitFoci {
+                foci_active: vec![Focus::Livekit(LivekitFocus {
                     alias: "room2".to_owned(),
                     service_url: "https://livekit2.com".to_owned(),
                 })],
