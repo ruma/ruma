@@ -156,6 +156,50 @@ impl Membership {
     }
 }
 
+/// Initial set of fields of [`Membership`].
+pub struct MembershipInit {
+    /// The type of the matrixRTC session the membership belongs to.
+    ///
+    /// e.g. call, spacial, document...
+    pub application: Application,
+
+    /// The device id of this membership.
+    ///
+    /// The same user can join with their phone/computer.
+    pub device_id: String,
+
+    /// The duration in milliseconds relative to the time this membership joined
+    /// during which the membership is valid.
+    ///
+    /// The time a member has joined is defined as:
+    /// `MIN(content.created_ts, event.origin_server_ts)`
+    pub expires: Duration,
+
+    /// Stores a copy of the `origin_server_ts` of the initial session event.
+    ///
+    /// If the membership is updated this field will be used to track to
+    /// original `origin_server_ts`.
+    pub created_ts: Option<MilliSecondsSinceUnixEpoch>,
+
+    /// A list of the foci in use for this membership.
+    pub foci_active: Vec<Foci>,
+
+    /// The id of the membership.
+    ///
+    /// This is required to guarantee uniqueness of the event.
+    /// Sending the same state event twice to synapse makes the HS drop the second one and return
+    /// 200.
+    pub membership_id: String,
+}
+
+impl From<MembershipInit> for Membership {
+    fn from(init: MembershipInit) -> Self {
+        let PusherInit { application, device_id, expires, created_ts, foci_active, membership_id } =
+            init;
+        Self { application, device_id, expires, created_ts, foci_active, membership_id }
+    }
+}
+
 /// Description of the SFU/Foci a membership can be connected to.
 ///
 /// `Foci` is singular for focus. A focus can be any server powering the matrixRTC session (SFU,
@@ -182,6 +226,18 @@ pub struct LivekitFoci {
     pub service_url: String,
 }
 
+impl LivekitFoci {
+    /// Initialize a [`LivekitFoci`].
+    ///
+    /// # Arguments
+    ///
+    /// * `alias` - The alias where the livekit sessions can be reached.
+    /// * `service_url` - The url of the jwt server for the livekit instance.
+    fn new(alias: String, service_url: String) -> Self {
+        Self { alias, service_url }
+    }
+}
+
 /// The type of the matrixRTC session.
 ///
 /// This is not the application/client used by the user but the
@@ -206,11 +262,24 @@ pub struct CallApplicationContent {
     ///
     /// Does not need to be a uuid.
     ///
-    /// "" is used for room scoped calls.
+    /// `""` is used for room scoped calls.
     pub call_id: String,
 
     /// Who owns/joins/controls (can modify) the call.
     pub scope: CallScope,
+}
+
+impl CallApplicationContent {
+    /// Initialize a [`CallApplicationContent`].
+    ///
+    /// # Arguments
+    ///
+    /// * `call_id` - An identifier for calls. All members using the same `call_id` will end up in
+    ///   the same call. Does not need to be a uuid. `""` is used for room scoped calls.
+    /// * `scope` - Who owns/joins/controls (can modify) the call.
+    fn new(call_id: String, scope: CallScope) -> Self {
+        Self { call_id, scope }
+    }
 }
 
 /// The call scope defines different call ownership models.
