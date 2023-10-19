@@ -18,7 +18,8 @@ use crate::PrivOwnedStr;
 ///
 /// This is the object containing all the data related to a matrix users participation in a
 /// matrixRTC session. It consists of memberships / sessions.
-#[derive(Clone, Debug, Serialize, Deserialize, EventContent, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
+#[cfg_attr(test, derive(PartialEq))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc3401.call.member", kind = State, state_key_type = OwnedUserId)]
 pub struct CallMemberEventContent {
@@ -76,7 +77,8 @@ impl CallMemberEventContent {
 /// A membership describes one of the sessions this user currently partakes.
 ///
 /// The application defines the type of the session.
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Membership {
     /// The type of the matrixRTC session the membership belongs to.
@@ -157,6 +159,7 @@ impl Membership {
 }
 
 /// Initial set of fields of [`Membership`].
+#[derive(Debug)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct MembershipInit {
     /// The type of the matrixRTC session the membership belongs to.
@@ -198,17 +201,18 @@ impl From<MembershipInit> for Membership {
 ///
 /// A focus can be any server powering the matrixRTC session (SFU,
 /// MCU). It serves as a node to redistribute RTC streams.
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-#[serde(tag = "type")]
-#[serde(rename_all = "snake_case")]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum Focus {
     /// Livekit is one possible type of SFU/Focus that can be used for a matrixRTC session.
     Livekit(LivekitFocus),
 }
 
 /// The fields to describe livekit as an `active_foci`.
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct LivekitFocus {
     /// The alias where the livekit sessions can be reached.
@@ -237,9 +241,10 @@ impl LivekitFocus {
 /// This is not the application/client used by the user but the
 /// type of matrixRTC session e.g. calling (`m.call`), third-room, whiteboard could be
 /// possible applications.
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-#[serde(tag = "application")]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(tag = "application")]
 pub enum Application {
     #[serde(rename = "m.call")]
     /// A VoIP call.
@@ -247,7 +252,8 @@ pub enum Application {
 }
 
 /// Call specific parameters membership parameters.
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct CallApplicationContent {
     /// An identifier for calls.
