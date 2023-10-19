@@ -30,8 +30,8 @@ pub struct CallMemberEventContent {
     /// e.g. a call and a spacial experience.
     ///
     /// Important: This includes expired memberships.
-    /// To retrieve a list including only valid memberships, see
-    /// [`active_memberships`].
+    /// To retrieve a list including only valid memberships,
+    /// see [`active_memberships``](CallMemberEventContent::active_memberships).
     pub memberships: Vec<Membership>,
 }
 
