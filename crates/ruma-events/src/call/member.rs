@@ -160,7 +160,7 @@ impl Membership {
 
 /// Initial set of fields of [`Membership`].
 #[derive(Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[allow(clippy::exhaustive_structs)]
 pub struct MembershipInit {
     /// The type of the matrixRTC session the membership belongs to.
     ///
