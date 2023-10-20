@@ -179,6 +179,12 @@ pub struct MembershipInit {
     /// `MIN(content.created_ts, event.origin_server_ts)`
     pub expires: Duration,
 
+    /// Stores a copy of the `origin_server_ts` of the initial session event.
+    ///
+    /// If the membership is updated this field will be used to track to
+    /// original `origin_server_ts`.
+    pub created_ts: Option<MilliSecondsSinceUnixEpoch>,
+
     /// A list of the focuses (foci) in use for this membership.
     pub foci_active: Vec<Focus>,
 
@@ -192,8 +198,15 @@ pub struct MembershipInit {
 
 impl From<MembershipInit> for Membership {
     fn from(init: MembershipInit) -> Self {
-        let MembershipInit { application, device_id, expires, foci_active, membership_id } = init;
-        Self { application, device_id, expires, created_ts: None, foci_active, membership_id }
+        let MembershipInit {
+            application,
+            device_id,
+            expires,
+            created_ts,
+            foci_active,
+            membership_id,
+        } = init;
+        Self { application, device_id, expires, created_ts, foci_active, membership_id }
     }
 }
 
