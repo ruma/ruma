@@ -181,6 +181,12 @@ pub enum ErrorKind {
     /// M_CONNECTION_TIMEOUT
     ConnectionTimeout,
 
+    /// M_WRONG_ROOM_KEYS_VERSION
+    WrongRoomKeysVersion {
+        /// The currently active backup version.
+        current_version: Option<String>,
+    },
+
     #[doc(hidden)]
     _Custom { errcode: PrivOwnedStr, extra: Extra },
 }
@@ -237,6 +243,7 @@ impl AsRef<str> for ErrorKind {
             Self::BadStatus { .. } => "M_BAD_STATUS",
             Self::ConnectionFailed => "M_CONNECTION_FAILED",
             Self::ConnectionTimeout => "M_CONNECTION_TIMEOUT",
+            Self::WrongRoomKeysVersion { .. } => "M_WRONG_ROOM_KEYS_VERSION",
             Self::_Custom { errcode, .. } => &errcode.0,
         }
     }
@@ -490,6 +497,7 @@ impl TryFrom<&AuthenticateError> for http::HeaderValue {
 
 #[cfg(test)]
 mod tests {
+    use assert_matches2::assert_matches;
     use serde_json::{from_value as from_json_value, json};
 
     use super::{ErrorKind, StandardErrorBody};
@@ -504,6 +512,20 @@ mod tests {
 
         assert_eq!(deserialized.kind, ErrorKind::Forbidden);
         assert_eq!(deserialized.message, "You are not authorized to ban users in this room.");
+    }
+
+    #[test]
+    fn deserialize_wrong_room_key_version() {
+        let deserialized: StandardErrorBody = from_json_value(json!({
+            "current_version": "42",
+            "errcode": "M_WRONG_ROOM_KEYS_VERSION",
+            "error": "Wrong backup version."
+        }))
+        .expect("We should be able to deserialize a wrong room keys version error");
+
+        assert_matches!(deserialized.kind, ErrorKind::WrongRoomKeysVersion { current_version });
+        assert_eq!(current_version.as_deref(), Some("42"));
+        assert_eq!(deserialized.message, "Wrong backup version.");
     }
 
     #[cfg(feature = "unstable-msc2967")]
@@ -537,7 +559,6 @@ mod tests {
     #[cfg(feature = "unstable-msc2967")]
     #[test]
     fn deserialize_insufficient_scope() {
-        use assert_matches2::assert_matches;
         use ruma_common::api::EndpointError;
 
         use super::{AuthenticateError, Error, ErrorBody};

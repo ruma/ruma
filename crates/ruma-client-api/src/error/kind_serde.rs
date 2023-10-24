@@ -24,6 +24,7 @@ enum Field<'de> {
     AdminContact,
     Status,
     Body,
+    CurrentVersion,
     Other(Cow<'de, str>),
 }
 
@@ -37,6 +38,7 @@ impl<'de> Field<'de> {
             "admin_contact" => Self::AdminContact,
             "status" => Self::Status,
             "body" => Self::Body,
+            "current_version" => Self::CurrentVersion,
             _ => Self::Other(s),
         }
     }
@@ -102,6 +104,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
         let mut admin_contact = None;
         let mut status = None;
         let mut body = None;
+        let mut current_version = None;
         let mut extra = BTreeMap::new();
 
         macro_rules! set_field {
@@ -126,6 +129,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             (@variant_containing admin_contact) => { ErrCode::ResourceLimitExceeded };
             (@variant_containing status) => { ErrCode::BadStatus };
             (@variant_containing body) => { ErrCode::BadStatus };
+            (@variant_containing current_version) => { ErrCode::WrongRoomKeysVersion };
             (@inner $field:ident) => {
                 {
                     if $field.is_some() {
@@ -145,6 +149,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                 Field::AdminContact => set_field!(admin_contact),
                 Field::Status => set_field!(status),
                 Field::Body => set_field!(body),
+                Field::CurrentVersion => set_field!(current_version),
                 Field::Other(other) => match extra.entry(other.into_owned()) {
                     Entry::Vacant(v) => {
                         v.insert(map.next_value()?);
@@ -238,6 +243,12 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             },
             ErrCode::ConnectionFailed => ErrorKind::ConnectionFailed,
             ErrCode::ConnectionTimeout => ErrorKind::ConnectionTimeout,
+            ErrCode::WrongRoomKeysVersion => ErrorKind::WrongRoomKeysVersion {
+                current_version: from_json_value(
+                    current_version.ok_or_else(|| de::Error::missing_field("current_version"))?,
+                )
+                .map_err(de::Error::custom)?,
+            },
             ErrCode::_Custom(errcode) => ErrorKind::_Custom { errcode, extra },
         })
     }
@@ -293,6 +304,7 @@ enum ErrCode {
     BadStatus,
     ConnectionFailed,
     ConnectionTimeout,
+    WrongRoomKeysVersion,
     _Custom(PrivOwnedStr),
 }
 
