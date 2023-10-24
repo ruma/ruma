@@ -70,14 +70,6 @@ impl ReleaseTask {
 
     /// Run the task to effectively create a release.
     pub(crate) fn run(&mut self) -> Result<()> {
-        if self.package.name == "ruma-macros" {
-            return Err(
-                "The ruma-macros crate is always released together with the ruma-common crate. \
-                 To release both, simply run `cargo xtask release ruma-common`"
-                    .into(),
-            );
-        }
-
         let title = &self.title();
         let prerelease = !self.version.pre.is_empty();
         let publish_only = self.package.name == "ruma-identifiers-validation";
@@ -113,22 +105,7 @@ impl ReleaseTask {
             return Ok(());
         }
 
-        let mut macros = if self.package.name == "ruma-common" {
-            self.metadata.packages.iter().find(|p| p.name == "ruma-macros").map(ToOwned::to_owned)
-        } else {
-            None
-        };
-
         let create_commit = if self.package.version != self.version {
-            if let Some(m) = macros.as_mut() {
-                println!("Updating version of ruma-macros crate…");
-
-                m.update_version(&self.version, self.dry_run)?;
-                m.update_dependants(&self.metadata, self.dry_run)?;
-
-                println!("Resuming release of {}…", self.title());
-            }
-
             self.package.update_version(&self.version, self.dry_run)?;
             self.package.update_dependants(&self.metadata, self.dry_run)?;
             true
@@ -145,10 +122,6 @@ impl ReleaseTask {
 
         if create_commit {
             self.commit()?;
-        }
-
-        if let Some(m) = macros {
-            m.publish(&self.http_client, self.dry_run)?;
         }
 
         self.package.publish(&self.http_client, self.dry_run)?;
@@ -202,6 +175,13 @@ impl ReleaseTask {
         }
 
         println!("Release created successfully!");
+
+        if self.package.name == "ruma-macros" {
+            println!(
+                "Reminder: Make sure to release new versions of both ruma-common and ruma-events \
+                 so users can actually start using this release"
+            );
+        }
 
         Ok(())
     }
