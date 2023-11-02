@@ -11,7 +11,7 @@ use ruma_common::{
     api::{request, response, Metadata},
     metadata,
     serde::{deserialize_cow_str, duration::opt_ms, Raw},
-    DeviceKeyAlgorithm, MilliSecondsSinceUnixEpoch, OwnedMxcUri, OwnedRoomId, RoomId,
+    DeviceKeyAlgorithm, MilliSecondsSinceUnixEpoch, OwnedMxcUri, OwnedRoomId, OwnedUserId, RoomId,
 };
 use ruma_events::{
     receipt::SyncReceiptEvent, typing::SyncTypingEvent, AnyGlobalAccountDataEvent,
@@ -361,6 +361,10 @@ pub struct RoomSubscription {
     /// The maximum number of timeline events to return per room. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeline_limit: Option<UInt>,
+
+    /// Include the room heroes. Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_heroes: Option<bool>,
 }
 
 /// Operation applied to the specific SlidingSyncList
@@ -478,6 +482,10 @@ pub struct SlidingSyncRoom {
     /// relying on the latest event.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
+
+    /// Heroes of the room, if requested by a room subscription.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub heroes: Option<Vec<SlidingSyncRoomHero>>,
 }
 
 impl SlidingSyncRoom {
@@ -485,6 +493,23 @@ impl SlidingSyncRoom {
     pub fn new() -> Self {
         Default::default()
     }
+}
+
+/// A sliding sync room hero.
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct SlidingSyncRoomHero {
+    /// The user ID of the hero.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub user_id: Option<OwnedUserId>,
+
+    /// The name of the hero.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+
+    /// The avatar of the hero.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar: Option<OwnedMxcUri>,
 }
 
 /// Sliding-Sync extension configuration.
