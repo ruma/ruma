@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.27.7
+
+Improvements:
+
+- Remove invalid `non_exhaustive` attribute on `call::member::MembershipInit`
+
 # 0.27.6
 
 Improvements:

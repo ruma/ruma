@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+- Add a ErrorKind variant for the "M_WRONG_ROOM_KEYS_VERSION" Matrix error.
+
 # 0.17.0
 
 Breaking changes:
