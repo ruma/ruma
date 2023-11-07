@@ -3,11 +3,11 @@ name = "ruma"
 categories = ["api-bindings", "web-programming"]
 keywords = ["matrix", "chat", "messaging", "ruma"]
 description = "Types and traits for working with the Matrix protocol."
-homepage = "https://www.ruma.io/"
+homepage = "https://ruma.io/"
 repository = "https://github.com/ruma/ruma"
 readme = "README.md"
 license = "MIT"
-version = "0.9.0"
+version = "0.9.2"
 edition = "2021"
 rust-version = { workspace = true }
 
@@ -195,6 +195,7 @@ unstable-msc3245 = ["ruma-events?/unstable-msc3245"]
 unstable-msc3245-v1-compat = ["ruma-events?/unstable-msc3245-v1-compat"]
 unstable-msc3246 = ["ruma-events?/unstable-msc3246"]
 unstable-msc3381 = ["ruma-events?/unstable-msc3381"]
+unstable-msc3401 = ["ruma-events?/unstable-msc3401"]
 unstable-msc3488 = ["ruma-client-api?/unstable-msc3488", "ruma-events?/unstable-msc3488"]
 unstable-msc3551 = ["ruma-events?/unstable-msc3551"]
 unstable-msc3552 = ["ruma-events?/unstable-msc3552"]
@@ -239,6 +240,7 @@ __ci = [
     "unstable-msc3245-v1-compat",
     "unstable-msc3246",
     "unstable-msc3381",
+    "unstable-msc3401",
     "unstable-msc3488",
     "unstable-msc3551",
     "unstable-msc3552",

@@ -1,5 +1,51 @@
 # [unreleased]
 
+# 0.27.6
+
+Improvements:
+
+- Add unstable support for `m.call.member` events
+  (unstable type `org.matrix.msc3401.call.member`)
+
+# 0.27.5
+
+Improvements:
+
+- Add the Ruma logo to the documentation as a favicon / sidebar logo
+
+# 0.27.4
+
+Improvements:
+
+- Add `Thread::without_fallback` as a constructor that initializes the minimal
+  set of required fields
+
+# 0.27.3
+
+Improvements:
+
+- Improve compatibility of unstable voice messages
+
+# 0.27.2
+
+Improvements:
+
+- Added constructors for `UnstableAudioDetailsContentBlock` and `UnstableVoiceContentBlock`
+
+# 0.27.1
+
+Improvements:
+
+- Calling `make_reply_to` or `make_reply_to_raw` with `AddMentions::Yes` no longer adds people
+  mentioned in the original message to mentions (only the sender of the original message)
+- Add convenience constructors like `text_plain` to `RoomMessageEventContentWithoutRelation`
+  - These are the same that are already available on `RoomMessageEventContent`
+- Add methods on `RoomMessageEventWithoutRelation` that were previously only available on
+  `RoomMessageEventContent`:
+  - `make_reply_to`
+  - `make_reply_to_raw`
+  - `add_mentions`
+
 # 0.27.0
 
 The crate was split out of `ruma-common` again after `ruma-common 0.11.3`.

@@ -107,14 +107,20 @@ pub struct Thread {
 }
 
 impl Thread {
-    /// Convenience method to create a regular `Thread` with the given event ID and latest
-    /// message-like event ID.
+    /// Convenience method to create a regular `Thread` relation with the given root event ID and
+    /// latest message-like event ID.
     pub fn plain(event_id: OwnedEventId, latest_event_id: OwnedEventId) -> Self {
         Self { event_id, in_reply_to: Some(InReplyTo::new(latest_event_id)), is_falling_back: true }
     }
 
-    /// Convenience method to create a reply `Thread` with the given event ID and replied-to event
-    /// ID.
+    /// Convenience method to create a regular `Thread` relation with the given root event ID and
+    /// *without* the recommended reply fallback.
+    pub fn without_fallback(event_id: OwnedEventId) -> Self {
+        Self { event_id, in_reply_to: None, is_falling_back: false }
+    }
+
+    /// Convenience method to create a reply `Thread` relation with the given root event ID and
+    /// replied-to event ID.
     pub fn reply(event_id: OwnedEventId, reply_to_event_id: OwnedEventId) -> Self {
         Self {
             event_id,

@@ -1,5 +1,14 @@
 # [unreleased]
 
+# 0.9.2
+
+Upgrade `ruma-events` and re-export its new `unstable-msc3401` feature.
+
+# 0.9.1
+
+This release only exists to regenerate documentation to pull in the latest
+version of `ruma-events` for the `events` module.
+
 # 0.9.0
 
 - Bump MSRV to 1.70

@@ -1,10 +1,10 @@
 [package]
 name = "ruma-identifiers-validation"
 description = "Validation logic for ruma-common and ruma-macros"
-homepage = "https://www.ruma.io/"
+homepage = "https://ruma.io/"
 repository = "https://github.com/ruma/ruma"
 license = "MIT"
-version = "0.9.2"
+version = "0.9.3"
 edition = "2021"
 rust-version = { workspace = true }
 

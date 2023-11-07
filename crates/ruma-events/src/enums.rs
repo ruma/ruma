@@ -118,6 +118,9 @@ event_enum! {
         "m.room.topic" => super::room::topic,
         "m.space.child" => super::space::child,
         "m.space.parent" => super::space::parent,
+        #[cfg(feature = "unstable-msc3401")]
+        #[ruma_enum(alias = "m.call.member")]
+        "org.matrix.msc3401.call.member" => super::call::member,
     }
 
     /// Any to-device event.
