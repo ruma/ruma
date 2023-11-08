@@ -1,11 +1,7 @@
 use as_variant::as_variant;
 use ruma_common::{serde::Raw, OwnedEventId, OwnedUserId, RoomId, UserId};
-#[cfg(doc)]
-use ruma_html::{sanitize_html, RemoveReplyFallback};
 use serde::{Deserialize, Serialize};
 
-#[cfg(doc)]
-use super::OriginalSyncRoomMessageEvent;
 use super::{
     AddMentions, ForwardThread, MessageType, OriginalRoomMessageEvent, Relation,
     RoomMessageEventContent,
