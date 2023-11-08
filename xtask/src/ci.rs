@@ -226,7 +226,7 @@ impl CiTask {
     ///
     /// Also checks that all features that are used in the code exist.
     fn nightly_all(&self) -> Result<()> {
-        cmd!("rustup run {NIGHTLY} cargo check --workspace --all-features -Z unstable-options -Z check-cfg=features")
+        cmd!("rustup run {NIGHTLY} cargo check --workspace --all-features -Z unstable-options -Z check-cfg")
             .env("RUSTFLAGS", "-D warnings")
             .run()
             .map_err(Into::into)
