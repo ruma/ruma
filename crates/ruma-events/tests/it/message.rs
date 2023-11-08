@@ -47,16 +47,13 @@ fn plain_text_content_serialization() {
 
 #[test]
 fn unknown_mimetype_content_serialization() {
-    let message_event_content = MessageEventContent::from(
-        TextContentBlock::try_from(vec![
-            TextRepresentation::plain("> <@test:example.com> test\n\ntest reply"),
-            TextRepresentation::new(
-                "application/json",
-                r#"{ "quote": "<@test:example.com> test", "reply": "test reply" }"#,
-            ),
-        ])
-        .unwrap(),
-    );
+    let message_event_content = MessageEventContent::from(TextContentBlock::from(vec![
+        TextRepresentation::plain("> <@test:example.com> test\n\ntest reply"),
+        TextRepresentation::new(
+            "application/json",
+            r#"{ "quote": "<@test:example.com> test", "reply": "test reply" }"#,
+        ),
+    ]));
 
     assert_eq!(
         to_json_value(&message_event_content).unwrap(),
@@ -332,12 +329,11 @@ fn emote_event_deserialization() {
 #[test]
 #[cfg(feature = "unstable-msc3554")]
 fn lang_serialization() {
-    let content = TextContentBlock::try_from(vec![
+    let content = TextContentBlock::from(vec![
         assign!(TextRepresentation::plain("Bonjour le monde !"), { lang: "fr".into() }),
         assign!(TextRepresentation::plain("Hallo Welt!"), { lang: "de".into() }),
         assign!(TextRepresentation::plain("Hello World!"), { lang: "en".into() }),
-    ])
-    .unwrap();
+    ]);
 
     assert_eq!(
         to_json_value(content).unwrap(),

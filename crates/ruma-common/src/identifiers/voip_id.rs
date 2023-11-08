@@ -26,13 +26,3 @@ impl VoipId {
         VoipId::from_borrowed(&id.simple().to_string()).to_owned()
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::VoipId;
-
-    #[test]
-    fn try_from() {
-        <&VoipId>::try_from("this_-_a_valid_secret_1337").unwrap();
-    }
-}

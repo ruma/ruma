@@ -172,12 +172,12 @@ mod tests {
 
     #[test]
     fn valid_version_1() {
-        assert_eq!(VoipVersionId::try_from("1"), Ok(VoipVersionId::V1));
+        assert_eq!(VoipVersionId::from("1"), VoipVersionId::V1);
     }
 
     #[test]
     fn valid_custom_string_version() {
-        assert_matches!(VoipVersionId::try_from("io.ruma.2"), Ok(version));
+        assert_matches!(VoipVersionId::from("io.ruma.2"), version);
         assert_eq!(version.as_ref(), "io.ruma.2");
     }
 
@@ -203,13 +203,13 @@ mod tests {
 
     #[test]
     fn serialize_custom_string() {
-        let version = VoipVersionId::try_from("io.ruma.1").unwrap();
+        let version = VoipVersionId::from("io.ruma.1");
         assert_eq!(to_json_value(&version).unwrap(), json!("io.ruma.1"));
     }
 
     #[test]
     fn deserialize_custom_string() {
-        let version = VoipVersionId::try_from("io.ruma.1").unwrap();
+        let version = VoipVersionId::from("io.ruma.1");
         assert_eq!(from_json_value::<VoipVersionId>(json!("io.ruma.1")).unwrap(), version);
     }
 }
