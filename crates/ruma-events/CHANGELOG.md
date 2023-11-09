@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.27.8
+
+Improvements:
+
+- Export the `UnstableAmplitude` type from the `room::message` module under the
+  `unstable-msc3245-v1-compat` feature; it was previously unnameable
+
 # 0.27.7
 
 Improvements:
