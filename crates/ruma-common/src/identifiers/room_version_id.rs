@@ -237,6 +237,7 @@ impl PartialEq<RoomVersionId> for String {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 #[doc(hidden)]
+#[allow(unknown_lints, unnameable_types)]
 pub struct CustomRoomVersion(Box<str>);
 
 #[doc(hidden)]

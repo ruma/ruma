@@ -41,7 +41,9 @@ mod video;
 mod without_relation;
 
 #[cfg(feature = "unstable-msc3245-v1-compat")]
-pub use self::audio::{UnstableAudioDetailsContentBlock, UnstableVoiceContentBlock};
+pub use self::audio::{
+    UnstableAmplitude, UnstableAudioDetailsContentBlock, UnstableVoiceContentBlock,
+};
 pub use self::{
     audio::{AudioInfo, AudioMessageEventContent},
     emote::EmoteMessageEventContent,

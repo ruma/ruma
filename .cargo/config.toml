@@ -6,7 +6,6 @@ crates-io = "https://docs.rs/"
 
 [target.'cfg(all())']
 rustflags = [
-    "-Wprivate_in_public",
     "-Wrust_2018_idioms",
     "-Wsemicolon_in_expressions_from_macros",
     "-Wunreachable_pub",

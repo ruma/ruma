@@ -226,10 +226,19 @@ impl CiTask {
     ///
     /// Also checks that all features that are used in the code exist.
     fn nightly_all(&self) -> Result<()> {
-        cmd!("rustup run {NIGHTLY} cargo check --workspace --all-features -Z unstable-options -Z check-cfg")
-            .env("RUSTFLAGS", "-D warnings")
-            .run()
-            .map_err(Into::into)
+        cmd!(
+            "
+            rustup run {NIGHTLY} cargo check
+                --workspace --all-features -Z unstable-options -Z check-cfg
+            "
+        )
+        .env(
+            "RUSTFLAGS",
+            "-Z crate-attr=feature(type_privacy_lints) \
+             -D private_bounds,private_interfaces,unnameable_types,warnings",
+        )
+        .run()
+        .map_err(Into::into)
     }
 
     /// Check ruma-common with `ruma_identifiers_storage="Box"`

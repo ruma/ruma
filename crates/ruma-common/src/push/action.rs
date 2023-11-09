@@ -110,6 +110,7 @@ impl Serialize for Action {
 
 /// An unknown action.
 #[doc(hidden)]
+#[allow(unknown_lints, unnameable_types)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum CustomAction {
