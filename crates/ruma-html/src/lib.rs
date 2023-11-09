@@ -7,6 +7,7 @@
 //! document but will offer APIs focused on specificities of HTML in the Matrix
 //! specification..
 
+#![feature(let_chains)]
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 

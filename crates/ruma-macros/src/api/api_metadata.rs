@@ -105,22 +105,22 @@ impl Parse for Metadata {
         let history = {
             let stable_or_r0 = stable_path.as_ref().or(r0_path.as_ref());
 
-            if let Some(path) = stable_or_r0 {
-                if added.is_none() {
-                    return Err(syn::Error::new_spanned(
-                        path,
-                        "stable path was defined, while `added` version was not defined",
-                    ));
-                }
+            if let Some(path) = stable_or_r0
+                && added.is_none()
+            {
+                return Err(syn::Error::new_spanned(
+                    path,
+                    "stable path was defined, while `added` version was not defined",
+                ));
             }
 
-            if let Some(deprecated) = &deprecated {
-                if added.is_none() {
-                    return Err(syn::Error::new_spanned(
-                        deprecated,
-                        "deprecated version is defined while added version is not defined",
-                    ));
-                }
+            if let Some(deprecated) = &deprecated
+                && added.is_none()
+            {
+                return Err(syn::Error::new_spanned(
+                    deprecated,
+                    "deprecated version is defined while added version is not defined",
+                ));
             }
 
             // Note: It is possible that Matrix will remove endpoints in a single version, while
@@ -129,22 +129,22 @@ impl Parse for Metadata {
             // before a removal one.
             //
             // If Matrix does so anyways, we can just alter this.
-            if let Some(removed) = &removed {
-                if deprecated.is_none() {
-                    return Err(syn::Error::new_spanned(
-                        removed,
-                        "removed version is defined while deprecated version is not defined",
-                    ));
-                }
+            if let Some(removed) = &removed
+                && deprecated.is_none()
+            {
+                return Err(syn::Error::new_spanned(
+                    removed,
+                    "removed version is defined while deprecated version is not defined",
+                ));
             }
 
-            if let Some(added) = &added {
-                if stable_or_r0.is_none() {
-                    return Err(syn::Error::new_spanned(
-                        added,
-                        "added version is defined, but no stable or r0 path exists",
-                    ));
-                }
+            if let Some(added) = &added
+                && stable_or_r0.is_none()
+            {
+                return Err(syn::Error::new_spanned(
+                    added,
+                    "added version is defined, but no stable or r0 path exists",
+                ));
             }
 
             if let Some(r0) = &r0_path {
@@ -167,13 +167,13 @@ impl Parse for Metadata {
                 }
             }
 
-            if let Some(stable) = &stable_path {
-                if stable.value().contains("/r0/") {
-                    return Err(syn::Error::new_spanned(
-                        stable,
-                        "stable endpoint contains /r0/ (did you make a copy-paste error?)",
-                    ));
-                }
+            if let Some(stable) = &stable_path
+                && stable.value().contains("/r0/")
+            {
+                return Err(syn::Error::new_spanned(
+                    stable,
+                    "stable endpoint contains /r0/ (did you make a copy-paste error?)",
+                ));
             }
 
             if unstable_path.is_none() && r0_path.is_none() && stable_path.is_none() {

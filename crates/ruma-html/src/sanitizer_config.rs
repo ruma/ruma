@@ -131,14 +131,13 @@ impl SanitizerConfig {
                         let attr: &str = &attr.name.local;
 
                         // Check if there is a (tag, attr) tuple entry.
-                        if let Some(schemes) = allowed_schemes.get(&*format!("{tag}:{attr}")) {
+                        if let Some(schemes) = allowed_schemes.get(&*format!("{tag}:{attr}"))
                             // Check if the scheme is allowed.
-                            if !schemes
+                            && !schemes
                                 .iter()
                                 .any(|scheme| value.starts_with(&format!("{scheme}:")))
-                            {
-                                return NodeAction::Ignore;
-                            }
+                        {
+                            return NodeAction::Ignore;
                         }
                     }
                     NodeAction::None
@@ -168,36 +167,36 @@ impl SanitizerConfig {
                     return Some(AttributeAction::Remove(attr.to_owned()));
                 }
 
-                if name == "class" {
-                    if let Some(classes) = self.allowed_classes.and_then(|m| m.get(tag)) {
-                        let mut changed = false;
-                        let attr_classes = value.split_whitespace().filter(|attr_class| {
-                            for class in classes.iter() {
-                                if WildMatch::new(class).matches(attr_class) {
-                                    return true;
-                                }
+                if name == "class"
+                    && let Some(classes) = self.allowed_classes.and_then(|m| m.get(tag))
+                {
+                    let mut changed = false;
+                    let attr_classes = value.split_whitespace().filter(|attr_class| {
+                        for class in classes.iter() {
+                            if WildMatch::new(class).matches(attr_class) {
+                                return true;
                             }
-                            changed = true;
-                            false
-                        });
+                        }
+                        changed = true;
+                        false
+                    });
 
-                        let folded_classes = attr_classes.fold(String::new(), |mut a, b| {
-                            a.reserve(b.len() + 1);
-                            a.push_str(b);
-                            a.push('\n');
-                            a
-                        });
-                        let final_classes = folded_classes.trim_end();
+                    let folded_classes = attr_classes.fold(String::new(), |mut a, b| {
+                        a.reserve(b.len() + 1);
+                        a.push_str(b);
+                        a.push('\n');
+                        a
+                    });
+                    let final_classes = folded_classes.trim_end();
 
-                        if changed {
-                            if final_classes.is_empty() {
-                                return Some(AttributeAction::Remove(attr.to_owned()));
-                            } else {
-                                return Some(AttributeAction::ReplaceValue(
-                                    attr.to_owned(),
-                                    final_classes.to_owned().into(),
-                                ));
-                            }
+                    if changed {
+                        if final_classes.is_empty() {
+                            return Some(AttributeAction::Remove(attr.to_owned()));
+                        } else {
+                            return Some(AttributeAction::ReplaceValue(
+                                attr.to_owned(),
+                                final_classes.to_owned().into(),
+                            ));
                         }
                     }
                 }

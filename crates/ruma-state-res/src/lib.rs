@@ -1,3 +1,5 @@
+#![feature(let_chains)]
+
 use std::{
     borrow::Borrow,
     cmp::Reverse,
@@ -349,11 +351,11 @@ fn get_power_level_for_sender<E: Event>(
     let mut pl = None;
 
     for aid in event.as_ref().map(|pdu| pdu.auth_events()).into_iter().flatten() {
-        if let Some(aev) = fetch_event(aid.borrow()) {
-            if is_type_and_key(&aev, &TimelineEventType::RoomPowerLevels, "") {
-                pl = Some(aev);
-                break;
-            }
+        if let Some(aev) = fetch_event(aid.borrow())
+            && is_type_and_key(&aev, &TimelineEventType::RoomPowerLevels, "")
+        {
+            pl = Some(aev);
+            break;
         }
     }
 
@@ -362,11 +364,11 @@ fn get_power_level_for_sender<E: Event>(
         Some(ev) => from_json_str(ev.content().get())?,
     };
 
-    if let Some(ev) = event {
-        if let Some(&user_level) = content.users.get(ev.sender()) {
-            debug!("found {} at power_level {user_level}", ev.sender());
-            return Ok(user_level);
-        }
+    if let Some(ev) = event
+        && let Some(&user_level) = content.users.get(ev.sender())
+    {
+        debug!("found {} at power_level {user_level}", ev.sender());
+        return Ok(user_level);
     }
 
     Ok(content.users_default)
@@ -422,11 +424,11 @@ fn iterative_auth_check<E: Event + Clone>(
             Some(state_key),
             event.content(),
         )? {
-            if let Some(ev_id) = resolved_state.get(&key) {
-                if let Some(event) = fetch_event(ev_id.borrow()) {
-                    // TODO synapse checks `rejected_reason` is None here
-                    auth_events.insert(key.to_owned(), event);
-                }
+            if let Some(ev_id) = resolved_state.get(&key)
+                && let Some(event) = fetch_event(ev_id.borrow())
+            {
+                // TODO synapse checks `rejected_reason` is None here
+                auth_events.insert(key.to_owned(), event);
             }
         }
 
@@ -504,13 +506,13 @@ fn mainline_sort<E: Event>(
 
     let mut order_map = HashMap::new();
     for ev_id in to_sort.iter() {
-        if let Some(event) = fetch_event(ev_id.borrow()) {
-            if let Ok(depth) = get_mainline_depth(Some(event), &mainline_map, &fetch_event) {
-                order_map.insert(
-                    ev_id,
-                    (depth, fetch_event(ev_id.borrow()).map(|ev| ev.origin_server_ts()), ev_id),
-                );
-            }
+        if let Some(event) = fetch_event(ev_id.borrow())
+            && let Ok(depth) = get_mainline_depth(Some(event), &mainline_map, &fetch_event)
+        {
+            order_map.insert(
+                ev_id,
+                (depth, fetch_event(ev_id.borrow()).map(|ev| ev.origin_server_ts()), ev_id),
+            );
         }
 
         // TODO: if these functions are ever made async here
@@ -596,13 +598,13 @@ fn is_power_event(event: impl Event) -> bool {
         | TimelineEventType::RoomJoinRules
         | TimelineEventType::RoomCreate => event.state_key() == Some(""),
         TimelineEventType::RoomMember => {
-            if let Ok(content) = from_json_str::<RoomMemberEventContent>(event.content().get()) {
-                if [MembershipState::Leave, MembershipState::Ban].contains(&content.membership) {
-                    return Some(event.sender().as_str()) != event.state_key();
-                }
+            if let Ok(content) = from_json_str::<RoomMemberEventContent>(event.content().get())
+                && [MembershipState::Leave, MembershipState::Ban].contains(&content.membership)
+            {
+                event.state_key() != Some(event.sender().as_str())
+            } else {
+                false
             }
-
-            false
         }
         _ => false,
     }

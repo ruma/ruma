@@ -4,6 +4,7 @@
 //!
 //! See the documentation for the individual macros for usage details.
 
+#![feature(let_chains)]
 #![warn(missing_docs)]
 #![allow(unreachable_pub)]
 // https://github.com/rust-lang/rust-clippy/issues/9029

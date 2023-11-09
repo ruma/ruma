@@ -658,13 +658,13 @@ impl From<MatrixError> for UiaaResponse {
 
 impl EndpointError for UiaaResponse {
     fn from_http_response<T: AsRef<[u8]>>(response: http::Response<T>) -> Self {
-        if response.status() == http::StatusCode::UNAUTHORIZED {
-            if let Ok(uiaa_info) = from_json_slice(response.body().as_ref()) {
-                return Self::AuthResponse(uiaa_info);
-            }
+        if response.status() == http::StatusCode::UNAUTHORIZED
+            && let Ok(uiaa_info) = from_json_slice(response.body().as_ref())
+        {
+            Self::AuthResponse(uiaa_info)
+        } else {
+            Self::MatrixError(MatrixError::from_http_response(response))
         }
-
-        Self::MatrixError(MatrixError::from_http_response(response))
     }
 }
 

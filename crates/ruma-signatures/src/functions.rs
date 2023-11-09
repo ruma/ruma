@@ -619,13 +619,13 @@ pub fn verify_event(
 
     let calculated_hash = content_hash(object)?;
 
-    if let Ok(hash) = Base64::<Standard>::parse(hash) {
-        if hash.as_bytes() == calculated_hash.as_bytes() {
-            return Ok(Verified::All);
-        }
+    if let Ok(hash) = Base64::<Standard>::parse(hash)
+        && hash.as_bytes() == calculated_hash.as_bytes()
+    {
+        Ok(Verified::All)
+    } else {
+        Ok(Verified::Signatures)
     }
-
-    Ok(Verified::Signatures)
 }
 
 /// Internal implementation detail of the canonical JSON algorithm.

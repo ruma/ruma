@@ -97,12 +97,12 @@ pub fn auth_types_for_event(
                     auth_types.push(key);
                 }
 
-                if membership == MembershipState::Invite {
-                    if let Some(Ok(t_id)) = content.third_party_invite.map(|t| t.deserialize()) {
-                        let key = (StateEventType::RoomThirdPartyInvite, t_id.signed.token);
-                        if !auth_types.contains(&key) {
-                            auth_types.push(key);
-                        }
+                if membership == MembershipState::Invite
+                    && let Some(Ok(t_id)) = content.third_party_invite.map(|t| t.deserialize())
+                {
+                    let key = (StateEventType::RoomThirdPartyInvite, t_id.signed.token);
+                    if !auth_types.contains(&key) {
+                        auth_types.push(key);
                     }
                 }
             }

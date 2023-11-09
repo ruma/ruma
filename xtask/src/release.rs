@@ -363,10 +363,10 @@ impl VersionExt for Version {
     }
 
     fn increment_pre_number(&mut self) {
-        if let Some((prefix, num)) = self.pre.as_str().rsplit_once('.') {
-            if let Ok(num) = num.parse::<u8>() {
-                self.pre = semver::Prerelease::new(&format!("{prefix}.{}", num + 1)).unwrap();
-            }
+        if let Some((prefix, num)) = self.pre.as_str().rsplit_once('.')
+            && let Ok(num) = num.parse::<u8>()
+        {
+            self.pre = semver::Prerelease::new(&format!("{prefix}.{}", num + 1)).unwrap();
         }
     }
 

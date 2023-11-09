@@ -2,6 +2,7 @@
 #![doc(html_logo_url = "https://ruma.io/images/logo.png")]
 //! Common types for the Ruma crates.
 
+#![feature(let_chains)]
 #![recursion_limit = "1024"]
 #![warn(missing_docs)]
 // https://github.com/rust-lang/rust-clippy/issues/9029

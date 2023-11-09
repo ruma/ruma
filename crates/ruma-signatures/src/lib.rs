@@ -42,6 +42,7 @@
 //! signatures and hashes on an event, use the `verify_event` function. See the documentation for
 //! these respective functions for more details and full examples of use.
 
+#![feature(let_chains)]
 #![warn(missing_docs)]
 
 use ruma_common::serde::{AsRefStr, DisplayAsRefStr};
