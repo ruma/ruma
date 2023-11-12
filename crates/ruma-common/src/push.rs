@@ -466,6 +466,7 @@ pub struct ConditionalPushRule {
     /// event.
     ///
     /// A rule with no conditions always matches.
+    #[serde(default)]
     pub conditions: Vec<PushCondition>,
 }
 
@@ -870,6 +871,7 @@ pub struct NewConditionalPushRule {
     /// event.
     ///
     /// A rule with no conditions always matches.
+    #[serde(default)]
     pub conditions: Vec<PushCondition>,
 
     /// Actions to determine if and how a notification is delivered for events matching this
