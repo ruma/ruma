@@ -173,32 +173,18 @@ impl TryFrom<PushRule> for PatternedPushRule {
     }
 }
 
-/// An error that happens when `PushRule` cannot
-/// be converted into `ConditionalPushRule`
-#[derive(Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct MissingConditionsError;
+impl From<PushRule> for ConditionalPushRule {
+    fn from(push_rule: PushRule) -> Self {
+        let PushRule { actions, default, enabled, rule_id, conditions, .. } = push_rule;
 
-impl fmt::Display for MissingConditionsError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Push rule has no conditions.")
-    }
-}
-
-impl Error for MissingConditionsError {}
-
-impl TryFrom<PushRule> for ConditionalPushRule {
-    type Error = MissingConditionsError;
-
-    fn try_from(push_rule: PushRule) -> Result<Self, Self::Error> {
-        if let PushRule {
-            actions, default, enabled, rule_id, conditions: Some(conditions), ..
-        } = push_rule
-        {
-            Ok(ConditionalPushRuleInit { actions, default, enabled, rule_id, conditions }.into())
-        } else {
-            Err(MissingConditionsError)
+        ConditionalPushRuleInit {
+            actions,
+            default,
+            enabled,
+            rule_id,
+            conditions: conditions.unwrap_or_default(),
         }
+        .into()
     }
 }
 
