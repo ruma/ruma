@@ -1,5 +1,11 @@
 # [unreleased]
 
+Breaking changes:
+
+- The conversion from `PushRule` to `ConditionalPushRule` is infallible since
+  the `conditions` field is optional.
+  - `MissingConditionsError` was removed.
+
 # 0.17.2
 
 Improvements:
