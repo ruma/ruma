@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+- Fix the name of the fallback text field for extensible events in
+  `RoomMessageEventContentWithoutRelation::make_reply_to_raw()`
+
 # 0.27.8
 
 Improvements:

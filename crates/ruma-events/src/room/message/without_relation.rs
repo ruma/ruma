@@ -162,7 +162,7 @@ impl RoomMessageEventContentWithoutRelation {
             #[serde(flatten)]
             formatted: Option<FormattedBody>,
             #[cfg(feature = "unstable-msc1767")]
-            #[serde(rename = "org.matrix.msc1767")]
+            #[serde(rename = "org.matrix.msc1767.text")]
             text: Option<String>,
             #[serde(rename = "m.relates_to")]
             relates_to: Option<crate::room::encrypted::Relation>,
