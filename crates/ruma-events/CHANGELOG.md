@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.27.9
+
 Bug fixes:
 
 - Fix the name of the fallback text field for extensible events in
