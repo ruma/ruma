@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.17.3
+
 Bug fixes:
 
 - Fix deserialization of `claim_keys` responses without a `failures` field
