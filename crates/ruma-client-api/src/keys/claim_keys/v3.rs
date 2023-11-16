@@ -44,6 +44,7 @@ pub struct Request {
 pub struct Response {
     /// If any remote homeservers could not be reached, they are recorded here.
     /// The names of the properties are the names of the unreachable servers.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub failures: BTreeMap<String, JsonValue>,
 
     /// One-time keys for the queried devices.

@@ -6,6 +6,10 @@ Breaking changes:
   the `conditions` field is optional.
   - `MissingConditionsError` was removed.
 
+Bug fixes:
+
+- Fix deserialization of `claim_keys` responses without a `failures` field
+
 # 0.17.2
 
 Improvements:
