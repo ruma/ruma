@@ -463,7 +463,6 @@ fn custom_relation_deserialization() {
 
     let relation = content.relates_to.unwrap();
     assert_eq!(relation.rel_type().unwrap().as_str(), "io.ruma.custom");
-    assert_eq!(relation.event_id(), "$related_event");
     let data = relation.data();
     assert_eq!(data.get("field").unwrap().as_str(), Some("value"));
 }

@@ -126,6 +126,7 @@ impl Relation {
     ///
     /// This is the `event_id` field at the root of an `m.relates_to` object, except in the case of
     /// a reply relation where it's the `event_id` field in the `m.in_reply_to` object.
+    #[deprecated = "Please open an issue if you use this"]
     pub fn event_id(&self) -> &EventId {
         match self {
             Relation::Reply { in_reply_to } => &in_reply_to.event_id,

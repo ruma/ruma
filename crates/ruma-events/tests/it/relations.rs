@@ -269,7 +269,6 @@ fn custom_deserialize() {
         })
     );
     assert_eq!(relation.rel_type().unwrap().as_str(), "io.ruma.unknown");
-    assert_eq!(relation.event_id().as_str(), "$related_event");
     let data = relation.data();
     assert_eq!(data.get("key").unwrap().as_str(), Some("value"));
 }
