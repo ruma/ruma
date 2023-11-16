@@ -316,14 +316,11 @@ pub enum RelationType {
 /// The payload for a custom relation.
 #[doc(hidden)]
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct CustomRelation {
-    /// A custom relation type.
-    pub(super) rel_type: String,
+#[serde(transparent)]
+pub struct CustomRelation(pub(super) JsonObject);
 
-    /// The ID of the event this relation applies to.
-    pub(super) event_id: OwnedEventId,
-
-    /// Remaining event content.
-    #[serde(flatten)]
-    pub(super) data: JsonObject,
+impl CustomRelation {
+    pub(super) fn rel_type(&self) -> Option<RelationType> {
+        Some(self.0.get("rel_type")?.as_str()?.into())
+    }
 }

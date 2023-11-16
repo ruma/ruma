@@ -7,7 +7,9 @@ use ruma_events::{
         RoomEncryptedEventContent,
     },
 };
-use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+use serde_json::{
+    from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
+};
 
 fn encrypted_scheme() -> EncryptedEventScheme {
     EncryptedEventScheme::MegolmV1AesSha2(
@@ -429,7 +431,12 @@ fn content_annotation_deserialization() {
 
 #[test]
 fn custom_relation_deserialization() {
-    let json = json!({
+    let relation_json = json!({
+        "rel_type": "io.ruma.custom",
+        "event_id": "$related_event",
+        "field": "value",
+    });
+    let content_json = json!({
         "algorithm": "m.megolm.v1.aes-sha2",
         "sender_key": "aV9BpqYFqJpKYmgERyGv/6QyKMcgLqxM05V0gvzg9Yk",
         "ciphertext": "AwgAEpABjy6BHczo7UZE3alyej6y2YQ5v+L9eB+fBqL7yteCPv8Jig\
@@ -440,14 +447,10 @@ fn custom_relation_deserialization() {
                       lDl5mzVO3tPnJMKZ0hn+AF",
         "session_id": "IkwqWxT2zy3DI1E/zM2Wq+CE8tr3eEpsxsVGjGrMPdw",
         "device_id": "DEVICE",
-        "m.relates_to": {
-            "rel_type": "io.ruma.custom",
-            "event_id": "$related_event",
-            "field": "value",
-        },
+        "m.relates_to": relation_json,
     });
 
-    let content = from_json_value::<RoomEncryptedEventContent>(json).unwrap();
+    let content = from_json_value::<RoomEncryptedEventContent>(content_json).unwrap();
 
     assert_matches!(content.scheme, EncryptedEventScheme::MegolmV1AesSha2(encrypted_content));
     assert_eq!(encrypted_content.session_id, "IkwqWxT2zy3DI1E/zM2Wq+CE8tr3eEpsxsVGjGrMPdw");
@@ -463,9 +466,7 @@ fn custom_relation_deserialization() {
 
     let relation = content.relates_to.unwrap();
     assert_eq!(relation.rel_type().unwrap().as_str(), "io.ruma.custom");
-    assert_eq!(relation.event_id(), "$related_event");
-    let data = relation.data();
-    assert_eq!(data.get("field").unwrap().as_str(), Some("value"));
+    assert_eq!(JsonValue::Object(relation.data().into_owned()), relation_json);
 }
 
 #[test]

@@ -2,7 +2,7 @@ use ruma_common::{
     serde::{from_raw_json_value, JsonObject},
     OwnedEventId,
 };
-use serde::{de, ser::SerializeStruct, Deserialize, Deserializer, Serialize};
+use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize};
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
 use super::{InReplyTo, Relation, Thread};
@@ -17,7 +17,6 @@ impl<'de> Deserialize<'de> for Relation {
         let RelationDeHelper { in_reply_to, rel_type } = from_raw_json_value(&json)?;
 
         let rel = match (in_reply_to, rel_type.as_deref()) {
-            (None, None) => return Err(de::Error::missing_field("m.in_reply_to or rel_type")),
             (_, Some("m.thread")) => Relation::Thread(from_raw_json_value(&json)?),
             (in_reply_to, Some("io.element.thread")) => {
                 let ThreadUnstableDeHelper { event_id, is_falling_back } =

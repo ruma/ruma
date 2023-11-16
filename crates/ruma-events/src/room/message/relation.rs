@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use ruma_common::{serde::JsonObject, EventId};
+use ruma_common::serde::JsonObject;
 
 use crate::relation::{CustomRelation, InReplyTo, RelationType, Replacement, Thread};
 
@@ -34,28 +34,15 @@ impl<C> Relation<C> {
             Relation::Reply { .. } => None,
             Relation::Replacement(_) => Some(RelationType::Replacement),
             Relation::Thread(_) => Some(RelationType::Thread),
-            Relation::_Custom(c) => Some(c.rel_type.as_str().into()),
-        }
-    }
-
-    /// The ID of the event this relates to.
-    ///
-    /// This is the `event_id` field at the root of an `m.relates_to` object, except in the case of
-    /// a reply relation where it's the `event_id` field in the `m.in_reply_to` object.
-    pub fn event_id(&self) -> &EventId {
-        match self {
-            Relation::Reply { in_reply_to } => &in_reply_to.event_id,
-            Relation::Replacement(r) => &r.event_id,
-            Relation::Thread(t) => &t.event_id,
-            Relation::_Custom(c) => &c.event_id,
+            Relation::_Custom(c) => c.rel_type(),
         }
     }
 
     /// The associated data.
     ///
-    /// The returned JSON object won't contain the `rel_type` field, use
-    /// [`.rel_type()`][Self::rel_type] to access it. It also won't contain data
-    /// outside of `m.relates_to` (e.g. `m.new_content` for `m.replace` relations).
+    /// The returned JSON object holds the contents of `m.relates_to`, including `rel_type` and
+    /// `event_id` if present, but not things like `m.new_content` for `m.replace` relations that
+    /// live next to `m.relates_to`.
     ///
     /// Prefer to use the public variants of `Relation` where possible; this method is meant to
     /// be used for custom relations only.
@@ -63,8 +50,8 @@ impl<C> Relation<C> {
     where
         C: Clone,
     {
-        if let Relation::_Custom(c) = self {
-            Cow::Borrowed(&c.data)
+        if let Relation::_Custom(CustomRelation(data)) = self {
+            Cow::Borrowed(data)
         } else {
             Cow::Owned(self.serialize_data())
         }
@@ -97,32 +84,21 @@ impl RelationWithoutReplacement {
         match self {
             Self::Reply { .. } => None,
             Self::Thread(_) => Some(RelationType::Thread),
-            Self::_Custom(c) => Some(c.rel_type.as_str().into()),
-        }
-    }
-
-    /// The ID of the event this relates to.
-    ///
-    /// This is the `event_id` field at the root of an `m.relates_to` object, except in the case of
-    /// a reply relation where it's the `event_id` field in the `m.in_reply_to` object.
-    pub fn event_id(&self) -> &EventId {
-        match self {
-            Self::Reply { in_reply_to } => &in_reply_to.event_id,
-            Self::Thread(t) => &t.event_id,
-            Self::_Custom(c) => &c.event_id,
+            Self::_Custom(c) => c.rel_type(),
         }
     }
 
     /// The associated data.
     ///
-    /// The returned JSON object won't contain the `rel_type` field, use
-    /// [`.rel_type()`][Self::rel_type] to access it.
+    /// The returned JSON object holds the contents of `m.relates_to`, including `rel_type` and
+    /// `event_id` if present, but not things like `m.new_content` for `m.replace` relations that
+    /// live next to `m.relates_to`.
     ///
     /// Prefer to use the public variants of `Relation` where possible; this method is meant to
     /// be used for custom relations only.
     pub fn data(&self) -> Cow<'_, JsonObject> {
-        if let Self::_Custom(c) = self {
-            Cow::Borrowed(&c.data)
+        if let Self::_Custom(CustomRelation(data)) = self {
+            Cow::Borrowed(data)
         } else {
             Cow::Owned(self.serialize_data())
         }

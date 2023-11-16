@@ -35,8 +35,8 @@ where
 
     let RelatesToDeHelper { in_reply_to, relation } = relates_to;
 
-    let rel = if let Some(RelationDeHelper::Known(relation)) = relation {
-        match relation {
+    let rel = match relation {
+        RelationDeHelper::Known(relation) => match relation {
             KnownRelationDeHelper::Replacement(ReplacementJsonRepr { event_id }) => {
                 match new_content {
                     Some(new_content) => {
@@ -50,13 +50,14 @@ where
                 event_id,
                 is_falling_back,
             }) => Relation::Thread(Thread { event_id, in_reply_to, is_falling_back }),
+        },
+        RelationDeHelper::Unknown(c) => {
+            if let Some(in_reply_to) = in_reply_to {
+                Relation::Reply { in_reply_to }
+            } else {
+                Relation::_Custom(c)
+            }
         }
-    } else if let Some(in_reply_to) = in_reply_to {
-        Relation::Reply { in_reply_to }
-    } else if let Some(RelationDeHelper::Unknown(c)) = relation {
-        Relation::_Custom(c)
-    } else {
-        return Err(de::Error::missing_field("m.in_reply_to or rel_type"));
     };
 
     Ok(Some(rel))
@@ -91,7 +92,7 @@ pub(crate) struct RelatesToDeHelper {
     in_reply_to: Option<InReplyTo>,
 
     #[serde(flatten)]
-    relation: Option<RelationDeHelper>,
+    relation: RelationDeHelper,
 }
 
 #[derive(Deserialize)]
@@ -200,26 +201,19 @@ pub(super) struct CustomSerHelper {
     #[serde(rename = "m.in_reply_to", skip_serializing_if = "Option::is_none")]
     in_reply_to: Option<InReplyTo>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    rel_type: Option<String>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    event_id: Option<OwnedEventId>,
-
     #[serde(flatten, skip_serializing_if = "JsonObject::is_empty")]
     data: JsonObject,
 }
 
 impl From<InReplyTo> for CustomSerHelper {
     fn from(value: InReplyTo) -> Self {
-        Self { in_reply_to: Some(value), ..Default::default() }
+        Self { in_reply_to: Some(value), data: JsonObject::new() }
     }
 }
 
 impl From<CustomRelation> for CustomSerHelper {
-    fn from(value: CustomRelation) -> Self {
-        let CustomRelation { rel_type, event_id, data } = value;
-        Self { rel_type: Some(rel_type), event_id: Some(event_id), data, ..Default::default() }
+    fn from(CustomRelation(data): CustomRelation) -> Self {
+        Self { in_reply_to: None, data }
     }
 }
 
