@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.12.1
+
 Bug fixes:
 
 - Allow to deserialize `(New)ConditionalPushRule` with a missing `conditions` field.
