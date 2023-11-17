@@ -19,6 +19,11 @@ pub enum DeviceKeyAlgorithm {
     /// The Curve25519 ECDH algorithm, but the key also contains signatures
     SignedCurve25519,
 
+    #[cfg(feature = "unstable-msc4048")]
+    /// The HMAC-SHA-256 MAC algorithm
+    #[ruma_enum(rename = "org.matrix.msc4048.hmac-sha-256")]
+    HmacSha256,
+
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
@@ -31,6 +36,11 @@ pub enum DeviceKeyAlgorithm {
 pub enum SigningKeyAlgorithm {
     /// The Ed25519 signature algorithm.
     Ed25519,
+
+    #[cfg(feature = "unstable-msc4048")]
+    /// The HMAC-SHA-256 MAC algorithm
+    #[ruma_enum(rename = "org.matrix.msc4048.hmac-sha-256")]
+    HmacSha256,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),

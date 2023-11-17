@@ -53,6 +53,17 @@ pub enum BackupAlgorithm {
         /// Signatures of the auth_data as Signed JSON.
         signatures: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceKeyId, String>>,
     },
+
+    #[cfg(feature = "unstable-msc4048")]
+    /// `org.matrix.msc4048.curve25519-aes-sha2` backup algorithm.
+    #[serde(rename = "org.matrix.msc4048.curve25519-aes-sha2")]
+    BackupV2Curve25519AesSha2 {
+        /// The curve25519 public key used to encrypt the backups, encoded in unpadded base64.
+        public_key: Base64,
+
+        /// Signatures of the auth_data as Signed JSON.
+        signatures: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceKeyId, String>>,
+    },
 }
 
 /// Information about the backup key.
@@ -117,14 +128,13 @@ pub struct EncryptedSessionData {
     pub ciphertext: Base64,
 
     /// First 8 bytes of MAC key, encoded in base64.
-    pub mac: Base64,
+    pub mac: Option<Base64>,
 
-    /// MAC of the key, encoded in base64
-    #[serde(rename = "org.matrix.msc4048.mac2")]
-    pub mac2: Option<Base64>,
+    /// Signatures/MACs of the session data
+    pub signatures: Option<BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceKeyId, String>>>,
 }
 
-/// The encrypted algorithm-dependent data for backups.
+/// The encrypted algorithm-dependent data for backups v1.
 ///
 /// This struct will not be updated even if additional fields are added to [`EncryptedSessionData`]
 /// in a new (non-breaking) release of the Matrix specification.
@@ -139,14 +149,40 @@ pub struct EncryptedSessionDataInit {
 
     /// First 8 bytes of MAC key, encoded in base64.
     pub mac: Base64,
-
-    /// MAC of the key, encoded in base64
-    pub mac2: Option<Base64>,
 }
 
 impl From<EncryptedSessionDataInit> for EncryptedSessionData {
     fn from(init: EncryptedSessionDataInit) -> Self {
-        let EncryptedSessionDataInit { ephemeral, ciphertext, mac, mac2 } = init;
-        Self { ephemeral, ciphertext, mac, mac2 }
+        let EncryptedSessionDataInit { ephemeral, ciphertext, mac } = init;
+        Self { ephemeral, ciphertext, mac: Some(mac), signatures: None }
+    }
+}
+
+/// The encrypted algorithm-dependent data for backups v2.
+///
+/// This struct will not be updated even if additional fields are added to [`EncryptedSessionData`]
+/// in a new (non-breaking) release of the Matrix specification.
+#[cfg(feature = "unstable-msc4048")]
+#[derive(Debug)]
+#[allow(clippy::exhaustive_structs)]
+pub struct EncryptedSessionDataV2Init {
+    /// Unpadded base64-encoded public half of the ephemeral key.
+    pub ephemeral: Base64,
+
+    /// Ciphertext, encrypted using AES-CBC-256 with PKCS#7 padding, encoded in base64.
+    pub ciphertext: Base64,
+
+    /// First 8 bytes of MAC key, encoded in base64.
+    pub mac: Option<Base64>,
+
+    /// Signatures/MACs of the session data
+    pub signatures: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceKeyId, String>>,
+}
+
+#[cfg(feature = "unstable-msc4048")]
+impl From<EncryptedSessionDataV2Init> for EncryptedSessionData {
+    fn from(init: EncryptedSessionDataV2Init) -> Self {
+        let EncryptedSessionDataV2Init { ephemeral, ciphertext, mac, signatures } = init;
+        Self { ephemeral, ciphertext, mac, signatures: Some(signatures) }
     }
 }
