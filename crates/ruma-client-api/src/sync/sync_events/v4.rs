@@ -7,6 +7,7 @@
 use std::{collections::BTreeMap, time::Duration};
 
 use js_int::UInt;
+use js_option::JsOption;
 use ruma_common::{
     api::{request, response, Metadata},
     metadata,
@@ -421,8 +422,8 @@ pub struct SlidingSyncRoom {
     pub name: Option<String>,
 
     /// The avatar of the room.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<OwnedMxcUri>,
+    #[serde(default, skip_serializing_if = "JsOption::is_undefined")]
+    pub avatar: JsOption<OwnedMxcUri>,
 
     /// Was this an initial response.
     #[serde(skip_serializing_if = "Option::is_none")]
