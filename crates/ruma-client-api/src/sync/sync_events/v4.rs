@@ -422,7 +422,7 @@ pub struct SlidingSyncRoom {
     pub name: Option<String>,
 
     /// The avatar of the room.
-    #[serde(skip_serializing_if = "JsOption::is_undefined")]
+    #[serde(default, skip_serializing_if = "JsOption::is_undefined")]
     pub avatar: JsOption<OwnedMxcUri>,
 
     /// Was this an initial response.
