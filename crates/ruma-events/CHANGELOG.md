@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.27.10
+
 Deprecations:
 
 - Deprecate `event_id` methods on `Relation` types
