@@ -5,6 +5,7 @@
 use std::{cmp::max, collections::BTreeMap};
 
 use js_int::{int, Int};
+use maplit::btreemap;
 use ruma_common::{
     power_levels::{default_power_level, NotificationPowerLevels},
     OwnedUserId, RoomVersionId, UserId,
@@ -112,12 +113,13 @@ impl RoomPowerLevelsEventContent {
     pub fn new() -> Self {
         // events_default, users_default and invite having a default of 0 while the others have a
         // default of 50 is not an oversight, these defaults are from the Matrix specification.
-        let mut events = BTreeMap::new();
-        #[cfg(feature = "unstable-msc3401")]
-        events = BTreeMap::from([(TimelineEventType::CallMember, int!(0))]);
+
         Self {
             ban: default_power_level(),
-            events,
+            events: btreemap! {
+                #[cfg(feature = "unstable-msc3401")]
+                TimelineEventType::CallMember => int!(0),
+            },
             events_default: int!(0),
             invite: int!(0),
             kick: default_power_level(),
@@ -553,12 +555,12 @@ mod tests {
     #[test]
     fn serialization_with_optional_fields_as_none() {
         let default = default_power_level();
-        let mut events = btreemap! {};
-        #[cfg(feature = "unstable-msc3401")]
-        events = btreemap! {TimelineEventType::CallMember=> default};
         let power_levels = RoomPowerLevelsEventContent {
             ban: default,
-            events,
+            events: btreemap! {
+                #[cfg(feature = "unstable-msc3401")]
+                TimelineEventType::CallMember => int!(0)
+            },
             events_default: int!(0),
             invite: int!(0),
             kick: default,

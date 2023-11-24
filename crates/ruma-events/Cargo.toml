@@ -54,6 +54,7 @@ compat-optional = []
 compat-tag-info = []
 
 [dependencies]
+maplit = { workspace = true }
 as_variant = { workspace = true }
 indexmap = { version = "2.0.0", features = ["serde"] }
 js_int = { workspace = true, features = ["serde"] }
@@ -79,7 +80,6 @@ criterion = { workspace = true, optional = true }
 assert_matches2 = { workspace = true }
 assign = { workspace = true }
 http = { workspace = true }
-maplit = { workspace = true }
 trybuild = "1.0.71"
 
 [[bench]]
