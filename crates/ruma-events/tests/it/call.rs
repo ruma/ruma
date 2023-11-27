@@ -634,7 +634,9 @@ fn notify_event_serialization() {
         json!({
             "call_id": "abcdef",
             "application": "m.call",
-            "m.mentions": {"user_ids": ["@user2:example.com","@user:example.com"]},
+            "m.mentions": {
+                "user_ids": ["@user2:example.com","@user:example.com"],
+            },
             "notify_type": "ring",
         })
     );
