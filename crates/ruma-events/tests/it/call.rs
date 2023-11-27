@@ -617,8 +617,8 @@ fn notify_event_serialization() {
         ApplicationType::Call,
         NotifyType::Ring,
         Mentions::with_user_ids(vec![
-            <&UserId>::try_from("@user:example.com").unwrap().into(),
-            <&UserId>::try_from("@user2:example.com").unwrap().into(),
+            owned_user_id!("@user:example.com"),
+            owned_user_id!("@user2:example.com"),
         ]),
     );
 
