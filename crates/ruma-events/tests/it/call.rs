@@ -658,7 +658,10 @@ fn notify_event_deserialization() {
         "content": {
             "call_id": "abcdef",
             "application": "m.call",
-            "m.mentions": {"room": false, "user_ids": ["@user:example.com", "@user2:example.com"]},
+            "m.mentions": {
+                "room": false,
+                "user_ids": ["@user:example.com", "@user2:example.com"],
+            },
             "notify_type": "ring",
         },
         "event_id": "$event:notareal.hs",
@@ -678,9 +681,8 @@ fn notify_event_deserialization() {
     assert!(!content.mentions.room);
     assert_eq!(
         content.mentions.user_ids,
-        BTreeSet::from([
-            <&UserId>::try_from("@user:example.com").unwrap().to_owned(),
-            <&UserId>::try_from("@user2:example.com").unwrap().to_owned(),
-        ])
+        BTreeSet::from(
+            [owned_user_id!("@user:example.com"), owned_user_id!("@user2:example.com"),]
+        )
     );
 }
