@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.27.11
+
 - Add unstable support for `m.call.notify` events
   (unstable type `org.matrix.msc4075.call.notify`)
 
