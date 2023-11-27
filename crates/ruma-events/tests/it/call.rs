@@ -645,7 +645,7 @@ fn notify_event_serialization() {
         json!({
             "call_id": "abcdef",
             "application": "m.call",
-            "m.mentions": {"room": true},
+            "m.mentions": { "room": true },
             "notify_type": "ring",
         })
     );
