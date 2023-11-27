@@ -682,7 +682,7 @@ fn notify_event_deserialization() {
     assert_eq!(
         content.mentions.user_ids,
         BTreeSet::from(
-            [owned_user_id!("@user:example.com"), owned_user_id!("@user2:example.com"),]
+            [owned_user_id!("@user:example.com"), owned_user_id!("@user2:example.com")]
         )
     );
 }
