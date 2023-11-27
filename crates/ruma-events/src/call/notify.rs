@@ -21,6 +21,7 @@ pub struct CallNotifyEventContent {
 
     /// How this notify event should notify the receiver.
     pub notify_type: NotifyType,
+
     /// The users that are notified by this event (See [MSC3952] (Intentional Mentions)).
     ///
     /// [MSC3952]: https://github.com/matrix-org/matrix-spec-proposals/pull/3952
