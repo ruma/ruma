@@ -5,8 +5,6 @@ use assert_matches2::assert_matches;
 #[cfg(feature = "unstable-msc2747")]
 use assign::assign;
 use js_int::uint;
-#[cfg(feature = "unstable-msc4075")]
-use ruma_common::UserId;
 use ruma_common::{room_id, serde::CanBeEmpty, MilliSecondsSinceUnixEpoch, VoipVersionId};
 #[cfg(feature = "unstable-msc2747")]
 use ruma_events::call::CallCapabilities;
@@ -612,6 +610,8 @@ fn select_v1_answer_event_deserialization() {
 #[cfg(feature = "unstable-msc4075")]
 #[test]
 fn notify_event_serialization() {
+    use ruma_common::owned_user_id;
+
     let content_user_mention = CallNotifyEventContent::new(
         "abcdef".into(),
         ApplicationType::Call,
@@ -654,6 +654,8 @@ fn notify_event_serialization() {
 #[cfg(feature = "unstable-msc4075")]
 #[test]
 fn notify_event_deserialization() {
+    use ruma_common::owned_user_id;
+
     let json_data = json!({
         "content": {
             "call_id": "abcdef",
