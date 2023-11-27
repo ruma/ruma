@@ -19,8 +19,8 @@ maplit = "1.0.2"
 ruma-appservice-api = { version = "0.9.0", path = "crates/ruma-appservice-api" }
 ruma-common = { version = "0.12.1", path = "crates/ruma-common" }
 ruma-client = { version = "0.12.0", path = "crates/ruma-client" }
-ruma-client-api = { version = "0.17.3", path = "crates/ruma-client-api" }
-ruma-events = { version = "0.27.9", path = "crates/ruma-events" }
+ruma-client-api = { version = "0.17.4", path = "crates/ruma-client-api" }
+ruma-events = { version = "0.27.10", path = "crates/ruma-events" }
 ruma-federation-api = { version = "0.8.0", path = "crates/ruma-federation-api" }
 ruma-html = { version = "0.1.0", path = "crates/ruma-html" }
 ruma-identifiers-validation = { version = "0.9.3", path = "crates/ruma-identifiers-validation" }

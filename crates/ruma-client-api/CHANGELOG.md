@@ -6,6 +6,14 @@ Breaking changes:
   the `conditions` field is optional.
   - `MissingConditionsError` was removed.
 
+# 0.17.4
+
+Improvements:
+
+- Change the `avatar` field of `SlidingSyncRoom` from `Option` to `JsOption`
+  - This is a breaking change, but only for users enabling the
+    `unstable-msc3575` feature
+
 # 0.17.3
 
 Bug fixes:

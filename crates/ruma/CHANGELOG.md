@@ -2,6 +2,10 @@
 
 Upgrade `ruma-events` and re-export its new `unstable-msc4075` feature.
 
+# 0.9.3
+
+Upgrade `ruma-client-api` and re-export its new `unstable-msc3983` feature.
+
 # 0.9.2
 
 Upgrade `ruma-events` and re-export its new `unstable-msc3401` feature.
