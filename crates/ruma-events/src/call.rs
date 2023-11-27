@@ -9,6 +9,8 @@ pub mod invite;
 #[cfg(feature = "unstable-msc3401")]
 pub mod member;
 pub mod negotiate;
+#[cfg(feature = "unstable-msc4075")]
+pub mod notify;
 pub mod reject;
 pub mod select_answer;
 

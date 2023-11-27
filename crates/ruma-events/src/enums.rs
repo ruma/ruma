@@ -93,6 +93,9 @@ event_enum! {
         #[cfg(feature = "unstable-msc3245")]
         #[ruma_enum(alias = "m.voice")]
         "org.matrix.msc3245.voice.v2" => super::voice,
+        #[cfg(feature = "unstable-msc4075")]
+        #[ruma_enum(alias = "m.call.notify")]
+        "org.matrix.msc4075.call.notify" => super::call::notify,
     }
 
     /// Any state event.
@@ -352,6 +355,8 @@ impl AnyMessageLikeEventContent {
             }
             #[cfg(feature = "unstable-msc3381")]
             Self::PollStart(_) | Self::UnstablePollStart(_) => None,
+            #[cfg(feature = "unstable-msc4075")]
+            Self::CallNotify(_) => None,
             Self::CallNegotiate(_)
             | Self::CallReject(_)
             | Self::CallSelectAnswer(_)
