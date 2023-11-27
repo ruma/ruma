@@ -15,8 +15,10 @@ use crate::Mentions;
 pub struct CallNotifyEventContent {
     /// A unique identifier for the call.
     pub call_id: String,
+
     /// The application this notify event applies to.
     pub application: ApplicationType,
+
     /// How this notify event should notify the receiver.
     pub notify_type: NotifyType,
     /// The users that are notified by this event (See [MSC3952] (Intentional Mentions)).
@@ -45,6 +47,7 @@ pub enum NotifyType {
     /// The receiving client should ring with an audible sound.
     #[serde(rename = "ring")]
     Ring,
+
     /// The receiving client should display a visual notification.
     #[serde(rename = "notify")]
     Notify,
@@ -56,7 +59,6 @@ pub enum NotifyType {
 /// call.member event.
 ///
 /// An `Application` can be converted into an `ApplicationType` using `.into()`.
-
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum ApplicationType {
