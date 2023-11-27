@@ -11,6 +11,7 @@ Improvements:
   - Now, even invalid / missing `rel_type` and `event_id` are accepted
 - Add unstable support for `m.call.notify` events
   (unstable type `org.matrix.msc4075.call.notify`)
+
 # 0.27.9
 
 Bug fixes:
