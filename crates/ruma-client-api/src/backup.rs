@@ -23,6 +23,7 @@ use ruma_common::{
     OwnedDeviceKeyId, OwnedUserId,
 };
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 /// A wrapper around a mapping of session IDs to key data.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -114,6 +115,37 @@ impl From<KeyBackupDataInit> for KeyBackupData {
     }
 }
 
+/// The `unsigned` property of the encrypted backup data
+///
+/// Contains the MAC of the data
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg(feature = "unstable-msc4048")]
+pub struct EncryptedSessionDataUnsigned {
+    #[serde(rename = "org.matrix.msc4048.backup_mac")]
+    /// The MAC of the backup data
+    pub backup_mac: Option<String>,
+}
+
+/// The `unsigned` property of the encrypted backup data
+///
+/// This struct will not be updated even if additional fields are added to [`EncryptedSessionDataUnsigned`]
+/// in a new (non-breaking) release of the Matrix specification.
+#[derive(Debug)]
+#[cfg(feature = "unstable-msc4048")]
+#[allow(clippy::exhaustive_structs)]
+pub struct EncryptedSessionDataUnsignedInit {
+    pub backup_mac: Option<String>,
+}
+
+impl From<EncryptedSessionDataUnsignedInit> for EncryptedSessionDataUnsigned {
+    fn from(init: EncryptedSessionDataUnsignedInit) -> Self {
+        Self {
+            backup_mac: init.backup_mac,
+        }
+    }
+}
+
 /// The encrypted algorithm-dependent data for backups.
 ///
 /// To create an instance of this type, first create an [`EncryptedSessionDataInit`] and convert it
@@ -128,10 +160,14 @@ pub struct EncryptedSessionData {
     pub ciphertext: Base64,
 
     /// First 8 bytes of MAC key, encoded in base64.
-    pub mac: Option<Base64>,
+    pub mac: Base64,
 
-    /// Signatures/MACs of the session data
-    pub signatures: Option<BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceKeyId, String>>>,
+    /// Unsigned data
+    #[cfg(feature = "unstable-msc4048")]
+    pub unsigned: Option<EncryptedSessionDataUnsigned>,
+
+    #[serde(flatten)]
+    pub other: BTreeMap<String, Value>,
 }
 
 /// The encrypted algorithm-dependent data for backups v1.
@@ -154,35 +190,13 @@ pub struct EncryptedSessionDataInit {
 impl From<EncryptedSessionDataInit> for EncryptedSessionData {
     fn from(init: EncryptedSessionDataInit) -> Self {
         let EncryptedSessionDataInit { ephemeral, ciphertext, mac } = init;
-        Self { ephemeral, ciphertext, mac: Some(mac), signatures: None }
-    }
-}
-
-/// The encrypted algorithm-dependent data for backups v2.
-///
-/// This struct will not be updated even if additional fields are added to [`EncryptedSessionData`]
-/// in a new (non-breaking) release of the Matrix specification.
-#[cfg(feature = "unstable-msc4048")]
-#[derive(Debug)]
-#[allow(clippy::exhaustive_structs)]
-pub struct EncryptedSessionDataV2Init {
-    /// Unpadded base64-encoded public half of the ephemeral key.
-    pub ephemeral: Base64,
-
-    /// Ciphertext, encrypted using AES-CBC-256 with PKCS#7 padding, encoded in base64.
-    pub ciphertext: Base64,
-
-    /// First 8 bytes of MAC key, encoded in base64.
-    pub mac: Option<Base64>,
-
-    /// Signatures/MACs of the session data
-    pub signatures: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceKeyId, String>>,
-}
-
-#[cfg(feature = "unstable-msc4048")]
-impl From<EncryptedSessionDataV2Init> for EncryptedSessionData {
-    fn from(init: EncryptedSessionDataV2Init) -> Self {
-        let EncryptedSessionDataV2Init { ephemeral, ciphertext, mac, signatures } = init;
-        Self { ephemeral, ciphertext, mac, signatures: Some(signatures) }
+        Self {
+            ephemeral,
+            ciphertext,
+            mac: mac,
+            #[cfg(feature = "unstable-msc4048")]
+            unsigned: None,
+            other: BTreeMap::new(),
+        }
     }
 }
