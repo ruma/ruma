@@ -608,6 +608,7 @@ fn select_v1_answer_event_deserialization() {
     assert_eq!(content.selected_party_id, "6336");
     assert_eq!(content.version, VoipVersionId::V1);
 }
+
 #[cfg(feature = "unstable-msc4075")]
 #[test]
 fn notify_event_serialization() {
