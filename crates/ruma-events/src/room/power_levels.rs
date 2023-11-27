@@ -113,7 +113,6 @@ impl RoomPowerLevelsEventContent {
     pub fn new() -> Self {
         // events_default, users_default and invite having a default of 0 while the others have a
         // default of 50 is not an oversight, these defaults are from the Matrix specification.
-
         Self {
             ban: default_power_level(),
             events: btreemap! {
