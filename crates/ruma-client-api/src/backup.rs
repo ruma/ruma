@@ -135,6 +135,7 @@ pub struct EncryptedSessionDataUnsigned {
 #[cfg(feature = "unstable-msc4048")]
 #[allow(clippy::exhaustive_structs)]
 pub struct EncryptedSessionDataUnsignedInit {
+    /// The MAC of the backup data.
     pub backup_mac: Option<String>,
 }
 
@@ -167,6 +168,7 @@ pub struct EncryptedSessionData {
     pub unsigned: Option<EncryptedSessionDataUnsigned>,
 
     #[serde(flatten)]
+    #[doc(hidden)]
     pub other: BTreeMap<String, Value>,
 }
 
