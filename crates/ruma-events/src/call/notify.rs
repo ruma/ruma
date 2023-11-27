@@ -56,7 +56,7 @@ pub enum NotifyType {
 /// The type of matrix RTC application.
 ///
 /// This is different to [`Application`] because application contains all the information from the
-/// call.member event.
+/// `m.call.member` event.
 ///
 /// An `Application` can be converted into an `ApplicationType` using `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
