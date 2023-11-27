@@ -559,7 +559,7 @@ mod tests {
             ban: default,
             events: btreemap! {
                 #[cfg(feature = "unstable-msc3401")]
-                TimelineEventType::CallMember => int!(0)
+                TimelineEventType::CallMember => int!(0),
             },
             events_default: int!(0),
             invite: int!(0),
