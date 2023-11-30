@@ -586,7 +586,7 @@ mod tests {
         assert!(!"m".matches_word("[[:alpha:]]?"));
         assert!("[[:alpha:]]!".matches_word("[[:alpha:]]?"));
 
-        // From the spec: <https://spec.matrix.org/v1.8/client-server-api/#conditions-1>
+        // From the spec: <https://spec.matrix.org/v1.9/client-server-api/#conditions-1>
         assert!("An example event.".matches_word("ex*ple"));
         assert!("exple".matches_word("ex*ple"));
         assert!("An exciting triple-whammy".matches_word("ex*ple"));
@@ -635,7 +635,7 @@ mod tests {
         assert!("".matches_pattern("*", false));
         assert!(!"foo".matches_pattern("", false));
 
-        // From the spec: <https://spec.matrix.org/v1.8/client-server-api/#conditions-1>
+        // From the spec: <https://spec.matrix.org/v1.9/client-server-api/#conditions-1>
         assert!("Lunch plans".matches_pattern("lunc?*", false));
         assert!("LUNCH".matches_pattern("lunc?*", false));
         assert!(!" lunch".matches_pattern("lunc?*", false));
