@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+- Point links to the Matrix 1.9 specification
+
 # 0.9.3
 
 Improvements:

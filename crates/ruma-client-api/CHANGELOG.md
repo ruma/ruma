@@ -6,6 +6,10 @@ Breaking changes:
   the `conditions` field is optional.
   - `MissingConditionsError` was removed.
 
+Improvements:
+
+- Point links to the Matrix 1.9 specification
+
 # 0.17.4
 
 Improvements:
