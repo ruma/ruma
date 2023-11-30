@@ -1,6 +1,9 @@
 # [unreleased]
 
+Improvements:
+
 - Stabilize support for `.m.rule.suppress_edits` push rule (MSC3958 / Matrix 1.9)
+- Add `MatrixVersion::V1_9`
 
 # 0.12.1
 
