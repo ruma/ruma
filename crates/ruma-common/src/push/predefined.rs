@@ -40,7 +40,6 @@ impl Ruleset {
                 ConditionalPushRule::tombstone(),
                 ConditionalPushRule::reaction(),
                 ConditionalPushRule::server_acl(),
-                #[cfg(feature = "unstable-msc3958")]
                 ConditionalPushRule::suppress_edits(),
                 #[cfg(feature = "unstable-msc3930")]
                 ConditionalPushRule::poll_response(),
@@ -314,7 +313,6 @@ impl ConditionalPushRule {
     /// Matches [event replacements].
     ///
     /// [event replacements]: https://spec.matrix.org/latest/client-server-api/#event-replacements
-    #[cfg(feature = "unstable-msc3958")]
     pub fn suppress_edits() -> Self {
         Self {
             actions: vec![],
@@ -601,8 +599,6 @@ pub enum PredefinedOverrideRuleId {
     RoomServerAcl,
 
     /// `.m.rule.suppress_edits`
-    #[cfg(feature = "unstable-msc3958")]
-    #[ruma_enum(rename = ".org.matrix.msc3958.suppress_edits")]
     SuppressEdits,
 
     /// `.m.rule.poll_response`
