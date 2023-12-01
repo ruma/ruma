@@ -11,6 +11,7 @@ Improvements:
 - Stabilize support for `.m.rule.suppress_edits` push rule (MSC3958 / Matrix 1.9)
 - Add `MatrixVersion::V1_9`
 - Point links to the Matrix 1.9 specification
+- Implement `as_str()` and `AsRef<str>` for `push::PredefinedRuleId`
 
 # 0.12.1
 

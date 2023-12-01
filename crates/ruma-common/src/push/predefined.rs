@@ -555,6 +555,23 @@ pub enum PredefinedRuleId {
     Content(PredefinedContentRuleId),
 }
 
+impl PredefinedRuleId {
+    /// Creates a string slice from this `PredefinedRuleId`.
+    pub fn as_str(&self) -> &str {
+        match self {
+            Self::Override(id) => id.as_str(),
+            Self::Underride(id) => id.as_str(),
+            Self::Content(id) => id.as_str(),
+        }
+    }
+}
+
+impl AsRef<str> for PredefinedRuleId {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
 /// The rule IDs of the predefined override server push rules.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
