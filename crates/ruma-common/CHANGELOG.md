@@ -12,6 +12,7 @@ Improvements:
 - Add `MatrixVersion::V1_9`
 - Point links to the Matrix 1.9 specification
 - Implement `as_str()` and `AsRef<str>` for `push::PredefinedRuleId`
+- Implement `kind()` for `push::Predefined{*}RuleId`
 
 # 0.12.1
 

@@ -6,7 +6,7 @@ use ruma_macros::StringEnum;
 
 use super::{
     Action::*, ConditionalPushRule, PatternedPushRule, PushCondition::*, RoomMemberCountIs,
-    Ruleset, Tweak,
+    RuleKind, Ruleset, Tweak,
 };
 use crate::{PrivOwnedStr, UserId};
 
@@ -564,6 +564,15 @@ impl PredefinedRuleId {
             Self::Content(id) => id.as_str(),
         }
     }
+
+    /// Get the kind of this `PredefinedRuleId`.
+    pub fn kind(&self) -> RuleKind {
+        match self {
+            Self::Override(id) => id.kind(),
+            Self::Underride(id) => id.kind(),
+            Self::Content(id) => id.kind(),
+        }
+    }
 }
 
 impl AsRef<str> for PredefinedRuleId {
@@ -631,6 +640,13 @@ pub enum PredefinedOverrideRuleId {
     _Custom(PrivOwnedStr),
 }
 
+impl PredefinedOverrideRuleId {
+    /// Get the kind of this `PredefinedOverrideRuleId`.
+    pub fn kind(&self) -> RuleKind {
+        RuleKind::Override
+    }
+}
+
 /// The rule IDs of the predefined underride server push rules.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
@@ -692,6 +708,13 @@ pub enum PredefinedUnderrideRuleId {
     _Custom(PrivOwnedStr),
 }
 
+impl PredefinedUnderrideRuleId {
+    /// Get the kind of this `PredefinedUnderrideRuleId`.
+    pub fn kind(&self) -> RuleKind {
+        RuleKind::Underride
+    }
+}
+
 /// The rule IDs of the predefined content server push rules.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
@@ -704,6 +727,13 @@ pub enum PredefinedContentRuleId {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
+}
+
+impl PredefinedContentRuleId {
+    /// Get the kind of this `PredefinedContentRuleId`.
+    pub fn kind(&self) -> RuleKind {
+        RuleKind::Content
+    }
 }
 
 #[cfg(test)]
