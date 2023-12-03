@@ -155,7 +155,8 @@ impl PushCondition {
     /// # Arguments
     ///
     /// * `event` - The flattened JSON representation of a room message event.
-    /// * `context` - The context of the room at the time of the event.
+    /// * `context` - The context of the room at the time of the event. If the power levels context
+    ///   is missing from it, conditions that depend on it will never apply.
     pub fn applies(&self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
         if event.get_str("sender").is_some_and(|sender| sender == context.user_id) {
             return false;
@@ -173,6 +174,10 @@ impl PushCondition {
             }
             Self::RoomMemberCount { is } => is.contains(&context.member_count),
             Self::SenderNotificationPermission { key } => {
+                let Some(power_levels) = &context.power_levels else {
+                    return false;
+                };
+
                 let sender_id = match event.get_str("sender") {
                     Some(v) => match <&UserId>::try_from(v) {
                         Ok(u) => u,
@@ -181,12 +186,10 @@ impl PushCondition {
                     None => return false,
                 };
 
-                let sender_level = context
-                    .users_power_levels
-                    .get(sender_id)
-                    .unwrap_or(&context.default_power_level);
+                let sender_level =
+                    power_levels.users.get(sender_id).unwrap_or(&power_levels.users_default);
 
-                match context.notification_power_levels.get(key) {
+                match power_levels.notifications.get(key) {
                     Some(l) => sender_level >= l,
                     None => false,
                 }
@@ -231,24 +234,34 @@ pub struct PushConditionRoomCtx {
     /// The number of members in the room.
     pub member_count: UInt,
 
-    /// The users matrix ID.
+    /// The user's matrix ID.
     pub user_id: OwnedUserId,
 
     /// The display name of the current user in the room.
     pub user_display_name: String,
 
+    /// The room power levels context for the room.
+    ///
+    /// If this is missing, push rules that require this will never match.
+    pub power_levels: Option<PushConditionPowerLevelsCtx>,
+
+    /// The list of features this room's version or the room itself supports.
+    #[cfg(feature = "unstable-msc3931")]
+    pub supported_features: Vec<RoomVersionFeature>,
+}
+
+/// The room power levels context to be able to test the corresponding push conditions.
+#[derive(Clone, Debug)]
+#[allow(clippy::exhaustive_structs)]
+pub struct PushConditionPowerLevelsCtx {
     /// The power levels of the users of the room.
-    pub users_power_levels: BTreeMap<OwnedUserId, Int>,
+    pub users: BTreeMap<OwnedUserId, Int>,
 
     /// The default power level of the users of the room.
-    pub default_power_level: Int,
+    pub users_default: Int,
 
     /// The notification power levels of the room.
-    pub notification_power_levels: NotificationPowerLevels,
-
-    #[cfg(feature = "unstable-msc3931")]
-    /// The list of features this room's version or the room itself supports.
-    pub supported_features: Vec<RoomVersionFeature>,
+    pub notifications: NotificationPowerLevels,
 }
 
 /// Additional functions for character matching.
@@ -451,7 +464,10 @@ mod tests {
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
 
-    use super::{FlattenedJson, PushCondition, PushConditionRoomCtx, RoomMemberCountIs, StrExt};
+    use super::{
+        FlattenedJson, PushCondition, PushConditionPowerLevelsCtx, PushConditionRoomCtx,
+        RoomMemberCountIs, StrExt,
+    };
     use crate::{
         owned_room_id, owned_user_id, power_levels::NotificationPowerLevels, serde::Raw,
         OwnedUserId,
@@ -647,17 +663,21 @@ mod tests {
     }
 
     fn push_context() -> PushConditionRoomCtx {
-        let mut users_power_levels = BTreeMap::new();
-        users_power_levels.insert(sender(), int!(25));
+        let mut users = BTreeMap::new();
+        users.insert(sender(), int!(25));
+
+        let power_levels = PushConditionPowerLevelsCtx {
+            users,
+            users_default: int!(50),
+            notifications: NotificationPowerLevels { room: int!(50) },
+        };
 
         PushConditionRoomCtx {
             room_id: owned_room_id!("!room:server.name"),
             member_count: uint!(3),
             user_id: owned_user_id!("@gorilla:server.name"),
             user_display_name: "Groovy Gorilla".into(),
-            users_power_levels,
-            default_power_level: int!(50),
-            notification_power_levels: NotificationPowerLevels { room: int!(50) },
+            power_levels: Some(power_levels),
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
         }
@@ -776,9 +796,7 @@ mod tests {
             member_count: uint!(3),
             user_id: owned_user_id!("@gorilla:server.name"),
             user_display_name: "Groovy Gorilla".into(),
-            users_power_levels: context_not_matching.users_power_levels.clone(),
-            default_power_level: int!(50),
-            notification_power_levels: NotificationPowerLevels { room: int!(50) },
+            power_levels: context_not_matching.power_levels.clone(),
             supported_features: vec![super::RoomVersionFeature::ExtensibleEvents],
         };
 
