@@ -7,6 +7,7 @@ use std::{cmp::max, collections::BTreeMap};
 use js_int::{int, Int};
 use ruma_common::{
     power_levels::{default_power_level, NotificationPowerLevels},
+    push::PushConditionPowerLevelsCtx,
     OwnedUserId, RoomVersionId, UserId,
 };
 use ruma_macros::EventContent;
@@ -497,6 +498,12 @@ impl From<RoomPowerLevels> for RoomPowerLevelsEventContent {
             users_default: c.users_default,
             notifications: c.notifications,
         }
+    }
+}
+
+impl From<RoomPowerLevels> for PushConditionPowerLevelsCtx {
+    fn from(c: RoomPowerLevels) -> Self {
+        Self { users: c.users, users_default: c.users_default, notifications: c.notifications }
     }
 }
 
