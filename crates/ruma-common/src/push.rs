@@ -38,8 +38,9 @@ pub use self::condition::RoomVersionFeature;
 pub use self::{
     action::{Action, Tweak},
     condition::{
-        ComparisonOperator, FlattenedJson, FlattenedJsonValue, PushCondition, PushConditionRoomCtx,
-        RoomMemberCountIs, ScalarJsonValue, _CustomPushCondition,
+        ComparisonOperator, FlattenedJson, FlattenedJsonValue, PushCondition,
+        PushConditionPowerLevelsCtx, PushConditionRoomCtx, RoomMemberCountIs, ScalarJsonValue,
+        _CustomPushCondition,
     },
     iter::{AnyPushRule, AnyPushRuleRef, RulesetIntoIter, RulesetIter},
     predefined::{
@@ -988,7 +989,9 @@ mod tests {
 
     use super::{
         action::{Action, Tweak},
-        condition::{PushCondition, PushConditionRoomCtx, RoomMemberCountIs},
+        condition::{
+            PushCondition, PushConditionPowerLevelsCtx, PushConditionRoomCtx, RoomMemberCountIs,
+        },
         AnyPushRule, ConditionalPushRule, PatternedPushRule, Ruleset, SimplePushRule,
     };
     use crate::{
@@ -1014,6 +1017,14 @@ mod tests {
         });
 
         set
+    }
+
+    fn power_levels() -> PushConditionPowerLevelsCtx {
+        PushConditionPowerLevelsCtx {
+            users: BTreeMap::new(),
+            users_default: int!(50),
+            notifications: NotificationPowerLevels { room: int!(50) },
+        }
     }
 
     #[test]
@@ -1431,9 +1442,7 @@ mod tests {
             member_count: uint!(2),
             user_id: owned_user_id!("@jj:server.name"),
             user_display_name: "Jolly Jumper".into(),
-            users_power_levels: BTreeMap::new(),
-            default_power_level: int!(50),
-            notification_power_levels: NotificationPowerLevels { room: int!(50) },
+            power_levels: Some(power_levels()),
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
         };
@@ -1443,9 +1452,7 @@ mod tests {
             member_count: uint!(100),
             user_id: owned_user_id!("@jj:server.name"),
             user_display_name: "Jolly Jumper".into(),
-            users_power_levels: BTreeMap::new(),
-            default_power_level: int!(50),
-            notification_power_levels: NotificationPowerLevels { room: int!(50) },
+            power_levels: Some(power_levels()),
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
         };
@@ -1536,9 +1543,7 @@ mod tests {
             member_count: uint!(2),
             user_id: owned_user_id!("@jj:server.name"),
             user_display_name: "Jolly Jumper".into(),
-            users_power_levels: BTreeMap::new(),
-            default_power_level: int!(50),
-            notification_power_levels: NotificationPowerLevels { room: int!(50) },
+            power_levels: Some(power_levels()),
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
         };
@@ -1677,9 +1682,7 @@ mod tests {
             member_count: uint!(100),
             user_id: owned_user_id!("@jj:server.name"),
             user_display_name: "Jolly Jumper".into(),
-            users_power_levels: BTreeMap::new(),
-            default_power_level: int!(50),
-            notification_power_levels: NotificationPowerLevels { room: int!(50) },
+            power_levels: Some(power_levels()),
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
         };
@@ -1789,9 +1792,7 @@ mod tests {
             member_count: uint!(100),
             user_id: owned_user_id!("@jj:server.name"),
             user_display_name: "Jolly Jumper".into(),
-            users_power_levels: BTreeMap::new(),
-            default_power_level: int!(50),
-            notification_power_levels: NotificationPowerLevels { room: int!(50) },
+            power_levels: Some(power_levels()),
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
         };
@@ -1832,6 +1833,39 @@ mod tests {
         assert_eq!(
             set.get_match(&message, context).unwrap().rule_id(),
             PredefinedOverrideRuleId::IsRoomMention.as_ref()
+        );
+    }
+
+    #[test]
+    fn invite_for_me_applies() {
+        let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
+
+        let context = &PushConditionRoomCtx {
+            room_id: owned_room_id!("!far_west:server.name"),
+            member_count: uint!(100),
+            user_id: owned_user_id!("@jj:server.name"),
+            user_display_name: "Jolly Jumper".into(),
+            // `invite_state` usually doesn't include the power levels.
+            power_levels: None,
+            #[cfg(feature = "unstable-msc3931")]
+            supported_features: Default::default(),
+        };
+
+        let message = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "content": {
+                    "membership": "invite"
+                },
+                "state_key": "@jolly_jumper:server.name",
+                "sender": "@admin:server.name",
+                "type": "m.room.member"
+            }"#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            set.get_match(&message, context).unwrap().rule_id(),
+            PredefinedOverrideRuleId::InviteForMe.as_ref()
         );
     }
 }

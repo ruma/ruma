@@ -1,5 +1,11 @@
 # [unreleased]
 
+Breaking changes:
+- The power levels fields in `PushConditionRoomCtx` are grouped in an optional `power_levels` field.
+  If the field is missing, push rules that depend on it will never match. However, this allows to
+  match the `.m.rule.invite_for_me` push rule because usually the `invite_state` doesn't include
+  `m.room.power_levels`.
+
 Improvements:
 
 - Stabilize support for `.m.rule.suppress_edits` push rule (MSC3958 / Matrix 1.9)
