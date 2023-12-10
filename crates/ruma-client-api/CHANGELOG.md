@@ -9,6 +9,8 @@ Breaking changes:
 Improvements:
 
 - Point links to the Matrix 1.9 specification
+- Add the `get_authentication_issuer` endpoint from MSC2965 behind the
+  `unstable-msc2965` feature.
 
 # 0.17.4
 
