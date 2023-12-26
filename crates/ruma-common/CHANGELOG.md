@@ -1,5 +1,9 @@
 # [unreleased]
 
+Bug fixes:
+
+- Allow to deserialize `Ruleset` with missing fields.
+
 Breaking changes:
 - The power levels fields in `PushConditionRoomCtx` are grouped in an optional `power_levels` field.
   If the field is missing, push rules that depend on it will never match. However, this allows to

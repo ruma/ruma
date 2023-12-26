@@ -57,23 +57,27 @@ pub use self::{
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Ruleset {
     /// These rules configure behavior for (unencrypted) messages that match certain patterns.
+    #[serde(default, skip_serializing_if = "IndexSet::is_empty")]
     pub content: IndexSet<PatternedPushRule>,
 
     /// These user-configured rules are given the highest priority.
     ///
     /// This field is named `override_` instead of `override` because the latter is a reserved
     /// keyword in Rust.
-    #[serde(rename = "override")]
+    #[serde(rename = "override", default, skip_serializing_if = "IndexSet::is_empty")]
     pub override_: IndexSet<ConditionalPushRule>,
 
     /// These rules change the behavior of all messages for a given room.
+    #[serde(default, skip_serializing_if = "IndexSet::is_empty")]
     pub room: IndexSet<SimplePushRule<OwnedRoomId>>,
 
     /// These rules configure notification behavior for messages from a specific Matrix user ID.
+    #[serde(default, skip_serializing_if = "IndexSet::is_empty")]
     pub sender: IndexSet<SimplePushRule<OwnedUserId>>,
 
     /// These rules are identical to override rules, but have a lower priority than `content`,
     /// `room` and `sender` rules.
+    #[serde(default, skip_serializing_if = "IndexSet::is_empty")]
     pub underride: IndexSet<ConditionalPushRule>,
 }
 
