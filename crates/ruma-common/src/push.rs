@@ -1279,7 +1279,6 @@ mod tests {
                         "enabled": true
                     },
                 ],
-                "room": [],
                 "content": [
                     {
                         "actions": [
@@ -1298,8 +1297,6 @@ mod tests {
                         "enabled": true
                     }
                 ],
-                "sender": [],
-                "underride": [],
             })
         );
     }
