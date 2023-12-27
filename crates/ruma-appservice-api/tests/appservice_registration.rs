@@ -21,7 +21,7 @@ fn registration_deserialization() {
     let observed: Registration = serde_yaml::from_str(registration_config).unwrap();
 
     assert_eq!(observed.id, "IRC Bridge");
-    assert_eq!(observed.url, "http://127.0.0.1:1234");
+    assert_eq!(observed.url.unwrap(), "http://127.0.0.1:1234");
     assert_eq!(
         observed.as_token,
         "30c05ae90a248a4188e620216fa72e349803310ec83e2a77b34fe90be6081f46"
@@ -59,5 +59,5 @@ fn config_with_optional_url() {
           rooms: []
         "#;
     assert_matches!(serde_yaml::from_str(registration_config).unwrap(), Registration { url, .. });
-    assert_eq!(url, "null");
+    assert_eq!(url, None);
 }

@@ -74,7 +74,9 @@ pub struct Registration {
     pub id: String,
 
     /// The URL for the application service.
-    pub url: String,
+    ///
+    /// Optionally set to `null` if no traffic is required.
+    pub url: Option<String>,
 
     /// A unique token for application services to use to authenticate requests to Homeservers.
     pub as_token: String,
@@ -112,7 +114,9 @@ pub struct RegistrationInit {
     pub id: String,
 
     /// The URL for the application service.
-    pub url: String,
+    ///
+    /// Optionally set to `null` if no traffic is required.
+    pub url: Option<String>,
 
     /// A unique token for application services to use to authenticate requests to Homeservers.
     pub as_token: String,

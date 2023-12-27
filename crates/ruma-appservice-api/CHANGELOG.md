@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+* The `url` field of `Registration` is now an `Option<String>`. This should have
+  always been the case.
+
 # 0.9.0
 
 Improvements:
