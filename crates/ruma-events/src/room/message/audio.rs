@@ -4,6 +4,7 @@ use js_int::UInt;
 use ruma_common::OwnedMxcUri;
 use serde::{Deserialize, Serialize};
 
+use super::FormattedBody;
 use crate::room::{EncryptedFile, MediaSource};
 
 /// The payload for an audio message.
@@ -13,6 +14,14 @@ use crate::room::{EncryptedFile, MediaSource};
 pub struct AudioMessageEventContent {
     /// The textual representation of this message.
     pub body: String,
+
+    /// Formatted form of the message `body`.
+    #[serde(flatten)]
+    pub formatted: Option<FormattedBody>,
+
+    /// The original filename of the uploaded file.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filename: Option<String>,
 
     /// The source of the audio clip.
     #[serde(flatten)]
@@ -44,6 +53,8 @@ impl AudioMessageEventContent {
     pub fn new(body: String, source: MediaSource) -> Self {
         Self {
             body,
+            formatted: None,
+            filename: None,
             source,
             info: None,
             #[cfg(feature = "unstable-msc3245-v1-compat")]
@@ -62,6 +73,24 @@ impl AudioMessageEventContent {
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
         Self::new(body, MediaSource::Encrypted(Box::new(file)))
+    }
+
+    /// Creates a new `AudioMessageEventContent` from `self` with the `filename` field set to the
+    /// given value.
+    ///
+    /// Since the field is public, you can also assign to it directly. This method merely acts
+    /// as a shorthand for that, because it is very common to set this field.
+    pub fn filename(self, filename: impl Into<Option<String>>) -> Self {
+        Self { filename: filename.into(), ..self }
+    }
+
+    /// Creates a new `AudioMessageEventContent` from `self` with the `formatted` field set to the
+    /// given value.
+    ///
+    /// Since the field is public, you can also assign to it directly. This method merely acts
+    /// as a shorthand for that, because it is very common to set this field.
+    pub fn formatted(self, formatted: impl Into<Option<FormattedBody>>) -> Self {
+        Self { formatted: formatted.into(), ..self }
     }
 
     /// Creates a new `AudioMessageEventContent` from `self` with the `info` field set to the given

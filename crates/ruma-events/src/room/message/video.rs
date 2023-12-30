@@ -4,6 +4,7 @@ use js_int::UInt;
 use ruma_common::OwnedMxcUri;
 use serde::{Deserialize, Serialize};
 
+use super::FormattedBody;
 use crate::room::{EncryptedFile, MediaSource, ThumbnailInfo};
 
 /// The payload for a video message.
@@ -14,6 +15,14 @@ pub struct VideoMessageEventContent {
     /// A description of the video, e.g. "Gangnam Style", or some kind of content description for
     /// accessibility, e.g. "video attachment".
     pub body: String,
+
+    /// Formatted form of the message `body`.
+    #[serde(flatten)]
+    pub formatted: Option<FormattedBody>,
+
+    /// The original filename of the uploaded file.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filename: Option<String>,
 
     /// The source of the video clip.
     #[serde(flatten)]
@@ -27,7 +36,7 @@ pub struct VideoMessageEventContent {
 impl VideoMessageEventContent {
     /// Creates a new `VideoMessageEventContent` with the given body and source.
     pub fn new(body: String, source: MediaSource) -> Self {
-        Self { body, source, info: None }
+        Self { body, formatted: None, filename: None, source, info: None }
     }
 
     /// Creates a new non-encrypted `VideoMessageEventContent` with the given body and url.
@@ -39,6 +48,24 @@ impl VideoMessageEventContent {
     /// file.
     pub fn encrypted(body: String, file: EncryptedFile) -> Self {
         Self::new(body, MediaSource::Encrypted(Box::new(file)))
+    }
+
+    /// Creates a new `VideoMessageEventContent` from `self` with the `filename` field set to the
+    /// given value.
+    ///
+    /// Since the field is public, you can also assign to it directly. This method merely acts
+    /// as a shorthand for that, because it is very common to set this field.
+    pub fn filename(self, filename: impl Into<Option<String>>) -> Self {
+        Self { filename: filename.into(), ..self }
+    }
+
+    /// Creates a new `VideoMessageEventContent` from `self` with the `formatted` field set to the
+    /// given value.
+    ///
+    /// Since the field is public, you can also assign to it directly. This method merely acts
+    /// as a shorthand for that, because it is very common to set this field.
+    pub fn formatted(self, formatted: impl Into<Option<FormattedBody>>) -> Self {
+        Self { formatted: formatted.into(), ..self }
     }
 
     /// Creates a new `VideoMessageEventContent` from `self` with the `info` field set to the given
