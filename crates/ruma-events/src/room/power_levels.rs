@@ -476,6 +476,34 @@ impl RoomPowerLevels {
         self.for_user(user_id) >= self.notifications.room
     }
 
+    /// Whether the acting user can change the power level of the target user.
+    ///
+    /// Shorthand for `power_levels.user_can_do_to_user(acting_user_id, target_user_id,
+    /// PowerLevelUserAction::ChangePowerLevel`.
+    pub fn user_can_change_user_power_level(
+        &self,
+        acting_user_id: &UserId,
+        target_user_id: &UserId,
+    ) -> bool {
+        // Check that the user can change the power levels first.
+        if !self.user_can_send_state(acting_user_id, StateEventType::RoomPowerLevels) {
+            return false;
+        }
+
+        // A user can change their own power level.
+        if acting_user_id == target_user_id {
+            return true;
+        }
+
+        // The permission is different whether the target user is added or changed/removed, so
+        // we need to check that.
+        if let Some(target_pl) = self.users.get(target_user_id).copied() {
+            self.for_user(acting_user_id) > target_pl
+        } else {
+            true
+        }
+    }
+
     /// Whether the given user can do the given action based on the power levels.
     pub fn user_can_do(&self, user_id: &UserId, action: PowerLevelAction) -> bool {
         match action {
@@ -509,6 +537,9 @@ impl RoomPowerLevels {
             PowerLevelUserAction::Unban => self.user_can_unban_user(acting_user_id, target_user_id),
             PowerLevelUserAction::Invite => self.user_can_invite(acting_user_id),
             PowerLevelUserAction::Kick => self.user_can_kick_user(acting_user_id, target_user_id),
+            PowerLevelUserAction::ChangePowerLevel => {
+                self.user_can_change_user_power_level(acting_user_id, target_user_id)
+            }
         }
     }
 
@@ -627,6 +658,9 @@ pub enum PowerLevelUserAction {
 
     /// Kick a user.
     Kick,
+
+    /// Change a user's power level.
+    ChangePowerLevel,
 }
 
 #[cfg(test)]
