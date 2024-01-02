@@ -385,6 +385,31 @@ impl RoomPowerLevels {
         acting_pl >= self.ban && target_pl < acting_pl
     }
 
+    /// Whether the given user can unban other users based on the power levels.
+    ///
+    /// This action requires to be allowed to ban and to kick.
+    ///
+    /// Shorthand for `power_levels.user_can_do(user_id, PowerLevelAction::Unban)`.
+    pub fn user_can_unban(&self, user_id: &UserId) -> bool {
+        let pl = self.for_user(user_id);
+        pl >= self.ban && pl >= self.kick
+    }
+
+    /// Whether the acting user can unban the target user based on the power levels.
+    ///
+    /// This action requires to be allowed to ban and to kick.
+    ///
+    /// On top of `power_levels.user_can_unban(acting_user_id)`, this performs an extra check
+    /// to make sure the acting user has at greater power level than the target user.
+    ///
+    /// Shorthand for `power_levels.user_can_do_to_user(acting_user_id, target_user_id,
+    /// PowerLevelUserAction::Unban)`.
+    pub fn user_can_unban_user(&self, acting_user_id: &UserId, target_user_id: &UserId) -> bool {
+        let acting_pl = self.for_user(acting_user_id);
+        let target_pl = self.for_user(target_user_id);
+        acting_pl >= self.ban && acting_pl >= self.kick && target_pl < acting_pl
+    }
+
     /// Whether the given user can invite other users based on the power levels.
     ///
     /// Shorthand for `power_levels.user_can_do(user_id, PowerLevelAction::Invite)`.
@@ -455,6 +480,7 @@ impl RoomPowerLevels {
     pub fn user_can_do(&self, user_id: &UserId, action: PowerLevelAction) -> bool {
         match action {
             PowerLevelAction::Ban => self.user_can_ban(user_id),
+            PowerLevelAction::Unban => self.user_can_unban(user_id),
             PowerLevelAction::Invite => self.user_can_invite(user_id),
             PowerLevelAction::Kick => self.user_can_kick(user_id),
             PowerLevelAction::Redact => self.user_can_redact(user_id),
@@ -480,6 +506,7 @@ impl RoomPowerLevels {
     ) -> bool {
         match action {
             PowerLevelUserAction::Ban => self.user_can_ban_user(acting_user_id, target_user_id),
+            PowerLevelUserAction::Unban => self.user_can_unban_user(acting_user_id, target_user_id),
             PowerLevelUserAction::Invite => self.user_can_invite(acting_user_id),
             PowerLevelUserAction::Kick => self.user_can_kick_user(acting_user_id, target_user_id),
         }
@@ -555,6 +582,9 @@ pub enum PowerLevelAction {
     /// Ban a user.
     Ban,
 
+    /// Unban a user.
+    Unban,
+
     /// Invite a user.
     Invite,
 
@@ -588,6 +618,9 @@ pub enum NotificationPowerLevelType {
 pub enum PowerLevelUserAction {
     /// Ban a user.
     Ban,
+
+    /// Unban a user.
+    Unban,
 
     /// Invite a user.
     Invite,
