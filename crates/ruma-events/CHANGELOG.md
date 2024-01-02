@@ -10,6 +10,8 @@ Improvements:
   - We previously already accepted custom or slightly malformed relations
   - Now, even invalid / missing `rel_type` and `event_id` are accepted
 - Implement `From<RoomPowerLevels>` for `ruma_common::push::PushConditionPowerLevelsCtx`
+- Add methods on `PowerLevels` to check if some actions are permitted based on
+  the target user's power level.
 
 # 0.27.11
 
