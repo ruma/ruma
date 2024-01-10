@@ -12,7 +12,7 @@ mod spec_links;
 
 use spec_links::check_spec_links;
 
-const MSRV: &str = "1.70";
+const MSRV: &str = "1.75";
 
 #[derive(Args)]
 pub struct CiArgs {

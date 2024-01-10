@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use bytes::{Bytes, BytesMut};
 use hyper::client::{connect::Connect, HttpConnector};
 
@@ -20,7 +19,6 @@ pub type HyperNativeTls = hyper::Client<hyper_tls::HttpsConnector<HttpConnector>
 #[cfg(feature = "hyper-rustls")]
 pub type HyperRustls = hyper::Client<hyper_rustls::HttpsConnector<HttpConnector>>;
 
-#[async_trait]
 impl<C> HttpClient for hyper::Client<C>
 where
     C: Connect + Clone + Send + Sync + 'static,

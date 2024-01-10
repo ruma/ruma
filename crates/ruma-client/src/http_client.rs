@@ -3,7 +3,6 @@
 
 use std::{future::Future, pin::Pin};
 
-use async_trait::async_trait;
 use bytes::BufMut;
 use ruma_common::{
     api::{MatrixVersion, OutgoingRequest, SendAccessToken},
@@ -31,7 +30,6 @@ pub use self::isahc::Isahc;
 pub use self::reqwest::Reqwest;
 
 /// An HTTP client that can be used to send requests to a Matrix homeserver.
-#[async_trait]
 pub trait HttpClient: Sync {
     /// The type to use for `try_into_http_request`.
     type RequestBody: Default + BufMut + Send;
@@ -43,10 +41,10 @@ pub trait HttpClient: Sync {
     type Error: Send + Unpin;
 
     /// Send an `http::Request` to get back an `http::Response`.
-    async fn send_http_request(
+    fn send_http_request(
         &self,
         req: http::Request<Self::RequestBody>,
-    ) -> Result<http::Response<Self::ResponseBody>, Self::Error>;
+    ) -> impl Future<Output = Result<http::Response<Self::ResponseBody>, Self::Error>> + Send;
 }
 
 /// An HTTP client that has a default configuration.
@@ -126,7 +124,6 @@ pub trait HttpClientExt: HttpClient {
     }
 }
 
-#[async_trait]
 impl<T: HttpClient> HttpClientExt for T {}
 
 #[doc(hidden)]
@@ -134,7 +131,6 @@ impl<T: HttpClient> HttpClientExt for T {}
 #[allow(clippy::exhaustive_structs)]
 pub struct Dummy;
 
-#[async_trait]
 impl HttpClient for Dummy {
     type RequestBody = Vec<u8>;
     type ResponseBody = Vec<u8>;

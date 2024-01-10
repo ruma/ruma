@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use futures_lite::AsyncReadExt;
 
 use super::HttpClient;
@@ -6,7 +5,6 @@ use super::HttpClient;
 /// The `isahc` crate's `HttpClient`.
 pub type Isahc = isahc::HttpClient;
 
-#[async_trait]
 impl HttpClient for Isahc {
     type RequestBody = Vec<u8>;
     type ResponseBody = Vec<u8>;

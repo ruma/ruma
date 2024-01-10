@@ -34,7 +34,6 @@ reqwest-rustls-native-roots = ["reqwest", "reqwest?/rustls-tls-native-roots"]
 [dependencies]
 assign = { workspace = true }
 async-stream = "0.3.0"
-async-trait = "0.1.50"
 bytes = "1.0.1"
 futures-core = "0.3.8"
 futures-lite = { version = "1.11.3", optional = true }

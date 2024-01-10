@@ -1,6 +1,5 @@
 use std::mem;
 
-use async_trait::async_trait;
 use bytes::{Bytes, BytesMut};
 
 use super::{DefaultConstructibleHttpClient, HttpClient};
@@ -8,7 +7,6 @@ use super::{DefaultConstructibleHttpClient, HttpClient};
 /// The `reqwest` crate's `Client`.
 pub type Reqwest = reqwest::Client;
 
-#[async_trait]
 impl HttpClient for Reqwest {
     type RequestBody = BytesMut;
     type ResponseBody = Bytes;

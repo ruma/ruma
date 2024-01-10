@@ -1,5 +1,7 @@
 # [unreleased]
 
+- Bump MSRV to 1.75
+
 # 0.9.4
 
 Upgrade `ruma-events` and re-export its new `unstable-msc4075` feature.
