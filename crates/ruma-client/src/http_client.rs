@@ -140,6 +140,7 @@ impl HttpClient for Dummy {
     type ResponseBody = Vec<u8>;
     type Error = ();
 
+    #[allow(clippy::diverging_sub_expression)]
     async fn send_http_request(
         &self,
         _req: http::Request<Self::RequestBody>,
