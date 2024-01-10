@@ -277,7 +277,7 @@ impl CiTask {
         cmd!(
             "
             rustup run {NIGHTLY} cargo clippy --target wasm32-unknown-unknown
-                -p ruma-common --features api,events,js,markdown,rand
+                -p ruma-common --features api,js,rand
             "
         )
         .run()
