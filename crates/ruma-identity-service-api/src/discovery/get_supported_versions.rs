@@ -58,7 +58,7 @@ impl Response {
     /// The versions returned will be sorted from oldest to latest. Use [`.find()`][Iterator::find]
     /// or [`.rfind()`][DoubleEndedIterator::rfind] to look for a minimum or maximum version to use
     /// given some constraint.
-    pub fn known_versions(&self) -> impl Iterator<Item = MatrixVersion> + DoubleEndedIterator {
+    pub fn known_versions(&self) -> impl DoubleEndedIterator<Item = MatrixVersion> {
         self.versions
             .iter()
             // Parse, discard unknown versions
