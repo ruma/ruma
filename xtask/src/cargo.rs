@@ -138,7 +138,7 @@ impl Package {
         };
 
         let changes = match changelog[changes_start..changes_end].trim() {
-            s if s.is_empty() => "No changes for this version",
+            "" => "No changes for this version",
             s => s,
         };
 
