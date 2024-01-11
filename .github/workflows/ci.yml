@@ -67,7 +67,7 @@ jobs:
         run: target/debug/xtask ci lint
 
   msrv:
-    name: Rust 1.75 / ${{ matrix.name }}
+    name: Minimum Supported Rust Version / ${{ matrix.name }}
     needs: xtask
     runs-on: ubuntu-latest
     strategy:
@@ -92,7 +92,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Install rust 1.75 toolchain
+      - name: Install MSRV toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: "1.75"
