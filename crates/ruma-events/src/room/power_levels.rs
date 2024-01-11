@@ -437,11 +437,18 @@ impl RoomPowerLevels {
         acting_pl >= self.kick && target_pl < acting_pl
     }
 
-    /// Whether the given user can redact events based on the power levels.
+    /// Whether the given user can redact their own events based on the power levels.
     ///
-    /// Shorthand for `power_levels.user_can_do(user_id, PowerLevelAction::Redact)`.
-    pub fn user_can_redact(&self, user_id: &UserId) -> bool {
-        self.for_user(user_id) >= self.redact
+    /// Shorthand for `power_levels.user_can_do(user_id, PowerLevelAction::RedactOwn)`.
+    pub fn user_can_redact_own_event(&self, user_id: &UserId) -> bool {
+        self.user_can_send_message(user_id, MessageLikeEventType::RoomRedaction)
+    }
+
+    /// Whether the given user can redact events of other users based on the power levels.
+    ///
+    /// Shorthand for `power_levels.user_can_do(user_id, PowerLevelAction::RedactOthers)`.
+    pub fn user_can_redact_event_of_other(&self, user_id: &UserId) -> bool {
+        self.user_can_redact_own_event(user_id) && self.for_user(user_id) >= self.redact
     }
 
     /// Whether the given user can send message events based on the power levels.
@@ -511,7 +518,8 @@ impl RoomPowerLevels {
             PowerLevelAction::Unban => self.user_can_unban(user_id),
             PowerLevelAction::Invite => self.user_can_invite(user_id),
             PowerLevelAction::Kick => self.user_can_kick(user_id),
-            PowerLevelAction::Redact => self.user_can_redact(user_id),
+            PowerLevelAction::RedactOwn => self.user_can_redact_own_event(user_id),
+            PowerLevelAction::RedactOther => self.user_can_redact_event_of_other(user_id),
             PowerLevelAction::SendMessage(message_type) => {
                 self.user_can_send_message(user_id, message_type)
             }
@@ -622,8 +630,11 @@ pub enum PowerLevelAction {
     /// Kick a user.
     Kick,
 
-    /// Redact an event.
-    Redact,
+    /// Redact one's own event.
+    RedactOwn,
+
+    /// Redact the event of another user.
+    RedactOther,
 
     /// Send a message-like event.
     SendMessage(MessageLikeEventType),
