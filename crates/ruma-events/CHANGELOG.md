@@ -3,6 +3,11 @@
 Breaking changes:
 
 - Remove `event_id` methods from relation types
+- The required power level is different whether the user wants to redact their
+  own event or an event from another user:
+  -`RoomPowerLevels::user_can_redact` is split into `user_can_redact_own_event`
+    and `user_can_redact_event_of_other`,
+  - `PowerLevelAction::Redact` is split into `RedactOwn` and `RedactOther`.
 
 Improvements:
 
