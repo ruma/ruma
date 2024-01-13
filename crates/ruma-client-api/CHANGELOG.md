@@ -11,6 +11,9 @@ Improvements:
 - Point links to the Matrix 1.9 specification
 - Add the `get_authentication_issuer` endpoint from MSC2965 behind the
   `unstable-msc2965` feature.
+- Add `error_kind` accessor method to `ruma_client_api::Error`
+- Add `FromHttpResponseErrorExt` trait that adds an `error_kind` accessor to
+  `FromHttpResponseError<ruma_client_api::Error>`
 
 # 0.17.4
 

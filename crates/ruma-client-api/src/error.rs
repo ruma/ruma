@@ -2,10 +2,11 @@
 
 use std::{collections::BTreeMap, fmt, sync::Arc, time::Duration};
 
+use as_variant::as_variant;
 use bytes::{BufMut, Bytes};
 use ruma_common::{
     api::{
-        error::{IntoHttpError, MatrixErrorBody},
+        error::{FromHttpResponseError, IntoHttpError, MatrixErrorBody},
         EndpointError, OutgoingResponse,
     },
     RoomVersionId,
@@ -310,6 +311,14 @@ pub struct Error {
     pub body: ErrorBody,
 }
 
+impl Error {
+    /// If `self` is a server error in the `errcode` + `error` format expected
+    /// for client-server API endpoints, returns the error kind (`errcode`).
+    pub fn error_kind(&self) -> Option<&ErrorKind> {
+        as_variant!(&self.body, ErrorBody::Standard { kind, .. } => kind)
+    }
+}
+
 impl EndpointError for Error {
     fn from_http_response<T: AsRef<[u8]>>(response: http::Response<T>) -> Self {
         let status = response.status();
@@ -492,6 +501,19 @@ impl TryFrom<&AuthenticateError> for http::HeaderValue {
         };
 
         s.try_into()
+    }
+}
+
+/// Extension trait for `FromHttpResponseError<ruma_client_api::Error>`.
+pub trait FromHttpResponseErrorExt {
+    /// If `self` is a server error in the `errcode` + `error` format expected
+    /// for client-server API endpoints, returns the error kind (`errcode`).
+    fn error_kind(&self) -> Option<&ErrorKind>;
+}
+
+impl FromHttpResponseErrorExt for FromHttpResponseError<Error> {
+    fn error_kind(&self) -> Option<&ErrorKind> {
+        as_variant!(self, Self::Server)?.error_kind()
     }
 }
 

@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+- Add `error_kind` accessor method to `Error<E, ruma_client_api::Error>`
+
 # 0.12.0
 
 No changes for this version

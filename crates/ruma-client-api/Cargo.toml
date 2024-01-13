@@ -49,6 +49,7 @@ unstable-msc3814 = []
 unstable-msc3983 = []
 
 [dependencies]
+as_variant = { workspace = true }
 assign = { workspace = true }
 bytes = "1.0.1"
 http = { workspace = true }

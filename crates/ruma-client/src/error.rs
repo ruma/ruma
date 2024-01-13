@@ -24,6 +24,18 @@ pub enum Error<E, F> {
     FromHttpResponse(FromHttpResponseError<F>),
 }
 
+#[cfg(feature = "client-api")]
+impl<E> Error<E, ruma_client_api::Error> {
+    /// If `self` is a server error in the `errcode` + `error` format expected
+    /// for client-server API endpoints, returns the error kind (`errcode`).
+    pub fn error_kind(&self) -> Option<&ruma_client_api::error::ErrorKind> {
+        use as_variant::as_variant;
+        use ruma_client_api::error::FromHttpResponseErrorExt as _;
+
+        as_variant!(self, Self::FromHttpResponse)?.error_kind()
+    }
+}
+
 impl<E: Display, F: Display> Display for Error<E, F> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
