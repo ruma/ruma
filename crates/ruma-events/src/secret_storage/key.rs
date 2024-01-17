@@ -54,6 +54,9 @@ fn is_default_bits(val: &UInt) -> bool {
 }
 
 /// A key description encrypted using a specified algorithm.
+///
+/// The only algorithm currently specified is `m.secret_storage.v1.aes-hmac-sha2`, so this
+/// essentially represents `AesHmacSha2KeyDescription` in the [spec](https://spec.matrix.org/v1.9/client-server-api/#msecret_storagev1aes-hmac-sha2).
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[derive(Clone, Debug, Serialize, EventContent)]
 #[ruma_event(type = "m.secret_storage.key.*", kind = GlobalAccountData)]
@@ -131,20 +134,22 @@ impl SecretStorageEncryptionAlgorithm {
 }
 
 /// The key properties for the `m.secret_storage.v1.aes-hmac-sha2` algorithm.
+///
+/// Corresponds to the AES-specific properties of `AesHmacSha2KeyDescription` in the [spec](https://spec.matrix.org/v1.9/client-server-api/#msecret_storagev1aes-hmac-sha2).
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SecretStorageV1AesHmacSha2Properties {
     /// The 16-byte initialization vector, encoded as base64.
-    pub iv: Base64,
+    pub iv: Option<Base64>,
 
     /// The MAC, encoded as base64.
-    pub mac: Base64,
+    pub mac: Option<Base64>,
 }
 
 impl SecretStorageV1AesHmacSha2Properties {
-    /// Creates a new `SecretStorageV1AesHmacSha2Properties` with the given initialization vector
-    /// and MAC.
-    pub fn new(iv: Base64, mac: Base64) -> Self {
+    /// Creates a new `SecretStorageV1AesHmacSha2Properties` with the given
+    /// initialization vector and MAC.
+    pub fn new(iv: Option<Base64>, mac: Option<Base64>) -> Self {
         Self { iv, mac }
     }
 }
@@ -182,8 +187,8 @@ mod tests {
         let mut content = SecretStorageKeyEventContent::new(
             "my_key".into(),
             SecretStorageEncryptionAlgorithm::V1AesHmacSha2(SecretStorageV1AesHmacSha2Properties {
-                iv: Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap(),
-                mac: Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap(),
+                iv: Some(Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap()),
+                mac: Some(Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap()),
             }),
         );
         content.name = Some("my_key".to_owned());
@@ -216,10 +221,11 @@ mod tests {
         assert_matches!(
             content.algorithm,
             SecretStorageEncryptionAlgorithm::V1AesHmacSha2(SecretStorageV1AesHmacSha2Properties {
-                iv,
-                mac
+                iv: Some(iv),
+                mac: Some(mac)
             })
         );
+
         assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
         assert_eq!(mac.encode(), "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U");
     }
@@ -241,8 +247,8 @@ mod tests {
         assert_matches!(
             content.algorithm,
             SecretStorageEncryptionAlgorithm::V1AesHmacSha2(SecretStorageV1AesHmacSha2Properties {
-                iv,
-                mac
+                iv: Some(iv),
+                mac: Some(mac)
             })
         );
         assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
@@ -257,8 +263,8 @@ mod tests {
                 "my_key".into(),
                 SecretStorageEncryptionAlgorithm::V1AesHmacSha2(
                     SecretStorageV1AesHmacSha2Properties {
-                        iv: Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap(),
-                        mac: Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap(),
+                        iv: Some(Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap()),
+                        mac: Some(Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap()),
                     },
                 ),
             )
@@ -309,8 +315,8 @@ mod tests {
         assert_matches!(
             content.algorithm,
             SecretStorageEncryptionAlgorithm::V1AesHmacSha2(SecretStorageV1AesHmacSha2Properties {
-                iv,
-                mac
+                iv: Some(iv),
+                mac: Some(mac)
             })
         );
         assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
@@ -322,8 +328,8 @@ mod tests {
         let mut content = SecretStorageKeyEventContent::new(
             "my_key_id".into(),
             SecretStorageEncryptionAlgorithm::V1AesHmacSha2(SecretStorageV1AesHmacSha2Properties {
-                iv: Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap(),
-                mac: Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap(),
+                iv: Some(Base64::parse("YWJjZGVmZ2hpamtsbW5vcA").unwrap()),
+                mac: Some(Base64::parse("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U").unwrap()),
             }),
         );
         content.name = Some("my_key".to_owned());
@@ -359,8 +365,8 @@ mod tests {
         assert_matches!(
             ev.content.algorithm,
             SecretStorageEncryptionAlgorithm::V1AesHmacSha2(SecretStorageV1AesHmacSha2Properties {
-                iv,
-                mac
+                iv: Some(iv),
+                mac: Some(mac)
             })
         );
         assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
