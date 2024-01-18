@@ -183,7 +183,7 @@ impl<C: HttpClient> Client<C> {
     ///
     /// # use ruma_common::presence::PresenceState;
     /// # use tokio_stream::{StreamExt as _};
-    /// # let homeserver_url = "https://example.com".parse().unwrap();
+    /// # let homeserver_url = "https://example.com".to_owned();
     /// # async {
     /// # let client = ruma_client::Client::builder()
     /// #     .homeserver_url(homeserver_url)
