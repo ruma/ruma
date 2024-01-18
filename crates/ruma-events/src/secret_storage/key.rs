@@ -136,7 +136,8 @@ impl SecretStorageEncryptionAlgorithm {
 
 /// The key properties for the `m.secret_storage.v1.aes-hmac-sha2` algorithm.
 ///
-/// Corresponds to the AES-specific properties of `AesHmacSha2KeyDescription` in the [spec](https://spec.matrix.org/v1.9/client-server-api/#msecret_storagev1aes-hmac-sha2).
+/// Corresponds to the AES-specific properties of `AesHmacSha2KeyDescription` in the
+/// [spec](https://spec.matrix.org/v1.9/client-server-api/#msecret_storagev1aes-hmac-sha2).
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SecretStorageV1AesHmacSha2Properties {
