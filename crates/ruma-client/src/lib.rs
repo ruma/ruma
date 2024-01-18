@@ -13,7 +13,7 @@
 //! // type HttpClient = ruma_client::http_client::_;
 //! # type HttpClient = ruma_client::http_client::Dummy;
 //! # let work = async {
-//! let homeserver_url = "https://example.com".parse().unwrap();
+//! let homeserver_url = "https://example.com".to_owned();
 //! let client = ruma::Client::builder()
 //!     .homeserver_url(homeserver_url)
 //!     .build::<ruma_client::http_client::Dummy>()
@@ -37,7 +37,7 @@
 //! # type HttpClient = ruma_client::http_client::Dummy;
 //! #
 //! # async {
-//! let homeserver_url = "https://example.com".parse().unwrap();
+//! let homeserver_url = "https://example.com".to_owned();
 //! let client = ruma_client::Client::builder()
 //!     .homeserver_url(homeserver_url)
 //!     .access_token(Some("as_access_token".into()))
@@ -59,7 +59,7 @@
 //! For example:
 //!
 //! ```no_run
-//! # let homeserver_url = "https://example.com".parse().unwrap();
+//! # let homeserver_url = "https://example.com".to_owned();
 //! # async {
 //! # let client = ruma_client::Client::builder()
 //! #     .homeserver_url(homeserver_url)
