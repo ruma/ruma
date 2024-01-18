@@ -2,6 +2,7 @@
 
 Breaking changes:
 
+- The properties of `SecretStorageV1AesHmacSha2Properties` are now `Option`al.
 - Remove `event_id` methods from relation types
 - The required power level is different whether the user wants to redact their
   own event or an event from another user:
