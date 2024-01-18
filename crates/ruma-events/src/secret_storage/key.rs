@@ -56,7 +56,7 @@ fn is_default_bits(val: &UInt) -> bool {
 /// A key description encrypted using a specified algorithm.
 ///
 /// The only algorithm currently specified is `m.secret_storage.v1.aes-hmac-sha2`, so this
-/// essentially represents `AesHmacSha2KeyDescription` in the 
+/// essentially represents `AesHmacSha2KeyDescription` in the
 /// [spec](https://spec.matrix.org/v1.9/client-server-api/#msecret_storagev1aes-hmac-sha2).
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[derive(Clone, Debug, Serialize, EventContent)]
