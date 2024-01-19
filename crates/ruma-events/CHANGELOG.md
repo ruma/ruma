@@ -18,6 +18,8 @@ Improvements:
 - Implement `From<RoomPowerLevels>` for `ruma_common::push::PushConditionPowerLevelsCtx`
 - Add methods on `PowerLevels` to check if some actions are permitted based on
   the target user's power level.
+- Add unstable support for manually marking rooms as unread through [MSC2867](https://github.com/matrix-org/matrix-spec-proposals/pull/2867) 
+  and the room account data `m.marked_unread` event (unstable type `com.famedly.marked_unread `)
 
 # 0.27.11
 
