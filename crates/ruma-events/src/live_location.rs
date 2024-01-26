@@ -3,10 +3,11 @@
 //! [MSC3489]: https://github.com/matrix-org/matrix-spec-proposals/pull/3489
 
 
-use std::time::{SystemTime, UNIX_EPOCH};
 use serde::{Deserialize, Serialize};
-use ruma_common::MilliSecondsSinceUnixEpoch;
+
+use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedUserId};
 use ruma_macros::EventContent;
+
 use crate::location::{AssetContent, LocationContent};
 use crate::relation::Reference;
 
@@ -14,7 +15,7 @@ use crate::relation::Reference;
 /// It contains information about a live location sharing event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "org.matrix.msc3672.beacon_info", alias = "m.beacon" kind = State, state_key_type = OwnedUserId)]
+#[ruma_event(type = "org.matrix.msc3672.beacon_info", alias = "m.beacon", kind = State, state_key_type = OwnedUserId)]
 pub struct BeaconInfoStateEventContent {
     /// `description` is a string that is the same as an m.location description.
     description: String,
@@ -28,7 +29,7 @@ pub struct BeaconInfoStateEventContent {
 
     /// `timeout` is a u64 that represents the length of time in milliseconds that the location will be live.
     /// So the location will stop being shared at `m.ts + timeout` milliseconds since the epoch.
-    timeout: u64,
+    pub timeout: MilliSecondsSinceUnixEpoch,
 
     /// `asset` is an `AssetContent` that this message refers to.
     #[serde(default, rename = "org.matrix.msc3488.asset", skip_serializing_if = "ruma_common::serde::is_default")]
@@ -49,31 +50,40 @@ pub struct BeaconEventRelationContent {
     #[serde(rename = "org.matrix.msc3488.location")]
     pub location: LocationContent,
 
+    /// `ts` is an optional `MilliSecondsSinceUnixEpoch` that represents the timestamp of the event.
     #[serde(rename = "org.matrix.msc3488.ts", skip_serializing_if = "Option::is_none")]
     pub ts: Option<MilliSecondsSinceUnixEpoch>,
 }
 
 impl BeaconInfoStateEventContent {
     /// Creates a new `BeaconInfoEventContent` with the given description, live, timeout and asset.
-    pub fn start(description: String, timeout: u64, asset: AssetContent) -> Self {
+    pub fn start(description: String, timeout: MilliSecondsSinceUnixEpoch, asset: AssetContent) -> Self {
         Self { description, live: true, ts: None, timeout, asset }
     }
 
+    /// Stops the beacon from being live.
     pub fn stop(&mut self) {
         self.live = false;
     }
 
+    /// Checks if the beacon is currently live.
+    ///
+    /// This method calculates the current time and compares it with the beacon's start time plus its timeout.
+    /// If the beacon is not live or the current time is greater than the beacon's start time plus its timeout,
+    /// it returns false, indicating that the beacon is not live. Otherwise, it returns true.
     pub fn is_live(&self) -> bool {
-        let now_ts = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .expect("Time went backwards")
-            .as_millis() as u64;
+        let now_ts = MilliSecondsSinceUnixEpoch::now();
 
-        self.live & self.ts.unwrap() + self.timeout < now_ts
+        if !self.live {
+            return false;
+        }
+
+        return self.ts.unwrap().get() + self.timeout.get() < now_ts.get();
     }
 }
 
 impl BeaconEventRelationContent {
+    /// Create a new `BeaconEventRelationContent` with the given relates_to, location and timestamp.
     pub fn new(relates_to: Reference, location: LocationContent, ts: Option<MilliSecondsSinceUnixEpoch>) -> Self {
         Self { relates_to, location, ts }
     }
