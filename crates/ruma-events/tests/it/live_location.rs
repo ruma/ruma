@@ -3,10 +3,8 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use js_int::UInt;
-
 use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events::live_location::BeaconInfoStateEventContent;
-use ruma_events::location::AssetContent;
+use ruma_events::{live_location::BeaconInfoStateEventContent, location::AssetContent};
 
 #[test]
 fn beacon_starts_live() {
@@ -19,10 +17,11 @@ fn beacon_starts_live() {
     // Add 5 minutes to the current time
     let timeout = MilliSecondsSinceUnixEpoch(now.get() + UInt::from(five_minutes_in_millis));
 
-    let mut beacon = BeaconInfoStateEventContent::new("Test Beacon".to_string(), timeout, AssetContent::default());
+    let mut beacon = BeaconInfoStateEventContent::new(None, timeout, AssetContent::default());
     beacon.start();
     assert!(beacon.live);
 }
+
 #[test]
 fn beacon_stops_live() {
     let now = MilliSecondsSinceUnixEpoch::now();
@@ -32,10 +31,11 @@ fn beacon_stops_live() {
 
     // Add 5 minutes to the current time
     let timeout = MilliSecondsSinceUnixEpoch(now.get() + UInt::from(five_minutes_in_millis));
-    let mut beacon = BeaconInfoStateEventContent::new("Test Beacon".to_string(), timeout, AssetContent::default());
+    let mut beacon = BeaconInfoStateEventContent::new(None, timeout, AssetContent::default());
     beacon.stop();
     assert!(!beacon.live);
 }
+
 #[test]
 fn beacon_is_live_within_timeout() {
     let now = MilliSecondsSinceUnixEpoch::now();
@@ -46,8 +46,13 @@ fn beacon_is_live_within_timeout() {
     // Add 5 minutes to the current time
     let timeout = MilliSecondsSinceUnixEpoch(now.get() + UInt::from(five_minutes_in_millis));
 
-    let mut beacon = BeaconInfoStateEventContent::new("Test Beacon".to_string(), timeout, AssetContent::default());
-    beacon.ts = Some(MilliSecondsSinceUnixEpoch(UInt::try_from(SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64 - 1000).unwrap()));
+    let mut beacon = BeaconInfoStateEventContent::new(None, timeout, AssetContent::default());
+    beacon.ts = Some(MilliSecondsSinceUnixEpoch(
+        UInt::try_from(
+            SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64 - 1000,
+        )
+        .unwrap(),
+    ));
     assert!(beacon.is_live());
 }
 
@@ -61,8 +66,13 @@ fn beacon_is_not_live_past_timeout() {
     // Add 5 minutes to the current time
     let timeout = MilliSecondsSinceUnixEpoch(now.get() + UInt::from(five_minutes_in_millis));
 
-    let mut beacon = BeaconInfoStateEventContent::new("Test Beacon".to_string(), timeout, AssetContent::default());
-    beacon.ts = Some(MilliSecondsSinceUnixEpoch(UInt::try_from(SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64 - 6000).unwrap()));
+    let mut beacon = BeaconInfoStateEventContent::new(None, timeout, AssetContent::default());
+    beacon.ts = Some(MilliSecondsSinceUnixEpoch(
+        UInt::try_from(
+            SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64 - 6000,
+        )
+        .unwrap(),
+    ));
     assert!(!beacon.is_live());
 }
 
@@ -75,7 +85,7 @@ fn beacon_is_not_live_when_ts_is_none() {
 
     // Add 5 minutes to the current time
     let timeout = MilliSecondsSinceUnixEpoch(now.get() + UInt::from(five_minutes_in_millis));
-    let mut beacon = BeaconInfoStateEventContent::new("Test Beacon".to_string(), timeout, AssetContent::default());
+    let mut beacon = BeaconInfoStateEventContent::new(None, timeout, AssetContent::default());
     beacon.start();
     assert!(!beacon.is_live());
 }
