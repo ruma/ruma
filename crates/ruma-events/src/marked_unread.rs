@@ -7,14 +7,14 @@ use serde::{Deserialize, Serialize};
 
 /// The content of an `m.marked_unread` event.
 ///
-/// Whether the room has been explicitly marked as unread
+/// Whether the room has been explicitly marked as unread.
 ///
 /// This event appears in the user's room account data for the room the marker is applicable for.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "com.famedly.marked_unread", kind = RoomAccountData)]
 pub struct MarkedUnreadEventContent {
-    /// The current unread state
+    /// The current unread state.
     pub unread: bool,
 }
 
