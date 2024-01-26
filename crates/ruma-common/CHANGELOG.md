@@ -17,6 +17,7 @@ Improvements:
 - Point links to the Matrix 1.9 specification
 - Implement `as_str()` and `AsRef<str>` for `push::PredefinedRuleId`
 - Implement `kind()` for `push::Predefined{*}RuleId`
+- Implement MSC3489 Live Location Sharing 
 
 # 0.12.1
 
