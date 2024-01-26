@@ -57,8 +57,13 @@ pub struct BeaconEventRelationContent {
 
 impl BeaconInfoStateEventContent {
     /// Creates a new `BeaconInfoEventContent` with the given description, live, timeout and asset.
-    pub fn start(description: String, timeout: MilliSecondsSinceUnixEpoch, asset: AssetContent) -> Self {
-        Self { description, live: true, ts: None, timeout, asset }
+    pub fn new(description: String, timeout: MilliSecondsSinceUnixEpoch, asset: AssetContent) -> Self {
+        Self { description, live: false, ts: None, timeout, asset }
+    }
+
+    /// starts the beacon being live.
+    pub fn start(&mut self) {
+        self.live = true;
     }
 
     /// Stops the beacon from being live.
@@ -72,7 +77,7 @@ impl BeaconInfoStateEventContent {
     /// If the beacon is not live or the current time is greater than the beacon's start time plus its timeout,
     /// it returns false, indicating that the beacon is not live. Otherwise, it returns true.
     pub fn is_live(&self) -> bool {
-        let now_ts = MilliSecondsSinceUnixEpoch::now();
+        let now_ts: MilliSecondsSinceUnixEpoch = MilliSecondsSinceUnixEpoch::now();
 
         if !self.live {
             return false;
