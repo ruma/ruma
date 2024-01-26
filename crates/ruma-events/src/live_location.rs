@@ -48,7 +48,7 @@ pub struct BeaconInfoStateEventContent {
 /// The payload for a beacon event.
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "org.matrix.msc3488.location", alias = "m.beacon", kind = MessageLike)]
+#[ruma_event(type = "org.matrix.msc3672.beacon", alias = "m.beacon", kind = MessageLike)]
 pub struct BeaconEventRelationContent {
     /// Information about the poll start event this responds to.
     #[serde(rename = "m.relates_to")]
