@@ -1,6 +1,7 @@
 # [unreleased]
 
 - Bump MSRV to 1.75
+- re-export the `ruma-events`'s `unstable-msc2867` feature, manually marking rooms as unread
 
 # 0.9.4
 

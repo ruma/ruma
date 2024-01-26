@@ -23,6 +23,9 @@ event_enum! {
     enum RoomAccountData {
         "m.fully_read" => super::fully_read,
         "m.tag" => super::tag,
+        #[cfg(feature = "unstable-msc2867")]
+        #[ruma_enum(alias = "m.marked_unread")]
+        "com.famedly.marked_unread" => super::marked_unread,
     }
 
     /// Any ephemeral room event.
