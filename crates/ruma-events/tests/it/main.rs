@@ -24,3 +24,4 @@ mod to_device;
 mod video;
 mod voice;
 mod without_relation;
+mod live_location;
