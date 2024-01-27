@@ -2,21 +2,19 @@
 //!
 //! [MSC3489]: https://github.com/matrix-org/matrix-spec-proposals/pull/3489
 
-use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedUserId};
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    location::{AssetContent, LocationContent},
-    relation::Reference,
-};
+use super::OwnedUserId;
+use crate::location::AssetContent;
 
 /// `BeaconInfoStateEventContent` is a struct that represents the content of a beacon_info state
 /// event. It contains information about a live location sharing event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "org.matrix.msc3672.beacon_info", alias = "m.beacon", kind = State, state_key_type = OwnedUserId)]
-pub struct BeaconInfoStateEventContent {
+#[ruma_event(type = "org.matrix.msc3672.beacon", alias = "m.beacon", kind = State, state_key_type = OwnedUserId)]
+pub struct BeaconStateEventContent {
     /// The description of the location.
     ///
     /// It should be used to label the location on a map.
@@ -45,33 +43,10 @@ pub struct BeaconInfoStateEventContent {
     pub asset: AssetContent,
 }
 
-/// The payload for a beacon event.
-#[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "org.matrix.msc3672.beacon", alias = "m.beacon", kind = MessageLike)]
-pub struct BeaconEventRelationContent {
-    /// Information about the poll start event this responds to.
-    #[serde(rename = "m.relates_to")]
-    pub relates_to: Reference,
-
-    /// The location info of the message.
-    #[serde(rename = "org.matrix.msc3488.location")]
-    pub location: LocationContent,
-
-    /// `ts` is an optional `MilliSecondsSinceUnixEpoch` that represents the timestamp of the
-    /// event.
-    #[serde(rename = "org.matrix.msc3488.ts", skip_serializing_if = "Option::is_none")]
-    pub ts: Option<MilliSecondsSinceUnixEpoch>,
-}
-
-impl BeaconInfoStateEventContent {
+impl BeaconStateEventContent {
     /// Creates a new `BeaconInfoEventContent` with the given description, live, timeout and asset.
-    pub fn new(
-        description: Option<String>,
-        timeout: MilliSecondsSinceUnixEpoch,
-        asset: AssetContent,
-    ) -> Self {
-        Self { description, live: false, ts: None, timeout, asset }
+    pub fn new(description: Option<String>, timeout: MilliSecondsSinceUnixEpoch) -> Self {
+        Self { description, live: false, ts: None, timeout, asset: Default::default() }
     }
 
     /// starts the beacon being live.
@@ -98,16 +73,5 @@ impl BeaconInfoStateEventContent {
         }
 
         return self.ts.unwrap().get() + self.timeout.get() < now_ts.get();
-    }
-}
-
-impl BeaconEventRelationContent {
-    /// Create a new `BeaconEventRelationContent` with the given relates_to, location and timestamp.
-    pub fn new(
-        relates_to: Reference,
-        location: LocationContent,
-        ts: Option<MilliSecondsSinceUnixEpoch>,
-    ) -> Self {
-        Self { relates_to, location, ts }
     }
 }
