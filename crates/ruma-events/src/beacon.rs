@@ -2,6 +2,8 @@
 //!
 //! [MSC3489]: https://github.com/matrix-org/matrix-spec-proposals/pull/3489
 
+use std::time::Duration;
+
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -32,7 +34,8 @@ pub struct BeaconStateEventContent {
     /// `timeout` is a u64 that represents the length of time in milliseconds that the location
     /// will be live. So the location will stop being shared at `m.ts + timeout` milliseconds
     /// since the epoch.
-    pub timeout: MilliSecondsSinceUnixEpoch,
+    #[serde(with = "ruma_common::serde::duration::ms")]
+    pub timeout: Duration,
 
     /// `asset` is an `AssetContent` that this message refers to.
     #[serde(
@@ -45,7 +48,7 @@ pub struct BeaconStateEventContent {
 
 impl BeaconStateEventContent {
     /// Creates a new `BeaconInfoEventContent` with the given description, live, timeout and asset.
-    pub fn new(description: Option<String>, timeout: MilliSecondsSinceUnixEpoch) -> Self {
+    pub fn new(description: Option<String>, timeout: Duration) -> Self {
         Self { description, live: false, ts: None, timeout, asset: Default::default() }
     }
 
@@ -66,12 +69,7 @@ impl BeaconStateEventContent {
     /// start time plus its timeout, it returns false, indicating that the beacon is not live.
     /// Otherwise, it returns true.
     pub fn is_live(&self) -> bool {
-        let now_ts: MilliSecondsSinceUnixEpoch = MilliSecondsSinceUnixEpoch::now();
-
-        if !self.live {
-            return false;
-        }
-
-        return self.ts.unwrap().get() + self.timeout.get() < now_ts.get();
+        self.live
+            && self.ts.unwrap().get() + self.timeout.get() < MilliSecondsSinceUnixEpoch::now().get()
     }
 }
