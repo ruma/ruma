@@ -4,6 +4,7 @@
 
 use std::time::Duration;
 
+use js_int::UInt;
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -31,10 +32,10 @@ pub struct BeaconStateEventContent {
     #[serde(rename = "org.matrix.msc3488.ts", skip_serializing_if = "Option::is_none")]
     pub ts: Option<MilliSecondsSinceUnixEpoch>,
 
-    /// `timeout` is a u64 that represents the length of time in milliseconds that the location
+    /// `timeout` represents the length of time in milliseconds that the location
     /// will be live. So the location will stop being shared at `m.ts + timeout` milliseconds
     /// since the epoch.
-    #[serde(with = "ruma_common::serde::duration::ms")]
+    #[serde(default, with = "ruma_common::serde::duration::ms")]
     pub timeout: Duration,
 
     /// `asset` is an `AssetContent` that this message refers to.
@@ -70,6 +71,7 @@ impl BeaconStateEventContent {
     /// Otherwise, it returns true.
     pub fn is_live(&self) -> bool {
         self.live
-            && self.ts.unwrap().get() + self.timeout.get() < MilliSecondsSinceUnixEpoch::now().get()
+            && self.ts.unwrap().get() + UInt::try_from(self.timeout.as_millis()).unwrap()
+                < MilliSecondsSinceUnixEpoch::now().get()
     }
 }
