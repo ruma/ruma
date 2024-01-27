@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc3672.beacon_info", alias = "m.beacon_info", kind = MessageLike)]
 pub struct BeaconInfoEventContent {
-    /// Information about the poll start event this responds to.
+    /// Information about the beacon state event this relates to.
     #[serde(rename = "m.relates_to")]
     pub relates_to: Reference,
 
