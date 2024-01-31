@@ -4,7 +4,7 @@
 
 use std::{borrow::Cow, collections::BTreeMap};
 
-use ruma_common::{serde::from_raw_json_value, OwnedRoomId};
+use ruma_common::{serde::from_raw_json_value, space::SpaceRoomJoinRule, OwnedRoomId};
 use ruma_macros::EventContent;
 use serde::{
     de::{Deserializer, Error},
@@ -157,6 +157,12 @@ impl<'de> Deserialize<'de> for JoinRule {
     }
 }
 
+impl From<JoinRule> for SpaceRoomJoinRule {
+    fn from(value: JoinRule) -> Self {
+        value.as_str().into()
+    }
+}
+
 /// Configuration of the `Restricted` join rule.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -249,7 +255,10 @@ mod tests {
     use assert_matches2::assert_matches;
     use ruma_common::owned_room_id;
 
-    use super::{AllowRule, JoinRule, OriginalSyncRoomJoinRulesEvent, RoomJoinRulesEventContent};
+    use super::{
+        AllowRule, JoinRule, OriginalSyncRoomJoinRulesEvent, Restricted, RoomJoinRulesEventContent,
+        SpaceRoomJoinRule,
+    };
 
     #[test]
     fn deserialize() {
@@ -314,5 +323,21 @@ mod tests {
         let allow_rule: AllowRule = serde_json::from_str(json).unwrap();
         assert_matches!(&allow_rule, AllowRule::_Custom(_));
         assert_eq!(serde_json::to_string(&allow_rule).unwrap(), json);
+    }
+
+    #[test]
+    fn join_rule_to_space_room_join_rule() {
+        assert_eq!(SpaceRoomJoinRule::Invite, JoinRule::Invite.into());
+        assert_eq!(SpaceRoomJoinRule::Knock, JoinRule::Knock.into());
+        assert_eq!(
+            SpaceRoomJoinRule::KnockRestricted,
+            JoinRule::KnockRestricted(Restricted::default()).into()
+        );
+        assert_eq!(SpaceRoomJoinRule::Public, JoinRule::Public.into());
+        assert_eq!(SpaceRoomJoinRule::Private, JoinRule::Private.into());
+        assert_eq!(
+            SpaceRoomJoinRule::Restricted,
+            JoinRule::Restricted(Restricted::default()).into()
+        );
     }
 }
