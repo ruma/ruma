@@ -20,6 +20,7 @@ Improvements:
   the target user's power level.
 - Add unstable support for manually marking rooms as unread through [MSC2867](https://github.com/matrix-org/matrix-spec-proposals/pull/2867) 
   and the room account data `m.marked_unread` event (unstable type `com.famedly.marked_unread`)
+- Implement `From<JoinRule>` for `SpaceRoomJoinRule`
 
 # 0.27.11
 
