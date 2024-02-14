@@ -87,7 +87,7 @@ impl Ruleset {
                         .into_iter()
                         .map(|mut new_rule| {
                             if let Some(old_rule) =
-                                $old_ruleset.$field_name.take(new_rule.rule_id.as_str())
+                                $old_ruleset.$field_name.shift_take(new_rule.rule_id.as_str())
                             {
                                 new_rule.enabled = old_rule.enabled;
                                 new_rule.actions = old_rule.actions;
@@ -114,7 +114,7 @@ impl Ruleset {
         // `.m.rule.master` comes before all other push rules, while the other server-default push
         // rules come after.
         if let Some(master_rule) =
-            new_server_default.override_.take(PredefinedOverrideRuleId::Master.as_str())
+            new_server_default.override_.shift_take(PredefinedOverrideRuleId::Master.as_str())
         {
             let (pos, _) = self.override_.insert_full(master_rule);
             self.override_.move_index(pos, 0);
