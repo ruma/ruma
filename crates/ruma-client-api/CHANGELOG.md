@@ -14,6 +14,10 @@ Improvements:
 - Add `error_kind` accessor method to `ruma_client_api::Error`
 - Add `FromHttpResponseErrorExt` trait that adds an `error_kind` accessor to
   `FromHttpResponseError<ruma_client_api::Error>`
+- Add deprecated `user` fields for `m.login.password` and `m.login.appservice`
+  login types.
+- Add deprecated `address` and `medium` 3PID fields for `m.login.password`
+  login type.
 
 # 0.17.4
 
