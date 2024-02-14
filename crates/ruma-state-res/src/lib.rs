@@ -682,7 +682,7 @@ mod tests {
 
         let sorted_power_events =
             crate::reverse_topological_power_sort(power_events, &auth_chain, |id| {
-                events.get(id).map(Arc::clone)
+                events.get(id).cloned()
             })
             .unwrap();
 
@@ -690,7 +690,7 @@ mod tests {
             &RoomVersion::V6,
             &sorted_power_events,
             HashMap::new(), // unconflicted events
-            |id| events.get(id).map(Arc::clone),
+            |id| events.get(id).cloned(),
         )
         .expect("iterative auth check failed on resolved events");
 
@@ -703,7 +703,7 @@ mod tests {
             resolved_power.get(&(StateEventType::RoomPowerLevels, "".to_owned())).cloned();
 
         let sorted_event_ids =
-            crate::mainline_sort(&events_to_sort, power_level, |id| events.get(id).map(Arc::clone))
+            crate::mainline_sort(&events_to_sort, power_level, |id| events.get(id).cloned())
                 .unwrap();
 
         assert_eq!(
@@ -1056,7 +1056,7 @@ mod tests {
                     store.auth_event_ids(room_id(), map.values().cloned().collect()).unwrap()
                 })
                 .collect(),
-            |id| ev_map.get(id).map(Arc::clone),
+            |id| ev_map.get(id).cloned(),
         ) {
             Ok(state) => state,
             Err(e) => panic!("{e}"),
@@ -1156,7 +1156,7 @@ mod tests {
                     store.auth_event_ids(room_id(), map.values().cloned().collect()).unwrap()
                 })
                 .collect(),
-            |id| ev_map.get(id).map(Arc::clone),
+            |id| ev_map.get(id).cloned(),
         ) {
             Ok(state) => state,
             Err(e) => panic!("{e}"),
