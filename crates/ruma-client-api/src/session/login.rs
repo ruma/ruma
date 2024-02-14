@@ -226,23 +226,55 @@ pub mod v3 {
     #[serde(tag = "type", rename = "m.login.password")]
     pub struct Password {
         /// Identification information for the user.
-        pub identifier: UserIdentifier,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub identifier: Option<UserIdentifier>,
 
         /// The password.
         pub password: String,
+
+        /// Username for the user.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[deprecated = "\
+            Since Matrix Client-Server API r0.4.0, clients should use `identifier`\
+            instead.\
+        "]
+        pub user: Option<String>,
+
+        /// 3rd-party identifier address for the user.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[deprecated = "\
+            Since Matrix Client-Server API r0.4.0, clients should use `identifier`\
+            instead.\
+        "]
+        pub address: Option<String>,
+
+        /// 3rd-party identifier medium for the user.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[deprecated = "\
+            Since Matrix Client-Server API r0.4.0, clients should use `identifier`\
+            instead.\
+        "]
+        pub medium: Option<String>,
     }
 
     impl Password {
         /// Creates a new `Password` with the given identifier and password.
+        #[allow(deprecated)]
         pub fn new(identifier: UserIdentifier, password: String) -> Self {
-            Self { identifier, password }
+            Self { identifier: Some(identifier), password, user: None, address: None, medium: None }
         }
     }
 
     impl fmt::Debug for Password {
+        #[allow(deprecated)]
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            let Self { identifier, password: _ } = self;
-            f.debug_struct("Password").field("identifier", identifier).finish_non_exhaustive()
+            let Self { identifier, password: _, user, address, medium } = self;
+            f.debug_struct("Password")
+                .field("identifier", identifier)
+                .field("user", user)
+                .field("address", address)
+                .field("medium", medium)
+                .finish_non_exhaustive()
         }
     }
 
@@ -275,13 +307,22 @@ pub mod v3 {
     #[serde(tag = "type", rename = "m.login.application_service")]
     pub struct ApplicationService {
         /// Identification information for the user.
-        pub identifier: UserIdentifier,
+        pub identifier: Option<UserIdentifier>,
+
+        /// Username for the user.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[deprecated = "\
+            Since Matrix Client-Server API r0.4.0, clients should use `identifier`\
+            instead.\
+        "]
+        pub user: Option<String>,
     }
 
     impl ApplicationService {
         /// Creates a new `ApplicationService` with the given identifier.
+        #[allow(deprecated)]
         pub fn new(identifier: UserIdentifier) -> Self {
-            Self { identifier }
+            Self { identifier: Some(identifier), user: None }
         }
     }
 
@@ -376,7 +417,7 @@ pub mod v3 {
                 .unwrap(),
                 LoginInfo::Password(login)
             );
-            assert_matches!(login.identifier, UserIdentifier::UserIdOrLocalpart(user));
+            assert_matches!(login.identifier, Some(UserIdentifier::UserIdOrLocalpart(user)));
             assert_eq!(user, "cheeky_monkey");
             assert_eq!(login.password, "ilovebananas");
 
@@ -424,9 +465,15 @@ pub mod v3 {
             );
 
             let req: http::Request<Vec<u8>> = Request {
+                #[allow(deprecated)]
                 login_info: LoginInfo::Password(Password {
-                    identifier: UserIdentifier::Email { address: "hello@example.com".to_owned() },
+                    identifier: Some(UserIdentifier::Email {
+                        address: "hello@example.com".to_owned(),
+                    }),
                     password: "deadbeef".to_owned(),
+                    user: None,
+                    address: None,
+                    medium: None,
                 }),
                 device_id: None,
                 initial_device_display_name: Some("test".to_owned()),
