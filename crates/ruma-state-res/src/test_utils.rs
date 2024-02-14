@@ -118,7 +118,7 @@ pub(crate) fn do_check(
                 .collect();
 
             let resolved = crate::resolve(&RoomVersionId::V6, state_sets, auth_chain_sets, |id| {
-                event_map.get(id).map(Arc::clone)
+                event_map.get(id).cloned()
             });
             match resolved {
                 Ok(state) => state,
@@ -210,7 +210,7 @@ impl<E: Event> TestStore<E> {
     pub(crate) fn get_event(&self, _: &RoomId, event_id: &EventId) -> Result<Arc<E>> {
         self.0
             .get(event_id)
-            .map(Arc::clone)
+            .cloned()
             .ok_or_else(|| Error::NotFound(format!("{event_id} not found")))
     }
 
