@@ -263,3 +263,36 @@ impl From<SpaceHierarchyChildSummaryInit> for SpaceHierarchyChildSummary {
         }
     }
 }
+
+impl From<SpaceHierarchyParentSummary> for SpaceHierarchyChildSummary {
+    fn from(parent: SpaceHierarchyParentSummary) -> Self {
+        let SpaceHierarchyParentSummary {
+            canonical_alias,
+            name,
+            num_joined_members,
+            room_id,
+            topic,
+            world_readable,
+            guest_can_join,
+            avatar_url,
+            join_rule,
+            room_type,
+            children_state: _,
+            allowed_room_ids,
+        } = parent;
+
+        Self {
+            canonical_alias,
+            name,
+            num_joined_members,
+            room_id,
+            topic,
+            world_readable,
+            guest_can_join,
+            avatar_url,
+            join_rule,
+            room_type,
+            allowed_room_ids,
+        }
+    }
+}
