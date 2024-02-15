@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Implement `From<SpaceHierarchyParentSummary>` for `SpaceHierarchyChildSummary`
+
 # 0.8.0
 
 Bug fixes:
