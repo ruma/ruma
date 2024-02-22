@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+- Don't require the `failures` field in the
+  `ruma_client_api::keys::upload_signatures::Response` type.
+
 Breaking changes:
 
 - The conversion from `PushRule` to `ConditionalPushRule` is infallible since
