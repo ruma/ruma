@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+- Don't require the `failures` field in the
+  `ruma_client_api::keys::upload_signatures::Response` type.
+
 Breaking changes:
 
 - The conversion from `PushRule` to `ConditionalPushRule` is infallible since
@@ -18,11 +23,6 @@ Improvements:
   login types.
 - Add deprecated `address` and `medium` 3PID fields for `m.login.password`
   login type.
-
-Bug fixes:
-
-- Don't require the `failures` field in the
-  `ruma_client_api::keys::upload_signatures::Response` type.
 
 # 0.17.4
 
