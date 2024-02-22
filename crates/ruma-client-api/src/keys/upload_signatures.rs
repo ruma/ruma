@@ -120,13 +120,15 @@ pub mod v3 {
 
     #[cfg(test)]
     mod tests {
-        use ruma_common::user_id;
-
-        use super::{FailureErrorCode, ResponseBody};
+        use super::ResponseBody;
 
         #[cfg(feature = "compat-upload-signatures")]
         #[test]
         fn deserialize_synapse_response() {
+            use ruma_common::user_id;
+
+            use super::FailureErrorCode;
+
             const JSON: &str = r#"{
                 "failures": {
                     "@richvdh:sw1v.org": {
