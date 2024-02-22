@@ -8,6 +8,8 @@ Breaking changes:
 
 Improvements:
 
+- Don't require the `failures` field in the
+  `ruma_client_api::keys::upload_signatures::Response` type.
 - Point links to the Matrix 1.9 specification
 - Add the `get_authentication_issuer` endpoint from MSC2965 behind the
   `unstable-msc2965` feature.

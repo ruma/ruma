@@ -118,7 +118,7 @@ pub mod v3 {
         _Custom(PrivOwnedStr),
     }
 
-    #[cfg(test)]
+    #[cfg(all(test, feature = "client"))]
     mod tests {
         use super::ResponseBody;
 
