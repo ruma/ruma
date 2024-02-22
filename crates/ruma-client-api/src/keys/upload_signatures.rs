@@ -151,7 +151,7 @@ pub mod v3 {
         fn deserialize_empty_response() {
             const JSON: &str = r#"{}"#;
 
-            let parsed: ResponseBody = serde_json::from_str(JSON)
+            let _parsed: ResponseBody = serde_json::from_str(JSON)
                 .expect("We should be able to deserialize an empty keys/signatures/upload");
         }
     }
