@@ -8,8 +8,6 @@ Breaking changes:
 
 Improvements:
 
-- Don't require the `failures` field in the
-  `ruma_client_api::keys::upload_signatures::Response` type.
 - Point links to the Matrix 1.9 specification
 - Add the `get_authentication_issuer` endpoint from MSC2965 behind the
   `unstable-msc2965` feature.
@@ -20,6 +18,11 @@ Improvements:
   login types.
 - Add deprecated `address` and `medium` 3PID fields for `m.login.password`
   login type.
+
+Bug fixes:
+
+- Don't require the `failures` field in the
+  `ruma_client_api::keys::upload_signatures::Response` type.
 
 # 0.17.4
 
