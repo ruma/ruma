@@ -5,7 +5,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3loginssoredirect
 
-    use http::header::LOCATION;
+    use http::header::{LOCATION, SET_COOKIE};
     use ruma_common::{
         api::{request, response, Metadata},
         metadata,
@@ -37,6 +37,10 @@ pub mod v3 {
         /// Redirect URL to the SSO identity provider.
         #[ruma_api(header = LOCATION)]
         pub location: String,
+
+        /// Cookie storing state to secure the SSO process.
+        #[ruma_api(header = SET_COOKIE)]
+        pub cookie: Option<String>,
     }
 
     impl Request {
@@ -49,7 +53,7 @@ pub mod v3 {
     impl Response {
         /// Creates a new `Response` with the given SSO URL.
         pub fn new(location: String) -> Self {
-            Self { location }
+            Self { location, cookie: None }
         }
     }
 
