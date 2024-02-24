@@ -9,6 +9,7 @@ Breaking changes:
   -`RoomPowerLevels::user_can_redact` is split into `user_can_redact_own_event`
     and `user_can_redact_event_of_other`,
   - `PowerLevelAction::Redact` is split into `RedactOwn` and `RedactOther`.
+- Use `OwnedRoomId` instead of `String` for the `state_key` field of `HierarchySpaceChildEvent`
 
 Improvements:
 

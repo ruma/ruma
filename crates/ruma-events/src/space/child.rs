@@ -63,7 +63,7 @@ pub struct HierarchySpaceChildEvent {
     pub sender: OwnedUserId,
 
     /// The room ID of the child.
-    pub state_key: String,
+    pub state_key: OwnedRoomId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
