@@ -365,6 +365,35 @@ impl RoomPowerLevels {
         self.users.get(user_id).map_or(self.users_default, |pl| *pl)
     }
 
+    /// Get the power level required to perform a given action.
+    pub fn for_action(&self, action: PowerLevelAction) -> Int {
+        match action {
+            PowerLevelAction::Ban => self.ban,
+            PowerLevelAction::Unban => self.ban.max(self.kick),
+            PowerLevelAction::Invite => self.invite,
+            PowerLevelAction::Kick => self.kick,
+            PowerLevelAction::RedactOwn => self.for_message(MessageLikeEventType::RoomRedaction),
+            PowerLevelAction::RedactOther => {
+                self.redact.max(self.for_message(MessageLikeEventType::RoomRedaction))
+            }
+            PowerLevelAction::SendMessage(msg_type) => self.for_message(msg_type),
+            PowerLevelAction::SendState(state_type) => self.for_state(state_type),
+            PowerLevelAction::TriggerNotification(NotificationPowerLevelType::Room) => {
+                self.notifications.room
+            }
+        }
+    }
+
+    /// Get the power level required to send the given message type.
+    pub fn for_message(&self, msg_type: MessageLikeEventType) -> Int {
+        self.events.get(&msg_type.into()).copied().unwrap_or(self.events_default)
+    }
+
+    /// Get the power level required to send the given state event type.
+    pub fn for_state(&self, state_type: StateEventType) -> Int {
+        self.events.get(&state_type.into()).copied().unwrap_or(self.state_default)
+    }
+
     /// Whether the given user can ban other users based on the power levels.
     ///
     /// Shorthand for `power_levels.user_can_do(user_id, PowerLevelAction::Ban)`.
@@ -455,24 +484,14 @@ impl RoomPowerLevels {
     ///
     /// Shorthand for `power_levels.user_can_do(user_id, PowerLevelAction::SendMessage(msg_type))`.
     pub fn user_can_send_message(&self, user_id: &UserId, msg_type: MessageLikeEventType) -> bool {
-        self.for_user(user_id)
-            >= self
-                .events
-                .get(&msg_type.into())
-                .map(ToOwned::to_owned)
-                .unwrap_or(self.events_default)
+        self.for_user(user_id) >= self.for_message(msg_type)
     }
 
     /// Whether the given user can send state events based on the power levels.
     ///
     /// Shorthand for `power_levels.user_can_do(user_id, PowerLevelAction::SendState(state_type))`.
     pub fn user_can_send_state(&self, user_id: &UserId, state_type: StateEventType) -> bool {
-        self.for_user(user_id)
-            >= self
-                .events
-                .get(&state_type.into())
-                .map(ToOwned::to_owned)
-                .unwrap_or(self.state_default)
+        self.for_user(user_id) >= self.for_state(state_type)
     }
 
     /// Whether the given user can notify everybody in the room by writing `@room` in a message.
