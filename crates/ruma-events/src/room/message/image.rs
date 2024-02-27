@@ -11,10 +11,8 @@ use crate::room::{EncryptedFile, ImageInfo, MediaSource};
 pub struct ImageMessageEventContent {
     /// A textual representation of the image.
     ///
-    /// Could be the alt text of the image, the filename of the image, or some kind of content
-    /// description for accessibility e.g. "image attachment".
-    /// If the `filename` field is set and differs from `body`, `body` should be interpreted as a
-    /// user-written media caption.
+    /// If the `filename` field is not set or has the same value, this is the filename of the
+    /// uploaded file. Otherwise, this should be interpreted as a user-written media caption.
     pub body: String,
 
     /// Formatted form of the message `body`, if `body` is a caption.
