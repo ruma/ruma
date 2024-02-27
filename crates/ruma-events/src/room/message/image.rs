@@ -13,9 +13,11 @@ pub struct ImageMessageEventContent {
     ///
     /// Could be the alt text of the image, the filename of the image, or some kind of content
     /// description for accessibility e.g. "image attachment".
+    /// If the `filename` field is set and differs from `body`, `body` should be interpreted as a
+    /// user-written media caption.
     pub body: String,
 
-    /// Formatted form of the message `body`.
+    /// Formatted form of the message `body`, if `body` is a caption.
     #[serde(flatten)]
     pub formatted: Option<FormattedBody>,
 

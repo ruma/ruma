@@ -14,9 +14,12 @@ use crate::room::{EncryptedFile, MediaSource, ThumbnailInfo};
 pub struct VideoMessageEventContent {
     /// A description of the video, e.g. "Gangnam Style", or some kind of content description for
     /// accessibility, e.g. "video attachment".
+    ///
+    /// If the `filename` field is set and differs from `body`, `body` should be interpreted as a
+    /// user-written media caption.
     pub body: String,
 
-    /// Formatted form of the message `body`.
+    /// Formatted form of the message `body`, if `body` is a caption.
     #[serde(flatten)]
     pub formatted: Option<FormattedBody>,
 

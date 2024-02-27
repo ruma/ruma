@@ -13,9 +13,11 @@ pub struct FileMessageEventContent {
     /// A human-readable description of the file.
     ///
     /// This is recommended to be the filename of the original upload.
+    /// If the `filename` field is set and differs from `body`, `body` should be interpreted as a
+    /// user-written media caption instead of a filename.
     pub body: String,
 
-    /// Formatted form of the message `body`.
+    /// Formatted form of the message `body`, if `body` is a caption.
     #[serde(flatten)]
     pub formatted: Option<FormattedBody>,
 
