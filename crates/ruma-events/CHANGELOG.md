@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+- The `MembershipState::Invite` to `MembershipState::Knock` membership change
+  now returns `MembershipChange::Error`, due to a spec clarification
+
 Breaking changes:
 
 - The properties of `SecretStorageV1AesHmacSha2Properties` are now `Option`al.

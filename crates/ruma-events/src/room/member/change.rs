@@ -126,6 +126,7 @@ pub(super) fn membership_change<'a>(
         | (St::Ban, St::Invite)
         | (St::Ban, St::Join)
         | (St::Join, St::Knock)
+        | (St::Invite, St::Knock)
         | (St::Ban, St::Knock)
         | (St::Knock, St::Join) => Ch::Error,
         (St::Join, St::Join)
@@ -143,7 +144,7 @@ pub(super) fn membership_change<'a>(
         (St::Join, St::Ban) => Ch::KickedAndBanned,
         (St::Leave, St::Invite) => Ch::Invited,
         (St::Ban, St::Leave) => Ch::Unbanned,
-        (St::Leave, St::Knock) | (St::Invite, St::Knock) => Ch::Knocked,
+        (St::Leave, St::Knock) => Ch::Knocked,
         (St::Knock, St::Invite) => Ch::KnockAccepted,
         (St::Knock, St::Leave) if sender == state_key => Ch::KnockRetracted,
         (St::Knock, St::Leave) => Ch::KnockDenied,
