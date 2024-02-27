@@ -702,7 +702,7 @@ fn valid_membership_change(
                 false
             } else {
                 // 2. If `sender` does not match `state_key`, reject.
-                // 3. If the `sender`'s current membership is not `ban` or `join`, allow.
+                // 3. If the `sender`'s current membership is not `ban`, `invite`, or `join`, allow.
                 // 4. Otherwise, reject.
                 if sender != target_user {
                     warn!(
@@ -711,11 +711,13 @@ fn valid_membership_change(
                         "Can't make another user join, sender did not match target"
                     );
                     false
-                } else if matches!(sender_membership, MembershipState::Ban | MembershipState::Join)
-                {
+                } else if matches!(
+                    sender_membership,
+                    MembershipState::Ban | MembershipState::Invite | MembershipState::Join
+                ) {
                     warn!(
                         ?target_user_membership_event_id,
-                        "Membership state of ban or join are invalid",
+                        "Membership state of ban, invite or join are invalid",
                     );
                     false
                 } else {

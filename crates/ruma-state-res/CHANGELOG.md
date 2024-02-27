@@ -1,5 +1,11 @@
 # [unreleased]
 
+Bug fixes:
+
+* Disallow `invite` -> `knock` membership transition
+  * The spec was determined to be right about rejecting it in the first place:
+    <https://github.com/matrix-org/matrix-spec/pull/1717>
+
 # 0.10.0
 
 Improvements:
