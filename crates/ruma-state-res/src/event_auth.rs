@@ -700,29 +700,27 @@ fn valid_membership_change(
             {
                 warn!("Join rule is not set to knock or knock_restricted, knocking is not allowed");
                 false
-            } else {
+            } else if sender != target_user {
                 // 2. If `sender` does not match `state_key`, reject.
+                warn!(
+                    ?sender,
+                    ?target_user,
+                    "Can't make another user knock, sender did not match target"
+                );
+                false
+            } else if matches!(
+                sender_membership,
+                MembershipState::Ban | MembershipState::Invite | MembershipState::Join
+            ) {
                 // 3. If the `sender`'s current membership is not `ban`, `invite`, or `join`, allow.
                 // 4. Otherwise, reject.
-                if sender != target_user {
-                    warn!(
-                        ?sender,
-                        ?target_user,
-                        "Can't make another user join, sender did not match target"
-                    );
-                    false
-                } else if matches!(
-                    sender_membership,
-                    MembershipState::Ban | MembershipState::Invite | MembershipState::Join
-                ) {
-                    warn!(
-                        ?target_user_membership_event_id,
-                        "Membership state of ban, invite or join are invalid",
-                    );
-                    false
-                } else {
-                    true
-                }
+                warn!(
+                    ?target_user_membership_event_id,
+                    "Membership state of ban, invite or join are invalid",
+                );
+                false
+            } else {
+                true
             }
         }
         _ => {
