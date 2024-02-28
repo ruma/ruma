@@ -24,6 +24,8 @@ Improvements:
 - Add deprecated `address` and `medium` 3PID fields for `m.login.password`
   login type.
 - Add optional cookie field to `session::sso_login*::v3` responses.
+- Add support for local user erasure to `account::deactivate::v3::Request`,
+  according to MSC4025.
 
 # 0.17.4
 
