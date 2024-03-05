@@ -164,7 +164,7 @@ fn invite_v0_content_serialization() {
 fn candidates_v0_content_serialization() {
     let event_content = CallCandidatesEventContent::version_0(
         "abcdef".into(),
-        vec![Candidate::new("not a real candidate".to_owned(), "0".to_owned(), uint!(0))],
+        vec![Candidate::version_0("not a real candidate".to_owned(), "0".to_owned(), uint!(0))],
     );
 
     assert_eq!(
@@ -351,8 +351,9 @@ fn candidates_v1_event_serialization() {
         "abcdef".into(),
         "9876".into(),
         vec![
-            Candidate::new("not a real candidate".to_owned(), "0".to_owned(), uint!(0)),
-            Candidate::new("another fake candidate".to_owned(), "0".to_owned(), uint!(1)),
+            Candidate::version_0("not a real candidate".to_owned(), "0".to_owned(), uint!(0)),
+            Candidate::version_0("another fake candidate".to_owned(), "0".to_owned(), uint!(1)),
+            Candidate::new("".to_owned()),
         ],
     );
 
@@ -372,6 +373,9 @@ fn candidates_v1_event_serialization() {
                     "candidate": "another fake candidate",
                     "sdpMid": "0",
                     "sdpMLineIndex": 1,
+                },
+                {
+                    "candidate": "",
                 },
             ],
         })
@@ -396,6 +400,9 @@ fn candidates_v1_event_deserialization() {
                     "sdpMid": "0",
                     "sdpMLineIndex": 1,
                 },
+                {
+                    "candidate": "",
+                },
             ],
         },
         "event_id": "$event:notareal.hs",
@@ -414,13 +421,16 @@ fn candidates_v1_event_deserialization() {
     assert_eq!(content.call_id, "abcdef");
     assert_eq!(content.party_id.unwrap(), "9876");
     assert_eq!(content.version, VoipVersionId::V1);
-    assert_eq!(content.candidates.len(), 2);
+    assert_eq!(content.candidates.len(), 3);
     assert_eq!(content.candidates[0].candidate, "not a real candidate");
-    assert_eq!(content.candidates[0].sdp_mid, "0");
-    assert_eq!(content.candidates[0].sdp_m_line_index, uint!(0));
+    assert_eq!(content.candidates[0].sdp_mid.as_deref(), Some("0"));
+    assert_eq!(content.candidates[0].sdp_m_line_index, Some(uint!(0)));
     assert_eq!(content.candidates[1].candidate, "another fake candidate");
-    assert_eq!(content.candidates[1].sdp_mid, "0");
-    assert_eq!(content.candidates[1].sdp_m_line_index, uint!(1));
+    assert_eq!(content.candidates[1].sdp_mid.as_deref(), Some("0"));
+    assert_eq!(content.candidates[1].sdp_m_line_index, Some(uint!(1)));
+    assert_eq!(content.candidates[2].candidate, "");
+    assert_eq!(content.candidates[2].sdp_mid, None);
+    assert_eq!(content.candidates[2].sdp_m_line_index, None);
 }
 
 #[test]

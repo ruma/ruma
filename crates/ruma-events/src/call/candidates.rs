@@ -69,15 +69,28 @@ pub struct Candidate {
     pub candidate: String,
 
     /// The SDP media type this candidate is intended for.
-    pub sdp_mid: String,
+    ///
+    /// At least one of `sdp_mid` or `sdp_m_line_index` is required, unless
+    /// `candidate` is empty.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sdp_mid: Option<String>,
 
     /// The index of the SDP "m" line this candidate is intended for.
-    pub sdp_m_line_index: UInt,
+    ///
+    /// At least one of `sdp_mid` or `sdp_m_line_index` is required, unless
+    /// `candidate` is empty.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sdp_m_line_index: Option<UInt>,
 }
 
 impl Candidate {
-    /// Creates a new `Candidate` with the given "a" line, SDP media type and SDP "m" line.
-    pub fn new(candidate: String, sdp_mid: String, sdp_m_line_index: UInt) -> Self {
-        Self { candidate, sdp_mid, sdp_m_line_index }
+    /// Creates a new `Candidate` with the given "a" line.
+    pub fn new(candidate: String) -> Self {
+        Self { candidate, sdp_mid: None, sdp_m_line_index: None }
+    }
+
+    /// Creates a new `Candidate` with all the required fields in VoIP version 0.
+    pub fn version_0(candidate: String, sdp_mid: String, sdp_m_line_index: UInt) -> Self {
+        Self { candidate, sdp_mid: Some(sdp_mid), sdp_m_line_index: Some(sdp_m_line_index) }
     }
 }
