@@ -54,24 +54,6 @@ impl VideoMessageEventContent {
         Self::new(body, MediaSource::Encrypted(Box::new(file)))
     }
 
-    /// Creates a new `VideoMessageEventContent` from `self` with the `filename` field set to the
-    /// given value.
-    ///
-    /// Since the field is public, you can also assign to it directly. This method merely acts
-    /// as a shorthand for that, because it is very common to set this field.
-    pub fn filename(self, filename: impl Into<Option<String>>) -> Self {
-        Self { filename: filename.into(), ..self }
-    }
-
-    /// Creates a new `VideoMessageEventContent` from `self` with the `formatted` field set to the
-    /// given value.
-    ///
-    /// Since the field is public, you can also assign to it directly. This method merely acts
-    /// as a shorthand for that, because it is very common to set this field.
-    pub fn formatted(self, formatted: impl Into<Option<FormattedBody>>) -> Self {
-        Self { formatted: formatted.into(), ..self }
-    }
-
     /// Creates a new `VideoMessageEventContent` from `self` with the `info` field set to the given
     /// value.
     ///
