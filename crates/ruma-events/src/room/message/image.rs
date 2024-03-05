@@ -15,7 +15,9 @@ pub struct ImageMessageEventContent {
     /// uploaded file. Otherwise, this should be interpreted as a user-written media caption.
     pub body: String,
 
-    /// Formatted form of the message `body`, if `body` is a caption.
+    /// Formatted form of the message `body`.
+    ///
+    /// This should only be set if the body represents a caption.
     #[serde(flatten)]
     pub formatted: Option<FormattedBody>,
 
