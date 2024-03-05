@@ -67,7 +67,7 @@ impl AudioMessageEventContent {
         }
     }
 
-    /// Creates a new non-encrypted `AudioMessageEventContent` with the given bod and url.
+    /// Creates a new non-encrypted `AudioMessageEventContent` with the given body and url.
     pub fn plain(body: String, url: OwnedMxcUri) -> Self {
         Self::new(body, MediaSource::Plain(url))
     }
