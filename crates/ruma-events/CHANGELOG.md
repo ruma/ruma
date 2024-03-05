@@ -15,6 +15,8 @@ Breaking changes:
     and `user_can_redact_event_of_other`,
   - `PowerLevelAction::Redact` is split into `RedactOwn` and `RedactOther`.
 - Use `OwnedRoomId` instead of `String` for the `state_key` field of `HierarchySpaceChildEvent`
+- The `sdp_mid` and `sdp_m_line_index` fields of `Candidate` are now optional,
+  for better compatibility with the WebRTC specification.
 
 Improvements:
 
