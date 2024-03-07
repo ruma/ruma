@@ -26,6 +26,8 @@ Improvements:
 - Add optional cookie field to `session::sso_login*::v3` responses.
 - Add support for local user erasure to `account::deactivate::v3::Request`,
   according to MSC4025.
+- Allow `discovery::get_supported_versions::v1` to optionally accept
+  authentication, according to MSC4026.
 
 # 0.17.4
 

@@ -14,7 +14,7 @@ use ruma_common::{
 const METADATA: Metadata = metadata! {
     method: GET,
     rate_limited: false,
-    authentication: None,
+    authentication: AccessTokenOptional,
     history: {
         1.0 => "/_matrix/client/versions",
     }
@@ -32,6 +32,9 @@ pub struct Response {
     pub versions: Vec<String>,
 
     /// Experimental features supported by the server.
+    ///
+    /// Servers can enable some unstable features only for some users, so this
+    /// list might differ when an access token is provided.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub unstable_features: BTreeMap<String, bool>,
 }
