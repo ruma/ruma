@@ -9,6 +9,7 @@ Breaking changes:
   If the field is missing, push rules that depend on it will never match. However, this allows to
   match the `.m.rule.invite_for_me` push rule because usually the `invite_state` doesn't include
   `m.room.power_levels`.
+- Add support for endpoints that take an optional authentication
 
 Improvements:
 

@@ -484,6 +484,12 @@ pub enum AuthScheme {
     /// It is recommended to use the header over the query parameter.
     AccessToken,
 
+    /// Authentication is optional, and it is performed by including an access token in the
+    /// `Authentication` http header, or an `access_token` query parameter.
+    ///
+    /// It is recommended to use the header over the query parameter.
+    AccessTokenOptional,
+
     /// Authentication is performed by including X-Matrix signatures in the request headers,
     /// as defined in the federation API.
     ServerSignatures,

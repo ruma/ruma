@@ -74,6 +74,11 @@ impl Metadata {
                 Some((header::AUTHORIZATION, format!("Bearer {token}").try_into()?))
             }
 
+            AuthScheme::AccessTokenOptional => match access_token.get_required_for_endpoint() {
+                Some(token) => Some((header::AUTHORIZATION, format!("Bearer {token}").try_into()?)),
+                None => None,
+            },
+
             AuthScheme::ServerSignatures => None,
         })
     }
