@@ -10,6 +10,7 @@ Breaking changes:
 - The conversion from `PushRule` to `ConditionalPushRule` is infallible since
   the `conditions` field is optional.
   - `MissingConditionsError` was removed.
+- The `ts` field in `Request` for `get_media_preview` is now `Option`.
 
 Improvements:
 

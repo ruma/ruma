@@ -33,7 +33,8 @@ pub mod v3 {
 
         /// Preferred point in time (in milliseconds) to return a preview for.
         #[ruma_api(query)]
-        pub ts: MilliSecondsSinceUnixEpoch,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub ts: Option<MilliSecondsSinceUnixEpoch>,
     }
 
     /// Response type for the `get_media_preview` endpoint.
@@ -49,9 +50,9 @@ pub mod v3 {
     }
 
     impl Request {
-        /// Creates a new `Request` with the given url and timestamp.
-        pub fn new(url: String, ts: MilliSecondsSinceUnixEpoch) -> Self {
-            Self { url, ts }
+        /// Creates a new `Request` with the given url.
+        pub fn new(url: String) -> Self {
+            Self { url, ts: None }
         }
     }
 
