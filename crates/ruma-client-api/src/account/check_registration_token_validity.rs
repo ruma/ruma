@@ -27,7 +27,7 @@ pub mod v1 {
     pub struct Request {
         /// The registration token to check the validity of.
         #[ruma_api(query)]
-        pub registration_token: String,
+        pub token: String,
     }
 
     /// Response type for the `check_registration_token_validity` endpoint.
@@ -39,8 +39,8 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given registration token.
-        pub fn new(registration_token: String) -> Self {
-            Self { registration_token }
+        pub fn new(token: String) -> Self {
+            Self { token }
         }
     }
 
