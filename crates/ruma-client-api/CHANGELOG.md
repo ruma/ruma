@@ -11,6 +11,8 @@ Breaking changes:
   the `conditions` field is optional.
   - `MissingConditionsError` was removed.
 - The `ts` field in `Request` for `get_media_preview` is now `Option`.
+- The query parameter of `check_registration_token_validity` endpoint
+  has been renamed from `registration_token` to `token`
 
 Improvements:
 
