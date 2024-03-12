@@ -10,6 +10,7 @@ Breaking changes:
   match the `.m.rule.invite_for_me` push rule because usually the `invite_state` doesn't include
   `m.room.power_levels`.
 - Add support for endpoints that take an optional authentication
+- Add support for endpoints that require authentication for appservices
 
 Improvements:
 
