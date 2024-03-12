@@ -79,6 +79,11 @@ impl Metadata {
                 None => None,
             },
 
+            AuthScheme::AppserviceToken => match access_token.get_required_for_appservice() {
+                Some(token) => Some((header::AUTHORIZATION, format!("Bearer {token}").try_into()?)),
+                None => None,
+            },
+
             AuthScheme::ServerSignatures => None,
         })
     }
