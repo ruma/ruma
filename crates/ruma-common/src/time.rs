@@ -5,6 +5,7 @@ use std::{
 
 use js_int::{uint, UInt};
 use serde::{Deserialize, Serialize};
+use time::OffsetDateTime;
 
 /// A timestamp represented as the number of milliseconds since the unix epoch.
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
@@ -48,9 +49,28 @@ impl MilliSecondsSinceUnixEpoch {
 
 impl fmt::Debug for MilliSecondsSinceUnixEpoch {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // The default Debug impl would put the inner value on its own line if the formatter's
-        // alternate mode is enabled, which bloats debug strings unnecessarily
-        write!(f, "MilliSecondsSinceUnixEpoch({})", self.0)
+        match OffsetDateTime::from_unix_timestamp(i64::from(self.0) / 1000) {
+            Ok(date) => {
+                let date = date + Duration::from_millis(u64::from(self.0) % 1000);
+
+                let (year, month, day) = date.to_calendar_date();
+                let month = month as u8;
+                let (hours, minutes, seconds, milliseconds) = date.to_hms_milli();
+
+                write!(
+                    f,
+                    "{year}-{month:02}-{day:02}T\
+                     {hours:02}:{minutes:02}:{seconds:02}.{milliseconds:03}"
+                )
+            }
+            // Probably dead code..
+            Err(_) => {
+                // The default Debug impl would put the inner value on its own
+                // line if the formatter's alternate mode is enabled, which
+                // bloats debug strings unnecessarily
+                write!(f, "MilliSecondsSinceUnixEpoch({})", self.0)
+            }
+        }
     }
 }
 
@@ -91,9 +111,26 @@ impl SecondsSinceUnixEpoch {
 
 impl fmt::Debug for SecondsSinceUnixEpoch {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // The default Debug impl would put the inner value on its own line if the formatter's
-        // alternate mode is enabled, which bloats debug strings unnecessarily
-        write!(f, "SecondsSinceUnixEpoch({})", self.0)
+        match OffsetDateTime::from_unix_timestamp(i64::from(self.0)) {
+            Ok(date) => {
+                let (year, month, day) = date.to_calendar_date();
+                let month = month as u8;
+                let (hours, minutes, seconds) = date.to_hms();
+
+                write!(
+                    f,
+                    "{year}-{month:02}-{day:02}T\
+                     {hours:02}:{minutes:02}:{seconds:02}"
+                )
+            }
+            // Probably dead code..
+            Err(_) => {
+                // The default Debug impl would put the inner value on its own
+                // line if the formatter's alternate mode is enabled, which
+                // bloats debug strings unnecessarily
+                write!(f, "SecondsSinceUnixEpoch({})", self.0)
+            }
+        }
     }
 }
 
@@ -138,5 +175,17 @@ mod tests {
         };
 
         assert_eq!(serde_json::to_value(request).unwrap(), json!({ "millis": 2000, "secs": 0 }));
+    }
+
+    #[test]
+    fn debug_s() {
+        let seconds = SecondsSinceUnixEpoch(uint!(0));
+        assert_eq!(format!("{seconds:?}"), "1970-01-01T00:00:00");
+    }
+
+    #[test]
+    fn debug_ms() {
+        let seconds = MilliSecondsSinceUnixEpoch(uint!(0));
+        assert_eq!(format!("{seconds:?}"), "1970-01-01T00:00:00.000");
     }
 }
