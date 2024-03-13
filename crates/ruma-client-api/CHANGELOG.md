@@ -31,7 +31,8 @@ Improvements:
   according to MSC4025.
 - Allow `discovery::get_supported_versions::v1` to optionally accept
   authentication, according to MSC4026.
-- Allow `account::register::v3` to accept authentication for appservices.
+- Allow `account::register::v3` and `account::login::v3` to accept
+  authentication for appservices.
 
 # 0.17.4
 
