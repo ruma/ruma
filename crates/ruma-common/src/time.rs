@@ -1,11 +1,15 @@
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown", feature = "js")))]
+use std::time::SystemTime;
 use std::{
     fmt,
-    time::{Duration, SystemTime, UNIX_EPOCH},
+    time::{Duration, UNIX_EPOCH},
 };
 
 use js_int::{uint, UInt};
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
+#[cfg(all(target_arch = "wasm32", target_os = "unknown", feature = "js"))]
+use web_time::SystemTime;
 
 /// A timestamp represented as the number of milliseconds since the unix epoch.
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]

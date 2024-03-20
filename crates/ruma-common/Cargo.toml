@@ -23,7 +23,7 @@ server = []
 
 api = ["dep:http", "dep:konst"]
 canonical-json = []
-js = ["dep:js-sys", "getrandom?/js", "uuid?/js"]
+js = ["dep:js-sys", "dep:web-time", "getrandom?/js", "uuid?/js"]
 rand = ["dep:rand", "dep:uuid"]
 unstable-exhaustive-types = []
 unstable-msc2870 = []
@@ -81,6 +81,7 @@ wildmatch = "2.0.0"
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
 js-sys = { version = "0.3", optional = true }
+web-time = { version = "1.1.0", optional = true }
 
 [dev-dependencies]
 assert_matches2 = { workspace = true }
