@@ -1,12 +1,9 @@
-use std::{
-    fmt,
-    time::{Duration, UNIX_EPOCH},
-};
+use std::fmt;
 
 use js_int::{uint, UInt};
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
-use web_time::SystemTime;
+use web_time::{Duration, SystemTime, UNIX_EPOCH};
 
 /// A timestamp represented as the number of milliseconds since the unix epoch.
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
