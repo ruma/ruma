@@ -28,9 +28,9 @@ Improvements:
   login type.
 - Add optional cookie field to `session::sso_login*::v3` responses.
 - Add support for local user erasure to `account::deactivate::v3::Request`,
-  according to MSC4025.
+  according to MSC4025 / Matrix 1.10.
 - Allow `discovery::get_supported_versions::v1` to optionally accept
-  authentication, according to MSC4026.
+  authentication, according to MSC4026 / Matrix 1.10.
 - Allow `account::register::v3` and `account::login::v3` to accept
   authentication for appservices.
 
