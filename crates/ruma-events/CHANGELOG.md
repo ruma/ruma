@@ -29,7 +29,8 @@ Improvements:
 - Add unstable support for manually marking rooms as unread through [MSC2867](https://github.com/matrix-org/matrix-spec-proposals/pull/2867) 
   and the room account data `m.marked_unread` event (unstable type `com.famedly.marked_unread`)
 - Implement `From<JoinRule>` for `SpaceRoomJoinRule`
-- Add `filename` and `formatted` fields to media event contents to support media captions as per [MSC2530](https://github.com/matrix-org/matrix-spec-proposals/pull/2530)
+- Add `filename` and `formatted` fields to media event contents to support media captions
+  as per [MSC2530](https://github.com/matrix-org/matrix-spec-proposals/pull/2530) / Matrix 1.10
 
 # 0.27.11
 
