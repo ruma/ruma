@@ -77,6 +77,18 @@ pub mod v1 {
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
         pub limit: Option<UInt>,
+
+        /// Whether to include events which relate indirectly to the given event.
+        ///
+        /// These are events related to the given event via two or more direct relationships.
+        ///
+        /// It is recommended that homeservers traverse at least 3 levels of relationships.
+        /// Implementations may perform more but should be careful to not infinitely recurse.
+        ///
+        /// Default to `false`.
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        #[ruma_api(query)]
+        pub recurse: bool,
     }
 
     /// Response type for the `get_relating_events` endpoint.
@@ -103,19 +115,33 @@ pub mod v1 {
         /// batch/page.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub prev_batch: Option<String>,
+
+        /// If `recurse` was set on the request, the depth to which the server recursed.
+        ///
+        /// If `recurse` was not set, this field must be absent.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        recursion_depth: Option<UInt>,
     }
 
     impl Request {
         /// Creates a new `Request` with the given room ID and parent event ID.
         pub fn new(room_id: OwnedRoomId, event_id: OwnedEventId) -> Self {
-            Self { room_id, event_id, dir: Direction::default(), from: None, to: None, limit: None }
+            Self {
+                room_id,
+                event_id,
+                dir: Direction::default(),
+                from: None,
+                to: None,
+                limit: None,
+                recurse: false,
+            }
         }
     }
 
     impl Response {
         /// Creates a new `Response` with the given chunk.
         pub fn new(chunk: Vec<Raw<AnyMessageLikeEvent>>) -> Self {
-            Self { chunk, next_batch: None, prev_batch: None }
+            Self { chunk, next_batch: None, prev_batch: None, recursion_depth: None }
         }
     }
 }

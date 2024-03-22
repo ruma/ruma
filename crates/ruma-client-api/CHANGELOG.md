@@ -33,6 +33,8 @@ Improvements:
   authentication, according to MSC4026 / Matrix 1.10.
 - Allow `account::register::v3` and `account::login::v3` to accept
   authentication for appservices.
+- Add support for recursion on the `get_relating_events` endpoints, according to
+  MSC3981 / Matrix 1.10
 
 # 0.17.4
 
