@@ -18,7 +18,7 @@ const OLD_URL_WHITELIST: &[&str] =
 
 /// Authorized versions in URLs pointing to the new specs.
 const NEW_VERSION_WHITELIST: &[&str] = &[
-    "v1.1", "v1.2", "v1.3", "v1.4", "v1.5", "v1.6", "v1.7", "v1.8", "v1.9",
+    "v1.1", "v1.2", "v1.3", "v1.4", "v1.5", "v1.6", "v1.7", "v1.8", "v1.9", "v1.10",
     "latest",
     // This should only be enabled if a legitimate use case is found.
     // "unstable",
