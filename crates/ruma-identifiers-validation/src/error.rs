@@ -77,7 +77,7 @@ pub enum MxcUriError {
     /// Media identifier malformed due to invalid characters detected.
     ///
     /// Valid characters are (in regex notation) `[A-Za-z0-9_-]+`.
-    /// See [here](https://spec.matrix.org/v1.9/client-server-api/#security-considerations-5) for more details.
+    /// See [here](https://spec.matrix.org/v1.10/client-server-api/#security-considerations-5) for more details.
     #[error("Media Identifier malformed, invalid characters")]
     MediaIdMalformed,
 

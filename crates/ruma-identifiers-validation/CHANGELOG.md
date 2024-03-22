@@ -10,7 +10,7 @@ Bug fixes:
 
 Improvements:
 
-- Point links to the Matrix 1.9 specification
+- Point links to the Matrix 1.10 specification
 
 # 0.9.3
 

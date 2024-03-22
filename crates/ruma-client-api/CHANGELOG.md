@@ -16,7 +16,7 @@ Breaking changes:
 
 Improvements:
 
-- Point links to the Matrix 1.9 specification
+- Point links to the Matrix 1.10 specification
 - Add the `get_authentication_issuer` endpoint from MSC2965 behind the
   `unstable-msc2965` feature.
 - Add `error_kind` accessor method to `ruma_client_api::Error`
