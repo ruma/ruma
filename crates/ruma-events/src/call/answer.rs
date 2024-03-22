@@ -2,13 +2,15 @@
 //!
 //! [`m.call.answer`]: https://spec.matrix.org/latest/client-server-api/#mcallanswer
 
+use std::collections::BTreeMap;
+
 use ruma_common::{OwnedVoipId, VoipVersionId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "unstable-msc2747")]
 use super::CallCapabilities;
-use super::SessionDescription;
+use super::{SessionDescription, StreamMetadata};
 
 /// The content of an `m.call.answer` event.
 ///
@@ -34,6 +36,12 @@ pub struct CallAnswerEventContent {
     /// The VoIP capabilities of the client.
     #[serde(default, skip_serializing_if = "CallCapabilities::is_default")]
     pub capabilities: CallCapabilities,
+
+    /// **Added in VoIP version 1.** Metadata describing the streams that will be sent.
+    ///
+    /// This is a map of stream ID to metadata about the stream.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub sdp_stream_metadata: BTreeMap<String, StreamMetadata>,
 }
 
 impl CallAnswerEventContent {
@@ -46,6 +54,7 @@ impl CallAnswerEventContent {
             version,
             #[cfg(feature = "unstable-msc2747")]
             capabilities: Default::default(),
+            sdp_stream_metadata: Default::default(),
         }
     }
 
@@ -69,6 +78,7 @@ impl CallAnswerEventContent {
             version: VoipVersionId::V1,
             #[cfg(feature = "unstable-msc2747")]
             capabilities: Default::default(),
+            sdp_stream_metadata: Default::default(),
         }
     }
 }

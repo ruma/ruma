@@ -2,12 +2,14 @@
 //!
 //! [`m.call.negotiate`]: https://spec.matrix.org/latest/client-server-api/#mcallnegotiate
 
+use std::collections::BTreeMap;
+
 use js_int::UInt;
 use ruma_common::{OwnedVoipId, VoipVersionId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::SessionDescription;
+use super::{SessionDescription, StreamMetadata};
 
 /// **Added in VoIP version 1.** The content of an `m.call.negotiate` event.
 ///
@@ -37,6 +39,12 @@ pub struct CallNegotiateEventContent {
 
     /// The session description of the negotiation.
     pub description: SessionDescription,
+
+    /// Metadata describing the streams that will be sent.
+    ///
+    /// This is a map of stream ID to metadata about the stream.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub sdp_stream_metadata: BTreeMap<String, StreamMetadata>,
 }
 
 impl CallNegotiateEventContent {
@@ -49,7 +57,14 @@ impl CallNegotiateEventContent {
         lifetime: UInt,
         description: SessionDescription,
     ) -> Self {
-        Self { call_id, party_id, version, lifetime, description }
+        Self {
+            call_id,
+            party_id,
+            version,
+            lifetime,
+            description,
+            sdp_stream_metadata: Default::default(),
+        }
     }
 
     /// Convenience method to create a version 1 `CallNegotiateEventContent` with all the required
