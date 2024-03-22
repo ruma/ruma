@@ -205,6 +205,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
+      actions: read
       contents: read
       pages: write
       id-token: write
@@ -244,10 +245,10 @@ jobs:
 
       - name: Upload docs as pages artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v3
         with:
           path: target/doc
 
       - name: Deploy to GitHub Pages
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
