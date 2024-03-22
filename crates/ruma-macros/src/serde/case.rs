@@ -42,6 +42,8 @@ pub enum RenameRule {
     MatrixDottedCase,
     /// Rename the direct children to "m.rule.snake_case" style.
     MatrixRuleSnakeCase,
+    /// Rename the direct children to "m.role.snake_case" style.
+    MatrixRoleSnakeCase,
 }
 
 impl RenameRule {
@@ -71,6 +73,7 @@ impl RenameRule {
                 String::from("m.") + &SnakeCase.apply_to_variant(variant).replace('_', ".")
             }
             MatrixRuleSnakeCase => String::from(".m.rule.") + &SnakeCase.apply_to_variant(variant),
+            MatrixRoleSnakeCase => String::from("m.role.") + &SnakeCase.apply_to_variant(variant),
         }
     }
 
@@ -106,6 +109,7 @@ impl RenameRule {
             MatrixSnakeCase => String::from("m.") + field,
             MatrixDottedCase => String::from("m.") + &field.replace('_', "."),
             MatrixRuleSnakeCase => String::from(".m.rule.") + field,
+            MatrixRoleSnakeCase => String::from("m.role.") + field,
         }
     }
 }
@@ -127,6 +131,7 @@ impl FromStr for RenameRule {
             "m.snake_case" => Ok(MatrixSnakeCase),
             "m.dotted.case" => Ok(MatrixDottedCase),
             ".m.rule.snake_case" => Ok(MatrixRuleSnakeCase),
+            "m.role.snake_case" => Ok(MatrixRoleSnakeCase),
             _ => Err(()),
         }
     }
@@ -147,6 +152,7 @@ fn rename_variants() {
         m_snake,
         m_dotted,
         m_rule_snake,
+        m_role_snake,
     ) in &[
         (
             "Outcome",
@@ -161,6 +167,7 @@ fn rename_variants() {
             "m.outcome",
             "m.outcome",
             ".m.rule.outcome",
+            "m.role.outcome",
         ),
         (
             "VeryTasty",
@@ -175,8 +182,9 @@ fn rename_variants() {
             "m.very_tasty",
             "m.very.tasty",
             ".m.rule.very_tasty",
+            "m.role.very_tasty",
         ),
-        ("A", "a", "A", "a", "a", "A", "a", "A", "M_A", "m.a", "m.a", ".m.rule.a"),
+        ("A", "a", "A", "a", "a", "A", "a", "A", "M_A", "m.a", "m.a", ".m.rule.a", "m.role.a"),
         (
             "Z42",
             "z42",
@@ -190,6 +198,7 @@ fn rename_variants() {
             "m.z42",
             "m.z42",
             ".m.rule.z42",
+            "m.role.z42",
         ),
     ] {
         assert_eq!(None.apply_to_variant(original), original);
@@ -205,6 +214,7 @@ fn rename_variants() {
         assert_eq!(MatrixSnakeCase.apply_to_variant(original), m_snake);
         assert_eq!(MatrixDottedCase.apply_to_variant(original), m_dotted);
         assert_eq!(MatrixRuleSnakeCase.apply_to_variant(original), m_rule_snake);
+        assert_eq!(MatrixRoleSnakeCase.apply_to_variant(original), m_role_snake);
     }
 }
 
@@ -222,6 +232,7 @@ fn rename_fields() {
         m_snake,
         m_dotted,
         m_rule_snake,
+        m_role_snake,
     ) in &[
         (
             "outcome",
@@ -235,6 +246,7 @@ fn rename_fields() {
             "m.outcome",
             "m.outcome",
             ".m.rule.outcome",
+            "m.role.outcome",
         ),
         (
             "very_tasty",
@@ -248,9 +260,23 @@ fn rename_fields() {
             "m.very_tasty",
             "m.very.tasty",
             ".m.rule.very_tasty",
+            "m.role.very_tasty",
         ),
-        ("a", "A", "A", "a", "A", "a", "A", "M_A", "m.a", "m.a", ".m.rule.a"),
-        ("z42", "Z42", "Z42", "z42", "Z42", "z42", "Z42", "M_Z42", "m.z42", "m.z42", ".m.rule.z42"),
+        ("a", "A", "A", "a", "A", "a", "A", "M_A", "m.a", "m.a", ".m.rule.a", "m.role.a"),
+        (
+            "z42",
+            "Z42",
+            "Z42",
+            "z42",
+            "Z42",
+            "z42",
+            "Z42",
+            "M_Z42",
+            "m.z42",
+            "m.z42",
+            ".m.rule.z42",
+            "m.role.z42",
+        ),
     ] {
         assert_eq!(None.apply_to_field(original), original);
         assert_eq!(Uppercase.apply_to_field(original), upper);
@@ -264,5 +290,6 @@ fn rename_fields() {
         assert_eq!(MatrixSnakeCase.apply_to_field(original), m_snake);
         assert_eq!(MatrixDottedCase.apply_to_field(original), m_dotted);
         assert_eq!(MatrixRuleSnakeCase.apply_to_field(original), m_rule_snake);
+        assert_eq!(MatrixRoleSnakeCase.apply_to_field(original), m_role_snake);
     }
 }
