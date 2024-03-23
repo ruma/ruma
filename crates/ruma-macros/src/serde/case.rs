@@ -36,6 +36,8 @@ pub enum RenameRule {
     /// Rename direct children to "M_MATRIX_ERROR_CASE" style, as used for responses with error in
     /// Matrix spec.
     MatrixErrorCase,
+    /// Rename the direct children to "m.lowercase" style.
+    MatrixLowerCase,
     /// Rename the direct children to "m.snake_case" style.
     MatrixSnakeCase,
     /// Rename the direct children to "m.dotted.case" style.
@@ -68,6 +70,7 @@ impl RenameRule {
             KebabCase => SnakeCase.apply_to_variant(variant).replace('_', "-"),
             ScreamingKebabCase => ScreamingSnakeCase.apply_to_variant(variant).replace('_', "-"),
             MatrixErrorCase => String::from("M_") + &ScreamingSnakeCase.apply_to_variant(variant),
+            MatrixLowerCase => String::from("m.") + &LowerCase.apply_to_variant(variant),
             MatrixSnakeCase => String::from("m.") + &SnakeCase.apply_to_variant(variant),
             MatrixDottedCase => {
                 String::from("m.") + &SnakeCase.apply_to_variant(variant).replace('_', ".")
@@ -106,6 +109,7 @@ impl RenameRule {
             KebabCase => field.replace('_', "-"),
             ScreamingKebabCase => ScreamingSnakeCase.apply_to_field(field).replace('_', "-"),
             MatrixErrorCase => String::from("M_") + &ScreamingSnakeCase.apply_to_field(field),
+            MatrixLowerCase => String::from("m.") + field,
             MatrixSnakeCase => String::from("m.") + field,
             MatrixDottedCase => String::from("m.") + &field.replace('_', "."),
             MatrixRuleSnakeCase => String::from(".m.rule.") + field,
@@ -129,6 +133,7 @@ impl FromStr for RenameRule {
             "SCREAMING-KEBAB-CASE" => Ok(ScreamingKebabCase),
             "M_MATRIX_ERROR_CASE" => Ok(MatrixErrorCase),
             "m.snake_case" => Ok(MatrixSnakeCase),
+            "m.lowercase" => Ok(MatrixLowerCase),
             "m.dotted.case" => Ok(MatrixDottedCase),
             ".m.rule.snake_case" => Ok(MatrixRuleSnakeCase),
             "m.role.snake_case" => Ok(MatrixRoleSnakeCase),
@@ -149,6 +154,7 @@ fn rename_variants() {
         kebab,
         screaming_kebab,
         matrix_error,
+        m_lower,
         m_snake,
         m_dotted,
         m_rule_snake,
@@ -166,6 +172,7 @@ fn rename_variants() {
             "M_OUTCOME",
             "m.outcome",
             "m.outcome",
+            "m.outcome",
             ".m.rule.outcome",
             "m.role.outcome",
         ),
@@ -179,12 +186,28 @@ fn rename_variants() {
             "very-tasty",
             "VERY-TASTY",
             "M_VERY_TASTY",
+            "m.verytasty",
             "m.very_tasty",
             "m.very.tasty",
             ".m.rule.very_tasty",
             "m.role.very_tasty",
         ),
-        ("A", "a", "A", "a", "a", "A", "a", "A", "M_A", "m.a", "m.a", ".m.rule.a", "m.role.a"),
+        (
+            "A",
+            "a",
+            "A",
+            "a",
+            "a",
+            "A",
+            "a",
+            "A",
+            "M_A",
+            "m.a",
+            "m.a",
+            "m.a",
+            ".m.rule.a",
+            "m.role.a",
+        ),
         (
             "Z42",
             "z42",
@@ -195,6 +218,7 @@ fn rename_variants() {
             "z42",
             "Z42",
             "M_Z42",
+            "m.z42",
             "m.z42",
             "m.z42",
             ".m.rule.z42",
@@ -211,6 +235,7 @@ fn rename_variants() {
         assert_eq!(KebabCase.apply_to_variant(original), kebab);
         assert_eq!(ScreamingKebabCase.apply_to_variant(original), screaming_kebab);
         assert_eq!(MatrixErrorCase.apply_to_variant(original), matrix_error);
+        assert_eq!(MatrixLowerCase.apply_to_variant(original), m_lower);
         assert_eq!(MatrixSnakeCase.apply_to_variant(original), m_snake);
         assert_eq!(MatrixDottedCase.apply_to_variant(original), m_dotted);
         assert_eq!(MatrixRuleSnakeCase.apply_to_variant(original), m_rule_snake);
@@ -229,6 +254,7 @@ fn rename_fields() {
         kebab,
         screaming_kebab,
         matrix_error,
+        m_lower,
         m_snake,
         m_dotted,
         m_rule_snake,
@@ -245,6 +271,7 @@ fn rename_fields() {
             "M_OUTCOME",
             "m.outcome",
             "m.outcome",
+            "m.outcome",
             ".m.rule.outcome",
             "m.role.outcome",
         ),
@@ -258,11 +285,12 @@ fn rename_fields() {
             "VERY-TASTY",
             "M_VERY_TASTY",
             "m.very_tasty",
+            "m.very_tasty",
             "m.very.tasty",
             ".m.rule.very_tasty",
             "m.role.very_tasty",
         ),
-        ("a", "A", "A", "a", "A", "a", "A", "M_A", "m.a", "m.a", ".m.rule.a", "m.role.a"),
+        ("a", "A", "A", "a", "A", "a", "A", "M_A", "m.a", "m.a", "m.a", ".m.rule.a", "m.role.a"),
         (
             "z42",
             "Z42",
@@ -272,6 +300,7 @@ fn rename_fields() {
             "z42",
             "Z42",
             "M_Z42",
+            "m.z42",
             "m.z42",
             "m.z42",
             ".m.rule.z42",
@@ -287,6 +316,7 @@ fn rename_fields() {
         assert_eq!(KebabCase.apply_to_field(original), kebab);
         assert_eq!(ScreamingKebabCase.apply_to_field(original), screaming_kebab);
         assert_eq!(MatrixErrorCase.apply_to_field(original), matrix_error);
+        assert_eq!(MatrixLowerCase.apply_to_field(original), m_lower);
         assert_eq!(MatrixSnakeCase.apply_to_field(original), m_snake);
         assert_eq!(MatrixDottedCase.apply_to_field(original), m_dotted);
         assert_eq!(MatrixRuleSnakeCase.apply_to_field(original), m_rule_snake);

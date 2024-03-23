@@ -65,18 +65,18 @@ impl StreamMetadata {
 /// The purpose of a VoIP stream.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, PartialEq, Eq, StringEnum)]
-#[ruma_enum(rename_all = "m.snake_case")]
+#[ruma_enum(rename_all = "m.lowercase")]
 #[non_exhaustive]
 pub enum StreamPurpose {
     /// `m.usermedia`.
     ///
     /// A stream that contains the webcam and/or microphone tracks.
-    Usermedia,
+    UserMedia,
 
     /// `m.screenshare`.
     ///
     /// A stream with the screen-sharing tracks.
-    Screenshare,
+    ScreenShare,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
