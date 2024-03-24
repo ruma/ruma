@@ -129,6 +129,13 @@ pub enum IntoHttpError {
     #[error("header serialization failed: {0}")]
     Header(#[from] http::header::InvalidHeaderValue),
 
+    /// Retry-After header serialization failed because the datetime provided is after the year
+    /// 9999.
+    #[error(
+        "Retry-After header serialization failed: the year of the datetime is bigger than 9999"
+    )]
+    RetryAfterInvalidDatetime,
+
     /// HTTP request construction failed.
     #[error("HTTP request construction failed: {0}")]
     Http(#[from] http::Error),

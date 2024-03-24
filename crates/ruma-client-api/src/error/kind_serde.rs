@@ -13,7 +13,7 @@ use serde::{
 };
 use serde_json::from_value as from_json_value;
 
-use super::{ErrorKind, Extra};
+use super::{ErrorKind, Extra, RetryAfter};
 use crate::PrivOwnedStr;
 
 enum Field<'de> {
@@ -178,12 +178,13 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrCode::NotJson => ErrorKind::NotJson,
             ErrCode::NotFound => ErrorKind::NotFound,
             ErrCode::LimitExceeded => ErrorKind::LimitExceeded {
-                retry_after_ms: retry_after_ms
+                retry_after: retry_after_ms
                     .map(from_json_value::<UInt>)
                     .transpose()
                     .map_err(de::Error::custom)?
                     .map(Into::into)
-                    .map(Duration::from_millis),
+                    .map(Duration::from_millis)
+                    .map(RetryAfter::Delay),
             },
             ErrCode::Unknown => ErrorKind::Unknown,
             ErrCode::Unrecognized => ErrorKind::Unrecognized,
@@ -328,7 +329,7 @@ impl Serialize for ErrorKind {
             Self::UnknownToken { soft_logout: true } => {
                 st.serialize_entry("soft_logout", &true)?;
             }
-            Self::LimitExceeded { retry_after_ms: Some(duration) } => {
+            Self::LimitExceeded { retry_after: Some(RetryAfter::Delay(duration)) } => {
                 st.serialize_entry(
                     "retry_after_ms",
                     &UInt::try_from(duration.as_millis()).map_err(ser::Error::custom)?,

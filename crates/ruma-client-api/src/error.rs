@@ -1,18 +1,20 @@
 //! Errors that can be sent from the homeserver.
 
-use std::{collections::BTreeMap, fmt, sync::Arc, time::Duration};
+use std::{collections::BTreeMap, fmt, str::FromStr, sync::Arc, time::Duration};
 
 use as_variant::as_variant;
 use bytes::{BufMut, Bytes};
+use js_int::UInt;
 use ruma_common::{
     api::{
         error::{FromHttpResponseError, IntoHttpError, MatrixErrorBody},
         EndpointError, OutgoingResponse,
     },
-    RoomVersionId,
+    RoomVersionId, SecondsSinceUnixEpoch,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{from_slice as from_json_slice, Value as JsonValue};
+use thiserror::Error;
 
 use crate::PrivOwnedStr;
 
@@ -59,8 +61,8 @@ pub enum ErrorKind {
 
     /// M_LIMIT_EXCEEDED
     LimitExceeded {
-        /// How long a client should wait in milliseconds before they can try again.
-        retry_after_ms: Option<Duration>,
+        /// How long a client should wait before they can try again.
+        retry_after: Option<RetryAfter>,
     },
 
     /// M_UNKNOWN
@@ -350,19 +352,29 @@ impl EndpointError for Error {
 
         let body_bytes = &response.body().as_ref();
         let error_body: ErrorBody = match from_json_slice(body_bytes) {
-            Ok(StandardErrorBody { kind, message }) => {
-                #[cfg(feature = "unstable-msc2967")]
-                let kind = if let ErrorKind::Forbidden { .. } = kind {
-                    let authenticate = response
-                        .headers()
-                        .get(http::header::WWW_AUTHENTICATE)
-                        .and_then(|val| val.to_str().ok())
-                        .and_then(AuthenticateError::from_str);
+            Ok(StandardErrorBody { mut kind, message }) => {
+                let headers = response.headers();
 
-                    ErrorKind::Forbidden { authenticate }
-                } else {
-                    kind
-                };
+                match &mut kind {
+                    #[cfg(feature = "unstable-msc2967")]
+                    ErrorKind::Forbidden { authenticate } => {
+                        *authenticate = headers
+                            .get(http::header::WWW_AUTHENTICATE)
+                            .and_then(|val| val.to_str().ok())
+                            .and_then(AuthenticateError::from_str);
+                    }
+                    ErrorKind::LimitExceeded { retry_after } => {
+                        // The Retry-After header takes precedence over the retry_after_ms field in
+                        // the body.
+                        if let Some(retry_after_header) = headers
+                            .get(http::header::RETRY_AFTER)
+                            .and_then(RetryAfter::from_header_value)
+                        {
+                            *retry_after = Some(retry_after_header);
+                        }
+                    }
+                    _ => {}
+                }
 
                 ErrorBody::Standard { kind, message }
             }
@@ -406,20 +418,23 @@ impl OutgoingResponse for Error {
     fn try_into_http_response<T: Default + BufMut>(
         self,
     ) -> Result<http::Response<T>, IntoHttpError> {
-        let builder = http::Response::builder()
+        let mut builder = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "application/json")
             .status(self.status_code);
 
-        #[cfg(feature = "unstable-msc2967")]
-        let builder = if let ErrorBody::Standard {
-            kind: ErrorKind::Forbidden { authenticate: Some(auth_error) },
-            ..
-        } = &self.body
-        {
-            builder.header(http::header::WWW_AUTHENTICATE, auth_error)
-        } else {
-            builder
-        };
+        if let ErrorBody::Standard { kind, .. } = &self.body {
+            match kind {
+                #[cfg(feature = "unstable-msc2967")]
+                ErrorKind::Forbidden { authenticate: Some(auth_error) } => {
+                    builder = builder.header(http::header::WWW_AUTHENTICATE, auth_error);
+                }
+                ErrorKind::LimitExceeded { retry_after: Some(retry_after) } => {
+                    let header_value = http::HeaderValue::try_from(retry_after)?;
+                    builder = builder.header(http::header::RETRY_AFTER, header_value);
+                }
+                _ => {}
+            }
+        }
 
         builder
             .body(match self.body {
@@ -532,6 +547,76 @@ impl TryFrom<&AuthenticateError> for http::HeaderValue {
     }
 }
 
+/// How long a client should wait before they can try again.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(clippy::exhaustive_enums)]
+pub enum RetryAfter {
+    /// The client should wait for the given duration.
+    ///
+    /// This variant should be preferred for backwards compatibility, as it will also populate the
+    /// `retry_after_ms` field in the body of the response.
+    Delay(Duration),
+    /// The client should wait for the date and time corresponding to the given timestamp.
+    DateTime(SecondsSinceUnixEpoch),
+}
+
+impl RetryAfter {
+    fn from_header_value(value: &http::HeaderValue) -> Option<Self> {
+        let bytes = value.as_bytes();
+
+        if bytes.iter().all(|b| b.is_ascii_digit()) {
+            // It should be a duration.
+            Some(Self::Delay(Duration::from_secs(u64::from_str(value.to_str().ok()?).ok()?)))
+        } else {
+            // It should be a date.
+            Some(Self::DateTime(SecondsSinceUnixEpoch(
+                UInt::try_from(date_header::parse(bytes).ok()?).ok()?,
+            )))
+        }
+    }
+}
+
+impl TryFrom<&RetryAfter> for http::HeaderValue {
+    type Error = RetryAfterIntoHttpHeaderError;
+
+    fn try_from(value: &RetryAfter) -> Result<Self, Self::Error> {
+        match value {
+            RetryAfter::Delay(duration) => Ok(duration.as_secs().into()),
+            RetryAfter::DateTime(ts) => {
+                let mut buffer = [0; 29];
+                date_header::format(ts.0.into(), &mut buffer)
+                    .map_err(|_| RetryAfterIntoHttpHeaderError::InvalidDateTime)?;
+                Ok(http::HeaderValue::from_bytes(&buffer)?)
+            }
+        }
+    }
+}
+
+/// An error when converting a [`RetryAfter`] to a [`http::HeaderValue`].
+#[derive(Debug, Error)]
+#[allow(clippy::exhaustive_enums)]
+pub enum RetryAfterIntoHttpHeaderError {
+    /// The date and time are too much in the future (the year is bigger than 9999).
+    #[error(
+        "Retry-After header serialization failed: the year of the datetime is bigger than 9999"
+    )]
+    InvalidDateTime,
+    /// The header value is invalid (should not happen).
+    #[error("Retry-After header serialization failed: {0}")]
+    InvalidHeader(#[from] http::header::InvalidHeaderValue),
+}
+
+impl From<RetryAfterIntoHttpHeaderError> for IntoHttpError {
+    fn from(value: RetryAfterIntoHttpHeaderError) -> Self {
+        match value {
+            RetryAfterIntoHttpHeaderError::InvalidDateTime => {
+                IntoHttpError::RetryAfterInvalidDatetime
+            }
+            RetryAfterIntoHttpHeaderError::InvalidHeader(error) => error.into(),
+        }
+    }
+}
+
 /// Extension trait for `FromHttpResponseError<ruma_client_api::Error>`.
 pub trait FromHttpResponseErrorExt {
     /// If `self` is a server error in the `errcode` + `error` format expected
@@ -548,9 +633,10 @@ impl FromHttpResponseErrorExt for FromHttpResponseError<Error> {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
+    use ruma_common::api::EndpointError;
     use serde_json::{from_value as from_json_value, json};
 
-    use super::{ErrorKind, StandardErrorBody};
+    use super::{Error, ErrorBody, ErrorKind, RetryAfter, StandardErrorBody};
 
     #[test]
     fn deserialize_forbidden() {
@@ -615,9 +701,7 @@ mod tests {
     #[cfg(feature = "unstable-msc2967")]
     #[test]
     fn deserialize_insufficient_scope() {
-        use ruma_common::api::EndpointError;
-
-        use super::{AuthenticateError, Error, ErrorBody};
+        use super::AuthenticateError;
 
         let response = http::Response::builder()
             .header(
@@ -641,5 +725,140 @@ mod tests {
         assert_eq!(message, "Insufficient privilege");
         assert_matches!(authenticate, Some(AuthenticateError::InsufficientScope { scope }));
         assert_eq!(scope, "something_privileged");
+    }
+
+    #[test]
+    fn deserialize_limit_exceeded_no_retry_after() {
+        let response = http::Response::builder()
+            .status(http::StatusCode::TOO_MANY_REQUESTS)
+            .body(
+                serde_json::to_string(&json!({
+                    "errcode": "M_LIMIT_EXCEEDED",
+                    "error": "Too many requests",
+                }))
+                .unwrap(),
+            )
+            .unwrap();
+        let error = Error::from_http_response(response);
+
+        assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
+        assert_matches!(
+            error.body,
+            ErrorBody::Standard { kind: ErrorKind::LimitExceeded { retry_after: None }, message }
+        );
+        assert_eq!(message, "Too many requests");
+    }
+
+    #[test]
+    fn deserialize_limit_exceeded_retry_after_body() {
+        let response = http::Response::builder()
+            .status(http::StatusCode::TOO_MANY_REQUESTS)
+            .body(
+                serde_json::to_string(&json!({
+                    "errcode": "M_LIMIT_EXCEEDED",
+                    "error": "Too many requests",
+                    "retry_after_ms": 2000,
+                }))
+                .unwrap(),
+            )
+            .unwrap();
+        let error = Error::from_http_response(response);
+
+        assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
+        assert_matches!(
+            error.body,
+            ErrorBody::Standard {
+                kind: ErrorKind::LimitExceeded { retry_after: Some(retry_after) },
+                message
+            }
+        );
+        assert_matches!(retry_after, RetryAfter::Delay(delay));
+        assert_eq!(delay.as_millis(), 2000);
+        assert_eq!(message, "Too many requests");
+    }
+
+    #[test]
+    fn deserialize_limit_exceeded_retry_after_header_delay() {
+        let response = http::Response::builder()
+            .status(http::StatusCode::TOO_MANY_REQUESTS)
+            .header(http::header::RETRY_AFTER, "2")
+            .body(
+                serde_json::to_string(&json!({
+                    "errcode": "M_LIMIT_EXCEEDED",
+                    "error": "Too many requests",
+                }))
+                .unwrap(),
+            )
+            .unwrap();
+        let error = Error::from_http_response(response);
+
+        assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
+        assert_matches!(
+            error.body,
+            ErrorBody::Standard {
+                kind: ErrorKind::LimitExceeded { retry_after: Some(retry_after) },
+                message
+            }
+        );
+        assert_matches!(retry_after, RetryAfter::Delay(delay));
+        assert_eq!(delay.as_millis(), 2000);
+        assert_eq!(message, "Too many requests");
+    }
+
+    #[test]
+    fn deserialize_limit_exceeded_retry_after_header_datetime() {
+        let response = http::Response::builder()
+            .status(http::StatusCode::TOO_MANY_REQUESTS)
+            .header(http::header::RETRY_AFTER, "Fri, 15 May 2015 15:34:21 GMT")
+            .body(
+                serde_json::to_string(&json!({
+                    "errcode": "M_LIMIT_EXCEEDED",
+                    "error": "Too many requests",
+                }))
+                .unwrap(),
+            )
+            .unwrap();
+        let error = Error::from_http_response(response);
+
+        assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
+        assert_matches!(
+            error.body,
+            ErrorBody::Standard {
+                kind: ErrorKind::LimitExceeded { retry_after: Some(retry_after) },
+                message
+            }
+        );
+        assert_matches!(retry_after, RetryAfter::DateTime(datetime));
+        assert_eq!(u64::from(datetime.0), 1_431_704_061);
+        assert_eq!(message, "Too many requests");
+    }
+
+    #[test]
+    fn deserialize_limit_exceeded_retry_after_header_over_body() {
+        let response = http::Response::builder()
+            .status(http::StatusCode::TOO_MANY_REQUESTS)
+            .header(http::header::RETRY_AFTER, "2")
+            .body(
+                serde_json::to_string(&json!({
+                    "errcode": "M_LIMIT_EXCEEDED",
+                    "error": "Too many requests",
+                    "retry_after_ms": 3000,
+                }))
+                .unwrap(),
+            )
+            .unwrap();
+        let error = Error::from_http_response(response);
+
+        assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
+        assert_matches!(
+            error.body,
+            ErrorBody::Standard {
+                kind: ErrorKind::LimitExceeded { retry_after: Some(retry_after) },
+                message
+            }
+        );
+        assert_matches!(retry_after, RetryAfter::Delay(delay));
+        assert_eq!(delay.as_millis(), 2000);
+        assert_eq!(message, "Too many requests");
     }
 }

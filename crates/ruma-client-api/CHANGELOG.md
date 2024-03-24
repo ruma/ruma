@@ -16,6 +16,9 @@ Breaking changes:
 - `Error` is now non-exhaustive.
 - `ErrorKind::Forbidden` is now a non-exhaustive struct variant that can be
   constructed with `ErrorKind::forbidden()`.
+- The `retry_after_ms` field of `ErrorKind::LimitExceeded` was renamed to
+  `retry_after` and is now an `Option<RetryAfter>`, to add support for the
+  Retry-After header, according to MSC4041 / Matrix 1.10 
 
 Improvements:
 
