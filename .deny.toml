@@ -1,5 +1,6 @@
 # https://embarkstudios.github.io/cargo-deny/checks/cfg.html
 
+[graph]
 all-features = true
 exclude = [
     # dev only dependency
