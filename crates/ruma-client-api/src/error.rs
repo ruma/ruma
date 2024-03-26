@@ -27,7 +27,12 @@ mod kind_serde;
 #[non_exhaustive]
 pub enum ErrorKind {
     /// M_FORBIDDEN
-    Forbidden,
+    #[non_exhaustive]
+    Forbidden {
+        /// The `WWW-Authenticate` header error message.
+        #[cfg(feature = "unstable-msc2967")]
+        authenticate: Option<AuthenticateError>,
+    },
 
     /// M_UNKNOWN_TOKEN
     UnknownToken {
@@ -192,6 +197,23 @@ pub enum ErrorKind {
     _Custom { errcode: PrivOwnedStr, extra: Extra },
 }
 
+impl ErrorKind {
+    /// Constructs an empty [`ErrorKind::Forbidden`] variant.
+    pub fn forbidden() -> Self {
+        Self::Forbidden {
+            #[cfg(feature = "unstable-msc2967")]
+            authenticate: None,
+        }
+    }
+
+    /// Constructs an [`ErrorKind::Forbidden`] variant with the given `WWW-Authenticate` header
+    /// error message.
+    #[cfg(feature = "unstable-msc2967")]
+    pub fn forbidden_with_authenticate(authenticate: AuthenticateError) -> Self {
+        Self::Forbidden { authenticate: Some(authenticate) }
+    }
+}
+
 #[doc(hidden)]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Extra(BTreeMap<String, JsonValue>);
@@ -199,7 +221,7 @@ pub struct Extra(BTreeMap<String, JsonValue>);
 impl AsRef<str> for ErrorKind {
     fn as_ref(&self) -> &str {
         match self {
-            Self::Forbidden => "M_FORBIDDEN",
+            Self::Forbidden { .. } => "M_FORBIDDEN",
             Self::UnknownToken { .. } => "M_UNKNOWN_TOKEN",
             Self::MissingToken => "M_MISSING_TOKEN",
             Self::BadJson => "M_BAD_JSON",
@@ -303,10 +325,6 @@ pub struct Error {
     /// The http status code.
     pub status_code: http::StatusCode,
 
-    /// The `WWW-Authenticate` header error message.
-    #[cfg(feature = "unstable-msc2967")]
-    pub authenticate: Option<AuthenticateError>,
-
     /// The http response's body.
     pub body: ErrorBody,
 }
@@ -316,12 +334,7 @@ impl Error {
     ///
     /// This is equivalent to calling `body.into_error(status_code)`.
     pub fn new(status_code: http::StatusCode, body: ErrorBody) -> Self {
-        Self {
-            status_code,
-            #[cfg(feature = "unstable-msc2967")]
-            authenticate: None,
-            body,
-        }
+        Self { status_code, body }
     }
 
     /// If `self` is a server error in the `errcode` + `error` format expected
@@ -335,16 +348,24 @@ impl EndpointError for Error {
     fn from_http_response<T: AsRef<[u8]>>(response: http::Response<T>) -> Self {
         let status = response.status();
 
-        #[cfg(feature = "unstable-msc2967")]
-        let authenticate = response
-            .headers()
-            .get(http::header::WWW_AUTHENTICATE)
-            .and_then(|val| val.to_str().ok())
-            .and_then(AuthenticateError::from_str);
-
         let body_bytes = &response.body().as_ref();
         let error_body: ErrorBody = match from_json_slice(body_bytes) {
-            Ok(StandardErrorBody { kind, message }) => ErrorBody::Standard { kind, message },
+            Ok(StandardErrorBody { kind, message }) => {
+                #[cfg(feature = "unstable-msc2967")]
+                let kind = if let ErrorKind::Forbidden { .. } = kind {
+                    let authenticate = response
+                        .headers()
+                        .get(http::header::WWW_AUTHENTICATE)
+                        .and_then(|val| val.to_str().ok())
+                        .and_then(AuthenticateError::from_str);
+
+                    ErrorKind::Forbidden { authenticate }
+                } else {
+                    kind
+                };
+
+                ErrorBody::Standard { kind, message }
+            }
             Err(_) => match MatrixErrorBody::from_bytes(body_bytes) {
                 MatrixErrorBody::Json(json) => ErrorBody::Json(json),
                 MatrixErrorBody::NotJson { bytes, deserialization_error, .. } => {
@@ -353,13 +374,7 @@ impl EndpointError for Error {
             },
         };
 
-        let error = error_body.into_error(status);
-
-        #[cfg(not(feature = "unstable-msc2967"))]
-        return error;
-
-        #[cfg(feature = "unstable-msc2967")]
-        Self { authenticate, ..error }
+        error_body.into_error(status)
     }
 }
 
@@ -383,12 +398,7 @@ impl ErrorBody {
     ///
     /// This is equivalent to calling `Error::new(status_code, self)`.
     pub fn into_error(self, status_code: http::StatusCode) -> Error {
-        Error {
-            status_code,
-            #[cfg(feature = "unstable-msc2967")]
-            authenticate: None,
-            body: self,
-        }
+        Error { status_code, body: self }
     }
 }
 
@@ -401,7 +411,11 @@ impl OutgoingResponse for Error {
             .status(self.status_code);
 
         #[cfg(feature = "unstable-msc2967")]
-        let builder = if let Some(auth_error) = &self.authenticate {
+        let builder = if let ErrorBody::Standard {
+            kind: ErrorKind::Forbidden { authenticate: Some(auth_error) },
+            ..
+        } = &self.body
+        {
             builder.header(http::header::WWW_AUTHENTICATE, auth_error)
         } else {
             builder
@@ -546,7 +560,13 @@ mod tests {
         }))
         .unwrap();
 
-        assert_eq!(deserialized.kind, ErrorKind::Forbidden);
+        assert_eq!(
+            deserialized.kind,
+            ErrorKind::Forbidden {
+                #[cfg(feature = "unstable-msc2967")]
+                authenticate: None
+            }
+        );
         assert_eq!(deserialized.message, "You are not authorized to ban users in this room.");
     }
 
@@ -617,9 +637,9 @@ mod tests {
 
         assert_eq!(error.status_code, http::StatusCode::UNAUTHORIZED);
         assert_matches!(error.body, ErrorBody::Standard { kind, message });
-        assert_eq!(kind, ErrorKind::Forbidden);
+        assert_matches!(kind, ErrorKind::Forbidden { authenticate });
         assert_eq!(message, "Insufficient privilege");
-        assert_matches!(error.authenticate, Some(AuthenticateError::InsufficientScope { scope }));
+        assert_matches!(authenticate, Some(AuthenticateError::InsufficientScope { scope }));
         assert_eq!(scope, "something_privileged");
     }
 }
