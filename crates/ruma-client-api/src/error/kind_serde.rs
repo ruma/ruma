@@ -165,7 +165,10 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
         let extra = Extra(extra);
 
         Ok(match errcode {
-            ErrCode::Forbidden => ErrorKind::Forbidden,
+            ErrCode::Forbidden => ErrorKind::Forbidden {
+                #[cfg(feature = "unstable-msc2967")]
+                authenticate: None,
+            },
             ErrCode::UnknownToken => ErrorKind::UnknownToken {
                 soft_logout: soft_logout
                     .map(from_json_value)
@@ -361,7 +364,13 @@ mod tests {
     #[test]
     fn deserialize_forbidden() {
         let deserialized: ErrorKind = from_json_value(json!({ "errcode": "M_FORBIDDEN" })).unwrap();
-        assert_eq!(deserialized, ErrorKind::Forbidden);
+        assert_eq!(
+            deserialized,
+            ErrorKind::Forbidden {
+                #[cfg(feature = "unstable-msc2967")]
+                authenticate: None
+            }
+        );
     }
 
     #[test]
@@ -372,7 +381,13 @@ mod tests {
         }))
         .unwrap();
 
-        assert_eq!(deserialized, ErrorKind::Forbidden);
+        assert_eq!(
+            deserialized,
+            ErrorKind::Forbidden {
+                #[cfg(feature = "unstable-msc2967")]
+                authenticate: None
+            }
+        );
     }
 
     #[test]

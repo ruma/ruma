@@ -125,7 +125,7 @@ fn deserialize_uiaa_info() {
     assert_eq!(info.flows[1].stages, vec![AuthType::EmailIdentity, AuthType::Msisdn]);
     assert_eq!(info.session.as_deref(), Some("xxxxxx"));
     let auth_error = info.auth_error.unwrap();
-    assert_eq!(auth_error.kind, ErrorKind::Forbidden);
+    assert_matches!(auth_error.kind, ErrorKind::Forbidden { .. });
     assert_eq!(auth_error.message, "Invalid password");
     assert_eq!(
         from_json_str::<JsonValue>(info.params.get()).unwrap(),
@@ -207,7 +207,7 @@ fn try_uiaa_response_from_http_response() {
     assert_eq!(info.flows[1].stages, vec![AuthType::EmailIdentity, AuthType::Msisdn]);
     assert_eq!(info.session.as_deref(), Some("xxxxxx"));
     let auth_error = info.auth_error.unwrap();
-    assert_eq!(auth_error.kind, ErrorKind::Forbidden);
+    assert_matches!(auth_error.kind, ErrorKind::Forbidden { .. });
     assert_eq!(auth_error.message, "Invalid password");
     assert_eq!(
         from_json_str::<JsonValue>(info.params.get()).unwrap(),

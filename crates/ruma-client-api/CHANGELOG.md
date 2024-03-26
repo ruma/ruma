@@ -14,6 +14,7 @@ Breaking changes:
 - The query parameter of `check_registration_token_validity` endpoint
   has been renamed from `registration_token` to `token`
 - `Error` is now non-exhaustive.
+- `ErrorKind::Forbidden` is now a struct variant.
 
 Improvements:
 
