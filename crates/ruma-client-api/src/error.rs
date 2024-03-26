@@ -400,6 +400,7 @@ impl OutgoingResponse for Error {
             .header(http::header::CONTENT_TYPE, "application/json")
             .status(self.status_code);
 
+        #[allow(clippy::collapsible_match)]
         if let ErrorBody::Standard { kind, .. } = &self.body {
             match kind {
                 #[cfg(feature = "unstable-msc2967")]
