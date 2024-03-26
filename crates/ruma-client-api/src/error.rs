@@ -1,20 +1,20 @@
 //! Errors that can be sent from the homeserver.
 
-use std::{collections::BTreeMap, fmt, str::FromStr, sync::Arc, time::Duration};
+use std::{collections::BTreeMap, fmt, str::FromStr, sync::Arc};
 
 use as_variant::as_variant;
 use bytes::{BufMut, Bytes};
-use js_int::UInt;
 use ruma_common::{
     api::{
         error::{FromHttpResponseError, IntoHttpError, MatrixErrorBody},
         EndpointError, OutgoingResponse,
     },
-    RoomVersionId, SecondsSinceUnixEpoch,
+    RoomVersionId,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{from_slice as from_json_slice, Value as JsonValue};
 use thiserror::Error;
+use web_time::{Duration, SystemTime, UNIX_EPOCH};
 
 use crate::PrivOwnedStr;
 
@@ -556,8 +556,8 @@ pub enum RetryAfter {
     /// This variant should be preferred for backwards compatibility, as it will also populate the
     /// `retry_after_ms` field in the body of the response.
     Delay(Duration),
-    /// The client should wait for the date and time corresponding to the given timestamp.
-    DateTime(SecondsSinceUnixEpoch),
+    /// The client should wait for the given date and time.
+    DateTime(SystemTime),
 }
 
 impl RetryAfter {
@@ -569,51 +569,47 @@ impl RetryAfter {
             Some(Self::Delay(Duration::from_secs(u64::from_str(value.to_str().ok()?).ok()?)))
         } else {
             // It should be a date.
-            Some(Self::DateTime(SecondsSinceUnixEpoch(
-                UInt::try_from(date_header::parse(bytes).ok()?).ok()?,
-            )))
+            let ts = date_header::parse(bytes).ok()?;
+            Some(Self::DateTime(UNIX_EPOCH.checked_add(Duration::from_secs(ts))?))
         }
     }
 }
 
 impl TryFrom<&RetryAfter> for http::HeaderValue {
-    type Error = RetryAfterIntoHttpHeaderError;
+    type Error = RetryAfterInvalidDateTime;
 
     fn try_from(value: &RetryAfter) -> Result<Self, Self::Error> {
         match value {
             RetryAfter::Delay(duration) => Ok(duration.as_secs().into()),
-            RetryAfter::DateTime(ts) => {
+            RetryAfter::DateTime(time) => {
                 let mut buffer = [0; 29];
-                date_header::format(ts.0.into(), &mut buffer)
-                    .map_err(|_| RetryAfterIntoHttpHeaderError::InvalidDateTime)?;
-                Ok(http::HeaderValue::from_bytes(&buffer)?)
+                let duration =
+                    time.duration_since(UNIX_EPOCH).map_err(|_| RetryAfterInvalidDateTime)?;
+                date_header::format(duration.as_secs(), &mut buffer)
+                    .map_err(|_| RetryAfterInvalidDateTime)?;
+                let value = http::HeaderValue::from_bytes(&buffer)
+                    .expect("date_header should produce a valid header value");
+
+                Ok(value)
             }
         }
     }
 }
 
 /// An error when converting a [`RetryAfter`] to a [`http::HeaderValue`].
+///
+/// Happens when the `DateTime` is too far in the past (before the Unix epoch) or the
+/// future (after the year 9999).
 #[derive(Debug, Error)]
-#[allow(clippy::exhaustive_enums)]
-pub enum RetryAfterIntoHttpHeaderError {
-    /// The date and time are too much in the future (the year is bigger than 9999).
-    #[error(
-        "Retry-After header serialization failed: the year of the datetime is bigger than 9999"
-    )]
-    InvalidDateTime,
-    /// The header value is invalid (should not happen).
-    #[error("Retry-After header serialization failed: {0}")]
-    InvalidHeader(#[from] http::header::InvalidHeaderValue),
-}
+#[allow(clippy::exhaustive_structs)]
+#[error(
+    "Retry-After header serialization failed: the datetime is too far in the past or the future"
+)]
+pub struct RetryAfterInvalidDateTime;
 
-impl From<RetryAfterIntoHttpHeaderError> for IntoHttpError {
-    fn from(value: RetryAfterIntoHttpHeaderError) -> Self {
-        match value {
-            RetryAfterIntoHttpHeaderError::InvalidDateTime => {
-                IntoHttpError::RetryAfterInvalidDatetime
-            }
-            RetryAfterIntoHttpHeaderError::InvalidHeader(error) => error.into(),
-        }
+impl From<RetryAfterInvalidDateTime> for IntoHttpError {
+    fn from(_value: RetryAfterInvalidDateTime) -> Self {
+        IntoHttpError::RetryAfterInvalidDatetime
     }
 }
 
@@ -635,6 +631,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use ruma_common::api::EndpointError;
     use serde_json::{from_value as from_json_value, json};
+    use web_time::UNIX_EPOCH;
 
     use super::{Error, ErrorBody, ErrorKind, RetryAfter, StandardErrorBody};
 
@@ -828,8 +825,8 @@ mod tests {
                 message
             }
         );
-        assert_matches!(retry_after, RetryAfter::DateTime(datetime));
-        assert_eq!(u64::from(datetime.0), 1_431_704_061);
+        assert_matches!(retry_after, RetryAfter::DateTime(time));
+        assert_eq!(UNIX_EPOCH.duration_since(time).unwrap().as_secs(), 1_431_704_061);
         assert_eq!(message, "Too many requests");
     }
 
