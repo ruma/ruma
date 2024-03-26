@@ -629,9 +629,11 @@ impl FromHttpResponseErrorExt for FromHttpResponseError<Error> {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use ruma_common::api::EndpointError;
-    use serde_json::{from_value as from_json_value, json};
-    use web_time::UNIX_EPOCH;
+    use ruma_common::api::{EndpointError, OutgoingResponse};
+    use serde_json::{
+        from_slice as from_json_slice, from_value as from_json_value, json, Value as JsonValue,
+    };
+    use web_time::{Duration, UNIX_EPOCH};
 
     use super::{Error, ErrorBody, ErrorKind, RetryAfter, StandardErrorBody};
 
@@ -826,7 +828,7 @@ mod tests {
             }
         );
         assert_matches!(retry_after, RetryAfter::DateTime(time));
-        assert_eq!(UNIX_EPOCH.duration_since(time).unwrap().as_secs(), 1_431_704_061);
+        assert_eq!(time.duration_since(UNIX_EPOCH).unwrap().as_secs(), 1_431_704_061);
         assert_eq!(message, "Too many requests");
     }
 
@@ -857,5 +859,89 @@ mod tests {
         assert_matches!(retry_after, RetryAfter::Delay(delay));
         assert_eq!(delay.as_millis(), 2000);
         assert_eq!(message, "Too many requests");
+    }
+
+    #[test]
+    fn serialize_limit_exceeded_retry_after_none() {
+        let error = Error::new(
+            http::StatusCode::TOO_MANY_REQUESTS,
+            ErrorBody::Standard {
+                kind: ErrorKind::LimitExceeded { retry_after: None },
+                message: "Too many requests".to_owned(),
+            },
+        );
+
+        let response = error.try_into_http_response::<Vec<u8>>().unwrap();
+
+        assert_eq!(response.status(), http::StatusCode::TOO_MANY_REQUESTS);
+        assert_eq!(response.headers().get(http::header::RETRY_AFTER), None);
+
+        let json_body: JsonValue = from_json_slice(response.body()).unwrap();
+        assert_eq!(
+            json_body,
+            json!({
+                "errcode": "M_LIMIT_EXCEEDED",
+                "error": "Too many requests",
+            })
+        );
+    }
+
+    #[test]
+    fn serialize_limit_exceeded_retry_after_delay() {
+        let error = Error::new(
+            http::StatusCode::TOO_MANY_REQUESTS,
+            ErrorBody::Standard {
+                kind: ErrorKind::LimitExceeded {
+                    retry_after: Some(RetryAfter::Delay(Duration::from_secs(3))),
+                },
+                message: "Too many requests".to_owned(),
+            },
+        );
+
+        let response = error.try_into_http_response::<Vec<u8>>().unwrap();
+
+        assert_eq!(response.status(), http::StatusCode::TOO_MANY_REQUESTS);
+        let retry_after_header = response.headers().get(http::header::RETRY_AFTER).unwrap();
+        assert_eq!(retry_after_header.to_str().unwrap(), "3");
+
+        let json_body: JsonValue = from_json_slice(response.body()).unwrap();
+        assert_eq!(
+            json_body,
+            json!({
+                "errcode": "M_LIMIT_EXCEEDED",
+                "error": "Too many requests",
+                "retry_after_ms": 3000,
+            })
+        );
+    }
+
+    #[test]
+    fn serialize_limit_exceeded_retry_after_datetime() {
+        let error = Error::new(
+            http::StatusCode::TOO_MANY_REQUESTS,
+            ErrorBody::Standard {
+                kind: ErrorKind::LimitExceeded {
+                    retry_after: Some(RetryAfter::DateTime(
+                        UNIX_EPOCH + Duration::from_secs(1_431_704_061),
+                    )),
+                },
+                message: "Too many requests".to_owned(),
+            },
+        );
+
+        let response = error.try_into_http_response::<Vec<u8>>().unwrap();
+
+        assert_eq!(response.status(), http::StatusCode::TOO_MANY_REQUESTS);
+        let retry_after_header = response.headers().get(http::header::RETRY_AFTER).unwrap();
+        assert_eq!(retry_after_header.to_str().unwrap(), "Fri, 15 May 2015 15:34:21 GMT");
+
+        let json_body: JsonValue = from_json_slice(response.body()).unwrap();
+        assert_eq!(
+            json_body,
+            json!({
+                "errcode": "M_LIMIT_EXCEEDED",
+                "error": "Too many requests",
+            })
+        );
     }
 }
