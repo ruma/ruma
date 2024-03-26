@@ -298,7 +298,7 @@ pub struct StandardErrorBody {
 
 /// A Matrix Error
 #[derive(Debug, Clone)]
-#[allow(clippy::exhaustive_structs)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Error {
     /// The http status code.
     pub status_code: http::StatusCode,
@@ -312,6 +312,18 @@ pub struct Error {
 }
 
 impl Error {
+    /// Constructs a new `Error` with the given status code and body.
+    ///
+    /// This is equivalent to calling `body.into_error(status_code)`.
+    pub fn new(status_code: http::StatusCode, body: ErrorBody) -> Self {
+        Self {
+            status_code,
+            #[cfg(feature = "unstable-msc2967")]
+            authenticate: None,
+            body,
+        }
+    }
+
     /// If `self` is a server error in the `errcode` + `error` format expected
     /// for client-server API endpoints, returns the error kind (`errcode`).
     pub fn error_kind(&self) -> Option<&ErrorKind> {
@@ -368,6 +380,8 @@ impl std::error::Error for Error {}
 
 impl ErrorBody {
     /// Convert the ErrorBody into an Error by adding the http status code.
+    ///
+    /// This is equivalent to calling `Error::new(status_code, self)`.
     pub fn into_error(self, status_code: http::StatusCode) -> Error {
         Error {
             status_code,
