@@ -283,5 +283,7 @@ ruma-federation-api = { workspace = true, optional = true }
 ruma-identity-service-api = { workspace = true, optional = true }
 ruma-push-gateway-api = { workspace = true, optional = true }
 
+web-time = { workspace = true }
+
 [dev-dependencies]
 serde = { workspace = true }
