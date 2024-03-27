@@ -324,6 +324,8 @@ pub struct Error {
 
 impl Error {
     /// Constructs a new `Error` with the given status code and body.
+    ///
+    /// This is equivalent to calling `body.into_error(status_code)`.
     pub fn new(status_code: http::StatusCode, body: ErrorBody) -> Self {
         Self { status_code, body }
     }
@@ -386,6 +388,8 @@ impl std::error::Error for Error {}
 
 impl ErrorBody {
     /// Convert the ErrorBody into an Error by adding the http status code.
+    ///
+    /// This is equivalent to calling `Error::new(status_code, self)`.
     pub fn into_error(self, status_code: http::StatusCode) -> Error {
         Error { status_code, body: self }
     }
