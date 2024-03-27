@@ -165,10 +165,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
         let extra = Extra(extra);
 
         Ok(match errcode {
-            ErrCode::Forbidden => ErrorKind::Forbidden {
-                #[cfg(feature = "unstable-msc2967")]
-                authenticate: None,
-            },
+            ErrCode::Forbidden => ErrorKind::forbidden(),
             ErrCode::UnknownToken => ErrorKind::UnknownToken {
                 soft_logout: soft_logout
                     .map(from_json_value)

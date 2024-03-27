@@ -27,6 +27,7 @@ mod kind_serde;
 #[non_exhaustive]
 pub enum ErrorKind {
     /// M_FORBIDDEN
+    #[non_exhaustive]
     Forbidden {
         /// The `WWW-Authenticate` header error message.
         #[cfg(feature = "unstable-msc2967")]
@@ -194,6 +195,16 @@ pub enum ErrorKind {
 
     #[doc(hidden)]
     _Custom { errcode: PrivOwnedStr, extra: Extra },
+}
+
+impl ErrorKind {
+    /// Constructs an empty [`ErrorKind::Forbidden`] variant.
+    pub fn forbidden() -> Self {
+        Self::Forbidden {
+            #[cfg(feature = "unstable-msc2967")]
+            authenticate: None,
+        }
+    }
 }
 
 #[doc(hidden)]
