@@ -10,7 +10,7 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response, Direction, Metadata},
         metadata,
         serde::Raw,
         OwnedEventId, OwnedRoomId,
@@ -55,6 +55,13 @@ pub mod v1 {
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
         pub from: Option<String>,
+
+        /// The direction to return events from.
+        ///
+        /// Defaults to [`Direction::Backward`].
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        #[ruma_api(query)]
+        pub dir: Direction,
 
         /// The pagination token to stop returning results at.
         ///
@@ -125,7 +132,16 @@ pub mod v1 {
     impl Request {
         /// Creates a new `Request` with the given room ID, parent event ID and relationship type.
         pub fn new(room_id: OwnedRoomId, event_id: OwnedEventId, rel_type: RelationType) -> Self {
-            Self { room_id, event_id, rel_type, from: None, to: None, limit: None, recurse: false }
+            Self {
+                room_id,
+                event_id,
+                dir: Direction::default(),
+                rel_type,
+                from: None,
+                to: None,
+                limit: None,
+                recurse: false,
+            }
         }
     }
 
