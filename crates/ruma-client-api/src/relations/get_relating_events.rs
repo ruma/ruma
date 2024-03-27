@@ -120,7 +120,7 @@ pub mod v1 {
         ///
         /// If `recurse` was not set, this field must be absent.
         #[serde(skip_serializing_if = "Option::is_none")]
-        recursion_depth: Option<UInt>,
+        pub recursion_depth: Option<UInt>,
     }
 
     impl Request {
