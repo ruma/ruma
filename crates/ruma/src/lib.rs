@@ -130,3 +130,4 @@ pub use js_option::JsOption;
 #[cfg(feature = "client-ext-client-api")]
 pub use ruma_client::Client;
 pub use ruma_common::*;
+pub use web_time as time;

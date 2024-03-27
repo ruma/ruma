@@ -267,6 +267,7 @@ __ci = [
 assign = { workspace = true }
 js_int = { workspace = true }
 js_option = "0.1.1"
+web-time = { workspace = true }
 
 ruma-common = { workspace = true }
 

@@ -77,7 +77,7 @@ time = "0.3.34"
 tracing = { workspace = true, features = ["attributes"] }
 url = "2.2.2"
 uuid = { version = "1.0.0", optional = true, features = ["v4"] }
-web-time = "1.1.0"
+web-time = { workspace = true }
 wildmatch = "2.0.0"
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
