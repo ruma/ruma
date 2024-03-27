@@ -267,6 +267,7 @@ __ci = [
 assign = { workspace = true }
 js_int = { workspace = true }
 js_option = "0.1.1"
+web-time = { workspace = true }
 
 ruma-common = { workspace = true }
 
@@ -282,8 +283,6 @@ ruma-client-api = { workspace = true, optional = true }
 ruma-federation-api = { workspace = true, optional = true }
 ruma-identity-service-api = { workspace = true, optional = true }
 ruma-push-gateway-api = { workspace = true, optional = true }
-
-web-time = { workspace = true }
 
 [dev-dependencies]
 serde = { workspace = true }
