@@ -1,4 +1,4 @@
-use html5ever::{tendril::StrTendril, Attribute};
+use html5ever::{tendril::StrTendril, Attribute, LocalName};
 use phf::{phf_map, phf_set, Map, Set};
 use wildmatch::WildMatch;
 
@@ -12,10 +12,21 @@ pub struct SanitizerConfig {
     /// If this is `None`, all tags are allowed.
     allowed_tags: Option<&'static Set<&'static str>>,
 
+    /// The allowed deprecated HTML tags.
+    ///
+    /// This is a map of allowed deprecated tag to their replacement tag.
+    deprecated_tags: Option<&'static Map<&'static str, &'static str>>,
+
     /// The allowed attributes per tag.
     ///
     /// If this is `None`, all attributes are allowed.
     allowed_attrs: Option<&'static Map<&'static str, &'static Set<&'static str>>>,
+
+    /// The allowed deprecated attributes per tag.
+    ///
+    /// This is a map of tag to a map of allowed deprecated attribute to their replacement
+    /// attribute.
+    deprecated_attrs: Option<&'static Map<&'static str, &'static Map<&'static str, &'static str>>>,
 
     /// The allowed URI schemes per tag.
     ///
@@ -43,13 +54,17 @@ impl SanitizerConfig {
     /// Constructs a `SanitizerConfig` that will filter tags or attributes not [listed in the
     /// Matrix specification].
     ///
+    /// Deprecated tags will be replaced with their non-deprecated equivalent.
+    ///
     /// It will not remove the reply fallback by default.
     ///
     /// [listed in the Matrix specification]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
     pub fn strict() -> Self {
         Self {
             allowed_tags: Some(&ALLOWED_TAGS_WITHOUT_REPLY_STRICT),
+            deprecated_tags: Some(&DEPRECATED_TAGS),
             allowed_attrs: Some(&ALLOWED_ATTRIBUTES_STRICT),
+            deprecated_attrs: Some(&DEPRECATED_ATTRS),
             allowed_schemes: Some(&ALLOWED_SCHEMES_STRICT),
             allowed_classes: Some(&ALLOWED_CLASSES_STRICT),
             max_depth: Some(MAX_DEPTH_STRICT),
@@ -61,6 +76,8 @@ impl SanitizerConfig {
     /// Matrix specification], except a few for improved compatibility:
     ///
     /// - The `matrix` scheme is allowed in links.
+    ///
+    /// Deprecated tags will be replaced with their non-deprecated equivalent.
     ///
     /// It will not remove the reply fallback by default.
     ///
@@ -89,6 +106,8 @@ impl SanitizerConfig {
     }
 
     fn clean_node(&self, html: &mut Html, node_id: usize, depth: u32) {
+        self.apply_deprecations(html, node_id);
+
         let action = self.node_action(html, node_id, depth);
 
         if action != NodeAction::Remove {
@@ -108,6 +127,42 @@ impl SanitizerConfig {
             html.detach(node_id);
         } else if let Some(data) = html.nodes[node_id].as_element_mut() {
             self.clean_element_attributes(data);
+        }
+    }
+
+    fn apply_deprecations(&self, html: &mut Html, node_id: usize) {
+        if let NodeData::Element(ElementData { name, attrs, .. }) = &mut html.nodes[node_id].data {
+            let tag: &str = &name.local;
+
+            if let Some(deprecated_attrs) =
+                self.deprecated_attrs.and_then(|deprecated_attrs| deprecated_attrs.get(tag))
+            {
+                *attrs = attrs
+                    .clone()
+                    .into_iter()
+                    .map(|mut attr| {
+                        let attr_name: &str = &attr.name.local;
+
+                        let attr_replacement =
+                            deprecated_attrs.get(attr_name).map(|s| LocalName::from(*s));
+
+                        if let Some(attr_replacement) = attr_replacement {
+                            attr.name.local = attr_replacement;
+                        }
+
+                        attr
+                    })
+                    .collect();
+            }
+
+            let tag_replacement = self
+                .deprecated_tags
+                .and_then(|deprecated_tags| deprecated_tags.get(tag))
+                .map(|s| LocalName::from(*s));
+
+            if let Some(tag_replacement) = tag_replacement {
+                name.local = tag_replacement;
+            }
         }
     }
 
@@ -247,8 +302,8 @@ enum AttributeAction {
 
 /// List of HTML tags allowed in the Matrix specification, without the rich reply fallback tag.
 static ALLOWED_TAGS_WITHOUT_REPLY_STRICT: Set<&str> = phf_set! {
-    "font", "del", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "p", "a",
-    "ul", "ol", "sup", "sub", "li", "b", "i", "u", "strong", "em", "strike",
+    "del", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "p", "a",
+    "ul", "ol", "sup", "sub", "li", "b", "i", "u", "strong", "em", "s",
     "code", "hr", "br", "div", "table", "thead", "tbody", "tr", "th", "td",
     "caption", "pre", "span", "img", "details", "summary",
 };
@@ -256,17 +311,20 @@ static ALLOWED_TAGS_WITHOUT_REPLY_STRICT: Set<&str> = phf_set! {
 /// The HTML tag name for a rich reply fallback.
 const RICH_REPLY_TAG: &str = "mx-reply";
 
+/// HTML tags that were allowed in the Matrix specification, with their replacement.
+static DEPRECATED_TAGS: Map<&str, &str> = phf_map! {
+    "font" => "span",
+    "strike" => "s",
+};
+
 /// Allowed attributes per HTML tag according to the Matrix specification.
 static ALLOWED_ATTRIBUTES_STRICT: Map<&str, &Set<&str>> = phf_map! {
-    "font" => &ALLOWED_ATTRIBUTES_FONT_STRICT,
     "span" => &ALLOWED_ATTRIBUTES_SPAN_STRICT,
     "a" => &ALLOWED_ATTRIBUTES_A_STRICT,
     "img" => &ALLOWED_ATTRIBUTES_IMG_STRICT,
     "ol" => &ALLOWED_ATTRIBUTES_OL_STRICT,
     "code" => &ALLOWED_ATTRIBUTES_CODE_STRICT,
 };
-static ALLOWED_ATTRIBUTES_FONT_STRICT: Set<&str> =
-    phf_set! { "data-mx-bg-color", "data-mx-color", "color" };
 static ALLOWED_ATTRIBUTES_SPAN_STRICT: Set<&str> =
     phf_set! { "data-mx-bg-color", "data-mx-color", "data-mx-spoiler" };
 static ALLOWED_ATTRIBUTES_A_STRICT: Set<&str> = phf_set! { "name", "target", "href" };
@@ -274,6 +332,13 @@ static ALLOWED_ATTRIBUTES_IMG_STRICT: Set<&str> =
     phf_set! { "width", "height", "alt", "title", "src" };
 static ALLOWED_ATTRIBUTES_OL_STRICT: Set<&str> = phf_set! { "start" };
 static ALLOWED_ATTRIBUTES_CODE_STRICT: Set<&str> = phf_set! { "class" };
+
+/// Attributes that were allowed on HTML tags according to the Matrix specification, with their
+/// replacement.
+static DEPRECATED_ATTRS: Map<&str, &Map<&str, &str>> = phf_map! {
+    "font" => &DEPRECATED_ATTRIBUTES_FONT,
+};
+static DEPRECATED_ATTRIBUTES_FONT: Map<&str, &str> = phf_map! { "color" => "data-mx-color" };
 
 /// Allowed schemes of URIs per HTML tag and attribute tuple according to the Matrix specification.
 static ALLOWED_SCHEMES_STRICT: Map<&str, &Set<&str>> = phf_map! {

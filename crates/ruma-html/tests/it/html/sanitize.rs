@@ -122,7 +122,7 @@ fn attrs_remove() {
     let mut html = Html::parse(
         "\
         <h1 id=\"anchor1\">Title for important stuff</h1>\
-        <p class=\"important\">Look at <font color=\"blue\" size=20>me!</font></p>\
+        <p class=\"important\">Look at <span data-mx-color=\"#0000ff\" size=20>me!</span></p>\
         ",
     );
     html.sanitize_with(config);
@@ -131,7 +131,7 @@ fn attrs_remove() {
         html.to_string(),
         "\
         <h1>Title for important stuff</h1>\
-        <p>Look at <font color=\"blue\">me!</font></p>\
+        <p>Look at <span data-mx-color=\"#0000ff\">me!</span></p>\
         "
     );
 }
@@ -245,4 +245,22 @@ fn depth_remove() {
     let res = html.to_string();
     assert!(res.contains("I should be fine."));
     assert!(!res.contains("I am in too deep!"));
+}
+
+#[test]
+fn replace_deprecated() {
+    let config = SanitizerConfig::strict();
+    let mut html = Html::parse(
+        "\
+        <p>Look at <strike>you </strike><font data-mx-bg-color=\"#ff0000\" color=\"#0000ff\">me!</span></p>\
+        ",
+    );
+    html.sanitize_with(config);
+
+    assert_eq!(
+        html.to_string(),
+        "\
+        <p>Look at <s>you </s><span data-mx-bg-color=\"#ff0000\" data-mx-color=\"#0000ff\">me!</span></p>\
+        "
+    );
 }
