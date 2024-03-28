@@ -13,6 +13,9 @@ Breaking changes:
 - The `ts` field in `Request` for `get_media_preview` is now `Option`.
 - The query parameter of `check_registration_token_validity` endpoint
   has been renamed from `registration_token` to `token`
+- `Error` is now non-exhaustive.
+- `ErrorKind::Forbidden` is now a non-exhaustive struct variant that can be
+  constructed with `ErrorKind::forbidden()`.
 
 Improvements:
 
