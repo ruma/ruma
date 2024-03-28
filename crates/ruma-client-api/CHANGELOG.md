@@ -13,6 +13,11 @@ Breaking changes:
 - The `ts` field in `Request` for `get_media_preview` is now `Option`.
 - The query parameter of `check_registration_token_validity` endpoint
   has been renamed from `registration_token` to `token`
+- `Error` is now non-exhaustive.
+- `ErrorKind::Forbidden` is now a struct variant.
+- The `retry_after_ms` field of `ErrorKind::LimitExceeded` was renamed to
+  `retry_after` and is now an `Option<RetryAfter>`, to add support for the
+  Retry-After header, according to MSC4041 / Matrix 1.10 
 
 Improvements:
 
