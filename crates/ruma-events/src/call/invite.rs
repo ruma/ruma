@@ -2,6 +2,8 @@
 //!
 //! [`m.call.invite`]: https://spec.matrix.org/latest/client-server-api/#mcallinvite
 
+use std::collections::BTreeMap;
+
 use js_int::UInt;
 use ruma_common::{OwnedUserId, OwnedVoipId, VoipVersionId};
 use ruma_macros::EventContent;
@@ -9,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "unstable-msc2747")]
 use super::CallCapabilities;
-use super::SessionDescription;
+use super::{SessionDescription, StreamMetadata};
 
 /// The content of an `m.call.invite` event.
 ///
@@ -49,6 +51,12 @@ pub struct CallInviteEventContent {
     /// The invite should be ignored if the invitee is set and doesn't match the user's ID.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invitee: Option<OwnedUserId>,
+
+    /// **Added in VoIP version 1.** Metadata describing the streams that will be sent.
+    ///
+    /// This is a map of stream ID to metadata about the stream.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub sdp_stream_metadata: BTreeMap<String, StreamMetadata>,
 }
 
 impl CallInviteEventContent {
@@ -69,6 +77,7 @@ impl CallInviteEventContent {
             #[cfg(feature = "unstable-msc2747")]
             capabilities: Default::default(),
             invitee: None,
+            sdp_stream_metadata: Default::default(),
         }
     }
 
@@ -95,6 +104,7 @@ impl CallInviteEventContent {
             #[cfg(feature = "unstable-msc2747")]
             capabilities: Default::default(),
             invitee: None,
+            sdp_stream_metadata: Default::default(),
         }
     }
 }
