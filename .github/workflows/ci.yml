@@ -231,6 +231,9 @@ jobs:
       - name: Build docs
         run: target/debug/xtask doc --deny-warnings
 
+      - name: Remove .lock file
+        run: rm target/doc/.lock
+
       - name: Compress docs
         if: github.event_name == 'pull_request'
         run: |
@@ -245,10 +248,10 @@ jobs:
 
       - name: Upload docs as pages artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v3
         with:
           path: target/doc
 
       - name: Deploy to GitHub Pages
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
