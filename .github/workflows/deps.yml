@@ -20,7 +20,7 @@ jobs:
     if: github.event.name != 'schedule'
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: EmbarkStudios/cargo-deny-action@v1
         with:
           command: check bans licenses sources
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: EmbarkStudios/cargo-deny-action@v1
         with:
           command: check advisories
