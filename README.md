@@ -7,7 +7,7 @@ network.
 
 [Rust]: https://rust-lang.org/
 [Matrix]: https://matrix.org/
-[website]: https://ruma.io/
+[website]: https://ruma.dev/
 [chat]: https://matrix.to/#/#ruma:matrix.org
 [docs]: https://docs.rs/ruma/
 [unstable-docs]: https://docs.ruma.dev/ruma/

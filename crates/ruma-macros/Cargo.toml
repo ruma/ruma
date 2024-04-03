@@ -1,7 +1,7 @@
 [package]
 categories = ["api-bindings", "web-programming"]
 description = "Procedural macros used by the Ruma crates."
-homepage = "https://ruma.io/"
+homepage = "https://ruma.dev/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
 name = "ruma-macros"

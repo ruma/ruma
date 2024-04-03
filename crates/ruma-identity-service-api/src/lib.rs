@@ -1,5 +1,5 @@
-#![doc(html_favicon_url = "https://ruma.io/favicon.ico")]
-#![doc(html_logo_url = "https://ruma.io/images/logo.png")]
+#![doc(html_favicon_url = "https://ruma.dev/favicon.ico")]
+#![doc(html_logo_url = "https://ruma.dev/images/logo.png")]
 //! (De)serializable types for the [Matrix Identity Service API][identity-api].
 //! These types can be shared by client and identity service code.
 //!
