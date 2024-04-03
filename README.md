@@ -10,7 +10,7 @@ network.
 [website]: https://ruma.io/
 [chat]: https://matrix.to/#/#ruma:matrix.org
 [docs]: https://docs.rs/ruma/
-[unstable-docs]: https://docs.ruma.io/ruma/
+[unstable-docs]: https://docs.ruma.dev/ruma/
 
 ## Getting started
 
@@ -31,7 +31,7 @@ ruma = { git = "https://github.com/ruma/ruma", branch = "main", features = ["...
 
 `ruma` re-exports all of the other crates, so you don't have to worry about
 them as a user. Check out the documentation [on docs.rs][docs] (or on
-[docs.ruma.io][unstable-docs] if you use use the git dependency).
+[docs.ruma.dev][unstable-docs] if you use use the git dependency).
 
 [matrix-rust-sdk]: https://github.com/matrix-org/matrix-rust-sdk#readme
 [feat]: https://github.com/ruma/ruma/blob/1166af5a354210dcbced1eaf4a11f795c381d2ec/ruma/Cargo.toml#L35
