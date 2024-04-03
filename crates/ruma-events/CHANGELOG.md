@@ -3,6 +3,9 @@
 Improvements:
 
  - Add support for encrypted stickers as sent by several bridges under the flag `compat-encrypted-stickers`
+ - Add unstable support
+   for [MSC3489](https://github.com/matrix-org/matrix-spec-proposals/blob/matthew/location-streaming/proposals/3489-location-streaming.md)
+   Live Location Sharing
 
 Breaking changes:
 
