@@ -1,5 +1,5 @@
-#![doc(html_favicon_url = "https://ruma.io/favicon.ico")]
-#![doc(html_logo_url = "https://ruma.io/images/logo.png")]
+#![doc(html_favicon_url = "https://ruma.dev/favicon.ico")]
+#![doc(html_logo_url = "https://ruma.dev/images/logo.png")]
 //! Digital signatures according to the [Matrix](https://matrix.org/) specification.
 //!
 //! Digital signatures are used by Matrix homeservers to verify the authenticity of events in the

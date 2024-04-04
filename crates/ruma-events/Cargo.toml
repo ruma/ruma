@@ -2,7 +2,7 @@
 name = "ruma-events"
 version = "0.27.11"
 description = "Serializable types for the events in the Matrix specification."
-homepage = "https://ruma.io/"
+homepage = "https://ruma.dev/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
 readme = "README.md"

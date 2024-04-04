@@ -2,7 +2,7 @@
 name = "ruma-push-gateway-api"
 version = "0.8.0"
 description = "Types for the endpoints in the Matrix push gateway API."
-homepage = "https://ruma.io/"
+homepage = "https://ruma.dev/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
 readme = "README.md"

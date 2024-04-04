@@ -1,5 +1,5 @@
-#![doc(html_favicon_url = "https://ruma.io/favicon.ico")]
-#![doc(html_logo_url = "https://ruma.io/images/logo.png")]
+#![doc(html_favicon_url = "https://ruma.dev/favicon.ico")]
+#![doc(html_logo_url = "https://ruma.dev/images/logo.png")]
 //! Common types for the Ruma crates.
 
 #![recursion_limit = "1024"]

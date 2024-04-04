@@ -1,7 +1,7 @@
 [package]
 categories = ["api-bindings", "web-programming"]
 description = "Types for the endpoints in the Matrix server-server API."
-homepage = "https://ruma.io/"
+homepage = "https://ruma.dev/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
 name = "ruma-federation-api"

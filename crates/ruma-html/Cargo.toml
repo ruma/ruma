@@ -2,7 +2,7 @@
 name = "ruma-html"
 version = "0.1.0"
 description = "Opinionated HTML parsing and manipulating."
-homepage = "https://ruma.io/"
+homepage = "https://ruma.dev/"
 keywords = ["matrix", "ruma", "html", "parser"]
 license = "MIT"
 readme = "README.md"
