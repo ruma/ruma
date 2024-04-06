@@ -2,15 +2,12 @@
 //!
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1send_leaveroomideventid
 
-use js_int::UInt;
 use ruma_common::{
     api::{request, response, Metadata},
-    metadata,
-    serde::Raw,
-    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName, OwnedUserId,
+    metadata, OwnedEventId, OwnedRoomId,
 };
-use ruma_events::{room::member::RoomMemberEventContent, StateEventType};
 use serde::{Deserialize, Serialize};
+use serde_json::value::RawValue as RawJsonValue;
 
 const METADATA: Metadata = metadata! {
     method: PUT,
@@ -26,6 +23,8 @@ const METADATA: Metadata = metadata! {
 #[request]
 pub struct Request {
     /// The room ID that is about to be left.
+    ///
+    /// Do not use this. Instead, use the `room_id` field inside the PDU.
     #[ruma_api(path)]
     pub room_id: OwnedRoomId,
 
@@ -33,34 +32,9 @@ pub struct Request {
     #[ruma_api(path)]
     pub event_id: OwnedEventId,
 
-    /// The user ID of the leaving member.
-    #[ruma_api(query)]
-    pub sender: OwnedUserId,
-
-    /// The name of the leaving homeserver.
-    #[ruma_api(query)]
-    pub origin: OwnedServerName,
-
-    /// A timestamp added by the leaving homeserver.
-    #[ruma_api(query)]
-    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
-
-    /// The value `m.room.member`.
-    #[ruma_api(query)]
-    #[serde(rename = "type")]
-    pub event_type: StateEventType,
-
-    /// The user ID of the leaving member.
-    #[ruma_api(query)]
-    pub state_key: String,
-
-    /// The content of the event.
-    #[ruma_api(query)]
-    pub content: Raw<RoomMemberEventContent>,
-
-    /// This field must be present but is ignored; it may be 0.
-    #[ruma_api(query)]
-    pub depth: UInt,
+    /// The PDU.
+    #[ruma_api(body)]
+    pub pdu: Box<RawJsonValue>,
 }
 
 /// Response type for the `create_leave_event` endpoint.
@@ -75,66 +49,10 @@ pub struct Response {
     pub empty: Empty,
 }
 
-/// Initial set of fields of `Request`.
-///
-/// This struct will not be updated even if additional fields are added to `Request` in a
-/// new (non-breaking) release of the Matrix specification.
-#[derive(Debug)]
-#[allow(clippy::exhaustive_structs)]
-pub struct RequestInit {
-    /// The room ID that is about to be left.
-    pub room_id: OwnedRoomId,
-
-    /// The event ID for the leave event.
-    pub event_id: OwnedEventId,
-
-    /// The user ID of the leaving member.
-    pub sender: OwnedUserId,
-
-    /// The name of the leaving homeserver.
-    pub origin: OwnedServerName,
-
-    /// A timestamp added by the leaving homeserver.
-    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
-
-    /// The value `m.room.member`.
-    pub event_type: StateEventType,
-
-    /// The user ID of the leaving member.
-    pub state_key: String,
-
-    /// The content of the event.
-    pub content: Raw<RoomMemberEventContent>,
-
-    /// This field must be present but is ignored; it may be 0.
-    pub depth: UInt,
-}
-
-impl From<RequestInit> for Request {
-    /// Creates a new `Request` from `RequestInit`.
-    fn from(init: RequestInit) -> Self {
-        let RequestInit {
-            room_id,
-            event_id,
-            sender,
-            origin,
-            origin_server_ts,
-            event_type,
-            state_key,
-            content,
-            depth,
-        } = init;
-        Self {
-            room_id,
-            event_id,
-            sender,
-            origin,
-            origin_server_ts,
-            event_type,
-            state_key,
-            content,
-            depth,
-        }
+impl Request {
+    /// Creates a new `Request` from the given room ID, event ID and PDU.
+    pub fn new(room_id: OwnedRoomId, event_id: OwnedEventId, pdu: Box<RawJsonValue>) -> Self {
+        Self { room_id, event_id, pdu }
     }
 }
 
