@@ -112,6 +112,13 @@ pub enum ContactRole {
     /// A role intended for sensitive requests.
     Security,
 
+    /// A role for moderation-related queries according to [MSC4121](https://github.com/matrix-org/matrix-spec-proposals/pull/4121).
+    ///
+    /// The future prefix for this if accepted will be `m.role.moderator`
+    #[cfg(feature = "unstable-msc4121")]
+    #[ruma_enum(rename = "support.feline.msc4121.role.moderator", alias = "m.role.moderator")]
+    Moderator,
+
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
