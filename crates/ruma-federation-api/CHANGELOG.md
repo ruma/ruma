@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+* Use `RawValue` to represent body of `/v1/send_join` request, rather than incorrectly using
+  query parameters
+
 Improvements:
 
 * Implement `From<SpaceHierarchyParentSummary>` for `SpaceHierarchyChildSummary`
