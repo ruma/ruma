@@ -548,7 +548,7 @@ impl TryFrom<&AuthenticateError> for http::HeaderValue {
     }
 }
 
-/// How long a client should wait before they can try again.
+/// How long a client should wait before it tries again.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[allow(clippy::exhaustive_enums)]
 pub enum RetryAfter {
