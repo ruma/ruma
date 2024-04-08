@@ -52,8 +52,8 @@ where
 /// Take either a floating point number or a string and deserialize to an floating-point number.
 ///
 /// To be used like this:
-/// `#[serde(deserialize_with = "deserialize_as_f64_or_int_or_string")]`
-pub fn deserialize_as_f64_or_int_or_string<'de, D>(de: D) -> Result<f64, D::Error>
+/// `#[serde(deserialize_with = "deserialize_as_number_or_string")]`
+pub fn deserialize_as_number_or_string<'de, D>(de: D) -> Result<f64, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -111,18 +111,16 @@ where
 }
 
 #[derive(Deserialize)]
-struct F64OrStringOrIntWrapper(
-    #[serde(deserialize_with = "deserialize_as_f64_or_int_or_string")] f64,
-);
+struct NumberOrStringWrapper(#[serde(deserialize_with = "deserialize_as_number_or_string")] f64);
 
-/// Deserializes an `Option<f64>` as encoded as a f64 or a string or an integer (i64 or u64).
-pub fn deserialize_as_optional_f64_or_int_or_string<'de, D>(
+/// Deserializes an `Option<f64>` from an encoded f64 or string or integer (i64 or u64).
+pub fn deserialize_as_optional_number_or_string<'de, D>(
     deserializer: D,
 ) -> Result<Option<f64>, D::Error>
 where
     D: Deserializer<'de>,
 {
-    Ok(Option::<F64OrStringOrIntWrapper>::deserialize(deserializer)?.map(|w| w.0))
+    Ok(Option::<NumberOrStringWrapper>::deserialize(deserializer)?.map(|w| w.0))
 }
 
 /// Take either an integer number or a string and deserialize to an integer number.

@@ -5,7 +5,7 @@
 use std::{collections::BTreeMap, error::Error, fmt, str::FromStr};
 
 #[cfg(feature = "compat-tag-info")]
-use ruma_common::serde::deserialize_as_optional_f64_or_int_or_string;
+use ruma_common::serde::deserialize_as_optional_number_or_string;
 use ruma_common::serde::deserialize_cow_str;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -180,7 +180,7 @@ pub struct TagInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
         feature = "compat-tag-info",
-        serde(default, deserialize_with = "deserialize_as_optional_f64_or_int_or_string")
+        serde(default, deserialize_with = "deserialize_as_optional_number_or_string")
     )]
     pub order: Option<f64>,
 }
