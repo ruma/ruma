@@ -2,6 +2,8 @@
 //!
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv2inviteroomideventid
 
+#[cfg(feature = "unstable-msc4125")]
+use ruma_common::OwnedServerName;
 use ruma_common::{
     api::{request, response, Metadata},
     metadata,
@@ -39,6 +41,14 @@ pub struct Request {
 
     /// An optional list of simplified events to help the receiver of the invite identify the room.
     pub invite_room_state: Vec<Raw<AnyStrippedStateEvent>>,
+
+    /// An optional list of servers the invited homeserver should attempt to join or leave via,
+    /// according to [MSC4125](https://github.com/matrix-org/matrix-spec-proposals/pull/4125).
+    ///
+    /// If present, it must not be empty.
+    #[cfg(feature = "unstable-msc4125")]
+    #[serde(skip_serializing_if = "Option::is_none", rename = "org.matrix.msc4125.via")]
+    pub via: Option<Vec<OwnedServerName>>,
 }
 
 /// Response type for the `create_invite` endpoint.
@@ -58,7 +68,15 @@ impl Request {
         event: Box<RawJsonValue>,
         invite_room_state: Vec<Raw<AnyStrippedStateEvent>>,
     ) -> Self {
-        Self { room_id, event_id, room_version, event, invite_room_state }
+        Self {
+            room_id,
+            event_id,
+            room_version,
+            event,
+            invite_room_state,
+            #[cfg(feature = "unstable-msc4125")]
+            via: None,
+        }
     }
 }
 
