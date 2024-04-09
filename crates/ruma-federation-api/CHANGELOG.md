@@ -8,6 +8,8 @@ Breaking changes:
 Improvements:
 
 * Implement `From<SpaceHierarchyParentSummary>` for `SpaceHierarchyChildSummary`
+* Add unstable support for optional `via` field on the `create_invite` endpoint request from
+  MSC4125 behind the `unstable-msc4125` feature.
 
 # 0.8.0
 
