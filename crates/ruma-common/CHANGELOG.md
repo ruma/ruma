@@ -11,6 +11,8 @@ Breaking changes:
   `m.room.power_levels`.
 - Add support for endpoints that take an optional authentication
 - Add support for endpoints that require authentication for appservices
+- Remove support for custom `presence` values, as they are not namespaced and hence only values
+  specified in the spec are allowed.
 
 Improvements:
 
