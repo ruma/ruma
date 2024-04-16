@@ -26,6 +26,7 @@ unstable-exhaustive-types = []
 unstable-msc2448 = []
 unstable-msc3618 = []
 unstable-msc3723 = []
+unstable-msc3843 = []
 unstable-msc4125 = []
 unstable-unspecified = []
 

@@ -195,6 +195,10 @@ pub enum ErrorKind {
         current_version: Option<String>,
     },
 
+    /// M_UNACTIONABLE
+    #[cfg(feature = "unstable-msc3843")]
+    Unactionable,
+
     #[doc(hidden)]
     _Custom { errcode: PrivOwnedStr, extra: Extra },
 }
@@ -269,6 +273,8 @@ impl AsRef<str> for ErrorKind {
             Self::ConnectionFailed => "M_CONNECTION_FAILED",
             Self::ConnectionTimeout => "M_CONNECTION_TIMEOUT",
             Self::WrongRoomKeysVersion { .. } => "M_WRONG_ROOM_KEYS_VERSION",
+            #[cfg(feature = "unstable-msc3843")]
+            Self::Unactionable => "M_UNACTIONABLE",
             Self::_Custom { errcode, .. } => &errcode.0,
         }
     }

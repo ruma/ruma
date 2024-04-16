@@ -23,6 +23,7 @@ pub mod knock;
 pub mod membership;
 pub mod openid;
 pub mod query;
+pub mod room;
 pub mod space;
 pub mod thirdparty;
 pub mod transactions;
