@@ -250,6 +250,8 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                 )
                 .map_err(de::Error::custom)?,
             },
+            #[cfg(feature = "unstable-msc3843")]
+            ErrCode::Unactionable => ErrorKind::Unactionable,
             ErrCode::_Custom(errcode) => ErrorKind::_Custom { errcode, extra },
         })
     }
@@ -306,6 +308,8 @@ enum ErrCode {
     ConnectionFailed,
     ConnectionTimeout,
     WrongRoomKeysVersion,
+    #[cfg(feature = "unstable-msc3843")]
+    Unactionable,
     _Custom(PrivOwnedStr),
 }
 
