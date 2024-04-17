@@ -1,10 +1,11 @@
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::Ident;
 
 use super::{Response, ResponseField};
 
 impl Response {
-    pub fn expand_outgoing(&self, ruma_common: &TokenStream) -> TokenStream {
+    pub fn expand_outgoing(&self, status_ident: &Ident, ruma_common: &TokenStream) -> TokenStream {
         let bytes = quote! { #ruma_common::exports::bytes };
         let http = quote! { #ruma_common::exports::http };
 
@@ -67,7 +68,10 @@ impl Response {
                 fn try_into_http_response<T: ::std::default::Default + #bytes::BufMut>(
                     self,
                 ) -> ::std::result::Result<#http::Response<T>, #ruma_common::api::error::IntoHttpError> {
+                    use #http::StatusCode;
+
                     let mut resp_builder = #http::Response::builder()
+                        .status(StatusCode::#status_ident)
                         .header(#http::header::CONTENT_TYPE, "application/json");
 
                     if let Some(mut headers) = resp_builder.headers_mut() {

@@ -32,13 +32,21 @@ pub fn expand_response(attr: ResponseAttr, item: ItemStruct) -> TokenStream {
             _ => None,
         })
         .unwrap_or_else(|| quote! { #ruma_common::api::error::MatrixError });
+    let status_ident = attr
+        .0
+        .iter()
+        .find_map(|a| match a {
+            DeriveResponseMeta::Status(ident) => Some(quote! { #ident }),
+            _ => None,
+        })
+        .unwrap_or_else(|| quote! { OK });
 
     quote! {
         #maybe_feature_error
 
         #[derive(Clone, Debug, #ruma_macros::Response, #ruma_common::serde::_FakeDeriveSerde)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-        #[ruma_api(error = #error_ty)]
+        #[ruma_api(error = #error_ty, status = #status_ident)]
         #item
     }
 }
@@ -60,6 +68,7 @@ pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
     let fields = fields.into_iter().map(ResponseField::try_from).collect::<syn::Result<_>>()?;
     let mut manual_body_serde = false;
     let mut error_ty = None;
+    let mut status_ident = None;
     for attr in input.attrs {
         if !attr.path().is_ident("ruma_api") {
             continue;
@@ -71,6 +80,7 @@ pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
             match meta {
                 DeriveResponseMeta::ManualBodySerde => manual_body_serde = true,
                 DeriveResponseMeta::Error(t) => error_ty = Some(t),
+                DeriveResponseMeta::Status(t) => status_ident = Some(t),
             }
         }
     }
@@ -81,6 +91,7 @@ pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
         fields,
         manual_body_serde,
         error_ty: error_ty.unwrap(),
+        status_ident: status_ident.unwrap(),
     };
 
     response.check()?;
@@ -93,6 +104,7 @@ struct Response {
     fields: Vec<ResponseField>,
     manual_body_serde: bool,
     error_ty: Type,
+    status_ident: Ident,
 }
 
 impl Response {
@@ -145,7 +157,7 @@ impl Response {
             }
         });
 
-        let outgoing_response_impl = self.expand_outgoing(&ruma_common);
+        let outgoing_response_impl = self.expand_outgoing(&self.status_ident, &ruma_common);
         let incoming_response_impl = self.expand_incoming(&self.error_ty, &ruma_common);
 
         quote! {
