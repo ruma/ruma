@@ -68,10 +68,8 @@ impl Response {
                 fn try_into_http_response<T: ::std::default::Default + #bytes::BufMut>(
                     self,
                 ) -> ::std::result::Result<#http::Response<T>, #ruma_common::api::error::IntoHttpError> {
-                    use #http::StatusCode;
-
                     let mut resp_builder = #http::Response::builder()
-                        .status(StatusCode::#status_ident)
+                        .status(#http::StatusCode::#status_ident)
                         .header(#http::header::CONTENT_TYPE, "application/json");
 
                     if let Some(mut headers) = resp_builder.headers_mut() {
