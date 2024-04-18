@@ -45,6 +45,8 @@ Improvements:
 - Add `dir` `Request` field on the `get_relating_events_with_rel_types` and
   `get_relating_events_with_rel_type_and_event_type` endpoints
 - Add unstable support for moderator server support discovery, according to MSC4121
+- Add unstable support for MSC3266 behind the `unstable-msc3266` feature, and a new
+  `room::get_summary` module.
 
 # 0.17.4
 

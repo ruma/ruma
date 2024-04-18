@@ -2,10 +2,10 @@
 //!
 //! Experimental API enabled with MSC3266.
 //!
-//! Returns a short description of a room.
+//! Returns a short description of the state of a room, with state events.
 
-pub mod v1 {
-    //! `/v1/` ([MSC])
+pub mod msc3266 {
+    //! `MSC3266` ([MSC])
     //!
     //! [MSC]: https://github.com/deepbluev7/matrix-doc/blob/room-summaries/proposals/3266-room-summary.md
 
@@ -36,10 +36,9 @@ pub mod v1 {
         pub room_id_or_alias: OwnedRoomOrAliasId,
 
         /// An optional list of servers the invited homeserver should attempt to peek at the room.
-        ///
-        /// If present, it must not be empty.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub via: Option<Vec<OwnedServerName>>,
+        #[serde(default)]
+        #[ruma_api(query)]
+        pub via: Vec<OwnedServerName>,
     }
 
     /// Response type for the `summary/room_id_or_alias` endpoint.
@@ -88,16 +87,13 @@ pub mod v1 {
         /// all other membership states the server would know about the room already.
         pub membership: Option<MembershipState>,
 
-        /// If the room is encrypted, this specificed the algorithm used for this room.
+        /// If the room is encrypted, this specified the algorithm used for this room.
         pub encryption: Option<EventEncryptionAlgorithm>,
     }
 
     impl Request {
         /// Creates a new `Request` with the given room or alias ID and via server names.
-        pub fn new(
-            room_id_or_alias: OwnedRoomOrAliasId,
-            via: Option<Vec<OwnedServerName>>,
-        ) -> Self {
+        pub fn new(room_id_or_alias: OwnedRoomOrAliasId, via: Vec<OwnedServerName>) -> Self {
             Self { room_id_or_alias, via }
         }
     }
