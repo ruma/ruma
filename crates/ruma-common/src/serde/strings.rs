@@ -52,8 +52,8 @@ where
 /// Take either a floating point number or a string and deserialize to an floating-point number.
 ///
 /// To be used like this:
-/// `#[serde(deserialize_with = "deserialize_as_f64_or_string")]`
-pub fn deserialize_as_f64_or_string<'de, D>(de: D) -> Result<f64, D::Error>
+/// `#[serde(deserialize_with = "deserialize_as_number_or_string")]`
+pub fn deserialize_as_number_or_string<'de, D>(de: D) -> Result<f64, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -80,6 +80,28 @@ where
             Ok(v)
         }
 
+        fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            if v <= (f64::MAX as u64) {
+                Ok(v as f64)
+            } else {
+                Err(E::custom("u64 is too large to fit into a f64"))
+            }
+        }
+
+        fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            if v <= (f64::MAX as i64) && v >= (f64::MIN as i64) {
+                Ok(v as f64)
+            } else {
+                Err(E::custom("i64 is too large to fit into a f64"))
+            }
+        }
+
         fn visit_str<E: de::Error>(self, v: &str) -> Result<Self::Value, E> {
             v.parse().map_err(E::custom)
         }
@@ -89,16 +111,16 @@ where
 }
 
 #[derive(Deserialize)]
-struct F64OrStringWrapper(#[serde(deserialize_with = "deserialize_as_f64_or_string")] f64);
+struct NumberOrStringWrapper(#[serde(deserialize_with = "deserialize_as_number_or_string")] f64);
 
-/// Deserializes an `Option<f64>` as encoded as a f64 or a string.
-pub fn deserialize_as_optional_f64_or_string<'de, D>(
+/// Deserializes an `Option<f64>` from an encoded f64 or string or integer (i64 or u64).
+pub fn deserialize_as_optional_number_or_string<'de, D>(
     deserializer: D,
 ) -> Result<Option<f64>, D::Error>
 where
     D: Deserializer<'de>,
 {
-    Ok(Option::<F64OrStringWrapper>::deserialize(deserializer)?.map(|w| w.0))
+    Ok(Option::<NumberOrStringWrapper>::deserialize(deserializer)?.map(|w| w.0))
 }
 
 /// Take either an integer number or a string and deserialize to an integer number.

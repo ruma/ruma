@@ -5,7 +5,7 @@
 use std::{collections::BTreeMap, error::Error, fmt, str::FromStr};
 
 #[cfg(feature = "compat-tag-info")]
-use ruma_common::serde::deserialize_as_optional_f64_or_string;
+use ruma_common::serde::deserialize_as_optional_number_or_string;
 use ruma_common::serde::deserialize_cow_str;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -180,7 +180,7 @@ pub struct TagInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
         feature = "compat-tag-info",
-        serde(default, deserialize_with = "deserialize_as_optional_f64_or_string")
+        serde(default, deserialize_with = "deserialize_as_optional_number_or_string")
     )]
     pub order: Option<f64>,
 }
@@ -232,6 +232,9 @@ mod tests {
 
         let json = json!({ "order": null });
         assert_eq!(from_json_value::<TagInfo>(json).unwrap(), TagInfo::default());
+
+        let json = json!({ "order": 1 });
+        assert_eq!(from_json_value::<TagInfo>(json).unwrap(), TagInfo { order: Some(1.) });
 
         let json = json!({ "order": 0.42 });
         assert_eq!(from_json_value::<TagInfo>(json).unwrap(), TagInfo { order: Some(0.42) });
