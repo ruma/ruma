@@ -35,7 +35,9 @@ pub mod msc3266 {
         #[ruma_api(path)]
         pub room_id_or_alias: OwnedRoomOrAliasId,
 
-        /// An optional list of servers the invited homeserver should attempt to peek at the room.
+        /// A list of servers the homeserver should attempt to use to peek at the room.
+        ///
+        /// Defaults to an empty `Vec`.
         #[serde(default)]
         #[ruma_api(query)]
         pub via: Vec<OwnedServerName>,
