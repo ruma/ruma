@@ -4,11 +4,10 @@ pub mod aliases;
 pub mod create_room;
 pub mod get_event_by_timestamp;
 pub mod get_room_event;
-pub mod report_content;
-pub mod upgrade_room;
-
 #[cfg(feature = "unstable-msc3266")]
 pub mod get_summary;
+pub mod report_content;
+pub mod upgrade_room;
 
 use ruma_common::serde::StringEnum;
 
