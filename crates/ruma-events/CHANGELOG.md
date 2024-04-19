@@ -32,6 +32,7 @@ Improvements:
 - Add `filename` and `formatted` fields to media event contents to support media captions
   as per [MSC2530](https://github.com/matrix-org/matrix-spec-proposals/pull/2530) / Matrix 1.10
 - Add support for multi-stream VoIP, according to MSC3077 / Matrix 1.10
+- Add unstable support for muting in VoIP calls, according to MSC3291
 
 # 0.27.11
 
