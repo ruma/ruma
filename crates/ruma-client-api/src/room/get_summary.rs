@@ -28,7 +28,7 @@ pub mod msc3266 {
         }
     };
 
-    /// Request type for the `summary/room_id_or_alias` endpoint.
+    /// Request type for the `get_summary` endpoint.
     #[request(error = crate::Error)]
     pub struct Request {
         /// Alias or ID of the room to be summarized.
