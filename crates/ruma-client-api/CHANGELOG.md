@@ -47,6 +47,7 @@ Improvements:
 - Add unstable support for moderator server support discovery, according to MSC4121
 - Add unstable support for the room summary endpoint from MSC3266 behind the
   `unstable-msc3266` feature.
+- Add unstable support for animated thumbnails, according to MSC2705
 
 # 0.17.4
 
