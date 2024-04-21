@@ -195,6 +195,7 @@ unstable-msc3245 = ["ruma-events?/unstable-msc3245"]
 # https://github.com/matrix-org/matrix-spec-proposals/blob/83f6c5b469c1d78f714e335dcaa25354b255ffa5/proposals/3245-voice-messages.md
 unstable-msc3245-v1-compat = ["ruma-events?/unstable-msc3245-v1-compat"]
 unstable-msc3246 = ["ruma-events?/unstable-msc3246"]
+unstable-msc3266 = ["ruma-client-api?/unstable-msc3266"]
 unstable-msc3381 = ["ruma-events?/unstable-msc3381"]
 unstable-msc3401 = ["ruma-events?/unstable-msc3401"]
 unstable-msc3488 = ["ruma-client-api?/unstable-msc3488", "ruma-events?/unstable-msc3488"]
@@ -245,6 +246,7 @@ __ci = [
     "unstable-msc3245",
     "unstable-msc3245-v1-compat",
     "unstable-msc3246",
+    "unstable-msc3266",
     "unstable-msc3381",
     "unstable-msc3401",
     "unstable-msc3488",
