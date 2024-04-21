@@ -24,6 +24,7 @@ Improvements:
 - Point links to the Matrix 1.10 specification
 - Implement `as_str()` and `AsRef<str>` for `push::PredefinedRuleId`
 - Implement `kind()` for `push::Predefined{*}RuleId`
+- Implement `Clone` for `MatrixToUri` and `MatrixUri`
 
 # 0.12.1
 

@@ -259,7 +259,7 @@ impl From<(&RoomAliasId, &EventId)> for MatrixId {
 /// in a formatting macro or via `.to_string()`).
 ///
 /// [`matrix.to` URI]: https://spec.matrix.org/latest/appendices/#matrixto-navigation
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MatrixToUri {
     id: MatrixId,
     via: Vec<OwnedServerName>,
@@ -443,7 +443,7 @@ impl From<Box<str>> for UriAction {
 /// in a formatting macro or via `.to_string()`).
 ///
 /// [`matrix:` URI]: https://spec.matrix.org/latest/appendices/#matrix-uri-scheme
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MatrixUri {
     id: MatrixId,
     via: Vec<OwnedServerName>,
