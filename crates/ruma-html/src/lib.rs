@@ -16,6 +16,6 @@ mod sanitizer_config;
 
 pub use self::{
     helpers::*,
-    html::{ElementData, Html, Node},
+    html::{ElementData, Html},
     sanitizer_config::SanitizerConfig,
 };

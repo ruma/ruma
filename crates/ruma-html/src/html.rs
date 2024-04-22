@@ -297,7 +297,7 @@ impl fmt::Display for Html {
 /// An HTML node.
 #[derive(Debug)]
 #[non_exhaustive]
-pub struct Node {
+pub(crate) struct Node {
     pub(crate) parent: Option<usize>,
     pub(crate) prev_sibling: Option<usize>,
     pub(crate) next_sibling: Option<usize>,
@@ -320,7 +320,7 @@ impl Node {
     }
 
     /// Returns the data of this `Node` if it is an Element (aka an HTML tag).
-    pub fn as_element(&self) -> Option<&ElementData> {
+    pub(crate) fn as_element(&self) -> Option<&ElementData> {
         as_variant!(&self.data, NodeData::Element)
     }
 
