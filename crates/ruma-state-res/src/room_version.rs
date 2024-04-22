@@ -90,7 +90,7 @@ impl RoomVersion {
         special_case_aliases_auth: true,
         strict_canonicaljson: false,
         limit_notifications_power_levels: false,
-        extra_redaction_checks: false,
+        extra_redaction_checks: true,
         allow_knocking: false,
         restricted_join_rules: false,
         knock_restricted_join_rule: false,
@@ -101,7 +101,7 @@ impl RoomVersion {
     pub const V2: Self = Self { state_res: StateResolutionVersion::V2, ..Self::V1 };
 
     pub const V3: Self =
-        Self { event_format: EventFormatVersion::V2, extra_redaction_checks: true, ..Self::V2 };
+        Self { event_format: EventFormatVersion::V2, extra_redaction_checks: false, ..Self::V2 };
 
     pub const V4: Self = Self { event_format: EventFormatVersion::V3, ..Self::V3 };
 
