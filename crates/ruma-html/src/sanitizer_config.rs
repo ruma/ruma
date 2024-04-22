@@ -96,8 +96,8 @@ impl SanitizerConfig {
 
     /// Clean the given HTML with this sanitizer.
     pub(crate) fn clean(self, html: &mut Html) {
-        let root = html.nodes[0].first_child.unwrap();
-        let mut next_child = html.nodes[root].first_child;
+        let root = html.root();
+        let mut next_child = root.first_child;
 
         while let Some(child) = next_child {
             next_child = html.nodes[child].next_sibling;

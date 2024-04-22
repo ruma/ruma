@@ -112,6 +112,16 @@ impl Html {
             self.nodes[parent].first_child = next_sibling;
         }
     }
+
+    /// Get the ID of the root node of the HTML.
+    pub(crate) fn root_id(&self) -> usize {
+        self.nodes[0].first_child.expect("html should always have a root node")
+    }
+
+    /// Get the root node of the HTML.
+    pub(crate) fn root(&self) -> &Node {
+        &self.nodes[self.root_id()]
+    }
 }
 
 impl Default for Html {
@@ -252,9 +262,9 @@ impl Serialize for Html {
     {
         match traversal_scope {
             TraversalScope::IncludeNode => {
-                let root = self.nodes[0].first_child.unwrap();
+                let root = self.root();
 
-                let mut next_child = self.nodes[root].first_child;
+                let mut next_child = root.first_child;
                 while let Some(child) = next_child {
                     let child = &self.nodes[child];
                     child.serialize(self, serializer)?;
