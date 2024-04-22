@@ -14,8 +14,4 @@ mod helpers;
 mod html;
 mod sanitizer_config;
 
-pub use self::{
-    helpers::*,
-    html::{ElementData, Html},
-    sanitizer_config::SanitizerConfig,
-};
+pub use self::{helpers::*, html::*, sanitizer_config::SanitizerConfig};

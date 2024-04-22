@@ -1,1 +1,2 @@
+mod navigate;
 mod sanitize;
