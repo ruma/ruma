@@ -34,7 +34,7 @@ pub mod v3 {
         /// authentication with the SSO identity provider.
         #[ruma_api(query)]
         #[serde(rename = "redirectUrl")]
-        pub redirect_url: String,
+        pub redirect_url: Option<String>,
     }
 
     /// Response type for the `sso_login_with_provider` endpoint.
@@ -52,7 +52,7 @@ pub mod v3 {
     impl Request {
         /// Creates a new `Request` with the given identity provider ID and redirect URL.
         pub fn new(idp_id: String, redirect_url: String) -> Self {
-            Self { idp_id, redirect_url }
+            Self { idp_id, redirect_url: Some(redirect_url) }
         }
     }
 
@@ -73,7 +73,7 @@ pub mod v3 {
         fn serialize_sso_login_with_provider_request_uri() {
             let req = Request {
                 idp_id: "provider".to_owned(),
-                redirect_url: "https://example.com/sso".to_owned(),
+                redirect_url: Some("https://example.com/sso".to_owned()),
             }
             .try_into_http_request::<Vec<u8>>(
                 "https://homeserver.tld",
@@ -83,9 +83,12 @@ pub mod v3 {
             .unwrap();
 
             assert_eq!(
-            req.uri().to_string(),
-            "https://homeserver.tld/_matrix/client/v3/login/sso/redirect/provider?redirectUrl=https%3A%2F%2Fexample.com%2Fsso"
-        );
+                req.uri().to_string(),
+                "
+                    https://homeserver.tld/_matrix/client/v3/login/sso/redirect/\
+                    provider?redirectUrl=https%3A%2F%2Fexample.com%2Fsso
+                "
+            );
         }
     }
 }
