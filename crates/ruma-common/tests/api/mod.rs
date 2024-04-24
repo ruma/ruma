@@ -2,6 +2,7 @@
 #![allow(unreachable_pub)]
 
 mod conversions;
+mod default_status;
 mod header_override;
 mod manual_endpoint_impl;
 mod no_fields;
