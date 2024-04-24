@@ -22,7 +22,7 @@ pub mod v3 {
             1.1 => "/_matrix/client/v3/auth/:auth_type/fallback/web",
         }
     };
-    const HTML: &'static str = "text/html; charset=utf-8";
+    const HTML: &str = "text/html; charset=utf-8";
 
     /// Request type for the `authorize_fallback` endpoint.
     #[request(error = crate::Error)]
