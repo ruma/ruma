@@ -1,10 +1,11 @@
 #![allow(clippy::exhaustive_structs)]
 
-use http::{header::{Entry, LOCATION}, StatusCode};
+use http::{
+    header::{Entry, LOCATION},
+    StatusCode,
+};
 use ruma_common::{
-    api::{
-        request, response, Metadata, OutgoingResponse as _,
-    },
+    api::{request, response, Metadata, OutgoingResponse as _},
     metadata,
 };
 
@@ -34,10 +35,7 @@ fn response_status_override() {
     let mut http_res = res.try_into_http_response::<Vec<u8>>().unwrap();
 
     // Test that we correctly changed the status code.
-    assert_eq!(
-        http_res.status(),
-        StatusCode::FOUND
-    );
+    assert_eq!(http_res.status(), StatusCode::FOUND);
 
     // Test that we correctly replaced the location,
     // not adding another location header.
