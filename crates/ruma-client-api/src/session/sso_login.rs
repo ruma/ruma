@@ -76,10 +76,8 @@ pub mod v3 {
 
             assert_eq!(
                 req.uri().to_string(),
-                "
-                    https://homeserver.tld/_matrix/client/v3/login/sso/\
-                    redirect?redirectUrl=https%3A%2F%2Fexample.com%2Fsso
-                "
+                "https://homeserver.tld/_matrix/client/v3/login/sso/\
+                    redirect?redirectUrl=https%3A%2F%2Fexample.com%2Fsso"
             );
         }
     }
