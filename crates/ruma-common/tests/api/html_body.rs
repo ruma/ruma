@@ -1,12 +1,9 @@
 #![allow(clippy::exhaustive_structs)]
 
 use bytes::BytesMut;
-use http::StatusCode;
+use http::{header::CONTENT_TYPE, HeaderValue};
 use ruma_common::{
-    api::{
-        request, response, MatrixVersion, Metadata, OutgoingRequest, OutgoingResponse as _,
-        SendAccessToken,
-    },
+    api::{request, response, Metadata, OutgoingRequest, SendAccessToken},
     metadata,
 };
 
@@ -23,6 +20,10 @@ const METADATA: Metadata = metadata! {
 #[request]
 pub struct Request {
     /// HTML to return to client.
+    #[ruma_api(header = CONTENT_TYPE)]
+    content_type: String,
+
+    /// HTML to return to client.
     #[ruma_api(raw_body)]
     pub body: Vec<u8>,
 }
@@ -33,17 +34,22 @@ pub struct Response {}
 
 #[test]
 fn response_html_body() {
-    let body = "
-        <p>This is a paragraph.</p>
-        <p>This is another paragraph.</p>
-    "
-    .as_bytes()
-    .to_owned();
-    let req = Request { body };
+    let content_type = "text/html; charset=utf-8";
 
-    let req: http::Request<BytesMut> = req
-        .try_into_http_request("https://foobar.com", SendAccessToken::None, &[MatrixVersion::V1_10])
-        .unwrap();
+    let req = Request {
+        content_type: content_type.to_owned(),
+        body: b"
+            <p>This is a paragraph.</p>
+            <p>This is another paragraph.</p>
+        "
+        .to_vec(),
+    };
 
-    dbg!(&req.headers());
+    let req: http::Request<BytesMut> =
+        req.try_into_http_request("https://homeserver.tld", SendAccessToken::None, &[]).unwrap();
+
+    assert_eq!(
+        Some(content_type),
+        req.headers().get(CONTENT_TYPE).map(HeaderValue::to_str).transpose().unwrap()
+    );
 }

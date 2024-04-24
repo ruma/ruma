@@ -7,7 +7,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#fallback
 
-    use http::header::LOCATION;
+    use http::header::{CONTENT_TYPE, LOCATION};
     use ruma_common::{
         api::{request, response, Metadata},
         metadata,
@@ -22,6 +22,7 @@ pub mod v3 {
             1.1 => "/_matrix/client/v3/auth/:auth_type/fallback/web",
         }
     };
+    const HTML: &'static str = "text/html; charset=utf-8";
 
     /// Request type for the `authorize_fallback` endpoint.
     #[request(error = crate::Error)]
@@ -39,6 +40,10 @@ pub mod v3 {
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {
+        /// Content type of the body.
+        #[ruma_api(header = CONTENT_TYPE)]
+        pub content_type: String,
+
         /// Optional URI to redirect to.
         #[ruma_api(header = LOCATION)]
         pub redirect_url: Option<String>,
@@ -58,12 +63,12 @@ pub mod v3 {
     impl Response {
         /// Creates a new `Response` with the given HTML body.
         pub fn new(body: Vec<u8>) -> Self {
-            Self { redirect_url: None, body }
+            Self { content_type: HTML.to_owned(), redirect_url: None, body }
         }
 
         /// Creates a new `Response` with the given redirect URL and an empty body.
         pub fn redirect(url: String) -> Self {
-            Self { redirect_url: Some(url), body: Vec::new() }
+            Self { content_type: HTML.to_owned(), redirect_url: Some(url), body: Vec::new() }
         }
     }
 }
