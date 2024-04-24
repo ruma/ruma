@@ -4,6 +4,8 @@ Bug fixes:
 
 - Don't require the `failures` field in the
   `ruma_client_api::keys::upload_signatures::Response` type.
+- Added `content_type` field which defaults to `text/html` to
+  `ruma_client_api::uiaa::get_uiaa_fallback_page::Response`.
 
 Breaking changes:
 
