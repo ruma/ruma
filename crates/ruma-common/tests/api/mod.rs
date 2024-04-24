@@ -4,6 +4,7 @@
 mod conversions;
 mod default_status;
 mod header_override;
+mod html_body;
 mod manual_endpoint_impl;
 mod no_fields;
 mod optional_headers;
