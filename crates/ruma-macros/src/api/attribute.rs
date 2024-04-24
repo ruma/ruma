@@ -14,6 +14,7 @@ mod kw {
     syn::custom_keyword!(header);
     syn::custom_keyword!(error);
     syn::custom_keyword!(manual_body_serde);
+    syn::custom_keyword!(status);
 }
 
 pub enum RequestMeta {
@@ -99,6 +100,7 @@ impl Parse for ResponseMeta {
 pub enum DeriveResponseMeta {
     ManualBodySerde,
     Error(Type),
+    Status(Ident),
 }
 
 impl Parse for DeriveResponseMeta {
@@ -111,6 +113,10 @@ impl Parse for DeriveResponseMeta {
             let _: kw::error = input.parse()?;
             let _: Token![=] = input.parse()?;
             input.parse().map(Self::Error)
+        } else if lookahead.peek(kw::status) {
+            let _: kw::status = input.parse()?;
+            let _: Token![=] = input.parse()?;
+            input.parse().map(Self::Status)
         } else {
             Err(lookahead.error())
         }

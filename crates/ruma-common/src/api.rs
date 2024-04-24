@@ -217,6 +217,10 @@ pub use ruma_macros::request;
 ///
 /// The generated code expects a `METADATA` constant of type [`Metadata`] to be in scope.
 ///
+/// The status code of `OutgoingResponse` can be optionally overridden by adding the `status`
+/// attribute to `response`. The attribute value must be a status code constant from
+/// `http::StatusCode`, e.g. `IM_A_TEAPOT`.
+///
 /// ## Attributes
 ///
 /// To declare which part of the request a field belongs to:
@@ -260,7 +264,7 @@ pub use ruma_macros::request;
 ///     # #[request]
 ///     # pub struct Request { }
 ///
-///     #[response]
+///     #[response(status = IM_A_TEAPOT)]
 ///     pub struct Response {
 ///         #[serde(skip_serializing_if = "Option::is_none")]
 ///         pub foo: Option<String>,
