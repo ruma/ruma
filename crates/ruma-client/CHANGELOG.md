@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+- Remove `isahc` feature
+
 Improvements:
 
 - Add `error_kind` accessor method to `Error<E, ruma_client_api::Error>`

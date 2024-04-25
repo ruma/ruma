@@ -84,7 +84,6 @@
 //! * `hyper`
 //! * `hyper-native-tls`
 //! * `hyper-rustls`
-//! * `isahc`
 //! * `reqwest` – if you use the `reqwest` library already, activate this feature and configure the
 //!   TLS backend on `reqwest` directly. If you want to use `reqwest` but don't depend on it
 //!   already, use one of the sub-features instead. For details on the meaning of these, see

@@ -13,8 +13,6 @@ use crate::{add_user_id_to_query, ResponseError, ResponseResult};
 
 #[cfg(feature = "hyper")]
 mod hyper;
-#[cfg(feature = "isahc")]
-mod isahc;
 #[cfg(feature = "reqwest")]
 mod reqwest;
 
@@ -24,8 +22,6 @@ pub use self::hyper::Hyper;
 pub use self::hyper::HyperNativeTls;
 #[cfg(feature = "hyper-rustls")]
 pub use self::hyper::HyperRustls;
-#[cfg(feature = "isahc")]
-pub use self::isahc::Isahc;
 #[cfg(feature = "reqwest")]
 pub use self::reqwest::Reqwest;
 
