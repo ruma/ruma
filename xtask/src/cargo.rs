@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use isahc::{HttpClient, ReadResponseExt};
+use reqwest::blocking::Client;
 use semver::Version;
 use serde::{de::IgnoredAny, Deserialize};
 use toml_edit::{value, Document};
@@ -153,15 +153,15 @@ impl Package {
     }
 
     /// Check if the current version of the crate is published on crates.io.
-    pub fn is_published(&self, client: &HttpClient) -> Result<bool> {
+    pub fn is_published(&self, client: &Client) -> Result<bool> {
         let response: CratesIoCrate =
-            client.get(format!("{CRATESIO_API}/{}/{}", self.name, self.version))?.json()?;
+            client.get(format!("{CRATESIO_API}/{}/{}", self.name, self.version)).send()?.json()?;
 
         Ok(response.version.is_some())
     }
 
     /// Publish this package on crates.io.
-    pub fn publish(&self, client: &HttpClient, dry_run: bool) -> Result<()> {
+    pub fn publish(&self, client: &Client, dry_run: bool) -> Result<()> {
         println!("Publishing {} {} on crates.io…", self.name, self.version);
         let _dir = pushd(self.manifest_path.parent().unwrap())?;
 
