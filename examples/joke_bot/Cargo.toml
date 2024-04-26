@@ -11,9 +11,11 @@ ruma = { version = "0.9.4", path = "../../crates/ruma", features = ["client-api-
 # ruma = { git = "https://github.com/ruma/ruma", rev = "f161c8117c706fc52089999e1f406cf34276ec9d", features = ["client-api-c", "client", "client-hyper-native-tls", "events"] }
 
 futures-util = { version = "0.3.21", default-features = false, features = ["std"] }
-http = "0.2.2"
-hyper = "0.14.2"
-hyper-tls = "0.5.0"
+http = "1.1.0"
+http-body-util = "0.1.1"
+hyper = "1.3.1"
+hyper-tls = "0.6.0"
+hyper-util = { version = "0.1.3", features = ["client-legacy", "http1", "http2", "tokio"] }
 serde_json = "1.0"
 tokio = { version = "1", features = ["full"] }
 tokio-stream = "0.1.7"

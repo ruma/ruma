@@ -1,6 +1,8 @@
 use std::{error::Error, io, process::exit, time::Duration};
 
 use futures_util::future::{join, join_all};
+use http_body_util::BodyExt as _;
+use hyper_util::rt::TokioExecutor;
 use ruma::{
     api::client::{
         filter::FilterDefinition, membership::join_room_by_id, message::send_message_event,
@@ -34,8 +36,8 @@ type MatrixClient = client::Client<client::http_client::HyperNativeTls>;
 async fn run() -> Result<(), Box<dyn Error>> {
     let config =
         read_config().await.map_err(|e| format!("configuration in ./config is invalid: {e}"))?;
-    let http_client =
-        hyper::Client::builder().build::<_, hyper::Body>(hyper_tls::HttpsConnector::new());
+    let http_client = hyper_util::client::legacy::Client::builder(TokioExecutor::new())
+        .build(hyper_tls::HttpsConnector::new());
     let matrix_client = if let Some(state) = read_state().await.ok().flatten() {
         ruma::Client::builder()
             .homeserver_url(config.homeserver.clone())
@@ -204,7 +206,7 @@ async fn get_joke(client: &HttpClient) -> Result<String, Box<dyn Error>> {
     let uri = "https://v2.jokeapi.dev/joke/Programming,Pun,Misc?safe-mode&type=single"
         .parse::<hyper::Uri>()?;
     let rsp = client.get(uri).await?;
-    let bytes = hyper::body::to_bytes(rsp).await?;
+    let bytes = rsp.into_body().collect().await?.to_bytes();
     let joke_obj = serde_json::from_slice::<JsonValue>(&bytes)
         .map_err(|_| "invalid JSON returned from joke API")?;
     let joke = joke_obj["joke"].as_str().ok_or("joke field missing from joke API response")?;

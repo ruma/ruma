@@ -16,7 +16,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-headers = "0.3"
+headers = "0.4.0"
 ruma-common = { workspace = true }
 tracing = { workspace = true }
 yap = "0.11.0"
