@@ -10,7 +10,7 @@ default = ["dep:semver", "dep:toml_edit"]
 [dependencies]
 clap = { version = "4.1.8", features = ["derive"] }
 html5gum = "0.5.2"
-isahc = { version = "1.7.0", features = ["json"] }
+reqwest = { version = "0.12.4", features = ["blocking", "json"] }
 semver = { version = "1.0.6", features = ["serde"], optional = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

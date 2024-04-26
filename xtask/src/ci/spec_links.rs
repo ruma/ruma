@@ -8,7 +8,6 @@ use std::{
 };
 
 use html5gum::{Token, Tokenizer};
-use isahc::ReadResponseExt;
 
 use crate::Result;
 
@@ -211,7 +210,7 @@ fn check_targets(links: &[SpecLink]) -> Result<()> {
 ///
 /// Returns an error if the URL points to an invalid HTML page.
 fn get_page_ids(url: &str) -> Result<HashMap<String, HasDuplicates>> {
-    let mut page = isahc::get(url)?;
+    let page = reqwest::blocking::get(url)?;
 
     let html = page.text()?;
     let mut ids = HashMap::new();
