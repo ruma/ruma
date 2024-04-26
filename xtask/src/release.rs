@@ -268,7 +268,7 @@ impl ReleaseTask {
         let response = self
             .http_client
             .post(format!("{GITHUB_API_RUMA}/releases"))
-            .basic_auth(self.config.user.clone(), Some(self.config.token.clone()))
+            .basic_auth(&self.config.user, Some(&self.config.token))
             .header("Accept", "application/vnd.github.v3+json")
             .body(body.into())
             .send()?;
