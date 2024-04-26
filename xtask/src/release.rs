@@ -264,13 +264,13 @@ impl ReleaseTask {
     }
 
     /// Create the release on GitHub with the given `config` and `credentials`.
-    fn release<B: Into<reqwest::blocking::Body>>(&self, body: B) -> Result<()> {
+    fn release(&self, body: String) -> Result<()> {
         let response = self
             .http_client
             .post(format!("{GITHUB_API_RUMA}/releases"))
             .basic_auth(&self.config.user, Some(&self.config.token))
             .header("Accept", "application/vnd.github.v3+json")
-            .body(body.into())
+            .body(body)
             .send()?;
 
         if response.status() == StatusCode::CREATED {
