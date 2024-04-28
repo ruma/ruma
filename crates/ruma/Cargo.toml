@@ -70,6 +70,7 @@ js = ["ruma-common/js"]
 rand = ["ruma-common/rand"]
 markdown = ["ruma-events?/markdown"]
 html = ["dep:ruma-html", "ruma-events?/html"]
+html-matrix = ["html", "ruma-html/matrix"]
 
 # Everything except compat, js and unstable features
 full = [
@@ -87,6 +88,7 @@ full = [
     "rand",
     "markdown",
     "html",
+    "html-matrix",
 ]
 
 # Enable all compatibility hacks. Deprecated.

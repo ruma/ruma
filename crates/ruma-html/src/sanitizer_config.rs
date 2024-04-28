@@ -363,7 +363,7 @@ static ALLOWED_SCHEMES_COMPAT: Map<&str, &Set<&str>> = phf_map! {
     "a:href" => &ALLOWED_SCHEMES_A_HREF_COMPAT,
     "img:src" => &ALLOWED_SCHEMES_IMG_SRC_STRICT,
 };
-static ALLOWED_SCHEMES_A_HREF_COMPAT: Set<&str> =
+pub(crate) static ALLOWED_SCHEMES_A_HREF_COMPAT: Set<&str> =
     phf_set! { "http", "https", "ftp", "mailto", "magnet", "matrix" };
 
 /// Allowed classes per HTML tag according to the Matrix specification.
