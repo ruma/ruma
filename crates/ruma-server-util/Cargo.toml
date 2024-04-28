@@ -19,7 +19,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 headers = "0.4.0"
 ruma-common = { workspace = true }
 tracing = { workspace = true }
-yap = "0.11.0"
+yap = "0.12.0"
 
 [dev-dependencies]
 tracing-subscriber = "0.3.16"

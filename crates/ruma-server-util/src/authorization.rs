@@ -41,7 +41,7 @@ impl XMatrix {
 
 fn parse_token<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<Vec<u8>> {
     tokens.optional(|t| {
-        let token: Vec<u8> = t.tokens_while(|c| is_tchar(**c)).copied().collect();
+        let token: Vec<u8> = t.take_while(|c| is_tchar(**c)).as_iter().copied().collect();
         if !token.is_empty() {
             Some(token)
         } else {
@@ -53,7 +53,8 @@ fn parse_token<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<Vec<u8>> {
 
 fn parse_token_with_colons<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<Vec<u8>> {
     tokens.optional(|t| {
-        let token: Vec<u8> = t.tokens_while(|c| is_tchar(**c) || **c == b':').copied().collect();
+        let token: Vec<u8> =
+            t.take_while(|c| is_tchar(**c) || **c == b':').as_iter().copied().collect();
         if !token.is_empty() {
             Some(token)
         } else {
@@ -144,7 +145,7 @@ fn parse_xmatrix<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<XMatrix>
         let mut key = None;
         let mut sig = None;
 
-        for (name, value) in t.sep_by(|t| parse_xmatrix_field(t), |t| t.token(&b',')) {
+        for (name, value) in t.sep_by(|t| parse_xmatrix_field(t), |t| t.token(&b',')).as_iter() {
             match name.as_str() {
                 "origin" => {
                     if origin.is_some() {
