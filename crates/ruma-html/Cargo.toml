@@ -14,9 +14,16 @@ rust-version = { workspace = true }
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
+[features]
+matrix = ["dep:ruma-common"]
+
 [dependencies]
 as_variant = { workspace = true }
 html5ever = "0.27.0"
 phf = { version = "0.11.1", features = ["macros"] }
+ruma-common = { workspace = true, optional = true }
 tracing = { workspace = true, features = ["attributes"] }
 wildmatch = "2.0.0"
+
+[dev-dependencies]
+assert_matches2 = { workspace = true }

@@ -38,9 +38,11 @@
 //!
 //! These features are only useful if you want to use a method that requires it:
 //!
-//! * `rand`
-//! * `markdown`
-//! * `html`
+//! * `rand` -- Generate random identifiers.
+//! * `markdown` -- Parse markdown to construct messages.
+//! * `html` -- Parse HTML to sanitize it or navigate its tree.
+//!   * `html-matrix` -- Enables the `matrix` feature of `ruma-html` to parse HTML elements data to
+//!     typed data as suggested by the Matrix Specification.
 //!
 //! # Unstable features
 //!

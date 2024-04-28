@@ -10,6 +10,9 @@ use html5ever::{
 };
 use tracing::debug;
 
+#[cfg(feature = "matrix")]
+pub mod matrix;
+
 use crate::SanitizerConfig;
 
 /// An HTML fragment.
@@ -429,6 +432,16 @@ pub struct ElementData {
 
     /// The attributes of the element.
     pub attrs: BTreeSet<Attribute>,
+}
+
+impl ElementData {
+    /// Convert this element data to typed data as [suggested by the Matrix Specification][spec].
+    ///
+    /// [spec]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
+    #[cfg(feature = "matrix")]
+    pub fn to_matrix(&self) -> matrix::MatrixElementData {
+        matrix::MatrixElementData::parse(&self.name, &self.attrs)
+    }
 }
 
 /// A reference to an HTML node.

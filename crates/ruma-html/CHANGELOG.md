@@ -11,6 +11,9 @@ Improvements:
 - Add support for deprecated HTML tags, according to Matrix 1.10
 - Allow to navigate through the HTML tree with `Html::first_child()`,
   `Html::last_child()` or `Html::children()`
+- Add `ElementData::to_matrix` to convert it to a type using enums for HTML
+  elements and attributes suggested by the Matrix Specification, behind the
+  `matrix` cargo feature.
 
 # 0.1.0
 

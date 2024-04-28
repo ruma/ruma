@@ -6,6 +6,13 @@
 //! the Matrix protocol. It should be able to be used to interact with any HTML
 //! document but will offer APIs focused on specificities of HTML in the Matrix
 //! specification..
+//!
+//! # Features
+//!
+//! * `matrix` - Allow to convert HTML elements data into enums with variants for elements and
+//!   attributes [suggested by the Matrix Specification][spec].
+//!
+//! [spec]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
 
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
