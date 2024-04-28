@@ -894,7 +894,7 @@ pub struct CustomEventContent {
 
 #[cfg(feature = "markdown")]
 pub(crate) fn parse_markdown(text: &str) -> Option<String> {
-    use pulldown_cmark::{Event, Options, Parser, Tag};
+    use pulldown_cmark::{Event, Options, Parser, Tag, TagEnd};
 
     const OPTIONS: Options = Options::ENABLE_TABLES.union(Options::ENABLE_STRIKETHROUGH);
 
@@ -919,7 +919,7 @@ pub(crate) fn parse_markdown(text: &str) -> Option<String> {
         } else {
             false
         };
-        let is_paragraph_end = matches!(event, Event::End(Tag::Paragraph));
+        let is_paragraph_end = matches!(event, Event::End(TagEnd::Paragraph));
 
         !is_text && !is_break && !is_first_paragraph_start && !is_paragraph_end
     });
