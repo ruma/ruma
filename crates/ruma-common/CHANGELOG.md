@@ -13,6 +13,7 @@ Breaking changes:
 - Add support for endpoints that require authentication for appservices
 - `deserialize_as_f64_or_string` has been extended to also support parsing integers, and renamed to
   `deserialize_as_number_or_string` to reflect that.
+- The http crate had a major version bump to version 1.1
 
 Improvements:
 
