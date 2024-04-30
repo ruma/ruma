@@ -1,6 +1,6 @@
 //! Convenience methods and types to sanitize HTML messages.
 
-use crate::{Html, SanitizerConfig};
+use crate::{Html, HtmlSanitizerMode, SanitizerConfig};
 
 /// Sanitize the given HTML string.
 ///
@@ -25,20 +25,6 @@ pub fn sanitize_html(
     }
 
     sanitize_inner(s, &config)
-}
-
-/// What HTML [tags and attributes] should be kept by the sanitizer.
-///
-/// [tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-#[allow(clippy::exhaustive_enums)]
-pub enum HtmlSanitizerMode {
-    /// Keep only the tags and attributes listed in the Matrix specification.
-    Strict,
-
-    /// Like `Strict` mode, with additional tags and attributes that are not yet included in
-    /// the spec, but are reasonable to keep.
-    Compat,
 }
 
 /// Whether to remove the [rich reply fallback] while sanitizing.

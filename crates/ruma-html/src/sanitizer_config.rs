@@ -1,92 +1,188 @@
-use html5ever::{tendril::StrTendril, Attribute, LocalName};
-use phf::{phf_map, phf_set, Map, Set};
-use wildmatch::WildMatch;
+#![allow(clippy::disallowed_types)]
 
-use crate::html::{ElementData, Html, NodeData};
+use std::collections::{HashMap, HashSet};
 
-/// Configuration to sanitize HTML tags and attributes.
+pub(crate) mod clean;
+
+use crate::HtmlSanitizerMode;
+
+/// Configuration to sanitize HTML elements and attributes.
 #[derive(Debug, Default, Clone)]
 pub struct SanitizerConfig {
-    /// The allowed HTML tags.
+    /// The mode of the sanitizer, if any.
+    mode: Option<HtmlSanitizerMode>,
+
+    /// Change to the list of elements to replace.
     ///
-    /// If this is `None`, all tags are allowed.
-    allowed_tags: Option<&'static Set<&'static str>>,
+    /// The content is a map of element name to their replacement's element name.
+    replace_elements: Option<List<HashMap<&'static str, &'static str>>>,
 
-    /// The allowed deprecated HTML tags.
-    ///
-    /// This is a map of allowed deprecated tag to their replacement tag.
-    deprecated_tags: Option<&'static Map<&'static str, &'static str>>,
+    /// Elements to remove.
+    remove_elements: Option<HashSet<&'static str>>,
 
-    /// The allowed attributes per tag.
-    ///
-    /// If this is `None`, all attributes are allowed.
-    allowed_attrs: Option<&'static Map<&'static str, &'static Set<&'static str>>>,
-
-    /// The allowed deprecated attributes per tag.
-    ///
-    /// This is a map of tag to a map of allowed deprecated attribute to their replacement
-    /// attribute.
-    deprecated_attrs: Option<&'static Map<&'static str, &'static Map<&'static str, &'static str>>>,
-
-    /// The allowed URI schemes per tag.
-    ///
-    /// If this is `None`, all schemes are allowed.
-    allowed_schemes: Option<&'static Map<&'static str, &'static Set<&'static str>>>,
-
-    /// The allowed classes per tag.
-    ///
-    /// If this is `None`, all classes are allowed.
-    allowed_classes: Option<&'static Map<&'static str, &'static Set<&'static str>>>,
-
-    /// The maximum nesting level of the tags.
-    max_depth: Option<u32>,
-
-    /// Whether to remove rich reply fallback.
+    /// Whether to remove the rich reply fallback.
     remove_reply_fallback: bool,
+
+    /// Elements to ignore.
+    ignore_elements: Option<HashSet<&'static str>>,
+
+    /// Change to the list of elements to allow.
+    allow_elements: Option<List<HashSet<&'static str>>>,
+
+    /// Change to the list of attributes to replace per element.
+    ///
+    /// The content is a map of element name to a map of attribute name to their replacement's
+    /// attribute name.
+    replace_attrs: Option<List<HashMap<&'static str, HashMap<&'static str, &'static str>>>>,
+
+    /// Removed attributes per element.
+    remove_attrs: Option<HashMap<&'static str, HashSet<&'static str>>>,
+
+    /// Change to the list of allowed attributes per element.
+    allow_attrs: Option<List<HashMap<&'static str, HashSet<&'static str>>>>,
+
+    /// Denied URI schemes per attribute per element.
+    ///
+    /// The content is a map of element name to a map of attribute name to a set of schemes.
+    deny_schemes: Option<HashMap<&'static str, HashMap<&'static str, HashSet<&'static str>>>>,
+
+    /// Change to the list of allowed URI schemes per attribute per element.
+    ///
+    /// The content is a map of element name to a map of attribute name to a set of schemes.
+    #[allow(clippy::type_complexity)]
+    allow_schemes:
+        Option<List<HashMap<&'static str, HashMap<&'static str, HashSet<&'static str>>>>>,
+
+    /// Removed classes per element.
+    ///
+    /// The content is a map of element name to a set of classes.
+    remove_classes: Option<HashMap<&'static str, HashSet<&'static str>>>,
+
+    /// Change to the list of allowed classes per element.
+    ///
+    /// The content is a map of element name to a set of classes.
+    allow_classes: Option<List<HashMap<&'static str, HashSet<&'static str>>>>,
+
+    /// Maximum nesting level of the elements.
+    max_depth: Option<u32>,
 }
 
 impl SanitizerConfig {
-    /// Constructs an empty `SanitizerConfig` that will not filter any tag or attribute.
+    /// Constructs an empty `SanitizerConfig` that will not filter any element or attribute.
+    ///
+    /// The list of allowed and replaced elements can be changed with [`Self::allow_elements()`],
+    /// [`Self::replace_elements()`], [`Self::ignore_elements()`], [`Self::remove_elements()`],
+    /// [`Self::remove_reply_fallback()`].
+    ///
+    /// The list of allowed and replaced attributes can be changed with
+    /// [`Self::allow_attributes()`], [`Self::replace_attributes()`],
+    /// [`Self::remove_attributes()`], [`Self::allow_schemes()`], [`Self::deny_schemes()`],
+    /// [`Self::allow_classes()`], [`Self::remove_classes()`].
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Constructs a `SanitizerConfig` that will filter tags or attributes not [listed in the
-    /// Matrix specification].
+    /// Constructs a `SanitizerConfig` with the given mode for filtering elements and attributes.
     ///
-    /// Deprecated tags will be replaced with their non-deprecated equivalent.
+    /// The mode defines the basic list of allowed and replaced elements and attributes and the
+    /// maximum nesting level of elements.
     ///
-    /// It will not remove the reply fallback by default.
+    /// The list of allowed and replaced elements can be changed with [`Self::allow_elements()`],
+    /// [`Self::replace_elements()`], [`Self::ignore_elements()`], [`Self::remove_elements()`],
+    /// [`Self::remove_reply_fallback()`].
     ///
-    /// [listed in the Matrix specification]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
-    pub fn strict() -> Self {
-        Self {
-            allowed_tags: Some(&ALLOWED_TAGS_WITHOUT_REPLY_STRICT),
-            deprecated_tags: Some(&DEPRECATED_TAGS),
-            allowed_attrs: Some(&ALLOWED_ATTRIBUTES_STRICT),
-            deprecated_attrs: Some(&DEPRECATED_ATTRS),
-            allowed_schemes: Some(&ALLOWED_SCHEMES_STRICT),
-            allowed_classes: Some(&ALLOWED_CLASSES_STRICT),
-            max_depth: Some(MAX_DEPTH_STRICT),
-            remove_reply_fallback: false,
-        }
+    /// The list of allowed and replaced attributes can be changed with
+    /// [`Self::allow_attributes()`], [`Self::replace_attributes()`],
+    /// [`Self::remove_attributes()`], [`Self::allow_schemes()`], [`Self::deny_schemes()`],
+    /// [`Self::allow_classes()`], [`Self::remove_classes()`].
+    pub fn with_mode(mode: HtmlSanitizerMode) -> Self {
+        Self { mode: Some(mode), ..Default::default() }
     }
 
-    /// Constructs a `SanitizerConfig` that will filter tags or attributes not [listed in the
-    /// Matrix specification], except a few for improved compatibility:
+    /// Constructs a `SanitizerConfig` that will filter elements and attributes not [suggested in
+    /// the Matrix specification].
     ///
-    /// - The `matrix` scheme is allowed in links.
+    /// The list of allowed and replaced elements can be changed with [`Self::allow_elements()`],
+    /// [`Self::replace_elements()`], [`Self::ignore_elements()`], [`Self::remove_elements()`],
+    /// [`Self::remove_reply_fallback()`].
     ///
-    /// Deprecated tags will be replaced with their non-deprecated equivalent.
+    /// The list of allowed and replaced attributes can be changed with
+    /// [`Self::allow_attributes()`], [`Self::replace_attributes()`],
+    /// [`Self::remove_attributes()`], [`Self::allow_schemes()`], [`Self::deny_schemes()`],
+    /// [`Self::allow_classes()`], [`Self::remove_classes()`].
     ///
-    /// It will not remove the reply fallback by default.
+    /// This is the same as calling `SanitizerConfig::with_mode(HtmlSanitizerMode::Strict)`.
+    ///
+    /// [suggested in the Matrix specification]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
+    pub fn strict() -> Self {
+        Self::with_mode(HtmlSanitizerMode::Strict)
+    }
+
+    /// Constructs a `SanitizerConfig` that will filter elements and attributes not [suggested in
+    /// the Matrix specification], except a few for improved compatibility:
+    ///
+    /// * The `matrix` scheme is allowed in links.
+    ///
+    /// The list of allowed elements can be changed with [`Self::allow_elements()`],
+    /// [`Self::replace_elements()`], [`Self::ignore_elements()`], [`Self::remove_elements()`],
+    /// [`Self::remove_reply_fallback()`].
+    ///
+    /// The list of allowed attributes can be changed with [`Self::allow_attributes()`],
+    /// [`Self::replace_attributes()`], [`Self::remove_attributes()`], [`Self::allow_schemes()`],
+    /// [`Self::deny_schemes()`], [`Self::allow_classes()`], [`Self::remove_classes()`].
+    ///
+    /// This is the same as calling `SanitizerConfig::with_mode(HtmlSanitizerMode::Compat)`.
     ///
     /// [listed in the Matrix specification]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
     pub fn compat() -> Self {
-        Self { allowed_schemes: Some(&ALLOWED_SCHEMES_COMPAT), ..Self::strict() }
+        Self::with_mode(HtmlSanitizerMode::Compat)
+    }
+
+    /// Change the list of replaced HTML elements.
+    ///
+    /// The given list is added to or replaces the list of replacements of the current mode,
+    /// depending on the [`ListBehavior`].
+    ///
+    /// The replacement occurs before the removal, so the replaced element should not be in
+    /// the allowed list of elements, but the replacement element should.
+    ///
+    /// # Parameters
+    ///
+    /// * `elements`: The list of element names replacements.
+    pub fn replace_elements(
+        mut self,
+        elements: impl IntoIterator<Item = NameReplacement>,
+        behavior: ListBehavior,
+    ) -> Self {
+        let content = elements.into_iter().map(|r| r.to_tuple()).collect();
+        self.replace_elements = Some(List { content, behavior });
+        self
+    }
+
+    /// Remove the given HTML elements.
+    ///
+    /// When an element is removed, the element and its children are dropped. If you want to remove
+    /// an element but keep its children, use [`SanitizerConfig::ignore_elements`] or
+    /// [`SanitizerConfig::allow_elements`].
+    ///
+    /// Removing elements has a higher priority than ignoring or allowing. So if an element is in
+    /// this list, it will always be removed.
+    ///
+    /// # Parameters
+    ///
+    /// * `elements`: The list of element names to remove.
+    pub fn remove_elements(mut self, elements: impl IntoIterator<Item = &'static str>) -> Self {
+        self.remove_elements = Some(elements.into_iter().collect());
+        self
     }
 
     /// Remove the [rich reply fallback].
+    ///
+    /// Calling this allows to remove the `mx-reply` element in addition to the list of elements to
+    /// remove.
+    ///
+    /// Removing elements has a higher priority than ignoring or allowing. So if this settings is
+    /// set, `mx-reply` will always be removed.
     ///
     /// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
     pub fn remove_reply_fallback(mut self) -> Self {
@@ -94,282 +190,309 @@ impl SanitizerConfig {
         self
     }
 
-    /// Clean the given HTML with this sanitizer.
-    pub(crate) fn clean(&self, html: &mut Html) {
-        let root = html.root();
-        let mut next_child = root.first_child;
-
-        while let Some(child) = next_child {
-            next_child = html.nodes[child].next_sibling;
-            self.clean_node(html, child, 0);
-        }
+    /// Ignore the given HTML elements.
+    ///
+    /// When an element is ignored, the element is dropped and replaced by its children. If you want
+    /// to drop an element and its children, use [`SanitizerConfig::remove_elements`].
+    ///
+    /// Removing elements has a lower priority than removing but a higher priority than allowing.
+    ///
+    /// # Parameters
+    ///
+    /// * `elements`: The list of element names to ignore.
+    pub fn ignore_elements(mut self, elements: impl IntoIterator<Item = &'static str>) -> Self {
+        self.ignore_elements = Some(elements.into_iter().collect());
+        self
     }
 
-    fn clean_node(&self, html: &mut Html, node_id: usize, depth: u32) {
-        self.apply_deprecations(html, node_id);
-
-        let action = self.node_action(html, node_id, depth);
-
-        if action != NodeAction::Remove {
-            let mut next_child = html.nodes[node_id].first_child;
-            while let Some(child) = next_child {
-                next_child = html.nodes[child].next_sibling;
-
-                if action == NodeAction::Ignore {
-                    html.insert_before(node_id, child);
-                }
-
-                self.clean_node(html, child, depth + 1);
-            }
-        }
-
-        if matches!(action, NodeAction::Ignore | NodeAction::Remove) {
-            html.detach(node_id);
-        } else if let Some(data) = html.nodes[node_id].as_element_mut() {
-            self.clean_element_attributes(data);
-        }
+    /// Change the list of allowed HTML elements.
+    ///
+    /// The given list is added to or replaces the list of allowed elements of the current
+    /// mode, depending on the [`ListBehavior`].
+    ///
+    /// If an element is not allowed, it is ignored. If no mode is set and no elements are
+    /// explicitly allowed, all elements are allowed.
+    ///
+    /// # Parameters
+    ///
+    /// * `elements`: The list of element names.
+    pub fn allow_elements(
+        mut self,
+        elements: impl IntoIterator<Item = &'static str>,
+        behavior: ListBehavior,
+    ) -> Self {
+        let content = elements.into_iter().collect();
+        self.allow_elements = Some(List { content, behavior });
+        self
     }
 
-    fn apply_deprecations(&self, html: &mut Html, node_id: usize) {
-        if let NodeData::Element(ElementData { name, attrs, .. }) = &mut html.nodes[node_id].data {
-            let tag: &str = &name.local;
-
-            if let Some(deprecated_attrs) =
-                self.deprecated_attrs.and_then(|deprecated_attrs| deprecated_attrs.get(tag))
-            {
-                *attrs = attrs
-                    .clone()
-                    .into_iter()
-                    .map(|mut attr| {
-                        let attr_name: &str = &attr.name.local;
-
-                        let attr_replacement =
-                            deprecated_attrs.get(attr_name).map(|s| LocalName::from(*s));
-
-                        if let Some(attr_replacement) = attr_replacement {
-                            attr.name.local = attr_replacement;
-                        }
-
-                        attr
-                    })
-                    .collect();
-            }
-
-            let tag_replacement = self
-                .deprecated_tags
-                .and_then(|deprecated_tags| deprecated_tags.get(tag))
-                .map(|s| LocalName::from(*s));
-
-            if let Some(tag_replacement) = tag_replacement {
-                name.local = tag_replacement;
-            }
-        }
+    /// Change the list of replaced attributes per HTML element.
+    ///
+    /// The given list is added to or replaces the list of replacements of the current mode,
+    /// depending on the [`ListBehavior`].
+    ///
+    /// The replacement occurs before the removal, so the replaced attribute should not be in the
+    /// list of allowed attributes, but the replacement attribute should. Attribute replacement
+    /// occurs before element replacement, so if you want to replace an attribute on an element
+    /// that is set to be replaced, you must use the replaced element's name, not the name of its
+    /// replacement.
+    ///
+    /// # Parameters
+    ///
+    /// * `attrs`: The list of element's attributes replacements.
+    pub fn replace_attributes<'a>(
+        mut self,
+        attrs: impl IntoIterator<Item = ElementAttributesReplacement<'a>>,
+        behavior: ListBehavior,
+    ) -> Self {
+        let content = attrs.into_iter().map(|r| r.to_tuple()).collect();
+        self.replace_attrs = Some(List { content, behavior });
+        self
     }
 
-    fn node_action(&self, html: &Html, node_id: usize, depth: u32) -> NodeAction {
-        match &html.nodes[node_id].data {
-            NodeData::Element(ElementData { name, attrs, .. }) => {
-                let tag: &str = &name.local;
-
-                if (self.remove_reply_fallback && tag == RICH_REPLY_TAG)
-                    || self.max_depth.is_some_and(|max| depth >= max)
-                {
-                    NodeAction::Remove
-                } else if self
-                    .allowed_tags
-                    .is_some_and(|allowed| tag != RICH_REPLY_TAG && !allowed.contains(tag))
-                {
-                    NodeAction::Ignore
-                } else if let Some(allowed_schemes) = self.allowed_schemes {
-                    for attr in attrs.iter() {
-                        let value = &attr.value;
-                        let attr: &str = &attr.name.local;
-
-                        // Check if there is a (tag, attr) tuple entry.
-                        if let Some(schemes) = allowed_schemes.get(&*format!("{tag}:{attr}")) {
-                            // Check if the scheme is allowed.
-                            if !schemes
-                                .iter()
-                                .any(|scheme| value.starts_with(&format!("{scheme}:")))
-                            {
-                                return NodeAction::Ignore;
-                            }
-                        }
-                    }
-                    NodeAction::None
-                } else {
-                    NodeAction::None
-                }
-            }
-            NodeData::Text(_) => NodeAction::None,
-            _ => NodeAction::Remove,
-        }
+    /// Remove the given attributes per HTML element.
+    ///
+    /// Removing attributes has a higher priority than allowing. So if an attribute is in
+    /// this list, it will always be removed.
+    ///
+    /// # Parameters
+    ///
+    /// * `attrs`: The list of attributes per element. The value of `parent` is the element name,
+    ///   and `properties` contains attribute names.
+    pub fn remove_attributes<'a>(
+        mut self,
+        attrs: impl IntoIterator<Item = PropertiesNames<'a>>,
+    ) -> Self {
+        self.remove_attrs = Some(attrs.into_iter().map(|a| a.to_tuple()).collect());
+        self
     }
 
-    fn clean_element_attributes(&self, data: &mut ElementData) {
-        let ElementData { name, attrs } = data;
-        let tag: &str = &name.local;
+    /// Change the list of allowed attributes per HTML element.
+    ///
+    /// The given list is added to or replaces the list of allowed attributes of the current
+    /// mode, depending on the [`ListBehavior`].
+    ///
+    /// If an attribute is not allowed, it is removed. If no mode is set and no attributes are
+    /// explicitly allowed, all attributes are allowed.
+    ///
+    /// # Parameters
+    ///
+    /// * `attrs`: The list of attributes per element. The value of `parent` is the element name,
+    ///   and `properties` contains attribute names.
+    pub fn allow_attributes<'a>(
+        mut self,
+        attrs: impl IntoIterator<Item = PropertiesNames<'a>>,
+        behavior: ListBehavior,
+    ) -> Self {
+        let content = attrs.into_iter().map(|a| a.to_tuple()).collect();
+        self.allow_attrs = Some(List { content, behavior });
+        self
+    }
 
-        let actions: Vec<_> = attrs
-            .iter()
-            .filter_map(|attr| {
-                let value = &attr.value;
-                let name: &str = &attr.name.local;
+    /// Deny the given URI schemes per attribute per HTML element.
+    ///
+    /// Denying schemes has a higher priority than allowing. So if a scheme is in
+    /// this list, it will always be denied.
+    ///
+    /// If a scheme is denied, its element is removed, because it is deemed that the element will
+    /// not be usable without it URI.
+    ///
+    /// # Parameters
+    ///
+    /// * `schemes`: The list of schemes per attribute per element.
+    pub fn deny_schemes<'a>(
+        mut self,
+        schemes: impl IntoIterator<Item = ElementAttributesSchemes<'a>>,
+    ) -> Self {
+        self.deny_schemes = Some(schemes.into_iter().map(|s| s.to_tuple()).collect());
+        self
+    }
 
-                if self
-                    .allowed_attrs
-                    .is_some_and(|m| !m.get(tag).is_some_and(|attrs| attrs.contains(name)))
-                {
-                    return Some(AttributeAction::Remove(attr.to_owned()));
-                }
+    /// Change the list of allowed schemes per attribute per HTML element.
+    ///
+    /// The given list is added to or replaces the list of allowed schemes of the current
+    /// mode, depending on the [`ListBehavior`].
+    ///
+    /// If a scheme is not allowed, it is denied. If a scheme is denied, its element is ignored,
+    /// because it is deemed that the element will not be usable without it URI. If no mode is set
+    /// and no schemes are explicitly allowed, all schemes are allowed.
+    ///
+    /// # Parameters
+    ///
+    /// * `schemes`: The list of schemes per attribute per element.
+    pub fn allow_schemes<'a>(
+        mut self,
+        schemes: impl IntoIterator<Item = ElementAttributesSchemes<'a>>,
+        behavior: ListBehavior,
+    ) -> Self {
+        let content = schemes.into_iter().map(|s| s.to_tuple()).collect();
+        self.allow_schemes = Some(List { content, behavior });
+        self
+    }
 
-                if name == "class" {
-                    if let Some(classes) = self.allowed_classes.and_then(|m| m.get(tag)) {
-                        let mut changed = false;
-                        let attr_classes = value.split_whitespace().filter(|attr_class| {
-                            for class in classes.iter() {
-                                if WildMatch::new(class).matches(attr_class) {
-                                    return true;
-                                }
-                            }
-                            changed = true;
-                            false
-                        });
+    /// Deny the given classes per HTML element.
+    ///
+    /// Removing classes has a higher priority than allowing. So if a class is in
+    /// this list, it will always be removed.
+    ///
+    /// If all the classes of a `class` attribute are removed, the whole attribute is removed.
+    ///
+    /// In the list of classes, the names must match the full class name. `*` can be used as a
+    /// wildcard for any number of characters. So `language` will only match a class named
+    /// `language`, and `language-*` will match any class name starting with `language-`.
+    ///
+    /// # Parameters
+    ///
+    /// * `attrs`: The list of classes per element. The value of `parent` is the element name, and
+    ///   `properties` contains classes.
+    pub fn remove_classes<'a>(
+        mut self,
+        classes: impl IntoIterator<Item = PropertiesNames<'a>>,
+    ) -> Self {
+        self.remove_classes = Some(classes.into_iter().map(|c| c.to_tuple()).collect());
+        self
+    }
 
-                        let folded_classes = attr_classes.fold(String::new(), |mut a, b| {
-                            a.reserve(b.len() + 1);
-                            a.push_str(b);
-                            a.push('\n');
-                            a
-                        });
-                        let final_classes = folded_classes.trim_end();
+    /// Change the list of allowed classes per HTML element.
+    ///
+    /// The given list is added, removed or replaces the list of allowed classes of the current
+    /// mode, depending on the [`ListBehavior`].
+    ///
+    /// If a class is not allowed, it is removed. If all the classes of a `class` attribute are
+    /// removed, the whole attribute is removed. If no mode is set and no classes are explicitly
+    /// allowed, all classes are allowed.
+    ///
+    /// In the list of classes, the names must match the full class name. `*` can be used as a
+    /// wildcard for any number of characters. So `language` will only match a class named
+    /// `language`, and `language-*` will match any class name starting with `language-`.
+    ///
+    /// # Parameters
+    ///
+    /// * `attrs`: The list of classes per element. The value of `parent` is the element name, and
+    ///   `properties` contains classes.
+    pub fn allow_classes<'a>(
+        mut self,
+        classes: impl IntoIterator<Item = PropertiesNames<'a>>,
+        behavior: ListBehavior,
+    ) -> Self {
+        let content = classes.into_iter().map(|c| c.to_tuple()).collect();
+        self.allow_classes = Some(List { content, behavior });
+        self
+    }
 
-                        if changed {
-                            if final_classes.is_empty() {
-                                return Some(AttributeAction::Remove(attr.to_owned()));
-                            } else {
-                                return Some(AttributeAction::ReplaceValue(
-                                    attr.to_owned(),
-                                    final_classes.to_owned().into(),
-                                ));
-                            }
-                        }
-                    }
-                }
-
-                None
-            })
-            .collect();
-
-        for action in actions {
-            match action {
-                AttributeAction::ReplaceValue(attr, value) => {
-                    if let Some(mut attr) = attrs.take(&attr) {
-                        attr.value = value;
-                        attrs.insert(attr);
-                    }
-                }
-                AttributeAction::Remove(attr) => {
-                    attrs.remove(&attr);
-                }
-            }
-        }
+    /// The maximum nesting level of HTML elements.
+    ///
+    /// This overrides the maximum depth set by the mode, if one is set.
+    ///
+    /// All elements that are deeper than the maximum depth will be removed. If no mode is set and
+    /// no maximum depth is explicitly set, elements are not filtered by their nesting level.
+    ///
+    /// # Parameters
+    ///
+    /// * `depth`: The maximum nesting level allowed.
+    pub fn max_depth(mut self, depth: u32) -> Self {
+        self.max_depth = Some(depth);
+        self
     }
 }
 
-/// The possible actions to apply to an element node.
-#[derive(Debug, PartialEq, Eq)]
-enum NodeAction {
-    /// Don't do anything.
-    None,
+/// A list with a behavior.
+#[derive(Debug, Clone)]
+struct List<T> {
+    /// The content of this list.
+    content: T,
 
-    /// Remove the element but keep its children.
-    Ignore,
-
-    /// Remove the element and its children.
-    Remove,
+    /// The behavior of this list.
+    behavior: ListBehavior,
 }
 
-/// The possible actions to apply to an attribute.
-#[derive(Debug)]
-enum AttributeAction {
-    /// Replace the value of the attribute.
-    ReplaceValue(Attribute, StrTendril),
-
-    /// Remove the attribute.
-    Remove(Attribute),
+impl<T> List<T> {
+    /// Whether this is `ListBehavior::Override`.
+    fn is_override(&self) -> bool {
+        self.behavior == ListBehavior::Override
+    }
 }
 
-/// List of HTML tags allowed in the Matrix specification, without the rich reply fallback tag.
-static ALLOWED_TAGS_WITHOUT_REPLY_STRICT: Set<&str> = phf_set! {
-    "del", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "p", "a",
-    "ul", "ol", "sup", "sub", "li", "b", "i", "u", "strong", "em", "s",
-    "code", "hr", "br", "div", "table", "thead", "tbody", "tr", "th", "td",
-    "caption", "pre", "span", "img", "details", "summary",
-};
+/// The behavior of the setting.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(clippy::exhaustive_enums)]
+pub enum ListBehavior {
+    /// The list replaces the default list of the current mode, if one is set.
+    ///
+    /// If no mode is set, this is the full allow list.
+    Override,
 
-/// The HTML tag name for a rich reply fallback.
-const RICH_REPLY_TAG: &str = "mx-reply";
+    /// The list is added to the default list of the current mode, if one is set.
+    ///
+    /// If no mode is set, this is the full allow list.
+    Add,
+}
 
-/// HTML tags that were allowed in the Matrix specification, with their replacement.
-static DEPRECATED_TAGS: Map<&str, &str> = phf_map! {
-    "font" => "span",
-    "strike" => "s",
-};
+/// The replacement of a name.
+#[derive(Debug, Clone, Copy)]
+#[allow(clippy::exhaustive_structs)]
+pub struct NameReplacement {
+    /// The name to replace.
+    pub old: &'static str,
+    /// The name of the replacement.
+    pub new: &'static str,
+}
 
-/// Allowed attributes per HTML tag according to the Matrix specification.
-static ALLOWED_ATTRIBUTES_STRICT: Map<&str, &Set<&str>> = phf_map! {
-    "span" => &ALLOWED_ATTRIBUTES_SPAN_STRICT,
-    "a" => &ALLOWED_ATTRIBUTES_A_STRICT,
-    "img" => &ALLOWED_ATTRIBUTES_IMG_STRICT,
-    "ol" => &ALLOWED_ATTRIBUTES_OL_STRICT,
-    "code" => &ALLOWED_ATTRIBUTES_CODE_STRICT,
-};
-static ALLOWED_ATTRIBUTES_SPAN_STRICT: Set<&str> =
-    phf_set! { "data-mx-bg-color", "data-mx-color", "data-mx-spoiler" };
-static ALLOWED_ATTRIBUTES_A_STRICT: Set<&str> = phf_set! { "name", "target", "href" };
-static ALLOWED_ATTRIBUTES_IMG_STRICT: Set<&str> =
-    phf_set! { "width", "height", "alt", "title", "src" };
-static ALLOWED_ATTRIBUTES_OL_STRICT: Set<&str> = phf_set! { "start" };
-static ALLOWED_ATTRIBUTES_CODE_STRICT: Set<&str> = phf_set! { "class" };
+impl NameReplacement {
+    fn to_tuple(self) -> (&'static str, &'static str) {
+        (self.old, self.new)
+    }
+}
 
-/// Attributes that were allowed on HTML tags according to the Matrix specification, with their
-/// replacement.
-static DEPRECATED_ATTRS: Map<&str, &Map<&str, &str>> = phf_map! {
-    "font" => &DEPRECATED_ATTRIBUTES_FONT,
-};
-static DEPRECATED_ATTRIBUTES_FONT: Map<&str, &str> = phf_map! { "color" => "data-mx-color" };
+/// A list of properties names for a parent.
+#[allow(clippy::exhaustive_structs)]
+#[derive(Debug, Clone, Copy)]
+pub struct PropertiesNames<'a> {
+    /// The name of the parent.
+    pub parent: &'static str,
+    /// The list of properties names.
+    pub properties: &'a [&'static str],
+}
 
-/// Allowed schemes of URIs per HTML tag and attribute tuple according to the Matrix specification.
-static ALLOWED_SCHEMES_STRICT: Map<&str, &Set<&str>> = phf_map! {
-    "a:href" => &ALLOWED_SCHEMES_A_HREF_STRICT,
-    "img:src" => &ALLOWED_SCHEMES_IMG_SRC_STRICT,
-};
-static ALLOWED_SCHEMES_A_HREF_STRICT: Set<&str> =
-    phf_set! { "http", "https", "ftp", "mailto", "magnet" };
-static ALLOWED_SCHEMES_IMG_SRC_STRICT: Set<&str> = phf_set! { "mxc" };
+impl<'a> PropertiesNames<'a> {
+    fn to_tuple(self) -> (&'static str, HashSet<&'static str>) {
+        let set = self.properties.iter().copied().collect();
+        (self.parent, set)
+    }
+}
 
-/// Extra allowed schemes of URIs per HTML tag and attribute tuple.
-///
-/// This is a convenience list to add schemes that can be encountered but are not listed in the
-/// Matrix specification. It consists of:
-///
-/// * The `matrix` scheme for `a` tags (see [matrix-org/matrix-spec#1108]).
-///
-/// To get a complete list, add these to `ALLOWED_SCHEMES_STRICT`.
-///
-/// [matrix-org/matrix-spec#1108]: https://github.com/matrix-org/matrix-spec/issues/1108
-static ALLOWED_SCHEMES_COMPAT: Map<&str, &Set<&str>> = phf_map! {
-    "a:href" => &ALLOWED_SCHEMES_A_HREF_COMPAT,
-    "img:src" => &ALLOWED_SCHEMES_IMG_SRC_STRICT,
-};
-pub(crate) static ALLOWED_SCHEMES_A_HREF_COMPAT: Set<&str> =
-    phf_set! { "http", "https", "ftp", "mailto", "magnet", "matrix" };
+/// The replacement of an element's attributes.
+#[allow(clippy::exhaustive_structs)]
+#[derive(Debug, Clone, Copy)]
+pub struct ElementAttributesReplacement<'a> {
+    /// The name of the element.
+    pub element: &'static str,
+    /// The list of attributes replacements.
+    pub replacements: &'a [NameReplacement],
+}
 
-/// Allowed classes per HTML tag according to the Matrix specification.
-static ALLOWED_CLASSES_STRICT: Map<&str, &Set<&str>> =
-    phf_map! { "code" => &ALLOWED_CLASSES_CODE_STRICT };
-static ALLOWED_CLASSES_CODE_STRICT: Set<&str> = phf_set! { "language-*" };
+impl<'a> ElementAttributesReplacement<'a> {
+    fn to_tuple(self) -> (&'static str, HashMap<&'static str, &'static str>) {
+        let map = self.replacements.iter().map(|r| r.to_tuple()).collect();
+        (self.element, map)
+    }
+}
 
-/// Max depth of nested HTML tags allowed by the Matrix specification.
-const MAX_DEPTH_STRICT: u32 = 100;
+/// An element's attributes' URI schemes.
+#[allow(clippy::exhaustive_structs)]
+#[derive(Debug, Clone, Copy)]
+pub struct ElementAttributesSchemes<'a> {
+    /// The name of the element.
+    pub element: &'static str,
+    /// The list of allowed URI schemes per attribute name.
+    ///
+    /// The value of the `parent` is the attribute name and the properties are schemes.
+    pub attr_schemes: &'a [PropertiesNames<'a>],
+}
+
+impl<'a> ElementAttributesSchemes<'a> {
+    fn to_tuple(self) -> (&'static str, HashMap<&'static str, HashSet<&'static str>>) {
+        let map = self.attr_schemes.iter().map(|s| s.to_tuple()).collect();
+        (self.element, map)
+    }
+}
