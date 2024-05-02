@@ -17,6 +17,8 @@
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
+pub use html5ever::{tendril::StrTendril, Attribute, LocalName, Namespace, Prefix, QualName};
+
 mod helpers;
 mod html;
 mod sanitizer_config;
