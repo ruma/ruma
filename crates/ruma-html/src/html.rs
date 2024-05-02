@@ -44,11 +44,11 @@ impl Html {
     /// `SanitizerConfig::compat().remove_reply_fallback()`.
     pub fn sanitize(&mut self) {
         let config = SanitizerConfig::compat().remove_reply_fallback();
-        self.sanitize_with(config);
+        self.sanitize_with(&config);
     }
 
     /// Sanitize this HTML according to the given configuration.
-    pub fn sanitize_with(&mut self, config: SanitizerConfig) {
+    pub fn sanitize_with(&mut self, config: &SanitizerConfig) {
         config.clean(self);
     }
 

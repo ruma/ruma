@@ -24,7 +24,7 @@ pub fn sanitize_html(
         config = config.remove_reply_fallback();
     }
 
-    sanitize_inner(s, config)
+    sanitize_inner(s, &config)
 }
 
 /// What HTML [tags and attributes] should be kept by the sanitizer.
@@ -62,10 +62,10 @@ pub enum RemoveReplyFallback {
 /// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
 pub fn remove_html_reply_fallback(s: &str) -> String {
     let config = SanitizerConfig::new().remove_reply_fallback();
-    sanitize_inner(s, config)
+    sanitize_inner(s, &config)
 }
 
-fn sanitize_inner(s: &str, config: SanitizerConfig) -> String {
+fn sanitize_inner(s: &str, config: &SanitizerConfig) -> String {
     let mut html = Html::parse(s);
     html.sanitize_with(config);
     html.to_string()
