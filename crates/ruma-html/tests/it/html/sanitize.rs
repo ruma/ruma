@@ -11,7 +11,7 @@ fn valid_input() {
         <code class=\"language-html\">&lt;mx-reply&gt;This is a fake reply&lt;/mx-reply&gt;</code>\
         ",
     );
-    html.sanitize_with(config);
+    html.sanitize_with(&config);
 
     assert_eq!(
         html.to_string(),
@@ -41,7 +41,7 @@ fn tags_remove() {
         <p>But this is inside a tag</p>\
         ",
     );
-    html.sanitize_with(config);
+    html.sanitize_with(&config);
 
     assert_eq!(
         html.to_string(),
@@ -77,7 +77,7 @@ fn tags_remove_without_reply() {
         <p>But this is inside a tag</p>\
         ",
     );
-    html.sanitize_with(config);
+    html.sanitize_with(&config);
 
     assert_eq!(
         html.to_string(),
@@ -105,7 +105,7 @@ fn tags_remove_only_reply_fallback() {
         <p>But this is inside a tag</p>\
         ",
     );
-    html.sanitize_with(config);
+    html.sanitize_with(&config);
 
     assert_eq!(
         html.to_string(),
@@ -125,7 +125,7 @@ fn attrs_remove() {
         <p class=\"important\">Look at <span data-mx-color=\"#0000ff\" size=20>me!</span></p>\
         ",
     );
-    html.sanitize_with(config);
+    html.sanitize_with(&config);
 
     assert_eq!(
         html.to_string(),
@@ -145,7 +145,7 @@ fn img_remove_scheme() {
         <img src=\"https://notareal.hs/abcdef\">\
         ",
     );
-    html.sanitize_with(config);
+    html.sanitize_with(&config);
 
     assert_eq!(html.to_string(), "<p>Look at that picture:</p>");
 }
@@ -158,7 +158,7 @@ fn link_remove_scheme() {
         <p>Go see <a href=\"file://local/file.html\">my local website</a></p>\
         ",
     );
-    html.sanitize_with(config);
+    html.sanitize_with(&config);
 
     assert_eq!(
         html.to_string(),
@@ -177,7 +177,7 @@ fn link_compat_scheme() {
         <p>To talk about <a href=\"https://mycat.org\">my cat</a></p>\
         ",
     );
-    html.sanitize_with(config);
+    html.sanitize_with(&config);
     assert_eq!(
         html.to_string(),
         "\
@@ -193,7 +193,7 @@ fn link_compat_scheme() {
         <p>To talk about <a href=\"https://mycat.org\">my cat</a></p>\
         ",
     );
-    html.sanitize_with(config);
+    html.sanitize_with(&config);
     assert_eq!(
         html.to_string(),
         "\
@@ -214,7 +214,7 @@ fn class_remove() {
         <p>What do you think of the name <code class=\"fake-language-rust\">StringList</code>?</p>\
         ",
     );
-    html.sanitize_with(config);
+    html.sanitize_with(&config);
 
     assert_eq!(
         html.to_string(),
@@ -240,7 +240,7 @@ fn depth_remove() {
         .collect();
 
     let mut html = Html::parse(&deeply_nested_html);
-    html.sanitize_with(config);
+    html.sanitize_with(&config);
 
     let res = html.to_string();
     assert!(res.contains("I should be fine."));
@@ -255,7 +255,7 @@ fn replace_deprecated() {
         <p>Look at <strike>you </strike><font data-mx-bg-color=\"#ff0000\" color=\"#0000ff\">me!</span></p>\
         ",
     );
-    html.sanitize_with(config);
+    html.sanitize_with(&config);
 
     assert_eq!(
         html.to_string(),
