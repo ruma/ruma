@@ -349,7 +349,6 @@ pub struct Timeline {
     pub prev_batch: Option<String>,
 
     /// A list of events.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnySyncTimelineEvent>>,
 }
 
@@ -606,16 +605,17 @@ mod tests {
     #[test]
     fn timeline_serde() {
         let timeline = assign!(Timeline::new(), { limited: true });
-        let timeline_serialized = json!({ "limited": true });
+        let timeline_serialized = json!({ "events": [], "limited": true });
         assert_eq!(to_json_value(timeline).unwrap(), timeline_serialized);
 
         let timeline_deserialized = from_json_value::<Timeline>(timeline_serialized).unwrap();
         assert!(timeline_deserialized.limited);
 
         let timeline_default = Timeline::default();
-        assert_eq!(to_json_value(timeline_default).unwrap(), json!({}));
+        assert_eq!(to_json_value(timeline_default).unwrap(), json!({ "events": [] }));
 
-        let timeline_default_deserialized = from_json_value::<Timeline>(json!({})).unwrap();
+        let timeline_default_deserialized =
+            from_json_value::<Timeline>(json!({ "events": [] })).unwrap();
         assert!(!timeline_default_deserialized.limited);
     }
 }
