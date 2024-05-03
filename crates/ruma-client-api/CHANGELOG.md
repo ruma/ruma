@@ -4,6 +4,8 @@ Bug fixes:
 
 - Don't require the `failures` field in the
   `ruma_client_api::keys::upload_signatures::Response` type.
+- `sync::sync_events::v3::Timeline::is_empty` now returns `false` when the
+  `limited` or `prev_batch` fields are set.
 
 Breaking changes:
 
