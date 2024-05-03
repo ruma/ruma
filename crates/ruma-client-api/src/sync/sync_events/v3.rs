@@ -360,8 +360,11 @@ impl Timeline {
     }
 
     /// Returns true if there are no timeline updates.
+    ///
+    /// A `Timeline` is considered non-empty if it has at least one event, a
+    /// `prev_batch` value, or `limited` is `true`.
     pub fn is_empty(&self) -> bool {
-        self.events.is_empty()
+        !self.limited && self.prev_batch.is_none() && self.events.is_empty()
     }
 }
 
