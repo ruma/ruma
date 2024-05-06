@@ -244,6 +244,10 @@ pub enum DeserializationError {
     /// Header value deserialization failed.
     #[error(transparent)]
     Header(#[from] HeaderDeserializationError),
+
+    /// The response is an enum and it cannot be deserialized to one of its variants.
+    #[error("unknown variant")]
+    UnknownVariant,
 }
 
 impl From<std::convert::Infallible> for DeserializationError {

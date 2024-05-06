@@ -20,7 +20,10 @@ Breaking changes:
   constructed with `ErrorKind::forbidden()`.
 - The `retry_after_ms` field of `ErrorKind::LimitExceeded` was renamed to
   `retry_after` and is now an `Option<RetryAfter>`, to add support for the
-  Retry-After header, according to MSC4041 / Matrix 1.10 
+  Retry-After header, according to MSC4041 / Matrix 1.10
+- Make `get_uiaa_fallback::v3::Response` an enum for a redirect or an HTML page.
+  It will now return the proper status code and headers depending on the variant
+  used.
 
 Improvements:
 
