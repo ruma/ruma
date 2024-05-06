@@ -32,7 +32,7 @@ pub mod v3 {
     }
 
     /// Response type for the `sso_login` endpoint.
-    #[response(error = crate::Error)]
+    #[response(error = crate::Error, status = FOUND)]
     pub struct Response {
         /// Redirect URL to the SSO identity provider.
         #[ruma_api(header = LOCATION)]
