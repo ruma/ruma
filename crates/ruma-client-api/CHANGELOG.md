@@ -6,6 +6,7 @@ Bug fixes:
   `ruma_client_api::keys::upload_signatures::Response` type.
 - `sync::sync_events::v3::Timeline::is_empty` now returns `false` when the
   `limited` or `prev_batch` fields are set.
+- `login_fallback::Response` now returns the proper content type
 
 Breaking changes:
 
