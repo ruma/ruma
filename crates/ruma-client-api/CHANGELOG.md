@@ -7,6 +7,7 @@ Bug fixes:
 - `sync::sync_events::v3::Timeline::is_empty` now returns `false` when the
   `limited` or `prev_batch` fields are set.
 - `login_fallback::Response` now returns the proper content type
+- `sso_login[_with_provider]` responses now use the proper HTTP status code.
 
 Breaking changes:
 
