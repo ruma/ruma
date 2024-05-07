@@ -131,18 +131,8 @@ pub mod v3 {
                 return Ok(Self::Redirect(Redirect { url: url.to_owned() }));
             }
 
-            if response
-                .headers()
-                .get(http::header::CONTENT_TYPE)
-                .map(|value| value.to_str())
-                .transpose()?
-                .is_some_and(|content_type| content_type == "text/html")
-            {
-                let body = response.into_body().as_ref().to_owned();
-                return Ok(Self::Html(HtmlPage { body }));
-            }
-
-            Err(DeserializationError::UnknownVariant.into())
+            let body = response.into_body().as_ref().to_owned();
+            Ok(Self::Html(HtmlPage { body }))
         }
     }
 
