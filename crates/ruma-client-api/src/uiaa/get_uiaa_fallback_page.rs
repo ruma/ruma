@@ -43,7 +43,7 @@ pub mod v3 {
 
     /// Response type for the `authorize_fallback` endpoint.
     #[derive(Debug, Clone)]
-    #[non_exhaustive]
+    #[allow(clippy::exhaustive_enums)]
     pub enum Response {
         /// The response is a redirect.
         Redirect(Redirect),
@@ -54,7 +54,7 @@ pub mod v3 {
 
     /// The data of a redirect.
     #[derive(Debug, Clone)]
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct Redirect {
         /// The URL to redirect the user to.
         pub url: String,
@@ -62,7 +62,7 @@ pub mod v3 {
 
     /// The data of a HTML page.
     #[derive(Debug, Clone)]
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct HtmlPage {
         /// The body of the HTML page.
         pub body: Vec<u8>,
