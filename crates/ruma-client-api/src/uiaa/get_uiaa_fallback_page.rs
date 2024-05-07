@@ -92,7 +92,7 @@ pub mod v3 {
                     .body(T::default())?),
                 Response::Html(HtmlPage { body }) => Ok(http::Response::builder()
                     .status(http::StatusCode::OK)
-                    .header(http::header::CONTENT_TYPE, "text/html")
+                    .header(http::header::CONTENT_TYPE, "text/html; charset=utf-8")
                     .body(ruma_common::serde::slice_to_buf(&body))?),
             }
         }
@@ -170,7 +170,7 @@ pub mod v3 {
 
             let http_response = http::Response::builder()
                 .status(http::StatusCode::OK)
-                .header(CONTENT_TYPE, "text/html")
+                .header(CONTENT_TYPE, "text/html; charset=utf-8")
                 .body(b"<h1>My Page</h1>")
                 .unwrap();
 
@@ -204,7 +204,7 @@ pub mod v3 {
             assert_eq!(http_response.status(), http::StatusCode::OK);
             assert_eq!(
                 http_response.headers().get(CONTENT_TYPE).unwrap().to_str().unwrap(),
-                "text/html"
+                "text/html; charset=utf-8"
             );
             assert_eq!(http_response.into_body(), b"<h1>My Page</h1>");
         }
