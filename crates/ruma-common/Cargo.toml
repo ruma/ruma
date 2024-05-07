@@ -75,7 +75,7 @@ serde_json = { workspace = true, features = ["raw_value"] }
 thiserror = { workspace = true }
 time = "0.3.34"
 tracing = { workspace = true, features = ["attributes"] }
-url = "2.2.2"
+url = { workspace = true }
 uuid = { version = "1.0.0", optional = true, features = ["v4"] }
 web-time = { workspace = true }
 wildmatch = "2.0.0"
