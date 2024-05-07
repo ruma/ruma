@@ -107,7 +107,7 @@ pub mod v3 {
         ) -> Result<Self, ruma_common::api::error::FromHttpResponseError<Self::EndpointError>>
         {
             use ruma_common::api::{
-                error::{DeserializationError, FromHttpResponseError},
+                error::{DeserializationError, FromHttpResponseError, HeaderDeserializationError},
                 EndpointError,
             };
 
@@ -117,7 +117,16 @@ pub mod v3 {
                 ));
             }
 
-            if let Some(location) = response.headers().get(http::header::LOCATION) {
+            if response.status() == http::StatusCode::FOUND {
+                let Some(location) = response.headers().get(http::header::LOCATION) else {
+                    return Err(DeserializationError::Header(
+                        HeaderDeserializationError::MissingHeader(
+                            http::header::LOCATION.to_string(),
+                        ),
+                    )
+                    .into());
+                };
+
                 let url = location.to_str()?;
                 return Ok(Self::Redirect(Redirect { url: url.to_owned() }));
             }
@@ -125,14 +134,15 @@ pub mod v3 {
             if response
                 .headers()
                 .get(http::header::CONTENT_TYPE)
-                .and_then(|value| value.to_str().ok())
+                .map(|value| value.to_str())
+                .transpose()?
                 .is_some_and(|content_type| content_type == "text/html")
             {
                 let body = response.into_body().as_ref().to_owned();
                 return Ok(Self::Html(HtmlPage { body }));
             }
 
-            Err(FromHttpResponseError::Deserialization(DeserializationError::UnknownVariant))
+            Err(DeserializationError::UnknownVariant.into())
         }
     }
 
