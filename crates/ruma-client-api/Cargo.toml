@@ -50,6 +50,7 @@ unstable-msc3575 = []
 unstable-msc3814 = []
 unstable-msc3843 = []
 unstable-msc3983 = []
+unstable-msc4108 = []
 unstable-msc4121 = []
 
 [dependencies]
@@ -67,6 +68,7 @@ serde = { workspace = true }
 serde_html_form = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+url = { workspace = true, features = ["serde"] }
 web-time = { workspace = true }
 
 [dev-dependencies]

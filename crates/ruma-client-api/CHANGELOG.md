@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+- Add support for MSC4108 OIDC sign in and E2EE set up via QR code
+
 # 0.18.0
 
 Bug fixes:
