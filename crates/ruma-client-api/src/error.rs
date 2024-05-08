@@ -6,17 +6,22 @@ use as_variant::as_variant;
 use bytes::{BufMut, Bytes};
 use ruma_common::{
     api::{
-        error::{FromHttpResponseError, IntoHttpError, MatrixErrorBody},
+        error::{
+            FromHttpResponseError, HeaderDeserializationError, HeaderSerializationError,
+            IntoHttpError, MatrixErrorBody,
+        },
         EndpointError, OutgoingResponse,
     },
     RoomVersionId,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{from_slice as from_json_slice, Value as JsonValue};
-use thiserror::Error;
-use web_time::{Duration, SystemTime, UNIX_EPOCH};
+use web_time::{Duration, SystemTime};
 
-use crate::PrivOwnedStr;
+use crate::{
+    http_headers::{http_date_to_system_time, system_time_to_http_date},
+    PrivOwnedStr,
+};
 
 /// Deserialize and Serialize implementations for ErrorKind.
 /// Separate module because it's a lot of code.
@@ -372,9 +377,8 @@ impl EndpointError for Error {
                     ErrorKind::LimitExceeded { retry_after } => {
                         // The Retry-After header takes precedence over the retry_after_ms field in
                         // the body.
-                        if let Some(retry_after_header) = headers
-                            .get(http::header::RETRY_AFTER)
-                            .and_then(RetryAfter::from_header_value)
+                        if let Some(Ok(retry_after_header)) =
+                            headers.get(http::header::RETRY_AFTER).map(RetryAfter::try_from)
                         {
                             *retry_after = Some(retry_after_header);
                         }
@@ -567,56 +571,28 @@ pub enum RetryAfter {
     DateTime(SystemTime),
 }
 
-impl RetryAfter {
-    fn from_header_value(value: &http::HeaderValue) -> Option<Self> {
-        let bytes = value.as_bytes();
+impl TryFrom<&http::HeaderValue> for RetryAfter {
+    type Error = HeaderDeserializationError;
 
-        if bytes.iter().all(|b| b.is_ascii_digit()) {
+    fn try_from(value: &http::HeaderValue) -> Result<Self, Self::Error> {
+        if value.as_bytes().iter().all(|b| b.is_ascii_digit()) {
             // It should be a duration.
-            Some(Self::Delay(Duration::from_secs(u64::from_str(value.to_str().ok()?).ok()?)))
+            Ok(Self::Delay(Duration::from_secs(u64::from_str(value.to_str()?)?)))
         } else {
             // It should be a date.
-            let ts = date_header::parse(bytes).ok()?;
-            Some(Self::DateTime(UNIX_EPOCH.checked_add(Duration::from_secs(ts))?))
+            Ok(Self::DateTime(http_date_to_system_time(value)?))
         }
     }
 }
 
 impl TryFrom<&RetryAfter> for http::HeaderValue {
-    type Error = RetryAfterInvalidDateTime;
+    type Error = HeaderSerializationError;
 
     fn try_from(value: &RetryAfter) -> Result<Self, Self::Error> {
         match value {
             RetryAfter::Delay(duration) => Ok(duration.as_secs().into()),
-            RetryAfter::DateTime(time) => {
-                let mut buffer = [0; 29];
-                let duration =
-                    time.duration_since(UNIX_EPOCH).map_err(|_| RetryAfterInvalidDateTime)?;
-                date_header::format(duration.as_secs(), &mut buffer)
-                    .map_err(|_| RetryAfterInvalidDateTime)?;
-                let value = http::HeaderValue::from_bytes(&buffer)
-                    .expect("date_header should produce a valid header value");
-
-                Ok(value)
-            }
+            RetryAfter::DateTime(time) => system_time_to_http_date(time),
         }
-    }
-}
-
-/// An error when converting a [`RetryAfter`] to a [`http::HeaderValue`].
-///
-/// Happens when the `DateTime` is too far in the past (before the Unix epoch) or the
-/// future (after the year 9999).
-#[derive(Debug, Error)]
-#[allow(clippy::exhaustive_structs)]
-#[error(
-    "Retry-After header serialization failed: the datetime is too far in the past or the future"
-)]
-pub struct RetryAfterInvalidDateTime;
-
-impl From<RetryAfterInvalidDateTime> for IntoHttpError {
-    fn from(_value: RetryAfterInvalidDateTime) -> Self {
-        IntoHttpError::RetryAfterInvalidDatetime
     }
 }
 

@@ -5,6 +5,7 @@ Bug fixes:
 - Allow to deserialize `Ruleset` with missing fields.
 
 Breaking changes:
+
 - The power levels fields in `PushConditionRoomCtx` are grouped in an optional `power_levels` field.
   If the field is missing, push rules that depend on it will never match. However, this allows to
   match the `.m.rule.invite_for_me` push rule because usually the `invite_state` doesn't include
@@ -14,6 +15,7 @@ Breaking changes:
 - `deserialize_as_f64_or_string` has been extended to also support parsing integers, and renamed to
   `deserialize_as_number_or_string` to reflect that.
 - The http crate had a major version bump to version 1.1
+- `IntoHttpError::Header` now contains a `HeaderSerializationError`
 
 Improvements:
 
