@@ -2,7 +2,7 @@
 //! converting between http requests / responses and ruma's representation of
 //! matrix API requests / responses.
 
-use std::{error::Error as StdError, fmt, sync::Arc};
+use std::{error::Error as StdError, fmt, num::ParseIntError, sync::Arc};
 
 use bytes::{BufMut, Bytes};
 use serde_json::{from_slice as from_json_slice, Value as JsonValue};
@@ -127,18 +127,17 @@ pub enum IntoHttpError {
 
     /// Header serialization failed.
     #[error("header serialization failed: {0}")]
-    Header(#[from] http::header::InvalidHeaderValue),
-
-    /// Retry-After header serialization failed because the datetime provided is after the year
-    /// 9999.
-    #[error(
-        "Retry-After header serialization failed: the year of the datetime is bigger than 9999"
-    )]
-    RetryAfterInvalidDatetime,
+    Header(#[from] HeaderSerializationError),
 
     /// HTTP request construction failed.
     #[error("HTTP request construction failed: {0}")]
     Http(#[from] http::Error),
+}
+
+impl From<http::header::InvalidHeaderValue> for IntoHttpError {
+    fn from(value: http::header::InvalidHeaderValue) -> Self {
+        Self::Header(value.into())
+    }
 }
 
 /// An error when converting a http request to one of ruma's endpoint-specific request types.
@@ -258,13 +257,21 @@ impl From<http::header::ToStrError> for DeserializationError {
     }
 }
 
-/// An error with the http headers.
+/// An error when deserializing the HTTP headers.
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum HeaderDeserializationError {
     /// Failed to convert `http::header::HeaderValue` to `str`.
     #[error("{0}")]
-    ToStrError(http::header::ToStrError),
+    ToStrError(#[from] http::header::ToStrError),
+
+    /// Failed to convert `http::header::HeaderValue` to an integer.
+    #[error("{0}")]
+    ParseIntError(#[from] ParseIntError),
+
+    /// Failed to parse a HTTP date from a `http::header::Value`.
+    #[error("failed to parse HTTP date")]
+    InvalidHttpDate,
 
     /// The given required header is missing.
     #[error("missing header `{0}`")]
@@ -303,3 +310,19 @@ impl fmt::Display for IncorrectArgumentCount {
 }
 
 impl StdError for IncorrectArgumentCount {}
+
+/// An error when serializing the HTTP headers.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum HeaderSerializationError {
+    /// Failed to convert a header value to `http::header::HeaderValue`.
+    #[error(transparent)]
+    ToHeaderValue(#[from] http::header::InvalidHeaderValue),
+
+    /// The `SystemTime` could not be converted to a HTTP date.
+    ///
+    /// This only happens if the `SystemTime` provided is too far in the past (before the Unix
+    /// epoch) or the future (after the year 9999).
+    #[error("invalid HTTP date")]
+    InvalidHttpDate,
+}
