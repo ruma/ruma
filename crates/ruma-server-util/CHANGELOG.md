@@ -7,9 +7,16 @@ Breaking changes:
 - The `sig` field in `XMatrix` has been changed from `String` to `Base64` to more accurately
   mirror its allowed values in the type system.
 
-Improvements:
+Bug fixes:
 
 - When encoding to a header value, `XMatrix` fields are now quoted and escaped correctly.
+- Use http-auth crate to parse `XMatrix`. Allows to parse the Authorization HTTP
+  header with full compatibility with RFC 7235
+
+Improvements:
+
+- Implement `Display`, `FromStr` and conversion to/from `http::HeaderValue` for
+  `XMatrix`
 
 # 0.3.0
 

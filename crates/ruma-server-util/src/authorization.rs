@@ -1,26 +1,32 @@
 //! Common types for implementing federation authorization.
 
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt, str::FromStr};
 
-use headers::{authorization::Credentials, HeaderValue};
-use ruma_common::{serde::Base64, OwnedServerName, OwnedServerSigningKeyId};
+use headers::authorization::Credentials;
+use http::HeaderValue;
+use http_auth::ChallengeParser;
+use ruma_common::{
+    serde::{Base64, Base64DecodeError},
+    IdParseError, OwnedServerName, OwnedServerSigningKeyId,
+};
+use thiserror::Error;
 use tracing::debug;
-use yap::{IntoTokens, TokenLocation, Tokens};
 
 /// Typed representation of an `Authorization` header of scheme `X-Matrix`, as defined in the
-/// [Matrix Server-Server API][spec]. Includes an implementation of
-/// [`headers::authorization::Credentials`] for automatically handling the encoding and decoding
-/// when using a web framework that supports typed headers.
+/// [Matrix Server-Server API][spec].
 ///
 /// [spec]: https://spec.matrix.org/latest/server-server-api/#request-authentication
+#[derive(Clone)]
 #[non_exhaustive]
 pub struct XMatrix {
     /// The server name of the sending server.
     pub origin: OwnedServerName,
-    /// The server name of the receiving sender. For compatibility with older servers, recipients
-    /// should accept requests without this parameter, but MUST always send it. If this property is
-    /// included, but the value does not match the receiving server's name, the receiving server
-    /// must deny the request with an HTTP status code 401 Unauthorized.
+    /// The server name of the receiving sender.
+    ///
+    /// For compatibility with older servers, recipients should accept requests without this
+    /// parameter, but MUST always send it. If this property is included, but the value does
+    /// not match the receiving server's name, the receiving server must deny the request with
+    /// an HTTP status code 401 Unauthorized.
     pub destination: Option<OwnedServerName>,
     /// The ID - including the algorithm name - of the sending server's key that was used to sign
     /// the request.
@@ -39,190 +45,94 @@ impl XMatrix {
     ) -> Self {
         Self { origin, destination: Some(destination), key, sig }
     }
-}
 
-fn parse_token<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<Vec<u8>> {
-    tokens.optional(|t| {
-        let token: Vec<u8> = t.take_while(|c| is_tchar(**c)).as_iter().copied().collect();
-        if !token.is_empty() {
-            Some(token)
-        } else {
-            debug!("Returning early because of empty token at {}", t.location().offset());
-            None
-        }
-    })
-}
+    /// Parse an X-Matrix Authorization header from the given string.
+    pub fn parse(s: impl AsRef<str>) -> Result<Self, XMatrixParseError> {
+        let parser = ChallengeParser::new(s.as_ref());
+        let mut xmatrix = None;
 
-// Matrix spec:
-// > For compatibility with older servers, the recipient should allow colons to be included in
-// > values without requiring the value to be enclosed in quotes.
-fn parse_token_with_colons<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<Vec<u8>> {
-    tokens.optional(|t| {
-        let token: Vec<u8> =
-            t.take_while(|c| is_tchar(**c) || **c == b':').as_iter().copied().collect();
-        if !token.is_empty() {
-            Some(token)
-        } else {
-            debug!("Returning early because of empty token at {}", t.location().offset());
-            None
-        }
-    })
-}
+        for challenge in parser {
+            let challenge = challenge?;
 
-fn parse_quoted<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<Vec<u8>> {
-    tokens.optional(|t| {
-        if !(t.token(&b'"')) {
-            return None;
-        }
-        let mut buffer = Vec::new();
-        loop {
-            match t.next()? {
-                // quoted pair
-                b'\\' => {
-                    let escaped = t.next().filter(|c| {
-                        if is_quoted_pair(**c) {
-                            true
-                        } else {
-                            debug!(
-                                "Encountered an illegal character {} at location {}",
-                                **c as char,
-                                t.location().offset()
-                            );
-                            false
-                        }
-                    })?;
-                    buffer.push(*escaped);
-                }
-                // end of quote
-                b'"' => break,
-                // regular character
-                c if is_qdtext(*c) => buffer.push(*c),
-                // Invalid character
-                c => {
-                    debug!(
-                        "Encountered an illegal character {} at location {}",
-                        *c as char,
-                        t.location().offset()
-                    );
-                    return None;
-                }
+            if challenge.scheme.eq_ignore_ascii_case(XMatrix::SCHEME) {
+                xmatrix = Some(challenge);
+                break;
             }
         }
-        Some(buffer)
-    })
-}
 
-fn parse_xmatrix_field<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<(String, Vec<u8>)> {
-    tokens.optional(|t| {
-        let name = parse_token(t).and_then(|name| {
-            let name = std::str::from_utf8(&name).ok()?.to_ascii_lowercase();
-            match name.as_str() {
-                "origin" | "destination" | "key" | "sig" => Some(name),
-                name => {
-                    debug!(
-                        "Encountered an invalid field name {} at location {}",
-                        name,
-                        t.location().offset()
-                    );
-                    None
-                }
-            }
-        })?;
+        let Some(xmatrix) = xmatrix else {
+            return Err(XMatrixParseError::NotFound);
+        };
 
-        if !t.token(&b'=') {
-            return None;
-        }
-
-        let value = parse_quoted(t).or_else(|| parse_token_with_colons(t))?;
-
-        Some((name, value))
-    })
-}
-
-fn parse_xmatrix<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<XMatrix> {
-    tokens.optional(|t| {
-        if !t.tokens(b"X-Matrix ") {
-            debug!("Failed to parse X-Matrix credentials, didn't start with 'X-Matrix '");
-            return None;
-        }
         let mut origin = None;
         let mut destination = None;
         let mut key = None;
         let mut sig = None;
 
-        for (name, value) in t.sep_by(|t| parse_xmatrix_field(t), |t| t.token(&b',')).as_iter() {
-            match name.as_str() {
-                "origin" => {
-                    if origin.is_some() {
-                        debug!("Field origin duplicated in X-Matrix Authorization header");
-                    }
-                    origin = Some(std::str::from_utf8(&value).ok()?.try_into().ok()?);
+        for (name, value) in xmatrix.params {
+            if name.eq_ignore_ascii_case("origin") {
+                if origin.is_some() {
+                    return Err(XMatrixParseError::DuplicateParameter("origin".to_owned()));
+                } else {
+                    origin = Some(OwnedServerName::try_from(value.to_unescaped())?);
                 }
-                "destination" => {
-                    if destination.is_some() {
-                        debug!("Field destination duplicated in X-Matrix Authorization header");
-                    }
-                    destination = Some(std::str::from_utf8(&value).ok()?.try_into().ok()?);
+            } else if name.eq_ignore_ascii_case("destination") {
+                if destination.is_some() {
+                    return Err(XMatrixParseError::DuplicateParameter("destination".to_owned()));
+                } else {
+                    destination = Some(OwnedServerName::try_from(value.to_unescaped())?);
                 }
-                "key" => {
-                    if key.is_some() {
-                        debug!("Field key duplicated in X-Matrix Authorization header");
-                    }
-                    key = Some(std::str::from_utf8(&value).ok()?.try_into().ok()?);
+            } else if name.eq_ignore_ascii_case("key") {
+                if key.is_some() {
+                    return Err(XMatrixParseError::DuplicateParameter("key".to_owned()));
+                } else {
+                    key = Some(OwnedServerSigningKeyId::try_from(value.to_unescaped())?);
                 }
-                "sig" => {
-                    if sig.is_some() {
-                        debug!("Field sig duplicated in X-Matrix Authorization header");
-                    }
-                    sig = Some(Base64::parse(&value).ok()?);
+            } else if name.eq_ignore_ascii_case("sig") {
+                if sig.is_some() {
+                    return Err(XMatrixParseError::DuplicateParameter("sig".to_owned()));
+                } else {
+                    sig = Some(Base64::parse(value.to_unescaped())?);
                 }
-                name => {
-                    debug!("Unknown field {} found in X-Matrix Authorization header", name);
-                }
+            } else {
+                debug!("Unknown parameter {name} in X-Matrix Authorization header");
             }
         }
 
-        Some(XMatrix { origin: origin?, destination, key: key?, sig: sig? })
-    })
+        Ok(Self {
+            origin: origin
+                .ok_or_else(|| XMatrixParseError::MissingParameter("origin".to_owned()))?,
+            destination,
+            key: key.ok_or_else(|| XMatrixParseError::MissingParameter("key".to_owned()))?,
+            sig: sig.ok_or_else(|| XMatrixParseError::MissingParameter("sig".to_owned()))?,
+        })
+    }
 }
 
-fn is_alpha(c: u8) -> bool {
-    (0x41..=0x5A).contains(&c) || (0x61..=0x7A).contains(&c)
+impl fmt::Debug for XMatrix {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("XMatrix")
+            .field("origin", &self.origin)
+            .field("destination", &self.destination)
+            .field("key", &self.key)
+            .finish_non_exhaustive()
+    }
 }
 
-fn is_digit(c: u8) -> bool {
-    (0x30..=0x39).contains(&c)
+/// Whether the given char is a [token char].
+///
+/// [token char]: https://www.rfc-editor.org/rfc/rfc9110#section-5.6.2
+fn is_tchar(c: char) -> bool {
+    const TOKEN_CHARS: [char; 15] =
+        ['!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~'];
+    c.is_ascii_alphanumeric() || TOKEN_CHARS.contains(&c)
 }
 
-fn is_tchar(c: u8) -> bool {
-    const TOKEN_CHARS: [u8; 15] =
-        [b'!', b'#', b'$', b'%', b'&', b'\'', b'*', b'+', b'-', b'.', b'^', b'_', b'`', b'|', b'~'];
-    is_alpha(c) || is_digit(c) || TOKEN_CHARS.contains(&c)
-}
-
-fn is_qdtext(c: u8) -> bool {
-    c == b'\t'
-        || c == b' '
-        || c == 0x21
-        || (0x23..=0x5B).contains(&c)
-        || (0x5D..=0x7E).contains(&c)
-        || is_obs_text(c)
-}
-
-fn is_obs_text(c: u8) -> bool {
-    c >= 0x80 // The spec does contain an upper limit of 0xFF here, but that's enforced by the type
-}
-
-fn is_vchar(c: u8) -> bool {
-    (0x21..=0x7E).contains(&c)
-}
-
-fn is_quoted_pair(c: u8) -> bool {
-    c == b'\t' || c == b' ' || is_vchar(c) || is_obs_text(c)
-}
-
-fn escape_value(value: &str) -> Cow<'_, str> {
-    if !value.is_empty() && value.chars().all(|c| u8::try_from(c).is_ok_and(is_tchar)) {
+/// If the field value does not contain only token chars, convert it to a [quoted string].
+///
+/// [quoted string]: https://www.rfc-editor.org/rfc/rfc9110#section-5.6.4
+fn escape_field_value(value: &str) -> Cow<'_, str> {
+    if !value.is_empty() && value.chars().all(is_tchar) {
         return Cow::Borrowed(value);
     }
 
@@ -230,28 +140,96 @@ fn escape_value(value: &str) -> Cow<'_, str> {
     Cow::Owned(format!("\"{value}\""))
 }
 
+impl fmt::Display for XMatrix {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Self { origin, destination, key, sig } = self;
+
+        let origin = escape_field_value(origin.as_str());
+        let key = escape_field_value(key.as_str());
+        let sig = sig.encode();
+        let sig = escape_field_value(&sig);
+
+        write!(f, r#"{} "#, Self::SCHEME)?;
+
+        if let Some(destination) = destination {
+            let destination = escape_field_value(destination.as_str());
+            write!(f, r#"destination={destination},"#)?;
+        }
+
+        write!(f, "key={key},origin={origin},sig={sig}")
+    }
+}
+
+impl FromStr for XMatrix {
+    type Err = XMatrixParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::parse(s)
+    }
+}
+
+impl TryFrom<&HeaderValue> for XMatrix {
+    type Error = XMatrixParseError;
+
+    fn try_from(value: &HeaderValue) -> Result<Self, Self::Error> {
+        Self::parse(value.to_str()?)
+    }
+}
+
+impl From<&XMatrix> for HeaderValue {
+    fn from(value: &XMatrix) -> Self {
+        value.to_string().try_into().expect("header format is static")
+    }
+}
+
 impl Credentials for XMatrix {
     const SCHEME: &'static str = "X-Matrix";
 
     fn decode(value: &HeaderValue) -> Option<Self> {
-        let value: Vec<u8> = value.as_bytes().to_vec();
-        parse_xmatrix(&mut value.into_tokens())
+        value.try_into().ok()
     }
 
     fn encode(&self) -> HeaderValue {
-        let origin = escape_value(self.origin.as_str());
-        let key = escape_value(self.key.as_str());
-        let sig = self.sig.encode();
-        let sig = escape_value(&sig);
+        self.into()
+    }
+}
 
-        if let Some(destination) = &self.destination {
-            let destination = escape_value(destination.as_str());
-            format!("X-Matrix origin={origin},destination={destination},key={key},sig={sig}")
-        } else {
-            format!("X-Matrix origin={origin},key={key},sig={sig}")
-        }
-        .try_into()
-        .expect("header format is static")
+/// An error when trying to parse an X-Matrix Authorization header.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum XMatrixParseError {
+    /// The `HeaderValue` could not be converted to a `str`.
+    #[error(transparent)]
+    ToStr(#[from] http::header::ToStrError),
+
+    /// The string could not be parsed as a valid Authorization string.
+    #[error("{0}")]
+    ParseStr(String),
+
+    /// The credentials with the X-Matrix scheme were not found.
+    #[error("X-Matrix credentials not found")]
+    NotFound,
+
+    /// The parameter value could not be parsed as a Matrix ID.
+    #[error(transparent)]
+    ParseId(#[from] IdParseError),
+
+    /// The parameter value could not be parsed as base64.
+    #[error(transparent)]
+    ParseBase64(#[from] Base64DecodeError),
+
+    /// The parameter with the given name was not found.
+    #[error("missing parameter '{0}'")]
+    MissingParameter(String),
+
+    /// The parameter with the given name was found more than once.
+    #[error("duplicate parameter '{0}'")]
+    DuplicateParameter(String),
+}
+
+impl<'a> From<http_auth::parser::Error<'a>> for XMatrixParseError {
+    fn from(value: http_auth::parser::Error<'a>) -> Self {
+        Self::ParseStr(value.to_string())
     }
 }
 
@@ -270,7 +248,7 @@ mod tests {
         let origin = "origin.hs.example.com".try_into().unwrap();
         let key = "ed25519:key1".try_into().unwrap();
         let sig = Base64::new(b"test".to_vec());
-        let credentials: XMatrix = Credentials::decode(&header).unwrap();
+        let credentials = XMatrix::try_from(&header).unwrap();
         assert_eq!(credentials.origin, origin);
         assert_eq!(credentials.destination, None);
         assert_eq!(credentials.key, key);
@@ -280,7 +258,7 @@ mod tests {
 
         assert_eq!(
             credentials.encode(),
-            "X-Matrix origin=origin.hs.example.com,key=\"ed25519:key1\",sig=dGVzdA"
+            "X-Matrix key=\"ed25519:key1\",origin=origin.hs.example.com,sig=dGVzdA"
         );
     }
 
@@ -291,7 +269,7 @@ mod tests {
         let destination: OwnedServerName = "destination.hs.example.com".try_into().unwrap();
         let key = "ed25519:key1".try_into().unwrap();
         let sig = Base64::new(b"test".to_vec());
-        let credentials: XMatrix = Credentials::decode(&header).unwrap();
+        let credentials = XMatrix::try_from(&header).unwrap();
         assert_eq!(credentials.origin, origin);
         assert_eq!(credentials.destination, Some(destination.clone()));
         assert_eq!(credentials.key, key);
@@ -299,19 +277,19 @@ mod tests {
 
         let credentials = XMatrix::new(origin, destination, key, sig);
 
-        assert_eq!(credentials.encode(), "X-Matrix origin=origin.hs.example.com,destination=destination.hs.example.com,key=\"ed25519:key1\",sig=dGVzdA");
+        assert_eq!(credentials.encode(), "X-Matrix destination=destination.hs.example.com,key=\"ed25519:key1\",origin=origin.hs.example.com,sig=dGVzdA");
     }
 
     #[test]
     fn xmatrix_quoting() {
         let header = HeaderValue::from_static(
-            r#"X-Matrix origin=example.com:1234,key="abc\"def\\:ghi",sig=dGVzdA,"#,
+            r#"X-Matrix origin="example.com:1234",key="abc\"def\\:ghi",sig=dGVzdA,"#,
         );
 
         let origin: OwnedServerName = "example.com:1234".try_into().unwrap();
         let key = r#"abc"def\:ghi"#.try_into().unwrap();
         let sig = Base64::new(b"test".to_vec());
-        let credentials: XMatrix = Credentials::decode(&header).unwrap();
+        let credentials = XMatrix::try_from(&header).unwrap();
         assert_eq!(credentials.origin, origin);
         assert_eq!(credentials.destination, None);
         assert_eq!(credentials.key, key);
@@ -321,7 +299,19 @@ mod tests {
 
         assert_eq!(
             credentials.encode(),
-            r#"X-Matrix origin="example.com:1234",key="abc\"def\\:ghi",sig=dGVzdA"#
+            r#"X-Matrix key="abc\"def\\:ghi",origin="example.com:1234",sig=dGVzdA"#
         );
+    }
+
+    #[test]
+    fn xmatrix_auth_1_3_with_extra_spaces() {
+        let header = HeaderValue::from_static("X-Matrix origin=\"origin.hs.example.com\"  ,     destination=\"destination.hs.example.com\",key=\"ed25519:key1\", sig=\"dGVzdA\"");
+        let credentials = XMatrix::try_from(&header).unwrap();
+        let sig = Base64::new(b"test".to_vec());
+
+        assert_eq!(credentials.origin, "origin.hs.example.com");
+        assert_eq!(credentials.destination.unwrap(), "destination.hs.example.com");
+        assert_eq!(credentials.key, "ed25519:key1");
+        assert_eq!(credentials.sig, sig);
     }
 }
