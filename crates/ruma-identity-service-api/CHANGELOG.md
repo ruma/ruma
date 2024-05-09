@@ -1,5 +1,15 @@
 # [unreleased]
 
+# 0.9.0
+
+Breaking changes:
+
+- The http crate had a major version bump to version 1.1
+
+Improvements:
+
+- The type returned by `get_supported_versions::known_versions()` was simplified
+
 # 0.8.0
 
 Breaking changes:
