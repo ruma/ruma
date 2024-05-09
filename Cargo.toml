@@ -27,7 +27,7 @@ ruma-identifiers-validation = { version = "0.9.5", path = "crates/ruma-identifie
 ruma-identity-service-api = { version = "0.9.0", path = "crates/ruma-identity-service-api" }
 ruma-macros = { version = "=0.13.0", path = "crates/ruma-macros" }
 ruma-push-gateway-api = { version = "0.8.0", path = "crates/ruma-push-gateway-api" }
-ruma-signatures = { version = "0.14.0", path = "crates/ruma-signatures" }
+ruma-signatures = { version = "0.15.0", path = "crates/ruma-signatures" }
 ruma-server-util = { version = "0.3.0", path = "crates/ruma-server-util" }
 ruma-state-res = { version = "0.10.0", path = "crates/ruma-state-res" }
 serde = { version = "1.0.164", features = ["derive"] }
