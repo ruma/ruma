@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.13.0
+
 Bug fixes:
 
 - Allow to deserialize `Ruleset` with missing fields.
