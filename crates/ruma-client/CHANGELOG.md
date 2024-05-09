@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.13.0
+
 Breaking changes:
 
 - Remove `isahc` feature
