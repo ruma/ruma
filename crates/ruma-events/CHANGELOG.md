@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.28.0
+
 Bug fixes:
 
 - The `MembershipState::Invite` to `MembershipState::Knock` membership change
