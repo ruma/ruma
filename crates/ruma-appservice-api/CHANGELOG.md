@@ -1,9 +1,12 @@
 # [unreleased]
 
+# 0.10.0
+
 Breaking changes:
 
 * The `url` field of `Registration` is now an `Option<String>`. This should have
   always been the case.
+- The http crate had a major version bump to version 1.1
 
 # 0.9.0
 
