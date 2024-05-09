@@ -4,7 +4,7 @@ description = "Validation logic for ruma-common and ruma-macros"
 homepage = "https://ruma.dev/"
 repository = "https://github.com/ruma/ruma"
 license = "MIT"
-version = "0.9.3"
+version = "0.9.5"
 edition = "2021"
 rust-version = { workspace = true }
 
