@@ -16,9 +16,11 @@ all-features = true
 
 [dependencies]
 headers = "0.4.0"
+http = { workspace = true }
+http-auth = { version = "0.1.9", default-features = false }
 ruma-common = { workspace = true }
+thiserror = { workspace = true }
 tracing = { workspace = true }
-yap = "0.12.0"
 
 [dev-dependencies]
 tracing-subscriber = "0.3.16"
