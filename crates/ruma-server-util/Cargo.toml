@@ -7,7 +7,7 @@ license = "MIT"
 name = "ruma-server-util"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 rust-version = { workspace = true }
 

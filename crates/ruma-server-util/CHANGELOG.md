@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.3.0
+
+Breaking changes:
+
+- The headers dependency was upgraded to 0.4.0
+
 # 0.2.0
 
 No changes for this version
