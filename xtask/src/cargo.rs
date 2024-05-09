@@ -105,6 +105,11 @@ impl Package {
     ///
     /// If `update` is `true`, update the changelog for the release of the given version.
     pub fn changes(&self, update: bool) -> Result<String> {
+        if self.name == "ruma-macros" {
+            // ruma-macros doesn't have a changelog and won't create a tag.
+            return Ok(String::new());
+        }
+
         let mut changelog_path = self.manifest_path.clone();
         changelog_path.set_file_name("CHANGELOG.md");
 
