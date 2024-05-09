@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.18.0
+
 Bug fixes:
 
 - Don't require the `failures` field in the
@@ -26,6 +28,7 @@ Breaking changes:
 - Make `get_uiaa_fallback::v3::Response` an enum for a redirect or an HTML page.
   It will now return the proper status code and headers depending on the variant
   used.
+- The http crate had a major version bump to version 1.1
 
 Improvements:
 
