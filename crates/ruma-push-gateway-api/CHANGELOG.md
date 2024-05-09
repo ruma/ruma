@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.9.0
+
+Breaking changes:
+
+- The http crate had a major version bump to version 1.1
+
 # 0.8.0
 
 No changes for this version
