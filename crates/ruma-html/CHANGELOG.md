@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.2.0
+
 Breaking Changes:
 
 - Do not export `Node` in the public API, it is not usable on its own and it is
