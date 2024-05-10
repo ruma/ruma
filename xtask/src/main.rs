@@ -17,7 +17,6 @@ use serde_json::from_str as from_json_str;
 // Keep in sync with version in `rust-toolchain.toml` and `.github/workflows/ci.yml`
 const NIGHTLY: &str = "nightly-2024-02-14";
 
-#[cfg(feature = "default")]
 mod cargo;
 mod ci;
 mod doc;
@@ -26,6 +25,7 @@ mod release;
 #[cfg(feature = "default")]
 mod util;
 
+use cargo::Package;
 use ci::{CiArgs, CiTask};
 use doc::DocTask;
 #[cfg(feature = "default")]
@@ -70,8 +70,7 @@ fn main() -> Result<()> {
 #[derive(Clone, Debug, Deserialize)]
 struct Metadata {
     pub workspace_root: PathBuf,
-    #[cfg(feature = "default")]
-    pub packages: Vec<cargo::Package>,
+    pub packages: Vec<Package>,
 }
 
 impl Metadata {
@@ -79,6 +78,11 @@ impl Metadata {
     pub fn load() -> Result<Metadata> {
         let metadata_json = cmd!("cargo metadata --no-deps --format-version 1").read()?;
         Ok(from_json_str(&metadata_json)?)
+    }
+
+    /// Find the package with the given name.
+    pub fn find_package(&self, name: &str) -> Option<&Package> {
+        self.packages.iter().find(|p| p.name == name)
     }
 }
 
