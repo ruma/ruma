@@ -1,15 +1,17 @@
 // Triggers at the `#[clap(subcommand)]` line, but not easily reproducible outside this crate.
 #![allow(unused_qualifications)]
 
-use std::path::PathBuf;
+use std::path::Path;
 
 use clap::{Args, Subcommand};
 use xshell::pushd;
 
 use crate::{cmd, Metadata, Result, NIGHTLY};
 
+mod reexport_features;
 mod spec_links;
 
+use reexport_features::check_reexport_features;
 use spec_links::check_spec_links;
 
 const MSRV: &str = "1.75";
@@ -66,6 +68,8 @@ pub enum CiCmd {
     Dependencies,
     /// Check spec links point to a recent version (lint)
     SpecLinks,
+    /// Check all cargo features of sub-crates can be enabled from ruma (lint)
+    ReexportFeatures,
     /// Check typos
     Typos,
 }
@@ -75,18 +79,22 @@ pub struct CiTask {
     /// Which command to run.
     cmd: Option<CiCmd>,
 
-    /// The root of the workspace.
-    project_root: PathBuf,
+    /// The metadata of the workspace.
+    project_metadata: Metadata,
 }
 
 impl CiTask {
     pub(crate) fn new(cmd: Option<CiCmd>) -> Result<Self> {
-        let project_root = Metadata::load()?.workspace_root;
-        Ok(Self { cmd, project_root })
+        let project_metadata = Metadata::load()?;
+        Ok(Self { cmd, project_metadata })
+    }
+
+    fn project_root(&self) -> &Path {
+        &self.project_metadata.workspace_root
     }
 
     pub(crate) fn run(self) -> Result<()> {
-        let _p = pushd(&self.project_root)?;
+        let _p = pushd(self.project_root())?;
 
         match self.cmd {
             Some(CiCmd::Msrv) => self.msrv()?,
@@ -110,7 +118,8 @@ impl CiTask {
             Some(CiCmd::ClippyAll) => self.clippy_all()?,
             Some(CiCmd::Lint) => self.lint()?,
             Some(CiCmd::Dependencies) => self.dependencies()?,
-            Some(CiCmd::SpecLinks) => check_spec_links(&self.project_root.join("crates"))?,
+            Some(CiCmd::SpecLinks) => check_spec_links(&self.project_root().join("crates"))?,
+            Some(CiCmd::ReexportFeatures) => check_reexport_features(&self.project_metadata)?,
             Some(CiCmd::Typos) => self.typos()?,
             None => {
                 self.msrv()
@@ -301,9 +310,11 @@ impl CiTask {
         // Check dependencies being sorted
         let dependencies_res = self.dependencies();
         // Check that all links point to the same version of the spec
-        let spec_links_res = check_spec_links(&self.project_root.join("crates"));
+        let spec_links_res = check_spec_links(&self.project_root().join("crates"));
+        // Check that all cargo features of sub-crates can be enabled from ruma.
+        let reexport_features_res = check_reexport_features(&self.project_metadata);
 
-        dependencies_res.and(spec_links_res)
+        dependencies_res.and(spec_links_res).and(reexport_features_res)
     }
 
     /// Check the sorting of dependencies with the nightly version.
