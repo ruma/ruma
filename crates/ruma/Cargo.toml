@@ -30,6 +30,7 @@ client-hyper = ["client", "ruma-client?/hyper"]
 client-hyper-native-tls = ["client", "ruma-client?/hyper-native-tls"]
 client-reqwest = ["client", "ruma-client?/reqwest"]
 client-reqwest-native-tls = ["client", "ruma-client?/reqwest-native-tls"]
+client-reqwest-native-tls-alpn = ["client", "ruma-client?/reqwest-native-tls-alpn"]
 client-reqwest-native-tls-vendored = ["client", "ruma-client?/reqwest-native-tls-vendored"]
 client-reqwest-rustls-manual-roots = ["client", "ruma-client?/reqwest-rustls-manual-roots"]
 client-reqwest-rustls-webpki-roots = ["client", "ruma-client?/reqwest-rustls-webpki-roots"]
@@ -164,6 +165,7 @@ unstable-exhaustive-types = [
     "ruma-federation-api?/unstable-exhaustive-types",
     "ruma-identity-service-api?/unstable-exhaustive-types",
     "ruma-push-gateway-api?/unstable-exhaustive-types",
+    "ruma-signatures?/unstable-exhaustive-types",
     "ruma-state-res?/unstable-exhaustive-types",
     "ruma-events?/unstable-exhaustive-types"
 ]
