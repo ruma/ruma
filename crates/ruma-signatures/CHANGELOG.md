@@ -1,5 +1,8 @@
 # [unreleased]
 
+Breaking changes:
+- Use `OwnedServerSigningKeyId` for the keys of `PublicKeySet`  instead of `String`.
+
 # 0.15.0
 
 No changes for this version

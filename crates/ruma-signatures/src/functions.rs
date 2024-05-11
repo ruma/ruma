@@ -10,14 +10,14 @@ use base64::{alphabet, Engine};
 use ruma_common::{
     canonical_json::{redact, JsonType},
     serde::{base64::Standard, Base64},
-    CanonicalJsonObject, CanonicalJsonValue, OwnedEventId, OwnedServerName, RoomVersionId, UserId,
+    CanonicalJsonObject, CanonicalJsonValue, OwnedEventId, OwnedServerName, RoomVersionId,
+    ServerSigningKeyId, UserId,
 };
 use serde_json::{from_str as from_json_str, to_string as to_json_string};
 use sha2::{digest::Digest, Sha256};
 
 use crate::{
     keys::{KeyPair, PublicKeyMap},
-    split_id,
     verification::{Ed25519Verifier, Verified, Verifier},
     Error, JsonError, ParseError, VerificationError,
 };
@@ -181,7 +181,7 @@ pub fn canonical_json(object: &CanonicalJsonObject) -> Result<String, Error> {
 /// ```rust
 /// use std::collections::BTreeMap;
 ///
-/// use ruma_common::serde::Base64;
+/// use ruma_common::{owned_server_signing_key_id, serde::Base64};
 ///
 /// const PUBLIC_KEY: &[u8] = b"XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
 ///
@@ -198,7 +198,10 @@ pub fn canonical_json(object: &CanonicalJsonObject) -> Result<String, Error> {
 ///
 /// // Create the `PublicKeyMap` that will inform `verify_json` which signatures to verify.
 /// let mut public_key_set = BTreeMap::new();
-/// public_key_set.insert("ed25519:1".into(), Base64::parse(PUBLIC_KEY.to_owned()).unwrap());
+/// public_key_set.insert(
+///     owned_server_signing_key_id!("ed25519:1"),
+///     Base64::parse(PUBLIC_KEY.to_owned()).unwrap(),
+/// );
 /// let mut public_key_map = BTreeMap::new();
 /// public_key_map.insert("domain".into(), public_key_set);
 ///
@@ -232,6 +235,11 @@ pub fn verify_json(
             let signature = match signature {
                 CanonicalJsonValue::String(s) => s,
                 _ => return Err(JsonError::not_of_type("signature", JsonType::String)),
+            };
+
+            let Ok(key_id) = <&ServerSigningKeyId>::try_from(key_id.as_str()) else {
+                // The key is in a format we don't support
+                continue;
             };
 
             let public_key = public_keys.get(key_id).ok_or_else(|| {
@@ -497,6 +505,7 @@ where
 /// ```rust
 /// # use std::collections::BTreeMap;
 /// # use ruma_common::RoomVersionId;
+/// # use ruma_common::owned_server_signing_key_id;
 /// # use ruma_common::serde::Base64;
 /// # use ruma_signatures::{verify_event, Verified};
 /// #
@@ -530,7 +539,10 @@ where
 ///
 /// // Create the `PublicKeyMap` that will inform `verify_json` which signatures to verify.
 /// let mut public_key_set = BTreeMap::new();
-/// public_key_set.insert("ed25519:1".into(), Base64::parse(PUBLIC_KEY.to_owned()).unwrap());
+/// public_key_set.insert(
+///     owned_server_signing_key_id!("ed25519:1"),
+///     Base64::parse(PUBLIC_KEY.to_owned()).unwrap(),
+/// );
 /// let mut public_key_map = BTreeMap::new();
 /// public_key_map.insert("domain".into(), public_key_set);
 ///
@@ -586,9 +598,10 @@ pub fn verify_event(
         for (key_id, signature) in signature_set {
             // Since only ed25519 is supported right now, we don't actually need to check what the
             // algorithm is. If it split successfully, it's ed25519.
-            if split_id(key_id).is_err() {
+            let Ok(key_id) = <&ServerSigningKeyId>::try_from(key_id.as_str()) else {
+                // The key is in a format we don't support
                 continue;
-            }
+            };
 
             let public_key = match public_keys.get(key_id) {
                 Some(public_key) => public_key,
@@ -988,7 +1001,7 @@ mod tests {
             SigningKeyAlgorithm::Ed25519,
             key_pair_sender.version().into(),
         );
-        sender_key_map.insert(version.to_string(), encoded_public_key);
+        sender_key_map.insert(version, encoded_public_key);
         public_key_map.insert("domain-sender".to_owned(), sender_key_map);
 
         let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
@@ -1163,7 +1176,7 @@ mod tests {
         let version =
             ServerSigningKeyId::from_parts(SigningKeyAlgorithm::Ed25519, pair.version().into());
 
-        sender_key_map.insert(version.to_string(), encoded_public_key);
+        sender_key_map.insert(version, encoded_public_key);
     }
 
     fn add_invalid_key_to_map(
@@ -1178,6 +1191,6 @@ mod tests {
             pair.version().into(),
         );
 
-        sender_key_map.insert(version.to_string(), encoded_public_key);
+        sender_key_map.insert(version, encoded_public_key);
     }
 }

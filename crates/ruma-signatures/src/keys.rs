@@ -9,7 +9,7 @@ use ed25519_dalek::{pkcs8::ALGORITHM_OID, SecretKey, Signer, SigningKey, PUBLIC_
 use pkcs8::{
     der::zeroize::Zeroizing, DecodePrivateKey, EncodePrivateKey, ObjectIdentifier, PrivateKeyInfo,
 };
-use ruma_common::serde::Base64;
+use ruma_common::{serde::Base64, OwnedServerSigningKeyId};
 
 use crate::{signatures::Signature, Algorithm, Error, ParseError};
 
@@ -181,7 +181,7 @@ pub type PublicKeyMap = BTreeMap<String, PublicKeySet>;
 /// A set of public keys for a single homeserver.
 ///
 /// This is represented as a map from key ID to base64-encoded signature.
-pub type PublicKeySet = BTreeMap<String, Base64>;
+pub type PublicKeySet = BTreeMap<OwnedServerSigningKeyId, Base64>;
 
 #[cfg(test)]
 mod tests {

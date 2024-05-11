@@ -111,6 +111,7 @@ mod tests {
 
     use pkcs8::{der::Decode, PrivateKeyInfo};
     use ruma_common::{
+        owned_server_signing_key_id,
         serde::{base64::Standard, Base64},
         RoomVersionId,
     };
@@ -248,7 +249,7 @@ mod tests {
         let value = from_json_str(r#"{"signatures":{"domain":{"ed25519:1":"lXjsnvhVlz8t3etR+6AEJ0IT70WujeHC1CFjDDsVx0xSig1Bx7lvoi1x3j/2/GPNjQM4a2gD34UqsXFluaQEBA"}}}"#).unwrap();
 
         let mut signature_set = BTreeMap::new();
-        signature_set.insert("ed25519:1".into(), public_key_string());
+        signature_set.insert(owned_server_signing_key_id!("ed25519:1"), public_key_string());
 
         let mut public_key_map = BTreeMap::new();
         public_key_map.insert("domain".into(), signature_set);
@@ -285,7 +286,7 @@ mod tests {
         ).unwrap();
 
         let mut signature_set = BTreeMap::new();
-        signature_set.insert("ed25519:1".into(), public_key_string());
+        signature_set.insert(owned_server_signing_key_id!("ed25519:1"), public_key_string());
 
         let mut public_key_map = BTreeMap::new();
         public_key_map.insert("domain".into(), signature_set);
@@ -304,7 +305,7 @@ mod tests {
         let value = from_json_str(r#"{"not":"empty","signatures":{"domain":"lXjsnvhVlz8t3etR+6AEJ0IT70WujeHC1CFjDDsVx0xSig1Bx7lvoi1x3j/2/GPNjQM4a2gD34UqsXFluaQEBA"}}"#).unwrap();
 
         let mut signature_set = BTreeMap::new();
-        signature_set.insert("ed25519:1".into(), public_key_string());
+        signature_set.insert(owned_server_signing_key_id!("ed25519:1"), public_key_string());
 
         let mut public_key_map = BTreeMap::new();
         public_key_map.insert("domain".into(), signature_set);
@@ -374,7 +375,7 @@ mod tests {
     #[test]
     fn verify_minimal_event() {
         let mut signature_set = BTreeMap::new();
-        signature_set.insert("ed25519:1".into(), public_key_string());
+        signature_set.insert(owned_server_signing_key_id!("ed25519:1"), public_key_string());
 
         let mut public_key_map = BTreeMap::new();
         public_key_map.insert("domain".into(), signature_set);
