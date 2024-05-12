@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+- Implement `make_for_thread` and `make_replacement` for
+  `RoomMessageEventContentWithoutRelation`
+
 # 0.28.0
 
 Bug fixes:

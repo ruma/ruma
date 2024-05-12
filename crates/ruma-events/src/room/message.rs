@@ -218,30 +218,12 @@ impl RoomMessageEventContent {
     /// Panics if this is a reply within the thread and `self` has a `formatted_body` with a format
     /// other than HTML.
     pub fn make_for_thread(
-        mut self,
+        self,
         previous_message: &OriginalRoomMessageEvent,
         is_reply: ReplyWithinThread,
         add_mentions: AddMentions,
     ) -> Self {
-        if is_reply == ReplyWithinThread::Yes {
-            self = self.make_reply_to(previous_message, ForwardThread::No, add_mentions);
-        }
-
-        let thread_root = if let Some(Relation::Thread(Thread { event_id, .. })) =
-            &previous_message.content.relates_to
-        {
-            event_id.clone()
-        } else {
-            previous_message.event_id.clone()
-        };
-
-        self.relates_to = Some(Relation::Thread(Thread {
-            event_id: thread_root,
-            in_reply_to: Some(InReplyTo { event_id: previous_message.event_id.clone() }),
-            is_falling_back: is_reply == ReplyWithinThread::No,
-        }));
-
-        self
+        self.without_relation().make_for_thread(previous_message, is_reply, add_mentions)
     }
 
     /// Turns `self` into a [replacement] (or edit) for a given message.
@@ -270,31 +252,11 @@ impl RoomMessageEventContent {
     /// [replacement]: https://spec.matrix.org/latest/client-server-api/#event-replacements
     #[track_caller]
     pub fn make_replacement(
-        mut self,
+        self,
         metadata: impl Into<ReplacementMetadata>,
         replied_to_message: Option<&OriginalRoomMessageEvent>,
     ) -> Self {
-        let metadata = metadata.into();
-
-        // Prepare relates_to with the untouched msgtype.
-        let relates_to = Relation::Replacement(Replacement {
-            event_id: metadata.event_id,
-            new_content: RoomMessageEventContentWithoutRelation {
-                msgtype: self.msgtype.clone(),
-                mentions: metadata.mentions,
-            },
-        });
-
-        self.msgtype.make_replacement_body();
-
-        // Add reply fallback if needed.
-        if let Some(original_message) = replied_to_message {
-            self = self.make_reply_to(original_message, ForwardThread::No, AddMentions::No);
-        }
-
-        self.relates_to = Some(relates_to);
-
-        self
+        self.without_relation().make_replacement(metadata, replied_to_message)
     }
 
     /// Set the [mentions] of this event.
