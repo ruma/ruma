@@ -152,7 +152,7 @@ pub mod v3 {
                     _,
                     serde::de::value::Error,
                 >::new(
-                    path_args.iter().map(::std::convert::AsRef::as_ref),
+                    path_args.iter().map(::std::convert::AsRef::as_ref)
                 ))?;
 
             let IncomingRequestQuery { before, after } =

@@ -22,8 +22,7 @@ pub fn system_time_to_http_date(
     date_header::format(duration.as_secs(), &mut buffer)
         .map_err(|_| HeaderSerializationError::InvalidHttpDate)?;
 
-    Ok(HeaderValue::from_bytes(&buffer)
-        .expect("date_header should produce a valid header value"))
+    Ok(HeaderValue::from_bytes(&buffer).expect("date_header should produce a valid header value"))
 }
 
 /// Convert a header value representing a HTTP date to a `SystemTime`.
