@@ -16,9 +16,21 @@ pub fn validate(s: &str) -> Result<NonZeroU8, Error> {
 fn validate_version(version: &str) -> Result<(), Error> {
     if version.is_empty() {
         return Err(Error::Empty);
-    } else if !version.chars().all(|c| c.is_alphanumeric() || c == '_') {
+    }
+
+    if !version.chars().all(is_valid_version_char) {
         return Err(Error::InvalidCharacters);
     }
 
     Ok(())
+}
+
+#[cfg(not(feature = "compat-key-id"))]
+fn is_valid_version_char(c: char) -> bool {
+    let is_valid = c.is_alphanumeric() || c == '_';
+
+    #[cfg(feature = "compat-signature-id")]
+    let is_valid = is_valid || c == '+' || c = '/';
+
+    is_valid
 }
