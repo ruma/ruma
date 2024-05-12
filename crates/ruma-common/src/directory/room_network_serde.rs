@@ -58,10 +58,7 @@ impl<'de> Visitor<'de> for RoomNetworkVisitor {
         while let Some((key, value)) = access.next_entry::<String, JsonValue>()? {
             match key.as_str() {
                 "include_all_networks" => {
-                    include_all_networks = match value.as_bool() {
-                        Some(b) => b,
-                        _ => false,
-                    }
+                    include_all_networks = value.as_bool().unwrap_or(false);
                 }
                 "third_party_instance_id" => {
                     third_party_instance_id = value.as_str().map(|v| v.to_owned());

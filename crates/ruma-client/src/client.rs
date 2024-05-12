@@ -145,7 +145,7 @@ impl<C: HttpClient> Client<C> {
             .send_request(assign!(register::v3::Request::new(), { kind: RegistrationKind::Guest }))
             .await?;
 
-        *self.0.access_token.lock().unwrap() = response.access_token.clone();
+        self.0.access_token.lock().unwrap().clone_from(&response.access_token);
 
         Ok(response)
     }
@@ -169,7 +169,7 @@ impl<C: HttpClient> Client<C> {
             }))
             .await?;
 
-        *self.0.access_token.lock().unwrap() = response.access_token.clone();
+        self.0.access_token.lock().unwrap().clone_from(&response.access_token);
 
         Ok(response)
     }
@@ -221,7 +221,7 @@ impl<C: HttpClient> Client<C> {
                     }))
                     .await?;
 
-                since = response.next_batch.clone();
+                since.clone_from(&response.next_batch);
                 yield response;
             }
         }

@@ -153,7 +153,7 @@ impl<T> Raw<T> {
         {
             type Value = Option<T>;
 
-            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
                 formatter.write_str("a string")
             }
 

@@ -53,9 +53,8 @@ impl Response {
                     }
                     ResponseFieldKind::Header(header_name) => {
                         let optional_header = match &field.ty {
-                            syn::Type::Path(syn::TypePath {
-                                path: syn::Path { segments, .. },
-                                ..
+                            Type::Path(syn::TypePath {
+                                path: syn::Path { segments, .. }, ..
                             }) if segments.last().unwrap().ident == "Option" => {
                                 quote! {
                                     #( #cfg_attrs )*
