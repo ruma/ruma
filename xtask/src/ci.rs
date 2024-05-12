@@ -238,7 +238,7 @@ impl CiTask {
         cmd!(
             "
             rustup run {NIGHTLY} cargo check
-                --workspace --all-features -Z unstable-options -Z check-cfg
+                --workspace --all-features -Z unstable-options
             "
         )
         .env(
