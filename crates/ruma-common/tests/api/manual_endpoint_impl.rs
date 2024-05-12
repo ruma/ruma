@@ -79,7 +79,7 @@ impl IncomingRequest for Request {
         B: AsRef<[u8]>,
         S: AsRef<str>,
     {
-        let (room_alias,) = serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
+        let (room_alias,) = Deserialize::deserialize(serde::de::value::SeqDeserializer::<
             _,
             serde::de::value::Error,
         >::new(

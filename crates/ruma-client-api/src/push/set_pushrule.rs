@@ -148,7 +148,7 @@ pub mod v3 {
             }
 
             let (scope, kind, rule_id): (RuleScope, RuleKind, String) =
-                serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
+                Deserialize::deserialize(serde::de::value::SeqDeserializer::<
                     _,
                     serde::de::value::Error,
                 >::new(

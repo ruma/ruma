@@ -141,7 +141,7 @@ impl<'de> Deserialize<'de> for JoinRule {
         }
 
         let join_rule = serde_json::from_str::<ExtractType<'_>>(json.get())
-            .map_err(serde::de::Error::custom)?
+            .map_err(Error::custom)?
             .join_rule
             .ok_or_else(|| D::Error::missing_field("join_rule"))?;
 
@@ -238,9 +238,8 @@ impl<'de> Deserialize<'de> for AllowRule {
         }
 
         // Get the value of `type` if present.
-        let rule_type = serde_json::from_str::<ExtractType<'_>>(json.get())
-            .map_err(serde::de::Error::custom)?
-            .rule_type;
+        let rule_type =
+            serde_json::from_str::<ExtractType<'_>>(json.get()).map_err(Error::custom)?.rule_type;
 
         match rule_type.as_deref() {
             Some("m.room_membership") => from_raw_json_value(&json).map(Self::RoomMembership),
