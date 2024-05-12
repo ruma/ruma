@@ -6,13 +6,10 @@ use once_cell::sync::Lazy;
 use proc_macro2::Span;
 use serde::{de::IgnoredAny, Deserialize};
 
-mod api_metadata;
 mod attribute;
 mod auth_scheme;
 pub mod request;
 pub mod response;
-mod util;
-mod version;
 
 mod kw {
     syn::custom_keyword!(error);
