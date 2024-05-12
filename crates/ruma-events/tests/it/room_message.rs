@@ -1164,6 +1164,7 @@ fn video_msgtype_deserialization() {
 }
 
 #[test]
+#[allow(deprecated)]
 fn set_mentions() {
     let mut content = RoomMessageEventContent::text_plain("you!");
     let mentions = content.mentions.take();
@@ -1176,7 +1177,7 @@ fn set_mentions() {
 }
 
 #[test]
-fn make_replacement_set_mentions() {
+fn make_replacement_add_mentions() {
     let alice = owned_user_id!("@alice:localhost");
     let bob = owned_user_id!("@bob:localhost");
     let original_message_json = json!({
@@ -1200,15 +1201,9 @@ fn make_replacement_set_mentions() {
         "This is _an edited_ message.",
         "This is <em>an edited</em> message.",
     );
+    content = content.add_mentions(Mentions::with_user_ids(vec![alice.clone(), bob.clone()]));
     content = content.make_replacement(&original_message, None);
-    let content_clone = content.clone();
 
-    assert_matches!(content.mentions, None);
-    assert_matches!(content.relates_to, Some(Relation::Replacement(replacement)));
-    let mentions = replacement.new_content.mentions.unwrap();
-    assert_eq!(mentions.user_ids, [alice.clone()].into());
-
-    content = content_clone.set_mentions(Mentions::with_user_ids(vec![alice.clone(), bob.clone()]));
     let mentions = content.mentions.unwrap();
     assert_eq!(mentions.user_ids, [bob.clone()].into());
     assert_matches!(content.relates_to, Some(Relation::Replacement(replacement)));
