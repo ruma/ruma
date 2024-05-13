@@ -147,12 +147,12 @@ pub struct VersionHistory {
     /// A list of unstable paths over this endpoint's history.
     ///
     /// For endpoint querying purposes, the last item will be used.
-    unstable_paths: &'static [&'static str],
+    unstable_paths: &'static [EndpointPath],
 
     /// A list of path versions, mapped to Matrix versions.
     ///
     /// Sorted (ascending) by Matrix version, will not mix major versions.
-    stable_paths: &'static [(MatrixVersion, &'static str)],
+    stable_paths: &'static [(MatrixVersion, EndpointPath)],
 
     /// The Matrix version that deprecated this endpoint.
     ///
@@ -203,14 +203,14 @@ impl VersionHistory {
             let mut second_iter = string::split(second, "/").next();
 
             iter::for_each!(first_s in string::split(first, "/") => {
-                if let Some(first_arg) = string::strip_prefix(first_s, ":") {
+                if let Some(first_arg) = string::strip_prefix(first_s, &[":", "+"]) {
                     let second_next_arg: Option<&'static str> = loop {
                         let (second_s, second_n_iter) = match second_iter {
                             Some(tuple) => tuple,
                             None => break None,
                         };
 
-                        let maybe_second_arg = string::strip_prefix(second_s, ":");
+                        let maybe_second_arg = string::strip_prefix(second_s, &[":", "+"]);
 
                         second_iter = second_n_iter.next();
 
@@ -231,7 +231,7 @@ impl VersionHistory {
 
             // If second iterator still has some values, empty first.
             while let Some((second_s, second_n_iter)) = second_iter {
-                if string::starts_with(second_s, ":") {
+                if string::starts_with(second_s, &[":", "+"]) {
                     panic!("Amount of Path Arguments do not match");
                 }
                 second_iter = second_n_iter.next();
@@ -306,6 +306,8 @@ impl VersionHistory {
                 panic!("Defined removed version while no deprecated version exists")
             }
         }
+
+        let (unstable_paths, stable_paths) = (unstable_paths.into(), stable_paths.into());
 
         VersionHistory { unstable_paths, stable_paths, deprecated, removed }
     }
@@ -444,6 +446,24 @@ impl VersionHistory {
         }
 
         None
+    }
+}
+
+#[derive(Copy, Debug)]
+enum EndpointPath<S = &'static str> {
+    Default(S),
+    Truncated((S, &'static [S])),
+}
+
+// /_matrix/client/v3/doing/+a/+thing
+impl From<&'static str> for EndpointPath {
+    fn from(path: &'static str) -> Self {
+        let Some((leading, trailing)) = path.split_once::<'static, _>("/+") else {
+            return EndpointPath::Default(path);
+        };
+
+        let split: Vec<_> = trailing.split("/+").collect();
+        EndpointPath::Truncated((leading, Vec::as_slice(split)))
     }
 }
 
