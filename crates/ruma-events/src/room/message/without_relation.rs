@@ -268,9 +268,9 @@ impl RoomMessageEventContentWithoutRelation {
     /// `original_message`.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
     ///
-    /// If the message that is replaced contains [`Mentions`], they are copied into
-    /// `m.new_content` to keep the same mentions, but not into `content` to avoid repeated
-    /// notifications.
+    /// If this message contains [`Mentions`], they are copied into `m.new_content` to keep the same
+    /// mentions, but the ones in `content` are filtered with the ones in the
+    /// [`ReplacementMetadata`] so only new mentions will trigger a notification.
     ///
     /// # Panics
     ///
@@ -285,12 +285,34 @@ impl RoomMessageEventContentWithoutRelation {
     ) -> RoomMessageEventContent {
         let metadata = metadata.into();
 
+        let mentions = self.mentions.take();
+
+        // Only set mentions that were not there before.
+        if let Some(mentions) = &mentions {
+            let new_mentions = metadata.mentions.map(|old_mentions| {
+                let mut new_mentions = Mentions::new();
+
+                new_mentions.user_ids = mentions
+                    .user_ids
+                    .iter()
+                    .filter(|u| !old_mentions.user_ids.contains(*u))
+                    .cloned()
+                    .collect();
+
+                new_mentions.room = mentions.room && !old_mentions.room;
+
+                new_mentions
+            });
+
+            self.mentions = new_mentions;
+        };
+
         // Prepare relates_to with the untouched msgtype.
         let relates_to = Relation::Replacement(Replacement {
             event_id: metadata.event_id,
             new_content: RoomMessageEventContentWithoutRelation {
                 msgtype: self.msgtype.clone(),
-                mentions: metadata.mentions,
+                mentions,
             },
         });
 

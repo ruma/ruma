@@ -241,9 +241,9 @@ impl RoomMessageEventContent {
     /// `original_message`.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
     ///
-    /// If the message that is replaced contains [`Mentions`], they are copied into
-    /// `m.new_content` to keep the same mentions, but not into `content` to avoid repeated
-    /// notifications.
+    /// If this message contains [`Mentions`], they are copied into `m.new_content` to keep the same
+    /// mentions, but the ones in `content` are filtered with the ones in the
+    /// [`ReplacementMetadata`] so only new mentions will trigger a notification.
     ///
     /// # Panics
     ///
@@ -270,6 +270,7 @@ impl RoomMessageEventContent {
     /// used instead.
     ///
     /// [mentions]: https://spec.matrix.org/latest/client-server-api/#user-and-room-mentions
+    #[deprecated = "Call add_mentions before adding the relation instead."]
     pub fn set_mentions(mut self, mentions: Mentions) -> Self {
         if let Some(Relation::Replacement(replacement)) = &mut self.relates_to {
             let old_mentions = &replacement.new_content.mentions;
@@ -306,9 +307,8 @@ impl RoomMessageEventContent {
     /// mentions by extending the previous `user_ids` with the new ones, and applies a logical OR to
     /// the values of `room`.
     ///
-    /// This is recommended over [`Self::set_mentions()`] to avoid to overwrite any mentions set
-    /// automatically by another method, like [`Self::make_reply_to()`]. However, this method has no
-    /// special support for replacements.
+    /// This should be called before methods that add a relation, like [`Self::make_reply_to()`] and
+    /// [`Self::make_replacement()`], for the mentions to be correctly set.
     ///
     /// [mentions]: https://spec.matrix.org/latest/client-server-api/#user-and-room-mentions
     pub fn add_mentions(mut self, mentions: Mentions) -> Self {
