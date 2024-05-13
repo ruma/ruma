@@ -1177,7 +1177,7 @@ fn set_mentions() {
 }
 
 #[test]
-fn make_replacement_add_mentions() {
+fn add_mentions_then_make_replacement() {
     let alice = owned_user_id!("@alice:localhost");
     let bob = owned_user_id!("@bob:localhost");
     let original_message_json = json!({
@@ -1209,6 +1209,40 @@ fn make_replacement_add_mentions() {
     assert_matches!(content.relates_to, Some(Relation::Replacement(replacement)));
     let mentions = replacement.new_content.mentions.unwrap();
     assert_eq!(mentions.user_ids, [alice, bob].into());
+}
+
+#[test]
+fn make_replacement_then_add_mentions() {
+    let alice = owned_user_id!("@alice:localhost");
+    let bob = owned_user_id!("@bob:localhost");
+    let original_message_json = json!({
+        "content": {
+            "body": "Hello, World!",
+            "msgtype": "m.text",
+            "m.mentions": {
+                "user_ids": [alice],
+            }
+        },
+        "event_id": "$143273582443PhrSn",
+        "origin_server_ts": 134_829_848,
+        "room_id": "!roomid:notareal.hs",
+        "sender": "@user:notareal.hs",
+        "type": "m.room.message",
+    });
+    let original_message: OriginalSyncRoomMessageEvent =
+        from_json_value(original_message_json).unwrap();
+
+    let mut content = RoomMessageEventContent::text_html(
+        "This is _an edited_ message.",
+        "This is <em>an edited</em> message.",
+    );
+    content = content.make_replacement(&original_message, None);
+    content = content.add_mentions(Mentions::with_user_ids(vec![alice.clone(), bob.clone()]));
+
+    let mentions = content.mentions.unwrap();
+    assert_eq!(mentions.user_ids, [alice, bob].into());
+    assert_matches!(content.relates_to, Some(Relation::Replacement(replacement)));
+    assert!(replacement.new_content.mentions.is_none());
 }
 
 #[test]
