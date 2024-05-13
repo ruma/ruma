@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.28.1
+
 Improvements:
 
 - Implement `make_for_thread` and `make_replacement` for
