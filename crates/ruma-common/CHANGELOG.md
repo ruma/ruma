@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+- Add the `InvalidHeaderValue` variant to the `DeserializationError` struct, for
+  cases where we receive a HTTP header with an unexpected value.
+
 # 0.13.0
 
 Bug fixes:

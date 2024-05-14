@@ -276,6 +276,20 @@ pub enum HeaderDeserializationError {
     /// The given required header is missing.
     #[error("missing header `{0}`")]
     MissingHeader(String),
+
+    /// A header was received with a unexpected value.
+    #[error(
+        "The {header} header was received with an unexpected value, \
+         expected {expected}, received {unexpected}"
+    )]
+    InvalidHeaderValue {
+        /// The name of the header containing the invalid value.
+        header: String,
+        /// The value the header should have been set to.
+        expected: String,
+        /// The value we instead received and rejected.
+        unexpected: String,
+    },
 }
 
 /// An error that happens when Ruma cannot understand a Matrix version.
