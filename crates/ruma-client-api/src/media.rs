@@ -12,12 +12,12 @@ pub mod get_media_config;
 pub mod get_media_preview;
 
 /// The default duration that the client should be willing to wait to start receiving data.
-fn default_download_timeout() -> Duration {
+pub(crate) fn default_download_timeout() -> Duration {
     Duration::from_secs(20)
 }
 
 /// Whether the given duration is the default duration that the client should be willing to wait to
 /// start receiving data.
-fn is_default_download_timeout(timeout: &Duration) -> bool {
+pub(crate) fn is_default_download_timeout(timeout: &Duration) -> bool {
     timeout.as_secs() == 20
 }
