@@ -13,6 +13,7 @@ Improvements:
 - Heroes in `sync::sync_events::v4`: `SyncRequestList` and `RoomSubscription`
   both have a new `include_heroes` field. `SlidingSyncRoom` has a new `heroes`
   field, with a new type `SlidingSyncRoomHero`.
+- Add unstable support for authenticated media endpoints, according to MSC3916.
 
 Bug fixes:
 
