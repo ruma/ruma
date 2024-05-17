@@ -13,7 +13,7 @@ use ruma_common::{
 };
 use serde_json::Value as JsonValue;
 
-const METADATA: Metadata = metadata! {
+pub const METADATA: Metadata = metadata! {
     method: POST,
     rate_limited: false,
     authentication: AccessToken,

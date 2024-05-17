@@ -12,7 +12,7 @@ pub mod v3 {
         metadata, OwnedMxcUri, OwnedUserId,
     };
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: PUT,
         rate_limited: true,
         authentication: AccessToken,

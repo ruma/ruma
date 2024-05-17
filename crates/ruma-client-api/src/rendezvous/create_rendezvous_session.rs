@@ -21,7 +21,7 @@ pub mod unstable {
     use url::Url;
     use web_time::SystemTime;
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: POST,
         rate_limited: true,
         authentication: None,
@@ -42,7 +42,7 @@ pub mod unstable {
     impl ruma_common::api::OutgoingRequest for Request {
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
-        const METADATA: Metadata = METADATA;
+        pub const METADATA: Metadata = METADATA;
 
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
@@ -67,7 +67,7 @@ pub mod unstable {
     impl ruma_common::api::IncomingRequest for Request {
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
-        const METADATA: Metadata = METADATA;
+        pub const METADATA: Metadata = METADATA;
 
         fn try_from_http_request<B, S>(
             request: http::Request<B>,

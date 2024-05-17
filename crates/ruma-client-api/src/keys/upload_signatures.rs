@@ -22,7 +22,7 @@ pub mod v3 {
     pub use super::iter::SignedKeysIter;
     use crate::PrivOwnedStr;
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,

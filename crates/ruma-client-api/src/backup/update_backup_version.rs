@@ -15,7 +15,7 @@ pub mod v3 {
 
     use crate::backup::BackupAlgorithm;
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: PUT,
         rate_limited: true,
         authentication: AccessToken,

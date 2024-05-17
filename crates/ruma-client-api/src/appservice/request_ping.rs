@@ -14,7 +14,7 @@ pub mod v1 {
         metadata, OwnedTransactionId,
     };
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,

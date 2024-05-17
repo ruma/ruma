@@ -17,7 +17,7 @@ pub mod v3 {
 
     use crate::http_headers::CROSS_ORIGIN_RESOURCE_POLICY;
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: GET,
         rate_limited: false,
         authentication: None,

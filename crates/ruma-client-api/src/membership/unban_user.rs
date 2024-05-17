@@ -12,7 +12,7 @@ pub mod v3 {
         metadata, OwnedRoomId, OwnedUserId,
     };
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,

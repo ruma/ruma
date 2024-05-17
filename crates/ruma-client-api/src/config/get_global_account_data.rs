@@ -15,7 +15,7 @@ pub mod v3 {
     };
     use ruma_events::{AnyGlobalAccountDataEventContent, GlobalAccountDataEventType};
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,

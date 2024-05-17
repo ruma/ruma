@@ -16,7 +16,7 @@ pub mod v1 {
 
     use crate::uiaa::{AuthData, UiaaResponse};
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: POST,
         rate_limited: true,
         authentication: AccessToken,

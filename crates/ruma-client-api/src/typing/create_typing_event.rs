@@ -15,7 +15,7 @@ pub mod v3 {
     };
     use serde::{de::Error, Deserialize, Deserializer, Serialize};
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: PUT,
         authentication: AccessToken,
         rate_limited: true,

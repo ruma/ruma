@@ -12,7 +12,7 @@ pub mod v1 {
         metadata, MilliSecondsSinceUnixEpoch, OwnedMxcUri,
     };
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: POST,
         rate_limited: true,
         authentication: AccessToken,

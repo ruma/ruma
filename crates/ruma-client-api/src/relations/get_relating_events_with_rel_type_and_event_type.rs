@@ -17,7 +17,7 @@ pub mod v1 {
     };
     use ruma_events::{relation::RelationType, AnyMessageLikeEvent, TimelineEventType};
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,

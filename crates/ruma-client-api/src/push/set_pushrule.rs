@@ -16,7 +16,7 @@ pub mod v3 {
 
     use crate::push::RuleScope;
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: PUT,
         rate_limited: true,
         authentication: AccessToken,
@@ -69,7 +69,7 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
 
-        const METADATA: Metadata = METADATA;
+        pub const METADATA: Metadata = METADATA;
 
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
@@ -116,7 +116,7 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
 
-        const METADATA: Metadata = METADATA;
+        pub const METADATA: Metadata = METADATA;
 
         fn try_from_http_request<B, S>(
             request: http::Request<B>,

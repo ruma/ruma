@@ -13,7 +13,7 @@ pub mod v3 {
         metadata, OwnedClientSecret, OwnedSessionId,
     };
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: POST,
         rate_limited: false,
         authentication: None,

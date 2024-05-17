@@ -14,7 +14,7 @@ pub mod v3 {
     use serde::Serialize;
     use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue};
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: GET,
         rate_limited: true,
         authentication: AccessToken,

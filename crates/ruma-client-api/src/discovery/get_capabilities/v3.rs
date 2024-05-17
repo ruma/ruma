@@ -9,7 +9,7 @@ use ruma_common::{
 
 use super::Capabilities;
 
-const METADATA: Metadata = metadata! {
+pub const METADATA: Metadata = metadata! {
     method: GET,
     rate_limited: true,
     authentication: AccessToken,

@@ -23,7 +23,7 @@ pub mod v3 {
 
     use crate::uiaa::UserIdentifier;
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: POST,
         rate_limited: true,
         authentication: AppserviceToken,

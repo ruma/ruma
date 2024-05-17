@@ -20,7 +20,7 @@ pub mod msc3266 {
     };
     use ruma_events::room::member::MembershipState;
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessTokenOptional,

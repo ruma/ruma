@@ -15,7 +15,7 @@ pub mod v3 {
     };
     use ruma_events::{AnyStateEventContent, StateEventType};
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
@@ -69,7 +69,7 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
 
-        const METADATA: Metadata = METADATA;
+        pub const METADATA: Metadata = METADATA;
 
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
@@ -107,7 +107,7 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
 
-        const METADATA: Metadata = METADATA;
+        pub const METADATA: Metadata = METADATA;
 
         fn try_from_http_request<B, S>(
             _request: http::Request<B>,

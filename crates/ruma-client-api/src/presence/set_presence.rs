@@ -14,7 +14,7 @@ pub mod v3 {
         OwnedUserId,
     };
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: PUT,
         rate_limited: true,
         authentication: AccessToken,

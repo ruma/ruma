@@ -14,7 +14,7 @@ pub mod v3 {
 
     use crate::push::{PushRule, RuleKind, RuleScope};
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,

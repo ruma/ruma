@@ -13,7 +13,7 @@ pub mod v3 {
     };
     use ruma_events::tag::Tags;
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,

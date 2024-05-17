@@ -15,7 +15,7 @@ pub mod unstable {
     };
     use ruma_events::AnyToDeviceEvent;
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,

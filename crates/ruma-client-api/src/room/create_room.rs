@@ -26,7 +26,7 @@ pub mod v3 {
 
     use crate::{membership::Invite3pid, room::Visibility, PrivOwnedStr};
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,

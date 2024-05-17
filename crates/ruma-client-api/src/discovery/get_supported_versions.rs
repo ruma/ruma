@@ -11,7 +11,7 @@ use ruma_common::{
     metadata,
 };
 
-const METADATA: Metadata = metadata! {
+pub const METADATA: Metadata = metadata! {
     method: GET,
     rate_limited: false,
     authentication: AccessTokenOptional,

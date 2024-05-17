@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
 use super::{DeviceLists, UnreadNotificationsCount};
 use crate::filter::FilterDefinition;
 
-const METADATA: Metadata = metadata! {
+pub const METADATA: Metadata = metadata! {
     method: GET,
     rate_limited: false,
     authentication: AccessToken,

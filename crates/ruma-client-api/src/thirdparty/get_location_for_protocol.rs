@@ -15,7 +15,7 @@ pub mod v3 {
         thirdparty::Location,
     };
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,

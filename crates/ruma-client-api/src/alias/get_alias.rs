@@ -12,7 +12,7 @@ pub mod v3 {
         metadata, OwnedRoomAliasId, OwnedRoomId, OwnedServerName,
     };
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: GET,
         rate_limited: false,
         authentication: None,

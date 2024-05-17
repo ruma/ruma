@@ -16,7 +16,7 @@ pub mod v3 {
 
     use crate::backup::RoomKeyBackup;
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: GET,
         rate_limited: true,
         authentication: AccessToken,

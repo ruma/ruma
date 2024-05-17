@@ -18,7 +18,7 @@ pub mod v3 {
     };
     use ruma_events::{AnyToDeviceEventContent, ToDeviceEventType};
 
-    const METADATA: Metadata = metadata! {
+    pub const METADATA: Metadata = metadata! {
         method: PUT,
         rate_limited: false,
         authentication: AccessToken,
