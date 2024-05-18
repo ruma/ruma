@@ -106,18 +106,26 @@ impl Metadata {
         assert!(first_segment.is_empty(), "endpoint paths must start with '/'");
 
         for segment in segments {
-            if segment.starts_with(':') {
-                let arg = path_args
-                    .next()
-                    .expect("number of placeholders must match number of arguments")
-                    .to_string();
-                let arg = utf8_percent_encode(&arg, PATH_PERCENT_ENCODE_SET);
-
-                write!(res, "/{arg}").expect("writing to a String using fmt::Write can't fail");
-            } else {
+            let Some(segment) =
+                segment.strip_prefix('{').and_then(|segment| segment.strip_prefix('}'))
+            else {
                 res.reserve(segment.len() + 1);
                 res.push('/');
                 res.push_str(segment);
+
+                continue;
+            };
+
+            let arg = path_args.next().map(ToString::to_string);
+
+            match (segment.starts_with('?'), arg) {
+                (_, Some(arg)) => {
+                    let arg = utf8_percent_encode(&arg, PATH_PERCENT_ENCODE_SET);
+
+                    write!(res, "/{arg}").expect("writing to a String using fmt::Write can't fail");
+                }
+                (false, None) => panic!("number of placeholders must match number of arguments"),
+                _ => {}
             }
         }
 
@@ -203,14 +211,14 @@ impl VersionHistory {
             let mut second_iter = string::split(second, "/").next();
 
             iter::for_each!(first_s in string::split(first, "/") => {
-                if let Some(first_arg) = string::strip_prefix(first_s, &[":", "+"]) {
+                if let Some(first_arg) = string::strip_prefix(first_s, ":+") {
                     let second_next_arg: Option<&'static str> = loop {
                         let (second_s, second_n_iter) = match second_iter {
                             Some(tuple) => tuple,
                             None => break None,
                         };
 
-                        let maybe_second_arg = string::strip_prefix(second_s, &[":", "+"]);
+                        let maybe_second_arg = string::strip_prefix(second_s, ":+");
 
                         second_iter = second_n_iter.next();
 
@@ -231,7 +239,7 @@ impl VersionHistory {
 
             // If second iterator still has some values, empty first.
             while let Some((second_s, second_n_iter)) = second_iter {
-                if string::starts_with(second_s, &[":", "+"]) {
+                if string::starts_with(second_s, ":+") {
                     panic!("Amount of Path Arguments do not match");
                 }
                 second_iter = second_n_iter.next();
@@ -450,20 +458,24 @@ impl VersionHistory {
 }
 
 #[derive(Copy, Debug)]
-enum EndpointPath<S = &'static str> {
-    Default(S),
-    Truncated((S, &'static [S])),
+enum EndpointPath {
+    Leading(&'static str),
+    Trailing(&'static str),
 }
 
-// /_matrix/client/v3/doing/+a/+thing
 impl From<&'static str> for EndpointPath {
     fn from(path: &'static str) -> Self {
-        let Some((leading, trailing)) = path.split_once::<'static, _>("/+") else {
-            return EndpointPath::Default(path);
-        };
-
-        let split: Vec<_> = trailing.split("/+").collect();
-        EndpointPath::Truncated((leading, Vec::as_slice(split)))
+        if path
+            .split('/')
+            .filter_map(|segment| {
+                segment.strip_prefix('{').and_then(|segment| segment.strip_prefix('}'))
+            })
+            .any(|path_arg| path_arg.starts_with('?'))
+        {
+            EndpointPath::Trailing(path)
+        } else {
+            EndpointPath::Leading(path)
+        }
     }
 }
 
