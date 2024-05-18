@@ -106,9 +106,7 @@ impl Metadata {
         assert!(first_segment.is_empty(), "endpoint paths must start with '/'");
 
         for segment in segments {
-            let Some(segment) =
-                segment.strip_prefix('{').and_then(|segment| segment.strip_prefix('}'))
-            else {
+            let Some(segment) = strip_brackets(segment) else {
                 res.reserve(segment.len() + 1);
                 res.push('/');
                 res.push_str(segment);
@@ -122,9 +120,11 @@ impl Metadata {
                 (_, Some(arg)) => {
                     let arg = utf8_percent_encode(&arg, PATH_PERCENT_ENCODE_SET);
 
-                    write!(res, "/{arg}").expect("writing to a String using fmt::Write can't fail");
+                    write!(res, "/{arg}").expect("writing to a String using fmt::Write can't fail")
                 }
-                (false, None) => panic!("number of placeholders must match number of arguments"),
+                (false, None) => {
+                    unreachable!("number of placeholders must match number of required arguments")
+                }
                 _ => {}
             }
         }
@@ -141,8 +141,16 @@ impl Metadata {
     #[doc(hidden)]
     pub fn _path_parameters(&self) -> Vec<&'static str> {
         let path = self.history.all_paths().next().unwrap();
-        path.split('/').filter_map(|segment| segment.strip_prefix(':')).collect()
+        path.split('/').filter_map(|segment| strip_brackets(segment)).collect()
     }
+}
+
+const fn strip_brackets(segment: &'static str) -> Option<&'static str> {
+    use konst::{option, string};
+
+    option::and_then!(string::strip_prefix(segment, '{'), |segment| string::strip_prefix(
+        segment, '}'
+    ))
 }
 
 /// The complete history of this endpoint as far as Ruma knows, together with all variants on
@@ -155,12 +163,12 @@ pub struct VersionHistory {
     /// A list of unstable paths over this endpoint's history.
     ///
     /// For endpoint querying purposes, the last item will be used.
-    unstable_paths: &'static [EndpointPath],
+    unstable_paths: &'static [&'static str],
 
     /// A list of path versions, mapped to Matrix versions.
     ///
     /// Sorted (ascending) by Matrix version, will not mix major versions.
-    stable_paths: &'static [(MatrixVersion, EndpointPath)],
+    stable_paths: &'static [(MatrixVersion, &'static str)],
 
     /// The Matrix version that deprecated this endpoint.
     ///
@@ -211,14 +219,14 @@ impl VersionHistory {
             let mut second_iter = string::split(second, "/").next();
 
             iter::for_each!(first_s in string::split(first, "/") => {
-                if let Some(first_arg) = string::strip_prefix(first_s, ":+") {
+                if let Some(first_arg) = strip_brackets(first_s) {
                     let second_next_arg: Option<&'static str> = loop {
                         let (second_s, second_n_iter) = match second_iter {
                             Some(tuple) => tuple,
                             None => break None,
                         };
 
-                        let maybe_second_arg = string::strip_prefix(second_s, ":+");
+                        let maybe_second_arg = strip_brackets(second_s);
 
                         second_iter = second_n_iter.next();
 
@@ -239,7 +247,7 @@ impl VersionHistory {
 
             // If second iterator still has some values, empty first.
             while let Some((second_s, second_n_iter)) = second_iter {
-                if string::starts_with(second_s, ":+") {
+                if string::starts_with(second_s, '{') && string::ends_with(second_s, '}') {
                     panic!("Amount of Path Arguments do not match");
                 }
                 second_iter = second_n_iter.next();
@@ -314,8 +322,6 @@ impl VersionHistory {
                 panic!("Defined removed version while no deprecated version exists")
             }
         }
-
-        let (unstable_paths, stable_paths) = (unstable_paths.into(), stable_paths.into());
 
         VersionHistory { unstable_paths, stable_paths, deprecated, removed }
     }
@@ -454,28 +460,6 @@ impl VersionHistory {
         }
 
         None
-    }
-}
-
-#[derive(Copy, Debug)]
-enum EndpointPath {
-    Leading(&'static str),
-    Trailing(&'static str),
-}
-
-impl From<&'static str> for EndpointPath {
-    fn from(path: &'static str) -> Self {
-        if path
-            .split('/')
-            .filter_map(|segment| {
-                segment.strip_prefix('{').and_then(|segment| segment.strip_prefix('}'))
-            })
-            .any(|path_arg| path_arg.starts_with('?'))
-        {
-            EndpointPath::Trailing(path)
-        } else {
-            EndpointPath::Leading(path)
-        }
     }
 }
 
@@ -805,14 +789,14 @@ mod tests {
 
     #[test]
     fn make_endpoint_url_with_path_args() {
-        let meta = stable_only_metadata(&[(V1_0, "/s/:x")]);
+        let meta = stable_only_metadata(&[(V1_0, "/s/{x}")]);
         let url = meta.make_endpoint_url(&[V1_0], "https://example.org", &[&"123"], "").unwrap();
         assert_eq!(url, "https://example.org/s/123");
     }
 
     #[test]
     fn make_endpoint_url_with_path_args_with_dash() {
-        let meta = stable_only_metadata(&[(V1_0, "/s/:x")]);
+        let meta = stable_only_metadata(&[(V1_0, "/s/{x}")]);
         let url =
             meta.make_endpoint_url(&[V1_0], "https://example.org", &[&"my-path"], "").unwrap();
         assert_eq!(url, "https://example.org/s/my-path");
@@ -820,7 +804,7 @@ mod tests {
 
     #[test]
     fn make_endpoint_url_with_path_args_with_reserved_char() {
-        let meta = stable_only_metadata(&[(V1_0, "/s/:x")]);
+        let meta = stable_only_metadata(&[(V1_0, "/s/{x}")]);
         let url = meta.make_endpoint_url(&[V1_0], "https://example.org", &[&"#path"], "").unwrap();
         assert_eq!(url, "https://example.org/s/%23path");
     }
@@ -835,7 +819,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn make_endpoint_url_wrong_num_path_args() {
-        let meta = stable_only_metadata(&[(V1_0, "/s/:x")]);
+        let meta = stable_only_metadata(&[(V1_0, "/s/{x}")]);
         _ = meta.make_endpoint_url(&[V1_0], "https://example.org", &[], "");
     }
 
