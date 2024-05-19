@@ -10,9 +10,9 @@ const METADATA: Metadata = metadata! {
     rate_limited: false,
     authentication: None,
     history: {
-        unstable => "/_matrix/some/msc1234/endpoint/:baz",
-        1.0 => "/_matrix/some/r0/endpoint/:baz",
-        1.1 => "/_matrix/some/v3/endpoint/:baz",
+        unstable => "/_matrix/some/msc1234/endpoint/{baz}",
+        1.0 => "/_matrix/some/r0/endpoint/{baz}",
+        1.1 => "/_matrix/some/v3/endpoint/{baz}",
         1.2 => deprecated,
         1.3 => removed,
     }
@@ -67,13 +67,13 @@ fn main() {
 
     assert_eq!(
         METADATA.history.unstable_paths().collect::<Vec<_>>(),
-        &["/_matrix/some/msc1234/endpoint/:baz"],
+        &["/_matrix/some/msc1234/endpoint/{baz}"],
     );
     assert_eq!(
         METADATA.history.stable_paths().collect::<Vec<_>>(),
         &[
-            (MatrixVersion::V1_0, "/_matrix/some/r0/endpoint/:baz"),
-            (MatrixVersion::V1_1, "/_matrix/some/v3/endpoint/:baz")
+            (MatrixVersion::V1_0, "/_matrix/some/r0/endpoint/{baz}"),
+            (MatrixVersion::V1_1, "/_matrix/some/v3/endpoint/{baz}")
         ],
     );
 

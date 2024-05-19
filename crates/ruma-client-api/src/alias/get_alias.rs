@@ -17,8 +17,8 @@ pub mod v3 {
         rate_limited: false,
         authentication: None,
         history: {
-            1.0 => "/_matrix/client/r0/directory/room/:room_alias",
-            1.1 => "/_matrix/client/v3/directory/room/:room_alias",
+            1.0 => "/_matrix/client/r0/directory/room/{room_alias}",
+            1.1 => "/_matrix/client/v3/directory/room/{room_alias}",
         }
     };
 

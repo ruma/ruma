@@ -445,7 +445,8 @@ impl VersionHistory {
     ///
     /// This will return an endpoint in the following format;
     /// - `/_matrix/client/versions`
-    /// - `/_matrix/client/hello/:world` (`:world` is a path replacement parameter)
+    /// - `/_matrix/client/hello/{beautiful}/{?world}` (`beautiful` and `?world` are path
+    ///   replacement parameters, the latter being an optional one)
     ///
     /// Note: This will not keep in mind endpoint removals, check with
     /// [`versioning_decision_for`](VersionHistory::versioning_decision_for) to see if this endpoint

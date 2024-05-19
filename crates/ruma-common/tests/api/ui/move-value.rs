@@ -16,7 +16,7 @@ mod newtype_body {
         rate_limited: false,
         authentication: None,
         history: {
-            unstable => "/_matrix/foo/:bar/",
+            unstable => "/_matrix/foo/{bar}/",
         }
     };
 
@@ -59,7 +59,7 @@ mod raw_body {
         rate_limited: false,
         authentication: None,
         history: {
-            unstable => "/_matrix/foo/:bar/",
+            unstable => "/_matrix/foo/{bar}/",
         }
     };
 
@@ -105,7 +105,7 @@ mod plain {
         rate_limited: false,
         authentication: None,
         history: {
-            unstable => "/_matrix/foo/:bar/",
+            unstable => "/_matrix/foo/{bar}/",
         }
     };
 

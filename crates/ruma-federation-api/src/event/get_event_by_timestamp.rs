@@ -17,8 +17,8 @@ pub mod v1 {
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
-            unstable => "/_matrix/federation/unstable/org.matrix.msc3030/timestamp_to_event/:room_id",
-            1.6 => "/_matrix/federation/v1/timestamp_to_event/:room_id",
+            unstable => "/_matrix/federation/unstable/org.matrix.msc3030/timestamp_to_event/{room_id}",
+            1.6 => "/_matrix/federation/v1/timestamp_to_event/{room_id}",
         }
     };
 

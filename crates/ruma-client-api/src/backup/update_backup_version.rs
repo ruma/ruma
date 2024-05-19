@@ -20,8 +20,8 @@ pub mod v3 {
         rate_limited: true,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/room_keys/version/:version",
-            1.1 => "/_matrix/client/v3/room_keys/version/:version",
+            unstable => "/_matrix/client/unstable/room_keys/version/{version}",
+            1.1 => "/_matrix/client/v3/room_keys/version/{version}",
         }
     };
 
