@@ -4,6 +4,7 @@ Improvements:
 
 - Add the `InvalidHeaderValue` variant to the `DeserializationError` struct, for
   cases where we receive a HTTP header with an unexpected value.
+- Add support for trailing path parameters.
 
 # 0.13.0
 
@@ -23,6 +24,7 @@ Breaking changes:
   `deserialize_as_number_or_string` to reflect that.
 - The http crate had a major version bump to version 1.1
 - `IntoHttpError::Header` now contains a `HeaderSerializationError`
+- Use OpenAPI's syntax for path parameters in all metadata constants (?).
 
 Improvements:
 
