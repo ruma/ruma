@@ -120,7 +120,7 @@ impl Metadata {
                 (_, Some(arg)) => {
                     let arg = utf8_percent_encode(&arg, PATH_PERCENT_ENCODE_SET);
 
-                    write!(res, "/{arg}").expect("writing to a String using fmt::Write can't fail")
+                    write!(res, "/{arg}").expect("writing to a String using fmt::Write can't fail");
                 }
                 (false, None) => {
                     unreachable!("number of placeholders must match number of required arguments")
@@ -141,7 +141,7 @@ impl Metadata {
     #[doc(hidden)]
     pub fn _path_parameters(&self) -> Vec<&'static str> {
         let path = self.history.all_paths().next().unwrap();
-        path.split('/').filter_map(|segment| strip_brackets(segment)).collect()
+        path.split('/').filter_map(strip_brackets).collect()
     }
 }
 
