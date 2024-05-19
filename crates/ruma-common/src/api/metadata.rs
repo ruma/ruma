@@ -148,7 +148,7 @@ impl Metadata {
 const fn strip_brackets(segment: &'static str) -> Option<&'static str> {
     use konst::{option, string};
 
-    option::and_then!(string::strip_prefix(segment, '{'), |segment| string::strip_prefix(
+    option::and_then!(string::strip_prefix(segment, '{'), |segment| string::strip_suffix(
         segment, '}'
     ))
 }
@@ -808,6 +808,15 @@ mod tests {
         let meta = stable_only_metadata(&[(V1_0, "/s/{x}")]);
         let url = meta.make_endpoint_url(&[V1_0], "https://example.org", &[&"#path"], "").unwrap();
         assert_eq!(url, "https://example.org/s/%23path");
+    }
+
+    #[test]
+    fn make_endpoint_url_with_optional_path_args() {
+        let meta = stable_only_metadata(&[(V1_0, "/s/{?x}")]);
+        let url = meta.make_endpoint_url(&[V1_0], "https://example.org", &[], "").unwrap();
+        assert_eq!(url, "https://example.org/s");
+        let url = meta.make_endpoint_url(&[V1_0], "https://example.org", &[&"456"], "").unwrap();
+        assert_eq!(url, "https://example.org/s/456");
     }
 
     #[test]
