@@ -11,7 +11,7 @@ use serde::{
     Deserialize, Serialize,
 };
 
-use crate::room::{message::FileInfo, ImageInfo};
+use crate::room::{EncryptedFile, ImageInfo, MediaSource};
 
 /// The content of an `m.sticker` event.
 ///
@@ -31,12 +31,22 @@ pub struct StickerEventContent {
 
     /// The URL to the sticker image.
     pub url: OwnedMxcUri,
+
+    /// The media source
+    #[cfg(not(feature = "compat-encrypted-stickers"),)]
+    #[serde(skip)]
+    pub source: MediaSource,
 }
 
 impl StickerEventContent {
     /// Creates a new `StickerEventContent` with the given body, image info and URL.
     pub fn new(body: String, info: ImageInfo, url: OwnedMxcUri) -> Self {
-        Self { body, info, url }
+        Self { body, info, url: url.clone(), source: MediaSource::Plain(url.clone()) }
+    }
+
+    /// Creates a new `StickerEventContent` with the given body, image info and URL.
+    pub fn from_source(body: String, info: ImageInfo, url: OwnedMxcUri, source: MediaSource) -> Self {
+        Self { body, info, url, source }
     }
 }
 
@@ -100,14 +110,14 @@ impl<'de> Deserialize<'de> for StickerEventContent {
                 let mut body: Option<Result<String, <V as MapAccess<'de>>::Error>> = None;
                 let mut info: Option<Result<ImageInfo, <V as MapAccess<'de>>::Error>> = None;
                 let mut url: Option<Result<OwnedMxcUri, <V as MapAccess<'de>>::Error>> = None;
-                let mut file: Option<Result<FileInfo, <V as MapAccess<'de>>::Error>> = None;
+                let mut file: Option<Result<EncryptedFile, <V as MapAccess<'de>>::Error>> = None;
 
                 while let Some(key) = map.next_key()? {
                     match key {
                         Field::Body => body = Some(map.next_value()),
                         Field::Info => info = Some(map.next_value()),
                         Field::Url => url = Some(map.next_value()),
-                        Field::File => file = Some(map.next_value()),
+                        Field::File => file = Some(map.next_value::<EncryptedFile>()),
                         Field::None => {
                             let _ = Some(map.next_value::<IgnoredAny>());
                         }
@@ -117,16 +127,16 @@ impl<'de> Deserialize<'de> for StickerEventContent {
                     body.ok_or_else(|| de::Error::missing_field("body"))?;
                 let info: Result<ImageInfo, <V as MapAccess<'de>>::Error> =
                     info.ok_or_else(|| de::Error::missing_field("info"))?;
-                //let url: Result<OwnedMxcUri, <V as MapAccess<'de>>::Error> = url.ok_or_else(||
-                // de::Error::missing_field("url"))?;
-                let url = match url {
-                    Some(url) => url?,
-                    None => match &file.unwrap()?.url {
-                        Some(url) => OwnedMxcUri::from(url.clone()),
-                        None => OwnedMxcUri::from(""),
-                    },
-                };
-                Ok(StickerEventContent::new(body.unwrap(), info.unwrap(), url))
+
+                match file {
+                    Some(file) => {
+                        let file = file.unwrap();
+                        return Ok(StickerEventContent::from_source(body.unwrap(), info.unwrap(), file.url.clone(), MediaSource::Encrypted(Box::from(file))));
+                    }
+                    None => {
+                        return Ok(StickerEventContent::new(body.unwrap(), info.unwrap(), url.unwrap()?));
+                    }
+                }
             }
         }
         const FIELDS: &[&str] = &["body", "info", "url", "file"];

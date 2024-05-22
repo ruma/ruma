@@ -56,6 +56,9 @@ compat-optional = []
 # Allow TagInfo to contain a stringified floating-point value for the `order` field.
 compat-tag-info = []
 
+# Encrypted stickers
+compat-encrypted-stickers = []
+
 [dependencies]
 as_variant = { workspace = true }
 indexmap = { version = "2.0.0", features = ["serde"] }
