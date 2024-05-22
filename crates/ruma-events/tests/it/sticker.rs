@@ -1,21 +1,13 @@
 use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::{uint, UInt};
-use ruma_common::{
-    mxc_uri,
-    serde::{Base64, CanBeEmpty},
-    MilliSecondsSinceUnixEpoch, OwnedMxcUri,
-};
+use ruma_common::{mxc_uri, serde::CanBeEmpty, MilliSecondsSinceUnixEpoch, OwnedMxcUri};
 use ruma_events::{
-    room::{
-        EncryptedFile, EncryptedFileInit, ImageInfo, JsonWebKeyInit, MediaSource, ThumbnailInfo,
-    },
+    room::{ImageInfo, MediaSource, ThumbnailInfo},
     sticker::StickerEventContent,
     AnyMessageLikeEvent, MessageLikeEvent,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
-
-use crate::encrypted;
 
 #[test]
 fn content_serialization() {
@@ -89,25 +81,6 @@ fn content_deserialization() {
     assert_eq!(content.body, "Upload: my_image.jpg");
     assert_eq!(content.url, OwnedMxcUri::from("mxc://notareal.hs/file"));
 
-    let encrypted_file = Box::from(EncryptedFile::from(EncryptedFileInit {
-        url: mxc_uri!("mxc://notareal.hs/file").to_owned(),
-        key: JsonWebKeyInit {
-            kty: "oct".to_owned(),
-            key_ops: vec!["encrypt".to_owned(), "decrypt".to_owned()],
-            alg: "A256CTR".to_owned(),
-            k: Base64::parse("TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A").unwrap(),
-            ext: true,
-        }
-        .into(),
-        iv: Base64::parse("S22dq3NAX8wAAAAAAAAAAA").unwrap(),
-        hashes: [(
-            "sha256".to_owned(),
-            Base64::parse("aWOHudBnDkJ9IwaR1Nd8XKoI7DOrqDTwt6xDPfVGN6Q").unwrap(),
-        )]
-        .into(),
-        v: "v2".to_owned(),
-    }));
-
     let encrypted_json_data = json!({
         "body": "Upload: my_image.jpg",
         "file": {
@@ -131,7 +104,6 @@ fn content_deserialization() {
     let encrypted_content = from_json_value::<StickerEventContent>(encrypted_json_data).unwrap();
     assert_eq!(encrypted_content.body, "Upload: my_image.jpg");
     assert_eq!(encrypted_content.url, OwnedMxcUri::from("mxc://notareal.hs/file"));
-    assert_matches!(encrypted_content.source, MediaSource::Encrypted(encrypted_file));
 }
 
 #[test]

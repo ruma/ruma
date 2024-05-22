@@ -153,19 +153,15 @@ impl<'de> Deserialize<'de> for StickerEventContent {
                 match file {
                     Some(file) => {
                         let file = file.unwrap();
-                        return Ok(StickerEventContent::from_source(
+                        Ok(StickerEventContent::from_source(
                             body.unwrap(),
                             info.unwrap(),
                             file.url.clone(),
                             MediaSource::Encrypted(Box::from(file)),
-                        ));
+                        ))
                     }
                     None => {
-                        return Ok(StickerEventContent::new(
-                            body.unwrap(),
-                            info.unwrap(),
-                            url.unwrap()?,
-                        ));
+                        Ok(StickerEventContent::new(body.unwrap(), info.unwrap(), url.unwrap()?))
                     }
                 }
             }
