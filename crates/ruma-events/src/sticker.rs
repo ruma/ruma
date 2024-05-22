@@ -2,16 +2,18 @@
 //!
 //! [`m.sticker`]: https://spec.matrix.org/latest/client-server-api/#msticker
 
+use std::fmt;
 use ruma_common::OwnedMxcUri;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
+use serde::de::{self, Deserializer, IgnoredAny, MapAccess, Visitor};
 
-use crate::room::ImageInfo;
+use crate::room::{message::FileInfo, ImageInfo};
 
 /// The content of an `m.sticker` event.
 ///
 /// A sticker message.
-#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[derive(Clone, Debug, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.sticker", kind = MessageLike)]
 pub struct StickerEventContent {
@@ -32,5 +34,101 @@ impl StickerEventContent {
     /// Creates a new `StickerEventContent` with the given body, image info and URL.
     pub fn new(body: String, info: ImageInfo, url: OwnedMxcUri) -> Self {
         Self { body, info, url }
+    }
+}
+
+impl<'de> Deserialize<'de> for StickerEventContent {
+fn deserialize<D>(deserializer: D) -> Result<StickerEventContent, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        enum Field { Body, Info, Url, File, None }
+
+        impl Default for Field {
+            fn default() -> Self {
+                Field::None
+            }
+        }
+        impl<'de> Deserialize<'de> for Field {
+            fn deserialize<D>(deserializer: D) -> Result<Field, D::Error>
+                where
+                    D: Deserializer<'de>,
+            {
+                struct FieldVisitor;
+
+                impl<'de> Visitor<'de> for FieldVisitor {
+                    type Value = Field;
+                    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                        formatter.write_str("'body/info/url/file'")
+                    }
+                    fn visit_str<E>(self, value:&str) -> Result<Field, E>
+                    where
+                        E: de::Error,
+                    {
+                        match value {
+                            "body" => Ok(Field::Body),
+                            "info" => Ok(Field::Info),
+                            "url" => Ok(Field::Url),
+                            "file" => Ok(Field::File),
+                            _ => Ok(Field::default()),//Err(de::Error::unknown_field(value, FIELDS))
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(FieldVisitor)
+            }
+        }
+
+        struct StickerEventContentVisitor;
+
+        impl<'de> Visitor<'de> for StickerEventContentVisitor {
+            type Value = StickerEventContent;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                formatter.write_str("struct StickerEventContent")
+            }
+
+            fn visit_map<V>(self, mut map: V) -> Result<StickerEventContent, V::Error>
+            where
+                V: MapAccess<'de>,
+            {
+                let mut body: Option<Result<String, <V as MapAccess<'de>>::Error>> = None;
+                let mut info: Option<Result<ImageInfo, <V as MapAccess<'de>>::Error>>  = None;
+                let mut url: Option<Result<OwnedMxcUri, <V as MapAccess<'de>>::Error>> = None;
+                let mut file: Option<Result<FileInfo, <V as MapAccess<'de>>::Error>> = None;
+
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::Body => {
+                            body = Some(map.next_value())
+                        }
+                        Field::Info => {
+                            info = Some(map.next_value())
+                        }
+                        Field::Url => {
+                            url = Some(map.next_value())
+                        }
+                        Field::File => {
+                            file = Some(map.next_value())
+                        }
+                        Field::None => {
+                            let _ = Some(map.next_value::<IgnoredAny>());
+                        }
+                    }
+                }
+                let body: Result<String, <V as MapAccess<'de>>::Error> = body.ok_or_else(|| de::Error::missing_field("body"))?;
+                let info: Result<ImageInfo, <V as MapAccess<'de>>::Error> = info.ok_or_else(|| de::Error::missing_field("info"))?;
+                //let url: Result<OwnedMxcUri, <V as MapAccess<'de>>::Error> = url.ok_or_else(|| de::Error::missing_field("url"))?;
+                let url = match url {
+                    Some(url) => url?,
+                    None => match &file.unwrap()?.url {
+                        Some(url) => OwnedMxcUri::from(url.clone()),
+                        None => OwnedMxcUri::from(""),
+                    }
+                };
+                Ok(StickerEventContent::new(body.unwrap(), info.unwrap(), url))
+            }
+        }
+        const FIELDS: &[&str] = &["body", "info", "url", "file"];
+        deserializer.deserialize_struct("StickerEventContent", FIELDS, StickerEventContentVisitor)
     }
 }
