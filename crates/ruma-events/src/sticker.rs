@@ -33,7 +33,7 @@ pub struct StickerEventContent {
     pub url: OwnedMxcUri,
 
     /// The media source
-    #[cfg(not(feature = "compat-encrypted-stickers"),)]
+    #[cfg(not(feature = "compat-encrypted-stickers"))]
     #[serde(skip)]
     pub source: MediaSource,
 }
@@ -45,7 +45,12 @@ impl StickerEventContent {
     }
 
     /// Creates a new `StickerEventContent` with the given body, image info and URL.
-    pub fn from_source(body: String, info: ImageInfo, url: OwnedMxcUri, source: MediaSource) -> Self {
+    pub fn from_source(
+        body: String,
+        info: ImageInfo,
+        url: OwnedMxcUri,
+        source: MediaSource,
+    ) -> Self {
         Self { body, info, url, source }
     }
 }
@@ -131,10 +136,19 @@ impl<'de> Deserialize<'de> for StickerEventContent {
                 match file {
                     Some(file) => {
                         let file = file.unwrap();
-                        return Ok(StickerEventContent::from_source(body.unwrap(), info.unwrap(), file.url.clone(), MediaSource::Encrypted(Box::from(file))));
+                        return Ok(StickerEventContent::from_source(
+                            body.unwrap(),
+                            info.unwrap(),
+                            file.url.clone(),
+                            MediaSource::Encrypted(Box::from(file)),
+                        ));
                     }
                     None => {
-                        return Ok(StickerEventContent::new(body.unwrap(), info.unwrap(), url.unwrap()?));
+                        return Ok(StickerEventContent::new(
+                            body.unwrap(),
+                            info.unwrap(),
+                            url.unwrap()?,
+                        ));
                     }
                 }
             }
