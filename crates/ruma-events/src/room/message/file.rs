@@ -85,10 +85,6 @@ pub struct FileInfo {
         skip_serializing_if = "Option::is_none"
     )]
     pub thumbnail_source: Option<MediaSource>,
-
-    /// This file url
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<String>,
 }
 
 impl FileInfo {
