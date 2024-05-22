@@ -3,6 +3,9 @@
 Improvements:
 
 - Add support for MSC4108 OIDC sign in and E2EE set up via QR code
+- Heroes in `sync::sync_events::v4`: `SyncRequestList` and `RoomSubscription`
+  both have a new `include_heroes` field. `SlidingSyncRoom` has a new `heroes`
+  field, with a new type `SlidingSyncRoomHero`.
 
 # 0.18.0
 
