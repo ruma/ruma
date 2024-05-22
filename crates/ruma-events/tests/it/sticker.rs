@@ -1,9 +1,15 @@
 use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::{uint, UInt};
-use ruma_common::{mxc_uri, serde::{Base64, CanBeEmpty}, MilliSecondsSinceUnixEpoch, OwnedMxcUri};
+use ruma_common::{
+    mxc_uri,
+    serde::{Base64, CanBeEmpty},
+    MilliSecondsSinceUnixEpoch, OwnedMxcUri,
+};
 use ruma_events::{
-    room::{EncryptedFile, EncryptedFileInit, ImageInfo, JsonWebKeyInit, MediaSource, ThumbnailInfo},
+    room::{
+        EncryptedFile, EncryptedFileInit, ImageInfo, JsonWebKeyInit, MediaSource, ThumbnailInfo,
+    },
     sticker::StickerEventContent,
     AnyMessageLikeEvent, MessageLikeEvent,
 };
