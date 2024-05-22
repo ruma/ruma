@@ -45,19 +45,16 @@ impl<'de> Deserialize<'de> for StickerEventContent {
     where
         D: Deserializer<'de>,
     {
+        #[derive(Default)]
         enum Field {
             Body,
             Info,
             Url,
             File,
+            #[default]
             None,
         }
 
-        impl Default for Field {
-            fn default() -> Self {
-                Field::None
-            }
-        }
         impl<'de> Deserialize<'de> for Field {
             fn deserialize<D>(deserializer: D) -> Result<Field, D::Error>
             where
