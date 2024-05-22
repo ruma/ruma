@@ -68,7 +68,7 @@ impl StickerEventContent {
         url: OwnedMxcUri,
         _source: MediaSource,
     ) -> Self {
-        Self { body, info, url}
+        Self { body, info, url }
     }
 }
 
