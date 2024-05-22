@@ -37,9 +37,6 @@ compat-get-3pids = []
 # since that's what Synapse sends.
 compat-upload-signatures = []
 
-# Encrypted stickers
-compat-encrypted-sticker = []
-
 unstable-exhaustive-types = ["ruma-common/unstable-exhaustive-types"]
 unstable-msc2666 = []
 unstable-msc2448 = []

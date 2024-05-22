@@ -40,11 +40,18 @@ pub struct StickerEventContent {
 
 impl StickerEventContent {
     /// Creates a new `StickerEventContent` with the given body, image info and URL.
+    #[cfg(not(feature = "compat-encrypted-stickers"))]
     pub fn new(body: String, info: ImageInfo, url: OwnedMxcUri) -> Self {
         Self { body, info, url: url.clone(), source: MediaSource::Plain(url.clone()) }
     }
+    /// Creates a new `StickerEventContent` with the given body, image info and URL.
+    #[cfg(feature = "compat-encrypted-stickers")]
+    pub fn new(body: String, info: ImageInfo, url: OwnedMxcUri) -> Self {
+        Self { body, info, url }
+    }
 
     /// Creates a new `StickerEventContent` with the given body, image info and URL.
+    #[cfg(not(feature = "compat-encrypted-stickers"))]
     pub fn from_source(
         body: String,
         info: ImageInfo,
@@ -52,6 +59,16 @@ impl StickerEventContent {
         source: MediaSource,
     ) -> Self {
         Self { body, info, url, source }
+    }
+    /// Creates a new `StickerEventContent` with the given body, image info and URL.
+    #[cfg(feature = "compat-encrypted-stickers")]
+    pub fn from_source(
+        body: String,
+        info: ImageInfo,
+        url: OwnedMxcUri,
+        _source: MediaSource,
+    ) -> Self {
+        Self { body, info, url}
     }
 }
 
