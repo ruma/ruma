@@ -36,6 +36,8 @@ Breaking changes:
   It will now return the proper status code and headers depending on the variant
   used.
 - The http crate had a major version bump to version 1.1
+- `RoomSummary::heroes` now properly contains only `UserId` instead of `String`
+  as before.
 
 Improvements:
 
