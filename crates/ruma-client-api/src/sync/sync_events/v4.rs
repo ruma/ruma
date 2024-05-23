@@ -298,7 +298,7 @@ pub struct SyncRequestList {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub include_old_rooms: Option<IncludeOldRooms>,
 
-    /// Return a stripped variant of membership events for the users used to calculate the room
+    /// Request a stripped variant of membership events for the users used to calculate the room
     /// name.
     ///
     /// Sticky.
