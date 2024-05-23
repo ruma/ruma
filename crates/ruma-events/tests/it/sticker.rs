@@ -108,9 +108,13 @@ fn content_deserialization() {
     }
     #[cfg(feature = "compat-encrypted-stickers")]
     {
-        let encrypted_content = from_json_value::<StickerEventContent>(encrypted_json_data).unwrap();
+        let encrypted_content =
+            from_json_value::<StickerEventContent>(encrypted_json_data).unwrap();
         assert_eq!(encrypted_content.body, "Upload: my_image.jpg");
-        assert_matches!(encrypted_content.source, StickerMediaSource::Encrypted(encrypted_sticker_url));
+        assert_matches!(
+            encrypted_content.source,
+            StickerMediaSource::Encrypted(encrypted_sticker_url)
+        );
         assert_eq!(encrypted_sticker_url.url, "mxc://notareal.hs/file");
     }
 }
