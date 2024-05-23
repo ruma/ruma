@@ -1,7 +1,7 @@
 use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::{uint, UInt};
-use ruma_common::{mxc_uri, serde::CanBeEmpty, MilliSecondsSinceUnixEpoch, OwnedMxcUri};
+use ruma_common::{mxc_uri, serde::CanBeEmpty, MilliSecondsSinceUnixEpoch};
 use ruma_events::{
     room::{ImageInfo, MediaSource, ThumbnailInfo},
     sticker::StickerEventContent,
@@ -79,7 +79,7 @@ fn content_deserialization() {
 
     let content = from_json_value::<StickerEventContent>(json_data).unwrap();
     assert_eq!(content.body, "Upload: my_image.jpg");
-    assert_eq!(content.url, OwnedMxcUri::from("mxc://notareal.hs/file"));
+    assert_eq!(content.url, "mxc://notareal.hs/file");
 
     let encrypted_json_data = json!({
         "body": "Upload: my_image.jpg",
@@ -103,7 +103,7 @@ fn content_deserialization() {
 
     let encrypted_content = from_json_value::<StickerEventContent>(encrypted_json_data).unwrap();
     assert_eq!(encrypted_content.body, "Upload: my_image.jpg");
-    assert_eq!(encrypted_content.url, OwnedMxcUri::from("mxc://notareal.hs/file"));
+    assert_eq!(encrypted_content.url, "mxc://notareal.hs/file");
 }
 
 #[test]

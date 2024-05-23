@@ -50,7 +50,7 @@ impl StickerEventContent {
         Self { body, info, url }
     }
 
-    /// Creates a new `StickerEventContent` with the given body, image info and URL.
+    /// Creates a new `StickerEventContent` with the given body, image info, URL, and media source.
     #[cfg(not(feature = "compat-encrypted-stickers"))]
     pub fn from_source(
         body: String,
