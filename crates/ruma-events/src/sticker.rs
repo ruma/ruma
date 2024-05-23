@@ -4,14 +4,11 @@
 
 use ruma_common::OwnedMxcUri;
 use ruma_macros::EventContent;
-use serde::{
-    Deserialize, Serialize,
-};
-
-use crate::room::{ImageInfo, MediaSource};
+use serde::{Deserialize, Serialize};
 
 #[cfg(not(feature = "compat-encrypted-stickers"))]
 use crate::room::EncryptedFile;
+use crate::room::{ImageInfo, MediaSource};
 
 /// The source of a sticker media file.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -27,8 +24,7 @@ pub enum StickerMediaSource {
     Encrypted(Box<EncryptedFile>),
 }
 
-impl From<StickerMediaSource> for MediaSource
-{
+impl From<StickerMediaSource> for MediaSource {
     fn from(value: StickerMediaSource) -> Self {
         match value {
             StickerMediaSource::Plain(url) => MediaSource::Plain(url),
@@ -73,20 +69,12 @@ impl StickerEventContent {
 
     /// Creates a new `StickerEventContent` with the given body, image info, URL, and media source.
     #[cfg(not(feature = "compat-encrypted-stickers"))]
-    pub fn from_source(
-        body: String,
-        info: ImageInfo,
-        source: StickerMediaSource,
-    ) -> Self {
+    pub fn from_source(body: String, info: ImageInfo, source: StickerMediaSource) -> Self {
         Self { body, info, source }
     }
     /// Creates a new `StickerEventContent` with the given body, image info and URL.
     #[cfg(feature = "compat-encrypted-stickers")]
-    pub fn from_source(
-        body: String,
-        info: ImageInfo,
-        url: OwnedMxcUri,
-    ) -> Self {
+    pub fn from_source(body: String, info: ImageInfo, url: OwnedMxcUri) -> Self {
         Self { body, info, source: StickerMediaSource::Plain(url.clone()) }
     }
 }
