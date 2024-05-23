@@ -294,9 +294,16 @@ pub struct SyncRequestList {
     #[serde(flatten)]
     pub room_details: RoomDetailsConfig,
 
-    /// If tombstoned rooms should be returned and if so, with what information attached
+    /// If tombstoned rooms should be returned and if so, with what information attached.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub include_old_rooms: Option<IncludeOldRooms>,
+
+    /// Request a stripped variant of membership events for the users used to calculate the room
+    /// name.
+    ///
+    /// Sticky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_heroes: Option<bool>,
 
     /// Filters to apply to the list before sorting. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -505,7 +512,7 @@ pub struct SlidingSyncRoomHero {
     pub user_id: Option<OwnedUserId>,
 
     /// The name of the hero.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "displayname", skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
 
     /// The avatar of the hero.
