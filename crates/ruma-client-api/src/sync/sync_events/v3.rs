@@ -10,7 +10,7 @@ use ruma_common::{
     metadata,
     presence::PresenceState,
     serde::Raw,
-    DeviceKeyAlgorithm, OwnedEventId, OwnedRoomId,
+    DeviceKeyAlgorithm, OwnedEventId, OwnedRoomId, OwnedUserId,
 };
 use ruma_events::{
     presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
@@ -470,7 +470,7 @@ pub struct RoomSummary {
     ///
     /// Required if room name or canonical aliases are not set or empty.
     #[serde(rename = "m.heroes", default, skip_serializing_if = "Vec::is_empty")]
-    pub heroes: Vec<String>,
+    pub heroes: Vec<OwnedUserId>,
 
     /// Number of users whose membership status is `join`.
     /// Required if field has changed since last sync; otherwise, it may be
