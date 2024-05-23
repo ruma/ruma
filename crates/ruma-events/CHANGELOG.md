@@ -1,8 +1,12 @@
 # [unreleased]
 
-Breaking changes:
+Improvements:
 
  - Add support for encrypted stickers as sent by several bridges under the flag `compat-encrypted-stickers`
+
+Breaking changes:
+
+ - `StickerEventContent::url` was replaced by `StickerEventContent::source` which is a `StickerMediaSource`
 
 # 0.28.1
 
