@@ -55,12 +55,23 @@ impl<'de> Deserialize<'de> for StickerMediaSource {
         }
     }
 }
+
 impl From<StickerMediaSource> for MediaSource {
     fn from(value: StickerMediaSource) -> Self {
         match value {
             StickerMediaSource::Plain(url) => MediaSource::Plain(url),
             #[cfg(feature = "compat-encrypted-stickers")]
             StickerMediaSource::Encrypted(file) => MediaSource::Encrypted(file),
+        }
+    }
+}
+
+#[cfg(feature = "compat-encrypted-stickers")]
+impl From<MediaSource> for StickerMediaSource {
+    fn from(value: MediaSource) -> Self {
+        match value {
+            MediaSource::Plain(url) => StickerMediaSource::Plain(url),
+            MediaSource::Encrypted(file) => StickerMediaSource::Encrypted(file),
         }
     }
 }
