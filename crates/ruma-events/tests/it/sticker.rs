@@ -104,7 +104,9 @@ fn content_deserialization() {
 
     let encrypted_content = from_json_value::<StickerEventContent>(encrypted_json_data).unwrap();
     assert_eq!(encrypted_content.body, "Upload: my_image.jpg");
+    #[cfg(not(feature = "compat-encrypted-stickers"))]
     assert_matches!(encrypted_content.source, StickerMediaSource::Encrypted(encrypted_sticker_url));
+    #[cfg(not(feature = "compat-encrypted-stickers"))]
     assert_eq!(encrypted_sticker_url.url, "mxc://notareal.hs/file");
 }
 
