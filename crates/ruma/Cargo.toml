@@ -103,7 +103,6 @@ compat = [
     "compat-get-3pids",
     "compat-signature-id",
     "compat-tag-info",
-    "compat-encrypted-stickers",
 ]
 
 # Allow IDs to exceed 255 bytes.
