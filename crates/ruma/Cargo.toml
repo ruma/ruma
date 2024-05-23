@@ -153,6 +153,10 @@ compat-signature-id = ["ruma-signatures?/compat-signature-id"]
 # Allow TagInfo to contain a stringified floating-point value for the `order` field.
 compat-tag-info = ["ruma-events?/compat-tag-info"]
 
+# Support encrypted stickers, as sent by several bridges.
+# https://github.com/matrix-org/matrix-spec/issues/1667
+compat-encrypted-stickers = ["ruma-events?/compat-encrypted-stickers"]
+
 # Specific compatibility for past ring public/private key documents.
 ring-compat = ["dep:ruma-signatures", "ruma-signatures?/ring-compat"]
 

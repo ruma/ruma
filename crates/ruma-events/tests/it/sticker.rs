@@ -4,7 +4,7 @@ use js_int::{uint, UInt};
 use ruma_common::{mxc_uri, serde::CanBeEmpty, MilliSecondsSinceUnixEpoch};
 use ruma_events::{
     room::{ImageInfo, MediaSource, ThumbnailInfo},
-    sticker::StickerEventContent,
+    sticker::{StickerEventContent, StickerMediaSource},
     AnyMessageLikeEvent, MessageLikeEvent,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
@@ -79,7 +79,44 @@ fn content_deserialization() {
 
     let content = from_json_value::<StickerEventContent>(json_data).unwrap();
     assert_eq!(content.body, "Upload: my_image.jpg");
-    assert_eq!(content.url, "mxc://notareal.hs/file");
+    assert_matches!(content.source, StickerMediaSource::Plain(sticker_url));
+    assert_eq!(sticker_url, "mxc://notareal.hs/file");
+
+    let encrypted_json_data = json!({
+        "body": "Upload: my_image.jpg",
+        "file": {
+            "url": "mxc://notareal.hs/file",
+            "key": {
+                "kty": "oct",
+                "key_ops": ["encrypt", "decrypt"],
+                "alg": "A256CTR",
+                "k": "TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A",
+                "ext": true
+            },
+            "iv": "S22dq3NAX8wAAAAAAAAAAA",
+            "hashes": {
+                "sha256": "aWOHudBnDkJ9IwaR1Nd8XKoI7DOrqDTwt6xDPfVGN6Q"
+            },
+            "v": "v2",
+        },
+        "info": {},
+    });
+
+    #[cfg(not(feature = "compat-encrypted-stickers"))]
+    {
+        from_json_value::<StickerEventContent>(encrypted_json_data).unwrap_err();
+    }
+    #[cfg(feature = "compat-encrypted-stickers")]
+    {
+        let encrypted_content =
+            from_json_value::<StickerEventContent>(encrypted_json_data).unwrap();
+        assert_eq!(encrypted_content.body, "Upload: my_image.jpg");
+        assert_matches!(
+            encrypted_content.source,
+            StickerMediaSource::Encrypted(encrypted_sticker_url)
+        );
+        assert_eq!(encrypted_sticker_url.url, "mxc://notareal.hs/file");
+    }
 }
 
 #[test]
@@ -126,7 +163,8 @@ fn event_deserialization() {
     assert_eq!(content.info.width, Some(uint!(1011)));
     assert_eq!(content.info.mimetype.as_deref(), Some("image/png"));
     assert_eq!(content.info.size, Some(uint!(84242)));
-    assert_eq!(content.url, "mxc://matrix.org/jxPXTKpyydzdHJkdFNZjTZrD");
+    assert_matches!(content.source, StickerMediaSource::Plain(sticker_url));
+    assert_eq!(sticker_url, "mxc://matrix.org/jxPXTKpyydzdHJkdFNZjTZrD");
 
     assert_matches!(content.info.thumbnail_source, Some(MediaSource::Plain(thumbnail_url)));
     assert_eq!(thumbnail_url, "mxc://matrix.org/irnsNRS2879");
