@@ -56,7 +56,8 @@ compat-optional = []
 # Allow TagInfo to contain a stringified floating-point value for the `order` field.
 compat-tag-info = []
 
-# Encrypted stickers
+# Support encrypted stickers, as sent by several bridges.
+# https://github.com/matrix-org/matrix-spec/issues/1667
 compat-encrypted-stickers = []
 
 [dependencies]
