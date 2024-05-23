@@ -46,6 +46,8 @@ pub enum CiCmd {
     StableCommon,
     /// Run all tests with almost all features (stable)
     TestAll,
+    /// Run all tests with almost all features, including the compat features (stable)
+    TestCompat,
     /// Run doc tests with almost all features (stable)
     TestDoc,
     /// Run all the tasks that use the nightly version
@@ -108,6 +110,7 @@ impl CiTask {
             Some(CiCmd::StableClient) => self.stable_client()?,
             Some(CiCmd::StableCommon) => self.stable_common()?,
             Some(CiCmd::TestAll) => self.test_all()?,
+            Some(CiCmd::TestCompat) => self.test_compat()?,
             Some(CiCmd::TestDoc) => self.test_doc()?,
             Some(CiCmd::Nightly) => self.nightly()?,
             Some(CiCmd::Fmt) => self.fmt()?,
@@ -205,6 +208,14 @@ impl CiTask {
     /// Run tests on all crates with almost all features with the stable version.
     fn test_all(&self) -> Result<()> {
         cmd!("rustup run stable cargo test --tests --features __ci").run().map_err(Into::into)
+    }
+
+    /// Run tests on all crates with almost all features and the compat features with the stable
+    /// version.
+    fn test_compat(&self) -> Result<()> {
+        cmd!("rustup run stable cargo test --tests --features __ci,compat")
+            .run()
+            .map_err(Into::into)
     }
 
     /// Run doctests on all crates with almost all features with the stable version.

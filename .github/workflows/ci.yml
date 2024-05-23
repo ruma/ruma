@@ -132,6 +132,9 @@ jobs:
           - name: Run Tests
             cmd: test-all
 
+          - name: Run Compat Tests
+            cmd: test-compat
+
           - name: Run Doc Tests
             cmd: test-doc
 
