@@ -12,7 +12,7 @@ use crate::room::{ImageInfo, MediaSource};
 
 /// The source of a sticker media file.
 #[derive(Clone, Debug, Serialize)]
-#[allow(clippy::exhaustive_enums)]
+#[non_exhaustive]
 pub enum StickerMediaSource {
     /// The MXC URI to the unencrypted media file.
     #[serde(rename = "url")]
@@ -41,12 +41,11 @@ impl<'de> Deserialize<'de> for StickerMediaSource {
         }
 
         match StickerMediaSourceJsonRepr::deserialize(deserializer)? {
-            #[cfg(feature = "compat-encrypted-stickers")]
-            StickerMediaSourceJsonRepr { url: None, file: None } => {
-                Err(de::Error::missing_field("url"))
-            }
-            #[cfg(not(feature = "compat-encrypted-stickers"))]
-            StickerMediaSourceJsonRepr { url: None } => Err(de::Error::missing_field("url")),
+            StickerMediaSourceJsonRepr {
+                url: None,
+                #[cfg(feature = "compat-encrypted-stickers")]
+                    file: None,
+            } => Err(de::Error::missing_field("url")),
             // Prefer file if it is set
             #[cfg(feature = "compat-encrypted-stickers")]
             StickerMediaSourceJsonRepr { file: Some(file), .. } => {
@@ -94,7 +93,6 @@ impl StickerEventContent {
     }
 
     /// Creates a new `StickerEventContent` with the given body, image info, URL, and media source.
-    #[cfg(feature = "compat-encrypted-stickers")]
     pub fn with_source(body: String, info: ImageInfo, source: StickerMediaSource) -> Self {
         Self { body, info, source }
     }

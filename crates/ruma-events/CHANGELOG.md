@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+ - Add support for encrypted stickers as sent by several bridges under the flag `compat-encrypted-stickers`
+
 # 0.28.1
 
 Improvements:
