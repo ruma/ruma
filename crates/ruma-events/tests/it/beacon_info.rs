@@ -3,7 +3,6 @@
 use std::time::Duration;
 
 use js_int::uint;
-
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{location::AssetType, room::beacon_info::BeaconInfoEventContent};
 
