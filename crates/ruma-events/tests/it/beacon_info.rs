@@ -33,7 +33,7 @@ fn get_beacon_info_json() -> serde_json::Value {
 fn beacon_info_is_live() {
     let event_content = get_beacon_info_event_content(None, None);
 
-    assert_eq!(event_content.is_live(), true);
+    assert!(event_content.is_live());
 }
 
 #[test]
@@ -41,7 +41,7 @@ fn beacon_info_is_not_live() {
     let duration = Some(Duration::from_nanos(1));
     let event_content = get_beacon_info_event_content(duration, None);
 
-    assert_eq!(event_content.is_live(), false);
+    assert!(!event_content.is_live());
 }
 
 #[test]
