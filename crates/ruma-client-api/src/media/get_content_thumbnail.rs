@@ -9,7 +9,7 @@ pub mod v3 {
 
     use std::time::Duration;
 
-    use http::header::CONTENT_TYPE;
+    use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
     use js_int::UInt;
     use ruma_common::{
         api::{request, response, Metadata},
@@ -115,6 +115,15 @@ pub mod v3 {
         #[ruma_api(header = CONTENT_TYPE)]
         pub content_type: Option<String>,
 
+        /// The value of the `Content-Disposition` HTTP header, possibly containing the name of the
+        /// file that was previously uploaded.
+        ///
+        /// See [MDN] for the syntax.
+        ///
+        /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition#Syntax
+        #[ruma_api(header = CONTENT_DISPOSITION)]
+        pub content_disposition: String,
+
         /// The value of the `Cross-Origin-Resource-Policy` HTTP header.
         ///
         /// See [MDN] for the syntax.
@@ -160,10 +169,11 @@ pub mod v3 {
         /// Creates a new `Response` with the given thumbnail.
         ///
         /// The Cross-Origin Resource Policy defaults to `cross-origin`.
-        pub fn new(file: Vec<u8>) -> Self {
+        pub fn new(file: Vec<u8>, content_disposition: String) -> Self {
             Self {
                 file,
                 content_type: None,
+                content_disposition,
                 cross_origin_resource_policy: Some("cross-origin".to_owned()),
             }
         }

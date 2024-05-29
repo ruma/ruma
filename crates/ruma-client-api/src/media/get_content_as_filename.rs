@@ -91,7 +91,7 @@ pub mod v3 {
         ///
         /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition#Syntax
         #[ruma_api(header = CONTENT_DISPOSITION)]
-        pub content_disposition: Option<String>,
+        pub content_disposition: String,
 
         /// The value of the `Cross-Origin-Resource-Policy` HTTP header.
         ///
@@ -127,11 +127,11 @@ pub mod v3 {
         /// Creates a new `Response` with the given file.
         ///
         /// The Cross-Origin Resource Policy defaults to `cross-origin`.
-        pub fn new(file: Vec<u8>) -> Self {
+        pub fn new(file: Vec<u8>, content_disposition: String) -> Self {
             Self {
                 file,
                 content_type: None,
-                content_disposition: None,
+                content_disposition,
                 cross_origin_resource_policy: Some("cross-origin".to_owned()),
             }
         }

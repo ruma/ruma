@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Add function for checking if a `Content-Type` is considered "safe".
+
 # 0.3.0
 
 Breaking changes:
