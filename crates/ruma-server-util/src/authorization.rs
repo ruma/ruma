@@ -31,11 +31,11 @@ impl XMatrix {
     /// Construct a new X-Matrix Authorization header.
     pub fn new(
         origin: OwnedServerName,
-        destination: Option<OwnedServerName>,
+        destination: OwnedServerName,
         key: OwnedServerSigningKeyId,
         sig: String,
     ) -> Self {
-        Self { origin, destination, key, sig }
+        Self { origin, destination: Some(destination), key, sig }
     }
 }
 
@@ -259,7 +259,7 @@ mod tests {
         assert_eq!(credentials.key, key);
         assert_eq!(credentials.sig, sig);
 
-        let credentials = XMatrix::new(origin, None, key, sig);
+        let credentials = XMatrix { origin, destination: None, key, sig };
 
         assert_eq!(credentials.encode(), header);
     }
@@ -277,7 +277,7 @@ mod tests {
         assert_eq!(credentials.key, key);
         assert_eq!(credentials.sig, sig);
 
-        let credentials = XMatrix::new(origin, Some(destination), key, sig);
+        let credentials = XMatrix::new(origin, destination, key, sig);
 
         assert_eq!(credentials.encode(), header);
     }
