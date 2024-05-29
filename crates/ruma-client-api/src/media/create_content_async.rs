@@ -1,4 +1,4 @@
-//! `POST /_matrix/media/*/upload/{serverName}/{mediaId}`
+//! `PUT /_matrix/media/*/upload/{serverName}/{mediaId}`
 //!
 //! Upload media to an MXC URI that was created with create_mxc_uri.
 
