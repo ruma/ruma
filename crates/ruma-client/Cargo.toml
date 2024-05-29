@@ -13,7 +13,6 @@ rust-version = { workspace = true }
 
 [package.metadata.docs.rs]
 all-features = true
-rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 client-api = ["dep:as_variant", "dep:ruma-client-api"]

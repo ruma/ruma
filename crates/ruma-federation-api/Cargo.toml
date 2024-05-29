@@ -13,7 +13,6 @@ rust-version = { workspace = true }
 
 [package.metadata.docs.rs]
 all-features = true
-rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 # Allow some mandatory fields in requests / responses to be missing, defaulting
