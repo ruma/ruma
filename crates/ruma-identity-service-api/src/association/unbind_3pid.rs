@@ -11,7 +11,7 @@ pub mod v2 {
         api::{request, response, Metadata},
         metadata,
         thirdparty::Medium,
-        ClientSecret, OwnedSessionId, OwnedUserId,
+        OwnedClientSecret, OwnedSessionId, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
 
@@ -96,12 +96,12 @@ pub mod v2 {
         pub sid: OwnedSessionId,
 
         /// The client secret passed to the `requestToken` call.
-        pub client_secret: Box<ClientSecret>,
+        pub client_secret: OwnedClientSecret,
     }
 
     impl ThreePidOwnershipProof {
         /// Creates a new `ThreePidOwnershipProof` with the given session ID and client secret.
-        pub fn new(sid: OwnedSessionId, client_secret: Box<ClientSecret>) -> Self {
+        pub fn new(sid: OwnedSessionId, client_secret: OwnedClientSecret) -> Self {
             Self { sid, client_secret }
         }
     }

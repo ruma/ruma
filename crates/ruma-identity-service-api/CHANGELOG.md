@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+- Change type of `client_secret` field in `ThreePidOwnershipProof`
+  from `Box<ClientSecret>` to `OwnedClientSecret`
+
 # 0.9.0
 
 Breaking changes:
