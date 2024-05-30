@@ -12,7 +12,6 @@ rust-version = { workspace = true }
 
 [package.metadata.docs.rs]
 all-features = true
-rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 # These feature gates exist only for the tests. Disabling them results in a
