@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+- Make `Content-Type` mandatory for media responses.
+
 # 0.13.0
 
 Breaking changes:
