@@ -4,6 +4,8 @@ Breaking changes:
 
 - `RoomSummary::heroes` now properly contains only `UserId` instead of `String`
   as before.
+- Change type of `client_secret` field in `ThirdpartyIdCredentials`
+  from `Box<ClientSecret>` to `OwnedClientSecret`
 
 Improvements:
 

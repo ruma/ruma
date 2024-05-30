@@ -9,7 +9,7 @@ use ruma_common::{
     api::{error::IntoHttpError, EndpointError, OutgoingResponse},
     serde::{from_raw_json_value, JsonObject, StringEnum},
     thirdparty::Medium,
-    ClientSecret, OwnedSessionId, OwnedUserId,
+    OwnedClientSecret, OwnedSessionId, OwnedUserId,
 };
 use serde::{
     de::{self, DeserializeOwned},
@@ -546,7 +546,7 @@ pub struct ThirdpartyIdCredentials {
     pub sid: OwnedSessionId,
 
     /// Identity server client secret.
-    pub client_secret: Box<ClientSecret>,
+    pub client_secret: OwnedClientSecret,
 
     /// Identity server URL.
     pub id_server: String,
@@ -560,7 +560,7 @@ impl ThirdpartyIdCredentials {
     /// server address and access token.
     pub fn new(
         sid: OwnedSessionId,
-        client_secret: Box<ClientSecret>,
+        client_secret: OwnedClientSecret,
         id_server: String,
         id_access_token: String,
     ) -> Self {
