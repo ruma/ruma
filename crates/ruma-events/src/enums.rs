@@ -135,7 +135,7 @@ event_enum! {
         "org.matrix.msc3672.beacon_info" => super::beacon_info,
         #[cfg(feature = "unstable-msc3401")]
         #[ruma_enum(alias = "m.call.member")]
-        "org.matrix.msc3401.call.member" => super::call::member,
+        "org.matrix.msc3401.call.member" => super::call::matrix_rtc::member_event,
     }
 
     /// Any to-device event.
