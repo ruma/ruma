@@ -51,6 +51,9 @@ fn parse_token<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<Vec<u8>> {
     })
 }
 
+// Matrix spec:
+// > For compatibility with older servers, the recipient should allow colons to be included in
+// > values without requiring the value to be enclosed in quotes.
 fn parse_token_with_colons<'a>(tokens: &mut impl Tokens<Item = &'a u8>) -> Option<Vec<u8>> {
     tokens.optional(|t| {
         let token: Vec<u8> =
