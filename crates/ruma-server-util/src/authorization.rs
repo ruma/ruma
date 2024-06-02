@@ -1,5 +1,7 @@
 //! Common types for implementing federation authorization.
 
+use std::borrow::Cow;
+
 use headers::{authorization::Credentials, HeaderValue};
 use ruma_common::{OwnedServerName, OwnedServerSigningKeyId};
 use tracing::debug;
@@ -219,6 +221,15 @@ fn is_quoted_pair(c: u8) -> bool {
     c == b'\t' || c == b' ' || is_vchar(c) || is_obs_text(c)
 }
 
+fn escape_value(value: &str) -> Cow<'_, str> {
+    if !value.is_empty() && value.chars().all(|c| u8::try_from(c).is_ok_and(is_tchar)) {
+        return Cow::Borrowed(value);
+    }
+
+    let value = value.replace('\\', r#"\\"#).replace('"', r#"\""#);
+    Cow::Owned(format!("\"{value}\""))
+}
+
 impl Credentials for XMatrix {
     const SCHEME: &'static str = "X-Matrix";
 
@@ -228,13 +239,15 @@ impl Credentials for XMatrix {
     }
 
     fn encode(&self) -> HeaderValue {
+        let origin = escape_value(self.origin.as_str());
+        let key = escape_value(self.key.as_str());
+        let sig = escape_value(&self.sig);
+
         if let Some(destination) = &self.destination {
-            format!(
-                "X-Matrix origin=\"{}\",destination=\"{destination}\",key=\"{}\",sig=\"{}\"",
-                self.origin, self.key, self.sig
-            )
+            let destination = escape_value(destination.as_str());
+            format!("X-Matrix origin={origin},destination={destination},key={key},sig={sig}")
         } else {
-            format!("X-Matrix origin=\"{}\",key=\"{}\",sig=\"{}\"", self.origin, self.key, self.sig)
+            format!("X-Matrix origin={origin},key={key},sig={sig}")
         }
         .try_into()
         .expect("header format is static")
@@ -264,7 +277,10 @@ mod tests {
 
         let credentials = XMatrix { origin, destination: None, key, sig };
 
-        assert_eq!(credentials.encode(), header);
+        assert_eq!(
+            credentials.encode(),
+            "X-Matrix origin=origin.hs.example.com,key=\"ed25519:key1\",sig=ABCDEF..."
+        );
     }
 
     #[test]
@@ -282,6 +298,29 @@ mod tests {
 
         let credentials = XMatrix::new(origin, destination, key, sig);
 
-        assert_eq!(credentials.encode(), header);
+        assert_eq!(credentials.encode(), "X-Matrix origin=origin.hs.example.com,destination=destination.hs.example.com,key=\"ed25519:key1\",sig=ABCDEF...");
+    }
+
+    #[test]
+    fn xmatrix_quoting() {
+        let header = HeaderValue::from_static(
+            r#"X-Matrix origin=example.com:1234,key="ed25519:key1",sig="abc\"def\\","#,
+        );
+
+        let origin: OwnedServerName = "example.com:1234".try_into().unwrap();
+        let key = "ed25519:key1".try_into().unwrap();
+        let sig = r#"abc"def\"#.to_owned();
+        let credentials: XMatrix = Credentials::decode(&header).unwrap();
+        assert_eq!(credentials.origin, origin);
+        assert_eq!(credentials.destination, None);
+        assert_eq!(credentials.key, key);
+        assert_eq!(credentials.sig, sig);
+
+        let credentials = XMatrix { origin, destination: None, key, sig };
+
+        assert_eq!(
+            credentials.encode(),
+            r#"X-Matrix origin="example.com:1234",key="ed25519:key1",sig="abc\"def\\""#
+        );
     }
 }

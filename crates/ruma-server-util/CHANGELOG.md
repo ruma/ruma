@@ -5,6 +5,10 @@ Breaking changes:
 - The `XMatrix::new` method now takes `OwnedServerName` instead of `Option<OwnedServerName>`
   for the destination, since servers must always set the destination.
 
+Improvements:
+
+- When encoding to a header value, `XMatrix` fields are now quoted and escaped correctly.
+
 # 0.3.0
 
 Breaking changes:
