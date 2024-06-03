@@ -14,6 +14,10 @@ Improvements:
   both have a new `include_heroes` field. `SlidingSyncRoom` has a new `heroes`
   field, with a new type `SlidingSyncRoomHero`.
 
+Bug fixes:
+
+- `user_id` of `SlidingSyncRoomHero` is now mandatory
+
 # 0.18.0
 
 Bug fixes:
