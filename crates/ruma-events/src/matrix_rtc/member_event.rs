@@ -66,12 +66,12 @@ impl CallMemberEventContent {
     pub fn active_memberships(
         &self,
         origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
-    ) -> Vec<&MembershipData> {
+    ) -> Vec<MembershipData> {
         self.0.active_memberships(origin_server_ts)
     }
     /// All the memberships for this event. Can only contain multiple elements in the case of legacy
     /// `m.call.member` state events.
-    pub fn memberships(&self) -> Vec<&MembershipData> {
+    pub fn memberships(&self) -> Vec<MembershipData> {
         self.0.memberships()
     }
 
@@ -120,7 +120,7 @@ pub enum MemberEventContent {
     LegacyContent(LegacyMembershipContent),
     /// Normal membership events. One event per membership. Multiple state keys will
     /// be used to describe multiple devices for one user.
-    SessionContent(MembershipData),
+    SessionContent(SessionMembershipData),
     /// An empty content means this user has been in a rtc session but is not anymore.
     Empty {},
 }
@@ -129,7 +129,7 @@ impl MemberEventContent {
     /// Creates a new [`CallMemberEventContent`] with [`LegacyMembershipData`].
     pub fn new_legacy(memberships: Vec<LegacyMembershipData>) -> Self {
         Self::LegacyContent(LegacyMembershipContent {
-            memberships: memberships.into_iter().map(MembershipData::Legacy).collect(),
+            memberships, //: memberships.into_iter().map(MembershipData::Legacy).collect(),
         })
     }
 
@@ -141,13 +141,13 @@ impl MemberEventContent {
         foci_preferred: Vec<Focus>,
         created_ts: Option<MilliSecondsSinceUnixEpoch>,
     ) -> Self {
-        Self::SessionContent(MembershipData::Session(SessionMembershipData {
+        Self::SessionContent(SessionMembershipData {
             application,
             device_id,
             focus_active,
             foci_preferred,
             created_ts,
-        }))
+        })
     }
 
     /// All non expired memberships in this member event.
@@ -164,21 +164,31 @@ impl MemberEventContent {
     pub fn active_memberships(
         &self,
         origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
-    ) -> Vec<&MembershipData> {
+    ) -> Vec<MembershipData> {
         match self {
-            MemberEventContent::LegacyContent(content) => {
-                content.memberships.iter().filter(|m| !m.is_expired(origin_server_ts)).collect()
+            MemberEventContent::LegacyContent(content) => content
+                .memberships
+                .clone()
+                .into_iter()
+                .filter(|m| !m.is_expired(origin_server_ts))
+                .map(MembershipData::Legacy)
+                .collect(),
+            MemberEventContent::SessionContent(content) => {
+                [MembershipData::Session(content.clone())].to_vec()
             }
-            MemberEventContent::SessionContent(content) => [content].to_vec(),
             MemberEventContent::Empty {} => Vec::new(),
         }
     }
     /// All the memberships for this event. Can only contain multiple elements in the case of legacy
     /// `m.call.member` state events.
-    pub fn memberships(&self) -> Vec<&MembershipData> {
+    pub fn memberships(&self) -> Vec<MembershipData> {
         match self {
-            MemberEventContent::LegacyContent(content) => content.memberships.iter().collect(),
-            MemberEventContent::SessionContent(content) => [content].to_vec(),
+            MemberEventContent::LegacyContent(content) => {
+                content.memberships.clone().into_iter().map(MembershipData::Legacy).collect()
+            }
+            MemberEventContent::SessionContent(content) => {
+                [MembershipData::Session(content.clone())].to_vec()
+            }
             MemberEventContent::Empty {} => Vec::new(),
         }
     }
@@ -194,14 +204,12 @@ impl MemberEventContent {
     pub fn set_created_ts_if_none(&mut self, origin_server_ts: MilliSecondsSinceUnixEpoch) {
         match self {
             MemberEventContent::LegacyContent(content) => {
-                content.memberships.iter_mut().for_each(|m: &mut MembershipData| {
-                    if let MembershipData::Legacy(legacy_data) = m {
-                        legacy_data.created_ts.get_or_insert(origin_server_ts);
-                    }
+                content.memberships.iter_mut().for_each(|m: &mut LegacyMembershipData| {
+                    m.created_ts.get_or_insert(origin_server_ts);
                 });
             }
-            MemberEventContent::SessionContent(MembershipData::Session(session_data)) => {
-                session_data.created_ts.get_or_insert(origin_server_ts);
+            MemberEventContent::SessionContent(m) => {
+                m.created_ts.get_or_insert(origin_server_ts);
             }
             _ => (),
         }
@@ -222,5 +230,5 @@ pub struct LegacyMembershipContent {
     /// Important: This includes expired memberships.
     /// To retrieve a list including only valid memberships,
     /// see [`active_memberships`](CallMemberEventContent::active_memberships).
-    memberships: Vec<MembershipData>,
+    memberships: Vec<LegacyMembershipData>,
 }

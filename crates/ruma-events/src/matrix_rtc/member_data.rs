@@ -158,7 +158,7 @@ impl LegacyMembershipData {
     /// # Arguments
     ///
     /// * `origin_server_ts` - a fallback if [`LegacyMembershipData::created_ts`] is not present
-    fn is_expired(&self, origin_server_ts: Option<MilliSecondsSinceUnixEpoch>) -> bool {
+    pub fn is_expired(&self, origin_server_ts: Option<MilliSecondsSinceUnixEpoch>) -> bool {
         let ev_created_ts = self.created_ts.or(origin_server_ts);
 
         if let Some(ev_created_ts) = ev_created_ts {
