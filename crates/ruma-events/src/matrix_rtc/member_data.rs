@@ -1,4 +1,6 @@
-//! Types for matrixRTC m.call.member state event content data.
+//! Types for matrixRTC `m.call.member` state event content data ([MSC3401])
+//!
+//! [MSC3401]: https://github.com/matrix-org/matrix-spec-proposals/pull/3401
 
 use std::time::Duration;
 
@@ -21,6 +23,7 @@ use crate::PrivOwnedStr;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq))]
 #[serde(untagged)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum MembershipData {
     /// The legacy format (using an array of memberships for each deivece -> one event per user)
     Legacy(LegacyMembershipData),
@@ -28,6 +31,7 @@ pub enum MembershipData {
     /// represent the current membership state of one device.
     Session(SessionMembershipData),
 }
+
 impl MembershipData {
     /// The application this RTC membership participates in (the session type, can be `m.call`...)
     pub fn get_application(&self) -> &Application {

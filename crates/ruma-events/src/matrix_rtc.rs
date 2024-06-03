@@ -3,6 +3,10 @@
 //! This implements a newer/updated version of MSC3401.
 //!
 //! [MSC3401]: https://github.com/matrix-org/matrix-spec-proposals/pull/3401
+
+#[cfg(feature = "unstable-msc4075")]
+pub mod notify;
+
 pub mod focus;
 pub mod member_data;
 pub mod member_event;
@@ -12,7 +16,11 @@ mod tests {
     use std::time::Duration;
 
     use ruma_common::MilliSecondsSinceUnixEpoch as TS;
-    use serde_json::json;
+    use ruma_events::{
+        matrix_rtc::notify::{ApplicationType, CallNotifyEventContent, NotifyType},
+        Mentions,
+    };
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{
         focus::{ActiveFocus, ActiveLivekitFocus, Focus, LivekitFocus},
@@ -287,5 +295,93 @@ mod tests {
         content_two_hours_ago.set_created_ts_if_none(one_second_ago);
         // There still should be no active membership.
         assert_eq!(content_two_hours_ago.active_memberships(None), vec![] as Vec<&MembershipData>);
+    }
+
+    #[cfg(feature = "unstable-msc4075")]
+    #[test]
+    fn notify_event_serialization() {
+        use ruma_common::owned_user_id;
+
+        let content_user_mention = CallNotifyEventContent::new(
+            "abcdef".into(),
+            ApplicationType::Call,
+            NotifyType::Ring,
+            Mentions::with_user_ids(vec![
+                owned_user_id!("@user:example.com"),
+                owned_user_id!("@user2:example.com"),
+            ]),
+        );
+
+        let content_room_mention = CallNotifyEventContent::new(
+            "abcdef".into(),
+            ApplicationType::Call,
+            NotifyType::Ring,
+            Mentions::with_room_mention(),
+        );
+
+        assert_eq!(
+            to_json_value(&content_user_mention).unwrap(),
+            json!({
+                "call_id": "abcdef",
+                "application": "m.call",
+                "m.mentions": {
+                    "user_ids": ["@user2:example.com","@user:example.com"],
+                },
+                "notify_type": "ring",
+            })
+        );
+        assert_eq!(
+            to_json_value(&content_room_mention).unwrap(),
+            json!({
+                "call_id": "abcdef",
+                "application": "m.call",
+                "m.mentions": { "room": true },
+                "notify_type": "ring",
+            })
+        );
+    }
+
+    #[cfg(feature = "unstable-msc4075")]
+    #[test]
+    fn notify_event_deserialization() {
+        use std::collections::BTreeSet;
+
+        use assert_matches2::assert_matches;
+        use ruma_common::owned_user_id;
+
+        use crate::{AnyMessageLikeEvent, MessageLikeEvent};
+
+        let json_data = json!({
+            "content": {
+                "call_id": "abcdef",
+                "application": "m.call",
+                "m.mentions": {
+                    "room": false,
+                    "user_ids": ["@user:example.com", "@user2:example.com"],
+                },
+                "notify_type": "ring",
+            },
+            "event_id": "$event:notareal.hs",
+            "origin_server_ts": 134_829_848,
+            "room_id": "!roomid:notareal.hs",
+            "sender": "@user:notareal.hs",
+            "type": "m.call.notify",
+        });
+
+        let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
+        assert_matches!(
+            event,
+            AnyMessageLikeEvent::CallNotify(MessageLikeEvent::Original(message_event))
+        );
+        let content = message_event.content;
+        assert_eq!(content.call_id, "abcdef");
+        assert!(!content.mentions.room);
+        assert_eq!(
+            content.mentions.user_ids,
+            BTreeSet::from([
+                owned_user_id!("@user:example.com"),
+                owned_user_id!("@user2:example.com")
+            ])
+        );
     }
 }

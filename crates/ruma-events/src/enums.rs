@@ -103,8 +103,9 @@ event_enum! {
         #[ruma_enum(alias = "m.voice")]
         "org.matrix.msc3245.voice.v2" => super::voice,
         #[cfg(feature = "unstable-msc4075")]
+        #[cfg(feature = "unstable-msc3401")]
         #[ruma_enum(alias = "m.call.notify")]
-        "org.matrix.msc4075.call.notify" => super::call::notify,
+        "org.matrix.msc4075.call.notify" => super::matrix_rtc::notify,
     }
 
     /// Any state event.
@@ -135,7 +136,7 @@ event_enum! {
         "org.matrix.msc3672.beacon_info" => super::beacon_info,
         #[cfg(feature = "unstable-msc3401")]
         #[ruma_enum(alias = "m.call.member")]
-        "org.matrix.msc3401.call.member" => super::call::matrix_rtc::member_event,
+        "org.matrix.msc3401.call.member" => super::matrix_rtc::member_event,
     }
 
     /// Any to-device event.
@@ -374,6 +375,7 @@ impl AnyMessageLikeEventContent {
             #[cfg(feature = "unstable-msc3381")]
             Self::PollStart(_) | Self::UnstablePollStart(_) => None,
             #[cfg(feature = "unstable-msc4075")]
+            #[cfg(feature = "unstable-msc3401")]
             Self::CallNotify(_) => None,
             #[cfg(feature = "unstable-msc3291")]
             Self::CallSdpStreamMetadataChanged(_) => None,

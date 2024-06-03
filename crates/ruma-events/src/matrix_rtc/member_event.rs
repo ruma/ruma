@@ -68,7 +68,7 @@ impl MemberEventContent {
     /// Creates a new [`CallMemberEventContent`] with [`LegacyMembershipData`].
     pub fn new_legacy(memberships: Vec<LegacyMembershipData>) -> Self {
         Self::LegacyContent(LegacyMembershipContent {
-            memberships: memberships.into_iter().map(|m| MembershipData::Legacy(m)).collect(),
+            memberships: memberships.into_iter().map(MembershipData::Legacy).collect(),
         })
     }
 
@@ -120,7 +120,7 @@ impl MemberEventContent {
         }
     }
 
-    /// Set the `created_ts` of each [Membership] in this event.
+    /// Set the `created_ts` of each [`MembershipData::Legacy`] in this event.
     ///
     /// Each call member event contains the `origin_server_ts` and `content.create_ts`.
     /// `content.create_ts` is undefined for the initial event of a session (because the
@@ -129,15 +129,12 @@ impl MemberEventContent {
     /// (This allows to use `MinimalStateEvents` and still be able to determine if a
     /// expired)
     pub fn set_created_ts_if_none(&mut self, origin_server_ts: MilliSecondsSinceUnixEpoch) {
-        match self {
-            MemberEventContent::LegacyContent(content) => {
-                content.memberships.iter_mut().for_each(|m: &mut MembershipData| {
-                    if let MembershipData::Legacy(legacy_data) = m {
-                        legacy_data.created_ts.get_or_insert(origin_server_ts);
-                    }
-                })
-            }
-            _ => (),
+        if let MemberEventContent::LegacyContent(content) = self {
+            content.memberships.iter_mut().for_each(|m: &mut MembershipData| {
+                if let MembershipData::Legacy(legacy_data) = m {
+                    legacy_data.created_ts.get_or_insert(origin_server_ts);
+                }
+            });
         }
     }
 }
