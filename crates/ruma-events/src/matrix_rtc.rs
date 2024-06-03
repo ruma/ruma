@@ -61,6 +61,7 @@ mod tests {
                 alias: "1".to_owned(),
                 service_url: "https://livekit.com".to_owned(),
             })],
+            None,
         )
     }
 
@@ -139,6 +140,7 @@ mod tests {
                 alias: "room1".to_owned(),
                 service_url: "https://livekit1.com".to_owned(),
             })],
+            None,
         );
 
         let call_member_ev_json = json!({

@@ -22,10 +22,71 @@ use crate::{PossiblyRedactedStateEventContent, StateEventType};
 /// This is a unit struct with the enum [`MemberEventContent`] because a Ruma state event cannot be
 /// an enum and we need this to be an untagged enum for parsing purposes. (see
 /// [`MemberEventContent`])
+///
+/// This struct also exposes allows to call the methods from [`MemberEventContent`].
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[ruma_event(type = "org.matrix.msc3401.call.member", kind = State, state_key_type = OwnedUserId, custom_possibly_redacted)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct CallMemberEventContent(pub MemberEventContent);
+
+impl CallMemberEventContent {
+    /// Creates a new [`CallMemberEventContent`] with [`LegacyMembershipData`].
+    pub fn new_legacy(memberships: Vec<LegacyMembershipData>) -> Self {
+        CallMemberEventContent(MemberEventContent::new_legacy(memberships))
+    }
+
+    /// Creates a new [`CallMemberEventContent`] with [`SessionMembershipData`].
+    pub fn new(
+        application: Application,
+        device_id: String,
+        focus_active: ActiveFocus,
+        foci_preferred: Vec<Focus>,
+        created_ts: Option<MilliSecondsSinceUnixEpoch>,
+    ) -> Self {
+        CallMemberEventContent(MemberEventContent::new(
+            application,
+            device_id,
+            focus_active,
+            foci_preferred,
+            created_ts,
+        ))
+    }
+
+    /// All non expired memberships in this member event.
+    ///
+    /// In most cases you want to use this method instead of the public memberships field.
+    /// The memberships field will also include expired events.
+    ///
+    /// This copies all the memberships and converts them
+    /// # Arguments
+    ///
+    /// * `origin_server_ts` - optionally the `origin_server_ts` can be passed as a fallback in the
+    ///   Membership does not contain [`LegacyMembershipData::created_ts`]. (`origin_server_ts` will
+    ///   be ignored if [`LegacyMembershipData::created_ts`] is `Some`)
+    pub fn active_memberships(
+        &self,
+        origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
+    ) -> Vec<&MembershipData> {
+        self.0.active_memberships(origin_server_ts)
+    }
+    /// All the memberships for this event. Can only contain multiple elements in the case of legacy
+    /// `m.call.member` state events.
+    pub fn memberships(&self) -> Vec<&MembershipData> {
+        self.0.memberships()
+    }
+
+    /// Set the `created_ts` of each [`MembershipData::Legacy`] in this event.
+    ///
+    /// Each call member event contains the `origin_server_ts` and `content.create_ts`.
+    /// `content.create_ts` is undefined for the initial event of a session (because the
+    /// `origin_server_ts` is not known on the client).
+    /// In the rust sdk we want to copy over the `origin_server_ts` of the event into the
+    /// (This allows to use `MinimalStateEvents` and still be able to determine if a
+    /// expired)
+    pub fn set_created_ts_if_none(&mut self, origin_server_ts: MilliSecondsSinceUnixEpoch) {
+        self.0.set_created_ts_if_none(origin_server_ts);
+    }
+}
 
 /// The PossiblyRedacted version of [`CallMemberEventContent`].
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -78,12 +139,14 @@ impl MemberEventContent {
         device_id: String,
         focus_active: ActiveFocus,
         foci_preferred: Vec<Focus>,
+        created_ts: Option<MilliSecondsSinceUnixEpoch>,
     ) -> Self {
         Self::SessionContent(MembershipData::Session(SessionMembershipData {
             application,
             device_id,
             focus_active,
             foci_preferred,
+            created_ts,
         }))
     }
 
@@ -129,12 +192,18 @@ impl MemberEventContent {
     /// (This allows to use `MinimalStateEvents` and still be able to determine if a
     /// expired)
     pub fn set_created_ts_if_none(&mut self, origin_server_ts: MilliSecondsSinceUnixEpoch) {
-        if let MemberEventContent::LegacyContent(content) = self {
-            content.memberships.iter_mut().for_each(|m: &mut MembershipData| {
-                if let MembershipData::Legacy(legacy_data) = m {
-                    legacy_data.created_ts.get_or_insert(origin_server_ts);
-                }
-            });
+        match self {
+            MemberEventContent::LegacyContent(content) => {
+                content.memberships.iter_mut().for_each(|m: &mut MembershipData| {
+                    if let MembershipData::Legacy(legacy_data) = m {
+                        legacy_data.created_ts.get_or_insert(origin_server_ts);
+                    }
+                });
+            }
+            MemberEventContent::SessionContent(MembershipData::Session(session_data)) => {
+                session_data.created_ts.get_or_insert(origin_server_ts);
+            }
+            _ => (),
         }
     }
 }

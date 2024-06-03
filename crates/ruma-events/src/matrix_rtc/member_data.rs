@@ -87,6 +87,19 @@ impl MembershipData {
             _ => false,
         }
     }
+
+    /// Gets the created_ts of the event.
+    ///
+    /// This is the `origin_server_ts` for session data.
+    /// For legacy events this can either be the origin server ts or a copy from the
+    /// `origin_server_ts` since we expect legacy events to get updated (when a new device
+    /// joins/leaves).
+    pub fn get_created_ts(&self) -> Option<MilliSecondsSinceUnixEpoch> {
+        match self {
+            MembershipData::Legacy(data) => data.created_ts,
+            MembershipData::Session(data) => data.created_ts,
+        }
+    }
 }
 
 /// A membership describes one of the sessions this user currently partakes.
@@ -221,6 +234,12 @@ pub struct SessionMembershipData {
 
     /// Data required to determine the currently used focus by this member.
     pub focus_active: ActiveFocus,
+
+    /// Stores a copy of the `origin_server_ts` of the initial session event.
+    ///
+    /// This is not part of the serialized event and computed after serialization.
+    #[serde(skip)]
+    pub created_ts: Option<MilliSecondsSinceUnixEpoch>,
 }
 
 /// The type of the matrixRTC session.
