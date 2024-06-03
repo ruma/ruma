@@ -14,6 +14,10 @@ Improvements:
   both have a new `include_heroes` field. `SlidingSyncRoom` has a new `heroes`
   field, with a new type `SlidingSyncRoomHero`.
 
+Bug fixes:
+
+- Rename `avatar` to `avatar_url` when (De)serializing
+
 # 0.18.0
 
 Bug fixes:
