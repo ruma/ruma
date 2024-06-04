@@ -63,15 +63,15 @@ impl CallMemberEventContent {
     /// * `origin_server_ts` - optionally the `origin_server_ts` can be passed as a fallback in the
     ///   Membership does not contain [`LegacyMembershipData::created_ts`]. (`origin_server_ts` will
     ///   be ignored if [`LegacyMembershipData::created_ts`] is `Some`)
-    pub fn active_memberships(
-        &self,
+    pub fn active_memberships<'a>(
+        &'a self,
         origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
-    ) -> Vec<MembershipData> {
+    ) -> Vec<MembershipData<'a>> {
         self.0.active_memberships(origin_server_ts)
     }
     /// All the memberships for this event. Can only contain multiple elements in the case of legacy
     /// `m.call.member` state events.
-    pub fn memberships(&self) -> Vec<MembershipData> {
+    pub fn memberships<'a>(&'a self) -> Vec<MembershipData<'a>> {
         self.0.memberships()
     }
 
@@ -161,33 +161,32 @@ impl MemberEventContent {
     /// * `origin_server_ts` - optionally the `origin_server_ts` can be passed as a fallback in the
     ///   Membership does not contain [`LegacyMembershipData::created_ts`]. (`origin_server_ts` will
     ///   be ignored if [`LegacyMembershipData::created_ts`] is `Some`)
-    pub fn active_memberships(
-        &self,
+    pub fn active_memberships<'a>(
+        &'a self,
         origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
-    ) -> Vec<MembershipData> {
+    ) -> Vec<MembershipData<'a>> {
         match self {
             MemberEventContent::LegacyContent(content) => content
                 .memberships
-                .clone()
-                .into_iter()
+                .iter()
                 .filter(|m| !m.is_expired(origin_server_ts))
                 .map(MembershipData::Legacy)
                 .collect(),
             MemberEventContent::SessionContent(content) => {
-                [MembershipData::Session(content.clone())].to_vec()
+                [content].map(MembershipData::Session).to_vec()
             }
             MemberEventContent::Empty {} => Vec::new(),
         }
     }
     /// All the memberships for this event. Can only contain multiple elements in the case of legacy
     /// `m.call.member` state events.
-    pub fn memberships(&self) -> Vec<MembershipData> {
+    pub fn memberships<'a>(&'a self) -> Vec<MembershipData<'a>> {
         match self {
             MemberEventContent::LegacyContent(content) => {
-                content.memberships.clone().into_iter().map(MembershipData::Legacy).collect()
+                content.memberships.iter().map(MembershipData::Legacy).collect()
             }
             MemberEventContent::SessionContent(content) => {
-                [MembershipData::Session(content.clone())].to_vec()
+                [content].map(MembershipData::Session).to_vec()
             }
             MemberEventContent::Empty {} => Vec::new(),
         }

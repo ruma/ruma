@@ -20,19 +20,18 @@ use crate::PrivOwnedStr;
 /// The legacy format contains expired information can cen be expired.
 /// SessionMembershipData does not have the concept of expiration anymore.
 /// It will reliably be removed from the state event when appropriate.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 #[cfg_attr(test, derive(PartialEq))]
-#[serde(untagged)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub enum MembershipData {
+pub enum MembershipData<'a> {
     /// The legacy format (using an array of memberships for each deivece -> one event per user)
-    Legacy(LegacyMembershipData),
+    Legacy(&'a LegacyMembershipData),
     /// One event per device. `SessionMembershipData` contains all the information required to
     /// represent the current membership state of one device.
-    Session(SessionMembershipData),
+    Session(&'a SessionMembershipData),
 }
 
-impl MembershipData {
+impl<'a> MembershipData<'a> {
     /// The application this RTC membership participates in (the session type, can be `m.call`...)
     pub fn get_application(&self) -> &Application {
         match self {
@@ -84,7 +83,7 @@ impl MembershipData {
     pub fn is_expired(&self, origin_server_ts: Option<MilliSecondsSinceUnixEpoch>) -> bool {
         match self {
             MembershipData::Legacy(data) => data.is_expired(origin_server_ts),
-            _ => false,
+            MembershipData::Session(_) => false,
         }
     }
 
