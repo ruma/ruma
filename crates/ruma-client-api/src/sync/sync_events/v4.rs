@@ -504,12 +504,11 @@ impl SlidingSyncRoom {
 }
 
 /// A sliding sync room hero.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SlidingSyncRoomHero {
     /// The user ID of the hero.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_id: Option<OwnedUserId>,
+    pub user_id: OwnedUserId,
 
     /// The name of the hero.
     #[serde(rename = "displayname", skip_serializing_if = "Option::is_none")]
@@ -518,6 +517,13 @@ pub struct SlidingSyncRoomHero {
     /// The avatar of the hero.
     #[serde(rename = "avatar_url", skip_serializing_if = "Option::is_none")]
     pub avatar: Option<OwnedMxcUri>,
+}
+
+impl SlidingSyncRoomHero {
+    /// Creates a new `SlidingSyncRoomHero` with the given user id.
+    pub fn new(user_id: OwnedUserId) -> Self {
+        Self { user_id, name: None, avatar: None }
+    }
 }
 
 /// Sliding-Sync extension configuration.

@@ -19,6 +19,10 @@ Bug fixes:
 
 - Rename `avatar` to `avatar_url` when (De)serializing
 
+Bug fixes:
+
+- `user_id` of `SlidingSyncRoomHero` is now mandatory
+
 # 0.18.0
 
 Bug fixes:
