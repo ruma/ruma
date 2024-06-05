@@ -17,6 +17,8 @@ Improvements:
 Bug fixes:
 
 - Rename `avatar` to `avatar_url` when (De)serializing
+- Make authentication with access token optional for the `change_password` and
+  `deactivate` endpoints.
 
 # 0.18.0
 
