@@ -17,7 +17,7 @@ pub mod v3 {
     const METADATA: Metadata = metadata! {
         method: POST,
         rate_limited: true,
-        authentication: AccessToken,
+        authentication: AccessTokenOptional,
         history: {
             1.0 => "/_matrix/client/r0/account/password",
             1.1 => "/_matrix/client/v3/account/password",
