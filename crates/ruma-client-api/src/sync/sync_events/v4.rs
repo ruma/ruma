@@ -516,7 +516,7 @@ pub struct SlidingSyncRoomHero {
     pub name: Option<String>,
 
     /// The avatar of the hero.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "avatar_url", skip_serializing_if = "Option::is_none")]
     pub avatar: Option<OwnedMxcUri>,
 }
 
