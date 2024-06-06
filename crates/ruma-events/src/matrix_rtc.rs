@@ -263,15 +263,29 @@ mod tests {
     }
 
     #[test]
-    fn membership_do_expire() {
-        let content = create_call_member_legacy_event_content();
+    fn memberships_do_expire() {
+        let content_legacy = create_call_member_legacy_event_content();
         let (now, one_second_ago, two_hours_ago) = timestamps();
 
-        assert_eq!(content.active_memberships(Some(one_second_ago)), content.memberships());
-        assert_eq!(content.active_memberships(Some(now)), content.memberships());
         assert_eq!(
-            content.active_memberships(Some(two_hours_ago)),
-            (vec![] as Vec<&MembershipData>)
+            content_legacy.active_memberships(Some(one_second_ago)),
+            content_legacy.memberships()
+        );
+        assert_eq!(content_legacy.active_memberships(Some(now)), content_legacy.memberships());
+        assert_eq!(
+            content_legacy.active_memberships(Some(two_hours_ago)),
+            (vec![] as Vec<MembershipData<'_>>)
+        );
+        // session do never expire
+        let content_session = create_call_member_event_content();
+        assert_eq!(
+            content_session.active_memberships(Some(one_second_ago)),
+            content_session.memberships()
+        );
+        assert_eq!(content_session.active_memberships(Some(now)), content_session.memberships());
+        assert_eq!(
+            content_session.active_memberships(Some(two_hours_ago)),
+            content_session.memberships()
         );
     }
 
@@ -287,7 +301,10 @@ mod tests {
         content_two_hours_ago.set_created_ts_if_none(two_hours_ago);
         assert_eq!(content_now.active_memberships(None), content_now.memberships());
 
-        assert_eq!(content_two_hours_ago.active_memberships(None), vec![] as Vec<&MembershipData>);
+        assert_eq!(
+            content_two_hours_ago.active_memberships(None),
+            vec![] as Vec<MembershipData<'_>>
+        );
         assert_eq!(
             content_one_second_ago.active_memberships(None),
             content_one_second_ago.memberships()
@@ -296,7 +313,10 @@ mod tests {
         // created_ts should not be overwritten.
         content_two_hours_ago.set_created_ts_if_none(one_second_ago);
         // There still should be no active membership.
-        assert_eq!(content_two_hours_ago.active_memberships(None), vec![] as Vec<&MembershipData>);
+        assert_eq!(
+            content_two_hours_ago.active_memberships(None),
+            vec![] as Vec<MembershipData<'_>>
+        );
     }
 
     #[cfg(feature = "unstable-msc4075")]
