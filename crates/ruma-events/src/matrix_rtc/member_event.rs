@@ -63,15 +63,15 @@ impl CallMemberEventContent {
     /// * `origin_server_ts` - optionally the `origin_server_ts` can be passed as a fallback in the
     ///   Membership does not contain [`LegacyMembershipData::created_ts`]. (`origin_server_ts` will
     ///   be ignored if [`LegacyMembershipData::created_ts`] is `Some`)
-    pub fn active_memberships<'a>(
-        &'a self,
+    pub fn active_memberships(
+        &self,
         origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
-    ) -> Vec<MembershipData<'a>> {
+    ) -> Vec<MembershipData<'_>> {
         self.0.active_memberships(origin_server_ts)
     }
     /// All the memberships for this event. Can only contain multiple elements in the case of legacy
     /// `m.call.member` state events.
-    pub fn memberships<'a>(&'a self) -> Vec<MembershipData<'a>> {
+    pub fn memberships(&self) -> Vec<MembershipData<'_>> {
         self.0.memberships()
     }
 
@@ -161,10 +161,10 @@ impl MemberEventContent {
     /// * `origin_server_ts` - optionally the `origin_server_ts` can be passed as a fallback in the
     ///   Membership does not contain [`LegacyMembershipData::created_ts`]. (`origin_server_ts` will
     ///   be ignored if [`LegacyMembershipData::created_ts`] is `Some`)
-    pub fn active_memberships<'a>(
-        &'a self,
+    pub fn active_memberships(
+        &self,
         origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
-    ) -> Vec<MembershipData<'a>> {
+    ) -> Vec<MembershipData<'_>> {
         match self {
             MemberEventContent::LegacyContent(content) => content
                 .memberships
@@ -178,9 +178,10 @@ impl MemberEventContent {
             MemberEventContent::Empty {} => Vec::new(),
         }
     }
+
     /// All the memberships for this event. Can only contain multiple elements in the case of legacy
     /// `m.call.member` state events.
-    pub fn memberships<'a>(&'a self) -> Vec<MembershipData<'a>> {
+    pub fn memberships(&self) -> Vec<MembershipData<'_>> {
         match self {
             MemberEventContent::LegacyContent(content) => {
                 content.memberships.iter().map(MembershipData::Legacy).collect()
