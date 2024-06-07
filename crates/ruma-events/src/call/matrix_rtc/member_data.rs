@@ -17,14 +17,14 @@ use crate::PrivOwnedStr;
 ///
 /// It can be a legacy or a normal matrixRTC Session membership.
 ///
-/// The legacy format contains expired information can cen be expired.
-/// SessionMembershipData does not have the concept of expiration anymore.
-/// It will reliably be removed from the state event when appropriate.
+/// The legacy format contains time information to compute if it is expired or not.
+/// SessionMembershipData does not have the concept of timestamp based expiration anymore.
+/// The state event will reliably be set to empty when the user disconnects.
 #[derive(Clone, Debug)]
 #[cfg_attr(test, derive(PartialEq))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum MembershipData<'a> {
-    /// The legacy format (using an array of memberships for each deivece -> one event per user)
+    /// The legacy format (using an array of memberships for each device -> one event per user)
     Legacy(&'a LegacyMembershipData),
     /// One event per device. `SessionMembershipData` contains all the information required to
     /// represent the current membership state of one device.
@@ -33,19 +33,21 @@ pub enum MembershipData<'a> {
 
 impl<'a> MembershipData<'a> {
     /// The application this RTC membership participates in (the session type, can be `m.call`...)
-    pub fn get_application(&self) -> &Application {
+    pub fn application(&self) -> &Application {
         match self {
             MembershipData::Legacy(data) => &data.application,
             MembershipData::Session(data) => &data.application,
         }
     }
+
     /// The device id of this membership.
-    pub fn get_device_id(&self) -> &String {
+    pub fn device_id(&self) -> &String {
         match self {
             MembershipData::Legacy(data) => &data.device_id,
             MembershipData::Session(data) => &data.device_id,
         }
     }
+
     /// The active focus is a FocusType specific object that describes how this user
     /// is currently connected.
     ///
@@ -53,7 +55,7 @@ impl<'a> MembershipData<'a> {
     /// foci or specific information on how to connect to this user.
     ///
     /// Every user needs to converge to use the same focus_active type.
-    pub fn get_focus_active(&self) -> &ActiveFocus {
+    pub fn focus_active(&self) -> &ActiveFocus {
         match self {
             MembershipData::Legacy(_) => &ActiveFocus::Livekit(ActiveLivekitFocus {
                 focus_select: super::focus::FocusSelection::OldestMembership,
@@ -61,23 +63,26 @@ impl<'a> MembershipData<'a> {
             MembershipData::Session(data) => &data.focus_active,
         }
     }
+
     /// The list of available/preferred options this user provides to connect to the call.
-    pub fn get_foci_preferred(&self) -> &Vec<Focus> {
+    pub fn foci_preferred(&self) -> &Vec<Focus> {
         match self {
             MembershipData::Legacy(data) => &data.foci_active,
             MembershipData::Session(data) => &data.foci_preferred,
         }
     }
+
     /// The application of the membership is "m.call" and the scope is "m.room".
     pub fn is_room_call(&self) -> bool {
-        as_variant!(self.get_application(), Application::Call)
+        as_variant!(self.application(), Application::Call)
             .is_some_and(|call| call.scope == CallScope::Room)
     }
 
     /// The application of the membership is "m.call".
     pub fn is_call(&self) -> bool {
-        as_variant!(self.get_application(), Application::Call).is_some()
+        as_variant!(self.application(), Application::Call).is_some()
     }
+
     /// Checks if the event is expired. This is only relevant for LegacyMembershipData
     /// returns `false` if its SessionMembershipData
     pub fn is_expired(&self, origin_server_ts: Option<MilliSecondsSinceUnixEpoch>) -> bool {
@@ -93,7 +98,7 @@ impl<'a> MembershipData<'a> {
     /// For legacy events this can either be the origin server ts or a copy from the
     /// `origin_server_ts` since we expect legacy events to get updated (when a new device
     /// joins/leaves).
-    pub fn get_created_ts(&self) -> Option<MilliSecondsSinceUnixEpoch> {
+    pub fn created_ts(&self) -> Option<MilliSecondsSinceUnixEpoch> {
         match self {
             MembershipData::Legacy(data) => data.created_ts,
             MembershipData::Session(data) => data.created_ts,
@@ -177,7 +182,7 @@ impl LegacyMembershipData {
 /// Initial set of fields of [`LegacyMembershipData`].
 #[derive(Debug)]
 #[allow(clippy::exhaustive_structs)]
-pub struct MembershipInit {
+pub struct LegacyMembershipDataInit {
     /// The type of the matrixRTC session the membership belongs to.
     ///
     /// e.g. call, spacial, document...
@@ -206,9 +211,15 @@ pub struct MembershipInit {
     pub membership_id: String,
 }
 
-impl From<MembershipInit> for LegacyMembershipData {
-    fn from(init: MembershipInit) -> Self {
-        let MembershipInit { application, device_id, expires, foci_active, membership_id } = init;
+impl From<LegacyMembershipDataInit> for LegacyMembershipData {
+    fn from(init: LegacyMembershipDataInit) -> Self {
+        let LegacyMembershipDataInit {
+            application,
+            device_id,
+            expires,
+            foci_active,
+            membership_id,
+        } = init;
         Self { application, device_id, expires, created_ts: None, foci_active, membership_id }
     }
 }

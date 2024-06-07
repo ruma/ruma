@@ -163,8 +163,6 @@ pub mod key;
 pub mod location;
 #[cfg(feature = "unstable-msc2867")]
 pub mod marked_unread;
-#[cfg(feature = "unstable-msc3401")]
-pub mod matrix_rtc;
 #[cfg(feature = "unstable-msc1767")]
 pub mod message;
 #[cfg(feature = "unstable-pdu")]

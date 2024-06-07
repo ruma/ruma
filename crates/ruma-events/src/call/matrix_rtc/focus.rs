@@ -1,30 +1,31 @@
 //! Types for matrixRTC Focus/SFU configurations.
 
+use ruma_macros::StringEnum;
 use serde::{Deserialize, Serialize};
+
+use crate::PrivOwnedStr;
 
 /// Description of the SFU/Focus a membership can be connected to.
 ///
 /// A focus can be any server powering the matrixRTC session (SFU,
 /// MCU). It serves as a node to redistribute RTC streams.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq))]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Focus {
-    /// Livekit is one possible type of SFU/Focus that can be used for a matrixRTC session.
+    /// LiveKit is one possible type of SFU/Focus that can be used for a matrixRTC session.
     Livekit(LivekitFocus),
 }
 
-/// The fields to describe livekit as an `preferred_foci`.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq))]
+/// The fields to describe LiveKit as a `preferred_foci`.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct LivekitFocus {
-    /// The alias where the livekit sessions can be reached.
+    /// The alias where the LiveKit sessions can be reached.
     #[serde(rename = "livekit_alias")]
     pub alias: String,
 
-    /// The url of the jwt server for the livekit instance.
+    /// The URL of the JWT service for the LiveKit instance.
     #[serde(rename = "livekit_service_url")]
     pub service_url: String,
 }
@@ -34,8 +35,8 @@ impl LivekitFocus {
     ///
     /// # Arguments
     ///
-    /// * `alias` - The alias where the livekit sessions can be reached.
-    /// * `service_url` - The url of the jwt server for the livekit instance.
+    /// * `alias` - The alias where the LiveKit sessions can be reached.
+    /// * `service_url` - The url of the jwt server for the LiveKit instance.
     pub fn new(alias: String, service_url: String) -> Self {
         Self { alias, service_url }
     }
@@ -45,41 +46,42 @@ impl LivekitFocus {
 ///
 /// A focus can be any server powering the matrixRTC session (SFU,
 /// MCU). It serves as a node to redistribute RTC streams.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq))]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ActiveFocus {
-    /// Livekit is one possible type of SFU/Focus that can be used for a matrixRTC session.
+    /// LiveKit is one possible type of SFU/Focus that can be used for a matrixRTC session.
     Livekit(ActiveLivekitFocus),
 }
 
 /// The fields to describe the `active_foci`.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq))]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ActiveLivekitFocus {
-    /// The url of the jwt server for the livekit instance.
+    /// The selection method used to select the LiveKit focus for the rtc session.
     pub focus_select: FocusSelection,
 }
 
 impl ActiveLivekitFocus {
-    /// Initialize a [`LivekitFocus`].
+    /// Initialize a [`ActiveLivekitFocus`].
     ///
     /// # Arguments
     ///
-    /// * `alias` - The alias where the livekit sessions can be reached.
-    /// * `service_url` - The url of the jwt server for the livekit instance.
+    /// * `focus_select` - The selection method used to select the LiveKit focus for the rtc
+    ///   session.
     pub fn new() -> Self {
         Self { focus_select: FocusSelection::OldestMembership }
     }
 }
-/// How to select the active focus for livekit
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq))]
+
+/// How to select the active focus for LiveKit
+#[derive(Clone, PartialEq, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum FocusSelection {
     /// Select the active focus by using the oldest membership and the oldest focus.
-    #[serde(rename = "oldest_membership")]
     OldestMembership,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
 }

@@ -17,7 +17,7 @@ mod tests {
 
     use ruma_common::MilliSecondsSinceUnixEpoch as TS;
     use ruma_events::{
-        matrix_rtc::notify::{ApplicationType, CallNotifyEventContent, NotifyType},
+        call::matrix_rtc::notify::{ApplicationType, CallNotifyEventContent, NotifyType},
         Mentions,
     };
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
