@@ -13,10 +13,6 @@ use serde::{de, Deserialize, Serialize};
 
 pub mod aliases;
 pub mod avatar;
-
-#[cfg(feature = "unstable-msc3489")]
-pub mod beacon_info;
-
 pub mod canonical_alias;
 pub mod create;
 pub mod encrypted;

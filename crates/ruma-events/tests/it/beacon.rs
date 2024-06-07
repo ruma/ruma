@@ -1,4 +1,4 @@
-#![cfg(all(feature = "unstable-msc3489", feature = "unstable-msc3488"))]
+#![cfg(feature = "unstable-msc3489")]
 
 use js_int::uint;
 use ruma_common::{owned_event_id, MilliSecondsSinceUnixEpoch};

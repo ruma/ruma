@@ -3,9 +3,8 @@
 Improvements:
 
  - Add support for encrypted stickers as sent by several bridges under the flag `compat-encrypted-stickers`
- - Add unstable support
-   for [MSC3489](https://github.com/matrix-org/matrix-spec-proposals/blob/matthew/location-streaming/proposals/3489-location-streaming.md)
-   Live Location Sharing
+ - Add unstable support for `m.beacon` & `m.beacon_info` events
+   (unstable types `org.matrix.msc3489.beacon` & `org.matrix.msc3489.beacon_info`)
 
 Breaking changes:
 

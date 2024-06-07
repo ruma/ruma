@@ -1,10 +1,10 @@
-#![cfg(all(feature = "unstable-msc3489", feature = "unstable-msc3488"))]
+#![cfg(feature = "unstable-msc3489")]
 
 use std::time::Duration;
 
 use js_int::uint;
 use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events::{location::AssetType, room::beacon_info::BeaconInfoEventContent};
+use ruma_events::{beacon_info::BeaconInfoEventContent, location::AssetType};
 
 fn get_beacon_info_event_content(
     duration: Option<Duration>,

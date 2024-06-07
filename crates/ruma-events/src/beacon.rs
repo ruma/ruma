@@ -1,13 +1,14 @@
 //! Types for the `org.matrix.msc3489.beacon` event, the unstable version of
 //! `m.beacon`.
+//!
+//! [MSC3489]: https://github.com/matrix-org/matrix-spec-proposals/pull/3489
 
 use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedEventId};
 use ruma_events::{location::LocationContent, relation::Reference};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-/// `BeaconEventContent` is a struct that represents the content of a beacon
-/// event. It contains information about a user location in reference to a beacon_info state event.
+/// The content of a beacon
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc3672.beacon", alias = "m.beacon", kind = MessageLike)]
@@ -26,7 +27,8 @@ pub struct BeaconEventContent {
 }
 
 impl BeaconEventContent {
-    /// Create a new `BeaconEventContent` with the given beacon_info_event_id and geo_uri
+    /// Creates a new `BeaconEventContent` with the given beacon_info event id, geo uri and
+    /// optional ts. If ts is None, the current time will be used.
     pub fn new(
         beacon_info_event_id: OwnedEventId,
         geo_uri: String,
