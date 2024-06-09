@@ -549,10 +549,12 @@ pub struct ThirdpartyIdCredentials {
     pub client_secret: OwnedClientSecret,
 
     /// Identity server URL.
-    pub id_server: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id_server: Option<String>,
 
     /// Identity server access token.
-    pub id_access_token: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id_access_token: Option<String>,
 }
 
 impl ThirdpartyIdCredentials {
