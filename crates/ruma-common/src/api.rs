@@ -356,7 +356,7 @@ pub trait OutgoingRequest: Sized + Clone {
 }
 
 /// A response type for a Matrix API endpoint, used for receiving responses.
-pub trait IncomingResponse: Sized {
+pub trait IncomingResponse: Sized + Send {
     /// A type capturing the expected error conditions the server can return.
     type EndpointError: EndpointError;
 
