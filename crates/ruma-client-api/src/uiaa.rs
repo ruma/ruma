@@ -566,7 +566,12 @@ impl ThirdpartyIdCredentials {
         id_server: String,
         id_access_token: String,
     ) -> Self {
-        Self { sid, client_secret, id_server, id_access_token }
+        Self {
+            sid,
+            client_secret,
+            id_server: Some(id_server),
+            id_access_token: Some(id_access_token),
+        }
     }
 }
 
