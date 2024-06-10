@@ -8,23 +8,20 @@ exclude = [
 ]
 
 [advisories]
-vulnerability = "deny"
-unmaintained = "deny"
+version = 2
 
 [licenses]
-default = "deny"
-unlicensed = "deny"
+version = 2
 allow = [
     "Apache-2.0",
     "BSD-3-Clause",
     "ISC",
     "MIT",
+    "MPL-2.0",
     "OpenSSL",
     "Unicode-DFS-2016",
     "Zlib",
 ]
-# MPL-2.0 is copyleft but not "infectuous" like GPL
-copyleft = "allow"
 private = { ignore = true }
 
 [[licenses.clarify]]
