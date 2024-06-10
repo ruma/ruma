@@ -2,7 +2,11 @@
 //!
 //! [thirdparty]: https://spec.matrix.org/latest/client-server-api/#third-party-networks
 
-use std::collections::BTreeMap;
+use std::{
+    borrow::Borrow,
+    collections::BTreeMap,
+    hash::{Hash, Hasher},
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -253,6 +257,27 @@ pub struct ThirdPartyIdentifier {
 
     /// The time when the homeserver associated the third party identifier with the user.
     pub added_at: MilliSecondsSinceUnixEpoch,
+}
+
+impl Borrow<str> for ThirdPartyIdentifier {
+    fn borrow(&self) -> &str {
+        &self.address
+    }
+}
+
+#[cfg(not(test))]
+impl PartialEq for ThirdPartyIdentifier {
+    fn eq(&self, other: &ThirdPartyIdentifier) -> bool {
+        self.address == other.address && self.medium == other.medium
+    }
+}
+
+impl Eq for ThirdPartyIdentifier {}
+
+impl Hash for ThirdPartyIdentifier {
+    fn hash<H: Hasher>(&self, hasher: &mut H) {
+        (self.medium.as_str(), &self.address).hash(hasher)
+    }
 }
 
 /// Initial set of fields of `ThirdPartyIdentifier`.
