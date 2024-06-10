@@ -4,6 +4,8 @@ Improvements:
 
 - Add the `InvalidHeaderValue` variant to the `DeserializationError` struct, for
   cases where we receive a HTTP header with an unexpected value.
+- Implement Borrow/Hash/Eq for ThirdPartyIdentifier, to check whether a 3PID
+  has already been added by another user.
 
 # 0.13.0
 

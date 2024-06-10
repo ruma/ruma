@@ -276,7 +276,7 @@ impl Eq for ThirdPartyIdentifier {}
 
 impl Hash for ThirdPartyIdentifier {
     fn hash<H: Hasher>(&self, hasher: &mut H) {
-        (self.medium.as_str(), &self.address).hash(hasher)
+        (self.medium.as_str(), &self.address).hash(hasher);
     }
 }
 
