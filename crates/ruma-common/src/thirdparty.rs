@@ -244,7 +244,6 @@ pub enum Medium {
 /// this type using `ThirdPartyIdentifier::Init` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[cfg_attr(test, derive(PartialEq))]
 pub struct ThirdPartyIdentifier {
     /// The third party identifier address.
     pub address: String,
@@ -265,7 +264,6 @@ impl Borrow<str> for ThirdPartyIdentifier {
     }
 }
 
-#[cfg(not(test))]
 impl PartialEq for ThirdPartyIdentifier {
     fn eq(&self, other: &ThirdPartyIdentifier) -> bool {
         self.address == other.address && self.medium == other.medium
