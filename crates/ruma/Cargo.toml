@@ -207,6 +207,7 @@ unstable-msc3291 = ["ruma-events?/unstable-msc3291"]
 unstable-msc3381 = ["ruma-events?/unstable-msc3381"]
 unstable-msc3401 = ["ruma-events?/unstable-msc3401"]
 unstable-msc3488 = ["ruma-client-api?/unstable-msc3488", "ruma-events?/unstable-msc3488"]
+unstable-msc3489 = ["ruma-events?/unstable-msc3489"]
 unstable-msc3551 = ["ruma-events?/unstable-msc3551"]
 unstable-msc3552 = ["ruma-events?/unstable-msc3552"]
 unstable-msc3553 = ["ruma-events?/unstable-msc3553"]
@@ -262,6 +263,7 @@ __ci = [
     "unstable-msc3381",
     "unstable-msc3401",
     "unstable-msc3488",
+    "unstable-msc3489",
     "unstable-msc3551",
     "unstable-msc3552",
     "unstable-msc3553",

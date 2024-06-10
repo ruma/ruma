@@ -139,6 +139,10 @@ pub mod macros {
 
 #[cfg(feature = "unstable-msc3927")]
 pub mod audio;
+#[cfg(feature = "unstable-msc3489")]
+pub mod beacon;
+#[cfg(feature = "unstable-msc3489")]
+pub mod beacon_info;
 pub mod call;
 pub mod direct;
 pub mod dummy;

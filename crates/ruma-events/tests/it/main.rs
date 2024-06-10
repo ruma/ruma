@@ -1,4 +1,6 @@
 mod audio;
+mod beacon;
+mod beacon_info;
 mod call;
 mod encrypted;
 mod enums;

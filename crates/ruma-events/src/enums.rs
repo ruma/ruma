@@ -88,6 +88,9 @@ event_enum! {
         #[cfg(feature = "unstable-msc3381")]
         #[ruma_enum(ident = UnstablePollEnd)]
         "org.matrix.msc3381.poll.end" => super::poll::unstable_end,
+        #[cfg(feature = "unstable-msc3489")]
+        #[ruma_enum(alias = "m.beacon")]
+        "org.matrix.msc3672.beacon" => super::beacon,
         "m.reaction" => super::reaction,
         "m.room.encrypted" => super::room::encrypted,
         "m.room.message" => super::room::message,
@@ -127,6 +130,9 @@ event_enum! {
         "m.room.topic" => super::room::topic,
         "m.space.child" => super::space::child,
         "m.space.parent" => super::space::parent,
+        #[cfg(feature = "unstable-msc3489")]
+        #[ruma_enum(alias = "m.beacon_info")]
+        "org.matrix.msc3672.beacon_info" => super::beacon_info,
         #[cfg(feature = "unstable-msc3401")]
         #[ruma_enum(alias = "m.call.member")]
         "org.matrix.msc3401.call.member" => super::call::member,
@@ -307,6 +313,8 @@ impl AnyMessageLikeEventContent {
     /// This is a helper function intended for encryption. There should not be a reason to access
     /// `m.relates_to` without first destructuring an `AnyMessageLikeEventContent` otherwise.
     pub fn relation(&self) -> Option<encrypted::Relation> {
+        #[cfg(feature = "unstable-msc3489")]
+        use super::beacon::BeaconEventContent;
         use super::key::verification::{
             accept::KeyVerificationAcceptEventContent, cancel::KeyVerificationCancelEventContent,
             done::KeyVerificationDoneEventContent, key::KeyVerificationKeyEventContent,
@@ -357,6 +365,10 @@ impl AnyMessageLikeEventContent {
             | Self::UnstablePollResponse(UnstablePollResponseEventContent { relates_to, .. })
             | Self::PollEnd(PollEndEventContent { relates_to, .. })
             | Self::UnstablePollEnd(UnstablePollEndEventContent { relates_to, .. }) => {
+                Some(encrypted::Relation::Reference(relates_to.clone()))
+            }
+            #[cfg(feature = "unstable-msc3489")]
+            Self::Beacon(BeaconEventContent { relates_to, .. }) => {
                 Some(encrypted::Relation::Reference(relates_to.clone()))
             }
             #[cfg(feature = "unstable-msc3381")]
