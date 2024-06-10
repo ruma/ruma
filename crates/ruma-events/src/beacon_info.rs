@@ -1,5 +1,5 @@
 //! Types for the `org.matrix.msc3489.beacon_info` state event, the unstable version of
-//! `m.beacon_info`.
+//! `m.beacon_info` ([MSC3489]).
 //!
 //! [MSC3489]: https://github.com/matrix-org/matrix-spec-proposals/pull/3489
 
@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::location::AssetContent;
 
-/// The content of a beacon_info state
+/// The content of a beacon_info state.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(
@@ -43,7 +43,8 @@ pub struct BeaconInfoEventContent {
 }
 
 impl BeaconInfoEventContent {
-    /// Creates a new `BeaconInfoEventContent` with the given description, live, timeout and asset.
+    /// Creates a new `BeaconInfoEventContent` with the given description, live, timeout and
+    /// optional ts. If ts is None, the current time will be used.
     pub fn new(
         description: Option<String>,
         timeout: Duration,

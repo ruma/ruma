@@ -1,9 +1,16 @@
 #![cfg(feature = "unstable-msc3489")]
 
+use assert_matches2::assert_matches;
 use js_int::uint;
-use ruma_common::{owned_event_id, MilliSecondsSinceUnixEpoch};
-use ruma_events::beacon::BeaconEventContent;
-use serde_json::{from_value as from_json_value, json, Value as JsonValue};
+use ruma_common::{
+    owned_event_id, room_id, serde::CanBeEmpty, user_id, MilliSecondsSinceUnixEpoch,
+};
+use ruma_events::{
+    beacon::BeaconEventContent, relation::Reference, AnyMessageLikeEvent, MessageLikeEvent,
+};
+use serde_json::{
+    from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
+};
 
 fn get_beacon_event_content() -> BeaconEventContent {
     BeaconEventContent::new(
@@ -30,7 +37,7 @@ fn get_beacon_event_content_json() -> JsonValue {
 fn beacon_event_content_serialization() {
     let event_content = get_beacon_event_content();
 
-    assert_eq!(serde_json::to_value(&event_content).unwrap(), get_beacon_event_content_json());
+    assert_eq!(to_json_value(&event_content).unwrap(), get_beacon_event_content_json());
 }
 
 #[test]
@@ -45,4 +52,30 @@ fn beacon_event_content_deserialization() {
         owned_event_id!("$beacon_info_event_id:example.com")
     );
     assert_eq!(event_content.location.uri, "geo:51.5008,0.1247;u=35");
+    assert_eq!(event_content.ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
+}
+
+#[test]
+fn message_event_deserialization() {
+    let json_data = json!({
+        "content": get_beacon_event_content_json(),
+        "event_id": "$beacon_event_id:example.com",
+        "origin_server_ts": 1_636_829_458,
+        "room_id": "!roomid:example.com",
+        "type": "org.matrix.msc3672.beacon",
+        "sender": "@example:example.com"
+    });
+
+    let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
+
+    assert_matches!(event, AnyMessageLikeEvent::Beacon(MessageLikeEvent::Original(ev)));
+    assert_eq!(ev.content.location.uri, "geo:51.5008,0.1247;u=35");
+    assert_eq!(ev.content.ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
+    assert_matches!(ev.content.relates_to, Reference { event_id, .. });
+    assert_eq!(event_id, owned_event_id!("$beacon_info_event_id:example.com"));
+
+    assert_eq!(ev.sender, user_id!("@example:example.com"));
+    assert_eq!(ev.room_id, room_id!("!roomid:example.com"));
+    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
+    assert!(ev.unsigned.is_empty());
 }

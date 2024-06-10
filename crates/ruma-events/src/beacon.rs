@@ -1,5 +1,5 @@
 //! Types for the `org.matrix.msc3489.beacon` event, the unstable version of
-//! `m.beacon`.
+//! `m.beacon` ([MSC3489]).
 //!
 //! [MSC3489]: https://github.com/matrix-org/matrix-spec-proposals/pull/3489
 
@@ -8,7 +8,7 @@ use ruma_events::{location::LocationContent, relation::Reference};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-/// The content of a beacon
+/// The content of a beacon.
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc3672.beacon", alias = "m.beacon", kind = MessageLike)]

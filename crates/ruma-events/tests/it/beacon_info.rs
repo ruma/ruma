@@ -2,9 +2,13 @@
 
 use std::time::Duration;
 
+use assert_matches2::assert_matches;
 use js_int::uint;
-use ruma_common::MilliSecondsSinceUnixEpoch;
-use ruma_events::{beacon_info::BeaconInfoEventContent, location::AssetType};
+use ruma_common::{event_id, room_id, serde::CanBeEmpty, user_id, MilliSecondsSinceUnixEpoch};
+use ruma_events::{
+    beacon_info::BeaconInfoEventContent, location::AssetType, AnyStateEvent, StateEvent,
+};
+use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 fn get_beacon_info_event_content(
     duration: Option<Duration>,
@@ -18,7 +22,7 @@ fn get_beacon_info_event_content(
 }
 
 fn get_beacon_info_json() -> serde_json::Value {
-    serde_json::json!({
+    json!({
         "org.matrix.msc3488.ts": 1_636_829_458,
         "org.matrix.msc3488.asset": {
             "type": "m.self"
@@ -53,8 +57,8 @@ fn beacon_info_stop_event() {
     event_content.stop();
 
     assert_eq!(
-        serde_json::to_value(&event_content).unwrap(),
-        serde_json::json!({
+        to_json_value(&event_content).unwrap(),
+        json!({
             "org.matrix.msc3488.ts": 1_636_829_458,
             "org.matrix.msc3488.asset": {
                 "type": "m.self"
@@ -80,8 +84,8 @@ fn beacon_info_start_event() {
     event_content.start();
 
     assert_eq!(
-        serde_json::to_value(&event_content).unwrap(),
-        serde_json::json!({
+        to_json_value(&event_content).unwrap(),
+        json!({
             "org.matrix.msc3488.ts": 1_636_829_458,
             "org.matrix.msc3488.asset": {
                 "type": "m.self"
@@ -100,8 +104,8 @@ fn beacon_info_start_event_content_serialization() {
     let event_content = get_beacon_info_event_content(None, ts);
 
     assert_eq!(
-        serde_json::to_value(&event_content).unwrap(),
-        serde_json::json!({
+        to_json_value(&event_content).unwrap(),
+        json!({
             "org.matrix.msc3488.ts": 1_636_829_458,
             "org.matrix.msc3488.asset": {
                 "type": "m.self"
@@ -124,4 +128,34 @@ fn beacon_info_start_event_content_deserialization() {
     assert_eq!(event_content.ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
     assert_eq!(event_content.timeout, Duration::from_secs(60));
     assert_eq!(event_content.asset.type_, AssetType::Self_);
+}
+
+#[test]
+fn state_event_deserialization() {
+    let json_data = json!({
+        "content": get_beacon_info_json(),
+        "event_id": "$beacon_event_id:example.com",
+        "origin_server_ts": 1_636_829_458,
+        "room_id": "!roomid:example.com",
+        "type": "org.matrix.msc3672.beacon_info",
+        "sender": "@example:example.com",
+        "state_key": "@example:example.com"
+    });
+
+    let event = from_json_value::<AnyStateEvent>(json_data).unwrap();
+
+    assert_matches!(event, AnyStateEvent::BeaconInfo(StateEvent::Original(ev)));
+
+    assert_eq!(ev.content.description, Some("Kylie's live location".to_owned()));
+    assert_eq!(ev.content.ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
+    assert_eq!(ev.content.timeout, Duration::from_secs(60));
+    assert_eq!(ev.content.asset.type_, AssetType::Self_);
+    assert!(ev.content.live);
+
+    assert_eq!(ev.event_id, event_id!("$beacon_event_id:example.com"));
+    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
+    assert_eq!(ev.room_id, room_id!("!roomid:example.com"));
+    assert_eq!(ev.sender, user_id!("@example:example.com"));
+    assert_eq!(ev.state_key, "@example:example.com");
+    assert!(ev.unsigned.is_empty());
 }
