@@ -6,6 +6,7 @@ Breaking changes:
   as before.
 - Change type of `client_secret` field in `ThirdpartyIdCredentials`
   from `Box<ClientSecret>` to `OwnedClientSecret`
+- Make `id_server` and `id_access_token` in `ThirdpartyIdCredentials` optional
 
 Improvements:
 
@@ -17,11 +18,10 @@ Improvements:
 
 Bug fixes:
 
-- Rename `avatar` to `avatar_url` when (De)serializing `SlidingSyncRoomHero`
-- Make `id_server` and `id_access_token` in `ThirdpartyIdCredentials` optional fields
 - `user_id` of `SlidingSyncRoomHero` is now mandatory
 - Make authentication with access token optional for the `change_password` and
   `deactivate` endpoints.
+- Make `id_server` and `id_access_token` in `ThirdpartyIdCredentials` optional fields
 
 # 0.18.0
 

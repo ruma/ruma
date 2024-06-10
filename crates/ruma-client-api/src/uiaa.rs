@@ -560,18 +560,8 @@ pub struct ThirdpartyIdCredentials {
 impl ThirdpartyIdCredentials {
     /// Creates a new `ThirdpartyIdCredentials` with the given session ID, client secret, identity
     /// server address and access token.
-    pub fn new(
-        sid: OwnedSessionId,
-        client_secret: OwnedClientSecret,
-        id_server: String,
-        id_access_token: String,
-    ) -> Self {
-        Self {
-            sid,
-            client_secret,
-            id_server: Some(id_server),
-            id_access_token: Some(id_access_token),
-        }
+    pub fn new(sid: OwnedSessionId, client_secret: OwnedClientSecret) -> Self {
+        Self { sid, client_secret, id_server: None, id_access_token: None }
     }
 }
 
