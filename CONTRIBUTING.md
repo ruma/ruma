@@ -137,6 +137,13 @@ use super::MyType;
 
 ### Commit Messages
 
+The commit message should start with the _area_ that is affected by the change.
+An area is usually the name of the affected crate without the `ruma-` prefix,
+except for the ruma-common crate, where the area is usually the name of the
+top-level module, like `api` or `identifiers`. For example, the description of
+a commit that affects the ruma-events crate should look like
+"events: Add new event".
+
 Write commit messages using the imperative mood, as if completing the sentence:
 "If applied, this commit will \_\_\_." For example, use "Fix some bug" instead
 of "Fixed some bug" or "Add a feature" instead of "Added a feature".
