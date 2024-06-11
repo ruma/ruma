@@ -1,4 +1,4 @@
-//! Types for matrixRTC `m.call.member` state event content data ([MSC3401])
+//! Types for MatrixRTC `m.call.member` state event content data ([MSC3401])
 //!
 //! [MSC3401]: https://github.com/matrix-org/matrix-spec-proposals/pull/3401
 
@@ -15,7 +15,7 @@ use crate::PrivOwnedStr;
 
 /// The data object that contains the information for one membership.
 ///
-/// It can be a legacy or a normal matrixRTC Session membership.
+/// It can be a legacy or a normal MatrixRTC Session membership.
 ///
 /// The legacy format contains time information to compute if it is expired or not.
 /// SessionMembershipData does not have the concept of timestamp based expiration anymore.
@@ -112,7 +112,7 @@ impl<'a> MembershipData<'a> {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct LegacyMembershipData {
-    /// The type of the matrixRTC session the membership belongs to.
+    /// The type of the MatrixRTC session the membership belongs to.
     ///
     /// e.g. call, spacial, document...
     #[serde(flatten)]
@@ -182,7 +182,7 @@ impl LegacyMembershipData {
 #[derive(Debug)]
 #[allow(clippy::exhaustive_structs)]
 pub struct LegacyMembershipDataInit {
-    /// The type of the matrixRTC session the membership belongs to.
+    /// The type of the MatrixRTC session the membership belongs to.
     ///
     /// e.g. call, spacial, document...
     pub application: Application,
@@ -223,11 +223,11 @@ impl From<LegacyMembershipDataInit> for LegacyMembershipData {
     }
 }
 
-/// Stores all the information for a matrixRTC membership. (one for each device)
+/// Stores all the information for a MatrixRTC membership. (one for each device)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SessionMembershipData {
-    /// The type of the matrixRTC session the membership belongs to.
+    /// The type of the MatrixRTC session the membership belongs to.
     ///
     /// e.g. call, spacial, document...
     #[serde(flatten)]
@@ -251,10 +251,10 @@ pub struct SessionMembershipData {
     pub created_ts: Option<MilliSecondsSinceUnixEpoch>,
 }
 
-/// The type of the matrixRTC session.
+/// The type of the MatrixRTC session.
 ///
 /// This is not the application/client used by the user but the
-/// type of matrixRTC session e.g. calling (`m.call`), third-room, whiteboard could be
+/// type of MatrixRTC session e.g. calling (`m.call`), third-room, whiteboard could be
 /// possible applications.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]

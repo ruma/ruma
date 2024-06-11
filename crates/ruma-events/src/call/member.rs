@@ -1,4 +1,4 @@
-//! Types for matrixRTC state events ([MSC3401]).
+//! Types for MatrixRTC state events ([MSC3401]).
 //!
 //! This implements a newer/updated version of MSC3401.
 //!
@@ -6,32 +6,230 @@
 
 mod focus;
 mod member_data;
-mod member_event;
 
 pub use focus::*;
 pub use member_data::*;
-pub use member_event::*;
+use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedUserId};
+use ruma_macros::{EventContent, StringEnum};
+use serde::{Deserialize, Serialize};
+
+use crate::{
+    PossiblyRedactedStateEventContent, PrivOwnedStr, RedactContent, RedactedStateEventContent,
+    StateEventType,
+};
+
+/// The member state event for a MatrixRTC session.
+///
+/// This is the object containing all the data related to a Matrix users participation in a
+/// MatrixRTC session.
+///
+/// This is a unit struct with the enum [`CallMemberEventContent`] because a Ruma state event cannot
+/// be an enum and we need this to be an untagged enum for parsing purposes. (see
+/// [`CallMemberEventContent`])
+///
+/// This struct also exposes allows to call the methods from [`CallMemberEventContent`].
+#[derive(Clone, Debug, Serialize, Deserialize, EventContent, PartialEq)]
+#[ruma_event(type = "org.matrix.msc3401.call.member", kind = State, state_key_type = OwnedUserId, custom_redacted, custom_possibly_redacted)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(untagged)]
+pub enum CallMemberEventContent {
+    /// The legacy format for m.call.member events. (An array of memberships. The devices of one
+    /// user.)
+    LegacyContent(LegacyMembershipContent),
+    /// Normal membership events. One event per membership. Multiple state keys will
+    /// be used to describe multiple devices for one user.
+    SessionContent(SessionMembershipData),
+    /// An empty content means this user has been in a rtc session but is not anymore.
+    Empty(EmptyMembershipData),
+}
+
+impl CallMemberEventContent {
+    /// Creates a new [`CallMemberEventContent`] with [`LegacyMembershipData`].
+    pub fn new_legacy(memberships: Vec<LegacyMembershipData>) -> Self {
+        Self::LegacyContent(LegacyMembershipContent {
+            memberships, //: memberships.into_iter().map(MembershipData::Legacy).collect(),
+        })
+    }
+
+    /// Creates a new [`CallMemberEventContent`] with [`SessionMembershipData`].
+    pub fn new(
+        application: Application,
+        device_id: String,
+        focus_active: ActiveFocus,
+        foci_preferred: Vec<Focus>,
+        created_ts: Option<MilliSecondsSinceUnixEpoch>,
+    ) -> Self {
+        Self::SessionContent(SessionMembershipData {
+            application,
+            device_id,
+            focus_active,
+            foci_preferred,
+            created_ts,
+        })
+    }
+
+    /// Creates a new Empty [`CallMemberEventContent`] representing a left membership.
+    pub fn new_empty(leave_reason: Option<LeaveReason>) -> Self {
+        Self::Empty(EmptyMembershipData { leave_reason })
+    }
+    /// All non expired memberships in this member event.
+    ///
+    /// In most cases you want to use this method instead of the public memberships field.
+    /// The memberships field will also include expired events.
+    ///
+    /// This copies all the memberships and converts them
+    /// # Arguments
+    ///
+    /// * `origin_server_ts` - optionally the `origin_server_ts` can be passed as a fallback in the
+    ///   Membership does not contain [`LegacyMembershipData::created_ts`]. (`origin_server_ts` will
+    ///   be ignored if [`LegacyMembershipData::created_ts`] is `Some`)
+    pub fn active_memberships(
+        &self,
+        origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
+    ) -> Vec<MembershipData<'_>> {
+        match self {
+            CallMemberEventContent::LegacyContent(content) => content
+                .memberships
+                .iter()
+                .filter(|m| !m.is_expired(origin_server_ts))
+                .map(MembershipData::Legacy)
+                .collect(),
+            CallMemberEventContent::SessionContent(content) => {
+                [content].map(MembershipData::Session).to_vec()
+            }
+            CallMemberEventContent::Empty(_) => Vec::new(),
+        }
+    }
+
+    /// All the memberships for this event. Can only contain multiple elements in the case of legacy
+    /// `m.call.member` state events.
+    pub fn memberships(&self) -> Vec<MembershipData<'_>> {
+        match self {
+            CallMemberEventContent::LegacyContent(content) => {
+                content.memberships.iter().map(MembershipData::Legacy).collect()
+            }
+            CallMemberEventContent::SessionContent(content) => {
+                [content].map(MembershipData::Session).to_vec()
+            }
+            CallMemberEventContent::Empty(_) => Vec::new(),
+        }
+    }
+
+    /// Set the `created_ts` of each [`MembershipData::Legacy`] in this event.
+    ///
+    /// Each call member event contains the `origin_server_ts` and `content.create_ts`.
+    /// `content.create_ts` is undefined for the initial event of a session (because the
+    /// `origin_server_ts` is not known on the client).
+    /// In the rust sdk we want to copy over the `origin_server_ts` of the event into the
+    /// (This allows to use `MinimalStateEvents` and still be able to determine if a
+    /// expired)
+    pub fn set_created_ts_if_none(&mut self, origin_server_ts: MilliSecondsSinceUnixEpoch) {
+        match self {
+            CallMemberEventContent::LegacyContent(content) => {
+                content.memberships.iter_mut().for_each(|m: &mut LegacyMembershipData| {
+                    m.created_ts.get_or_insert(origin_server_ts);
+                });
+            }
+            CallMemberEventContent::SessionContent(m) => {
+                m.created_ts.get_or_insert(origin_server_ts);
+            }
+            _ => (),
+        }
+    }
+}
+
+/// This describes the CallMember event if the user is not part of the current session.
+#[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct EmptyMembershipData {
+    /// An empty call member state event can optionally contain a leave reason.
+    /// If it is `None` the user has left the call ordinary. (Intentional hangup)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub leave_reason: Option<LeaveReason>,
+}
+
+/// This is the optional value for an empty membership event content:
+/// [`CallMemberEventContent::Empty`]. It is used when the user disconnected and a Future ([MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140))
+/// was used to update the after the client was not reachable anymore.
+#[derive(Clone, PartialEq, StringEnum)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[ruma_enum(rename_all = "m.snake_case")]
+pub enum LeaveReason {
+    /// The user left the call by loosing network connection or closing
+    /// the client before it was able to send the leave event.
+    LostConnection,
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
+
+impl RedactContent for CallMemberEventContent {
+    type Redacted = RedactedCallMemberEventContent;
+
+    fn redact(self, _version: &ruma_common::RoomVersionId) -> Self::Redacted {
+        RedactedCallMemberEventContent {}
+    }
+}
+
+/// The PossiblyRedacted version of [`CallMemberEventContent`].
+///
+/// Since [`CallMemberEventContent`] has the Empty {} state it already is compatible
+/// with the redacted version of the state event content.
+pub type PossiblyRedactedCallMemberEventContent = CallMemberEventContent;
+
+impl PossiblyRedactedStateEventContent for PossiblyRedactedCallMemberEventContent {
+    type StateKey = OwnedUserId;
+}
+
+/// The Redacted version of [`CallMemberEventContent`].
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[allow(clippy::exhaustive_structs)]
+pub struct RedactedCallMemberEventContent {}
+
+impl ruma_events::content::EventContent for RedactedCallMemberEventContent {
+    type EventType = StateEventType;
+    fn event_type(&self) -> Self::EventType {
+        StateEventType::CallMember
+    }
+}
+
+impl RedactedStateEventContent for RedactedCallMemberEventContent {
+    type StateKey = OwnedUserId;
+}
+
+/// Legacy content with an array of memberships. See also: [`CallMemberEventContent`]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct LegacyMembershipContent {
+    /// A list of all the memberships that user currently has in this room.
+    ///
+    /// There can be multiple ones in case the user participates with multiple devices or there
+    /// are multiple RTC applications running.
+    ///
+    /// e.g. a call and a spacial experience.
+    ///
+    /// Important: This includes expired memberships.
+    /// To retrieve a list including only valid memberships,
+    /// see [`active_memberships`](CallMemberEventContent::active_memberships).
+    memberships: Vec<LegacyMembershipData>,
+}
+
 #[cfg(test)]
 mod tests {
     use std::time::Duration;
 
     use assert_matches2::assert_matches;
     use ruma_common::{MilliSecondsSinceUnixEpoch as TS, OwnedEventId, OwnedRoomId, OwnedUserId};
-    use ruma_events::{
-        call::notify::{ApplicationType, CallNotifyEventContent, NotifyType},
-        Mentions,
-    };
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{
         focus::{ActiveFocus, ActiveLivekitFocus, Focus, LivekitFocus},
         member_data::{
             Application, CallApplicationContent, CallScope, LegacyMembershipData, MembershipData,
         },
-        member_event::CallMemberEventContent,
+        CallMemberEventContent,
     };
     use crate::{
-        call::member::{FocusSelection, SessionMembershipData},
+        call::member::{EmptyMembershipData, FocusSelection, SessionMembershipData},
         AnyStateEvent, StateEvent,
     };
 
@@ -97,7 +295,10 @@ mod tests {
         let empty_call_member_event = &json!({});
         assert_eq!(
             empty_call_member_event,
-            &serde_json::to_value(CallMemberEventContent::Empty { leave_reason: None }).unwrap()
+            &serde_json::to_value(CallMemberEventContent::Empty(EmptyMembershipData {
+                leave_reason: None
+            }))
+            .unwrap()
         );
     }
 
@@ -170,7 +371,7 @@ mod tests {
             serde_json::to_string(&ev_content).unwrap(),
             serde_json::to_string(&call_member_ev).unwrap()
         );
-        let empty = CallMemberEventContent::Empty { leave_reason: None };
+        let empty = CallMemberEventContent::Empty(EmptyMembershipData { leave_reason: None });
         assert_eq!(
             serde_json::to_string(&json!({})).unwrap(),
             serde_json::to_string(&empty).unwrap()
@@ -320,7 +521,7 @@ mod tests {
 
         assert_eq!(js_int::Int::new(10), member_event.unsigned.age);
         assert_eq!(
-            CallMemberEventContent::Empty { leave_reason: None },
+            CallMemberEventContent::Empty(EmptyMembershipData { leave_reason: None }),
             member_event.unsigned.prev_content.unwrap()
         );
 
@@ -395,94 +596,6 @@ mod tests {
         assert_eq!(
             content_two_hours_ago.active_memberships(None),
             vec![] as Vec<MembershipData<'_>>
-        );
-    }
-
-    #[cfg(feature = "unstable-msc4075")]
-    #[test]
-    fn notify_event_serialization() {
-        use ruma_common::owned_user_id;
-
-        let content_user_mention = CallNotifyEventContent::new(
-            "abcdef".into(),
-            ApplicationType::Call,
-            NotifyType::Ring,
-            Mentions::with_user_ids(vec![
-                owned_user_id!("@user:example.com"),
-                owned_user_id!("@user2:example.com"),
-            ]),
-        );
-
-        let content_room_mention = CallNotifyEventContent::new(
-            "abcdef".into(),
-            ApplicationType::Call,
-            NotifyType::Ring,
-            Mentions::with_room_mention(),
-        );
-
-        assert_eq!(
-            to_json_value(&content_user_mention).unwrap(),
-            json!({
-                "call_id": "abcdef",
-                "application": "m.call",
-                "m.mentions": {
-                    "user_ids": ["@user2:example.com","@user:example.com"],
-                },
-                "notify_type": "ring",
-            })
-        );
-        assert_eq!(
-            to_json_value(&content_room_mention).unwrap(),
-            json!({
-                "call_id": "abcdef",
-                "application": "m.call",
-                "m.mentions": { "room": true },
-                "notify_type": "ring",
-            })
-        );
-    }
-
-    #[cfg(feature = "unstable-msc4075")]
-    #[test]
-    fn notify_event_deserialization() {
-        use std::collections::BTreeSet;
-
-        use assert_matches2::assert_matches;
-        use ruma_common::owned_user_id;
-
-        use crate::{AnyMessageLikeEvent, MessageLikeEvent};
-
-        let json_data = json!({
-            "content": {
-                "call_id": "abcdef",
-                "application": "m.call",
-                "m.mentions": {
-                    "room": false,
-                    "user_ids": ["@user:example.com", "@user2:example.com"],
-                },
-                "notify_type": "ring",
-            },
-            "event_id": "$event:notareal.hs",
-            "origin_server_ts": 134_829_848,
-            "room_id": "!roomid:notareal.hs",
-            "sender": "@user:notareal.hs",
-            "type": "m.call.notify",
-        });
-
-        let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-        assert_matches!(
-            event,
-            AnyMessageLikeEvent::CallNotify(MessageLikeEvent::Original(message_event))
-        );
-        let content = message_event.content;
-        assert_eq!(content.call_id, "abcdef");
-        assert!(!content.mentions.room);
-        assert_eq!(
-            content.mentions.user_ids,
-            BTreeSet::from([
-                owned_user_id!("@user:example.com"),
-                owned_user_id!("@user2:example.com")
-            ])
         );
     }
 }
