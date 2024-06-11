@@ -35,7 +35,7 @@ impl LivekitFocus {
     ///
     /// # Arguments
     ///
-    /// * `alias` - The alias where the LiveKit sessions can be reached.
+    /// * `alias` - The alias with which the LiveKit sessions can be reached.
     /// * `service_url` - The url of the jwt server for the LiveKit instance.
     pub fn new(alias: String, service_url: String) -> Self {
         Self { alias, service_url }
@@ -75,6 +75,7 @@ impl ActiveLivekitFocus {
 }
 
 /// How to select the active focus for LiveKit
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, PartialEq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]

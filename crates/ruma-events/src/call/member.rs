@@ -4,20 +4,21 @@
 //!
 //! [MSC3401]: https://github.com/matrix-org/matrix-spec-proposals/pull/3401
 
-#[cfg(feature = "unstable-msc4075")]
-pub mod notify;
+mod focus;
+mod member_data;
+mod member_event;
 
-pub mod focus;
-pub mod member_data;
-pub mod member_event;
-
+pub use focus::*;
+pub use member_data::*;
+pub use member_event::*;
 #[cfg(test)]
 mod tests {
     use std::time::Duration;
 
-    use ruma_common::MilliSecondsSinceUnixEpoch as TS;
+    use assert_matches2::assert_matches;
+    use ruma_common::{MilliSecondsSinceUnixEpoch as TS, OwnedEventId, OwnedRoomId, OwnedUserId};
     use ruma_events::{
-        call::matrix_rtc::notify::{ApplicationType, CallNotifyEventContent, NotifyType},
+        call::notify::{ApplicationType, CallNotifyEventContent, NotifyType},
         Mentions,
     };
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
@@ -27,11 +28,15 @@ mod tests {
         member_data::{
             Application, CallApplicationContent, CallScope, LegacyMembershipData, MembershipData,
         },
-        member_event::MemberEventContent,
+        member_event::CallMemberEventContent,
+    };
+    use crate::{
+        call::member::{FocusSelection, SessionMembershipData},
+        AnyStateEvent, StateEvent,
     };
 
-    fn create_call_member_legacy_event_content() -> MemberEventContent {
-        MemberEventContent::new_legacy(vec![LegacyMembershipData {
+    fn create_call_member_legacy_event_content() -> CallMemberEventContent {
+        CallMemberEventContent::new_legacy(vec![LegacyMembershipData {
             application: Application::Call(CallApplicationContent {
                 call_id: "123456".to_owned(),
                 scope: CallScope::Room,
@@ -47,15 +52,15 @@ mod tests {
         }])
     }
 
-    fn create_call_member_event_content() -> MemberEventContent {
-        MemberEventContent::new(
+    fn create_call_member_event_content() -> CallMemberEventContent {
+        CallMemberEventContent::new(
             Application::Call(CallApplicationContent {
                 call_id: "123456".to_owned(),
                 scope: CallScope::Room,
             }),
             "ABCDE".to_owned(),
             ActiveFocus::Livekit(ActiveLivekitFocus {
-                focus_select: super::focus::FocusSelection::OldestMembership,
+                focus_select: FocusSelection::OldestMembership,
             }),
             vec![Focus::Livekit(LivekitFocus {
                 alias: "1".to_owned(),
@@ -67,25 +72,23 @@ mod tests {
 
     #[test]
     fn serialize_call_member_event_content() {
-        let call_member_event = &json!(
+        let call_member_event = &json!({
+            "application": "m.call",
+            "call_id": "123456",
+            "scope": "m.room",
+            "device_id": "ABCDE",
+            "foci_preferred": [
                 {
-                    "application": "m.call",
-                    "call_id": "123456",
-                    "scope": "m.room",
-                    "device_id": "ABCDE",
-                    "foci_preferred": [
-                        {
-                            "livekit_alias": "1",
-                            "livekit_service_url": "https://livekit.com",
-                            "type": "livekit"
-                        }
-                    ],
-                    "focus_active":{
-                        "type":"livekit",
-                        "focus_select":"oldest_membership"
-                    }
+                    "livekit_alias": "1",
+                    "livekit_service_url": "https://livekit.com",
+                    "type": "livekit"
                 }
-        );
+            ],
+            "focus_active":{
+                "type":"livekit",
+                "focus_select":"oldest_membership"
+            }
+        });
         assert_eq!(
             call_member_event,
             &serde_json::to_value(create_call_member_event_content()).unwrap()
@@ -94,7 +97,7 @@ mod tests {
         let empty_call_member_event = &json!({});
         assert_eq!(
             empty_call_member_event,
-            &serde_json::to_value(MemberEventContent::Empty {}).unwrap()
+            &serde_json::to_value(CallMemberEventContent::Empty { leave_reason: None }).unwrap()
         );
     }
 
@@ -127,14 +130,14 @@ mod tests {
     }
     #[test]
     fn deserialize_call_member_event_content() {
-        let call_member_ev: MemberEventContent = MemberEventContent::new(
+        let call_member_ev = CallMemberEventContent::new(
             Application::Call(CallApplicationContent {
                 call_id: "123456".to_owned(),
                 scope: CallScope::Room,
             }),
             "THIS_DEVICE".to_owned(),
             ActiveFocus::Livekit(ActiveLivekitFocus {
-                focus_select: super::focus::FocusSelection::OldestMembership,
+                focus_select: FocusSelection::OldestMembership,
             }),
             vec![Focus::Livekit(LivekitFocus {
                 alias: "room1".to_owned(),
@@ -144,39 +147,39 @@ mod tests {
         );
 
         let call_member_ev_json = json!({
-                    "application": "m.call",
-                    "call_id": "123456",
-                    "scope": "m.room",
-                    "device_id": "THIS_DEVICE",
-                    "focus_active":{
-                        "type": "livekit",
-                        "focus_select": "oldest_membership"
-                    },
-                    "foci_preferred": [
-                        {
-                            "livekit_alias": "room1",
-                            "livekit_service_url": "https://livekit1.com",
-                            "type": "livekit"
-                        }
-                    ],
-                    "membershipID": "0",
+            "application": "m.call",
+            "call_id": "123456",
+            "scope": "m.room",
+            "device_id": "THIS_DEVICE",
+            "focus_active":{
+                "type": "livekit",
+                "focus_select": "oldest_membership"
+            },
+            "foci_preferred": [
+                {
+                    "livekit_alias": "room1",
+                    "livekit_service_url": "https://livekit1.com",
+                    "type": "livekit"
                 }
-        );
+            ],
+        });
 
-        let ev_content: MemberEventContent = serde_json::from_value(call_member_ev_json).unwrap();
+        let ev_content: CallMemberEventContent =
+            serde_json::from_value(call_member_ev_json).unwrap();
         assert_eq!(
             serde_json::to_string(&ev_content).unwrap(),
             serde_json::to_string(&call_member_ev).unwrap()
         );
-        let empty = MemberEventContent::Empty {};
+        let empty = CallMemberEventContent::Empty { leave_reason: None };
         assert_eq!(
             serde_json::to_string(&json!({})).unwrap(),
             serde_json::to_string(&empty).unwrap()
         );
     }
+
     #[test]
     fn deserialize_legacy_call_member_event_content() {
-        let call_member_ev: MemberEventContent = MemberEventContent::new_legacy(vec![
+        let call_member_ev = CallMemberEventContent::new_legacy(vec![
             LegacyMembershipData {
                 application: Application::Call(CallApplicationContent {
                     call_id: "123456".to_owned(),
@@ -242,11 +245,87 @@ mod tests {
             ]
         });
 
-        let ev_content: MemberEventContent = serde_json::from_value(call_member_ev_json).unwrap();
+        let ev_content: CallMemberEventContent =
+            serde_json::from_value(call_member_ev_json).unwrap();
         assert_eq!(
             serde_json::to_string(&ev_content).unwrap(),
             serde_json::to_string(&call_member_ev).unwrap()
         );
+    }
+    #[test]
+    fn deserialize_member_event() {
+        let ev = json!({
+            "content":{
+                "application": "m.call",
+                "call_id": "",
+                "scope": "m.room",
+                "device_id": "THIS_DEVICE",
+                "focus_active":{
+                    "type": "livekit",
+                    "focus_select": "oldest_membership"
+                },
+                "foci_preferred": [
+                    {
+                        "livekit_alias": "room1",
+                        "livekit_service_url": "https://livekit1.com",
+                        "type": "livekit"
+                    }
+                ],
+            },
+            "type": "m.call.member",
+            "origin_server_ts": 111,
+            "event_id": "$3qfxjGYSu4sL25FtR0ep6vePOc",
+            "room_id": "!1234:example.org",
+            "sender": "@user:example.org",
+            "state_key":"@user:example.org",
+            "unsigned":{
+                "age":10,
+                "prev_content": {},
+                "prev_sender":"@user:example.org",
+            }
+        });
+
+        assert_matches!(
+            from_json_value(ev),
+            Ok(AnyStateEvent::CallMember(StateEvent::Original(member_event)))
+        );
+
+        let event_id = OwnedEventId::try_from("$3qfxjGYSu4sL25FtR0ep6vePOc").unwrap();
+        let sender = OwnedUserId::try_from("@user:example.org").unwrap();
+        let room_id = OwnedRoomId::try_from("!1234:example.org").unwrap();
+        assert_eq!(member_event.state_key, sender);
+        assert_eq!(member_event.event_id, event_id);
+        assert_eq!(member_event.sender, sender);
+        assert_eq!(member_event.room_id, room_id);
+        assert_eq!(member_event.origin_server_ts, TS(js_int::UInt::new(111).unwrap()));
+        assert_eq!(
+            member_event.content,
+            CallMemberEventContent::SessionContent(SessionMembershipData {
+                application: Application::Call(CallApplicationContent {
+                    call_id: "".to_string(),
+                    scope: CallScope::Room
+                }),
+                device_id: "THIS_DEVICE".to_owned(),
+                foci_preferred: [Focus::Livekit(LivekitFocus {
+                    alias: "room1".to_owned(),
+                    service_url: "https://livekit1.com".to_owned()
+                })]
+                .to_vec(),
+                focus_active: ActiveFocus::Livekit(ActiveLivekitFocus {
+                    focus_select: FocusSelection::OldestMembership
+                }),
+                created_ts: None
+            })
+        );
+
+        assert_eq!(js_int::Int::new(10), member_event.unsigned.age);
+        assert_eq!(
+            CallMemberEventContent::Empty { leave_reason: None },
+            member_event.unsigned.prev_content.unwrap().0
+        );
+
+        // assert_eq!(, StateUnsigned { age: 10, transaction_id: None, prev_content:
+        // CallMemberEventContent::Empty { leave_reason: None }, relations: None })
     }
 
     fn timestamps() -> (TS, TS, TS) {

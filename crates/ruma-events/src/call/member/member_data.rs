@@ -109,8 +109,7 @@ impl<'a> MembershipData<'a> {
 /// A membership describes one of the sessions this user currently partakes.
 ///
 /// The application defines the type of the session.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq))]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct LegacyMembershipData {
     /// The type of the matrixRTC session the membership belongs to.
@@ -225,8 +224,7 @@ impl From<LegacyMembershipDataInit> for LegacyMembershipData {
 }
 
 /// Stores all the information for a matrixRTC membership. (one for each device)
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq))]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SessionMembershipData {
     /// The type of the matrixRTC session the membership belongs to.
@@ -234,6 +232,7 @@ pub struct SessionMembershipData {
     /// e.g. call, spacial, document...
     #[serde(flatten)]
     pub application: Application,
+
     /// The device id of this membership.
     ///
     /// The same user can join with their phone/computer.
@@ -257,19 +256,17 @@ pub struct SessionMembershipData {
 /// This is not the application/client used by the user but the
 /// type of matrixRTC session e.g. calling (`m.call`), third-room, whiteboard could be
 /// possible applications.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq))]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "application")]
 pub enum Application {
+    /// The rtc application (session type) for VoIP call.
     #[serde(rename = "m.call")]
-    /// A VoIP call.
     Call(CallApplicationContent),
 }
 
 /// Call specific parameters of a `m.call.member` event.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq))]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct CallApplicationContent {
     /// An identifier for calls.

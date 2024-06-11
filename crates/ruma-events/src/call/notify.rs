@@ -5,7 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::member_data::Application;
+use super::member::Application;
 use crate::Mentions;
 
 /// The content of an `m.call.notify` event.

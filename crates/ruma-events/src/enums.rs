@@ -104,7 +104,7 @@ event_enum! {
         "org.matrix.msc3245.voice.v2" => super::voice,
         #[cfg(feature = "unstable-msc4075")]
         #[ruma_enum(alias = "m.call.notify")]
-        "org.matrix.msc4075.call.notify" => super::call::matrix_rtc::notify,
+        "org.matrix.msc4075.call.notify" => super::call::notify,
     }
 
     /// Any state event.
@@ -135,7 +135,7 @@ event_enum! {
         "org.matrix.msc3672.beacon_info" => super::beacon_info,
         #[cfg(feature = "unstable-msc3401")]
         #[ruma_enum(alias = "m.call.member")]
-        "org.matrix.msc3401.call.member" => super::call::matrix_rtc::member_event,
+        "org.matrix.msc3401.call.member" => super::call::member,
     }
 
     /// Any to-device event.

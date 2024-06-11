@@ -9,7 +9,9 @@ pub mod invite;
 pub mod negotiate;
 
 #[cfg(feature = "unstable-msc3401")]
-pub mod matrix_rtc;
+pub mod member;
+#[cfg(feature = "unstable-msc4075")]
+pub mod notify;
 pub mod reject;
 #[cfg(feature = "unstable-msc3291")]
 pub mod sdp_stream_metadata_changed;

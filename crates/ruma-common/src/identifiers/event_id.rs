@@ -44,7 +44,7 @@ impl EventId {
     /// Attempts to generate an `EventId` for the given origin server with a localpart consisting
     /// of 18 random ASCII characters.
     ///
-    /// This should only be used for events in the original format  as used by Matrix room versions
+    /// This should only be used for events in the original format as used by Matrix room versions
     /// 1 and 2.
     #[cfg(feature = "rand")]
     #[allow(clippy::new_ret_no_self)]
