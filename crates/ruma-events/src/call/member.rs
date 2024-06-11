@@ -302,7 +302,7 @@ mod tests {
             member_event.content,
             CallMemberEventContent::SessionContent(SessionMembershipData {
                 application: Application::Call(CallApplicationContent {
-                    call_id: "".to_string(),
+                    call_id: "".to_owned(),
                     scope: CallScope::Room
                 }),
                 device_id: "THIS_DEVICE".to_owned(),
@@ -321,7 +321,7 @@ mod tests {
         assert_eq!(js_int::Int::new(10), member_event.unsigned.age);
         assert_eq!(
             CallMemberEventContent::Empty { leave_reason: None },
-            member_event.unsigned.prev_content.unwrap().0
+            member_event.unsigned.prev_content.unwrap()
         );
 
         // assert_eq!(, StateUnsigned { age: 10, transaction_id: None, prev_content:

@@ -22,11 +22,11 @@ use crate::{
 /// This is the object containing all the data related to a matrix users participation in a
 /// matrixRTC session.
 ///
-/// This is a unit struct with the enum [`MemberEventContent`] because a Ruma state event cannot be
-/// an enum and we need this to be an untagged enum for parsing purposes. (see
-/// [`MemberEventContent`])
+/// This is a unit struct with the enum [`CallMemberEventContent`] because a Ruma state event cannot
+/// be an enum and we need this to be an untagged enum for parsing purposes. (see
+/// [`CallMemberEventContent`])
 ///
-/// This struct also exposes allows to call the methods from [`MemberEventContent`].
+/// This struct also exposes allows to call the methods from [`CallMemberEventContent`].
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent, PartialEq)]
 #[ruma_event(type = "org.matrix.msc3401.call.member", kind = State, state_key_type = OwnedUserId, custom_redacted, custom_possibly_redacted)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -152,18 +152,9 @@ impl RedactContent for CallMemberEventContent {
 
 /// The PossiblyRedacted version of [`CallMemberEventContent`].
 ///
-/// This wraps the [`CallMemberEventContent`] since the redacted state
-/// Empty {} case is a valid/"meaningful" state event content.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[allow(clippy::exhaustive_structs)]
-pub struct PossiblyRedactedCallMemberEventContent(pub CallMemberEventContent);
-
-impl ruma_events::content::EventContent for PossiblyRedactedCallMemberEventContent {
-    type EventType = StateEventType;
-    fn event_type(&self) -> Self::EventType {
-        StateEventType::CallMember
-    }
-}
+/// Since [`CallMemberEventContent`] has the Empty {} state it already is compatible
+/// with the redacted version of the state event content.
+pub type PossiblyRedactedCallMemberEventContent = CallMemberEventContent;
 
 impl PossiblyRedactedStateEventContent for PossiblyRedactedCallMemberEventContent {
     type StateKey = OwnedUserId;
