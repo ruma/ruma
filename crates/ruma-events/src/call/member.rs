@@ -88,12 +88,9 @@ impl CallMemberEventContent {
         origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
     ) -> Vec<MembershipData<'_>> {
         match self {
-            CallMemberEventContent::LegacyContent(content) => content
-                .memberships
-                .iter()
-                .filter(|m| !m.is_expired(origin_server_ts))
-                .map(MembershipData::Legacy)
-                .collect(),
+            CallMemberEventContent::LegacyContent(content) => {
+                content.active_memberships(origin_server_ts)
+            }
             CallMemberEventContent::SessionContent(content) => {
                 [content].map(MembershipData::Session).to_vec()
             }
@@ -120,8 +117,8 @@ impl CallMemberEventContent {
     /// Each call member event contains the `origin_server_ts` and `content.create_ts`.
     /// `content.create_ts` is undefined for the initial event of a session (because the
     /// `origin_server_ts` is not known on the client).
-    /// In the rust sdk we want to copy over the `origin_server_ts` of the event into the
-    /// (This allows to use `MinimalStateEvents` and still be able to determine if a
+    /// In the rust sdk we want to copy over the `origin_server_ts` of the event into the content.
+    /// (This allows to use `MinimalStateEvents` and still be able to determine if a membership is
     /// expired)
     pub fn set_created_ts_if_none(&mut self, origin_server_ts: MilliSecondsSinceUnixEpoch) {
         match self {
@@ -143,19 +140,19 @@ impl CallMemberEventContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct EmptyMembershipData {
     /// An empty call member state event can optionally contain a leave reason.
-    /// If it is `None` the user has left the call ordinary. (Intentional hangup)
+    /// If it is `None` the user has left the call ordinarily. (Intentional hangup)  
     #[serde(skip_serializing_if = "Option::is_none")]
     pub leave_reason: Option<LeaveReason>,
 }
 
 /// This is the optional value for an empty membership event content:
 /// [`CallMemberEventContent::Empty`]. It is used when the user disconnected and a Future ([MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140))
-/// was used to update the after the client was not reachable anymore.
+/// was used to update the membership after the client was not reachable anymore.  
 #[derive(Clone, PartialEq, StringEnum)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_enum(rename_all = "m.snake_case")]
 pub enum LeaveReason {
-    /// The user left the call by loosing network connection or closing
+    /// The user left the call by losing network connection or closing  
     /// the client before it was able to send the leave event.
     LostConnection,
     #[doc(hidden)]
@@ -172,8 +169,8 @@ impl RedactContent for CallMemberEventContent {
 
 /// The PossiblyRedacted version of [`CallMemberEventContent`].
 ///
-/// Since [`CallMemberEventContent`] has the Empty {} state it already is compatible
-/// with the redacted version of the state event content.
+/// Since [`CallMemberEventContent`] has the [`CallMemberEventContent::Empty`] state it already is
+/// compatible with the redacted version of the state event content.
 pub type PossiblyRedactedCallMemberEventContent = CallMemberEventContent;
 
 impl PossiblyRedactedStateEventContent for PossiblyRedactedCallMemberEventContent {
@@ -211,6 +208,19 @@ pub struct LegacyMembershipContent {
     /// To retrieve a list including only valid memberships,
     /// see [`active_memberships`](CallMemberEventContent::active_memberships).
     memberships: Vec<LegacyMembershipData>,
+}
+
+impl LegacyMembershipContent {
+    fn active_memberships(
+        &self,
+        origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
+    ) -> Vec<MembershipData<'_>> {
+        self.memberships
+            .iter()
+            .filter(|m| !m.is_expired(origin_server_ts))
+            .map(MembershipData::Legacy)
+            .collect()
+    }
 }
 
 #[cfg(test)]
