@@ -4,6 +4,8 @@ Breaking changes:
 
 - The `XMatrix::new` method now takes `OwnedServerName` instead of `Option<OwnedServerName>`
   for the destination, since servers must always set the destination.
+- The `sig` field in `XMatrix` has been changed from `String` to `Base64` to more accurately
+  mirror its allowed values in the type system.
 
 Improvements:
 
