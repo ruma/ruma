@@ -48,8 +48,8 @@ pub mod v1 {
         #[ruma_api(query)]
         #[serde(
             with = "ruma_common::serde::duration::ms",
-            default = "crate::media::default_download_timeout",
-            skip_serializing_if = "crate::media::is_default_download_timeout"
+            default = "ruma_common::media::default_download_timeout",
+            skip_serializing_if = "ruma_common::media::is_default_download_timeout"
         )]
         pub timeout_ms: Duration,
     }
@@ -78,7 +78,7 @@ pub mod v1 {
                 media_id,
                 server_name,
                 filename,
-                timeout_ms: crate::media::default_download_timeout(),
+                timeout_ms: ruma_common::media::default_download_timeout(),
             }
         }
 
