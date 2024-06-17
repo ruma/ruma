@@ -26,6 +26,7 @@ pub mod directory;
 pub mod encryption;
 pub mod http_headers;
 mod identifiers;
+pub mod media;
 mod percent_encode;
 pub mod power_levels;
 pub mod presence;
