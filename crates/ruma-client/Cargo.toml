@@ -33,7 +33,7 @@ reqwest-rustls-native-roots = ["reqwest", "reqwest?/rustls-tls-native-roots"]
 as_variant = { workspace = true, optional = true }
 assign = { workspace = true }
 async-stream = "0.3.0"
-bytes = "1.0.1"
+bytes = { workspace = true }
 futures-core = "0.3.8"
 http = { workspace = true }
 http-body-util = { version = "0.1.1", optional = true }
