@@ -55,7 +55,7 @@ unstable-msc4140 = []
 [dependencies]
 as_variant = { workspace = true }
 assign = { workspace = true }
-bytes = "1.0.1"
+bytes = { workspace = true }
 date_header = "1.0.5"
 http = { workspace = true }
 js_int = { workspace = true, features = ["serde"] }
