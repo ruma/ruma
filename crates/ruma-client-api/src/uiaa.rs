@@ -542,10 +542,10 @@ pub struct IncomingCustomThirdPartyId {
 #[derive(Clone, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ThirdpartyIdCredentials {
-    /// Identity server session ID.
+    /// Identity server (or homeserver) session ID.
     pub sid: OwnedSessionId,
 
-    /// Identity server client secret.
+    /// Identity server (or homeserver) client secret.
     pub client_secret: OwnedClientSecret,
 
     /// Identity server URL.
@@ -558,8 +558,7 @@ pub struct ThirdpartyIdCredentials {
 }
 
 impl ThirdpartyIdCredentials {
-    /// Creates a new `ThirdpartyIdCredentials` with the given session ID, client secret, identity
-    /// server address and access token.
+    /// Creates a new `ThirdpartyIdCredentials` with the given session ID and client secret.
     pub fn new(sid: OwnedSessionId, client_secret: OwnedClientSecret) -> Self {
         Self { sid, client_secret, id_server: None, id_access_token: None }
     }
