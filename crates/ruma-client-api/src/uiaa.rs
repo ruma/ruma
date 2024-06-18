@@ -542,29 +542,25 @@ pub struct IncomingCustomThirdPartyId {
 #[derive(Clone, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ThirdpartyIdCredentials {
-    /// Identity server session ID.
+    /// Identity server (or homeserver) session ID.
     pub sid: OwnedSessionId,
 
-    /// Identity server client secret.
+    /// Identity server (or homeserver) client secret.
     pub client_secret: OwnedClientSecret,
 
     /// Identity server URL.
-    pub id_server: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id_server: Option<String>,
 
     /// Identity server access token.
-    pub id_access_token: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id_access_token: Option<String>,
 }
 
 impl ThirdpartyIdCredentials {
-    /// Creates a new `ThirdpartyIdCredentials` with the given session ID, client secret, identity
-    /// server address and access token.
-    pub fn new(
-        sid: OwnedSessionId,
-        client_secret: OwnedClientSecret,
-        id_server: String,
-        id_access_token: String,
-    ) -> Self {
-        Self { sid, client_secret, id_server, id_access_token }
+    /// Creates a new `ThirdpartyIdCredentials` with the given session ID and client secret.
+    pub fn new(sid: OwnedSessionId, client_secret: OwnedClientSecret) -> Self {
+        Self { sid, client_secret, id_server: None, id_access_token: None }
     }
 }
 
