@@ -1,5 +1,11 @@
 # [unreleased]
 
+Bug fixes:
+
+- The `instance_id` field was removed from `ProtocolInstanceInit` and is now an
+  `Option<String>` for `ProtocolInstance`. It made the `unstable-unspecified`
+  feature non-additive.
+
 Improvements:
 
 - Add the `InvalidHeaderValue` variant to the `DeserializationError` struct, for

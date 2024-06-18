@@ -91,7 +91,8 @@ pub struct ProtocolInstance {
     ///
     /// See [matrix-spec#833](https://github.com/matrix-org/matrix-spec/issues/833).
     #[cfg(feature = "unstable-unspecified")]
-    pub instance_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub instance_id: Option<String>,
 }
 
 /// Initial set of fields of `Protocol`.
@@ -109,30 +110,18 @@ pub struct ProtocolInstanceInit {
 
     /// A unique identifier across all instances.
     pub network_id: String,
-
-    /// A unique identifier across all instances.
-    ///
-    /// See [matrix-spec#833](https://github.com/matrix-org/matrix-spec/issues/833).
-    #[cfg(feature = "unstable-unspecified")]
-    pub instance_id: String,
 }
 
 impl From<ProtocolInstanceInit> for ProtocolInstance {
     fn from(init: ProtocolInstanceInit) -> Self {
-        let ProtocolInstanceInit {
-            desc,
-            fields,
-            network_id,
-            #[cfg(feature = "unstable-unspecified")]
-            instance_id,
-        } = init;
+        let ProtocolInstanceInit { desc, fields, network_id } = init;
         Self {
             desc,
             icon: None,
             fields,
             network_id,
             #[cfg(feature = "unstable-unspecified")]
-            instance_id,
+            instance_id: None,
         }
     }
 }
