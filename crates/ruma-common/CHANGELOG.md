@@ -10,6 +10,8 @@ Improvements:
 
 - Add the `InvalidHeaderValue` variant to the `DeserializationError` struct, for
   cases where we receive a HTTP header with an unexpected value.
+- Implement `Eq`/`Hash`/`PartialEq` for `ThirdPartyIdentifier`, to check whether 
+  a `ThirdPartyIdentifier` has already been added by another user.
 
 # 0.13.0
 

@@ -2,7 +2,10 @@
 //!
 //! [thirdparty]: https://spec.matrix.org/latest/client-server-api/#third-party-networks
 
-use std::collections::BTreeMap;
+use std::{
+    collections::BTreeMap,
+    hash::{Hash, Hasher},
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -229,7 +232,6 @@ pub enum Medium {
 /// this type using `ThirdPartyIdentifier::Init` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[cfg_attr(test, derive(PartialEq))]
 pub struct ThirdPartyIdentifier {
     /// The third party identifier address.
     pub address: String,
@@ -242,6 +244,20 @@ pub struct ThirdPartyIdentifier {
 
     /// The time when the homeserver associated the third party identifier with the user.
     pub added_at: MilliSecondsSinceUnixEpoch,
+}
+
+impl Eq for ThirdPartyIdentifier {}
+
+impl Hash for ThirdPartyIdentifier {
+    fn hash<H: Hasher>(&self, hasher: &mut H) {
+        (self.medium.as_str(), &self.address).hash(hasher);
+    }
+}
+
+impl PartialEq for ThirdPartyIdentifier {
+    fn eq(&self, other: &ThirdPartyIdentifier) -> bool {
+        self.address == other.address && self.medium == other.medium
+    }
 }
 
 /// Initial set of fields of `ThirdPartyIdentifier`.
