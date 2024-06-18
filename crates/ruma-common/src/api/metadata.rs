@@ -106,21 +106,18 @@ impl Metadata {
         assert!(first_segment.is_empty(), "endpoint paths must start with '/'");
 
         for segment in segments {
-            match strip_brackets(segment) {
-                Some(segment) => {
-                    let arg = path_args
-                        .next()
-                        .map(ToString::to_string)
-                        .expect("number of placeholders must match number of required arguments");
+            if strip_brackets(segment).is_some() {
+                let arg = path_args
+                    .next()
+                    .map(ToString::to_string)
+                    .expect("number of placeholders must match number of required arguments");
 
-                    let arg = utf8_percent_encode(&arg, PATH_PERCENT_ENCODE_SET);
-                    write!(res, "/{arg}").expect("writing to a String using fmt::Write can't fail");
-                }
-                None => {
-                    res.reserve(segment.len() + 1);
-                    res.push('/');
-                    res.push_str(segment);
-                }
+                let arg = utf8_percent_encode(&arg, PATH_PERCENT_ENCODE_SET);
+                write!(res, "/{arg}").expect("writing to a String using fmt::Write can't fail");
+            } else {
+                res.reserve(segment.len() + 1);
+                res.push('/');
+                res.push_str(segment);
             }
         }
 
