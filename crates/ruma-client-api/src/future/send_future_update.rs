@@ -1,0 +1,43 @@
+//! `POST /_matrix/client/*/futures/{token}`
+//!
+//! Send a future token to update/cancel/send the associated future event.
+
+pub mod v3 {
+    //! `/v3/` ([spec])
+    //!
+    //! [spec]: [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
+
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
+
+    const METADATA: Metadata = metadata! {
+        method: POST,
+        rate_limited: true,
+        authentication: None,
+        history: {
+            1.1 => "/_matrix/client/v3/futures/:token",
+        }
+    };
+
+    /// Request type for the `send_future` endpoint.
+    #[request(error = crate::Error)]
+    pub struct Request {
+        /// The token.
+        #[ruma_api(path)]
+        pub token: String,
+    }
+
+    impl Request {
+        /// Creates a new `Request` to update a future. This is an unauthenticated request and only
+        /// requires the future token.
+        pub fn new(token: String) -> serde_json::Result<Self> {
+            Ok(Self { token })
+        }
+    }
+
+    /// Response type for the `send_future` endpoint.
+    #[response(error = crate::Error)]
+    pub struct Response {}
+}

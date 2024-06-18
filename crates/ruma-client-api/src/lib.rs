@@ -23,6 +23,7 @@ pub mod directory;
 pub mod discovery;
 pub mod error;
 pub mod filter;
+pub mod future;
 pub mod http_headers;
 pub mod keys;
 pub mod knock;
