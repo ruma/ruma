@@ -22,7 +22,7 @@ pub mod v1 {
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
-            1.0 => "/_matrix/federation/v1/user/devices/:user_id",
+            1.0 => "/_matrix/federation/v1/user/devices/{user_id}",
         }
     };
 

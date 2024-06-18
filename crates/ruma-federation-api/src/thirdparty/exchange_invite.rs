@@ -22,7 +22,7 @@ pub mod v1 {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            1.0 => "/_matrix/federation/v1/exchange_third_party_invite/:room_id",
+            1.0 => "/_matrix/federation/v1/exchange_third_party_invite/{room_id}",
         }
     };
 

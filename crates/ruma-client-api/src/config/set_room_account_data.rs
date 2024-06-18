@@ -23,8 +23,8 @@ pub mod v3 {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            1.0 => "/_matrix/client/r0/user/:user_id/rooms/:room_id/account_data/:event_type",
-            1.1 => "/_matrix/client/v3/user/:user_id/rooms/:room_id/account_data/:event_type",
+            1.0 => "/_matrix/client/r0/user/{user_id}/rooms/{room_id}/account_data/{event_type}",
+            1.1 => "/_matrix/client/v3/user/{user_id}/rooms/{room_id}/account_data/{event_type}",
         }
     };
 

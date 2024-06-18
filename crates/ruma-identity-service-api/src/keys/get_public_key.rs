@@ -19,7 +19,7 @@ pub mod v2 {
         rate_limited: false,
         authentication: None,
         history: {
-            1.0 => "/_matrix/identity/v2/pubkey/:key_id",
+            1.0 => "/_matrix/identity/v2/pubkey/{key_id}",
         }
     };
 
