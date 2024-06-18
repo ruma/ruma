@@ -17,13 +17,10 @@ Improvements:
 
 Bug fixes:
 
-- Rename `avatar` to `avatar_url` when (De)serializing
+- Rename `avatar` to `avatar_url` when (De)serializing `SlidingSyncRoomHero`
+- `user_id` of `SlidingSyncRoomHero` is now mandatory
 - Make authentication with access token optional for the `change_password` and
   `deactivate` endpoints.
-
-Bug fixes:
-
-- `user_id` of `SlidingSyncRoomHero` is now mandatory
 
 # 0.18.0
 
