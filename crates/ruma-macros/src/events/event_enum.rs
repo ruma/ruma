@@ -170,7 +170,17 @@ fn expand_deserialize_impl(
             };
             let self_variant = variant.ctor(quote! { Self });
             let content = event.to_event_path(kind, var);
-            let ev_types = event.aliases.iter().chain([&event.ev_type]);
+            let ev_types = event.aliases.iter().chain([&event.ev_type]).map(|ev_type| {
+                if event.has_type_fragment() {
+                    let ev_type = ev_type.value();
+                    let prefix = ev_type
+                        .strip_suffix('*')
+                        .expect("event type with type fragment must end with *");
+                    quote! { t if t.starts_with(#prefix) }
+                } else {
+                    quote! { #ev_type }
+                }
+            });
 
             Ok(quote! {
                 #variant_attrs #(#ev_types)|* => {

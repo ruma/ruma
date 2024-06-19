@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+- Fix deserialization of `AnyGlobalAccountDataEvent` for variants with a type
+  fragment.
+
 Improvements:
 
  - Add support for encrypted stickers as sent by several bridges under the flag `compat-encrypted-stickers`
