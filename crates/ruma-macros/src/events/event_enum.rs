@@ -338,6 +338,45 @@ fn expand_content_enum(
     let serialize_custom_event_error_path =
         quote! { #ruma_events::serialize_custom_event_error }.to_string();
 
+    // Generate an `EventContentFromType` implementation.
+    let serde_json = quote! { #ruma_events::exports::serde_json };
+    let event_type_match_arms: TokenStream = events
+        .iter()
+        .map(|event| {
+            let variant = event.to_variant()?;
+            let variant_attrs = {
+                let attrs = &variant.attrs;
+                quote! { #(#attrs)* }
+            };
+            let self_variant = variant.ctor(quote! { Self });
+
+            let ev_types = event.aliases.iter().chain([&event.ev_type]);
+
+            let deserialize_content = if event.has_type_fragment() {
+                // If the event has a type fragment, then it implements EventContentFromType itself;
+                // see `generate_event_content_impl` which does that. In this case, forward to its
+                // implementation.
+                let content_type = event.to_event_content_path(kind, None);
+                quote! {
+                    #content_type::from_parts(event_type, json)?
+                }
+            } else {
+                // The event doesn't have a type fragment, so it *should* implement Deserialize:
+                // use that here.
+                quote! {
+                    #serde_json::from_str(json.get())?
+                }
+            };
+
+            Ok(quote! {
+                #variant_attrs #(#ev_types)|* => {
+                    let content = #deserialize_content;
+                    Ok(#self_variant(content))
+                },
+            })
+        })
+        .collect::<syn::Result<_>>()?;
+
     Ok(quote! {
         #( #attrs )*
         #[derive(Clone, Debug, #serde::Serialize)]
@@ -364,6 +403,23 @@ fn expand_content_enum(
                 match self {
                     #( #variant_arms(content) => content.event_type(), )*
                     Self::_Custom { event_type } => ::std::convert::From::from(&event_type.0[..]),
+                }
+            }
+        }
+
+        #[automatically_derived]
+        impl #ruma_events::EventContentFromType for #ident {
+            fn from_parts(event_type: &str, json: &#serde_json::value::RawValue) -> serde_json::Result<Self> {
+                match event_type {
+                    #event_type_match_arms
+
+                    _ => {
+                        Ok(Self::_Custom {
+                            event_type: crate::PrivOwnedStr(
+                                ::std::convert::From::from(event_type.to_owned())
+                            )
+                        })
+                    }
                 }
             }
         }
