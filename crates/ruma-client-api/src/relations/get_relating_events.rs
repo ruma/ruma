@@ -21,8 +21,8 @@ pub mod v1 {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/rooms/:room_id/relations/:event_id",
-            1.3 => "/_matrix/client/v1/rooms/:room_id/relations/:event_id",
+            unstable => "/_matrix/client/unstable/rooms/{room_id}/relations/{event_id}",
+            1.3 => "/_matrix/client/v1/rooms/{room_id}/relations/{event_id}",
         }
     };
 

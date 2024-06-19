@@ -23,7 +23,7 @@ pub mod unstable {
         rate_limited: true,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/org.matrix.msc3916/media/thumbnail/:server_name/:media_id",
+            unstable => "/_matrix/client/unstable/org.matrix.msc3916/media/thumbnail/{server_name}/{media_id}",
         }
     };
 

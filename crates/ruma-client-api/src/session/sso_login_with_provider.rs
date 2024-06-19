@@ -18,8 +18,8 @@ pub mod v3 {
         rate_limited: false,
         authentication: None,
         history: {
-            unstable => "/_matrix/client/unstable/org.matrix.msc2858/login/sso/redirect/:idp_id",
-            1.1 => "/_matrix/client/v3/login/sso/redirect/:idp_id",
+            unstable => "/_matrix/client/unstable/org.matrix.msc2858/login/sso/redirect/{idp_id}",
+            1.1 => "/_matrix/client/v3/login/sso/redirect/{idp_id}",
         }
     };
 

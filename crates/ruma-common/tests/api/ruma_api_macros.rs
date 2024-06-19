@@ -14,7 +14,7 @@ pub mod some_endpoint {
         rate_limited: false,
         authentication: None,
         history: {
-            unstable => "/_matrix/some/endpoint/:user",
+            unstable => "/_matrix/some/endpoint/{user}",
         }
     };
 

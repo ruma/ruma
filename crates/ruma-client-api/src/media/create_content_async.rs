@@ -18,8 +18,8 @@ pub mod v3 {
         rate_limited: true,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/media/unstable/fi.mau.msc2246/upload/:server_name/:media_id",
-            1.7 => "/_matrix/media/v3/upload/:server_name/:media_id",
+            unstable => "/_matrix/media/unstable/fi.mau.msc2246/upload/{server_name}/{media_id}",
+            1.7 => "/_matrix/media/v3/upload/{server_name}/{media_id}",
         }
     };
 

@@ -1,4 +1,4 @@
-//! PUT /_matrix/client/r0/directory/room/:room_alias
+//! PUT /_matrix/client/r0/directory/room/{room_alias}
 
 #![allow(clippy::exhaustive_structs)]
 
@@ -26,10 +26,10 @@ const METADATA: Metadata = Metadata {
     rate_limited: false,
     authentication: AuthScheme::None,
     history: VersionHistory::new(
-        &["/_matrix/client/unstable/directory/room/:room_alias"],
+        &["/_matrix/client/unstable/directory/room/{room_alias}"],
         &[
-            (MatrixVersion::V1_0, "/_matrix/client/r0/directory/room/:room_alias"),
-            (MatrixVersion::V1_1, "/_matrix/client/v3/directory/room/:room_alias"),
+            (MatrixVersion::V1_0, "/_matrix/client/r0/directory/room/{room_alias}"),
+            (MatrixVersion::V1_1, "/_matrix/client/v3/directory/room/{room_alias}"),
         ],
         Some(MatrixVersion::V1_2),
         Some(MatrixVersion::V1_3),

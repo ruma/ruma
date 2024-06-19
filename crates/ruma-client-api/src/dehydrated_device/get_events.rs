@@ -20,7 +20,7 @@ pub mod unstable {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/org.matrix.msc3814.v1/dehydrated_device/:device_id/events",
+            unstable => "/_matrix/client/unstable/org.matrix.msc3814.v1/dehydrated_device/{device_id}/events",
         }
     };
 

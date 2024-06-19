@@ -23,8 +23,8 @@ pub mod v3 {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            1.0 => "/_matrix/client/r0/rooms/:room_id/messages",
-            1.1 => "/_matrix/client/v3/rooms/:room_id/messages",
+            1.0 => "/_matrix/client/r0/rooms/{room_id}/messages",
+            1.1 => "/_matrix/client/v3/rooms/{room_id}/messages",
         }
     };
 

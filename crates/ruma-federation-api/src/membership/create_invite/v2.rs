@@ -18,7 +18,7 @@ const METADATA: Metadata = metadata! {
     rate_limited: false,
     authentication: ServerSignatures,
     history: {
-        1.0 => "/_matrix/federation/v2/invite/:room_id/:event_id",
+        1.0 => "/_matrix/federation/v2/invite/{room_id}/{event_id}",
     }
 };
 

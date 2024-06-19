@@ -21,8 +21,8 @@ pub mod v3 {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            1.0 => "/_matrix/client/r0/presence/:user_id/status",
-            1.1 => "/_matrix/client/v3/presence/:user_id/status",
+            1.0 => "/_matrix/client/r0/presence/{user_id}/status",
+            1.1 => "/_matrix/client/v3/presence/{user_id}/status",
         }
     };
 

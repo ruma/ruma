@@ -22,7 +22,7 @@ pub mod v2 {
         rate_limited: false,
         authentication: None,
         history: {
-            1.0 => "/_matrix/key/v2/query/:server_name",
+            1.0 => "/_matrix/key/v2/query/{server_name}",
         }
     };
 

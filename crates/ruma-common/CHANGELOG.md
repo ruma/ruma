@@ -6,6 +6,10 @@ Bug fixes:
   `Option<String>` for `ProtocolInstance`. It made the `unstable-unspecified`
   feature non-additive.
 
+Breaking changes:
+
+- Upgrade API endpoint path syntax.
+
 Improvements:
 
 - Add the `InvalidHeaderValue` variant to the `DeserializationError` struct, for

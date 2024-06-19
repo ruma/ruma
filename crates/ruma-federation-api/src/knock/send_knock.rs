@@ -21,8 +21,8 @@ pub mod v1 {
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
-            unstable => "/_matrix/federation/unstable/xyz.amorgan.knock/send_knock/:room_id/:event_id",
-            1.1 => "/_matrix/federation/v1/send_knock/:room_id/:event_id",
+            unstable => "/_matrix/federation/unstable/xyz.amorgan.knock/send_knock/{room_id}/{event_id}",
+            1.1 => "/_matrix/federation/v1/send_knock/{room_id}/{event_id}",
         }
     };
 

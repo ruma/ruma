@@ -106,13 +106,13 @@ impl Metadata {
         assert!(first_segment.is_empty(), "endpoint paths must start with '/'");
 
         for segment in segments {
-            if segment.starts_with(':') {
+            if strip_brackets(segment).is_some() {
                 let arg = path_args
                     .next()
-                    .expect("number of placeholders must match number of arguments")
-                    .to_string();
-                let arg = utf8_percent_encode(&arg, PATH_PERCENT_ENCODE_SET);
+                    .map(ToString::to_string)
+                    .expect("number of placeholders must match number of required arguments");
 
+                let arg = utf8_percent_encode(&arg, PATH_PERCENT_ENCODE_SET);
                 write!(res, "/{arg}").expect("writing to a String using fmt::Write can't fail");
             } else {
                 res.reserve(segment.len() + 1);
@@ -133,8 +133,16 @@ impl Metadata {
     #[doc(hidden)]
     pub fn _path_parameters(&self) -> Vec<&'static str> {
         let path = self.history.all_paths().next().unwrap();
-        path.split('/').filter_map(|segment| segment.strip_prefix(':')).collect()
+        path.split('/').filter_map(strip_brackets).collect()
     }
+}
+
+const fn strip_brackets(segment: &'static str) -> Option<&'static str> {
+    use konst::{option, string};
+
+    option::and_then!(string::strip_prefix(segment, '{'), |segment| string::strip_suffix(
+        segment, '}'
+    ))
 }
 
 /// The complete history of this endpoint as far as Ruma knows, together with all variants on
@@ -203,14 +211,14 @@ impl VersionHistory {
             let mut second_iter = string::split(second, "/").next();
 
             iter::for_each!(first_s in string::split(first, "/") => {
-                if let Some(first_arg) = string::strip_prefix(first_s, ":") {
+                if let Some(first_arg) = strip_brackets(first_s) {
                     let second_next_arg: Option<&'static str> = loop {
                         let (second_s, second_n_iter) = match second_iter {
                             Some(tuple) => tuple,
                             None => break None,
                         };
 
-                        let maybe_second_arg = string::strip_prefix(second_s, ":");
+                        let maybe_second_arg = strip_brackets(second_s);
 
                         second_iter = second_n_iter.next();
 
@@ -231,7 +239,7 @@ impl VersionHistory {
 
             // If second iterator still has some values, empty first.
             while let Some((second_s, second_n_iter)) = second_iter {
-                if string::starts_with(second_s, ":") {
+                if strip_brackets(second_s).is_some() {
                     panic!("Amount of Path Arguments do not match");
                 }
                 second_iter = second_n_iter.next();
@@ -429,7 +437,7 @@ impl VersionHistory {
     ///
     /// This will return an endpoint in the following format;
     /// - `/_matrix/client/versions`
-    /// - `/_matrix/client/hello/:world` (`:world` is a path replacement parameter)
+    /// - `/_matrix/client/hello/{world}` (`{world}` is a path replacement parameter)
     ///
     /// Note: This will not keep in mind endpoint removals, check with
     /// [`versioning_decision_for`](VersionHistory::versioning_decision_for) to see if this endpoint
@@ -773,14 +781,14 @@ mod tests {
 
     #[test]
     fn make_endpoint_url_with_path_args() {
-        let meta = stable_only_metadata(&[(V1_0, "/s/:x")]);
+        let meta = stable_only_metadata(&[(V1_0, "/s/{x}")]);
         let url = meta.make_endpoint_url(&[V1_0], "https://example.org", &[&"123"], "").unwrap();
         assert_eq!(url, "https://example.org/s/123");
     }
 
     #[test]
     fn make_endpoint_url_with_path_args_with_dash() {
-        let meta = stable_only_metadata(&[(V1_0, "/s/:x")]);
+        let meta = stable_only_metadata(&[(V1_0, "/s/{x}")]);
         let url =
             meta.make_endpoint_url(&[V1_0], "https://example.org", &[&"my-path"], "").unwrap();
         assert_eq!(url, "https://example.org/s/my-path");
@@ -788,7 +796,7 @@ mod tests {
 
     #[test]
     fn make_endpoint_url_with_path_args_with_reserved_char() {
-        let meta = stable_only_metadata(&[(V1_0, "/s/:x")]);
+        let meta = stable_only_metadata(&[(V1_0, "/s/{x}")]);
         let url = meta.make_endpoint_url(&[V1_0], "https://example.org", &[&"#path"], "").unwrap();
         assert_eq!(url, "https://example.org/s/%23path");
     }
@@ -803,7 +811,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn make_endpoint_url_wrong_num_path_args() {
-        let meta = stable_only_metadata(&[(V1_0, "/s/:x")]);
+        let meta = stable_only_metadata(&[(V1_0, "/s/{x}")]);
         _ = meta.make_endpoint_url(&[V1_0], "https://example.org", &[], "");
     }
 

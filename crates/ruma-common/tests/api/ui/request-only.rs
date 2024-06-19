@@ -12,7 +12,7 @@ const METADATA: Metadata = metadata! {
     rate_limited: false,
     authentication: None,
     history: {
-        unstable => "/_matrix/some/endpoint/:foo",
+        unstable => "/_matrix/some/endpoint/{foo}",
     }
 };
 

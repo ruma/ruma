@@ -20,8 +20,8 @@ pub mod v3 {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            1.0 => "/_matrix/client/r0/admin/whois/:user_id",
-            1.1 => "/_matrix/client/v3/admin/whois/:user_id",
+            1.0 => "/_matrix/client/r0/admin/whois/{user_id}",
+            1.1 => "/_matrix/client/v3/admin/whois/{user_id}",
         }
     };
 

@@ -18,8 +18,8 @@ pub mod v3 {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            1.0 => "/_matrix/client/r0/user/:user_id/rooms/:room_id/tags",
-            1.1 => "/_matrix/client/v3/user/:user_id/rooms/:room_id/tags",
+            1.0 => "/_matrix/client/r0/user/{user_id}/rooms/{room_id}/tags",
+            1.1 => "/_matrix/client/v3/user/{user_id}/rooms/{room_id}/tags",
         }
     };
 

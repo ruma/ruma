@@ -19,8 +19,8 @@ pub mod v3 {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            1.0 => "/_matrix/client/r0/directory/list/appservice/:network_id/:room_id",
-            1.1 => "/_matrix/client/v3/directory/list/appservice/:network_id/:room_id",
+            1.0 => "/_matrix/client/r0/directory/list/appservice/{network_id}/{room_id}",
+            1.1 => "/_matrix/client/v3/directory/list/appservice/{network_id}/{room_id}",
         }
     };
 
