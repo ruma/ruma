@@ -2,10 +2,10 @@
 //!
 //! Send a future (a scheduled message) to a room. [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
 
-pub mod v3 {
-    //! `/v3/` ([spec])
+pub mod unstable {
+    //! `msc3814` ([MSC])
     //!
-    //! [spec]: [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
+    //! [MSC]: [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
 
     use ruma_common::{
         api::{request, response, Metadata},
@@ -23,7 +23,7 @@ pub mod v3 {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            1.1 => "/_matrix/client/v3/rooms/:room_id/send_future/:event_type/:txn_id",
+            unstable => "/_matrix/client/v3/rooms/:room_id/send_future/:event_type/:txn_id",
         }
     };
 
@@ -52,7 +52,7 @@ pub mod v3 {
 
         /// Additional parameters to describe sending a future.
         ///
-        /// Only a three combinations for `future_timeout` and `future_group_id` are possible.
+        /// Only three combinations for `future_timeout` and `future_group_id` are possible.
         /// The enum [`FutureParameters`] enforces this.
         #[ruma_api(query_type)]
         pub future_parameters: FutureParameters,
@@ -70,13 +70,13 @@ pub mod v3 {
         /// A token to cancel this future. It will never be send if this is called.
         pub cancel_token: String,
         /// The `future_group_id` generated for this future. Used to connect multiple futures
-        /// only one of the connected futures will be send and inserted into the DAG.
+        /// only one of the connected futures will be sent and inserted into the DAG.
         pub future_group_id: String,
         /// A token used to refresh the timer of the future. This allows
-        /// to implement heardbeat like capabilities. An event is only send once
+        /// to implement heartbeat like capabilities. An event is only sent once
         /// a refresh in the timeout interval is missed.
         ///
-        /// If the future does not have a timeout this will be `None`
+        /// If the future does not have a timeout this will be `None`.
         pub refresh_token: Option<String>,
     }
 
@@ -106,8 +106,8 @@ pub mod v3 {
             })
         }
 
-        /// Creates a new `Request` with the given room id, transaction id future_parameters and
-        /// raw event content.
+        /// Creates a new `Request` with the given room id, transaction id, event type,
+        /// future parameters and raw event content.
         pub fn new_raw(
             room_id: OwnedRoomId,
             txn_id: OwnedTransactionId,
@@ -121,7 +121,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the tokens required to control the future using the
-        /// [`crate::future::send_future_update::v3::Request`] request.
+        /// [`crate::future::update_future::unstable::Request`] request.
         pub fn new(
             send_token: String,
             cancel_token: String,
@@ -139,11 +139,11 @@ pub mod v3 {
             owned_room_id,
         };
         use ruma_events::room::message::RoomMessageEventContent;
-        use serde_json::{json, Value};
+        use serde_json::{json, Value as JsonValue};
         use web_time::Duration;
 
         use super::Request;
-        use crate::future::future_message_event::v3::FutureParameters;
+        use crate::future::send_future_message_event::unstable::FutureParameters;
 
         #[test]
         fn serialize_message_future_request() {
@@ -154,7 +154,7 @@ pub mod v3 {
                 "1234".into(),
                 FutureParameters::Timeout {
                     timeout: Duration::from_millis(103),
-                    group_id: Some("testId".to_string()),
+                    group_id: Some("testId".to_owned()),
                 },
                 &RoomMessageEventContent::text_plain("test"),
             )
@@ -174,8 +174,8 @@ pub mod v3 {
             assert_eq!("PUT", parts.method.to_string());
             assert_eq!(
                 json!({"msgtype":"m.text","body":"test"}),
-                serde_json::from_str::<Value>(std::str::from_utf8(&body).unwrap()).unwrap()
-            )
+                serde_json::from_str::<JsonValue>(std::str::from_utf8(&body).unwrap()).unwrap()
+            );
         }
     }
 }

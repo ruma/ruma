@@ -2,10 +2,10 @@
 //!
 //! Send a future state (a scheduled state event) to a room. [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
 
-pub mod v3 {
-    //! `/v3/` ([spec])
+pub mod unstable {
+    //! `msc3814` ([MSC])
     //!
-    //! [spec]: [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
+    //! [MSC]: [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
 
     use ruma_common::{
         api::{request, response, Metadata},
@@ -23,7 +23,7 @@ pub mod v3 {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            1.1 => "/_matrix/client/v3/rooms/:room_id/state_future/:event_type/:state_key",
+            unstable => "/_matrix/client/v3/rooms/:room_id/state_future/:event_type/:state_key",
         }
     };
 
@@ -44,7 +44,7 @@ pub mod v3 {
 
         /// Additional parameters to describe sending a future.
         ///
-        /// Only a three combinations for `future_timeout` and `future_group_id` are possible.
+        /// Only three combinations for `future_timeout` and `future_group_id` are possible.
         /// The enum [`FutureParameters`] enforces this.
         #[ruma_api(query_type)]
         pub future_parameters: FutureParameters,
@@ -62,13 +62,13 @@ pub mod v3 {
         /// A token to cancel this future. It will never be send if this is called.
         pub cancel_token: String,
         /// The `future_group_id` generated for this future. Used to connect multiple futures
-        /// only one of the connected futures will be send and inserted into the DAG.
+        /// only one of the connected futures will be sent and inserted into the DAG.
         pub future_group_id: String,
         /// A token used to refresh the timer of the future. This allows
         /// to implement heardbeat like capabilities. An event is only send once
         /// a refresh in the timeout interval is missed.
         ///
-        /// If the future does not have a timeout this will be `None`
+        /// If the future does not have a timeout this will be `None`.
         pub refresh_token: Option<String>,
     }
 
@@ -98,8 +98,8 @@ pub mod v3 {
             })
         }
 
-        /// Creates a new `Request` with the given room id, transaction id future_parameters and
-        /// raw event content.
+        /// Creates a new `Request` with the given room id, event type, state key,
+        /// future parameters and raw event content.
         pub fn new_raw(
             room_id: OwnedRoomId,
             state_key: String,
@@ -113,7 +113,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the tokens required to control the future using the
-        /// [`crate::future::send_future_update::v3::Request`] request.
+        /// [`crate::future::update_future::unstable::Request`] request.
         pub fn new(
             send_token: String,
             cancel_token: String,
@@ -130,8 +130,8 @@ pub mod v3 {
             api::{MatrixVersion, OutgoingRequest, SendAccessToken},
             owned_room_id,
         };
-        use ruma_events::call::member::CallMemberEventContent;
-        use serde_json::{json, Value};
+        use ruma_events::room::topic::RoomTopicEventContent;
+        use serde_json::{json, Value as JsonValue};
         use web_time::Duration;
 
         use super::Request;
@@ -146,9 +146,9 @@ pub mod v3 {
                 "@userAsStateKey:example.org".to_owned(),
                 FutureParameters::Timeout {
                     timeout: Duration::from_millis(1_234_321),
-                    group_id: Some("abs1abs1abs1abs1".to_string()),
+                    group_id: Some("abs1abs1abs1abs1".to_owned()),
                 },
-                &CallMemberEventContent::new_legacy([].to_vec()),
+                &RoomTopicEventContent::new("my_topic".to_owned()),
             )
             .unwrap();
             let request: http::Request<Vec<u8>> = req
@@ -160,14 +160,14 @@ pub mod v3 {
                 .unwrap();
             let (parts, body) = request.into_parts();
             assert_eq!(
-                "https://homeserver.tld/_matrix/client/v3/rooms/!roomid:example.org/state_future/org.matrix.msc3401.call.member/@userAsStateKey:example.org?future_timeout=1234321&future_group_id=abs1abs1abs1abs1",
+                "https://homeserver.tld/_matrix/client/v3/rooms/!roomid:example.org/state_future/m.room.topic/@userAsStateKey:example.org?future_timeout=1234321&future_group_id=abs1abs1abs1abs1",
                 parts.uri.to_string()
             );
             assert_eq!("PUT", parts.method.to_string());
             assert_eq!(
-                json!({"memberships": []}),
-                serde_json::from_str::<Value>(std::str::from_utf8(&body).unwrap()).unwrap()
-            )
+                json!({"topic": "my_topic"}),
+                serde_json::from_str::<JsonValue>(std::str::from_utf8(&body).unwrap()).unwrap()
+            );
         }
     }
 }

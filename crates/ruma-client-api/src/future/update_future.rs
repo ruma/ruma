@@ -2,10 +2,10 @@
 //!
 //! Send a future token to update/cancel/send the associated future event.
 
-pub mod v3 {
-    //! `/v3/` ([spec])
+pub mod unstable {
+    //! `msc3814` ([MSC])
     //!
-    //! [spec]: [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
+    //! [MSC]: [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
 
     use ruma_common::{
         api::{request, response, Metadata},
@@ -17,7 +17,7 @@ pub mod v3 {
         rate_limited: true,
         authentication: None,
         history: {
-            1.1 => "/_matrix/client/v3/futures/:token",
+            unstable => "/_matrix/client/v1/future/:token",
         }
     };
 
