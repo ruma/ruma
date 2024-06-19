@@ -19,7 +19,7 @@ use ruma_events::{
         },
         EncryptedFileInit, JsonWebKeyInit, MediaSource,
     },
-    AnySyncTimelineEvent, Mentions, MessageLikeUnsigned,
+    AnyMessageLikeEventContent, AnySyncTimelineEvent, Mentions, MessageLikeUnsigned, RawExt as _,
 };
 use serde_json::{
     from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
@@ -103,6 +103,22 @@ fn text_msgtype_plain_text_serialization() {
             "msgtype": "m.text"
         })
     );
+}
+
+#[test]
+fn text_msgtype_plain_text_deserialization_as_any() {
+    let serialized = json!({
+        "body": "Hello world!",
+        "msgtype": "m.text"
+    });
+
+    let raw_event: Raw<AnyMessageLikeEventContent> =
+        Raw::from_json_string(serialized.to_string()).unwrap();
+
+    let event = raw_event.deserialize_with_type("m.room.message".into()).unwrap();
+
+    assert_matches!(event, AnyMessageLikeEventContent::RoomMessage(message));
+    assert_eq!(message.body(), "Hello world!");
 }
 
 #[test]
