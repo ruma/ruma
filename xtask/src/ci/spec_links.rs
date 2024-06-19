@@ -226,37 +226,36 @@ fn get_page_ids(url: &str) -> Result<HashMap<String, HasDuplicates>> {
             continue;
         };
 
-        let (id, has_duplicates) = uniquify_heading_id(id, &mut ids);
+        let has_duplicates = heading_id_has_duplicates(&id, &mut ids);
+
         ids.insert(id, has_duplicates);
     }
 
     Ok(ids)
 }
 
-/// Make sure the ID is unique in the page, if not make it unique.
+/// Check whether the given heading ID has duplicates in the given map.
 ///
-/// This is necessary because Matrix spec pages do that in JavaScript, so IDs
-/// are not unique in the source.
-///
-/// This is a reimplementation of the algorithm used for the spec.
-///
-/// See <https://github.com/matrix-org/matrix-spec/blob/6b02e393082570db2d0a651ddb79a365bc4a0f8d/static/js/toc.js#L25-L37>.
-fn uniquify_heading_id(
-    mut id: String,
+/// This check is necessary because duplicates IDs have a number depending on their occurrence in a
+/// HTML page. If a duplicate ID is added, moved or removed from the spec, its number might change
+/// from one version to the next.
+fn heading_id_has_duplicates(
+    id: &str,
     unique_ids: &mut HashMap<String, HasDuplicates>,
-) -> (String, HasDuplicates) {
-    let base_id = id.clone();
-    let mut counter: u16 = 0;
-    let mut has_duplicates = HasDuplicates::No;
+) -> HasDuplicates {
+    // IDs that should be duplicates end with `-{number}`.
+    let Some((start, _end)) =
+        id.rsplit_once('-').filter(|(_start, end)| end.chars().all(|c| c.is_ascii_digit()))
+    else {
+        return HasDuplicates::No;
+    };
 
-    while let Some(other_id_has_dup) = unique_ids.get_mut(&id) {
-        has_duplicates = HasDuplicates::Yes;
+    // Update the first duplicate ID, because it doesn't end with a number.
+    if let Some(other_id_has_dup) = unique_ids.get_mut(start) {
         *other_id_has_dup = HasDuplicates::Yes;
-        counter += 1;
-        id = format!("{base_id}-{counter}");
     }
 
-    (id, has_duplicates)
+    HasDuplicates::Yes
 }
 
 fn print_link_err(error: &str, link: &SpecLink) {
