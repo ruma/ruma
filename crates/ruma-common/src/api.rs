@@ -212,8 +212,8 @@ macro_rules! metadata {
 pub use ruma_macros::request;
 /// Generates [`OutgoingResponse`] and [`IncomingResponse`] implementations.
 ///
-/// The `OutgoingRequest` impl is feature-gated behind `cfg(feature = "client")`.
-/// The `IncomingRequest` impl is feature-gated behind `cfg(feature = "server")`.
+/// The `OutgoingResponse` impl is feature-gated behind `cfg(feature = "server")`.
+/// The `IncomingResponse` impl is feature-gated behind `cfg(feature = "client")`.
 ///
 /// The generated code expects a `METADATA` constant of type [`Metadata`] to be in scope.
 ///
@@ -223,7 +223,7 @@ pub use ruma_macros::request;
 ///
 /// ## Attributes
 ///
-/// To declare which part of the request a field belongs to:
+/// To declare which part of the response a field belongs to:
 ///
 /// * `#[ruma_api(header = HEADER_NAME)]`: Fields with this attribute will be treated as HTTP
 ///   headers on the response. The value must implement `Display`. Generally this is a
