@@ -350,7 +350,17 @@ fn expand_content_enum(
             };
             let self_variant = variant.ctor(quote! { Self });
 
-            let ev_types = event.aliases.iter().chain([&event.ev_type]);
+            let ev_types = event.aliases.iter().chain([&event.ev_type]).map(|ev_type| {
+                if event.has_type_fragment() {
+                    let ev_type = ev_type.value();
+                    let prefix = ev_type
+                        .strip_suffix('*')
+                        .expect("event type with type fragment should end with *");
+                    quote! { t if t.starts_with(#prefix) }
+                } else {
+                    quote! { #ev_type }
+                }
+            });
 
             let deserialize_content = if event.has_type_fragment() {
                 // If the event has a type fragment, then it implements EventContentFromType itself;
