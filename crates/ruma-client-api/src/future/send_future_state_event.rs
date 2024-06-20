@@ -1,11 +1,11 @@
 //! `PUT /_matrix/client/*/rooms/{roomId}/state_future/{eventType}/{txnId}`
 //!
-//! Send a future state (a scheduled state event) to a room. [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
+//! Send a future state (a scheduled state event) to a room. [MSC](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
 
 pub mod unstable {
-    //! `msc3814` ([MSC])
+    //! `msc4140` ([MSC])
     //!
-    //! [MSC]: [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
+    //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 
     use ruma_common::{
         api::{request, response, Metadata},
@@ -23,11 +23,12 @@ pub mod unstable {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/v3/rooms/:room_id/state_future/:event_type/:state_key",
+            unstable => "/_matrix/client/unstable/rooms/:room_id/state_future/:event_type/:state_key",
         }
     };
 
-    /// Request type for the `send_future` endpoint.
+    /// Request type for the [`send_future_state_event`](crate::future::send_future_state_event)
+    /// endpoint.
     #[request(error = crate::Error)]
     pub struct Request {
         /// The room to send the event to.
@@ -54,7 +55,8 @@ pub mod unstable {
         pub body: Raw<AnyStateEventContent>,
     }
 
-    /// Response type for the `send_future` endpoint.
+    /// Response type for the [`send_future_state_event`](crate::future::send_future_state_event)
+    /// endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// A token to send/insert the future into the DAG.
@@ -160,7 +162,7 @@ pub mod unstable {
                 .unwrap();
             let (parts, body) = request.into_parts();
             assert_eq!(
-                "https://homeserver.tld/_matrix/client/v3/rooms/!roomid:example.org/state_future/m.room.topic/@userAsStateKey:example.org?future_timeout=1234321&future_group_id=abs1abs1abs1abs1",
+                "https://homeserver.tld/_matrix/client/unstable/rooms/!roomid:example.org/state_future/m.room.topic/@userAsStateKey:example.org?future_timeout=1234321&future_group_id=abs1abs1abs1abs1",
                 parts.uri.to_string()
             );
             assert_eq!("PUT", parts.method.to_string());

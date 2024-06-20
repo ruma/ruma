@@ -5,7 +5,7 @@
 pub mod unstable {
     //! `msc3814` ([MSC])
     //!
-    //! [MSC]: [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
+    //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 
     use ruma_common::{
         api::{request, response, Metadata},
@@ -17,11 +17,11 @@ pub mod unstable {
         rate_limited: true,
         authentication: None,
         history: {
-            unstable => "/_matrix/client/v1/future/:token",
+            unstable => "/_matrix/client/unstable/future/:token",
         }
     };
 
-    /// Request type for the `send_future` endpoint.
+    /// Request type for the [`update_future`](crate::future::update_future) endpoint.
     #[request(error = crate::Error)]
     pub struct Request {
         /// The token.
@@ -37,7 +37,7 @@ pub mod unstable {
         }
     }
 
-    /// Response type for the `send_future` endpoint.
+    /// Response type for the [`update_future`](crate::future::update_future) endpoint.
     #[response(error = crate::Error)]
     pub struct Response {}
 }

@@ -3,9 +3,9 @@
 //! Send a future (a scheduled message) to a room. [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
 
 pub mod unstable {
-    //! `msc3814` ([MSC])
+    //! `msc4140` ([MSC])
     //!
-    //! [MSC]: [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
+    //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 
     use ruma_common::{
         api::{request, response, Metadata},
@@ -23,11 +23,11 @@ pub mod unstable {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/v3/rooms/:room_id/send_future/:event_type/:txn_id",
+            unstable => "/_matrix/client/unstable/rooms/:room_id/send_future/:event_type/:txn_id",
         }
     };
-
-    /// Request type for the `send_future` endpoint.
+    /// Request type for the [`send_future_message_event`](crate::future::send_future_message_event)
+    /// endpoint.
     #[request(error = crate::Error)]
     pub struct Request {
         /// The room to send the event to.
@@ -62,7 +62,8 @@ pub mod unstable {
         pub body: Raw<AnyMessageLikeEventContent>,
     }
 
-    /// Response type for the `send_future` endpoint.
+    /// Response type for the
+    /// [`send_future_message_event`](crate::future::send_future_message_event) endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// A token to send/insert the future into the DAG.
@@ -168,7 +169,7 @@ pub mod unstable {
                 .unwrap();
             let (parts, body) = request.into_parts();
             assert_eq!(
-                "https://homeserver.tld/_matrix/client/v3/rooms/!roomid:example.org/send_future/m.room.message/1234?future_timeout=103&future_group_id=testId",
+                "https://homeserver.tld/_matrix/client/unstable/rooms/!roomid:example.org/send_future/m.room.message/1234?future_timeout=103&future_group_id=testId",
                 parts.uri.to_string()
             );
             assert_eq!("PUT", parts.method.to_string());
