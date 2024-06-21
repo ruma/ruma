@@ -6,6 +6,14 @@ Bug fixes:
   `Option<String>` for `ProtocolInstance`. It made the `unstable-unspecified`
   feature non-additive.
 
+Breaking changes:
+
+- Rename the `query_map` attribute of the `request` macro to `query_all`, and
+  remove the required bound to implement `IntoIterator<Item = (String, String)>`.
+  This allows to use a struct or enum as well as a map to represent the list of
+  query parameters. Note that the (de)serialization of the type used must work
+  with `serde_html_form`.
+
 Improvements:
 
 - Add the `InvalidHeaderValue` variant to the `DeserializationError` struct, for

@@ -133,7 +133,41 @@ pub mod raw_body_endpoint {
     }
 }
 
-pub mod query_map_endpoint {
+pub mod query_all_enum_endpoint {
+    use ruma_common::{
+        api::{request, response, Metadata},
+        metadata,
+    };
+
+    #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+    #[serde(untagged)]
+    pub enum MyCustomQueryEnum {
+        VariantA { field_a: String },
+        VariantB { field_b: String },
+    }
+
+    const METADATA: Metadata = metadata! {
+        method: GET,
+        rate_limited: false,
+        authentication: None,
+        history: {
+            unstable => "/_matrix/some/query/map/endpoint",
+        }
+    };
+
+    /// Request type for the `query_all_enum_endpoint` endpoint.
+    #[request]
+    pub struct Request {
+        #[ruma_api(query_all)]
+        pub query: MyCustomQueryEnum,
+    }
+
+    /// Response type for the `query_all_enum_endpoint` endpoint.
+    #[response]
+    pub struct Response {}
+}
+
+pub mod query_all_vec_endpoint {
     use ruma_common::{
         api::{request, response, Metadata},
         metadata,
@@ -148,14 +182,14 @@ pub mod query_map_endpoint {
         }
     };
 
-    /// Request type for the `newtype_body_endpoint` endpoint.
+    /// Request type for the `query_all_vec_endpoint` endpoint.
     #[request]
     pub struct Request {
-        #[ruma_api(query_map)]
+        #[ruma_api(query_all)]
         pub fields: Vec<(String, String)>,
     }
 
-    /// Response type for the `newtype_body_endpoint` endpoint.
+    /// Response type for the `query_all_vec_endpoint` endpoint.
     #[response]
     pub struct Response {}
 }

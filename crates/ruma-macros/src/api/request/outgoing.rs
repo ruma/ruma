@@ -15,29 +15,11 @@ impl Request {
         let path_fields =
             self.path_fields().map(|f| f.ident.as_ref().expect("path fields have a name"));
 
-        let request_query_string = if let Some(field) = self.query_map_field() {
+        let request_query_string = if let Some(field) = self.query_all_field() {
             let field_name = field.ident.as_ref().expect("expected field to have identifier");
 
             quote! {{
-                // This function exists so that the compiler will throw an error when the type of
-                // the field with the query_map attribute doesn't implement
-                // `IntoIterator<Item = (String, String)>`.
-                //
-                // This is necessary because the `serde_html_form::to_string` call will result in a
-                // runtime error when the type cannot be encoded as a list key-value pairs
-                // (?key1=value1&key2=value2).
-                //
-                // By asserting that it implements the iterator trait, we can ensure that it won't
-                // fail.
-                fn assert_trait_impl<T>(_: &T)
-                where
-                    T: ::std::iter::IntoIterator<
-                        Item = (::std::string::String, ::std::string::String),
-                    >,
-                {}
-
                 let request_query = RequestQuery(self.#field_name);
-                assert_trait_impl(&request_query.0);
 
                 &#serde_html_form::to_string(request_query)?
             }}

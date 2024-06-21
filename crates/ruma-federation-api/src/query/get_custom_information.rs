@@ -33,7 +33,7 @@ pub mod v1 {
         pub query_type: String,
 
         /// The query parameters.
-        #[ruma_api(query_map)]
+        #[ruma_api(query_all)]
         pub params: BTreeMap<String, String>,
     }
 

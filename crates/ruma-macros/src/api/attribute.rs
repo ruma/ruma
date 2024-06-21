@@ -10,7 +10,7 @@ mod kw {
     syn::custom_keyword!(raw_body);
     syn::custom_keyword!(path);
     syn::custom_keyword!(query);
-    syn::custom_keyword!(query_map);
+    syn::custom_keyword!(query_all);
     syn::custom_keyword!(header);
     syn::custom_keyword!(error);
     syn::custom_keyword!(manual_body_serde);
@@ -22,7 +22,7 @@ pub enum RequestMeta {
     RawBody,
     Path,
     Query,
-    QueryMap,
+    QueryAll,
     Header(Ident),
 }
 
@@ -41,9 +41,9 @@ impl Parse for RequestMeta {
         } else if lookahead.peek(kw::query) {
             let _: kw::query = input.parse()?;
             Ok(Self::Query)
-        } else if lookahead.peek(kw::query_map) {
-            let _: kw::query_map = input.parse()?;
-            Ok(Self::QueryMap)
+        } else if lookahead.peek(kw::query_all) {
+            let _: kw::query_all = input.parse()?;
+            Ok(Self::QueryAll)
         } else if lookahead.peek(kw::header) {
             let _: kw::header = input.parse()?;
             let _: Token![=] = input.parse()?;

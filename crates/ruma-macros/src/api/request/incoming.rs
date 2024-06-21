@@ -31,7 +31,7 @@ impl Request {
             (TokenStream::new(), TokenStream::new())
         };
 
-        let (parse_query, query_vars) = if let Some(field) = self.query_map_field() {
+        let (parse_query, query_vars) = if let Some(field) = self.query_all_field() {
             let cfg_attrs =
                 field.attrs.iter().filter(|a| a.path().is_ident("cfg")).collect::<Vec<_>>();
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
