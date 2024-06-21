@@ -17,6 +17,7 @@ Improvements:
 - Add support for authenticated media endpoints, according to MSC3916 / Matrix
   1.11.
   - They replace the newly deprecated `media::get_*` endpoints.
+- Stabilize support for animated thumbnails, according to Matrix 1.11
 
 Bug fixes:
 
