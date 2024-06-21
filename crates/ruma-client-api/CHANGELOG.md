@@ -16,6 +16,7 @@ Improvements:
   field, with a new type `SlidingSyncRoomHero`.
 - Add support for authenticated media endpoints, according to MSC3916 / Matrix
   1.11.
+  - They replace the newly deprecated `media::get_*` endpoints.
 
 Bug fixes:
 

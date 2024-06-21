@@ -24,11 +24,16 @@ pub mod v3 {
         history: {
             1.0 => "/_matrix/media/r0/download/:server_name/:media_id",
             1.1 => "/_matrix/media/v3/download/:server_name/:media_id",
+            1.11 => deprecated,
         }
     };
 
     /// Request type for the `get_media_content` endpoint.
     #[request(error = crate::Error)]
+    #[deprecated = "\
+        Since Matrix 1.11, clients should use `authenticated_media::get_content::v1::Request` \
+        instead if the homeserver supports it.\
+    "]
     pub struct Request {
         /// The server name from the mxc:// URI (the authoritory component).
         #[ruma_api(path)]
@@ -98,6 +103,7 @@ pub mod v3 {
         pub cross_origin_resource_policy: Option<String>,
     }
 
+    #[allow(deprecated)]
     impl Request {
         /// Creates a new `Request` with the given media ID and server name.
         pub fn new(media_id: String, server_name: OwnedServerName) -> Self {
