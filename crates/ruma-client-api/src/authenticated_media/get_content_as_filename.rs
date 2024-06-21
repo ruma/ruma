@@ -2,10 +2,10 @@
 //!
 //! Retrieve content from the media store, specifying a filename to return.
 
-pub mod unstable {
-    //! `/unstable/org.matrix.msc3916/` ([MSC])
+pub mod v1 {
+    //! `/v1/` ([spec])
     //!
-    //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3916
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv1mediadownloadservernamemediaidfilename
 
     use std::time::Duration;
 
@@ -17,10 +17,11 @@ pub mod unstable {
 
     const METADATA: Metadata = metadata! {
         method: GET,
-        rate_limited: false,
+        rate_limited: true,
         authentication: AccessToken,
         history: {
             unstable => "/_matrix/client/unstable/org.matrix.msc3916/media/download/:server_name/:media_id/:filename",
+            1.11 => "/_matrix/client/v1/media/download/:server_name/:media_id/:filename",
         }
     };
 

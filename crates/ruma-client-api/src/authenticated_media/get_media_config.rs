@@ -2,10 +2,10 @@
 //!
 //! Gets the config for the media repository.
 
-pub mod unstable {
-    //! `/unstable/org.matrix.msc3916/` ([MSC])
+pub mod v1 {
+    //! `/v1/` ([spec])
     //!
-    //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3916
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv1mediaconfig
 
     use js_int::UInt;
     use ruma_common::{
@@ -19,6 +19,7 @@ pub mod unstable {
         authentication: AccessToken,
         history: {
             unstable => "/_matrix/client/unstable/org.matrix.msc3916/media/config",
+            1.11 => "/_matrix/client/v1/media/config",
         }
     };
 

@@ -12,7 +12,6 @@
 pub mod account;
 pub mod alias;
 pub mod appservice;
-#[cfg(feature = "unstable-msc3916")]
 pub mod authenticated_media;
 pub mod backup;
 pub mod config;

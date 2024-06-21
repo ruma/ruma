@@ -2,10 +2,10 @@
 //!
 //! Get a preview for a URL.
 
-pub mod unstable {
-    //! `/unstable/org.matrix.msc3916/` ([MSC])
+pub mod v1 {
+    //! `/v1/` ([spec])
     //!
-    //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3916
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv1mediapreview_url
 
     use ruma_common::{
         api::{request, response, Metadata},
@@ -20,6 +20,7 @@ pub mod unstable {
         authentication: AccessToken,
         history: {
             unstable => "/_matrix/client/unstable/org.matrix.msc3916/media/preview_url",
+            1.11 => "/_matrix/client/v1/media/preview_url",
         }
     };
 
