@@ -220,6 +220,31 @@ fn get_page_ids(url: &str) -> Result<HashMap<String, HasDuplicates>> {
             continue;
         };
 
+        // For the URLs using the "latest" version, log the actual version we got.
+        if url[URL_PREFIX.len()..].starts_with("latest/") {
+            // Let's use the `meta` element with the `og:url` property, it contains the original
+            // relative URL of the page.
+            if tag.name.0 == b"meta"
+                && tag
+                    .attributes
+                    .get(b"property".as_slice())
+                    .is_some_and(|value| value.0 == b"og:url")
+            {
+                match tag.attributes.get(b"content".as_slice()) {
+                    Some(value) => {
+                        println!(
+                            "Original URL for latest spec page: {}",
+                            String::from_utf8_lossy(value)
+                        );
+                    }
+                    None => println!(
+                        "Could not get original URL for latest spec page: /{}",
+                        &url[URL_PREFIX.len()..]
+                    ),
+                }
+            }
+        }
+
         let Some(id) =
             tag.attributes.get(b"id".as_slice()).and_then(|s| String::from_utf8(s.0.clone()).ok())
         else {
