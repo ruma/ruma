@@ -5,10 +5,8 @@
 Bug fixes:
 
 - Allow underscores (`_`) when validating MXC URIs.
-  - They have always been allowed in [the spec][mxc validation spec]
-    in order to support URL-safe base64-encoded media IDs.
-
-[mxc validation spec]: https://spec.matrix.org/v1.9/client-server-api/#security-considerations-5
+  - They have always been allowed in the spec in order to support URL-safe
+    base64-encoded media IDs.
 
 Improvements:
 
