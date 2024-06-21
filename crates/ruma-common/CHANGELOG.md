@@ -13,6 +13,8 @@ Improvements:
 - Implement `Eq`/`Hash`/`PartialEq` for `ThirdPartyIdentifier`, to check whether 
   a `ThirdPartyIdentifier` has already been added by another user.
 - Add `MatrixVersion::V1_11`
+- Clarify in the docs of `AuthScheme` that sending an access token via a query
+  parameter is deprecated, according to MSC4126 / Matrix 1.11.
 
 # 0.13.0
 
