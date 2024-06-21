@@ -28,14 +28,16 @@ static ALLOWED_ATTRIBUTES_STRICT: Map<&str, &Set<&str>> = phf_map! {
     "img" => &ALLOWED_ATTRIBUTES_IMG_STRICT,
     "ol" => &ALLOWED_ATTRIBUTES_OL_STRICT,
     "code" => &ALLOWED_ATTRIBUTES_CODE_STRICT,
+    "div" => &ALLOWED_ATTRIBUTES_DIV_STRICT,
 };
 static ALLOWED_ATTRIBUTES_SPAN_STRICT: Set<&str> =
-    phf_set! { "data-mx-bg-color", "data-mx-color", "data-mx-spoiler" };
+    phf_set! { "data-mx-bg-color", "data-mx-color", "data-mx-spoiler", "data-mx-maths" };
 static ALLOWED_ATTRIBUTES_A_STRICT: Set<&str> = phf_set! { "name", "target", "href" };
 static ALLOWED_ATTRIBUTES_IMG_STRICT: Set<&str> =
     phf_set! { "width", "height", "alt", "title", "src" };
 static ALLOWED_ATTRIBUTES_OL_STRICT: Set<&str> = phf_set! { "start" };
 static ALLOWED_ATTRIBUTES_CODE_STRICT: Set<&str> = phf_set! { "class" };
+static ALLOWED_ATTRIBUTES_DIV_STRICT: Set<&str> = phf_set! { "data-mx-maths" };
 
 /// Attributes that were previously allowed on HTML elements according to the Matrix specification,
 /// with their replacement.

@@ -152,7 +152,7 @@ pub enum MatrixElement {
     /// [`<div>`], a content division element.
     ///
     /// [`<div>`]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/div
-    Div,
+    Div(DivData),
 
     /// [`<table>`], a table element.
     ///
@@ -268,7 +268,10 @@ impl MatrixElement {
             }
             b"hr" => (Self::Hr, attrs.clone()),
             b"br" => (Self::Br, attrs.clone()),
-            b"div" => (Self::Div, attrs.clone()),
+            b"div" => {
+                let (data, attrs) = DivData::parse(attrs);
+                (Self::Div(data), attrs)
+            }
             b"table" => (Self::Table, attrs.clone()),
             b"thead" => (Self::Thead, attrs.clone()),
             b"tbody" => (Self::Tbody, attrs.clone()),
@@ -599,12 +602,23 @@ pub struct SpanData {
     ///
     /// [spoiler message]: https://spec.matrix.org/latest/client-server-api/#spoiler-messages
     pub spoiler: Option<StrTendril>,
+
+    /// `data-mx-maths`, an inline Matrix [mathematical message].
+    ///
+    /// The value is the mathematical notation in [LaTeX] format.
+    ///
+    /// If this attribute is present, the content of the span is the fallback representation of the
+    /// mathematical notation.
+    ///
+    /// [mathematical message]: https://spec.matrix.org/latest/client-server-api/#mathematical-messages
+    /// [LaTeX]: https://www.latex-project.org/
+    pub maths: Option<StrTendril>,
 }
 
 impl SpanData {
     /// Construct an empty `SpanData`.
     fn new() -> Self {
-        Self { bg_color: None, color: None, spoiler: None }
+        Self { bg_color: None, color: None, spoiler: None, maths: None }
     }
 
     /// Parse the given attributes to construct a new `SpanData`.
@@ -628,6 +642,9 @@ impl SpanData {
                 b"data-mx-color" => data.color = Some(attr.value.clone()),
                 b"data-mx-spoiler" => {
                     data.spoiler = Some(attr.value.clone());
+                }
+                b"data-mx-maths" => {
+                    data.maths = Some(attr.value.clone());
                 }
                 _ => {
                     remaining_attrs.insert(attr.clone());
@@ -712,6 +729,56 @@ impl ImageData {
                     } else {
                         remaining_attrs.insert(attr.clone());
                     }
+                }
+                _ => {
+                    remaining_attrs.insert(attr.clone());
+                }
+            }
+        }
+
+        (data, remaining_attrs)
+    }
+}
+
+/// The supported data of a `<div>` HTML element.
+#[derive(Debug, Clone)]
+#[non_exhaustive]
+pub struct DivData {
+    /// `data-mx-maths`, a Matrix [mathematical message] block.
+    ///
+    /// The value is the mathematical notation in [LaTeX] format.
+    ///
+    /// If this attribute is present, the content of the div is the fallback representation of the
+    /// mathematical notation.
+    ///
+    /// [mathematical message]: https://spec.matrix.org/latest/client-server-api/#mathematical-messages
+    /// [LaTeX]: https://www.latex-project.org/
+    pub maths: Option<StrTendril>,
+}
+
+impl DivData {
+    /// Construct an empty `DivData`.
+    fn new() -> Self {
+        Self { maths: None }
+    }
+
+    /// Parse the given attributes to construct a new `SpanData`.
+    ///
+    /// Returns a tuple containing the constructed data and the remaining unsupported attributes.
+    #[allow(clippy::mutable_key_type)]
+    fn parse(attrs: &BTreeSet<Attribute>) -> (Self, BTreeSet<Attribute>) {
+        let mut data = Self::new();
+        let mut remaining_attrs = BTreeSet::new();
+
+        for attr in attrs {
+            if attr.name.ns != ns!() {
+                remaining_attrs.insert(attr.clone());
+                continue;
+            }
+
+            match attr.name.local.as_bytes() {
+                b"data-mx-maths" => {
+                    data.maths = Some(attr.value.clone());
                 }
                 _ => {
                     remaining_attrs.insert(attr.clone());
