@@ -122,9 +122,11 @@ macro_rules! metadata {
 ///   they are declared must match the order in which they occur in the request path.
 /// * `#[ruma_api(query)]`: Fields with this attribute will be inserting into the URL's query
 ///   string.
-/// * `#[ruma_api(query_map)]`: Instead of individual query fields, one query_map field, of any
-///   type that implements `IntoIterator<Item = (String, String)>` (e.g. `HashMap<String,
-///   String>`, can be used for cases where an endpoint supports arbitrary query parameters.
+/// * `#[ruma_api(query_all)]`: Instead of individual query fields, one query_all field, of any
+///   type that can be (de)serialized by [serde_html_form], can be used for cases where
+///   multiple endpoints should share a query fields type, the query fields are better
+///   expressed as an `enum` rather than a `struct`, or the endpoint supports arbitrary query
+///   parameters.
 /// * No attribute: Fields without an attribute are part of the body. They can use `#[serde]`
 ///   attributes to customize (de)serialization.
 /// * `#[ruma_api(body)]`: Use this if multiple endpoints should share a request body type, or
@@ -209,6 +211,8 @@ macro_rules! metadata {
 ///     # pub struct Response {}
 /// }
 /// ```
+///
+/// [serde_html_form]: https://crates.io/crates/serde_html_form
 pub use ruma_macros::request;
 /// Generates [`OutgoingResponse`] and [`IncomingResponse`] implementations.
 ///

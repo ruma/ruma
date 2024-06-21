@@ -34,7 +34,7 @@ pub mod v1 {
 
         /// One or more custom fields that are passed to the AS to help identify the user.
         // The specification is incorrect for this parameter. See [matrix-spec#560](https://github.com/matrix-org/matrix-spec/issues/560).
-        #[ruma_api(query_map)]
+        #[ruma_api(query_all)]
         pub fields: BTreeMap<String, String>,
     }
 

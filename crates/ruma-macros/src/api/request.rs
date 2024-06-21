@@ -137,8 +137,8 @@ impl Request {
         self.fields.iter().find_map(RequestField::as_raw_body_field)
     }
 
-    fn query_map_field(&self) -> Option<&Field> {
-        self.fields.iter().find_map(RequestField::as_query_map_field)
+    fn query_all_field(&self) -> Option<&Field> {
+        self.fields.iter().find_map(RequestField::as_query_all_field)
     }
 
     fn expand_all(&self, ruma_common: &TokenStream) -> TokenStream {
@@ -161,7 +161,7 @@ impl Request {
             }
         });
 
-        let request_query_def = if let Some(f) = self.query_map_field() {
+        let request_query_def = if let Some(f) = self.query_all_field() {
             let field = Field { ident: None, colon_token: None, ..f.clone() };
             let field = PrivateField(&field);
             Some(quote! { (#field); })
@@ -220,15 +220,15 @@ impl Request {
             }
         };
 
-        let query_map_fields =
-            self.fields.iter().filter(|f| matches!(&f.kind, RequestFieldKind::QueryMap));
-        let has_query_map_field = match query_map_fields.count() {
+        let query_all_fields =
+            self.fields.iter().filter(|f| matches!(&f.kind, RequestFieldKind::QueryAll));
+        let has_query_all_field = match query_all_fields.count() {
             0 => false,
             1 => true,
             _ => {
                 return Err(syn::Error::new_spanned(
                     &self.ident,
-                    "Can't have more than one query_map field",
+                    "Can't have more than one query_all field",
                 ))
             }
         };
@@ -244,10 +244,10 @@ impl Request {
             ));
         }
 
-        if has_query_map_field && has_query_fields {
+        if has_query_all_field && has_query_fields {
             return Err(syn::Error::new_spanned(
                 &self.ident,
-                "Can't have both a query map field and regular query fields",
+                "Can't have both a query_all field and regular query fields",
             ));
         }
 
@@ -307,8 +307,8 @@ pub(super) enum RequestFieldKind {
     /// Data that appears in the query string.
     Query,
 
-    /// Data that appears in the query string as dynamic key-value pairs.
-    QueryMap,
+    /// Data that represents all the query string as a single type.
+    QueryAll,
 }
 
 impl RequestField {
@@ -319,7 +319,7 @@ impl RequestField {
             Some(RequestMeta::RawBody) => RequestFieldKind::RawBody,
             Some(RequestMeta::Path) => RequestFieldKind::Path,
             Some(RequestMeta::Query) => RequestFieldKind::Query,
-            Some(RequestMeta::QueryMap) => RequestFieldKind::QueryMap,
+            Some(RequestMeta::QueryAll) => RequestFieldKind::QueryAll,
             Some(RequestMeta::Header(header)) => RequestFieldKind::Header(header),
             None => RequestFieldKind::Body,
         };
@@ -359,10 +359,10 @@ impl RequestField {
         }
     }
 
-    /// Return the contained field if this request field is a query map kind.
-    pub fn as_query_map_field(&self) -> Option<&Field> {
+    /// Return the contained field if this request field is a query all kind.
+    pub fn as_query_all_field(&self) -> Option<&Field> {
         match &self.kind {
-            RequestFieldKind::QueryMap => Some(&self.inner),
+            RequestFieldKind::QueryAll => Some(&self.inner),
             _ => None,
         }
     }
