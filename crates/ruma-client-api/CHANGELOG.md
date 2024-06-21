@@ -18,6 +18,8 @@ Improvements:
   1.11.
   - They replace the newly deprecated `media::get_*` endpoints.
 - Stabilize support for animated thumbnails, according to Matrix 1.11
+- Add support for terms of service at registration, according to MSC1692 /
+  Matrix 1.11
 
 Bug fixes:
 
