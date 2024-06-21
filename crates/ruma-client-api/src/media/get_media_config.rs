@@ -20,12 +20,17 @@ pub mod v3 {
         history: {
             1.0 => "/_matrix/media/r0/config",
             1.1 => "/_matrix/media/v3/config",
+            1.11 => deprecated,
         }
     };
 
     /// Request type for the `get_media_config` endpoint.
     #[request(error = crate::Error)]
     #[derive(Default)]
+    #[deprecated = "\
+        Since Matrix 1.11, clients should use `authenticated_media::get_media_config::v1::Request` \
+        instead if the homeserver supports it.\
+    "]
     pub struct Request {}
 
     /// Response type for the `get_media_config` endpoint.
@@ -36,6 +41,7 @@ pub mod v3 {
         pub upload_size: UInt,
     }
 
+    #[allow(deprecated)]
     impl Request {
         /// Creates an empty `Request`.
         pub fn new() -> Self {
