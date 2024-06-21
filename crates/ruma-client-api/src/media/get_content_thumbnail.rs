@@ -95,18 +95,12 @@ pub mod v3 {
 
         /// Whether the server should return an animated thumbnail.
         ///
-        /// When `true`, the server should return an animated thumbnail if possible and supported.
-        /// Otherwise it must not return an animated thumbnail.
-        ///
-        /// Defaults to `false`.
-        #[cfg(feature = "unstable-msc2705")]
+        /// When `Some(true)`, the server should return an animated thumbnail if possible and
+        /// supported. When `Some(false)`, the server must not return an animated
+        /// thumbnail. When `None`, the server should not return an animated thumbnail.
         #[ruma_api(query)]
-        #[serde(
-            rename = "org.matrix.msc2705.animated",
-            default,
-            skip_serializing_if = "ruma_common::serde::is_default"
-        )]
-        pub animated: bool,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub animated: Option<bool>,
     }
 
     /// Response type for the `get_content_thumbnail` endpoint.
@@ -148,8 +142,7 @@ pub mod v3 {
                 allow_remote: true,
                 timeout_ms: crate::media::default_download_timeout(),
                 allow_redirect: false,
-                #[cfg(feature = "unstable-msc2705")]
-                animated: false,
+                animated: None,
             }
         }
 
