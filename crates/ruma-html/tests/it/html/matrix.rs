@@ -26,7 +26,8 @@ fn elements() {
     // `<div>` element.
     let div_node = html_children.next().unwrap();
     let div_element = div_node.as_element().unwrap().to_matrix();
-    assert_matches!(div_element.element, MatrixElement::Div);
+    assert_matches!(div_element.element, MatrixElement::Div(div));
+    assert_eq!(div.maths, None);
     // The `class` attribute is not supported.
     assert_eq!(div_element.attrs.len(), 1);
 

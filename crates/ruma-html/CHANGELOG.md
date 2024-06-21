@@ -1,5 +1,13 @@
 # [unreleased]
 
+Breaking Changes:
+
+- `MatrixElement::Div` is now a newtype variant.
+
+Improvements:
+
+- Add support for mathematical messages, according to MSC2191 / Matrix 1.11
+
 # 0.2.0
 
 Breaking Changes:
