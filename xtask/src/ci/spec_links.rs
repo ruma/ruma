@@ -260,7 +260,7 @@ fn heading_id_has_duplicates(
 
 fn print_link_err(error: &str, link: &SpecLink) {
     println!(
-        "\n{error}\nfile: {}:{}\nlink: {}",
+        "\n{error}\n  file: {}:{}\n  link: {}",
         link.path.display(),
         link.line,
         link.url.get(..80).unwrap_or(&link.url),
