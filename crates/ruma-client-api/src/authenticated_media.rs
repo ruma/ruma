@@ -1,6 +1,6 @@
-//! Authenticated endpoints for the media repository, according to [MSC3916].
+//! Authenticated endpoints for the [content repository].
 //!
-//! [MSC3916]: https://github.com/matrix-org/matrix-spec-proposals/pull/3916
+//! [content repository]: https://spec.matrix.org/latest/client-server-api/#content-repository
 
 pub mod get_content;
 pub mod get_content_as_filename;
