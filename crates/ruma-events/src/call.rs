@@ -12,7 +12,6 @@ pub mod negotiate;
 #[cfg(feature = "unstable-msc4075")]
 pub mod notify;
 pub mod reject;
-#[cfg(feature = "unstable-msc3291")]
 pub mod sdp_stream_metadata_changed;
 pub mod select_answer;
 
@@ -59,14 +58,12 @@ pub struct StreamMetadata {
     /// Whether the audio track of the stream is muted.
     ///
     /// Defaults to `false`.
-    #[cfg(feature = "unstable-msc3291")]
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub audio_muted: bool,
 
     /// Whether the video track of the stream is muted.
     ///
     /// Defaults to `false`.
-    #[cfg(feature = "unstable-msc3291")]
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub video_muted: bool,
 }
@@ -74,13 +71,7 @@ pub struct StreamMetadata {
 impl StreamMetadata {
     /// Creates a new `StreamMetadata` with the given purpose.
     pub fn new(purpose: StreamPurpose) -> Self {
-        Self {
-            purpose,
-            #[cfg(feature = "unstable-msc3291")]
-            audio_muted: false,
-            #[cfg(feature = "unstable-msc3291")]
-            video_muted: false,
-        }
+        Self { purpose, audio_muted: false, video_muted: false }
     }
 }
 

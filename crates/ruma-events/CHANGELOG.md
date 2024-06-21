@@ -7,13 +7,14 @@ Bug fixes:
 
 Improvements:
 
- - Add support for encrypted stickers as sent by several bridges under the flag `compat-encrypted-stickers`
- - Add unstable support for MSC3489 `m.beacon` & `m.beacon_info` events
-   (unstable types `org.matrix.msc3489.beacon` & `org.matrix.msc3489.beacon_info`)
+- Add support for encrypted stickers as sent by several bridges under the flag `compat-encrypted-stickers`
+- Add unstable support for MSC3489 `m.beacon` & `m.beacon_info` events
+  (unstable types `org.matrix.msc3489.beacon` & `org.matrix.msc3489.beacon_info`)
+- Stabilize support for muting in VoIP calls, according to Matrix 1.11
 
 Breaking changes:
 
- - `StickerEventContent::url` was replaced by `StickerEventContent::source` which is a `StickerMediaSource`
+- `StickerEventContent::url` was replaced by `StickerEventContent::source` which is a `StickerMediaSource`
 
 # 0.28.1
 

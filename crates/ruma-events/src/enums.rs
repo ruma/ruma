@@ -45,9 +45,8 @@ event_enum! {
         "m.call.candidates" => super::call::candidates,
         "m.call.negotiate" => super::call::negotiate,
         "m.call.reject" => super::call::reject,
-        #[cfg(feature = "unstable-msc3291")]
-        #[ruma_enum(alias = "m.call.sdp_stream_metadata_changed")]
-        "org.matrix.call.sdp_stream_metadata_changed" => super::call::sdp_stream_metadata_changed,
+        #[ruma_enum(alias = "org.matrix.call.sdp_stream_metadata_changed")]
+        "m.call.sdp_stream_metadata_changed" => super::call::sdp_stream_metadata_changed,
         "m.call.select_answer" => super::call::select_answer,
         #[cfg(feature = "unstable-msc3954")]
         #[ruma_enum(alias = "m.emote")]
@@ -375,9 +374,8 @@ impl AnyMessageLikeEventContent {
             Self::PollStart(_) | Self::UnstablePollStart(_) => None,
             #[cfg(feature = "unstable-msc4075")]
             Self::CallNotify(_) => None,
-            #[cfg(feature = "unstable-msc3291")]
-            Self::CallSdpStreamMetadataChanged(_) => None,
-            Self::CallNegotiate(_)
+            Self::CallSdpStreamMetadataChanged(_)
+            | Self::CallNegotiate(_)
             | Self::CallReject(_)
             | Self::CallSelectAnswer(_)
             | Self::CallAnswer(_)
