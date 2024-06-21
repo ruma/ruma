@@ -17,7 +17,7 @@ pub mod unstable {
         rate_limited: true,
         authentication: None,
         history: {
-            unstable => "/_matrix/client/unstable/future/:token",
+            unstable => "/_matrix/client/unstable/org.matrix.msc4140/future/:token",
         }
     };
 
@@ -40,4 +40,10 @@ pub mod unstable {
     /// Response type for the [`update_future`](crate::future::update_future) endpoint.
     #[response(error = crate::Error)]
     pub struct Response {}
+    impl Response {
+        /// Creates a new response for the [`update_future`](crate::future::update_future) endpoint.
+        pub fn new() -> Self {
+            Response {}
+        }
+    }
 }

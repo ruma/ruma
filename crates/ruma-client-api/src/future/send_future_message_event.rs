@@ -23,7 +23,7 @@ pub mod unstable {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/rooms/:room_id/send_future/:event_type/:txn_id",
+            unstable => "/_matrix/client/unstable/org.matrix.msc4140/rooms/:room_id/send_future/:event_type/:txn_id",
         }
     };
     /// Request type for the [`send_future_message_event`](crate::future::send_future_message_event)
@@ -169,7 +169,7 @@ pub mod unstable {
                 .unwrap();
             let (parts, body) = request.into_parts();
             assert_eq!(
-                "https://homeserver.tld/_matrix/client/unstable/rooms/!roomid:example.org/send_future/m.room.message/1234?future_timeout=103&future_group_id=testId",
+                "https://homeserver.tld/_matrix/client/unstable/org.matrix.msc4140/rooms/!roomid:example.org/send_future/m.room.message/1234?future_timeout=103&future_group_id=testId",
                 parts.uri.to_string()
             );
             assert_eq!("PUT", parts.method.to_string());

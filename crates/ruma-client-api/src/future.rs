@@ -4,7 +4,7 @@ pub mod send_future_message_event;
 pub mod send_future_state_event;
 pub mod update_future;
 
-use ::serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use web_time::Duration;
 
 /// The query parameters for a future request.
