@@ -34,6 +34,8 @@ Bug fixes:
 - `user_id` of `SlidingSyncRoomHero` is now mandatory
 - Make authentication with access token optional for the `change_password` and
   `deactivate` endpoints.
+- Do not send a request body for the `logout` and `logout_all` endpoints, due
+  to a clarification in the spec.
 
 # 0.18.0
 
