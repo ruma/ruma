@@ -37,6 +37,9 @@ impl RoomAliasId {
     }
 
     /// Create a `matrix.to` URI for an event scoped under this room alias ID.
+    ///
+    /// This is deprecated because room aliases are mutable, so the URI might break after a while.
+    #[deprecated = "Use `RoomId::matrix_to_event_uri` instead."]
     pub fn matrix_to_event_uri(&self, ev_id: impl Into<OwnedEventId>) -> MatrixToUri {
         MatrixToUri::new((self.to_owned(), ev_id.into()).into(), Vec::new())
     }
@@ -49,6 +52,9 @@ impl RoomAliasId {
     }
 
     /// Create a `matrix:` URI for an event scoped under this room alias ID.
+    ///
+    /// This is deprecated because room aliases are mutable, so the URI might break after a while.
+    #[deprecated = "Use `RoomId::matrix_event_uri` instead."]
     pub fn matrix_event_uri(&self, ev_id: impl Into<OwnedEventId>) -> MatrixUri {
         MatrixUri::new((self.to_owned(), ev_id.into()).into(), Vec::new(), None)
     }
