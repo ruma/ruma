@@ -47,7 +47,7 @@ pub mod unstable {
         ///
         /// Only three combinations for `future_timeout` and `future_group_id` are possible.
         /// The enum [`FutureParameters`] enforces this.
-        #[ruma_api(query_type)]
+        #[ruma_api(query_all)]
         pub future_parameters: FutureParameters,
 
         /// The event content to send.
