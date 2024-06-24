@@ -19,7 +19,7 @@ use ruma_events::{
         },
         EncryptedFileInit, JsonWebKeyInit, MediaSource,
     },
-    AnySyncTimelineEvent, Mentions, MessageLikeUnsigned,
+    AnySyncTimelineEvent, EventContent, Mentions, MessageLikeUnsigned, RawExt,
 };
 use serde_json::{
     from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
@@ -473,6 +473,49 @@ fn reply_thread_fallback() {
         "Reply from a thread-incapable client",
     )
     .make_reply_to(&threaded_message, ForwardThread::Yes, AddMentions::No);
+
+    let relation = reply_as_thread_fallback.relates_to.unwrap();
+    assert_matches!(relation, Relation::Thread(thread_info));
+    assert_eq!(
+        thread_info.in_reply_to.map(|in_reply_to| in_reply_to.event_id),
+        Some(threaded_message.event_id)
+    );
+    assert_eq!(thread_info.event_id, thread_root.event_id);
+    assert!(thread_info.is_falling_back);
+}
+
+#[test]
+fn reply_thread_serialization_roundtrip() {
+    let thread_root = OriginalRoomMessageEvent {
+        content: RoomMessageEventContent::text_plain("Thread root"),
+        event_id: owned_event_id!("$thread_root"),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
+        room_id: owned_room_id!("!testroomid:example.org"),
+        sender: owned_user_id!("@user:example.org"),
+        unsigned: MessageLikeUnsigned::default(),
+    };
+    let threaded_message = OriginalRoomMessageEvent {
+        content: RoomMessageEventContent::text_plain("Threaded message").make_for_thread(
+            &thread_root,
+            ReplyWithinThread::No,
+            AddMentions::No,
+        ),
+        event_id: owned_event_id!("$threaded_message"),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
+        room_id: owned_room_id!("!testroomid:example.org"),
+        sender: owned_user_id!("@user:example.org"),
+        unsigned: MessageLikeUnsigned::default(),
+    };
+
+    let reply_as_thread_fallback = RoomMessageEventContent::text_plain(
+        "Reply from a thread client",
+    )
+    .make_reply_to(&threaded_message, ForwardThread::Yes, AddMentions::No);
+
+    let as_raw = Raw::new(&reply_as_thread_fallback).unwrap();
+
+    let reply_as_thread_fallback =
+        as_raw.deserialize_with_type(reply_as_thread_fallback.event_type()).unwrap();
 
     let relation = reply_as_thread_fallback.relates_to.unwrap();
     assert_matches!(relation, Relation::Thread(thread_info));

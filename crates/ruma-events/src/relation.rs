@@ -84,7 +84,6 @@ impl<C> Replacement<C> {
 /// [thread]: https://spec.matrix.org/latest/client-server-api/#threading
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(tag = "rel_type", rename = "m.thread")]
 pub struct Thread {
     /// The ID of the root message in the thread.
     pub event_id: OwnedEventId,
