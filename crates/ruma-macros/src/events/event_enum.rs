@@ -355,7 +355,7 @@ fn expand_content_enum(
                     let ev_type = ev_type.value();
                     let prefix = ev_type
                         .strip_suffix('*')
-                        .expect("event type with type fragment should end with *");
+                        .expect("event type with type fragment must end with *");
                     quote! { t if t.starts_with(#prefix) }
                 } else {
                     quote! { #ev_type }

@@ -71,7 +71,7 @@ fn text_msgtype_plain_text_deserialization_as_any() {
 }
 
 #[test]
-fn text_msgtype_secret_storage_key_text_deserialization_as_any() {
+fn secret_storage_key_deserialization_as_any() {
     let serialized = to_raw_json_value(&json!({
         "name": "my_key",
         "algorithm": "m.secret_storage.v1.aes-hmac-sha2",
