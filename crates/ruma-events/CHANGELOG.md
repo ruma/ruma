@@ -11,6 +11,8 @@ Improvements:
 - Add unstable support for MSC3489 `m.beacon` & `m.beacon_info` events
   (unstable types `org.matrix.msc3489.beacon` & `org.matrix.msc3489.beacon_info`)
 - Stabilize support for muting in VoIP calls, according to Matrix 1.11
+- All the root `Any*EventContent` types now have a `EventContentFromType` implementations
+  automatically derived by the `event_enum!` macro.
 
 Breaking changes:
 
