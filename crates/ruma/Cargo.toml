@@ -227,6 +227,7 @@ unstable-msc4075 = ["ruma-events?/unstable-msc4075"]
 unstable-msc4108 = ["ruma-client-api?/unstable-msc4108"]
 unstable-msc4121 = ["ruma-client-api?/unstable-msc4121"]
 unstable-msc4125 = ["ruma-federation-api?/unstable-msc4125"]
+unstable-msc4140 = ["ruma-client-api?/unstable-msc4140"]
 unstable-pdu = ["ruma-events?/unstable-pdu"]
 unstable-unspecified = [
     "ruma-common/unstable-unspecified",
@@ -280,6 +281,7 @@ __ci = [
     "unstable-msc4108",
     "unstable-msc4121",
     "unstable-msc4125",
+    "unstable-msc4140"
 ]
 
 [dependencies]
