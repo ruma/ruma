@@ -20,6 +20,10 @@ Improvements:
 - Stabilize support for animated thumbnails, according to Matrix 1.11
 - Add support for terms of service at registration, according to MSC1692 /
   Matrix 1.11
+- Add unstable support for [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
+  to send `Future` events and update `Future` events with `future_tokens`.
+  (`Future` events are scheduled messages that can be controlled
+  with `future_tokens` to send on demand or restart the timeout)
 
 Bug fixes:
 
