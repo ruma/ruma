@@ -165,7 +165,10 @@ mod tests {
     use std::collections::BTreeMap;
 
     use assert_matches2::assert_matches;
-    use ruma_common::{event_id, serde::Base64};
+    use ruma_common::{
+        event_id,
+        serde::{Base64, Raw},
+    };
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
@@ -347,5 +350,27 @@ mod tests {
         assert_eq!(sas.key_agreement_protocol, KeyAgreementProtocol::Curve25519);
         assert_eq!(sas.message_authentication_code, MessageAuthenticationCode::HkdfHmacSha256V2);
         assert_eq!(sas.short_authentication_string, vec![ShortAuthenticationString::Decimal]);
+    }
+
+    #[test]
+    fn in_room_serialization_roundtrip() {
+        let event_id = event_id!("$1598361704261elfgc:localhost");
+
+        let content = KeyVerificationAcceptEventContent {
+            relates_to: Reference { event_id: event_id.to_owned() },
+            method: AcceptMethod::SasV1(SasV1Content {
+                hash: HashAlgorithm::Sha256,
+                key_agreement_protocol: KeyAgreementProtocol::Curve25519,
+                message_authentication_code: MessageAuthenticationCode::HkdfHmacSha256V2,
+                short_authentication_string: vec![ShortAuthenticationString::Decimal],
+                commitment: Base64::new(b"hello".to_vec()),
+            }),
+        };
+
+        let json_content = Raw::new(&content).unwrap();
+        let deser_content = json_content.deserialize().unwrap();
+
+        assert_matches!(deser_content.method, AcceptMethod::SasV1(_));
+        assert_eq!(deser_content.relates_to.event_id, event_id);
     }
 }

@@ -74,27 +74,11 @@ impl Serialize for Relation {
                 st.serialize_field("m.in_reply_to", in_reply_to)?;
                 st.end()
             }
-            Relation::Replacement(data) => {
-                RelationSerHelper { rel_type: "m.replace", data }.serialize(serializer)
-            }
-            Relation::Reference(data) => {
-                RelationSerHelper { rel_type: "m.reference", data }.serialize(serializer)
-            }
-            Relation::Annotation(data) => {
-                RelationSerHelper { rel_type: "m.annotation", data }.serialize(serializer)
-            }
-            Relation::Thread(data) => {
-                RelationSerHelper { rel_type: "m.thread", data }.serialize(serializer)
-            }
+            Relation::Replacement(data) => data.serialize(serializer),
+            Relation::Reference(data) => data.serialize(serializer),
+            Relation::Annotation(data) => data.serialize(serializer),
+            Relation::Thread(data) => data.serialize(serializer),
             Relation::_Custom(c) => c.serialize(serializer),
         }
     }
-}
-
-#[derive(Serialize)]
-struct RelationSerHelper<'a, T> {
-    rel_type: &'a str,
-
-    #[serde(flatten)]
-    data: &'a T,
 }

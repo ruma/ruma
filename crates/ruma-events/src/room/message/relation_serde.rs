@@ -157,7 +157,7 @@ pub(super) enum RelationSerHelper {
     Replacement(ReplacementJsonRepr),
 
     /// An event that belongs to a thread, with stable names.
-    #[serde(rename = "m.thread")]
+    #[serde(untagged)]
     Thread(Thread),
 
     /// An unknown relation type.

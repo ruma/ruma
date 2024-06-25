@@ -4,6 +4,8 @@ Bug fixes:
 
 - Fix deserialization of `AnyGlobalAccountDataEvent` for variants with a type
   fragment.
+- Fix serialization of `room::message::Relation` and `room::encrypted::Relation`
+  which could cause duplicate `rel_type` keys. 
 
 Improvements:
 
