@@ -1,7 +1,7 @@
 use assert_matches2::assert_matches;
-use ruma_common::{owned_device_id, owned_event_id};
+use ruma_common::{owned_device_id, owned_event_id, serde::Raw};
 use ruma_events::{
-    relation::{CustomRelation, InReplyTo, Reference, Thread},
+    relation::{Annotation, CustomRelation, InReplyTo, Reference, Thread},
     room::encrypted::{
         EncryptedEventScheme, MegolmV1AesSha2ContentInit, Relation, Replacement,
         RoomEncryptedEventContent,
@@ -83,6 +83,17 @@ fn content_no_relation_deserialization() {
 }
 
 #[test]
+fn content_no_relation_serialization_roundtrip() {
+    let content = RoomEncryptedEventContent::new(encrypted_scheme(), None);
+
+    let json_content = Raw::new(&content).unwrap();
+    let deser_content = json_content.deserialize().unwrap();
+
+    assert_matches!(deser_content.scheme, EncryptedEventScheme::MegolmV1AesSha2(_));
+    assert_matches!(deser_content.relates_to, None);
+}
+
+#[test]
 fn content_reply_serialization() {
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
@@ -147,6 +158,22 @@ fn content_reply_deserialization() {
 
     assert_matches!(content.relates_to, Some(Relation::Reply { in_reply_to }));
     assert_eq!(in_reply_to.event_id, "$replied_to_event");
+}
+
+#[test]
+fn content_reply_serialization_roundtrip() {
+    let reply = InReplyTo::new(owned_event_id!("$replied_to_event"));
+    let content = RoomEncryptedEventContent::new(
+        encrypted_scheme(),
+        Some(Relation::Reply { in_reply_to: reply.clone() }),
+    );
+
+    let json_content = Raw::new(&content).unwrap();
+    let deser_content = json_content.deserialize().unwrap();
+
+    assert_matches!(deser_content.scheme, EncryptedEventScheme::MegolmV1AesSha2(_));
+    assert_matches!(deser_content.relates_to, Some(Relation::Reply { in_reply_to: deser_reply }));
+    assert_eq!(deser_reply.event_id, reply.event_id);
 }
 
 #[test]
@@ -215,6 +242,22 @@ fn content_replacement_deserialization() {
 }
 
 #[test]
+fn content_replacement_serialization_roundtrip() {
+    let replacement = Replacement::new(owned_event_id!("$replaced_event"));
+    let content = RoomEncryptedEventContent::new(
+        encrypted_scheme(),
+        Some(Relation::Replacement(replacement.clone())),
+    );
+
+    let json_content = Raw::new(&content).unwrap();
+    let deser_content = json_content.deserialize().unwrap();
+
+    assert_matches!(deser_content.scheme, EncryptedEventScheme::MegolmV1AesSha2(_));
+    assert_matches!(deser_content.relates_to, Some(Relation::Replacement(deser_replacement)));
+    assert_eq!(deser_replacement.event_id, replacement.event_id);
+}
+
+#[test]
 fn content_reference_serialization() {
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
@@ -277,6 +320,22 @@ fn content_reference_deserialization() {
 
     assert_matches!(content.relates_to, Some(Relation::Reference(reference)));
     assert_eq!(reference.event_id, "$referenced_event");
+}
+
+#[test]
+fn content_reference_serialization_roundtrip() {
+    let reference = Reference::new(owned_event_id!("$referenced_event"));
+    let content = RoomEncryptedEventContent::new(
+        encrypted_scheme(),
+        Some(Relation::Reference(reference.clone())),
+    );
+
+    let json_content = Raw::new(&content).unwrap();
+    let deser_content = json_content.deserialize().unwrap();
+
+    assert_matches!(deser_content.scheme, EncryptedEventScheme::MegolmV1AesSha2(_));
+    assert_matches!(deser_content.relates_to, Some(Relation::Reference(deser_reference)));
+    assert_eq!(deser_reference.event_id, reference.event_id);
 }
 
 #[test]
@@ -357,9 +416,23 @@ fn content_thread_deserialization() {
 }
 
 #[test]
-fn content_annotation_serialization() {
-    use ruma_events::relation::Annotation;
+fn content_thread_serialization_roundtrip() {
+    let thread = Thread::plain(owned_event_id!("$thread_root"), owned_event_id!("$prev_event"));
+    let content =
+        RoomEncryptedEventContent::new(encrypted_scheme(), Some(Relation::Thread(thread.clone())));
 
+    let json_content = Raw::new(&content).unwrap();
+    let deser_content = json_content.deserialize().unwrap();
+
+    assert_matches!(deser_content.scheme, EncryptedEventScheme::MegolmV1AesSha2(_));
+    assert_matches!(deser_content.relates_to, Some(Relation::Thread(deser_thread)));
+    assert_eq!(deser_thread.event_id, thread.event_id);
+    assert_eq!(deser_thread.in_reply_to.unwrap().event_id, thread.in_reply_to.unwrap().event_id);
+    assert_eq!(deser_thread.is_falling_back, thread.is_falling_back);
+}
+
+#[test]
+fn content_annotation_serialization() {
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
         Some(Relation::Annotation(Annotation::new(
@@ -427,6 +500,23 @@ fn content_annotation_deserialization() {
     assert_matches!(content.relates_to, Some(Relation::Annotation(annotation)));
     assert_eq!(annotation.event_id, "$annotated_event");
     assert_eq!(annotation.key, "some_key");
+}
+
+#[test]
+fn content_annotation_serialization_roundtrip() {
+    let annotation = Annotation::new(owned_event_id!("$annotated_event"), "some_key".to_owned());
+    let content = RoomEncryptedEventContent::new(
+        encrypted_scheme(),
+        Some(Relation::Annotation(annotation.clone())),
+    );
+
+    let json_content = Raw::new(&content).unwrap();
+    let deser_content = json_content.deserialize().unwrap();
+
+    assert_matches!(deser_content.scheme, EncryptedEventScheme::MegolmV1AesSha2(_));
+    assert_matches!(deser_content.relates_to, Some(Relation::Annotation(deser_annotation)));
+    assert_eq!(deser_annotation.event_id, annotation.event_id);
+    assert_eq!(deser_annotation.key, annotation.key);
 }
 
 #[test]
@@ -501,4 +591,32 @@ fn custom_relation_serialization() {
             },
         })
     );
+}
+
+#[test]
+fn custom_serialization_roundtrip() {
+    let rel_type = "io.ruma.unknown";
+    let event_id = "$related_event";
+    let key = "value";
+    let json_relation = json!({
+        "rel_type": rel_type,
+        "event_id": event_id,
+        "key": key,
+    });
+    let relation = from_json_value::<CustomRelation>(json_relation).unwrap();
+
+    let content =
+        RoomEncryptedEventContent::new(encrypted_scheme(), Some(Relation::_Custom(relation)));
+
+    let json_content = Raw::new(&content).unwrap();
+    let deser_content = json_content.deserialize().unwrap();
+
+    assert_matches!(content.scheme, EncryptedEventScheme::MegolmV1AesSha2(_));
+    let deser_relates_to = deser_content.relates_to.unwrap();
+    assert_matches!(&deser_relates_to, Relation::_Custom(_));
+    assert_eq!(deser_relates_to.rel_type().unwrap().as_str(), rel_type);
+    let deser_relation = deser_relates_to.data();
+    assert_eq!(deser_relation.get("rel_type").unwrap().as_str().unwrap(), rel_type);
+    assert_eq!(deser_relation.get("event_id").unwrap().as_str().unwrap(), event_id);
+    assert_eq!(deser_relation.get("key").unwrap().as_str().unwrap(), key);
 }

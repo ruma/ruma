@@ -1,6 +1,6 @@
 use assert_matches2::assert_matches;
 use assign::assign;
-use ruma_common::owned_event_id;
+use ruma_common::{owned_event_id, serde::Raw};
 use ruma_events::{
     relation::{CustomRelation, InReplyTo, Replacement, Thread},
     room::message::{MessageType, Relation, RoomMessageEventContent},
@@ -50,6 +50,22 @@ fn reply_serialize() {
             },
         })
     );
+}
+
+#[test]
+fn reply_serialization_roundtrip() {
+    let body = "This is a reply";
+    let mut content = RoomMessageEventContent::text_plain(body);
+    let reply = InReplyTo::new(owned_event_id!("$1598361704261elfgc"));
+    content.relates_to = Some(Relation::Reply { in_reply_to: reply.clone() });
+
+    let json_content = Raw::new(&content).unwrap();
+    let deser_content = json_content.deserialize().unwrap();
+
+    assert_matches!(deser_content.msgtype, MessageType::Text(deser_msg));
+    assert_eq!(deser_msg.body, body);
+    assert_matches!(content.relates_to.unwrap(), Relation::Reply { in_reply_to: deser_reply });
+    assert_eq!(deser_reply.event_id, reply.event_id);
 }
 
 #[test]
@@ -109,6 +125,28 @@ fn replacement_deserialize() {
     assert_eq!(replacement.event_id, "$1598361704261elfgc");
     assert_matches!(replacement.new_content.msgtype, MessageType::Text(text));
     assert_eq!(text.body, "Hello! My name is bar");
+}
+
+#[test]
+fn replacement_serialization_roundtrip() {
+    let body = "<text msg>";
+    let mut content = RoomMessageEventContent::text_plain(body);
+    let new_body = "This is the new content.";
+    let replacement = Replacement::new(
+        owned_event_id!("$1598361704261elfgc"),
+        RoomMessageEventContent::text_plain(new_body).into(),
+    );
+    content.relates_to = Some(Relation::Replacement(replacement.clone()));
+
+    let json_content = Raw::new(&content).unwrap();
+    let deser_content = json_content.deserialize().unwrap();
+
+    assert_matches!(deser_content.msgtype, MessageType::Text(deser_msg));
+    assert_eq!(deser_msg.body, body);
+    assert_matches!(content.relates_to.unwrap(), Relation::Replacement(deser_replacement));
+    assert_eq!(deser_replacement.event_id, replacement.event_id);
+    assert_matches!(deser_replacement.new_content.msgtype, MessageType::Text(deser_new_msg));
+    assert_eq!(deser_new_msg.body, new_body);
 }
 
 #[test]
@@ -251,6 +289,25 @@ fn thread_unstable_deserialize() {
 }
 
 #[test]
+fn thread_serialization_roundtrip() {
+    let body = "<text msg>";
+    let mut content = RoomMessageEventContent::text_plain(body);
+    let thread =
+        Thread::plain(owned_event_id!("$1598361704261elfgc"), owned_event_id!("$latesteventid"));
+    content.relates_to = Some(Relation::Thread(thread.clone()));
+
+    let json_content = Raw::new(&content).unwrap();
+    let deser_content = json_content.deserialize().unwrap();
+
+    assert_matches!(deser_content.msgtype, MessageType::Text(deser_msg));
+    assert_eq!(deser_msg.body, body);
+    assert_matches!(content.relates_to.unwrap(), Relation::Thread(deser_thread));
+    assert_eq!(deser_thread.event_id, thread.event_id);
+    assert_eq!(deser_thread.in_reply_to.unwrap().event_id, thread.in_reply_to.unwrap().event_id);
+    assert_eq!(deser_thread.is_falling_back, thread.is_falling_back);
+}
+
+#[test]
 fn custom_deserialize() {
     let relation_json = json!({
         "rel_type": "io.ruma.unknown",
@@ -299,4 +356,34 @@ fn custom_serialize() {
             },
         })
     );
+}
+
+#[test]
+fn custom_serialization_roundtrip() {
+    let rel_type = "io.ruma.unknown";
+    let event_id = "$related_event";
+    let key = "value";
+    let json_relation = json!({
+        "rel_type": rel_type,
+        "event_id": event_id,
+        "key": key,
+    });
+    let relation = from_json_value::<CustomRelation>(json_relation).unwrap();
+
+    let body = "<text msg>";
+    let mut content = RoomMessageEventContent::text_plain(body);
+    content.relates_to = Some(Relation::_Custom(relation));
+
+    let json_content = Raw::new(&content).unwrap();
+    let deser_content = json_content.deserialize().unwrap();
+
+    assert_matches!(deser_content.msgtype, MessageType::Text(deser_msg));
+    assert_eq!(deser_msg.body, body);
+    let deser_relates_to = deser_content.relates_to.unwrap();
+    assert_matches!(&deser_relates_to, Relation::_Custom(_));
+    assert_eq!(deser_relates_to.rel_type().unwrap().as_str(), rel_type);
+    let deser_relation = deser_relates_to.data();
+    assert_eq!(deser_relation.get("rel_type").unwrap().as_str().unwrap(), rel_type);
+    assert_eq!(deser_relation.get("event_id").unwrap().as_str().unwrap(), event_id);
+    assert_eq!(deser_relation.get("key").unwrap().as_str().unwrap(), key);
 }

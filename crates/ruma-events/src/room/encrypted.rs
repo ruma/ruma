@@ -165,6 +165,7 @@ impl<C> From<message::Relation<C>> for Relation {
 /// [replaces another event]: https://spec.matrix.org/latest/client-server-api/#event-replacements
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(tag = "rel_type", rename = "m.replace")]
 pub struct Replacement {
     /// The ID of the event being replaced.
     pub event_id: OwnedEventId,

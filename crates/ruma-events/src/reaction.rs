@@ -37,7 +37,7 @@ impl From<Annotation> for ReactionEventContent {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use ruma_common::owned_event_id;
+    use ruma_common::{owned_event_id, serde::Raw};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::ReactionEventContent;
@@ -78,5 +78,19 @@ mod tests {
                 }
             })
         );
+    }
+
+    #[test]
+    fn serialization_roundtrip() {
+        let content = ReactionEventContent::new(Annotation::new(
+            owned_event_id!("$my_reaction"),
+            "🏠".to_owned(),
+        ));
+
+        let json_content = Raw::new(&content).unwrap();
+        let deser_content = json_content.deserialize().unwrap();
+
+        assert_eq!(deser_content.relates_to.event_id, content.relates_to.event_id);
+        assert_eq!(deser_content.relates_to.key, content.relates_to.key);
     }
 }
