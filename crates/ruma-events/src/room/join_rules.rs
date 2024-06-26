@@ -7,7 +7,7 @@ use std::{borrow::Cow, collections::BTreeMap};
 use ruma_common::{serde::from_raw_json_value, space::SpaceRoomJoinRule, OwnedRoomId};
 use ruma_macros::EventContent;
 use serde::{
-    de::{Deserializer, Error},
+    de::{Deserializer, Error, IgnoredAny},
     Deserialize, Serialize,
 };
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
@@ -164,7 +164,7 @@ impl From<JoinRule> for SpaceRoomJoinRule {
 }
 
 /// Configuration of the `Restricted` join rule.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Restricted {
     /// Allow rules which describe conditions that allow joining a room.
@@ -175,6 +175,59 @@ impl Restricted {
     /// Constructs a new rule set for restricted rooms with the given rules.
     pub fn new(allow: Vec<AllowRule>) -> Self {
         Self { allow }
+    }
+}
+
+impl<'de> Deserialize<'de> for Restricted {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct S {
+            allow: IgnoreInvalidItems<AllowRule>,
+        }
+
+        let S { allow: IgnoreInvalidItems(allow) } = Deserialize::deserialize(deserializer)?;
+
+        Ok(Self { allow })
+    }
+}
+
+/// Deserialize a `Vec<T>`, dropping all `T` that don't match the expected schema
+struct IgnoreInvalidItems<T>(Vec<T>);
+
+impl<'de, T> Deserialize<'de> for IgnoreInvalidItems<T>
+where
+    T: Deserialize<'de> + std::fmt::Debug,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Debug, Deserialize)]
+        #[serde(untagged)]
+        enum Either<L, R> {
+            Left(L),
+            Right(R),
+        }
+
+        // TODO: For some reason this always chooses `IgnoredAny`
+        let xs: Vec<Either<T, IgnoredAny>> = Deserialize::deserialize(deserializer)?;
+
+        eprintln!("{xs:#?}");
+
+        let xs = xs
+            .into_iter()
+            .filter_map(|x| match x {
+                Either::Left(x) => Some(x),
+                Either::Right(_) => None,
+            })
+            .collect();
+
+        println!("{xs:#?}");
+
+        Ok(Self(xs))
     }
 }
 
@@ -289,6 +342,35 @@ mod tests {
                     AllowRule::room_membership(owned_room_id!("!mods:example.org")),
                     AllowRule::room_membership(owned_room_id!("!users:example.org"))
                 ]
+            ),
+            rule => panic!("Deserialized to wrong variant: {rule:?}"),
+        }
+    }
+
+    /// Ensure that values that can't be parsed are simply ignored
+    ///
+    /// This is in contrast to failing to parse outright, which can result in
+    /// rooms becoming impossible to join, even by invite.
+    #[test]
+    fn deserialize_restricted_unexpected() {
+        let json = r#"{
+            "join_rule": "restricted",
+            "allow": [
+                {
+                    "type": "m.room_membership",
+                    "room_id": "!mods:example.org"
+                },
+                {
+                    "type": "m.room_membership",
+                    "room_id": ""
+                }
+            ]
+        }"#;
+        let event: RoomJoinRulesEventContent = serde_json::from_str(json).unwrap();
+        match event.join_rule {
+            JoinRule::Restricted(restricted) => assert_eq!(
+                restricted.allow,
+                &[AllowRule::room_membership(owned_room_id!("!mods:example.org")),]
             ),
             rule => panic!("Deserialized to wrong variant: {rule:?}"),
         }
