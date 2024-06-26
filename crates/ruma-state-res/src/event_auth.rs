@@ -497,10 +497,10 @@ fn valid_membership_change(
         (target_membership == MembershipState::Join).then_some(&power_levels.users_default)
     });
 
-    let mut join_rules = JoinRule::Invite;
-    if let Some(jr) = &join_rules_event {
-        join_rules = from_json_str::<RoomJoinRulesEventContent>(jr.content().get())?.join_rule;
-    }
+    // Instead of failing if the rules can't be parsed, assume invite-only
+    let join_rules = join_rules_event
+        .and_then(|x| from_json_str::<RoomJoinRulesEventContent>(x.content().get()).ok())
+        .map_or(JoinRule::Invite, |x| x.join_rule);
 
     let power_levels_event_id = power_levels_event.as_ref().map(|e| e.event_id());
     let sender_membership_event_id = sender_membership_event.as_ref().map(|e| e.event_id());
