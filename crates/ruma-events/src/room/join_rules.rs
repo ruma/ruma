@@ -168,6 +168,7 @@ impl From<JoinRule> for SpaceRoomJoinRule {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Restricted {
     /// Allow rules which describe conditions that allow joining a room.
+    #[serde(default)]
     pub allow: Vec<AllowRule>,
 }
 
@@ -322,6 +323,16 @@ mod tests {
         let allow_rule: AllowRule = serde_json::from_str(json).unwrap();
         assert_matches!(&allow_rule, AllowRule::_Custom(_));
         assert_eq!(serde_json::to_string(&allow_rule).unwrap(), json);
+    }
+
+    #[test]
+    fn restricted_room_no_allow_field() {
+        let json = r#"{"join_rule":"restricted"}"#;
+        let join_rules: RoomJoinRulesEventContent = serde_json::from_str(json).unwrap();
+        assert_matches!(
+            join_rules,
+            RoomJoinRulesEventContent { join_rule: JoinRule::Restricted(_) }
+        );
     }
 
     #[test]
