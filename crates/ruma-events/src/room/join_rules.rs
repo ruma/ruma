@@ -11,6 +11,7 @@ use serde::{
     Deserialize, Serialize,
 };
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
+use serde_with::serde_as;
 
 use crate::{EmptyStateKey, PrivOwnedStr};
 
@@ -165,9 +166,11 @@ impl From<JoinRule> for SpaceRoomJoinRule {
 
 /// Configuration of the `Restricted` join rule.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde_as]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Restricted {
     /// Allow rules which describe conditions that allow joining a room.
+    #[serde_as(as = "VecSkipError<_>")]
     pub allow: Vec<AllowRule>,
 }
 
@@ -289,6 +292,35 @@ mod tests {
                     AllowRule::room_membership(owned_room_id!("!mods:example.org")),
                     AllowRule::room_membership(owned_room_id!("!users:example.org"))
                 ]
+            ),
+            rule => panic!("Deserialized to wrong variant: {rule:?}"),
+        }
+    }
+
+    /// Ensure that values that can't be parsed are simply ignored
+    ///
+    /// This is in contrast to failing to parse outright, which can result in
+    /// rooms becoming impossible to join, even by invite.
+    #[test]
+    fn deserialize_restricted_unexpected() {
+        let json = r#"{
+            "join_rule": "restricted",
+            "allow": [
+                {
+                    "type": "m.room_membership",
+                    "room_id": "!mods:example.org"
+                },
+                {
+                    "type": "m.room_membership",
+                    "room_id": ""
+                }
+            ]
+        }"#;
+        let event: RoomJoinRulesEventContent = serde_json::from_str(json).unwrap();
+        match event.join_rule {
+            JoinRule::Restricted(restricted) => assert_eq!(
+                restricted.allow,
+                &[AllowRule::room_membership(owned_room_id!("!mods:example.org")),]
             ),
             rule => panic!("Deserialized to wrong variant: {rule:?}"),
         }
