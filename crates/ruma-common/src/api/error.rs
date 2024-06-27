@@ -277,6 +277,10 @@ pub enum HeaderDeserializationError {
     #[error("missing header `{0}`")]
     MissingHeader(String),
 
+    /// The given header failed to parse.
+    #[error("invalid header: {0}")]
+    InvalidHeader(Box<dyn std::error::Error + Send + Sync + 'static>),
+
     /// A header was received with a unexpected value.
     #[error(
         "The {header} header was received with an unexpected value, \
