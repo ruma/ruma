@@ -13,6 +13,8 @@ Breaking changes:
   This allows to use a struct or enum as well as a map to represent the list of
   query parameters. Note that the (de)serialization of the type used must work
   with `serde_html_form`.
+- The `header` attribute for the `request` and `response` macros accepts any
+  type that implements `ToString` and `FromStr`. 
 
 Improvements:
 
