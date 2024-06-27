@@ -6,6 +6,7 @@ Bug fixes:
   fragment.
 - Fix serialization of `room::message::Relation` and `room::encrypted::Relation`
   which could cause duplicate `rel_type` keys. 
+- `Restricted` no longer fails to deserialize when the `allow` field is missing
 
 Improvements:
 
