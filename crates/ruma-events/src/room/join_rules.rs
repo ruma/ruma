@@ -7,10 +7,11 @@ use std::{borrow::Cow, collections::BTreeMap};
 use ruma_common::{serde::from_raw_json_value, space::SpaceRoomJoinRule, OwnedRoomId};
 use ruma_macros::EventContent;
 use serde::{
-    de::{Deserializer, Error, IgnoredAny},
+    de::{Deserializer, Error},
     Deserialize, Serialize,
 };
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
+use serde_with::serde_as;
 
 use crate::{EmptyStateKey, PrivOwnedStr};
 
@@ -164,10 +165,12 @@ impl From<JoinRule> for SpaceRoomJoinRule {
 }
 
 /// Configuration of the `Restricted` join rule.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde_as]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Restricted {
     /// Allow rules which describe conditions that allow joining a room.
+    #[serde_as(as = "VecSkipError<_>")]
     pub allow: Vec<AllowRule>,
 }
 
@@ -175,59 +178,6 @@ impl Restricted {
     /// Constructs a new rule set for restricted rooms with the given rules.
     pub fn new(allow: Vec<AllowRule>) -> Self {
         Self { allow }
-    }
-}
-
-impl<'de> Deserialize<'de> for Restricted {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        #[derive(Deserialize)]
-        struct S {
-            allow: IgnoreInvalidItems<AllowRule>,
-        }
-
-        let S { allow: IgnoreInvalidItems(allow) } = Deserialize::deserialize(deserializer)?;
-
-        Ok(Self { allow })
-    }
-}
-
-/// Deserialize a `Vec<T>`, dropping all `T` that don't match the expected schema
-struct IgnoreInvalidItems<T>(Vec<T>);
-
-impl<'de, T> Deserialize<'de> for IgnoreInvalidItems<T>
-where
-    T: Deserialize<'de> + std::fmt::Debug,
-{
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        #[derive(Debug, Deserialize)]
-        #[serde(untagged)]
-        enum Either<L, R> {
-            Left(L),
-            Right(R),
-        }
-
-        // TODO: For some reason this always chooses `IgnoredAny`
-        let xs: Vec<Either<T, IgnoredAny>> = Deserialize::deserialize(deserializer)?;
-
-        eprintln!("{xs:#?}");
-
-        let xs = xs
-            .into_iter()
-            .filter_map(|x| match x {
-                Either::Left(x) => Some(x),
-                Either::Right(_) => None,
-            })
-            .collect();
-
-        println!("{xs:#?}");
-
-        Ok(Self(xs))
     }
 }
 
