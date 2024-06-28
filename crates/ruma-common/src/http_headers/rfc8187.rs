@@ -40,12 +40,12 @@ pub(super) fn decode(bytes: &[u8]) -> Result<Cow<'_, str>, Rfc8187DecodeError> {
     }
 
     let mut parts = bytes.split(|b| *b == b'\'');
-    let charset = parts.next().ok_or(Rfc8187DecodeError::WrongPartsNumber)?;
-    let _lang = parts.next().ok_or(Rfc8187DecodeError::WrongPartsNumber)?;
-    let encoded = parts.next().ok_or(Rfc8187DecodeError::WrongPartsNumber)?;
+    let charset = parts.next().ok_or(Rfc8187DecodeError::WrongPartsCount)?;
+    let _lang = parts.next().ok_or(Rfc8187DecodeError::WrongPartsCount)?;
+    let encoded = parts.next().ok_or(Rfc8187DecodeError::WrongPartsCount)?;
 
     if parts.next().is_some() {
-        return Err(Rfc8187DecodeError::WrongPartsNumber);
+        return Err(Rfc8187DecodeError::WrongPartsCount);
     }
 
     if !charset.eq_ignore_ascii_case(b"utf-8") {
@@ -68,7 +68,7 @@ pub(super) enum Rfc8187DecodeError {
 
     /// The string does not contain the right number of parts.
     #[error("string does not contain the right number of parts")]
-    WrongPartsNumber,
+    WrongPartsCount,
 
     /// The character set is not UTF-8.
     #[error("character set is not UTF-8")]

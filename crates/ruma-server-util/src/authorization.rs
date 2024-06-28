@@ -6,7 +6,7 @@ use headers::authorization::Credentials;
 use http::HeaderValue;
 use http_auth::ChallengeParser;
 use ruma_common::{
-    http_headers::maybe_quote_ascii_string,
+    http_headers::quote_ascii_string_if_required,
     serde::{Base64, Base64DecodeError},
     IdParseError, OwnedServerName, OwnedServerSigningKeyId,
 };
@@ -124,15 +124,15 @@ impl fmt::Display for XMatrix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let Self { origin, destination, key, sig } = self;
 
-        let origin = maybe_quote_ascii_string(origin.as_str());
-        let key = maybe_quote_ascii_string(key.as_str());
+        let origin = quote_ascii_string_if_required(origin.as_str());
+        let key = quote_ascii_string_if_required(key.as_str());
         let sig = sig.encode();
-        let sig = maybe_quote_ascii_string(&sig);
+        let sig = quote_ascii_string_if_required(&sig);
 
         write!(f, r#"{} "#, Self::SCHEME)?;
 
         if let Some(destination) = destination {
-            let destination = maybe_quote_ascii_string(destination.as_str());
+            let destination = quote_ascii_string_if_required(destination.as_str());
             write!(f, r#"destination={destination},"#)?;
         }
 

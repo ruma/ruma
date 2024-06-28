@@ -13,7 +13,7 @@ pub use self::content_disposition::{
 /// Whether the given byte is a [token char].
 ///
 /// [token char]: https://datatracker.ietf.org/doc/html/rfc9110#section-5.6.2
-pub const fn is_tchar_byte(b: u8) -> bool {
+pub const fn is_tchar(b: u8) -> bool {
     b.is_ascii_alphanumeric()
         || matches!(
             b,
@@ -34,28 +34,18 @@ pub const fn is_tchar_byte(b: u8) -> bool {
         )
 }
 
-/// Whether the given char is a [token char].
+/// Whether the given bytes slice is a [`token`].
 ///
 /// [token char]: https://datatracker.ietf.org/doc/html/rfc9110#section-5.6.2
-pub const fn is_tchar(c: char) -> bool {
-    c.is_ascii_alphanumeric()
-        || matches!(
-            c,
-            '!' | '#'
-                | '$'
-                | '%'
-                | '&'
-                | '\''
-                | '*'
-                | '+'
-                | '-'
-                | '.'
-                | '^'
-                | '_'
-                | '`'
-                | '|'
-                | '~'
-        )
+pub fn is_token(bytes: &[u8]) -> bool {
+    bytes.iter().all(|b| is_tchar(*b))
+}
+
+/// Whether the given string is a [`token`].
+///
+/// [token char]: https://datatracker.ietf.org/doc/html/rfc9110#section-5.6.2
+pub fn is_token_string(s: &str) -> bool {
+    is_token(s.as_bytes())
 }
 
 /// Whether the given char is a [visible US-ASCII char].
@@ -78,7 +68,7 @@ pub const fn is_ascii_string_quotable(c: char) -> bool {
 /// Remove characters that do not pass [`is_ascii_string_quotable()`] from the given string.
 ///
 /// [quoted string]: https://datatracker.ietf.org/doc/html/rfc9110#section-5.6.4
-pub fn maybe_sanitize_for_ascii_quoted_string(value: &str) -> Cow<'_, str> {
+pub fn sanitize_for_ascii_quoted_string(value: &str) -> Cow<'_, str> {
     if value.chars().all(is_ascii_string_quotable) {
         return Cow::Borrowed(value);
     }
@@ -92,8 +82,8 @@ pub fn maybe_sanitize_for_ascii_quoted_string(value: &str) -> Cow<'_, str> {
 /// contain characters that pass [`is_ascii_string_quotable()`].
 ///
 /// [quoted string]: https://datatracker.ietf.org/doc/html/rfc9110#section-5.6.4
-pub fn maybe_quote_ascii_string(value: &str) -> Cow<'_, str> {
-    if !value.is_empty() && value.chars().all(is_tchar) {
+pub fn quote_ascii_string_if_required(value: &str) -> Cow<'_, str> {
+    if !value.is_empty() && is_token_string(value) {
         return Cow::Borrowed(value);
     }
 

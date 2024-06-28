@@ -7,7 +7,7 @@ use ruma_macros::{
 };
 
 use super::{
-    is_tchar_byte, maybe_quote_ascii_string, maybe_sanitize_for_ascii_quoted_string, rfc8187,
+    is_tchar, is_token, quote_ascii_string_if_required, rfc8187, sanitize_for_ascii_quoted_string,
     unescape_string,
 };
 
@@ -56,10 +56,10 @@ impl fmt::Display for ContentDisposition {
         if let Some(filename) = &self.filename {
             if filename.is_ascii() {
                 // First, remove all non-quotable characters, that is control characters.
-                let filename = maybe_sanitize_for_ascii_quoted_string(filename);
+                let filename = sanitize_for_ascii_quoted_string(filename);
 
                 // We can use the filename parameter.
-                write!(f, "; filename={}", maybe_quote_ascii_string(&filename))?;
+                write!(f, "; filename={}", quote_ascii_string_if_required(&filename))?;
             } else {
                 // We need to use RFC 8187 encoding.
                 write!(f, "; filename*={}", rfc8187::encode(filename))?;
@@ -220,7 +220,7 @@ fn parse_param_name<'a>(bytes: &'a [u8], pos: &mut usize) -> Option<&'a [u8]> {
 
     // Find the end of the parameter name. The name can only contain token chars.
     while let Some(byte) = bytes.get(*pos) {
-        if !is_tchar_byte(*byte) {
+        if !is_tchar(*byte) {
             break;
         }
 
@@ -477,7 +477,7 @@ impl<'a> TryFrom<&'a [u8]> for TokenString {
     fn try_from(value: &'a [u8]) -> Result<Self, Self::Error> {
         if value.is_empty() {
             Err(TokenStringParseError::Empty)
-        } else if value.iter().all(|b| is_tchar_byte(*b)) {
+        } else if is_token(value) {
             let s = std::str::from_utf8(value).expect("ASCII bytes are valid UTF-8");
             Ok(Self(s.into()))
         } else {
