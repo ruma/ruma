@@ -24,6 +24,7 @@ pub mod authentication;
 pub mod canonical_json;
 pub mod directory;
 pub mod encryption;
+pub mod http_headers;
 mod identifiers;
 mod percent_encode;
 pub mod power_levels;

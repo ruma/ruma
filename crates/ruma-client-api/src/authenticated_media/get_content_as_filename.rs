@@ -12,6 +12,7 @@ pub mod v1 {
     use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
     use ruma_common::{
         api::{request, response, Metadata},
+        http_headers::ContentDisposition,
         metadata, IdParseError, MxcUri, OwnedServerName,
     };
 
@@ -66,12 +67,8 @@ pub mod v1 {
 
         /// The value of the `Content-Disposition` HTTP header, possibly containing the name of the
         /// file that was previously uploaded.
-        ///
-        /// See [MDN] for the syntax.
-        ///
-        /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition#Syntax
         #[ruma_api(header = CONTENT_DISPOSITION)]
-        pub content_disposition: Option<String>,
+        pub content_disposition: Option<ContentDisposition>,
     }
 
     impl Request {

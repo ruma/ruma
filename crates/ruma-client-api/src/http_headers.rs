@@ -3,6 +3,10 @@
 
 use http::{header::HeaderName, HeaderValue};
 use ruma_common::api::error::{HeaderDeserializationError, HeaderSerializationError};
+pub use ruma_common::http_headers::{
+    ContentDisposition, ContentDispositionParseError, ContentDispositionType, TokenString,
+    TokenStringParseError,
+};
 use web_time::{Duration, SystemTime, UNIX_EPOCH};
 
 /// The [`Cross-Origin-Resource-Policy`] HTTP response header.

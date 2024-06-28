@@ -1,11 +1,12 @@
 //! Common types for implementing federation authorization.
 
-use std::{borrow::Cow, fmt, str::FromStr};
+use std::{fmt, str::FromStr};
 
 use headers::authorization::Credentials;
 use http::HeaderValue;
 use http_auth::ChallengeParser;
 use ruma_common::{
+    http_headers::quote_ascii_string_if_required,
     serde::{Base64, Base64DecodeError},
     IdParseError, OwnedServerName, OwnedServerSigningKeyId,
 };
@@ -119,40 +120,19 @@ impl fmt::Debug for XMatrix {
     }
 }
 
-/// Whether the given char is a [token char].
-///
-/// [token char]: https://www.rfc-editor.org/rfc/rfc9110#section-5.6.2
-fn is_tchar(c: char) -> bool {
-    const TOKEN_CHARS: [char; 15] =
-        ['!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~'];
-    c.is_ascii_alphanumeric() || TOKEN_CHARS.contains(&c)
-}
-
-/// If the field value does not contain only token chars, convert it to a [quoted string].
-///
-/// [quoted string]: https://www.rfc-editor.org/rfc/rfc9110#section-5.6.4
-fn escape_field_value(value: &str) -> Cow<'_, str> {
-    if !value.is_empty() && value.chars().all(is_tchar) {
-        return Cow::Borrowed(value);
-    }
-
-    let value = value.replace('\\', r#"\\"#).replace('"', r#"\""#);
-    Cow::Owned(format!("\"{value}\""))
-}
-
 impl fmt::Display for XMatrix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let Self { origin, destination, key, sig } = self;
 
-        let origin = escape_field_value(origin.as_str());
-        let key = escape_field_value(key.as_str());
+        let origin = quote_ascii_string_if_required(origin.as_str());
+        let key = quote_ascii_string_if_required(key.as_str());
         let sig = sig.encode();
-        let sig = escape_field_value(&sig);
+        let sig = quote_ascii_string_if_required(&sig);
 
         write!(f, r#"{} "#, Self::SCHEME)?;
 
         if let Some(destination) = destination {
-            let destination = escape_field_value(destination.as_str());
+            let destination = quote_ascii_string_if_required(destination.as_str());
             write!(f, r#"destination={destination},"#)?;
         }
 
