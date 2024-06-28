@@ -10,9 +10,9 @@ pub use self::content_disposition::{
     TokenStringParseError,
 };
 
-/// Whether the given byte is a [token char].
+/// Whether the given byte is a [`token` char].
 ///
-/// [token char]: https://datatracker.ietf.org/doc/html/rfc9110#section-5.6.2
+/// [`token` char]: https://datatracker.ietf.org/doc/html/rfc9110#section-5.6.2
 pub const fn is_tchar(b: u8) -> bool {
     b.is_ascii_alphanumeric()
         || matches!(
@@ -36,14 +36,14 @@ pub const fn is_tchar(b: u8) -> bool {
 
 /// Whether the given bytes slice is a [`token`].
 ///
-/// [token char]: https://datatracker.ietf.org/doc/html/rfc9110#section-5.6.2
+/// [`token`]: https://datatracker.ietf.org/doc/html/rfc9110#section-5.6.2
 pub fn is_token(bytes: &[u8]) -> bool {
     bytes.iter().all(|b| is_tchar(*b))
 }
 
 /// Whether the given string is a [`token`].
 ///
-/// [token char]: https://datatracker.ietf.org/doc/html/rfc9110#section-5.6.2
+/// [`token`]: https://datatracker.ietf.org/doc/html/rfc9110#section-5.6.2
 pub fn is_token_string(s: &str) -> bool {
     is_token(s.as_bytes())
 }
@@ -78,7 +78,7 @@ pub fn sanitize_for_ascii_quoted_string(value: &str) -> Cow<'_, str> {
 
 /// If the US-ASCII field value does not contain only token chars, convert it to a [quoted string].
 ///
-/// The string should be sanitized with [`maybe_sanitize_for_ascii_quoted_string()`] or should only
+/// The string should be sanitized with [`sanitize_for_ascii_quoted_string()`] or should only
 /// contain characters that pass [`is_ascii_string_quotable()`].
 ///
 /// [quoted string]: https://datatracker.ietf.org/doc/html/rfc9110#section-5.6.4
