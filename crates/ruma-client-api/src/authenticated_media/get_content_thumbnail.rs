@@ -13,10 +13,9 @@ pub mod v1 {
     use js_int::UInt;
     use ruma_common::{
         api::{request, response, Metadata},
+        media::Method,
         metadata, IdParseError, MxcUri, OwnedServerName,
     };
-
-    use crate::media::get_content_thumbnail::v3::Method;
 
     const METADATA: Metadata = metadata! {
         method: GET,
@@ -63,8 +62,8 @@ pub mod v1 {
         #[ruma_api(query)]
         #[serde(
             with = "ruma_common::serde::duration::ms",
-            default = "crate::media::default_download_timeout",
-            skip_serializing_if = "crate::media::is_default_download_timeout"
+            default = "ruma_common::media::default_download_timeout",
+            skip_serializing_if = "ruma_common::media::is_default_download_timeout"
         )]
         pub timeout_ms: Duration,
 
@@ -105,7 +104,7 @@ pub mod v1 {
                 method: None,
                 width,
                 height,
-                timeout_ms: crate::media::default_download_timeout(),
+                timeout_ms: ruma_common::media::default_download_timeout(),
                 animated: None,
             }
         }

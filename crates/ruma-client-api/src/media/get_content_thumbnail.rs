@@ -11,14 +11,13 @@ pub mod v3 {
 
     use http::header::CONTENT_TYPE;
     use js_int::UInt;
+    pub use ruma_common::media::Method;
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata,
-        serde::StringEnum,
-        IdParseError, MxcUri, OwnedServerName,
+        metadata, IdParseError, MxcUri, OwnedServerName,
     };
 
-    use crate::{http_headers::CROSS_ORIGIN_RESOURCE_POLICY, PrivOwnedStr};
+    use crate::http_headers::CROSS_ORIGIN_RESOURCE_POLICY;
 
     const METADATA: Metadata = metadata! {
         method: GET,
@@ -80,8 +79,8 @@ pub mod v3 {
         #[ruma_api(query)]
         #[serde(
             with = "ruma_common::serde::duration::ms",
-            default = "crate::media::default_download_timeout",
-            skip_serializing_if = "crate::media::is_default_download_timeout"
+            default = "ruma_common::media::default_download_timeout",
+            skip_serializing_if = "ruma_common::media::is_default_download_timeout"
         )]
         pub timeout_ms: Duration,
 
@@ -140,7 +139,7 @@ pub mod v3 {
                 width,
                 height,
                 allow_remote: true,
-                timeout_ms: crate::media::default_download_timeout(),
+                timeout_ms: ruma_common::media::default_download_timeout(),
                 allow_redirect: false,
                 animated: None,
             }
@@ -166,21 +165,5 @@ pub mod v3 {
                 cross_origin_resource_policy: Some("cross-origin".to_owned()),
             }
         }
-    }
-
-    /// The desired resizing method.
-    #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-    #[derive(Clone, StringEnum)]
-    #[ruma_enum(rename_all = "snake_case")]
-    #[non_exhaustive]
-    pub enum Method {
-        /// Crop the original to produce the requested image dimensions.
-        Crop,
-
-        /// Maintain the original aspect ratio of the source image.
-        Scale,
-
-        #[doc(hidden)]
-        _Custom(PrivOwnedStr),
     }
 }

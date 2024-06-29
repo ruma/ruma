@@ -66,7 +66,7 @@ impl Request {
                         if let Some(header_val) = self.#field_name.as_ref() {
                             req_headers.insert(
                                 #header_name,
-                                #http::header::HeaderValue::from_str(header_val)?,
+                                #http::header::HeaderValue::from_str(&header_val.to_string())?,
                             );
                         }
                     }
@@ -74,7 +74,7 @@ impl Request {
                 _ => quote! {
                     req_headers.insert(
                         #header_name,
-                        #http::header::HeaderValue::from_str(self.#field_name.as_ref())?,
+                        #http::header::HeaderValue::from_str(&self.#field_name.to_string())?,
                     );
                 },
             }

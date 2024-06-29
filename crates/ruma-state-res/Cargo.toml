@@ -32,7 +32,7 @@ criterion = { workspace = true, optional = true }
 
 [dev-dependencies]
 maplit = { workspace = true }
-rand = "0.8.3"
+rand = { workspace = true }
 ruma-events = { workspace = true, features = ["unstable-pdu"] }
 tracing-subscriber = "0.3.16"
 
