@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+- Add support for authenticated media endpoints, according to MSC3916 / Matrix 1.11
+
 # 0.9.0
 
 Breaking changes:
