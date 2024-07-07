@@ -76,6 +76,7 @@ serde_json = { workspace = true, features = ["raw_value"] }
 thiserror = { workspace = true }
 tracing = { workspace = true, features = ["attributes"] }
 url = { workspace = true }
+web-time = { workspace = true }
 wildmatch = "2.0.0"
 
 # dev-dependencies can't be optional, so this is a regular dependency

@@ -3,11 +3,10 @@
 //!
 //! [MSC3489]: https://github.com/matrix-org/matrix-spec-proposals/pull/3489
 
-use std::time::{Duration, SystemTime};
-
 use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedUserId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
+use web_time::{Duration, SystemTime};
 
 use crate::location::AssetContent;
 
