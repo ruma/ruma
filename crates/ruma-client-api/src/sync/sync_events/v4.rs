@@ -21,7 +21,7 @@ use ruma_events::{
 };
 use serde::{de::Error as _, Deserialize, Serialize};
 
-use super::{DeviceLists, UnreadNotificationsCount};
+use super::{v5, DeviceLists, UnreadNotificationsCount};
 
 const METADATA: Metadata = metadata! {
     method: POST,
@@ -923,6 +923,140 @@ impl Typing {
     /// Whether all fields are empty or `None`.
     pub fn is_empty(&self) -> bool {
         self.rooms.is_empty()
+    }
+}
+
+impl From<v5::Request> for Request {
+    fn from(value: v5::Request) -> Self {
+        Self {
+            pos: value.pos,
+            conn_id: value.conn_id,
+            txn_id: value.txn_id,
+            timeout: value.timeout,
+            lists: value
+                .lists
+                .into_iter()
+                .map(|(list_name, list)| (list_name, list.into()))
+                .collect(),
+            room_subscriptions: value
+                .room_subscriptions
+                .into_iter()
+                .map(|(room_id, room_subscription)| (room_id, room_subscription.into()))
+                .collect(),
+            extensions: value.extensions.into(),
+
+            ..Default::default()
+        }
+    }
+}
+
+impl From<v5::request::List> for SyncRequestList {
+    fn from(value: v5::request::List) -> Self {
+        Self {
+            ranges: value.ranges,
+            room_details: value.room_details.into(),
+            include_heroes: value.include_heroes,
+            filters: value.filters.map(Into::into),
+
+            // Defaults from Simplified MSC3575.
+            sort: vec!["by_recency".to_owned(), "by_name".to_owned()],
+            bump_event_types: vec![
+                TimelineEventType::RoomMessage,
+                TimelineEventType::RoomEncrypted,
+                TimelineEventType::Sticker,
+            ],
+
+            ..Default::default()
+        }
+    }
+}
+
+impl From<v5::request::RoomDetails> for RoomDetailsConfig {
+    fn from(value: v5::request::RoomDetails) -> Self {
+        Self { required_state: value.required_state, timeline_limit: value.timeline_limit }
+    }
+}
+
+impl From<v5::request::ListFilters> for SyncRequestListFilters {
+    fn from(value: v5::request::ListFilters) -> Self {
+        Self {
+            is_invite: value.is_invite,
+            not_room_types: value.not_room_types,
+            ..Default::default()
+        }
+    }
+}
+
+impl From<v5::request::RoomSubscription> for RoomSubscription {
+    fn from(value: v5::request::RoomSubscription) -> Self {
+        Self {
+            required_state: value.required_state,
+            timeline_limit: value.timeline_limit,
+            include_heroes: value.include_heroes,
+        }
+    }
+}
+
+impl From<v5::request::Extensions> for ExtensionsConfig {
+    fn from(value: v5::request::Extensions) -> Self {
+        Self {
+            to_device: value.to_device.into(),
+            e2ee: value.e2ee.into(),
+            account_data: value.account_data.into(),
+            receipts: value.receipts.into(),
+            typing: value.typing.into(),
+
+            ..Default::default()
+        }
+    }
+}
+
+impl From<v5::request::ToDevice> for ToDeviceConfig {
+    fn from(value: v5::request::ToDevice) -> Self {
+        Self {
+            enabled: value.enabled,
+            limit: value.limit,
+            since: value.since,
+            lists: value.lists,
+            rooms: value.rooms,
+        }
+    }
+}
+
+impl From<v5::request::E2EE> for E2EEConfig {
+    fn from(value: v5::request::E2EE) -> Self {
+        Self { enabled: value.enabled }
+    }
+}
+
+impl From<v5::request::AccountData> for AccountDataConfig {
+    fn from(value: v5::request::AccountData) -> Self {
+        Self { enabled: value.enabled, lists: value.lists, rooms: value.rooms }
+    }
+}
+
+impl From<v5::request::Receipts> for ReceiptsConfig {
+    fn from(value: v5::request::Receipts) -> Self {
+        Self {
+            enabled: value.enabled,
+            lists: value.lists,
+            rooms: value.rooms.map(|rooms| rooms.into_iter().map(Into::into).collect()),
+        }
+    }
+}
+
+impl From<v5::request::ReceiptsRoom> for RoomReceiptConfig {
+    fn from(value: v5::request::ReceiptsRoom) -> Self {
+        match value {
+            v5::request::ReceiptsRoom::Room(room_id) => Self::Room(room_id),
+            _ => Self::AllSubscribed,
+        }
+    }
+}
+
+impl From<v5::request::Typing> for TypingConfig {
+    fn from(value: v5::request::Typing) -> Self {
+        Self { enabled: value.enabled, lists: value.lists, rooms: value.rooms }
     }
 }
 
