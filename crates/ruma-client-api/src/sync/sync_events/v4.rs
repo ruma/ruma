@@ -392,7 +392,7 @@ pub enum SlidingOp {
 }
 
 /// Updates to joined rooms.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SyncList {
     /// The sync operation to apply, if any.
