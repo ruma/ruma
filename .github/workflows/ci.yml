@@ -181,6 +181,11 @@ jobs:
             cmd: clippy-all
             components: clippy
 
+          - name: Clippy WASM
+            cmd: clippy-wasm
+            targets: wasm32-unknown-unknown
+            components: clippy
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -190,6 +195,7 @@ jobs:
         with:
           toolchain: ${{ env.NIGHTLY }}
           components: ${{ matrix.components }}
+          targets: ${{ matrix.targets }}
 
       - uses: Swatinem/rust-cache@v2
 
