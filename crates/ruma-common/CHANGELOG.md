@@ -25,6 +25,7 @@ Improvements:
   parameter is deprecated, according to MSC4126 / Matrix 1.11.
 - Constructing a Matrix URI for an event with a room alias is deprecated,
   according to MSC4132 / Matrix 1.11
+- Implement `Eq` and `PartialEq` for `Metadata`
 
 # 0.13.0
 
