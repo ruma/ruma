@@ -1,0 +1,25 @@
+avoid-breaking-exported-api = false
+disallowed-methods = [
+    # https://github.com/serde-rs/json/issues/160
+    "serde_json::from_reader",
+]
+disallowed-types = [
+    "std::collections::HashMap",
+    "std::collections::HashSet",
+    { path = "std::time::UNIX_EPOCH", reason = "Use web-time to return a UNIX_EPOCH that works under WASM" },
+    { path = "std::time::SystemTime", reason = "Use web-time to return a SystemTime that works under WASM" },
+    { path = "std::time::Instant", reason = "Use web-time to return an Instant that works under WASM" },
+]
+enforced-import-renames = [
+    { path = "serde_json::from_slice", rename = "from_json_slice" },
+    { path = "serde_json::from_str", rename = "from_json_str" },
+    { path = "serde_json::from_value", rename = "from_json_value" },
+    { path = "serde_json::to_value", rename = "to_json_value" },
+    { path = "serde_json::value::to_raw_value", rename = "to_raw_json_value" },
+    { path = "serde_json::value::RawValue", rename = "RawJsonValue" },
+    { path = "serde_json::Value", rename = "JsonValue" },
+]
+standard-macro-braces = [
+    { name = "quote", brace = "{" },
+    { name = "quote::quote", brace = "{" },
+]
