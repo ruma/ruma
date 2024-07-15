@@ -11,8 +11,9 @@ use super::{server_name::ServerName, OwnedRoomAliasId, OwnedRoomId, RoomAliasId,
 ///
 /// `RoomOrAliasId` is useful for APIs that accept either kind of room identifier. It is converted
 /// from a string slice, and can be converted back into a string as needed. When converted from a
-/// string slice, the variant is determined by the leading sigil character. It can also be converted
-/// to an `RoomId` or `RoomAliasId` by using its `TryFrom` or `TryInto` implementations.
+/// string slice, the variant is determined by the leading sigil character.
+/// `RoomOrAliasId` can also be converted to either `RoomId` or `RoomAliasId` by matching against
+/// their respective `TryFrom`/`TryInto` implementations.
 ///
 /// ```
 /// # use ruma_common::RoomOrAliasId;
