@@ -7,6 +7,9 @@ Breaking changes:
 - Change type of `client_secret` field in `ThirdpartyIdCredentials`
   from `Box<ClientSecret>` to `OwnedClientSecret`
 - Make `id_server` and `id_access_token` in `ThirdpartyIdCredentials` optional
+- The `content_disposition` fields of `media::get_content::v3::Response` and
+  `media::get_content_as_filename::v3::Response` use now the strongly typed
+  `ContentDisposition` instead of strings.
 
 Improvements:
 
