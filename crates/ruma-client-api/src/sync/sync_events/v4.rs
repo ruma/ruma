@@ -963,6 +963,7 @@ impl From<v5::request::List> for SyncRequestList {
             bump_event_types: vec![
                 TimelineEventType::RoomMessage,
                 TimelineEventType::RoomEncrypted,
+                TimelineEventType::RoomCreate,
                 TimelineEventType::Sticker,
             ],
 
