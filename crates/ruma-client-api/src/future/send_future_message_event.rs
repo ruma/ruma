@@ -52,7 +52,7 @@ pub mod unstable {
 
         /// Additional parameters to describe sending a future.
         ///
-        /// Only three combinations for `future_timeout` and `future_group_id` are possible.
+        /// Only three combinations for `future_timeout` and `future_parent_id` are possible.
         /// The enum [`FutureParameters`] enforces this.
         #[ruma_api(query_all)]
         pub future_parameters: FutureParameters,
@@ -66,19 +66,9 @@ pub mod unstable {
     /// [`send_future_message_event`](crate::future::send_future_message_event) endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
-        /// A token to send/insert the future into the DAG.
-        pub send_token: String,
-        /// A token to cancel this future. It will never be send if this is called.
-        pub cancel_token: String,
-        /// The `future_group_id` generated for this future. Used to connect multiple futures
+        /// The `future_id` generated for this future. Used to connect multiple futures
         /// only one of the connected futures will be sent and inserted into the DAG.
-        pub future_group_id: String,
-        /// A token used to refresh the timer of the future. This allows
-        /// to implement heartbeat like capabilities. An event is only sent once
-        /// a refresh in the timeout interval is missed.
-        ///
-        /// If the future does not have a timeout this will be `None`.
-        pub refresh_token: Option<String>,
+        pub future_id: String,
     }
 
     impl Request {
@@ -123,13 +113,8 @@ pub mod unstable {
     impl Response {
         /// Creates a new `Response` with the tokens required to control the future using the
         /// [`crate::future::update_future::unstable::Request`] request.
-        pub fn new(
-            send_token: String,
-            cancel_token: String,
-            future_group_id: String,
-            refresh_token: Option<String>,
-        ) -> Self {
-            Self { send_token, cancel_token, future_group_id, refresh_token }
+        pub fn new(future_id: String) -> Self {
+            Self { future_id }
         }
     }
 
@@ -155,7 +140,7 @@ pub mod unstable {
                 "1234".into(),
                 FutureParameters::Timeout {
                     timeout: Duration::from_millis(103),
-                    group_id: Some("testId".to_owned()),
+                    future_parent_id: Some("testId".to_owned()),
                 },
                 &RoomMessageEventContent::text_plain("test"),
             )
@@ -169,7 +154,7 @@ pub mod unstable {
                 .unwrap();
             let (parts, body) = request.into_parts();
             assert_eq!(
-                "https://homeserver.tld/_matrix/client/unstable/org.matrix.msc4140/rooms/!roomid:example.org/send_future/m.room.message/1234?future_timeout=103&future_group_id=testId",
+                "https://homeserver.tld/_matrix/client/unstable/org.matrix.msc4140/rooms/!roomid:example.org/send_future/m.room.message/1234?future_timeout=103&future_parent_id=testId",
                 parts.uri.to_string()
             );
             assert_eq!("PUT", parts.method.to_string());
