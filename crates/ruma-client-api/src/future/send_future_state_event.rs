@@ -23,7 +23,8 @@ pub mod unstable {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/org.matrix.msc4140/rooms/:room_id/state/:event_type/:state_key",
+            // We use the unstable prefix for the delay query parameter but the stable v3 endpoint.
+            unstable => "/_matrix/client/v3/rooms/:room_id/state/:event_type/:state_key",
         }
     };
 
@@ -61,6 +62,7 @@ pub mod unstable {
     pub struct Response {
         /// The `future_parent_id` generated for this future. Used to connect multiple futures
         /// only one of the connected futures will be sent and inserted into the DAG.
+        #[serde(rename = "delay_id")]
         pub future_id: String,
     }
 
@@ -124,32 +126,50 @@ pub mod unstable {
         use super::Request;
         use crate::future::FutureParameters;
 
-        #[test]
-        fn serialize_state_future_request() {
-            let room_id = owned_room_id!("!roomid:example.org");
-
-            let req = Request::new(
-                room_id,
+        fn create_future_request(
+            future_parameters: FutureParameters,
+        ) -> (http::request::Parts, Vec<u8>) {
+            Request::new(
+                owned_room_id!("!roomid:example.org"),
                 "@userAsStateKey:example.org".to_owned(),
-                FutureParameters::Timeout {
-                    timeout: Duration::from_millis(1_234_321),
-                    future_parent_id: Some("abs1abs1abs1abs1".to_owned()),
-                },
+                future_parameters,
                 &RoomTopicEventContent::new("my_topic".to_owned()),
             )
-            .unwrap();
-            let request: http::Request<Vec<u8>> = req
-                .try_into_http_request(
-                    "https://homeserver.tld",
-                    SendAccessToken::IfRequired("auth_tok"),
-                    &[MatrixVersion::V1_1],
-                )
-                .unwrap();
-            let (parts, body) = request.into_parts();
+            .unwrap()
+            .try_into_http_request(
+                "https://homeserver.tld",
+                SendAccessToken::IfRequired("auth_tok"),
+                &[MatrixVersion::V1_1],
+            )
+            .unwrap()
+            .into_parts()
+        }
+
+        #[test]
+        fn serialize_state_future_request() {
+            let (parts, body) = create_future_request(FutureParameters::Timeout {
+                timeout: Duration::from_millis(1_234_321),
+            });
             assert_eq!(
-                "https://homeserver.tld/_matrix/client/unstable/org.matrix.msc4140/rooms/!roomid:example.org/state/m.room.topic/@userAsStateKey:example.org?delay=1234321&delay_parent_id=abs1abs1abs1abs1",
+                "https://homeserver.tld/_matrix/client/v3/rooms/!roomid:example.org/state/m.room.topic/@userAsStateKey:example.org?org.matrix.msc4140.delay=1234321",
                 parts.uri.to_string()
             );
+            assert_eq!("PUT", parts.method.to_string());
+            assert_eq!(
+                json!({"topic": "my_topic"}),
+                serde_json::from_str::<JsonValue>(std::str::from_utf8(&body).unwrap()).unwrap()
+            );
+        }
+
+        #[test]
+        fn serialize_state_future_request_with_parent_id() {
+            let (parts, body) = create_future_request(FutureParameters::Timeout {
+                timeout: Duration::from_millis(1_234_321),
+            });
+            assert_eq!(
+            "https://homeserver.tld/_matrix/client/v3/rooms/!roomid:example.org/state/m.room.topic/@userAsStateKey:example.org?org.matrix.msc4140.delay=1234321",
+            parts.uri.to_string()
+        );
             assert_eq!("PUT", parts.method.to_string());
             assert_eq!(
                 json!({"topic": "my_topic"}),

@@ -23,7 +23,8 @@ pub mod unstable {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/org.matrix.msc4140/rooms/:room_id/send/:event_type/:txn_id",
+            // We use the unstable prefix for the delay query parameter but the stable v3 endpoint.
+            unstable => "/_matrix/client/v3/rooms/:room_id/send/:event_type/:txn_id",
         }
     };
     /// Request type for the [`send_future_message_event`](crate::future::send_future_message_event)
@@ -50,10 +51,7 @@ pub mod unstable {
         #[ruma_api(path)]
         pub txn_id: OwnedTransactionId,
 
-        /// Additional parameters to describe sending a future.
-        ///
-        /// Only three combinations for `future_timeout` and `future_parent_id` are possible.
-        /// The enum [`FutureParameters`] enforces this.
+        /// The timeout duration for this Future.
         #[ruma_api(query_all)]
         pub future_parameters: FutureParameters,
 
@@ -68,6 +66,7 @@ pub mod unstable {
     pub struct Response {
         /// The `future_id` generated for this future. Used to connect multiple futures
         /// only one of the connected futures will be sent and inserted into the DAG.
+        #[serde(rename = "delay_id")]
         pub future_id: String,
     }
 
@@ -138,10 +137,7 @@ pub mod unstable {
             let req = Request::new(
                 room_id,
                 "1234".into(),
-                FutureParameters::Timeout {
-                    timeout: Duration::from_millis(103),
-                    future_parent_id: Some("testId".to_owned()),
-                },
+                FutureParameters::Timeout { timeout: Duration::from_millis(103) },
                 &RoomMessageEventContent::text_plain("test"),
             )
             .unwrap();
@@ -154,7 +150,7 @@ pub mod unstable {
                 .unwrap();
             let (parts, body) = request.into_parts();
             assert_eq!(
-                "https://homeserver.tld/_matrix/client/unstable/org.matrix.msc4140/rooms/!roomid:example.org/send/m.room.message/1234?delay=103&delay_parent_id=testId",
+                "https://homeserver.tld/_matrix/client/v3/rooms/!roomid:example.org/send/m.room.message/1234?org.matrix.msc4140.delay=103",
                 parts.uri.to_string()
             );
             assert_eq!("PUT", parts.method.to_string());

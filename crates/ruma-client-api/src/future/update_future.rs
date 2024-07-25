@@ -10,8 +10,10 @@ pub mod unstable {
     use ruma_common::{
         api::{request, response, Metadata},
         metadata,
+        serde::StringEnum,
     };
-    use serde::{Deserialize, Serialize};
+
+    use crate::PrivOwnedStr;
 
     const METADATA: Metadata = metadata! {
         method: POST,
@@ -23,8 +25,8 @@ pub mod unstable {
     };
 
     /// The possible update actions we can do for updating a future.
-    #[derive(Serialize, Deserialize, Debug, Clone)]
-    #[serde(rename_all = "lowercase")]
+    #[derive(Clone, StringEnum)]
+    #[ruma_enum(rename_all = "lowercase")]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub enum UpdateAction {
         /// Restart the Future event timeout. (heartbeat ping)
@@ -34,6 +36,9 @@ pub mod unstable {
         Send,
         /// Delete the Future event and never send it. (deletes all timers)
         Cancel,
+
+        #[doc(hidden)]
+        _Custom(PrivOwnedStr),
     }
     /// Request type for the [`update_future (delayed_events)`](crate::future::update_future)
     /// endpoint.
@@ -56,7 +61,6 @@ pub mod unstable {
 
     /// Response type for the [`update_future`](crate::future::update_future) endpoint.
     #[response(error = crate::Error)]
-    #[derive(Serialize)]
     pub struct Response {}
     impl Response {
         /// Creates a new empty response for the [`update_future`](crate::future::update_future)
