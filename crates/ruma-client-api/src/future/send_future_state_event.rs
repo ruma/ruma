@@ -23,7 +23,7 @@ pub mod unstable {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/org.matrix.msc4140/rooms/:room_id/state_future/:event_type/:state_key",
+            unstable => "/_matrix/client/unstable/org.matrix.msc4140/rooms/:room_id/state/:event_type/:state_key",
         }
     };
 
@@ -147,7 +147,7 @@ pub mod unstable {
                 .unwrap();
             let (parts, body) = request.into_parts();
             assert_eq!(
-                "https://homeserver.tld/_matrix/client/unstable/org.matrix.msc4140/rooms/!roomid:example.org/state_future/m.room.topic/@userAsStateKey:example.org?future_timeout=1234321&future_parent_id=abs1abs1abs1abs1",
+                "https://homeserver.tld/_matrix/client/unstable/org.matrix.msc4140/rooms/!roomid:example.org/state/m.room.topic/@userAsStateKey:example.org?delay=1234321&delay_parent_id=abs1abs1abs1abs1",
                 parts.uri.to_string()
             );
             assert_eq!("PUT", parts.method.to_string());

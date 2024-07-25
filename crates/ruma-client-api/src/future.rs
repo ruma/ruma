@@ -13,19 +13,19 @@ use web_time::Duration;
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(untagged)]
 pub enum FutureParameters {
-    /// Only sending the timeout creates a timeout future with a new (server generated)
-    /// group id. The optional group id is used to create a secondary timeout.  
+    /// Only sending the `delay` creates a timeout future with a new (server generated)
+    /// future id (delay_id). The optional group id is used to create a secondary timeout.  
     /// In a future group with two timeouts only one of them will ever be sent.
     Timeout {
         /// The timeout duration for this Future.
         #[serde(with = "ruma_common::serde::duration::ms")]
-        #[serde(rename = "future_timeout")]
+        #[serde(rename = "delay")]
         timeout: Duration,
         /// The associated group for this Future.
         ///
         /// Currently Unused.
         #[serde(skip_serializing_if = "Option::is_none")]
-        #[serde(rename = "future_parent_id")]
+        #[serde(rename = "delay_parent_id")]
         future_parent_id: Option<String>,
     },
 
@@ -36,7 +36,7 @@ pub enum FutureParameters {
     /// Currently unused.
     Action {
         /// The associated group for this Future.
-        #[serde(rename = "future_parent_id")]
+        #[serde(rename = "delay_parent_id")]
         future_parent_id: String,
     },
 }
