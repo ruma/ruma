@@ -1,6 +1,6 @@
 //! `PUT /_matrix/client/*/rooms/{roomId}/send/{eventType}/{txnId}`
 //!
-//! Send a future (a scheduled message) to a room. [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
+//! Send a delayed event (a scheduled message) to a room. [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
 
 pub mod unstable {
     //! `msc4140` ([MSC])
@@ -16,7 +16,7 @@ pub mod unstable {
     use ruma_events::{AnyMessageLikeEventContent, MessageLikeEventContent, MessageLikeEventType};
     use serde_json::value::to_raw_value as to_raw_json_value;
 
-    use crate::future::FutureParameters;
+    use crate::delayed_events::DelayParameters;
 
     const METADATA: Metadata = metadata! {
         method: PUT,
@@ -27,7 +27,7 @@ pub mod unstable {
             unstable => "/_matrix/client/v3/rooms/:room_id/send/:event_type/:txn_id",
         }
     };
-    /// Request type for the [`send_future_message_event`](crate::future::send_future_message_event)
+    /// Request type for the [`delayed_message_event`](crate::delayed_events::delayed_message_event)
     /// endpoint.
     #[request(error = crate::Error)]
     pub struct Request {
@@ -51,9 +51,9 @@ pub mod unstable {
         #[ruma_api(path)]
         pub txn_id: OwnedTransactionId,
 
-        /// The timeout duration for this Future.
+        /// The timeout duration for this delayed event.
         #[ruma_api(query_all)]
-        pub future_parameters: FutureParameters,
+        pub delay_parameters: DelayParameters,
 
         /// The event content to send.
         #[ruma_api(body)]
@@ -61,17 +61,15 @@ pub mod unstable {
     }
 
     /// Response type for the
-    /// [`send_future_message_event`](crate::future::send_future_message_event) endpoint.
+    /// [`delayed_message_event`](crate::delayed_events::delayed_message_event) endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
-        /// The `future_id` generated for this future. Used to connect multiple futures
-        /// only one of the connected futures will be sent and inserted into the DAG.
-        #[serde(rename = "delay_id")]
-        pub future_id: String,
+        /// The `delay_id` generated for this delayed event. Used to interact with delayed events.
+        pub delay_id: String,
     }
 
     impl Request {
-        /// Creates a new `Request` with the given room id, transaction id future_parameters and
+        /// Creates a new `Request` with the given room id, transaction id, `delay_parameters` and
         /// event content.
         ///
         /// # Errors
@@ -81,7 +79,7 @@ pub mod unstable {
         pub fn new<T>(
             room_id: OwnedRoomId,
             txn_id: OwnedTransactionId,
-            future_parameters: FutureParameters,
+            delay_parameters: DelayParameters,
             content: &T,
         ) -> serde_json::Result<Self>
         where
@@ -91,29 +89,29 @@ pub mod unstable {
                 room_id,
                 txn_id,
                 event_type: content.event_type(),
-                future_parameters,
+                delay_parameters,
                 body: Raw::from_json(to_raw_json_value(content)?),
             })
         }
 
         /// Creates a new `Request` with the given room id, transaction id, event type,
-        /// future parameters and raw event content.
+        /// `delay_parameters` and raw event content.
         pub fn new_raw(
             room_id: OwnedRoomId,
             txn_id: OwnedTransactionId,
             event_type: MessageLikeEventType,
-            future_parameters: FutureParameters,
+            delay_parameters: DelayParameters,
             body: Raw<AnyMessageLikeEventContent>,
         ) -> Self {
-            Self { room_id, event_type, txn_id, future_parameters, body }
+            Self { room_id, event_type, txn_id, delay_parameters, body }
         }
     }
 
     impl Response {
-        /// Creates a new `Response` with the tokens required to control the future using the
-        /// [`crate::future::update_future::unstable::Request`] request.
-        pub fn new(future_id: String) -> Self {
-            Self { future_id }
+        /// Creates a new `Response` with the tokens required to control the delayed event using the
+        /// [`crate::delayed_events::update_delayed_event::unstable::Request`] request.
+        pub fn new(delay_id: String) -> Self {
+            Self { delay_id }
         }
     }
 
@@ -128,16 +126,16 @@ pub mod unstable {
         use web_time::Duration;
 
         use super::Request;
-        use crate::future::send_future_message_event::unstable::FutureParameters;
+        use crate::delayed_events::delayed_message_event::unstable::DelayParameters;
 
         #[test]
-        fn serialize_message_future_request() {
+        fn serialize_delayed_message_request() {
             let room_id = owned_room_id!("!roomid:example.org");
 
             let req = Request::new(
                 room_id,
                 "1234".into(),
-                FutureParameters::Timeout { timeout: Duration::from_millis(103) },
+                DelayParameters::Timeout { timeout: Duration::from_millis(103) },
                 &RoomMessageEventContent::text_plain("test"),
             )
             .unwrap();

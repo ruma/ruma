@@ -1,6 +1,6 @@
-//! `PUT /_matrix/client/*/rooms/{roomId}/state_future/{eventType}/{txnId}`
+//! `PUT /_matrix/client/*/rooms/{roomId}/state/{eventType}/{txnId}`
 //!
-//! Send a future state (a scheduled state event) to a room. [MSC](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
+//! Send a delayed state event (a scheduled state event) to a room. [MSC](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
 
 pub mod unstable {
     //! `msc4140` ([MSC])
@@ -16,7 +16,7 @@ pub mod unstable {
     use ruma_events::{AnyStateEventContent, StateEventContent, StateEventType};
     use serde_json::value::to_raw_value as to_raw_json_value;
 
-    use crate::future::FutureParameters;
+    use crate::delayed_events::DelayParameters;
 
     const METADATA: Metadata = metadata! {
         method: PUT,
@@ -28,7 +28,7 @@ pub mod unstable {
         }
     };
 
-    /// Request type for the [`send_future_state_event`](crate::future::send_future_state_event)
+    /// Request type for the [`delayed_state_event`](crate::delayed_events::delayed_state_event)
     /// endpoint.
     #[request(error = crate::Error)]
     pub struct Request {
@@ -44,30 +44,28 @@ pub mod unstable {
         #[ruma_api(path)]
         pub state_key: String,
 
-        /// Additional parameters to describe sending a future.
+        /// Additional parameters to describe sending a delayed event.
         ///
-        /// Only three combinations for `future_timeout` and `future_parent_id` are possible.
-        /// The enum [`FutureParameters`] enforces this.
+        /// Only three combinations for `timeout` and `delay_parent_id` are possible.
+        /// The enum [`DelayParameters`] enforces this.
         #[ruma_api(query_all)]
-        pub future_parameters: FutureParameters,
+        pub delay_parameters: DelayParameters,
 
         /// The event content to send.
         #[ruma_api(body)]
         pub body: Raw<AnyStateEventContent>,
     }
 
-    /// Response type for the [`send_future_state_event`](crate::future::send_future_state_event)
+    /// Response type for the [`delayed_state_event`](crate::delayed_events::delayed_state_event)
     /// endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
-        /// The `future_parent_id` generated for this future. Used to connect multiple futures
-        /// only one of the connected futures will be sent and inserted into the DAG.
-        #[serde(rename = "delay_id")]
-        pub future_id: String,
+        /// The `delay_id` generated for this delayed event. Used to interact with delayed events.
+        pub delay_id: String,
     }
 
     impl Request {
-        /// Creates a new `Request` with the given room id, state_key future_parameters and
+        /// Creates a new `Request` with the given room id, state_key delay_parameters and
         /// event content.
         ///
         /// # Errors
@@ -77,7 +75,7 @@ pub mod unstable {
         pub fn new<T>(
             room_id: OwnedRoomId,
             state_key: String,
-            future_parameters: FutureParameters,
+            delay_parameters: DelayParameters,
             content: &T,
         ) -> serde_json::Result<Self>
         where
@@ -87,29 +85,29 @@ pub mod unstable {
                 room_id,
                 state_key,
                 event_type: content.event_type(),
-                future_parameters,
+                delay_parameters,
                 body: Raw::from_json(to_raw_json_value(content)?),
             })
         }
 
         /// Creates a new `Request` with the given room id, event type, state key,
-        /// future parameters and raw event content.
+        /// delay parameters and raw event content.
         pub fn new_raw(
             room_id: OwnedRoomId,
             state_key: String,
             event_type: StateEventType,
-            future_parameters: FutureParameters,
+            delay_parameters: DelayParameters,
             body: Raw<AnyStateEventContent>,
         ) -> Self {
-            Self { room_id, event_type, state_key, body, future_parameters }
+            Self { room_id, event_type, state_key, body, delay_parameters }
         }
     }
 
     impl Response {
-        /// Creates a new `Response` with the tokens required to control the future using the
-        /// [`crate::future::update_future::unstable::Request`] request.
-        pub fn new(future_id: String) -> Self {
-            Self { future_id }
+        /// Creates a new `Response` with the tokens required to control the delayed event using the
+        /// [`crate::delayed_events::update_delayed_event::unstable::Request`] request.
+        pub fn new(delay_id: String) -> Self {
+            Self { delay_id }
         }
     }
 
@@ -124,15 +122,15 @@ pub mod unstable {
         use web_time::Duration;
 
         use super::Request;
-        use crate::future::FutureParameters;
+        use crate::delayed_events::DelayParameters;
 
-        fn create_future_request(
-            future_parameters: FutureParameters,
+        fn create_delayed_event_request(
+            delay_parameters: DelayParameters,
         ) -> (http::request::Parts, Vec<u8>) {
             Request::new(
                 owned_room_id!("!roomid:example.org"),
                 "@userAsStateKey:example.org".to_owned(),
-                future_parameters,
+                delay_parameters,
                 &RoomTopicEventContent::new("my_topic".to_owned()),
             )
             .unwrap()
@@ -146,30 +144,14 @@ pub mod unstable {
         }
 
         #[test]
-        fn serialize_state_future_request() {
-            let (parts, body) = create_future_request(FutureParameters::Timeout {
+        fn serialize_delayed_state_request() {
+            let (parts, body) = create_delayed_event_request(DelayParameters::Timeout {
                 timeout: Duration::from_millis(1_234_321),
             });
             assert_eq!(
                 "https://homeserver.tld/_matrix/client/v3/rooms/!roomid:example.org/state/m.room.topic/@userAsStateKey:example.org?org.matrix.msc4140.delay=1234321",
                 parts.uri.to_string()
             );
-            assert_eq!("PUT", parts.method.to_string());
-            assert_eq!(
-                json!({"topic": "my_topic"}),
-                serde_json::from_str::<JsonValue>(std::str::from_utf8(&body).unwrap()).unwrap()
-            );
-        }
-
-        #[test]
-        fn serialize_state_future_request_with_parent_id() {
-            let (parts, body) = create_future_request(FutureParameters::Timeout {
-                timeout: Duration::from_millis(1_234_321),
-            });
-            assert_eq!(
-            "https://homeserver.tld/_matrix/client/v3/rooms/!roomid:example.org/state/m.room.topic/@userAsStateKey:example.org?org.matrix.msc4140.delay=1234321",
-            parts.uri.to_string()
-        );
             assert_eq!("PUT", parts.method.to_string());
             assert_eq!(
                 json!({"topic": "my_topic"}),
