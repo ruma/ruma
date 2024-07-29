@@ -1,6 +1,7 @@
-//! `POST /_matrix/client/*/delayed_events/{future_id}`
+//! `POST /_matrix/client/*/delayed_events/{delayed_id}`
 //!
-//! Send a future token to update/cancel/send the associated future event.
+//! Send a delayed event update. This can be a updateing/canceling/sending the associated delayed
+//! event.
 
 pub mod unstable {
     //! `msc3814` ([MSC])
@@ -20,51 +21,51 @@ pub mod unstable {
         rate_limited: true,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/org.matrix.msc4140/delayed_events/:future_id",
+            unstable => "/_matrix/client/unstable/org.matrix.msc4140/delayed_events/:delay_id",
         }
     };
 
-    /// The possible update actions we can do for updating a future.
+    /// The possible update actions we can do for updating a delayed event.
     #[derive(Clone, StringEnum)]
     #[ruma_enum(rename_all = "lowercase")]
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub enum UpdateAction {
-        /// Restart the Future event timeout. (heartbeat ping)
+        /// Restart the delayed event timeout. (heartbeat ping)
         Restart,
-        /// Send the Future event immediately independent of the timeout state. (deletes all
+        /// Send the delayed event immediately independent of the timeout state. (deletes all
         /// timers)
         Send,
-        /// Delete the Future event and never send it. (deletes all timers)
+        /// Delete the delayed event and never send it. (deletes all timers)
         Cancel,
 
         #[doc(hidden)]
         _Custom(PrivOwnedStr),
     }
-    /// Request type for the [`update_future (delayed_events)`](crate::future::update_future)
+    /// Request type for the [`update_delayed_event`](crate::delayed_events::update_delayed_event)
     /// endpoint.
     #[request(error = crate::Error)]
     pub struct Request {
-        /// The future id that we want to update.
+        /// The delay id that we want to update.
         #[ruma_api(path)]
-        pub future_id: String,
-        /// Which kind of update we want to request for the Future event.
+        pub delay_id: String,
+        /// Which kind of update we want to request for the delayed event.
         pub action: UpdateAction,
     }
 
     impl Request {
-        /// Creates a new `Request` to update a future. This is an unauthenticated request and only
-        /// requires the future token.
-        pub fn new(future_id: String, action: UpdateAction) -> Self {
-            Self { future_id, action }
+        /// Creates a new `Request` to update a delayed event.
+        pub fn new(delay_id: String, action: UpdateAction) -> Self {
+            Self { delay_id, action }
         }
     }
 
-    /// Response type for the [`update_future`](crate::future::update_future) endpoint.
+    /// Response type for the [`update_delayed_event`](crate::delayed_events::update_delayed_event)
+    /// endpoint.
     #[response(error = crate::Error)]
     pub struct Response {}
     impl Response {
-        /// Creates a new empty response for the [`update_future`](crate::future::update_future)
-        /// endpoint.
+        /// Creates a new empty response for the
+        /// [`update_delayed_event`](crate::delayed_events::update_delayed_event) endpoint.
         pub fn new() -> Self {
             Self {}
         }
@@ -77,7 +78,7 @@ pub mod unstable {
 
         use super::{Request, UpdateAction};
         #[test]
-        fn serialize_update_future_request() {
+        fn serialize_update_delayed_event_request() {
             let request: http::Request<Vec<u8>> =
                 Request::new("1234".to_owned(), UpdateAction::Cancel)
                     .try_into_http_request(
