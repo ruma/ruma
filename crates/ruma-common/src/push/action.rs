@@ -188,13 +188,13 @@ mod tests {
 
     #[test]
     fn serialize_string() {
-        assert_eq!(to_json_value(&Action::Notify).unwrap(), json!("notify"));
+        assert_eq!(to_json_value(Action::Notify).unwrap(), json!("notify"));
     }
 
     #[test]
     fn serialize_tweak_sound() {
         assert_eq!(
-            to_json_value(&Action::SetTweak(Tweak::Sound("default".into()))).unwrap(),
+            to_json_value(Action::SetTweak(Tweak::Sound("default".into()))).unwrap(),
             json!({ "set_tweak": "sound", "value": "default" })
         );
     }
@@ -202,12 +202,12 @@ mod tests {
     #[test]
     fn serialize_tweak_highlight() {
         assert_eq!(
-            to_json_value(&Action::SetTweak(Tweak::Highlight(true))).unwrap(),
+            to_json_value(Action::SetTweak(Tweak::Highlight(true))).unwrap(),
             json!({ "set_tweak": "highlight" })
         );
 
         assert_eq!(
-            to_json_value(&Action::SetTweak(Tweak::Highlight(false))).unwrap(),
+            to_json_value(Action::SetTweak(Tweak::Highlight(false))).unwrap(),
             json!({ "set_tweak": "highlight", "value": false })
         );
     }

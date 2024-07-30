@@ -22,7 +22,7 @@ impl Response {
                             if let Some(header) = self.#field_name {
                                 headers.insert(
                                     #header_name,
-                                    header.parse()?,
+                                    header.to_string().parse()?,
                                 );
                             }
                         }
@@ -30,7 +30,7 @@ impl Response {
                     _ => quote! {
                         headers.insert(
                             #header_name,
-                            self.#field_name.parse()?,
+                            self.#field_name.to_string().parse()?,
                         );
                     },
                 }

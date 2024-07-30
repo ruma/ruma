@@ -56,24 +56,37 @@ impl Response {
                             Type::Path(syn::TypePath {
                                 path: syn::Path { segments, .. }, ..
                             }) if segments.last().unwrap().ident == "Option" => {
+                                let syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
+                                    args: option_args, ..
+                                }) = &segments.last().unwrap().arguments else {
+                                    panic!("Option should use angle brackets");
+                                };
+                                let syn::GenericArgument::Type(field_type) = option_args.first().unwrap() else {
+                                    panic!("Option brackets should contain type");
+                                };
                                 quote! {
                                     #( #cfg_attrs )*
                                     #field_name: {
                                         headers.remove(#header_name)
-                                            .map(|h| h.to_str().map(|s| s.to_owned()))
-                                            .transpose()?
+                                            .and_then(|h| { h.to_str().ok()?.parse::<#field_type>().ok() })
                                     }
                                 }
                             }
-                            _ => quote! {
-                                #( #cfg_attrs )*
-                                #field_name: {
-                                    headers.remove(#header_name)
-                                        .expect("response missing expected header")
-                                        .to_str()?
-                                        .to_owned()
+                            _ => {
+                                let field_type = &field.ty;
+                                quote! {
+                                    #( #cfg_attrs )*
+                                    #field_name: {
+                                        headers.remove(#header_name)
+                                            .ok_or_else(|| #ruma_common::api::error::HeaderDeserializationError::MissingHeader(
+                                                #header_name.to_string()
+                                            ))?
+                                            .to_str()?
+                                            .parse::<#field_type>()
+                                            .map_err(|e| #ruma_common::api::error::HeaderDeserializationError::InvalidHeader(e.into()))?
+                                    }
                                 }
-                            },
+                            }
                         };
                         quote! { #optional_header }
                     }

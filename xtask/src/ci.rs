@@ -60,7 +60,7 @@ pub enum CiCmd {
     NightlyAll,
     /// Lint default features with clippy (nightly)
     ClippyDefault,
-    /// Lint ruma-common with clippy on a wasm target (nightly)
+    /// Lint client features with clippy on a wasm target (nightly)
     ClippyWasm,
     /// Lint almost all features with clippy (nightly)
     ClippyAll,
@@ -289,17 +289,15 @@ impl CiTask {
         .map_err(Into::into)
     }
 
-    /// Lint ruma-common with clippy with the nightly version and wasm target.
-    ///
-    /// ruma-common is currently the only crate with wasm-specific code. If that changes, this
-    /// method should be updated.
+    /// Lint ruma with clippy with the nightly version and wasm target.
     fn clippy_wasm(&self) -> Result<()> {
         cmd!(
             "
-            rustup run {NIGHTLY} cargo clippy --target wasm32-unknown-unknown
-                -p ruma-common --features api,js,rand
+            rustup run {NIGHTLY} cargo clippy --target wasm32-unknown-unknown -p ruma --features
+                __unstable-mscs,api,canonical-json,client-api,events,html-matrix,identity-service-api,js,markdown,rand,signatures,unstable-unspecified -- -D warnings
             "
         )
+        .env("CLIPPY_CONF_DIR", ".wasm")
         .run()
         .map_err(Into::into)
     }

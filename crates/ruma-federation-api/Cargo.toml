@@ -19,8 +19,8 @@ all-features = true
 # them to an empty string in deserialization.
 compat-empty-string-null = []
 
-client = []
-server = []
+client = ["dep:httparse", "dep:memchr"]
+server = ["dep:bytes", "dep:rand"]
 unstable-exhaustive-types = []
 unstable-msc2448 = []
 unstable-msc3618 = []
@@ -30,7 +30,13 @@ unstable-msc4125 = []
 unstable-unspecified = []
 
 [dependencies]
+bytes = { workspace = true, optional = true }
+http = { workspace = true }
+httparse = { version = "1.9.0", optional = true }
 js_int = { workspace = true, features = ["serde"] }
+memchr = { version = "2.7.0", optional = true }
+mime = { version = "0.3.0" }
+rand = { workspace = true, optional = true }
 ruma-common = { workspace = true, features = ["api"] }
 ruma-events = { workspace = true }
 serde = { workspace = true }

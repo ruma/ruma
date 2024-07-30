@@ -4,7 +4,7 @@ env:
   CARGO_TERM_COLOR: always
   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
   # Keep in sync with version in `rust-toolchain.toml` and `xtask/src/ci.rs`
-  NIGHTLY: nightly-2024-05-09
+  NIGHTLY: nightly-2024-07-29
 
 on:
   push:
@@ -181,6 +181,11 @@ jobs:
             cmd: clippy-all
             components: clippy
 
+          - name: Clippy WASM
+            cmd: clippy-wasm
+            targets: wasm32-unknown-unknown
+            components: clippy
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -190,6 +195,7 @@ jobs:
         with:
           toolchain: ${{ env.NIGHTLY }}
           components: ${{ matrix.components }}
+          targets: ${{ matrix.targets }}
 
       - uses: Swatinem/rust-cache@v2
 

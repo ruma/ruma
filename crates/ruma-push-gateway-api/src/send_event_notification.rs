@@ -342,11 +342,7 @@ pub mod v1 {
                         // If a highlight tweak is given with no value, its value is defined to be
                         // true.
                         "highlight" => {
-                            let highlight = if let Ok(highlight) = access.next_value() {
-                                highlight
-                            } else {
-                                true
-                            };
+                            let highlight = access.next_value().unwrap_or(true);
 
                             tweaks.push(Tweak::Highlight(highlight));
                         }

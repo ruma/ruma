@@ -19,7 +19,7 @@ use super::{
 use crate::{percent_encode::PATH_PERCENT_ENCODE_SET, serde::slice_to_buf, RoomVersionId};
 
 /// Metadata about an API endpoint.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[allow(clippy::exhaustive_structs)]
 pub struct Metadata {
     /// The HTTP method used by this endpoint.
@@ -141,7 +141,7 @@ impl Metadata {
 /// versions stable and unstable.
 ///
 /// The amount and positioning of path variables are the same over all path variants.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[allow(clippy::exhaustive_structs)]
 pub struct VersionHistory {
     /// A list of unstable paths over this endpoint's history.

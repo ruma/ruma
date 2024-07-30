@@ -236,11 +236,8 @@ unstable-unspecified = [
     "ruma-push-gateway-api?/unstable-unspecified",
 ]
 
-# Private feature, only used in test / benchmarking code
-__ci = [
-    "full",
-    "compat-upload-signatures",
-    "unstable-unspecified",
+# Private features, only used in test / benchmarking code
+__unstable-mscs = [
     "unstable-msc1767",
     "unstable-msc2409",
     "unstable-msc2448",
@@ -283,7 +280,13 @@ __ci = [
     "unstable-msc4108",
     "unstable-msc4121",
     "unstable-msc4125",
-    "unstable-msc4140"
+    "unstable-msc4140",
+]
+__ci = [
+    "full",
+    "compat-upload-signatures",
+    "__unstable-mscs",
+    "unstable-unspecified",
 ]
 
 [dependencies]

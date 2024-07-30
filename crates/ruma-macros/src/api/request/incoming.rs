@@ -80,18 +80,38 @@ impl Request {
                         syn::Type::Path(syn::TypePath {
                             path: syn::Path { segments, .. }, ..
                         }) if segments.last().unwrap().ident == "Option" => {
-                            (quote! { Some(str_value.to_owned()) }, quote! { None })
+                            let syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
+                                args: option_args, ..
+                            }) = &segments.last().unwrap().arguments else {
+                                panic!("Option should use angle brackets");
+                            };
+                            let syn::GenericArgument::Type(field_type) = option_args.first().unwrap() else {
+                                panic!("Option brackets should contain type");
+                            };
+                            (
+                                quote! {
+                                    str_value.parse::<#field_type>().ok()
+                                },
+                                quote! { None }
+                            )
                         }
-                        _ => (
-                            quote! { str_value.to_owned() },
-                            quote! {
-                                return Err(
-                                    #ruma_common::api::error::HeaderDeserializationError::MissingHeader(
-                                        #header_name_string.into()
-                                    ).into(),
-                                )
-                            },
-                        ),
+                        _ => {
+                            let field_type = &field.ty;
+                            (
+                                quote! {
+                                    str_value
+                                        .parse::<#field_type>()
+                                        .map_err(|e| #ruma_common::api::error::HeaderDeserializationError::InvalidHeader(e.into()))?
+                                },
+                                quote! {
+                                    return Err(
+                                        #ruma_common::api::error::HeaderDeserializationError::MissingHeader(
+                                            #header_name_string.into()
+                                        ).into(),
+                                    )
+                                },
+                            )
+                        }
                     };
 
                     let decl = quote! {
