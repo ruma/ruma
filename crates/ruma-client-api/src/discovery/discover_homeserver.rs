@@ -54,7 +54,7 @@ pub struct Response {
     pub authentication: Option<AuthenticationServerInfo>,
 
     /// Information about the homeserver's trusted proxy to use for sliding sync development.
-    #[cfg(feature = "unstable-msc3575")]
+    #[cfg(any(feature = "unstable-msc3575", feature = "unstable-simplified-msc3575"))]
     #[serde(rename = "org.matrix.msc3575.proxy", skip_serializing_if = "Option::is_none")]
     pub sliding_sync_proxy: Option<SlidingSyncProxyInfo>,
 }
@@ -76,7 +76,7 @@ impl Response {
             tile_server: None,
             #[cfg(feature = "unstable-msc2965")]
             authentication: None,
-            #[cfg(feature = "unstable-msc3575")]
+            #[cfg(any(feature = "unstable-msc3575", feature = "unstable-simplified-msc3575"))]
             sliding_sync_proxy: None,
         }
     }
@@ -154,7 +154,7 @@ impl AuthenticationServerInfo {
 }
 
 /// Information about a discovered sliding sync proxy.
-#[cfg(feature = "unstable-msc3575")]
+#[cfg(any(feature = "unstable-msc3575", feature = "unstable-simplified-msc3575"))]
 #[derive(Clone, Debug, Deserialize, Hash, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SlidingSyncProxyInfo {
@@ -162,7 +162,7 @@ pub struct SlidingSyncProxyInfo {
     pub url: String,
 }
 
-#[cfg(feature = "unstable-msc3575")]
+#[cfg(any(feature = "unstable-msc3575", feature = "unstable-simplified-msc3575"))]
 impl SlidingSyncProxyInfo {
     /// Creates a `SlidingSyncProxyInfo` with the given proxy URL.
     pub fn new(url: String) -> Self {

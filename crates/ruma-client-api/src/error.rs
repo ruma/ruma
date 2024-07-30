@@ -173,7 +173,7 @@ pub enum ErrorKind {
     CannotOverwriteMedia,
 
     /// M_UNKNOWN_POS for sliding sync
-    #[cfg(feature = "unstable-msc3575")]
+    #[cfg(any(feature = "unstable-msc3575", feature = "unstable-simplified-msc3575"))]
     UnknownPos,
 
     /// M_URL_NOT_SET
@@ -271,7 +271,7 @@ impl AsRef<str> for ErrorKind {
             Self::DuplicateAnnotation => "M_DUPLICATE_ANNOTATION",
             Self::NotYetUploaded => "M_NOT_YET_UPLOADED",
             Self::CannotOverwriteMedia => "M_CANNOT_OVERWRITE_MEDIA",
-            #[cfg(feature = "unstable-msc3575")]
+            #[cfg(any(feature = "unstable-msc3575", feature = "unstable-simplified-msc3575"))]
             Self::UnknownPos => "M_UNKNOWN_POS",
             Self::UrlNotSet => "M_URL_NOT_SET",
             Self::BadStatus { .. } => "M_BAD_STATUS",
