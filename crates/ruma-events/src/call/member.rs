@@ -9,7 +9,7 @@ mod member_data;
 
 pub use focus::*;
 pub use member_data::*;
-use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedUserId};
+use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
 
@@ -29,7 +29,7 @@ use crate::{
 ///
 /// This struct also exposes allows to call the methods from [`CallMemberEventContent`].
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent, PartialEq)]
-#[ruma_event(type = "org.matrix.msc3401.call.member", kind = State, state_key_type = OwnedUserId, custom_redacted, custom_possibly_redacted)]
+#[ruma_event(type = "org.matrix.msc3401.call.member", kind = State, state_key_type = String, custom_redacted, custom_possibly_redacted)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(untagged)]
 pub enum CallMemberEventContent {
@@ -174,7 +174,7 @@ impl RedactContent for CallMemberEventContent {
 pub type PossiblyRedactedCallMemberEventContent = CallMemberEventContent;
 
 impl PossiblyRedactedStateEventContent for PossiblyRedactedCallMemberEventContent {
-    type StateKey = OwnedUserId;
+    type StateKey = String;
 }
 
 /// The Redacted version of [`CallMemberEventContent`].
@@ -190,7 +190,7 @@ impl ruma_events::content::EventContent for RedactedCallMemberEventContent {
 }
 
 impl RedactedStateEventContent for RedactedCallMemberEventContent {
-    type StateKey = OwnedUserId;
+    type StateKey = String;
 }
 
 /// Legacy content with an array of memberships. See also: [`CallMemberEventContent`]
@@ -463,8 +463,8 @@ mod tests {
             serde_json::to_string(&call_member_ev).unwrap()
         );
     }
-    #[test]
-    fn deserialize_member_event() {
+
+    fn deserialize_member_event_helper(state_key: &str) {
         let ev = json!({
             "content":{
                 "application": "m.call",
@@ -488,7 +488,7 @@ mod tests {
             "event_id": "$3qfxjGYSu4sL25FtR0ep6vePOc",
             "room_id": "!1234:example.org",
             "sender": "@user:example.org",
-            "state_key":"@user:example.org",
+            "state_key": state_key,
             "unsigned":{
                 "age":10,
                 "prev_content": {},
@@ -504,7 +504,7 @@ mod tests {
         let event_id = OwnedEventId::try_from("$3qfxjGYSu4sL25FtR0ep6vePOc").unwrap();
         let sender = OwnedUserId::try_from("@user:example.org").unwrap();
         let room_id = OwnedRoomId::try_from("!1234:example.org").unwrap();
-        assert_eq!(member_event.state_key, sender);
+        assert_eq!(member_event.state_key, state_key);
         assert_eq!(member_event.event_id, event_id);
         assert_eq!(member_event.sender, sender);
         assert_eq!(member_event.room_id, room_id);
@@ -537,6 +537,21 @@ mod tests {
 
         // assert_eq!(, StateUnsigned { age: 10, transaction_id: None, prev_content:
         // CallMemberEventContent::Empty { leave_reason: None }, relations: None })
+    }
+
+    #[test]
+    fn deserialize_member_event() {
+        deserialize_member_event_helper("@user:example.org");
+    }
+
+    #[test]
+    fn deserialize_member_event_with_scoped_state_key_prefixed() {
+        deserialize_member_event_helper("_@user:example.org:THIS_DEVICE");
+    }
+
+    #[test]
+    fn deserialize_member_event_with_scoped_state_key_unprefixed() {
+        deserialize_member_event_helper("@user:example.org:THIS_DEVICE");
     }
 
     fn timestamps() -> (TS, TS, TS) {
