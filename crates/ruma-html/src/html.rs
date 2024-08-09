@@ -1,4 +1,9 @@
-use std::{collections::BTreeSet, fmt, io, iter::FusedIterator};
+use std::{
+    cell::{Ref, RefCell},
+    collections::BTreeSet,
+    fmt, io,
+    iter::FusedIterator,
+};
 
 use as_variant::as_variant;
 use html5ever::{
@@ -21,7 +26,7 @@ use crate::SanitizerConfig;
 /// parsed, note that malformed HTML and comments will be stripped from the output.
 #[derive(Debug)]
 pub struct Html {
-    pub(crate) nodes: Vec<Node>,
+    pub(crate) nodes: RefCell<Vec<Node>>,
 }
 
 impl Html {
@@ -58,9 +63,10 @@ impl Html {
     /// Construct a new `Node` with the given data and add it to this `Html`.
     ///
     /// Returns the index of the new node.
-    pub(crate) fn new_node(&mut self, data: NodeData) -> usize {
-        self.nodes.push(Node::new(data));
-        self.nodes.len() - 1
+    pub(crate) fn new_node(&self, data: NodeData) -> usize {
+        let mut nodes = self.nodes.borrow_mut();
+        nodes.push(Node::new(data));
+        nodes.len() - 1
     }
 
     /// Append the given node to the given parent in this `Html`.
@@ -69,61 +75,64 @@ impl Html {
     pub(crate) fn append_node(&mut self, parent_id: usize, node_id: usize) {
         self.detach(node_id);
 
-        self.nodes[node_id].parent = Some(parent_id);
-        if let Some(last_child) = self.nodes[parent_id].last_child.take() {
-            self.nodes[node_id].prev_sibling = Some(last_child);
-            self.nodes[last_child].next_sibling = Some(node_id);
+        let mut nodes = self.nodes.borrow_mut();
+        nodes[node_id].parent = Some(parent_id);
+        if let Some(last_child) = nodes[parent_id].last_child.take() {
+            nodes[node_id].prev_sibling = Some(last_child);
+            nodes[last_child].next_sibling = Some(node_id);
         } else {
-            self.nodes[parent_id].first_child = Some(node_id);
+            nodes[parent_id].first_child = Some(node_id);
         }
-        self.nodes[parent_id].last_child = Some(node_id);
+        nodes[parent_id].last_child = Some(node_id);
     }
 
     /// Insert the given node before the given sibling in this `Html`.
     ///
     /// The node is detached from its previous position.
-    pub(crate) fn insert_before(&mut self, sibling_id: usize, node_id: usize) {
+    pub(crate) fn insert_before(&self, sibling_id: usize, node_id: usize) {
         self.detach(node_id);
 
-        self.nodes[node_id].parent = self.nodes[sibling_id].parent;
-        self.nodes[node_id].next_sibling = Some(sibling_id);
-        if let Some(prev_sibling) = self.nodes[sibling_id].prev_sibling.take() {
-            self.nodes[node_id].prev_sibling = Some(prev_sibling);
-            self.nodes[prev_sibling].next_sibling = Some(node_id);
-        } else if let Some(parent) = self.nodes[sibling_id].parent {
-            self.nodes[parent].first_child = Some(node_id);
+        let mut nodes = self.nodes.borrow_mut();
+        nodes[node_id].parent = nodes[sibling_id].parent;
+        nodes[node_id].next_sibling = Some(sibling_id);
+        if let Some(prev_sibling) = nodes[sibling_id].prev_sibling.take() {
+            nodes[node_id].prev_sibling = Some(prev_sibling);
+            nodes[prev_sibling].next_sibling = Some(node_id);
+        } else if let Some(parent) = nodes[sibling_id].parent {
+            nodes[parent].first_child = Some(node_id);
         }
-        self.nodes[sibling_id].prev_sibling = Some(node_id);
+        nodes[sibling_id].prev_sibling = Some(node_id);
     }
 
     /// Detach the given node from this `Html`.
-    pub(crate) fn detach(&mut self, node_id: usize) {
+    pub(crate) fn detach(&self, node_id: usize) {
+        let mut nodes = self.nodes.borrow_mut();
         let (parent, prev_sibling, next_sibling) = {
-            let node = &mut self.nodes[node_id];
+            let node = &mut nodes[node_id];
             (node.parent.take(), node.prev_sibling.take(), node.next_sibling.take())
         };
 
         if let Some(next_sibling) = next_sibling {
-            self.nodes[next_sibling].prev_sibling = prev_sibling;
+            nodes[next_sibling].prev_sibling = prev_sibling;
         } else if let Some(parent) = parent {
-            self.nodes[parent].last_child = prev_sibling;
+            nodes[parent].last_child = prev_sibling;
         }
 
         if let Some(prev_sibling) = prev_sibling {
-            self.nodes[prev_sibling].next_sibling = next_sibling;
+            nodes[prev_sibling].next_sibling = next_sibling;
         } else if let Some(parent) = parent {
-            self.nodes[parent].first_child = next_sibling;
+            nodes[parent].first_child = next_sibling;
         }
     }
 
     /// Get the ID of the root node of the HTML.
     pub(crate) fn root_id(&self) -> usize {
-        self.nodes[0].first_child.expect("html should always have a root node")
+        self.nodes.borrow()[0].first_child.expect("html should always have a root node")
     }
 
     /// Get the root node of the HTML.
-    pub(crate) fn root(&self) -> &Node {
-        &self.nodes[self.root_id()]
+    pub(crate) fn root(&self) -> Ref<'_, Node> {
+        Ref::map(self.nodes.borrow(), |nodes| &nodes[self.root_id()])
     }
 
     /// Whether the root node of the HTML has children.
@@ -153,7 +162,7 @@ impl Html {
 
 impl Default for Html {
     fn default() -> Self {
-        Self { nodes: vec![Node::new(NodeData::Document)] }
+        Self { nodes: RefCell::new(vec![Node::new(NodeData::Document)]) }
     }
 }
 
@@ -165,20 +174,20 @@ impl TreeSink for Html {
         self
     }
 
-    fn parse_error(&mut self, msg: std::borrow::Cow<'static, str>) {
+    fn parse_error(&self, msg: std::borrow::Cow<'static, str>) {
         debug!("HTML parse error: {msg}");
     }
 
-    fn get_document(&mut self) -> Self::Handle {
+    fn get_document(&self) -> Self::Handle {
         0
     }
 
     fn elem_name<'a>(&'a self, target: &'a Self::Handle) -> html5ever::ExpandedName<'a> {
-        self.nodes[*target].as_element().expect("not an element").name.expanded()
+        self.nodes.borrow()[*target].as_element().expect("not an element").name.expanded()
     }
 
     fn create_element(
-        &mut self,
+        &self,
         name: QualName,
         attrs: Vec<Attribute>,
         _flags: html5ever::tree_builder::ElementFlags,
@@ -186,15 +195,15 @@ impl TreeSink for Html {
         self.new_node(NodeData::Element(ElementData { name, attrs: attrs.into_iter().collect() }))
     }
 
-    fn create_comment(&mut self, _text: StrTendril) -> Self::Handle {
+    fn create_comment(&self, _text: StrTendril) -> Self::Handle {
         self.new_node(NodeData::Other)
     }
 
-    fn create_pi(&mut self, _target: StrTendril, _data: StrTendril) -> Self::Handle {
+    fn create_pi(&self, _target: StrTendril, _data: StrTendril) -> Self::Handle {
         self.new_node(NodeData::Other)
     }
 
-    fn append(&mut self, parent: &Self::Handle, child: NodeOrText<Self::Handle>) {
+    fn append(&self, parent: &Self::Handle, child: NodeOrText<Self::Handle>) {
         match child {
             NodeOrText::AppendNode(index) => self.append_node(*parent, index),
             NodeOrText::AppendText(text) => {
@@ -212,7 +221,7 @@ impl TreeSink for Html {
     }
 
     fn append_based_on_parent_node(
-        &mut self,
+        &self,
         element: &Self::Handle,
         prev_element: &Self::Handle,
         child: NodeOrText<Self::Handle>,
@@ -225,14 +234,14 @@ impl TreeSink for Html {
     }
 
     fn append_doctype_to_document(
-        &mut self,
+        &self,
         _name: StrTendril,
         _public_id: StrTendril,
         _system_id: StrTendril,
     ) {
     }
 
-    fn get_template_contents(&mut self, target: &Self::Handle) -> Self::Handle {
+    fn get_template_contents(&self, target: &Self::Handle) -> Self::Handle {
         *target
     }
 
@@ -240,13 +249,9 @@ impl TreeSink for Html {
         x == y
     }
 
-    fn set_quirks_mode(&mut self, _mode: html5ever::tree_builder::QuirksMode) {}
+    fn set_quirks_mode(&self, _mode: html5ever::tree_builder::QuirksMode) {}
 
-    fn append_before_sibling(
-        &mut self,
-        sibling: &Self::Handle,
-        new_node: NodeOrText<Self::Handle>,
-    ) {
+    fn append_before_sibling(&self, sibling: &Self::Handle, new_node: NodeOrText<Self::Handle>) {
         match new_node {
             NodeOrText::AppendNode(index) => self.insert_before(*sibling, index),
             NodeOrText::AppendText(text) => {
@@ -264,16 +269,16 @@ impl TreeSink for Html {
         }
     }
 
-    fn add_attrs_if_missing(&mut self, target: &Self::Handle, attrs: Vec<Attribute>) {
+    fn add_attrs_if_missing(&self, target: &Self::Handle, attrs: Vec<Attribute>) {
         let target = self.nodes[*target].as_element_mut().unwrap();
         target.attrs.extend(attrs);
     }
 
-    fn remove_from_parent(&mut self, target: &Self::Handle) {
+    fn remove_from_parent(&self, target: &Self::Handle) {
         self.detach(*target);
     }
 
-    fn reparent_children(&mut self, node: &Self::Handle, new_parent: &Self::Handle) {
+    fn reparent_children(&self, node: &Self::Handle, new_parent: &Self::Handle) {
         let mut next_child = self.nodes[*node].first_child;
         while let Some(child) = next_child {
             next_child = self.nodes[child].next_sibling;
