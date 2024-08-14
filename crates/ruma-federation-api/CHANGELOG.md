@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+- `ServerSigningKeys` can be deserialized when `old_verify_keys` is missing, due to a
+  clarification in the spec.
+
 Improvements:
 
 - Add support for authenticated media endpoints, according to MSC3916 / Matrix 1.11

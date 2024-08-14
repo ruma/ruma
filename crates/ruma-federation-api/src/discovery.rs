@@ -48,7 +48,6 @@ impl OldVerifyKey {
     }
 }
 
-// Spec is wrong, all fields are required (see https://github.com/matrix-org/matrix-spec/issues/613)
 /// Queried server key, signed by the notary server.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -60,6 +59,9 @@ pub struct ServerSigningKeys {
     pub verify_keys: BTreeMap<OwnedServerSigningKeyId, VerifyKey>,
 
     /// Public keys that the homeserver used to use and when it stopped using them.
+    // This field is optional, but all fields were assumed to be required before clarification
+    // in https://github.com/matrix-org/matrix-spec/pull/1930, so we still send it.
+    #[serde(default)]
     pub old_verify_keys: BTreeMap<OwnedServerSigningKeyId, OldVerifyKey>,
 
     /// Digital signatures of this object signed using the verify_keys.
