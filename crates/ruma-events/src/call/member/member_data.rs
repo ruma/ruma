@@ -58,7 +58,7 @@ impl<'a> MembershipData<'a> {
     pub fn focus_active(&self) -> &ActiveFocus {
         match self {
             MembershipData::Legacy(_) => &ActiveFocus::Livekit(ActiveLivekitFocus {
-                focus_select: super::focus::FocusSelection::OldestMembership,
+                focus_selection: super::focus::FocusSelection::OldestMembership,
             }),
             MembershipData::Session(data) => &data.focus_active,
         }
