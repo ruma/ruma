@@ -59,7 +59,7 @@ pub enum ActiveFocus {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ActiveLivekitFocus {
     /// The selection method used to select the LiveKit focus for the rtc session.
-    pub focus_select: FocusSelection,
+    pub focus_selection: FocusSelection,
 }
 
 impl ActiveLivekitFocus {
@@ -67,10 +67,10 @@ impl ActiveLivekitFocus {
     ///
     /// # Arguments
     ///
-    /// * `focus_select` - The selection method used to select the LiveKit focus for the rtc
+    /// * `focus_selection` - The selection method used to select the LiveKit focus for the rtc
     ///   session.
     pub fn new() -> Self {
-        Self { focus_select: FocusSelection::OldestMembership }
+        Self { focus_selection: FocusSelection::OldestMembership }
     }
 }
 
