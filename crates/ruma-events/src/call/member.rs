@@ -72,6 +72,7 @@ impl CallMemberEventContent {
     pub fn new_empty(leave_reason: Option<LeaveReason>) -> Self {
         Self::Empty(EmptyMembershipData { leave_reason })
     }
+
     /// All non expired memberships in this member event.
     ///
     /// In most cases you want to use this method instead of the public memberships field.
@@ -268,7 +269,7 @@ mod tests {
             }),
             "ABCDE".to_owned(),
             ActiveFocus::Livekit(ActiveLivekitFocus {
-                focus_select: FocusSelection::OldestMembership,
+                focus_selection: FocusSelection::OldestMembership,
             }),
             vec![Focus::Livekit(LivekitFocus {
                 alias: "1".to_owned(),
@@ -294,7 +295,7 @@ mod tests {
             ],
             "focus_active":{
                 "type":"livekit",
-                "focus_select":"oldest_membership"
+                "focus_selection":"oldest_membership"
             }
         });
         assert_eq!(
@@ -348,7 +349,7 @@ mod tests {
             }),
             "THIS_DEVICE".to_owned(),
             ActiveFocus::Livekit(ActiveLivekitFocus {
-                focus_select: FocusSelection::OldestMembership,
+                focus_selection: FocusSelection::OldestMembership,
             }),
             vec![Focus::Livekit(LivekitFocus {
                 alias: "room1".to_owned(),
@@ -364,7 +365,7 @@ mod tests {
             "device_id": "THIS_DEVICE",
             "focus_active":{
                 "type": "livekit",
-                "focus_select": "oldest_membership"
+                "focus_selection": "oldest_membership"
             },
             "foci_preferred": [
                 {
@@ -473,7 +474,7 @@ mod tests {
                 "device_id": "THIS_DEVICE",
                 "focus_active":{
                     "type": "livekit",
-                    "focus_select": "oldest_membership"
+                    "focus_selection": "oldest_membership"
                 },
                 "foci_preferred": [
                     {
@@ -509,26 +510,32 @@ mod tests {
         assert_eq!(member_event.sender, sender);
         assert_eq!(member_event.room_id, room_id);
         assert_eq!(member_event.origin_server_ts, TS(js_int::UInt::new(111).unwrap()));
+        let membership = SessionMembershipData {
+            application: Application::Call(CallApplicationContent {
+                call_id: "".to_owned(),
+                scope: CallScope::Room,
+            }),
+            device_id: "THIS_DEVICE".to_owned(),
+            foci_preferred: [Focus::Livekit(LivekitFocus {
+                alias: "room1".to_owned(),
+                service_url: "https://livekit1.com".to_owned(),
+            })]
+            .to_vec(),
+            focus_active: ActiveFocus::Livekit(ActiveLivekitFocus {
+                focus_selection: FocusSelection::OldestMembership,
+            }),
+            created_ts: None,
+        };
         assert_eq!(
             member_event.content,
-            CallMemberEventContent::SessionContent(SessionMembershipData {
-                application: Application::Call(CallApplicationContent {
-                    call_id: "".to_owned(),
-                    scope: CallScope::Room
-                }),
-                device_id: "THIS_DEVICE".to_owned(),
-                foci_preferred: [Focus::Livekit(LivekitFocus {
-                    alias: "room1".to_owned(),
-                    service_url: "https://livekit1.com".to_owned()
-                })]
-                .to_vec(),
-                focus_active: ActiveFocus::Livekit(ActiveLivekitFocus {
-                    focus_select: FocusSelection::OldestMembership
-                }),
-                created_ts: None
-            })
+            CallMemberEventContent::SessionContent(membership.clone())
         );
 
+        // Correctly computes the active_memberships array.
+        assert_eq!(
+            member_event.content.active_memberships(None)[0],
+            vec![MembershipData::Session(&membership)][0]
+        );
         assert_eq!(js_int::Int::new(10), member_event.unsigned.age);
         assert_eq!(
             CallMemberEventContent::Empty(EmptyMembershipData { leave_reason: None }),
@@ -568,7 +575,7 @@ mod tests {
     }
 
     #[test]
-    fn memberships_do_expire() {
+    fn legacy_memberships_do_expire() {
         let content_legacy = create_call_member_legacy_event_content();
         let (now, one_second_ago, two_hours_ago) = timestamps();
 
