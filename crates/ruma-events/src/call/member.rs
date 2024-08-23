@@ -6,9 +6,11 @@
 
 mod focus;
 mod member_data;
+mod member_state_key;
 
 pub use focus::*;
 pub use member_data::*;
+pub use member_state_key::*;
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
@@ -29,7 +31,7 @@ use crate::{
 ///
 /// This struct also exposes allows to call the methods from [`CallMemberEventContent`].
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent, PartialEq)]
-#[ruma_event(type = "org.matrix.msc3401.call.member", kind = State, state_key_type = String, custom_redacted, custom_possibly_redacted)]
+#[ruma_event(type = "org.matrix.msc3401.call.member", kind = State, state_key_type = CallMemberStateKey, custom_redacted, custom_possibly_redacted)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(untagged)]
 pub enum CallMemberEventContent {
@@ -177,7 +179,7 @@ impl RedactContent for CallMemberEventContent {
 pub type PossiblyRedactedCallMemberEventContent = CallMemberEventContent;
 
 impl PossiblyRedactedStateEventContent for PossiblyRedactedCallMemberEventContent {
-    type StateKey = String;
+    type StateKey = CallMemberStateKey;
 }
 
 /// The Redacted version of [`CallMemberEventContent`].
@@ -193,7 +195,7 @@ impl ruma_events::content::EventContent for RedactedCallMemberEventContent {
 }
 
 impl RedactedStateEventContent for RedactedCallMemberEventContent {
-    type StateKey = String;
+    type StateKey = CallMemberStateKey;
 }
 
 /// Legacy content with an array of memberships. See also: [`CallMemberEventContent`]
@@ -231,8 +233,11 @@ mod tests {
     use std::time::Duration;
 
     use assert_matches2::assert_matches;
-    use ruma_common::{MilliSecondsSinceUnixEpoch as TS, OwnedEventId, OwnedRoomId, OwnedUserId};
-    use serde_json::{from_value as from_json_value, json};
+    use ruma_common::{
+        device_id, user_id, MilliSecondsSinceUnixEpoch as TS, OwnedEventId, OwnedRoomId,
+        OwnedUserId,
+    };
+    use serde_json::{from_value as from_json_value, json, Value as JsonValue};
 
     use super::{
         focus::{ActiveFocus, ActiveLivekitFocus, Focus, LivekitFocus},
@@ -467,8 +472,8 @@ mod tests {
         );
     }
 
-    fn deserialize_member_event_helper(state_key: &str) {
-        let ev = json!({
+    fn member_event_json(state_key: &str) -> JsonValue {
+        json!({
             "content":{
                 "application": "m.call",
                 "call_id": "",
@@ -497,7 +502,11 @@ mod tests {
                 "prev_content": {},
                 "prev_sender":"@user:example.org",
             }
-        });
+        })
+    }
+
+    fn deserialize_member_event_helper(state_key: &str) {
+        let ev = member_event_json(state_key);
 
         assert_matches!(
             from_json_value(ev),
@@ -507,7 +516,7 @@ mod tests {
         let event_id = OwnedEventId::try_from("$3qfxjGYSu4sL25FtR0ep6vePOc").unwrap();
         let sender = OwnedUserId::try_from("@user:example.org").unwrap();
         let room_id = OwnedRoomId::try_from("!1234:example.org").unwrap();
-        assert_eq!(member_event.state_key, state_key);
+        assert_eq!(member_event.state_key.as_ref(), state_key);
         assert_eq!(member_event.event_id, event_id);
         assert_eq!(member_event.sender, sender);
         assert_eq!(member_event.room_id, room_id);
@@ -555,12 +564,12 @@ mod tests {
 
     #[test]
     fn deserialize_member_event_with_scoped_state_key_prefixed() {
-        deserialize_member_event_helper("_@user:example.org:THIS_DEVICE");
+        deserialize_member_event_helper("_@user:example.org_THIS_DEVICE");
     }
 
     #[test]
     fn deserialize_member_event_with_scoped_state_key_unprefixed() {
-        deserialize_member_event_helper("@user:example.org:THIS_DEVICE");
+        deserialize_member_event_helper("@user:example.org_THIS_DEVICE");
     }
 
     fn timestamps() -> (TS, TS, TS) {
@@ -630,6 +639,54 @@ mod tests {
         assert_eq!(
             content_two_hours_ago.active_memberships(None),
             vec![] as Vec<MembershipData<'_>>
+        );
+    }
+
+    #[test]
+    fn test_parse_rtc_member_event_key() {
+        assert!(from_json_value::<AnyStateEvent>(member_event_json("abc")).is_err());
+        assert!(from_json_value::<AnyStateEvent>(member_event_json("@nocolon")).is_err());
+        assert!(from_json_value::<AnyStateEvent>(member_event_json("@noserverpart:")).is_err());
+        assert!(
+            from_json_value::<AnyStateEvent>(member_event_json("@noserverpart:_suffix")).is_err()
+        );
+
+        let user_id = user_id!("@username:example.org").as_str();
+        let device_id = device_id!("VALID_DEVICE_ID").as_str();
+
+        let parse_result = from_json_value::<AnyStateEvent>(member_event_json(user_id));
+        assert_matches!(parse_result, Ok(_));
+        assert_matches!(
+            from_json_value::<AnyStateEvent>(member_event_json(&format!("{user_id}_{device_id}"))),
+            Ok(_)
+        );
+
+        assert_matches!(
+            from_json_value::<AnyStateEvent>(member_event_json(&format!(
+                "{user_id}:invalid_suffix"
+            ))),
+            Err(_)
+        );
+
+        assert_matches!(
+            from_json_value::<AnyStateEvent>(member_event_json(&format!("_{user_id}"))),
+            Err(_)
+        );
+
+        assert_matches!(
+            from_json_value::<AnyStateEvent>(member_event_json(&format!("_{user_id}_{device_id}"))),
+            Ok(_)
+        );
+
+        assert_matches!(
+            from_json_value::<AnyStateEvent>(member_event_json(&format!(
+                "_{user_id}:invalid_suffix"
+            ))),
+            Err(_)
+        );
+        assert_matches!(
+            from_json_value::<AnyStateEvent>(member_event_json(&format!("{user_id}_"))),
+            Err(_)
         );
     }
 }
