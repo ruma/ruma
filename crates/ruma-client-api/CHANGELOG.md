@@ -27,6 +27,7 @@ Improvements:
   to send `Future` events and update `Future` events with `future_tokens`.
   (`Future` events are scheduled messages that can be controlled
   with `future_tokens` to send on demand or restart the timeout)
+- Introduce `via` and deprecate `server_name` as per MSC4156 / Matrix 1.12.
 
 Bug fixes:
 
