@@ -33,10 +33,18 @@ pub mod v3 {
 
         /// The servers to attempt to join the room through.
         ///
-        /// One of the servers  must be participating in the room.
+        /// One of the servers must be participating in the room.
         #[ruma_api(query)]
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        #[deprecated = "Since Matrix 1.12, clients should use `membership::join_room_by_id_or_alias::v3::Request::via`."]
         pub server_name: Vec<OwnedServerName>,
+
+        /// The servers to attempt to join the room through.
+        ///
+        /// One of the servers must be participating in the room.
+        #[ruma_api(query)]
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        pub via: Vec<OwnedServerName>,
 
         /// The signature of a `m.third_party_invite` token to prove that this user owns a third
         /// party identity which has been invited to the room.
@@ -57,8 +65,15 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room ID or alias ID.
+        #[allow(deprecated)]
         pub fn new(room_id_or_alias: OwnedRoomOrAliasId) -> Self {
-            Self { room_id_or_alias, server_name: vec![], third_party_signed: None, reason: None }
+            Self {
+                room_id_or_alias,
+                server_name: vec![],
+                via: vec![],
+                third_party_signed: None,
+                reason: None,
+            }
         }
     }
 

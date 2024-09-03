@@ -38,7 +38,15 @@ pub mod v3 {
         /// One of the servers must be participating in the room.
         #[ruma_api(query)]
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        #[deprecated = "Since Matrix 1.12, clients should use `knock::knock_room::v3::Request::via`."]
         pub server_name: Vec<OwnedServerName>,
+
+        /// The servers to attempt to knock on the room through.
+        ///
+        /// One of the servers must be participating in the room.
+        #[ruma_api(query)]
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        pub via: Vec<OwnedServerName>,
     }
 
     /// Response type for the `knock_room` endpoint.
@@ -50,8 +58,9 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room ID or alias.
+        #[allow(deprecated)]
         pub fn new(room_id_or_alias: OwnedRoomOrAliasId) -> Self {
-            Self { room_id_or_alias, reason: None, server_name: vec![] }
+            Self { room_id_or_alias, reason: None, server_name: vec![], via: vec![] }
         }
     }
 
