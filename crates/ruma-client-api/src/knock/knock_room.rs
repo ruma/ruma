@@ -207,7 +207,7 @@ pub mod v3 {
             .unwrap();
 
             assert_eq!(req.room_id_or_alias, "!foo:b.ar");
-            assert_eq!(req.reason, Some("Let me in already!".to_string()));
+            assert_eq!(req.reason, Some("Let me in already!".to_owned()));
             assert_eq!(req.via, vec![owned_server_name!("f.oo")]);
         }
 
@@ -225,7 +225,7 @@ pub mod v3 {
             .unwrap();
 
             assert_eq!(req.room_id_or_alias, "!foo:b.ar");
-            assert_eq!(req.reason, Some("Let me in already!".to_string()));
+            assert_eq!(req.reason, Some("Let me in already!".to_owned()));
             assert_eq!(req.via, vec![owned_server_name!("f.oo")]);
         }
 
@@ -243,7 +243,7 @@ pub mod v3 {
             .unwrap();
 
             assert_eq!(req.room_id_or_alias, "!foo:b.ar");
-            assert_eq!(req.reason, Some("Let me in already!".to_string()));
+            assert_eq!(req.reason, Some("Let me in already!".to_owned()));
             assert_eq!(req.via, vec![owned_server_name!("f.oo")]);
         }
     }
