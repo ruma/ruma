@@ -223,12 +223,32 @@ where
     }
 }
 
+impl From<Option<RoomType>> for RoomTypeFilter {
+    fn from(t: Option<RoomType>) -> Self {
+        match t {
+            None => Self::Default,
+            Some(s) => match s {
+                RoomType::Space => Self::Space,
+                _ => Self::from(Some(s.as_str())),
+            },
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{Filter, RoomNetwork, RoomTypeFilter};
+    use crate::room::RoomType;
+
+    #[test]
+    fn test_from_room_type() {
+        let test = RoomType::Space;
+        let other: RoomTypeFilter = RoomTypeFilter::from(Some(test));
+        assert_eq!(other, RoomTypeFilter::Space);
+    }
 
     #[test]
     fn serialize_matrix_network_only() {
