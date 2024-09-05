@@ -84,11 +84,7 @@ fn span_attributes() {
 #[test]
 fn a_attributes() {
     let raw_html = "\
-        <a \
-            name=\"my_anchor\" \
-            target=\"_blank\" \
-            href=\"https://localhost/\"\
-        >\
+        <a target=\"_blank\" href=\"https://localhost/\">\
             Link with all supported attributes\
         </a>\
         <a href=\"matrix:r/somewhere:localhost\">Link with valid matrix scheme URI</a>\
@@ -105,7 +101,6 @@ fn a_attributes() {
     let element = node.as_element().unwrap().to_matrix();
 
     assert_matches!(element.element, MatrixElement::A(anchor));
-    assert_eq!(anchor.name.unwrap().as_ref(), "my_anchor");
     assert_eq!(anchor.target.unwrap().as_ref(), "_blank");
     assert_matches!(anchor.href.unwrap(), AnchorUri::Other(uri));
     assert_eq!(uri.as_ref(), "https://localhost/");
@@ -116,7 +111,6 @@ fn a_attributes() {
     let element = node.as_element().unwrap().to_matrix();
 
     assert_matches!(element.element, MatrixElement::A(anchor));
-    assert!(anchor.name.is_none());
     assert!(anchor.target.is_none());
     assert_matches!(anchor.href.unwrap(), AnchorUri::Matrix(uri));
     assert_eq!(uri.to_string(), "matrix:r/somewhere:localhost");
@@ -127,7 +121,6 @@ fn a_attributes() {
     let element = node.as_element().unwrap().to_matrix();
 
     assert_matches!(element.element, MatrixElement::A(anchor));
-    assert!(anchor.name.is_none());
     assert!(anchor.target.is_none());
     assert!(anchor.href.is_none());
     // The `href` attribute is in the unsupported attributes.
@@ -138,7 +131,6 @@ fn a_attributes() {
     let element = node.as_element().unwrap().to_matrix();
 
     assert_matches!(element.element, MatrixElement::A(anchor));
-    assert!(anchor.name.is_none());
     assert!(anchor.target.is_none());
     assert_matches!(anchor.href.unwrap(), AnchorUri::MatrixTo(uri));
     assert_eq!(uri.to_string(), "https://matrix.to/#/%23somewhere:example.org");
@@ -149,7 +141,6 @@ fn a_attributes() {
     let element = node.as_element().unwrap().to_matrix();
 
     assert_matches!(element.element, MatrixElement::A(anchor));
-    assert!(anchor.name.is_none());
     assert!(anchor.target.is_none());
     assert!(anchor.href.is_none());
     // The `href` attribute is in the unsupported attributes.
@@ -160,7 +151,6 @@ fn a_attributes() {
     let element = node.as_element().unwrap().to_matrix();
 
     assert_matches!(element.element, MatrixElement::A(anchor));
-    assert!(anchor.name.is_none());
     assert!(anchor.target.is_none());
     assert!(anchor.href.is_none());
     // The `href` attribute is in the unsupported attributes.

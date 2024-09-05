@@ -32,7 +32,7 @@ static ALLOWED_ATTRIBUTES_STRICT: Map<&str, &Set<&str>> = phf_map! {
 };
 static ALLOWED_ATTRIBUTES_SPAN_STRICT: Set<&str> =
     phf_set! { "data-mx-bg-color", "data-mx-color", "data-mx-spoiler", "data-mx-maths" };
-static ALLOWED_ATTRIBUTES_A_STRICT: Set<&str> = phf_set! { "name", "target", "href" };
+static ALLOWED_ATTRIBUTES_A_STRICT: Set<&str> = phf_set! { "target", "href" };
 static ALLOWED_ATTRIBUTES_IMG_STRICT: Set<&str> =
     phf_set! { "width", "height", "alt", "title", "src" };
 static ALLOWED_ATTRIBUTES_OL_STRICT: Set<&str> = phf_set! { "start" };
