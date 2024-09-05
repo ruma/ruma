@@ -3,6 +3,7 @@
 Breaking Changes:
 
 - `MatrixElement::Div` is now a newtype variant.
+- `AnchorData`'s `name` field was removed, according to MSC4159.
 
 Improvements:
 
