@@ -858,11 +858,12 @@ pub struct CustomEventContent {
 
 #[cfg(feature = "markdown")]
 pub(crate) fn parse_markdown(text: &str) -> Option<String> {
-    use pulldown_cmark::{Event, Options, Parser, Tag, TagEnd};
+    use pulldown_cmark::{CowStr, Event, Options, Parser, Tag, TagEnd};
 
     const OPTIONS: Options = Options::ENABLE_TABLES.union(Options::ENABLE_STRIKETHROUGH);
 
     let mut found_first_paragraph = false;
+    let mut previous_event_was_text = false;
 
     let parser_events: Vec<_> = Parser::new_ext(text, OPTIONS)
         .map(|event| match event {
@@ -871,8 +872,29 @@ pub(crate) fn parse_markdown(text: &str) -> Option<String> {
         })
         .collect();
     let has_markdown = parser_events.iter().any(|ref event| {
-        let is_text = matches!(event, Event::Text(_));
+        // Numeric references should be replaced by their UTF-8 equivalent, so encountering a
+        // non-borrowed string means that there is markdown syntax.
+        let is_borrowed_text = matches!(event, Event::Text(CowStr::Borrowed(_)));
+
+        if is_borrowed_text {
+            if previous_event_was_text {
+                // The text was split, so a character was likely removed, like in the case of
+                // backslash escapes, or replaced by a static string, like for entity references, so
+                // there is markdown syntax.
+                return true;
+            } else {
+                previous_event_was_text = true;
+            }
+        } else {
+            previous_event_was_text = false;
+        }
+
+        // A hard break happens when a newline is encountered, which is not necessarily markdown
+        // syntax.
         let is_break = matches!(event, Event::HardBreak);
+
+        // The parser always wraps the string into a paragraph, so the first paragraph should be
+        // ignored, it is not due to markdown syntax.
         let is_first_paragraph_start = if matches!(event, Event::Start(Tag::Paragraph)) {
             if found_first_paragraph {
                 false
@@ -885,7 +907,7 @@ pub(crate) fn parse_markdown(text: &str) -> Option<String> {
         };
         let is_paragraph_end = matches!(event, Event::End(TagEnd::Paragraph));
 
-        !is_text && !is_break && !is_first_paragraph_start && !is_paragraph_end
+        !is_borrowed_text && !is_break && !is_first_paragraph_start && !is_paragraph_end
     });
 
     if !has_markdown {
@@ -896,4 +918,42 @@ pub(crate) fn parse_markdown(text: &str) -> Option<String> {
     pulldown_cmark::html::push_html(&mut html_body, parser_events.into_iter());
 
     Some(html_body)
+}
+
+#[cfg(all(test, feature = "markdown"))]
+mod tests {
+    use assert_matches2::assert_matches;
+
+    use super::parse_markdown;
+
+    #[test]
+    fn detect_markdown() {
+        // Simple single-line text.
+        let text = "Hello world.";
+        assert_matches!(parse_markdown(text), None);
+
+        // Simple double-line text.
+        let text = "Hello\nworld.";
+        assert_matches!(parse_markdown(text), None);
+
+        // With new paragraph.
+        let text = "Hello\n\nworld.";
+        assert_matches!(parse_markdown(text), Some(_));
+
+        // With tagged element.
+        let text = "Hello **world**.";
+        assert_matches!(parse_markdown(text), Some(_));
+
+        // With backslash escapes.
+        let text = r#"Hello \<world\>."#;
+        assert_matches!(parse_markdown(text), Some(_));
+
+        // With entity reference.
+        let text = r#"Hello &lt;world&gt;."#;
+        assert_matches!(parse_markdown(text), Some(_));
+
+        // With numeric reference.
+        let text = "Hello w&#8853;rld.";
+        assert_matches!(parse_markdown(text), Some(_));
+    }
 }
