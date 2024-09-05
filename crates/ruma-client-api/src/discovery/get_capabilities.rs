@@ -63,6 +63,15 @@ pub struct Capabilities {
     )]
     pub thirdparty_id_changes: ThirdPartyIdChangesCapability,
 
+    /// Capability to indicate if the user can generate tokens to log further clients into their
+    /// account.
+    #[serde(
+        rename = "m.get_login_token",
+        default,
+        skip_serializing_if = "GetLoginTokenCapability::is_default"
+    )]
+    pub get_login_token: GetLoginTokenCapability,
+
     /// Any other custom capabilities that the server supports outside of the specification,
     /// labeled using the Java package naming convention and stored as arbitrary JSON values.
     #[serde(flatten)]
@@ -289,6 +298,26 @@ impl ThirdPartyIdChangesCapability {
 impl Default for ThirdPartyIdChangesCapability {
     fn default() -> Self {
         Self { enabled: true }
+    }
+}
+
+/// Information about the `m.get_login_token` capability.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub struct GetLoginTokenCapability {
+    /// Whether the user can request a login token.
+    pub enabled: bool,
+}
+
+impl GetLoginTokenCapability {
+    /// Creates a new `GetLoginTokenCapability` with the given enabled flag.
+    pub fn new(enabled: bool) -> Self {
+        Self { enabled }
+    }
+
+    /// Returns whether all fields have their default value.
+    pub fn is_default(&self) -> bool {
+        !self.enabled
     }
 }
 
