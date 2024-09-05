@@ -34,6 +34,8 @@ Improvements:
 - Change types of `SyncRequestListFilters::{room_types,not_room_types}` to
   `Vec<RoomTypeFilter>` instead of a vector of strings
   - This is a breaking change, but only for users of `unstable-msc3575`
+- Add the `get_login_token` field to `Capabilities`, according to a
+  clarification in the spec.
 
 Bug fixes:
 
