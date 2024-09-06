@@ -27,18 +27,14 @@ pub mod v3 {
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     pub struct Request {
         /// The room the user should knock on.
-        // #[ruma_api(path)]
         pub room_id_or_alias: OwnedRoomOrAliasId,
 
         /// The reason for joining a room.
-        // #[serde(skip_serializing_if = "Option::is_none")]
         pub reason: Option<String>,
 
         /// The servers to attempt to knock on the room through.
         ///
         /// One of the servers must be participating in the room.
-        // #[ruma_api(query)]
-        // #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
         pub via: Vec<OwnedServerName>,
     }
     /// Data in the request's query string.
