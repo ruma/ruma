@@ -82,7 +82,7 @@ pub mod v3 {
 
             let query_string = serde_html_form::to_string(RequestQuery {
                 server_name: self.via.clone(),
-                via: self.via.to_owned(),
+                via: self.via,
             })?;
 
             let http_request = http::Request::builder()
