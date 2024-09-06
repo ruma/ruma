@@ -76,9 +76,6 @@ jobs:
           - name: Check All Features
             cmd: msrv-all
 
-          - name: Check Client
-            cmd: msrv-client
-
           - name: Check Ruma
             cmd: msrv-ruma
 
