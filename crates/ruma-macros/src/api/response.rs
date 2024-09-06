@@ -6,7 +6,7 @@ use syn::{
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
     visit::Visit,
-    DeriveInput, Field, Generics, Ident, ItemStruct, Lifetime, Token, Type,
+    Field, Generics, Ident, ItemStruct, Lifetime, Token, Type,
 };
 
 use super::{
@@ -59,13 +59,9 @@ impl Parse for ResponseAttr {
     }
 }
 
-pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
-    let fields = match input.data {
-        syn::Data::Struct(s) => s.fields,
-        _ => panic!("This derive macro only works on structs"),
-    };
-
-    let fields = fields.into_iter().map(ResponseField::try_from).collect::<syn::Result<_>>()?;
+pub fn expand_derive_response(input: ItemStruct) -> syn::Result<TokenStream> {
+    let fields =
+        input.fields.into_iter().map(ResponseField::try_from).collect::<syn::Result<_>>()?;
     let mut manual_body_serde = false;
     let mut error_ty = None;
     let mut status_ident = None;
