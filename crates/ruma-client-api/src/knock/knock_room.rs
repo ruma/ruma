@@ -50,8 +50,9 @@ pub mod v3 {
         via: Vec<OwnedServerName>,
 
         /// The servers to attempt to knock on the room through.
+        ///
+        /// Deprecated in Matrix >1.11 in favour of `knock::knock_room::v3::RequestQuery::via`.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        #[deprecated = "Since Matrix 1.12, clients should use `knock::knock_room::v3::RequestQuery::via`."]
         server_name: Vec<OwnedServerName>,
     }
 
@@ -71,7 +72,6 @@ pub mod v3 {
 
         const METADATA: Metadata = METADATA;
 
-        #[allow(deprecated)]
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
             base_url: &str,
@@ -116,7 +116,6 @@ pub mod v3 {
 
         const METADATA: Metadata = METADATA;
 
-        #[allow(deprecated)]
         fn try_from_http_request<B, S>(
             request: http::Request<B>,
             path_args: &[S],
