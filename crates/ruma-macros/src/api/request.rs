@@ -101,7 +101,7 @@ pub fn expand_derive_request(input: ItemStruct) -> syn::Result<TokenStream> {
         #types_impls
 
         #[allow(deprecated)]
-        #[cfg(tests)]
+        #[cfg(test)]
         mod __request {
             #test
         }
