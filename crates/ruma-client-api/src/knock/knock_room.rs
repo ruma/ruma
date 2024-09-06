@@ -124,7 +124,13 @@ pub mod v3 {
             B: AsRef<[u8]>,
             S: AsRef<str>,
         {
-            // let (room_id_or_alias): (OwnedRoomOrAliasId) =
+            if request.method() != METADATA.method {
+                return Err(ruma_common::api::error::FromHttpRequestError::MethodMismatch {
+                    expected: METADATA.method,
+                    received: request.method().clone(),
+                });
+            }
+
             let (room_id_or_alias,) =
                 serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
                     _,
@@ -190,6 +196,20 @@ pub mod v3 {
                 )
                 .unwrap();
             assert_eq!(req.uri().query(), Some("via=f.oo&server_name=f.oo"));
+        }
+
+        #[cfg(feature = "server")]
+        #[test]
+        fn deserialize_request_wrong_method() {
+            Request::try_from_http_request(
+                http::Request::builder()
+                    .method(http::Method::GET)
+                    .uri("https://matrix.org/_matrix/client/v3/knock/!foo:b.ar?via=f.oo")
+                    .body(b"{ \"reason\": \"Let me in already!\" }" as &[u8])
+                    .unwrap(),
+                &["!foo:b.ar"],
+            )
+            .expect_err("Should not deserialize request with illegal method");
         }
 
         #[cfg(feature = "server")]
