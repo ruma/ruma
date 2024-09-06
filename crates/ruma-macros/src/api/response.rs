@@ -86,8 +86,8 @@ pub fn expand_derive_response(input: ItemStruct) -> syn::Result<TokenStream> {
         generics: input.generics,
         fields,
         manual_body_serde,
-        error_ty: error_ty.unwrap(),
-        status_ident: status_ident.unwrap(),
+        error_ty: error_ty.expect("missing error_ty attribute"),
+        status_ident: status_ident.expect("missing status_ident attribute"),
     };
 
     response.check()?;
