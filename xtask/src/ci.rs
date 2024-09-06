@@ -174,7 +174,14 @@ impl CiTask {
 
     /// Check all crates with all features with the stable version.
     fn stable_all(&self) -> Result<()> {
-        cmd!("rustup run stable cargo check --workspace --all-features").run().map_err(Into::into)
+        // ruma-macros is pulled in as a dependency, but excluding it on the command line means its
+        // features don't get activated. It has only a single feature, which is nightly-only.
+        cmd!(
+            "rustup run stable cargo check
+                --workspace --all-features --exclude ruma-macros"
+        )
+        .run()
+        .map_err(Into::into)
     }
 
     /// Check ruma-client without default features with the stable version.
