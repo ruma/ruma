@@ -1,3 +1,4 @@
+use cfg_if::cfg_if;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
@@ -26,13 +27,34 @@ pub fn expand_request(attr: RequestAttr, item: ItemStruct) -> TokenStream {
         |DeriveRequestMeta::Error(ty)| quote! { #ty },
     );
 
+    cfg_if! {
+        if #[cfg(feature = "__internal_macro_expand")] {
+            use syn::parse_quote;
+
+            let mut derive_input = item.clone();
+            derive_input.attrs.push(parse_quote! { #[ruma_api(error = #error_ty)] });
+            crate::util::cfg_expand_struct(&mut derive_input);
+
+            let extra_derive = quote! { #ruma_macros::_FakeDeriveRumaApi };
+            let ruma_api_attribute = quote! {};
+            let request_impls =
+                expand_derive_request(derive_input).unwrap_or_else(syn::Error::into_compile_error);
+        } else {
+            let extra_derive = quote! { #ruma_macros::Request };
+            let ruma_api_attribute = quote! { #[ruma_api(error = #error_ty)] };
+            let request_impls = quote! {};
+        }
+    }
+
     quote! {
         #maybe_feature_error
 
-        #[derive(Clone, Debug, #ruma_macros::Request, #ruma_common::serde::_FakeDeriveSerde)]
+        #[derive(Clone, Debug, #ruma_common::serde::_FakeDeriveSerde, #extra_derive)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-        #[ruma_api(error = #error_ty)]
+        #ruma_api_attribute
         #item
+
+        #request_impls
     }
 }
 

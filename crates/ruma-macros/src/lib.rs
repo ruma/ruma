@@ -4,6 +4,7 @@
 //!
 //! See the documentation for the individual macros for usage details.
 
+#![cfg_attr(feature = "__internal_macro_expand", feature(proc_macro_expand))]
 #![warn(missing_docs)]
 #![allow(unreachable_pub)]
 // https://github.com/rust-lang/rust-clippy/issues/9029
