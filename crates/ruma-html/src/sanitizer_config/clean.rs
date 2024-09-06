@@ -2,7 +2,7 @@ use html5ever::{tendril::StrTendril, Attribute, LocalName};
 use phf::{phf_map, phf_set, Map, Set};
 use wildmatch::WildMatch;
 
-use crate::{ElementData, Html, HtmlSanitizerMode, NodeData, SanitizerConfig};
+use crate::{ElementData, Html, HtmlSanitizerMode, NodeData, NodeRef, SanitizerConfig};
 
 /// HTML elements allowed in the Matrix specification.
 static ALLOWED_ELEMENTS_STRICT: Set<&str> = phf_set! {
@@ -104,43 +104,41 @@ impl SanitizerConfig {
     }
 
     /// Clean the given HTML with this sanitizer.
-    pub(crate) fn clean(&self, html: &mut Html) {
-        let root = html.root();
-        let mut next_child = root.first_child;
-
-        while let Some(child) = next_child {
-            next_child = html.nodes[child].next_sibling;
-            self.clean_node(html, child, 0);
+    pub(crate) fn clean(&self, html: &Html) {
+        for child in html.children() {
+            self.clean_node(child, 0);
         }
     }
 
-    fn clean_node(&self, html: &mut Html, node_id: usize, depth: u32) {
-        self.apply_replacements(html, node_id);
+    fn clean_node(&self, node: NodeRef, depth: u32) {
+        let node = self.apply_replacements(node);
 
-        let action = self.node_action(html, node_id, depth);
+        let action = self.node_action(&node, depth);
 
         if action != NodeAction::Remove {
-            let mut next_child = html.nodes[node_id].first_child;
-            while let Some(child) = next_child {
-                next_child = html.nodes[child].next_sibling;
-
+            for child in node.children() {
                 if action == NodeAction::Ignore {
-                    html.insert_before(node_id, child);
+                    child.insert_before_sibling(&node);
                 }
 
-                self.clean_node(html, child, depth + 1);
+                self.clean_node(child, depth + 1);
             }
         }
 
         if matches!(action, NodeAction::Ignore | NodeAction::Remove) {
-            html.detach(node_id);
-        } else if let Some(data) = html.nodes[node_id].as_element_mut() {
+            node.detach();
+        } else if let Some(data) = node.as_element() {
             self.clean_element_attributes(data);
         }
     }
 
-    fn apply_replacements(&self, html: &mut Html, node_id: usize) {
-        if let NodeData::Element(ElementData { name, attrs, .. }) = &mut html.nodes[node_id].data {
+    /// Apply the attributes and element name replacements to the given node.
+    ///
+    /// This might return a different node than the one provided.
+    fn apply_replacements(&self, node: NodeRef) -> NodeRef {
+        let mut element_replacement = None;
+
+        if let NodeData::Element(ElementData { name, attrs, .. }) = node.data() {
             let element_name = name.local.as_ref();
 
             // Replace attributes.
@@ -153,6 +151,7 @@ impl SanitizerConfig {
                 .flatten();
 
             if list_replacements.is_some() || mode_replacements.is_some() {
+                let mut attrs = attrs.borrow_mut();
                 *attrs = attrs
                     .clone()
                     .into_iter()
@@ -174,7 +173,7 @@ impl SanitizerConfig {
             }
 
             // Replace element.
-            let mut element_replacement = self
+            element_replacement = self
                 .replace_elements
                 .as_ref()
                 .and_then(|list| list.content.get(element_name))
@@ -191,17 +190,20 @@ impl SanitizerConfig {
                     .flatten()
                     .copied();
             }
+        }
 
-            if let Some(element_replacement) = element_replacement {
-                name.local = LocalName::from(element_replacement);
-            }
+        if let Some(element_replacement) = element_replacement {
+            node.replace_with_element_name(LocalName::from(element_replacement))
+        } else {
+            node
         }
     }
 
-    fn node_action(&self, html: &Html, node_id: usize, depth: u32) -> NodeAction {
-        match &html.nodes[node_id].data {
+    fn node_action(&self, node: &NodeRef, depth: u32) -> NodeAction {
+        match node.data() {
             NodeData::Element(ElementData { name, attrs, .. }) => {
                 let element_name = name.local.as_ref();
+                let attrs = attrs.borrow();
 
                 // Check if element should be removed.
                 if self.remove_elements.as_ref().is_some_and(|set| set.contains(element_name)) {
@@ -321,9 +323,10 @@ impl SanitizerConfig {
         }
     }
 
-    fn clean_element_attributes(&self, data: &mut ElementData) {
+    fn clean_element_attributes(&self, data: &ElementData) {
         let ElementData { name, attrs } = data;
         let element_name = name.local.as_ref();
+        let mut attrs = attrs.borrow_mut();
 
         let list_remove_attrs = self.remove_attrs.as_ref().and_then(|map| map.get(element_name));
 
