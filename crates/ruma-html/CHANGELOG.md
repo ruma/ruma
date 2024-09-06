@@ -4,6 +4,12 @@ Breaking Changes:
 
 - `MatrixElement::Div` is now a newtype variant.
 - `AnchorData`'s `name` field was removed, according to MSC4159.
+- html5ever was bumped to a new major version. A breaking change in the parsing
+  API required us to rewrite the `Html` type.
+  - `Html::sanitize()` and `Html::sanitize_with()` take a non-mutable reference.
+  - `NodeRef` and `Children` are now owned types and no longer implement `Copy`.
+  - `NodeData::Text`'s inner string and the `attrs` field of `ElementData` are
+    now wrapped in `RefCell`s. 
 
 Improvements:
 

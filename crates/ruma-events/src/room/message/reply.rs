@@ -100,7 +100,7 @@ impl fmt::Display for FormattedOrPlainBody<'_> {
         if let Some(formatted_body) = self.formatted {
             #[cfg(feature = "html")]
             if self.is_reply {
-                let mut html = Html::parse(&formatted_body.body);
+                let html = Html::parse(&formatted_body.body);
                 html.sanitize();
 
                 write!(f, "{html}")

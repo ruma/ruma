@@ -52,7 +52,7 @@ pub fn remove_html_reply_fallback(s: &str) -> String {
 }
 
 fn sanitize_inner(s: &str, config: &SanitizerConfig) -> String {
-    let mut html = Html::parse(s);
+    let html = Html::parse(s);
     html.sanitize_with(config);
     html.to_string()
 }

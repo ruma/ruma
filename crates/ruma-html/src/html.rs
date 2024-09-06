@@ -1,4 +1,10 @@
-use std::{collections::BTreeSet, fmt, io, iter::FusedIterator};
+use std::{
+    cell::RefCell,
+    collections::BTreeSet,
+    fmt, io,
+    iter::FusedIterator,
+    rc::{Rc, Weak},
+};
 
 use as_variant::as_variant;
 use html5ever::{
@@ -6,7 +12,7 @@ use html5ever::{
     serialize::{serialize, Serialize, SerializeOpts, Serializer, TraversalScope},
     tendril::{StrTendril, TendrilSink},
     tree_builder::{NodeOrText, TreeSink},
-    Attribute, ParseOpts, QualName,
+    Attribute, LocalName, ParseOpts, QualName,
 };
 use tracing::debug;
 
@@ -21,7 +27,7 @@ use crate::SanitizerConfig;
 /// parsed, note that malformed HTML and comments will be stripped from the output.
 #[derive(Debug)]
 pub struct Html {
-    pub(crate) nodes: Vec<Node>,
+    document: NodeRef,
 }
 
 impl Html {
@@ -45,179 +51,116 @@ impl Html {
     ///
     /// This is equivalent to calling [`Self::sanitize_with()`] with a `config` value of
     /// `SanitizerConfig::compat().remove_reply_fallback()`.
-    pub fn sanitize(&mut self) {
+    pub fn sanitize(&self) {
         let config = SanitizerConfig::compat().remove_reply_fallback();
         self.sanitize_with(&config);
     }
 
     /// Sanitize this HTML according to the given configuration.
-    pub fn sanitize_with(&mut self, config: &SanitizerConfig) {
+    pub fn sanitize_with(&self, config: &SanitizerConfig) {
         config.clean(self);
     }
 
-    /// Construct a new `Node` with the given data and add it to this `Html`.
-    ///
-    /// Returns the index of the new node.
-    pub(crate) fn new_node(&mut self, data: NodeData) -> usize {
-        self.nodes.push(Node::new(data));
-        self.nodes.len() - 1
-    }
-
-    /// Append the given node to the given parent in this `Html`.
-    ///
-    /// The node is detached from its previous position.
-    pub(crate) fn append_node(&mut self, parent_id: usize, node_id: usize) {
-        self.detach(node_id);
-
-        self.nodes[node_id].parent = Some(parent_id);
-        if let Some(last_child) = self.nodes[parent_id].last_child.take() {
-            self.nodes[node_id].prev_sibling = Some(last_child);
-            self.nodes[last_child].next_sibling = Some(node_id);
-        } else {
-            self.nodes[parent_id].first_child = Some(node_id);
-        }
-        self.nodes[parent_id].last_child = Some(node_id);
-    }
-
-    /// Insert the given node before the given sibling in this `Html`.
-    ///
-    /// The node is detached from its previous position.
-    pub(crate) fn insert_before(&mut self, sibling_id: usize, node_id: usize) {
-        self.detach(node_id);
-
-        self.nodes[node_id].parent = self.nodes[sibling_id].parent;
-        self.nodes[node_id].next_sibling = Some(sibling_id);
-        if let Some(prev_sibling) = self.nodes[sibling_id].prev_sibling.take() {
-            self.nodes[node_id].prev_sibling = Some(prev_sibling);
-            self.nodes[prev_sibling].next_sibling = Some(node_id);
-        } else if let Some(parent) = self.nodes[sibling_id].parent {
-            self.nodes[parent].first_child = Some(node_id);
-        }
-        self.nodes[sibling_id].prev_sibling = Some(node_id);
-    }
-
-    /// Detach the given node from this `Html`.
-    pub(crate) fn detach(&mut self, node_id: usize) {
-        let (parent, prev_sibling, next_sibling) = {
-            let node = &mut self.nodes[node_id];
-            (node.parent.take(), node.prev_sibling.take(), node.next_sibling.take())
-        };
-
-        if let Some(next_sibling) = next_sibling {
-            self.nodes[next_sibling].prev_sibling = prev_sibling;
-        } else if let Some(parent) = parent {
-            self.nodes[parent].last_child = prev_sibling;
-        }
-
-        if let Some(prev_sibling) = prev_sibling {
-            self.nodes[prev_sibling].next_sibling = next_sibling;
-        } else if let Some(parent) = parent {
-            self.nodes[parent].first_child = next_sibling;
-        }
-    }
-
-    /// Get the ID of the root node of the HTML.
-    pub(crate) fn root_id(&self) -> usize {
-        self.nodes[0].first_child.expect("html should always have a root node")
-    }
-
     /// Get the root node of the HTML.
-    pub(crate) fn root(&self) -> &Node {
-        &self.nodes[self.root_id()]
+    fn root(&self) -> NodeRef {
+        self.document.first_child().expect("html should always have a root node")
     }
 
     /// Whether the root node of the HTML has children.
     pub fn has_children(&self) -> bool {
-        self.root().first_child.is_some()
+        self.root().has_children()
     }
 
     /// The first child node of the root node of the HTML.
     ///
     /// Returns `None` if the root node has no children.
-    pub fn first_child(&self) -> Option<NodeRef<'_>> {
-        self.root().first_child.map(|id| NodeRef::new(self, id))
+    pub fn first_child(&self) -> Option<NodeRef> {
+        self.root().first_child()
     }
 
     /// The last child node of the root node of the HTML .
     ///
     /// Returns `None` if the root node has no children.
-    pub fn last_child(&self) -> Option<NodeRef<'_>> {
-        self.root().last_child.map(|id| NodeRef::new(self, id))
+    pub fn last_child(&self) -> Option<NodeRef> {
+        self.root().last_child()
     }
 
     /// Iterate through the children of the root node of the HTML.
-    pub fn children(&self) -> Children<'_> {
+    pub fn children(&self) -> Children {
         Children::new(self.first_child())
     }
 }
 
 impl Default for Html {
     fn default() -> Self {
-        Self { nodes: vec![Node::new(NodeData::Document)] }
+        Self { document: NodeRef::new(NodeData::Document) }
     }
 }
 
 impl TreeSink for Html {
-    type Handle = usize;
+    type Handle = NodeRef;
     type Output = Self;
 
     fn finish(self) -> Self::Output {
         self
     }
 
-    fn parse_error(&mut self, msg: std::borrow::Cow<'static, str>) {
+    fn parse_error(&self, msg: std::borrow::Cow<'static, str>) {
         debug!("HTML parse error: {msg}");
     }
 
-    fn get_document(&mut self) -> Self::Handle {
-        0
+    fn get_document(&self) -> Self::Handle {
+        self.document.clone()
     }
 
     fn elem_name<'a>(&'a self, target: &'a Self::Handle) -> html5ever::ExpandedName<'a> {
-        self.nodes[*target].as_element().expect("not an element").name.expanded()
+        target.as_element().expect("not an element").name.expanded()
     }
 
     fn create_element(
-        &mut self,
+        &self,
         name: QualName,
         attrs: Vec<Attribute>,
         _flags: html5ever::tree_builder::ElementFlags,
     ) -> Self::Handle {
-        self.new_node(NodeData::Element(ElementData { name, attrs: attrs.into_iter().collect() }))
+        NodeRef::new(NodeData::Element(ElementData {
+            name,
+            attrs: RefCell::new(attrs.into_iter().collect()),
+        }))
     }
 
-    fn create_comment(&mut self, _text: StrTendril) -> Self::Handle {
-        self.new_node(NodeData::Other)
+    fn create_comment(&self, _text: StrTendril) -> Self::Handle {
+        NodeRef::new(NodeData::Other)
     }
 
-    fn create_pi(&mut self, _target: StrTendril, _data: StrTendril) -> Self::Handle {
-        self.new_node(NodeData::Other)
+    fn create_pi(&self, _target: StrTendril, _data: StrTendril) -> Self::Handle {
+        NodeRef::new(NodeData::Other)
     }
 
-    fn append(&mut self, parent: &Self::Handle, child: NodeOrText<Self::Handle>) {
+    fn append(&self, parent: &Self::Handle, child: NodeOrText<Self::Handle>) {
         match child {
-            NodeOrText::AppendNode(index) => self.append_node(*parent, index),
+            NodeOrText::AppendNode(node) => parent.append_child(node),
             NodeOrText::AppendText(text) => {
                 // If the previous sibling is also text, add this text to it.
-                if let Some(sibling) =
-                    self.nodes[*parent].last_child.and_then(|child| self.nodes[child].as_text_mut())
+                if let Some(prev_text) =
+                    parent.last_child().as_ref().and_then(|sibling| sibling.as_text())
                 {
-                    sibling.push_tendril(&text);
+                    prev_text.borrow_mut().push_tendril(&text);
                 } else {
-                    let index = self.new_node(NodeData::Text(text));
-                    self.append_node(*parent, index);
+                    let node = NodeRef::new(NodeData::Text(text.into()));
+                    parent.append_child(node);
                 }
             }
         }
     }
 
     fn append_based_on_parent_node(
-        &mut self,
+        &self,
         element: &Self::Handle,
         prev_element: &Self::Handle,
         child: NodeOrText<Self::Handle>,
     ) {
-        if self.nodes[*element].parent.is_some() {
+        if element.0.parent.borrow().is_some() {
             self.append_before_sibling(element, child);
         } else {
             self.append(prev_element, child);
@@ -225,59 +168,53 @@ impl TreeSink for Html {
     }
 
     fn append_doctype_to_document(
-        &mut self,
+        &self,
         _name: StrTendril,
         _public_id: StrTendril,
         _system_id: StrTendril,
     ) {
     }
 
-    fn get_template_contents(&mut self, target: &Self::Handle) -> Self::Handle {
-        *target
+    fn get_template_contents(&self, target: &Self::Handle) -> Self::Handle {
+        target.clone()
     }
 
     fn same_node(&self, x: &Self::Handle, y: &Self::Handle) -> bool {
-        x == y
+        Rc::ptr_eq(&x.0, &y.0)
     }
 
-    fn set_quirks_mode(&mut self, _mode: html5ever::tree_builder::QuirksMode) {}
+    fn set_quirks_mode(&self, _mode: html5ever::tree_builder::QuirksMode) {}
 
-    fn append_before_sibling(
-        &mut self,
-        sibling: &Self::Handle,
-        new_node: NodeOrText<Self::Handle>,
-    ) {
+    fn append_before_sibling(&self, sibling: &Self::Handle, new_node: NodeOrText<Self::Handle>) {
         match new_node {
-            NodeOrText::AppendNode(index) => self.insert_before(*sibling, index),
+            NodeOrText::AppendNode(node) => node.insert_before_sibling(sibling),
             NodeOrText::AppendText(text) => {
                 // If the previous sibling is also text, add this text to it.
-                if let Some(prev_text) = self.nodes[*sibling]
-                    .prev_sibling
-                    .and_then(|prev| self.nodes[prev].as_text_mut())
+                if let Some(prev_text) =
+                    sibling.prev_sibling().as_ref().and_then(|prev_sibling| prev_sibling.as_text())
                 {
-                    prev_text.push_tendril(&text);
+                    prev_text.borrow_mut().push_tendril(&text);
                 } else {
-                    let index = self.new_node(NodeData::Text(text));
-                    self.insert_before(*sibling, index);
+                    let node = NodeRef::new(NodeData::Text(text.into()));
+                    node.insert_before_sibling(sibling);
                 }
             }
         }
     }
 
-    fn add_attrs_if_missing(&mut self, target: &Self::Handle, attrs: Vec<Attribute>) {
-        let target = self.nodes[*target].as_element_mut().unwrap();
-        target.attrs.extend(attrs);
+    fn add_attrs_if_missing(&self, target: &Self::Handle, attrs: Vec<Attribute>) {
+        let element = target.as_element().unwrap();
+        element.attrs.borrow_mut().extend(attrs);
     }
 
-    fn remove_from_parent(&mut self, target: &Self::Handle) {
-        self.detach(*target);
+    fn remove_from_parent(&self, target: &Self::Handle) {
+        target.detach();
     }
 
-    fn reparent_children(&mut self, node: &Self::Handle, new_parent: &Self::Handle) {
-        let mut next_child = self.nodes[*node].first_child;
-        while let Some(child) = next_child {
-            next_child = self.nodes[child].next_sibling;
-            self.append_node(*new_parent, child);
+    fn reparent_children(&self, node: &Self::Handle, new_parent: &Self::Handle) {
+        for child in node.0.children.take() {
+            child.0.parent.take();
+            new_parent.append_child(child);
         }
     }
 }
@@ -289,13 +226,8 @@ impl Serialize for Html {
     {
         match traversal_scope {
             TraversalScope::IncludeNode => {
-                let root = self.root();
-
-                let mut next_child = root.first_child;
-                while let Some(child) = next_child {
-                    let child = &self.nodes[child];
-                    child.serialize(self, serializer)?;
-                    next_child = child.next_sibling;
+                for child in self.children() {
+                    child.serialize(serializer)?;
                 }
 
                 Ok(())
@@ -324,85 +256,37 @@ impl fmt::Display for Html {
 /// An HTML node.
 #[derive(Debug)]
 #[non_exhaustive]
-pub(crate) struct Node {
-    pub(crate) parent: Option<usize>,
-    pub(crate) prev_sibling: Option<usize>,
-    pub(crate) next_sibling: Option<usize>,
-    pub(crate) first_child: Option<usize>,
-    pub(crate) last_child: Option<usize>,
-    pub(crate) data: NodeData,
+struct Node {
+    parent: RefCell<Option<Weak<Node>>>,
+    children: RefCell<Vec<NodeRef>>,
+    data: NodeData,
 }
 
 impl Node {
-    /// Constructs a new `Node` with the given data.
+    /// Constructs a new `NodeRef` with the given data.
     fn new(data: NodeData) -> Self {
-        Self {
-            parent: None,
-            prev_sibling: None,
-            next_sibling: None,
-            first_child: None,
-            last_child: None,
-            data,
-        }
+        Self { parent: Default::default(), children: Default::default(), data }
     }
 
     /// Returns the data of this `Node` if it is an Element (aka an HTML tag).
-    pub(crate) fn as_element(&self) -> Option<&ElementData> {
+    fn as_element(&self) -> Option<&ElementData> {
         as_variant!(&self.data, NodeData::Element)
     }
 
-    /// Returns the mutable `ElementData` of this `Node` if it is a `NodeData::Element`.
-    pub(crate) fn as_element_mut(&mut self) -> Option<&mut ElementData> {
-        as_variant!(&mut self.data, NodeData::Element)
-    }
-
     /// Returns the text content of this `Node`, if it is a `NodeData::Text`.
-    fn as_text(&self) -> Option<&StrTendril> {
+    fn as_text(&self) -> Option<&RefCell<StrTendril>> {
         as_variant!(&self.data, NodeData::Text)
     }
 
-    /// Returns the mutable text content of this `Node`, if it is a `NodeData::Text`.
-    fn as_text_mut(&mut self) -> Option<&mut StrTendril> {
-        as_variant!(&mut self.data, NodeData::Text)
+    /// Whether this is the root node of the HTML document.
+    fn is_root(&self) -> bool {
+        // The root node is the `html` element.
+        matches!(&self.data, NodeData::Element(element_data) if element_data.name.local.as_bytes() == b"html")
     }
-}
 
-impl Node {
-    pub(crate) fn serialize<S>(&self, fragment: &Html, serializer: &mut S) -> io::Result<()>
-    where
-        S: Serializer,
-    {
-        match &self.data {
-            NodeData::Element(data) => {
-                serializer.start_elem(
-                    data.name.clone(),
-                    data.attrs.iter().map(|attr| (&attr.name, &*attr.value)),
-                )?;
-
-                let mut next_child = self.first_child;
-                while let Some(child) = next_child {
-                    let child = &fragment.nodes[child];
-                    child.serialize(fragment, serializer)?;
-                    next_child = child.next_sibling;
-                }
-
-                serializer.end_elem(data.name.clone())?;
-
-                Ok(())
-            }
-            NodeData::Document => {
-                let mut next_child = self.first_child;
-                while let Some(child) = next_child {
-                    let child = &fragment.nodes[child];
-                    child.serialize(fragment, serializer)?;
-                    next_child = child.next_sibling;
-                }
-
-                Ok(())
-            }
-            NodeData::Text(text) => serializer.write_text(text),
-            _ => Ok(()),
-        }
+    /// The parent of this node, if any.
+    fn parent(&self) -> Option<NodeRef> {
+        self.parent.borrow().as_ref()?.upgrade().map(NodeRef)
     }
 }
 
@@ -414,7 +298,7 @@ pub enum NodeData {
     Document,
 
     /// A text node.
-    Text(StrTendril),
+    Text(RefCell<StrTendril>),
 
     /// An HTML element (aka a tag).
     Element(ElementData),
@@ -431,7 +315,7 @@ pub struct ElementData {
     pub name: QualName,
 
     /// The attributes of the element.
-    pub attrs: BTreeSet<Attribute>,
+    pub attrs: RefCell<BTreeSet<Attribute>>,
 }
 
 impl ElementData {
@@ -440,126 +324,215 @@ impl ElementData {
     /// [spec]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
     #[cfg(feature = "matrix")]
     pub fn to_matrix(&self) -> matrix::MatrixElementData {
-        matrix::MatrixElementData::parse(&self.name, &self.attrs)
+        matrix::MatrixElementData::parse(&self.name, &self.attrs.borrow())
     }
 }
 
 /// A reference to an HTML node.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 #[non_exhaustive]
-pub struct NodeRef<'a> {
-    /// The `Html` struct containing the nodes.
-    pub(crate) html: &'a Html,
-    /// The referenced node.
-    pub(crate) node: &'a Node,
-}
+pub struct NodeRef(Rc<Node>);
 
-impl<'a> NodeRef<'a> {
-    /// Construct a new `NodeRef` for the given HTML and node ID.
-    fn new(html: &'a Html, id: usize) -> Self {
-        Self { html, node: &html.nodes[id] }
+impl NodeRef {
+    /// Constructs a new `NodeRef` with the given data.
+    fn new(data: NodeData) -> Self {
+        Self(Node::new(data).into())
     }
 
-    /// Construct a new `NodeRef` from the same HTML as this node with the given node ID.
-    fn with_id(&self, id: usize) -> Self {
-        let html = self.html;
-        Self::new(html, id)
+    /// Detach this node from the tree, if it has a parent.
+    pub(crate) fn detach(&self) {
+        if let Some((parent, index)) = self.parent_and_index() {
+            parent.0.children.borrow_mut().remove(index);
+            self.0.parent.take();
+        }
+    }
+
+    /// Append the given child node to this node.
+    ///
+    /// The child node is detached from its previous position.
+    fn append_child(&self, child: NodeRef) {
+        child.detach();
+
+        child.0.parent.replace(Some(Rc::downgrade(&self.0)));
+        self.0.children.borrow_mut().push(child);
+    }
+
+    /// If this node has a parent, get it and the node's position in the parent's children.
+    fn parent_and_index(&self) -> Option<(NodeRef, usize)> {
+        let parent = self.0.parent()?;
+        let i = parent
+            .0
+            .children
+            .borrow()
+            .iter()
+            .position(|child| Rc::ptr_eq(&child.0, &self.0))
+            .expect("child should be in parent's children");
+        Some((parent, i))
+    }
+
+    /// Insert this node before the given sibling.
+    ///
+    /// This node is detached from its previous position.
+    pub(crate) fn insert_before_sibling(&self, sibling: &NodeRef) {
+        self.detach();
+
+        let (parent, index) = sibling.parent_and_index().expect("sibling should have parent");
+
+        self.0.parent.replace(Some(Rc::downgrade(&parent.0)));
+        parent.0.children.borrow_mut().insert(index, self.clone());
+    }
+
+    /// Constructs a new element `NodeRef` with the same data as this one, but with a different
+    /// element name and use it to replace this one in the parent.
+    ///
+    /// Panics if this node is not in the tree and is not an element node.
+    pub(crate) fn replace_with_element_name(self, name: LocalName) -> NodeRef {
+        let mut element_data = self.as_element().unwrap().clone();
+        element_data.name.local = name;
+
+        let new_node = NodeRef::new(NodeData::Element(element_data));
+
+        for child in self.children() {
+            new_node.append_child(child);
+        }
+
+        new_node.insert_before_sibling(&self);
+        self.detach();
+
+        new_node
     }
 
     /// The data of the node.
-    pub fn data(&self) -> &'a NodeData {
-        &self.node.data
+    pub fn data(&self) -> &NodeData {
+        &self.0.data
     }
 
-    /// Returns the data of this node if it is a `NodeData::Element`.
-    pub fn as_element(&self) -> Option<&'a ElementData> {
-        self.node.as_element()
+    /// Returns the data of this `Node` if it is an Element (aka an HTML tag).
+    pub fn as_element(&self) -> Option<&ElementData> {
+        self.0.as_element()
     }
 
-    /// Returns the text content of this node, if it is a `NodeData::Text`.
-    pub fn as_text(&self) -> Option<&'a StrTendril> {
-        self.node.as_text()
+    /// Returns the text content of this `Node`, if it is a `NodeData::Text`.
+    pub fn as_text(&self) -> Option<&RefCell<StrTendril>> {
+        self.0.as_text()
     }
 
     /// The parent node of this node.
     ///
     /// Returns `None` if the parent is the root node.
-    pub fn parent(&self) -> Option<NodeRef<'a>> {
-        let parent_id = self.node.parent?;
+    pub fn parent(&self) -> Option<NodeRef> {
+        let parent = self.0.parent()?;
 
         // We don't want users to be able to navigate to the root.
-        if parent_id == self.html.root_id() {
+        if parent.0.is_root() {
             return None;
         }
 
-        Some(self.with_id(parent_id))
+        Some(parent)
     }
 
     /// The next sibling node of this node.
     ///
     /// Returns `None` if this is the last of its siblings.
-    pub fn next_sibling(&self) -> Option<NodeRef<'a>> {
-        Some(self.with_id(self.node.next_sibling?))
+    pub fn next_sibling(&self) -> Option<NodeRef> {
+        let (parent, index) = self.parent_and_index()?;
+        let index = index.checked_add(1)?;
+        let sibling = parent.0.children.borrow().get(index).cloned();
+        sibling
     }
 
     /// The previous sibling node of this node.
     ///
     /// Returns `None` if this is the first of its siblings.
-    pub fn prev_sibling(&self) -> Option<NodeRef<'a>> {
-        Some(self.with_id(self.node.prev_sibling?))
+    pub fn prev_sibling(&self) -> Option<NodeRef> {
+        let (parent, index) = self.parent_and_index()?;
+        let index = index.checked_sub(1)?;
+        let sibling = parent.0.children.borrow().get(index).cloned();
+        sibling
     }
 
     /// Whether this node has children.
     pub fn has_children(&self) -> bool {
-        self.node.first_child.is_some()
+        !self.0.children.borrow().is_empty()
     }
 
     /// The first child node of this node.
     ///
     /// Returns `None` if this node has no children.
-    pub fn first_child(&self) -> Option<NodeRef<'a>> {
-        Some(self.with_id(self.node.first_child?))
+    pub fn first_child(&self) -> Option<NodeRef> {
+        self.0.children.borrow().first().cloned()
     }
 
     /// The last child node of this node.
     ///
     /// Returns `None` if this node has no children.
-    pub fn last_child(&self) -> Option<NodeRef<'a>> {
-        Some(self.with_id(self.node.last_child?))
+    pub fn last_child(&self) -> Option<NodeRef> {
+        self.0.children.borrow().last().cloned()
     }
 
     /// Get an iterator through the children of this node.
-    pub fn children(&self) -> Children<'a> {
+    pub fn children(&self) -> Children {
         Children::new(self.first_child())
+    }
+
+    pub(crate) fn serialize<S>(&self, serializer: &mut S) -> io::Result<()>
+    where
+        S: Serializer,
+    {
+        match self.data() {
+            NodeData::Element(data) => {
+                serializer.start_elem(
+                    data.name.clone(),
+                    data.attrs.borrow().iter().map(|attr| (&attr.name, &*attr.value)),
+                )?;
+
+                for child in self.children() {
+                    child.serialize(serializer)?;
+                }
+
+                serializer.end_elem(data.name.clone())?;
+
+                Ok(())
+            }
+            NodeData::Document => {
+                for child in self.children() {
+                    child.serialize(serializer)?;
+                }
+
+                Ok(())
+            }
+            NodeData::Text(text) => serializer.write_text(&text.borrow()),
+            _ => Ok(()),
+        }
     }
 }
 
 /// An iterator through the children of a node.
 ///
 /// Can be constructed with [`Html::children()`] or [`NodeRef::children()`].
-#[derive(Debug, Clone, Copy)]
-pub struct Children<'a> {
-    next: Option<NodeRef<'a>>,
+#[derive(Debug, Clone)]
+pub struct Children {
+    next: Option<NodeRef>,
 }
 
-impl<'a> Children<'a> {
+impl Children {
     /// Construct a `Children` starting from the given node.
-    fn new(start_node: Option<NodeRef<'a>>) -> Self {
+    fn new(start_node: Option<NodeRef>) -> Self {
         Self { next: start_node }
     }
 }
 
-impl<'a> Iterator for Children<'a> {
-    type Item = NodeRef<'a>;
+impl Iterator for Children {
+    type Item = NodeRef;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let next = self.next?;
+        let next = self.next.take()?;
         self.next = next.next_sibling();
         Some(next)
     }
 }
 
-impl<'a> FusedIterator for Children<'a> {}
+impl FusedIterator for Children {}
 
 #[cfg(test)]
 mod tests {
