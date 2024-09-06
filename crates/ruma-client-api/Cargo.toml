@@ -15,7 +15,6 @@ rust-version = { workspace = true }
 all-features = true
 
 [features]
-default = ["client", "server"]
 # OutgoingRequest and IncomingResponse implementations
 client = []
 # IncomingRequest and OutgoingResponse implementations
