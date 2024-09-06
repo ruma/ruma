@@ -48,11 +48,11 @@ pub mod v3 {
     #[cfg_attr(feature = "client", derive(serde::Serialize))]
     #[cfg_attr(feature = "server", derive(serde::Deserialize))]
     struct RequestQuery {
-        /// The servers to attempt to knock on the room through.
+        /// The servers to attempt to join the room through.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
         via: Vec<OwnedServerName>,
 
-        /// The servers to attempt to knock on the room through.
+        /// The servers to attempt to join the room through.
         ///
         /// Deprecated in Matrix >1.11 in favour of
         /// `membership::join_room_by_id_or_alias::v3::RequestQuery::via`.
