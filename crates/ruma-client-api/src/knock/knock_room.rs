@@ -81,7 +81,7 @@ pub mod v3 {
             use http::header::{self, HeaderValue};
 
             let query_string = serde_html_form::to_string(RequestQuery {
-                server_name: self.via.to_owned(),
+                server_name: self.via.clone(),
                 via: self.via.to_owned(),
             })?;
 
