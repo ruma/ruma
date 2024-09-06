@@ -54,7 +54,8 @@ pub mod v3 {
 
         /// The servers to attempt to knock on the room through.
         ///
-        /// Deprecated in Matrix >1.11 in favour of `membership::join_room_by_id_or_alias::v3::RequestQuery::via`.
+        /// Deprecated in Matrix >1.11 in favour of
+        /// `membership::join_room_by_id_or_alias::v3::RequestQuery::via`.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
         server_name: Vec<OwnedServerName>,
     }
