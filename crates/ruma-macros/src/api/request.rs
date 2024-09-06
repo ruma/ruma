@@ -3,7 +3,7 @@ use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
-    DeriveInput, Field, Generics, Ident, ItemStruct, Token, Type,
+    Field, Generics, Ident, ItemStruct, Token, Type,
 };
 
 use super::{
@@ -44,13 +44,9 @@ impl Parse for RequestAttr {
     }
 }
 
-pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
-    let fields = match input.data {
-        syn::Data::Struct(s) => s.fields,
-        _ => panic!("This derive macro only works on structs"),
-    };
-
-    let fields = fields.into_iter().map(RequestField::try_from).collect::<syn::Result<_>>()?;
+pub fn expand_derive_request(input: ItemStruct) -> syn::Result<TokenStream> {
+    let fields =
+        input.fields.into_iter().map(RequestField::try_from).collect::<syn::Result<_>>()?;
 
     let mut error_ty = None;
 
