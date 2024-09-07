@@ -21,6 +21,7 @@ const METADATA: Metadata = metadata! {
 
 /// Request type for the `create_join_event` endpoint.
 #[request]
+#[deprecated = "Since Matrix Server-Server API r0.1.4. Use the v2 endpoint instead."]
 pub struct Request {
     /// The room ID that is about to be joined.
     ///
@@ -39,6 +40,7 @@ pub struct Request {
 
 /// Response type for the `create_join_event` endpoint.
 #[response]
+#[deprecated = "Since Matrix Server-Server API r0.1.4. Use the v2 endpoint instead."]
 pub struct Response {
     /// Full state and auth chain of the room prior to the join event.
     #[ruma_api(body)]
@@ -46,6 +48,7 @@ pub struct Response {
     pub room_state: RoomState,
 }
 
+#[allow(deprecated)]
 impl Request {
     /// Creates a new `Request` from the given room ID, event ID and PDU.
     pub fn new(room_id: OwnedRoomId, event_id: OwnedEventId, pdu: Box<RawJsonValue>) -> Self {
@@ -53,6 +56,7 @@ impl Request {
     }
 }
 
+#[allow(deprecated)]
 impl Response {
     /// Creates a new `Response` with the given room state.
     pub fn new(room_state: RoomState) -> Self {
