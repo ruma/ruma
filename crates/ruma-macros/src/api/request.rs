@@ -274,7 +274,7 @@ impl Request {
             #[::std::prelude::v1::test]
             #[allow(deprecated)]
             fn path_parameters() {
-                let path_params = METADATA._path_parameters();
+                let path_params = super::METADATA._path_parameters();
                 let request_path_fields: &[&::std::primitive::str] = &[#(#path_fields),*];
                 ::std::assert_eq!(
                     path_params, request_path_fields,
@@ -288,7 +288,7 @@ impl Request {
                 #[::std::prelude::v1::test]
                 fn request_is_not_get() {
                     ::std::assert_ne!(
-                        METADATA.method, #http::Method::GET,
+                        super::METADATA.method, #http::Method::GET,
                         "GET endpoints can't have body fields",
                     );
                 }
