@@ -9,6 +9,7 @@ use serde::{
 
 /// Serde deserialization decorator to map empty Strings to None,
 /// and forward non-empty Strings to the Deserialize implementation for T.
+///
 /// Useful for the typical
 /// "A room with an X event with an absent, null, or empty Y field
 /// should be treated the same as a room with no such event."
