@@ -203,15 +203,13 @@ impl CiTask {
 
     /// Run tests on all crates with almost all features with the stable version.
     fn test_all(&self) -> Result<()> {
-        cmd!("rustup run stable cargo test --tests --features __ci").run().map_err(Into::into)
+        cmd!("rustup run stable cargo nextest run --features __ci").run().map_err(Into::into)
     }
 
     /// Run tests on all crates with almost all features and the compat features with the stable
     /// version.
     fn test_compat(&self) -> Result<()> {
-        cmd!("rustup run stable cargo test --tests --features __ci,compat")
-            .run()
-            .map_err(Into::into)
+        cmd!("rustup run stable cargo nextest run --features __ci,compat").run().map_err(Into::into)
     }
 
     /// Run doctests on all crates with almost all features with the stable version.
