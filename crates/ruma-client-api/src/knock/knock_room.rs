@@ -35,6 +35,12 @@ pub mod v3 {
         /// The servers to attempt to knock on the room through.
         ///
         /// One of the servers must be participating in the room.
+        ///
+        /// When serializing, this field is mapped to both `server_name` and `via`
+        /// with identical values.
+        ///
+        /// When deserializing, the value is read from `via` if it's not missing or
+        /// empty and `server_name` otherwise.
         pub via: Vec<OwnedServerName>,
     }
 
