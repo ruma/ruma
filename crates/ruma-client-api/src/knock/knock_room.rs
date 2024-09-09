@@ -37,6 +37,7 @@ pub mod v3 {
         /// One of the servers must be participating in the room.
         pub via: Vec<OwnedServerName>,
     }
+
     /// Data in the request's query string.
     #[cfg_attr(feature = "client", derive(serde::Serialize))]
     #[cfg_attr(feature = "server", derive(serde::Deserialize))]
