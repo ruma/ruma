@@ -10,6 +10,8 @@ Breaking changes:
 - The `content_disposition` fields of `media::get_content::v3::Response` and
   `media::get_content_as_filename::v3::Response` use now the strongly typed
   `ContentDisposition` instead of strings.
+- Replace `server_name` on `knock::knock_room::v3::Request` and 
+  `membership::join_room_by_id_or_alias::v3::Request` with `via` as per MSC4156.
 
 Improvements:
 
