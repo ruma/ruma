@@ -28,8 +28,6 @@ pub enum CiCmd {
     Msrv,
     /// Check all crates with all features (msrv)
     MsrvAll,
-    /// Check ruma-client with default features (msrv)
-    MsrvClient,
     /// Check ruma crate with default features (msrv)
     MsrvRuma,
     /// Check ruma-identifiers with `ruma_identifiers_storage="Box"`
@@ -101,7 +99,6 @@ impl CiTask {
         match self.cmd {
             Some(CiCmd::Msrv) => self.msrv()?,
             Some(CiCmd::MsrvAll) => self.msrv_all()?,
-            Some(CiCmd::MsrvClient) => self.msrv_client()?,
             Some(CiCmd::MsrvRuma) => self.msrv_ruma()?,
             Some(CiCmd::MsrvOwnedIdBox) => self.msrv_owned_id_box()?,
             Some(CiCmd::MsrvOwnedIdArc) => self.msrv_owned_id_arc()?,
@@ -139,33 +136,25 @@ impl CiTask {
     /// Check that the crates compile with the MSRV.
     fn msrv(&self) -> Result<()> {
         self.msrv_all()?;
-        self.msrv_client()?;
         self.msrv_ruma()
     }
 
     /// Check all crates with all features with the MSRV, except:
     /// * ruma (would pull in ruma-signatures)
-    /// * ruma-client (tested only with client-api feature due to most / all optional HTTP client
-    ///   deps having less strict MSRV)
+    /// * ruma-macros (it's still pulled as a dependency but don't want to enable its nightly-only
+    ///   internal feature here)
     /// * ruma-signatures (MSRV exception)
     /// * xtask (no real reason to enforce an MSRV for it)
     fn msrv_all(&self) -> Result<()> {
         cmd!(
             "rustup run {MSRV} cargo check --workspace --all-features
                 --exclude ruma
-                --exclude ruma-client
+                --exclude ruma-macros
                 --exclude ruma-signatures
                 --exclude xtask"
         )
         .run()
         .map_err(Into::into)
-    }
-
-    /// Check ruma-client with default features with the MSRV.
-    fn msrv_client(&self) -> Result<()> {
-        cmd!("rustup run {MSRV} cargo check -p ruma-client --features client-api")
-            .run()
-            .map_err(Into::into)
     }
 
     /// Check ruma crate with default features with the MSRV.
@@ -185,7 +174,14 @@ impl CiTask {
 
     /// Check all crates with all features with the stable version.
     fn stable_all(&self) -> Result<()> {
-        cmd!("rustup run stable cargo check --workspace --all-features").run().map_err(Into::into)
+        // ruma-macros is pulled in as a dependency, but excluding it on the command line means its
+        // features don't get activated. It has only a single feature, which is nightly-only.
+        cmd!(
+            "rustup run stable cargo check
+                --workspace --all-features --exclude ruma-macros"
+        )
+        .run()
+        .map_err(Into::into)
     }
 
     /// Check ruma-client without default features with the stable version.

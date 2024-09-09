@@ -7,6 +7,8 @@ Bug fixes:
 - Fix serialization of `room::message::Relation` and `room::encrypted::Relation`
   which could cause duplicate `rel_type` keys. 
 - `Restricted` no longer fails to deserialize when the `allow` field is missing
+- Markdown text constructors now also detect markdown syntax like backslash
+  escapes and entity references to decide if the text should be sent as HTML.
 
 Improvements:
 

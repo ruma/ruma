@@ -147,7 +147,9 @@ pub struct EmptyMembershipData {
 }
 
 /// This is the optional value for an empty membership event content:
-/// [`CallMemberEventContent::Empty`]. It is used when the user disconnected and a Future ([MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140))
+/// [`CallMemberEventContent::Empty`].
+///
+/// It is used when the user disconnected and a Future ([MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140))
 /// was used to update the membership after the client was not reachable anymore.  
 #[derive(Clone, PartialEq, StringEnum)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]

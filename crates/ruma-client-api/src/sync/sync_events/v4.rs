@@ -10,6 +10,7 @@ use js_int::UInt;
 use js_option::JsOption;
 use ruma_common::{
     api::{request, response, Metadata},
+    directory::RoomTypeFilter,
     metadata,
     serde::{deserialize_cow_str, duration::opt_ms, Raw},
     DeviceKeyAlgorithm, MilliSecondsSinceUnixEpoch, OwnedMxcUri, OwnedRoomId, OwnedUserId, RoomId,
@@ -230,14 +231,14 @@ pub struct SyncRequestListFilters {
     /// returned regardless of type. This can be used to get the initial set of spaces for an
     /// account.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub room_types: Vec<String>,
+    pub room_types: Vec<RoomTypeFilter>,
 
     /// Only list rooms that are not of these create-types, or all.
     ///
     /// Same as "room_types" but inverted. This can be used to filter out spaces from the room
     /// list.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub not_room_types: Vec<String>,
+    pub not_room_types: Vec<RoomTypeFilter>,
 
     /// Only list rooms matching the given string, or all.
     ///
@@ -958,7 +959,7 @@ impl From<v5::request::List> for SyncRequestList {
             include_heroes: value.include_heroes,
             filters: value.filters.map(Into::into),
 
-            // Defaults from Simplified MSC3575.
+            // Defaults from MSC4186.
             sort: vec!["by_recency".to_owned(), "by_name".to_owned()],
             bump_event_types: vec![
                 TimelineEventType::RoomMessage,

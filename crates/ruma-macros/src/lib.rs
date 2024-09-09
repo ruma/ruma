@@ -4,6 +4,7 @@
 //!
 //! See the documentation for the individual macros for usage details.
 
+#![cfg_attr(feature = "__internal_macro_expand", feature(proc_macro_expand))]
 #![warn(missing_docs)]
 #![allow(unreachable_pub)]
 // https://github.com/rust-lang/rust-clippy/issues/9029
@@ -397,14 +398,14 @@ pub fn response(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// Internal helper that the request macro delegates most of its work to.
 #[proc_macro_derive(Request, attributes(ruma_api))]
 pub fn derive_request(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
+    let input = parse_macro_input!(input);
     expand_derive_request(input).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 /// Internal helper that the response macro delegates most of its work to.
 #[proc_macro_derive(Response, attributes(ruma_api))]
 pub fn derive_response(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
+    let input = parse_macro_input!(input);
     expand_derive_response(input).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 

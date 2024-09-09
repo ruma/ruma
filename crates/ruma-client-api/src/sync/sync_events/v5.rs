@@ -84,7 +84,7 @@ impl Request {
 
 /// HTTP types related to a [`Request`].
 pub mod request {
-    use ruma_common::{serde::deserialize_cow_str, RoomId};
+    use ruma_common::{directory::RoomTypeFilter, serde::deserialize_cow_str, RoomId};
     use serde::de::Error as _;
 
     use super::{BTreeMap, Deserialize, OwnedRoomId, Serialize, StateEventType, UInt};
@@ -136,7 +136,7 @@ pub mod request {
         /// Same as "room_types" but inverted. This can be used to filter out spaces from the room
         /// list.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub not_room_types: Vec<String>,
+        pub not_room_types: Vec<RoomTypeFilter>,
     }
 
     /// Configuration for room subscription

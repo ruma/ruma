@@ -65,7 +65,7 @@ indexmap = { version = "2.0.0", features = ["serde"] }
 js_int = { workspace = true, features = ["serde"] }
 js_option = "0.1.0"
 percent-encoding = "2.1.0"
-pulldown-cmark = { version = "0.11.0", optional = true, default-features = false, features = ["html"] }
+pulldown-cmark = { version = "0.12.1", optional = true, default-features = false, features = ["html"] }
 regex = { version = "1.5.6", default-features = false, features = ["std", "perf"] }
 ruma-common = { workspace = true }
 ruma-html = { workspace = true, optional = true }

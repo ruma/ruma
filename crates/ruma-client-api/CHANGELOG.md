@@ -27,6 +27,9 @@ Improvements:
   to send `Future` events and update `Future` events with `future_tokens`.
   (`Future` events are scheduled messages that can be controlled
   with `future_tokens` to send on demand or restart the timeout)
+- Change types of `SyncRequestListFilters::{room_types,not_room_types}` to
+  `Vec<RoomTypeFilter>` instead of a vector of strings
+  - This is a breaking change, but only for users of `unstable-msc3575`
 
 Bug fixes:
 

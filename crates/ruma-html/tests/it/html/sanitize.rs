@@ -6,7 +6,7 @@ use ruma_html::{
 #[test]
 fn strict_mode_valid_input() {
     let config = SanitizerConfig::strict().remove_reply_fallback();
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <ul><li>This</li><li>has</li><li>no</li><li>tag</li></ul>\
         <p>This is a paragraph <span data-mx-color=\"green\">with some color</span></p>\
@@ -30,7 +30,7 @@ fn strict_mode_valid_input() {
 #[test]
 fn strict_mode_elements_remove() {
     let config = SanitizerConfig::strict();
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <mx-reply>\
             <blockquote>\
@@ -66,7 +66,7 @@ fn strict_mode_elements_remove() {
 #[test]
 fn strict_mode_elements_reply_remove() {
     let config = SanitizerConfig::strict().remove_reply_fallback();
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <mx-reply>\
             <blockquote>\
@@ -94,7 +94,7 @@ fn strict_mode_elements_reply_remove() {
 #[test]
 fn remove_only_reply_fallback() {
     let config = SanitizerConfig::new().remove_reply_fallback();
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <mx-reply>\
             <blockquote>\
@@ -122,7 +122,7 @@ fn remove_only_reply_fallback() {
 #[test]
 fn strict_mode_attrs_remove() {
     let config = SanitizerConfig::strict();
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <h1 id=\"anchor1\">Title for important stuff</h1>\
         <p class=\"important\">Look at <span data-mx-color=\"#0000ff\" size=20>me!</span></p>\
@@ -142,7 +142,7 @@ fn strict_mode_attrs_remove() {
 #[test]
 fn strict_mode_img_remove_scheme() {
     let config = SanitizerConfig::strict();
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <p>Look at that picture:</p>\
         <img src=\"https://notareal.hs/abcdef\">\
@@ -156,7 +156,7 @@ fn strict_mode_img_remove_scheme() {
 #[test]
 fn strict_mode_link_remove_scheme() {
     let config = SanitizerConfig::strict();
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <p>Go see <a href=\"file://local/file.html\">my local website</a></p>\
         ",
@@ -174,7 +174,7 @@ fn strict_mode_link_remove_scheme() {
 #[test]
 fn compat_mode_link_remove_scheme() {
     let config = SanitizerConfig::strict();
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <p>Join <a href=\"matrix:r/myroom:notareal.hs\">my room</a></p>\
         <p>To talk about <a href=\"https://mycat.org\">my cat</a></p>\
@@ -190,7 +190,7 @@ fn compat_mode_link_remove_scheme() {
     );
 
     let config = SanitizerConfig::compat();
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <p>Join <a href=\"matrix:r/myroom:notareal.hs\">my room</a></p>\
         <p>To talk about <a href=\"https://mycat.org\">my cat</a></p>\
@@ -209,7 +209,7 @@ fn compat_mode_link_remove_scheme() {
 #[test]
 fn strict_mode_class_remove() {
     let config = SanitizerConfig::strict();
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <pre><code class=\"language-rust custom-class\">
             type StringList = Vec&lt;String&gt;;
@@ -242,7 +242,7 @@ fn strict_mode_depth_remove() {
         .chain(std::iter::repeat("</div>").take(100))
         .collect();
 
-    let mut html = Html::parse(&deeply_nested_html);
+    let html = Html::parse(&deeply_nested_html);
     html.sanitize_with(&config);
 
     let res = html.to_string();
@@ -253,7 +253,7 @@ fn strict_mode_depth_remove() {
 #[test]
 fn strict_mode_replace_deprecated() {
     let config = SanitizerConfig::strict();
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <p>Look at <strike>you </strike><font data-mx-bg-color=\"#ff0000\" color=\"#0000ff\">me!</span></p>\
         ",
@@ -271,7 +271,7 @@ fn strict_mode_replace_deprecated() {
 #[test]
 fn allow_elements() {
     let config = SanitizerConfig::new().allow_elements(["ul", "li", "p", "img"], ListBehavior::Add);
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <ul><li>This</li><li>has</li><li>no</li><li>tag</li></ul>\
         <p>This is a paragraph <span data-mx-color=\"green\">with some color</span></p>\
@@ -296,7 +296,7 @@ fn allow_elements() {
 fn override_elements() {
     let config =
         SanitizerConfig::strict().allow_elements(["ul", "li", "p", "img"], ListBehavior::Override);
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <ul><li>This</li><li>has</li><li>no</li><li>tag</li></ul>\
         <p>This is a paragraph <span data-mx-color=\"green\">with some color</span></p>\
@@ -320,7 +320,7 @@ fn override_elements() {
 #[test]
 fn add_elements() {
     let config = SanitizerConfig::strict().allow_elements(["keep-me"], ListBehavior::Add);
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <ul><li>This</li><li>has</li><li>no</li><li>tag</li></ul>\
         <p>This is a paragraph <span data-mx-color=\"green\">with some color</span></p>\
@@ -346,7 +346,7 @@ fn add_elements() {
 #[test]
 fn remove_elements() {
     let config = SanitizerConfig::strict().remove_elements(["span", "code"]);
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <ul><li>This</li><li>has</li><li>no</li><li>tag</li></ul>\
         <p>This is a paragraph <span data-mx-color=\"green\">with some color</span></p>\
@@ -369,7 +369,7 @@ fn remove_elements() {
 #[test]
 fn ignore_elements() {
     let config = SanitizerConfig::new().ignore_elements(["span", "code"]);
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <ul><li>This</li><li>has</li><li>no</li><li>tag</li></ul>\
         <p>This is a paragraph <span data-mx-color=\"green\">with some color</span></p>\
@@ -394,7 +394,7 @@ fn ignore_elements() {
 fn replace_elements() {
     let config = SanitizerConfig::new()
         .replace_elements([NameReplacement { old: "ul", new: "ol" }], ListBehavior::Add);
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <ul><li>This</li><li>has</li><li>no</li><li>tag</li></ul>\
         <p>This is a paragraph <span data-mx-color=\"green\">with some color</span></p>\
@@ -419,7 +419,7 @@ fn replace_elements() {
 fn replace_elements_override() {
     let config = SanitizerConfig::strict()
         .replace_elements([NameReplacement { old: "ul", new: "ol" }], ListBehavior::Override);
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <ul><li>This</li><li>has</li><li>no</li><li>tag</li></ul>\
         <p>This is a paragraph <span data-mx-color=\"green\">with some color</span></p>\
@@ -446,7 +446,7 @@ fn replace_elements_override() {
 fn replace_elements_add() {
     let config = SanitizerConfig::strict()
         .replace_elements([NameReplacement { old: "ul", new: "ol" }], ListBehavior::Add);
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <ul><li>This</li><li>has</li><li>no</li><li>tag</li></ul>\
         <p>This is a paragraph <span data-mx-color=\"green\">with some color</span></p>\
@@ -475,7 +475,7 @@ fn allow_attributes() {
         [PropertiesNames { parent: "img", properties: &["src"] }],
         ListBehavior::Add,
     );
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <ul><li>This</li><li>has</li><li>no</li><li>tag</li></ul>\
         <p>This is a paragraph <span data-mx-color=\"green\">with some color</span></p>\
@@ -502,7 +502,7 @@ fn override_attributes() {
         [PropertiesNames { parent: "img", properties: &["src"] }],
         ListBehavior::Override,
     );
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <ul><li>This</li><li>has</li><li>no</li><li>tag</li></ul>\
         <p>This is a paragraph <span data-mx-color=\"green\">with some color</span></p>\
@@ -529,7 +529,7 @@ fn add_attributes() {
         [PropertiesNames { parent: "img", properties: &["id"] }],
         ListBehavior::Add,
     );
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <ul><li>This</li><li>has</li><li>no</li><li>tag</li></ul>\
         <p>This is a paragraph <span data-mx-color=\"green\">with some color</span></p>\
@@ -554,7 +554,7 @@ fn add_attributes() {
 fn remove_attributes() {
     let config = SanitizerConfig::strict()
         .remove_attributes([PropertiesNames { parent: "span", properties: &["data-mx-color"] }]);
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <ul><li>This</li><li>has</li><li>no</li><li>tag</li></ul>\
         <p>This is a paragraph <span data-mx-color=\"green\">with some color</span></p>\
@@ -584,7 +584,7 @@ fn replace_attributes() {
         }],
         ListBehavior::Add,
     );
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <ul><li>This</li><li>has</li><li>no</li><li>tag</li></ul>\
         <p>This is a paragraph <span data-mx-color=\"green\">with some color</span></p>\
@@ -614,7 +614,7 @@ fn replace_attributes_override() {
         }],
         ListBehavior::Override,
     );
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <ul><li>This</li><li>has</li><li>no</li><li>tag</li></ul>\
         <p>This is a paragraph <font color=\"green\">with some color</font></p>\
@@ -644,7 +644,7 @@ fn replace_attributes_add() {
         }],
         ListBehavior::Add,
     );
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <ul><li>This</li><li>has</li><li>no</li><li>tag</li></ul>\
         <p>This is a paragraph <font color=\"green\">with some color</font></p>\
@@ -674,7 +674,7 @@ fn allow_schemes() {
         }],
         ListBehavior::Add,
     );
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <img src=\"mxc://notareal.hs/abcdef\">\
         <img src=\"https://notareal.hs/abcdef.png\">\
@@ -699,7 +699,7 @@ fn override_schemes() {
         }],
         ListBehavior::Override,
     );
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <img src=\"mxc://notareal.hs/abcdef\">\
         <img src=\"https://notareal.hs/abcdef.png\">\
@@ -724,7 +724,7 @@ fn add_schemes() {
         }],
         ListBehavior::Add,
     );
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <img src=\"mxc://notareal.hs/abcdef\">\
         <img src=\"https://notareal.hs/abcdef.png\">\
@@ -747,7 +747,7 @@ fn deny_schemes() {
         element: "a",
         attr_schemes: &[PropertiesNames { parent: "href", properties: &["http"] }],
     }]);
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <a href=\"https://notareal.hs/abcdef.png\">Secure link to an image</a>\
         <a href=\"http://notareal.hs/abcdef.png\">Insecure link to an image</a>\
@@ -770,7 +770,7 @@ fn allow_classes() {
         [PropertiesNames { parent: "img", properties: &["custom-class", "custom-class-*"] }],
         ListBehavior::Add,
     );
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <code class=\"language-html\">&lt;mx-reply&gt;This is a fake reply&lt;/mx-reply&gt;</code>\
         <img class=\"custom-class custom-class-img img\" src=\"mxc://notareal.hs/abcdef\">\
@@ -793,7 +793,7 @@ fn override_classes() {
         [PropertiesNames { parent: "code", properties: &["custom-class", "custom-class-*"] }],
         ListBehavior::Override,
     );
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <code class=\"language-html custom-class custom-class-code code\">&lt;mx-reply&gt;This is a fake reply&lt;/mx-reply&gt;</code>\
         ",
@@ -814,7 +814,7 @@ fn add_classes() {
         [PropertiesNames { parent: "code", properties: &["custom-class", "custom-class-*"] }],
         ListBehavior::Add,
     );
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <code class=\"language-html custom-class custom-class-code code\">&lt;mx-reply&gt;This is a fake reply&lt;/mx-reply&gt;</code>\
         ",
@@ -833,7 +833,7 @@ fn add_classes() {
 fn remove_classes() {
     let config = SanitizerConfig::strict()
         .remove_classes([PropertiesNames { parent: "code", properties: &["language-rust"] }]);
-    let mut html = Html::parse(
+    let html = Html::parse(
         "\
         <code class=\"language-html language-rust\">&lt;mx-reply&gt;This is a fake reply&lt;/mx-reply&gt;</code>\
         ",
