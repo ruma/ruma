@@ -958,7 +958,7 @@ impl From<v5::request::List> for SyncRequestList {
             include_heroes: value.include_heroes,
             filters: value.filters.map(Into::into),
 
-            // Defaults from Simplified MSC3575.
+            // Defaults from MSC4186.
             sort: vec!["by_recency".to_owned(), "by_name".to_owned()],
             bump_event_types: vec![
                 TimelineEventType::RoomMessage,

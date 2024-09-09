@@ -228,7 +228,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrCode::DuplicateAnnotation => ErrorKind::DuplicateAnnotation,
             ErrCode::NotYetUploaded => ErrorKind::NotYetUploaded,
             ErrCode::CannotOverwriteMedia => ErrorKind::CannotOverwriteMedia,
-            #[cfg(any(feature = "unstable-msc3575", feature = "unstable-simplified-msc3575"))]
+            #[cfg(any(feature = "unstable-msc3575", feature = "unstable-msc4186"))]
             ErrCode::UnknownPos => ErrorKind::UnknownPos,
             ErrCode::UrlNotSet => ErrorKind::UrlNotSet,
             ErrCode::BadStatus => ErrorKind::BadStatus {
@@ -301,7 +301,7 @@ enum ErrCode {
     NotYetUploaded,
     #[ruma_enum(alias = "FI.MAU.MSC2246_CANNOT_OVERWRITE_MEDIA")]
     CannotOverwriteMedia,
-    #[cfg(any(feature = "unstable-msc3575", feature = "unstable-simplified-msc3575"))]
+    #[cfg(any(feature = "unstable-msc3575", feature = "unstable-msc4186"))]
     UnknownPos,
     UrlNotSet,
     BadStatus,
