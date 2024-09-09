@@ -11,9 +11,7 @@ use serde::{
 };
 use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue};
 
-/// A wrapper around `Box<RawValue>`, to be used in place of any type in the Matrix endpoint
-/// definition to allow request and response types to contain that said type represented by
-/// the generic argument `Ev`.
+/// A wrapper around `Box<RawValue>` with a generic parameter for the expected Rust type.
 ///
 /// Ruma offers the `Raw` wrapper to enable passing around JSON text that is only partially
 /// validated. This is useful when a client receives events that do not follow the spec perfectly

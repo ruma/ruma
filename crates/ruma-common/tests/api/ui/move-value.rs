@@ -1,7 +1,7 @@
 // This tests that the "body" fields are moved after all other fields because they
 // consume the request/response.
 
-mod newtype_body {
+pub mod newtype_body {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
         api::{request, response, Metadata},
@@ -47,7 +47,7 @@ mod newtype_body {
     }
 }
 
-mod raw_body {
+pub mod raw_body {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
         api::{request, response, Metadata},
@@ -90,7 +90,7 @@ mod raw_body {
     }
 }
 
-mod plain {
+pub mod plain {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
         api::{request, response, Metadata},

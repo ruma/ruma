@@ -1,9 +1,10 @@
+use cfg_if::cfg_if;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
-    DeriveInput, Field, Generics, Ident, ItemStruct, Token, Type,
+    Field, Generics, Ident, ItemStruct, Token, Type,
 };
 
 use super::{
@@ -26,13 +27,34 @@ pub fn expand_request(attr: RequestAttr, item: ItemStruct) -> TokenStream {
         |DeriveRequestMeta::Error(ty)| quote! { #ty },
     );
 
+    cfg_if! {
+        if #[cfg(feature = "__internal_macro_expand")] {
+            use syn::parse_quote;
+
+            let mut derive_input = item.clone();
+            derive_input.attrs.push(parse_quote! { #[ruma_api(error = #error_ty)] });
+            crate::util::cfg_expand_struct(&mut derive_input);
+
+            let extra_derive = quote! { #ruma_macros::_FakeDeriveRumaApi };
+            let ruma_api_attribute = quote! {};
+            let request_impls =
+                expand_derive_request(derive_input).unwrap_or_else(syn::Error::into_compile_error);
+        } else {
+            let extra_derive = quote! { #ruma_macros::Request };
+            let ruma_api_attribute = quote! { #[ruma_api(error = #error_ty)] };
+            let request_impls = quote! {};
+        }
+    }
+
     quote! {
         #maybe_feature_error
 
-        #[derive(Clone, Debug, #ruma_macros::Request, #ruma_common::serde::_FakeDeriveSerde)]
+        #[derive(Clone, Debug, #ruma_common::serde::_FakeDeriveSerde, #extra_derive)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-        #[ruma_api(error = #error_ty)]
+        #ruma_api_attribute
         #item
+
+        #request_impls
     }
 }
 
@@ -44,13 +66,9 @@ impl Parse for RequestAttr {
     }
 }
 
-pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
-    let fields = match input.data {
-        syn::Data::Struct(s) => s.fields,
-        _ => panic!("This derive macro only works on structs"),
-    };
-
-    let fields = fields.into_iter().map(RequestField::try_from).collect::<syn::Result<_>>()?;
+pub fn expand_derive_request(input: ItemStruct) -> syn::Result<TokenStream> {
+    let fields =
+        input.fields.into_iter().map(RequestField::try_from).collect::<syn::Result<_>>()?;
 
     let mut error_ty = None;
 
@@ -83,7 +101,7 @@ pub fn expand_derive_request(input: DeriveInput) -> syn::Result<TokenStream> {
         #types_impls
 
         #[allow(deprecated)]
-        #[cfg(tests)]
+        #[cfg(test)]
         mod __request {
             #test
         }
@@ -254,9 +272,8 @@ impl Request {
         let path_fields = self.path_fields().map(|f| f.ident.as_ref().unwrap().to_string());
         let mut tests = quote! {
             #[::std::prelude::v1::test]
-            #[allow(deprecated)]
             fn path_parameters() {
-                let path_params = METADATA._path_parameters();
+                let path_params = super::METADATA._path_parameters();
                 let request_path_fields: &[&::std::primitive::str] = &[#(#path_fields),*];
                 ::std::assert_eq!(
                     path_params, request_path_fields,
@@ -270,7 +287,7 @@ impl Request {
                 #[::std::prelude::v1::test]
                 fn request_is_not_get() {
                     ::std::assert_ne!(
-                        METADATA.method, #http::Method::GET,
+                        super::METADATA.method, #http::Method::GET,
                         "GET endpoints can't have body fields",
                     );
                 }
