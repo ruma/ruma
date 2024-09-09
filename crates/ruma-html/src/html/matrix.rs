@@ -337,9 +337,6 @@ impl PartialEq<u8> for HeadingLevel {
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub struct AnchorData {
-    /// The name of the anchor.
-    pub name: Option<StrTendril>,
-
     /// Where to display the linked URL.
     pub target: Option<StrTendril>,
 
@@ -350,7 +347,7 @@ pub struct AnchorData {
 impl AnchorData {
     /// Construct an empty `AnchorData`.
     fn new() -> Self {
-        Self { name: None, target: None, href: None }
+        Self { target: None, href: None }
     }
 
     /// Parse the given attributes to construct a new `AnchorData`.
@@ -368,9 +365,6 @@ impl AnchorData {
             }
 
             match attr.name.local.as_bytes() {
-                b"name" => {
-                    data.name = Some(attr.value.clone());
-                }
                 b"target" => {
                     data.target = Some(attr.value.clone());
                 }

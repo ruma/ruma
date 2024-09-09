@@ -201,9 +201,9 @@ fn markdown_detection() {
     let formatted_body = FormattedBody::markdown("A message\nwith\n\nmultiple\n\nparagraphs");
     formatted_body.unwrap();
 
-    // HTML entities don't trigger markdown.
+    // "Less than" symbol triggers markdown.
     let formatted_body = FormattedBody::markdown("A message with & HTML < entities");
-    assert_matches!(formatted_body, None);
+    assert_matches!(formatted_body, Some(_));
 
     // HTML triggers markdown.
     let formatted_body = FormattedBody::markdown("<span>An HTML message</span>");

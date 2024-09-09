@@ -12,6 +12,7 @@ pub mod v1 {
     use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
     use ruma_common::{
         api::{request, response, Metadata},
+        http_headers::ContentDisposition,
         metadata, IdParseError, MxcUri, OwnedServerName,
     };
 
@@ -47,8 +48,8 @@ pub mod v1 {
         #[ruma_api(query)]
         #[serde(
             with = "ruma_common::serde::duration::ms",
-            default = "crate::media::default_download_timeout",
-            skip_serializing_if = "crate::media::is_default_download_timeout"
+            default = "ruma_common::media::default_download_timeout",
+            skip_serializing_if = "ruma_common::media::is_default_download_timeout"
         )]
         pub timeout_ms: Duration,
     }
@@ -66,12 +67,8 @@ pub mod v1 {
 
         /// The value of the `Content-Disposition` HTTP header, possibly containing the name of the
         /// file that was previously uploaded.
-        ///
-        /// See [MDN] for the syntax.
-        ///
-        /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition#Syntax
         #[ruma_api(header = CONTENT_DISPOSITION)]
-        pub content_disposition: Option<String>,
+        pub content_disposition: Option<ContentDisposition>,
     }
 
     impl Request {
@@ -81,7 +78,7 @@ pub mod v1 {
                 media_id,
                 server_name,
                 filename,
-                timeout_ms: crate::media::default_download_timeout(),
+                timeout_ms: ruma_common::media::default_download_timeout(),
             }
         }
 

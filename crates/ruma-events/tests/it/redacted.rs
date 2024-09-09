@@ -36,13 +36,13 @@ fn serialize_redacted_message_event_content() {
 
 #[test]
 fn serialize_empty_redacted_aliases_event_content() {
-    assert_eq!(to_json_value(&RedactedRoomAliasesEventContent::default()).unwrap(), json!({}));
+    assert_eq!(to_json_value(RedactedRoomAliasesEventContent::default()).unwrap(), json!({}));
 }
 
 #[test]
 fn redacted_aliases_event_serialize_with_content() {
     let expected = json!({ "aliases": [] });
-    let actual = to_json_value(&RedactedRoomAliasesEventContent::new_v1(vec![])).unwrap();
+    let actual = to_json_value(RedactedRoomAliasesEventContent::new_v1(vec![])).unwrap();
     assert_eq!(actual, expected);
 }
 

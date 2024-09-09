@@ -7,6 +7,9 @@ Breaking changes:
 - Change type of `client_secret` field in `ThirdpartyIdCredentials`
   from `Box<ClientSecret>` to `OwnedClientSecret`
 - Make `id_server` and `id_access_token` in `ThirdpartyIdCredentials` optional
+- The `content_disposition` fields of `media::get_content::v3::Response` and
+  `media::get_content_as_filename::v3::Response` use now the strongly typed
+  `ContentDisposition` instead of strings.
 
 Improvements:
 
@@ -24,6 +27,9 @@ Improvements:
   to send `Future` events and update `Future` events with `future_tokens`.
   (`Future` events are scheduled messages that can be controlled
   with `future_tokens` to send on demand or restart the timeout)
+- Change types of `SyncRequestListFilters::{room_types,not_room_types}` to
+  `Vec<RoomTypeFilter>` instead of a vector of strings
+  - This is a breaking change, but only for users of `unstable-msc3575`
 
 Bug fixes:
 
@@ -31,6 +37,8 @@ Bug fixes:
 - `user_id` of `SlidingSyncRoomHero` is now mandatory
 - Make authentication with access token optional for the `change_password` and
   `deactivate` endpoints.
+- Do not send a request body for the `logout` and `logout_all` endpoints, due
+  to a clarification in the spec.
 
 # 0.18.0
 

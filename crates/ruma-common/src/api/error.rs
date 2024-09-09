@@ -243,6 +243,10 @@ pub enum DeserializationError {
     /// Header value deserialization failed.
     #[error(transparent)]
     Header(#[from] HeaderDeserializationError),
+
+    /// Deserialization of `multipart/mixed` response failed.
+    #[error(transparent)]
+    MultipartMixed(#[from] MultipartMixedDeserializationError),
 }
 
 impl From<std::convert::Infallible> for DeserializationError {
@@ -277,6 +281,10 @@ pub enum HeaderDeserializationError {
     #[error("missing header `{0}`")]
     MissingHeader(String),
 
+    /// The given header failed to parse.
+    #[error("invalid header: {0}")]
+    InvalidHeader(Box<dyn std::error::Error + Send + Sync + 'static>),
+
     /// A header was received with a unexpected value.
     #[error(
         "The {header} header was received with an unexpected value, \
@@ -290,6 +298,42 @@ pub enum HeaderDeserializationError {
         /// The value we instead received and rejected.
         unexpected: String,
     },
+
+    /// The `Content-Type` header for a `multipart/mixed` response is missing the `boundary`
+    /// attribute.
+    #[error(
+        "The `Content-Type` header for a `multipart/mixed` response is missing the `boundary` attribute"
+    )]
+    MissingMultipartBoundary,
+}
+
+/// An error when deserializing a `multipart/mixed` response.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum MultipartMixedDeserializationError {
+    /// There were not the number of body parts that were expected.
+    #[error(
+        "multipart/mixed response does not have enough body parts, \
+         expected {expected}, found {found}"
+    )]
+    MissingBodyParts {
+        /// The number of body parts expected in the response.
+        expected: usize,
+        /// The number of body parts found in the received response.
+        found: usize,
+    },
+
+    /// The separator between the headers and the content of a body part is missing.
+    #[error("multipart/mixed body part is missing separator between headers and content")]
+    MissingBodyPartInnerSeparator,
+
+    /// The separator between a header's name and value is missing.
+    #[error("multipart/mixed body part header is missing separator between name and value")]
+    MissingHeaderSeparator,
+
+    /// A header failed to parse.
+    #[error("invalid multipart/mixed header: {0}")]
+    InvalidHeader(Box<dyn std::error::Error + Send + Sync + 'static>),
 }
 
 /// An error that happens when Ruma cannot understand a Matrix version.

@@ -1,4 +1,5 @@
-#![deny(private_in_public)]
+#![deny(private_interfaces, private_bounds, unnameable_types)]
+#![allow(dead_code)]
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

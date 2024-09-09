@@ -91,3 +91,114 @@ impl ToTokens for PrivateField<'_> {
         ty.to_tokens(tokens);
     }
 }
+
+#[cfg(feature = "__internal_macro_expand")]
+pub fn cfg_expand_struct(item: &mut syn::ItemStruct) {
+    use std::mem;
+
+    use proc_macro2::TokenTree;
+    use syn::{visit_mut::VisitMut, Fields, LitBool, Meta};
+
+    fn eval_cfg(cfg_expr: TokenStream) -> Option<bool> {
+        let cfg_macro_call = quote! { ::core::cfg!(#cfg_expr) };
+        let expanded = match proc_macro::TokenStream::from(cfg_macro_call).expand_expr() {
+            Ok(t) => t,
+            Err(e) => {
+                eprintln!("Failed to expand cfg! {e}");
+                return None;
+            }
+        };
+
+        let lit: LitBool = syn::parse(expanded).expect("cfg! must expand to a boolean literal");
+        Some(lit.value())
+    }
+
+    fn tokentree_not_comma(tree: &TokenTree) -> bool {
+        match tree {
+            TokenTree::Punct(p) => p.as_char() != ',',
+            _ => true,
+        }
+    }
+
+    struct CfgAttrExpand;
+
+    impl VisitMut for CfgAttrExpand {
+        fn visit_attribute_mut(&mut self, attr: &mut syn::Attribute) {
+            if attr.meta.path().is_ident("cfg_attr") {
+                // Ignore invalid cfg attributes
+                let Meta::List(list) = &attr.meta else { return };
+                let mut token_iter = list.tokens.clone().into_iter();
+
+                // Take all the tokens until the first toplevel comma.
+                // That's the cfg-expression part of cfg_attr.
+                let cfg_expr: TokenStream =
+                    token_iter.by_ref().take_while(tokentree_not_comma).collect();
+
+                let Some(cfg_value) = eval_cfg(cfg_expr) else { return };
+                if cfg_value {
+                    // If we had the whole attribute list and could emit more
+                    // than one attribute, we'd split the remaining arguments to
+                    // cfg_attr by commas and turn them into regular attributes
+                    //
+                    // Because we can emit only one, do the first and error if
+                    // there's any more after it.
+                    let attr_tokens: TokenStream =
+                        token_iter.by_ref().take_while(tokentree_not_comma).collect();
+
+                    if attr_tokens.is_empty() {
+                        // no-op cfg_attr??
+                        return;
+                    }
+
+                    attr.meta = syn::parse2(attr_tokens)
+                        .expect("syn must be able to parse cfg-attr arguments as syn::Meta");
+
+                    let rest: TokenStream = token_iter.collect();
+                    assert!(
+                        rest.is_empty(),
+                        "cfg_attr's with multiple arguments after the cfg expression are not \
+                         currently supported by __internal_macro_expand."
+                    );
+                }
+            }
+        }
+    }
+
+    CfgAttrExpand.visit_item_struct_mut(item);
+
+    let Fields::Named(fields) = &mut item.fields else {
+        panic!("only named fields are currently supported by __internal_macro_expand");
+    };
+
+    // Take out all the fields
+    'fields: for mut field in mem::take(&mut fields.named) {
+        // Take out all the attributes
+        for attr in mem::take(&mut field.attrs) {
+            // For non-cfg attrs, put them back
+            if !attr.meta.path().is_ident("cfg") {
+                field.attrs.push(attr);
+                continue;
+            }
+
+            // Also put back / ignore invalid cfg attributes
+            let Meta::List(list) = &attr.meta else {
+                field.attrs.push(attr);
+                continue;
+            };
+            // Also put back / ignore cfg attributes we can't eval
+            let Some(cfg_value) = eval_cfg(list.tokens.clone()) else {
+                field.attrs.push(attr);
+                continue;
+            };
+
+            // Finally, if the cfg is `false`, skip the part where it's put back
+            if !cfg_value {
+                continue 'fields;
+            }
+        }
+
+        // If `continue 'fields` above wasn't hit, we didn't find a cfg that
+        // evals to false, so put the field back
+        fields.named.push(field);
+    }
+}

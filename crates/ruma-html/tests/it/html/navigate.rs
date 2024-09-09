@@ -21,7 +21,7 @@ fn navigate_tree() {
 
     let h1_element = h1_node.as_element().unwrap();
     assert_eq!(&h1_element.name.local, "h1");
-    assert!(h1_element.attrs.is_empty());
+    assert!(h1_element.attrs.borrow().is_empty());
 
     assert!(h1_node.parent().is_none());
     assert!(h1_node.next_sibling().is_some());
@@ -35,7 +35,7 @@ fn navigate_tree() {
     // Text of `<h1>` element.
     let h1_text_node = h1_children.next().unwrap();
     let h1_text = h1_text_node.as_text().unwrap();
-    assert_eq!(h1_text.as_ref(), "Title");
+    assert_eq!(h1_text.borrow().as_ref(), "Title");
 
     assert!(h1_text_node.parent().is_some());
     assert!(h1_text_node.next_sibling().is_none());
@@ -54,8 +54,9 @@ fn navigate_tree() {
 
     let div_element = div_node.as_element().unwrap();
     assert_eq!(&div_element.name.local, "div");
-    assert_eq!(div_element.attrs.len(), 1);
-    let class_attr = div_element.attrs.first().unwrap();
+    let attrs = div_element.attrs.borrow();
+    assert_eq!(attrs.len(), 1);
+    let class_attr = attrs.first().unwrap();
     assert_eq!(&class_attr.name.local, "class");
     assert_eq!(class_attr.value.as_ref(), "text");
 
@@ -73,7 +74,7 @@ fn navigate_tree() {
 
     let p_element = p_node.as_element().unwrap();
     assert_eq!(&p_element.name.local, "p");
-    assert!(p_element.attrs.is_empty());
+    assert!(p_element.attrs.borrow().is_empty());
 
     assert!(p_node.parent().is_some());
     assert!(p_node.next_sibling().is_none());
@@ -87,7 +88,7 @@ fn navigate_tree() {
     // Text of `<p>` element.
     let p_text_node = p_children.next().unwrap();
     let p_text = p_text_node.as_text().unwrap();
-    assert_eq!(p_text.as_ref(), "This is some ");
+    assert_eq!(p_text.borrow().as_ref(), "This is some ");
 
     assert!(p_text_node.parent().is_some());
     assert!(p_text_node.next_sibling().is_some());
@@ -104,7 +105,7 @@ fn navigate_tree() {
 
     let em_element = em_node.as_element().unwrap();
     assert_eq!(&em_element.name.local, "em");
-    assert!(em_element.attrs.is_empty());
+    assert!(em_element.attrs.borrow().is_empty());
 
     assert!(em_node.parent().is_some());
     assert!(em_node.next_sibling().is_none());
@@ -118,7 +119,7 @@ fn navigate_tree() {
     // Text of `<em>` element.
     let em_text_node = em_children.next().unwrap();
     let em_text = em_text_node.as_text().unwrap();
-    assert_eq!(em_text.as_ref(), "text");
+    assert_eq!(em_text.borrow().as_ref(), "text");
 
     assert!(em_text_node.parent().is_some());
     assert!(em_text_node.next_sibling().is_none());

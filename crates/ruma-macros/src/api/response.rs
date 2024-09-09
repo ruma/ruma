@@ -1,12 +1,13 @@
 use std::ops::Not;
 
+use cfg_if::cfg_if;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
     visit::Visit,
-    DeriveInput, Field, Generics, Ident, ItemStruct, Lifetime, Token, Type,
+    Field, Generics, Ident, ItemStruct, Lifetime, Token, Type,
 };
 
 use super::{
@@ -41,13 +42,38 @@ pub fn expand_response(attr: ResponseAttr, item: ItemStruct) -> TokenStream {
         })
         .unwrap_or_else(|| quote! { OK });
 
+    cfg_if! {
+        if #[cfg(feature = "__internal_macro_expand")] {
+            use syn::parse_quote;
+
+            let mut derive_input = item.clone();
+            derive_input.attrs.push(parse_quote! {
+                #[ruma_api(error = #error_ty, status = #status_ident)]
+            });
+            crate::util::cfg_expand_struct(&mut derive_input);
+
+            let extra_derive = quote! { #ruma_macros::_FakeDeriveRumaApi };
+            let ruma_api_attribute = quote! {};
+            let response_impls =
+                expand_derive_response(derive_input).unwrap_or_else(syn::Error::into_compile_error);
+        } else {
+            let extra_derive = quote! { #ruma_macros::Response };
+            let ruma_api_attribute = quote! {
+                #[ruma_api(error = #error_ty, status = #status_ident)]
+            };
+            let response_impls = quote! {};
+        }
+    }
+
     quote! {
         #maybe_feature_error
 
-        #[derive(Clone, Debug, #ruma_macros::Response, #ruma_common::serde::_FakeDeriveSerde)]
+        #[derive(Clone, Debug, #ruma_common::serde::_FakeDeriveSerde, #extra_derive)]
         #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-        #[ruma_api(error = #error_ty, status = #status_ident)]
+        #ruma_api_attribute
         #item
+
+        #response_impls
     }
 }
 
@@ -59,13 +85,9 @@ impl Parse for ResponseAttr {
     }
 }
 
-pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
-    let fields = match input.data {
-        syn::Data::Struct(s) => s.fields,
-        _ => panic!("This derive macro only works on structs"),
-    };
-
-    let fields = fields.into_iter().map(ResponseField::try_from).collect::<syn::Result<_>>()?;
+pub fn expand_derive_response(input: ItemStruct) -> syn::Result<TokenStream> {
+    let fields =
+        input.fields.into_iter().map(ResponseField::try_from).collect::<syn::Result<_>>()?;
     let mut manual_body_serde = false;
     let mut error_ty = None;
     let mut status_ident = None;
@@ -90,8 +112,8 @@ pub fn expand_derive_response(input: DeriveInput) -> syn::Result<TokenStream> {
         generics: input.generics,
         fields,
         manual_body_serde,
-        error_ty: error_ty.unwrap(),
-        status_ident: status_ident.unwrap(),
+        error_ty: error_ty.expect("missing error_ty attribute"),
+        status_ident: status_ident.expect("missing status_ident attribute"),
     };
 
     response.check()?;

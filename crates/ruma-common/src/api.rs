@@ -113,10 +113,12 @@ macro_rules! metadata {
 /// To declare which part of the request a field belongs to:
 ///
 /// * `#[ruma_api(header = HEADER_NAME)]`: Fields with this attribute will be treated as HTTP
-///   headers on the request. The value must implement `Display`. Generally this is a `String`.
-///   The attribute value shown above as `HEADER_NAME` must be a `const` expression of the type
-///   `http::header::HeaderName`, like one of the constants from `http::header`, e.g.
-///   `CONTENT_TYPE`.
+///   headers on the request. The value must implement `ToString` and `FromStr`. Generally this
+///   is a `String`. The attribute value shown above as `HEADER_NAME` must be a `const`
+///   expression of the type `http::header::HeaderName`, like one of the constants from
+///   `http::header`, e.g. `CONTENT_TYPE`. During deserialization of the request, if the field
+///   is an `Option` and parsing the header fails, the error will be ignored and the value will
+///   be `None`.
 /// * `#[ruma_api(path)]`: Fields with this attribute will be inserted into the matching path
 ///   component of the request URL. If there are multiple of these fields, the order in which
 ///   they are declared must match the order in which they occur in the request path.
@@ -230,9 +232,11 @@ pub use ruma_macros::request;
 /// To declare which part of the response a field belongs to:
 ///
 /// * `#[ruma_api(header = HEADER_NAME)]`: Fields with this attribute will be treated as HTTP
-///   headers on the response. The value must implement `Display`. Generally this is a
-///   `String`. The attribute value shown above as `HEADER_NAME` must be a header name constant
-///   from `http::header`, e.g. `CONTENT_TYPE`.
+///   headers on the response. The value must implement `ToString` and `FromStr`. Generally
+///   this is a `String`. The attribute value shown above as `HEADER_NAME` must be a header
+///   name constant from `http::header`, e.g. `CONTENT_TYPE`. During deserialization of the
+///   response, if the field is an `Option` and parsing the header fails, the error will be
+///   ignored and the value will be `None`.
 /// * No attribute: Fields without an attribute are part of the body. They can use `#[serde]`
 ///   attributes to customize (de)serialization.
 /// * `#[ruma_api(body)]`: Use this if multiple endpoints should share a response body type, or

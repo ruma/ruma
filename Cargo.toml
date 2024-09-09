@@ -12,10 +12,12 @@ as_variant = "1.2.0"
 assert_matches2 = "0.1.0"
 assign = "1.1.1"
 base64 = "0.22.0"
+bytes = "1.0.1"
 criterion = "0.5.0"
 http = "1.1.0"
 js_int = "0.2.2"
 maplit = "1.0.2"
+rand = "0.8.5"
 ruma-appservice-api = { version = "0.10.0", path = "crates/ruma-appservice-api" }
 ruma-common = { version = "0.13.0", path = "crates/ruma-common" }
 ruma-client = { version = "0.13.0", path = "crates/ruma-client" }

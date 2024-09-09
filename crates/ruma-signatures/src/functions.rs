@@ -40,7 +40,7 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["signatures", "unsigned"];
 /// # Parameters
 ///
 /// * entity_id: The identifier of the entity creating the signature. Generally this means a
-/// homeserver, e.g. "example.com".
+///   homeserver, e.g. "example.com".
 /// * key_pair: A cryptographic key pair used to sign the JSON.
 /// * object: A JSON object to sign according and append a signature to.
 ///
@@ -167,9 +167,9 @@ pub fn canonical_json(object: &CanonicalJsonObject) -> Result<String, Error> {
 /// # Parameters
 ///
 /// * public_key_map: A map from entity identifiers to a map from key identifiers to public keys.
-/// Generally, entity identifiers are server names — the host/IP/port of a homeserver (e.g.
-/// "example.com") for which a signature must be verified. Key identifiers for each server (e.g.
-/// "ed25519:1") then map to their respective public keys.
+///   Generally, entity identifiers are server names — the host/IP/port of a homeserver (e.g.
+///   "example.com") for which a signature must be verified. Key identifiers for each server (e.g.
+///   "ed25519:1") then map to their respective public keys.
 /// * object: The JSON object that was signed.
 ///
 /// # Errors
@@ -355,7 +355,7 @@ pub fn reference_hash(
 /// # Parameters
 ///
 /// * entity_id: The identifier of the entity creating the signature. Generally this means a
-/// homeserver, e.g. "example.com".
+///   homeserver, e.g. "example.com".
 /// * key_pair: A cryptographic key pair used to sign the event.
 /// * object: A JSON object to be hashed and signed according to the Matrix specification.
 ///
@@ -486,9 +486,9 @@ where
 /// # Parameters
 ///
 /// * public_key_map: A map from entity identifiers to a map from key identifiers to public keys.
-/// Generally, entity identifiers are server names—the host/IP/port of a homeserver (e.g.
-/// "example.com") for which a signature must be verified. Key identifiers for each server (e.g.
-/// "ed25519:1") then map to their respective public keys.
+///   Generally, entity identifiers are server names—the host/IP/port of a homeserver (e.g.
+///   "example.com") for which a signature must be verified. Key identifiers for each server (e.g.
+///   "ed25519:1") then map to their respective public keys.
 /// * object: The JSON object of the event that was signed.
 /// * version: Room version of the given event
 ///
