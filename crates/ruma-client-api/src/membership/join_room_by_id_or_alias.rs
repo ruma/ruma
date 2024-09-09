@@ -184,7 +184,6 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room ID or alias ID.
-        #[allow(deprecated)]
         pub fn new(room_id_or_alias: OwnedRoomOrAliasId) -> Self {
             Self { room_id_or_alias, via: vec![], third_party_signed: None, reason: None }
         }
