@@ -59,7 +59,7 @@ pub mod v3 {
     struct RequestBody {
         /// The reason for joining a room.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub reason: Option<String>,
+        reason: Option<String>,
     }
 
     #[cfg(feature = "client")]
