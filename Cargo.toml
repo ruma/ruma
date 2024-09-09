@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/*", "examples/*", "xtask"]
+members = ["crates/*", "xtask"]
 # Only compile / check / document the public crates by default
 default-members = ["crates/*"]
 resolver = "2"
