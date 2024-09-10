@@ -1,5 +1,5 @@
 error: no rules expected the token `deprecated`
- --> tests/api/ui/deprecated-without-added.rs:9:16
+ --> tests/it/api/ui/deprecated-without-added.rs:9:16
   |
 9 |         1.1 => deprecated,
   |                ^^^^^^^^^^ no rules expected this token in macro call
