@@ -25,3 +25,6 @@ compat-user-id = []
 [dependencies]
 js_int = { workspace = true }
 thiserror = { workspace = true }
+
+[lints]
+workspace = true

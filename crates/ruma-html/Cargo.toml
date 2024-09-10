@@ -26,3 +26,6 @@ wildmatch = "2.0.0"
 
 [dev-dependencies]
 assert_matches2 = { workspace = true }
+
+[lints]
+workspace = true

@@ -33,3 +33,6 @@ thiserror = { workspace = true }
 [dev-dependencies]
 assert_matches2 = { workspace = true }
 insta = "1.31.0"
+
+[lints]
+workspace = true
