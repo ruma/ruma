@@ -33,6 +33,9 @@ ruma = { git = "https://github.com/ruma/ruma", branch = "main", features = ["...
 them as a user. Check out the documentation [on docs.rs][docs] (or on
 [docs.ruma.dev][unstable-docs] if you use use the git dependency).
 
+You can also find a small number of examples in our dedicated
+[examples repository](https://github.com/ruma/examples).
+
 [matrix-rust-sdk]: https://github.com/matrix-org/matrix-rust-sdk#readme
 [feat]: https://github.com/ruma/ruma/blob/1166af5a354210dcbced1eaf4a11f795c381d2ec/ruma/Cargo.toml#L35
 
