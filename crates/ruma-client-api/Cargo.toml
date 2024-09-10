@@ -72,3 +72,6 @@ web-time = { workspace = true }
 
 [dev-dependencies]
 assert_matches2 = { workspace = true }
+
+[lints]
+workspace = true

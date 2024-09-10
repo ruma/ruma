@@ -93,3 +93,6 @@ trybuild = "1.0.71"
 name = "event_deserialize"
 harness = false
 required-features = ["criterion"]
+
+[lints]
+workspace = true

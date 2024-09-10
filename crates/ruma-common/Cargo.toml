@@ -87,3 +87,6 @@ assert_matches2 = { workspace = true }
 assign = { workspace = true }
 maplit = { workspace = true }
 trybuild = "1.0.71"
+
+[lints]
+workspace = true

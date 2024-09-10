@@ -40,6 +40,40 @@ tracing = { version = "0.1.37", default-features = false, features = ["std"] }
 url = { version = "2.5.0" }
 web-time = "1.1.0"
 
+[workspace.lints.rust]
+rust_2018_idioms = { level = "warn", priority = -1 }
+semicolon_in_expressions_from_macros = "warn"
+unreachable_pub = "warn"
+unused_import_braces = "warn"
+unused_qualifications = "warn"
+
+[workspace.lints.clippy]
+branches_sharing_code = "warn"
+cloned_instead_of_copied = "warn"
+dbg_macro = "warn"
+disallowed_types = "warn"
+empty_line_after_outer_attr = "warn"
+exhaustive_enums = "warn"
+exhaustive_structs = "warn"
+inefficient_to_string = "warn"
+macro_use_imports = "warn"
+map_flatten = "warn"
+missing_enforced_import_renames = "warn"
+mod_module_files = "warn"
+mut_mut = "warn"
+nonstandard_macro_braces = "warn"
+semicolon_if_nothing_returned = "warn"
+str_to_string = "warn"
+todo = "warn"
+unreadable_literal = "warn"
+unseparated_literal_suffix = "warn"
+wildcard_imports = "warn"
+
+# Not that good of a lint
+new_without_default = "allow"
+# Disabled temporarily because it triggers false positives for types with generics.
+arc_with_non_send_sync = "allow"
+
 [profile.dev]
 # Speeds up test times by more than 10% in a simple test
 # Set to 1 or 2 if you want to use a debugger in this workspace

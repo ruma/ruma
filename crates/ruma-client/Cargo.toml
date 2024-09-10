@@ -50,3 +50,6 @@ tracing = { version = "0.1.30", default-features = false, features = ["std"] }
 [dev-dependencies]
 ruma-client-api = { workspace = true, features = ["client"] }
 tokio-stream = "0.1.8"
+
+[lints]
+workspace = true

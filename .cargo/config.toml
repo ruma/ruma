@@ -4,40 +4,5 @@ xtask = "run --package xtask --"
 [doc.extern-map.registries]
 crates-io = "https://docs.rs/"
 
-[target.'cfg(all())']
-rustflags = [
-    "-Wrust_2018_idioms",
-    "-Wsemicolon_in_expressions_from_macros",
-    "-Wunreachable_pub",
-    "-Wunused_import_braces",
-    "-Wunused_qualifications",
-    "-Wclippy::branches_sharing_code",
-    "-Wclippy::cloned_instead_of_copied",
-    "-Wclippy::dbg_macro",
-    "-Wclippy::disallowed_types",
-    "-Wclippy::empty_line_after_outer_attr",
-    "-Wclippy::exhaustive_enums",
-    "-Wclippy::exhaustive_structs",
-    "-Wclippy::inefficient_to_string",
-    "-Wclippy::macro_use_imports",
-    "-Wclippy::map_flatten",
-    "-Wclippy::missing_enforced_import_renames",
-    # Disabled because it triggers for tests/foo/mod.rs which can't be replaced
-    # easily. Locally allowing it also doesn't seem to work.
-    #"-Wclippy::mod_module_files",
-    "-Wclippy::mut_mut",
-    "-Aclippy::new_without_default",
-    "-Wclippy::nonstandard_macro_braces",
-    "-Wclippy::semicolon_if_nothing_returned",
-    "-Wclippy::str_to_string",
-    "-Wclippy::todo",
-    "-Wclippy::unreadable_literal",
-    "-Wclippy::unseparated_literal_suffix",
-    "-Wclippy::wildcard_imports",
-    # Disabled temporarily because it triggers false positives for types with
-    # generics.
-    "-Aclippy::arc_with_non_send_sync",
-]
-
 [unstable]
 rustdoc-map = true
