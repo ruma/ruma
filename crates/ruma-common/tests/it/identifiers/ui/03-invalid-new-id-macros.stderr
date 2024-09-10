@@ -1,13 +1,13 @@
 error[E0080]: evaluation of constant value failed
- --> tests/identifiers/ui/03-invalid-new-id-macros.rs:2:13
+ --> tests/it/identifiers/ui/03-invalid-new-id-macros.rs:2:13
   |
 2 |     let _ = ruma_common::session_id!("invalid~");
-  |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at 'Invalid Session ID: contains invalid characters', $DIR/tests/identifiers/ui/03-invalid-new-id-macros.rs:2:13
+  |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at 'Invalid Session ID: contains invalid characters', $DIR/tests/it/identifiers/ui/03-invalid-new-id-macros.rs:2:13
   |
   = note: this error originates in the macro `$crate::panic::panic_2021` which comes from the expansion of the macro `ruma_common::session_id` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 note: erroneous constant encountered
- --> tests/identifiers/ui/03-invalid-new-id-macros.rs:2:13
+ --> tests/it/identifiers/ui/03-invalid-new-id-macros.rs:2:13
   |
 2 |     let _ = ruma_common::session_id!("invalid~");
   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
