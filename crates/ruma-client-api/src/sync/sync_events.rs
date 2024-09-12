@@ -11,6 +11,9 @@ pub mod v3;
 #[cfg(feature = "unstable-msc3575")]
 pub mod v4;
 
+#[cfg(feature = "unstable-msc4186")]
+pub mod v5;
+
 /// Unread notifications count.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
