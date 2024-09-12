@@ -16,11 +16,11 @@ pub struct CallMemberStateKey {
 
 impl CallMemberStateKey {
     /// Constructs a new CallMemberStateKey there are three possible formats:
-    /// - "_{UserId}_{DeviceId}" example: "_@test:user.org_DEVICE". `device_id`: Some`, `underscore:
+    /// - `_{UserId}_{DeviceId}` example: `_@test:user.org_DEVICE`. `device_id: Some`, `underscore:
     ///   true`
-    /// - "{UserId}_{DeviceId}" example: "@test:user.org_DEVICE". `device_id`: Some`, `underscore:
+    /// - `{UserId}_{DeviceId}` example: `@test:user.org_DEVICE`. `device_id: Some`, `underscore:
     ///   false`
-    /// - "{UserId}" example example: "@test:user.org". `device_id`: None`, underscore is ignored:
+    /// - `{UserId}` example: `@test:user.org`. `device_id: None`, underscore is ignored:
     ///   `underscore: false|true`
     ///
     /// Dependent on the parameters the correct CallMemberStateKey will be constructed.
