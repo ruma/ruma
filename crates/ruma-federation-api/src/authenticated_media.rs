@@ -172,12 +172,20 @@ fn try_from_multipart_mixed_response<T: AsRef<[u8]>>(
     let mut full_boundary = Vec::with_capacity(boundary.len() + 4);
     full_boundary.extend_from_slice(b"\r\n--");
     full_boundary.extend_from_slice(boundary);
+    let full_boundary_no_crlf = full_boundary.strip_prefix(b"\r\n").unwrap();
 
     let mut boundaries = memchr::memmem::find_iter(body, &full_boundary);
 
-    let metadata_start = boundaries.next().ok_or_else(|| {
-        MultipartMixedDeserializationError::MissingBodyParts { expected: 2, found: 0 }
-    })? + full_boundary.len();
+    let metadata_start = if body.starts_with(full_boundary_no_crlf) {
+        // If there is no preamble before the first boundary, it may omit the
+        // preceding CRLF.
+        full_boundary_no_crlf.len()
+    } else {
+        boundaries.next().ok_or_else(|| MultipartMixedDeserializationError::MissingBodyParts {
+            expected: 2,
+            found: 0,
+        })? + full_boundary.len()
+    };
     let metadata_end = boundaries.next().ok_or_else(|| {
         MultipartMixedDeserializationError::MissingBodyParts { expected: 2, found: 0 }
     })?;
@@ -411,6 +419,15 @@ mod tests {
             .unwrap();
 
         try_from_multipart_mixed_response(response).unwrap_err();
+
+        // Boundary without CRLF with preamble.
+        let body = "foo--abcdef\r\n\r\n{}\r\n--abcdef\r\n\r\nsome plain text\r\n--abcdef--";
+        let response = http::Response::builder()
+            .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
+            .body(body)
+            .unwrap();
+
+        try_from_multipart_mixed_response(response).unwrap_err();
     }
 
     #[test]
@@ -475,6 +492,36 @@ mod tests {
         assert_matches!(content, FileOrLocation::File(file_content));
         assert_eq!(file_content.file, b"some plain text");
         assert_eq!(file_content.content_type.unwrap(), "text/plain");
+        assert_eq!(file_content.content_disposition, None);
+
+        // No leading CRLF (and no preamble)
+        let body = "--abcdef\r\n\r\n{}\r\n--abcdef\r\n\r\nsome plain text\r\n--abcdef--";
+        let response = http::Response::builder()
+            .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
+            .body(body)
+            .unwrap();
+
+        let (_metadata, content) = try_from_multipart_mixed_response(response).unwrap();
+
+        assert_matches!(content, FileOrLocation::File(file_content));
+        assert_eq!(file_content.file, b"some plain text");
+        assert_eq!(file_content.content_type, None);
+        assert_eq!(file_content.content_disposition, None);
+
+        // Boundary text in preamble, but no leading CRLF, so it should be
+        // ignored.
+        let body =
+            "foo--abcdef\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\n\r\nsome plain text\r\n--abcdef--";
+        let response = http::Response::builder()
+            .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
+            .body(body)
+            .unwrap();
+
+        let (_metadata, content) = try_from_multipart_mixed_response(response).unwrap();
+
+        assert_matches!(content, FileOrLocation::File(file_content));
+        assert_eq!(file_content.file, b"some plain text");
+        assert_eq!(file_content.content_type, None);
         assert_eq!(file_content.content_disposition, None);
 
         // No body part headers.
