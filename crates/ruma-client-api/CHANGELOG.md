@@ -15,6 +15,8 @@ Breaking changes:
 
 Improvements:
 
+- Add support for MSC4186, aka simplified sliding sync, behind
+  `unstable-msc4186`.
 - Add support for MSC4108 OIDC sign in and E2EE set up via QR code
 - Heroes in `sync::sync_events::v4`: `SyncRequestList` and `RoomSubscription`
   both have a new `include_heroes` field. `SlidingSyncRoom` has a new `heroes`
