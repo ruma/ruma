@@ -461,6 +461,7 @@ impl Response {
 
 /// HTTP types related to a [`Response`].
 pub mod response {
+    use js_int::Int;
     use ruma_common::DeviceKeyAlgorithm;
     use ruma_events::{
         receipt::SyncReceiptEvent, typing::SyncTypingEvent, AnyGlobalAccountDataEvent,
@@ -549,8 +550,10 @@ pub mod response {
         /// index”. For example, consider `roomA` with `bump_stamp = 2`, `roomB`
         /// with `bump_stamp = 1` and `roomC` with `bump_stamp = 0`. If `roomC`
         /// receives an update, its `bump_stamp` will be 3.
+        ///
+        /// Note that this number can be negative.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub bump_stamp: Option<UInt>,
+        pub bump_stamp: Option<Int>,
 
         /// Heroes of the room, if requested.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -768,7 +771,7 @@ impl From<v4::SlidingSyncRoom> for response::Room {
             joined_count: value.joined_count,
             invited_count: value.invited_count,
             num_live: value.num_live,
-            bump_stamp: value.timestamp.map(|t| t.0),
+            bump_stamp: value.timestamp.map(|t| t.0.into()),
             heroes: value.heroes.map(|heroes| heroes.into_iter().map(Into::into).collect()),
         }
     }
