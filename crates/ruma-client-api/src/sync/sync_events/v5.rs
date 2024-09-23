@@ -551,7 +551,10 @@ pub mod response {
         /// with `bump_stamp = 1` and `roomC` with `bump_stamp = 0`. If `roomC`
         /// receives an update, its `bump_stamp` will be 3.
         ///
-        /// Note that this number can be negative.
+        /// Note that this number can be negative. It happened in the past where
+        /// a homeserver was sending negative values. It doesn't really matter
+        /// if the value is positive or negative, and at the time of writing
+        /// (2024-09-23), the MSC is unclear about that.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub bump_stamp: Option<Int>,
 
