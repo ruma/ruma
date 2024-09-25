@@ -420,10 +420,6 @@ pub mod request {
 /// Response type for the `/sync` endpoint.
 #[response(error = crate::Error)]
 pub struct Response {
-    /// Whether this response describes an initial sync.
-    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
-    pub initial: bool,
-
     /// Matches the `txn_id` sent by the request (see [`Request::txn_id`]).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub txn_id: Option<String>,
@@ -449,7 +445,6 @@ impl Response {
     /// Creates a new `Response` with the given `pos`.
     pub fn new(pos: String) -> Self {
         Self {
-            initial: Default::default(),
             txn_id: None,
             pos,
             lists: Default::default(),
@@ -737,7 +732,6 @@ impl From<v4::Response> for Response {
     fn from(value: v4::Response) -> Self {
         Self {
             pos: value.pos,
-            initial: value.initial,
             txn_id: value.txn_id,
             lists: value.lists.into_iter().map(|(room_id, list)| (room_id, list.into())).collect(),
             rooms: value.rooms.into_iter().map(|(room_id, room)| (room_id, room.into())).collect(),
