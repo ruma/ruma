@@ -980,7 +980,7 @@ impl From<v5::request::List> for SyncRequestList {
 #[cfg(feature = "unstable-msc4186")]
 impl From<v5::request::RoomDetails> for RoomDetailsConfig {
     fn from(value: v5::request::RoomDetails) -> Self {
-        Self { required_state: value.required_state, timeline_limit: value.timeline_limit }
+        Self { required_state: value.required_state, timeline_limit: Some(value.timeline_limit) }
     }
 }
 
@@ -1000,7 +1000,7 @@ impl From<v5::request::RoomSubscription> for RoomSubscription {
     fn from(value: v5::request::RoomSubscription) -> Self {
         Self {
             required_state: value.required_state,
-            timeline_limit: value.timeline_limit,
+            timeline_limit: Some(value.timeline_limit),
             include_heroes: value.include_heroes,
         }
     }
