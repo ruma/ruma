@@ -5,6 +5,7 @@
 use ruma_common::{room::RoomType, OwnedEventId, OwnedRoomId, OwnedUserId, RoomVersionId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
+use serde_with::{serde_as,DefaultOnError};
 
 use crate::{EmptyStateKey, RedactContent, RedactedStateEventContent};
 
@@ -13,6 +14,7 @@ use crate::{EmptyStateKey, RedactContent, RedactedStateEventContent};
 /// This is the first event in a room and cannot be changed.
 ///
 /// It acts as the root of all other events.
+#[serde_as]
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.create", kind = State, state_key_type = EmptyStateKey, custom_redacted)]
@@ -42,7 +44,8 @@ pub struct RoomCreateEventContent {
     pub room_version: RoomVersionId,
 
     /// A reference to the room this room replaces, if the previous room was upgraded.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    #[serde_as(deserialize_as = "DefaultOnError")]
     pub predecessor: Option<PreviousRoom>,
 
     /// The room type.
@@ -226,5 +229,42 @@ mod tests {
         assert_eq!(content.room_version, RoomVersionId::V4);
         assert_matches!(content.predecessor, None);
         assert_eq!(content.room_type, Some(RoomType::Space));
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn deserialize_foundation() {
+        let json = json!({
+            "creator": "@abuse:matrix.org",
+            "predecessor": "!dSMpkVKGgQHlgBDSpo:matrix.org",
+            "room_version": "10"
+        });
+
+        let content = from_json_value::<RoomCreateEventContent>(json).unwrap();
+        print!("{:?}", content);
+        assert_eq!(content.creator.unwrap(), "@abuse:matrix.org");
+        assert!(content.federate);
+        assert_eq!(content.room_version, RoomVersionId::V10);
+        assert_eq!(content.room_type, None);
+        assert_matches!(content.predecessor, None);
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn deserialize_foundation_raw() {
+        let json = r#"
+            {
+                "creator": "@abuse:matrix.org",
+                "predecessor": "!dSMpkVKGgQHlgBDSpo:matrix.org",
+                "room_version": "10"
+            }
+        "#;
+
+        let content = serde_json::from_str::<RoomCreateEventContent>(json).unwrap();
+        assert_eq!(content.creator.unwrap(), "@abuse:matrix.org");
+        assert!(content.federate);
+        assert_eq!(content.room_version, RoomVersionId::V10);
+        assert_eq!(content.room_type, None);
+        assert_matches!(content.predecessor, None);
     }
 }
