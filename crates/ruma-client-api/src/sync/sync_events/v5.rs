@@ -154,8 +154,7 @@ pub mod request {
         pub required_state: Vec<(StateEventType, String)>,
 
         /// The maximum number of timeline events to return per room.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub timeline_limit: Option<UInt>,
+        pub timeline_limit: UInt,
 
         /// Include the room heroes.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -171,8 +170,7 @@ pub mod request {
         pub required_state: Vec<(StateEventType, String)>,
 
         /// The maximum number of timeline events to return per room.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub timeline_limit: Option<UInt>,
+        pub timeline_limit: UInt,
     }
 
     /// Sliding sync request extensions (see [`super::Request::extensions`]).
