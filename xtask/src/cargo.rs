@@ -7,7 +7,7 @@ use reqwest::blocking::Client;
 use semver::Version;
 use serde::{de::IgnoredAny, Deserialize};
 #[cfg(feature = "default")]
-use toml_edit::{value, Document};
+use toml_edit::{value, DocumentMut};
 #[cfg(feature = "default")]
 use xshell::{cmd, pushd, read_file, write_file};
 
@@ -78,7 +78,7 @@ impl Package {
         println!("Updating {} to version {version}…", self.name);
 
         if !dry_run {
-            let mut document = read_file(&self.manifest_path)?.parse::<Document>()?;
+            let mut document = read_file(&self.manifest_path)?.parse::<DocumentMut>()?;
 
             document["package"]["version"] = value(version.to_string());
 
@@ -101,7 +101,7 @@ impl Package {
                 println!("Updating dependency in {} crate…", package.name);
 
                 if !dry_run {
-                    let mut document = read_file(&package.manifest_path)?.parse::<Document>()?;
+                    let mut document = read_file(&package.manifest_path)?.parse::<DocumentMut>()?;
 
                     let version = if !self.version.pre.is_empty() {
                         format!("={}", self.version)
@@ -124,7 +124,7 @@ impl Package {
             }
         } else {
             let workspace_manifest_path = metadata.workspace_root.join("Cargo.toml");
-            let mut document = read_file(&workspace_manifest_path)?.parse::<Document>()?;
+            let mut document = read_file(&workspace_manifest_path)?.parse::<DocumentMut>()?;
             let workspace_deps = &mut document["workspace"]["dependencies"];
 
             println!("Updating workspace dependency…");

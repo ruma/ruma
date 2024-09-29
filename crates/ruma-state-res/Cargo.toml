@@ -18,7 +18,7 @@ all-features = true
 unstable-exhaustive-types = []
 
 [dependencies]
-itertools = "0.12.1"
+itertools = "0.13.0"
 js_int = { workspace = true }
 ruma-common = { workspace = true }
 ruma-events = { workspace = true }

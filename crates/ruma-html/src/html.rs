@@ -100,6 +100,7 @@ impl Default for Html {
 impl TreeSink for Html {
     type Handle = NodeRef;
     type Output = Self;
+    type ElemName<'a> = html5ever::ExpandedName<'a>;
 
     fn finish(self) -> Self::Output {
         self
