@@ -252,6 +252,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             },
             #[cfg(feature = "unstable-msc3843")]
             ErrCode::Unactionable => ErrorKind::Unactionable,
+            ErrCode::UserLocked => ErrorKind::UserLocked,
             ErrCode::_Custom(errcode) => ErrorKind::_Custom { errcode, extra },
         })
     }
@@ -310,6 +311,7 @@ enum ErrCode {
     WrongRoomKeysVersion,
     #[cfg(feature = "unstable-msc3843")]
     Unactionable,
+    UserLocked,
     _Custom(PrivOwnedStr),
 }
 
@@ -330,7 +332,7 @@ impl Serialize for ErrorKind {
         let mut st = serializer.serialize_map(None)?;
         st.serialize_entry("errcode", self.as_ref())?;
         match self {
-            Self::UnknownToken { soft_logout: true } => {
+            Self::UnknownToken { soft_logout: true } | Self::UserLocked => {
                 st.serialize_entry("soft_logout", &true)?;
             }
             Self::LimitExceeded { retry_after: Some(RetryAfter::Delay(duration)) } => {

@@ -36,6 +36,7 @@ Improvements:
   - This is a breaking change, but only for users of `unstable-msc3575`
 - Add the `get_login_token` field to `Capabilities`, according to a
   clarification in the spec.
+- Add support for account locking, according to MSC3939.
 
 Bug fixes:
 
