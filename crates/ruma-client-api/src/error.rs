@@ -204,6 +204,9 @@ pub enum ErrorKind {
     #[cfg(feature = "unstable-msc3843")]
     Unactionable,
 
+    /// M_USER_LOCKED
+    UserLocked,
+
     #[doc(hidden)]
     _Custom { errcode: PrivOwnedStr, extra: Extra },
 }
@@ -280,6 +283,7 @@ impl AsRef<str> for ErrorKind {
             Self::WrongRoomKeysVersion { .. } => "M_WRONG_ROOM_KEYS_VERSION",
             #[cfg(feature = "unstable-msc3843")]
             Self::Unactionable => "M_UNACTIONABLE",
+            Self::UserLocked => "M_USER_LOCKED",
             Self::_Custom { errcode, .. } => &errcode.0,
         }
     }
@@ -924,6 +928,30 @@ mod tests {
             json!({
                 "errcode": "M_LIMIT_EXCEEDED",
                 "error": "Too many requests",
+            })
+        );
+    }
+
+    #[test]
+    fn serialize_user_locked() {
+        let error = Error::new(
+            http::StatusCode::UNAUTHORIZED,
+            ErrorBody::Standard {
+                kind: ErrorKind::UserLocked,
+                message: "This account has been locked".to_owned(),
+            },
+        );
+
+        let response = error.try_into_http_response::<Vec<u8>>().unwrap();
+
+        assert_eq!(response.status(), http::StatusCode::UNAUTHORIZED);
+        let json_body: JsonValue = from_json_slice(response.body()).unwrap();
+        assert_eq!(
+            json_body,
+            json!({
+                "errcode": "M_USER_LOCKED",
+                "error": "This account has been locked",
+                "soft_logout": true,
             })
         );
     }
