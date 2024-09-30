@@ -9,10 +9,11 @@ pub mod v1 {
 
     use std::time::Duration;
 
-    use http::header::CONTENT_TYPE;
+    use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
     use js_int::UInt;
     use ruma_common::{
         api::{request, response, Metadata},
+        http_headers::ContentDisposition,
         media::Method,
         metadata, IdParseError, MxcUri, OwnedServerName,
     };
@@ -87,6 +88,15 @@ pub mod v1 {
         /// The content type of the thumbnail.
         #[ruma_api(header = CONTENT_TYPE)]
         pub content_type: Option<String>,
+
+        /// The value of the `Content-Disposition` HTTP header, possibly containing the name of the
+        /// file that was previously uploaded.
+        ///
+        /// See [MDN] for the syntax.
+        ///
+        /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition#Syntax
+        #[ruma_api(header = CONTENT_DISPOSITION)]
+        pub content_disposition: Option<ContentDisposition>,
     }
 
     impl Request {
@@ -120,8 +130,16 @@ pub mod v1 {
 
     impl Response {
         /// Creates a new `Response` with the given thumbnail.
-        pub fn new(file: Vec<u8>) -> Self {
-            Self { file, content_type: None }
+        pub fn new(
+            file: Vec<u8>,
+            content_type: String,
+            content_disposition: ContentDisposition,
+        ) -> Self {
+            Self {
+                file,
+                content_type: Some(content_type),
+                content_disposition: Some(content_disposition),
+            }
         }
     }
 }

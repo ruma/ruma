@@ -125,11 +125,15 @@ pub mod v3 {
         /// Creates a new `Response` with the given file contents.
         ///
         /// The Cross-Origin Resource Policy defaults to `cross-origin`.
-        pub fn new(file: Vec<u8>) -> Self {
+        pub fn new(
+            file: Vec<u8>,
+            content_type: String,
+            content_disposition: ContentDisposition,
+        ) -> Self {
             Self {
                 file,
-                content_type: None,
-                content_disposition: None,
+                content_type: Some(content_type),
+                content_disposition: Some(content_disposition),
                 cross_origin_resource_policy: Some("cross-origin".to_owned()),
             }
         }
