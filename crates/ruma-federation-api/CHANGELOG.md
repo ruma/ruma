@@ -13,6 +13,8 @@ Bug fixes:
 Improvements:
 
 - Add support for authenticated media endpoints, according to MSC3916 / Matrix 1.11
+- Make `Content-Type` and `Content-Disposition` mandatory when creating media
+  responses, according to MSC2701 / MSC2702 / Matrix 1.12.
 
 # 0.9.0
 
