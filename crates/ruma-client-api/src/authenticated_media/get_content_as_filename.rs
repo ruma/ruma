@@ -92,8 +92,16 @@ pub mod v1 {
 
     impl Response {
         /// Creates a new `Response` with the given file.
-        pub fn new(file: Vec<u8>) -> Self {
-            Self { file, content_type: None, content_disposition: None }
+        pub fn new(
+            file: Vec<u8>,
+            content_type: String,
+            content_disposition: ContentDisposition,
+        ) -> Self {
+            Self {
+                file,
+                content_type: Some(content_type),
+                content_disposition: Some(content_disposition),
+            }
         }
     }
 }

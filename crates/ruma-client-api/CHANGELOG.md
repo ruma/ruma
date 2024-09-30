@@ -16,6 +16,8 @@ Breaking changes:
 - Remove `RuleScope`, due to a clarification in the Matrix 1.12 where the `global`
   scope is now hardcoded.
   - The `push` endpoints don't take a scope anymore.
+- Make `Content-Type` and `Content-Disposition` mandatory when creating media
+  responses, according to MSC2701 / MSC2702 / Matrix 1.12.
 
 Improvements:
 
@@ -42,6 +44,8 @@ Improvements:
   clarification in Matrix 1.12.
 - Add support for account locking, according to MSC3939 / Matrix 1.12.
 - Allow constructing `error::ErrorBody::NotJson` outside of this crate.
+- Add function for checking if a `Content-Type` is considered "safe" for `inline`
+  rendering, according to MSC2702 / Matrix 1.12.
 
 Bug fixes:
 
