@@ -37,6 +37,7 @@ Improvements:
 - Add the `get_login_token` field to `Capabilities`, according to a
   clarification in the spec.
 - Add support for account locking, according to MSC3939.
+- Allow constructing `error::ErrorBody::NotJson` outside of this crate.
 
 Bug fixes:
 
