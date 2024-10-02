@@ -23,6 +23,7 @@ The new format (Session) is required to reliably display the call member count (
 `CallMemberEventContent` is now an enum to model the two different formats.
 - `CallMemberStateKey` (instead of `OwnedUserId`) is now used as the state key type for `CallMemberEventContent`.
 This guarantees correct formatting of the event key.
+- Add helpers for captions on audio, file, image and video messages.
 
 Breaking changes:
 

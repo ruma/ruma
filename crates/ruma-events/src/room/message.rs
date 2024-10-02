@@ -30,6 +30,7 @@ mod file;
 mod image;
 mod key_verification_request;
 mod location;
+mod media_caption;
 mod notice;
 mod relation;
 pub(crate) mod relation_serde;
