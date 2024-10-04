@@ -28,6 +28,8 @@ Improvements:
 - Constructing a Matrix URI for an event with a room alias is deprecated,
   according to MSC4132 / Matrix 1.11
 - Implement `Eq` and `PartialEq` for `Metadata`
+- Allow constructing `api::error::MatrixErrorBody::NotJson` outside of this
+  crate.
 
 # 0.13.0
 
