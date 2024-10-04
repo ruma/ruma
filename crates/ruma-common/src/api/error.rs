@@ -70,7 +70,6 @@ pub enum MatrixErrorBody {
     Json(JsonValue),
 
     /// A response body that is not valid JSON.
-    #[non_exhaustive]
     NotJson {
         /// The raw bytes of the response body.
         bytes: Bytes,
