@@ -1336,6 +1336,19 @@ fn invalid_replacement() {
 }
 
 #[test]
+fn test_audio_filename() {
+    let mut content = AudioMessageEventContent::plain(
+        "my_sound.ogg".to_owned(),
+        mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+    );
+    assert_eq!(content.filename(), "my_sound.ogg");
+
+    content.body = "This was a great podcast episode".to_owned();
+    content.filename = Some("sound.ogg".to_owned());
+    assert_eq!(content.filename(), "sound.ogg");
+}
+
+#[test]
 fn test_audio_caption() {
     let mut content = AudioMessageEventContent::plain(
         "my_sound.ogg".to_owned(),
@@ -1359,6 +1372,19 @@ fn test_audio_caption() {
         content.formatted_caption().map(|f| f.body.clone()),
         Some("This was a <em>great</em> podcast episode".to_owned())
     );
+}
+
+#[test]
+fn test_file_filename() {
+    let mut content = FileMessageEventContent::plain(
+        "my_file.txt".to_owned(),
+        mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+    );
+    assert_eq!(content.filename(), "my_file.txt");
+
+    content.body = "Please check these notes".to_owned();
+    content.filename = Some("notes.txt".to_owned());
+    assert_eq!(content.filename(), "notes.txt");
 }
 
 #[test]
@@ -1388,6 +1414,19 @@ fn test_file_caption() {
 }
 
 #[test]
+fn test_image_filename() {
+    let mut content = ImageMessageEventContent::plain(
+        "my_image.jpg".to_owned(),
+        mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+    );
+    assert_eq!(content.filename(), "my_image.jpg");
+
+    content.body = "Check it out 😎".to_owned();
+    content.filename = Some("image.jpg".to_owned());
+    assert_eq!(content.filename(), "image.jpg");
+}
+
+#[test]
 fn test_image_caption() {
     let mut content = ImageMessageEventContent::plain(
         "my_image.jpg".to_owned(),
@@ -1410,6 +1449,19 @@ fn test_image_caption() {
         content.formatted_caption().map(|f| f.body.clone()),
         Some("<h3>Check it out 😎</h3>".to_owned())
     );
+}
+
+#[test]
+fn test_video_filename() {
+    let mut content = VideoMessageEventContent::plain(
+        "my_video.mp4".to_owned(),
+        mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+    );
+    assert_eq!(content.filename(), "my_video.mp4");
+
+    content.body = "You missed a great evening".to_owned();
+    content.filename = Some("video.mp4".to_owned());
+    assert_eq!(content.filename(), "video.mp4");
 }
 
 #[test]

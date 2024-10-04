@@ -25,7 +25,10 @@ pub struct FileMessageEventContent {
     #[serde(flatten)]
     pub formatted: Option<FormattedBody>,
 
-    /// The original filename of the uploaded file.
+    /// The original filename of the uploaded file as deserialized from the event.
+    ///
+    /// It is recommended to use the `filename` method to get the filename which automatically
+    /// falls back to the `body` field when the `filename` field is not set.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filename: Option<String>,
 
@@ -62,6 +65,14 @@ impl FileMessageEventContent {
     /// as a shorthand for that, because it is very common to set this field.
     pub fn info(self, info: impl Into<Option<Box<FileInfo>>>) -> Self {
         Self { info: info.into(), ..self }
+    }
+
+    /// Computes the filename for the file as defined by the [spec](https://spec.matrix.org/latest/client-server-api/#media-captions).
+    ///
+    /// This differs from the `filename` field as this method falls back to the `body` field when
+    /// the `filename` field is not set.
+    pub fn filename(&self) -> &str {
+        self.filename.as_deref().unwrap_or(&self.body)
     }
 
     /// Returns the caption of the media file as defined by the [spec](https://spec.matrix.org/latest/client-server-api/#media-captions).
