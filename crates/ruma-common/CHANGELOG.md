@@ -22,7 +22,7 @@ Improvements:
   cases where we receive a HTTP header with an unexpected value.
 - Implement `Eq`/`Hash`/`PartialEq` for `ThirdPartyIdentifier`, to check whether 
   a `ThirdPartyIdentifier` has already been added by another user.
-- Add `MatrixVersion::V1_11`
+- Add `MatrixVersion::V1_11` and `MatrixVersion::V1_12`.
 - Clarify in the docs of `AuthScheme` that sending an access token via a query
   parameter is deprecated, according to MSC4126 / Matrix 1.11.
 - Constructing a Matrix URI for an event with a room alias is deprecated,
