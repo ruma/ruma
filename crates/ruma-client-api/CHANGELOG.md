@@ -11,7 +11,8 @@ Breaking changes:
   `media::get_content_as_filename::v3::Response` use now the strongly typed
   `ContentDisposition` instead of strings.
 - Replace `server_name` on `knock::knock_room::v3::Request` and 
-  `membership::join_room_by_id_or_alias::v3::Request` with `via` as per MSC4156.
+  `membership::join_room_by_id_or_alias::v3::Request` with `via` as per MSC4156
+  / Matrix 1.12.
 - Remove `RuleScope`, due to a clarification in the Matrix 1.12 where the `global`
   scope is now hardcoded.
   - The `push` endpoints don't take a scope anymore.
@@ -38,8 +39,8 @@ Improvements:
   `Vec<RoomTypeFilter>` instead of a vector of strings
   - This is a breaking change, but only for users of `unstable-msc3575`
 - Add the `get_login_token` field to `Capabilities`, according to a
-  clarification in the spec.
-- Add support for account locking, according to MSC3939.
+  clarification in Matrix 1.12.
+- Add support for account locking, according to MSC3939 / Matrix 1.12.
 - Allow constructing `error::ErrorBody::NotJson` outside of this crate.
 
 Bug fixes:
@@ -47,9 +48,9 @@ Bug fixes:
 - Rename `avatar` to `avatar_url` when (De)serializing `SlidingSyncRoomHero`
 - `user_id` of `SlidingSyncRoomHero` is now mandatory
 - Make authentication with access token optional for the `change_password` and
-  `deactivate` endpoints.
+  `deactivate` endpoints, due to a clarification in Matrix 1.11.
 - Do not send a request body for the `logout` and `logout_all` endpoints, due
-  to a clarification in the spec.
+  to a clarification in Matrix 1.11.
 
 # 0.18.0
 

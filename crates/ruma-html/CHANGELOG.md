@@ -3,7 +3,7 @@
 Breaking Changes:
 
 - `MatrixElement::Div` is now a newtype variant.
-- `AnchorData`'s `name` field was removed, according to MSC4159.
+- `AnchorData`'s `name` field was removed, according to MSC4159 / Matrix 1.12.
 - html5ever was bumped to a new major version. A breaking change in the parsing
   API required us to rewrite the `Html` type.
   - `Html::sanitize()` and `Html::sanitize_with()` take a non-mutable reference.
