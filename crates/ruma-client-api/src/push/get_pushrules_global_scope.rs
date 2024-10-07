@@ -5,7 +5,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3pushrules
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3pushrulesglobal
 
     use ruma_common::{
         api::{request, response, Metadata},

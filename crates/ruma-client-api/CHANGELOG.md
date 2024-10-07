@@ -12,6 +12,9 @@ Breaking changes:
   `ContentDisposition` instead of strings.
 - Replace `server_name` on `knock::knock_room::v3::Request` and 
   `membership::join_room_by_id_or_alias::v3::Request` with `via` as per MSC4156.
+- Remove `RuleScope`, due to a clarification in the Matrix 1.12 where the `global`
+  scope is now hardcoded.
+  - The `push` endpoints don't take a scope anymore.
 
 Improvements:
 
