@@ -25,6 +25,10 @@ Improvements:
   This guarantees correct formatting of the event key.
 - Add helpers for captions on audio, file, image and video messages.
 - Add helpers for filenames on audio, file, image and video messages.
+- Stabilize support for the `m.marked_unread` room account data according to Matrix 1.12. The
+  unstable `com.famedly.marked_unread` room account data is still available behind the
+  `unstable-msc2867` cargo feature to be able to migrate data from the unstable to the stable
+  prefix.
 
 Breaking changes:
 

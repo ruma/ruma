@@ -161,7 +161,6 @@ pub mod image;
 pub mod key;
 #[cfg(feature = "unstable-msc3488")]
 pub mod location;
-#[cfg(feature = "unstable-msc2867")]
 pub mod marked_unread;
 #[cfg(feature = "unstable-msc1767")]
 pub mod message;
