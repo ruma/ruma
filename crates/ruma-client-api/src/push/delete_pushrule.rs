@@ -1,36 +1,32 @@
-//! `DELETE /_matrix/client/*/pushrules/{scope}/{kind}/{ruleId}`
+//! `DELETE /_matrix/client/*/pushrules/global/{kind}/{ruleId}`
 //!
 //! This endpoint removes the push rule defined in the path.
 
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/client-server-api/#delete_matrixclientv3pushrulesscopekindruleid
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#delete_matrixclientv3pushrulesglobalkindruleid
 
     use ruma_common::{
         api::{request, response, Metadata},
         metadata,
     };
 
-    use crate::push::{RuleKind, RuleScope};
+    use crate::push::RuleKind;
 
     const METADATA: Metadata = metadata! {
         method: DELETE,
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            1.0 => "/_matrix/client/r0/pushrules/:scope/:kind/:rule_id",
-            1.1 => "/_matrix/client/v3/pushrules/:scope/:kind/:rule_id",
+            1.0 => "/_matrix/client/r0/pushrules/global/:kind/:rule_id",
+            1.1 => "/_matrix/client/v3/pushrules/global/:kind/:rule_id",
         }
     };
 
     /// Request type for the `delete_pushrule` endpoint.
     #[request(error = crate::Error)]
     pub struct Request {
-        /// The scope to delete from.
-        #[ruma_api(path)]
-        pub scope: RuleScope,
-
         /// The kind of rule
         #[ruma_api(path)]
         pub kind: RuleKind,
@@ -46,9 +42,9 @@ pub mod v3 {
     pub struct Response {}
 
     impl Request {
-        /// Creates a new `Request` with the given scope, kind and rule ID.
-        pub fn new(scope: RuleScope, kind: RuleKind, rule_id: String) -> Self {
-            Self { scope, kind, rule_id }
+        /// Creates a new `Request` with the given kind and rule ID.
+        pub fn new(kind: RuleKind, rule_id: String) -> Self {
+            Self { kind, rule_id }
         }
     }
 
