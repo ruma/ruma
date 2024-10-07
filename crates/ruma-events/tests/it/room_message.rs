@@ -12,7 +12,7 @@ use ruma_events::{
     room::{
         message::{
             AddMentions, AudioMessageEventContent, EmoteMessageEventContent,
-            FileMessageEventContent, ForwardThread, ImageMessageEventContent,
+            FileMessageEventContent, FormattedBody, ForwardThread, ImageMessageEventContent,
             KeyVerificationRequestEventContent, MessageType, OriginalRoomMessageEvent,
             OriginalSyncRoomMessageEvent, Relation, ReplyWithinThread, RoomMessageEventContent,
             TextMessageEventContent, VideoMessageEventContent,
@@ -900,8 +900,9 @@ fn audio_msgtype_deserialization() {
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
     assert_matches!(event_content.msgtype, MessageType::Audio(content));
     assert_eq!(content.body, "Upload: my_song.mp3");
-    assert_matches!(content.source, MediaSource::Plain(url));
+    assert_matches!(&content.source, MediaSource::Plain(url));
     assert_eq!(url, "mxc://notareal.hs/file");
+    assert!(content.caption().is_none());
 }
 
 #[test]
@@ -983,8 +984,9 @@ fn file_msgtype_plain_content_deserialization() {
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
     assert_matches!(event_content.msgtype, MessageType::File(content));
     assert_eq!(content.body, "Upload: my_file.txt");
-    assert_matches!(content.source, MediaSource::Plain(url));
+    assert_matches!(&content.source, MediaSource::Plain(url));
     assert_eq!(url, "mxc://notareal.hs/file");
+    assert!(content.caption().is_none());
 }
 
 #[test]
@@ -1045,8 +1047,9 @@ fn image_msgtype_deserialization() {
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
     assert_matches!(event_content.msgtype, MessageType::Image(content));
     assert_eq!(content.body, "Upload: my_image.jpg");
-    assert_matches!(content.source, MediaSource::Plain(url));
+    assert_matches!(&content.source, MediaSource::Plain(url));
     assert_eq!(url, "mxc://notareal.hs/file");
+    assert!(content.caption().is_none());
 }
 
 #[cfg(not(feature = "unstable-msc3488"))]
@@ -1202,8 +1205,9 @@ fn video_msgtype_deserialization() {
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
     assert_matches!(event_content.msgtype, MessageType::Video(content));
     assert_eq!(content.body, "Upload: my_video.mp4");
-    assert_matches!(content.source, MediaSource::Plain(url));
+    assert_matches!(&content.source, MediaSource::Plain(url));
     assert_eq!(url, "mxc://notareal.hs/file");
+    assert!(content.caption().is_none());
 }
 
 #[test]
@@ -1329,4 +1333,107 @@ fn invalid_replacement() {
     let data = relates_to.data();
     assert_matches!(&data, Cow::Borrowed(_)); // data is stored in JSON form because it's invalid
     assert_eq!(JsonValue::Object(data.into_owned()), relation);
+}
+
+#[test]
+fn test_audio_caption() {
+    let mut content = AudioMessageEventContent::plain(
+        "my_sound.ogg".to_owned(),
+        mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+    );
+    assert!(content.caption().is_none());
+    assert!(content.formatted_caption().is_none());
+
+    content.filename = Some("my_sound.ogg".to_owned());
+    assert!(content.caption().is_none());
+    assert!(content.formatted_caption().is_none());
+
+    content.body = "This was a great podcast episode".to_owned();
+    assert_eq!(content.caption(), Some("This was a great podcast episode"));
+    assert!(content.formatted_caption().is_none());
+
+    content.formatted =
+        Some(FormattedBody::html("This was a <em>great</em> podcast episode".to_owned()));
+    assert_eq!(content.caption(), Some("This was a great podcast episode"));
+    assert_eq!(
+        content.formatted_caption().map(|f| f.body.clone()),
+        Some("This was a <em>great</em> podcast episode".to_owned())
+    );
+}
+
+#[test]
+fn test_file_caption() {
+    let mut content = FileMessageEventContent::plain(
+        "my_file.txt".to_owned(),
+        mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+    );
+    assert!(content.caption().is_none());
+    assert!(content.formatted_caption().is_none());
+
+    content.filename = Some("my_file.txt".to_owned());
+    assert!(content.caption().is_none());
+    assert!(content.formatted_caption().is_none());
+
+    content.body = "Please check these notes".to_owned();
+    assert_eq!(content.caption(), Some("Please check these notes"));
+    assert!(content.formatted_caption().is_none());
+
+    content.formatted =
+        Some(FormattedBody::html("<strong>Please check these notes</strong>".to_owned()));
+    assert_eq!(content.caption(), Some("Please check these notes"));
+    assert_eq!(
+        content.formatted_caption().map(|f| f.body.clone()),
+        Some("<strong>Please check these notes</strong>".to_owned())
+    );
+}
+
+#[test]
+fn test_image_caption() {
+    let mut content = ImageMessageEventContent::plain(
+        "my_image.jpg".to_owned(),
+        mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+    );
+    assert!(content.caption().is_none());
+    assert!(content.formatted_caption().is_none());
+
+    content.filename = Some("my_image.jpg".to_owned());
+    assert!(content.caption().is_none());
+    assert!(content.formatted_caption().is_none());
+
+    content.body = "Check it out 😎".to_owned();
+    assert_eq!(content.caption(), Some("Check it out 😎"));
+    assert!(content.formatted_caption().is_none());
+
+    content.formatted = Some(FormattedBody::html("<h3>Check it out 😎</h3>".to_owned()));
+    assert_eq!(content.caption(), Some("Check it out 😎"));
+    assert_eq!(
+        content.formatted_caption().map(|f| f.body.clone()),
+        Some("<h3>Check it out 😎</h3>".to_owned())
+    );
+}
+
+#[test]
+fn test_video_caption() {
+    let mut content = VideoMessageEventContent::plain(
+        "my_video.mp4".to_owned(),
+        mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+    );
+    assert!(content.caption().is_none());
+    assert!(content.formatted_caption().is_none());
+
+    content.filename = Some("my_video.mp4".to_owned());
+    assert!(content.caption().is_none());
+    assert!(content.formatted_caption().is_none());
+
+    content.body = "You missed a great evening".to_owned();
+    assert_eq!(content.caption(), Some("You missed a great evening"));
+    assert!(content.formatted_caption().is_none());
+
+    content.formatted =
+        Some(FormattedBody::html("You missed a <strong>great</strong> evening".to_owned()));
+    assert_eq!(content.caption(), Some("You missed a great evening"));
+    assert_eq!(
+        content.formatted_caption().map(|f| f.body.clone()),
+        Some("You missed a <strong>great</strong> evening".to_owned())
+    );
 }

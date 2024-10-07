@@ -5,7 +5,10 @@ use ruma_common::OwnedMxcUri;
 use serde::{Deserialize, Serialize};
 
 use super::FormattedBody;
-use crate::room::{EncryptedFile, MediaSource};
+use crate::room::{
+    message::media_caption::{caption, formatted_caption},
+    EncryptedFile, MediaSource,
+};
 
 /// The payload for an audio message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -87,6 +90,21 @@ impl AudioMessageEventContent {
     /// as a shorthand for that, because it is very common to set this field.
     pub fn info(self, info: impl Into<Option<Box<AudioInfo>>>) -> Self {
         Self { info: info.into(), ..self }
+    }
+
+    /// Returns the caption for the audio as defined by the [spec](https://spec.matrix.org/latest/client-server-api/#media-captions).
+    ///
+    /// In short, this is the `body` field if the `filename` field exists and has a different value,
+    /// otherwise the media file does not have a caption.
+    pub fn caption(&self) -> Option<&str> {
+        caption(&self.body, self.filename.as_deref())
+    }
+
+    /// Returns the formatted caption for the audio as defined by the [spec](https://spec.matrix.org/latest/client-server-api/#media-captions).
+    ///
+    /// This is the same as `caption`, but returns the formatted body instead of the plain body.
+    pub fn formatted_caption(&self) -> Option<&FormattedBody> {
+        formatted_caption(&self.body, self.formatted.as_ref(), self.filename.as_deref())
     }
 }
 
