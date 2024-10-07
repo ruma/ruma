@@ -19,10 +19,10 @@ Improvements:
 - All the root `Any*EventContent` types now have a `EventContentFromType` implementations
   automatically derived by the `event_enum!` macro.
 - `CallMemberEventContent` now supports two different formats: Session memberships and Legacy memberships.
-The new format (Session) is required to reliably display the call member count (reliable call member events).
-`CallMemberEventContent` is now an enum to model the two different formats.
+  The new format (Session) is required to reliably display the call member count (reliable call member events).
+  `CallMemberEventContent` is now an enum to model the two different formats.
 - `CallMemberStateKey` (instead of `OwnedUserId`) is now used as the state key type for `CallMemberEventContent`.
-This guarantees correct formatting of the event key.
+  This guarantees correct formatting of the event key.
 - Add helpers for captions on audio, file, image and video messages.
 - Add helpers for filenames on audio, file, image and video messages.
 
