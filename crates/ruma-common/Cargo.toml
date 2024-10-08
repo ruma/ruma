@@ -34,8 +34,8 @@ unstable-unspecified = []
 # Allow IDs to exceed 255 bytes.
 compat-arbitrary-length-ids = ["ruma-identifiers-validation/compat-arbitrary-length-ids"]
 
-# Don't validate the version part in `KeyId`.
-compat-key-id = ["ruma-identifiers-validation/compat-key-id"]
+# Don't validate `ServerSigningKeyVersion`.
+compat-server-signing-key-version = ["ruma-identifiers-validation/compat-server-signing-key-version"]
 
 # Allow some user IDs that are invalid even with the specified historical
 # user ID scheme.

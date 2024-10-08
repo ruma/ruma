@@ -581,8 +581,8 @@ mod tests {
     use js_int::uint;
     use maplit::btreemap;
     use ruma_common::{
-        mxc_uri, owned_server_signing_key_id, serde::CanBeEmpty, server_name, user_id,
-        MilliSecondsSinceUnixEpoch,
+        mxc_uri, serde::CanBeEmpty, server_name, server_signing_key_version, user_id,
+        MilliSecondsSinceUnixEpoch, ServerSigningKeyId, SigningKeyAlgorithm,
     };
     use serde_json::{from_value as from_json_value, json};
 
@@ -710,7 +710,10 @@ mod tests {
             third_party_invite.signed.signatures,
             btreemap! {
                 server_name!("magic.forest").to_owned() => btreemap! {
-                    owned_server_signing_key_id!("ed25519:3") => "foobar".to_owned()
+                    ServerSigningKeyId::from_parts(
+                        SigningKeyAlgorithm::Ed25519,
+                        server_signing_key_version!("3")
+                    ) => "foobar".to_owned()
                 }
             }
         );
@@ -780,7 +783,10 @@ mod tests {
             third_party_invite.signed.signatures,
             btreemap! {
                 server_name!("magic.forest").to_owned() => btreemap! {
-                    owned_server_signing_key_id!("ed25519:3") => "foobar".to_owned()
+                    ServerSigningKeyId::from_parts(
+                        SigningKeyAlgorithm::Ed25519,
+                        server_signing_key_version!("3")
+                    ) => "foobar".to_owned()
                 }
             }
         );

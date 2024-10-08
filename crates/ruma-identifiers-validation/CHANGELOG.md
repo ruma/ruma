@@ -1,5 +1,17 @@
 # [unreleased]
 
+Breaking changes:
+
+- `key_id::validate` takes a generic parameter that implements the new `KeyName`
+  trait to validate the key name part. This allows to validate key names that
+  are not only server signing key versions.
+- The `compat-key-id` cargo feature was renamed to
+  `compat-server-signing-key-version`.
+
+Improvements:
+
+- Add `server_signing_key_version::validate`.
+
 # 0.9.5
 
 Bug fixes:
