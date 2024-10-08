@@ -93,7 +93,7 @@ full = [
 
 # Enable all compatibility hacks. Deprecated.
 compat = [
-    "compat-key-id",
+    "compat-server-signing-key-version",
     "compat-user-id",
     "compat-empty-string-null",
     "compat-null",
@@ -107,8 +107,8 @@ compat = [
 # Allow IDs to exceed 255 bytes.
 compat-arbitrary-length-ids = ["ruma-common/compat-arbitrary-length-ids"]
 
-# Don't validate the version part in `KeyId`.
-compat-key-id = ["ruma-common/compat-key-id"]
+# Don't validate `ServerSigningKeyVersion`.
+compat-server-signing-key-version = ["ruma-common/compat-server-signing-key-version"]
 
 # Allow some user IDs that are invalid even with the specified historical
 # user ID scheme.

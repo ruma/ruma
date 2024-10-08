@@ -14,7 +14,17 @@ Breaking changes:
   query parameters. Note that the (de)serialization of the type used must work
   with `serde_html_form`.
 - The `header` attribute for the `request` and `response` macros accepts any
-  type that implements `ToString` and `FromStr`. 
+  type that implements `ToString` and `FromStr`.
+- The `compat-key-id` cargo feature was renamed to
+  `compat-server-signing-key-version`.
+- `(Owned)KeyName` was renamed to `(Owned)ServerSigningKeyVersion` and is now
+  validated according to the set of allowed characters defined in the docs,
+  unless the `compat-server-signing-key-version` cargo feature is enabled.
+- The bounds on `KeyId` changed. The algorithm part must implement
+  `KeyAlgorithm` and the key name part must implement `KeyName`.
+- The `(owned_)server_signing_key_id` macros were removed. For compile-time
+  validated construction, use `ServerSigningKeyId::from_parts` with a
+  `SigningKeyAlgorithm` and the `server_signing_key_version` macro.
 
 Improvements:
 
