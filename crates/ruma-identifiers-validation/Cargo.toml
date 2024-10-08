@@ -15,8 +15,8 @@ all-features = true
 # Allow IDs to exceed 255 bytes.
 compat-arbitrary-length-ids = []
 
-# Don't validate the version part in `key_id::validate`.
-compat-key-id = []
+# Don't validate the version in `server_signing_key_version::validate`.
+compat-server-signing-key-version = []
 
 # Allow some user IDs that are invalid even with the specified historical
 # user ID scheme.

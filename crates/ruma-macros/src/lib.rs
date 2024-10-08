@@ -15,8 +15,8 @@ use proc_macro::TokenStream;
 use proc_macro2 as pm2;
 use quote::quote;
 use ruma_identifiers_validation::{
-    device_key_id, event_id, key_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
-    user_id,
+    device_key_id, event_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
+    server_signing_key_version, user_id,
 };
 use syn::{parse_macro_input, DeriveInput, ItemEnum, ItemStruct};
 
@@ -211,14 +211,17 @@ pub fn room_version_id(input: TokenStream) -> TokenStream {
     output.into()
 }
 
-/// Compile-time checked `ServerSigningKeyId` construction.
+/// Compile-time checked `ServerSigningKeyVersion` construction.
 #[proc_macro]
-pub fn server_signing_key_id(input: TokenStream) -> TokenStream {
+pub fn server_signing_key_version(input: TokenStream) -> TokenStream {
     let IdentifierInput { dollar_crate, id } = parse_macro_input!(input as IdentifierInput);
-    assert!(key_id::validate(&id.value()).is_ok(), "Invalid server_signing_key_id");
+    assert!(
+        server_signing_key_version::validate(&id.value()).is_ok(),
+        "Invalid server_signing_key_version"
+    );
 
     let output = quote! {
-        <&#dollar_crate::ServerSigningKeyId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
+        <&#dollar_crate::ServerSigningKeyVersion as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
     };
 
     output.into()
