@@ -25,6 +25,8 @@ Breaking changes:
 - The `(owned_)server_signing_key_id` macros were removed. For compile-time
   validated construction, use `ServerSigningKeyId::from_parts` with a
   `SigningKeyAlgorithm` and the `server_signing_key_version` macro.
+- Rename `Signatures::insert` to `Signatures::insert_signature`.
+  `Signatures::insert` is now dereferenced to `BTreeMap::insert`.
 
 Improvements:
 
@@ -40,6 +42,9 @@ Improvements:
 - Implement `Eq` and `PartialEq` for `Metadata`
 - Allow constructing `api::error::MatrixErrorBody::NotJson` outside of this
   crate.
+- Improve the API of `Signatures`, by implementing `Deref` and `DerefMut`, as
+  well as `From`, `Extend` and `FromIterator` from a list of
+  `(entity, key_identifier, value)` tuples.
 
 # 0.13.0
 
