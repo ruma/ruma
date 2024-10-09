@@ -13,10 +13,9 @@ pub mod v1 {
         api::{request, response, Metadata},
         encryption::OneTimeKey,
         metadata,
-        serde::{Base64, Raw},
+        serde::Raw,
         DeviceKeyAlgorithm, OwnedDeviceId, OwnedDeviceKeyId, OwnedUserId,
     };
-    use serde::{Deserialize, Serialize};
 
     const METADATA: Metadata = metadata! {
         method: POST,
@@ -61,25 +60,4 @@ pub mod v1 {
     /// One time keys for use in pre-key messages
     pub type OneTimeKeys =
         BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, BTreeMap<OwnedDeviceKeyId, Raw<OneTimeKey>>>>;
-
-    /// A key and its signature
-    #[derive(Debug, Clone, Serialize, Deserialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-    pub struct KeyObject {
-        /// The key, encoded using unpadded base64.
-        pub key: Base64,
-
-        /// Signature of the key object.
-        pub signatures: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceKeyId, String>>,
-    }
-
-    impl KeyObject {
-        /// Creates a new `KeyObject` with the given key and signatures.
-        pub fn new(
-            key: Base64,
-            signatures: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceKeyId, String>>,
-        ) -> Self {
-            Self { key, signatures }
-        }
-    }
 }

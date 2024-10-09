@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+- Remove the unused `KeyObject` struct. It is actually supposed to be the same type
+  as `ruma_common::encryption::SignedKey`.
+
 Bug fixes:
 
 - `ServerSigningKeys` can be deserialized when `old_verify_keys` is missing, due to a
