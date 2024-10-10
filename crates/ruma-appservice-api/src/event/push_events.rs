@@ -30,7 +30,7 @@ pub mod v1 {
         presence::PresenceState, serde::from_raw_json_value, OwnedEventId, OwnedRoomId,
     };
     #[cfg(feature = "unstable-msc3202")]
-    use ruma_common::{DeviceKeyAlgorithm, OwnedDeviceId};
+    use ruma_common::{OneTimeKeyAlgorithm, OwnedDeviceId};
     use ruma_events::AnyTimelineEvent;
     #[cfg(feature = "unstable-msc2409")]
     use ruma_events::{receipt::Receipt, AnyToDeviceEvent};
@@ -80,7 +80,7 @@ pub mod v1 {
             rename = "org.matrix.msc3202.device_one_time_keys_count"
         )]
         pub device_one_time_keys_count:
-            BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, BTreeMap<DeviceKeyAlgorithm, UInt>>>,
+            BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, BTreeMap<OneTimeKeyAlgorithm, UInt>>>,
 
         /// A list of key algorithms for which the server has an unused fallback key for the
         /// device.
@@ -91,7 +91,7 @@ pub mod v1 {
             rename = "org.matrix.msc3202.device_unused_fallback_key_types"
         )]
         pub device_unused_fallback_key_types:
-            BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Vec<DeviceKeyAlgorithm>>>,
+            BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Vec<OneTimeKeyAlgorithm>>>,
 
         /// A list of EDUs.
         #[cfg(feature = "unstable-msc2409")]

@@ -15,6 +15,9 @@ Breaking changes:
 - Remove `RuleScope`, due to a clarification in the Matrix 1.12 where the `global`
   scope is now hardcoded.
   - The `push` endpoints don't take a scope anymore.
+- Use `OwnedOneTimeKeyId` and `OneTimeKeyAlgorithm` instead of
+  `OwnedDeviceKeyId` and `DeviceKeyAlgorithm` respectively to identify one-time
+  and fallback keys and their algorithm.
 
 Improvements:
 

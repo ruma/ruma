@@ -25,6 +25,8 @@ Breaking changes:
 - The `(owned_)server_signing_key_id` macros were removed. For compile-time
   validated construction, use `ServerSigningKeyId::from_parts` with a
   `SigningKeyAlgorithm` and the `server_signing_key_version` macro.
+- Move the `DeviceKeyAlgorithm::SignedCurve25519` into the new
+  `OneTimeKeyAlgorithm` type.
 
 Improvements:
 
@@ -40,6 +42,8 @@ Improvements:
 - Implement `Eq` and `PartialEq` for `Metadata`
 - Allow constructing `api::error::MatrixErrorBody::NotJson` outside of this
   crate.
+- Add `(Owned)OneTimeKeyId` and `(Owned)OneTimeKeyName` to identify one-time and
+  fallback keys instead of using `(Owned)DeviceKeyId`.
 
 # 0.13.0
 

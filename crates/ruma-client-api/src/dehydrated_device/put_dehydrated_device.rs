@@ -14,7 +14,7 @@ pub mod unstable {
         encryption::{DeviceKeys, OneTimeKey},
         metadata,
         serde::Raw,
-        OwnedDeviceId, OwnedDeviceKeyId,
+        OwnedDeviceId, OwnedOneTimeKeyId,
     };
 
     use crate::dehydrated_device::DehydratedDeviceData;
@@ -46,11 +46,11 @@ pub mod unstable {
 
         /// One-time public keys for "pre-key" messages.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub one_time_keys: BTreeMap<OwnedDeviceKeyId, Raw<OneTimeKey>>,
+        pub one_time_keys: BTreeMap<OwnedOneTimeKeyId, Raw<OneTimeKey>>,
 
         /// Fallback public keys for "pre-key" messages.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub fallback_keys: BTreeMap<OwnedDeviceKeyId, Raw<OneTimeKey>>,
+        pub fallback_keys: BTreeMap<OwnedOneTimeKeyId, Raw<OneTimeKey>>,
     }
 
     /// Response type for the `upload_keys` endpoint.

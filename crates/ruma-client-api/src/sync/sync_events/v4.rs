@@ -13,7 +13,7 @@ use ruma_common::{
     directory::RoomTypeFilter,
     metadata,
     serde::{deserialize_cow_str, duration::opt_ms, Raw},
-    DeviceKeyAlgorithm, MilliSecondsSinceUnixEpoch, OwnedMxcUri, OwnedRoomId, OwnedUserId, RoomId,
+    MilliSecondsSinceUnixEpoch, OneTimeKeyAlgorithm, OwnedMxcUri, OwnedRoomId, OwnedUserId, RoomId,
 };
 use ruma_events::{
     receipt::SyncReceiptEvent, typing::SyncTypingEvent, AnyGlobalAccountDataEvent,
@@ -699,15 +699,14 @@ pub struct E2EE {
     /// For each key algorithm, the number of unclaimed one-time keys
     /// currently held on the server for a device.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub device_one_time_keys_count: BTreeMap<DeviceKeyAlgorithm, UInt>,
+    pub device_one_time_keys_count: BTreeMap<OneTimeKeyAlgorithm, UInt>,
 
-    /// For each key algorithm, the number of unclaimed one-time keys
-    /// currently held on the server for a device.
+    /// The unused fallback key algorithms.
     ///
     /// The presence of this field indicates that the server supports
     /// fallback keys.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub device_unused_fallback_key_types: Option<Vec<DeviceKeyAlgorithm>>,
+    pub device_unused_fallback_key_types: Option<Vec<OneTimeKeyAlgorithm>>,
 }
 
 impl E2EE {

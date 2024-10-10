@@ -9,7 +9,7 @@ use ruma_common::{
     encryption::OneTimeKey,
     metadata,
     serde::Raw,
-    DeviceKeyAlgorithm, OwnedDeviceId, OwnedDeviceKeyId, OwnedUserId,
+    OneTimeKeyAlgorithm, OwnedDeviceId, OwnedOneTimeKeyId, OwnedUserId,
 };
 use serde_json::Value as JsonValue;
 
@@ -36,7 +36,7 @@ pub struct Request {
     pub timeout: Option<Duration>,
 
     /// The keys to be claimed.
-    pub one_time_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, DeviceKeyAlgorithm>>,
+    pub one_time_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, OneTimeKeyAlgorithm>>,
 }
 
 /// Response type for the `claim_keys` endpoint.
@@ -55,7 +55,7 @@ pub struct Response {
 impl Request {
     /// Creates a new `Request` with the given key claims and the recommended 10 second timeout.
     pub fn new(
-        one_time_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, DeviceKeyAlgorithm>>,
+        one_time_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, OneTimeKeyAlgorithm>>,
     ) -> Self {
         Self { timeout: Some(Duration::from_secs(10)), one_time_keys }
     }
@@ -69,4 +69,4 @@ impl Response {
 }
 
 /// The one-time keys for a given device.
-pub type OneTimeKeys = BTreeMap<OwnedDeviceId, BTreeMap<OwnedDeviceKeyId, Raw<OneTimeKey>>>;
+pub type OneTimeKeys = BTreeMap<OwnedDeviceId, BTreeMap<OwnedOneTimeKeyId, Raw<OneTimeKey>>>;

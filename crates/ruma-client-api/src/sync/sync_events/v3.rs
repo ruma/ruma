@@ -10,7 +10,7 @@ use ruma_common::{
     metadata,
     presence::PresenceState,
     serde::Raw,
-    DeviceKeyAlgorithm, OwnedEventId, OwnedRoomId, OwnedUserId,
+    OneTimeKeyAlgorithm, OwnedEventId, OwnedRoomId, OwnedUserId,
 };
 use ruma_events::{
     presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
@@ -102,14 +102,13 @@ pub struct Response {
     /// For each key algorithm, the number of unclaimed one-time keys
     /// currently held on the server for a device.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub device_one_time_keys_count: BTreeMap<DeviceKeyAlgorithm, UInt>,
+    pub device_one_time_keys_count: BTreeMap<OneTimeKeyAlgorithm, UInt>,
 
-    /// For each key algorithm, the number of unclaimed one-time keys
-    /// currently held on the server for a device.
+    /// The unused fallback key algorithms.
     ///
     /// The presence of this field indicates that the server supports
     /// fallback keys.
-    pub device_unused_fallback_key_types: Option<Vec<DeviceKeyAlgorithm>>,
+    pub device_unused_fallback_key_types: Option<Vec<OneTimeKeyAlgorithm>>,
 }
 
 impl Request {

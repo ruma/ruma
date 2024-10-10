@@ -4,7 +4,9 @@ use ruma_macros::StringEnum;
 
 use crate::PrivOwnedStr;
 
-/// The basic key algorithms in the specification.
+/// The algorithms for the [device keys] defined in the Matrix spec.
+///
+/// [device keys]: https://spec.matrix.org/latest/client-server-api/#device-keys
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[non_exhaustive]
@@ -15,9 +17,6 @@ pub enum DeviceKeyAlgorithm {
 
     /// The Curve25519 ECDH algorithm.
     Curve25519,
-
-    /// The Curve25519 ECDH algorithm, but the key also contains signatures
-    SignedCurve25519,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
@@ -66,18 +65,29 @@ pub enum KeyDerivationAlgorithm {
     _Custom(PrivOwnedStr),
 }
 
+/// The algorithms for [one-time and fallback keys] defined in the Matrix spec.
+///
+/// [one-time and fallback keys]: https://spec.matrix.org/latest/client-server-api/#one-time-and-fallback-keys
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[non_exhaustive]
+#[ruma_enum(rename_all = "snake_case")]
+pub enum OneTimeKeyAlgorithm {
+    /// The Curve25519 ECDH algorithm, but the key also contains signatures.
+    SignedCurve25519,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{DeviceKeyAlgorithm, SigningKeyAlgorithm};
+    use super::{DeviceKeyAlgorithm, OneTimeKeyAlgorithm, SigningKeyAlgorithm};
 
     #[test]
     fn parse_device_key_algorithm() {
         assert_eq!(DeviceKeyAlgorithm::from("ed25519"), DeviceKeyAlgorithm::Ed25519);
         assert_eq!(DeviceKeyAlgorithm::from("curve25519"), DeviceKeyAlgorithm::Curve25519);
-        assert_eq!(
-            DeviceKeyAlgorithm::from("signed_curve25519"),
-            DeviceKeyAlgorithm::SignedCurve25519
-        );
     }
 
     #[test]
@@ -108,5 +118,13 @@ mod tests {
         use crate::serde::test::serde_json_eq;
 
         serde_json_eq(KeyDerivationAlgorithm::Pbkfd2, json!("m.pbkdf2"));
+    }
+
+    #[test]
+    fn parse_one_time_key_algorithm() {
+        assert_eq!(
+            OneTimeKeyAlgorithm::from("signed_curve25519"),
+            OneTimeKeyAlgorithm::SignedCurve25519
+        );
     }
 }
