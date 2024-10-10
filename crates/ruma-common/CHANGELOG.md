@@ -36,6 +36,9 @@ Breaking changes:
   `CrossSigningKey`'s `signatures`.
 - Use `OwnedDeviceSigningKeyId` instead of `OwnedDeviceKeyId` to identify
   signing keys in `SignedKey`'s `signatures`.
+- `(Owned)DeviceKeyId` is now a type alias of `(Owned)KeyId`.
+  - Remove the `(owned_)device_key_id` macro, instead use
+    `DeviceKeyId::from_parts`.
 
 Improvements:
 

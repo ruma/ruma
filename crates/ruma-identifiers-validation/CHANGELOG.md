@@ -7,6 +7,8 @@ Breaking changes:
   are not only server signing key versions.
 - The `compat-key-id` cargo feature was renamed to
   `compat-server-signing-key-version`.
+- Remove the `device_key_id` module. `DeviceKeyId` is now validated with
+  `key_id::validate`.
 
 Improvements:
 
