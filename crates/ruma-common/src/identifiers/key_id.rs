@@ -8,7 +8,7 @@ use ruma_macros::IdZst;
 
 use super::{
     crypto_algorithms::SigningKeyAlgorithm, Base64PublicKey, Base64PublicKeyOrDeviceId, DeviceId,
-    KeyName, OneTimeKeyAlgorithm, OneTimeKeyName, ServerSigningKeyVersion,
+    DeviceKeyAlgorithm, KeyName, OneTimeKeyAlgorithm, OneTimeKeyName, ServerSigningKeyVersion,
 };
 
 /// A key algorithm and key name delimited by a colon.
@@ -95,6 +95,16 @@ pub type CrossSigningOrDeviceSigningKeyId = SigningKeyId<Base64PublicKeyOrDevice
 /// [device signing]: https://spec.matrix.org/latest/client-server-api/#device-keys
 pub type OwnedCrossSigningOrDeviceSigningKeyId = OwnedSigningKeyId<Base64PublicKeyOrDeviceId>;
 
+/// Algorithm + key name for [device keys].
+///
+/// [device keys]: https://spec.matrix.org/latest/client-server-api/#device-keys
+pub type DeviceKeyId = KeyId<DeviceKeyAlgorithm, DeviceId>;
+
+/// Algorithm + key name for [device keys].
+///
+/// [device keys]: https://spec.matrix.org/latest/client-server-api/#device-keys
+pub type OwnedDeviceKeyId = OwnedKeyId<DeviceKeyAlgorithm, DeviceId>;
+
 /// Algorithm + key name for [one-time and fallback keys].
 ///
 /// [one-time and fallback keys]: https://spec.matrix.org/latest/client-server-api/#one-time-and-fallback-keys
@@ -137,5 +147,7 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> Hash for KeyId<A, K> {
 pub trait KeyAlgorithm: for<'a> From<&'a str> + AsRef<str> {}
 
 impl KeyAlgorithm for SigningKeyAlgorithm {}
+
+impl KeyAlgorithm for DeviceKeyAlgorithm {}
 
 impl KeyAlgorithm for OneTimeKeyAlgorithm {}

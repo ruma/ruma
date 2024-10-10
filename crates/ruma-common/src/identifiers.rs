@@ -24,13 +24,13 @@ pub use self::{
         SigningKeyAlgorithm,
     },
     device_id::{DeviceId, OwnedDeviceId},
-    device_key_id::{DeviceKeyId, OwnedDeviceKeyId},
     event_id::{EventId, OwnedEventId},
     key_id::{
-        CrossSigningKeyId, CrossSigningOrDeviceSigningKeyId, DeviceSigningKeyId, KeyAlgorithm,
-        KeyId, OneTimeKeyId, OwnedCrossSigningKeyId, OwnedCrossSigningOrDeviceSigningKeyId,
-        OwnedDeviceSigningKeyId, OwnedKeyId, OwnedOneTimeKeyId, OwnedServerSigningKeyId,
-        OwnedSigningKeyId, ServerSigningKeyId, SigningKeyId,
+        CrossSigningKeyId, CrossSigningOrDeviceSigningKeyId, DeviceKeyId, DeviceSigningKeyId,
+        KeyAlgorithm, KeyId, OneTimeKeyId, OwnedCrossSigningKeyId,
+        OwnedCrossSigningOrDeviceSigningKeyId, OwnedDeviceKeyId, OwnedDeviceSigningKeyId,
+        OwnedKeyId, OwnedOneTimeKeyId, OwnedServerSigningKeyId, OwnedSigningKeyId,
+        ServerSigningKeyId, SigningKeyId,
     },
     matrix_uri::{MatrixToUri, MatrixUri},
     mxc_uri::{MxcUri, OwnedMxcUri},
@@ -57,7 +57,6 @@ mod base64_public_key_or_device_id;
 mod client_secret;
 mod crypto_algorithms;
 mod device_id;
-mod device_key_id;
 mod event_id;
 mod key_id;
 mod mxc_uri;
@@ -118,24 +117,8 @@ macro_rules! owned_device_id {
 #[doc(hidden)]
 pub mod __private_macros {
     pub use ruma_macros::{
-        base64_public_key, device_key_id, event_id, mxc_uri, room_alias_id, room_id,
-        room_version_id, server_name, server_signing_key_version, user_id,
-    };
-}
-
-/// Compile-time checked [`DeviceKeyId`] construction.
-#[macro_export]
-macro_rules! device_key_id {
-    ($s:literal) => {
-        $crate::__private_macros::device_key_id!($crate, $s)
-    };
-}
-
-/// Compile-time checked [`OwnedDeviceKeyId`] construction.
-#[macro_export]
-macro_rules! owned_device_key_id {
-    ($s:literal) => {
-        $crate::device_key_id!($s).to_owned()
+        base64_public_key, event_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
+        server_signing_key_version, user_id,
     };
 }
 
