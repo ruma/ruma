@@ -1,5 +1,11 @@
 # [unreleased]
 
+Breaking changes:
+
+- Use `OwnedOneTimeKeyId` and `OneTimeKeyAlgorithm` instead of
+  `OwnedDeviceKeyId` and `DeviceKeyAlgorithm` respectively to identify one-time
+  and fallback keys and their algorithm.
+
 # 0.10.0
 
 Breaking changes:

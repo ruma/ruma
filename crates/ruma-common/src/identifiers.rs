@@ -18,17 +18,20 @@ use serde::de::{self, Deserializer, Unexpected};
 pub use self::{
     client_secret::{ClientSecret, OwnedClientSecret},
     crypto_algorithms::{
-        DeviceKeyAlgorithm, EventEncryptionAlgorithm, KeyDerivationAlgorithm, SigningKeyAlgorithm,
+        DeviceKeyAlgorithm, EventEncryptionAlgorithm, KeyDerivationAlgorithm, OneTimeKeyAlgorithm,
+        SigningKeyAlgorithm,
     },
     device_id::{DeviceId, OwnedDeviceId},
     device_key_id::{DeviceKeyId, OwnedDeviceKeyId},
     event_id::{EventId, OwnedEventId},
     key_id::{
-        DeviceSigningKeyId, KeyAlgorithm, KeyId, OwnedDeviceSigningKeyId, OwnedKeyId,
-        OwnedServerSigningKeyId, OwnedSigningKeyId, ServerSigningKeyId, SigningKeyId,
+        DeviceSigningKeyId, KeyAlgorithm, KeyId, OneTimeKeyId, OwnedDeviceSigningKeyId, OwnedKeyId,
+        OwnedOneTimeKeyId, OwnedServerSigningKeyId, OwnedSigningKeyId, ServerSigningKeyId,
+        SigningKeyId,
     },
     matrix_uri::{MatrixToUri, MatrixUri},
     mxc_uri::{MxcUri, OwnedMxcUri},
+    one_time_key_name::{OneTimeKeyName, OwnedOneTimeKeyName},
     room_alias_id::{OwnedRoomAliasId, RoomAliasId},
     room_id::{OwnedRoomId, RoomId},
     room_or_alias_id::{OwnedRoomOrAliasId, RoomOrAliasId},
@@ -53,6 +56,7 @@ mod device_key_id;
 mod event_id;
 mod key_id;
 mod mxc_uri;
+mod one_time_key_name;
 mod room_alias_id;
 mod room_id;
 mod room_or_alias_id;

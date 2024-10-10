@@ -27,6 +27,8 @@ Breaking changes:
   `SigningKeyAlgorithm` and the `server_signing_key_version` macro.
 - Rename `Signatures::insert` to `Signatures::insert_signature`.
   `Signatures::insert` is now dereferenced to `BTreeMap::insert`.
+- Move the `DeviceKeyAlgorithm::SignedCurve25519` into the new
+  `OneTimeKeyAlgorithm` type.
 
 Improvements:
 
@@ -45,6 +47,8 @@ Improvements:
 - Improve the API of `Signatures`, by implementing `Deref` and `DerefMut`, as
   well as `From`, `Extend` and `FromIterator` from a list of
   `(entity, key_identifier, value)` tuples.
+- Add `(Owned)OneTimeKeyId` and `(Owned)OneTimeKeyName` to identify one-time and
+  fallback keys instead of using `(Owned)DeviceKeyId`.
 
 # 0.13.0
 
