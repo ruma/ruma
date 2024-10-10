@@ -21,6 +21,9 @@ Breaking changes:
 - Use `OwnedOneTimeKeyId` and `OneTimeKeyAlgorithm` instead of
   `OwnedDeviceKeyId` and `DeviceKeyAlgorithm` respectively to identify one-time
   and fallback keys and their algorithm.
+- Use `OwnedCrossSigningOrDeviceSigningKeyId` instead of `OwnedDeviceKeyId` to
+  identify signing keys in `BackupAlgorithm::MegolmBackupV1Curve25519AesSha2`'s
+  `signatures`.
 
 Improvements:
 
