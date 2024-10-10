@@ -27,6 +27,13 @@ Breaking changes:
   `SigningKeyAlgorithm` and the `server_signing_key_version` macro.
 - Move the `DeviceKeyAlgorithm::SignedCurve25519` into the new
   `OneTimeKeyAlgorithm` type.
+- Add `(Owned)CrossSigningKeyId` and use it instead of `OwnedDeviceKeyId` to
+  identify `CrossSigningKey`'s `keys`.
+- Add `(Owned)CrossSigningOrDeviceSigningKeyId` and use it instead of
+  `OwnedDeviceKeyId` to identify signing keys in `DeviceKeys`'s and
+  `CrossSigningKey`'s `signatures`.
+- Use `OwnedDeviceSigningKeyId` instead of `OwnedDeviceKeyId` to identify
+  signing keys in `SignedKey`'s `signatures`.
 
 Improvements:
 
@@ -44,6 +51,10 @@ Improvements:
   crate.
 - Add `(Owned)OneTimeKeyId` and `(Owned)OneTimeKeyName` to identify one-time and
   fallback keys instead of using `(Owned)DeviceKeyId`.
+- Add `(Owned)Base64PublicKey` and `(Owned)Base64PublicKeyOrDeviceId` to
+  identify cross-signing keys.
+  - Add `(owned_)base_64_public_key` to construct a compile-time validated
+    `(Owned)Base64PublicKey`.
 
 # 0.13.0
 

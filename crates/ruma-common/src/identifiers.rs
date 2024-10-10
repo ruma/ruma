@@ -16,6 +16,8 @@ use serde::de::{self, Deserializer, Unexpected};
 
 #[doc(inline)]
 pub use self::{
+    base64_public_key::{Base64PublicKey, OwnedBase64PublicKey},
+    base64_public_key_or_device_id::{Base64PublicKeyOrDeviceId, OwnedBase64PublicKeyOrDeviceId},
     client_secret::{ClientSecret, OwnedClientSecret},
     crypto_algorithms::{
         DeviceKeyAlgorithm, EventEncryptionAlgorithm, KeyDerivationAlgorithm, OneTimeKeyAlgorithm,
@@ -25,9 +27,10 @@ pub use self::{
     device_key_id::{DeviceKeyId, OwnedDeviceKeyId},
     event_id::{EventId, OwnedEventId},
     key_id::{
-        DeviceSigningKeyId, KeyAlgorithm, KeyId, OneTimeKeyId, OwnedDeviceSigningKeyId, OwnedKeyId,
-        OwnedOneTimeKeyId, OwnedServerSigningKeyId, OwnedSigningKeyId, ServerSigningKeyId,
-        SigningKeyId,
+        CrossSigningKeyId, CrossSigningOrDeviceSigningKeyId, DeviceSigningKeyId, KeyAlgorithm,
+        KeyId, OneTimeKeyId, OwnedCrossSigningKeyId, OwnedCrossSigningOrDeviceSigningKeyId,
+        OwnedDeviceSigningKeyId, OwnedKeyId, OwnedOneTimeKeyId, OwnedServerSigningKeyId,
+        OwnedSigningKeyId, ServerSigningKeyId, SigningKeyId,
     },
     matrix_uri::{MatrixToUri, MatrixUri},
     mxc_uri::{MxcUri, OwnedMxcUri},
@@ -49,6 +52,8 @@ pub use self::{
 pub mod matrix_uri;
 pub mod user_id;
 
+mod base64_public_key;
+mod base64_public_key_or_device_id;
 mod client_secret;
 mod crypto_algorithms;
 mod device_id;
@@ -113,8 +118,8 @@ macro_rules! owned_device_id {
 #[doc(hidden)]
 pub mod __private_macros {
     pub use ruma_macros::{
-        device_key_id, event_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
-        server_signing_key_version, user_id,
+        base64_public_key, device_key_id, event_id, mxc_uri, room_alias_id, room_id,
+        room_version_id, server_name, server_signing_key_version, user_id,
     };
 }
 
@@ -272,5 +277,21 @@ macro_rules! user_id {
 macro_rules! owned_user_id {
     ($s:literal) => {
         $crate::user_id!($s).to_owned()
+    };
+}
+
+/// Compile-time checked [`Base64PublicKey`] construction.
+#[macro_export]
+macro_rules! base64_public_key {
+    ($s:literal) => {
+        $crate::__private_macros::base64_public_key!($crate, $s)
+    };
+}
+
+/// Compile-time checked [`OwnedBase64PublicKey`] construction.
+#[macro_export]
+macro_rules! owned_base64_public_key {
+    ($s:literal) => {
+        $crate::base64_public_key!($s).to_owned()
     };
 }

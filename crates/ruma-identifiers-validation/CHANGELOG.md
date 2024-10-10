@@ -11,6 +11,7 @@ Breaking changes:
 Improvements:
 
 - Add `server_signing_key_version::validate`.
+- Add `base64_public_key::validate`.
 
 # 0.9.5
 

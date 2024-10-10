@@ -7,8 +7,8 @@ use std::{
 use ruma_macros::IdZst;
 
 use super::{
-    crypto_algorithms::SigningKeyAlgorithm, DeviceId, KeyName, OneTimeKeyAlgorithm, OneTimeKeyName,
-    ServerSigningKeyVersion,
+    crypto_algorithms::SigningKeyAlgorithm, Base64PublicKey, Base64PublicKeyOrDeviceId, DeviceId,
+    KeyName, OneTimeKeyAlgorithm, OneTimeKeyName, ServerSigningKeyVersion,
 };
 
 /// A key algorithm and key name delimited by a colon.
@@ -63,11 +63,37 @@ pub type ServerSigningKeyId = SigningKeyId<ServerSigningKeyVersion>;
 /// Algorithm + key name for homeserver signing keys.
 pub type OwnedServerSigningKeyId = OwnedSigningKeyId<ServerSigningKeyVersion>;
 
-/// Algorithm + key name for device keys.
+/// Algorithm + key name for [device signing keys].
+///
+/// [device signing keys]: https://spec.matrix.org/latest/client-server-api/#device-keys
 pub type DeviceSigningKeyId = SigningKeyId<DeviceId>;
 
-/// Algorithm + key name for device keys.
+/// Algorithm + key name for [device signing] keys.
+///
+/// [device signing keys]: https://spec.matrix.org/latest/client-server-api/#device-keys
 pub type OwnedDeviceSigningKeyId = OwnedSigningKeyId<DeviceId>;
+
+/// Algorithm + key name for [cross-signing] keys.
+///
+/// [cross-signing]: https://spec.matrix.org/latest/client-server-api/#cross-signing
+pub type CrossSigningKeyId = SigningKeyId<Base64PublicKey>;
+
+/// Algorithm + key name for [cross-signing] keys.
+///
+/// [cross-signing]: https://spec.matrix.org/latest/client-server-api/#cross-signing
+pub type OwnedCrossSigningKeyId = OwnedSigningKeyId<Base64PublicKey>;
+
+/// Algorithm + key name for [cross-signing] or [device signing] keys.
+///
+/// [cross-signing]: https://spec.matrix.org/latest/client-server-api/#cross-signing
+/// [device signing]: https://spec.matrix.org/latest/client-server-api/#device-keys
+pub type CrossSigningOrDeviceSigningKeyId = SigningKeyId<Base64PublicKeyOrDeviceId>;
+
+/// Algorithm + key name for [cross-signing] or [device signing] keys.
+///
+/// [cross-signing]: https://spec.matrix.org/latest/client-server-api/#cross-signing
+/// [device signing]: https://spec.matrix.org/latest/client-server-api/#device-keys
+pub type OwnedCrossSigningOrDeviceSigningKeyId = OwnedSigningKeyId<Base64PublicKeyOrDeviceId>;
 
 /// Algorithm + key name for [one-time and fallback keys].
 ///
