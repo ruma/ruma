@@ -3,7 +3,6 @@
 
 pub mod base64_public_key;
 pub mod client_secret;
-pub mod device_key_id;
 pub mod error;
 pub mod event_id;
 pub mod key_id;

@@ -15,8 +15,8 @@ use proc_macro::TokenStream;
 use proc_macro2 as pm2;
 use quote::quote;
 use ruma_identifiers_validation::{
-    base64_public_key, device_key_id, event_id, mxc_uri, room_alias_id, room_id, room_version_id,
-    server_name, server_signing_key_version, user_id,
+    base64_public_key, event_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
+    server_signing_key_version, user_id,
 };
 use syn::{parse_macro_input, DeriveInput, ItemEnum, ItemStruct};
 
@@ -144,19 +144,6 @@ pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
 pub fn derive_id_zst(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ItemStruct);
     expand_id_zst(input).unwrap_or_else(syn::Error::into_compile_error).into()
-}
-
-/// Compile-time checked `DeviceKeyId` construction.
-#[proc_macro]
-pub fn device_key_id(input: TokenStream) -> TokenStream {
-    let IdentifierInput { dollar_crate, id } = parse_macro_input!(input as IdentifierInput);
-    assert!(device_key_id::validate(&id.value()).is_ok(), "Invalid device key id");
-
-    let output = quote! {
-        <&#dollar_crate::DeviceKeyId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
-    };
-
-    output.into()
 }
 
 /// Compile-time checked `EventId` construction.
