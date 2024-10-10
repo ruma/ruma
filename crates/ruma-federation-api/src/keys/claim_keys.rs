@@ -14,7 +14,7 @@ pub mod v1 {
         encryption::OneTimeKey,
         metadata,
         serde::Raw,
-        DeviceKeyAlgorithm, OwnedDeviceId, OwnedDeviceKeyId, OwnedUserId,
+        OneTimeKeyAlgorithm, OwnedDeviceId, OwnedOneTimeKeyId, OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -55,9 +55,11 @@ pub mod v1 {
     }
 
     /// A claim for one time keys
-    pub type OneTimeKeyClaims = BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, DeviceKeyAlgorithm>>;
+    pub type OneTimeKeyClaims = BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, OneTimeKeyAlgorithm>>;
 
     /// One time keys for use in pre-key messages
-    pub type OneTimeKeys =
-        BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, BTreeMap<OwnedDeviceKeyId, Raw<OneTimeKey>>>>;
+    pub type OneTimeKeys = BTreeMap<
+        OwnedUserId,
+        BTreeMap<OwnedDeviceId, BTreeMap<OwnedOneTimeKeyId, Raw<OneTimeKey>>>,
+    >;
 }

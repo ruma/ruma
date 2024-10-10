@@ -4,6 +4,9 @@ Breaking changes:
 
 - Remove the unused `KeyObject` struct. It is actually supposed to be the same type
   as `ruma_common::encryption::SignedKey`.
+- Use `OwnedOneTimeKeyId` and `OneTimeKeyAlgorithm` instead of
+  `OwnedDeviceKeyId` and `DeviceKeyAlgorithm` respectively to identify one-time
+  and fallback keys and their algorithm.
 
 Bug fixes:
 

@@ -18,6 +18,9 @@ Breaking changes:
   - The `push` endpoints don't take a scope anymore.
 - Make `Content-Type` and `Content-Disposition` mandatory when creating media
   responses, according to MSC2701 / MSC2702 / Matrix 1.12.
+- Use `OwnedOneTimeKeyId` and `OneTimeKeyAlgorithm` instead of
+  `OwnedDeviceKeyId` and `DeviceKeyAlgorithm` respectively to identify one-time
+  and fallback keys and their algorithm.
 
 Improvements:
 

@@ -6,7 +6,10 @@ use std::{
 
 use ruma_macros::IdZst;
 
-use super::{crypto_algorithms::SigningKeyAlgorithm, DeviceId, KeyName, ServerSigningKeyVersion};
+use super::{
+    crypto_algorithms::SigningKeyAlgorithm, DeviceId, KeyName, OneTimeKeyAlgorithm, OneTimeKeyName,
+    ServerSigningKeyVersion,
+};
 
 /// A key algorithm and key name delimited by a colon.
 #[repr(transparent)]
@@ -66,6 +69,16 @@ pub type DeviceSigningKeyId = SigningKeyId<DeviceId>;
 /// Algorithm + key name for device keys.
 pub type OwnedDeviceSigningKeyId = OwnedSigningKeyId<DeviceId>;
 
+/// Algorithm + key name for [one-time and fallback keys].
+///
+/// [one-time and fallback keys]: https://spec.matrix.org/latest/client-server-api/#one-time-and-fallback-keys
+pub type OneTimeKeyId = KeyId<OneTimeKeyAlgorithm, OneTimeKeyName>;
+
+/// Algorithm + key name for [one-time and fallback keys].
+///
+/// [one-time and fallback keys]: https://spec.matrix.org/latest/client-server-api/#one-time-and-fallback-keys
+pub type OwnedOneTimeKeyId = OwnedKeyId<OneTimeKeyAlgorithm, OneTimeKeyName>;
+
 // The following impls are usually derived using the std macros.
 // They are implemented manually here to avoid unnecessary bounds.
 impl<A: KeyAlgorithm, K: KeyName + ?Sized> PartialEq for KeyId<A, K> {
@@ -98,3 +111,5 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> Hash for KeyId<A, K> {
 pub trait KeyAlgorithm: for<'a> From<&'a str> + AsRef<str> {}
 
 impl KeyAlgorithm for SigningKeyAlgorithm {}
+
+impl KeyAlgorithm for OneTimeKeyAlgorithm {}
