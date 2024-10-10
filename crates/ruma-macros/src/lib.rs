@@ -15,8 +15,8 @@ use proc_macro::TokenStream;
 use proc_macro2 as pm2;
 use quote::quote;
 use ruma_identifiers_validation::{
-    device_key_id, event_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
-    server_signing_key_version, user_id,
+    base64_public_key, device_key_id, event_id, mxc_uri, room_alias_id, room_id, room_version_id,
+    server_name, server_signing_key_version, user_id,
 };
 use syn::{parse_macro_input, DeriveInput, ItemEnum, ItemStruct};
 
@@ -261,6 +261,19 @@ pub fn user_id(input: TokenStream) -> TokenStream {
 
     let output = quote! {
         <&#dollar_crate::UserId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
+    };
+
+    output.into()
+}
+
+/// Compile-time checked `Base64PublicKey` construction.
+#[proc_macro]
+pub fn base64_public_key(input: TokenStream) -> TokenStream {
+    let IdentifierInput { dollar_crate, id } = parse_macro_input!(input as IdentifierInput);
+    assert!(base64_public_key::validate(&id.value()).is_ok(), "Invalid base64 public key");
+
+    let output = quote! {
+        <&#dollar_crate::DeviceKeyId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
     };
 
     output.into()
