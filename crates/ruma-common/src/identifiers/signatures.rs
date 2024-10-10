@@ -2,7 +2,10 @@ use std::{borrow::Borrow, collections::BTreeMap};
 
 use serde::{Deserialize, Serialize};
 
-use super::{OwnedDeviceId, OwnedKeyName, OwnedServerName, OwnedSigningKeyId, OwnedUserId};
+use super::{
+    KeyName, OwnedDeviceId, OwnedServerName, OwnedServerSigningKeyVersion, OwnedSigningKeyId,
+    OwnedUserId,
+};
 
 /// Map of key identifier to signature values.
 pub type EntitySignatures<K> = BTreeMap<OwnedSigningKeyId<K>, String>;
@@ -10,8 +13,11 @@ pub type EntitySignatures<K> = BTreeMap<OwnedSigningKeyId<K>, String>;
 /// Map of all signatures, grouped by entity
 ///
 /// ```
-/// # use ruma_common::{server_name, KeyId, Signatures, SigningKeyAlgorithm};
-/// let key_identifier = KeyId::from_parts(SigningKeyAlgorithm::Ed25519, "1");
+/// # use ruma_common::{server_name, server_signing_key_version, ServerSigningKeyId, Signatures, SigningKeyAlgorithm};
+/// let key_identifier = ServerSigningKeyId::from_parts(
+///     SigningKeyAlgorithm::Ed25519,
+///     server_signing_key_version!("1")
+/// );
 /// let mut signatures = Signatures::new();
 /// let server_name = server_name!("example.org");
 /// let signature =
@@ -20,9 +26,9 @@ pub type EntitySignatures<K> = BTreeMap<OwnedSigningKeyId<K>, String>;
 /// ```
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(transparent)]
-pub struct Signatures<E: Ord, K: ?Sized>(BTreeMap<E, EntitySignatures<K>>);
+pub struct Signatures<E: Ord, K: KeyName + ?Sized>(BTreeMap<E, EntitySignatures<K>>);
 
-impl<E: Ord, K: ?Sized> Signatures<E, K> {
+impl<E: Ord, K: KeyName + ?Sized> Signatures<E, K> {
     /// Creates an empty signature map.
     pub fn new() -> Self {
         Self(BTreeMap::new())
@@ -51,7 +57,7 @@ impl<E: Ord, K: ?Sized> Signatures<E, K> {
 }
 
 /// Map of server signatures for an event, grouped by server.
-pub type ServerSignatures = Signatures<OwnedServerName, OwnedKeyName>;
+pub type ServerSignatures = Signatures<OwnedServerName, OwnedServerSigningKeyVersion>;
 
 /// Map of device signatures for an event, grouped by user.
 pub type DeviceSignatures = Signatures<OwnedUserId, OwnedDeviceId>;

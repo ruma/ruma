@@ -2,8 +2,9 @@ use ruma_macros::IdZst;
 
 #[cfg(feature = "rand")]
 use super::generate_localpart;
+use super::{IdParseError, KeyName};
 
-/// A Matrix key ID.
+/// A Matrix device ID.
 ///
 /// Device identifiers in Matrix are completely opaque character sequences. This type is provided
 /// simply for its semantic value.
@@ -37,6 +38,18 @@ impl DeviceId {
     #[allow(clippy::new_ret_no_self)]
     pub fn new() -> OwnedDeviceId {
         Self::from_borrowed(&generate_localpart(8)).to_owned()
+    }
+}
+
+impl KeyName for DeviceId {
+    fn validate(_s: &str) -> Result<(), IdParseError> {
+        Ok(())
+    }
+}
+
+impl KeyName for OwnedDeviceId {
+    fn validate(_s: &str) -> Result<(), IdParseError> {
+        Ok(())
     }
 }
 

@@ -1,5 +1,8 @@
 # [unreleased]
 
+- The `compat-key-id` cargo feature was renamed to
+  `compat-server-signing-key-version`.
+
 # 0.10.1
 
 Upgrade `ruma-events` to 0.28.1.
