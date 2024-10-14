@@ -2,6 +2,7 @@
 
 Bug fixes:
 
+- Fix missing `relates_to` field on `StickerEventContent`
 - Fix deserialization of `AnyGlobalAccountDataEvent` for variants with a type
   fragment.
 - Fix serialization of `room::message::Relation` and `room::encrypted::Relation`
