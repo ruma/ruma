@@ -1,10 +1,11 @@
 use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::{uint, UInt};
-use ruma_common::{mxc_uri, serde::CanBeEmpty, MilliSecondsSinceUnixEpoch};
+use ruma_common::{mxc_uri, owned_event_id, serde::CanBeEmpty, MilliSecondsSinceUnixEpoch};
 use ruma_events::{
-    room::{ImageInfo, MediaSource, ThumbnailInfo},
-    sticker::{StickerEventContent, StickerMediaSource},
+    relation::Replacement,
+    room::{message::Relation, ImageInfo, MediaSource, ThumbnailInfo},
+    sticker::{StickerEventContent, StickerEventContentWithoutRelation, StickerMediaSource},
     AnyMessageLikeEvent, MessageLikeEvent,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
@@ -23,6 +24,43 @@ fn content_serialization() {
             "body": "Upload: my_image.jpg",
             "url": "mxc://notareal.hs/file",
             "info": {},
+        })
+    );
+}
+
+#[test]
+fn replace_content_serialization() {
+    let mut message_event_content = StickerEventContent::new(
+        "* Upload: my_image.jpg".to_owned(),
+        ImageInfo::new(),
+        mxc_uri!("mxc://notareal.hs/file").to_owned(),
+    );
+    let old_event_id = owned_event_id!("$15827405538098VGFWH:example.com");
+    let new_message_event_content = StickerEventContent::new(
+        "Upload: my_image.jpg".to_owned(),
+        ImageInfo::new(),
+        mxc_uri!("mxc://notareal.hs/file").to_owned(),
+    );
+    let new_content = StickerEventContentWithoutRelation::from(new_message_event_content);
+    let replacement = Replacement::new(old_event_id.clone(), new_content);
+    let relation = Relation::Replacement(replacement);
+    message_event_content.relates_to = Some(relation);
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "* Upload: my_image.jpg",
+            "url": "mxc://notareal.hs/file",
+            "info": {},
+            "m.new_content": {
+                "body": "Upload: my_image.jpg",
+                "url": "mxc://notareal.hs/file",
+                "info": {},
+            },
+            "m.relates_to": {
+                "rel_type": "m.replace",
+                "event_id": old_event_id,
+            }
         })
     );
 }
@@ -116,6 +154,91 @@ fn content_deserialization() {
             StickerMediaSource::Encrypted(encrypted_sticker_url)
         );
         assert_eq!(encrypted_sticker_url.url, "mxc://notareal.hs/file");
+    }
+}
+
+#[test]
+fn replace_content_deserialization() {
+    let old_event_id = owned_event_id!("$15827405538098VGFWH:example.com");
+    let json_data = json!({
+        "body": "* Upload: my_image.jpg",
+        "url": "mxc://notareal.hs/file",
+        "info": {},
+        "m.new_content": {
+            "body": "Upload: my_image.jpg",
+            "url": "mxc://notareal.hs/file",
+            "info": {},
+        },
+        "m.relates_to": {
+            "rel_type": "m.replace",
+            "event_id": old_event_id,
+        }
+    });
+
+    let content = from_json_value::<StickerEventContent>(json_data).unwrap();
+    assert_eq!(content.body, "* Upload: my_image.jpg");
+    assert_matches!(content.source, StickerMediaSource::Plain(sticker_url));
+    assert_eq!(sticker_url, "mxc://notareal.hs/file");
+
+    assert_matches!(content.relates_to, Some(Relation::Replacement(replacement)));
+    assert_eq!(replacement.new_content.body, "Upload: my_image.jpg");
+    assert_matches!(replacement.new_content.source, StickerMediaSource::Plain(sticker_url));
+    assert_eq!(sticker_url, "mxc://notareal.hs/file");
+
+    let encrypted_json_data = json!({
+        "body": "* Upload: my_image.jpg",
+        "file": {
+            "url": "mxc://notareal.hs/file",
+            "key": {
+                "kty": "oct",
+                "key_ops": ["encrypt", "decrypt"],
+                "alg": "A256CTR",
+                "k": "TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A",
+                "ext": true
+            },
+            "iv": "S22dq3NAX8wAAAAAAAAAAA",
+            "hashes": {
+                "sha256": "aWOHudBnDkJ9IwaR1Nd8XKoI7DOrqDTwt6xDPfVGN6Q"
+            },
+            "v": "v2",
+        },
+        "m.new_content": {
+            "body": "Upload: my_image.jpg",
+            "url": "mxc://notareal.hs/file",
+            "info": {},
+        },
+        "m.relates_to": {
+            "event_id": old_event_id,
+            "rel_type": "m.replace"
+        },
+        "info": {},
+    });
+
+    #[cfg(not(feature = "compat-encrypted-stickers"))]
+    {
+        from_json_value::<StickerEventContent>(encrypted_json_data).unwrap_err();
+    }
+    #[cfg(feature = "compat-encrypted-stickers")]
+    {
+        let encrypted_content =
+            from_json_value::<StickerEventContent>(encrypted_json_data).unwrap();
+        assert_eq!(encrypted_content.body, "Upload: my_image.jpg");
+        assert_matches!(
+            encrypted_content.source,
+            StickerMediaSource::Encrypted(encrypted_sticker_url)
+        );
+        assert_eq!(encrypted_sticker_url.url, "mxc://notareal.hs/file");
+
+        assert_matches!(
+            encrypted_content.relates_to,
+            Some(Relation::Replacement(encrypted_replacement))
+        );
+        assert_eq!(encrypted_replacement.new_content.body, "Upload: my_image.jpg");
+        assert_matches!(
+            encrypted_replacement.new_content.source,
+            StickerMediaSource::Plain(encrypted_sticker_url)
+        );
+        assert_eq!(encrypted_sticker_url, "mxc://notareal.hs/file");
     }
 }
 
