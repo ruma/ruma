@@ -228,6 +228,17 @@ fn replace_content_deserialization() {
             StickerMediaSource::Encrypted(encrypted_sticker_url)
         );
         assert_eq!(encrypted_sticker_url.url, "mxc://notareal.hs/file");
+
+        assert_matches!(
+            encrypted_content.relates_to,
+            Some(Relation::Replacement(encrypted_replacement))
+        );
+        assert_eq!(encrypted_replacement.new_content.body, "Upload: my_image.jpg");
+        assert_matches!(
+            encrypted_replacement.new_content.source,
+            StickerMediaSource::Plain(encrypted_sticker_url)
+        );
+        assert_eq!(encrypted_sticker_url, "mxc://notareal.hs/file");
     }
 }
 
