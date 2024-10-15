@@ -8,10 +8,7 @@ use serde::{de, Deserialize, Serialize};
 
 #[cfg(feature = "compat-encrypted-stickers")]
 use crate::room::EncryptedFile;
-use crate::room::{
-    message::{Relation, RoomMessageEventContentWithoutRelation},
-    ImageInfo, MediaSource,
-};
+use crate::room::{message::Relation, ImageInfo, MediaSource};
 
 /// The source of a sticker media file.
 #[derive(Clone, Debug, Serialize)]
@@ -84,7 +81,7 @@ impl From<MediaSource> for StickerMediaSource {
 /// A sticker message.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.sticker", kind = MessageLike)]
+#[ruma_event(type = "m.sticker", kind = MessageLike, without_relation)]
 pub struct StickerEventContent {
     /// A textual representation or associated description of the sticker image.
     ///
@@ -105,7 +102,7 @@ pub struct StickerEventContent {
         skip_serializing_if = "Option::is_none",
         deserialize_with = "crate::room::message::relation_serde::deserialize_relation"
     )]
-    pub relates_to: Option<Relation<RoomMessageEventContentWithoutRelation>>,
+    pub relates_to: Option<Relation<StickerEventContentWithoutRelation>>,
 }
 
 impl StickerEventContent {
