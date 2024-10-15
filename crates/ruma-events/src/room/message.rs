@@ -925,16 +925,8 @@ pub(crate) fn parse_markdown(text: &str) -> Option<String> {
         parser_events.back().is_some_and(|event| matches!(event, Event::End(TagEnd::Paragraph)));
 
     if first_event_is_paragraph_start && last_event_is_paragraph_end {
-        found_first_paragraph = false;
-        let has_several_blocks = parser_events.iter().any(|ref event| {
-            if matches!(event, Event::Start(Tag::Paragraph)) {
-                if found_first_paragraph {
-                    true
-                } else {
-                    found_first_paragraph = true;
-                    false
-                }
-            } else if let Event::Start(tag) = event {
+        let has_several_blocks = parser_events.iter().skip(1).any(|event| {
+            if let Event::Start(tag) = event {
                 is_block_tag(tag)
             } else {
                 false
