@@ -31,17 +31,17 @@ fn content_serialization() {
 #[test]
 fn replace_content_serialization() {
     let mut message_event_content = StickerEventContent::new(
-        "New upload: my_image.jpg".to_owned(),
+        "* Upload: my_image.jpg".to_owned(),
         ImageInfo::new(),
         mxc_uri!("mxc://notareal.hs/file").to_owned(),
     );
     let old_event_id = owned_event_id!("$15827405538098VGFWH:example.com");
-    let old_message_event_content = StickerEventContent::new(
+    let new_message_event_content = StickerEventContent::new(
         "Upload: my_image.jpg".to_owned(),
         ImageInfo::new(),
         mxc_uri!("mxc://notareal.hs/file").to_owned(),
     );
-    let new_content = StickerEventContentWithoutRelation::from(old_message_event_content);
+    let new_content = StickerEventContentWithoutRelation::from(new_message_event_content);
     let replacement = Replacement::new(old_event_id.clone(), new_content);
     let relation = Relation::Replacement(replacement);
     message_event_content.relates_to = Some(relation);
@@ -49,7 +49,7 @@ fn replace_content_serialization() {
     assert_eq!(
         to_json_value(&message_event_content).unwrap(),
         json!({
-            "body": "New upload: my_image.jpg",
+            "body": "* Upload: my_image.jpg",
             "url": "mxc://notareal.hs/file",
             "info": {},
             "m.new_content": {
@@ -161,7 +161,7 @@ fn content_deserialization() {
 fn replace_content_deserialization() {
     let old_event_id = owned_event_id!("$15827405538098VGFWH:example.com");
     let json_data = json!({
-        "body": "New upload: my_image.jpg",
+        "body": "* Upload: my_image.jpg",
         "url": "mxc://notareal.hs/file",
         "info": {},
         "m.new_content": {
@@ -176,12 +176,17 @@ fn replace_content_deserialization() {
     });
 
     let content = from_json_value::<StickerEventContent>(json_data).unwrap();
-    assert_eq!(content.body, "New upload: my_image.jpg");
+    assert_eq!(content.body, "* Upload: my_image.jpg");
     assert_matches!(content.source, StickerMediaSource::Plain(sticker_url));
     assert_eq!(sticker_url, "mxc://notareal.hs/file");
 
+    assert_matches!(content.relates_to, Some(Relation::Replacement(replacement)));
+    assert_eq!(replacement.new_content.body, "Upload: my_image.jpg");
+    assert_matches!(replacement.new_content.source, StickerMediaSource::Plain(sticker_url));
+    assert_eq!(sticker_url, "mxc://notareal.hs/file");
+
     let encrypted_json_data = json!({
-        "body": "Upload: my_image.jpg",
+        "body": "* Upload: my_image.jpg",
         "file": {
             "url": "mxc://notareal.hs/file",
             "key": {
@@ -196,10 +201,15 @@ fn replace_content_deserialization() {
                 "sha256": "aWOHudBnDkJ9IwaR1Nd8XKoI7DOrqDTwt6xDPfVGN6Q"
             },
             "v": "v2",
-            "m.relates_to": {
-                "event_id": old_event_id,
-                "rel_type": "m.replace"
-            },
+        },
+        "m.new_content": {
+            "body": "Upload: my_image.jpg",
+            "url": "mxc://notareal.hs/file",
+            "info": {},
+        },
+        "m.relates_to": {
+            "event_id": old_event_id,
+            "rel_type": "m.replace"
         },
         "info": {},
     });
