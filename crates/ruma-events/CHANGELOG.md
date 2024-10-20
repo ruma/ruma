@@ -1,5 +1,8 @@
 # [unreleased]
 
+Improvements
+- Add unstable support for MSC4059 for bundling link previews in chat text messages
+
 # 0.29.0
 
 Bug fixes:

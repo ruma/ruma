@@ -85,6 +85,8 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::room::message::Relation;
+#[cfg(feature = "unstable-msc4095")]
+use super::room::message::UrlPreview;
 
 pub(super) mod historical_serde;
 
@@ -103,7 +105,7 @@ pub(super) mod historical_serde;
 #[ruma_event(type = "org.matrix.msc1767.message", kind = MessageLike, without_relation)]
 pub struct MessageEventContent {
     /// The message's text content.
-    #[serde(rename = "org.matrix.msc1767.text")]
+    #[serde(rename = "org.matrix.msc1767.text", alias = "m.text")]
     pub text: TextContentBlock,
 
     /// Whether this message is automated.
@@ -122,6 +124,15 @@ pub struct MessageEventContent {
         deserialize_with = "crate::room::message::relation_serde::deserialize_relation"
     )]
     pub relates_to: Option<Relation<MessageEventContentWithoutRelation>>,
+
+    /// [MSC4095](https://github.com/matrix-org/matrix-spec-proposals/pull/4095)-style bundled url previews
+    #[cfg(feature = "unstable-msc4095")]
+    #[serde(
+        rename = "com.beeper.linkpreviews",
+        skip_serializing_if = "Option::is_none",
+        alias = "m.url_previews"
+    )]
+    pub url_previews: Option<Vec<UrlPreview>>,
 }
 
 impl MessageEventContent {
@@ -132,6 +143,8 @@ impl MessageEventContent {
             #[cfg(feature = "unstable-msc3955")]
             automated: false,
             relates_to: None,
+            #[cfg(feature = "unstable-msc4095")]
+            url_previews: None,
         }
     }
 
@@ -142,6 +155,8 @@ impl MessageEventContent {
             #[cfg(feature = "unstable-msc3955")]
             automated: false,
             relates_to: None,
+            #[cfg(feature = "unstable-msc4095")]
+            url_previews: None,
         }
     }
 
@@ -156,6 +171,8 @@ impl MessageEventContent {
             #[cfg(feature = "unstable-msc3955")]
             automated: false,
             relates_to: None,
+            #[cfg(feature = "unstable-msc4095")]
+            url_previews: None,
         }
     }
 }
@@ -167,6 +184,8 @@ impl From<TextContentBlock> for MessageEventContent {
             #[cfg(feature = "unstable-msc3955")]
             automated: false,
             relates_to: None,
+            #[cfg(feature = "unstable-msc4095")]
+            url_previews: None,
         }
     }
 }
