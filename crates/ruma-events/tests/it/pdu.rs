@@ -4,8 +4,9 @@ use std::collections::BTreeMap;
 
 use js_int::uint;
 use ruma_common::{
-    event_id, owned_event_id, owned_room_id, owned_server_signing_key_id, owned_user_id,
-    server_name, MilliSecondsSinceUnixEpoch,
+    event_id, owned_event_id, owned_room_id, owned_user_id, server_name,
+    server_signing_key_version, MilliSecondsSinceUnixEpoch, ServerSigningKeyId,
+    SigningKeyAlgorithm,
 };
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV1Pdu, RoomV3Pdu},
@@ -21,7 +22,10 @@ fn serialize_pdu_as_v1() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
     inner_signature.insert(
-        owned_server_signing_key_id!("ed25519:key_version"),
+        ServerSigningKeyId::from_parts(
+            SigningKeyAlgorithm::Ed25519,
+            server_signing_key_version!("key_version"),
+        ),
         "86BytesOfSignatureOfTheRedactedEvent".into(),
     );
     signatures.insert(server_name!("example.com").to_owned(), inner_signature);
@@ -86,7 +90,10 @@ fn serialize_pdu_as_v3() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
     inner_signature.insert(
-        owned_server_signing_key_id!("ed25519:key_version"),
+        ServerSigningKeyId::from_parts(
+            SigningKeyAlgorithm::Ed25519,
+            server_signing_key_version!("key_version"),
+        ),
         "86BytesOfSignatureOfTheRedactedEvent".into(),
     );
     signatures.insert(server_name!("example.com").to_owned(), inner_signature);
