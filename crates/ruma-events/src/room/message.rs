@@ -38,6 +38,8 @@ mod reply;
 pub mod sanitize;
 mod server_notice;
 mod text;
+#[cfg(feature = "unstable-msc4095")]
+mod url_preview;
 mod video;
 mod without_relation;
 
@@ -45,6 +47,8 @@ mod without_relation;
 pub use self::audio::{
     UnstableAmplitude, UnstableAudioDetailsContentBlock, UnstableVoiceContentBlock,
 };
+#[cfg(feature = "unstable-msc4095")]
+pub use self::url_preview::UrlPreview;
 pub use self::{
     audio::{AudioInfo, AudioMessageEventContent},
     emote::EmoteMessageEventContent,

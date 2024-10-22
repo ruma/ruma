@@ -30,6 +30,7 @@ Improvements:
   unstable `com.famedly.marked_unread` room account data is still available behind the
   `unstable-msc2867` cargo feature to be able to migrate data from the unstable to the stable
   prefix.
+- Add unstable support for MSC4059 for bundling link previews in chat text messages
 
 Breaking changes:
 

@@ -42,6 +42,7 @@ unstable-msc3954 = ["unstable-msc1767"]
 unstable-msc3955 = ["unstable-msc1767"]
 unstable-msc3956 = ["unstable-msc1767"]
 unstable-msc4075 = ["unstable-msc3401"]
+unstable-msc4095 = []
 unstable-pdu = []
 
 # Allow some mandatory fields to be missing, defaulting them to an empty string
