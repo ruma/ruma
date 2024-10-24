@@ -117,7 +117,7 @@ fn text_msgtype_markdown_serialization() {
         to_json_value(&formatted_message).unwrap(),
         json!({
             "body": text,
-            "formatted_body": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n",
+            "formatted_body": "Testing <strong>bold</strong> and <em>italic</em>!",
             "format": "org.matrix.custom.html",
             "msgtype": "m.text"
         })
@@ -198,16 +198,20 @@ fn markdown_detection() {
     assert_matches!(formatted_body, None);
 
     // Multiple paragraphs trigger markdown
-    let formatted_body = FormattedBody::markdown("A message\nwith\n\nmultiple\n\nparagraphs");
-    formatted_body.unwrap();
+    let formatted_body =
+        FormattedBody::markdown("A message\nwith\n\nmultiple\n\nparagraphs").unwrap();
+    assert_eq!(
+        formatted_body.body,
+        "<p>A message<br />\nwith</p>\n<p>multiple</p>\n<p>paragraphs</p>\n"
+    );
 
     // "Less than" symbol triggers markdown.
-    let formatted_body = FormattedBody::markdown("A message with & HTML < entities");
-    assert_matches!(formatted_body, Some(_));
+    let formatted_body = FormattedBody::markdown("A message with & HTML < entities").unwrap();
+    assert_eq!(formatted_body.body, "A message with &amp; HTML &lt; entities");
 
     // HTML triggers markdown.
-    let formatted_body = FormattedBody::markdown("<span>An HTML message</span>");
-    formatted_body.unwrap();
+    let formatted_body = FormattedBody::markdown("<span>An HTML message</span>").unwrap();
+    assert_eq!(formatted_body.body, "<span>An HTML message</span>");
 }
 
 #[test]
@@ -232,7 +236,7 @@ fn markdown_options() {
 
     // Strikethrough
     let formatted_body = FormattedBody::markdown("A message with a ~~strike~~");
-    assert_eq!(formatted_body.unwrap().body, "<p>A message with a <del>strike</del></p>\n");
+    assert_eq!(formatted_body.unwrap().body, "A message with a <del>strike</del>");
 }
 
 #[test]

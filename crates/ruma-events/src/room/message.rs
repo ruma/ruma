@@ -915,46 +915,97 @@ pub(crate) fn parse_markdown(text: &str) -> Option<String> {
         return None;
     }
 
+    // If the markdown contains only inline tags, i.e. if there is only one paragraph, remove the
+    // wrapping paragraph, as instructed by the spec.
+    let first_event_is_paragraph_start =
+        parser_events.first().is_some_and(|event| matches!(event, Event::Start(Tag::Paragraph)));
+    let last_event_is_paragraph_end =
+        parser_events.last().is_some_and(|event| matches!(event, Event::End(TagEnd::Paragraph)));
+    let mut has_several_blocks = true;
+
+    if first_event_is_paragraph_start && last_event_is_paragraph_end {
+        has_several_blocks = parser_events.iter().skip(1).any(|event| {
+            if let Event::Start(tag) = event {
+                is_block_tag(tag)
+            } else {
+                false
+            }
+        });
+    }
+
+    let mut events_iter = parser_events.into_iter();
+    if !has_several_blocks {
+        events_iter.next();
+        events_iter.next_back();
+    }
+
     let mut html_body = String::new();
-    pulldown_cmark::html::push_html(&mut html_body, parser_events.into_iter());
+    pulldown_cmark::html::push_html(&mut html_body, events_iter);
 
     Some(html_body)
 }
 
+/// Whether the given tag is a block HTML element.
+#[cfg(feature = "markdown")]
+fn is_block_tag(tag: &pulldown_cmark::Tag<'_>) -> bool {
+    use pulldown_cmark::Tag;
+
+    matches!(
+        tag,
+        Tag::Paragraph
+            | Tag::Heading { .. }
+            | Tag::BlockQuote(_)
+            | Tag::CodeBlock(_)
+            | Tag::HtmlBlock
+            | Tag::List(_)
+            | Tag::FootnoteDefinition(_)
+            | Tag::Table(_)
+    )
+}
+
 #[cfg(all(test, feature = "markdown"))]
 mod tests {
-    use assert_matches2::assert_matches;
-
     use super::parse_markdown;
 
     #[test]
     fn detect_markdown() {
         // Simple single-line text.
         let text = "Hello world.";
-        assert_matches!(parse_markdown(text), None);
+        assert_eq!(parse_markdown(text), None);
 
         // Simple double-line text.
         let text = "Hello\nworld.";
-        assert_matches!(parse_markdown(text), None);
+        assert_eq!(parse_markdown(text), None);
 
         // With new paragraph.
         let text = "Hello\n\nworld.";
-        assert_matches!(parse_markdown(text), Some(_));
+        assert_eq!(parse_markdown(text).as_deref(), Some("<p>Hello</p>\n<p>world.</p>\n"));
+
+        // With heading and paragraph.
+        let text = "## Hello\n\nworld.";
+        assert_eq!(parse_markdown(text).as_deref(), Some("<h2>Hello</h2>\n<p>world.</p>\n"));
+
+        // With paragraph and code block.
+        let text = "Hello\n\n```\nworld.\n```";
+        assert_eq!(
+            parse_markdown(text).as_deref(),
+            Some("<p>Hello</p>\n<pre><code>world.\n</code></pre>\n")
+        );
 
         // With tagged element.
         let text = "Hello **world**.";
-        assert_matches!(parse_markdown(text), Some(_));
+        assert_eq!(parse_markdown(text).as_deref(), Some("Hello <strong>world</strong>."));
 
         // With backslash escapes.
         let text = r#"Hello \<world\>."#;
-        assert_matches!(parse_markdown(text), Some(_));
+        assert_eq!(parse_markdown(text).as_deref(), Some("Hello &lt;world&gt;."));
 
         // With entity reference.
         let text = r#"Hello &lt;world&gt;."#;
-        assert_matches!(parse_markdown(text), Some(_));
+        assert_eq!(parse_markdown(text).as_deref(), Some("Hello &lt;world&gt;."));
 
         // With numeric reference.
         let text = "Hello w&#8853;rld.";
-        assert_matches!(parse_markdown(text), Some(_));
+        assert_eq!(parse_markdown(text).as_deref(), Some("Hello w⊕rld."));
     }
 }
