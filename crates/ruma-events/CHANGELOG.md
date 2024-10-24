@@ -10,6 +10,8 @@ Bug fixes:
 - `Restricted` no longer fails to deserialize when the `allow` field is missing
 - Markdown text constructors now also detect markdown syntax like backslash
   escapes and entity references to decide if the text should be sent as HTML.
+- Markdown text with only inline syntax generates HTML that is not wrapped
+  inside a `<p>` element anymore, as recommended by the spec.
 
 Improvements:
 

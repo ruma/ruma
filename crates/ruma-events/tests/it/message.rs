@@ -82,7 +82,7 @@ fn markdown_content_serialization() {
             "org.matrix.msc1767.text": [
                 {
                     "mimetype": "text/html",
-                    "body": "<p>Testing <strong>bold</strong> and <em>italic</em>!</p>\n",
+                    "body": "Testing <strong>bold</strong> and <em>italic</em>!",
                 },
                 {
                     "body": "Testing **bold** and _italic_!",
