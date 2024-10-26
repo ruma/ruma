@@ -24,6 +24,8 @@ Breaking changes:
 - Use `OwnedCrossSigningOrDeviceSigningKeyId` instead of `OwnedDeviceKeyId` to
   identify signing keys in `BackupAlgorithm::MegolmBackupV1Curve25519AesSha2`'s
   `signatures`.
+- Use `CrossSigningOrDeviceSignatures` for the `signatures` of `BackupAlgorithm`.
+- Use `ServerSignatures` for the `signatures` of `ThirdPartySigned`.
 
 Improvements:
 
