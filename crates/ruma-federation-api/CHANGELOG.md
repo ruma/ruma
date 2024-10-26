@@ -7,6 +7,7 @@ Breaking changes:
 - Use `OwnedOneTimeKeyId` and `OneTimeKeyAlgorithm` instead of
   `OwnedDeviceKeyId` and `DeviceKeyAlgorithm` respectively to identify one-time
   and fallback keys and their algorithm.
+- Use `ServerSignatures` for the `signatures` or `ServerSigningKeys`.
 
 Bug fixes:
 

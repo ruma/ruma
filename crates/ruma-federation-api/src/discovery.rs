@@ -4,6 +4,7 @@ use std::collections::BTreeMap;
 
 use ruma_common::{
     serde::Base64, MilliSecondsSinceUnixEpoch, OwnedServerName, OwnedServerSigningKeyId,
+    ServerSignatures,
 };
 use serde::{Deserialize, Serialize};
 
@@ -67,7 +68,7 @@ pub struct ServerSigningKeys {
     /// Digital signatures of this object signed using the verify_keys.
     ///
     /// Map of server name to keys by key ID.
-    pub signatures: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
+    pub signatures: ServerSignatures,
 
     /// Timestamp when the keys should be refreshed.
     ///
@@ -84,7 +85,7 @@ impl ServerSigningKeys {
             server_name,
             verify_keys: BTreeMap::new(),
             old_verify_keys: BTreeMap::new(),
-            signatures: BTreeMap::new(),
+            signatures: ServerSignatures::default(),
             valid_until_ts,
         }
     }
