@@ -14,9 +14,7 @@ pub mod leave_room;
 pub mod mutual_rooms;
 pub mod unban_user;
 
-use std::collections::BTreeMap;
-
-use ruma_common::{thirdparty::Medium, OwnedServerName, OwnedServerSigningKeyId, OwnedUserId};
+use ruma_common::{thirdparty::Medium, OwnedUserId, ServerSignatures};
 use serde::{Deserialize, Serialize};
 
 /// A signature of an `m.third_party_invite` token to prove that this user owns a third party
@@ -34,7 +32,7 @@ pub struct ThirdPartySigned {
     pub token: String,
 
     /// A signatures object containing a signature of the entire signed object.
-    pub signatures: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
+    pub signatures: ServerSignatures,
 }
 
 impl ThirdPartySigned {
@@ -44,7 +42,7 @@ impl ThirdPartySigned {
         sender: OwnedUserId,
         mxid: OwnedUserId,
         token: String,
-        signatures: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
+        signatures: ServerSignatures,
     ) -> Self {
         Self { sender, mxid, token, signatures }
     }

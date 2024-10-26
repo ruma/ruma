@@ -20,7 +20,7 @@ use std::collections::BTreeMap;
 use js_int::UInt;
 use ruma_common::{
     serde::{Base64, Raw},
-    OwnedCrossSigningOrDeviceSigningKeyId, OwnedUserId,
+    CrossSigningOrDeviceSignatures,
 };
 use serde::{Deserialize, Serialize};
 
@@ -51,7 +51,7 @@ pub enum BackupAlgorithm {
         public_key: Base64,
 
         /// Signatures of the auth_data as Signed JSON.
-        signatures: BTreeMap<OwnedUserId, BTreeMap<OwnedCrossSigningOrDeviceSigningKeyId, String>>,
+        signatures: CrossSigningOrDeviceSignatures,
     },
 }
 
