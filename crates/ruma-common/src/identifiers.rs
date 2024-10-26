@@ -42,7 +42,10 @@ pub use self::{
     server_name::{OwnedServerName, ServerName},
     server_signing_key_version::{OwnedServerSigningKeyVersion, ServerSigningKeyVersion},
     session_id::{OwnedSessionId, SessionId},
-    signatures::{DeviceSignatures, EntitySignatures, ServerSignatures, Signatures},
+    signatures::{
+        CrossSigningOrDeviceSignatures, DeviceSignatures, EntitySignatures, ServerSignatures,
+        Signatures,
+    },
     transaction_id::{OwnedTransactionId, TransactionId},
     user_id::{OwnedUserId, UserId},
     voip_id::{OwnedVoipId, VoipId},
