@@ -8,8 +8,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     serde::{Base64, StringEnum},
-    EventEncryptionAlgorithm, OwnedCrossSigningKeyId, OwnedCrossSigningOrDeviceSigningKeyId,
-    OwnedDeviceId, OwnedDeviceKeyId, OwnedDeviceSigningKeyId, OwnedUserId, PrivOwnedStr,
+    CrossSigningOrDeviceSignatures, DeviceSignatures, EventEncryptionAlgorithm,
+    OwnedCrossSigningKeyId, OwnedDeviceId, OwnedDeviceKeyId, OwnedUserId, PrivOwnedStr,
 };
 
 /// Identity keys for a device.
@@ -33,7 +33,7 @@ pub struct DeviceKeys {
     pub keys: BTreeMap<OwnedDeviceKeyId, String>,
 
     /// Signatures for the device key object.
-    pub signatures: BTreeMap<OwnedUserId, BTreeMap<OwnedCrossSigningOrDeviceSigningKeyId, String>>,
+    pub signatures: CrossSigningOrDeviceSignatures,
 
     /// Additional data added to the device key information by intermediate servers, and
     /// not covered by the signatures.
@@ -49,7 +49,7 @@ impl DeviceKeys {
         device_id: OwnedDeviceId,
         algorithms: Vec<EventEncryptionAlgorithm>,
         keys: BTreeMap<OwnedDeviceKeyId, String>,
-        signatures: BTreeMap<OwnedUserId, BTreeMap<OwnedCrossSigningOrDeviceSigningKeyId, String>>,
+        signatures: CrossSigningOrDeviceSignatures,
     ) -> Self {
         Self { user_id, device_id, algorithms, keys, signatures, unsigned: Default::default() }
     }
@@ -76,9 +76,6 @@ impl UnsignedDeviceInfo {
     }
 }
 
-/// Signatures for a `SignedKey` object.
-pub type SignedKeySignatures = BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceSigningKeyId, String>>;
-
 /// A key for the SignedCurve25519 algorithm
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -87,7 +84,7 @@ pub struct SignedKey {
     pub key: Base64,
 
     /// Signatures for the key object.
-    pub signatures: SignedKeySignatures,
+    pub signatures: DeviceSignatures,
 
     /// Is this key considered to be a fallback key, defaults to false.
     #[serde(default, skip_serializing_if = "crate::serde::is_default")]
@@ -96,12 +93,12 @@ pub struct SignedKey {
 
 impl SignedKey {
     /// Creates a new `SignedKey` with the given key and signatures.
-    pub fn new(key: Base64, signatures: SignedKeySignatures) -> Self {
+    pub fn new(key: Base64, signatures: DeviceSignatures) -> Self {
         Self { key, signatures, fallback: false }
     }
 
     /// Creates a new fallback `SignedKey` with the given key and signatures.
-    pub fn new_fallback(key: Base64, signatures: SignedKeySignatures) -> Self {
+    pub fn new_fallback(key: Base64, signatures: DeviceSignatures) -> Self {
         Self { key, signatures, fallback: true }
     }
 }
@@ -117,10 +114,6 @@ pub enum OneTimeKey {
     /// A string-valued key, for the Ed25519 and Curve25519 algorithms.
     Key(String),
 }
-
-/// Signatures for a `CrossSigningKey` object.
-pub type CrossSigningKeySignatures =
-    BTreeMap<OwnedUserId, BTreeMap<OwnedCrossSigningOrDeviceSigningKeyId, String>>;
 
 /// A [cross-signing] key.
 ///
@@ -147,7 +140,7 @@ pub struct CrossSigningKey {
     ///
     /// Only optional for the master key.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub signatures: CrossSigningKeySignatures,
+    pub signatures: CrossSigningOrDeviceSignatures,
 }
 
 impl CrossSigningKey {
@@ -156,7 +149,7 @@ impl CrossSigningKey {
         user_id: OwnedUserId,
         usage: Vec<KeyUsage>,
         keys: BTreeMap<OwnedCrossSigningKeyId, String>,
-        signatures: CrossSigningKeySignatures,
+        signatures: CrossSigningOrDeviceSignatures,
     ) -> Self {
         Self { user_id, usage, keys, signatures }
     }

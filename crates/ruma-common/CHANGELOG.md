@@ -39,6 +39,10 @@ Breaking changes:
 - `(Owned)DeviceKeyId` is now a type alias of `(Owned)KeyId`.
   - Remove the `(owned_)device_key_id` macro, instead use
     `DeviceKeyId::from_parts`.
+- Use `CrossSigningOrDeviceSignatures` for the `signatures` of `DeviceKeys`.
+- Remove `SignedKeySignatures` and replace it with `DeviceSignatures`.
+- Remove `CrossSigningKeySignatures` and replace it with
+  `CrossSigningOrDeviceSignatures`.
 
 Improvements:
 
