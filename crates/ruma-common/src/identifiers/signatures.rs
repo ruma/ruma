@@ -6,8 +6,7 @@ use std::{
 use serde::{Deserialize, Serialize};
 
 use super::{
-    KeyName, OwnedDeviceId, OwnedServerName, OwnedServerSigningKeyVersion, OwnedSigningKeyId,
-    OwnedUserId,
+    DeviceId, KeyName, OwnedServerName, OwnedSigningKeyId, OwnedUserId, ServerSigningKeyVersion,
 };
 
 /// Map of key identifier to signature values.
@@ -27,8 +26,11 @@ pub type EntitySignatures<K> = BTreeMap<OwnedSigningKeyId<K>, String>;
 ///     "YbJva03ihSj5mPk+CHMJKUKlCXCPFXjXOK6VqBnN9nA2evksQcTGn6hwQfrgRHIDDXO2le49x7jnWJHMJrJoBQ";
 /// signatures.insert_signature(server_name, key_identifier, signature.into());
 /// ```
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(transparent)]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(
+    transparent,
+    bound(serialize = "E: Serialize", deserialize = "E: serde::de::DeserializeOwned")
+)]
 pub struct Signatures<E: Ord, K: KeyName + ?Sized>(BTreeMap<E, EntitySignatures<K>>);
 
 impl<E: Ord, K: KeyName + ?Sized> Signatures<E, K> {
@@ -50,11 +52,21 @@ impl<E: Ord, K: KeyName + ?Sized> Signatures<E, K> {
     }
 }
 
-/// Map of server signatures for an event, grouped by server.
-pub type ServerSignatures = Signatures<OwnedServerName, OwnedServerSigningKeyVersion>;
+/// Map of server signatures, grouped by server.
+pub type ServerSignatures = Signatures<OwnedServerName, ServerSigningKeyVersion>;
 
-/// Map of device signatures for an event, grouped by user.
-pub type DeviceSignatures = Signatures<OwnedUserId, OwnedDeviceId>;
+/// Map of device signatures, grouped by user.
+pub type DeviceSignatures = Signatures<OwnedUserId, DeviceId>;
+
+impl<E, K> Clone for Signatures<E, K>
+where
+    E: Ord + Clone,
+    K: KeyName + ?Sized,
+{
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
 
 impl<E: Ord, K: KeyName + ?Sized> Default for Signatures<E, K> {
     fn default() -> Self {
