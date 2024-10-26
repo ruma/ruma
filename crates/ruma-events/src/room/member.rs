@@ -2,13 +2,10 @@
 //!
 //! [`m.room.member`]: https://spec.matrix.org/latest/client-server-api/#mroommember
 
-use std::collections::BTreeMap;
-
 use js_int::Int;
 use ruma_common::{
     serde::{CanBeEmpty, Raw, StringEnum},
-    OwnedMxcUri, OwnedServerName, OwnedServerSigningKeyId, OwnedTransactionId, OwnedUserId,
-    RoomVersionId, UserId,
+    OwnedMxcUri, OwnedTransactionId, OwnedUserId, RoomVersionId, ServerSignatures, UserId,
 };
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -369,7 +366,7 @@ pub struct SignedContent {
 
     /// A single signature from the verifying server, in the format specified by the Signing Events
     /// section of the server-server API.
-    pub signatures: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
+    pub signatures: ServerSignatures,
 
     /// The token property of the containing `third_party_invite` object.
     pub token: String,
@@ -377,11 +374,7 @@ pub struct SignedContent {
 
 impl SignedContent {
     /// Creates a new `SignedContent` with the given mxid, signature and token.
-    pub fn new(
-        signatures: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
-        mxid: OwnedUserId,
-        token: String,
-    ) -> Self {
+    pub fn new(signatures: ServerSignatures, mxid: OwnedUserId, token: String) -> Self {
         Self { mxid, signatures, token }
     }
 }
@@ -706,15 +699,16 @@ mod tests {
         let third_party_invite = ev.content.third_party_invite.unwrap();
         assert_eq!(third_party_invite.display_name, "alice");
         assert_eq!(third_party_invite.signed.mxid, "@alice:example.org");
+        assert_eq!(third_party_invite.signed.signatures.len(), 1);
+        let server_signatures =
+            third_party_invite.signed.signatures.get(server_name!("magic.forest")).unwrap();
         assert_eq!(
-            third_party_invite.signed.signatures,
+            *server_signatures,
             btreemap! {
-                server_name!("magic.forest").to_owned() => btreemap! {
-                    ServerSigningKeyId::from_parts(
-                        SigningKeyAlgorithm::Ed25519,
-                        server_signing_key_version!("3")
-                    ) => "foobar".to_owned()
-                }
+                ServerSigningKeyId::from_parts(
+                    SigningKeyAlgorithm::Ed25519,
+                    server_signing_key_version!("3")
+                ) => "foobar".to_owned()
             }
         );
         assert_eq!(third_party_invite.signed.token, "abc123");
@@ -779,15 +773,16 @@ mod tests {
         let third_party_invite = prev_content.third_party_invite.unwrap();
         assert_eq!(third_party_invite.display_name, "alice");
         assert_eq!(third_party_invite.signed.mxid, "@alice:example.org");
+        assert_eq!(third_party_invite.signed.signatures.len(), 1);
+        let server_signatures =
+            third_party_invite.signed.signatures.get(server_name!("magic.forest")).unwrap();
         assert_eq!(
-            third_party_invite.signed.signatures,
+            *server_signatures,
             btreemap! {
-                server_name!("magic.forest").to_owned() => btreemap! {
-                    ServerSigningKeyId::from_parts(
-                        SigningKeyAlgorithm::Ed25519,
-                        server_signing_key_version!("3")
-                    ) => "foobar".to_owned()
-                }
+                ServerSigningKeyId::from_parts(
+                    SigningKeyAlgorithm::Ed25519,
+                    server_signing_key_version!("3")
+                ) => "foobar".to_owned()
             }
         );
         assert_eq!(third_party_invite.signed.token, "abc123");

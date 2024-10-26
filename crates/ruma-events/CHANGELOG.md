@@ -36,6 +36,7 @@ Improvements:
 Breaking changes:
 
 - `StickerEventContent::url` was replaced by `StickerEventContent::source` which is a `StickerMediaSource`
+- Use `ServerSignatures` for the `signatures` of `RoomV1Pdu`, `RoomV3Pdu` and `SignedContent`.
 
 # 0.28.1
 
