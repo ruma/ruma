@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.3.0
+
 Breaking Changes:
 
 - `MatrixElement::Div` is now a newtype variant.
