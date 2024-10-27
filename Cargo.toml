@@ -23,7 +23,7 @@ ruma-common = { version = "0.14.0", path = "crates/ruma-common" }
 ruma-client = { version = "0.13.0", path = "crates/ruma-client" }
 ruma-client-api = { version = "0.18.0", path = "crates/ruma-client-api" }
 ruma-events = { version = "0.29.0", path = "crates/ruma-events" }
-ruma-federation-api = { version = "0.9.0", path = "crates/ruma-federation-api" }
+ruma-federation-api = { version = "0.10.0", path = "crates/ruma-federation-api" }
 ruma-html = { version = "0.3.0", path = "crates/ruma-html" }
 ruma-identifiers-validation = { version = "0.10.0", path = "crates/ruma-identifiers-validation" }
 ruma-identity-service-api = { version = "0.10.0", path = "crates/ruma-identity-service-api" }

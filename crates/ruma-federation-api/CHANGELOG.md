@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.10.0
+
 Breaking changes:
 
 - Remove the unused `KeyObject` struct. It is actually supposed to be the same type
