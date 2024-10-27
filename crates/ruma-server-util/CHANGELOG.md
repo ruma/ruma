@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.4.0
+
 Breaking changes:
 
 - The `XMatrix::new` method now takes `OwnedServerName` instead of `Option<OwnedServerName>`
