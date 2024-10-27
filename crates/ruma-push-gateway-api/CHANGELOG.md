@@ -1,5 +1,9 @@
 # [unreleased]
 
+# 0.10.0
+
+Upgrade `ruma-events` to 0.29.0.
+
 # 0.9.0
 
 Breaking changes:
