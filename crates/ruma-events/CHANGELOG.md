@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.29.0
+
 Bug fixes:
 
 - Fix missing `relates_to` field on `StickerEventContent`
