@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.10.0
+
 Breaking changes:
 
 - Change type of `client_secret` field in `ThreePidOwnershipProof`
