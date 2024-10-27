@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.14.0
+
 Bug fixes:
 
 - The `instance_id` field was removed from `ProtocolInstanceInit` and is now an
