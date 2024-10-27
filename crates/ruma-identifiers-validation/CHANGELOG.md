@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.10.0
+
 Breaking changes:
 
 - `key_id::validate` takes a generic parameter that implements the new `KeyName`
