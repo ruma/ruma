@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.11.0
+
 Breaking changes:
 
 - Use `OwnedOneTimeKeyId` and `OneTimeKeyAlgorithm` instead of
