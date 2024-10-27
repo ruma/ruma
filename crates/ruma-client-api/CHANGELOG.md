@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.19.0
+
 Breaking changes:
 
 - `RoomSummary::heroes` now properly contains only `UserId` instead of `String`
