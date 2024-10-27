@@ -1,5 +1,15 @@
 # How to release new versions of the Ruma crates
 
+## Pre-requisites
+
+You need to have valid tokens to create the releases and publish the crates:
+
+* a non-expired GitHub access token with the proper permissions set up in
+  `/xtask/config.toml`.
+* a non-expired [crates.io token](https://crates.io/settings/tokens) with the
+  `publish-update` scope and that it is enrolled with `cargo login`
+ 
+
 Releasing one of the crates is very simple since it is entirely automated.
 The only thing you have to do is to run
 

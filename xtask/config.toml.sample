@@ -1,7 +1,15 @@
 [github]
 # The username to use for authentication.
 user = ""
-# The personal access token to use for authentication. Needs permission to create releases.
+# The personal access token to use for authentication.
+#
 # Can be created at https://github.com/settings/personal-access-tokens/new
-# Docs at https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+#
+# Settings for a fine-grained personal access token:
+#
+# * Resource owner: ruma
+# * Repository access > Only select repositories: ruma/ruma
+# * Permissions > Repository permissions > Contents: Read and write
+#
+# Docs at https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
 token = ""
