@@ -1,6 +1,13 @@
 # [unreleased]
 
-Improvements
+Bug fixes:
+
+- Markdown text constructors now detect even more markdown syntax like removed
+  whitespace at the end or beginning of a line to decide if the text should be
+  sent as HTML.
+
+Improvements:
+
 - Add unstable support for MSC4059 for bundling link previews in chat text messages
 
 # 0.29.0
