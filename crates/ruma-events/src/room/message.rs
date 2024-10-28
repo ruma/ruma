@@ -863,12 +863,9 @@ pub struct CustomEventContent {
 
 #[cfg(feature = "markdown")]
 pub(crate) fn parse_markdown(text: &str) -> Option<String> {
-    use pulldown_cmark::{CowStr, Event, Options, Parser, Tag, TagEnd};
+    use pulldown_cmark::{Event, Options, Parser, Tag, TagEnd};
 
     const OPTIONS: Options = Options::ENABLE_TABLES.union(Options::ENABLE_STRIKETHROUGH);
-
-    let mut found_first_paragraph = false;
-    let mut previous_event_was_text = false;
 
     let parser_events: Vec<_> = Parser::new_ext(text, OPTIONS)
         .map(|event| match event {
@@ -876,69 +873,76 @@ pub(crate) fn parse_markdown(text: &str) -> Option<String> {
             _ => event,
         })
         .collect();
-    let has_markdown = parser_events.iter().any(|ref event| {
-        // Numeric references should be replaced by their UTF-8 equivalent, so encountering a
-        // non-borrowed string means that there is markdown syntax.
-        let is_borrowed_text = matches!(event, Event::Text(CowStr::Borrowed(_)));
 
-        if is_borrowed_text {
-            if previous_event_was_text {
-                // The text was split, so a character was likely removed, like in the case of
-                // backslash escapes, or replaced by a static string, like for entity references, so
-                // there is markdown syntax.
-                return true;
-            } else {
-                previous_event_was_text = true;
-            }
-        } else {
-            previous_event_was_text = false;
-        }
-
-        // A hard break happens when a newline is encountered, which is not necessarily markdown
-        // syntax.
-        let is_break = matches!(event, Event::HardBreak);
-
-        // The parser always wraps the string into a paragraph, so the first paragraph should be
-        // ignored, it is not due to markdown syntax.
-        let is_first_paragraph_start = if matches!(event, Event::Start(Tag::Paragraph)) {
-            if found_first_paragraph {
-                false
-            } else {
-                found_first_paragraph = true;
-                true
-            }
-        } else {
-            false
-        };
-        let is_paragraph_end = matches!(event, Event::End(TagEnd::Paragraph));
-
-        !is_borrowed_text && !is_break && !is_first_paragraph_start && !is_paragraph_end
-    });
-
-    if !has_markdown {
-        return None;
-    }
-
-    // If the markdown contains only inline tags, i.e. if there is only one paragraph, remove the
-    // wrapping paragraph, as instructed by the spec.
+    // Text that does not contain markdown syntax is always inline because when we encounter several
+    // blocks we convert them to HTML. Inline text is always wrapped by a single paragraph.
     let first_event_is_paragraph_start =
         parser_events.first().is_some_and(|event| matches!(event, Event::Start(Tag::Paragraph)));
     let last_event_is_paragraph_end =
         parser_events.last().is_some_and(|event| matches!(event, Event::End(TagEnd::Paragraph)));
-    let mut has_several_blocks = true;
+    let mut is_inline = first_event_is_paragraph_start && last_event_is_paragraph_end;
+    let mut has_markdown = !is_inline;
 
-    if first_event_is_paragraph_start && last_event_is_paragraph_end {
-        has_several_blocks = parser_events.iter().skip(1).any(|event| {
-            if let Event::Start(tag) = event {
-                is_block_tag(tag)
-            } else {
-                false
+    if !has_markdown {
+        // Check whether the events contain other blocks and whether they contain inline markdown
+        // syntax.
+        let mut pos = 0;
+
+        for event in parser_events.iter().skip(1) {
+            match event {
+                Event::Text(s) => {
+                    // If the string does not contain markdown, the only modification that should
+                    // happen is that newlines are converted to hardbreaks. It means that we should
+                    // find all the other characters from the original string in the text events.
+                    // Let's check that by walking the original string.
+                    if text[pos..].starts_with(s.as_ref()) {
+                        pos += s.len();
+                        continue;
+                    }
+                }
+                Event::HardBreak => {
+                    // A hard break happens when a newline is encountered, which is not necessarily
+                    // markdown syntax. Skip the newline in the original string for the walking
+                    // above to work.
+                    if text[pos..].starts_with("\r\n") {
+                        pos += 2;
+                        continue;
+                    } else if text[pos..].starts_with(['\r', '\n']) {
+                        pos += 1;
+                        continue;
+                    }
+                }
+                // A paragraph end is fine because we would detect markdown from the paragraph
+                // start.
+                Event::End(TagEnd::Paragraph) => continue,
+                // Any other event means there is markdown syntax.
+                Event::Start(tag) => {
+                    is_inline &= !is_block_tag(tag);
+                }
+                _ => {}
             }
-        });
+
+            has_markdown = true;
+
+            // Stop when we also know that there are several blocks.
+            if !is_inline {
+                break;
+            }
+        }
+
+        // If we are not at the end of the string, some characters were removed.
+        has_markdown |= pos != text.len();
+    }
+
+    // If the string does not contain markdown, don't generate HTML.
+    if !has_markdown {
+        return None;
     }
 
     let mut events_iter = parser_events.into_iter();
-    if !has_several_blocks {
+
+    // If the content is inline, remove the wrapping paragraph, as instructed by the Matrix spec.
+    if is_inline {
         events_iter.next();
         events_iter.next_back();
     }
@@ -1000,9 +1004,13 @@ mod tests {
         let text = "Hello **world**.";
         assert_eq!(parse_markdown(text).as_deref(), Some("Hello <strong>world</strong>."));
 
-        // With backslash escapes.
+        // Containing backslash escapes.
         let text = r#"Hello \<world\>."#;
         assert_eq!(parse_markdown(text).as_deref(), Some("Hello &lt;world&gt;."));
+
+        // Starting with backslash escape.
+        let text = r#"\> Hello world."#;
+        assert_eq!(parse_markdown(text).as_deref(), Some("&gt; Hello world."));
 
         // With entity reference.
         let text = r#"Hello &lt;world&gt;."#;
@@ -1011,5 +1019,79 @@ mod tests {
         // With numeric reference.
         let text = "Hello w&#8853;rld.";
         assert_eq!(parse_markdown(text).as_deref(), Some("Hello w⊕rld."));
+    }
+
+    #[test]
+    fn detect_commonmark() {
+        // Examples from the CommonMark spec.
+
+        let text = r#"\!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\\\]\^\_\`\{\|\}\~"#;
+        assert_eq!(
+            parse_markdown(text).as_deref(),
+            Some(r##"!"#$%&amp;'()*+,-./:;&lt;=&gt;?@[\]^_`{|}~"##)
+        );
+
+        let text = r#"\→\A\a\ \3\φ\«"#;
+        assert_eq!(parse_markdown(text).as_deref(), None);
+
+        let text = r#"\*not emphasized*"#;
+        assert_eq!(parse_markdown(text).as_deref(), Some("*not emphasized*"));
+
+        let text = r#"\<br/> not a tag"#;
+        assert_eq!(parse_markdown(text).as_deref(), Some("&lt;br/&gt; not a tag"));
+
+        let text = r#"\[not a link](/foo)"#;
+        assert_eq!(parse_markdown(text).as_deref(), Some("[not a link](/foo)"));
+
+        let text = r#"\`not code`"#;
+        assert_eq!(parse_markdown(text).as_deref(), Some("`not code`"));
+
+        let text = r#"1\. not a list"#;
+        assert_eq!(parse_markdown(text).as_deref(), Some("1. not a list"));
+
+        let text = r#"\* not a list"#;
+        assert_eq!(parse_markdown(text).as_deref(), Some("* not a list"));
+
+        let text = r#"\# not a heading"#;
+        assert_eq!(parse_markdown(text).as_deref(), Some("# not a heading"));
+
+        let text = r#"\[foo]: /url "not a reference""#;
+        assert_eq!(parse_markdown(text).as_deref(), Some(r#"[foo]: /url "not a reference""#));
+
+        let text = r#"\&ouml; not a character entity"#;
+        assert_eq!(parse_markdown(text).as_deref(), Some("&amp;ouml; not a character entity"));
+
+        let text = r#"\\*emphasis*"#;
+        assert_eq!(parse_markdown(text).as_deref(), Some(r#"\<em>emphasis</em>"#));
+
+        let text = "foo\\\nbar";
+        assert_eq!(parse_markdown(text).as_deref(), Some("foo<br />\nbar"));
+
+        let text = " ***\n  ***\n   ***";
+        assert_eq!(parse_markdown(text).as_deref(), Some("<hr />\n<hr />\n<hr />\n"));
+
+        let text = "Foo\n***\nbar";
+        assert_eq!(parse_markdown(text).as_deref(), Some("<p>Foo</p>\n<hr />\n<p>bar</p>\n"));
+
+        let text = "</div>\n*foo*";
+        assert_eq!(parse_markdown(text).as_deref(), Some("</div>\n*foo*"));
+
+        let text = "<div>\n*foo*\n\n*bar*";
+        assert_eq!(parse_markdown(text).as_deref(), Some("<div>\n*foo*\n<p><em>bar</em></p>\n"));
+
+        let text = "aaa\nbbb\n\nccc\nddd";
+        assert_eq!(
+            parse_markdown(text).as_deref(),
+            Some("<p>aaa<br />\nbbb</p>\n<p>ccc<br />\nddd</p>\n")
+        );
+
+        let text = "  aaa\n bbb";
+        assert_eq!(parse_markdown(text).as_deref(), Some("aaa<br />\nbbb"));
+
+        let text = "aaa\n             bbb\n                                       ccc";
+        assert_eq!(parse_markdown(text).as_deref(), Some("aaa<br />\nbbb<br />\nccc"));
+
+        let text = "aaa     \nbbb     ";
+        assert_eq!(parse_markdown(text).as_deref(), Some("aaa<br />\nbbb"));
     }
 }
