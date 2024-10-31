@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+- The `KeyId::key_name` method now returns the key name. In 0.14.0, `key_name`
+  mistakenly returned the algorithm.
+
 # 0.14.0
 
 Bug fixes:
