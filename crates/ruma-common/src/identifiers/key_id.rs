@@ -43,7 +43,8 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
     where
         &'a K: TryFrom<&'a str>,
     {
-        <&'a K>::try_from(&self.as_str()[..self.colon_idx()]).unwrap_or_else(|_| unreachable!())
+        <&'a K>::try_from(&self.as_str()[(self.colon_idx() + 1)..])
+            .unwrap_or_else(|_| unreachable!())
     }
 
     fn colon_idx(&self) -> usize {
@@ -151,3 +152,38 @@ impl KeyAlgorithm for SigningKeyAlgorithm {}
 impl KeyAlgorithm for DeviceKeyAlgorithm {}
 
 impl KeyAlgorithm for OneTimeKeyAlgorithm {}
+
+#[cfg(test)]
+mod tests {
+    use assert_matches2::assert_matches;
+    use ruma_identifiers_validation::Error;
+
+    use super::DeviceKeyId;
+
+    #[test]
+    fn algorithm_and_key_name_are_correctly_extracted() {
+        let key_id = DeviceKeyId::parse("ed25519:MYDEVICE").expect("Should parse correctly");
+        assert_eq!(key_id.algorithm().as_str(), "ed25519");
+        assert_eq!(key_id.key_name(), "MYDEVICE");
+    }
+
+    #[test]
+    fn empty_key_name_is_correctly_extracted() {
+        let key_id = DeviceKeyId::parse("ed25519:").expect("Should parse correctly");
+        assert_eq!(key_id.algorithm().as_str(), "ed25519");
+        assert_eq!(key_id.key_name(), "");
+    }
+
+    #[test]
+    fn missing_colon_fails_to_parse() {
+        let error = DeviceKeyId::parse("ed25519_MYDEVICE").expect_err("Should fail to parse");
+        assert_matches!(error, Error::MissingColon);
+    }
+
+    #[test]
+    fn empty_algorithm_fails_to_parse() {
+        let error = DeviceKeyId::parse(":MYDEVICE").expect_err("Should fail to parse");
+        // Weirdly, this also reports MissingColon
+        assert_matches!(error, Error::MissingColon);
+    }
+}
