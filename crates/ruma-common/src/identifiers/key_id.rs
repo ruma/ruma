@@ -63,12 +63,28 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
         Self::from_borrowed(&res).to_owned()
     }
 
-    /// Returns key algorithm of the key ID.
+    /// Returns key algorithm of the key ID - the part that comes before the colon.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use ruma_common::{DeviceId, DeviceKeyAlgorithm, KeyId, OwnedKeyId};
+    /// let k: OwnedKeyId<DeviceKeyAlgorithm, DeviceId> = KeyId::parse("ed25519:1").unwrap();
+    /// assert_eq!(k.algorithm().as_str(), "ed25519");
+    /// ```
     pub fn algorithm(&self) -> A {
         A::from(&self.as_str()[..self.colon_idx()])
     }
 
-    /// Returns the key name of the key ID.
+    /// Returns the key name of the key ID - the part that comes after the colon.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use ruma_common::{DeviceId, DeviceKeyAlgorithm, KeyId, OwnedKeyId};
+    /// let k: OwnedKeyId<DeviceKeyAlgorithm, DeviceId> = KeyId::parse("ed25519:foo").unwrap();
+    /// assert_eq!(k.key_name(), "foo");
+    /// ```
     pub fn key_name<'a>(&'a self) -> &'a K
     where
         &'a K: TryFrom<&'a str>,
