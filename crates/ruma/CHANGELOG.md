@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.11.1
+
+Please refer to the changelogs of:
+
+* ruma-common 0.14.1
+* ruma-events 0.29.1
+
 # 0.11.0
 
 - The `compat-key-id` cargo feature was renamed to
