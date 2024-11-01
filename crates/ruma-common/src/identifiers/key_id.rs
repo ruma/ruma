@@ -15,12 +15,14 @@ use super::{
 ///
 /// Examples of the use of this struct are [`DeviceKeyId`], which identifies a Ed25519 or Curve25519
 /// [device key](https://spec.matrix.org/v1.12/client-server-api/#device-keys), and
-/// [`CrossSigningKeyId`], which identifies a user's [cross signing key](https://spec.matrix.org/v1.12/client-server-api/#cross-signing).
+/// [`CrossSigningKeyId`], which identifies a user's
+/// [cross signing key](https://spec.matrix.org/v1.12/client-server-api/#cross-signing).
 ///
-/// This format of identifier is often used in the `signatures` field of [signed JSON](https://spec.matrix.org/v1.12/appendices/#signing-details)
+/// This format of identifier is often used in the `signatures` field of
+/// [signed JSON](https://spec.matrix.org/v1.12/appendices/#signing-details)
 /// where it is referred to as a "signing key identifier".
 ///
-/// This struct is rarely used directly - instead you should expect to use one of the typedefs
+/// This struct is rarely used directly - instead you should expect to use one of the type aliases
 /// that rely on it like [`CrossSigningKeyId`] or [`DeviceSigningKeyId`].
 ///
 /// # Examples
@@ -29,7 +31,8 @@ use super::{
 ///
 /// ```rust
 /// use ruma_common::{DeviceId, DeviceKeyAlgorithm, KeyId, OwnedKeyId};
-/// let k: OwnedKeyId<DeviceKeyAlgorithm, DeviceId> = KeyId::parse("ed25519:1").unwrap();
+///
+/// let k: OwnedDeviceKeyId = KeyId::parse("ed25519:1").unwrap();
 /// assert_eq!(k.algorithm().as_str(), "ed25519");
 /// assert_eq!(k.key_name(), "1");
 /// ```
@@ -38,8 +41,8 @@ use super::{
 ///
 /// ```rust
 /// use ruma_common::{DeviceId, DeviceKeyAlgorithm, KeyId, OwnedKeyId};
-/// let k: OwnedKeyId<DeviceKeyAlgorithm, DeviceId> =
-///     KeyId::from_parts(DeviceKeyAlgorithm::Curve25519, "MYDEVICE".into());
+///
+/// let k: OwnedDeviceKeyId = KeyId::from_parts(DeviceKeyAlgorithm::Curve25519, "MYDEVICE".into());
 /// assert_eq!(k.to_string(), "curve25519:MYDEVICE");
 /// ```
 #[repr(transparent)]
@@ -69,7 +72,8 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
     ///
     /// ```rust
     /// use ruma_common::{DeviceId, DeviceKeyAlgorithm, KeyId, OwnedKeyId};
-    /// let k: OwnedKeyId<DeviceKeyAlgorithm, DeviceId> = KeyId::parse("ed25519:1").unwrap();
+    ///
+    /// let k: OwnedDeviceKeyId = KeyId::parse("ed25519:1").unwrap();
     /// assert_eq!(k.algorithm().as_str(), "ed25519");
     /// ```
     pub fn algorithm(&self) -> A {
@@ -82,7 +86,8 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
     ///
     /// ```rust
     /// use ruma_common::{DeviceId, DeviceKeyAlgorithm, KeyId, OwnedKeyId};
-    /// let k: OwnedKeyId<DeviceKeyAlgorithm, DeviceId> = KeyId::parse("ed25519:foo").unwrap();
+    ///
+    /// let k: OwnedDeviceKeyId = KeyId::parse("ed25519:foo").unwrap();
     /// assert_eq!(k.key_name(), "foo");
     /// ```
     pub fn key_name<'a>(&'a self) -> &'a K
