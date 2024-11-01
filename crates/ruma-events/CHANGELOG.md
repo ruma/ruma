@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.29.1
+
 Bug fixes:
 
 - Markdown text constructors now detect even more markdown syntax like removed
