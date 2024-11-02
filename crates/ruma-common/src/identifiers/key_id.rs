@@ -29,7 +29,7 @@ use super::{
 ///
 /// To parse a colon-separated identifier:
 ///
-/// ```rust
+/// ```
 /// use ruma_common::{DeviceId, DeviceKeyAlgorithm, KeyId, OwnedKeyId};
 ///
 /// let k: OwnedDeviceKeyId = KeyId::parse("ed25519:1").unwrap();
@@ -39,7 +39,7 @@ use super::{
 ///
 /// To construct a colon-separated identifier from its parts:
 ///
-/// ```rust
+/// ```
 /// use ruma_common::{DeviceId, DeviceKeyAlgorithm, KeyId, OwnedKeyId};
 ///
 /// let k: OwnedDeviceKeyId = KeyId::from_parts(DeviceKeyAlgorithm::Curve25519, "MYDEVICE".into());
@@ -70,7 +70,7 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```
     /// use ruma_common::{DeviceId, DeviceKeyAlgorithm, KeyId, OwnedKeyId};
     ///
     /// let k: OwnedDeviceKeyId = KeyId::parse("ed25519:1").unwrap();
@@ -84,7 +84,7 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```
     /// use ruma_common::{DeviceId, DeviceKeyAlgorithm, KeyId, OwnedKeyId};
     ///
     /// let k: OwnedDeviceKeyId = KeyId::parse("ed25519:foo").unwrap();
