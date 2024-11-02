@@ -30,9 +30,9 @@ use super::{
 /// To parse a colon-separated identifier:
 ///
 /// ```
-/// use ruma_common::{KeyId, OwnedDeviceKeyId};
+/// use ruma_common::DeviceKeyId;
 ///
-/// let k: OwnedDeviceKeyId = KeyId::parse("ed25519:1").unwrap();
+/// let k = DeviceKeyId::parse("ed25519:1").unwrap();
 /// assert_eq!(k.algorithm().as_str(), "ed25519");
 /// assert_eq!(k.key_name(), "1");
 /// ```
@@ -40,10 +40,10 @@ use super::{
 /// To construct a colon-separated identifier from its parts:
 ///
 /// ```
-/// use ruma_common::{DeviceKeyAlgorithm, KeyId, OwnedDeviceKeyId};
+/// use ruma_common::{DeviceKeyAlgorithm, DeviceKeyId};
 ///
-/// let k: OwnedDeviceKeyId = KeyId::from_parts(DeviceKeyAlgorithm::Curve25519, "MYDEVICE".into());
-/// assert_eq!(k.to_string(), "curve25519:MYDEVICE");
+/// let k = DeviceKeyId::from_parts(DeviceKeyAlgorithm::Curve25519, "MYDEVICE".into());
+/// assert_eq!(k.as_str(), "curve25519:MYDEVICE");
 /// ```
 #[repr(transparent)]
 #[derive(IdZst)]
@@ -71,10 +71,10 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
     /// # Example
     ///
     /// ```
-    /// use ruma_common::{KeyId, OwnedDeviceKeyId};
+    /// use ruma_common::{DeviceKeyAlgorithm, DeviceKeyId};
     ///
-    /// let k: OwnedDeviceKeyId = KeyId::parse("ed25519:1").unwrap();
-    /// assert_eq!(k.algorithm().as_str(), "ed25519");
+    /// let k = DeviceKeyId::parse("ed25519:1").unwrap();
+    /// assert_eq!(k.algorithm(), DeviceKeyAlgorithm::Ed25519);
     /// ```
     pub fn algorithm(&self) -> A {
         A::from(&self.as_str()[..self.colon_idx()])
@@ -85,10 +85,10 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
     /// # Example
     ///
     /// ```
-    /// use ruma_common::{KeyId, OwnedDeviceKeyId};
+    /// use ruma_common::{device_id, DeviceKeyId};
     ///
-    /// let k: OwnedDeviceKeyId = KeyId::parse("ed25519:foo").unwrap();
-    /// assert_eq!(k.key_name(), "foo");
+    /// let k = DeviceKeyId::parse("ed25519:DEV1").unwrap();
+    /// assert_eq!(k.key_name(), device_id!("DEV1"));
     /// ```
     pub fn key_name<'a>(&'a self) -> &'a K
     where
