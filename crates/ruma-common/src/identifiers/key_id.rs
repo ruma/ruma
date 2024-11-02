@@ -30,7 +30,7 @@ use super::{
 /// To parse a colon-separated identifier:
 ///
 /// ```
-/// use ruma_common::{DeviceId, DeviceKeyAlgorithm, KeyId, OwnedKeyId};
+/// use ruma_common::{KeyId, OwnedDeviceKeyId};
 ///
 /// let k: OwnedDeviceKeyId = KeyId::parse("ed25519:1").unwrap();
 /// assert_eq!(k.algorithm().as_str(), "ed25519");
@@ -40,7 +40,7 @@ use super::{
 /// To construct a colon-separated identifier from its parts:
 ///
 /// ```
-/// use ruma_common::{DeviceId, DeviceKeyAlgorithm, KeyId, OwnedKeyId};
+/// use ruma_common::{DeviceKeyAlgorithm, KeyId, OwnedDeviceKeyId};
 ///
 /// let k: OwnedDeviceKeyId = KeyId::from_parts(DeviceKeyAlgorithm::Curve25519, "MYDEVICE".into());
 /// assert_eq!(k.to_string(), "curve25519:MYDEVICE");
@@ -71,7 +71,7 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
     /// # Example
     ///
     /// ```
-    /// use ruma_common::{DeviceId, DeviceKeyAlgorithm, KeyId, OwnedKeyId};
+    /// use ruma_common::{KeyId, OwnedDeviceKeyId};
     ///
     /// let k: OwnedDeviceKeyId = KeyId::parse("ed25519:1").unwrap();
     /// assert_eq!(k.algorithm().as_str(), "ed25519");
@@ -85,7 +85,7 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
     /// # Example
     ///
     /// ```
-    /// use ruma_common::{DeviceId, DeviceKeyAlgorithm, KeyId, OwnedKeyId};
+    /// use ruma_common::{KeyId, OwnedDeviceKeyId};
     ///
     /// let k: OwnedDeviceKeyId = KeyId::parse("ed25519:foo").unwrap();
     /// assert_eq!(k.key_name(), "foo");
