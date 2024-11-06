@@ -1,0 +1,58 @@
+---
+source: crates/ruma-state-res/tests/it/resolve/snapshot_tests.rs
+description: Resolved state
+---
+[
+  {
+    "kind": "m.room.create",
+    "state_key": "",
+    "event_id": "$00-m-room-create",
+    "content": {
+      "creator": "@alice:example.com",
+      "room_version": "10"
+    }
+  },
+  {
+    "kind": "m.room.guest_access",
+    "state_key": "",
+    "event_id": "$00-m-room-guest_access",
+    "content": {
+      "guest_access": "can_join"
+    }
+  },
+  {
+    "kind": "m.room.history_visibility",
+    "state_key": "",
+    "event_id": "$00-m-room-history_visibility",
+    "content": {
+      "history_visibility": "shared"
+    }
+  },
+  {
+    "kind": "m.room.join_rules",
+    "state_key": "",
+    "event_id": "$00-m-room-join_rules",
+    "content": {
+      "join_rule": "invite"
+    }
+  },
+  {
+    "kind": "m.room.member",
+    "state_key": "@alice:example.com",
+    "event_id": "$00-m-room-member-join-alice",
+    "content": {
+      "displayname": "alice",
+      "membership": "join"
+    }
+  },
+  {
+    "kind": "m.room.power_levels",
+    "state_key": "",
+    "event_id": "$00-m-room-power_levels",
+    "content": {
+      "users": {
+        "@alice:example.com": 100
+      }
+    }
+  }
+]
