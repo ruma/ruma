@@ -216,7 +216,7 @@ fn get_page_ids(url: &str) -> Result<HashMap<String, HasDuplicates>> {
     let html = page.text()?;
     let mut ids = HashMap::new();
 
-    for token in Tokenizer::new(&html).infallible() {
+    for Ok(token) in Tokenizer::new(&html) {
         let Token::StartTag(tag) = token else {
             continue;
         };
