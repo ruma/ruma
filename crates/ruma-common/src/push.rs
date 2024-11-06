@@ -633,9 +633,9 @@ impl PatternedPushRule {
     }
 }
 
-/// Initial set of fields of `PatterenedPushRule`.
+/// Initial set of fields of `PatternedPushRule`.
 ///
-/// This struct will not be updated even if additional fields are added to `PatterenedPushRule` in a
+/// This struct will not be updated even if additional fields are added to `PatternedPushRule` in a
 /// new (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
 #[allow(clippy::exhaustive_structs)]
