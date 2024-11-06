@@ -1,0 +1,103 @@
+[
+  {
+    "event_id": "$00-m-room-create",
+    "room_id": "!room:example.com",
+    "sender": "@alice:example.com",
+    "type": "m.room.create",
+    "content": {
+      "creator": "@alice:example.com",
+      "room_version": "10"
+    },
+    "state_key": "",
+    "origin_server_ts": 0,
+    "prev_events": [],
+    "auth_events": []
+  },
+  {
+    "event_id": "$00-m-room-member-join-alice",
+    "room_id": "!room:example.com",
+    "sender": "@alice:example.com",
+    "type": "m.room.member",
+    "content": {
+      "displayname": "alice",
+      "membership": "join"
+    },
+    "state_key": "@alice:example.com",
+    "origin_server_ts": 1,
+    "prev_events": [
+      "$00-m-room-create"
+    ],
+    "auth_events": [
+      "$00-m-room-create"
+    ]
+  },
+  {
+    "event_id": "$00-m-room-power_levels",
+    "room_id": "!room:example.com",
+    "sender": "@alice:example.com",
+    "type": "m.room.power_levels",
+    "content": {
+      "users": {
+        "@alice:example.com": 100
+      }
+    },
+    "state_key": "",
+    "origin_server_ts": 2,
+    "prev_events": [],
+    "auth_events": [
+      "$00-m-room-create",
+      "$00-m-room-member-join-alice"
+    ]
+  },
+  {
+    "event_id": "$00-m-room-join_rules",
+    "room_id": "!room:example.com",
+    "sender": "@alice:example.com",
+    "type": "m.room.join_rules",
+    "content": {
+      "join_rule": "invite"
+    },
+    "state_key": "",
+    "origin_server_ts": 3,
+    "prev_events": [],
+    "auth_events": [
+      "$00-m-room-create",
+      "$00-m-room-member-join-alice",
+      "$00-m-room-power_levels"
+    ]
+  },
+  {
+    "event_id": "$00-m-room-history_visibility",
+    "room_id": "!room:example.com",
+    "sender": "@alice:example.com",
+    "type": "m.room.history_visibility",
+    "content": {
+      "history_visibility": "shared"
+    },
+    "state_key": "",
+    "origin_server_ts": 4,
+    "prev_events": [],
+    "auth_events": [
+      "$00-m-room-create",
+      "$00-m-room-member-join-alice",
+      "$00-m-room-power_levels"
+    ]
+  },
+  {
+    "event_id": "$00-m-room-guest_access",
+    "room_id": "!room:example.com",
+    "sender": "@alice:example.com",
+    "type": "m.room.guest_access",
+    "content": {
+      "guest_access": "can_join"
+    },
+    "state_key": "",
+    "origin_server_ts": 5,
+    "prev_events": [],
+    "auth_events": [
+      "$00-m-room-create",
+      "$00-m-room-member-join-alice",
+      "$00-m-room-power_levels"
+    ]
+  }
+]

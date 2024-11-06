@@ -3,3 +3,4 @@ target
 Cargo.lock
 .DS_Store
 .idea
+*.snap.new

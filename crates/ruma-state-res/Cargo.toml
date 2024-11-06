@@ -31,10 +31,12 @@ tracing = { workspace = true }
 criterion = { workspace = true, optional = true }
 
 [dev-dependencies]
+insta = { workspace = true }
 maplit = { workspace = true }
 rand = { workspace = true }
 ruma-events = { workspace = true, features = ["unstable-pdu"] }
-tracing-subscriber = "0.3.16"
+similar = { workspace = true }
+tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
 
 [[bench]]
 name = "state_res_bench"
