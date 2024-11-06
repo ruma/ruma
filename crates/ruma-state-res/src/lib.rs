@@ -13,7 +13,7 @@ use ruma_events::{
     StateEventType, TimelineEventType,
 };
 use serde_json::from_str as from_json_str;
-use tracing::{debug, info, trace, warn};
+use tracing::{debug, info, instrument, trace, warn};
 
 mod error;
 pub mod event_auth;
@@ -52,6 +52,7 @@ pub type StateMap<T> = HashMap<(StateEventType, String), T>;
 ///
 /// The caller of `resolve` must ensure that all the events are from the same room. Although this
 /// function takes a `RoomId` it does not check that each event is part of the same room.
+#[instrument(skip(state_sets, auth_chain_sets, fetch_event))]
 pub fn resolve<'a, E, SetIter>(
     room_version: &RoomVersionId,
     state_sets: impl IntoIterator<IntoIter = SetIter>,
@@ -63,21 +64,21 @@ where
     E::Id: 'a,
     SetIter: Iterator<Item = &'a StateMap<E::Id>> + Clone,
 {
-    info!("State resolution starting");
+    info!("state resolution starting");
 
     // Split non-conflicting and conflicting state
     let (clean, conflicting) = separate(state_sets.into_iter());
 
-    info!("non conflicting events: {}", clean.len());
-    trace!("{clean:?}");
+    info!(count = clean.len(), "non-conflicting events");
+    trace!(map = ?clean, "non-conflicting events");
 
     if conflicting.is_empty() {
         info!("no conflicting state found");
         return Ok(clean);
     }
 
-    info!("conflicting events: {}", conflicting.len());
-    debug!("{conflicting:?}");
+    info!(count = conflicting.len(), "conflicting events");
+    trace!(map = ?conflicting, "conflicting events");
 
     // `all_conflicted` contains unique items
     // synapse says `full_set = {eid for eid in full_conflicted_set if eid in event_map}`
@@ -87,8 +88,8 @@ where
         .filter(|id| fetch_event(id.borrow()).is_some())
         .collect();
 
-    info!("full conflicted set: {}", all_conflicted.len());
-    debug!("{all_conflicted:?}");
+    info!(count = all_conflicted.len(), "full conflicted set");
+    trace!(set = ?all_conflicted, "full conflicted set");
 
     // We used to check that all events are events from the correct room
     // this is now a check the caller of `resolve` must make.
@@ -104,16 +105,16 @@ where
     let sorted_control_levels =
         reverse_topological_power_sort(control_events, &all_conflicted, &fetch_event)?;
 
-    debug!("sorted control events: {}", sorted_control_levels.len());
-    trace!("{sorted_control_levels:?}");
+    debug!(count = sorted_control_levels.len(), "power events");
+    trace!(list = ?sorted_control_levels, "sorted power events");
 
     let room_version = RoomVersion::new(room_version)?;
     // Sequentially auth check each control event.
     let resolved_control =
         iterative_auth_check(&room_version, &sorted_control_levels, clean.clone(), &fetch_event)?;
 
-    debug!("resolved control events: {}", resolved_control.len());
-    trace!("{resolved_control:?}");
+    debug!(count = resolved_control.len(), "resolved power events");
+    trace!(map = ?resolved_control, "resolved power events");
 
     // At this point the control_events have been resolved we now have to
     // sort the remaining events using the mainline of the resolved power level.
@@ -127,17 +128,17 @@ where
         .cloned()
         .collect::<Vec<_>>();
 
-    debug!("events left to resolve: {}", events_to_resolve.len());
-    trace!("{events_to_resolve:?}");
+    debug!(count = events_to_resolve.len(), "events left to resolve");
+    trace!(list = ?events_to_resolve, "events left to resolve");
 
     // This "epochs" power level event
     let power_event = resolved_control.get(&(StateEventType::RoomPowerLevels, "".into()));
 
-    debug!("power event: {power_event:?}");
+    debug!(event_id = ?power_event, "power event");
 
     let sorted_left_events = mainline_sort(&events_to_resolve, power_event.cloned(), &fetch_event)?;
 
-    trace!("events left, sorted: {sorted_left_events:?}");
+    trace!(list = ?sorted_left_events, "events left, sorted");
 
     let mut resolved_state = iterative_auth_check(
         &room_version,
@@ -149,6 +150,9 @@ where
     // Add unconflicted state to the resolved state
     // We priorities the unconflicting state
     resolved_state.extend(clean);
+
+    info!("state resolution finished");
+
     Ok(resolved_state)
 }
 
@@ -209,6 +213,7 @@ where
 ///
 /// The power level is negative because a higher power level is equated to an earlier (further back
 /// in time) origin server timestamp.
+#[instrument(skip_all)]
 fn reverse_topological_power_sort<E: Event>(
     events_to_sort: Vec<E::Id>,
     auth_diff: &HashSet<E::Id>,
@@ -229,7 +234,11 @@ fn reverse_topological_power_sort<E: Event>(
     let mut event_to_pl = HashMap::new();
     for event_id in graph.keys() {
         let pl = get_power_level_for_sender(event_id.borrow(), &fetch_event)?;
-        info!("{event_id} power level {pl}");
+        debug!(
+            event_id = event_id.borrow().as_str(),
+            power_level = i64::from(pl),
+            "found the power level of an event's sender",
+        );
 
         event_to_pl.insert(event_id.clone(), pl);
 
@@ -249,6 +258,7 @@ fn reverse_topological_power_sort<E: Event>(
 ///
 /// `key_fn` is used as to obtain the power level and age of an event for breaking ties (together
 /// with the event ID).
+#[instrument(skip_all)]
 pub fn lexicographical_topological_sort<Id, F>(
     graph: &HashMap<Id, HashSet<Id>>,
     key_fn: F,
@@ -264,7 +274,6 @@ where
         event_id: &'a Id,
     }
 
-    info!("starting lexicographical topological sort");
     // NOTE: an event that has no incoming edges happened most recently,
     // and an event that has no outgoing edges happened least recently.
 
@@ -343,8 +352,6 @@ fn get_power_level_for_sender<E: Event>(
     event_id: &EventId,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> serde_json::Result<Int> {
-    info!("fetch event ({event_id}) senders power level");
-
     let event = fetch_event(event_id);
     let mut pl = None;
 
@@ -364,7 +371,6 @@ fn get_power_level_for_sender<E: Event>(
 
     if let Some(ev) = event {
         if let Some(&user_level) = content.users.get(ev.sender()) {
-            debug!("found {} at power_level {user_level}", ev.sender());
             return Ok(user_level);
         }
     }
@@ -387,9 +393,9 @@ fn iterative_auth_check<E: Event + Clone>(
     unconflicted_state: StateMap<E::Id>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> Result<StateMap<E::Id>> {
-    info!("starting iterative auth check");
+    debug!("starting iterative auth check");
 
-    debug!("performing auth checks on {events_to_check:?}");
+    trace!(list = ?events_to_check, "events to check");
 
     let mut resolved_state = unconflicted_state;
 
@@ -412,7 +418,7 @@ fn iterative_auth_check<E: Event + Clone>(
                     ev,
                 );
             } else {
-                warn!("auth event id for {aid} is missing {event_id}");
+                warn!(event_id = aid.borrow().as_str(), "missing auth event");
             }
         }
 
@@ -430,8 +436,6 @@ fn iterative_auth_check<E: Event + Clone>(
             }
         }
 
-        debug!("event to check {:?}", event.event_id());
-
         // The key for this is (eventType + a state_key of the signed token not sender) so
         // search for it
         let current_third_party = auth_events.iter().find_map(|(_, pdu)| {
@@ -445,7 +449,7 @@ fn iterative_auth_check<E: Event + Clone>(
             resolved_state.insert(event.event_type().with_state_key(state_key), event_id.clone());
         } else {
             // synapse passes here on AuthError. We do not add this event to resolved_state.
-            warn!("event {event_id} failed the authentication check");
+            warn!("event failed the authentication check");
         }
 
         // TODO: if these functions are ever made async here
@@ -534,7 +538,7 @@ fn get_mainline_depth<E: Event>(
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> Result<usize> {
     while let Some(sort_ev) = event {
-        debug!("mainline event_id {}", sort_ev.event_id());
+        debug!(event_id = sort_ev.event_id().borrow().as_str(), "mainline");
         let id = sort_ev.event_id();
         if let Some(depth) = mainline_map.get(id.borrow()) {
             return Ok(*depth);
@@ -1163,11 +1167,11 @@ mod tests {
         };
 
         debug!(
-            "{:#?}",
-            resolved
+            resolved = ?resolved
                 .iter()
                 .map(|((ty, key), id)| format!("(({ty}{key:?}), {id})"))
-                .collect::<Vec<_>>()
+                .collect::<Vec<_>>(),
+            "resolved state",
         );
 
         let expected =
