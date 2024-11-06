@@ -19,9 +19,9 @@ js_int = "0.2.2"
 maplit = "1.0.2"
 rand = "0.8.5"
 ruma-appservice-api = { version = "0.11.0", path = "crates/ruma-appservice-api" }
-ruma-common = { version = "0.14.1", path = "crates/ruma-common" }
 ruma-client = { version = "0.14.0", path = "crates/ruma-client" }
 ruma-client-api = { version = "0.19.0", path = "crates/ruma-client-api" }
+ruma-common = { version = "0.14.1", path = "crates/ruma-common" }
 ruma-events = { version = "0.29.1", path = "crates/ruma-events" }
 ruma-federation-api = { version = "0.10.0", path = "crates/ruma-federation-api" }
 ruma-html = { version = "0.3.0", path = "crates/ruma-html" }
@@ -29,8 +29,8 @@ ruma-identifiers-validation = { version = "0.10.0", path = "crates/ruma-identifi
 ruma-identity-service-api = { version = "0.10.0", path = "crates/ruma-identity-service-api" }
 ruma-macros = { version = "=0.14.0", path = "crates/ruma-macros" }
 ruma-push-gateway-api = { version = "0.10.0", path = "crates/ruma-push-gateway-api" }
-ruma-signatures = { version = "0.16.0", path = "crates/ruma-signatures" }
 ruma-server-util = { version = "0.4.0", path = "crates/ruma-server-util" }
+ruma-signatures = { version = "0.16.0", path = "crates/ruma-signatures" }
 ruma-state-res = { version = "0.12.0", path = "crates/ruma-state-res" }
 serde = { version = "1.0.164", features = ["derive"] }
 serde_html_form = "0.2.0"
