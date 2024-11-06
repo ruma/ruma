@@ -17,7 +17,7 @@ use serde::{
     Deserialize,
 };
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info, instrument, trace, warn};
 
 use crate::{
     power_levels::{
@@ -121,17 +121,14 @@ pub fn auth_types_for_event(
 ///
 /// The `fetch_state` closure should gather state from a state snapshot. We need to know if the
 /// event passes auth against some state not a recursive collection of auth_events fields.
+#[instrument(skip_all, fields(event_id = incoming_event.event_id().borrow().as_str()))]
 pub fn auth_check<E: Event>(
     room_version: &RoomVersion,
     incoming_event: impl Event,
     current_third_party_invite: Option<impl Event>,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<bool> {
-    info!(
-        "auth_check beginning for {} ({})",
-        incoming_event.event_id(),
-        incoming_event.event_type()
-    );
+    debug!("starting auth check");
 
     // [synapse] check that all the events are in the same room as `incoming_event`
 
@@ -153,7 +150,7 @@ pub fn auth_check<E: Event>(
             creator: Option<Raw<IgnoredAny>>,
         }
 
-        info!("start m.room.create check");
+        debug!("start m.room.create check");
 
         // If it has any previous events, reject
         if incoming_event.prev_events().next().is_some() {
@@ -251,7 +248,7 @@ pub fn auth_check<E: Event>(
     if room_version.special_case_aliases_auth {
         // 4. If type is m.room.aliases
         if *incoming_event.event_type() == TimelineEventType::RoomAliases {
-            info!("starting m.room.aliases check");
+            debug!("starting m.room.aliases check");
 
             // If sender's domain doesn't matches state_key, reject
             if incoming_event.state_key() != Some(sender.server_name().as_str()) {
@@ -269,7 +266,7 @@ pub fn auth_check<E: Event>(
     let sender_member_event = fetch_state(&StateEventType::RoomMember, sender.as_str());
 
     if *incoming_event.event_type() == TimelineEventType::RoomMember {
-        info!("starting m.room.member check");
+        debug!("starting m.room.member check");
         let state_key = match incoming_event.state_key() {
             None => {
                 warn!("no statekey in member event");
@@ -393,7 +390,7 @@ pub fn auth_check<E: Event>(
 
     // If type is m.room.power_levels
     if *incoming_event.event_type() == TimelineEventType::RoomPowerLevels {
-        info!("starting m.room.power_levels check");
+        debug!("starting m.room.power_levels check");
 
         if let Some(required_pwr_lvl) = check_power_levels(
             room_version,
@@ -402,14 +399,14 @@ pub fn auth_check<E: Event>(
             sender_power_level,
         ) {
             if !required_pwr_lvl {
-                warn!("power level was not allowed");
+                warn!("m.room.power_levels was not allowed");
                 return Ok(false);
             }
         } else {
-            warn!("power level was not allowed");
+            warn!("m.room.power_levels was not allowed");
             return Ok(false);
         }
-        info!("power levels event allowed");
+        info!("m.room.power_levels event allowed");
     }
 
     // Room version 3: Redaction events are always accepted (provided the event is allowed by
@@ -566,11 +563,11 @@ fn valid_membership_change(
 
             if sender != target_user {
                 // If the sender does not match state_key, reject.
-                warn!("Can't make other user join");
+                warn!("can't make other user join");
                 false
             } else if let MembershipState::Ban = target_user_current_membership {
                 // If the sender is banned, reject.
-                warn!(?target_user_membership_event_id, "Banned user can't join");
+                warn!(?target_user_membership_event_id, "banned user can't join");
                 false
             } else if (join_rules == JoinRule::Invite
                     || room_version.allow_knocking && join_rules == JoinRule::Knock)
@@ -607,7 +604,7 @@ fn valid_membership_change(
             // If content has third_party_invite key
             if let Some(tp_id) = third_party_invite.and_then(|i| i.deserialize().ok()) {
                 if target_user_current_membership == MembershipState::Ban {
-                    warn!(?target_user_membership_event_id, "Can't invite banned user");
+                    warn!(?target_user_membership_event_id, "can't invite banned user");
                     false
                 } else {
                     let allow = verify_third_party_invite(
@@ -617,7 +614,7 @@ fn valid_membership_change(
                         current_third_party_invite,
                     );
                     if !allow {
-                        warn!("Third party invite invalid");
+                        warn!("third party invite invalid");
                     }
                     allow
                 }
@@ -628,7 +625,7 @@ fn valid_membership_change(
                 warn!(
                     ?target_user_membership_event_id,
                     ?sender_membership_event_id,
-                    "Can't invite user if sender not joined or the user is currently joined or \
+                    "can't invite user if sender not joined or the user is currently joined or \
                      banned",
                 );
                 false
@@ -638,7 +635,7 @@ fn valid_membership_change(
                     warn!(
                         ?target_user_membership_event_id,
                         ?power_levels_event_id,
-                        "User does not have enough power to invite",
+                        "user does not have enough power to invite",
                     );
                 }
                 allow
@@ -649,7 +646,7 @@ fn valid_membership_change(
                 let allow = target_user_current_membership == MembershipState::Join
                     || target_user_current_membership == MembershipState::Invite;
                 if !allow {
-                    warn!(?target_user_membership_event_id, "Can't leave if not invited or joined");
+                    warn!(?target_user_membership_event_id, "can't leave if not invited or joined");
                 }
                 allow
             } else if !sender_is_joined
@@ -659,7 +656,7 @@ fn valid_membership_change(
                 warn!(
                     ?target_user_membership_event_id,
                     ?sender_membership_event_id,
-                    "Can't kick if sender not joined or user is already banned",
+                    "can't kick if sender not joined or user is already banned",
                 );
                 false
             } else {
@@ -669,7 +666,7 @@ fn valid_membership_change(
                     warn!(
                         ?target_user_membership_event_id,
                         ?power_levels_event_id,
-                        "User does not have enough power to kick",
+                        "user does not have enough power to kick",
                     );
                 }
                 allow
@@ -677,7 +674,7 @@ fn valid_membership_change(
         }
         MembershipState::Ban => {
             if !sender_is_joined {
-                warn!(?sender_membership_event_id, "Can't ban user if sender is not joined");
+                warn!(?sender_membership_event_id, "can't ban user if sender is not joined");
                 false
             } else {
                 let allow = sender_power.filter(|&p| p >= &power_levels.ban).is_some()
@@ -686,7 +683,7 @@ fn valid_membership_change(
                     warn!(
                         ?target_user_membership_event_id,
                         ?power_levels_event_id,
-                        "User does not have enough power to ban",
+                        "user does not have enough power to ban",
                     );
                 }
                 allow
@@ -698,14 +695,14 @@ fn valid_membership_change(
                 || room_version.knock_restricted_join_rule
                     && matches!(join_rules, JoinRule::KnockRestricted(_))
             {
-                warn!("Join rule is not set to knock or knock_restricted, knocking is not allowed");
+                warn!("join rule is not set to knock or knock_restricted, knocking is not allowed");
                 false
             } else if sender != target_user {
                 // 2. If `sender` does not match `state_key`, reject.
                 warn!(
                     ?sender,
                     ?target_user,
-                    "Can't make another user knock, sender did not match target"
+                    "can't make another user knock, sender did not match target"
                 );
                 false
             } else if matches!(
@@ -716,7 +713,7 @@ fn valid_membership_change(
                 // 4. Otherwise, reject.
                 warn!(
                     ?target_user_membership_event_id,
-                    "Membership state of ban, invite or join are invalid",
+                    "membership state of ban, invite or join are invalid",
                 );
                 false
             } else {
@@ -724,7 +721,7 @@ fn valid_membership_change(
             }
         }
         _ => {
-            warn!("Unknown membership transition");
+            warn!("unknown membership transition");
             false
         }
     })
@@ -736,7 +733,12 @@ fn valid_membership_change(
 fn can_send_event(event: impl Event, ple: Option<impl Event>, user_level: Int) -> bool {
     let event_type_power_level = get_send_level(event.event_type(), event.state_key(), ple);
 
-    debug!("{} ev_type {event_type_power_level} usr {user_level}", event.event_id());
+    debug!(
+        required_level = i64::from(event_type_power_level),
+        user_level = i64::from(user_level),
+        state_key = ?event.state_key(),
+        "permissions factors",
+    );
 
     if user_level < event_type_power_level {
         return false;
@@ -761,7 +763,7 @@ fn check_power_levels(
     match power_event.state_key() {
         Some("") => {}
         Some(key) => {
-            error!("m.room.power_levels event has non-empty state key: {key}");
+            error!(state_key = key, "m.room.power_levels event has non-empty state key");
             return None;
         }
         None => {
@@ -780,7 +782,7 @@ fn check_power_levels(
         deserialize_power_levels(power_event.content().get(), room_version)?;
 
     // Validation of users is done in Ruma, synapse for loops validating user_ids and integers here
-    info!("validation of power event finished");
+    debug!("validation of power event finished");
 
     let current_state = match previous_power_event {
         Some(current_state) => current_state,
@@ -799,7 +801,7 @@ fn check_power_levels(
         user_levels_to_check.insert(user);
     }
 
-    debug!("users to check {user_levels_to_check:?}");
+    trace!(set = ?user_levels_to_check, "user levels to check");
 
     let mut event_levels_to_check = BTreeSet::new();
     let old_list = &current_content.events;
@@ -808,7 +810,7 @@ fn check_power_levels(
         event_levels_to_check.insert(ev_id);
     }
 
-    debug!("events to check {event_levels_to_check:?}");
+    trace!(set = ?event_levels_to_check, "event levels to check");
 
     let old_state = &current_content;
     let new_state = &user_content;
