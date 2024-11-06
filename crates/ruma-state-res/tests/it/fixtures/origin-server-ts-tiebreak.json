@@ -1,0 +1,54 @@
+[
+  {
+    "test-comments": [
+      "NOTE: It is very important that the `event_id` of this PDU is ",
+      "lexicographically larger than the `event_id` of the following PDU, to ",
+      "ensure that the tiebreaking is done by the `origin_server_ts` field ",
+      "and not by the `event_id` field."
+    ],
+    "event_id": "$02-m-room-join_rules",
+    "room_id": "!room:example.com",
+    "sender": "@alice:example.com",
+    "type": "m.room.join_rules",
+    "content": {
+      "join_rule": "restricted",
+      "allow": [
+        {
+          "room_id": "!other:example.com",
+          "type": "m.room_membership"
+        }
+      ]
+    },
+    "state_key": "",
+    "origin_server_ts": 6,
+    "prev_events": [],
+    "auth_events": [
+      "$00-m-room-create",
+      "$00-m-room-member-join-alice",
+      "$00-m-room-power_levels"
+    ]
+  },
+  {
+    "test-comments": [
+      "NOTE: It is very important that the `event_id` of this PDU is ",
+      "lexicographically smaller than the `event_id` of the previous PDU, to ",
+      "ensure that the tiebreaking is done by the `origin_server_ts` field ",
+      "and not by the `event_id` field."
+    ],
+    "event_id": "$01-m-room-join_rules",
+    "room_id": "!room:example.com",
+    "sender": "@alice:example.com",
+    "type": "m.room.join_rules",
+    "content": {
+      "join_rule": "public"
+    },
+    "state_key": "",
+    "origin_server_ts": 7,
+    "prev_events": [],
+    "auth_events": [
+      "$00-m-room-create",
+      "$00-m-room-member-join-alice",
+      "$00-m-room-power_levels"
+    ]
+  }
+]
