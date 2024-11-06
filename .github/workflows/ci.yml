@@ -50,7 +50,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Check spelling
-        uses: crate-ci/typos@v1.24.5
+        uses: crate-ci/typos@v1.27.1
 
       - name: Install cargo-sort
         uses: taiki-e/cache-cargo-install-action@v2
