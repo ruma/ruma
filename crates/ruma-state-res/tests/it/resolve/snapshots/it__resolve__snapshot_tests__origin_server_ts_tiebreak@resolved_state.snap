@@ -31,15 +31,9 @@ description: Resolved state
   {
     "kind": "m.room.join_rules",
     "state_key": "",
-    "event_id": "$02-m-room-join_rules",
+    "event_id": "$01-m-room-join_rules",
     "content": {
-      "allow": [
-        {
-          "room_id": "!other:example.com",
-          "type": "m.room_membership"
-        }
-      ],
-      "join_rule": "restricted"
+      "join_rule": "public"
     }
   },
   {

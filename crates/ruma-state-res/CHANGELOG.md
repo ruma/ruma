@@ -1,5 +1,9 @@
 # [unreleased]
 
+Bug fixes:
+
+- Fix tiebreaking logic in state resolution.
+
 # 0.12.0
 
 Upgrade `ruma-events` to 0.29.0.
