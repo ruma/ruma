@@ -23,7 +23,6 @@ pub struct DirectUserIdentifier(str);
 impl DirectUserIdentifier {
     /// Get this `DirectUserIdentifier` as an &[`UserId`] if it is one.
     pub fn as_user_id(&self) -> Option<&UserId> {
-        // TODO does it allocate ? Can we avoid it ?
         self.0.try_into().ok()
     }
 }
@@ -31,7 +30,6 @@ impl DirectUserIdentifier {
 impl OwnedDirectUserIdentifier {
     /// Get this `OwnedDirectUserIdentifier` as an &[`UserId`] if it is one.
     pub fn as_user_id(&self) -> Option<&UserId> {
-        // TODO does it allocate ? Can we avoid it ?
         self.0.try_into().ok()
     }
 
