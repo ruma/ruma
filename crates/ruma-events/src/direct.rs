@@ -65,6 +65,14 @@ impl TryFrom<&DirectUserIdentifier> for OwnedUserId {
     }
 }
 
+impl<'a> TryFrom<&'a DirectUserIdentifier> for &'a UserId {
+    type Error = IdParseError;
+
+    fn try_from(value: &'a DirectUserIdentifier) -> Result<Self, Self::Error> {
+        value.0.try_into()
+    }
+}
+
 impl From<OwnedUserId> for OwnedDirectUserIdentifier {
     fn from(value: OwnedUserId) -> Self {
         DirectUserIdentifier::from_borrowed(value.as_str()).to_owned()
