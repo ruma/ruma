@@ -11,20 +11,41 @@ use ruma_common::{IdParseError, OwnedRoomId, OwnedUserId, UserId};
 use ruma_macros::{EventContent, IdZst};
 use serde::{Deserialize, Serialize};
 
-/// An user identifier, it can be a MXID or a third-party identifier
+/// An user identifier, it can be a [`UserId`] or a third-party identifier
 /// like an email or a phone number.
 ///
 /// There is no validation on this type, any string is allowed,
-/// but you can use `to_user_id` to try to get a MXID.
+/// but you can use `as_user_id` or `into_user_id` to try to get an [`UserId`].
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
 pub struct DirectUserIdentifier(str);
+
+impl DirectUserIdentifier {
+    /// Get this `DirectUserIdentifier` as an &[`UserId`] if it is one.
+    pub fn as_user_id(&self) -> Option<&UserId> {
+        // TODO does it allocate ? Can we avoid it ?
+        self.0.try_into().ok()
+    }
+}
+
+impl OwnedDirectUserIdentifier {
+    /// Get this `OwnedDirectUserIdentifier` as an &[`UserId`] if it is one.
+    pub fn as_user_id(&self) -> Option<&UserId> {
+        // TODO does it allocate ? Can we avoid it ?
+        self.0.try_into().ok()
+    }
+
+    /// Get this `OwnedDirectUserIdentifier` as an [`OwnedUserId`] if it is one.
+    pub fn into_user_id(self) -> Option<OwnedUserId> {
+        OwnedUserId::try_from(self).ok()
+    }
+}
 
 impl TryFrom<OwnedDirectUserIdentifier> for OwnedUserId {
     type Error = IdParseError;
 
     fn try_from(value: OwnedDirectUserIdentifier) -> Result<Self, Self::Error> {
-        Self::try_from(&value.0)
+        value.0.try_into()
     }
 }
 
@@ -32,7 +53,7 @@ impl TryFrom<&OwnedDirectUserIdentifier> for OwnedUserId {
     type Error = IdParseError;
 
     fn try_from(value: &OwnedDirectUserIdentifier) -> Result<Self, Self::Error> {
-        Self::try_from(&value.0)
+        value.0.try_into()
     }
 }
 
@@ -40,7 +61,7 @@ impl TryFrom<&DirectUserIdentifier> for OwnedUserId {
     type Error = IdParseError;
 
     fn try_from(value: &DirectUserIdentifier) -> Result<Self, Self::Error> {
-        Self::try_from(&value.0)
+        value.0.try_into()
     }
 }
 
@@ -68,10 +89,34 @@ impl<'a> From<&'a UserId> for &'a DirectUserIdentifier {
     }
 }
 
+impl PartialEq<&UserId> for &DirectUserIdentifier {
+    fn eq(&self, other: &&UserId) -> bool {
+        &self.0 == other.as_str()
+    }
+}
+
+impl PartialEq<OwnedUserId> for &DirectUserIdentifier {
+    fn eq(&self, other: &OwnedUserId) -> bool {
+        &self.0 == other.as_str()
+    }
+}
+
+impl PartialEq<&UserId> for OwnedDirectUserIdentifier {
+    fn eq(&self, other: &&UserId) -> bool {
+        &self.0 == other.as_str()
+    }
+}
+
+impl PartialEq<OwnedUserId> for OwnedDirectUserIdentifier {
+    fn eq(&self, other: &OwnedUserId) -> bool {
+        &self.0 == other.as_str()
+    }
+}
+
 /// The content of an `m.direct` event.
 ///
-/// A mapping of `DirectUserIdentifier`s to a list of `RoomId`s which are considered *direct* for
-/// that particular user.
+/// A mapping of [`DirectUserIdentifier`]s to a list of [`RoomId`]s which are considered *direct*
+/// for that particular user.
 ///
 /// Informs the client about the rooms that are considered direct by a user.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
@@ -115,7 +160,7 @@ impl FromIterator<(OwnedDirectUserIdentifier, Vec<OwnedRoomId>)> for DirectEvent
 mod tests {
     use std::collections::BTreeMap;
 
-    use ruma_common::{owned_room_id, user_id, OwnedUserId};
+    use ruma_common::{owned_room_id, owned_user_id, user_id, OwnedUserId};
     // use ruma_macros::user_id;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -125,10 +170,10 @@ mod tests {
     #[test]
     fn serialization() {
         let mut content = DirectEventContent(BTreeMap::new());
-        let alice = DirectUserIdentifier::from_borrowed("@alice:ruma.io");
+        let alice = owned_user_id!("@alice:ruma.io");
         let rooms = vec![owned_room_id!("!1:ruma.io")];
 
-        content.insert(alice.to_owned(), rooms.clone());
+        content.insert(alice.clone().into(), rooms.clone());
 
         let json_data = json!({
             alice: rooms,
@@ -139,22 +184,28 @@ mod tests {
 
     #[test]
     fn deserialization() {
-        let alice = DirectUserIdentifier::from_borrowed("@alice:ruma.io");
+        let alice = owned_user_id!("@alice:ruma.io");
+        let alice_mail = "alice@ruma.io";
         let rooms = vec![owned_room_id!("!1:ruma.io"), owned_room_id!("!2:ruma.io")];
+        let mail_rooms = vec![owned_room_id!("!3:ruma.io")];
 
         let json_data = json!({
             "content": {
-                alice: rooms,
-                "alice@ruma.io": vec![owned_room_id!("!3:ruma.io")],
+                alice.clone(): rooms,
+                alice_mail: mail_rooms,
             },
             "type": "m.direct"
         });
 
         let event: DirectEvent = from_json_value(json_data).unwrap();
-        let direct_rooms = event.content.get(alice).unwrap();
 
+        let direct_rooms = event.content.get(&OwnedDirectUserIdentifier::from(alice)).unwrap();
         assert!(direct_rooms.contains(&rooms[0]));
         assert!(direct_rooms.contains(&rooms[1]));
+
+        let email_direct_rooms =
+            event.content.get(&OwnedDirectUserIdentifier::from(alice_mail)).unwrap();
+        assert!(email_direct_rooms.contains(&mail_rooms[0]));
     }
 
     #[test]
