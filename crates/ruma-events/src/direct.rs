@@ -123,7 +123,7 @@ impl PartialEq<OwnedUserId> for OwnedDirectUserIdentifier {
 
 /// The content of an `m.direct` event.
 ///
-/// A mapping of [`DirectUserIdentifier`]s to a list of [`RoomId`]s which are considered *direct*
+/// A mapping of `DirectUserIdentifier`s to a list of `RoomId`s which are considered *direct*
 /// for that particular user.
 ///
 /// Informs the client about the rooms that are considered direct by a user.
