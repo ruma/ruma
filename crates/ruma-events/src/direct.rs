@@ -223,7 +223,7 @@ mod tests {
             .to_owned()
             .try_into()
             .expect("@alice:ruma.io should be convertible into a Matrix user ID");
-        assert_eq!(alice_direct_uid.as_str(), alice_owned_user_id.as_str());
+        assert_eq!(alice_direct_uid, alice_owned_user_id);
 
         let alice_direct_uid_mail = DirectUserIdentifier::from_borrowed("alice@ruma.io");
         OwnedUserId::try_from(alice_direct_uid_mail.to_owned())
@@ -231,10 +231,10 @@ mod tests {
 
         let alice_user_id = user_id!("@alice:ruma.io");
         let alice_direct_uid_mail: &DirectUserIdentifier = alice_user_id.into();
-        assert_eq!(alice_direct_uid_mail.as_str(), alice_user_id.as_str());
+        assert_eq!(alice_direct_uid_mail, alice_user_id);
 
         let alice_user_id = user_id!("@alice:ruma.io");
         let alice_direct_uid_mail: OwnedDirectUserIdentifier = alice_user_id.into();
-        assert_eq!(alice_direct_uid_mail.as_str(), alice_user_id.as_str());
+        assert_eq!(alice_direct_uid_mail, alice_user_id);
     }
 }
