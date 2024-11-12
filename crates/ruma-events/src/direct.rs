@@ -179,12 +179,16 @@ mod tests {
     fn serialization() {
         let mut content = DirectEventContent(BTreeMap::new());
         let alice = owned_user_id!("@alice:ruma.io");
+        let alice_mail = "alice@ruma.io";
         let rooms = vec![owned_room_id!("!1:ruma.io")];
+        let mail_rooms = vec![owned_room_id!("!3:ruma.io")];
 
         content.insert(alice.clone().into(), rooms.clone());
+        content.insert(alice_mail.into(), mail_rooms.clone());
 
         let json_data = json!({
             alice: rooms,
+            alice_mail: mail_rooms,
         });
 
         assert_eq!(to_json_value(&content).unwrap(), json_data);
