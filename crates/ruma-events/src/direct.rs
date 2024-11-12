@@ -191,7 +191,6 @@ mod tests {
     use std::collections::BTreeMap;
 
     use ruma_common::{owned_room_id, user_id, OwnedUserId};
-    // use ruma_macros::user_id;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{DirectEvent, DirectEventContent};
