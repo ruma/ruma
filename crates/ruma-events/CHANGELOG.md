@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+- Add unstable support for MSC4171 for the m.member_hints state event.
+
 Breaking changes:
 
 - Take newly introduced `DirectUserIdentifier(str)` as a key for `DirectEventContent`.

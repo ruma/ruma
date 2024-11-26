@@ -136,6 +136,9 @@ event_enum! {
         #[cfg(feature = "unstable-msc3401")]
         #[ruma_enum(alias = "m.call.member")]
         "org.matrix.msc3401.call.member" => super::call::member,
+        #[cfg(feature = "unstable-msc4171")]
+        #[ruma_enum(alias = "m.member_hints")]
+        "io.element.functional_members" => super::member_hints,
     }
 
     /// Any to-device event.
