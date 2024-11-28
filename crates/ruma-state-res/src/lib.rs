@@ -5,7 +5,6 @@ use std::{
     hash::Hash,
 };
 
-use itertools::Itertools;
 use js_int::{int, Int};
 use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, RoomVersionId};
 use ruma_events::{
@@ -164,27 +163,32 @@ where
 /// not exactly one event ID. This includes missing events, if one state_set includes an event that
 /// none of the other have this is a conflicting event.
 fn separate<'a, Id>(
-    state_sets_iter: impl Iterator<Item = &'a StateMap<Id>> + Clone,
+    state_sets_iter: impl Iterator<Item = &'a StateMap<Id>>,
 ) -> (StateMap<Id>, StateMap<Vec<Id>>)
 where
-    Id: Clone + Eq + 'a,
+    Id: Clone + Eq + Hash + 'a,
 {
+    let mut state_set_count = 0_usize;
+    let mut occurrences = HashMap::<_, HashMap<_, _>>::new();
+
+    let state_sets_iter = state_sets_iter.inspect(|_| state_set_count += 1);
+    for (k, v) in state_sets_iter.flatten() {
+        occurrences.entry(k).or_default().entry(v).and_modify(|x| *x += 1).or_insert(1);
+    }
+
     let mut unconflicted_state = StateMap::new();
     let mut conflicted_state = StateMap::new();
 
-    for key in state_sets_iter.clone().flat_map(|map| map.keys()).unique() {
-        let mut event_ids =
-            state_sets_iter.clone().map(|state_set| state_set.get(key)).collect::<Vec<_>>();
-
-        if event_ids.iter().all_equal() {
-            // First .unwrap() is okay because
-            // * event_ids has the same length as state_sets
-            // * we never enter the loop this code is in if state_sets is empty
-            let id = event_ids.pop().unwrap().expect("unconflicting `EventId` is not None");
-            unconflicted_state.insert(key.clone(), id.clone());
-        } else {
-            conflicted_state
-                .insert(key.clone(), event_ids.into_iter().filter_map(|o| o.cloned()).collect());
+    for (k, v) in occurrences {
+        for (id, occurrence_count) in v {
+            if occurrence_count == state_set_count {
+                unconflicted_state.insert((k.0.clone(), k.1.clone()), id.clone());
+            } else {
+                conflicted_state
+                    .entry((k.0.clone(), k.1.clone()))
+                    .and_modify(|x: &mut Vec<_>| x.push(id.clone()))
+                    .or_insert(vec![id.clone()]);
+            }
         }
     }
 
@@ -1330,7 +1334,7 @@ mod tests {
 
     #[test]
     fn separate_conflicted() {
-        let (unconflicted, conflicted) = super::separate(
+        let (unconflicted, mut conflicted) = super::separate(
             [
                 state_set![StateEventType::RoomMember => "@a:hs1" => 0],
                 state_set![StateEventType::RoomMember => "@a:hs1" => 1],
@@ -1338,6 +1342,11 @@ mod tests {
             ]
             .iter(),
         );
+
+        // HashMap iteration order is random, so sort this before asserting on it
+        for v in conflicted.values_mut() {
+            v.sort_unstable();
+        }
 
         assert_eq!(unconflicted, StateMap::new());
         assert_eq!(
