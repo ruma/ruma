@@ -1294,4 +1294,109 @@ mod tests {
         .map(|ev| (ev.event_id.clone(), ev))
         .collect()
     }
+
+    macro_rules! state_set {
+        ($($kind:expr => $key:expr => $id:expr),* $(,)?) => {{
+            #[allow(unused_mut)]
+            let mut x = StateMap::new();
+            $(
+                x.insert(($kind, $key.to_owned()), $id);
+            )*
+            x
+        }};
+    }
+
+    #[test]
+    fn separate_unique_conflicted() {
+        let (unconflicted, conflicted) = super::separate(
+            [
+                state_set![StateEventType::RoomMember => "@a:hs1" => 0],
+                state_set![StateEventType::RoomMember => "@b:hs1" => 1],
+                state_set![StateEventType::RoomMember => "@c:hs1" => 2],
+            ]
+            .iter(),
+        );
+
+        assert_eq!(unconflicted, StateMap::new());
+        assert_eq!(
+            conflicted,
+            state_set![
+                StateEventType::RoomMember => "@a:hs1" => vec![0],
+                StateEventType::RoomMember => "@b:hs1" => vec![1],
+                StateEventType::RoomMember => "@c:hs1" => vec![2],
+            ],
+        );
+    }
+
+    #[test]
+    fn separate_conflicted() {
+        let (unconflicted, conflicted) = super::separate(
+            [
+                state_set![StateEventType::RoomMember => "@a:hs1" => 0],
+                state_set![StateEventType::RoomMember => "@a:hs1" => 1],
+                state_set![StateEventType::RoomMember => "@a:hs1" => 2],
+            ]
+            .iter(),
+        );
+
+        assert_eq!(unconflicted, StateMap::new());
+        assert_eq!(
+            conflicted,
+            state_set![
+                StateEventType::RoomMember => "@a:hs1" => vec![0, 1, 2],
+            ],
+        );
+    }
+
+    #[test]
+    fn separate_unconflicted() {
+        let (unconflicted, conflicted) = super::separate(
+            [
+                state_set![StateEventType::RoomMember => "@a:hs1" => 0],
+                state_set![StateEventType::RoomMember => "@a:hs1" => 0],
+                state_set![StateEventType::RoomMember => "@a:hs1" => 0],
+            ]
+            .iter(),
+        );
+
+        assert_eq!(
+            unconflicted,
+            state_set![
+                StateEventType::RoomMember => "@a:hs1" => 0,
+            ],
+        );
+        assert_eq!(conflicted, StateMap::new());
+    }
+
+    #[test]
+    fn separate_mixed() {
+        let (unconflicted, conflicted) = super::separate(
+            [
+                state_set![StateEventType::RoomMember => "@a:hs1" => 0],
+                state_set![
+                    StateEventType::RoomMember => "@a:hs1" => 0,
+                    StateEventType::RoomMember => "@b:hs1" => 1,
+                ],
+                state_set![
+                    StateEventType::RoomMember => "@a:hs1" => 0,
+                    StateEventType::RoomMember => "@c:hs1" => 2,
+                ],
+            ]
+            .iter(),
+        );
+
+        assert_eq!(
+            unconflicted,
+            state_set![
+                StateEventType::RoomMember => "@a:hs1" => 0,
+            ],
+        );
+        assert_eq!(
+            conflicted,
+            state_set![
+                StateEventType::RoomMember => "@b:hs1" => vec![1],
+                StateEventType::RoomMember => "@c:hs1" => vec![2],
+            ],
+        );
+    }
 }
