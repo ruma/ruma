@@ -9,8 +9,10 @@ use serde::{de::IgnoredAny, Deserialize};
 #[cfg(feature = "default")]
 use toml_edit::{value, DocumentMut};
 #[cfg(feature = "default")]
-use xshell::{cmd, pushd, read_file, write_file};
+use xshell::Shell;
 
+#[cfg(feature = "default")]
+use crate::cmd;
 use crate::{util::ask_yes_no, Metadata, Result};
 
 const CRATESIO_API: &str = "https://crates.io/api/v1/crates";
@@ -74,15 +76,15 @@ impl Package {
 #[cfg(feature = "default")]
 impl Package {
     /// Update the version of this crate.
-    pub fn update_version(&mut self, version: &Version, dry_run: bool) -> Result<()> {
+    pub fn update_version(&mut self, sh: &Shell, version: &Version, dry_run: bool) -> Result<()> {
         println!("Updating {} to version {version}…", self.name);
 
         if !dry_run {
-            let mut document = read_file(&self.manifest_path)?.parse::<DocumentMut>()?;
+            let mut document = sh.read_file(&self.manifest_path)?.parse::<DocumentMut>()?;
 
             document["package"]["version"] = value(version.to_string());
 
-            write_file(&self.manifest_path, document.to_string())?;
+            sh.write_file(&self.manifest_path, document.to_string())?;
         }
 
         self.version = version.clone();
@@ -92,7 +94,12 @@ impl Package {
 
     /// Update the version of this crate in dependant crates' manifests, with the given version
     /// prefix.
-    pub(crate) fn update_dependants(&self, metadata: &Metadata, dry_run: bool) -> Result<()> {
+    pub(crate) fn update_dependants(
+        &self,
+        sh: &Shell,
+        metadata: &Metadata,
+        dry_run: bool,
+    ) -> Result<()> {
         if self.name == "ruma" {
             for package in metadata.packages.iter().filter(|p| {
                 p.manifest_path.starts_with(&metadata.workspace_root)
@@ -101,7 +108,8 @@ impl Package {
                 println!("Updating dependency in {} crate…", package.name);
 
                 if !dry_run {
-                    let mut document = read_file(&package.manifest_path)?.parse::<DocumentMut>()?;
+                    let mut document =
+                        sh.read_file(&package.manifest_path)?.parse::<DocumentMut>()?;
 
                     let version = if !self.version.pre.is_empty() {
                         format!("={}", self.version)
@@ -119,12 +127,12 @@ impl Package {
                         document[kind][&self.name]["version"] = value(version.as_str());
                     }
 
-                    write_file(&package.manifest_path, document.to_string())?;
+                    sh.write_file(&package.manifest_path, document.to_string())?;
                 }
             }
         } else {
             let workspace_manifest_path = metadata.workspace_root.join("Cargo.toml");
-            let mut document = read_file(&workspace_manifest_path)?.parse::<DocumentMut>()?;
+            let mut document = sh.read_file(&workspace_manifest_path)?.parse::<DocumentMut>()?;
             let workspace_deps = &mut document["workspace"]["dependencies"];
 
             println!("Updating workspace dependency…");
@@ -139,7 +147,7 @@ impl Package {
 
                 workspace_deps[&self.name]["version"] = value(version.as_str());
 
-                write_file(&workspace_manifest_path, document.to_string())?;
+                sh.write_file(&workspace_manifest_path, document.to_string())?;
             }
         }
 
@@ -149,7 +157,7 @@ impl Package {
     /// Get the changes for the version.
     ///
     /// If `update` is `true`, update the changelog for the release of the given version.
-    pub fn changes(&self, update: bool) -> Result<String> {
+    pub fn changes(&self, sh: &Shell, update: bool) -> Result<String> {
         if self.name == "ruma-macros" {
             // ruma-macros doesn't have a changelog and won't create a tag.
             return Ok(String::new());
@@ -158,7 +166,7 @@ impl Package {
         let mut changelog_path = self.manifest_path.clone();
         changelog_path.set_file_name("CHANGELOG.md");
 
-        let changelog = read_file(&changelog_path)?;
+        let changelog = sh.read_file(&changelog_path)?;
         let version = Version {
             pre: semver::Prerelease::EMPTY,
             build: semver::BuildMetadata::EMPTY,
@@ -196,7 +204,7 @@ impl Package {
             let rest = &changelog[changes_end..];
             let changelog = format!("# [unreleased]\n\n# {}\n\n{changes}\n{rest}", self.version);
 
-            write_file(&changelog_path, changelog)?;
+            sh.write_file(&changelog_path, changelog)?;
         }
 
         Ok(changes.to_owned())
@@ -211,16 +219,16 @@ impl Package {
     }
 
     /// Publish this package on crates.io.
-    pub fn publish(&self, client: &Client, dry_run: bool) -> Result<()> {
+    pub fn publish(&self, sh: &Shell, client: &Client, dry_run: bool) -> Result<()> {
         println!("Publishing {} {} on crates.io…", self.name, self.version);
-        let _dir = pushd(self.manifest_path.parent().unwrap())?;
+        let _dir = sh.push_dir(self.manifest_path.parent().unwrap());
 
         if self.is_published(client)? {
             if !ask_yes_no("This version is already published. Skip this step and continue?")? {
                 return Err("Release interrupted by user.".into());
             }
         } else if !dry_run {
-            cmd!("cargo publish").run()?;
+            cmd!(sh, "cargo publish").run()?;
         }
 
         Ok(())

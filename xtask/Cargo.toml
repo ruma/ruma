@@ -16,7 +16,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 toml = { version = "0.8.2", default-features = false, features = ["parse"] }
 toml_edit = { version = "0.22.22", optional = true }
-xshell = "0.1.17"
+xshell = "0.2.7"
 
 [lints]
 workspace = true
