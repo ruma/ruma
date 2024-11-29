@@ -16,8 +16,9 @@ use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonVa
 /// Ruma offers the `Raw` wrapper to enable passing around JSON text that is only partially
 /// validated. This is useful when a client receives events that do not follow the spec perfectly
 /// or a server needs to generate reference hashes with the original canonical JSON string.
-/// All event structs and enums implement `Serialize` / `Deserialize`, `Raw` should be used
-/// to pass around events in a lossless way.
+/// All structs and enums representing event types implement `Deserialize`, therefore they can be
+/// used with `Raw`. Since `Raw` does not change the JSON string, it should be used to pass around
+/// events in a lossless way.
 ///
 /// ```no_run
 /// # use serde::Deserialize;
