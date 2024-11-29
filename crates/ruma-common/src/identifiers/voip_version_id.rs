@@ -78,7 +78,7 @@ impl<'de> Deserialize<'de> for VoipVersionId {
     {
         struct CallVersionVisitor;
 
-        impl<'de> Visitor<'de> for CallVersionVisitor {
+        impl Visitor<'_> for CallVersionVisitor {
             type Value = VoipVersionId;
 
             fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {

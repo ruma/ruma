@@ -107,7 +107,7 @@ impl<T> Raw<T> {
     {
         struct FieldVisitor<'b>(&'b str);
 
-        impl<'b, 'de> Visitor<'de> for FieldVisitor<'b> {
+        impl Visitor<'_> for FieldVisitor<'_> {
             type Value = bool;
 
             fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -124,7 +124,7 @@ impl<T> Raw<T> {
 
         struct Field<'b>(&'b str);
 
-        impl<'b, 'de> DeserializeSeed<'de> for Field<'b> {
+        impl<'de> DeserializeSeed<'de> for Field<'_> {
             type Value = bool;
 
             fn deserialize<D>(self, deserializer: D) -> Result<bool, D::Error>
@@ -146,7 +146,7 @@ impl<T> Raw<T> {
             }
         }
 
-        impl<'b, 'de, T> Visitor<'de> for SingleFieldVisitor<'b, T>
+        impl<'de, T> Visitor<'de> for SingleFieldVisitor<'_, T>
         where
             T: Deserialize<'de>,
         {

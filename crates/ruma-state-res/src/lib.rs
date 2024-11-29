@@ -278,7 +278,7 @@ where
         event_id: &'a Id,
     }
 
-    impl<'a, Id> Ord for TieBreaker<'a, Id>
+    impl<Id> Ord for TieBreaker<'_, Id>
     where
         Id: Ord,
     {
@@ -298,7 +298,7 @@ where
         }
     }
 
-    impl<'a, Id> PartialOrd for TieBreaker<'a, Id>
+    impl<Id> PartialOrd for TieBreaker<'_, Id>
     where
         Id: Ord,
     {

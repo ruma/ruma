@@ -31,7 +31,7 @@ pub enum MembershipData<'a> {
     Session(&'a SessionMembershipData),
 }
 
-impl<'a> MembershipData<'a> {
+impl MembershipData<'_> {
     /// The application this RTC membership participates in (the session type, can be `m.call`...)
     pub fn application(&self) -> &Application {
         match self {

@@ -454,7 +454,7 @@ pub struct PropertiesNames<'a> {
     pub properties: &'a [&'static str],
 }
 
-impl<'a> PropertiesNames<'a> {
+impl PropertiesNames<'_> {
     fn to_tuple(self) -> (&'static str, HashSet<&'static str>) {
         let set = self.properties.iter().copied().collect();
         (self.parent, set)
@@ -471,7 +471,7 @@ pub struct ElementAttributesReplacement<'a> {
     pub replacements: &'a [NameReplacement],
 }
 
-impl<'a> ElementAttributesReplacement<'a> {
+impl ElementAttributesReplacement<'_> {
     fn to_tuple(self) -> (&'static str, HashMap<&'static str, &'static str>) {
         let map = self.replacements.iter().map(|r| r.to_tuple()).collect();
         (self.element, map)
@@ -490,7 +490,7 @@ pub struct ElementAttributesSchemes<'a> {
     pub attr_schemes: &'a [PropertiesNames<'a>],
 }
 
-impl<'a> ElementAttributesSchemes<'a> {
+impl ElementAttributesSchemes<'_> {
     fn to_tuple(self) -> (&'static str, HashMap<&'static str, HashSet<&'static str>>) {
         let map = self.attr_schemes.iter().map(|s| s.to_tuple()).collect();
         (self.element, map)

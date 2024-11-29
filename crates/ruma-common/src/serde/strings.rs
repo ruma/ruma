@@ -60,7 +60,7 @@ where
 {
     struct F64OrStringVisitor;
 
-    impl<'de> Visitor<'de> for F64OrStringVisitor {
+    impl Visitor<'_> for F64OrStringVisitor {
         type Value = f64;
 
         fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -134,7 +134,7 @@ where
 {
     struct IntOrStringVisitor;
 
-    impl<'de> Visitor<'de> for IntOrStringVisitor {
+    impl Visitor<'_> for IntOrStringVisitor {
         type Value = Int;
 
         fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
