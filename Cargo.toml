@@ -45,6 +45,9 @@ web-time = "1.1.0"
 [workspace.lints.rust]
 rust_2018_idioms = { level = "warn", priority = -1 }
 semicolon_in_expressions_from_macros = "warn"
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(ruma_identifiers_storage, values("Arc"))', # used by the IdZst macro
+] }
 unreachable_pub = "warn"
 unused_import_braces = "warn"
 unused_qualifications = "warn"
