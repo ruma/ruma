@@ -4,6 +4,7 @@ use clap::Args;
 use reqwest::{blocking::Client, StatusCode};
 use semver::Version;
 use serde_json::json;
+use xshell::Shell;
 
 use crate::{cargo::Package, cmd, util::ask_yes_no, GithubConfig, Metadata, Result};
 
@@ -40,6 +41,9 @@ pub struct ReleaseTask {
     /// The github configuration required to publish a release.
     config: GithubConfig,
 
+    /// The shell API to use to run commands.
+    sh: Shell,
+
     /// List the steps but don't actually change anything
     pub dry_run: bool,
 }
@@ -47,7 +51,8 @@ pub struct ReleaseTask {
 impl ReleaseTask {
     /// Create a new `ReleaseTask` with the given `name` and `version`.
     pub(crate) fn new(name: String, version: Version, dry_run: bool) -> Result<Self> {
-        let metadata = Metadata::load()?;
+        let sh = Shell::new()?;
+        let metadata = Metadata::load(&sh)?;
 
         let package = metadata
             .packages
@@ -56,11 +61,11 @@ impl ReleaseTask {
             .find(|p| p.name == name)
             .ok_or(format!("Package {name} not found in cargo metadata"))?;
 
-        let config = crate::Config::load()?.github;
+        let config = crate::Config::load(&sh)?.github;
 
         let http_client = Client::builder().user_agent("ruma xtask").build()?;
 
-        Ok(Self { metadata, package, version, http_client, config, dry_run })
+        Ok(Self { metadata, package, version, http_client, config, sh, dry_run })
     }
 
     /// Run the task to effectively create a release.
@@ -82,10 +87,10 @@ impl ReleaseTask {
             return Err("This crate version is already released".into());
         }
 
-        let remote = Self::git_remote()?;
+        let remote = self.git_remote()?;
 
         println!("Checking status of git repository…");
-        if !cmd!("git status -s -uno").read()?.is_empty()
+        if !cmd!(&self.sh, "git status -s -uno").read()?.is_empty()
             && !ask_yes_no("This git repository contains uncommitted changes. Continue?")?
         {
             return Ok(());
@@ -102,8 +107,8 @@ impl ReleaseTask {
         }
 
         let create_commit = if self.package.version != self.version {
-            self.package.update_version(&self.version, self.dry_run)?;
-            self.package.update_dependants(&self.metadata, self.dry_run)?;
+            self.package.update_version(&self.sh, &self.version, self.dry_run)?;
+            self.package.update_dependants(&self.sh, &self.metadata, self.dry_run)?;
             true
         } else if !ask_yes_no(&format!(
             "Package is already version {}. Skip creating a commit and continue?",
@@ -114,19 +119,19 @@ impl ReleaseTask {
             false
         };
 
-        let changes = &self.package.changes(!prerelease && !self.dry_run)?;
+        let changes = &self.package.changes(&self.sh, !prerelease && !self.dry_run)?;
 
         if create_commit {
             self.commit()?;
         }
 
-        self.package.publish(&self.http_client, self.dry_run)?;
+        self.package.publish(&self.sh, &self.http_client, self.dry_run)?;
 
-        let branch = cmd!("git rev-parse --abbrev-ref HEAD").read()?;
+        let branch = cmd!(&self.sh, "git rev-parse --abbrev-ref HEAD").read()?;
         if publish_only {
             println!("Pushing to remote repository…");
             if !self.dry_run {
-                cmd!("git push {remote} {branch}").run()?;
+                cmd!(&self.sh, "git push {remote} {branch}").run()?;
             }
 
             println!("Crate published successfully!");
@@ -136,18 +141,18 @@ impl ReleaseTask {
         let tag = &self.tag_name();
 
         println!("Creating git tag '{tag}'…");
-        if cmd!("git tag -l {tag}").read()?.is_empty() {
+        if cmd!(&self.sh, "git tag -l {tag}").read()?.is_empty() {
             if !self.dry_run {
-                cmd!("git tag -s {tag} -m {title} -m {changes}").read()?;
+                cmd!(&self.sh, "git tag -s {tag} -m {title} -m {changes}").read()?;
             }
         } else if !ask_yes_no("This tag already exists. Skip this step and continue?")? {
             return Ok(());
         }
 
         println!("Pushing to remote repository…");
-        if cmd!("git ls-remote --tags {remote} {tag}").read()?.is_empty() {
+        if cmd!(&self.sh, "git ls-remote --tags {remote} {tag}").read()?.is_empty() {
             if !self.dry_run {
-                cmd!("git push {remote} {branch} {tag}").run()?;
+                cmd!(&self.sh, "git push {remote} {branch} {tag}").run()?;
             }
         } else if !ask_yes_no("This tag has already been pushed. Skip this step and continue?")? {
             return Ok(());
@@ -193,9 +198,9 @@ impl ReleaseTask {
     }
 
     /// Load the GitHub config from the config file.
-    fn git_remote() -> Result<String> {
-        let branch = cmd!("git rev-parse --abbrev-ref HEAD").read()?;
-        let remote = cmd!("git config branch.{branch}.remote").read()?;
+    fn git_remote(&self) -> Result<String> {
+        let branch = cmd!(&self.sh, "git rev-parse --abbrev-ref HEAD").read()?;
+        let remote = cmd!(&self.sh, "git config branch.{branch}.remote").read()?;
 
         if remote.is_empty() {
             return Err("Could not get current git remote".into());
@@ -230,7 +235,7 @@ impl ReleaseTask {
                         return Err("User aborted commit".into());
                     }
                     "d" | "diff" => {
-                        cmd!("git diff").run()?;
+                        cmd!(&self.sh, "git diff").run()?;
                     }
                     _ => {
                         println!("Unknown command.");
@@ -248,7 +253,7 @@ impl ReleaseTask {
         println!("Creating commit with message '{message}'…");
 
         if !self.dry_run {
-            cmd!("git commit -a -m {message}").read()?;
+            cmd!(&self.sh, "git commit -a -m {message}").read()?;
         }
 
         Ok(())

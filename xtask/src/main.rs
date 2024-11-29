@@ -30,6 +30,7 @@ use ci::{CiArgs, CiTask};
 use doc::DocTask;
 #[cfg(feature = "default")]
 use release::{ReleaseArgs, ReleaseTask};
+use xshell::Shell;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -75,8 +76,8 @@ struct Metadata {
 
 impl Metadata {
     /// Load a new `Metadata` from the command line.
-    pub fn load() -> Result<Metadata> {
-        let metadata_json = cmd!("cargo metadata --no-deps --format-version 1").read()?;
+    pub fn load(sh: &Shell) -> Result<Metadata> {
+        let metadata_json = cmd!(sh, "cargo metadata --no-deps --format-version 1").read()?;
         Ok(from_json_str(&metadata_json)?)
     }
 
@@ -96,11 +97,11 @@ struct Config {
 #[cfg(feature = "default")]
 impl Config {
     /// Load a new `Config` from `config.toml`.
-    fn load() -> Result<Self> {
+    fn load(sh: &Shell) -> Result<Self> {
         use std::{env, path::Path};
 
         let path = Path::new(&env!("CARGO_MANIFEST_DIR")).join("config.toml");
-        let config = xshell::read_file(path)?;
+        let config = sh.read_file(path)?;
         Ok(toml::from_str(&config)?)
     }
 }
@@ -117,7 +118,7 @@ struct GithubConfig {
 
 #[macro_export]
 macro_rules! cmd {
-    ($cmd:tt) => {
-        xshell::cmd!($cmd).echo_cmd(false)
+    ($sh: expr, $cmd:tt) => {
+        xshell::cmd!($sh, $cmd).quiet()
     };
 }
