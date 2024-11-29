@@ -51,7 +51,6 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given version and room_id.
-
         pub fn new(version: String, room_id: OwnedRoomId) -> Self {
             Self { version, room_id }
         }
