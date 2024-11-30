@@ -7,7 +7,7 @@ use quote::{format_ident, quote, IdentFragment, ToTokens};
 use syn::{Attribute, Data, DataEnum, DeriveInput, Ident, LitStr};
 
 use super::event_parse::{EventEnumDecl, EventEnumEntry, EventKind};
-use crate::util::m_prefix_name_to_type_name;
+use crate::util::{m_prefix_name_to_type_name, non_exhaustive_conditional_attr};
 
 /// Custom keywords for the `event_enum!` macro
 mod kw {
@@ -110,6 +110,7 @@ fn expand_event_enum(
     variants: &[EventEnumVariant],
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
+    let non_exhaustive_attr = non_exhaustive_conditional_attr().map_err(Clone::clone)?;
     let event_struct = kind.to_event_ident(var.into())?;
     let ident = kind.to_event_enum_ident(var.into())?;
 
@@ -127,7 +128,7 @@ fn expand_event_enum(
         #( #attrs )*
         #[derive(Clone, Debug)]
         #[allow(clippy::large_enum_variant, unused_qualifications)]
-        #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+        #non_exhaustive_attr
         pub enum #ident {
             #(
                 #docs
@@ -316,6 +317,7 @@ fn expand_content_enum(
 ) -> syn::Result<TokenStream> {
     let serde = quote! { #ruma_events::exports::serde };
 
+    let non_exhaustive_attr = non_exhaustive_conditional_attr().map_err(Clone::clone)?;
     let ident = kind.to_content_enum();
 
     let event_type_enum = kind.to_event_type_enum();
@@ -392,7 +394,7 @@ fn expand_content_enum(
         #[derive(Clone, Debug, #serde::Serialize)]
         #[serde(untagged)]
         #[allow(clippy::large_enum_variant)]
-        #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+        #non_exhaustive_attr
         pub enum #ident {
             #(
                 #docs
@@ -454,6 +456,7 @@ fn expand_full_content_enum(
 ) -> syn::Result<TokenStream> {
     let ident = kind.to_full_content_enum();
 
+    let non_exhaustive_attr = non_exhaustive_conditional_attr().map_err(Clone::clone)?;
     let event_type_enum = kind.to_event_type_enum();
 
     let content: Vec<_> =
@@ -466,7 +469,7 @@ fn expand_full_content_enum(
         #( #attrs )*
         #[derive(Clone, Debug)]
         #[allow(clippy::large_enum_variant)]
-        #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+        #non_exhaustive_attr
         pub enum #ident {
             #(
                 #docs

@@ -13,7 +13,7 @@ use syn::{
 };
 
 use super::event_parse::{EventKind, EventKindVariation};
-use crate::util::{m_prefix_name_to_type_name, PrivateField};
+use crate::util::{m_prefix_name_to_type_name, non_exhaustive_conditional_attr, PrivateField};
 
 mod kw {
     // This `content` field is kept when the event is redacted.
@@ -417,6 +417,7 @@ fn generate_redacted_event_content<'a>(
     let ruma_common = quote! { #ruma_events::exports::ruma_common };
     let serde = quote! { #ruma_events::exports::serde };
 
+    let non_exhaustive_attr = non_exhaustive_conditional_attr().map_err(Clone::clone)?;
     let doc = format!("Redacted form of [`{ident}`]");
     let redacted_ident = format_ident!("Redacted{ident}");
 
@@ -496,7 +497,7 @@ fn generate_redacted_event_content<'a>(
 
         #[doc = #doc]
         #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
-        #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+        #non_exhaustive_attr
         #vis struct #redacted_ident {
             #( #kept_redacted_fields, )*
         }
@@ -619,6 +620,7 @@ fn generate_possibly_redacted_event_content<'a>(
 
     // If at least one field needs to change, generate a new struct, else use a type alias.
     if field_changed {
+        let non_exhaustive_attr = non_exhaustive_conditional_attr().map_err(Clone::clone)?;
         let possibly_redacted_event_content = generate_event_content_impl(
             &possibly_redacted_ident,
             vis,
@@ -639,7 +641,7 @@ fn generate_possibly_redacted_event_content<'a>(
         Ok(quote! {
             #[doc = #doc]
             #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
-            #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+            #non_exhaustive_attr
             #vis struct #possibly_redacted_ident {
                 #( #possibly_redacted_fields, )*
             }
@@ -669,6 +671,7 @@ fn generate_event_content_without_relation<'a>(
 ) -> syn::Result<TokenStream> {
     let serde = quote! { #ruma_events::exports::serde };
 
+    let non_exhaustive_attr = non_exhaustive_conditional_attr().map_err(Clone::clone)?;
     let type_doc = format!(
         "Form of [`{ident}`] without relation.\n\n\
         To construct this type, construct a [`{ident}`] and then use one of its `::from()` / `.into()` methods."
@@ -711,7 +714,7 @@ fn generate_event_content_without_relation<'a>(
 
         #[doc = #type_doc]
         #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
-        #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+        #non_exhaustive_attr
         #vis struct #without_relation_ident #without_relation_struct
 
         impl #without_relation_ident {

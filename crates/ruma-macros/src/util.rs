@@ -1,6 +1,9 @@
-use proc_macro2::TokenStream;
+use std::{env, fs, path::Path, sync::OnceLock};
+
+use proc_macro2::{Span, TokenStream};
 use proc_macro_crate::{crate_name, FoundCrate};
 use quote::{format_ident, quote, ToTokens};
+use serde::{de::IgnoredAny, Deserialize};
 use syn::{Field, Ident, LitStr};
 
 pub(crate) fn import_ruma_common() -> TokenStream {
@@ -201,4 +204,56 @@ pub fn cfg_expand_struct(item: &mut syn::ItemStruct) {
         // evals to false, so put the field back
         fields.named.push(field);
     }
+}
+
+/// Returns a `non_exhaustive` attribute with a different behavior dependent on the configuration of
+/// the crate where the macro is used.
+///
+/// By default it just returns `#[non_exhaustive]`.
+///
+/// If the crate defines an `unstable-exhaustive-types` cargo feature, it returns the following line
+/// instead:
+///
+/// ```ignore
+/// #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+/// ```
+pub fn non_exhaustive_conditional_attr() -> Result<TokenStream, &'static syn::Error> {
+    #[derive(Deserialize)]
+    struct CargoToml {
+        features: Option<Features>,
+    }
+
+    #[derive(Deserialize)]
+    #[serde(rename_all = "kebab-case")]
+    struct Features {
+        unstable_exhaustive_types: Option<IgnoredAny>,
+    }
+
+    static RESULT: OnceLock<Result<bool, syn::Error>> = OnceLock::new();
+
+    let has_feature = RESULT
+        .get_or_init(|| {
+            let manifest_dir = env::var("CARGO_MANIFEST_DIR").map_err(|_| {
+                syn::Error::new(Span::call_site(), "Failed to read CARGO_MANIFEST_DIR")
+            })?;
+
+            let manifest_file = Path::new(&manifest_dir).join("Cargo.toml");
+            let manifest_bytes = fs::read_to_string(manifest_file)
+                .map_err(|_| syn::Error::new(Span::call_site(), "Failed to read Cargo.toml"))?;
+
+            let manifest_parsed: CargoToml = toml::from_str(&manifest_bytes)
+                .map_err(|_| syn::Error::new(Span::call_site(), "Failed to parse Cargo.toml"))?;
+
+            Ok(manifest_parsed
+                .features
+                .is_some_and(|features| features.unstable_exhaustive_types.is_some()))
+        })
+        .as_ref()?;
+
+    let attr = if *has_feature {
+        quote! { #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)] }
+    } else {
+        quote! { #[non_exhaustive] }
+    };
+    Ok(attr)
 }
