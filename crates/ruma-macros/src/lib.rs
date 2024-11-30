@@ -140,6 +140,39 @@ pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
 }
 
 /// Generate methods and trait impl's for ZST identifier type.
+///
+/// This macro generates an `Owned*` wrapper type for the identifier type. This wrapper type is
+/// variable, by default it'll use [`Box`], but it can be changed at compile time
+/// by setting `--cfg=ruma_identifiers_storage=...` using `RUSTFLAGS` or `.cargo/config.toml` (under
+/// `[build]` -> `rustflags = ["..."]`). Currently the only supported value is `Arc`, that uses
+/// [`Arc`](std::sync::Arc) as a wrapper type.
+///
+/// This macro implements:
+///
+/// * Conversions to and from string types, `AsRef<[u8]>` and `AsRef<str>`, as well as `as_str()`
+///   and `as_bytes()` methods. The borrowed type can be converted from a borrowed string without
+///   allocation.
+/// * Conversions to and from borrowed and owned type.
+/// * `Deref`, `AsRef` and `Borrow` to the borrowed type for the owned type.
+/// * `PartialEq` implementations for testing equality with string types and owned and borrowed
+///   types.
+///
+/// # Attributes
+///
+/// * `#[ruma_api(validate = PATH)]`: the path to a function to validate the string during parsing
+///   and deserialization. By default, the types implement `From` string types, when this is set
+///   they implement `TryFrom`.
+///
+/// # Examples
+///
+/// ```ignore
+/// # // HACK: This is "ignore" because of cyclical dependency drama.
+/// use ruma_macros::IdZst;
+///
+/// #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+/// #[ruma_id(validate = ruma_identifiers_validation::user_id::validate)]
+/// pub struct UserId(str);
+/// ```
 #[proc_macro_derive(IdZst, attributes(ruma_id))]
 pub fn derive_id_zst(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ItemStruct);
