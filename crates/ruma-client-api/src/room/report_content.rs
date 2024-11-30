@@ -39,8 +39,6 @@ pub mod v3 {
         pub score: Option<Int>,
 
         /// Reason to report content.
-        ///
-        /// May be blank.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub reason: Option<String>,
     }
