@@ -75,6 +75,7 @@ ruma-identifiers-validation = { workspace = true }
 ruma-macros = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true, features = ["raw_value"] }
+serde_with = "3.9.0"
 thiserror = { workspace = true }
 tracing = { workspace = true, features = ["attributes"] }
 url = { workspace = true }
