@@ -4,9 +4,10 @@
 
 use std::borrow::Cow;
 
+use as_variant::as_variant;
 use ruma_common::{
-    serde::{JsonObject, Raw, StringEnum},
-    OwnedEventId, RoomId,
+    serde::{JsonObject, StringEnum},
+    EventId, OwnedEventId, UserId,
 };
 #[cfg(feature = "html")]
 use ruma_html::{sanitize_html, HtmlSanitizerMode, RemoveReplyFallback};
@@ -15,12 +16,11 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 use tracing::warn;
 
-use self::reply::OriginalEventData;
 #[cfg(feature = "html")]
 use self::sanitize::remove_plain_reply_fallback;
 use crate::{
     relation::{InReplyTo, Replacement, Thread},
-    AnySyncTimelineEvent, Mentions, PrivOwnedStr,
+    Mentions, PrivOwnedStr,
 };
 
 mod audio;
@@ -34,7 +34,6 @@ mod media_caption;
 mod notice;
 mod relation;
 pub(crate) mod relation_serde;
-mod reply;
 pub mod sanitize;
 mod server_notice;
 mod text;
@@ -151,84 +150,45 @@ impl RoomMessageEventContent {
         Self::new(MessageType::emote_markdown(body))
     }
 
-    /// Turns `self` into a reply to the given message.
+    /// Turns `self` into a [rich reply] to the message using the given metadata.
     ///
-    /// Takes the `body` / `formatted_body` (if any) in `self` for the main text and prepends a
-    /// quoted version of `original_message`. Also sets the `in_reply_to` field inside `relates_to`,
-    /// and optionally the `rel_type` to `m.thread` if the `original_message is in a thread and
-    /// thread forwarding is enabled.
-    #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
+    /// Sets the `in_reply_to` field inside `relates_to`, and optionally the `rel_type` to
+    /// `m.thread` if the metadata has a `thread` and `ForwardThread::Yes` is used.
     ///
-    /// # Panics
+    /// If `AddMentions::Yes` is used, the `sender` in the metadata is added as a user mention.
     ///
-    /// Panics if `self` has a `formatted_body` with a format other than HTML.
+    /// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
     #[track_caller]
-    pub fn make_reply_to(
+    pub fn make_reply_to<'a>(
         self,
-        original_message: &OriginalRoomMessageEvent,
+        metadata: impl Into<ReplyMetadata<'a>>,
         forward_thread: ForwardThread,
         add_mentions: AddMentions,
     ) -> Self {
-        self.without_relation().make_reply_to(original_message, forward_thread, add_mentions)
+        self.without_relation().make_reply_to(metadata, forward_thread, add_mentions)
     }
 
-    /// Turns `self` into a reply to the given raw event.
+    /// Turns `self` into a new message for a [thread], that is optionally a reply.
     ///
-    /// Takes the `body` / `formatted_body` (if any) in `self` for the main text and prepends a
-    /// quoted version of the `body` of `original_event` (if any). Also sets the `in_reply_to` field
-    /// inside `relates_to`, and optionally the `rel_type` to `m.thread` if the
-    /// `original_message is in a thread and thread forwarding is enabled.
+    /// Looks for the `thread` in the given metadata. If it exists, this message will be in the same
+    /// thread. If it doesn't, a new thread is created with the `event_id` in the metadata as the
+    /// root.
     ///
-    /// It is recommended to use [`Self::make_reply_to()`] for replies to `m.room.message` events,
-    /// as the generated fallback is better for some `msgtype`s.
+    /// It also sets the `in_reply_to` field inside `relates_to` to point the `event_id`
+    /// in the metadata. If `ReplyWithinThread::Yes` is used, the metadata should be constructed
+    /// from the event to make a reply to, otherwise it should be constructed from the latest
+    /// event in the thread.
     ///
-    /// Note that except for the panic below, this is infallible. Which means that if a field is
-    /// missing when deserializing the data, the changes that require it will not be applied. It
-    /// will still at least apply the `m.in_reply_to` relation to this content.
+    /// If `AddMentions::Yes` is used, the `sender` in the metadata is added as a user mention.
     ///
-    /// # Panics
-    ///
-    /// Panics if `self` has a `formatted_body` with a format other than HTML.
-    #[track_caller]
-    pub fn make_reply_to_raw(
+    /// [thread]: https://spec.matrix.org/latest/client-server-api/#threading
+    pub fn make_for_thread<'a>(
         self,
-        original_event: &Raw<AnySyncTimelineEvent>,
-        original_event_id: OwnedEventId,
-        room_id: &RoomId,
-        forward_thread: ForwardThread,
-        add_mentions: AddMentions,
-    ) -> Self {
-        self.without_relation().make_reply_to_raw(
-            original_event,
-            original_event_id,
-            room_id,
-            forward_thread,
-            add_mentions,
-        )
-    }
-
-    /// Turns `self` into a new message for a thread, that is optionally a reply.
-    ///
-    /// Looks for a [`Relation::Thread`] in `previous_message`. If it exists, this message will be
-    /// in the same thread. If it doesn't, a new thread with `previous_message` as the root is
-    /// created.
-    ///
-    /// If this is a reply within the thread, takes the `body` / `formatted_body` (if any) in `self`
-    /// for the main text and prepends a quoted version of `previous_message`. Also sets the
-    /// `in_reply_to` field inside `relates_to`.
-    #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
-    ///
-    /// # Panics
-    ///
-    /// Panics if this is a reply within the thread and `self` has a `formatted_body` with a format
-    /// other than HTML.
-    pub fn make_for_thread(
-        self,
-        previous_message: &OriginalRoomMessageEvent,
+        metadata: impl Into<ReplyMetadata<'a>>,
         is_reply: ReplyWithinThread,
         add_mentions: AddMentions,
     ) -> Self {
-        self.without_relation().make_for_thread(previous_message, is_reply, add_mentions)
+        self.without_relation().make_for_thread(metadata, is_reply, add_mentions)
     }
 
     /// Turns `self` into a [replacement] (or edit) for a given message.
@@ -240,12 +200,6 @@ impl RoomMessageEventContent {
     /// This takes the content and sets it in `m.new_content`, and modifies the `content` to include
     /// a fallback.
     ///
-    /// If the message that is replaced is a reply to another message, the latter should also be
-    /// provided to be able to generate a rich reply fallback that takes the `body` /
-    /// `formatted_body` (if any) in `self` for the main text and prepends a quoted version of
-    /// `original_message`.
-    #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/rich_reply.md"))]
-    ///
     /// If this message contains [`Mentions`], they are copied into `m.new_content` to keep the same
     /// mentions, but the ones in `content` are filtered with the ones in the
     /// [`ReplacementMetadata`] so only new mentions will trigger a notification.
@@ -256,12 +210,8 @@ impl RoomMessageEventContent {
     ///
     /// [replacement]: https://spec.matrix.org/latest/client-server-api/#event-replacements
     #[track_caller]
-    pub fn make_replacement(
-        self,
-        metadata: impl Into<ReplacementMetadata>,
-        replied_to_message: Option<&OriginalRoomMessageEvent>,
-    ) -> Self {
-        self.without_relation().make_replacement(metadata, replied_to_message)
+    pub fn make_replacement(self, metadata: impl Into<ReplacementMetadata>) -> Self {
+        self.without_relation().make_replacement(metadata)
     }
 
     /// Set the [mentions] of this event.
@@ -374,6 +324,11 @@ impl RoomMessageEventContent {
         }
 
         self.into()
+    }
+
+    /// Get the thread relation from this content, if any.
+    fn thread(&self) -> Option<&Thread> {
+        self.relates_to.as_ref().and_then(|relates_to| as_variant!(relates_to, Relation::Thread))
     }
 }
 
@@ -661,49 +616,6 @@ impl MessageType {
         }
     }
 
-    #[track_caller]
-    fn add_reply_fallback(&mut self, original_event: OriginalEventData<'_>) {
-        let empty_formatted_body = || FormattedBody::html(String::new());
-
-        let (body, formatted) = {
-            match self {
-                MessageType::Emote(m) => {
-                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
-                }
-                MessageType::Notice(m) => {
-                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
-                }
-                MessageType::Text(m) => {
-                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
-                }
-                MessageType::Audio(m) => (&mut m.body, None),
-                MessageType::File(m) => (&mut m.body, None),
-                MessageType::Image(m) => (&mut m.body, None),
-                MessageType::Location(m) => (&mut m.body, None),
-                MessageType::ServerNotice(m) => (&mut m.body, None),
-                MessageType::Video(m) => (&mut m.body, None),
-                MessageType::VerificationRequest(m) => (&mut m.body, None),
-                MessageType::_Custom(m) => (&mut m.body, None),
-            }
-        };
-
-        if let Some(f) = formatted {
-            assert_eq!(
-                f.format,
-                MessageFormat::Html,
-                "can't add reply fallback to non-HTML formatted messages"
-            );
-
-            let formatted_body = &mut f.body;
-
-            (*body, *formatted_body) = reply::plain_and_formatted_reply_body(
-                body.as_str(),
-                (!formatted_body.is_empty()).then_some(formatted_body.as_str()),
-                original_event,
-            );
-        }
-    }
-
     fn make_replacement_body(&mut self) {
         let empty_formatted_body = || FormattedBody::html(String::new());
 
@@ -781,6 +693,39 @@ impl From<&OriginalRoomMessageEvent> for ReplacementMetadata {
 impl From<&OriginalSyncRoomMessageEvent> for ReplacementMetadata {
     fn from(value: &OriginalSyncRoomMessageEvent) -> Self {
         ReplacementMetadata::new(value.event_id.to_owned(), value.content.mentions.clone())
+    }
+}
+
+/// Metadata about an event to reply to or to add to a thread.
+///
+/// To be used with [`RoomMessageEventContent::make_reply_to`] or
+/// [`RoomMessageEventContent::make_for_thread`].
+#[derive(Clone, Copy, Debug)]
+pub struct ReplyMetadata<'a> {
+    /// The event ID of the event to reply to.
+    event_id: &'a EventId,
+    /// The sender of the event to reply to.
+    sender: &'a UserId,
+    /// The `m.thread` relation of the event to reply to, if any.
+    thread: Option<&'a Thread>,
+}
+
+impl<'a> ReplyMetadata<'a> {
+    /// Creates a new `ReplyMetadata` with the given event ID, sender and thread relation.
+    pub fn new(event_id: &'a EventId, sender: &'a UserId, thread: Option<&'a Thread>) -> Self {
+        Self { event_id, sender, thread }
+    }
+}
+
+impl<'a> From<&'a OriginalRoomMessageEvent> for ReplyMetadata<'a> {
+    fn from(value: &'a OriginalRoomMessageEvent) -> Self {
+        ReplyMetadata::new(&value.event_id, &value.sender, value.content.thread())
+    }
+}
+
+impl<'a> From<&'a OriginalSyncRoomMessageEvent> for ReplyMetadata<'a> {
+    fn from(value: &'a OriginalSyncRoomMessageEvent) -> Self {
+        ReplyMetadata::new(&value.event_id, &value.sender, value.content.thread())
     }
 }
 
