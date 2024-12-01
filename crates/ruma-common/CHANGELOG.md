@@ -1,5 +1,12 @@
 # [unreleased]
 
+Improvements:
+
+- `HttpPusherData` allows to set custom data for the pusher in the `data` field, due
+  to a clarification in the spec.
+  - The `default_payload` field that was behind the `unstable-unspecified` was
+    removed. It can be added manually to the custom data.
+
 # 0.14.1
 
 Bug fixes:

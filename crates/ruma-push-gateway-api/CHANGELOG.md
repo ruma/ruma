@@ -1,5 +1,12 @@
 # [unreleased]
 
+Improvements:
+
+- `PusherData` allows to set custom data for the pusher in the `data` field, due
+  to a clarification in the spec.
+  - The `default_payload` field that was behind the `unstable-unspecified` was
+    removed. It can be added manually to the custom data.
+
 # 0.10.0
 
 Upgrade `ruma-events` to 0.29.0.
