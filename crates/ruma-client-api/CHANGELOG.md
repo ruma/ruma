@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+- Add unstable support for reporting rooms, according to MSC4151.
+
 # 0.19.0
 
 Breaking changes:

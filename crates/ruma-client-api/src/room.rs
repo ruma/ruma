@@ -7,6 +7,8 @@ pub mod get_room_event;
 #[cfg(feature = "unstable-msc3266")]
 pub mod get_summary;
 pub mod report_content;
+#[cfg(feature = "unstable-msc4151")]
+pub mod report_room;
 pub mod upgrade_room;
 
 use ruma_common::serde::StringEnum;
