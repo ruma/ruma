@@ -15,7 +15,6 @@ all-features = true
 
 [features]
 unstable-exhaustive-types = []
-unstable-unspecified = []
 client = []
 server = []
 
