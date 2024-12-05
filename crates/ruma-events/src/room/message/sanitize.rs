@@ -4,7 +4,10 @@
 ///
 /// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
 pub fn remove_plain_reply_fallback(mut s: &str) -> &str {
-    if !s.starts_with("> ") {
+    // A reply fallback must begin with a mention of the original sender between `<` and `>`, and
+    // emotes add `*` as a prefix. If there is no newline, removing the detected fallback would
+    // result in an empty string.
+    if (!s.starts_with("> <") && !s.starts_with("> * <")) || !s.contains('\n') {
         return s;
     }
 
