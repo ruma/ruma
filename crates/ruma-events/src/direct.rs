@@ -267,5 +267,11 @@ mod tests {
         assert_eq!(alice_direct_uid_mail, alice_user_id.to_owned());
         assert_eq!(alice_user_id, alice_direct_uid_mail);
         assert_eq!(alice_user_id.to_owned(), alice_direct_uid_mail);
+
+        let alice_user_id = user_id!("@alice:ruma.io");
+        let alice_user_id_json = to_json_value(alice_user_id).unwrap();
+        let alice_direct_uid_mail: OwnedDirectUserIdentifier =
+            from_json_value(alice_user_id_json).unwrap();
+        assert_eq!(alice_user_id, alice_direct_uid_mail);
     }
 }
