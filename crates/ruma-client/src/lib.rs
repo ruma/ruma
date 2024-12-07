@@ -34,9 +34,9 @@
 //! application service that does not need to log in, but uses the access_token directly:
 //!
 //! ```no_run
-//! # type HttpClient = ruma_client::http_client::Dummy;
-//! #
+//! # #[cfg(feature = "client-api")]
 //! # async {
+//! # type HttpClient = ruma_client::http_client::Dummy;
 //! let homeserver_url = "https://example.com".to_owned();
 //! let client = ruma_client::Client::builder()
 //!     .homeserver_url(homeserver_url)
@@ -59,8 +59,9 @@
 //! For example:
 //!
 //! ```no_run
-//! # let homeserver_url = "https://example.com".to_owned();
+//! # #[cfg(feature = "client-api")]
 //! # async {
+//! # let homeserver_url = "https://example.com".to_owned();
 //! # let client = ruma_client::Client::builder()
 //! #     .homeserver_url(homeserver_url)
 //! #     .build::<ruma_client::http_client::Dummy>()
