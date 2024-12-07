@@ -66,61 +66,50 @@ impl KeyVerificationCancelEventContent {
 ///
 /// Custom error codes should use the Java package naming convention.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-// FIXME: Add `m.foo_bar` as a naming scheme in StringEnum and remove rename attributes.
 #[derive(Clone, PartialEq, Eq, StringEnum)]
+#[ruma_enum(rename_all = "m.snake_case")]
 #[non_exhaustive]
 pub enum CancelCode {
     /// The user cancelled the verification.
-    #[ruma_enum(rename = "m.user")]
     User,
 
     /// The verification process timed out.
     ///
     /// Verification processes can define their own timeout parameters.
-    #[ruma_enum(rename = "m.timeout")]
     Timeout,
 
     /// The device does not know about the given transaction ID.
-    #[ruma_enum(rename = "m.unknown_transaction")]
     UnknownTransaction,
 
     /// The device does not know how to handle the requested method.
     ///
     /// Should be sent for `m.key.verification.start` messages and messages defined by individual
     /// verification processes.
-    #[ruma_enum(rename = "m.unknown_method")]
     UnknownMethod,
 
     /// The device received an unexpected message.
     ///
     /// Typically raised when one of the parties is handling the verification out of order.
-    #[ruma_enum(rename = "m.unexpected_message")]
     UnexpectedMessage,
 
     /// The key was not verified.
-    #[ruma_enum(rename = "m.key_mismatch")]
     KeyMismatch,
 
     /// The expected user did not match the user verified.
-    #[ruma_enum(rename = "m.user_mismatch")]
     UserMismatch,
 
     /// The message received was invalid.
-    #[ruma_enum(rename = "m.invalid_message")]
     InvalidMessage,
 
     /// An `m.key.verification.request` was accepted by a different device.
     ///
     /// The device receiving this error can ignore the verification request.
-    #[ruma_enum(rename = "m.accepted")]
     Accepted,
 
     /// The device receiving this error can ignore the verification request.
-    #[ruma_enum(rename = "m.mismatched_commitment")]
     MismatchedCommitment,
 
     /// The SAS did not match.
-    #[ruma_enum(rename = "m.mismatched_sas")]
     MismatchedSas,
 
     #[doc(hidden)]
