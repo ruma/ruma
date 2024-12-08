@@ -3,6 +3,10 @@
 Improvements:
 
 - Add unstable support for MSC4171 for the m.member_hints state event.
+- The `ruma_identifiers_storage` compile-time `cfg` setting can also be
+  configured by setting the `RUMA_IDENTIFIERS_STORAGE` environment variable at
+  compile time. It has the benefit of not requiring to re-compile all the crates
+  of the dependency chain when the value is changed.
 
 Breaking changes:
 
