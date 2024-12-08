@@ -69,7 +69,7 @@ pub mod v1 {
 
     /// Type for passing information about a push notification
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Notification {
         /// The Matrix event ID of the event being notified about.
         ///
@@ -166,7 +166,7 @@ pub mod v1 {
 
     /// Type for passing information about notification counts.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct NotificationCounts {
         /// The number of unread messages a user has across all of the rooms they
         /// are a member of.
@@ -193,7 +193,7 @@ pub mod v1 {
 
     /// Type for passing information about devices.
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Device {
         /// The `app_id` given when the pusher was created.
         ///
@@ -240,7 +240,7 @@ pub mod v1 {
     /// It can be constructed from [`ruma_common::push::HttpPusherData`] with `::from()` /
     /// `.into()`.
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct PusherData {
         /// The format to use when sending notifications to the Push Gateway.
         #[serde(skip_serializing_if = "Option::is_none")]
