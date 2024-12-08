@@ -24,7 +24,7 @@ pub mod v3 {
 
     /// Request type for the `logout_all` endpoint.
     #[derive(Debug, Clone, Default)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {}
 
     impl Request {

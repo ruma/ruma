@@ -67,7 +67,7 @@ pub mod v3 {
 
     /// Distinguishes between invititations by Matrix or third party identifiers.
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     #[serde(untagged)]
     pub enum InvitationRecipient {
         /// Used to invite user by their Matrix identifier.

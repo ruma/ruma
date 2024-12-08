@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// It must be encrypted as an `m.room.encrypted` event, then sent as a to-device event.
 #[derive(Clone, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.secret.send", kind = ToDevice)]
 pub struct ToDeviceSecretSendEventContent {
     /// The ID of the request that this is a response to.

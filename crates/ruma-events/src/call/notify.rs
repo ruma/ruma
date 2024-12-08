@@ -10,7 +10,7 @@ use crate::Mentions;
 
 /// The content of an `m.call.notify` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.call.notify", kind = MessageLike)]
 pub struct CallNotifyEventContent {
     /// A unique identifier for the call.
@@ -43,7 +43,7 @@ impl CallNotifyEventContent {
 
 /// How this notify event should notify the receiver.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum NotifyType {
     /// The receiving client should ring with an audible sound.
     #[serde(rename = "ring")]
@@ -61,7 +61,7 @@ pub enum NotifyType {
 ///
 /// An `Application` can be converted into an `ApplicationType` using `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum ApplicationType {
     /// A VoIP call.
     #[serde(rename = "m.call")]

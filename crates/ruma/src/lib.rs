@@ -48,9 +48,6 @@
 //!
 //! By using these features, you opt out of all semver guarantees Ruma otherwise provides:
 //!
-//! * `unstable-exhaustive-types` -- Most types in Ruma are marked as non-exhaustive to avoid
-//!   breaking changes when new fields are added in the specification. This feature compiles all
-//!   types as exhaustive.
 //! * `unstable-mscXXXX`, where `XXXX` is the MSC number -- Upcoming Matrix features that may be
 //!   subject to change or removal.
 //! * `unstable-unspecified` -- Undocumented Matrix features that may be subject to change or
@@ -73,6 +70,24 @@
 //!
 //! If you are viewing this on `docs.rs`, you can have a look at the feature dependencies by
 //! clicking **Feature flags** in the toolbar at the top.
+//!
+//! # Compile-time `cfg` settings
+//!
+//! These settings are accepted at compile time to configure the generated code. They can be set as
+//! `--cfg={key}={value}` using `RUSTFLAGS` or `.cargo/config.toml` (under `[build]` -> `rustflags =
+//! ["..."]`). They can also be configured using an environment variable at compile time, which has
+//! the benefit of not requiring to re-compile the whole dependency chain when their value is
+//! changed.
+//!
+//! * `ruma_identifiers_storage` -- Choose the inner representation of `Owned*` wrapper types for
+//!   identifiers. By default they use [`Box`], setting the value to `Arc` makes them use
+//!   [`Arc`](std::sync::Arc). This can also be configured by setting the `RUMA_IDENTIFIERS_STORAGE`
+//!   environment variable.
+//! * `ruma_unstable_exhaustive_types` -- Most types in Ruma are marked as non-exhaustive to avoid
+//!   breaking changes when new fields are added in the specification. This setting compiles all
+//!   types as exhaustive. By enabling this feature you opt out of all semver guarantees Ruma
+//!   otherwise provides. This can also be configured by setting the
+//!   `RUMA_UNSTABLE_EXHAUSTIVE_TYPES` environment variable.
 
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]

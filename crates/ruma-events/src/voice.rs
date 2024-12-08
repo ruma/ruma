@@ -20,7 +20,7 @@ use super::{
 /// [MSC3245]: https://github.com/matrix-org/matrix-spec-proposals/pull/3245
 /// [`message`]: super::message
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc3245.voice.v2", kind = MessageLike, without_relation)]
 pub struct VoiceEventContent {
     /// The text representation of the message.
@@ -91,7 +91,7 @@ impl VoiceEventContent {
 
 /// A block for details of voice audio content.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct VoiceAudioDetailsContentBlock {
     /// The duration of the audio in seconds.
     #[serde(with = "ruma_common::serde::duration::secs")]

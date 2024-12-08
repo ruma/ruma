@@ -12,7 +12,7 @@ use crate::room::{
 
 /// The payload for an audio message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.audio")]
 pub struct AudioMessageEventContent {
     /// The textual representation of this message.
@@ -121,7 +121,7 @@ impl AudioMessageEventContent {
 
 /// Metadata about an audio clip.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct AudioInfo {
     /// The duration of the audio in milliseconds.
     #[serde(
@@ -153,7 +153,7 @@ impl AudioInfo {
 /// [msc]: https://github.com/matrix-org/matrix-spec-proposals/blob/83f6c5b469c1d78f714e335dcaa25354b255ffa5/proposals/3245-voice-messages.md
 #[cfg(feature = "unstable-msc3245-v1-compat")]
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct UnstableAudioDetailsContentBlock {
     /// The duration of the audio in milliseconds.
     ///
@@ -183,7 +183,7 @@ impl UnstableAudioDetailsContentBlock {
 /// [msc]: https://github.com/matrix-org/matrix-spec-proposals/blob/83f6c5b469c1d78f714e335dcaa25354b255ffa5/proposals/3245-voice-messages.md
 #[cfg(feature = "unstable-msc3245-v1-compat")]
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct UnstableVoiceContentBlock {}
 
 #[cfg(feature = "unstable-msc3245-v1-compat")]

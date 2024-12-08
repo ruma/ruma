@@ -59,7 +59,7 @@ pub mod v3 {
 
     /// An authentication mechanism.
     #[derive(Clone, Debug, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     #[serde(untagged)]
     pub enum LoginType {
         /// A password is supplied to authenticate.
@@ -136,7 +136,7 @@ pub mod v3 {
 
     /// The payload for password login.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     #[serde(tag = "type", rename = "m.login.password")]
     pub struct PasswordLoginType {}
 
@@ -149,7 +149,7 @@ pub mod v3 {
 
     /// The payload for token-based login.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     #[serde(tag = "type", rename = "m.login.token")]
     pub struct TokenLoginType {
         /// Whether the homeserver supports the `POST /login/get_token` endpoint.
@@ -166,7 +166,7 @@ pub mod v3 {
 
     /// The payload for SSO login.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     #[serde(tag = "type", rename = "m.login.sso")]
     pub struct SsoLoginType {
         /// The identity provider choices.
@@ -182,7 +182,7 @@ pub mod v3 {
     }
 
     /// An SSO login identity provider.
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct IdentityProvider {
         /// The ID of the provider.
@@ -213,7 +213,7 @@ pub mod v3 {
     /// [matrix-spec-proposals]: https://github.com/matrix-org/matrix-spec-proposals/blob/v1.1/informal/idp-brands.md
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
     #[derive(Clone, PartialEq, Eq, StringEnum)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum IdentityProviderBrand {
         /// The [Apple] brand.
         ///
@@ -250,7 +250,7 @@ pub mod v3 {
 
     /// The payload for Application Service login.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     #[serde(tag = "type", rename = "m.login.application_service")]
     pub struct ApplicationServiceLoginType {}
 

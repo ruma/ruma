@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 /// The `state_key` is the ID of a child room or space, and the content must contain a `via` key
 /// which gives a list of candidate servers that can be used to join the room.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.space.child", kind = State, state_key_type = OwnedRoomId)]
 pub struct SpaceChildEventContent {
     /// List of candidate servers that can be used to join the room.
@@ -54,7 +54,7 @@ impl SpaceChildEventContent {
 /// An `m.space.child` event represented as a Stripped State Event with an added `origin_server_ts`
 /// key.
 #[derive(Clone, Debug, Event)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct HierarchySpaceChildEvent {
     /// The content of the space child event.
     pub content: SpaceChildEventContent,

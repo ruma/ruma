@@ -32,7 +32,7 @@ pub mod unstable {
 
     /// Request type for the `POST` `rendezvous` endpoint.
     #[derive(Debug, Default, Clone)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
         /// Any data up to maximum size allowed by the server.
         pub content: String,
@@ -114,7 +114,7 @@ pub mod unstable {
 
     /// Response type for the `POST` `rendezvous` endpoint.
     #[derive(Debug, Clone)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Response {
         /// The absolute URL of the rendezvous session.
         pub url: Url,

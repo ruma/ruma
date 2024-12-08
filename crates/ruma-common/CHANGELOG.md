@@ -1,5 +1,17 @@
 # [unreleased]
 
+Improvements:
+
+- The `ruma_identifiers_storage` compile-time `cfg` setting can also be
+  configured by setting the `RUMA_IDENTIFIERS_STORAGE` environment variable at
+  compile time. It has the benefit of not requiring to re-compile all the crates
+  of the dependency chain when the value is changed.
+- The `unstable-exhaustive-types` cargo feature was replaced by the
+  `ruma_unstable_exhaustive_types` compile-time `cfg` setting. Like all `cfg`
+  settings, it can be enabled at compile-time with the `RUSTFLAGS` environment
+  variable, or inside `.cargo/config.toml`. It can also be enabled by setting
+  the `RUMA_UNSTABLE_EXHAUSTIVE_TYPES` environment variable.
+
 # 0.14.1
 
 Bug fixes:

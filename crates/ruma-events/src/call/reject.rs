@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Starting from VoIP version 1, this event is sent by the callee to reject an invite.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.call.reject", kind = MessageLike)]
 pub struct CallRejectEventContent {
     /// The ID of the call this event relates to.

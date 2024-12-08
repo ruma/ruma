@@ -26,7 +26,7 @@ use crate::{message::TextContentBlock, relation::Reference};
 /// [`OriginalSyncPollStartEvent::compile_results()`]: super::start::OriginalSyncPollStartEvent::compile_results
 /// [`UnstablePollEndEventContent`]: super::unstable_end::UnstablePollEndEventContent
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.poll.end", kind = MessageLike)]
 pub struct PollEndEventContent {
     /// The text representation of the results.
@@ -81,7 +81,7 @@ impl PollEndEventContent {
 ///
 /// This is a map of answer ID to number of votes.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PollResultsContentBlock(BTreeMap<String, UInt>);
 
 impl PollResultsContentBlock {

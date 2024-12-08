@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 /// This event is sent by callers after sending an invite and by the callee after answering. Its
 /// purpose is to give the other party additional ICE candidates to try using to communicate.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.call.candidates", kind = MessageLike)]
 pub struct CallCandidatesEventContent {
     /// A unique identifier for the call.
@@ -62,7 +62,7 @@ impl CallCandidatesEventContent {
 
 /// An ICE (Interactive Connectivity Establishment) candidate.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(rename_all = "camelCase")]
 pub struct Candidate {
     /// The SDP "a" line of the candidate.

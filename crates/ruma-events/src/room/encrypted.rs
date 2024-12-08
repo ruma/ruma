@@ -16,7 +16,7 @@ mod relation_serde;
 
 /// The content of an `m.room.encrypted` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room.encrypted", kind = MessageLike)]
 pub struct RoomEncryptedEventContent {
     /// Algorithm-specific fields.
@@ -43,7 +43,7 @@ impl From<EncryptedEventScheme> for RoomEncryptedEventContent {
 
 /// The to-device content of an `m.room.encrypted` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room.encrypted", kind = ToDevice)]
 pub struct ToDeviceRoomEncryptedEventContent {
     /// Algorithm-specific fields.
@@ -66,7 +66,7 @@ impl From<EncryptedEventScheme> for ToDeviceRoomEncryptedEventContent {
 
 /// The encryption scheme for `RoomEncryptedEventContent`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "algorithm")]
 pub enum EncryptedEventScheme {
     /// An event encrypted with `m.olm.v1.curve25519-aes-sha2`.
@@ -83,7 +83,7 @@ pub enum EncryptedEventScheme {
 /// Outside of the encrypted payload to support server aggregation.
 #[derive(Clone, Debug)]
 #[allow(clippy::manual_non_exhaustive)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum Relation {
     /// An `m.in_reply_to` relation indicating that the event is a reply to another event.
     Reply {
@@ -164,7 +164,7 @@ impl<C> From<message::Relation<C>> for Relation {
 ///
 /// [replaces another event]: https://spec.matrix.org/latest/client-server-api/#event-replacements
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "rel_type", rename = "m.replace")]
 pub struct Replacement {
     /// The ID of the event being replaced.
@@ -180,7 +180,7 @@ impl Replacement {
 
 /// The content of an `m.room.encrypted` event using the `m.olm.v1.curve25519-aes-sha2` algorithm.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct OlmV1Curve25519AesSha2Content {
     /// A map from the recipient Curve25519 identity key to ciphertext information.
     pub ciphertext: BTreeMap<String, CiphertextInfo>,
@@ -200,7 +200,7 @@ impl OlmV1Curve25519AesSha2Content {
 ///
 /// Used for messages encrypted with the `m.olm.v1.curve25519-aes-sha2` algorithm.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct CiphertextInfo {
     /// The encrypted payload.
     pub body: String,
@@ -222,7 +222,7 @@ impl CiphertextInfo {
 /// To create an instance of this type, first create a `MegolmV1AesSha2ContentInit` and convert it
 /// via `MegolmV1AesSha2Content::from` / `.into()`.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct MegolmV1AesSha2Content {
     /// The encrypted content of the event.
     pub ciphertext: String,

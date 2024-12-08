@@ -14,7 +14,7 @@ use crate::relation::Reference;
 ///
 /// Sends the MAC of a device's key to the partner device.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.mac", kind = ToDevice)]
 pub struct ToDeviceKeyVerificationMacEventContent {
     /// An opaque identifier for the verification process.
@@ -48,7 +48,7 @@ impl ToDeviceKeyVerificationMacEventContent {
 ///
 /// Sends the MAC of a device's key to the partner device.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.mac", kind = MessageLike)]
 pub struct KeyVerificationMacEventContent {
     /// A map of the key ID to the MAC of the key, using the algorithm in the verification process.

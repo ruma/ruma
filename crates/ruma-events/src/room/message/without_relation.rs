@@ -14,7 +14,7 @@ use crate::{
 
 /// Form of [`RoomMessageEventContent`] without relation.
 #[derive(Clone, Debug, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomMessageEventContentWithoutRelation {
     /// A key which identifies the type of message being sent.
     ///

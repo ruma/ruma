@@ -80,7 +80,7 @@ pub mod v3 {
 
     /// User data as result of a search.
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct User {
         /// The user's matrix user ID.
         pub user_id: OwnedUserId,

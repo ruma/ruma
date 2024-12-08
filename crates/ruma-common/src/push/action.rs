@@ -11,7 +11,7 @@ use crate::serde::from_raw_json_value;
 ///
 /// See [the spec](https://spec.matrix.org/latest/client-server-api/#actions) for details.
 #[derive(Clone, Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum Action {
     /// Causes matching events to generate a notification.
     Notify,
@@ -43,7 +43,7 @@ impl Action {
 
 /// The `set_tweak` action.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(from = "tweak_serde::Tweak", into = "tweak_serde::Tweak")]
 pub enum Tweak {
     /// A string representing the sound to be played when this notification arrives.

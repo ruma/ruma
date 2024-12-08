@@ -546,7 +546,7 @@ mod event {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => &ev.room_id,
                 Pdu::RoomV3Pdu(ev) => &ev.room_id,
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                #[cfg(not(ruma_unstable_exhaustive_types))]
                 _ => unreachable!("new PDU version"),
             }
         }
@@ -555,7 +555,7 @@ mod event {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => &ev.sender,
                 Pdu::RoomV3Pdu(ev) => &ev.sender,
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                #[cfg(not(ruma_unstable_exhaustive_types))]
                 _ => unreachable!("new PDU version"),
             }
         }
@@ -564,7 +564,7 @@ mod event {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => &ev.kind,
                 Pdu::RoomV3Pdu(ev) => &ev.kind,
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                #[cfg(not(ruma_unstable_exhaustive_types))]
                 _ => unreachable!("new PDU version"),
             }
         }
@@ -573,7 +573,7 @@ mod event {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => &ev.content,
                 Pdu::RoomV3Pdu(ev) => &ev.content,
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                #[cfg(not(ruma_unstable_exhaustive_types))]
                 _ => unreachable!("new PDU version"),
             }
         }
@@ -582,7 +582,7 @@ mod event {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => ev.origin_server_ts,
                 Pdu::RoomV3Pdu(ev) => ev.origin_server_ts,
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                #[cfg(not(ruma_unstable_exhaustive_types))]
                 _ => unreachable!("new PDU version"),
             }
         }
@@ -591,7 +591,7 @@ mod event {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => ev.state_key.as_deref(),
                 Pdu::RoomV3Pdu(ev) => ev.state_key.as_deref(),
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                #[cfg(not(ruma_unstable_exhaustive_types))]
                 _ => unreachable!("new PDU version"),
             }
         }
@@ -600,7 +600,7 @@ mod event {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => Box::new(ev.prev_events.iter().map(|(id, _)| id)),
                 Pdu::RoomV3Pdu(ev) => Box::new(ev.prev_events.iter()),
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                #[cfg(not(ruma_unstable_exhaustive_types))]
                 _ => unreachable!("new PDU version"),
             }
         }
@@ -609,7 +609,7 @@ mod event {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => Box::new(ev.auth_events.iter().map(|(id, _)| id)),
                 Pdu::RoomV3Pdu(ev) => Box::new(ev.auth_events.iter()),
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                #[cfg(not(ruma_unstable_exhaustive_types))]
                 _ => unreachable!("new PDU version"),
             }
         }
@@ -618,7 +618,7 @@ mod event {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => ev.redacts.as_ref(),
                 Pdu::RoomV3Pdu(ev) => ev.redacts.as_ref(),
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                #[cfg(not(ruma_unstable_exhaustive_types))]
                 _ => unreachable!("new PDU version"),
             }
         }

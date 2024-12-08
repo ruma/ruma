@@ -11,7 +11,7 @@ pub mod update_device;
 
 /// Information about a registered device.
 #[derive(Clone, Debug, Deserialize, Hash, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Device {
     /// Device ID
     pub device_id: OwnedDeviceId,

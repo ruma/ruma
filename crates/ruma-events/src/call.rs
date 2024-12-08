@@ -26,7 +26,7 @@ use crate::PrivOwnedStr;
 ///
 /// [`RTCSessionDescriptionInit`]: (https://www.w3.org/TR/webrtc/#dom-rtcsessiondescriptioninit):
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SessionDescription {
     /// The type of session description.
     ///
@@ -50,7 +50,7 @@ impl SessionDescription {
 
 /// Metadata about a VoIP stream.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct StreamMetadata {
     /// The purpose of the stream.
     pub purpose: StreamPurpose,
@@ -98,7 +98,7 @@ pub enum StreamPurpose {
 /// The capabilities of a client in a VoIP call.
 #[cfg(feature = "unstable-msc2747")]
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct CallCapabilities {
     /// Whether this client supports [DTMF].
     ///

@@ -67,7 +67,7 @@ impl Response {
 
 /// A way to contact the server administrator.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Contact {
     /// An informal description of what the contact methods are used for.
     pub role: ContactRole,

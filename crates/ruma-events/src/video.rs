@@ -23,7 +23,7 @@ use super::{
 /// [MSC3553]: https://github.com/matrix-org/matrix-spec-proposals/pull/3553
 /// [`message`]: super::message
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc1767.video", kind = MessageLike, without_relation)]
 pub struct VideoEventContent {
     /// The text representation of the message.
@@ -103,7 +103,7 @@ impl VideoEventContent {
 
 /// A block for details of video content.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct VideoDetailsContentBlock {
     /// The width of the video in pixels.
     pub width: UInt,

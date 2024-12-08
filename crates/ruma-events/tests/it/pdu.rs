@@ -196,7 +196,7 @@ fn deserialize_pdu_as_v1() {
             );
         }
         Pdu::RoomV3Pdu(_) => panic!("Matched V3 PDU"),
-        #[cfg(not(feature = "unstable-exhaustive-types"))]
+        #[cfg(not(ruma_unstable_exhaustive_types))]
         _ => unreachable!("new PDU version"),
     }
 }
@@ -240,7 +240,7 @@ fn deserialize_pdu_as_v3() {
         Pdu::RoomV3Pdu(v3_pdu) => {
             assert_eq!(v3_pdu.auth_events.first().unwrap(), event_id!("$abc123:matrix.org"));
         }
-        #[cfg(not(feature = "unstable-exhaustive-types"))]
+        #[cfg(not(ruma_unstable_exhaustive_types))]
         _ => unreachable!("new PDU version"),
     }
 }

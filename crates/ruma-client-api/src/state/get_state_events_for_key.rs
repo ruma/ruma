@@ -27,7 +27,7 @@ pub mod v3 {
 
     /// Request type for the `get_state_events_for_key` endpoint.
     #[derive(Clone, Debug)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
         /// The room to look up the state for.
         pub room_id: OwnedRoomId,

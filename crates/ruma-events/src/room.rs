@@ -71,7 +71,7 @@ impl<'de> Deserialize<'de> for MediaSource {
 
 /// Metadata about an image.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ImageInfo {
     /// The height of the image in pixels.
     #[serde(rename = "h", skip_serializing_if = "Option::is_none")]
@@ -115,7 +115,7 @@ impl ImageInfo {
 
 /// Metadata about a thumbnail.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ThumbnailInfo {
     /// The height of the thumbnail in pixels.
     #[serde(rename = "h", skip_serializing_if = "Option::is_none")]
@@ -146,7 +146,7 @@ impl ThumbnailInfo {
 /// To create an instance of this type, first create a `EncryptedFileInit` and convert it via
 /// `EncryptedFile::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct EncryptedFile {
     /// The URL to the file.
     pub url: OwnedMxcUri,
@@ -207,7 +207,7 @@ impl From<EncryptedFileInit> for EncryptedFile {
 /// To create an instance of this type, first create a `JsonWebKeyInit` and convert it via
 /// `JsonWebKey::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct JsonWebKey {
     /// Key type.
     ///

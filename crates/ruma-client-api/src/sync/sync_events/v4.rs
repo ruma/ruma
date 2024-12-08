@@ -182,7 +182,7 @@ impl Response {
 /// Filters are considered _sticky_, meaning that the filter only has to be provided once and their
 /// parameters 'sticks' for future requests until a new filter overwrites them.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SyncRequestListFilters {
     /// Whether to return DMs, non-DM rooms or both.
     ///
@@ -272,7 +272,7 @@ pub struct SyncRequestListFilters {
 
 /// Sliding Sync Request for each list.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SyncRequestList {
     /// Put this list into the all-rooms-mode.
     ///
@@ -328,7 +328,7 @@ pub struct SyncRequestList {
 
 /// Configuration for requesting room details.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomDetailsConfig {
     /// Required state for each room returned. An array of event type and state key tuples.
     ///
@@ -344,7 +344,7 @@ pub struct RoomDetailsConfig {
 
 /// Configuration for old rooms to include
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct IncludeOldRooms {
     /// Required state for each room returned. An array of event type and state key tuples.
     ///
@@ -360,7 +360,7 @@ pub struct IncludeOldRooms {
 
 /// Configuration for room subscription
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomSubscription {
     /// Required state for each room returned. An array of event type and state key tuples.
     ///
@@ -381,7 +381,7 @@ pub struct RoomSubscription {
 /// Operation applied to the specific SlidingSyncList
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "UPPERCASE")]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum SlidingOp {
     /// Full reset of the given window.
     Sync,
@@ -396,7 +396,7 @@ pub enum SlidingOp {
 
 /// Updates to joined rooms.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SyncList {
     /// The sync operation to apply, if any.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -408,7 +408,7 @@ pub struct SyncList {
 
 /// Updates to joined rooms.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SyncOp {
     /// The sync operation to apply.
     pub op: SlidingOp,
@@ -429,7 +429,7 @@ pub struct SyncOp {
 
 /// Updates to joined rooms.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SlidingSyncRoom {
     /// The name of the room as calculated by the server.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -508,7 +508,7 @@ impl SlidingSyncRoom {
 
 /// A sliding sync room hero.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SlidingSyncRoomHero {
     /// The user ID of the hero.
     pub user_id: OwnedUserId,
@@ -531,7 +531,7 @@ impl SlidingSyncRoomHero {
 
 /// Sliding-Sync extension configuration.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ExtensionsConfig {
     /// Request to devices messages with the given config.
     #[serde(default, skip_serializing_if = "ToDeviceConfig::is_empty")]
@@ -572,7 +572,7 @@ impl ExtensionsConfig {
 
 /// Extensions specific response data.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Extensions {
     /// To-device extension in response.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -612,7 +612,7 @@ impl Extensions {
 ///
 /// According to [MSC3885](https://github.com/matrix-org/matrix-spec-proposals/pull/3885).
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ToDeviceConfig {
     /// Activate or deactivate this extension. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -656,7 +656,7 @@ impl ToDeviceConfig {
 ///
 /// According to [MSC3885](https://github.com/matrix-org/matrix-spec-proposals/pull/3885).
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ToDevice {
     /// Fetch the next batch from this entry.
     pub next_batch: String,
@@ -670,7 +670,7 @@ pub struct ToDevice {
 ///
 /// According to [MSC3884](https://github.com/matrix-org/matrix-spec-proposals/pull/3884).
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct E2EEConfig {
     /// Activate or deactivate this extension. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -688,7 +688,7 @@ impl E2EEConfig {
 ///
 /// According to [MSC3884](https://github.com/matrix-org/matrix-spec-proposals/pull/3884).
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct E2EE {
     /// Information on E2EE device updates.
     ///
@@ -723,7 +723,7 @@ impl E2EE {
 /// Not yet part of the spec proposal. Taken from the reference implementation
 /// <https://github.com/matrix-org/sliding-sync/blob/main/sync3/extensions/account_data.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct AccountDataConfig {
     /// Activate or deactivate this extension. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -764,7 +764,7 @@ impl AccountDataConfig {
 /// Not yet part of the spec proposal. Taken from the reference implementation
 /// <https://github.com/matrix-org/sliding-sync/blob/main/sync3/extensions/account_data.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct AccountData {
     /// The global private data created by this user.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -784,7 +784,7 @@ impl AccountData {
 
 /// Single entry for a room-related read receipt configuration in `ReceiptsConfig`.
 #[derive(Clone, Debug, PartialEq)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum RoomReceiptConfig {
     /// Get read receipts for all the subscribed rooms.
     AllSubscribed,
@@ -822,7 +822,7 @@ impl<'de> Deserialize<'de> for RoomReceiptConfig {
 ///
 /// According to [MSC3960](https://github.com/matrix-org/matrix-spec-proposals/pull/3960)
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ReceiptsConfig {
     /// Activate or deactivate this extension. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -858,7 +858,7 @@ impl ReceiptsConfig {
 ///
 /// According to [MSC3960](https://github.com/matrix-org/matrix-spec-proposals/pull/3960)
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Receipts {
     /// The ephemeral receipt room event for each room
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
@@ -877,7 +877,7 @@ impl Receipts {
 /// Not yet part of the spec proposal. Taken from the reference implementation
 /// <https://github.com/matrix-org/sliding-sync/blob/main/sync3/extensions/typing.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct TypingConfig {
     /// Activate or deactivate this extension. Sticky.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -914,7 +914,7 @@ impl TypingConfig {
 /// Not yet part of the spec proposal. Taken from the reference implementation
 /// <https://github.com/matrix-org/sliding-sync/blob/main/sync3/extensions/typing.go>
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Typing {
     /// The ephemeral typing event for each room
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]

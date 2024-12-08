@@ -15,7 +15,7 @@ pub mod get_hierarchy;
 /// To create an instance of this type, first create a `SpaceHierarchyParentSummaryInit` and convert
 /// it via `SpaceHierarchyParentSummary::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SpaceHierarchyParentSummary {
     /// The canonical alias of the room, if any.
     ///
@@ -148,7 +148,7 @@ impl From<SpaceHierarchyParentSummaryInit> for SpaceHierarchyParentSummary {
 /// To create an instance of this type, first create a `SpaceHierarchyChildSummaryInit` and convert
 /// it via `SpaceHierarchyChildSummary::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SpaceHierarchyChildSummary {
     /// The canonical alias of the room, if any.
     ///

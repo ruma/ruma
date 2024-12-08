@@ -22,7 +22,7 @@ use super::{
 /// [MSC3551]: https://github.com/matrix-org/matrix-spec-proposals/pull/3551
 /// [`message`]: super::message
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc1767.file", kind = MessageLike, without_relation)]
 pub struct FileEventContent {
     /// The text representation of the message.
@@ -125,7 +125,7 @@ impl FileEventContent {
 
 /// A block for file content.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct FileContentBlock {
     /// The URL to the file.
     pub url: OwnedMxcUri,
@@ -176,7 +176,7 @@ impl FileContentBlock {
 /// To create an instance of this type, first create a `EncryptedContentInit` and convert it via
 /// `EncryptedContent::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct EncryptedContent {
     /// A [JSON Web Key](https://tools.ietf.org/html/rfc7517#appendix-A.3) object.
     pub key: JsonWebKey,
@@ -240,7 +240,7 @@ impl From<&EncryptedFile> for EncryptedContent {
 /// To construct a `CaptionContentBlock` with a custom [`TextContentBlock`], convert it with
 /// `CaptionContentBlock::from()` / `.into()`.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct CaptionContentBlock {
     /// The text message of the caption.
     #[serde(rename = "org.matrix.msc1767.text")]

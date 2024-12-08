@@ -14,7 +14,7 @@ use crate::{GlobalAccountDataEventType, PrivOwnedStr};
 ///
 /// It is sent as an unencrypted to-device event.
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.secret.request", kind = ToDevice)]
 pub struct ToDeviceSecretRequestEventContent {
     /// The action for the request.
@@ -46,7 +46,7 @@ impl ToDeviceSecretRequestEventContent {
 
 /// Action for an `m.secret.request` event.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(try_from = "RequestActionJsonRepr")]
 pub enum RequestAction {
     /// Request a secret by its name.
@@ -111,7 +111,7 @@ impl TryFrom<RequestActionJsonRepr> for RequestAction {
 /// The name of a secret.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum SecretName {
     /// Cross-signing master key (m.cross_signing.master).
     #[ruma_enum(rename = "m.cross_signing.master")]

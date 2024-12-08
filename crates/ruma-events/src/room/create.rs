@@ -14,7 +14,7 @@ use crate::{EmptyStateKey, RedactContent, RedactedStateEventContent};
 ///
 /// It acts as the root of all other events.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room.create", kind = State, state_key_type = EmptyStateKey, custom_redacted)]
 pub struct RoomCreateEventContent {
     /// The `user_id` of the room creator.
@@ -109,7 +109,7 @@ impl RedactContent for RoomCreateEventContent {
 
 /// A reference to an old room replaced during a room version upgrade.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PreviousRoom {
     /// The ID of the old room.
     pub room_id: OwnedRoomId,
