@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 /// The content of a beacon.
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc3672.beacon", alias = "m.beacon", kind = MessageLike)]
 pub struct BeaconEventContent {
     /// The beacon_info event id this relates to.

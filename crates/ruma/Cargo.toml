@@ -167,7 +167,6 @@ unstable-exhaustive-types = [
     "ruma-push-gateway-api?/unstable-exhaustive-types",
     "ruma-signatures?/unstable-exhaustive-types",
     "ruma-state-res?/unstable-exhaustive-types",
-    "ruma-events?/unstable-exhaustive-types"
 ]
 unstable-extensible-events = [
     "unstable-msc3246",

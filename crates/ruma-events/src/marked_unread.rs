@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// This event appears in the user's room account data for the room the marker is applicable for.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.marked_unread", kind = RoomAccountData)]
 pub struct MarkedUnreadEventContent {
     /// The current unread state.
@@ -35,7 +35,7 @@ impl MarkedUnreadEventContent {
 /// [`com.famedly.marked_unread`]: https://github.com/matrix-org/matrix-spec-proposals/pull/2867
 #[cfg(feature = "unstable-msc2867")]
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "com.famedly.marked_unread", kind = RoomAccountData)]
 #[serde(transparent)]
 pub struct UnstableMarkedUnreadEventContent(pub MarkedUnreadEventContent);

@@ -15,7 +15,7 @@ pub enum PreviewImageSource {
 ///
 /// Modelled after [OpenGraph Image Properties](https://ogp.me/#structured).
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PreviewImage {
     /// Source information for the image.
     #[serde(flatten)]
@@ -61,7 +61,7 @@ impl PreviewImage {
 /// Preview Information for a URL matched in the message's text, according to
 /// [MSC 4095](https://github.com/matrix-org/matrix-spec-proposals/pull/4095).
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct UrlPreview {
     /// The url this was matching on.
     #[serde(alias = "matrix:matched_url")]

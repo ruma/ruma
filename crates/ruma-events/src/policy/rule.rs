@@ -11,7 +11,7 @@ pub mod user;
 
 /// The payload for policy rule events.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PolicyRuleEventContent {
     /// The entity affected by this rule.
     ///
@@ -37,7 +37,7 @@ impl PolicyRuleEventContent {
 ///
 /// This type is used when it's not obvious whether the content is redacted or not.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PossiblyRedactedPolicyRuleEventContent {
     /// The entity affected by this rule.
     ///

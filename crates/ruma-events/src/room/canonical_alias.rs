@@ -12,7 +12,7 @@ use crate::EmptyStateKey;
 ///
 /// Informs the room as to which alias is the canonical one.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room.canonical_alias", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomCanonicalAliasEventContent {
     /// The canonical alias.

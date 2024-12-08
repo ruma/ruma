@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// A list of users to ignore.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.ignored_user_list", kind = GlobalAccountData)]
 pub struct IgnoredUserListEventContent {
     /// A map of users to ignore.
@@ -38,7 +38,7 @@ impl IgnoredUserListEventContent {
 ///
 /// This is currently empty.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct IgnoredUser {}
 
 impl IgnoredUser {

@@ -15,7 +15,7 @@ use super::room::encrypted::{EncryptedEventScheme, Relation};
 /// [MSC3956]: https://github.com/matrix-org/matrix-spec-proposals/pull/3956
 /// [`message`]: super::message
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc1767.encrypted", kind = MessageLike)]
 pub struct EncryptedEventContent {
     /// The encrypted content.
@@ -42,7 +42,7 @@ impl From<EncryptedEventScheme> for EncryptedEventContent {
 
 /// A block for encrypted content.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct EncryptedContentBlock {
     /// Algorithm-specific fields.
     #[serde(flatten)]

@@ -178,7 +178,7 @@ pub struct RedactedSyncRoomRedactionEvent {
 
 /// A redaction of an event.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room.redaction", kind = MessageLike, custom_redacted)]
 pub struct RoomRedactionEventContent {
     /// The ID of the event that was redacted.
@@ -235,7 +235,7 @@ impl RedactContent for RoomRedactionEventContent {
 
 /// A redacted redaction event.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RedactedRoomRedactionEventContent {
     /// The ID of the event that was redacted.
     ///
@@ -430,7 +430,7 @@ impl RedactionEvent for SyncRoomRedactionEvent {}
 
 /// Extra information about a redaction that is not incorporated into the event's hash.
 #[derive(Clone, Debug, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomRedactionUnsigned {
     /// The time in milliseconds that has elapsed since the event was sent.
     ///

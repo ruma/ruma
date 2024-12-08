@@ -12,7 +12,7 @@ pub struct MembershipDetails<'a> {
 
 /// Translation of the membership change in `m.room.member` event.
 #[derive(Clone, Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum MembershipChange<'a> {
     /// No change.
     None,

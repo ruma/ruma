@@ -25,7 +25,7 @@ use super::{
 /// [MSC3927]: https://github.com/matrix-org/matrix-spec-proposals/pull/3927
 /// [`message`]: super::message
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc1767.audio", kind = MessageLike, without_relation)]
 pub struct AudioEventContent {
     /// The text representations of the message.
@@ -93,7 +93,7 @@ impl AudioEventContent {
 
 /// A block for details of audio content.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct AudioDetailsContentBlock {
     /// The duration of the audio in seconds.
     #[serde(with = "ruma_common::serde::duration::secs")]

@@ -11,7 +11,7 @@ use crate::EmptyStateKey;
 ///
 /// A topic is a short message detailing what is currently being discussed in the room.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room.topic", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomTopicEventContent {
     /// The topic text.

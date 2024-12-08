@@ -19,7 +19,7 @@ use crate::relation::Reference;
 ///
 /// [`PollResponseEventContent`]: super::response::PollResponseEventContent
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc3381.poll.response", kind = MessageLike)]
 pub struct UnstablePollResponseEventContent {
     /// The response's content.
@@ -66,7 +66,7 @@ impl OriginalUnstablePollResponseEvent {
 
 /// An unstable block for poll response content.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct UnstablePollResponseContentBlock {
     /// The selected answers for the response.
     pub answers: Vec<String>,

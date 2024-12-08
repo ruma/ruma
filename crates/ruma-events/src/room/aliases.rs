@@ -10,7 +10,7 @@ use crate::{EventContent, RedactContent, RedactedStateEventContent, StateEventTy
 ///
 /// Informs the room about what room aliases it has been given.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room.aliases", kind = State, state_key_type = OwnedServerName, custom_redacted)]
 pub struct RoomAliasesEventContent {
     /// A list of room aliases.
@@ -45,7 +45,7 @@ impl RedactContent for RoomAliasesEventContent {
 
 /// An aliases event that has been redacted.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RedactedRoomAliasesEventContent {
     /// A list of room aliases.
     ///

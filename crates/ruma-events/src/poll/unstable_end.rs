@@ -21,7 +21,7 @@ use crate::relation::Reference;
 /// [`OriginalSyncUnstablePollStartEvent::compile_results()`]: super::unstable_start::OriginalSyncUnstablePollStartEvent::compile_results
 /// [`PollEndEventContent`]: super::end::PollEndEventContent
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc3381.poll.end", kind = MessageLike)]
 pub struct UnstablePollEndEventContent {
     /// The text representation of the results.
@@ -53,5 +53,5 @@ impl UnstablePollEndEventContent {
 ///
 /// This is currently an empty struct.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct UnstablePollEndContentBlock {}

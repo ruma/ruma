@@ -22,7 +22,7 @@ use crate::PrivOwnedStr;
 /// The state event will reliably be set to empty when the user disconnects.
 #[derive(Clone, Debug)]
 #[cfg_attr(test, derive(PartialEq))]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum MembershipData<'a> {
     /// The legacy format (using an array of memberships for each device -> one event per user)
     Legacy(&'a LegacyMembershipData),
@@ -110,7 +110,7 @@ impl MembershipData<'_> {
 ///
 /// The application defines the type of the session.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct LegacyMembershipData {
     /// The type of the MatrixRTC session the membership belongs to.
     ///
@@ -225,7 +225,7 @@ impl From<LegacyMembershipDataInit> for LegacyMembershipData {
 
 /// Stores all the information for a MatrixRTC membership. (one for each device)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SessionMembershipData {
     /// The type of the MatrixRTC session the membership belongs to.
     ///
@@ -257,7 +257,7 @@ pub struct SessionMembershipData {
 /// type of MatrixRTC session e.g. calling (`m.call`), third-room, whiteboard could be
 /// possible applications.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "application")]
 pub enum Application {
     /// The rtc application (session type) for VoIP call.
@@ -267,7 +267,7 @@ pub enum Application {
 
 /// Call specific parameters of a `m.call.member` event.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct CallApplicationContent {
     /// An identifier for calls.
     ///
@@ -298,7 +298,7 @@ impl CallApplicationContent {
 /// The call scope defines different call ownership models.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, PartialEq, StringEnum)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_enum(rename_all = "m.snake_case")]
 pub enum CallScope {
     /// A call which every user of a room can join and create.

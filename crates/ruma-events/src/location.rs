@@ -21,7 +21,7 @@ use crate::PrivOwnedStr;
 /// [MSC3488]: https://github.com/matrix-org/matrix-spec-proposals/pull/3488
 /// [`message`]: super::message
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.location", kind = MessageLike, without_relation)]
 pub struct LocationEventContent {
     /// The text representation of the message.
@@ -89,7 +89,7 @@ impl LocationEventContent {
 
 /// Location content.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct LocationContent {
     /// A `geo:` URI representing the location.
     ///
@@ -163,7 +163,7 @@ impl TryFrom<u8> for ZoomLevel {
 
 /// Asset content.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct AssetContent {
     /// The type of asset being referred to.
     #[serde(rename = "type")]

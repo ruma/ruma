@@ -12,7 +12,7 @@ use crate::PrivOwnedStr;
 
 /// The content of an `m.room_key_request` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room_key_request", kind = ToDevice)]
 pub struct ToDeviceRoomKeyRequestEventContent {
     /// Whether this is a new key request or a cancellation of a previous request.
@@ -65,7 +65,7 @@ pub enum Action {
 
 /// Information about a requested key.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RequestedKeyInfo {
     /// The encryption algorithm the requested key in this event is to be used with.
     pub algorithm: EventEncryptionAlgorithm,

@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 /// contain a `via` key which gives a list of candidate servers that can be used to join the
 /// parent.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.space.parent", kind = State, state_key_type = OwnedRoomId)]
 pub struct SpaceParentEventContent {
     /// List of candidate servers that can be used to join the room.

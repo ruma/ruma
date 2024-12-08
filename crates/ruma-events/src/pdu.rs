@@ -21,7 +21,7 @@ use super::TimelineEventType;
 
 /// Enum for PDU schemas
 #[derive(Clone, Debug, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(untagged)]
 pub enum Pdu {
     /// PDU for room versions 1 and 2.
@@ -144,7 +144,7 @@ pub struct RoomV3Pdu {
 
 /// Content hashes of a PDU.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct EventHash {
     /// The SHA-256 hash.
     pub sha256: String,

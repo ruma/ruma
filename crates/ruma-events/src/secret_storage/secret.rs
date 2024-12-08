@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 /// A secret and its encrypted contents.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SecretEventContent {
     /// Map from key ID to the encrypted data.
     ///
@@ -24,7 +24,7 @@ impl SecretEventContent {
 
 /// Encrypted data for a corresponding secret storage encryption algorithm.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(untagged)]
 pub enum SecretEncryptedData {
     /// Data encrypted using the *m.secret_storage.v1.aes-hmac-sha2* algorithm.

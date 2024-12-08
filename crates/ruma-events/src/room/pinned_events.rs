@@ -12,7 +12,7 @@ use crate::EmptyStateKey;
 ///
 /// Used to "pin" particular events in a room for other participants to review later.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room.pinned_events", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomPinnedEventsEventContent {
     /// An ordered list of event IDs to pin.

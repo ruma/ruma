@@ -16,7 +16,7 @@ use crate::EmptyStateKey;
 ///
 /// This can be displayed alongside the room information.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room.avatar", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomAvatarEventContent {
     /// Information about the avatar image.
@@ -36,7 +36,7 @@ impl RoomAvatarEventContent {
 
 /// Metadata about an image (specific to avatars).
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ImageInfo {
     /// The height of the image in pixels.
     #[serde(rename = "h", skip_serializing_if = "Option::is_none")]

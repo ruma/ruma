@@ -12,7 +12,7 @@ use crate::{relation::Reference, PrivOwnedStr};
 ///
 /// Cancels a key verification process/request.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.cancel", kind = ToDevice)]
 pub struct ToDeviceKeyVerificationCancelEventContent {
     /// The opaque identifier for the verification process/request.
@@ -39,7 +39,7 @@ impl ToDeviceKeyVerificationCancelEventContent {
 ///
 /// Cancels a key verification process/request.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.cancel", kind = MessageLike)]
 pub struct KeyVerificationCancelEventContent {
     /// A human readable description of the `code`.

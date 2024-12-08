@@ -8,7 +8,7 @@ use crate::macros::EventContent;
 
 /// The payload for `DefaultKeyEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.secret_storage.default_key", kind = GlobalAccountData)]
 pub struct SecretStorageDefaultKeyEventContent {
     /// The ID of the default key.
