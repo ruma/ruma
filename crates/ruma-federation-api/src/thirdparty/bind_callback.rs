@@ -71,7 +71,7 @@ pub mod v1 {
 
     /// A pending invite the third party identifier has received.
     #[derive(Debug, Clone, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct ThirdPartyInvite {
         /// The type of third party invite issues.
         ///
