@@ -162,7 +162,6 @@ ring-compat = ["dep:ruma-signatures", "ruma-signatures?/ring-compat"]
 # unstable: by using any of these, you opt out of all semver guarantees Ruma
 #           otherwise provides!
 unstable-exhaustive-types = [
-    "ruma-signatures?/unstable-exhaustive-types",
     "ruma-state-res?/unstable-exhaustive-types",
 ]
 unstable-extensible-events = [
