@@ -15,7 +15,7 @@ use crate::{
 /// To create an instance of this type, first create a `PublicRoomsChunkInit` and convert it via
 /// `PublicRoomsChunk::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PublicRoomsChunk {
     /// The canonical alias of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -111,7 +111,7 @@ impl From<PublicRoomsChunkInit> for PublicRoomsChunk {
 
 /// A filter for public rooms lists.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Filter {
     /// A string to search for in the room metadata, e.g. name, topic, canonical alias etc.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -143,7 +143,7 @@ impl Filter {
 /// Information about which networks/protocols from application services on the
 /// homeserver from which to request rooms.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum RoomNetwork {
     /// Return rooms from the Matrix network.
     #[default]
@@ -160,7 +160,7 @@ pub enum RoomNetwork {
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Default, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum PublicRoomJoinRule {
     /// Users can request an invite to the room.
     Knock,

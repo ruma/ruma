@@ -28,7 +28,7 @@ use crate::{IdParseError, PrivOwnedStr};
 /// For simplicity, version 0 has a string representation, but trying to construct a `VoipVersionId`
 /// from a `"0"` string will not result in the `V0` variant.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, DisplayAsRefStr)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum VoipVersionId {
     /// A version 0 VoIP call.
     V0,

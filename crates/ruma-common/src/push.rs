@@ -54,7 +54,7 @@ pub use self::{
 /// For example, some rules may only be applied for messages from a particular sender, a particular
 /// room, or by default. The push ruleset contains the entire set of scopes and rules.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Ruleset {
     /// These rules configure behavior for (unencrypted) messages that match certain patterns.
     #[serde(default, skip_serializing_if = "IndexSet::is_empty")]
@@ -368,7 +368,7 @@ impl Ruleset {
 /// To create an instance of this type, first create a `SimplePushRuleInit` and convert it via
 /// `SimplePushRule::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SimplePushRule<T> {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
@@ -453,7 +453,7 @@ where
 /// To create an instance of this type, first create a `ConditionalPushRuleInit` and convert it via
 /// `ConditionalPushRule::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ConditionalPushRule {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
@@ -586,7 +586,7 @@ impl Equivalent<ConditionalPushRule> for str {
 /// To create an instance of this type, first create a `PatternedPushRuleInit` and convert it via
 /// `PatternedPushRule::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PatternedPushRule {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
@@ -688,7 +688,7 @@ impl Equivalent<PatternedPushRule> for str {
 
 /// Information for a pusher using the Push Gateway API.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct HttpPusherData {
     /// The URL to use to send notifications to.
     ///
@@ -766,7 +766,7 @@ pub enum RuleKind {
 
 /// A push rule to update or create.
 #[derive(Clone, Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum NewPushRule {
     /// Rules that override all other kinds.
     Override(NewConditionalPushRule),
@@ -810,7 +810,7 @@ impl NewPushRule {
 
 /// A simple push rule to update or create.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct NewSimplePushRule<T> {
     /// The ID of this rule.
     ///
@@ -838,7 +838,7 @@ impl<T> From<NewSimplePushRule<T>> for SimplePushRule<T> {
 
 /// A patterned push rule to update or create.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct NewPatternedPushRule {
     /// The ID of this rule.
     pub rule_id: String,
@@ -867,7 +867,7 @@ impl From<NewPatternedPushRule> for PatternedPushRule {
 
 /// A conditional push rule to update or create.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct NewConditionalPushRule {
     /// The ID of this rule.
     pub rule_id: String,
