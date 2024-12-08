@@ -52,7 +52,7 @@ pub mod v1 {
 
     /// Arbitrary values that identify this implementation.
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Server {
         /// Arbitrary name that identifies this implementation.
         #[serde(skip_serializing_if = "Option::is_none")]

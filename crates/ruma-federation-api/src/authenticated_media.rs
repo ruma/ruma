@@ -17,7 +17,7 @@ const GENERATED_BOUNDARY_LENGTH: usize = 30;
 
 /// The metadata of a file from the content repository.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ContentMetadata {}
 
 impl ContentMetadata {
@@ -29,7 +29,7 @@ impl ContentMetadata {
 
 /// A file from the content repository or the location where it can be found.
 #[derive(Debug, Clone)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum FileOrLocation {
     /// The content of the file.
     File(Content),
@@ -40,7 +40,7 @@ pub enum FileOrLocation {
 
 /// The content of a file from the content repository.
 #[derive(Debug, Clone)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Content {
     /// The content of the file as bytes.
     pub file: Vec<u8>,

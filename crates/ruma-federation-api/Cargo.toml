@@ -21,7 +21,6 @@ compat-empty-string-null = []
 
 client = ["dep:httparse", "dep:memchr"]
 server = ["dep:bytes", "dep:rand"]
-unstable-exhaustive-types = []
 unstable-msc2448 = []
 unstable-msc3618 = []
 unstable-msc3723 = []
