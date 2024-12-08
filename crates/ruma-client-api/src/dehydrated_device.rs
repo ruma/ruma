@@ -13,7 +13,7 @@ pub mod put_dehydrated_device;
 /// Data for a dehydrated device.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(try_from = "Helper", into = "Helper")]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum DehydratedDeviceData {
     /// The `org.matrix.msc3814.v1.olm` variant of a dehydrated device.
     V1(DehydratedDeviceV1),
@@ -30,7 +30,7 @@ impl DehydratedDeviceData {
 
 /// The `org.matrix.msc3814.v1.olm` variant of a dehydrated device.
 #[derive(Clone, Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct DehydratedDeviceV1 {
     /// The pickle of the `Olm` account of the device.
     ///

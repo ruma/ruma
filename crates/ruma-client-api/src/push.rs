@@ -31,7 +31,7 @@ pub mod set_pushrule_enabled;
 ///
 /// To create an instance of this type, use one of its `From` implementations.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PushRule {
     /// The actions to perform when this rule is matched.
     pub actions: Vec<Action>,
@@ -111,7 +111,8 @@ impl From<PatternedPushRuleInit> for PushRule {
 
 impl From<AnyPushRule> for PushRule {
     fn from(push_rule: AnyPushRule) -> Self {
-        // The catch-all is unreachable if the "unstable-exhaustive-types" feature is enabled.
+        // The catch-all is unreachable if the "ruma_unstable_exhaustive_types" cfg setting is
+        // enabled.
         #[allow(unreachable_patterns)]
         match push_rule {
             AnyPushRule::Override(r) => r.into(),
@@ -146,7 +147,7 @@ where
 /// An error that happens when `PushRule` cannot
 /// be converted into `PatternedPushRule`
 #[derive(Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct MissingPatternError;
 
 impl fmt::Display for MissingPatternError {
@@ -205,7 +206,7 @@ pub enum PusherKind {
 /// To create an instance of this type, first create a `PusherInit` and convert it via
 /// `Pusher::from` / `.into()`.
 #[derive(Clone, Debug, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Pusher {
     /// Identifiers for this pusher.
     #[serde(flatten)]
@@ -265,7 +266,7 @@ impl From<PusherInit> for Pusher {
 
 /// Strings to uniquely identify a `Pusher`.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PusherIds {
     /// A unique identifier for the pusher.
     ///
@@ -287,7 +288,7 @@ impl PusherIds {
 
 /// Information for an email pusher.
 #[derive(Clone, Debug, Default)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct EmailPusherData;
 
 impl EmailPusherData {

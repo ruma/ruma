@@ -16,7 +16,7 @@ pub mod v5;
 
 /// Unread notifications count.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct UnreadNotificationsCount {
     /// The number of unread notifications with the highlight flag set.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -41,7 +41,7 @@ impl UnreadNotificationsCount {
 
 /// Information on E2E device updates.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct DeviceLists {
     /// List of users who have updated their device identity keys or who now
     /// share an encrypted room with the client since the previous sync.

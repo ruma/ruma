@@ -67,7 +67,7 @@ pub mod v3 {
 
     /// Categories of events that can be searched for.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Categories {
         /// Criteria for searching room events.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -83,7 +83,7 @@ pub mod v3 {
 
     /// Criteria for searching a category of events.
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Criteria {
         /// The string to search events for.
         pub search_term: String,
@@ -132,7 +132,7 @@ pub mod v3 {
 
     /// Configures whether any context for the events returned are included in the response.
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct EventContext {
         /// How many events before the result are returned.
         #[serde(
@@ -189,7 +189,7 @@ pub mod v3 {
 
     /// Context for search results, if requested.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct EventContextResult {
         /// Pagination token for the end of the chunk.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -230,7 +230,7 @@ pub mod v3 {
 
     /// A grouping for partitioning the result set.
     #[derive(Clone, Default, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Grouping {
         /// The key within events to use for this grouping.
         pub key: Option<GroupingKey>,
@@ -266,7 +266,7 @@ pub mod v3 {
 
     /// Requests that the server partitions the result set based on the provided list of keys.
     #[derive(Clone, Default, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Groupings {
         /// List of groups to request.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
@@ -309,7 +309,7 @@ pub mod v3 {
     /// The order in which to search for results.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
     #[derive(Clone, PartialEq, Eq, StringEnum)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     #[ruma_enum(rename_all = "snake_case")]
     pub enum OrderBy {
         /// Prioritize recent events.
@@ -325,7 +325,7 @@ pub mod v3 {
 
     /// Categories of events that can be searched for.
     #[derive(Clone, Default, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct ResultCategories {
         /// Room event results.
         #[serde(default, skip_serializing_if = "ResultRoomEvents::is_empty")]
@@ -341,7 +341,7 @@ pub mod v3 {
 
     /// Categories of events that can be searched for.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct ResultRoomEvents {
         /// An approximate count of the total number of results found.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -393,7 +393,7 @@ pub mod v3 {
 
     /// A grouping of results, if requested.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct ResultGroup {
         /// Token that can be used to get the next batch of results in the group, by passing as the
         /// `next_batch` parameter to the next call.
@@ -425,7 +425,7 @@ pub mod v3 {
 
     /// A search result.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct SearchResult {
         /// Context for result, if requested.
         #[serde(skip_serializing_if = "EventContextResult::is_empty")]
@@ -456,7 +456,7 @@ pub mod v3 {
 
     /// A user profile.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct UserProfile {
         /// The user's avatar URL, if set.
         ///

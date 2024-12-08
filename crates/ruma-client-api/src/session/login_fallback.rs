@@ -47,7 +47,7 @@ impl Request {
 
 /// Response type for the `login_fallback` endpoint.
 #[derive(Debug, Clone)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Response {
     /// HTML to return to client.
     pub body: Vec<u8>,

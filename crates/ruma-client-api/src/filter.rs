@@ -32,7 +32,7 @@ pub enum EventFormat {
 
 /// Filters to be applied to room events.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomEventFilter {
     /// A list of event types to exclude.
     ///
@@ -145,7 +145,7 @@ impl RoomEventFilter {
 
 /// Filters to be applied to room data.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomFilter {
     /// Include rooms that the user has left in the sync.
     ///
@@ -222,7 +222,7 @@ impl RoomFilter {
 
 /// Filter for non-room data.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Filter {
     /// A list of event types to exclude.
     ///
@@ -282,7 +282,7 @@ impl Filter {
 
 /// A filter definition
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct FilterDefinition {
     /// List of event fields to include.
     ///

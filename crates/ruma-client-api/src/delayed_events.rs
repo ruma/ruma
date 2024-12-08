@@ -23,7 +23,7 @@ use web_time::Duration;
 /// parent delay event). A possible matrix event that can be send as an alternative to the parent
 /// delay.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(untagged)]
 pub enum DelayParameters {
     /// Sending a delayed event with a timeout. The response will contain a (server
