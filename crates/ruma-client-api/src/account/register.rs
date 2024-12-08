@@ -171,7 +171,7 @@ pub mod v3 {
 /// The kind of account being registered.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum RegistrationKind {
     /// A guest account
     ///
@@ -185,7 +185,7 @@ pub enum RegistrationKind {
 
 /// The login type.
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum LoginType {
     /// An appservice-specific login type
     #[serde(rename = "m.login.application_service")]

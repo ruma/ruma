@@ -26,7 +26,7 @@ pub mod v3 {
 
     /// Request type for the `set_pushrule` endpoint.
     #[derive(Clone, Debug)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
         /// The rule.
         pub rule: NewPushRule,
@@ -248,7 +248,7 @@ pub mod v3 {
                     actions: r.actions,
                     conditions: r.conditions,
                 }),
-                #[cfg(not(feature = "unstable-exhaustive-types"))]
+                #[cfg(not(ruma_unstable_exhaustive_types))]
                 _ => unreachable!("variant added to NewPushRule not covered by RequestBody"),
             }
         }

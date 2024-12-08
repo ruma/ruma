@@ -137,7 +137,7 @@ impl Response {
 /// A filter represented either as its full JSON definition or the ID of a saved filter.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[allow(clippy::large_enum_variant)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(untagged)]
 pub enum Filter {
     // The filter definition needs to be (de)serialized twice because it is a URL-encoded JSON
@@ -172,7 +172,7 @@ impl From<String> for Filter {
 
 /// Updates to rooms.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Rooms {
     /// The rooms that the user has left or been banned from.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
@@ -205,7 +205,7 @@ impl Rooms {
 
 /// Historical updates to left rooms.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct LeftRoom {
     /// The timeline of messages and state changes in the room up to the point when the user
     /// left.
@@ -235,7 +235,7 @@ impl LeftRoom {
 
 /// Updates to joined rooms.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct JoinedRoom {
     /// Information about the room which clients may need to correctly render it
     /// to users.
@@ -318,7 +318,7 @@ impl JoinedRoom {
 
 /// Updates to knocked rooms.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct KnockedRoom {
     /// The knock state.
     pub knock_state: KnockState,
@@ -326,7 +326,7 @@ pub struct KnockedRoom {
 
 /// A mapping from a key `events` to a list of `StrippedStateEvent`.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct KnockState {
     /// The list of events.
     pub events: Vec<Raw<AnyStrippedStateEvent>>,
@@ -334,7 +334,7 @@ pub struct KnockState {
 
 /// Events in the room.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Timeline {
     /// True if the number of events returned was limited by the `limit` on the filter.
     ///
@@ -368,7 +368,7 @@ impl Timeline {
 
 /// State events in the room.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct State {
     /// A list of state events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -400,7 +400,7 @@ impl From<Vec<Raw<AnySyncStateEvent>>> for State {
 
 /// The global private data created by this user.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct GlobalAccountData {
     /// A list of events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -421,7 +421,7 @@ impl GlobalAccountData {
 
 /// The private data that this user has attached to this room.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomAccountData {
     /// A list of events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -442,7 +442,7 @@ impl RoomAccountData {
 
 /// Ephemeral events not recorded in the timeline or state of the room.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Ephemeral {
     /// A list of events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -463,7 +463,7 @@ impl Ephemeral {
 
 /// Information about room for rendering to clients.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomSummary {
     /// Users which can be used to generate a room name if the room does not have one.
     ///
@@ -500,7 +500,7 @@ impl RoomSummary {
 
 /// Updates to the rooms that the user has been invited to.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct InvitedRoom {
     /// The state of a room that the user has been invited to.
     #[serde(default, skip_serializing_if = "InviteState::is_empty")]
@@ -527,7 +527,7 @@ impl From<InviteState> for InvitedRoom {
 
 /// The state of a room that the user has been invited to.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct InviteState {
     /// A list of state events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -554,7 +554,7 @@ impl From<Vec<Raw<AnyStrippedStateEvent>>> for InviteState {
 
 /// Updates to the presence status of other users.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Presence {
     /// A list of events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -575,7 +575,7 @@ impl Presence {
 
 /// Messages sent directly between devices.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ToDevice {
     /// A list of to-device events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

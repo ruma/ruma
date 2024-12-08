@@ -26,7 +26,7 @@ pub mod v3 {
 
     /// Request type for the `join_room_by_id_or_alias` endpoint.
     #[derive(Clone, Debug)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
         /// The room where the user should be invited.
         pub room_id_or_alias: OwnedRoomOrAliasId,

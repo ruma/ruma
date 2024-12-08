@@ -126,7 +126,7 @@ pub mod v3 {
     /// This is the same as the event content struct for `m.room.create`, but without some fields
     /// that servers are supposed to ignore.
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct CreationContent {
         /// Whether users on other servers can join this room.
         ///

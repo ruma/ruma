@@ -26,7 +26,7 @@ use crate::PrivOwnedStr;
 
 /// Additional authentication information for requestToken endpoints.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct IdentityServerInfo {
     /// The ID server to send the onward request to as a hostname with an
     /// appended colon and port number if the port is not the default.

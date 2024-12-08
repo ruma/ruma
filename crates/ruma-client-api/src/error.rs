@@ -336,7 +336,7 @@ pub struct StandardErrorBody {
 
 /// A Matrix Error
 #[derive(Debug, Clone)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Error {
     /// The http status code.
     pub status_code: http::StatusCode,
