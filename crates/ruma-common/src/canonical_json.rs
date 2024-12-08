@@ -38,10 +38,10 @@ impl std::error::Error for CanonicalJsonError {}
 /// Errors that can happen in redaction.
 #[cfg(feature = "canonical-json")]
 #[derive(Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum RedactionError {
     /// The field `field` is not of the correct type `of_type` ([`JsonType`]).
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     NotOfType {
         /// The field name.
         field: String,

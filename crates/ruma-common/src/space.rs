@@ -14,7 +14,7 @@ use crate::PrivOwnedStr;
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, Default, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum SpaceRoomJoinRule {
     /// A user who wishes to join the room must first receive an invite to the room from someone
     /// already inside of the room.

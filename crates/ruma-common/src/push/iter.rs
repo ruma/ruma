@@ -8,7 +8,7 @@ use crate::{OwnedRoomId, OwnedUserId};
 
 /// The kinds of push rules that are available.
 #[derive(Clone, Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum AnyPushRule {
     /// Rules that override all other kinds.
     Override(ConditionalPushRule),
@@ -125,7 +125,7 @@ impl IntoIterator for Ruleset {
 
 /// Reference to any kind of push rule.
 #[derive(Clone, Copy, Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum AnyPushRuleRef<'a> {
     /// Rules that override all other kinds.
     Override(&'a ConditionalPushRule),

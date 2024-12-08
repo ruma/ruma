@@ -27,7 +27,7 @@ use super::{
 /// [RFC 8187]: https://datatracker.ietf.org/doc/html/rfc8187
 /// [RFC 7578]: https://datatracker.ietf.org/doc/html/rfc7578
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ContentDisposition {
     /// The disposition type.
     pub disposition_type: ContentDispositionType,
