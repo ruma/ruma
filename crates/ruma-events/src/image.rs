@@ -25,7 +25,7 @@ use super::{
 /// [MSC3552]: https://github.com/matrix-org/matrix-spec-proposals/pull/3552
 /// [`message`]: super::message
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc1767.image", kind = MessageLike, without_relation)]
 pub struct ImageEventContent {
     /// The text representation of the message.
@@ -112,7 +112,7 @@ impl ImageEventContent {
 
 /// A block for details of image content.
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ImageDetailsContentBlock {
     /// The height of the image in pixels.
     pub height: UInt,
@@ -175,7 +175,7 @@ impl Deref for ThumbnailContentBlock {
 
 /// Thumbnail content.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Thumbnail {
     /// The file info of the thumbnail.
     #[serde(rename = "org.matrix.msc1767.file")]
@@ -198,7 +198,7 @@ impl Thumbnail {
 
 /// A block for thumbnail file content.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ThumbnailFileContentBlock {
     /// The URL to the thumbnail.
     pub url: OwnedMxcUri,
@@ -251,7 +251,7 @@ impl ThumbnailFileContentBlock {
 
 /// A block for details of thumbnail image content.
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ThumbnailImageDetailsContentBlock {
     /// The height of the image in pixels.
     pub height: UInt,
@@ -274,7 +274,7 @@ impl ThumbnailImageDetailsContentBlock {
 /// To construct an `AltTextContentBlock` with a custom [`TextContentBlock`], convert it with
 /// `AltTextContentBlock::from()` / `.into()`.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct AltTextContentBlock {
     /// The alternative text.
     #[serde(rename = "org.matrix.msc1767.text")]

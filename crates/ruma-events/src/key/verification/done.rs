@@ -12,7 +12,7 @@ use crate::relation::Reference;
 ///
 /// Event signaling that the interactive key verification has successfully concluded.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.done", kind = ToDevice)]
 pub struct ToDeviceKeyVerificationDoneEventContent {
     /// An opaque identifier for the verification process.
@@ -32,7 +32,7 @@ impl ToDeviceKeyVerificationDoneEventContent {
 ///
 /// Event signaling that the interactive key verification has successfully concluded.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.done", kind = MessageLike)]
 pub struct KeyVerificationDoneEventContent {
     /// Relation signaling which verification request this event is responding to.

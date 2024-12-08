@@ -18,7 +18,7 @@ use crate::EmptyStateKey;
 /// room name or avatar based on the member list.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, EventContent, PartialEq)]
 #[ruma_event(type = "io.element.functional_members", kind = State, state_key_type = EmptyStateKey)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct MemberHintsEventContent {
     /// The list of user IDs that should be considered a service member of the room.
     pub service_members: BTreeSet<OwnedUserId>,

@@ -120,7 +120,7 @@ pub type UserReceipts = BTreeMap<OwnedUserId, Receipt>;
 
 /// An acknowledgement of an event.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Receipt {
     /// The time when the receipt was sent.
     #[serde(skip_serializing_if = "Option::is_none")]

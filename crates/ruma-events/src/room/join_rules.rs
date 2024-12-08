@@ -18,7 +18,7 @@ use crate::{EmptyStateKey, PrivOwnedStr};
 ///
 /// Describes how users are allowed to join the room.
 #[derive(Clone, Debug, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room.join_rules", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomJoinRulesEventContent {
     /// The type of rules used for users wishing to join this room.
@@ -81,7 +81,7 @@ impl SyncRoomJoinRulesEvent {
 /// This type can hold an arbitrary string. To check for values that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "join_rule", rename_all = "snake_case")]
 pub enum JoinRule {
     /// A user who wishes to join the room must first receive an invite to the room from someone
@@ -165,7 +165,7 @@ impl From<JoinRule> for SpaceRoomJoinRule {
 
 /// Configuration of the `Restricted` join rule.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Restricted {
     /// Allow rules which describe conditions that allow joining a room.
     #[serde(default)]
@@ -181,7 +181,7 @@ impl Restricted {
 
 /// An allow rule which defines a condition that allows joining a room.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(untagged)]
 pub enum AllowRule {
     /// Joining is allowed if a user is already a member of the room with the id `room_id`.
@@ -200,7 +200,7 @@ impl AllowRule {
 
 /// Allow rule which grants permission to join based on the membership of another room.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type", rename = "m.room_membership")]
 pub struct RoomMembership {
     /// The id of the room which being a member of grants permission to join another room.
@@ -216,7 +216,7 @@ impl RoomMembership {
 
 #[doc(hidden)]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct CustomAllowRule {
     #[serde(rename = "type")]
     rule_type: String,

@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Informs the client who is currently typing in a given room.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.typing", kind = EphemeralRoom)]
 pub struct TypingEventContent {
     /// The list of user IDs typing in this room, if any.

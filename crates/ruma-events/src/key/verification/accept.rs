@@ -18,7 +18,7 @@ use crate::relation::Reference;
 ///
 /// Accepts a previously sent `m.key.verification.start` message.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.accept", kind = ToDevice)]
 pub struct ToDeviceKeyVerificationAcceptEventContent {
     /// An opaque identifier for the verification process.
@@ -44,7 +44,7 @@ impl ToDeviceKeyVerificationAcceptEventContent {
 /// Accepts a previously sent `m.key.verification.start` message.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.key.verification.accept", kind = MessageLike)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct KeyVerificationAcceptEventContent {
     /// The method specific content.
     #[serde(flatten)]
@@ -65,7 +65,7 @@ impl KeyVerificationAcceptEventContent {
 
 /// An enum representing the different method specific `m.key.verification.accept` content.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(untagged)]
 pub enum AcceptMethod {
     /// The `m.sas.v1` verification method.
@@ -91,7 +91,7 @@ pub struct _CustomContent {
 
 /// The payload of an `m.key.verification.accept` event using the `m.sas.v1` method.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(rename = "m.sas.v1", tag = "method")]
 pub struct SasV1Content {
     /// The key agreement protocol the device is choosing to use, out of the

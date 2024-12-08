@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Describes all push rules for a user.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.push_rules", kind = GlobalAccountData)]
 pub struct PushRulesEventContent {
     /// The global ruleset.

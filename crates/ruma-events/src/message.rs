@@ -101,7 +101,7 @@ pub(super) mod historical_serde;
 /// [MSC1767]: https://github.com/matrix-org/matrix-spec-proposals/pull/1767
 /// [`message`]: super::message
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc1767.message", kind = MessageLike, without_relation)]
 pub struct MessageEventContent {
     /// The message's text content.
@@ -266,7 +266,7 @@ impl Deref for TextContentBlock {
 
 /// Text content with optional markup.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct TextRepresentation {
     /// The MIME type of the `body`.
     ///

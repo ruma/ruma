@@ -20,7 +20,7 @@ mod rel_serde;
 ///
 /// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct InReplyTo {
     /// The event being replied to.
     pub event_id: OwnedEventId,
@@ -37,7 +37,7 @@ impl InReplyTo {
 ///
 /// [annotation]: https://spec.matrix.org/latest/client-server-api/#event-annotations-and-reactions
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "rel_type", rename = "m.annotation")]
 pub struct Annotation {
     /// The event that is being annotated.
@@ -63,7 +63,7 @@ impl Annotation {
 ///
 /// [replacement]: https://spec.matrix.org/latest/client-server-api/#event-replacements
 #[derive(Clone, Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Replacement<C> {
     /// The ID of the event being replaced.
     pub event_id: OwnedEventId,
@@ -83,7 +83,7 @@ impl<C> Replacement<C> {
 ///
 /// [thread]: https://spec.matrix.org/latest/client-server-api/#threading
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "rel_type", rename = "m.thread")]
 pub struct Thread {
     /// The ID of the root message in the thread.
@@ -132,7 +132,7 @@ impl Thread {
 
 /// A bundled thread.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct BundledThread {
     /// The latest event in the thread.
     pub latest_event: Raw<AnyMessageLikeEvent>,
@@ -159,7 +159,7 @@ impl BundledThread {
 ///
 /// [reference]: https://spec.matrix.org/latest/client-server-api/#reference-relations
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "rel_type", rename = "m.reference")]
 pub struct Reference {
     /// The ID of the event being referenced.
@@ -175,7 +175,7 @@ impl Reference {
 
 /// A bundled reference.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct BundledReference {
     /// The ID of the event referencing this event.
     pub event_id: OwnedEventId,
@@ -190,7 +190,7 @@ impl BundledReference {
 
 /// A chunk of references.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ReferenceChunk {
     /// A batch of bundled references.
     pub chunk: Vec<BundledReference>,
@@ -207,7 +207,7 @@ impl ReferenceChunk {
 ///
 /// [Bundled aggregations]: https://spec.matrix.org/latest/client-server-api/#aggregations-of-child-events
 #[derive(Clone, Debug, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct BundledMessageLikeRelations<E> {
     /// Replacement relation.
     #[serde(rename = "m.replace", skip_serializing_if = "Option::is_none")]
@@ -268,7 +268,7 @@ impl<E> Default for BundledMessageLikeRelations<E> {
 ///
 /// [Bundled aggregations]: https://spec.matrix.org/latest/client-server-api/#aggregations-of-child-events
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct BundledStateRelations {
     /// Thread relation.
     #[serde(rename = "m.thread", skip_serializing_if = "Option::is_none")]

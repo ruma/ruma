@@ -11,7 +11,7 @@ use crate::{
 
 /// The payload for a location message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "msgtype", rename = "m.location")]
 #[cfg_attr(
     feature = "unstable-msc3488",
@@ -114,7 +114,7 @@ impl LocationMessageEventContent {
 
 /// Thumbnail info associated with a location.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct LocationInfo {
     /// The source of a thumbnail of the location.
     #[serde(

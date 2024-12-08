@@ -41,7 +41,7 @@ pub use self::change::{Change, MembershipChange, MembershipDetails};
 /// from the `prev_content` object on an event. If not present, the user's previous membership
 /// must be assumed as leave.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(
     type = "m.room.member",
     kind = State,
@@ -190,7 +190,7 @@ impl PossiblyRedactedStateEventContent for RoomMemberEventContent {
 
 /// A member event that has been redacted.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RedactedRoomMemberEventContent {
     /// The membership state of this user.
     pub membership: MembershipState,
@@ -305,7 +305,7 @@ pub enum MembershipState {
 
 /// Information about a third party invitation.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ThirdPartyInvite {
     /// A name which can be displayed to represent the user instead of their third party
     /// identifier.
@@ -346,7 +346,7 @@ impl ThirdPartyInvite {
 
 /// Redacted information about a third party invitation.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RedactedThirdPartyInvite {
     /// A block of content which has been signed, which servers can use to verify the event.
     ///
@@ -357,7 +357,7 @@ pub struct RedactedThirdPartyInvite {
 /// A block of content which has been signed, which servers can use to verify a third party
 /// invitation.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SignedContent {
     /// The invited Matrix user ID.
     ///
@@ -519,7 +519,7 @@ impl StrippedRoomMemberEvent {
 
 /// Extra information about a message event that is not incorporated into the event's hash.
 #[derive(Clone, Debug, Default, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomMemberUnsigned {
     /// The time in milliseconds that has elapsed since the event was sent.
     ///

@@ -37,7 +37,7 @@ impl Serialize for PresenceEvent {
 ///
 /// This is the only type a `PresenceEvent` can contain as its `content` field.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.presence")]
 pub struct PresenceEventContent {
     /// The current avatar URL for this user.

@@ -18,7 +18,7 @@ use super::{message::TextContentBlock, room::message::Relation};
 /// [MSC3954]: https://github.com/matrix-org/matrix-spec-proposals/pull/3954
 /// [`message`]: super::message
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc1767.emote", kind = MessageLike, without_relation)]
 pub struct EmoteEventContent {
     /// The message's text content.

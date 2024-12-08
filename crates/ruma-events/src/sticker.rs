@@ -80,7 +80,7 @@ impl From<MediaSource> for StickerMediaSource {
 ///
 /// A sticker message.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.sticker", kind = MessageLike, without_relation)]
 pub struct StickerEventContent {
     /// A textual representation or associated description of the sticker image.
