@@ -18,7 +18,7 @@ pub mod thirdparty;
 ///
 /// Used for [appservice registration](https://spec.matrix.org/latest/application-service-api/#registration).
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Namespace {
     /// Whether this application service has exclusive access to events within this namespace.
     pub exclusive: bool,
@@ -38,7 +38,7 @@ impl Namespace {
 ///
 /// Used for [appservice registration](https://spec.matrix.org/latest/application-service-api/#registration).
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Namespaces {
     /// Events which are sent from certain users.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -68,7 +68,7 @@ impl Namespaces {
 ///
 /// Used for [appservice registration](https://spec.matrix.org/latest/application-service-api/#registration).
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Registration {
     /// A unique, user - defined ID of the application service which will never change.
     pub id: String,
