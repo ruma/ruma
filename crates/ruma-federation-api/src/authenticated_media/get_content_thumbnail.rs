@@ -91,7 +91,7 @@ pub mod v1 {
 
     /// Response type for the `get_content_thumbnail` endpoint.
     #[derive(Debug, Clone)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Response {
         /// The metadata of the thumbnail.
         pub metadata: ContentMetadata,

@@ -77,7 +77,7 @@ impl Response {
 
 /// Full state of the room.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomState {
     #[cfg(not(feature = "unstable-unspecified"))]
     /// The resident server's DNS name.

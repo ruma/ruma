@@ -72,7 +72,7 @@ pub mod v2 {
 
     /// The query criteria.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct QueryCriteria {
         /// A millisecond POSIX timestamp in milliseconds indicating when the
         /// returned certificates will need to be valid until to be useful to the

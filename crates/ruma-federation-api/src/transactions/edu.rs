@@ -16,7 +16,7 @@ use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
 /// Type for passing ephemeral data to homeservers.
 #[derive(Clone, Debug, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "edu_type", content = "content")]
 pub enum Edu {
     /// An EDU representing presence updates for users of the sending homeserver.
@@ -81,7 +81,7 @@ impl<'de> Deserialize<'de> for Edu {
 
 /// The content for "m.presence" Edu.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PresenceContent {
     /// A list of presence updates that the receiving server is likely to be interested in.
     pub push: Vec<PresenceUpdate>,
@@ -96,7 +96,7 @@ impl PresenceContent {
 
 /// An update to the presence of a user.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PresenceUpdate {
     /// The user ID this presence EDU is for.
     pub user_id: OwnedUserId,
@@ -133,7 +133,7 @@ impl PresenceUpdate {
 
 /// The content for "m.receipt" Edu.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ReceiptContent {
     /// Receipts for a particular room.
     #[serde(flatten)]
@@ -149,7 +149,7 @@ impl ReceiptContent {
 
 /// Mapping between user and `ReceiptData`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ReceiptMap {
     /// Read receipts for users in the room.
     #[serde(rename = "m.read")]
@@ -165,7 +165,7 @@ impl ReceiptMap {
 
 /// Metadata about the event that was last read and when.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ReceiptData {
     /// Metadata for the read receipt.
     pub data: Receipt,
@@ -183,7 +183,7 @@ impl ReceiptData {
 
 /// The content for "m.typing" Edu.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct TypingContent {
     /// The room where the user's typing status has been updated.
     pub room_id: OwnedRoomId,
@@ -204,7 +204,7 @@ impl TypingContent {
 
 /// The description of the direct-to- device message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct DeviceListUpdateContent {
     /// The user ID who owns the device.
     pub user_id: OwnedUserId,
@@ -253,7 +253,7 @@ impl DeviceListUpdateContent {
 
 /// The description of the direct-to- device message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct DirectDeviceContent {
     /// The user ID of the sender.
     pub sender: OwnedUserId,
@@ -291,7 +291,7 @@ pub type DirectDeviceMessages =
 
 /// The content for an `m.signing_key_update` EDU.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SigningKeyUpdateContent {
     /// The user ID whose cross-signing keys have changed.
     pub user_id: OwnedUserId,
