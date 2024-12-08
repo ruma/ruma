@@ -48,9 +48,6 @@
 //!
 //! By using these features, you opt out of all semver guarantees Ruma otherwise provides:
 //!
-//! * `unstable-exhaustive-types` -- Most types in Ruma are marked as non-exhaustive to avoid
-//!   breaking changes when new fields are added in the specification. This feature compiles all
-//!   types as exhaustive.
 //! * `unstable-mscXXXX`, where `XXXX` is the MSC number -- Upcoming Matrix features that may be
 //!   subject to change or removal.
 //! * `unstable-unspecified` -- Undocumented Matrix features that may be subject to change or
