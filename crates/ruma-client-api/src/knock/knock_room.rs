@@ -24,7 +24,7 @@ pub mod v3 {
 
     /// Request type for the `knock_room` endpoint.
     #[derive(Clone, Debug)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
         /// The room the user should knock on.
         pub room_id_or_alias: OwnedRoomOrAliasId,

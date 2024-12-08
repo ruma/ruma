@@ -28,7 +28,7 @@ pub mod unstable {
     /// The possible update actions we can do for updating a delayed event.
     #[derive(Clone, StringEnum)]
     #[ruma_enum(rename_all = "lowercase")]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum UpdateAction {
         /// Restart the delayed event timeout. (heartbeat ping)
         Restart,

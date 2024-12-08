@@ -30,7 +30,7 @@ pub mod v3 {
 
     /// Request type for the `send_state_event` endpoint.
     #[derive(Clone, Debug)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
         /// The room to set the state in.
         pub room_id: OwnedRoomId,

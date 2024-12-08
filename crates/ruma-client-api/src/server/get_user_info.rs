@@ -62,7 +62,7 @@ pub mod v3 {
 
     /// Information about a user's device.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct DeviceInfo {
         /// A list of user sessions on this device.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -78,7 +78,7 @@ pub mod v3 {
 
     /// Information about a user session.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct SessionInfo {
         /// A list of connections in this session.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -94,7 +94,7 @@ pub mod v3 {
 
     /// Information about a connection in a user session.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct ConnectionInfo {
         /// Most recently seen IP address of the session.
         pub ip: Option<String>,

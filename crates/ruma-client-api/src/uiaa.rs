@@ -280,7 +280,7 @@ pub enum AuthType {
 ///
 /// [the spec]: https://spec.matrix.org/latest/client-server-api/#password-based
 #[derive(Clone, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.password")]
 pub struct Password {
     /// One of the user's identifiers.
@@ -316,7 +316,7 @@ impl fmt::Debug for Password {
 ///
 /// [the spec]: https://spec.matrix.org/latest/client-server-api/#google-recaptcha
 #[derive(Clone, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.recaptcha")]
 pub struct ReCaptcha {
     /// The captcha response.
@@ -346,7 +346,7 @@ impl fmt::Debug for ReCaptcha {
 ///
 /// [the spec]: https://spec.matrix.org/latest/client-server-api/#email-based-identity--homeserver
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.email.identity")]
 pub struct EmailIdentity {
     /// Thirdparty identifier credentials.
@@ -363,7 +363,7 @@ pub struct EmailIdentity {
 ///
 /// [the spec]: https://spec.matrix.org/latest/client-server-api/#phone-numbermsisdn-based-identity--homeserver
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.msisdn")]
 pub struct Msisdn {
     /// Thirdparty identifier credentials.
@@ -380,7 +380,7 @@ pub struct Msisdn {
 ///
 /// [the spec]: https://spec.matrix.org/latest/client-server-api/#dummy-auth
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.dummy")]
 pub struct Dummy {
     /// The value of the session key given by the homeserver, if any.
@@ -400,7 +400,7 @@ impl Dummy {
 ///
 /// [the spec]: https://spec.matrix.org/latest/client-server-api/#token-authenticated-registration
 #[derive(Clone, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.registration_token")]
 pub struct RegistrationToken {
     /// The registration token.
@@ -430,7 +430,7 @@ impl fmt::Debug for RegistrationToken {
 ///
 /// [the spec]: https://spec.matrix.org/latest/client-server-api/#fallback
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct FallbackAcknowledgement {
     /// The value of the session key given by the homeserver.
     pub session: String,
@@ -451,7 +451,7 @@ impl FallbackAcknowledgement {
 ///
 /// [the spec]: https://spec.matrix.org/latest/client-server-api/#terms-of-service-at-registration
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.terms")]
 pub struct Terms {
     /// The value of the session key given by the homeserver, if any.
@@ -580,7 +580,7 @@ pub struct IncomingCustomThirdPartyId {
 
 /// Credentials for third-party authentication (e.g. email / phone number).
 #[derive(Clone, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ThirdpartyIdCredentials {
     /// Identity server (or homeserver) session ID.
     pub sid: OwnedSessionId,
@@ -618,7 +618,7 @@ impl fmt::Debug for ThirdpartyIdCredentials {
 /// Information about available authentication flows and status for User-Interactive Authenticiation
 /// API.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct UiaaInfo {
     /// List of authentication flows available for this endpoint.
     pub flows: Vec<AuthFlow>,
@@ -650,7 +650,7 @@ impl UiaaInfo {
 
 /// Description of steps required to authenticate via the User-Interactive Authentication API.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct AuthFlow {
     /// Ordered list of stages required to complete authentication.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

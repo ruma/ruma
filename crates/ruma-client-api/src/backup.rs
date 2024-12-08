@@ -26,7 +26,7 @@ use serde::{Deserialize, Serialize};
 
 /// A wrapper around a mapping of session IDs to key data.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomKeyBackup {
     /// A map of session IDs to key data.
     pub sessions: BTreeMap<String, Raw<KeyBackupData>>,
@@ -42,7 +42,7 @@ impl RoomKeyBackup {
 /// The algorithm used for storing backups.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "algorithm", content = "auth_data")]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum BackupAlgorithm {
     /// `m.megolm_backup.v1.curve25519-aes-sha2` backup algorithm.
     #[serde(rename = "m.megolm_backup.v1.curve25519-aes-sha2")]
@@ -60,7 +60,7 @@ pub enum BackupAlgorithm {
 /// To create an instance of this type, first create a [`KeyBackupDataInit`] and convert it via
 /// `KeyBackupData::from` / `.into()`.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct KeyBackupData {
     /// The index of the first message in the session that the key can decrypt.
     pub first_message_index: UInt,
@@ -108,7 +108,7 @@ impl From<KeyBackupDataInit> for KeyBackupData {
 /// To create an instance of this type, first create an [`EncryptedSessionDataInit`] and convert it
 /// via `EncryptedSessionData::from` / `.into()`.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct EncryptedSessionData {
     /// Unpadded base64-encoded public half of the ephemeral key.
     pub ephemeral: Base64,

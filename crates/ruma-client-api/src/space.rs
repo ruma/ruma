@@ -19,7 +19,7 @@ pub mod get_hierarchy;
 /// To create an instance of this type, first create a `SpaceHierarchyRoomsChunkInit` and convert it
 /// via `SpaceHierarchyRoomsChunk::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SpaceHierarchyRoomsChunk {
     /// The canonical alias of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]

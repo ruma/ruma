@@ -20,7 +20,7 @@ pub mod v3;
 
 /// Contains information about all the capabilities that the server supports.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Capabilities {
     /// Capability to indicate if the user can change their password.
     #[serde(
@@ -140,7 +140,7 @@ impl<'a> IntoIterator for &'a Capabilities {
 
 /// Information about the m.change_password capability
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ChangePasswordCapability {
     /// `true` if the user can change their password, `false` otherwise.
     pub enabled: bool,
@@ -166,7 +166,7 @@ impl Default for ChangePasswordCapability {
 
 /// Information about the m.room_versions capability
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomVersionsCapability {
     /// The default room version the server is using for new rooms.
     pub default: RoomVersionId,
@@ -224,7 +224,7 @@ pub enum RoomVersionStability {
 
 /// Information about the `m.set_displayname` capability
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SetDisplayNameCapability {
     /// `true` if the user can change their display name, `false` otherwise.
     pub enabled: bool,
@@ -250,7 +250,7 @@ impl Default for SetDisplayNameCapability {
 
 /// Information about the `m.set_avatar_url` capability
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SetAvatarUrlCapability {
     /// `true` if the user can change their avatar, `false` otherwise.
     pub enabled: bool,
@@ -276,7 +276,7 @@ impl Default for SetAvatarUrlCapability {
 
 /// Information about the `m.3pid_changes` capability
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ThirdPartyIdChangesCapability {
     /// `true` if the user can change the third-party identifiers associated with their account,
     /// `false` otherwise.
@@ -303,7 +303,7 @@ impl Default for ThirdPartyIdChangesCapability {
 
 /// Information about the `m.get_login_token` capability.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct GetLoginTokenCapability {
     /// Whether the user can request a login token.
     pub enabled: bool,

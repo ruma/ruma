@@ -141,7 +141,7 @@ pub mod v3 {
 
     /// The authentication mechanism.
     #[derive(Clone, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     #[serde(untagged)]
     pub enum LoginInfo {
         /// An identifier and password are supplied to authenticate.
@@ -222,7 +222,7 @@ pub mod v3 {
 
     /// An identifier and password to supply as authentication.
     #[derive(Clone, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     #[serde(tag = "type", rename = "m.login.password")]
     pub struct Password {
         /// Identification information for the user.
@@ -280,7 +280,7 @@ pub mod v3 {
 
     /// A token to supply as authentication.
     #[derive(Clone, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     #[serde(tag = "type", rename = "m.login.token")]
     pub struct Token {
         /// The token.
@@ -303,7 +303,7 @@ pub mod v3 {
 
     /// An identifier to supply for Application Service authentication.
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     #[serde(tag = "type", rename = "m.login.application_service")]
     pub struct ApplicationService {
         /// Identification information for the user.
@@ -347,7 +347,7 @@ pub mod v3 {
 
     /// Client configuration provided by the server.
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct DiscoveryInfo {
         /// Information about the homeserver to connect to.
         #[serde(rename = "m.homeserver")]
@@ -367,7 +367,7 @@ pub mod v3 {
 
     /// Information about the homeserver to connect to.
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct HomeserverInfo {
         /// The base URL for the homeserver for client-server connections.
         pub base_url: String,
@@ -382,7 +382,7 @@ pub mod v3 {
 
     /// Information about the identity server to connect to.
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct IdentityServerInfo {
         /// The base URL for the identity server for client-server connections.
         pub base_url: String,

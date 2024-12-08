@@ -66,7 +66,7 @@ pub mod v3 {
 
     /// The action to take for the pusher.
     #[derive(Clone, Debug)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum PusherAction {
         /// Create or update the given pusher.
         Post(PusherPostData),
@@ -77,7 +77,7 @@ pub mod v3 {
 
     /// Data necessary to create or update a pusher.
     #[derive(Clone, Debug, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct PusherPostData {
         /// The pusher to configure.
         #[serde(flatten)]

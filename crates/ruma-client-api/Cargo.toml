@@ -36,7 +36,6 @@ compat-get-3pids = []
 # since that's what Synapse sends.
 compat-upload-signatures = []
 
-unstable-exhaustive-types = []
 unstable-msc2666 = []
 unstable-msc2448 = []
 unstable-msc2654 = []
