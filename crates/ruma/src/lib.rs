@@ -73,6 +73,19 @@
 //!
 //! If you are viewing this on `docs.rs`, you can have a look at the feature dependencies by
 //! clicking **Feature flags** in the toolbar at the top.
+//!
+//! # Compile-time `cfg` settings
+//!
+//! These settings are accepted at compile time to configure the generated code. They can be set as
+//! `--cfg={key}={value}` using `RUSTFLAGS` or `.cargo/config.toml` (under `[build]` -> `rustflags =
+//! ["..."]`). They can also be configured using an environment variable at compile time, which has
+//! the benefit of not requiring to re-compile the whole dependency chain when their value is
+//! changed.
+//!
+//! * `ruma_identifiers_storage` -- Choose the inner representation of `Owned*` wrapper types for
+//!   identifiers. By default they use [`Box`], setting the value to `Arc` makes them use
+//!   [`Arc`](std::sync::Arc). This can also be configured by setting the `RUMA_IDENTIFIERS_STORAGE`
+//!   environment variable.
 
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
