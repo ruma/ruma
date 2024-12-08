@@ -71,7 +71,7 @@ pub use self::{
 ///
 /// Messages are not limited to be text.
 #[derive(Clone, Debug, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room.message", kind = MessageLike)]
 pub struct RoomMessageEventContent {
     /// A key which identifies the type of message being sent.
@@ -434,7 +434,7 @@ pub enum ReplyWithinThread {
 /// The content that is specific to each message type variant.
 #[derive(Clone, Debug, Serialize)]
 #[serde(untagged)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum MessageType {
     /// An audio message.
     Audio(AudioMessageEventContent),

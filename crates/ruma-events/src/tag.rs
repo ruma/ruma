@@ -19,7 +19,7 @@ pub type Tags = BTreeMap<TagName, TagInfo>;
 ///
 /// Informs the client of tags on a room.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.tag", kind = RoomAccountData)]
 pub struct TagEventContent {
     /// A map of tag names to tag info.
@@ -79,7 +79,7 @@ impl Error for InvalidUserTagName {}
 
 /// The name of a tag.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum TagName {
     /// `m.favourite`: The user's favorite rooms.
     ///
@@ -171,7 +171,7 @@ impl Serialize for TagName {
 
 /// Information about a tag.
 #[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct TagInfo {
     /// Value to use for lexicographically ordering rooms with this tag.
     ///

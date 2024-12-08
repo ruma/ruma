@@ -22,7 +22,7 @@ use crate::{
 ///
 /// Defines the power levels (privileges) of users in the room.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room.power_levels", kind = State, state_key_type = EmptyStateKey, custom_redacted)]
 pub struct RoomPowerLevelsEventContent {
     /// The level required to ban a user.
@@ -214,7 +214,7 @@ impl StrippedRoomPowerLevelsEvent {
 
 /// Redacted form of [`RoomPowerLevelsEventContent`].
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RedactedRoomPowerLevelsEventContent {
     /// The level required to ban a user.
     #[serde(
@@ -320,7 +320,7 @@ impl RedactedStateEventContent for RedactedRoomPowerLevelsEventContent {
 /// power levels of a room, regardless of whether the most recent power-levels event is redacted or
 /// not.
 #[derive(Clone, Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomPowerLevels {
     /// The level required to ban a user.
     pub ban: Int,

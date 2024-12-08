@@ -18,7 +18,7 @@ use crate::macros::EventContent;
 
 /// A passphrase from which a key is to be derived.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PassPhrase {
     /// The algorithm to use to generate the key from the passphrase.
     ///
@@ -58,7 +58,7 @@ fn is_default_bits(val: &UInt) -> bool {
 /// The only algorithm currently specified is `m.secret_storage.v1.aes-hmac-sha2`, so this
 /// essentially represents `AesHmacSha2KeyDescription` in the
 /// [spec](https://spec.matrix.org/v1.12/client-server-api/#msecret_storagev1aes-hmac-sha2).
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[derive(Clone, Debug, Serialize, EventContent)]
 #[ruma_event(type = "m.secret_storage.key.*", kind = GlobalAccountData)]
 pub struct SecretStorageKeyEventContent {
@@ -90,7 +90,7 @@ impl SecretStorageKeyEventContent {
 
 /// An algorithm and its properties, used to encrypt a secret.
 #[derive(Debug, Clone)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum SecretStorageEncryptionAlgorithm {
     /// Encrypted using the `m.secret_storage.v1.aes-hmac-sha2` algorithm.
     ///
@@ -139,7 +139,7 @@ impl SecretStorageEncryptionAlgorithm {
 /// Corresponds to the AES-specific properties of `AesHmacSha2KeyDescription` in the
 /// [spec](https://spec.matrix.org/v1.12/client-server-api/#msecret_storagev1aes-hmac-sha2).
 #[derive(Debug, Clone, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SecretStorageV1AesHmacSha2Properties {
     /// The 16-byte initialization vector, encoded as base64.
     pub iv: Option<Base64>,

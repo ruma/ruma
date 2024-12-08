@@ -17,7 +17,6 @@ all-features = true
 canonical-json = ["ruma-common/canonical-json"]
 html = ["dep:ruma-html"]
 markdown = ["dep:pulldown-cmark"]
-unstable-exhaustive-types = []
 unstable-msc1767 = []
 unstable-msc2448 = []
 unstable-msc2747 = []

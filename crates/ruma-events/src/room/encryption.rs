@@ -12,7 +12,7 @@ use crate::{EmptyStateKey, EventEncryptionAlgorithm};
 ///
 /// Defines how messages sent in this room should be encrypted.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room.encryption", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomEncryptionEventContent {
     /// The encryption algorithm to be used to encrypt messages sent in this room.

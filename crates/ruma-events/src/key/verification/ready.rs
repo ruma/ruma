@@ -13,7 +13,7 @@ use crate::relation::Reference;
 ///
 /// Response to a previously sent `m.key.verification.request` message.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.ready", kind = ToDevice)]
 pub struct ToDeviceKeyVerificationReadyEventContent {
     /// The device ID which is initiating the request.
@@ -46,7 +46,7 @@ impl ToDeviceKeyVerificationReadyEventContent {
 ///
 /// Response to a previously sent `m.key.verification.request` message.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.ready", kind = MessageLike)]
 pub struct KeyVerificationReadyEventContent {
     /// The device ID which is initiating the request.

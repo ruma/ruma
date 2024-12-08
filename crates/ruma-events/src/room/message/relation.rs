@@ -7,7 +7,7 @@ use crate::relation::{CustomRelation, InReplyTo, RelationType, Replacement, Thre
 /// Message event relationship.
 #[derive(Clone, Debug)]
 #[allow(clippy::manual_non_exhaustive)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum Relation<C> {
     /// An `m.in_reply_to` relation indicating that the event is a reply to another event.
     Reply {
@@ -61,7 +61,7 @@ impl<C> Relation<C> {
 /// Message event relationship, except a replacement.
 #[derive(Clone, Debug)]
 #[allow(clippy::manual_non_exhaustive)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum RelationWithoutReplacement {
     /// An `m.in_reply_to` relation indicating that the event is a reply to another event.
     Reply {

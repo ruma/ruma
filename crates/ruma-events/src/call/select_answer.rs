@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// This event is sent by the caller when it has chosen an answer.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.call.select_answer", kind = MessageLike)]
 pub struct CallSelectAnswerEventContent {
     /// The ID of the call this event relates to.

@@ -18,7 +18,7 @@ use crate::relation::Reference;
 ///
 /// Begins an SAS key verification process.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.start", kind = ToDevice)]
 pub struct ToDeviceKeyVerificationStartEventContent {
     /// The device ID which is initiating the process.
@@ -52,7 +52,7 @@ impl ToDeviceKeyVerificationStartEventContent {
 ///
 /// Begins an SAS key verification process.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.key.verification.start", kind = MessageLike)]
 pub struct KeyVerificationStartEventContent {
     /// The device ID which is initiating the process.
@@ -77,7 +77,7 @@ impl KeyVerificationStartEventContent {
 
 /// An enum representing the different method specific `m.key.verification.start` content.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(untagged)]
 pub enum StartMethod {
     /// The `m.sas.v1` verification method.
@@ -110,7 +110,7 @@ pub struct _CustomContent {
 
 /// The payload of an `m.key.verification.start` event using the `m.sas.v1` method.
 #[derive(Clone, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(rename = "m.reciprocate.v1", tag = "method")]
 pub struct ReciprocateV1Content {
     /// The shared secret from the QR code, encoded using unpadded base64.
@@ -137,7 +137,7 @@ impl fmt::Debug for ReciprocateV1Content {
 /// To create an instance of this type, first create a `SasV1ContentInit` and convert it via
 /// `SasV1Content::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(rename = "m.sas.v1", tag = "method")]
 pub struct SasV1Content {
     /// The key agreement protocols the sending device understands.

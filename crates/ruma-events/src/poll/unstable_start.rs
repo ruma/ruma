@@ -36,7 +36,7 @@ use crate::{
 ///
 /// [`PollStartEventContent`]: super::start::PollStartEventContent
 #[derive(Clone, Debug, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc3381.poll.start", kind = MessageLike, custom_redacted)]
 #[serde(untagged)]
 #[allow(clippy::large_enum_variant)]
@@ -110,7 +110,7 @@ impl OriginalSyncUnstablePollStartEvent {
 
 /// A new unstable poll start event.
 #[derive(Clone, Debug, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct NewUnstablePollStartEventContent {
     /// The poll content of the message.
     #[serde(rename = "org.matrix.msc3381.poll.start")]
@@ -157,7 +157,7 @@ impl MessageLikeEventContent for NewUnstablePollStartEventContent {}
 /// To construct this type, construct a [`NewUnstablePollStartEventContent`] and then use one of its
 /// `::from()` / `.into()` methods.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct NewUnstablePollStartEventContentWithoutRelation {
     /// The poll content of the message.
     #[serde(rename = "org.matrix.msc3381.poll.start")]
@@ -177,7 +177,7 @@ impl From<NewUnstablePollStartEventContent> for NewUnstablePollStartEventContent
 
 /// A replacement unstable poll start event.
 #[derive(Clone, Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ReplacementUnstablePollStartEventContent {
     /// The poll content of the message.
     pub poll_start: Option<UnstablePollStartContentBlock>,
@@ -241,7 +241,7 @@ impl MessageLikeEventContent for ReplacementUnstablePollStartEventContent {}
 
 /// Redacted form of UnstablePollStartEventContent
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RedactedUnstablePollStartEventContent {}
 
 impl RedactedUnstablePollStartEventContent {
@@ -267,7 +267,7 @@ impl RedactedMessageLikeEventContent for RedactedUnstablePollStartEventContent {
 
 /// An unstable block for poll start content.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct UnstablePollStartContentBlock {
     /// The question of the poll.
     pub question: UnstablePollQuestion,
@@ -302,7 +302,7 @@ impl UnstablePollStartContentBlock {
 
 /// An unstable poll question.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct UnstablePollQuestion {
     /// The text representation of the question.
     #[serde(rename = "org.matrix.msc1767.text")]
@@ -357,7 +357,7 @@ impl Deref for UnstablePollAnswers {
 
 /// Unstable poll answer.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct UnstablePollAnswer {
     /// The ID of the answer.
     ///

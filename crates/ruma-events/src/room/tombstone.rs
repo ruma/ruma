@@ -22,7 +22,7 @@ use crate::{
     state_key_type = EmptyStateKey,
     custom_possibly_redacted,
 )]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomTombstoneEventContent {
     /// A server-defined message.
     ///
@@ -46,7 +46,7 @@ impl RoomTombstoneEventContent {
 ///
 /// This type is used when it's not obvious whether the content is redacted or not.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PossiblyRedactedRoomTombstoneEventContent {
     /// A server-defined message.
     pub body: Option<String>,

@@ -11,7 +11,7 @@ use super::relation::Annotation;
 ///
 /// A reaction to another event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.reaction", kind = MessageLike)]
 pub struct ReactionEventContent {
     /// Information about the related event.

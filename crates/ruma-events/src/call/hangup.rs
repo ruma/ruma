@@ -21,7 +21,7 @@ use crate::PrivOwnedStr;
 ///
 /// [`m.call.reject`]: super::reject::CallRejectEventContent
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.call.hangup", kind = MessageLike)]
 pub struct CallHangupEventContent {
     /// A unique identifier for the call.

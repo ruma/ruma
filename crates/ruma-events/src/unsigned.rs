@@ -13,7 +13,7 @@ use super::{
 /// Extra information about a message event that is not incorporated into the event's hash.
 #[derive(Clone, Debug, Deserialize)]
 #[serde(bound = "OriginalSyncMessageLikeEvent<C>: DeserializeOwned")]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct MessageLikeUnsigned<C: MessageLikeEventContent> {
     /// The time in milliseconds that has elapsed since the event was sent.
     ///
@@ -59,7 +59,7 @@ impl<C: MessageLikeEventContent> CanBeEmpty for MessageLikeUnsigned<C> {
 
 /// Extra information about a state event that is not incorporated into the event's hash.
 #[derive(Clone, Debug, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct StateUnsigned<C: PossiblyRedactedStateEventContent> {
     /// The time in milliseconds that has elapsed since the event was sent.
     ///
@@ -111,7 +111,7 @@ impl<C: PossiblyRedactedStateEventContent> Default for StateUnsigned<C> {
 
 /// Extra information about a redacted event that is not incorporated into the event's hash.
 #[derive(Clone, Debug, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RedactedUnsigned {
     /// The event that redacted this event, if any.
     pub redacted_because: UnsignedRoomRedactionEvent,

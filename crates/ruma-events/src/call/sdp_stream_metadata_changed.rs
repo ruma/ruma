@@ -14,7 +14,7 @@ use super::StreamMetadata;
 ///
 /// This event is sent by any party when a stream metadata changes but no negotiation is required.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.call.sdp_stream_metadata_changed", alias = "org.matrix.call.sdp_stream_metadata_changed", kind = MessageLike)]
 pub struct CallSdpStreamMetadataChangedEventContent {
     /// A unique identifier for the call.

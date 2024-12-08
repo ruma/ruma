@@ -15,7 +15,7 @@ use crate::{EmptyStateKey, PrivOwnedStr};
 /// This event controls whether guest users are allowed to join rooms. If this event is absent,
 /// servers should act as if it is present and has the value `GuestAccess::Forbidden`.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room.guest_access", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomGuestAccessEventContent {
     /// A policy for guest user access to a room.
