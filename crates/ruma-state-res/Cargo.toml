@@ -14,9 +14,6 @@ rust-version = { workspace = true }
 [package.metadata.docs.rs]
 all-features = true
 
-[features]
-unstable-exhaustive-types = []
-
 [dependencies]
 js_int = { workspace = true }
 ruma-common = { workspace = true }

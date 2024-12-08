@@ -12,7 +12,7 @@ pub enum RoomDisposition {
 }
 
 #[derive(Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum EventFormatVersion {
     /// $id:server event id format
     V1,
@@ -23,7 +23,7 @@ pub enum EventFormatVersion {
 }
 
 #[derive(Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum StateResolutionVersion {
     /// State resolution for rooms at version 1.
     V1,
@@ -31,7 +31,7 @@ pub enum StateResolutionVersion {
     V2,
 }
 
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomVersion {
     /// The stability of this room.
     pub disposition: RoomDisposition,
