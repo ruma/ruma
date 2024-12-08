@@ -14,7 +14,7 @@ use super::{
     attribute::{DeriveResponseMeta, ResponseMeta},
     ensure_feature_presence,
 };
-use crate::util::{import_ruma_common, non_exhaustive_conditional_attr, PrivateField};
+use crate::util::{import_ruma_common, PrivateField};
 
 mod incoming;
 mod outgoing;
@@ -24,8 +24,6 @@ pub fn expand_response(attr: ResponseAttr, item: ItemStruct) -> TokenStream {
     let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
 
     let maybe_feature_error = ensure_feature_presence().map(syn::Error::to_compile_error);
-    let non_exhaustive_attr =
-        non_exhaustive_conditional_attr().unwrap_or_else(syn::Error::to_compile_error);
 
     let error_ty = attr
         .0
@@ -71,7 +69,7 @@ pub fn expand_response(attr: ResponseAttr, item: ItemStruct) -> TokenStream {
         #maybe_feature_error
 
         #[derive(Clone, Debug, #ruma_common::serde::_FakeDeriveSerde, #extra_derive)]
-        #non_exhaustive_attr
+        #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
         #ruma_api_attribute
         #item
 

@@ -3,7 +3,6 @@ use quote::quote;
 use syn::{parse_quote, Ident, LitStr};
 
 use super::event_parse::{EventEnumEntry, EventEnumInput, EventKind};
-use crate::util::non_exhaustive_conditional_attr;
 
 pub fn expand_event_type_enum(
     input: EventEnumInput,
@@ -86,7 +85,6 @@ fn generate_enum(
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let serde = quote! { #ruma_common::exports::serde };
-    let non_exhaustive_attr = non_exhaustive_conditional_attr().map_err(Clone::clone)?;
     let enum_doc = format!("The type of `{}` this is.", ident.strip_suffix("Type").unwrap());
 
     let ident = Ident::new(ident, Span::call_site());
@@ -198,7 +196,7 @@ fn generate_enum(
         /// from a string with `::from()` / `.into()`. To check for events that are not available as a
         /// documented variant here, use its string representation, obtained through `.to_string()`.
         #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-        #non_exhaustive_attr
+        #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
         pub enum #ident {
             #(
                 #[doc = #event_types]
