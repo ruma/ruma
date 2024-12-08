@@ -146,7 +146,7 @@ pub mod v1 {
 
     /// Information on E2E device updates.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     #[cfg(feature = "unstable-msc3202")]
     pub struct DeviceLists {
         /// List of users who have updated their device identity keys or who now
@@ -221,7 +221,7 @@ pub mod v1 {
     /// The content for "m.presence" Edu.
     #[cfg(feature = "unstable-msc2409")]
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct PresenceContent {
         /// A list of presence updates that the receiving server is likely to be interested in.
         pub push: Vec<PresenceUpdate>,
@@ -238,7 +238,7 @@ pub mod v1 {
     /// An update to the presence of a user.
     #[cfg(feature = "unstable-msc2409")]
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct PresenceUpdate {
         /// The user ID this presence EDU is for.
         pub user_id: OwnedUserId,
@@ -277,7 +277,7 @@ pub mod v1 {
     /// The content for "m.receipt" Edu.
     #[cfg(feature = "unstable-msc2409")]
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     #[serde(transparent)]
     pub struct ReceiptContent(pub BTreeMap<OwnedRoomId, ReceiptMap>);
 
@@ -328,7 +328,7 @@ pub mod v1 {
     /// Mapping between user and `ReceiptData`.
     #[cfg(feature = "unstable-msc2409")]
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct ReceiptMap {
         /// Read receipts for users in the room.
         #[serde(rename = "m.read")]
@@ -346,7 +346,7 @@ pub mod v1 {
     /// Metadata about the event that was last read and when.
     #[cfg(feature = "unstable-msc2409")]
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct ReceiptData {
         /// Metadata for the read receipt.
         pub data: Receipt,
@@ -366,7 +366,7 @@ pub mod v1 {
     /// The content for "m.typing" Edu.
     #[cfg(feature = "unstable-msc2409")]
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct TypingContent {
         /// The room where the user's typing status has been updated.
         pub room_id: OwnedRoomId,
