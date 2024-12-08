@@ -337,7 +337,7 @@ pub enum MultipartMixedDeserializationError {
 
 /// An error that happens when Ruma cannot understand a Matrix version.
 #[derive(Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct UnknownVersionError;
 
 impl fmt::Display for UnknownVersionError {
@@ -351,7 +351,7 @@ impl StdError for UnknownVersionError {}
 /// An error that happens when an incorrect amount of arguments have been passed to PathData parts
 /// formatting.
 #[derive(Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct IncorrectArgumentCount {
     /// The expected amount of arguments.
     pub expected: usize,

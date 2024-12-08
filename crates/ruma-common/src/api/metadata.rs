@@ -485,7 +485,7 @@ pub enum VersioningDecision {
 /// pass to [`try_into_http_request`](super::OutgoingRequest::try_into_http_request), see its
 /// respective documentation for more information.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum MatrixVersion {
     /// Version 1.0 of the Matrix specification.
     ///

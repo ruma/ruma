@@ -25,7 +25,7 @@ pub use self::{
 #[cfg(feature = "unstable-msc3931")]
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, PartialEq, Eq, StringEnum)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum RoomVersionFeature {
     /// m.extensible_events
     ///
@@ -63,7 +63,7 @@ impl RoomVersionFeature {
 
 /// A condition that must apply for an associated push rule's action to be taken.
 #[derive(Clone, Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum PushCondition {
     /// A glob pattern match on a field of the event.
     EventMatch {

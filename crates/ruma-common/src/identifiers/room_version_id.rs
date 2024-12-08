@@ -24,7 +24,7 @@ use super::IdParseError;
 ///
 /// [room version]: https://spec.matrix.org/latest/rooms/
 #[derive(Clone, Debug, PartialEq, Eq, Hash, DisplayAsRefStr)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum RoomVersionId {
     /// A version 1 room.
     V1,

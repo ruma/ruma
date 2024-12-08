@@ -52,7 +52,7 @@ struct ExtractKind {
 }
 
 #[derive(Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 enum PushConditionSerDeHelper {
     /// A glob pattern match on a field of the event.
