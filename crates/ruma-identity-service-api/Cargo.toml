@@ -14,7 +14,6 @@ rust-version = { workspace = true }
 all-features = true
 
 [features]
-unstable-exhaustive-types = []
 client = []
 server = []
 
