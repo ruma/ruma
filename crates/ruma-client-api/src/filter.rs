@@ -101,6 +101,26 @@ pub struct RoomEventFilter {
     /// [`sync_events`]: crate::sync::sync_events
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub unread_thread_notifications: bool,
+
+    /// A list of labels to include
+    ///
+    /// If this list is omitted events with a labels are included. If it is present
+    /// only events containing any of the labels should be returned.
+    ///
+    /// See [MSC2326](https://github.com/matrix-org/matrix-spec-proposals/pull/2326)
+    #[cfg(feature = "unstable-msc2326")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub labels: Option<Vec<String>>,
+
+    /// A list of labels to exclude
+    ///
+    /// If this list is omitted events with a labels are included. If it is present
+    /// only events not containing any of the labels will be returned.
+    ///
+    /// See [MSC2326](https://github.com/matrix-org/matrix-spec-proposals/pull/2326)
+    #[cfg(feature = "unstable-msc2326")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub not_labels: Option<Vec<String>>,
 }
 
 impl RoomEventFilter {
