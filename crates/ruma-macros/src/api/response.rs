@@ -14,7 +14,7 @@ use super::{
     attribute::{DeriveResponseMeta, ResponseMeta},
     ensure_feature_presence,
 };
-use crate::util::{import_ruma_common, PrivateField};
+use crate::util::{field_has_serde_flatten_attribute, import_ruma_common, PrivateField};
 
 mod incoming;
 mod outgoing;
@@ -213,13 +213,27 @@ impl Response {
             }
         };
 
-        let has_body_fields =
-            self.fields.iter().any(|f| matches!(&f.kind, ResponseFieldKind::Body));
+        let mut body_fields =
+            self.fields.iter().filter(|f| matches!(f.kind, ResponseFieldKind::Body));
+        let first_body_field = body_fields.next();
+        let has_body_fields = first_body_field.is_some();
+
         if has_newtype_body_field && has_body_fields {
             return Err(syn::Error::new_spanned(
                 &self.ident,
                 "Can't have both a newtype body field and regular body fields",
             ));
+        }
+
+        if let Some(first_body_field) = first_body_field {
+            let is_single_body_field = body_fields.next().is_none();
+
+            if is_single_body_field && field_has_serde_flatten_attribute(&first_body_field.inner) {
+                return Err(syn::Error::new_spanned(
+                    first_body_field,
+                    "Use `#[ruma_api(body)]` to represent the JSON body as a single field",
+                ));
+            }
         }
 
         Ok(())

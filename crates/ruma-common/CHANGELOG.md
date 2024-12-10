@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+- `#[serde(flatten)]` on the only body field of a `#[request]` or `#[response]`
+  struct is disallowed. `#[ruma_api(body)]` must be used instead.
+
 Improvements:
 
 - The `ruma_identifiers_storage` compile-time `cfg` setting can also be
