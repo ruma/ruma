@@ -37,7 +37,7 @@ pub mod v3 {
         pub user_id: OwnedUserId,
 
         /// Whether the user is typing within a length of time or not.
-        #[serde(flatten)]
+        #[ruma_api(body)]
         pub state: Typing,
     }
 
