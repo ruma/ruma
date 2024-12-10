@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use proc_macro_crate::{crate_name, FoundCrate};
 use quote::{format_ident, quote, ToTokens};
-use syn::{Field, Ident, LitStr};
+use syn::{Attribute, Field, Ident, LitStr};
 
 pub(crate) fn import_ruma_common() -> TokenStream {
     if let Ok(FoundCrate::Name(name)) = crate_name("ruma-common") {
@@ -201,4 +201,29 @@ pub fn cfg_expand_struct(item: &mut syn::ItemStruct) {
         // evals to false, so put the field back
         fields.named.push(field);
     }
+}
+
+/// Whether the given field has a `#[serde(flatten)]` attribute.
+pub fn field_has_serde_flatten_attribute(field: &Field) -> bool {
+    field.attrs.iter().any(is_serde_flatten_attribute)
+}
+
+/// Whether the given attribute is a `#[serde(flatten)]` attribute.
+fn is_serde_flatten_attribute(attr: &Attribute) -> bool {
+    if !attr.path().is_ident("serde") {
+        return false;
+    }
+
+    let mut contains_flatten = false;
+    let _ = attr.parse_nested_meta(|meta| {
+        if meta.path.is_ident("flatten") {
+            contains_flatten = true;
+            // Return an error to stop the parsing early.
+            return Err(meta.error("found"));
+        }
+
+        Ok(())
+    });
+
+    contains_flatten
 }

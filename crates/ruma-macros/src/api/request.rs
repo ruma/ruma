@@ -11,7 +11,7 @@ use super::{
     attribute::{DeriveRequestMeta, RequestMeta},
     ensure_feature_presence,
 };
-use crate::util::{import_ruma_common, PrivateField};
+use crate::util::{field_has_serde_flatten_attribute, import_ruma_common, PrivateField};
 
 mod incoming;
 mod outgoing;
@@ -251,9 +251,10 @@ impl Request {
             }
         };
 
-        let has_body_fields = self.fields.iter().any(|f| matches!(&f.kind, RequestFieldKind::Body));
-        let has_query_fields =
-            self.fields.iter().any(|f| matches!(&f.kind, RequestFieldKind::Query));
+        let mut body_fields =
+            self.fields.iter().filter(|f| matches!(f.kind, RequestFieldKind::Body));
+        let first_body_field = body_fields.next();
+        let has_body_fields = first_body_field.is_some();
 
         if has_newtype_body_field && has_body_fields {
             return Err(syn::Error::new_spanned(
@@ -262,6 +263,18 @@ impl Request {
             ));
         }
 
+        if let Some(first_body_field) = first_body_field {
+            let is_single_body_field = body_fields.next().is_none();
+
+            if is_single_body_field && field_has_serde_flatten_attribute(&first_body_field.inner) {
+                return Err(syn::Error::new_spanned(
+                    first_body_field,
+                    "Use `#[ruma_api(body)]` to represent the JSON body as a single field",
+                ));
+            }
+        }
+
+        let has_query_fields = self.has_query_fields();
         if has_query_all_field && has_query_fields {
             return Err(syn::Error::new_spanned(
                 &self.ident,
