@@ -27,12 +27,27 @@ pub struct RoomMessageEventContentWithoutRelation {
     /// [mentions]: https://spec.matrix.org/latest/client-server-api/#user-and-room-mentions
     #[serde(rename = "m.mentions", skip_serializing_if = "Option::is_none")]
     pub mentions: Option<Mentions>,
+
+    /// The [MSC2326](https://github.com/matrix-org/matrix-spec-proposals/pull/2326) labels on this message.
+    #[cfg(feature = "unstable-msc2326")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "org.matrix.labels",
+        alias = "m.labels"
+    )]
+    pub labels: Option<Vec<String>>,
 }
 
 impl RoomMessageEventContentWithoutRelation {
     /// Creates a new `RoomMessageEventContentWithoutRelation` with the given `MessageType`.
     pub fn new(msgtype: MessageType) -> Self {
-        Self { msgtype, mentions: None }
+        Self {
+            msgtype,
+            mentions: None,
+            #[cfg(feature = "unstable-msc2326")]
+            labels: None,
+        }
     }
 
     /// A constructor to create a plain text message.
@@ -88,8 +103,20 @@ impl RoomMessageEventContentWithoutRelation {
         self,
         relates_to: Option<Relation<RoomMessageEventContentWithoutRelation>>,
     ) -> RoomMessageEventContent {
-        let Self { msgtype, mentions } = self;
-        RoomMessageEventContent { msgtype, relates_to, mentions }
+        let Self {
+            msgtype,
+            mentions,
+
+            #[cfg(feature = "unstable-msc2326")]
+            labels,
+        } = self;
+        RoomMessageEventContent {
+            msgtype,
+            relates_to,
+            mentions,
+            #[cfg(feature = "unstable-msc2326")]
+            labels,
+        }
     }
 
     /// Turns `self` into a reply to the given message.
@@ -313,6 +340,8 @@ impl RoomMessageEventContentWithoutRelation {
             new_content: RoomMessageEventContentWithoutRelation {
                 msgtype: self.msgtype.clone(),
                 mentions,
+                #[cfg(feature = "unstable-msc2326")]
+                labels: None,
             },
         });
 
@@ -370,14 +399,37 @@ impl From<MessageType> for RoomMessageEventContentWithoutRelation {
 
 impl From<RoomMessageEventContent> for RoomMessageEventContentWithoutRelation {
     fn from(value: RoomMessageEventContent) -> Self {
-        let RoomMessageEventContent { msgtype, mentions, .. } = value;
-        Self { msgtype, mentions }
+        let RoomMessageEventContent {
+            msgtype,
+            mentions,
+
+            #[cfg(feature = "unstable-msc2326")]
+            labels,
+            ..
+        } = value;
+        Self {
+            msgtype,
+            mentions,
+            #[cfg(feature = "unstable-msc2326")]
+            labels,
+        }
     }
 }
 
 impl From<RoomMessageEventContentWithoutRelation> for RoomMessageEventContent {
     fn from(value: RoomMessageEventContentWithoutRelation) -> Self {
-        let RoomMessageEventContentWithoutRelation { msgtype, mentions } = value;
-        Self { msgtype, relates_to: None, mentions }
+        let RoomMessageEventContentWithoutRelation {
+            msgtype,
+            mentions,
+            #[cfg(feature = "unstable-msc2326")]
+            labels,
+        } = value;
+        Self {
+            msgtype,
+            relates_to: None,
+            mentions,
+            #[cfg(feature = "unstable-msc2326")]
+            labels,
+        }
     }
 }

@@ -109,7 +109,7 @@ pub struct RoomEventFilter {
     ///
     /// See [MSC2326](https://github.com/matrix-org/matrix-spec-proposals/pull/2326)
     #[cfg(feature = "unstable-msc2326")]
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, rename = "org.matrix.labels", skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<String>>,
 
     /// A list of labels to exclude
@@ -119,7 +119,7 @@ pub struct RoomEventFilter {
     ///
     /// See [MSC2326](https://github.com/matrix-org/matrix-spec-proposals/pull/2326)
     #[cfg(feature = "unstable-msc2326")]
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, rename = "org.matrix.not_labels", skip_serializing_if = "Option::is_none")]
     pub not_labels: Option<Vec<String>>,
 }
 
@@ -158,6 +158,8 @@ impl RoomEventFilter {
             && self.senders.is_none()
             && self.types.is_none()
             && self.url_filter.is_none()
+            && self.labels.is_none()
+            && self.not_labels.is_none()
             && self.lazy_load_options.is_disabled()
             && !self.unread_thread_notifications
     }

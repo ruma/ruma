@@ -86,6 +86,16 @@ pub struct RoomMessageEventContent {
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation<RoomMessageEventContentWithoutRelation>>,
 
+    /// The [MSC2326](https://github.com/matrix-org/matrix-spec-proposals/pull/2326) labels on this message.
+    #[cfg(feature = "unstable-msc2326")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "org.matrix.labels",
+        alias = "m.labels"
+    )]
+    pub labels: Option<Vec<String>>,
+
     /// The [mentions] of this event.
     ///
     /// This should always be set to avoid triggering the legacy mention push rules. It is
@@ -100,7 +110,13 @@ pub struct RoomMessageEventContent {
 impl RoomMessageEventContent {
     /// Create a `RoomMessageEventContent` with the given `MessageType`.
     pub fn new(msgtype: MessageType) -> Self {
-        Self { msgtype, relates_to: None, mentions: None }
+        Self {
+            msgtype,
+            relates_to: None,
+            mentions: None,
+            #[cfg(feature = "unstable-msc2326")]
+            labels: None,
+        }
     }
 
     /// A constructor to create a plain text message.
@@ -336,9 +352,18 @@ impl RoomMessageEventContent {
 
     /// Apply the given new content from a [`Replacement`] to this message.
     pub fn apply_replacement(&mut self, new_content: RoomMessageEventContentWithoutRelation) {
-        let RoomMessageEventContentWithoutRelation { msgtype, mentions } = new_content;
+        let RoomMessageEventContentWithoutRelation {
+            msgtype,
+            mentions,
+            #[cfg(feature = "unstable-msc2326")]
+            labels,
+        } = new_content;
         self.msgtype = msgtype;
         self.mentions = mentions;
+        #[cfg(feature = "unstable-msc2326")]
+        {
+            self.labels = labels;
+        }
     }
 
     /// Sanitize this message.
