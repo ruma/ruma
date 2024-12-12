@@ -210,6 +210,9 @@ pub enum ErrorKind {
     /// M_USER_LOCKED
     UserLocked,
 
+    /// M_USER_SUSPENDED
+    UserSuspended,
+
     #[doc(hidden)]
     _Custom { errcode: PrivOwnedStr, extra: Extra },
 }
@@ -288,6 +291,7 @@ impl AsRef<str> for ErrorKind {
             #[cfg(feature = "unstable-msc3843")]
             Self::Unactionable => "M_UNACTIONABLE",
             Self::UserLocked => "M_USER_LOCKED",
+            Self::UserSuspended => "M_USER_SUSPENDED",
             Self::_Custom { errcode, .. } => &errcode.0,
         }
     }

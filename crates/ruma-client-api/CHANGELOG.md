@@ -9,6 +9,7 @@ Improvements:
   variable, or inside `.cargo/config.toml`. It can also be enabled by setting
   the `RUMA_UNSTABLE_EXHAUSTIVE_TYPES` environment variable.
 - Add `ErrorKind::ThreepidMediumNotSupported`, according to MSC4178.
+- Add `ErrorKind::UserSuspended`, according to MSC3823.
 
 # 0.19.0
 
