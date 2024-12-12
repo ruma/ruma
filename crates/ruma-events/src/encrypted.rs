@@ -25,18 +25,38 @@ pub struct EncryptedEventContent {
     /// Information about related events.
     #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation>,
+
+    /// The [MSC2326](https://github.com/matrix-org/matrix-spec-proposals/pull/2326) labels on this message.
+    #[cfg(feature = "unstable-msc2326")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "org.matrix.labels",
+        alias = "m.labels"
+    )]
+    pub labels: Option<Vec<String>>,
 }
 
 impl EncryptedEventContent {
     /// Creates a new `EncryptedEventContent` with the given scheme and relation.
     pub fn new(scheme: EncryptedEventScheme, relates_to: Option<Relation>) -> Self {
-        Self { encrypted: scheme.into(), relates_to }
+        Self {
+            encrypted: scheme.into(),
+            relates_to,
+            #[cfg(feature = "unstable-msc2326")]
+            labels: None,
+        }
     }
 }
 
 impl From<EncryptedEventScheme> for EncryptedEventContent {
     fn from(scheme: EncryptedEventScheme) -> Self {
-        Self { encrypted: scheme.into(), relates_to: None }
+        Self {
+            encrypted: scheme.into(),
+            relates_to: None,
+            #[cfg(feature = "unstable-msc2326")]
+            labels: None,
+        }
     }
 }
 
