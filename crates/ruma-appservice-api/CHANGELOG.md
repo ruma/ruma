@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+- Move unstable support for sending to-device events to appservices from
+  `unstable-msc2409` to `unstable-msc4203`.
+
 # 0.12.0
 
 Improvements:

@@ -31,9 +31,11 @@ pub mod v1 {
     };
     #[cfg(feature = "unstable-msc3202")]
     use ruma_common::{OneTimeKeyAlgorithm, OwnedDeviceId};
-    use ruma_events::AnyTimelineEvent;
     #[cfg(feature = "unstable-msc2409")]
-    use ruma_events::{receipt::Receipt, AnyToDeviceEvent};
+    use ruma_events::receipt::Receipt;
+    use ruma_events::AnyTimelineEvent;
+    #[cfg(feature = "unstable-msc4203")]
+    use ruma_events::AnyToDeviceEvent;
     #[cfg(feature = "unstable-msc2409")]
     use serde::Deserializer;
     #[cfg(any(feature = "unstable-msc2409", feature = "unstable-msc3202"))]
@@ -103,7 +105,7 @@ pub mod v1 {
         pub ephemeral: Vec<Edu>,
 
         /// A list of to-device messages.
-        #[cfg(feature = "unstable-msc2409")]
+        #[cfg(feature = "unstable-msc4203")]
         #[serde(
             default,
             skip_serializing_if = "<[_]>::is_empty",
@@ -131,7 +133,7 @@ pub mod v1 {
                 device_unused_fallback_key_types: BTreeMap::new(),
                 #[cfg(feature = "unstable-msc2409")]
                 ephemeral: Vec::new(),
-                #[cfg(feature = "unstable-msc2409")]
+                #[cfg(feature = "unstable-msc4203")]
                 to_device: Vec::new(),
             }
         }
