@@ -169,7 +169,6 @@ unstable-extensible-events = [
     "unstable-msc3955",
 ]
 unstable-msc1767 = ["ruma-events?/unstable-msc1767"]
-unstable-msc2409 = ["ruma-appservice-api?/unstable-msc2409"]
 unstable-msc2448 = [
     "ruma-client-api?/unstable-msc2448",
     "ruma-events?/unstable-msc2448",
@@ -233,7 +232,6 @@ unstable-unspecified = [
 # Private features, only used in test / benchmarking code
 __unstable-mscs = [
     "unstable-msc1767",
-    "unstable-msc2409",
     "unstable-msc2448",
     "unstable-msc2545",
     "unstable-msc2654",
