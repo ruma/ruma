@@ -20,6 +20,7 @@ server = []
 
 unstable-msc2409 = []
 unstable-msc3202 = []
+unstable-msc4203 = []
 
 [dependencies]
 js_int = { workspace = true, features = ["serde"] }
