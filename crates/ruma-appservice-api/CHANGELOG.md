@@ -7,6 +7,12 @@ Improvements:
   settings, it can be enabled at compile-time with the `RUSTFLAGS` environment
   variable, or inside `.cargo/config.toml`. It can also be enabled by setting
   the `RUMA_UNSTABLE_EXHAUSTIVE_TYPES` environment variable.
+- Move unstable support for sending to-device events to appservices from
+  `unstable-msc2409` to `unstable-msc4203`.
+- Stabilize support for sending ephemeral data to appservices.
+  - `Edu` was renamed to `EphemeralData` and uses the types from ruma-events.
+  - Custom data can be accessed with the `EphemeralData::data()` method.
+  - The `unstable-msc2409` cargo feature was removed.
 
 # 0.11.0
 
