@@ -106,6 +106,9 @@ pub enum ErrorKind {
     /// M_THREEPID_DENIED
     ThreepidDenied,
 
+    /// M_THREEPID_MEDIUM_NOT_SUPPORTED
+    ThreepidMediumNotSupported,
+
     /// M_SERVER_NOT_TRUSTED
     ServerNotTrusted,
 
@@ -254,6 +257,7 @@ impl AsRef<str> for ErrorKind {
             Self::ThreepidNotFound => "M_THREEPID_NOT_FOUND",
             Self::ThreepidAuthFailed => "M_THREEPID_AUTH_FAILED",
             Self::ThreepidDenied => "M_THREEPID_DENIED",
+            Self::ThreepidMediumNotSupported => "M_THREEPID_MEDIUM_NOT_SUPPORTED",
             Self::ServerNotTrusted => "M_SERVER_NOT_TRUSTED",
             Self::UnsupportedRoomVersion => "M_UNSUPPORTED_ROOM_VERSION",
             Self::IncompatibleRoomVersion { .. } => "M_INCOMPATIBLE_ROOM_VERSION",
