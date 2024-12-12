@@ -18,7 +18,6 @@ all-features = true
 client = []
 server = []
 
-unstable-msc2409 = []
 unstable-msc3202 = []
 unstable-msc4203 = []
 

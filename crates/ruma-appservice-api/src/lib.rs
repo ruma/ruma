@@ -99,6 +99,12 @@ pub struct Registration {
     /// The external protocols which the application service provides (e.g. IRC).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub protocols: Option<Vec<String>>,
+
+    /// Whether the application service wants to receive ephemeral data.
+    ///
+    /// Defaults to `false`.
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+    pub receive_ephemeral: bool,
 }
 
 /// Initial set of fields of `Registration`.
@@ -151,6 +157,16 @@ impl From<RegistrationInit> for Registration {
             rate_limited,
             protocols,
         } = init;
-        Self { id, url, as_token, hs_token, sender_localpart, namespaces, rate_limited, protocols }
+        Self {
+            id,
+            url,
+            as_token,
+            hs_token,
+            sender_localpart,
+            namespaces,
+            rate_limited,
+            protocols,
+            receive_ephemeral: false,
+        }
     }
 }
