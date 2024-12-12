@@ -8,6 +8,7 @@ Improvements:
   settings, it can be enabled at compile-time with the `RUSTFLAGS` environment
   variable, or inside `.cargo/config.toml`. It can also be enabled by setting
   the `RUMA_UNSTABLE_EXHAUSTIVE_TYPES` environment variable.
+- Add `ErrorKind::ThreepidMediumNotSupported`, according to MSC4178.
 
 # 0.19.0
 

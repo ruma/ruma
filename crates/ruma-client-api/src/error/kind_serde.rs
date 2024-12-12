@@ -198,6 +198,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrCode::ThreepidNotFound => ErrorKind::ThreepidNotFound,
             ErrCode::ThreepidAuthFailed => ErrorKind::ThreepidAuthFailed,
             ErrCode::ThreepidDenied => ErrorKind::ThreepidDenied,
+            ErrCode::ThreepidMediumNotSupported => ErrorKind::ThreepidMediumNotSupported,
             ErrCode::ServerNotTrusted => ErrorKind::ServerNotTrusted,
             ErrCode::UnsupportedRoomVersion => ErrorKind::UnsupportedRoomVersion,
             ErrCode::IncompatibleRoomVersion => ErrorKind::IncompatibleRoomVersion {
@@ -280,6 +281,7 @@ enum ErrCode {
     ThreepidNotFound,
     ThreepidAuthFailed,
     ThreepidDenied,
+    ThreepidMediumNotSupported,
     ServerNotTrusted,
     UnsupportedRoomVersion,
     IncompatibleRoomVersion,
