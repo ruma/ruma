@@ -12,6 +12,7 @@ use ruma_common::{
         },
         EndpointError, OutgoingResponse,
     },
+    serde::StringEnum,
     RoomVersionId,
 };
 use serde::{Deserialize, Serialize};
@@ -232,75 +233,229 @@ impl ErrorKind {
     pub fn forbidden_with_authenticate(authenticate: AuthenticateError) -> Self {
         Self::Forbidden { authenticate: Some(authenticate) }
     }
+
+    /// Get the [`ErrorCode`] for this `ErrorKind`.
+    pub fn errcode(&self) -> ErrorCode {
+        match self {
+            ErrorKind::Forbidden { .. } => ErrorCode::Forbidden,
+            ErrorKind::UnknownToken { .. } => ErrorCode::UnknownToken,
+            ErrorKind::MissingToken => ErrorCode::MissingToken,
+            ErrorKind::BadJson => ErrorCode::BadJson,
+            ErrorKind::NotJson => ErrorCode::NotJson,
+            ErrorKind::NotFound => ErrorCode::NotFound,
+            ErrorKind::LimitExceeded { .. } => ErrorCode::LimitExceeded,
+            ErrorKind::Unknown => ErrorCode::Unknown,
+            ErrorKind::Unrecognized => ErrorCode::Unrecognized,
+            ErrorKind::Unauthorized => ErrorCode::Unauthorized,
+            ErrorKind::UserDeactivated => ErrorCode::UserDeactivated,
+            ErrorKind::UserInUse => ErrorCode::UserInUse,
+            ErrorKind::InvalidUsername => ErrorCode::InvalidUsername,
+            ErrorKind::RoomInUse => ErrorCode::RoomInUse,
+            ErrorKind::InvalidRoomState => ErrorCode::InvalidRoomState,
+            ErrorKind::ThreepidInUse => ErrorCode::ThreepidInUse,
+            ErrorKind::ThreepidNotFound => ErrorCode::ThreepidNotFound,
+            ErrorKind::ThreepidAuthFailed => ErrorCode::ThreepidAuthFailed,
+            ErrorKind::ThreepidDenied => ErrorCode::ThreepidDenied,
+            ErrorKind::ThreepidMediumNotSupported => ErrorCode::ThreepidMediumNotSupported,
+            ErrorKind::ServerNotTrusted => ErrorCode::ServerNotTrusted,
+            ErrorKind::UnsupportedRoomVersion => ErrorCode::UnsupportedRoomVersion,
+            ErrorKind::IncompatibleRoomVersion { .. } => ErrorCode::IncompatibleRoomVersion,
+            ErrorKind::BadState => ErrorCode::BadState,
+            ErrorKind::GuestAccessForbidden => ErrorCode::GuestAccessForbidden,
+            ErrorKind::CaptchaNeeded => ErrorCode::CaptchaNeeded,
+            ErrorKind::CaptchaInvalid => ErrorCode::CaptchaInvalid,
+            ErrorKind::MissingParam => ErrorCode::MissingParam,
+            ErrorKind::InvalidParam => ErrorCode::InvalidParam,
+            ErrorKind::TooLarge => ErrorCode::TooLarge,
+            ErrorKind::Exclusive => ErrorCode::Exclusive,
+            ErrorKind::ResourceLimitExceeded { .. } => ErrorCode::ResourceLimitExceeded,
+            ErrorKind::CannotLeaveServerNoticeRoom => ErrorCode::CannotLeaveServerNoticeRoom,
+            ErrorKind::WeakPassword => ErrorCode::WeakPassword,
+            ErrorKind::UnableToAuthorizeJoin => ErrorCode::UnableToAuthorizeJoin,
+            ErrorKind::UnableToGrantJoin => ErrorCode::UnableToGrantJoin,
+            ErrorKind::BadAlias => ErrorCode::BadAlias,
+            ErrorKind::DuplicateAnnotation => ErrorCode::DuplicateAnnotation,
+            ErrorKind::NotYetUploaded => ErrorCode::NotYetUploaded,
+            ErrorKind::CannotOverwriteMedia => ErrorCode::CannotOverwriteMedia,
+            #[cfg(any(feature = "unstable-msc3575", feature = "unstable-msc4186"))]
+            ErrorKind::UnknownPos => ErrorCode::UnknownPos,
+            ErrorKind::UrlNotSet => ErrorCode::UrlNotSet,
+            ErrorKind::BadStatus { .. } => ErrorCode::BadStatus,
+            ErrorKind::ConnectionFailed => ErrorCode::ConnectionFailed,
+            ErrorKind::ConnectionTimeout => ErrorCode::ConnectionTimeout,
+            ErrorKind::WrongRoomKeysVersion { .. } => ErrorCode::WrongRoomKeysVersion,
+            #[cfg(feature = "unstable-msc3843")]
+            ErrorKind::Unactionable => ErrorCode::Unactionable,
+            ErrorKind::UserLocked => ErrorCode::UserLocked,
+            ErrorKind::UserSuspended => ErrorCode::UserSuspended,
+            ErrorKind::_Custom { errcode, .. } => errcode.0.clone().into(),
+        }
+    }
 }
 
 #[doc(hidden)]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Extra(BTreeMap<String, JsonValue>);
 
-impl AsRef<str> for ErrorKind {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Forbidden { .. } => "M_FORBIDDEN",
-            Self::UnknownToken { .. } => "M_UNKNOWN_TOKEN",
-            Self::MissingToken => "M_MISSING_TOKEN",
-            Self::BadJson => "M_BAD_JSON",
-            Self::NotJson => "M_NOT_JSON",
-            Self::NotFound => "M_NOT_FOUND",
-            Self::LimitExceeded { .. } => "M_LIMIT_EXCEEDED",
-            Self::Unknown => "M_UNKNOWN",
-            Self::Unrecognized => "M_UNRECOGNIZED",
-            Self::Unauthorized => "M_UNAUTHORIZED",
-            Self::UserDeactivated => "M_USER_DEACTIVATED",
-            Self::UserInUse => "M_USER_IN_USE",
-            Self::InvalidUsername => "M_INVALID_USERNAME",
-            Self::RoomInUse => "M_ROOM_IN_USE",
-            Self::InvalidRoomState => "M_INVALID_ROOM_STATE",
-            Self::ThreepidInUse => "M_THREEPID_IN_USE",
-            Self::ThreepidNotFound => "M_THREEPID_NOT_FOUND",
-            Self::ThreepidAuthFailed => "M_THREEPID_AUTH_FAILED",
-            Self::ThreepidDenied => "M_THREEPID_DENIED",
-            Self::ThreepidMediumNotSupported => "M_THREEPID_MEDIUM_NOT_SUPPORTED",
-            Self::ServerNotTrusted => "M_SERVER_NOT_TRUSTED",
-            Self::UnsupportedRoomVersion => "M_UNSUPPORTED_ROOM_VERSION",
-            Self::IncompatibleRoomVersion { .. } => "M_INCOMPATIBLE_ROOM_VERSION",
-            Self::BadState => "M_BAD_STATE",
-            Self::GuestAccessForbidden => "M_GUEST_ACCESS_FORBIDDEN",
-            Self::CaptchaNeeded => "M_CAPTCHA_NEEDED",
-            Self::CaptchaInvalid => "M_CAPTCHA_INVALID",
-            Self::MissingParam => "M_MISSING_PARAM",
-            Self::InvalidParam => "M_INVALID_PARAM",
-            Self::TooLarge => "M_TOO_LARGE",
-            Self::Exclusive => "M_EXCLUSIVE",
-            Self::ResourceLimitExceeded { .. } => "M_RESOURCE_LIMIT_EXCEEDED",
-            Self::CannotLeaveServerNoticeRoom => "M_CANNOT_LEAVE_SERVER_NOTICE_ROOM",
-            Self::WeakPassword => "M_WEAK_PASSWORD",
-            Self::UnableToAuthorizeJoin => "M_UNABLE_TO_AUTHORISE_JOIN",
-            Self::UnableToGrantJoin => "M_UNABLE_TO_GRANT_JOIN",
-            Self::BadAlias => "M_BAD_ALIAS",
-            Self::DuplicateAnnotation => "M_DUPLICATE_ANNOTATION",
-            Self::NotYetUploaded => "M_NOT_YET_UPLOADED",
-            Self::CannotOverwriteMedia => "M_CANNOT_OVERWRITE_MEDIA",
-            #[cfg(any(feature = "unstable-msc3575", feature = "unstable-msc4186"))]
-            Self::UnknownPos => "M_UNKNOWN_POS",
-            Self::UrlNotSet => "M_URL_NOT_SET",
-            Self::BadStatus { .. } => "M_BAD_STATUS",
-            Self::ConnectionFailed => "M_CONNECTION_FAILED",
-            Self::ConnectionTimeout => "M_CONNECTION_TIMEOUT",
-            Self::WrongRoomKeysVersion { .. } => "M_WRONG_ROOM_KEYS_VERSION",
-            #[cfg(feature = "unstable-msc3843")]
-            Self::Unactionable => "M_UNACTIONABLE",
-            Self::UserLocked => "M_USER_LOCKED",
-            Self::UserSuspended => "M_USER_SUSPENDED",
-            Self::_Custom { errcode, .. } => &errcode.0,
-        }
-    }
-}
+/// The possible [error codes] defined in the Matrix spec.
+///
+/// [error codes]: https://spec.matrix.org/latest/client-server-api/#standard-error-response
+#[derive(Clone, StringEnum)]
+#[non_exhaustive]
+#[ruma_enum(rename_all = "M_MATRIX_ERROR_CASE")]
+pub enum ErrorCode {
+    /// M_FORBIDDEN
+    Forbidden,
 
-impl fmt::Display for ErrorKind {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_ref())
-    }
+    /// M_UNKNOWN_TOKEN
+    UnknownToken,
+
+    /// M_MISSING_TOKEN
+    MissingToken,
+
+    /// M_BAD_JSON
+    BadJson,
+
+    /// M_NOT_JSON
+    NotJson,
+
+    /// M_NOT_FOUND
+    NotFound,
+
+    /// M_LIMIT_EXCEEDED
+    LimitExceeded,
+
+    /// M_UNKNOWN
+    Unknown,
+
+    /// M_UNRECOGNIZED
+    Unrecognized,
+
+    /// M_UNAUTHORIZED
+    Unauthorized,
+
+    /// M_USER_DEACTIVATED
+    UserDeactivated,
+
+    /// M_USER_IN_USE
+    UserInUse,
+
+    /// M_INVALID_USERNAME
+    InvalidUsername,
+
+    /// M_ROOM_IN_USE
+    RoomInUse,
+
+    /// M_INVALID_ROOM_STATE
+    InvalidRoomState,
+
+    /// M_THREEPID_IN_USE
+    ThreepidInUse,
+
+    /// M_THREEPID_NOT_FOUND
+    ThreepidNotFound,
+
+    /// M_THREEPID_AUTH_FAILED
+    ThreepidAuthFailed,
+
+    /// M_THREEPID_DENIED
+    ThreepidDenied,
+
+    /// M_THREEPID_MEDIUM_NOT_SUPPORTED
+    ThreepidMediumNotSupported,
+
+    /// M_SERVER_NOT_TRUSTED
+    ServerNotTrusted,
+
+    /// M_UNSUPPORTED_ROOM_VERSION
+    UnsupportedRoomVersion,
+
+    /// M_INCOMPATIBLE_ROOM_VERSION
+    IncompatibleRoomVersion,
+
+    /// M_BAD_STATE
+    BadState,
+
+    /// M_GUEST_ACCESS_FORBIDDEN
+    GuestAccessForbidden,
+
+    /// M_CAPTCHA_NEEDED
+    CaptchaNeeded,
+
+    /// M_CAPTCHA_INVALID
+    CaptchaInvalid,
+
+    /// M_MISSING_PARAM
+    MissingParam,
+
+    /// M_INVALID_PARAM
+    InvalidParam,
+
+    /// M_TOO_LARGE
+    TooLarge,
+
+    /// M_EXCLUSIVE
+    Exclusive,
+
+    /// M_RESOURCE_LIMIT_EXCEEDED
+    ResourceLimitExceeded,
+
+    /// M_CANNOT_LEAVE_SERVER_NOTICE_ROOM
+    CannotLeaveServerNoticeRoom,
+
+    /// M_WEAK_PASSWORD
+    WeakPassword,
+
+    /// M_UNABLE_TO_AUTHORISE_JOIN
+    #[ruma_enum(rename = "M_UNABLE_TO_AUTHORISE_JOIN")]
+    UnableToAuthorizeJoin,
+
+    /// M_UNABLE_TO_GRANT_JOIN
+    UnableToGrantJoin,
+
+    /// M_BAD_ALIAS
+    BadAlias,
+
+    /// M_DUPLICATE_ANNOTATION
+    DuplicateAnnotation,
+
+    /// M_NOT_YET_UPLOADED
+    NotYetUploaded,
+
+    /// M_CANNOT_OVERWRITE_MEDIA
+    CannotOverwriteMedia,
+
+    /// M_UNKNOWN_POS for sliding sync
+    #[cfg(any(feature = "unstable-msc3575", feature = "unstable-msc4186"))]
+    UnknownPos,
+
+    /// M_URL_NOT_SET
+    UrlNotSet,
+
+    /// M_BAD_STATUS
+    BadStatus,
+
+    /// M_CONNECTION_FAILED
+    ConnectionFailed,
+
+    /// M_CONNECTION_TIMEOUT
+    ConnectionTimeout,
+
+    /// M_WRONG_ROOM_KEYS_VERSION
+    WrongRoomKeysVersion,
+
+    /// M_UNACTIONABLE
+    #[cfg(feature = "unstable-msc3843")]
+    Unactionable,
+
+    /// M_USER_LOCKED
+    UserLocked,
+
+    /// M_USER_SUSPENDED
+    UserSuspended,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
 }
 
 /// The body of a Matrix Client API error.
@@ -416,7 +571,8 @@ impl fmt::Display for Error {
         let status_code = self.status_code.as_u16();
         match &self.body {
             ErrorBody::Standard { kind, message } => {
-                write!(f, "[{status_code} / {kind}] {message}")
+                let errcode = kind.errcode();
+                write!(f, "[{status_code} / {errcode}] {message}")
             }
             ErrorBody::Json(json) => write!(f, "[{status_code}] {json}"),
             ErrorBody::NotJson { .. } => write!(f, "[{status_code}] <non-json bytes>"),
