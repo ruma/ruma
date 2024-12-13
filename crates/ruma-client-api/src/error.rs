@@ -33,7 +33,50 @@ mod kind_serde;
 /// Items may contain additional information.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
+// Please keep the variants sorted alphabetically.
 pub enum ErrorKind {
+    /// M_BAD_ALIAS
+    BadAlias,
+
+    /// M_BAD_JSON
+    BadJson,
+
+    /// M_BAD_STATE
+    BadState,
+
+    /// M_BAD_STATUS
+    BadStatus {
+        /// The HTTP status code of the response.
+        status: Option<http::StatusCode>,
+
+        /// The body of the response.
+        body: Option<String>,
+    },
+
+    /// M_CANNOT_LEAVE_SERVER_NOTICE_ROOM
+    CannotLeaveServerNoticeRoom,
+
+    /// M_CANNOT_OVERWRITE_MEDIA
+    CannotOverwriteMedia,
+
+    /// M_CAPTCHA_INVALID
+    CaptchaInvalid,
+
+    /// M_CAPTCHA_NEEDED
+    CaptchaNeeded,
+
+    /// M_CONNECTION_FAILED
+    ConnectionFailed,
+
+    /// M_CONNECTION_TIMEOUT
+    ConnectionTimeout,
+
+    /// M_DUPLICATE_ANNOTATION
+    DuplicateAnnotation,
+
+    /// M_EXCLUSIVE
+    Exclusive,
+
     /// M_FORBIDDEN
     #[non_exhaustive]
     Forbidden {
@@ -41,6 +84,95 @@ pub enum ErrorKind {
         #[cfg(feature = "unstable-msc2967")]
         authenticate: Option<AuthenticateError>,
     },
+
+    /// M_GUEST_ACCESS_FORBIDDEN
+    GuestAccessForbidden,
+
+    /// M_INCOMPATIBLE_ROOM_VERSION
+    IncompatibleRoomVersion {
+        /// The room's version.
+        room_version: RoomVersionId,
+    },
+
+    /// M_INVALID_PARAM
+    InvalidParam,
+
+    /// M_INVALID_ROOM_STATE
+    InvalidRoomState,
+
+    /// M_INVALID_USERNAME
+    InvalidUsername,
+
+    /// M_LIMIT_EXCEEDED
+    LimitExceeded {
+        /// How long a client should wait before they can try again.
+        retry_after: Option<RetryAfter>,
+    },
+
+    /// M_MISSING_PARAM
+    MissingParam,
+
+    /// M_MISSING_TOKEN
+    MissingToken,
+
+    /// M_NOT_FOUND
+    NotFound,
+
+    /// M_NOT_JSON
+    NotJson,
+
+    /// M_NOT_YET_UPLOADED
+    NotYetUploaded,
+
+    /// M_RESOURCE_LIMIT_EXCEEDED
+    ResourceLimitExceeded {
+        /// A URI giving a contact method for the server administrator.
+        admin_contact: String,
+    },
+
+    /// M_ROOM_IN_USE
+    RoomInUse,
+
+    /// M_SERVER_NOT_TRUSTED
+    ServerNotTrusted,
+
+    /// M_THREEPID_AUTH_FAILED
+    ThreepidAuthFailed,
+
+    /// M_THREEPID_DENIED
+    ThreepidDenied,
+
+    /// M_THREEPID_IN_USE
+    ThreepidInUse,
+
+    /// M_THREEPID_MEDIUM_NOT_SUPPORTED
+    ThreepidMediumNotSupported,
+
+    /// M_THREEPID_NOT_FOUND
+    ThreepidNotFound,
+
+    /// M_TOO_LARGE
+    TooLarge,
+
+    /// M_UNABLE_TO_AUTHORISE_JOIN
+    UnableToAuthorizeJoin,
+
+    /// M_UNABLE_TO_GRANT_JOIN
+    UnableToGrantJoin,
+
+    /// M_UNACTIONABLE
+    #[cfg(feature = "unstable-msc3843")]
+    Unactionable,
+
+    /// M_UNAUTHORIZED
+    Unauthorized,
+
+    /// M_UNKNOWN
+    Unknown,
+
+    /// M_UNKNOWN_POS for sliding sync
+    #[cfg(any(feature = "unstable-msc3575", feature = "unstable-msc4186"))]
+    UnknownPos,
 
     /// M_UNKNOWN_TOKEN
     UnknownToken {
@@ -53,32 +185,14 @@ pub enum ErrorKind {
         soft_logout: bool,
     },
 
-    /// M_MISSING_TOKEN
-    MissingToken,
-
-    /// M_BAD_JSON
-    BadJson,
-
-    /// M_NOT_JSON
-    NotJson,
-
-    /// M_NOT_FOUND
-    NotFound,
-
-    /// M_LIMIT_EXCEEDED
-    LimitExceeded {
-        /// How long a client should wait before they can try again.
-        retry_after: Option<RetryAfter>,
-    },
-
-    /// M_UNKNOWN
-    Unknown,
-
     /// M_UNRECOGNIZED
     Unrecognized,
 
-    /// M_UNAUTHORIZED
-    Unauthorized,
+    /// M_UNSUPPORTED_ROOM_VERSION
+    UnsupportedRoomVersion,
+
+    /// M_URL_NOT_SET
+    UrlNotSet,
 
     /// M_USER_DEACTIVATED
     UserDeactivated,
@@ -86,133 +200,20 @@ pub enum ErrorKind {
     /// M_USER_IN_USE
     UserInUse,
 
-    /// M_INVALID_USERNAME
-    InvalidUsername,
+    /// M_USER_LOCKED
+    UserLocked,
 
-    /// M_ROOM_IN_USE
-    RoomInUse,
-
-    /// M_INVALID_ROOM_STATE
-    InvalidRoomState,
-
-    /// M_THREEPID_IN_USE
-    ThreepidInUse,
-
-    /// M_THREEPID_NOT_FOUND
-    ThreepidNotFound,
-
-    /// M_THREEPID_AUTH_FAILED
-    ThreepidAuthFailed,
-
-    /// M_THREEPID_DENIED
-    ThreepidDenied,
-
-    /// M_THREEPID_MEDIUM_NOT_SUPPORTED
-    ThreepidMediumNotSupported,
-
-    /// M_SERVER_NOT_TRUSTED
-    ServerNotTrusted,
-
-    /// M_UNSUPPORTED_ROOM_VERSION
-    UnsupportedRoomVersion,
-
-    /// M_INCOMPATIBLE_ROOM_VERSION
-    IncompatibleRoomVersion {
-        /// The room's version.
-        room_version: RoomVersionId,
-    },
-
-    /// M_BAD_STATE
-    BadState,
-
-    /// M_GUEST_ACCESS_FORBIDDEN
-    GuestAccessForbidden,
-
-    /// M_CAPTCHA_NEEDED
-    CaptchaNeeded,
-
-    /// M_CAPTCHA_INVALID
-    CaptchaInvalid,
-
-    /// M_MISSING_PARAM
-    MissingParam,
-
-    /// M_INVALID_PARAM
-    InvalidParam,
-
-    /// M_TOO_LARGE
-    TooLarge,
-
-    /// M_EXCLUSIVE
-    Exclusive,
-
-    /// M_RESOURCE_LIMIT_EXCEEDED
-    ResourceLimitExceeded {
-        /// A URI giving a contact method for the server administrator.
-        admin_contact: String,
-    },
-
-    /// M_CANNOT_LEAVE_SERVER_NOTICE_ROOM
-    CannotLeaveServerNoticeRoom,
+    /// M_USER_SUSPENDED
+    UserSuspended,
 
     /// M_WEAK_PASSWORD
     WeakPassword,
-
-    /// M_UNABLE_TO_AUTHORISE_JOIN
-    UnableToAuthorizeJoin,
-
-    /// M_UNABLE_TO_GRANT_JOIN
-    UnableToGrantJoin,
-
-    /// M_BAD_ALIAS
-    BadAlias,
-
-    /// M_DUPLICATE_ANNOTATION
-    DuplicateAnnotation,
-
-    /// M_NOT_YET_UPLOADED
-    NotYetUploaded,
-
-    /// M_CANNOT_OVERWRITE_MEDIA
-    CannotOverwriteMedia,
-
-    /// M_UNKNOWN_POS for sliding sync
-    #[cfg(any(feature = "unstable-msc3575", feature = "unstable-msc4186"))]
-    UnknownPos,
-
-    /// M_URL_NOT_SET
-    UrlNotSet,
-
-    /// M_BAD_STATUS
-    BadStatus {
-        /// The HTTP status code of the response.
-        status: Option<http::StatusCode>,
-
-        /// The body of the response.
-        body: Option<String>,
-    },
-
-    /// M_CONNECTION_FAILED
-    ConnectionFailed,
-
-    /// M_CONNECTION_TIMEOUT
-    ConnectionTimeout,
 
     /// M_WRONG_ROOM_KEYS_VERSION
     WrongRoomKeysVersion {
         /// The currently active backup version.
         current_version: Option<String>,
     },
-
-    /// M_UNACTIONABLE
-    #[cfg(feature = "unstable-msc3843")]
-    Unactionable,
-
-    /// M_USER_LOCKED
-    UserLocked,
-
-    /// M_USER_SUSPENDED
-    UserSuspended,
 
     #[doc(hidden)]
     _Custom { errcode: PrivOwnedStr, extra: Extra },
@@ -237,57 +238,57 @@ impl ErrorKind {
     /// Get the [`ErrorCode`] for this `ErrorKind`.
     pub fn errcode(&self) -> ErrorCode {
         match self {
-            ErrorKind::Forbidden { .. } => ErrorCode::Forbidden,
-            ErrorKind::UnknownToken { .. } => ErrorCode::UnknownToken,
-            ErrorKind::MissingToken => ErrorCode::MissingToken,
-            ErrorKind::BadJson => ErrorCode::BadJson,
-            ErrorKind::NotJson => ErrorCode::NotJson,
-            ErrorKind::NotFound => ErrorCode::NotFound,
-            ErrorKind::LimitExceeded { .. } => ErrorCode::LimitExceeded,
-            ErrorKind::Unknown => ErrorCode::Unknown,
-            ErrorKind::Unrecognized => ErrorCode::Unrecognized,
-            ErrorKind::Unauthorized => ErrorCode::Unauthorized,
-            ErrorKind::UserDeactivated => ErrorCode::UserDeactivated,
-            ErrorKind::UserInUse => ErrorCode::UserInUse,
-            ErrorKind::InvalidUsername => ErrorCode::InvalidUsername,
-            ErrorKind::RoomInUse => ErrorCode::RoomInUse,
-            ErrorKind::InvalidRoomState => ErrorCode::InvalidRoomState,
-            ErrorKind::ThreepidInUse => ErrorCode::ThreepidInUse,
-            ErrorKind::ThreepidNotFound => ErrorCode::ThreepidNotFound,
-            ErrorKind::ThreepidAuthFailed => ErrorCode::ThreepidAuthFailed,
-            ErrorKind::ThreepidDenied => ErrorCode::ThreepidDenied,
-            ErrorKind::ThreepidMediumNotSupported => ErrorCode::ThreepidMediumNotSupported,
-            ErrorKind::ServerNotTrusted => ErrorCode::ServerNotTrusted,
-            ErrorKind::UnsupportedRoomVersion => ErrorCode::UnsupportedRoomVersion,
-            ErrorKind::IncompatibleRoomVersion { .. } => ErrorCode::IncompatibleRoomVersion,
-            ErrorKind::BadState => ErrorCode::BadState,
-            ErrorKind::GuestAccessForbidden => ErrorCode::GuestAccessForbidden,
-            ErrorKind::CaptchaNeeded => ErrorCode::CaptchaNeeded,
-            ErrorKind::CaptchaInvalid => ErrorCode::CaptchaInvalid,
-            ErrorKind::MissingParam => ErrorCode::MissingParam,
-            ErrorKind::InvalidParam => ErrorCode::InvalidParam,
-            ErrorKind::TooLarge => ErrorCode::TooLarge,
-            ErrorKind::Exclusive => ErrorCode::Exclusive,
-            ErrorKind::ResourceLimitExceeded { .. } => ErrorCode::ResourceLimitExceeded,
-            ErrorKind::CannotLeaveServerNoticeRoom => ErrorCode::CannotLeaveServerNoticeRoom,
-            ErrorKind::WeakPassword => ErrorCode::WeakPassword,
-            ErrorKind::UnableToAuthorizeJoin => ErrorCode::UnableToAuthorizeJoin,
-            ErrorKind::UnableToGrantJoin => ErrorCode::UnableToGrantJoin,
             ErrorKind::BadAlias => ErrorCode::BadAlias,
-            ErrorKind::DuplicateAnnotation => ErrorCode::DuplicateAnnotation,
-            ErrorKind::NotYetUploaded => ErrorCode::NotYetUploaded,
-            ErrorKind::CannotOverwriteMedia => ErrorCode::CannotOverwriteMedia,
-            #[cfg(any(feature = "unstable-msc3575", feature = "unstable-msc4186"))]
-            ErrorKind::UnknownPos => ErrorCode::UnknownPos,
-            ErrorKind::UrlNotSet => ErrorCode::UrlNotSet,
+            ErrorKind::BadJson => ErrorCode::BadJson,
+            ErrorKind::BadState => ErrorCode::BadState,
             ErrorKind::BadStatus { .. } => ErrorCode::BadStatus,
+            ErrorKind::CannotLeaveServerNoticeRoom => ErrorCode::CannotLeaveServerNoticeRoom,
+            ErrorKind::CannotOverwriteMedia => ErrorCode::CannotOverwriteMedia,
+            ErrorKind::CaptchaInvalid => ErrorCode::CaptchaInvalid,
+            ErrorKind::CaptchaNeeded => ErrorCode::CaptchaNeeded,
             ErrorKind::ConnectionFailed => ErrorCode::ConnectionFailed,
             ErrorKind::ConnectionTimeout => ErrorCode::ConnectionTimeout,
-            ErrorKind::WrongRoomKeysVersion { .. } => ErrorCode::WrongRoomKeysVersion,
+            ErrorKind::DuplicateAnnotation => ErrorCode::DuplicateAnnotation,
+            ErrorKind::Exclusive => ErrorCode::Exclusive,
+            ErrorKind::Forbidden { .. } => ErrorCode::Forbidden,
+            ErrorKind::GuestAccessForbidden => ErrorCode::GuestAccessForbidden,
+            ErrorKind::IncompatibleRoomVersion { .. } => ErrorCode::IncompatibleRoomVersion,
+            ErrorKind::InvalidParam => ErrorCode::InvalidParam,
+            ErrorKind::InvalidRoomState => ErrorCode::InvalidRoomState,
+            ErrorKind::InvalidUsername => ErrorCode::InvalidUsername,
+            ErrorKind::LimitExceeded { .. } => ErrorCode::LimitExceeded,
+            ErrorKind::MissingParam => ErrorCode::MissingParam,
+            ErrorKind::MissingToken => ErrorCode::MissingToken,
+            ErrorKind::NotFound => ErrorCode::NotFound,
+            ErrorKind::NotJson => ErrorCode::NotJson,
+            ErrorKind::NotYetUploaded => ErrorCode::NotYetUploaded,
+            ErrorKind::ResourceLimitExceeded { .. } => ErrorCode::ResourceLimitExceeded,
+            ErrorKind::RoomInUse => ErrorCode::RoomInUse,
+            ErrorKind::ServerNotTrusted => ErrorCode::ServerNotTrusted,
+            ErrorKind::ThreepidAuthFailed => ErrorCode::ThreepidAuthFailed,
+            ErrorKind::ThreepidDenied => ErrorCode::ThreepidDenied,
+            ErrorKind::ThreepidInUse => ErrorCode::ThreepidInUse,
+            ErrorKind::ThreepidMediumNotSupported => ErrorCode::ThreepidMediumNotSupported,
+            ErrorKind::ThreepidNotFound => ErrorCode::ThreepidNotFound,
+            ErrorKind::TooLarge => ErrorCode::TooLarge,
+            ErrorKind::UnableToAuthorizeJoin => ErrorCode::UnableToAuthorizeJoin,
+            ErrorKind::UnableToGrantJoin => ErrorCode::UnableToGrantJoin,
             #[cfg(feature = "unstable-msc3843")]
             ErrorKind::Unactionable => ErrorCode::Unactionable,
+            ErrorKind::Unauthorized => ErrorCode::Unauthorized,
+            ErrorKind::Unknown => ErrorCode::Unknown,
+            #[cfg(any(feature = "unstable-msc3575", feature = "unstable-msc4186"))]
+            ErrorKind::UnknownPos => ErrorCode::UnknownPos,
+            ErrorKind::UnknownToken { .. } => ErrorCode::UnknownToken,
+            ErrorKind::Unrecognized => ErrorCode::Unrecognized,
+            ErrorKind::UnsupportedRoomVersion => ErrorCode::UnsupportedRoomVersion,
+            ErrorKind::UrlNotSet => ErrorCode::UrlNotSet,
+            ErrorKind::UserDeactivated => ErrorCode::UserDeactivated,
+            ErrorKind::UserInUse => ErrorCode::UserInUse,
             ErrorKind::UserLocked => ErrorCode::UserLocked,
             ErrorKind::UserSuspended => ErrorCode::UserSuspended,
+            ErrorKind::WeakPassword => ErrorCode::WeakPassword,
+            ErrorKind::WrongRoomKeysVersion { .. } => ErrorCode::WrongRoomKeysVersion,
             ErrorKind::_Custom { errcode, .. } => errcode.0.clone().into(),
         }
     }
@@ -303,57 +304,88 @@ pub struct Extra(BTreeMap<String, JsonValue>);
 #[derive(Clone, StringEnum)]
 #[non_exhaustive]
 #[ruma_enum(rename_all = "M_MATRIX_ERROR_CASE")]
+// Please keep the variants sorted alphabetically.
 pub enum ErrorCode {
-    /// M_FORBIDDEN
-    Forbidden,
-
-    /// M_UNKNOWN_TOKEN
-    UnknownToken,
-
-    /// M_MISSING_TOKEN
-    MissingToken,
+    /// M_BAD_ALIAS
+    BadAlias,
 
     /// M_BAD_JSON
     BadJson,
 
-    /// M_NOT_JSON
-    NotJson,
+    /// M_BAD_STATE
+    BadState,
 
-    /// M_NOT_FOUND
-    NotFound,
+    /// M_BAD_STATUS
+    BadStatus,
 
-    /// M_LIMIT_EXCEEDED
-    LimitExceeded,
+    /// M_CANNOT_LEAVE_SERVER_NOTICE_ROOM
+    CannotLeaveServerNoticeRoom,
 
-    /// M_UNKNOWN
-    Unknown,
+    /// M_CANNOT_OVERWRITE_MEDIA
+    CannotOverwriteMedia,
 
-    /// M_UNRECOGNIZED
-    Unrecognized,
+    /// M_CAPTCHA_INVALID
+    CaptchaInvalid,
 
-    /// M_UNAUTHORIZED
-    Unauthorized,
+    /// M_CAPTCHA_NEEDED
+    CaptchaNeeded,
 
-    /// M_USER_DEACTIVATED
-    UserDeactivated,
+    /// M_CONNECTION_FAILED
+    ConnectionFailed,
 
-    /// M_USER_IN_USE
-    UserInUse,
+    /// M_CONNECTION_TIMEOUT
+    ConnectionTimeout,
 
-    /// M_INVALID_USERNAME
-    InvalidUsername,
+    /// M_DUPLICATE_ANNOTATION
+    DuplicateAnnotation,
 
-    /// M_ROOM_IN_USE
-    RoomInUse,
+    /// M_EXCLUSIVE
+    Exclusive,
+
+    /// M_FORBIDDEN
+    Forbidden,
+
+    /// M_GUEST_ACCESS_FORBIDDEN
+    GuestAccessForbidden,
+
+    /// M_INCOMPATIBLE_ROOM_VERSION
+    IncompatibleRoomVersion,
+
+    /// M_INVALID_PARAM
+    InvalidParam,
 
     /// M_INVALID_ROOM_STATE
     InvalidRoomState,
 
-    /// M_THREEPID_IN_USE
-    ThreepidInUse,
+    /// M_INVALID_USERNAME
+    InvalidUsername,
 
-    /// M_THREEPID_NOT_FOUND
-    ThreepidNotFound,
+    /// M_LIMIT_EXCEEDED
+    LimitExceeded,
+
+    /// M_MISSING_PARAM
+    MissingParam,
+
+    /// M_MISSING_TOKEN
+    MissingToken,
+
+    /// M_NOT_FOUND
+    NotFound,
+
+    /// M_NOT_JSON
+    NotJson,
+
+    /// M_NOT_YET_UPLOADED
+    NotYetUploaded,
+
+    /// M_RESOURCE_LIMIT_EXCEEDED
+    ResourceLimitExceeded,
+
+    /// M_ROOM_IN_USE
+    RoomInUse,
+
+    /// M_SERVER_NOT_TRUSTED
+    ServerNotTrusted,
 
     /// M_THREEPID_AUTH_FAILED
     ThreepidAuthFailed,
@@ -361,50 +393,17 @@ pub enum ErrorCode {
     /// M_THREEPID_DENIED
     ThreepidDenied,
 
+    /// M_THREEPID_IN_USE
+    ThreepidInUse,
+
     /// M_THREEPID_MEDIUM_NOT_SUPPORTED
     ThreepidMediumNotSupported,
 
-    /// M_SERVER_NOT_TRUSTED
-    ServerNotTrusted,
-
-    /// M_UNSUPPORTED_ROOM_VERSION
-    UnsupportedRoomVersion,
-
-    /// M_INCOMPATIBLE_ROOM_VERSION
-    IncompatibleRoomVersion,
-
-    /// M_BAD_STATE
-    BadState,
-
-    /// M_GUEST_ACCESS_FORBIDDEN
-    GuestAccessForbidden,
-
-    /// M_CAPTCHA_NEEDED
-    CaptchaNeeded,
-
-    /// M_CAPTCHA_INVALID
-    CaptchaInvalid,
-
-    /// M_MISSING_PARAM
-    MissingParam,
-
-    /// M_INVALID_PARAM
-    InvalidParam,
+    /// M_THREEPID_NOT_FOUND
+    ThreepidNotFound,
 
     /// M_TOO_LARGE
     TooLarge,
-
-    /// M_EXCLUSIVE
-    Exclusive,
-
-    /// M_RESOURCE_LIMIT_EXCEEDED
-    ResourceLimitExceeded,
-
-    /// M_CANNOT_LEAVE_SERVER_NOTICE_ROOM
-    CannotLeaveServerNoticeRoom,
-
-    /// M_WEAK_PASSWORD
-    WeakPassword,
 
     /// M_UNABLE_TO_AUTHORISE_JOIN
     #[ruma_enum(rename = "M_UNABLE_TO_AUTHORISE_JOIN")]
@@ -413,46 +412,49 @@ pub enum ErrorCode {
     /// M_UNABLE_TO_GRANT_JOIN
     UnableToGrantJoin,
 
-    /// M_BAD_ALIAS
-    BadAlias,
+    /// M_UNACTIONABLE
+    #[cfg(feature = "unstable-msc3843")]
+    Unactionable,
 
-    /// M_DUPLICATE_ANNOTATION
-    DuplicateAnnotation,
+    /// M_UNAUTHORIZED
+    Unauthorized,
 
-    /// M_NOT_YET_UPLOADED
-    NotYetUploaded,
-
-    /// M_CANNOT_OVERWRITE_MEDIA
-    CannotOverwriteMedia,
+    /// M_UNKNOWN
+    Unknown,
 
     /// M_UNKNOWN_POS for sliding sync
     #[cfg(any(feature = "unstable-msc3575", feature = "unstable-msc4186"))]
     UnknownPos,
 
+    /// M_UNKNOWN_TOKEN
+    UnknownToken,
+
+    /// M_UNRECOGNIZED
+    Unrecognized,
+
+    /// M_UNSUPPORTED_ROOM_VERSION
+    UnsupportedRoomVersion,
+
     /// M_URL_NOT_SET
     UrlNotSet,
 
-    /// M_BAD_STATUS
-    BadStatus,
+    /// M_USER_DEACTIVATED
+    UserDeactivated,
 
-    /// M_CONNECTION_FAILED
-    ConnectionFailed,
-
-    /// M_CONNECTION_TIMEOUT
-    ConnectionTimeout,
-
-    /// M_WRONG_ROOM_KEYS_VERSION
-    WrongRoomKeysVersion,
-
-    /// M_UNACTIONABLE
-    #[cfg(feature = "unstable-msc3843")]
-    Unactionable,
+    /// M_USER_IN_USE
+    UserInUse,
 
     /// M_USER_LOCKED
     UserLocked,
 
     /// M_USER_SUSPENDED
     UserSuspended,
+
+    /// M_WEAK_PASSWORD
+    WeakPassword,
+
+    /// M_WRONG_ROOM_KEYS_VERSION
+    WrongRoomKeysVersion,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
