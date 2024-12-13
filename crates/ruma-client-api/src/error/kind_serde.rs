@@ -6,18 +6,16 @@ use std::{
 };
 
 use js_int::UInt;
-use ruma_common::serde::{DeserializeFromCowStr, FromString};
 use serde::{
     de::{self, Deserialize, Deserializer, MapAccess, Visitor},
     ser::{self, Serialize, SerializeMap, Serializer},
 };
 use serde_json::from_value as from_json_value;
 
-use super::{ErrorKind, Extra, RetryAfter};
-use crate::PrivOwnedStr;
+use super::{ErrorCode, ErrorKind, Extra, RetryAfter};
 
 enum Field<'de> {
-    ErrCode,
+    ErrorCode,
     SoftLogout,
     RetryAfterMs,
     RoomVersion,
@@ -31,7 +29,7 @@ enum Field<'de> {
 impl<'de> Field<'de> {
     fn new(s: Cow<'de, str>) -> Field<'de> {
         match s.as_ref() {
-            "errcode" => Self::ErrCode,
+            "errcode" => Self::ErrorCode,
             "soft_logout" => Self::SoftLogout,
             "retry_after_ms" => Self::RetryAfterMs,
             "room_version" => Self::RoomVersion,
@@ -123,13 +121,13 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                     },
                 }
             };
-            (@variant_containing soft_logout) => { ErrCode::UnknownToken };
-            (@variant_containing retry_after_ms) => { ErrCode::LimitExceeded };
-            (@variant_containing room_version) => { ErrCode::IncompatibleRoomVersion };
-            (@variant_containing admin_contact) => { ErrCode::ResourceLimitExceeded };
-            (@variant_containing status) => { ErrCode::BadStatus };
-            (@variant_containing body) => { ErrCode::BadStatus };
-            (@variant_containing current_version) => { ErrCode::WrongRoomKeysVersion };
+            (@variant_containing soft_logout) => { ErrorCode::UnknownToken };
+            (@variant_containing retry_after_ms) => { ErrorCode::LimitExceeded };
+            (@variant_containing room_version) => { ErrorCode::IncompatibleRoomVersion };
+            (@variant_containing admin_contact) => { ErrorCode::ResourceLimitExceeded };
+            (@variant_containing status) => { ErrorCode::BadStatus };
+            (@variant_containing body) => { ErrorCode::BadStatus };
+            (@variant_containing current_version) => { ErrorCode::WrongRoomKeysVersion };
             (@inner $field:ident) => {
                 {
                     if $field.is_some() {
@@ -142,7 +140,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
 
         while let Some(key) = map.next_key()? {
             match key {
-                Field::ErrCode => set_field!(errcode),
+                Field::ErrorCode => set_field!(errcode),
                 Field::SoftLogout => set_field!(soft_logout),
                 Field::RetryAfterMs => set_field!(retry_after_ms),
                 Field::RoomVersion => set_field!(room_version),
@@ -165,19 +163,19 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
         let extra = Extra(extra);
 
         Ok(match errcode {
-            ErrCode::Forbidden => ErrorKind::forbidden(),
-            ErrCode::UnknownToken => ErrorKind::UnknownToken {
+            ErrorCode::Forbidden => ErrorKind::forbidden(),
+            ErrorCode::UnknownToken => ErrorKind::UnknownToken {
                 soft_logout: soft_logout
                     .map(from_json_value)
                     .transpose()
                     .map_err(de::Error::custom)?
                     .unwrap_or_default(),
             },
-            ErrCode::MissingToken => ErrorKind::MissingToken,
-            ErrCode::BadJson => ErrorKind::BadJson,
-            ErrCode::NotJson => ErrorKind::NotJson,
-            ErrCode::NotFound => ErrorKind::NotFound,
-            ErrCode::LimitExceeded => ErrorKind::LimitExceeded {
+            ErrorCode::MissingToken => ErrorKind::MissingToken,
+            ErrorCode::BadJson => ErrorKind::BadJson,
+            ErrorCode::NotJson => ErrorKind::NotJson,
+            ErrorCode::NotFound => ErrorKind::NotFound,
+            ErrorCode::LimitExceeded => ErrorKind::LimitExceeded {
                 retry_after: retry_after_ms
                     .map(from_json_value::<UInt>)
                     .transpose()
@@ -186,53 +184,53 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                     .map(Duration::from_millis)
                     .map(RetryAfter::Delay),
             },
-            ErrCode::Unknown => ErrorKind::Unknown,
-            ErrCode::Unrecognized => ErrorKind::Unrecognized,
-            ErrCode::Unauthorized => ErrorKind::Unauthorized,
-            ErrCode::UserDeactivated => ErrorKind::UserDeactivated,
-            ErrCode::UserInUse => ErrorKind::UserInUse,
-            ErrCode::InvalidUsername => ErrorKind::InvalidUsername,
-            ErrCode::RoomInUse => ErrorKind::RoomInUse,
-            ErrCode::InvalidRoomState => ErrorKind::InvalidRoomState,
-            ErrCode::ThreepidInUse => ErrorKind::ThreepidInUse,
-            ErrCode::ThreepidNotFound => ErrorKind::ThreepidNotFound,
-            ErrCode::ThreepidAuthFailed => ErrorKind::ThreepidAuthFailed,
-            ErrCode::ThreepidDenied => ErrorKind::ThreepidDenied,
-            ErrCode::ThreepidMediumNotSupported => ErrorKind::ThreepidMediumNotSupported,
-            ErrCode::ServerNotTrusted => ErrorKind::ServerNotTrusted,
-            ErrCode::UnsupportedRoomVersion => ErrorKind::UnsupportedRoomVersion,
-            ErrCode::IncompatibleRoomVersion => ErrorKind::IncompatibleRoomVersion {
+            ErrorCode::Unknown => ErrorKind::Unknown,
+            ErrorCode::Unrecognized => ErrorKind::Unrecognized,
+            ErrorCode::Unauthorized => ErrorKind::Unauthorized,
+            ErrorCode::UserDeactivated => ErrorKind::UserDeactivated,
+            ErrorCode::UserInUse => ErrorKind::UserInUse,
+            ErrorCode::InvalidUsername => ErrorKind::InvalidUsername,
+            ErrorCode::RoomInUse => ErrorKind::RoomInUse,
+            ErrorCode::InvalidRoomState => ErrorKind::InvalidRoomState,
+            ErrorCode::ThreepidInUse => ErrorKind::ThreepidInUse,
+            ErrorCode::ThreepidNotFound => ErrorKind::ThreepidNotFound,
+            ErrorCode::ThreepidAuthFailed => ErrorKind::ThreepidAuthFailed,
+            ErrorCode::ThreepidDenied => ErrorKind::ThreepidDenied,
+            ErrorCode::ThreepidMediumNotSupported => ErrorKind::ThreepidMediumNotSupported,
+            ErrorCode::ServerNotTrusted => ErrorKind::ServerNotTrusted,
+            ErrorCode::UnsupportedRoomVersion => ErrorKind::UnsupportedRoomVersion,
+            ErrorCode::IncompatibleRoomVersion => ErrorKind::IncompatibleRoomVersion {
                 room_version: from_json_value(
                     room_version.ok_or_else(|| de::Error::missing_field("room_version"))?,
                 )
                 .map_err(de::Error::custom)?,
             },
-            ErrCode::BadState => ErrorKind::BadState,
-            ErrCode::GuestAccessForbidden => ErrorKind::GuestAccessForbidden,
-            ErrCode::CaptchaNeeded => ErrorKind::CaptchaNeeded,
-            ErrCode::CaptchaInvalid => ErrorKind::CaptchaInvalid,
-            ErrCode::MissingParam => ErrorKind::MissingParam,
-            ErrCode::InvalidParam => ErrorKind::InvalidParam,
-            ErrCode::TooLarge => ErrorKind::TooLarge,
-            ErrCode::Exclusive => ErrorKind::Exclusive,
-            ErrCode::ResourceLimitExceeded => ErrorKind::ResourceLimitExceeded {
+            ErrorCode::BadState => ErrorKind::BadState,
+            ErrorCode::GuestAccessForbidden => ErrorKind::GuestAccessForbidden,
+            ErrorCode::CaptchaNeeded => ErrorKind::CaptchaNeeded,
+            ErrorCode::CaptchaInvalid => ErrorKind::CaptchaInvalid,
+            ErrorCode::MissingParam => ErrorKind::MissingParam,
+            ErrorCode::InvalidParam => ErrorKind::InvalidParam,
+            ErrorCode::TooLarge => ErrorKind::TooLarge,
+            ErrorCode::Exclusive => ErrorKind::Exclusive,
+            ErrorCode::ResourceLimitExceeded => ErrorKind::ResourceLimitExceeded {
                 admin_contact: from_json_value(
                     admin_contact.ok_or_else(|| de::Error::missing_field("admin_contact"))?,
                 )
                 .map_err(de::Error::custom)?,
             },
-            ErrCode::CannotLeaveServerNoticeRoom => ErrorKind::CannotLeaveServerNoticeRoom,
-            ErrCode::WeakPassword => ErrorKind::WeakPassword,
-            ErrCode::UnableToAuthorizeJoin => ErrorKind::UnableToAuthorizeJoin,
-            ErrCode::UnableToGrantJoin => ErrorKind::UnableToGrantJoin,
-            ErrCode::BadAlias => ErrorKind::BadAlias,
-            ErrCode::DuplicateAnnotation => ErrorKind::DuplicateAnnotation,
-            ErrCode::NotYetUploaded => ErrorKind::NotYetUploaded,
-            ErrCode::CannotOverwriteMedia => ErrorKind::CannotOverwriteMedia,
+            ErrorCode::CannotLeaveServerNoticeRoom => ErrorKind::CannotLeaveServerNoticeRoom,
+            ErrorCode::WeakPassword => ErrorKind::WeakPassword,
+            ErrorCode::UnableToAuthorizeJoin => ErrorKind::UnableToAuthorizeJoin,
+            ErrorCode::UnableToGrantJoin => ErrorKind::UnableToGrantJoin,
+            ErrorCode::BadAlias => ErrorKind::BadAlias,
+            ErrorCode::DuplicateAnnotation => ErrorKind::DuplicateAnnotation,
+            ErrorCode::NotYetUploaded => ErrorKind::NotYetUploaded,
+            ErrorCode::CannotOverwriteMedia => ErrorKind::CannotOverwriteMedia,
             #[cfg(any(feature = "unstable-msc3575", feature = "unstable-msc4186"))]
-            ErrCode::UnknownPos => ErrorKind::UnknownPos,
-            ErrCode::UrlNotSet => ErrorKind::UrlNotSet,
-            ErrCode::BadStatus => ErrorKind::BadStatus {
+            ErrorCode::UnknownPos => ErrorKind::UnknownPos,
+            ErrorCode::UrlNotSet => ErrorKind::UrlNotSet,
+            ErrorCode::BadStatus => ErrorKind::BadStatus {
                 status: status
                     .map(|s| {
                         from_json_value::<u16>(s)
@@ -243,80 +241,21 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                     .transpose()?,
                 body: body.map(from_json_value).transpose().map_err(de::Error::custom)?,
             },
-            ErrCode::ConnectionFailed => ErrorKind::ConnectionFailed,
-            ErrCode::ConnectionTimeout => ErrorKind::ConnectionTimeout,
-            ErrCode::WrongRoomKeysVersion => ErrorKind::WrongRoomKeysVersion {
+            ErrorCode::ConnectionFailed => ErrorKind::ConnectionFailed,
+            ErrorCode::ConnectionTimeout => ErrorKind::ConnectionTimeout,
+            ErrorCode::WrongRoomKeysVersion => ErrorKind::WrongRoomKeysVersion {
                 current_version: from_json_value(
                     current_version.ok_or_else(|| de::Error::missing_field("current_version"))?,
                 )
                 .map_err(de::Error::custom)?,
             },
             #[cfg(feature = "unstable-msc3843")]
-            ErrCode::Unactionable => ErrorKind::Unactionable,
-            ErrCode::UserLocked => ErrorKind::UserLocked,
-            ErrCode::UserSuspended => ErrorKind::UserSuspended,
-            ErrCode::_Custom(errcode) => ErrorKind::_Custom { errcode, extra },
+            ErrorCode::Unactionable => ErrorKind::Unactionable,
+            ErrorCode::UserLocked => ErrorKind::UserLocked,
+            ErrorCode::UserSuspended => ErrorKind::UserSuspended,
+            ErrorCode::_Custom(errcode) => ErrorKind::_Custom { errcode, extra },
         })
     }
-}
-
-#[derive(FromString, DeserializeFromCowStr)]
-#[ruma_enum(rename_all = "M_MATRIX_ERROR_CASE")]
-enum ErrCode {
-    Forbidden,
-    UnknownToken,
-    MissingToken,
-    BadJson,
-    NotJson,
-    NotFound,
-    LimitExceeded,
-    Unknown,
-    Unrecognized,
-    Unauthorized,
-    UserDeactivated,
-    UserInUse,
-    InvalidUsername,
-    RoomInUse,
-    InvalidRoomState,
-    ThreepidInUse,
-    ThreepidNotFound,
-    ThreepidAuthFailed,
-    ThreepidDenied,
-    ThreepidMediumNotSupported,
-    ServerNotTrusted,
-    UnsupportedRoomVersion,
-    IncompatibleRoomVersion,
-    BadState,
-    GuestAccessForbidden,
-    CaptchaNeeded,
-    CaptchaInvalid,
-    MissingParam,
-    InvalidParam,
-    TooLarge,
-    Exclusive,
-    ResourceLimitExceeded,
-    CannotLeaveServerNoticeRoom,
-    WeakPassword,
-    UnableToAuthorizeJoin,
-    UnableToGrantJoin,
-    BadAlias,
-    DuplicateAnnotation,
-    #[ruma_enum(alias = "FI.MAU.MSC2246_NOT_YET_UPLOADED")]
-    NotYetUploaded,
-    #[ruma_enum(alias = "FI.MAU.MSC2246_CANNOT_OVERWRITE_MEDIA")]
-    CannotOverwriteMedia,
-    #[cfg(any(feature = "unstable-msc3575", feature = "unstable-msc4186"))]
-    UnknownPos,
-    UrlNotSet,
-    BadStatus,
-    ConnectionFailed,
-    ConnectionTimeout,
-    WrongRoomKeysVersion,
-    #[cfg(feature = "unstable-msc3843")]
-    Unactionable,
-    UserLocked,
-    UserSuspended,
-    _Custom(PrivOwnedStr),
 }
 
 impl<'de> Deserialize<'de> for ErrorKind {
@@ -334,7 +273,7 @@ impl Serialize for ErrorKind {
         S: Serializer,
     {
         let mut st = serializer.serialize_map(None)?;
-        st.serialize_entry("errcode", self.as_ref())?;
+        st.serialize_entry("errcode", &self.errcode())?;
         match self {
             Self::UnknownToken { soft_logout: true } | Self::UserLocked => {
                 st.serialize_entry("soft_logout", &true)?;

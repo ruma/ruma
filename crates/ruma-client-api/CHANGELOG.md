@@ -1,5 +1,11 @@
 # [unreleased]
 
+Breaking changes:
+
+- `ErrorKind` does not implement `AsRef<str>` and `Display` anymore. To get the
+  same result, use `ErrorKind::errcode()`. The `ErrorCode` that is returned
+  implements those traits.
+
 Improvements:
 
 - Add unstable support for reporting rooms, according to MSC4151.
