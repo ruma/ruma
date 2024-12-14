@@ -7,6 +7,10 @@ Improvements:
   settings, it can be enabled at compile-time with the `RUSTFLAGS` environment
   variable, or inside `.cargo/config.toml`. It can also be enabled by setting
   the `RUMA_UNSTABLE_EXHAUSTIVE_TYPES` environment variable.
+- `PusherData` allows to set custom data for the pusher in the `data` field, due
+  to a clarification in the spec.
+  - The `default_payload` field that was behind the `unstable-unspecified` was
+    removed. It can be added manually to the custom data.
 
 # 0.10.0
 

@@ -18,13 +18,11 @@ use std::hash::{Hash, Hasher};
 
 use indexmap::{Equivalent, IndexSet};
 use serde::{Deserialize, Serialize};
-#[cfg(feature = "unstable-unspecified")]
-use serde_json::Value as JsonValue;
 use thiserror::Error;
 use tracing::instrument;
 
 use crate::{
-    serde::{Raw, StringEnum},
+    serde::{JsonObject, Raw, StringEnum},
     OwnedRoomId, OwnedUserId, PrivOwnedStr,
 };
 
@@ -699,27 +697,15 @@ pub struct HttpPusherData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub format: Option<PushFormat>,
 
-    /// iOS (+ macOS?) specific default payload that will be sent to apple push notification
-    /// service.
-    ///
-    /// For more information, see [Sygnal docs][sygnal].
-    ///
-    /// [sygnal]: https://github.com/matrix-org/sygnal/blob/main/docs/applications.md#ios-applications-beware
-    // Not specified, issue: https://github.com/matrix-org/matrix-spec/issues/921
-    #[cfg(feature = "unstable-unspecified")]
-    #[serde(default, skip_serializing_if = "JsonValue::is_null")]
-    pub default_payload: JsonValue,
+    /// Custom data for the pusher.
+    #[serde(flatten, default, skip_serializing_if = "JsonObject::is_empty")]
+    pub data: JsonObject,
 }
 
 impl HttpPusherData {
     /// Creates a new `HttpPusherData` with the given URL.
     pub fn new(url: String) -> Self {
-        Self {
-            url,
-            format: None,
-            #[cfg(feature = "unstable-unspecified")]
-            default_payload: JsonValue::default(),
-        }
+        Self { url, format: None, data: JsonObject::default() }
     }
 }
 
