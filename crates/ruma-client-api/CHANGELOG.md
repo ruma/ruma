@@ -16,6 +16,8 @@ Improvements:
   the `RUMA_UNSTABLE_EXHAUSTIVE_TYPES` environment variable.
 - Add `ErrorKind::ThreepidMediumNotSupported`, according to MSC4178.
 - Add `ErrorKind::UserSuspended`, according to MSC3823.
+- `EmailPusherData` allows to set custom data for the pusher in the `data` field, due
+  to a clarification in the spec.
 
 # 0.19.0
 

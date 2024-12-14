@@ -287,9 +287,13 @@ impl PusherIds {
 }
 
 /// Information for an email pusher.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct EmailPusherData;
+#[serde(transparent, default)]
+pub struct EmailPusherData {
+    /// Custom data for the pusher.
+    pub data: JsonObject,
+}
 
 impl EmailPusherData {
     /// Creates a new empty `EmailPusherData`.
