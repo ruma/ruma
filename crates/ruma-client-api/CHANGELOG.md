@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.20.0
+
 Breaking changes:
 
 - `ErrorKind` does not implement `AsRef<str>` and `Display` anymore. To get the
