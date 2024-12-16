@@ -1,5 +1,9 @@
 # [unreleased]
 
+# 0.15.0
+
+Upgrade `ruma-client-api` to 0.20.0.
+
 # 0.14.0
 
 No changes for this version
