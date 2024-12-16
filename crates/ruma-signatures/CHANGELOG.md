@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.17.0
+
 Improvements:
 
 - The `unstable-exhaustive-types` cargo feature was replaced by the
