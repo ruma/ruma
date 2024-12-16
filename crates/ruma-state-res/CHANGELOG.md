@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.13.0
+
 Bug fixes:
 
 - Fix tiebreaking logic in state resolution.
