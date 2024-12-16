@@ -28,7 +28,7 @@ ruma-federation-api = { version = "0.10.0", path = "crates/ruma-federation-api" 
 ruma-html = { version = "0.3.0", path = "crates/ruma-html" }
 ruma-identifiers-validation = { version = "0.10.0", path = "crates/ruma-identifiers-validation" }
 ruma-identity-service-api = { version = "0.10.0", path = "crates/ruma-identity-service-api" }
-ruma-macros = { version = "=0.14.0", path = "crates/ruma-macros" }
+ruma-macros = { version = "=0.15.0", path = "crates/ruma-macros" }
 ruma-push-gateway-api = { version = "0.10.0", path = "crates/ruma-push-gateway-api" }
 ruma-server-util = { version = "0.4.0", path = "crates/ruma-server-util" }
 ruma-signatures = { version = "0.16.0", path = "crates/ruma-signatures" }
