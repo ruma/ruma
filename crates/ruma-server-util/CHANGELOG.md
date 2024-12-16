@@ -1,5 +1,9 @@
 # [unreleased]
 
+# 0.5.0
+
+Upgrade `ruma-common` to 0.15.0.
+
 # 0.4.0
 
 Breaking changes:
