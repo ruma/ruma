@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.15.0
+
 Breaking changes:
 
 - `#[serde(flatten)]` on the only body field of a `#[request]` or `#[response]`
@@ -18,8 +20,8 @@ Improvements:
   the `RUMA_UNSTABLE_EXHAUSTIVE_TYPES` environment variable.
 - `HttpPusherData` allows to set custom data for the pusher in the `data` field,
   due to a clarification in the spec.
-  - The `default_payload` field that was behind the `unstable-unspecified` was
-    removed. It can be added manually to the custom data.
+  - The `default_payload` field that was behind the `unstable-unspecified`
+    cargo feature was removed. It can be added manually to the custom data.
 
 # 0.14.1
 
