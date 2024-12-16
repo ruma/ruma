@@ -1,10 +1,20 @@
 # [unreleased]
 
+# 0.12.0
+
 - The `unstable-exhaustive-types` cargo feature was replaced by the
   `ruma_unstable_exhaustive_types` compile-time `cfg` setting. Like all `cfg`
   settings, it can be enabled at compile-time with the `RUSTFLAGS` environment
   variable, or inside `.cargo/config.toml`. It can also be enabled by setting
   the `RUMA_UNSTABLE_EXHAUSTIVE_TYPES` environment variable.
+
+Please refer to the changelogs of:
+
+- ruma-common 0.15.0
+- ruma-events 0.30.0
+- ruma-client-api 0.20.0
+- ruma-push-gateway-api 0.11.0
+- ruma-state-res 0.13.0
 
 # 0.11.1
 
