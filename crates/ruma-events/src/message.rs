@@ -133,6 +133,16 @@ pub struct MessageEventContent {
         alias = "m.url_previews"
     )]
     pub url_previews: Option<Vec<UrlPreview>>,
+
+    /// The [MSC2326](https://github.com/matrix-org/matrix-spec-proposals/pull/2326) labels on this message.
+    #[cfg(feature = "unstable-msc2326")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "org.matrix.labels",
+        alias = "m.labels"
+    )]
+    pub labels: Option<Vec<String>>,
 }
 
 impl MessageEventContent {
@@ -145,6 +155,8 @@ impl MessageEventContent {
             relates_to: None,
             #[cfg(feature = "unstable-msc4095")]
             url_previews: None,
+            #[cfg(feature = "unstable-msc2326")]
+            labels: None,
         }
     }
 
@@ -157,6 +169,8 @@ impl MessageEventContent {
             relates_to: None,
             #[cfg(feature = "unstable-msc4095")]
             url_previews: None,
+            #[cfg(feature = "unstable-msc2326")]
+            labels: None,
         }
     }
 
@@ -173,6 +187,8 @@ impl MessageEventContent {
             relates_to: None,
             #[cfg(feature = "unstable-msc4095")]
             url_previews: None,
+            #[cfg(feature = "unstable-msc2326")]
+            labels: None,
         }
     }
 }
@@ -186,6 +202,8 @@ impl From<TextContentBlock> for MessageEventContent {
             relates_to: None,
             #[cfg(feature = "unstable-msc4095")]
             url_previews: None,
+            #[cfg(feature = "unstable-msc2326")]
+            labels: None,
         }
     }
 }

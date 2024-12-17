@@ -22,7 +22,14 @@ impl<'de> Deserialize<'de> for RoomMessageEventContent {
 
         let MentionsDeHelper { mentions } = from_raw_json_value(&json)?;
 
-        Ok(Self { msgtype: from_raw_json_value(&json)?, relates_to, mentions })
+        Ok(Self {
+            msgtype: from_raw_json_value(&json)?,
+            relates_to,
+            mentions,
+
+            #[cfg(feature = "unstable-msc2326")]
+            labels: None,
+        })
     }
 }
 
@@ -35,7 +42,12 @@ impl<'de> Deserialize<'de> for RoomMessageEventContentWithoutRelation {
 
         let MentionsDeHelper { mentions } = from_raw_json_value(&json)?;
 
-        Ok(Self { msgtype: from_raw_json_value(&json)?, mentions })
+        Ok(Self {
+            msgtype: from_raw_json_value(&json)?,
+            mentions,
+            #[cfg(feature = "unstable-msc2326")]
+            labels: None,
+        })
     }
 }
 
