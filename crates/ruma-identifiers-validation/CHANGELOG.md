@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.10.1
+
+Improvements:
+
+- Upgrade `thiserror` to 2.0.0.
+
 # 0.10.0
 
 Breaking changes:
