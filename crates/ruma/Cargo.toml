@@ -169,7 +169,6 @@ unstable-extensible-events = [
     "unstable-msc3955",
 ]
 unstable-msc1767 = ["ruma-events?/unstable-msc1767"]
-unstable-msc2409 = ["ruma-appservice-api?/unstable-msc2409"]
 unstable-msc2448 = [
     "ruma-client-api?/unstable-msc2448",
     "ruma-events?/unstable-msc2448",
@@ -221,6 +220,7 @@ unstable-msc4140 = ["ruma-client-api?/unstable-msc4140"]
 unstable-msc4151 = ["ruma-client-api?/unstable-msc4151"]
 unstable-msc4171 = ["ruma-events?/unstable-msc4171"]
 unstable-msc4186 = ["ruma-client-api?/unstable-msc4186"]
+unstable-msc4203 = ["ruma-appservice-api?/unstable-msc4203"]
 unstable-pdu = ["ruma-events?/unstable-pdu"]
 unstable-unspecified = [
     "ruma-common/unstable-unspecified",
@@ -230,7 +230,6 @@ unstable-unspecified = [
 # Private features, only used in test / benchmarking code
 __unstable-mscs = [
     "unstable-msc1767",
-    "unstable-msc2409",
     "unstable-msc2448",
     "unstable-msc2654",
     "unstable-msc2666",
@@ -275,6 +274,7 @@ __unstable-mscs = [
     "unstable-msc4151",
     "unstable-msc4171",
     "unstable-msc4186",
+    "unstable-msc4203",
 ]
 __ci = [
     "full",
