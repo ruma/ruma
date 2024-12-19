@@ -12,7 +12,7 @@ pub mod get_media_preview;
 /// Checks whether a given `Content-Type` is considered "safe" for having a `Content-Disposition` of
 /// `inline` returned on `/download`, as recommended by the [spec].
 ///
-/// [spec]: https://spec.matrix.org/v1.12/client-server-api/#serving-inline-content
+/// [spec]: https://spec.matrix.org/latest/client-server-api/#serving-inline-content
 pub fn is_safe_inline_content_type(content_type: &str) -> bool {
     const SAFE_CONTENT_TYPES: [&str; 26] = [
         "text/css",

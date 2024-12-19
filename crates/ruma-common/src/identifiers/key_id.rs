@@ -14,12 +14,12 @@ use super::{
 /// A key algorithm and key name delimited by a colon.
 ///
 /// Examples of the use of this struct are [`DeviceKeyId`], which identifies a Ed25519 or Curve25519
-/// [device key](https://spec.matrix.org/v1.12/client-server-api/#device-keys), and
+/// [device key](https://spec.matrix.org/latest/client-server-api/#device-keys), and
 /// [`CrossSigningKeyId`], which identifies a user's
-/// [cross signing key](https://spec.matrix.org/v1.12/client-server-api/#cross-signing).
+/// [cross signing key](https://spec.matrix.org/latest/client-server-api/#cross-signing).
 ///
 /// This format of identifier is often used in the `signatures` field of
-/// [signed JSON](https://spec.matrix.org/v1.12/appendices/#signing-details)
+/// [signed JSON](https://spec.matrix.org/latest/appendices/#signing-details)
 /// where it is referred to as a "signing key identifier".
 ///
 /// This struct is rarely used directly - instead you should expect to use one of the type aliases
