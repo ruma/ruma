@@ -8,6 +8,16 @@ Breaking changes:
   This change allows to have an email or MSISDN phone number as a key for example,
   which can be used when issuing invites through third-party systems.
   `DirectUserIdentifier` can easily be converted to an `UserId`.
+- Reply fallbacks are not generated anymore, according to MSC2781. As a result,
+  the following methods of `RoomMessageEventContent(WithoutRelation)` were
+  simplified:
+  - `make_reply_to` and `make_reply_to_raw` have been merged into
+    `make_reply_to`. It takes a `ReplyMetadata`, that can be virtually
+    constructed from any event and includes built-in conversions for room
+    message events.
+  - `make_for_thread` also takes a `ReplyMetadata` instead of a room message
+    event.
+  - `make_replacement` does not take the replied-to message anymore.
 
 Improvements:
 
