@@ -289,7 +289,7 @@ where
             //
             // > for events `x` and `y`, `x < y` if [...]
             //
-            // <https://spec.matrix.org/v1.12/rooms/v11/#definitions>
+            // <https://spec.matrix.org/latest/rooms/v11/#definitions>
             other
                 .power_level
                 .cmp(&self.power_level)
