@@ -3,9 +3,9 @@
 //! Report a room as inappropriate.
 
 pub mod v3 {
-    //! `/v3/` ([MSC])
+    //! `/v3/` ([spec])
     //!
-    //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4151
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3roomsroomidreport
 
     use ruma_common::{
         api::{request, response, Metadata},
@@ -18,6 +18,7 @@ pub mod v3 {
         authentication: AccessToken,
         history: {
             unstable => "/_matrix/client/unstable/org.matrix.msc4151/rooms/:room_id/report",
+            1.13 => "/_matrix/client/v3/rooms/:room_id/report",
         }
     };
 
