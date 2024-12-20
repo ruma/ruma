@@ -296,13 +296,13 @@ impl RoomMessageEventContent {
     /// If this message contains HTML, this removes the [tags and attributes] that are not listed in
     /// the Matrix specification.
     ///
-    /// It can also optionally remove the [rich reply fallback] from the plain text and HTML
+    /// It can also optionally remove the [rich reply] fallback from the plain text and HTML
     /// message.
     ///
     /// This method is only effective on text, notice and emote messages.
     ///
     /// [tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
-    /// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
+    /// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
     #[cfg(feature = "html")]
     pub fn sanitize(
         &mut self,
@@ -587,14 +587,14 @@ impl MessageType {
     /// If this message contains HTML, this removes the [tags and attributes] that are not listed in
     /// the Matrix specification.
     ///
-    /// It can also optionally remove the [rich reply fallback] from the plain text and HTML
+    /// It can also optionally remove the [rich reply] fallback from the plain text and HTML
     /// message. Note that you should be sure that the message is a reply, as there is no way to
     /// differentiate plain text reply fallbacks and markdown quotes.
     ///
     /// This method is only effective on text, notice and emote messages.
     ///
     /// [tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
-    /// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
+    /// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
     #[cfg(feature = "html")]
     pub fn sanitize(
         &mut self,
@@ -773,12 +773,12 @@ impl FormattedBody {
     ///
     /// This removes any [tags and attributes] that are not listed in the Matrix specification.
     ///
-    /// It can also optionally remove the [rich reply fallback].
+    /// It can also optionally remove the [rich reply] fallback.
     ///
     /// Returns the sanitized HTML if the format is `MessageFormat::Html`.
     ///
     /// [tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
-    /// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
+    /// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
     #[cfg(feature = "html")]
     pub fn sanitize_html(
         &mut self,
