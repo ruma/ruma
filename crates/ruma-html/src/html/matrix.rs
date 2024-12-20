@@ -216,7 +216,7 @@ pub enum MatrixElement {
 
     /// [`mx-reply`], a Matrix rich reply fallback element.
     ///
-    /// [`mx-reply`]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
+    /// [`mx-reply`]: https://spec.matrix.org/latest/client-server-api/#rich-replies
     MatrixReply,
 
     /// An HTML element that is not in the suggested list.

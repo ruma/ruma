@@ -6,10 +6,10 @@ use crate::{Html, HtmlSanitizerMode, SanitizerConfig};
 ///
 /// This removes the [tags and attributes] that are not listed in the Matrix specification.
 ///
-/// It can also optionally remove the [rich reply fallback].
+/// It can also optionally remove the [rich reply] fallback.
 ///
 /// [tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
-/// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
+/// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
 pub fn sanitize_html(
     s: &str,
     mode: HtmlSanitizerMode,
@@ -27,9 +27,9 @@ pub fn sanitize_html(
     sanitize_inner(s, &config)
 }
 
-/// Whether to remove the [rich reply fallback] while sanitizing.
+/// Whether to remove the [rich reply] fallback while sanitizing.
 ///
-/// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
+/// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[allow(clippy::exhaustive_enums)]
 pub enum RemoveReplyFallback {
@@ -40,12 +40,12 @@ pub enum RemoveReplyFallback {
     No,
 }
 
-/// Remove the [rich reply fallback] of the given HTML string.
+/// Remove the [rich reply] fallback of the given HTML string.
 ///
 /// Due to the fact that the HTML is parsed, note that malformed HTML and comments will be stripped
 /// from the output.
 ///
-/// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
+/// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
 pub fn remove_html_reply_fallback(s: &str) -> String {
     let config = SanitizerConfig::new().remove_reply_fallback();
     sanitize_inner(s, &config)
