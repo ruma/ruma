@@ -176,7 +176,7 @@ impl SanitizerConfig {
         self
     }
 
-    /// Remove the [rich reply fallback].
+    /// Remove the [rich reply] fallback.
     ///
     /// Calling this allows to remove the `mx-reply` element in addition to the list of elements to
     /// remove.
@@ -184,7 +184,7 @@ impl SanitizerConfig {
     /// Removing elements has a higher priority than ignoring or allowing. So if this settings is
     /// set, `mx-reply` will always be removed.
     ///
-    /// [rich reply fallback]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
+    /// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
     pub fn remove_reply_fallback(mut self) -> Self {
         self.remove_reply_fallback = true;
         self

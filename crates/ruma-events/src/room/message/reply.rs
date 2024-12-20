@@ -121,11 +121,11 @@ impl fmt::Display for FormattedOrPlainBody<'_> {
 /// Returns a `(plain, html)` tuple.
 ///
 /// With the `sanitize` feature, [HTML tags and attributes] that are not allowed in the Matrix
-/// spec and previous [rich reply fallbacks] are removed from the previous message in the new rich
+/// spec and previous [rich reply] fallbacks are removed from the previous message in the new rich
 /// reply fallback.
 ///
 /// [HTML tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
-/// [rich reply fallbacks]: https://spec.matrix.org/latest/client-server-api/#fallbacks-for-rich-replies
+/// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
 pub(super) fn plain_and_formatted_reply_body(
     body: &str,
     formatted: Option<impl fmt::Display>,
