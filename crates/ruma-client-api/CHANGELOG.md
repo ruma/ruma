@@ -5,6 +5,8 @@ Improvements:
 - Add support for new dehydration format, according to the latest draft of
   MSC3814.
 - Add unstable support for OIDC-aware compatibility, according to MSC3824.
+- Stabilize support for reporting rooms, according to Matrix 1.13.
+  - Removes the `unstable-msc4151` cargo feature.
 
 # 0.20.0
 
