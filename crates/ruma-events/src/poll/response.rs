@@ -38,6 +38,16 @@ pub struct PollResponseEventContent {
     /// Information about the poll start event this responds to.
     #[serde(rename = "m.relates_to")]
     pub relates_to: Reference,
+
+    /// The [MSC2326](https://github.com/matrix-org/matrix-spec-proposals/pull/2326) labels on this message.
+    #[cfg(feature = "unstable-msc2326")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "org.matrix.labels",
+        alias = "m.labels"
+    )]
+    pub labels: Option<Vec<String>>,
 }
 
 impl PollResponseEventContent {
@@ -49,6 +59,8 @@ impl PollResponseEventContent {
             #[cfg(feature = "unstable-msc3955")]
             automated: false,
             relates_to: Reference::new(poll_start_id),
+            #[cfg(feature = "unstable-msc2326")]
+            labels: None,
         }
     }
 }

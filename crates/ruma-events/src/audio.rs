@@ -60,6 +60,16 @@ pub struct AudioEventContent {
         deserialize_with = "crate::room::message::relation_serde::deserialize_relation"
     )]
     pub relates_to: Option<Relation<AudioEventContentWithoutRelation>>,
+
+    /// The [MSC2326](https://github.com/matrix-org/matrix-spec-proposals/pull/2326) labels on this message.
+    #[cfg(feature = "unstable-msc2326")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "org.matrix.labels",
+        alias = "m.labels"
+    )]
+    pub labels: Option<Vec<String>>,
 }
 
 impl AudioEventContent {
@@ -73,6 +83,8 @@ impl AudioEventContent {
             #[cfg(feature = "unstable-msc3955")]
             automated: false,
             relates_to: None,
+            #[cfg(feature = "unstable-msc2326")]
+            labels: None,
         }
     }
 
@@ -87,6 +99,8 @@ impl AudioEventContent {
             #[cfg(feature = "unstable-msc3955")]
             automated: false,
             relates_to: None,
+            #[cfg(feature = "unstable-msc2326")]
+            labels: None,
         }
     }
 }
