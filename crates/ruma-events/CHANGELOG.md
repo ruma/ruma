@@ -16,6 +16,7 @@ Breaking changes:
 Improvements:
 
 - Add unstable support for the `is_animated` flag for images, according to MSC4230.
+- Add unstable support for MSC2545 for image packs.
 
 # 0.30.0
 
