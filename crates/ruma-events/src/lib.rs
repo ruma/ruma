@@ -158,6 +158,8 @@ pub mod identity_server;
 pub mod ignored_user_list;
 #[cfg(feature = "unstable-msc3552")]
 pub mod image;
+#[cfg(feature = "unstable-msc2545")]
+pub mod image_pack;
 pub mod key;
 #[cfg(feature = "unstable-msc3488")]
 pub mod location;
