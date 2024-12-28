@@ -608,8 +608,6 @@ impl MessageType {
             if let Some(formatted) = formatted {
                 formatted.sanitize_html(mode, remove_reply_fallback);
             }
-            // This is a false positive, see <https://github.com/rust-lang/rust-clippy/issues/12444>
-            #[allow(clippy::assigning_clones)]
             if remove_reply_fallback == RemoveReplyFallback::Yes {
                 *body = remove_plain_reply_fallback(body).to_owned();
             }
