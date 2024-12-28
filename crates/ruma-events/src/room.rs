@@ -104,6 +104,15 @@ pub struct ImageInfo {
     #[cfg(feature = "unstable-msc2448")]
     #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
     pub blurhash: Option<String>,
+
+    /// Whether the image is animated.
+    ///
+    /// This uses the unstable prefix in [MSC4230].
+    ///
+    /// [MSC4230]: https://github.com/matrix-org/matrix-spec-proposals/pull/4230
+    #[cfg(feature = "unstable-msc4230")]
+    #[serde(rename = "org.matrix.msc4230.is_animated", skip_serializing_if = "Option::is_none")]
+    pub is_animated: Option<bool>,
 }
 
 impl ImageInfo {
