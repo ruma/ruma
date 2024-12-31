@@ -316,20 +316,52 @@ impl JoinedRoom {
     }
 }
 
-/// Updates to knocked rooms.
+/// Updates to a room that the user has knocked upon.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct KnockedRoom {
-    /// The knock state.
+    /// Updates to the stripped state of the room.
+    #[serde(default, skip_serializing_if = "KnockState::is_empty")]
     pub knock_state: KnockState,
 }
 
-/// A mapping from a key `events` to a list of `StrippedStateEvent`.
+impl KnockedRoom {
+    /// Creates an empty `KnockedRoom`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Whether there are updates for this room.
+    pub fn is_empty(&self) -> bool {
+        self.knock_state.is_empty()
+    }
+}
+
+impl From<KnockState> for KnockedRoom {
+    fn from(knock_state: KnockState) -> Self {
+        KnockedRoom { knock_state, ..Default::default() }
+    }
+}
+
+/// Stripped state updates of a room that the user has knocked upon.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct KnockState {
-    /// The list of events.
+    /// The stripped state of a room that the user has knocked upon.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnyStrippedStateEvent>>,
+}
+
+impl KnockState {
+    /// Creates an empty `KnockState`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Whether there are stripped state updates in this room.
+    pub fn is_empty(&self) -> bool {
+        self.events.is_empty()
+    }
 }
 
 /// Events in the room.
