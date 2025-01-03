@@ -51,7 +51,7 @@ impl DehydratedDeviceV1 {
 
 /// The `org.matrix.msc3814.v2` variant of a dehydrated device.
 #[derive(Clone, Debug)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct DehydratedDeviceV2 {
     /// The pickle of the `Olm` account of the device.
     ///
@@ -102,7 +102,9 @@ impl TryFrom<Helper> for DehydratedDeviceData {
             })),
             DeviceDehydrationAlgorithm::V2 => Ok(DehydratedDeviceData::V2(DehydratedDeviceV2 {
                 device_pickle: value.device_pickle,
-                nonce: value.nonce.ok_or(serde::de::Error::custom("Missing nonce in v2 dehydrated device."))?,
+                nonce: value
+                    .nonce
+                    .ok_or(serde::de::Error::custom("Missing nonce in v2 dehydrated device."))?,
             })),
             _ => Err(serde::de::Error::custom("Unsupported device dehydration algorithm.")),
         }
@@ -114,8 +116,12 @@ impl From<DehydratedDeviceData> for Helper {
         let algorithm = value.algorithm();
 
         match value {
-            DehydratedDeviceData::V1(d) => Self { algorithm, device_pickle: d.device_pickle, nonce: None },
-            DehydratedDeviceData::V2(d) => Self { algorithm, device_pickle: d.device_pickle, nonce: Some(d.nonce) },
+            DehydratedDeviceData::V1(d) => {
+                Self { algorithm, device_pickle: d.device_pickle, nonce: None }
+            }
+            DehydratedDeviceData::V2(d) => {
+                Self { algorithm, device_pickle: d.device_pickle, nonce: Some(d.nonce) }
+            }
         }
     }
 }
