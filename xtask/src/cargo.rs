@@ -173,18 +173,18 @@ impl Package {
             ..self.version.clone()
         };
 
-        let update = if changelog.contains(&format!("# {version}\n")) {
-            false
+        let (update, title_start) = if let Some(pos) = changelog.find(&format!("# {version}\n")) {
+            (false, pos)
         } else if changelog.starts_with(&format!("# {version} (unreleased)\n"))
             || changelog.starts_with("# [unreleased]\n")
         {
-            update
+            (update, 0)
         } else {
             return Err("Could not find version title in changelog".into());
         };
 
-        let changes_start = match changelog.find('\n') {
-            Some(p) => p + 1,
+        let changes_start = match changelog[title_start..].find('\n') {
+            Some(p) => title_start + p + 1,
             None => {
                 return Err("Could not find end of version title in changelog".into());
             }
