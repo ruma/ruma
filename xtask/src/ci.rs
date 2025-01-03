@@ -10,9 +10,11 @@ use crate::{cmd, Metadata, Result, NIGHTLY};
 
 mod reexport_features;
 mod spec_links;
+mod unused_features;
 
 use reexport_features::check_reexport_features;
 use spec_links::check_spec_links;
+use unused_features::check_unused_features;
 
 const MSRV: &str = "1.75";
 
@@ -72,6 +74,8 @@ pub enum CiCmd {
     ReexportFeatures,
     /// Check typos
     Typos,
+    /// Check whether there are unused cargo features (lint)
+    UnusedFeatures,
 }
 
 /// Task to run CI tests.
@@ -125,6 +129,7 @@ impl CiTask {
             Some(CiCmd::SpecLinks) => check_spec_links(&self.project_root().join("crates"))?,
             Some(CiCmd::ReexportFeatures) => check_reexport_features(&self.project_metadata)?,
             Some(CiCmd::Typos) => self.typos()?,
+            Some(CiCmd::UnusedFeatures) => check_unused_features(&self.sh, &self.project_metadata)?,
             None => {
                 self.msrv()
                     .and(self.stable())
@@ -335,8 +340,10 @@ impl CiTask {
         let spec_links_res = check_spec_links(&self.project_root().join("crates"));
         // Check that all cargo features of sub-crates can be enabled from ruma.
         let reexport_features_res = check_reexport_features(&self.project_metadata);
+        // Check whether there are unused cargo features.
+        let unused_features_res = check_unused_features(&self.sh, &self.project_metadata);
 
-        dependencies_res.and(spec_links_res).and(reexport_features_res)
+        dependencies_res.and(spec_links_res).and(reexport_features_res).and(unused_features_res)
     }
 
     /// Check the sorting of dependencies with the nightly version.
