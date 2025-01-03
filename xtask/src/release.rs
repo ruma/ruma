@@ -76,11 +76,15 @@ impl ReleaseTask {
             ["ruma-identifiers-validation", "ruma-macros"].contains(&self.package.name.as_str());
 
         println!(
-            "Starting {} for {title}…",
+            "Starting {}{} for {title}…",
             match prerelease {
                 true => "pre-release",
                 false => "release",
             },
+            match self.dry_run {
+                true => " dry run",
+                false => "",
+            }
         );
 
         if self.is_released()? {
@@ -120,6 +124,10 @@ impl ReleaseTask {
         };
 
         let changes = &self.package.changes(&self.sh, !prerelease && !self.dry_run)?;
+
+        if self.dry_run {
+            println!("Changes:\n{changes}");
+        }
 
         if create_commit {
             self.commit()?;
