@@ -50,7 +50,6 @@ unstable-msc3983 = []
 unstable-msc4108 = []
 unstable-msc4121 = []
 unstable-msc4140 = []
-unstable-msc4151 = []
 unstable-msc4186 = []
 
 [dependencies]

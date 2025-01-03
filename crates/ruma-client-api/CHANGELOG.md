@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+- Stabilize support for reporting rooms, according to Matrix 1.13.
+  - Removes the `unstable-msc4151` cargo feature.
+
 # 0.20.0
 
 Breaking changes:
