@@ -4,6 +4,7 @@ Improvements:
 
 - Add support for new dehydration format, according to the latest draft of
   MSC3814.
+- Add unstable support for OIDC-aware compatibility, according to MSC3824.
 
 # 0.20.0
 
