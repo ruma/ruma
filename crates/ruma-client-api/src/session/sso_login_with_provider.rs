@@ -13,6 +13,9 @@ pub mod v3 {
         metadata,
     };
 
+    #[cfg(feature = "unstable-msc3824")]
+    use crate::session::SsoRedirectOidcAction;
+
     const METADATA: Metadata = metadata! {
         method: GET,
         rate_limited: false,
@@ -35,6 +38,16 @@ pub mod v3 {
         #[ruma_api(query)]
         #[serde(rename = "redirectUrl")]
         pub redirect_url: String,
+
+        /// The purpose for using the SSO redirect URL for OIDC-aware compatibility.
+        ///
+        /// This field uses the unstable prefix defined in [MSC3824].
+        ///
+        /// [MSC3824]: https://github.com/matrix-org/matrix-spec-proposals/pull/3824
+        #[cfg(feature = "unstable-msc3824")]
+        #[ruma_api(query)]
+        #[serde(skip_serializing_if = "Option::is_none", rename = "org.matrix.msc3824.action")]
+        pub action: Option<SsoRedirectOidcAction>,
     }
 
     /// Response type for the `sso_login_with_provider` endpoint.
@@ -52,7 +65,12 @@ pub mod v3 {
     impl Request {
         /// Creates a new `Request` with the given identity provider ID and redirect URL.
         pub fn new(idp_id: String, redirect_url: String) -> Self {
-            Self { idp_id, redirect_url }
+            Self {
+                idp_id,
+                redirect_url,
+                #[cfg(feature = "unstable-msc3824")]
+                action: None,
+            }
         }
     }
 
@@ -71,16 +89,13 @@ pub mod v3 {
 
         #[test]
         fn serialize_sso_login_with_provider_request_uri() {
-            let req = Request {
-                idp_id: "provider".to_owned(),
-                redirect_url: "https://example.com/sso".to_owned(),
-            }
-            .try_into_http_request::<Vec<u8>>(
-                "https://homeserver.tld",
-                SendAccessToken::None,
-                &[MatrixVersion::V1_1],
-            )
-            .unwrap();
+            let req = Request::new("provider".to_owned(), "https://example.com/sso".to_owned())
+                .try_into_http_request::<Vec<u8>>(
+                    "https://homeserver.tld",
+                    SendAccessToken::None,
+                    &[MatrixVersion::V1_1],
+                )
+                .unwrap();
 
             assert_eq!(
             req.uri().to_string(),
