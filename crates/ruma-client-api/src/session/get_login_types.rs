@@ -172,6 +172,19 @@ pub mod v3 {
         /// The identity provider choices.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub identity_providers: Vec<IdentityProvider>,
+
+        /// Whether this SSO login is for OIDC-aware compatibility.
+        ///
+        /// This field uses the unstable prefix defined in [MSC3824].
+        ///
+        /// [MSC3824]: https://github.com/matrix-org/matrix-spec-proposals/pull/3824
+        #[cfg(feature = "unstable-msc3824")]
+        #[serde(
+            default,
+            skip_serializing_if = "ruma_common::serde::is_default",
+            rename = "org.matrix.msc3824.delegated_oidc_compatibility"
+        )]
+        pub delegated_oidc_compatibility: bool,
     }
 
     impl SsoLoginType {
@@ -387,7 +400,14 @@ pub mod v3 {
             assert_eq!(wrapper.flows.len(), 1);
             let flow = &wrapper.flows[0];
 
-            assert_matches!(flow, LoginType::Sso(SsoLoginType { identity_providers }));
+            assert_matches!(
+                flow,
+                LoginType::Sso(SsoLoginType {
+                    identity_providers,
+                    #[cfg(feature = "unstable-msc3824")]
+                    delegated_oidc_compatibility: false
+                })
+            );
             assert_eq!(identity_providers.len(), 2);
 
             let provider = &identity_providers[0];
@@ -415,6 +435,8 @@ pub mod v3 {
                             icon: Some("mxc://localhost/github-icon".into()),
                             brand: Some(IdentityProviderBrand::GitHub),
                         }],
+                        #[cfg(feature = "unstable-msc3824")]
+                        delegated_oidc_compatibility: false,
                     }),
                 ],
             })
