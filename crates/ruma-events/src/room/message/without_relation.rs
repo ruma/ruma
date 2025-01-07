@@ -199,22 +199,25 @@ impl RoomMessageEventContentWithoutRelation {
 
         // Only set mentions that were not there before.
         if let Some(mentions) = &mentions {
-            let new_mentions = metadata.mentions.map(|old_mentions| {
-                let mut new_mentions = Mentions::new();
+            let new_mentions = metadata
+                .mentions
+                .map(|old_mentions| {
+                    let mut new_mentions = Mentions::new();
 
-                new_mentions.user_ids = mentions
-                    .user_ids
-                    .iter()
-                    .filter(|u| !old_mentions.user_ids.contains(*u))
-                    .cloned()
-                    .collect();
+                    new_mentions.user_ids = mentions
+                        .user_ids
+                        .iter()
+                        .filter(|u| !old_mentions.user_ids.contains(*u))
+                        .cloned()
+                        .collect();
 
-                new_mentions.room = mentions.room && !old_mentions.room;
+                    new_mentions.room = mentions.room && !old_mentions.room;
 
-                new_mentions
-            });
+                    new_mentions
+                })
+                .unwrap_or_else(|| mentions.clone());
 
-            self.mentions = new_mentions;
+            self.mentions = Some(new_mentions);
         };
 
         // Prepare relates_to with the untouched msgtype.
