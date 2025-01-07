@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+- `make_replacement` now correctly sets the mentions on the plain replacement event, when the
+  edited event had no initial mentions.
+
 Improvements:
 
 - Add unstable support for the `is_animated` flag for images, according to MSC4230.
