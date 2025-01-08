@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+- Add support for new dehydration format, according to the latest draft of
+  MSC3814.
+
 # 0.20.0
 
 Breaking changes:
