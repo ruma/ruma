@@ -1,4 +1,4 @@
-error: no rules expected the token `deprecated`
+error: no rules expected `deprecated`
  --> tests/it/api/ui/deprecated-without-added.rs:9:16
   |
 9 |         1.1 => deprecated,

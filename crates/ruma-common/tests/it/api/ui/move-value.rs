@@ -1,5 +1,6 @@
-// This tests that the "body" fields are moved after all other fields because they
-// consume the request/response.
+//! This tests that the "body" fields are moved after all other fields because they
+//! consume the request/response.
+#![allow(unexpected_cfgs)]
 
 pub mod newtype_body {
     use http::header::CONTENT_TYPE;

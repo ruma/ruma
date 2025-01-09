@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 use http::header::CONTENT_TYPE;
 use ruma_common::{
     api::{request, response, Metadata},

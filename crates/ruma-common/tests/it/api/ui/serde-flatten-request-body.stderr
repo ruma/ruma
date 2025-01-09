@@ -1,6 +1,6 @@
 error: Use `#[ruma_api(body)]` to represent the JSON body as a single field
-  --> tests/it/api/ui/serde-flatten-request-body.rs:23:5
+  --> tests/it/api/ui/serde-flatten-request-body.rs:25:5
    |
-23 | /     #[serde(flatten)]
-24 | |     pub foo: CustomRequestBody,
+25 | /     #[serde(flatten)]
+26 | |     pub foo: CustomRequestBody,
    | |______________________________^
