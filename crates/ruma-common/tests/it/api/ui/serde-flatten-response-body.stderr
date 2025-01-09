@@ -1,14 +1,14 @@
 error: Use `#[ruma_api(body)]` to represent the JSON body as a single field
-  --> tests/it/api/ui/serde-flatten-response-body.rs:26:5
+  --> tests/it/api/ui/serde-flatten-response-body.rs:28:5
    |
-26 | /     #[serde(flatten)]
-27 | |     pub foo: CustomResponseBody,
+28 | /     #[serde(flatten)]
+29 | |     pub foo: CustomResponseBody,
    | |_______________________________^
 
 error[E0277]: the trait bound `Response: IncomingResponse` is not satisfied
-  --> tests/it/api/ui/serde-flatten-response-body.rs:21:1
+  --> tests/it/api/ui/serde-flatten-response-body.rs:23:1
    |
-21 | #[request]
+23 | #[request]
    | ^^^^^^^^^^ the trait `IncomingResponse` is not implemented for `Response`
    |
 note: required by a bound in `ruma_common::api::OutgoingRequest::IncomingResponse`
@@ -19,9 +19,9 @@ note: required by a bound in `ruma_common::api::OutgoingRequest::IncomingRespons
    = note: this error originates in the derive macro `::ruma_common::exports::ruma_macros::Request` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `Response: OutgoingResponse` is not satisfied
-  --> tests/it/api/ui/serde-flatten-response-body.rs:21:1
+  --> tests/it/api/ui/serde-flatten-response-body.rs:23:1
    |
-21 | #[request]
+23 | #[request]
    | ^^^^^^^^^^ the trait `OutgoingResponse` is not implemented for `Response`
    |
    = help: the trait `OutgoingResponse` is implemented for `MatrixError`

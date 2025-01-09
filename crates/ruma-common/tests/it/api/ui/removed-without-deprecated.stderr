@@ -1,4 +1,4 @@
-error: no rules expected the token `removed`
+error: no rules expected `removed`
  --> tests/it/api/ui/removed-without-deprecated.rs:9:16
   |
 9 |         1.1 => removed,

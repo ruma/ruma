@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 use ruma_common::api::response;
 
 #[derive(PartialEq)] // Make sure attributes work
