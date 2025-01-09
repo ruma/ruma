@@ -1,5 +1,5 @@
 #![deny(private_interfaces, private_bounds, unnameable_types)]
-#![allow(dead_code)]
+#![allow(dead_code, unexpected_cfgs)]
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

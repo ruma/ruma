@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
