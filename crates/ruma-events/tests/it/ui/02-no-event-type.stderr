@@ -1,7 +1,7 @@
 error: no event type attribute found, add `#[ruma_event(type = "any.room.event", kind = Kind)]` below the event content derive
- --> $DIR/02-no-event-type.rs:4:48
+ --> tests/it/ui/02-no-event-type.rs:6:48
   |
-4 | #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+6 | #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
   |                                                ^^^^^^^^^^^^
   |
   = note: this error originates in the derive macro `EventContent` (in Nightly builds, run with -Z macro-backtrace for more info)
