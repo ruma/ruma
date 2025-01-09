@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 use bytes::BufMut;
 use ruma_common::{
     api::{
