@@ -226,34 +226,29 @@ pub mod v3 {
     /// [matrix-spec-proposals]: https://github.com/matrix-org/matrix-spec-proposals/blob/v1.1/informal/idp-brands.md
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
     #[derive(Clone, PartialEq, Eq, StringEnum)]
+    #[ruma_enum(rename_all = "lowercase")]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum IdentityProviderBrand {
         /// The [Apple] brand.
         ///
         /// [Apple]: https://developer.apple.com/design/human-interface-guidelines/sign-in-with-apple/overview/buttons/
-        #[ruma_enum(rename = "apple")]
         Apple,
 
         /// The [Facebook](https://developers.facebook.com/docs/facebook-login/web/login-button/) brand.
-        #[ruma_enum(rename = "facebook")]
         Facebook,
 
         /// The [GitHub](https://github.com/logos) brand.
-        #[ruma_enum(rename = "github")]
         GitHub,
 
         /// The [GitLab](https://about.gitlab.com/press/press-kit/) brand.
-        #[ruma_enum(rename = "gitlab")]
         GitLab,
 
         /// The [Google](https://developers.google.com/identity/branding-guidelines) brand.
-        #[ruma_enum(rename = "google")]
         Google,
 
         /// The [Twitter] brand.
         ///
         /// [Twitter]: https://developer.twitter.com/en/docs/authentication/guides/log-in-with-twitter#tab1
-        #[ruma_enum(rename = "twitter")]
         Twitter,
 
         /// A custom brand.
