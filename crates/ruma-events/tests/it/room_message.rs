@@ -1287,7 +1287,7 @@ fn add_first_mentions_then_make_replacement() {
         "This is <em>an edited</em> message.",
     );
     content = content.add_mentions(Mentions::with_user_ids(vec![alice.clone(), bob.clone()]));
-    content = content.make_replacement(&original_message);
+    content = content.make_replacement(&original_message, None);
 
     let mentions = content.mentions.unwrap();
     assert_eq!(mentions.user_ids, [alice.clone(), bob.clone()].into());
