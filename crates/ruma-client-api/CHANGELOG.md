@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+- Use `AuthType` for the `auth_type` of `get_uiaa_fallback_page`'s Request.
+
 Improvements:
 
 - Add support for new dehydration format, according to the latest draft of
