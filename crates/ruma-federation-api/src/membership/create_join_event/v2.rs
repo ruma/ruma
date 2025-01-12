@@ -76,13 +76,9 @@ impl Response {
 }
 
 /// Full state of the room.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomState {
-    #[cfg(not(feature = "unstable-unspecified"))]
-    /// The resident server's DNS name.
-    pub origin: String,
-
     /// Whether `m.room.member` events have been omitted from `state`.
     ///
     /// Defaults to `false`.
@@ -118,42 +114,9 @@ pub struct RoomState {
     pub servers_in_room: Option<Vec<String>>,
 }
 
-#[cfg(feature = "unstable-unspecified")]
-impl Default for RoomState {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl RoomState {
-    #[cfg(not(feature = "unstable-unspecified"))]
-    /// Creates an empty `RoomState` with the given `origin`.
-    ///
-    /// With the `unstable-unspecified` feature, this method doesn't take any parameters.
-    /// See [matrix-spec#374](https://github.com/matrix-org/matrix-spec/issues/374).
-    pub fn new(origin: String) -> Self {
-        Self {
-            origin,
-            auth_chain: Vec::new(),
-            state: Vec::new(),
-            event: None,
-            members_omitted: false,
-            servers_in_room: None,
-        }
-    }
-
-    #[cfg(feature = "unstable-unspecified")]
-    /// Creates an empty `RoomState` with the given `origin`.
-    ///
-    /// Without the `unstable-unspecified` feature, this method takes a parameter for the origin.
-    /// See [matrix-spec#374](https://github.com/matrix-org/matrix-spec/issues/374).
+    /// Creates an empty `RoomState`.
     pub fn new() -> Self {
-        Self {
-            auth_chain: Vec::new(),
-            state: Vec::new(),
-            event: None,
-            members_omitted: false,
-            servers_in_room: None,
-        }
+        Self::default()
     }
 }
