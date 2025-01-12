@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+- Remove the `origin` field in `create_join_event::{v1/v2}::RoomState` due to a
+  clarification in the spec.
+
 # 0.11.0
 
 Improvements:
