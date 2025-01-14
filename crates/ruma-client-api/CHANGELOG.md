@@ -4,6 +4,11 @@ Breaking changes:
 
 - Use `AuthType` for the `auth_type` of `get_uiaa_fallback_page`'s Request.
 
+Bug fixes:
+
+- `unstable-msc4186` without `unstable-msc3575` no longer create a compilation
+  failure.
+
 Improvements:
 
 - Add support for new dehydration format, according to the latest draft of
