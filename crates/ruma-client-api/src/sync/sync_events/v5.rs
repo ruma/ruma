@@ -20,7 +20,9 @@ use ruma_common::{
 use ruma_events::{AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent, StateEventType};
 use serde::{Deserialize, Serialize};
 
-use super::{v4, UnreadNotificationsCount};
+#[cfg(feature = "unstable-msc3575")]
+use super::v4;
+use super::UnreadNotificationsCount;
 
 const METADATA: Metadata = metadata! {
     method: POST,
@@ -725,6 +727,7 @@ pub mod response {
     }
 }
 
+#[cfg(feature = "unstable-msc3575")]
 impl From<v4::Response> for Response {
     fn from(value: v4::Response) -> Self {
         Self {
@@ -737,12 +740,14 @@ impl From<v4::Response> for Response {
     }
 }
 
+#[cfg(feature = "unstable-msc3575")]
 impl From<v4::SyncList> for response::List {
     fn from(value: v4::SyncList) -> Self {
         Self { count: value.count }
     }
 }
 
+#[cfg(feature = "unstable-msc3575")]
 impl From<v4::SlidingSyncRoom> for response::Room {
     fn from(value: v4::SlidingSyncRoom) -> Self {
         Self {
@@ -765,12 +770,14 @@ impl From<v4::SlidingSyncRoom> for response::Room {
     }
 }
 
+#[cfg(feature = "unstable-msc3575")]
 impl From<v4::SlidingSyncRoomHero> for response::Hero {
     fn from(value: v4::SlidingSyncRoomHero) -> Self {
         Self { user_id: value.user_id, name: value.name, avatar: value.avatar }
     }
 }
 
+#[cfg(feature = "unstable-msc3575")]
 impl From<v4::Extensions> for response::Extensions {
     fn from(value: v4::Extensions) -> Self {
         Self {
@@ -783,12 +790,14 @@ impl From<v4::Extensions> for response::Extensions {
     }
 }
 
+#[cfg(feature = "unstable-msc3575")]
 impl From<v4::ToDevice> for response::ToDevice {
     fn from(value: v4::ToDevice) -> Self {
         Self { next_batch: value.next_batch, events: value.events }
     }
 }
 
+#[cfg(feature = "unstable-msc3575")]
 impl From<v4::E2EE> for response::E2EE {
     fn from(value: v4::E2EE) -> Self {
         Self {
@@ -799,18 +808,21 @@ impl From<v4::E2EE> for response::E2EE {
     }
 }
 
+#[cfg(feature = "unstable-msc3575")]
 impl From<v4::AccountData> for response::AccountData {
     fn from(value: v4::AccountData) -> Self {
         Self { global: value.global, rooms: value.rooms }
     }
 }
 
+#[cfg(feature = "unstable-msc3575")]
 impl From<v4::Receipts> for response::Receipts {
     fn from(value: v4::Receipts) -> Self {
         Self { rooms: value.rooms }
     }
 }
 
+#[cfg(feature = "unstable-msc3575")]
 impl From<v4::Typing> for response::Typing {
     fn from(value: v4::Typing) -> Self {
         Self { rooms: value.rooms }
