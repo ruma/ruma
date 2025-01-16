@@ -549,6 +549,18 @@ fn expand_accessor_methods(
                     }),
                 }
             }
+
+            /// Returns whether this event is redacted.
+            pub fn is_redacted(&self) -> bool {
+                match self {
+                    #(
+                        #self_variants(event) => {
+                            event.as_original().is_none()
+                        }
+                    )*
+                    Self::_Custom(event) => event.as_original().is_none(),
+                }
+            }
         };
 
         if kind == EventKind::State {
