@@ -47,10 +47,11 @@ fn redacted_aliases_event_serialize_with_content() {
 }
 
 #[test]
-fn deserialize_redacted_aliases() {
+fn deserialize_redacted_state() {
     let redacted = json!({
         "content": {},
         "event_id": "$h29iv0s8:example.com",
+        "room_id": "!roomid:room.com",
         "origin_server_ts": 1,
         "sender": "@carl:example.com",
         "state_key": "hello",
@@ -60,16 +61,17 @@ fn deserialize_redacted_aliases() {
 
     assert_matches!(
         from_json_value::<AnySyncTimelineEvent>(redacted),
-        Ok(AnySyncTimelineEvent::State(AnySyncStateEvent::RoomAliases(SyncStateEvent::Redacted(
-            redacted
-        ),)))
+        Ok(AnySyncTimelineEvent::State(event))
     );
+    assert!(event.is_redacted());
+
+    assert_matches!(event, AnySyncStateEvent::RoomAliases(SyncStateEvent::Redacted(redacted)));
     assert_eq!(redacted.event_id, "$h29iv0s8:example.com");
     assert_eq!(redacted.content.aliases, None);
 }
 
 #[test]
-fn deserialize_redacted_any_room() {
+fn deserialize_redacted_message_like() {
     let redacted = json!({
         "content": {},
         "event_id": "$h29iv0s8:example.com",
@@ -82,16 +84,17 @@ fn deserialize_redacted_any_room() {
 
     assert_matches!(
         from_json_value::<AnyTimelineEvent>(redacted),
-        Ok(AnyTimelineEvent::MessageLike(AnyMessageLikeEvent::RoomMessage(
-            MessageLikeEvent::Redacted(redacted),
-        )))
+        Ok(AnyTimelineEvent::MessageLike(event))
     );
+    assert!(event.is_redacted());
+
+    assert_matches!(event, AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Redacted(redacted)));
     assert_eq!(redacted.event_id, "$h29iv0s8:example.com");
     assert_eq!(redacted.room_id, "!roomid:room.com");
 }
 
 #[test]
-fn deserialize_redacted_any_room_sync() {
+fn deserialize_redacted_sync_message_like() {
     let redacted = json!({
         "content": {},
         "event_id": "$h29iv0s8:example.com",
@@ -103,16 +106,20 @@ fn deserialize_redacted_any_room_sync() {
 
     assert_matches!(
         from_json_value::<AnySyncTimelineEvent>(redacted),
-        Ok(AnySyncTimelineEvent::MessageLike(AnySyncMessageLikeEvent::RoomMessage(
-            SyncMessageLikeEvent::Redacted(redacted),
-        )))
+        Ok(AnySyncTimelineEvent::MessageLike(event))
+    );
+    assert!(event.is_redacted());
+
+    assert_matches!(
+        event,
+        AnySyncMessageLikeEvent::RoomMessage(SyncMessageLikeEvent::Redacted(redacted))
     );
     assert_eq!(redacted.event_id, "$h29iv0s8:example.com");
 }
 
 #[test]
 #[allow(deprecated)]
-fn deserialize_redacted_state_event() {
+fn deserialize_redacted_sync_state() {
     let redacted = json!({
         "content": {
             "creator": "@carl:example.com",
@@ -127,16 +134,17 @@ fn deserialize_redacted_state_event() {
 
     assert_matches!(
         from_json_value::<AnySyncTimelineEvent>(redacted),
-        Ok(AnySyncTimelineEvent::State(AnySyncStateEvent::RoomCreate(SyncStateEvent::Redacted(
-            redacted
-        ),)))
+        Ok(AnySyncTimelineEvent::State(event))
     );
+    assert!(event.is_redacted());
+
+    assert_matches!(event, AnySyncStateEvent::RoomCreate(SyncStateEvent::Redacted(redacted)));
     assert_eq!(redacted.event_id, "$h29iv0s8:example.com");
     assert_eq!(redacted.content.creator.unwrap(), "@carl:example.com");
 }
 
 #[test]
-fn deserialize_redacted_custom_event() {
+fn deserialize_redacted_custom_sync_state() {
     let redacted = json!({
         "content": {},
         "event_id": "$h29iv0s8:example.com",
@@ -151,6 +159,7 @@ fn deserialize_redacted_custom_event() {
         from_json_value::<AnySyncTimelineEvent>(redacted),
         Ok(AnySyncTimelineEvent::State(state_ev))
     );
+    assert!(state_ev.is_redacted());
     assert_eq!(state_ev.event_id(), "$h29iv0s8:example.com");
 }
 

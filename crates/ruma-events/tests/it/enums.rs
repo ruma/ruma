@@ -136,12 +136,18 @@ fn message_event_sync_deserialization() {
 
     assert_matches!(
         from_json_value::<AnySyncTimelineEvent>(json_data),
-        Ok(AnySyncTimelineEvent::MessageLike(AnySyncMessageLikeEvent::RoomMessage(
-            SyncMessageLikeEvent::Original(OriginalSyncMessageLikeEvent {
+        Ok(AnySyncTimelineEvent::MessageLike(event))
+    );
+    assert!(!event.is_redacted());
+
+    assert_matches!(
+        event,
+        AnySyncMessageLikeEvent::RoomMessage(SyncMessageLikeEvent::Original(
+            OriginalSyncMessageLikeEvent {
                 content: RoomMessageEventContent { msgtype: MessageType::Text(text_content), .. },
                 ..
-            },)
-        )))
+            },
+        ))
     );
     assert_eq!(text_content.body, "baba");
     let formatted = text_content.formatted.unwrap();
@@ -154,11 +160,11 @@ fn aliases_event_sync_deserialization() {
 
     assert_matches!(
         from_json_value::<AnySyncTimelineEvent>(json_data),
-        Ok(AnySyncTimelineEvent::State(AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(
-            ev,
-        ))))
+        Ok(AnySyncTimelineEvent::State(state_event))
     );
+    assert!(!state_event.is_redacted());
 
+    assert_matches!(state_event, AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(ev)));
     assert_eq!(ev.content.aliases, vec![room_alias_id!("#somewhere:localhost")]);
 }
 
@@ -168,12 +174,16 @@ fn message_room_event_deserialization() {
 
     assert_matches!(
         from_json_value::<AnyTimelineEvent>(json_data),
-        Ok(AnyTimelineEvent::MessageLike(AnyMessageLikeEvent::RoomMessage(
-            MessageLikeEvent::Original(OriginalMessageLikeEvent {
-                content: RoomMessageEventContent { msgtype: MessageType::Text(text_content), .. },
-                ..
-            },)
-        )))
+        Ok(AnyTimelineEvent::MessageLike(event))
+    );
+    assert!(!event.is_redacted());
+
+    assert_matches!(
+        event,
+        AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(OriginalMessageLikeEvent {
+            content: RoomMessageEventContent { msgtype: MessageType::Text(text_content), .. },
+            ..
+        }))
     );
     assert_eq!(text_content.body, "baba");
     let formatted = text_content.formatted.unwrap();
@@ -196,11 +206,38 @@ fn alias_room_event_deserialization() {
 
     assert_matches!(
         from_json_value::<AnyTimelineEvent>(json_data),
-        Ok(AnyTimelineEvent::State(AnyStateEvent::RoomAliases(StateEvent::Original(
-            OriginalStateEvent { content: RoomAliasesEventContent { aliases, .. }, .. }
-        ))))
+        Ok(AnyTimelineEvent::State(event))
+    );
+    assert!(!event.is_redacted());
+
+    assert_matches!(
+        event,
+        AnyStateEvent::RoomAliases(StateEvent::Original(OriginalStateEvent {
+            content: RoomAliasesEventContent { aliases, .. },
+            ..
+        }))
     );
     assert_eq!(aliases, vec![room_alias_id!("#somewhere:localhost")]);
+}
+
+#[test]
+fn custom_state_event_deserialization() {
+    let redacted = json!({
+        "content": {},
+        "event_id": "$h29iv0s8:example.com",
+        "room_id": "!room:room.com",
+        "origin_server_ts": 1,
+        "sender": "@carl:example.com",
+        "state_key": "hello there",
+        "type": "m.made.up",
+    });
+
+    assert_matches!(
+        from_json_value::<AnyTimelineEvent>(redacted),
+        Ok(AnyTimelineEvent::State(state_ev))
+    );
+    assert!(!state_ev.is_redacted());
+    assert_eq!(state_ev.event_id(), "$h29iv0s8:example.com");
 }
 
 #[test]
