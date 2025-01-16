@@ -169,7 +169,7 @@ fn aliases_event_sync_deserialization() {
 }
 
 #[test]
-fn message_room_event_deserialization() {
+fn message_event_deserialization() {
     let json_data = message_event();
 
     assert_matches!(
@@ -201,7 +201,7 @@ fn message_event_serialization() {
 }
 
 #[test]
-fn alias_room_event_deserialization() {
+fn alias_event_deserialization() {
     let json_data = aliases_event();
 
     assert_matches!(
@@ -238,37 +238,6 @@ fn custom_state_event_deserialization() {
     );
     assert!(!state_ev.is_redacted());
     assert_eq!(state_ev.event_id(), "$h29iv0s8:example.com");
-}
-
-#[test]
-fn message_event_deserialization() {
-    let json_data = message_event();
-
-    assert_matches!(
-        from_json_value::<AnyTimelineEvent>(json_data),
-        Ok(AnyTimelineEvent::MessageLike(AnyMessageLikeEvent::RoomMessage(
-            MessageLikeEvent::Original(OriginalMessageLikeEvent {
-                content: RoomMessageEventContent { msgtype: MessageType::Text(text_content), .. },
-                ..
-            })
-        )))
-    );
-    assert_eq!(text_content.body, "baba");
-    let formatted = text_content.formatted.unwrap();
-    assert_eq!(formatted.body, "<strong>baba</strong>");
-}
-
-#[test]
-fn alias_event_deserialization() {
-    let json_data = aliases_event();
-
-    assert_matches!(
-        from_json_value::<AnyTimelineEvent>(json_data),
-        Ok(AnyTimelineEvent::State(AnyStateEvent::RoomAliases(StateEvent::Original(
-            OriginalStateEvent { content: RoomAliasesEventContent { aliases, .. }, .. }
-        ))))
-    );
-    assert_eq!(aliases, vec![room_alias_id!("#somewhere:localhost")]);
 }
 
 #[test]
