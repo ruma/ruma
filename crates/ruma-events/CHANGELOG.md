@@ -22,6 +22,8 @@ Improvements:
 
 - Add unstable support for the `is_animated` flag for images, according to MSC4230.
 - Add unstable support for MSC2545 for image packs.
+- Add `is_redacted()` accessor to `Any(Sync){MessageLike/State}Event` event enums
+  to know if an event is redacted without needing to clone its content.
 
 # 0.30.0
 
