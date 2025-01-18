@@ -16,6 +16,8 @@ Improvements:
 - Add unstable support for OIDC-aware compatibility, according to MSC3824.
 - Stabilize support for reporting rooms, according to Matrix 1.13.
   - Removes the `unstable-msc4151` cargo feature.
+- Add support for the authorization server metadata endpoint, according to the
+  latest draft of MSC2965.
 
 # 0.20.0
 
