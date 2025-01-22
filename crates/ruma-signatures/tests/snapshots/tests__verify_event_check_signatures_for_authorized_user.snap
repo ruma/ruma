@@ -1,5 +1,6 @@
 ---
 source: crates/ruma-signatures/tests/tests.rs
 expression: signature
+snapshot_kind: text
 ---
-k9EFMDj9rmGt+BECNS1U/bU39/Bqc7Rm/U7PzQNk7DHFAYM8EK3lJTQr1R6hZxTHNtJuiRFDZYwBPzRgs54SDg
+R258cU0L4dWp5oCluQv3ffXctzob7aneCt60xpo4Y0htpLMgf+iLMPUGyYBnF8PdjQrsX/0cKFCZVAV0UFU3BQ
