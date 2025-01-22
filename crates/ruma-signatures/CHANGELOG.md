@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+- Do not check the signature of the server of the sender of `m.room.member`
+  invite events with a `third_party_invite` field.
+
 # 0.17.0
 
 Improvements:
