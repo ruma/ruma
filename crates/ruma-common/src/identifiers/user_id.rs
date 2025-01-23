@@ -48,7 +48,7 @@ impl UserId {
         let id_str = id.as_ref();
 
         if id_str.starts_with('@') {
-            Self::parse(id).map(Into::into)
+            Self::parse(id)
         } else {
             let _ = localpart_is_fully_conforming(id_str)?;
             Ok(Self::from_borrowed(&format!("@{id_str}:{server_name}")).to_owned())
