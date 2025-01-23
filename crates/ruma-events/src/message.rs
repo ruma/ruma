@@ -19,26 +19,26 @@
 //! types. Note that "primary type" means the `type` field at the root of the event and "message
 //! type" means the `msgtype` field in the content of the `m.room.message` primary type.
 //!
-//! - [MSC1767]: Text messages, where the `m.message` primary type replaces the `m.text` message
+//! - [MSC1767][]: Text messages, where the `m.message` primary type replaces the `m.text` message
 //!   type.
-//! - [MSC3954]: Emotes, where the `m.emote` primary type replaces the `m.emote` message type.
-//! - [MSC3955]: Automated events, where the `m.automated` mixin replaces the `m.notice` message
+//! - [MSC3954][]: Emotes, where the `m.emote` primary type replaces the `m.emote` message type.
+//! - [MSC3955][]: Automated events, where the `m.automated` mixin replaces the `m.notice` message
 //!   type.
-//! - [MSC3956]: Encrypted events, where the `m.encrypted` primary type replaces the
+//! - [MSC3956][]: Encrypted events, where the `m.encrypted` primary type replaces the
 //!   `m.room.encrypted` primary type.
-//! - [MSC3551]: Files, where the `m.file` primary type replaces the `m.file` message type.
-//! - [MSC3552]: Images and Stickers, where the `m.image` primary type replaces the `m.image`
+//! - [MSC3551][]: Files, where the `m.file` primary type replaces the `m.file` message type.
+//! - [MSC3552][]: Images and Stickers, where the `m.image` primary type replaces the `m.image`
 //!   message type and the `m.sticker` primary type.
-//! - [MSC3553]: Videos, where the `m.video` primary type replaces the `m.video` message type.
-//! - [MSC3927]: Audio, where the `m.audio` primary type replaces the `m.audio` message type.
-//! - [MSC3488]: Location, where the `m.location` primary type replaces the `m.location` message
+//! - [MSC3553][]: Videos, where the `m.video` primary type replaces the `m.video` message type.
+//! - [MSC3927][]: Audio, where the `m.audio` primary type replaces the `m.audio` message type.
+//! - [MSC3488][]: Location, where the `m.location` primary type replaces the `m.location` message
 //!   type.
 //!
 //! There are also the following MSCs that introduce new features with extensible events:
 //!
-//! - [MSC3245]: Voice Messages.
-//! - [MSC3246]: Audio Waveform.
-//! - [MSC3381]: Polls.
+//! - [MSC3245][]: Voice Messages.
+//! - [MSC3246][]: Audio Waveform.
+//! - [MSC3381][]: Polls.
 //!
 //! # How to use them in Matrix
 //!
