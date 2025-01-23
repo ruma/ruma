@@ -2,3 +2,4 @@
 # Keep in sync with version in `xtask/src/ci.rs` and `.github/workflows/ci.yml`
 channel = "nightly-2025-01-23"
 components = ["rustfmt", "clippy"]
+targets = ["wasm32-unknown-unknown"]
