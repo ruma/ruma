@@ -113,7 +113,10 @@ pub enum IntoHttpError {
 
     /// Tried to create a request with [`MatrixVersion`]s for all of which this endpoint was
     /// removed.
-    #[error("could not create any path variant for endpoint, as it was removed in version {0}")]
+    #[error(
+        "could not create any path variant for endpoint, as it was removed in version {}",
+        .0.as_str().expect("no endpoint was removed in Matrix 1.0")
+    )]
     EndpointRemoved(MatrixVersion),
 
     /// JSON serialization failed.

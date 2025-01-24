@@ -13,6 +13,9 @@ Breaking changes:
   the spec.
 - `(owned_)room_alias_id!` macros disallow the `NUL` byte for the localpart, due
   to a clarification in the spec.
+- `MatrixVersion` does not implement `Display` anymore as it is not correct to
+  convert `V1_0` to a string. Instead `MatrixVersion::as_str()` can be used that
+  only returns `None` for that same variant.
 
 Improvements:
 
