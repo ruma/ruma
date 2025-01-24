@@ -20,7 +20,7 @@ use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 use tracing::{debug, error, info, instrument, trace, warn};
 
 use crate::{
-    power_levels::{
+    events::{
         deserialize_power_levels, deserialize_power_levels_content_fields,
         deserialize_power_levels_content_invite, deserialize_power_levels_content_redact,
     },

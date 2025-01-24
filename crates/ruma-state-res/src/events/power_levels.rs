@@ -1,3 +1,5 @@
+//! Types to deserialize `m.room.power_levels` events.
+
 use std::collections::BTreeMap;
 
 use js_int::Int;

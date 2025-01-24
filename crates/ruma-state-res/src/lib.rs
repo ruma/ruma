@@ -16,17 +16,18 @@ use tracing::{debug, info, instrument, trace, warn};
 
 mod error;
 pub mod event_auth;
-mod power_levels;
+mod events;
 pub mod room_version;
-mod state_event;
 #[cfg(test)]
 mod test_utils;
 
-pub use error::{Error, Result};
-pub use event_auth::{auth_check, auth_types_for_event};
-use power_levels::PowerLevelsContentFields;
-pub use room_version::RoomVersion;
-pub use state_event::Event;
+use self::events::PowerLevelsContentFields;
+pub use self::{
+    error::{Error, Result},
+    event_auth::{auth_check, auth_types_for_event},
+    events::Event,
+    room_version::RoomVersion,
+};
 
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
 pub type StateMap<T> = HashMap<(StateEventType, String), T>;
