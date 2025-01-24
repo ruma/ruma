@@ -14,6 +14,11 @@ Breaking changes:
 - `(owned_)room_alias_id!` macros disallow the `NUL` byte for the localpart, due
   to a clarification in the spec.
 
+Improvements:
+
+- `MatrixVersion` implements `PartialOrd` and `Ord`. The variants are ordered by
+  release date, with a newer version being greater than an older version.
+
 # 0.15.1
 
 Improvements:
