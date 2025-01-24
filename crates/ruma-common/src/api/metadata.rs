@@ -487,9 +487,17 @@ pub enum VersioningDecision {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum MatrixVersion {
-    /// Version 1.0 of the Matrix specification.
+    /// Matrix 1.0 was a release prior to the global versioning system and does not correspond to a
+    /// version of the Matrix specification.
     ///
-    /// Retroactively defined as <https://spec.matrix.org/latest/#legacy-versioning>.
+    /// It is used to represent the following per-API versions:
+    ///
+    /// * Client-Server API: r0.5.0 to r0.6.1
+    /// * Identity Service API: r0.2.0 to r0.3.0
+    ///
+    /// The other APIs are not supported because they do not have a `GET /versions` endpoint.
+    ///
+    /// See <https://spec.matrix.org/latest/#legacy-versioning>.
     V1_0,
 
     /// Version 1.1 of the Matrix specification, released in Q4 2021.
@@ -565,9 +573,10 @@ impl TryFrom<&str> for MatrixVersion {
         use MatrixVersion::*;
 
         Ok(match value {
-            // FIXME: these are likely not entirely correct; https://github.com/ruma/ruma/issues/852
-            "v1.0" |
-            // Additional definitions according to https://spec.matrix.org/latest/#legacy-versioning
+            // Identity service API versions between Matrix 1.0 and 1.1.
+            // They might match older client-server API versions but that should not be a problem in practice.
+            "r0.2.0" | "r0.2.1" | "r0.3.0" |
+            // Client-server API versions between Matrix 1.0 and 1.1.
             "r0.5.0" | "r0.6.0" | "r0.6.1" => V1_0,
             "v1.1" => V1_1,
             "v1.2" => V1_2,
