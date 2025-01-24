@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+- `MatrixVersion::V1_0` now also matches Identity Service API versions r0.2.0 to
+  r0.3.0.
+
 # 0.15.1
 
 Improvements:
