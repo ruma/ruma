@@ -5,6 +5,11 @@ Bug fixes:
 - `MatrixVersion::V1_0` now also matches Identity Service API versions r0.2.0 to
   r0.3.0.
 
+Improvements:
+
+- `MatrixVersion` implements `PartialOrd` and `Ord`. The variants are ordered by
+  release date, with a newer version being greater than an older version.
+
 # 0.15.1
 
 Improvements:
