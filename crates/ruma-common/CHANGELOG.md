@@ -16,6 +16,9 @@ Breaking changes:
 - `MatrixVersion` does not implement `Display` anymore as it is not correct to
   convert `V1_0` to a string. Instead `MatrixVersion::as_str()` can be used that
   only returns `None` for that same variant.
+- `MatrixVersion::(into/from)_parts` are no longer exposed as public methods.
+  They were usually used to sort `MatrixVersion`s, now the `PartialOrd` and
+  `Ord` implementations can be used instead.
 
 Improvements:
 
