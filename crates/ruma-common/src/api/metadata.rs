@@ -473,10 +473,11 @@ pub enum VersioningDecision {
 /// The Matrix versions Ruma currently understands to exist.
 ///
 /// Matrix, since fall 2021, has a quarterly release schedule, using a global `vX.Y` versioning
-/// scheme.
+/// scheme. Usually `Y` is bumped for new backwards compatible changes, but `X` can be bumped
+/// instead when a large number of `Y` changes feel deserving of a major version increase.
 ///
-/// Every new minor version denotes stable support for endpoints in a *relatively*
-/// backwards-compatible manner.
+/// Every new version denotes stable support for endpoints in a *relatively* backwards-compatible
+/// manner.
 ///
 /// Matrix has a deprecation policy, read more about it here: <https://spec.matrix.org/latest/#deprecation-policy>.
 ///
@@ -484,13 +485,18 @@ pub enum VersioningDecision {
 /// select the right endpoint stability variation to use depending on which Matrix versions you
 /// pass to [`try_into_http_request`](super::OutgoingRequest::try_into_http_request), see its
 /// respective documentation for more information.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+///
+/// The `PartialOrd` and `Ord` implementations of this type sort the variants by release date. A
+/// newer release is greater than an older release.
+///
+/// `MatrixVersion::is_superset_of()` is used to keep track of compatibility between versions.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum MatrixVersion {
     /// Matrix 1.0 was a release prior to the global versioning system and does not correspond to a
     /// version of the Matrix specification.
     ///
-    /// It is used to represent the following per-API versions:
+    /// It matches the following per-API versions:
     ///
     /// * Client-Server API: r0.5.0 to r0.6.1
     /// * Identity Service API: r0.2.0 to r0.3.0
@@ -607,23 +613,15 @@ impl FromStr for MatrixVersion {
 impl MatrixVersion {
     /// Checks whether a version is compatible with another.
     ///
-    /// A is compatible with B as long as B is equal or less, so long as A and B have the same
-    /// major versions.
+    /// Currently, all versions of Matrix are considered backwards compatible with all the previous
+    /// versions, so this is equivalent to `self >= other`. This behaviour may change in the future,
+    /// if a new release is considered to be breaking compatibility with the previous ones.
     ///
-    /// For example, v1.2 is compatible with v1.1, as it is likely only some additions of
-    /// endpoints on top of v1.1, but v1.1 would not be compatible with v1.2, as v1.1
-    /// cannot represent all of v1.2, in a manner similar to set theory.
-    ///
-    /// Warning: Matrix has a deprecation policy, and Matrix versioning is not as
-    /// straight-forward as this function makes it out to be. This function only exists
-    /// to prune major version differences, and versions too new for `self`.
-    ///
-    /// This (considering if major versions are the same) is equivalent to a `self >= other`
-    /// check.
+    /// > ⚠ Matrix has a deprecation policy, and Matrix versioning is not as straightforward as this
+    /// > function makes it out to be. This function only exists to prune breaking changes between
+    /// > versions, and versions too new for `self`.
     pub fn is_superset_of(self, other: Self) -> bool {
-        let (major_l, minor_l) = self.into_parts();
-        let (major_r, minor_r) = other.into_parts();
-        major_l == major_r && minor_l >= minor_r
+        self >= other
     }
 
     /// Decompose the Matrix version into its major and minor number.
