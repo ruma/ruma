@@ -10,7 +10,7 @@
 //!
 //! [spec]: https://spec.matrix.org/latest/identity-service-api/#get_matrixidentityversions
 
-use std::collections::BTreeMap;
+use std::collections::BTreeSet;
 
 use ruma_common::{
     api::{request, response, MatrixVersion, Metadata},
@@ -58,17 +58,12 @@ impl Response {
     /// The versions returned will be sorted from oldest to latest. Use [`.find()`][Iterator::find]
     /// or [`.rfind()`][DoubleEndedIterator::rfind] to look for a minimum or maximum version to use
     /// given some constraint.
-    pub fn known_versions(&self) -> impl DoubleEndedIterator<Item = MatrixVersion> {
+    pub fn known_versions(&self) -> BTreeSet<MatrixVersion> {
         self.versions
             .iter()
             // Parse, discard unknown versions
             .flat_map(|s| s.parse::<MatrixVersion>())
-            // Map to key-value pairs where the key is the major-minor representation
-            // (which can be used as a BTreeMap unlike MatrixVersion itself)
-            .map(|v| (v.into_parts(), v))
-            // Collect to BTreeMap
-            .collect::<BTreeMap<_, _>>()
-            // Return an iterator over just the values (`MatrixVersion`s)
-            .into_values()
+            // Collect to BTreeSet
+            .collect()
     }
 }
