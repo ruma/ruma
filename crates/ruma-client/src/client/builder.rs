@@ -82,6 +82,7 @@ impl ClientBuilder {
                 )
                 .await?
                 .known_versions()
+                .into_iter()
                 .collect(),
         };
 
