@@ -652,7 +652,7 @@ impl MatrixVersion {
     }
 
     /// Decompose the Matrix version into its major and minor number.
-    pub const fn into_parts(self) -> (u8, u8) {
+    const fn into_parts(self) -> (u8, u8) {
         match self {
             MatrixVersion::V1_0 => (1, 0),
             MatrixVersion::V1_1 => (1, 1),
@@ -672,7 +672,7 @@ impl MatrixVersion {
     }
 
     /// Try to turn a pair of (major, minor) version components back into a `MatrixVersion`.
-    pub const fn from_parts(major: u8, minor: u8) -> Result<Self, UnknownVersionError> {
+    const fn from_parts(major: u8, minor: u8) -> Result<Self, UnknownVersionError> {
         match (major, minor) {
             (1, 0) => Ok(MatrixVersion::V1_0),
             (1, 1) => Ok(MatrixVersion::V1_1),
