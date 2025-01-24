@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+- `get_supported_versions::Response::known_versions()` returns a
+  `BTreeSet<MatrixVersion>` instead of a `DoubleEndedIterator`.
+
 # 0.11.0
 
 Improvements:
