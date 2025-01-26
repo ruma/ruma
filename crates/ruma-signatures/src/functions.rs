@@ -39,10 +39,10 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["signatures", "unsigned"];
 ///
 /// # Parameters
 ///
-/// * entity_id: The identifier of the entity creating the signature. Generally this means a
-///   homeserver, e.g. "example.com".
-/// * key_pair: A cryptographic key pair used to sign the JSON.
-/// * object: A JSON object to sign according and append a signature to.
+/// * `entity_id`: The identifier of the entity creating the signature. Generally this means a
+///   homeserver, e.g. `example.com`.
+/// * `key_pair`: A cryptographic key pair used to sign the JSON.
+/// * `object`: A JSON object to sign according and append a signature to.
 ///
 /// # Errors
 ///
@@ -139,7 +139,7 @@ where
 ///
 /// # Parameters
 ///
-/// * object: The JSON object to convert.
+/// * `object`: The JSON object to convert.
 ///
 /// # Examples
 ///
@@ -160,17 +160,20 @@ pub fn canonical_json(object: &CanonicalJsonObject) -> Result<String, Error> {
 
 /// Uses a set of public keys to verify a signed JSON object.
 ///
+/// Signatures using an unsupported algorithm are ignored, but each entity must have at least one
+/// signature from a supported algorithm.
+///
 /// Unlike `content_hash` and `reference_hash`, this function does not report an error if the
 /// canonical JSON is larger than 65535 bytes; this function may be used for requests that are
 /// larger than just one PDU's maximum size.
 ///
 /// # Parameters
 ///
-/// * public_key_map: A map from entity identifiers to a map from key identifiers to public keys.
+/// * `public_key_map`: A map from entity identifiers to a map from key identifiers to public keys.
 ///   Generally, entity identifiers are server names — the host/IP/port of a homeserver (e.g.
-///   "example.com") for which a signature must be verified. Key identifiers for each server (e.g.
-///   "ed25519:1") then map to their respective public keys.
-/// * object: The JSON object that was signed.
+///   `example.com`) for which a signature must be verified. Key identifiers for each server (e.g.
+///   `ed25519:1`) then map to their respective public keys.
+/// * `object`: The JSON object that was signed.
 ///
 /// # Errors
 ///
@@ -261,10 +264,10 @@ pub fn verify_json(
 ///
 /// # Parameters
 ///
-/// * verifier: A `Verifier` appropriate for the digital signature algorithm that was used.
-/// * public_key: The raw bytes of the public key used to sign the JSON.
-/// * signature: The raw bytes of the signature.
-/// * object: The JSON object that was signed.
+/// * `verifier`: A [`Verifier`] appropriate for the digital signature algorithm that was used.
+/// * `public_key`: The raw bytes of the public key used to sign the JSON.
+/// * `signature`: The raw bytes of the signature.
+/// * `object`: The JSON object that was signed.
 ///
 /// # Errors
 ///
@@ -288,7 +291,7 @@ where
 ///
 /// # Parameters
 ///
-/// object: A JSON object to generate a content hash for.
+/// * `object`: A JSON object to generate a content hash for.
 ///
 /// # Errors
 ///
@@ -306,24 +309,32 @@ pub fn content_hash(object: &CanonicalJsonObject) -> Result<Base64<Standard, [u8
 
 /// Creates a *reference hash* for an event.
 ///
-/// Returns the hash as a base64-encoded string, using the standard character set, without padding.
-///
 /// The reference hash of an event covers the essential fields of an event, including content
-/// hashes. It is used to generate event identifiers and is described in the Matrix server-server
-/// specification.
+/// hashes.
+///
+/// Returns the hash as a base64-encoded string, without padding. The correct character set is used
+/// depending on the room version:
+///
+/// * For room versions 1 and 2, the standard character set is used for sending the reference hash
+///   of the `auth_events` and `prev_events`.
+/// * For room version 3, the standard character set is used for using the reference hash as the
+///   event ID.
+/// * For newer versions, the URL-safe character set is used for using the reference hash as the
+///   event ID.
 ///
 /// # Parameters
 ///
-/// object: A JSON object to generate a reference hash for.
+/// * `object`: A JSON object to generate a reference hash for.
+/// * `room_version`: The version of the event's room.
 ///
 /// # Errors
 ///
 /// Returns an error if the event is too large or redaction fails.
 pub fn reference_hash(
-    value: &CanonicalJsonObject,
-    version: &RoomVersionId,
+    object: &CanonicalJsonObject,
+    room_version: &RoomVersionId,
 ) -> Result<String, Error> {
-    let redacted_value = redact(value.clone(), version, None)?;
+    let redacted_value = redact(object.clone(), room_version, None)?;
 
     let json =
         canonical_json_with_fields_to_remove(&redacted_value, REFERENCE_HASH_FIELDS_TO_REMOVE)?;
@@ -333,7 +344,7 @@ pub fn reference_hash(
 
     let hash = Sha256::digest(json.as_bytes());
 
-    let base64_alphabet = match version {
+    let base64_alphabet = match room_version {
         RoomVersionId::V1 | RoomVersionId::V2 | RoomVersionId::V3 => alphabet::STANDARD,
         // Room versions higher than version 3 are url safe base64 encoded
         _ => alphabet::URL_SAFE,
@@ -354,10 +365,11 @@ pub fn reference_hash(
 ///
 /// # Parameters
 ///
-/// * entity_id: The identifier of the entity creating the signature. Generally this means a
+/// * `entity_id`: The identifier of the entity creating the signature. Generally this means a
 ///   homeserver, e.g. "example.com".
-/// * key_pair: A cryptographic key pair used to sign the event.
-/// * object: A JSON object to be hashed and signed according to the Matrix specification.
+/// * `key_pair`: A cryptographic key pair used to sign the event.
+/// * `object`: A JSON object to be hashed and signed according to the Matrix specification.
+/// * `room_version`: The version of the event's room.
 ///
 /// # Errors
 ///
@@ -445,7 +457,7 @@ pub fn hash_and_sign_event<K>(
     entity_id: &str,
     key_pair: &K,
     object: &mut CanonicalJsonObject,
-    version: &RoomVersionId,
+    room_version: &RoomVersionId,
 ) -> Result<(), Error>
 where
     K: KeyPair,
@@ -463,7 +475,7 @@ where
         _ => return Err(JsonError::not_of_type("hashes", JsonType::Object)),
     };
 
-    let mut redacted = redact(object.clone(), version, None)?;
+    let mut redacted = redact(object.clone(), room_version, None)?;
 
     sign_json(entity_id, key_pair, &mut redacted)?;
 
@@ -479,18 +491,18 @@ where
 /// All known public keys for a homeserver should be provided. The first one found on the given
 /// event will be used.
 ///
-/// If the `Ok` variant is returned by this function, it will contain a `Verified` value which
+/// If the `Ok` variant is returned by this function, it will contain a [`Verified`] value which
 /// distinguishes an event with valid signatures and a matching content hash with an event with
-/// only valid signatures. See the documentation for `Verified` for details.
+/// only valid signatures. See the documentation for [`Verified`] for details.
 ///
 /// # Parameters
 ///
-/// * public_key_map: A map from entity identifiers to a map from key identifiers to public keys.
+/// * `public_key_map`: A map from entity identifiers to a map from key identifiers to public keys.
 ///   Generally, entity identifiers are server names—the host/IP/port of a homeserver (e.g.
 ///   "example.com") for which a signature must be verified. Key identifiers for each server (e.g.
 ///   "ed25519:1") then map to their respective public keys.
-/// * object: The JSON object of the event that was signed.
-/// * version: Room version of the given event
+/// * `object`: The JSON object of the event that was signed.
+/// * `room_version`: The version of the event's room.
 ///
 /// # Examples
 ///
@@ -542,9 +554,9 @@ where
 pub fn verify_event(
     public_key_map: &PublicKeyMap,
     object: &CanonicalJsonObject,
-    version: &RoomVersionId,
+    room_version: &RoomVersionId,
 ) -> Result<Verified, Error> {
-    let redacted = redact(object.clone(), version, None)?;
+    let redacted = redact(object.clone(), room_version, None)?;
 
     let hash = match object.get("hashes") {
         Some(hashes_value) => match hashes_value {
@@ -566,7 +578,7 @@ pub fn verify_event(
         None => return Err(JsonError::field_missing_from_object("signatures")),
     };
 
-    let servers_to_check = servers_to_check_signatures(object, version)?;
+    let servers_to_check = servers_to_check_signatures(object, room_version)?;
     let canonical_json = from_json_str(&canonical_json(&redacted)?).map_err(JsonError::from)?;
 
     for entity_id in servers_to_check {
@@ -661,7 +673,7 @@ fn canonical_json_with_fields_to_remove(
 /// [validating signatures on received events]: https://spec.matrix.org/latest/server-server-api/#validating-hashes-and-signatures-on-received-events
 fn servers_to_check_signatures(
     object: &CanonicalJsonObject,
-    version: &RoomVersionId,
+    room_version: &RoomVersionId,
 ) -> Result<BTreeSet<OwnedServerName>, Error> {
     let mut servers_to_check = BTreeSet::new();
 
@@ -677,7 +689,7 @@ fn servers_to_check_signatures(
         };
     }
 
-    match version {
+    match room_version {
         RoomVersionId::V1 | RoomVersionId::V2 => match object.get("event_id") {
             Some(CanonicalJsonValue::String(raw_event_id)) => {
                 let event_id: OwnedEventId =
@@ -685,7 +697,9 @@ fn servers_to_check_signatures(
 
                 let server_name = event_id
                     .server_name()
-                    .ok_or_else(|| ParseError::from_event_id_by_room_version(&event_id, version))?
+                    .ok_or_else(|| {
+                        ParseError::from_event_id_by_room_version(&event_id, room_version)
+                    })?
                     .to_owned();
 
                 servers_to_check.insert(server_name);

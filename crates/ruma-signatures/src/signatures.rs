@@ -22,8 +22,8 @@ impl Signature {
     ///
     /// # Parameters
     ///
-    /// * id: A key identifier, e.g. "ed25519:1".
-    /// * bytes: The digital signature, as a series of bytes.
+    /// * `id`: A key identifier, e.g. `ed25519:1`.
+    /// * `bytes`: The digital signature, as a series of bytes.
     ///
     /// # Errors
     ///
@@ -54,7 +54,7 @@ impl Signature {
     }
 
     /// The key identifier, a string containing the signature algorithm and the key "version"
-    /// separated by a colon, e.g. "ed25519:1".
+    /// separated by a colon, e.g. `ed25519:1`.
     pub fn id(&self) -> String {
         self.key_id.to_string()
     }

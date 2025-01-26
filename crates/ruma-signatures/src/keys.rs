@@ -22,7 +22,7 @@ pub trait KeyPair: Sized {
     ///
     /// # Parameters
     ///
-    /// * message: An arbitrary series of bytes to sign.
+    /// * `message`: An arbitrary series of bytes to sign.
     fn sign(&self, message: &[u8]) -> Signature;
 }
 
@@ -67,9 +67,9 @@ impl Ed25519KeyPair {
     ///
     /// # Parameters
     ///
-    /// * document: PKCS#8 v1/v2 DER-formatted document containing the private (and optionally
+    /// * `document`: PKCS#8 v1/v2 DER-formatted document containing the private (and optionally
     ///   public) key.
-    /// * version: The "version" of the key used for this signature. Versions are used as an
+    /// * `version`: The "version" of the key used for this signature. Versions are used as an
     ///   identifier to distinguish signatures generated from different keys but using the same
     ///   algorithm on the same homeserver.
     ///
@@ -132,7 +132,7 @@ impl Ed25519KeyPair {
     ///
     /// # Returns
     ///
-    /// Returns a `Vec<u8>` representing a DER-encoded PKCS#8 v2 document (with public key)
+    /// Returns a `Vec<u8>` representing a DER-encoded PKCS#8 v2 document (with public key).
     ///
     /// # Errors
     ///
@@ -177,7 +177,7 @@ impl Debug for Ed25519KeyPair {
 
 /// A map from entity names to sets of public keys for that entity.
 ///
-/// "Entity" is generally a homeserver, e.g. "example.com".
+/// An entity is generally a homeserver, e.g. `example.com`.
 pub type PublicKeyMap = BTreeMap<String, PublicKeySet>;
 
 /// A set of public keys for a single homeserver.
