@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use ruma_common::user_id;
 use ruma_events::{
     room::{
         join_rules::{AllowRule, JoinRule, Restricted, RoomJoinRulesEventContent, RoomMembership},
@@ -7,13 +8,14 @@ use ruma_events::{
     },
     StateEventType, TimelineEventType,
 };
-use serde_json::value::to_raw_value as to_raw_json_value;
+use serde_json::{json, value::to_raw_value as to_raw_json_value};
 
+use super::check_room_create;
 use crate::{
     event_auth::valid_membership_change,
     test_utils::{
         alice, charlie, ella, event_id, member_content_ban, member_content_join, room_id,
-        to_pdu_event, PduEvent, INITIAL_EVENTS, INITIAL_EVENTS_CREATE_ROOM,
+        to_init_pdu_event, to_pdu_event, PduEvent, INITIAL_EVENTS, INITIAL_EVENTS_CREATE_ROOM,
     },
     Event, EventTypeExt, RoomVersion, StateMap,
 };
@@ -302,4 +304,104 @@ fn test_knock() {
         fetch_state(StateEventType::RoomCreate, "".to_owned()).unwrap(),
     )
     .unwrap());
+}
+
+#[test]
+fn valid_room_create() {
+    // Minimal fields valid for room v1.
+    let content = json!({
+        "creator": alice(),
+    });
+    let event = to_init_pdu_event(
+        "CREATE",
+        alice(),
+        TimelineEventType::RoomCreate,
+        Some(""),
+        to_raw_json_value(&content).unwrap(),
+    );
+    assert!(check_room_create(event, &RoomVersion::V1).unwrap());
+
+    // Same, with room version.
+    let content = json!({
+        "creator": alice(),
+        "room_version": "2",
+    });
+    let event = to_init_pdu_event(
+        "CREATE",
+        alice(),
+        TimelineEventType::RoomCreate,
+        Some(""),
+        to_raw_json_value(&content).unwrap(),
+    );
+    assert!(check_room_create(event, &RoomVersion::V2).unwrap());
+
+    // With a room version that does not need the creator.
+    let content = json!({
+        "room_version": "11",
+    });
+    let event = to_init_pdu_event(
+        "CREATE",
+        alice(),
+        TimelineEventType::RoomCreate,
+        Some(""),
+        to_raw_json_value(&content).unwrap(),
+    );
+    assert!(check_room_create(event, &RoomVersion::V11).unwrap());
+}
+
+#[test]
+fn invalid_room_create() {
+    // With a prev event.
+    let content = json!({
+        "creator": alice(),
+    });
+    let event = to_pdu_event(
+        "CREATE",
+        alice(),
+        TimelineEventType::RoomCreate,
+        Some(""),
+        to_raw_json_value(&content).unwrap(),
+        &["OTHER_CREATE"],
+        &["OTHER_CREATE"],
+    );
+    assert!(!check_room_create(event, &RoomVersion::V1).unwrap());
+
+    // Sender with a different domain.
+    let creator = user_id!("@bot:bar");
+    let content = json!({
+        "creator": creator,
+    });
+    let event = to_init_pdu_event(
+        "CREATE",
+        creator,
+        TimelineEventType::RoomCreate,
+        Some(""),
+        to_raw_json_value(&content).unwrap(),
+    );
+    assert!(!check_room_create(event, &RoomVersion::V1).unwrap());
+
+    // Room version that is not a string.
+    let content = json!({
+        "creator": alice(),
+        "room_version": 1,
+    });
+    let event = to_init_pdu_event(
+        "CREATE",
+        alice(),
+        TimelineEventType::RoomCreate,
+        Some(""),
+        to_raw_json_value(&content).unwrap(),
+    );
+    assert!(!check_room_create(event, &RoomVersion::V1).unwrap());
+
+    // No creator in v1.
+    let content = json!({});
+    let event = to_init_pdu_event(
+        "CREATE",
+        alice(),
+        TimelineEventType::RoomCreate,
+        Some(""),
+        to_raw_json_value(&content).unwrap(),
+    );
+    assert!(!check_room_create(event, &RoomVersion::V1).unwrap());
 }
