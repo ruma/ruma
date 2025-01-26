@@ -165,53 +165,7 @@ pub fn auth_check<E: Event>(
 
     // Since v1, if type is m.room.create:
     if *incoming_event.event_type() == TimelineEventType::RoomCreate {
-        #[derive(Deserialize)]
-        struct RoomCreateContentFields {
-            room_version: Option<Raw<RoomVersionId>>,
-            creator: Option<Raw<IgnoredAny>>,
-        }
-
-        debug!("start m.room.create check");
-
-        // Since v1, if it has any previous events, reject.
-        if incoming_event.prev_events().next().is_some() {
-            warn!("the room creation event had previous events");
-            return Ok(false);
-        }
-
-        // Since v1, if the domain of the room_id does not match the domain of the sender, reject.
-        let Some(room_id_server_name) = incoming_event.room_id().server_name() else {
-            warn!("room ID has no servername");
-            return Ok(false);
-        };
-
-        if room_id_server_name != sender.server_name() {
-            warn!("servername of room ID does not match servername of sender");
-            return Ok(false);
-        }
-
-        // Since v1, if `content.room_version` is present and is not a recognized version, reject.
-        //
-        // FIXME: this only checks if we can deserialize to `RoomVersionId` which accepts any
-        // string. We should check if the version is actually supported, i.e. if we have a
-        // `RoomVersion` for it. But we already take a `RoomVersion` as a parameter so this was
-        // already checked before?
-        let content: RoomCreateContentFields = from_json_str(incoming_event.content().get())?;
-        if content.room_version.map(|v| v.deserialize().is_err()).unwrap_or(false) {
-            warn!("invalid room version found in m.room.create event");
-            return Ok(false);
-        }
-
-        if !room_version.use_room_create_sender {
-            // v1-v10, if content has no creator field, reject.
-            if content.creator.is_none() {
-                warn!("no creator field found in m.room.create content");
-                return Ok(false);
-            }
-        }
-
-        info!("m.room.create event was allowed");
-        return Ok(true);
+        return check_room_create(incoming_event, room_version);
     }
 
     /*
@@ -462,6 +416,56 @@ pub fn auth_check<E: Event>(
 
     // Otherwise, allow.
     info!("allowing event passed all checks");
+    Ok(true)
+}
+
+/// Check whether the given event passes the `m.room.create` authorization rules.
+fn check_room_create(room_create_event: impl Event, room_version: &RoomVersion) -> Result<bool> {
+    #[derive(Deserialize)]
+    struct RoomCreateContentFields {
+        room_version: Option<Raw<RoomVersionId>>,
+        creator: Option<Raw<IgnoredAny>>,
+    }
+
+    debug!("start m.room.create check");
+
+    // Since v1, if it has any previous events, reject.
+    if room_create_event.prev_events().next().is_some() {
+        warn!("the room creation event had previous events");
+        return Ok(false);
+    }
+
+    // Since v1, if the domain of the room_id does not match the domain of the sender, reject.
+    let Some(room_id_server_name) = room_create_event.room_id().server_name() else {
+        warn!("room ID has no servername");
+        return Ok(false);
+    };
+
+    if room_id_server_name != room_create_event.sender().server_name() {
+        warn!("servername of room ID does not match servername of sender");
+        return Ok(false);
+    }
+
+    // Since v1, if `content.room_version` is present and is not a recognized version, reject.
+    //
+    // FIXME: this only checks if we can deserialize to `RoomVersionId` which accepts any
+    // string. We should check if the version is actually supported, i.e. if we have a
+    // `RoomVersion` for it. But we already take a `RoomVersion` as a parameter so this was
+    // already checked before?
+    let content: RoomCreateContentFields = from_json_str(room_create_event.content().get())?;
+    if content.room_version.map(|v| v.deserialize().is_err()).unwrap_or(false) {
+        warn!("invalid room version found in m.room.create event");
+        return Ok(false);
+    }
+
+    // v1-v10, if content has no creator field, reject.
+    if !room_version.use_room_create_sender && content.creator.is_none() {
+        warn!("no creator field found in m.room.create content");
+        return Ok(false);
+    }
+
+    // Otherwise, allow.
+    info!("m.room.create event was allowed");
     Ok(true)
 }
 
