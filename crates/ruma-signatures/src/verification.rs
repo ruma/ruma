@@ -10,9 +10,9 @@ pub(crate) trait Verifier {
     ///
     /// # Parameters
     ///
-    /// * public_key: The raw bytes of the public key of the key pair used to sign the message.
-    /// * signature: The raw bytes of the signature to verify.
-    /// * message: The raw bytes of the message that was signed.
+    /// * `public_key`: The raw bytes of the public key of the key pair used to sign the message.
+    /// * `signature`: The raw bytes of the signature to verify.
+    /// * `message`: The raw bytes of the message that was signed.
     ///
     /// # Errors
     ///
