@@ -7,8 +7,13 @@ use ruma_common::{
 };
 use serde_json::json;
 
-use super::{canonical_json, servers_to_check_signatures, sign_json, verify_event};
-use crate::{Ed25519KeyPair, Error, PublicKeyMap, PublicKeySet, VerificationError, Verified};
+use super::{
+    canonical_json, servers_to_check_signatures, sign_json, verify_canonical_json_bytes,
+    verify_event,
+};
+use crate::{
+    Ed25519KeyPair, Error, KeyPair, PublicKeyMap, PublicKeySet, VerificationError, Verified,
+};
 
 fn generate_key_pair(name: &str) -> Ed25519KeyPair {
     let key_content = Ed25519KeyPair::generate().unwrap();
@@ -600,4 +605,71 @@ fn servers_to_check_signatures_restricted() {
     assert_eq!(servers.len(), 2);
     assert!(servers.contains(server_name!("domain-sender")));
     assert!(servers.contains(server_name!("domain-authorize-user")));
+}
+
+#[test]
+fn verify_canonical_json_bytes_success() {
+    let json = serde_json::from_value(json!({
+        "foo": "bar",
+        "bat": "baz",
+    }))
+    .unwrap();
+    let canonical_json = canonical_json(&json).unwrap();
+
+    let key_pair = generate_key_pair("1");
+    let signature = key_pair.sign(canonical_json.as_bytes());
+
+    verify_canonical_json_bytes(
+        &signature.algorithm(),
+        key_pair.public_key().as_slice(),
+        signature.as_bytes(),
+        canonical_json.as_bytes(),
+    )
+    .unwrap();
+}
+
+#[test]
+fn verify_canonical_json_bytes_unsupported_algorithm() {
+    let json = serde_json::from_value(json!({
+        "foo": "bar",
+        "bat": "baz",
+    }))
+    .unwrap();
+    let canonical_json = canonical_json(&json).unwrap();
+
+    let key_pair = generate_key_pair("1");
+    let signature = key_pair.sign(canonical_json.as_bytes());
+
+    let err = verify_canonical_json_bytes(
+        &"unknown".into(),
+        key_pair.public_key().as_slice(),
+        signature.as_bytes(),
+        canonical_json.as_bytes(),
+    )
+    .unwrap_err();
+    assert_matches!(err, Error::Verification(VerificationError::UnsupportedAlgorithm));
+}
+
+#[test]
+fn verify_canonical_json_bytes_wrong_key() {
+    let json = serde_json::from_value(json!({
+        "foo": "bar",
+        "bat": "baz",
+    }))
+    .unwrap();
+    let canonical_json = canonical_json(&json).unwrap();
+
+    let valid_key_pair = generate_key_pair("1");
+    let signature = valid_key_pair.sign(canonical_json.as_bytes());
+
+    let wrong_key_pair = generate_key_pair("2");
+
+    let err = verify_canonical_json_bytes(
+        &"ed25519".into(),
+        wrong_key_pair.public_key().as_slice(),
+        signature.as_bytes(),
+        canonical_json.as_bytes(),
+    )
+    .unwrap_err();
+    assert_matches!(err, Error::Verification(VerificationError::Signature(_)));
 }

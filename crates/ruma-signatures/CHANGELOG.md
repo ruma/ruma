@@ -13,6 +13,11 @@ Breaking changes:
 - `JsonError::JsonKeyMissing` was replaced by
   `VerificationError::PublicKeyNotFound`
 
+Improvements:
+
+- Add `verify_canonical_json_bytes()` as a low-level function to check the
+  signature of canonical JSON bytes
+
 Bug fixes:
 
 - Do not check the signature of the server of the sender of `m.room.member`
