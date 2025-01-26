@@ -21,7 +21,7 @@ mod tests;
 
 use crate::{
     keys::{KeyPair, PublicKeyMap},
-    verification::{Ed25519Verifier, Verified, Verifier},
+    verification::{verifier_from_algorithm, Verified, Verifier},
     Error, JsonError, ParseError, VerificationError,
 };
 
@@ -244,7 +244,8 @@ pub fn verify_json(
 /// * `entity_id`: The entity to check the signatures for.
 /// * `public_key_map`: A map from entity identifiers to a map from key identifiers to public keys.
 /// * `signature_map`: The map of signatures from the signed JSON object.
-/// * `canonical_json`: The signed canonical JSON bytes.
+/// * `canonical_json`: The signed canonical JSON bytes. Can be obtained by calling
+///   [`canonical_json()`].
 ///
 /// # Errors
 ///
@@ -277,9 +278,9 @@ fn verify_canonical_json_for_entity(
         };
 
         // If the signature uses an unknown algorithm, ignore.
-        if parsed_key_id.algorithm() != SigningKeyAlgorithm::Ed25519 {
+        let Some(verifier) = verifier_from_algorithm(&parsed_key_id.algorithm()) else {
             continue;
-        }
+        };
 
         let public_key = match public_keys.get(key_id) {
             Some(public_key) => public_key,
@@ -301,7 +302,7 @@ fn verify_canonical_json_for_entity(
             .map_err(|e| ParseError::base64("signature", signature, e))?;
 
         verify_canonical_json_with(
-            &Ed25519Verifier,
+            &verifier,
             public_key.as_bytes(),
             signature.as_bytes(),
             canonical_json,
@@ -316,6 +317,35 @@ fn verify_canonical_json_for_entity(
     Ok(())
 }
 
+/// Check a signed JSON object using the given public key and signature, all provided as bytes.
+///
+/// This is a low-level function. In general you will want to use [`verify_event()`] or
+/// [`verify_json()`].
+///
+/// # Parameters
+///
+/// * `algorithm`: The algorithm used for the signature. Currently this method only supports the
+///   ed25519 algorithm.
+/// * `public_key`: The raw bytes of the public key used to sign the JSON.
+/// * `signature`: The raw bytes of the signature.
+/// * `canonical_json`: The signed canonical JSON bytes. Can be obtained by calling
+///   [`canonical_json()`].
+///
+/// # Errors
+///
+/// Returns an error if verification fails.
+pub fn verify_canonical_json_bytes(
+    algorithm: &SigningKeyAlgorithm,
+    public_key: &[u8],
+    signature: &[u8],
+    canonical_json: &[u8],
+) -> Result<(), Error> {
+    let verifier =
+        verifier_from_algorithm(algorithm).ok_or(VerificationError::UnsupportedAlgorithm)?;
+
+    verify_canonical_json_with(&verifier, public_key, signature, canonical_json)
+}
+
 /// Uses a public key to verify signed canonical JSON bytes.
 ///
 /// # Parameters
@@ -323,7 +353,8 @@ fn verify_canonical_json_for_entity(
 /// * `verifier`: A [`Verifier`] appropriate for the digital signature algorithm that was used.
 /// * `public_key`: The raw bytes of the public key used to sign the JSON.
 /// * `signature`: The raw bytes of the signature.
-/// * `canonical_json`: The signed canonical JSON bytes.
+/// * `canonical_json`: The signed canonical JSON bytes. Can be obtained by calling
+///   [`canonical_json()`].
 ///
 /// # Errors
 ///

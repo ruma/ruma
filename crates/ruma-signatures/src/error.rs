@@ -98,6 +98,10 @@ impl JsonError {
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum VerificationError {
+    /// The signature uses an unsupported algorithm.
+    #[error("signature uses an unsupported algorithm")]
+    UnsupportedAlgorithm,
+
     /// The signatures for an entity cannot be found in the signatures map.
     #[error("Could not find signatures for entity {0:?}")]
     NoSignaturesForEntity(String),
