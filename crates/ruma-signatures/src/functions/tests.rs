@@ -2,11 +2,12 @@ use std::collections::BTreeMap;
 
 use assert_matches2::assert_matches;
 use ruma_common::{
-    serde::Base64, CanonicalJsonValue, RoomVersionId, ServerSigningKeyId, SigningKeyAlgorithm,
+    serde::Base64, server_name, CanonicalJsonValue, RoomVersionId, ServerSigningKeyId,
+    SigningKeyAlgorithm,
 };
 use serde_json::json;
 
-use super::{canonical_json, sign_json, verify_event};
+use super::{canonical_json, servers_to_check_signatures, sign_json, verify_event};
 use crate::{Ed25519KeyPair, Error, PublicKeyMap, PublicKeySet, VerificationError, Verified};
 
 fn generate_key_pair(name: &str) -> Ed25519KeyPair {
@@ -81,9 +82,9 @@ fn verify_event_does_not_check_signatures_invite_via_third_party_id() {
                         "signed": {
                             "mxid": "@alice:example.org",
                             "signatures": {
-                            "magic.forest": {
-                                "ed25519:3": "fQpGIW1Snz+pwLZu6sTy2aHy/DYWWTspTJRPyNp0PKkymfIsNffysMl6ObMMFdIJhk6g6pwlIqZ54rxo8SLmAg"
-                            }
+                                "magic.forest": {
+                                    "ed25519:3": "fQpGIW1Snz+pwLZu6sTy2aHy/DYWWTspTJRPyNp0PKkymfIsNffysMl6ObMMFdIJhk6g6pwlIqZ54rxo8SLmAg"
+                                }
                             },
                             "token": "abc123"
                         }
@@ -461,4 +462,139 @@ fn verify_event_with_single_key_with_unknown_algorithm_should_not_accept_event()
         verification_result,
         Err(Error::Verification(VerificationError::UnknownPublicKeysForSignature))
     );
+}
+
+#[test]
+fn servers_to_check_signatures_message() {
+    let message_event_json = json!({
+        "event_id": "$event_id:domain-event",
+        "auth_events": [
+            "$room_create",
+            "$power_levels",
+            "$sender_room_member",
+        ],
+        "content": {
+            "msgtype": "text",
+            "body": "Hello world!",
+        },
+        "depth": 3,
+        "hashes": {
+            "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+        },
+        "origin": "domain",
+        "origin_server_ts": 1_000_000,
+        "prev_events": [
+            "$another_message",
+        ],
+        "room_id": "!x:domain",
+        "sender": "@name:domain-sender",
+        "type": "m.room.message",
+        "unsigned": {
+            "age_ts": 1_000_000,
+        }
+    });
+    let object = serde_json::from_value(message_event_json).unwrap();
+
+    // Check for room v1.
+    let servers = servers_to_check_signatures(&object, &RoomVersionId::V1).unwrap();
+    assert_eq!(servers.len(), 2);
+    assert!(servers.contains(server_name!("domain-sender")));
+    assert!(servers.contains(server_name!("domain-event")));
+
+    // Check for room v6.
+    let servers = servers_to_check_signatures(&object, &RoomVersionId::V6).unwrap();
+    assert_eq!(servers.len(), 1);
+    assert!(servers.contains(server_name!("domain-sender")));
+}
+
+#[test]
+fn servers_to_check_signatures_invite_via_third_party() {
+    let message_event_json = json!({
+        "event_id": "$event_id:domain-event",
+        "auth_events": [
+            "$room_create",
+            "$power_levels",
+            "$sender_room_member",
+        ],
+        "content": {
+            "membership": "invite",
+            "third_party_invite": {},
+        },
+        "depth": 3,
+        "hashes": {
+            "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+        },
+        "origin": "domain",
+        "origin_server_ts": 1_000_000,
+        "prev_events": [
+            "$another_message",
+        ],
+        "room_id": "!x:domain",
+        "sender": "@name:domain-sender",
+        "state_key": "@name:domain-target-user",
+        "type": "m.room.member",
+        "unsigned": {
+            "age_ts": 1_000_000,
+        }
+    });
+    let object = serde_json::from_value(message_event_json).unwrap();
+
+    // Check for room v1.
+    let servers = servers_to_check_signatures(&object, &RoomVersionId::V1).unwrap();
+    assert_eq!(servers.len(), 1);
+    assert!(servers.contains(server_name!("domain-event")));
+
+    // Check for room v6.
+    let servers = servers_to_check_signatures(&object, &RoomVersionId::V6).unwrap();
+    assert_eq!(servers.len(), 0);
+}
+
+#[test]
+fn servers_to_check_signatures_restricted() {
+    let message_event_json = json!({
+        "event_id": "$event_id:domain-event",
+        "auth_events": [
+            "$room_create",
+            "$power_levels",
+            "$sender_room_member",
+        ],
+        "content": {
+            "membership": "join",
+            "join_authorised_via_users_server": "@name:domain-authorize-user",
+        },
+        "depth": 3,
+        "hashes": {
+            "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+        },
+        "origin": "domain",
+        "origin_server_ts": 1_000_000,
+        "prev_events": [
+            "$another_message",
+        ],
+        "room_id": "!x:domain",
+        "sender": "@name:domain-sender",
+        "state_key": "@name:domain-sender",
+        "type": "m.room.member",
+        "unsigned": {
+            "age_ts": 1_000_000,
+        }
+    });
+    let object = serde_json::from_value(message_event_json).unwrap();
+
+    // Check for room v1.
+    let servers = servers_to_check_signatures(&object, &RoomVersionId::V1).unwrap();
+    assert_eq!(servers.len(), 2);
+    assert!(servers.contains(server_name!("domain-sender")));
+    assert!(servers.contains(server_name!("domain-event")));
+
+    // Check for room v6.
+    let servers = servers_to_check_signatures(&object, &RoomVersionId::V6).unwrap();
+    assert_eq!(servers.len(), 1);
+    assert!(servers.contains(server_name!("domain-sender")));
+
+    // Check for room v8.
+    let servers = servers_to_check_signatures(&object, &RoomVersionId::V8).unwrap();
+    assert_eq!(servers.len(), 2);
+    assert!(servers.contains(server_name!("domain-sender")));
+    assert!(servers.contains(server_name!("domain-authorize-user")));
 }
