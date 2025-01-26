@@ -113,9 +113,6 @@ compat-get-3pids = ["ruma-client-api?/compat-get-3pids"]
 # since that's what Synapse sends.
 compat-upload-signatures = ["ruma-client-api?/compat-upload-signatures"]
 
-# Allow extra characters in signature IDs not allowed in the specification.
-compat-signature-id = ["ruma-signatures?/compat-signature-id"]
-
 # Allow TagInfo to contain a stringified floating-point value for the `order` field.
 compat-tag-info = ["ruma-events?/compat-tag-info"]
 
@@ -261,7 +258,6 @@ __compat = [
     "compat-unset-avatar",
     "compat-get-3pids",
     "compat-upload-signatures",
-    "compat-signature-id",
     "compat-tag-info",
     "compat-encrypted-stickers",
     "compat-optional-txn-pdus",

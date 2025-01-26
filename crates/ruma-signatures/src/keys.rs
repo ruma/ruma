@@ -9,9 +9,9 @@ use ed25519_dalek::{pkcs8::ALGORITHM_OID, SecretKey, Signer, SigningKey, PUBLIC_
 use pkcs8::{
     der::zeroize::Zeroizing, DecodePrivateKey, EncodePrivateKey, ObjectIdentifier, PrivateKeyInfo,
 };
-use ruma_common::serde::Base64;
+use ruma_common::{serde::Base64, SigningKeyAlgorithm, SigningKeyId};
 
-use crate::{signatures::Signature, Algorithm, Error, ParseError};
+use crate::{signatures::Signature, Error, ParseError};
 
 #[cfg(feature = "ring-compat")]
 mod compat;
@@ -156,9 +156,11 @@ impl Ed25519KeyPair {
 impl KeyPair for Ed25519KeyPair {
     fn sign(&self, message: &[u8]) -> Signature {
         Signature {
-            algorithm: Algorithm::Ed25519,
+            key_id: SigningKeyId::from_parts(
+                SigningKeyAlgorithm::Ed25519,
+                self.version.as_str().into(),
+            ),
             signature: self.signing_key.sign(message).to_bytes().to_vec(),
-            version: self.version.clone(),
         }
     }
 }
