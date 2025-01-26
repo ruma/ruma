@@ -8,6 +8,10 @@ Breaking changes:
 - The `compat-signature-id` cargo feature was removed. No validation is done on
   the key name of a key ID, to stop assuming that this crate is only used to
   check server signatures.
+- The variants of `VerificationError` were changed to be clearer, have more
+  details about the error, and to support any type of entity.
+- `JsonError::JsonKeyMissing` was replaced by
+  `VerificationError::PublicKeyNotFound`
 
 Bug fixes:
 

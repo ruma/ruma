@@ -1,7 +1,7 @@
 use ruma_common::{
     canonical_json::{JsonType, RedactionError},
     serde::Base64DecodeError,
-    EventId, OwnedEventId, OwnedServerName, RoomVersionId,
+    EventId, OwnedEventId, RoomVersionId,
 };
 use thiserror::Error;
 
@@ -74,21 +74,6 @@ pub enum JsonError {
     #[error("JSON object must contain the field {0:?}")]
     JsonFieldMissingFromObject(String),
 
-    /// A key is missing from a JSON object.
-    ///
-    /// Note that this is different from [`JsonError::JsonFieldMissingFromObject`],
-    /// this error talks about an expected identifying key (`"ed25519:abcd"`)
-    /// missing from a target, where the key has a specific "type"/name.
-    #[error("JSON object {for_target:?} does not have {type_of} key {with_key:?}")]
-    JsonKeyMissing {
-        /// The target from which the key is missing.
-        for_target: String,
-        /// The kind of thing the key indicates.
-        type_of: String,
-        /// The key that is missing.
-        with_key: String,
-    },
-
     /// A more generic JSON error from [`serde_json`].
     #[error(transparent)]
     Serde(#[from] serde_json::Error),
@@ -107,50 +92,37 @@ impl JsonError {
     pub(crate) fn field_missing_from_object<T: Into<String>>(target: T) -> Error {
         Self::JsonFieldMissingFromObject(target.into()).into()
     }
-
-    pub(crate) fn key_missing<T1: Into<String>, T2: Into<String>, T3: Into<String>>(
-        for_target: T1,
-        type_of: T2,
-        with_key: T3,
-    ) -> Error {
-        Self::JsonKeyMissing {
-            for_target: for_target.into(),
-            type_of: type_of.into(),
-            with_key: with_key.into(),
-        }
-        .into()
-    }
 }
 
-/// Errors relating to verification of events and signatures.
+/// Errors relating to verification of signatures.
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum VerificationError {
-    /// For when a signature cannot be found for a `target`.
-    #[error("Could not find signatures for {0:?}")]
-    SignatureNotFound(OwnedServerName),
+    /// The signatures for an entity cannot be found in the signatures map.
+    #[error("Could not find signatures for entity {0:?}")]
+    NoSignaturesForEntity(String),
 
-    /// For when a public key cannot be found for a `target`.
-    #[error("Could not find public key for {0:?}")]
-    PublicKeyNotFound(OwnedServerName),
+    /// The public keys for an entity cannot be found in the public keys map.
+    #[error("Could not find public keys for entity {0:?}")]
+    NoPublicKeysForEntity(String),
 
-    /// For when no public key matches the signature given.
-    #[error("Not signed with any of the given public keys")]
-    UnknownPublicKeysForSignature,
+    /// The public key with the given identifier cannot be found for the given entity.
+    #[error("Could not find public key {key_id:?} for entity {entity:?}")]
+    PublicKeyNotFound {
+        /// The entity for which the key is missing.
+        entity: String,
 
-    /// For when [`ed25519_dalek`] cannot verify a signature.
+        /// The identifier of the key that is missing.
+        key_id: String,
+    },
+
+    /// No signature with a supported algorithm was found for the given entity.
+    #[error("Could not find supported signature for entity {0:?}")]
+    NoSupportedSignatureForEntity(String),
+
+    /// The signature verification failed.
     #[error("Could not verify signature: {0}")]
     Signature(#[source] ed25519_dalek::SignatureError),
-}
-
-impl VerificationError {
-    pub(crate) fn signature_not_found(target: OwnedServerName) -> Error {
-        Self::SignatureNotFound(target).into()
-    }
-
-    pub(crate) fn public_key_not_found(target: OwnedServerName) -> Error {
-        Self::PublicKeyNotFound(target).into()
-    }
 }
 
 /// Errors relating to parsing of all sorts.
