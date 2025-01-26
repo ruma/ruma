@@ -1,5 +1,14 @@
 # [unreleased]
 
+Breaking changes:
+
+- `Algorithm` is replaced by `SigningKeyAlgorithm` from `ruma-common`.
+  - `Signature::new()` returns an `IdParseError`.
+  - `Error::UnsupportedAlgorithm` is removed since it is now unused.
+- The `compat-signature-id` cargo feature was removed. No validation is done on
+  the key name of a key ID, to stop assuming that this crate is only used to
+  check server signatures.
+
 Bug fixes:
 
 - Do not check the signature of the server of the sender of `m.room.member`

@@ -39,6 +39,8 @@ Improvements:
 - The `unstable-unspecified` cargo feature was removed.
 - `Signatures` implements `IntoIterator`.
 - Implement `PartialEqAsRefStr`, `Eq`, `PartialOrdAsRefStr`, `OrdAsRefStr` for `ruma_common::media::Method`.
+- Add `AnyKeyName` as a helper type to use `KeyId` APIs without validating the
+  key name.
 
 # 0.15.1
 
