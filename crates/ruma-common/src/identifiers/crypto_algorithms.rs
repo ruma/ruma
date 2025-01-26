@@ -24,7 +24,7 @@ pub enum DeviceKeyAlgorithm {
 
 /// The signing key algorithms defined in the Matrix spec.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, StringEnum)]
 #[non_exhaustive]
 #[ruma_enum(rename_all = "snake_case")]
 pub enum SigningKeyAlgorithm {

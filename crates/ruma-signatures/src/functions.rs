@@ -10,14 +10,14 @@ use base64::{alphabet, Engine};
 use ruma_common::{
     canonical_json::{redact, JsonType},
     serde::{base64::Standard, Base64},
-    CanonicalJsonObject, CanonicalJsonValue, OwnedEventId, OwnedServerName, RoomVersionId, UserId,
+    AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, OwnedEventId, OwnedServerName,
+    RoomVersionId, SigningKeyAlgorithm, SigningKeyId, UserId,
 };
 use serde_json::{from_str as from_json_str, to_string as to_json_string};
 use sha2::{digest::Digest, Sha256};
 
 use crate::{
     keys::{KeyPair, PublicKeyMap},
-    split_id,
     verification::{Ed25519Verifier, Verified, Verifier},
     Error, JsonError, ParseError, VerificationError,
 };
@@ -584,9 +584,13 @@ pub fn verify_event(
 
         let mut checked = false;
         for (key_id, signature) in signature_set {
-            // Since only ed25519 is supported right now, we don't actually need to check what the
-            // algorithm is. If it split successfully, it's ed25519.
-            if split_id(key_id).is_err() {
+            // If we cannot parse the key ID, ignore.
+            let Ok(parsed_key_id) = <&SigningKeyId<AnyKeyName>>::try_from(key_id.as_str()) else {
+                continue;
+            };
+
+            // If the signature uses an unknown algorithm, ignore.
+            if parsed_key_id.algorithm() != SigningKeyAlgorithm::Ed25519 {
                 continue;
             }
 
