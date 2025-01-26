@@ -204,6 +204,19 @@ impl KeyAlgorithm for DeviceKeyAlgorithm {}
 
 impl KeyAlgorithm for OneTimeKeyAlgorithm {}
 
+/// An opaque identifier type to use with [`KeyId`].
+///
+/// This type has no semantic value and no validation is done. It is meant to be able to use the
+/// [`KeyId`] API without validating the key name.
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+pub struct AnyKeyName(str);
+
+impl KeyName for AnyKeyName {
+    fn validate(_s: &str) -> Result<(), ruma_common::IdParseError> {
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;

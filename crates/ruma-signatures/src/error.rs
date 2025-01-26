@@ -34,10 +34,6 @@ pub enum Error {
     #[error("malformed signature ID: expected version to contain only characters in the character set `[a-zA-Z0-9_]`, found `{0}`")]
     InvalidVersion(String),
 
-    /// The signature uses an unsupported algorithm.
-    #[error("signature uses an unsupported algorithm: {0}")]
-    UnsupportedAlgorithm(String),
-
     /// PDU was too large
     #[error("PDU is larger than maximum of 65535 bytes")]
     PduSize,

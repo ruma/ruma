@@ -44,7 +44,7 @@
 
 #![warn(missing_docs)]
 
-use ruma_common::serde::{AsRefStr, DisplayAsRefStr};
+pub use ruma_common::{IdParseError, SigningKeyAlgorithm};
 
 pub use self::{
     error::{Error, JsonError, ParseError, VerificationError},
@@ -62,48 +62,6 @@ mod functions;
 mod keys;
 mod signatures;
 mod verification;
-
-/// The algorithm used for signing data.
-#[derive(Clone, Debug, Eq, Hash, PartialEq, AsRefStr, DisplayAsRefStr)]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[ruma_enum(rename_all = "snake_case")]
-pub enum Algorithm {
-    /// The Ed25519 digital signature algorithm.
-    Ed25519,
-}
-
-/// Extract the algorithm and version from a key identifier.
-fn split_id(id: &str) -> Result<(Algorithm, String), Error> {
-    /// The length of a valid signature ID.
-    const SIGNATURE_ID_LENGTH: usize = 2;
-
-    let signature_id: Vec<&str> = id.split(':').collect();
-
-    let signature_id_length = signature_id.len();
-
-    if signature_id_length != SIGNATURE_ID_LENGTH {
-        return Err(Error::InvalidLength(signature_id_length));
-    }
-
-    let version = signature_id[1];
-
-    #[cfg(feature = "compat-signature-id")]
-    const EXTRA_ALLOWED: [u8; 3] = [b'_', b'+', b'/'];
-    #[cfg(not(feature = "compat-signature-id"))]
-    const EXTRA_ALLOWED: [u8; 1] = [b'_'];
-    if !version.bytes().all(|ch| ch.is_ascii_alphanumeric() || EXTRA_ALLOWED.contains(&ch)) {
-        return Err(Error::InvalidVersion(version.into()));
-    }
-
-    let algorithm_input = signature_id[0];
-
-    let algorithm = match algorithm_input {
-        "ed25519" => Algorithm::Ed25519,
-        algorithm => return Err(Error::UnsupportedAlgorithm(algorithm.into())),
-    };
-
-    Ok((algorithm, signature_id[1].to_owned()))
-}
 
 #[cfg(test)]
 mod tests {
