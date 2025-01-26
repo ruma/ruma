@@ -13,7 +13,7 @@ use ruma_common::{
     AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, OwnedEventId, OwnedServerName,
     RoomVersionId, SigningKeyAlgorithm, SigningKeyId, UserId,
 };
-use serde_json::{from_str as from_json_str, to_string as to_json_string};
+use serde_json::to_string as to_json_string;
 use sha2::{digest::Digest, Sha256};
 
 #[cfg(test)]
@@ -216,75 +216,128 @@ pub fn verify_json(
     object: &CanonicalJsonObject,
 ) -> Result<(), Error> {
     let signature_map = match object.get("signatures") {
-        Some(CanonicalJsonValue::Object(signatures)) => signatures.clone(),
+        Some(CanonicalJsonValue::Object(signatures)) => signatures,
         Some(_) => return Err(JsonError::not_of_type("signatures", JsonType::Object)),
         None => return Err(JsonError::field_missing_from_object("signatures")),
     };
 
-    for (entity_id, signature_set) in signature_map {
-        let signature_set = match signature_set {
-            CanonicalJsonValue::Object(set) => set,
-            _ => return Err(JsonError::not_multiples_of_type("signature sets", JsonType::Object)),
-        };
+    let canonical_json = canonical_json(object)?;
 
-        let public_keys = match public_key_map.get(&entity_id) {
-            Some(keys) => keys,
-            None => {
-                return Err(JsonError::key_missing("public_key_map", "public_keys", &entity_id))
-            }
-        };
-
-        for (key_id, signature) in &signature_set {
-            let signature = match signature {
-                CanonicalJsonValue::String(s) => s,
-                _ => return Err(JsonError::not_of_type("signature", JsonType::String)),
-            };
-
-            let public_key = public_keys.get(key_id).ok_or_else(|| {
-                JsonError::key_missing(
-                    format!("public_keys of {}", &entity_id),
-                    "signature",
-                    key_id,
-                )
-            })?;
-
-            let signature = Base64::<Standard>::parse(signature)
-                .map_err(|e| ParseError::base64("signature", signature, e))?;
-
-            verify_json_with(
-                &Ed25519Verifier,
-                public_key.as_bytes(),
-                signature.as_bytes(),
-                object,
-            )?;
-        }
+    for entity_id in signature_map.keys() {
+        verify_canonical_json_for_entity(
+            entity_id,
+            public_key_map,
+            signature_map,
+            canonical_json.as_bytes(),
+        )?;
     }
 
     Ok(())
 }
 
-/// Uses a public key to verify a signed JSON object.
+/// Uses a set of public keys to verify signed canonical JSON bytes for a given entity.
+///
+/// Implements the algorithm described in the spec for [checking signatures].
+///
+/// # Parameters
+///
+/// * `entity_id`: The entity to check the signatures for.
+/// * `public_key_map`: A map from entity identifiers to a map from key identifiers to public keys.
+/// * `signature_map`: The map of signatures from the signed JSON object.
+/// * `canonical_json`: The signed canonical JSON bytes.
+///
+/// # Errors
+///
+/// Returns an error if verification fails.
+///
+/// [checking signatures]: https://spec.matrix.org/latest/appendices/#checking-for-a-signature
+fn verify_canonical_json_for_entity(
+    entity_id: &str,
+    public_key_map: &PublicKeyMap,
+    signature_map: &CanonicalJsonObject,
+    canonical_json: &[u8],
+) -> Result<(), Error> {
+    let signature_set = match signature_map.get(entity_id) {
+        Some(CanonicalJsonValue::Object(set)) => set,
+        Some(_) => {
+            return Err(JsonError::not_multiples_of_type("signature sets", JsonType::Object))
+        }
+        None => return Err(VerificationError::NoSignaturesForEntity(entity_id.to_owned()).into()),
+    };
+
+    let public_keys = public_key_map
+        .get(entity_id)
+        .ok_or_else(|| VerificationError::NoPublicKeysForEntity(entity_id.to_owned()))?;
+
+    let mut checked = false;
+    for (key_id, signature) in signature_set {
+        // If we cannot parse the key ID, ignore.
+        let Ok(parsed_key_id) = <&SigningKeyId<AnyKeyName>>::try_from(key_id.as_str()) else {
+            continue;
+        };
+
+        // If the signature uses an unknown algorithm, ignore.
+        if parsed_key_id.algorithm() != SigningKeyAlgorithm::Ed25519 {
+            continue;
+        }
+
+        let public_key = match public_keys.get(key_id) {
+            Some(public_key) => public_key,
+            None => {
+                return Err(VerificationError::PublicKeyNotFound {
+                    entity: entity_id.to_owned(),
+                    key_id: key_id.clone(),
+                }
+                .into())
+            }
+        };
+
+        let signature = match signature {
+            CanonicalJsonValue::String(signature) => signature,
+            _ => return Err(JsonError::not_of_type("signature", JsonType::String)),
+        };
+
+        let signature = Base64::<Standard>::parse(signature)
+            .map_err(|e| ParseError::base64("signature", signature, e))?;
+
+        verify_canonical_json_with(
+            &Ed25519Verifier,
+            public_key.as_bytes(),
+            signature.as_bytes(),
+            canonical_json,
+        )?;
+        checked = true;
+    }
+
+    if !checked {
+        return Err(VerificationError::NoSupportedSignatureForEntity(entity_id.to_owned()).into());
+    }
+
+    Ok(())
+}
+
+/// Uses a public key to verify signed canonical JSON bytes.
 ///
 /// # Parameters
 ///
 /// * `verifier`: A [`Verifier`] appropriate for the digital signature algorithm that was used.
 /// * `public_key`: The raw bytes of the public key used to sign the JSON.
 /// * `signature`: The raw bytes of the signature.
-/// * `object`: The JSON object that was signed.
+/// * `canonical_json`: The signed canonical JSON bytes.
 ///
 /// # Errors
 ///
 /// Returns an error if verification fails.
-fn verify_json_with<V>(
+fn verify_canonical_json_with<V>(
     verifier: &V,
     public_key: &[u8],
     signature: &[u8],
-    object: &CanonicalJsonObject,
+    canonical_json: &[u8],
 ) -> Result<(), Error>
 where
     V: Verifier,
 {
-    verifier.verify_json(public_key, signature, canonical_json(object)?.as_bytes())
+    verifier.verify_json(public_key, signature, canonical_json)
 }
 
 /// Creates a *content hash* for an event.
@@ -582,58 +635,15 @@ pub fn verify_event(
     };
 
     let servers_to_check = servers_to_check_signatures(object, room_version)?;
-    let canonical_json = from_json_str(&canonical_json(&redacted)?).map_err(JsonError::from)?;
+    let canonical_json = canonical_json(&redacted)?;
 
     for entity_id in servers_to_check {
-        let signature_set = match signature_map.get(entity_id.as_str()) {
-            Some(CanonicalJsonValue::Object(set)) => set,
-            Some(_) => {
-                return Err(JsonError::not_multiples_of_type("signature sets", JsonType::Object))
-            }
-            None => return Err(VerificationError::signature_not_found(entity_id)),
-        };
-
-        let public_keys = public_key_map
-            .get(entity_id.as_str())
-            .ok_or_else(|| VerificationError::public_key_not_found(entity_id))?;
-
-        let mut checked = false;
-        for (key_id, signature) in signature_set {
-            // If we cannot parse the key ID, ignore.
-            let Ok(parsed_key_id) = <&SigningKeyId<AnyKeyName>>::try_from(key_id.as_str()) else {
-                continue;
-            };
-
-            // If the signature uses an unknown algorithm, ignore.
-            if parsed_key_id.algorithm() != SigningKeyAlgorithm::Ed25519 {
-                continue;
-            }
-
-            let public_key = match public_keys.get(key_id) {
-                Some(public_key) => public_key,
-                None => return Err(VerificationError::UnknownPublicKeysForSignature.into()),
-            };
-
-            let signature = match signature {
-                CanonicalJsonValue::String(signature) => signature,
-                _ => return Err(JsonError::not_of_type("signature", JsonType::String)),
-            };
-
-            let signature = Base64::<Standard>::parse(signature)
-                .map_err(|e| ParseError::base64("signature", signature, e))?;
-
-            verify_json_with(
-                &Ed25519Verifier,
-                public_key.as_bytes(),
-                signature.as_bytes(),
-                &canonical_json,
-            )?;
-            checked = true;
-        }
-
-        if !checked {
-            return Err(VerificationError::UnknownPublicKeysForSignature.into());
-        }
+        verify_canonical_json_for_entity(
+            entity_id.as_str(),
+            public_key_map,
+            signature_map,
+            canonical_json.as_bytes(),
+        )?;
     }
 
     let calculated_hash = content_hash(object)?;

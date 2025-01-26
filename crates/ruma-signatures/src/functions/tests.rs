@@ -227,7 +227,7 @@ fn verification_fails_if_missing_signatures_for_authorized_user() {
 
     assert_matches!(
         verification_result,
-        Err(Error::Verification(VerificationError::SignatureNotFound(server)))
+        Err(Error::Verification(VerificationError::NoSignaturesForEntity(server)))
     );
     assert_eq!(server, "domain-authorized");
 }
@@ -264,7 +264,7 @@ fn verification_fails_if_required_keys_are_not_given() {
 
     assert_matches!(
         verification_result,
-        Err(Error::Verification(VerificationError::PublicKeyNotFound(entity)))
+        Err(Error::Verification(VerificationError::NoPublicKeysForEntity(entity)))
     );
     assert_eq!(entity, "domain-sender");
 }
@@ -385,8 +385,10 @@ fn verify_event_fails_with_missing_key_when_event_is_signed_multiple_times_by_sa
 
     assert_matches!(
         verification_result,
-        Err(Error::Verification(VerificationError::UnknownPublicKeysForSignature))
+        Err(Error::Verification(VerificationError::PublicKeyNotFound { entity, key_id }))
     );
+    assert_eq!(entity, "domain-sender");
+    assert_eq!(key_id, "ed25519:2");
 }
 
 #[test]
@@ -460,8 +462,9 @@ fn verify_event_with_single_key_with_unknown_algorithm_should_not_accept_event()
     let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
     assert_matches!(
         verification_result,
-        Err(Error::Verification(VerificationError::UnknownPublicKeysForSignature))
+        Err(Error::Verification(VerificationError::NoSupportedSignatureForEntity(entity)))
     );
+    assert_eq!(entity, "domain-sender");
 }
 
 #[test]
