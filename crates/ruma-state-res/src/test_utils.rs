@@ -18,7 +18,7 @@ use ruma_events::{
         join_rules::{JoinRule, RoomJoinRulesEventContent},
         member::{MembershipState, RoomMemberEventContent},
     },
-    TimelineEventType,
+    StateEventType, TimelineEventType,
 };
 use serde_json::{
     json,
@@ -649,4 +649,25 @@ pub(crate) mod event {
         #[serde(flatten)]
         pub(crate) rest: Pdu,
     }
+}
+
+pub(crate) fn init_subscriber() -> tracing::dispatcher::DefaultGuard {
+    tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish())
+}
+
+pub(crate) fn event_map_to_state_map(
+    events: &HashMap<OwnedEventId, Arc<PduEvent>>,
+) -> HashMap<StateEventType, HashMap<String, Arc<PduEvent>>> {
+    let mut state_map: HashMap<StateEventType, HashMap<String, Arc<PduEvent>>> = HashMap::new();
+
+    for event in events.values() {
+        let event_type = StateEventType::from(event.event_type().to_string());
+
+        state_map
+            .entry(event_type)
+            .or_default()
+            .insert(event.state_key().unwrap().to_owned(), event.clone());
+    }
+
+    state_map
 }
