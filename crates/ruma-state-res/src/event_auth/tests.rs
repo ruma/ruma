@@ -2,6 +2,8 @@ use ruma_common::user_id;
 use ruma_events::TimelineEventType;
 use serde_json::{json, value::to_raw_value as to_raw_json_value};
 
+mod room_power_levels;
+
 use super::check_room_create;
 use crate::{
     test_utils::{alice, to_init_pdu_event, to_pdu_event},
