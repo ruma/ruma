@@ -315,8 +315,24 @@ pub fn auth_check<E: Event>(
         return Ok(true);
     }
 
-    if !can_send_event(&incoming_event, power_levels_event.as_ref(), sender_power_level) {
-        warn!("user cannot send event");
+    // Since v1, if the event type's required power level is greater than the sender's power level,
+    // reject.
+    let event_type_power_level = get_send_level(
+        incoming_event.event_type(),
+        incoming_event.state_key(),
+        power_levels_event.as_ref(),
+    );
+    if sender_power_level < event_type_power_level {
+        warn!(event_type = %incoming_event.event_type(), "user doesn't have enough power to send event type");
+        return Ok(false);
+    }
+
+    // Since v1, if the event has a state_key that starts with an @ and does not match the sender,
+    // reject.
+    if incoming_event.state_key().is_some_and(|k| k.starts_with('@'))
+        && incoming_event.state_key() != Some(incoming_event.sender().as_str())
+    {
+        warn!("sender cannot send state event with another user's ID");
         return Ok(false);
     }
 
@@ -410,39 +426,6 @@ fn check_room_create(room_create_event: impl Event, room_version: &RoomVersion) 
     // Otherwise, allow.
     info!("m.room.create event was allowed");
     Ok(true)
-}
-
-/// Check if the user is allowed to send the given event.
-///
-/// Criteria:
-///
-/// - The user is allowed based on the required event type's room power level.
-/// - If there is a state key that is a user ID, it must be the same as the sender.
-fn can_send_event(event: impl Event, ple: Option<impl Event>, user_level: Int) -> bool {
-    // Since v1, if the event type's required power level is greater than the sender's power level,
-    // reject.
-    let event_type_power_level = get_send_level(event.event_type(), event.state_key(), ple);
-
-    debug!(
-        required_level = i64::from(event_type_power_level),
-        user_level = i64::from(user_level),
-        state_key = ?event.state_key(),
-        "permissions factors",
-    );
-
-    if user_level < event_type_power_level {
-        return false;
-    }
-
-    // Since v1, if the event has a state_key that starts with an @ and does not match the sender,
-    // reject.
-    if event.state_key().is_some_and(|k| k.starts_with('@'))
-        && event.state_key() != Some(event.sender().as_str())
-    {
-        return false; // permission required to post in this room
-    }
-
-    true
 }
 
 /// Check if the given power levels event is authorized.
