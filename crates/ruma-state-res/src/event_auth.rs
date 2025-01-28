@@ -28,6 +28,18 @@ use crate::{
     Error, Event, Result, StateEventType, TimelineEventType,
 };
 
+// TODO: We need methods for all checks performed on receipt of a PDU, plus the following that are
+// not listed:
+//
+// - check that the event respects the size limits,
+// - check that all the auth events are in the same room as `incoming_event`.
+//
+// References:
+// - https://spec.matrix.org/latest/server-server-api/#checks-performed-on-receipt-of-a-pdu
+// - https://spec.matrix.org/latest/client-server-api/#size-limits
+// - https://github.com/element-hq/synapse/blob/9c5d08fff8d66a7cc0e2ecfeeb783f933a778c2f/synapse/event_auth.py
+// - https://github.com/matrix-org/matrix-spec/issues/365
+
 // FIXME: field extracting could be bundled for `content`
 #[derive(Deserialize)]
 struct GetMembership {
@@ -40,29 +52,35 @@ struct RoomMemberContentFields {
     join_authorised_via_users_server: Option<Raw<OwnedUserId>>,
 }
 
-/// For the given event `kind` what are the relevant auth events that are needed to authenticate
-/// this `content`.
+/// Get the list of [relevant auth event types] required to authorize the event of the given type.
+///
+/// Returns a list of `(event_type, state_key)` tuples.
 ///
 /// # Errors
 ///
-/// This function will return an error if the supplied `content` is not a JSON object.
+/// Returns an error if `content` is not a JSON object.
+///
+/// [relevant auth events]: https://spec.matrix.org/latest/server-server-api/#auth-events-selection
 pub fn auth_types_for_event(
-    kind: &TimelineEventType,
+    event_type: &TimelineEventType,
     sender: &UserId,
     state_key: Option<&str>,
     content: &RawJsonValue,
 ) -> serde_json::Result<Vec<(StateEventType, String)>> {
-    if kind == &TimelineEventType::RoomCreate {
+    // `m.room.create` is the first event in a room, it has no auth events.
+    if event_type == &TimelineEventType::RoomCreate {
         return Ok(vec![]);
     }
 
+    // All other events need these auth events.
     let mut auth_types = vec![
         (StateEventType::RoomPowerLevels, "".to_owned()),
         (StateEventType::RoomMember, sender.to_string()),
         (StateEventType::RoomCreate, "".to_owned()),
     ];
 
-    if kind == &TimelineEventType::RoomMember {
+    // `m.room.member` events need other auth events.
+    if event_type == &TimelineEventType::RoomMember {
         #[derive(Deserialize)]
         struct RoomMemberContentFields {
             membership: Option<Raw<MembershipState>>,
@@ -77,6 +95,7 @@ pub fn auth_types_for_event(
                 if [MembershipState::Join, MembershipState::Invite, MembershipState::Knock]
                     .contains(&membership)
                 {
+                    // If membership is join, invite or knock, we need `m.room.join_rules`.
                     let key = (StateEventType::RoomJoinRules, "".to_owned());
                     if !auth_types.contains(&key) {
                         auth_types.push(key);
@@ -85,6 +104,12 @@ pub fn auth_types_for_event(
                     if let Some(Ok(u)) =
                         content.join_authorised_via_users_server.map(|m| m.deserialize())
                     {
+                        // If `join_authorised_via_users_server` is present, and the room
+                        // version supports restricted rooms, we need `m.room.member` with the
+                        // matching state_key.
+                        //
+                        // FIXME: We need to check that the room version supports restricted rooms
+                        // too.
                         let key = (StateEventType::RoomMember, u.to_string());
                         if !auth_types.contains(&key) {
                             auth_types.push(key);
@@ -99,6 +124,9 @@ pub fn auth_types_for_event(
 
                 if membership == MembershipState::Invite {
                     if let Some(Ok(t_id)) = content.third_party_invite.map(|t| t.deserialize()) {
+                        // If membership is invite and `third_party_invite` is present, we need
+                        // `m.room.third_party_invite` with the state_key matching
+                        // `third_party_invite.signed.token`.
                         let key = (StateEventType::RoomThirdPartyInvite, t_id.signed.token);
                         if !auth_types.contains(&key) {
                             auth_types.push(key);
@@ -112,15 +140,15 @@ pub fn auth_types_for_event(
     Ok(auth_types)
 }
 
-/// Authenticate the incoming `event`.
-///
-/// The steps of authentication are:
-///
-/// * check that the event is being authenticated for the correct room
-/// * then there are checks for specific event types
+/// Check whether the incoming event passes the [authorization rules] for the given room version.
 ///
 /// The `fetch_state` closure should gather state from a state snapshot. We need to know if the
 /// event passes auth against some state not a recursive collection of auth_events fields.
+///
+/// This assumes that `ruma_signatures::verify_event()` was called previously, as some authorization
+/// rules depend on the signatures being valid on the event.
+///
+/// [authorization]: https://spec.matrix.org/latest/server-server-api/#authorization-rules
 #[instrument(skip_all, fields(event_id = incoming_event.event_id().borrow().as_str()))]
 pub fn auth_check<E: Event>(
     room_version: &RoomVersion,
@@ -130,19 +158,9 @@ pub fn auth_check<E: Event>(
 ) -> Result<bool> {
     debug!("starting auth check");
 
-    // [synapse] check that all the events are in the same room as `incoming_event`
-
-    // [synapse] do_sig_check check the event has valid signatures for member events
-
-    // TODO do_size_check is false when called by `iterative_auth_check`
-    // do_size_check is also mostly accomplished by ruma with the exception of checking event_type,
-    // state_key, and json are below a certain size (255 and 65_536 respectively)
-
     let sender = incoming_event.sender();
 
-    // Implementation of https://spec.matrix.org/latest/rooms/v1/#authorization-rules
-    //
-    // 1. If type is m.room.create:
+    // Since v1, if type is m.room.create:
     if *incoming_event.event_type() == TimelineEventType::RoomCreate {
         #[derive(Deserialize)]
         struct RoomCreateContentFields {
@@ -152,13 +170,13 @@ pub fn auth_check<E: Event>(
 
         debug!("start m.room.create check");
 
-        // If it has any previous events, reject
+        // Since v1, if it has any previous events, reject.
         if incoming_event.prev_events().next().is_some() {
             warn!("the room creation event had previous events");
             return Ok(false);
         }
 
-        // If the domain of the room_id does not match the domain of the sender, reject
+        // Since v1, if the domain of the room_id does not match the domain of the sender, reject.
         let Some(room_id_server_name) = incoming_event.room_id().server_name() else {
             warn!("room ID has no servername");
             return Ok(false);
@@ -169,7 +187,12 @@ pub fn auth_check<E: Event>(
             return Ok(false);
         }
 
-        // If content.room_version is present and is not a recognized version, reject
+        // Since v1, if `content.room_version` is present and is not a recognized version, reject.
+        //
+        // FIXME: this only checks if we can deserialize to `RoomVersionId` which accepts any
+        // string. We should check if the version is actually supported, i.e. if we have a
+        // `RoomVersion` for it. But we already take a `RoomVersion` as a parameter so this was
+        // already checked before?
         let content: RoomCreateContentFields = from_json_str(incoming_event.content().get())?;
         if content.room_version.map(|v| v.deserialize().is_err()).unwrap_or(false) {
             warn!("invalid room version found in m.room.create event");
@@ -177,7 +200,7 @@ pub fn auth_check<E: Event>(
         }
 
         if !room_version.use_room_create_sender {
-            // If content has no creator field, reject
+            // v1-v10, if content has no creator field, reject.
             if content.creator.is_none() {
                 warn!("no creator field found in m.room.create content");
                 return Ok(false);
@@ -189,12 +212,15 @@ pub fn auth_check<E: Event>(
     }
 
     /*
-    // TODO: In the past this code caused problems federating with synapse, maybe this has been
-    // resolved already. Needs testing.
+    TODO: In the past this code caused problems federating with synapse, maybe this has been
+    resolved already. Needs testing.
+
+    // Since v1, considering auth_events:
     //
-    // 2. Reject if auth_events
-    // a. auth_events cannot have duplicate keys since it's a BTree
-    // b. All entries are valid auth events according to spec
+    // - Since v1, if there are duplicate entries for a given type and state_key pair, reject.
+    //
+    // - Since v1, if there are entries whose type and state_key don’t match those specified
+    //   by the auth events selection algorithm described in the server specification, reject.
     let expected_auth = auth_types_for_event(
         incoming_event.kind,
         sender,
@@ -213,6 +239,11 @@ pub fn auth_check<E: Event>(
     }
     */
 
+    // TODO:
+    //
+    // Since v1, if there are entries which were themselves rejected under the checks performed on
+    // receipt of a PDU, reject.
+
     let room_create_event = match fetch_state(&StateEventType::RoomCreate, "") {
         None => {
             warn!("no m.room.create event in auth chain");
@@ -221,15 +252,15 @@ pub fn auth_check<E: Event>(
         Some(e) => e,
     };
 
-    // 3. If event does not have m.room.create in auth_events reject
+    // Since v1, if there is no m.room.create event among the entries, reject.
     if !incoming_event.auth_events().any(|id| id.borrow() == room_create_event.event_id().borrow())
     {
         warn!("no m.room.create event in auth events");
         return Ok(false);
     }
 
-    // If the create event content has the field m.federate set to false and the sender domain of
-    // the event does not match the sender domain of the create event, reject.
+    // Since v1, if the create event content has the field m.federate set to false and the sender
+    // domain of the event does not match the sender domain of the create event, reject.
     #[derive(Deserialize)]
     struct RoomCreateContentFederate {
         #[serde(rename = "m.federate", default = "ruma_common::serde::default_true")]
@@ -244,29 +275,32 @@ pub fn auth_check<E: Event>(
         return Ok(false);
     }
 
-    // Only in some room versions 6 and below
-    if room_version.special_case_aliases_auth {
-        // 4. If type is m.room.aliases
-        if *incoming_event.event_type() == TimelineEventType::RoomAliases {
-            debug!("starting m.room.aliases check");
-
-            // If sender's domain doesn't matches state_key, reject
-            if incoming_event.state_key() != Some(sender.server_name().as_str()) {
-                warn!("state_key does not match sender");
-                return Ok(false);
-            }
-
-            info!("m.room.aliases event was allowed");
-            return Ok(true);
+    // v1-v5, if type is m.room.aliases:
+    if room_version.special_case_aliases_auth
+        && *incoming_event.event_type() == TimelineEventType::RoomAliases
+    {
+        debug!("starting m.room.aliases check");
+        // v1-v5, if event has no state_key, reject.
+        //
+        // v1-v5, if sender's domain doesn't match state_key, reject.
+        if incoming_event.state_key() != Some(sender.server_name().as_str()) {
+            warn!("state_key does not match sender");
+            return Ok(false);
         }
+
+        // Otherwise, allow.
+        info!("m.room.aliases event was allowed");
+        return Ok(true);
     }
 
-    // If type is m.room.member
     let power_levels_event = fetch_state(&StateEventType::RoomPowerLevels, "");
     let sender_member_event = fetch_state(&StateEventType::RoomMember, sender.as_str());
 
+    // Since v1, if type is m.room.member:
     if *incoming_event.event_type() == TimelineEventType::RoomMember {
         debug!("starting m.room.member check");
+        // Since v1, if there is no state_key property, or no membership property in content,
+        // reject.
         let state_key = match incoming_event.state_key() {
             None => {
                 warn!("no statekey in member event");
@@ -315,7 +349,7 @@ pub fn auth_check<E: Event>(
         return Ok(true);
     }
 
-    // If the sender's current membership state is not join, reject
+    // Since v1, if the sender's current membership state is not join, reject.
     let sender_member_event = match sender_member_event {
         Some(mem) => mem,
         None => {
@@ -336,7 +370,6 @@ pub fn auth_check<E: Event>(
         return Ok(false);
     }
 
-    // If type is m.room.third_party_invite
     let sender_power_level = if let Some(pl) = &power_levels_event {
         let content = deserialize_power_levels_content_fields(pl.content().get(), room_version)?;
         if let Some(level) = content.users.get(sender) {
@@ -361,9 +394,10 @@ pub fn auth_check<E: Event>(
         }
     };
 
-    // Allow if and only if sender's current power level is greater than
-    // or equal to the invite level
+    // Since v1, if type is m.room.third_party_invite:
     if *incoming_event.event_type() == TimelineEventType::RoomThirdPartyInvite {
+        // Since v1, allow if and only if sender's current power level is greater than
+        // or equal to the invite level.
         let invite_level = match &power_levels_event {
             Some(power_levels) => {
                 deserialize_power_levels_content_invite(power_levels.content().get(), room_version)?
@@ -373,7 +407,7 @@ pub fn auth_check<E: Event>(
         };
 
         if sender_power_level < invite_level {
-            warn!("sender's cannot send invites in this room");
+            warn!("sender cannot send invites in this room");
             return Ok(false);
         }
 
@@ -381,8 +415,6 @@ pub fn auth_check<E: Event>(
         return Ok(true);
     }
 
-    // If the event type's required power level is greater than the sender's power level, reject
-    // If the event has a state_key that starts with an @ and does not match the sender, reject.
     if !can_send_event(&incoming_event, power_levels_event.as_ref(), sender_power_level) {
         warn!("user cannot send event");
         return Ok(false);
@@ -409,13 +441,7 @@ pub fn auth_check<E: Event>(
         info!("m.room.power_levels event allowed");
     }
 
-    // Room version 3: Redaction events are always accepted (provided the event is allowed by
-    // `events` and `events_default` in the power levels). However, servers should not apply or
-    // send redaction's to clients until both the redaction event and original event have been
-    // seen, and are valid. Servers should only apply redaction's to events where the sender's
-    // domains match, or the sender of the redaction has the appropriate permissions per the
-    // power levels.
-
+    // v1-v2, if type is m.room.redaction:
     if room_version.extra_redaction_checks
         && *incoming_event.event_type() == TimelineEventType::RoomRedaction
     {
@@ -431,19 +457,18 @@ pub fn auth_check<E: Event>(
         }
     }
 
+    // Otherwise, allow.
     info!("allowing event passed all checks");
     Ok(true)
 }
 
 // TODO deserializing the member, power, join_rules event contents is done in conduit
 // just before this is called. Could they be passed in?
-/// Does the user who sent this member event have required power levels to do so.
+/// Check if the `m.room.member` event with the given properties passes the authorization rules
+/// specific to its event type.
 ///
-/// * `user` - Information about the membership event and user making the request.
-/// * `auth_events` - The set of auth events that relate to a membership event.
-///
-/// This is generated by calling `auth_types_for_event` with the membership event and the current
-/// State.
+/// This assumes that `ruma_signatures::verify_event()` was called previously, as some authorization
+/// rules depend on the signatures being valid on the event.
 #[allow(clippy::too_many_arguments)]
 fn valid_membership_change(
     room_version: &RoomVersion,
@@ -485,6 +510,8 @@ fn valid_membership_change(
         None => RoomPowerLevelsEventContent::default(),
     };
 
+    // FIXME: Do we really need to check if the sender is joined to get their power level? The auth
+    // rules below already check it.
     let sender_power = power_levels
         .users
         .get(sender)
@@ -529,10 +556,20 @@ fn valid_membership_change(
         false
     };
 
+    // These checks are done `in ruma_signatures::verify_event()`:
+    //
+    // Since v8, if content has a join_authorised_via_users_server property:
+    //
+    // - Since v8, if the event is not validly signed by the homeserver of the user ID denoted by
+    //   the key, reject.
+
     Ok(match target_membership {
+        // Since v1, if membership is join:
         MembershipState::Join => {
-            // 1. If the only previous event is an m.room.create and the state_key is the creator,
-            // allow
+            // v1-v10, if the only previous event is an m.room.create and the state_key is the
+            // creator, allow.
+            // Since v11, if the only previous event is an m.room.create and the state_key is the
+            // sender of the m.room.create, allow.
             let mut prev_events = current_event.prev_events();
 
             let prev_event_is_create_event = prev_events
@@ -562,48 +599,55 @@ fn valid_membership_change(
             }
 
             if sender != target_user {
-                // If the sender does not match state_key, reject.
+                // Since v1, if the sender does not match state_key, reject.
                 warn!("can't make other user join");
                 false
             } else if let MembershipState::Ban = target_user_current_membership {
-                // If the sender is banned, reject.
+                // Since v1, if the sender is banned, reject.
                 warn!(?target_user_membership_event_id, "banned user can't join");
                 false
             } else if (join_rules == JoinRule::Invite
-                    || room_version.allow_knocking && join_rules == JoinRule::Knock)
-                // If the join_rule is invite then allow if membership state is invite or join
-                    && (target_user_current_membership == MembershipState::Join
-                        || target_user_current_membership == MembershipState::Invite)
+                || room_version.allow_knocking && join_rules == JoinRule::Knock)
+                && (target_user_current_membership == MembershipState::Join
+                    || target_user_current_membership == MembershipState::Invite)
             {
+                // v1-v6, if the join_rule is invite then allow if membership state is invite or
+                // join.
+                // Since v7, if the join_rule is invite or knock then allow if membership state is
+                // invite or join.
                 true
             } else if room_version.restricted_join_rules
                 && matches!(join_rules, JoinRule::Restricted(_))
                 || room_version.knock_restricted_join_rule
                     && matches!(join_rules, JoinRule::KnockRestricted(_))
             {
-                // If the join_rule is restricted or knock_restricted
+                // v8-v9, if the join_rule is restricted:
+                // Since v10, if the join_rule is restricted or knock_restricted:
                 if matches!(
                     target_user_current_membership,
                     MembershipState::Invite | MembershipState::Join
                 ) {
-                    // If membership state is join or invite, allow.
+                    // Since v8, if membership state is join or invite, allow.
                     true
                 } else {
-                    // If the join_authorised_via_users_server key in content is not a user with
-                    // sufficient permission to invite other users, reject.
+                    // Since v8, if the join_authorised_via_users_server key in content is not a
+                    // user with sufficient permission to invite other users, reject.
+                    //
                     // Otherwise, allow.
                     user_for_join_auth_is_valid
                 }
             } else {
-                // If the join_rule is public, allow.
+                // Since v1, if the join_rule is public, allow.
                 // Otherwise, reject.
                 join_rules == JoinRule::Public
             }
         }
+        // Since v1, if membership is invite:
         MembershipState::Invite => {
-            // If content has third_party_invite key
             if let Some(tp_id) = third_party_invite.and_then(|i| i.deserialize().ok()) {
+                // Since v1, if content has a third_party_invite property:
                 if target_user_current_membership == MembershipState::Ban {
+                    // Since v1, if target user is banned, reject.
                     warn!(?target_user_membership_event_id, "can't invite banned user");
                     false
                 } else {
@@ -622,6 +666,9 @@ fn valid_membership_change(
                 || target_user_current_membership == MembershipState::Join
                 || target_user_current_membership == MembershipState::Ban
             {
+                // Since v1, if the sender’s current membership state is not join, reject.
+                //
+                // Since v1, if target user’s current membership state is join or ban, reject.
                 warn!(
                     ?target_user_membership_event_id,
                     ?sender_membership_event_id,
@@ -630,6 +677,10 @@ fn valid_membership_change(
                 );
                 false
             } else {
+                // Since v1, if the sender’s power level is greater than or equal to the invite
+                // level, allow.
+                //
+                // Otherwise, reject.
                 let allow = sender_power.filter(|&p| p >= &power_levels.invite).is_some();
                 if !allow {
                     warn!(
@@ -641,8 +692,15 @@ fn valid_membership_change(
                 allow
             }
         }
+        // Since v1, if membership is leave:
         MembershipState::Leave => {
             if sender == target_user {
+                // v1-v6, if the sender matches state_key, allow if and only if that user’s current
+                // membership state is invite or join. Since v7, if the sender
+                // matches state_key, allow if and only if that user’s current membership state is
+                // invite, join, or knock.
+                //
+                // FIXME: This does not check for knock membership.
                 let allow = target_user_current_membership == MembershipState::Join
                     || target_user_current_membership == MembershipState::Invite;
                 if !allow {
@@ -653,6 +711,10 @@ fn valid_membership_change(
                 || target_user_current_membership == MembershipState::Ban
                     && sender_power.filter(|&p| p < &power_levels.ban).is_some()
             {
+                // Since v1, if the sender’s current membership state is not join, reject.
+                //
+                // Since v1, if the target user’s current membership state is ban, and the sender’s
+                // power level is less than the ban level, reject.
                 warn!(
                     ?target_user_membership_event_id,
                     ?sender_membership_event_id,
@@ -660,6 +722,10 @@ fn valid_membership_change(
                 );
                 false
             } else {
+                // Since v1, if the sender’s power level is greater than or equal to the kick level,
+                // and the target user’s power level is less than the sender’s power level, allow.
+                //
+                // Otherwise, reject.
                 let allow = sender_power.filter(|&p| p >= &power_levels.kick).is_some()
                     && target_power < sender_power;
                 if !allow {
@@ -672,11 +738,17 @@ fn valid_membership_change(
                 allow
             }
         }
+        // Since v1, if membership is ban:
         MembershipState::Ban => {
             if !sender_is_joined {
+                // Since v1, if the sender’s current membership state is not join, reject.
                 warn!(?sender_membership_event_id, "can't ban user if sender is not joined");
                 false
             } else {
+                // If the sender’s power level is greater than or equal to the ban level, and the
+                // target user’s power level is less than the sender’s power level, allow.
+                //
+                // Otherwise, reject.
                 let allow = sender_power.filter(|&p| p >= &power_levels.ban).is_some()
                     && target_power < sender_power;
                 if !allow {
@@ -689,16 +761,19 @@ fn valid_membership_change(
                 allow
             }
         }
+        // Since v7, if membership is knock:
         MembershipState::Knock if room_version.allow_knocking => {
-            // 1. If the `join_rule` is anything other than `knock` or `knock_restricted`, reject.
             if join_rules != JoinRule::Knock
                 || room_version.knock_restricted_join_rule
                     && matches!(join_rules, JoinRule::KnockRestricted(_))
             {
+                // v7-v9, if the join_rule is anything other than knock, reject.
+                // Since v10, if the join_rule is anything other than knock or knock_restricted,
+                // reject.
                 warn!("join rule is not set to knock or knock_restricted, knocking is not allowed");
                 false
             } else if sender != target_user {
-                // 2. If `sender` does not match `state_key`, reject.
+                // Since v7, if sender does not match state_key, reject.
                 warn!(
                     ?sender,
                     ?target_user,
@@ -709,8 +784,8 @@ fn valid_membership_change(
                 sender_membership,
                 MembershipState::Ban | MembershipState::Invite | MembershipState::Join
             ) {
-                // 3. If the `sender`'s current membership is not `ban`, `invite`, or `join`, allow.
-                // 4. Otherwise, reject.
+                // Since v7, if the sender’s current membership is not ban, invite, or join, allow.
+                // Otherwise, reject.
                 warn!(
                     ?target_user_membership_event_id,
                     "membership state of ban, invite or join are invalid",
@@ -720,6 +795,7 @@ fn valid_membership_change(
                 true
             }
         }
+        // Since v1, otherwise, the membership is unknown. Reject.
         _ => {
             warn!("unknown membership transition");
             false
@@ -727,10 +803,15 @@ fn valid_membership_change(
     })
 }
 
-/// Is the user allowed to send a specific event based on the rooms power levels.
+/// Check if the user is allowed to send the given event.
 ///
-/// Does the event have the correct userId as its state_key if it's not the "" state_key.
+/// Criteria:
+///
+/// - The user is allowed based on the required event type's room power level.
+/// - If there is a state key that is a user ID, it must be the same as the sender.
 fn can_send_event(event: impl Event, ple: Option<impl Event>, user_level: Int) -> bool {
+    // Since v1, if the event type's required power level is greater than the sender's power level,
+    // reject.
     let event_type_power_level = get_send_level(event.event_type(), event.state_key(), ple);
 
     debug!(
@@ -744,6 +825,8 @@ fn can_send_event(event: impl Event, ple: Option<impl Event>, user_level: Int) -
         return false;
     }
 
+    // Since v1, if the event has a state_key that starts with an @ and does not match the sender,
+    // reject.
     if event.state_key().is_some_and(|k| k.starts_with('@'))
         && event.state_key() != Some(event.sender().as_str())
     {
@@ -753,7 +836,7 @@ fn can_send_event(event: impl Event, ple: Option<impl Event>, user_level: Int) -
     true
 }
 
-/// Confirm that the event sender has the required power levels.
+/// Check if the given power levels event is authorized.
 fn check_power_levels(
     room_version: &RoomVersion,
     power_event: impl Event,
@@ -772,12 +855,16 @@ fn check_power_levels(
         }
     }
 
-    // - If any of the keys users_default, events_default, state_default, ban, redact, kick, or
-    //   invite in content are present and not an integer, reject.
-    // - If either of the keys events or notifications in content are present and not a dictionary
-    //   with values that are integers, reject.
-    // - If users key in content is not a dictionary with keys that are valid user IDs with values
-    //   that are integers, reject.
+    // Since v10, if any of the properties users_default, events_default, state_default, ban,
+    // redact, kick, or invite in content are present and not an integer, reject.
+    //
+    // Since v10, if either of the properties events or notifications in content are present and not
+    // a dictionary with values that are integers, reject.
+    //
+    // v1-v9, If the users property in content is not an object with keys that are valid user IDs
+    // with values that are integers (or a string that is an integer), reject.
+    // Since v10, if the users property in content is not an object with keys that are valid user
+    // IDs with values that are integers, reject.
     let user_content: RoomPowerLevelsEventContent =
         deserialize_power_levels(power_event.content().get(), room_version)?;
 
@@ -793,15 +880,30 @@ fn check_power_levels(
     let current_content: RoomPowerLevelsEventContent =
         deserialize_power_levels(current_state.content().get(), room_version)?;
 
-    let mut user_levels_to_check = BTreeSet::new();
-    let old_list = &current_content.users;
-    let user_list = &user_content.users;
-    for user in old_list.keys().chain(user_list.keys()) {
-        let user: &UserId = user;
-        user_levels_to_check.insert(user);
-    }
+    // Since v1, for the properties users_default, events_default, state_default, ban, redact, kick,
+    // invite check if they were added, changed or removed. For each found alteration:
+    //
+    // FIXME: this only performs the check if both the current value and the new value are present.
+    let levels =
+        ["users_default", "events_default", "state_default", "ban", "redact", "kick", "invite"];
+    let current_state = serde_json::to_value(&current_content).unwrap();
+    let new_state = serde_json::to_value(&user_content).unwrap();
+    for lvl_name in &levels {
+        if let Some((current_value, new_value)) =
+            get_deserialize_levels(&current_state, &new_state, lvl_name)
+        {
+            // Since v1, if the current value is higher than the sender’s current power level,
+            // reject.
+            let current_value_too_big = current_value > user_level;
+            // Since v1, If the new value is higher than the sender’s current power level, reject.
+            let new_value_too_big = new_value > user_level;
 
-    trace!(set = ?user_levels_to_check, "user levels to check");
+            if current_value_too_big || new_value_too_big {
+                warn!("cannot add ops > than own");
+                return Some(false);
+            }
+        }
+    }
 
     let mut event_levels_to_check = BTreeSet::new();
     let old_list = &current_content.events;
@@ -812,86 +914,83 @@ fn check_power_levels(
 
     trace!(set = ?event_levels_to_check, "event levels to check");
 
-    let old_state = &current_content;
-    let new_state = &user_content;
-
-    // synapse does not have to split up these checks since we can't combine UserIds and
-    // EventTypes we do 2 loops
-
-    // UserId loop
-    for user in user_levels_to_check {
-        let old_level = old_state.users.get(user);
-        let new_level = new_state.users.get(user);
-        if old_level.is_some() && new_level.is_some() && old_level == new_level {
-            continue;
-        }
-
-        // If the current value is equal to the sender's current power level, reject
-        if user != power_event.sender() && old_level == Some(&user_level) {
-            warn!("m.room.power_level cannot remove ops == to own");
-            return Some(false); // cannot remove ops level == to own
-        }
-
-        // If the current value is higher than the sender's current power level, reject
-        // If the new value is higher than the sender's current power level, reject
-        let old_level_too_big = old_level > Some(&user_level);
-        let new_level_too_big = new_level > Some(&user_level);
-        if old_level_too_big || new_level_too_big {
-            warn!("m.room.power_level failed to add ops > than own");
-            return Some(false); // cannot add ops greater than own
-        }
-    }
-
-    // EventType loop
     for ev_type in event_levels_to_check {
-        let old_level = old_state.events.get(ev_type);
-        let new_level = new_state.events.get(ev_type);
-        if old_level.is_some() && new_level.is_some() && old_level == new_level {
+        let current_value = current_content.events.get(ev_type);
+        let new_value = user_content.events.get(ev_type);
+        // FIXME: testing for equality should be enough.
+        if current_value.is_some() && new_value.is_some() && current_value == new_value {
             continue;
         }
 
-        // If the current value is higher than the sender's current power level, reject
-        // If the new value is higher than the sender's current power level, reject
-        let old_level_too_big = old_level > Some(&user_level);
-        let new_level_too_big = new_level > Some(&user_level);
-        if old_level_too_big || new_level_too_big {
+        // Since v1, for each entry being changed in, or removed from, the events property:
+        // - Since v1, if the current value is higher than the sender's current power level, reject.
+        let current_value_too_big = current_value > Some(&user_level);
+        // Since v1, for each entry being added to, or changed in, the events property:
+        // - Since v1, if the new value is higher than the sender's current power level, reject.
+        let new_value_too_big = new_value > Some(&user_level);
+        if current_value_too_big || new_value_too_big {
             warn!("m.room.power_level failed to add ops > than own");
             return Some(false); // cannot add ops greater than own
         }
     }
 
-    // Notifications, currently there is only @room
     if room_version.limit_notifications_power_levels {
-        let old_level = old_state.notifications.room;
-        let new_level = new_state.notifications.room;
-        if old_level != new_level {
-            // If the current value is higher than the sender's current power level, reject
-            // If the new value is higher than the sender's current power level, reject
-            let old_level_too_big = old_level > user_level;
-            let new_level_too_big = new_level > user_level;
-            if old_level_too_big || new_level_too_big {
+        let current_value = current_content.notifications.room;
+        let new_value = user_content.notifications.room;
+        if current_value != new_value {
+            // Since v6, for each entry being changed in, or removed from, the notifications
+            // property:
+            // - Since v6, if the current value is higher than the sender's current power level,
+            //   reject.
+            let current_value_too_big = current_value > user_level;
+            // Since v6, for each entry being added to, or changed in, the notifications property:
+            // - Since v6, if the new value is higher than the sender's current power level, reject.
+            let new_value_too_big = new_value > user_level;
+            if current_value_too_big || new_value_too_big {
                 warn!("m.room.power_level failed to add ops > than own");
                 return Some(false); // cannot add ops greater than own
             }
         }
     }
 
-    let levels =
-        ["users_default", "events_default", "state_default", "ban", "redact", "kick", "invite"];
-    let old_state = serde_json::to_value(old_state).unwrap();
-    let new_state = serde_json::to_value(new_state).unwrap();
-    for lvl_name in &levels {
-        if let Some((old_lvl, new_lvl)) = get_deserialize_levels(&old_state, &new_state, lvl_name) {
-            let old_level_too_big = old_lvl > user_level;
-            let new_level_too_big = new_lvl > user_level;
+    let mut user_levels_to_check = BTreeSet::new();
+    let current_list = &current_content.users;
+    let new_list = &user_content.users;
+    for user in current_list.keys().chain(new_list.keys()) {
+        let user: &UserId = user;
+        user_levels_to_check.insert(user);
+    }
 
-            if old_level_too_big || new_level_too_big {
-                warn!("cannot add ops > than own");
-                return Some(false);
-            }
+    trace!(set = ?user_levels_to_check, "user levels to check");
+
+    for user in user_levels_to_check {
+        let current_value = current_content.users.get(user);
+        let new_value = user_content.users.get(user);
+        // FIXME: testing for equality should be enough.
+        if current_value.is_some() && new_value.is_some() && current_value == new_value {
+            continue;
+        }
+
+        // Since v1, for each entry being changed in, or removed from, the users property, other
+        // than the sender’s own entry:
+        // - Since v1, if the current value is greater than or equal to the sender’s current power
+        //   level, reject.
+        if user != power_event.sender() && current_value == Some(&user_level) {
+            warn!("m.room.power_level cannot remove ops == to own");
+            return Some(false); // cannot remove ops level == to own
+        }
+
+        let current_value_too_big = current_value > Some(&user_level);
+        // Since v1, for each entry being added to, or changed in, the users property:
+        // - Since v1, if the new value is greater than the sender’s current power level, reject.
+        let new_value_too_big = new_value > Some(&user_level);
+        if current_value_too_big || new_value_too_big {
+            warn!("m.room.power_level failed to add ops > than own");
+            return Some(false); // cannot add ops greater than own
         }
     }
 
+    // Otherwise, allow.
     Some(true)
 }
 
@@ -913,13 +1012,14 @@ fn check_redaction(
     user_level: Int,
     redact_level: Int,
 ) -> Result<bool> {
+    // v1-v2, if the sender’s power level is greater than or equal to the redact level, allow.
     if user_level >= redact_level {
         info!("redaction allowed via power levels");
         return Ok(true);
     }
 
-    // If the domain of the event_id of the event being redacted is the same as the
-    // domain of the event_id of the m.room.redaction, allow
+    // v1-v2, if the domain of the event_id of the event being redacted is the same as the
+    // domain of the event_id of the m.room.redaction, allow.
     if redaction_event.event_id().borrow().server_name()
         == redaction_event.redacts().as_ref().and_then(|&id| id.borrow().server_name())
     {
@@ -927,6 +1027,7 @@ fn check_redaction(
         return Ok(true);
     }
 
+    // Otherwise, reject.
     Ok(false)
 }
 
@@ -960,21 +1061,23 @@ fn verify_third_party_invite(
     tp_id: &ThirdPartyInvite,
     current_third_party_invite: Option<impl Event>,
 ) -> bool {
-    // 1. Check for user being banned happens before this is called
-    // checking for mxid and token keys is done by ruma when deserializing
+    // Checked during deserialization:
+    // Since v1, if content.third_party_invite does not have a signed property, reject.
+    // Since v1, if signed does not have mxid and token properties, reject.
 
-    // The state key must match the invitee
+    // Since v1, if mxid does not match state_key, reject.
     if target_user != Some(&tp_id.signed.mxid) {
         return false;
     }
 
-    // If there is no m.room.third_party_invite event in the current room state with state_key
-    // matching token, reject
+    // Since v1, if there is no m.room.third_party_invite event in the current room state with
+    // state_key matching token, reject.
     let current_tpid = match current_third_party_invite {
         Some(id) => id,
         None => return false,
     };
 
+    // Since v1, if sender does not match sender of the m.room.third_party_invite, reject.
     if current_tpid.state_key() != Some(&tp_id.signed.token) {
         return false;
     }
@@ -983,8 +1086,16 @@ fn verify_third_party_invite(
         return false;
     }
 
-    // If any signature in signed matches any public key in the m.room.third_party_invite event,
-    // allow
+    // Since v1, if any signature in signed matches any public key in the m.room.third_party_invite
+    // event, allow. The public keys are in content of m.room.third_party_invite as:
+    //
+    // - A single public key in the public_key property.
+    // - A list of public keys in the public_keys property.
+    //
+    // Otherwise, reject.
+    //
+    // FIXME: This does not check if the signature matches a public key, it checks if the token
+    // matches a public key?
     let tpid_ev =
         match from_json_str::<RoomThirdPartyInviteEventContent>(current_tpid.content().get()) {
             Ok(ev) => ev,
