@@ -9,14 +9,15 @@ use std::{
 
 use js_int::{int, uint};
 use ruma_common::{
-    event_id, room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId,
-    RoomVersionId, ServerSignatures, UserId,
+    event_id, room_id, serde::Base64, user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId,
+    RoomId, RoomVersionId, ServerSignatures, UserId,
 };
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV3Pdu},
     room::{
         join_rules::{JoinRule, RoomJoinRulesEventContent},
         member::{MembershipState, RoomMemberEventContent},
+        third_party_invite::RoomThirdPartyInviteEventContent,
     },
     StateEventType, TimelineEventType,
 };
@@ -706,4 +707,22 @@ pub(crate) fn event_map_to_state_map(
     }
 
     state_map
+}
+
+/// Create an `m.room.third_party_invite` event with the given sender.
+pub(crate) fn room_third_party_invite(sender: &UserId) -> Arc<PduEvent> {
+    to_pdu_event(
+        "THIRDPARTY",
+        sender,
+        TimelineEventType::RoomThirdPartyInvite,
+        Some("somerandomtoken"),
+        to_raw_json_value(&RoomThirdPartyInviteEventContent::new(
+            "e..@p..".to_owned(),
+            "http://host.local/check/public_key".to_owned(),
+            Base64::new(b"public_key".to_vec()),
+        ))
+        .unwrap(),
+        &["CREATE", "IJR", "IPOWER"],
+        &["IPOWER"],
+    )
 }

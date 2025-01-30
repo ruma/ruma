@@ -13,8 +13,8 @@ use super::check_room_member;
 use crate::{
     test_utils::{
         alice, bob, charlie, ella, event_id, event_map_to_state_map, init_subscriber,
-        member_content_ban, member_content_join, to_pdu_event, zara, INITIAL_EVENTS,
-        INITIAL_EVENTS_CREATE_ROOM,
+        member_content_ban, member_content_join, room_third_party_invite, to_pdu_event, zara,
+        INITIAL_EVENTS, INITIAL_EVENTS_CREATE_ROOM,
     },
     RoomVersion,
 };
@@ -961,23 +961,7 @@ fn invite_via_third_party_invite_room_third_party_invite_sender_mismatch() {
     );
 
     let mut init_events = INITIAL_EVENTS();
-    init_events.insert(
-        event_id("THIRD_PARTY"),
-        to_pdu_event(
-            "THIRDPARTY",
-            bob(),
-            TimelineEventType::RoomThirdPartyInvite,
-            Some("somerandomtoken"),
-            to_raw_json_value(&RoomThirdPartyInviteEventContent::new(
-                "e..@p..".to_owned(),
-                "http://host.local/check/public_key".to_owned(),
-                Base64::new(b"public_key".to_vec()),
-            ))
-            .unwrap(),
-            &["CREATE", "IJR", "IPOWER"],
-            &["IPOWER"],
-        ),
-    );
+    init_events.insert(event_id("THIRD_PARTY"), room_third_party_invite(bob()));
 
     let auth_events = event_map_to_state_map(&init_events);
     let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
@@ -1011,23 +995,7 @@ fn invite_via_third_party_invite_with_room_third_party_invite() {
     );
 
     let mut init_events = INITIAL_EVENTS();
-    init_events.insert(
-        event_id("THIRD_PARTY"),
-        to_pdu_event(
-            "THIRDPARTY",
-            charlie(),
-            TimelineEventType::RoomThirdPartyInvite,
-            Some("somerandomtoken"),
-            to_raw_json_value(&RoomThirdPartyInviteEventContent::new(
-                "e..@p..".to_owned(),
-                "http://host.local/check/public_key".to_owned(),
-                Base64::new(b"public_key".to_vec()),
-            ))
-            .unwrap(),
-            &["CREATE", "IJR", "IPOWER"],
-            &["IPOWER"],
-        ),
-    );
+    init_events.insert(event_id("THIRD_PARTY"), room_third_party_invite(charlie()));
 
     let auth_events = event_map_to_state_map(&init_events);
     let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
