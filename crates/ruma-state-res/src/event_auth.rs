@@ -350,16 +350,12 @@ pub fn auth_check<E: Event>(
     if room_version.extra_redaction_checks
         && *incoming_event.event_type() == TimelineEventType::RoomRedaction
     {
-        let redact_level = match power_levels_event {
-            Some(pl) => {
-                deserialize_power_levels_content_redact(pl.content().get(), room_version)?.redact
-            }
-            None => int!(50),
-        };
-
-        if !check_redaction(room_version, incoming_event, sender_power_level, redact_level)? {
-            return Ok(false);
-        }
+        return check_room_redaction(
+            incoming_event,
+            power_levels_event.as_ref(),
+            room_version,
+            sender_power_level,
+        );
     }
 
     // Otherwise, allow.
@@ -599,23 +595,30 @@ fn get_deserialize_levels(
     ))
 }
 
-/// Does the event redacting come from a user with enough power to redact the given event.
-fn check_redaction(
-    _room_version: &RoomVersion,
-    redaction_event: impl Event,
-    user_level: Int,
-    redact_level: Int,
+/// Check whether the given event passes the `m.room.redaction` authorization rules.
+fn check_room_redaction(
+    room_redaction_event: impl Event,
+    current_room_power_levels_event: Option<impl Event>,
+    room_version: &RoomVersion,
+    sender_level: Int,
 ) -> Result<bool> {
+    let redact_level = match current_room_power_levels_event {
+        Some(pl) => {
+            deserialize_power_levels_content_redact(pl.content().get(), room_version)?.redact
+        }
+        None => int!(50),
+    };
+
     // v1-v2, if the sender’s power level is greater than or equal to the redact level, allow.
-    if user_level >= redact_level {
+    if sender_level >= redact_level {
         info!("redaction allowed via power levels");
         return Ok(true);
     }
 
     // v1-v2, if the domain of the event_id of the event being redacted is the same as the
     // domain of the event_id of the m.room.redaction, allow.
-    if redaction_event.event_id().borrow().server_name()
-        == redaction_event.redacts().as_ref().and_then(|&id| id.borrow().server_name())
+    if room_redaction_event.event_id().borrow().server_name()
+        == room_redaction_event.redacts().as_ref().and_then(|&id| id.borrow().server_name())
     {
         info!("redaction event allowed via room version 1 rules");
         return Ok(true);
