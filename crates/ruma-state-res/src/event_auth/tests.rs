@@ -1,12 +1,18 @@
-use ruma_common::user_id;
-use ruma_events::TimelineEventType;
+use js_int::int;
+use ruma_common::{owned_event_id, user_id};
+use ruma_events::{room::redaction::RoomRedactionEventContent, TimelineEventType};
 use serde_json::{json, value::to_raw_value as to_raw_json_value};
 
 mod room_power_levels;
 
+use self::room_power_levels::default_room_power_levels;
 use super::check_room_create;
 use crate::{
-    test_utils::{alice, to_init_pdu_event, to_pdu_event},
+    event_auth::check_room_redaction,
+    test_utils::{
+        alice, charlie, event_id, init_subscriber, room_redaction_pdu_event, to_init_pdu_event,
+        to_pdu_event,
+    },
     RoomVersion,
 };
 
@@ -108,4 +114,87 @@ fn invalid_room_create() {
         to_raw_json_value(&content).unwrap(),
     );
     assert!(!check_room_create(event, &RoomVersion::V1).unwrap());
+}
+
+#[test]
+fn redact_higher_power_level() {
+    let _guard = init_subscriber();
+
+    let incoming_event = room_redaction_pdu_event(
+        "HELLO",
+        charlie(),
+        owned_event_id!("$redacted_event:other.server"),
+        to_raw_json_value(&RoomRedactionEventContent::new_v1()).unwrap(),
+        &["CREATE", "IMA", "IPOWER"],
+        &["IPOWER"],
+    );
+
+    let room_power_levels_event = Some(default_room_power_levels());
+
+    // Cannot redact if redact level is higher than user's.
+    assert!(!check_room_redaction(
+        incoming_event,
+        room_power_levels_event,
+        &RoomVersion::V1,
+        int!(0)
+    )
+    .unwrap());
+}
+
+#[test]
+fn redact_same_power_level() {
+    let _guard = init_subscriber();
+
+    let incoming_event = room_redaction_pdu_event(
+        "HELLO",
+        charlie(),
+        owned_event_id!("$redacted_event:other.server"),
+        to_raw_json_value(&RoomRedactionEventContent::new_v1()).unwrap(),
+        &["CREATE", "IMA", "IPOWER"],
+        &["IPOWER"],
+    );
+
+    let room_power_levels_event = Some(to_pdu_event(
+        "IPOWER",
+        alice(),
+        TimelineEventType::RoomPowerLevels,
+        Some(""),
+        to_raw_json_value(&json!({ "users": { alice(): 100, charlie(): 50 } })).unwrap(),
+        &["CREATE", "IMA"],
+        &["IMA"],
+    ));
+
+    // Can redact if redact level is same as user's.
+    assert!(check_room_redaction(
+        incoming_event,
+        room_power_levels_event,
+        &RoomVersion::V1,
+        int!(50)
+    )
+    .unwrap());
+}
+
+#[test]
+fn redact_same_server() {
+    let _guard = init_subscriber();
+
+    let incoming_event = room_redaction_pdu_event(
+        "HELLO",
+        charlie(),
+        event_id("redacted_event"),
+        to_raw_json_value(&RoomRedactionEventContent::new_v1()).unwrap(),
+        &["CREATE", "IMA", "IPOWER"],
+        &["IPOWER"],
+    );
+
+    let room_power_levels_event = Some(default_room_power_levels());
+
+    // Can redact if redact level is same as user's.
+    assert!(check_room_redaction(
+        incoming_event,
+        room_power_levels_event,
+        &RoomVersion::V1,
+        int!(0)
+    )
+    .unwrap());
 }
