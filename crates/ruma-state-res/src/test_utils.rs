@@ -438,6 +438,42 @@ where
     })
 }
 
+pub(crate) fn room_redaction_pdu_event<S>(
+    id: &str,
+    sender: &UserId,
+    redacts: OwnedEventId,
+    content: Box<RawJsonValue>,
+    auth_events: &[S],
+    prev_events: &[S],
+) -> Arc<PduEvent>
+where
+    S: AsRef<str>,
+{
+    let ts = SERVER_TIMESTAMP.fetch_add(1, SeqCst);
+    let id = if id.contains('$') { id.to_owned() } else { format!("${id}:foo") };
+    let auth_events = auth_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
+    let prev_events = prev_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
+
+    Arc::new(PduEvent {
+        event_id: id.try_into().unwrap(),
+        rest: Pdu::RoomV3Pdu(RoomV3Pdu {
+            room_id: room_id().to_owned(),
+            sender: sender.to_owned(),
+            origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
+            state_key: None,
+            kind: TimelineEventType::RoomRedaction,
+            content,
+            redacts: Some(redacts),
+            unsigned: BTreeMap::new(),
+            auth_events,
+            prev_events,
+            depth: uint!(0),
+            hashes: EventHash::new("".to_owned()),
+            signatures: ServerSignatures::default(),
+        }),
+    })
+}
+
 // all graphs start with these input events
 #[allow(non_snake_case)]
 pub(crate) fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
