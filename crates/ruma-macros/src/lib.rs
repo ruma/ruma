@@ -286,10 +286,12 @@ pub fn mxc_uri(input: TokenStream) -> TokenStream {
 }
 
 /// Compile-time checked `UserId` construction.
+///
+/// The user ID is validated using the same rules as `UserId::validate_strict()`.
 #[proc_macro]
 pub fn user_id(input: TokenStream) -> TokenStream {
     let IdentifierInput { dollar_crate, id } = parse_macro_input!(input as IdentifierInput);
-    assert!(user_id::validate(&id.value()).is_ok(), "Invalid user_id");
+    assert!(user_id::validate_strict(&id.value()).is_ok(), "Invalid user_id");
 
     let output = quote! {
         <&#dollar_crate::UserId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()

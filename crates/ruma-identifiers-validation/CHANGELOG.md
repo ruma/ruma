@@ -1,5 +1,22 @@
 # [unreleased]
 
+Breaking changes:
+
+- `user_id::validate` is now compatible with all non-compliant user IDs in the
+  wild by default, due to a clarification in the spec.
+  - The `compat-user-id` cargo feature was removed.
+  - `user_id::localpart_is_backwards_compatible` can be used to validate the
+    localpart of user IDs received over federation.
+  - `user_id::localpart_is_fully_conforming` always strictly validates against
+    the strict and historical grammars, regardless of the compat features that
+    are enabled.
+  - `user_id::validate_strict` allows to validate strictly a user ID against the
+    strict grammar, regardless of the compat features that are enabled.
+
+Improvements:
+
+- The maximum allowed length of Matrix identifiers is exposed as `ID_MAX_BYTES`.
+
 # 0.10.1
 
 Improvements:
