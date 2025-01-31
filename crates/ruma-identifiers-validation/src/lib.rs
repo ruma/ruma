@@ -18,14 +18,13 @@ pub mod voip_version_id;
 
 pub use error::Error;
 
-/// All identifiers must be 255 bytes or less.
-#[cfg(not(feature = "compat-arbitrary-length-ids"))]
-const MAX_BYTES: usize = 255;
+/// The maximum allowed length of Matrix identifiers, in bytes.
+pub const ID_MAX_BYTES: usize = 255;
 
 /// Checks if an identifier is valid.
 fn validate_id(id: &str, first_byte: u8) -> Result<(), Error> {
     #[cfg(not(feature = "compat-arbitrary-length-ids"))]
-    if id.len() > MAX_BYTES {
+    if id.len() > ID_MAX_BYTES {
         return Err(Error::MaximumLengthExceeded);
     }
 
@@ -54,4 +53,19 @@ fn validate_delimited_id(id: &str, first_byte: u8) -> Result<(), Error> {
 pub trait KeyName: AsRef<str> {
     /// Validate the given string for this name.
     fn validate(s: &str) -> Result<(), Error>;
+}
+
+/// Check whether the Matrix identifier localpart is [allowed over federation].
+///
+/// According to the spec, localparts can consist of any legal non-surrogate Unicode code points
+/// except for `:` and `NUL` (`U+0000`).
+///
+/// [allowed over federation]: https://spec.matrix.org/latest/appendices/#historical-user-ids
+pub fn localpart_is_backwards_compatible(localpart: &str) -> Result<(), Error> {
+    let is_invalid = localpart.contains([':', '\0']);
+    if is_invalid {
+        Err(Error::InvalidCharacters)
+    } else {
+        Ok(())
+    }
 }

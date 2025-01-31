@@ -94,7 +94,6 @@ full = [
 # Enable all compatibility hacks. Deprecated.
 compat = [
     "compat-server-signing-key-version",
-    "compat-user-id",
     "compat-empty-string-null",
     "compat-null",
     "compat-optional",
@@ -109,10 +108,6 @@ compat-arbitrary-length-ids = ["ruma-common/compat-arbitrary-length-ids"]
 
 # Don't validate `ServerSigningKeyVersion`.
 compat-server-signing-key-version = ["ruma-common/compat-server-signing-key-version"]
-
-# Allow some user IDs that are invalid even with the specified historical
-# user ID scheme.
-compat-user-id = ["ruma-common/compat-user-id"]
 
 # Allow some mandatory fields in requests / responses to be missing, defaulting
 # them to an empty string in deserialization.

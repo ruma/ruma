@@ -2,6 +2,10 @@
 
 use std::{rc::Rc, sync::Arc};
 
+pub use ruma_identifiers_validation::user_id::localpart_is_fully_conforming;
+use ruma_identifiers_validation::{localpart_is_backwards_compatible, ID_MAX_BYTES};
+use ruma_macros::IdZst;
+
 use super::{matrix_uri::UriAction, IdParseError, MatrixToUri, MatrixUri, ServerName};
 
 /// A Matrix [user ID].
@@ -23,6 +27,8 @@ pub struct UserId(str);
 impl UserId {
     /// Attempts to generate a `UserId` for the given origin server with a localpart consisting of
     /// 12 random ASCII characters.
+    ///
+    /// The generated `OwnedUserId` is guaranteed to pass [`UserId::validate_strict()`].
     #[cfg(feature = "rand")]
     #[allow(clippy::new_ret_no_self)]
     pub fn new(server_name: &ServerName) -> OwnedUserId {
@@ -50,7 +56,7 @@ impl UserId {
         if id_str.starts_with('@') {
             Self::parse(id)
         } else {
-            let _ = localpart_is_fully_conforming(id_str)?;
+            localpart_is_backwards_compatible(id_str)?;
             Ok(Self::from_borrowed(&format!("@{id_str}:{server_name}")).to_owned())
         }
     }
@@ -67,7 +73,7 @@ impl UserId {
         if id_str.starts_with('@') {
             Self::parse_rc(id)
         } else {
-            let _ = localpart_is_fully_conforming(id_str)?;
+            localpart_is_backwards_compatible(id_str)?;
             Ok(Self::from_rc(format!("@{id_str}:{server_name}").into()))
         }
     }
@@ -84,7 +90,7 @@ impl UserId {
         if id_str.starts_with('@') {
             Self::parse_arc(id)
         } else {
-            let _ = localpart_is_fully_conforming(id_str)?;
+            localpart_is_backwards_compatible(id_str)?;
             Ok(Self::from_arc(format!("@{id_str}:{server_name}").into()))
         }
     }
@@ -99,12 +105,58 @@ impl UserId {
         ServerName::from_borrowed(&self.as_str()[self.colon_idx() + 1..])
     }
 
+    /// Validate this user ID against the strict or historical grammar.
+    ///
+    /// Returns an `Err` for invalid user IDs, `Ok(false)` for historical user IDs
+    /// and `Ok(true)` for fully conforming user IDs.
+    fn validate_fully_conforming(&self) -> Result<bool, IdParseError> {
+        // Since the length check can be disabled with `compat-arbitrary-length-ids`, check it again
+        // here.
+        if self.as_bytes().len() > ID_MAX_BYTES {
+            return Err(IdParseError::MaximumLengthExceeded);
+        }
+
+        localpart_is_fully_conforming(self.localpart())
+    }
+
+    /// Validate this user ID against the [strict grammar].
+    ///
+    /// This should be used to validate newly created user IDs as historical user IDs are
+    /// deprecated.
+    ///
+    /// [strict grammar]: https://spec.matrix.org/latest/appendices/#user-identifiers
+    pub fn validate_strict(&self) -> Result<(), IdParseError> {
+        let is_fully_conforming = self.validate_fully_conforming()?;
+
+        if is_fully_conforming {
+            Ok(())
+        } else {
+            Err(IdParseError::InvalidCharacters)
+        }
+    }
+
+    /// Validate this user ID against the [historical grammar].
+    ///
+    /// According to the spec, servers should check events received over federation that contain
+    /// user IDs with this method, and those that fail should not be forwarded to their users.
+    ///
+    /// Contrary to [`UserId::is_historical()`] this method also includes user IDs that conform to
+    /// the latest grammar.
+    ///
+    /// [historical grammar]: https://spec.matrix.org/latest/appendices/#historical-user-ids
+    pub fn validate_historical(&self) -> Result<(), IdParseError> {
+        self.validate_fully_conforming()?;
+        Ok(())
+    }
+
     /// Whether this user ID is a historical one.
     ///
-    /// A historical user ID is one that doesn't conform to the latest specification of the user ID
-    /// grammar but is still accepted because it was previously allowed.
+    /// A [historical user ID] is one that doesn't conform to the latest specification of the user
+    /// ID grammar but is still accepted because it was previously allowed.
+    ///
+    /// [historical user ID]: https://spec.matrix.org/latest/appendices/#historical-user-ids
     pub fn is_historical(&self) -> bool {
-        !localpart_is_fully_conforming(self.localpart()).unwrap()
+        self.validate_fully_conforming().is_ok_and(|is_fully_conforming| !is_fully_conforming)
     }
 
     /// Create a `matrix.to` URI for this user ID.
@@ -149,9 +201,6 @@ impl UserId {
     }
 }
 
-pub use ruma_identifiers_validation::user_id::localpart_is_fully_conforming;
-use ruma_macros::IdZst;
-
 #[cfg(test)]
 mod tests {
     use super::{OwnedUserId, UserId};
@@ -164,6 +213,8 @@ mod tests {
         assert_eq!(user_id.localpart(), "carl");
         assert_eq!(user_id.server_name(), "example.com");
         assert!(!user_id.is_historical());
+        user_id.validate_historical().unwrap();
+        user_id.validate_strict().unwrap();
     }
 
     #[test]
@@ -175,6 +226,8 @@ mod tests {
         assert_eq!(user_id.localpart(), "carl");
         assert_eq!(user_id.server_name(), "example.com");
         assert!(!user_id.is_historical());
+        user_id.validate_historical().unwrap();
+        user_id.validate_strict().unwrap();
     }
 
     #[test]
@@ -186,24 +239,87 @@ mod tests {
         assert_eq!(user_id.localpart(), "carl");
         assert_eq!(user_id.server_name(), "example.com");
         assert!(!user_id.is_historical());
+        user_id.validate_historical().unwrap();
+        user_id.validate_strict().unwrap();
     }
 
-    #[cfg(not(feature = "compat-user-id"))]
     #[test]
-    fn invalid_user_id() {
+    fn backwards_compatible_user_id() {
         let localpart = "τ";
-        let user_id = "@τ:example.com";
+        let user_id_str = "@τ:example.com";
         let server_name = server_name!("example.com");
 
-        <&UserId>::try_from(user_id).unwrap_err();
-        UserId::parse_with_server_name(user_id, server_name).unwrap_err();
-        UserId::parse_with_server_name(localpart, server_name).unwrap_err();
-        UserId::parse_with_server_name_rc(user_id, server_name).unwrap_err();
-        UserId::parse_with_server_name_rc(localpart, server_name).unwrap_err();
-        UserId::parse_with_server_name_arc(user_id, server_name).unwrap_err();
-        UserId::parse_with_server_name_arc(localpart, server_name).unwrap_err();
-        UserId::parse_rc(user_id).unwrap_err();
-        UserId::parse_arc(user_id).unwrap_err();
+        let user_id = <&UserId>::try_from(user_id_str).unwrap();
+        assert_eq!(user_id.as_str(), user_id_str);
+        assert_eq!(user_id.localpart(), localpart);
+        assert_eq!(user_id.server_name(), server_name);
+        assert!(!user_id.is_historical());
+        user_id.validate_historical().unwrap_err();
+        user_id.validate_strict().unwrap_err();
+
+        let user_id = UserId::parse_with_server_name(user_id_str, server_name).unwrap();
+        assert_eq!(user_id.as_str(), user_id_str);
+        assert_eq!(user_id.localpart(), localpart);
+        assert_eq!(user_id.server_name(), server_name);
+        assert!(!user_id.is_historical());
+        user_id.validate_historical().unwrap_err();
+        user_id.validate_strict().unwrap_err();
+
+        let user_id = UserId::parse_with_server_name(localpart, server_name).unwrap();
+        assert_eq!(user_id.as_str(), user_id_str);
+        assert_eq!(user_id.localpart(), localpart);
+        assert_eq!(user_id.server_name(), server_name);
+        assert!(!user_id.is_historical());
+        user_id.validate_historical().unwrap_err();
+        user_id.validate_strict().unwrap_err();
+
+        let user_id = UserId::parse_with_server_name_rc(user_id_str, server_name).unwrap();
+        assert_eq!(user_id.as_str(), user_id_str);
+        assert_eq!(user_id.localpart(), localpart);
+        assert_eq!(user_id.server_name(), server_name);
+        assert!(!user_id.is_historical());
+        user_id.validate_historical().unwrap_err();
+        user_id.validate_strict().unwrap_err();
+
+        let user_id = UserId::parse_with_server_name_rc(localpart, server_name).unwrap();
+        assert_eq!(user_id.as_str(), user_id_str);
+        assert_eq!(user_id.localpart(), localpart);
+        assert_eq!(user_id.server_name(), server_name);
+        assert!(!user_id.is_historical());
+        user_id.validate_historical().unwrap_err();
+        user_id.validate_strict().unwrap_err();
+
+        let user_id = UserId::parse_with_server_name_arc(user_id_str, server_name).unwrap();
+        assert_eq!(user_id.as_str(), user_id_str);
+        assert_eq!(user_id.localpart(), localpart);
+        assert_eq!(user_id.server_name(), server_name);
+        assert!(!user_id.is_historical());
+        user_id.validate_historical().unwrap_err();
+        user_id.validate_strict().unwrap_err();
+
+        let user_id = UserId::parse_with_server_name_arc(localpart, server_name).unwrap();
+        assert_eq!(user_id.as_str(), user_id_str);
+        assert_eq!(user_id.localpart(), localpart);
+        assert_eq!(user_id.server_name(), server_name);
+        assert!(!user_id.is_historical());
+        user_id.validate_historical().unwrap_err();
+        user_id.validate_strict().unwrap_err();
+
+        let user_id = UserId::parse_rc(user_id_str).unwrap();
+        assert_eq!(user_id.as_str(), user_id_str);
+        assert_eq!(user_id.localpart(), localpart);
+        assert_eq!(user_id.server_name(), server_name);
+        assert!(!user_id.is_historical());
+        user_id.validate_historical().unwrap_err();
+        user_id.validate_strict().unwrap_err();
+
+        let user_id = UserId::parse_arc(user_id_str).unwrap();
+        assert_eq!(user_id.as_str(), user_id_str);
+        assert_eq!(user_id.localpart(), localpart);
+        assert_eq!(user_id.server_name(), server_name);
+        assert!(!user_id.is_historical());
+        user_id.validate_historical().unwrap_err();
+        user_id.validate_strict().unwrap_err();
     }
 
     #[test]
@@ -219,6 +335,8 @@ mod tests {
         assert_eq!(user_id.localpart(), "a%b[irc]");
         assert_eq!(user_id.server_name(), "example.com");
         assert!(user_id.is_historical());
+        user_id.validate_historical().unwrap();
+        user_id.validate_strict().unwrap_err();
     }
 
     #[test]
@@ -230,6 +348,8 @@ mod tests {
         assert_eq!(user_id.localpart(), "a%b[irc]");
         assert_eq!(user_id.server_name(), "example.com");
         assert!(user_id.is_historical());
+        user_id.validate_historical().unwrap();
+        user_id.validate_strict().unwrap_err();
     }
 
     #[test]
@@ -241,6 +361,8 @@ mod tests {
         assert_eq!(user_id.localpart(), "a%b[irc]");
         assert_eq!(user_id.server_name(), "example.com");
         assert!(user_id.is_historical());
+        user_id.validate_historical().unwrap();
+        user_id.validate_strict().unwrap_err();
     }
 
     #[test]
@@ -248,6 +370,8 @@ mod tests {
         let user_id = <&UserId>::try_from("@CARL:example.com").expect("Failed to create UserId.");
         assert_eq!(user_id.as_str(), "@CARL:example.com");
         assert!(user_id.is_historical());
+        user_id.validate_historical().unwrap();
+        user_id.validate_strict().unwrap_err();
     }
 
     #[cfg(feature = "rand")]
@@ -257,6 +381,8 @@ mod tests {
         let user_id = UserId::new(server_name);
         assert_eq!(user_id.localpart().len(), 12);
         assert_eq!(user_id.server_name(), "example.com");
+        user_id.validate_historical().unwrap();
+        user_id.validate_strict().unwrap();
 
         let id_str = user_id.as_str();
 
@@ -303,12 +429,10 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(feature = "compat-user-id"))]
     fn invalid_characters_in_user_id_localpart() {
-        assert_eq!(
-            <&UserId>::try_from("@te\nst:example.com").unwrap_err(),
-            IdParseError::InvalidCharacters
-        );
+        let user_id = <&UserId>::try_from("@te\nst:example.com").unwrap();
+        assert_eq!(user_id.validate_historical().unwrap_err(), IdParseError::InvalidCharacters);
+        assert_eq!(user_id.validate_strict().unwrap_err(), IdParseError::InvalidCharacters);
     }
 
     #[test]
