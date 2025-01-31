@@ -9,16 +9,17 @@ use std::{
 
 use js_int::{int, uint};
 use ruma_common::{
-    event_id, room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId,
-    RoomVersionId, ServerSignatures, UserId,
+    event_id, room_id, serde::Base64, user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId,
+    RoomId, RoomVersionId, ServerSignatures, UserId,
 };
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV3Pdu},
     room::{
         join_rules::{JoinRule, RoomJoinRulesEventContent},
         member::{MembershipState, RoomMemberEventContent},
+        third_party_invite::RoomThirdPartyInviteEventContent,
     },
-    TimelineEventType,
+    StateEventType, TimelineEventType,
 };
 use serde_json::{
     json,
@@ -438,6 +439,42 @@ where
     })
 }
 
+pub(crate) fn room_redaction_pdu_event<S>(
+    id: &str,
+    sender: &UserId,
+    redacts: OwnedEventId,
+    content: Box<RawJsonValue>,
+    auth_events: &[S],
+    prev_events: &[S],
+) -> Arc<PduEvent>
+where
+    S: AsRef<str>,
+{
+    let ts = SERVER_TIMESTAMP.fetch_add(1, SeqCst);
+    let id = if id.contains('$') { id.to_owned() } else { format!("${id}:foo") };
+    let auth_events = auth_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
+    let prev_events = prev_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
+
+    Arc::new(PduEvent {
+        event_id: id.try_into().unwrap(),
+        rest: Pdu::RoomV3Pdu(RoomV3Pdu {
+            room_id: room_id().to_owned(),
+            sender: sender.to_owned(),
+            origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
+            state_key: None,
+            kind: TimelineEventType::RoomRedaction,
+            content,
+            redacts: Some(redacts),
+            unsigned: BTreeMap::new(),
+            auth_events,
+            prev_events,
+            depth: uint!(0),
+            hashes: EventHash::new("".to_owned()),
+            signatures: ServerSignatures::default(),
+        }),
+    })
+}
+
 // all graphs start with these input events
 #[allow(non_snake_case)]
 pub(crate) fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
@@ -649,4 +686,43 @@ pub(crate) mod event {
         #[serde(flatten)]
         pub(crate) rest: Pdu,
     }
+}
+
+pub(crate) fn init_subscriber() -> tracing::dispatcher::DefaultGuard {
+    tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish())
+}
+
+pub(crate) fn event_map_to_state_map(
+    events: &HashMap<OwnedEventId, Arc<PduEvent>>,
+) -> HashMap<StateEventType, HashMap<String, Arc<PduEvent>>> {
+    let mut state_map: HashMap<StateEventType, HashMap<String, Arc<PduEvent>>> = HashMap::new();
+
+    for event in events.values() {
+        let event_type = StateEventType::from(event.event_type().to_string());
+
+        state_map
+            .entry(event_type)
+            .or_default()
+            .insert(event.state_key().unwrap().to_owned(), event.clone());
+    }
+
+    state_map
+}
+
+/// Create an `m.room.third_party_invite` event with the given sender.
+pub(crate) fn room_third_party_invite(sender: &UserId) -> Arc<PduEvent> {
+    to_pdu_event(
+        "THIRDPARTY",
+        sender,
+        TimelineEventType::RoomThirdPartyInvite,
+        Some("somerandomtoken"),
+        to_raw_json_value(&RoomThirdPartyInviteEventContent::new(
+            "e..@p..".to_owned(),
+            "http://host.local/check/public_key".to_owned(),
+            Base64::new(b"public_key".to_vec()),
+        ))
+        .unwrap(),
+        &["CREATE", "IJR", "IPOWER"],
+        &["IPOWER"],
+    )
 }
