@@ -9,6 +9,10 @@ Breaking changes:
     check for spec compliance.
   - The `(owned_)user_id!` macros always validate against the strict grammar in
     the spec, regardless of the compat features that are enabled.
+- `(owned_)room_id!` macros disallow the `NUL` byte, due to a clarification in
+  the spec.
+- `(owned_)room_alias_id!` macros disallow the `NUL` byte for the localpart, due
+  to a clarification in the spec.
 
 Improvements:
 

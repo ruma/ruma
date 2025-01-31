@@ -16,6 +16,10 @@ Breaking changes:
 Improvements:
 
 - The maximum allowed length of Matrix identifiers is exposed as `ID_MAX_BYTES`.
+- `room_id::validate` disallows the `NUL` byte, due to a clarification in the
+  spec.
+- `room_alias_id::validate` disallows the `NUL` byte for the localpart, due to a
+  clarification in the spec.
 
 # 0.10.1
 
