@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.20.1
+
 Bug fixes:
 
 - `unstable-msc4186` without `unstable-msc3575` no longer create a compilation
