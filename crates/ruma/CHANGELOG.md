@@ -1,5 +1,14 @@
 # [unreleased]
 
+# 0.12.1
+
+Please refer to the changelogs of:
+
+- ruma-common 0.15.1
+- ruma-events 0.30.1
+- ruma-client-api 0.20.1
+- ruma-appservice-api 0.12.1
+
 # 0.12.0
 
 - The `unstable-exhaustive-types` cargo feature was replaced by the
