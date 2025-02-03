@@ -4,6 +4,8 @@ Breaking changes:
 
 - Use `AuthType` for the `auth_type` of `get_uiaa_fallback_page`'s Request.
 
+# 0.20.1
+
 Bug fixes:
 
 - `unstable-msc4186` without `unstable-msc3575` no longer create a compilation

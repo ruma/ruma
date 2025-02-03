@@ -14,6 +14,8 @@ Breaking changes:
 - `(owned_)room_alias_id!` macros disallow the `NUL` byte for the localpart, due
   to a clarification in the spec.
 
+# 0.15.1
+
 Improvements:
 
 - Add `MatrixVersion::V1_13`.

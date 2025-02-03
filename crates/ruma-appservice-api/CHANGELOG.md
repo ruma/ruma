@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.12.1
+
 Improvements:
 
 - Move unstable support for sending to-device events to appservices from

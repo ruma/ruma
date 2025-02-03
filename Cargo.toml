@@ -19,16 +19,16 @@ insta = { version = "1.41.1", features = ["json"] }
 js_int = "0.2.2"
 maplit = "1.0.2"
 rand = "0.8.5"
-ruma-appservice-api = { version = "0.12.0", path = "crates/ruma-appservice-api" }
+ruma-appservice-api = { version = "0.12.1", path = "crates/ruma-appservice-api" }
 ruma-client = { version = "0.15.0", path = "crates/ruma-client" }
-ruma-client-api = { version = "0.20.0", path = "crates/ruma-client-api" }
-ruma-common = { version = "0.15.0", path = "crates/ruma-common" }
-ruma-events = { version = "0.30.0", path = "crates/ruma-events" }
+ruma-client-api = { version = "0.20.1", path = "crates/ruma-client-api" }
+ruma-common = { version = "0.15.1", path = "crates/ruma-common" }
+ruma-events = { version = "0.30.1", path = "crates/ruma-events" }
 ruma-federation-api = { version = "0.11.0", path = "crates/ruma-federation-api" }
 ruma-html = { version = "0.4.0", path = "crates/ruma-html" }
 ruma-identifiers-validation = { version = "0.10.1", path = "crates/ruma-identifiers-validation" }
 ruma-identity-service-api = { version = "0.11.0", path = "crates/ruma-identity-service-api" }
-ruma-macros = { version = "=0.15.0", path = "crates/ruma-macros" }
+ruma-macros = { version = "=0.15.1", path = "crates/ruma-macros" }
 ruma-push-gateway-api = { version = "0.11.0", path = "crates/ruma-push-gateway-api" }
 ruma-server-util = { version = "0.5.0", path = "crates/ruma-server-util" }
 ruma-signatures = { version = "0.17.0", path = "crates/ruma-signatures" }
