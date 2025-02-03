@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.30.1
+
 Bug fixes:
 
 - `make_replacement` now correctly sets the mentions on the plain replacement event, when the
