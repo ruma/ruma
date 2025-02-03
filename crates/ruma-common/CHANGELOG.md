@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.15.1
+
 Improvements:
 
 - Add `MatrixVersion::V1_13`.
