@@ -24,7 +24,9 @@ fn verify_event_check_signatures_for_authorized_user() {
         r#"{
             "event_id": "$event_id:domain-event",
             "auth_events": [],
-            "content": {},
+            "content": {
+                "membership": "join"
+            },
             "depth": 3,
             "hashes": {
                 "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
