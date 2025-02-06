@@ -154,10 +154,21 @@ impl Package {
         Ok(())
     }
 
-    /// Get the changes for the version.
+    /// Update the changelog for the release of the current version, if needed.
+    pub fn update_changelog(&self, sh: &Shell) -> Result<()> {
+        self.changes_inner(sh, true)?;
+        Ok(())
+    }
+
+    /// Get the changes for the current version.
+    pub fn changes(&self, sh: &Shell) -> Result<String> {
+        self.changes_inner(sh, false)
+    }
+
+    /// Get the changes for the current version.
     ///
-    /// If `update` is `true`, update the changelog for the release of the given version.
-    pub fn changes(&self, sh: &Shell, update: bool) -> Result<String> {
+    /// If `update` is `true`, the changelog is updated if needed.
+    fn changes_inner(&self, sh: &Shell, update: bool) -> Result<String> {
         if self.name == "ruma-macros" {
             // ruma-macros doesn't have a changelog and won't create a tag.
             return Ok(String::new());
@@ -175,10 +186,11 @@ impl Package {
 
         let (update, title_start) = if let Some(pos) = changelog.find(&format!("# {version}\n")) {
             (false, pos)
-        } else if changelog.starts_with(&format!("# {version} (unreleased)\n"))
-            || changelog.starts_with("# [unreleased]\n")
+        } else if update
+            && (changelog.starts_with(&format!("# {version} (unreleased)\n"))
+                || changelog.starts_with("# [unreleased]\n"))
         {
-            (update, 0)
+            (true, 0)
         } else {
             return Err("Could not find version title in changelog".into());
         };
