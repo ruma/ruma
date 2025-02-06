@@ -119,10 +119,18 @@ impl ReleaseTask {
             false
         };
 
-        let changes = &self.package.changes(&self.sh, !prerelease && !self.dry_run)?;
+        if !prerelease && !self.dry_run {
+            self.package.update_changelog(&self.sh)?;
+        }
 
         if create_commit {
             self.commit()?;
+        }
+
+        let changes = &self.package.changes(&self.sh)?;
+
+        if self.dry_run {
+            println!("Changes:\n{changes}");
         }
 
         self.package.publish(&self.sh, &self.http_client, self.dry_run)?;
