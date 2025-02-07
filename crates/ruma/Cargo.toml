@@ -101,6 +101,7 @@ compat = [
     "compat-get-3pids",
     "compat-signature-id",
     "compat-tag-info",
+    "compat-optional-txn-pdus",
 ]
 
 # Allow IDs to exceed 255 bytes.
@@ -150,6 +151,10 @@ compat-tag-info = ["ruma-events?/compat-tag-info"]
 # Support encrypted stickers, as sent by several bridges.
 # https://github.com/matrix-org/matrix-spec/issues/1667
 compat-encrypted-stickers = ["ruma-events?/compat-encrypted-stickers"]
+
+# Allow the `pdus` field in a federation transaction request to be missing,
+# defaulting to an empty `Vec` in deserialization.
+compat-optional-txn-pdus = ["ruma-federation-api?/compat-optional-txn-pdus"]
 
 # Specific compatibility for past ring public/private key documents.
 ring-compat = ["dep:ruma-signatures", "ruma-signatures?/ring-compat"]
@@ -221,7 +226,6 @@ unstable-msc4230 = ["ruma-events?/unstable-msc4230"]
 unstable-pdu = ["ruma-events?/unstable-pdu"]
 unstable-unspecified = [
     "ruma-common/unstable-unspecified",
-    "ruma-federation-api?/unstable-unspecified",
 ]
 
 # Private features, only used in test / benchmarking code
