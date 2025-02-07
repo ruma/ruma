@@ -29,10 +29,20 @@
 //!   * `client-api-c` -- The Client-Server API optimized for the client side.
 //!   * `client-api-s` -- The Client-Server API optimized for the server side.
 //!
-//! # Compatibility feature
+//! # Compatibility features
 //!
-//! * `compat` increases compatibility with other parts of the Matrix ecosystem, at the expense of
-//!   deviating from the specification.
+//! By default, the ruma crates are only able to handle strictly spec-compliant data and behaviour.
+//! However, due to the fact that Matrix is federated, that it is used by various implementations
+//! that might have different bugs, and that much of its data is immutable, they need to be able to
+//! interoperate with data that might differ slightly from the specification.
+//!
+//! This is the role of the `compat-*` cargo features. They allow the crates be more tolerant of
+//! external data and incoming requests for known and reasonable deviations from the spec, usually
+//! for historical reasons. They however do not permit the ruma crates to generate data that is not
+//! spec-compliant.
+//!
+//! Each cargo feature is documented briefly in the cargo manifest of the crate, and more thoroughly
+//! where the feature applies.
 //!
 //! # Convenience features
 //!
