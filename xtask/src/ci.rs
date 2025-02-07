@@ -223,7 +223,7 @@ impl CiTask {
     /// Run tests on all crates with almost all features and the compat features with the stable
     /// version.
     fn test_compat(&self) -> Result<()> {
-        cmd!(&self.sh, "rustup run stable cargo test --tests --features __ci,compat")
+        cmd!(&self.sh, "rustup run stable cargo test --tests --features __ci,__compat")
             .run()
             .map_err(Into::into)
     }
@@ -325,7 +325,7 @@ impl CiTask {
             &self.sh,
             "
             rustup run {NIGHTLY} cargo clippy
-                --workspace --all-targets --features=__ci,compat -- -D warnings
+                --workspace --all-targets --features=__ci,__compat -- -D warnings
             "
         )
         .run()

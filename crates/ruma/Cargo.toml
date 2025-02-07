@@ -91,19 +91,6 @@ full = [
     "html-matrix",
 ]
 
-# Enable all compatibility hacks. Deprecated.
-compat = [
-    "compat-server-signing-key-version",
-    "compat-empty-string-null",
-    "compat-null",
-    "compat-optional",
-    "compat-unset-avatar",
-    "compat-get-3pids",
-    "compat-signature-id",
-    "compat-tag-info",
-    "compat-optional-txn-pdus",
-]
-
 # Allow IDs to exceed 255 bytes.
 compat-arbitrary-length-ids = ["ruma-common/compat-arbitrary-length-ids"]
 
@@ -284,6 +271,17 @@ __ci = [
     "compat-upload-signatures",
     "__unstable-mscs",
     "unstable-unspecified",
+]
+__compat = [
+    "compat-server-signing-key-version",
+    "compat-empty-string-null",
+    "compat-null",
+    "compat-optional",
+    "compat-unset-avatar",
+    "compat-get-3pids",
+    "compat-signature-id",
+    "compat-tag-info",
+    "compat-optional-txn-pdus",
 ]
 
 [dependencies]

@@ -1,5 +1,8 @@
 # [unreleased]
 
+- The deprecated global `compat` cargo feature was removed. The `compat-*` cargo
+  features need to be enabled individually.
+
 # 0.12.1
 
 Please refer to the changelogs of:
