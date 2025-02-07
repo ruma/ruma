@@ -273,14 +273,17 @@ __ci = [
     "unstable-unspecified",
 ]
 __compat = [
+    "compat-arbitrary-length-ids",
     "compat-server-signing-key-version",
     "compat-empty-string-null",
     "compat-null",
     "compat-optional",
     "compat-unset-avatar",
     "compat-get-3pids",
+    "compat-upload-signatures",
     "compat-signature-id",
     "compat-tag-info",
+    "compat-encrypted-stickers",
     "compat-optional-txn-pdus",
 ]
 
