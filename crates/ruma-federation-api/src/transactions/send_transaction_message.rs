@@ -46,12 +46,9 @@ pub mod v1 {
         ///
         /// Must not be more than 50 items.
         ///
-        /// With the `unstable-unspecified` feature, sending `pdus` is optional.
-        /// See [matrix-spec#705](https://github.com/matrix-org/matrix-spec/issues/705).
-        #[cfg_attr(
-            feature = "unstable-unspecified",
-            serde(default, skip_serializing_if = "<[_]>::is_empty")
-        )]
+        /// With the `compat-optional-pdus` feature, this field is optional in deserialization,
+        /// defaulting to an empty `Vec`.
+        #[cfg_attr(feature = "compat-optional-txn-pdus", serde(default))]
         pub pdus: Vec<Box<RawJsonValue>>,
 
         /// List of ephemeral messages.

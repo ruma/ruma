@@ -1,5 +1,12 @@
 # [unreleased]
 
+Improvements:
+
+- The `unstable-unspecified` cargo feature was removed. The `pdus` field of
+  `send_transaction_message::v1::Request` is always serialized. To allow this
+  field to be missing during deserialization, use the `compat-optional-txn-pdus`
+  cargo feature.
+
 # 0.11.0
 
 Improvements:
