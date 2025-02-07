@@ -19,6 +19,10 @@ all-features = true
 # them to an empty string in deserialization.
 compat-empty-string-null = []
 
+# Allow the `pdus` field in a transaction request to be missing, defaulting to
+# an empty `Vec` in deserialization.
+compat-optional-txn-pdus = []
+
 client = ["dep:httparse", "dep:memchr"]
 server = ["dep:bytes", "dep:rand"]
 unstable-msc2448 = []
@@ -26,7 +30,6 @@ unstable-msc3618 = []
 unstable-msc3723 = []
 unstable-msc3843 = []
 unstable-msc4125 = []
-unstable-unspecified = []
 
 [dependencies]
 bytes = { workspace = true, optional = true }
