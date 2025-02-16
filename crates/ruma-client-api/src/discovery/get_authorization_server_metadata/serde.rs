@@ -85,7 +85,7 @@ impl<'de> Deserialize<'de> for AuthorizationServerMetadata {
         // Require `S256` in `code_challenge_methods_supported`.
         if !code_challenge_methods_supported.contains(&CodeChallengeMethod::S256) {
             return Err(de::Error::custom(
-                "missing value `s256` in `code_challenge_methods_supported`",
+                "missing value `S256` in `code_challenge_methods_supported`",
             ));
         }
 

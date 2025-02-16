@@ -294,7 +294,6 @@ pub mod msc2965 {
     /// The code challenge method to use at the authorization endpoint.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
     #[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, PartialOrdAsRefStr, OrdAsRefStr)]
-    #[ruma_enum(rename_all = "lowercase")]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum CodeChallengeMethod {
         /// Use a SHA-256, base64url-encoded code challenge ([RFC7636]).
@@ -392,7 +391,7 @@ mod tests {
             "response_modes_supported": ["query", "fragment"],
             "grant_types_supported": ["authorization_code", "refresh_token"],
             "revocation_endpoint": "https://server.local/revoke",
-            "code_challenge_methods_supported": ["s256"],
+            "code_challenge_methods_supported": ["S256"],
             "account_management_uri": "https://server.local/account",
             "account_management_actions_supported": [
                 "org.matrix.profile",
