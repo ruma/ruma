@@ -287,6 +287,13 @@ pub mod msc2965 {
         /// [RFC6749]: https://datatracker.ietf.org/doc/html/rfc6749
         RefreshToken,
 
+        /// The device code grant type ([RFC8628]).
+        ///
+        /// [RFC8628]: https://datatracker.ietf.org/doc/html/rfc8628
+        #[cfg(feature = "unstable-msc4108")]
+        #[ruma_enum(rename = "urn:ietf:params:oauth:grant-type:device_code")]
+        DeviceCode,
+
         #[doc(hidden)]
         _Custom(PrivOwnedStr),
     }
