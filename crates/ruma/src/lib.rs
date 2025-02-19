@@ -60,8 +60,6 @@
 //!
 //! * `unstable-mscXXXX`, where `XXXX` is the MSC number -- Upcoming Matrix features that may be
 //!   subject to change or removal.
-//! * `unstable-unspecified` -- Undocumented Matrix features that may be subject to change or
-//!   removal.
 //!
 //! # Common features
 //!

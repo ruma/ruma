@@ -27,6 +27,7 @@ Improvements:
   release date, with a newer version being greater than an older version.
 - `ProtocolInstance` has an `instance_id` field, due to a clarification in the
   spec.
+- The `unstable-unspecified` cargo feature was removed.
 
 # 0.15.1
 
