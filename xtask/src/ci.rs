@@ -311,7 +311,7 @@ impl CiTask {
             &self.sh,
             "
             rustup run {NIGHTLY} cargo clippy --target wasm32-unknown-unknown -p ruma --features
-                __unstable-mscs,api,canonical-json,client-api,events,html-matrix,identity-service-api,js,markdown,rand,signatures,unstable-unspecified -- -D warnings
+                __unstable-mscs,api,canonical-json,client-api,events,html-matrix,identity-service-api,js,markdown,rand,signatures -- -D warnings
             "
         )
         .env("CLIPPY_CONF_DIR", ".wasm")
