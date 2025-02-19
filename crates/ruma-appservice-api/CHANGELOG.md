@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+- The`thirdparty::get_protocol` response uses `AppserviceProtocolInstance`
+  instead of `ProtocolInstance`.
+
 # 0.12.1
 
 Improvements:
