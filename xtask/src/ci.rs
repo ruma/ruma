@@ -16,7 +16,7 @@ use reexport_features::check_reexport_features;
 use spec_links::check_spec_links;
 use unused_features::check_unused_features;
 
-const MSRV: &str = "1.75";
+const MSRV: &str = "1.80";
 
 #[derive(Args)]
 pub struct CiArgs {

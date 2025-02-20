@@ -3,6 +3,7 @@
 - The deprecated global `compat` cargo feature was removed. The `compat-*` cargo
   features need to be enabled individually.
 - The `unstable-unspecified` cargo feature was removed.
+- Bump MSRV to 1.80
 
 # 0.12.1
 
