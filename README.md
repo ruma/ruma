@@ -24,7 +24,7 @@ dependencies:
 
 ```toml
 # crates.io release
-ruma = { version = "0.11.0", features = ["..."] }
+ruma = { version = "0.12.0", features = ["..."] }
 # git dependency
 ruma = { git = "https://github.com/ruma/ruma", branch = "main", features = ["..."] }
 ```
@@ -41,7 +41,7 @@ You can also find a small number of examples in our dedicated
 
 ## Status
 
-Ruma 0.11.0 supports all events and REST endpoints of Matrix 1.12.
+Ruma 0.12.0 supports all events and REST endpoints of Matrix 1.12.
 
 Various changes from in-progress or finished MSCs are also implemented, gated
 behind the `unstable-mscXXXX` (where `XXXX` is the MSC number) Cargo features.
