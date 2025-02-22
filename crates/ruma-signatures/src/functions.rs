@@ -646,18 +646,22 @@ fn canonical_json_with_fields_to_remove(
 
 /// Extracts the server names to check signatures for given event.
 ///
-/// It will return the sender's server (unless it's a third party invite) and the event id server
-/// (on v1 and v2 room versions)
+/// Respects the rules for [validating signatures on received events] for populating the result:
 ///
-/// Starting with room version 8, if join_authorised_via_users_server is present, a signature from
-/// that user is required.
+/// - Add the server of the sender, except if it's an invite event that results from a third-party
+///   invite.
+/// - For room versions 1 and 2, add the server of the `event_id`.
+/// - For room versions that support restricted join rules, if it's a join event with a
+///   `join_authorised_via_users_server`, add the server of that user.
+///
+/// [validating signatures on received events]: https://spec.matrix.org/latest/server-server-api/#validating-hashes-and-signatures-on-received-events
 fn servers_to_check_signatures(
     object: &CanonicalJsonObject,
     version: &RoomVersionId,
 ) -> Result<BTreeSet<OwnedServerName>, Error> {
     let mut servers_to_check = BTreeSet::new();
 
-    if !is_third_party_invite(object)? {
+    if !is_invite_via_third_party_id(object)? {
         match object.get("sender") {
             Some(CanonicalJsonValue::String(raw_sender)) => {
                 let user_id = <&UserId>::try_from(raw_sender.as_str())
@@ -713,11 +717,35 @@ fn servers_to_check_signatures(
     Ok(servers_to_check)
 }
 
-/// Checks if `object` contains an event of type `m.room.third_party_invite`
-fn is_third_party_invite(object: &CanonicalJsonObject) -> Result<bool, Error> {
-    match object.get("type") {
-        Some(CanonicalJsonValue::String(raw_type)) => Ok(raw_type == "m.room.third_party_invite"),
-        _ => Err(JsonError::not_of_type("type", JsonType::String)),
+/// Whether the given event is an `m.room.member` invite that was created as the result of a
+/// third-party invite.
+///
+/// Returns an error if the object has not the expected format of an `m.room.member` event.
+fn is_invite_via_third_party_id(object: &CanonicalJsonObject) -> Result<bool, Error> {
+    let Some(CanonicalJsonValue::String(raw_type)) = object.get("type") else {
+        return Err(JsonError::not_of_type("type", JsonType::String));
+    };
+
+    if raw_type != "m.room.member" {
+        return Ok(false);
+    }
+
+    let Some(CanonicalJsonValue::Object(content)) = object.get("content") else {
+        return Err(JsonError::not_of_type("content", JsonType::Object));
+    };
+
+    let Some(CanonicalJsonValue::String(membership)) = content.get("membership") else {
+        return Err(JsonError::not_of_type("membership", JsonType::String));
+    };
+
+    if membership != "invite" {
+        return Ok(false);
+    }
+
+    match content.get("third_party_invite") {
+        Some(CanonicalJsonValue::Object(_)) => Ok(true),
+        None => Ok(false),
+        _ => Err(JsonError::not_of_type("third_party_invite", JsonType::Object)),
     }
 }
 
@@ -770,11 +798,25 @@ mod tests {
     }
 
     #[test]
-    fn verify_event_does_not_check_signatures_for_third_party_invites() {
+    fn verify_event_does_not_check_signatures_invite_via_third_party_id() {
         let signed_event = serde_json::from_str(
             r#"{
                 "auth_events": [],
-                "content": {},
+                "content": {
+                    "membership": "invite",
+                    "third_party_invite": {
+                        "display_name": "alice",
+                        "signed": {
+                            "mxid": "@alice:example.org",
+                            "signatures": {
+                            "magic.forest": {
+                                "ed25519:3": "fQpGIW1Snz+pwLZu6sTy2aHy/DYWWTspTJRPyNp0PKkymfIsNffysMl6ObMMFdIJhk6g6pwlIqZ54rxo8SLmAg"
+                            }
+                            },
+                            "token": "abc123"
+                        }
+                    }
+                },
                 "depth": 3,
                 "hashes": {
                     "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
@@ -789,7 +831,7 @@ mod tests {
                         "ed25519:1": "KxwGjPSDEtvnFgU00fwFz+l6d2pJM6XBIaMEn81SXPTRl16AqLAYqfIReFGZlHi5KLjAWbOoMszkwsQma+lYAg"
                     }
                 },
-                "type": "m.room.third_party_invite",
+                "type": "m.room.member",
                 "unsigned": {
                     "age_ts": 1000000
                 }
@@ -849,7 +891,10 @@ mod tests {
             r#"{
                 "event_id": "$event_id:domain-event",
                 "auth_events": [],
-                "content": {"join_authorised_via_users_server": "@authorized:domain-authorized"},
+                "content": {
+                    "membership": "join",
+                    "join_authorised_via_users_server": "@authorized:domain-authorized"
+                },
                 "depth": 3,
                 "hashes": {
                     "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"

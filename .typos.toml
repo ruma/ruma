@@ -11,3 +11,7 @@ Wya = "Wya"
 sing = "sign"
 singed = "signed"
 singing = "signing"
+
+[type.snap]
+extend-glob = ["*.snap"]
+check-file = false
