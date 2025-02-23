@@ -118,3 +118,70 @@ impl<E: Ord, K: KeyName + ?Sized> Extend<(E, OwnedSigningKeyId<K>, String)> for 
         }
     }
 }
+
+impl<E: Ord + Clone, K: KeyName + ?Sized> IntoIterator for Signatures<E, K> {
+    type Item = (E, OwnedSigningKeyId<K>, String);
+    type IntoIter = IntoIter<E, K>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        IntoIter { outer: self.0.into_iter(), inner: None, entity: None }
+    }
+}
+
+pub struct IntoIter<E: Clone, K: KeyName + ?Sized> {
+    outer: std::collections::btree_map::IntoIter<E, BTreeMap<OwnedSigningKeyId<K>, String>>,
+    inner: Option<std::collections::btree_map::IntoIter<OwnedSigningKeyId<K>, String>>,
+    entity: Option<E>,
+}
+
+impl<E: Clone, K: KeyName + ?Sized> Iterator for IntoIter<E, K> {
+    type Item = (E, OwnedSigningKeyId<K>, String);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if let Some(inner) = &mut self.inner {
+                if let Some((k, v)) = inner.next() {
+                    if let Some(entity) = self.entity.clone() {
+                        return Some((entity, k, v));
+                    }
+                }
+            }
+
+            if let Some((e, map)) = self.outer.next() {
+                self.inner = Some(map.into_iter());
+                self.entity = Some(e);
+            } else {
+                return None;
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn signatures_into_iter() {
+        use ruma_common::{
+            owned_server_name, server_signing_key_version, ServerSigningKeyId, Signatures,
+            SigningKeyAlgorithm,
+        };
+        let key_identifier = ServerSigningKeyId::from_parts(
+            SigningKeyAlgorithm::Ed25519,
+            server_signing_key_version!("1"),
+        );
+        let mut signatures = Signatures::new();
+        let server_name = owned_server_name!("example.org");
+        let signature =
+     "YbJva03ihSj5mPk+CHMJKUKlCXCPFXjXOK6VqBnN9nA2evksQcTGn6hwQfrgRHIDDXO2le49x7jnWJHMJrJoBQ";
+        signatures.insert_signature(server_name, key_identifier, signature.into());
+
+        let mut more_signatures = Signatures::new();
+        more_signatures.extend(signatures.clone());
+
+        assert_eq!(more_signatures.0, signatures.0);
+
+        let mut iter = more_signatures.into_iter();
+        assert!(iter.next().is_some());
+        assert!(iter.next().is_none());
+    }
+}
