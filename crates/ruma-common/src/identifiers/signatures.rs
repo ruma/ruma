@@ -176,7 +176,8 @@ mod tests {
         signatures.insert_signature(server_name, key_identifier, signature.into());
 
         let mut more_signatures = Signatures::new();
+        more_signatures.extend(signatures.clone());
 
-        more_signatures.extend(signatures);
+        assert_eq!(more_signatures.0, signatures.0);
     }
 }
