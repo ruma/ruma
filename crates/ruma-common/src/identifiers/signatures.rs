@@ -179,5 +179,9 @@ mod tests {
         more_signatures.extend(signatures.clone());
 
         assert_eq!(more_signatures.0, signatures.0);
+
+        let mut iter = more_signatures.into_iter();
+        assert!(iter.next().is_some());
+        assert!(iter.next().is_none());
     }
 }
