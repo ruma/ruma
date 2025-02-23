@@ -150,7 +150,6 @@ impl<E: Clone, K: KeyName + ?Sized> Iterator for IntoIter<E, K> {
             if let Some((e, map)) = self.outer.next() {
                 self.inner = Some(map.into_iter());
                 self.entity = Some(e);
-                continue;
             } else {
                 return None;
             }
