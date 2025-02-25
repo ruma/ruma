@@ -4,9 +4,13 @@ use crate::room::{EncryptedFile, OwnedMxcUri, UInt};
 
 /// The Source of the PreviewImage.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[allow(clippy::exhaustive_enums)]
 pub enum PreviewImageSource {
+    /// Source of the PreviewImage as encrypted file data
     #[serde(rename = "beeper:image:encryption", alias = "matrix:image:encryption")]
     EncryptedImage(EncryptedFile),
+
+    /// Source of the PreviewImage as a simple MxcUri
     #[serde(rename = "og:image", alias = "og:image:url")]
     Url(OwnedMxcUri),
 }
