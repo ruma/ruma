@@ -34,7 +34,7 @@ Improvements:
   spec.
 - The `unstable-unspecified` cargo feature was removed.
 - `Signatures` implements `IntoIterator`.
-- Give `ruma_common::media::Method` the ability becoming the key of a Map.
+- Implement `PartialEqAsRefStr`, `Eq`, `PartialOrdAsRefStr`, `OrdAsRefStr` for `ruma_common::media::Method`.
 
 # 0.15.1
 
