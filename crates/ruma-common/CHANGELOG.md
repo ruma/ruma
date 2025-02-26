@@ -33,7 +33,8 @@ Improvements:
 - `ProtocolInstance` has an `instance_id` field, due to a clarification in the
   spec.
 - The `unstable-unspecified` cargo feature was removed.
-- `Signatures` implements `IntoIterator`
+- `Signatures` implements `IntoIterator`.
+- Implement `PartialEqAsRefStr`, `Eq`, `PartialOrdAsRefStr`, `OrdAsRefStr` for `ruma_common::media::Method`.
 
 # 0.15.1
 
