@@ -4,6 +4,8 @@
 
 use std::time::Duration;
 
+use ruma_macros::{OrdAsRefStr, PartialEqAsRefStr, PartialOrdAsRefStr};
+
 use crate::{serde::StringEnum, PrivOwnedStr};
 
 /// The desired resizing method for a thumbnail.
