@@ -10,6 +10,8 @@ Improvements:
 - `MatrixVersion` implements `PartialOrd` and `Ord`. The variants are ordered by
   release date, with a newer version being greater than an older version.
 - `Signatures` implements `IntoIterator`
+- Implement `PartialEqAsRefStr`, `Eq`, `PartialOrdAsRefStr`, `OrdAsRefStr` for
+  `ruma_common::media::Method`.
 
 # 0.15.1
 
