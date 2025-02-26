@@ -8,7 +8,7 @@ use crate::{serde::StringEnum, PrivOwnedStr};
 
 /// The desired resizing method for a thumbnail.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, StringEnum)]
+#[derive(Clone, StringEnum, PartialEq, Eq, PartialOrd, Ord)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum Method {
