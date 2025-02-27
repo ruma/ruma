@@ -103,25 +103,23 @@ impl From<IntNotificationPowerLevels> for NotificationPowerLevels {
 pub(crate) fn deserialize_power_levels(
     content: &str,
     room_version: &RoomVersion,
-) -> Option<RoomPowerLevelsEventContent> {
+) -> Result<RoomPowerLevelsEventContent, Error> {
     if room_version.integer_power_levels {
-        match from_json_str::<IntRoomPowerLevelsEventContent>(content) {
-            Ok(content) => Some(content.into()),
-            Err(_) => {
-                error!("m.room.power_levels event is not valid with integer values");
-                None
-            }
+        let result = from_json_str::<IntRoomPowerLevelsEventContent>(content);
+
+        if result.is_err() {
+            error!("m.room.power_levels event is not valid with integer values");
         }
+
+        result.map(Into::into)
     } else {
-        match from_json_str(content) {
-            Ok(content) => Some(content),
-            Err(_) => {
-                error!(
-                    "m.room.power_levels event is not valid with integer or string integer values"
-                );
-                None
-            }
-        }
+        let result = from_json_str(content);
+
+        if result.is_err() {
+            error!("m.room.power_levels event is not valid with integer or string integer values");
+        };
+
+        result
     }
 }
 
