@@ -26,8 +26,8 @@ pub use self::{
     device_id::{DeviceId, OwnedDeviceId},
     event_id::{EventId, OwnedEventId},
     key_id::{
-        CrossSigningKeyId, CrossSigningOrDeviceSigningKeyId, DeviceKeyId, DeviceSigningKeyId,
-        KeyAlgorithm, KeyId, OneTimeKeyId, OwnedCrossSigningKeyId,
+        AnyKeyName, CrossSigningKeyId, CrossSigningOrDeviceSigningKeyId, DeviceKeyId,
+        DeviceSigningKeyId, KeyAlgorithm, KeyId, OneTimeKeyId, OwnedCrossSigningKeyId,
         OwnedCrossSigningOrDeviceSigningKeyId, OwnedDeviceKeyId, OwnedDeviceSigningKeyId,
         OwnedKeyId, OwnedOneTimeKeyId, OwnedServerSigningKeyId, OwnedSigningKeyId,
         ServerSigningKeyId, SigningKeyId,
