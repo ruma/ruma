@@ -13,6 +13,11 @@ Breaking changes:
     event.
   - `make_replacement` does not take the replied-to message anymore.
 
+Improvements:
+
+- Add `RECOMMENDED_STRIPPED_STATE_EVENT_TYPES` constant for servers to filter/get recommended
+  stripped state events.
+
 # 0.30.1
 
 Bug fixes:
