@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+- Add `RECOMMENDED_STRIPPED_STATE_EVENT_TYPES` constant for servers to filter/get recommended
+  stripped state events.
+
 # 0.30.1
 
 Bug fixes:
