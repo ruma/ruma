@@ -129,6 +129,7 @@ Improvements:
   parameter is deprecated, according to MSC4126 / Matrix 1.11.
 - Constructing a Matrix URI for an event with a room alias is deprecated,
   according to MSC4132 / Matrix 1.11
+- Clarify that `RoomOrAliasId` can be converted to `RoomId` or `RoomAliasId`.
 - Implement `Eq` and `PartialEq` for `Metadata`
 - Allow constructing `api::error::MatrixErrorBody::NotJson` outside of this
   crate.
