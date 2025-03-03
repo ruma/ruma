@@ -314,9 +314,11 @@ impl MatrixToUri {
 
                 query_parts
                     .map(|(key, value)| {
-                        (key == "via")
-                            .then(|| ServerName::parse(&value))
-                            .unwrap_or_else(|| Err(MatrixToError::UnknownArgument.into()))
+                        if key == "via" {
+                            ServerName::parse(&value)
+                        } else {
+                            Err(MatrixToError::UnknownArgument.into())
+                        }
                     })
                     .collect::<Result<Vec<_>, _>>()
             })
