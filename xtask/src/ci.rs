@@ -40,8 +40,6 @@ pub enum CiCmd {
     Stable,
     /// Check all crates with all features (stable)
     StableAll,
-    /// Check ruma-client without default features (stable)
-    StableClient,
     /// Check ruma-common with only the required features (stable)
     StableCommon,
     /// Run all tests with almost all features (stable)
@@ -112,7 +110,6 @@ impl CiTask {
             Some(CiCmd::MsrvOwnedIdArc) => self.msrv_owned_id_arc()?,
             Some(CiCmd::Stable) => self.stable()?,
             Some(CiCmd::StableAll) => self.stable_all()?,
-            Some(CiCmd::StableClient) => self.stable_client()?,
             Some(CiCmd::StableCommon) => self.stable_common()?,
             Some(CiCmd::TestAll) => self.test_all()?,
             Some(CiCmd::TestCompat) => self.test_compat()?,
@@ -175,7 +172,6 @@ impl CiTask {
     /// Run all the tasks that use the stable version.
     fn stable(&self) -> Result<()> {
         self.stable_all()?;
-        self.stable_client()?;
         self.stable_common()?;
         self.test_all()?;
         self.test_doc()?;
@@ -193,13 +189,6 @@ impl CiTask {
         )
         .run()
         .map_err(Into::into)
-    }
-
-    /// Check ruma-client without default features with the stable version.
-    fn stable_client(&self) -> Result<()> {
-        cmd!(&self.sh, "rustup run stable cargo check -p ruma-client --no-default-features")
-            .run()
-            .map_err(Into::into)
     }
 
     /// Check ruma-common with onjy the required features with the stable version.

@@ -33,6 +33,8 @@ ruma = { git = "https://github.com/ruma/ruma", branch = "main", features = ["...
 them as a user. Check out the documentation [on docs.rs][docs] (or on
 [docs.ruma.dev][unstable-docs] if you use use the git dependency).
 
+You can find a low level Matrix client in the [ruma-client repository](https://github.com/ruma/ruma-client).
+
 You can also find a small number of examples in our dedicated
 [examples repository](https://github.com/ruma/examples).
 

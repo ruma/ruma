@@ -20,7 +20,6 @@ js_int = "0.2.2"
 maplit = "1.0.2"
 rand = "0.8.5"
 ruma-appservice-api = { version = "0.12.1", path = "crates/ruma-appservice-api" }
-ruma-client = { version = "0.15.0", path = "crates/ruma-client" }
 ruma-client-api = { version = "0.20.1", path = "crates/ruma-client-api" }
 ruma-common = { version = "0.15.1", path = "crates/ruma-common" }
 ruma-events = { version = "0.30.1", path = "crates/ruma-events" }

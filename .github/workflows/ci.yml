@@ -120,9 +120,6 @@ jobs:
           - name: Check All Features
             cmd: stable-all
 
-          - name: Check Client
-            cmd: stable-client
-
           - name: Check Common
             cmd: stable-common
 
