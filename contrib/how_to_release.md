@@ -39,4 +39,4 @@ all dependents.
 
 ![crate dependencies](./workspace_deps.png)
 
-<small><code>cargo depgraph --all-features --dedup-transitive-deps --workspace-only --build-deps --exclude hello_isahc,hello_world,joke_bot,message_log,xtask | dot -Tpng > contrib/workspace_deps.png</code></small>
+<small><code>cargo depgraph --all-features --dedup-transitive-deps --workspace-only --build-deps --exclude xtask | dot -Tpng > contrib/workspace_deps.png</code></small>
