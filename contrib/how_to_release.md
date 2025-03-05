@@ -40,3 +40,12 @@ all dependents.
 ![crate dependencies](./workspace_deps.png)
 
 <small><code>cargo depgraph --all-features --dedup-transitive-deps --workspace-only --build-deps --exclude xtask | dot -Tpng > contrib/workspace_deps.png</code></small>
+
+## Other repositories
+
+Crates in other repositories in the ruma organization depend on the ruma crate
+and should be updated and possibly released at least after a breaking release:
+
+- [ruma-client](https://github.com/ruma/ruma-client)
+- [examples](https://github.com/ruma/examples)
+- [synapse-admin-api](https://github.com/ruma/synapse-admin-api)
