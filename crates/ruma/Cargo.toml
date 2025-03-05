@@ -18,7 +18,6 @@ all-features = true
 api = ["ruma-common/api"]
 canonical-json = ["ruma-common/canonical-json", "ruma-events?/canonical-json"]
 events = ["dep:ruma-events"]
-server-util = ["dep:ruma-server-util"]
 signatures = ["dep:ruma-signatures", "canonical-json"]
 state-res = ["dep:ruma-state-res"]
 
@@ -278,7 +277,6 @@ ruma-common = { workspace = true }
 
 ruma-events = { workspace = true, optional = true }
 ruma-html = { workspace = true, optional = true }
-ruma-server-util = { workspace = true, optional = true }
 ruma-signatures = { workspace = true, optional = true }
 ruma-state-res = { workspace = true, optional = true }
 

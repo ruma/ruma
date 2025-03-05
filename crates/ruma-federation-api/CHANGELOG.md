@@ -11,6 +11,8 @@ Improvements:
   `send_transaction_message::v1::Request` is always serialized. To allow this
   field to be missing during deserialization, use the `compat-optional-txn-pdus`
   cargo feature.
+- ruma-server-util was merged into this crate. `XMatrix` is available in the
+  `authentication` module.
 
 # 0.11.0
 
