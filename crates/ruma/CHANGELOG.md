@@ -5,6 +5,9 @@
 - The `unstable-unspecified` cargo feature was removed.
 - ruma-client is not reexported by ruma anymore, it lives as its own separate
   crate. All the corresponding features were removed.
+- ruma-server-util was merged into ruma-federation-api. The corresponding
+  feature was removed. `XMatrix` is available in the
+  `api::federation::authentication` module.
 - Bump MSRV to 1.81
 
 # 0.12.1
