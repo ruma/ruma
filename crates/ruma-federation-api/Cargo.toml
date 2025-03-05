@@ -50,7 +50,6 @@ tracing = { workspace = true }
 
 [dev-dependencies]
 assert_matches2 = { workspace = true }
-http = { workspace = true }
 
 [lints]
 workspace = true
