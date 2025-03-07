@@ -26,7 +26,7 @@ pub mod v3 {
     const METADATA: Metadata = metadata! {
         method: POST,
         rate_limited: true,
-        authentication: AppserviceToken,
+        authentication: AppserviceTokenOptional,
         history: {
             1.0 => "/_matrix/client/r0/login",
             1.1 => "/_matrix/client/v3/login",

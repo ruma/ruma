@@ -526,11 +526,19 @@ pub enum AuthScheme {
     /// Using the query parameter is deprecated since Matrix 1.11.
     AccessTokenOptional,
 
-    /// Authentication is only performed for appservices, by including an access token in the
-    /// `Authentication` http header, or an `access_token` query parameter.
+    /// Authentication is required, and can only be performed for appservices, by including an
+    /// appservice access token in the `Authentication` http header, or `access_token` query
+    /// parameter.
     ///
     /// Using the query parameter is deprecated since Matrix 1.11.
     AppserviceToken,
+
+    /// No authentication is performed for clients, but it can be performed for appservices, by
+    /// including an appservice access token in the `Authentication` http header, or an
+    /// `access_token` query parameter.
+    ///
+    /// Using the query parameter is deprecated since Matrix 1.11.
+    AppserviceTokenOptional,
 
     /// Authentication is performed by including X-Matrix signatures in the request headers,
     /// as defined in the federation API.

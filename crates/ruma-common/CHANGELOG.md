@@ -20,6 +20,9 @@ Breaking changes:
   They were usually used to sort `MatrixVersion`s, now the `PartialOrd` and
   `Ord` implementations can be used instead.
 - `Protocol` and `ProtocolInit` are generic on the protocol instance type.
+- Add support for endpoints that only allow appservices to call them, renaming
+  `AppserviceToken` to `AppserviceTokenOptional`, with the new variant taking
+  `AppserviceToken`'s place.
 
 Bug fixes:
 
