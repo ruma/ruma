@@ -79,7 +79,16 @@ impl Metadata {
                 None => None,
             },
 
-            AuthScheme::AppserviceToken => match access_token.get_required_for_appservice() {
+            AuthScheme::AppserviceToken => {
+                let token = access_token
+                    .get_required_for_appservice()
+                    .ok_or(IntoHttpError::NeedsAuthentication)?;
+
+                Some((header::AUTHORIZATION, format!("Bearer {token}").try_into()?))
+            }
+
+            AuthScheme::AppserviceTokenOptional => match access_token.get_required_for_appservice()
+            {
                 Some(token) => Some((header::AUTHORIZATION, format!("Bearer {token}").try_into()?)),
                 None => None,
             },
