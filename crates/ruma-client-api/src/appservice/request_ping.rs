@@ -17,7 +17,7 @@ pub mod v1 {
     const METADATA: Metadata = metadata! {
         method: POST,
         rate_limited: false,
-        authentication: AccessToken,
+        authentication: AppserviceToken,
         history: {
             unstable => "/_matrix/client/unstable/fi.mau.msc2659/appservice/:appservice_id/ping",
             1.7 => "/_matrix/client/v1/appservice/:appservice_id/ping",

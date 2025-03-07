@@ -17,7 +17,7 @@ pub mod v3 {
     const METADATA: Metadata = metadata! {
         method: PUT,
         rate_limited: false,
-        authentication: AccessToken,
+        authentication: AppserviceToken,
         history: {
             1.0 => "/_matrix/client/r0/directory/list/appservice/:network_id/:room_id",
             1.1 => "/_matrix/client/v3/directory/list/appservice/:network_id/:room_id",
