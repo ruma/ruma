@@ -28,6 +28,7 @@ Bug fixes:
 
 - `MatrixVersion::V1_0` now also matches Identity Service API versions r0.2.0 to
   r0.3.0.
+- Allow configure exhaustive types via `RUMA_UNSTABLE_EXHAUSTIVE_TYPES` environment variable
 
 Improvements:
 
