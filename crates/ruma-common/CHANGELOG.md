@@ -13,6 +13,7 @@ Improvements:
 - `Signatures` implements `IntoIterator`
 - Implement `PartialEqAsRefStr`, `Eq`, `PartialOrdAsRefStr`, `OrdAsRefStr` for
   `ruma_common::media::Method`.
+- `DeviceId::new()` generates a string with 10 chars instead of 8.
 
 # 0.15.1
 
