@@ -41,6 +41,7 @@ Improvements:
 - Implement `PartialEqAsRefStr`, `Eq`, `PartialOrdAsRefStr`, `OrdAsRefStr` for `ruma_common::media::Method`.
 - Add `AnyKeyName` as a helper type to use `KeyId` APIs without validating the
   key name.
+- `DeviceId::new()` generates a string with 10 chars instead of 8.
 
 # 0.15.1
 

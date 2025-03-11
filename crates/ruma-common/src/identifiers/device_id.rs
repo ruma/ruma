@@ -16,7 +16,7 @@ use super::{IdParseError, KeyName};
 ///
 /// # #[cfg(feature = "rand")] {
 /// let random_id = DeviceId::new();
-/// assert_eq!(random_id.as_str().len(), 8);
+/// assert_eq!(random_id.as_str().len(), 10);
 /// # }
 ///
 /// let static_id = device_id!("01234567");
@@ -37,7 +37,7 @@ impl DeviceId {
     #[cfg(feature = "rand")]
     #[allow(clippy::new_ret_no_self)]
     pub fn new() -> OwnedDeviceId {
-        Self::from_borrowed(&generate_localpart(8)).to_owned()
+        Self::from_borrowed(&generate_localpart(10)).to_owned()
     }
 }
 
@@ -60,7 +60,7 @@ mod tests {
     #[cfg(feature = "rand")]
     #[test]
     fn generate_device_id() {
-        assert_eq!(DeviceId::new().as_str().len(), 8);
+        assert_eq!(DeviceId::new().as_str().len(), 10);
     }
 
     #[test]
