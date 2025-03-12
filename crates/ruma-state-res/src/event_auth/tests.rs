@@ -16,6 +16,7 @@ use super::check_room_create;
 use crate::{
     auth_check,
     event_auth::check_room_redaction,
+    events::RoomCreateEvent,
     test_utils::{
         alice, charlie, ella, event_id, init_subscriber, member_content_join,
         room_redaction_pdu_event, room_third_party_invite, to_init_pdu_event, to_pdu_event,
@@ -37,7 +38,7 @@ fn valid_room_create() {
         Some(""),
         to_raw_json_value(&content).unwrap(),
     );
-    assert!(check_room_create(event, &RoomVersion::V1).unwrap());
+    check_room_create(RoomCreateEvent::new(event), &RoomVersion::V1).unwrap();
 
     // Same, with room version.
     let content = json!({
@@ -51,7 +52,7 @@ fn valid_room_create() {
         Some(""),
         to_raw_json_value(&content).unwrap(),
     );
-    assert!(check_room_create(event, &RoomVersion::V2).unwrap());
+    check_room_create(RoomCreateEvent::new(event), &RoomVersion::V2).unwrap();
 
     // With a room version that does not need the creator.
     let content = json!({
@@ -64,7 +65,7 @@ fn valid_room_create() {
         Some(""),
         to_raw_json_value(&content).unwrap(),
     );
-    assert!(check_room_create(event, &RoomVersion::V11).unwrap());
+    check_room_create(RoomCreateEvent::new(event), &RoomVersion::V11).unwrap();
 }
 
 #[test]
@@ -82,7 +83,7 @@ fn invalid_room_create() {
         &["OTHER_CREATE"],
         &["OTHER_CREATE"],
     );
-    assert!(!check_room_create(event, &RoomVersion::V1).unwrap());
+    check_room_create(RoomCreateEvent::new(event), &RoomVersion::V1).unwrap_err();
 
     // Sender with a different domain.
     let creator = user_id!("@bot:bar");
@@ -96,7 +97,7 @@ fn invalid_room_create() {
         Some(""),
         to_raw_json_value(&content).unwrap(),
     );
-    assert!(!check_room_create(event, &RoomVersion::V1).unwrap());
+    check_room_create(RoomCreateEvent::new(event), &RoomVersion::V1).unwrap_err();
 
     // Room version that is not a string.
     let content = json!({
@@ -110,7 +111,7 @@ fn invalid_room_create() {
         Some(""),
         to_raw_json_value(&content).unwrap(),
     );
-    assert!(!check_room_create(event, &RoomVersion::V1).unwrap());
+    check_room_create(RoomCreateEvent::new(event), &RoomVersion::V1).unwrap_err();
 
     // No creator in v1.
     let content = json!({});
@@ -121,7 +122,7 @@ fn invalid_room_create() {
         Some(""),
         to_raw_json_value(&content).unwrap(),
     );
-    assert!(!check_room_create(event, &RoomVersion::V1).unwrap());
+    check_room_create(RoomCreateEvent::new(event), &RoomVersion::V1).unwrap_err();
 }
 
 #[test]
@@ -228,7 +229,7 @@ fn missing_room_create_in_state() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept event if no `m.room.create` in state.
-    assert!(!auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
+    auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap_err();
 }
 
 #[test]
@@ -250,7 +251,7 @@ fn missing_room_create_auth_events() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept event if no `m.room.create` in auth events.
-    assert!(!auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
+    auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap_err();
 }
 
 #[test]
@@ -285,7 +286,7 @@ fn no_federate_different_server() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept event if not federating and different server.
-    assert!(!auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
+    auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap_err();
 }
 
 #[test]
@@ -484,7 +485,7 @@ fn event_type_not_enough_power() {
         TimelineEventType::RoomMessage,
         None,
         to_raw_json_value(&RoomMessageEventContent::text_plain("Hi!")).unwrap(),
-        &["IMA", "IPOWER"],
+        &["CREATE", "IMA", "IPOWER"],
         &["IPOWER"],
     );
 

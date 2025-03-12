@@ -1,13 +1,12 @@
 use std::{borrow::Borrow, collections::BTreeSet};
 
 use js_int::{int, Int};
-use ruma_common::{serde::Raw, OwnedUserId, RoomVersionId, UserId};
+use ruma_common::{serde::Raw, OwnedUserId, UserId};
 use ruma_events::room::{
-    create::RoomCreateEventContent,
     member::{MembershipState, ThirdPartyInvite},
     power_levels::RoomPowerLevelsEventContent,
 };
-use serde::{de::IgnoredAny, Deserialize};
+use serde::Deserialize;
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 use tracing::{debug, error, info, instrument, trace, warn};
 
@@ -20,9 +19,10 @@ use crate::{
     events::{
         deserialize_power_levels, deserialize_power_levels_content_fields,
         deserialize_power_levels_content_invite, deserialize_power_levels_content_redact,
+        RoomCreateEvent,
     },
     room_version::RoomVersion,
-    Event, Result, StateEventType, TimelineEventType,
+    Error, Event, Result, StateEventType, TimelineEventType,
 };
 
 // TODO: We need methods for all checks performed on receipt of a PDU, plus the following that are
@@ -156,7 +156,11 @@ pub fn auth_check<E: Event>(
 
     // Since v1, if type is m.room.create:
     if *incoming_event.event_type() == TimelineEventType::RoomCreate {
-        return check_room_create(incoming_event, room_version);
+        let room_create_event = RoomCreateEvent::new(incoming_event);
+
+        return check_room_create(room_create_event, room_version)
+            .map(|_| true)
+            .map_err(Error::custom);
     }
 
     /*
@@ -192,35 +196,21 @@ pub fn auth_check<E: Event>(
     // Since v1, if there are entries which were themselves rejected under the checks performed on
     // receipt of a PDU, reject.
 
-    let room_create_event = match fetch_state(&StateEventType::RoomCreate, "") {
-        None => {
-            warn!("no m.room.create event in auth chain");
-            return Ok(false);
-        }
-        Some(e) => e,
-    };
+    let room_create_event = fetch_state.room_create_event().map_err(Error::custom)?;
 
     // Since v1, if there is no m.room.create event among the entries, reject.
     if !incoming_event.auth_events().any(|id| id.borrow() == room_create_event.event_id().borrow())
     {
-        warn!("no m.room.create event in auth events");
-        return Ok(false);
+        return Err(Error::custom("no `m.room.create` event in auth events"));
     }
 
     // Since v1, if the create event content has the field m.federate set to false and the sender
     // domain of the event does not match the sender domain of the create event, reject.
-    #[derive(Deserialize)]
-    struct RoomCreateContentFederate {
-        #[serde(rename = "m.federate", default = "ruma_common::serde::default_true")]
-        federate: bool,
-    }
-    let room_create_content: RoomCreateContentFederate =
-        from_json_str(room_create_event.content().get())?;
-    if !room_create_content.federate
+    let federate = room_create_event.federate().map_err(Error::custom)?;
+    if !federate
         && room_create_event.sender().server_name() != incoming_event.sender().server_name()
     {
-        warn!("room is not federated and event's sender domain does not match create event's sender domain");
-        return Ok(false);
+        return Err(Error::custom("room is not federated and event's sender domain does not match `m.room.create` event's sender domain"));
     }
 
     let sender = incoming_event.sender();
@@ -279,15 +269,9 @@ pub fn auth_check<E: Event>(
         }
     } else {
         // If no power level event found the creator gets 100 everyone else gets 0
-        let is_creator = if room_version.use_room_create_sender {
-            room_create_event.sender() == sender
-        } else {
-            #[allow(deprecated)]
-            from_json_str::<RoomCreateEventContent>(room_create_event.content().get())
-                .is_ok_and(|create| create.creator.unwrap() == *sender)
-        };
+        let creator = room_create_event.creator(room_version).map_err(Error::custom)?;
 
-        if is_creator {
+        if *sender == *creator {
             int!(100)
         } else {
             int!(0)
@@ -364,30 +348,26 @@ pub fn auth_check<E: Event>(
 }
 
 /// Check whether the given event passes the `m.room.create` authorization rules.
-fn check_room_create(room_create_event: impl Event, room_version: &RoomVersion) -> Result<bool> {
-    #[derive(Deserialize)]
-    struct RoomCreateContentFields {
-        room_version: Option<Raw<RoomVersionId>>,
-        creator: Option<Raw<IgnoredAny>>,
-    }
-
-    debug!("start m.room.create check");
+fn check_room_create(
+    room_create_event: RoomCreateEvent<impl Event>,
+    room_version: &RoomVersion,
+) -> std::result::Result<(), String> {
+    debug!("start `m.room.create` check");
 
     // Since v1, if it has any previous events, reject.
     if room_create_event.prev_events().next().is_some() {
-        warn!("the room creation event had previous events");
-        return Ok(false);
+        return Err("`m.room.create` event cannot have previous events".into());
     }
 
     // Since v1, if the domain of the room_id does not match the domain of the sender, reject.
     let Some(room_id_server_name) = room_create_event.room_id().server_name() else {
-        warn!("room ID has no servername");
-        return Ok(false);
+        return Err(
+            "invalid `room_id` field in `m.room.create` event: could not parse server name".into(),
+        );
     };
 
     if room_id_server_name != room_create_event.sender().server_name() {
-        warn!("servername of room ID does not match servername of sender");
-        return Ok(false);
+        return Err("invalid `room_id` field in `m.room.create` event: server name does not match sender's server name".into());
     }
 
     // Since v1, if `content.room_version` is present and is not a recognized version, reject.
@@ -396,21 +376,16 @@ fn check_room_create(room_create_event: impl Event, room_version: &RoomVersion) 
     // string. We should check if the version is actually supported, i.e. if we have a
     // `RoomVersion` for it. But we already take a `RoomVersion` as a parameter so this was
     // already checked before?
-    let content: RoomCreateContentFields = from_json_str(room_create_event.content().get())?;
-    if content.room_version.map(|v| v.deserialize().is_err()).unwrap_or(false) {
-        warn!("invalid room version found in m.room.create event");
-        return Ok(false);
-    }
+    room_create_event.room_version()?;
 
     // v1-v10, if content has no creator field, reject.
-    if !room_version.use_room_create_sender && content.creator.is_none() {
-        warn!("no creator field found in m.room.create content");
-        return Ok(false);
+    if !room_version.use_room_create_sender && !room_create_event.has_creator()? {
+        return Err("missing `creator` field in `m.room.create` event".into());
     }
 
     // Otherwise, allow.
-    info!("m.room.create event was allowed");
-    Ok(true)
+    info!("`m.room.create` event was allowed");
+    Ok(())
 }
 
 /// Check whether the given event passes the `m.room.power_levels` authorization rules.
@@ -650,4 +625,20 @@ fn get_send_level(
                 .ok()
         })
         .unwrap_or_else(|| if state_key.is_some() { int!(50) } else { int!(0) })
+}
+
+trait FetchStateExt<E: Event> {
+    fn room_create_event(&self) -> std::result::Result<RoomCreateEvent<E>, String>;
+}
+
+impl<E, F> FetchStateExt<E> for F
+where
+    F: Fn(&StateEventType, &str) -> Option<E>,
+    E: Event,
+{
+    fn room_create_event(&self) -> std::result::Result<RoomCreateEvent<E>, String> {
+        self(&StateEventType::RoomCreate, "")
+            .map(RoomCreateEvent::new)
+            .ok_or_else(|| "no `m.room.create` event in current state".to_owned())
+    }
 }

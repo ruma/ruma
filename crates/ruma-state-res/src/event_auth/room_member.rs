@@ -4,7 +4,6 @@ use js_int::int;
 use ruma_common::{serde::Raw, UserId};
 use ruma_events::{
     room::{
-        create::RoomCreateEventContent,
         join_rules::{JoinRule, RoomJoinRulesEventContent},
         member::{MembershipState, ThirdPartyInvite},
         power_levels::RoomPowerLevelsEventContent,
@@ -12,7 +11,7 @@ use ruma_events::{
     },
     StateEventType,
 };
-use serde::{de::Error as _, Deserialize};
+use serde::Deserialize;
 use serde_json::from_str as from_json_str;
 use tracing::{debug, warn};
 
@@ -21,7 +20,10 @@ mod tests;
 
 use super::{GetMembership, RoomMemberContentFields};
 use crate::{
-    events::{deserialize_power_levels_content_fields, deserialize_power_levels_content_invite},
+    events::{
+        deserialize_power_levels_content_fields, deserialize_power_levels_content_invite,
+        RoomCreateEvent,
+    },
     Error, Event, Result, RoomVersion,
 };
 
@@ -32,7 +34,7 @@ use crate::{
 pub(super) fn check_room_member<E: Event>(
     room_member_event: impl Event,
     room_version: &RoomVersion,
-    room_create_event: impl Event,
+    room_create_event: RoomCreateEvent<E>,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<bool> {
     debug!("starting m.room.member check");
@@ -103,7 +105,7 @@ fn check_room_member_join<E: Event>(
     target_user: &UserId,
     content: RoomMemberContentFields,
     room_version: &RoomVersion,
-    room_create_event: impl Event,
+    room_create_event: RoomCreateEvent<E>,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<bool> {
     let mut prev_events = room_member_event.prev_events();
@@ -118,21 +120,9 @@ fn check_room_member_join<E: Event>(
     // Since v11, if the only previous event is an m.room.create and the state_key is the
     // sender of the m.room.create, allow.
     if prev_event_is_only_room_create_event {
-        let is_creator = if room_version.use_room_create_sender {
-            let creator = room_create_event.sender();
+        let creator = room_create_event.creator(room_version).map_err(Error::custom)?;
 
-            creator == target_user
-        } else {
-            #[allow(deprecated)]
-            let creator =
-                from_json_str::<RoomCreateEventContent>(room_create_event.content().get())?
-                    .creator
-                    .ok_or_else(|| serde_json::Error::missing_field("creator"))?;
-
-            creator == target_user
-        };
-
-        if is_creator {
+        if *target_user == *creator {
             return Ok(true);
         }
     }

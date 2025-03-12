@@ -16,7 +16,7 @@ use tracing::{debug, info, instrument, trace, warn};
 
 mod error;
 pub mod event_auth;
-mod events;
+pub mod events;
 pub mod room_version;
 #[cfg(test)]
 mod test_utils;
