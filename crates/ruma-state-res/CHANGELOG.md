@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+- Don't propagate errors from `auth_check()` in `resolve()`. If an event fails
+  the authorization check, it should just be ignored for the resolved state.
+
 # 0.13.0
 
 Bug fixes:
