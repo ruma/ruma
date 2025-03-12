@@ -5,12 +5,10 @@ use std::{
     hash::Hash,
 };
 
+use events::RoomMemberEvent;
 use js_int::{int, Int};
 use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, RoomVersionId};
-use ruma_events::{
-    room::member::{MembershipState, RoomMemberEventContent},
-    StateEventType, TimelineEventType,
-};
+use ruma_events::{room::member::MembershipState, StateEventType, TimelineEventType};
 use serde_json::from_str as from_json_str;
 use tracing::{debug, info, instrument, trace, warn};
 
@@ -452,12 +450,20 @@ fn iterative_auth_check<E: Event + Clone>(
             }
         }
 
-        for key in auth_types_for_event(
+        let auth_types = match auth_types_for_event(
             event.event_type(),
             event.sender(),
             Some(state_key),
             event.content(),
-        )? {
+        ) {
+            Ok(auth_types) => auth_types,
+            Err(error) => {
+                warn!("failed to get list of required auth events for malformed event: {error}");
+                continue;
+            }
+        };
+
+        for key in auth_types {
             if let Some(ev_id) = resolved_state.get(&key) {
                 if let Some(event) = fetch_event(ev_id.borrow()) {
                     // TODO synapse checks `rejected_reason` is None here
@@ -629,10 +635,11 @@ fn is_power_event(event: impl Event) -> bool {
         | TimelineEventType::RoomJoinRules
         | TimelineEventType::RoomCreate => event.state_key() == Some(""),
         TimelineEventType::RoomMember => {
-            if let Ok(content) = from_json_str::<RoomMemberEventContent>(event.content().get()) {
-                if [MembershipState::Leave, MembershipState::Ban].contains(&content.membership) {
-                    return Some(event.sender().as_str()) != event.state_key();
-                }
+            let room_member_event = RoomMemberEvent::new(event);
+            if room_member_event.membership().is_ok_and(|membership| {
+                matches!(membership, MembershipState::Leave | MembershipState::Ban)
+            }) {
+                return Some(room_member_event.sender().as_str()) != room_member_event.state_key();
             }
 
             false

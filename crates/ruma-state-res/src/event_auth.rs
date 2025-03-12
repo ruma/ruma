@@ -1,12 +1,8 @@
 use std::{borrow::Borrow, collections::BTreeSet};
 
 use js_int::{int, Int};
-use ruma_common::{serde::Raw, OwnedUserId, UserId};
-use ruma_events::room::{
-    member::{MembershipState, ThirdPartyInvite},
-    power_levels::RoomPowerLevelsEventContent,
-};
-use serde::Deserialize;
+use ruma_common::UserId;
+use ruma_events::room::{member::MembershipState, power_levels::RoomPowerLevelsEventContent};
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 use tracing::{debug, error, info, instrument, trace, warn};
 
@@ -19,7 +15,8 @@ use crate::{
     events::{
         deserialize_power_levels, deserialize_power_levels_content_fields,
         deserialize_power_levels_content_invite, deserialize_power_levels_content_redact,
-        RoomCreateEvent,
+        member::{RoomMemberEventContent, RoomMemberEventOptionExt},
+        RoomCreateEvent, RoomMemberEvent,
     },
     room_version::RoomVersion,
     Error, Event, Result, StateEventType, TimelineEventType,
@@ -37,18 +34,6 @@ use crate::{
 // - https://github.com/element-hq/synapse/blob/9c5d08fff8d66a7cc0e2ecfeeb783f933a778c2f/synapse/event_auth.py
 // - https://github.com/matrix-org/matrix-spec/issues/365
 
-// FIXME: field extracting could be bundled for `content`
-#[derive(Deserialize)]
-struct GetMembership {
-    membership: MembershipState,
-}
-
-#[derive(Deserialize)]
-struct RoomMemberContentFields {
-    membership: Option<Raw<MembershipState>>,
-    join_authorised_via_users_server: Option<Raw<OwnedUserId>>,
-}
-
 /// Get the list of [relevant auth event types] required to authorize the event of the given type.
 ///
 /// Returns a list of `(event_type, state_key)` tuples.
@@ -63,7 +48,7 @@ pub fn auth_types_for_event(
     sender: &UserId,
     state_key: Option<&str>,
     content: &RawJsonValue,
-) -> serde_json::Result<Vec<(StateEventType, String)>> {
+) -> std::result::Result<Vec<(StateEventType, String)>, String> {
     // `m.room.create` is the first event in a room, it has no auth events.
     if event_type == &TimelineEventType::RoomCreate {
         return Ok(vec![]);
@@ -78,57 +63,53 @@ pub fn auth_types_for_event(
 
     // `m.room.member` events need other auth events.
     if event_type == &TimelineEventType::RoomMember {
-        #[derive(Deserialize)]
-        struct RoomMemberContentFields {
-            membership: Option<Raw<MembershipState>>,
-            third_party_invite: Option<Raw<ThirdPartyInvite>>,
-            join_authorised_via_users_server: Option<Raw<OwnedUserId>>,
-        }
+        let Some(state_key) = state_key else {
+            return Err("missing `state_key` field for `m.room.member` event".to_owned());
+        };
+        let content = RoomMemberEventContent::new(content);
+        let membership = content.membership()?;
 
-        if let Some(state_key) = state_key {
-            let content: RoomMemberContentFields = from_json_str(content.get())?;
+        if matches!(
+            membership,
+            MembershipState::Join | MembershipState::Invite | MembershipState::Knock
+        ) {
+            // If membership is join, invite or knock, we need `m.room.join_rules`.
+            let key = (StateEventType::RoomJoinRules, "".to_owned());
+            if !auth_types.contains(&key) {
+                auth_types.push(key);
+            }
 
-            if let Some(Ok(membership)) = content.membership.map(|m| m.deserialize()) {
-                if [MembershipState::Join, MembershipState::Invite, MembershipState::Knock]
-                    .contains(&membership)
-                {
-                    // If membership is join, invite or knock, we need `m.room.join_rules`.
-                    let key = (StateEventType::RoomJoinRules, "".to_owned());
-                    if !auth_types.contains(&key) {
-                        auth_types.push(key);
-                    }
-
-                    if let Some(Ok(u)) =
-                        content.join_authorised_via_users_server.map(|m| m.deserialize())
-                    {
-                        // If `join_authorised_via_users_server` is present, and the room
-                        // version supports restricted rooms, we need `m.room.member` with the
-                        // matching state_key.
-                        //
-                        // FIXME: We need to check that the room version supports restricted rooms
-                        // too.
-                        let key = (StateEventType::RoomMember, u.to_string());
-                        if !auth_types.contains(&key) {
-                            auth_types.push(key);
-                        }
-                    }
-                }
-
-                let key = (StateEventType::RoomMember, state_key.to_owned());
+            let join_authorised_via_users_server = content.join_authorised_via_users_server()?;
+            if let Some(user_id) = join_authorised_via_users_server {
+                // If `join_authorised_via_users_server` is present, and the room
+                // version supports restricted rooms, we need `m.room.member` with the
+                // matching state_key.
+                //
+                // FIXME: We need to check that the room version supports restricted rooms
+                // too.
+                let key = (StateEventType::RoomMember, user_id.to_string());
                 if !auth_types.contains(&key) {
                     auth_types.push(key);
                 }
+            }
+        }
 
-                if membership == MembershipState::Invite {
-                    if let Some(Ok(t_id)) = content.third_party_invite.map(|t| t.deserialize()) {
-                        // If membership is invite and `third_party_invite` is present, we need
-                        // `m.room.third_party_invite` with the state_key matching
-                        // `third_party_invite.signed.token`.
-                        let key = (StateEventType::RoomThirdPartyInvite, t_id.signed.token);
-                        if !auth_types.contains(&key) {
-                            auth_types.push(key);
-                        }
-                    }
+        let key = (StateEventType::RoomMember, state_key.to_owned());
+        if !auth_types.contains(&key) {
+            auth_types.push(key);
+        }
+
+        if membership == MembershipState::Invite {
+            let third_party_invite = content.third_party_invite()?;
+
+            if let Some(third_party_invite) = third_party_invite {
+                // If membership is invite and `third_party_invite` is present, we need
+                // `m.room.third_party_invite` with the state_key matching
+                // `third_party_invite.signed.token`.
+                let token = third_party_invite.token()?.to_owned();
+                let key = (StateEventType::RoomThirdPartyInvite, token);
+                if !auth_types.contains(&key) {
+                    auth_types.push(key);
                 }
             }
         }
@@ -235,26 +216,17 @@ pub fn auth_check<E: Event>(
 
     // Since v1, if type is m.room.member:
     if *incoming_event.event_type() == TimelineEventType::RoomMember {
-        return check_room_member(incoming_event, room_version, room_create_event, fetch_state);
+        let room_member_event = RoomMemberEvent::new(incoming_event);
+        return check_room_member(room_member_event, room_version, room_create_event, fetch_state)
+            .map(|_| true)
+            .map_err(Error::custom);
     }
 
     // Since v1, if the sender's current membership state is not join, reject.
-    let sender_member_event = fetch_state(&StateEventType::RoomMember, sender.as_str());
-    let sender_member_event = match sender_member_event {
-        Some(mem) => mem,
-        None => {
-            warn!("sender not found in room");
-            return Ok(false);
-        }
-    };
+    let sender_membership = fetch_state.user_membership(sender).map_err(Error::custom)?;
 
-    let sender_membership_event_content: RoomMemberContentFields =
-        from_json_str(sender_member_event.content().get())?;
-    let membership_state =
-        sender_membership_event_content.membership.map(|m| m.deserialize()).transpose()?;
-
-    if !matches!(membership_state, Some(MembershipState::Join)) {
-        warn!("sender's membership is not join");
+    if sender_membership != MembershipState::Join {
+        warn!("sender's membership is not `join`");
         return Ok(false);
     }
 
@@ -629,6 +601,8 @@ fn get_send_level(
 
 trait FetchStateExt<E: Event> {
     fn room_create_event(&self) -> std::result::Result<RoomCreateEvent<E>, String>;
+
+    fn user_membership(&self, user_id: &UserId) -> std::result::Result<MembershipState, String>;
 }
 
 impl<E, F> FetchStateExt<E> for F
@@ -640,5 +614,9 @@ where
         self(&StateEventType::RoomCreate, "")
             .map(RoomCreateEvent::new)
             .ok_or_else(|| "no `m.room.create` event in current state".to_owned())
+    }
+
+    fn user_membership(&self, user_id: &UserId) -> std::result::Result<MembershipState, String> {
+        self(&StateEventType::RoomMember, user_id.as_str()).map(RoomMemberEvent::new).membership()
     }
 }
