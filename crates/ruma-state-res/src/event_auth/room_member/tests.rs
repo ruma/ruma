@@ -5,15 +5,15 @@ use ruma_events::{
         member::{MembershipState, RoomMemberEventContent, SignedContent, ThirdPartyInvite},
         third_party_invite::RoomThirdPartyInviteEventContent,
     },
-    StateEventType, TimelineEventType,
+    TimelineEventType,
 };
 use serde_json::{json, value::to_raw_value as to_raw_json_value};
 
 use super::check_room_member;
 use crate::{
     test_utils::{
-        alice, bob, charlie, ella, event_id, event_map_to_state_map, init_subscriber,
-        member_content_ban, member_content_join, room_third_party_invite, to_pdu_event, zara,
+        alice, bob, charlie, ella, event_id, init_subscriber, member_content_ban,
+        member_content_join, room_third_party_invite, to_pdu_event, zara, TestStateMap,
         INITIAL_EVENTS, INITIAL_EVENTS_CREATE_ROOM,
     },
     RoomVersion,
@@ -34,10 +34,9 @@ fn missing_state_key() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Event should have a state key.
     assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
@@ -59,10 +58,9 @@ fn missing_membership() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Content should at least include `membership`.
     assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
@@ -84,10 +82,9 @@ fn join_after_create_creator_match() {
     );
 
     let init_events = INITIAL_EVENTS_CREATE_ROOM();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Before v11, the `creator` of `m.room.create` must be the same as the state key.
     assert!(check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
@@ -109,10 +106,9 @@ fn join_after_create_creator_mismatch() {
     );
 
     let init_events = INITIAL_EVENTS_CREATE_ROOM();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Before v11, the `creator` of `m.room.create` must be the same as the state key.
     assert!(
@@ -135,10 +131,9 @@ fn join_after_create_sender_match() {
     );
 
     let init_events = INITIAL_EVENTS_CREATE_ROOM();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Since v11, the `sender` of `m.room.create` must be the same as the state key.
     assert!(check_room_member(incoming_event, &RoomVersion::V11, room_create_event, fetch_state)
@@ -160,10 +155,9 @@ fn join_after_create_sender_mismatch() {
     );
 
     let init_events = INITIAL_EVENTS_CREATE_ROOM();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Since v11, the `sender` of `m.room.create` must be the same as the state key.
     assert!(
@@ -186,10 +180,9 @@ fn join_sender_state_key_mismatch() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // For join events, the sender must be the same as the state key.
     assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
@@ -221,10 +214,9 @@ fn join_banned() {
         &["IMB"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // A user cannot join if they are banned.
     assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
@@ -256,10 +248,9 @@ fn join_invite_join_rule_already_joined() {
         &["IPOWER"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // A user can send a join event in a room with `invite` join rule if they already joined.
     assert!(check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
@@ -300,10 +291,9 @@ fn join_knock_join_rule_already_invited() {
         &["IPOWER"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Since v7, a user can send a join event in a room with `knock` join rule if they are were
     // invited.
@@ -336,10 +326,9 @@ fn join_knock_join_rule_not_supported() {
         &["IPOWER"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Before v7, a user CANNOT send a join event in a room with `knock` join rule. Servers should
     // not allow that join rule if it's not supported by the room version, but this is good
@@ -376,10 +365,9 @@ fn join_restricted_join_rule_not_supported() {
         &["IPOWER"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Before v8, a user CANNOT send a join event in a room with `restricted` join rule. Servers
     // should not allow that join rule if it's not supported by the room version, but this is good
@@ -416,10 +404,9 @@ fn join_knock_restricted_join_rule_not_supported() {
         &["IPOWER"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Before v10, a user CANNOT send a join event in a room with `knock_restricted` join rule.
     // Servers should not allow that join rule if it's not supported by the room version, but
@@ -456,10 +443,9 @@ fn join_restricted_join_rule_already_joined() {
         &["IPOWER"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Since v8, a user can send a join event in a room with `restricted` join rule if they already
     // joined.
@@ -504,10 +490,9 @@ fn join_knock_restricted_join_rule_already_invited() {
         &["IPOWER"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Since v10, a user can send a join event in a room with `knock_restricted` join rule if they
     // were invited.
@@ -543,10 +528,9 @@ fn join_restricted_join_rule_missing_join_authorised_via_users_server() {
         &["IPOWER"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Since v8, a user CANNOT join event in a room with `restricted` join rule if there is no
     // `join_authorised_via_users_server` property.
@@ -585,10 +569,9 @@ fn join_restricted_join_rule_authorised_via_user_not_in_room() {
         &["IPOWER"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Since v8, a user CANNOT join event in a room with `restricted` join rule if they were
     // authorized by a user not in the room.
@@ -636,10 +619,9 @@ fn join_restricted_join_rule_authorised_via_user_with_not_enough_power() {
         &["IPOWER"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Since v8, a user CANNOT join event in a room with `restricted` join rule if they were
     // authorized by a user with not enough power.
@@ -678,10 +660,9 @@ fn join_restricted_join_rule_authorised_via_user() {
         &["IPOWER"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Since v8, a user CANNOT join event in a room with `restricted` join rule if they were
     // authorized by a user with not enough power.
@@ -704,10 +685,9 @@ fn join_public_join_rule() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // A user can join a room with a `public` join rule.
     assert!(check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
@@ -748,10 +728,9 @@ fn invite_via_third_party_invite_banned() {
         ),
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // A user cannot be invited via third party invite if they were banned.
     assert!(!check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
@@ -780,10 +759,9 @@ fn invite_via_third_party_invite_missing_signed() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Third party invite content must have a `joined` property.
     check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
@@ -815,10 +793,9 @@ fn invite_via_third_party_invite_missing_mxid() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Third party invite content must have a `joined.mxid` property.
     check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
@@ -850,10 +827,9 @@ fn invite_via_third_party_invite_missing_token() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Third party invite content must have a `joined.token` property.
     check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
@@ -881,10 +857,9 @@ fn invite_via_third_party_invite_mxid_mismatch() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // `mxid` of third party invite must match state key.
     assert!(!check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
@@ -930,10 +905,9 @@ fn invite_via_third_party_invite_missing_room_third_party_invite() {
         ),
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // There must be an `m.room.third_party_invite` event with the same token in the state.
     assert!(!check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
@@ -963,10 +937,9 @@ fn invite_via_third_party_invite_room_third_party_invite_sender_mismatch() {
     let mut init_events = INITIAL_EVENTS();
     init_events.insert(event_id("THIRD_PARTY"), room_third_party_invite(bob()));
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // `mxid` of third party invite must match state key.
     assert!(!check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
@@ -997,10 +970,9 @@ fn invite_via_third_party_invite_with_room_third_party_invite() {
     let mut init_events = INITIAL_EVENTS();
     init_events.insert(event_id("THIRD_PARTY"), room_third_party_invite(charlie()));
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Valid third party invite works.
     assert!(check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
@@ -1022,10 +994,9 @@ fn invite_sender_not_joined() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // The sender of the invite must have joined the room.
     assert!(!check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
@@ -1057,10 +1028,9 @@ fn invite_banned() {
         &["IMB"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // The sender of the invite must have joined the room.
     assert!(!check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
@@ -1082,10 +1052,9 @@ fn invite_already_joined() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // The sender of the invite must have joined the room.
     assert!(!check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
@@ -1117,10 +1086,9 @@ fn invite_sender_not_enough_power() {
         &["IMA"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // The sender must have enough power to invite in the room.
     assert!(!check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
@@ -1142,10 +1110,9 @@ fn invite() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // The invite is valid.
     assert!(check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
@@ -1167,10 +1134,9 @@ fn leave_after_leave() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // User can only leave after `invite`, `join` or `knock`.
     assert!(!check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
@@ -1192,10 +1158,9 @@ fn leave_after_join() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // User can leave after join.
     assert!(check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
@@ -1227,10 +1192,9 @@ fn leave_after_invite() {
         &["IMB"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // User can leave after invite.
     assert!(check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
@@ -1262,10 +1226,9 @@ fn leave_after_knock() {
         &["IMB"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // User can leave after knock.
     assert!(check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
@@ -1297,10 +1260,9 @@ fn leave_after_knock_not_supported() {
         &["IMB"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // User can't leave if the room version does not support knocking. Servers should not allow that
     // membership if it's not supported by the room version, but this is good for coverage.
@@ -1323,10 +1285,9 @@ fn leave_kick_sender_left() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // User can't kick if not joined.
     assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
@@ -1358,10 +1319,9 @@ fn leave_unban_not_enough_power() {
         &["IMB"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // User can't unban if not enough power.
     assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
@@ -1393,10 +1353,9 @@ fn leave_unban() {
         &["IMB"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // User can unban with enough power.
     assert!(check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
@@ -1418,10 +1377,9 @@ fn leave_kick_not_enough_power() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // User can't kick if not enough power for it.
     assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
@@ -1460,10 +1418,9 @@ fn leave_kick_greater_power() {
         &["IMA"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Can't kick user with greater power level.
     assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
@@ -1502,10 +1459,9 @@ fn leave_kick_same_power() {
         &["IMA"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Can't kick user with same power level.
     assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
@@ -1527,10 +1483,9 @@ fn leave_kick() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Can kick user with enough power.
     assert!(check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
@@ -1552,10 +1507,9 @@ fn ban_sender_not_joined() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Can't ban user if not in room.
     assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
@@ -1577,10 +1531,9 @@ fn ban_not_enough_power() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Can't ban user if not enough power.
     assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
@@ -1619,10 +1572,9 @@ fn ban_greater_power() {
         &["IMA"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Can't ban user with greater power level.
     assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
@@ -1661,10 +1613,9 @@ fn ban_same_power() {
         &["IMA"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Can't ban user with same power level.
     assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
@@ -1686,10 +1637,9 @@ fn ban() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // Can ban user with enough power.
     assert!(check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
@@ -1711,10 +1661,9 @@ fn knock_public_join_rule() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // User can't knock if join rule is not `knock` or `knock_restricted`.
     assert!(!check_room_member(incoming_event, &RoomVersion::V11, room_create_event, fetch_state)
@@ -1746,10 +1695,9 @@ fn knock_knock_join_rule() {
         &["IPOWER"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // User can knock if room version supports it.
     assert!(check_room_member(incoming_event, &RoomVersion::V7, room_create_event, fetch_state)
@@ -1781,10 +1729,9 @@ fn knock_knock_join_rule_not_supported() {
         &["IPOWER"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // User CANNOT knock if room version doesn't support it.
     assert!(!check_room_member(incoming_event, &RoomVersion::V5, room_create_event, fetch_state)
@@ -1819,10 +1766,9 @@ fn knock_knock_restricted_join_rule() {
         &["IPOWER"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // User can knock if room version supports it.
     assert!(check_room_member(incoming_event, &RoomVersion::V10, room_create_event, fetch_state)
@@ -1857,10 +1803,9 @@ fn knock_knock_restricted_join_rule_not_supported() {
         &["IPOWER"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // User CANNOT knock if room version doesn't support it.
     assert!(!check_room_member(incoming_event, &RoomVersion::V5, room_create_event, fetch_state)
@@ -1892,10 +1837,9 @@ fn knock_sender_state_key_mismatch() {
         &["IPOWER"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // User cannot knock if state key doesn't match sender.
     assert!(!check_room_member(incoming_event, &RoomVersion::V7, room_create_event, fetch_state)
@@ -1936,10 +1880,9 @@ fn knock_after_ban() {
         &["IMB"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // User cannot knock if banned.
     assert!(!check_room_member(incoming_event, &RoomVersion::V7, room_create_event, fetch_state)
@@ -1980,10 +1923,9 @@ fn knock_after_invite() {
         &["IMB"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // User cannot knock after being invited.
     assert!(!check_room_member(incoming_event, &RoomVersion::V7, room_create_event, fetch_state)
@@ -2015,10 +1957,9 @@ fn knock_after_join() {
         &["IPOWER"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let room_create_event = auth_events.get(&StateEventType::RoomCreate).unwrap().get("").unwrap();
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
 
     // User cannot knock after being invited.
     assert!(!check_room_member(incoming_event, &RoomVersion::V7, room_create_event, fetch_state)

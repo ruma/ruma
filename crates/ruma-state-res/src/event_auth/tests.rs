@@ -5,7 +5,7 @@ use ruma_events::{
         aliases::RoomAliasesEventContent, message::RoomMessageEventContent,
         redaction::RoomRedactionEventContent,
     },
-    StateEventType, TimelineEventType,
+    TimelineEventType,
 };
 use serde_json::{json, value::to_raw_value as to_raw_json_value};
 
@@ -17,9 +17,9 @@ use crate::{
     auth_check,
     event_auth::check_room_redaction,
     test_utils::{
-        alice, charlie, ella, event_id, event_map_to_state_map, init_subscriber,
-        member_content_join, room_redaction_pdu_event, room_third_party_invite, to_init_pdu_event,
-        to_pdu_event, INITIAL_EVENTS,
+        alice, charlie, ella, event_id, init_subscriber, member_content_join,
+        room_redaction_pdu_event, room_third_party_invite, to_init_pdu_event, to_pdu_event,
+        TestStateMap, INITIAL_EVENTS,
     },
     RoomVersion,
 };
@@ -224,9 +224,8 @@ fn missing_room_create_in_state() {
     let mut init_events = INITIAL_EVENTS();
     init_events.remove(&event_id("CREATE"));
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept event if no `m.room.create` in state.
     assert!(!auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
@@ -247,9 +246,8 @@ fn missing_room_create_auth_events() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept event if no `m.room.create` in auth events.
     assert!(!auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
@@ -283,9 +281,8 @@ fn no_federate_different_server() {
         .unwrap(),
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept event if not federating and different server.
     assert!(!auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
@@ -319,9 +316,8 @@ fn no_federate_same_server() {
         .unwrap(),
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
 
     // Accept event if not federating and same server.
     assert!(auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
@@ -346,9 +342,8 @@ fn room_aliases_no_state_key() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept `m.room.aliases` without state key.
     assert!(!auth_check(&RoomVersion::V3, &incoming_event, fetch_state).unwrap());
@@ -376,9 +371,8 @@ fn room_aliases_other_server() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept `m.room.aliases` with different server name than sender.
     assert!(!auth_check(&RoomVersion::V3, &incoming_event, fetch_state).unwrap());
@@ -406,9 +400,8 @@ fn room_aliases_same_server() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
 
     // Accept `m.room.aliases` with same server name as sender.
     assert!(auth_check(&RoomVersion::V3, &incoming_event, fetch_state).unwrap());
@@ -432,9 +425,8 @@ fn sender_not_in_room() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept event if user not in room.
     assert!(!auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
@@ -461,9 +453,8 @@ fn room_third_party_invite_not_enough_power() {
         &["IMA"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept `m.room.third_party_invite` if not enough power.
     assert!(!auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
@@ -476,9 +467,8 @@ fn room_third_party_invite_with_enough_power() {
     let incoming_event = room_third_party_invite(charlie());
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
 
     // Accept `m.room.third_party_invite` if enough power.
     assert!(auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
@@ -515,9 +505,8 @@ fn event_type_not_enough_power() {
         &["IMA"],
     );
 
-    let auth_events = event_map_to_state_map(&init_events);
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot send event if not enough power for the event's type.
     assert!(!auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
@@ -538,9 +527,8 @@ fn user_id_state_key_not_sender() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot send state event with a user ID as a state key that doesn't match the sender.
     assert!(!auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
@@ -561,9 +549,8 @@ fn user_id_state_key_is_sender() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = event_map_to_state_map(&init_events);
-    let fetch_state =
-        |ty: &StateEventType, key: &str| auth_events.get(ty).and_then(|map| map.get(key)).cloned();
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
 
     // Can send state event with a user ID as a state key that matches the sender.
     assert!(auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());

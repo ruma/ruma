@@ -692,21 +692,48 @@ pub(crate) fn init_subscriber() -> tracing::dispatcher::DefaultGuard {
     tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish())
 }
 
-pub(crate) fn event_map_to_state_map(
-    events: &HashMap<OwnedEventId, Arc<PduEvent>>,
-) -> HashMap<StateEventType, HashMap<String, Arc<PduEvent>>> {
-    let mut state_map: HashMap<StateEventType, HashMap<String, Arc<PduEvent>>> = HashMap::new();
+/// Wrapper around a state map.
+pub(crate) struct TestStateMap(HashMap<StateEventType, HashMap<String, Arc<PduEvent>>>);
 
-    for event in events.values() {
-        let event_type = StateEventType::from(event.event_type().to_string());
+impl TestStateMap {
+    /// Construct a `TestStateMap` from the given event map.
+    pub(crate) fn new(events: &HashMap<OwnedEventId, Arc<PduEvent>>) -> Self {
+        let mut state_map: HashMap<StateEventType, HashMap<String, Arc<PduEvent>>> = HashMap::new();
 
-        state_map
-            .entry(event_type)
-            .or_default()
-            .insert(event.state_key().unwrap().to_owned(), event.clone());
+        for event in events.values() {
+            let event_type = StateEventType::from(event.event_type().to_string());
+
+            state_map
+                .entry(event_type)
+                .or_default()
+                .insert(event.state_key().unwrap().to_owned(), event.clone());
+        }
+
+        TestStateMap(state_map)
     }
 
-    state_map
+    /// Get the event with the given event type and state key.
+    pub(crate) fn get(
+        &self,
+        event_type: &StateEventType,
+        state_key: &str,
+    ) -> Option<&Arc<PduEvent>> {
+        self.0.get(event_type)?.get(state_key)
+    }
+
+    /// A function to get a state event from this map.
+    pub(crate) fn fetch_state_fn<'a>(
+        &'a self,
+    ) -> impl Fn(&StateEventType, &str) -> Option<&'a Arc<PduEvent>> + Copy {
+        |event_type: &StateEventType, state_key: &str| self.get(event_type, state_key)
+    }
+
+    /// The `m.room.create` event contained in this map.
+    ///
+    /// Panics if there is no `m.room.create` event in this map.
+    pub(crate) fn room_create_event(&self) -> &Arc<PduEvent> {
+        self.get(&StateEventType::RoomCreate, "").unwrap()
+    }
 }
 
 /// Create an `m.room.third_party_invite` event with the given sender.
