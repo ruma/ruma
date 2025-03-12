@@ -11,6 +11,7 @@ use serde_json::{json, value::to_raw_value as to_raw_json_value};
 
 use super::check_room_member;
 use crate::{
+    events::RoomMemberEvent,
     test_utils::{
         alice, bob, charlie, ella, event_id, init_subscriber, member_content_ban,
         member_content_join, room_third_party_invite, to_pdu_event, zara, TestStateMap,
@@ -39,8 +40,13 @@ fn missing_state_key() {
     let room_create_event = auth_events.room_create_event();
 
     // Event should have a state key.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -63,8 +69,13 @@ fn missing_membership() {
     let room_create_event = auth_events.room_create_event();
 
     // Content should at least include `membership`.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -87,15 +98,20 @@ fn join_after_create_creator_match() {
     let room_create_event = auth_events.room_create_event();
 
     // Before v11, the `creator` of `m.room.create` must be the same as the state key.
-    assert!(check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap();
 }
 
 #[test]
 fn join_after_create_creator_mismatch() {
     let _guard = init_subscriber();
 
-    let requester = to_pdu_event(
+    let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
         TimelineEventType::RoomMember,
@@ -111,9 +127,13 @@ fn join_after_create_creator_mismatch() {
     let room_create_event = auth_events.room_create_event();
 
     // Before v11, the `creator` of `m.room.create` must be the same as the state key.
-    assert!(
-        !check_room_member(requester, &RoomVersion::V6, room_create_event, fetch_state).unwrap()
-    );
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -136,15 +156,20 @@ fn join_after_create_sender_match() {
     let room_create_event = auth_events.room_create_event();
 
     // Since v11, the `sender` of `m.room.create` must be the same as the state key.
-    assert!(check_room_member(incoming_event, &RoomVersion::V11, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V11,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap();
 }
 
 #[test]
 fn join_after_create_sender_mismatch() {
     let _guard = init_subscriber();
 
-    let requester = to_pdu_event(
+    let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
         TimelineEventType::RoomMember,
@@ -160,9 +185,13 @@ fn join_after_create_sender_mismatch() {
     let room_create_event = auth_events.room_create_event();
 
     // Since v11, the `sender` of `m.room.create` must be the same as the state key.
-    assert!(
-        !check_room_member(requester, &RoomVersion::V11, room_create_event, fetch_state).unwrap()
-    );
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V11,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -185,8 +214,13 @@ fn join_sender_state_key_mismatch() {
     let room_create_event = auth_events.room_create_event();
 
     // For join events, the sender must be the same as the state key.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -219,8 +253,13 @@ fn join_banned() {
     let room_create_event = auth_events.room_create_event();
 
     // A user cannot join if they are banned.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -253,8 +292,13 @@ fn join_invite_join_rule_already_joined() {
     let room_create_event = auth_events.room_create_event();
 
     // A user can send a join event in a room with `invite` join rule if they already joined.
-    assert!(check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap();
 }
 
 #[test]
@@ -297,8 +341,13 @@ fn join_knock_join_rule_already_invited() {
 
     // Since v7, a user can send a join event in a room with `knock` join rule if they are were
     // invited.
-    assert!(check_room_member(incoming_event, &RoomVersion::V7, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V7,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap();
 }
 
 #[test]
@@ -333,8 +382,13 @@ fn join_knock_join_rule_not_supported() {
     // Before v7, a user CANNOT send a join event in a room with `knock` join rule. Servers should
     // not allow that join rule if it's not supported by the room version, but this is good
     // for coverage.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -372,8 +426,13 @@ fn join_restricted_join_rule_not_supported() {
     // Before v8, a user CANNOT send a join event in a room with `restricted` join rule. Servers
     // should not allow that join rule if it's not supported by the room version, but this is good
     // for coverage.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -411,8 +470,13 @@ fn join_knock_restricted_join_rule_not_supported() {
     // Before v10, a user CANNOT send a join event in a room with `knock_restricted` join rule.
     // Servers should not allow that join rule if it's not supported by the room version, but
     // this is good for coverage.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -449,8 +513,13 @@ fn join_restricted_join_rule_already_joined() {
 
     // Since v8, a user can send a join event in a room with `restricted` join rule if they already
     // joined.
-    assert!(check_room_member(incoming_event, &RoomVersion::V8, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V8,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap();
 }
 
 #[test]
@@ -496,8 +565,13 @@ fn join_knock_restricted_join_rule_already_invited() {
 
     // Since v10, a user can send a join event in a room with `knock_restricted` join rule if they
     // were invited.
-    assert!(check_room_member(incoming_event, &RoomVersion::V10, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V10,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap();
 }
 
 #[test]
@@ -534,8 +608,13 @@ fn join_restricted_join_rule_missing_join_authorised_via_users_server() {
 
     // Since v8, a user CANNOT join event in a room with `restricted` join rule if there is no
     // `join_authorised_via_users_server` property.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V8, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V8,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -575,8 +654,13 @@ fn join_restricted_join_rule_authorised_via_user_not_in_room() {
 
     // Since v8, a user CANNOT join event in a room with `restricted` join rule if they were
     // authorized by a user not in the room.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V8, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V8,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -625,8 +709,13 @@ fn join_restricted_join_rule_authorised_via_user_with_not_enough_power() {
 
     // Since v8, a user CANNOT join event in a room with `restricted` join rule if they were
     // authorized by a user with not enough power.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V8, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V8,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -666,8 +755,13 @@ fn join_restricted_join_rule_authorised_via_user() {
 
     // Since v8, a user CANNOT join event in a room with `restricted` join rule if they were
     // authorized by a user with not enough power.
-    assert!(check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap();
 }
 
 #[test]
@@ -690,8 +784,13 @@ fn join_public_join_rule() {
     let room_create_event = auth_events.room_create_event();
 
     // A user can join a room with a `public` join rule.
-    assert!(check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap();
 }
 
 #[test]
@@ -733,8 +832,13 @@ fn invite_via_third_party_invite_banned() {
     let room_create_event = auth_events.room_create_event();
 
     // A user cannot be invited via third party invite if they were banned.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -764,8 +868,13 @@ fn invite_via_third_party_invite_missing_signed() {
     let room_create_event = auth_events.room_create_event();
 
     // Third party invite content must have a `joined` property.
-    check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap_err();
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -798,8 +907,13 @@ fn invite_via_third_party_invite_missing_mxid() {
     let room_create_event = auth_events.room_create_event();
 
     // Third party invite content must have a `joined.mxid` property.
-    check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap_err();
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -832,8 +946,13 @@ fn invite_via_third_party_invite_missing_token() {
     let room_create_event = auth_events.room_create_event();
 
     // Third party invite content must have a `joined.token` property.
-    check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap_err();
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -862,8 +981,13 @@ fn invite_via_third_party_invite_mxid_mismatch() {
     let room_create_event = auth_events.room_create_event();
 
     // `mxid` of third party invite must match state key.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -910,8 +1034,13 @@ fn invite_via_third_party_invite_missing_room_third_party_invite() {
     let room_create_event = auth_events.room_create_event();
 
     // There must be an `m.room.third_party_invite` event with the same token in the state.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -942,8 +1071,13 @@ fn invite_via_third_party_invite_room_third_party_invite_sender_mismatch() {
     let room_create_event = auth_events.room_create_event();
 
     // `mxid` of third party invite must match state key.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -975,8 +1109,13 @@ fn invite_via_third_party_invite_with_room_third_party_invite() {
     let room_create_event = auth_events.room_create_event();
 
     // Valid third party invite works.
-    assert!(check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap();
 }
 
 #[test]
@@ -999,8 +1138,13 @@ fn invite_sender_not_joined() {
     let room_create_event = auth_events.room_create_event();
 
     // The sender of the invite must have joined the room.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1033,8 +1177,13 @@ fn invite_banned() {
     let room_create_event = auth_events.room_create_event();
 
     // The sender of the invite must have joined the room.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1057,8 +1206,13 @@ fn invite_already_joined() {
     let room_create_event = auth_events.room_create_event();
 
     // The sender of the invite must have joined the room.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1091,8 +1245,13 @@ fn invite_sender_not_enough_power() {
     let room_create_event = auth_events.room_create_event();
 
     // The sender must have enough power to invite in the room.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1115,8 +1274,13 @@ fn invite() {
     let room_create_event = auth_events.room_create_event();
 
     // The invite is valid.
-    assert!(check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap();
 }
 
 #[test]
@@ -1139,8 +1303,13 @@ fn leave_after_leave() {
     let room_create_event = auth_events.room_create_event();
 
     // User can only leave after `invite`, `join` or `knock`.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1163,8 +1332,13 @@ fn leave_after_join() {
     let room_create_event = auth_events.room_create_event();
 
     // User can leave after join.
-    assert!(check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap();
 }
 
 #[test]
@@ -1197,8 +1371,13 @@ fn leave_after_invite() {
     let room_create_event = auth_events.room_create_event();
 
     // User can leave after invite.
-    assert!(check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap();
 }
 
 #[test]
@@ -1231,8 +1410,13 @@ fn leave_after_knock() {
     let room_create_event = auth_events.room_create_event();
 
     // User can leave after knock.
-    assert!(check_room_member(incoming_event, &RoomVersion::V9, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap();
 }
 
 #[test]
@@ -1266,8 +1450,13 @@ fn leave_after_knock_not_supported() {
 
     // User can't leave if the room version does not support knocking. Servers should not allow that
     // membership if it's not supported by the room version, but this is good for coverage.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1290,8 +1479,13 @@ fn leave_kick_sender_left() {
     let room_create_event = auth_events.room_create_event();
 
     // User can't kick if not joined.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1324,8 +1518,13 @@ fn leave_unban_not_enough_power() {
     let room_create_event = auth_events.room_create_event();
 
     // User can't unban if not enough power.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1358,8 +1557,13 @@ fn leave_unban() {
     let room_create_event = auth_events.room_create_event();
 
     // User can unban with enough power.
-    assert!(check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap();
 }
 
 #[test]
@@ -1382,8 +1586,13 @@ fn leave_kick_not_enough_power() {
     let room_create_event = auth_events.room_create_event();
 
     // User can't kick if not enough power for it.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1423,8 +1632,13 @@ fn leave_kick_greater_power() {
     let room_create_event = auth_events.room_create_event();
 
     // Can't kick user with greater power level.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1464,8 +1678,13 @@ fn leave_kick_same_power() {
     let room_create_event = auth_events.room_create_event();
 
     // Can't kick user with same power level.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1488,8 +1707,13 @@ fn leave_kick() {
     let room_create_event = auth_events.room_create_event();
 
     // Can kick user with enough power.
-    assert!(check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap();
 }
 
 #[test]
@@ -1512,8 +1736,13 @@ fn ban_sender_not_joined() {
     let room_create_event = auth_events.room_create_event();
 
     // Can't ban user if not in room.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1536,8 +1765,13 @@ fn ban_not_enough_power() {
     let room_create_event = auth_events.room_create_event();
 
     // Can't ban user if not enough power.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1577,8 +1811,13 @@ fn ban_greater_power() {
     let room_create_event = auth_events.room_create_event();
 
     // Can't ban user with greater power level.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1618,8 +1857,13 @@ fn ban_same_power() {
     let room_create_event = auth_events.room_create_event();
 
     // Can't ban user with same power level.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1642,8 +1886,13 @@ fn ban() {
     let room_create_event = auth_events.room_create_event();
 
     // Can ban user with enough power.
-    assert!(check_room_member(incoming_event, &RoomVersion::V6, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V6,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap();
 }
 
 #[test]
@@ -1666,8 +1915,13 @@ fn knock_public_join_rule() {
     let room_create_event = auth_events.room_create_event();
 
     // User can't knock if join rule is not `knock` or `knock_restricted`.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V11, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V11,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1700,8 +1954,13 @@ fn knock_knock_join_rule() {
     let room_create_event = auth_events.room_create_event();
 
     // User can knock if room version supports it.
-    assert!(check_room_member(incoming_event, &RoomVersion::V7, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V7,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap();
 }
 
 #[test]
@@ -1734,8 +1993,13 @@ fn knock_knock_join_rule_not_supported() {
     let room_create_event = auth_events.room_create_event();
 
     // User CANNOT knock if room version doesn't support it.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V5, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V5,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1771,8 +2035,13 @@ fn knock_knock_restricted_join_rule() {
     let room_create_event = auth_events.room_create_event();
 
     // User can knock if room version supports it.
-    assert!(check_room_member(incoming_event, &RoomVersion::V10, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V10,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap();
 }
 
 #[test]
@@ -1808,8 +2077,13 @@ fn knock_knock_restricted_join_rule_not_supported() {
     let room_create_event = auth_events.room_create_event();
 
     // User CANNOT knock if room version doesn't support it.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V5, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V5,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1842,8 +2116,13 @@ fn knock_sender_state_key_mismatch() {
     let room_create_event = auth_events.room_create_event();
 
     // User cannot knock if state key doesn't match sender.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V7, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V7,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1885,8 +2164,13 @@ fn knock_after_ban() {
     let room_create_event = auth_events.room_create_event();
 
     // User cannot knock if banned.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V7, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V7,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1928,8 +2212,13 @@ fn knock_after_invite() {
     let room_create_event = auth_events.room_create_event();
 
     // User cannot knock after being invited.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V7, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V7,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -1962,6 +2251,11 @@ fn knock_after_join() {
     let room_create_event = auth_events.room_create_event();
 
     // User cannot knock after being invited.
-    assert!(!check_room_member(incoming_event, &RoomVersion::V7, room_create_event, fetch_state)
-        .unwrap());
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V7,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
 }
