@@ -26,14 +26,6 @@ pub enum Error {
     #[error("DER Parse error: {0}")]
     DerParse(pkcs8::Error),
 
-    /// The signature's ID does not have exactly two components separated by a colon.
-    #[error("malformed signature ID: expected exactly 2 segment separated by a colon, found {0}")]
-    InvalidLength(usize),
-
-    /// The signature's ID contains invalid characters in its version.
-    #[error("malformed signature ID: expected version to contain only characters in the character set `[a-zA-Z0-9_]`, found `{0}`")]
-    InvalidVersion(String),
-
     /// PDU was too large
     #[error("PDU is larger than maximum of 65535 bytes")]
     PduSize,
