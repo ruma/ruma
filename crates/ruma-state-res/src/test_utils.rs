@@ -28,7 +28,9 @@ use serde_json::{
 use tracing::info;
 
 pub(crate) use self::event::PduEvent;
-use crate::{auth_types_for_event, Error, Event, EventTypeExt, Result, StateMap};
+use crate::{
+    auth_types_for_event, events::RoomCreateEvent, Error, Event, EventTypeExt, Result, StateMap,
+};
 
 static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 
@@ -731,8 +733,8 @@ impl TestStateMap {
     /// The `m.room.create` event contained in this map.
     ///
     /// Panics if there is no `m.room.create` event in this map.
-    pub(crate) fn room_create_event(&self) -> &Arc<PduEvent> {
-        self.get(&StateEventType::RoomCreate, "").unwrap()
+    pub(crate) fn room_create_event(&self) -> RoomCreateEvent<&Arc<PduEvent>> {
+        RoomCreateEvent::new(self.get(&StateEventType::RoomCreate, "").unwrap())
     }
 }
 

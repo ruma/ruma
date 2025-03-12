@@ -4,6 +4,16 @@ Bug fixes:
 
 - Don't propagate errors from `auth_check()` in `resolve()`. If an event fails
   the authorization check, it should just be ignored for the resolved state.
+- Don't error on deserialization of malformed fields that are not checked in the
+  authorization rules for `m.room.create` events.
+
+Improvements:
+
+- New types with lazy deserialization that can be used by servers over the
+  stricter types from ruma-events to access the fields of an event when received
+  over federation, to avoid erroring on malformed fields that are not checked by
+  the authorization rules:
+  - `RoomCreateEvent` for `m.room.create` events
 
 # 0.13.0
 

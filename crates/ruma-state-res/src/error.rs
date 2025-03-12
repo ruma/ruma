@@ -30,7 +30,10 @@ pub enum Error {
 }
 
 impl Error {
-    pub fn custom<E: std::error::Error + 'static>(e: E) -> Self {
-        Self::Custom(Box::new(e))
+    pub fn custom<E>(e: E) -> Self
+    where
+        E: Into<Box<dyn std::error::Error>>,
+    {
+        Self::Custom(e.into())
     }
 }
