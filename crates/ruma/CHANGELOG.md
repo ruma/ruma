@@ -8,7 +8,7 @@
 - ruma-server-util was merged into ruma-federation-api. The corresponding
   feature was removed. `XMatrix` is available in the
   `api::federation::authentication` module.
-- Bump MSRV to 1.81
+- Bump MSRV to 1.82
 
 # 0.12.1
 

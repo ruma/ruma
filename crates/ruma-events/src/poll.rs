@@ -110,7 +110,7 @@ fn filter_selections<'a>(
         .into_iter()
         .filter(|ev| {
             // Filter out responses after the end_timestamp.
-            end_timestamp.map_or(true, |end_ts| ev.origin_server_ts <= end_ts)
+            end_timestamp.is_none_or(|end_ts| ev.origin_server_ts <= end_ts)
         })
         .fold(BTreeMap::new(), |mut acc, data| {
             let response =
