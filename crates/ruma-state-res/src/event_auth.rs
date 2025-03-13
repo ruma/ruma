@@ -1,10 +1,13 @@
-use std::{borrow::Borrow, collections::BTreeSet};
+use std::{
+    borrow::Borrow,
+    collections::{BTreeMap, BTreeSet},
+};
 
-use js_int::{int, Int};
+use js_int::Int;
 use ruma_common::UserId;
-use ruma_events::room::{member::MembershipState, power_levels::RoomPowerLevelsEventContent};
-use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
-use tracing::{debug, error, info, instrument, trace, warn};
+use ruma_events::room::member::MembershipState;
+use serde_json::value::RawValue as RawJsonValue;
+use tracing::{debug, info, instrument, warn};
 
 mod room_member;
 #[cfg(test)]
@@ -13,10 +16,9 @@ mod tests;
 use self::room_member::check_room_member;
 use crate::{
     events::{
-        deserialize_power_levels, deserialize_power_levels_content_fields,
-        deserialize_power_levels_content_invite, deserialize_power_levels_content_redact,
         member::{RoomMemberEventContent, RoomMemberEventOptionExt},
-        RoomCreateEvent, RoomMemberEvent,
+        power_levels::{RoomPowerLevelsEventOptionExt, RoomPowerLevelsIntField},
+        RoomCreateEvent, RoomMemberEvent, RoomPowerLevelsEvent,
     },
     room_version::RoomVersion,
     Error, Event, Result, StateEventType, TimelineEventType,
@@ -230,41 +232,25 @@ pub fn auth_check<E: Event>(
         return Ok(false);
     }
 
-    let power_levels_event = fetch_state(&StateEventType::RoomPowerLevels, "");
+    let creator = room_create_event.creator(room_version).map_err(Error::custom)?;
+    let current_room_power_levels_event = fetch_state.room_power_levels_event();
 
-    let sender_power_level = if let Some(pl) = &power_levels_event {
-        let content = deserialize_power_levels_content_fields(pl.content().get(), room_version)?;
-        if let Some(level) = content.users.get(sender) {
-            *level
-        } else {
-            content.users_default
-        }
-    } else {
-        // If no power level event found the creator gets 100 everyone else gets 0
-        let creator = room_create_event.creator(room_version).map_err(Error::custom)?;
-
-        if *sender == *creator {
-            int!(100)
-        } else {
-            int!(0)
-        }
-    };
+    let sender_power_level = current_room_power_levels_event
+        .user_power_level(sender, &creator, room_version)
+        .map_err(Error::custom)?;
 
     // Since v1, if type is m.room.third_party_invite:
     if *incoming_event.event_type() == TimelineEventType::RoomThirdPartyInvite {
         // Since v1, allow if and only if sender's current power level is greater than
         // or equal to the invite level.
-        let invite_level = match &power_levels_event {
-            Some(power_levels) => {
-                deserialize_power_levels_content_invite(power_levels.content().get(), room_version)?
-                    .invite
-            }
-            None => int!(0),
-        };
+        let invite_power_level = current_room_power_levels_event
+            .get_as_int_or_default(RoomPowerLevelsIntField::Invite, room_version)
+            .map_err(Error::custom)?;
 
-        if sender_power_level < invite_level {
-            warn!("sender cannot send invites in this room");
-            return Ok(false);
+        if sender_power_level < invite_power_level {
+            return Err(Error::custom(
+                "sender does not have enough power to send invites in this room",
+            ));
         }
 
         info!("m.room.third_party_invite event was allowed");
@@ -273,11 +259,9 @@ pub fn auth_check<E: Event>(
 
     // Since v1, if the event type's required power level is greater than the sender's power level,
     // reject.
-    let event_type_power_level = get_send_level(
-        incoming_event.event_type(),
-        incoming_event.state_key(),
-        power_levels_event.as_ref(),
-    );
+    let event_type_power_level = current_room_power_levels_event
+        .event_power_level(incoming_event.event_type(), incoming_event.state_key(), room_version)
+        .map_err(Error::custom)?;
     if sender_power_level < event_type_power_level {
         warn!(event_type = %incoming_event.event_type(), "user doesn't have enough power to send event type");
         return Ok(false);
@@ -294,12 +278,15 @@ pub fn auth_check<E: Event>(
 
     // If type is m.room.power_levels
     if *incoming_event.event_type() == TimelineEventType::RoomPowerLevels {
+        let room_power_levels_event = RoomPowerLevelsEvent::new(incoming_event);
         return check_room_power_levels(
-            &incoming_event,
-            power_levels_event.as_ref(),
+            room_power_levels_event,
+            current_room_power_levels_event,
             room_version,
             sender_power_level,
-        );
+        )
+        .map(|_| true)
+        .map_err(Error::custom);
     }
 
     // v1-v2, if type is m.room.redaction:
@@ -308,7 +295,7 @@ pub fn auth_check<E: Event>(
     {
         return check_room_redaction(
             incoming_event,
-            power_levels_event.as_ref(),
+            current_room_power_levels_event,
             room_version,
             sender_power_level,
         );
@@ -362,11 +349,11 @@ fn check_room_create(
 
 /// Check whether the given event passes the `m.room.power_levels` authorization rules.
 fn check_room_power_levels(
-    room_power_levels_event: impl Event,
-    current_room_power_levels_event: Option<impl Event>,
+    room_power_levels_event: RoomPowerLevelsEvent<impl Event>,
+    current_room_power_levels_event: Option<RoomPowerLevelsEvent<impl Event>>,
     room_version: &RoomVersion,
-    sender_level: Int,
-) -> Result<bool> {
+    sender_power_level: Int,
+) -> std::result::Result<(), String> {
     debug!("starting m.room.power_levels check");
 
     // FIXME: the authorization rules do not say to check the state key, which is weird because we
@@ -375,186 +362,192 @@ fn check_room_power_levels(
     // key, which might be more correct.
     match room_power_levels_event.state_key() {
         Some("") => {}
-        Some(key) => {
-            error!(state_key = key, "m.room.power_levels event has non-empty state key");
-            return Ok(false);
+        Some(_) => {
+            return Err("`m.room.power_levels` event has non-empty `state_key`".to_owned());
         }
         None => {
-            error!("check_power_levels requires an m.room.power_levels *state* event argument");
-            return Ok(false);
+            return Err("missing `state_key` for `m.room.power_levels` event".to_owned());
         }
     }
 
     // Since v10, if any of the properties users_default, events_default, state_default, ban,
     // redact, kick, or invite in content are present and not an integer, reject.
-    //
+    let new_int_fields = room_power_levels_event.int_fields_map(room_version)?;
+
     // Since v10, if either of the properties events or notifications in content are present and not
     // a dictionary with values that are integers, reject.
-    //
+    let new_events = room_power_levels_event.events(room_version)?;
+    let new_notifications = room_power_levels_event.notifications(room_version)?;
+
     // v1-v9, If the users property in content is not an object with keys that are valid user IDs
     // with values that are integers (or a string that is an integer), reject.
     // Since v10, if the users property in content is not an object with keys that are valid user
     // IDs with values that are integers, reject.
-    //
-    // FIXME: deserialization only checks the value of the room key in the notifications object, it
-    // should check all values.
-    let new_room_power_levels_content: RoomPowerLevelsEventContent =
-        deserialize_power_levels(room_power_levels_event.content().get(), room_version)?;
+    let new_users = room_power_levels_event.users(room_version)?;
 
     debug!("validation of power event finished");
 
+    // Since v1, if there is no previous m.room.power_levels event in the room, allow.
     let Some(current_room_power_levels_event) = current_room_power_levels_event else {
-        // If there is no previous m.room.power_levels event in the room, allow.
         info!("initial m.room.power_levels event allowed");
-        return Ok(true);
+        return Ok(());
     };
-
-    let current_room_power_levels_content: RoomPowerLevelsEventContent =
-        deserialize_power_levels(current_room_power_levels_event.content().get(), room_version)?;
 
     // Since v1, for the properties users_default, events_default, state_default, ban, redact, kick,
     // invite check if they were added, changed or removed. For each found alteration:
-    //
-    // FIXME: this only performs the check if both the current value and the new value are present.
-    // And because we re-serialize before deserializing to a serde_json::value, if the value of a
-    // field is its default value, it won't be re-serialized so it won't be checked.
-    let levels =
-        ["users_default", "events_default", "state_default", "ban", "redact", "kick", "invite"];
-    let current_state = serde_json::to_value(&current_room_power_levels_content).unwrap();
-    let new_state = serde_json::to_value(&new_room_power_levels_content).unwrap();
-    for lvl_name in &levels {
-        if let Some((current_value, new_value)) =
-            get_deserialize_levels(&current_state, &new_state, lvl_name)
-        {
-            // Since v1, if the current value is higher than the sender’s current power level,
-            // reject.
-            let current_value_too_big = current_value > sender_level;
-            // Since v1, If the new value is higher than the sender’s current power level, reject.
-            let new_value_too_big = new_value > sender_level;
+    for field in RoomPowerLevelsIntField::ALL {
+        let current_power_level =
+            current_room_power_levels_event.get_as_int(*field, room_version)?;
+        let new_power_level = new_int_fields.get(field).copied();
 
-            if current_value_too_big || new_value_too_big {
-                warn!("cannot add ops > than own");
-                return Ok(false);
-            }
-        }
-    }
-
-    let mut event_levels_to_check = BTreeSet::new();
-    let current_list = &current_room_power_levels_content.events;
-    let new_list = &new_room_power_levels_content.events;
-    for ev_id in current_list.keys().chain(new_list.keys()) {
-        event_levels_to_check.insert(ev_id);
-    }
-
-    trace!(set = ?event_levels_to_check, "event levels to check");
-
-    for ev_type in event_levels_to_check {
-        let current_value = current_room_power_levels_content.events.get(ev_type);
-        let new_value = new_room_power_levels_content.events.get(ev_type);
-        // FIXME: testing for equality should be enough.
-        if current_value.is_some() && new_value.is_some() && current_value == new_value {
+        if current_power_level == new_power_level {
             continue;
         }
 
-        // Since v1, for each entry being changed in, or removed from, the events property:
-        // - Since v1, if the current value is higher than the sender's current power level, reject.
-        let current_value_too_big = current_value > Some(&sender_level);
-        // Since v1, for each entry being added to, or changed in, the events property:
-        // - Since v1, if the new value is higher than the sender's current power level, reject.
-        let new_value_too_big = new_value > Some(&sender_level);
-        if current_value_too_big || new_value_too_big {
-            warn!("m.room.power_level failed to add ops > than own");
-            return Ok(false); // cannot add ops greater than own
+        // Since v1, if the current value is higher than the sender’s current power level,
+        // reject.
+        let current_power_level_too_big =
+            current_power_level.unwrap_or_else(|| field.default_value()) > sender_power_level;
+        // Since v1, if the new value is higher than the sender’s current power level, reject.
+        let new_power_level_too_big =
+            new_power_level.unwrap_or_else(|| field.default_value()) > sender_power_level;
+
+        if current_power_level_too_big || new_power_level_too_big {
+            return Err(format!(
+                "sender does not have enough power to change the power level of `{field}`"
+            ));
         }
     }
 
-    // FIXME: this only checks the value of the room key, it should check all values in the
-    // notifications object.
-    if room_version.limit_notifications_power_levels {
-        let current_value = current_room_power_levels_content.notifications.room;
-        let new_value = new_room_power_levels_content.notifications.room;
-        if current_value != new_value {
-            // Since v6, for each entry being changed in, or removed from, the notifications
-            // property:
-            // - Since v6, if the current value is higher than the sender's current power level,
+    // Since v1, for each entry being added to, or changed in, the events property:
+    // - Since v1, if the new value is higher than the sender's current power level, reject.
+    let current_events = current_room_power_levels_event.events(room_version)?;
+    check_power_level_maps(
+        current_events.as_ref(),
+        new_events.as_ref(),
+        &sender_power_level,
+        |_, current_power_level| {
+            // Since v1, for each entry being changed in, or removed from, the events property:
+            // - Since v1, if the current value is higher than the sender's current power level,
             //   reject.
-            let current_value_too_big = current_value > sender_level;
-            // Since v6, for each entry being added to, or changed in, the notifications property:
-            // - Since v6, if the new value is higher than the sender's current power level, reject.
-            let new_value_too_big = new_value > sender_level;
-            if current_value_too_big || new_value_too_big {
-                warn!("m.room.power_level failed to add ops > than own");
-                return Ok(false); // cannot add ops greater than own
-            }
-        }
+            current_power_level > sender_power_level
+        },
+        |ev_type| {
+            format!(
+            "sender does not have enough power to change the `{ev_type}` event type power level"
+        )
+        },
+    )?;
+
+    // Since v6, for each entry being added to, or changed in, the notifications property:
+    // - Since v6, if the new value is higher than the sender's current power level, reject.
+    if room_version.limit_notifications_power_levels {
+        let current_notifications = current_room_power_levels_event.notifications(room_version)?;
+        check_power_level_maps(
+            current_notifications.as_ref(),
+            new_notifications.as_ref(),
+            &sender_power_level,
+            |_, current_power_level| {
+                // Since v6, for each entry being changed in, or removed from, the notifications
+                // property:
+                // - Since v6, if the current value is higher than the sender's current power level,
+                //   reject.
+                current_power_level > sender_power_level
+            },
+            |key| {
+                format!(
+                "sender does not have enough power to change the `{key}` notification power level"
+            )
+            },
+        )?;
     }
 
-    let mut user_levels_to_check = BTreeSet::new();
-    let current_list = &current_room_power_levels_content.users;
-    let new_list = &new_room_power_levels_content.users;
-    for user in current_list.keys().chain(new_list.keys()) {
-        let user: &UserId = user;
-        user_levels_to_check.insert(user);
-    }
-
-    trace!(set = ?user_levels_to_check, "user levels to check");
-
-    for user in user_levels_to_check {
-        let current_value = current_room_power_levels_content.users.get(user);
-        let new_value = new_room_power_levels_content.users.get(user);
-        // FIXME: testing for equality should be enough.
-        if current_value.is_some() && new_value.is_some() && current_value == new_value {
-            continue;
-        }
-
-        // Since v1, for each entry being changed in, or removed from, the users property, other
-        // than the sender’s own entry:
-        // - Since v1, if the current value is greater than or equal to the sender’s current power
-        //   level, reject.
-        if user != room_power_levels_event.sender() && current_value == Some(&sender_level) {
-            warn!("m.room.power_level cannot remove ops == to own");
-            return Ok(false); // cannot remove ops level == to own
-        }
-
-        let current_value_too_big = current_value > Some(&sender_level);
-        // Since v1, for each entry being added to, or changed in, the users property:
-        // - Since v1, if the new value is greater than the sender’s current power level, reject.
-        let new_value_too_big = new_value > Some(&sender_level);
-        if current_value_too_big || new_value_too_big {
-            warn!("m.room.power_level failed to add ops > than own");
-            return Ok(false); // cannot add ops greater than own
-        }
-    }
+    // Since v1, for each entry being added to, or changed in, the users property:
+    // - Since v1, if the new value is greater than the sender’s current power level, reject.
+    let current_users = current_room_power_levels_event.users(room_version)?;
+    check_power_level_maps(
+        current_users,
+        new_users,
+        &sender_power_level,
+        |user_id, current_power_level| {
+            // Since v1, for each entry being changed in, or removed from, the users property, other
+            // than the sender’s own entry:
+            // - Since v1, if the current value is greater than or equal to the sender’s current
+            //   power level, reject.
+            user_id != room_power_levels_event.sender() && current_power_level >= sender_power_level
+        },
+        |user_id| format!("sender does not have enough power to change `{user_id}`'s  power level"),
+    )?;
 
     // Otherwise, allow.
     info!("m.room.power_levels event allowed");
-    Ok(true)
+    Ok(())
 }
 
-fn get_deserialize_levels(
-    old: &serde_json::Value,
-    new: &serde_json::Value,
-    name: &str,
-) -> Option<(Int, Int)> {
-    Some((
-        serde_json::from_value(old.get(name)?.clone()).ok()?,
-        serde_json::from_value(new.get(name)?.clone()).ok()?,
-    ))
+/// Check the power levels changes between the current and the new maps.
+///
+/// # Arguments
+///
+/// * `current`: the map with the current power levels.
+/// * `new`: the map with the new power levels.
+/// * `sender_power_level`: the power level of the sender of the new map.
+/// * `reject_current_power_level_change_fn`: the function to check if a power level change or
+///   removal must be rejected given its current value.
+///
+///   The arguments to the method are the key of the power level and the current value of the power
+///   level. It must return `true` if the change or removal is rejected.
+///
+///   Note that another check is done after this one to check if the change is allowed given the new
+///   value of the power level.
+/// * `error_fn`: the function to generate an error when the change for the given key is not
+///   allowed.
+fn check_power_level_maps<K: Ord>(
+    current: Option<&BTreeMap<K, Int>>,
+    new: Option<&BTreeMap<K, Int>>,
+    sender_power_level: &Int,
+    reject_current_power_level_change_fn: impl FnOnce(&K, Int) -> bool + Copy,
+    error_fn: impl FnOnce(&K) -> String,
+) -> std::result::Result<(), String> {
+    let keys_to_check = current
+        .iter()
+        .flat_map(|m| m.keys())
+        .chain(new.iter().flat_map(|m| m.keys()))
+        .collect::<BTreeSet<_>>();
+
+    for key in keys_to_check {
+        let current_power_level = current.as_ref().and_then(|m| m.get(key));
+        let new_power_level = new.as_ref().and_then(|m| m.get(key));
+
+        if current_power_level == new_power_level {
+            continue;
+        }
+
+        // For each entry being changed in, or removed from, the property.
+        let current_power_level_change_rejected = current_power_level
+            .is_some_and(|power_level| reject_current_power_level_change_fn(key, *power_level));
+
+        // For each entry being added to, or changed in, the property:
+        // - If the new value is higher than the sender's current power level, reject.
+        let new_power_level_too_big = new_power_level > Some(sender_power_level);
+
+        if current_power_level_change_rejected || new_power_level_too_big {
+            return Err(error_fn(key));
+        }
+    }
+
+    Ok(())
 }
 
 /// Check whether the given event passes the `m.room.redaction` authorization rules.
 fn check_room_redaction(
     room_redaction_event: impl Event,
-    current_room_power_levels_event: Option<impl Event>,
+    current_room_power_levels_event: Option<RoomPowerLevelsEvent<impl Event>>,
     room_version: &RoomVersion,
     sender_level: Int,
 ) -> Result<bool> {
-    let redact_level = match current_room_power_levels_event {
-        Some(pl) => {
-            deserialize_power_levels_content_redact(pl.content().get(), room_version)?.redact
-        }
-        None => int!(50),
-    };
+    let redact_level = current_room_power_levels_event
+        .get_as_int_or_default(RoomPowerLevelsIntField::Redact, room_version)
+        .map_err(Error::custom)?;
 
     // v1-v2, if the sender’s power level is greater than or equal to the redact level, allow.
     if sender_level >= redact_level {
@@ -575,34 +568,12 @@ fn check_room_redaction(
     Ok(false)
 }
 
-/// Helper function to fetch the power level needed to send an event of type
-/// `e_type` based on the rooms "m.room.power_level" event.
-fn get_send_level(
-    e_type: &TimelineEventType,
-    state_key: Option<&str>,
-    power_lvl: Option<impl Event>,
-) -> Int {
-    power_lvl
-        .and_then(|ple| {
-            from_json_str::<RoomPowerLevelsEventContent>(ple.content().get())
-                .map(|content| {
-                    content.events.get(e_type).copied().unwrap_or_else(|| {
-                        if state_key.is_some() {
-                            content.state_default
-                        } else {
-                            content.events_default
-                        }
-                    })
-                })
-                .ok()
-        })
-        .unwrap_or_else(|| if state_key.is_some() { int!(50) } else { int!(0) })
-}
-
 trait FetchStateExt<E: Event> {
     fn room_create_event(&self) -> std::result::Result<RoomCreateEvent<E>, String>;
 
     fn user_membership(&self, user_id: &UserId) -> std::result::Result<MembershipState, String>;
+
+    fn room_power_levels_event(&self) -> Option<RoomPowerLevelsEvent<E>>;
 }
 
 impl<E, F> FetchStateExt<E> for F
@@ -618,5 +589,9 @@ where
 
     fn user_membership(&self, user_id: &UserId) -> std::result::Result<MembershipState, String> {
         self(&StateEventType::RoomMember, user_id.as_str()).map(RoomMemberEvent::new).membership()
+    }
+
+    fn room_power_levels_event(&self) -> Option<RoomPowerLevelsEvent<E>> {
+        self(&StateEventType::RoomPowerLevels, "").map(RoomPowerLevelsEvent::new)
     }
 }

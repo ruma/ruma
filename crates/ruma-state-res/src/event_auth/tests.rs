@@ -16,7 +16,7 @@ use super::check_room_create;
 use crate::{
     auth_check,
     event_auth::check_room_redaction,
-    events::RoomCreateEvent,
+    events::{RoomCreateEvent, RoomPowerLevelsEvent},
     test_utils::{
         alice, charlie, ella, event_id, init_subscriber, member_content_join,
         room_redaction_pdu_event, room_third_party_invite, to_init_pdu_event, to_pdu_event,
@@ -163,7 +163,7 @@ fn redact_same_power_level() {
         &["IPOWER"],
     );
 
-    let room_power_levels_event = Some(to_pdu_event(
+    let room_power_levels_event = Some(RoomPowerLevelsEvent::new(to_pdu_event(
         "IPOWER",
         alice(),
         TimelineEventType::RoomPowerLevels,
@@ -171,7 +171,7 @@ fn redact_same_power_level() {
         to_raw_json_value(&json!({ "users": { alice(): 100, charlie(): 50 } })).unwrap(),
         &["CREATE", "IMA"],
         &["IMA"],
-    ));
+    )));
 
     // Can redact if redact level is same as user's.
     assert!(check_room_redaction(
@@ -458,7 +458,7 @@ fn room_third_party_invite_not_enough_power() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept `m.room.third_party_invite` if not enough power.
-    assert!(!auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
+    auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap_err();
 }
 
 #[test]

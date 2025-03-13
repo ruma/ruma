@@ -3,13 +3,12 @@ use std::{
     cmp::{Ordering, Reverse},
     collections::{BinaryHeap, HashMap, HashSet},
     hash::Hash,
+    sync::OnceLock,
 };
 
-use events::RoomMemberEvent;
-use js_int::{int, Int};
-use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, RoomVersionId};
+use js_int::Int;
+use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, RoomVersionId};
 use ruma_events::{room::member::MembershipState, StateEventType, TimelineEventType};
-use serde_json::from_str as from_json_str;
 use tracing::{debug, info, instrument, trace, warn};
 
 mod error;
@@ -19,7 +18,10 @@ pub mod room_version;
 #[cfg(test)]
 mod test_utils;
 
-use self::events::PowerLevelsContentFields;
+use self::events::{
+    member::RoomMemberEvent, power_levels::RoomPowerLevelsEventOptionExt, RoomCreateEvent,
+    RoomPowerLevelsEvent,
+};
 pub use self::{
     error::{Error, Result},
     event_auth::{auth_check, auth_types_for_event},
@@ -99,14 +101,19 @@ where
         .cloned()
         .collect::<Vec<_>>();
 
+    let room_version = RoomVersion::new(room_version)?;
+
     // Sort the control events based on power_level/clock/event_id and outgoing/incoming edges
-    let sorted_control_levels =
-        reverse_topological_power_sort(control_events, &all_conflicted, &fetch_event)?;
+    let sorted_control_levels = reverse_topological_power_sort(
+        control_events,
+        &all_conflicted,
+        &room_version,
+        &fetch_event,
+    )?;
 
     debug!(count = sorted_control_levels.len(), "power events");
     trace!(list = ?sorted_control_levels, "sorted power events");
 
-    let room_version = RoomVersion::new(room_version)?;
     // Sequentially auth check each control event.
     let resolved_control =
         iterative_auth_check(&room_version, &sorted_control_levels, clean.clone(), &fetch_event)?;
@@ -220,6 +227,7 @@ where
 fn reverse_topological_power_sort<E: Event>(
     events_to_sort: Vec<E::Id>,
     auth_diff: &HashSet<E::Id>,
+    room_version: &RoomVersion,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> Result<Vec<E::Id>> {
     debug!("reverse topological sort of power events");
@@ -235,8 +243,18 @@ fn reverse_topological_power_sort<E: Event>(
 
     // This is used in the `key_fn` passed to the lexico_topo_sort fn
     let mut event_to_pl = HashMap::new();
+    // We need to know the creator in case of missing power levels. Given that it's the same for all
+    // the events in the room, we will just load it for the first event and reuse it.
+    let creator_lock = OnceLock::new();
+
     for event_id in graph.keys() {
-        let pl = get_power_level_for_sender(event_id.borrow(), &fetch_event)?;
+        let pl = get_power_level_for_sender(
+            event_id.borrow(),
+            room_version,
+            &creator_lock,
+            &fetch_event,
+        )
+        .map_err(Error::custom)?;
         debug!(
             event_id = event_id.borrow().as_str(),
             power_level = i64::from(pl),
@@ -378,32 +396,48 @@ where
 /// event).
 fn get_power_level_for_sender<E: Event>(
     event_id: &EventId,
+    room_version: &RoomVersion,
+    creator_lock: &OnceLock<OwnedUserId>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
-) -> serde_json::Result<Int> {
+) -> std::result::Result<Int, String> {
     let event = fetch_event(event_id);
-    let mut pl = None;
+    let mut room_create_event = None;
+    let mut room_power_levels_event = None;
 
     for aid in event.as_ref().map(|pdu| pdu.auth_events()).into_iter().flatten() {
         if let Some(aev) = fetch_event(aid.borrow()) {
             if is_type_and_key(&aev, &TimelineEventType::RoomPowerLevels, "") {
-                pl = Some(aev);
+                room_power_levels_event = Some(RoomPowerLevelsEvent::new(aev));
+            } else if creator_lock.get().is_none()
+                && is_type_and_key(&aev, &TimelineEventType::RoomCreate, "")
+            {
+                room_create_event = Some(RoomCreateEvent::new(aev));
+            }
+
+            if room_power_levels_event.is_some()
+                && (creator_lock.get().is_some() || room_create_event.is_some())
+            {
                 break;
             }
         }
     }
 
-    let content: PowerLevelsContentFields = match pl {
-        None => return Ok(int!(0)),
-        Some(ev) => from_json_str(ev.content().get())?,
+    // TODO: Use OnceLock::try_or_get_init when it is stabilized.
+    let creator = if let Some(creator) = creator_lock.get() {
+        Some(creator)
+    } else if let Some(room_create_event) = room_create_event {
+        let creator = room_create_event.creator(room_version)?;
+        Some(creator_lock.get_or_init(|| creator.into_owned()))
+    } else {
+        None
     };
 
-    if let Some(ev) = event {
-        if let Some(&user_level) = content.users.get(ev.sender()) {
-            return Ok(user_level);
-        }
+    if let Some((event, creator)) = event.zip(creator) {
+        room_power_levels_event.user_power_level(event.sender(), creator, room_version)
+    } else {
+        room_power_levels_event
+            .get_as_int_or_default(events::RoomPowerLevelsIntField::UsersDefault, room_version)
     }
-
-    Ok(content.users_default)
 }
 
 /// Check the that each event is authenticated based on the events before it.
@@ -720,11 +754,13 @@ mod tests {
             .map(|pdu| pdu.event_id.clone())
             .collect::<Vec<_>>();
 
-        let sorted_power_events =
-            crate::reverse_topological_power_sort(power_events, &auth_chain, |id| {
-                events.get(id).cloned()
-            })
-            .unwrap();
+        let sorted_power_events = crate::reverse_topological_power_sort(
+            power_events,
+            &auth_chain,
+            &RoomVersion::V6,
+            |id| events.get(id).cloned(),
+        )
+        .unwrap();
 
         let resolved_power = crate::iterative_auth_check(
             &RoomVersion::V6,
