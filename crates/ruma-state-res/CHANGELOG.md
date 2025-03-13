@@ -5,8 +5,8 @@ Bug fixes:
 - Don't propagate errors from `auth_check()` in `resolve()`. If an event fails
   the authorization check, it should just be ignored for the resolved state.
 - Don't error on deserialization of malformed fields that are not checked in the
-  authorization rules for `m.room.create`, `m.room.member` and
-  `m.room.power_levels` events.
+  authorization rules for `m.room.create`, `m.room.member`,
+  `m.room.power_levels` and `m.room.join_rules` events.
 
 Improvements:
 
@@ -17,6 +17,7 @@ Improvements:
   - `RoomCreateEvent` for `m.room.create` events
   - `RoomMemberEvent` for `m.room.member` events
   - `RoomPowerLevelsEvent` for `m.room.power_levels` events
+  - `RoomJoinRulesEvent` for `m.room.join_rules` events
 
 # 0.13.0
 

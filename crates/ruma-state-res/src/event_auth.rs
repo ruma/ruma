@@ -18,7 +18,7 @@ use crate::{
     events::{
         member::{RoomMemberEventContent, RoomMemberEventOptionExt},
         power_levels::{RoomPowerLevelsEventOptionExt, RoomPowerLevelsIntField},
-        RoomCreateEvent, RoomMemberEvent, RoomPowerLevelsEvent,
+        JoinRule, RoomCreateEvent, RoomJoinRulesEvent, RoomMemberEvent, RoomPowerLevelsEvent,
     },
     room_version::RoomVersion,
     Error, Event, Result, StateEventType, TimelineEventType,
@@ -574,6 +574,8 @@ trait FetchStateExt<E: Event> {
     fn user_membership(&self, user_id: &UserId) -> std::result::Result<MembershipState, String>;
 
     fn room_power_levels_event(&self) -> Option<RoomPowerLevelsEvent<E>>;
+
+    fn join_rule(&self) -> std::result::Result<JoinRule, String>;
 }
 
 impl<E, F> FetchStateExt<E> for F
@@ -593,5 +595,12 @@ where
 
     fn room_power_levels_event(&self) -> Option<RoomPowerLevelsEvent<E>> {
         self(&StateEventType::RoomPowerLevels, "").map(RoomPowerLevelsEvent::new)
+    }
+
+    fn join_rule(&self) -> std::result::Result<JoinRule, String> {
+        self(&StateEventType::RoomJoinRules, "")
+            .map(RoomJoinRulesEvent::new)
+            .ok_or_else(|| "no `m.room.join_rules` event in current state".to_owned())?
+            .join_rule()
     }
 }

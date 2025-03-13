@@ -2,11 +2,7 @@ use std::borrow::Borrow;
 
 use ruma_common::UserId;
 use ruma_events::{
-    room::{
-        join_rules::{JoinRule, RoomJoinRulesEventContent},
-        member::MembershipState,
-        third_party_invite::RoomThirdPartyInviteEventContent,
-    },
+    room::{member::MembershipState, third_party_invite::RoomThirdPartyInviteEventContent},
     StateEventType,
 };
 use serde_json::from_str as from_json_str;
@@ -18,8 +14,8 @@ mod tests;
 use super::FetchStateExt;
 use crate::{
     events::{
-        member::ThirdPartyInvite, power_levels::RoomPowerLevelsEventOptionExt, RoomCreateEvent,
-        RoomMemberEvent, RoomPowerLevelsIntField,
+        member::ThirdPartyInvite, power_levels::RoomPowerLevelsEventOptionExt, JoinRule,
+        RoomCreateEvent, RoomMemberEvent, RoomPowerLevelsIntField,
     },
     Event, RoomVersion,
 };
@@ -133,15 +129,7 @@ fn check_room_member_join<E: Event>(
         return Err("banned user cannot join room".to_owned());
     }
 
-    let room_join_rules_event = fetch_state(&StateEventType::RoomJoinRules, "");
-    let join_rule = match &room_join_rules_event {
-        Some(event) => {
-            from_json_str::<RoomJoinRulesEventContent>(event.content().get())
-                .map_err(|error| error.to_string())?
-                .join_rule
-        }
-        None => JoinRule::Invite,
-    };
+    let join_rule = fetch_state.join_rule()?;
 
     // v1-v6, if the join_rule is invite then allow if membership state is invite or
     // join.
@@ -156,9 +144,8 @@ fn check_room_member_join<E: Event>(
 
     // v8-v9, if the join_rule is restricted:
     // Since v10, if the join_rule is restricted or knock_restricted:
-    if room_version.restricted_join_rules && matches!(join_rule, JoinRule::Restricted(_))
-        || room_version.knock_restricted_join_rule
-            && matches!(join_rule, JoinRule::KnockRestricted(_))
+    if room_version.restricted_join_rules && matches!(join_rule, JoinRule::Restricted)
+        || room_version.knock_restricted_join_rule && matches!(join_rule, JoinRule::KnockRestricted)
     {
         // Since v8, if membership state is join or invite, allow.
         if matches!(current_membership, MembershipState::Join | MembershipState::Invite) {
@@ -441,22 +428,14 @@ fn check_room_member_knock<E: Event>(
     room_version: &RoomVersion,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<(), String> {
-    let room_join_rules_event = fetch_state(&StateEventType::RoomJoinRules, "");
-    let join_rule = match &room_join_rules_event {
-        Some(event) => {
-            from_json_str::<RoomJoinRulesEventContent>(event.content().get())
-                .map_err(|error| error.to_string())?
-                .join_rule
-        }
-        None => JoinRule::Invite,
-    };
+    let join_rule = fetch_state.join_rule()?;
 
     // v7-v9, if the join_rule is anything other than knock, reject.
     // Since v10, if the join_rule is anything other than knock or knock_restricted,
     // reject.
     if join_rule != JoinRule::Knock
         && (room_version.knock_restricted_join_rule
-            && !matches!(join_rule, JoinRule::KnockRestricted(_)))
+            && !matches!(join_rule, JoinRule::KnockRestricted))
     {
         return Err(
             "join rule is not set to knock or knock_restricted, knocking is not allowed".to_owned()
