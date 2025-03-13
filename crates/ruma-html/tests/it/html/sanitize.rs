@@ -233,13 +233,12 @@ fn strict_mode_class_remove() {
 #[test]
 fn strict_mode_depth_remove() {
     let config = SanitizerConfig::strict();
-    let deeply_nested_html: String = std::iter::repeat("<div>")
-        .take(100)
+    let deeply_nested_html: String = std::iter::repeat_n("<div>", 100)
         .chain(Some(
             "<span>I am in too deep!</span>\
              I should be fine.",
         ))
-        .chain(std::iter::repeat("</div>").take(100))
+        .chain(std::iter::repeat_n("</div>", 100))
         .collect();
 
     let html = Html::parse(&deeply_nested_html);
