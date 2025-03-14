@@ -722,6 +722,37 @@ fn join_restricted_join_rule_authorised_via_user_with_not_enough_power() {
 fn join_restricted_join_rule_authorised_via_user() {
     let _guard = init_subscriber();
 
+    // Check various contents that might not match the definition of `m.room.join_rules` in the
+    // spec, to ensure that we only care about the `join_rule` field.
+    let join_rules_to_check = [
+        // Valid content, but we don't care about the allow rules.
+        to_raw_json_value(&RoomJoinRulesEventContent::new(JoinRule::Restricted(Restricted::new(
+            vec![],
+        ))))
+        .unwrap(),
+        // Invalid room ID, real-life example from <https://github.com/ruma/ruma/issues/1867>.
+        to_raw_json_value(&json!({
+            "allow": [
+                {
+                    "room_id": "",
+                    "type": "m.room_membership",
+                },
+            ],
+            "join_rule": "restricted",
+        }))
+        .unwrap(),
+        // Missing room ID.
+        to_raw_json_value(&json!({
+            "allow": [
+                {
+                    "type": "m.room_membership",
+                },
+            ],
+            "join_rule": "restricted",
+        }))
+        .unwrap(),
+    ];
+
     let mut content = RoomMemberEventContent::new(MembershipState::Join);
     content.join_authorized_via_users_server = Some(charlie().to_owned());
 
@@ -736,61 +767,82 @@ fn join_restricted_join_rule_authorised_via_user() {
     );
 
     let mut init_events = INITIAL_EVENTS();
-    *init_events.get_mut(&event_id("IJR")).unwrap() = to_pdu_event(
-        "IJR",
-        alice(),
-        TimelineEventType::RoomJoinRules,
-        Some(""),
-        to_raw_json_value(&RoomJoinRulesEventContent::new(JoinRule::Restricted(Restricted::new(
-            vec![],
-        ))))
-        .unwrap(),
-        &["CREATE", "IMA", "IPOWER"],
-        &["IPOWER"],
-    );
 
-    let auth_events = TestStateMap::new(&init_events);
-    let fetch_state = auth_events.fetch_state_fn();
-    let room_create_event = auth_events.room_create_event();
+    for join_rule_content in join_rules_to_check {
+        *init_events.get_mut(&event_id("IJR")).unwrap() = to_pdu_event(
+            "IJR",
+            alice(),
+            TimelineEventType::RoomJoinRules,
+            Some(""),
+            join_rule_content,
+            &["CREATE", "IMA", "IPOWER"],
+            &["IPOWER"],
+        );
 
-    // Since v8, a user CANNOT join event in a room with `restricted` join rule if they were
-    // authorized by a user with not enough power.
-    check_room_member(
-        RoomMemberEvent::new(incoming_event),
-        &RoomVersion::V9,
-        room_create_event,
-        fetch_state,
-    )
-    .unwrap();
+        let auth_events = TestStateMap::new(&init_events);
+        let fetch_state = auth_events.fetch_state_fn();
+        let room_create_event = auth_events.room_create_event();
+
+        // Since v8, a user can join event in a room with `restricted` join rule if they were
+        // authorized by a user with enough power.
+        check_room_member(
+            RoomMemberEvent::new(&incoming_event),
+            &RoomVersion::V9,
+            room_create_event,
+            fetch_state,
+        )
+        .unwrap();
+    }
 }
 
 #[test]
 fn join_public_join_rule() {
     let _guard = init_subscriber();
 
-    let incoming_event = to_pdu_event(
-        "HELLO",
-        ella(),
-        TimelineEventType::RoomMember,
-        Some(ella().as_str()),
+    // Check various contents that might not match the definition of `m.room.member` in the
+    // spec, to ensure that we only care about a few fields.
+    let contents_to_check = [
+        // Valid content.
         member_content_join(),
-        &["CREATE", "IMA", "IPOWER"],
-        &["IPOWER"],
-    );
+        // Invalid displayname.
+        to_raw_json_value(&json!({
+            "membership": "join",
+            "displayname": 203,
+        }))
+        .unwrap(),
+        // Invalid is_direct.
+        to_raw_json_value(&json!({
+            "membership": "join",
+            "is_direct": "yes",
+        }))
+        .unwrap(),
+    ];
 
     let init_events = INITIAL_EVENTS();
     let auth_events = TestStateMap::new(&init_events);
     let fetch_state = auth_events.fetch_state_fn();
     let room_create_event = auth_events.room_create_event();
 
-    // A user can join a room with a `public` join rule.
-    check_room_member(
-        RoomMemberEvent::new(incoming_event),
-        &RoomVersion::V9,
-        room_create_event,
-        fetch_state,
-    )
-    .unwrap();
+    for content in contents_to_check {
+        let incoming_event = to_pdu_event(
+            "HELLO",
+            ella(),
+            TimelineEventType::RoomMember,
+            Some(ella().as_str()),
+            content,
+            &["CREATE", "IMA", "IPOWER"],
+            &["IPOWER"],
+        );
+
+        // A user can join a room with a `public` join rule.
+        check_room_member(
+            RoomMemberEvent::new(incoming_event),
+            &RoomVersion::V9,
+            room_create_event.clone(),
+            fetch_state,
+        )
+        .unwrap();
+    }
 }
 
 #[test]
