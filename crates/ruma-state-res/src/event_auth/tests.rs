@@ -66,6 +66,33 @@ fn valid_room_create() {
         to_raw_json_value(&content).unwrap(),
     );
     check_room_create(RoomCreateEvent::new(event), &RoomVersion::V11).unwrap();
+
+    // Check various contents that might not match the definition of `m.room.create` in the
+    // spec, to ensure that we only care about a few fields.
+    let contents_to_check = vec![
+        // With an invalid predecessor, but we don't care about it. Inspired by a real-life
+        // example.
+        json!({
+            "room_version": "11",
+            "predecessor": "!XPoLiaavxVgyMSiRwK:localhost",
+        }),
+        // With an invalid type, but we don't care about it.
+        json!({
+            "room_version": "11",
+            "type": true,
+        }),
+    ];
+
+    for content in contents_to_check {
+        let event = to_init_pdu_event(
+            "CREATE",
+            alice(),
+            TimelineEventType::RoomCreate,
+            Some(""),
+            to_raw_json_value(&content).unwrap(),
+        );
+        check_room_create(RoomCreateEvent::new(event), &RoomVersion::V11).unwrap();
+    }
 }
 
 #[test]
