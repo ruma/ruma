@@ -168,13 +168,8 @@ fn redact_higher_power_level() {
     let room_power_levels_event = Some(default_room_power_levels());
 
     // Cannot redact if redact level is higher than user's.
-    assert!(!check_room_redaction(
-        incoming_event,
-        room_power_levels_event,
-        &RoomVersion::V1,
-        int!(0)
-    )
-    .unwrap());
+    check_room_redaction(incoming_event, room_power_levels_event, &RoomVersion::V1, int!(0))
+        .unwrap_err();
 }
 
 #[test]
@@ -201,13 +196,8 @@ fn redact_same_power_level() {
     )));
 
     // Can redact if redact level is same as user's.
-    assert!(check_room_redaction(
-        incoming_event,
-        room_power_levels_event,
-        &RoomVersion::V1,
-        int!(50)
-    )
-    .unwrap());
+    check_room_redaction(incoming_event, room_power_levels_event, &RoomVersion::V1, int!(50))
+        .unwrap();
 }
 
 #[test]
@@ -226,13 +216,8 @@ fn redact_same_server() {
     let room_power_levels_event = Some(default_room_power_levels());
 
     // Can redact if redact level is same as user's.
-    assert!(check_room_redaction(
-        incoming_event,
-        room_power_levels_event,
-        &RoomVersion::V1,
-        int!(0)
-    )
-    .unwrap());
+    check_room_redaction(incoming_event, room_power_levels_event, &RoomVersion::V1, int!(0))
+        .unwrap();
 }
 
 #[test]
@@ -348,7 +333,7 @@ fn no_federate_same_server() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Accept event if not federating and same server.
-    assert!(auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
+    auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap();
 }
 
 #[test]
@@ -374,10 +359,10 @@ fn room_aliases_no_state_key() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept `m.room.aliases` without state key.
-    assert!(!auth_check(&RoomVersion::V3, &incoming_event, fetch_state).unwrap());
+    auth_check(&RoomVersion::V3, &incoming_event, fetch_state).unwrap_err();
 
     // `m.room.aliases` is not checked since v6.
-    assert!(auth_check(&RoomVersion::V9, &incoming_event, fetch_state).unwrap());
+    auth_check(&RoomVersion::V9, &incoming_event, fetch_state).unwrap();
 }
 
 #[test]
@@ -403,10 +388,10 @@ fn room_aliases_other_server() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept `m.room.aliases` with different server name than sender.
-    assert!(!auth_check(&RoomVersion::V3, &incoming_event, fetch_state).unwrap());
+    auth_check(&RoomVersion::V3, &incoming_event, fetch_state).unwrap_err();
 
     // `m.room.aliases` is not checked since v6.
-    assert!(auth_check(&RoomVersion::V9, &incoming_event, fetch_state).unwrap());
+    auth_check(&RoomVersion::V9, &incoming_event, fetch_state).unwrap();
 }
 
 #[test]
@@ -432,10 +417,10 @@ fn room_aliases_same_server() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Accept `m.room.aliases` with same server name as sender.
-    assert!(auth_check(&RoomVersion::V3, &incoming_event, fetch_state).unwrap());
+    auth_check(&RoomVersion::V3, &incoming_event, fetch_state).unwrap();
 
     // `m.room.aliases` is not checked since v6.
-    assert!(auth_check(&RoomVersion::V9, &incoming_event, fetch_state).unwrap());
+    auth_check(&RoomVersion::V9, &incoming_event, fetch_state).unwrap();
 }
 
 #[test]
@@ -457,7 +442,7 @@ fn sender_not_in_room() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept event if user not in room.
-    assert!(!auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
+    auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap_err();
 }
 
 #[test]
@@ -499,7 +484,7 @@ fn room_third_party_invite_with_enough_power() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Accept `m.room.third_party_invite` if enough power.
-    assert!(auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
+    auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap();
 }
 
 #[test]
@@ -537,7 +522,7 @@ fn event_type_not_enough_power() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot send event if not enough power for the event's type.
-    assert!(!auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
+    auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap_err();
 }
 
 #[test]
@@ -559,7 +544,7 @@ fn user_id_state_key_not_sender() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot send state event with a user ID as a state key that doesn't match the sender.
-    assert!(!auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
+    auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap_err();
 }
 
 #[test]
@@ -581,5 +566,5 @@ fn user_id_state_key_is_sender() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Can send state event with a user ID as a state key that matches the sender.
-    assert!(auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap());
+    auth_check(&RoomVersion::V6, incoming_event, fetch_state).unwrap();
 }

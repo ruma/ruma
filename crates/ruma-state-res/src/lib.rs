@@ -507,16 +507,13 @@ fn iterative_auth_check<E: Event + Clone>(
         }
 
         match auth_check(room_version, &event, |ty, key| auth_events.get(&ty.with_state_key(key))) {
-            Ok(true) => {
+            Ok(()) => {
                 // Add event to resolved state.
                 resolved_state
                     .insert(event.event_type().with_state_key(state_key), event_id.clone());
             }
-            // Don't add this event to resolved_state.
-            Ok(false) => {
-                warn!("event failed the authentication check");
-            }
             Err(error) => {
+                // Don't add this event to resolved_state.
                 warn!("event failed the authentication check: {error}");
             }
         }

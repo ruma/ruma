@@ -21,7 +21,7 @@ use crate::{
         JoinRule, RoomCreateEvent, RoomJoinRulesEvent, RoomMemberEvent, RoomPowerLevelsEvent,
     },
     room_version::RoomVersion,
-    Error, Event, Result, StateEventType, TimelineEventType,
+    Event, StateEventType, TimelineEventType,
 };
 
 // TODO: We need methods for all checks performed on receipt of a PDU, plus the following that are
@@ -42,7 +42,8 @@ use crate::{
 ///
 /// # Errors
 ///
-/// Returns an error if `content` is not a JSON object.
+/// Returns an `Err(_)` if a field could not be deserialized because `content` does not respect the
+/// expected format for the `event_type`.
 ///
 /// [relevant auth events]: https://spec.matrix.org/latest/server-server-api/#auth-events-selection
 pub fn auth_types_for_event(
@@ -50,7 +51,7 @@ pub fn auth_types_for_event(
     sender: &UserId,
     state_key: Option<&str>,
     content: &RawJsonValue,
-) -> std::result::Result<Vec<(StateEventType, String)>, String> {
+) -> Result<Vec<(StateEventType, String)>, String> {
     // `m.room.create` is the first event in a room, it has no auth events.
     if event_type == &TimelineEventType::RoomCreate {
         return Ok(vec![]);
@@ -128,22 +129,24 @@ pub fn auth_types_for_event(
 /// This assumes that `ruma_signatures::verify_event()` was called previously, as some authorization
 /// rules depend on the signatures being valid on the event.
 ///
-/// [authorization]: https://spec.matrix.org/latest/server-server-api/#authorization-rules
+/// # Errors
+///
+/// If the check fails, this returns an `Err(_)` with a description of the check that failed.
+///
+/// [authorization rules]: https://spec.matrix.org/latest/server-server-api/#authorization-rules
 #[instrument(skip_all, fields(event_id = incoming_event.event_id().borrow().as_str()))]
 pub fn auth_check<E: Event>(
     room_version: &RoomVersion,
     incoming_event: impl Event,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
-) -> Result<bool> {
+) -> Result<(), String> {
     debug!("starting auth check");
 
     // Since v1, if type is m.room.create:
     if *incoming_event.event_type() == TimelineEventType::RoomCreate {
         let room_create_event = RoomCreateEvent::new(incoming_event);
 
-        return check_room_create(room_create_event, room_version)
-            .map(|_| true)
-            .map_err(Error::custom);
+        return check_room_create(room_create_event, room_version);
     }
 
     /*
@@ -179,21 +182,24 @@ pub fn auth_check<E: Event>(
     // Since v1, if there are entries which were themselves rejected under the checks performed on
     // receipt of a PDU, reject.
 
-    let room_create_event = fetch_state.room_create_event().map_err(Error::custom)?;
+    let room_create_event = fetch_state.room_create_event()?;
 
     // Since v1, if there is no m.room.create event among the entries, reject.
     if !incoming_event.auth_events().any(|id| id.borrow() == room_create_event.event_id().borrow())
     {
-        return Err(Error::custom("no `m.room.create` event in auth events"));
+        return Err("no `m.room.create` event in auth events".to_owned());
     }
 
     // Since v1, if the create event content has the field m.federate set to false and the sender
     // domain of the event does not match the sender domain of the create event, reject.
-    let federate = room_create_event.federate().map_err(Error::custom)?;
+    let federate = room_create_event.federate()?;
     if !federate
         && room_create_event.sender().server_name() != incoming_event.sender().server_name()
     {
-        return Err(Error::custom("room is not federated and event's sender domain does not match `m.room.create` event's sender domain"));
+        return Err("\
+            room is not federated and event's sender domain \
+            does not match `m.room.create` event's sender domain"
+            .to_owned());
     }
 
     let sender = incoming_event.sender();
@@ -207,64 +213,63 @@ pub fn auth_check<E: Event>(
         //
         // v1-v5, if sender's domain doesn't match state_key, reject.
         if incoming_event.state_key() != Some(sender.server_name().as_str()) {
-            warn!("state_key does not match sender");
-            return Ok(false);
+            return Err("\
+                server name of the `state_key` of `m.room.aliases` event \
+                does not match the server name of the sender"
+                .to_owned());
         }
 
         // Otherwise, allow.
-        info!("m.room.aliases event was allowed");
-        return Ok(true);
+        info!("`m.room.aliases` event was allowed");
+        return Ok(());
     }
 
     // Since v1, if type is m.room.member:
     if *incoming_event.event_type() == TimelineEventType::RoomMember {
         let room_member_event = RoomMemberEvent::new(incoming_event);
-        return check_room_member(room_member_event, room_version, room_create_event, fetch_state)
-            .map(|_| true)
-            .map_err(Error::custom);
+        return check_room_member(room_member_event, room_version, room_create_event, fetch_state);
     }
 
     // Since v1, if the sender's current membership state is not join, reject.
-    let sender_membership = fetch_state.user_membership(sender).map_err(Error::custom)?;
+    let sender_membership = fetch_state.user_membership(sender)?;
 
     if sender_membership != MembershipState::Join {
-        warn!("sender's membership is not `join`");
-        return Ok(false);
+        return Err("sender's membership is not `join`".to_owned());
     }
 
-    let creator = room_create_event.creator(room_version).map_err(Error::custom)?;
+    let creator = room_create_event.creator(room_version)?;
     let current_room_power_levels_event = fetch_state.room_power_levels_event();
 
-    let sender_power_level = current_room_power_levels_event
-        .user_power_level(sender, &creator, room_version)
-        .map_err(Error::custom)?;
+    let sender_power_level =
+        current_room_power_levels_event.user_power_level(sender, &creator, room_version)?;
 
     // Since v1, if type is m.room.third_party_invite:
     if *incoming_event.event_type() == TimelineEventType::RoomThirdPartyInvite {
         // Since v1, allow if and only if sender's current power level is greater than
         // or equal to the invite level.
         let invite_power_level = current_room_power_levels_event
-            .get_as_int_or_default(RoomPowerLevelsIntField::Invite, room_version)
-            .map_err(Error::custom)?;
+            .get_as_int_or_default(RoomPowerLevelsIntField::Invite, room_version)?;
 
         if sender_power_level < invite_power_level {
-            return Err(Error::custom(
-                "sender does not have enough power to send invites in this room",
-            ));
+            return Err("sender does not have enough power to send invites in this room".to_owned());
         }
 
-        info!("m.room.third_party_invite event was allowed");
-        return Ok(true);
+        info!("`m.room.third_party_invite` event was allowed");
+        return Ok(());
     }
 
     // Since v1, if the event type's required power level is greater than the sender's power level,
     // reject.
-    let event_type_power_level = current_room_power_levels_event
-        .event_power_level(incoming_event.event_type(), incoming_event.state_key(), room_version)
-        .map_err(Error::custom)?;
+    let event_type_power_level = current_room_power_levels_event.event_power_level(
+        incoming_event.event_type(),
+        incoming_event.state_key(),
+        room_version,
+    )?;
     if sender_power_level < event_type_power_level {
-        warn!(event_type = %incoming_event.event_type(), "user doesn't have enough power to send event type");
-        return Ok(false);
+        return Err(format!(
+            "sender does not have enough power to send event of type `{}`",
+            incoming_event.event_type()
+        ));
     }
 
     // Since v1, if the event has a state_key that starts with an @ and does not match the sender,
@@ -272,8 +277,9 @@ pub fn auth_check<E: Event>(
     if incoming_event.state_key().is_some_and(|k| k.starts_with('@'))
         && incoming_event.state_key() != Some(incoming_event.sender().as_str())
     {
-        warn!("sender cannot send state event with another user's ID");
-        return Ok(false);
+        return Err(
+            "sender cannot send event with `state_key` matching another user's ID".to_owned()
+        );
     }
 
     // If type is m.room.power_levels
@@ -284,9 +290,7 @@ pub fn auth_check<E: Event>(
             current_room_power_levels_event,
             room_version,
             sender_power_level,
-        )
-        .map(|_| true)
-        .map_err(Error::custom);
+        );
     }
 
     // v1-v2, if type is m.room.redaction:
@@ -303,14 +307,14 @@ pub fn auth_check<E: Event>(
 
     // Otherwise, allow.
     info!("allowing event passed all checks");
-    Ok(true)
+    Ok(())
 }
 
 /// Check whether the given event passes the `m.room.create` authorization rules.
 fn check_room_create(
     room_create_event: RoomCreateEvent<impl Event>,
     room_version: &RoomVersion,
-) -> std::result::Result<(), String> {
+) -> Result<(), String> {
     debug!("start `m.room.create` check");
 
     // Since v1, if it has any previous events, reject.
@@ -353,7 +357,7 @@ fn check_room_power_levels(
     current_room_power_levels_event: Option<RoomPowerLevelsEvent<impl Event>>,
     room_version: &RoomVersion,
     sender_power_level: Int,
-) -> std::result::Result<(), String> {
+) -> Result<(), String> {
     debug!("starting m.room.power_levels check");
 
     // FIXME: the authorization rules do not say to check the state key, which is weird because we
@@ -507,7 +511,7 @@ fn check_power_level_maps<K: Ord>(
     sender_power_level: &Int,
     reject_current_power_level_change_fn: impl FnOnce(&K, Int) -> bool + Copy,
     error_fn: impl FnOnce(&K) -> String,
-) -> std::result::Result<(), String> {
+) -> Result<(), String> {
     let keys_to_check = current
         .iter()
         .flat_map(|m| m.keys())
@@ -544,15 +548,14 @@ fn check_room_redaction(
     current_room_power_levels_event: Option<RoomPowerLevelsEvent<impl Event>>,
     room_version: &RoomVersion,
     sender_level: Int,
-) -> Result<bool> {
+) -> Result<(), String> {
     let redact_level = current_room_power_levels_event
-        .get_as_int_or_default(RoomPowerLevelsIntField::Redact, room_version)
-        .map_err(Error::custom)?;
+        .get_as_int_or_default(RoomPowerLevelsIntField::Redact, room_version)?;
 
     // v1-v2, if the sender’s power level is greater than or equal to the redact level, allow.
     if sender_level >= redact_level {
-        info!("redaction allowed via power levels");
-        return Ok(true);
+        info!("`m.room.redaction` event allowed via power levels");
+        return Ok(());
     }
 
     // v1-v2, if the domain of the event_id of the event being redacted is the same as the
@@ -560,22 +563,22 @@ fn check_room_redaction(
     if room_redaction_event.event_id().borrow().server_name()
         == room_redaction_event.redacts().as_ref().and_then(|&id| id.borrow().server_name())
     {
-        info!("redaction event allowed via room version 1 rules");
-        return Ok(true);
+        info!("`m.room.redaction` event allowed via room version 1 rules");
+        return Ok(());
     }
 
     // Otherwise, reject.
-    Ok(false)
+    Err("`m.room.redaction` event did not pass any of the allow rules".to_owned())
 }
 
 trait FetchStateExt<E: Event> {
-    fn room_create_event(&self) -> std::result::Result<RoomCreateEvent<E>, String>;
+    fn room_create_event(&self) -> Result<RoomCreateEvent<E>, String>;
 
-    fn user_membership(&self, user_id: &UserId) -> std::result::Result<MembershipState, String>;
+    fn user_membership(&self, user_id: &UserId) -> Result<MembershipState, String>;
 
     fn room_power_levels_event(&self) -> Option<RoomPowerLevelsEvent<E>>;
 
-    fn join_rule(&self) -> std::result::Result<JoinRule, String>;
+    fn join_rule(&self) -> Result<JoinRule, String>;
 }
 
 impl<E, F> FetchStateExt<E> for F
@@ -583,13 +586,13 @@ where
     F: Fn(&StateEventType, &str) -> Option<E>,
     E: Event,
 {
-    fn room_create_event(&self) -> std::result::Result<RoomCreateEvent<E>, String> {
+    fn room_create_event(&self) -> Result<RoomCreateEvent<E>, String> {
         self(&StateEventType::RoomCreate, "")
             .map(RoomCreateEvent::new)
             .ok_or_else(|| "no `m.room.create` event in current state".to_owned())
     }
 
-    fn user_membership(&self, user_id: &UserId) -> std::result::Result<MembershipState, String> {
+    fn user_membership(&self, user_id: &UserId) -> Result<MembershipState, String> {
         self(&StateEventType::RoomMember, user_id.as_str()).map(RoomMemberEvent::new).membership()
     }
 
@@ -597,7 +600,7 @@ where
         self(&StateEventType::RoomPowerLevels, "").map(RoomPowerLevelsEvent::new)
     }
 
-    fn join_rule(&self) -> std::result::Result<JoinRule, String> {
+    fn join_rule(&self) -> Result<JoinRule, String> {
         self(&StateEventType::RoomJoinRules, "")
             .map(RoomJoinRulesEvent::new)
             .ok_or_else(|| "no `m.room.join_rules` event in current state".to_owned())?

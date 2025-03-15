@@ -1,5 +1,12 @@
 # [unreleased]
 
+Breaking:
+
+- `auth_check` returns a `Result<(), String>` instead of a
+  `Result<bool, Error>`. A successful check now returns `Ok(())` instead of
+  `Ok(true)` and all failures return an `Err(_)` with a description of the check
+  that failed.
+
 Bug fixes:
 
 - Don't propagate errors from `auth_check()` in `resolve()`. If an event fails
