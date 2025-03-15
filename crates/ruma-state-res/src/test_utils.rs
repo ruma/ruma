@@ -211,10 +211,7 @@ pub(crate) struct TestStore<E: Event>(pub(crate) HashMap<OwnedEventId, Arc<E>>);
 
 impl<E: Event> TestStore<E> {
     pub(crate) fn get_event(&self, _: &RoomId, event_id: &EventId) -> Result<Arc<E>> {
-        self.0
-            .get(event_id)
-            .cloned()
-            .ok_or_else(|| Error::NotFound(format!("{event_id} not found")))
+        self.0.get(event_id).cloned().ok_or_else(|| Error::NotFound(event_id.to_owned()))
     }
 
     /// Returns a Vec of the related auth events to the given `event`.

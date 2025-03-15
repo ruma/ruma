@@ -254,7 +254,7 @@ fn reverse_topological_power_sort<E: Event>(
             &creator_lock,
             &fetch_event,
         )
-        .map_err(Error::custom)?;
+        .map_err(Error::AuthEvent)?;
         debug!(
             event_id = event_id.borrow().as_str(),
             power_level = i64::from(pl),
@@ -269,8 +269,8 @@ fn reverse_topological_power_sort<E: Event>(
     }
 
     lexicographical_topological_sort(&graph, |event_id| {
-        let ev = fetch_event(event_id).ok_or_else(|| Error::NotFound("".into()))?;
-        let pl = *event_to_pl.get(event_id).ok_or_else(|| Error::NotFound("".into()))?;
+        let ev = fetch_event(event_id).ok_or_else(|| Error::NotFound(event_id.to_owned()))?;
+        let pl = *event_to_pl.get(event_id).ok_or_else(|| Error::NotFound(event_id.to_owned()))?;
         Ok((pl, ev.origin_server_ts()))
     })
 }
@@ -463,10 +463,8 @@ fn iterative_auth_check<E: Event + Clone>(
 
     for event_id in events_to_check {
         let event = fetch_event(event_id.borrow())
-            .ok_or_else(|| Error::NotFound(format!("Failed to find {event_id}")))?;
-        let state_key = event
-            .state_key()
-            .ok_or_else(|| Error::InvalidPdu("State event had no state key".to_owned()))?;
+            .ok_or_else(|| Error::NotFound(event_id.borrow().to_owned()))?;
+        let state_key = event.state_key().ok_or(Error::MissingStateKey)?;
 
         let mut auth_events = StateMap::new();
         for aid in event.auth_events() {
@@ -474,9 +472,7 @@ fn iterative_auth_check<E: Event + Clone>(
                 // TODO synapse check "rejected_reason" which is most likely
                 // related to soft-failing
                 auth_events.insert(
-                    ev.event_type().with_state_key(ev.state_key().ok_or_else(|| {
-                        Error::InvalidPdu("State event had no state key".to_owned())
-                    })?),
+                    ev.event_type().with_state_key(ev.state_key().ok_or(Error::MissingStateKey)?),
                     ev,
                 );
             } else {
@@ -549,12 +545,12 @@ fn mainline_sort<E: Event>(
     while let Some(p) = pl {
         mainline.push(p.clone());
 
-        let event = fetch_event(p.borrow())
-            .ok_or_else(|| Error::NotFound(format!("Failed to find {p}")))?;
+        let event =
+            fetch_event(p.borrow()).ok_or_else(|| Error::NotFound(p.borrow().to_owned()))?;
         pl = None;
         for aid in event.auth_events() {
-            let ev = fetch_event(aid.borrow())
-                .ok_or_else(|| Error::NotFound(format!("Failed to find {aid}")))?;
+            let ev =
+                fetch_event(aid.borrow()).ok_or_else(|| Error::NotFound(p.borrow().to_owned()))?;
             if is_type_and_key(&ev, &TimelineEventType::RoomPowerLevels, "") {
                 pl = Some(aid.to_owned());
                 break;
@@ -613,7 +609,7 @@ fn get_mainline_depth<E: Event>(
         event = None;
         for aid in sort_ev.auth_events() {
             let aev = fetch_event(aid.borrow())
-                .ok_or_else(|| Error::NotFound(format!("Failed to find {aid}")))?;
+                .ok_or_else(|| Error::NotFound(aid.borrow().to_owned()))?;
             if is_type_and_key(&aev, &TimelineEventType::RoomPowerLevels, "") {
                 event = Some(aev);
                 break;

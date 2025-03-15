@@ -138,7 +138,7 @@ impl RoomVersion {
             RoomVersionId::V9 => Self::V9,
             RoomVersionId::V10 => Self::V10,
             RoomVersionId::V11 => Self::V11,
-            ver => return Err(Error::Unsupported(format!("found version `{ver}`"))),
+            _ => return Err(Error::UnsupportedRoomVersion(version.clone())),
         })
     }
 }

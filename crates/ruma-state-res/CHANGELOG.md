@@ -6,6 +6,15 @@ Breaking:
   `Result<bool, Error>`. A successful check now returns `Ok(())` instead of
   `Ok(true)` and all failures return an `Err(_)` with a description of the check
   that failed.
+- The variants of `Error` were changed:
+  - `Unsupported` was renamed to `UnsupportedRoomVersion` and holds a
+    `RoomVersionId`.
+  - `NotFound` holds an `OwnedEventId`.
+  - The cases that were triggering an `InvalidPdu` error now trigger a
+    `MissingStateKey` error.
+  - The cases that were triggering a `SerdeJson` or a `Custom` error are either
+    ignored when coming from the `auth_check()` (see corresponding bug fix) or
+    return an `AuthEvent` error.
 
 Bug fixes:
 
