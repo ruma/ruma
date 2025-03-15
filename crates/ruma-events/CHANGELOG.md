@@ -12,6 +12,9 @@ Breaking changes:
   - `make_for_thread` also takes a `ReplyMetadata` instead of a room message
     event.
   - `make_replacement` does not take the replied-to message anymore.
+- `RoomThirdPartyInviteEventContent` uses `IdentityServerBase64PublicKey`
+  instead of `Base64` for the `public_key` fields, to avoid deserialization
+  errors when public keys encoded using URL-safe base64 are encountered.
 
 Improvements:
 

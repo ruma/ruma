@@ -4,6 +4,10 @@ Breaking changes:
 
 - `get_supported_versions::Response::known_versions()` returns a
   `BTreeSet<MatrixVersion>` instead of a `DoubleEndedIterator`.
+- The `store_invitation`, `check_public_key_validity`, `get_public_key` and
+  `validate_ephemeral_key` endpoints use `IdentityServerBase64PublicKey` instead
+  of `Base64` for the public keys, to avoid deserialization errors when public
+  keys encoded using URL-safe base64 is encountered.
 
 # 0.11.0
 

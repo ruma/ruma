@@ -42,6 +42,8 @@ Improvements:
 - Add `AnyKeyName` as a helper type to use `KeyId` APIs without validating the
   key name.
 - `DeviceId::new()` generates a string with 10 chars instead of 8.
+- Add `IdentityServerBase64PublicKey` as a helper type to decode identity server
+  public keys encoded using standard or URL-safe base64.
 
 # 0.15.1
 
