@@ -4,6 +4,8 @@ Improvements:
 
 - Add support for the authorization server metadata endpoint, according to the
   latest draft of MSC2965.
+- Add the `guest_access_token` field to `account::register::v3::Request` to
+  allow a guest user to upgrade to a regular account.
 
 # 0.20.1
 
