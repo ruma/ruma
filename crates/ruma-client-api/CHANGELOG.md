@@ -12,6 +12,7 @@ Improvements:
 
 - Add support for the authorization server metadata endpoint, according to the
   latest draft of MSC2965.
+- Add the endpoints for peeking: `get_current_state` and `listen_to_new_events`.
 
 # 0.20.1
 
