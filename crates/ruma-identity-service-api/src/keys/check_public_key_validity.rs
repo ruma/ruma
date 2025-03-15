@@ -11,7 +11,7 @@ pub mod v2 {
     use ruma_common::{
         api::{request, response, Metadata},
         metadata,
-        serde::Base64,
+        third_party_invite::IdentityServerBase64PublicKey,
     };
 
     const METADATA: Metadata = metadata! {
@@ -28,7 +28,7 @@ pub mod v2 {
     pub struct Request {
         /// Base64-encoded (no padding) public key to check for validity.
         #[ruma_api(query)]
-        pub public_key: Base64,
+        pub public_key: IdentityServerBase64PublicKey,
     }
 
     /// Response type for the `check_public_key_validity` endpoint.
@@ -40,7 +40,7 @@ pub mod v2 {
 
     impl Request {
         /// Create a `Request` with the given base64-encoded (unpadded) public key.
-        pub fn new(public_key: Base64) -> Self {
+        pub fn new(public_key: IdentityServerBase64PublicKey) -> Self {
             Self { public_key }
         }
     }

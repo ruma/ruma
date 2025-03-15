@@ -11,6 +11,7 @@ pub mod v2 {
         api::{request, response, Metadata},
         metadata,
         room::RoomType,
+        third_party_invite::IdentityServerBase64PublicKey,
         thirdparty::Medium,
         OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, OwnedUserId,
     };
@@ -175,8 +176,8 @@ pub mod v2 {
     #[derive(Clone, Debug, Serialize, Deserialize)]
     #[non_exhaustive]
     pub struct PublicKey {
-        /// The public key, encoded using [unpadded Base64](https://spec.matrix.org/latest/appendices/#unpadded-base64).
-        pub public_key: String,
+        /// The public key, encoded using unpadded base64.
+        pub public_key: IdentityServerBase64PublicKey,
 
         /// The URI of an endpoint where the validity of this key can be checked by passing it as a
         /// `public_key` query parameter.
@@ -185,7 +186,7 @@ pub mod v2 {
 
     impl PublicKey {
         /// Constructs a new `PublicKey` with the given encoded public key and key validity URL.
-        pub fn new(public_key: String, key_validity_url: String) -> Self {
+        pub fn new(public_key: IdentityServerBase64PublicKey, key_validity_url: String) -> Self {
             Self { public_key, key_validity_url }
         }
     }
