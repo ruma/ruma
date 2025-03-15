@@ -34,6 +34,7 @@ pub mod push;
 pub mod room;
 pub mod serde;
 pub mod space;
+pub mod third_party_invite;
 pub mod thirdparty;
 mod time;
 pub mod to_device;

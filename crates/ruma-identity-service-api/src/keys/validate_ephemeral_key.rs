@@ -10,7 +10,7 @@ pub mod v2 {
     use ruma_common::{
         api::{request, response, Metadata},
         metadata,
-        serde::Base64,
+        third_party_invite::IdentityServerBase64PublicKey,
     };
 
     const METADATA: Metadata = metadata! {
@@ -27,7 +27,7 @@ pub mod v2 {
     pub struct Request {
         /// The unpadded base64-encoded short-term public key to check.
         #[ruma_api(query)]
-        pub public_key: Base64,
+        pub public_key: IdentityServerBase64PublicKey,
     }
 
     /// Response type for the `validate_ephemeral_key` endpoint.
@@ -39,7 +39,7 @@ pub mod v2 {
 
     impl Request {
         /// Create a `Request` with the given base64-encoded (unpadded) short-term public key.
-        pub fn new(public_key: Base64) -> Self {
+        pub fn new(public_key: IdentityServerBase64PublicKey) -> Self {
             Self { public_key }
         }
     }
