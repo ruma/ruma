@@ -31,6 +31,7 @@ pub mod knock;
 pub mod media;
 pub mod membership;
 pub mod message;
+pub mod peeking;
 pub mod presence;
 pub mod profile;
 pub mod push;
