@@ -94,6 +94,14 @@ pub mod v3 {
         /// [refresh tokens]: https://spec.matrix.org/latest/client-server-api/#refreshing-access-tokens
         #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub refresh_token: bool,
+
+        /// A [guest user]'s access token, to upgrade to a regular account.
+        ///
+        /// If this is set, the `username` field is also required.
+        ///
+        /// [guest user]: https://spec.matrix.org/latest/client-server-api/#guest-access
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub guest_access_token: Option<String>,
     }
 
     /// Response type for the `register` endpoint.
