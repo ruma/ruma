@@ -6,6 +6,7 @@ Improvements:
   latest draft of MSC2965.
 - Add the `guest_access_token` field to `account::register::v3::Request` to
   allow a guest user to upgrade to a regular account.
+- Add the endpoints for peeking: `get_current_state` and `listen_to_new_events`.
 
 # 0.20.1
 
