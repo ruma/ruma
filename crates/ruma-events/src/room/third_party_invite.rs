@@ -2,7 +2,7 @@
 //!
 //! [`m.room.third_party_invite`]: https://spec.matrix.org/latest/client-server-api/#mroomthird_party_invite
 
-use ruma_common::serde::Base64;
+use ruma_common::third_party_invite::IdentityServerBase64PublicKey;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -35,8 +35,11 @@ pub struct RoomThirdPartyInviteEventContent {
     ///
     /// If the `compat-optional` feature is enabled, this field being absent in JSON will result
     /// in an empty string instead of an error when deserializing.
-    #[cfg_attr(feature = "compat-optional", serde(default = "Base64::empty"))]
-    pub public_key: Base64,
+    #[cfg_attr(
+        feature = "compat-optional",
+        serde(default = "empty_identity_server_base64_public_key")
+    )]
+    pub public_key: IdentityServerBase64PublicKey,
 
     /// Keys with which the token may be signed.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -46,7 +49,11 @@ pub struct RoomThirdPartyInviteEventContent {
 impl RoomThirdPartyInviteEventContent {
     /// Creates a new `RoomThirdPartyInviteEventContent` with the given display name, key validity
     /// url and public key.
-    pub fn new(display_name: String, key_validity_url: String, public_key: Base64) -> Self {
+    pub fn new(
+        display_name: String,
+        key_validity_url: String,
+        public_key: IdentityServerBase64PublicKey,
+    ) -> Self {
         Self { display_name, key_validity_url, public_key, public_keys: None }
     }
 }
@@ -63,12 +70,18 @@ pub struct PublicKey {
     pub key_validity_url: Option<String>,
 
     /// A base64-encoded Ed25519 key with which the token must be signed.
-    pub public_key: Base64,
+    pub public_key: IdentityServerBase64PublicKey,
 }
 
 impl PublicKey {
     /// Creates a new `PublicKey` with the given base64-encoded ed25519 key.
-    pub fn new(public_key: Base64) -> Self {
+    pub fn new(public_key: IdentityServerBase64PublicKey) -> Self {
         Self { key_validity_url: None, public_key }
     }
+}
+
+/// Generate an empty [`IdentityServerBase64PublicKey`].
+#[cfg(feature = "compat-optional")]
+fn empty_identity_server_base64_public_key() -> IdentityServerBase64PublicKey {
+    IdentityServerBase64PublicKey(String::new())
 }

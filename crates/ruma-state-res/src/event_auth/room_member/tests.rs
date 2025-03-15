@@ -1,4 +1,4 @@
-use ruma_common::{serde::Base64, Signatures};
+use ruma_common::{third_party_invite::IdentityServerBase64PublicKey, Signatures};
 use ruma_events::{
     room::{
         join_rules::{JoinRule, Restricted, RoomJoinRulesEventContent},
@@ -922,7 +922,7 @@ fn invite_via_third_party_invite_missing_room_third_party_invite() {
             to_raw_json_value(&RoomThirdPartyInviteEventContent::new(
                 "e..@p..".to_owned(),
                 "http://host.local/check/public_key".to_owned(),
-                Base64::new(b"public_key".to_vec()),
+                IdentityServerBase64PublicKey::new(b"public_key"),
             ))
             .unwrap(),
             &["CREATE", "IJR", "IPOWER"],

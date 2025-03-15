@@ -9,8 +9,8 @@ use std::{
 
 use js_int::{int, uint};
 use ruma_common::{
-    event_id, room_id, serde::Base64, user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId,
-    RoomId, RoomVersionId, ServerSignatures, UserId,
+    event_id, room_id, third_party_invite::IdentityServerBase64PublicKey, user_id, EventId,
+    MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, RoomVersionId, ServerSignatures, UserId,
 };
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV3Pdu},
@@ -719,7 +719,7 @@ pub(crate) fn room_third_party_invite(sender: &UserId) -> Arc<PduEvent> {
         to_raw_json_value(&RoomThirdPartyInviteEventContent::new(
             "e..@p..".to_owned(),
             "http://host.local/check/public_key".to_owned(),
-            Base64::new(b"public_key".to_vec()),
+            IdentityServerBase64PublicKey::new(b"public_key"),
         ))
         .unwrap(),
         &["CREATE", "IJR", "IPOWER"],
