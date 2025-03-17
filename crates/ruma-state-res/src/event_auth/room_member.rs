@@ -1,11 +1,11 @@
 use std::borrow::Borrow;
 
-use ruma_common::UserId;
-use ruma_events::{
-    room::{member::MembershipState, third_party_invite::RoomThirdPartyInviteEventContent},
-    StateEventType,
+use ruma_common::{
+    serde::{base64::Standard, Base64},
+    AnyKeyName, SigningKeyId, UserId,
 };
-use serde_json::from_str as from_json_str;
+use ruma_events::{room::member::MembershipState, StateEventType};
+use ruma_signatures::verify_canonical_json_bytes;
 use tracing::debug;
 
 #[cfg(test)]
@@ -283,7 +283,7 @@ fn check_third_party_invite<E: Event>(
     // Since v1, if there is no m.room.third_party_invite event in the current room state with
     // state_key matching token, reject.
     let Some(room_third_party_invite_event) =
-        fetch_state(&StateEventType::RoomThirdPartyInvite, third_party_invite_token)
+        fetch_state.room_third_party_invite_event(third_party_invite_token)
     else {
         return Err("no `m.room.third_party_invite` in room state matches the token".to_owned());
     };
@@ -296,19 +296,61 @@ fn check_third_party_invite<E: Event>(
         );
     }
 
-    let _room_third_party_invite_content = from_json_str::<RoomThirdPartyInviteEventContent>(
-        room_third_party_invite_event.content().get(),
-    )
-    .map_err(|error| error.to_string())?;
+    let public_keys = room_third_party_invite_event.public_keys()?;
+    let signatures = third_party_invite.signatures()?;
+    let signed_canonical_json = third_party_invite.signed_canonical_json()?;
 
     // Since v1, if any signature in signed matches any public key in the m.room.third_party_invite
     // event, allow.
-    //
+    for entity_signatures_value in signatures.values() {
+        let Some(entity_signatures) = entity_signatures_value.as_object() else {
+            return Err(format!(
+                "unexpected format of `signatures` field in `third_party_invite.signed` \
+                 of `m.room.member` event: expected a map of string to object, got {entity_signatures_value:?}"
+            ));
+        };
+
+        // We will ignore any error from now on, we just want to find a signature that can be
+        // verified from a public key.
+
+        for (key_id, signature_value) in entity_signatures {
+            let Ok(parsed_key_id) = <&SigningKeyId<AnyKeyName>>::try_from(key_id.as_str()) else {
+                continue;
+            };
+            let algorithm = parsed_key_id.algorithm();
+
+            let Some(signature_str) = signature_value.as_str() else {
+                continue;
+            };
+
+            let Ok(signature) = Base64::<Standard>::parse(signature_str) else {
+                continue;
+            };
+
+            for encoded_public_key in &public_keys {
+                let Ok(public_key) = encoded_public_key.decode() else {
+                    continue;
+                };
+
+                if verify_canonical_json_bytes(
+                    &algorithm,
+                    &public_key,
+                    signature.as_bytes(),
+                    signed_canonical_json.as_bytes(),
+                )
+                .is_ok()
+                {
+                    return Ok(());
+                }
+            }
+        }
+    }
+
     // Otherwise, reject.
-    //
-    // FIXME: verify the signatures on `signed` with the public keys in `m.room.third_party_invite`.
-    // For now let's accept the event.
-    Ok(())
+    Err("\
+        no signature on third-party invite matches a public key \
+        in `m.room.third_party_invite` event"
+        .to_owned())
 }
 
 /// Check whether the given event passes the `m.room.member` authorization rules with a membership

@@ -18,6 +18,7 @@ all-features = true
 js_int = { workspace = true }
 ruma-common = { workspace = true, features = ["canonical-json"] }
 ruma-events = { workspace = true }
+ruma-signatures = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

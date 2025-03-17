@@ -4,6 +4,7 @@ use std::ops::Deref;
 
 use ruma_common::{serde::from_raw_json_value, CanonicalJsonObject, OwnedUserId};
 use ruma_events::room::member::MembershipState;
+use ruma_signatures::canonical_json;
 use serde::Deserialize;
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -157,6 +158,29 @@ impl ThirdPartyInvite {
                 "unexpected format of `mxid` field in `third_party_invite.signed` \
                  of `m.room.member` event: expected string, got {mxid_value:?}"
             )
+        })
+    }
+
+    /// The signatures of the event.
+    pub(crate) fn signatures(&self) -> Result<&CanonicalJsonObject, String> {
+        let Some(signatures_value) = self.signed.get("signatures") else {
+            return Err("missing `signatures` field in `third_party_invite.signed` \
+                        of `m.room.member` event"
+                .into());
+        };
+
+        signatures_value.as_object().ok_or_else(|| {
+            format!(
+                "unexpected format of `signatures` field in `third_party_invite.signed` \
+                 of `m.room.member` event: expected object, got {signatures_value:?}"
+            )
+        })
+    }
+
+    /// The `signed` object as canonical JSON string to verify the signatures.
+    pub(crate) fn signed_canonical_json(&self) -> Result<String, String> {
+        canonical_json(&self.signed).map_err(|error| {
+            format!("invalid `third_party_invite.signed` field in `m.room.member` event: {error}")
         })
     }
 }
