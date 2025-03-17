@@ -49,6 +49,7 @@ pub mod v1 {
 
     /// Response type for the `bind_callback` endpoint.
     #[response]
+    #[derive(Default)]
     pub struct Response {}
 
     impl Request {
@@ -104,6 +105,13 @@ pub mod v1 {
             signed: SignedContent,
         ) -> Self {
             Self { medium: Medium::Email, address, mxid, room_id, sender, signed }
+        }
+    }
+
+    impl Response {
+        /// Construct an empty response.
+        pub fn new() -> Self {
+            Self {}
         }
     }
 }
