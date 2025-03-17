@@ -28,7 +28,8 @@ use tracing::info;
 
 pub(crate) use self::event::PduEvent;
 use crate::{
-    auth_types_for_event, events::RoomCreateEvent, Error, Event, EventTypeExt, Result, StateMap,
+    auth_types_for_event, events::RoomCreateEvent, Error, Event, EventTypeExt, Result, RoomVersion,
+    StateMap,
 };
 
 static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
@@ -139,6 +140,7 @@ pub(crate) fn do_check(
             fake_event.sender(),
             fake_event.state_key(),
             fake_event.content(),
+            &RoomVersion::V6,
         )
         .unwrap();
 

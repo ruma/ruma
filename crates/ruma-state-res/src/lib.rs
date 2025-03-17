@@ -485,6 +485,7 @@ fn iterative_auth_check<E: Event + Clone>(
             event.sender(),
             Some(state_key),
             event.content(),
+            room_version,
         ) {
             Ok(auth_types) => auth_types,
             Err(error) => {

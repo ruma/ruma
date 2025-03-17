@@ -52,66 +52,74 @@ pub fn auth_types_for_event(
     sender: &UserId,
     state_key: Option<&str>,
     content: &RawJsonValue,
+    room_version: &RoomVersion,
 ) -> Result<Vec<(StateEventType, String)>, String> {
-    // `m.room.create` is the first event in a room, it has no auth events.
+    // The `auth_events` for the `m.room.create` event in a room is empty.
     if event_type == &TimelineEventType::RoomCreate {
         return Ok(vec![]);
     }
 
-    // All other events need these auth events.
+    // For other events, it should be the following subset of the room state:
+    //
+    // - The `m.room.create` event.
+    // - The current `m.room.power_levels` event, if any.
+    // - The sender’s current `m.room.member` event, if any.
     let mut auth_types = vec![
         (StateEventType::RoomPowerLevels, "".to_owned()),
         (StateEventType::RoomMember, sender.to_string()),
         (StateEventType::RoomCreate, "".to_owned()),
     ];
 
-    // `m.room.member` events need other auth events.
+    // If type is `m.room.member`:
     if event_type == &TimelineEventType::RoomMember {
+        // The target’s current `m.room.member` event, if any.
         let Some(state_key) = state_key else {
             return Err("missing `state_key` field for `m.room.member` event".to_owned());
         };
+        let key = (StateEventType::RoomMember, state_key.to_owned());
+        if !auth_types.contains(&key) {
+            auth_types.push(key);
+        }
+
         let content = RoomMemberEventContent::new(content);
         let membership = content.membership()?;
 
+        // If `membership` is `join`, `invite` or `knock`, the current `m.room.join_rules` event, if
+        // any.
         if matches!(
             membership,
             MembershipState::Join | MembershipState::Invite | MembershipState::Knock
         ) {
-            // If membership is join, invite or knock, we need `m.room.join_rules`.
             let key = (StateEventType::RoomJoinRules, "".to_owned());
             if !auth_types.contains(&key) {
                 auth_types.push(key);
             }
+        }
 
-            let join_authorised_via_users_server = content.join_authorised_via_users_server()?;
-            if let Some(user_id) = join_authorised_via_users_server {
-                // If `join_authorised_via_users_server` is present, and the room
-                // version supports restricted rooms, we need `m.room.member` with the
-                // matching state_key.
-                //
-                // FIXME: We need to check that the room version supports restricted rooms
-                // too.
-                let key = (StateEventType::RoomMember, user_id.to_string());
+        // If `membership` is `invite` and `content` contains a `third_party_invite` property, the
+        // current `m.room.third_party_invite` event with `state_key` matching
+        // `content.third_party_invite.signed.token`, if any.
+        if membership == MembershipState::Invite {
+            let third_party_invite = content.third_party_invite()?;
+
+            if let Some(third_party_invite) = third_party_invite {
+                let token = third_party_invite.token()?.to_owned();
+                let key = (StateEventType::RoomThirdPartyInvite, token);
                 if !auth_types.contains(&key) {
                     auth_types.push(key);
                 }
             }
         }
 
-        let key = (StateEventType::RoomMember, state_key.to_owned());
-        if !auth_types.contains(&key) {
-            auth_types.push(key);
-        }
-
-        if membership == MembershipState::Invite {
-            let third_party_invite = content.third_party_invite()?;
-
-            if let Some(third_party_invite) = third_party_invite {
-                // If membership is invite and `third_party_invite` is present, we need
-                // `m.room.third_party_invite` with the state_key matching
-                // `third_party_invite.signed.token`.
-                let token = third_party_invite.token()?.to_owned();
-                let key = (StateEventType::RoomThirdPartyInvite, token);
+        // If `content.join_authorised_via_users_server` is present, and the room version supports
+        // restricted rooms, then the `m.room.member` event with `state_key` matching
+        // `content.join_authorised_via_users_server`.
+        //
+        // Note: And the membership is join (https://github.com/matrix-org/matrix-spec/pull/2100)
+        if membership == MembershipState::Join && room_version.restricted_join_rules {
+            let join_authorised_via_users_server = content.join_authorised_via_users_server()?;
+            if let Some(user_id) = join_authorised_via_users_server {
+                let key = (StateEventType::RoomMember, user_id.to_string());
                 if !auth_types.contains(&key) {
                     auth_types.push(key);
                 }
