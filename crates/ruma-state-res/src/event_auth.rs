@@ -343,11 +343,8 @@ fn check_room_create(
 
     // Since v1, if `content.room_version` is present and is not a recognized version, reject.
     //
-    // FIXME: this only checks if we can deserialize to `RoomVersionId` which accepts any
-    // string. We should check if the version is actually supported, i.e. if we have a
-    // `RoomVersion` for it. But we already take a `RoomVersion` as a parameter so this was
-    // already checked before?
-    room_create_event.room_version()?;
+    // This check is assumed to be done before calling auth_check because we have a RoomVersion,
+    // which means that we recognized the version.
 
     // v1-v10, if content has no creator field, reject.
     if !room_version.use_room_create_sender && !room_create_event.has_creator()? {
