@@ -15,7 +15,10 @@ pub mod v1 {
         api::{request, response, Metadata},
         metadata, OwnedRoomId, OwnedUserId,
     };
-    use ruma_events::{room::member::ThirdPartyInvite, StateEventType};
+    use ruma_events::{
+        room::member::{MembershipState, RoomMemberEventContent, ThirdPartyInvite},
+        StateEventType,
+    };
 
     const METADATA: Metadata = metadata! {
         method: PUT,
@@ -29,13 +32,13 @@ pub mod v1 {
     /// Request type for the `exchange_invite` endpoint.
     #[request]
     pub struct Request {
-        /// The room ID to exchange a third party invite in.
+        /// The room ID to exchange the third-party invite in.
         #[ruma_api(path)]
         pub room_id: OwnedRoomId,
 
         /// The event type.
         ///
-        /// Must be `StateEventType::RoomMember`.
+        /// Must be [`StateEventType::RoomMember`].
         #[serde(rename = "type")]
         pub kind: StateEventType,
 
@@ -46,7 +49,9 @@ pub mod v1 {
         pub state_key: OwnedUserId,
 
         /// The content of the invite event.
-        pub content: ThirdPartyInvite,
+        ///
+        /// It must have a `membership` of `invite` and the `third_party_invite` field must be set.
+        pub content: RoomMemberEventContent,
     }
 
     /// Response type for the `exchange_invite` endpoint.
@@ -55,13 +60,16 @@ pub mod v1 {
     pub struct Response {}
 
     impl Request {
-        /// Creates a new `Request` for a third party invite exchange
+        /// Creates a new `Request` for a third-party invite exchange.
         pub fn new(
             room_id: OwnedRoomId,
             sender: OwnedUserId,
             state_key: OwnedUserId,
-            content: ThirdPartyInvite,
+            third_party_invite: ThirdPartyInvite,
         ) -> Self {
+            let mut content = RoomMemberEventContent::new(MembershipState::Invite);
+            content.third_party_invite = Some(third_party_invite);
+
             Self { room_id, kind: StateEventType::RoomMember, sender, state_key, content }
         }
     }
