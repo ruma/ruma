@@ -9,15 +9,14 @@ use std::{
 
 use js_int::{int, uint};
 use ruma_common::{
-    event_id, room_id, third_party_invite::IdentityServerBase64PublicKey, user_id, EventId,
-    MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, RoomVersionId, ServerSignatures, UserId,
+    event_id, room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId,
+    RoomVersionId, ServerSignatures, UserId,
 };
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV3Pdu},
     room::{
         join_rules::{JoinRule, RoomJoinRulesEventContent},
         member::{MembershipState, RoomMemberEventContent},
-        third_party_invite::RoomThirdPartyInviteEventContent,
     },
     StateEventType, TimelineEventType,
 };
@@ -737,17 +736,28 @@ impl TestStateMap {
 
 /// Create an `m.room.third_party_invite` event with the given sender.
 pub(crate) fn room_third_party_invite(sender: &UserId) -> Arc<PduEvent> {
+    let content = json!({
+        "display_name": "o...@g...",
+        "key_validity_url": "https://identity.local/_matrix/identity/v2/pubkey/isvalid",
+        "public_key": "Gb9ECWmEzf6FQbrBZ9w7lshQhqowtrbLDFw4rXAxZuE",
+        "public_keys": [
+            {
+                "key_validity_url": "https://identity.local/_matrix/identity/v2/pubkey/isvalid",
+                "public_key": "Gb9ECWmEzf6FQbrBZ9w7lshQhqowtrbLDFw4rXAxZuE"
+            },
+            {
+                "key_validity_url": "https://identity.local/_matrix/identity/v2/pubkey/ephemeral/isvalid",
+                "public_key": "Kxdvv7lo0O6JVI7yimFgmYPfpLGnctcpYjuypP5zx/c"
+            }
+        ]
+    });
+
     to_pdu_event(
         "THIRDPARTY",
         sender,
         TimelineEventType::RoomThirdPartyInvite,
         Some("somerandomtoken"),
-        to_raw_json_value(&RoomThirdPartyInviteEventContent::new(
-            "e..@p..".to_owned(),
-            "http://host.local/check/public_key".to_owned(),
-            IdentityServerBase64PublicKey::new(b"public_key"),
-        ))
-        .unwrap(),
+        to_raw_json_value(&content).unwrap(),
         &["CREATE", "IJR", "IPOWER"],
         &["IPOWER"],
     )

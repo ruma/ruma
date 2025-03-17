@@ -22,7 +22,11 @@ Bug fixes:
   the authorization check, it should just be ignored for the resolved state.
 - Don't error on deserialization of malformed fields that are not checked in the
   authorization rules for `m.room.create`, `m.room.member`,
-  `m.room.power_levels` and `m.room.join_rules` events.
+  `m.room.power_levels`, `m.room.join_rules` and `m.room.third_party_invite`
+  events.
+- Fix `auth_check` for `m.room.member` with an `invite` membership and a
+  `third_party_invite`. The `signed` object in the content is now verified
+  against the public keys in the matching `m.room.third_party_invite` event.
 
 Improvements:
 
@@ -34,6 +38,7 @@ Improvements:
   - `RoomMemberEvent` for `m.room.member` events
   - `RoomPowerLevelsEvent` for `m.room.power_levels` events
   - `RoomJoinRulesEvent` for `m.room.join_rules` events
+  - `RoomThirdPartyInviteEvent` for `m.room.third_party_invite` events
 
 # 0.13.0
 

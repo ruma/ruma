@@ -4,6 +4,7 @@ mod create;
 mod join_rules;
 pub(crate) mod member;
 pub(crate) mod power_levels;
+mod third_party_invite;
 mod traits;
 
 pub use self::{
@@ -11,5 +12,6 @@ pub use self::{
     join_rules::{JoinRule, RoomJoinRulesEvent},
     member::RoomMemberEvent,
     power_levels::{RoomPowerLevelsEvent, RoomPowerLevelsIntField},
+    third_party_invite::RoomThirdPartyInviteEvent,
     traits::Event,
 };

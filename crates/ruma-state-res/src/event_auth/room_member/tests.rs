@@ -1133,15 +1133,213 @@ fn invite_via_third_party_invite_room_third_party_invite_sender_mismatch() {
 }
 
 #[test]
-fn invite_via_third_party_invite_with_room_third_party_invite() {
-    // FIXME: for now the code doesn't check the signatures, this test will fail once it does.
+fn invite_via_third_party_invite_with_room_missing_signatures() {
     let _guard = init_subscriber();
 
-    let mut content = RoomMemberEventContent::new(MembershipState::Invite);
-    content.third_party_invite = Some(ThirdPartyInvite::new(
-        "e..@p..".to_owned(),
-        SignedContent::new(Signatures::new(), ella().to_owned(), "somerandomtoken".to_owned()),
-    ));
+    let content = json!({
+        "membership": "invite",
+        "third_party_invite": {
+            "display_name": "e...@p...",
+            "signed": {
+                "mxid": "@ella:foo",
+                "sender": "@charlie:foo",
+                "token": "somerandomtoken",
+            }
+        }
+    });
+
+    let incoming_event = to_pdu_event(
+        "HELLO",
+        charlie(),
+        TimelineEventType::RoomMember,
+        Some(ella().as_str()),
+        to_raw_json_value(&content).unwrap(),
+        &["CREATE", "IJR", "IPOWER", "THIRDPARTY"],
+        &["THIRDPARTY"],
+    );
+
+    let mut init_events = INITIAL_EVENTS();
+    init_events.insert(event_id("THIRD_PARTY"), room_third_party_invite(charlie()));
+
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
+
+    // `signed` must have a `signatures` field.
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
+}
+
+#[test]
+fn invite_via_third_party_invite_with_room_empty_signatures() {
+    let _guard = init_subscriber();
+
+    let content = json!({
+        "membership": "invite",
+        "third_party_invite": {
+            "display_name": "e...@p...",
+            "signed": {
+                "mxid": "@ella:foo",
+                "sender": "@charlie:foo",
+                "token": "somerandomtoken",
+                "signatures": [],
+            }
+        }
+    });
+
+    let incoming_event = to_pdu_event(
+        "HELLO",
+        charlie(),
+        TimelineEventType::RoomMember,
+        Some(ella().as_str()),
+        to_raw_json_value(&content).unwrap(),
+        &["CREATE", "IJR", "IPOWER", "THIRDPARTY"],
+        &["THIRDPARTY"],
+    );
+
+    let mut init_events = INITIAL_EVENTS();
+    init_events.insert(event_id("THIRD_PARTY"), room_third_party_invite(charlie()));
+
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
+
+    // There is no signature to verify, we need at least one.
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
+}
+
+#[test]
+fn invite_via_third_party_invite_with_wrong_signature() {
+    let _guard = init_subscriber();
+
+    let content = json!({
+        "membership": "invite",
+        "third_party_invite": {
+            "display_name": "e...@p...",
+            "signed": {
+                "mxid": "@ella:foo",
+                "sender": "@charlie:foo",
+                "token": "somerandomtoken",
+                "signatures": {
+                    "identity.local": {
+                        "ed25519:0": "ClearlyWrongSignature",
+                    }
+                },
+            }
+        }
+    });
+
+    let incoming_event = to_pdu_event(
+        "HELLO",
+        charlie(),
+        TimelineEventType::RoomMember,
+        Some(ella().as_str()),
+        to_raw_json_value(&content).unwrap(),
+        &["CREATE", "IJR", "IPOWER", "THIRDPARTY"],
+        &["THIRDPARTY"],
+    );
+
+    let mut init_events = INITIAL_EVENTS();
+    init_events.insert(event_id("THIRD_PARTY"), room_third_party_invite(charlie()));
+
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
+
+    // No public key will manage to verify the signature.
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
+}
+
+#[test]
+fn invite_via_third_party_invite_with_wrong_signing_algorithm() {
+    let _guard = init_subscriber();
+
+    let content = json!({
+        "membership": "invite",
+        "third_party_invite": {
+            "display_name": "e...@p...",
+            "signed": {
+                "mxid": "@ella:foo",
+                "sender": "@charlie:foo",
+                "token": "somerandomtoken",
+                "signatures": {
+                    "identity.local": {
+                        "unknown:0": "EyW7uaJagmhIQg7DUFpiJv9ur8h8DkDSjyV6f5MlROJrrkg8JElBFKr2iTQY9x+A6OauQdNy7L9T4xgzIZVbCA"
+                    }
+                },
+            }
+        }
+    });
+
+    let incoming_event = to_pdu_event(
+        "HELLO",
+        charlie(),
+        TimelineEventType::RoomMember,
+        Some(ella().as_str()),
+        to_raw_json_value(&content).unwrap(),
+        &["CREATE", "IJR", "IPOWER", "THIRDPARTY"],
+        &["THIRDPARTY"],
+    );
+
+    let mut init_events = INITIAL_EVENTS();
+    init_events.insert(event_id("THIRD_PARTY"), room_third_party_invite(charlie()));
+
+    let auth_events = TestStateMap::new(&init_events);
+    let fetch_state = auth_events.fetch_state_fn();
+    let room_create_event = auth_events.room_create_event();
+
+    // Can't verify a signature with an unsupported algorithm, so there is no signature to verify.
+    check_room_member(
+        RoomMemberEvent::new(incoming_event),
+        &RoomVersion::V9,
+        room_create_event,
+        fetch_state,
+    )
+    .unwrap_err();
+}
+
+#[test]
+fn invite_via_third_party_invite() {
+    let _guard = init_subscriber();
+
+    let content = json!({
+        "membership": "invite",
+        "third_party_invite": {
+            "display_name": "e...@p...",
+            "signed": {
+                "mxid": "@ella:foo",
+                "sender": "@charlie:foo",
+                "token": "somerandomtoken",
+                "signatures": {
+                    "identity.local": {
+                        // This signature will be ignored because the algorithm is unsupported.
+                        "unknown:0": "SomeSignature",
+                        // This signature will fail the verification.
+                        "ed25519:0": "ClearlyWrongSignature",
+                        // This signature will pass verification!
+                        "ed25519:1": "EyW7uaJagmhIQg7DUFpiJv9ur8h8DkDSjyV6f5MlROJrrkg8JElBFKr2iTQY9x+A6OauQdNy7L9T4xgzIZVbCA"
+                    }
+                },
+            }
+        }
+    });
 
     let incoming_event = to_pdu_event(
         "HELLO",
