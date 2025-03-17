@@ -15,6 +15,9 @@ Breaking:
   - The cases that were triggering a `SerdeJson` or a `Custom` error are either
     ignored when coming from the `auth_check()` (see corresponding bug fix) or
     return an `AuthEvent` error.
+- `auth_types_for_event` takes a `RoomVersion`, to check if restricted join
+  rules are allowed before looking for the `join_authorised_via_users_server`
+  field in `m.room.member`.
 
 Bug fixes:
 
