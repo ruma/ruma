@@ -19,6 +19,9 @@ Improvements:
 
 - ruma-server-util was merged into this crate. `XMatrix` is available in the
   `authentication` module.
+- Add a method to construct a `thirdparty::exchange_invite::v1::Request` from a
+  `thirdparty::bind_callback::v1::ThirdPartyInvite` and a
+  `RoomThirdPartyInviteEventContent`.
 
 # 0.11.1
 
