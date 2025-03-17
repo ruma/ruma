@@ -16,9 +16,14 @@ pub mod v1 {
         metadata, OwnedRoomId, OwnedUserId,
     };
     use ruma_events::{
-        room::member::{MembershipState, RoomMemberEventContent, ThirdPartyInvite},
+        room::{
+            member::{MembershipState, RoomMemberEventContent, ThirdPartyInvite},
+            third_party_invite::RoomThirdPartyInviteEventContent,
+        },
         StateEventType,
     };
+
+    use crate::thirdparty::bind_callback;
 
     const METADATA: Metadata = metadata! {
         method: PUT,
@@ -71,6 +76,26 @@ pub mod v1 {
             content.third_party_invite = Some(third_party_invite);
 
             Self { room_id, kind: StateEventType::RoomMember, sender, state_key, content }
+        }
+
+        /// Creates a new `Request` for a third-party invite exchange from a `ThirdPartyInvite` in
+        /// the [`bind_callback::v1::Request`] and the matching
+        /// [`RoomThirdPartyInviteEventContent`].
+        pub fn with_bind_callback_request_and_event(
+            bind_callback_invite: bind_callback::v1::ThirdPartyInvite,
+            room_third_party_invite_event: &RoomThirdPartyInviteEventContent,
+        ) -> Self {
+            let third_party_invite = ThirdPartyInvite::new(
+                room_third_party_invite_event.display_name.clone(),
+                bind_callback_invite.signed,
+            );
+
+            Self::new(
+                bind_callback_invite.room_id,
+                bind_callback_invite.sender,
+                bind_callback_invite.mxid,
+                third_party_invite,
+            )
         }
     }
 
