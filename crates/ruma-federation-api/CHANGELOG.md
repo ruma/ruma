@@ -4,6 +4,8 @@ Breaking changes:
 
 - Remove the `origin` field in `create_join_event::{v1/v2}::RoomState` due to a
   clarification in the spec.
+- The type of `signed` in `thirdparty::bind_callback::v1::Request` was fixed. It
+  uses `SignedContent` from `RoomMemberEventContent`.
 
 Improvements:
 
