@@ -7,6 +7,10 @@ Breaking changes:
 - The type of `signed` in `thirdparty::bind_callback::v1::Request` was fixed. It
   uses `SignedContent` from `RoomMemberEventContent`.
 
+Bug fixes:
+
+- Add constructor for `thirdparty::bind_callback::v1::Response`.
+
 Improvements:
 
 - ruma-server-util was merged into this crate. `XMatrix` is available in the
