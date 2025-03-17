@@ -366,20 +366,6 @@ fn check_room_power_levels(
 ) -> Result<(), String> {
     debug!("starting m.room.power_levels check");
 
-    // FIXME: the authorization rules do not say to check the state key, which is weird because we
-    // couldn't get the previous room power levels if it didn't have a state key. Instead of
-    // checking for an empty string, Synapse fetches the previous power levels with the same state
-    // key, which might be more correct.
-    match room_power_levels_event.state_key() {
-        Some("") => {}
-        Some(_) => {
-            return Err("`m.room.power_levels` event has non-empty `state_key`".to_owned());
-        }
-        None => {
-            return Err("missing `state_key` for `m.room.power_levels` event".to_owned());
-        }
-    }
-
     // Since v10, if any of the properties users_default, events_default, state_default, ban,
     // redact, kick, or invite in content are present and not an integer, reject.
     let new_int_fields = room_power_levels_event.int_fields_map(room_version)?;
