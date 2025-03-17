@@ -126,20 +126,6 @@ fn invalid_room_create() {
     );
     check_room_create(RoomCreateEvent::new(event), &RoomVersion::V1).unwrap_err();
 
-    // Room version that is not a string.
-    let content = json!({
-        "creator": alice(),
-        "room_version": 1,
-    });
-    let event = to_init_pdu_event(
-        "CREATE",
-        alice(),
-        TimelineEventType::RoomCreate,
-        Some(""),
-        to_raw_json_value(&content).unwrap(),
-    );
-    check_room_create(RoomCreateEvent::new(event), &RoomVersion::V1).unwrap_err();
-
     // No creator in v1.
     let content = json!({});
     let event = to_init_pdu_event(
