@@ -9,6 +9,11 @@ Breaking changes:
   of `Base64` for the public keys, to avoid deserialization errors when public
   keys encoded using URL-safe base64 is encountered.
 
+Improvements:
+
+- Implement `From<store_invitation::v2::Response>` for
+  `RoomThirdPartyEventContent`.
+
 # 0.11.0
 
 Improvements:
