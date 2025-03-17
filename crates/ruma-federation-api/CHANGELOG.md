@@ -6,6 +6,10 @@ Breaking changes:
   clarification in the spec.
 - The type of `signed` in `thirdparty::bind_callback::v1::Request` was fixed. It
   uses `SignedContent` from `RoomMemberEventContent`.
+- The type of `content` in `thirdparty::exchange_invite::v1::Request` was fixed.
+  It is a `RoomMemberEventContent`. A new constructor was added,
+  `with_third_party_invite()` that constructs the event content from a
+  `ThirdPartyInvite`.
 
 Bug fixes:
 
