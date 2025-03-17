@@ -9,6 +9,11 @@ Breaking changes:
 - `get_supported_versions::Response::known_versions()` was replaced by
   `as_supported_versions()` which returns a `SupportedVersions`.
 
+Improvements:
+
+- Implement `From<store_invitation::v2::Response>` for
+  `RoomThirdPartyEventContent`.
+
 # 0.11.0
 
 Improvements:
