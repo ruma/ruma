@@ -18,9 +18,14 @@ pub mod v1 {
         OwnedRoomId, OwnedUserId,
     };
     use ruma_events::{
-        room::member::{MembershipState, RoomMemberEventContent, ThirdPartyInvite},
+        room::{
+            member::{MembershipState, RoomMemberEventContent, ThirdPartyInvite},
+            third_party_invite::RoomThirdPartyInviteEventContent,
+        },
         StateEventType,
     };
+
+    use crate::thirdparty::bind_callback;
 
     const METADATA: Metadata = metadata! {
         method: PUT,
@@ -86,6 +91,28 @@ pub mod v1 {
             let content = Raw::new(&content)?;
 
             Ok(Self::new(room_id, sender, state_key, content))
+        }
+
+        /// Creates a new `Request` for a third-party invite exchange from a `ThirdPartyInvite` in
+        /// the [`bind_callback::v1::Request`] and the matching
+        /// [`RoomThirdPartyInviteEventContent`].
+        ///
+        /// Returns an error if the serialization of the event content fails.
+        pub fn with_bind_callback_request_and_event(
+            bind_callback_invite: bind_callback::v1::ThirdPartyInvite,
+            room_third_party_invite_event: &RoomThirdPartyInviteEventContent,
+        ) -> Result<Self, serde_json::Error> {
+            let third_party_invite = ThirdPartyInvite::new(
+                room_third_party_invite_event.display_name.clone(),
+                bind_callback_invite.signed,
+            );
+
+            Self::with_third_party_invite(
+                bind_callback_invite.room_id,
+                bind_callback_invite.sender,
+                bind_callback_invite.mxid,
+                third_party_invite,
+            )
         }
     }
 
