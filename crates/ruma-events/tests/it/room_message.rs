@@ -652,7 +652,7 @@ fn gallery_msgtype_deserialization() {
         "My photos from <a href=\"https://fosdem.org/2025/\">FOSDEM 2025</a>"
     );
     assert_matches!(&content.itemtypes.len(), 1);
-    assert_matches!(&content.itemtypes.get(0).unwrap(), GalleryItemType::Image(content));
+    assert_matches!(&content.itemtypes.first().unwrap(), GalleryItemType::Image(content));
     assert_eq!(content.body, "my_image.jpg");
     assert_matches!(&content.source, MediaSource::Plain(url));
     assert_eq!(url, "mxc://notareal.hs/file");
