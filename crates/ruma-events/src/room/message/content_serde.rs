@@ -5,8 +5,8 @@ use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
-    relation_serde::deserialize_relation, MessageType, RoomMessageEventContent,
-    RoomMessageEventContentWithoutRelation,
+    gallery::GalleryItemType, relation_serde::deserialize_relation, MessageType,
+    RoomMessageEventContent, RoomMessageEventContentWithoutRelation,
 };
 use crate::Mentions;
 
@@ -64,6 +64,7 @@ impl<'de> Deserialize<'de> for MessageType {
             "m.audio" => Self::Audio(from_raw_json_value(&json)?),
             "m.emote" => Self::Emote(from_raw_json_value(&json)?),
             "m.file" => Self::File(from_raw_json_value(&json)?),
+            "dm.filament.gallery" => Self::Gallery(from_raw_json_value(&json)?),
             "m.image" => Self::Image(from_raw_json_value(&json)?),
             "m.location" => Self::Location(from_raw_json_value(&json)?),
             "m.notice" => Self::Notice(from_raw_json_value(&json)?),
@@ -71,6 +72,24 @@ impl<'de> Deserialize<'de> for MessageType {
             "m.text" => Self::Text(from_raw_json_value(&json)?),
             "m.video" => Self::Video(from_raw_json_value(&json)?),
             "m.key.verification.request" => Self::VerificationRequest(from_raw_json_value(&json)?),
+            _ => Self::_Custom(from_raw_json_value(&json)?),
+        })
+    }
+}
+
+impl<'de> Deserialize<'de> for GalleryItemType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+        let MessageTypeDeHelper { msgtype } = from_raw_json_value(&json)?;
+
+        Ok(match msgtype.as_ref() {
+            "m.audio" => Self::Audio(from_raw_json_value(&json)?),
+            "m.file" => Self::File(from_raw_json_value(&json)?),
+            "m.image" => Self::Image(from_raw_json_value(&json)?),
+            "m.video" => Self::Video(from_raw_json_value(&json)?),
             _ => Self::_Custom(from_raw_json_value(&json)?),
         })
     }
