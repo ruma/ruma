@@ -7,8 +7,8 @@ Breaking:
   `Ok(true)` and all failures return an `Err(_)` with a description of the check
   that failed.
 - The variants of `Error` were changed:
-  - `Unsupported` was renamed to `UnsupportedRoomVersion` and holds a
-    `RoomVersionId`.
+  - `Unsupported` was removed since we always take a `RoomVersion` instead of
+    a `RoomVersionId`.
   - `NotFound` holds an `OwnedEventId`.
   - The cases that were triggering an `InvalidPdu` error now trigger a
     `MissingStateKey` error.
@@ -18,6 +18,9 @@ Breaking:
 - `auth_types_for_event` takes a `RoomVersion`, to check if restricted join
   rules are allowed before looking for the `join_authorised_via_users_server`
   field in `m.room.member`.
+- `resolve` takes a `RoomVersion` instead of a `RoomVersionId`. This allows
+  server implementations to support custom room versions. They only need to
+  provide a `RoomVersion` for their custom `RoomVersionId`.
 
 Bug fixes:
 

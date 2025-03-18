@@ -13,7 +13,7 @@ use ruma_common::{
     UserId,
 };
 use ruma_events::{StateEventType, TimelineEventType};
-use ruma_state_res::{resolve, Event, StateMap};
+use ruma_state_res::{resolve, Event, RoomVersion, StateMap};
 use serde::{Deserialize, Serialize};
 use serde_json::{
     from_str as from_json_str, to_string_pretty as to_json_string_pretty,
@@ -183,7 +183,7 @@ fn test_resolve(paths: &[&str]) -> Snapshots {
         })
         .collect::<Vec<Vec<Pdu>>>();
 
-    let room_version = {
+    let room_version_id = {
         let first_pdu = pdu_batches
             .first()
             .expect("there should be at least one file of PDUs")
@@ -200,6 +200,8 @@ fn test_resolve(paths: &[&str]) -> Snapshots {
             .expect("the m.room.create PDU's content should be valid")
             .room_version
     };
+    let room_version =
+        RoomVersion::new(&room_version_id).expect("room version should be supported");
 
     // Resolve PDUs in batches by file
     let mut pdus_by_id = HashMap::new();
@@ -275,7 +277,7 @@ fn test_resolve(paths: &[&str]) -> Snapshots {
 ///   * Should be `None` for the first call.
 ///   * Should not be mutated outside of this function.
 fn resolve_batch<'a, I, II>(
-    room_version: &RoomVersionId,
+    room_version: &RoomVersion,
     pdus: II,
     pdus_by_id: &mut HashMap<OwnedEventId, Pdu>,
     prev_state: &mut Option<StateMap<OwnedEventId>>,

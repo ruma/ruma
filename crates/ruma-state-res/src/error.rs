@@ -1,4 +1,4 @@
-use ruma_common::{OwnedEventId, RoomVersionId};
+use ruma_common::OwnedEventId;
 use thiserror::Error;
 
 /// Result type for state resolution.
@@ -8,10 +8,6 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Error, Debug)]
 #[non_exhaustive]
 pub enum Error {
-    /// The given option or version is unsupported.
-    #[error("Unsupported room version: {0}")]
-    UnsupportedRoomVersion(RoomVersionId),
-
     /// The given event was not found.
     #[error("Failed to find event {0}")]
     NotFound(OwnedEventId),
