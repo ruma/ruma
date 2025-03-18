@@ -2,11 +2,13 @@
 
 use std::{borrow::Cow, ops::Deref};
 
-use ruma_common::{serde::from_raw_json_value, OwnedUserId, RoomVersionId, UserId};
+use ruma_common::{
+    room_version_rules::RoomVersionRules, serde::from_raw_json_value, OwnedUserId, RoomVersionId,
+    UserId,
+};
 use serde::{de::IgnoredAny, Deserialize};
 
 use super::Event;
-use crate::RoomVersion;
 
 /// A helper type for an [`Event`] of type `m.room.create`.
 ///
@@ -51,16 +53,16 @@ impl<E: Event> RoomCreateEvent<E> {
 
     /// The creator of the room.
     ///
-    /// If the `use_room_create_sender` field of `RoomVersion` is set, the creator is the sender of
-    /// this `m.room.create` event, otherwise it is deserialized from the `creator` field of this
-    /// event's content.
-    pub fn creator(&self, room_version: &RoomVersion) -> Result<Cow<'_, UserId>, String> {
+    /// If the `use_room_create_sender` field of `RoomVersionRules` is set, the creator is the
+    /// sender of this `m.room.create` event, otherwise it is deserialized from the `creator`
+    /// field of this event's content.
+    pub fn creator(&self, rules: &RoomVersionRules) -> Result<Cow<'_, UserId>, String> {
         #[derive(Deserialize)]
         struct RoomCreateContentCreator {
             creator: OwnedUserId,
         }
 
-        if room_version.use_room_create_sender {
+        if rules.use_room_create_sender {
             Ok(Cow::Borrowed(self.sender()))
         } else {
             let content: RoomCreateContentCreator =

@@ -44,6 +44,20 @@ Improvements:
 - `DeviceId::new()` generates a string with 10 chars instead of 8.
 - Add `IdentityServerBase64PublicKey` as a helper type to decode identity server
   public keys encoded using standard or URL-safe base64.
+- `RoomVersion` was imported from ruma-state-res and renamed to
+  `RoomVersionRules`, along with the following changes:
+  - `RoomVersionRules::new()` was removed and replaced by
+    `RoomVersionId::rules()`.
+  - The `RoomDisposition` enum was renamed to `RoomVersionDisposition`.
+  - The `event_format` field was renamed to `event_id_format` and the
+    `EventFormat` enum was renamed to `EventIdFormat`.
+  - The `special_case_aliases_auth` field was renamed to
+    `special_case_room_aliases`.
+  - The `strict_canonicaljson` field was renamed to `strict_canonical_json`.
+  - The `extra_redaction_checks` field was renamed to
+    `special_case_room_redaction`.
+  - The `allow_knocking` field was renamed to `knocking`.
+  - The `restricted_join_rules` field was renamed to `restricted_join_rule`.
 
 # 0.15.1
 

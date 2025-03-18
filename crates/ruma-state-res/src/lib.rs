@@ -7,14 +7,15 @@ use std::{
 };
 
 use js_int::Int;
-use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, OwnedUserId};
+use ruma_common::{
+    room_version_rules::RoomVersionRules, EventId, MilliSecondsSinceUnixEpoch, OwnedUserId,
+};
 use ruma_events::{room::member::MembershipState, StateEventType, TimelineEventType};
 use tracing::{debug, info, instrument, trace, warn};
 
 mod error;
 pub mod event_auth;
 pub mod events;
-pub mod room_version;
 #[cfg(test)]
 mod test_utils;
 
@@ -26,7 +27,6 @@ pub use self::{
     error::{Error, Result},
     event_auth::{auth_check, auth_types_for_event},
     events::Event,
-    room_version::RoomVersion,
 };
 
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
@@ -39,8 +39,7 @@ pub type StateMap<T> = HashMap<(StateEventType, String), T>;
 ///
 /// ## Arguments
 ///
-/// * `room_version` - The `RoomVersion` with the rules to apply for the version of the current
-///   room.
+/// * `rules` - The rules to apply for the version of the current room.
 ///
 /// * `state_sets` - The incoming state to resolve. Each `StateMap` represents a possible fork in
 ///   the state of a room.
@@ -55,9 +54,9 @@ pub type StateMap<T> = HashMap<(StateEventType, String), T>;
 ///
 /// The caller of `resolve` must ensure that all the events are from the same room. Although this
 /// function takes a `RoomId` it does not check that each event is part of the same room.
-#[instrument(skip(room_version, state_sets, auth_chain_sets, fetch_event))]
+#[instrument(skip(rules, state_sets, auth_chain_sets, fetch_event))]
 pub fn resolve<'a, E, SetIter>(
-    room_version: &RoomVersion,
+    rules: &RoomVersionRules,
     state_sets: impl IntoIterator<IntoIter = SetIter>,
     auth_chain_sets: Vec<HashSet<E::Id>>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
@@ -105,19 +104,15 @@ where
         .collect::<Vec<_>>();
 
     // Sort the control events based on power_level/clock/event_id and outgoing/incoming edges
-    let sorted_control_levels = reverse_topological_power_sort(
-        control_events,
-        &all_conflicted,
-        room_version,
-        &fetch_event,
-    )?;
+    let sorted_control_levels =
+        reverse_topological_power_sort(control_events, &all_conflicted, rules, &fetch_event)?;
 
     debug!(count = sorted_control_levels.len(), "power events");
     trace!(list = ?sorted_control_levels, "sorted power events");
 
     // Sequentially auth check each control event.
     let resolved_control =
-        iterative_auth_check(room_version, &sorted_control_levels, clean.clone(), &fetch_event)?;
+        iterative_auth_check(rules, &sorted_control_levels, clean.clone(), &fetch_event)?;
 
     debug!(count = resolved_control.len(), "resolved power events");
     trace!(map = ?resolved_control, "resolved power events");
@@ -147,7 +142,7 @@ where
     trace!(list = ?sorted_left_events, "events left, sorted");
 
     let mut resolved_state = iterative_auth_check(
-        room_version,
+        rules,
         &sorted_left_events,
         resolved_control, // The control events are added to the final resolved state
         &fetch_event,
@@ -228,7 +223,7 @@ where
 fn reverse_topological_power_sort<E: Event>(
     events_to_sort: Vec<E::Id>,
     auth_diff: &HashSet<E::Id>,
-    room_version: &RoomVersion,
+    rules: &RoomVersionRules,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> Result<Vec<E::Id>> {
     debug!("reverse topological sort of power events");
@@ -249,13 +244,8 @@ fn reverse_topological_power_sort<E: Event>(
     let creator_lock = OnceLock::new();
 
     for event_id in graph.keys() {
-        let pl = get_power_level_for_sender(
-            event_id.borrow(),
-            room_version,
-            &creator_lock,
-            &fetch_event,
-        )
-        .map_err(Error::AuthEvent)?;
+        let pl = get_power_level_for_sender(event_id.borrow(), rules, &creator_lock, &fetch_event)
+            .map_err(Error::AuthEvent)?;
         debug!(
             event_id = event_id.borrow().as_str(),
             power_level = i64::from(pl),
@@ -397,7 +387,7 @@ where
 /// event).
 fn get_power_level_for_sender<E: Event>(
     event_id: &EventId,
-    room_version: &RoomVersion,
+    rules: &RoomVersionRules,
     creator_lock: &OnceLock<OwnedUserId>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> std::result::Result<Int, String> {
@@ -427,17 +417,17 @@ fn get_power_level_for_sender<E: Event>(
     let creator = if let Some(creator) = creator_lock.get() {
         Some(creator)
     } else if let Some(room_create_event) = room_create_event {
-        let creator = room_create_event.creator(room_version)?;
+        let creator = room_create_event.creator(rules)?;
         Some(creator_lock.get_or_init(|| creator.into_owned()))
     } else {
         None
     };
 
     if let Some((event, creator)) = event.zip(creator) {
-        room_power_levels_event.user_power_level(event.sender(), creator, room_version)
+        room_power_levels_event.user_power_level(event.sender(), creator, rules)
     } else {
         room_power_levels_event
-            .get_as_int_or_default(events::RoomPowerLevelsIntField::UsersDefault, room_version)
+            .get_as_int_or_default(events::RoomPowerLevelsIntField::UsersDefault, rules)
     }
 }
 
@@ -451,7 +441,7 @@ fn get_power_level_for_sender<E: Event>(
 /// For each `events_to_check` event we gather the events needed to auth it from the the
 /// `fetch_event` closure and verify each event using the `event_auth::auth_check` function.
 fn iterative_auth_check<E: Event + Clone>(
-    room_version: &RoomVersion,
+    rules: &RoomVersionRules,
     events_to_check: &[E::Id],
     unconflicted_state: StateMap<E::Id>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
@@ -486,7 +476,7 @@ fn iterative_auth_check<E: Event + Clone>(
             event.sender(),
             Some(state_key),
             event.content(),
-            room_version,
+            rules,
         ) {
             Ok(auth_types) => auth_types,
             Err(error) => {
@@ -504,7 +494,7 @@ fn iterative_auth_check<E: Event + Clone>(
             }
         }
 
-        match auth_check(room_version, &event, |ty, key| auth_events.get(&ty.with_state_key(key))) {
+        match auth_check(rules, &event, |ty, key| auth_events.get(&ty.with_state_key(key))) {
             Ok(()) => {
                 // Add event to resolved state.
                 resolved_state
@@ -713,7 +703,9 @@ mod tests {
     use js_int::{int, uint};
     use maplit::{hashmap, hashset};
     use rand::seq::SliceRandom;
-    use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedEventId};
+    use ruma_common::{
+        room_version_rules::RoomVersionRules, MilliSecondsSinceUnixEpoch, OwnedEventId,
+    };
     use ruma_events::{
         room::join_rules::{JoinRule, RoomJoinRulesEventContent},
         StateEventType, TimelineEventType,
@@ -723,7 +715,6 @@ mod tests {
 
     use crate::{
         is_power_event,
-        room_version::RoomVersion,
         test_utils::{
             alice, bob, charlie, do_check, ella, event_id, member_content_ban, member_content_join,
             room_id, to_init_pdu_event, to_pdu_event, zara, PduEvent, TestStore, INITIAL_EVENTS,
@@ -752,13 +743,13 @@ mod tests {
         let sorted_power_events = crate::reverse_topological_power_sort(
             power_events,
             &auth_chain,
-            &RoomVersion::V6,
+            &RoomVersionRules::V6,
             |id| events.get(id).cloned(),
         )
         .unwrap();
 
         let resolved_power = crate::iterative_auth_check(
-            &RoomVersion::V6,
+            &RoomVersionRules::V6,
             &sorted_power_events,
             HashMap::new(), // unconflicted events
             |id| events.get(id).cloned(),
@@ -1119,7 +1110,7 @@ mod tests {
         let ev_map = store.0.clone();
         let state_sets = [state_at_bob, state_at_charlie];
         let resolved = match crate::resolve(
-            &RoomVersion::V2,
+            &RoomVersionRules::V2,
             &state_sets,
             state_sets
                 .iter()
@@ -1219,7 +1210,7 @@ mod tests {
         let ev_map = &store.0;
         let state_sets = [state_set_a, state_set_b];
         let resolved = match crate::resolve(
-            &RoomVersion::V6,
+            &RoomVersionRules::V6,
             &state_sets,
             state_sets
                 .iter()

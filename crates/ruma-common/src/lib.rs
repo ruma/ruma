@@ -32,6 +32,7 @@ pub mod power_levels;
 pub mod presence;
 pub mod push;
 pub mod room;
+pub mod room_version_rules;
 pub mod serde;
 pub mod space;
 pub mod third_party_invite;
