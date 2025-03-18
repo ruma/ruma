@@ -3,8 +3,8 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 use super::{
-    AudioMessageEventContent, FileMessageEventContent, FormattedBody, ImageMessageEventContent,
-    VideoMessageEventContent,
+    AudioMessageEventContent, CustomEventContent, FileMessageEventContent, FormattedBody,
+    ImageMessageEventContent, VideoMessageEventContent,
 };
 
 /// The payload for a gallery message.
@@ -35,8 +35,7 @@ impl GalleryMessageEventContent {
 }
 
 /// The content that is specific to each gallery item type variant.
-#[derive(Clone, Debug, Serialize)]
-#[serde(untagged)]
+#[derive(Clone, Debug)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum GalleryItemType {
     /// An audio item.
@@ -85,7 +84,7 @@ impl GalleryItemType {
             "m.file" => Self::File(deserialize_variant(body, data)?),
             "m.image" => Self::Image(deserialize_variant(body, data)?),
             "m.video" => Self::Video(deserialize_variant(body, data)?),
-            _ => Self::_Custom(CustomEventContent { itemtype: itemtype.to_owned(), body, data }),
+            _ => Self::_Custom(CustomEventContent { msgtype: itemtype.to_owned(), body, data }),
         })
     }
 
@@ -96,7 +95,7 @@ impl GalleryItemType {
             Self::File(_) => "m.file",
             Self::Image(_) => "m.image",
             Self::Video(_) => "m.video",
-            Self::_Custom(c) => &c.itemtype,
+            Self::_Custom(c) => &c.msgtype,
         }
     }
 
@@ -110,19 +109,15 @@ impl GalleryItemType {
             GalleryItemType::_Custom(m) => &m.body,
         }
     }
-}
 
-/// The payload for a custom gallery item.
-#[doc(hidden)]
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct CustomEventContent {
-    /// A custom itemtype.
-    itemtype: String,
-
-    /// The message body.
-    body: String,
-
-    /// Remaining event content.
-    #[serde(flatten)]
-    data: JsonObject,
+    /// Return a reference to the itemtype formatted body.
+    pub fn formatted(&self) -> &Option<FormattedBody> {
+        match self {
+            GalleryItemType::Audio(m) => &m.formatted,
+            GalleryItemType::File(m) => &m.formatted,
+            GalleryItemType::Image(m) => &m.formatted,
+            GalleryItemType::Video(m) => &m.formatted,
+            GalleryItemType::_Custom(_) => &None,
+        }
+    }
 }
