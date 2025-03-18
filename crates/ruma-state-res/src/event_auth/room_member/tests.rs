@@ -1,5 +1,5 @@
 use ruma_common::{
-    room_version_rules::RoomVersionRules, third_party_invite::IdentityServerBase64PublicKey,
+    room_version_rules::AuthorizationRules, third_party_invite::IdentityServerBase64PublicKey,
     Signatures,
 };
 use ruma_events::{
@@ -44,7 +44,7 @@ fn missing_state_key() {
     // Event should have a state key.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -73,7 +73,7 @@ fn missing_membership() {
     // Content should at least include `membership`.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -102,7 +102,7 @@ fn join_after_create_creator_match() {
     // Before v11, the `creator` of `m.room.create` must be the same as the state key.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -131,7 +131,7 @@ fn join_after_create_creator_mismatch() {
     // Before v11, the `creator` of `m.room.create` must be the same as the state key.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -160,7 +160,7 @@ fn join_after_create_sender_match() {
     // Since v11, the `sender` of `m.room.create` must be the same as the state key.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V11,
+        &AuthorizationRules::V11,
         room_create_event,
         fetch_state,
     )
@@ -189,7 +189,7 @@ fn join_after_create_sender_mismatch() {
     // Since v11, the `sender` of `m.room.create` must be the same as the state key.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V11,
+        &AuthorizationRules::V11,
         room_create_event,
         fetch_state,
     )
@@ -218,7 +218,7 @@ fn join_sender_state_key_mismatch() {
     // For join events, the sender must be the same as the state key.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -257,7 +257,7 @@ fn join_banned() {
     // A user cannot join if they are banned.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -296,7 +296,7 @@ fn join_invite_join_rule_already_joined() {
     // A user can send a join event in a room with `invite` join rule if they already joined.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -345,7 +345,7 @@ fn join_knock_join_rule_already_invited() {
     // invited.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V7,
+        &AuthorizationRules::V7,
         room_create_event,
         fetch_state,
     )
@@ -386,7 +386,7 @@ fn join_knock_join_rule_not_supported() {
     // for coverage.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -430,7 +430,7 @@ fn join_restricted_join_rule_not_supported() {
     // for coverage.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -474,7 +474,7 @@ fn join_knock_restricted_join_rule_not_supported() {
     // this is good for coverage.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -517,7 +517,7 @@ fn join_restricted_join_rule_already_joined() {
     // joined.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V8,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -569,7 +569,7 @@ fn join_knock_restricted_join_rule_already_invited() {
     // were invited.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V10,
+        &AuthorizationRules::V10,
         room_create_event,
         fetch_state,
     )
@@ -612,7 +612,7 @@ fn join_restricted_join_rule_missing_join_authorised_via_users_server() {
     // `join_authorised_via_users_server` property.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V8,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -658,7 +658,7 @@ fn join_restricted_join_rule_authorised_via_user_not_in_room() {
     // authorized by a user not in the room.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V8,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -713,7 +713,7 @@ fn join_restricted_join_rule_authorised_via_user_with_not_enough_power() {
     // authorized by a user with not enough power.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V8,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -789,7 +789,7 @@ fn join_restricted_join_rule_authorised_via_user() {
         // authorized by a user with enough power.
         check_room_member(
             RoomMemberEvent::new(&incoming_event),
-            &RoomVersionRules::V9,
+            &AuthorizationRules::V8,
             room_create_event,
             fetch_state,
         )
@@ -839,7 +839,7 @@ fn join_public_join_rule() {
         // A user can join a room with a `public` join rule.
         check_room_member(
             RoomMemberEvent::new(incoming_event),
-            &RoomVersionRules::V9,
+            &AuthorizationRules::V8,
             room_create_event.clone(),
             fetch_state,
         )
@@ -888,7 +888,7 @@ fn invite_via_third_party_invite_banned() {
     // A user cannot be invited via third party invite if they were banned.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -924,7 +924,7 @@ fn invite_via_third_party_invite_missing_signed() {
     // Third party invite content must have a `joined` property.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -963,7 +963,7 @@ fn invite_via_third_party_invite_missing_mxid() {
     // Third party invite content must have a `joined.mxid` property.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1002,7 +1002,7 @@ fn invite_via_third_party_invite_missing_token() {
     // Third party invite content must have a `joined.token` property.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1037,7 +1037,7 @@ fn invite_via_third_party_invite_mxid_mismatch() {
     // `mxid` of third party invite must match state key.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1090,7 +1090,7 @@ fn invite_via_third_party_invite_missing_room_third_party_invite() {
     // There must be an `m.room.third_party_invite` event with the same token in the state.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1127,7 +1127,7 @@ fn invite_via_third_party_invite_room_third_party_invite_sender_mismatch() {
     // `mxid` of third party invite must match state key.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1170,7 +1170,7 @@ fn invite_via_third_party_invite_with_room_missing_signatures() {
     // `signed` must have a `signatures` field.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1214,7 +1214,7 @@ fn invite_via_third_party_invite_with_room_empty_signatures() {
     // There is no signature to verify, we need at least one.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1262,7 +1262,7 @@ fn invite_via_third_party_invite_with_wrong_signature() {
     // No public key will manage to verify the signature.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1310,7 +1310,7 @@ fn invite_via_third_party_invite_with_wrong_signing_algorithm() {
     // Can't verify a signature with an unsupported algorithm, so there is no signature to verify.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1363,7 +1363,7 @@ fn invite_via_third_party_invite() {
     // Valid third party invite works.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1392,7 +1392,7 @@ fn invite_sender_not_joined() {
     // The sender of the invite must have joined the room.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1431,7 +1431,7 @@ fn invite_banned() {
     // The sender of the invite must have joined the room.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1460,7 +1460,7 @@ fn invite_already_joined() {
     // The sender of the invite must have joined the room.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1499,7 +1499,7 @@ fn invite_sender_not_enough_power() {
     // The sender must have enough power to invite in the room.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1528,7 +1528,7 @@ fn invite() {
     // The invite is valid.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1557,7 +1557,7 @@ fn leave_after_leave() {
     // User can only leave after `invite`, `join` or `knock`.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1586,7 +1586,7 @@ fn leave_after_join() {
     // User can leave after join.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1625,7 +1625,7 @@ fn leave_after_invite() {
     // User can leave after invite.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1664,7 +1664,7 @@ fn leave_after_knock() {
     // User can leave after knock.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V9,
+        &AuthorizationRules::V8,
         room_create_event,
         fetch_state,
     )
@@ -1704,7 +1704,7 @@ fn leave_after_knock_not_supported() {
     // membership if it's not supported by the room version, but this is good for coverage.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -1733,7 +1733,7 @@ fn leave_kick_sender_left() {
     // User can't kick if not joined.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -1772,7 +1772,7 @@ fn leave_unban_not_enough_power() {
     // User can't unban if not enough power.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -1811,7 +1811,7 @@ fn leave_unban() {
     // User can unban with enough power.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -1840,7 +1840,7 @@ fn leave_kick_not_enough_power() {
     // User can't kick if not enough power for it.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -1886,7 +1886,7 @@ fn leave_kick_greater_power() {
     // Can't kick user with greater power level.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -1932,7 +1932,7 @@ fn leave_kick_same_power() {
     // Can't kick user with same power level.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -1961,7 +1961,7 @@ fn leave_kick() {
     // Can kick user with enough power.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -1990,7 +1990,7 @@ fn ban_sender_not_joined() {
     // Can't ban user if not in room.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -2019,7 +2019,7 @@ fn ban_not_enough_power() {
     // Can't ban user if not enough power.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -2065,7 +2065,7 @@ fn ban_greater_power() {
     // Can't ban user with greater power level.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -2111,7 +2111,7 @@ fn ban_same_power() {
     // Can't ban user with same power level.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -2140,7 +2140,7 @@ fn ban() {
     // Can ban user with enough power.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V6,
+        &AuthorizationRules::V6,
         room_create_event,
         fetch_state,
     )
@@ -2169,7 +2169,7 @@ fn knock_public_join_rule() {
     // User can't knock if join rule is not `knock` or `knock_restricted`.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V11,
+        &AuthorizationRules::V11,
         room_create_event,
         fetch_state,
     )
@@ -2208,7 +2208,7 @@ fn knock_knock_join_rule() {
     // User can knock if room version supports it.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V7,
+        &AuthorizationRules::V7,
         room_create_event,
         fetch_state,
     )
@@ -2247,7 +2247,7 @@ fn knock_knock_join_rule_not_supported() {
     // User CANNOT knock if room version doesn't support it.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V5,
+        &AuthorizationRules::V3,
         room_create_event,
         fetch_state,
     )
@@ -2289,7 +2289,7 @@ fn knock_knock_restricted_join_rule() {
     // User can knock if room version supports it.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V10,
+        &AuthorizationRules::V10,
         room_create_event,
         fetch_state,
     )
@@ -2331,7 +2331,7 @@ fn knock_knock_restricted_join_rule_not_supported() {
     // User CANNOT knock if room version doesn't support it.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V5,
+        &AuthorizationRules::V3,
         room_create_event,
         fetch_state,
     )
@@ -2370,7 +2370,7 @@ fn knock_sender_state_key_mismatch() {
     // User cannot knock if state key doesn't match sender.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V7,
+        &AuthorizationRules::V7,
         room_create_event,
         fetch_state,
     )
@@ -2418,7 +2418,7 @@ fn knock_after_ban() {
     // User cannot knock if banned.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V7,
+        &AuthorizationRules::V7,
         room_create_event,
         fetch_state,
     )
@@ -2466,7 +2466,7 @@ fn knock_after_invite() {
     // User cannot knock after being invited.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V7,
+        &AuthorizationRules::V7,
         room_create_event,
         fetch_state,
     )
@@ -2505,7 +2505,7 @@ fn knock_after_join() {
     // User cannot knock after being invited.
     check_room_member(
         RoomMemberEvent::new(incoming_event),
-        &RoomVersionRules::V7,
+        &AuthorizationRules::V7,
         room_create_event,
         fetch_state,
     )

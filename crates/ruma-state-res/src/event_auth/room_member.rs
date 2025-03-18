@@ -1,7 +1,7 @@
 use std::borrow::Borrow;
 
 use ruma_common::{
-    room_version_rules::RoomVersionRules,
+    room_version_rules::AuthorizationRules,
     serde::{base64::Standard, Base64},
     AnyKeyName, SigningKeyId, UserId,
 };
@@ -27,7 +27,7 @@ use crate::{
 /// rules depend on the signatures being valid on the event.
 pub(super) fn check_room_member<E: Event>(
     room_member_event: RoomMemberEvent<impl Event>,
-    rules: &RoomVersionRules,
+    rules: &AuthorizationRules,
     room_create_event: RoomCreateEvent<E>,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<(), String> {
@@ -97,7 +97,7 @@ pub(super) fn check_room_member<E: Event>(
 fn check_room_member_join<E: Event>(
     room_member_event: &RoomMemberEvent<impl Event>,
     target_user: &UserId,
-    rules: &RoomVersionRules,
+    rules: &AuthorizationRules,
     room_create_event: RoomCreateEvent<E>,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<(), String> {
@@ -200,7 +200,7 @@ fn check_room_member_join<E: Event>(
 fn check_room_member_invite<E: Event>(
     room_member_event: &RoomMemberEvent<impl Event>,
     target_user: &UserId,
-    rules: &RoomVersionRules,
+    rules: &AuthorizationRules,
     room_create_event: RoomCreateEvent<E>,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<(), String> {
@@ -352,7 +352,7 @@ fn check_third_party_invite<E: Event>(
 fn check_room_member_leave<E: Event>(
     room_member_event: &RoomMemberEvent<impl Event>,
     target_user: &UserId,
-    rules: &RoomVersionRules,
+    rules: &AuthorizationRules,
     room_create_event: RoomCreateEvent<E>,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<(), String> {
@@ -417,7 +417,7 @@ fn check_room_member_leave<E: Event>(
 fn check_room_member_ban<E: Event>(
     room_member_event: &RoomMemberEvent<impl Event>,
     target_user: &UserId,
-    rules: &RoomVersionRules,
+    rules: &AuthorizationRules,
     room_create_event: RoomCreateEvent<E>,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<(), String> {
@@ -454,7 +454,7 @@ fn check_room_member_ban<E: Event>(
 fn check_room_member_knock<E: Event>(
     room_member_event: &RoomMemberEvent<impl Event>,
     target_user: &UserId,
-    rules: &RoomVersionRules,
+    rules: &AuthorizationRules,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<(), String> {
     let join_rule = fetch_state.join_rule()?;

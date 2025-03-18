@@ -4,7 +4,7 @@ use std::{
 };
 
 use js_int::Int;
-use ruma_common::{room_version_rules::RoomVersionRules, UserId};
+use ruma_common::{room_version_rules::AuthorizationRules, UserId};
 use ruma_events::room::member::MembershipState;
 use serde_json::value::RawValue as RawJsonValue;
 use tracing::{debug, info, instrument, warn};
@@ -51,7 +51,7 @@ pub fn auth_types_for_event(
     sender: &UserId,
     state_key: Option<&str>,
     content: &RawJsonValue,
-    rules: &RoomVersionRules,
+    rules: &AuthorizationRules,
 ) -> Result<Vec<(StateEventType, String)>, String> {
     // The `auth_events` for the `m.room.create` event in a room is empty.
     if event_type == &TimelineEventType::RoomCreate {
@@ -144,7 +144,7 @@ pub fn auth_types_for_event(
 /// [authorization rules]: https://spec.matrix.org/latest/server-server-api/#authorization-rules
 #[instrument(skip_all, fields(event_id = incoming_event.event_id().borrow().as_str()))]
 pub fn auth_check<E: Event>(
-    rules: &RoomVersionRules,
+    rules: &AuthorizationRules,
     incoming_event: impl Event,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<(), String> {
@@ -321,7 +321,7 @@ pub fn auth_check<E: Event>(
 /// Check whether the given event passes the `m.room.create` authorization rules.
 fn check_room_create(
     room_create_event: RoomCreateEvent<impl Event>,
-    rules: &RoomVersionRules,
+    rules: &AuthorizationRules,
 ) -> Result<(), String> {
     debug!("start `m.room.create` check");
 
@@ -344,7 +344,7 @@ fn check_room_create(
     // Since v1, if `content.room_version` is present and is not a recognized version, reject.
     //
     // This check is assumed to be done before calling auth_check because we have a
-    // RoomVersionRules, which means that we recognized the version.
+    // AuthorizationRules, which means that we recognized the version.
 
     // v1-v10, if content has no creator field, reject.
     if !rules.use_room_create_sender && !room_create_event.has_creator()? {
@@ -360,7 +360,7 @@ fn check_room_create(
 fn check_room_power_levels(
     room_power_levels_event: RoomPowerLevelsEvent<impl Event>,
     current_room_power_levels_event: Option<RoomPowerLevelsEvent<impl Event>>,
-    rules: &RoomVersionRules,
+    rules: &AuthorizationRules,
     sender_power_level: Int,
 ) -> Result<(), String> {
     debug!("starting m.room.power_levels check");
@@ -536,7 +536,7 @@ fn check_power_level_maps<K: Ord>(
 fn check_room_redaction(
     room_redaction_event: impl Event,
     current_room_power_levels_event: Option<RoomPowerLevelsEvent<impl Event>>,
-    rules: &RoomVersionRules,
+    rules: &AuthorizationRules,
     sender_level: Int,
 ) -> Result<(), String> {
     let redact_level = current_room_power_levels_event

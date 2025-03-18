@@ -8,7 +8,7 @@ use std::{
 
 use js_int::Int;
 use ruma_common::{
-    room_version_rules::RoomVersionRules, EventId, MilliSecondsSinceUnixEpoch, OwnedUserId,
+    room_version_rules::AuthorizationRules, EventId, MilliSecondsSinceUnixEpoch, OwnedUserId,
 };
 use ruma_events::{room::member::MembershipState, StateEventType, TimelineEventType};
 use tracing::{debug, info, instrument, trace, warn};
@@ -56,7 +56,7 @@ pub type StateMap<T> = HashMap<(StateEventType, String), T>;
 /// function takes a `RoomId` it does not check that each event is part of the same room.
 #[instrument(skip(rules, state_sets, auth_chain_sets, fetch_event))]
 pub fn resolve<'a, E, SetIter>(
-    rules: &RoomVersionRules,
+    rules: &AuthorizationRules,
     state_sets: impl IntoIterator<IntoIter = SetIter>,
     auth_chain_sets: Vec<HashSet<E::Id>>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
@@ -223,7 +223,7 @@ where
 fn reverse_topological_power_sort<E: Event>(
     events_to_sort: Vec<E::Id>,
     auth_diff: &HashSet<E::Id>,
-    rules: &RoomVersionRules,
+    rules: &AuthorizationRules,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> Result<Vec<E::Id>> {
     debug!("reverse topological sort of power events");
@@ -387,7 +387,7 @@ where
 /// event).
 fn get_power_level_for_sender<E: Event>(
     event_id: &EventId,
-    rules: &RoomVersionRules,
+    rules: &AuthorizationRules,
     creator_lock: &OnceLock<OwnedUserId>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> std::result::Result<Int, String> {
@@ -441,7 +441,7 @@ fn get_power_level_for_sender<E: Event>(
 /// For each `events_to_check` event we gather the events needed to auth it from the the
 /// `fetch_event` closure and verify each event using the `event_auth::auth_check` function.
 fn iterative_auth_check<E: Event + Clone>(
-    rules: &RoomVersionRules,
+    rules: &AuthorizationRules,
     events_to_check: &[E::Id],
     unconflicted_state: StateMap<E::Id>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
@@ -704,7 +704,7 @@ mod tests {
     use maplit::{hashmap, hashset};
     use rand::seq::SliceRandom;
     use ruma_common::{
-        room_version_rules::RoomVersionRules, MilliSecondsSinceUnixEpoch, OwnedEventId,
+        room_version_rules::AuthorizationRules, MilliSecondsSinceUnixEpoch, OwnedEventId,
     };
     use ruma_events::{
         room::join_rules::{JoinRule, RoomJoinRulesEventContent},
@@ -743,13 +743,13 @@ mod tests {
         let sorted_power_events = crate::reverse_topological_power_sort(
             power_events,
             &auth_chain,
-            &RoomVersionRules::V6,
+            &AuthorizationRules::V6,
             |id| events.get(id).cloned(),
         )
         .unwrap();
 
         let resolved_power = crate::iterative_auth_check(
-            &RoomVersionRules::V6,
+            &AuthorizationRules::V6,
             &sorted_power_events,
             HashMap::new(), // unconflicted events
             |id| events.get(id).cloned(),
@@ -1110,7 +1110,7 @@ mod tests {
         let ev_map = store.0.clone();
         let state_sets = [state_at_bob, state_at_charlie];
         let resolved = match crate::resolve(
-            &RoomVersionRules::V2,
+            &AuthorizationRules::V1,
             &state_sets,
             state_sets
                 .iter()
@@ -1210,7 +1210,7 @@ mod tests {
         let ev_map = &store.0;
         let state_sets = [state_set_a, state_set_b];
         let resolved = match crate::resolve(
-            &RoomVersionRules::V6,
+            &AuthorizationRules::V6,
             &state_sets,
             state_sets
                 .iter()

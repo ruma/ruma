@@ -3,7 +3,7 @@
 use std::{borrow::Cow, ops::Deref};
 
 use ruma_common::{
-    room_version_rules::RoomVersionRules, serde::from_raw_json_value, OwnedUserId, RoomVersionId,
+    room_version_rules::AuthorizationRules, serde::from_raw_json_value, OwnedUserId, RoomVersionId,
     UserId,
 };
 use serde::{de::IgnoredAny, Deserialize};
@@ -53,10 +53,10 @@ impl<E: Event> RoomCreateEvent<E> {
 
     /// The creator of the room.
     ///
-    /// If the `use_room_create_sender` field of `RoomVersionRules` is set, the creator is the
+    /// If the `use_room_create_sender` field of `AuthorizationRules` is set, the creator is the
     /// sender of this `m.room.create` event, otherwise it is deserialized from the `creator`
     /// field of this event's content.
-    pub fn creator(&self, rules: &RoomVersionRules) -> Result<Cow<'_, UserId>, String> {
+    pub fn creator(&self, rules: &AuthorizationRules) -> Result<Cow<'_, UserId>, String> {
         #[derive(Deserialize)]
         struct RoomCreateContentCreator {
             creator: OwnedUserId,

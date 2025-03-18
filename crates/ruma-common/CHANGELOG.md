@@ -51,6 +51,9 @@ Improvements:
   - The `RoomDisposition` enum was renamed to `RoomVersionDisposition`.
   - The `event_format` field was renamed to `event_id_format` and the
     `EventFormat` enum was renamed to `EventIdFormat`.
+  - The tweaks in the authorization rules were extracted into the
+    `AuthorizationRules` struct, which is available in the `authorization` field
+    of `RoomVersionRules`.
   - The `special_case_aliases_auth` field was renamed to
     `special_case_room_aliases`.
   - The `strict_canonicaljson` field was renamed to `strict_canonical_json`.
