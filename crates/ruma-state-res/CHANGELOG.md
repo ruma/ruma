@@ -7,20 +7,20 @@ Breaking:
   `Ok(true)` and all failures return an `Err(_)` with a description of the check
   that failed.
 - The variants of `Error` were changed:
-  - `Unsupported` was removed since we always take a `RoomVersion` instead of
-    a `RoomVersionId`.
+  - `Unsupported` was removed since we always take an `AuthorizationRules`
+    instead of a `RoomVersionId`.
   - `NotFound` holds an `OwnedEventId`.
   - The cases that were triggering an `InvalidPdu` error now trigger a
     `MissingStateKey` error.
   - The cases that were triggering a `SerdeJson` or a `Custom` error are either
     ignored when coming from the `auth_check()` (see corresponding bug fix) or
     return an `AuthEvent` error.
-- `auth_types_for_event` takes a `RoomVersion`, to check if restricted join
-  rules are allowed before looking for the `join_authorised_via_users_server`
-  field in `m.room.member`.
-- `resolve` takes a `RoomVersion` instead of a `RoomVersionId`. This allows
-  server implementations to support custom room versions. They only need to
-  provide a `RoomVersion` for their custom `RoomVersionId`.
+- `auth_types_for_event` takes an `AuthorizationRules`, to check if restricted
+  join rules are allowed before looking for the
+  `join_authorised_via_users_server` field in `m.room.member`.
+- `resolve` takes an `AuthorizationRules` instead of a `RoomVersionId`. This 
+  allows server implementations to support custom room versions. They only need
+  to provide an `AuthorizationRules` for their custom `RoomVersionId`.
 - `RoomVersion` was moved to ruma-common and renamed `RoomVersionRules`, along
   with other changes. Check the changelog of ruma-common for more details.
 

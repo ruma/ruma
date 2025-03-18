@@ -9,7 +9,7 @@ use std::{
 
 use js_int::{int, uint};
 use ruma_common::{
-    event_id, room_id, room_version_rules::RoomVersionRules, user_id, EventId,
+    event_id, room_id, room_version_rules::AuthorizationRules, user_id, EventId,
     MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, ServerSignatures, UserId,
 };
 use ruma_events::{
@@ -120,7 +120,7 @@ pub(crate) fn do_check(
                 .collect();
 
             let resolved =
-                crate::resolve(&RoomVersionRules::V6, state_sets, auth_chain_sets, |id| {
+                crate::resolve(&AuthorizationRules::V6, state_sets, auth_chain_sets, |id| {
                     event_map.get(id).cloned()
                 });
             match resolved {
@@ -140,7 +140,7 @@ pub(crate) fn do_check(
             fake_event.sender(),
             fake_event.state_key(),
             fake_event.content(),
-            &RoomVersionRules::V6,
+            &AuthorizationRules::V6,
         )
         .unwrap();
 

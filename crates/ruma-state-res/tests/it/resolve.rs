@@ -9,7 +9,7 @@ use std::{
 };
 
 use ruma_common::{
-    room_version_rules::RoomVersionRules, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
+    room_version_rules::AuthorizationRules, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
     OwnedUserId, RoomId, RoomVersionId, UserId,
 };
 use ruma_events::{StateEventType, TimelineEventType};
@@ -200,7 +200,7 @@ fn test_resolve(paths: &[&str]) -> Snapshots {
             .expect("the m.room.create PDU's content should be valid")
             .room_version
     };
-    let rules = room_version_id.rules().expect("room version should be supported");
+    let rules = room_version_id.rules().expect("room version should be supported").authorization;
 
     // Resolve PDUs in batches by file
     let mut pdus_by_id = HashMap::new();
@@ -276,7 +276,7 @@ fn test_resolve(paths: &[&str]) -> Snapshots {
 ///   * Should be `None` for the first call.
 ///   * Should not be mutated outside of this function.
 fn resolve_batch<'a, I, II>(
-    rules: &RoomVersionRules,
+    rules: &AuthorizationRules,
     pdus: II,
     pdus_by_id: &mut HashMap<OwnedEventId, Pdu>,
     prev_state: &mut Option<StateMap<OwnedEventId>>,
