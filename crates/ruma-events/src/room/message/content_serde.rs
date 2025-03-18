@@ -2,7 +2,7 @@
 
 use ruma_common::serde::from_raw_json_value;
 use serde::{de, Deserialize, Serialize};
-use serde_json::{value::RawValue as RawJsonValue, Value};
+use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
 use super::{
     gallery::GalleryItemType, relation_serde::deserialize_relation, MessageType,
@@ -128,7 +128,7 @@ impl Serialize for GalleryItemType {
         .cloned()
         .unwrap_or_default();
 
-        map.insert("itemtype".to_string(), Value::String(self.itemtype().to_string()));
+        map.insert("itemtype".to_owned(), JsonValue::String(self.itemtype().to_owned()));
         map.remove("msgtype");
 
         map.serialize(serializer)
