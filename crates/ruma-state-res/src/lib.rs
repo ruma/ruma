@@ -7,7 +7,7 @@ use std::{
 };
 
 use js_int::Int;
-use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, RoomVersionId};
+use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, OwnedUserId};
 use ruma_events::{room::member::MembershipState, StateEventType, TimelineEventType};
 use tracing::{debug, info, instrument, trace, warn};
 
@@ -39,6 +39,9 @@ pub type StateMap<T> = HashMap<(StateEventType, String), T>;
 ///
 /// ## Arguments
 ///
+/// * `room_version` - The `RoomVersion` with the rules to apply for the version of the current
+///   room.
+///
 /// * `state_sets` - The incoming state to resolve. Each `StateMap` represents a possible fork in
 ///   the state of a room.
 ///
@@ -52,9 +55,9 @@ pub type StateMap<T> = HashMap<(StateEventType, String), T>;
 ///
 /// The caller of `resolve` must ensure that all the events are from the same room. Although this
 /// function takes a `RoomId` it does not check that each event is part of the same room.
-#[instrument(skip(state_sets, auth_chain_sets, fetch_event))]
+#[instrument(skip(room_version, state_sets, auth_chain_sets, fetch_event))]
 pub fn resolve<'a, E, SetIter>(
-    room_version: &RoomVersionId,
+    room_version: &RoomVersion,
     state_sets: impl IntoIterator<IntoIter = SetIter>,
     auth_chain_sets: Vec<HashSet<E::Id>>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
@@ -101,13 +104,11 @@ where
         .cloned()
         .collect::<Vec<_>>();
 
-    let room_version = RoomVersion::new(room_version)?;
-
     // Sort the control events based on power_level/clock/event_id and outgoing/incoming edges
     let sorted_control_levels = reverse_topological_power_sort(
         control_events,
         &all_conflicted,
-        &room_version,
+        room_version,
         &fetch_event,
     )?;
 
@@ -116,7 +117,7 @@ where
 
     // Sequentially auth check each control event.
     let resolved_control =
-        iterative_auth_check(&room_version, &sorted_control_levels, clean.clone(), &fetch_event)?;
+        iterative_auth_check(room_version, &sorted_control_levels, clean.clone(), &fetch_event)?;
 
     debug!(count = resolved_control.len(), "resolved power events");
     trace!(map = ?resolved_control, "resolved power events");
@@ -146,7 +147,7 @@ where
     trace!(list = ?sorted_left_events, "events left, sorted");
 
     let mut resolved_state = iterative_auth_check(
-        &room_version,
+        room_version,
         &sorted_left_events,
         resolved_control, // The control events are added to the final resolved state
         &fetch_event,
@@ -712,7 +713,7 @@ mod tests {
     use js_int::{int, uint};
     use maplit::{hashmap, hashset};
     use rand::seq::SliceRandom;
-    use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedEventId, RoomVersionId};
+    use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedEventId};
     use ruma_events::{
         room::join_rules::{JoinRule, RoomJoinRulesEventContent},
         StateEventType, TimelineEventType,
@@ -1118,7 +1119,7 @@ mod tests {
         let ev_map = store.0.clone();
         let state_sets = [state_at_bob, state_at_charlie];
         let resolved = match crate::resolve(
-            &RoomVersionId::V2,
+            &RoomVersion::V2,
             &state_sets,
             state_sets
                 .iter()
@@ -1218,7 +1219,7 @@ mod tests {
         let ev_map = &store.0;
         let state_sets = [state_set_a, state_set_b];
         let resolved = match crate::resolve(
-            &RoomVersionId::V6,
+            &RoomVersion::V6,
             &state_sets,
             state_sets
                 .iter()

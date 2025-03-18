@@ -1,7 +1,5 @@
 use ruma_common::RoomVersionId;
 
-use crate::{Error, Result};
-
 #[derive(Debug)]
 #[allow(clippy::exhaustive_enums)]
 pub enum RoomDisposition {
@@ -125,8 +123,8 @@ impl RoomVersion {
 
     pub const V11: Self = Self { use_room_create_sender: true, ..Self::V10 };
 
-    pub fn new(version: &RoomVersionId) -> Result<Self> {
-        Ok(match version {
+    pub fn new(version: &RoomVersionId) -> Option<Self> {
+        Some(match version {
             RoomVersionId::V1 => Self::V1,
             RoomVersionId::V2 => Self::V2,
             RoomVersionId::V3 => Self::V3,
@@ -138,7 +136,7 @@ impl RoomVersion {
             RoomVersionId::V9 => Self::V9,
             RoomVersionId::V10 => Self::V10,
             RoomVersionId::V11 => Self::V11,
-            _ => return Err(Error::UnsupportedRoomVersion(version.clone())),
+            _ => return None,
         })
     }
 }
