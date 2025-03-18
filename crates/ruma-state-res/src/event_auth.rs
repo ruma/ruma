@@ -4,7 +4,7 @@ use std::{
 };
 
 use js_int::Int;
-use ruma_common::UserId;
+use ruma_common::{room_version_rules::RoomVersionRules, UserId};
 use ruma_events::room::member::MembershipState;
 use serde_json::value::RawValue as RawJsonValue;
 use tracing::{debug, info, instrument, warn};
@@ -21,7 +21,6 @@ use crate::{
         JoinRule, RoomCreateEvent, RoomJoinRulesEvent, RoomMemberEvent, RoomPowerLevelsEvent,
         RoomThirdPartyInviteEvent,
     },
-    room_version::RoomVersion,
     Event, StateEventType, TimelineEventType,
 };
 
@@ -52,7 +51,7 @@ pub fn auth_types_for_event(
     sender: &UserId,
     state_key: Option<&str>,
     content: &RawJsonValue,
-    room_version: &RoomVersion,
+    rules: &RoomVersionRules,
 ) -> Result<Vec<(StateEventType, String)>, String> {
     // The `auth_events` for the `m.room.create` event in a room is empty.
     if event_type == &TimelineEventType::RoomCreate {
@@ -116,7 +115,7 @@ pub fn auth_types_for_event(
         // `content.join_authorised_via_users_server`.
         //
         // Note: And the membership is join (https://github.com/matrix-org/matrix-spec/pull/2100)
-        if membership == MembershipState::Join && room_version.restricted_join_rules {
+        if membership == MembershipState::Join && rules.restricted_join_rule {
             let join_authorised_via_users_server = content.join_authorised_via_users_server()?;
             if let Some(user_id) = join_authorised_via_users_server {
                 let key = (StateEventType::RoomMember, user_id.to_string());
@@ -145,7 +144,7 @@ pub fn auth_types_for_event(
 /// [authorization rules]: https://spec.matrix.org/latest/server-server-api/#authorization-rules
 #[instrument(skip_all, fields(event_id = incoming_event.event_id().borrow().as_str()))]
 pub fn auth_check<E: Event>(
-    room_version: &RoomVersion,
+    rules: &RoomVersionRules,
     incoming_event: impl Event,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<(), String> {
@@ -155,7 +154,7 @@ pub fn auth_check<E: Event>(
     if *incoming_event.event_type() == TimelineEventType::RoomCreate {
         let room_create_event = RoomCreateEvent::new(incoming_event);
 
-        return check_room_create(room_create_event, room_version);
+        return check_room_create(room_create_event, rules);
     }
 
     /*
@@ -214,7 +213,7 @@ pub fn auth_check<E: Event>(
     let sender = incoming_event.sender();
 
     // v1-v5, if type is m.room.aliases:
-    if room_version.special_case_aliases_auth
+    if rules.special_case_room_aliases
         && *incoming_event.event_type() == TimelineEventType::RoomAliases
     {
         debug!("starting m.room.aliases check");
@@ -236,7 +235,7 @@ pub fn auth_check<E: Event>(
     // Since v1, if type is m.room.member:
     if *incoming_event.event_type() == TimelineEventType::RoomMember {
         let room_member_event = RoomMemberEvent::new(incoming_event);
-        return check_room_member(room_member_event, room_version, room_create_event, fetch_state);
+        return check_room_member(room_member_event, rules, room_create_event, fetch_state);
     }
 
     // Since v1, if the sender's current membership state is not join, reject.
@@ -246,18 +245,18 @@ pub fn auth_check<E: Event>(
         return Err("sender's membership is not `join`".to_owned());
     }
 
-    let creator = room_create_event.creator(room_version)?;
+    let creator = room_create_event.creator(rules)?;
     let current_room_power_levels_event = fetch_state.room_power_levels_event();
 
     let sender_power_level =
-        current_room_power_levels_event.user_power_level(sender, &creator, room_version)?;
+        current_room_power_levels_event.user_power_level(sender, &creator, rules)?;
 
     // Since v1, if type is m.room.third_party_invite:
     if *incoming_event.event_type() == TimelineEventType::RoomThirdPartyInvite {
         // Since v1, allow if and only if sender's current power level is greater than
         // or equal to the invite level.
         let invite_power_level = current_room_power_levels_event
-            .get_as_int_or_default(RoomPowerLevelsIntField::Invite, room_version)?;
+            .get_as_int_or_default(RoomPowerLevelsIntField::Invite, rules)?;
 
         if sender_power_level < invite_power_level {
             return Err("sender does not have enough power to send invites in this room".to_owned());
@@ -272,7 +271,7 @@ pub fn auth_check<E: Event>(
     let event_type_power_level = current_room_power_levels_event.event_power_level(
         incoming_event.event_type(),
         incoming_event.state_key(),
-        room_version,
+        rules,
     )?;
     if sender_power_level < event_type_power_level {
         return Err(format!(
@@ -297,19 +296,19 @@ pub fn auth_check<E: Event>(
         return check_room_power_levels(
             room_power_levels_event,
             current_room_power_levels_event,
-            room_version,
+            rules,
             sender_power_level,
         );
     }
 
     // v1-v2, if type is m.room.redaction:
-    if room_version.extra_redaction_checks
+    if rules.special_case_room_redaction
         && *incoming_event.event_type() == TimelineEventType::RoomRedaction
     {
         return check_room_redaction(
             incoming_event,
             current_room_power_levels_event,
-            room_version,
+            rules,
             sender_power_level,
         );
     }
@@ -322,7 +321,7 @@ pub fn auth_check<E: Event>(
 /// Check whether the given event passes the `m.room.create` authorization rules.
 fn check_room_create(
     room_create_event: RoomCreateEvent<impl Event>,
-    room_version: &RoomVersion,
+    rules: &RoomVersionRules,
 ) -> Result<(), String> {
     debug!("start `m.room.create` check");
 
@@ -344,11 +343,11 @@ fn check_room_create(
 
     // Since v1, if `content.room_version` is present and is not a recognized version, reject.
     //
-    // This check is assumed to be done before calling auth_check because we have a RoomVersion,
-    // which means that we recognized the version.
+    // This check is assumed to be done before calling auth_check because we have a
+    // RoomVersionRules, which means that we recognized the version.
 
     // v1-v10, if content has no creator field, reject.
-    if !room_version.use_room_create_sender && !room_create_event.has_creator()? {
+    if !rules.use_room_create_sender && !room_create_event.has_creator()? {
         return Err("missing `creator` field in `m.room.create` event".into());
     }
 
@@ -361,25 +360,25 @@ fn check_room_create(
 fn check_room_power_levels(
     room_power_levels_event: RoomPowerLevelsEvent<impl Event>,
     current_room_power_levels_event: Option<RoomPowerLevelsEvent<impl Event>>,
-    room_version: &RoomVersion,
+    rules: &RoomVersionRules,
     sender_power_level: Int,
 ) -> Result<(), String> {
     debug!("starting m.room.power_levels check");
 
     // Since v10, if any of the properties users_default, events_default, state_default, ban,
     // redact, kick, or invite in content are present and not an integer, reject.
-    let new_int_fields = room_power_levels_event.int_fields_map(room_version)?;
+    let new_int_fields = room_power_levels_event.int_fields_map(rules)?;
 
     // Since v10, if either of the properties events or notifications in content are present and not
     // a dictionary with values that are integers, reject.
-    let new_events = room_power_levels_event.events(room_version)?;
-    let new_notifications = room_power_levels_event.notifications(room_version)?;
+    let new_events = room_power_levels_event.events(rules)?;
+    let new_notifications = room_power_levels_event.notifications(rules)?;
 
     // v1-v9, If the users property in content is not an object with keys that are valid user IDs
     // with values that are integers (or a string that is an integer), reject.
     // Since v10, if the users property in content is not an object with keys that are valid user
     // IDs with values that are integers, reject.
-    let new_users = room_power_levels_event.users(room_version)?;
+    let new_users = room_power_levels_event.users(rules)?;
 
     debug!("validation of power event finished");
 
@@ -392,8 +391,7 @@ fn check_room_power_levels(
     // Since v1, for the properties users_default, events_default, state_default, ban, redact, kick,
     // invite check if they were added, changed or removed. For each found alteration:
     for field in RoomPowerLevelsIntField::ALL {
-        let current_power_level =
-            current_room_power_levels_event.get_as_int(*field, room_version)?;
+        let current_power_level = current_room_power_levels_event.get_as_int(*field, rules)?;
         let new_power_level = new_int_fields.get(field).copied();
 
         if current_power_level == new_power_level {
@@ -417,7 +415,7 @@ fn check_room_power_levels(
 
     // Since v1, for each entry being added to, or changed in, the events property:
     // - Since v1, if the new value is higher than the sender's current power level, reject.
-    let current_events = current_room_power_levels_event.events(room_version)?;
+    let current_events = current_room_power_levels_event.events(rules)?;
     check_power_level_maps(
         current_events.as_ref(),
         new_events.as_ref(),
@@ -437,8 +435,8 @@ fn check_room_power_levels(
 
     // Since v6, for each entry being added to, or changed in, the notifications property:
     // - Since v6, if the new value is higher than the sender's current power level, reject.
-    if room_version.limit_notifications_power_levels {
-        let current_notifications = current_room_power_levels_event.notifications(room_version)?;
+    if rules.limit_notifications_power_levels {
+        let current_notifications = current_room_power_levels_event.notifications(rules)?;
         check_power_level_maps(
             current_notifications.as_ref(),
             new_notifications.as_ref(),
@@ -460,7 +458,7 @@ fn check_room_power_levels(
 
     // Since v1, for each entry being added to, or changed in, the users property:
     // - Since v1, if the new value is greater than the sender’s current power level, reject.
-    let current_users = current_room_power_levels_event.users(room_version)?;
+    let current_users = current_room_power_levels_event.users(rules)?;
     check_power_level_maps(
         current_users,
         new_users,
@@ -538,11 +536,11 @@ fn check_power_level_maps<K: Ord>(
 fn check_room_redaction(
     room_redaction_event: impl Event,
     current_room_power_levels_event: Option<RoomPowerLevelsEvent<impl Event>>,
-    room_version: &RoomVersion,
+    rules: &RoomVersionRules,
     sender_level: Int,
 ) -> Result<(), String> {
     let redact_level = current_room_power_levels_event
-        .get_as_int_or_default(RoomPowerLevelsIntField::Redact, room_version)?;
+        .get_as_int_or_default(RoomPowerLevelsIntField::Redact, rules)?;
 
     // v1-v2, if the sender’s power level is greater than or equal to the redact level, allow.
     if sender_level >= redact_level {

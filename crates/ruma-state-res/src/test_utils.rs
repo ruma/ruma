@@ -9,8 +9,8 @@ use std::{
 
 use js_int::{int, uint};
 use ruma_common::{
-    event_id, room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId,
-    ServerSignatures, UserId,
+    event_id, room_id, room_version_rules::RoomVersionRules, user_id, EventId,
+    MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, ServerSignatures, UserId,
 };
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV3Pdu},
@@ -28,8 +28,7 @@ use tracing::info;
 
 pub(crate) use self::event::PduEvent;
 use crate::{
-    auth_types_for_event, events::RoomCreateEvent, Error, Event, EventTypeExt, Result, RoomVersion,
-    StateMap,
+    auth_types_for_event, events::RoomCreateEvent, Error, Event, EventTypeExt, Result, StateMap,
 };
 
 static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
@@ -120,9 +119,10 @@ pub(crate) fn do_check(
                 })
                 .collect();
 
-            let resolved = crate::resolve(&RoomVersion::V6, state_sets, auth_chain_sets, |id| {
-                event_map.get(id).cloned()
-            });
+            let resolved =
+                crate::resolve(&RoomVersionRules::V6, state_sets, auth_chain_sets, |id| {
+                    event_map.get(id).cloned()
+                });
             match resolved {
                 Ok(state) => state,
                 Err(e) => panic!("resolution for {node} failed: {e}"),
@@ -140,7 +140,7 @@ pub(crate) fn do_check(
             fake_event.sender(),
             fake_event.state_key(),
             fake_event.content(),
-            &RoomVersion::V6,
+            &RoomVersionRules::V6,
         )
         .unwrap();
 

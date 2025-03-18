@@ -6,6 +6,7 @@ use ruma_macros::DisplayAsRefStr;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use super::IdParseError;
+use crate::room_version_rules::RoomVersionRules;
 
 /// A Matrix [room version] ID.
 ///
@@ -87,6 +88,27 @@ impl RoomVersionId {
     /// Creates a byte slice from this `RoomVersionId`.
     pub fn as_bytes(&self) -> &[u8] {
         self.as_str().as_bytes()
+    }
+
+    /// Get the [`RoomVersionRules`] for this `RoomVersionId`, if it matches a supported room
+    /// version.
+    ///
+    /// All known variants are guaranteed to return `Some(_)`.
+    pub fn rules(&self) -> Option<RoomVersionRules> {
+        Some(match self {
+            Self::V1 => RoomVersionRules::V1,
+            Self::V2 => RoomVersionRules::V2,
+            Self::V3 => RoomVersionRules::V3,
+            Self::V4 => RoomVersionRules::V4,
+            Self::V5 => RoomVersionRules::V5,
+            Self::V6 => RoomVersionRules::V6,
+            Self::V7 => RoomVersionRules::V7,
+            Self::V8 => RoomVersionRules::V8,
+            Self::V9 => RoomVersionRules::V9,
+            Self::V10 => RoomVersionRules::V10,
+            Self::V11 => RoomVersionRules::V11,
+            Self::_Custom(_) => return None,
+        })
     }
 }
 

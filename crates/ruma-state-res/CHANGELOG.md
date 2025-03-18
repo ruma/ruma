@@ -21,6 +21,8 @@ Breaking:
 - `resolve` takes a `RoomVersion` instead of a `RoomVersionId`. This allows
   server implementations to support custom room versions. They only need to
   provide a `RoomVersion` for their custom `RoomVersionId`.
+- `RoomVersion` was moved to ruma-common and renamed `RoomVersionRules`, along
+  with other changes. Check the changelog of ruma-common for more details.
 
 Bug fixes:
 

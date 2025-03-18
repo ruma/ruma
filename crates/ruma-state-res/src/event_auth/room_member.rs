@@ -1,6 +1,7 @@
 use std::borrow::Borrow;
 
 use ruma_common::{
+    room_version_rules::RoomVersionRules,
     serde::{base64::Standard, Base64},
     AnyKeyName, SigningKeyId, UserId,
 };
@@ -17,7 +18,7 @@ use crate::{
         member::ThirdPartyInvite, power_levels::RoomPowerLevelsEventOptionExt, JoinRule,
         RoomCreateEvent, RoomMemberEvent, RoomPowerLevelsIntField,
     },
-    Event, RoomVersion,
+    Event,
 };
 
 /// Check whether the given event passes the `m.room.roomber` authorization rules.
@@ -26,7 +27,7 @@ use crate::{
 /// rules depend on the signatures being valid on the event.
 pub(super) fn check_room_member<E: Event>(
     room_member_event: RoomMemberEvent<impl Event>,
-    room_version: &RoomVersion,
+    rules: &RoomVersionRules,
     room_create_event: RoomCreateEvent<E>,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<(), String> {
@@ -54,7 +55,7 @@ pub(super) fn check_room_member<E: Event>(
         MembershipState::Join => check_room_member_join(
             &room_member_event,
             target_user,
-            room_version,
+            rules,
             room_create_event,
             fetch_state,
         ),
@@ -62,7 +63,7 @@ pub(super) fn check_room_member<E: Event>(
         MembershipState::Invite => check_room_member_invite(
             &room_member_event,
             target_user,
-            room_version,
+            rules,
             room_create_event,
             fetch_state,
         ),
@@ -70,7 +71,7 @@ pub(super) fn check_room_member<E: Event>(
         MembershipState::Leave => check_room_member_leave(
             &room_member_event,
             target_user,
-            room_version,
+            rules,
             room_create_event,
             fetch_state,
         ),
@@ -78,13 +79,13 @@ pub(super) fn check_room_member<E: Event>(
         MembershipState::Ban => check_room_member_ban(
             &room_member_event,
             target_user,
-            room_version,
+            rules,
             room_create_event,
             fetch_state,
         ),
         // Since v7, if membership is knock:
-        MembershipState::Knock if room_version.allow_knocking => {
-            check_room_member_knock(&room_member_event, target_user, room_version, fetch_state)
+        MembershipState::Knock if rules.knocking => {
+            check_room_member_knock(&room_member_event, target_user, rules, fetch_state)
         }
         // Since v1, otherwise, the membership is unknown. Reject.
         _ => Err("unknown membership".to_owned()),
@@ -96,11 +97,11 @@ pub(super) fn check_room_member<E: Event>(
 fn check_room_member_join<E: Event>(
     room_member_event: &RoomMemberEvent<impl Event>,
     target_user: &UserId,
-    room_version: &RoomVersion,
+    rules: &RoomVersionRules,
     room_create_event: RoomCreateEvent<E>,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<(), String> {
-    let creator = room_create_event.creator(room_version)?;
+    let creator = room_create_event.creator(rules)?;
 
     let mut prev_events = room_member_event.prev_events();
     let prev_event_is_room_create_event = prev_events
@@ -135,8 +136,7 @@ fn check_room_member_join<E: Event>(
     // join.
     // Since v7, if the join_rule is invite or knock then allow if membership state is
     // invite or join.
-    if (join_rule == JoinRule::Invite
-        || room_version.allow_knocking && join_rule == JoinRule::Knock)
+    if (join_rule == JoinRule::Invite || rules.knocking && join_rule == JoinRule::Knock)
         && matches!(current_membership, MembershipState::Invite | MembershipState::Join)
     {
         return Ok(());
@@ -144,8 +144,8 @@ fn check_room_member_join<E: Event>(
 
     // v8-v9, if the join_rule is restricted:
     // Since v10, if the join_rule is restricted or knock_restricted:
-    if room_version.restricted_join_rules && matches!(join_rule, JoinRule::Restricted)
-        || room_version.knock_restricted_join_rule && matches!(join_rule, JoinRule::KnockRestricted)
+    if rules.restricted_join_rule && matches!(join_rule, JoinRule::Restricted)
+        || rules.knock_restricted_join_rule && matches!(join_rule, JoinRule::KnockRestricted)
     {
         // Since v8, if membership state is join or invite, allow.
         if matches!(current_membership, MembershipState::Join | MembershipState::Invite) {
@@ -174,13 +174,10 @@ fn check_room_member_join<E: Event>(
 
         let room_power_levels_event = fetch_state.room_power_levels_event();
 
-        let authorized_via_user_power_level = room_power_levels_event.user_power_level(
-            &authorized_via_user,
-            &creator,
-            room_version,
-        )?;
+        let authorized_via_user_power_level =
+            room_power_levels_event.user_power_level(&authorized_via_user, &creator, rules)?;
         let invite_power_level = room_power_levels_event
-            .get_as_int_or_default(RoomPowerLevelsIntField::Invite, room_version)?;
+            .get_as_int_or_default(RoomPowerLevelsIntField::Invite, rules)?;
 
         return if authorized_via_user_power_level >= invite_power_level {
             Ok(())
@@ -203,7 +200,7 @@ fn check_room_member_join<E: Event>(
 fn check_room_member_invite<E: Event>(
     room_member_event: &RoomMemberEvent<impl Event>,
     target_user: &UserId,
-    room_version: &RoomVersion,
+    rules: &RoomVersionRules,
     room_create_event: RoomCreateEvent<E>,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<(), String> {
@@ -233,16 +230,13 @@ fn check_room_member_invite<E: Event>(
         return Err("cannot invite user that is joined or banned".to_owned());
     }
 
-    let creator = room_create_event.creator(room_version)?;
+    let creator = room_create_event.creator(rules)?;
     let room_power_levels_event = fetch_state.room_power_levels_event();
 
-    let sender_power_level = room_power_levels_event.user_power_level(
-        room_member_event.sender(),
-        &creator,
-        room_version,
-    )?;
-    let invite_power_level = room_power_levels_event
-        .get_as_int_or_default(RoomPowerLevelsIntField::Invite, room_version)?;
+    let sender_power_level =
+        room_power_levels_event.user_power_level(room_member_event.sender(), &creator, rules)?;
+    let invite_power_level =
+        room_power_levels_event.get_as_int_or_default(RoomPowerLevelsIntField::Invite, rules)?;
 
     // Since v1, if the sender’s power level is greater than or equal to the invite
     // level, allow.
@@ -358,7 +352,7 @@ fn check_third_party_invite<E: Event>(
 fn check_room_member_leave<E: Event>(
     room_member_event: &RoomMemberEvent<impl Event>,
     target_user: &UserId,
-    room_version: &RoomVersion,
+    rules: &RoomVersionRules,
     room_create_event: RoomCreateEvent<E>,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<(), String> {
@@ -371,8 +365,7 @@ fn check_room_member_leave<E: Event>(
     if room_member_event.sender() == target_user {
         let membership_is_invite_or_join =
             matches!(sender_membership, MembershipState::Join | MembershipState::Invite);
-        let membership_is_knock =
-            room_version.allow_knocking && sender_membership == MembershipState::Knock;
+        let membership_is_knock = rules.knocking && sender_membership == MembershipState::Knock;
 
         return if membership_is_invite_or_join || membership_is_knock {
             Ok(())
@@ -386,17 +379,14 @@ fn check_room_member_leave<E: Event>(
         return Err("cannot kick if sender is not joined".to_owned());
     }
 
-    let creator = room_create_event.creator(room_version)?;
+    let creator = room_create_event.creator(rules)?;
     let room_power_levels_event = fetch_state.room_power_levels_event();
 
     let current_target_user_membership = fetch_state.user_membership(target_user)?;
-    let sender_power_level = room_power_levels_event.user_power_level(
-        room_member_event.sender(),
-        &creator,
-        room_version,
-    )?;
-    let ban_power_level = room_power_levels_event
-        .get_as_int_or_default(RoomPowerLevelsIntField::Ban, room_version)?;
+    let sender_power_level =
+        room_power_levels_event.user_power_level(room_member_event.sender(), &creator, rules)?;
+    let ban_power_level =
+        room_power_levels_event.get_as_int_or_default(RoomPowerLevelsIntField::Ban, rules)?;
 
     // Since v1, if the target user’s current membership state is ban, and the sender’s
     // power level is less than the ban level, reject.
@@ -406,10 +396,10 @@ fn check_room_member_leave<E: Event>(
         return Err("sender does not have enough power to unban".to_owned());
     }
 
-    let kick_power_level = room_power_levels_event
-        .get_as_int_or_default(RoomPowerLevelsIntField::Kick, room_version)?;
+    let kick_power_level =
+        room_power_levels_event.get_as_int_or_default(RoomPowerLevelsIntField::Kick, rules)?;
     let target_user_power_level =
-        room_power_levels_event.user_power_level(target_user, &creator, room_version)?;
+        room_power_levels_event.user_power_level(target_user, &creator, rules)?;
 
     // Since v1, if the sender’s power level is greater than or equal to the kick level,
     // and the target user’s power level is less than the sender’s power level, allow.
@@ -427,7 +417,7 @@ fn check_room_member_leave<E: Event>(
 fn check_room_member_ban<E: Event>(
     room_member_event: &RoomMemberEvent<impl Event>,
     target_user: &UserId,
-    room_version: &RoomVersion,
+    rules: &RoomVersionRules,
     room_create_event: RoomCreateEvent<E>,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<(), String> {
@@ -438,18 +428,15 @@ fn check_room_member_ban<E: Event>(
         return Err("cannot ban if sender is not joined".to_owned());
     }
 
-    let creator = room_create_event.creator(room_version)?;
+    let creator = room_create_event.creator(rules)?;
     let room_power_levels_event = fetch_state.room_power_levels_event();
 
-    let sender_power_level = room_power_levels_event.user_power_level(
-        room_member_event.sender(),
-        &creator,
-        room_version,
-    )?;
-    let ban_power_level = room_power_levels_event
-        .get_as_int_or_default(RoomPowerLevelsIntField::Ban, room_version)?;
+    let sender_power_level =
+        room_power_levels_event.user_power_level(room_member_event.sender(), &creator, rules)?;
+    let ban_power_level =
+        room_power_levels_event.get_as_int_or_default(RoomPowerLevelsIntField::Ban, rules)?;
     let target_user_power_level =
-        room_power_levels_event.user_power_level(target_user, &creator, room_version)?;
+        room_power_levels_event.user_power_level(target_user, &creator, rules)?;
 
     // If the sender’s power level is greater than or equal to the ban level, and the
     // target user’s power level is less than the sender’s power level, allow.
@@ -467,7 +454,7 @@ fn check_room_member_ban<E: Event>(
 fn check_room_member_knock<E: Event>(
     room_member_event: &RoomMemberEvent<impl Event>,
     target_user: &UserId,
-    room_version: &RoomVersion,
+    rules: &RoomVersionRules,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<(), String> {
     let join_rule = fetch_state.join_rule()?;
@@ -476,8 +463,7 @@ fn check_room_member_knock<E: Event>(
     // Since v10, if the join_rule is anything other than knock or knock_restricted,
     // reject.
     if join_rule != JoinRule::Knock
-        && (room_version.knock_restricted_join_rule
-            && !matches!(join_rule, JoinRule::KnockRestricted))
+        && (rules.knock_restricted_join_rule && !matches!(join_rule, JoinRule::KnockRestricted))
     {
         return Err(
             "join rule is not set to knock or knock_restricted, knocking is not allowed".to_owned()

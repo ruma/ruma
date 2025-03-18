@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use as_variant::as_variant;
 use js_int::int;
+use ruma_common::room_version_rules::RoomVersionRules;
 use ruma_events::TimelineEventType;
 use serde_json::{
     json,
@@ -14,7 +15,6 @@ use crate::{
     event_auth::check_room_power_levels,
     events::RoomPowerLevelsEvent,
     test_utils::{alice, bob, init_subscriber, to_pdu_event, zara, PduEvent},
-    RoomVersion,
 };
 
 /// The default `m.room.power_levels` event when creating a public room.
@@ -75,7 +75,7 @@ fn not_int_or_string_int_in_content() {
             let v6_result = check_room_power_levels(
                 RoomPowerLevelsEvent::new(&incoming_event),
                 current_room_power_levels_event.clone(),
-                &RoomVersion::V6,
+                &RoomVersionRules::V6,
                 int!(100),
             );
 
@@ -89,7 +89,7 @@ fn not_int_or_string_int_in_content() {
             let v10_result = check_room_power_levels(
                 RoomPowerLevelsEvent::new(&incoming_event),
                 current_room_power_levels_event.clone(),
-                &RoomVersion::V10,
+                &RoomVersionRules::V10,
                 int!(100),
             );
 
@@ -145,7 +145,7 @@ fn not_int_or_string_int_in_events() {
         let v6_result = check_room_power_levels(
             RoomPowerLevelsEvent::new(&incoming_event),
             current_room_power_levels_event.clone(),
-            &RoomVersion::V6,
+            &RoomVersionRules::V6,
             int!(100),
         );
 
@@ -159,7 +159,7 @@ fn not_int_or_string_int_in_events() {
         let v10_result = check_room_power_levels(
             RoomPowerLevelsEvent::new(&incoming_event),
             current_room_power_levels_event.clone(),
-            &RoomVersion::V10,
+            &RoomVersionRules::V10,
             int!(100),
         );
 
@@ -214,7 +214,7 @@ fn not_int_or_string_int_in_notifications() {
         let v6_result = check_room_power_levels(
             RoomPowerLevelsEvent::new(&incoming_event),
             current_room_power_levels_event.clone(),
-            &RoomVersion::V6,
+            &RoomVersionRules::V6,
             int!(100),
         );
 
@@ -228,7 +228,7 @@ fn not_int_or_string_int_in_notifications() {
         let v10_result = check_room_power_levels(
             RoomPowerLevelsEvent::new(&incoming_event),
             current_room_power_levels_event.clone(),
-            &RoomVersion::V10,
+            &RoomVersionRules::V10,
             int!(100),
         );
 
@@ -266,7 +266,7 @@ fn not_user_id_in_users() {
     check_room_power_levels(
         RoomPowerLevelsEvent::new(&incoming_event),
         current_room_power_levels_event,
-        &RoomVersion::V6,
+        &RoomVersionRules::V6,
         int!(100),
     )
     .unwrap_err();
@@ -316,7 +316,7 @@ fn not_int_or_string_int_in_users() {
         let v6_result = check_room_power_levels(
             RoomPowerLevelsEvent::new(&incoming_event),
             current_room_power_levels_event.clone(),
-            &RoomVersion::V6,
+            &RoomVersionRules::V6,
             int!(100),
         );
 
@@ -330,7 +330,7 @@ fn not_int_or_string_int_in_users() {
         let v10_result = check_room_power_levels(
             RoomPowerLevelsEvent::new(&incoming_event),
             current_room_power_levels_event.clone(),
-            &RoomVersion::V10,
+            &RoomVersionRules::V10,
             int!(100),
         );
 
@@ -367,7 +367,7 @@ fn first_power_levels_event() {
     check_room_power_levels(
         RoomPowerLevelsEvent::new(&incoming_event),
         current_room_power_levels_event,
-        &RoomVersion::V6,
+        &RoomVersionRules::V6,
         int!(100),
     )
     .unwrap();
@@ -423,7 +423,7 @@ fn change_content_level_with_current_higher_power_level() {
         check_room_power_levels(
             RoomPowerLevelsEvent::new(&incoming_event),
             Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
-            &RoomVersion::V6,
+            &RoomVersionRules::V6,
             int!(40),
         )
         .unwrap_err();
@@ -480,7 +480,7 @@ fn change_content_level_with_new_higher_power_level() {
         check_room_power_levels(
             RoomPowerLevelsEvent::new(&incoming_event),
             Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
-            &RoomVersion::V6,
+            &RoomVersionRules::V6,
             int!(40),
         )
         .unwrap_err();
@@ -537,7 +537,7 @@ fn change_content_level_with_same_power_level() {
         check_room_power_levels(
             RoomPowerLevelsEvent::new(&incoming_event),
             Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
-            &RoomVersion::V6,
+            &RoomVersionRules::V6,
             int!(40),
         )
         .unwrap();
@@ -590,7 +590,7 @@ fn change_events_level_with_current_higher_power_level() {
     check_room_power_levels(
         RoomPowerLevelsEvent::new(&incoming_event),
         Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
-        &RoomVersion::V6,
+        &RoomVersionRules::V6,
         int!(40),
     )
     .unwrap_err();
@@ -642,7 +642,7 @@ fn change_events_level_with_new_higher_power_level() {
     check_room_power_levels(
         RoomPowerLevelsEvent::new(&incoming_event),
         Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
-        &RoomVersion::V6,
+        &RoomVersionRules::V6,
         int!(40),
     )
     .unwrap_err();
@@ -694,7 +694,7 @@ fn change_events_level_with_same_power_level() {
     check_room_power_levels(
         RoomPowerLevelsEvent::new(&incoming_event),
         Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
-        &RoomVersion::V6,
+        &RoomVersionRules::V6,
         int!(40),
     )
     .unwrap();
@@ -746,7 +746,7 @@ fn change_notifications_level_with_current_higher_power_level() {
     check_room_power_levels(
         RoomPowerLevelsEvent::new(&incoming_event),
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
-        &RoomVersion::V4,
+        &RoomVersionRules::V4,
         int!(40),
     )
     .unwrap();
@@ -755,7 +755,7 @@ fn change_notifications_level_with_current_higher_power_level() {
     check_room_power_levels(
         RoomPowerLevelsEvent::new(&incoming_event),
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
-        &RoomVersion::V6,
+        &RoomVersionRules::V6,
         int!(40),
     )
     .unwrap_err();
@@ -807,7 +807,7 @@ fn change_notifications_level_with_new_higher_power_level() {
     check_room_power_levels(
         RoomPowerLevelsEvent::new(&incoming_event),
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
-        &RoomVersion::V4,
+        &RoomVersionRules::V4,
         int!(40),
     )
     .unwrap();
@@ -816,7 +816,7 @@ fn change_notifications_level_with_new_higher_power_level() {
     check_room_power_levels(
         RoomPowerLevelsEvent::new(&incoming_event),
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
-        &RoomVersion::V6,
+        &RoomVersionRules::V6,
         int!(40),
     )
     .unwrap_err();
@@ -868,7 +868,7 @@ fn change_notifications_level_with_same_power_level() {
     check_room_power_levels(
         RoomPowerLevelsEvent::new(&incoming_event),
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
-        &RoomVersion::V4,
+        &RoomVersionRules::V4,
         int!(40),
     )
     .unwrap();
@@ -877,7 +877,7 @@ fn change_notifications_level_with_same_power_level() {
     check_room_power_levels(
         RoomPowerLevelsEvent::new(&incoming_event),
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
-        &RoomVersion::V6,
+        &RoomVersionRules::V6,
         int!(40),
     )
     .unwrap();
@@ -924,7 +924,7 @@ fn change_other_user_level_with_current_higher_power_level() {
     check_room_power_levels(
         RoomPowerLevelsEvent::new(&incoming_event),
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
-        &RoomVersion::V6,
+        &RoomVersionRules::V6,
         int!(40),
     )
     .unwrap_err();
@@ -972,7 +972,7 @@ fn change_other_user_level_with_new_higher_power_level() {
     check_room_power_levels(
         RoomPowerLevelsEvent::new(&incoming_event),
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
-        &RoomVersion::V6,
+        &RoomVersionRules::V6,
         int!(40),
     )
     .unwrap_err();
@@ -1020,7 +1020,7 @@ fn change_other_user_level_with_same_power_level() {
     check_room_power_levels(
         RoomPowerLevelsEvent::new(&incoming_event),
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
-        &RoomVersion::V6,
+        &RoomVersionRules::V6,
         int!(40),
     )
     .unwrap();
@@ -1066,7 +1066,7 @@ fn change_own_user_level_to_new_higher_power_level() {
     check_room_power_levels(
         RoomPowerLevelsEvent::new(&incoming_event),
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
-        &RoomVersion::V6,
+        &RoomVersionRules::V6,
         int!(40),
     )
     .unwrap_err();
@@ -1112,7 +1112,7 @@ fn change_own_user_level_to_lower_power_level() {
     check_room_power_levels(
         RoomPowerLevelsEvent::new(&incoming_event),
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
-        &RoomVersion::V6,
+        &RoomVersionRules::V6,
         int!(40),
     )
     .unwrap();
