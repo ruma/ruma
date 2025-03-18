@@ -42,6 +42,16 @@ use crate::UserId;
 ///         1.2 => deprecated,
 ///         1.3 => removed,
 ///     }
+///
+///     // history of endpoint paths
+///     errors: {
+///         400 => "/_matrix/foo/org.bar.msc9000/baz",
+///         unstable => "/_matrix/foo/org.bar.msc9000/qux",
+///         1.0 => "/_matrix/media/r0/qux",
+///         1.1 => "/_matrix/media/v3/qux",
+///         1.2 => deprecated,
+///         1.3 => removed,
+///     }
 /// };
 /// ```
 #[macro_export]
@@ -66,6 +76,12 @@ macro_rules! metadata {
             // Flip left and right to avoid macro parsing ambiguities
             $( $( $rhs = $version ),+ )?
         }
+    };
+
+    ( @field errors: [
+        $( $status:ty => $error:expr, )*
+    ] ) => {
+        $( $crate::metadata! ( @error_impl $error ) ),*
     };
 
     // Simple literal case: used for description, name, rate_limited
@@ -93,6 +109,13 @@ macro_rules! metadata {
 
     ( @optional_version ) => { None };
     ( @optional_version $version:literal ) => { Some($crate::api::MatrixVersion::from_lit(stringify!($version))) }
+
+    // ???
+    ( @error_impl ($status:literal, $kind:ident, $message:literal) ) => {
+        kind: { $crate::api::client::error::ErrorKind },
+        status: { $crate::exports::http::status::StatusCode },
+        message: { $message:literal }
+    };
 }
 
 /// Generates [`OutgoingRequest`] and [`IncomingRequest`] implementations.
