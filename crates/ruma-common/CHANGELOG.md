@@ -23,6 +23,8 @@ Breaking changes:
 - Add support for endpoints that only allow appservices to call them, renaming
   `AppserviceToken` to `AppserviceTokenOptional`, with the new variant taking
   `AppserviceToken`'s place.
+- The `redact*` functions in `canonical_json` take `RedactionRules` instead of
+  `RoomVersionId`. This avoids undefined behavior for unknown room versions.
 
 Bug fixes:
 
@@ -61,6 +63,10 @@ Improvements:
     `special_case_room_redaction`.
   - The `allow_knocking` field was renamed to `knocking`.
   - The `restricted_join_rules` field was renamed to `restricted_join_rule`.
+  - `RedactionRules` was added under the `redaction` field.
+  - `SignaturesRules` was added under the `signatures` field.
+- `RoomVersionId` has an `MSC2870` variant for the `org.matrix.msc2870` room
+  version defined in MSC2870.
 
 # 0.15.1
 

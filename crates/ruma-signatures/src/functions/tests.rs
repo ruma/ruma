@@ -2,8 +2,9 @@ use std::collections::BTreeMap;
 
 use assert_matches2::assert_matches;
 use ruma_common::{
-    serde::Base64, server_name, CanonicalJsonValue, RoomVersionId, ServerSigningKeyId,
-    SigningKeyAlgorithm,
+    room_version_rules::{RoomVersionRules, SignaturesRules},
+    serde::Base64,
+    server_name, CanonicalJsonValue, ServerSigningKeyId, SigningKeyAlgorithm,
 };
 use serde_json::json;
 
@@ -117,7 +118,7 @@ fn verify_event_does_not_check_signatures_invite_via_third_party_id() {
         ).unwrap();
 
     let public_key_map = BTreeMap::new();
-    let verification = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6).unwrap();
+    let verification = verify_event(&public_key_map, &signed_event, &RoomVersionRules::V6).unwrap();
 
     assert_eq!(verification, Verified::Signatures);
 }
@@ -154,7 +155,7 @@ fn verify_event_check_signatures_for_both_sender_and_event_id() {
     add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
     add_key_to_map(&mut public_key_map, "domain-event", &key_pair_event);
 
-    let verification = verify_event(&public_key_map, &signed_event, &RoomVersionId::V1).unwrap();
+    let verification = verify_event(&public_key_map, &signed_event, &RoomVersionRules::V1).unwrap();
 
     assert_eq!(verification, Verified::Signatures);
 }
@@ -194,7 +195,7 @@ fn verify_event_check_signatures_for_authorized_user() {
     add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
     add_key_to_map(&mut public_key_map, "domain-authorized", &key_pair_authorized);
 
-    let verification = verify_event(&public_key_map, &signed_event, &RoomVersionId::V9).unwrap();
+    let verification = verify_event(&public_key_map, &signed_event, &RoomVersionRules::V9).unwrap();
 
     assert_eq!(verification, Verified::Signatures);
 }
@@ -228,7 +229,7 @@ fn verification_fails_if_missing_signatures_for_authorized_user() {
     let mut public_key_map = BTreeMap::new();
     add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
 
-    let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V9);
+    let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionRules::V9);
 
     assert_matches!(
         verification_result,
@@ -265,7 +266,7 @@ fn verification_fails_if_required_keys_are_not_given() {
 
     // Verify with an empty public key map should fail due to missing public keys
     let public_key_map = BTreeMap::new();
-    let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
+    let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionRules::V6);
 
     assert_matches!(
         verification_result,
@@ -311,7 +312,7 @@ fn verify_event_fails_if_public_key_is_invalid() {
     sender_key_map.insert(version.to_string(), encoded_public_key);
     public_key_map.insert("domain-sender".to_owned(), sender_key_map);
 
-    let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
+    let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionRules::V6);
 
     assert_matches!(
         verification_result,
@@ -351,7 +352,7 @@ fn verify_event_check_signatures_for_sender_is_allowed_with_unknown_algorithms_i
     add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
     add_invalid_key_to_map(&mut public_key_map, "domain-sender", &generate_key_pair("2"));
 
-    let verification = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6).unwrap();
+    let verification = verify_event(&public_key_map, &signed_event, &RoomVersionRules::V6).unwrap();
 
     assert_eq!(verification, Verified::Signatures);
 }
@@ -386,7 +387,7 @@ fn verify_event_fails_with_missing_key_when_event_is_signed_multiple_times_by_sa
     let mut public_key_map = BTreeMap::new();
     add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
 
-    let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
+    let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionRules::V6);
 
     assert_matches!(
         verification_result,
@@ -427,7 +428,7 @@ fn verify_event_checks_all_signatures_from_sender_entity() {
     add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
     add_key_to_map(&mut public_key_map, "domain-sender", &secondary_key_pair_sender);
 
-    let verification = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6).unwrap();
+    let verification = verify_event(&public_key_map, &signed_event, &RoomVersionRules::V6).unwrap();
 
     assert_eq!(verification, Verified::Signatures);
 }
@@ -464,7 +465,7 @@ fn verify_event_with_single_key_with_unknown_algorithm_should_not_accept_event()
     let mut public_key_map = BTreeMap::new();
     add_invalid_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
 
-    let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionId::V6);
+    let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionRules::V6);
     assert_matches!(
         verification_result,
         Err(Error::Verification(VerificationError::NoSupportedSignatureForEntity(entity)))
@@ -504,13 +505,13 @@ fn servers_to_check_signatures_message() {
     let object = serde_json::from_value(message_event_json).unwrap();
 
     // Check for room v1.
-    let servers = servers_to_check_signatures(&object, &RoomVersionId::V1).unwrap();
+    let servers = servers_to_check_signatures(&object, &SignaturesRules::V1).unwrap();
     assert_eq!(servers.len(), 2);
     assert!(servers.contains(server_name!("domain-sender")));
     assert!(servers.contains(server_name!("domain-event")));
 
-    // Check for room v6.
-    let servers = servers_to_check_signatures(&object, &RoomVersionId::V6).unwrap();
+    // Check for room v3.
+    let servers = servers_to_check_signatures(&object, &SignaturesRules::V3).unwrap();
     assert_eq!(servers.len(), 1);
     assert!(servers.contains(server_name!("domain-sender")));
 }
@@ -548,12 +549,12 @@ fn servers_to_check_signatures_invite_via_third_party() {
     let object = serde_json::from_value(message_event_json).unwrap();
 
     // Check for room v1.
-    let servers = servers_to_check_signatures(&object, &RoomVersionId::V1).unwrap();
+    let servers = servers_to_check_signatures(&object, &SignaturesRules::V1).unwrap();
     assert_eq!(servers.len(), 1);
     assert!(servers.contains(server_name!("domain-event")));
 
-    // Check for room v6.
-    let servers = servers_to_check_signatures(&object, &RoomVersionId::V6).unwrap();
+    // Check for room v3.
+    let servers = servers_to_check_signatures(&object, &SignaturesRules::V3).unwrap();
     assert_eq!(servers.len(), 0);
 }
 
@@ -590,18 +591,18 @@ fn servers_to_check_signatures_restricted() {
     let object = serde_json::from_value(message_event_json).unwrap();
 
     // Check for room v1.
-    let servers = servers_to_check_signatures(&object, &RoomVersionId::V1).unwrap();
+    let servers = servers_to_check_signatures(&object, &SignaturesRules::V1).unwrap();
     assert_eq!(servers.len(), 2);
     assert!(servers.contains(server_name!("domain-sender")));
     assert!(servers.contains(server_name!("domain-event")));
 
-    // Check for room v6.
-    let servers = servers_to_check_signatures(&object, &RoomVersionId::V6).unwrap();
+    // Check for room v3.
+    let servers = servers_to_check_signatures(&object, &SignaturesRules::V3).unwrap();
     assert_eq!(servers.len(), 1);
     assert!(servers.contains(server_name!("domain-sender")));
 
     // Check for room v8.
-    let servers = servers_to_check_signatures(&object, &RoomVersionId::V8).unwrap();
+    let servers = servers_to_check_signatures(&object, &SignaturesRules::V8).unwrap();
     assert_eq!(servers.len(), 2);
     assert!(servers.contains(server_name!("domain-sender")));
     assert!(servers.contains(server_name!("domain-authorize-user")));
