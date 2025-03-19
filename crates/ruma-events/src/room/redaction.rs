@@ -7,8 +7,8 @@ use js_int::Int;
 #[cfg(feature = "canonical-json")]
 use ruma_common::canonical_json::RedactionEvent;
 use ruma_common::{
-    serde::CanBeEmpty, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
-    OwnedTransactionId, OwnedUserId, RoomId, RoomVersionId, UserId,
+    room_version_rules::RedactionRules, serde::CanBeEmpty, EventId, MilliSecondsSinceUnixEpoch,
+    OwnedEventId, OwnedRoomId, OwnedTransactionId, OwnedUserId, RoomId, RoomVersionId, UserId,
 };
 use ruma_macros::{Event, EventContent};
 use serde::{Deserialize, Serialize};
@@ -214,21 +214,8 @@ impl RoomRedactionEventContent {
 impl RedactContent for RoomRedactionEventContent {
     type Redacted = RedactedRoomRedactionEventContent;
 
-    fn redact(self, version: &RoomVersionId) -> Self::Redacted {
-        let redacts = match version {
-            RoomVersionId::V1
-            | RoomVersionId::V2
-            | RoomVersionId::V3
-            | RoomVersionId::V4
-            | RoomVersionId::V5
-            | RoomVersionId::V6
-            | RoomVersionId::V7
-            | RoomVersionId::V8
-            | RoomVersionId::V9
-            | RoomVersionId::V10 => None,
-            _ => self.redacts,
-        };
-
+    fn redact(self, rules: &RedactionRules) -> Self::Redacted {
+        let redacts = self.redacts.filter(|_| rules.keep_room_redaction_redacts);
         RedactedRoomRedactionEventContent { redacts }
     }
 }

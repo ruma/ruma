@@ -1,4 +1,4 @@
-use ruma_common::RoomVersionId;
+use ruma_common::room_version_rules::RedactionRules;
 use serde::Serialize;
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -46,7 +46,7 @@ macro_rules! custom_room_event_content {
         impl RedactContent for $i {
             type Redacted = Self;
 
-            fn redact(self, _: &RoomVersionId) -> Self {
+            fn redact(self, _: &RedactionRules) -> Self {
                 self
             }
         }

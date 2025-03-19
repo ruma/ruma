@@ -487,7 +487,7 @@ fn generate_redacted_event_content<'a>(
         impl #ruma_events::RedactContent for #ident {
             type Redacted = #redacted_ident;
 
-            fn redact(self, version: &#ruma_common::RoomVersionId) -> #redacted_ident {
+            fn redact(self, _rules: &#ruma_common::room_version_rules::RedactionRules) -> #redacted_ident {
                 #redacted_ident {
                     #( #redaction_struct_fields: self.#redaction_struct_fields, )*
                 }

@@ -8,7 +8,8 @@ use js_int::{int, Int};
 use ruma_common::{
     power_levels::{default_power_level, NotificationPowerLevels},
     push::PushConditionPowerLevelsCtx,
-    OwnedUserId, RoomVersionId, UserId,
+    room_version_rules::RedactionRules,
+    OwnedUserId, UserId,
 };
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -137,7 +138,7 @@ impl Default for RoomPowerLevelsEventContent {
 impl RedactContent for RoomPowerLevelsEventContent {
     type Redacted = RedactedRoomPowerLevelsEventContent;
 
-    fn redact(self, version: &RoomVersionId) -> Self::Redacted {
+    fn redact(self, rules: &RedactionRules) -> Self::Redacted {
         let Self {
             ban,
             events,
@@ -151,19 +152,7 @@ impl RedactContent for RoomPowerLevelsEventContent {
             ..
         } = self;
 
-        let invite = match version {
-            RoomVersionId::V1
-            | RoomVersionId::V2
-            | RoomVersionId::V3
-            | RoomVersionId::V4
-            | RoomVersionId::V5
-            | RoomVersionId::V6
-            | RoomVersionId::V7
-            | RoomVersionId::V8
-            | RoomVersionId::V9
-            | RoomVersionId::V10 => int!(0),
-            _ => invite,
-        };
+        let invite = if rules.keep_room_power_levels_invite { invite } else { int!(0) };
 
         RedactedRoomPowerLevelsEventContent {
             ban,

@@ -11,7 +11,7 @@ mod member_state_key;
 pub use focus::*;
 pub use member_data::*;
 pub use member_state_key::*;
-use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedDeviceId};
+use ruma_common::{room_version_rules::RedactionRules, MilliSecondsSinceUnixEpoch, OwnedDeviceId};
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
 
@@ -167,7 +167,7 @@ pub enum LeaveReason {
 impl RedactContent for CallMemberEventContent {
     type Redacted = RedactedCallMemberEventContent;
 
-    fn redact(self, _version: &ruma_common::RoomVersionId) -> Self::Redacted {
+    fn redact(self, _rules: &RedactionRules) -> Self::Redacted {
         RedactedCallMemberEventContent {}
     }
 }
