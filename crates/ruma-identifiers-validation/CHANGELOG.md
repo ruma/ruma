@@ -13,6 +13,12 @@ Breaking changes:
   - `user_id::validate_strict` allows to validate strictly a user ID against the
     strict grammar, regardless of the compat features that are enabled.
 
+Bug fixes:
+
+- Don't allow alphanumeric characters outside of the ASCII range in
+  `room_version_id::validate()`. It used to allow any Unicode alphanumeric
+  character.
+
 Improvements:
 
 - The maximum allowed length of Matrix identifiers is exposed as `ID_MAX_BYTES`.
