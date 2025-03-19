@@ -244,6 +244,7 @@ __unstable-mscs = [
     "unstable-msc4186",
     "unstable-msc4203",
     "unstable-msc4230",
+    "unstable-msc4274",
 ]
 __ci = [
     "full",
