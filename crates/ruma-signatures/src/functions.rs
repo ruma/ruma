@@ -9,9 +9,10 @@ use std::{
 use base64::{alphabet, Engine};
 use ruma_common::{
     canonical_json::{redact, JsonType},
+    room_version_rules::{EventIdFormatVersion, RedactionRules, RoomVersionRules, SignaturesRules},
     serde::{base64::Standard, Base64},
     AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, OwnedEventId, OwnedServerName,
-    RoomVersionId, SigningKeyAlgorithm, SigningKeyId, UserId,
+    SigningKeyAlgorithm, SigningKeyId, UserId,
 };
 use serde_json::to_string as to_json_string;
 use sha2::{digest::Digest, Sha256};
@@ -412,16 +413,16 @@ pub fn content_hash(object: &CanonicalJsonObject) -> Result<Base64<Standard, [u8
 /// # Parameters
 ///
 /// * `object`: A JSON object to generate a reference hash for.
-/// * `room_version`: The version of the event's room.
+/// * `rules`: The rules of the version of the current room.
 ///
 /// # Errors
 ///
 /// Returns an error if the event is too large or redaction fails.
 pub fn reference_hash(
     object: &CanonicalJsonObject,
-    room_version: &RoomVersionId,
+    rules: &RoomVersionRules,
 ) -> Result<String, Error> {
-    let redacted_value = redact(object.clone(), room_version, None)?;
+    let redacted_value = redact(object.clone(), &rules.redaction, None)?;
 
     let json =
         canonical_json_with_fields_to_remove(&redacted_value, REFERENCE_HASH_FIELDS_TO_REMOVE)?;
@@ -431,9 +432,9 @@ pub fn reference_hash(
 
     let hash = Sha256::digest(json.as_bytes());
 
-    let base64_alphabet = match room_version {
-        RoomVersionId::V1 | RoomVersionId::V2 | RoomVersionId::V3 => alphabet::STANDARD,
-        // Room versions higher than version 3 are url safe base64 encoded
+    let base64_alphabet = match rules.event_id_format {
+        EventIdFormatVersion::V1 | EventIdFormatVersion::V2 => alphabet::STANDARD,
+        // Room versions higher than version 3 are URL-safe base64 encoded
         _ => alphabet::URL_SAFE,
     };
     let base64_engine = base64::engine::GeneralPurpose::new(
@@ -456,7 +457,7 @@ pub fn reference_hash(
 ///   homeserver, e.g. "example.com".
 /// * `key_pair`: A cryptographic key pair used to sign the event.
 /// * `object`: A JSON object to be hashed and signed according to the Matrix specification.
-/// * `room_version`: The version of the event's room.
+/// * `redaction_rules`: The redaction rules for the version of the event's room.
 ///
 /// # Errors
 ///
@@ -508,8 +509,12 @@ pub fn reference_hash(
 /// )
 /// .unwrap();
 ///
+/// // Get the rules for the version of the current room.
+/// let rules =
+///     RoomVersionId::V1.rules().expect("The rules should be known for a supported room version");
+///
 /// // Hash and sign the JSON with the key pair.
-/// assert!(hash_and_sign_event("domain", &key_pair, &mut object, &RoomVersionId::V1).is_ok());
+/// assert!(hash_and_sign_event("domain", &key_pair, &mut object, &rules.redaction).is_ok());
 /// ```
 ///
 /// This will modify the JSON from the structure shown to a structure like this:
@@ -544,7 +549,7 @@ pub fn hash_and_sign_event<K>(
     entity_id: &str,
     key_pair: &K,
     object: &mut CanonicalJsonObject,
-    room_version: &RoomVersionId,
+    redaction_rules: &RedactionRules,
 ) -> Result<(), Error>
 where
     K: KeyPair,
@@ -562,7 +567,7 @@ where
         _ => return Err(JsonError::not_of_type("hashes", JsonType::Object)),
     };
 
-    let mut redacted = redact(object.clone(), room_version, None)?;
+    let mut redacted = redact(object.clone(), redaction_rules, None)?;
 
     sign_json(entity_id, key_pair, &mut redacted)?;
 
@@ -633,17 +638,21 @@ where
 /// let mut public_key_map = BTreeMap::new();
 /// public_key_map.insert("domain".into(), public_key_set);
 ///
+/// // Get the redaction rules for the version of the current room.
+/// let rules =
+///     RoomVersionId::V6.rules().expect("The rules should be known for a supported room version");
+///
 /// // Verify at least one signature for each entity in `public_key_map`.
-/// let verification_result = verify_event(&public_key_map, &object, &RoomVersionId::V6);
+/// let verification_result = verify_event(&public_key_map, &object, &rules);
 /// assert!(verification_result.is_ok());
 /// assert_eq!(verification_result.unwrap(), Verified::All);
 /// ```
 pub fn verify_event(
     public_key_map: &PublicKeyMap,
     object: &CanonicalJsonObject,
-    room_version: &RoomVersionId,
+    rules: &RoomVersionRules,
 ) -> Result<Verified, Error> {
-    let redacted = redact(object.clone(), room_version, None)?;
+    let redacted = redact(object.clone(), &rules.redaction, None)?;
 
     let hash = match object.get("hashes") {
         Some(hashes_value) => match hashes_value {
@@ -665,7 +674,7 @@ pub fn verify_event(
         None => return Err(JsonError::field_missing_from_object("signatures")),
     };
 
-    let servers_to_check = servers_to_check_signatures(object, room_version)?;
+    let servers_to_check = servers_to_check_signatures(object, &rules.signatures)?;
     let canonical_json = canonical_json(&redacted)?;
 
     for entity_id in servers_to_check {
@@ -717,7 +726,7 @@ fn canonical_json_with_fields_to_remove(
 /// [validating signatures on received events]: https://spec.matrix.org/latest/server-server-api/#validating-hashes-and-signatures-on-received-events
 fn servers_to_check_signatures(
     object: &CanonicalJsonObject,
-    room_version: &RoomVersionId,
+    rules: &SignaturesRules,
 ) -> Result<BTreeSet<OwnedServerName>, Error> {
     let mut servers_to_check = BTreeSet::new();
 
@@ -729,51 +738,45 @@ fn servers_to_check_signatures(
 
                 servers_to_check.insert(user_id.server_name().to_owned());
             }
-            _ => return Err(JsonError::not_of_type("sender", JsonType::String)),
+            Some(_) => return Err(JsonError::not_of_type("sender", JsonType::String)),
+            _ => return Err(JsonError::field_missing_from_object("sender")),
         };
     }
 
-    match room_version {
-        RoomVersionId::V1 | RoomVersionId::V2 => match object.get("event_id") {
+    if rules.check_event_id_server {
+        match object.get("event_id") {
             Some(CanonicalJsonValue::String(raw_event_id)) => {
                 let event_id: OwnedEventId =
                     raw_event_id.parse().map_err(|e| Error::from(ParseError::EventId(e)))?;
 
                 let server_name = event_id
                     .server_name()
-                    .ok_or_else(|| {
-                        ParseError::from_event_id_by_room_version(&event_id, room_version)
-                    })?
-                    .to_owned();
+                    .map(ToOwned::to_owned)
+                    .ok_or_else(|| ParseError::server_name_from_event_id(event_id))?;
 
                 servers_to_check.insert(server_name);
             }
+            Some(_) => return Err(JsonError::not_of_type("event_id", JsonType::String)),
             _ => {
                 return Err(JsonError::field_missing_from_object("event_id"));
             }
-        },
-        RoomVersionId::V3
-        | RoomVersionId::V4
-        | RoomVersionId::V5
-        | RoomVersionId::V6
-        | RoomVersionId::V7 => {}
-        // TODO: And for all future versions that have join_authorised_via_users_server
-        RoomVersionId::V8 | RoomVersionId::V9 | RoomVersionId::V10 | RoomVersionId::V11 => {
-            if let Some(authorized_user) = object
-                .get("content")
-                .and_then(|c| c.as_object())
-                .and_then(|c| c.get("join_authorised_via_users_server"))
-            {
-                let authorized_user = authorized_user.as_str().ok_or_else(|| {
-                    JsonError::not_of_type("join_authorised_via_users_server", JsonType::String)
-                })?;
-                let authorized_user = <&UserId>::try_from(authorized_user)
-                    .map_err(|e| Error::from(ParseError::UserId(e)))?;
-
-                servers_to_check.insert(authorized_user.server_name().to_owned());
-            }
         }
-        _ => unimplemented!(),
+    }
+
+    if rules.check_join_authorised_via_users_server {
+        if let Some(authorized_user) = object
+            .get("content")
+            .and_then(|c| c.as_object())
+            .and_then(|c| c.get("join_authorised_via_users_server"))
+        {
+            let authorized_user = authorized_user.as_str().ok_or_else(|| {
+                JsonError::not_of_type("join_authorised_via_users_server", JsonType::String)
+            })?;
+            let authorized_user = <&UserId>::try_from(authorized_user)
+                .map_err(|e| Error::from(ParseError::UserId(e)))?;
+
+            servers_to_check.insert(authorized_user.server_name().to_owned());
+        }
     }
 
     Ok(servers_to_check)

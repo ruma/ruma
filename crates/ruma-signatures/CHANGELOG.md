@@ -12,6 +12,12 @@ Breaking changes:
   details about the error, and to support any type of entity.
 - `JsonError::JsonKeyMissing` was replaced by
   `VerificationError::PublicKeyNotFound`
+- `reference_hash` and `verify_event` take `RoomVersionRules` instead of
+  `RoomVersionId`. This avoids undefined behavior for unknown room versions.
+- `hash_and_sign_event` take `RedactionRules` instead of `RoomVersionId`. This
+  avoids undefined behavior for unknown room versions.
+- The `ServerNameFromEventIdByRoomVersion` variant of `ParseError` was renamed
+  to `ServerNameFromEventId`, and doesn't hold a `RoomVersionId` anymore.
 
 Improvements:
 

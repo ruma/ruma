@@ -8,7 +8,7 @@ use serde_json::Value as JsonValue;
 mod value;
 
 pub use self::value::{CanonicalJsonObject, CanonicalJsonValue};
-use crate::{serde::Raw, RoomVersionId};
+use crate::{room_version_rules::RedactionRules, serde::Raw};
 
 /// The set of possible errors when serializing to canonical JSON.
 #[cfg(feature = "canonical-json")]
@@ -162,10 +162,10 @@ pub trait RedactionEvent {}
 /// * `object` is missing the `type` field or the field is not a JSON string.
 pub fn redact(
     mut object: CanonicalJsonObject,
-    version: &RoomVersionId,
+    rules: &RedactionRules,
     redacted_because: Option<RedactedBecause>,
 ) -> Result<CanonicalJsonObject, RedactionError> {
-    redact_in_place(&mut object, version, redacted_because)?;
+    redact_in_place(&mut object, rules, redacted_because)?;
     Ok(object)
 }
 
@@ -174,14 +174,14 @@ pub fn redact(
 /// Functionally equivalent to `redact`, only this'll redact the event in-place.
 pub fn redact_in_place(
     event: &mut CanonicalJsonObject,
-    version: &RoomVersionId,
+    rules: &RedactionRules,
     redacted_because: Option<RedactedBecause>,
 ) -> Result<(), RedactionError> {
     // Get the content keys here even if they're only needed inside the branch below, because we
     // can't teach rust that this is a disjoint borrow with `get_mut("content")`.
-    let allowed_content_keys = match event.get("type") {
+    let retained_event_content_keys = match event.get("type") {
         Some(CanonicalJsonValue::String(event_type)) => {
-            allowed_content_keys_for(event_type, version)
+            retained_event_content_keys(event_type.as_ref(), rules)
         }
         Some(_) => return Err(RedactionError::not_of_type("type", JsonType::String)),
         None => return Err(RedactionError::field_missing_from_object("type")),
@@ -193,16 +193,12 @@ pub fn redact_in_place(
             _ => return Err(RedactionError::not_of_type("content", JsonType::Object)),
         };
 
-        object_retain_keys(content, allowed_content_keys)?;
+        retained_event_content_keys.apply(rules, content)?;
     }
 
-    let mut old_event = mem::take(event);
-
-    for &key in allowed_event_keys_for(version) {
-        if let Some(value) = old_event.remove(key) {
-            event.insert(key.to_owned(), value);
-        }
-    }
+    let retained_event_keys =
+        RetainedKeys::some(|rules, key, _value| Ok(is_event_key_retained(rules, key)));
+    retained_event_keys.apply(rules, event)?;
 
     if let Some(redacted_because) = redacted_because {
         let unsigned = CanonicalJsonObject::from_iter([(
@@ -215,286 +211,201 @@ pub fn redact_in_place(
     Ok(())
 }
 
-/// Redacts event content using the rules specified in the Matrix client-server specification.
+/// Redacts the given event content using the given redaction rules for the version of the current
+/// room.
 ///
-/// Edits the `object` in-place.
+/// Edits the `content` in-place.
 pub fn redact_content_in_place(
-    object: &mut CanonicalJsonObject,
-    version: &RoomVersionId,
+    content: &mut CanonicalJsonObject,
+    rules: &RedactionRules,
     event_type: impl AsRef<str>,
 ) -> Result<(), RedactionError> {
-    object_retain_keys(object, allowed_content_keys_for(event_type.as_ref(), version))
+    retained_event_content_keys(event_type.as_ref(), rules).apply(rules, content)
 }
 
-fn object_retain_keys(
-    object: &mut CanonicalJsonObject,
-    allowed_keys: &AllowedKeys,
-) -> Result<(), RedactionError> {
-    match *allowed_keys {
-        AllowedKeys::All => {}
-        AllowedKeys::Some { keys, nested } => {
-            object_retain_some_keys(object, keys, nested)?;
-        }
-        AllowedKeys::None => {
-            object.clear();
-        }
-    }
+/// A function that takes redaction rules, a key and its value, and returns whether the field
+/// should be retained.
+type RetainKeyFn =
+    dyn Fn(&RedactionRules, &str, &mut CanonicalJsonValue) -> Result<bool, RedactionError>;
 
-    Ok(())
-}
-
-fn object_retain_some_keys(
-    object: &mut CanonicalJsonObject,
-    keys: &[&str],
-    nested: &[(&str, &AllowedKeys)],
-) -> Result<(), RedactionError> {
-    let mut old_object = mem::take(object);
-
-    for &(nested_key, nested_allowed_keys) in nested {
-        if let Some((key, mut nested_object_value)) = old_object.remove_entry(nested_key) {
-            let nested_object = match &mut nested_object_value {
-                CanonicalJsonValue::Object(map) => map,
-                _ => return Err(RedactionError::not_of_type(nested_key, JsonType::Object)),
-            };
-
-            object_retain_keys(nested_object, nested_allowed_keys)?;
-
-            // If the object is empty, it means none of the nested fields were found so we
-            // don't want to keep the object.
-            if !nested_object.is_empty() {
-                object.insert(key, nested_object_value);
-            }
-        }
-    }
-
-    for &key in keys {
-        if let Some((key, value)) = old_object.remove_entry(key) {
-            object.insert(key, value);
-        }
-    }
-
-    Ok(())
-}
-
-/// The fields that are allowed to remain in an event during redaction depending on the room
-/// version.
-fn allowed_event_keys_for(version: &RoomVersionId) -> &'static [&'static str] {
-    match version {
-        RoomVersionId::V1
-        | RoomVersionId::V2
-        | RoomVersionId::V3
-        | RoomVersionId::V4
-        | RoomVersionId::V5
-        | RoomVersionId::V6
-        | RoomVersionId::V7
-        | RoomVersionId::V8
-        | RoomVersionId::V9
-        | RoomVersionId::V10 => &[
-            "event_id",
-            "type",
-            "room_id",
-            "sender",
-            "state_key",
-            "content",
-            "hashes",
-            "signatures",
-            "depth",
-            "prev_events",
-            "prev_state",
-            "auth_events",
-            "origin",
-            "origin_server_ts",
-            "membership",
-        ],
-        _ => &[
-            "event_id",
-            "type",
-            "room_id",
-            "sender",
-            "state_key",
-            "content",
-            "hashes",
-            "signatures",
-            "depth",
-            "prev_events",
-            "auth_events",
-            "origin_server_ts",
-        ],
-    }
-}
-
-/// List of keys to preserve on an object.
-#[derive(Clone, Copy)]
-enum AllowedKeys {
-    /// All keys are preserved.
+/// Keys to retain on an object.
+enum RetainedKeys {
+    /// All keys are retained.
     All,
-    /// Some keys are preserved.
-    Some {
-        /// The keys to preserve on this object.
-        keys: &'static [&'static str],
 
-        /// Keys to preserve on nested objects.
-        ///
-        /// A list of `(nested_object_key, nested_allowed_keys)`.
-        nested: &'static [(&'static str, &'static AllowedKeys)],
-    },
-    /// No keys are preserved.
+    /// Some keys are retained, they are determined by the inner function.
+    Some(Box<RetainKeyFn>),
+
+    /// No keys are retained.
     None,
 }
 
-impl AllowedKeys {
-    /// Creates an new `AllowedKeys::Some` with the given keys at this level.
-    const fn some(keys: &'static [&'static str]) -> Self {
-        Self::Some { keys, nested: &[] }
+impl RetainedKeys {
+    /// Construct a `RetainedKeys::Some(_)` with the given function.
+    fn some<F>(retain_key_fn: F) -> Self
+    where
+        F: Fn(&RedactionRules, &str, &mut CanonicalJsonValue) -> Result<bool, RedactionError>
+            + 'static,
+    {
+        Self::Some(Box::new(retain_key_fn))
     }
 
-    /// Creates an new `AllowedKeys::Some` with the given keys and nested keys.
-    const fn some_nested(
-        keys: &'static [&'static str],
-        nested: &'static [(&'static str, &'static AllowedKeys)],
-    ) -> Self {
-        Self::Some { keys, nested }
+    /// Apply this `RetainedKeys` on the given object.
+    fn apply(
+        &self,
+        rules: &RedactionRules,
+        object: &mut CanonicalJsonObject,
+    ) -> Result<(), RedactionError> {
+        match self {
+            Self::All => {}
+            Self::Some(allow_field_fn) => {
+                let old_object = mem::take(object);
+
+                for (key, mut value) in old_object {
+                    if allow_field_fn(rules, &key, &mut value)? {
+                        object.insert(key, value);
+                    }
+                }
+            }
+            Self::None => object.clear(),
+        }
+
+        Ok(())
     }
 }
 
-/// Allowed keys in `m.room.member`'s content according to room version 1.
-static ROOM_MEMBER_V1: AllowedKeys = AllowedKeys::some(&["membership"]);
-/// Allowed keys in `m.room.member`'s content according to room version 9.
-static ROOM_MEMBER_V9: AllowedKeys =
-    AllowedKeys::some(&["membership", "join_authorised_via_users_server"]);
-/// Allowed keys in `m.room.member`'s content according to room version 11.
-static ROOM_MEMBER_V11: AllowedKeys = AllowedKeys::some_nested(
-    &["membership", "join_authorised_via_users_server"],
-    &[("third_party_invite", &ROOM_MEMBER_THIRD_PARTY_INVITE_V11)],
-);
-/// Allowed keys in the `third_party_invite` field of `m.room.member`'s content according to room
-/// version 11.
-static ROOM_MEMBER_THIRD_PARTY_INVITE_V11: AllowedKeys = AllowedKeys::some(&["signed"]);
-
-/// Allowed keys in `m.room.create`'s content according to room version 1.
-static ROOM_CREATE_V1: AllowedKeys = AllowedKeys::some(&["creator"]);
-
-/// Allowed keys in `m.room.join_rules`'s content according to room version 1.
-static ROOM_JOIN_RULES_V1: AllowedKeys = AllowedKeys::some(&["join_rule"]);
-/// Allowed keys in `m.room.join_rules`'s content according to room version 8.
-static ROOM_JOIN_RULES_V8: AllowedKeys = AllowedKeys::some(&["join_rule", "allow"]);
-
-/// Allowed keys in `m.room.power_levels`'s content according to room version 1.
-static ROOM_POWER_LEVELS_V1: AllowedKeys = AllowedKeys::some(&[
-    "ban",
-    "events",
-    "events_default",
-    "kick",
-    "redact",
-    "state_default",
-    "users",
-    "users_default",
-]);
-/// Allowed keys in `m.room.power_levels`'s content according to room version 11.
-static ROOM_POWER_LEVELS_V11: AllowedKeys = AllowedKeys::some(&[
-    "ban",
-    "events",
-    "events_default",
-    "invite",
-    "kick",
-    "redact",
-    "state_default",
-    "users",
-    "users_default",
-]);
-
-/// Allowed keys in `m.room.aliases`'s content according to room version 1.
-static ROOM_ALIASES_V1: AllowedKeys = AllowedKeys::some(&["aliases"]);
-
-/// Allowed keys in `m.room.server_acl`'s content according to MSC2870.
-#[cfg(feature = "unstable-msc2870")]
-static ROOM_SERVER_ACL_MSC2870: AllowedKeys =
-    AllowedKeys::some(&["allow", "deny", "allow_ip_literals"]);
-
-/// Allowed keys in `m.room.history_visibility`'s content according to room version 1.
-static ROOM_HISTORY_VISIBILITY_V1: AllowedKeys = AllowedKeys::some(&["history_visibility"]);
-
-/// Allowed keys in `m.room.redaction`'s content according to room version 11.
-static ROOM_REDACTION_V11: AllowedKeys = AllowedKeys::some(&["redacts"]);
-
-fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'static AllowedKeys {
-    match event_type {
-        "m.room.member" => match version {
-            RoomVersionId::V1
-            | RoomVersionId::V2
-            | RoomVersionId::V3
-            | RoomVersionId::V4
-            | RoomVersionId::V5
-            | RoomVersionId::V6
-            | RoomVersionId::V7
-            | RoomVersionId::V8 => &ROOM_MEMBER_V1,
-            RoomVersionId::V9 | RoomVersionId::V10 => &ROOM_MEMBER_V9,
-            _ => &ROOM_MEMBER_V11,
-        },
-        "m.room.create" => match version {
-            RoomVersionId::V1
-            | RoomVersionId::V2
-            | RoomVersionId::V3
-            | RoomVersionId::V4
-            | RoomVersionId::V5
-            | RoomVersionId::V6
-            | RoomVersionId::V7
-            | RoomVersionId::V8
-            | RoomVersionId::V9
-            | RoomVersionId::V10 => &ROOM_CREATE_V1,
-            _ => &AllowedKeys::All,
-        },
-        "m.room.join_rules" => match version {
-            RoomVersionId::V1
-            | RoomVersionId::V2
-            | RoomVersionId::V3
-            | RoomVersionId::V4
-            | RoomVersionId::V5
-            | RoomVersionId::V6
-            | RoomVersionId::V7 => &ROOM_JOIN_RULES_V1,
-            _ => &ROOM_JOIN_RULES_V8,
-        },
-        "m.room.power_levels" => match version {
-            RoomVersionId::V1
-            | RoomVersionId::V2
-            | RoomVersionId::V3
-            | RoomVersionId::V4
-            | RoomVersionId::V5
-            | RoomVersionId::V6
-            | RoomVersionId::V7
-            | RoomVersionId::V8
-            | RoomVersionId::V9
-            | RoomVersionId::V10 => &ROOM_POWER_LEVELS_V1,
-            _ => &ROOM_POWER_LEVELS_V11,
-        },
-        "m.room.aliases" => match version {
-            RoomVersionId::V1
-            | RoomVersionId::V2
-            | RoomVersionId::V3
-            | RoomVersionId::V4
-            | RoomVersionId::V5 => &ROOM_ALIASES_V1,
-            // All other room versions, including custom ones, are treated by version 6 rules.
-            // TODO: Should we return an error for unknown versions instead?
-            _ => &AllowedKeys::None,
-        },
-        #[cfg(feature = "unstable-msc2870")]
-        "m.room.server_acl" if version.as_str() == "org.matrix.msc2870" => &ROOM_SERVER_ACL_MSC2870,
-        "m.room.history_visibility" => &ROOM_HISTORY_VISIBILITY_V1,
-        "m.room.redaction" => match version {
-            RoomVersionId::V1
-            | RoomVersionId::V2
-            | RoomVersionId::V3
-            | RoomVersionId::V4
-            | RoomVersionId::V5
-            | RoomVersionId::V6
-            | RoomVersionId::V7
-            | RoomVersionId::V8
-            | RoomVersionId::V9
-            | RoomVersionId::V10 => &AllowedKeys::None,
-            _ => &ROOM_REDACTION_V11,
-        },
-        _ => &AllowedKeys::None,
+/// Get the given keys should be retained at the top level of an event.
+fn is_event_key_retained(rules: &RedactionRules, key: &str) -> bool {
+    match key {
+        "event_id" | "type" | "room_id" | "sender" | "state_key" | "content" | "hashes"
+        | "signatures" | "depth" | "prev_events" | "auth_events" | "origin_server_ts" => true,
+        "origin" | "membership" | "prev_state" => rules.keep_origin_membership_prev_state,
+        _ => false,
     }
+}
+
+/// Get the keys that should be retained in the `content` of an event with the given type.
+fn retained_event_content_keys(event_type: &str, rules: &RedactionRules) -> RetainedKeys {
+    match event_type {
+        "m.room.member" => RetainedKeys::some(is_room_member_content_key_retained),
+        "m.room.create" => room_create_content_retained_keys(rules),
+        "m.room.join_rules" => RetainedKeys::some(|rules, key, _value| {
+            is_room_join_rules_content_key_retained(rules, key)
+        }),
+        "m.room.power_levels" => RetainedKeys::some(|rules, key, _value| {
+            is_room_power_levels_content_key_retained(rules, key)
+        }),
+        "m.room.history_visibility" => RetainedKeys::some(|_rules, key, _value| {
+            is_room_history_visibility_content_key_retained(key)
+        }),
+        "m.room.redaction" => room_redaction_content_retained_keys(rules),
+        "m.room.aliases" => room_aliases_content_retained_keys(rules),
+        #[cfg(feature = "unstable-msc2870")]
+        "m.room.server_acl" => RetainedKeys::some(|rules, key, _value| {
+            is_room_server_acl_content_key_retained(rules, key)
+        }),
+        _ => RetainedKeys::None,
+    }
+}
+
+/// Whether the given key in the `content` of an `m.room.member` event is retained after redaction.
+fn is_room_member_content_key_retained(
+    rules: &RedactionRules,
+    key: &str,
+    value: &mut CanonicalJsonValue,
+) -> Result<bool, RedactionError> {
+    Ok(match key {
+        "membership" => true,
+        "join_authorised_via_users_server" => {
+            rules.keep_room_member_join_authorised_via_users_server
+        }
+        "third_party_invite" if rules.keep_room_member_third_party_invite_signed => {
+            let Some(third_party_invite) = value.as_object_mut() else {
+                return Err(RedactionError::not_of_type("third_party_invite", JsonType::Object));
+            };
+
+            third_party_invite.retain(|key, _| key == "signed");
+
+            // Keep the field only if it's not empty.
+            !third_party_invite.is_empty()
+        }
+        _ => false,
+    })
+}
+
+/// Get the retained keys in the `content` of an `m.room.create` event.
+fn room_create_content_retained_keys(rules: &RedactionRules) -> RetainedKeys {
+    if rules.keep_room_create_content {
+        RetainedKeys::All
+    } else {
+        RetainedKeys::some(|_rules, field, _value| Ok(field == "creator"))
+    }
+}
+
+/// Whether the given key in the `content` of an `m.room.join_rules` event is retained after
+/// redaction.
+fn is_room_join_rules_content_key_retained(
+    rules: &RedactionRules,
+    key: &str,
+) -> Result<bool, RedactionError> {
+    Ok(match key {
+        "join_rule" => true,
+        "allow" => rules.keep_room_join_rules_allow,
+        _ => false,
+    })
+}
+
+/// Whether the given key in the `content` of an `m.room.power_levels` event is retained after
+/// redaction.
+fn is_room_power_levels_content_key_retained(
+    rules: &RedactionRules,
+    key: &str,
+) -> Result<bool, RedactionError> {
+    Ok(match key {
+        "ban" | "events" | "events_default" | "kick" | "redact" | "state_default" | "users"
+        | "users_default" => true,
+        "invite" => rules.keep_room_power_levels_invite,
+        _ => false,
+    })
+}
+
+/// Whether the given key in the `content` of an `m.room.history_visibility` event is retained after
+/// redaction.
+fn is_room_history_visibility_content_key_retained(key: &str) -> Result<bool, RedactionError> {
+    Ok(key == "history_visibility")
+}
+
+/// Get the retained keys in the `content` of an `m.room.redaction` event.
+fn room_redaction_content_retained_keys(rules: &RedactionRules) -> RetainedKeys {
+    if rules.keep_room_redaction_redacts {
+        RetainedKeys::some(|_rules, field, _value| Ok(field == "redacts"))
+    } else {
+        RetainedKeys::None
+    }
+}
+
+/// Get the retained keys in the `content` of an `m.room.aliases` event.
+fn room_aliases_content_retained_keys(rules: &RedactionRules) -> RetainedKeys {
+    if rules.keep_room_aliases_aliases {
+        RetainedKeys::some(|_rules, field, _value| Ok(field == "aliases"))
+    } else {
+        RetainedKeys::None
+    }
+}
+
+/// Whether the given key in the `content` of an `m.room.server_acl` event is retained after
+/// redaction.
+#[cfg(feature = "unstable-msc2870")]
+fn is_room_server_acl_content_key_retained(
+    rules: &RedactionRules,
+    key: &str,
+) -> Result<bool, RedactionError> {
+    Ok(match key {
+        "allow" | "deny" | "allow_ip_literals" => {
+            rules.keep_room_server_acl_allow_deny_allow_ip_literals
+        }
+        _ => false,
+    })
 }
 
 #[cfg(test)]
@@ -510,7 +421,7 @@ mod tests {
     use super::{
         redact_in_place, to_canonical_value, try_from_json_map, value::CanonicalJsonValue,
     };
-    use crate::RoomVersionId;
+    use crate::room_version_rules::RedactionRules;
 
     #[test]
     fn serialize_canon() {
@@ -639,7 +550,7 @@ mod tests {
             Ok(CanonicalJsonValue::Object(mut object))
         );
 
-        redact_in_place(&mut object, &RoomVersionId::V1, None).unwrap();
+        redact_in_place(&mut object, &RedactionRules::V1, None).unwrap();
 
         let redacted_event = to_json_value(&object).unwrap();
 
@@ -696,7 +607,7 @@ mod tests {
             Ok(CanonicalJsonValue::Object(mut object))
         );
 
-        redact_in_place(&mut object, &RoomVersionId::V10, None).unwrap();
+        redact_in_place(&mut object, &RedactionRules::V9, None).unwrap();
 
         let redacted_event = to_json_value(&object).unwrap();
 
@@ -741,7 +652,7 @@ mod tests {
             Ok(CanonicalJsonValue::Object(mut object))
         );
 
-        redact_in_place(&mut object, &RoomVersionId::V11, None).unwrap();
+        redact_in_place(&mut object, &RedactionRules::V11, None).unwrap();
 
         let redacted_event = to_json_value(&object).unwrap();
 

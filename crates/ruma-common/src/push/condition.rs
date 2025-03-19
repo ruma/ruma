@@ -57,6 +57,8 @@ impl RoomVersionFeature {
             | RoomVersionId::V10
             | RoomVersionId::V11
             | RoomVersionId::_Custom(_) => vec![],
+            #[cfg(feature = "unstable-msc2870")]
+            RoomVersionId::MSC2870 => vec![],
         }
     }
 }

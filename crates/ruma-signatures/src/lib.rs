@@ -73,8 +73,8 @@ mod tests {
 
     use pkcs8::{der::Decode, PrivateKeyInfo};
     use ruma_common::{
+        room_version_rules::{RedactionRules, RoomVersionRules},
         serde::{base64::Standard, Base64},
-        RoomVersionId,
     };
     use serde_json::{from_str as from_json_str, to_string as to_json_string};
 
@@ -296,7 +296,7 @@ mod tests {
         }"#;
 
         let mut object = from_json_str(json).unwrap();
-        hash_and_sign_event("domain", &key_pair, &mut object, &RoomVersionId::V5).unwrap();
+        hash_and_sign_event("domain", &key_pair, &mut object, &RedactionRules::V1).unwrap();
 
         assert_eq!(
             to_json_string(&object).unwrap(),
@@ -325,7 +325,7 @@ mod tests {
         }"#;
 
         let mut object = from_json_str(json).unwrap();
-        hash_and_sign_event("domain", &key_pair, &mut object, &RoomVersionId::V5).unwrap();
+        hash_and_sign_event("domain", &key_pair, &mut object, &RedactionRules::V1).unwrap();
 
         assert_eq!(
             to_json_string(&object).unwrap(),
@@ -366,6 +366,6 @@ mod tests {
             }"#
         ).unwrap();
 
-        verify_event(&public_key_map, &value, &RoomVersionId::V5).unwrap();
+        verify_event(&public_key_map, &value, &RoomVersionRules::V5).unwrap();
     }
 }

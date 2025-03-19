@@ -29,6 +29,12 @@ pub struct RoomVersionRules {
 
     /// The tweaks in the authorization rules.
     pub authorization: AuthorizationRules,
+
+    /// The tweaks in the redaction algorithm.
+    pub redaction: RedactionRules,
+
+    /// The tweaks for verifying signatures.
+    pub signatures: SignaturesRules,
 }
 
 impl RoomVersionRules {
@@ -41,6 +47,8 @@ impl RoomVersionRules {
         state_res: StateResolutionVersion::V1,
         enforce_key_validity: false,
         authorization: AuthorizationRules::V1,
+        redaction: RedactionRules::V1,
+        signatures: SignaturesRules::V1,
     };
 
     /// Rules for [room version 2].
@@ -54,6 +62,7 @@ impl RoomVersionRules {
     pub const V3: Self = Self {
         event_id_format: EventIdFormatVersion::V2,
         authorization: AuthorizationRules::V3,
+        signatures: SignaturesRules::V3,
         ..Self::V2
     };
 
@@ -70,7 +79,8 @@ impl RoomVersionRules {
     /// Rules for [room version 6].
     ///
     /// [room version 6]: https://spec.matrix.org/latest/rooms/v6/
-    pub const V6: Self = Self { authorization: AuthorizationRules::V6, ..Self::V5 };
+    pub const V6: Self =
+        Self { authorization: AuthorizationRules::V6, redaction: RedactionRules::V6, ..Self::V5 };
 
     /// Rules for [room version 7].
     ///
@@ -80,12 +90,17 @@ impl RoomVersionRules {
     /// Rules for [room version 8].
     ///
     /// [room version 8]: https://spec.matrix.org/latest/rooms/v8/
-    pub const V8: Self = Self { authorization: AuthorizationRules::V8, ..Self::V7 };
+    pub const V8: Self = Self {
+        authorization: AuthorizationRules::V8,
+        redaction: RedactionRules::V8,
+        signatures: SignaturesRules::V8,
+        ..Self::V7
+    };
 
     /// Rules for [room version 9].
     ///
     /// [room version 9]: https://spec.matrix.org/latest/rooms/v9/
-    pub const V9: Self = Self::V8;
+    pub const V9: Self = Self { redaction: RedactionRules::V9, ..Self::V8 };
 
     /// Rules for [room version 10].
     ///
@@ -96,6 +111,12 @@ impl RoomVersionRules {
     ///
     /// [room version 11]: https://spec.matrix.org/latest/rooms/v11/
     pub const V11: Self = Self { authorization: AuthorizationRules::V11, ..Self::V10 };
+
+    /// Rules for room version `org.matrix.msc2870` ([MSC2870]).
+    ///
+    /// [MSC2870]: https://github.com/matrix-org/matrix-spec-proposals/pull/2870
+    #[cfg(feature = "unstable-msc2870")]
+    pub const MSC2870: Self = Self { redaction: RedactionRules::MSC2870, ..Self::V11 };
 }
 
 /// The stability of a room version.
@@ -269,4 +290,153 @@ impl AuthorizationRules {
     ///
     /// [spec]: https://spec.matrix.org/latest/rooms/v11/#authorization-rules
     pub const V11: Self = Self { use_room_create_sender: true, ..Self::V10 };
+}
+
+/// The tweaks in the [redaction] algorithm for a room version.
+///
+/// This type can be constructed from one of its constants (like [`RedactionRules::V1`]), or by
+/// constructing a [`RoomVersionRules`] first and using the `redaction` field.
+///
+/// [redaction]: https://spec.matrix.org/latest/client-server-api/#redactions
+#[derive(Debug, Clone)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct RedactionRules {
+    /// Whether to keep the `aliases` field in the `content` of `m.room.aliases` events ([spec]),
+    /// disabled since room version 6.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.13/rooms/v6/#redactions
+    pub keep_room_aliases_aliases: bool,
+
+    /// Whether to keep the `allow` field in the `content` of `m.room.join_rules` events ([spec]),
+    /// introduced in room version 8.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.13/rooms/v8/#redactions
+    pub keep_room_join_rules_allow: bool,
+
+    /// Whether to keep the `join_authorised_via_users_server` field in the `content` of
+    /// `m.room.member` events ([spec]), introduced in room version 9.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.13/rooms/v8/#redactions
+    pub keep_room_member_join_authorised_via_users_server: bool,
+
+    /// Whether to keep the `origin`, `membership` and `prev_state` fields a the top-level of all
+    /// events ([spec]), disabled since room version 11.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.13/rooms/v11/#redactions
+    pub keep_origin_membership_prev_state: bool,
+
+    /// Whether to keep the entire `content` of `m.room.create` events ([spec]), introduced in room
+    /// version 11.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.13/rooms/v11/#redactions
+    pub keep_room_create_content: bool,
+
+    /// Whether to keep the `redacts` field in the `content` of `m.room.redaction` events ([spec]),
+    /// introduced in room version 11.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.13/rooms/v11/#redactions
+    pub keep_room_redaction_redacts: bool,
+
+    /// Whether to keep the `invite` field in the `content` of `m.room.power_levels` events
+    /// ([spec]), introduced in room version 11.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.13/rooms/v11/#redactions
+    pub keep_room_power_levels_invite: bool,
+
+    /// Whether to keep the `signed` field in `third_party_invite` of the `content` of
+    /// `m.room.member` events ([spec]), introduced in room version 11.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.13/rooms/v11/#redactions
+    pub keep_room_member_third_party_invite_signed: bool,
+
+    /// Whether to keep the `allow`, `deny` and `allow_ip_literals` in the `content` of
+    /// `m.room.server_acl` events ([MSC2870]).
+    ///
+    /// [MSC2870]: https://github.com/matrix-org/matrix-spec-proposals/pull/2870
+    #[cfg(feature = "unstable-msc2870")]
+    pub keep_room_server_acl_allow_deny_allow_ip_literals: bool,
+}
+
+impl RedactionRules {
+    /// Redaction rules as introduced in room version 1 ([spec]).
+    ///
+    /// [spec]: https://spec.matrix.org/v1.13/rooms/v1/#redactions
+    pub const V1: Self = Self {
+        keep_room_aliases_aliases: true,
+        keep_room_join_rules_allow: false,
+        keep_room_member_join_authorised_via_users_server: false,
+        keep_origin_membership_prev_state: true,
+        keep_room_create_content: false,
+        keep_room_redaction_redacts: false,
+        keep_room_power_levels_invite: false,
+        keep_room_member_third_party_invite_signed: false,
+        #[cfg(feature = "unstable-msc2870")]
+        keep_room_server_acl_allow_deny_allow_ip_literals: false,
+    };
+
+    /// Redaction rules with tweaks introduced in room version 6 ([spec]).
+    ///
+    /// [spec]: https://spec.matrix.org/v1.13/rooms/v6/#redactions
+    pub const V6: Self = Self { keep_room_aliases_aliases: false, ..Self::V1 };
+
+    /// Redaction rules with tweaks introduced in room version 8 ([spec]).
+    ///
+    /// [spec]: https://spec.matrix.org/v1.13/rooms/v8/#redactions
+    pub const V8: Self = Self { keep_room_join_rules_allow: true, ..Self::V6 };
+
+    /// Redaction rules with tweaks introduced in room version 9 ([spec]).
+    ///
+    /// [spec]: https://spec.matrix.org/v1.13/rooms/v9/#redactions
+    pub const V9: Self =
+        Self { keep_room_member_join_authorised_via_users_server: true, ..Self::V8 };
+
+    /// Redaction rules with tweaks introduced in room version 11 ([spec]).
+    ///
+    /// [spec]: https://spec.matrix.org/v1.13/rooms/v11/#redactions
+    pub const V11: Self = Self {
+        keep_origin_membership_prev_state: false,
+        keep_room_create_content: true,
+        keep_room_redaction_redacts: true,
+        keep_room_power_levels_invite: true,
+        keep_room_member_third_party_invite_signed: true,
+        ..Self::V9
+    };
+
+    /// Redaction rules with tweaks introduced in [MSC2870].
+    ///
+    /// [MSC2870]: https://github.com/matrix-org/matrix-spec-proposals/pull/2870
+    #[cfg(feature = "unstable-msc2870")]
+    pub const MSC2870: Self =
+        Self { keep_room_server_acl_allow_deny_allow_ip_literals: true, ..Self::V11 };
+}
+
+/// The tweaks for [verifying the signatures] for a room version.
+///
+/// This type can be constructed from one of its constants (like [`SignaturesRules::V1`]), or by
+/// constructing a [`RoomVersionRules`] first and using the `signatures` field.
+///
+/// [verifying the signatures]: https://spec.matrix.org/latest/server-server-api/#validating-hashes-and-signatures-on-received-events
+#[derive(Debug, Clone)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct SignaturesRules {
+    /// Whether to check the server of the event ID, disabled since room version 3.
+    pub check_event_id_server: bool,
+
+    /// Whether to check the server of the `join_authorised_via_users_server` field in the
+    /// `content` of `m.room.member` events ([spec]), introduced in room version 8.
+    ///
+    /// [spec]: https://spec.matrix.org/latest/rooms/v8/#authorization-rules
+    pub check_join_authorised_via_users_server: bool,
+}
+
+impl SignaturesRules {
+    /// Signatures verification rules as introduced in room version 1.
+    pub const V1: Self =
+        Self { check_event_id_server: true, check_join_authorised_via_users_server: false };
+
+    /// Signatures verification rules with tweaks introduced in room version 3.
+    pub const V3: Self = Self { check_event_id_server: false, ..Self::V1 };
+
+    /// Signatures verification rules with tweaks introduced in room version 8.
+    pub const V8: Self = Self { check_join_authorised_via_users_server: true, ..Self::V3 };
 }
