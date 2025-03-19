@@ -1,12 +1,18 @@
 //! `Deserialize` implementation for RoomMessageEventContent and MessageType.
 
 use ruma_common::serde::from_raw_json_value;
-use serde::{de, Deserialize, Serialize};
-use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
+#[cfg(feature = "unstable-msc4274")]
+use serde::Serialize;
+use serde::{de, Deserialize};
+use serde_json::value::RawValue as RawJsonValue;
+#[cfg(feature = "unstable-msc4274")]
+use serde_json::Value as JsonValue;
 
+#[cfg(feature = "unstable-msc4274")]
+use super::gallery::GalleryItemType;
 use super::{
-    gallery::GalleryItemType, relation_serde::deserialize_relation, MessageType,
-    RoomMessageEventContent, RoomMessageEventContentWithoutRelation,
+    relation_serde::deserialize_relation, MessageType, RoomMessageEventContent,
+    RoomMessageEventContentWithoutRelation,
 };
 use crate::Mentions;
 
@@ -64,6 +70,7 @@ impl<'de> Deserialize<'de> for MessageType {
             "m.audio" => Self::Audio(from_raw_json_value(&json)?),
             "m.emote" => Self::Emote(from_raw_json_value(&json)?),
             "m.file" => Self::File(from_raw_json_value(&json)?),
+            #[cfg(feature = "unstable-msc4274")]
             "dm.filament.gallery" => Self::Gallery(from_raw_json_value(&json)?),
             "m.image" => Self::Image(from_raw_json_value(&json)?),
             "m.location" => Self::Location(from_raw_json_value(&json)?),
@@ -79,11 +86,13 @@ impl<'de> Deserialize<'de> for MessageType {
 
 /// Helper struct to determine the itemtype from a `serde_json::value::RawValue`
 #[derive(Debug, Deserialize)]
+#[cfg(feature = "unstable-msc4274")]
 struct ItemTypeDeHelper {
     /// The item type field
     itemtype: String,
 }
 
+#[cfg(feature = "unstable-msc4274")]
 impl<'de> Deserialize<'de> for GalleryItemType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -102,6 +111,7 @@ impl<'de> Deserialize<'de> for GalleryItemType {
     }
 }
 
+#[cfg(feature = "unstable-msc4274")]
 impl Serialize for GalleryItemType {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

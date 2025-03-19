@@ -7,13 +7,14 @@ use ruma_common::{
     serde::{Base64, Raw},
     user_id, MilliSecondsSinceUnixEpoch, OwnedDeviceId,
 };
+#[cfg(feature = "unstable-msc4274")]
+use ruma_events::room::message::{GalleryItemType, GalleryMessageEventContent};
 use ruma_events::{
     key::verification::VerificationMethod,
     room::{
         message::{
             AddMentions, AudioMessageEventContent, EmoteMessageEventContent,
-            FileMessageEventContent, FormattedBody, ForwardThread, GalleryItemType,
-            GalleryMessageEventContent, ImageMessageEventContent,
+            FileMessageEventContent, FormattedBody, ForwardThread, ImageMessageEventContent,
             KeyVerificationRequestEventContent, MessageType, OriginalRoomMessageEvent,
             OriginalSyncRoomMessageEvent, Relation, ReplyWithinThread, RoomMessageEventContent,
             TextMessageEventContent, VideoMessageEventContent,
@@ -601,6 +602,7 @@ fn file_msgtype_encrypted_content_deserialization() {
 }
 
 #[test]
+#[cfg(feature = "unstable-msc4274")]
 fn gallery_msgtype_serialization() {
     let message_event_content =
         RoomMessageEventContent::new(MessageType::Gallery(GalleryMessageEventContent::new(
@@ -631,6 +633,7 @@ fn gallery_msgtype_serialization() {
 }
 
 #[test]
+#[cfg(feature = "unstable-msc4274")]
 fn gallery_msgtype_deserialization() {
     let json_data = json!({
         "body": "My photos from [FOSDEM 2025](https://fosdem.org/2025/)",

@@ -27,6 +27,7 @@ mod audio;
 mod content_serde;
 mod emote;
 mod file;
+#[cfg(feature = "unstable-msc4274")]
 mod gallery;
 mod image;
 mod key_verification_request;
@@ -47,13 +48,14 @@ mod without_relation;
 pub use self::audio::{
     UnstableAmplitude, UnstableAudioDetailsContentBlock, UnstableVoiceContentBlock,
 };
+#[cfg(feature = "unstable-msc4274")]
+pub use self::gallery::{GalleryItemType, GalleryMessageEventContent};
 #[cfg(feature = "unstable-msc4095")]
 pub use self::url_preview::{PreviewImage, PreviewImageSource, UrlPreview};
 pub use self::{
     audio::{AudioInfo, AudioMessageEventContent},
     emote::EmoteMessageEventContent,
     file::{FileInfo, FileMessageEventContent},
-    gallery::{GalleryItemType, GalleryMessageEventContent},
     image::ImageMessageEventContent,
     key_verification_request::KeyVerificationRequestEventContent,
     location::{LocationInfo, LocationMessageEventContent},
@@ -403,6 +405,7 @@ pub enum MessageType {
     File(FileMessageEventContent),
 
     /// A media gallery message.
+    #[cfg(feature = "unstable-msc4274")]
     Gallery(GalleryMessageEventContent),
 
     /// An image message.
@@ -459,6 +462,7 @@ impl MessageType {
             "m.audio" => Self::Audio(deserialize_variant(body, data)?),
             "m.emote" => Self::Emote(deserialize_variant(body, data)?),
             "m.file" => Self::File(deserialize_variant(body, data)?),
+            #[cfg(feature = "unstable-msc4274")]
             "dm.filament.gallery" => Self::Gallery(deserialize_variant(body, data)?),
             "m.image" => Self::Image(deserialize_variant(body, data)?),
             "m.location" => Self::Location(deserialize_variant(body, data)?),
@@ -527,6 +531,7 @@ impl MessageType {
             Self::Audio(_) => "m.audio",
             Self::Emote(_) => "m.emote",
             Self::File(_) => "m.file",
+            #[cfg(feature = "unstable-msc4274")]
             Self::Gallery(_) => "dm.filament.gallery",
             Self::Image(_) => "m.image",
             Self::Location(_) => "m.location",
@@ -545,6 +550,7 @@ impl MessageType {
             MessageType::Audio(m) => &m.body,
             MessageType::Emote(m) => &m.body,
             MessageType::File(m) => &m.body,
+            #[cfg(feature = "unstable-msc4274")]
             MessageType::Gallery(m) => &m.body,
             MessageType::Image(m) => &m.body,
             MessageType::Location(m) => &m.body,
@@ -579,6 +585,7 @@ impl MessageType {
             Self::Audio(d) => Cow::Owned(serialize(d)),
             Self::Emote(d) => Cow::Owned(serialize(d)),
             Self::File(d) => Cow::Owned(serialize(d)),
+            #[cfg(feature = "unstable-msc4274")]
             Self::Gallery(d) => Cow::Owned(serialize(d)),
             Self::Image(d) => Cow::Owned(serialize(d)),
             Self::Location(d) => Cow::Owned(serialize(d)),
@@ -639,6 +646,7 @@ impl MessageType {
                 }
                 MessageType::Audio(m) => (&mut m.body, None),
                 MessageType::File(m) => (&mut m.body, None),
+                #[cfg(feature = "unstable-msc4274")]
                 MessageType::Gallery(m) => (&mut m.body, None),
                 MessageType::Image(m) => (&mut m.body, None),
                 MessageType::Location(m) => (&mut m.body, None),
