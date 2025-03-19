@@ -10,7 +10,7 @@ mod content_serde;
 mod unstable_poll_answers_serde;
 mod unstable_poll_kind_serde;
 
-use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedEventId};
+use ruma_common::{room_version_rules::RedactionRules, MilliSecondsSinceUnixEpoch, OwnedEventId};
 
 use self::unstable_poll_answers_serde::UnstablePollAnswersDeHelper;
 use super::{
@@ -61,7 +61,7 @@ impl UnstablePollStartEventContent {
 impl RedactContent for UnstablePollStartEventContent {
     type Redacted = RedactedUnstablePollStartEventContent;
 
-    fn redact(self, _version: &crate::RoomVersionId) -> Self::Redacted {
+    fn redact(self, _rules: &RedactionRules) -> Self::Redacted {
         RedactedUnstablePollStartEventContent::default()
     }
 }

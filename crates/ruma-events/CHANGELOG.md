@@ -20,6 +20,9 @@ Breaking changes:
   `NoticeMessageEventContent`, `ServerNoticeMessageEventContent`, `TextMessageEventContent`,
   `VideoMessageEventContent` and `KeyVerificationRequestEventContent`. Instead the `msgtype`
   is now serialized on the variants of `MessageType`.
+- `RedactContent::redact()` and `FullStateEventContent::redact()` take a
+  `RedactionRules` instead of `RoomVersionId`. This avoids undefined behavior
+  for unknown room versions. 
 
 Improvements:
 

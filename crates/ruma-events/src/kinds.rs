@@ -2,9 +2,9 @@
 
 use as_variant::as_variant;
 use ruma_common::{
+    room_version_rules::RedactionRules,
     serde::{from_raw_json_value, Raw},
-    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId,
-    RoomVersionId, UserId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId, UserId,
 };
 use ruma_macros::Event;
 use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize};
@@ -569,11 +569,11 @@ where
     ///
     /// If `self` is already [`Redacted`](Self::Redacted), return the inner data unmodified.
     ///
-    /// A small number of events have room-version specific redaction behavior, so a version has to
-    /// be specified.
-    pub fn redact(self, version: &RoomVersionId) -> C::Redacted {
+    /// A small number of events have room-version specific redaction behavior, so a
+    /// [`RedactionRules`] has to be specified.
+    pub fn redact(self, rules: &RedactionRules) -> C::Redacted {
         match self {
-            FullStateEventContent::Original { content, .. } => content.redact(version),
+            FullStateEventContent::Original { content, .. } => content.redact(rules),
             FullStateEventContent::Redacted(content) => content,
         }
     }
