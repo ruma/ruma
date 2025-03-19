@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use ruma_common::serde::JsonObject;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
@@ -115,14 +117,30 @@ impl GalleryItemType {
         }
     }
 
-    /// Return a reference to the itemtype formatted body.
-    pub fn formatted(&self) -> &Option<FormattedBody> {
+    /// Returns the associated data.
+    ///
+    /// The returned JSON object won't contain the `itemtype` and `body` fields, use
+    /// [`.itemtype()`][Self::itemtype] / [`.body()`](Self::body) to access those.
+    ///
+    /// Prefer to use the public variants of `GalleryItemType` where possible; this method is meant
+    /// to be used for custom message types only.
+    pub fn data(&self) -> Cow<'_, JsonObject> {
+        fn serialize<T: Serialize>(obj: &T) -> JsonObject {
+            match serde_json::to_value(obj).expect("item type serialization to succeed") {
+                JsonValue::Object(mut obj) => {
+                    obj.remove("body");
+                    obj
+                }
+                _ => panic!("all item types must serialize to objects"),
+            }
+        }
+
         match self {
-            GalleryItemType::Audio(m) => &m.formatted,
-            GalleryItemType::File(m) => &m.formatted,
-            GalleryItemType::Image(m) => &m.formatted,
-            GalleryItemType::Video(m) => &m.formatted,
-            GalleryItemType::_Custom(_) => &None,
+            Self::Audio(d) => Cow::Owned(serialize(d)),
+            Self::File(d) => Cow::Owned(serialize(d)),
+            Self::Image(d) => Cow::Owned(serialize(d)),
+            Self::Video(d) => Cow::Owned(serialize(d)),
+            Self::_Custom(c) => Cow::Borrowed(&c.data),
         }
     }
 }
