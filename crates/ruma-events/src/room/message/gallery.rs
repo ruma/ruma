@@ -3,14 +3,13 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 use super::{
-    AudioMessageEventContent, CustomEventContent, FileMessageEventContent, FormattedBody,
-    ImageMessageEventContent, VideoMessageEventContent,
+    AudioMessageEventContent, FileMessageEventContent, FormattedBody, ImageMessageEventContent,
+    VideoMessageEventContent,
 };
 
 /// The payload for a gallery message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[serde(tag = "msgtype", rename = "dm.filament.gallery")]
 pub struct GalleryMessageEventContent {
     /// A human-readable description of the gallery.
     pub body: String,
@@ -35,23 +34,29 @@ impl GalleryMessageEventContent {
 }
 
 /// The content that is specific to each gallery item type variant.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(tag = "itemtype")]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum GalleryItemType {
     /// An audio item.
+    #[serde(rename = "m.audio")]
     Audio(AudioMessageEventContent),
 
     /// A file item.
+    #[serde(rename = "m.file")]
     File(FileMessageEventContent),
 
     /// An image item.
+    #[serde(rename = "m.image")]
     Image(ImageMessageEventContent),
 
     /// A video item.
+    #[serde(rename = "m.video")]
     Video(VideoMessageEventContent),
 
     /// A custom item.
     #[doc(hidden)]
+    #[serde(untagged)]
     _Custom(CustomEventContent),
 }
 
@@ -84,7 +89,7 @@ impl GalleryItemType {
             "m.file" => Self::File(deserialize_variant(body, data)?),
             "m.image" => Self::Image(deserialize_variant(body, data)?),
             "m.video" => Self::Video(deserialize_variant(body, data)?),
-            _ => Self::_Custom(CustomEventContent { msgtype: itemtype.to_owned(), body, data }),
+            _ => Self::_Custom(CustomEventContent { itemtype: itemtype.to_owned(), body, data }),
         })
     }
 
@@ -95,7 +100,7 @@ impl GalleryItemType {
             Self::File(_) => "m.file",
             Self::Image(_) => "m.image",
             Self::Video(_) => "m.video",
-            Self::_Custom(c) => &c.msgtype,
+            Self::_Custom(c) => &c.itemtype,
         }
     }
 
@@ -120,4 +125,19 @@ impl GalleryItemType {
             GalleryItemType::_Custom(_) => &None,
         }
     }
+}
+
+/// The payload for a custom item type.
+#[doc(hidden)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CustomEventContent {
+    /// A custom itemtype.
+    itemtype: String,
+
+    /// The message body.
+    body: String,
+
+    /// Remaining event content.
+    #[serde(flatten)]
+    data: JsonObject,
 }

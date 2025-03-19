@@ -392,45 +392,57 @@ pub enum ReplyWithinThread {
 
 /// The content that is specific to each message type variant.
 #[derive(Clone, Debug, Serialize)]
-#[serde(untagged)]
+#[serde(tag = "msgtype")]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum MessageType {
     /// An audio message.
+    #[serde(rename = "m.audio")]
     Audio(AudioMessageEventContent),
 
     /// An emote message.
+    #[serde(rename = "m.emote")]
     Emote(EmoteMessageEventContent),
 
     /// A file message.
+    #[serde(rename = "m.file")]
     File(FileMessageEventContent),
 
     /// A media gallery message.
     #[cfg(feature = "unstable-msc4274")]
+    #[serde(rename = "dm.filament.gallery")]
     Gallery(GalleryMessageEventContent),
 
     /// An image message.
+    #[serde(rename = "m.image")]
     Image(ImageMessageEventContent),
 
     /// A location message.
+    #[serde(rename = "m.location")]
     Location(LocationMessageEventContent),
 
     /// A notice message.
+    #[serde(rename = "m.notice")]
     Notice(NoticeMessageEventContent),
 
     /// A server notice message.
+    #[serde(rename = "m.server_notice")]
     ServerNotice(ServerNoticeMessageEventContent),
 
     /// A text message.
+    #[serde(rename = "m.text")]
     Text(TextMessageEventContent),
 
     /// A video message.
+    #[serde(rename = "m.video")]
     Video(VideoMessageEventContent),
 
     /// A request to initiate a key verification.
+    #[serde(rename = "m.key.verification.request")]
     VerificationRequest(KeyVerificationRequestEventContent),
 
     /// A custom message.
     #[doc(hidden)]
+    #[serde(untagged)]
     _Custom(CustomEventContent),
 }
 

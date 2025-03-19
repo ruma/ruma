@@ -1,12 +1,8 @@
 //! `Deserialize` implementation for RoomMessageEventContent and MessageType.
 
 use ruma_common::serde::from_raw_json_value;
-#[cfg(feature = "unstable-msc4274")]
-use serde::Serialize;
 use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
-#[cfg(feature = "unstable-msc4274")]
-use serde_json::Value as JsonValue;
 
 #[cfg(feature = "unstable-msc4274")]
 use super::gallery::GalleryItemType;
@@ -108,40 +104,6 @@ impl<'de> Deserialize<'de> for GalleryItemType {
             "m.video" => Self::Video(from_raw_json_value(&json)?),
             _ => Self::_Custom(from_raw_json_value(&json)?),
         })
-    }
-}
-
-#[cfg(feature = "unstable-msc4274")]
-impl Serialize for GalleryItemType {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let mut map = match self {
-            GalleryItemType::Audio(content) => {
-                serde_json::to_value(content).map_err(serde::ser::Error::custom)?
-            }
-            GalleryItemType::File(content) => {
-                serde_json::to_value(content).map_err(serde::ser::Error::custom)?
-            }
-            GalleryItemType::Image(content) => {
-                serde_json::to_value(content).map_err(serde::ser::Error::custom)?
-            }
-            GalleryItemType::Video(content) => {
-                serde_json::to_value(content).map_err(serde::ser::Error::custom)?
-            }
-            GalleryItemType::_Custom(content) => {
-                serde_json::to_value(content).map_err(serde::ser::Error::custom)?
-            }
-        }
-        .as_object()
-        .cloned()
-        .unwrap_or_default();
-
-        map.insert("itemtype".to_owned(), JsonValue::String(self.itemtype().to_owned()));
-        map.remove("msgtype");
-
-        map.serialize(serializer)
     }
 }
 
