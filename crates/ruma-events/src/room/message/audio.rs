@@ -13,7 +13,6 @@ use crate::room::{
 /// The payload for an audio message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[serde(tag = "msgtype", rename = "m.audio")]
 pub struct AudioMessageEventContent {
     /// The textual representation of this message.
     ///

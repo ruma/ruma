@@ -15,11 +15,17 @@ Breaking changes:
 - `RoomThirdPartyInviteEventContent` uses `IdentityServerBase64PublicKey`
   instead of `Base64` for the `public_key` fields, to avoid deserialization
   errors when public keys encoded using URL-safe base64 are encountered.
+- The `msgtype` is no longer serialized in `AudioMessageEventContent`, `EmoteMessageEventContent`,
+  `FileMessageEventContent`, `ImageMessageEventContent`, `LocationMessageEventContent`,
+  `NoticeMessageEventContent`, `ServerNoticeMessageEventContent`, `TextMessageEventContent`,
+  `VideoMessageEventContent` and `KeyVerificationRequestEventContent`. Instead the `msgtype`
+  is now serialized on the variants of `MessageType`.
 
 Improvements:
 
 - Add `RECOMMENDED_STRIPPED_STATE_EVENT_TYPES` constant for servers to filter/get recommended
   stripped state events.
+- Add unstable support for gallery `msgtype` as per MSC4274.
 
 # 0.30.1
 
