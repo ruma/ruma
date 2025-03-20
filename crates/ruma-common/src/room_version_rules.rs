@@ -192,11 +192,9 @@ pub struct AuthorizationRules {
 
     /// Whether to strictly enforce [canonical JSON] ([spec]), introduced in room version 6.
     ///
-    /// Canonical JSON does not allow:
-    ///
-    /// * Integers outside the range of [-2<sup>53</sup> + 1, 2<sup>53</sup> - 1]
-    /// * Floats
-    /// * `NaN`, `Infinity`, `-Infinity`
+    /// Numbers in Canonical JSON must be integers in the range [-2<sup>53</sup> + 1,
+    /// 2<sup>53</sup> - 1], represented without exponents or decimal places, and negative zero
+    /// (`-0`) MUST NOT appear.
     ///
     /// [canonical JSON]: https://spec.matrix.org/latest/appendices/#canonical-json
     /// [spec]: https://spec.matrix.org/latest/rooms/v6/#canonical-json
