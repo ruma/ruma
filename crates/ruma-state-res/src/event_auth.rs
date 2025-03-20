@@ -343,7 +343,7 @@ fn check_room_create(
 
     // Since v1, if `content.room_version` is present and is not a recognized version, reject.
     //
-    // This check is assumed to be done before calling auth_check because we have a
+    // This check is assumed to be done before calling auth_check because we have an
     // AuthorizationRules, which means that we recognized the version.
 
     // v1-v10, if content has no creator field, reject.
