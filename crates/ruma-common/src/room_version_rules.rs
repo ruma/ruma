@@ -314,7 +314,7 @@ pub struct RedactionRules {
     /// Whether to keep the `join_authorised_via_users_server` field in the `content` of
     /// `m.room.member` events ([spec]), introduced in room version 9.
     ///
-    /// [spec]: https://spec.matrix.org/v1.13/rooms/v8/#redactions
+    /// [spec]: https://spec.matrix.org/v1.13/rooms/v9/#redactions
     pub keep_room_member_join_authorised_via_users_server: bool,
 
     /// Whether to keep the `origin`, `membership` and `prev_state` fields a the top-level of all
