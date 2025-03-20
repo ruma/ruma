@@ -27,6 +27,8 @@ mod audio;
 mod content_serde;
 mod emote;
 mod file;
+#[cfg(feature = "unstable-msc4274")]
+mod gallery;
 mod image;
 mod key_verification_request;
 mod location;
@@ -47,6 +49,8 @@ mod without_relation;
 pub use self::audio::{
     UnstableAmplitude, UnstableAudioDetailsContentBlock, UnstableVoiceContentBlock,
 };
+#[cfg(feature = "unstable-msc4274")]
+pub use self::gallery::{GalleryItemType, GalleryMessageEventContent};
 #[cfg(feature = "unstable-msc4095")]
 pub use self::url_preview::{PreviewImage, PreviewImageSource, UrlPreview};
 pub use self::{
@@ -433,41 +437,57 @@ pub enum ReplyWithinThread {
 
 /// The content that is specific to each message type variant.
 #[derive(Clone, Debug, Serialize)]
-#[serde(untagged)]
+#[serde(tag = "msgtype")]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum MessageType {
     /// An audio message.
+    #[serde(rename = "m.audio")]
     Audio(AudioMessageEventContent),
 
     /// An emote message.
+    #[serde(rename = "m.emote")]
     Emote(EmoteMessageEventContent),
 
     /// A file message.
+    #[serde(rename = "m.file")]
     File(FileMessageEventContent),
 
+    /// A media gallery message.
+    #[cfg(feature = "unstable-msc4274")]
+    #[serde(rename = "dm.filament.gallery")]
+    Gallery(GalleryMessageEventContent),
+
     /// An image message.
+    #[serde(rename = "m.image")]
     Image(ImageMessageEventContent),
 
     /// A location message.
+    #[serde(rename = "m.location")]
     Location(LocationMessageEventContent),
 
     /// A notice message.
+    #[serde(rename = "m.notice")]
     Notice(NoticeMessageEventContent),
 
     /// A server notice message.
+    #[serde(rename = "m.server_notice")]
     ServerNotice(ServerNoticeMessageEventContent),
 
     /// A text message.
+    #[serde(rename = "m.text")]
     Text(TextMessageEventContent),
 
     /// A video message.
+    #[serde(rename = "m.video")]
     Video(VideoMessageEventContent),
 
     /// A request to initiate a key verification.
+    #[serde(rename = "m.key.verification.request")]
     VerificationRequest(KeyVerificationRequestEventContent),
 
     /// A custom message.
     #[doc(hidden)]
+    #[serde(untagged)]
     _Custom(CustomEventContent),
 }
 
@@ -499,6 +519,8 @@ impl MessageType {
             "m.audio" => Self::Audio(deserialize_variant(body, data)?),
             "m.emote" => Self::Emote(deserialize_variant(body, data)?),
             "m.file" => Self::File(deserialize_variant(body, data)?),
+            #[cfg(feature = "unstable-msc4274")]
+            "dm.filament.gallery" => Self::Gallery(deserialize_variant(body, data)?),
             "m.image" => Self::Image(deserialize_variant(body, data)?),
             "m.location" => Self::Location(deserialize_variant(body, data)?),
             "m.notice" => Self::Notice(deserialize_variant(body, data)?),
@@ -566,6 +588,8 @@ impl MessageType {
             Self::Audio(_) => "m.audio",
             Self::Emote(_) => "m.emote",
             Self::File(_) => "m.file",
+            #[cfg(feature = "unstable-msc4274")]
+            Self::Gallery(_) => "dm.filament.gallery",
             Self::Image(_) => "m.image",
             Self::Location(_) => "m.location",
             Self::Notice(_) => "m.notice",
@@ -583,6 +607,8 @@ impl MessageType {
             MessageType::Audio(m) => &m.body,
             MessageType::Emote(m) => &m.body,
             MessageType::File(m) => &m.body,
+            #[cfg(feature = "unstable-msc4274")]
+            MessageType::Gallery(m) => &m.body,
             MessageType::Image(m) => &m.body,
             MessageType::Location(m) => &m.body,
             MessageType::Notice(m) => &m.body,
@@ -616,6 +642,8 @@ impl MessageType {
             Self::Audio(d) => Cow::Owned(serialize(d)),
             Self::Emote(d) => Cow::Owned(serialize(d)),
             Self::File(d) => Cow::Owned(serialize(d)),
+            #[cfg(feature = "unstable-msc4274")]
+            Self::Gallery(d) => Cow::Owned(serialize(d)),
             Self::Image(d) => Cow::Owned(serialize(d)),
             Self::Location(d) => Cow::Owned(serialize(d)),
             Self::Notice(d) => Cow::Owned(serialize(d)),
@@ -676,6 +704,8 @@ impl MessageType {
                 }
                 MessageType::Audio(m) => (&mut m.body, None),
                 MessageType::File(m) => (&mut m.body, None),
+                #[cfg(feature = "unstable-msc4274")]
+                MessageType::Gallery(m) => (&mut m.body, None),
                 MessageType::Image(m) => (&mut m.body, None),
                 MessageType::Location(m) => (&mut m.body, None),
                 MessageType::ServerNotice(m) => (&mut m.body, None),
@@ -718,6 +748,8 @@ impl MessageType {
                 }
                 MessageType::Audio(m) => (&mut m.body, None),
                 MessageType::File(m) => (&mut m.body, None),
+                #[cfg(feature = "unstable-msc4274")]
+                MessageType::Gallery(m) => (&mut m.body, None),
                 MessageType::Image(m) => (&mut m.body, None),
                 MessageType::Location(m) => (&mut m.body, None),
                 MessageType::ServerNotice(m) => (&mut m.body, None),

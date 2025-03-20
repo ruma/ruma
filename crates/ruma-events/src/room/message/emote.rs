@@ -5,7 +5,6 @@ use super::FormattedBody;
 /// The payload for an emote message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[serde(tag = "msgtype", rename = "m.emote")]
 pub struct EmoteMessageEventContent {
     /// The emote action to perform.
     pub body: String,

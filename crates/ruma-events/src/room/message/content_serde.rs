@@ -4,6 +4,8 @@ use ruma_common::serde::from_raw_json_value;
 use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
 
+#[cfg(feature = "unstable-msc4274")]
+use super::gallery::GalleryItemType;
 use super::{
     relation_serde::deserialize_relation, MessageType, RoomMessageEventContent,
     RoomMessageEventContentWithoutRelation,
@@ -64,6 +66,8 @@ impl<'de> Deserialize<'de> for MessageType {
             "m.audio" => Self::Audio(from_raw_json_value(&json)?),
             "m.emote" => Self::Emote(from_raw_json_value(&json)?),
             "m.file" => Self::File(from_raw_json_value(&json)?),
+            #[cfg(feature = "unstable-msc4274")]
+            "dm.filament.gallery" => Self::Gallery(from_raw_json_value(&json)?),
             "m.image" => Self::Image(from_raw_json_value(&json)?),
             "m.location" => Self::Location(from_raw_json_value(&json)?),
             "m.notice" => Self::Notice(from_raw_json_value(&json)?),
@@ -71,6 +75,33 @@ impl<'de> Deserialize<'de> for MessageType {
             "m.text" => Self::Text(from_raw_json_value(&json)?),
             "m.video" => Self::Video(from_raw_json_value(&json)?),
             "m.key.verification.request" => Self::VerificationRequest(from_raw_json_value(&json)?),
+            _ => Self::_Custom(from_raw_json_value(&json)?),
+        })
+    }
+}
+
+/// Helper struct to determine the itemtype from a `serde_json::value::RawValue`
+#[derive(Debug, Deserialize)]
+#[cfg(feature = "unstable-msc4274")]
+struct ItemTypeDeHelper {
+    /// The item type field
+    itemtype: String,
+}
+
+#[cfg(feature = "unstable-msc4274")]
+impl<'de> Deserialize<'de> for GalleryItemType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+        let ItemTypeDeHelper { itemtype } = from_raw_json_value(&json)?;
+
+        Ok(match itemtype.as_ref() {
+            "m.audio" => Self::Audio(from_raw_json_value(&json)?),
+            "m.file" => Self::File(from_raw_json_value(&json)?),
+            "m.image" => Self::Image(from_raw_json_value(&json)?),
+            "m.video" => Self::Video(from_raw_json_value(&json)?),
             _ => Self::_Custom(from_raw_json_value(&json)?),
         })
     }
