@@ -14,6 +14,8 @@ Improvements:
 - Implement `PartialEqAsRefStr`, `Eq`, `PartialOrdAsRefStr`, `OrdAsRefStr` for
   `ruma_common::media::Method`.
 - `DeviceId::new()` generates a string with 10 chars instead of 8.
+- Add `ignore_invalid_vec_items`, to assist deserialization of `Vec`s, where
+  invalid items should be ignored.
 
 # 0.15.1
 
