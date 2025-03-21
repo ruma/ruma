@@ -4,7 +4,11 @@
 
 use std::{borrow::Cow, collections::BTreeMap};
 
-use ruma_common::{serde::from_raw_json_value, space::SpaceRoomJoinRule, OwnedRoomId};
+use ruma_common::{
+    serde::{from_raw_json_value, ignore_invalid_vec_items},
+    space::SpaceRoomJoinRule,
+    OwnedRoomId,
+};
 use ruma_macros::EventContent;
 use serde::{
     de::{Deserializer, Error},
@@ -168,7 +172,7 @@ impl From<JoinRule> for SpaceRoomJoinRule {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Restricted {
     /// Allow rules which describe conditions that allow joining a room.
-    #[serde(default)]
+    #[serde(default, deserialize_with = "ignore_invalid_vec_items")]
     pub allow: Vec<AllowRule>,
 }
 
@@ -252,12 +256,14 @@ impl<'de> Deserialize<'de> for AllowRule {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeMap;
+
     use assert_matches2::assert_matches;
     use ruma_common::owned_room_id;
 
     use super::{
-        AllowRule, JoinRule, OriginalSyncRoomJoinRulesEvent, Restricted, RoomJoinRulesEventContent,
-        SpaceRoomJoinRule,
+        AllowRule, CustomAllowRule, JoinRule, OriginalSyncRoomJoinRulesEvent, Restricted,
+        RoomJoinRulesEventContent, SpaceRoomJoinRule,
     };
 
     #[test]
@@ -332,6 +338,52 @@ mod tests {
         assert_matches!(
             join_rules,
             RoomJoinRulesEventContent { join_rule: JoinRule::Restricted(_) }
+        );
+    }
+
+    #[test]
+    fn invalid_allow_items() {
+        let json = r#"{
+            "join_rule": "restricted",
+            "allow": [
+                {
+                    "type": "m.room_membership",
+                    "room_id": "!mods:example.org"
+                },
+                {
+                    "type": "m.room_membership",
+                    "room_id": ""
+                },
+                {
+                    "type": "m.room_membership",
+                    "room_id": "not a room id"
+                },
+                {
+                    "type": "org.example.custom",
+                    "org.example.minimum_role": "developer"
+                },
+                {
+                    "not even close": "to being correct",
+                    "any object": "passes this test",
+                    "only non-objects in this array": "cause deserialization to fail"
+                }
+            ]
+        }"#;
+        let event: RoomJoinRulesEventContent = serde_json::from_str(json).unwrap();
+
+        assert_matches!(event.join_rule, JoinRule::Restricted(restricted));
+        assert_eq!(
+            restricted.allow,
+            &[
+                AllowRule::room_membership(owned_room_id!("!mods:example.org")),
+                AllowRule::_Custom(Box::new(CustomAllowRule {
+                    rule_type: "org.example.custom".into(),
+                    extra: BTreeMap::from([(
+                        "org.example.minimum_role".into(),
+                        "developer".into()
+                    )])
+                }))
+            ]
         );
     }
 
