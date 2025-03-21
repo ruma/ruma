@@ -4,6 +4,15 @@ Breaking changes:
 
 - Remove the `origin` field in `create_join_event::{v1/v2}::RoomState` due to a
   clarification in the spec.
+- The type of `signed` in `thirdparty::bind_callback::v1::Request` was fixed. It
+  uses `SignedContent` from `RoomMemberEventContent`.
+- The type of `content` in `thirdparty::exchange_invite::v1::Request` was fixed.
+  It is a `RoomMemberEventContent`. The constructor still takes a
+  `ThirdPartyInvite`.
+
+Bug fixes:
+
+- Add constructor for `thirdparty::bind_callback::v1::Response`.
 
 Improvements:
 
@@ -13,6 +22,9 @@ Improvements:
   cargo feature.
 - ruma-server-util was merged into this crate. `XMatrix` is available in the
   `authentication` module.
+- Add a method to construct a `thirdparty::exchange_invite::v1::Request` from a
+  `thirdparty::bind_callback::v1::ThirdPartyInvite` and a
+  `RoomThirdPartyInviteEventContent`.
 
 # 0.11.0
 
