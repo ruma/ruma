@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+- Remove the unstable support for MSC3575 as it was closed. MSC4186 should be
+  used instead.
+
 # 0.20.2
 
 Improvements:
