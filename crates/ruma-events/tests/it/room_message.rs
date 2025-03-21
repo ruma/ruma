@@ -7,6 +7,8 @@ use ruma_common::{
     serde::{Base64, Raw},
     user_id, MilliSecondsSinceUnixEpoch, OwnedDeviceId,
 };
+#[cfg(feature = "unstable-msc4274")]
+use ruma_events::room::message::{GalleryItemType, GalleryMessageEventContent};
 use ruma_events::{
     key::verification::VerificationMethod,
     room::{
@@ -1020,6 +1022,139 @@ fn file_msgtype_encrypted_content_deserialization() {
     assert_eq!(content.body, "Upload: my_file.txt");
     assert_matches!(content.source, MediaSource::Encrypted(encrypted_file));
     assert_eq!(encrypted_file.url, "mxc://notareal.hs/file");
+}
+
+#[test]
+#[cfg(feature = "unstable-msc4274")]
+fn gallery_msgtype_serialization_with_image() {
+    let message_event_content =
+        RoomMessageEventContent::new(MessageType::Gallery(GalleryMessageEventContent::new(
+            "My photos from [FOSDEM 2025](https://fosdem.org/2025/)".to_owned(),
+            Some(FormattedBody::html(
+                "My photos from <a href=\"https://fosdem.org/2025/\">FOSDEM 2025</a>",
+            )),
+            vec![GalleryItemType::Image(ImageMessageEventContent::plain(
+                "my_image.jpg".to_owned(),
+                mxc_uri!("mxc://notareal.hs/file").to_owned(),
+            ))],
+        )));
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "My photos from [FOSDEM 2025](https://fosdem.org/2025/)",
+            "formatted_body": "My photos from <a href=\"https://fosdem.org/2025/\">FOSDEM 2025</a>",
+            "format": "org.matrix.custom.html",
+            "itemtypes": [{
+                "body": "my_image.jpg",
+                "url": "mxc://notareal.hs/file",
+                "itemtype": "m.image",
+            }],
+            "msgtype": "dm.filament.gallery",
+        })
+    );
+}
+
+#[test]
+#[cfg(feature = "unstable-msc4274")]
+fn gallery_msgtype_deserialization_with_image() {
+    let json_data = json!({
+        "body": "My photos from [FOSDEM 2025](https://fosdem.org/2025/)",
+        "formatted_body": "My photos from <a href=\"https://fosdem.org/2025/\">FOSDEM 2025</a>",
+        "format": "org.matrix.custom.html",
+        "itemtypes": [{
+            "body": "my_image.jpg",
+            "url": "mxc://notareal.hs/file",
+            "itemtype": "m.image",
+        }],
+        "msgtype": "dm.filament.gallery",
+    });
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    assert_matches!(event_content.msgtype, MessageType::Gallery(content));
+    assert_eq!(content.body, "My photos from [FOSDEM 2025](https://fosdem.org/2025/)");
+    assert_eq!(
+        content.formatted.unwrap().body,
+        "My photos from <a href=\"https://fosdem.org/2025/\">FOSDEM 2025</a>"
+    );
+    assert_matches!(&content.itemtypes.len(), 1);
+    assert_matches!(&content.itemtypes.first().unwrap(), GalleryItemType::Image(content));
+    assert_eq!(content.body, "my_image.jpg");
+    assert_matches!(&content.source, MediaSource::Plain(url));
+    assert_eq!(url, "mxc://notareal.hs/file");
+    assert!(content.caption().is_none());
+}
+
+#[test]
+#[cfg(feature = "unstable-msc4274")]
+fn gallery_msgtype_serialization_with_custom_itemtype() {
+    let message_event_content =
+        RoomMessageEventContent::new(MessageType::Gallery(GalleryMessageEventContent::new(
+            "My photos from [FOSDEM 2025](https://fosdem.org/2025/)".to_owned(),
+            Some(FormattedBody::html(
+                "My photos from <a href=\"https://fosdem.org/2025/\">FOSDEM 2025</a>",
+            )),
+            vec![GalleryItemType::new(
+                "my_custom_itemtype",
+                "my message body".into(),
+                json_object! {
+                    "custom_field": "baba",
+                    "another_one": "abab",
+                },
+            )
+            .unwrap()],
+        )));
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "My photos from [FOSDEM 2025](https://fosdem.org/2025/)",
+            "formatted_body": "My photos from <a href=\"https://fosdem.org/2025/\">FOSDEM 2025</a>",
+            "format": "org.matrix.custom.html",
+            "itemtypes": [{
+                "body": "my message body",
+                "custom_field": "baba",
+                "another_one": "abab",
+                "itemtype": "my_custom_itemtype",
+            }],
+            "msgtype": "dm.filament.gallery",
+        })
+    );
+}
+
+#[test]
+#[cfg(feature = "unstable-msc4274")]
+fn gallery_msgtype_deserialization_with_custom_itemtype() {
+    let json_data = json!({
+        "body": "My photos from [FOSDEM 2025](https://fosdem.org/2025/)",
+        "formatted_body": "My photos from <a href=\"https://fosdem.org/2025/\">FOSDEM 2025</a>",
+        "format": "org.matrix.custom.html",
+        "itemtypes": [{
+            "body": "my message body",
+            "custom_field": "baba",
+            "another_one": "abab",
+            "itemtype": "my_custom_itemtype",
+        }],
+        "msgtype": "dm.filament.gallery",
+    });
+
+    let expected_json_data = json_object! {
+        "custom_field": "baba",
+        "another_one": "abab",
+    };
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    assert_matches!(event_content.msgtype, MessageType::Gallery(content));
+    assert_eq!(content.body, "My photos from [FOSDEM 2025](https://fosdem.org/2025/)");
+    assert_eq!(
+        content.formatted.unwrap().body,
+        "My photos from <a href=\"https://fosdem.org/2025/\">FOSDEM 2025</a>"
+    );
+    assert_matches!(&content.itemtypes.len(), 1);
+    let itemtype = content.itemtypes.first().unwrap();
+    assert_eq!(itemtype.itemtype(), "my_custom_itemtype");
+    assert_eq!(itemtype.body(), "my message body");
+    assert_eq!(itemtype.data(), Cow::Owned(expected_json_data));
 }
 
 #[test]

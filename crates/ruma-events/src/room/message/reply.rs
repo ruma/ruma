@@ -28,6 +28,8 @@ impl<'a> From<&'a OriginalRoomMessageEvent> for OriginalEventData<'a> {
             MessageType::Audio(_) => ("sent an audio file.", None, false),
             MessageType::Emote(c) => (&*c.body, c.formatted.as_ref(), true),
             MessageType::File(_) => ("sent a file.", None, false),
+            #[cfg(feature = "unstable-msc4274")]
+            MessageType::Gallery(_) => ("sent a gallery.", None, false),
             MessageType::Image(_) => ("sent an image.", None, false),
             MessageType::Location(_) => ("sent a location.", None, false),
             MessageType::Notice(c) => (&*c.body, c.formatted.as_ref(), false),

@@ -1,9 +1,15 @@
 //! `Deserialize` implementation for RoomMessageEventContent and MessageType.
 
 use ruma_common::serde::from_raw_json_value;
+#[cfg(feature = "unstable-msc4274")]
+use serde::Serialize;
 use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
+#[cfg(feature = "unstable-msc4274")]
+use serde_json::Value as JsonValue;
 
+#[cfg(feature = "unstable-msc4274")]
+use super::gallery::GalleryItemType;
 use super::{
     relation_serde::deserialize_relation, MessageType, RoomMessageEventContent,
     RoomMessageEventContentWithoutRelation,
@@ -64,6 +70,8 @@ impl<'de> Deserialize<'de> for MessageType {
             "m.audio" => Self::Audio(from_raw_json_value(&json)?),
             "m.emote" => Self::Emote(from_raw_json_value(&json)?),
             "m.file" => Self::File(from_raw_json_value(&json)?),
+            #[cfg(feature = "unstable-msc4274")]
+            "dm.filament.gallery" => Self::Gallery(from_raw_json_value(&json)?),
             "m.image" => Self::Image(from_raw_json_value(&json)?),
             "m.location" => Self::Location(from_raw_json_value(&json)?),
             "m.notice" => Self::Notice(from_raw_json_value(&json)?),
@@ -73,6 +81,67 @@ impl<'de> Deserialize<'de> for MessageType {
             "m.key.verification.request" => Self::VerificationRequest(from_raw_json_value(&json)?),
             _ => Self::_Custom(from_raw_json_value(&json)?),
         })
+    }
+}
+
+/// Helper struct to determine the itemtype from a `serde_json::value::RawValue`
+#[derive(Debug, Deserialize)]
+#[cfg(feature = "unstable-msc4274")]
+struct ItemTypeDeHelper {
+    /// The item type field
+    itemtype: String,
+}
+
+#[cfg(feature = "unstable-msc4274")]
+impl<'de> Deserialize<'de> for GalleryItemType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+        let ItemTypeDeHelper { itemtype } = from_raw_json_value(&json)?;
+
+        Ok(match itemtype.as_ref() {
+            "m.audio" => Self::Audio(from_raw_json_value(&json)?),
+            "m.file" => Self::File(from_raw_json_value(&json)?),
+            "m.image" => Self::Image(from_raw_json_value(&json)?),
+            "m.video" => Self::Video(from_raw_json_value(&json)?),
+            _ => Self::_Custom(from_raw_json_value(&json)?),
+        })
+    }
+}
+
+#[cfg(feature = "unstable-msc4274")]
+impl Serialize for GalleryItemType {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = match self {
+            GalleryItemType::Audio(content) => {
+                serde_json::to_value(content).map_err(serde::ser::Error::custom)?
+            }
+            GalleryItemType::File(content) => {
+                serde_json::to_value(content).map_err(serde::ser::Error::custom)?
+            }
+            GalleryItemType::Image(content) => {
+                serde_json::to_value(content).map_err(serde::ser::Error::custom)?
+            }
+            GalleryItemType::Video(content) => {
+                serde_json::to_value(content).map_err(serde::ser::Error::custom)?
+            }
+            GalleryItemType::_Custom(content) => {
+                serde_json::to_value(content).map_err(serde::ser::Error::custom)?
+            }
+        }
+        .as_object()
+        .cloned()
+        .unwrap_or_default();
+
+        map.insert("itemtype".to_owned(), JsonValue::String(self.itemtype().to_owned()));
+        map.remove("msgtype");
+
+        map.serialize(serializer)
     }
 }
 

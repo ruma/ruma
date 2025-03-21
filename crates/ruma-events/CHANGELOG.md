@@ -4,6 +4,7 @@ Improvements:
 
 - Add `RECOMMENDED_STRIPPED_STATE_EVENT_TYPES` constant for servers to filter/get recommended
   stripped state events.
+- Add unstable support for gallery `msgtype` as per MSC4274.
 
 # 0.30.1
 
