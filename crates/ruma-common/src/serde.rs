@@ -5,7 +5,12 @@
 //!
 //! [serde_urlencoded]: https://github.com/nox/serde_urlencoded
 
-use serde::{de, Deserialize, Deserializer};
+use std::{fmt, marker::PhantomData};
+
+use serde::{
+    de::{self, SeqAccess, Visitor},
+    Deserialize, Deserializer,
+};
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
 pub mod base64;
@@ -71,6 +76,46 @@ where
     E: de::Error,
 {
     serde_json::from_str(val.get()).map_err(E::custom)
+}
+
+/// Helper function for ignoring invalid items in a `Vec`, instead letting them cause the entire
+/// `Vec` to fail deserialization
+pub fn ignore_invalid_vec_items<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
+where
+    D: Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    struct SkipInvalid<T>(PhantomData<T>);
+
+    impl<'de, T> Visitor<'de> for SkipInvalid<T>
+    where
+        T: Deserialize<'de>,
+    {
+        type Value = Vec<T>;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+            formatter.write_str("Vec with possibly invalid items")
+        }
+
+        fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+        where
+            A: SeqAccess<'de>,
+        {
+            let mut vec = Vec::new();
+
+            while let Some(result) = seq.next_element::<T>().transpose() {
+                let Ok(elem) = result else {
+                    continue;
+                };
+
+                vec.push(elem);
+            }
+
+            Ok(vec)
+        }
+    }
+
+    deserializer.deserialize_seq(SkipInvalid(PhantomData))
 }
 
 pub use ruma_macros::{
