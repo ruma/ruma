@@ -230,7 +230,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrorCode::Unactionable => ErrorKind::Unactionable,
             ErrorCode::Unauthorized => ErrorKind::Unauthorized,
             ErrorCode::Unknown => ErrorKind::Unknown,
-            #[cfg(any(feature = "unstable-msc3575", feature = "unstable-msc4186"))]
+            #[cfg(feature = "unstable-msc4186")]
             ErrorCode::UnknownPos => ErrorKind::UnknownPos,
             ErrorCode::UnknownToken => ErrorKind::UnknownToken {
                 soft_logout: soft_logout

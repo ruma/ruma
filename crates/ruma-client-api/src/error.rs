@@ -302,11 +302,10 @@ pub enum ErrorKind {
 
     /// `M_UNKNOWN_POS`
     ///
-    /// The sliding sync ([MSC3575] / [MSC4186]) connection was expired by the server.
+    /// The sliding sync ([MSC4186]) connection was expired by the server.
     ///
-    /// [MSC3575]: https://github.com/matrix-org/matrix-spec-proposals/pull/3575
     /// [MSC4186]: https://github.com/matrix-org/matrix-spec-proposals/pull/4186
-    #[cfg(any(feature = "unstable-msc3575", feature = "unstable-msc4186"))]
+    #[cfg(feature = "unstable-msc4186")]
     UnknownPos,
 
     /// `M_UNKNOWN_TOKEN`
@@ -448,7 +447,7 @@ impl ErrorKind {
             ErrorKind::Unactionable => ErrorCode::Unactionable,
             ErrorKind::Unauthorized => ErrorCode::Unauthorized,
             ErrorKind::Unknown => ErrorCode::Unknown,
-            #[cfg(any(feature = "unstable-msc3575", feature = "unstable-msc4186"))]
+            #[cfg(feature = "unstable-msc4186")]
             ErrorKind::UnknownPos => ErrorCode::UnknownPos,
             ErrorKind::UnknownToken { .. } => ErrorCode::UnknownToken,
             ErrorKind::Unrecognized => ErrorCode::Unrecognized,
@@ -725,11 +724,10 @@ pub enum ErrorCode {
 
     /// `M_UNKNOWN_POS`
     ///
-    /// The sliding sync ([MSC3575] / [MSC4186]) connection was expired by the server.
+    /// The sliding sync ([MSC4186]) connection was expired by the server.
     ///
-    /// [MSC3575]: https://github.com/matrix-org/matrix-spec-proposals/pull/3575
     /// [MSC4186]: https://github.com/matrix-org/matrix-spec-proposals/pull/4186
-    #[cfg(any(feature = "unstable-msc3575", feature = "unstable-msc4186"))]
+    #[cfg(feature = "unstable-msc4186")]
     UnknownPos,
 
     /// `M_UNKNOWN_TOKEN`

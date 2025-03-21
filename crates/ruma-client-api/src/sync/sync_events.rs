@@ -8,9 +8,6 @@ use serde::{self, Deserialize, Serialize};
 
 pub mod v3;
 
-#[cfg(feature = "unstable-msc3575")]
-pub mod v4;
-
 #[cfg(feature = "unstable-msc4186")]
 pub mod v5;
 
