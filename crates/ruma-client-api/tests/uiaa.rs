@@ -80,7 +80,8 @@ fn serialize_uiaa_info() {
         }
     }))
     .unwrap();
-    let uiaa_info = assign!(UiaaInfo::new(flows, params), {
+    let uiaa_info = assign!(UiaaInfo::new(flows), {
+        params: Some(params),
         completed: vec!["m.login.password".into()],
     });
 
@@ -128,7 +129,7 @@ fn deserialize_uiaa_info() {
     assert_matches!(auth_error.kind, ErrorKind::Forbidden { .. });
     assert_eq!(auth_error.message, "Invalid password");
     assert_eq!(
-        from_json_str::<JsonValue>(info.params.get()).unwrap(),
+        from_json_str::<JsonValue>(info.params.unwrap().get()).unwrap(),
         json!({
             "example.type.baz": {
                 "example_key": "foobar"
@@ -146,7 +147,8 @@ fn try_uiaa_response_into_http_response() {
         }
     }))
     .unwrap();
-    let uiaa_info = assign!(UiaaInfo::new(flows, params), {
+    let uiaa_info = assign!(UiaaInfo::new(flows), {
+        params: Some(params),
         completed: vec![AuthType::ReCaptcha],
     });
     let uiaa_response =
@@ -159,7 +161,7 @@ fn try_uiaa_response_into_http_response() {
     assert_eq!(info.session, None);
     assert_matches!(info.auth_error, None);
     assert_eq!(
-        from_json_str::<JsonValue>(info.params.get()).unwrap(),
+        from_json_str::<JsonValue>(info.params.unwrap().get()).unwrap(),
         json!({
             "example.type.baz": {
                 "example_key": "foobar"
@@ -210,7 +212,7 @@ fn try_uiaa_response_from_http_response() {
     assert_matches!(auth_error.kind, ErrorKind::Forbidden { .. });
     assert_eq!(auth_error.message, "Invalid password");
     assert_eq!(
-        from_json_str::<JsonValue>(info.params.get()).unwrap(),
+        from_json_str::<JsonValue>(info.params.unwrap().get()).unwrap(),
         json!({
             "example.type.baz": {
                 "example_key": "foobar"
