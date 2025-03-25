@@ -7,6 +7,9 @@ Breaking changes:
   `BTreeSet<MatrixVersion>` instead of a `DoubleEndedIterator`.
 - Only allow appservices to call `appservice::request_ping::v1` and
   `appservice::set_room_visibility::v1`
+- The `params` field of `UiaaInfo` is now optional. It was never required in the
+  specification. Servers are encouraged to keep sending it for compatibility with
+  clients that required it.
 
 Improvements:
 
