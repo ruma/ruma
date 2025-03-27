@@ -16,6 +16,7 @@ Improvements:
 - `DeviceId::new()` generates a string with 10 chars instead of 8.
 - Add `ignore_invalid_vec_items`, to assist deserialization of `Vec`s, where
   invalid items should be ignored.
+- Add `MatrixVersion::V1_14`.
 
 # 0.15.1
 
