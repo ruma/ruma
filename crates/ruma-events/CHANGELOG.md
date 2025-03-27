@@ -14,6 +14,8 @@ Bug fixes:
 
 - `make_replacement` now correctly sets the mentions on the plain replacement event, when the
   edited event had no initial mentions.
+- `RelationType::Replacement` is now properly encoded/decoded as `m.replace` instead of
+  `m.replacement`.
 
 Improvements:
 
