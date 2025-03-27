@@ -301,6 +301,7 @@ pub enum RelationType {
     Annotation,
 
     /// `m.replace`, a replacement.
+    #[ruma_enum(rename = "m.replace")]
     Replacement,
 
     /// `m.thread`, a participant to a thread.
