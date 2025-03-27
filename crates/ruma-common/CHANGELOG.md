@@ -67,7 +67,9 @@ Improvements:
   - `SignaturesRules` was added under the `signatures` field.
 - `RoomVersionId` has an `MSC2870` variant for the `org.matrix.msc2870` room
   version defined in MSC2870.
-- Add `ignore_invalid_vec_items`, to assist deserialization of `Vec`s, where invalid items should
+- Add `ignore_invalid_vec_items`, to assist deserialization of `Vec`s, where
+  invalid items should
+- Add `MatrixVersion::V1_14`.
 
 # 0.15.1
 
