@@ -10,6 +10,8 @@ Breaking changes:
 - The `params` field of `UiaaInfo` is now optional. It was never required in the
   specification. Servers are encouraged to keep sending it for compatibility with
   clients that required it.
+- The `reason` field of `report_room::v3::Request` is now required, due to a
+  clarification in the spec.
 
 Improvements:
 
