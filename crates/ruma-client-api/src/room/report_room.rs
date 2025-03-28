@@ -29,9 +29,13 @@ pub mod v3 {
         #[ruma_api(path)]
         pub room_id: OwnedRoomId,
 
-        /// The reason to report the room.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub reason: Option<String>,
+        /// The reason to report the room, may be empty.
+        // We deserialize a missing field as an empty string for backwards compatibility. The field
+        // was initially specified as optional in Matrix 1.13 and then clarified as being required
+        // in Matrix 1.14 to align with its initial definition in MSC4151.
+        // See: https://github.com/matrix-org/matrix-spec/pull/2093#discussion_r1993171166
+        #[serde(default)]
+        pub reason: String,
     }
 
     /// Response type for the `report_room` endpoint.
@@ -40,9 +44,9 @@ pub mod v3 {
     pub struct Response {}
 
     impl Request {
-        /// Creates a new `Request` with the given room ID.
-        pub fn new(room_id: OwnedRoomId) -> Self {
-            Self { room_id, reason: None }
+        /// Creates a new `Request` with the given room ID and reason.
+        pub fn new(room_id: OwnedRoomId, reason: String) -> Self {
+            Self { room_id, reason }
         }
     }
 
