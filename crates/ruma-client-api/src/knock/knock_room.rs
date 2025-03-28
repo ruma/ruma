@@ -83,10 +83,20 @@ pub mod v3 {
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use http::header::{self, HeaderValue};
 
-            let query_string = serde_html_form::to_string(RequestQuery {
-                server_name: self.via.clone(),
-                via: self.via,
-            })?;
+            // Only send `server_name` if the `via` parameter is not supported by the server.
+            // `via` was introduced in Matrix 1.12.
+            let server_name = if considering_versions
+                .iter()
+                .rev()
+                .any(|version| version.is_superset_of(ruma_common::api::MatrixVersion::V1_12))
+            {
+                vec![]
+            } else {
+                self.via.clone()
+            };
+
+            let query_string =
+                serde_html_form::to_string(RequestQuery { server_name, via: self.via })?;
 
             let http_request = http::Request::builder()
                 .method(METADATA.method)
@@ -188,7 +198,7 @@ pub mod v3 {
 
         #[cfg(feature = "client")]
         #[test]
-        fn serialize_request() {
+        fn serialize_request_via_and_server_name() {
             let mut req = Request::new(owned_room_id!("!foo:b.ar").into());
             req.via = vec![owned_server_name!("f.oo")];
             let req = req
@@ -199,6 +209,21 @@ pub mod v3 {
                 )
                 .unwrap();
             assert_eq!(req.uri().query(), Some("via=f.oo&server_name=f.oo"));
+        }
+
+        #[cfg(feature = "client")]
+        #[test]
+        fn serialize_request_only_via() {
+            let mut req = Request::new(owned_room_id!("!foo:b.ar").into());
+            req.via = vec![owned_server_name!("f.oo")];
+            let req = req
+                .try_into_http_request::<Vec<u8>>(
+                    "https://matrix.org",
+                    SendAccessToken::IfRequired("tok"),
+                    &[MatrixVersion::V1_12],
+                )
+                .unwrap();
+            assert_eq!(req.uri().query(), Some("via=f.oo"));
         }
 
         #[cfg(feature = "server")]
