@@ -17,6 +17,10 @@ Improvements:
 
 - Remove the unstable support for MSC3575 as it was closed. MSC4186 should be
   used instead.
+- For the `membership::join_room_by_id_or_alias` and `knock::knock_room`
+  endpoints, the `server_name` query parameter is only serialized if the server
+  doesn't advertise at least one version that supports the `via` query
+  parameter. The former was removed in Matrix 1.14.
 
 # 0.20.2
 
