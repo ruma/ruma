@@ -20,6 +20,8 @@ Improvements:
 - Add the endpoints for peeking: `get_current_state` and `listen_to_new_events`.
 - Remove the unstable support for MSC3575 as it was closed. MSC4186 should be
   used instead.
+- Add the `reporting::report_user` endpoint to report users, according to Matrix
+  1.14.
 
 # 0.20.1
 
