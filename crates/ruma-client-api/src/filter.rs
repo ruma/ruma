@@ -8,7 +8,7 @@ mod url;
 
 use js_int::UInt;
 use ruma_common::{serde::StringEnum, OwnedRoomId, OwnedUserId};
-use ruma_events::MessageLikeEventType;
+use ruma_events::{room::message::MessageType, MessageLikeEventType};
 use serde::{Deserialize, Serialize};
 
 pub use self::{lazy_load::LazyLoadOptions, url::UrlFilter};
@@ -32,7 +32,7 @@ pub enum EventFormat {
 }
 
 /// Filters to be applied to room events.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomEventFilter {
     /// A list of event types to exclude.
@@ -394,8 +394,25 @@ mod tests {
     fn default_filters_are_empty() -> serde_json::Result<()> {
         assert_eq!(to_json_value(Filter::default())?, json!({}));
         assert_eq!(to_json_value(FilterDefinition::default())?, json!({}));
-        assert_eq!(to_json_value(RoomEventFilter::default())?, json!({}));
         assert_eq!(to_json_value(RoomFilter::default())?, json!({}));
+
+        Ok(())
+    }
+
+    #[test]
+    fn default_room_event_filter_not_empty() -> serde_json::Result<()> {
+        let filter = RoomEventFilter::default();
+
+        assert_eq!(filter.not_types, vec!["org.matrix.msc3672.beacon".to_owned()]);
+        assert_eq!(filter.not_rooms, vec![""; 0]);
+        assert_eq!(filter.limit, None);
+        assert_eq!(filter.rooms, None);
+        assert_eq!(filter.not_senders, vec![""; 0]);
+        assert_eq!(filter.senders, None);
+        assert_eq!(filter.types, None);
+        assert_eq!(filter.url_filter, None);
+        assert_eq!(filter.lazy_load_options, LazyLoadOptions::Disabled);
+        assert_eq!(filter.unread_thread_notifications, false);
 
         Ok(())
     }
