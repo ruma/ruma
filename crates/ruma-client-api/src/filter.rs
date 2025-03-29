@@ -8,6 +8,7 @@ mod url;
 
 use js_int::UInt;
 use ruma_common::{serde::StringEnum, OwnedRoomId, OwnedUserId};
+use ruma_events::MessageLikeEventType;
 use serde::{Deserialize, Serialize};
 
 pub use self::{lazy_load::LazyLoadOptions, url::UrlFilter};
@@ -102,7 +103,6 @@ pub struct RoomEventFilter {
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub unread_thread_notifications: bool,
 }
-
 impl RoomEventFilter {
     /// Creates an empty `RoomEventFilter`.
     ///
@@ -140,6 +140,23 @@ impl RoomEventFilter {
             && self.url_filter.is_none()
             && self.lazy_load_options.is_disabled()
             && !self.unread_thread_notifications
+    }
+}
+
+impl Default for RoomEventFilter {
+    fn default() -> Self {
+        Self {
+            not_types: vec![MessageLikeEventType::Beacon.to_string()],
+            not_rooms: vec![],
+            limit: None,
+            rooms: None,
+            not_senders: vec![],
+            senders: None,
+            types: None,
+            url_filter: None,
+            lazy_load_options: LazyLoadOptions::Disabled,
+            unread_thread_notifications: false,
+        }
     }
 }
 
