@@ -111,11 +111,6 @@ pub mod request {
         #[serde(flatten)]
         pub room_details: RoomDetails,
 
-        /// Request a stripped variant of membership events for the users used
-        /// to calculate the room name.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub include_heroes: Option<bool>,
-
         /// Filters to apply to the list before sorting.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub filters: Option<ListFilters>,
@@ -168,10 +163,6 @@ pub mod request {
 
         /// The maximum number of timeline events to return per room.
         pub timeline_limit: UInt,
-
-        /// Include the room heroes.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub include_heroes: Option<bool>,
     }
 
     /// Sliding sync request room details (see [`List::room_details`]).
@@ -542,7 +533,7 @@ pub mod response {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub bump_stamp: Option<UInt>,
 
-        /// Heroes of the room, if requested.
+        /// Heroes of the room.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub heroes: Option<Vec<Hero>>,
     }
