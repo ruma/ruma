@@ -128,18 +128,31 @@ pub mod request {
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct ListFilters {
-        /// Whether to return invited rooms, only joined rooms or both.
-        ///
-        /// Flag which only returns rooms the user is currently invited to.
-        /// If unset, both invited and joined rooms are returned. If false,
-        /// no invited rooms are returned. If true, only invited rooms are
-        /// returned.
+        /// Whether to return only DM rooms (as determined by the `m.direct` account data event),
+        /// only non-DM rooms, or both.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub is_dm: Option<bool>,
+
+        /// Whether to return only encrypted rooms (as determined by the existence of an
+        /// `m.room.encryption` state event), only unencrypted rooms, or both.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub is_encrypted: Option<bool>,
+
+        /// Whether to return only invited rooms, only joined rooms, or both.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub is_invite: Option<bool>,
 
+        /// Only list rooms with these create-types, or all.
+        ///
+        /// If a room type is specified in both `room_types` and `not_room_types`,
+        /// `not_room_types` wins and the corresponding rooms are not included.
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        pub room_types: Vec<RoomTypeFilter>,
+
         /// Only list rooms that are not of these create-types, or all.
         ///
-        /// This can be used to filter out spaces from the room list.
+        /// If a room type is specified in both `room_types` and `not_room_types`,
+        /// `not_room_types` wins and the corresponding rooms are not included.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
         pub not_room_types: Vec<RoomTypeFilter>,
     }
