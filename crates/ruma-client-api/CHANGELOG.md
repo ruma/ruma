@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.20.2
+
 Improvements:
 
 - Add support for the authorization server metadata endpoint, according to the
