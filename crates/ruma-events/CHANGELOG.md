@@ -24,6 +24,13 @@ Breaking changes:
   `RedactionRules` instead of `RoomVersionId`. This avoids undefined behavior
   for unknown room versions. 
 
+# 0.30.2
+
+Bug fixes:
+
+- `RelationType::Replacement` is now properly encoded/decoded as `m.replace` instead of
+  `m.replacement`.
+
 Improvements:
 
 - Add `RECOMMENDED_STRIPPED_STATE_EVENT_TYPES` constant for servers to filter/get recommended
@@ -38,8 +45,6 @@ Bug fixes:
 
 - `make_replacement` now correctly sets the mentions on the plain replacement event, when the
   edited event had no initial mentions.
-- `RelationType::Replacement` is now properly encoded/decoded as `m.replace` instead of
-  `m.replacement`.
 
 Improvements:
 

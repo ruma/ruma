@@ -26,24 +26,13 @@ Breaking changes:
 - The `redact*` functions in `canonical_json` take `RedactionRules` instead of
   `RoomVersionId`. This avoids undefined behavior for unknown room versions.
 
-Bug fixes:
-
-- `MatrixVersion::V1_0` now also matches Identity Service API versions r0.2.0 to
-  r0.3.0.
-- Allow configure exhaustive types via `RUMA_UNSTABLE_EXHAUSTIVE_TYPES` environment variable
-
 Improvements:
 
-- `MatrixVersion` implements `PartialOrd` and `Ord`. The variants are ordered by
-  release date, with a newer version being greater than an older version.
 - `ProtocolInstance` has an `instance_id` field, due to a clarification in the
   spec.
 - The `unstable-unspecified` cargo feature was removed.
-- `Signatures` implements `IntoIterator`.
-- Implement `PartialEqAsRefStr`, `Eq`, `PartialOrdAsRefStr`, `OrdAsRefStr` for `ruma_common::media::Method`.
 - Add `AnyKeyName` as a helper type to use `KeyId` APIs without validating the
   key name.
-- `DeviceId::new()` generates a string with 10 chars instead of 8.
 - Add `IdentityServerBase64PublicKey` as a helper type to decode identity server
   public keys encoded using standard or URL-safe base64.
 - `RoomVersion` was imported from ruma-state-res and renamed to
@@ -67,8 +56,25 @@ Improvements:
   - `SignaturesRules` was added under the `signatures` field.
 - `RoomVersionId` has an `MSC2870` variant for the `org.matrix.msc2870` room
   version defined in MSC2870.
+
+# 0.15.2
+
+Bug fixes:
+
+- `MatrixVersion::V1_0` now also matches Identity Service API versions r0.2.0 to
+  r0.3.0.
+- Allow configure exhaustive types via `RUMA_UNSTABLE_EXHAUSTIVE_TYPES` environment variable
+
+Improvements:
+
+- `MatrixVersion` implements `PartialOrd` and `Ord`. The variants are ordered by
+  release date, with a newer version being greater than an older version.
+- `Signatures` implements `IntoIterator`
+- Implement `PartialEqAsRefStr`, `Eq`, `PartialOrdAsRefStr`, `OrdAsRefStr` for
+  `ruma_common::media::Method`.
+- `DeviceId::new()` generates a string with 10 chars instead of 8.
 - Add `ignore_invalid_vec_items`, to assist deserialization of `Vec`s, where
-  invalid items should
+  invalid items should be ignored.
 - Add `MatrixVersion::V1_14`.
 
 # 0.15.1
