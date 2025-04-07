@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.11.1
+
 Improvements:
 
 - The `unstable-unspecified` cargo feature was removed. The `pdus` field of
