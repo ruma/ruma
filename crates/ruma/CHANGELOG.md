@@ -1,5 +1,15 @@
 # [unreleased]
 
+# 0.12.2
+
+Please refer to the changelogs of:
+
+- ruma-common 0.15.2
+- ruma-signatures 0.17.1
+- ruma-events 0.30.2
+- ruma-client-api 0.20.2
+- ruma-federation-api 0.11.1
+
 # 0.12.1
 
 Please refer to the changelogs of:
