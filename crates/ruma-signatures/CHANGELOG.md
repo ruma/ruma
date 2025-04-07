@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.17.1
+
 Bug fixes:
 
 - Do not check the signature of the server of the sender of `m.room.member`
