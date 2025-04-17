@@ -22,7 +22,12 @@ Breaking changes:
   is now serialized on the variants of `MessageType`.
 - `RedactContent::redact()` and `FullStateEventContent::redact()` take a
   `RedactionRules` instead of `RoomVersionId`. This avoids undefined behavior
-  for unknown room versions. 
+  for unknown room versions.
+
+Improvements:
+
+- Add support for ThumbHash as an alternative to BlurHash for MSC2448 in 
+  `ImageInfo` and `VideoInfo`.
 
 # 0.30.2
 
