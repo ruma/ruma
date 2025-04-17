@@ -105,6 +105,14 @@ pub struct ImageInfo {
     #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
     pub blurhash: Option<String>,
 
+    /// The [ThumbHash](https://evanw.github.io/thumbhash/) for this image.
+    ///
+    /// This uses the unstable prefix in
+    /// [MSC2448](https://github.com/matrix-org/matrix-spec-proposals/pull/2448).
+    #[cfg(feature = "unstable-msc2448")]
+    #[serde(rename = "xyz.amorgan.thumbhash", skip_serializing_if = "Option::is_none")]
+    pub thumbhash: Option<Base64>,
+
     /// Whether the image is animated.
     ///
     /// This uses the unstable prefix in [MSC4230].
