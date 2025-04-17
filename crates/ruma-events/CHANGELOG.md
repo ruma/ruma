@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+- Add support for ThumbHash as an alternative to BlurHash for MSC2448 in 
+  `ImageInfo` and `VideoInfo`.
+
 # 0.30.2
 
 Bug fixes:

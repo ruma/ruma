@@ -1,6 +1,8 @@
 use std::time::Duration;
 
 use js_int::UInt;
+#[cfg(feature = "unstable-msc2448")]
+use ruma_common::serde::Base64;
 use ruma_common::OwnedMxcUri;
 use serde::{Deserialize, Serialize};
 
@@ -140,6 +142,14 @@ pub struct VideoInfo {
     #[cfg(feature = "unstable-msc2448")]
     #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
     pub blurhash: Option<String>,
+
+    /// The [ThumbHash](https://evanw.github.io/thumbhash/) for this video.
+    ///
+    /// This uses the unstable prefix in
+    /// [MSC2448](https://github.com/matrix-org/matrix-spec-proposals/pull/2448).
+    #[cfg(feature = "unstable-msc2448")]
+    #[serde(rename = "xyz.amorgan.thumbhash", skip_serializing_if = "Option::is_none")]
+    pub thumbhash: Option<Base64>,
 }
 
 impl VideoInfo {
