@@ -72,6 +72,8 @@ Improvements:
   - `SignaturesRules` was added under the `signatures` field.
 - `RoomVersionId` has an `MSC2870` variant for the `org.matrix.msc2870` room
   version defined in MSC2870.
+- Add `OutgoingRequest::is_supported()` and `VersionHistory::is_supported()` to
+  be able to know if a server advertises support for an endpoint.
 
 # 0.15.2
 
