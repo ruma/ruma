@@ -13,7 +13,9 @@ const METADATA: Metadata = metadata! {
     authentication: None,
     history: {
         unstable => "/_matrix/some/msc1234/endpoint/:baz",
-        1.0 => "/_matrix/some/r0/endpoint/:baz",
+        unstable("org.bar.msc1234") => "/_matrix/unstable/org.bar.msc1234/endpoint/:baz",
+        stable("org.bar.msc1234.stable") => "/_matrix/some/r0/endpint/:baz",
+        1.0 | stable("org.bar.msc1234.stable.v2") => "/_matrix/some/r0/endpoint/:baz",
         1.1 => "/_matrix/some/v3/endpoint/:baz",
         1.2 => deprecated,
         1.3 => removed,
@@ -65,17 +67,40 @@ pub struct Response {
 pub struct Event {}
 
 fn main() {
-    use ruma_common::api::MatrixVersion;
+    use ruma_common::api::{MatrixVersion, StablePathSelector};
 
     assert_eq!(
         METADATA.history.unstable_paths().collect::<Vec<_>>(),
-        &["/_matrix/some/msc1234/endpoint/:baz"],
+        &[
+            (None, "/_matrix/some/msc1234/endpoint/:baz"),
+            (Some("org.bar.msc1234"), "/_matrix/unstable/org.bar.msc1234/endpoint/:baz")
+        ],
     );
     assert_eq!(
         METADATA.history.stable_paths().collect::<Vec<_>>(),
         &[
-            (MatrixVersion::V1_0, "/_matrix/some/r0/endpoint/:baz"),
-            (MatrixVersion::V1_1, "/_matrix/some/v3/endpoint/:baz")
+            (
+                StablePathSelector::Feature("org.bar.msc1234.stable"),
+                "/_matrix/some/r0/endpint/:baz"
+            ),
+            (
+                StablePathSelector::FeatureAndVersion {
+                    feature: "org.bar.msc1234.stable.v2",
+                    version: MatrixVersion::V1_0
+                },
+                "/_matrix/some/r0/endpoint/:baz"
+            ),
+            (StablePathSelector::Version(MatrixVersion::V1_1), "/_matrix/some/v3/endpoint/:baz")
+        ],
+    );
+    assert_eq!(
+        METADATA.history.all_paths().collect::<Vec<_>>(),
+        &[
+            "/_matrix/some/msc1234/endpoint/:baz",
+            "/_matrix/unstable/org.bar.msc1234/endpoint/:baz",
+            "/_matrix/some/r0/endpint/:baz",
+            "/_matrix/some/r0/endpoint/:baz",
+            "/_matrix/some/v3/endpoint/:baz"
         ],
     );
 

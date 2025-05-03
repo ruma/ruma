@@ -29,6 +29,18 @@ Breaking changes:
   `OutgoingRequestAppserviceExt::try_into_http_request_with_user_id()` and
   `Metadata::make_endpoint_url()` take a `SupportedVersions` instead of a
   `&[MatrixVersion]`.
+- The `metadata` macro allows to specify stable and unstable feature flags for
+  the paths in `history`.
+  - `VersionHistory::new()` takes a
+    `&'static [(Option<&'static str>, &'static str)]` for the unstable paths and
+    a `&'static [(StablePathSelector, &'static str)]` for the stable paths.
+  - `VersionHistory::unstable_paths()` returns an
+    `impl Iterator<Item = (Option<&'static str>, &'static str)>`.
+  - `VersionHistory::stable_paths()` returns an
+    `impl Iterator<Item = (StablePathSelector, &'static str)>`.
+  - `VersionHistory::stable_endpoint_for()` was renamed to `version_path()`.
+  - `VersioningDecision`'s `Stable` variant was renamed to `Version` and
+    `Unstable` was renamed to `Feature`.
 
 Improvements:
 
