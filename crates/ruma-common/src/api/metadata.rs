@@ -1,6 +1,6 @@
 use std::{
     cmp::Ordering,
-    collections::BTreeSet,
+    collections::{BTreeMap, BTreeSet},
     fmt::{Display, Write},
     str::FromStr,
 };
@@ -936,8 +936,27 @@ pub struct SupportedVersions {
     pub features: Vec<String>,
 }
 
+impl SupportedVersions {
+    /// Construct a `SupportedVersions` from the parts of a `/versions` response.
+    ///
+    /// Matrix versions that can't be parsed to a `MatrixVersion`, and features with the boolean
+    /// value set to `false` are discarded.
+    pub fn from_parts(versions: &[String], unstable_features: &BTreeMap<String, bool>) -> Self {
+        Self {
+            versions: versions.iter().flat_map(|s| s.parse::<MatrixVersion>()).collect(),
+            features: unstable_features
+                .iter()
+                .filter(|(_, enabled)| **enabled)
+                .map(|(feature, _)| feature.clone())
+                .collect(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use std::collections::{BTreeMap, BTreeSet};
+
     use assert_matches2::assert_matches;
     use http::Method;
 
@@ -1223,5 +1242,74 @@ mod tests {
         let version = MatrixVersion::try_from("v1.1").unwrap();
         assert_eq!(version, V1_1);
         assert_eq!(version.as_str(), Some("v1.1"));
+    }
+
+    #[test]
+    fn supported_versions_from_parts() {
+        let empty_features = BTreeMap::new();
+
+        let none = &[];
+        let none_supported = SupportedVersions::from_parts(none, &empty_features);
+        assert_eq!(none_supported.versions, BTreeSet::new());
+        assert_eq!(none_supported.features, Vec::<String>::new());
+
+        let single_known = &["r0.6.0".to_owned()];
+        let single_known_supported = SupportedVersions::from_parts(single_known, &empty_features);
+        assert_eq!(single_known_supported.versions, BTreeSet::from([V1_0]));
+        assert_eq!(single_known_supported.features, Vec::<String>::new());
+
+        let single_unknown = &["v0.0".to_owned()];
+        let single_unknown_supported =
+            SupportedVersions::from_parts(single_unknown, &empty_features);
+        assert_eq!(single_unknown_supported.versions, BTreeSet::new());
+        assert_eq!(single_unknown_supported.features, Vec::<String>::new());
+
+        let mut features = BTreeMap::new();
+        features.insert("org.bar.enabled_1".to_owned(), true);
+        features.insert("org.bar.disabled".to_owned(), false);
+        features.insert("org.bar.enabled_2".to_owned(), true);
+
+        let features_supported = SupportedVersions::from_parts(single_known, &features);
+        assert_eq!(features_supported.versions, BTreeSet::from([V1_0]));
+        assert_eq!(features_supported.features, vec!["org.bar.enabled_1", "org.bar.enabled_2"]);
+    }
+
+    #[test]
+    fn supported_versions_from_parts_order() {
+        let empty_features = BTreeMap::new();
+
+        let sorted = &[
+            "r0.0.1".to_owned(),
+            "r0.5.0".to_owned(),
+            "r0.6.0".to_owned(),
+            "r0.6.1".to_owned(),
+            "v1.1".to_owned(),
+            "v1.2".to_owned(),
+        ];
+        let sorted_supported = SupportedVersions::from_parts(sorted, &empty_features);
+        assert_eq!(sorted_supported.versions, BTreeSet::from([V1_0, V1_1, V1_2]));
+
+        let sorted_reverse = &[
+            "v1.2".to_owned(),
+            "v1.1".to_owned(),
+            "r0.6.1".to_owned(),
+            "r0.6.0".to_owned(),
+            "r0.5.0".to_owned(),
+            "r0.0.1".to_owned(),
+        ];
+        let sorted_reverse_supported =
+            SupportedVersions::from_parts(sorted_reverse, &empty_features);
+        assert_eq!(sorted_reverse_supported.versions, BTreeSet::from([V1_0, V1_1, V1_2]));
+
+        let random_order = &[
+            "v1.1".to_owned(),
+            "r0.6.1".to_owned(),
+            "r0.5.0".to_owned(),
+            "r0.6.0".to_owned(),
+            "r0.0.1".to_owned(),
+            "v1.2".to_owned(),
+        ];
+        let random_order_supported = SupportedVersions::from_parts(random_order, &empty_features);
+        assert_eq!(random_order_supported.versions, BTreeSet::from([V1_0, V1_1, V1_2]));
     }
 }
