@@ -17,7 +17,7 @@ pub mod v1 {
         rate_limited: true,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/org.matrix.msc3030/rooms/:room_id/timestamp_to_event",
+            unstable("org.matrix.msc3030") => "/_matrix/client/unstable/org.matrix.msc3030/rooms/:room_id/timestamp_to_event",
             1.6 => "/_matrix/client/v1/rooms/:room_id/timestamp_to_event",
         }
     };
