@@ -481,6 +481,18 @@ pub trait OutgoingRequest: Sized + Clone {
         access_token: SendAccessToken<'_>,
         considering: &'_ SupportedVersions,
     ) -> Result<http::Request<T>, IntoHttpError>;
+
+    /// Whether the homeserver advertises support for this endpoint.
+    ///
+    /// Returns `true` if any version or feature in the given [`SupportedVersions`] matches a path
+    /// in the history of this endpoint, unless the endpoint was removed.
+    ///
+    /// Note that this is likely to return false negatives, since some endpoints don't specify a
+    /// stable or unstable feature, and homeservers should not advertise support for a Matrix
+    /// version unless they support all of its features.
+    fn is_supported(considering_versions: &SupportedVersions) -> bool {
+        Self::METADATA.history.is_supported(considering_versions)
+    }
 }
 
 /// A response type for a Matrix API endpoint, used for receiving responses.

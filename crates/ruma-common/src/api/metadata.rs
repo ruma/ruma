@@ -330,6 +330,22 @@ impl VersionHistory {
         VersionHistory { unstable_paths, stable_paths, deprecated, removed }
     }
 
+    /// Whether the homeserver advertises support for a path in this [`VersionHistory`].
+    ///
+    /// Returns `true` if any version or feature in the given [`SupportedVersions`] matches a path
+    /// in this history, unless the endpoint was removed.
+    ///
+    /// Note that this is likely to return false negatives, since some endpoints don't specify a
+    /// stable or unstable feature, and homeservers should not advertise support for a Matrix
+    /// version unless they support all of its features.
+    pub fn is_supported(&self, considering: &SupportedVersions) -> bool {
+        match self.versioning_decision_for(&considering.versions) {
+            VersioningDecision::Removed => false,
+            VersioningDecision::Version { .. } => true,
+            VersioningDecision::Feature => self.feature_path(&considering.features).is_some(),
+        }
+    }
+
     /// Picks the right path (or an error) according to the supported versions and features of a
     /// homeserver.
     fn select_path(&self, considering: &SupportedVersions) -> Result<&'static str, IntoHttpError> {
@@ -1043,7 +1059,9 @@ mod tests {
         let hist =
             VersionHistory { stable_paths: &[(StablePathSelector::Version(V1_0), "/s")], ..EMPTY };
         assert_matches!(hist.select_path(&version_supported), Ok("/s"));
+        assert!(hist.is_supported(&version_supported));
         assert_matches!(hist.select_path(&superset_supported), Ok("/s"));
+        assert!(hist.is_supported(&superset_supported));
 
         // With feature and version.
         let hist = VersionHistory {
@@ -1054,7 +1072,9 @@ mod tests {
             ..EMPTY
         };
         assert_matches!(hist.select_path(&version_supported), Ok("/s"));
+        assert!(hist.is_supported(&version_supported));
         assert_matches!(hist.select_path(&superset_supported), Ok("/s"));
+        assert!(hist.is_supported(&superset_supported));
 
         // Select latest stable version.
         let hist = VersionHistory {
@@ -1065,6 +1085,7 @@ mod tests {
             ..EMPTY
         };
         assert_matches!(hist.select_path(&version_supported), Ok("/s_v2"));
+        assert!(hist.is_supported(&version_supported));
 
         // With unstable feature.
         let unstable_supported = SupportedVersions {
@@ -1077,6 +1098,7 @@ mod tests {
             ..EMPTY
         };
         assert_matches!(hist.select_path(&unstable_supported), Ok("/s"));
+        assert!(hist.is_supported(&unstable_supported));
     }
 
     #[test]
@@ -1093,6 +1115,7 @@ mod tests {
             ..EMPTY
         };
         assert_matches!(hist.select_path(&supported), Ok("/s"));
+        assert!(hist.is_supported(&supported));
 
         // With feature and version.
         let hist = VersionHistory {
@@ -1104,6 +1127,7 @@ mod tests {
             ..EMPTY
         };
         assert_matches!(hist.select_path(&supported), Ok("/s"));
+        assert!(hist.is_supported(&supported));
     }
 
     #[test]
@@ -1122,23 +1146,29 @@ mod tests {
             ..EMPTY
         };
         assert_matches!(hist.select_path(&supported), Ok("/u"));
+        assert!(hist.is_supported(&supported));
     }
 
     #[test]
     fn select_unstable_fallback() {
+        let supported = version_only_supported(&[V1_0]);
         let hist = VersionHistory { unstable_paths: &[(None, "/u")], ..EMPTY };
-        assert_matches!(hist.select_path(&version_only_supported(&[V1_0])), Ok("/u"));
+        assert_matches!(hist.select_path(&supported), Ok("/u"));
+        assert!(!hist.is_supported(&supported));
     }
 
     #[test]
     fn select_r0() {
+        let supported = version_only_supported(&[V1_0]);
         let hist =
             VersionHistory { stable_paths: &[(StablePathSelector::Version(V1_0), "/r")], ..EMPTY };
-        assert_matches!(hist.select_path(&version_only_supported(&[V1_0])), Ok("/r"));
+        assert_matches!(hist.select_path(&supported), Ok("/r"));
+        assert!(hist.is_supported(&supported));
     }
 
     #[test]
     fn select_removed_err() {
+        let supported = version_only_supported(&[V1_3]);
         let hist = VersionHistory {
             stable_paths: &[
                 (StablePathSelector::Version(V1_0), "/r"),
@@ -1148,14 +1178,13 @@ mod tests {
             deprecated: Some(V1_2),
             removed: Some(V1_3),
         };
-        assert_matches!(
-            hist.select_path(&version_only_supported(&[V1_3])),
-            Err(IntoHttpError::EndpointRemoved(V1_3))
-        );
+        assert_matches!(hist.select_path(&supported), Err(IntoHttpError::EndpointRemoved(V1_3)));
+        assert!(!hist.is_supported(&supported));
     }
 
     #[test]
     fn partially_removed_but_stable() {
+        let supported = version_only_supported(&[V1_2]);
         let hist = VersionHistory {
             stable_paths: &[
                 (StablePathSelector::Version(V1_0), "/r"),
@@ -1165,17 +1194,17 @@ mod tests {
             deprecated: Some(V1_2),
             removed: Some(V1_3),
         };
-        assert_matches!(hist.select_path(&version_only_supported(&[V1_2])), Ok("/s"));
+        assert_matches!(hist.select_path(&supported), Ok("/s"));
+        assert!(hist.is_supported(&supported));
     }
 
     #[test]
     fn no_unstable() {
+        let supported = version_only_supported(&[V1_0]);
         let hist =
             VersionHistory { stable_paths: &[(StablePathSelector::Version(V1_1), "/s")], ..EMPTY };
-        assert_matches!(
-            hist.select_path(&version_only_supported(&[V1_0])),
-            Err(IntoHttpError::NoUnstablePath)
-        );
+        assert_matches!(hist.select_path(&supported), Err(IntoHttpError::NoUnstablePath));
+        assert!(!hist.is_supported(&supported));
     }
 
     #[test]
