@@ -10,10 +10,10 @@
 //!
 //! [spec]: https://spec.matrix.org/latest/identity-service-api/#get_matrixidentityversions
 
-use std::collections::BTreeSet;
+use std::collections::BTreeMap;
 
 use ruma_common::{
-    api::{request, response, MatrixVersion, Metadata},
+    api::{request, response, Metadata, SupportedVersions},
     metadata,
 };
 
@@ -51,19 +51,12 @@ impl Response {
         Self { versions }
     }
 
-    /// Extracts known Matrix versions from this response.
+    /// Convert this `Response` into a [`SupportedVersions`] that can be used with
+    /// `OutgoingRequest::try_into_http_request()`.
     ///
-    /// Matrix versions that Ruma cannot parse, or does not know about, are discarded.
-    ///
-    /// The versions returned will be sorted from oldest to latest. Use [`.find()`][Iterator::find]
-    /// or [`.rfind()`][DoubleEndedIterator::rfind] to look for a minimum or maximum version to use
-    /// given some constraint.
-    pub fn known_versions(&self) -> BTreeSet<MatrixVersion> {
-        self.versions
-            .iter()
-            // Parse, discard unknown versions
-            .flat_map(|s| s.parse::<MatrixVersion>())
-            // Collect to BTreeSet
-            .collect()
+    /// Matrix versions that can't be parsed to a `MatrixVersion`, and features with the boolean
+    /// value set to `false` are discarded.
+    pub fn as_supported_versions(&self) -> SupportedVersions {
+        SupportedVersions::from_parts(&self.versions, &BTreeMap::new())
     }
 }
