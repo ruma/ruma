@@ -435,11 +435,16 @@ pub mod v3 {
         #[test]
         #[cfg(feature = "client")]
         fn serialize_login_request_body() {
-            use ruma_common::api::{MatrixVersion, OutgoingRequest, SendAccessToken};
+            use ruma_common::api::{
+                MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions,
+            };
             use serde_json::Value as JsonValue;
 
             use super::{LoginInfo, Password, Request, Token};
             use crate::uiaa::UserIdentifier;
+
+            let supported =
+                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
 
             let req: http::Request<Vec<u8>> = Request {
                 login_info: LoginInfo::Token(Token { token: "0xdeadbeef".to_owned() }),
@@ -447,11 +452,7 @@ pub mod v3 {
                 initial_device_display_name: Some("test".to_owned()),
                 refresh_token: false,
             }
-            .try_into_http_request(
-                "https://homeserver.tld",
-                SendAccessToken::None,
-                &[MatrixVersion::V1_1],
-            )
+            .try_into_http_request("https://homeserver.tld", SendAccessToken::None, &supported)
             .unwrap();
 
             let req_body_value: JsonValue = serde_json::from_slice(req.body()).unwrap();
@@ -479,11 +480,7 @@ pub mod v3 {
                 initial_device_display_name: Some("test".to_owned()),
                 refresh_token: false,
             }
-            .try_into_http_request(
-                "https://homeserver.tld",
-                SendAccessToken::None,
-                &[MatrixVersion::V1_1],
-            )
+            .try_into_http_request("https://homeserver.tld", SendAccessToken::None, &supported)
             .unwrap();
 
             let req_body_value: JsonValue = serde_json::from_slice(req.body()).unwrap();

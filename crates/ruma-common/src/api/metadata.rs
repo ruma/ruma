@@ -1,5 +1,6 @@
 use std::{
     cmp::Ordering,
+    collections::BTreeSet,
     fmt::{Display, Write},
     str::FromStr,
 };
@@ -100,12 +101,12 @@ impl Metadata {
     /// Generate the endpoint URL for this endpoint.
     pub fn make_endpoint_url(
         &self,
-        versions: &[MatrixVersion],
+        considering: &SupportedVersions,
         base_url: &str,
         path_args: &[&dyn Display],
         query_string: &str,
     ) -> Result<String, IntoHttpError> {
-        let path_with_placeholders = self.history.select_path(versions)?;
+        let path_with_placeholders = self.history.select_path(considering)?;
 
         let mut res = base_url.strip_suffix('/').unwrap_or(base_url).to_owned();
         let mut segments = path_with_placeholders.split('/');
@@ -319,9 +320,10 @@ impl VersionHistory {
         VersionHistory { unstable_paths, stable_paths, deprecated, removed }
     }
 
-    // This function helps picks the right path (or an error) from a set of Matrix versions.
-    fn select_path(&self, versions: &[MatrixVersion]) -> Result<&'static str, IntoHttpError> {
-        match self.versioning_decision_for(versions) {
+    /// Picks the right path (or an error) according to the supported versions and features of a
+    /// homeserver.
+    fn select_path(&self, considering: &SupportedVersions) -> Result<&'static str, IntoHttpError> {
+        match self.versioning_decision_for(&considering.versions) {
             VersioningDecision::Removed => Err(IntoHttpError::EndpointRemoved(
                 self.removed.expect("VersioningDecision::Removed implies metadata.removed"),
             )),
@@ -330,31 +332,33 @@ impl VersionHistory {
                     if all_deprecated {
                         warn!(
                             "endpoint is removed in some (and deprecated in ALL) \
-                             of the following versions: {versions:?}",
+                             of the following versions: {:?}",
+                            considering.versions
                         );
                     } else if any_deprecated {
                         warn!(
                             "endpoint is removed (and deprecated) in some of the \
-                             following versions: {versions:?}",
+                             following versions: {:?}",
+                            considering.versions
                         );
                     } else {
                         unreachable!("any_removed implies *_deprecated");
                     }
                 } else if all_deprecated {
                     warn!(
-                        "endpoint is deprecated in ALL of the following versions: \
-                         {versions:?}",
+                        "endpoint is deprecated in ALL of the following versions: {:?}",
+                        considering.versions
                     );
                 } else if any_deprecated {
                     warn!(
-                        "endpoint is deprecated in some of the following versions: \
-                         {versions:?}",
+                        "endpoint is deprecated in some of the following versions: {:?}",
+                        considering.versions
                     );
                 }
 
                 Ok(self
-                    .stable_endpoint_for(versions)
-                    .expect("VersioningDecision::Stable implies that a stable path exists"))
+                    .stable_endpoint_for(&considering.versions)
+                    .expect("VersioningDecision::Version implies that a version path exists"))
             }
             VersioningDecision::Unstable => self.unstable().ok_or(IntoHttpError::NoUnstablePath),
         }
@@ -370,7 +374,10 @@ impl VersionHistory {
     ///
     /// If resulting [`VersioningDecision`] is `Stable`, it will also detail if any version denoted
     /// deprecation or removal.
-    pub fn versioning_decision_for(&self, versions: &[MatrixVersion]) -> VersioningDecision {
+    pub fn versioning_decision_for(
+        &self,
+        versions: &BTreeSet<MatrixVersion>,
+    ) -> VersioningDecision {
         let greater_or_equal_any =
             |version: MatrixVersion| versions.iter().any(|v| v.is_superset_of(version));
         let greater_or_equal_all =
@@ -432,7 +439,7 @@ impl VersionHistory {
         self.stable_paths.iter().map(|(version, data)| (*version, *data))
     }
 
-    /// The path that should be used to query the endpoint, given a series of versions.
+    /// The path that should be used to query the endpoint, given a set of supported versions.
     ///
     /// This will pick the latest path that the version accepts.
     ///
@@ -443,7 +450,7 @@ impl VersionHistory {
     /// Note: This will not keep in mind endpoint removals, check with
     /// [`versioning_decision_for`](VersionHistory::versioning_decision_for) to see if this endpoint
     /// is still available.
-    pub fn stable_endpoint_for(&self, versions: &[MatrixVersion]) -> Option<&'static str> {
+    pub fn stable_endpoint_for(&self, versions: &BTreeSet<MatrixVersion>) -> Option<&'static str> {
         // Go reverse, to check the "latest" version first.
         for (ver, path) in self.stable_paths.iter().rev() {
             // Check if any of the versions are equal or greater than the version the path needs.
@@ -813,6 +820,22 @@ impl MatrixVersion {
     }
 }
 
+/// The list of Matrix versions and features supported by a homeserver.
+#[derive(Debug, Clone)]
+#[allow(clippy::exhaustive_structs)]
+pub struct SupportedVersions {
+    /// The Matrix versions that are supported by the homeserver.
+    ///
+    /// This set contains only known versions.
+    pub versions: BTreeSet<MatrixVersion>,
+
+    /// The features that are supported by the homeserver.
+    ///
+    /// This matches the `unstable_features` field of the `/versions` endpoint, without the boolean
+    /// value.
+    pub features: Vec<String>,
+}
+
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
@@ -821,7 +844,7 @@ mod tests {
     use super::{
         AuthScheme,
         MatrixVersion::{self, V1_0, V1_1, V1_2, V1_3},
-        Metadata, VersionHistory,
+        Metadata, SupportedVersions, VersionHistory,
     };
     use crate::api::error::IntoHttpError;
 
@@ -839,41 +862,74 @@ mod tests {
         }
     }
 
+    fn version_only_supported(versions: &[MatrixVersion]) -> SupportedVersions {
+        SupportedVersions { versions: versions.iter().copied().collect(), features: Vec::new() }
+    }
+
     // TODO add test that can hook into tracing and verify the deprecation warning is emitted
 
     #[test]
     fn make_simple_endpoint_url() {
         let meta = stable_only_metadata(&[(V1_0, "/s")]);
-        let url = meta.make_endpoint_url(&[V1_0], "https://example.org", &[], "").unwrap();
+        let url = meta
+            .make_endpoint_url(&version_only_supported(&[V1_0]), "https://example.org", &[], "")
+            .unwrap();
         assert_eq!(url, "https://example.org/s");
     }
 
     #[test]
     fn make_endpoint_url_with_path_args() {
         let meta = stable_only_metadata(&[(V1_0, "/s/:x")]);
-        let url = meta.make_endpoint_url(&[V1_0], "https://example.org", &[&"123"], "").unwrap();
+        let url = meta
+            .make_endpoint_url(
+                &version_only_supported(&[V1_0]),
+                "https://example.org",
+                &[&"123"],
+                "",
+            )
+            .unwrap();
         assert_eq!(url, "https://example.org/s/123");
     }
 
     #[test]
     fn make_endpoint_url_with_path_args_with_dash() {
         let meta = stable_only_metadata(&[(V1_0, "/s/:x")]);
-        let url =
-            meta.make_endpoint_url(&[V1_0], "https://example.org", &[&"my-path"], "").unwrap();
+        let url = meta
+            .make_endpoint_url(
+                &version_only_supported(&[V1_0]),
+                "https://example.org",
+                &[&"my-path"],
+                "",
+            )
+            .unwrap();
         assert_eq!(url, "https://example.org/s/my-path");
     }
 
     #[test]
     fn make_endpoint_url_with_path_args_with_reserved_char() {
         let meta = stable_only_metadata(&[(V1_0, "/s/:x")]);
-        let url = meta.make_endpoint_url(&[V1_0], "https://example.org", &[&"#path"], "").unwrap();
+        let url = meta
+            .make_endpoint_url(
+                &version_only_supported(&[V1_0]),
+                "https://example.org",
+                &[&"#path"],
+                "",
+            )
+            .unwrap();
         assert_eq!(url, "https://example.org/s/%23path");
     }
 
     #[test]
     fn make_endpoint_url_with_query() {
         let meta = stable_only_metadata(&[(V1_0, "/s/")]);
-        let url = meta.make_endpoint_url(&[V1_0], "https://example.org", &[], "foo=bar").unwrap();
+        let url = meta
+            .make_endpoint_url(
+                &version_only_supported(&[V1_0]),
+                "https://example.org",
+                &[],
+                "foo=bar",
+            )
+            .unwrap();
         assert_eq!(url, "https://example.org/s/?foo=bar");
     }
 
@@ -881,7 +937,12 @@ mod tests {
     #[should_panic]
     fn make_endpoint_url_wrong_num_path_args() {
         let meta = stable_only_metadata(&[(V1_0, "/s/:x")]);
-        _ = meta.make_endpoint_url(&[V1_0], "https://example.org", &[], "");
+        _ = meta.make_endpoint_url(
+            &version_only_supported(&[V1_0]),
+            "https://example.org",
+            &[],
+            "",
+        );
     }
 
     const EMPTY: VersionHistory =
@@ -890,19 +951,19 @@ mod tests {
     #[test]
     fn select_latest_stable() {
         let hist = VersionHistory { stable_paths: &[(V1_1, "/s")], ..EMPTY };
-        assert_matches!(hist.select_path(&[V1_0, V1_1]), Ok("/s"));
+        assert_matches!(hist.select_path(&version_only_supported(&[V1_0, V1_1])), Ok("/s"));
     }
 
     #[test]
     fn select_unstable() {
         let hist = VersionHistory { unstable_paths: &["/u"], ..EMPTY };
-        assert_matches!(hist.select_path(&[V1_0]), Ok("/u"));
+        assert_matches!(hist.select_path(&version_only_supported(&[V1_0])), Ok("/u"));
     }
 
     #[test]
     fn select_r0() {
         let hist = VersionHistory { stable_paths: &[(V1_0, "/r")], ..EMPTY };
-        assert_matches!(hist.select_path(&[V1_0]), Ok("/r"));
+        assert_matches!(hist.select_path(&version_only_supported(&[V1_0])), Ok("/r"));
     }
 
     #[test]
@@ -913,7 +974,10 @@ mod tests {
             deprecated: Some(V1_2),
             removed: Some(V1_3),
         };
-        assert_matches!(hist.select_path(&[V1_3]), Err(IntoHttpError::EndpointRemoved(V1_3)));
+        assert_matches!(
+            hist.select_path(&version_only_supported(&[V1_3])),
+            Err(IntoHttpError::EndpointRemoved(V1_3))
+        );
     }
 
     #[test]
@@ -924,13 +988,16 @@ mod tests {
             deprecated: Some(V1_2),
             removed: Some(V1_3),
         };
-        assert_matches!(hist.select_path(&[V1_2]), Ok("/s"));
+        assert_matches!(hist.select_path(&version_only_supported(&[V1_2])), Ok("/s"));
     }
 
     #[test]
     fn no_unstable() {
         let hist = VersionHistory { stable_paths: &[(V1_1, "/s")], ..EMPTY };
-        assert_matches!(hist.select_path(&[V1_0]), Err(IntoHttpError::NoUnstablePath));
+        assert_matches!(
+            hist.select_path(&version_only_supported(&[V1_0])),
+            Err(IntoHttpError::NoUnstablePath)
+        );
     }
 
     #[test]

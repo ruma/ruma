@@ -266,7 +266,9 @@ pub mod v1 {
         #[cfg(feature = "client")]
         #[test]
         fn request_contains_events_field() {
-            use ruma_common::api::{OutgoingRequest, SendAccessToken};
+            use ruma_common::api::{
+                MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions,
+            };
 
             let dummy_event_json = json!({
                 "type": "m.room.message",
@@ -281,12 +283,14 @@ pub mod v1 {
             });
             let dummy_event = from_json_value(dummy_event_json.clone()).unwrap();
             let events = vec![dummy_event];
+            let supported =
+                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
 
             let req = super::Request::new("any_txn_id".into(), events)
                 .try_into_http_request::<Vec<u8>>(
                     "https://homeserver.tld",
                     SendAccessToken::IfRequired("auth_tok"),
-                    &[ruma_common::api::MatrixVersion::V1_1],
+                    &supported,
                 )
                 .unwrap();
             let json_body: serde_json::Value = serde_json::from_slice(req.body()).unwrap();
