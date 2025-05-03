@@ -25,6 +25,10 @@ Breaking changes:
   `AppserviceToken`'s place.
 - The `redact*` functions in `canonical_json` take `RedactionRules` instead of
   `RoomVersionId`. This avoids undefined behavior for unknown room versions.
+- `OutgoingRequest::try_into_http_request()`,
+  `OutgoingRequestAppserviceExt::try_into_http_request_with_user_id()` and
+  `Metadata::make_endpoint_url()` take a `SupportedVersions` instead of a
+  `&[MatrixVersion]`.
 
 Improvements:
 

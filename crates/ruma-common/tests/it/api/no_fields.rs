@@ -1,5 +1,5 @@
 use ruma_common::api::{
-    MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken,
+    MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken, SupportedVersions,
 };
 
 mod get {
@@ -53,11 +53,14 @@ mod post {
 #[test]
 fn empty_post_request_http_repr() {
     let req = post::Request {};
+    let supported =
+        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+
     let http_req = req
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            &[MatrixVersion::V1_1],
+            &supported,
         )
         .unwrap();
 
@@ -67,11 +70,14 @@ fn empty_post_request_http_repr() {
 #[test]
 fn empty_get_request_http_repr() {
     let req = get::Request {};
+    let supported =
+        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+
     let http_req = req
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            &[MatrixVersion::V1_1],
+            &supported,
         )
         .unwrap();
 

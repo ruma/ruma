@@ -7,7 +7,7 @@ use ruma_common::{
             HeaderDeserializationError,
         },
         request, response, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
-        OutgoingRequest, OutgoingResponse, SendAccessToken,
+        OutgoingRequest, OutgoingResponse, SendAccessToken, SupportedVersions,
     },
     http_headers::{ContentDisposition, ContentDispositionType},
     metadata,
@@ -47,13 +47,15 @@ fn request_serde() {
         .with_filename(Some("my_file".to_owned()));
     let req =
         Request { location: location.to_owned(), content_disposition: content_disposition.clone() };
+    let supported =
+        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
 
     let mut http_req = req
         .clone()
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            &[MatrixVersion::V1_1],
+            &supported,
         )
         .unwrap();
     assert_matches!(http_req.headers().get(LOCATION), Some(_));

@@ -8,7 +8,7 @@ use ruma_common::{
     api::{
         error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError},
         AuthScheme, EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
-        OutgoingRequest, OutgoingResponse, SendAccessToken, VersionHistory,
+        OutgoingRequest, OutgoingResponse, SendAccessToken, SupportedVersions, VersionHistory,
     },
     OwnedRoomAliasId, OwnedRoomId,
 };
@@ -46,10 +46,9 @@ impl OutgoingRequest for Request {
         self,
         base_url: &str,
         _access_token: SendAccessToken<'_>,
-        considering_versions: &'_ [MatrixVersion],
+        considering: &'_ SupportedVersions,
     ) -> Result<http::Request<T>, IntoHttpError> {
-        let url =
-            METADATA.make_endpoint_url(considering_versions, base_url, &[&self.room_alias], "")?;
+        let url = METADATA.make_endpoint_url(considering, base_url, &[&self.room_alias], "")?;
 
         let request_body = RequestBody { room_id: self.room_id };
 

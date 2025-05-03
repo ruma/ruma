@@ -90,13 +90,14 @@ pub mod v3 {
             self,
             base_url: &str,
             access_token: ruma_common::api::SendAccessToken<'_>,
-            considering_versions: &'_ [ruma_common::api::MatrixVersion],
+            considering: &'_ ruma_common::api::SupportedVersions,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use http::header::{self, HeaderValue};
 
             // Only send `server_name` if the `via` parameter is not supported by the server.
             // `via` was introduced in Matrix 1.12.
-            let server_name = if considering_versions
+            let server_name = if considering
+                .versions
                 .iter()
                 .rev()
                 .any(|version| version.is_superset_of(ruma_common::api::MatrixVersion::V1_12))
@@ -112,7 +113,7 @@ pub mod v3 {
             let http_request = http::Request::builder()
                 .method(METADATA.method)
                 .uri(METADATA.make_endpoint_url(
-                    considering_versions,
+                    considering,
                     base_url,
                     &[&self.room_id_or_alias],
                     &query_string,
@@ -209,7 +210,10 @@ pub mod v3 {
     #[cfg(all(test, any(feature = "client", feature = "server")))]
     mod tests {
         use ruma_common::{
-            api::{IncomingRequest as _, MatrixVersion, OutgoingRequest, SendAccessToken},
+            api::{
+                IncomingRequest as _, MatrixVersion, OutgoingRequest, SendAccessToken,
+                SupportedVersions,
+            },
             owned_room_id, owned_server_name,
         };
 
@@ -220,11 +224,14 @@ pub mod v3 {
         fn serialize_request_via_and_server_name() {
             let mut req = Request::new(owned_room_id!("!foo:b.ar").into());
             req.via = vec![owned_server_name!("f.oo")];
+            let supported =
+                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+
             let req = req
                 .try_into_http_request::<Vec<u8>>(
                     "https://matrix.org",
                     SendAccessToken::IfRequired("tok"),
-                    &[MatrixVersion::V1_1],
+                    &supported,
                 )
                 .unwrap();
             assert_eq!(req.uri().query(), Some("via=f.oo&server_name=f.oo"));
@@ -235,11 +242,14 @@ pub mod v3 {
         fn serialize_request_only_via() {
             let mut req = Request::new(owned_room_id!("!foo:b.ar").into());
             req.via = vec![owned_server_name!("f.oo")];
+            let supported =
+                SupportedVersions { versions: [MatrixVersion::V1_13].into(), features: Vec::new() };
+
             let req = req
                 .try_into_http_request::<Vec<u8>>(
                     "https://matrix.org",
                     SendAccessToken::IfRequired("tok"),
-                    &[MatrixVersion::V1_13],
+                    &supported,
                 )
                 .unwrap();
             assert_eq!(req.uri().query(), Some("via=f.oo"));

@@ -329,7 +329,9 @@ pub use ruma_macros::response;
 pub mod error;
 mod metadata;
 
-pub use self::metadata::{MatrixVersion, Metadata, VersionHistory, VersioningDecision};
+pub use self::metadata::{
+    MatrixVersion, Metadata, SupportedVersions, VersionHistory, VersioningDecision,
+};
 
 /// An enum to control whether an access token should be added to outgoing requests
 #[derive(Clone, Copy, Debug)]
@@ -393,14 +395,14 @@ pub trait OutgoingRequest: Sized + Clone {
     /// access_token, this could result in an error. It may also fail with a serialization error
     /// in case of bugs in Ruma though.
     ///
-    /// It may also fail if, for every version in `considering_versions`;
+    /// It may also fail if, for every version in `considering`;
     /// - The endpoint is too old, and has been removed in all versions.
     ///   ([`EndpointRemoved`](error::IntoHttpError::EndpointRemoved))
     /// - The endpoint is too new, and no unstable path is known for this endpoint.
     ///   ([`NoUnstablePath`](error::IntoHttpError::NoUnstablePath))
     ///
-    /// Finally, this will emit a warning through `tracing` if it detects if any version in
-    /// `considering_versions` has deprecated this endpoint.
+    /// Finally, this will emit a warning through [`tracing`] if it detects that any version in
+    /// `considering` has deprecated this endpoint.
     ///
     /// The endpoints path will be appended to the given `base_url`, for example
     /// `https://matrix.org`. Since all paths begin with a slash, it is not necessary for the
@@ -409,7 +411,7 @@ pub trait OutgoingRequest: Sized + Clone {
         self,
         base_url: &str,
         access_token: SendAccessToken<'_>,
-        considering_versions: &'_ [MatrixVersion],
+        considering: &'_ SupportedVersions,
     ) -> Result<http::Request<T>, IntoHttpError>;
 }
 
@@ -435,10 +437,9 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
         base_url: &str,
         access_token: SendAccessToken<'_>,
         user_id: &UserId,
-        considering_versions: &'_ [MatrixVersion],
+        considering: &'_ SupportedVersions,
     ) -> Result<http::Request<T>, IntoHttpError> {
-        let mut http_request =
-            self.try_into_http_request(base_url, access_token, considering_versions)?;
+        let mut http_request = self.try_into_http_request(base_url, access_token, considering)?;
         let user_id_query = serde_html_form::to_string([("user_id", user_id)])?;
 
         let uri = http_request.uri().to_owned();
