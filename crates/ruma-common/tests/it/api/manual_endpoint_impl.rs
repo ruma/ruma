@@ -8,7 +8,8 @@ use ruma_common::{
     api::{
         error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError},
         AuthScheme, EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
-        OutgoingRequest, OutgoingResponse, SendAccessToken, SupportedVersions, VersionHistory,
+        OutgoingRequest, OutgoingResponse, SendAccessToken, StablePathSelector, SupportedVersions,
+        VersionHistory,
     },
     OwnedRoomAliasId, OwnedRoomId,
 };
@@ -26,10 +27,25 @@ const METADATA: Metadata = Metadata {
     rate_limited: false,
     authentication: AuthScheme::None,
     history: VersionHistory::new(
-        &["/_matrix/client/unstable/directory/room/:room_alias"],
         &[
-            (MatrixVersion::V1_0, "/_matrix/client/r0/directory/room/:room_alias"),
-            (MatrixVersion::V1_1, "/_matrix/client/v3/directory/room/:room_alias"),
+            (None, "/_matrix/client/unstable/directory/room/:room_alias"),
+            (
+                Some("org.bar.directory"),
+                "/_matrix/client/unstable/org.bar.directory/room/:room_alias",
+            ),
+        ],
+        &[
+            (
+                StablePathSelector::FeatureAndVersion {
+                    feature: "org.bar.directory.stable",
+                    version: MatrixVersion::V1_0,
+                },
+                "/_matrix/client/r0/directory/room/:room_alias",
+            ),
+            (
+                StablePathSelector::Version(MatrixVersion::V1_1),
+                "/_matrix/client/v3/directory/room/:room_alias",
+            ),
         ],
         Some(MatrixVersion::V1_2),
         Some(MatrixVersion::V1_3),
