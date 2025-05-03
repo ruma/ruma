@@ -26,7 +26,7 @@ pub mod unstable {
         rate_limited: true,
         authentication: None,
         history: {
-            unstable => "/_matrix/client/unstable/org.matrix.msc4108/rendezvous",
+            unstable("org.matrix.msc4108") => "/_matrix/client/unstable/org.matrix.msc4108/rendezvous",
         }
     };
 

@@ -17,7 +17,7 @@ pub mod v1 {
         rate_limited: true,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/media/unstable/fi.mau.msc2246/create",
+            unstable("fi.mau.msc2246") => "/_matrix/media/unstable/fi.mau.msc2246/create",
             1.7 => "/_matrix/media/v1/create",
         }
     };
