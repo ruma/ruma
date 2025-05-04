@@ -36,7 +36,7 @@ use crate::{
 // - https://github.com/element-hq/synapse/blob/9c5d08fff8d66a7cc0e2ecfeeb783f933a778c2f/synapse/event_auth.py
 // - https://github.com/matrix-org/matrix-spec/issues/365
 
-/// Get the list of [relevant auth event types] required to authorize the event of the given type.
+/// Get the list of [relevant auth events] required to authorize the event of the given type.
 ///
 /// Returns a list of `(event_type, state_key)` tuples.
 ///
