@@ -1,6 +1,6 @@
 use std::{
     borrow::Borrow,
-    collections::{BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, HashSet},
 };
 
 use js_int::Int;
@@ -28,7 +28,6 @@ use crate::{
 // not listed:
 //
 // - check that the event respects the size limits,
-// - check that all the auth events are in the same room as `incoming_event`.
 //
 // References:
 // - https://spec.matrix.org/latest/server-server-api/#checks-performed-on-receipt-of-a-pdu
@@ -158,44 +157,65 @@ pub fn check_state_independent_auth_rules<E: Event>(
         return check_room_create(room_create_event, rules);
     }
 
-    /*
-    TODO: In the past this code caused problems federating with synapse, maybe this has been
-    resolved already. Needs testing.
+    let expected_auth_types = auth_types_for_event(
+        incoming_event.event_type(),
+        incoming_event.sender(),
+        incoming_event.state_key(),
+        incoming_event.content(),
+        rules,
+    )?
+    .into_iter()
+    .map(|(event_type, state_key)| (TimelineEventType::from(event_type), state_key))
+    .collect::<HashSet<_>>();
+
+    let room_id = incoming_event.room_id();
+    let mut seen_auth_types: HashSet<(TimelineEventType, String)> =
+        HashSet::with_capacity(expected_auth_types.len());
 
     // Since v1, considering auth_events:
-    //
-    // - Since v1, if there are duplicate entries for a given type and state_key pair, reject.
-    //
-    // - Since v1, if there are entries whose type and state_key don’t match those specified
-    //   by the auth events selection algorithm described in the server specification, reject.
-    let expected_auth = auth_types_for_event(
-        incoming_event.kind,
-        sender,
-        incoming_event.state_key,
-        incoming_event.content().clone(),
-    );
+    for auth_event_id in incoming_event.auth_events() {
+        let event_id = auth_event_id.borrow();
 
-    dbg!(&expected_auth);
+        let Some(auth_event) = fetch_event(event_id) else {
+            return Err(format!("failed to find auth event {event_id}"));
+        };
 
-    for ev_key in auth_events.keys() {
-        // (b)
-        if !expected_auth.contains(ev_key) {
-            warn!("auth_events contained invalid auth event");
-            return Ok(false);
+        // The auth event must be in the same room as the incoming event.
+        if auth_event.room_id() != room_id {
+            return Err(format!("auth event {event_id} not in the same room"));
         }
-    }
-    */
 
-    // TODO:
-    //
-    // Since v1, if there are entries which were themselves rejected under the checks performed on
-    // receipt of a PDU, reject.
+        let event_type = auth_event.event_type();
+        let state_key = auth_event
+            .state_key()
+            .ok_or_else(|| format!("auth event {event_id} has no `state_key`"))?;
+        let key = (event_type.clone(), state_key.to_owned());
+
+        // Since v1, if there are duplicate entries for a given type and state_key pair, reject.
+        if seen_auth_types.contains(&key) {
+            return Err(format!(
+                "duplicate auth event {event_id} for ({event_type}, {state_key}) pair"
+            ));
+        }
+
+        // Since v1, if there are entries whose type and state_key don’t match those specified by
+        // the auth events selection algorithm described in the server specification, reject.
+        if !expected_auth_types.contains(&key) {
+            return Err(format!(
+                "unexpected auth event {event_id} with ({event_type}, {state_key}) pair"
+            ));
+        };
+
+        // TODO:
+        //
+        // Since v1, if there are entries which were themselves rejected under the checks performed
+        // on receipt of a PDU, reject.
+
+        seen_auth_types.insert(key);
+    }
 
     // Since v1, if there is no m.room.create event among the entries, reject.
-    if !incoming_event.auth_events().any(|id| {
-        fetch_event(id.borrow())
-            .is_some_and(|event| *event.event_type() == TimelineEventType::RoomCreate)
-    }) {
+    if !seen_auth_types.iter().any(|(event_type, _)| *event_type == TimelineEventType::RoomCreate) {
         return Err("no `m.room.create` event in auth events".to_owned());
     }
 

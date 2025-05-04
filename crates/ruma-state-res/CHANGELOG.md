@@ -41,6 +41,8 @@ Bug fixes:
 - Fix `auth_check` for `m.room.member` with an `invite` membership and a
   `third_party_invite`. The `signed` object in the content is now verified
   against the public keys in the matching `m.room.third_party_invite` event.
+- `check_state_independent_auth_rules` now performs the authorization rules
+  checks on `auth_events`.
 
 Improvements:
 
