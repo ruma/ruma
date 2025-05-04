@@ -14,7 +14,7 @@ use ruma_events::{room::member::MembershipState, StateEventType, TimelineEventTy
 use tracing::{debug, info, instrument, trace, warn};
 
 mod error;
-pub mod event_auth;
+mod event_auth;
 pub mod events;
 #[cfg(test)]
 mod test_utils;
