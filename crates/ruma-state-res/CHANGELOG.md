@@ -23,6 +23,8 @@ Breaking:
   to provide an `AuthorizationRules` for their custom `RoomVersionId`.
 - `RoomVersion` was moved to ruma-common and renamed `RoomVersionRules`, along
   with other changes. Check the changelog of ruma-common for more details.
+- The `event_auth` module is no longer public. Everything public inside of it
+  is already exposed at the root of the crate.
 
 Bug fixes:
 
