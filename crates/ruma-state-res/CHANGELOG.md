@@ -25,6 +25,10 @@ Breaking:
   with other changes. Check the changelog of ruma-common for more details.
 - The `event_auth` module is no longer public. Everything public inside of it
   is already exposed at the root of the crate.
+- `auth_check` was split into 2 functions: `check_state_independent_auth_rules`
+  and `check_state_dependent_auth_rules`. The former should be called once when
+  the incoming event is received, while the latter should be called for every
+  state that should be checked.
 
 Bug fixes:
 

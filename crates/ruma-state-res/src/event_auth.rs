@@ -4,7 +4,7 @@ use std::{
 };
 
 use js_int::Int;
-use ruma_common::{room_version_rules::AuthorizationRules, UserId};
+use ruma_common::{room_version_rules::AuthorizationRules, EventId, UserId};
 use ruma_events::room::member::MembershipState;
 use serde_json::value::RawValue as RawJsonValue;
 use tracing::{debug, info, instrument, warn};
@@ -129,13 +129,14 @@ pub fn auth_types_for_event(
     Ok(auth_types)
 }
 
-/// Check whether the incoming event passes the [authorization rules] for the given room version.
+/// Check whether the incoming event passes the state-independent [authorization rules] for the
+/// given room version rules.
 ///
-/// The `fetch_state` closure should gather state from a state snapshot. We need to know if the
-/// event passes auth against some state not a recursive collection of auth_events fields.
+/// The state-independent rules are the first few authorization rules that check an incoming
+/// `m.room.create` event (which cannot have `auth_events`), and the list of `auth_events` of other
+/// events.
 ///
-/// This assumes that `ruma_signatures::verify_event()` was called previously, as some authorization
-/// rules depend on the signatures being valid on the event.
+/// This method only needs to be called once, when the event is received.
 ///
 /// # Errors
 ///
@@ -143,12 +144,12 @@ pub fn auth_types_for_event(
 ///
 /// [authorization rules]: https://spec.matrix.org/latest/server-server-api/#authorization-rules
 #[instrument(skip_all, fields(event_id = incoming_event.event_id().borrow().as_str()))]
-pub fn auth_check<E: Event>(
+pub fn check_state_independent_auth_rules<E: Event>(
     rules: &AuthorizationRules,
     incoming_event: impl Event,
-    fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
+    fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> Result<(), String> {
-    debug!("starting auth check");
+    debug!("starting state-independent auth check");
 
     // Since v1, if type is m.room.create:
     if *incoming_event.event_type() == TimelineEventType::RoomCreate {
@@ -190,13 +191,53 @@ pub fn auth_check<E: Event>(
     // Since v1, if there are entries which were themselves rejected under the checks performed on
     // receipt of a PDU, reject.
 
-    let room_create_event = fetch_state.room_create_event()?;
-
     // Since v1, if there is no m.room.create event among the entries, reject.
-    if !incoming_event.auth_events().any(|id| id.borrow() == room_create_event.event_id().borrow())
-    {
+    if !incoming_event.auth_events().any(|id| {
+        fetch_event(id.borrow())
+            .is_some_and(|event| *event.event_type() == TimelineEventType::RoomCreate)
+    }) {
         return Err("no `m.room.create` event in auth events".to_owned());
     }
+
+    Ok(())
+}
+
+/// Check whether the incoming event passes the state-dependent [authorization rules] for the given
+/// room version rules.
+///
+/// The state-dependent rules are all the remaining rules not checked by
+/// [`check_state_independent_auth_rules()`].
+///
+/// This method should be called several times for an event, to perform the [checks on receipt of a
+/// PDU].
+///
+/// The `fetch_state` closure should gather state from a state snapshot. We need to know if the
+/// event passes auth against some state not a recursive collection of auth_events fields.
+///
+/// This assumes that `ruma_signatures::verify_event()` was called previously, as some authorization
+/// rules depend on the signatures being valid on the event.
+///
+/// # Errors
+///
+/// If the check fails, this returns an `Err(_)` with a description of the check that failed.
+///
+/// [authorization rules]: https://spec.matrix.org/latest/server-server-api/#authorization-rules
+/// [checks on receipt of a PDU]: https://spec.matrix.org/latest/server-server-api/#checks-performed-on-receipt-of-a-pdu
+#[instrument(skip_all, fields(event_id = incoming_event.event_id().borrow().as_str()))]
+pub fn check_state_dependent_auth_rules<E: Event>(
+    rules: &AuthorizationRules,
+    incoming_event: impl Event,
+    fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
+) -> Result<(), String> {
+    debug!("starting state-dependent auth check");
+
+    // There are no state-dependent auth rules for create events.
+    if *incoming_event.event_type() == TimelineEventType::RoomCreate {
+        debug!("allowing `m.room.create` event");
+        return Ok(());
+    }
+
+    let room_create_event = fetch_state.room_create_event()?;
 
     // Since v1, if the create event content has the field m.federate set to false and the sender
     // domain of the event does not match the sender domain of the create event, reject.

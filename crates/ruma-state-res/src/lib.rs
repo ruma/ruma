@@ -25,7 +25,9 @@ use self::events::{
 };
 pub use self::{
     error::{Error, Result},
-    event_auth::{auth_check, auth_types_for_event},
+    event_auth::{
+        auth_types_for_event, check_state_dependent_auth_rules, check_state_independent_auth_rules,
+    },
     events::Event,
 };
 
@@ -494,7 +496,9 @@ fn iterative_auth_check<E: Event + Clone>(
             }
         }
 
-        match auth_check(rules, &event, |ty, key| auth_events.get(&ty.with_state_key(key))) {
+        match check_state_dependent_auth_rules(rules, &event, |ty, key| {
+            auth_events.get(&ty.with_state_key(key))
+        }) {
             Ok(()) => {
                 // Add event to resolved state.
                 resolved_state

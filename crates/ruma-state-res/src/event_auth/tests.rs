@@ -16,7 +16,7 @@ mod room_power_levels;
 use self::room_power_levels::default_room_power_levels;
 use super::check_room_create;
 use crate::{
-    auth_check,
+    check_state_dependent_auth_rules, check_state_independent_auth_rules,
     event_auth::check_room_redaction,
     events::{RoomCreateEvent, RoomPowerLevelsEvent},
     test_utils::{
@@ -229,11 +229,11 @@ fn missing_room_create_in_state() {
     let mut init_events = INITIAL_EVENTS();
     init_events.remove(&event_id("CREATE"));
 
-    let auth_events = TestStateMap::new(&init_events);
-    let fetch_state = auth_events.fetch_state_fn();
-
     // Cannot accept event if no `m.room.create` in state.
-    auth_check(&AuthorizationRules::V6, incoming_event, fetch_state).unwrap_err();
+    check_state_independent_auth_rules(&AuthorizationRules::V6, incoming_event, |event_id| {
+        init_events.get(event_id)
+    })
+    .unwrap_err();
 }
 
 #[test]
@@ -251,11 +251,12 @@ fn missing_room_create_auth_events() {
     );
 
     let init_events = INITIAL_EVENTS();
-    let auth_events = TestStateMap::new(&init_events);
-    let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept event if no `m.room.create` in auth events.
-    auth_check(&AuthorizationRules::V6, incoming_event, fetch_state).unwrap_err();
+    check_state_independent_auth_rules(&AuthorizationRules::V6, incoming_event, |event_id| {
+        init_events.get(event_id)
+    })
+    .unwrap_err();
 }
 
 #[test]
@@ -290,7 +291,8 @@ fn no_federate_different_server() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept event if not federating and different server.
-    auth_check(&AuthorizationRules::V6, incoming_event, fetch_state).unwrap_err();
+    check_state_dependent_auth_rules(&AuthorizationRules::V6, incoming_event, fetch_state)
+        .unwrap_err();
 }
 
 #[test]
@@ -325,7 +327,7 @@ fn no_federate_same_server() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Accept event if not federating and same server.
-    auth_check(&AuthorizationRules::V6, incoming_event, fetch_state).unwrap();
+    check_state_dependent_auth_rules(&AuthorizationRules::V6, incoming_event, fetch_state).unwrap();
 }
 
 #[test]
@@ -351,10 +353,12 @@ fn room_aliases_no_state_key() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept `m.room.aliases` without state key.
-    auth_check(&AuthorizationRules::V3, &incoming_event, fetch_state).unwrap_err();
+    check_state_dependent_auth_rules(&AuthorizationRules::V3, &incoming_event, fetch_state)
+        .unwrap_err();
 
     // `m.room.aliases` is not checked since v6.
-    auth_check(&AuthorizationRules::V8, &incoming_event, fetch_state).unwrap();
+    check_state_dependent_auth_rules(&AuthorizationRules::V8, &incoming_event, fetch_state)
+        .unwrap();
 }
 
 #[test]
@@ -380,10 +384,12 @@ fn room_aliases_other_server() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept `m.room.aliases` with different server name than sender.
-    auth_check(&AuthorizationRules::V3, &incoming_event, fetch_state).unwrap_err();
+    check_state_dependent_auth_rules(&AuthorizationRules::V3, &incoming_event, fetch_state)
+        .unwrap_err();
 
     // `m.room.aliases` is not checked since v6.
-    auth_check(&AuthorizationRules::V8, &incoming_event, fetch_state).unwrap();
+    check_state_dependent_auth_rules(&AuthorizationRules::V8, &incoming_event, fetch_state)
+        .unwrap();
 }
 
 #[test]
@@ -409,10 +415,12 @@ fn room_aliases_same_server() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Accept `m.room.aliases` with same server name as sender.
-    auth_check(&AuthorizationRules::V3, &incoming_event, fetch_state).unwrap();
+    check_state_dependent_auth_rules(&AuthorizationRules::V3, &incoming_event, fetch_state)
+        .unwrap();
 
     // `m.room.aliases` is not checked since v6.
-    auth_check(&AuthorizationRules::V8, &incoming_event, fetch_state).unwrap();
+    check_state_dependent_auth_rules(&AuthorizationRules::V8, &incoming_event, fetch_state)
+        .unwrap();
 }
 
 #[test]
@@ -434,7 +442,8 @@ fn sender_not_in_room() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept event if user not in room.
-    auth_check(&AuthorizationRules::V6, incoming_event, fetch_state).unwrap_err();
+    check_state_dependent_auth_rules(&AuthorizationRules::V6, incoming_event, fetch_state)
+        .unwrap_err();
 }
 
 #[test]
@@ -462,7 +471,8 @@ fn room_third_party_invite_not_enough_power() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot accept `m.room.third_party_invite` if not enough power.
-    auth_check(&AuthorizationRules::V6, incoming_event, fetch_state).unwrap_err();
+    check_state_dependent_auth_rules(&AuthorizationRules::V6, incoming_event, fetch_state)
+        .unwrap_err();
 }
 
 #[test]
@@ -476,7 +486,7 @@ fn room_third_party_invite_with_enough_power() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Accept `m.room.third_party_invite` if enough power.
-    auth_check(&AuthorizationRules::V6, incoming_event, fetch_state).unwrap();
+    check_state_dependent_auth_rules(&AuthorizationRules::V6, incoming_event, fetch_state).unwrap();
 }
 
 #[test]
@@ -514,7 +524,8 @@ fn event_type_not_enough_power() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot send event if not enough power for the event's type.
-    auth_check(&AuthorizationRules::V6, incoming_event, fetch_state).unwrap_err();
+    check_state_dependent_auth_rules(&AuthorizationRules::V6, incoming_event, fetch_state)
+        .unwrap_err();
 }
 
 #[test]
@@ -536,7 +547,8 @@ fn user_id_state_key_not_sender() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Cannot send state event with a user ID as a state key that doesn't match the sender.
-    auth_check(&AuthorizationRules::V6, incoming_event, fetch_state).unwrap_err();
+    check_state_dependent_auth_rules(&AuthorizationRules::V6, incoming_event, fetch_state)
+        .unwrap_err();
 }
 
 #[test]
@@ -558,5 +570,5 @@ fn user_id_state_key_is_sender() {
     let fetch_state = auth_events.fetch_state_fn();
 
     // Can send state event with a user ID as a state key that matches the sender.
-    auth_check(&AuthorizationRules::V6, incoming_event, fetch_state).unwrap();
+    check_state_dependent_auth_rules(&AuthorizationRules::V6, incoming_event, fetch_state).unwrap();
 }
