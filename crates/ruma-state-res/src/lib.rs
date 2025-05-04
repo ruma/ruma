@@ -462,14 +462,15 @@ fn iterative_auth_check<E: Event + Clone>(
         let mut auth_events = StateMap::new();
         for aid in event.auth_events() {
             if let Some(ev) = fetch_event(aid.borrow()) {
-                // TODO synapse check "rejected_reason" which is most likely
-                // related to soft-failing
-                auth_events.insert(
-                    ev.event_type().with_state_key(ev.state_key().ok_or(Error::MissingStateKey)?),
-                    ev,
-                );
+                if !ev.rejected() {
+                    auth_events.insert(
+                        ev.event_type()
+                            .with_state_key(ev.state_key().ok_or(Error::MissingStateKey)?),
+                        ev,
+                    );
+                }
             } else {
-                warn!(event_id = aid.borrow().as_str(), "missing auth event");
+                warn!(event_id = %aid.borrow(), "missing auth event");
             }
         }
 
@@ -490,8 +491,11 @@ fn iterative_auth_check<E: Event + Clone>(
         for key in auth_types {
             if let Some(ev_id) = resolved_state.get(&key) {
                 if let Some(event) = fetch_event(ev_id.borrow()) {
-                    // TODO synapse checks `rejected_reason` is None here
-                    auth_events.insert(key.to_owned(), event);
+                    if !event.rejected() {
+                        auth_events.insert(key.to_owned(), event);
+                    }
+                } else {
+                    warn!(event_id = %ev_id.borrow(), "missing auth event");
                 }
             }
         }
