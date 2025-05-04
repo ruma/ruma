@@ -24,7 +24,7 @@ use crate::{
     event_auth::check_room_redaction,
     events::{RoomCreateEvent, RoomPowerLevelsEvent},
     test_utils::{
-        alice, charlie, ella, event_id, init_subscriber, member_content_join,
+        alice, charlie, ella, event_id, init_subscriber, member_content_join, room_id,
         room_redaction_pdu_event, room_third_party_invite, to_init_pdu_event, to_pdu_event,
         PduEvent, TestStateMap, INITIAL_EVENTS,
     },
@@ -609,6 +609,7 @@ fn auth_event_in_different_room() {
             hashes: EventHash::new("".to_owned()),
             signatures: ServerSignatures::default(),
         }),
+        rejected: false,
     };
     init_events.insert(power_level.event_id.clone(), power_level.into()).unwrap();
 
@@ -683,6 +684,49 @@ fn unexpected_auth_event_type() {
     );
 
     // Cannot accept with auth event with unexpected (type, state_key) pair.
+    check_state_independent_auth_rules(&AuthorizationRules::V6, incoming_event, |event_id| {
+        init_events.get(event_id)
+    })
+    .unwrap_err();
+}
+
+#[test]
+fn rejected_auth_event() {
+    let _guard = init_subscriber();
+
+    let incoming_event = to_pdu_event(
+        "HELLO",
+        alice(),
+        TimelineEventType::RoomMessage,
+        None,
+        to_raw_json_value(&RoomMessageEventContent::text_plain("Hi!")).unwrap(),
+        &["CREATE", "IMA", "IPOWER"],
+        &["IPOWER"],
+    );
+
+    let mut init_events = INITIAL_EVENTS();
+    let power_level = PduEvent {
+        event_id: event_id("IPOWER"),
+        rest: Pdu::RoomV3Pdu(RoomV3Pdu {
+            room_id: room_id().to_owned(),
+            sender: alice().to_owned(),
+            origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(3)),
+            state_key: Some(String::new()),
+            kind: TimelineEventType::RoomPowerLevels,
+            content: to_raw_json_value(&json!({ "users": { alice(): 100 } })).unwrap(),
+            redacts: None,
+            unsigned: BTreeMap::new(),
+            auth_events: vec![event_id("CREATE"), event_id("IMA")],
+            prev_events: vec![event_id("IMA")],
+            depth: uint!(0),
+            hashes: EventHash::new("".to_owned()),
+            signatures: ServerSignatures::default(),
+        }),
+        rejected: true,
+    };
+    init_events.insert(power_level.event_id.clone(), power_level.into()).unwrap();
+
+    // Cannot accept with auth event that was rejected.
     check_state_independent_auth_rules(&AuthorizationRules::V6, incoming_event, |event_id| {
         init_events.get(event_id)
     })

@@ -206,10 +206,11 @@ pub fn check_state_independent_auth_rules<E: Event>(
             ));
         };
 
-        // TODO:
-        //
         // Since v1, if there are entries which were themselves rejected under the checks performed
         // on receipt of a PDU, reject.
+        if auth_event.rejected() {
+            return Err(format!("rejected auth event {event_id}"));
+        }
 
         seen_auth_types.insert(key);
     }
