@@ -622,6 +622,10 @@ mod event {
                 _ => unreachable!("new PDU version"),
             }
         }
+
+        fn rejected(&self) {
+            false
+        }
     }
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
