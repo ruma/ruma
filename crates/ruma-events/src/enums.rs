@@ -31,6 +31,11 @@ event_enum! {
         "m.push_rules" => super::push_rules,
         "m.secret_storage.default_key" => super::secret_storage::default_key,
         "m.secret_storage.key.*" => super::secret_storage::key,
+        #[cfg(feature = "unstable-msc4278")]
+        "m.media_preview_config" => super::media_preview_config,
+        #[cfg(feature = "unstable-msc4278")]
+        #[ruma_enum(ident = UnstableMediaPreviewConfig)]
+        "io.element.msc4278.media_preview_config" => super::media_preview_config,
         #[cfg(feature = "unstable-msc2545")]
         #[ruma_enum(ident = AccountImagePack, alias = "m.image_pack")]
         "im.ponies.user_emotes" => super::image_pack,
