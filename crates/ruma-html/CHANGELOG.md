@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+- Add unstable support for the `data-mx-external-payment-details` attribute for spans, according to MSC4286.
+
 # 0.4.0
 
 Upgrade `ruma-common` to 0.15.0.
