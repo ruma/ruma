@@ -607,12 +607,27 @@ pub struct SpanData {
     /// [mathematical message]: https://spec.matrix.org/latest/client-server-api/#mathematical-messages
     /// [LaTeX]: https://www.latex-project.org/
     pub maths: Option<StrTendril>,
+
+    /// `data-mx-external-payment-details`, unstable feature from MSC4186.
+    ///
+    /// This uses the unstable prefix in [MSC4286].
+    ///
+    /// [MSC4286]: https://github.com/matrix-org/matrix-spec-proposals/pull/4286
+    #[cfg(feature = "unstable-msc4286")]
+    pub external_payment_details: Option<StrTendril>,
 }
 
 impl SpanData {
     /// Construct an empty `SpanData`.
     fn new() -> Self {
-        Self { bg_color: None, color: None, spoiler: None, maths: None }
+        Self {
+            bg_color: None,
+            color: None,
+            spoiler: None,
+            maths: None,
+            #[cfg(feature = "unstable-msc4286")]
+            external_payment_details: None,
+        }
     }
 
     /// Parse the given attributes to construct a new `SpanData`.
@@ -639,6 +654,10 @@ impl SpanData {
                 }
                 b"data-mx-maths" => {
                     data.maths = Some(attr.value.clone());
+                }
+                #[cfg(feature = "unstable-msc4286")]
+                b"data-msc4286-external-payment-details" => {
+                    data.external_payment_details = Some(attr.value.clone());
                 }
                 _ => {
                     remaining_attrs.insert(attr.clone());

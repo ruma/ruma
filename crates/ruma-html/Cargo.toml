@@ -15,6 +15,7 @@ all-features = true
 
 [features]
 matrix = ["dep:ruma-common"]
+unstable-msc4286 = []
 
 [dependencies]
 as_variant = { workspace = true }

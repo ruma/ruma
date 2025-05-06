@@ -847,3 +847,32 @@ fn remove_classes() {
         "
     );
 }
+
+#[cfg(feature = "unstable-msc4286")]
+#[test]
+fn strict_mode_external_payment_details() {
+    let config = SanitizerConfig::strict().remove_reply_fallback();
+    let html = Html::parse(
+        "\
+        <p>\
+        some text here\
+        <span data-msc4286-external-payment-details=\"foo\">\
+        <a href=\"https://example.com\">link</a>\
+        </span>\
+        </p>\
+        ",
+    );
+    html.sanitize_with(&config);
+
+    assert_eq!(
+        html.to_string(),
+        "\
+        <p>\
+        some text here\
+        <span data-msc4286-external-payment-details=\"foo\">\
+        <a href=\"https://example.com\">link</a>\
+        </span>\
+        </p>\
+        ",
+    );
+}
