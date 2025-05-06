@@ -30,8 +30,14 @@ static ALLOWED_ATTRIBUTES_STRICT: Map<&str, &Set<&str>> = phf_map! {
     "code" => &ALLOWED_ATTRIBUTES_CODE_STRICT,
     "div" => &ALLOWED_ATTRIBUTES_DIV_STRICT,
 };
+
+#[cfg(not(feature = "unstable-msc4286"))]
 static ALLOWED_ATTRIBUTES_SPAN_STRICT: Set<&str> =
     phf_set! { "data-mx-bg-color", "data-mx-color", "data-mx-spoiler", "data-mx-maths" };
+
+#[cfg(feature = "unstable-msc4286")]
+static ALLOWED_ATTRIBUTES_SPAN_STRICT: Set<&str> = phf_set! { "data-mx-bg-color", "data-mx-color", "data-mx-spoiler", "data-mx-maths", "data-msc4286-external-payment-details" };
+
 static ALLOWED_ATTRIBUTES_A_STRICT: Set<&str> = phf_set! { "target", "href" };
 static ALLOWED_ATTRIBUTES_IMG_STRICT: Set<&str> =
     phf_set! { "width", "height", "alt", "title", "src" };
