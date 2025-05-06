@@ -117,7 +117,7 @@ pub mod v3 {
             self,
             base_url: &str,
             access_token: ruma_common::api::SendAccessToken<'_>,
-            considering_versions: &'_ [ruma_common::api::MatrixVersion],
+            considering: &'_ ruma_common::api::SupportedVersions,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use http::header::{self, HeaderValue};
 
@@ -127,7 +127,7 @@ pub mod v3 {
             let http_request = http::Request::builder()
                 .method(http::Method::PUT)
                 .uri(METADATA.make_endpoint_url(
-                    considering_versions,
+                    considering,
                     base_url,
                     &[&self.room_id, &self.event_type, &self.state_key],
                     &query_string,
@@ -208,10 +208,13 @@ pub mod v3 {
     #[test]
     fn serialize() {
         use ruma_common::{
-            api::{MatrixVersion, OutgoingRequest as _, SendAccessToken},
+            api::{MatrixVersion, OutgoingRequest as _, SendAccessToken, SupportedVersions},
             owned_room_id,
         };
         use ruma_events::{room::name::RoomNameEventContent, EmptyStateKey};
+
+        let supported =
+            SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
 
         // This used to panic in make_endpoint_url because of a mismatch in the path parameter count
         let req = Request::new(
@@ -223,7 +226,7 @@ pub mod v3 {
         .try_into_http_request::<Vec<u8>>(
             "https://server.tld",
             SendAccessToken::IfRequired("access_token"),
-            &[MatrixVersion::V1_1],
+            &supported,
         )
         .unwrap();
 

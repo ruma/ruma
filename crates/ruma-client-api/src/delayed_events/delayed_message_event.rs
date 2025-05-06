@@ -118,7 +118,7 @@ pub mod unstable {
     #[cfg(all(test, feature = "client"))]
     mod tests {
         use ruma_common::{
-            api::{MatrixVersion, OutgoingRequest, SendAccessToken},
+            api::{MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions},
             owned_room_id,
         };
         use ruma_events::room::message::RoomMessageEventContent;
@@ -131,6 +131,8 @@ pub mod unstable {
         #[test]
         fn serialize_delayed_message_request() {
             let room_id = owned_room_id!("!roomid:example.org");
+            let supported =
+                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
 
             let req = Request::new(
                 room_id,
@@ -143,7 +145,7 @@ pub mod unstable {
                 .try_into_http_request(
                     "https://homeserver.tld",
                     SendAccessToken::IfRequired("auth_tok"),
-                    &[MatrixVersion::V1_1],
+                    &supported,
                 )
                 .unwrap();
             let (parts, body) = request.into_parts();

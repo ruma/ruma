@@ -4,7 +4,7 @@ use http::header::CONTENT_TYPE;
 use ruma_common::{
     api::{
         request, response, IncomingRequest as _, MatrixVersion, Metadata, OutgoingRequest as _,
-        OutgoingRequestAppserviceExt, SendAccessToken,
+        OutgoingRequestAppserviceExt, SendAccessToken, SupportedVersions,
     },
     metadata, owned_user_id, user_id, OwnedUserId,
 };
@@ -61,13 +61,15 @@ fn request_serde() {
         bar: "barVal".to_owned(),
         user: owned_user_id!("@bazme:ruma.io"),
     };
+    let supported =
+        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
 
     let http_req = req
         .clone()
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            &[MatrixVersion::V1_1],
+            &supported,
         )
         .unwrap();
     let req2 = Request::try_from_http_request(http_req, &["barVal", "@bazme:ruma.io"]).unwrap();
@@ -90,12 +92,11 @@ fn invalid_uri_should_not_panic() {
         bar: "barVal".to_owned(),
         user: owned_user_id!("@bazme:ruma.io"),
     };
+    let supported =
+        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
 
-    let result = req.try_into_http_request::<Vec<u8>>(
-        "invalid uri",
-        SendAccessToken::None,
-        &[MatrixVersion::V1_1],
-    );
+    let result =
+        req.try_into_http_request::<Vec<u8>>("invalid uri", SendAccessToken::None, &supported);
     result.unwrap_err();
 }
 
@@ -109,6 +110,8 @@ fn request_with_user_id_serde() {
         bar: "barVal".to_owned(),
         user: owned_user_id!("@bazme:ruma.io"),
     };
+    let supported =
+        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
 
     let user_id = user_id!("@_virtual_:ruma.io");
     let http_req = req
@@ -116,7 +119,7 @@ fn request_with_user_id_serde() {
             "https://homeserver.tld",
             SendAccessToken::None,
             user_id,
-            &[MatrixVersion::V1_1],
+            &supported,
         )
         .unwrap();
 
@@ -133,7 +136,7 @@ mod without_query {
     use ruma_common::{
         api::{
             request, response, MatrixVersion, Metadata, OutgoingRequestAppserviceExt,
-            SendAccessToken,
+            SendAccessToken, SupportedVersions,
         },
         metadata, owned_user_id, user_id, OwnedUserId,
     };
@@ -182,6 +185,8 @@ mod without_query {
             bar: "barVal".to_owned(),
             user: owned_user_id!("@bazme:ruma.io"),
         };
+        let supported =
+            SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
 
         let user_id = user_id!("@_virtual_:ruma.io");
         let http_req = req
@@ -189,7 +194,7 @@ mod without_query {
                 "https://homeserver.tld",
                 SendAccessToken::None,
                 user_id,
-                &[MatrixVersion::V1_1],
+                &supported,
             )
             .unwrap();
 

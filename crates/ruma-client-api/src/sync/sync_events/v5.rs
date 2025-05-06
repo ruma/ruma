@@ -27,7 +27,7 @@ const METADATA: Metadata = metadata! {
     rate_limited: false,
     authentication: AccessToken,
     history: {
-        unstable => "/_matrix/client/unstable/org.matrix.simplified_msc3575/sync",
+        unstable("org.matrix.simplified_msc3575") => "/_matrix/client/unstable/org.matrix.simplified_msc3575/sync",
         // 1.4 => "/_matrix/client/v5/sync",
     }
 };
