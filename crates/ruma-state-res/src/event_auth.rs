@@ -1,10 +1,10 @@
 use std::{
     borrow::Borrow,
-    collections::{BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, HashSet},
 };
 
 use js_int::Int;
-use ruma_common::{room_version_rules::AuthorizationRules, UserId};
+use ruma_common::{room_version_rules::AuthorizationRules, EventId, UserId};
 use ruma_events::room::member::MembershipState;
 use serde_json::value::RawValue as RawJsonValue;
 use tracing::{debug, info, instrument, warn};
@@ -28,7 +28,6 @@ use crate::{
 // not listed:
 //
 // - check that the event respects the size limits,
-// - check that all the auth events are in the same room as `incoming_event`.
 //
 // References:
 // - https://spec.matrix.org/latest/server-server-api/#checks-performed-on-receipt-of-a-pdu
@@ -36,7 +35,7 @@ use crate::{
 // - https://github.com/element-hq/synapse/blob/9c5d08fff8d66a7cc0e2ecfeeb783f933a778c2f/synapse/event_auth.py
 // - https://github.com/matrix-org/matrix-spec/issues/365
 
-/// Get the list of [relevant auth event types] required to authorize the event of the given type.
+/// Get the list of [relevant auth events] required to authorize the event of the given type.
 ///
 /// Returns a list of `(event_type, state_key)` tuples.
 ///
@@ -129,7 +128,109 @@ pub fn auth_types_for_event(
     Ok(auth_types)
 }
 
-/// Check whether the incoming event passes the [authorization rules] for the given room version.
+/// Check whether the incoming event passes the state-independent [authorization rules] for the
+/// given room version rules.
+///
+/// The state-independent rules are the first few authorization rules that check an incoming
+/// `m.room.create` event (which cannot have `auth_events`), and the list of `auth_events` of other
+/// events.
+///
+/// This method only needs to be called once, when the event is received.
+///
+/// # Errors
+///
+/// If the check fails, this returns an `Err(_)` with a description of the check that failed.
+///
+/// [authorization rules]: https://spec.matrix.org/latest/server-server-api/#authorization-rules
+#[instrument(skip_all, fields(event_id = incoming_event.event_id().borrow().as_str()))]
+pub fn check_state_independent_auth_rules<E: Event>(
+    rules: &AuthorizationRules,
+    incoming_event: impl Event,
+    fetch_event: impl Fn(&EventId) -> Option<E>,
+) -> Result<(), String> {
+    debug!("starting state-independent auth check");
+
+    // Since v1, if type is m.room.create:
+    if *incoming_event.event_type() == TimelineEventType::RoomCreate {
+        let room_create_event = RoomCreateEvent::new(incoming_event);
+
+        return check_room_create(room_create_event, rules);
+    }
+
+    let expected_auth_types = auth_types_for_event(
+        incoming_event.event_type(),
+        incoming_event.sender(),
+        incoming_event.state_key(),
+        incoming_event.content(),
+        rules,
+    )?
+    .into_iter()
+    .map(|(event_type, state_key)| (TimelineEventType::from(event_type), state_key))
+    .collect::<HashSet<_>>();
+
+    let room_id = incoming_event.room_id();
+    let mut seen_auth_types: HashSet<(TimelineEventType, String)> =
+        HashSet::with_capacity(expected_auth_types.len());
+
+    // Since v1, considering auth_events:
+    for auth_event_id in incoming_event.auth_events() {
+        let event_id = auth_event_id.borrow();
+
+        let Some(auth_event) = fetch_event(event_id) else {
+            return Err(format!("failed to find auth event {event_id}"));
+        };
+
+        // The auth event must be in the same room as the incoming event.
+        if auth_event.room_id() != room_id {
+            return Err(format!("auth event {event_id} not in the same room"));
+        }
+
+        let event_type = auth_event.event_type();
+        let state_key = auth_event
+            .state_key()
+            .ok_or_else(|| format!("auth event {event_id} has no `state_key`"))?;
+        let key = (event_type.clone(), state_key.to_owned());
+
+        // Since v1, if there are duplicate entries for a given type and state_key pair, reject.
+        if seen_auth_types.contains(&key) {
+            return Err(format!(
+                "duplicate auth event {event_id} for ({event_type}, {state_key}) pair"
+            ));
+        }
+
+        // Since v1, if there are entries whose type and state_key don’t match those specified by
+        // the auth events selection algorithm described in the server specification, reject.
+        if !expected_auth_types.contains(&key) {
+            return Err(format!(
+                "unexpected auth event {event_id} with ({event_type}, {state_key}) pair"
+            ));
+        };
+
+        // Since v1, if there are entries which were themselves rejected under the checks performed
+        // on receipt of a PDU, reject.
+        if auth_event.rejected() {
+            return Err(format!("rejected auth event {event_id}"));
+        }
+
+        seen_auth_types.insert(key);
+    }
+
+    // Since v1, if there is no m.room.create event among the entries, reject.
+    if !seen_auth_types.iter().any(|(event_type, _)| *event_type == TimelineEventType::RoomCreate) {
+        return Err("no `m.room.create` event in auth events".to_owned());
+    }
+
+    Ok(())
+}
+
+/// Check whether the incoming event passes the state-dependent [authorization rules] for the given
+/// room version rules.
+///
+/// The state-dependent rules are all the remaining rules not checked by
+/// [`check_state_independent_auth_rules()`].
+///
+/// This method should be called several times for an event, to perform the [checks on receipt of a
+/// PDU].
 ///
 /// The `fetch_state` closure should gather state from a state snapshot. We need to know if the
 /// event passes auth against some state not a recursive collection of auth_events fields.
@@ -142,61 +243,22 @@ pub fn auth_types_for_event(
 /// If the check fails, this returns an `Err(_)` with a description of the check that failed.
 ///
 /// [authorization rules]: https://spec.matrix.org/latest/server-server-api/#authorization-rules
+/// [checks on receipt of a PDU]: https://spec.matrix.org/latest/server-server-api/#checks-performed-on-receipt-of-a-pdu
 #[instrument(skip_all, fields(event_id = incoming_event.event_id().borrow().as_str()))]
-pub fn auth_check<E: Event>(
+pub fn check_state_dependent_auth_rules<E: Event>(
     rules: &AuthorizationRules,
     incoming_event: impl Event,
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<(), String> {
-    debug!("starting auth check");
+    debug!("starting state-dependent auth check");
 
-    // Since v1, if type is m.room.create:
+    // There are no state-dependent auth rules for create events.
     if *incoming_event.event_type() == TimelineEventType::RoomCreate {
-        let room_create_event = RoomCreateEvent::new(incoming_event);
-
-        return check_room_create(room_create_event, rules);
+        debug!("allowing `m.room.create` event");
+        return Ok(());
     }
-
-    /*
-    TODO: In the past this code caused problems federating with synapse, maybe this has been
-    resolved already. Needs testing.
-
-    // Since v1, considering auth_events:
-    //
-    // - Since v1, if there are duplicate entries for a given type and state_key pair, reject.
-    //
-    // - Since v1, if there are entries whose type and state_key don’t match those specified
-    //   by the auth events selection algorithm described in the server specification, reject.
-    let expected_auth = auth_types_for_event(
-        incoming_event.kind,
-        sender,
-        incoming_event.state_key,
-        incoming_event.content().clone(),
-    );
-
-    dbg!(&expected_auth);
-
-    for ev_key in auth_events.keys() {
-        // (b)
-        if !expected_auth.contains(ev_key) {
-            warn!("auth_events contained invalid auth event");
-            return Ok(false);
-        }
-    }
-    */
-
-    // TODO:
-    //
-    // Since v1, if there are entries which were themselves rejected under the checks performed on
-    // receipt of a PDU, reject.
 
     let room_create_event = fetch_state.room_create_event()?;
-
-    // Since v1, if there is no m.room.create event among the entries, reject.
-    if !incoming_event.auth_events().any(|id| id.borrow() == room_create_event.event_id().borrow())
-    {
-        return Err("no `m.room.create` event in auth events".to_owned());
-    }
 
     // Since v1, if the create event content has the field m.federate set to false and the sender
     // domain of the event does not match the sender domain of the create event, reject.
