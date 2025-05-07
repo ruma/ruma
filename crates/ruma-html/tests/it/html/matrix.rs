@@ -61,6 +61,7 @@ fn span_attributes() {
             data-mx-bg-color=\"#ff0000\" \
             data-mx-spoiler \
             data-mx-spoiler=\"This is a spoiler\"\
+            data-msc4286-external-payment-details=\"foo\"\
         >\
             Hidden and colored\
         </span>\
@@ -77,6 +78,9 @@ fn span_attributes() {
     assert_eq!(span.bg_color.unwrap().as_ref(), "#ff0000");
     // Uses the first spoiler attribute, the second is dropped.
     assert!(span.spoiler.unwrap().is_empty());
+
+    #[cfg(feature = "unstable-msc4286")]
+    assert_eq!(span.external_payment_details.unwrap().as_ref(), "foo");
 
     assert!(span_element.attrs.is_empty());
 }
