@@ -491,8 +491,9 @@ fn iterative_auth_check<E: Event + Clone>(
         for key in auth_types {
             if let Some(ev_id) = resolved_state.get(&key) {
                 if let Some(event) = fetch_event(ev_id.borrow()) {
-                    // TODO synapse checks `rejected_reason` is None here
-                    auth_events.insert(key.to_owned(), event);
+                    if !event.rejected() {
+                        auth_events.insert(key.to_owned(), event);
+                    }
                 } else {
                     warn!(event_id = %ev_id.borrow(), "missing auth event");
                 }
