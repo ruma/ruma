@@ -8,8 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::{macros::EventContent, PrivOwnedStr};
 
 /// The content of an `m.media_preview_config` event.
-#[cfg(feature = "unstable-msc4278")]
-#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.media_preview_config", kind = GlobalAccountData)]
 pub struct MediaPreviewConfigEventContent {
@@ -24,22 +23,13 @@ pub struct MediaPreviewConfigEventContent {
 
 /// The content of an `io.element.msc4278.media_preview_config` event,
 /// the unstable version of `m.media_preview_config` in global account data.
-#[cfg(feature = "unstable-msc4278")]
-#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "io.element.msc4278.media_preview_config", kind = GlobalAccountData)]
-pub struct UnstableMediaPreviewConfigEventContent {
-    /// The media previews configuration.
-    #[serde(default)]
-    pub media_previews: MediaPreviews,
-
-    /// The invite avatars configuration.
-    #[serde(default)]
-    pub invite_avatars: InviteAvatars,
-}
+#[serde(transparent)]
+pub struct UnstableMediaPreviewConfigEventContent(pub MediaPreviewConfigEventContent);
 
 /// The configuration that handles if media previews should be shown in the timeline.
-#[cfg(feature = "unstable-msc4278")]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum, Default)]
 #[ruma_enum(rename_all = "lowercase")]
 #[non_exhaustive]
@@ -59,7 +49,6 @@ pub enum MediaPreviews {
 }
 
 /// The configuration to handle if avatars should be shown in invites.
-#[cfg(feature = "unstable-msc4278")]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum, Default)]
 #[ruma_enum(rename_all = "lowercase")]
 #[non_exhaustive]
@@ -82,11 +71,23 @@ impl MediaPreviewConfigEventContent {
     }
 }
 
-#[cfg(feature = "unstable-msc4278")]
-impl UnstableMediaPreviewConfigEventContent {
-    /// Create a new [`UnstableMediaPreviewConfigEventContent`] with the given values.
-    pub fn new(media_previews: MediaPreviews, invite_avatars: InviteAvatars) -> Self {
-        Self { media_previews, invite_avatars }
+impl std::ops::Deref for UnstableMediaPreviewConfigEventContent {
+    type Target = MediaPreviewConfigEventContent;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl From<MediaPreviewConfigEventContent> for UnstableMediaPreviewConfigEventContent {
+    fn from(value: MediaPreviewConfigEventContent) -> Self {
+        Self(value)
+    }
+}
+
+impl From<UnstableMediaPreviewConfigEventContent> for MediaPreviewConfigEventContent {
+    fn from(value: UnstableMediaPreviewConfigEventContent) -> Self {
+        value.0
     }
 }
 
@@ -139,8 +140,9 @@ mod tests {
 
     #[test]
     fn serialize() {
-        let unstable_media_preview_config =
-            UnstableMediaPreviewConfigEventContent::new(MediaPreviews::Off, InviteAvatars::On);
+        let unstable_media_preview_config = UnstableMediaPreviewConfigEventContent(
+            MediaPreviewConfigEventContent::new(MediaPreviews::Off, InviteAvatars::On),
+        );
         let unstable_media_preview_config_account_data =
             GlobalAccountDataEvent { content: unstable_media_preview_config };
         assert_eq!(
