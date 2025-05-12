@@ -44,6 +44,9 @@ pub trait Event {
 
     /// If this event is a redaction event this is the event it redacts.
     fn redacts(&self) -> Option<&Self::Id>;
+
+    /// Whether this event was rejected for not passing the checks on reception of a PDU.
+    fn rejected(&self) -> bool;
 }
 
 impl<T: Event> Event for &T {
@@ -88,6 +91,10 @@ impl<T: Event> Event for &T {
     fn redacts(&self) -> Option<&Self::Id> {
         (*self).redacts()
     }
+
+    fn rejected(&self) -> bool {
+        (*self).rejected()
+    }
 }
 
 impl<T: Event> Event for Arc<T> {
@@ -131,5 +138,9 @@ impl<T: Event> Event for Arc<T> {
 
     fn redacts(&self) -> Option<&Self::Id> {
         (**self).redacts()
+    }
+
+    fn rejected(&self) -> bool {
+        (**self).rejected()
     }
 }

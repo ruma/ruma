@@ -398,6 +398,7 @@ pub(crate) fn to_init_pdu_event(
             hashes: EventHash::new("".to_owned()),
             signatures: ServerSignatures::default(),
         }),
+        rejected: false,
     })
 }
 
@@ -436,6 +437,7 @@ where
             hashes: EventHash::new("".to_owned()),
             signatures: ServerSignatures::default(),
         }),
+        rejected: false,
     })
 }
 
@@ -472,6 +474,7 @@ where
             hashes: EventHash::new("".to_owned()),
             signatures: ServerSignatures::default(),
         }),
+        rejected: false,
     })
 }
 
@@ -677,6 +680,10 @@ pub(crate) mod event {
                 _ => unreachable!("new PDU version"),
             }
         }
+
+        fn rejected(&self) -> bool {
+            self.rejected
+        }
     }
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -685,6 +692,7 @@ pub(crate) mod event {
         pub(crate) event_id: OwnedEventId,
         #[serde(flatten)]
         pub(crate) rest: Pdu,
+        pub(crate) rejected: bool,
     }
 }
 
