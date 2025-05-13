@@ -96,10 +96,7 @@ compat-null = ["ruma-common/compat-null"]
 
 # Allow certain fields to be absent even though the spec marks them as
 # mandatory. Deserialization will yield a default value like an empty string.
-compat-optional = [
-    "ruma-common/compat-optional",
-    "ruma-events?/compat-optional",
-]
+compat-optional = ["ruma-common/compat-optional", "ruma-events?/compat-optional"]
 
 # Unset avatars by sending an empty string, same as what Element Web does, c.f.
 # https://github.com/matrix-org/matrix-spec/issues/378#issuecomment-1055831264
@@ -140,7 +137,7 @@ unstable-msc1767 = ["ruma-events?/unstable-msc1767"]
 unstable-msc2448 = [
     "ruma-client-api?/unstable-msc2448",
     "ruma-events?/unstable-msc2448",
-    "ruma-federation-api?/unstable-msc2448"
+    "ruma-federation-api?/unstable-msc2448",
 ]
 unstable-msc2545 = ["ruma-events?/unstable-msc2545"]
 unstable-msc2654 = ["ruma-client-api?/unstable-msc2654"]
@@ -246,11 +243,7 @@ __unstable-mscs = [
     "unstable-msc4274",
     "unstable-msc4278",
 ]
-__ci = [
-    "full",
-    "compat-upload-signatures",
-    "__unstable-mscs",
-]
+__ci = ["full", "compat-upload-signatures", "__unstable-mscs"]
 __compat = [
     "compat-arbitrary-length-ids",
     "compat-server-signing-key-version",
