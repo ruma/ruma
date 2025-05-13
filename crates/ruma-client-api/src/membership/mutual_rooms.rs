@@ -17,7 +17,7 @@ pub mod unstable {
         rate_limited: true,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/uk.half-shot.msc2666/user/mutual_rooms",
+            unstable("uk.half-shot.msc2666.query_mutual_rooms") => "/_matrix/client/unstable/uk.half-shot.msc2666/user/mutual_rooms",
         }
     };
 

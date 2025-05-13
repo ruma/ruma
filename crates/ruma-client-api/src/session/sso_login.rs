@@ -76,18 +76,18 @@ pub mod v3 {
 
     #[cfg(all(test, feature = "client"))]
     mod tests {
-        use ruma_common::api::{MatrixVersion, OutgoingRequest, SendAccessToken};
+        use ruma_common::api::{
+            MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions,
+        };
 
         use super::Request;
 
         #[test]
         fn serialize_sso_login_request_uri() {
+            let supported =
+                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
             let req: http::Request<Vec<u8>> = Request::new("https://example.com/sso".to_owned())
-                .try_into_http_request(
-                    "https://homeserver.tld",
-                    SendAccessToken::None,
-                    &[MatrixVersion::V1_1],
-                )
+                .try_into_http_request("https://homeserver.tld", SendAccessToken::None, &supported)
                 .unwrap();
 
             assert_eq!(

@@ -75,14 +75,14 @@ pub mod v3 {
             self,
             base_url: &str,
             access_token: ruma_common::api::SendAccessToken<'_>,
-            considering_versions: &'_ [ruma_common::api::MatrixVersion],
+            considering: &'_ ruma_common::api::SupportedVersions,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use http::header;
 
             http::Request::builder()
                 .method(http::Method::GET)
                 .uri(METADATA.make_endpoint_url(
-                    considering_versions,
+                    considering,
                     base_url,
                     &[&self.room_id, &self.event_type, &self.state_key],
                     "",
