@@ -81,8 +81,11 @@ fn span_attributes() {
 
     #[cfg(feature = "unstable-msc4286")]
     assert_eq!(span.external_payment_details.unwrap().as_ref(), "foo");
-
     assert!(span_element.attrs.is_empty());
+
+    // "data-msc4286-external-payment-details" should remain in the attributes
+    #[cfg(not(feature = "unstable-msc4286"))]
+    assert_eq!(span_element.attrs.len(), 1);
 }
 
 #[test]
