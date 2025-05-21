@@ -3,8 +3,6 @@
 Breaking changes:
 
 - Use `AuthType` for the `auth_type` of `get_uiaa_fallback_page`'s Request.
-- `get_supported_versions::Response::known_versions()` returns a
-  `BTreeSet<MatrixVersion>` instead of a `DoubleEndedIterator`.
 - Only allow appservices to call `appservice::request_ping::v1` and
   `appservice::set_room_visibility::v1`
 - The `params` field of `UiaaInfo` is now optional. It was never required in the
@@ -12,6 +10,8 @@ Breaking changes:
   clients that required it.
 - The `reason` field of `report_room::v3::Request` is now required, due to a
   clarification in the spec.
+- `get_supported_versions::Response::known_versions()` was replaced by
+  `as_supported_versions()` which returns a `SupportedVersions`.
 
 Improvements:
 

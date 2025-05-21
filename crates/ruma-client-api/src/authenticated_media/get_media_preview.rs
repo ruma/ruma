@@ -19,8 +19,8 @@ pub mod v1 {
         rate_limited: true,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/org.matrix.msc3916/media/preview_url",
-            1.11 => "/_matrix/client/v1/media/preview_url",
+            unstable("org.matrix.msc3916") => "/_matrix/client/unstable/org.matrix.msc3916/media/preview_url",
+            1.11 | stable("org.matrix.msc3916.stable") => "/_matrix/client/v1/media/preview_url",
         }
     };
 

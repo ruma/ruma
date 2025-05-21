@@ -174,7 +174,7 @@ pub mod v3 {
     mod tests {
         use js_int::uint;
         use ruma_common::{
-            api::{Direction, MatrixVersion, OutgoingRequest, SendAccessToken},
+            api::{Direction, MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions},
             owned_room_id,
         };
 
@@ -204,12 +204,14 @@ pub mod v3 {
                 limit: uint!(0),
                 filter,
             };
+            let supported =
+                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
 
             let request: http::Request<Vec<u8>> = req
                 .try_into_http_request(
                     "https://homeserver.tld",
                     SendAccessToken::IfRequired("auth_tok"),
-                    &[MatrixVersion::V1_1],
+                    &supported,
                 )
                 .unwrap();
             assert_eq!(
@@ -233,12 +235,14 @@ pub mod v3 {
                 limit: uint!(0),
                 filter: RoomEventFilter::default(),
             };
+            let supported =
+                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
 
             let request = req
                 .try_into_http_request::<Vec<u8>>(
                     "https://homeserver.tld",
                     SendAccessToken::IfRequired("auth_tok"),
-                    &[MatrixVersion::V1_1],
+                    &supported,
                 )
                 .unwrap();
             assert_eq!("from=token&to=token2&dir=b&limit=0", request.uri().query().unwrap(),);

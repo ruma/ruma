@@ -87,9 +87,12 @@ pub mod v3 {
         #[test]
         fn construct_request_from_refs() {
             use ruma_common::{
-                api::{MatrixVersion, OutgoingRequest as _, SendAccessToken},
+                api::{MatrixVersion, OutgoingRequest as _, SendAccessToken, SupportedVersions},
                 server_name,
             };
+
+            let supported =
+                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
 
             let req = super::Request {
                 limit: Some(uint!(10)),
@@ -99,7 +102,7 @@ pub mod v3 {
             .try_into_http_request::<Vec<u8>>(
                 "https://homeserver.tld",
                 SendAccessToken::IfRequired("auth_tok"),
-                &[MatrixVersion::V1_1],
+                &supported,
             )
             .unwrap();
 

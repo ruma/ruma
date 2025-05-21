@@ -25,6 +25,22 @@ Breaking changes:
   `AppserviceToken`'s place.
 - The `redact*` functions in `canonical_json` take `RedactionRules` instead of
   `RoomVersionId`. This avoids undefined behavior for unknown room versions.
+- `OutgoingRequest::try_into_http_request()`,
+  `OutgoingRequestAppserviceExt::try_into_http_request_with_user_id()` and
+  `Metadata::make_endpoint_url()` take a `SupportedVersions` instead of a
+  `&[MatrixVersion]`.
+- The `metadata` macro allows to specify stable and unstable feature flags for
+  the paths in `history`.
+  - `VersionHistory::new()` takes a
+    `&'static [(Option<&'static str>, &'static str)]` for the unstable paths and
+    a `&'static [(StablePathSelector, &'static str)]` for the stable paths.
+  - `VersionHistory::unstable_paths()` returns an
+    `impl Iterator<Item = (Option<&'static str>, &'static str)>`.
+  - `VersionHistory::stable_paths()` returns an
+    `impl Iterator<Item = (StablePathSelector, &'static str)>`.
+  - `VersionHistory::stable_endpoint_for()` was renamed to `version_path()`.
+  - `VersioningDecision`'s `Stable` variant was renamed to `Version` and
+    `Unstable` was renamed to `Feature`.
 
 Improvements:
 
@@ -56,6 +72,8 @@ Improvements:
   - `SignaturesRules` was added under the `signatures` field.
 - `RoomVersionId` has an `MSC2870` variant for the `org.matrix.msc2870` room
   version defined in MSC2870.
+- Add `OutgoingRequest::is_supported()` and `VersionHistory::is_supported()` to
+  be able to know if a server advertises support for an endpoint.
 
 # 0.15.2
 

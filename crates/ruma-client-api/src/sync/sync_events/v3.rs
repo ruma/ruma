@@ -655,12 +655,16 @@ mod tests {
 mod client_tests {
     use std::time::Duration;
 
-    use ruma_common::api::{MatrixVersion, OutgoingRequest as _, SendAccessToken};
+    use ruma_common::api::{
+        MatrixVersion, OutgoingRequest as _, SendAccessToken, SupportedVersions,
+    };
 
     use super::{Filter, PresenceState, Request};
 
     #[test]
     fn serialize_all_params() {
+        let supported =
+            SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
         let req: http::Request<Vec<u8>> = Request {
             filter: Some(Filter::FilterId("66696p746572".to_owned())),
             since: Some("s72594_4483_1934".to_owned()),
@@ -671,7 +675,7 @@ mod client_tests {
         .try_into_http_request(
             "https://homeserver.tld",
             SendAccessToken::IfRequired("auth_tok"),
-            &[MatrixVersion::V1_1],
+            &supported,
         )
         .unwrap();
 

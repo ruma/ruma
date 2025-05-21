@@ -70,7 +70,7 @@ pub mod v3 {
             self,
             base_url: &str,
             access_token: ruma_common::api::SendAccessToken<'_>,
-            considering_versions: &[ruma_common::api::MatrixVersion],
+            considering: &ruma_common::api::SupportedVersions,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use http::header;
 
@@ -80,7 +80,7 @@ pub mod v3 {
             })?;
 
             let url = METADATA.make_endpoint_url(
-                considering_versions,
+                considering,
                 base_url,
                 &[&self.rule.kind(), &self.rule.rule_id()],
                 &query_string,
