@@ -35,12 +35,12 @@ jobs:
         uses: crate-ci/typos@v1.44.0
 
       - name: Install cargo-sort
-        uses: taiki-e/cache-cargo-install-action@v3
+        uses: taiki-e/install-action@v2
         with:
           tool: cargo-sort@2.1.1
 
       - name: Install cargo-machete
-        uses: taiki-e/cache-cargo-install-action@v3
+        uses: taiki-e/install-action@v2
         with:
           tool: cargo-machete@0.9.1
 
