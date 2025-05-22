@@ -53,7 +53,7 @@ jobs:
         uses: crate-ci/typos@v1.30.0
 
       - name: Install cargo-sort
-        uses: taiki-e/cache-cargo-install-action@v2
+        uses: taiki-e/install-action@v2
         with:
           tool: cargo-sort
 
