@@ -26,6 +26,8 @@ Breaking changes:
 - Add implementation of [MSC 4278](https://github.com/matrix-org/matrix-spec-proposals/pull/4278)
   using `MediaPreviewConfigEventContent` for the stable version and `MediaPreviewConfigEventContent`
   for the unstable one, both are only implemented as `GlobalAccountData` events as of right now.
+- `signed` in `ThirdPartyInvite` is now wrapped inside a `Raw` because it is
+  signed so we need the full raw JSON to verify the signature.
    
 
 Improvements:
