@@ -12,6 +12,7 @@ pub mod v1 {
     use ruma_common::{
         api::{request, response, Metadata},
         metadata,
+        serde::Raw,
         thirdparty::Medium,
         OwnedRoomId, OwnedUserId,
     };
@@ -92,7 +93,7 @@ pub mod v1 {
 
         /// A block of content which has been signed, which servers can use to verify the
         /// third-party invite.
-        pub signed: SignedContent,
+        pub signed: Raw<SignedContent>,
     }
 
     impl ThirdPartyInvite {
@@ -102,7 +103,7 @@ pub mod v1 {
             mxid: OwnedUserId,
             room_id: OwnedRoomId,
             sender: OwnedUserId,
-            signed: SignedContent,
+            signed: Raw<SignedContent>,
         ) -> Self {
             Self { medium: Medium::Email, address, mxid, room_id, sender, signed }
         }

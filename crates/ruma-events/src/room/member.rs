@@ -307,12 +307,12 @@ pub struct ThirdPartyInvite {
     /// A block of content which has been signed, which servers can use to verify the event.
     ///
     /// Clients should ignore this.
-    pub signed: SignedContent,
+    pub signed: Raw<SignedContent>,
 }
 
 impl ThirdPartyInvite {
     /// Creates a new `ThirdPartyInvite` with the given display name and signed content.
-    pub fn new(display_name: String, signed: SignedContent) -> Self {
+    pub fn new(display_name: String, signed: Raw<SignedContent>) -> Self {
         Self { display_name, signed }
     }
 
@@ -334,7 +334,7 @@ pub struct RedactedThirdPartyInvite {
     /// A block of content which has been signed, which servers can use to verify the event.
     ///
     /// Clients should ignore this.
-    pub signed: SignedContent,
+    pub signed: Raw<SignedContent>,
 }
 
 /// A block of content which has been signed, which servers can use to verify a third party
@@ -681,10 +681,10 @@ mod tests {
 
         let third_party_invite = ev.content.third_party_invite.unwrap();
         assert_eq!(third_party_invite.display_name, "alice");
-        assert_eq!(third_party_invite.signed.mxid, "@alice:example.org");
-        assert_eq!(third_party_invite.signed.signatures.len(), 1);
-        let server_signatures =
-            third_party_invite.signed.signatures.get(server_name!("magic.forest")).unwrap();
+        let signed = third_party_invite.signed.deserialize().unwrap();
+        assert_eq!(signed.mxid, "@alice:example.org");
+        assert_eq!(signed.signatures.len(), 1);
+        let server_signatures = signed.signatures.get(server_name!("magic.forest")).unwrap();
         assert_eq!(
             *server_signatures,
             btreemap! {
@@ -694,7 +694,7 @@ mod tests {
                 ) => "foobar".to_owned()
             }
         );
-        assert_eq!(third_party_invite.signed.token, "abc123");
+        assert_eq!(signed.token, "abc123");
     }
 
     #[test]
@@ -755,10 +755,10 @@ mod tests {
 
         let third_party_invite = prev_content.third_party_invite.unwrap();
         assert_eq!(third_party_invite.display_name, "alice");
-        assert_eq!(third_party_invite.signed.mxid, "@alice:example.org");
-        assert_eq!(third_party_invite.signed.signatures.len(), 1);
-        let server_signatures =
-            third_party_invite.signed.signatures.get(server_name!("magic.forest")).unwrap();
+        let signed = third_party_invite.signed.deserialize().unwrap();
+        assert_eq!(signed.mxid, "@alice:example.org");
+        assert_eq!(signed.signatures.len(), 1);
+        let server_signatures = signed.signatures.get(server_name!("magic.forest")).unwrap();
         assert_eq!(
             *server_signatures,
             btreemap! {
@@ -768,7 +768,7 @@ mod tests {
                 ) => "foobar".to_owned()
             }
         );
-        assert_eq!(third_party_invite.signed.token, "abc123");
+        assert_eq!(signed.token, "abc123");
     }
 
     #[test]

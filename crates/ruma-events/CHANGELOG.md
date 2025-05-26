@@ -25,6 +25,8 @@ Breaking changes:
   for unknown room versions.
 - Add the `sender_device_keys` field to `DecryptedOlmV1Event`, according to
   MSC4147.
+- `signed` in `ThirdPartyInvite` is now wrapped inside a `Raw` because it is
+  signed so we need the full raw JSON to verify the signature.
    
 # 0.30.3
 
