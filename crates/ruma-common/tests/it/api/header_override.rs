@@ -4,7 +4,7 @@ use http::header::{Entry, CONTENT_TYPE, LOCATION};
 use ruma_common::{
     api::{
         request, response, MatrixVersion, Metadata, OutgoingRequest as _, OutgoingResponse as _,
-        SendAccessToken,
+        SendAccessToken, SupportedVersions,
     },
     metadata,
 };
@@ -55,11 +55,14 @@ fn response_content_type_override() {
 #[test]
 fn request_content_type_override() {
     let req = Request { location: None, stuff: "magic".into() };
+    let supported =
+        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+
     let mut http_req = req
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            &[MatrixVersion::V1_1],
+            &supported,
         )
         .unwrap();
 

@@ -45,9 +45,9 @@ pub mod v3 {
             self,
             base_url: &str,
             access_token: ruma_common::api::SendAccessToken<'_>,
-            considering_versions: &'_ [ruma_common::api::MatrixVersion],
+            considering: &'_ ruma_common::api::SupportedVersions,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
-            let url = METADATA.make_endpoint_url(considering_versions, base_url, &[], "")?;
+            let url = METADATA.make_endpoint_url(considering, base_url, &[], "")?;
 
             http::Request::builder()
                 .method(METADATA.method)

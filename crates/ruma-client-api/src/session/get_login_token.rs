@@ -21,7 +21,7 @@ pub mod v1 {
         rate_limited: true,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/org.matrix.msc3882/login/get_token",
+            unstable("org.matrix.msc3882") => "/_matrix/client/unstable/org.matrix.msc3882/login/get_token",
             1.7 => "/_matrix/client/v1/login/get_token",
         }
     };
