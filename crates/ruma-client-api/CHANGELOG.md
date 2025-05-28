@@ -21,6 +21,8 @@ Improvements:
   endpoints, the `server_name` query parameter is only serialized if the server
   doesn't advertise at least one version that supports the `via` query
   parameter. The former was removed in Matrix 1.14.
+- The `authentication` field of `discovery::discover_homeserver::Response` has
+  been removed in favour of `discovery::get_authorization_server_metadata`.
 
 # 0.20.2
 
