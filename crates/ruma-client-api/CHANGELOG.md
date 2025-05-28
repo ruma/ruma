@@ -6,6 +6,8 @@ Improvements:
   used instead.
 - The `authentication` field of `discovery::discover_homeserver::Response` has
   been removed in favour of `discovery::get_authorization_server_metadata`.
+- The `discovery::discover_homeserver::Response` well-known now includes the
+  `rtc_foci` as defined in MSC4143.
 
 # 0.20.2
 
