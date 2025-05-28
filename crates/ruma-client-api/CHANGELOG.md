@@ -4,6 +4,8 @@ Improvements:
 
 - Remove the unstable support for MSC3575 as it was closed. MSC4186 should be
   used instead.
+- The `authentication` field of `discovery::discover_homeserver::Response` has
+  been removed in favour of `discovery::get_authorization_server_metadata`.
 
 # 0.20.2
 
