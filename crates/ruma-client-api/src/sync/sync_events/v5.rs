@@ -214,6 +214,41 @@ pub mod request {
         }
     }
 
+    /// Single entry for a room subscription configuration in an extension request.
+    #[derive(Clone, Debug, PartialEq)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub enum ExtensionRoomConfig {
+        /// Apply extension to all global room subscriptions.
+        AllSubscribed,
+
+        /// Additionally apply extension to this specific room.
+        Room(OwnedRoomId),
+    }
+
+    impl Serialize for ExtensionRoomConfig {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer,
+        {
+            match self {
+                Self::AllSubscribed => serializer.serialize_str("*"),
+                Self::Room(r) => r.serialize(serializer),
+            }
+        }
+    }
+
+    impl<'de> Deserialize<'de> for ExtensionRoomConfig {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: serde::de::Deserializer<'de>,
+        {
+            match deserialize_cow_str(deserializer)?.as_ref() {
+                "*" => Ok(Self::AllSubscribed),
+                other => Ok(Self::Room(RoomId::parse(other).map_err(D::Error::custom)?.to_owned())),
+            }
+        }
+    }
+
     /// To-device messages extension.
     ///
     /// According to [MSC3885](https://github.com/matrix-org/matrix-spec-proposals/pull/3885).
@@ -286,7 +321,7 @@ pub mod request {
         /// room subscriptions. If defined and empty, will be disabled for all
         /// the rooms.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub rooms: Option<Vec<OwnedRoomId>>,
+        pub rooms: Option<Vec<ExtensionRoomConfig>>,
     }
 
     impl AccountData {
@@ -319,49 +354,13 @@ pub mod request {
         /// room subscriptions. If defined and empty, will be disabled for all
         /// the rooms.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub rooms: Option<Vec<ReceiptsRoom>>,
+        pub rooms: Option<Vec<ExtensionRoomConfig>>,
     }
 
     impl Receipts {
         /// Whether all fields are empty or `None`.
         pub fn is_empty(&self) -> bool {
             self.enabled.is_none()
-        }
-    }
-
-    /// Single entry for a room-related read receipt configuration in
-    /// [`Receipts`].
-    #[derive(Clone, Debug, PartialEq)]
-    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-    pub enum ReceiptsRoom {
-        /// Get read receipts for all the subscribed rooms.
-        AllSubscribed,
-
-        /// Get read receipts for this particular room.
-        Room(OwnedRoomId),
-    }
-
-    impl Serialize for ReceiptsRoom {
-        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: serde::Serializer,
-        {
-            match self {
-                Self::AllSubscribed => serializer.serialize_str("*"),
-                Self::Room(r) => r.serialize(serializer),
-            }
-        }
-    }
-
-    impl<'de> Deserialize<'de> for ReceiptsRoom {
-        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: serde::de::Deserializer<'de>,
-        {
-            match deserialize_cow_str(deserializer)?.as_ref() {
-                "*" => Ok(Self::AllSubscribed),
-                other => Ok(Self::Room(RoomId::parse(other).map_err(D::Error::custom)?.to_owned())),
-            }
         }
     }
 
@@ -389,7 +388,7 @@ pub mod request {
         /// room subscriptions. If defined and empty, will be disabled for all
         /// the rooms.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub rooms: Option<Vec<OwnedRoomId>>,
+        pub rooms: Option<Vec<ExtensionRoomConfig>>,
     }
 
     impl Typing {
@@ -714,27 +713,27 @@ pub mod response {
 mod tests {
     use ruma_common::owned_room_id;
 
-    use super::request::ReceiptsRoom;
+    use super::request::ExtensionRoomConfig;
 
     #[test]
-    fn serialize_request_receipts_room() {
-        let entry = ReceiptsRoom::AllSubscribed;
+    fn serialize_request_extension_room_config() {
+        let entry = ExtensionRoomConfig::AllSubscribed;
         assert_eq!(serde_json::to_string(&entry).unwrap().as_str(), r#""*""#);
 
-        let entry = ReceiptsRoom::Room(owned_room_id!("!foo:bar.baz"));
+        let entry = ExtensionRoomConfig::Room(owned_room_id!("!foo:bar.baz"));
         assert_eq!(serde_json::to_string(&entry).unwrap().as_str(), r#""!foo:bar.baz""#);
     }
 
     #[test]
-    fn deserialize_request_receipts_room() {
+    fn deserialize_request_extension_room_config() {
         assert_eq!(
-            serde_json::from_str::<ReceiptsRoom>(r#""*""#).unwrap(),
-            ReceiptsRoom::AllSubscribed
+            serde_json::from_str::<ExtensionRoomConfig>(r#""*""#).unwrap(),
+            ExtensionRoomConfig::AllSubscribed
         );
 
         assert_eq!(
-            serde_json::from_str::<ReceiptsRoom>(r#""!foo:bar.baz""#).unwrap(),
-            ReceiptsRoom::Room(owned_room_id!("!foo:bar.baz"))
+            serde_json::from_str::<ExtensionRoomConfig>(r#""!foo:bar.baz""#).unwrap(),
+            ExtensionRoomConfig::Room(owned_room_id!("!foo:bar.baz"))
         );
     }
 }
