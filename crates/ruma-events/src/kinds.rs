@@ -3,7 +3,7 @@
 use as_variant::as_variant;
 use ruma_common::{
     room_version_rules::RedactionRules,
-    serde::{from_raw_json_value, Raw},
+    serde::{from_raw_json_value, JsonCastable, Raw},
     EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId, UserId,
 };
 use ruma_macros::Event;
@@ -11,12 +11,13 @@ use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
-    AnyInitialStateEvent, EmptyStateKey, EphemeralRoomEventContent, EventContent,
-    EventContentFromType, GlobalAccountDataEventContent, MessageLikeEventContent,
-    MessageLikeEventType, MessageLikeUnsigned, PossiblyRedactedStateEventContent, RedactContent,
-    RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
-    RedactionDeHelper, RoomAccountDataEventContent, StateEventType, StaticStateEventContent,
-    ToDeviceEventContent,
+    AnyEphemeralRoomEvent, AnyGlobalAccountDataEvent, AnyInitialStateEvent, AnyMessageLikeEvent,
+    AnyRoomAccountDataEvent, AnySyncEphemeralRoomEvent, AnySyncMessageLikeEvent, EmptyStateKey,
+    EphemeralRoomEventContent, EventContent, EventContentFromType, GlobalAccountDataEventContent,
+    MessageLikeEventContent, MessageLikeEventType, MessageLikeUnsigned,
+    PossiblyRedactedStateEventContent, RedactContent, RedactedMessageLikeEventContent,
+    RedactedStateEventContent, RedactedUnsigned, RedactionDeHelper, RoomAccountDataEventContent,
+    StateEventType, StaticStateEventContent, ToDeviceEventContent,
 };
 
 /// A global account data event.
@@ -38,6 +39,11 @@ impl<C: GlobalAccountDataEventContent> Serialize for GlobalAccountDataEvent<C> {
     }
 }
 
+impl<C: GlobalAccountDataEventContent> JsonCastable<AnyGlobalAccountDataEvent>
+    for GlobalAccountDataEvent<C>
+{
+}
+
 /// A room account data event.
 #[derive(Clone, Debug, Event)]
 pub struct RoomAccountDataEvent<C: RoomAccountDataEventContent> {
@@ -55,6 +61,11 @@ impl<C: RoomAccountDataEventContent> Serialize for RoomAccountDataEvent<C> {
         state.serialize_field("content", &self.content)?;
         state.end()
     }
+}
+
+impl<C: RoomAccountDataEventContent> JsonCastable<AnyRoomAccountDataEvent>
+    for RoomAccountDataEvent<C>
+{
 }
 
 /// An ephemeral room event.
@@ -80,6 +91,12 @@ impl<C: EphemeralRoomEventContent> Serialize for EphemeralRoomEvent<C> {
     }
 }
 
+impl<C: EphemeralRoomEventContent> JsonCastable<SyncEphemeralRoomEvent<C>>
+    for EphemeralRoomEvent<C>
+{
+}
+impl<C: EphemeralRoomEventContent> JsonCastable<AnyEphemeralRoomEvent> for EphemeralRoomEvent<C> {}
+
 /// An ephemeral room event without a `room_id`.
 #[derive(Clone, Debug, Event)]
 pub struct SyncEphemeralRoomEvent<C: EphemeralRoomEventContent> {
@@ -97,6 +114,11 @@ impl<C: EphemeralRoomEventContent> Serialize for SyncEphemeralRoomEvent<C> {
         state.serialize_field("content", &self.content)?;
         state.end()
     }
+}
+
+impl<C: EphemeralRoomEventContent> JsonCastable<AnySyncEphemeralRoomEvent>
+    for SyncEphemeralRoomEvent<C>
+{
 }
 
 /// An unredacted message-like event.
@@ -122,6 +144,28 @@ pub struct OriginalMessageLikeEvent<C: MessageLikeEventContent> {
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: MessageLikeUnsigned<C>,
+}
+
+impl<C: MessageLikeEventContent> JsonCastable<OriginalSyncMessageLikeEvent<C>>
+    for OriginalMessageLikeEvent<C>
+{
+}
+impl<C> JsonCastable<MessageLikeEvent<C>> for OriginalMessageLikeEvent<C>
+where
+    C: MessageLikeEventContent + RedactContent,
+    C::Redacted: RedactedMessageLikeEventContent,
+{
+}
+impl<C> JsonCastable<SyncMessageLikeEvent<C>> for OriginalMessageLikeEvent<C>
+where
+    C: MessageLikeEventContent + RedactContent,
+    C::Redacted: RedactedMessageLikeEventContent,
+{
+}
+impl<C: MessageLikeEventContent> JsonCastable<AnyMessageLikeEvent> for OriginalMessageLikeEvent<C> {}
+impl<C: MessageLikeEventContent> JsonCastable<AnySyncMessageLikeEvent>
+    for OriginalMessageLikeEvent<C>
+{
 }
 
 /// An unredacted message-like event without a `room_id`.
@@ -153,6 +197,15 @@ where
     pub(crate) fn into_maybe_redacted(self) -> SyncMessageLikeEvent<C> {
         SyncMessageLikeEvent::Original(self)
     }
+}
+
+impl<C: MessageLikeEventContent> JsonCastable<OriginalSyncMessageLikeEvent<C>>
+    for OriginalSyncMessageLikeEvent<C>
+{
+}
+impl<C: MessageLikeEventContent> JsonCastable<AnySyncMessageLikeEvent>
+    for OriginalSyncMessageLikeEvent<C>
+{
 }
 
 /// A redacted message-like event.
@@ -356,7 +409,7 @@ impl<C: StaticStateEventContent> InitialStateEvent<C> {
     /// `enum` with one or more variants that use the `#[serde(skip)]` attribute), this method
     /// can panic.
     pub fn to_raw_any(&self) -> Raw<AnyInitialStateEvent> {
-        self.to_raw().cast_unchecked()
+        self.to_raw().cast()
     }
 }
 
@@ -381,6 +434,8 @@ impl<C: StaticStateEventContent> Serialize for InitialStateEvent<C> {
         state.end()
     }
 }
+
+impl<C: StaticStateEventContent> JsonCastable<AnyInitialStateEvent> for InitialStateEvent<C> {}
 
 /// A redacted state event.
 ///

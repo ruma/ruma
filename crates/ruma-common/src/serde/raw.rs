@@ -196,13 +196,29 @@ impl<T> Raw<T> {
     /// Turns `Raw<T>` into `Raw<U>` without changing the underlying JSON.
     ///
     /// This is useful for turning raw specific event types into raw event enum types.
-    pub fn cast_unchecked<U>(self) -> Raw<U> {
-        Raw::from_json(self.into_json())
+    pub fn cast<U>(self) -> Raw<U>
+    where
+        T: JsonCastable<U>,
+    {
+        self.cast_unchecked()
     }
 
     /// Turns `&Raw<T>` into `&Raw<U>` without changing the underlying JSON.
     ///
     /// This is useful for turning raw specific event types into raw event enum types.
+    pub fn cast_ref<U>(&self) -> &Raw<U>
+    where
+        T: JsonCastable<U>,
+    {
+        self.cast_ref_unchecked()
+    }
+
+    /// Same as [`cast`][Self::cast], but without the trait restriction.
+    pub fn cast_unchecked<U>(self) -> Raw<U> {
+        Raw::from_json(self.into_json())
+    }
+
+    /// Same as [`cast_ref`][Self::cast_ref], but without the trait restriction.
     pub fn cast_ref_unchecked<U>(&self) -> &Raw<U> {
         unsafe { mem::transmute(self) }
     }
@@ -238,6 +254,9 @@ impl<T> Serialize for Raw<T> {
         self.json.serialize(serializer)
     }
 }
+
+/// Marker trait for restricting the types [`Raw::cast`] and [`Raw::cast_ref`] can be called with.
+pub trait JsonCastable<T> {}
 
 #[cfg(test)]
 mod tests {
