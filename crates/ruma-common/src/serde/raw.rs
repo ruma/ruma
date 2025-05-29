@@ -95,7 +95,7 @@ impl<T> Raw<T> {
     /// # fn foo() -> serde_json::Result<()> {
     /// # let raw_event: ruma_common::serde::Raw<()> = todo!();
     /// if raw_event.get_field::<String>("type")?.as_deref() == Some("org.custom.matrix.event") {
-    ///     let event = raw_event.deserialize_as::<CustomMatrixEvent>()?;
+    ///     let event = raw_event.deserialize_as_unchecked::<CustomMatrixEvent>()?;
     ///     // ...
     /// }
     /// # Ok(())
@@ -186,7 +186,7 @@ impl<T> Raw<T> {
     }
 
     /// Try to deserialize the JSON as a custom type.
-    pub fn deserialize_as<'a, U>(&'a self) -> serde_json::Result<U>
+    pub fn deserialize_as_unchecked<'a, U>(&'a self) -> serde_json::Result<U>
     where
         U: Deserialize<'a>,
     {
@@ -196,14 +196,14 @@ impl<T> Raw<T> {
     /// Turns `Raw<T>` into `Raw<U>` without changing the underlying JSON.
     ///
     /// This is useful for turning raw specific event types into raw event enum types.
-    pub fn cast<U>(self) -> Raw<U> {
+    pub fn cast_unchecked<U>(self) -> Raw<U> {
         Raw::from_json(self.into_json())
     }
 
     /// Turns `&Raw<T>` into `&Raw<U>` without changing the underlying JSON.
     ///
     /// This is useful for turning raw specific event types into raw event enum types.
-    pub fn cast_ref<U>(&self) -> &Raw<U> {
+    pub fn cast_ref_unchecked<U>(&self) -> &Raw<U> {
         unsafe { mem::transmute(self) }
     }
 }
