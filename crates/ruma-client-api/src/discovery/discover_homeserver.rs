@@ -26,6 +26,7 @@ pub struct Request {}
 
 /// Response type for the `client_well_known` endpoint.
 #[response(error = crate::Error)]
+#[derive(Deserialize, Serialize)]
 pub struct Response {
     /// Information about the homeserver to connect to.
     #[serde(rename = "m.homeserver")]
