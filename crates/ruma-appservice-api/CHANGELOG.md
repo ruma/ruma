@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+- `Registration` deserialization fails if `url` is missing. The value must be
+  set or `null`.
+
 # 0.12.1
 
 Improvements:
