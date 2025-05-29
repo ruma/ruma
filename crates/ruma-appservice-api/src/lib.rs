@@ -76,6 +76,7 @@ pub struct Registration {
     /// The URL for the application service.
     ///
     /// Optionally set to `null` if no traffic is required.
+    #[serde(deserialize_with = "Option::deserialize")]
     pub url: Option<String>,
 
     /// A unique token for application services to use to authenticate requests to Homeservers.

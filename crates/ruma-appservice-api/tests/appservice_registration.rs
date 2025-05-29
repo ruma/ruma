@@ -46,7 +46,7 @@ fn registration_deserialization() {
 }
 
 #[test]
-fn config_with_optional_url() {
+fn registration_with_optional_url() {
     let registration_config = r#"
         id: "IRC Bridge"
         url: null
@@ -60,4 +60,19 @@ fn config_with_optional_url() {
         "#;
     assert_matches!(serde_yaml::from_str(registration_config).unwrap(), Registration { url, .. });
     assert_eq!(url, None);
+}
+
+#[test]
+fn registration_with_missing_url() {
+    let registration_config = r#"
+        id: "IRC Bridge"
+        as_token: "30c05ae90a248a4188e620216fa72e349803310ec83e2a77b34fe90be6081f46"
+        hs_token: "312df522183efd404ec1cd22d2ffa4bbc76a8c1ccf541dd692eef281356bb74e"
+        sender_localpart: "_irc_bot"
+        namespaces:
+          users: []
+          aliases: []
+          rooms: []
+        "#;
+    serde_yaml::from_str::<Registration>(registration_config).unwrap_err();
 }

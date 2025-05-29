@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+- `Registration` deserialization fails if `url` is missing. The value must be
+  set or `null`.
+
 Breaking changes:
 
 - The`thirdparty::get_protocol` response uses `AppserviceProtocolInstance`
