@@ -137,7 +137,7 @@ pub mod unstable {
                 "@userAsStateKey:example.org".to_owned(),
                 "com.example.custom_state".into(),
                 delay_parameters,
-                Raw::new(&json!({ "key": "value" })).unwrap().cast(),
+                Raw::new(&json!({ "key": "value" })).unwrap().cast_unchecked(),
             )
             .try_into_http_request(
                 "https://homeserver.tld",
