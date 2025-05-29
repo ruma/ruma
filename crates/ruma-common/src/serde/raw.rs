@@ -196,14 +196,14 @@ impl<T> Raw<T> {
     /// Turns `Raw<T>` into `Raw<U>` without changing the underlying JSON.
     ///
     /// This is useful for turning raw specific event types into raw event enum types.
-    pub fn cast<U>(self) -> Raw<U> {
+    pub fn cast_unchecked<U>(self) -> Raw<U> {
         Raw::from_json(self.into_json())
     }
 
     /// Turns `&Raw<T>` into `&Raw<U>` without changing the underlying JSON.
     ///
     /// This is useful for turning raw specific event types into raw event enum types.
-    pub fn cast_ref<U>(&self) -> &Raw<U> {
+    pub fn cast_ref_unchecked<U>(&self) -> &Raw<U> {
         unsafe { mem::transmute(self) }
     }
 }

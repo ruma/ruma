@@ -356,7 +356,7 @@ impl<C: StaticStateEventContent> InitialStateEvent<C> {
     /// `enum` with one or more variants that use the `#[serde(skip)]` attribute), this method
     /// can panic.
     pub fn to_raw_any(&self) -> Raw<AnyInitialStateEvent> {
-        self.to_raw().cast()
+        self.to_raw().cast_unchecked()
     }
 }
 
