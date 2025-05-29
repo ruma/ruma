@@ -25,6 +25,8 @@ Improvements:
   been removed in favour of `discovery::get_authorization_server_metadata`.
 - The `discovery::discover_homeserver::Response` well-known now includes the
   `rtc_foci` as defined in MSC4143.
+- Use specialized room ID type (`ExtensionRoomConfig`) for all MSC4186
+  extension requests, not just the Receipts extension.
 
 # 0.20.2
 
