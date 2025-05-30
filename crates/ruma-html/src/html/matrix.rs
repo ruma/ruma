@@ -9,9 +9,7 @@ use ruma_common::{
     IdParseError, MatrixToError, MatrixToUri, MatrixUri, MatrixUriError, MxcUri, OwnedMxcUri,
 };
 
-use crate::sanitizer_config::clean::{
-    ALLOWED_SCHEMES_A_HREF_COMPAT, ALLOWED_SCHEMES_A_HREF_STRICT,
-};
+use crate::sanitizer_config::clean::{compat, spec};
 
 const CLASS_LANGUAGE_PREFIX: &str = "language-";
 
@@ -416,8 +414,10 @@ impl AnchorUri {
         let s = value.as_ref();
 
         // Check if it starts with a supported scheme.
-        let mut allowed_schemes =
-            ALLOWED_SCHEMES_A_HREF_STRICT.iter().chain(ALLOWED_SCHEMES_A_HREF_COMPAT.iter());
+        let mut allowed_schemes = spec::allowed_schemes("a", "href")
+            .into_iter()
+            .chain(compat::allowed_schemes("a", "href"))
+            .flatten();
         if !allowed_schemes.any(|scheme| s.starts_with(&format!("{scheme}:"))) {
             return None;
         }
