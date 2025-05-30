@@ -231,21 +231,6 @@ pub mod request {
         /// Give messages since this token only.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub since: Option<String>,
-
-        /// List of list names for which to-device events should be enabled.
-        ///
-        /// If not defined, will be enabled for *all* the lists appearing in the
-        /// request. If defined and empty, will be disabled for all the lists.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub lists: Option<Vec<String>>,
-
-        /// List of room names for which to-device events should be enabled.
-        ///
-        /// If not defined, will be enabled for *all* the rooms appearing in the
-        /// room subscriptions. If defined and empty, will be disabled for all
-        /// the rooms.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub rooms: Option<Vec<OwnedRoomId>>,
     }
 
     impl ToDevice {
