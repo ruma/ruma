@@ -23,6 +23,8 @@ Breaking changes:
 - `RedactContent::redact()` and `FullStateEventContent::redact()` take a
   `RedactionRules` instead of `RoomVersionId`. This avoids undefined behavior
   for unknown room versions.
+- Add the `sender_device_keys` field to `DecryptedOlmV1Event`, according to
+  MSC4147.
    
 # 0.30.3
 

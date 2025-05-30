@@ -2,6 +2,7 @@
 
 use as_variant::as_variant;
 use ruma_common::{
+    encryption::DeviceKeys,
     room_version_rules::RedactionRules,
     serde::{from_raw_json_value, Raw},
     EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId, UserId,
@@ -515,6 +516,9 @@ pub struct DecryptedOlmV1Event<C: MessageLikeEventContent> {
 
     /// The sender's ed25519 key.
     pub keys: OlmV1Keys,
+
+    /// The sender's device keys.
+    pub sender_device_keys: Option<Raw<DeviceKeys>>,
 }
 
 /// Public keys used for an `m.olm.v1.curve25519-aes-sha2` event.
