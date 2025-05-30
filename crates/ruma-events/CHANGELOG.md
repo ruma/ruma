@@ -26,6 +26,8 @@ Breaking changes:
 - Add implementation of [MSC 4278](https://github.com/matrix-org/matrix-spec-proposals/pull/4278)
   using `MediaPreviewConfigEventContent` for the stable version and `MediaPreviewConfigEventContent`
   for the unstable one, both are only implemented as `GlobalAccountData` events as of right now.
+- Add the `sender_device_keys` field to `DecryptedOlmV1Event`, according to
+  MSC4147.
    
 
 Improvements:
