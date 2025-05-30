@@ -9,9 +9,18 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 
 #[test]
 fn serialize_stripped_state_event_any_content() {
+    let json = to_json_value(RoomTopicEventContent::new("Testing room".into())).unwrap();
+    #[cfg(not(feature = "unstable-msc3765"))]
+    assert_eq!(json, json!({ "topic": "Testing room" }));
+    #[cfg(feature = "unstable-msc3765")]
     assert_eq!(
-        to_json_value(RoomTopicEventContent::new("Testing room".into())).unwrap(),
-        json!({ "topic": "Testing room" })
+        json,
+        json!({
+            "topic": "Testing room",
+            "org.matrix.msc3765.topic": [
+                { "body": "Testing room" },
+            ],
+        })
     );
 }
 
