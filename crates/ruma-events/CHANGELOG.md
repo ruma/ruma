@@ -32,6 +32,7 @@ Improvements:
 
 - Add support for ThumbHash as an alternative to BlurHash for MSC2448 in 
   `ImageInfo` and `VideoInfo`.
+- Add unstable support for rich text in room topics, according to MSC3765.
 
 # 0.30.2
 
