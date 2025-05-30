@@ -116,8 +116,8 @@ pub mod unstable {
         use ruma_common::{
             api::{MatrixVersion, OutgoingRequest, SendAccessToken},
             owned_room_id,
+            serde::Raw,
         };
-        use ruma_events::room::topic::RoomTopicEventContent;
         use serde_json::{json, Value as JsonValue};
         use web_time::Duration;
 
@@ -127,13 +127,13 @@ pub mod unstable {
         fn create_delayed_event_request(
             delay_parameters: DelayParameters,
         ) -> (http::request::Parts, Vec<u8>) {
-            Request::new(
+            Request::new_raw(
                 owned_room_id!("!roomid:example.org"),
                 "@userAsStateKey:example.org".to_owned(),
+                "com.example.custom_state".into(),
                 delay_parameters,
-                &RoomTopicEventContent::new("my_topic".to_owned()),
+                Raw::new(&json!({ "key": "value" })).unwrap().cast(),
             )
-            .unwrap()
             .try_into_http_request(
                 "https://homeserver.tld",
                 SendAccessToken::IfRequired("auth_tok"),
@@ -149,12 +149,12 @@ pub mod unstable {
                 timeout: Duration::from_millis(1_234_321),
             });
             assert_eq!(
-                "https://homeserver.tld/_matrix/client/v3/rooms/!roomid:example.org/state/m.room.topic/@userAsStateKey:example.org?org.matrix.msc4140.delay=1234321",
+                "https://homeserver.tld/_matrix/client/v3/rooms/!roomid:example.org/state/com.example.custom_state/@userAsStateKey:example.org?org.matrix.msc4140.delay=1234321",
                 parts.uri.to_string()
             );
             assert_eq!("PUT", parts.method.to_string());
             assert_eq!(
-                json!({"topic": "my_topic"}),
+                json!({ "key": "value" }),
                 serde_json::from_str::<JsonValue>(std::str::from_utf8(&body).unwrap()).unwrap()
             );
         }
