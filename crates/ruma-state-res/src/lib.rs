@@ -14,7 +14,7 @@ use ruma_events::{room::member::MembershipState, StateEventType, TimelineEventTy
 use tracing::{debug, info, instrument, trace, warn};
 
 mod error;
-pub mod event_auth;
+mod event_auth;
 pub mod events;
 #[cfg(test)]
 mod test_utils;
@@ -25,7 +25,9 @@ use self::events::{
 };
 pub use self::{
     error::{Error, Result},
-    event_auth::{auth_check, auth_types_for_event},
+    event_auth::{
+        auth_types_for_event, check_state_dependent_auth_rules, check_state_independent_auth_rules,
+    },
     events::Event,
 };
 
@@ -460,14 +462,15 @@ fn iterative_auth_check<E: Event + Clone>(
         let mut auth_events = StateMap::new();
         for aid in event.auth_events() {
             if let Some(ev) = fetch_event(aid.borrow()) {
-                // TODO synapse check "rejected_reason" which is most likely
-                // related to soft-failing
-                auth_events.insert(
-                    ev.event_type().with_state_key(ev.state_key().ok_or(Error::MissingStateKey)?),
-                    ev,
-                );
+                if !ev.rejected() {
+                    auth_events.insert(
+                        ev.event_type()
+                            .with_state_key(ev.state_key().ok_or(Error::MissingStateKey)?),
+                        ev,
+                    );
+                }
             } else {
-                warn!(event_id = aid.borrow().as_str(), "missing auth event");
+                warn!(event_id = %aid.borrow(), "missing auth event");
             }
         }
 
@@ -488,13 +491,18 @@ fn iterative_auth_check<E: Event + Clone>(
         for key in auth_types {
             if let Some(ev_id) = resolved_state.get(&key) {
                 if let Some(event) = fetch_event(ev_id.borrow()) {
-                    // TODO synapse checks `rejected_reason` is None here
-                    auth_events.insert(key.to_owned(), event);
+                    if !event.rejected() {
+                        auth_events.insert(key.to_owned(), event);
+                    }
+                } else {
+                    warn!(event_id = %ev_id.borrow(), "missing auth event");
                 }
             }
         }
 
-        match auth_check(rules, &event, |ty, key| auth_events.get(&ty.with_state_key(key))) {
+        match check_state_dependent_auth_rules(rules, &event, |ty, key| {
+            auth_events.get(&ty.with_state_key(key))
+        }) {
             Ok(()) => {
                 // Add event to resolved state.
                 resolved_state

@@ -65,6 +65,8 @@ struct Pdu {
     prev_events: Vec<OwnedEventId>,
     auth_events: Vec<OwnedEventId>,
     redacts: Option<OwnedEventId>,
+    #[serde(default)]
+    rejected: bool,
 }
 
 impl Event for Pdu {
@@ -108,6 +110,10 @@ impl Event for Pdu {
 
     fn redacts(&self) -> Option<&Self::Id> {
         self.redacts.as_ref()
+    }
+
+    fn rejected(&self) -> bool {
+        self.rejected
     }
 }
 
