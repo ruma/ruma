@@ -9,14 +9,14 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv13pidonbind
 
-    use std::collections::BTreeMap;
-
     use ruma_common::{
         api::{request, response, Metadata},
         metadata,
+        serde::Raw,
         thirdparty::Medium,
-        OwnedRoomId, OwnedServerName, OwnedServerSigningKeyId, OwnedUserId,
+        OwnedRoomId, OwnedUserId,
     };
+    use ruma_events::room::member::SignedContent;
     use serde::{Deserialize, Serialize};
 
     const METADATA: Metadata = metadata! {
@@ -50,6 +50,7 @@ pub mod v1 {
 
     /// Response type for the `bind_callback` endpoint.
     #[response]
+    #[derive(Default)]
     pub struct Response {}
 
     impl Request {
@@ -90,8 +91,9 @@ pub mod v1 {
         /// The user ID that sent the invite.
         pub sender: OwnedUserId,
 
-        /// Signature from the identity server using a long-term private key.
-        pub signed: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
+        /// A block of content which has been signed, which servers can use to verify the
+        /// third-party invite.
+        pub signed: Raw<SignedContent>,
     }
 
     impl ThirdPartyInvite {
@@ -101,9 +103,16 @@ pub mod v1 {
             mxid: OwnedUserId,
             room_id: OwnedRoomId,
             sender: OwnedUserId,
-            signed: BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, String>>,
+            signed: Raw<SignedContent>,
         ) -> Self {
             Self { medium: Medium::Email, address, mxid, room_id, sender, signed }
+        }
+    }
+
+    impl Response {
+        /// Construct an empty response.
+        pub fn new() -> Self {
+            Self {}
         }
     }
 }

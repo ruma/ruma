@@ -1,6 +1,6 @@
 use ruma_common::{
-    room_version_rules::AuthorizationRules, third_party_invite::IdentityServerBase64PublicKey,
-    Signatures,
+    room_version_rules::AuthorizationRules, serde::Raw,
+    third_party_invite::IdentityServerBase64PublicKey, Signatures,
 };
 use ruma_events::{
     room::{
@@ -854,7 +854,12 @@ fn invite_via_third_party_invite_banned() {
     let mut content = RoomMemberEventContent::new(MembershipState::Invite);
     content.third_party_invite = Some(ThirdPartyInvite::new(
         "e..@p..".to_owned(),
-        SignedContent::new(Signatures::new(), ella().to_owned(), "somerandomtoken".to_owned()),
+        Raw::new(&SignedContent::new(
+            Signatures::new(),
+            ella().to_owned(),
+            "somerandomtoken".to_owned(),
+        ))
+        .unwrap(),
     ));
 
     let incoming_event = to_pdu_event(
@@ -1016,7 +1021,12 @@ fn invite_via_third_party_invite_mxid_mismatch() {
     let mut content = RoomMemberEventContent::new(MembershipState::Invite);
     content.third_party_invite = Some(ThirdPartyInvite::new(
         "z..@p..".to_owned(),
-        SignedContent::new(Signatures::new(), zara().to_owned(), "somerandomtoken".to_owned()),
+        Raw::new(&SignedContent::new(
+            Signatures::new(),
+            zara().to_owned(),
+            "somerandomtoken".to_owned(),
+        ))
+        .unwrap(),
     ));
 
     let incoming_event = to_pdu_event(
@@ -1051,7 +1061,12 @@ fn invite_via_third_party_invite_missing_room_third_party_invite() {
     let mut content = RoomMemberEventContent::new(MembershipState::Invite);
     content.third_party_invite = Some(ThirdPartyInvite::new(
         "e..@p..".to_owned(),
-        SignedContent::new(Signatures::new(), ella().to_owned(), "somerandomtoken".to_owned()),
+        Raw::new(&SignedContent::new(
+            Signatures::new(),
+            ella().to_owned(),
+            "somerandomtoken".to_owned(),
+        ))
+        .unwrap(),
     ));
 
     let incoming_event = to_pdu_event(
@@ -1104,7 +1119,12 @@ fn invite_via_third_party_invite_room_third_party_invite_sender_mismatch() {
     let mut content = RoomMemberEventContent::new(MembershipState::Invite);
     content.third_party_invite = Some(ThirdPartyInvite::new(
         "e..@p..".to_owned(),
-        SignedContent::new(Signatures::new(), ella().to_owned(), "somerandomtoken".to_owned()),
+        Raw::new(&SignedContent::new(
+            Signatures::new(),
+            ella().to_owned(),
+            "somerandomtoken".to_owned(),
+        ))
+        .unwrap(),
     ));
 
     let incoming_event = to_pdu_event(
