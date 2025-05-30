@@ -110,7 +110,11 @@ impl RoomVersionRules {
     /// Rules for [room version 11].
     ///
     /// [room version 11]: https://spec.matrix.org/latest/rooms/v11/
-    pub const V11: Self = Self { authorization: AuthorizationRules::V11, ..Self::V10 };
+    pub const V11: Self = Self {
+        authorization: AuthorizationRules::V11,
+        redaction: RedactionRules::V11,
+        ..Self::V10
+    };
 
     /// Rules for room version `org.matrix.msc2870` ([MSC2870]).
     ///
