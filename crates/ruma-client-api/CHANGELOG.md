@@ -16,6 +16,8 @@ Breaking changes:
   custom and hasn't been kept up-to-date, and as far as we know it is not used
   by anyone, so we prefer to remove it to avoid an unnecessary maintenance
   burden and potential issues in the future.
+- Move `Capabilities` and associated types into the
+  `discovery::get_capabilities::v3` module, for consistency with other endpoints.
 
 Bug fixes:
 
