@@ -12,10 +12,8 @@ use ruma_common::{serde::StringEnum, RoomVersionId};
 use serde::{Deserialize, Serialize};
 use serde_json::{from_value as from_json_value, to_value as to_json_value, Value as JsonValue};
 
-use self::iter::{CapabilitiesIter, CapabilityRef};
 use crate::PrivOwnedStr;
 
-pub mod iter;
 pub mod v3;
 
 /// Contains information about all the capabilities that the server supports.
@@ -123,20 +121,6 @@ impl Capabilities {
         }
 
         Ok(())
-    }
-
-    /// Returns an iterator over the capabilities.
-    pub fn iter(&self) -> CapabilitiesIter<'_> {
-        CapabilitiesIter::new(self)
-    }
-}
-
-impl<'a> IntoIterator for &'a Capabilities {
-    type Item = CapabilityRef<'a>;
-    type IntoIter = CapabilitiesIter<'a>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter()
     }
 }
 
@@ -320,55 +304,5 @@ impl GetLoginTokenCapability {
     /// Returns whether all fields have their default value.
     pub fn is_default(&self) -> bool {
         !self.enabled
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use std::borrow::Cow;
-
-    use assert_matches2::assert_matches;
-    use serde_json::json;
-
-    use super::Capabilities;
-
-    #[test]
-    fn capabilities_iter() -> serde_json::Result<()> {
-        let mut caps = Capabilities::new();
-        let custom_cap = json!({
-            "key": "value",
-        });
-        caps.set("m.some_random_capability", custom_cap)?;
-        let mut caps_iter = caps.iter();
-
-        let iter_res = caps_iter.next().unwrap();
-        assert_eq!(iter_res.name(), "m.change_password");
-        assert_eq!(iter_res.value(), Cow::Borrowed(&json!({ "enabled": true })));
-
-        let iter_res = caps_iter.next().unwrap();
-        assert_eq!(iter_res.name(), "m.room_versions");
-        assert_eq!(
-            iter_res.value(),
-            Cow::Borrowed(&json!({ "available": { "1": "stable" },"default" :"1" }))
-        );
-
-        let iter_res = caps_iter.next().unwrap();
-        assert_eq!(iter_res.name(), "m.set_displayname");
-        assert_eq!(iter_res.value(), Cow::Borrowed(&json!({ "enabled": true })));
-
-        let iter_res = caps_iter.next().unwrap();
-        assert_eq!(iter_res.name(), "m.set_avatar_url");
-        assert_eq!(iter_res.value(), Cow::Borrowed(&json!({ "enabled": true })));
-
-        let iter_res = caps_iter.next().unwrap();
-        assert_eq!(iter_res.name(), "m.3pid_changes");
-        assert_eq!(iter_res.value(), Cow::Borrowed(&json!({ "enabled": true })));
-
-        let iter_res = caps_iter.next().unwrap();
-        assert_eq!(iter_res.name(), "m.some_random_capability");
-        assert_eq!(iter_res.value(), Cow::Borrowed(&json!({ "key": "value" })));
-
-        assert_matches!(caps_iter.next(), None);
-        Ok(())
     }
 }
