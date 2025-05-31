@@ -122,6 +122,19 @@ pub mod v3 {
         )]
         pub get_login_token: GetLoginTokenCapability,
 
+        /// Capability to indicate if the server enforces the `m.invite_permission_config` account
+        /// data ([MSC4155]).
+        ///
+        /// [MSC4155]: https://github.com/matrix-org/matrix-spec-proposals/pull/4155
+        #[cfg(feature = "unstable-msc4155")]
+        #[serde(
+            rename = "org.matrix.msc4155.invite_permission_config_enforced",
+            alias = "m.invite_permission_config_enforced",
+            default,
+            skip_serializing_if = "InvitePermissionConfigEnforcedCapability::is_default"
+        )]
+        pub invite_permission_config_enforced: InvitePermissionConfigEnforcedCapability,
+
         /// Any other custom capabilities that the server supports outside of the specification,
         /// labeled using the Java package naming convention and stored as arbitrary JSON values.
         #[serde(flatten)]
@@ -150,6 +163,11 @@ pub mod v3 {
                 "m.set_avatar_url" => Some(Cow::Owned(serialize(&self.set_avatar_url))),
                 "m.3pid_changes" => Some(Cow::Owned(serialize(&self.thirdparty_id_changes))),
                 "m.get_login_token" => Some(Cow::Owned(serialize(&self.get_login_token))),
+                #[cfg(feature = "unstable-msc4155")]
+                "org.matrix.msc4155.invite_permission_config_enforced"
+                | "m.invite_permission_config_enforced" => {
+                    Some(Cow::Owned(serialize(&self.invite_permission_config_enforced)))
+                }
                 _ => self.custom_capabilities.get(capability).map(Cow::Borrowed),
             }
         }
@@ -167,6 +185,11 @@ pub mod v3 {
                 "m.set_avatar_url" => self.set_avatar_url = from_json_value(value)?,
                 "m.3pid_changes" => self.thirdparty_id_changes = from_json_value(value)?,
                 "m.get_login_token" => self.get_login_token = from_json_value(value)?,
+                #[cfg(feature = "unstable-msc4155")]
+                "org.matrix.msc4155.invite_permission_config_enforced"
+                | "m.invite_permission_config_enforced" => {
+                    self.invite_permission_config_enforced = from_json_value(value)?;
+                }
                 _ => {
                     self.custom_capabilities.insert(capability.to_owned(), value);
                 }
@@ -349,6 +372,31 @@ pub mod v3 {
 
     impl GetLoginTokenCapability {
         /// Creates a new `GetLoginTokenCapability` with the given enabled flag.
+        pub fn new(enabled: bool) -> Self {
+            Self { enabled }
+        }
+
+        /// Returns whether all fields have their default value.
+        pub fn is_default(&self) -> bool {
+            !self.enabled
+        }
+    }
+
+    /// Information about the the `m.invite_permission_config_enforced` capability
+    /// ([MSC4155]).
+    ///
+    /// [MSC4155]: https://github.com/matrix-org/matrix-spec-proposals/pull/4155
+    #[cfg(feature = "unstable-msc4155")]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct InvitePermissionConfigEnforcedCapability {
+        /// Whether the server enforces the `m.invite_permission_config` account data.
+        pub enabled: bool,
+    }
+
+    #[cfg(feature = "unstable-msc4155")]
+    impl InvitePermissionConfigEnforcedCapability {
+        /// Creates a new `nvitePermissionConfigEnforcedCapability` with the given enabled flag.
         pub fn new(enabled: bool) -> Self {
             Self { enabled }
         }

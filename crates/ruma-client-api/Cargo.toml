@@ -51,6 +51,7 @@ unstable-msc4108 = []
 unstable-msc4121 = []
 unstable-msc4140 = []
 unstable-msc4143 = []
+unstable-msc4155 = ["ruma-events/unstable-msc4155"]
 unstable-msc4186 = []
 
 [dependencies]

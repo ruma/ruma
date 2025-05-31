@@ -38,6 +38,8 @@ Improvements:
   `rtc_foci` as defined in MSC4143.
 - Use specialized room ID type (`ExtensionRoomConfig`) for all MSC4186
   extension requests, not just the Receipts extension.
+- Add unstable support for the `m.invite_permission_config_enforced` capability
+  according to MSC4155.
 
 # 0.20.2
 
