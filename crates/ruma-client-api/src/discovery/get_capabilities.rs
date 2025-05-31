@@ -99,6 +99,7 @@ impl Capabilities {
             "m.set_displayname" => Some(Cow::Owned(serialize(&self.set_displayname))),
             "m.set_avatar_url" => Some(Cow::Owned(serialize(&self.set_avatar_url))),
             "m.3pid_changes" => Some(Cow::Owned(serialize(&self.thirdparty_id_changes))),
+            "m.get_login_token" => Some(Cow::Owned(serialize(&self.get_login_token))),
             _ => self.custom_capabilities.get(capability).map(Cow::Borrowed),
         }
     }
@@ -115,6 +116,7 @@ impl Capabilities {
             "m.set_displayname" => self.set_displayname = from_json_value(value)?,
             "m.set_avatar_url" => self.set_avatar_url = from_json_value(value)?,
             "m.3pid_changes" => self.thirdparty_id_changes = from_json_value(value)?,
+            "m.get_login_token" => self.get_login_token = from_json_value(value)?,
             _ => {
                 self.custom_capabilities.insert(capability.to_owned(), value);
             }
