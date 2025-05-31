@@ -12,6 +12,17 @@ Breaking changes:
   clients that required it.
 - The `reason` field of `report_room::v3::Request` is now required, due to a
   clarification in the spec.
+- Remove `Capabilities::iter()` and the associated types. The code is completely
+  custom and hasn't been kept up-to-date, and as far as we know it is not used
+  by anyone, so we prefer to remove it to avoid an unnecessary maintenance
+  burden and potential issues in the future.
+- Move `Capabilities` and associated types into the
+  `discovery::get_capabilities::v3` module, for consistency with other endpoints.
+
+Bug fixes:
+
+- Fix `Capabilities::get()` and `Capabilities::set()`. They were not up-to-date
+  to handle the `m.get_login_token` capability.
 
 Improvements:
 
