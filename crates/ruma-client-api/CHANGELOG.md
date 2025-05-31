@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+- Fix `Capabilities::get()` and `Capabilities::set()`. They were not up-to-date
+  to handle the `m.get_login_token` capability.
+
 Improvements:
 
 - Remove the unstable support for MSC3575 as it was closed. MSC4186 should be
