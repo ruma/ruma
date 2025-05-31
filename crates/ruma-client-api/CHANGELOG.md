@@ -13,6 +13,11 @@ Breaking changes:
 - The `reason` field of `report_room::v3::Request` is now required, due to a
   clarification in the spec.
 
+Bug fixes:
+
+- Fix `Capabilities::get()` and `Capabilities::set()`. They were not up-to-date
+  to handle the `m.get_login_token` capability.
+
 Improvements:
 
 - Remove the unstable support for MSC3575 as it was closed. MSC4186 should be
