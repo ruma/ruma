@@ -13,7 +13,7 @@ use syn::{
 };
 
 use super::event_parse::{EventKind, EventKindVariation};
-use crate::util::{m_prefix_name_to_type_name, PrivateField};
+use crate::util::PrivateField;
 
 mod kw {
     // This `content` field is kept when the event is redacted.
@@ -172,7 +172,7 @@ impl Parse for ContentMeta {
 
 struct ContentAttrs {
     event_type: LitStr,
-    event_kind: Option<EventKind>,
+    event_kind: EventKind,
     state_key_type: Option<TokenStream>,
     unsigned_type: Option<TokenStream>,
     aliases: Vec<LitStr>,
@@ -205,14 +205,23 @@ impl TryFrom<ContentMeta> for ContentAttrs {
             )
         })?;
 
+        let event_kind = event_kind.ok_or_else(|| {
+            syn::Error::new(
+                Span::call_site(),
+                "no event kind attribute found, \
+                add `#[ruma_event(type = \"any.room.event\", kind = Kind)]` \
+                below the event content derive",
+            )
+        })?;
+
         let state_key_type = match (event_kind, state_key_type) {
-            (Some(EventKind::State), None) => {
+            (EventKind::State, None) => {
                 return Err(syn::Error::new(
                     Span::call_site(),
                     "no state_key_type attribute found, please specify one",
                 ));
             }
-            (Some(EventKind::State), Some(ty)) => Some(quote! { #ty }),
+            (EventKind::State, Some(ty)) => Some(quote! { #ty }),
             (_, None) => None,
             (_, Some(ty)) => {
                 return Err(syn::Error::new_spanned(
@@ -237,7 +246,7 @@ impl TryFrom<ContentMeta> for ContentAttrs {
             ));
         }
 
-        if prefix.is_some() && !event_kind.is_some_and(|k| k.is_account_data()) {
+        if prefix.is_some() && !event_kind.is_account_data() {
             return Err(syn::Error::new_spanned(
                 event_type,
                 "only account data events may contain a `.*` suffix",
@@ -299,14 +308,14 @@ pub fn expand_event_content(
     let fields = match &input.data {
         syn::Data::Struct(syn::DataStruct { fields, .. }) => Some(fields.iter()),
         _ => {
-            if event_kind.is_some_and(|kind| needs_redacted(is_custom_redacted, kind)) {
+            if needs_redacted(is_custom_redacted, event_kind) {
                 return Err(syn::Error::new(
                     Span::call_site(),
                     "To generate a redacted event content, the event content type needs to be a struct. Disable this with the custom_redacted attribute",
                 ));
             }
 
-            if event_kind.is_some_and(|kind| needs_possibly_redacted(is_custom_redacted, kind)) {
+            if needs_possibly_redacted(is_custom_redacted, event_kind) {
                 return Err(syn::Error::new(
                     Span::call_site(),
                     "To generate a possibly redacted event content, the event content type needs to be a struct. Disable this with the custom_possibly_redacted attribute",
@@ -325,26 +334,24 @@ pub fn expand_event_content(
     };
 
     // We only generate redacted content structs for state and message-like events
-    let redacted_event_content =
-        event_kind.filter(|kind| needs_redacted(is_custom_redacted, *kind)).map(|kind| {
-            generate_redacted_event_content(
-                ident,
-                &input.vis,
-                fields.clone().unwrap(),
-                &event_type,
-                kind,
-                state_key_type.as_ref(),
-                unsigned_type.clone(),
-                &aliases,
-                ruma_events,
-            )
-            .unwrap_or_else(syn::Error::into_compile_error)
-        });
+    let redacted_event_content = needs_redacted(is_custom_redacted, event_kind).then(|| {
+        generate_redacted_event_content(
+            ident,
+            &input.vis,
+            fields.clone().unwrap(),
+            &event_type,
+            event_kind,
+            state_key_type.as_ref(),
+            unsigned_type.clone(),
+            &aliases,
+            ruma_events,
+        )
+        .unwrap_or_else(syn::Error::into_compile_error)
+    });
 
     // We only generate possibly redacted content structs for state events.
-    let possibly_redacted_event_content = event_kind
-        .filter(|kind| needs_possibly_redacted(is_custom_possibly_redacted, *kind))
-        .map(|_| {
+    let possibly_redacted_event_content =
+        needs_possibly_redacted(is_custom_possibly_redacted, event_kind).then(|| {
             generate_possibly_redacted_event_content(
                 ident,
                 &input.vis,
@@ -370,7 +377,6 @@ pub fn expand_event_content(
 
     let event_content_impl = generate_event_content_impl(
         ident,
-        &input.vis,
         fields,
         &event_type,
         event_kind,
@@ -383,10 +389,14 @@ pub fn expand_event_content(
     .unwrap_or_else(syn::Error::into_compile_error);
     let static_event_content_impl =
         generate_static_event_content_impl(ident, &event_type, ruma_events);
-    let type_aliases = event_kind.map(|k| {
-        generate_event_type_aliases(k, ident, &input.vis, &event_type.value(), ruma_events)
-            .unwrap_or_else(syn::Error::into_compile_error)
-    });
+    let type_aliases = generate_event_type_aliases(
+        event_kind,
+        ident,
+        &input.vis,
+        &event_type.value(),
+        ruma_events,
+    )
+    .unwrap_or_else(syn::Error::into_compile_error);
 
     Ok(quote! {
         #redacted_event_content
@@ -466,10 +476,9 @@ fn generate_redacted_event_content<'a>(
 
     let redacted_event_content = generate_event_content_impl(
         &redacted_ident,
-        vis,
         Some(kept_redacted_fields.iter()),
         event_type,
-        Some(event_kind),
+        event_kind,
         EventKindContentVariation::Redacted,
         state_key_type,
         unsigned_type,
@@ -621,10 +630,9 @@ fn generate_possibly_redacted_event_content<'a>(
     if field_changed {
         let possibly_redacted_event_content = generate_event_content_impl(
             &possibly_redacted_ident,
-            vis,
             Some(possibly_redacted_fields.iter()),
             event_type,
-            Some(EventKind::State),
+            EventKind::State,
             EventKindContentVariation::PossiblyRedacted,
             state_key_type,
             unsigned_type,
@@ -809,10 +817,9 @@ impl fmt::Display for EventKindContentVariation {
 
 fn generate_event_content_impl<'a>(
     ident: &Ident,
-    vis: &syn::Visibility,
     mut fields: Option<impl Iterator<Item = &'a Field>>,
     event_type: &LitStr,
-    event_kind: Option<EventKind>,
+    event_kind: EventKind,
     variation: EventKindContentVariation,
     state_key_type: Option<&TokenStream>,
     unsigned_type: Option<TokenStream>,
@@ -821,8 +828,6 @@ fn generate_event_content_impl<'a>(
 ) -> syn::Result<TokenStream> {
     let serde = quote! { #ruma_events::exports::serde };
     let serde_json = quote! { #ruma_events::exports::serde_json };
-
-    let (event_type_ty_decl, event_type_ty, event_type_fn_impl);
 
     let type_suffix_data = event_type
         .value()
@@ -861,68 +866,35 @@ fn generate_event_content_impl<'a>(
         })
         .transpose()?;
 
-    match event_kind {
-        Some(kind) => {
-            let i = kind.to_event_type_enum();
-            event_type_ty_decl = None;
-            event_type_ty = quote! { #ruma_events::#i };
-            event_type_fn_impl = match &type_suffix_data {
-                Some((type_prefix, type_fragment_field)) => {
-                    let format = type_prefix.to_owned() + "{}";
-
-                    quote! {
-                        ::std::convert::From::from(::std::format!(#format, self.#type_fragment_field))
-                    }
-                }
-                None => quote! { ::std::convert::From::from(#event_type) },
-            };
-        }
-        None => {
-            let camel_case_type_name = m_prefix_name_to_type_name(event_type)?;
-            let i = format_ident!("{}EventType", camel_case_type_name);
-            event_type_ty_decl = Some(quote! {
-                /// Implementation detail, you don't need to care about this.
-                #[doc(hidden)]
-                #vis struct #i {
-                    // Set to None for intended type, Some for a different one
-                    ty: ::std::option::Option<crate::PrivOwnedStr>,
-                }
-
-                impl #serde::Serialize for #i {
-                    fn serialize<S>(&self, serializer: S) -> ::std::result::Result<S::Ok, S::Error>
-                    where
-                        S: #serde::Serializer,
-                    {
-                        let s = self.ty.as_ref().map(|t| &t.0[..]).unwrap_or(#event_type);
-                        serializer.serialize_str(s)
-                    }
-                }
-            });
-            event_type_ty = quote! { #i };
-            event_type_fn_impl = quote! { #event_type_ty { ty: ::std::option::Option::None } };
-        }
-    }
-
-    let sub_trait_impl = event_kind.map(|kind| {
-        let trait_name = format_ident!("{variation}{kind}Content");
-
-        let state_key = (kind == EventKind::State).then(|| {
-            assert!(state_key_type.is_some());
+    let event_type_enum = event_kind.to_event_type_enum();
+    let event_type_ty = quote! { #ruma_events::#event_type_enum };
+    let event_type_fn_impl = match &type_suffix_data {
+        Some((type_prefix, type_fragment_field)) => {
+            let format = type_prefix.to_owned() + "{}";
 
             quote! {
-                type StateKey = #state_key_type;
-            }
-        });
-
-        quote! {
-            #[automatically_derived]
-            impl #ruma_events::#trait_name for #ident {
-                #state_key
+                ::std::convert::From::from(::std::format!(#format, self.#type_fragment_field))
             }
         }
-    });
+        None => quote! { ::std::convert::From::from(#event_type) },
+    };
 
-    let static_state_event_content_impl = (event_kind == Some(EventKind::State)
+    let sub_trait_name = format_ident!("{variation}{event_kind}Content");
+    let state_key = (event_kind == EventKind::State).then(|| {
+        assert!(state_key_type.is_some());
+
+        quote! {
+            type StateKey = #state_key_type;
+        }
+    });
+    let sub_trait_impl = quote! {
+        #[automatically_derived]
+        impl #ruma_events::#sub_trait_name for #ident {
+            #state_key
+        }
+    };
+
+    let static_state_event_content_impl = (event_kind == EventKind::State
         && variation == EventKindContentVariation::Original)
         .then(|| {
             let possibly_redacted_ident = format_ident!("PossiblyRedacted{ident}");
@@ -1002,8 +974,6 @@ fn generate_event_content_impl<'a>(
     });
 
     Ok(quote! {
-        #event_type_ty_decl
-
         #[automatically_derived]
         impl #ruma_events::EventContent for #ident {
             type EventType = #event_type_ty;
