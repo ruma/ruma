@@ -19,6 +19,15 @@ Breaking changes:
 - Move `Capabilities` and associated types into the
   `discovery::get_capabilities::v3` module, for consistency with other endpoints.
 
+Improvements:
+
+- For the `membership::join_room_by_id_or_alias` and `knock::knock_room`
+  endpoints, the `server_name` query parameter is only serialized if the server
+  doesn't advertise at least one version that supports the `via` query
+  parameter. The former was removed in Matrix 1.14.
+
+# 0.20.3
+
 Bug fixes:
 
 - Fix `Capabilities::get()` and `Capabilities::set()`. They were not up-to-date
@@ -28,10 +37,6 @@ Improvements:
 
 - Remove the unstable support for MSC3575 as it was closed. MSC4186 should be
   used instead.
-- For the `membership::join_room_by_id_or_alias` and `knock::knock_room`
-  endpoints, the `server_name` query parameter is only serialized if the server
-  doesn't advertise at least one version that supports the `via` query
-  parameter. The former was removed in Matrix 1.14.
 - The `authentication` field of `discovery::discover_homeserver::Response` has
   been removed in favour of `discovery::get_authorization_server_metadata`.
 - The `discovery::discover_homeserver::Response` well-known now includes the
