@@ -29,6 +29,7 @@ Breaking changes:
   signed so we need the full raw JSON to verify the signature.
 - `PresenceEventContent` doesn't implement `EventContent` and `StaticEventContent` anymore.
   They are not useful when `PresenceEvent` can only contain one type.
+- The `EventContent` macro now requires the `kind` attribute.
    
 # 0.30.3
 
