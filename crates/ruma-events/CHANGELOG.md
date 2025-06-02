@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.30.3
+
 Improvements:
 
 - Add support for ThumbHash as an alternative to BlurHash for MSC2448 in 
