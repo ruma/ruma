@@ -1,101 +1,11 @@
 use html5ever::{tendril::StrTendril, Attribute, LocalName};
-use phf::{phf_map, phf_set, Map, Set};
 use wildmatch::WildMatch;
 
 use crate::{ElementData, Html, HtmlSanitizerMode, NodeData, NodeRef, SanitizerConfig};
 
-/// HTML elements allowed in the Matrix specification.
-static ALLOWED_ELEMENTS_STRICT: Set<&str> = phf_set! {
-    "del", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "p", "a",
-    "ul", "ol", "sup", "sub", "li", "b", "i", "u", "strong", "em", "s",
-    "code", "hr", "br", "div", "table", "thead", "tbody", "tr", "th", "td",
-    "caption", "pre", "span", "img", "details", "summary", "mx-reply",
-};
-
-/// The HTML element name for a rich reply fallback.
-const RICH_REPLY_ELEMENT_NAME: &str = "mx-reply";
-
-/// HTML elements that were previously allowed in the Matrix specification, with their replacement.
-static DEPRECATED_ELEMENTS: Map<&str, &str> = phf_map! {
-    "font" => "span",
-    "strike" => "s",
-};
-
-/// Allowed attributes per HTML element according to the Matrix specification.
-static ALLOWED_ATTRIBUTES_STRICT: Map<&str, &Set<&str>> = phf_map! {
-    "span" => &ALLOWED_ATTRIBUTES_SPAN_STRICT,
-    "a" => &ALLOWED_ATTRIBUTES_A_STRICT,
-    "img" => &ALLOWED_ATTRIBUTES_IMG_STRICT,
-    "ol" => &ALLOWED_ATTRIBUTES_OL_STRICT,
-    "code" => &ALLOWED_ATTRIBUTES_CODE_STRICT,
-    "div" => &ALLOWED_ATTRIBUTES_DIV_STRICT,
-};
-
-#[cfg(not(feature = "unstable-msc4286"))]
-static ALLOWED_ATTRIBUTES_SPAN_STRICT: Set<&str> =
-    phf_set! { "data-mx-bg-color", "data-mx-color", "data-mx-spoiler", "data-mx-maths" };
-
-#[cfg(feature = "unstable-msc4286")]
-static ALLOWED_ATTRIBUTES_SPAN_STRICT: Set<&str> = phf_set! { "data-mx-bg-color", "data-mx-color", "data-mx-spoiler", "data-mx-maths", "data-msc4286-external-payment-details" };
-
-static ALLOWED_ATTRIBUTES_A_STRICT: Set<&str> = phf_set! { "target", "href" };
-static ALLOWED_ATTRIBUTES_IMG_STRICT: Set<&str> =
-    phf_set! { "width", "height", "alt", "title", "src" };
-static ALLOWED_ATTRIBUTES_OL_STRICT: Set<&str> = phf_set! { "start" };
-static ALLOWED_ATTRIBUTES_CODE_STRICT: Set<&str> = phf_set! { "class" };
-static ALLOWED_ATTRIBUTES_DIV_STRICT: Set<&str> = phf_set! { "data-mx-maths" };
-
-/// Attributes that were previously allowed on HTML elements according to the Matrix specification,
-/// with their replacement.
-static DEPRECATED_ATTRS: Map<&str, &Map<&str, &str>> = phf_map! {
-    "font" => &DEPRECATED_ATTRIBUTES_FONT,
-};
-static DEPRECATED_ATTRIBUTES_FONT: Map<&str, &str> = phf_map! { "color" => "data-mx-color" };
-
-/// Allowed schemes of URIs per attribute per HTML element according to the Matrix specification.
-static ALLOWED_SCHEMES_STRICT: Map<&str, &Map<&str, &Set<&str>>> = phf_map! {
-    "a" => &ALLOWED_SCHEMES_A_STRICT,
-    "img" => &ALLOWED_SCHEMES_IMG_STRICT,
-};
-static ALLOWED_SCHEMES_A_STRICT: Map<&str, &Set<&str>> = phf_map! {
-    "href" => &ALLOWED_SCHEMES_A_HREF_STRICT,
-};
-pub(crate) static ALLOWED_SCHEMES_A_HREF_STRICT: Set<&str> =
-    phf_set! { "http", "https", "ftp", "mailto", "magnet" };
-static ALLOWED_SCHEMES_IMG_STRICT: Map<&str, &Set<&str>> = phf_map! {
-    "src" => &ALLOWED_SCHEMES_IMG_SRC_STRICT,
-};
-static ALLOWED_SCHEMES_IMG_SRC_STRICT: Set<&str> = phf_set! { "mxc" };
-
-/// Extra allowed schemes of URIs per attribute per HTML element.
-///
-/// This is a convenience list to add schemes that can be encountered but are not listed in the
-/// Matrix specification. It consists of:
-///
-/// * The `matrix` scheme for `a` elements (see [matrix-org/matrix-spec#1108]).
-///
-/// To get a complete list, add these to `ALLOWED_SCHEMES_STRICT`.
-///
-/// [matrix-org/matrix-spec#1108]: https://github.com/matrix-org/matrix-spec/issues/1108
-static ALLOWED_SCHEMES_COMPAT: Map<&str, &Map<&str, &Set<&str>>> = phf_map! {
-    "a" => &ALLOWED_SCHEMES_A_COMPAT,
-};
-static ALLOWED_SCHEMES_A_COMPAT: Map<&str, &Set<&str>> = phf_map! {
-    "href" => &ALLOWED_SCHEMES_A_HREF_COMPAT,
-};
-pub(crate) static ALLOWED_SCHEMES_A_HREF_COMPAT: Set<&str> = phf_set! { "matrix" };
-
-/// Allowed classes per HTML element according to the Matrix specification.
-static ALLOWED_CLASSES_STRICT: Map<&str, &Set<&str>> =
-    phf_map! { "code" => &ALLOWED_CLASSES_CODE_STRICT };
-static ALLOWED_CLASSES_CODE_STRICT: Set<&str> = phf_set! { "language-*" };
-
-/// Max depth of nested HTML elements allowed by the Matrix specification.
-const MAX_DEPTH_STRICT: u32 = 100;
-
 impl SanitizerConfig {
-    /// Whether the current mode uses the values of the strict mode.
-    fn use_strict(&self) -> bool {
+    /// Whether the current mode uses the rules from the Matrix specification.
+    fn use_spec(&self) -> bool {
         self.mode.is_some()
     }
 
@@ -106,7 +16,7 @@ impl SanitizerConfig {
 
     /// The maximum nesting level allowed by the config.
     fn max_depth_value(&self) -> Option<u32> {
-        self.max_depth.or_else(|| self.use_strict().then_some(MAX_DEPTH_STRICT))
+        self.max_depth.or_else(|| self.use_spec().then_some(spec::MAX_DEPTH))
     }
 
     /// Clean the given HTML with this sanitizer.
@@ -152,11 +62,12 @@ impl SanitizerConfig {
                 self.replace_attrs.as_ref().and_then(|list| list.content.get(element_name));
             let list_is_override =
                 self.replace_attrs.as_ref().map(|list| list.is_override()).unwrap_or_default();
-            let mode_replacements = (!list_is_override && self.use_strict())
-                .then(|| DEPRECATED_ATTRS.get(element_name))
-                .flatten();
 
-            if list_replacements.is_some() || mode_replacements.is_some() {
+            let use_spec = !list_is_override && self.use_spec();
+            let has_spec_replacements =
+                use_spec && spec::has_element_deprecated_attributes(element_name);
+
+            if list_replacements.is_some() || has_spec_replacements {
                 let mut attrs = attrs.borrow_mut();
                 *attrs = attrs
                     .clone()
@@ -166,8 +77,17 @@ impl SanitizerConfig {
 
                         let attr_replacement = list_replacements
                             .and_then(|s| s.get(attr_name))
-                            .or_else(|| mode_replacements.and_then(|s| s.get(attr_name)))
-                            .copied();
+                            .copied()
+                            .or_else(|| {
+                                use_spec
+                                    .then(|| {
+                                        spec::deprecated_attribute_replacement(
+                                            element_name,
+                                            attr_name,
+                                        )
+                                    })
+                                    .flatten()
+                            });
 
                         if let Some(attr_replacement) = attr_replacement {
                             attr.name.local = LocalName::from(attr_replacement);
@@ -191,10 +111,9 @@ impl SanitizerConfig {
                     .as_ref()
                     .map(|list| list.is_override())
                     .unwrap_or_default();
-                element_replacement = (!list_is_override && self.use_strict())
-                    .then(|| DEPRECATED_ELEMENTS.get(element_name))
-                    .flatten()
-                    .copied();
+                element_replacement = (!list_is_override && self.use_spec())
+                    .then(|| spec::deprecated_element_replacement(element_name))
+                    .flatten();
             }
         }
 
@@ -215,7 +134,7 @@ impl SanitizerConfig {
                 if self.remove_elements.as_ref().is_some_and(|set| set.contains(element_name)) {
                     return NodeAction::Remove;
                 }
-                if self.remove_reply_fallback && element_name == RICH_REPLY_ELEMENT_NAME {
+                if self.remove_reply_fallback && element_name == spec::RICH_REPLY_ELEMENT_NAME {
                     return NodeAction::Remove;
                 }
                 if self.max_depth_value().is_some_and(|max| depth >= max) {
@@ -228,7 +147,7 @@ impl SanitizerConfig {
                 }
 
                 // Check if element should be allowed.
-                if self.allow_elements.is_some() || self.use_strict() {
+                if self.allow_elements.is_some() || self.use_spec() {
                     let list_allowed = self
                         .allow_elements
                         .as_ref()
@@ -239,8 +158,8 @@ impl SanitizerConfig {
                         .map(|list| list.is_override())
                         .unwrap_or_default();
                     let mode_allowed = !list_is_override
-                        && self.use_strict()
-                        && ALLOWED_ELEMENTS_STRICT.contains(element_name);
+                        && self.use_spec()
+                        && spec::is_element_allowed(element_name);
 
                     if !list_allowed && !mode_allowed {
                         return NodeAction::Ignore;
@@ -265,7 +184,7 @@ impl SanitizerConfig {
                     }
                 }
 
-                if self.allow_schemes.is_none() && !self.use_strict() {
+                if self.allow_schemes.is_none() && !self.use_spec() {
                     // All schemes are allowed.
                     return NodeAction::None;
                 }
@@ -275,17 +194,11 @@ impl SanitizerConfig {
                     self.allow_schemes.as_ref().and_then(|list| list.content.get(element_name));
                 let list_is_override =
                     self.allow_schemes.as_ref().map(|list| list.is_override()).unwrap_or_default();
-                let strict_mode_element_schemes = (!list_is_override && self.use_strict())
-                    .then(|| ALLOWED_SCHEMES_STRICT.get(element_name))
-                    .flatten();
-                let compat_mode_element_schemes = (!list_is_override && self.use_compat())
-                    .then(|| ALLOWED_SCHEMES_COMPAT.get(element_name))
-                    .flatten();
+                let has_spec_scheme_rules = !list_is_override
+                    && self.use_spec()
+                    && has_element_allowed_schemes(element_name);
 
-                if list_element_schemes.is_none()
-                    && strict_mode_element_schemes.is_none()
-                    && compat_mode_element_schemes.is_none()
-                {
+                if list_element_schemes.is_none() && !has_spec_scheme_rules {
                     // We don't check schemes for this element.
                     return NodeAction::None;
                 }
@@ -294,27 +207,25 @@ impl SanitizerConfig {
                     let value = &attr.value;
                     let attr_name = attr.name.local.as_ref();
 
-                    let list_attr_schemes = list_element_schemes.and_then(|map| map.get(attr_name));
-                    let strict_mode_attr_schemes =
-                        strict_mode_element_schemes.and_then(|map| map.get(attr_name));
-                    let compat_mode_attr_schemes =
-                        compat_mode_element_schemes.and_then(|map| map.get(attr_name));
+                    let list_schemes = list_element_schemes.and_then(|map| map.get(attr_name));
+                    let spec_schemes = (!list_is_override && self.use_spec())
+                        .then(|| spec::allowed_schemes(element_name, attr_name))
+                        .flatten();
+                    let compat_schemes = (!list_is_override && self.use_compat())
+                        .then(|| compat::allowed_schemes(element_name, attr_name))
+                        .flatten();
 
-                    if list_attr_schemes.is_none()
-                        && strict_mode_attr_schemes.is_none()
-                        && compat_mode_attr_schemes.is_none()
+                    if list_schemes.is_none() && spec_schemes.is_none() && compat_schemes.is_none()
                     {
                         // We don't check schemes for this attribute.
                         return NodeAction::None;
                     }
 
-                    let mut allowed_schemes = list_attr_schemes
+                    let mut allowed_schemes = list_schemes
                         .into_iter()
                         .flatten()
-                        .chain(strict_mode_attr_schemes.map(|set| set.iter()).into_iter().flatten())
-                        .chain(
-                            compat_mode_attr_schemes.map(|set| set.iter()).into_iter().flatten(),
-                        );
+                        .chain(spec_schemes.into_iter().flatten())
+                        .chain(compat_schemes.into_iter().flatten());
 
                     // Check if the scheme is allowed.
                     if !allowed_schemes.any(|scheme| value.starts_with(&format!("{scheme}:"))) {
@@ -332,30 +243,28 @@ impl SanitizerConfig {
     fn clean_element_attributes(&self, data: &ElementData) {
         let ElementData { name, attrs } = data;
         let element_name = name.local.as_ref();
+        let use_spec = self.use_spec();
         let mut attrs = attrs.borrow_mut();
 
         let list_remove_attrs = self.remove_attrs.as_ref().and_then(|map| map.get(element_name));
 
-        let whitelist_attrs = self.allow_attrs.is_some() || self.use_strict();
+        let whitelist_attrs = self.allow_attrs.is_some() || use_spec;
         let list_allow_attrs =
             self.allow_attrs.as_ref().and_then(|list| list.content.get(element_name));
         let list_is_override =
             self.allow_attrs.as_ref().map(|list| list.is_override()).unwrap_or_default();
-        let mode_allow_attrs = (!list_is_override && self.use_strict())
-            .then(|| ALLOWED_ATTRIBUTES_STRICT.get(element_name))
-            .flatten();
+        let use_spec_attr_rules = !list_is_override && use_spec;
 
         let list_remove_classes =
             self.remove_classes.as_ref().and_then(|map| map.get(element_name));
 
-        let whitelist_classes = self.allow_classes.is_some() || self.use_strict();
+        let whitelist_classes = self.allow_classes.is_some() || use_spec;
         let list_allow_classes =
             self.allow_classes.as_ref().and_then(|list| list.content.get(element_name));
         let list_is_override =
             self.allow_classes.as_ref().map(|list| list.is_override()).unwrap_or_default();
-        let mode_allow_classes = (!list_is_override && self.use_strict())
-            .then(|| ALLOWED_CLASSES_STRICT.get(element_name))
-            .flatten();
+        let mode_allow_classes =
+            (!list_is_override && use_spec).then(|| spec::allowed_classes(element_name)).flatten();
 
         let actions: Vec<_> = attrs
             .iter()
@@ -371,7 +280,8 @@ impl SanitizerConfig {
                 // Check if the attribute is allowed.
                 if whitelist_attrs {
                     let list_allowed = list_allow_attrs.is_some_and(|set| set.contains(attr_name));
-                    let mode_allowed = mode_allow_attrs.is_some_and(|set| set.contains(attr_name));
+                    let mode_allowed =
+                        use_spec_attr_rules && spec::is_attribute_allowed(element_name, attr_name);
 
                     if !list_allowed && !mode_allowed {
                         return Some(AttributeAction::Remove(attr.to_owned()));
@@ -403,9 +313,7 @@ impl SanitizerConfig {
                                 .map(|set| set.iter())
                                 .into_iter()
                                 .flatten()
-                                .chain(
-                                    mode_allow_classes.map(|set| set.iter()).into_iter().flatten(),
-                                );
+                                .chain(mode_allow_classes.into_iter().flatten());
 
                             for allow_class in allow_classes {
                                 if WildMatch::new(allow_class).matches(class) {
@@ -474,4 +382,174 @@ enum AttributeAction {
 
     /// Remove the attribute.
     Remove(Attribute),
+}
+
+/// Whether the given HTML element has a list of allowed schemes according to the Matrix
+/// specification or the compatibility list.
+pub(super) fn has_element_allowed_schemes(element_name: &str) -> bool {
+    // Keep in sync with `spec::allowed_schemes` and `compat::allowed_schemes`.
+    matches!(element_name, "a" | "img")
+}
+
+/// Rules defined in the Matrix specification.
+pub(crate) mod spec {
+    /// Max depth of nested HTML elements allowed by the Matrix specification.
+    pub(super) const MAX_DEPTH: u32 = 100;
+
+    /// The HTML element name for a rich reply fallback.
+    pub(super) const RICH_REPLY_ELEMENT_NAME: &str = "mx-reply";
+
+    /// Whether the given HTML element is allowed in the Matrix specification.
+    pub(super) fn is_element_allowed(element_name: &str) -> bool {
+        matches!(
+            element_name,
+            "del"
+                | "h1"
+                | "h2"
+                | "h3"
+                | "h4"
+                | "h5"
+                | "h6"
+                | "blockquote"
+                | "p"
+                | "a"
+                | "ul"
+                | "ol"
+                | "sup"
+                | "sub"
+                | "li"
+                | "b"
+                | "i"
+                | "u"
+                | "strong"
+                | "em"
+                | "s"
+                | "code"
+                | "hr"
+                | "br"
+                | "div"
+                | "table"
+                | "thead"
+                | "tbody"
+                | "tr"
+                | "th"
+                | "td"
+                | "caption"
+                | "pre"
+                | "span"
+                | "img"
+                | "details"
+                | "summary"
+                | "mx-reply"
+        )
+    }
+
+    /// The replacement element for the given HTML element, if it was previously allowed in the
+    /// Matrix specification.
+    pub(super) fn deprecated_element_replacement(element_name: &str) -> Option<&'static str> {
+        let replacement = match element_name {
+            "font" => "span",
+            "strike" => "s",
+            _ => return None,
+        };
+
+        Some(replacement)
+    }
+
+    /// Whether the given attribute is in the list of allowed attributes for the given HTML element
+    /// according to the Matrix specification.
+    pub(super) fn is_attribute_allowed(element_name: &str, attribute_name: &str) -> bool {
+        match element_name {
+            "span" => match attribute_name {
+                "data-mx-bg-color" | "data-mx-color" | "data-mx-spoiler" | "data-mx-maths" => true,
+                #[cfg(feature = "unstable-msc4286")]
+                "data-msc4286-external-payment-details" => true,
+                _ => false,
+            },
+            "a" => matches!(attribute_name, "target" | "href",),
+            "img" => matches!(attribute_name, "width" | "height" | "alt" | "title" | "src",),
+            "ol" => matches!(attribute_name, "start",),
+            "code" => matches!(attribute_name, "class",),
+            "div" => matches!(attribute_name, "data-mx-maths",),
+            _ => false,
+        }
+    }
+
+    /// Whether the given HTML element has deprecated attributes in the Matrix specification.
+    pub(super) fn has_element_deprecated_attributes(element_name: &str) -> bool {
+        // Must be kept in sync with `deprecated_attribute_replacement`.
+        matches!(element_name, "font")
+    }
+
+    /// The replacement attribute for the given attribute of the given HTML element, if it was
+    /// previously allowed in the Matrix specification.
+    pub(super) fn deprecated_attribute_replacement(
+        element_name: &str,
+        attribute_name: &str,
+    ) -> Option<&'static str> {
+        // Must be kept in sync with `has_element_deprecated_attributes`.
+        match element_name {
+            "font" => match attribute_name {
+                "color" => Some("data-mx-color"),
+                _ => None,
+            },
+            _ => None,
+        }
+    }
+
+    /// The list of allowed URI schemes for the given attribute in the given HTML element in the
+    /// Matrix specification.
+    ///
+    /// If `compat` is `true`, a few extra schemes are allowed:
+    ///
+    /// * The `matrix` scheme for `a` elements (see [matrix-org/matrix-spec#1108]).
+    ///
+    /// [matrix-org/matrix-spec#1108]: https://github.com/matrix-org/matrix-spec/issues/1108
+    pub(crate) fn allowed_schemes(
+        element_name: &str,
+        attribute_name: &str,
+    ) -> Option<&'static [&'static str]> {
+        // Keep in sync with `has_element_allowed_schemes`.
+        let schemes: &'static [&'static str] = match (element_name, attribute_name) {
+            ("a", "href") => &["http", "https", "ftp", "mailto", "magnet"],
+            ("img", "src") => &["mxc"],
+            _ => return None,
+        };
+
+        Some(schemes)
+    }
+
+    /// Get the allowed CSS classes for the given HTML element in the Matrix specification.
+    ///
+    /// The returned classes use `*` as a wildcard for any number of any characters.
+    pub(super) fn allowed_classes(element_name: &str) -> Option<&'static [&'static str]> {
+        match element_name {
+            "code" => Some(&["language-*"]),
+            _ => None,
+        }
+    }
+}
+
+/// Extra rules for improved compatibility.
+pub(crate) mod compat {
+    /// Additional allowed URI schemes for improved compatibility.
+    ///
+    /// This adds schemes that can be encountered but are not listed in the Matrix specification. It
+    /// consists of:
+    ///
+    /// * The `matrix` scheme for `a` elements (see [matrix-org/matrix-spec#1108]).
+    ///
+    /// [matrix-org/matrix-spec#1108]: https://github.com/matrix-org/matrix-spec/issues/1108
+    pub(crate) fn allowed_schemes(
+        element_name: &str,
+        attribute_name: &str,
+    ) -> Option<&'static [&'static str]> {
+        // Keep in sync with `has_element_allowed_schemes`.
+        let schemes: &'static [&'static str] = match (element_name, attribute_name) {
+            ("a", "href") => &["matrix"],
+            _ => return None,
+        };
+
+        Some(schemes)
+    }
 }
