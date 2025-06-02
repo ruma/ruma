@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.20.3
+
 Bug fixes:
 
 - Fix `Capabilities::get()` and `Capabilities::set()`. They were not up-to-date
