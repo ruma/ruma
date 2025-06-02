@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.12.2
+
 Bug fixes:
 
 - `Registration` deserialization fails if `url` is missing. The value must be
