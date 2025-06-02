@@ -1,5 +1,14 @@
 # [unreleased]
 
+# 0.12.3
+
+Please refer to the changelogs of:
+
+- ruma-html 0.4.1
+- ruma-events 0.30.3
+- ruma-appservice-api 0.12.2
+- ruma-client-api 0.20.3
+
 # 0.12.2
 
 Please refer to the changelogs of:
