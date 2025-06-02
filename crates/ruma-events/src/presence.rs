@@ -4,14 +4,12 @@
 
 use js_int::UInt;
 use ruma_common::{presence::PresenceState, OwnedMxcUri, OwnedUserId};
-use ruma_macros::{Event, EventContent};
-use serde::{ser::SerializeStruct, Deserialize, Serialize};
-
-use super::EventContent;
+use serde::{Deserialize, Serialize};
 
 /// Presence event.
-#[derive(Clone, Debug, Event)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[allow(clippy::exhaustive_structs)]
+#[serde(tag = "type", rename = "m.presence")]
 pub struct PresenceEvent {
     /// Data specific to the event type.
     pub content: PresenceEventContent,
@@ -20,25 +18,11 @@ pub struct PresenceEvent {
     pub sender: OwnedUserId,
 }
 
-impl Serialize for PresenceEvent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let mut state = serializer.serialize_struct("PresenceEvent", 3)?;
-        state.serialize_field("type", &self.content.event_type())?;
-        state.serialize_field("content", &self.content)?;
-        state.serialize_field("sender", &self.sender)?;
-        state.end()
-    }
-}
-
 /// Informs the room of members presence.
 ///
 /// This is the only type a `PresenceEvent` can contain as its `content` field.
-#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[ruma_event(type = "m.presence")]
 pub struct PresenceEventContent {
     /// The current avatar URL for this user.
     ///
