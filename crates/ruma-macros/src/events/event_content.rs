@@ -817,7 +817,7 @@ impl fmt::Display for EventKindContentVariation {
 
 fn generate_event_content_impl<'a>(
     ident: &Ident,
-    mut fields: Option<impl Iterator<Item = &'a Field>>,
+    fields: Option<impl Iterator<Item = &'a Field> + Clone>,
     event_type: &LitStr,
     event_kind: EventKind,
     variation: EventKindContentVariation,
@@ -829,51 +829,16 @@ fn generate_event_content_impl<'a>(
     let serde = quote! { #ruma_events::exports::serde };
     let serde_json = quote! { #ruma_events::exports::serde_json };
 
-    let type_suffix_data = event_type
-        .value()
-        .strip_suffix('*')
-        .map(|type_prefix| {
-            let Some(fields) = &mut fields else {
-                return Err(syn::Error::new_spanned(
-                    event_type,
-                    "event type with a `.*` suffix is required to be a struct",
-                ));
-            };
-
-            let type_fragment_field = fields
-                .find_map(|f| {
-                    f.attrs.iter().filter(|a| a.path().is_ident("ruma_event")).find_map(|attr| {
-                        match attr.parse_args() {
-                            Ok(EventFieldMeta::TypeFragment) => Some(Ok(f)),
-                            Ok(_) => None,
-                            Err(e) => Some(Err(e)),
-                        }
-                    })
-                })
-                .transpose()?
-                .ok_or_else(|| {
-                    syn::Error::new_spanned(
-                        event_type,
-                        "event type with a `.*` suffix requires there to be a \
-                         `#[ruma_event(type_fragment)]` field",
-                    )
-                })?
-                .ident
-                .as_ref()
-                .expect("type fragment field needs to have a name");
-
-            <syn::Result<_>>::Ok((type_prefix.to_owned(), type_fragment_field))
-        })
-        .transpose()?;
+    let event_type_fragment = EventTypeFragment::try_from_parts(event_type, fields.clone())?;
 
     let event_type_enum = event_kind.to_event_type_enum();
     let event_type_ty = quote! { #ruma_events::#event_type_enum };
-    let event_type_fn_impl = match &type_suffix_data {
-        Some((type_prefix, type_fragment_field)) => {
-            let format = type_prefix.to_owned() + "{}";
+    let event_type_fn_impl = match &event_type_fragment {
+        Some(EventTypeFragment { prefix, field }) => {
+            let format = prefix.to_owned() + "{}";
 
             quote! {
-                ::std::convert::From::from(::std::format!(#format, self.#type_fragment_field))
+                ::std::convert::From::from(::std::format!(#format, self.#field))
             }
         }
         None => quote! { ::std::convert::From::from(#event_type) },
@@ -913,7 +878,8 @@ fn generate_event_content_impl<'a>(
 
     let event_types = aliases.iter().chain([event_type]);
 
-    let event_content_from_type_impl = type_suffix_data.map(|(_, type_fragment_field)| {
+    let event_content_from_type_impl = event_type_fragment.map(|type_fragment| {
+        let type_fragment_field = type_fragment.field;
         let type_prefixes = event_types.map(|ev_type| {
             ev_type
                 .value()
@@ -1013,4 +979,59 @@ fn needs_possibly_redacted(is_custom_possibly_redacted: bool, event_kind: EventK
     // a generated possibly redacted struct also. If no `custom_possibly_redacted`
     // attrs are found the content needs a possibly redacted struct generated.
     !is_custom_possibly_redacted && event_kind == EventKind::State
+}
+
+/// Data about the type fragment of an event content with a type that ends with `.*`.
+struct EventTypeFragment<'a> {
+    prefix: String,
+    field: &'a Ident,
+}
+
+impl<'a> EventTypeFragment<'a> {
+    /// Try to construct an `EventTypeFragment` from the given data.
+    ///
+    /// Returns `Ok(None)` if the event type doesn't contain a `*` suffix, `Ok(Some(_))` if the
+    /// event type contains a `*` suffix and the type fragment field was found, and `Err(_)` if
+    /// the event type contains a `*` suffix and the type fragment field was NOT found.
+    fn try_from_parts(
+        event_type: &LitStr,
+        mut fields: Option<impl Iterator<Item = &'a Field>>,
+    ) -> syn::Result<Option<Self>> {
+        let event_type_s = event_type.value();
+
+        let Some(prefix) = event_type_s.strip_suffix('*') else {
+            return Ok(None);
+        };
+
+        let Some(fields) = &mut fields else {
+            return Err(syn::Error::new_spanned(
+                event_type,
+                "event type with a `.*` suffix is required to be a struct",
+            ));
+        };
+
+        let field = fields
+            .find_map(|f| {
+                f.attrs.iter().filter(|a| a.path().is_ident("ruma_event")).find_map(|attr| {
+                    match attr.parse_args() {
+                        Ok(EventFieldMeta::TypeFragment) => Some(Ok(f)),
+                        Ok(_) => None,
+                        Err(e) => Some(Err(e)),
+                    }
+                })
+            })
+            .transpose()?
+            .ok_or_else(|| {
+                syn::Error::new_spanned(
+                    event_type,
+                    "event type with a `.*` suffix requires there to be a \
+                     `#[ruma_event(type_fragment)]` field",
+                )
+            })?
+            .ident
+            .as_ref()
+            .expect("type fragment field needs to have a name");
+
+        Ok(Some(Self { prefix: prefix.to_owned(), field }))
+    }
 }
