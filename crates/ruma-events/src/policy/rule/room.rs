@@ -25,14 +25,14 @@ pub struct PossiblyRedactedPolicyRuleRoomEventContent(pub PossiblyRedactedPolicy
 
 impl EventContent for PossiblyRedactedPolicyRuleRoomEventContent {
     type EventType = StateEventType;
-
-    fn event_type(&self) -> Self::EventType {
-        StateEventType::PolicyRuleRoom
-    }
 }
 
 impl PossiblyRedactedStateEventContent for PossiblyRedactedPolicyRuleRoomEventContent {
     type StateKey = String;
+
+    fn event_type(&self) -> StateEventType {
+        StateEventType::PolicyRuleRoom
+    }
 }
 
 #[cfg(test)]

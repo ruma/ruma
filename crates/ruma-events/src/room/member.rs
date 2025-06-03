@@ -179,6 +179,10 @@ pub type PossiblyRedactedRoomMemberEventContent = RoomMemberEventContent;
 
 impl PossiblyRedactedStateEventContent for RoomMemberEventContent {
     type StateKey = OwnedUserId;
+
+    fn event_type(&self) -> StateEventType {
+        StateEventType::RoomMember
+    }
 }
 
 /// A member event that has been redacted.
@@ -241,14 +245,14 @@ impl RedactedRoomMemberEventContent {
 
 impl EventContent for RedactedRoomMemberEventContent {
     type EventType = StateEventType;
-
-    fn event_type(&self) -> StateEventType {
-        StateEventType::RoomMember
-    }
 }
 
 impl RedactedStateEventContent for RedactedRoomMemberEventContent {
     type StateKey = OwnedUserId;
+
+    fn event_type(&self) -> StateEventType {
+        StateEventType::RoomMember
+    }
 }
 
 impl RoomMemberEvent {

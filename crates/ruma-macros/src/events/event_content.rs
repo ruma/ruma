@@ -333,6 +333,8 @@ pub fn expand_event_content(
         }
     };
 
+    let event_type_fragment = EventTypeFragment::try_from_parts(&event_type, fields.clone())?;
+
     // We only generate redacted content structs for state and message-like events
     let redacted_event_content = needs_redacted(is_custom_redacted, event_kind).then(|| {
         generate_redacted_event_content(
@@ -341,6 +343,7 @@ pub fn expand_event_content(
             fields.clone().unwrap(),
             &event_type,
             event_kind,
+            event_type_fragment.as_ref(),
             state_key_type.as_ref(),
             unsigned_type.clone(),
             &aliases,
@@ -357,6 +360,7 @@ pub fn expand_event_content(
                 &input.vis,
                 fields.clone().unwrap(),
                 &event_type,
+                event_type_fragment.as_ref(),
                 state_key_type.as_ref(),
                 unsigned_type.clone(),
                 &aliases,
@@ -381,6 +385,7 @@ pub fn expand_event_content(
         &event_type,
         event_kind,
         EventKindContentVariation::Original,
+        event_type_fragment.as_ref(),
         state_key_type.as_ref(),
         unsigned_type,
         &aliases,
@@ -414,6 +419,7 @@ fn generate_redacted_event_content<'a>(
     fields: impl Iterator<Item = &'a Field>,
     event_type: &LitStr,
     event_kind: EventKind,
+    event_type_fragment: Option<&EventTypeFragment<'_>>,
     state_key_type: Option<&TokenStream>,
     unsigned_type: Option<TokenStream>,
     aliases: &[LitStr],
@@ -480,6 +486,7 @@ fn generate_redacted_event_content<'a>(
         event_type,
         event_kind,
         EventKindContentVariation::Redacted,
+        event_type_fragment,
         state_key_type,
         unsigned_type,
         aliases,
@@ -523,6 +530,7 @@ fn generate_possibly_redacted_event_content<'a>(
     vis: &syn::Visibility,
     fields: impl Iterator<Item = &'a Field>,
     event_type: &LitStr,
+    event_type_fragment: Option<&EventTypeFragment<'_>>,
     state_key_type: Option<&TokenStream>,
     unsigned_type: Option<TokenStream>,
     aliases: &[LitStr],
@@ -634,6 +642,7 @@ fn generate_possibly_redacted_event_content<'a>(
             event_type,
             EventKind::State,
             EventKindContentVariation::PossiblyRedacted,
+            event_type_fragment,
             state_key_type,
             unsigned_type,
             aliases,
@@ -657,14 +666,21 @@ fn generate_possibly_redacted_event_content<'a>(
             #static_event_content_impl
         })
     } else {
+        let event_content_kind_trait_impl = generate_event_content_kind_trait_impl(
+            ident,
+            event_type,
+            EventKind::State,
+            EventKindContentVariation::PossiblyRedacted,
+            event_type_fragment,
+            state_key_type,
+            ruma_events,
+        );
+
         Ok(quote! {
             #[doc = #doc]
             #vis type #possibly_redacted_ident = #ident;
 
-            #[automatically_derived]
-            impl #ruma_events::PossiblyRedactedStateEventContent for #ident {
-                type StateKey = #state_key_type;
-            }
+            #event_content_kind_trait_impl
         })
     }
 }
@@ -798,8 +814,8 @@ fn generate_event_type_aliases(
     Ok(type_aliases)
 }
 
-#[derive(PartialEq)]
-enum EventKindContentVariation {
+#[derive(Clone, Copy, PartialEq)]
+pub enum EventKindContentVariation {
     Original,
     Redacted,
     PossiblyRedacted,
@@ -817,10 +833,11 @@ impl fmt::Display for EventKindContentVariation {
 
 fn generate_event_content_impl<'a>(
     ident: &Ident,
-    fields: Option<impl Iterator<Item = &'a Field> + Clone>,
+    fields: Option<impl Iterator<Item = &'a Field>>,
     event_type: &LitStr,
     event_kind: EventKind,
     variation: EventKindContentVariation,
+    event_type_fragment: Option<&EventTypeFragment<'_>>,
     state_key_type: Option<&TokenStream>,
     unsigned_type: Option<TokenStream>,
     aliases: &[LitStr],
@@ -829,35 +846,17 @@ fn generate_event_content_impl<'a>(
     let serde = quote! { #ruma_events::exports::serde };
     let serde_json = quote! { #ruma_events::exports::serde_json };
 
-    let event_type_fragment = EventTypeFragment::try_from_parts(event_type, fields.clone())?;
-
     let event_type_enum = event_kind.to_event_type_enum();
-    let event_type_ty = quote! { #ruma_events::#event_type_enum };
-    let event_type_fn_impl = match &event_type_fragment {
-        Some(EventTypeFragment { prefix, field }) => {
-            let format = prefix.to_owned() + "{}";
 
-            quote! {
-                ::std::convert::From::from(::std::format!(#format, self.#field))
-            }
-        }
-        None => quote! { ::std::convert::From::from(#event_type) },
-    };
-
-    let sub_trait_name = format_ident!("{variation}{event_kind}Content");
-    let state_key = (event_kind == EventKind::State).then(|| {
-        assert!(state_key_type.is_some());
-
-        quote! {
-            type StateKey = #state_key_type;
-        }
-    });
-    let sub_trait_impl = quote! {
-        #[automatically_derived]
-        impl #ruma_events::#sub_trait_name for #ident {
-            #state_key
-        }
-    };
+    let event_content_kind_trait_impl = generate_event_content_kind_trait_impl(
+        ident,
+        event_type,
+        event_kind,
+        variation,
+        event_type_fragment,
+        state_key_type,
+        ruma_events,
+    );
 
     let static_state_event_content_impl = (event_kind == EventKind::State
         && variation == EventKindContentVariation::Original)
@@ -942,17 +941,55 @@ fn generate_event_content_impl<'a>(
     Ok(quote! {
         #[automatically_derived]
         impl #ruma_events::EventContent for #ident {
-            type EventType = #event_type_ty;
-
-            fn event_type(&self) -> Self::EventType {
-                #event_type_fn_impl
-            }
+            type EventType = #ruma_events::#event_type_enum;
         }
 
         #event_content_from_type_impl
-        #sub_trait_impl
+        #event_content_kind_trait_impl
         #static_state_event_content_impl
     })
+}
+
+fn generate_event_content_kind_trait_impl(
+    ident: &Ident,
+    event_type: &LitStr,
+    event_kind: EventKind,
+    variation: EventKindContentVariation,
+    event_type_fragment: Option<&EventTypeFragment<'_>>,
+    state_key_type: Option<&TokenStream>,
+    ruma_events: &TokenStream,
+) -> TokenStream {
+    let event_type_enum = event_kind.to_event_type_enum();
+    let event_type_fn_impl = match &event_type_fragment {
+        Some(EventTypeFragment { prefix, field }) => {
+            let format = prefix.to_owned() + "{}";
+
+            quote! {
+                ::std::convert::From::from(::std::format!(#format, self.#field))
+            }
+        }
+        None => quote! { ::std::convert::From::from(#event_type) },
+    };
+
+    let event_content_kind_trait_name = event_kind.to_content_kind_trait(variation);
+    let state_key = (event_kind == EventKind::State).then(|| {
+        assert!(state_key_type.is_some());
+
+        quote! {
+            type StateKey = #state_key_type;
+        }
+    });
+
+    quote! {
+        #[automatically_derived]
+        impl #ruma_events::#event_content_kind_trait_name for #ident {
+            #state_key
+
+            fn event_type(&self) -> #ruma_events::#event_type_enum {
+                #event_type_fn_impl
+            }
+        }
+    }
 }
 
 fn generate_static_event_content_impl(

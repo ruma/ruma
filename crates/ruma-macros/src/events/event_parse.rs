@@ -11,6 +11,8 @@ use syn::{
     Attribute, Ident, LitStr, Path, Token,
 };
 
+use super::event_content::EventKindContentVariation;
+
 /// Custom keywords for the `event_enum!` macro
 mod kw {
     syn::custom_keyword!(kind);
@@ -150,6 +152,11 @@ impl EventKind {
     /// `AnyFull[kind]EventContent`
     pub fn to_full_content_enum(self) -> Ident {
         format_ident!("AnyFull{}Content", self)
+    }
+
+    /// `[variation][kind]Content`
+    pub fn to_content_kind_trait(self, variation: EventKindContentVariation) -> Ident {
+        format_ident!("{variation}{self}Content")
     }
 }
 

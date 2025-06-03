@@ -6,7 +6,10 @@ use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, IdentFragment, ToTokens};
 use syn::{Attribute, Data, DataEnum, DeriveInput, Ident, LitStr};
 
-use super::event_parse::{EventEnumDecl, EventEnumEntry, EventKind};
+use super::{
+    event_content::EventKindContentVariation,
+    event_parse::{EventEnumDecl, EventEnumEntry, EventKind},
+};
 use crate::util::m_prefix_name_to_type_name;
 
 /// Custom keywords for the `event_enum!` macro
@@ -326,7 +329,8 @@ fn expand_content_enum(
     let variant_decls = variants.iter().map(|v| v.decl()).collect::<Vec<_>>();
     let variant_arms = variants.iter().map(|v| v.match_arm(quote! { Self })).collect::<Vec<_>>();
 
-    let sub_trait_name = format_ident!("{kind}Content");
+    let event_content_kind_trait_name =
+        kind.to_content_kind_trait(EventKindContentVariation::Original);
     let state_event_content_impl = (kind == EventKind::State).then(|| {
         quote! {
             type StateKey = String;
@@ -408,13 +412,6 @@ fn expand_content_enum(
         #[automatically_derived]
         impl #ruma_events::EventContent for #ident {
             type EventType = #ruma_events::#event_type_enum;
-
-            fn event_type(&self) -> Self::EventType {
-                match self {
-                    #( #variant_arms(content) => content.event_type(), )*
-                    Self::_Custom { event_type } => ::std::convert::From::from(&event_type.0[..]),
-                }
-            }
         }
 
         #[automatically_derived]
@@ -435,8 +432,15 @@ fn expand_content_enum(
         }
 
         #[automatically_derived]
-        impl #ruma_events::#sub_trait_name for #ident {
+        impl #ruma_events::#event_content_kind_trait_name for #ident {
             #state_event_content_impl
+
+            fn event_type(&self) -> #ruma_events::#event_type_enum {
+                match self {
+                    #( #variant_arms(content) => content.event_type(), )*
+                    Self::_Custom { event_type } => ::std::convert::From::from(&event_type.0[..]),
+                }
+            }
         }
 
         #from_impl
@@ -503,6 +507,8 @@ fn expand_accessor_methods(
     let ident = kind.to_event_enum_ident(var.into())?;
     let event_type_enum = format_ident!("{}Type", kind);
     let self_variants: Vec<_> = variants.iter().map(|v| v.match_arm(quote! { Self })).collect();
+    let original_event_content_kind_trait_name =
+        kind.to_content_kind_trait(EventKindContentVariation::Original);
 
     let maybe_redacted =
         kind.is_timeline() && matches!(var, EventEnumVariation::None | EventEnumVariation::Sync);
@@ -512,12 +518,22 @@ fn expand_accessor_methods(
             #( #self_variants(event) => event.event_type(), )*
             Self::_Custom(event) => event.event_type(),
         }
+    } else if var == EventEnumVariation::Stripped {
+        let possibly_redacted_event_content_kind_trait_name =
+            kind.to_content_kind_trait(EventKindContentVariation::PossiblyRedacted);
+        quote! {
+            #( #self_variants(event) =>
+                #ruma_events::#possibly_redacted_event_content_kind_trait_name::event_type(&event.content), )*
+            Self::_Custom(event) => ::std::convert::From::from(
+                #ruma_events::#possibly_redacted_event_content_kind_trait_name::event_type(&event.content),
+            ),
+        }
     } else {
         quote! {
             #( #self_variants(event) =>
-                #ruma_events::EventContent::event_type(&event.content), )*
+                #ruma_events::#original_event_content_kind_trait_name::event_type(&event.content), )*
             Self::_Custom(event) => ::std::convert::From::from(
-                #ruma_events::EventContent::event_type(&event.content),
+                #ruma_events::#original_event_content_kind_trait_name::event_type(&event.content),
             ),
         }
     };
@@ -539,7 +555,7 @@ fn expand_accessor_methods(
                             event_type: crate::PrivOwnedStr(
                                 ::std::convert::From::from(
                                     ::std::string::ToString::to_string(
-                                        &#ruma_events::EventContent::event_type(
+                                        &#ruma_events::#original_event_content_kind_trait_name::event_type(
                                             &ev.content,
                                         ),
                                     ),
@@ -567,6 +583,8 @@ fn expand_accessor_methods(
             let full_content_enum = kind.to_full_content_enum();
             let full_content_variants: Vec<_> =
                 variants.iter().map(|v| v.ctor(&full_content_enum)).collect();
+            let redacted_event_content_kind_trait_name =
+                kind.to_content_kind_trait(EventKindContentVariation::Redacted);
 
             accessors = quote! {
                 #accessors
@@ -594,7 +612,7 @@ fn expand_accessor_methods(
                                 #full_content_enum::_Custom {
                                     event_type: crate::PrivOwnedStr(
                                         ::std::string::ToString::to_string(
-                                            &#ruma_events::EventContent::event_type(
+                                            &#ruma_events::#original_event_content_kind_trait_name::event_type(
                                                 &ev.content,
                                             ),
                                         ).into_boxed_str(),
@@ -606,7 +624,7 @@ fn expand_accessor_methods(
                                 #full_content_enum::_Custom {
                                     event_type: crate::PrivOwnedStr(
                                         ::std::string::ToString::to_string(
-                                            &#ruma_events::EventContent::event_type(
+                                            &#ruma_events::#redacted_event_content_kind_trait_name::event_type(
                                                 &ev.content,
                                             ),
                                         ).into_boxed_str(),
@@ -634,7 +652,7 @@ fn expand_accessor_methods(
                         event_type: crate::PrivOwnedStr(
                             ::std::convert::From::from(
                                 ::std::string::ToString::to_string(
-                                    &#ruma_events::EventContent::event_type(&event.content)
+                                    &#ruma_events::#original_event_content_kind_trait_name::event_type(&event.content)
                                 )
                             ),
                         ),
