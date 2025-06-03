@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     PossiblyRedactedStateEventContent, PrivOwnedStr, RedactContent, RedactedStateEventContent,
-    StateEventType,
+    StateEventType, StaticEventContent,
 };
 
 /// The member state event for a MatrixRTC session.
@@ -201,6 +201,10 @@ impl RedactedStateEventContent for RedactedCallMemberEventContent {
     fn event_type(&self) -> StateEventType {
         StateEventType::CallMember
     }
+}
+
+impl StaticEventContent for RedactedCallMemberEventContent {
+    const TYPE: &'static str = CallMemberEventContent::TYPE;
 }
 
 /// Legacy content with an array of memberships. See also: [`CallMemberEventContent`]

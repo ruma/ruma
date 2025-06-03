@@ -123,7 +123,7 @@ pub trait EventContentFromType: EventContent {
 
 impl<T> EventContentFromType for T
 where
-    T: EventContent + DeserializeOwned,
+    T: StaticEventContent + DeserializeOwned,
 {
     fn from_parts(_event_type: &str, content: &RawJsonValue) -> serde_json::Result<Self> {
         from_json_str(content.get())

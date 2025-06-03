@@ -6,7 +6,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{PolicyRuleEventContent, PossiblyRedactedPolicyRuleEventContent};
-use crate::{EventContent, PossiblyRedactedStateEventContent, StateEventType};
+use crate::{EventContent, PossiblyRedactedStateEventContent, StateEventType, StaticEventContent};
 
 /// The content of an `m.policy.rule.server` event.
 ///
@@ -33,4 +33,8 @@ impl PossiblyRedactedStateEventContent for PossiblyRedactedPolicyRuleServerEvent
     fn event_type(&self) -> StateEventType {
         StateEventType::PolicyRuleServer
     }
+}
+
+impl StaticEventContent for PossiblyRedactedPolicyRuleServerEventContent {
+    const TYPE: &'static str = PolicyRuleServerEventContent::TYPE;
 }
