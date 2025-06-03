@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     AnyStrippedStateEvent, BundledStateRelations, EventContent, PossiblyRedactedStateEventContent,
-    PrivOwnedStr, RedactContent, RedactedStateEventContent, StateEventType,
+    PrivOwnedStr, RedactContent, RedactedStateEventContent, StateEventType, StaticEventContent,
 };
 
 mod change;
@@ -253,6 +253,10 @@ impl RedactedStateEventContent for RedactedRoomMemberEventContent {
     fn event_type(&self) -> StateEventType {
         StateEventType::RoomMember
     }
+}
+
+impl StaticEventContent for RedactedRoomMemberEventContent {
+    const TYPE: &'static str = RoomMemberEventContent::TYPE;
 }
 
 impl RoomMemberEvent {
