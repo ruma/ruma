@@ -12,9 +12,9 @@ use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
-    AnyInitialStateEvent, EmptyStateKey, EphemeralRoomEventContent, EventContent,
-    EventContentFromType, GlobalAccountDataEventContent, MessageLikeEventContent,
-    MessageLikeEventType, MessageLikeUnsigned, PossiblyRedactedStateEventContent, RedactContent,
+    AnyInitialStateEvent, EmptyStateKey, EphemeralRoomEventContent, EventContentFromType,
+    GlobalAccountDataEventContent, MessageLikeEventContent, MessageLikeEventType,
+    MessageLikeUnsigned, PossiblyRedactedStateEventContent, RedactContent,
     RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
     RedactionDeHelper, RoomAccountDataEventContent, StateEventType, StaticStateEventContent,
     ToDeviceEventContent,

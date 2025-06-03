@@ -25,12 +25,12 @@ pub struct PossiblyRedactedPolicyRuleServerEventContent(pub PossiblyRedactedPoli
 
 impl EventContent for PossiblyRedactedPolicyRuleServerEventContent {
     type EventType = StateEventType;
-
-    fn event_type(&self) -> Self::EventType {
-        StateEventType::PolicyRuleServer
-    }
 }
 
 impl PossiblyRedactedStateEventContent for PossiblyRedactedPolicyRuleServerEventContent {
     type StateKey = String;
+
+    fn event_type(&self) -> StateEventType {
+        StateEventType::PolicyRuleServer
+    }
 }

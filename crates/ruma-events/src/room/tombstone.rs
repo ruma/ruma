@@ -57,14 +57,14 @@ pub struct PossiblyRedactedRoomTombstoneEventContent {
 
 impl EventContent for PossiblyRedactedRoomTombstoneEventContent {
     type EventType = StateEventType;
-
-    fn event_type(&self) -> Self::EventType {
-        StateEventType::RoomTombstone
-    }
 }
 
 impl PossiblyRedactedStateEventContent for PossiblyRedactedRoomTombstoneEventContent {
     type StateKey = EmptyStateKey;
+
+    fn event_type(&self) -> StateEventType {
+        StateEventType::RoomTombstone
+    }
 }
 
 impl StaticEventContent for PossiblyRedactedRoomTombstoneEventContent {

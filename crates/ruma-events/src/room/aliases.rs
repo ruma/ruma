@@ -63,12 +63,12 @@ impl RedactedRoomAliasesEventContent {
 
 impl EventContent for RedactedRoomAliasesEventContent {
     type EventType = StateEventType;
-
-    fn event_type(&self) -> StateEventType {
-        StateEventType::RoomAliases
-    }
 }
 
 impl RedactedStateEventContent for RedactedRoomAliasesEventContent {
     type StateKey = OwnedServerName;
+
+    fn event_type(&self) -> StateEventType {
+        StateEventType::RoomAliases
+    }
 }

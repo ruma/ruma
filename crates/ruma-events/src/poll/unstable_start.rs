@@ -140,17 +140,17 @@ impl NewUnstablePollStartEventContent {
 
 impl EventContent for NewUnstablePollStartEventContent {
     type EventType = MessageLikeEventType;
-
-    fn event_type(&self) -> Self::EventType {
-        MessageLikeEventType::UnstablePollStart
-    }
 }
 
 impl StaticEventContent for NewUnstablePollStartEventContent {
     const TYPE: &'static str = "org.matrix.msc3381.poll.start";
 }
 
-impl MessageLikeEventContent for NewUnstablePollStartEventContent {}
+impl MessageLikeEventContent for NewUnstablePollStartEventContent {
+    fn event_type(&self) -> MessageLikeEventType {
+        MessageLikeEventType::UnstablePollStart
+    }
+}
 
 /// Form of [`NewUnstablePollStartEventContent`] without relation.
 ///
@@ -227,17 +227,17 @@ impl ReplacementUnstablePollStartEventContent {
 
 impl EventContent for ReplacementUnstablePollStartEventContent {
     type EventType = MessageLikeEventType;
-
-    fn event_type(&self) -> Self::EventType {
-        MessageLikeEventType::UnstablePollStart
-    }
 }
 
 impl StaticEventContent for ReplacementUnstablePollStartEventContent {
     const TYPE: &'static str = "org.matrix.msc3381.poll.start";
 }
 
-impl MessageLikeEventContent for ReplacementUnstablePollStartEventContent {}
+impl MessageLikeEventContent for ReplacementUnstablePollStartEventContent {
+    fn event_type(&self) -> MessageLikeEventType {
+        MessageLikeEventType::UnstablePollStart
+    }
+}
 
 /// Redacted form of UnstablePollStartEventContent
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -253,17 +253,17 @@ impl RedactedUnstablePollStartEventContent {
 
 impl EventContent for RedactedUnstablePollStartEventContent {
     type EventType = MessageLikeEventType;
-
-    fn event_type(&self) -> Self::EventType {
-        MessageLikeEventType::UnstablePollStart
-    }
 }
 
 impl StaticEventContent for RedactedUnstablePollStartEventContent {
     const TYPE: &'static str = "org.matrix.msc3381.poll.start";
 }
 
-impl RedactedMessageLikeEventContent for RedactedUnstablePollStartEventContent {}
+impl RedactedMessageLikeEventContent for RedactedUnstablePollStartEventContent {
+    fn event_type(&self) -> MessageLikeEventType {
+        MessageLikeEventType::UnstablePollStart
+    }
+}
 
 /// An unstable block for poll start content.
 #[derive(Debug, Clone, Serialize, Deserialize)]

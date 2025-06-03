@@ -15,8 +15,8 @@ use serde::{Deserialize, Serialize};
 use tracing::error;
 
 use crate::{
-    BundledMessageLikeRelations, EventContent, MessageLikeEventType, RedactContent,
-    RedactedMessageLikeEventContent, RedactedUnsigned, StaticEventContent,
+    BundledMessageLikeRelations, EventContent, MessageLikeEventContent, MessageLikeEventType,
+    RedactContent, RedactedMessageLikeEventContent, RedactedUnsigned, StaticEventContent,
 };
 
 mod event_serde;
@@ -233,17 +233,17 @@ pub struct RedactedRoomRedactionEventContent {
 
 impl EventContent for RedactedRoomRedactionEventContent {
     type EventType = MessageLikeEventType;
-
-    fn event_type(&self) -> Self::EventType {
-        MessageLikeEventType::RoomRedaction
-    }
 }
 
 impl StaticEventContent for RedactedRoomRedactionEventContent {
     const TYPE: &'static str = "m.room.redaction";
 }
 
-impl RedactedMessageLikeEventContent for RedactedRoomRedactionEventContent {}
+impl RedactedMessageLikeEventContent for RedactedRoomRedactionEventContent {
+    fn event_type(&self) -> MessageLikeEventType {
+        MessageLikeEventType::RoomRedaction
+    }
+}
 
 impl RoomRedactionEvent {
     /// Returns the `type` of this event.

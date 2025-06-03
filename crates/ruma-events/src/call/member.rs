@@ -143,7 +143,7 @@ impl CallMemberEventContent {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct EmptyMembershipData {
     /// An empty call member state event can optionally contain a leave reason.
-    /// If it is `None` the user has left the call ordinarily. (Intentional hangup)  
+    /// If it is `None` the user has left the call ordinarily. (Intentional hangup)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub leave_reason: Option<LeaveReason>,
 }
@@ -152,12 +152,12 @@ pub struct EmptyMembershipData {
 /// [`CallMemberEventContent::Empty`].
 ///
 /// It is used when the user disconnected and a Future ([MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140))
-/// was used to update the membership after the client was not reachable anymore.  
+/// was used to update the membership after the client was not reachable anymore.
 #[derive(Clone, PartialEq, StringEnum)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_enum(rename_all = "m.snake_case")]
 pub enum LeaveReason {
-    /// The user left the call by losing network connection or closing  
+    /// The user left the call by losing network connection or closing
     /// the client before it was able to send the leave event.
     LostConnection,
     #[doc(hidden)]
@@ -180,6 +180,10 @@ pub type PossiblyRedactedCallMemberEventContent = CallMemberEventContent;
 
 impl PossiblyRedactedStateEventContent for PossiblyRedactedCallMemberEventContent {
     type StateKey = CallMemberStateKey;
+
+    fn event_type(&self) -> StateEventType {
+        StateEventType::CallMember
+    }
 }
 
 /// The Redacted version of [`CallMemberEventContent`].
@@ -189,13 +193,14 @@ pub struct RedactedCallMemberEventContent {}
 
 impl ruma_events::content::EventContent for RedactedCallMemberEventContent {
     type EventType = StateEventType;
-    fn event_type(&self) -> Self::EventType {
-        StateEventType::CallMember
-    }
 }
 
 impl RedactedStateEventContent for RedactedCallMemberEventContent {
     type StateKey = CallMemberStateKey;
+
+    fn event_type(&self) -> StateEventType {
+        StateEventType::CallMember
+    }
 }
 
 /// Legacy content with an array of memberships. See also: [`CallMemberEventContent`]

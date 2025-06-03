@@ -287,10 +287,6 @@ pub struct RedactedRoomPowerLevelsEventContent {
 
 impl EventContent for RedactedRoomPowerLevelsEventContent {
     type EventType = StateEventType;
-
-    fn event_type(&self) -> Self::EventType {
-        StateEventType::RoomPowerLevels
-    }
 }
 
 impl StaticEventContent for RedactedRoomPowerLevelsEventContent {
@@ -299,6 +295,10 @@ impl StaticEventContent for RedactedRoomPowerLevelsEventContent {
 
 impl RedactedStateEventContent for RedactedRoomPowerLevelsEventContent {
     type StateKey = EmptyStateKey;
+
+    fn event_type(&self) -> StateEventType {
+        StateEventType::RoomPowerLevels
+    }
 }
 
 /// The effective power levels of a room.

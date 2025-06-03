@@ -21,7 +21,7 @@ use ruma_events::{
         },
         EncryptedFileInit, JsonWebKeyInit, MediaSource,
     },
-    EventContent, Mentions, MessageLikeUnsigned, RawExt,
+    Mentions, MessageLikeEventContent, MessageLikeUnsigned, RawExt,
 };
 use serde_json::{
     from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
