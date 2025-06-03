@@ -64,7 +64,7 @@ fn text_msgtype_plain_text_deserialization_as_any() {
     let raw_event: Raw<AnyMessageLikeEventContent> =
         Raw::from_json_string(serialized.to_string()).unwrap();
 
-    let event = raw_event.deserialize_with_type("m.room.message".into()).unwrap();
+    let event = raw_event.deserialize_with_type("m.room.message").unwrap();
 
     assert_matches!(event, AnyMessageLikeEventContent::RoomMessage(content));
     assert_eq!(content.body(), "Hello world!");
@@ -83,7 +83,7 @@ fn secret_storage_key_deserialization_as_any() {
     let raw_event: Raw<AnyGlobalAccountDataEventContent> =
         Raw::from_json_string(serialized.to_string()).unwrap();
 
-    let event = raw_event.deserialize_with_type("m.secret_storage.key.test".into()).unwrap();
+    let event = raw_event.deserialize_with_type("m.secret_storage.key.test").unwrap();
 
     assert_matches!(event, AnyGlobalAccountDataEventContent::SecretStorageKey(content));
 

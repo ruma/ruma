@@ -30,6 +30,10 @@ Breaking changes:
 - `PresenceEventContent` doesn't implement `EventContent` and `StaticEventContent` anymore.
   They are not useful when `PresenceEvent` can only contain one type.
 - The `EventContent` macro now requires the `kind` attribute.
+- The `EventContent` trait was removed.
+  - The `event_type` method is now available on the per-kind `*EventContent` traits.
+  - For an event content type to automatically implement `EventContentFromType` it must now match
+    the bound `StaticEventContent + DeserializeOwned`.
    
 # 0.30.3
 

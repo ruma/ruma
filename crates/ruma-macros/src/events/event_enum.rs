@@ -410,11 +410,6 @@ fn expand_content_enum(
         }
 
         #[automatically_derived]
-        impl #ruma_events::EventContent for #ident {
-            type EventType = #ruma_events::#event_type_enum;
-        }
-
-        #[automatically_derived]
         impl #ruma_events::EventContentFromType for #ident {
             fn from_parts(event_type: &str, json: &#serde_json::value::RawValue) -> serde_json::Result<Self> {
                 match event_type {

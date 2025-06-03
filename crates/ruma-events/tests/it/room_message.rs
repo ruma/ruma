@@ -21,7 +21,7 @@ use ruma_events::{
         },
         EncryptedFileInit, JsonWebKeyInit, MediaSource,
     },
-    Mentions, MessageLikeEventContent, MessageLikeUnsigned, RawExt,
+    Mentions, MessageLikeUnsigned,
 };
 use serde_json::{
     from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
@@ -371,8 +371,7 @@ fn reply_thread_serialization_roundtrip() {
 
     let as_raw = Raw::new(&reply_as_thread_fallback).unwrap();
 
-    let reply_as_thread_fallback =
-        as_raw.deserialize_with_type(reply_as_thread_fallback.event_type()).unwrap();
+    let reply_as_thread_fallback = as_raw.deserialize().unwrap();
 
     let relation = reply_as_thread_fallback.relates_to.unwrap();
     assert_matches!(relation, Relation::Thread(thread_info));

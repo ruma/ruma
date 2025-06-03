@@ -12,8 +12,8 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AnyStrippedStateEvent, BundledStateRelations, EventContent, PossiblyRedactedStateEventContent,
-    PrivOwnedStr, RedactContent, RedactedStateEventContent, StateEventType, StaticEventContent,
+    AnyStrippedStateEvent, BundledStateRelations, PossiblyRedactedStateEventContent, PrivOwnedStr,
+    RedactContent, RedactedStateEventContent, StateEventType, StaticEventContent,
 };
 
 mod change;
@@ -241,10 +241,6 @@ impl RedactedRoomMemberEventContent {
     ) -> MembershipChange<'a> {
         membership_change(self.details(), prev_details, sender, state_key)
     }
-}
-
-impl EventContent for RedactedRoomMemberEventContent {
-    type EventType = StateEventType;
 }
 
 impl RedactedStateEventContent for RedactedRoomMemberEventContent {

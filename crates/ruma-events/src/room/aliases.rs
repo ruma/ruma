@@ -4,9 +4,7 @@ use ruma_common::{room_version_rules::RedactionRules, OwnedRoomAliasId, OwnedSer
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    EventContent, RedactContent, RedactedStateEventContent, StateEventType, StaticEventContent,
-};
+use crate::{RedactContent, RedactedStateEventContent, StateEventType, StaticEventContent};
 
 /// The content of an `m.room.aliases` event.
 ///
@@ -61,10 +59,6 @@ impl RedactedRoomAliasesEventContent {
     pub fn new_v6() -> Self {
         Self::default()
     }
-}
-
-impl EventContent for RedactedRoomAliasesEventContent {
-    type EventType = StateEventType;
 }
 
 impl RedactedStateEventContent for RedactedRoomAliasesEventContent {

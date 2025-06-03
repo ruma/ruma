@@ -15,8 +15,8 @@ use serde::{Deserialize, Serialize};
 use tracing::error;
 
 use crate::{
-    BundledMessageLikeRelations, EventContent, MessageLikeEventContent, MessageLikeEventType,
-    RedactContent, RedactedMessageLikeEventContent, RedactedUnsigned, StaticEventContent,
+    BundledMessageLikeRelations, MessageLikeEventContent, MessageLikeEventType, RedactContent,
+    RedactedMessageLikeEventContent, RedactedUnsigned, StaticEventContent,
 };
 
 mod event_serde;
@@ -229,10 +229,6 @@ pub struct RedactedRoomRedactionEventContent {
     /// This field is required starting from room version 11.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub redacts: Option<OwnedEventId>,
-}
-
-impl EventContent for RedactedRoomRedactionEventContent {
-    type EventType = MessageLikeEventType;
 }
 
 impl StaticEventContent for RedactedRoomRedactionEventContent {

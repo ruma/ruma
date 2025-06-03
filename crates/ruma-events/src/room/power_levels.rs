@@ -15,8 +15,8 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    EmptyStateKey, EventContent, MessageLikeEventType, RedactContent, RedactedStateEventContent,
-    StateEventType, StaticEventContent, TimelineEventType,
+    EmptyStateKey, MessageLikeEventType, RedactContent, RedactedStateEventContent, StateEventType,
+    StaticEventContent, TimelineEventType,
 };
 
 /// The content of an `m.room.power_levels` event.
@@ -283,10 +283,6 @@ pub struct RedactedRoomPowerLevelsEventContent {
         deserialize_with = "ruma_common::serde::deserialize_v1_powerlevel"
     )]
     pub users_default: Int,
-}
-
-impl EventContent for RedactedRoomPowerLevelsEventContent {
-    type EventType = StateEventType;
 }
 
 impl StaticEventContent for RedactedRoomPowerLevelsEventContent {

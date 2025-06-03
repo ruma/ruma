@@ -191,10 +191,6 @@ impl PossiblyRedactedStateEventContent for PossiblyRedactedCallMemberEventConten
 #[allow(clippy::exhaustive_structs)]
 pub struct RedactedCallMemberEventContent {}
 
-impl ruma_events::content::EventContent for RedactedCallMemberEventContent {
-    type EventType = StateEventType;
-}
-
 impl RedactedStateEventContent for RedactedCallMemberEventContent {
     type StateKey = CallMemberStateKey;
 
