@@ -20,9 +20,8 @@ use super::{
     PollResponseData,
 };
 use crate::{
-    relation::Replacement, room::message::RelationWithoutReplacement, EventContent,
-    MessageLikeEventContent, MessageLikeEventType, RedactContent, RedactedMessageLikeEventContent,
-    StaticEventContent,
+    relation::Replacement, room::message::RelationWithoutReplacement, MessageLikeEventContent,
+    MessageLikeEventType, RedactContent, RedactedMessageLikeEventContent, StaticEventContent,
 };
 
 /// The payload for an unstable poll start event.
@@ -138,10 +137,6 @@ impl NewUnstablePollStartEventContent {
     }
 }
 
-impl EventContent for NewUnstablePollStartEventContent {
-    type EventType = MessageLikeEventType;
-}
-
 impl StaticEventContent for NewUnstablePollStartEventContent {
     const TYPE: &'static str = "org.matrix.msc3381.poll.start";
 }
@@ -225,10 +220,6 @@ impl ReplacementUnstablePollStartEventContent {
     }
 }
 
-impl EventContent for ReplacementUnstablePollStartEventContent {
-    type EventType = MessageLikeEventType;
-}
-
 impl StaticEventContent for ReplacementUnstablePollStartEventContent {
     const TYPE: &'static str = "org.matrix.msc3381.poll.start";
 }
@@ -249,10 +240,6 @@ impl RedactedUnstablePollStartEventContent {
     pub fn new() -> RedactedUnstablePollStartEventContent {
         Self::default()
     }
-}
-
-impl EventContent for RedactedUnstablePollStartEventContent {
-    type EventType = MessageLikeEventType;
 }
 
 impl StaticEventContent for RedactedUnstablePollStartEventContent {

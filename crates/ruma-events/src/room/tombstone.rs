@@ -6,10 +6,7 @@ use ruma_common::OwnedRoomId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    EmptyStateKey, EventContent, PossiblyRedactedStateEventContent, StateEventType,
-    StaticEventContent,
-};
+use crate::{EmptyStateKey, PossiblyRedactedStateEventContent, StateEventType, StaticEventContent};
 
 /// The content of an `m.room.tombstone` event.
 ///
@@ -53,10 +50,6 @@ pub struct PossiblyRedactedRoomTombstoneEventContent {
 
     /// The new room the client should be visiting.
     pub replacement_room: Option<OwnedRoomId>,
-}
-
-impl EventContent for PossiblyRedactedRoomTombstoneEventContent {
-    type EventType = StateEventType;
 }
 
 impl PossiblyRedactedStateEventContent for PossiblyRedactedRoomTombstoneEventContent {

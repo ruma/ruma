@@ -3,7 +3,7 @@ use serde::Serialize;
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
-    EphemeralRoomEventContent, EphemeralRoomEventType, EventContent, EventContentFromType,
+    EphemeralRoomEventContent, EphemeralRoomEventType, EventContentFromType,
     GlobalAccountDataEventContent, GlobalAccountDataEventType, MessageLikeEventContent,
     MessageLikeEventType, MessageLikeUnsigned, PossiblyRedactedStateEventContent, RedactContent,
     RedactedMessageLikeEventContent, RedactedStateEventContent, RoomAccountDataEventContent,
@@ -21,10 +21,6 @@ macro_rules! custom_event_content {
         pub struct $i {
             #[serde(skip)]
             event_type: Box<str>,
-        }
-
-        impl EventContent for $i {
-            type EventType = $evt;
         }
 
         impl EventContentFromType for $i {

@@ -846,8 +846,6 @@ fn generate_event_content_impl<'a>(
     let serde = quote! { #ruma_events::exports::serde };
     let serde_json = quote! { #ruma_events::exports::serde_json };
 
-    let event_type_enum = event_kind.to_event_type_enum();
-
     let event_content_kind_trait_impl = generate_event_content_kind_trait_impl(
         ident,
         event_type,
@@ -939,11 +937,6 @@ fn generate_event_content_impl<'a>(
     });
 
     Ok(quote! {
-        #[automatically_derived]
-        impl #ruma_events::EventContent for #ident {
-            type EventType = #ruma_events::#event_type_enum;
-        }
-
         #event_content_from_type_impl
         #event_content_kind_trait_impl
         #static_state_event_content_impl
