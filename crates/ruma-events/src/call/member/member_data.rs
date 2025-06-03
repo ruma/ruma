@@ -83,15 +83,6 @@ impl MembershipData<'_> {
         as_variant!(self.application(), Application::Call).is_some()
     }
 
-    /// Checks if the event is expired. This is only relevant for LegacyMembershipData
-    /// returns `false` if its SessionMembershipData
-    pub fn is_expired(&self, origin_server_ts: Option<MilliSecondsSinceUnixEpoch>) -> bool {
-        match self {
-            MembershipData::Legacy(data) => data.is_expired(origin_server_ts),
-            MembershipData::Session(_) => false,
-        }
-    }
-
     /// Gets the created_ts of the event.
     ///
     /// This is the `origin_server_ts` for session data.
@@ -103,6 +94,53 @@ impl MembershipData<'_> {
             MembershipData::Legacy(data) => data.created_ts,
             MembershipData::Session(data) => data.created_ts,
         }
+    }
+
+    /// Checks if the event is expired.
+    ///
+    /// Defaults to using `created_ts` of the [`MembershipData`].
+    /// If no `origin_server_ts` is provided and the event does not contain `created_ts`
+    /// the event will be considered as not expired.
+    /// In this case, a warning will be logged.
+    ///
+    /// This method needs to be called periodically to check if the event is still valid.
+    ///
+    /// # Arguments
+    ///
+    /// * `origin_server_ts` - a fallback if [`MembershipData::created_ts`] is not present
+    pub fn is_expired(&self, origin_server_ts: Option<MilliSecondsSinceUnixEpoch>) -> bool {
+        if let Some(expire_ts) = self.expires_ts(origin_server_ts) {
+            MilliSecondsSinceUnixEpoch::now() > expire_ts
+        } else {
+            // This should not be reached since we only allow events that have copied over
+            // the origin server ts. `set_created_ts_if_none`
+            warn!("Encountered a Call Member state event where the expire_ts could not be constructed.");
+            false
+        }
+    }
+
+    /// The unix timestamp at which the event will expire.
+    /// This allows to determine at what time the return value of
+    /// [`MembershipData::is_expired`] will change.
+    ///
+    /// Defaults to using `created_ts` of the [`MembershipData`].
+    /// If no `origin_server_ts` is provided and the event does not contain `created_ts`
+    /// the event will be considered as not expired.
+    /// In this case, a warning will be logged.
+    ///
+    /// # Arguments
+    ///
+    /// * `origin_server_ts` - a fallback if [`MembershipData::created_ts`] is not present
+    pub fn expires_ts(
+        &self,
+        origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
+    ) -> Option<MilliSecondsSinceUnixEpoch> {
+        let expires = match &self {
+            MembershipData::Legacy(data) => data.expires,
+            MembershipData::Session(data) => data.expires,
+        };
+        let ev_created_ts = self.created_ts().or(origin_server_ts)?.to_system_time();
+        ev_created_ts.and_then(|t| MilliSecondsSinceUnixEpoch::from_system_time(t + expires))
     }
 }
 
@@ -133,7 +171,7 @@ pub struct LegacyMembershipData {
 
     /// Stores a copy of the `origin_server_ts` of the initial session event.
     ///
-    /// If the membership is updated this field will be used to track to
+    /// If the membership is updated this field will be used to track the
     /// original `origin_server_ts`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub created_ts: Option<MilliSecondsSinceUnixEpoch>,
@@ -148,37 +186,6 @@ pub struct LegacyMembershipData {
     /// 200.
     #[serde(rename = "membershipID")]
     pub membership_id: String,
-}
-
-impl LegacyMembershipData {
-    /// Checks if the event is expired.
-    ///
-    /// Defaults to using `created_ts` of the [`LegacyMembershipData`].
-    /// If no `origin_server_ts` is provided and the event does not contain `created_ts`
-    /// the event will be considered as not expired.
-    /// In this case, a warning will be logged.
-    ///
-    /// # Arguments
-    ///
-    /// * `origin_server_ts` - a fallback if [`LegacyMembershipData::created_ts`] is not present
-    pub fn is_expired(&self, origin_server_ts: Option<MilliSecondsSinceUnixEpoch>) -> bool {
-        let ev_created_ts = self.created_ts.or(origin_server_ts);
-
-        if let Some(ev_created_ts) = ev_created_ts {
-            let now = MilliSecondsSinceUnixEpoch::now().to_system_time();
-            let expire_ts = ev_created_ts.to_system_time().map(|t| t + self.expires);
-            now > expire_ts
-        } else {
-            // This should not be reached since we only allow events that have copied over
-            // the origin server ts. `set_created_ts_if_none`
-            warn!(
-                "Encountered a Call Member state event where the origin_ts (or origin_server_ts) \
-                 could not be found. \
-                 It is treated as a non-expired event but this might be wrong."
-            );
-            false
-        }
-    }
 }
 
 /// Initial set of fields of [`LegacyMembershipData`].
@@ -249,9 +256,18 @@ pub struct SessionMembershipData {
 
     /// Stores a copy of the `origin_server_ts` of the initial session event.
     ///
-    /// This is not part of the serialized event and computed after serialization.
-    #[serde(skip)]
+    /// If the membership is updated this field will be used to track the
+    /// original `origin_server_ts`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_ts: Option<MilliSecondsSinceUnixEpoch>,
+
+    /// The duration in milliseconds relative to the time this membership joined
+    /// during which the membership is valid.
+    ///
+    /// The time a member has joined is defined as:
+    /// `MIN(content.created_ts, event.origin_server_ts)`
+    #[serde(with = "ruma_common::serde::duration::ms")]
+    pub expires: Duration,
 }
 
 /// The type of the MatrixRTC session.
