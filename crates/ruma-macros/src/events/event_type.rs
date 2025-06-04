@@ -1,6 +1,6 @@
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
-use syn::{parse_quote, Ident, LitStr};
+use syn::Ident;
 
 use super::event_parse::{EventEnumEntry, EventEnumInput, EventKind};
 
@@ -35,15 +35,6 @@ pub fn expand_event_type_enum(
             | EventKind::HierarchySpaceChild => {}
         }
     }
-    let presence = vec![EventEnumEntry {
-        attrs: vec![],
-        aliases: vec![],
-        ev_type: LitStr::new("m.presence", Span::call_site()),
-        ev_path: parse_quote! { #ruma_events::presence },
-        ident: None,
-    }];
-    let mut all = input.enums.iter().map(|e| &e.events).collect::<Vec<_>>();
-    all.push(&presence);
 
     let mut res = TokenStream::new();
 
