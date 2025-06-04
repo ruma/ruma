@@ -10,7 +10,7 @@ use crate::{macros::EventContent, PrivOwnedStr};
 /// The content of an `m.media_preview_config` event.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[ruma_event(type = "m.media_preview_config", kind = GlobalAccountData)]
+#[ruma_event(type = "m.media_preview_config", kind = GlobalAccountData + RoomAccountData)]
 pub struct MediaPreviewConfigEventContent {
     /// The media previews configuration.
     #[serde(default)]
@@ -25,7 +25,7 @@ pub struct MediaPreviewConfigEventContent {
 /// the unstable version of `m.media_preview_config` in global account data.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[ruma_event(type = "io.element.msc4278.media_preview_config", kind = GlobalAccountData)]
+#[ruma_event(type = "io.element.msc4278.media_preview_config", kind = GlobalAccountData + RoomAccountData)]
 #[serde(transparent)]
 pub struct UnstableMediaPreviewConfigEventContent(pub MediaPreviewConfigEventContent);
 
