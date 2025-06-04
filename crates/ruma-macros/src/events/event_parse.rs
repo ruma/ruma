@@ -13,8 +13,6 @@ use syn::{
 
 /// Custom keywords for the `event_enum!` macro
 mod kw {
-    syn::custom_keyword!(kind);
-    syn::custom_keyword!(events);
     syn::custom_keyword!(alias);
     syn::custom_keyword!(ident);
 }

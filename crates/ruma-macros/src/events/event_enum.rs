@@ -9,12 +9,6 @@ use syn::{Attribute, Data, DataEnum, DeriveInput, Ident, LitStr};
 use super::event_parse::{EventEnumDecl, EventEnumEntry, EventKind};
 use crate::util::m_prefix_name_to_type_name;
 
-/// Custom keywords for the `event_enum!` macro
-mod kw {
-    syn::custom_keyword!(kind);
-    syn::custom_keyword!(events);
-}
-
 pub(crate) fn is_non_stripped_room_event(kind: EventKind, var: EventEnumVariation) -> bool {
     matches!(kind, EventKind::MessageLike | EventKind::State)
         && matches!(var, EventEnumVariation::None | EventEnumVariation::Sync)
