@@ -43,6 +43,11 @@ Improvements:
 - The `EventContent` and `event_enum!` macros support declaring the same type for both global and
   room account data. The syntax to use for the `EventContent` macro is `kind = GlobalAccountData +
   RoomAccountData`.
+- The `(Unstable)MediaPreviewConfigEventContent` types are also declared as room account data: they
+  implement `RoomAccountDataEventContent` and have variants in the `AnyRoomAccountDataEvent*` and
+  `RoomAccountDataEventType` enums. The `MediaPreviewConfigEvent` and
+  `UnstableMediaPreviewConfigEvent` type aliases are renamed to `GlobalMediaPreviewConfigEvent` and
+  `GlobalUnstableMediaPreviewConfigEvent`, respectively.
    
 # 0.30.3
 
