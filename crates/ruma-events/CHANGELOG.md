@@ -40,6 +40,9 @@ Improvements:
 - Add support for the `m.room_key.withheld` to-device event, which was introduced in Matrix 1.1.
 - Remove the `pdu` module and the corresponding `unstable-pdu` cargo feature. As far as we know, it
   was not used anywhere outside of the tests of ruma-state-res.
+- The `EventContent` and `event_enum!` macros support declaring the same type for both global and
+  room account data. The syntax to use for the `EventContent` macro is `kind = GlobalAccountData +
+  RoomAccountData`.
    
 # 0.30.3
 

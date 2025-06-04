@@ -851,7 +851,13 @@ impl EventEnumEntry {
             assert_eq!(var, EventEnumVariation::None);
             format_ident!("ToDevice{ident}Event")
         } else {
-            format_ident!("{}{ident}Event", var)
+            let type_prefix = match kind {
+                EventKind::GlobalAccountData if self.both_account_data => "Global",
+                EventKind::RoomAccountData if self.both_account_data => "Room",
+                _ => "",
+            };
+
+            format_ident!("{}{type_prefix}{ident}Event", var)
         };
         quote! { #path::#event_name }
     }

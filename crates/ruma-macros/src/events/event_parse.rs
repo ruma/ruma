@@ -1,6 +1,6 @@
 //! Implementation of event enum and event content enum macros.
 
-use std::fmt;
+use std::{collections::BTreeMap, fmt};
 
 use proc_macro2::Span;
 use quote::{format_ident, IdentFragment};
@@ -68,7 +68,7 @@ impl EventKindVariation {
 }
 
 // If the variants of this enum change `to_event_path` needs to be updated as well.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord)]
 pub enum EventKind {
     GlobalAccountData,
     RoomAccountData,
@@ -234,6 +234,7 @@ pub struct EventEnumEntry {
     pub ev_type: LitStr,
     pub ev_path: Path,
     pub ident: Option<Ident>,
+    pub both_account_data: bool,
 }
 
 impl Parse for EventEnumEntry {
@@ -279,7 +280,7 @@ impl Parse for EventEnumEntry {
             }
         }
 
-        Ok(Self { attrs, aliases, ev_type, ev_path, ident })
+        Ok(Self { attrs, aliases, ev_type, ev_path, ident, both_account_data: false })
     }
 }
 
@@ -307,7 +308,7 @@ pub struct EventEnumInput {
 
 impl Parse for EventEnumInput {
     fn parse(input: ParseStream<'_>) -> parse::Result<Self> {
-        let mut enums = vec![];
+        let mut enums_map = BTreeMap::new();
         while !input.is_empty() {
             let attrs = input.call(Attribute::parse_outer)?;
 
@@ -318,9 +319,39 @@ impl Parse for EventEnumInput {
             braced!(content in input);
             let events = content.parse_terminated(EventEnumEntry::parse, Token![,])?;
             let events = events.into_iter().collect();
-            enums.push(EventEnumDecl { attrs, kind, events });
+
+            if enums_map.insert(kind, EventEnumDecl { attrs, kind, events }).is_some() {
+                return Err(syn::Error::new(
+                    Span::call_site(),
+                    format!("duplicate definition for kind `{kind:?}`"),
+                ));
+            }
         }
-        Ok(EventEnumInput { enums })
+
+        // Mark event types which are declared for both account data kinds, because they use a
+        // different name for the event struct.
+        let mut room_account_data_enum = enums_map.remove(&EventKind::RoomAccountData);
+        if let Some((global_account_data_enum, room_account_data_enum)) =
+            enums_map.get_mut(&EventKind::GlobalAccountData).zip(room_account_data_enum.as_mut())
+        {
+            for global_event in global_account_data_enum.events.iter_mut() {
+                if let Some(room_event) =
+                    room_account_data_enum.events.iter_mut().find(|room_event| {
+                        room_event.ev_type == global_event.ev_type
+                            && room_event.ev_path == global_event.ev_path
+                            && room_event.ident == global_event.ident
+                    })
+                {
+                    global_event.both_account_data = true;
+                    room_event.both_account_data = true;
+                }
+            }
+        };
+        if let Some(room_account_data_enum) = room_account_data_enum {
+            enums_map.insert(EventKind::RoomAccountData, room_account_data_enum);
+        }
+
+        Ok(EventEnumInput { enums: enums_map.into_values().collect() })
     }
 }
 
