@@ -48,6 +48,14 @@ Improvements:
   `RoomAccountDataEventType` enums. The `MediaPreviewConfigEvent` and
   `UnstableMediaPreviewConfigEvent` type aliases are renamed to `GlobalMediaPreviewConfigEvent` and
   `GlobalUnstableMediaPreviewConfigEvent`, respectively.
+- The fields of `MediaPreviewConfigEventContent` are now optional. It allows to differentiate
+  whether the room account data is unset or explicitly set to the default value. This allows in
+  turn to know whether the room account data should override the global account data or not.
+  - `MediaPreviewConfigEventContent::new()` doesn't take any arguments and creates an empty config.
+    The fields can be set with a builder pattern, e.g.
+    `MediaPreviewConfigEventContent::new().media_previews(Some(MediaPreviews::Off))`.
+  - `MediaPreviewConfigEventContent::merge_global_and_room_config()` can be used to get the current
+    config for a room.
    
 # 0.30.3
 
