@@ -86,7 +86,7 @@ impl Response {
 }
 
 /// Information about a discovered homeserver.
-#[derive(Clone, Debug, Deserialize, Hash, Serialize)]
+#[derive(Clone, Debug, Deserialize, Hash, Serialize, PartialEq, Eq)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct HomeserverInfo {
     /// The base URL for the homeserver for client-server connections.
@@ -101,7 +101,7 @@ impl HomeserverInfo {
 }
 
 /// Information about a discovered identity server.
-#[derive(Clone, Debug, Deserialize, Hash, Serialize)]
+#[derive(Clone, Debug, Deserialize, Hash, Serialize, PartialEq, Eq)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct IdentityServerInfo {
     /// The base URL for the identity server for client-server connections.
@@ -117,7 +117,7 @@ impl IdentityServerInfo {
 
 /// Information about a discovered map tile server.
 #[cfg(feature = "unstable-msc3488")]
-#[derive(Clone, Debug, Deserialize, Hash, Serialize)]
+#[derive(Clone, Debug, Deserialize, Hash, Serialize, PartialEq, Eq)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct TileServerInfo {
     /// The URL of a map tile server's `style.json` file.
@@ -136,7 +136,7 @@ impl TileServerInfo {
 
 /// Information about a specific MatrixRTC focus.
 #[cfg(feature = "unstable-msc4143")]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type")]
 pub enum RtcFocusInfo {
@@ -210,7 +210,7 @@ impl RtcFocusInfo {
 
 /// Information about a LiveKit RTC focus.
 #[cfg(feature = "unstable-msc4143")]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct LiveKitRtcFocusInfo {
     /// The URL for the LiveKit service.
@@ -221,7 +221,7 @@ pub struct LiveKitRtcFocusInfo {
 /// Information about a custom RTC focus type.
 #[doc(hidden)]
 #[cfg(feature = "unstable-msc4143")]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct CustomRtcFocusInfo {
     /// The type of RTC focus.
     #[serde(rename = "type")]
