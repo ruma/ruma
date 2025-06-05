@@ -412,7 +412,24 @@ pub fn derive_event_content(input: TokenStream) -> TokenStream {
     expand_event_content(&input, &ruma_events).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
-/// Generates implementations needed to serialize and deserialize Matrix events.
+/// Generates trait implementations for Matrix event types.
+///
+/// This macro parses the name of the type on which it is applied to decide what to do, which means
+/// that it only works on a fixed list of types. It also requires the type to be a struct with named
+/// fields, with one of these fields named `content`.
+///
+/// This macro implements at least `Deserialize` for the type on which it is applied.
+///
+/// If the type is an `OriginalSync` or `RedactedSync` event, this implements conversion
+/// helpers to the non-sync version of the event type. For example if the event type is
+/// `OriginalSyncMessageLikeEvent`, this will generate `From<OriginalMessageLikeEvent> for
+/// OriginalSyncMessageLikeEvent` and `OriginalSyncMessageLikeEvent::into_full_event()`.
+///
+/// If the type is a non-stripped timeline event, i.e. a struct with an `event_id` field, this
+/// implements `PartialEq`, `Eq`, `PartialOrd` and `Ord` by comparing the `event_id` fields.
+///
+/// You can use `cargo doc` to find out more details, its `--document-private-items` flag also lets
+/// you generate documentation for binaries or private parts of a library.
 #[proc_macro_derive(Event, attributes(ruma_event))]
 pub fn derive_event(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
