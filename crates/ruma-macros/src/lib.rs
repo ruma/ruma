@@ -215,27 +215,195 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
     tokens.into()
 }
 
-/// Generates an implementation of `ruma_events::EventContent`.
+/// Generates traits implementations and types for an event content.
 ///
-/// Also generates type aliases depending on the kind of event, with the final `Content` of the type
-/// name removed and prefixed added. For instance, a message-like event content type
-/// `FooEventContent` will have the following aliases generated:
+/// # Trait implementations
 ///
-/// * `type FooEvent = MessageLikeEvent<FooEventContent>`
-/// * `type SyncFooEvent = SyncMessageLikeEvent<FooEventContent>`
-/// * `type OriginalFooEvent = OriginalMessageLikeEvent<FooEventContent>`
-/// * `type OriginalSyncFooEvent = OriginalSyncMessageLikeEvent<FooEventContent>`
-/// * `type RedactedFooEvent = RedactedMessageLikeEvent<FooEventContent>`
-/// * `type RedactedSyncFooEvent = RedactedSyncMessageLikeEvent<FooEventContent>`
+/// This macro implements the following traits for the type on which it is applied:
+///
+/// * `{kind}EventContent`
+/// * `StaticEventContent`
+/// * `StaticStateEventContent`, for the `State` kind.
+///
+/// # Generated types
+///
+/// It also generates type aliases and modified clones depending on the kind of event. To generate
+/// the base name of those types, the macro simply removes `Content` from the name of the type,
+/// which means that to apply this macro to a type, its name must always end with `Content`. And for
+/// compatibility with the [`event_enum!`] macro, the name should actually end with `EventContent`.
+///
+/// Some kinds can generate a modified clone of the event content type. For instance, for an event
+/// content type named `FooEventContent`:
+///
+/// * `RedactedFooEventContent`: the redacted form of the event content, for the `MessageLike` and
+///   `State` kinds. It also generates the `RedactContent` implementation which applies the
+///   redaction algorithm according to the Matrix specification.
+///
+///   The generated type implements `Redacted{Kind}EventContent`, `StaticEventContent`, `Serialize`
+///   and `Deserialize`.
+///
+///   The generation only works if the type is a struct with named fields. To keep a field after
+///   redaction, the `#[ruma_event(skip_redaction)]` attribute can be applied to that field.
+///
+///   To skip the generation of this type and trait to implement a custom redaction, or because it
+///   is not a struct with named fields, the `#[ruma_event(custom_redacted)]` attribute can be used
+///   on the container. The `RedactedFooEventContent` type must still exist and implement the same
+///   traits, even if it is only a type alias, and the `RedactContent` trait must still be
+///   implemented for those kinds.
+/// * `PossiblyRedactedFooEventContent`: the form of the event content that is used when we don't
+///   know whether a `State` event is redacted or not. It means that on this type any field that is
+///   redacted must be optional, or it must have the `#[serde(default)]` attribute for
+///   deserialization.
+///
+///   The generated type implements `PossiblyRedactedStateEventContent`, `StaticEventContent`,
+///   `Serialize` and `Deserialize`.
+///
+///   The generation uses the rules as the redacted type, using the `#[ruma_event(skip_redaction)]`
+///   attribute.
+///
+///   To skip the generation of this type to use a custom type, the
+///   `#[ruma_event(custom_possibly_redacted)]` attribute can be used on the container. The
+///   `PossiblyRedactedFooEventContent` type must still exist for the `State` kind and implement the
+///   same traits, even if it is only a type alias.
+///
+/// Event content types of the `MessageLike` kind that use the `Relation` type also need a clone of
+/// the event content without the `relates_to` field for use within relations, where nested
+/// relations are not meant to be serialized by homeservers. This macro can generate a
+/// `FooEventContentWithoutRelation` type if the `#[ruma_event(without_relation)]` attribute is
+/// applied on the container. It also generates `From<FooEventContent> for
+/// FooEventContentWithoutRelation` and `FooEventContentWithoutRelation::with_relation()`.
+///
+/// By default, the generated types get a `#[non_exhaustive]` attribute. This behavior can be
+/// controlled by setting the `ruma_unstable_exhaustive_types` compile-time `cfg` setting as
+/// `--cfg=ruma_unstable_exhaustive_types` using `RUSTFLAGS` or `.cargo/config.toml` (under
+/// `[build]` -> `rustflags = ["..."]`). When that setting is activated, the attribute is not
+/// applied so the types are exhaustive.
+///
+/// # Type aliases
+///
+/// All kinds generate at least one type alias for the full event format. For the same example type
+/// named `FooEventContent`, the first type alias generated is `type FooEvent =
+/// {Kind}Event<FooEventContent>`.
+///
+/// The only exception for this is if the type has the `GlobalAccountData + RoomAccountData` kinds,
+/// it generates two type aliases with prefixes:
+///
+/// * `type GlobalFooEvent = GlobalAccountDataEvent<FooEventContent>`
+/// * `type RoomFooEvent = RoomAccountDataEvent<FooEventContent>`
+///
+/// Some kinds generate more type aliases:
+///
+/// * `type SyncFooEvent = Sync{Kind}Event<FooEventContent>`: an event received via the `/sync` API,
+///   for the `MessageLike`, `State` and `Ephemeral` kinds
+/// * `type OriginalFooEvent = Original{Kind}Event<FooEventContent>`, a non-redacted event, for the
+///   `MessageLike` and `State` kinds
+/// * `type OriginalSyncFooEvent = OriginalSync{Kind}Event<FooEventContent>`, a non-redacted event
+///   received via the `/sync` API, for the `MessageLike` and `State` kinds
+/// * `type RedactedFooEvent = Redacted{Kind}Event<RedactedFooEventContent>`, a redacted event, for
+///   the `MessageLike` and `State` kinds
+/// * `type OriginalSyncFooEvent = RedactedSync{Kind}Event<RedactedFooEventContent>`, a redacted
+///   event received via the `/sync` API, for the `MessageLike` and `State` kinds
+/// * `type InitialFooEvent = InitialStateEvent<FooEventContent>`, an event sent during room
+///   creation, for the `State` kind
+/// * `type StrippedFooEvent = StrippedStateEvent<PossiblyRedactedFooEventContent>`, an event that
+///   is in a room state preview when receiving an invite, for the `State` kind
 ///
 /// You can use `cargo doc` to find out more details, its `--document-private-items` flag also lets
 /// you generate documentation for binaries or private parts of a library.
 ///
-/// By default, the type this macro is used on and the generated types get a `#[non_exhaustive]`
-/// attribute. This behavior can be controlled by setting the `ruma_unstable_exhaustive_types`
-/// compile-time `cfg` setting as `--cfg=ruma_unstable_exhaustive_types` using `RUSTFLAGS` or
-/// `.cargo/config.toml` (under `[build]` -> `rustflags = ["..."]`). When that setting is
-/// activated, the attribute is not applied so the types are exhaustive.
+/// # Syntax
+///
+/// The basic syntax for using this macro is:
+///
+/// ```ignore
+/// #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+/// #[ruma_event(type = "m.foo_bar", kind = MessageLike)]
+/// pub struct FooBarEventContent {
+///     data: String,
+/// }
+/// ```
+///
+/// ## Container attributes
+///
+/// The following settings can be used on the container, with the `#[ruma_event(_)]` attribute.
+/// `type` and `kind` are always required.
+///
+/// ### `type = "m.event_type"`
+///
+/// The `type` of the event according to the Matrix specification, always required. This is usually
+/// a string with an `m.` prefix.
+///
+/// Types with an account data kind can also use the `.*` suffix, if the end of the type changes
+/// dynamically. It must be associated with a field that has the `#[ruma_event(type_fragment)]`
+/// attribute that will store the end of the event type.
+///
+/// ### `kind = Kind`
+///
+/// The kind of the event, always required. It must be one of these values, which matches the
+/// [`event_enum!`] macro:
+///
+/// * `MessageLike` - A message-like event sent in the timeline
+/// * `State` - A state event sent in the timeline
+/// * `GlobalAccountData` - Global config event
+/// * `RoomAccountData` - Per-room config event
+/// * `ToDevice` - Event sent directly to a device
+/// * `Ephemeral` - Event that is not persistent in the room
+///
+/// It is possible to implement both account data kinds for the same type by using the syntax `kind
+/// = GlobalAccountData + RoomAccountData`.
+///
+/// ### `alias = "m.event_type"`
+///
+/// An alternate `type` for the event, used during deserialization. It is usually used for
+/// deserializing an event type using both its stable and unstable prefix.
+///
+/// ### `state_key = StringType`
+///
+/// The type of the state key of the event, required and only supported if the kind is `State`. This
+/// type should be a string type like `String`, `EmptyStateKey` or an identifier type generated with
+/// the `IdZst` macro.
+///
+/// ### `unsigned_type = UnsignedType`
+///
+/// A custom type to use for the `Unsigned` type of the `StaticStateEventContent` implementation if
+/// the kind is `State`. Only necessary if the `StateUnsigned` type is not appropriate for this
+/// type.
+///
+/// ### `custom_redacted`
+///
+/// If the kind requires a `Redacted{}EventContent` type and a `RedactContent` implementation and it
+/// is not possible to generate them with the macro, setting this attribute prevents the macro from
+/// trying to generate them. The type and trait must be implemented manually.
+///
+/// ### `custom_possibly_redacted`
+///
+/// If the kind requires a `PossiblyRedacted{}EventContent` type and it is not possible to generate
+/// it with the macro, setting this attribute prevents the macro from trying to generate it. The
+/// type must be implemented manually.
+///
+/// ### `without_relation`
+///
+/// If this is set, the macro will try to generate an `{}EventContentWithoutRelation` which is a
+/// clone of the current type with the `relates_to` field removed.
+///
+/// ## Field attributes
+///
+/// The following settings can be used on the fields of a struct, with the `#[ruma_event(_)]`
+/// attribute.
+///
+/// ### `skip_redaction`
+///
+/// If a `Redacted{}EventContent` type is generated by the macro, this field will be kept after
+/// redaction.
+///
+/// ### `type_fragment`
+///
+/// If the event content's kind is account data and its type ends with the `.*`, this field is
+/// required and will store the end of the event's type.
+///
+/// # Example
+///
+/// An example can be found in the docs at the root of `ruma_events`.
 #[proc_macro_derive(EventContent, attributes(ruma_event))]
 pub fn derive_event_content(input: TokenStream) -> TokenStream {
     let ruma_events = import_ruma_events();
