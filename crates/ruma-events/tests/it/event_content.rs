@@ -8,4 +8,6 @@ fn ui() {
     t.pass("tests/it/ui/11-content-without-relation-sanity-check.rs");
     t.compile_fail("tests/it/ui/12-no-relates_to.rs");
     t.pass("tests/it/ui/13-private-event-content-type.rs");
+    t.pass("tests/it/ui/14-enum-content-double-kind.rs");
+    t.compile_fail("tests/it/ui/15-content-invalid-double-kind.rs");
 }
