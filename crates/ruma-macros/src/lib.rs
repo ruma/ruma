@@ -419,7 +419,7 @@ pub fn derive_event(input: TokenStream) -> TokenStream {
     expand_event(input).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
-/// Generates `From` implementations for event enums.
+/// Generates `From` implementations for an enum for all its variants.
 #[proc_macro_derive(EventEnumFromEvent)]
 pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
