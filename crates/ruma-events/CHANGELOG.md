@@ -34,6 +34,12 @@ Breaking changes:
   - The `event_type` method is now available on the per-kind `*EventContent` traits.
   - For an event content type to automatically implement `EventContentFromType` it must now match
     the bound `StaticEventContent + DeserializeOwned`.
+
+Improvements:
+
+- The `EventContent` and `event_enum!` macros support declaring the same type for both global and
+  room account data. The syntax to use for the `EventContent` macro is `kind = GlobalAccountData +
+  RoomAccountData`.
    
 # 0.30.3
 
