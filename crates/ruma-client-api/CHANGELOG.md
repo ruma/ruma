@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+- All the types used in `discover_homeserver::Response` now implement PartialEq
+  and Eq.
+
 # 0.20.3
 
 Bug fixes:
