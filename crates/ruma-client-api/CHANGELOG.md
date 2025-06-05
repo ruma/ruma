@@ -25,6 +25,8 @@ Improvements:
   endpoints, the `server_name` query parameter is only serialized if the server
   doesn't advertise at least one version that supports the `via` query
   parameter. The former was removed in Matrix 1.14.
+- All the types used in `discover_homeserver::Response` now implement PartialEq
+  and Eq.
 
 # 0.20.3
 
