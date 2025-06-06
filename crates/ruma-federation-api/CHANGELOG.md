@@ -10,6 +10,11 @@ Breaking changes:
   It is a `RoomMemberEventContent`. A new constructor was added,
   `with_third_party_invite()` that constructs the event content from a
   `ThirdPartyInvite`.
+- Use `ruma_common::RoomSummary` for the `space::get_hierarchy` endpoint.
+  - `SpaceHierarchyParentSummary` is now built around `RoomSummary`, and
+    `SpaceHierarchyParentSummaryInit` was removed.
+  - `SpaceHierarchyChildSummary` was replaced by `RoomSummary` and
+    `SpaceHierarchyChildSummaryInit` was removed.
 
 Bug fixes:
 

@@ -9,10 +9,12 @@ pub mod v1 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, OwnedRoomId,
+        metadata,
+        room::RoomSummary,
+        OwnedRoomId,
     };
 
-    use crate::space::{SpaceHierarchyChildSummary, SpaceHierarchyParentSummary};
+    use crate::space::SpaceHierarchyParentSummary;
 
     const METADATA: Metadata = metadata! {
         method: GET,
@@ -45,7 +47,7 @@ pub mod v1 {
         /// A summary of the space’s children.
         ///
         /// Rooms which the requesting server cannot peek/join will be excluded.
-        pub children: Vec<SpaceHierarchyChildSummary>,
+        pub children: Vec<RoomSummary>,
 
         /// The list of room IDs the requesting server doesn’t have a viable way to peek/join.
         ///
