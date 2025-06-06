@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+- Add `RoomSummary` that represents the summary of a room's state.
+  - Implement `From<RoomSummary>` for `PublicRoomsChunk`
+
 # 0.15.2
 
 Bug fixes:
