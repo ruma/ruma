@@ -11,6 +11,11 @@ Breaking changes:
   `with_third_party_invite()` that constructs the event content from a
   `ThirdPartyInvite`.
 - Update the endpoint metadata definitions to use the new syntax for variables.
+- Use `ruma_common::RoomSummary` for the `space::get_hierarchy` endpoint.
+  - `SpaceHierarchyParentSummary` is now built around `RoomSummary`, and
+    `SpaceHierarchyParentSummaryInit` was removed.
+  - `SpaceHierarchyChildSummary` was replaced by `RoomSummary` and
+    `SpaceHierarchyChildSummaryInit` was removed.
 
 Bug fixes:
 
