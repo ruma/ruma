@@ -7,13 +7,16 @@ mod filter_room_type_serde;
 mod room_network_serde;
 
 use crate::{
-    room::RoomType, serde::StringEnum, OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr,
+    room::{RoomSummary, RoomType},
+    serde::StringEnum,
+    OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr,
 };
 
 /// A chunk of a room list response, describing one room.
 ///
-/// To create an instance of this type, first create a `PublicRoomsChunkInit` and convert it via
-/// `PublicRoomsChunk::from` / `.into()`.
+/// To create an instance of this type, first create a [`PublicRoomsChunkInit`] and convert it via
+/// `PublicRoomsChunk::from` / `.into()`. It is also possible to construct this type from a
+/// [`RoomSummary`].
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PublicRoomsChunk {
@@ -105,6 +108,37 @@ impl From<PublicRoomsChunkInit> for PublicRoomsChunk {
             avatar_url: None,
             join_rule: PublicRoomJoinRule::default(),
             room_type: None,
+        }
+    }
+}
+
+impl From<RoomSummary> for PublicRoomsChunk {
+    fn from(value: RoomSummary) -> Self {
+        let RoomSummary {
+            room_id,
+            canonical_alias,
+            name,
+            topic,
+            avatar_url,
+            room_type,
+            num_joined_members,
+            join_rule,
+            world_readable,
+            guest_can_join,
+            ..
+        } = value;
+
+        Self {
+            canonical_alias,
+            name,
+            num_joined_members,
+            room_id,
+            topic,
+            world_readable,
+            guest_can_join,
+            avatar_url,
+            join_rule: join_rule.as_str().into(),
+            room_type,
         }
     }
 }

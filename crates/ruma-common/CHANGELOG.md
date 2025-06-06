@@ -74,6 +74,8 @@ Improvements:
   version defined in MSC2870.
 - Add `OutgoingRequest::is_supported()` and `VersionHistory::is_supported()` to
   be able to know if a server advertises support for an endpoint.
+- Add `RoomSummary` that represents the summary of a room's state.
+  - Implement `From<RoomSummary>` for `PublicRoomsChunk`
 
 # 0.15.2
 
