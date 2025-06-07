@@ -16,152 +16,6 @@ use std::{convert::TryInto as _, error::Error as StdError};
 
 use as_variant::as_variant;
 use bytes::BufMut;
-use serde::{Deserialize, Serialize};
-
-use self::error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
-use crate::UserId;
-
-/// Convenient constructor for [`Metadata`] constants.
-///
-/// ## Definition
-///
-/// The definition of the macro is made to look like a struct, with the following fields:
-///
-/// * `method` - The HTTP method to use for the endpoint. Its value must be one of the associated
-///   constants of [`http::Method`]. In most cases it should be one of `GET`, `POST`, `PUT` or
-///   `DELETE`.
-/// * `rate_limited` - Whether the endpoint should be rate-limited, according to the specification.
-///   Its value must be a `bool`.
-/// * `authentication` - The type of authentication that is required for the endpoint, according to
-///   the specification. Its value must be one of the variants of [`AuthScheme`].
-/// * `history` - The history of the paths of the endpoint. Its definition is made to look like
-///   match arms and must include at least one arm.
-///
-///   The match arms accept the following syntax:
-///
-///   * `unstable => "unstable/endpoint/path/:variable"` - An unstable version of the endpoint as
-///     defined in the MSC that adds it, if the MSC does **NOT** define an unstable feature in the
-///     `unstable_features` field of the client-server API's `/versions` endpoint.
-///   * `unstable("org.bar.unstable_feature") => "unstable/endpoint/path/:variable"` - An unstable
-///     version of the endpoint as defined in the MSC that adds it, if the MSC defines an unstable
-///     feature in the `unstable_features` field of the client-server API's `/versions` endpoint.
-///   * `1.0 | stable("org.bar.feature.stable") => "stable/endpoint/path/:variable"` - A stable
-///     version of the endpoint as defined in an MSC or the Matrix specification. The match arm can
-///     be a Matrix version, a stable feature, or both separated by `|`.
-///
-///     A stable feature can be defined in an MSC alongside an unstable feature, and can be found in
-///     the `unstable_features` field of the client-server API's `/versions` endpoint. It is meant
-///     to be used by homeservers if they want to declare stable support for a feature before they
-///     can declare support for a whole Matrix version that supports it.
-///
-///   * `1.2 => deprecated` - The Matrix version that deprecated the endpoint, if any. It must be
-///     preceded by a match arm with a stable path and a different Matrix version.
-///   * `1.3 => removed` - The Matrix version that removed the endpoint, if any. It must be preceded
-///     by a match arm with a deprecation and a different Matrix version.
-///
-///   A Matrix version is a `float` representation of the version that looks like `major.minor`.
-///   It must match one of the variants of [`MatrixVersion`]. For example `1.0` matches
-///   [`MatrixVersion::V1_0`], `1.1` matches [`MatrixVersion::V1_1`], etc.
-///
-///   It is expected that the match arms are ordered by descending age. Usually the older unstable
-///   paths would be before the newer unstable paths, then we would find the stable paths, and
-///   finally the deprecation and removal.
-///
-///   The following checks occur at compile time:
-///
-///   * All unstable and stable paths contain the same variables (or lack thereof).
-///   * Matrix versions in match arms are all different and in ascending order.
-///
-/// ## Example
-///
-/// ```
-/// use ruma_common::{api::Metadata, metadata};
-/// const METADATA: Metadata = metadata! {
-///     method: GET,
-///     rate_limited: true,
-///     authentication: AccessToken,
-///
-///     history: {
-///         unstable => "/_matrix/unstable/org.bar.msc9000/baz",
-///         unstable("org.bar.msc9000.v1") => "/_matrix/unstable/org.bar.msc9000.v1/qux",
-///         1.0 | stable("org.bar.msc9000.stable") => "/_matrix/media/r0/qux",
-///         1.1 => "/_matrix/media/v3/qux",
-///         1.2 => deprecated,
-///         1.3 => removed,
-///     }
-/// };
-/// ```
-#[macro_export]
-macro_rules! metadata {
-    ( $( $field:ident: $rhs:tt ),+ $(,)? ) => {
-        $crate::api::Metadata {
-            $( $field: $crate::metadata!(@field $field: $rhs) ),+
-        }
-    };
-
-    ( @field method: $method:ident ) => { $crate::exports::http::Method::$method };
-
-    ( @field authentication: $scheme:ident ) => { $crate::api::AuthScheme::$scheme };
-
-    ( @field history: {
-        $( unstable $(($unstable_feature:literal))? => $unstable_path:literal, )*
-        $( stable ($stable_feature_only:literal) => $stable_feature_path:literal, )?
-        $( $( $version:literal $(| stable ($stable_feature:literal))? => $rhs:tt, )+ )?
-    } ) => {
-        $crate::metadata! {
-            @history_impl
-            [ $( $unstable_path $(= $unstable_feature)? ),* ]
-            $( stable ($stable_feature_only) => $stable_feature_path, )?
-            // Flip left and right to avoid macro parsing ambiguities
-            $( $( $rhs = $version $(| stable ($stable_feature))? ),+ )?
-        }
-    };
-
-    // Simple literal case: used for description, name, rate_limited
-    ( @field $_field:ident: $rhs:expr ) => { $rhs };
-
-    ( @history_impl
-        [ $( $unstable_path:literal $(= $unstable_feature:literal)? ),* ]
-        $( stable ($stable_feature_only:literal) => $stable_feature_path:literal, )?
-        $(
-            $( $stable_path:literal = $version:literal $(| stable ($stable_feature:literal))? ),+
-            $(,
-                deprecated = $deprecated_version:literal
-                $(, removed = $removed_version:literal )?
-            )?
-        )?
-    ) => {
-        $crate::api::VersionHistory::new(
-            &[ $(($crate::metadata!(@optional_feature $($unstable_feature)?), $unstable_path)),* ],
-            &[
-                $((
-                    $crate::metadata!(@stable_path_selector stable($stable_feature_only)),
-                    $stable_feature_path
-                ),)?
-                $($((
-                    $crate::metadata!(@stable_path_selector $version $(| stable($stable_feature))?),
-                    $stable_path
-                )),+)?
-            ],
-            $crate::metadata!(@optional_version $($( $deprecated_version )?)?),
-            $crate::metadata!(@optional_version $($($( $removed_version )?)?)?),
-        )
-    };
-
-    ( @optional_feature ) => { None };
-    ( @optional_feature $feature:literal ) => { Some($feature) };
-    ( @stable_path_selector stable($feature:literal)) => { $crate::api::StablePathSelector::Feature($feature) };
-    ( @stable_path_selector $version:literal | stable($feature:literal)) => {
-        $crate::api::StablePathSelector::FeatureAndVersion {
-            feature: $feature,
-            version: $crate::api::MatrixVersion::from_lit(stringify!($version)),
-        }
-    };
-    ( @stable_path_selector $version:literal) => { $crate::api::StablePathSelector::Version($crate::api::MatrixVersion::from_lit(stringify!($version))) };
-    ( @optional_version ) => { None };
-    ( @optional_version $version:literal ) => { Some($crate::api::MatrixVersion::from_lit(stringify!($version))) }
-}
-
 /// Generates [`OutgoingRequest`] and [`IncomingRequest`] implementations.
 ///
 /// The `OutgoingRequest` impl is on the `Request` type this attribute is used on. It is
@@ -392,6 +246,12 @@ pub use ruma_macros::request;
 /// }
 /// ```
 pub use ruma_macros::response;
+use serde::{Deserialize, Serialize};
+
+use self::error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
+#[doc(inline)]
+pub use crate::metadata;
+use crate::UserId;
 
 pub mod error;
 mod metadata;
