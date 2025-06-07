@@ -45,6 +45,8 @@ Breaking changes:
   changed: the variable must now be surrounded by `{}` instead of being preceded
   by `:`. For example `/_matrix/client/foo/{bar}`. This matches the OpenAPI
   syntax and the new syntax supported by axum 0.8.
+- `JoinRule` and its associated types where imported from `ruma-events` into the
+  `room` module.
 
 Improvements:
 
@@ -81,6 +83,8 @@ Improvements:
 - Re-export `ID_MAX_BYTES` from `ruma-identifiers-validation`.
 - Add `RoomSummary` that represents the summary of a room's state.
   - Implement `From<RoomSummary>` for `PublicRoomsChunk`
+- `space::SpaceRoomJoinRule` was moved and renamed as `room::JoinRuleSummary`.
+  It now includes a `RestrictedSummary` for the restricted join rules variants.
 
 # 0.15.2
 
