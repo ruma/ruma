@@ -34,7 +34,6 @@ pub mod push;
 pub mod room;
 pub mod room_version_rules;
 pub mod serde;
-pub mod space;
 pub mod third_party_invite;
 pub mod thirdparty;
 mod time;

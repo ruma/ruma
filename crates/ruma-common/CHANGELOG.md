@@ -41,6 +41,8 @@ Breaking changes:
   - `VersionHistory::stable_endpoint_for()` was renamed to `version_path()`.
   - `VersioningDecision`'s `Stable` variant was renamed to `Version` and
     `Unstable` was renamed to `Feature`.
+- `JoinRule` and its associated types where imported from `ruma-events` into the
+  `room` module.
 
 Improvements:
 
@@ -74,6 +76,10 @@ Improvements:
   version defined in MSC2870.
 - Add `OutgoingRequest::is_supported()` and `VersionHistory::is_supported()` to
   be able to know if a server advertises support for an endpoint.
+- Add `RoomSummary` that represents the summary of a room's state.
+  - Implement `From<RoomSummary>` for `PublicRoomsChunk`
+- `space::SpaceRoomJoinRule` was moved and renamed as `room::JoinRuleSummary`.
+  It now includes a `RestrictedSummary` for the restricted join rules variants.
 
 # 0.15.2
 

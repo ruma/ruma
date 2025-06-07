@@ -18,6 +18,11 @@ Breaking changes:
   `discovery::get_capabilities::v3` module, for consistency with other endpoints.
 - `get_supported_versions::Response::known_versions()` was replaced by
   `as_supported_versions()` which returns a `SupportedVersions`.
+- Use `ruma_common::RoomSummary` for the `space::get_hierarchy` and
+  `room::get_summary` endpoints.
+  - `SpaceHierarchyRoomsChunk` is now built around `RoomSummary`, and
+    `SpaceHierarchyRoomsChunkInit` was removed.
+  - `room::get_summary::msc3266::Response` is now built around `RoomSummary`.
 
 Improvements:
 
