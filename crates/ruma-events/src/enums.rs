@@ -174,6 +174,7 @@ event_enum! {
         "m.dummy" => super::dummy,
         "m.room_key" => super::room_key,
         "m.room_key_request" => super::room_key_request,
+        "m.room_key.withheld" => super::room_key::withheld,
         "m.forwarded_room_key" => super::forwarded_room_key,
         "m.key.verification.request" => super::key::verification::request,
         "m.key.verification.ready" => super::key::verification::ready,

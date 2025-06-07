@@ -34,6 +34,10 @@ Breaking changes:
   - The `event_type` method is now available on the per-kind `*EventContent` traits.
   - For an event content type to automatically implement `EventContentFromType` it must now match
     the bound `StaticEventContent + DeserializeOwned`.
+
+Improvements:
+
+- Add support for the `m.room_key.withheld` to-device event, which was introduced in Matrix 1.1.
    
 # 0.30.3
 
