@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+- Add support for the `m.room_key.withheld` to-device event, which was introduced in Matrix 1.1.
+   
 # 0.30.3
 
 Improvements:
