@@ -115,10 +115,12 @@ pub mod api {
     #[cfg(any(feature = "client-api-c", feature = "client-api-s"))]
     #[doc(inline)]
     pub use ruma_client_api as client;
-    // The metadata macro is also exported at the crate root because `#[macro_export]` always
-    // places things at the crate root of the defining crate and we do a glob re-export of
-    // `ruma_common`, but here is the more logical (preferred) location.
-    pub use ruma_common::{api::*, metadata};
+    // The metadata macro is `#[doc(hidden)]` by default to only show it in the `api` module
+    // instead of at the root of `ruma_common`, so we need to explicitly inline it where we
+    // want it.
+    #[doc(inline)]
+    pub use ruma_common::api::metadata;
+    pub use ruma_common::api::*;
     #[cfg(any(feature = "federation-api-c", feature = "federation-api-s"))]
     #[doc(inline)]
     pub use ruma_federation_api as federation;
