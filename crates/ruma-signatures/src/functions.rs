@@ -12,7 +12,7 @@ use ruma_common::{
     room_version_rules::{EventIdFormatVersion, RedactionRules, RoomVersionRules, SignaturesRules},
     serde::{base64::Standard, Base64},
     AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, OwnedEventId, OwnedServerName,
-    SigningKeyAlgorithm, SigningKeyId, UserId,
+    SigningKeyAlgorithm, SigningKeyId, UserId, ID_MAX_BYTES,
 };
 use serde_json::to_string as to_json_string;
 use sha2::{digest::Digest, Sha256};
@@ -811,5 +811,52 @@ fn is_invite_via_third_party_id(object: &CanonicalJsonObject) -> Result<bool, Er
         Some(CanonicalJsonValue::Object(_)) => Ok(true),
         None => Ok(false),
         _ => Err(JsonError::not_of_type("third_party_invite", JsonType::Object)),
+    }
+}
+
+/// Check that the given canonicalized PDU respects the [size limits] from the Matrix specification.
+///
+/// Returns an error if the JSON is malformed or if the PDU doesn't pass the checks.
+///
+/// [size limits]: https://spec.matrix.org/latest/client-server-api/#size-limits
+pub fn check_pdu_sizes(pdu: &CanonicalJsonObject) -> Result<(), Error> {
+    // The PDU size check must occur on the full PDU with signatures.
+    let json = to_json_string(&pdu).map_err(|e| Error::Json(e.into()))?;
+    if json.len() > MAX_PDU_BYTES {
+        return Err(Error::PduSize);
+    }
+
+    for field in &["sender", "room_id", "type", "event_id"] {
+        let value = extract_string_field(pdu, field)?
+            .ok_or_else(|| JsonError::field_missing_from_object(*field))?;
+
+        if value.len() > ID_MAX_BYTES {
+            return Err(Error::StringFieldSize((*field).to_owned()));
+        }
+    }
+
+    if extract_string_field(pdu, "state_key")?
+        .is_some_and(|state_key| state_key.len() > ID_MAX_BYTES)
+    {
+        return Err(Error::StringFieldSize("state_key".to_owned()));
+    }
+
+    Ok(())
+}
+
+/// Extract the field with the given name from the given canonical JSON object.
+///
+/// Returns `Ok(Some(value))` if the field is present and a string, `Ok(None)` if the fields is
+/// missing and an error if the field is present and not a string.
+fn extract_string_field<'a>(
+    object: &'a CanonicalJsonObject,
+    field: &'a str,
+) -> Result<Option<&'a String>, JsonError> {
+    match object.get(field) {
+        Some(CanonicalJsonValue::String(value)) => Ok(Some(value)),
+        Some(_) => {
+            Err(JsonError::NotOfType { target: field.to_owned(), of_type: JsonType::String })
+        }
+        None => Ok(None),
     }
 }
