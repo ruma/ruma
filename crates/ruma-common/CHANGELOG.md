@@ -74,6 +74,7 @@ Improvements:
   version defined in MSC2870.
 - Add `OutgoingRequest::is_supported()` and `VersionHistory::is_supported()` to
   be able to know if a server advertises support for an endpoint.
+- Re-export `ID_MAX_BYTES` from `ruma-identifiers-validation`.
 
 # 0.15.2
 
