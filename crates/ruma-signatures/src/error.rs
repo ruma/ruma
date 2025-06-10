@@ -29,6 +29,10 @@ pub enum Error {
     /// PDU was too large
     #[error("PDU is larger than maximum of 65535 bytes")]
     PduSize,
+
+    /// The size of the string value of the field was too large.
+    #[error("String value of field `{0}` is larger than maximum of 255 bytes")]
+    StringFieldSize(String),
 }
 
 impl From<RedactionError> for Error {
