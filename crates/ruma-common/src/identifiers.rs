@@ -10,7 +10,7 @@ pub use ruma_identifiers_validation::{
         Error as IdParseError, MatrixIdError, MatrixToError, MatrixUriError, MxcUriError,
         VoipVersionIdError,
     },
-    KeyName,
+    KeyName, ID_MAX_BYTES,
 };
 use serde::de::{self, Deserializer, Unexpected};
 
