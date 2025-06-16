@@ -64,6 +64,9 @@ pub enum RoomVersionId {
     /// A version 11 room.
     V11,
 
+    /// `org.matrix.hydra.11`
+    Hydra,
+
     /// `org.matrix.msc2870` ([MSC2870]).
     ///
     /// [MSC2870]: https://github.com/matrix-org/matrix-spec-proposals/pull/2870
@@ -91,6 +94,7 @@ impl RoomVersionId {
             Self::V9 => "9",
             Self::V10 => "10",
             Self::V11 => "11",
+            Self::Hydra => "org.matrix.hydra.11",
             #[cfg(feature = "unstable-msc2870")]
             Self::MSC2870 => "org.matrix.msc2870",
             Self::_Custom(version) => version.as_str(),
@@ -119,6 +123,7 @@ impl RoomVersionId {
             Self::V9 => RoomVersionRules::V9,
             Self::V10 => RoomVersionRules::V10,
             Self::V11 => RoomVersionRules::V11,
+            Self::Hydra => RoomVersionRules::HYDRA,
             #[cfg(feature = "unstable-msc2870")]
             Self::MSC2870 => RoomVersionRules::MSC2870,
             Self::_Custom(_) => return None,
@@ -204,6 +209,7 @@ where
         "9" => RoomVersionId::V9,
         "10" => RoomVersionId::V10,
         "11" => RoomVersionId::V11,
+        "org.matrix.hydra.11" => RoomVersionId::Hydra,
         #[cfg(feature = "unstable-msc2870")]
         "org.matrix.msc2870" => RoomVersionId::MSC2870,
         custom => {

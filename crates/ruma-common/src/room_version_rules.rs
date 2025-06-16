@@ -121,6 +121,13 @@ impl RoomVersionRules {
         ..Self::V10
     };
 
+    /// Rules for room version `org.matrix.hydra.11`
+    pub const HYDRA: Self = Self {
+        disposition: RoomVersionDisposition::Unstable,
+        authorization: AuthorizationRules::HYDRA,
+        ..Self::V11
+    };
+
     /// Rules for room version `org.matrix.msc2870` ([MSC2870]).
     ///
     /// [MSC2870]: https://github.com/matrix-org/matrix-spec-proposals/pull/2870
@@ -301,6 +308,9 @@ impl AuthorizationRules {
     ///
     /// [spec]: https://spec.matrix.org/latest/rooms/v11/#authorization-rules
     pub const V11: Self = Self { use_room_create_sender: true, ..Self::V10 };
+
+    /// Authorization rules with tweaks introduced in room version `org.matrix.hydra.11`.
+    pub const HYDRA: Self = Self { ..Self::V11 };
 }
 
 /// The tweaks in the [redaction] algorithm for a room version.
