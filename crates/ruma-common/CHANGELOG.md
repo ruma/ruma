@@ -102,6 +102,7 @@ Improvements:
   `m.room.redaction` event redacts.
 - Add `SpaceChildOrder` which allows to validate the `order` of an
   `m.space.child` event.
+- Add support for room version `org.matrix.hydra.11`.
 
 # 0.15.4
 
