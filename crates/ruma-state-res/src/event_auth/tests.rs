@@ -23,9 +23,10 @@ use crate::{
     event_auth::check_room_redaction,
     events::{RoomCreateEvent, RoomPowerLevelsEvent},
     test_utils::{
-        alice, charlie, ella, event_id, init_subscriber, member_content_join, room_id,
-        room_redaction_pdu_event, room_third_party_invite, to_init_pdu_event, to_pdu_event,
-        EventHash, PduEvent, TestStateMap, INITIAL_EVENTS,
+        alice, charlie, ella, event_id, init_subscriber, member_content_join,
+        room_create_v12_pdu_event, room_id, room_redaction_pdu_event, room_third_party_invite,
+        to_init_pdu_event, to_pdu_event, to_v12_pdu_event, EventHash, PduEvent, TestStateMap,
+        INITIAL_EVENTS, INITIAL_V12_EVENTS,
     },
 };
 
@@ -118,14 +119,8 @@ fn valid_room_create() {
         "room_version": "12",
         "additional_creators": ["@alice:example.org"]
     });
-    let event = to_init_pdu_event(
-        "CREATE",
-        alice(),
-        TimelineEventType::RoomCreate,
-        Some(""),
-        to_raw_json_value(&content).unwrap(),
-    );
-    check_room_create(RoomCreateEvent::new(event), &AuthorizationRules::HYDRA).unwrap();
+    let event = room_create_v12_pdu_event("CREATE", alice(), to_raw_json_value(&content).unwrap());
+    check_room_create(RoomCreateEvent::new(event), &AuthorizationRules::V12).unwrap();
 }
 
 #[test]
@@ -293,7 +288,7 @@ fn missing_room_create_in_state() {
 }
 
 #[test]
-fn missing_room_create_auth_events() {
+fn reject_missing_room_create_auth_events() {
     let _guard = init_subscriber();
 
     let incoming_event = to_pdu_event(
@@ -646,7 +641,7 @@ fn auth_event_in_different_room() {
     let mut init_events = INITIAL_EVENTS();
     let power_level = PduEvent {
         event_id: event_id("IPOWER"),
-        room_id: owned_room_id!("!wrongroom:foo"),
+        room_id: Some(owned_room_id!("!wrongroom:foo")),
         sender: alice().to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(3)),
         state_key: Some(String::new()),
@@ -757,7 +752,7 @@ fn rejected_auth_event() {
     let mut init_events = INITIAL_EVENTS();
     let power_level = PduEvent {
         event_id: event_id("IPOWER"),
-        room_id: room_id().to_owned(),
+        room_id: Some(room_id().to_owned()),
         sender: alice().to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(3)),
         state_key: Some(String::new()),
@@ -776,6 +771,180 @@ fn rejected_auth_event() {
 
     // Cannot accept with auth event that was rejected.
     check_state_independent_auth_rules(&AuthorizationRules::V6, incoming_event, |event_id| {
+        init_events.get(event_id)
+    })
+    .unwrap_err();
+}
+
+#[test]
+fn room_create_with_allowed_or_rejected_room_id() {
+    // v11, room_id is required.
+    let v11_content = json!({
+        "room_version": "11",
+    });
+
+    let event_with_room_id = to_init_pdu_event(
+        "CREATE",
+        alice(),
+        TimelineEventType::RoomCreate,
+        Some(""),
+        to_raw_json_value(&v11_content).unwrap(),
+    );
+    check_room_create(RoomCreateEvent::new(event_with_room_id), &AuthorizationRules::V11).unwrap();
+
+    let event_no_room_id =
+        room_create_v12_pdu_event("CREATE", alice(), to_raw_json_value(&v11_content).unwrap());
+    check_room_create(RoomCreateEvent::new(event_no_room_id), &AuthorizationRules::V11)
+        .unwrap_err();
+
+    // v12, room_id is rejected.
+    let v12_content = json!({
+        "room_version": "12",
+    });
+
+    let event_with_room_id = to_init_pdu_event(
+        "CREATE",
+        alice(),
+        TimelineEventType::RoomCreate,
+        Some(""),
+        to_raw_json_value(&v12_content).unwrap(),
+    );
+    check_room_create(RoomCreateEvent::new(event_with_room_id), &AuthorizationRules::V12)
+        .unwrap_err();
+
+    let event_no_room_id =
+        room_create_v12_pdu_event("CREATE", alice(), to_raw_json_value(&v12_content).unwrap());
+    check_room_create(RoomCreateEvent::new(event_no_room_id), &AuthorizationRules::V12).unwrap();
+}
+
+#[test]
+fn event_without_room_id() {
+    let _guard = init_subscriber();
+
+    let incoming_event = PduEvent {
+        event_id: owned_event_id!("$HELLO"),
+        room_id: None,
+        sender: alice().to_owned(),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(3)),
+        state_key: None,
+        kind: TimelineEventType::RoomMessage,
+        content: to_raw_json_value(&RoomMessageEventContent::text_plain("Hi!")).unwrap(),
+        redacts: None,
+        unsigned: BTreeMap::new(),
+        auth_events: vec![
+            owned_event_id!("$CREATE"),
+            owned_event_id!("$IMA"),
+            owned_event_id!("$IPOWER"),
+        ],
+        prev_events: vec![owned_event_id!("$IPOWER")],
+        depth: uint!(0),
+        hashes: EventHash { sha256: "".to_owned() },
+        signatures: ServerSignatures::default(),
+        rejected: false,
+    };
+
+    let init_events = INITIAL_V12_EVENTS();
+
+    // Cannot accept event without room ID.
+    check_state_independent_auth_rules(&AuthorizationRules::V11, incoming_event, |event_id| {
+        init_events.get(event_id)
+    })
+    .unwrap_err();
+}
+
+#[test]
+fn allow_missing_room_create_auth_events() {
+    let _guard = init_subscriber();
+
+    let incoming_event = to_v12_pdu_event(
+        "HELLO",
+        alice(),
+        TimelineEventType::RoomMessage,
+        None,
+        to_raw_json_value(&RoomMessageEventContent::text_plain("Hi!")).unwrap(),
+        &["IMA", "IPOWER"],
+        &["IPOWER"],
+    );
+
+    let init_events = INITIAL_V12_EVENTS();
+
+    // Accept event if no `m.room.create` in auth events.
+    check_state_independent_auth_rules(&AuthorizationRules::V12, incoming_event, |event_id| {
+        init_events.get(event_id)
+    })
+    .unwrap();
+}
+
+#[test]
+fn reject_room_create_in_auth_events() {
+    let _guard = init_subscriber();
+
+    let incoming_event = to_v12_pdu_event(
+        "HELLO",
+        alice(),
+        TimelineEventType::RoomMessage,
+        None,
+        to_raw_json_value(&RoomMessageEventContent::text_plain("Hi!")).unwrap(),
+        &["CREATE", "IMA", "IPOWER"],
+        &["IPOWER"],
+    );
+
+    let init_events = INITIAL_V12_EVENTS();
+
+    // Reject event if `m.room.create` in auth events.
+    check_state_independent_auth_rules(&AuthorizationRules::V12, incoming_event, |event_id| {
+        init_events.get(event_id)
+    })
+    .unwrap_err();
+}
+
+#[test]
+fn missing_room_create_in_fetch_event() {
+    let _guard = init_subscriber();
+
+    let incoming_event = to_v12_pdu_event(
+        "HELLO",
+        alice(),
+        TimelineEventType::RoomMessage,
+        None,
+        to_raw_json_value(&RoomMessageEventContent::text_plain("Hi!")).unwrap(),
+        &["IMA", "IPOWER"],
+        &["IPOWER"],
+    );
+
+    let mut init_events = INITIAL_V12_EVENTS();
+    init_events.remove(&owned_event_id!("$CREATE")).unwrap();
+
+    // Reject event if `m.room.create` can't be found.
+    check_state_independent_auth_rules(&AuthorizationRules::V12, incoming_event, |event_id| {
+        init_events.get(event_id)
+    })
+    .unwrap_err();
+}
+
+#[test]
+fn rejected_room_create_in_fetch_event() {
+    let _guard = init_subscriber();
+
+    let incoming_event = to_v12_pdu_event(
+        "HELLO",
+        alice(),
+        TimelineEventType::RoomMessage,
+        None,
+        to_raw_json_value(&RoomMessageEventContent::text_plain("Hi!")).unwrap(),
+        &["IMA", "IPOWER"],
+        &["IPOWER"],
+    );
+
+    let mut init_events = INITIAL_V12_EVENTS();
+    let create_event_id = owned_event_id!("$CREATE");
+    let mut create_event =
+        std::sync::Arc::into_inner(init_events.remove(&create_event_id).unwrap()).unwrap();
+    create_event.rejected = true;
+    init_events.insert(create_event_id, create_event.into());
+
+    // Reject event if `m.room.create` was rejected.
+    check_state_independent_auth_rules(&AuthorizationRules::V12, incoming_event, |event_id| {
         init_events.get(event_id)
     })
     .unwrap_err();

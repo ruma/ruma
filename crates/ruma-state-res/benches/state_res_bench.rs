@@ -365,7 +365,7 @@ where
     let state_key = state_key.map(ToOwned::to_owned);
     Arc::new(PduEvent {
         event_id: id.try_into().unwrap(),
-        room_id: room_id().to_owned(),
+        room_id: Some(room_id().to_owned()),
         sender: sender.to_owned(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
         state_key,
@@ -542,8 +542,8 @@ pub(crate) mod event {
             &self.event_id
         }
 
-        fn room_id(&self) -> &RoomId {
-            &self.room_id
+        fn room_id(&self) -> Option<&RoomId> {
+            self.room_id.as_deref()
         }
 
         fn sender(&self) -> &UserId {
@@ -590,7 +590,7 @@ pub(crate) mod event {
         pub(crate) event_id: OwnedEventId,
 
         /// The room this event belongs to.
-        pub(crate) room_id: OwnedRoomId,
+        pub(crate) room_id: Option<OwnedRoomId>,
 
         /// The user id of the user who sent this event.
         pub(crate) sender: OwnedUserId,

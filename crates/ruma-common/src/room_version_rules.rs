@@ -290,6 +290,10 @@ pub struct AuthorizationRules {
     /// Whether additional room creators can be set with the `content.additional_creators` field of
     /// an `m.room.create` event, introduced in room version 12.
     pub additional_room_creators: bool,
+
+    /// Whether to use the event ID of the `m.room.create` event of the room as the room ID,
+    /// introduced in room version 12.
+    pub room_create_event_id_as_room_id: bool,
 }
 
 impl AuthorizationRules {
@@ -308,6 +312,7 @@ impl AuthorizationRules {
         use_room_create_sender: false,
         explicitly_privilege_room_creators: false,
         additional_room_creators: false,
+        room_create_event_id_as_room_id: false,
     };
 
     /// Authorization rules with tweaks introduced in room version 3 ([spec]).
@@ -350,6 +355,7 @@ impl AuthorizationRules {
     pub const V12: Self = Self {
         explicitly_privilege_room_creators: true,
         additional_room_creators: true,
+        room_create_event_id_as_room_id: true,
         ..Self::V11
     };
 }

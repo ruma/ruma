@@ -58,6 +58,7 @@ pub mod events;
 mod state_res;
 #[cfg(test)]
 mod test_utils;
+mod utils;
 
 pub use self::{
     error::{Error, Result},

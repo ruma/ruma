@@ -56,7 +56,7 @@ mod snapshot_tests;
 #[derive(Deserialize, Clone)]
 struct Pdu {
     event_id: OwnedEventId,
-    room_id: OwnedRoomId,
+    room_id: Option<OwnedRoomId>,
     sender: OwnedUserId,
     origin_server_ts: MilliSecondsSinceUnixEpoch,
     #[serde(rename = "type")]
@@ -77,8 +77,8 @@ impl Event for Pdu {
         &self.event_id
     }
 
-    fn room_id(&self) -> &RoomId {
-        &self.room_id
+    fn room_id(&self) -> Option<&RoomId> {
+        self.room_id.as_deref()
     }
 
     fn sender(&self) -> &UserId {

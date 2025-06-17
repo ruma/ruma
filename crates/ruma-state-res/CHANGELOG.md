@@ -35,6 +35,8 @@ Breaking:
 - Return `UserPowerLevel` in place of `Int` for `reverse_topological_power_sort`.
 - Rename `RoomCreateEvent::creator` to `RoomCreateEvent::creators`, and have it return a set of
   user IDs instead of only ever returning one.
+- `Event::room_id()` must now return an `Option<&RoomId>`, since `m.room.create`
+  events don't have a `room_id` field in room version 12.
 
 Bug fixes:
 

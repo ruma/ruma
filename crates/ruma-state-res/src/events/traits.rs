@@ -18,7 +18,7 @@ pub trait Event {
     fn event_id(&self) -> &Self::Id;
 
     /// The `RoomId` of this event.
-    fn room_id(&self) -> &RoomId;
+    fn room_id(&self) -> Option<&RoomId>;
 
     /// The `UserId` of this event.
     fn sender(&self) -> &UserId;
@@ -57,7 +57,7 @@ impl<T: Event> Event for &T {
         (*self).event_id()
     }
 
-    fn room_id(&self) -> &RoomId {
+    fn room_id(&self) -> Option<&RoomId> {
         (*self).room_id()
     }
 
@@ -105,7 +105,7 @@ impl<T: Event> Event for Arc<T> {
         (**self).event_id()
     }
 
-    fn room_id(&self) -> &RoomId {
+    fn room_id(&self) -> Option<&RoomId> {
         (**self).room_id()
     }
 

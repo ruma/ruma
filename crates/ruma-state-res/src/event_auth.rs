@@ -26,6 +26,7 @@ use crate::{
         RoomCreateEvent, RoomJoinRulesEvent, RoomMemberEvent, RoomPowerLevelsEvent,
         RoomThirdPartyInviteEvent,
     },
+    utils::RoomIdExt,
     Event,
 };
 
@@ -53,14 +54,17 @@ pub fn auth_types_for_event(
 
     // For other events, it should be the following subset of the room state:
     //
-    // - The `m.room.create` event.
     // - The current `m.room.power_levels` event, if any.
     // - The sender’s current `m.room.member` event, if any.
     let mut auth_types = vec![
         (StateEventType::RoomPowerLevels, "".to_owned()),
         (StateEventType::RoomMember, sender.to_string()),
-        (StateEventType::RoomCreate, "".to_owned()),
     ];
+
+    // v1-v11, the `m.room.create` event.
+    if !rules.room_create_event_id_as_room_id {
+        auth_types.push((StateEventType::RoomCreate, "".to_owned()));
+    }
 
     // If type is `m.room.member`:
     if event_type == &TimelineEventType::RoomMember {
@@ -162,7 +166,10 @@ pub fn check_state_independent_auth_rules<E: Event>(
     .map(|(event_type, state_key)| (TimelineEventType::from(event_type), state_key))
     .collect::<HashSet<_>>();
 
-    let room_id = incoming_event.room_id();
+    let Some(room_id) = incoming_event.room_id() else {
+        return Err("missing `room_id` field for event".to_owned());
+    };
+
     let mut seen_auth_types: HashSet<(TimelineEventType, String)> =
         HashSet::with_capacity(expected_auth_types.len());
 
@@ -175,7 +182,7 @@ pub fn check_state_independent_auth_rules<E: Event>(
         };
 
         // The auth event must be in the same room as the incoming event.
-        if auth_event.room_id() != room_id {
+        if auth_event.room_id().is_none_or(|auth_room_id| auth_room_id != room_id) {
             return Err(format!("auth event {event_id} not in the same room"));
         }
 
@@ -209,9 +216,28 @@ pub fn check_state_independent_auth_rules<E: Event>(
         seen_auth_types.insert(key);
     }
 
-    // Since v1, if there is no m.room.create event among the entries, reject.
-    if !seen_auth_types.iter().any(|(event_type, _)| *event_type == TimelineEventType::RoomCreate) {
+    // v1-v11, if there is no m.room.create event among the entries, reject.
+    if !rules.room_create_event_id_as_room_id
+        && !seen_auth_types
+            .iter()
+            .any(|(event_type, _)| *event_type == TimelineEventType::RoomCreate)
+    {
         return Err("no `m.room.create` event in auth events".to_owned());
+    }
+
+    // Since v12, the room_id must be the reference hash of an accepted m.room.create event.
+    if rules.room_create_event_id_as_room_id {
+        let room_create_event_id = room_id.room_create_event_id().map_err(|error| {
+            format!("could not construct `m.room.create` event ID from room ID: {error}")
+        })?;
+
+        let room_create_event = fetch_event(&room_create_event_id).ok_or_else(|| {
+            format!("failed to find `m.room.create` event {room_create_event_id}")
+        })?;
+
+        if room_create_event.rejected() {
+            return Err(format!("rejected `m.room.create` event {room_create_event_id}"));
+        }
     }
 
     Ok(())
@@ -387,15 +413,26 @@ fn check_room_create(
         return Err("`m.room.create` event cannot have previous events".into());
     }
 
-    // Since v1, if the domain of the room_id does not match the domain of the sender, reject.
-    let Some(room_id_server_name) = room_create_event.room_id().server_name() else {
-        return Err(
-            "invalid `room_id` field in `m.room.create` event: could not parse server name".into(),
-        );
-    };
+    if rules.room_create_event_id_as_room_id {
+        // Since v12, if the create event has a room_id, reject.
+        if room_create_event.room_id().is_some() {
+            return Err("`m.room.create` event cannot have a `room_id` field".into());
+        }
+    } else {
+        // v1-v11, if the domain of the room_id does not match the domain of the sender, reject.
+        let Some(room_id) = room_create_event.room_id() else {
+            return Err("missing `room_id` field in `m.room.create` event".into());
+        };
+        let Some(room_id_server_name) = room_id.server_name() else {
+            return Err(
+                "invalid `room_id` field in `m.room.create` event: could not parse server name"
+                    .into(),
+            );
+        };
 
-    if room_id_server_name != room_create_event.sender().server_name() {
-        return Err("invalid `room_id` field in `m.room.create` event: server name does not match sender's server name".into());
+        if room_id_server_name != room_create_event.sender().server_name() {
+            return Err("invalid `room_id` field in `m.room.create` event: server name does not match sender's server name".into());
+        }
     }
 
     // Since v1, if `content.room_version` is present and is not a recognized version, reject.

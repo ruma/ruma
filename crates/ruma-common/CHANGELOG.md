@@ -120,6 +120,10 @@ Improvements:
   the reference hash used in that format.
 - Add unstable support for in-app-only notifications as per MSC3768 under a new `unstable-msc3768`
   feature.
+- Add `room_create_event_id_as_room_id` to `AuthorizationRules` to indicate whether the reference
+  hash of the `m.room.create` event is used to construct the room ID. It has other implications,
+  like the `m.room.create` event not having a room ID, and the `m.room.create` event not listed in
+  the `auth_events` of a PDU.
 
 # 0.15.4
 
