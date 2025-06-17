@@ -35,6 +35,9 @@ pub struct RoomVersionRules {
 
     /// The tweaks for verifying signatures.
     pub signatures: SignaturesRules,
+
+    /// The tweaks for verifying the event format.
+    pub event_format: EventFormatRules,
 }
 
 impl RoomVersionRules {
@@ -49,6 +52,7 @@ impl RoomVersionRules {
         authorization: AuthorizationRules::V1,
         redaction: RedactionRules::V1,
         signatures: SignaturesRules::V1,
+        event_format: EventFormatRules::V1,
     };
 
     /// Rules for [room version 2].
@@ -63,6 +67,7 @@ impl RoomVersionRules {
         event_id_format: EventIdFormatVersion::V2,
         authorization: AuthorizationRules::V3,
         signatures: SignaturesRules::V3,
+        event_format: EventFormatRules::V3,
         ..Self::V2
     };
 
@@ -441,4 +446,23 @@ impl SignaturesRules {
 
     /// Signatures verification rules with tweaks introduced in room version 8.
     pub const V8: Self = Self { check_join_authorised_via_users_server: true, ..Self::V3 };
+}
+
+/// The tweaks for verifying the event format for a room version.
+///
+/// This type can be constructed from one of its constants (like [`EventFormatRules::V1`]), or by
+/// constructing a [`RoomVersionRules`] first and using the `event_format` field.
+#[derive(Debug, Clone)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct EventFormatRules {
+    /// Whether the `event_id` field is required, disabled since room version 3.
+    pub require_event_id: bool,
+}
+
+impl EventFormatRules {
+    /// Event format rules as introduced in room version 1.
+    pub const V1: Self = Self { require_event_id: true };
+
+    /// Event format rules with tweaks introduced in room version 3.
+    pub const V3: Self = Self { require_event_id: false };
 }

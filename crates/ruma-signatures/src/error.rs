@@ -33,6 +33,19 @@ pub enum Error {
     /// The size of the string value of the field was too large.
     #[error("String value of field `{0}` is larger than maximum of 255 bytes")]
     StringFieldSize(String),
+
+    /// The size of the string value of the field was too large.
+    #[error("Array length of field `{target}` is larger than maximum of {max}")]
+    ArrayFieldSize {
+        /// The name of the array field.
+        target: String,
+        /// The maximum length allowed.
+        max: usize,
+    },
+
+    /// The value of the `depth` field is negative.
+    #[error("Integer value of field `depth` is negative")]
+    InvalidDepth,
 }
 
 impl From<RedactionError> for Error {
