@@ -6,7 +6,6 @@ use ruma_common::{
     user_id, MilliSecondsSinceUnixEpoch, ServerSignatures,
 };
 use ruma_events::{
-    pdu::{EventHash, Pdu, RoomV3Pdu},
     room::{
         aliases::RoomAliasesEventContent, message::RoomMessageEventContent,
         redaction::RoomRedactionEventContent,
@@ -26,7 +25,7 @@ use crate::{
     test_utils::{
         alice, charlie, ella, event_id, init_subscriber, member_content_join, room_id,
         room_redaction_pdu_event, room_third_party_invite, to_init_pdu_event, to_pdu_event,
-        PduEvent, TestStateMap, INITIAL_EVENTS,
+        EventHash, PduEvent, TestStateMap, INITIAL_EVENTS,
     },
 };
 
@@ -594,21 +593,19 @@ fn auth_event_in_different_room() {
     let mut init_events = INITIAL_EVENTS();
     let power_level = PduEvent {
         event_id: event_id("IPOWER"),
-        rest: Pdu::RoomV3Pdu(RoomV3Pdu {
-            room_id: owned_room_id!("!wrongroom:foo"),
-            sender: alice().to_owned(),
-            origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(3)),
-            state_key: Some(String::new()),
-            kind: TimelineEventType::RoomPowerLevels,
-            content: to_raw_json_value(&json!({ "users": { alice(): 100 } })).unwrap(),
-            redacts: None,
-            unsigned: BTreeMap::new(),
-            auth_events: vec![event_id("CREATE"), event_id("IMA")],
-            prev_events: vec![event_id("IMA")],
-            depth: uint!(0),
-            hashes: EventHash::new("".to_owned()),
-            signatures: ServerSignatures::default(),
-        }),
+        room_id: owned_room_id!("!wrongroom:foo"),
+        sender: alice().to_owned(),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(3)),
+        state_key: Some(String::new()),
+        kind: TimelineEventType::RoomPowerLevels,
+        content: to_raw_json_value(&json!({ "users": { alice(): 100 } })).unwrap(),
+        redacts: None,
+        unsigned: BTreeMap::new(),
+        auth_events: vec![event_id("CREATE"), event_id("IMA")],
+        prev_events: vec![event_id("IMA")],
+        depth: uint!(0),
+        hashes: EventHash { sha256: "".to_owned() },
+        signatures: ServerSignatures::default(),
         rejected: false,
     };
     init_events.insert(power_level.event_id.clone(), power_level.into()).unwrap();
@@ -707,21 +704,19 @@ fn rejected_auth_event() {
     let mut init_events = INITIAL_EVENTS();
     let power_level = PduEvent {
         event_id: event_id("IPOWER"),
-        rest: Pdu::RoomV3Pdu(RoomV3Pdu {
-            room_id: room_id().to_owned(),
-            sender: alice().to_owned(),
-            origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(3)),
-            state_key: Some(String::new()),
-            kind: TimelineEventType::RoomPowerLevels,
-            content: to_raw_json_value(&json!({ "users": { alice(): 100 } })).unwrap(),
-            redacts: None,
-            unsigned: BTreeMap::new(),
-            auth_events: vec![event_id("CREATE"), event_id("IMA")],
-            prev_events: vec![event_id("IMA")],
-            depth: uint!(0),
-            hashes: EventHash::new("".to_owned()),
-            signatures: ServerSignatures::default(),
-        }),
+        room_id: room_id().to_owned(),
+        sender: alice().to_owned(),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(3)),
+        state_key: Some(String::new()),
+        kind: TimelineEventType::RoomPowerLevels,
+        content: to_raw_json_value(&json!({ "users": { alice(): 100 } })).unwrap(),
+        redacts: None,
+        unsigned: BTreeMap::new(),
+        auth_events: vec![event_id("CREATE"), event_id("IMA")],
+        prev_events: vec![event_id("IMA")],
+        depth: uint!(0),
+        hashes: EventHash { sha256: "".to_owned() },
+        signatures: ServerSignatures::default(),
         rejected: true,
     };
     init_events.insert(power_level.event_id.clone(), power_level.into()).unwrap();

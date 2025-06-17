@@ -32,7 +32,6 @@ as_variant = { workspace = true }
 insta = { workspace = true }
 maplit = { workspace = true }
 rand = { workspace = true }
-ruma-events = { workspace = true, features = ["unstable-pdu"] }
 similar = { workspace = true }
 tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
 
