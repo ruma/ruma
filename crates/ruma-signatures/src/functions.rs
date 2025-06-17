@@ -7,9 +7,12 @@ use std::{
 };
 
 use base64::{alphabet, Engine};
+use js_int::int;
 use ruma_common::{
     canonical_json::{redact, JsonType},
-    room_version_rules::{EventIdFormatVersion, RedactionRules, RoomVersionRules, SignaturesRules},
+    room_version_rules::{
+        EventFormatRules, EventIdFormatVersion, RedactionRules, RoomVersionRules, SignaturesRules,
+    },
     serde::{base64::Standard, Base64},
     AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, OwnedEventId, OwnedServerName,
     SigningKeyAlgorithm, SigningKeyId, UserId, ID_MAX_BYTES,
@@ -26,7 +29,20 @@ use crate::{
     Error, JsonError, ParseError, VerificationError,
 };
 
+/// The [maximum size allowed] for a PDU.
+///
+/// [maximum size allowed]: https://spec.matrix.org/latest/client-server-api/#size-limits
 const MAX_PDU_BYTES: usize = 65_535;
+
+/// The [maximum length allowed] for the `prev_events` array of a PDU.
+///
+/// [maximum length allowed]: https://spec.matrix.org/latest/rooms/v1/#event-format
+const MAX_PREV_EVENTS_LENGTH: usize = 20;
+
+/// The [maximum length allowed] for the `auth_events` array of a PDU.
+///
+/// [maximum length allowed]: https://spec.matrix.org/latest/rooms/v1/#event-format
+const MAX_AUTH_EVENTS_LENGTH: usize = 10;
 
 /// The fields to remove from a JSON object when converting JSON into the "canonical" form.
 static CANONICAL_JSON_FIELDS_TO_REMOVE: &[&str] = &["signatures", "unsigned"];
@@ -814,19 +830,33 @@ fn is_invite_via_third_party_id(object: &CanonicalJsonObject) -> Result<bool, Er
     }
 }
 
-/// Check that the given canonicalized PDU respects the [size limits] from the Matrix specification.
+/// Check that the given canonicalized PDU respects the event format of the room version and the
+/// [size limits] from the Matrix specification.
+///
+/// This checks the following and enforces their size limits:
+///
+/// * Full PDU
+/// * `sender`
+/// * `room_id`
+/// * `type`
+/// * `event_id`
+/// * `state_key`
+/// * `prev_events`
+/// * `auth_events`
+/// * `depth`
 ///
 /// Returns an error if the JSON is malformed or if the PDU doesn't pass the checks.
 ///
 /// [size limits]: https://spec.matrix.org/latest/client-server-api/#size-limits
-pub fn check_pdu_sizes(pdu: &CanonicalJsonObject) -> Result<(), Error> {
-    // The PDU size check must occur on the full PDU with signatures.
+pub fn check_pdu_format(pdu: &CanonicalJsonObject, rules: &EventFormatRules) -> Result<(), Error> {
+    // Check the PDU size, it must occur on the full PDU with signatures.
     let json = to_json_string(&pdu).map_err(|e| Error::Json(e.into()))?;
     if json.len() > MAX_PDU_BYTES {
         return Err(Error::PduSize);
     }
 
-    for field in &["sender", "room_id", "type", "event_id"] {
+    // Check the presence, type and length of the `sender`, `room_id` and `type` fields.
+    for field in &["sender", "room_id", "type"] {
         let value = extract_string_field(pdu, field)?
             .ok_or_else(|| JsonError::field_missing_from_object(*field))?;
 
@@ -835,16 +865,51 @@ pub fn check_pdu_sizes(pdu: &CanonicalJsonObject) -> Result<(), Error> {
         }
     }
 
+    // Check the presence, type and length of the `event_id` field.
+    let event_id = extract_string_field(pdu, "event_id")?;
+
+    if rules.require_event_id && event_id.is_none() {
+        return Err(JsonError::field_missing_from_object("event_id"));
+    }
+
+    if event_id.is_some_and(|event_id| event_id.len() > ID_MAX_BYTES) {
+        return Err(Error::StringFieldSize(("event_id").to_owned()));
+    }
+
+    // Check the type and length of the `state_key` field.
     if extract_string_field(pdu, "state_key")?
         .is_some_and(|state_key| state_key.len() > ID_MAX_BYTES)
     {
         return Err(Error::StringFieldSize("state_key".to_owned()));
     }
 
+    // Check the presence, type and length of the `auth_events` and `prev_events` fields.
+    for (field, max_value) in
+        &[("auth_events", MAX_AUTH_EVENTS_LENGTH), ("prev_events", MAX_PREV_EVENTS_LENGTH)]
+    {
+        let value = extract_array_field(pdu, field)?
+            .ok_or_else(|| JsonError::field_missing_from_object(*field))?;
+
+        if value.len() > *max_value {
+            return Err(Error::ArrayFieldSize { target: (*field).to_owned(), max: *max_value });
+        }
+    }
+
+    // Check the presence, type and value of the `depth` field.
+    match pdu.get("depth") {
+        Some(CanonicalJsonValue::Integer(value)) => {
+            if *value < int!(0) {
+                return Err(Error::InvalidDepth);
+            }
+        }
+        Some(_) => return Err(JsonError::not_of_type("depth", JsonType::Integer)),
+        None => return Err(JsonError::field_missing_from_object("depth")),
+    }
+
     Ok(())
 }
 
-/// Extract the field with the given name from the given canonical JSON object.
+/// Extract the string field with the given name from the given canonical JSON object.
 ///
 /// Returns `Ok(Some(value))` if the field is present and a string, `Ok(None)` if the fields is
 /// missing and an error if the field is present and not a string.
@@ -857,6 +922,21 @@ fn extract_string_field<'a>(
         Some(_) => {
             Err(JsonError::NotOfType { target: field.to_owned(), of_type: JsonType::String })
         }
+        None => Ok(None),
+    }
+}
+
+/// Extract the array field with the given name from the given canonical JSON object.
+///
+/// Returns `Ok(Some(value))` if the field is present and an array, `Ok(None)` if the fields is
+/// missing and an error if the field is present and not a array.
+fn extract_array_field<'a>(
+    object: &'a CanonicalJsonObject,
+    field: &'a str,
+) -> Result<Option<&'a [CanonicalJsonValue]>, JsonError> {
+    match object.get(field) {
+        Some(CanonicalJsonValue::Array(value)) => Ok(Some(value)),
+        Some(_) => Err(JsonError::NotOfType { target: field.to_owned(), of_type: JsonType::Array }),
         None => Ok(None),
     }
 }
