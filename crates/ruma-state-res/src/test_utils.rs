@@ -13,7 +13,6 @@ use ruma_common::{
     MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, ServerSignatures, UserId,
 };
 use ruma_events::{
-    pdu::{EventHash, Pdu, RoomV3Pdu},
     room::{
         join_rules::{JoinRule, RoomJoinRulesEventContent},
         member::{MembershipState, RoomMemberEventContent},
@@ -26,7 +25,7 @@ use serde_json::{
 };
 use tracing::info;
 
-pub(crate) use self::event::PduEvent;
+pub(crate) use self::event::{EventHash, PduEvent};
 use crate::{
     auth_types_for_event, events::RoomCreateEvent, Error, Event, EventTypeExt, Result, StateMap,
 };
@@ -383,21 +382,19 @@ pub(crate) fn to_init_pdu_event(
     let state_key = state_key.map(ToOwned::to_owned);
     Arc::new(PduEvent {
         event_id: id.try_into().unwrap(),
-        rest: Pdu::RoomV3Pdu(RoomV3Pdu {
-            room_id: room_id().to_owned(),
-            sender: sender.to_owned(),
-            origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
-            state_key,
-            kind: ev_type,
-            content,
-            redacts: None,
-            unsigned: BTreeMap::new(),
-            auth_events: vec![],
-            prev_events: vec![],
-            depth: uint!(0),
-            hashes: EventHash::new("".to_owned()),
-            signatures: ServerSignatures::default(),
-        }),
+        room_id: room_id().to_owned(),
+        sender: sender.to_owned(),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
+        state_key,
+        kind: ev_type,
+        content,
+        redacts: None,
+        unsigned: BTreeMap::new(),
+        auth_events: vec![],
+        prev_events: vec![],
+        depth: uint!(0),
+        hashes: EventHash { sha256: "".to_owned() },
+        signatures: ServerSignatures::default(),
         rejected: false,
     })
 }
@@ -422,21 +419,19 @@ where
     let state_key = state_key.map(ToOwned::to_owned);
     Arc::new(PduEvent {
         event_id: id.try_into().unwrap(),
-        rest: Pdu::RoomV3Pdu(RoomV3Pdu {
-            room_id: room_id().to_owned(),
-            sender: sender.to_owned(),
-            origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
-            state_key,
-            kind: ev_type,
-            content,
-            redacts: None,
-            unsigned: BTreeMap::new(),
-            auth_events,
-            prev_events,
-            depth: uint!(0),
-            hashes: EventHash::new("".to_owned()),
-            signatures: ServerSignatures::default(),
-        }),
+        room_id: room_id().to_owned(),
+        sender: sender.to_owned(),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
+        state_key,
+        kind: ev_type,
+        content,
+        redacts: None,
+        unsigned: BTreeMap::new(),
+        auth_events,
+        prev_events,
+        depth: uint!(0),
+        hashes: EventHash { sha256: "".to_owned() },
+        signatures: ServerSignatures::default(),
         rejected: false,
     })
 }
@@ -459,21 +454,19 @@ where
 
     Arc::new(PduEvent {
         event_id: id.try_into().unwrap(),
-        rest: Pdu::RoomV3Pdu(RoomV3Pdu {
-            room_id: room_id().to_owned(),
-            sender: sender.to_owned(),
-            origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
-            state_key: None,
-            kind: TimelineEventType::RoomRedaction,
-            content,
-            redacts: Some(redacts),
-            unsigned: BTreeMap::new(),
-            auth_events,
-            prev_events,
-            depth: uint!(0),
-            hashes: EventHash::new("".to_owned()),
-            signatures: ServerSignatures::default(),
-        }),
+        room_id: room_id().to_owned(),
+        sender: sender.to_owned(),
+        origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
+        state_key: None,
+        kind: TimelineEventType::RoomRedaction,
+        content,
+        redacts: Some(redacts),
+        unsigned: BTreeMap::new(),
+        auth_events,
+        prev_events,
+        depth: uint!(0),
+        hashes: EventHash { sha256: "".to_owned() },
+        signatures: ServerSignatures::default(),
         rejected: false,
     })
 }
@@ -586,8 +579,14 @@ pub(crate) fn INITIAL_EDGES() -> Vec<OwnedEventId> {
 }
 
 pub(crate) mod event {
-    use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, UserId};
-    use ruma_events::{pdu::Pdu, TimelineEventType};
+    use std::collections::BTreeMap;
+
+    use js_int::UInt;
+    use ruma_common::{
+        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId,
+        ServerSignatures, UserId,
+    };
+    use ruma_events::TimelineEventType;
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
 
@@ -601,84 +600,39 @@ pub(crate) mod event {
         }
 
         fn room_id(&self) -> &RoomId {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => &ev.room_id,
-                Pdu::RoomV3Pdu(ev) => &ev.room_id,
-                #[allow(unreachable_patterns)]
-                _ => unreachable!("new PDU version"),
-            }
+            &self.room_id
         }
 
         fn sender(&self) -> &UserId {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => &ev.sender,
-                Pdu::RoomV3Pdu(ev) => &ev.sender,
-                #[allow(unreachable_patterns)]
-                _ => unreachable!("new PDU version"),
-            }
+            &self.sender
         }
 
         fn event_type(&self) -> &TimelineEventType {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => &ev.kind,
-                Pdu::RoomV3Pdu(ev) => &ev.kind,
-                #[allow(unreachable_patterns)]
-                _ => unreachable!("new PDU version"),
-            }
+            &self.kind
         }
 
         fn content(&self) -> &RawJsonValue {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => &ev.content,
-                Pdu::RoomV3Pdu(ev) => &ev.content,
-                #[allow(unreachable_patterns)]
-                _ => unreachable!("new PDU version"),
-            }
+            &self.content
         }
 
         fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => ev.origin_server_ts,
-                Pdu::RoomV3Pdu(ev) => ev.origin_server_ts,
-                #[allow(unreachable_patterns)]
-                _ => unreachable!("new PDU version"),
-            }
+            self.origin_server_ts
         }
 
         fn state_key(&self) -> Option<&str> {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => ev.state_key.as_deref(),
-                Pdu::RoomV3Pdu(ev) => ev.state_key.as_deref(),
-                #[allow(unreachable_patterns)]
-                _ => unreachable!("new PDU version"),
-            }
+            self.state_key.as_deref()
         }
 
         fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => Box::new(ev.prev_events.iter().map(|(id, _)| id)),
-                Pdu::RoomV3Pdu(ev) => Box::new(ev.prev_events.iter()),
-                #[allow(unreachable_patterns)]
-                _ => unreachable!("new PDU version"),
-            }
+            Box::new(self.prev_events.iter())
         }
 
         fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => Box::new(ev.auth_events.iter().map(|(id, _)| id)),
-                Pdu::RoomV3Pdu(ev) => Box::new(ev.auth_events.iter()),
-                #[allow(unreachable_patterns)]
-                _ => unreachable!("new PDU version"),
-            }
+            Box::new(self.auth_events.iter())
         }
 
         fn redacts(&self) -> Option<&Self::Id> {
-            match &self.rest {
-                Pdu::RoomV1Pdu(ev) => ev.redacts.as_ref(),
-                Pdu::RoomV3Pdu(ev) => ev.redacts.as_ref(),
-                #[allow(unreachable_patterns)]
-                _ => unreachable!("new PDU version"),
-            }
+            self.redacts.as_ref()
         }
 
         fn rejected(&self) -> bool {
@@ -689,10 +643,66 @@ pub(crate) mod event {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     #[allow(clippy::exhaustive_structs)]
     pub(crate) struct PduEvent {
+        /// The ID of the event.
         pub(crate) event_id: OwnedEventId,
-        #[serde(flatten)]
-        pub(crate) rest: Pdu,
+
+        /// The room this event belongs to.
+        pub(crate) room_id: OwnedRoomId,
+
+        /// The user id of the user who sent this event.
+        pub(crate) sender: OwnedUserId,
+
+        /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver
+        /// of when this event was created.
+        pub(crate) origin_server_ts: MilliSecondsSinceUnixEpoch,
+
+        /// The event's type.
+        #[serde(rename = "type")]
+        pub(crate) kind: TimelineEventType,
+
+        /// The event's content.
+        pub(crate) content: Box<RawJsonValue>,
+
+        /// A key that determines which piece of room state the event represents.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub(crate) state_key: Option<String>,
+
+        /// Event IDs for the most recent events in the room that the homeserver was
+        /// aware of when it created this event.
+        pub(crate) prev_events: Vec<OwnedEventId>,
+
+        /// The maximum depth of the `prev_events`, plus one.
+        pub(crate) depth: UInt,
+
+        /// Event IDs for the authorization events that would allow this event to be
+        /// in the room.
+        pub(crate) auth_events: Vec<OwnedEventId>,
+
+        /// For redaction events, the ID of the event being redacted.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub(crate) redacts: Option<OwnedEventId>,
+
+        /// Additional data added by the origin server but not covered by the
+        /// signatures.
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        pub(crate) unsigned: BTreeMap<String, Box<RawJsonValue>>,
+
+        /// Content hashes of the PDU.
+        pub(crate) hashes: EventHash,
+
+        /// Signatures for the PDU.
+        pub(crate) signatures: ServerSignatures,
+
+        /// Whether the PDU was rejected.
         pub(crate) rejected: bool,
+    }
+
+    /// Content hashes of a PDU.
+    #[derive(Clone, Debug, Deserialize, Serialize)]
+    #[allow(clippy::exhaustive_structs)]
+    pub(crate) struct EventHash {
+        /// The SHA-256 hash.
+        pub(crate) sha256: String,
     }
 }
 
