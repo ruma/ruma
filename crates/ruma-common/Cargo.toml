@@ -73,7 +73,7 @@ uuid = { version = "1.0.0", optional = true, features = ["v4"] }
 web-time = { workspace = true }
 wildmatch = "2.0.0"
 
-[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+[target.'cfg(all(target_family = "wasm", target_os = "unknown"))'.dependencies]
 js-sys = { version = "0.3", optional = true }
 
 [dev-dependencies]
