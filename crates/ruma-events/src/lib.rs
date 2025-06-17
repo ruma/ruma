@@ -170,8 +170,6 @@ pub mod media_preview_config;
 pub mod member_hints;
 #[cfg(feature = "unstable-msc1767")]
 pub mod message;
-#[cfg(feature = "unstable-pdu")]
-pub mod pdu;
 pub mod policy;
 #[cfg(feature = "unstable-msc3381")]
 pub mod poll;
