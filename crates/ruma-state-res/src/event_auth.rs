@@ -24,17 +24,6 @@ use crate::{
     Event, StateEventType, TimelineEventType,
 };
 
-// TODO: We need methods for all checks performed on receipt of a PDU, plus the following that are
-// not listed:
-//
-// - check that the event respects the size limits,
-//
-// References:
-// - https://spec.matrix.org/latest/server-server-api/#checks-performed-on-receipt-of-a-pdu
-// - https://spec.matrix.org/latest/client-server-api/#size-limits
-// - https://github.com/element-hq/synapse/blob/9c5d08fff8d66a7cc0e2ecfeeb783f933a778c2f/synapse/event_auth.py
-// - https://github.com/matrix-org/matrix-spec/issues/365
-
 /// Get the list of [relevant auth events] required to authorize the event of the given type.
 ///
 /// Returns a list of `(event_type, state_key)` tuples.

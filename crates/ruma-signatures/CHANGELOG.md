@@ -23,8 +23,6 @@ Improvements:
 
 - Add `verify_canonical_json_bytes()` as a low-level function to check the
   signature of canonical JSON bytes.
-- Add `check_pdu_format()` to check the event format and size limits of a PDU
-  according to the Matrix specification.
 
 # 0.17.1
 

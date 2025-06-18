@@ -1943,7 +1943,6 @@ dependencies = [
  "base64",
  "ed25519-dalek",
  "insta",
- "js_int",
  "pkcs8",
  "rand",
  "ruma-common",
