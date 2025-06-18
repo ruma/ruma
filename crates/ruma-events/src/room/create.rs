@@ -102,6 +102,26 @@ impl RedactContent for RoomCreateEventContent {
     }
 }
 
+impl RoomCreateEvent {
+    /// Obtain the room version, regardless of whether this event is redacted.
+    pub fn room_version(&self) -> &RoomVersionId {
+        match self {
+            Self::Original(ev) => &ev.content.room_version,
+            Self::Redacted(ev) => &ev.content.room_version,
+        }
+    }
+}
+
+impl SyncRoomCreateEvent {
+    /// Obtain the room version, regardless of whether this event is redacted.
+    pub fn room_version(&self) -> &RoomVersionId {
+        match self {
+            Self::Original(ev) => &ev.content.room_version,
+            Self::Redacted(ev) => &ev.content.room_version,
+        }
+    }
+}
+
 /// A reference to an old room replaced during a room version upgrade.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
