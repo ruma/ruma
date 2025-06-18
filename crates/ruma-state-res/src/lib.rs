@@ -15,6 +15,7 @@ use tracing::{debug, info, instrument, trace, warn};
 
 mod error;
 mod event_auth;
+mod event_format;
 pub mod events;
 #[cfg(test)]
 mod test_utils;
@@ -28,6 +29,7 @@ pub use self::{
     event_auth::{
         auth_types_for_event, check_state_dependent_auth_rules, check_state_independent_auth_rules,
     },
+    event_format::check_pdu_format,
     events::Event,
 };
 

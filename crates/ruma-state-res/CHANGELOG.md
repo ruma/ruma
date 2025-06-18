@@ -55,6 +55,8 @@ Improvements:
   - `RoomPowerLevelsEvent` for `m.room.power_levels` events
   - `RoomJoinRulesEvent` for `m.room.join_rules` events
   - `RoomThirdPartyInviteEvent` for `m.room.third_party_invite` events
+- Add `check_pdu_format()` to check the event format and size limits of a PDU
+  according to the Matrix specification.
 
 # 0.13.0
 
