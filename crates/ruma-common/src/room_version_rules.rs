@@ -138,6 +138,7 @@ impl RoomVersionRules {
     pub const V12: Self = Self {
         room_id_format: RoomIdFormatVersion::V2,
         authorization: AuthorizationRules::V12,
+        event_format: EventFormatRules::V12,
         ..Self::V11
     };
 
@@ -527,14 +528,33 @@ impl SignaturesRules {
 pub struct EventFormatRules {
     /// Whether the `event_id` field is required, disabled since room version 3.
     pub require_event_id: bool,
+
+    /// Whether the `room_id` field is required on the `m.room.create` event, disabled since room
+    /// version 12.
+    pub require_room_create_room_id: bool,
+
+    /// Whether the `m.room.create` event is allowed to be in the `auth_events`, disabled since
+    /// room version 12.
+    pub allow_room_create_in_auth_events: bool,
 }
 
 impl EventFormatRules {
     /// Event format rules as introduced in room version 1.
-    pub const V1: Self = Self { require_event_id: true };
+    pub const V1: Self = Self {
+        require_event_id: true,
+        require_room_create_room_id: true,
+        allow_room_create_in_auth_events: true,
+    };
 
     /// Event format rules with tweaks introduced in room version 3.
-    pub const V3: Self = Self { require_event_id: false };
+    pub const V3: Self = Self { require_event_id: false, ..Self::V1 };
+
+    /// Event format rules with tweaks introduced in room version 12.
+    pub const V12: Self = Self {
+        require_room_create_room_id: false,
+        allow_room_create_in_auth_events: false,
+        ..Self::V3
+    };
 }
 
 /// The tweaks for determining the power level of a user.

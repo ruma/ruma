@@ -124,6 +124,9 @@ Improvements:
   hash of the `m.room.create` event is used to construct the room ID. It has other implications,
   like the `m.room.create` event not having a room ID, and the `m.room.create` event not listed in
   the `auth_events` of a PDU.
+- Add `require_room_create_room_id` and `allow_room_create_in_auth_events` to `EventFormatRules` to
+  indicate whether the room ID is required for `m.room.create` events and whether the
+  event ID of the `m.room.create` is allowed in the `auth_events`, respectively.
 
 # 0.15.4
 
