@@ -42,6 +42,7 @@ impl<E: Event> Deref for RoomJoinRulesEvent<E> {
     }
 }
 
+/// The possible values for the join rule of a room.
 #[derive(Clone, StringEnum, PartialEqAsRefStr)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
