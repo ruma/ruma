@@ -11,9 +11,10 @@ use serde_json::value::RawValue as RawJsonValue;
 
 /// Abstraction of a PDU so users can have their own PDU types.
 pub trait Event {
+    /// The type used to represent the ID of an event.
     type Id: Clone + Debug + Display + Eq + Ord + Hash + Borrow<EventId>;
 
-    /// The `EventId` of this event.
+    /// The ID of this event.
     fn event_id(&self) -> &Self::Id;
 
     /// The `RoomId` of this event.
