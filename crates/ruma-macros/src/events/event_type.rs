@@ -19,7 +19,7 @@ pub fn expand_event_type_enum(
         match event.kind {
             EventKind::GlobalAccountData => global_account.push(&event.events),
             EventKind::RoomAccountData => room_account.push(&event.events),
-            EventKind::Ephemeral => ephemeral.push(&event.events),
+            EventKind::EphemeralRoom => ephemeral.push(&event.events),
             EventKind::MessageLike => {
                 message.push(&event.events);
                 timeline.push(&event.events);

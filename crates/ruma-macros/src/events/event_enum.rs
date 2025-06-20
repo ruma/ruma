@@ -26,7 +26,7 @@ type EventKindFn = fn(EventKind, EventEnumVariation) -> bool;
 const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
     ("origin_server_ts", is_non_stripped_room_event),
     ("room_id", |kind, var| {
-        matches!(kind, EventKind::MessageLike | EventKind::State | EventKind::Ephemeral)
+        matches!(kind, EventKind::MessageLike | EventKind::State | EventKind::EphemeralRoom)
             && matches!(var, EventEnumVariation::None)
     }),
     ("event_id", is_non_stripped_room_event),
@@ -76,7 +76,7 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
         );
     }
 
-    if matches!(kind, EventKind::Ephemeral) {
+    if matches!(kind, EventKind::EphemeralRoom) {
         res.extend(
             expand_event_enum(kind, V::Sync, events, docs, attrs, variants, ruma_events)
                 .unwrap_or_else(syn::Error::into_compile_error),
