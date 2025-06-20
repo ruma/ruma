@@ -29,6 +29,9 @@ Breaking:
   and `check_state_dependent_auth_rules`. The former should be called once when
   the incoming event is received, while the latter should be called for every
   state that should be checked.
+- `lexicographical_topological_sort()` was renamed to
+  `reverse_topological_power_sort()`, to match the name of the algorithm defined
+  in the Matrix spec.
 
 Bug fixes:
 
