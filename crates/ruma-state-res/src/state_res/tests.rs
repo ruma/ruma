@@ -42,15 +42,13 @@ fn test_event_sort() {
         .map(|pdu| pdu.event_id.clone())
         .collect::<Vec<_>>();
 
-    let sorted_power_events = super::reverse_topological_power_sort(
-        power_events,
-        &auth_chain,
-        &AuthorizationRules::V6,
-        |id| events.get(id).cloned(),
-    )
-    .unwrap();
+    let sorted_power_events =
+        super::sort_power_events(power_events, &auth_chain, &AuthorizationRules::V6, |id| {
+            events.get(id).cloned()
+        })
+        .unwrap();
 
-    let resolved_power = super::iterative_auth_check(
+    let resolved_power = super::iterative_auth_checks(
         &AuthorizationRules::V6,
         &sorted_power_events,
         HashMap::new(), // unconflicted events
@@ -418,7 +416,7 @@ fn test_event_map_none() {
 }
 
 #[test]
-fn test_lexicographical_sort() {
+fn test_reverse_topological_power_sort() {
     let _ = tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
 
     let graph = hashmap! {
@@ -429,7 +427,7 @@ fn test_lexicographical_sort() {
         event_id("p") => hashset![event_id("o")],
     };
 
-    let res = crate::lexicographical_topological_sort(&graph, |_id| {
+    let res = crate::reverse_topological_power_sort(&graph, |_id| {
         Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0))))
     })
     .unwrap();
@@ -625,8 +623,8 @@ macro_rules! state_set {
 }
 
 #[test]
-fn separate_unique_conflicted() {
-    let (unconflicted, conflicted) = super::separate(
+fn split_conflicted_state_set_conflicted_unique_state_keys() {
+    let (unconflicted, conflicted) = super::split_conflicted_state_set(
         [
             state_set![StateEventType::RoomMember => "@a:hs1" => 0],
             state_set![StateEventType::RoomMember => "@b:hs1" => 1],
@@ -647,8 +645,8 @@ fn separate_unique_conflicted() {
 }
 
 #[test]
-fn separate_conflicted() {
-    let (unconflicted, mut conflicted) = super::separate(
+fn split_conflicted_state_set_conflicted_same_state_key() {
+    let (unconflicted, mut conflicted) = super::split_conflicted_state_set(
         [
             state_set![StateEventType::RoomMember => "@a:hs1" => 0],
             state_set![StateEventType::RoomMember => "@a:hs1" => 1],
@@ -672,8 +670,8 @@ fn separate_conflicted() {
 }
 
 #[test]
-fn separate_unconflicted() {
-    let (unconflicted, conflicted) = super::separate(
+fn split_conflicted_state_set_unconflicted() {
+    let (unconflicted, conflicted) = super::split_conflicted_state_set(
         [
             state_set![StateEventType::RoomMember => "@a:hs1" => 0],
             state_set![StateEventType::RoomMember => "@a:hs1" => 0],
@@ -692,8 +690,8 @@ fn separate_unconflicted() {
 }
 
 #[test]
-fn separate_mixed() {
-    let (unconflicted, conflicted) = super::separate(
+fn split_conflicted_state_set_mixed() {
+    let (unconflicted, conflicted) = super::split_conflicted_state_set(
         [
             state_set![StateEventType::RoomMember => "@a:hs1" => 0],
             state_set![

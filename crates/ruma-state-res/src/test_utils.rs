@@ -83,7 +83,7 @@ pub(crate) fn do_check(
 
     // Resolve the current state and add it to the state_at_event map then continue
     // on in "time"
-    for node in crate::lexicographical_topological_sort(&graph, |_id| {
+    for node in crate::reverse_topological_power_sort(&graph, |_id| {
         Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0))))
     })
     .unwrap()

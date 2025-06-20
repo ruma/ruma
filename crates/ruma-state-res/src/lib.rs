@@ -66,5 +66,5 @@ pub use self::{
     },
     event_format::check_pdu_format,
     events::Event,
-    state_res::{lexicographical_topological_sort, resolve, StateMap},
+    state_res::{resolve, reverse_topological_power_sort, StateMap},
 };
