@@ -5,7 +5,7 @@ use std::{
 
 use js_int::Int;
 use ruma_common::{room_version_rules::AuthorizationRules, EventId, UserId};
-use ruma_events::room::member::MembershipState;
+use ruma_events::{room::member::MembershipState, StateEventType, TimelineEventType};
 use serde_json::value::RawValue as RawJsonValue;
 use tracing::{debug, info, instrument, warn};
 
@@ -21,7 +21,7 @@ use crate::{
         JoinRule, RoomCreateEvent, RoomJoinRulesEvent, RoomMemberEvent, RoomPowerLevelsEvent,
         RoomThirdPartyInviteEvent,
     },
-    Event, StateEventType, TimelineEventType,
+    Event,
 };
 
 /// Get the list of [relevant auth events] required to authorize the event of the given type.

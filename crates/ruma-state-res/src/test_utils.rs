@@ -27,7 +27,8 @@ use tracing::info;
 
 pub(crate) use self::event::{EventHash, PduEvent};
 use crate::{
-    auth_types_for_event, events::RoomCreateEvent, Error, Event, EventTypeExt, Result, StateMap,
+    auth_types_for_event, events::RoomCreateEvent, state_res::EventTypeExt, Error, Event, Result,
+    StateMap,
 };
 
 static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
