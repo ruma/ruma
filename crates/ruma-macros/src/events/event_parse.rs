@@ -70,7 +70,7 @@ impl EventKindVariation {
 pub enum EventKind {
     GlobalAccountData,
     RoomAccountData,
-    Ephemeral,
+    EphemeralRoom,
     MessageLike,
     State,
     ToDevice,
@@ -84,7 +84,7 @@ impl fmt::Display for EventKind {
         match self {
             EventKind::GlobalAccountData => write!(f, "GlobalAccountDataEvent"),
             EventKind::RoomAccountData => write!(f, "RoomAccountDataEvent"),
-            EventKind::Ephemeral => write!(f, "EphemeralRoomEvent"),
+            EventKind::EphemeralRoom => write!(f, "EphemeralRoomEvent"),
             EventKind::MessageLike => write!(f, "MessageLikeEvent"),
             EventKind::State => write!(f, "StateEvent"),
             EventKind::ToDevice => write!(f, "ToDeviceEvent"),
@@ -121,7 +121,7 @@ impl EventKind {
 
         match (self, var) {
             (_, V::None)
-            | (Self::Ephemeral | Self::MessageLike | Self::State, V::Sync)
+            | (Self::EphemeralRoom | Self::MessageLike | Self::State, V::Sync)
             | (
                 Self::MessageLike | Self::RoomRedaction | Self::State,
                 V::Original | V::OriginalSync | V::Redacted | V::RedactedSync,
@@ -164,7 +164,7 @@ impl Parse for EventKind {
         Ok(match ident.to_string().as_str() {
             "GlobalAccountData" => EventKind::GlobalAccountData,
             "RoomAccountData" => EventKind::RoomAccountData,
-            "EphemeralRoom" => EventKind::Ephemeral,
+            "EphemeralRoom" => EventKind::EphemeralRoom,
             "MessageLike" => EventKind::MessageLike,
             "State" => EventKind::State,
             "ToDevice" => EventKind::ToDevice,
@@ -189,8 +189,8 @@ pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation
     match ident_str.as_str() {
         "GlobalAccountDataEvent" => Some((EventKind::GlobalAccountData, EventKindVariation::None)),
         "RoomAccountDataEvent" => Some((EventKind::RoomAccountData, EventKindVariation::None)),
-        "EphemeralRoomEvent" => Some((EventKind::Ephemeral, EventKindVariation::None)),
-        "SyncEphemeralRoomEvent" => Some((EventKind::Ephemeral, EventKindVariation::Sync)),
+        "EphemeralRoomEvent" => Some((EventKind::EphemeralRoom, EventKindVariation::None)),
+        "SyncEphemeralRoomEvent" => Some((EventKind::EphemeralRoom, EventKindVariation::Sync)),
         "OriginalMessageLikeEvent" => Some((EventKind::MessageLike, EventKindVariation::Original)),
         "OriginalSyncMessageLikeEvent" => {
             Some((EventKind::MessageLike, EventKindVariation::OriginalSync))

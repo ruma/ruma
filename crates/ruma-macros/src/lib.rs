@@ -63,12 +63,10 @@ use self::{
 /// * `Any{Kind}Event`
 /// * `{Kind}EventType`
 ///
-/// _Note that the `Ephemeral` kind generates types named `*EphemeralRoom*`._
-///
 /// It also generates the following enums:
 ///
 /// * `AnySync{Kind}Event` for the kinds that have a different format in the `/sync` API:
-///   `Ephemeral`, `MessageLike` and `State`.
+///   `EphemeralRoom`, `MessageLike` and `State`.
 /// * `TimelineEventType` which includes the variants from `MessageLikeEventType` and
 ///   `StateEventType`
 /// * And extra enums for the `State` kind:
@@ -117,7 +115,7 @@ use self::{
 /// * `GlobalAccountData` - Global config event
 /// * `RoomAccountData` - Per-room config event
 /// * `ToDevice` - Event sent directly to a device
-/// * `Ephemeral` - Event that is not persistent in the room
+/// * `EphemeralRoom` - Event that is not persistent in the room
 ///
 /// ## Event types
 ///
@@ -294,7 +292,7 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 /// Some kinds generate more type aliases:
 ///
 /// * `type SyncFooEvent = Sync{Kind}Event<FooEventContent>`: an event received via the `/sync` API,
-///   for the `MessageLike`, `State` and `Ephemeral` kinds
+///   for the `MessageLike`, `State` and `EphemeralRoom` kinds
 /// * `type OriginalFooEvent = Original{Kind}Event<FooEventContent>`, a non-redacted event, for the
 ///   `MessageLike` and `State` kinds
 /// * `type OriginalSyncFooEvent = OriginalSync{Kind}Event<FooEventContent>`, a non-redacted event
@@ -347,7 +345,7 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 /// * `GlobalAccountData` - Global config event
 /// * `RoomAccountData` - Per-room config event
 /// * `ToDevice` - Event sent directly to a device
-/// * `Ephemeral` - Event that is not persistent in the room
+/// * `EphemeralRoom` - Event that is not persistent in the room
 ///
 /// It is possible to implement both account data kinds for the same type by using the syntax `kind
 /// = GlobalAccountData + RoomAccountData`.
