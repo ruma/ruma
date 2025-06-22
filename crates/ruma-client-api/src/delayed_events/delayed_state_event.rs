@@ -24,7 +24,7 @@ pub mod unstable {
         authentication: AccessToken,
         history: {
             // We use the unstable prefix for the delay query parameter but the stable v3 endpoint.
-            unstable => "/_matrix/client/v3/rooms/:room_id/state/:event_type/:state_key",
+            unstable => "/_matrix/client/v3/rooms/{room_id}/state/{event_type}/{state_key}",
         }
     };
 

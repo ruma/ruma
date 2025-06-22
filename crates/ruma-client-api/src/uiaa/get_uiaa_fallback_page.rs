@@ -19,8 +19,8 @@ pub mod v3 {
         rate_limited: false,
         authentication: None,
         history: {
-            1.0 => "/_matrix/client/r0/auth/:auth_type/fallback/web",
-            1.1 => "/_matrix/client/v3/auth/:auth_type/fallback/web",
+            1.0 => "/_matrix/client/r0/auth/{auth_type}/fallback/web",
+            1.1 => "/_matrix/client/v3/auth/{auth_type}/fallback/web",
         }
     };
 

@@ -25,7 +25,7 @@ pub mod msc3266 {
         rate_limited: false,
         authentication: AccessTokenOptional,
         history: {
-            unstable => "/_matrix/client/unstable/im.nheko.summary/rooms/:room_id_or_alias/summary",
+            unstable => "/_matrix/client/unstable/im.nheko.summary/rooms/{room_id_or_alias}/summary",
         }
     };
 

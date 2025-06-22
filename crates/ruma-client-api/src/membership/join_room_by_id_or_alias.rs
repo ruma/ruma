@@ -19,8 +19,8 @@ pub mod v3 {
         rate_limited: true,
         authentication: AccessToken,
         history: {
-            1.0 => "/_matrix/client/r0/join/:room_id_or_alias",
-            1.1 => "/_matrix/client/v3/join/:room_id_or_alias",
+            1.0 => "/_matrix/client/r0/join/{room_id_or_alias}",
+            1.1 => "/_matrix/client/v3/join/{room_id_or_alias}",
         }
     };
 

@@ -18,6 +18,7 @@ Breaking changes:
   `discovery::get_capabilities::v3` module, for consistency with other endpoints.
 - `get_supported_versions::Response::known_versions()` was replaced by
   `as_supported_versions()` which returns a `SupportedVersions`.
+- Update the endpoint metadata definitions to use the new syntax for variables.
 
 Improvements:
 

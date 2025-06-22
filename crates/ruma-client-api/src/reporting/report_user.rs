@@ -17,8 +17,8 @@ pub mod v3 {
         rate_limited: true,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/org.matrix.msc4260/users/:user_id/report",
-            1.14 => "/_matrix/client/v3/users/:user_id/report",
+            unstable => "/_matrix/client/unstable/org.matrix.msc4260/users/{user_id}/report",
+            1.14 => "/_matrix/client/v3/users/{user_id}/report",
         }
     };
 
