@@ -41,6 +41,10 @@ Breaking changes:
   - `VersionHistory::stable_endpoint_for()` was renamed to `version_path()`.
   - `VersioningDecision`'s `Stable` variant was renamed to `Version` and
     `Unstable` was renamed to `Feature`.
+- The syntax of variables in endpoint paths segments in the `metadata` macro has
+  changed: the variable must now be surrounded by `{}` instead of being preceded
+  by `:`. For example `/_matrix/client/foo/{bar}`. This matches the OpenAPI
+  syntax and the new syntax supported by axum 0.8.
 
 Improvements:
 

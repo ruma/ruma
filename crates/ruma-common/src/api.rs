@@ -82,7 +82,7 @@ use bytes::BufMut;
 ///     #     rate_limited: false,
 ///     #     authentication: None,
 ///     #     history: {
-///     #         unstable => "/_matrix/some/endpoint/:room_id",
+///     #         unstable => "/_matrix/some/endpoint/{room_id}",
 ///     #     },
 ///     # };
 ///
@@ -118,7 +118,7 @@ use bytes::BufMut;
 ///     #     rate_limited: false,
 ///     #     authentication: None,
 ///     #     history: {
-///     #         unstable => "/_matrix/some/endpoint/:file_name",
+///     #         unstable => "/_matrix/some/endpoint/{file_name}",
 ///     #     },
 ///     # };
 ///
