@@ -17,8 +17,8 @@ pub mod v3 {
         rate_limited: true,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/xyz.amorgan.knock/knock/:room_id_or_alias",
-            1.1 => "/_matrix/client/v3/knock/:room_id_or_alias",
+            unstable => "/_matrix/client/unstable/xyz.amorgan.knock/knock/{room_id_or_alias}",
+            1.1 => "/_matrix/client/v3/knock/{room_id_or_alias}",
         }
     };
 

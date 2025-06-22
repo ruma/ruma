@@ -19,8 +19,8 @@ pub mod v3 {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            1.0 => "/_matrix/client/r0/pushrules/global/:kind/:rule_id/enabled",
-            1.1 => "/_matrix/client/v3/pushrules/global/:kind/:rule_id/enabled",
+            1.0 => "/_matrix/client/r0/pushrules/global/{kind}/{rule_id}/enabled",
+            1.1 => "/_matrix/client/v3/pushrules/global/{kind}/{rule_id}/enabled",
         }
     };
 

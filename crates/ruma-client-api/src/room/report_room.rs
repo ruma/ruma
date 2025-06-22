@@ -17,8 +17,8 @@ pub mod v3 {
         rate_limited: true,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/org.matrix.msc4151/rooms/:room_id/report",
-            1.13 => "/_matrix/client/v3/rooms/:room_id/report",
+            unstable => "/_matrix/client/unstable/org.matrix.msc4151/rooms/{room_id}/report",
+            1.13 => "/_matrix/client/v3/rooms/{room_id}/report",
         }
     };
 
