@@ -17,7 +17,7 @@ pub mod v1 {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            1.0 => "/_matrix/app/v1/users/:user_id",
+            1.0 => "/_matrix/app/v1/users/{user_id}",
         }
     };
 
