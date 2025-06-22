@@ -14,7 +14,7 @@ const METADATA: Metadata = metadata! {
     rate_limited: false,
     authentication: None,
     history: {
-        unstable => "/_matrix/foo/:bar/:user",
+        unstable => "/_matrix/foo/{bar}/{user}",
     }
 };
 
@@ -146,7 +146,7 @@ mod without_query {
         rate_limited: false,
         authentication: None,
         history: {
-            unstable => "/_matrix/foo/:bar/:user",
+            unstable => "/_matrix/foo/{bar}/{user}",
         }
     };
 

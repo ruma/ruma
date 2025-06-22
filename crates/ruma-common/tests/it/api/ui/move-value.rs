@@ -17,7 +17,7 @@ pub mod newtype_body {
         rate_limited: false,
         authentication: None,
         history: {
-            unstable => "/_matrix/foo/:bar/",
+            unstable => "/_matrix/foo/{bar}/",
         }
     };
 
@@ -60,7 +60,7 @@ pub mod raw_body {
         rate_limited: false,
         authentication: None,
         history: {
-            unstable => "/_matrix/foo/:bar/",
+            unstable => "/_matrix/foo/{bar}/",
         }
     };
 
@@ -106,7 +106,7 @@ pub mod plain {
         rate_limited: false,
         authentication: None,
         history: {
-            unstable => "/_matrix/foo/:bar/",
+            unstable => "/_matrix/foo/{bar}/",
         }
     };
 
