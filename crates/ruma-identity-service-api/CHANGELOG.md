@@ -8,6 +8,7 @@ Breaking changes:
   keys encoded using URL-safe base64 is encountered.
 - `get_supported_versions::Response::known_versions()` was replaced by
   `as_supported_versions()` which returns a `SupportedVersions`.
+- Update the endpoint metadata definitions to use the new syntax for variables.
 
 Improvements:
 
