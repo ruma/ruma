@@ -21,7 +21,7 @@ pub mod v1 {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            1.0 => "/_matrix/app/v1/thirdparty/protocol/:protocol",
+            1.0 => "/_matrix/app/v1/thirdparty/protocol/{protocol}",
         }
     };
 

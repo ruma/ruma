@@ -4,6 +4,7 @@ Breaking changes:
 
 - The`thirdparty::get_protocol` response uses `AppserviceProtocolInstance`
   instead of `ProtocolInstance`.
+- Update the endpoint metadata definitions to use the new syntax for variables.
 
 # 0.12.2
 
