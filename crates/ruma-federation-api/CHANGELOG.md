@@ -10,6 +10,7 @@ Breaking changes:
   It is a `RoomMemberEventContent`. A new constructor was added,
   `with_third_party_invite()` that constructs the event content from a
   `ThirdPartyInvite`.
+- Update the endpoint metadata definitions to use the new syntax for variables.
 
 Bug fixes:
 
