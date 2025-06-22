@@ -21,8 +21,8 @@ pub mod v1 {
         rate_limited: true,
         authentication: ServerSignatures,
         history: {
-            unstable => "/_matrix/federation/unstable/org.matrix.msc3916.v2/media/download/:media_id",
-            1.11 => "/_matrix/federation/v1/media/download/:media_id",
+            unstable => "/_matrix/federation/unstable/org.matrix.msc3916.v2/media/download/{media_id}",
+            1.11 => "/_matrix/federation/v1/media/download/{media_id}",
         }
     };
 

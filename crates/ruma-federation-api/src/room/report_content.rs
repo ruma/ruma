@@ -17,7 +17,7 @@ pub mod msc3843 {
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
-            unstable => "/_matrix/federation/unstable/org.matrix.msc3843/rooms/:room_id/report/:event_id",
+            unstable => "/_matrix/federation/unstable/org.matrix.msc3843/rooms/{room_id}/report/{event_id}",
         }
     };
 
