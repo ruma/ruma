@@ -23,6 +23,10 @@ use super::{server_name::ServerName, OwnedRoomAliasId, OwnedRoomId, RoomAliasId,
 /// );
 /// ```
 ///
+/// It can be converted to a `RoomId` or a `RoomAliasId` using `::try_from()` / `.try_into()`.
+/// For example, `<&RoomId>::try_from(room_or_alias_id)` returns either `Ok(room_id)` or
+/// `Err(room_alias_id)`.
+///
 /// [room ID]: https://spec.matrix.org/latest/appendices/#room-ids
 /// [room alias ID]: https://spec.matrix.org/latest/appendices/#room-aliases
 #[repr(transparent)]
