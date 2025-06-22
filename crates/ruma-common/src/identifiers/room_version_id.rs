@@ -23,6 +23,10 @@ use crate::room_version_rules::RoomVersionRules;
 /// written are represented by a hidden enum variant. You can still construct them the same, and
 /// check for them using one of `RoomVersionId`s `PartialEq` implementations or through `.as_str()`.
 ///
+/// The `PartialOrd` and `Ord` implementations of this type sort the variants by comparing their
+/// string representations, which have no special meaning. To check the compatibility between
+/// room versions, one should use the [`RoomVersionRules`] instead.
+///
 /// [room version]: https://spec.matrix.org/latest/rooms/
 #[derive(Clone, Debug, PartialEq, Eq, Hash, DisplayAsRefStr)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
