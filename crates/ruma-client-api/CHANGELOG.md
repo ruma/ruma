@@ -26,6 +26,10 @@ Breaking changes:
   `U` to `T` because `T` can be deserialized from the same JSON as `U`. It is
   still possible to bypass that bound by using the corresponding methods of
   `Raw` with an `_unchecked` suffix.
+- `get_profile::v3::Response` has no public fields but stores custom fields. The
+  fields can be accessed with `.get()`, `.iter()` or `.into_iter()`.
+  `Response::new()` takes no arguments and creates an empty response. Fields can
+  be added using `.set()`, or the `FromIterator` and `Extend` implementations.
 
 Improvements:
 
@@ -33,6 +37,7 @@ Improvements:
   endpoints, the `server_name` query parameter is only serialized if the server
   doesn't advertise at least one version that supports the `via` query
   parameter. The former was removed in Matrix 1.14.
+- Add unstable support for extended profiles, as per MSC4133.
 
 # 0.20.4
 
