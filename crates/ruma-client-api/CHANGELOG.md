@@ -39,6 +39,7 @@ Improvements:
   - The `discovery::get_authentication_issuer` endpoint was removed.
   - Some fields of `AuthorizationServerMetadata` are now behind the
     `unstable-msc4108` or `unstable-msc4191` cargo features.
+- Add unstable support for extended profiles, as per MSC4133.
 
 # 0.20.3
 
