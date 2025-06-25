@@ -22,8 +22,9 @@ use event::{EventHash, PduEvent};
 use js_int::{int, uint};
 use maplit::{btreemap, hashmap, hashset};
 use ruma_common::{
-    room_id, room_version_rules::AuthorizationRules, user_id, EventId, MilliSecondsSinceUnixEpoch,
-    OwnedEventId, RoomId, UserId,
+    room_id,
+    room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
+    user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, UserId,
 };
 use ruma_events::{
     room::{
@@ -69,6 +70,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
             let state_sets = [&state_at_bob, &state_at_charlie];
             let _ = match state_res::resolve(
                 &AuthorizationRules::V6,
+                &StateResolutionV2Rules::V2_0,
                 state_sets,
                 state_sets
                     .iter()
@@ -127,6 +129,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
             let state_sets = [&state_set_a, &state_set_b];
             state_res::resolve(
                 &AuthorizationRules::V6,
+                &StateResolutionV2Rules::V2_0,
                 state_sets,
                 state_sets
                     .iter()

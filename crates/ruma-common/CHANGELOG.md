@@ -66,6 +66,9 @@ Breaking changes:
   tweaks to be used when resolving state with version 2 of the state resolution algorithm.
   - This field can be accessed with `StateResolutionVersion::v2_rules`, returning `None` if
     `state_res` is not `StateResolutionVersion::V2`.
+  - `StateResolutionV2Rules` has the following fields:
+    - `begin_iterative_auth_checks_with_empty_state_map`, to determine whether to begin the first
+      phase of iterative auth checks with an empty state map.
 
 Bug fix:
 

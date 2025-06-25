@@ -7,7 +7,8 @@ use js_int::{int, uint};
 use maplit::{hashmap, hashset};
 use rand::seq::SliceRandom;
 use ruma_common::{
-    room_version_rules::AuthorizationRules, MilliSecondsSinceUnixEpoch, OwnedEventId,
+    room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
+    MilliSecondsSinceUnixEpoch, OwnedEventId,
 };
 use ruma_events::{
     room::join_rules::{JoinRule, RoomJoinRulesEventContent},
@@ -401,6 +402,7 @@ fn test_event_map_none() {
     let state_sets = [state_at_bob, state_at_charlie];
     let resolved = match crate::resolve(
         &AuthorizationRules::V1,
+        &StateResolutionV2Rules::V2_0,
         &state_sets,
         state_sets
             .iter()
@@ -496,6 +498,7 @@ fn ban_with_auth_chains2() {
     let state_sets = [state_set_a, state_set_b];
     let resolved = match crate::resolve(
         &AuthorizationRules::V6,
+        &StateResolutionV2Rules::V2_0,
         &state_sets,
         state_sets
             .iter()

@@ -37,6 +37,8 @@ Breaking:
   user IDs instead of only ever returning one.
 - `Event::room_id()` must now return an `Option<&RoomId>`, since `m.room.create`
   events don't have a `room_id` field in room version 12.
+- `resolve` now additionally takes the following parameters:
+  - `state_res_rules`: used to specify tweaks to apply to the state resolution algorithm.
 
 Bug fixes:
 

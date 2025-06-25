@@ -10,8 +10,9 @@ use std::{
 
 use js_int::{int, uint};
 use ruma_common::{
-    event_id, room_id, room_version_rules::AuthorizationRules, user_id, EventId,
-    MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, ServerSignatures, UserId,
+    event_id, room_id,
+    room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
+    user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, ServerSignatures, UserId,
 };
 use ruma_events::{
     room::{
@@ -120,10 +121,13 @@ pub(crate) fn do_check(
                 })
                 .collect();
 
-            let resolved =
-                crate::resolve(&AuthorizationRules::V6, state_sets, auth_chain_sets, |id| {
-                    event_map.get(id).cloned()
-                });
+            let resolved = crate::resolve(
+                &AuthorizationRules::V6,
+                &StateResolutionV2Rules::V2_0,
+                state_sets,
+                auth_chain_sets,
+                |id| event_map.get(id).cloned(),
+            );
             match resolved {
                 Ok(state) => state,
                 Err(e) => panic!("resolution for {node} failed: {e}"),

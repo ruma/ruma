@@ -7,7 +7,8 @@ use std::{
 };
 
 use ruma_common::{
-    room_version_rules::AuthorizationRules, EventId, MilliSecondsSinceUnixEpoch, OwnedUserId,
+    room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
+    EventId, MilliSecondsSinceUnixEpoch, OwnedUserId,
 };
 use ruma_events::{
     room::{member::MembershipState, power_levels::UserPowerLevel},
@@ -41,7 +42,9 @@ pub type StateMap<T> = HashMap<(StateEventType, String), T>;
 ///
 /// ## Arguments
 ///
-/// * `rules` - The rules to apply for the version of the current room.
+/// * `auth_rules` - The authorization rules to apply for the version of the current room.
+///
+/// * `state_res_rules` - The state resolution rules to apply for the version of the current room.
 ///
 /// * `state_maps` - The incoming states to resolve. Each `StateMap` represents a possible fork in
 ///   the state of a room.
@@ -60,9 +63,10 @@ pub type StateMap<T> = HashMap<(StateEventType, String), T>;
 /// The resolved room state.
 ///
 /// [state resolution]: https://spec.matrix.org/latest/rooms/v2/#state-resolution
-#[instrument(skip(rules, state_maps, auth_chains, fetch_event))]
+#[instrument(skip_all)]
 pub fn resolve<'a, E, MapsIter>(
-    rules: &AuthorizationRules,
+    auth_rules: &AuthorizationRules,
+    state_res_rules: &StateResolutionV2Rules,
     state_maps: impl IntoIterator<IntoIter = MapsIter>,
     auth_chains: Vec<HashSet<E::Id>>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
@@ -109,19 +113,23 @@ where
         .collect::<Vec<_>>();
 
     let sorted_power_events =
-        sort_power_events(conflicted_power_events, &full_conflicted_set, rules, &fetch_event)?;
+        sort_power_events(conflicted_power_events, &full_conflicted_set, auth_rules, &fetch_event)?;
 
     debug!(count = sorted_power_events.len(), "power events");
     trace!(list = ?sorted_power_events, "sorted power events");
 
     // 2. Apply the iterative auth checks algorithm, starting from the unconflicted state map, to
     //    the list of events from the previous step to get a partially resolved state.
-    let partially_resolved_state = iterative_auth_checks(
-        rules,
-        &sorted_power_events,
-        unconflicted_state_map.clone(),
-        &fetch_event,
-    )?;
+
+    // Since v12, begin the first phase of iterative auth checks with an empty state map.
+    let initial_state_map = if state_res_rules.begin_iterative_auth_checks_with_empty_state_map {
+        HashMap::new()
+    } else {
+        unconflicted_state_map.clone()
+    };
+
+    let partially_resolved_state =
+        iterative_auth_checks(auth_rules, &sorted_power_events, initial_state_map, &fetch_event)?;
 
     debug!(count = partially_resolved_state.len(), "resolved power events");
     trace!(map = ?partially_resolved_state, "resolved power events");
@@ -151,7 +159,7 @@ where
     // 4. Apply the iterative auth checks algorithm on the partial resolved state and the list of
     //    events from the previous step.
     let mut resolved_state = iterative_auth_checks(
-        rules,
+        auth_rules,
         &sorted_remaining_events,
         partially_resolved_state,
         &fetch_event,

@@ -238,16 +238,21 @@ impl StateResolutionVersion {
 /// [state resolution v2 algorithm]: https://spec.matrix.org/latest/rooms/v2/#state-resolution
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct StateResolutionV2Rules {}
+pub struct StateResolutionV2Rules {
+    /// Whether to begin the first phase of iterative auth checks with an empty state map, as
+    /// opposed to one containing the unconflicted state, enabled since room version 12.
+    pub begin_iterative_auth_checks_with_empty_state_map: bool,
+}
 
 impl StateResolutionV2Rules {
     /// The first version of the second iteration of the state resolution algorithm, introduced in
     /// room version 2.
-    pub const V2_0: Self = Self {};
+    pub const V2_0: Self = Self { begin_iterative_auth_checks_with_empty_state_map: false };
 
     /// The second version of the second iteration of the state resolution algorithm, introduced in
     /// room version 12.
-    pub const V2_1: Self = Self { ..Self::V2_0 };
+    pub const V2_1: Self =
+        Self { begin_iterative_auth_checks_with_empty_state_map: true, ..Self::V2_0 };
 }
 
 /// The tweaks in the [authorization rules] for a room version.
