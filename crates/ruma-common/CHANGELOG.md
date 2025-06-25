@@ -62,6 +62,10 @@ Breaking changes:
     same type.
 - `RoomId::new()` was renamed to `RoomId::new_v1()`, as several formats are now
   supported for this type.
+- `StateResolutionVersion::V2` now takes `StateResolutionV2Rules` as a unit field, to specify
+  tweaks to be used when resolving state with version 2 of the state resolution algorithm.
+  - This field can be accessed with `StateResolutionVersion::v2_rules`, returning `None` if
+    `state_res` is not `StateResolutionVersion::V2`.
 
 Bug fix:
 

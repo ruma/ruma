@@ -5,6 +5,8 @@
 #[allow(clippy::disallowed_types)]
 use std::collections::HashSet;
 
+use as_variant::as_variant;
+
 use crate::OwnedUserId;
 
 /// The rules applied to a [room version].
@@ -67,7 +69,8 @@ impl RoomVersionRules {
     /// Rules for [room version 2].
     ///
     /// [room version 2]: https://spec.matrix.org/latest/rooms/v2/
-    pub const V2: Self = Self { state_res: StateResolutionVersion::V2, ..Self::V1 };
+    pub const V2: Self =
+        Self { state_res: StateResolutionVersion::V2(StateResolutionV2Rules::V2_0), ..Self::V1 };
 
     /// Rules for [room version 3].
     ///
@@ -139,6 +142,7 @@ impl RoomVersionRules {
         room_id_format: RoomIdFormatVersion::V2,
         authorization: AuthorizationRules::V12,
         event_format: EventFormatRules::V12,
+        state_res: StateResolutionVersion::V2(StateResolutionV2Rules::V2_1),
         ..Self::V11
     };
 
@@ -214,7 +218,36 @@ pub enum StateResolutionVersion {
     /// Second version of the state resolution algorithm ([spec]), introduced in room version 2.
     ///
     /// [spec]: https://spec.matrix.org/latest/rooms/v2/#state-resolution
-    V2,
+    V2(StateResolutionV2Rules),
+}
+
+impl StateResolutionVersion {
+    /// Gets the `StateResolutionV2Rules` for the room version, if it uses the second version of
+    /// the state resolution algorithm.
+    pub fn v2_rules(&self) -> Option<&StateResolutionV2Rules> {
+        as_variant!(self, StateResolutionVersion::V2)
+    }
+}
+
+/// The tweaks in the [state resolution v2 algorithm] for a room version.
+///
+/// This type can be constructed from one of its constants (like [`StateResolutionV2Rules::V2_0`]),
+/// or by constructing a [`RoomVersionRules`] first and using the `state_res` field (if the room
+/// version uses version 2 of the state resolution algorithm).
+///
+/// [state resolution v2 algorithm]: https://spec.matrix.org/latest/rooms/v2/#state-resolution
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StateResolutionV2Rules {}
+
+impl StateResolutionV2Rules {
+    /// The first version of the second iteration of the state resolution algorithm, introduced in
+    /// room version 2.
+    pub const V2_0: Self = Self {};
+
+    /// The second version of the second iteration of the state resolution algorithm, introduced in
+    /// room version 12.
+    pub const V2_1: Self = Self { ..Self::V2_0 };
 }
 
 /// The tweaks in the [authorization rules] for a room version.
