@@ -86,6 +86,7 @@ Improvements:
   - Implement `From<RoomSummary>` for `PublicRoomsChunk`
 - `space::SpaceRoomJoinRule` was moved and renamed as `room::JoinRuleSummary`.
   It now includes a `RestrictedSummary` for the restricted join rules variants.
+- Add `MatrixVersion::V1_15`.
 
 # 0.15.2
 
