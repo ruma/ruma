@@ -7,12 +7,13 @@ use base64::{
     Engine,
 };
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+use zeroize::Zeroize;
 
 /// A wrapper around `B` (usually `Vec<u8>`) that (de)serializes from / to a base64 string.
 ///
 /// The base64 character set (and miscellaneous other encoding / decoding options) can be customized
 /// through the generic parameter `C`.
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Zeroize)]
 pub struct Base64<C = Standard, B = Vec<u8>> {
     bytes: B,
     // Invariant PhantomData, Send + Sync

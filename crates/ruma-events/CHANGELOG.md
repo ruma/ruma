@@ -2,6 +2,7 @@
 
 Breaking changes:
 
+- Zeroize the secret key contained in JsonWebKey if the struct gets dropped.
 - Reply fallbacks are not generated anymore, according to MSC2781 / Matrix 1.13.
   As a result, the following methods of `RoomMessageEventContent(WithoutRelation)`
   were simplified:
