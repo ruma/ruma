@@ -4,6 +4,7 @@ Improvements:
 
 - Add `RoomSummary` that represents the summary of a room's state.
   - Implement `From<RoomSummary>` for `PublicRoomsChunk`
+- Add `MatrixVersion::V1_15`.
 
 # 0.15.2
 
