@@ -13,11 +13,20 @@ use zeroize::Zeroize;
 ///
 /// The base64 character set (and miscellaneous other encoding / decoding options) can be customized
 /// through the generic parameter `C`.
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Zeroize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Base64<C = Standard, B = Vec<u8>> {
     bytes: B,
     // Invariant PhantomData, Send + Sync
     _phantom_conf: PhantomData<fn(C) -> C>,
+}
+
+impl<C, B> Zeroize for Base64<C, B>
+where
+    B: Zeroize,
+{
+    fn zeroize(&mut self) {
+        self.bytes.zeroize();
+    }
 }
 
 /// Config used for the [`Base64`] type.

@@ -10,7 +10,7 @@ use ruma_common::{
     OwnedMxcUri,
 };
 use serde::{de, Deserialize, Serialize};
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::Zeroize;
 
 pub mod aliases;
 pub mod avatar;
@@ -224,25 +224,22 @@ impl From<EncryptedFileInit> for EncryptedFile {
 ///
 /// To create an instance of this type, first create a `JsonWebKeyInit` and convert it via
 /// `JsonWebKey::from` / `.into()`.
-#[derive(Clone, Debug, Deserialize, Serialize, Zeroize, ZeroizeOnDrop)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct JsonWebKey {
     /// Key type.
     ///
     /// Must be `oct`.
-    #[zeroize(skip)]
     pub kty: String,
 
     /// Key operations.
     ///
     /// Must at least contain `encrypt` and `decrypt`.
-    #[zeroize(skip)]
     pub key_ops: Vec<String>,
 
     /// Algorithm.
     ///
     /// Must be `A256CTR`.
-    #[zeroize(skip)]
     pub alg: String,
 
     /// The key, encoded as url-safe unpadded base64.
@@ -252,8 +249,13 @@ pub struct JsonWebKey {
     ///
     /// Must be `true`. This is a
     /// [W3C extension](https://w3c.github.io/webcrypto/#iana-section-jwk).
-    #[zeroize(skip)]
     pub ext: bool,
+}
+
+impl Drop for JsonWebKey {
+    fn drop(&mut self) {
+        self.k.zeroize();
+    }
 }
 
 /// Initial set of fields of `JsonWebKey`.
