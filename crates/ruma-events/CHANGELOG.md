@@ -37,6 +37,9 @@ Breaking changes:
   - The `event_type` method is now available on the per-kind `*EventContent` traits.
   - For an event content type to automatically implement `EventContentFromType` it must now match
     the bound `StaticEventContent + DeserializeOwned`.
+- The `BundledThread::latest_event` field is now an `AnySyncMessageLikeEvent` instead of
+  `AnyMessageLikeEvent`, to reflect that it may not always include a `room_id` field (if the owning
+  event came from sync, for instance), which can usually be obtained from the surrounding context.
 
 Improvements:
 

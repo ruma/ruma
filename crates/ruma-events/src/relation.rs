@@ -11,8 +11,7 @@ use ruma_common::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::AnyMessageLikeEvent;
-use crate::PrivOwnedStr;
+use crate::{AnySyncMessageLikeEvent, PrivOwnedStr};
 
 mod rel_serde;
 
@@ -135,7 +134,7 @@ impl Thread {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct BundledThread {
     /// The latest event in the thread.
-    pub latest_event: Raw<AnyMessageLikeEvent>,
+    pub latest_event: Raw<AnySyncMessageLikeEvent>,
 
     /// The number of events in the thread.
     pub count: UInt,
@@ -147,7 +146,7 @@ pub struct BundledThread {
 impl BundledThread {
     /// Creates a new `BundledThread` with the given event, count and user participated flag.
     pub fn new(
-        latest_event: Raw<AnyMessageLikeEvent>,
+        latest_event: Raw<AnySyncMessageLikeEvent>,
         count: UInt,
         current_user_participated: bool,
     ) -> Self {
