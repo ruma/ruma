@@ -10,6 +10,7 @@ use ruma_common::{
     OwnedMxcUri,
 };
 use serde::{de, Deserialize, Serialize};
+use zeroize::Zeroize;
 
 pub mod aliases;
 pub mod avatar;
@@ -249,6 +250,12 @@ pub struct JsonWebKey {
     /// Must be `true`. This is a
     /// [W3C extension](https://w3c.github.io/webcrypto/#iana-section-jwk).
     pub ext: bool,
+}
+
+impl Drop for JsonWebKey {
+    fn drop(&mut self) {
+        self.k.zeroize();
+    }
 }
 
 /// Initial set of fields of `JsonWebKey`.

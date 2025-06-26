@@ -48,6 +48,7 @@ Breaking changes:
 
 Improvements:
 
+- Implement the `Zeroize` trait for the `Base64` type.
 - `ProtocolInstance` has an `instance_id` field, due to a clarification in the
   spec.
 - The `unstable-unspecified` cargo feature was removed.
