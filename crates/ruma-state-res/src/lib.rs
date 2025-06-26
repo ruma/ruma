@@ -46,7 +46,7 @@
 //! validate an event received from a client.
 //!
 //! [ruma-signatures]: https://crates.io/crates/ruma-signatures
-//! [necessary checks on receipt of a PDU]: https://spec.matrix.org/v1.14/server-server-api/#checks-performed-on-receipt-of-a-pdu
+//! [necessary checks on receipt of a PDU]: https://spec.matrix.org/latest/server-server-api/#checks-performed-on-receipt-of-a-pdu
 //! [ruma-events]: https://crates.io/crates/ruma-events
 
 #![warn(missing_docs)]
