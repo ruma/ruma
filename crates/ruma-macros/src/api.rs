@@ -6,7 +6,6 @@ use proc_macro2::Span;
 use serde::{de::IgnoredAny, Deserialize};
 
 mod attribute;
-mod auth_scheme;
 pub mod request;
 pub mod response;
 
