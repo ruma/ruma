@@ -7,8 +7,7 @@ mod filter_room_type_serde;
 mod room_network_serde;
 
 use crate::{
-    room::{RoomSummary, RoomType},
-    serde::StringEnum,
+    room::{JoinRuleKind, RoomSummary, RoomType},
     OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr,
 };
 
@@ -63,7 +62,7 @@ pub struct PublicRoomsChunk {
 
     /// The join rule of the room.
     #[serde(default, skip_serializing_if = "crate::serde::is_default")]
-    pub join_rule: PublicRoomJoinRule,
+    pub join_rule: JoinRuleKind,
 
     /// The type of room from `m.room.create`, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -106,7 +105,7 @@ impl From<PublicRoomsChunkInit> for PublicRoomsChunk {
             world_readable,
             guest_can_join,
             avatar_url: None,
-            join_rule: PublicRoomJoinRule::default(),
+            join_rule: JoinRuleKind::default(),
             room_type: None,
         }
     }
@@ -188,23 +187,6 @@ pub enum RoomNetwork {
 
     /// Return rooms from a specific third party network/protocol.
     ThirdParty(String),
-}
-
-/// The rule used for users wishing to join a public room.
-#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Default, PartialEq, Eq, StringEnum)]
-#[ruma_enum(rename_all = "snake_case")]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub enum PublicRoomJoinRule {
-    /// Users can request an invite to the room.
-    Knock,
-
-    /// Anyone can join the room without any prior action.
-    #[default]
-    Public,
-
-    #[doc(hidden)]
-    _Custom(PrivOwnedStr),
 }
 
 /// An enum of possible room types to filter.

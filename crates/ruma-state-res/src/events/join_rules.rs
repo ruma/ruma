@@ -2,7 +2,7 @@
 
 use std::ops::Deref;
 
-use ruma_common::serde::{from_raw_json_value, PartialEqAsRefStr, StringEnum};
+use ruma_common::{room::JoinRuleKind, serde::from_raw_json_value};
 use serde::Deserialize;
 
 use super::Event;
@@ -20,10 +20,10 @@ impl<E: Event> RoomJoinRulesEvent<E> {
     }
 
     /// The join rule of the room.
-    pub fn join_rule(&self) -> Result<JoinRule, String> {
+    pub fn join_rule(&self) -> Result<JoinRuleKind, String> {
         #[derive(Deserialize)]
         struct RoomJoinRulesContentJoinRule {
-            join_rule: JoinRule,
+            join_rule: JoinRuleKind,
         }
 
         let content: RoomJoinRulesContentJoinRule =
@@ -41,35 +41,3 @@ impl<E: Event> Deref for RoomJoinRulesEvent<E> {
         &self.0
     }
 }
-
-/// The possible values for the join rule of a room.
-#[derive(Clone, StringEnum, PartialEqAsRefStr)]
-#[ruma_enum(rename_all = "snake_case")]
-#[non_exhaustive]
-pub enum JoinRule {
-    /// `public`
-    Public,
-
-    /// `invite`
-    Invite,
-
-    /// `knock`
-    Knock,
-
-    /// `restricted`
-    Restricted,
-
-    /// `KnockRestricted`
-    KnockRestricted,
-
-    #[doc(hidden)]
-    _Custom(PrivOwnedStr),
-}
-
-impl Eq for JoinRule {}
-
-// Wrapper around `Box<str>` that cannot be used in a meaningful way outside of
-// this crate. Used for string enums because their `_Custom` variant can't be
-// truly private (only `#[doc(hidden)]`).
-#[derive(Debug, Clone)]
-pub struct PrivOwnedStr(Box<str>);

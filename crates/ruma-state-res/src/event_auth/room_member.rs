@@ -1,6 +1,7 @@
 use std::borrow::Borrow;
 
 use ruma_common::{
+    room::JoinRuleKind,
     room_version_rules::AuthorizationRules,
     serde::{base64::Standard, Base64},
     AnyKeyName, SigningKeyId, UserId,
@@ -15,8 +16,8 @@ mod tests;
 use super::FetchStateExt;
 use crate::{
     events::{
-        member::ThirdPartyInvite, power_levels::RoomPowerLevelsEventOptionExt, JoinRule,
-        RoomCreateEvent, RoomMemberEvent, RoomPowerLevelsIntField,
+        member::ThirdPartyInvite, power_levels::RoomPowerLevelsEventOptionExt, RoomCreateEvent,
+        RoomMemberEvent, RoomPowerLevelsIntField,
     },
     Event,
 };
@@ -136,7 +137,7 @@ fn check_room_member_join<E: Event>(
     // join.
     // Since v7, if the join_rule is invite or knock then allow if membership state is
     // invite or join.
-    if (join_rule == JoinRule::Invite || rules.knocking && join_rule == JoinRule::Knock)
+    if (join_rule == JoinRuleKind::Invite || rules.knocking && join_rule == JoinRuleKind::Knock)
         && matches!(current_membership, MembershipState::Invite | MembershipState::Join)
     {
         return Ok(());
@@ -144,8 +145,8 @@ fn check_room_member_join<E: Event>(
 
     // v8-v9, if the join_rule is restricted:
     // Since v10, if the join_rule is restricted or knock_restricted:
-    if rules.restricted_join_rule && matches!(join_rule, JoinRule::Restricted)
-        || rules.knock_restricted_join_rule && matches!(join_rule, JoinRule::KnockRestricted)
+    if rules.restricted_join_rule && matches!(join_rule, JoinRuleKind::Restricted)
+        || rules.knock_restricted_join_rule && matches!(join_rule, JoinRuleKind::KnockRestricted)
     {
         // Since v8, if membership state is join or invite, allow.
         if matches!(current_membership, MembershipState::Join | MembershipState::Invite) {
@@ -188,7 +189,7 @@ fn check_room_member_join<E: Event>(
 
     // Since v1, if the join_rule is public, allow.
     // Otherwise, reject.
-    if join_rule == JoinRule::Public {
+    if join_rule == JoinRuleKind::Public {
         Ok(())
     } else {
         Err("cannot join a room that is not `public`".to_owned())
@@ -462,8 +463,8 @@ fn check_room_member_knock<E: Event>(
     // v7-v9, if the join_rule is anything other than knock, reject.
     // Since v10, if the join_rule is anything other than knock or knock_restricted,
     // reject.
-    if join_rule != JoinRule::Knock
-        && (rules.knock_restricted_join_rule && !matches!(join_rule, JoinRule::KnockRestricted))
+    if join_rule != JoinRuleKind::Knock
+        && (rules.knock_restricted_join_rule && !matches!(join_rule, JoinRuleKind::KnockRestricted))
     {
         return Err(
             "join rule is not set to knock or knock_restricted, knocking is not allowed".to_owned()

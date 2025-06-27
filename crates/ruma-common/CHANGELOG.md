@@ -47,6 +47,10 @@ Breaking changes:
   syntax and the new syntax supported by axum 0.8.
 - `JoinRule` and its associated types where imported from `ruma-events` into the
   `room` module.
+- `directory::PublicRoomJoinRule` was moved and renamed to `room::JoinRuleKind`
+  and includes all possible join rule kinds, due to a clarification in Matrix
+  1.15.
+  - It can be constructed with `JoinRule::kind()` and `JoinRuleSummary::kind()`.
 
 Improvements:
 
