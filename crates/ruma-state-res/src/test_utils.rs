@@ -127,6 +127,7 @@ pub(crate) fn do_check(
                 state_sets,
                 auth_chain_sets,
                 |id| event_map.get(id).cloned(),
+                |_| unreachable!(),
             );
             match resolved {
                 Ok(state) => state,

@@ -69,6 +69,8 @@ Breaking changes:
   - `StateResolutionV2Rules` has the following fields:
     - `begin_iterative_auth_checks_with_empty_state_map`, to determine whether to begin the first
       phase of iterative auth checks with an empty state map.
+    - `consider_conflicted_state_subgraph`, to determine whether to include the conflicted state
+      subgraph in the full conflicted state.
 
 Bug fix:
 

@@ -242,17 +242,27 @@ pub struct StateResolutionV2Rules {
     /// Whether to begin the first phase of iterative auth checks with an empty state map, as
     /// opposed to one containing the unconflicted state, enabled since room version 12.
     pub begin_iterative_auth_checks_with_empty_state_map: bool,
+
+    /// Whether to include the conflicted state subgraph in the full conflicted state, enabled
+    /// since room version 12.
+    pub consider_conflicted_state_subgraph: bool,
 }
 
 impl StateResolutionV2Rules {
     /// The first version of the second iteration of the state resolution algorithm, introduced in
     /// room version 2.
-    pub const V2_0: Self = Self { begin_iterative_auth_checks_with_empty_state_map: false };
+    pub const V2_0: Self = Self {
+        begin_iterative_auth_checks_with_empty_state_map: false,
+        consider_conflicted_state_subgraph: false,
+    };
 
     /// The second version of the second iteration of the state resolution algorithm, introduced in
     /// room version 12.
-    pub const V2_1: Self =
-        Self { begin_iterative_auth_checks_with_empty_state_map: true, ..Self::V2_0 };
+    pub const V2_1: Self = Self {
+        begin_iterative_auth_checks_with_empty_state_map: true,
+        consider_conflicted_state_subgraph: true,
+        ..Self::V2_0
+    };
 }
 
 /// The tweaks in the [authorization rules] for a room version.

@@ -19,4 +19,8 @@ pub enum Error {
     /// A state event doesn't have a `state_key`.
     #[error("State event has no `state_key`")]
     MissingStateKey,
+
+    /// Provided `fetch_conflicted_state_subgraph` function failed.
+    #[error("`fetch_conflicted_state_subgraph` failed")]
+    FetchConflictedStateSubgraphFailed,
 }

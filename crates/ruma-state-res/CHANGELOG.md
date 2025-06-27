@@ -39,6 +39,8 @@ Breaking:
   events don't have a `room_id` field in room version 12.
 - `resolve` now additionally takes the following parameters:
   - `state_res_rules`: used to specify tweaks to apply to the state resolution algorithm.
+  - `fetch_conflicted_state_subgraph`: a function which calculates which event IDs form the
+    conflicted state subgraph of the given conflicted events.
 
 Bug fixes:
 

@@ -409,6 +409,7 @@ fn test_event_map_none() {
             .map(|map| store.auth_event_ids(room_id(), map.values().cloned().collect()).unwrap())
             .collect(),
         |id| ev_map.get(id).cloned(),
+        |_| unreachable!(),
     ) {
         Ok(state) => state,
         Err(e) => panic!("{e}"),
@@ -505,6 +506,7 @@ fn ban_with_auth_chains2() {
             .map(|map| store.auth_event_ids(room_id(), map.values().cloned().collect()).unwrap())
             .collect(),
         |id| ev_map.get(id).cloned(),
+        |_| unreachable!(),
     ) {
         Ok(state) => state,
         Err(e) => panic!("{e}"),

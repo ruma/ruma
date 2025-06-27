@@ -54,6 +54,10 @@ pub type StateMap<T> = HashMap<(StateEventType, String), T>;
 ///
 /// * `fetch_event` - Function to fetch an event in the room given its event ID.
 ///
+/// * `fetch_conflicted_state_subgraph` - Function to fetch the conflicted state subgraph for the
+///   given conflicted state set, for state resolution rules that use it. If it is called and
+///   returns `None`, this function will return an error.
+///
 /// ## Invariants
 ///
 /// The caller of `resolve` must ensure that all the events are from the same room.
@@ -70,6 +74,7 @@ pub fn resolve<'a, E, MapsIter>(
     state_maps: impl IntoIterator<IntoIter = MapsIter>,
     auth_chains: Vec<HashSet<E::Id>>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
+    fetch_conflicted_state_subgraph: impl Fn(&StateMap<Vec<E::Id>>) -> Option<HashSet<E::Id>>,
 ) -> Result<StateMap<E::Id>>
 where
     E: Event + Clone,
@@ -93,9 +98,24 @@ where
     info!(count = conflicted_state_set.len(), "conflicted events");
     trace!(map = ?conflicted_state_set, "conflicted events");
 
-    // The full conflicted set is the union of the conflicted state set and the auth difference.
+    // Since v12, fetch the conflicted state subgraph.
+    let conflicted_state_subgraph = if state_res_rules.consider_conflicted_state_subgraph {
+        let conflicted_state_subgraph = fetch_conflicted_state_subgraph(&conflicted_state_set)
+            .ok_or(Error::FetchConflictedStateSubgraphFailed)?;
+
+        info!(count = conflicted_state_subgraph.len(), "events in conflicted state subgraph");
+        trace!(set = ?conflicted_state_subgraph, "conflicted state subgraph");
+
+        conflicted_state_subgraph
+    } else {
+        HashSet::new()
+    };
+
+    // The full conflicted set is the union of the conflicted state set and the auth difference,
+    // and since v12, the conflicted state subgraph.
     let full_conflicted_set: HashSet<_> = auth_difference(auth_chains)
         .chain(conflicted_state_set.into_values().flatten())
+        .chain(conflicted_state_subgraph)
         // Don't honor events we cannot "verify"
         .filter(|id| fetch_event(id.borrow()).is_some())
         .collect();

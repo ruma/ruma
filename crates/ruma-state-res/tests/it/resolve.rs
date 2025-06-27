@@ -352,9 +352,14 @@ where
         auth_chain_sets.push(auth_events_dfs(&*pdus_by_id, pdu)?);
     }
 
-    resolve(auth_rules, state_res_rules, &state_sets, auth_chain_sets, |x| {
-        pdus_by_id.get(x).cloned()
-    })
+    resolve(
+        auth_rules,
+        state_res_rules,
+        &state_sets,
+        auth_chain_sets,
+        |x| pdus_by_id.get(x).cloned(),
+        |conflicted_state_set| conflicted_state_subgraph_dfs(conflicted_state_set, pdus_by_id),
+    )
     .map_err(Into::into)
 }
 
@@ -440,6 +445,7 @@ where
             &states_before_event,
             auth_chains_before_event.clone(),
             |x| pdus_by_id.get(x).cloned(),
+            |conflicted_state_set| conflicted_state_subgraph_dfs(conflicted_state_set, &pdus_by_id),
         )?;
 
         let auth_chain_before_event = auth_chain_from_state_map(&state_before_event)?;
@@ -462,6 +468,7 @@ where
             &[state_before_event, proposed_state_at_event],
             vec![auth_chain_before_event, auth_chain_at_event],
             |x| pdus_by_id.get(x).cloned(),
+            |conflicted_state_set| conflicted_state_subgraph_dfs(conflicted_state_set, &pdus_by_id),
         )?;
 
         state_at_events.insert(event_id.clone(), state_at_event);
@@ -493,9 +500,14 @@ where
         auth_chain_sets.push(auth_chain_at_event);
     }
 
-    resolve(auth_rules, state_res_rules, &leaf_states, auth_chain_sets, |x| {
-        pdus_by_id.get(x).cloned()
-    })
+    resolve(
+        auth_rules,
+        state_res_rules,
+        &leaf_states,
+        auth_chain_sets,
+        |x| pdus_by_id.get(x).cloned(),
+        |conflicted_state_set| conflicted_state_subgraph_dfs(conflicted_state_set, &pdus_by_id),
+    )
     .map_err(Into::into)
 }
 
@@ -528,4 +540,72 @@ fn auth_events_dfs(
     }
 
     Ok(out)
+}
+
+/// Retrieves the conflicted state subgraph, using Depth-first search on the `auth_events` of the
+/// conflicted state events.
+fn conflicted_state_subgraph_dfs(
+    conflicted_state_set: &StateMap<Vec<OwnedEventId>>,
+    pdus_by_id: &HashMap<OwnedEventId, Pdu>,
+) -> Option<HashSet<OwnedEventId>> {
+    let conflicted_event_ids: HashSet<_> =
+        conflicted_state_set.values().flatten().cloned().collect();
+    let mut conflicted_state_subgraph = HashSet::new();
+
+    let mut stack = vec![conflicted_event_ids.iter().cloned().collect::<Vec<_>>()];
+    let mut path = Vec::new();
+
+    let mut seen_events = HashSet::new();
+
+    let next_event = |stack: &mut Vec<Vec<_>>, path: &mut Vec<_>| {
+        while stack.last().is_some_and(|s| s.is_empty()) {
+            stack.pop();
+            path.pop();
+        }
+
+        stack.last_mut().and_then(|s| s.pop())
+    };
+
+    while let Some(event_id) = next_event(&mut stack, &mut path) {
+        path.push(event_id.clone());
+
+        if conflicted_state_subgraph.contains(&event_id) {
+            // If we reach a conflicted state subgraph path, this path must also be part of
+            // the conflicted state subgraph, as we will eventually reach a conflicted event
+            // if we follow this path.
+            //
+            // We check if path > 1 here and below, as we don't consider a single conflicted
+            // event to be a path from one conflicted to another.
+            if path.len() > 1 {
+                conflicted_state_subgraph.extend(path.iter().cloned());
+            }
+
+            // All possible paths from this event must have been traversed in the iteration
+            // that caused this event to be added to the conflicted state subgraph in the first
+            // place.
+            //
+            // We pop the path here and below as it won't be removed by `next_event`, due to us
+            // never pushing it's auth events to the stack.
+            path.pop();
+            continue;
+        }
+
+        if conflicted_event_ids.contains(&event_id) && path.len() > 1 {
+            conflicted_state_subgraph.extend(path.iter().cloned());
+        }
+
+        if seen_events.contains(&event_id) {
+            // All possible paths from this event must have been traversed in the iteration
+            // that caused this event to be added to the conflicted state subgraph in the first
+            // place.
+            path.pop();
+            continue;
+        }
+
+        stack.push(pdus_by_id.get(&event_id)?.auth_events().cloned().collect());
+
+        seen_events.insert(event_id);
+    }
+
+    Some(conflicted_state_subgraph)
 }
