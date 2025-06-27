@@ -21,20 +21,20 @@ pub struct RoomTopicEventContent {
     pub topic: String,
 
     /// Textual representation of the room topic in different mimetypes.
-    #[serde(rename = "m.topic", default, skip_serializing_if = "TextContentBlock::is_empty")]
-    pub topic_block: TextContentBlock,
+    #[serde(rename = "m.topic", default, skip_serializing_if = "TopicContentBlock::is_empty")]
+    pub topic_block: TopicContentBlock,
 }
 
 impl RoomTopicEventContent {
     /// Creates a new `RoomTopicEventContent` with the given plain text topic.
     pub fn new(topic: String) -> Self {
-        Self { topic_block: TextContentBlock::plain(topic.clone()), topic }
+        Self { topic_block: TopicContentBlock::plain(topic.clone()), topic }
     }
 
     /// Convenience constructor to create a new HTML topic with a plain text fallback.
     pub fn html(plain: impl Into<String>, html: impl Into<String>) -> Self {
         let plain = plain.into();
-        Self { topic: plain.clone(), topic_block: TextContentBlock::html(plain, html) }
+        Self { topic: plain.clone(), topic_block: TopicContentBlock::html(plain, html) }
     }
 
     /// Convenience constructor to create a topic from Markdown.
@@ -44,6 +44,117 @@ impl RoomTopicEventContent {
     #[cfg(feature = "markdown")]
     pub fn markdown(topic: impl AsRef<str> + Into<String>) -> Self {
         let plain = topic.as_ref().to_owned();
-        Self { topic: plain, topic_block: TextContentBlock::markdown(topic) }
+        Self { topic: plain, topic_block: TopicContentBlock::markdown(topic) }
+    }
+}
+
+/// A block for topic content.
+///
+/// To construct a `TopicContentBlock` with a custom [`TextContentBlock`], convert it with
+/// `TopicContentBlock::from()` / `.into()`.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct TopicContentBlock {
+    /// The text representations of the topic.
+    #[serde(rename = "m.text")]
+    pub text: TextContentBlock,
+}
+
+impl TopicContentBlock {
+    /// A convenience constructor to create a plain text `TopicContentBlock`.
+    pub fn plain(body: impl Into<String>) -> Self {
+        Self { text: TextContentBlock::plain(body) }
+    }
+
+    /// A convenience constructor to create an HTML `TopicContentBlock`.
+    pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self { text: TextContentBlock::html(body, html_body) }
+    }
+
+    /// A convenience constructor to create a `TopicContentBlock` from Markdown.
+    ///
+    /// The content includes an HTML topic if some Markdown formatting was detected, otherwise
+    /// only a plain text topic is included.
+    #[cfg(feature = "markdown")]
+    pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
+        Self { text: TextContentBlock::markdown(body) }
+    }
+
+    /// Whether this content block is empty.
+    fn is_empty(&self) -> bool {
+        self.text.is_empty()
+    }
+}
+
+impl From<TextContentBlock> for TopicContentBlock {
+    fn from(text: TextContentBlock) -> Self {
+        Self { text }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+
+    use super::RoomTopicEventContent;
+    use crate::message::TextContentBlock;
+
+    #[test]
+    fn serialize_content() {
+        // Content with plain text block.
+        let mut content = RoomTopicEventContent::new("Hot Topic".to_owned());
+        assert_eq!(
+            to_json_value(&content).unwrap(),
+            json!({
+                "topic": "Hot Topic",
+                "m.topic": {
+                   "m.text": [
+                        { "body": "Hot Topic" },
+                    ],
+                }
+            })
+        );
+
+        // Content without block.
+        content.topic_block.text = TextContentBlock::from(vec![]);
+        assert_eq!(
+            to_json_value(&content).unwrap(),
+            json!({
+                "topic": "Hot Topic",
+            })
+        );
+
+        // Content with HTML block.
+        let content = RoomTopicEventContent::html("Hot Topic", "<strong>Hot</strong> Topic");
+        assert_eq!(
+            to_json_value(&content).unwrap(),
+            json!({
+                "topic": "Hot Topic",
+                "m.topic": {
+                   "m.text": [
+                        { "body": "<strong>Hot</strong> Topic", "mimetype": "text/html" },
+                        { "body": "Hot Topic" },
+                    ],
+                }
+            })
+        );
+    }
+
+    #[test]
+    fn deserialize_content() {
+        let json = json!({
+            "topic": "Hot Topic",
+            "m.topic": {
+               "m.text": [
+                    { "body": "<strong>Hot</strong> Topic", "mimetype": "text/html" },
+                    { "body": "Hot Topic" },
+                ],
+            }
+        });
+
+        let content = from_json_value::<RoomTopicEventContent>(json).unwrap();
+        assert_eq!(content.topic, "Hot Topic");
+        assert_eq!(content.topic_block.text.find_html(), Some("<strong>Hot</strong> Topic"));
+        assert_eq!(content.topic_block.text.find_plain(), Some("Hot Topic"));
     }
 }
