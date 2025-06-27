@@ -180,6 +180,7 @@ pub mod receipt;
 pub mod relation;
 pub mod room;
 pub mod room_key;
+pub mod room_key_bundle;
 pub mod room_key_request;
 pub mod secret;
 pub mod secret_storage;

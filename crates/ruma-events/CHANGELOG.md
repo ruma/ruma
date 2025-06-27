@@ -43,6 +43,7 @@ Breaking changes:
 
 Improvements:
 
+- Add support for the `m.room_key_bundle` to-device event, which was introduced in [MSC4268](https://github.com/matrix-org/matrix-spec-proposals/pull/4268).
 - Add support for the `m.room_key.withheld` to-device event, which was introduced in Matrix 1.1.
 - Remove the `pdu` module and the corresponding `unstable-pdu` cargo feature. As far as we know, it
   was not used anywhere outside of the tests of ruma-state-res.
