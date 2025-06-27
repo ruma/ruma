@@ -8,6 +8,11 @@ Improvements:
 - Add the `encryption`, `room_version` and `allowed_room_ids` fields to
   `SpaceHierarchyRoomsChunk`, according to MSC3266 / Matrix 1.15.
 - Stabilize the support for the room summary endpoint, according to Matrix 1.15.
+- Stabilize support for the OAuth 2.0 authorization server metadata endpoint,
+  according to Matrix 1.15.
+  - The `discovery::get_authentication_issuer` endpoint was removed.
+  - Some fields of `AuthorizationServerMetadata` are now behind the
+    `unstable-msc4108` or `unstable-msc4191` cargo features.
 
 # 0.20.3
 
