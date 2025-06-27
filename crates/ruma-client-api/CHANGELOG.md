@@ -7,6 +7,7 @@ Improvements:
 - Use `ruma_common::RoomSummary` for the `room::get_summary` endpoint.
 - Add the `encryption`, `room_version` and `allowed_room_ids` fields to
   `SpaceHierarchyRoomsChunk`, according to MSC3266 / Matrix 1.15.
+- Stabilize the support for the room summary endpoint, according to Matrix 1.15.
 
 # 0.20.3
 
