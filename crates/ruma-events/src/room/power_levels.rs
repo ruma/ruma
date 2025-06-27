@@ -113,11 +113,12 @@ pub struct RoomPowerLevelsEventContent {
 }
 
 impl RoomPowerLevelsEventContent {
-    /// Creates a new `RoomPowerLevelsEventContent` with all-default values.
-    pub fn new() -> Self {
+    /// Creates a new `RoomPowerLevelsEventContent` with all-default values for the given
+    /// authorization rules.
+    pub fn new(rules: &AuthorizationRules) -> Self {
         // events_default, users_default and invite having a default of 0 while the others have a
         // default of 50 is not an oversight, these defaults are from the Matrix specification.
-        Self {
+        let mut pl = Self {
             ban: default_power_level(),
             events: BTreeMap::new(),
             events_default: int!(0),
@@ -128,13 +129,15 @@ impl RoomPowerLevelsEventContent {
             users: BTreeMap::new(),
             users_default: int!(0),
             notifications: NotificationPowerLevels::default(),
-        }
-    }
-}
+        };
 
-impl Default for RoomPowerLevelsEventContent {
-    fn default() -> Self {
-        Self::new()
+        if rules.explicitly_privilege_room_creators {
+            // Since `org.matrix.hydra.11`, the default power level to send m.room.tombstone
+            // events is increased to PL150.
+            pl.events.insert(TimelineEventType::RoomTombstone, int!(150));
+        }
+
+        pl
     }
 }
 
