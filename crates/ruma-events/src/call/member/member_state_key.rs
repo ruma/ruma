@@ -200,7 +200,7 @@ pub enum KeyParseError {
 
 impl de::Expected for KeyParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "correct call member event key format. The provided string, {})", self)
+        write!(f, "correct call member event key format. The provided string, {self})")
     }
 }
 
