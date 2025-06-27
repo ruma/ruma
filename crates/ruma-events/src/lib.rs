@@ -168,7 +168,6 @@ pub mod marked_unread;
 pub mod media_preview_config;
 #[cfg(feature = "unstable-msc4171")]
 pub mod member_hints;
-#[cfg(feature = "unstable-msc1767")]
 pub mod message;
 pub mod policy;
 #[cfg(feature = "unstable-msc3381")]
