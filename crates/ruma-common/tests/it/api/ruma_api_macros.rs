@@ -1,4 +1,5 @@
 #![allow(clippy::exhaustive_structs)]
+#![allow(dead_code)]
 
 pub mod some_endpoint {
     use http::header::CONTENT_TYPE;

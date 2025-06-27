@@ -340,7 +340,7 @@ fn auth_events_dfs(
         stack.extend(
             pdus_by_id
                 .get(&event_id)
-                .ok_or_else(|| format!("missing required PDU: {}", event_id))?
+                .ok_or_else(|| format!("missing required PDU: {event_id}"))?
                 .auth_events()
                 .cloned(),
         );

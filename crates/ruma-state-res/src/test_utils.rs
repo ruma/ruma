@@ -1,6 +1,7 @@
 use std::{
     borrow::Borrow,
     collections::{BTreeMap, HashMap, HashSet},
+    slice,
     sync::{
         atomic::{AtomicU64, Ordering::SeqCst},
         Arc,
@@ -265,8 +266,8 @@ impl TestStore<PduEvent> {
             TimelineEventType::RoomMember,
             Some(alice().as_str()),
             member_content_join(),
-            &[cre.clone()],
-            &[cre.clone()],
+            slice::from_ref(&cre),
+            slice::from_ref(&cre),
         );
         self.0.insert(alice_mem.event_id().to_owned(), Arc::clone(&alice_mem));
 

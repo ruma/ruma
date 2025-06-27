@@ -1,6 +1,7 @@
 //! PUT /_matrix/client/r0/directory/room/{room_alias}
 
 #![allow(clippy::exhaustive_structs)]
+#![allow(dead_code)]
 
 use bytes::BufMut;
 use http::{header::CONTENT_TYPE, method::Method};
