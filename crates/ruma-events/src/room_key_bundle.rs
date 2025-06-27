@@ -15,7 +15,7 @@ use crate::room::EncryptedFile;
 /// This event is defined in [MSC4268](https://github.com/matrix-org/matrix-spec-proposals/pull/4268)
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[ruma_event(type = "m.room_key_bundle", kind = ToDevice)]
+#[ruma_event(type = "io.element.msc4268.room_key_bundle", alias = "m.room_key_bundle", kind = ToDevice)]
 pub struct ToDeviceRoomKeyBundleEventContent {
     /// The room that these keys are for.
     pub room_id: OwnedRoomId,
