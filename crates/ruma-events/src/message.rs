@@ -203,6 +203,7 @@ impl From<TextContentBlock> for MessageEventContent {
 /// To construct a `TextContentBlock` with custom MIME types, construct a `Vec<TextRepresentation>`
 /// first and use its `::from()` / `.into()` implementation.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[serde(transparent)]
 pub struct TextContentBlock(Vec<TextRepresentation>);
 
 impl TextContentBlock {
