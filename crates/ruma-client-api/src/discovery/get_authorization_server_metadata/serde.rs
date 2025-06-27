@@ -3,9 +3,10 @@ use std::collections::BTreeSet;
 use serde::{de, Deserialize};
 use url::Url;
 
-use super::msc2965::{
-    AccountManagementAction, AuthorizationServerMetadata, CodeChallengeMethod, GrantType, Prompt,
-    ResponseMode, ResponseType,
+#[cfg(feature = "unstable-msc4191")]
+use super::v1::AccountManagementAction;
+use super::v1::{
+    AuthorizationServerMetadata, CodeChallengeMethod, GrantType, Prompt, ResponseMode, ResponseType,
 };
 
 impl<'de> Deserialize<'de> for AuthorizationServerMetadata {
@@ -25,8 +26,11 @@ impl<'de> Deserialize<'de> for AuthorizationServerMetadata {
             grant_types_supported,
             revocation_endpoint,
             code_challenge_methods_supported,
+            #[cfg(feature = "unstable-msc4191")]
             account_management_uri,
+            #[cfg(feature = "unstable-msc4191")]
             account_management_actions_supported,
+            #[cfg(feature = "unstable-msc4108")]
             device_authorization_endpoint,
             prompt_values_supported,
         } = helper;
@@ -99,8 +103,11 @@ impl<'de> Deserialize<'de> for AuthorizationServerMetadata {
             grant_types_supported,
             revocation_endpoint,
             code_challenge_methods_supported,
+            #[cfg(feature = "unstable-msc4191")]
             account_management_uri,
+            #[cfg(feature = "unstable-msc4191")]
             account_management_actions_supported,
+            #[cfg(feature = "unstable-msc4108")]
             device_authorization_endpoint,
             prompt_values_supported,
         })
@@ -118,9 +125,12 @@ struct AuthorizationServerMetadataDeHelper {
     grant_types_supported: BTreeSet<GrantType>,
     revocation_endpoint: Url,
     code_challenge_methods_supported: BTreeSet<CodeChallengeMethod>,
+    #[cfg(feature = "unstable-msc4191")]
     account_management_uri: Option<Url>,
+    #[cfg(feature = "unstable-msc4191")]
     #[serde(default)]
     account_management_actions_supported: BTreeSet<AccountManagementAction>,
+    #[cfg(feature = "unstable-msc4108")]
     device_authorization_endpoint: Option<Url>,
     #[serde(default)]
     prompt_values_supported: Vec<Prompt>,
@@ -132,12 +142,13 @@ mod tests {
     use serde_json::{from_value as from_json_value, value::Map as JsonMap, Value as JsonValue};
     use url::Url;
 
+    #[cfg(feature = "unstable-msc4191")]
+    use crate::discovery::get_authorization_server_metadata::v1::AccountManagementAction;
     use crate::discovery::get_authorization_server_metadata::{
-        msc2965::{
-            AccountManagementAction, AuthorizationServerMetadata, CodeChallengeMethod, GrantType,
-            ResponseMode, ResponseType,
-        },
         tests::authorization_server_metadata_json,
+        v1::{
+            AuthorizationServerMetadata, CodeChallengeMethod, GrantType, ResponseMode, ResponseType,
+        },
     };
 
     /// A valid `AuthorizationServerMetadata` with all fields and values, as a JSON object.
@@ -185,30 +196,34 @@ mod tests {
         assert_eq!(metadata.code_challenge_methods_supported.len(), 1);
         assert!(metadata.code_challenge_methods_supported.contains(&CodeChallengeMethod::S256));
 
-        assert_eq!(
-            metadata.account_management_uri.as_ref().map(Url::as_str),
-            Some("https://server.local/account")
-        );
-        assert_eq!(metadata.account_management_actions_supported.len(), 6);
-        assert!(metadata
-            .account_management_actions_supported
-            .contains(&AccountManagementAction::Profile));
-        assert!(metadata
-            .account_management_actions_supported
-            .contains(&AccountManagementAction::SessionsList));
-        assert!(metadata
-            .account_management_actions_supported
-            .contains(&AccountManagementAction::SessionView));
-        assert!(metadata
-            .account_management_actions_supported
-            .contains(&AccountManagementAction::SessionEnd));
-        assert!(metadata
-            .account_management_actions_supported
-            .contains(&AccountManagementAction::AccountDeactivate));
-        assert!(metadata
-            .account_management_actions_supported
-            .contains(&AccountManagementAction::CrossSigningReset));
+        #[cfg(feature = "unstable-msc4191")]
+        {
+            assert_eq!(
+                metadata.account_management_uri.as_ref().map(Url::as_str),
+                Some("https://server.local/account")
+            );
+            assert_eq!(metadata.account_management_actions_supported.len(), 6);
+            assert!(metadata
+                .account_management_actions_supported
+                .contains(&AccountManagementAction::Profile));
+            assert!(metadata
+                .account_management_actions_supported
+                .contains(&AccountManagementAction::SessionsList));
+            assert!(metadata
+                .account_management_actions_supported
+                .contains(&AccountManagementAction::SessionView));
+            assert!(metadata
+                .account_management_actions_supported
+                .contains(&AccountManagementAction::SessionEnd));
+            assert!(metadata
+                .account_management_actions_supported
+                .contains(&AccountManagementAction::AccountDeactivate));
+            assert!(metadata
+                .account_management_actions_supported
+                .contains(&AccountManagementAction::CrossSigningReset));
+        }
 
+        #[cfg(feature = "unstable-msc4108")]
         assert_eq!(
             metadata.device_authorization_endpoint.as_ref().map(Url::as_str),
             Some("https://server.local/device")
@@ -248,9 +263,13 @@ mod tests {
         assert_eq!(metadata.code_challenge_methods_supported.len(), 1);
         assert!(metadata.code_challenge_methods_supported.contains(&CodeChallengeMethod::S256));
 
-        assert_eq!(metadata.account_management_uri, None);
-        assert_eq!(metadata.account_management_actions_supported.len(), 0);
+        #[cfg(feature = "unstable-msc4191")]
+        {
+            assert_eq!(metadata.account_management_uri, None);
+            assert_eq!(metadata.account_management_actions_supported.len(), 0);
+        }
 
+        #[cfg(feature = "unstable-msc4108")]
         assert_eq!(metadata.device_authorization_endpoint, None);
     }
 
@@ -298,33 +317,37 @@ mod tests {
             .code_challenge_methods_supported
             .contains(&CodeChallengeMethod::from("custom")));
 
-        assert_eq!(
-            metadata.account_management_uri.as_ref().map(Url::as_str),
-            Some("https://server.local/account")
-        );
-        assert_eq!(metadata.account_management_actions_supported.len(), 7);
-        assert!(metadata
-            .account_management_actions_supported
-            .contains(&AccountManagementAction::Profile));
-        assert!(metadata
-            .account_management_actions_supported
-            .contains(&AccountManagementAction::SessionsList));
-        assert!(metadata
-            .account_management_actions_supported
-            .contains(&AccountManagementAction::SessionView));
-        assert!(metadata
-            .account_management_actions_supported
-            .contains(&AccountManagementAction::SessionEnd));
-        assert!(metadata
-            .account_management_actions_supported
-            .contains(&AccountManagementAction::AccountDeactivate));
-        assert!(metadata
-            .account_management_actions_supported
-            .contains(&AccountManagementAction::CrossSigningReset));
-        assert!(metadata
-            .account_management_actions_supported
-            .contains(&AccountManagementAction::from("custom")));
+        #[cfg(feature = "unstable-msc4191")]
+        {
+            assert_eq!(
+                metadata.account_management_uri.as_ref().map(Url::as_str),
+                Some("https://server.local/account")
+            );
+            assert_eq!(metadata.account_management_actions_supported.len(), 7);
+            assert!(metadata
+                .account_management_actions_supported
+                .contains(&AccountManagementAction::Profile));
+            assert!(metadata
+                .account_management_actions_supported
+                .contains(&AccountManagementAction::SessionsList));
+            assert!(metadata
+                .account_management_actions_supported
+                .contains(&AccountManagementAction::SessionView));
+            assert!(metadata
+                .account_management_actions_supported
+                .contains(&AccountManagementAction::SessionEnd));
+            assert!(metadata
+                .account_management_actions_supported
+                .contains(&AccountManagementAction::AccountDeactivate));
+            assert!(metadata
+                .account_management_actions_supported
+                .contains(&AccountManagementAction::CrossSigningReset));
+            assert!(metadata
+                .account_management_actions_supported
+                .contains(&AccountManagementAction::from("custom")));
+        }
 
+        #[cfg(feature = "unstable-msc4108")]
         assert_eq!(
             metadata.device_authorization_endpoint.as_ref().map(Url::as_str),
             Some("https://server.local/device")

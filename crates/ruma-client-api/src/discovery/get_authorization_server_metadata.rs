@@ -4,10 +4,10 @@
 
 mod serde;
 
-pub mod msc2965 {
-    //! `MSC2965` ([MSC])
+pub mod v1 {
+    //! `v1` ([spec])
     //!
-    //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2965
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv1auth_metadata
 
     use std::collections::BTreeSet;
 
@@ -27,6 +27,7 @@ pub mod msc2965 {
         authentication: None,
         history: {
             unstable => "/_matrix/client/unstable/org.matrix.msc2965/auth_metadata",
+            1.15 => "/_matrix/client/v1/auth_metadata",
         }
     };
 
@@ -38,9 +39,9 @@ pub mod msc2965 {
     /// Request type for the `auth_metadata` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
-        /// The authorization server metadata as defined in [RFC8414].
+        /// The authorization server metadata as defined in [RFC 8414].
         ///
-        /// [RFC8414]: https://datatracker.ietf.org/doc/html/rfc8414
+        /// [RFC 8414]: https://datatracker.ietf.org/doc/html/rfc8414
         #[ruma_api(body)]
         pub metadata: Raw<AuthorizationServerMetadata>,
     }
@@ -61,7 +62,7 @@ pub mod msc2965 {
 
     /// Metadata describing the configuration of the authorization server.
     ///
-    /// While the metadata properties and their values are declared for OAuth 2.0 in [RFC8414] and
+    /// While the metadata properties and their values are declared for OAuth 2.0 in [RFC 8414] and
     /// other RFCs, this type only supports properties and values that are used for Matrix, as
     /// specified in [MSC3861] and its dependencies.
     ///
@@ -72,7 +73,7 @@ pub mod msc2965 {
     ///
     /// This type has no constructor, it should be sent as raw JSON directly.
     ///
-    /// [RFC8414]: https://datatracker.ietf.org/doc/html/rfc8414
+    /// [RFC 8414]: https://datatracker.ietf.org/doc/html/rfc8414
     /// [MSC3861]: https://github.com/matrix-org/matrix-spec-proposals/pull/3861
     #[derive(Debug, Clone, Serialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
@@ -82,31 +83,31 @@ pub mod msc2965 {
         /// This should be a URL with no query or fragment components.
         pub issuer: Url,
 
-        /// URL of the authorization server's authorization endpoint ([RFC6749]).
+        /// URL of the authorization server's authorization endpoint ([RFC 6749]).
         ///
-        /// [RFC6749]: https://datatracker.ietf.org/doc/html/rfc6749
+        /// [RFC 6749]: https://datatracker.ietf.org/doc/html/rfc6749
         pub authorization_endpoint: Url,
 
-        /// URL of the authorization server's token endpoint ([RFC6749]).
+        /// URL of the authorization server's token endpoint ([RFC 6749]).
         ///
-        /// [RFC6749]: https://datatracker.ietf.org/doc/html/rfc6749
+        /// [RFC 6749]: https://datatracker.ietf.org/doc/html/rfc6749
         pub token_endpoint: Url,
 
         /// URL of the authorization server's OAuth 2.0 Dynamic Client Registration endpoint
-        /// ([RFC7591]).
+        /// ([RFC 7591]).
         ///
-        /// [RFC7591]: https://datatracker.ietf.org/doc/html/rfc7591
+        /// [RFC 7591]: https://datatracker.ietf.org/doc/html/rfc7591
         #[serde(skip_serializing_if = "Option::is_none")]
         pub registration_endpoint: Option<Url>,
 
         /// List of the OAuth 2.0 `response_type` values that this authorization server supports.
         ///
         /// Those values are the same as those used with the `response_types` parameter defined by
-        /// OAuth 2.0 Dynamic Client Registration ([RFC7591]).
+        /// OAuth 2.0 Dynamic Client Registration ([RFC 7591]).
         ///
         /// This field must include [`ResponseType::Code`].
         ///
-        /// [RFC7591]: https://datatracker.ietf.org/doc/html/rfc7591
+        /// [RFC 7591]: https://datatracker.ietf.org/doc/html/rfc7591
         pub response_types_supported: BTreeSet<ResponseType>,
 
         /// List of the OAuth 2.0 `response_mode` values that this authorization server supports.
@@ -121,43 +122,46 @@ pub mod msc2965 {
         /// List of the OAuth 2.0 `grant_type` values that this authorization server supports.
         ///
         /// Those values are the same as those used with the `grant_types` parameter defined by
-        /// OAuth 2.0 Dynamic Client Registration ([RFC7591]).
+        /// OAuth 2.0 Dynamic Client Registration ([RFC 7591]).
         ///
         /// This field must include [`GrantType::AuthorizationCode`] and
         /// [`GrantType::RefreshToken`].
         ///
-        /// [RFC7591]: https://datatracker.ietf.org/doc/html/rfc7591
+        /// [RFC 7591]: https://datatracker.ietf.org/doc/html/rfc7591
         pub grant_types_supported: BTreeSet<GrantType>,
 
-        /// URL of the authorization server's OAuth 2.0 revocation endpoint ([RFC7009]).
+        /// URL of the authorization server's OAuth 2.0 revocation endpoint ([RFC 7009]).
         ///
-        /// [RFC7009]: https://datatracker.ietf.org/doc/html/rfc7009
+        /// [RFC 7009]: https://datatracker.ietf.org/doc/html/rfc7009
         pub revocation_endpoint: Url,
 
         /// List of Proof Key for Code Exchange (PKCE) code challenge methods supported by this
-        /// authorization server ([RFC7636]).
+        /// authorization server ([RFC 7636]).
         ///
         /// This field must include [`CodeChallengeMethod::S256`].
         ///
-        /// [RFC7636]: https://datatracker.ietf.org/doc/html/rfc7636
+        /// [RFC 7636]: https://datatracker.ietf.org/doc/html/rfc7636
         pub code_challenge_methods_supported: BTreeSet<CodeChallengeMethod>,
 
         /// URL where the user is able to access the account management capabilities of the
         /// authorization server ([MSC4191]).
         ///
         /// [MSC4191]: https://github.com/matrix-org/matrix-spec-proposals/pull/4191
+        #[cfg(feature = "unstable-msc4191")]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub account_management_uri: Option<Url>,
 
         /// List of actions that the account management URL supports ([MSC4191]).
         ///
         /// [MSC4191]: https://github.com/matrix-org/matrix-spec-proposals/pull/4191
+        #[cfg(feature = "unstable-msc4191")]
         #[serde(skip_serializing_if = "BTreeSet::is_empty")]
         pub account_management_actions_supported: BTreeSet<AccountManagementAction>,
 
-        /// URL of the authorization server's device authorization endpoint ([RFC8628]).
+        /// URL of the authorization server's device authorization endpoint ([RFC 8628]).
         ///
-        /// [RFC8628]: https://datatracker.ietf.org/doc/html/rfc8628
+        /// [RFC 8628]: https://datatracker.ietf.org/doc/html/rfc8628
+        #[cfg(feature = "unstable-msc4108")]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub device_authorization_endpoint: Option<Url>,
 
@@ -215,9 +219,11 @@ pub mod msc2965 {
             ];
             let optional_urls = &[
                 self.registration_endpoint.as_ref().map(|string| ("registration_endpoint", string)),
+                #[cfg(feature = "unstable-msc4191")]
                 self.account_management_uri
                     .as_ref()
                     .map(|string| ("account_management_uri", string)),
+                #[cfg(feature = "unstable-msc4108")]
                 self.device_authorization_endpoint
                     .as_ref()
                     .map(|string| ("device_authorization_endpoint", string)),
@@ -239,9 +245,9 @@ pub mod msc2965 {
     #[ruma_enum(rename_all = "lowercase")]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum ResponseType {
-        /// Use the authorization code grant flow ([RFC6749]).
+        /// Use the authorization code grant flow ([RFC 6749]).
         ///
-        /// [RFC6749]: https://datatracker.ietf.org/doc/html/rfc6749
+        /// [RFC 6749]: https://datatracker.ietf.org/doc/html/rfc6749
         Code,
 
         #[doc(hidden)]
@@ -277,19 +283,19 @@ pub mod msc2965 {
     #[ruma_enum(rename_all = "snake_case")]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum GrantType {
-        /// The authorization code grant type ([RFC6749]).
+        /// The authorization code grant type ([RFC 6749]).
         ///
-        /// [RFC6749]: https://datatracker.ietf.org/doc/html/rfc6749
+        /// [RFC 6749]: https://datatracker.ietf.org/doc/html/rfc6749
         AuthorizationCode,
 
-        /// The refresh token grant type ([RFC6749]).
+        /// The refresh token grant type ([RFC 6749]).
         ///
-        /// [RFC6749]: https://datatracker.ietf.org/doc/html/rfc6749
+        /// [RFC 6749]: https://datatracker.ietf.org/doc/html/rfc6749
         RefreshToken,
 
-        /// The device code grant type ([RFC8628]).
+        /// The device code grant type ([RFC 8628]).
         ///
-        /// [RFC8628]: https://datatracker.ietf.org/doc/html/rfc8628
+        /// [RFC 8628]: https://datatracker.ietf.org/doc/html/rfc8628
         #[cfg(feature = "unstable-msc4108")]
         #[ruma_enum(rename = "urn:ietf:params:oauth:grant-type:device_code")]
         DeviceCode,
@@ -303,9 +309,9 @@ pub mod msc2965 {
     #[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, PartialOrdAsRefStr, OrdAsRefStr)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum CodeChallengeMethod {
-        /// Use a SHA-256, base64url-encoded code challenge ([RFC7636]).
+        /// Use a SHA-256, base64url-encoded code challenge ([RFC 7636]).
         ///
-        /// [RFC7636]: https://datatracker.ietf.org/doc/html/rfc7636
+        /// [RFC 7636]: https://datatracker.ietf.org/doc/html/rfc7636
         S256,
 
         #[doc(hidden)]
@@ -314,16 +320,17 @@ pub mod msc2965 {
 
     /// The action that the user wishes to do at the account management URL.
     ///
-    /// The values are specified in [MSC4191].
+    /// The values are specified in [MSC 4191].
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
     ///
-    /// [MSC4191]: https://github.com/matrix-org/matrix-spec-proposals/pull/4191
+    /// [MSC 4191]: https://github.com/matrix-org/matrix-spec-proposals/pull/4191
+    #[cfg(feature = "unstable-msc4191")]
     #[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, PartialOrdAsRefStr, OrdAsRefStr)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum AccountManagementAction {
         /// The user wishes to view their profile (name, avatar, contact details).
         ///
-        /// [RFC7636]: https://datatracker.ietf.org/doc/html/rfc7636
+        /// [RFC 7636]: https://datatracker.ietf.org/doc/html/rfc7636
         #[ruma_enum(rename = "org.matrix.profile")]
         Profile,
 
@@ -385,7 +392,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, Value as JsonValue};
     use url::Url;
 
-    use super::msc2965::AuthorizationServerMetadata;
+    use super::v1::AuthorizationServerMetadata;
 
     /// A valid `AuthorizationServerMetadata` with all fields and values, as a JSON object.
     pub(super) fn authorization_server_metadata_json() -> JsonValue {
@@ -471,15 +478,22 @@ mod tests {
         metadata.validate_urls().unwrap_err();
         metadata.insecure_validate_urls().unwrap();
 
-        let mut metadata = original_metadata.clone();
-        metadata.account_management_uri = Some(Url::parse("http://server.local/account").unwrap());
-        metadata.validate_urls().unwrap_err();
-        metadata.insecure_validate_urls().unwrap();
+        #[cfg(feature = "unstable-msc4191")]
+        {
+            let mut metadata = original_metadata.clone();
+            metadata.account_management_uri =
+                Some(Url::parse("http://server.local/account").unwrap());
+            metadata.validate_urls().unwrap_err();
+            metadata.insecure_validate_urls().unwrap();
+        }
 
-        let mut metadata = original_metadata.clone();
-        metadata.device_authorization_endpoint =
-            Some(Url::parse("http://server.local/device").unwrap());
-        metadata.validate_urls().unwrap_err();
-        metadata.insecure_validate_urls().unwrap();
+        #[cfg(feature = "unstable-msc4108")]
+        {
+            let mut metadata = original_metadata.clone();
+            metadata.device_authorization_endpoint =
+                Some(Url::parse("http://server.local/device").unwrap());
+            metadata.validate_urls().unwrap_err();
+            metadata.insecure_validate_urls().unwrap();
+        }
     }
 }
