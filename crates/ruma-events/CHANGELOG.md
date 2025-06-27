@@ -3,6 +3,7 @@
 Improvements:
 
 - Add support for the `m.room_key.withheld` to-device event, which was introduced in Matrix 1.1.
+- Stabilize support for rich text in room topics, according to Matrix 1.15.
    
 # 0.30.3
 
