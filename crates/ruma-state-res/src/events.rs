@@ -9,7 +9,7 @@ mod traits;
 
 pub use self::{
     create::RoomCreateEvent,
-    join_rules::{JoinRule, RoomJoinRulesEvent},
+    join_rules::RoomJoinRulesEvent,
     member::RoomMemberEvent,
     power_levels::{RoomPowerLevelsEvent, RoomPowerLevelsIntField},
     third_party_invite::RoomThirdPartyInviteEvent,
