@@ -63,6 +63,9 @@ Breaking changes:
   `RoomPowerLevelsRules`.
 - Remove `Default` implementation for `RoomPowerLevelsEventContent` and make `new` take
   `AuthorizationRules` as a parameter.
+- The `event_id` field of `PreviousRoom` is now optional and deprecated. It has been removed in new
+  room versions so clients should not rely on it. They can obtain it by requesting the
+  `m.room.tombstone` event in the state of the predecessor.
 
 Improvements:
 
