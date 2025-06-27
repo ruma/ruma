@@ -3,8 +3,7 @@
 Breaking changes:
 
 - Zeroize the secret key contained in JsonWebKey if the struct gets dropped.
-  This change prevents the `k` field containing the key to be moved out of the
-  struct.
+  This change means you can no longer move any fields out of the struct.
 - Reply fallbacks are not generated anymore, according to MSC2781 / Matrix 1.13.
   As a result, the following methods of `RoomMessageEventContent(WithoutRelation)`
   were simplified:
