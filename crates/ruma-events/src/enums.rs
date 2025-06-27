@@ -173,6 +173,9 @@ event_enum! {
     enum ToDevice {
         "m.dummy" => super::dummy,
         "m.room_key" => super::room_key,
+        #[cfg(feature = "unstable-msc4268")]
+        #[ruma_enum(alias = "m.room_key_bundle")]
+        "io.element.msc4268.room_key_bundle" => super::room_key_bundle,
         "m.room_key_request" => super::room_key_request,
         "m.room_key.withheld" => super::room_key::withheld,
         "m.forwarded_room_key" => super::forwarded_room_key,
