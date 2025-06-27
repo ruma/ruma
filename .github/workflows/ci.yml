@@ -3,8 +3,8 @@ name: CI
 env:
   CARGO_TERM_COLOR: always
   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
-  # Keep in sync with version in `rust-toolchain.toml` and `xtask/src/ci.rs`
-  NIGHTLY: nightly-2024-11-26
+  # Keep in sync with version in `rust-toolchain.toml` and `xtask/src/main.rs`
+  NIGHTLY: nightly-2025-06-27
 
 on:
   push:
