@@ -61,6 +61,8 @@ Breaking changes:
 - Change `impl From<RoomPowerLevels> for RoomPowerLevelsEventContent` to a `TryFrom` implementation.
   The `users` field is now validated against the creators of the room, depending on the
   `RoomPowerLevelsRules`.
+- Remove `Default` implementation for `RoomPowerLevelsEventContent` and make `new` take
+  `AuthorizationRules` as a parameter.
 
 Improvements:
 
