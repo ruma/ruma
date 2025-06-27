@@ -1,13 +1,11 @@
 //! `GET /_matrix/client/v1/summary/{roomIdOrAlias}`
 //!
-//! Experimental API enabled with MSC3266.
-//!
 //! Returns a short description of the state of a room.
 
-pub mod msc3266 {
-    //! `MSC3266` ([MSC])
+pub mod v1 {
+    //! `v1` ([spec])
     //!
-    //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3266
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv1room_summaryroomidoralias
 
     use ruma_common::{
         api::{request, response, Metadata},
@@ -23,6 +21,7 @@ pub mod msc3266 {
         authentication: AccessTokenOptional,
         history: {
             unstable => "/_matrix/client/unstable/im.nheko.summary/rooms/{room_id_or_alias}/summary",
+            1.15 => "/_matrix/client/v1/room_summary/{room_id_or_alias}",
         }
     };
 

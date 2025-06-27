@@ -23,7 +23,7 @@ Breaking changes:
   `room::get_summary` endpoints.
   - `SpaceHierarchyRoomsChunk` is now built around `RoomSummary`, and
     `SpaceHierarchyRoomsChunkInit` was removed.
-  - `room::get_summary::msc3266::Response` is now built around `RoomSummary`.
+  - `room::get_summary::v1::Response` is now built around `RoomSummary`.
 
 Improvements:
 
@@ -33,6 +33,7 @@ Improvements:
   parameter. The former was removed in Matrix 1.14.
 - All the types used in `discover_homeserver::Response` now implement PartialEq
   and Eq.
+- Stabilize the support for the room summary endpoint, according to Matrix 1.15.
 
 # 0.20.3
 
