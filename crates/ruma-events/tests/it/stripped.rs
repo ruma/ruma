@@ -15,9 +15,11 @@ fn serialize_stripped_state_event_any_content() {
         json,
         json!({
             "topic": "Testing room",
-            "m.topic": [
-                { "body": "Testing room" },
-            ],
+            "m.topic": {
+                "m.text": [
+                    { "body": "Testing room" },
+                ],
+            },
         })
     );
 }

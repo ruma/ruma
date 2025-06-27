@@ -62,7 +62,7 @@ Improvements:
     `MediaPreviewConfigEventContent::new().media_previews(Some(MediaPreviews::Off))`.
   - `MediaPreviewConfigEventContent::merge_global_and_room_config()` can be used to get the current
     config for a room.
-- Stabilize support for rich text in room topics, according to Matrix 1.15.
+- Fix and stabilize support for rich text in room topics, according to Matrix 1.15.
    
 # 0.30.3
 
