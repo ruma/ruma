@@ -24,6 +24,7 @@ use crate::{
         power_levels::RoomPowerLevelsEventOptionExt, RoomCreateEvent, RoomMemberEvent,
         RoomPowerLevelsEvent, RoomPowerLevelsIntField,
     },
+    utils::RoomIdExt,
     Error, Event, Result,
 };
 
@@ -488,18 +489,31 @@ fn power_level_for_sender<E: Event>(
     let mut room_create_event = None;
     let mut room_power_levels_event = None;
 
+    if let Some(event) = &event {
+        if rules.room_create_event_id_as_room_id && creators_lock.get().is_none() {
+            // The m.room.create event is not in the auth events, we can get its ID via the room ID.
+            room_create_event = event
+                .room_id()
+                .and_then(|room_id| room_id.room_create_event_id().ok())
+                .and_then(|room_create_event_id| fetch_event(&room_create_event_id));
+        }
+    }
+
     for auth_event_id in event.as_ref().map(|pdu| pdu.auth_events()).into_iter().flatten() {
         if let Some(auth_event) = fetch_event(auth_event_id.borrow()) {
             if is_type_and_key(&auth_event, &TimelineEventType::RoomPowerLevels, "") {
                 room_power_levels_event = Some(RoomPowerLevelsEvent::new(auth_event));
-            } else if creators_lock.get().is_none()
+            } else if !rules.room_create_event_id_as_room_id
+                && creators_lock.get().is_none()
                 && is_type_and_key(&auth_event, &TimelineEventType::RoomCreate, "")
             {
-                room_create_event = Some(RoomCreateEvent::new(auth_event));
+                room_create_event = Some(auth_event);
             }
 
             if room_power_levels_event.is_some()
-                && (creators_lock.get().is_some() || room_create_event.is_some())
+                && (rules.room_create_event_id_as_room_id
+                    || creators_lock.get().is_some()
+                    || room_create_event.is_some())
             {
                 break;
             }
@@ -510,6 +524,7 @@ fn power_level_for_sender<E: Event>(
     let creators = if let Some(creators) = creators_lock.get() {
         Some(creators)
     } else if let Some(room_create_event) = room_create_event {
+        let room_create_event = RoomCreateEvent::new(room_create_event);
         let creators = room_create_event.creators(rules)?;
         Some(creators_lock.get_or_init(|| creators))
     } else {
@@ -579,6 +594,22 @@ fn iterative_auth_checks<E: Event + Clone>(
                 }
             } else {
                 warn!(event_id = %auth_event_id.borrow(), "missing auth event");
+            }
+        }
+
+        // If the `m.room.create` event is not in the auth events, we need to add it, because it's
+        // always part of the state and required in the auth rules.
+        if rules.room_create_event_id_as_room_id
+            && *event.event_type() != TimelineEventType::RoomCreate
+        {
+            if let Some(room_create_event) = event
+                .room_id()
+                .and_then(|room_id| room_id.room_create_event_id().ok())
+                .and_then(|room_create_event_id| fetch_event(&room_create_event_id))
+            {
+                auth_events.insert((StateEventType::RoomCreate, String::new()), room_create_event);
+            } else {
+                warn!("missing m.room.create event");
             }
         }
 
