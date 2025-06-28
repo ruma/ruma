@@ -232,7 +232,7 @@ pub struct RedactedRoomRedactionEventContent {
 }
 
 impl StaticEventContent for RedactedRoomRedactionEventContent {
-    const TYPE: &'static str = "m.room.redaction";
+    const TYPE: &'static str = RoomRedactionEventContent::TYPE;
 }
 
 impl RedactedMessageLikeEventContent for RedactedRoomRedactionEventContent {
