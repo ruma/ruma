@@ -39,6 +39,9 @@ Breaking changes:
 - The `BundledThread::latest_event` field is now an `AnySyncMessageLikeEvent` instead of
   `AnyMessageLikeEvent`, to reflect that it may not always include a `room_id` field (if the owning
   event came from sync, for instance), which can usually be obtained from the surrounding context.
+- The `EventContent` macro doesn't implement `StaticEventContent` anymore for account data where the
+  `type` uses the `.*` suffix, since the event type is not known at compile-time.
+  - `SecretStorageKeyEventContent` doesn't implement `StaticEventContent` anymore.
 
 Improvements:
 
