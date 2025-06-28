@@ -147,7 +147,7 @@ impl EventContent for NewUnstablePollStartEventContent {
 }
 
 impl StaticEventContent for NewUnstablePollStartEventContent {
-    const TYPE: &'static str = "org.matrix.msc3381.poll.start";
+    const TYPE: &'static str = UnstablePollStartEventContent::TYPE;
 }
 
 impl MessageLikeEventContent for NewUnstablePollStartEventContent {}
@@ -234,7 +234,7 @@ impl EventContent for ReplacementUnstablePollStartEventContent {
 }
 
 impl StaticEventContent for ReplacementUnstablePollStartEventContent {
-    const TYPE: &'static str = "org.matrix.msc3381.poll.start";
+    const TYPE: &'static str = UnstablePollStartEventContent::TYPE;
 }
 
 impl MessageLikeEventContent for ReplacementUnstablePollStartEventContent {}
@@ -260,7 +260,7 @@ impl EventContent for RedactedUnstablePollStartEventContent {
 }
 
 impl StaticEventContent for RedactedUnstablePollStartEventContent {
-    const TYPE: &'static str = "org.matrix.msc3381.poll.start";
+    const TYPE: &'static str = UnstablePollStartEventContent::TYPE;
 }
 
 impl RedactedMessageLikeEventContent for RedactedUnstablePollStartEventContent {}

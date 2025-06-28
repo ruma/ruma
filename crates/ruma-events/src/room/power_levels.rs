@@ -305,7 +305,7 @@ impl EventContent for RedactedRoomPowerLevelsEventContent {
 }
 
 impl StaticEventContent for RedactedRoomPowerLevelsEventContent {
-    const TYPE: &'static str = "m.room.power_levels";
+    const TYPE: &'static str = RoomPowerLevelsEventContent::TYPE;
 }
 
 impl RedactedStateEventContent for RedactedRoomPowerLevelsEventContent {
