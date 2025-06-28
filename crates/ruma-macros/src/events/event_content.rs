@@ -390,8 +390,12 @@ pub fn expand_event_content(
         ruma_events,
     )
     .unwrap_or_else(syn::Error::into_compile_error);
-    let static_event_content_impl =
-        generate_static_event_content_impl(ident, &event_type, ruma_events);
+    let static_event_content_impl = generate_static_event_content_impl(
+        ident,
+        &event_type,
+        event_type_fragment.as_ref(),
+        ruma_events,
+    );
     let type_aliases =
         generate_event_type_aliases(kind, ident, &input.vis, &event_type.value(), ruma_events)
             .unwrap_or_else(syn::Error::into_compile_error);
@@ -487,8 +491,12 @@ fn generate_redacted_event_content<'a>(
     )
     .unwrap_or_else(syn::Error::into_compile_error);
 
-    let static_event_content_impl =
-        generate_static_event_content_impl(&redacted_ident, event_type, ruma_events);
+    let static_event_content_impl = generate_static_event_content_impl(
+        &redacted_ident,
+        event_type,
+        event_type_fragment,
+        ruma_events,
+    );
 
     Ok(quote! {
         // this is the non redacted event content's impl
@@ -643,8 +651,12 @@ fn generate_possibly_redacted_event_content<'a>(
         )
         .unwrap_or_else(syn::Error::into_compile_error);
 
-        let static_event_content_impl =
-            generate_static_event_content_impl(&possibly_redacted_ident, event_type, ruma_events);
+        let static_event_content_impl = generate_static_event_content_impl(
+            &possibly_redacted_ident,
+            event_type,
+            event_type_fragment,
+            ruma_events,
+        );
 
         Ok(quote! {
             #[doc = #doc]
@@ -991,13 +1003,16 @@ fn generate_event_content_kind_trait_impl(
 fn generate_static_event_content_impl(
     ident: &Ident,
     event_type: &LitStr,
+    event_type_fragment: Option<&EventTypeFragment<'_>>,
     ruma_events: &TokenStream,
-) -> TokenStream {
-    quote! {
-        impl #ruma_events::StaticEventContent for #ident {
-            const TYPE: &'static ::std::primitive::str = #event_type;
+) -> Option<TokenStream> {
+    event_type_fragment.is_none().then(|| {
+        quote! {
+            impl #ruma_events::StaticEventContent for #ident {
+                const TYPE: &'static ::std::primitive::str = #event_type;
+            }
         }
-    }
+    })
 }
 
 /// Data about the type fragment of an event content with a type that ends with `.*`.
