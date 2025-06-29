@@ -96,6 +96,8 @@ Improvements:
   `content` or top-level `redacts` field should be used to determine what event an event redacts.
 - Add `serde::default_on_error()` as a helper to ignore errors during
   deserialization.
+- Add `SpaceChildOrder` which allows to validate the `order` of an
+  `m.space.child` event.
 
 # 0.15.2
 

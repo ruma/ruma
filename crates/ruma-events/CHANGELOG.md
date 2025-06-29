@@ -44,6 +44,9 @@ Breaking changes:
   - `SecretStorageKeyEventContent` doesn't implement `StaticEventContent` anymore.
 - The `(Original)(Sync)RedactEvent` events take a `RedactionRules` instead of `RoomVersionId` for
   their `redacts()` method. This avoids unexpected behavior for unknown room versions.
+- `SpaceChildEventContent` now uses `OwnedSpaceChildOrder` for the `order` field. This is a type
+  with strong validation according to the rules of the spec. If its deserialization fails, this
+  field is set to `None` to ignore it, as recommended in the spec.
 
 Improvements:
 
