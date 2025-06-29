@@ -66,6 +66,11 @@ Improvements:
   - `MediaPreviewConfigEventContent::merge_global_and_room_config()` can be used to get the current
     config for a room.
 - Fix and stabilize support for rich text in room topics, according to Matrix 1.15.
+- `SpaceChildEventContent` now validates the `order` during deserialization and ignores it if it is
+  invalid, as recommended in the spec.
+  - `SpaceChildEventContent::validate_order()` allows to validate an order before sending it.
+- `m.space.child` events can be sorted with the algorithm defined in the spec by using the new
+  `SpaceChildOrd` trait and `SpaceChildOrdHelper` type.
    
 # 0.30.3
 
