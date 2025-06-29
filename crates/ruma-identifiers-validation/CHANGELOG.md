@@ -26,6 +26,7 @@ Improvements:
   spec.
 - `room_alias_id::validate` disallows the `NUL` byte for the localpart, due to a
   clarification in the spec.
+- Add `space_child_order::validate`.
 
 # 0.10.1
 

@@ -2,7 +2,9 @@
 //!
 //! [`m.space.child`]: https://spec.matrix.org/latest/client-server-api/#mspacechild
 
-use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedServerName, OwnedUserId};
+use ruma_common::{
+    MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedServerName, OwnedSpaceChildOrder, OwnedUserId,
+};
 use ruma_macros::{Event, EventContent};
 use serde::{Deserialize, Serialize};
 
@@ -29,8 +31,14 @@ pub struct SpaceChildEventContent {
     /// not consist solely of ascii characters in the range `\x20` (space) to `\x7E` (`~`), or
     /// consist of more than 50 characters, are forbidden and the field should be ignored if
     /// received.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub order: Option<String>,
+    ///
+    /// During deserialization, this field is set to `None` if it is invalid.
+    #[serde(
+        default,
+        deserialize_with = "ruma_common::serde::default_on_error",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub order: Option<OwnedSpaceChildOrder>,
 
     /// Space admins can mark particular children of a space as "suggested".
     ///
@@ -71,8 +79,10 @@ pub struct HierarchySpaceChildEvent {
 
 #[cfg(test)]
 mod tests {
+    use std::iter::repeat_n;
+
     use js_int::uint;
-    use ruma_common::{server_name, MilliSecondsSinceUnixEpoch};
+    use ruma_common::{server_name, MilliSecondsSinceUnixEpoch, SpaceChildOrder};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{HierarchySpaceChildEvent, SpaceChildEventContent};
@@ -81,7 +91,7 @@ mod tests {
     fn space_child_serialization() {
         let content = SpaceChildEventContent {
             via: vec![server_name!("example.com").to_owned()],
-            order: Some("uwu".to_owned()),
+            order: Some(SpaceChildOrder::parse("uwu").unwrap()),
             suggested: false,
         };
 
@@ -100,6 +110,62 @@ mod tests {
         let json = json!({ "via": [] });
 
         assert_eq!(to_json_value(&content).unwrap(), json);
+    }
+
+    #[test]
+    fn space_child_content_deserialization_order() {
+        let via = server_name!("localhost");
+
+        // Valid string.
+        let json = json!({
+            "order": "aaa",
+            "via": [via],
+        });
+        let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
+        assert_eq!(content.order.unwrap(), "aaa");
+        assert!(!content.suggested);
+        assert_eq!(content.via, &[via]);
+
+        // Not a string.
+        let json = json!({
+            "order": 2,
+            "via": [via],
+        });
+        let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
+        assert_eq!(content.order, None);
+        assert!(!content.suggested);
+        assert_eq!(content.via, &[via]);
+
+        // Empty string.
+        let json = json!({
+            "order": "",
+            "via": [via],
+        });
+        let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
+        assert_eq!(content.order.unwrap(), "");
+        assert!(!content.suggested);
+        assert_eq!(content.via, &[via]);
+
+        // String too long.
+        let order = repeat_n('a', 60).collect::<String>();
+        let json = json!({
+            "order": order,
+            "via": [via],
+        });
+        let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
+        assert_eq!(content.order, None);
+        assert!(!content.suggested);
+        assert_eq!(content.via, &[via]);
+
+        // Invalid character.
+        let json = json!({
+            "order": "🔝",
+            "via": [via],
+        });
+        let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
+        assert_eq!(content.order, None);
+        assert!(!content.suggested);
+        assert_eq!(content.via, &[via]);
     }
 
     #[test]
