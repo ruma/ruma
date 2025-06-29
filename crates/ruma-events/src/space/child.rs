@@ -2,11 +2,16 @@
 //!
 //! [`m.space.child`]: https://spec.matrix.org/latest/client-server-api/#mspacechild
 
+use std::{cmp::Ordering, ops::Deref};
+
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedServerName, OwnedSpaceChildOrder, OwnedUserId,
+    RoomId, SpaceChildOrder,
 };
 use ruma_macros::{Event, EventContent};
 use serde::{Deserialize, Serialize};
+
+use crate::{StateEvent, SyncStateEvent};
 
 /// The content of an `m.space.child` event.
 ///
@@ -77,15 +82,212 @@ pub struct HierarchySpaceChildEvent {
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 }
 
+impl PartialEq for HierarchySpaceChildEvent {
+    fn eq(&self, other: &Self) -> bool {
+        self.space_child_ord_fields().eq(&other.space_child_ord_fields())
+    }
+}
+
+impl Eq for HierarchySpaceChildEvent {}
+
+impl Ord for HierarchySpaceChildEvent {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.space_child_ord_fields().cmp(&other.space_child_ord_fields())
+    }
+}
+
+impl PartialOrd for HierarchySpaceChildEvent {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+/// Helper trait to sort `m.space.child` events using using the algorithm for [ordering children
+/// within a space].
+///
+/// This trait can be used to sort a slice using `.sort_by(SpaceChildOrd::cmp_space_child)`. It is
+/// also possible to use [`SpaceChildOrdHelper`] to sort the events in a `BTreeMap` or a `BTreeSet`.
+///
+/// [ordering children within a space]: https://spec.matrix.org/latest/client-server-api/#ordering-of-children-within-a-space
+pub trait SpaceChildOrd {
+    #[doc(hidden)]
+    fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_>;
+
+    /// Return an [`Ordering`] between `self` and `other`, using the algorithm for [ordering
+    /// children within a space].
+    ///
+    /// [ordering children within a space]: https://spec.matrix.org/latest/client-server-api/#ordering-of-children-within-a-space
+    fn cmp_space_child(&self, other: &impl SpaceChildOrd) -> Ordering {
+        self.space_child_ord_fields().cmp(&other.space_child_ord_fields())
+    }
+}
+
+/// Fields necessary to implement `Ord` for space child events using the algorithm for [ordering
+/// children within a space].
+///
+/// [ordering children within a space]: https://spec.matrix.org/latest/client-server-api/#ordering-of-children-within-a-space
+#[doc(hidden)]
+#[derive(PartialEq, Eq)]
+pub struct SpaceChildOrdFields<'a> {
+    order: Option<&'a SpaceChildOrder>,
+    origin_server_ts: MilliSecondsSinceUnixEpoch,
+    state_key: &'a RoomId,
+}
+
+impl<'a> SpaceChildOrdFields<'a> {
+    /// Construct a new `SpaceChildEventOrdFields` with the given values.
+    ///
+    /// Filters the order if it is invalid.
+    fn new(
+        order: Option<&'a SpaceChildOrder>,
+        origin_server_ts: MilliSecondsSinceUnixEpoch,
+        state_key: &'a RoomId,
+    ) -> Self {
+        Self { order, origin_server_ts, state_key }
+    }
+}
+
+impl<'a> Ord for SpaceChildOrdFields<'a> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match (self.order, other.order) {
+            // Events with order are ordered before events without order.
+            (Some(_), None) => Ordering::Less,
+            (None, Some(_)) => Ordering::Greater,
+            (Some(self_order), Some(other_order)) => self_order.cmp(other_order),
+            (None, None) => Ordering::Equal,
+        }
+        .then_with(|| self.origin_server_ts.cmp(&other.origin_server_ts))
+        .then_with(|| self.state_key.cmp(other.state_key))
+    }
+}
+
+impl<'a> PartialOrd for SpaceChildOrdFields<'a> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl<T> SpaceChildOrd for &T
+where
+    T: SpaceChildOrd,
+{
+    fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
+        (*self).space_child_ord_fields()
+    }
+}
+
+impl SpaceChildOrd for OriginalSpaceChildEvent {
+    fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
+        SpaceChildOrdFields::new(
+            self.content.order.as_deref(),
+            self.origin_server_ts,
+            &self.state_key,
+        )
+    }
+}
+
+impl SpaceChildOrd for RedactedSpaceChildEvent {
+    fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
+        SpaceChildOrdFields::new(None, self.origin_server_ts, &self.state_key)
+    }
+}
+
+impl SpaceChildOrd for SpaceChildEvent {
+    fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
+        match self {
+            StateEvent::Original(original) => original.space_child_ord_fields(),
+            StateEvent::Redacted(redacted) => redacted.space_child_ord_fields(),
+        }
+    }
+}
+
+impl SpaceChildOrd for OriginalSyncSpaceChildEvent {
+    fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
+        SpaceChildOrdFields::new(
+            self.content.order.as_deref(),
+            self.origin_server_ts,
+            &self.state_key,
+        )
+    }
+}
+
+impl SpaceChildOrd for RedactedSyncSpaceChildEvent {
+    fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
+        SpaceChildOrdFields::new(None, self.origin_server_ts, &self.state_key)
+    }
+}
+
+impl SpaceChildOrd for SyncSpaceChildEvent {
+    fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
+        match self {
+            SyncStateEvent::Original(original) => original.space_child_ord_fields(),
+            SyncStateEvent::Redacted(redacted) => redacted.space_child_ord_fields(),
+        }
+    }
+}
+
+impl SpaceChildOrd for HierarchySpaceChildEvent {
+    fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
+        SpaceChildOrdFields::new(
+            self.content.order.as_deref(),
+            self.origin_server_ts,
+            &self.state_key,
+        )
+    }
+}
+
+/// Helper type to sort `m.space.child` events using using the algorithm for [ordering children
+/// within a space].
+///
+/// This type can be use with `BTreeMap` or `BTreeSet` to order space child events.
+///
+/// [ordering children within a space]: https://spec.matrix.org/latest/client-server-api/#ordering-of-children-within-a-space
+#[derive(Debug, Clone)]
+#[allow(clippy::exhaustive_structs)]
+pub struct SpaceChildOrdHelper<T: SpaceChildOrd>(pub T);
+
+impl<T: SpaceChildOrd> PartialEq for SpaceChildOrdHelper<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.space_child_ord_fields().eq(&other.0.space_child_ord_fields())
+    }
+}
+
+impl<T: SpaceChildOrd> Eq for SpaceChildOrdHelper<T> {}
+
+impl<T: SpaceChildOrd> Ord for SpaceChildOrdHelper<T> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.0.cmp_space_child(&other.0)
+    }
+}
+
+impl<T: SpaceChildOrd> PartialOrd for SpaceChildOrdHelper<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl<T: SpaceChildOrd> Deref for SpaceChildOrdHelper<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use std::iter::repeat_n;
+    use std::{collections::BTreeSet, iter::repeat_n};
 
-    use js_int::uint;
-    use ruma_common::{server_name, MilliSecondsSinceUnixEpoch, SpaceChildOrder};
+    use js_int::{uint, UInt};
+    use ruma_common::{
+        owned_server_name, owned_user_id, room_id, server_name, MilliSecondsSinceUnixEpoch, RoomId,
+        SpaceChildOrder,
+    };
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{HierarchySpaceChildEvent, SpaceChildEventContent};
+    use super::{
+        HierarchySpaceChildEvent, SpaceChildEventContent, SpaceChildOrd, SpaceChildOrdHelper,
+    };
 
     #[test]
     fn space_child_serialization() {
@@ -189,5 +391,129 @@ mod tests {
         assert_eq!(ev.content.via, ["example.org"]);
         assert_eq!(ev.content.order, None);
         assert!(!ev.content.suggested);
+    }
+
+    /// Construct a [`HierarchySpaceChildEvent`] with the given state key, order and timestamp.
+    fn hierarchy_space_child_event(
+        state_key: &RoomId,
+        order: Option<&str>,
+        origin_server_ts: UInt,
+    ) -> HierarchySpaceChildEvent {
+        let mut content = SpaceChildEventContent::new(vec![owned_server_name!("example.org")]);
+        content.order = order.and_then(|order| SpaceChildOrder::parse(order).ok());
+
+        HierarchySpaceChildEvent {
+            content,
+            sender: owned_user_id!("@alice:example.org"),
+            state_key: state_key.to_owned(),
+            origin_server_ts: MilliSecondsSinceUnixEpoch(origin_server_ts),
+        }
+    }
+
+    #[test]
+    fn space_child_ord_spec_example() {
+        // Reproduce the example from the spec.
+        let child_a = hierarchy_space_child_event(
+            room_id!("!a:example.org"),
+            Some("aaaa"),
+            uint!(1_640_141_000),
+        );
+        let child_b = hierarchy_space_child_event(
+            room_id!("!b:example.org"),
+            Some(" "),
+            uint!(1_640_341_000),
+        );
+        let child_c = hierarchy_space_child_event(
+            room_id!("!c:example.org"),
+            Some("first"),
+            uint!(1_640_841_000),
+        );
+        let child_d =
+            hierarchy_space_child_event(room_id!("!d:example.org"), None, uint!(1_640_741_000));
+        let child_e =
+            hierarchy_space_child_event(room_id!("!e:example.org"), None, uint!(1_640_641_000));
+
+        let events =
+            [child_a.clone(), child_b.clone(), child_c.clone(), child_d.clone(), child_e.clone()];
+
+        // Using slice::sort_by.
+        let mut sorted_events = events.clone();
+        sorted_events.sort_by(SpaceChildOrd::cmp_space_child);
+        assert_eq!(sorted_events[0].state_key, child_b.state_key);
+        assert_eq!(sorted_events[1].state_key, child_a.state_key);
+        assert_eq!(sorted_events[2].state_key, child_c.state_key);
+        assert_eq!(sorted_events[3].state_key, child_e.state_key);
+        assert_eq!(sorted_events[4].state_key, child_d.state_key);
+
+        // Using BTreeSet.
+        let sorted_events = events.clone().into_iter().collect::<BTreeSet<_>>();
+        let mut iter = sorted_events.iter();
+        assert_eq!(iter.next().unwrap().state_key, child_b.state_key);
+        assert_eq!(iter.next().unwrap().state_key, child_a.state_key);
+        assert_eq!(iter.next().unwrap().state_key, child_c.state_key);
+        assert_eq!(iter.next().unwrap().state_key, child_e.state_key);
+        assert_eq!(iter.next().unwrap().state_key, child_d.state_key);
+
+        // Using BTreeSet and helper.
+        let sorted_events = events.into_iter().map(SpaceChildOrdHelper).collect::<BTreeSet<_>>();
+        let mut iter = sorted_events.iter();
+        assert_eq!(iter.next().unwrap().state_key, child_b.state_key);
+        assert_eq!(iter.next().unwrap().state_key, child_a.state_key);
+        assert_eq!(iter.next().unwrap().state_key, child_c.state_key);
+        assert_eq!(iter.next().unwrap().state_key, child_e.state_key);
+        assert_eq!(iter.next().unwrap().state_key, child_d.state_key);
+    }
+
+    #[test]
+    fn space_child_ord_other_example() {
+        // We also check invalid order and state key comparison here.
+        let child_a = hierarchy_space_child_event(
+            room_id!("!a:example.org"),
+            Some("🔝"),
+            uint!(1_640_141_000),
+        );
+        let child_b = hierarchy_space_child_event(
+            room_id!("!b:example.org"),
+            Some(" "),
+            uint!(1_640_341_000),
+        );
+        let child_c =
+            hierarchy_space_child_event(room_id!("!c:example.org"), None, uint!(1_640_841_000));
+        let child_d =
+            hierarchy_space_child_event(room_id!("!d:example.org"), None, uint!(1_640_741_000));
+        let child_e =
+            hierarchy_space_child_event(room_id!("!e:example.org"), None, uint!(1_640_741_000));
+
+        let mut events =
+            [child_a.clone(), child_b.clone(), child_c.clone(), child_d.clone(), child_e.clone()];
+
+        events.sort_by(SpaceChildOrd::cmp_space_child);
+
+        // Using slice::sort_by.
+        let mut sorted_events = events.clone();
+        sorted_events.sort_by(SpaceChildOrd::cmp_space_child);
+        assert_eq!(sorted_events[0].state_key, child_b.state_key);
+        assert_eq!(sorted_events[1].state_key, child_a.state_key);
+        assert_eq!(sorted_events[2].state_key, child_d.state_key);
+        assert_eq!(sorted_events[3].state_key, child_e.state_key);
+        assert_eq!(sorted_events[4].state_key, child_c.state_key);
+
+        // Using BTreeSet.
+        let sorted_events = events.clone().into_iter().collect::<BTreeSet<_>>();
+        let mut iter = sorted_events.iter();
+        assert_eq!(iter.next().unwrap().state_key, child_b.state_key);
+        assert_eq!(iter.next().unwrap().state_key, child_a.state_key);
+        assert_eq!(iter.next().unwrap().state_key, child_d.state_key);
+        assert_eq!(iter.next().unwrap().state_key, child_e.state_key);
+        assert_eq!(iter.next().unwrap().state_key, child_c.state_key);
+
+        // Using BTreeSet and helper.
+        let sorted_events = events.into_iter().map(SpaceChildOrdHelper).collect::<BTreeSet<_>>();
+        let mut iter = sorted_events.iter();
+        assert_eq!(iter.next().unwrap().state_key, child_b.state_key);
+        assert_eq!(iter.next().unwrap().state_key, child_a.state_key);
+        assert_eq!(iter.next().unwrap().state_key, child_d.state_key);
+        assert_eq!(iter.next().unwrap().state_key, child_e.state_key);
+        assert_eq!(iter.next().unwrap().state_key, child_c.state_key);
     }
 }
