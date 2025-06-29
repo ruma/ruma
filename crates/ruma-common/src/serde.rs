@@ -78,6 +78,17 @@ where
     serde_json::from_str(val.get()).map_err(E::custom)
 }
 
+/// Helper function for returning a default value if deserialization of the type fails.
+///
+/// Used as `#[serde(deserialize_with = "default_on_error")]`.
+pub fn default_on_error<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    D: Deserializer<'de>,
+    T: Deserialize<'de> + Default,
+{
+    Ok(T::deserialize(deserializer).unwrap_or_else(|_| T::default()))
+}
+
 /// Helper function for ignoring invalid items in a `Vec`, instead letting them cause the entire
 /// `Vec` to fail deserialization
 pub fn ignore_invalid_vec_items<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
