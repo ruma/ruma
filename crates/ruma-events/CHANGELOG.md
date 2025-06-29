@@ -69,6 +69,8 @@ Improvements:
 - `SpaceChildEventContent` now validates the `order` during deserialization and ignores it if it is
   invalid, as recommended in the spec.
   - `SpaceChildEventContent::validate_order()` allows to validate an order before sending it.
+- `m.space.child` events can be sorted with the algorithm defined in the spec by using the new
+  `SpaceChildOrd` trait and `SpaceChildOrdHelper` type.
    
 # 0.30.3
 
