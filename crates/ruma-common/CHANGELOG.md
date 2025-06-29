@@ -47,6 +47,8 @@ Breaking changes:
   syntax and the new syntax supported by axum 0.8.
 - `JoinRule` and its associated types where imported from `ruma-events` into the
   `room` module.
+- `space::SpaceRoomJoinRule` was moved and renamed as `room::JoinRuleSummary`.
+  It now includes a `RestrictedSummary` for the restricted join rules variants.
 - `directory::PublicRoomJoinRule` was moved and renamed to `room::JoinRuleKind`
   and includes all possible join rule kinds, due to a clarification in Matrix
   1.15.
@@ -89,8 +91,6 @@ Improvements:
 - Add `RoomSummary` that represents the summary of a room's state.
   - Implement `From<RoomSummary>` for `PublicRoomsChunk` and
     `From<PublicRoomsChunk>` for `RoomSummary`.
-- `space::SpaceRoomJoinRule` was moved and renamed as `room::JoinRuleSummary`.
-  It now includes a `RestrictedSummary` for the restricted join rules variants.
 - Add `MatrixVersion::V1_15`.
 
 # 0.15.2
