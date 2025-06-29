@@ -1,16 +1,24 @@
 //! `GET /_matrix/client/*/profile/{userId}`
 //!
-//! Get all profile information of an user.
+//! Get all profile information of a user.
 
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3profileuserid
 
+    #[cfg(feature = "unstable-msc4133")]
+    use std::collections::BTreeMap;
+
     use ruma_common::{
         api::{request, response, Metadata},
         metadata, OwnedMxcUri, OwnedUserId,
     };
+    #[cfg(feature = "unstable-msc4133")]
+    use serde_json::Value as JsonValue;
+
+    #[cfg(feature = "unstable-msc4133")]
+    use crate::profile::ProfileFieldName;
 
     const METADATA: Metadata = metadata! {
         method: GET,
@@ -56,6 +64,11 @@ pub mod v3 {
         #[cfg(feature = "unstable-msc2448")]
         #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
         pub blurhash: Option<String>,
+
+        /// The other fields of the user's profile.
+        #[cfg(feature = "unstable-msc4133")]
+        #[serde(flatten)]
+        pub others: BTreeMap<ProfileFieldName, JsonValue>,
     }
 
     impl Request {
@@ -73,7 +86,64 @@ pub mod v3 {
                 displayname,
                 #[cfg(feature = "unstable-msc2448")]
                 blurhash: None,
+                #[cfg(feature = "unstable-msc4133")]
+                others: BTreeMap::new(),
             }
         }
+    }
+}
+
+#[cfg(all(test, feature = "unstable-msc4133"))]
+mod tests {
+    use ruma_common::owned_mxc_uri;
+    use serde_json::{
+        from_slice as from_json_slice, json, to_vec as to_json_vec, Value as JsonValue,
+    };
+
+    use super::v3::Response;
+
+    #[test]
+    #[cfg(feature = "server")]
+    fn serialize_response() {
+        use ruma_common::api::OutgoingResponse;
+
+        let mut response =
+            Response::new(Some(owned_mxc_uri!("mxc://localhost/abcdef")), Some("Alice".to_owned()));
+        response.others.insert("custom_field".into(), "value".into());
+
+        let http_response = response.try_into_http_response::<Vec<u8>>().unwrap();
+
+        assert_eq!(
+            from_json_slice::<JsonValue>(http_response.body().as_ref()).unwrap(),
+            json!({
+                "avatar_url": "mxc://localhost/abcdef",
+                "displayname": "Alice",
+                "custom_field": "value",
+            })
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "client")]
+    fn deserialize_response() {
+        use ruma_common::api::IncomingResponse;
+
+        use crate::profile::ProfileFieldName;
+
+        let body = to_json_vec(&json!({
+            "avatar_url": "mxc://localhost/abcdef",
+            "displayname": "Alice",
+            "custom_field": "value",
+        }))
+        .unwrap();
+
+        let response = Response::try_from_http_response(http::Response::new(body)).unwrap();
+        assert_eq!(response.avatar_url.unwrap(), "mxc://localhost/abcdef");
+        assert_eq!(response.displayname.unwrap(), "Alice");
+        assert_eq!(response.others.len(), 1);
+        assert_eq!(
+            response.others.get(&ProfileFieldName::from("custom_field")).unwrap().as_str().unwrap(),
+            "value"
+        );
     }
 }
