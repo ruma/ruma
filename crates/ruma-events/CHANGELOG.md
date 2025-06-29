@@ -66,6 +66,8 @@ Improvements:
   - `MediaPreviewConfigEventContent::merge_global_and_room_config()` can be used to get the current
     config for a room.
 - Fix and stabilize support for rich text in room topics, according to Matrix 1.15.
+- The `predecessor` field of `RoomCreateEventContent` is ignored during deserialization if it has an
+  invalid format.
    
 # 0.30.3
 
