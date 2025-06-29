@@ -64,6 +64,19 @@ pub enum JoinRule {
 }
 
 impl JoinRule {
+    /// Returns the kind of this `JoinRule`.
+    pub fn kind(&self) -> JoinRuleKind {
+        match self {
+            JoinRule::Invite => JoinRuleKind::Invite,
+            JoinRule::Knock => JoinRuleKind::Knock,
+            JoinRule::Private => JoinRuleKind::Private,
+            JoinRule::Restricted(_) => JoinRuleKind::Restricted,
+            JoinRule::KnockRestricted(_) => JoinRuleKind::KnockRestricted,
+            JoinRule::Public => JoinRuleKind::Public,
+            JoinRule::_Custom(rule) => JoinRuleKind::_Custom(rule.clone()),
+        }
+    }
+
     /// Returns the string name of this `JoinRule`
     pub fn as_str(&self) -> &str {
         match self {
@@ -192,6 +205,54 @@ impl<'de> Deserialize<'de> for AllowRule {
             Some("m.room_membership") => from_raw_json_value(&json).map(Self::RoomMembership),
             Some(_) => from_raw_json_value(&json).map(Self::_Custom),
             None => Err(de::Error::missing_field("type")),
+        }
+    }
+}
+
+/// The kind of rule used for users wishing to join this room.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, Default, PartialEq, Eq, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub enum JoinRuleKind {
+    /// A user who wishes to join the room must first receive an invite to the room from someone
+    /// already inside of the room.
+    Invite,
+
+    /// Users can join the room if they are invited, or they can request an invite to the room.
+    ///
+    /// They can be allowed (invited) or denied (kicked/banned) access.
+    Knock,
+
+    /// Reserved but not yet implemented by the Matrix specification.
+    Private,
+
+    /// Users can join the room if they are invited, or if they meet any of the conditions
+    /// described in a set of rules.
+    Restricted,
+
+    /// Users can join the room if they are invited, or if they meet any of the conditions
+    /// described in a set of rules, or they can request an invite to the room.
+    KnockRestricted,
+
+    /// Anyone can join the room without any prior action.
+    #[default]
+    Public,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
+
+impl From<JoinRuleKind> for JoinRuleSummary {
+    fn from(value: JoinRuleKind) -> Self {
+        match value {
+            JoinRuleKind::Invite => JoinRuleSummary::Invite,
+            JoinRuleKind::Knock => JoinRuleSummary::Knock,
+            JoinRuleKind::Private => JoinRuleSummary::Private,
+            JoinRuleKind::Restricted => JoinRuleSummary::Restricted(Default::default()),
+            JoinRuleKind::KnockRestricted => JoinRuleSummary::KnockRestricted(Default::default()),
+            JoinRuleKind::Public => JoinRuleSummary::Public,
+            JoinRuleKind::_Custom(s) => JoinRuleSummary::_Custom(s),
         }
     }
 }
@@ -344,7 +405,7 @@ impl<'de> Deserialize<'de> for RoomSummary {
 
 /// The rule used for users wishing to join a room.
 ///
-/// In contrast to the regular `JoinRule` in `ruma_events`, this enum does holds only simplified
+/// In contrast to the regular `JoinRule` in `ruma_events`, this enum holds only simplified
 /// conditions for joining restricted rooms.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
@@ -380,7 +441,20 @@ pub enum JoinRuleSummary {
 }
 
 impl JoinRuleSummary {
-    /// Returns the string name of this `JoinRule`.
+    /// Returns the kind of this `JoinRuleSummary`.
+    pub fn kind(&self) -> JoinRuleKind {
+        match self {
+            Self::Invite => JoinRuleKind::Invite,
+            Self::Knock => JoinRuleKind::Knock,
+            Self::Private => JoinRuleKind::Private,
+            Self::Restricted(_) => JoinRuleKind::Restricted,
+            Self::KnockRestricted(_) => JoinRuleKind::KnockRestricted,
+            Self::Public => JoinRuleKind::Public,
+            Self::_Custom(rule) => JoinRuleKind::_Custom(rule.clone()),
+        }
+    }
+
+    /// Returns the string name of this `JoinRuleSummary`.
     pub fn as_str(&self) -> &str {
         match self {
             Self::Invite => "invite",

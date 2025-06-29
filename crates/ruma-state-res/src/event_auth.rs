@@ -4,7 +4,7 @@ use std::{
 };
 
 use js_int::Int;
-use ruma_common::{room_version_rules::AuthorizationRules, EventId, UserId};
+use ruma_common::{room::JoinRuleKind, room_version_rules::AuthorizationRules, EventId, UserId};
 use ruma_events::{room::member::MembershipState, StateEventType, TimelineEventType};
 use serde_json::value::RawValue as RawJsonValue;
 use tracing::{debug, info, instrument, warn};
@@ -18,7 +18,7 @@ use crate::{
     events::{
         member::{RoomMemberEventContent, RoomMemberEventOptionExt},
         power_levels::{RoomPowerLevelsEventOptionExt, RoomPowerLevelsIntField},
-        JoinRule, RoomCreateEvent, RoomJoinRulesEvent, RoomMemberEvent, RoomPowerLevelsEvent,
+        RoomCreateEvent, RoomJoinRulesEvent, RoomMemberEvent, RoomPowerLevelsEvent,
         RoomThirdPartyInviteEvent,
     },
     Event,
@@ -619,7 +619,7 @@ trait FetchStateExt<E: Event> {
 
     fn room_power_levels_event(&self) -> Option<RoomPowerLevelsEvent<E>>;
 
-    fn join_rule(&self) -> Result<JoinRule, String>;
+    fn join_rule(&self) -> Result<JoinRuleKind, String>;
 
     fn room_third_party_invite_event(&self, token: &str) -> Option<RoomThirdPartyInviteEvent<E>>;
 }
@@ -643,7 +643,7 @@ where
         self(&StateEventType::RoomPowerLevels, "").map(RoomPowerLevelsEvent::new)
     }
 
-    fn join_rule(&self) -> Result<JoinRule, String> {
+    fn join_rule(&self) -> Result<JoinRuleKind, String> {
         self(&StateEventType::RoomJoinRules, "")
             .map(RoomJoinRulesEvent::new)
             .ok_or_else(|| "no `m.room.join_rules` event in current state".to_owned())?
