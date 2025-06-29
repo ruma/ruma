@@ -243,6 +243,20 @@ pub enum JoinRuleKind {
     _Custom(PrivOwnedStr),
 }
 
+impl From<JoinRuleKind> for JoinRuleSummary {
+    fn from(value: JoinRuleKind) -> Self {
+        match value {
+            JoinRuleKind::Invite => JoinRuleSummary::Invite,
+            JoinRuleKind::Knock => JoinRuleSummary::Knock,
+            JoinRuleKind::Private => JoinRuleSummary::Private,
+            JoinRuleKind::Restricted => JoinRuleSummary::Restricted(Default::default()),
+            JoinRuleKind::KnockRestricted => JoinRuleSummary::KnockRestricted(Default::default()),
+            JoinRuleKind::Public => JoinRuleSummary::Public,
+            JoinRuleKind::_Custom(s) => JoinRuleSummary::_Custom(s),
+        }
+    }
+}
+
 /// The summary of a room's state.
 #[derive(Debug, Clone, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]

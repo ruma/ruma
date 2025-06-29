@@ -87,7 +87,8 @@ Improvements:
   be able to know if a server advertises support for an endpoint.
 - Re-export `ID_MAX_BYTES` from `ruma-identifiers-validation`.
 - Add `RoomSummary` that represents the summary of a room's state.
-  - Implement `From<RoomSummary>` for `PublicRoomsChunk`
+  - Implement `From<RoomSummary>` for `PublicRoomsChunk` and
+    `From<PublicRoomsChunk>` for `RoomSummary`.
 - `space::SpaceRoomJoinRule` was moved and renamed as `room::JoinRuleSummary`.
   It now includes a `RestrictedSummary` for the restricted join rules variants.
 - Add `MatrixVersion::V1_15`.
