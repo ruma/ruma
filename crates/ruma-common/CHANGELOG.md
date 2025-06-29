@@ -7,6 +7,8 @@ Improvements:
 - Add `MatrixVersion::V1_15`.
 - `PublicRoomJoinRule` now includes all possible join rule kinds, due to a
   clarification in Matrix 1.15.
+- Add `serde::default_on_error()` as a helper to ignore errors during
+  deserialization.
 
 # 0.15.2
 
