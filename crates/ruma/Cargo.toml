@@ -103,6 +103,7 @@ compat = [
     "compat-signature-id",
     "compat-tag-info",
     "compat-optional-txn-pdus",
+    "compat-lax-room-create-deser",
 ]
 
 # Allow IDs to exceed 255 bytes.
@@ -160,6 +161,10 @@ compat-encrypted-stickers = ["ruma-events?/compat-encrypted-stickers"]
 # Allow the `pdus` field in a federation transaction request to be missing,
 # defaulting to an empty `Vec` in deserialization.
 compat-optional-txn-pdus = ["ruma-federation-api?/compat-optional-txn-pdus"]
+
+# The predecessor field of RoomCreateEventContent is ignored if its
+# deserialization fails.
+compat-lax-room-create-deser = ["ruma-events?/compat-lax-room-create-deser"]
 
 # Specific compatibility for past ring public/private key documents.
 ring-compat = ["dep:ruma-signatures", "ruma-signatures?/ring-compat"]
