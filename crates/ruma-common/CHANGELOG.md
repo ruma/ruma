@@ -87,6 +87,8 @@ Improvements:
 - `space::SpaceRoomJoinRule` was moved and renamed as `room::JoinRuleSummary`.
   It now includes a `RestrictedSummary` for the restricted join rules variants.
 - Add `MatrixVersion::V1_15`.
+- Add `serde::default_on_error()` as a helper to ignore errors during
+  deserialization.
 
 # 0.15.2
 

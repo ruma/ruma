@@ -45,7 +45,11 @@ pub struct RoomCreateEventContent {
     pub room_version: RoomVersionId,
 
     /// A reference to the room this room replaces, if the previous room was upgraded.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        deserialize_with = "ruma_common::serde::default_on_error",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub predecessor: Option<PreviousRoom>,
 
     /// The room type.
@@ -225,5 +229,20 @@ mod tests {
         assert_eq!(content.room_version, RoomVersionId::V4);
         assert_matches!(content.predecessor, None);
         assert_eq!(content.room_type, Some(RoomType::Space));
+    }
+
+    #[test]
+    fn deserialize_invalid_predecessor() {
+        let json = json!({
+            "m.federate": true,
+            "room_version": "11",
+            "predecessor": "!room:localhost",
+        });
+
+        let content = from_json_value::<RoomCreateEventContent>(json).unwrap();
+        assert!(content.federate);
+        assert_eq!(content.room_version, RoomVersionId::V11);
+        assert_matches!(content.predecessor, None);
+        assert_eq!(content.room_type, None);
     }
 }
