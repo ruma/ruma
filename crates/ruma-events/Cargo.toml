@@ -64,6 +64,10 @@ compat-tag-info = []
 # https://github.com/matrix-org/matrix-spec/issues/1667
 compat-encrypted-stickers = []
 
+# The predecessor field of RoomCreateEventContent is ignored if its
+# deserialization fails.
+compat-lax-room-create-deser = []
+
 [dependencies]
 as_variant = { workspace = true }
 indexmap = { version = "2.0.0", features = ["serde"] }

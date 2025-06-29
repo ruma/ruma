@@ -121,6 +121,10 @@ compat-encrypted-stickers = ["ruma-events?/compat-encrypted-stickers"]
 # defaulting to an empty `Vec` in deserialization.
 compat-optional-txn-pdus = ["ruma-federation-api?/compat-optional-txn-pdus"]
 
+# The predecessor field of RoomCreateEventContent is ignored if its
+# deserialization fails.
+compat-lax-room-create-deser = ["ruma-events?/compat-lax-room-create-deser"]
+
 # Specific compatibility for past ring public/private key documents.
 ring-compat = ["dep:ruma-signatures", "ruma-signatures?/ring-compat"]
 
@@ -259,6 +263,7 @@ __compat = [
     "compat-tag-info",
     "compat-encrypted-stickers",
     "compat-optional-txn-pdus",
+    "compat-lax-room-create-deser",
 ]
 
 [dependencies]

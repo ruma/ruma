@@ -74,6 +74,8 @@ Improvements:
 - `m.space.child` events can be sorted with the algorithm defined in the spec by using the new
   `SpaceChildOrd` trait and `SpaceChildOrdHelper` type, and `HierarchySpaceChildEvent` specifically
   now implements `Ord` using the aforementioned trait.
+- With the `compat-lax-room-create-deser` cargo feature, the `predecessor` field of
+  `RoomCreateEventContent` is ignored during deserialization if it has an invalid format.
    
 # 0.30.3
 
