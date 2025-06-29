@@ -94,6 +94,8 @@ Improvements:
 - Add `MatrixVersion::V1_15`.
 - Add `content_field_redacts` field to `RedactionRules`, which is used to determine whether the
   `content` or top-level `redacts` field should be used to determine what event an event redacts.
+- Add `serde::default_on_error()` as a helper to ignore errors during
+  deserialization.
 
 # 0.15.2
 
