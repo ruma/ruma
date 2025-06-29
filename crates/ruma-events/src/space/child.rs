@@ -4,7 +4,7 @@
 
 use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedServerName, OwnedUserId};
 use ruma_macros::{Event, EventContent};
-use serde::{Deserialize, Serialize};
+use serde::{de, Deserialize, Serialize};
 
 /// The content of an `m.space.child` event.
 ///
@@ -29,7 +29,13 @@ pub struct SpaceChildEventContent {
     /// not consist solely of ascii characters in the range `\x20` (space) to `\x7E` (`~`), or
     /// consist of more than 50 characters, are forbidden and the field should be ignored if
     /// received.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    ///
+    /// During deserialization, this field is set to `None` if it is empty or invalid.
+    #[serde(
+        default,
+        deserialize_with = "deserialize_order",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub order: Option<String>,
 
     /// Space admins can mark particular children of a space as "suggested".
@@ -49,6 +55,71 @@ impl SpaceChildEventContent {
     pub fn new(via: Vec<OwnedServerName>) -> Self {
         Self { via, order: None, suggested: false }
     }
+
+    /// Check whether the given `order` is valid according to the Matrix specification.
+    ///
+    /// According to the specification, the order:
+    ///
+    /// > Must consist of ASCII characters within the range `\x20` (space) and `\x7E` (~),
+    /// > inclusive. Must not exceed 50 characters.
+    ///
+    /// Returns `Ok(())` if the order passes validation, or an error if the order doesn't respect
+    /// the rules from the spec or is empty, as it cannot be used for ordering.
+    pub fn validate_order(order: &str) -> Result<(), OrderValidationError> {
+        if order.is_empty() {
+            return Err(OrderValidationError::Empty);
+        }
+
+        if order.len() > 50 {
+            return Err(OrderValidationError::MaximumLengthExceeded);
+        }
+
+        if !order.bytes().all(|byte| (b'\x20'..=b'\x7E').contains(&byte)) {
+            return Err(OrderValidationError::InvalidCharacters);
+        }
+
+        Ok(())
+    }
+}
+
+/// Deserialize the `order` of [`SpaceChildEventContent`].
+///
+/// According to the spec, order is a string that:
+///
+/// > Must consist of ASCII characters within the range \x20 (space) and \x7E (~), inclusive. Must
+/// > not exceed 50 characters.
+///
+/// This function never returns an error, `Ok(None)` is returned if validation of the order fails.
+fn deserialize_order<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: de::Deserializer<'de>,
+{
+    let Ok(Some(order)) = Option::<String>::deserialize(deserializer) else {
+        return Ok(None);
+    };
+
+    if SpaceChildEventContent::validate_order(&order).is_err() {
+        return Ok(None);
+    }
+
+    Ok(Some(order))
+}
+
+/// An error encountered when trying to validate the `order` of a [`SpaceChildEventContent`].
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, thiserror::Error)]
+#[non_exhaustive]
+pub enum OrderValidationError {
+    /// The order is empty.
+    #[error("order is empty")]
+    Empty,
+
+    /// The order contains invalid characters.
+    #[error("order contains invalid characters")]
+    InvalidCharacters,
+
+    /// The order exceeds 50 bytes.
+    #[error("order exceeds 50 bytes")]
+    MaximumLengthExceeded,
 }
 
 /// An `m.space.child` event represented as a Stripped State Event with an added `origin_server_ts`
@@ -71,11 +142,13 @@ pub struct HierarchySpaceChildEvent {
 
 #[cfg(test)]
 mod tests {
+    use std::iter::repeat_n;
+
     use js_int::uint;
     use ruma_common::{server_name, MilliSecondsSinceUnixEpoch};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{HierarchySpaceChildEvent, SpaceChildEventContent};
+    use super::{HierarchySpaceChildEvent, OrderValidationError, SpaceChildEventContent};
 
     #[test]
     fn space_child_serialization() {
@@ -103,6 +176,62 @@ mod tests {
     }
 
     #[test]
+    fn space_child_content_deserialization_order() {
+        let via = server_name!("localhost");
+
+        // Valid string.
+        let json = json!({
+            "order": "aaa",
+            "via": [via],
+        });
+        let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
+        assert_eq!(content.order.as_deref(), Some("aaa"));
+        assert!(!content.suggested);
+        assert_eq!(content.via, &[via]);
+
+        // Not a string.
+        let json = json!({
+            "order": 2,
+            "via": [via],
+        });
+        let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
+        assert_eq!(content.order, None);
+        assert!(!content.suggested);
+        assert_eq!(content.via, &[via]);
+
+        // Empty string.
+        let json = json!({
+            "order": "",
+            "via": [via],
+        });
+        let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
+        assert_eq!(content.order, None);
+        assert!(!content.suggested);
+        assert_eq!(content.via, &[via]);
+
+        // String too long.
+        let order = repeat_n('a', 60).collect::<String>();
+        let json = json!({
+            "order": order,
+            "via": [via],
+        });
+        let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
+        assert_eq!(content.order, None);
+        assert!(!content.suggested);
+        assert_eq!(content.via, &[via]);
+
+        // Invalid character.
+        let json = json!({
+            "order": "🔝",
+            "via": [via],
+        });
+        let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
+        assert_eq!(content.order, None);
+        assert!(!content.suggested);
+        assert_eq!(content.via, &[via]);
+    }
+
+    #[test]
     fn hierarchy_space_child_deserialization() {
         let json = json!({
             "content": {
@@ -123,5 +252,27 @@ mod tests {
         assert_eq!(ev.content.via, ["example.org"]);
         assert_eq!(ev.content.order, None);
         assert!(!ev.content.suggested);
+    }
+
+    #[test]
+    fn validate_space_child_order() {
+        // Valid string.
+        SpaceChildEventContent::validate_order("aaa").unwrap();
+
+        // Empty string.
+        assert_eq!(SpaceChildEventContent::validate_order(""), Err(OrderValidationError::Empty));
+
+        // String too long.
+        let order = repeat_n('a', 60).collect::<String>();
+        assert_eq!(
+            SpaceChildEventContent::validate_order(&order),
+            Err(OrderValidationError::MaximumLengthExceeded)
+        );
+
+        // Invalid character.
+        assert_eq!(
+            SpaceChildEventContent::validate_order("🔝"),
+            Err(OrderValidationError::InvalidCharacters)
+        );
     }
 }
