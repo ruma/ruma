@@ -1,6 +1,9 @@
 use assert_matches2::assert_matches;
 use js_int::uint;
-use ruma_common::{owned_event_id, serde::CanBeEmpty, MilliSecondsSinceUnixEpoch, RoomVersionId};
+use ruma_common::{
+    owned_event_id, room_version_rules::RedactionRules, serde::CanBeEmpty,
+    MilliSecondsSinceUnixEpoch,
+};
 use ruma_events::{
     room::redaction::{RoomRedactionEvent, RoomRedactionEventContent},
     AnyMessageLikeEvent,
@@ -54,8 +57,8 @@ fn deserialize_redaction() {
         Ok(AnyMessageLikeEvent::RoomRedaction(RoomRedactionEvent::Original(ev)))
     );
 
-    assert_eq!(ev.redacts(&RoomVersionId::V1), "$nomorev1:example.com");
-    assert_eq!(ev.redacts(&RoomVersionId::V11), "$nomorev11:example.com");
+    assert_eq!(ev.redacts(&RedactionRules::V1), "$nomorev1:example.com");
+    assert_eq!(ev.redacts(&RedactionRules::V11), "$nomorev11:example.com");
 
     assert_eq!(ev.content.redacts.unwrap(), "$nomorev11:example.com");
     assert_eq!(ev.content.reason.as_deref(), Some("being very unfriendly"));

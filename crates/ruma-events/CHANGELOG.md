@@ -42,6 +42,8 @@ Breaking changes:
 - The `EventContent` macro doesn't implement `StaticEventContent` anymore for account data where the
   `type` uses the `.*` suffix, since the event type is not known at compile-time.
   - `SecretStorageKeyEventContent` doesn't implement `StaticEventContent` anymore.
+- The `(Original)(Sync)RedactEvent` events take a `RedactionRules` instead of `RoomVersionId` for
+  their `redacts()` method. This avoids unexpected behavior for unknown room versions.
 
 Improvements:
 

@@ -8,7 +8,7 @@ use js_int::Int;
 use ruma_common::canonical_json::RedactionEvent;
 use ruma_common::{
     room_version_rules::RedactionRules, serde::CanBeEmpty, EventId, MilliSecondsSinceUnixEpoch,
-    OwnedEventId, OwnedRoomId, OwnedTransactionId, OwnedUserId, RoomId, RoomVersionId, UserId,
+    OwnedEventId, OwnedRoomId, OwnedTransactionId, OwnedUserId, RoomId, UserId,
 };
 use ruma_macros::{Event, EventContent};
 use serde::{Deserialize, Serialize};
@@ -282,15 +282,15 @@ impl RoomRedactionEvent {
         }
     }
 
-    /// Returns the ID of the event that this event redacts, according to the given room version.
+    /// Returns the ID of the event that this event redacts, according to the given redaction rules.
     ///
     /// # Panics
     ///
     /// Panics if this is a non-redacted event and both `redacts` field are `None`, which is only
     /// possible if the event was modified after being deserialized.
-    pub fn redacts(&self, room_version: &RoomVersionId) -> Option<&EventId> {
+    pub fn redacts(&self, rules: &RedactionRules) -> Option<&EventId> {
         match self {
-            Self::Original(ev) => Some(ev.redacts(room_version)),
+            Self::Original(ev) => Some(ev.redacts(rules)),
             Self::Redacted(ev) => ev.content.redacts.as_deref(),
         }
     }
@@ -334,15 +334,15 @@ impl SyncRoomRedactionEvent {
         }
     }
 
-    /// Returns the ID of the event that this event redacts, according to the given room version.
+    /// Returns the ID of the event that this event redacts, according to the given redaction rules.
     ///
     /// # Panics
     ///
     /// Panics if this is a non-redacted event and both `redacts` field are `None`, which is only
     /// possible if the event was modified after being deserialized.
-    pub fn redacts(&self, room_version: &RoomVersionId) -> Option<&EventId> {
+    pub fn redacts(&self, rules: &RedactionRules) -> Option<&EventId> {
         match self {
-            Self::Original(ev) => Some(ev.redacts(room_version)),
+            Self::Original(ev) => Some(ev.redacts(rules)),
             Self::Redacted(ev) => ev.content.redacts.as_deref(),
         }
     }
@@ -372,33 +372,33 @@ impl From<RoomRedactionEvent> for SyncRoomRedactionEvent {
 
 impl OriginalRoomRedactionEvent {
     /// Returns the ID of the event that this event redacts, according to the proper `redacts` field
-    /// for the given room version.
+    /// for the given redaction rules.
     ///
-    /// If the `redacts` field is not the proper one for the given room version, this falls back to
-    /// the one that is available.
+    /// If the `redacts` field is not the proper one for the given rules, this falls back to the one
+    /// that is available.
     ///
     /// # Panics
     ///
     /// Panics if both `redacts` field are `None`, which is only possible if the event was modified
     /// after being deserialized.
-    pub fn redacts(&self, room_version: &RoomVersionId) -> &EventId {
-        redacts(room_version, self.redacts.as_deref(), self.content.redacts.as_deref())
+    pub fn redacts(&self, rules: &RedactionRules) -> &EventId {
+        redacts(rules, self.redacts.as_deref(), self.content.redacts.as_deref())
     }
 }
 
 impl OriginalSyncRoomRedactionEvent {
     /// Returns the ID of the event that this event redacts, according to the proper `redacts` field
-    /// for the given room version.
+    /// for the given redaction rules.
     ///
-    /// If the `redacts` field is not the proper one for the given room version, this falls back to
-    /// the one that is available.
+    /// If the `redacts` field is not the proper one for the given rules, this falls back to the one
+    /// that is available.
     ///
     /// # Panics
     ///
     /// Panics if both `redacts` field are `None`, which is only possible if the event was modified
     /// after being deserialized.
-    pub fn redacts(&self, room_version: &RoomVersionId) -> &EventId {
-        redacts(room_version, self.redacts.as_deref(), self.content.redacts.as_deref())
+    pub fn redacts(&self, rules: &RedactionRules) -> &EventId {
+        redacts(rules, self.redacts.as_deref(), self.content.redacts.as_deref())
     }
 }
 
@@ -457,40 +457,35 @@ impl CanBeEmpty for RoomRedactionUnsigned {
     }
 }
 
-/// Returns the value of the proper `redacts` field for the given room version.
+/// Returns the value of the proper `redacts` field for the given redaction rules.
 ///
-/// If the `redacts` field is not the proper one for the given room version, this falls back to
-/// the one that is available.
+/// If the `redacts` field is not the proper one for the given rules, this falls back to the one
+/// that is available.
 ///
 /// # Panics
 ///
 /// Panics if both `redacts` and `content_redacts` are `None`.
 fn redacts<'a>(
-    room_version: &'_ RoomVersionId,
+    rules: &'_ RedactionRules,
     redacts: Option<&'a EventId>,
     content_redacts: Option<&'a EventId>,
 ) -> &'a EventId {
-    match room_version {
-            RoomVersionId::V1
-            | RoomVersionId::V2
-            | RoomVersionId::V3
-            | RoomVersionId::V4
-            | RoomVersionId::V5
-            | RoomVersionId::V6
-            | RoomVersionId::V7
-            | RoomVersionId::V8
-            | RoomVersionId::V9
-            | RoomVersionId::V10 => redacts
-                .or_else(|| {
-                    error!("Redacts field at event level not available, falling back to the one inside content");
-                    content_redacts
+    if rules.keep_room_redaction_redacts {
+        content_redacts.or_else(|| {
+            error!(
+                "Redacts field inside content not available, \
+                 falling back to the one at the event level"
+            );
+            redacts
         })
-                .expect("At least one redacts field is set"),
-            _ => content_redacts
-                .or_else(|| {
-                    error!("Redacts field inside content not available, falling back to the one at the event level");
-                    redacts
+    } else {
+        redacts.or_else(|| {
+            error!(
+                "Redacts field at event level not available, \
+                 falling back to the one inside content"
+            );
+            content_redacts
         })
-                .expect("At least one redacts field is set"),
-        }
+    }
+    .expect("At least one redacts field is set")
 }
