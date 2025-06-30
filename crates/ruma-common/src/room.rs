@@ -246,13 +246,13 @@ pub enum JoinRuleKind {
 impl From<JoinRuleKind> for JoinRuleSummary {
     fn from(value: JoinRuleKind) -> Self {
         match value {
-            JoinRuleKind::Invite => JoinRuleSummary::Invite,
-            JoinRuleKind::Knock => JoinRuleSummary::Knock,
-            JoinRuleKind::Private => JoinRuleSummary::Private,
-            JoinRuleKind::Restricted => JoinRuleSummary::Restricted(Default::default()),
-            JoinRuleKind::KnockRestricted => JoinRuleSummary::KnockRestricted(Default::default()),
-            JoinRuleKind::Public => JoinRuleSummary::Public,
-            JoinRuleKind::_Custom(s) => JoinRuleSummary::_Custom(s),
+            JoinRuleKind::Invite => Self::Invite,
+            JoinRuleKind::Knock => Self::Knock,
+            JoinRuleKind::Private => Self::Private,
+            JoinRuleKind::Restricted => Self::Restricted(Default::default()),
+            JoinRuleKind::KnockRestricted => Self::KnockRestricted(Default::default()),
+            JoinRuleKind::Public => Self::Public,
+            JoinRuleKind::_Custom(s) => Self::_Custom(s),
         }
     }
 }
