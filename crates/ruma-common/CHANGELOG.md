@@ -54,6 +54,10 @@ Breaking changes:
   1.15.
   - It can be constructed with `JoinRule::kind()` and `JoinRuleSummary::kind()`.
 
+Bug fix:
+
+- Set the `disposition` of `RoomVersionRules::MSC2870` as unstable.
+
 Improvements:
 
 - Implement the `Zeroize` trait for the `Base64` type.
