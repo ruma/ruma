@@ -67,13 +67,13 @@ impl JoinRule {
     /// Returns the kind of this `JoinRule`.
     pub fn kind(&self) -> JoinRuleKind {
         match self {
-            JoinRule::Invite => JoinRuleKind::Invite,
-            JoinRule::Knock => JoinRuleKind::Knock,
-            JoinRule::Private => JoinRuleKind::Private,
-            JoinRule::Restricted(_) => JoinRuleKind::Restricted,
-            JoinRule::KnockRestricted(_) => JoinRuleKind::KnockRestricted,
-            JoinRule::Public => JoinRuleKind::Public,
-            JoinRule::_Custom(rule) => JoinRuleKind::_Custom(rule.clone()),
+            Self::Invite => JoinRuleKind::Invite,
+            Self::Knock => JoinRuleKind::Knock,
+            Self::Private => JoinRuleKind::Private,
+            Self::Restricted(_) => JoinRuleKind::Restricted,
+            Self::KnockRestricted(_) => JoinRuleKind::KnockRestricted,
+            Self::Public => JoinRuleKind::Public,
+            Self::_Custom(rule) => JoinRuleKind::_Custom(rule.clone()),
         }
     }
 
