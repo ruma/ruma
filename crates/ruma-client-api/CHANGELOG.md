@@ -33,6 +33,9 @@ Improvements:
   endpoints, the `server_name` query parameter is only serialized if the server
   doesn't advertise at least one version that supports the `via` query
   parameter. The former was removed in Matrix 1.14.
+- Add `additional_creators` field to `CreationContent` of `create_room` and `Request` of
+  `upgrade_room`, allowing clients to specify which other users (if any) should be considered
+  additional creators from room version `org.matrix.hydra.11` onwards.
 
 # 0.20.4
 
