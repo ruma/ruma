@@ -5,6 +5,7 @@ use std::{
     collections::{BTreeSet, HashMap, HashSet},
     error::Error,
     fs,
+    ops::Deref,
     path::Path,
 };
 
@@ -208,6 +209,11 @@ fn test_resolve(paths: &[&str]) -> Snapshots {
     };
     let rules = room_version_id.rules().expect("room version should be supported").authorization;
 
+    // Resolve PDUs iteratively, using the ordering of `prev_events`.
+    let iteratively_resolved_state =
+        resolve_iteratively(&rules, pdu_batches.iter().flat_map(|x| x.iter()))
+            .expect("iterative state resolution should succeed");
+
     // Resolve PDUs in batches by file
     let mut pdus_by_id = HashMap::new();
     let mut batched_resolved_state = None;
@@ -243,26 +249,41 @@ fn test_resolve(paths: &[&str]) -> Snapshots {
             .collect::<Result<_, JsonError>>()
     };
 
+    let iteratively_resolved_state = reshape(iteratively_resolved_state)
+        .expect("should be able to reshape iteratively resolved state");
     let batched_resolved_state =
         reshape(batched_resolved_state).expect("should be able to reshape batched resolved state");
     let atomic_resolved_state =
         reshape(atomic_resolved_state).expect("should be able to reshape atomic resolved state");
 
-    if batched_resolved_state != atomic_resolved_state {
-        let diff = unified_diff(
-            Algorithm::default(),
-            &to_json_string_pretty(&batched_resolved_state)
-                .expect("should be able to serialize batched resolved state"),
-            &to_json_string_pretty(&atomic_resolved_state)
-                .expect("should be able to serialize atomic resolved state"),
-            3,
-            Some(("batched", "atomic")),
-        );
+    let assert_states_match = |first_resolved_state: &BTreeSet<ResolvedStateEvent>,
+                               second_resolved_state: &BTreeSet<ResolvedStateEvent>,
+                               first_name: &str,
+                               second_name: &str| {
+        if first_resolved_state != second_resolved_state {
+            let diff = unified_diff(
+                Algorithm::default(),
+                &to_json_string_pretty(first_resolved_state)
+                    .expect("should be able to serialize first resolved state"),
+                &to_json_string_pretty(second_resolved_state)
+                    .expect("should be able to serialize second resolved state"),
+                3,
+                Some((first_name, second_name)),
+            );
 
-        panic!("batched and atomic results should match; but they differ:\n{diff}");
-    }
+            panic!("{first_name} and {second_name} results should match; but they differ:\n{diff}");
+        }
+    };
 
-    Snapshots { resolved_state: batched_resolved_state }
+    assert_states_match(
+        &iteratively_resolved_state,
+        &batched_resolved_state,
+        "iterative",
+        "batched",
+    );
+    assert_states_match(&batched_resolved_state, &atomic_resolved_state, "batched", "atomic");
+
+    Snapshots { resolved_state: iteratively_resolved_state }
 }
 
 /// Perform state resolution on a batch of PDUs.
@@ -316,6 +337,139 @@ where
     }
 
     resolve(rules, &state_sets, auth_chain_sets, |x| pdus_by_id.get(x).cloned()).map_err(Into::into)
+}
+
+/// Perform state resolution on a batch of PDUs iteratively, one-by-one.
+///
+/// This function walks the `prev_events` of each PDU forward, resolving each pdu against the
+/// state(s) of it's `prev_events`, to emulate what would happen in a regular room a server is
+/// participating in.
+///
+/// # Arguments
+///
+/// * `auth_rules`: The authorization rules of the room version.
+/// * `pdus`: An iterator of [`Pdu`]s to resolve, with the following assumptions:
+///   * `prev_events` of each PDU points to another provided state event.
+///
+/// # Returns
+///
+/// The state resolved by resolving all the leaves (PDUs which don't have any other PDUs pointing
+/// to it via `prev_events`).
+fn resolve_iteratively<'a, I, II>(
+    auth_rules: &AuthorizationRules,
+    pdus: II,
+) -> Result<StateMap<OwnedEventId>, Box<dyn Error>>
+where
+    I: Iterator<Item = &'a Pdu>,
+    II: IntoIterator<IntoIter = I> + Clone,
+{
+    let mut forward_prev_events_graph: HashMap<&_, Vec<_>> = HashMap::new();
+    let mut stack = Vec::new();
+
+    for pdu in pdus.clone() {
+        let mut has_prev_events = false;
+        for prev_event in pdu.prev_events() {
+            forward_prev_events_graph.entry(prev_event).or_default().push(pdu.event_id());
+            has_prev_events = true;
+        }
+        if pdu.event_type() == &TimelineEventType::RoomCreate && !has_prev_events {
+            stack.push(pdu.event_id().to_owned());
+        }
+    }
+
+    let pdus_by_id: HashMap<OwnedEventId, Pdu> =
+        HashMap::from_iter(pdus.into_iter().map(|pdu| (pdu.event_id().to_owned(), pdu.to_owned())));
+
+    let auth_chain_from_state_map =
+        |state_map: &StateMap<OwnedEventId>| -> Result<_, Box<dyn Error>> {
+            let mut auth_chain_sets = HashSet::new();
+
+            for event_id in state_map.values() {
+                let pdu = pdus_by_id.get(event_id).expect("every pdu should be available");
+                auth_chain_sets.extend(auth_events_dfs(&pdus_by_id, pdu)?);
+            }
+
+            Ok(auth_chain_sets)
+        };
+
+    let mut state_at_events: HashMap<OwnedEventId, StateMap<OwnedEventId>> = HashMap::new();
+    let mut leaves = Vec::new();
+
+    'outer: while let Some(event_id) = stack.pop() {
+        let mut states_before_event = Vec::new();
+        let mut auth_chains_before_event = Vec::new();
+
+        let current_pdu = pdus_by_id.get(&event_id).expect("every pdu should be available");
+
+        for prev_event in current_pdu.prev_events() {
+            let Some(state_at_event) = state_at_events.get(prev_event) else {
+                // State for a prev event is not known, we will come back to this event on a later
+                // iteration.
+                continue 'outer;
+            };
+            let auth_chain_at_event = auth_chain_from_state_map(state_at_event)?;
+
+            states_before_event.push(state_at_event.clone());
+            auth_chains_before_event.push(auth_chain_at_event);
+        }
+
+        let state_before_event =
+            resolve(auth_rules, &states_before_event, auth_chains_before_event.clone(), |x| {
+                pdus_by_id.get(x).cloned()
+            })?;
+
+        let auth_chain_before_event = auth_chain_from_state_map(&state_before_event)?;
+
+        let mut proposed_state_at_event = state_before_event.clone();
+        proposed_state_at_event.insert(
+            (
+                current_pdu.event_type().to_string().into(),
+                current_pdu.state_key().expect("all pdus are state events").to_owned(),
+            ),
+            event_id.to_owned(),
+        );
+
+        let mut auth_chain_at_event = auth_chain_before_event.clone();
+        auth_chain_at_event.extend(auth_events_dfs(&pdus_by_id, current_pdu)?);
+
+        let state_at_event = resolve(
+            auth_rules,
+            &[state_before_event, proposed_state_at_event],
+            vec![auth_chain_before_event, auth_chain_at_event],
+            |x| pdus_by_id.get(x).cloned(),
+        )?;
+
+        state_at_events.insert(event_id.clone(), state_at_event);
+
+        if let Some(prev_events) = forward_prev_events_graph.get(&event_id) {
+            stack.extend(prev_events.iter().map(Deref::deref).cloned());
+        } else {
+            // pdu is a leaf: no `prev_events` point to it.
+            leaves.push(event_id);
+        }
+    }
+
+    if state_at_events.len() != pdus_by_id.len() {
+        panic!(
+            r#"Not all events have a state calculated!
+                This is likely due to an event having a `prev_events`
+                which points to a non-existent PDU."#
+        );
+    }
+
+    let mut leaf_states = Vec::new();
+    let mut auth_chain_sets = Vec::new();
+
+    for leaf in leaves {
+        let state_at_event = state_at_events.get(&leaf).expect("states at all events are known");
+        let auth_chain_at_event = auth_chain_from_state_map(state_at_event)?;
+
+        leaf_states.push(state_at_event.clone());
+        auth_chain_sets.push(auth_chain_at_event);
+    }
+
+    resolve(auth_rules, &leaf_states, auth_chain_sets, |x| pdus_by_id.get(x).cloned())
+        .map_err(Into::into)
 }
 
 /// Depth-first search for the `auth_events` of the given PDU.
