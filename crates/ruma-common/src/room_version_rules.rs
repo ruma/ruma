@@ -125,7 +125,11 @@ impl RoomVersionRules {
     ///
     /// [MSC2870]: https://github.com/matrix-org/matrix-spec-proposals/pull/2870
     #[cfg(feature = "unstable-msc2870")]
-    pub const MSC2870: Self = Self { redaction: RedactionRules::MSC2870, ..Self::V11 };
+    pub const MSC2870: Self = Self {
+        disposition: RoomVersionDisposition::Unstable,
+        redaction: RedactionRules::MSC2870,
+        ..Self::V11
+    };
 }
 
 /// The stability of a room version.
