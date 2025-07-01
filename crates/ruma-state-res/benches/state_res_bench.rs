@@ -10,6 +10,7 @@
 use std::{
     borrow::Borrow,
     collections::{HashMap, HashSet},
+    slice,
     sync::{
         atomic::{AtomicU64, Ordering::SeqCst},
         Arc,
@@ -179,8 +180,7 @@ impl<E: Event> TestStore<E> {
         let mut stack = event_ids;
 
         // DFS for auth event chain
-        while !stack.is_empty() {
-            let ev_id = stack.pop().unwrap();
+        while let Some(ev_id) = stack.pop() {
             if result.contains(&ev_id) {
                 continue;
             }
@@ -245,8 +245,8 @@ impl TestStore<PduEvent> {
             TimelineEventType::RoomMember,
             Some(alice().to_string().as_str()),
             member_content_join(),
-            &[cre.clone()],
-            &[cre.clone()],
+            slice::from_ref(&cre),
+            slice::from_ref(&cre),
         );
         self.0.insert(alice_mem.event_id().to_owned(), Arc::clone(&alice_mem));
 
@@ -314,7 +314,7 @@ fn event_id(id: &str) -> OwnedEventId {
     if id.contains('$') {
         return id.try_into().unwrap();
     }
-    format!("${}:foo", id).try_into().unwrap()
+    format!("${id}:foo").try_into().unwrap()
 }
 
 fn alice() -> &'static UserId {
@@ -360,7 +360,7 @@ where
     // We don't care if the addition happens in order just that it is atomic
     // (each event has its own value)
     let ts = SERVER_TIMESTAMP.fetch_add(1, SeqCst);
-    let id = if id.contains('$') { id.to_owned() } else { format!("${}:foo", id) };
+    let id = if id.contains('$') { id.to_owned() } else { format!("${id}:foo") };
     let auth_events = auth_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
     let prev_events = prev_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
 
