@@ -123,6 +123,9 @@ jobs:
           - name: Check Common
             cmd: stable-common
 
+          - name: Check Benchmarks
+            cmd: stable-benches
+
           - name: Run Tests
             cmd: test-all
 
@@ -178,6 +181,10 @@ jobs:
           - name: Clippy WASM
             cmd: clippy-wasm
             targets: wasm32-unknown-unknown
+            components: clippy
+
+          - name: Clippy Benchmarks
+            cmd: clippy-benches
             components: clippy
 
     steps:

@@ -6,7 +6,7 @@ use std::path::Path;
 use clap::{Args, Subcommand};
 use xshell::Shell;
 
-use crate::{cmd, Metadata, Result, NIGHTLY};
+use crate::{bench::BenchPackage, cmd, Metadata, Result, NIGHTLY};
 
 mod reexport_features;
 mod spec_links;
@@ -42,6 +42,8 @@ pub enum CiCmd {
     StableAll,
     /// Check ruma-common with only the required features (stable)
     StableCommon,
+    /// Check all benchmarks (stable)
+    StableBenches,
     /// Run all tests with almost all features (stable)
     TestAll,
     /// Run all tests with almost all features, including the compat features (stable)
@@ -62,6 +64,8 @@ pub enum CiCmd {
     ClippyWasm,
     /// Lint almost all features with clippy (nightly)
     ClippyAll,
+    /// Lint all benchmarks with clippy (nightly)
+    ClippyBenches,
     /// Run all lints that don't need compilation
     Lint,
     /// Check sorting of dependencies (lint)
@@ -111,6 +115,7 @@ impl CiTask {
             Some(CiCmd::Stable) => self.stable()?,
             Some(CiCmd::StableAll) => self.stable_all()?,
             Some(CiCmd::StableCommon) => self.stable_common()?,
+            Some(CiCmd::StableBenches) => self.stable_benches()?,
             Some(CiCmd::TestAll) => self.test_all()?,
             Some(CiCmd::TestCompat) => self.test_compat()?,
             Some(CiCmd::TestDoc) => self.test_doc()?,
@@ -121,6 +126,7 @@ impl CiTask {
             Some(CiCmd::ClippyDefault) => self.clippy_default()?,
             Some(CiCmd::ClippyWasm) => self.clippy_wasm()?,
             Some(CiCmd::ClippyAll) => self.clippy_all()?,
+            Some(CiCmd::ClippyBenches) => self.clippy_benches()?,
             Some(CiCmd::Lint) => self.lint()?,
             Some(CiCmd::Dependencies) => self.dependencies()?,
             Some(CiCmd::SpecLinks) => check_spec_links(&self.project_root().join("crates"))?,
@@ -173,6 +179,7 @@ impl CiTask {
     fn stable(&self) -> Result<()> {
         self.stable_all()?;
         self.stable_common()?;
+        self.stable_benches()?;
         self.test_all()?;
         self.test_doc()?;
         Ok(())
@@ -200,6 +207,15 @@ impl CiTask {
         )
         .run()
         .map_err(Into::into)
+    }
+
+    /// Check all the benchmarks with the stable version.
+    fn stable_benches(&self) -> Result<()> {
+        let packages = BenchPackage::ALL_PACKAGES_ARGS;
+
+        cmd!(&self.sh, "rustup run stable cargo check {packages...} --benches --features criterion")
+            .run()
+            .map_err(Into::into)
     }
 
     /// Run tests on all crates with almost all features with the stable version.
@@ -230,7 +246,8 @@ impl CiTask {
         self.nightly_full()?;
         self.clippy_default()?;
         self.clippy_wasm()?;
-        self.clippy_all()
+        self.clippy_all()?;
+        self.clippy_benches()
     }
 
     /// Check the formatting with the nightly version.
@@ -315,6 +332,21 @@ impl CiTask {
             "
             rustup run {NIGHTLY} cargo clippy
                 --workspace --all-targets --features=__ci,__compat -- -D warnings
+            "
+        )
+        .run()
+        .map_err(Into::into)
+    }
+
+    /// Lint all benchmarks with clippy with the nightly version.
+    fn clippy_benches(&self) -> Result<()> {
+        let packages = BenchPackage::ALL_PACKAGES_ARGS;
+
+        cmd!(
+            &self.sh,
+            "
+            rustup run {NIGHTLY} cargo clippy {packages...}
+                --benches --features criterion -- -D warnings
             "
         )
         .run()
