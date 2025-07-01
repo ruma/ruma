@@ -53,7 +53,7 @@ fn deserialize_any_room_event(c: &mut Criterion) {
     c.bench_function("deserialize to `AnyTimelineEvent`", |b| {
         b.iter(|| {
             let _ = serde_json::from_value::<AnyTimelineEvent>(json_data.clone()).unwrap();
-        })
+        });
     });
 }
 
@@ -63,7 +63,7 @@ fn deserialize_any_state_event(c: &mut Criterion) {
     c.bench_function("deserialize to `AnyStateEvent`", |b| {
         b.iter(|| {
             let _ = serde_json::from_value::<AnyStateEvent>(json_data.clone()).unwrap();
-        })
+        });
     });
 }
 
@@ -76,7 +76,7 @@ fn deserialize_specific_event(c: &mut Criterion) {
                 json_data.clone(),
             )
             .unwrap();
-        })
+        });
     });
 }
 
