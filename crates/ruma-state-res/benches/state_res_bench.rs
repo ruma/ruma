@@ -21,8 +21,8 @@ use event::{EventHash, PduEvent};
 use js_int::{int, uint};
 use maplit::{btreemap, hashmap, hashset};
 use ruma_common::{
-    room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, RoomVersionId,
-    UserId,
+    room_id, room_version_rules::AuthorizationRules, user_id, EventId, MilliSecondsSinceUnixEpoch,
+    OwnedEventId, RoomId, UserId,
 };
 use ruma_events::{
     room::{
@@ -39,8 +39,8 @@ use serde_json::{
 
 static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 
-fn lexico_topo_sort(c: &mut Criterion) {
-    c.bench_function("lexicographical topological sort", |b| {
+fn reverse_topological_power_sort(c: &mut Criterion) {
+    c.bench_function("reverse_topological_power_sort", |b| {
         let graph = hashmap! {
             event_id("l") => hashset![event_id("o")],
             event_id("m") => hashset![event_id("n"), event_id("o")],
@@ -49,7 +49,7 @@ fn lexico_topo_sort(c: &mut Criterion) {
             event_id("p") => hashset![event_id("o")],
         };
         b.iter(|| {
-            let _ = state_res::lexicographical_topological_sort(&graph, |_id| {
+            let _ = state_res::reverse_topological_power_sort(&graph, |_id| {
                 Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0))))
             });
         });
@@ -67,7 +67,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
             let ev_map = store.0.clone();
             let state_sets = [&state_at_bob, &state_at_charlie];
             let _ = match state_res::resolve(
-                &RoomVersionId::V6,
+                &AuthorizationRules::V6,
                 state_sets,
                 state_sets
                     .iter()
@@ -125,7 +125,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
         b.iter(|| {
             let state_sets = [&state_set_a, &state_set_b];
             let _ = match state_res::resolve(
-                &RoomVersionId::V6,
+                &AuthorizationRules::V6,
                 state_sets,
                 state_sets
                     .iter()
@@ -144,7 +144,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
 
 criterion_group!(
     benches,
-    lexico_topo_sort,
+    reverse_topological_power_sort,
     resolution_shallow_auth_chain,
     resolve_deeper_event_set
 );
@@ -161,10 +161,7 @@ struct TestStore<E: Event>(HashMap<OwnedEventId, Arc<E>>);
 #[allow(unused)]
 impl<E: Event> TestStore<E> {
     fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<Arc<E>> {
-        self.0
-            .get(event_id)
-            .map(Arc::clone)
-            .ok_or_else(|| Error::NotFound(format!("{} not found", event_id)))
+        self.0.get(event_id).map(Arc::clone).ok_or_else(|| Error::NotFound(event_id.to_owned()))
     }
 
     /// Returns the events that correspond to the `event_ids` sorted in the same order.
@@ -382,7 +379,7 @@ where
         prev_events,
         depth: uint!(0),
         hashes: EventHash { sha256: "".to_owned() },
-        signatures: btreemap! {},
+        signatures: Default::default(),
         rejected: false,
     })
 }
