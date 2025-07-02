@@ -92,6 +92,8 @@ Improvements:
   - Implement `From<RoomSummary>` for `PublicRoomsChunk` and
     `From<PublicRoomsChunk>` for `RoomSummary`.
 - Add `MatrixVersion::V1_15`.
+- Add `content_field_redacts` field to `RedactionRules`, which is used to determine whether the
+  `content` or top-level `redacts` field should be used to determine what event an event redacts.
 
 # 0.15.2
 
