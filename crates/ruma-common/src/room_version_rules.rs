@@ -356,6 +356,13 @@ pub struct RedactionRules {
     /// [spec]: https://spec.matrix.org/v1.15/rooms/v11/#redactions
     pub keep_room_member_third_party_invite_signed: bool,
 
+    /// Whether the `content.redacts` field should be used to determine the event an event
+    /// redacts, as opposed to the top-level `redacts` field ([spec]), introduced in room version
+    /// 11.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.15/rooms/v11/#redactions
+    pub content_field_redacts: bool,
+
     /// Whether to keep the `allow`, `deny` and `allow_ip_literals` in the `content` of
     /// `m.room.server_acl` events ([MSC2870]).
     ///
@@ -377,6 +384,7 @@ impl RedactionRules {
         keep_room_redaction_redacts: false,
         keep_room_power_levels_invite: false,
         keep_room_member_third_party_invite_signed: false,
+        content_field_redacts: false,
         #[cfg(feature = "unstable-msc2870")]
         keep_room_server_acl_allow_deny_allow_ip_literals: false,
     };
@@ -406,6 +414,7 @@ impl RedactionRules {
         keep_room_redaction_redacts: true,
         keep_room_power_levels_invite: true,
         keep_room_member_third_party_invite_signed: true,
+        content_field_redacts: true,
         ..Self::V9
     };
 

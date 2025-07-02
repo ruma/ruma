@@ -470,7 +470,7 @@ fn redacts<'a>(
     redacts: Option<&'a EventId>,
     content_redacts: Option<&'a EventId>,
 ) -> &'a EventId {
-    if rules.keep_room_redaction_redacts {
+    if rules.content_field_redacts {
         content_redacts.or_else(|| {
             error!(
                 "Redacts field inside content not available, \
