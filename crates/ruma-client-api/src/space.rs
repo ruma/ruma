@@ -148,3 +148,40 @@ impl From<SpaceHierarchyRoomsChunkInit> for SpaceHierarchyRoomsChunk {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use serde_json::{from_value as from_json_value, json};
+
+    use super::SpaceHierarchyRoomsChunk;
+
+    #[test]
+    fn deserialize_space_hierarchy_rooms_chunk() {
+        let json = json!({
+            "room_id": "!room:localhost",
+            "num_joined_members": 5,
+            "world_readable": false,
+            "guest_can_join": false,
+            "join_rule": "restricted",
+            "allowed_room_ids": ["!otherroom:localhost"],
+            "children_state": [
+                {
+                    "content": {
+                        "via": [
+                            "example.org"
+                        ]
+                    },
+                    "origin_server_ts": 1_629_413_349,
+                    "sender": "@alice:example.org",
+                    "state_key": "!a:example.org",
+                    "type": "m.space.child"
+                }
+            ],
+        });
+
+        let room = from_json_value::<SpaceHierarchyRoomsChunk>(json).unwrap();
+        assert_eq!(room.room_id, "!room:localhost");
+        let space_child = room.children_state[0].deserialize().unwrap();
+        assert_eq!(space_child.state_key, "!a:example.org");
+    }
+}

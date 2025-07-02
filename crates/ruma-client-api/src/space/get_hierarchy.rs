@@ -87,3 +87,47 @@ pub mod v1 {
         }
     }
 }
+
+#[cfg(all(test, feature = "client"))]
+mod tests {
+    use ruma_common::api::IncomingResponse;
+    use serde_json::{json, to_vec as to_json_vec};
+
+    use super::v1::Response;
+
+    #[test]
+    fn deserialize_response() {
+        let body = json!({
+            "rooms": [
+                {
+                    "room_id": "!room:localhost",
+                    "num_joined_members": 5,
+                    "world_readable": false,
+                    "guest_can_join": false,
+                    "join_rule": "restricted",
+                    "allowed_room_ids": ["!otherroom:localhost"],
+                    "children_state": [
+                        {
+                            "content": {
+                                "via": [
+                                    "example.org"
+                                ]
+                            },
+                            "origin_server_ts": 1_629_413_349,
+                            "sender": "@alice:example.org",
+                            "state_key": "!a:example.org",
+                            "type": "m.space.child"
+                        }
+                    ],
+                },
+            ],
+        });
+        let response = http::Response::new(to_json_vec(&body).unwrap());
+
+        let response = Response::try_from_http_response(response).unwrap();
+        let room = &response.rooms[0];
+        assert_eq!(room.room_id, "!room:localhost");
+        let space_child = room.children_state[0].deserialize().unwrap();
+        assert_eq!(space_child.state_key, "!a:example.org");
+    }
+}

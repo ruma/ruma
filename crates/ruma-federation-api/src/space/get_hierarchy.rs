@@ -71,3 +71,58 @@ pub mod v1 {
         }
     }
 }
+
+#[cfg(all(test, feature = "client"))]
+mod tests {
+    use ruma_common::{api::IncomingResponse, OwnedRoomId};
+    use serde_json::{json, to_vec as to_json_vec};
+
+    use super::v1::Response;
+
+    #[test]
+    fn deserialize_response() {
+        let body = json!({
+            "children": [
+                {
+                    "room_id": "!a:localhost",
+                    "num_joined_members": 6,
+                    "world_readable": true,
+                    "guest_can_join": false,
+                    "join_rule": "public",
+                },
+            ],
+            "inaccessible_children": [],
+            "room": {
+                "room_id": "!room:localhost",
+                "num_joined_members": 5,
+                "world_readable": false,
+                "guest_can_join": false,
+                "join_rule": "restricted",
+                "allowed_room_ids": ["!otherroom:localhost"],
+                "type": "space",
+                "children_state": [
+                    {
+                        "content": {
+                            "via": [
+                                "example.org"
+                            ]
+                        },
+                        "origin_server_ts": 1_629_413_349,
+                        "sender": "@alice:example.org",
+                        "state_key": "!a:example.org",
+                        "type": "m.space.child"
+                    }
+                ],
+            },
+        });
+        let response = http::Response::new(to_json_vec(&body).unwrap());
+
+        let response = Response::try_from_http_response(response).unwrap();
+
+        assert_eq!(response.room.room_id, "!room:localhost");
+        let space_child = response.room.children_state[0].deserialize().unwrap();
+        assert_eq!(space_child.state_key, "!a:example.org");
+        assert_eq!(response.inaccessible_children, &[] as &[OwnedRoomId]);
+        assert_eq!(response.children[0].room_id, "!a:localhost");
+    }
+}
