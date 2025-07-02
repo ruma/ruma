@@ -220,7 +220,8 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 /// This macro implements the following traits for the type on which it is applied:
 ///
 /// * `{kind}EventContent`
-/// * `StaticEventContent`, if the `type` does not use a `.*` suffix.
+/// * `StaticEventContent`, if the `type` does not use a `.*` suffix, or `DynamicEventContent` if it
+///   does.
 /// * `StaticStateEventContent`, for the `State` kind.
 ///
 /// # Generated types

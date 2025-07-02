@@ -39,9 +39,10 @@ Breaking changes:
 - The `BundledThread::latest_event` field is now an `AnySyncMessageLikeEvent` instead of
   `AnyMessageLikeEvent`, to reflect that it may not always include a `room_id` field (if the owning
   event came from sync, for instance), which can usually be obtained from the surrounding context.
-- The `EventContent` macro doesn't implement `StaticEventContent` anymore for account data where the
-  `type` uses the `.*` suffix, since the event type is not known at compile-time.
-  - `SecretStorageKeyEventContent` doesn't implement `StaticEventContent` anymore.
+- The `EventContent` macro implements `DynamicEventContent` instead of `StaticEventContent` for
+  account data where the `type` uses the `.*` suffix, since the full event type is not known at
+  compile-time.
+  - `SecretStorageKeyEventContent` implements `DynamicEventContent` instead of `StaticEventContent`.
 - The `(Original)(Sync)RedactEvent` events take a `RedactionRules` instead of `RoomVersionId` for
   their `redacts()` method. This avoids unexpected behavior for unknown room versions.
 
@@ -68,6 +69,9 @@ Improvements:
   - `MediaPreviewConfigEventContent::merge_global_and_room_config()` can be used to get the current
     config for a room.
 - Fix and stabilize support for rich text in room topics, according to Matrix 1.15.
+- Add the `DynamicEventContent` trait that should be implemented by event content types with a
+  dynamic event type, i.e. an event type with a statically-known prefix and the rest of the type
+  stored in its content.
    
 # 0.30.3
 

@@ -390,7 +390,7 @@ pub fn expand_event_content(
         ruma_events,
     )
     .unwrap_or_else(syn::Error::into_compile_error);
-    let static_event_content_impl = generate_static_event_content_impl(
+    let static_or_dynamic_event_content_impl = generate_static_or_dynamic_event_content_impl(
         ident,
         &event_type,
         event_type_fragment.as_ref(),
@@ -405,7 +405,7 @@ pub fn expand_event_content(
         #possibly_redacted_event_content
         #event_content_without_relation
         #event_content_impl
-        #static_event_content_impl
+        #static_or_dynamic_event_content_impl
         #type_aliases
     })
 }
@@ -491,7 +491,7 @@ fn generate_redacted_event_content<'a>(
     )
     .unwrap_or_else(syn::Error::into_compile_error);
 
-    let static_event_content_impl = generate_static_event_content_impl(
+    let static_or_dynamic_event_content_impl = generate_static_or_dynamic_event_content_impl(
         &redacted_ident,
         event_type,
         event_type_fragment,
@@ -522,7 +522,7 @@ fn generate_redacted_event_content<'a>(
 
         #redacted_event_content
 
-        #static_event_content_impl
+        #static_or_dynamic_event_content_impl
     })
 }
 
@@ -651,7 +651,7 @@ fn generate_possibly_redacted_event_content<'a>(
         )
         .unwrap_or_else(syn::Error::into_compile_error);
 
-        let static_event_content_impl = generate_static_event_content_impl(
+        let static_or_dynamic_event_content_impl = generate_static_or_dynamic_event_content_impl(
             &possibly_redacted_ident,
             event_type,
             event_type_fragment,
@@ -668,7 +668,7 @@ fn generate_possibly_redacted_event_content<'a>(
 
             #possibly_redacted_event_content
 
-            #static_event_content_impl
+            #static_or_dynamic_event_content_impl
         })
     } else {
         let event_content_kind_trait_impl = generate_event_content_kind_trait_impl(
@@ -1000,19 +1000,26 @@ fn generate_event_content_kind_trait_impl(
         .collect()
 }
 
-fn generate_static_event_content_impl(
+fn generate_static_or_dynamic_event_content_impl(
     ident: &Ident,
     event_type: &LitStr,
     event_type_fragment: Option<&EventTypeFragment<'_>>,
     ruma_events: &TokenStream,
-) -> Option<TokenStream> {
-    event_type_fragment.is_none().then(|| {
+) -> TokenStream {
+    if let Some(event_type_fragment) = event_type_fragment {
+        let prefix = &event_type_fragment.prefix;
+        quote! {
+            impl #ruma_events::DynamicEventContent for #ident {
+                const TYPE_PREFIX: &'static ::std::primitive::str = #prefix;
+            }
+        }
+    } else {
         quote! {
             impl #ruma_events::StaticEventContent for #ident {
                 const TYPE: &'static ::std::primitive::str = #event_type;
             }
         }
-    })
+    }
 }
 
 /// Data about the type fragment of an event content with a type that ends with `.*`.

@@ -11,8 +11,9 @@ pub struct MacroTestContent {
 }
 
 fn main() {
-    use ruma_events::GlobalAccountDataEventContent;
+    use ruma_events::{DynamicEventContent, GlobalAccountDataEventContent};
 
+    assert_eq!(MacroTestContent::TYPE_PREFIX, "m.macro.test.");
     assert_eq!(
         MacroTestContent { frag: "foo".to_owned() }.event_type().to_string(),
         "m.macro.test.foo"

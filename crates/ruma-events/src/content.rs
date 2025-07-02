@@ -30,6 +30,17 @@ pub trait StaticEventContent: Sized {
     const TYPE: &'static str;
 }
 
+/// An event content type with a dynamic event `type` value.
+///
+/// A dynamic event type has a statically-known type prefix, and the rest of the type is stored in a
+/// field in its content type.
+pub trait DynamicEventContent: Sized {
+    /// The prefix of the event type.
+    ///
+    /// This should usually end with a `.`, which is used as a separator in Matrix event types.
+    const TYPE_PREFIX: &'static str;
+}
+
 /// Content of a global account-data event.
 pub trait GlobalAccountDataEventContent: Sized + Serialize {
     /// Get the event's type, like `m.push_rules`.
