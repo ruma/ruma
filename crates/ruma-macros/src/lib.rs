@@ -220,7 +220,7 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 /// This macro implements the following traits for the type on which it is applied:
 ///
 /// * `{kind}EventContent`
-/// * `StaticEventContent`, if the `type` does not use a `.*` suffix.
+/// * `StaticEventContent`
 /// * `StaticStateEventContent`, for the `State` kind.
 ///
 /// # Generated types
@@ -333,7 +333,8 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 ///
 /// Types with an account data kind can also use the `.*` suffix, if the end of the type changes
 /// dynamically. It must be associated with a field that has the `#[ruma_event(type_fragment)]`
-/// attribute that will store the end of the event type.
+/// attribute that will store the end of the event type. Those types have the
+/// `StaticEventContent::IsPrefix` type set to `True`.
 ///
 /// ### `kind = Kind`
 ///

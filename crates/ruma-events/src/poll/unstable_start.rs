@@ -139,6 +139,7 @@ impl NewUnstablePollStartEventContent {
 
 impl StaticEventContent for NewUnstablePollStartEventContent {
     const TYPE: &'static str = UnstablePollStartEventContent::TYPE;
+    type IsPrefix = <UnstablePollStartEventContent as StaticEventContent>::IsPrefix;
 }
 
 impl MessageLikeEventContent for NewUnstablePollStartEventContent {
@@ -222,6 +223,7 @@ impl ReplacementUnstablePollStartEventContent {
 
 impl StaticEventContent for ReplacementUnstablePollStartEventContent {
     const TYPE: &'static str = UnstablePollStartEventContent::TYPE;
+    type IsPrefix = <UnstablePollStartEventContent as StaticEventContent>::IsPrefix;
 }
 
 impl MessageLikeEventContent for ReplacementUnstablePollStartEventContent {
@@ -244,6 +246,7 @@ impl RedactedUnstablePollStartEventContent {
 
 impl StaticEventContent for RedactedUnstablePollStartEventContent {
     const TYPE: &'static str = UnstablePollStartEventContent::TYPE;
+    type IsPrefix = <UnstablePollStartEventContent as StaticEventContent>::IsPrefix;
 }
 
 impl RedactedMessageLikeEventContent for RedactedUnstablePollStartEventContent {

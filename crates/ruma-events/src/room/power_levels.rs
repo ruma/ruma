@@ -287,6 +287,7 @@ pub struct RedactedRoomPowerLevelsEventContent {
 
 impl StaticEventContent for RedactedRoomPowerLevelsEventContent {
     const TYPE: &'static str = RoomPowerLevelsEventContent::TYPE;
+    type IsPrefix = <RoomPowerLevelsEventContent as StaticEventContent>::IsPrefix;
 }
 
 impl RedactedStateEventContent for RedactedRoomPowerLevelsEventContent {

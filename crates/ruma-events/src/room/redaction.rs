@@ -233,6 +233,7 @@ pub struct RedactedRoomRedactionEventContent {
 
 impl StaticEventContent for RedactedRoomRedactionEventContent {
     const TYPE: &'static str = RoomRedactionEventContent::TYPE;
+    type IsPrefix = <RoomRedactionEventContent as StaticEventContent>::IsPrefix;
 }
 
 impl RedactedMessageLikeEventContent for RedactedRoomRedactionEventContent {
