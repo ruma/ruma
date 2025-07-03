@@ -9,6 +9,7 @@ Improvements:
   clarification in Matrix 1.15.
 - Add `serde::default_on_error()` as a helper to ignore errors during
   deserialization.
+- Implement conversions between `PublicRoomJoinRule` and `SpaceRoomJoinRule`.
 
 # 0.15.2
 

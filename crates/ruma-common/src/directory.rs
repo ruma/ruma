@@ -9,6 +9,7 @@ mod room_network_serde;
 use crate::{
     room::{RoomSummary, RoomType},
     serde::StringEnum,
+    space::SpaceRoomJoinRule,
     OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr,
 };
 
@@ -137,7 +138,7 @@ impl From<RoomSummary> for PublicRoomsChunk {
             world_readable,
             guest_can_join,
             avatar_url,
-            join_rule: join_rule.as_str().into(),
+            join_rule: join_rule.into(),
             room_type,
         }
     }
@@ -222,6 +223,34 @@ pub enum PublicRoomJoinRule {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
+}
+
+impl From<PublicRoomJoinRule> for SpaceRoomJoinRule {
+    fn from(value: PublicRoomJoinRule) -> Self {
+        match value {
+            PublicRoomJoinRule::Invite => Self::Invite,
+            PublicRoomJoinRule::Knock => Self::Knock,
+            PublicRoomJoinRule::Private => Self::Private,
+            PublicRoomJoinRule::Restricted => Self::Restricted,
+            PublicRoomJoinRule::KnockRestricted => Self::KnockRestricted,
+            PublicRoomJoinRule::Public => Self::Public,
+            PublicRoomJoinRule::_Custom(custom) => Self::_Custom(custom),
+        }
+    }
+}
+
+impl From<SpaceRoomJoinRule> for PublicRoomJoinRule {
+    fn from(value: SpaceRoomJoinRule) -> Self {
+        match value {
+            SpaceRoomJoinRule::Invite => Self::Invite,
+            SpaceRoomJoinRule::Knock => Self::Knock,
+            SpaceRoomJoinRule::Private => Self::Private,
+            SpaceRoomJoinRule::Restricted => Self::Restricted,
+            SpaceRoomJoinRule::KnockRestricted => Self::KnockRestricted,
+            SpaceRoomJoinRule::Public => Self::Public,
+            SpaceRoomJoinRule::_Custom(custom) => Self::_Custom(custom),
+        }
+    }
 }
 
 /// An enum of possible room types to filter.

@@ -7,7 +7,9 @@ use serde::{de, Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
+    directory::PublicRoomJoinRule,
     serde::{from_raw_json_value, StringEnum},
+    space::SpaceRoomJoinRule,
     EventEncryptionAlgorithm, OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr,
     RoomVersionId,
 };
@@ -228,6 +230,34 @@ impl JoinRuleSummary {
             Self::KnockRestricted(_) => "knock_restricted",
             Self::Public => "public",
             Self::_Custom(rule) => &rule.0,
+        }
+    }
+}
+
+impl From<JoinRuleSummary> for PublicRoomJoinRule {
+    fn from(value: JoinRuleSummary) -> Self {
+        match value {
+            JoinRuleSummary::Invite => Self::Invite,
+            JoinRuleSummary::Knock => Self::Knock,
+            JoinRuleSummary::Private => Self::Private,
+            JoinRuleSummary::Restricted(_) => Self::Restricted,
+            JoinRuleSummary::KnockRestricted(_) => Self::KnockRestricted,
+            JoinRuleSummary::Public => Self::Public,
+            JoinRuleSummary::_Custom(custom) => Self::_Custom(custom),
+        }
+    }
+}
+
+impl From<JoinRuleSummary> for SpaceRoomJoinRule {
+    fn from(value: JoinRuleSummary) -> Self {
+        match value {
+            JoinRuleSummary::Invite => Self::Invite,
+            JoinRuleSummary::Knock => Self::Knock,
+            JoinRuleSummary::Private => Self::Private,
+            JoinRuleSummary::Restricted(_) => Self::Restricted,
+            JoinRuleSummary::KnockRestricted(_) => Self::KnockRestricted,
+            JoinRuleSummary::Public => Self::Public,
+            JoinRuleSummary::_Custom(custom) => Self::_Custom(custom),
         }
     }
 }
