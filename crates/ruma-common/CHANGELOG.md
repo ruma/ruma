@@ -57,6 +57,8 @@ Breaking changes:
   `key`, an enum that accepts any string.
   - The `key` field of `PushCondition::SenderNotificationPermission` uses the
     same type.
+- `RoomId::new()` was renamed to `RoomId::new_v1()`, as several formats are now
+  supported for this type.
 
 Bug fix:
 
@@ -109,6 +111,10 @@ Improvements:
   `m.room.create` event respectively.
 - Add `RoomPowerLevelsRules`, to provide tweaks to how the power level of a user is determined,
   and add it to `PushConditionPowerLevelsCtx` via the `rules` field.
+- Add `room_id_format` to `RoomVersionRules`, to identify the format to use for room IDs depending
+  on the room version.
+- Add `RoomId::new_v2()` for the new format of room IDs. `RoomId::strip_sigil()` allows to access
+  the reference hash used in that format.
 
 # 0.15.4
 

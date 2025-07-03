@@ -23,6 +23,9 @@ pub struct RoomVersionRules {
     /// The format of event IDs.
     pub event_id_format: EventIdFormatVersion,
 
+    /// The format of room IDs.
+    pub room_id_format: RoomIdFormatVersion,
+
     /// The state resolution algorithm used.
     pub state_res: StateResolutionVersion,
 
@@ -52,6 +55,7 @@ impl RoomVersionRules {
     pub const V1: Self = Self {
         disposition: RoomVersionDisposition::Stable,
         event_id_format: EventIdFormatVersion::V1,
+        room_id_format: RoomIdFormatVersion::V1,
         state_res: StateResolutionVersion::V1,
         enforce_key_validity: false,
         authorization: AuthorizationRules::V1,
@@ -129,6 +133,7 @@ impl RoomVersionRules {
     /// Rules for room version `org.matrix.hydra.11`
     pub const HYDRA: Self = Self {
         disposition: RoomVersionDisposition::Unstable,
+        room_id_format: RoomIdFormatVersion::V2,
         authorization: AuthorizationRules::HYDRA,
         ..Self::V11
     };
@@ -175,6 +180,20 @@ pub enum EventIdFormatVersion {
     ///
     /// [spec]: https://spec.matrix.org/latest/rooms/v4/#event-ids
     V3,
+}
+
+/// The format of [room IDs] for a room version.
+///
+/// [room IDs]: https://spec.matrix.org/latest/appendices/#room-ids
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub enum RoomIdFormatVersion {
+    /// `!id:server` format, introduced in room version 1.
+    V1,
+
+    /// `!hash` format using the reference hash of the `m.room.create` event of the room,
+    /// introduced in room version `org.matrix.hydra.11`.
+    V2,
 }
 
 /// The version of [state resolution] for a room version.
