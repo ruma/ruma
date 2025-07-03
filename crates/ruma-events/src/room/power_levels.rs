@@ -615,7 +615,7 @@ impl From<RoomPowerLevels> for RoomPowerLevelsEventContent {
 
 impl From<RoomPowerLevels> for PushConditionPowerLevelsCtx {
     fn from(c: RoomPowerLevels) -> Self {
-        Self { users: c.users, users_default: c.users_default, notifications: c.notifications }
+        Self::new(c.users, c.users_default, c.notifications)
     }
 }
 

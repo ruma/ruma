@@ -53,6 +53,7 @@ Breaking changes:
   and includes all possible join rule kinds, due to a clarification in Matrix
   1.15.
   - It can be constructed with `JoinRule::kind()` and `JoinRuleSummary::kind()`.
+- Make `PushConditionRoomCtx` and `PushConditionPowerLevelsCtx` non-exhaustive.
 
 Bug fix:
 
