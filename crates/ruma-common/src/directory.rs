@@ -196,8 +196,25 @@ pub enum RoomNetwork {
 #[ruma_enum(rename_all = "snake_case")]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum PublicRoomJoinRule {
-    /// Users can request an invite to the room.
+    /// A user who wishes to join the room must first receive an invite to the room from someone
+    /// already inside of the room.
+    Invite,
+
+    /// Users can join the room if they are invited, or they can request an invite to the room.
+    ///
+    /// They can be allowed (invited) or denied (kicked/banned) access.
     Knock,
+
+    /// Reserved but not yet implemented by the Matrix specification.
+    Private,
+
+    /// Users can join the room if they are invited, or if they meet any of the conditions
+    /// described in a set of rules.
+    Restricted,
+
+    /// Users can join the room if they are invited, or if they meet any of the conditions
+    /// described in a set of rules, or they can request an invite to the room.
+    KnockRestricted,
 
     /// Anyone can join the room without any prior action.
     #[default]

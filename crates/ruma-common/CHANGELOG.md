@@ -5,6 +5,8 @@ Improvements:
 - Add `RoomSummary` that represents the summary of a room's state.
   - Implement `From<RoomSummary>` for `PublicRoomsChunk`
 - Add `MatrixVersion::V1_15`.
+- `PublicRoomJoinRule` now includes all possible join rule kinds, due to a
+  clarification in Matrix 1.15.
 
 # 0.15.2
 
