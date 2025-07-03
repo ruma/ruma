@@ -1,5 +1,11 @@
 # [unreleased]
 
+Improvements:
+
+- Add the `encryption` and `room_version` fields to
+  `SpaceHierarchyParentSummary` and `SpaceHierarchyChildSummary`, according to
+  MSC3266 / Matrix 1.15.
+
 # 0.11.1
 
 Improvements:
