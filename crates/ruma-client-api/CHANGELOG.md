@@ -5,6 +5,8 @@ Improvements:
 - All the types used in `discover_homeserver::Response` now implement PartialEq
   and Eq.
 - Use `ruma_common::RoomSummary` for the `room::get_summary` endpoint.
+- Add the `encryption`, `room_version` and `allowed_room_ids` fields to
+  `SpaceHierarchyRoomsChunk`, according to MSC3266 / Matrix 1.15.
 
 # 0.20.3
 

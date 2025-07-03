@@ -6,8 +6,8 @@
 
 use js_int::UInt;
 use ruma_common::{
-    room::RoomType, serde::Raw, space::SpaceRoomJoinRule, OwnedMxcUri, OwnedRoomAliasId,
-    OwnedRoomId,
+    room::RoomType, serde::Raw, space::SpaceRoomJoinRule, EventEncryptionAlgorithm, OwnedMxcUri,
+    OwnedRoomAliasId, OwnedRoomId, RoomVersionId,
 };
 use ruma_events::space::child::HierarchySpaceChildEvent;
 use serde::{Deserialize, Serialize};
@@ -66,9 +66,22 @@ pub struct SpaceHierarchyRoomsChunk {
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub join_rule: SpaceRoomJoinRule,
 
+    /// If the room is a restricted room, these are the room IDs which are specified by the join
+    /// rules.
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+    pub allowed_room_ids: Vec<OwnedRoomId>,
+
     /// The type of room from `m.room.create`, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub room_type: Option<RoomType>,
+
+    /// If the room is encrypted, the algorithm used for this room.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub encryption: Option<EventEncryptionAlgorithm>,
+
+    /// The version of the room.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub room_version: Option<RoomVersionId>,
 
     /// The stripped `m.space.child` events of the space-room.
     ///
@@ -127,7 +140,10 @@ impl From<SpaceHierarchyRoomsChunkInit> for SpaceHierarchyRoomsChunk {
             guest_can_join,
             avatar_url: None,
             join_rule,
+            allowed_room_ids: Vec::new(),
             room_type: None,
+            encryption: None,
+            room_version: None,
             children_state,
         }
     }
