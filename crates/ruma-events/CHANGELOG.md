@@ -39,14 +39,13 @@ Breaking changes:
 - The `BundledThread::latest_event` field is now an `AnySyncMessageLikeEvent` instead of
   `AnyMessageLikeEvent`, to reflect that it may not always include a `room_id` field (if the owning
   event came from sync, for instance), which can usually be obtained from the surrounding context.
-- The `EventContent` macro doesn't implement `StaticEventContent` anymore for account data where the
-  `type` uses the `.*` suffix, since the event type is not known at compile-time.
-  - `SecretStorageKeyEventContent` doesn't implement `StaticEventContent` anymore.
 - The `(Original)(Sync)RedactEvent` events take a `RedactionRules` instead of `RoomVersionId` for
   their `redacts()` method. This avoids unexpected behavior for unknown room versions.
 - `SpaceChildEventContent` now uses `OwnedSpaceChildOrder` for the `order` field. This is a type
   with strong validation according to the rules of the spec. If its deserialization fails, this
   field is set to `None` to ignore it, as recommended in the spec.
+- `StaticEventContent` has a new associated type `IsPrefix` to identify event types where only the
+  prefix is statically-known.
 
 Improvements:
 

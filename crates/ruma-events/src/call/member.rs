@@ -201,6 +201,7 @@ impl RedactedStateEventContent for RedactedCallMemberEventContent {
 
 impl StaticEventContent for RedactedCallMemberEventContent {
     const TYPE: &'static str = CallMemberEventContent::TYPE;
+    type IsPrefix = <CallMemberEventContent as StaticEventContent>::IsPrefix;
 }
 
 /// Legacy content with an array of memberships. See also: [`CallMemberEventContent`]

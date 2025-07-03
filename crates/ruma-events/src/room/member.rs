@@ -253,6 +253,7 @@ impl RedactedStateEventContent for RedactedRoomMemberEventContent {
 
 impl StaticEventContent for RedactedRoomMemberEventContent {
     const TYPE: &'static str = RoomMemberEventContent::TYPE;
+    type IsPrefix = <RoomMemberEventContent as StaticEventContent>::IsPrefix;
 }
 
 impl RoomMemberEvent {

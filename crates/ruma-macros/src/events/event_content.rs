@@ -1005,14 +1005,21 @@ fn generate_static_event_content_impl(
     event_type: &LitStr,
     event_type_fragment: Option<&EventTypeFragment<'_>>,
     ruma_events: &TokenStream,
-) -> Option<TokenStream> {
-    event_type_fragment.is_none().then(|| {
-        quote! {
-            impl #ruma_events::StaticEventContent for #ident {
-                const TYPE: &'static ::std::primitive::str = #event_type;
-            }
+) -> TokenStream {
+    let (static_event_type, is_prefix) = match event_type_fragment {
+        Some(event_type_fragment) => {
+            let prefix = &event_type_fragment.prefix;
+            (quote! { #prefix }, quote! { #ruma_events::True })
         }
-    })
+        None => (quote! { #event_type }, quote! { #ruma_events::False }),
+    };
+
+    quote! {
+        impl #ruma_events::StaticEventContent for #ident {
+            const TYPE: &'static ::std::primitive::str = #static_event_type;
+            type IsPrefix = #is_prefix;
+        }
+    }
 }
 
 /// Data about the type fragment of an event content with a type that ends with `.*`.

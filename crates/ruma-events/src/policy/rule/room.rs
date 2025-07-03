@@ -33,6 +33,7 @@ impl PossiblyRedactedStateEventContent for PossiblyRedactedPolicyRuleRoomEventCo
 
 impl StaticEventContent for PossiblyRedactedPolicyRuleRoomEventContent {
     const TYPE: &'static str = PolicyRuleRoomEventContent::TYPE;
+    type IsPrefix = <PolicyRuleRoomEventContent as StaticEventContent>::IsPrefix;
 }
 
 #[cfg(test)]

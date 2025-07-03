@@ -33,4 +33,5 @@ impl PossiblyRedactedStateEventContent for PossiblyRedactedPolicyRuleServerEvent
 
 impl StaticEventContent for PossiblyRedactedPolicyRuleServerEventContent {
     const TYPE: &'static str = PolicyRuleServerEventContent::TYPE;
+    type IsPrefix = <PolicyRuleServerEventContent as StaticEventContent>::IsPrefix;
 }
