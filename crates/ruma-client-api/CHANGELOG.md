@@ -4,6 +4,7 @@ Improvements:
 
 - All the types used in `discover_homeserver::Response` now implement PartialEq
   and Eq.
+- Use `ruma_common::RoomSummary` for the `room::get_summary` endpoint.
 
 # 0.20.3
 
