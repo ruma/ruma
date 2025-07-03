@@ -6,7 +6,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{PolicyRuleEventContent, PossiblyRedactedPolicyRuleEventContent};
-use crate::{EventContent, PossiblyRedactedStateEventContent, StateEventType};
+use crate::{EventContent, PossiblyRedactedStateEventContent, StateEventType, StaticEventContent};
 
 /// The content of an `m.policy.rule.room` event.
 ///
@@ -33,6 +33,10 @@ impl EventContent for PossiblyRedactedPolicyRuleRoomEventContent {
 
 impl PossiblyRedactedStateEventContent for PossiblyRedactedPolicyRuleRoomEventContent {
     type StateKey = String;
+}
+
+impl StaticEventContent for PossiblyRedactedPolicyRuleRoomEventContent {
+    const TYPE: &'static str = PolicyRuleRoomEventContent::TYPE;
 }
 
 #[cfg(test)]

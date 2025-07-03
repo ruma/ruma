@@ -4,7 +4,9 @@ use ruma_common::{OwnedRoomAliasId, OwnedServerName, RoomVersionId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{EventContent, RedactContent, RedactedStateEventContent, StateEventType};
+use crate::{
+    EventContent, RedactContent, RedactedStateEventContent, StateEventType, StaticEventContent,
+};
 
 /// The content of an `m.room.aliases` event.
 ///
@@ -81,4 +83,8 @@ impl EventContent for RedactedRoomAliasesEventContent {
 
 impl RedactedStateEventContent for RedactedRoomAliasesEventContent {
     type StateKey = OwnedServerName;
+}
+
+impl StaticEventContent for RedactedRoomAliasesEventContent {
+    const TYPE: &'static str = RoomAliasesEventContent::TYPE;
 }

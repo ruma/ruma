@@ -1,5 +1,12 @@
 # [unreleased]
 
+Bug fixes:
+
+- Implement `StaticEventContent` for a few event types generated manually:
+  `RedactedCallMemberEventContent`, `PossiblyRedactedPolicyRuleRoomEventContent`,
+  `PossiblyRedactedPolicyRuleServerEventContent`, `PossiblyRedactedPolicyRuleUserEventContent`,
+  `RedactedRoomAliasesEventContent`, `RedactedRoomMemberEventContent`.
+
 Improvements:
 
 - Add support for the `m.room_key_bundle` to-device event, which was introduced in [MSC4268](https://github.com/matrix-org/matrix-spec-proposals/pull/4268).
