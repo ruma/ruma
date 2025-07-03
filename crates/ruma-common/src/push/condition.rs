@@ -228,7 +228,7 @@ pub struct _CustomPushCondition {
 
 /// The context of the room associated to an event to be able to test all push conditions.
 #[derive(Clone, Debug)]
-#[allow(clippy::exhaustive_structs)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PushConditionRoomCtx {
     /// The ID of the room.
     pub room_id: OwnedRoomId,
@@ -252,9 +252,36 @@ pub struct PushConditionRoomCtx {
     pub supported_features: Vec<RoomVersionFeature>,
 }
 
+impl PushConditionRoomCtx {
+    /// Create a new `PushConditionRoomCtx`.
+    pub fn new(
+        room_id: OwnedRoomId,
+        member_count: UInt,
+        user_id: OwnedUserId,
+        user_display_name: String,
+    ) -> Self {
+        Self {
+            room_id,
+            member_count,
+            user_id,
+            user_display_name,
+            power_levels: None,
+            #[cfg(feature = "unstable-msc3931")]
+            supported_features: Vec::new(),
+        }
+    }
+
+    /// Add the given power levels context to this `PushConditionRoomCtx`.
+    pub fn with_power_levels(self, power_levels: PushConditionPowerLevelsCtx) -> Self {
+        Self { power_levels: Some(power_levels), ..self }
+    }
+}
+
 /// The room power levels context to be able to test the corresponding push conditions.
+///
+/// Should be constructed using `From<RoomPowerLevels>`.
 #[derive(Clone, Debug)]
-#[allow(clippy::exhaustive_structs)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PushConditionPowerLevelsCtx {
     /// The power levels of the users of the room.
     pub users: BTreeMap<OwnedUserId, Int>,
@@ -264,6 +291,17 @@ pub struct PushConditionPowerLevelsCtx {
 
     /// The notification power levels of the room.
     pub notifications: NotificationPowerLevels,
+}
+
+impl PushConditionPowerLevelsCtx {
+    /// Create a new `PushConditionPowerLevelsCtx`.
+    pub fn new(
+        users: BTreeMap<OwnedUserId, Int>,
+        users_default: Int,
+        notifications: NotificationPowerLevels,
+    ) -> Self {
+        Self { users, users_default, notifications }
+    }
 }
 
 /// Additional functions for character matching.
