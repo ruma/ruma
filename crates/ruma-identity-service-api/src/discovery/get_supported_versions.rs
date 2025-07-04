@@ -13,7 +13,7 @@
 use std::collections::BTreeMap;
 
 use ruma_common::{
-    api::{request, response, MatrixVersion, Metadata},
+    api::{request, response, MatrixVersion, Metadata, SupportedVersions},
     metadata,
 };
 
@@ -70,5 +70,13 @@ impl Response {
             .collect::<BTreeMap<_, _>>()
             // Return an iterator over just the values (`MatrixVersion`s)
             .into_values()
+    }
+
+    /// Convert this `Response` into a [`SupportedVersions`].
+    ///
+    /// Matrix versions that can't be parsed to a `MatrixVersion`, and features with the boolean
+    /// value set to `false` are discarded.
+    pub fn as_supported_versions(&self) -> SupportedVersions {
+        SupportedVersions::from_parts(&self.versions, &BTreeMap::new())
     }
 }
