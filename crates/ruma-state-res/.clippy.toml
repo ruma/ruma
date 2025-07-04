@@ -1,7 +1,7 @@
 avoid-breaking-exported-api = false
 disallowed-methods = [
     # https://github.com/serde-rs/json/issues/160
-    "serde_json::from_reader",
+    { path = "serde_json::from_reader", reason = "this function is slow", replacement = "serde_json::from_str" },
 ]
 disallowed-types = []
 enforced-import-renames = [
