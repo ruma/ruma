@@ -167,7 +167,7 @@ impl FromStr for CallMemberStateKeyEnum {
             (Ok(user_id), device_id) => {
                 if device_id.as_str().is_empty() {
                     return Err(KeyParseError::EmptyDevice);
-                };
+                }
                 Ok(CallMemberStateKeyEnum::new(user_id, Some(device_id), underscore))
             }
             (Err(err), _) => {

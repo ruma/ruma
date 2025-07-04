@@ -64,7 +64,7 @@ impl<'de> Visitor<'de> for RoomNetworkVisitor {
                     third_party_instance_id = value.as_str().map(|v| v.to_owned());
                 }
                 _ => {}
-            };
+            }
         }
 
         if include_all_networks {

@@ -5,14 +5,12 @@ use crate::{error::MxcUriError, server_name};
 const PROTOCOL: &str = "mxc://";
 
 pub fn validate(uri: &str) -> Result<NonZeroU8, MxcUriError> {
-    let uri = match uri.strip_prefix(PROTOCOL) {
-        Some(uri) => uri,
-        None => return Err(MxcUriError::WrongSchema),
+    let Some(uri) = uri.strip_prefix(PROTOCOL) else {
+        return Err(MxcUriError::WrongSchema);
     };
 
-    let index = match uri.find('/') {
-        Some(index) => index,
-        None => return Err(MxcUriError::MissingSlash),
+    let Some(index) = uri.find('/') else {
+        return Err(MxcUriError::MissingSlash);
     };
 
     let server_name = &uri[..index];

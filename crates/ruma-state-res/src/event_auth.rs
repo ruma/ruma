@@ -193,7 +193,7 @@ pub fn check_state_independent_auth_rules<E: Event>(
             return Err(format!(
                 "unexpected auth event {event_id} with ({event_type}, {state_key}) pair"
             ));
-        };
+        }
 
         // Since v1, if there are entries which were themselves rejected under the checks performed
         // on receipt of a PDU, reject.

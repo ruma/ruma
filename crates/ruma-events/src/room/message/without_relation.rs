@@ -218,7 +218,7 @@ impl RoomMessageEventContentWithoutRelation {
                 .unwrap_or_else(|| mentions.clone());
 
             self.mentions = Some(new_mentions);
-        };
+        }
 
         // Prepare relates_to with the untouched msgtype.
         let relates_to = Relation::Replacement(Replacement {

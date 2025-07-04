@@ -167,26 +167,14 @@ impl PushCondition {
         match self {
             Self::EventMatch { key, pattern } => check_event_match(event, key, pattern, context),
             Self::ContainsDisplayName => {
-                let value = match event.get_str("content.body") {
-                    Some(v) => v,
-                    None => return false,
-                };
-
+                let Some(value) = event.get_str("content.body") else { return false };
                 value.matches_pattern(&context.user_display_name, true)
             }
             Self::RoomMemberCount { is } => is.contains(&context.member_count),
             Self::SenderNotificationPermission { key } => {
-                let Some(power_levels) = &context.power_levels else {
-                    return false;
-                };
-
-                let sender_id = match event.get_str("sender") {
-                    Some(v) => match <&UserId>::try_from(v) {
-                        Ok(u) => u,
-                        Err(_) => return false,
-                    },
-                    None => return false,
-                };
+                let Some(power_levels) = &context.power_levels else { return false };
+                let Some(sender_id) = event.get_str("sender") else { return false };
+                let Ok(sender_id) = <&UserId>::try_from(sender_id) else { return false };
 
                 let sender_level =
                     power_levels.users.get(sender_id).unwrap_or(&power_levels.users_default);
@@ -462,15 +450,13 @@ impl StrExt for str {
 
                     // Find next word.
                     let non_word_str = &self[start..];
-                    let non_word = match non_word_str.find(|c: char| !c.is_word_char()) {
-                        Some(pos) => pos,
-                        None => return false,
+                    let Some(non_word) = non_word_str.find(|c: char| !c.is_word_char()) else {
+                        return false;
                     };
 
                     let word_str = &non_word_str[non_word..];
-                    let word = match word_str.find(|c: char| c.is_word_char()) {
-                        Some(pos) => pos,
-                        None => return false,
+                    let Some(word) = word_str.find(|c: char| c.is_word_char()) else {
+                        return false;
                     };
 
                     word_str[word..].matches_word(pattern)

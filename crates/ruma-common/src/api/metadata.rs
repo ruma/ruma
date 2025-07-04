@@ -406,9 +406,8 @@ impl VersionHistory {
             iter::for_each!(first_s in string::split(first, "/") => {
                 if let Some(first_arg) = string::strip_prefix(first_s, ":") {
                     let second_next_arg: Option<&'static str> = loop {
-                        let (second_s, second_n_iter) = match second_iter {
-                            Some(tuple) => tuple,
-                            None => break None,
+                        let Some((second_s, second_n_iter)) = second_iter else {
+                            break None;
                         };
 
                         let maybe_second_arg = string::strip_prefix(second_s, ":");

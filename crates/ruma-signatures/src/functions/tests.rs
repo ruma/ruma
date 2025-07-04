@@ -68,9 +68,8 @@ fn canonical_json_complex() {
 
     let canonical = r#"{"auth":{"mxid":"@john.doe:example.com","profile":{"display_name":"John Doe","three_pids":[{"address":"john.doe@example.org","medium":"email"},{"address":"123456789","medium":"msisdn"}]},"success":true}}"#;
 
-    let object = match CanonicalJsonValue::try_from(data).unwrap() {
-        CanonicalJsonValue::Object(obj) => obj,
-        _ => unreachable!(),
+    let CanonicalJsonValue::Object(object) = CanonicalJsonValue::try_from(data).unwrap() else {
+        unreachable!();
     };
 
     assert_eq!(canonical_json(&object).unwrap(), canonical);
