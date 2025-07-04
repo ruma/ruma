@@ -10,13 +10,16 @@ use http::{
     Method,
 };
 use percent_encoding::utf8_percent_encode;
+use ruma_macros::{OrdAsRefStr, PartialEqAsRefStr, PartialOrdAsRefStr, StringEnum};
 use tracing::warn;
 
 use super::{
     error::{IntoHttpError, UnknownVersionError},
     AuthScheme, SendAccessToken,
 };
-use crate::{percent_encode::PATH_PERCENT_ENCODE_SET, serde::slice_to_buf, RoomVersionId};
+use crate::{
+    percent_encode::PATH_PERCENT_ENCODE_SET, serde::slice_to_buf, PrivOwnedStr, RoomVersionId,
+};
 
 /// Metadata about an API endpoint.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -791,6 +794,119 @@ impl Display for MatrixVersion {
         let (major, minor) = self.into_parts();
         f.write_str(&format!("v{major}.{minor}"))
     }
+}
+
+/// The Matrix features supported by Ruma.
+///
+/// Features that are not behind a cargo feature are features that are part of the Matrix
+/// specification and that Ruma still supports, like the unstable version of an endpoint or a stable
+/// feature. Features behind a cargo feature are only supported when this feature is enabled.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, Hash, PartialOrdAsRefStr, OrdAsRefStr)]
+#[non_exhaustive]
+pub enum FeatureFlag {
+    /// `fi.mau.msc2246` ([MSC])
+    ///
+    /// Asynchronous media uploads.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2246
+    #[ruma_enum(rename = "fi.mau.msc2246")]
+    Msc2246,
+
+    /// `org.matrix.msc2432` ([MSC])
+    ///
+    /// Updated semantics for publishing room aliases.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2432
+    #[ruma_enum(rename = "org.matrix.msc2432")]
+    Msc2432,
+
+    /// `fi.mau.msc2659` ([MSC])
+    ///
+    /// Application service ping endpoint.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2659
+    #[ruma_enum(rename = "fi.mau.msc2659")]
+    Msc2659,
+
+    /// `fi.mau.msc2659` ([MSC])
+    ///
+    /// Stable version of the application service ping endpoint.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2659
+    #[ruma_enum(rename = "fi.mau.msc2659.stable")]
+    Msc2659Stable,
+
+    /// `uk.half-shot.msc2666.query_mutual_rooms` ([MSC])
+    ///
+    /// Get rooms in common with another user.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2666
+    #[cfg(feature = "unstable-msc2666")]
+    #[ruma_enum(rename = "uk.half-shot.msc2666.query_mutual_rooms")]
+    Msc2666,
+
+    /// `org.matrix.msc3030` ([MSC])
+    ///
+    /// Jump to date API endpoint.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3030
+    #[ruma_enum(rename = "org.matrix.msc3030")]
+    Msc3030,
+
+    /// `org.matrix.msc3882` ([MSC])
+    ///
+    /// Allow an existing session to sign in a new session.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3882
+    #[ruma_enum(rename = "org.matrix.msc3882")]
+    Msc3882,
+
+    /// `org.matrix.msc3916` ([MSC])
+    ///
+    /// Authentication for media.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3916
+    #[ruma_enum(rename = "org.matrix.msc3916")]
+    Msc3916,
+
+    /// `org.matrix.msc3916.stable` ([MSC])
+    ///
+    /// Stable version of authentication for media.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3916
+    #[ruma_enum(rename = "org.matrix.msc3916.stable")]
+    Msc3916Stable,
+
+    /// `org.matrix.msc4108` ([MSC])
+    ///
+    /// Mechanism to allow OIDC sign in and E2EE set up via QR code.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
+    #[cfg(feature = "unstable-msc4108")]
+    #[ruma_enum(rename = "org.matrix.msc4108")]
+    Msc4108,
+
+    /// `org.matrix.msc4140` ([MSC])
+    ///
+    /// Delayed events.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+    #[cfg(feature = "unstable-msc4140")]
+    #[ruma_enum(rename = "org.matrix.msc4140")]
+    Msc4140,
+
+    /// `org.matrix.simplified_msc3575` ([MSC])
+    ///
+    /// Simplified Sliding Sync.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4186
+    #[cfg(feature = "unstable-msc4186")]
+    #[ruma_enum(rename = "org.matrix.simplified_msc3575")]
+    Msc4186,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
 }
 
 #[cfg(test)]

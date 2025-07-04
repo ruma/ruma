@@ -329,7 +329,9 @@ pub use ruma_macros::response;
 pub mod error;
 mod metadata;
 
-pub use self::metadata::{MatrixVersion, Metadata, VersionHistory, VersioningDecision};
+pub use self::metadata::{
+    FeatureFlag, MatrixVersion, Metadata, VersionHistory, VersioningDecision,
+};
 
 /// An enum to control whether an access token should be added to outgoing requests
 #[derive(Clone, Copy, Debug)]
