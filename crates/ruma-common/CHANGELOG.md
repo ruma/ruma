@@ -11,6 +11,8 @@ Improvements:
   deserialization.
 - Implement conversions between `PublicRoomJoinRule` and `SpaceRoomJoinRule`.
 - Add `FeatureFlag` as an enum whose variants are the flags of features supported by Ruma.
+- Add `SupportedVersions`, a type to parse `/versions` responses to get lists
+  of supported versions and features.
 
 # 0.15.2
 

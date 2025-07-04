@@ -13,6 +13,7 @@ Improvements:
   - The `discovery::get_authentication_issuer` endpoint was removed.
   - Some fields of `AuthorizationServerMetadata` are now behind the
     `unstable-msc4108` or `unstable-msc4191` cargo features.
+- Add `get_supported_versions::Response::as_supported_versions()`.
 
 # 0.20.3
 

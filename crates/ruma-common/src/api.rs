@@ -330,7 +330,7 @@ pub mod error;
 mod metadata;
 
 pub use self::metadata::{
-    FeatureFlag, MatrixVersion, Metadata, VersionHistory, VersioningDecision,
+    FeatureFlag, MatrixVersion, Metadata, SupportedVersions, VersionHistory, VersioningDecision,
 };
 
 /// An enum to control whether an access token should be added to outgoing requests

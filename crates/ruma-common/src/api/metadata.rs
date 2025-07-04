@@ -1,5 +1,6 @@
 use std::{
     cmp::Ordering,
+    collections::{BTreeMap, BTreeSet},
     fmt::{self, Display, Write},
     str::FromStr,
 };
@@ -796,6 +797,39 @@ impl Display for MatrixVersion {
     }
 }
 
+/// The list of Matrix versions and features supported by a homeserver.
+#[derive(Debug, Clone)]
+#[allow(clippy::exhaustive_structs)]
+pub struct SupportedVersions {
+    /// The Matrix versions that are supported by the homeserver.
+    ///
+    /// This array contains only known versions.
+    pub versions: Box<[MatrixVersion]>,
+
+    /// The features that are supported by the homeserver.
+    ///
+    /// This matches the `unstable_features` field of the `/versions` endpoint, without the boolean
+    /// value.
+    pub features: BTreeSet<FeatureFlag>,
+}
+
+impl SupportedVersions {
+    /// Construct a `SupportedVersions` from the parts of a `/versions` response.
+    ///
+    /// Matrix versions that can't be parsed to a `MatrixVersion`, and features with the boolean
+    /// value set to `false` are discarded.
+    pub fn from_parts(versions: &[String], unstable_features: &BTreeMap<String, bool>) -> Self {
+        Self {
+            versions: versions.iter().flat_map(|s| s.parse::<MatrixVersion>()).collect(),
+            features: unstable_features
+                .iter()
+                .filter(|(_, enabled)| **enabled)
+                .map(|(feature, _)| feature.as_str().into())
+                .collect(),
+        }
+    }
+}
+
 /// The Matrix features supported by Ruma.
 ///
 /// Features that are not behind a cargo feature are features that are part of the Matrix
@@ -911,13 +945,15 @@ pub enum FeatureFlag {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::{BTreeMap, BTreeSet};
+
     use assert_matches2::assert_matches;
     use http::Method;
 
     use super::{
         AuthScheme,
         MatrixVersion::{self, V1_0, V1_1, V1_2, V1_3},
-        Metadata, VersionHistory,
+        Metadata, SupportedVersions, VersionHistory,
     };
     use crate::api::error::IntoHttpError;
 
@@ -1034,5 +1070,38 @@ mod tests {
         const LIT: MatrixVersion = MatrixVersion::from_lit("1.0");
 
         assert_eq!(LIT, V1_0);
+    }
+
+    #[test]
+    fn supported_versions_from_parts() {
+        let empty_features = BTreeMap::new();
+
+        let none = &[];
+        let none_supported = SupportedVersions::from_parts(none, &empty_features);
+        assert_eq!(none_supported.versions.as_ref(), &[]);
+        assert_eq!(none_supported.features, BTreeSet::new());
+
+        let single_known = &["r0.6.0".to_owned()];
+        let single_known_supported = SupportedVersions::from_parts(single_known, &empty_features);
+        assert_eq!(single_known_supported.versions.as_ref(), &[V1_0]);
+        assert_eq!(single_known_supported.features, BTreeSet::new());
+
+        let single_unknown = &["v0.0".to_owned()];
+        let single_unknown_supported =
+            SupportedVersions::from_parts(single_unknown, &empty_features);
+        assert_eq!(single_unknown_supported.versions.as_ref(), &[]);
+        assert_eq!(single_unknown_supported.features, BTreeSet::new());
+
+        let mut features = BTreeMap::new();
+        features.insert("org.bar.enabled_1".to_owned(), true);
+        features.insert("org.bar.disabled".to_owned(), false);
+        features.insert("org.bar.enabled_2".to_owned(), true);
+
+        let features_supported = SupportedVersions::from_parts(single_known, &features);
+        assert_eq!(features_supported.versions.as_ref(), &[V1_0]);
+        assert_eq!(
+            features_supported.features,
+            ["org.bar.enabled_1".into(), "org.bar.enabled_2".into()].into()
+        );
     }
 }
