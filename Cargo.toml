@@ -78,10 +78,6 @@ wildcard_imports = "warn"
 
 # Not that good of a lint
 new_without_default = "allow"
-# Disabled temporarily because it triggers false positives for types with generics.
-arc_with_non_send_sync = "allow"
-# Currently buggy
-literal_string_with_formatting_args = "allow"
 
 [profile.dev]
 # Speeds up test times by more than 10% in a simple test
