@@ -56,7 +56,7 @@ fn response_content_type_override() {
 fn request_content_type_override() {
     let req = Request { location: None, stuff: "magic".into() };
     let supported =
-        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
 
     let mut http_req = req
         .try_into_http_request::<Vec<u8>>(

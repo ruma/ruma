@@ -54,7 +54,7 @@ mod post {
 fn empty_post_request_http_repr() {
     let req = post::Request {};
     let supported =
-        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
 
     let http_req = req
         .try_into_http_request::<Vec<u8>>(
@@ -71,7 +71,7 @@ fn empty_post_request_http_repr() {
 fn empty_get_request_http_repr() {
     let req = get::Request {};
     let supported =
-        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
 
     let http_req = req
         .try_into_http_request::<Vec<u8>>(

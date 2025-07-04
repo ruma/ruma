@@ -257,7 +257,7 @@ pub mod error;
 mod metadata;
 
 pub use self::metadata::{
-    MatrixVersion, Metadata, StablePathSelector, SupportedVersions, VersionHistory,
+    FeatureFlag, MatrixVersion, Metadata, StablePathSelector, SupportedVersions, VersionHistory,
     VersioningDecision,
 };
 

@@ -102,6 +102,7 @@ Improvements:
   deserialization.
 - Add `SpaceChildOrder` which allows to validate the `order` of an
   `m.space.child` event.
+- Add `FeatureFlag` as an enum whose variants are the flags of features supported by Ruma.
 
 # 0.15.2
 

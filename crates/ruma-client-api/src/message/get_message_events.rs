@@ -204,8 +204,10 @@ pub mod v3 {
                 limit: uint!(0),
                 filter,
             };
-            let supported =
-                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: Default::default(),
+            };
 
             let request: http::Request<Vec<u8>> = req
                 .try_into_http_request(
@@ -235,8 +237,10 @@ pub mod v3 {
                 limit: uint!(0),
                 filter: RoomEventFilter::default(),
             };
-            let supported =
-                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: Default::default(),
+            };
 
             let request = req
                 .try_into_http_request::<Vec<u8>>(

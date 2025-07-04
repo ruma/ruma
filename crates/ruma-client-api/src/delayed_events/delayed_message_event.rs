@@ -131,8 +131,10 @@ pub mod unstable {
         #[test]
         fn serialize_delayed_message_request() {
             let room_id = owned_room_id!("!roomid:example.org");
-            let supported =
-                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: Default::default(),
+            };
 
             let req = Request::new(
                 room_id,

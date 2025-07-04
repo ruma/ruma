@@ -663,8 +663,10 @@ mod client_tests {
 
     #[test]
     fn serialize_all_params() {
-        let supported =
-            SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+        let supported = SupportedVersions {
+            versions: [MatrixVersion::V1_1].into(),
+            features: Default::default(),
+        };
         let req: http::Request<Vec<u8>> = Request {
             filter: Some(Filter::FilterId("66696p746572".to_owned())),
             since: Some("s72594_4483_1934".to_owned()),

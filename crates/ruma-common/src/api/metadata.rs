@@ -11,13 +11,16 @@ use http::{
     Method,
 };
 use percent_encoding::utf8_percent_encode;
+use ruma_macros::{OrdAsRefStr, PartialEqAsRefStr, PartialOrdAsRefStr, StringEnum};
 use tracing::warn;
 
 use super::{
     error::{IntoHttpError, UnknownVersionError},
     AuthScheme, SendAccessToken,
 };
-use crate::{percent_encode::PATH_PERCENT_ENCODE_SET, serde::slice_to_buf, RoomVersionId};
+use crate::{
+    percent_encode::PATH_PERCENT_ENCODE_SET, serde::slice_to_buf, PrivOwnedStr, RoomVersionId,
+};
 
 /// Convenient constructor for [`Metadata`] constants.
 ///
@@ -676,7 +679,7 @@ impl VersionHistory {
     }
 
     /// The path that should be used to query the endpoint, given a list of supported features.
-    pub fn feature_path(&self, supported_features: &[String]) -> Option<&'static str> {
+    pub fn feature_path(&self, supported_features: &BTreeSet<FeatureFlag>) -> Option<&'static str> {
         let unstable_feature_paths = self
             .unstable_paths
             .iter()
@@ -689,7 +692,7 @@ impl VersionHistory {
         // Reverse the iterator, to check the "latest" features first.
         for (feature, path) in unstable_feature_paths.chain(stable_feature_paths).rev() {
             // Return the path of the first supported feature.
-            if supported_features.iter().any(|supported| supported == feature) {
+            if supported_features.iter().any(|supported| supported.as_str() == feature) {
                 return Some(path);
             }
         }
@@ -1122,7 +1125,7 @@ pub struct SupportedVersions {
     ///
     /// This matches the `unstable_features` field of the `/versions` endpoint, without the boolean
     /// value.
-    pub features: Vec<String>,
+    pub features: BTreeSet<FeatureFlag>,
 }
 
 impl SupportedVersions {
@@ -1136,10 +1139,123 @@ impl SupportedVersions {
             features: unstable_features
                 .iter()
                 .filter(|(_, enabled)| **enabled)
-                .map(|(feature, _)| feature.clone())
+                .map(|(feature, _)| feature.as_str().into())
                 .collect(),
         }
     }
+}
+
+/// The Matrix features supported by Ruma.
+///
+/// Features that are not behind a cargo feature are features that are part of the Matrix
+/// specification and that Ruma still supports, like the unstable version of an endpoint or a stable
+/// feature. Features behind a cargo feature are only supported when this feature is enabled.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, Hash, PartialOrdAsRefStr, OrdAsRefStr)]
+#[non_exhaustive]
+pub enum FeatureFlag {
+    /// `fi.mau.msc2246` ([MSC])
+    ///
+    /// Asynchronous media uploads.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2246
+    #[ruma_enum(rename = "fi.mau.msc2246")]
+    Msc2246,
+
+    /// `org.matrix.msc2432` ([MSC])
+    ///
+    /// Updated semantics for publishing room aliases.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2432
+    #[ruma_enum(rename = "org.matrix.msc2432")]
+    Msc2432,
+
+    /// `fi.mau.msc2659` ([MSC])
+    ///
+    /// Application service ping endpoint.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2659
+    #[ruma_enum(rename = "fi.mau.msc2659")]
+    Msc2659,
+
+    /// `fi.mau.msc2659` ([MSC])
+    ///
+    /// Stable version of the application service ping endpoint.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2659
+    #[ruma_enum(rename = "fi.mau.msc2659.stable")]
+    Msc2659Stable,
+
+    /// `uk.half-shot.msc2666.query_mutual_rooms` ([MSC])
+    ///
+    /// Get rooms in common with another user.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2666
+    #[cfg(feature = "unstable-msc2666")]
+    #[ruma_enum(rename = "uk.half-shot.msc2666.query_mutual_rooms")]
+    Msc2666,
+
+    /// `org.matrix.msc3030` ([MSC])
+    ///
+    /// Jump to date API endpoint.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3030
+    #[ruma_enum(rename = "org.matrix.msc3030")]
+    Msc3030,
+
+    /// `org.matrix.msc3882` ([MSC])
+    ///
+    /// Allow an existing session to sign in a new session.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3882
+    #[ruma_enum(rename = "org.matrix.msc3882")]
+    Msc3882,
+
+    /// `org.matrix.msc3916` ([MSC])
+    ///
+    /// Authentication for media.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3916
+    #[ruma_enum(rename = "org.matrix.msc3916")]
+    Msc3916,
+
+    /// `org.matrix.msc3916.stable` ([MSC])
+    ///
+    /// Stable version of authentication for media.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3916
+    #[ruma_enum(rename = "org.matrix.msc3916.stable")]
+    Msc3916Stable,
+
+    /// `org.matrix.msc4108` ([MSC])
+    ///
+    /// Mechanism to allow OIDC sign in and E2EE set up via QR code.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
+    #[cfg(feature = "unstable-msc4108")]
+    #[ruma_enum(rename = "org.matrix.msc4108")]
+    Msc4108,
+
+    /// `org.matrix.msc4140` ([MSC])
+    ///
+    /// Delayed events.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+    #[cfg(feature = "unstable-msc4140")]
+    #[ruma_enum(rename = "org.matrix.msc4140")]
+    Msc4140,
+
+    /// `org.matrix.simplified_msc3575` ([MSC])
+    ///
+    /// Simplified Sliding Sync.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4186
+    #[cfg(feature = "unstable-msc4186")]
+    #[ruma_enum(rename = "org.matrix.simplified_msc3575")]
+    Msc4186,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
 }
 
 #[cfg(test)]
@@ -1173,7 +1289,10 @@ mod tests {
     }
 
     fn version_only_supported(versions: &[MatrixVersion]) -> SupportedVersions {
-        SupportedVersions { versions: versions.iter().copied().collect(), features: Vec::new() }
+        SupportedVersions {
+            versions: versions.iter().copied().collect(),
+            features: BTreeSet::new(),
+        }
     }
 
     // TODO add test that can hook into tracing and verify the deprecation warning is emitted
@@ -1298,7 +1417,7 @@ mod tests {
         // With unstable feature.
         let unstable_supported = SupportedVersions {
             versions: [V1_0].into(),
-            features: vec!["org.boo.unstable".to_owned()],
+            features: ["org.boo.unstable".into()].into(),
         };
         let hist = VersionHistory {
             unstable_paths: &[(Some("org.boo.unstable"), "/u")],
@@ -1313,7 +1432,7 @@ mod tests {
     fn select_stable_feature() {
         let supported = SupportedVersions {
             versions: [V1_1].into(),
-            features: vec!["org.boo.unstable".to_owned(), "org.boo.stable".to_owned()],
+            features: ["org.boo.unstable".into(), "org.boo.stable".into()].into(),
         };
 
         // With feature only.
@@ -1342,7 +1461,7 @@ mod tests {
     fn select_unstable_feature() {
         let supported = SupportedVersions {
             versions: [V1_1].into(),
-            features: vec!["org.boo.unstable".to_owned()],
+            features: ["org.boo.unstable".into()].into(),
         };
 
         let hist = VersionHistory {
@@ -1440,18 +1559,18 @@ mod tests {
         let none = &[];
         let none_supported = SupportedVersions::from_parts(none, &empty_features);
         assert_eq!(none_supported.versions, BTreeSet::new());
-        assert_eq!(none_supported.features, Vec::<String>::new());
+        assert_eq!(none_supported.features, BTreeSet::new());
 
         let single_known = &["r0.6.0".to_owned()];
         let single_known_supported = SupportedVersions::from_parts(single_known, &empty_features);
         assert_eq!(single_known_supported.versions, BTreeSet::from([V1_0]));
-        assert_eq!(single_known_supported.features, Vec::<String>::new());
+        assert_eq!(single_known_supported.features, BTreeSet::new());
 
         let single_unknown = &["v0.0".to_owned()];
         let single_unknown_supported =
             SupportedVersions::from_parts(single_unknown, &empty_features);
         assert_eq!(single_unknown_supported.versions, BTreeSet::new());
-        assert_eq!(single_unknown_supported.features, Vec::<String>::new());
+        assert_eq!(single_unknown_supported.features, BTreeSet::new());
 
         let mut features = BTreeMap::new();
         features.insert("org.bar.enabled_1".to_owned(), true);
@@ -1460,7 +1579,10 @@ mod tests {
 
         let features_supported = SupportedVersions::from_parts(single_known, &features);
         assert_eq!(features_supported.versions, BTreeSet::from([V1_0]));
-        assert_eq!(features_supported.features, vec!["org.bar.enabled_1", "org.bar.enabled_2"]);
+        assert_eq!(
+            features_supported.features,
+            ["org.bar.enabled_1".into(), "org.bar.enabled_2".into()].into()
+        );
     }
 
     #[test]

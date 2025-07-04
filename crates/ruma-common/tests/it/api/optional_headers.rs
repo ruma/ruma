@@ -40,7 +40,7 @@ pub struct Response {
 fn request_serde_no_header() {
     let req = Request { location: None, content_disposition: None };
     let supported =
-        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
 
     let http_req = req
         .clone()
@@ -68,7 +68,7 @@ fn request_serde_with_header() {
         content_disposition: Some(content_disposition.clone()),
     };
     let supported =
-        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
 
     let mut http_req = req
         .clone()

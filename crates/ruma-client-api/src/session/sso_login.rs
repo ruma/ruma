@@ -84,8 +84,10 @@ pub mod v3 {
 
         #[test]
         fn serialize_sso_login_request_uri() {
-            let supported =
-                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: Default::default(),
+            };
             let req: http::Request<Vec<u8>> = Request::new("https://example.com/sso".to_owned())
                 .try_into_http_request("https://homeserver.tld", SendAccessToken::None, &supported)
                 .unwrap();

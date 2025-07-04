@@ -443,8 +443,10 @@ pub mod v3 {
             use super::{LoginInfo, Password, Request, Token};
             use crate::uiaa::UserIdentifier;
 
-            let supported =
-                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: Default::default(),
+            };
 
             let req: http::Request<Vec<u8>> = Request {
                 login_info: LoginInfo::Token(Token { token: "0xdeadbeef".to_owned() }),

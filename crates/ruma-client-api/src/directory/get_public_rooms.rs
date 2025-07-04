@@ -91,8 +91,10 @@ pub mod v3 {
                 server_name,
             };
 
-            let supported =
-                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: Default::default(),
+            };
 
             let req = super::Request {
                 limit: Some(uint!(10)),

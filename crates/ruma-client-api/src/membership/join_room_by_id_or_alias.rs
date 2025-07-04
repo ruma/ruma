@@ -224,8 +224,10 @@ pub mod v3 {
         fn serialize_request_via_and_server_name() {
             let mut req = Request::new(owned_room_id!("!foo:b.ar").into());
             req.via = vec![owned_server_name!("f.oo")];
-            let supported =
-                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: Default::default(),
+            };
 
             let req = req
                 .try_into_http_request::<Vec<u8>>(
@@ -242,8 +244,10 @@ pub mod v3 {
         fn serialize_request_only_via() {
             let mut req = Request::new(owned_room_id!("!foo:b.ar").into());
             req.via = vec![owned_server_name!("f.oo")];
-            let supported =
-                SupportedVersions { versions: [MatrixVersion::V1_13].into(), features: Vec::new() };
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_13].into(),
+                features: Default::default(),
+            };
 
             let req = req
                 .try_into_http_request::<Vec<u8>>(

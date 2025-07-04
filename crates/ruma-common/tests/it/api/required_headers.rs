@@ -48,7 +48,7 @@ fn request_serde() {
     let req =
         Request { location: location.to_owned(), content_disposition: content_disposition.clone() };
     let supported =
-        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
 
     let mut http_req = req
         .clone()
