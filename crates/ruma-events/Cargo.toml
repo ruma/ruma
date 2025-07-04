@@ -69,6 +69,10 @@ compat-encrypted-stickers = []
 # deserialization fails.
 compat-lax-room-create-deser = []
 
+# The topic_block (`m.topic`) field of RoomTopicEventContent is ignored if its
+# deserialization fails.
+compat-lax-room-topic-deser = []
+
 [dependencies]
 as_variant = { workspace = true }
 indexmap = { version = "2.0.0", features = ["serde"] }

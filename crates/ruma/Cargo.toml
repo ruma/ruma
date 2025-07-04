@@ -104,6 +104,7 @@ compat = [
     "compat-tag-info",
     "compat-optional-txn-pdus",
     "compat-lax-room-create-deser",
+    "compat-lax-room-topic-deser",
 ]
 
 # Allow IDs to exceed 255 bytes.
@@ -165,6 +166,10 @@ compat-optional-txn-pdus = ["ruma-federation-api?/compat-optional-txn-pdus"]
 # The predecessor field of RoomCreateEventContent is ignored if its
 # deserialization fails.
 compat-lax-room-create-deser = ["ruma-events?/compat-lax-room-create-deser"]
+
+# The topic_block (`m.topic`) field of RoomTopicEventContent is ignored if its
+# deserialization fails.
+compat-lax-room-topic-deser = ["ruma-events?/compat-lax-room-topic-deser"]
 
 # Specific compatibility for past ring public/private key documents.
 ring-compat = ["dep:ruma-signatures", "ruma-signatures?/ring-compat"]

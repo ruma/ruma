@@ -14,6 +14,9 @@ Improvements:
 - Fix and stabilize support for rich text in room topics, according to Matrix 1.15.
 - With the `compat-lax-room-create-deser` cargo feature, the `predecessor` field of
   `RoomCreateEventContent` is ignored during deserialization if it has an invalid format.
+- With the `compat-lax-room-topic-deser` cargo feature, the `topic_block` field of
+  `RoomTopicEventContent` (named `m.topic` in the JSON source) is ignored during deserialization if
+  it has an invalid format.
    
 # 0.30.3
 
