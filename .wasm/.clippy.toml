@@ -6,7 +6,6 @@ disallowed-methods = [
 disallowed-types = [
     "std::collections::HashMap",
     "std::collections::HashSet",
-    { path = "std::time::UNIX_EPOCH", reason = "Use web-time to return a UNIX_EPOCH that works under WASM" },
     { path = "std::time::SystemTime", reason = "Use web-time to return a SystemTime that works under WASM" },
     { path = "std::time::Instant", reason = "Use web-time to return an Instant that works under WASM" },
 ]
