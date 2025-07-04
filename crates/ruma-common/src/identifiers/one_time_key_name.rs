@@ -1,4 +1,4 @@
-use ruma_macros::IdZst;
+use ruma_macros::IdDst;
 
 use super::{IdParseError, KeyName};
 
@@ -9,7 +9,7 @@ use super::{IdParseError, KeyName};
 ///
 /// [one-time or fallback key]: https://spec.matrix.org/latest/client-server-api/#one-time-and-fallback-keys
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 pub struct OneTimeKeyName(str);
 
 impl KeyName for OneTimeKeyName {

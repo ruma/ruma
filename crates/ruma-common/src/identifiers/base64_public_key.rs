@@ -1,4 +1,4 @@
-use ruma_macros::IdZst;
+use ruma_macros::IdDst;
 
 use super::{IdParseError, KeyName};
 use crate::serde::{base64::Standard, Base64, Base64DecodeError};
@@ -10,7 +10,7 @@ use crate::serde::{base64::Standard, Base64, Base64DecodeError};
 ///
 /// [cross-signing]: https://spec.matrix.org/latest/client-server-api/#cross-signing
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(validate = ruma_identifiers_validation::base64_public_key::validate)]
 pub struct Base64PublicKey(str);
 

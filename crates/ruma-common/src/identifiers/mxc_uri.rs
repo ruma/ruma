@@ -5,7 +5,7 @@
 use std::num::NonZeroU8;
 
 use ruma_identifiers_validation::{error::MxcUriError, mxc_uri::validate};
-use ruma_macros::IdZst;
+use ruma_macros::IdDst;
 
 use super::ServerName;
 
@@ -15,7 +15,7 @@ type Result<T, E = MxcUriError> = std::result::Result<T, E>;
 ///
 /// [MXC URI]: https://spec.matrix.org/latest/client-server-api/#matrix-content-mxc-uris
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 pub struct MxcUri(str);
 
 impl MxcUri {

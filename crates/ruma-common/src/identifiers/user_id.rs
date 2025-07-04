@@ -4,7 +4,7 @@ use std::{rc::Rc, sync::Arc};
 
 pub use ruma_identifiers_validation::user_id::localpart_is_fully_conforming;
 use ruma_identifiers_validation::{localpart_is_backwards_compatible, ID_MAX_BYTES};
-use ruma_macros::IdZst;
+use ruma_macros::IdDst;
 
 use super::{matrix_uri::UriAction, IdParseError, MatrixToUri, MatrixUri, ServerName};
 
@@ -20,7 +20,7 @@ use super::{matrix_uri::UriAction, IdParseError, MatrixToUri, MatrixUri, ServerN
 ///
 /// [user ID]: https://spec.matrix.org/latest/appendices/#user-identifiers
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(validate = ruma_identifiers_validation::user_id::validate)]
 pub struct UserId(str);
 

@@ -10,7 +10,7 @@
 // https://github.com/rust-lang/rust-clippy/issues/9029
 #![allow(clippy::derive_partial_eq_without_eq)]
 
-use identifiers::expand_id_zst;
+use identifiers::expand_id_dst;
 use proc_macro::TokenStream;
 use proc_macro2 as pm2;
 use quote::quote;
@@ -360,7 +360,7 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 ///
 /// The type of the state key of the event, required and only supported if the kind is `State`. This
 /// type should be a string type like `String`, `EmptyStateKey` or an identifier type generated with
-/// the `IdZst` macro.
+/// the `IdDst` macro.
 ///
 /// ### `unsigned_type = UnsignedType`
 ///
@@ -442,7 +442,7 @@ pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
     expand_from_impls_derived(input).into()
 }
 
-/// Generate methods and trait impl's for ZST identifier type.
+/// Generate methods and trait impl's for DST identifier type.
 ///
 /// This macro generates an `Owned*` wrapper type for the identifier type. This wrapper type is
 /// variable, by default it'll use [`Box`], but it can be changed at compile time
@@ -470,16 +470,16 @@ pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
 ///
 /// ```ignore
 /// # // HACK: This is "ignore" because of cyclical dependency drama.
-/// use ruma_macros::IdZst;
+/// use ruma_macros::IdDst;
 ///
-/// #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+/// #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 /// #[ruma_id(validate = ruma_identifiers_validation::user_id::validate)]
 /// pub struct UserId(str);
 /// ```
-#[proc_macro_derive(IdZst, attributes(ruma_id))]
-pub fn derive_id_zst(input: TokenStream) -> TokenStream {
+#[proc_macro_derive(IdDst, attributes(ruma_id))]
+pub fn derive_id_dst(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ItemStruct);
-    expand_id_zst(input).unwrap_or_else(syn::Error::into_compile_error).into()
+    expand_id_dst(input).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 /// Compile-time checked `EventId` construction.

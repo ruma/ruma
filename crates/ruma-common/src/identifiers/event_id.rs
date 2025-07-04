@@ -1,6 +1,6 @@
 //! Matrix event identifiers.
 
-use ruma_macros::IdZst;
+use ruma_macros::IdDst;
 
 use super::ServerName;
 
@@ -36,7 +36,7 @@ use super::ServerName;
 /// [event ID]: https://spec.matrix.org/latest/appendices/#event-ids
 /// [room versions]: https://spec.matrix.org/latest/rooms/#complete-list-of-room-versions
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(validate = ruma_identifiers_validation::event_id::validate)]
 pub struct EventId(str);
 

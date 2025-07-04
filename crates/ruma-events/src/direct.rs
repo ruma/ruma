@@ -8,7 +8,7 @@ use std::{
 };
 
 use ruma_common::{IdParseError, OwnedRoomId, OwnedUserId, UserId};
-use ruma_macros::{EventContent, IdZst};
+use ruma_macros::{EventContent, IdDst};
 use serde::{Deserialize, Serialize};
 
 /// An user identifier, it can be a [`UserId`] or a third-party identifier
@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 /// There is no validation on this type, any string is allowed,
 /// but you can use `as_user_id` or `into_user_id` to try to get an [`UserId`].
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 pub struct DirectUserIdentifier(str);
 
 impl DirectUserIdentifier {

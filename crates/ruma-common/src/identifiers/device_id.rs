@@ -1,4 +1,4 @@
-use ruma_macros::IdZst;
+use ruma_macros::IdDst;
 
 #[cfg(feature = "rand")]
 use super::generate_localpart;
@@ -29,7 +29,7 @@ use super::{IdParseError, KeyName};
 /// assert_eq!(owned_id.as_str(), "ijklmnop");
 /// ```
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 pub struct DeviceId(str);
 
 impl DeviceId {
