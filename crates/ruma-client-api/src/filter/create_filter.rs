@@ -92,8 +92,10 @@ pub mod v3 {
 
             use crate::filter::FilterDefinition;
 
-            let supported =
-                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: Default::default(),
+            };
 
             let req =
                 super::Request::new(owned_user_id!("@foo:bar.com"), FilterDefinition::default())

@@ -62,7 +62,7 @@ fn request_serde() {
         user: owned_user_id!("@bazme:ruma.io"),
     };
     let supported =
-        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
 
     let http_req = req
         .clone()
@@ -93,7 +93,7 @@ fn invalid_uri_should_not_panic() {
         user: owned_user_id!("@bazme:ruma.io"),
     };
     let supported =
-        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
 
     let result =
         req.try_into_http_request::<Vec<u8>>("invalid uri", SendAccessToken::None, &supported);
@@ -111,7 +111,7 @@ fn request_with_user_id_serde() {
         user: owned_user_id!("@bazme:ruma.io"),
     };
     let supported =
-        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+        SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
 
     let user_id = user_id!("@_virtual_:ruma.io");
     let http_req = req
@@ -185,8 +185,10 @@ mod without_query {
             bar: "barVal".to_owned(),
             user: owned_user_id!("@bazme:ruma.io"),
         };
-        let supported =
-            SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+        let supported = SupportedVersions {
+            versions: [MatrixVersion::V1_1].into(),
+            features: Default::default(),
+        };
 
         let user_id = user_id!("@_virtual_:ruma.io");
         let http_req = req

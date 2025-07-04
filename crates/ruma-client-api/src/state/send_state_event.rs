@@ -213,8 +213,10 @@ pub mod v3 {
         };
         use ruma_events::{room::name::RoomNameEventContent, EmptyStateKey};
 
-        let supported =
-            SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+        let supported = SupportedVersions {
+            versions: [MatrixVersion::V1_1].into(),
+            features: Default::default(),
+        };
 
         // This used to panic in make_endpoint_url because of a mismatch in the path parameter count
         let req = Request::new(

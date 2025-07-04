@@ -91,8 +91,10 @@ pub mod v3 {
 
         #[test]
         fn serialize_sso_login_with_provider_request_uri() {
-            let supported =
-                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: Default::default(),
+            };
             let req = Request::new("provider".to_owned(), "https://example.com/sso".to_owned())
                 .try_into_http_request::<Vec<u8>>(
                     "https://homeserver.tld",

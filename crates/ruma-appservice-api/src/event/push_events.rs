@@ -283,8 +283,10 @@ pub mod v1 {
             });
             let dummy_event = from_json_value(dummy_event_json.clone()).unwrap();
             let events = vec![dummy_event];
-            let supported =
-                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: Default::default(),
+            };
 
             let req = super::Request::new("any_txn_id".into(), events)
                 .try_into_http_request::<Vec<u8>>(

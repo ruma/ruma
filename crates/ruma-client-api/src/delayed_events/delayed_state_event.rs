@@ -127,8 +127,10 @@ pub mod unstable {
         fn create_delayed_event_request(
             delay_parameters: DelayParameters,
         ) -> (http::request::Parts, Vec<u8>) {
-            let supported =
-                SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Vec::new() };
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: Default::default(),
+            };
 
             Request::new_raw(
                 owned_room_id!("!roomid:example.org"),
