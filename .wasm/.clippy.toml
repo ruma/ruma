@@ -1,11 +1,11 @@
 avoid-breaking-exported-api = false
 disallowed-methods = [
     # https://github.com/serde-rs/json/issues/160
-    "serde_json::from_reader",
+    { path = "serde_json::from_reader", reason = "this function is slow, use from_str instead" },
 ]
 disallowed-types = [
-    "std::collections::HashMap",
-    "std::collections::HashSet",
+    { path = "std::collections::HashMap", reason = "use BTreeMap instead" },
+    { path = "std::collections::HashSet", reason = "use BTreeSet instead" },
     { path = "std::time::SystemTime", reason = "Use web-time to return a SystemTime that works under WASM" },
     { path = "std::time::Instant", reason = "Use web-time to return an Instant that works under WASM" },
 ]
