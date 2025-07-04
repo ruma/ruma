@@ -21,7 +21,14 @@ pub struct RoomTopicEventContent {
     pub topic: String,
 
     /// Textual representation of the room topic in different mimetypes.
+    ///
+    /// With the `compat-lax-room-topic-deser` cargo feature, this field is ignored if its
+    /// deserialization fails.
     #[serde(rename = "m.topic", default, skip_serializing_if = "TopicContentBlock::is_empty")]
+    #[cfg_attr(
+        feature = "compat-lax-room-topic-deser",
+        serde(deserialize_with = "ruma_common::serde::default_on_error")
+    )]
     pub topic_block: TopicContentBlock,
 }
 
@@ -156,5 +163,22 @@ mod tests {
         assert_eq!(content.topic, "Hot Topic");
         assert_eq!(content.topic_block.text.find_html(), Some("<strong>Hot</strong> Topic"));
         assert_eq!(content.topic_block.text.find_plain(), Some("Hot Topic"));
+    }
+
+    #[test]
+    #[cfg(feature = "compat-lax-room-topic-deser")]
+    fn deserialize_invalid_content() {
+        let json = json!({
+            "topic": "Hot Topic",
+            "m.topic": [
+                { "body": "<strong>Hot</strong> Topic", "mimetype": "text/html" },
+                { "body": "Hot Topic" },
+            ],
+        });
+
+        let content = from_json_value::<RoomTopicEventContent>(json).unwrap();
+        assert_eq!(content.topic, "Hot Topic");
+        assert_eq!(content.topic_block.text.find_html(), None);
+        assert_eq!(content.topic_block.text.find_plain(), None);
     }
 }
