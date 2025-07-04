@@ -344,7 +344,7 @@ impl Parse for EventEnumInput {
                     room_event.both_account_data = true;
                 }
             }
-        };
+        }
         if let Some(room_account_data_enum) = room_account_data_enum {
             enums_map.insert(EventKind::RoomAccountData, room_account_data_enum);
         }

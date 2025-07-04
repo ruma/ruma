@@ -8,9 +8,8 @@ pub fn validate(server_name: &str) -> Result<(), Error> {
     }
 
     let end_of_host = if server_name.starts_with('[') {
-        let end_of_ipv6 = match server_name.find(']') {
-            Some(idx) => idx,
-            None => return Err(Error::InvalidServerName),
+        let Some(end_of_ipv6) = server_name.find(']') else {
+            return Err(Error::InvalidServerName);
         };
 
         if server_name[1..end_of_ipv6].parse::<Ipv6Addr>().is_err() {

@@ -123,9 +123,8 @@ where
         .entry(entity_id.to_owned())
         .or_insert_with(|| CanonicalJsonValue::Object(BTreeMap::new()));
 
-    let signature_set = match signature_set {
-        CanonicalJsonValue::Object(obj) => obj,
-        _ => return Err(JsonError::not_multiples_of_type("signatures", JsonType::Object)),
+    let CanonicalJsonValue::Object(signature_set) = signature_set else {
+        return Err(JsonError::not_multiples_of_type("signatures", JsonType::Object));
     };
 
     signature_set.insert(signature.id(), CanonicalJsonValue::String(signature.base64()));
@@ -286,20 +285,16 @@ fn verify_canonical_json_for_entity(
             continue;
         };
 
-        let public_key = match public_keys.get(key_id) {
-            Some(public_key) => public_key,
-            None => {
-                return Err(VerificationError::PublicKeyNotFound {
-                    entity: entity_id.to_owned(),
-                    key_id: key_id.clone(),
-                }
-                .into())
+        let Some(public_key) = public_keys.get(key_id) else {
+            return Err(VerificationError::PublicKeyNotFound {
+                entity: entity_id.to_owned(),
+                key_id: key_id.clone(),
             }
+            .into());
         };
 
-        let signature = match signature {
-            CanonicalJsonValue::String(signature) => signature,
-            _ => return Err(JsonError::not_of_type("signature", JsonType::String)),
+        let CanonicalJsonValue::String(signature) = signature else {
+            return Err(JsonError::not_of_type("signature", JsonType::String));
         };
 
         let signature = Base64::<Standard>::parse(signature)
@@ -743,7 +738,7 @@ fn servers_to_check_signatures(
             }
             Some(_) => return Err(JsonError::not_of_type("sender", JsonType::String)),
             _ => return Err(JsonError::field_missing_from_object("sender")),
-        };
+        }
     }
 
     if rules.check_event_id_server {

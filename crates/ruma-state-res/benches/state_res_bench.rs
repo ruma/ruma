@@ -125,7 +125,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
 
         b.iter(|| {
             let state_sets = [&state_set_a, &state_set_b];
-            let _ = match state_res::resolve(
+            state_res::resolve(
                 &AuthorizationRules::V6,
                 state_sets,
                 state_sets
@@ -135,10 +135,8 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
                     })
                     .collect(),
                 |id| inner.get(id).map(Arc::clone),
-            ) {
-                Ok(state) => state,
-                Err(_) => panic!("resolution failed during benchmarking"),
-            };
+            )
+            .unwrap_or_else(|_| panic!("resolution failed during benchmarking"));
         });
     });
 }

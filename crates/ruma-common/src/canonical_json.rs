@@ -188,9 +188,8 @@ pub fn redact_in_place(
     };
 
     if let Some(content_value) = event.get_mut("content") {
-        let content = match content_value {
-            CanonicalJsonValue::Object(map) => map,
-            _ => return Err(RedactionError::not_of_type("content", JsonType::Object)),
+        let CanonicalJsonValue::Object(content) = content_value else {
+            return Err(RedactionError::not_of_type("content", JsonType::Object));
         };
 
         retained_event_content_keys.apply(rules, content)?;

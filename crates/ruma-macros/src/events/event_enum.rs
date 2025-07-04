@@ -921,9 +921,8 @@ impl EventEnumEntry {
 }
 
 pub(crate) fn expand_from_impls_derived(input: DeriveInput) -> TokenStream {
-    let variants = match &input.data {
-        Data::Enum(DataEnum { variants, .. }) => variants,
-        _ => panic!("this derive macro only works with enums"),
+    let Data::Enum(DataEnum { variants, .. }) = &input.data else {
+        panic!("this derive macro only works with enums");
     };
 
     let from_impls = variants.iter().map(|variant| match &variant.fields {
