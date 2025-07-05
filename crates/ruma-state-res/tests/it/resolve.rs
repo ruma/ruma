@@ -7,6 +7,7 @@ use std::{
     fs,
     ops::Deref,
     path::Path,
+    sync::LazyLock,
 };
 
 use ruma_common::{
@@ -25,6 +26,8 @@ use serde_json::{
 use similar::{udiff::unified_diff, Algorithm};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
+static FIXTURES_PATH: LazyLock<&'static Path> = LazyLock::new(|| Path::new("tests/it/fixtures"));
+
 /// Create a new snapshot test.
 ///
 /// # Arguments
@@ -38,6 +41,33 @@ macro_rules! snapshot_test {
             let crate::resolve::Snapshots {
                 resolved_state,
             } = crate::resolve::test_resolve(&$paths);
+
+            insta::with_settings!({
+                description => "Resolved state",
+                omit_expression => true,
+                snapshot_suffix => "resolved_state",
+            }, {
+                insta::assert_json_snapshot!(&resolved_state);
+            });
+        }
+    };
+}
+
+/// Create a new snapshot test, attempting to resolve multiple contrived states.
+///
+/// # Arguments
+///
+/// * The test function's name.
+/// * A list of JSON files relative to `tests/it/fixtures` to load PDUs to resolve from.
+/// * A list of JSON files relative to `tests/it/fixtures` to load event IDs forming contrived
+///   states to resolve.
+macro_rules! snapshot_test_contrived_states {
+    ($name:ident, $pdus_path:expr, $state_set_paths:expr $(,)?) => {
+        #[test]
+        fn $name() {
+            let crate::resolve::Snapshots {
+                resolved_state,
+            } = crate::resolve::test_contrived_states(&$pdus_path, &$state_set_paths);
 
             insta::with_settings!({
                 description => "Resolved state",
@@ -167,10 +197,9 @@ struct Snapshots {
     resolved_state: BTreeSet<ResolvedStateEvent>,
 }
 
-/// Test a list of JSON files containing a list of PDUs and return the results.
-///
-/// State resolution is run both atomically for all PDUs and in batches of PDUs by file.
-fn test_resolve(paths: &[&str]) -> Snapshots {
+fn snapshot_test_prelude(
+    paths: &[&str],
+) -> (Vec<Vec<Pdu>>, AuthorizationRules, StateResolutionV2Rules) {
     // Run `cargo test -- --show-output` to view traces, set `RUST_LOG` to control filtering.
     let _subscriber = tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env())
@@ -178,13 +207,11 @@ fn test_resolve(paths: &[&str]) -> Snapshots {
         .finish()
         .set_default();
 
-    let fixtures_path = Path::new("tests/it/fixtures");
-
     let pdu_batches = paths
         .iter()
         .map(|x| {
             from_json_str(
-                &fs::read_to_string(fixtures_path.join(x))
+                &fs::read_to_string(FIXTURES_PATH.join(x))
                     .expect("should be able to read JSON file of PDUs"),
             )
             .expect("should be able to deserialize JSON file of PDUs")
@@ -212,6 +239,32 @@ fn test_resolve(paths: &[&str]) -> Snapshots {
     let auth_rules = rules.authorization;
     let state_res_rules =
         rules.state_res.v2_rules().expect("resolve only supports state resolution version 2");
+
+    (pdu_batches, auth_rules, *state_res_rules)
+}
+
+/// Reshape the data a bit to make the diff and snapshots easier to compare.
+fn reshape(
+    pdus_by_id: &HashMap<OwnedEventId, Pdu>,
+    x: StateMap<OwnedEventId>,
+) -> Result<BTreeSet<ResolvedStateEvent>, JsonError> {
+    x.into_iter()
+        .map(|((kind, state_key), event_id)| {
+            Ok(ResolvedStateEvent {
+                kind,
+                state_key,
+                content: to_json_value(pdus_by_id[&event_id].content())?,
+                event_id,
+            })
+        })
+        .collect()
+}
+
+/// Test a list of JSON files containing a list of PDUs and return the results.
+///
+/// State resolution is run both atomically for all PDUs and in batches of PDUs by file.
+fn test_resolve(paths: &[&str]) -> Snapshots {
+    let (pdu_batches, auth_rules, state_res_rules) = snapshot_test_prelude(paths);
 
     // Resolve PDUs iteratively, using the ordering of `prev_events`.
     let iteratively_resolved_state = resolve_iteratively(
@@ -249,26 +302,12 @@ fn test_resolve(paths: &[&str]) -> Snapshots {
     )
     .expect("atomic state resolution should succeed");
 
-    // Reshape the data a bit to make the diff and snapshots easier to compare.
-    let reshape = |x: StateMap<_>| {
-        x.into_iter()
-            .map(|((kind, state_key), event_id)| {
-                Ok(ResolvedStateEvent {
-                    kind,
-                    state_key,
-                    content: to_json_value(pdus_by_id[&event_id].content())?,
-                    event_id,
-                })
-            })
-            .collect::<Result<_, JsonError>>()
-    };
-
-    let iteratively_resolved_state = reshape(iteratively_resolved_state)
+    let iteratively_resolved_state = reshape(&pdus_by_id, iteratively_resolved_state)
         .expect("should be able to reshape iteratively resolved state");
-    let batched_resolved_state =
-        reshape(batched_resolved_state).expect("should be able to reshape batched resolved state");
-    let atomic_resolved_state =
-        reshape(atomic_resolved_state).expect("should be able to reshape atomic resolved state");
+    let batched_resolved_state = reshape(&pdus_by_id, batched_resolved_state)
+        .expect("should be able to reshape batched resolved state");
+    let atomic_resolved_state = reshape(&pdus_by_id, atomic_resolved_state)
+        .expect("should be able to reshape atomic resolved state");
 
     let assert_states_match = |first_resolved_state: &BTreeSet<ResolvedStateEvent>,
                                second_resolved_state: &BTreeSet<ResolvedStateEvent>,
@@ -298,6 +337,76 @@ fn test_resolve(paths: &[&str]) -> Snapshots {
     assert_states_match(&batched_resolved_state, &atomic_resolved_state, "batched", "atomic");
 
     Snapshots { resolved_state: iteratively_resolved_state }
+}
+
+/// Test a list of JSON files containing a list of PDUs and a list of JSON files containing the
+/// event IDs that form a contrived state and return the results.
+fn test_contrived_states(pdus_paths: &[&str], state_sets_paths: &[&str]) -> Snapshots {
+    let (pdu_batches, auth_rules, state_res_rules) = snapshot_test_prelude(pdus_paths);
+
+    let pdus = pdu_batches.into_iter().flat_map(|x| x.into_iter()).collect::<Vec<_>>();
+
+    let pdus_by_id: HashMap<OwnedEventId, Pdu> =
+        pdus.clone().into_iter().map(|pdu| (pdu.event_id().to_owned(), pdu.to_owned())).collect();
+
+    let state_sets = state_sets_paths
+        .iter()
+        .map(|x| {
+            from_json_str::<Vec<OwnedEventId>>(
+                &fs::read_to_string(FIXTURES_PATH.join(x))
+                    .expect("should be able to read JSON file of event IDs"),
+            )
+            .expect("should be able to deserialize JSON file of event IDs")
+            .into_iter()
+            .map(|event_id| {
+                pdus_by_id
+                    .get(&event_id)
+                    .map(|pdu| {
+                        (
+                            (
+                                pdu.event_type().to_string().into(),
+                                pdu.state_key.clone().expect("All PDUs must be state events"),
+                            ),
+                            event_id,
+                        )
+                    })
+                    .expect("Event IDs in JSON file must be in PDUs JSON")
+            })
+            .collect()
+        })
+        .collect::<Vec<StateMap<OwnedEventId>>>();
+
+    let mut auth_chain_sets = Vec::new();
+    for state_map in &state_sets {
+        let mut auth_chain = HashSet::new();
+
+        for event_id in state_map.values() {
+            let pdu = pdus_by_id
+                .get(event_id)
+                .expect("We already confirmed all state set event ids have pdus");
+
+            auth_chain.extend(
+                auth_events_dfs(&pdus_by_id, pdu).expect("Auth events DFS should not fail"),
+            );
+        }
+
+        auth_chain_sets.push(auth_chain);
+    }
+
+    let resolved_state = resolve(
+        &auth_rules,
+        &state_res_rules,
+        &state_sets,
+        auth_chain_sets,
+        |x| pdus_by_id.get(x).cloned(),
+        |conflicted_state_set| conflicted_state_subgraph_dfs(conflicted_state_set, &pdus_by_id),
+    )
+    .expect("atomic state resolution should succeed");
+
+    Snapshots {
+        resolved_state: reshape(&pdus_by_id, resolved_state)
+            .expect("should be able to reshape atomic resolved state"),
+    }
 }
 
 /// Perform state resolution on a batch of PDUs.

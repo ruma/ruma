@@ -1,0 +1,55 @@
+---
+source: crates/ruma-state-res/tests/it/resolve/snapshot_tests.rs
+description: Resolved state
+---
+[
+  {
+    "kind": "m.room.create",
+    "state_key": "",
+    "event_id": "$00-m-room-create",
+    "content": {
+      "room_version": "12"
+    }
+  },
+  {
+    "kind": "m.room.join_rules",
+    "state_key": "",
+    "event_id": "$01-m-room-join_rules",
+    "content": {
+      "join_rule": "invite"
+    }
+  },
+  {
+    "kind": "m.room.member",
+    "state_key": "@alice:example.com",
+    "event_id": "$01-m-room-member-leave-alice",
+    "content": {
+      "displayname": "alice",
+      "membership": "leave"
+    }
+  },
+  {
+    "kind": "m.room.member",
+    "state_key": "@bob:example.com",
+    "event_id": "$01-m-room-member-change-display-name-bob",
+    "content": {
+      "displayname": "bob++",
+      "membership": "join"
+    }
+  },
+  {
+    "kind": "m.room.member",
+    "state_key": "@charlie:example.com",
+    "event_id": "$01-m-room-member-change-display-name-charlie",
+    "content": {
+      "displayname": "charlie++",
+      "membership": "join"
+    }
+  },
+  {
+    "kind": "m.room.power_levels",
+    "state_key": "",
+    "event_id": "$00-m-room-power_levels",
+    "content": {}
+  }
+]

@@ -1,0 +1,8 @@
+[
+  "$00-m-room-create",
+  "$00-m-room-power_levels",
+  "$00-m-room-join_rules",
+  "$00-m-room-member-join-bob",
+  "$01-m-room-member-leave-alice",
+  "$01-m-room-member-change-display-name-charlie"
+]

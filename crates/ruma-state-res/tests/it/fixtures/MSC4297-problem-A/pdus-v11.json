@@ -1,0 +1,193 @@
+[
+  {
+    "event_id": "$00-m-room-create",
+    "room_id": "!room:example.com",
+    "sender": "@alice:example.com",
+    "type": "m.room.create",
+    "content": {
+      "room_version": "11"
+    },
+    "state_key": "",
+    "origin_server_ts": 0,
+    "prev_events": [],
+    "auth_events": []
+  },
+  {
+    "event_id": "$00-m-room-member-join-alice",
+    "room_id": "!room:example.com",
+    "sender": "@alice:example.com",
+    "type": "m.room.member",
+    "content": {
+      "displayname": "alice",
+      "membership": "join"
+    },
+    "state_key": "@alice:example.com",
+    "origin_server_ts": 1,
+    "prev_events": [
+      "$00-m-room-create"
+    ],
+    "auth_events": [
+      "$00-m-room-create"
+    ]
+  },
+  {
+    "event_id": "$00-m-room-power_levels",
+    "room_id": "!room:example.com",
+    "sender": "@alice:example.com",
+    "type": "m.room.power_levels",
+    "content": {
+      "users": {
+        "@alice:example.com": 100
+      }
+    },
+    "state_key": "",
+    "origin_server_ts": 2,
+    "prev_events": [
+      "$00-m-room-member-join-alice"
+    ],
+    "auth_events": [
+      "$00-m-room-create",
+      "$00-m-room-member-join-alice"
+    ]
+  },
+  {
+    "event_id": "$00-m-room-join_rules",
+    "room_id": "!room:example.com",
+    "sender": "@alice:example.com",
+    "type": "m.room.join_rules",
+    "content": {
+      "join_rule": "public"
+    },
+    "state_key": "",
+    "origin_server_ts": 3,
+    "prev_events": [
+      "$00-m-room-power_levels"
+    ],
+    "auth_events": [
+      "$00-m-room-create",
+      "$00-m-room-member-join-alice",
+      "$00-m-room-power_levels"
+    ]
+  },
+  {
+    "event_id": "$00-m-room-member-join-bob",
+    "room_id": "!room:example.com",
+    "sender": "@bob:example.com",
+    "type": "m.room.member",
+    "content": {
+      "displayname": "bob",
+      "membership": "join"
+    },
+    "state_key": "@bob:example.com",
+    "origin_server_ts": 4,
+    "prev_events": [
+      "$00-m-room-join_rules"
+    ],
+    "auth_events": [
+      "$00-m-room-create",
+      "$00-m-room-power_levels",
+      "$00-m-room-join_rules"
+    ]
+  },
+  {
+    "event_id": "$00-m-room-member-join-charlie",
+    "room_id": "!room:example.com",
+    "sender": "@charlie:example.com",
+    "type": "m.room.member",
+    "content": {
+      "displayname": "charlie",
+      "membership": "join"
+    },
+    "state_key": "@charlie:example.com",
+    "origin_server_ts": 5,
+    "prev_events": [
+      "$00-m-room-member-join-bob"
+    ],
+    "auth_events": [
+      "$00-m-room-create",
+      "$00-m-room-power_levels",
+      "$00-m-room-join_rules"
+    ]
+  },
+  {
+    "event_id": "$01-m-room-join_rules",
+    "room_id": "!room:example.com",
+    "sender": "@alice:example.com",
+    "type": "m.room.join_rules",
+    "content": {
+      "join_rule": "invite"
+    },
+    "state_key": "",
+    "origin_server_ts": 6,
+    "prev_events": [
+      "$00-m-room-member-join-charlie"
+    ],
+    "auth_events": [
+      "$00-m-room-create",
+      "$00-m-room-power_levels",
+      "$00-m-room-member-join-alice"
+    ]
+  },
+  {
+    "event_id": "$01-m-room-member-leave-alice",
+    "room_id": "!room:example.com",
+    "sender": "@alice:example.com",
+    "type": "m.room.member",
+    "content": {
+      "displayname": "alice",
+      "membership": "leave"
+    },
+    "state_key": "@alice:example.com",
+    "origin_server_ts": 7,
+    "prev_events": [
+      "$01-m-room-join_rules"
+    ],
+    "auth_events": [
+      "$00-m-room-create",
+      "$00-m-room-power_levels",
+      "$00-m-room-member-join-alice"
+    ]
+  },
+  {
+    "event_id": "$01-m-room-member-change-display-name-bob",
+    "room_id": "!room:example.com",
+    "sender": "@bob:example.com",
+    "type": "m.room.member",
+    "content": {
+      "displayname": "bob++",
+      "membership": "join"
+    },
+    "state_key": "@bob:example.com",
+    "origin_server_ts": 8,
+    "prev_events": [
+      "$01-m-room-member-leave-alice"
+    ],
+    "auth_events": [
+      "$00-m-room-create",
+      "$00-m-room-power_levels",
+      "$00-m-room-member-join-bob",
+      "$01-m-room-join_rules"
+    ]
+  },
+  {
+    "event_id": "$01-m-room-member-change-display-name-charlie",
+    "room_id": "!room:example.com",
+    "sender": "@charlie:example.com",
+    "type": "m.room.member",
+    "content": {
+      "displayname": "charlie++",
+      "membership": "join"
+    },
+    "state_key": "@charlie:example.com",
+    "origin_server_ts": 9,
+    "prev_events": [
+      "$01-m-room-member-leave-alice"
+    ],
+    "auth_events": [
+      "$00-m-room-create",
+      "$00-m-room-power_levels",
+      "$00-m-room-member-join-charlie",
+      "$01-m-room-join_rules"
+    ]
+  }
+]

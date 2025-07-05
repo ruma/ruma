@@ -1,0 +1,9 @@
+[
+  "$00-m-room-create",
+  "$00-m-room-member-join-alice",
+  "$00-m-room-power_levels",
+  "$00-m-room-join_rules",
+  "$00-m-room-member-join-bob",
+  "$00-m-room-member-join-charlie",
+  "$01-m-room-member-change-display-name-eve"
+]

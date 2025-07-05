@@ -1,0 +1,78 @@
+---
+source: crates/ruma-state-res/tests/it/resolve/snapshot_tests.rs
+description: Resolved state
+---
+[
+  {
+    "kind": "m.room.create",
+    "state_key": "",
+    "event_id": "$00-m-room-create",
+    "content": {
+      "room_version": "12"
+    }
+  },
+  {
+    "kind": "m.room.join_rules",
+    "state_key": "",
+    "event_id": "$00-m-room-join_rules",
+    "content": {
+      "join_rule": "public"
+    }
+  },
+  {
+    "kind": "m.room.member",
+    "state_key": "@alice:example.com",
+    "event_id": "$00-m-room-member-join-alice",
+    "content": {
+      "displayname": "alice",
+      "membership": "join"
+    }
+  },
+  {
+    "kind": "m.room.member",
+    "state_key": "@bob:example.com",
+    "event_id": "$00-m-room-member-join-bob",
+    "content": {
+      "displayname": "bob",
+      "membership": "join"
+    }
+  },
+  {
+    "kind": "m.room.member",
+    "state_key": "@charlie:example.com",
+    "event_id": "$00-m-room-member-join-charlie",
+    "content": {
+      "displayname": "charlie",
+      "membership": "join"
+    }
+  },
+  {
+    "kind": "m.room.member",
+    "state_key": "@eve:example.com",
+    "event_id": "$01-m-room-member-change-display-name-eve",
+    "content": {
+      "displayname": "eve++",
+      "membership": "join"
+    }
+  },
+  {
+    "kind": "m.room.member",
+    "state_key": "@zara:example.com",
+    "event_id": "$00-m-room-member-join-zara",
+    "content": {
+      "displayname": "zara",
+      "membership": "join"
+    }
+  },
+  {
+    "kind": "m.room.power_levels",
+    "state_key": "",
+    "event_id": "$02-m-room-power_levels",
+    "content": {
+      "users": {
+        "@bob:example.com": 50,
+        "@charlie:example.com": 50
+      }
+    }
+  }
+]
