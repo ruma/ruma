@@ -820,7 +820,18 @@ impl SupportedVersions {
     /// value set to `false` are discarded.
     pub fn from_parts(versions: &[String], unstable_features: &BTreeMap<String, bool>) -> Self {
         Self {
-            versions: versions.iter().flat_map(|s| s.parse::<MatrixVersion>()).collect(),
+            versions: versions
+                .iter()
+                // Parse, discard unknown versions
+                .flat_map(|s| s.parse::<MatrixVersion>())
+                // Map to key-value pairs where the key is the major-minor representation
+                // (which can be used as a BTreeMap unlike MatrixVersion itself)
+                .map(|v| (v.into_parts(), v))
+                // Collect to BTreeMap
+                .collect::<BTreeMap<_, _>>()
+                // Return an iterator over just the values (`MatrixVersion`s)
+                .into_values()
+                .collect(),
             features: unstable_features
                 .iter()
                 .filter(|(_, enabled)| **enabled)
@@ -1085,6 +1096,12 @@ mod tests {
         let single_known_supported = SupportedVersions::from_parts(single_known, &empty_features);
         assert_eq!(single_known_supported.versions.as_ref(), &[V1_0]);
         assert_eq!(single_known_supported.features, BTreeSet::new());
+
+        let multiple_known = &["v1.1".to_owned(), "r0.6.0".to_owned(), "r0.6.1".to_owned()];
+        let multiple_known_supported =
+            SupportedVersions::from_parts(multiple_known, &empty_features);
+        assert_eq!(multiple_known_supported.versions.as_ref(), &[V1_0, V1_1]);
+        assert_eq!(multiple_known_supported.features, BTreeSet::new());
 
         let single_unknown = &["v0.0".to_owned()];
         let single_unknown_supported =
