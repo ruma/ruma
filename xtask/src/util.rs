@@ -1,4 +1,4 @@
-use std::io::{stdin, stdout, BufRead, Write};
+use std::io::{BufRead, Write, stdin, stdout};
 
 use crate::Result;
 

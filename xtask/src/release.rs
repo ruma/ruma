@@ -1,12 +1,12 @@
-use std::io::{stdin, stdout, BufRead, Write};
+use std::io::{BufRead, Write, stdin, stdout};
 
 use clap::Args;
-use reqwest::{blocking::Client, StatusCode};
+use reqwest::{StatusCode, blocking::Client};
 use semver::Version;
 use serde_json::json;
 use xshell::Shell;
 
-use crate::{cargo::Package, cmd, util::ask_yes_no, GithubConfig, Metadata, Result};
+use crate::{GithubConfig, Metadata, Result, cargo::Package, cmd, util::ask_yes_no};
 
 const GITHUB_API_RUMA: &str = "https://api.github.com/repos/ruma/ruma";
 
@@ -378,10 +378,10 @@ impl VersionExt for Version {
     }
 
     fn increment_pre_number(&mut self) {
-        if let Some((prefix, num)) = self.pre.as_str().rsplit_once('.') {
-            if let Ok(num) = num.parse::<u8>() {
-                self.pre = semver::Prerelease::new(&format!("{prefix}.{}", num + 1)).unwrap();
-            }
+        if let Some((prefix, num)) = self.pre.as_str().rsplit_once('.')
+            && let Ok(num) = num.parse::<u8>()
+        {
+            self.pre = semver::Prerelease::new(&format!("{prefix}.{}", num + 1)).unwrap();
         }
     }
 
