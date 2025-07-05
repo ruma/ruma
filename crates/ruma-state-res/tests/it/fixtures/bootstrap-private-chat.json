@@ -43,7 +43,9 @@
     },
     "state_key": "",
     "origin_server_ts": 2,
-    "prev_events": [],
+    "prev_events": [
+      "$00-m-room-member-join-alice"
+    ],
     "auth_events": [
       "$00-m-room-create",
       "$00-m-room-member-join-alice"
@@ -59,7 +61,9 @@
     },
     "state_key": "",
     "origin_server_ts": 3,
-    "prev_events": [],
+    "prev_events": [
+      "$00-m-room-power_levels"
+    ],
     "auth_events": [
       "$00-m-room-create",
       "$00-m-room-member-join-alice",
@@ -76,7 +80,9 @@
     },
     "state_key": "",
     "origin_server_ts": 4,
-    "prev_events": [],
+    "prev_events": [
+      "$00-m-room-join_rules"
+    ],
     "auth_events": [
       "$00-m-room-create",
       "$00-m-room-member-join-alice",
@@ -93,7 +99,9 @@
     },
     "state_key": "",
     "origin_server_ts": 5,
-    "prev_events": [],
+    "prev_events": [
+      "$00-m-room-history_visibility"
+    ],
     "auth_events": [
       "$00-m-room-create",
       "$00-m-room-member-join-alice",
