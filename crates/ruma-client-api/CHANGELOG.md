@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.20.4
+
 Improvements:
 
 - All the types used in `discover_homeserver::Response` now implement PartialEq
