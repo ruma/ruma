@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.11.1
+
 Improvements:
 
 - Add `get_supported_versions::Response::as_supported_versions()`.
