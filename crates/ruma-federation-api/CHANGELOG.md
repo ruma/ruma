@@ -1,5 +1,11 @@
 # [unreleased]
 
+Bug fixes:
+
+- Restore the `unstable-unspecified` cargo feature. There are still a few places
+  that rely on that feature that would require a breaking change to remove the
+  feature.
+
 Improvements:
 
 - Add the `encryption` and `room_version` fields to
