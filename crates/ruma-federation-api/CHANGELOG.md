@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.11.2
+
 Bug fixes:
 
 - Restore the `unstable-unspecified` cargo feature. There are still a few places
