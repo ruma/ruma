@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.30.4
+
 Bug fixes:
 
 - Implement `StaticEventContent` for a few event types generated manually:
@@ -17,7 +19,7 @@ Improvements:
 - With the `compat-lax-room-topic-deser` cargo feature, the `topic_block` field of
   `RoomTopicEventContent` (named `m.topic` in the JSON source) is ignored during deserialization if
   it has an invalid format.
-   
+
 # 0.30.3
 
 Improvements:
