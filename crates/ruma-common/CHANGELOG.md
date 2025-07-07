@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.15.3
+
 Improvements:
 
 - Add `RoomSummary` that represents the summary of a room's state.
