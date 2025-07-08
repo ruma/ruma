@@ -1565,6 +1565,12 @@ mod tests {
         assert_eq!(single_known_supported.versions, BTreeSet::from([V1_0]));
         assert_eq!(single_known_supported.features, BTreeSet::new());
 
+        let multiple_known = &["v1.1".to_owned(), "r0.6.0".to_owned(), "r0.6.1".to_owned()];
+        let multiple_known_supported =
+            SupportedVersions::from_parts(multiple_known, &empty_features);
+        assert_eq!(multiple_known_supported.versions, BTreeSet::from([V1_0, V1_1]));
+        assert_eq!(multiple_known_supported.features, BTreeSet::new());
+
         let single_unknown = &["v0.0".to_owned()];
         let single_unknown_supported =
             SupportedVersions::from_parts(single_unknown, &empty_features);

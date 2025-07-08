@@ -47,13 +47,12 @@ Breaking changes:
   syntax and the new syntax supported by axum 0.8.
 - `JoinRule` and its associated types where imported from `ruma-events` into the
   `room` module.
-- `space::SpaceRoomJoinRule` was moved and renamed as `room::JoinRuleSummary`.
-  It now includes a `RestrictedSummary` for the restricted join rules variants.
-- `directory::PublicRoomJoinRule` was moved and renamed to `room::JoinRuleKind`
-  and includes all possible join rule kinds, due to a clarification in Matrix
-  1.15.
+- `space::SpaceRoomJoinRule` was removed and replaced by `room::JoinRuleSummary`.
+- `directory::PublicRoomJoinRule` was moved and renamed to `room::JoinRuleKind`.
   - It can be constructed with `JoinRule::kind()` and `JoinRuleSummary::kind()`.
 - Make `PushConditionRoomCtx` and `PushConditionPowerLevelsCtx` non-exhaustive.
+- The `versions` field of `SupportedVersions` is now a `BTreeSet<MatrixVersion>`,
+  to make sure that the versions are always deduplicated and sorted.
 
 Bug fix:
 
@@ -93,17 +92,28 @@ Improvements:
 - Add `OutgoingRequest::is_supported()` and `VersionHistory::is_supported()` to
   be able to know if a server advertises support for an endpoint.
 - Re-export `ID_MAX_BYTES` from `ruma-identifiers-validation`.
-- Add `RoomSummary` that represents the summary of a room's state.
-  - Implement `From<RoomSummary>` for `PublicRoomsChunk` and
-    `From<PublicRoomsChunk>` for `RoomSummary`.
-- Add `MatrixVersion::V1_15`.
+- Implement `From<PublicRoomsChunk>` for `RoomSummary`.
 - Add `content_field_redacts` field to `RedactionRules`, which is used to determine whether the
-  `content` or top-level `redacts` field should be used to determine what event an event redacts.
-- Add `serde::default_on_error()` as a helper to ignore errors during
-  deserialization.
+  `content` or top-level `redacts` field should be used to determine what event an
+  `m.room.redaction` event redacts.
 - Add `SpaceChildOrder` which allows to validate the `order` of an
   `m.space.child` event.
+
+# 0.15.3
+
+Improvements:
+
+- Add `RoomSummary` that represents the summary of a room's state.
+  - Implement `From<RoomSummary>` for `PublicRoomsChunk`
+- Add `MatrixVersion::V1_15`.
+- `PublicRoomJoinRule` now includes all possible join rule kinds, due to a
+  clarification in Matrix 1.15.
+- Add `serde::default_on_error()` as a helper to ignore errors during
+  deserialization.
+- Implement conversions between `PublicRoomJoinRule` and `SpaceRoomJoinRule`.
 - Add `FeatureFlag` as an enum whose variants are the flags of features supported by Ruma.
+- Add `SupportedVersions`, a type to parse `/versions` responses to get lists
+  of supported versions and features.
 
 # 0.15.2
 

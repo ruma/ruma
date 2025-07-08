@@ -1737,7 +1737,7 @@ dependencies = [
 
 [[package]]
 name = "ruma"
-version = "0.12.3"
+version = "0.12.4"
 dependencies = [
  "assign",
  "js_int",
@@ -1771,7 +1771,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-client-api"
-version = "0.20.3"
+version = "0.20.4"
 dependencies = [
  "as_variant",
  "assert_matches2",
@@ -1794,7 +1794,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-common"
-version = "0.15.2"
+version = "0.15.3"
 dependencies = [
  "as_variant",
  "assert_matches2",
@@ -1830,7 +1830,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-events"
-version = "0.30.3"
+version = "0.30.4"
 dependencies = [
  "as_variant",
  "assert_matches2",
@@ -1861,7 +1861,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-federation-api"
-version = "0.11.1"
+version = "0.11.2"
 dependencies = [
  "assert_matches2",
  "bytes",
@@ -1903,7 +1903,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-identity-service-api"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "js_int",
  "ruma-common",
@@ -1914,7 +1914,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-macros"
-version = "0.15.1"
+version = "0.15.2"
 dependencies = [
  "cfg-if",
  "proc-macro-crate",

@@ -16,14 +16,11 @@ Breaking changes:
   burden and potential issues in the future.
 - Move `Capabilities` and associated types into the
   `discovery::get_capabilities::v3` module, for consistency with other endpoints.
-- `get_supported_versions::Response::known_versions()` was replaced by
-  `as_supported_versions()` which returns a `SupportedVersions`.
+- `get_supported_versions::Response::known_versions()` was removed.
+  `as_supported_versions()` should be used instead.
 - Update the endpoint metadata definitions to use the new syntax for variables.
-- Use `ruma_common::RoomSummary` for the `space::get_hierarchy` and
-  `room::get_summary` endpoints.
-  - `SpaceHierarchyRoomsChunk` is now built around `RoomSummary`, and
-    `SpaceHierarchyRoomsChunkInit` was removed.
-  - `room::get_summary::v1::Response` is now built around `RoomSummary`.
+- `SpaceHierarchyRoomsChunk` is now built around `RoomSummary`, and
+  `SpaceHierarchyRoomsChunkInit` was removed.
 
 Improvements:
 
@@ -31,14 +28,23 @@ Improvements:
   endpoints, the `server_name` query parameter is only serialized if the server
   doesn't advertise at least one version that supports the `via` query
   parameter. The former was removed in Matrix 1.14.
+
+# 0.20.4
+
+Improvements:
+
 - All the types used in `discover_homeserver::Response` now implement PartialEq
   and Eq.
+- Use `ruma_common::RoomSummary` for the `room::get_summary` endpoint.
+- Add the `encryption`, `room_version` and `allowed_room_ids` fields to
+  `SpaceHierarchyRoomsChunk`, according to MSC3266 / Matrix 1.15.
 - Stabilize the support for the room summary endpoint, according to Matrix 1.15.
 - Stabilize support for the OAuth 2.0 authorization server metadata endpoint,
   according to Matrix 1.15.
   - The `discovery::get_authentication_issuer` endpoint was removed.
   - Some fields of `AuthorizationServerMetadata` are now behind the
     `unstable-msc4108` or `unstable-msc4191` cargo features.
+- Add `get_supported_versions::Response::as_supported_versions()`.
 
 # 0.20.3
 
