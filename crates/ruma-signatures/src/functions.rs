@@ -264,7 +264,7 @@ fn verify_canonical_json_for_entity(
     let signature_set = match signature_map.get(entity_id) {
         Some(CanonicalJsonValue::Object(set)) => set,
         Some(_) => {
-            return Err(JsonError::not_multiples_of_type("signature sets", JsonType::Object))
+            return Err(JsonError::not_multiples_of_type("signature sets", JsonType::Object));
         }
         None => return Err(VerificationError::NoSignaturesForEntity(entity_id.to_owned()).into()),
     };
