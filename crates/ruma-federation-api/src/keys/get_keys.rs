@@ -10,11 +10,11 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedDeviceId, OwnedUserId,
+        api::{Metadata, request, response},
         encryption::{CrossSigningKey, DeviceKeys},
         metadata,
         serde::Raw,
-        OwnedDeviceId, OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {

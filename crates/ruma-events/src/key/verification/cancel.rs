@@ -2,11 +2,11 @@
 //!
 //! [`m.key.verification.cancel`]: https://spec.matrix.org/latest/client-server-api/#mkeyverificationcancel
 
-use ruma_common::{serde::StringEnum, OwnedTransactionId};
+use ruma_common::{OwnedTransactionId, serde::StringEnum};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{relation::Reference, PrivOwnedStr};
+use crate::{PrivOwnedStr, relation::Reference};
 
 /// The content of a to-device `m.key.verification.cancel` event.
 ///

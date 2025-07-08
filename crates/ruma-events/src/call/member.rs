@@ -11,7 +11,7 @@ mod member_state_key;
 pub use focus::*;
 pub use member_data::*;
 pub use member_state_key::*;
-use ruma_common::{room_version_rules::RedactionRules, MilliSecondsSinceUnixEpoch, OwnedDeviceId};
+use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedDeviceId, room_version_rules::RedactionRules};
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
 
@@ -240,21 +240,21 @@ mod tests {
 
     use assert_matches2::assert_matches;
     use ruma_common::{
-        device_id, owned_device_id, user_id, MilliSecondsSinceUnixEpoch as TS, OwnedEventId,
-        OwnedRoomId, OwnedUserId,
+        MilliSecondsSinceUnixEpoch as TS, OwnedEventId, OwnedRoomId, OwnedUserId, device_id,
+        owned_device_id, user_id,
     };
-    use serde_json::{from_value as from_json_value, json, Value as JsonValue};
+    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
     use super::{
+        CallMemberEventContent,
         focus::{ActiveFocus, ActiveLivekitFocus, Focus, LivekitFocus},
         member_data::{
             Application, CallApplicationContent, CallScope, LegacyMembershipData, MembershipData,
         },
-        CallMemberEventContent,
     };
     use crate::{
-        call::member::{EmptyMembershipData, FocusSelection, SessionMembershipData},
         AnyStateEvent, StateEvent,
+        call::member::{EmptyMembershipData, FocusSelection, SessionMembershipData},
     };
 
     fn create_call_member_legacy_event_content() -> CallMemberEventContent {

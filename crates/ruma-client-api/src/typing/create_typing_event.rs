@@ -10,10 +10,11 @@ pub mod v3 {
     use std::time::Duration;
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedRoomId, OwnedUserId,
+        OwnedRoomId, OwnedUserId,
+        api::{Metadata, request, response},
+        metadata,
     };
-    use serde::{de::Error, Deserialize, Deserializer, Serialize};
+    use serde::{Deserialize, Deserializer, Serialize, de::Error};
 
     const METADATA: Metadata = metadata! {
         method: PUT,

@@ -55,11 +55,7 @@ impl FromStr for UserTagName {
     type Err = InvalidUserTagName;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.starts_with("u.") {
-            Ok(Self { name: s.into() })
-        } else {
-            Err(InvalidUserTagName)
-        }
+        if s.starts_with("u.") { Ok(Self { name: s.into() }) } else { Err(InvalidUserTagName) }
     }
 }
 

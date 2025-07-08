@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use super::FormattedBody;
 use crate::room::{
-    message::media_caption::{caption, formatted_caption},
     EncryptedFile, MediaSource,
+    message::media_caption::{caption, formatted_caption},
 };
 
 /// The payload for an audio message.

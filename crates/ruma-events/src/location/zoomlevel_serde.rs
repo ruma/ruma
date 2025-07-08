@@ -1,7 +1,7 @@
 //! `Serialize` and `Deserialize` implementations for extensible events (MSC1767).
 
 use js_int::UInt;
-use serde::{de, Deserialize};
+use serde::{Deserialize, de};
 
 use super::{ZoomLevel, ZoomLevelError};
 

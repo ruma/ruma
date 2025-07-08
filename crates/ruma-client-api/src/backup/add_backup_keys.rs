@@ -11,8 +11,9 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedRoomId,
+        OwnedRoomId,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     use crate::backup::RoomKeyBackup;

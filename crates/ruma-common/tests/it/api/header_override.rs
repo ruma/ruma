@@ -1,10 +1,10 @@
 #![allow(clippy::exhaustive_structs)]
 
-use http::header::{Entry, CONTENT_TYPE, LOCATION};
+use http::header::{CONTENT_TYPE, Entry, LOCATION};
 use ruma_common::{
     api::{
-        request, response, MatrixVersion, Metadata, OutgoingRequest as _, OutgoingResponse as _,
-        SendAccessToken, SupportedVersions,
+        MatrixVersion, Metadata, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken,
+        SupportedVersions, request, response,
     },
     metadata,
 };

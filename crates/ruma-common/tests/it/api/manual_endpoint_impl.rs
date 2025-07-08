@@ -6,13 +6,13 @@
 use bytes::BufMut;
 use http::{header::CONTENT_TYPE, method::Method};
 use ruma_common::{
+    OwnedRoomAliasId, OwnedRoomId,
     api::{
-        error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError},
         AuthScheme, EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
         OutgoingRequest, OutgoingResponse, SendAccessToken, StablePathSelector, SupportedVersions,
         VersionHistory,
+        error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError},
     },
-    OwnedRoomAliasId, OwnedRoomId,
 };
 use serde::{Deserialize, Serialize};
 

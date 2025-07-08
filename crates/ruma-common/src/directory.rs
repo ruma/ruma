@@ -7,8 +7,8 @@ mod filter_room_type_serde;
 mod room_network_serde;
 
 use crate::{
-    room::{JoinRuleKind, RoomSummary, RoomType},
     OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr,
+    room::{JoinRuleKind, RoomSummary, RoomType},
 };
 
 /// A chunk of a room list response, describing one room.

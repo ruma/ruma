@@ -9,7 +9,7 @@ pub mod unstable {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{Metadata, request, response},
         metadata,
         serde::StringEnum,
     };
@@ -76,7 +76,7 @@ pub mod unstable {
         use ruma_common::api::{
             MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions,
         };
-        use serde_json::{json, Value as JsonValue};
+        use serde_json::{Value as JsonValue, json};
 
         use super::{Request, UpdateAction};
         #[test]

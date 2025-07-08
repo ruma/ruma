@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3accountwhoami
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedDeviceId, OwnedUserId,
+        OwnedDeviceId, OwnedUserId,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     const METADATA: Metadata = metadata! {

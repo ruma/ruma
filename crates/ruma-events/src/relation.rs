@@ -6,8 +6,8 @@ use std::fmt::Debug;
 
 use js_int::UInt;
 use ruma_common::{
-    serde::{JsonObject, Raw, StringEnum},
     OwnedEventId,
+    serde::{JsonObject, Raw, StringEnum},
 };
 use serde::{Deserialize, Serialize};
 

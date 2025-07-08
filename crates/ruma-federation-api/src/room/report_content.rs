@@ -8,8 +8,9 @@ pub mod msc3843 {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3843
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedEventId, OwnedRoomId,
+        OwnedEventId, OwnedRoomId,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     const METADATA: Metadata = metadata! {

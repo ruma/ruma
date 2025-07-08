@@ -1,7 +1,7 @@
 use assert_matches2::assert_matches;
 use ruma_html::{
-    matrix::{AnchorUri, MatrixElement},
     Html,
+    matrix::{AnchorUri, MatrixElement},
 };
 
 #[test]

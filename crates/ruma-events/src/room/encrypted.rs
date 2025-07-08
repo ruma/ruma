@@ -5,7 +5,7 @@
 use std::{borrow::Cow, collections::BTreeMap};
 
 use js_int::UInt;
-use ruma_common::{serde::JsonObject, OwnedDeviceId, OwnedEventId};
+use ruma_common::{OwnedDeviceId, OwnedEventId, serde::JsonObject};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 

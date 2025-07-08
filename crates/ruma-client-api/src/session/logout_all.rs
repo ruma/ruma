@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3logoutall
 
     use ruma_common::{
-        api::{response, Metadata},
+        api::{Metadata, response},
         metadata,
     };
 

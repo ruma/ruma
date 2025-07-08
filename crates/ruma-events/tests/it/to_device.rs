@@ -1,4 +1,4 @@
-use ruma_common::{owned_room_id, EventEncryptionAlgorithm};
+use ruma_common::{EventEncryptionAlgorithm, owned_room_id};
 use ruma_events::room_key::ToDeviceRoomKeyEventContent;
 use serde_json::{json, to_value as to_json_value};
 

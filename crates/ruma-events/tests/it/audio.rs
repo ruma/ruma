@@ -5,19 +5,18 @@ use std::time::Duration;
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    mxc_uri, owned_event_id,
+    MilliSecondsSinceUnixEpoch, mxc_uri, owned_event_id,
     serde::{Base64, CanBeEmpty},
-    MilliSecondsSinceUnixEpoch,
 };
 #[cfg(feature = "unstable-msc3246")]
 use ruma_events::audio::Amplitude;
 use ruma_events::{
+    AnyMessageLikeEvent, MessageLikeEvent,
     audio::{AudioDetailsContentBlock, AudioEventContent},
     file::{EncryptedContentInit, FileContentBlock},
     message::TextContentBlock,
     relation::InReplyTo,
-    room::{message::Relation, JsonWebKeyInit},
-    AnyMessageLikeEvent, MessageLikeEvent,
+    room::{JsonWebKeyInit, message::Relation},
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

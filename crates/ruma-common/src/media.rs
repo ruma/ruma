@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use ruma_macros::{OrdAsRefStr, PartialEqAsRefStr, PartialOrdAsRefStr};
 
-use crate::{serde::StringEnum, PrivOwnedStr};
+use crate::{PrivOwnedStr, serde::StringEnum};
 
 /// The desired resizing method for a thumbnail.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]

@@ -8,10 +8,10 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3useruseridroomsroomidaccount_datatype
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedRoomId, OwnedUserId,
+        api::{Metadata, request, response},
         metadata,
         serde::Raw,
-        OwnedRoomId, OwnedUserId,
     };
     use ruma_events::{
         AnyRoomAccountDataEventContent, RoomAccountDataEventContent, RoomAccountDataEventType,

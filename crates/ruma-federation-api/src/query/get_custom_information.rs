@@ -11,7 +11,7 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{Metadata, request, response},
         metadata,
     };
     use serde_json::Value as JsonValue;

@@ -8,8 +8,9 @@ pub mod unstable {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3814
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedDeviceId,
+        OwnedDeviceId,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     const METADATA: Metadata = metadata! {

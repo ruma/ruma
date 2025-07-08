@@ -10,11 +10,11 @@ pub mod unstable {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedDeviceId, OwnedOneTimeKeyId,
+        api::{Metadata, request, response},
         encryption::{DeviceKeys, OneTimeKey},
         metadata,
         serde::Raw,
-        OwnedDeviceId, OwnedOneTimeKeyId,
     };
 
     use crate::dehydrated_device::DehydratedDeviceData;

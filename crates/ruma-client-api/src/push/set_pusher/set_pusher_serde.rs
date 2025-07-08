@@ -1,6 +1,6 @@
 use js_option::JsOption;
 use ruma_common::serde::from_raw_json_value;
-use serde::{de, ser::SerializeStruct, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de, ser::SerializeStruct};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::v3::{PusherAction, PusherPostData};
@@ -72,7 +72,7 @@ mod tests {
 
     use super::PusherAction;
     use crate::push::{
-        set_pusher::v3::PusherPostData, EmailPusherData, Pusher, PusherIds, PusherKind,
+        EmailPusherData, Pusher, PusherIds, PusherKind, set_pusher::v3::PusherPostData,
     };
 
     #[test]

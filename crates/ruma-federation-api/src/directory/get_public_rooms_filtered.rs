@@ -9,7 +9,7 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{Metadata, request, response},
         directory::{Filter, PublicRoomsChunk, RoomNetwork},
         metadata,
     };

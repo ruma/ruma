@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3devicesdeviceid
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedDeviceId,
+        OwnedDeviceId,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     use crate::device::Device;

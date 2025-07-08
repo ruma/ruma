@@ -1,6 +1,6 @@
 //! Types for the `m.room.aliases` event.
 
-use ruma_common::{room_version_rules::RedactionRules, OwnedRoomAliasId, OwnedServerName};
+use ruma_common::{OwnedRoomAliasId, OwnedServerName, room_version_rules::RedactionRules};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 

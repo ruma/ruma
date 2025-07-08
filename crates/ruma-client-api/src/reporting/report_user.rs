@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3usersuseridreport
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedUserId,
+        OwnedUserId,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     const METADATA: Metadata = metadata! {

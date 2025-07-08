@@ -1,15 +1,15 @@
 use std::time::Duration;
 
 use js_int::UInt;
+use ruma_common::OwnedMxcUri;
 #[cfg(feature = "unstable-msc2448")]
 use ruma_common::serde::Base64;
-use ruma_common::OwnedMxcUri;
 use serde::{Deserialize, Serialize};
 
 use super::FormattedBody;
 use crate::room::{
-    message::media_caption::{caption, formatted_caption},
     EncryptedFile, MediaSource, ThumbnailInfo,
+    message::media_caption::{caption, formatted_caption},
 };
 
 /// The payload for a video message.

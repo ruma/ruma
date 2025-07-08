@@ -2,8 +2,8 @@ use assert_matches2::assert_matches;
 use http::header::{CONTENT_DISPOSITION, LOCATION};
 use ruma_common::{
     api::{
-        request, response, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
-        OutgoingRequest, OutgoingResponse, SendAccessToken, SupportedVersions,
+        IncomingRequest, IncomingResponse, MatrixVersion, Metadata, OutgoingRequest,
+        OutgoingResponse, SendAccessToken, SupportedVersions, request, response,
     },
     http_headers::{ContentDisposition, ContentDispositionType},
     metadata,

@@ -1,12 +1,12 @@
 use assert_matches2::assert_matches;
 use assign::assign;
-use js_int::{uint, UInt};
-use ruma_common::{mxc_uri, owned_event_id, serde::CanBeEmpty, MilliSecondsSinceUnixEpoch};
+use js_int::{UInt, uint};
+use ruma_common::{MilliSecondsSinceUnixEpoch, mxc_uri, owned_event_id, serde::CanBeEmpty};
 use ruma_events::{
-    relation::Replacement,
-    room::{message::Relation, ImageInfo, MediaSource, ThumbnailInfo},
-    sticker::{StickerEventContent, StickerEventContentWithoutRelation, StickerMediaSource},
     AnyMessageLikeEvent, MessageLikeEvent,
+    relation::Replacement,
+    room::{ImageInfo, MediaSource, ThumbnailInfo, message::Relation},
+    sticker::{StickerEventContent, StickerEventContentWithoutRelation, StickerMediaSource},
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

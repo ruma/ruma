@@ -2,8 +2,8 @@
 
 use ruma_common::OwnedMxcUri;
 use serde::{
-    ser::{SerializeStruct, Serializer},
     Deserialize, Deserializer,
+    ser::{SerializeStruct, Serializer},
 };
 
 use super::{EncryptedFile, MediaSource};

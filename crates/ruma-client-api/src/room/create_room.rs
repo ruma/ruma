@@ -9,22 +9,22 @@ pub mod v3 {
 
     use assign::assign;
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedRoomId, OwnedUserId, RoomVersionId,
+        api::{Metadata, request, response},
         metadata,
         room::RoomType,
         serde::{Raw, StringEnum},
-        OwnedRoomId, OwnedUserId, RoomVersionId,
     };
     use ruma_events::{
+        AnyInitialStateEvent,
         room::{
             create::{PreviousRoom, RoomCreateEventContent},
             power_levels::RoomPowerLevelsEventContent,
         },
-        AnyInitialStateEvent,
     };
     use serde::{Deserialize, Serialize};
 
-    use crate::{membership::Invite3pid, room::Visibility, PrivOwnedStr};
+    use crate::{PrivOwnedStr, membership::Invite3pid, room::Visibility};
 
     const METADATA: Metadata = metadata! {
         method: POST,

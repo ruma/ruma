@@ -2,9 +2,10 @@ use std::collections::BTreeMap;
 
 use assert_matches2::assert_matches;
 use ruma_common::{
+    CanonicalJsonValue, ServerSigningKeyId, SigningKeyAlgorithm,
     room_version_rules::{RoomVersionRules, SignaturesRules},
     serde::Base64,
-    server_name, CanonicalJsonValue, ServerSigningKeyId, SigningKeyAlgorithm,
+    server_name,
 };
 use serde_json::json;
 

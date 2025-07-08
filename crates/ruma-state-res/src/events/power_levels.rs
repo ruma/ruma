@@ -6,19 +6,19 @@ use std::{
     sync::{Arc, Mutex, OnceLock},
 };
 
-use js_int::{int, Int};
+use js_int::{Int, int};
 use ruma_common::{
+    OwnedUserId, UserId,
     room_version_rules::AuthorizationRules,
     serde::{
-        btreemap_deserialize_v1_powerlevel_values, deserialize_v1_powerlevel, from_raw_json_value,
         DebugAsRefStr, DisplayAsRefStr, JsonObject, OrdAsRefStr, PartialEqAsRefStr,
-        PartialOrdAsRefStr,
+        PartialOrdAsRefStr, btreemap_deserialize_v1_powerlevel_values, deserialize_v1_powerlevel,
+        from_raw_json_value,
     },
-    OwnedUserId, UserId,
 };
 use ruma_events::TimelineEventType;
 use serde::de::DeserializeOwned;
-use serde_json::{from_value as from_json_value, Error};
+use serde_json::{Error, from_value as from_json_value};
 
 use super::Event;
 

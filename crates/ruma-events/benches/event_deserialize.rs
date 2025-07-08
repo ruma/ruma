@@ -6,11 +6,11 @@
 
 #![allow(unused_imports, dead_code)]
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use ruma_common::serde::Raw;
 use ruma_events::{
-    room::power_levels::RoomPowerLevelsEventContent, AnyStateEvent, AnyTimelineEvent,
-    OriginalStateEvent,
+    AnyStateEvent, AnyTimelineEvent, OriginalStateEvent,
+    room::power_levels::RoomPowerLevelsEventContent,
 };
 use serde_json::json;
 

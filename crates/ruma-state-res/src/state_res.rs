@@ -8,21 +8,20 @@ use std::{
 
 use js_int::Int;
 use ruma_common::{
-    room_version_rules::AuthorizationRules, EventId, MilliSecondsSinceUnixEpoch, OwnedUserId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, room_version_rules::AuthorizationRules,
 };
-use ruma_events::{room::member::MembershipState, StateEventType, TimelineEventType};
+use ruma_events::{StateEventType, TimelineEventType, room::member::MembershipState};
 use tracing::{debug, info, instrument, trace, warn};
 
 #[cfg(test)]
 mod tests;
 
 use crate::{
-    auth_types_for_event, check_state_dependent_auth_rules,
+    Error, Event, Result, auth_types_for_event, check_state_dependent_auth_rules,
     events::{
-        power_levels::RoomPowerLevelsEventOptionExt, RoomCreateEvent, RoomMemberEvent,
-        RoomPowerLevelsEvent, RoomPowerLevelsIntField,
+        RoomCreateEvent, RoomMemberEvent, RoomPowerLevelsEvent, RoomPowerLevelsIntField,
+        power_levels::RoomPowerLevelsEventOptionExt,
     },
-    Error, Event, Result,
 };
 
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.

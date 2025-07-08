@@ -1,7 +1,7 @@
 use clap::{Args, Subcommand};
 use xshell::Shell;
 
-use crate::{cmd, Result};
+use crate::{Result, cmd};
 
 #[derive(Args)]
 pub struct BenchTask {

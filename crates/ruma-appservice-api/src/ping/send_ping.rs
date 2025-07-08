@@ -8,8 +8,9 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/application-service-api/#post_matrixappv1ping
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedTransactionId,
+        OwnedTransactionId,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     const METADATA: Metadata = metadata! {

@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3directoryroomroomalias
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedRoomAliasId, OwnedRoomId, OwnedServerName,
+        OwnedRoomAliasId, OwnedRoomId, OwnedServerName,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     const METADATA: Metadata = metadata! {

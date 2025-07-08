@@ -8,11 +8,11 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/latest/identity-service-api/#post_matrixidentityv23pidbind
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata,
-        thirdparty::Medium,
         MilliSecondsSinceUnixEpoch, OwnedClientSecret, OwnedSessionId, OwnedUserId,
         ServerSignatures,
+        api::{Metadata, request, response},
+        metadata,
+        thirdparty::Medium,
     };
 
     const METADATA: Metadata = metadata! {

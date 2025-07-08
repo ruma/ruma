@@ -9,8 +9,9 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName,
+        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName,
+        api::{Metadata, request, response},
+        metadata,
     };
     use serde_json::value::RawValue as RawJsonValue;
 

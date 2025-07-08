@@ -4,15 +4,15 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_common::{
+    OwnedDeviceId, OwnedEventId, OwnedRoomId, OwnedTransactionId, OwnedUserId,
     encryption::{CrossSigningKey, DeviceKeys},
     presence::PresenceState,
-    serde::{from_raw_json_value, Raw},
+    serde::{Raw, from_raw_json_value},
     to_device::DeviceIdOrAllDevices,
-    OwnedDeviceId, OwnedEventId, OwnedRoomId, OwnedTransactionId, OwnedUserId,
 };
-use ruma_events::{receipt::Receipt, AnyToDeviceEventContent, ToDeviceEventType};
-use serde::{de, Deserialize, Serialize};
-use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
+use ruma_events::{AnyToDeviceEventContent, ToDeviceEventType, receipt::Receipt};
+use serde::{Deserialize, Serialize, de};
+use serde_json::{Value as JsonValue, value::RawValue as RawJsonValue};
 
 /// Type for passing ephemeral data to homeservers.
 #[derive(Clone, Debug, Serialize)]

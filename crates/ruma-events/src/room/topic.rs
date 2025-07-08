@@ -5,7 +5,7 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{message::TextContentBlock, EmptyStateKey};
+use crate::{EmptyStateKey, message::TextContentBlock};
 
 /// The content of an `m.room.topic` event.
 ///

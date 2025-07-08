@@ -1,5 +1,5 @@
 use ruma_html::{
-    remove_html_reply_fallback, sanitize_html, HtmlSanitizerMode, RemoveReplyFallback,
+    HtmlSanitizerMode, RemoveReplyFallback, remove_html_reply_fallback, sanitize_html,
 };
 
 #[test]

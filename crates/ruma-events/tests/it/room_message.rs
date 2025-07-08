@@ -3,15 +3,18 @@ use std::borrow::Cow;
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    mxc_uri, owned_event_id, owned_room_id, owned_user_id,
+    MilliSecondsSinceUnixEpoch, OwnedDeviceId, mxc_uri, owned_event_id, owned_room_id,
+    owned_user_id,
     serde::{Base64, Raw},
-    user_id, MilliSecondsSinceUnixEpoch, OwnedDeviceId,
+    user_id,
 };
 #[cfg(feature = "unstable-msc4274")]
 use ruma_events::room::message::{GalleryItemType, GalleryMessageEventContent};
 use ruma_events::{
+    Mentions, MessageLikeUnsigned,
     key::verification::VerificationMethod,
     room::{
+        EncryptedFileInit, JsonWebKeyInit, MediaSource,
         message::{
             AddMentions, AudioMessageEventContent, EmoteMessageEventContent,
             FileMessageEventContent, FormattedBody, ForwardThread, ImageMessageEventContent,
@@ -19,12 +22,10 @@ use ruma_events::{
             OriginalSyncRoomMessageEvent, Relation, ReplyWithinThread, RoomMessageEventContent,
             TextMessageEventContent, VideoMessageEventContent,
         },
-        EncryptedFileInit, JsonWebKeyInit, MediaSource,
     },
-    Mentions, MessageLikeUnsigned,
 };
 use serde_json::{
-    from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
+    Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
 };
 
 macro_rules! json_object {
@@ -670,15 +671,17 @@ fn gallery_msgtype_serialization_with_custom_itemtype() {
             Some(FormattedBody::html(
                 "My photos from <a href=\"https://fosdem.org/2025/\">FOSDEM 2025</a>",
             )),
-            vec![GalleryItemType::new(
-                "my_custom_itemtype",
-                "my message body".into(),
-                json_object! {
-                    "custom_field": "baba",
-                    "another_one": "abab",
-                },
-            )
-            .unwrap()],
+            vec![
+                GalleryItemType::new(
+                    "my_custom_itemtype",
+                    "my message body".into(),
+                    json_object! {
+                        "custom_field": "baba",
+                        "another_one": "abab",
+                    },
+                )
+                .unwrap(),
+            ],
         )));
 
     assert_eq!(

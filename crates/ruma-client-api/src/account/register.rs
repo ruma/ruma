@@ -12,8 +12,9 @@ pub mod v3 {
     use std::time::Duration;
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedDeviceId, OwnedUserId,
+        OwnedDeviceId, OwnedUserId,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     use super::{LoginType, RegistrationKind};

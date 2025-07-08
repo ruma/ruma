@@ -14,14 +14,14 @@ pub mod v3 {
 
     use maplit::btreemap;
     use ruma_common::{
-        api::{request, response, Metadata},
+        RoomVersionId,
+        api::{Metadata, request, response},
         metadata,
         serde::StringEnum,
-        RoomVersionId,
     };
     use serde::{Deserialize, Serialize};
     use serde_json::{
-        from_value as from_json_value, to_value as to_json_value, Value as JsonValue,
+        Value as JsonValue, from_value as from_json_value, to_value as to_json_value,
     };
 
     use crate::PrivOwnedStr;

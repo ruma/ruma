@@ -7,7 +7,7 @@
 use std::collections::BTreeMap;
 
 use ruma_common::{
-    api::{request, response, Metadata, SupportedVersions},
+    api::{Metadata, SupportedVersions, request, response},
     metadata,
 };
 

@@ -8,10 +8,10 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3roomsroomideventeventid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedEventId, OwnedRoomId,
+        api::{Metadata, request, response},
         metadata,
         serde::Raw,
-        OwnedEventId, OwnedRoomId,
     };
     use ruma_events::AnyTimelineEvent;
 

@@ -9,10 +9,10 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedRoomId,
+        api::{Metadata, request, response},
         metadata,
         serde::{Raw, StringEnum},
-        OwnedRoomId,
     };
     use ruma_events::AnyTimelineEvent;
 

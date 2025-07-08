@@ -1,4 +1,4 @@
-use serde::{de, Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize, Serializer, de};
 use serde_json::value::RawValue as RawJsonValue;
 
 #[cfg(feature = "unstable-msc3931")]

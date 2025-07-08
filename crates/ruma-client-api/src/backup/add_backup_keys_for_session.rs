@@ -9,10 +9,10 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedRoomId,
+        api::{Metadata, request, response},
         metadata,
         serde::Raw,
-        OwnedRoomId,
     };
 
     use crate::backup::KeyBackupData;

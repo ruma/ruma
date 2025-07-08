@@ -3,10 +3,10 @@
 use std::{rc::Rc, sync::Arc};
 
 pub use ruma_identifiers_validation::user_id::localpart_is_fully_conforming;
-use ruma_identifiers_validation::{localpart_is_backwards_compatible, ID_MAX_BYTES};
+use ruma_identifiers_validation::{ID_MAX_BYTES, localpart_is_backwards_compatible};
 use ruma_macros::IdDst;
 
-use super::{matrix_uri::UriAction, IdParseError, MatrixToUri, MatrixUri, ServerName};
+use super::{IdParseError, MatrixToUri, MatrixUri, ServerName, matrix_uri::UriAction};
 
 /// A Matrix [user ID].
 ///
@@ -128,11 +128,7 @@ impl UserId {
     pub fn validate_strict(&self) -> Result<(), IdParseError> {
         let is_fully_conforming = self.validate_fully_conforming()?;
 
-        if is_fully_conforming {
-            Ok(())
-        } else {
-            Err(IdParseError::InvalidCharacters)
-        }
+        if is_fully_conforming { Ok(()) } else { Err(IdParseError::InvalidCharacters) }
     }
 
     /// Validate this user ID against the [historical grammar].
@@ -204,7 +200,7 @@ impl UserId {
 #[cfg(test)]
 mod tests {
     use super::{OwnedUserId, UserId};
-    use crate::{server_name, IdParseError};
+    use crate::{IdParseError, server_name};
 
     #[test]
     fn valid_user_id_from_str() {

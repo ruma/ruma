@@ -3,7 +3,7 @@
 use ruma_macros::IdDst;
 
 use super::{
-    matrix_uri::UriAction, MatrixToUri, MatrixUri, OwnedEventId, OwnedServerName, ServerName,
+    MatrixToUri, MatrixUri, OwnedEventId, OwnedServerName, ServerName, matrix_uri::UriAction,
 };
 use crate::RoomOrAliasId;
 
@@ -201,7 +201,7 @@ impl RoomId {
 #[cfg(test)]
 mod tests {
     use super::{OwnedRoomId, RoomId};
-    use crate::{server_name, IdParseError};
+    use crate::{IdParseError, server_name};
 
     #[test]
     fn valid_room_id() {

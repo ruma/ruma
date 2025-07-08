@@ -1,5 +1,5 @@
 use proc_macro2::Span;
-use syn::{punctuated::Punctuated, ItemEnum, Token, Variant};
+use syn::{ItemEnum, Token, Variant, punctuated::Punctuated};
 
 use super::{
     attr::{Attr, EnumAttrs, RenameAllAttr},

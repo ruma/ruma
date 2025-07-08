@@ -8,10 +8,10 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3roomsroomidmembers
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedRoomId,
+        api::{Metadata, request, response},
         metadata,
         serde::{Raw, StringEnum},
-        OwnedRoomId,
     };
     use ruma_events::room::member::RoomMemberEvent;
 

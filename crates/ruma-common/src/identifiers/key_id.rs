@@ -7,8 +7,9 @@ use std::{
 use ruma_macros::IdDst;
 
 use super::{
-    crypto_algorithms::SigningKeyAlgorithm, Base64PublicKey, Base64PublicKeyOrDeviceId, DeviceId,
-    DeviceKeyAlgorithm, KeyName, OneTimeKeyAlgorithm, OneTimeKeyName, ServerSigningKeyVersion,
+    Base64PublicKey, Base64PublicKeyOrDeviceId, DeviceId, DeviceKeyAlgorithm, KeyName,
+    OneTimeKeyAlgorithm, OneTimeKeyName, ServerSigningKeyVersion,
+    crypto_algorithms::SigningKeyAlgorithm,
 };
 
 /// A key algorithm and key name delimited by a colon.
@@ -85,7 +86,7 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
     /// # Example
     ///
     /// ```
-    /// use ruma_common::{device_id, DeviceKeyId};
+    /// use ruma_common::{DeviceKeyId, device_id};
     ///
     /// let k = DeviceKeyId::parse("ed25519:DEV1").unwrap();
     /// assert_eq!(k.key_name(), device_id!("DEV1"));

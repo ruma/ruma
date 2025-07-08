@@ -1,8 +1,8 @@
 //! Details of the `#[ruma_api(...)]` attributes.
 
 use syn::{
-    parse::{Parse, ParseStream},
     Ident, Token, Type,
+    parse::{Parse, ParseStream},
 };
 
 mod kw {

@@ -8,8 +8,9 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/latest/identity-service-api/#get_matrixidentityv2account
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedUserId,
+        OwnedUserId,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     const METADATA: Metadata = metadata! {

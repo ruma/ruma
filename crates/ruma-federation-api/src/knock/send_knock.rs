@@ -8,10 +8,10 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1send_knockroomideventid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedEventId, OwnedRoomId,
+        api::{Metadata, request, response},
         metadata,
         serde::Raw,
-        OwnedEventId, OwnedRoomId,
     };
     use ruma_events::AnyStrippedStateEvent;
     use serde_json::value::RawValue as RawJsonValue;

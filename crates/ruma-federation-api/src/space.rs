@@ -2,7 +2,7 @@
 
 use ruma_common::{
     room::RoomSummary,
-    serde::{from_raw_json_value, Raw},
+    serde::{Raw, from_raw_json_value},
 };
 use ruma_events::space::child::HierarchySpaceChildEvent;
 use serde::{Deserialize, Serialize};

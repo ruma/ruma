@@ -20,11 +20,7 @@ pub fn remove_plain_reply_fallback(mut s: &str) -> &str {
     }
 
     // Strip the first line after the fallback if it is empty.
-    if let Some(rest) = s.strip_prefix('\n') {
-        rest
-    } else {
-        s
-    }
+    if let Some(rest) = s.strip_prefix('\n') { rest } else { s }
 }
 
 #[cfg(test)]

@@ -5,7 +5,7 @@ use ruma_common::OwnedEventId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::{unstable_start::UnstablePollStartContentBlock, validate_selections, PollResponseData};
+use super::{PollResponseData, unstable_start::UnstablePollStartContentBlock, validate_selections};
 use crate::relation::Reference;
 
 /// The payload for an unstable poll response event.

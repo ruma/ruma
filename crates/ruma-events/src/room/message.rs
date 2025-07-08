@@ -6,21 +6,21 @@ use std::borrow::Cow;
 
 use as_variant::as_variant;
 use ruma_common::{
-    serde::{JsonObject, StringEnum},
     EventId, OwnedEventId, UserId,
+    serde::{JsonObject, StringEnum},
 };
 #[cfg(feature = "html")]
-use ruma_html::{sanitize_html, HtmlSanitizerMode, RemoveReplyFallback};
+use ruma_html::{HtmlSanitizerMode, RemoveReplyFallback, sanitize_html};
 use ruma_macros::EventContent;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::Value as JsonValue;
 use tracing::warn;
 
 #[cfg(feature = "html")]
 use self::sanitize::remove_plain_reply_fallback;
 use crate::{
-    relation::{InReplyTo, Replacement, Thread},
     Mentions, PrivOwnedStr,
+    relation::{InReplyTo, Replacement, Thread},
 };
 
 mod audio;

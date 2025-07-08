@@ -1,19 +1,19 @@
 use assert_matches2::assert_matches;
 use ruma_common::room_version_rules::RedactionRules;
 use ruma_events::{
+    AnyMessageLikeEvent, AnySyncMessageLikeEvent, AnySyncStateEvent, AnySyncTimelineEvent,
+    AnyTimelineEvent, EventContentFromType, MessageLikeEvent, RedactContent, SyncMessageLikeEvent,
+    SyncStateEvent,
     room::{
         aliases::RedactedRoomAliasesEventContent,
         create::{RedactedRoomCreateEventContent, RoomCreateEventContent},
         message::{RedactedRoomMessageEventContent, RoomMessageEventContent},
         redaction::RoomRedactionEventContent,
     },
-    AnyMessageLikeEvent, AnySyncMessageLikeEvent, AnySyncStateEvent, AnySyncTimelineEvent,
-    AnyTimelineEvent, EventContentFromType, MessageLikeEvent, RedactContent, SyncMessageLikeEvent,
-    SyncStateEvent,
 };
 use serde_json::{
-    from_value as from_json_value, json, to_value as to_json_value,
-    value::to_raw_value as to_raw_json_value, Value as JsonValue,
+    Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
+    value::to_raw_value as to_raw_json_value,
 };
 
 fn unsigned() -> JsonValue {

@@ -1,5 +1,5 @@
-use ruma_common::{serde::from_raw_json_value, EventId};
-use serde::{de, ser::SerializeStruct, Deserialize, Deserializer, Serialize};
+use ruma_common::{EventId, serde::from_raw_json_value};
+use serde::{Deserialize, Deserializer, Serialize, de, ser::SerializeStruct};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
@@ -7,7 +7,7 @@ use super::{
     ReplacementUnstablePollStartEventContent, UnstablePollStartContentBlock,
     UnstablePollStartEventContent,
 };
-use crate::room::message::{deserialize_relation, Relation};
+use crate::room::message::{Relation, deserialize_relation};
 
 impl<'de> Deserialize<'de> for UnstablePollStartEventContent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

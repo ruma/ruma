@@ -3,7 +3,7 @@
 //! The only content valid for this event is `PresenceEventContent`.
 
 use js_int::UInt;
-use ruma_common::{presence::PresenceState, OwnedMxcUri, OwnedUserId};
+use ruma_common::{OwnedMxcUri, OwnedUserId, presence::PresenceState};
 use serde::{Deserialize, Serialize};
 
 /// Presence event.

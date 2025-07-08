@@ -28,7 +28,7 @@ pub mod v3 {
     use std::time::Duration;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{Metadata, request, response},
         metadata,
     };
 

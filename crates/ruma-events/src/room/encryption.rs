@@ -2,7 +2,7 @@
 //!
 //! [`m.room.encryption`]: https://spec.matrix.org/latest/client-server-api/#mroomencryption
 
-use js_int::{uint, UInt};
+use js_int::{UInt, uint};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 

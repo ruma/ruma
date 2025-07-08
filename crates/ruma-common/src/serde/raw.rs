@@ -9,7 +9,7 @@ use serde::{
     de::{self, Deserialize, DeserializeSeed, Deserializer, IgnoredAny, MapAccess, Visitor},
     ser::{Serialize, Serializer},
 };
-use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue};
+use serde_json::value::{RawValue as RawJsonValue, to_raw_value as to_raw_json_value};
 
 /// A wrapper around `Box<RawValue>` with a generic parameter for the expected Rust type.
 ///

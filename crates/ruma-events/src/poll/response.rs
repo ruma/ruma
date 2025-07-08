@@ -6,7 +6,7 @@ use ruma_common::OwnedEventId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::{start::PollContentBlock, validate_selections, PollResponseData};
+use super::{PollResponseData, start::PollContentBlock, validate_selections};
 use crate::relation::Reference;
 
 /// The payload for a poll response event.

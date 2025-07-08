@@ -12,7 +12,7 @@ use super::{IdParseError, KeyName};
 /// # Example
 ///
 /// ```
-/// use ruma_common::{device_id, DeviceId, OwnedDeviceId};
+/// use ruma_common::{DeviceId, OwnedDeviceId, device_id};
 ///
 /// # #[cfg(feature = "rand")] {
 /// let random_id = DeviceId::new();

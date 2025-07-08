@@ -1,6 +1,6 @@
 use js_int::int;
 use ruma_common::{
-    room_version_rules::EventFormatRules, CanonicalJsonObject, CanonicalJsonValue, ID_MAX_BYTES,
+    CanonicalJsonObject, CanonicalJsonValue, ID_MAX_BYTES, room_version_rules::EventFormatRules,
 };
 use serde_json::to_string as to_json_string;
 
@@ -111,7 +111,7 @@ pub fn check_pdu_format(pdu: &CanonicalJsonObject, rules: &EventFormatRules) -> 
             return Err(format!(
                 "unexpected format of `depth` field in PDU: \
                  expected integer, got {value:?}"
-            ))
+            ));
         }
         None => return Err("missing `depth` field in PDU".to_owned()),
     }
@@ -161,7 +161,7 @@ mod tests {
 
     use js_int::int;
     use ruma_common::{
-        room_version_rules::EventFormatRules, CanonicalJsonObject, CanonicalJsonValue,
+        CanonicalJsonObject, CanonicalJsonValue, room_version_rules::EventFormatRules,
     };
     use serde_json::{from_value as from_json_value, json};
 

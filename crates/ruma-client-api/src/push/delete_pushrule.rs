@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#delete_matrixclientv3pushrulesglobalkindruleid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{Metadata, request, response},
         metadata,
     };
 

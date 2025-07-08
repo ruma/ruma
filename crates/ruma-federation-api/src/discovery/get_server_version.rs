@@ -8,7 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1version
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{Metadata, request, response},
         metadata,
     };
     use serde::{Deserialize, Serialize};

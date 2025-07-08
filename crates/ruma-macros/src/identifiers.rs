@@ -3,9 +3,9 @@
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::{
+    Fields, ImplGenerics, Index, ItemStruct, LitStr, Path, Token,
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
-    Fields, ImplGenerics, Index, ItemStruct, LitStr, Path, Token,
 };
 
 pub struct IdentifierInput {

@@ -9,8 +9,9 @@ pub mod v3 {
 
     use js_int::Int;
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedEventId, OwnedRoomId,
+        OwnedEventId, OwnedRoomId,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     const METADATA: Metadata = metadata! {

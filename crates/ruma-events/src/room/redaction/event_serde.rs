@@ -1,7 +1,7 @@
 use ruma_common::{
-    serde::from_raw_json_value, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId,
+    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, serde::from_raw_json_value,
 };
-use serde::{de, Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, de};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{

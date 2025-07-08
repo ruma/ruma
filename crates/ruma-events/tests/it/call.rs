@@ -2,11 +2,13 @@ use assert_matches2::assert_matches;
 #[cfg(feature = "unstable-msc2747")]
 use assign::assign;
 use js_int::uint;
-use ruma_common::{room_id, serde::CanBeEmpty, MilliSecondsSinceUnixEpoch, VoipVersionId};
+use ruma_common::{MilliSecondsSinceUnixEpoch, VoipVersionId, room_id, serde::CanBeEmpty};
 #[cfg(feature = "unstable-msc2747")]
 use ruma_events::call::CallCapabilities;
 use ruma_events::{
+    AnyMessageLikeEvent, AnySyncMessageLikeEvent, MessageLikeEvent,
     call::{
+        SessionDescription,
         answer::CallAnswerEventContent,
         candidates::{CallCandidatesEventContent, Candidate},
         hangup::{CallHangupEventContent, Reason},
@@ -14,9 +16,7 @@ use ruma_events::{
         negotiate::CallNegotiateEventContent,
         reject::CallRejectEventContent,
         select_answer::CallSelectAnswerEventContent,
-        SessionDescription,
     },
-    AnyMessageLikeEvent, AnySyncMessageLikeEvent, MessageLikeEvent,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

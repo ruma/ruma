@@ -1,7 +1,7 @@
 use ruma_macros::IdDst;
 
 use super::{IdParseError, KeyName};
-use crate::serde::{base64::Standard, Base64, Base64DecodeError};
+use crate::serde::{Base64, Base64DecodeError, base64::Standard};
 
 /// A public key encoded using unpadded base64, used as an identifier for [cross-signing] keys.
 ///

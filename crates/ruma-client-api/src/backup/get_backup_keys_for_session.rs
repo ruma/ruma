@@ -8,10 +8,10 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3room_keyskeysroomidsessionid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedRoomId,
+        api::{Metadata, request, response},
         metadata,
         serde::Raw,
-        OwnedRoomId,
     };
 
     use crate::backup::KeyBackupData;

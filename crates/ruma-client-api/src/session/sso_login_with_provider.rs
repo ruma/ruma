@@ -9,7 +9,7 @@ pub mod v3 {
 
     use http::header::{LOCATION, SET_COOKIE};
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{Metadata, request, response},
         metadata,
     };
 
@@ -104,9 +104,9 @@ pub mod v3 {
                 .unwrap();
 
             assert_eq!(
-            req.uri().to_string(),
-            "https://homeserver.tld/_matrix/client/v3/login/sso/redirect/provider?redirectUrl=https%3A%2F%2Fexample.com%2Fsso"
-        );
+                req.uri().to_string(),
+                "https://homeserver.tld/_matrix/client/v3/login/sso/redirect/provider?redirectUrl=https%3A%2F%2Fexample.com%2Fsso"
+            );
         }
     }
 }

@@ -10,14 +10,14 @@ pub mod v3 {
     use std::{fmt, time::Duration};
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedDeviceId, OwnedServerName, OwnedUserId,
+        api::{Metadata, request, response},
         metadata,
         serde::JsonObject,
-        OwnedDeviceId, OwnedServerName, OwnedUserId,
     };
     use serde::{
-        de::{self, DeserializeOwned},
         Deserialize, Deserializer, Serialize,
+        de::{self, DeserializeOwned},
     };
     use serde_json::Value as JsonValue;
 

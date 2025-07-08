@@ -1,7 +1,7 @@
 use std::fmt;
 
 use ruma_common::serde::{CanBeEmpty, Raw};
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
 
 use super::{

@@ -56,7 +56,9 @@ impl TryFrom<MessageContentBlockSerDeHelper> for Vec<TextRepresentation> {
             if !message.is_empty() {
                 Ok(message)
             } else {
-                Err("missing at least one of fields `org.matrix.msc1767.text`, `org.matrix.msc1767.html` or `org.matrix.msc1767.message`")
+                Err(
+                    "missing at least one of fields `org.matrix.msc1767.text`, `org.matrix.msc1767.html` or `org.matrix.msc1767.message`",
+                )
             }
         }
     }

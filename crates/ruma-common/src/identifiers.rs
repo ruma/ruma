@@ -6,11 +6,11 @@
 
 #[doc(inline)]
 pub use ruma_identifiers_validation::{
+    ID_MAX_BYTES, KeyName,
     error::{
         Error as IdParseError, MatrixIdError, MatrixToError, MatrixUriError, MxcUriError,
         VoipVersionIdError,
     },
-    KeyName, ID_MAX_BYTES,
 };
 use serde::de::{self, Deserializer, Unexpected};
 

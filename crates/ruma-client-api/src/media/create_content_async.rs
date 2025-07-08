@@ -9,8 +9,9 @@ pub mod v3 {
 
     use http::header::CONTENT_TYPE;
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, IdParseError, MxcUri, OwnedServerName,
+        IdParseError, MxcUri, OwnedServerName,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     const METADATA: Metadata = metadata! {

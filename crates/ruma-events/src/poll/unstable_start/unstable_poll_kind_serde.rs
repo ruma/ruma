@@ -4,7 +4,7 @@ use std::borrow::Cow;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::{poll::start::PollKind, PrivOwnedStr};
+use crate::{PrivOwnedStr, poll::start::PollKind};
 
 /// Serializes a PollKind using the unstable prefixes.
 pub(super) fn serialize<S>(kind: &PollKind, serializer: S) -> Result<S::Ok, S::Error>

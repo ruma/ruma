@@ -88,11 +88,7 @@ pub struct Change<T> {
 
 impl<T: PartialEq> Change<T> {
     fn new(old: T, new: T) -> Option<Self> {
-        if old == new {
-            None
-        } else {
-            Some(Self { old, new })
-        }
+        if old == new { None } else { Some(Self { old, new }) }
     }
 }
 

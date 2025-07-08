@@ -18,7 +18,7 @@ use ruma_identifiers_validation::{
     base64_public_key, event_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
     server_signing_key_version, user_id,
 };
-use syn::{parse_macro_input, DeriveInput, ItemEnum, ItemStruct};
+use syn::{DeriveInput, ItemEnum, ItemStruct, parse_macro_input};
 
 mod api;
 mod events;

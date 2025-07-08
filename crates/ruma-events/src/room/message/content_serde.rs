@@ -1,14 +1,14 @@
 //! `Deserialize` implementation for RoomMessageEventContent and MessageType.
 
 use ruma_common::serde::from_raw_json_value;
-use serde::{de, Deserialize};
+use serde::{Deserialize, de};
 use serde_json::value::RawValue as RawJsonValue;
 
 #[cfg(feature = "unstable-msc4274")]
 use super::gallery::GalleryItemType;
 use super::{
-    relation_serde::deserialize_relation, MessageType, RoomMessageEventContent,
-    RoomMessageEventContentWithoutRelation,
+    MessageType, RoomMessageEventContent, RoomMessageEventContentWithoutRelation,
+    relation_serde::deserialize_relation,
 };
 use crate::Mentions;
 

@@ -1,5 +1,5 @@
 use ruma_common::serde::from_raw_json_value;
-use serde::{de, ser::SerializeStruct, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de, ser::SerializeStruct};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{Pusher, PusherIds, PusherKind};
@@ -82,7 +82,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use ruma_common::{push::HttpPusherData, serde::JsonObject};
     use serde_json::{
-        from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
+        Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
     };
 
     use crate::push::{CustomPusherData, EmailPusherData, PusherKind};

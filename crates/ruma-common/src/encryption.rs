@@ -7,9 +7,9 @@ use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    serde::{Base64, StringEnum},
     CrossSigningOrDeviceSignatures, DeviceSignatures, EventEncryptionAlgorithm,
     OwnedCrossSigningKeyId, OwnedDeviceId, OwnedDeviceKeyId, OwnedUserId, PrivOwnedStr,
+    serde::{Base64, StringEnum},
 };
 
 /// Identity keys for a device.

@@ -4,7 +4,7 @@
 
 pub use ruma_common::room::{AllowRule, JoinRule, Restricted};
 use ruma_macros::EventContent;
-use serde::{de, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de};
 
 use crate::EmptyStateKey;
 

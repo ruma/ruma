@@ -10,11 +10,11 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedDeviceId, OwnedUserId,
+        api::{Metadata, request, response},
         encryption::{CrossSigningKey, DeviceKeys},
         metadata,
         serde::{Raw, StringEnum},
-        OwnedDeviceId, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;

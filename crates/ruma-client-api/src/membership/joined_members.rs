@@ -11,8 +11,9 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedMxcUri, OwnedRoomId, OwnedUserId,
+        OwnedMxcUri, OwnedRoomId, OwnedUserId,
+        api::{Metadata, request, response},
+        metadata,
     };
     use serde::{Deserialize, Serialize};
 

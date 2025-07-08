@@ -4,11 +4,11 @@
 
 use ruma_common::OwnedMxcUri;
 use ruma_macros::EventContent;
-use serde::{de, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de};
 
 #[cfg(feature = "compat-encrypted-stickers")]
 use crate::room::EncryptedFile;
-use crate::room::{message::Relation, ImageInfo, MediaSource};
+use crate::room::{ImageInfo, MediaSource, message::Relation};
 
 /// The source of a sticker media file.
 #[derive(Clone, Debug, Serialize)]
