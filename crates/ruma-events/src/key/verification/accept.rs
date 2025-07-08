@@ -56,7 +56,7 @@ pub struct KeyVerificationAcceptEventContent {
 }
 
 impl KeyVerificationAcceptEventContent {
-    /// Creates a new `ToDeviceKeyVerificationAcceptEventContent` with the given method-specific
+    /// Creates a new `KeyVerificationAcceptEventContent` with the given method-specific
     /// content and reference.
     pub fn new(method: AcceptMethod, relates_to: Reference) -> Self {
         Self { method, relates_to }
