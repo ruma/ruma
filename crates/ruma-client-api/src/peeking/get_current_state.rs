@@ -8,13 +8,13 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3roomsroomidinitialsync
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedRoomId,
+        api::{Metadata, request, response},
         metadata,
         serde::Raw,
-        OwnedRoomId,
     };
     use ruma_events::{
-        room::member::MembershipState, AnyRoomAccountDataEvent, AnyStateEvent, AnyTimelineEvent,
+        AnyRoomAccountDataEvent, AnyStateEvent, AnyTimelineEvent, room::member::MembershipState,
     };
     use serde::{Deserialize, Serialize};
 

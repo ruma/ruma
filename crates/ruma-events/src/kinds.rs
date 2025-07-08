@@ -2,13 +2,13 @@
 
 use as_variant::as_variant;
 use ruma_common::{
+    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId, UserId,
     encryption::DeviceKeys,
     room_version_rules::RedactionRules,
-    serde::{from_raw_json_value, Raw},
-    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId, UserId,
+    serde::{Raw, from_raw_json_value},
 };
 use ruma_macros::Event;
-use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, ser::SerializeStruct};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{

@@ -4,9 +4,9 @@ use std::time::Duration;
 
 use assert_matches2::assert_matches;
 use js_int::uint;
-use ruma_common::{event_id, room_id, serde::CanBeEmpty, user_id, MilliSecondsSinceUnixEpoch};
+use ruma_common::{MilliSecondsSinceUnixEpoch, event_id, room_id, serde::CanBeEmpty, user_id};
 use ruma_events::{
-    beacon_info::BeaconInfoEventContent, location::AssetType, AnyStateEvent, StateEvent,
+    AnyStateEvent, StateEvent, beacon_info::BeaconInfoEventContent, location::AssetType,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

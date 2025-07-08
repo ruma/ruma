@@ -5,8 +5,8 @@
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use serde::{
-    de::{self, Unexpected},
     Deserialize, Deserializer, Serialize, Serializer,
+    de::{self, Unexpected},
 };
 
 use crate::OwnedDeviceId;

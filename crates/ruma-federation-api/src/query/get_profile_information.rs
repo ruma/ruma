@@ -8,10 +8,10 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1queryprofile
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedMxcUri, OwnedUserId,
+        api::{Metadata, request, response},
         metadata,
         serde::StringEnum,
-        OwnedMxcUri, OwnedUserId,
     };
 
     use crate::PrivOwnedStr;

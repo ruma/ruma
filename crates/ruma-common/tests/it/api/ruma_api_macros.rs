@@ -4,10 +4,10 @@
 pub mod some_endpoint {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedUserId,
+        api::{Metadata, request, response},
         metadata,
         serde::Raw,
-        OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {
@@ -66,7 +66,7 @@ pub mod some_endpoint {
 
 pub mod newtype_body_endpoint {
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{Metadata, request, response},
         metadata,
     };
 
@@ -101,7 +101,7 @@ pub mod newtype_body_endpoint {
 
 pub mod raw_body_endpoint {
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{Metadata, request, response},
         metadata,
     };
 
@@ -136,7 +136,7 @@ pub mod raw_body_endpoint {
 
 pub mod query_all_enum_endpoint {
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{Metadata, request, response},
         metadata,
     };
 
@@ -170,7 +170,7 @@ pub mod query_all_enum_endpoint {
 
 pub mod query_all_vec_endpoint {
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{Metadata, request, response},
         metadata,
     };
 

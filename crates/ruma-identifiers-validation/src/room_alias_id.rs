@@ -1,4 +1,4 @@
-use crate::{localpart_is_backwards_compatible, parse_id, Error};
+use crate::{Error, localpart_is_backwards_compatible, parse_id};
 
 /// Validate a [room alias] as used by clients and servers.
 ///

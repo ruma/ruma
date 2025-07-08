@@ -10,19 +10,19 @@ use std::{
 };
 
 use ruma_common::{
-    room_version_rules::AuthorizationRules, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
-    OwnedUserId, RoomId, RoomVersionId, UserId,
+    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId, RoomVersionId,
+    UserId, room_version_rules::AuthorizationRules,
 };
 use ruma_events::{StateEventType, TimelineEventType};
-use ruma_state_res::{resolve, Event, StateMap};
+use ruma_state_res::{Event, StateMap, resolve};
 use serde::{Deserialize, Serialize};
 use serde_json::{
-    from_str as from_json_str, to_string_pretty as to_json_string_pretty,
-    to_value as to_json_value, value::RawValue as RawJsonValue, Error as JsonError,
-    Value as JsonValue,
+    Error as JsonError, Value as JsonValue, from_str as from_json_str,
+    to_string_pretty as to_json_string_pretty, to_value as to_json_value,
+    value::RawValue as RawJsonValue,
 };
-use similar::{udiff::unified_diff, Algorithm};
-use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
+use similar::{Algorithm, udiff::unified_diff};
+use tracing_subscriber::{EnvFilter, util::SubscriberInitExt};
 
 /// Create a new snapshot test.
 ///

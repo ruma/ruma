@@ -1,8 +1,8 @@
 use serde::{
+    Serialize, Serializer,
     de::{
         Deserialize, Deserializer, Unexpected, {self},
     },
-    Serialize, Serializer,
 };
 
 /// A type that can be used as the `state_key` for event types where that field is always empty.

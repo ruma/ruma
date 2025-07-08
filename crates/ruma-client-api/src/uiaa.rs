@@ -6,22 +6,22 @@ use std::{borrow::Cow, fmt};
 
 use bytes::BufMut;
 use ruma_common::{
-    api::{error::IntoHttpError, EndpointError, OutgoingResponse},
-    serde::{from_raw_json_value, JsonObject, StringEnum},
-    thirdparty::Medium,
     OwnedClientSecret, OwnedSessionId, OwnedUserId,
+    api::{EndpointError, OutgoingResponse, error::IntoHttpError},
+    serde::{JsonObject, StringEnum, from_raw_json_value},
+    thirdparty::Medium,
 };
 use serde::{
-    de::{self, DeserializeOwned},
     Deserialize, Deserializer, Serialize,
+    de::{self, DeserializeOwned},
 };
 use serde_json::{
-    from_slice as from_json_slice, value::RawValue as RawJsonValue, Value as JsonValue,
+    Value as JsonValue, from_slice as from_json_slice, value::RawValue as RawJsonValue,
 };
 
 use crate::{
-    error::{Error as MatrixError, StandardErrorBody},
     PrivOwnedStr,
+    error::{Error as MatrixError, StandardErrorBody},
 };
 
 pub mod get_uiaa_fallback_page;

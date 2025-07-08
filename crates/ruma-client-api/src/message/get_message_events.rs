@@ -7,12 +7,12 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3roomsroomidmessages
 
-    use js_int::{uint, UInt};
+    use js_int::{UInt, uint};
     use ruma_common::{
-        api::{request, response, Direction, Metadata},
+        OwnedRoomId,
+        api::{Direction, Metadata, request, response},
         metadata,
         serde::Raw,
-        OwnedRoomId,
     };
     use ruma_events::{AnyStateEvent, AnyTimelineEvent};
 
@@ -217,13 +217,13 @@ pub mod v3 {
                 )
                 .unwrap();
             assert_eq!(
-            "from=token\
+                "from=token\
              &to=token2\
              &dir=b\
              &limit=0\
              &filter=%7B%22not_types%22%3A%5B%22type%22%5D%2C%22not_rooms%22%3A%5B%22%21room%3Aexample.org%22%2C%22%21room2%3Aexample.org%22%2C%22%21room3%3Aexample.org%22%5D%2C%22rooms%22%3A%5B%22%21roomid%3Aexample.org%22%5D%2C%22lazy_load_members%22%3Atrue%2C%22include_redundant_members%22%3Atrue%7D",
-            request.uri().query().unwrap()
-        );
+                request.uri().query().unwrap()
+            );
         }
 
         #[test]

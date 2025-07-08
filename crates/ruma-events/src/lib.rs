@@ -106,8 +106,8 @@
 
 use std::{collections::BTreeSet, fmt};
 
-use ruma_common::{room_version_rules::RedactionRules, EventEncryptionAlgorithm, OwnedUserId};
-use serde::{de::IgnoredAny, Deserialize, Serialize, Serializer};
+use ruma_common::{EventEncryptionAlgorithm, OwnedUserId, room_version_rules::RedactionRules};
+use serde::{Deserialize, Serialize, Serializer, de::IgnoredAny};
 
 // Needs to be public for trybuild tests
 #[doc(hidden)]

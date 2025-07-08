@@ -11,10 +11,10 @@ pub mod v2 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        MilliSecondsSinceUnixEpoch, OwnedServerName, OwnedServerSigningKeyId,
+        api::{Metadata, request, response},
         metadata,
         serde::Raw,
-        MilliSecondsSinceUnixEpoch, OwnedServerName, OwnedServerSigningKeyId,
     };
     use serde::{Deserialize, Serialize};
 

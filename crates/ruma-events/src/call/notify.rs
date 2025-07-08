@@ -81,8 +81,8 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use crate::{
-        call::notify::{ApplicationType, CallNotifyEventContent, NotifyType},
         Mentions,
+        call::notify::{ApplicationType, CallNotifyEventContent, NotifyType},
     };
 
     #[test]

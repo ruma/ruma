@@ -10,8 +10,9 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedRoomId,
+        OwnedRoomId,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     use crate::backup::RoomKeyBackup;

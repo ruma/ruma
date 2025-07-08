@@ -4,8 +4,8 @@ use std::{fmt, str::FromStr};
 
 use percent_encoding::{percent_decode_str, percent_encode};
 use ruma_identifiers_validation::{
-    error::{MatrixIdError, MatrixToError, MatrixUriError},
     Error,
+    error::{MatrixIdError, MatrixToError, MatrixUriError},
 };
 use url::Url;
 
@@ -13,7 +13,7 @@ use super::{
     EventId, OwnedEventId, OwnedRoomAliasId, OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName,
     OwnedUserId, RoomAliasId, RoomId, RoomOrAliasId, UserId,
 };
-use crate::{percent_encode::PATH_PERCENT_ENCODE_SET, PrivOwnedStr, ServerName};
+use crate::{PrivOwnedStr, ServerName, percent_encode::PATH_PERCENT_ENCODE_SET};
 
 const MATRIX_TO_BASE_URL: &str = "https://matrix.to/#/";
 const MATRIX_SCHEME: &str = "matrix";
@@ -547,14 +547,14 @@ impl FromStr for MatrixUri {
 mod tests {
     use assert_matches2::assert_matches;
     use ruma_identifiers_validation::{
-        error::{MatrixIdError, MatrixToError, MatrixUriError},
         Error,
+        error::{MatrixIdError, MatrixToError, MatrixUriError},
     };
 
     use super::{MatrixId, MatrixToUri, MatrixUri};
     use crate::{
-        event_id, matrix_uri::UriAction, room_alias_id, room_id, server_name, user_id,
-        RoomOrAliasId,
+        RoomOrAliasId, event_id, matrix_uri::UriAction, room_alias_id, room_id, server_name,
+        user_id,
     };
 
     #[test]

@@ -2,10 +2,10 @@
 
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
-use syn::{parse_quote, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed};
+use syn::{Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, parse_quote};
 
 use super::{
-    event_parse::{to_kind_variation, EventKind, EventKindVariation},
+    event_parse::{EventKind, EventKindVariation, to_kind_variation},
     util::is_non_stripped_room_event,
 };
 use crate::{import_ruma_events, util::to_camel_case};

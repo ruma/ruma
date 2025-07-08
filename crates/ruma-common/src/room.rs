@@ -4,13 +4,13 @@ use std::{borrow::Cow, collections::BTreeMap};
 
 use as_variant::as_variant;
 use js_int::UInt;
-use serde::{de, Deserialize, Serialize};
-use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
+use serde::{Deserialize, Serialize, de};
+use serde_json::{Value as JsonValue, value::RawValue as RawJsonValue};
 
 use crate::{
-    serde::{from_raw_json_value, StringEnum},
     EventEncryptionAlgorithm, OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr,
     RoomVersionId,
+    serde::{StringEnum, from_raw_json_value},
 };
 
 /// An enum of possible room types.
@@ -551,7 +551,7 @@ mod tests {
 
     use assert_matches2::assert_matches;
     use js_int::uint;
-    use ruma_common::{owned_room_id, OwnedRoomId};
+    use ruma_common::{OwnedRoomId, owned_room_id};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{

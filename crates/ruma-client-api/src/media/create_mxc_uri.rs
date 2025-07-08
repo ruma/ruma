@@ -8,8 +8,9 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixmediav1create
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, MilliSecondsSinceUnixEpoch, OwnedMxcUri,
+        MilliSecondsSinceUnixEpoch, OwnedMxcUri,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     const METADATA: Metadata = metadata! {

@@ -4,12 +4,12 @@
 use std::{borrow::Cow, fmt};
 
 use proc_macro2::{Span, TokenStream};
-use quote::{format_ident, quote, ToTokens};
+use quote::{ToTokens, format_ident, quote};
 use syn::{
+    DeriveInput, Field, Ident, LitStr, Meta, Token, Type,
     parse::{Parse, ParseStream},
     parse_quote,
     punctuated::Punctuated,
-    DeriveInput, Field, Ident, LitStr, Meta, Token, Type,
 };
 
 use super::event_parse::{EventKind, EventKindVariation};
@@ -454,11 +454,7 @@ fn generate_redacted_event_content<'a>(
                 .filter_map(Result::transpose)
                 .collect::<syn::Result<_>>()?;
 
-            if keep_field {
-                Ok(Some(Field { attrs, ..f.clone() }))
-            } else {
-                Ok(None)
-            }
+            if keep_field { Ok(Some(Field { attrs, ..f.clone() })) } else { Ok(None) }
         })
         .filter_map(Result::transpose)
         .collect::<syn::Result<_>>()?;

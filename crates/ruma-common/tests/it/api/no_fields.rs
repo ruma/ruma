@@ -4,7 +4,7 @@ use ruma_common::api::{
 
 mod get {
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{Metadata, request, response},
         metadata,
     };
 
@@ -28,7 +28,7 @@ mod get {
 
 mod post {
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{Metadata, request, response},
         metadata,
     };
 

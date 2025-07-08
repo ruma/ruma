@@ -9,10 +9,10 @@ pub mod v2 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedClientSecret, OwnedSessionId,
+        api::{Metadata, request, response},
         metadata,
         thirdparty::Medium,
-        OwnedClientSecret, OwnedSessionId,
     };
 
     const METADATA: Metadata = metadata! {

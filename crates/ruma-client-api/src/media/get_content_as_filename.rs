@@ -11,9 +11,10 @@ pub mod v3 {
 
     use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
     use ruma_common::{
-        api::{request, response, Metadata},
+        IdParseError, MxcUri, OwnedServerName,
+        api::{Metadata, request, response},
         http_headers::ContentDisposition,
-        metadata, IdParseError, MxcUri, OwnedServerName,
+        metadata,
     };
 
     use crate::http_headers::CROSS_ORIGIN_RESOURCE_POLICY;

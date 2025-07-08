@@ -7,7 +7,7 @@ mod lazy_load;
 mod url;
 
 use js_int::UInt;
-use ruma_common::{serde::StringEnum, OwnedRoomId, OwnedUserId};
+use ruma_common::{OwnedRoomId, OwnedUserId, serde::StringEnum};
 use serde::{Deserialize, Serialize};
 
 pub use self::{lazy_load::LazyLoadOptions, url::UrlFilter};

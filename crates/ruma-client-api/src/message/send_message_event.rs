@@ -8,10 +8,10 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedTransactionId,
+        api::{Metadata, request, response},
         metadata,
         serde::Raw,
-        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedTransactionId,
     };
     use ruma_events::{AnyMessageLikeEventContent, MessageLikeEventContent, MessageLikeEventType};
     use serde_json::value::to_raw_value as to_raw_json_value;

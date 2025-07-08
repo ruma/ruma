@@ -5,13 +5,13 @@ use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
 };
 
-use ed25519_dalek::{pkcs8::ALGORITHM_OID, SecretKey, Signer, SigningKey, PUBLIC_KEY_LENGTH};
+use ed25519_dalek::{PUBLIC_KEY_LENGTH, SecretKey, Signer, SigningKey, pkcs8::ALGORITHM_OID};
 use pkcs8::{
-    der::zeroize::Zeroizing, DecodePrivateKey, EncodePrivateKey, ObjectIdentifier, PrivateKeyInfo,
+    DecodePrivateKey, EncodePrivateKey, ObjectIdentifier, PrivateKeyInfo, der::zeroize::Zeroizing,
 };
-use ruma_common::{serde::Base64, SigningKeyAlgorithm, SigningKeyId};
+use ruma_common::{SigningKeyAlgorithm, SigningKeyId, serde::Base64};
 
-use crate::{signatures::Signature, Error, ParseError};
+use crate::{Error, ParseError, signatures::Signature};
 
 #[cfg(feature = "ring-compat")]
 mod compat;

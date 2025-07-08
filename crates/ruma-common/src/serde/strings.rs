@@ -2,9 +2,9 @@ use std::{collections::BTreeMap, fmt, marker::PhantomData};
 
 use js_int::{Int, UInt};
 use serde::{
+    Deserialize, Serialize,
     de::{self, Deserializer, IntoDeserializer as _, MapAccess, Visitor},
     ser::Serializer,
-    Deserialize, Serialize,
 };
 
 /// Serde deserialization decorator to map empty Strings to None,
@@ -254,7 +254,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use js_int::{int, Int};
+    use js_int::{Int, int};
     use serde::Deserialize;
 
     use super::deserialize_v1_powerlevel;

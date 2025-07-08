@@ -5,23 +5,23 @@ use std::{collections::BTreeMap, fmt, str::FromStr, sync::Arc};
 use as_variant::as_variant;
 use bytes::{BufMut, Bytes};
 use ruma_common::{
+    RoomVersionId,
     api::{
+        EndpointError, OutgoingResponse,
         error::{
             FromHttpResponseError, HeaderDeserializationError, HeaderSerializationError,
             IntoHttpError, MatrixErrorBody,
         },
-        EndpointError, OutgoingResponse,
     },
     serde::StringEnum,
-    RoomVersionId,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::{from_slice as from_json_slice, Value as JsonValue};
+use serde_json::{Value as JsonValue, from_slice as from_json_slice};
 use web_time::{Duration, SystemTime};
 
 use crate::{
-    http_headers::{http_date_to_system_time, system_time_to_http_date},
     PrivOwnedStr,
+    http_headers::{http_date_to_system_time, system_time_to_http_date},
 };
 
 /// Deserialize and Serialize implementations for ErrorKind.
@@ -1120,7 +1120,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use ruma_common::api::{EndpointError, OutgoingResponse};
     use serde_json::{
-        from_slice as from_json_slice, from_value as from_json_value, json, Value as JsonValue,
+        Value as JsonValue, from_slice as from_json_slice, from_value as from_json_value, json,
     };
     use web_time::{Duration, UNIX_EPOCH};
 

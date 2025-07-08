@@ -8,10 +8,10 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1hierarchyroomid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedRoomId,
+        api::{Metadata, request, response},
         metadata,
         room::RoomSummary,
-        OwnedRoomId,
     };
 
     use crate::space::SpaceHierarchyParentSummary;
@@ -76,7 +76,7 @@ pub mod v1 {
 
 #[cfg(all(test, feature = "client"))]
 mod tests {
-    use ruma_common::{api::IncomingResponse, OwnedRoomId};
+    use ruma_common::{OwnedRoomId, api::IncomingResponse};
     use serde_json::{json, to_vec as to_json_vec};
 
     use super::v1::Response;

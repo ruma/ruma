@@ -2,8 +2,8 @@ use std::str::FromStr;
 
 use ruma_common::{DeviceId, OwnedDeviceId, OwnedUserId, UserId};
 use serde::{
-    de::{self, Deserialize, Deserializer, Unexpected},
     Serialize, Serializer,
+    de::{self, Deserialize, Deserializer, Unexpected},
 };
 /// A type that can be used as the `state_key` for call member state events.
 /// Those state keys can be a combination of UserId and DeviceId.
@@ -156,7 +156,7 @@ impl FromStr for CallMemberStateKeyEnum {
                         error: err,
                         user_id: state_key.to_owned(),
                     }),
-                }
+                };
             }
             Some(suffix_idx) => {
                 (&state_key[..colon_idx + 1 + suffix_idx], &state_key[colon_idx + 2 + suffix_idx..])
@@ -191,7 +191,9 @@ pub enum KeyParseError {
     },
     /// Uses a leading underscore but no trailing device id. The part after the underscore is a
     /// valid user id.
-    #[error("uses a leading underscore but no trailing device id. The part after the underscore is a valid user id.")]
+    #[error(
+        "uses a leading underscore but no trailing device id. The part after the underscore is a valid user id."
+    )]
     LeadingUnderscoreNoDevice,
     /// Uses an empty device id. (UserId with trailing underscore)
     #[error("uses an empty device id. (UserId with trailing underscore)")]
@@ -208,7 +210,7 @@ impl de::Expected for KeyParseError {
 mod tests {
     use std::str::FromStr;
 
-    use crate::call::member::{member_state_key::CallMemberStateKeyEnum, CallMemberStateKey};
+    use crate::call::member::{CallMemberStateKey, member_state_key::CallMemberStateKeyEnum};
 
     #[test]
     fn convert_state_key_enum_to_state_key() {

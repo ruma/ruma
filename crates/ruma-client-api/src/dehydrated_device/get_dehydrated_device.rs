@@ -8,10 +8,10 @@ pub mod unstable {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3814
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedDeviceId,
+        api::{Metadata, request, response},
         metadata,
         serde::Raw,
-        OwnedDeviceId,
     };
 
     use crate::dehydrated_device::DehydratedDeviceData;

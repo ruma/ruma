@@ -10,10 +10,10 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedServerName, OwnedTransactionId,
+        api::{Metadata, request, response},
         metadata,
         serde::Raw,
-        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedServerName, OwnedTransactionId,
     };
     use serde_json::value::RawValue as RawJsonValue;
 

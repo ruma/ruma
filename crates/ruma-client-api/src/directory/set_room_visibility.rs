@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3directorylistroomroomid
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedRoomId,
+        OwnedRoomId,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     use crate::room::Visibility;

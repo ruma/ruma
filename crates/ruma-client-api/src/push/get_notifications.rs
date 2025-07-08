@@ -9,11 +9,11 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        MilliSecondsSinceUnixEpoch, OwnedRoomId,
+        api::{Metadata, request, response},
         metadata,
         push::Action,
         serde::Raw,
-        MilliSecondsSinceUnixEpoch, OwnedRoomId,
     };
     use ruma_events::AnySyncTimelineEvent;
     use serde::{Deserialize, Serialize};

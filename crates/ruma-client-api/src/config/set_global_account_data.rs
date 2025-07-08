@@ -8,10 +8,10 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3useruseridaccount_datatype
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedUserId,
+        api::{Metadata, request, response},
         metadata,
         serde::Raw,
-        OwnedUserId,
     };
     use ruma_events::{
         AnyGlobalAccountDataEventContent, GlobalAccountDataEventContent, GlobalAccountDataEventType,

@@ -14,7 +14,7 @@ pub mod leave_room;
 pub mod mutual_rooms;
 pub mod unban_user;
 
-use ruma_common::{thirdparty::Medium, OwnedUserId, ServerSignatures};
+use ruma_common::{OwnedUserId, ServerSignatures, thirdparty::Medium};
 use serde::{Deserialize, Serialize};
 
 /// A signature of an `m.third_party_invite` token to prove that this user owns a third party

@@ -10,10 +10,10 @@ pub mod v3 {
     use std::borrow::Borrow;
 
     use ruma_common::{
-        api::{response, Metadata},
+        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
+        api::{Metadata, response},
         metadata,
         serde::Raw,
-        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
     };
     use ruma_events::{AnyStateEventContent, StateEventContent, StateEventType};
     use serde_json::value::to_raw_value as to_raw_json_value;
@@ -211,7 +211,7 @@ pub mod v3 {
             api::{MatrixVersion, OutgoingRequest as _, SendAccessToken, SupportedVersions},
             owned_room_id,
         };
-        use ruma_events::{room::name::RoomNameEventContent, EmptyStateKey};
+        use ruma_events::{EmptyStateKey, room::name::RoomNameEventContent};
 
         let supported = SupportedVersions {
             versions: [MatrixVersion::V1_1].into(),

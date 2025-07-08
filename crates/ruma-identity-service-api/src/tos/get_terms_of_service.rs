@@ -10,7 +10,7 @@ pub mod v2 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{Metadata, request, response},
         metadata,
     };
     use serde::{Deserialize, Serialize};

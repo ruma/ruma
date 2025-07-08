@@ -4,8 +4,8 @@ use std::{
 };
 
 use js_int::Int;
-use ruma_common::{room::JoinRuleKind, room_version_rules::AuthorizationRules, EventId, UserId};
-use ruma_events::{room::member::MembershipState, StateEventType, TimelineEventType};
+use ruma_common::{EventId, UserId, room::JoinRuleKind, room_version_rules::AuthorizationRules};
+use ruma_events::{StateEventType, TimelineEventType, room::member::MembershipState};
 use serde_json::value::RawValue as RawJsonValue;
 use tracing::{debug, info, instrument, warn};
 
@@ -15,13 +15,13 @@ mod tests;
 
 use self::room_member::check_room_member;
 use crate::{
+    Event,
     events::{
-        member::{RoomMemberEventContent, RoomMemberEventOptionExt},
-        power_levels::{RoomPowerLevelsEventOptionExt, RoomPowerLevelsIntField},
         RoomCreateEvent, RoomJoinRulesEvent, RoomMemberEvent, RoomPowerLevelsEvent,
         RoomThirdPartyInviteEvent,
+        member::{RoomMemberEventContent, RoomMemberEventOptionExt},
+        power_levels::{RoomPowerLevelsEventOptionExt, RoomPowerLevelsIntField},
     },
-    Event,
 };
 
 /// Get the list of [relevant auth events] required to authorize the event of the given type.
@@ -479,8 +479,8 @@ fn check_room_power_levels(
         },
         |ev_type| {
             format!(
-            "sender does not have enough power to change the `{ev_type}` event type power level"
-        )
+                "sender does not have enough power to change the `{ev_type}` event type power level"
+            )
         },
     )?;
 
@@ -501,8 +501,8 @@ fn check_room_power_levels(
             },
             |key| {
                 format!(
-                "sender does not have enough power to change the `{key}` notification power level"
-            )
+                    "sender does not have enough power to change the `{key}` notification power level"
+                )
             },
         )?;
     }

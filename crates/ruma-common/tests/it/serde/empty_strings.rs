@@ -49,7 +49,7 @@ mod string {
 }
 
 mod user {
-    use ruma_common::{user_id, OwnedUserId, UserId};
+    use ruma_common::{OwnedUserId, UserId, user_id};
     use serde::{Deserialize, Serialize};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

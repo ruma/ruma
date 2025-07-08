@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use serde::{de, Deserialize};
+use serde::{Deserialize, de};
 use url::Url;
 
 #[cfg(feature = "unstable-msc4191")]
@@ -72,8 +72,8 @@ impl<'de> Deserialize<'de> for AuthorizationServerMetadata {
         let refresh_token_found = grant_types_supported.contains(&GrantType::RefreshToken);
         if !authorization_code_found && !refresh_token_found {
             return Err(de::Error::custom(
-                    "missing values `authorization_code` and `refresh_token` in `grant_types_supported`",
-                ));
+                "missing values `authorization_code` and `refresh_token` in `grant_types_supported`",
+            ));
         }
         if !authorization_code_found {
             return Err(de::Error::custom(
@@ -139,7 +139,7 @@ struct AuthorizationServerMetadataDeHelper {
 #[cfg(test)]
 mod tests {
     use as_variant::as_variant;
-    use serde_json::{from_value as from_json_value, value::Map as JsonMap, Value as JsonValue};
+    use serde_json::{Value as JsonValue, from_value as from_json_value, value::Map as JsonMap};
     use url::Url;
 
     #[cfg(feature = "unstable-msc4191")]
@@ -203,24 +203,36 @@ mod tests {
                 Some("https://server.local/account")
             );
             assert_eq!(metadata.account_management_actions_supported.len(), 6);
-            assert!(metadata
-                .account_management_actions_supported
-                .contains(&AccountManagementAction::Profile));
-            assert!(metadata
-                .account_management_actions_supported
-                .contains(&AccountManagementAction::SessionsList));
-            assert!(metadata
-                .account_management_actions_supported
-                .contains(&AccountManagementAction::SessionView));
-            assert!(metadata
-                .account_management_actions_supported
-                .contains(&AccountManagementAction::SessionEnd));
-            assert!(metadata
-                .account_management_actions_supported
-                .contains(&AccountManagementAction::AccountDeactivate));
-            assert!(metadata
-                .account_management_actions_supported
-                .contains(&AccountManagementAction::CrossSigningReset));
+            assert!(
+                metadata
+                    .account_management_actions_supported
+                    .contains(&AccountManagementAction::Profile)
+            );
+            assert!(
+                metadata
+                    .account_management_actions_supported
+                    .contains(&AccountManagementAction::SessionsList)
+            );
+            assert!(
+                metadata
+                    .account_management_actions_supported
+                    .contains(&AccountManagementAction::SessionView)
+            );
+            assert!(
+                metadata
+                    .account_management_actions_supported
+                    .contains(&AccountManagementAction::SessionEnd)
+            );
+            assert!(
+                metadata
+                    .account_management_actions_supported
+                    .contains(&AccountManagementAction::AccountDeactivate)
+            );
+            assert!(
+                metadata
+                    .account_management_actions_supported
+                    .contains(&AccountManagementAction::CrossSigningReset)
+            );
         }
 
         #[cfg(feature = "unstable-msc4108")]
@@ -313,9 +325,11 @@ mod tests {
 
         assert_eq!(metadata.code_challenge_methods_supported.len(), 2);
         assert!(metadata.code_challenge_methods_supported.contains(&CodeChallengeMethod::S256));
-        assert!(metadata
-            .code_challenge_methods_supported
-            .contains(&CodeChallengeMethod::from("custom")));
+        assert!(
+            metadata
+                .code_challenge_methods_supported
+                .contains(&CodeChallengeMethod::from("custom"))
+        );
 
         #[cfg(feature = "unstable-msc4191")]
         {
@@ -324,27 +338,41 @@ mod tests {
                 Some("https://server.local/account")
             );
             assert_eq!(metadata.account_management_actions_supported.len(), 7);
-            assert!(metadata
-                .account_management_actions_supported
-                .contains(&AccountManagementAction::Profile));
-            assert!(metadata
-                .account_management_actions_supported
-                .contains(&AccountManagementAction::SessionsList));
-            assert!(metadata
-                .account_management_actions_supported
-                .contains(&AccountManagementAction::SessionView));
-            assert!(metadata
-                .account_management_actions_supported
-                .contains(&AccountManagementAction::SessionEnd));
-            assert!(metadata
-                .account_management_actions_supported
-                .contains(&AccountManagementAction::AccountDeactivate));
-            assert!(metadata
-                .account_management_actions_supported
-                .contains(&AccountManagementAction::CrossSigningReset));
-            assert!(metadata
-                .account_management_actions_supported
-                .contains(&AccountManagementAction::from("custom")));
+            assert!(
+                metadata
+                    .account_management_actions_supported
+                    .contains(&AccountManagementAction::Profile)
+            );
+            assert!(
+                metadata
+                    .account_management_actions_supported
+                    .contains(&AccountManagementAction::SessionsList)
+            );
+            assert!(
+                metadata
+                    .account_management_actions_supported
+                    .contains(&AccountManagementAction::SessionView)
+            );
+            assert!(
+                metadata
+                    .account_management_actions_supported
+                    .contains(&AccountManagementAction::SessionEnd)
+            );
+            assert!(
+                metadata
+                    .account_management_actions_supported
+                    .contains(&AccountManagementAction::AccountDeactivate)
+            );
+            assert!(
+                metadata
+                    .account_management_actions_supported
+                    .contains(&AccountManagementAction::CrossSigningReset)
+            );
+            assert!(
+                metadata
+                    .account_management_actions_supported
+                    .contains(&AccountManagementAction::from("custom"))
+            );
         }
 
         #[cfg(feature = "unstable-msc4108")]

@@ -8,10 +8,10 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/latest/identity-service-api/#get_matrixidentityv2pubkeykeyid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedServerSigningKeyId,
+        api::{Metadata, request, response},
         metadata,
         third_party_invite::IdentityServerBase64PublicKey,
-        OwnedServerSigningKeyId,
     };
 
     const METADATA: Metadata = metadata! {

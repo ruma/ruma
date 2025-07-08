@@ -12,10 +12,11 @@ pub mod v1 {
     use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        IdParseError, MxcUri, OwnedServerName,
+        api::{Metadata, request, response},
         http_headers::ContentDisposition,
         media::Method,
-        metadata, IdParseError, MxcUri, OwnedServerName,
+        metadata,
     };
 
     const METADATA: Metadata = metadata! {

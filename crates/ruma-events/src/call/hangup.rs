@@ -2,7 +2,7 @@
 //!
 //! [`m.call.hangup`]: https://spec.matrix.org/latest/client-server-api/#mcallhangup
 
-use ruma_common::{serde::StringEnum, OwnedVoipId, VoipVersionId};
+use ruma_common::{OwnedVoipId, VoipVersionId, serde::StringEnum};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 

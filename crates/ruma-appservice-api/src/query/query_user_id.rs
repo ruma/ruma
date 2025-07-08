@@ -8,8 +8,9 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/application-service-api/#get_matrixappv1usersuserid
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedUserId,
+        OwnedUserId,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     const METADATA: Metadata = metadata! {

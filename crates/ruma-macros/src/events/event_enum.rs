@@ -3,7 +3,7 @@
 use std::fmt;
 
 use proc_macro2::{Span, TokenStream};
-use quote::{format_ident, quote, IdentFragment, ToTokens};
+use quote::{IdentFragment, ToTokens, format_ident, quote};
 use syn::{Attribute, Data, DataEnum, DeriveInput, Ident, LitStr};
 
 use super::{

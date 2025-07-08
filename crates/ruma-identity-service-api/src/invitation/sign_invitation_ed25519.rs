@@ -8,10 +8,10 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/latest/identity-service-api/#post_matrixidentityv2sign-ed25519
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedUserId, ServerSignatures,
+        api::{Metadata, request, response},
         metadata,
         serde::Base64,
-        OwnedUserId, ServerSignatures,
     };
 
     const METADATA: Metadata = metadata! {

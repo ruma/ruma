@@ -3,10 +3,10 @@
 use std::{fmt, marker::PhantomData};
 
 use base64::{
-    engine::{general_purpose, DecodePaddingMode, GeneralPurpose, GeneralPurposeConfig},
     Engine,
+    engine::{DecodePaddingMode, GeneralPurpose, GeneralPurposeConfig, general_purpose},
 };
-use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 use zeroize::Zeroize;
 
 /// A wrapper around `B` (usually `Vec<u8>`) that (de)serializes from / to a base64 string.

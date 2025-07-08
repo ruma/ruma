@@ -9,11 +9,11 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedDeviceId, OwnedUserId,
+        api::{Metadata, request, response},
         encryption::{CrossSigningKey, DeviceKeys},
         metadata,
         serde::Raw,
-        OwnedDeviceId, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
 

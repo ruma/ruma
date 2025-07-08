@@ -8,7 +8,7 @@ use ruma_events::{
     },
 };
 use serde_json::{
-    from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
+    Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
 };
 
 fn encrypted_scheme() -> EncryptedEventScheme {

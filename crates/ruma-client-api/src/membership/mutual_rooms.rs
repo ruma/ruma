@@ -8,8 +8,9 @@ pub mod unstable {
     //! [spec]: https://github.com/matrix-org/matrix-spec-proposals/blob/hs/shared-rooms/proposals/2666-get-rooms-in-common.md
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedRoomId, OwnedUserId,
+        OwnedRoomId, OwnedUserId,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     const METADATA: Metadata = metadata! {

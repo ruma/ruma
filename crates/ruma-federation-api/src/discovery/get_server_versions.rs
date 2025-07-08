@@ -6,7 +6,7 @@ pub mod msc3723 {
     //! [GET /_matrix/federation/versions](https://github.com/matrix-org/matrix-spec-proposals/pull/3723)
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{Metadata, request, response},
         metadata,
     };
 

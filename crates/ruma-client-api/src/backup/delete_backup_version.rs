@@ -10,7 +10,7 @@ pub mod v3 {
     //! This deletes a backup version and its room keys.
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{Metadata, request, response},
         metadata,
     };
 

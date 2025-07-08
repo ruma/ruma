@@ -8,10 +8,11 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3user_directorysearch
 
     use http::header::ACCEPT_LANGUAGE;
-    use js_int::{uint, UInt};
+    use js_int::{UInt, uint};
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedMxcUri, OwnedUserId,
+        OwnedMxcUri, OwnedUserId,
+        api::{Metadata, request, response},
+        metadata,
     };
     use serde::{Deserialize, Serialize};
 

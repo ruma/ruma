@@ -11,11 +11,11 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        OneTimeKeyAlgorithm, OwnedOneTimeKeyId,
+        api::{Metadata, request, response},
         encryption::{DeviceKeys, OneTimeKey},
         metadata,
         serde::Raw,
-        OneTimeKeyAlgorithm, OwnedOneTimeKeyId,
     };
 
     const METADATA: Metadata = metadata! {

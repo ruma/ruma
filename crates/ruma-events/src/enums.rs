@@ -1,9 +1,9 @@
 use ruma_common::{
-    serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, RoomId,
-    TransactionId, UserId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, RoomId, TransactionId, UserId,
+    serde::from_raw_json_value,
 };
-use ruma_macros::{event_enum, EventEnumFromEvent};
-use serde::{de, Deserialize};
+use ruma_macros::{EventEnumFromEvent, event_enum};
+use serde::{Deserialize, de};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::room::encrypted;

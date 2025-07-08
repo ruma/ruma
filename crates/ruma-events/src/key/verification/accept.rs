@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::{serde::Base64, OwnedTransactionId};
+use ruma_common::{OwnedTransactionId, serde::Base64};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
@@ -170,15 +170,15 @@ mod tests {
         serde::{Base64, Raw},
     };
     use serde_json::{
-        from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
+        Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
     };
 
     use super::{
-        AcceptMethod, HashAlgorithm, KeyAgreementProtocol, KeyVerificationAcceptEventContent,
-        MessageAuthenticationCode, SasV1Content, ShortAuthenticationString,
-        ToDeviceKeyVerificationAcceptEventContent, _CustomContent,
+        _CustomContent, AcceptMethod, HashAlgorithm, KeyAgreementProtocol,
+        KeyVerificationAcceptEventContent, MessageAuthenticationCode, SasV1Content,
+        ShortAuthenticationString, ToDeviceKeyVerificationAcceptEventContent,
     };
-    use crate::{relation::Reference, ToDeviceEvent};
+    use crate::{ToDeviceEvent, relation::Reference};
 
     #[test]
     fn serialization() {

@@ -3,7 +3,7 @@
 use std::{env, fs, path::Path, sync::OnceLock};
 
 use proc_macro2::Span;
-use serde::{de::IgnoredAny, Deserialize};
+use serde::{Deserialize, de::IgnoredAny};
 
 mod attribute;
 pub mod request;

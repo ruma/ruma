@@ -3,7 +3,7 @@
 //! [`m.direct`]: https://spec.matrix.org/latest/client-server-api/#mdirect
 
 use std::{
-    collections::{btree_map, BTreeMap},
+    collections::{BTreeMap, btree_map},
     ops::{Deref, DerefMut},
 };
 
@@ -190,7 +190,7 @@ impl FromIterator<(OwnedDirectUserIdentifier, Vec<OwnedRoomId>)> for DirectEvent
 mod tests {
     use std::collections::BTreeMap;
 
-    use ruma_common::{owned_room_id, user_id, OwnedUserId};
+    use ruma_common::{OwnedUserId, owned_room_id, user_id};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{DirectEvent, DirectEventContent};

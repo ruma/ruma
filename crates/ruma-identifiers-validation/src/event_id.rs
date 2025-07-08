@@ -1,4 +1,4 @@
-use crate::{validate_delimited_id, Error};
+use crate::{Error, validate_delimited_id};
 
 pub fn validate(s: &str) -> Result<(), Error> {
     if s.contains(':') {

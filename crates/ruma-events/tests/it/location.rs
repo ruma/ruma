@@ -4,14 +4,14 @@ use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::uint;
 use ruma_common::{
-    event_id, owned_event_id, room_id, serde::CanBeEmpty, user_id, MilliSecondsSinceUnixEpoch,
+    MilliSecondsSinceUnixEpoch, event_id, owned_event_id, room_id, serde::CanBeEmpty, user_id,
 };
 use ruma_events::{
+    AnyMessageLikeEvent, MessageLikeEvent,
     location::{AssetType, LocationContent, LocationEventContent, ZoomLevel, ZoomLevelError},
     message::TextContentBlock,
     relation::InReplyTo,
     room::message::{LocationMessageEventContent, MessageType, Relation, RoomMessageEventContent},
-    AnyMessageLikeEvent, MessageLikeEvent,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

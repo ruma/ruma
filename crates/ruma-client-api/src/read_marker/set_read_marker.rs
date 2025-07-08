@@ -13,8 +13,9 @@ pub mod v3 {
     //! [`create_receipt`]: crate::receipt::create_receipt
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedEventId, OwnedRoomId,
+        OwnedEventId, OwnedRoomId,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     const METADATA: Metadata = metadata! {

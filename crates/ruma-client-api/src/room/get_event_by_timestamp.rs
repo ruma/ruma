@@ -8,8 +8,9 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv1roomsroomidtimestamp_to_event
 
     use ruma_common::{
-        api::{request, response, Direction, Metadata},
-        metadata, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
+        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
+        api::{Direction, Metadata, request, response},
+        metadata,
     };
 
     const METADATA: Metadata = metadata! {

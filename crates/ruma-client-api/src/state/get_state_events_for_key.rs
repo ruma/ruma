@@ -8,10 +8,10 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3roomsroomidstateeventtypestatekey
 
     use ruma_common::{
-        api::{response, Metadata},
+        OwnedRoomId,
+        api::{Metadata, response},
         metadata,
         serde::Raw,
-        OwnedRoomId,
     };
     use ruma_events::{AnyStateEventContent, StateEventType};
 

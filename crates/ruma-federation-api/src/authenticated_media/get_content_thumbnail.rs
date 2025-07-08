@@ -11,7 +11,7 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, Metadata},
+        api::{Metadata, request},
         media::Method,
         metadata,
     };

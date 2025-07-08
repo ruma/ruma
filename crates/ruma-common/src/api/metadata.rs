@@ -7,19 +7,19 @@ use std::{
 
 use bytes::BufMut;
 use http::{
-    header::{self, HeaderName, HeaderValue},
     Method,
+    header::{self, HeaderName, HeaderValue},
 };
 use percent_encoding::utf8_percent_encode;
 use ruma_macros::{OrdAsRefStr, PartialEqAsRefStr, PartialOrdAsRefStr, StringEnum};
 use tracing::warn;
 
 use super::{
-    error::{IntoHttpError, UnknownVersionError},
     AuthScheme, SendAccessToken,
+    error::{IntoHttpError, UnknownVersionError},
 };
 use crate::{
-    percent_encode::PATH_PERCENT_ENCODE_SET, serde::slice_to_buf, PrivOwnedStr, RoomVersionId,
+    PrivOwnedStr, RoomVersionId, percent_encode::PATH_PERCENT_ENCODE_SET, serde::slice_to_buf,
 };
 
 /// Convenient constructor for [`Metadata`] constants.
@@ -190,11 +190,7 @@ impl Metadata {
     where
         B: Default + BufMut,
     {
-        if self.method == Method::GET {
-            Default::default()
-        } else {
-            slice_to_buf(b"{}")
-        }
+        if self.method == Method::GET { Default::default() } else { slice_to_buf(b"{}") }
     }
 
     /// Transform the `SendAccessToken` into an access token if the endpoint requires it, or if it
@@ -1013,11 +1009,7 @@ impl MatrixVersion {
         use konst::primitive::cmp::cmp_u8;
 
         let major_ord = cmp_u8(self_parts.0, other_parts.0);
-        if major_ord.is_ne() {
-            major_ord
-        } else {
-            cmp_u8(self_parts.1, other_parts.1)
-        }
+        if major_ord.is_ne() { major_ord } else { cmp_u8(self_parts.1, other_parts.1) }
     }
 
     // Internal function to check if this version is the legacy (v1.0) version in const-fn contexts

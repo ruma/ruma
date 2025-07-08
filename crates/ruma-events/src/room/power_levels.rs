@@ -4,12 +4,12 @@
 
 use std::{cmp::max, collections::BTreeMap};
 
-use js_int::{int, Int};
+use js_int::{Int, int};
 use ruma_common::{
-    power_levels::{default_power_level, NotificationPowerLevels},
+    OwnedUserId, UserId,
+    power_levels::{NotificationPowerLevels, default_power_level},
     push::PushConditionPowerLevelsCtx,
     room_version_rules::RedactionRules,
-    OwnedUserId, UserId,
 };
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -689,7 +689,7 @@ mod tests {
     use ruma_common::user_id;
     use serde_json::{json, to_value as to_json_value};
 
-    use super::{default_power_level, NotificationPowerLevels, RoomPowerLevelsEventContent};
+    use super::{NotificationPowerLevels, RoomPowerLevelsEventContent, default_power_level};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {

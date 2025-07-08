@@ -3,33 +3,33 @@ use std::{
     collections::{BTreeMap, HashMap, HashSet},
     slice,
     sync::{
-        atomic::{AtomicU64, Ordering::SeqCst},
         Arc,
+        atomic::{AtomicU64, Ordering::SeqCst},
     },
 };
 
 use js_int::{int, uint};
 use ruma_common::{
-    event_id, room_id, room_version_rules::AuthorizationRules, user_id, EventId,
-    MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, ServerSignatures, UserId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, ServerSignatures, UserId, event_id,
+    room_id, room_version_rules::AuthorizationRules, user_id,
 };
 use ruma_events::{
+    StateEventType, TimelineEventType,
     room::{
         join_rules::{JoinRule, RoomJoinRulesEventContent},
         member::{MembershipState, RoomMemberEventContent},
     },
-    StateEventType, TimelineEventType,
 };
 use serde_json::{
     json,
-    value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue},
+    value::{RawValue as RawJsonValue, to_raw_value as to_raw_json_value},
 };
 use tracing::info;
 
 pub(crate) use self::event::{EventHash, PduEvent};
 use crate::{
-    auth_types_for_event, events::RoomCreateEvent, state_res::EventTypeExt, Error, Event, Result,
-    StateMap,
+    Error, Event, Result, StateMap, auth_types_for_event, events::RoomCreateEvent,
+    state_res::EventTypeExt,
 };
 
 static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);

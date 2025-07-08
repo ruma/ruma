@@ -5,10 +5,10 @@
 #[cfg(feature = "unstable-msc4125")]
 use ruma_common::OwnedServerName;
 use ruma_common::{
-    api::{request, response, Metadata},
+    OwnedEventId, OwnedRoomId, RoomVersionId,
+    api::{Metadata, request, response},
     metadata,
     serde::Raw,
-    OwnedEventId, OwnedRoomId, RoomVersionId,
 };
 use ruma_events::AnyStrippedStateEvent;
 use serde_json::value::RawValue as RawJsonValue;

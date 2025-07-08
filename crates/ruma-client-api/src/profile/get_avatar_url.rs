@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3profileuseridavatar_url
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedMxcUri, OwnedUserId,
+        OwnedMxcUri, OwnedUserId,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     const METADATA: Metadata = metadata! {

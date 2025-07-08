@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3keysdevice_signingupload
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{Metadata, request, response},
         encryption::CrossSigningKey,
         metadata,
         serde::Raw,

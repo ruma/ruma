@@ -5,16 +5,15 @@ use js_int::int;
 use ruma_common::room_version_rules::AuthorizationRules;
 use ruma_events::TimelineEventType;
 use serde_json::{
-    json,
-    value::{to_raw_value as to_raw_json_value, Map as JsonMap},
-    Value as JsonValue,
+    Value as JsonValue, json,
+    value::{Map as JsonMap, to_raw_value as to_raw_json_value},
 };
 use tracing::info;
 
 use crate::{
     event_auth::check_room_power_levels,
     events::RoomPowerLevelsEvent,
-    test_utils::{alice, bob, init_subscriber, to_pdu_event, zara, PduEvent},
+    test_utils::{PduEvent, alice, bob, init_subscriber, to_pdu_event, zara},
 };
 
 /// The default `m.room.power_levels` event when creating a public room.

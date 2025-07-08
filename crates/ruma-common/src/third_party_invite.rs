@@ -7,8 +7,8 @@ use std::ops::Deref;
 use serde::{Deserialize, Serialize};
 
 use crate::serde::{
-    base64::{Standard, UrlSafe},
     Base64, Base64DecodeError,
+    base64::{Standard, UrlSafe},
 };
 
 /// A base64-encoded public key from an [identity server].

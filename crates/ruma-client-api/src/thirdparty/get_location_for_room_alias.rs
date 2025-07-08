@@ -8,10 +8,10 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3thirdpartylocation
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedRoomAliasId,
+        api::{Metadata, request, response},
         metadata,
         thirdparty::Location,
-        OwnedRoomAliasId,
     };
 
     const METADATA: Metadata = metadata! {

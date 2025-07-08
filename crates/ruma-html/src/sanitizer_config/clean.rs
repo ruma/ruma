@@ -1,4 +1,4 @@
-use html5ever::{tendril::StrTendril, Attribute, LocalName};
+use html5ever::{Attribute, LocalName, tendril::StrTendril};
 use wildmatch::WildMatch;
 
 use crate::{ElementData, Html, HtmlSanitizerMode, NodeData, NodeRef, SanitizerConfig};

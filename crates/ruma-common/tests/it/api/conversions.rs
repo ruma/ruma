@@ -2,11 +2,12 @@
 
 use http::header::CONTENT_TYPE;
 use ruma_common::{
+    OwnedUserId,
     api::{
-        request, response, IncomingRequest as _, MatrixVersion, Metadata, OutgoingRequest as _,
-        OutgoingRequestAppserviceExt, SendAccessToken, SupportedVersions,
+        IncomingRequest as _, MatrixVersion, Metadata, OutgoingRequest as _,
+        OutgoingRequestAppserviceExt, SendAccessToken, SupportedVersions, request, response,
     },
-    metadata, owned_user_id, user_id, OwnedUserId,
+    metadata, owned_user_id, user_id,
 };
 
 const METADATA: Metadata = metadata! {
@@ -134,11 +135,12 @@ fn request_with_user_id_serde() {
 mod without_query {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
+        OwnedUserId,
         api::{
-            request, response, MatrixVersion, Metadata, OutgoingRequestAppserviceExt,
-            SendAccessToken, SupportedVersions,
+            MatrixVersion, Metadata, OutgoingRequestAppserviceExt, SendAccessToken,
+            SupportedVersions, request, response,
         },
-        metadata, owned_user_id, user_id, OwnedUserId,
+        metadata, owned_user_id, user_id,
     };
 
     const METADATA: Metadata = metadata! {

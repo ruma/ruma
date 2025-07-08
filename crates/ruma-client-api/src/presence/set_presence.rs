@@ -8,10 +8,10 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3presenceuseridstatus
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedUserId,
+        api::{Metadata, request, response},
         metadata,
         presence::PresenceState,
-        OwnedUserId,
     };
 
     const METADATA: Metadata = metadata! {

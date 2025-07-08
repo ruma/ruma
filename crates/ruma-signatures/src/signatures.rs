@@ -1,8 +1,8 @@
 //! Digital signatures and collections of signatures.
 
 use ruma_common::{
-    serde::{base64::Standard, Base64},
     AnyKeyName, IdParseError, OwnedSigningKeyId, SigningKeyAlgorithm, SigningKeyId,
+    serde::{Base64, base64::Standard},
 };
 
 /// A digital signature.

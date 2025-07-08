@@ -6,16 +6,16 @@ use std::{collections::BTreeMap, time::Duration};
 
 use js_int::UInt;
 use ruma_common::{
-    api::{request, response, Metadata},
+    OneTimeKeyAlgorithm, OwnedEventId, OwnedRoomId, OwnedUserId,
+    api::{Metadata, request, response},
     metadata,
     presence::PresenceState,
     serde::Raw,
-    OneTimeKeyAlgorithm, OwnedEventId, OwnedRoomId, OwnedUserId,
 };
 use ruma_events::{
-    presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
-    AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncStateEvent, AnySyncTimelineEvent,
-    AnyToDeviceEvent,
+    AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent, AnyStrippedStateEvent,
+    AnySyncEphemeralRoomEvent, AnySyncStateEvent, AnySyncTimelineEvent, AnyToDeviceEvent,
+    presence::PresenceEvent,
 };
 use serde::{Deserialize, Serialize};
 

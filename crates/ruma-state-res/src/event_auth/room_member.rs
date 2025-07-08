@@ -1,12 +1,12 @@
 use std::borrow::Borrow;
 
 use ruma_common::{
+    AnyKeyName, SigningKeyId, UserId,
     room::JoinRuleKind,
     room_version_rules::AuthorizationRules,
-    serde::{base64::Standard, Base64},
-    AnyKeyName, SigningKeyId, UserId,
+    serde::{Base64, base64::Standard},
 };
-use ruma_events::{room::member::MembershipState, StateEventType};
+use ruma_events::{StateEventType, room::member::MembershipState};
 use ruma_signatures::verify_canonical_json_bytes;
 use tracing::debug;
 
@@ -15,11 +15,11 @@ mod tests;
 
 use super::FetchStateExt;
 use crate::{
-    events::{
-        member::ThirdPartyInvite, power_levels::RoomPowerLevelsEventOptionExt, RoomCreateEvent,
-        RoomMemberEvent, RoomPowerLevelsIntField,
-    },
     Event,
+    events::{
+        RoomCreateEvent, RoomMemberEvent, RoomPowerLevelsIntField, member::ThirdPartyInvite,
+        power_levels::RoomPowerLevelsEventOptionExt,
+    },
 };
 
 /// Check whether the given event passes the `m.room.roomber` authorization rules.

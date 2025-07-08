@@ -6,9 +6,9 @@ use headers::authorization::Credentials;
 use http::HeaderValue;
 use http_auth::ChallengeParser;
 use ruma_common::{
+    IdParseError, OwnedServerName, OwnedServerSigningKeyId,
     http_headers::quote_ascii_string_if_required,
     serde::{Base64, Base64DecodeError},
-    IdParseError, OwnedServerName, OwnedServerSigningKeyId,
 };
 use thiserror::Error;
 use tracing::debug;
@@ -215,8 +215,8 @@ impl<'a> From<http_auth::parser::Error<'a>> for XMatrixParseError {
 
 #[cfg(test)]
 mod tests {
-    use headers::{authorization::Credentials, HeaderValue};
-    use ruma_common::{serde::Base64, OwnedServerName};
+    use headers::{HeaderValue, authorization::Credentials};
+    use ruma_common::{OwnedServerName, serde::Base64};
 
     use super::XMatrix;
 
@@ -244,7 +244,9 @@ mod tests {
 
     #[test]
     fn xmatrix_auth_1_3() {
-        let header = HeaderValue::from_static("X-Matrix origin=\"origin.hs.example.com\",destination=\"destination.hs.example.com\",key=\"ed25519:key1\",sig=\"dGVzdA==\"");
+        let header = HeaderValue::from_static(
+            "X-Matrix origin=\"origin.hs.example.com\",destination=\"destination.hs.example.com\",key=\"ed25519:key1\",sig=\"dGVzdA==\"",
+        );
         let origin: OwnedServerName = "origin.hs.example.com".try_into().unwrap();
         let destination: OwnedServerName = "destination.hs.example.com".try_into().unwrap();
         let key = "ed25519:key1".try_into().unwrap();
@@ -257,7 +259,10 @@ mod tests {
 
         let credentials = XMatrix::new(origin, destination, key, sig);
 
-        assert_eq!(credentials.encode(), "X-Matrix destination=destination.hs.example.com,key=\"ed25519:key1\",origin=origin.hs.example.com,sig=dGVzdA");
+        assert_eq!(
+            credentials.encode(),
+            "X-Matrix destination=destination.hs.example.com,key=\"ed25519:key1\",origin=origin.hs.example.com,sig=dGVzdA"
+        );
     }
 
     #[test]
@@ -285,7 +290,9 @@ mod tests {
 
     #[test]
     fn xmatrix_auth_1_3_with_extra_spaces() {
-        let header = HeaderValue::from_static("X-Matrix origin=\"origin.hs.example.com\"  ,     destination=\"destination.hs.example.com\",key=\"ed25519:key1\", sig=\"dGVzdA\"");
+        let header = HeaderValue::from_static(
+            "X-Matrix origin=\"origin.hs.example.com\"  ,     destination=\"destination.hs.example.com\",key=\"ed25519:key1\", sig=\"dGVzdA\"",
+        );
         let credentials = XMatrix::try_from(&header).unwrap();
         let sig = Base64::new(b"test".to_vec());
 

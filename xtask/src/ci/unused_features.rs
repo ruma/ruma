@@ -1,6 +1,6 @@
 use xshell::Shell;
 
-use crate::{cmd, Metadata, Result};
+use crate::{Metadata, Result, cmd};
 
 /// List of features that trigger false positives.
 const ALLOW_LIST: &[&str] = &[

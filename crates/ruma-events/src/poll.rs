@@ -10,7 +10,7 @@ use std::{
 };
 
 use indexmap::IndexMap;
-use js_int::{uint, UInt};
+use js_int::{UInt, uint};
 use ruma_common::{MilliSecondsSinceUnixEpoch, UserId};
 
 use self::{start::PollContentBlock, unstable_start::UnstablePollStartContentBlock};

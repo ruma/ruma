@@ -9,9 +9,10 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedServerName,
+        api::{Metadata, request, response},
         directory::{Filter, PublicRoomsChunk, RoomNetwork},
-        metadata, OwnedServerName,
+        metadata,
     };
 
     const METADATA: Metadata = metadata! {

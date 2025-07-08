@@ -4,14 +4,14 @@ use std::time::Duration;
 
 use assert_matches2::assert_matches;
 use js_int::uint;
-use ruma_common::{mxc_uri, owned_event_id, serde::CanBeEmpty, MilliSecondsSinceUnixEpoch};
+use ruma_common::{MilliSecondsSinceUnixEpoch, mxc_uri, owned_event_id, serde::CanBeEmpty};
 use ruma_events::{
+    AnyMessageLikeEvent, MessageLikeEvent,
     audio::Amplitude,
     file::FileContentBlock,
     relation::InReplyTo,
     room::message::Relation,
     voice::{VoiceAudioDetailsContentBlock, VoiceEventContent},
-    AnyMessageLikeEvent, MessageLikeEvent,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

@@ -2,7 +2,7 @@
 //!
 //! [power_levels]: https://spec.matrix.org/latest/client-server-api/#mroompower_levels
 
-use js_int::{int, Int};
+use js_int::{Int, int};
 use serde::{Deserialize, Serialize};
 
 /// The power level requirements for specific notification types.

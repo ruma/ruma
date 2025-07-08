@@ -1,13 +1,13 @@
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    serde::{CanBeEmpty, Raw},
     MilliSecondsSinceUnixEpoch, VoipVersionId,
+    serde::{CanBeEmpty, Raw},
 };
 use ruma_events::{
-    secret_storage::key::{SecretStorageEncryptionAlgorithm, SecretStorageV1AesHmacSha2Properties},
     AnyGlobalAccountDataEventContent, AnyMessageLikeEvent, AnyMessageLikeEventContent,
     MessageLikeEvent, RawExt as _,
+    secret_storage::key::{SecretStorageEncryptionAlgorithm, SecretStorageV1AesHmacSha2Properties},
 };
 use serde_json::{from_value as from_json_value, json, value::to_raw_value as to_raw_json_value};
 

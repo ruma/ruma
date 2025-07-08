@@ -9,7 +9,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/latest/identity-service-api/#post_matrixidentityv2accountlogout
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{Metadata, request, response},
         metadata,
     };
 

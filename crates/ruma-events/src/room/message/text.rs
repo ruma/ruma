@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
+use super::FormattedBody;
 #[cfg(feature = "unstable-msc4095")]
 use super::url_preview::UrlPreview;
-use super::FormattedBody;
 
 /// The payload for a text message.
 #[derive(Clone, Debug, Deserialize, Serialize)]

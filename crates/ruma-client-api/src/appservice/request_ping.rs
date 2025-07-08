@@ -10,8 +10,9 @@ pub mod v1 {
     use std::time::Duration;
 
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedTransactionId,
+        OwnedTransactionId,
+        api::{Metadata, request, response},
+        metadata,
     };
 
     const METADATA: Metadata = metadata! {

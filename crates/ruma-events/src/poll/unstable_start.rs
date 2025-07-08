@@ -10,18 +10,17 @@ mod content_serde;
 mod unstable_poll_answers_serde;
 mod unstable_poll_kind_serde;
 
-use ruma_common::{room_version_rules::RedactionRules, MilliSecondsSinceUnixEpoch, OwnedEventId};
+use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedEventId, room_version_rules::RedactionRules};
 
 use self::unstable_poll_answers_serde::UnstablePollAnswersDeHelper;
 use super::{
-    compile_unstable_poll_results, generate_poll_end_fallback_text,
+    PollResponseData, compile_unstable_poll_results, generate_poll_end_fallback_text,
     start::{PollAnswers, PollAnswersError, PollContentBlock, PollKind},
     unstable_end::UnstablePollEndEventContent,
-    PollResponseData,
 };
 use crate::{
-    relation::Replacement, room::message::RelationWithoutReplacement, MessageLikeEventContent,
-    MessageLikeEventType, RedactContent, RedactedMessageLikeEventContent, StaticEventContent,
+    MessageLikeEventContent, MessageLikeEventType, RedactContent, RedactedMessageLikeEventContent,
+    StaticEventContent, relation::Replacement, room::message::RelationWithoutReplacement,
 };
 
 /// The payload for an unstable poll start event.

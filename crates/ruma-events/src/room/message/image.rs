@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use super::FormattedBody;
 use crate::room::{
-    message::media_caption::{caption, formatted_caption},
     EncryptedFile, ImageInfo, MediaSource,
+    message::media_caption::{caption, formatted_caption},
 };
 
 /// The payload for an image message.

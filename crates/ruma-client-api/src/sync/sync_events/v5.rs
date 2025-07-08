@@ -12,10 +12,10 @@ use std::{collections::BTreeMap, time::Duration};
 use js_int::UInt;
 use js_option::JsOption;
 use ruma_common::{
-    api::{request, response, Metadata},
-    metadata,
-    serde::{duration::opt_ms, Raw},
     OwnedMxcUri, OwnedRoomId, OwnedUserId,
+    api::{Metadata, request, response},
+    metadata,
+    serde::{Raw, duration::opt_ms},
 };
 use ruma_events::{AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent, StateEventType};
 use serde::{Deserialize, Serialize};
@@ -95,7 +95,7 @@ impl Request {
 
 /// HTTP types related to a [`Request`].
 pub mod request {
-    use ruma_common::{directory::RoomTypeFilter, serde::deserialize_cow_str, RoomId};
+    use ruma_common::{RoomId, directory::RoomTypeFilter, serde::deserialize_cow_str};
     use serde::de::Error as _;
 
     use super::{BTreeMap, Deserialize, OwnedRoomId, Serialize, StateEventType, UInt};
@@ -444,8 +444,8 @@ impl Response {
 pub mod response {
     use ruma_common::OneTimeKeyAlgorithm;
     use ruma_events::{
-        receipt::SyncReceiptEvent, typing::SyncTypingEvent, AnyGlobalAccountDataEvent,
-        AnyRoomAccountDataEvent, AnyToDeviceEvent,
+        AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent, AnyToDeviceEvent,
+        receipt::SyncReceiptEvent, typing::SyncTypingEvent,
     };
 
     use super::{

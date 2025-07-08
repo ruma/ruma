@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::value::Value as JsonValue;
 use wildmatch::WildMatch;
 
-use crate::{power_levels::NotificationPowerLevels, OwnedRoomId, OwnedUserId, UserId};
+use crate::{OwnedRoomId, OwnedUserId, UserId, power_levels::NotificationPowerLevels};
 #[cfg(feature = "unstable-msc3931")]
 use crate::{PrivOwnedStr, RoomVersionId};
 
@@ -487,7 +487,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use js_int::{int, uint};
     use serde_json::{
-        from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
+        Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
     };
 
     use super::{
@@ -495,8 +495,8 @@ mod tests {
         RoomMemberCountIs, StrExt,
     };
     use crate::{
-        owned_room_id, owned_user_id, power_levels::NotificationPowerLevels, serde::Raw,
-        OwnedUserId,
+        OwnedUserId, owned_room_id, owned_user_id, power_levels::NotificationPowerLevels,
+        serde::Raw,
     };
 
     #[test]

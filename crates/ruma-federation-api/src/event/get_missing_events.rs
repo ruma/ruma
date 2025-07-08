@@ -7,10 +7,11 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#post_matrixfederationv1get_missing_eventsroomid
 
-    use js_int::{uint, UInt};
+    use js_int::{UInt, uint};
     use ruma_common::{
-        api::{request, response, Metadata},
-        metadata, OwnedEventId, OwnedRoomId,
+        OwnedEventId, OwnedRoomId,
+        api::{Metadata, request, response},
+        metadata,
     };
     use serde_json::value::RawValue as RawJsonValue;
 

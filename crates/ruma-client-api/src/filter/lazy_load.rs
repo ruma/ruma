@@ -1,4 +1,4 @@
-use serde::{ser::SerializeStruct as _, Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize, Serializer, ser::SerializeStruct as _};
 
 /// Specifies options for [lazy-loading membership events][lazy-loading] on
 /// supported endpoints

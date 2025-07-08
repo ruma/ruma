@@ -8,10 +8,10 @@ pub mod unstable {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        OwnedRoomId, OwnedTransactionId,
+        api::{Metadata, request, response},
         metadata,
         serde::Raw,
-        OwnedRoomId, OwnedTransactionId,
     };
     use ruma_events::{AnyMessageLikeEventContent, MessageLikeEventContent, MessageLikeEventType};
     use serde_json::value::to_raw_value as to_raw_json_value;
@@ -122,7 +122,7 @@ pub mod unstable {
             owned_room_id,
         };
         use ruma_events::room::message::RoomMessageEventContent;
-        use serde_json::{json, Value as JsonValue};
+        use serde_json::{Value as JsonValue, json};
         use web_time::Duration;
 
         use super::Request;
