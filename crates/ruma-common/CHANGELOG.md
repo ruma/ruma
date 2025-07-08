@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.15.4
+
 Bug fix:
 
 - Fix `serde::default_on_error` deserialization helper. It was working with
