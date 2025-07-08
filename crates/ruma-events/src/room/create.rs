@@ -236,6 +236,33 @@ mod tests {
     }
 
     #[test]
+    fn deserialize_valid_predecessor() {
+        let json = json!({
+            "m.federate": true,
+            "room_version": "11",
+            "predecessor": {
+                "room_id": "!room:localhost",
+                "event_id": "$eokpnkpn",
+            },
+        });
+
+        let content = from_json_value::<RoomCreateEventContent>(json).unwrap();
+        assert!(content.federate);
+        assert_eq!(content.room_version, RoomVersionId::V11);
+        assert_matches!(content.predecessor, Some(_));
+        assert_eq!(content.room_type, None);
+
+        let content = serde_json::from_str::<RoomCreateEventContent>(
+            r#"{"m.federate":true,"room_version":"11","predecessor":{"room_id":"!room:localhost","event_id":"$eokpnkpn"}}"#,
+        )
+        .unwrap();
+        assert!(content.federate);
+        assert_eq!(content.room_version, RoomVersionId::V11);
+        assert_matches!(content.predecessor, Some(_));
+        assert_eq!(content.room_type, None);
+    }
+
+    #[test]
     #[cfg(feature = "compat-lax-room-create-deser")]
     fn deserialize_invalid_predecessor() {
         let json = json!({
@@ -245,6 +272,15 @@ mod tests {
         });
 
         let content = from_json_value::<RoomCreateEventContent>(json).unwrap();
+        assert!(content.federate);
+        assert_eq!(content.room_version, RoomVersionId::V11);
+        assert_matches!(content.predecessor, None);
+        assert_eq!(content.room_type, None);
+
+        let content = serde_json::from_str::<RoomCreateEventContent>(
+            r#"{"m.federate":true,"room_version":"11","predecessor":"!room:localhost"}"#,
+        )
+        .unwrap();
         assert!(content.federate);
         assert_eq!(content.room_version, RoomVersionId::V11);
         assert_matches!(content.predecessor, None);
