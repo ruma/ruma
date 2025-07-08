@@ -57,6 +57,10 @@ Breaking changes:
 Bug fix:
 
 - Set the `disposition` of `RoomVersionRules::MSC2870` as unstable.
+- Fix `serde::default_on_error` deserialization helper. It was working with
+  `serde_json::from_value` but not other functions like
+  `serde_json::from_(str/slice)`. It now works with all 3 methods but is limited
+  to deserializing JSON.
 
 Improvements:
 

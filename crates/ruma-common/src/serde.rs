@@ -8,7 +8,7 @@
 use std::{fmt, marker::PhantomData};
 
 use serde::{
-    de::{self, SeqAccess, Visitor},
+    de::{self, DeserializeOwned, SeqAccess, Visitor},
     Deserialize, Deserializer,
 };
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
@@ -81,13 +81,23 @@ where
 
 /// Helper function for returning a default value if deserialization of the type fails.
 ///
+/// Assumes that the content being deserialized is JSON.
+///
 /// Used as `#[serde(deserialize_with = "default_on_error")]`.
 pub fn default_on_error<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
     D: Deserializer<'de>,
-    T: Deserialize<'de> + Default,
+    T: DeserializeOwned + Default,
 {
-    Ok(T::deserialize(deserializer).unwrap_or_else(|error| {
+    let value = match Box::<RawJsonValue>::deserialize(deserializer) {
+        Ok(value) => value,
+        Err(error) => {
+            debug!("deserialization error, using default value: {error}");
+            return Ok(T::default());
+        }
+    };
+
+    Ok(from_raw_json_value(&value).unwrap_or_else(|error: D::Error| {
         debug!("deserialization error, using default value: {error}");
         T::default()
     }))
