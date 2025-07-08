@@ -111,7 +111,7 @@ pub fn check_pdu_format(pdu: &CanonicalJsonObject, rules: &EventFormatRules) -> 
             return Err(format!(
                 "unexpected format of `depth` field in PDU: \
                  expected integer, got {value:?}"
-            ))
+            ));
         }
         None => return Err("missing `depth` field in PDU".to_owned()),
     }

@@ -479,8 +479,8 @@ fn check_room_power_levels(
         },
         |ev_type| {
             format!(
-            "sender does not have enough power to change the `{ev_type}` event type power level"
-        )
+                "sender does not have enough power to change the `{ev_type}` event type power level"
+            )
         },
     )?;
 
@@ -501,8 +501,8 @@ fn check_room_power_levels(
             },
             |key| {
                 format!(
-                "sender does not have enough power to change the `{key}` notification power level"
-            )
+                    "sender does not have enough power to change the `{key}` notification power level"
+                )
             },
         )?;
     }

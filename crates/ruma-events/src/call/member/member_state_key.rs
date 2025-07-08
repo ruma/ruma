@@ -156,7 +156,7 @@ impl FromStr for CallMemberStateKeyEnum {
                         error: err,
                         user_id: state_key.to_owned(),
                     }),
-                }
+                };
             }
             Some(suffix_idx) => {
                 (&state_key[..colon_idx + 1 + suffix_idx], &state_key[colon_idx + 2 + suffix_idx..])
@@ -191,7 +191,9 @@ pub enum KeyParseError {
     },
     /// Uses a leading underscore but no trailing device id. The part after the underscore is a
     /// valid user id.
-    #[error("uses a leading underscore but no trailing device id. The part after the underscore is a valid user id.")]
+    #[error(
+        "uses a leading underscore but no trailing device id. The part after the underscore is a valid user id."
+    )]
     LeadingUnderscoreNoDevice,
     /// Uses an empty device id. (UserId with trailing underscore)
     #[error("uses an empty device id. (UserId with trailing underscore)")]
