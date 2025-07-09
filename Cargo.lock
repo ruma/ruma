@@ -1737,7 +1737,7 @@ dependencies = [
 
 [[package]]
 name = "ruma"
-version = "0.12.4"
+version = "0.12.5"
 dependencies = [
  "assign",
  "js_int",
@@ -1794,7 +1794,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-common"
-version = "0.15.3"
+version = "0.15.4"
 dependencies = [
  "as_variant",
  "assert_matches2",
