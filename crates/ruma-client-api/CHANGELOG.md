@@ -21,6 +21,10 @@ Breaking changes:
 - Update the endpoint metadata definitions to use the new syntax for variables.
 - `SpaceHierarchyRoomsChunk` is now built around `RoomSummary`, and
   `SpaceHierarchyRoomsChunkInit` was removed.
+- `get_profile::v3::Response` has no public fields but stores custom fields. The
+  fields can be accessed with `.get()`, `.iter()` or `.into_iter()`.
+  `Response::new()` takes no arguments and creates an empty response. Fields can
+  be added using `.set()`, or the `FromIterator` and `Extend` implementations.
 
 Improvements:
 
@@ -28,6 +32,7 @@ Improvements:
   endpoints, the `server_name` query parameter is only serialized if the server
   doesn't advertise at least one version that supports the `via` query
   parameter. The former was removed in Matrix 1.14.
+- Add unstable support for extended profiles, as per MSC4133.
 
 # 0.20.4
 
