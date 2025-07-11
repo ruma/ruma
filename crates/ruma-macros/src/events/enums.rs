@@ -21,6 +21,7 @@ pub enum EventKind {
     RoomRedaction,
     HierarchySpaceChild,
     Decrypted,
+    Timeline,
 }
 
 impl EventKind {
@@ -31,7 +32,7 @@ impl EventKind {
 
     /// Whether this kind can be found in a room's timeline.
     pub fn is_timeline(self) -> bool {
-        matches!(self, Self::MessageLike | Self::RoomRedaction | Self::State)
+        matches!(self, Self::MessageLike | Self::RoomRedaction | Self::State | Self::Timeline)
     }
 
     /// Get the name of the event struct for this kind and the given variation.
@@ -85,7 +86,7 @@ impl EventKind {
                 &[EventVariation::None]
             }
             Self::EphemeralRoom => &[EventVariation::Sync],
-            Self::MessageLike => &[EventVariation::None, EventVariation::Sync],
+            Self::MessageLike | Self::Timeline => &[EventVariation::None, EventVariation::Sync],
             Self::State => &[
                 EventVariation::None,
                 EventVariation::Sync,
@@ -109,6 +110,7 @@ impl fmt::Display for EventKind {
             EventKind::RoomRedaction => write!(f, "RoomRedactionEvent"),
             EventKind::HierarchySpaceChild => write!(f, "HierarchySpaceChildEvent"),
             EventKind::Decrypted => unreachable!(),
+            EventKind::Timeline => write!(f, "TimelineEvent"),
         }
     }
 }
