@@ -46,6 +46,8 @@ Breaking changes:
   field is set to `None` to ignore it, as recommended in the spec.
 - `StaticEventContent` has a new associated type `IsPrefix` to identify event types where only the
   prefix is statically-known.
+- `AnyEphemeralRoomEvent` was removed. There is no reason to use it, only
+  `AnySyncEphemeralRoomEvent` can be received via `/sync`.
 
 Improvements:
 
