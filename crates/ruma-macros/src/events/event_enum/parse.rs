@@ -12,7 +12,7 @@ use syn::{
 };
 
 use crate::{
-    events::enums::{EventKind, EventKindVariation},
+    events::enums::{EventKind, EventVariation},
     util::m_prefix_name_to_type_name,
 };
 
@@ -349,7 +349,7 @@ pub enum EventEnumVariation {
     Initial,
 }
 
-impl From<EventEnumVariation> for EventKindVariation {
+impl From<EventEnumVariation> for EventVariation {
     fn from(v: EventEnumVariation) -> Self {
         match v {
             EventEnumVariation::None => Self::None,

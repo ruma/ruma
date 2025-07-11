@@ -12,7 +12,7 @@ use syn::{
 mod parse;
 
 use self::parse::{ContentAttrs, ContentMeta, EventContentKind, EventFieldMeta, EventTypeFragment};
-use super::enums::{EventKind, EventKindContentVariation, EventKindVariation};
+use super::enums::{EventContentVariation, EventKind, EventVariation};
 use crate::util::PrivateField;
 
 /// `EventContent` derive macro code generation.
@@ -122,7 +122,7 @@ pub fn expand_event_content(
         fields,
         &event_type,
         kind,
-        EventKindContentVariation::Original,
+        EventContentVariation::Original,
         event_type_fragment.as_ref(),
         state_key_type.as_ref(),
         unsigned_type,
@@ -223,7 +223,7 @@ fn generate_redacted_event_content<'a>(
         Some(kept_redacted_fields.iter()),
         event_type,
         kind,
-        EventKindContentVariation::Redacted,
+        EventContentVariation::Redacted,
         event_type_fragment,
         state_key_type,
         unsigned_type,
@@ -384,7 +384,7 @@ fn generate_possibly_redacted_event_content<'a>(
             Some(possibly_redacted_fields.iter()),
             event_type,
             EventKind::State.into(),
-            EventKindContentVariation::PossiblyRedacted,
+            EventContentVariation::PossiblyRedacted,
             event_type_fragment,
             state_key_type,
             unsigned_type,
@@ -417,7 +417,7 @@ fn generate_possibly_redacted_event_content<'a>(
             ident,
             event_type,
             EventKind::State.into(),
-            EventKindContentVariation::PossiblyRedacted,
+            EventContentVariation::PossiblyRedacted,
             event_type_fragment,
             state_key_type,
             ruma_events,
@@ -517,14 +517,14 @@ fn generate_event_type_aliases(
     })?;
 
     let type_aliases = [
-        EventKindVariation::None,
-        EventKindVariation::Sync,
-        EventKindVariation::Original,
-        EventKindVariation::OriginalSync,
-        EventKindVariation::Stripped,
-        EventKindVariation::Initial,
-        EventKindVariation::Redacted,
-        EventKindVariation::RedactedSync,
+        EventVariation::None,
+        EventVariation::Sync,
+        EventVariation::Original,
+        EventVariation::OriginalSync,
+        EventVariation::Stripped,
+        EventVariation::Initial,
+        EventVariation::Redacted,
+        EventVariation::RedactedSync,
     ]
     .iter()
     .filter_map(|&var| Some((var, kind.to_event_idents(var)?)))
@@ -533,16 +533,16 @@ fn generate_event_type_aliases(
             let ev_type = format_ident!("{var}{type_prefix}{ev_type_s}");
 
             let doc_text = match var {
-                EventKindVariation::None | EventKindVariation::Original => "",
-                EventKindVariation::Sync | EventKindVariation::OriginalSync => {
+                EventVariation::None | EventVariation::Original => "",
+                EventVariation::Sync | EventVariation::OriginalSync => {
                     " from a `sync_events` response"
                 }
-                EventKindVariation::Stripped => " from an invited room preview",
-                EventKindVariation::Redacted => " that has been redacted",
-                EventKindVariation::RedactedSync => {
+                EventVariation::Stripped => " from an invited room preview",
+                EventVariation::Redacted => " that has been redacted",
+                EventVariation::RedactedSync => {
                     " from a `sync_events` response that has been redacted"
                 }
-                EventKindVariation::Initial => " for creating a room",
+                EventVariation::Initial => " for creating a room",
             };
 
             let ev_type_doc = if type_prefix.is_empty() {
@@ -553,7 +553,7 @@ fn generate_event_type_aliases(
 
             let content_struct = if var.is_redacted() {
                 Cow::Owned(format_ident!("Redacted{ident}"))
-            } else if let EventKindVariation::Stripped = var {
+            } else if let EventVariation::Stripped = var {
                 Cow::Owned(format_ident!("PossiblyRedacted{ident}"))
             } else {
                 Cow::Borrowed(ident)
@@ -577,7 +577,7 @@ fn generate_event_content_impl<'a>(
     fields: Option<impl Iterator<Item = &'a Field>>,
     event_type: &LitStr,
     kind: EventContentKind,
-    variation: EventKindContentVariation,
+    variation: EventContentVariation,
     event_type_fragment: Option<&EventTypeFragment<'_>>,
     state_key_type: Option<&TokenStream>,
     unsigned_type: Option<TokenStream>,
@@ -598,7 +598,7 @@ fn generate_event_content_impl<'a>(
     );
 
     let static_state_event_content_impl =
-        (kind.is_state() && variation == EventKindContentVariation::Original).then(|| {
+        (kind.is_state() && variation == EventContentVariation::Original).then(|| {
             let possibly_redacted_ident = format_ident!("PossiblyRedacted{ident}");
 
             let unsigned_type = unsigned_type
@@ -688,7 +688,7 @@ fn generate_event_content_kind_trait_impl(
     ident: &Ident,
     event_type: &LitStr,
     kind: EventContentKind,
-    variation: EventKindContentVariation,
+    variation: EventContentVariation,
     event_type_fragment: Option<&EventTypeFragment<'_>>,
     state_key_type: Option<&TokenStream>,
     ruma_events: &TokenStream,

@@ -35,8 +35,8 @@ impl EventKind {
     }
 
     /// Get the name of the event struct for this kind and the given variation.
-    pub fn to_event_ident(self, var: EventKindVariation) -> syn::Result<Ident> {
-        use EventKindVariation as V;
+    pub fn to_event_ident(self, var: EventVariation) -> syn::Result<Ident> {
+        use EventVariation as V;
 
         match (self, var) {
             (_, V::None)
@@ -54,7 +54,7 @@ impl EventKind {
     }
 
     /// Get the name of the `Any*Event` enum for this kind and the given variation.
-    pub fn to_event_enum_ident(self, var: EventKindVariation) -> syn::Result<Ident> {
+    pub fn to_event_enum_ident(self, var: EventVariation) -> syn::Result<Ident> {
         Ok(format_ident!("Any{}", self.to_event_ident(var)?))
     }
 
@@ -74,7 +74,7 @@ impl EventKind {
     }
 
     /// Get the name of the `[variation][kind]Content` trait for this kind and the given variation.
-    pub fn to_content_kind_trait(self, variation: EventKindContentVariation) -> Ident {
+    pub fn to_content_kind_trait(self, variation: EventContentVariation) -> Ident {
         format_ident!("{variation}{self}Content")
     }
 }
@@ -126,7 +126,7 @@ impl Parse for EventKind {
 
 /// All the possible event struct variations.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum EventKindVariation {
+pub enum EventVariation {
     None,
     Sync,
     Original,
@@ -137,7 +137,7 @@ pub enum EventKindVariation {
     RedactedSync,
 }
 
-impl EventKindVariation {
+impl EventVariation {
     /// Whether this variation can contain an `event_id` (depending on the kind).
     pub fn has_event_id(self) -> bool {
         matches!(
@@ -166,30 +166,30 @@ impl EventKindVariation {
     /// Panics if this is not a "sync" variation.
     pub fn to_full(self) -> Self {
         match self {
-            EventKindVariation::Sync => EventKindVariation::None,
-            EventKindVariation::OriginalSync => EventKindVariation::Original,
-            EventKindVariation::RedactedSync => EventKindVariation::Redacted,
+            EventVariation::Sync => EventVariation::None,
+            EventVariation::OriginalSync => EventVariation::Original,
+            EventVariation::RedactedSync => EventVariation::Redacted,
             _ => panic!("No original (unredacted) form of {self:?}"),
         }
     }
 }
 
-impl fmt::Display for EventKindVariation {
+impl fmt::Display for EventVariation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            EventKindVariation::None => write!(f, ""),
-            EventKindVariation::Sync => write!(f, "Sync"),
-            EventKindVariation::Original => write!(f, "Original"),
-            EventKindVariation::OriginalSync => write!(f, "OriginalSync"),
-            EventKindVariation::Stripped => write!(f, "Stripped"),
-            EventKindVariation::Initial => write!(f, "Initial"),
-            EventKindVariation::Redacted => write!(f, "Redacted"),
-            EventKindVariation::RedactedSync => write!(f, "RedactedSync"),
+            EventVariation::None => write!(f, ""),
+            EventVariation::Sync => write!(f, "Sync"),
+            EventVariation::Original => write!(f, "Original"),
+            EventVariation::OriginalSync => write!(f, "OriginalSync"),
+            EventVariation::Stripped => write!(f, "Stripped"),
+            EventVariation::Initial => write!(f, "Initial"),
+            EventVariation::Redacted => write!(f, "Redacted"),
+            EventVariation::RedactedSync => write!(f, "RedactedSync"),
         }
     }
 }
 
-impl IdentFragment for EventKindVariation {
+impl IdentFragment for EventVariation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Display::fmt(self, f)
     }
@@ -197,18 +197,18 @@ impl IdentFragment for EventKindVariation {
 
 /// The possible variations of an event content type.
 #[derive(Clone, Copy, PartialEq)]
-pub enum EventKindContentVariation {
+pub enum EventContentVariation {
     Original,
     Redacted,
     PossiblyRedacted,
 }
 
-impl fmt::Display for EventKindContentVariation {
+impl fmt::Display for EventContentVariation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            EventKindContentVariation::Original => Ok(()),
-            EventKindContentVariation::Redacted => write!(f, "Redacted"),
-            EventKindContentVariation::PossiblyRedacted => write!(f, "PossiblyRedacted"),
+            EventContentVariation::Original => Ok(()),
+            EventContentVariation::Redacted => write!(f, "Redacted"),
+            EventContentVariation::PossiblyRedacted => write!(f, "PossiblyRedacted"),
         }
     }
 }

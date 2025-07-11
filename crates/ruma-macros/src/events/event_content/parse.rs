@@ -7,7 +7,7 @@ use syn::{
     Field, Ident, LitStr, Token, Type,
 };
 
-use crate::events::enums::{EventKind, EventKindContentVariation, EventKindVariation};
+use crate::events::enums::{EventContentVariation, EventKind, EventVariation};
 
 mod kw {
     // This `content` field is kept when the event is redacted.
@@ -369,10 +369,7 @@ impl EventContentKind {
     ///
     /// Returns a list of `(type_prefix, event_ident)` if the variation is supported for these
     /// kinds.
-    pub fn to_event_idents(
-        self,
-        variation: EventKindVariation,
-    ) -> Option<Vec<(&'static str, Ident)>> {
+    pub fn to_event_idents(self, variation: EventVariation) -> Option<Vec<(&'static str, Ident)>> {
         match self {
             Self::Single(event_kind) => {
                 event_kind.to_event_ident(variation).ok().map(|event_ident| vec![("", event_ident)])
@@ -401,7 +398,7 @@ impl EventContentKind {
     /// Returns a list of `(type_enum, event_content_trait)`.
     pub fn to_content_kind_enums_and_traits(
         self,
-        variation: EventKindContentVariation,
+        variation: EventContentVariation,
     ) -> Vec<(Ident, Ident)> {
         match self {
             Self::Single(event_kind) => {
