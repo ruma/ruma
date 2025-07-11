@@ -2,12 +2,14 @@
 
 use std::fmt;
 
-use proc_macro2::Span;
-use quote::{format_ident, IdentFragment};
+use proc_macro2::{Span, TokenStream};
+use quote::{format_ident, quote, IdentFragment, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
-    Ident,
+    Ident, LitStr,
 };
+
+use crate::util::m_prefix_name_to_type_name;
 
 /// All the possible event struct kinds.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord)]
@@ -230,5 +232,174 @@ impl fmt::Display for EventContentVariation {
             EventContentVariation::Redacted => write!(f, "Redacted"),
             EventContentVariation::PossiblyRedacted => write!(f, "PossiblyRedacted"),
         }
+    }
+}
+
+/// An event type.
+#[derive(Debug, Clone)]
+pub struct EventType {
+    source: LitStr,
+    is_prefix: bool,
+    value: String,
+}
+
+impl EventType {
+    /// Whether this event type is a prefix.
+    pub fn is_prefix(&self) -> bool {
+        self.is_prefix
+    }
+
+    /// Access the inner string of this event type.
+    pub fn as_str(&self) -> &str {
+        &self.value
+    }
+
+    /// Access the inner string of this event type and remove the final `*` if this is a prefix.
+    pub fn without_wildcard(&self) -> &str {
+        if self.is_prefix {
+            self.value.trim_end_matches('*')
+        } else {
+            &self.value
+        }
+    }
+
+    /// Whether this event type is stable.
+    ///
+    /// A stable event type starts with `m.`.
+    pub fn is_stable(&self) -> bool {
+        self.value.starts_with("m.")
+    }
+
+    /// Get the `match` arm representation of this event type.
+    pub fn as_match_arm(&self) -> TokenStream {
+        let ev_type = self.without_wildcard();
+
+        if self.is_prefix() {
+            quote! { t if t.starts_with(#ev_type) }
+        } else {
+            quote! { #ev_type }
+        }
+    }
+}
+
+impl PartialEq for EventType {
+    fn eq(&self, other: &Self) -> bool {
+        self.is_prefix == other.is_prefix && self.value == other.value
+    }
+}
+
+impl Eq for EventType {}
+
+impl From<LitStr> for EventType {
+    fn from(source: LitStr) -> Self {
+        let value = source.value();
+        Self { source, is_prefix: value.ends_with(".*"), value }
+    }
+}
+
+impl Parse for EventType {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        Ok(input.parse::<LitStr>()?.into())
+    }
+}
+
+impl fmt::Display for EventType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+impl ToTokens for EventType {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.source.to_tokens(tokens);
+    }
+}
+
+/// All the event types supported by an event.
+pub struct EventTypes {
+    pub ev_type: EventType,
+    pub aliases: Vec<EventType>,
+}
+
+impl EventTypes {
+    /// Try to construct an `EventTypes` from the given default event type and aliases.
+    ///
+    /// This performs the following validation on the event types:
+    ///
+    /// - `*` cannot be used anywhere in the event type but as a wildcard at the end.
+    /// - If one event type ends with `.*`, all event types must end with it.
+    pub fn try_from_parts(ev_type: EventType, aliases: Vec<EventType>) -> syn::Result<Self> {
+        if ev_type.without_wildcard().contains('*') {
+            return Err(syn::Error::new_spanned(
+                ev_type,
+                "event type may only contain `*` as part of a `.*` suffix",
+            ));
+        }
+
+        let is_prefix = ev_type.is_prefix();
+
+        for alias in &aliases {
+            if alias.without_wildcard().contains('*') {
+                return Err(syn::Error::new_spanned(
+                    alias,
+                    "alias may only contain `*` as part of a `.*` suffix",
+                ));
+            }
+
+            if alias.is_prefix() != is_prefix {
+                return Err(syn::Error::new_spanned(
+                    alias,
+                    "aliases should have the same `.*` suffix, or lack thereof, as the main event type",
+                ));
+            }
+        }
+
+        Ok(Self { ev_type, aliases })
+    }
+
+    /// Get an iterator over all the event types.
+    pub fn iter(&self) -> impl Iterator<Item = &EventType> {
+        std::iter::once(&self.ev_type).chain(&self.aliases)
+    }
+
+    /// Whether the default event type is a prefix.
+    ///
+    /// If one event type is a prefix, all event types are prefixes.
+    pub fn is_prefix(&self) -> bool {
+        self.ev_type.is_prefix
+    }
+
+    /// Get the stable event type, if any.
+    ///
+    /// A stable type is a type beginning with `m.`.
+    pub fn stable_type(&self) -> Option<&EventType> {
+        self.iter().find(|ev_type| ev_type.is_stable())
+    }
+
+    /// Get the main event type.
+    ///
+    /// It is the stable event type or the default event type as a fallback.
+    pub fn main_type(&self) -> &EventType {
+        self.stable_type().unwrap_or(&self.ev_type)
+    }
+
+    /// Get the type name for these event types.
+    ///
+    /// Returns an error if none of these types are the stable type.
+    pub fn as_event_ident(&self) -> syn::Result<Ident> {
+        let stable_type = self.stable_type().ok_or_else(|| {
+            syn::Error::new(
+                Span::call_site(),
+                format!(
+                    "A matrix event must declare a well-known type that starts with `m.` \
+                     either as the main type or as an alias, or must declare the ident that \
+                     should be used if it is only an unstable type, found main type `{}`",
+                    self.ev_type
+                ),
+            )
+        })?;
+
+        Ok(m_prefix_name_to_type_name(&stable_type.source)
+            .expect("we already checked that the event type is stable"))
     }
 }
