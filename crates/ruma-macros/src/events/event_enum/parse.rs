@@ -1,9 +1,9 @@
 //! Parsing helpers specific to the `event_enum!` macro.
 
-use std::{collections::BTreeMap, fmt};
+use std::collections::BTreeMap;
 
 use proc_macro2::{Span, TokenStream};
-use quote::{format_ident, quote, IdentFragment, ToTokens};
+use quote::{format_ident, quote, ToTokens};
 use syn::{
     braced,
     parse::{Parse, ParseStream},
@@ -141,11 +141,11 @@ impl EventEnumEntry {
     }
 
     /// Get or generate the path of the event type for this entry.
-    pub fn to_event_path(&self, kind: EventKind, var: EventEnumVariation) -> TokenStream {
+    pub fn to_event_path(&self, kind: EventKind, var: EventVariation) -> TokenStream {
         let path = &self.ev_path;
         let ident = self.ident().unwrap();
         let event_name = if kind == EventKind::ToDevice {
-            assert_eq!(var, EventEnumVariation::None);
+            assert_eq!(var, EventVariation::None);
             format_ident!("ToDevice{ident}Event")
         } else {
             let type_prefix = match kind {
@@ -337,36 +337,5 @@ impl EventEnumVariant {
     /// Generate the constructor for this variant, with the given prefix.
     pub fn ctor(&self, prefix: impl ToTokens) -> TokenStream {
         self.to_tokens(Some(prefix), false)
-    }
-}
-
-/// The possible variations of an event enum.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum EventEnumVariation {
-    None,
-    Sync,
-    Stripped,
-    Initial,
-}
-
-impl From<EventEnumVariation> for EventVariation {
-    fn from(v: EventEnumVariation) -> Self {
-        match v {
-            EventEnumVariation::None => Self::None,
-            EventEnumVariation::Sync => Self::Sync,
-            EventEnumVariation::Stripped => Self::Stripped,
-            EventEnumVariation::Initial => Self::Initial,
-        }
-    }
-}
-
-impl IdentFragment for EventEnumVariation {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            EventEnumVariation::None => write!(f, ""),
-            EventEnumVariation::Sync => write!(f, "Sync"),
-            EventEnumVariation::Stripped => write!(f, "Stripped"),
-            EventEnumVariation::Initial => write!(f, "Initial"),
-        }
     }
 }
