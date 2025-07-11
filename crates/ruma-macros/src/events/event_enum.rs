@@ -62,8 +62,6 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
 
 /// Generate `Any*Event(Content)` enums from `EventEnumDecl`.
 pub fn expand_event_kind_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
-    use EventVariation as V;
-
     let ruma_events = crate::import_ruma_events();
 
     let mut res = TokenStream::new();
@@ -81,41 +79,33 @@ pub fn expand_event_kind_enums(input: &EventEnumDecl) -> syn::Result<TokenStream
 
     res.extend(expand_content_enum(kind, events, docs, attrs, variants, ruma_events));
 
-    if !matches!(kind, EventKind::EphemeralRoom) {
-        res.extend(
-            expand_event_kind_enum(kind, V::None, events, docs, attrs, variants, ruma_events)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        );
+    let variations = kind.event_enum_variations();
+
+    if variations.is_empty() {
+        return Err(syn::Error::new(
+            Span::call_site(),
+            format!("The {kind:?} kind is not supported"),
+        ));
     }
 
-    if matches!(kind, EventKind::MessageLike | EventKind::State) {
-        res.extend(
-            expand_event_kind_enum(kind, V::Sync, events, docs, attrs, variants, ruma_events)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        );
-        res.extend(
-            expand_sync_from_into_full(kind, variants, ruma_events)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        );
-    }
+    let has_full = variations.contains(&EventVariation::None);
 
-    if matches!(kind, EventKind::EphemeralRoom) {
+    for var in variations {
         res.extend(
-            expand_event_kind_enum(kind, V::Sync, events, docs, attrs, variants, ruma_events)
+            expand_event_kind_enum(kind, *var, events, docs, attrs, variants, ruma_events)
                 .unwrap_or_else(syn::Error::into_compile_error),
         );
+
+        if var.is_sync() && has_full {
+            res.extend(
+                expand_sync_from_into_full(kind, variants, ruma_events)
+                    .unwrap_or_else(syn::Error::into_compile_error),
+            );
+        }
     }
 
     if matches!(kind, EventKind::State) {
         res.extend(expand_full_content_enum(kind, events, docs, attrs, variants, ruma_events));
-        res.extend(
-            expand_event_kind_enum(kind, V::Stripped, events, docs, attrs, variants, ruma_events)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        );
-        res.extend(
-            expand_event_kind_enum(kind, V::Initial, events, docs, attrs, variants, ruma_events)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        );
     }
 
     Ok(res)

@@ -77,6 +77,24 @@ impl EventKind {
     pub fn to_content_kind_trait(self, variation: EventContentVariation) -> Ident {
         format_ident!("{variation}{self}Content")
     }
+
+    /// Get the list of variations for an event enum for this kind.
+    pub fn event_enum_variations(self) -> &'static [EventVariation] {
+        match self {
+            Self::GlobalAccountData | Self::RoomAccountData | Self::ToDevice => {
+                &[EventVariation::None]
+            }
+            Self::EphemeralRoom => &[EventVariation::Sync],
+            Self::MessageLike => &[EventVariation::None, EventVariation::Sync],
+            Self::State => &[
+                EventVariation::None,
+                EventVariation::Sync,
+                EventVariation::Stripped,
+                EventVariation::Initial,
+            ],
+            Self::RoomRedaction | Self::HierarchySpaceChild | Self::Decrypted => &[],
+        }
+    }
 }
 
 impl fmt::Display for EventKind {
