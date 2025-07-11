@@ -7,7 +7,7 @@ use ruma_events::{
         message::{MessageType, RoomMessageEventContent},
         power_levels::RoomPowerLevelsEventContent,
     },
-    AnyEphemeralRoomEvent, AnyMessageLikeEvent, AnyStateEvent, AnySyncMessageLikeEvent,
+    AnyMessageLikeEvent, AnyStateEvent, AnySyncEphemeralRoomEvent, AnySyncMessageLikeEvent,
     AnySyncStateEvent, AnySyncTimelineEvent, AnyTimelineEvent, EphemeralRoomEventType,
     GlobalAccountDataEventType, MessageLikeEvent, MessageLikeEventType, OriginalMessageLikeEvent,
     OriginalStateEvent, OriginalSyncMessageLikeEvent, OriginalSyncStateEvent,
@@ -268,15 +268,14 @@ fn ephemeral_event_deserialization() {
                 "@bob:example.com"
             ]
         },
-        "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
         "type": "m.typing"
     });
 
     assert_matches!(
-        from_json_value::<AnyEphemeralRoomEvent>(json_data),
-        Ok(ephem @ AnyEphemeralRoomEvent::Typing(_))
+        from_json_value::<AnySyncEphemeralRoomEvent>(json_data),
+        Ok(AnySyncEphemeralRoomEvent::Typing(typing))
     );
-    assert_eq!(ephem.room_id(), "!jEsUZKDJdhlrceRyVU:example.org");
+    assert_eq!(typing.content.user_ids.len(), 2);
 }
 
 #[test]

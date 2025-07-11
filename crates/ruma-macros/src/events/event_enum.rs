@@ -56,10 +56,13 @@ pub fn expand_event_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
     let ruma_events = &ruma_events;
 
     res.extend(expand_content_enum(kind, events, docs, attrs, variants, ruma_events));
-    res.extend(
-        expand_event_enum(kind, V::None, events, docs, attrs, variants, ruma_events)
-            .unwrap_or_else(syn::Error::into_compile_error),
-    );
+
+    if !matches!(kind, EventKind::EphemeralRoom) {
+        res.extend(
+            expand_event_enum(kind, V::None, events, docs, attrs, variants, ruma_events)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+    }
 
     if matches!(kind, EventKind::MessageLike | EventKind::State) {
         res.extend(
