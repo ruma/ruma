@@ -5,7 +5,7 @@ use quote::quote;
 use syn::Attribute;
 
 use super::{expand_from_impl, EventEnumEntry, EventEnumVariant};
-use crate::events::enums::{EventContentVariation, EventKind};
+use crate::events::enums::{EventContentVariation, EventKind, EventType};
 
 /// Generate an `Any*EventContent` enum.
 pub fn expand_content_enum(
@@ -45,24 +45,14 @@ pub fn expand_content_enum(
     let event_type_match_arms: TokenStream = events
         .iter()
         .map(|event| {
-            let variant = event.to_variant()?;
+            let variant = event.to_variant();
             let variant_attrs = {
                 let attrs = &variant.attrs;
                 quote! { #(#attrs)* }
             };
             let self_variant = variant.ctor(quote! { Self });
 
-            let ev_types = event.aliases.iter().chain([&event.ev_type]).map(|ev_type| {
-                if event.has_type_fragment() {
-                    let ev_type = ev_type.value();
-                    let prefix = ev_type
-                        .strip_suffix('*')
-                        .expect("event type with type fragment must end with *");
-                    quote! { t if t.starts_with(#prefix) }
-                } else {
-                    quote! { #ev_type }
-                }
-            });
+            let ev_types = event.types.iter().map(EventType::as_match_arm);
 
             let deserialize_content = if event.has_type_fragment() {
                 // If the event has a type fragment, then it implements EventContentFromType itself;
@@ -80,14 +70,14 @@ pub fn expand_content_enum(
                 }
             };
 
-            Ok(quote! {
+            quote! {
                 #variant_attrs #(#ev_types)|* => {
                     let content = #deserialize_content;
                     Ok(#self_variant(content))
                 },
-            })
+            }
         })
-        .collect::<syn::Result<_>>()?;
+        .collect();
 
     Ok(quote! {
         #( #attrs )*

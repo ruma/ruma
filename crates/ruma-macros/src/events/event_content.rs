@@ -5,15 +5,13 @@ use std::borrow::Cow;
 
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
-use syn::{
-    parse_quote, punctuated::Punctuated, DeriveInput, Field, Ident, LitStr, Meta, Token, Type,
-};
+use syn::{parse_quote, punctuated::Punctuated, DeriveInput, Field, Ident, Meta, Token, Type};
 
 mod parse;
 
 use self::parse::{ContentAttrs, ContentMeta, EventContentKind, EventFieldMeta, EventTypeFragment};
-use super::enums::{EventContentVariation, EventKind, EventVariation};
-use crate::util::PrivateField;
+use super::enums::{EventContentVariation, EventKind, EventTypes, EventVariation};
+use crate::{events::enums::EventType, util::PrivateField};
 
 /// `EventContent` derive macro code generation.
 pub fn expand_event_content(
@@ -32,11 +30,10 @@ pub fn expand_event_content(
         })?;
 
     let ContentAttrs {
-        event_type,
+        types,
         kind,
         state_key_type,
         unsigned_type,
-        aliases,
         is_custom_redacted,
         is_custom_possibly_redacted,
         has_without_relation,
@@ -71,7 +68,7 @@ pub fn expand_event_content(
         }
     };
 
-    let event_type_fragment = EventTypeFragment::try_from_parts(&event_type, fields.clone())?;
+    let event_type_fragment = EventTypeFragment::try_from_parts(&types.ev_type, fields.clone())?;
 
     // We only generate redacted content structs for state and message-like events
     let redacted_event_content = kind.generate_redacted(is_custom_redacted).then(|| {
@@ -79,12 +76,11 @@ pub fn expand_event_content(
             ident,
             &input.vis,
             fields.clone().unwrap(),
-            &event_type,
+            &types,
             kind,
             event_type_fragment.as_ref(),
             state_key_type.as_ref(),
             unsigned_type.clone(),
-            &aliases,
             ruma_events,
         )
         .unwrap_or_else(syn::Error::into_compile_error)
@@ -97,11 +93,10 @@ pub fn expand_event_content(
                 ident,
                 &input.vis,
                 fields.clone().unwrap(),
-                &event_type,
+                &types,
                 event_type_fragment.as_ref(),
                 state_key_type.as_ref(),
                 unsigned_type.clone(),
-                &aliases,
                 ruma_events,
             )
             .unwrap_or_else(syn::Error::into_compile_error)
@@ -120,25 +115,18 @@ pub fn expand_event_content(
     let event_content_impl = generate_event_content_impl(
         ident,
         fields,
-        &event_type,
+        &types,
         kind,
         EventContentVariation::Original,
         event_type_fragment.as_ref(),
         state_key_type.as_ref(),
         unsigned_type,
-        &aliases,
         ruma_events,
     )
     .unwrap_or_else(syn::Error::into_compile_error);
-    let static_event_content_impl = generate_static_event_content_impl(
-        ident,
-        &event_type,
-        event_type_fragment.as_ref(),
-        ruma_events,
-    );
-    let type_aliases =
-        generate_event_type_aliases(kind, ident, &input.vis, &event_type.value(), ruma_events)
-            .unwrap_or_else(syn::Error::into_compile_error);
+    let static_event_content_impl = generate_static_event_content_impl(ident, &types, ruma_events);
+    let type_aliases = generate_event_type_aliases(kind, ident, &input.vis, &types, ruma_events)
+        .unwrap_or_else(syn::Error::into_compile_error);
 
     Ok(quote! {
         #redacted_event_content
@@ -155,16 +143,15 @@ fn generate_redacted_event_content<'a>(
     ident: &Ident,
     vis: &syn::Visibility,
     fields: impl Iterator<Item = &'a Field>,
-    event_type: &LitStr,
+    types: &EventTypes,
     kind: EventContentKind,
     event_type_fragment: Option<&EventTypeFragment<'_>>,
     state_key_type: Option<&TokenStream>,
     unsigned_type: Option<TokenStream>,
-    aliases: &[LitStr],
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
     assert!(
-        !event_type.value().contains('*'),
+        !types.is_prefix(),
         "Event type shouldn't contain a `*`, this should have been checked previously"
     );
 
@@ -221,23 +208,18 @@ fn generate_redacted_event_content<'a>(
     let redacted_event_content = generate_event_content_impl(
         &redacted_ident,
         Some(kept_redacted_fields.iter()),
-        event_type,
+        types,
         kind,
         EventContentVariation::Redacted,
         event_type_fragment,
         state_key_type,
         unsigned_type,
-        aliases,
         ruma_events,
     )
     .unwrap_or_else(syn::Error::into_compile_error);
 
-    let static_event_content_impl = generate_static_event_content_impl(
-        &redacted_ident,
-        event_type,
-        event_type_fragment,
-        ruma_events,
-    );
+    let static_event_content_impl =
+        generate_static_event_content_impl(&redacted_ident, types, ruma_events);
 
     Ok(quote! {
         // this is the non redacted event content's impl
@@ -272,15 +254,14 @@ fn generate_possibly_redacted_event_content<'a>(
     ident: &Ident,
     vis: &syn::Visibility,
     fields: impl Iterator<Item = &'a Field>,
-    event_type: &LitStr,
+    types: &EventTypes,
     event_type_fragment: Option<&EventTypeFragment<'_>>,
     state_key_type: Option<&TokenStream>,
     unsigned_type: Option<TokenStream>,
-    aliases: &[LitStr],
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
     assert!(
-        !event_type.value().contains('*'),
+        !types.is_prefix(),
         "Event type shouldn't contain a `*`, this should have been checked previously"
     );
 
@@ -382,23 +363,18 @@ fn generate_possibly_redacted_event_content<'a>(
         let possibly_redacted_event_content = generate_event_content_impl(
             &possibly_redacted_ident,
             Some(possibly_redacted_fields.iter()),
-            event_type,
+            types,
             EventKind::State.into(),
             EventContentVariation::PossiblyRedacted,
             event_type_fragment,
             state_key_type,
             unsigned_type,
-            aliases,
             ruma_events,
         )
         .unwrap_or_else(syn::Error::into_compile_error);
 
-        let static_event_content_impl = generate_static_event_content_impl(
-            &possibly_redacted_ident,
-            event_type,
-            event_type_fragment,
-            ruma_events,
-        );
+        let static_event_content_impl =
+            generate_static_event_content_impl(&possibly_redacted_ident, types, ruma_events);
 
         Ok(quote! {
             #[doc = #doc]
@@ -415,7 +391,7 @@ fn generate_possibly_redacted_event_content<'a>(
     } else {
         let event_content_kind_trait_impl = generate_event_content_kind_trait_impl(
             ident,
-            event_type,
+            types,
             EventKind::State.into(),
             EventContentVariation::PossiblyRedacted,
             event_type_fragment,
@@ -503,7 +479,7 @@ fn generate_event_type_aliases(
     kind: EventContentKind,
     ident: &Ident,
     vis: &syn::Visibility,
-    event_type: &str,
+    types: &EventTypes,
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
     // The redaction module has its own event types.
@@ -511,6 +487,7 @@ fn generate_event_type_aliases(
         return Ok(quote! {});
     }
 
+    let event_type = &types.ev_type;
     let ident_s = ident.to_string();
     let ev_type_s = ident_s.strip_suffix("Content").ok_or_else(|| {
         syn::Error::new_spanned(ident, "Expected content struct name ending in `Content`")
@@ -575,13 +552,12 @@ fn generate_event_type_aliases(
 fn generate_event_content_impl<'a>(
     ident: &Ident,
     fields: Option<impl Iterator<Item = &'a Field>>,
-    event_type: &LitStr,
+    types: &EventTypes,
     kind: EventContentKind,
     variation: EventContentVariation,
     event_type_fragment: Option<&EventTypeFragment<'_>>,
     state_key_type: Option<&TokenStream>,
     unsigned_type: Option<TokenStream>,
-    aliases: &[LitStr],
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let serde = quote! { #ruma_events::exports::serde };
@@ -589,7 +565,7 @@ fn generate_event_content_impl<'a>(
 
     let event_content_kind_trait_impl = generate_event_content_kind_trait_impl(
         ident,
-        event_type,
+        types,
         kind,
         variation,
         event_type_fragment,
@@ -613,17 +589,8 @@ fn generate_event_content_impl<'a>(
             }
         });
 
-    let event_types = aliases.iter().chain([event_type]);
-
-    let event_content_from_type_impl = event_type_fragment.map(|type_fragment| {
-        let type_fragment_field = type_fragment.field;
-        let type_prefixes = event_types.map(|ev_type| {
-            ev_type
-                .value()
-                .strip_suffix('*')
-                .expect("aliases have already been checked to have the same suffix")
-                .to_owned()
-        });
+    let event_content_from_type_impl = event_type_fragment.map(|type_fragment_field| {
+        let type_prefixes = types.iter().map(EventType::without_wildcard);
         let type_prefixes = quote! {
             [#(#type_prefixes,)*]
         };
@@ -686,22 +653,22 @@ fn generate_event_content_impl<'a>(
 /// Generate the `*EventContent` trait implementation of the type.
 fn generate_event_content_kind_trait_impl(
     ident: &Ident,
-    event_type: &LitStr,
+    types: &EventTypes,
     kind: EventContentKind,
     variation: EventContentVariation,
     event_type_fragment: Option<&EventTypeFragment<'_>>,
     state_key_type: Option<&TokenStream>,
     ruma_events: &TokenStream,
 ) -> TokenStream {
-    let event_type_fn_impl = match &event_type_fragment {
-        Some(EventTypeFragment { prefix, field }) => {
-            let format = prefix.to_owned() + "{}";
+    let event_type = types.ev_type.without_wildcard();
+    let event_type_fn_impl = if let Some(field) = event_type_fragment {
+        let format = event_type.to_owned() + "{}";
 
-            quote! {
-                ::std::convert::From::from(::std::format!(#format, self.#field))
-            }
+        quote! {
+            ::std::convert::From::from(::std::format!(#format, self.#field))
         }
-        None => quote! { ::std::convert::From::from(#event_type) },
+    } else {
+        quote! { ::std::convert::From::from(#event_type) }
     };
 
     let state_key = kind.is_state().then(|| {
@@ -732,16 +699,16 @@ fn generate_event_content_kind_trait_impl(
 /// Generate the `StaticEventContent` trait implementation of the type.
 fn generate_static_event_content_impl(
     ident: &Ident,
-    event_type: &LitStr,
-    event_type_fragment: Option<&EventTypeFragment<'_>>,
+    types: &EventTypes,
     ruma_events: &TokenStream,
 ) -> TokenStream {
-    let (static_event_type, is_prefix) = match event_type_fragment {
-        Some(event_type_fragment) => {
-            let prefix = &event_type_fragment.prefix;
-            (quote! { #prefix }, quote! { #ruma_events::True })
-        }
-        None => (quote! { #event_type }, quote! { #ruma_events::False }),
+    let event_type = types.ev_type.without_wildcard();
+    let static_event_type = quote! { #event_type };
+
+    let is_prefix = if types.is_prefix() {
+        quote! { #ruma_events::True }
+    } else {
+        quote! { #ruma_events::False }
     };
 
     quote! {

@@ -14,7 +14,7 @@ use self::{
     event_type::expand_event_type_enums,
     parse::{EventEnumDecl, EventEnumEntry, EventEnumVariant},
 };
-use super::enums::{EventContentVariation, EventKind, EventVariation};
+use super::enums::{EventContentVariation, EventKind, EventType, EventVariation};
 use crate::import_ruma_common;
 
 pub(crate) fn is_non_stripped_room_event(kind: EventKind, var: EventVariation) -> bool {
@@ -69,8 +69,7 @@ pub fn expand_event_kind_enums(input: &EventEnumDecl) -> syn::Result<TokenStream
     let kind = input.kind;
     let attrs = &input.attrs;
     let docs: Vec<_> = input.events.iter().map(EventEnumEntry::docs).collect();
-    let variants: Vec<_> =
-        input.events.iter().map(EventEnumEntry::to_variant).collect::<syn::Result<_>>()?;
+    let variants: Vec<_> = input.events.iter().map(EventEnumEntry::to_variant).collect();
 
     let events = &input.events;
     let docs = &docs;
@@ -175,34 +174,24 @@ fn expand_deserialize_impl(
     let match_arms: TokenStream = events
         .iter()
         .map(|event| {
-            let variant = event.to_variant()?;
+            let variant = event.to_variant();
             let variant_attrs = {
                 let attrs = &variant.attrs;
                 quote! { #(#attrs)* }
             };
             let self_variant = variant.ctor(quote! { Self });
             let content = event.to_event_path(kind, var);
-            let ev_types = event.aliases.iter().chain([&event.ev_type]).map(|ev_type| {
-                if event.has_type_fragment() {
-                    let ev_type = ev_type.value();
-                    let prefix = ev_type
-                        .strip_suffix('*')
-                        .expect("event type with type fragment must end with *");
-                    quote! { t if t.starts_with(#prefix) }
-                } else {
-                    quote! { #ev_type }
-                }
-            });
+            let ev_types = event.types.iter().map(EventType::as_match_arm);
 
-            Ok(quote! {
+            quote! {
                 #variant_attrs #(#ev_types)|* => {
                     let event = #serde_json::from_str::<#content>(json.get())
                         .map_err(D::Error::custom)?;
                     Ok(#self_variant(event))
                 },
-            })
+            }
         })
-        .collect::<syn::Result<_>>()?;
+        .collect();
 
     Ok(quote! {
         #[allow(unused_qualifications)]

@@ -4,10 +4,12 @@ use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
-    Field, Ident, LitStr, Token, Type,
+    Field, Ident, Token, Type,
 };
 
-use crate::events::enums::{EventContentVariation, EventKind, EventVariation};
+use crate::events::enums::{
+    EventContentVariation, EventKind, EventType, EventTypes, EventVariation,
+};
 
 mod kw {
     // This `content` field is kept when the event is redacted.
@@ -59,13 +61,13 @@ impl Parse for EventFieldMeta {
 
 #[derive(Default)]
 pub struct ContentMeta {
-    event_type: Option<LitStr>,
+    event_type: Option<EventType>,
     kind: Option<EventContentKind>,
     custom_redacted: Option<kw::custom_redacted>,
     custom_possibly_redacted: Option<kw::custom_possibly_redacted>,
     state_key_type: Option<Box<Type>>,
     unsigned_type: Option<Box<Type>>,
-    aliases: Vec<LitStr>,
+    aliases: Vec<EventType>,
     without_relation: Option<kw::without_relation>,
 }
 
@@ -163,11 +165,10 @@ impl Parse for ContentMeta {
 }
 
 pub struct ContentAttrs {
-    pub event_type: LitStr,
+    pub types: EventTypes,
     pub kind: EventContentKind,
     pub state_key_type: Option<TokenStream>,
     pub unsigned_type: Option<TokenStream>,
-    pub aliases: Vec<LitStr>,
     pub is_custom_redacted: bool,
     pub is_custom_possibly_redacted: bool,
     pub has_without_relation: bool,
@@ -228,40 +229,22 @@ impl TryFrom<ContentMeta> for ContentAttrs {
 
         let unsigned_type = unsigned_type.map(|ty| quote! { #ty });
 
-        let event_type_s = event_type.value();
-        let prefix = event_type_s.strip_suffix(".*");
+        let types = EventTypes::try_from_parts(event_type, aliases)?;
 
-        if prefix.unwrap_or(&event_type_s).contains('*') {
+        if types.is_prefix() && !kind.is_account_data() {
             return Err(syn::Error::new_spanned(
-                event_type,
-                "event type may only contain `*` as part of a `.*` suffix",
-            ));
-        }
-
-        if prefix.is_some() && !kind.is_account_data() {
-            return Err(syn::Error::new_spanned(
-                event_type,
+                types.ev_type,
                 "only account data events may contain a `.*` suffix",
             ));
-        }
-
-        for alias in &aliases {
-            if alias.value().ends_with(".*") != prefix.is_some() {
-                return Err(syn::Error::new_spanned(
-                    alias,
-                    "aliases should have the same `.*` suffix, or lack thereof, as the main event type",
-                ));
-            }
         }
 
         let has_without_relation = without_relation.is_some();
 
         Ok(Self {
-            event_type,
+            types,
             kind,
             state_key_type,
             unsigned_type,
-            aliases,
             is_custom_redacted,
             is_custom_possibly_redacted,
             has_without_relation,
@@ -269,11 +252,8 @@ impl TryFrom<ContentMeta> for ContentAttrs {
     }
 }
 
-/// Data about the type fragment of an event content with a type that ends with `.*`.
-pub struct EventTypeFragment<'a> {
-    pub prefix: String,
-    pub field: &'a Ident,
-}
+/// Field of the type fragment of an event content with a type that ends with `.*`.
+pub struct EventTypeFragment<'a>(pub &'a Ident);
 
 impl<'a> EventTypeFragment<'a> {
     /// Try to construct an `EventTypeFragment` from the given data.
@@ -282,23 +262,23 @@ impl<'a> EventTypeFragment<'a> {
     /// event type contains a `*` suffix and the type fragment field was found, and `Err(_)` if
     /// the event type contains a `*` suffix and the type fragment field was NOT found.
     pub fn try_from_parts(
-        event_type: &LitStr,
+        event_type: &EventType,
         mut fields: Option<impl Iterator<Item = &'a Field>>,
     ) -> syn::Result<Option<Self>> {
-        let event_type_s = event_type.value();
-
-        let Some(prefix) = event_type_s.strip_suffix('*') else {
-            return Ok(None);
-        };
+        let is_prefix = event_type.is_prefix();
 
         let Some(fields) = &mut fields else {
-            return Err(syn::Error::new_spanned(
-                event_type,
-                "event type with a `.*` suffix is required to be a struct",
-            ));
+            if is_prefix {
+                return Err(syn::Error::new_spanned(
+                    event_type,
+                    "event type with a `.*` suffix is required to be a struct",
+                ));
+            } else {
+                return Ok(None);
+            }
         };
 
-        let field = fields
+        let Some(field) = fields
             .find_map(|f| {
                 f.attrs.iter().filter(|a| a.path().is_ident("ruma_event")).find_map(|attr| {
                     match attr.parse_args() {
@@ -309,18 +289,32 @@ impl<'a> EventTypeFragment<'a> {
                 })
             })
             .transpose()?
-            .ok_or_else(|| {
-                syn::Error::new_spanned(
+        else {
+            if is_prefix {
+                return Err(syn::Error::new_spanned(
                     event_type,
                     "event type with a `.*` suffix requires there to be a \
                      `#[ruma_event(type_fragment)]` field",
-                )
-            })?
-            .ident
-            .as_ref()
-            .expect("type fragment field needs to have a name");
+                ));
+            } else {
+                return Ok(None);
+            }
+        };
 
-        Ok(Some(Self { prefix: prefix.to_owned(), field }))
+        if !is_prefix {
+            return Err(syn::Error::new_spanned(
+                field,
+                "`#[ruma_event(type_fragment)]` only works with an event type with a `.*` suffix",
+            ));
+        }
+
+        Ok(Some(Self(field.ident.as_ref().expect("type fragment field needs to have a name"))))
+    }
+}
+
+impl<'a> ToTokens for EventTypeFragment<'a> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.0.to_tokens(tokens);
     }
 }
 
