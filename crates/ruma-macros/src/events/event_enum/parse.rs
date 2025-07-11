@@ -360,22 +360,6 @@ impl From<EventEnumVariation> for EventVariation {
     }
 }
 
-impl EventEnumVariation {
-    pub fn to_sync(self) -> Self {
-        match self {
-            EventEnumVariation::None => EventEnumVariation::Sync,
-            _ => panic!("No sync form of {self:?}"),
-        }
-    }
-
-    pub fn to_full(self) -> Self {
-        match self {
-            EventEnumVariation::Sync => EventEnumVariation::None,
-            _ => panic!("No full form of {self:?}"),
-        }
-    }
-}
-
 impl IdentFragment for EventEnumVariation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
