@@ -5,7 +5,7 @@ use quote::quote;
 use syn::Attribute;
 
 use super::{expand_from_impl, EventEnumEntry, EventEnumVariant};
-use crate::events::enums::{EventKind, EventKindContentVariation};
+use crate::events::enums::{EventContentVariation, EventKind};
 
 /// Generate an `Any*EventContent` enum.
 pub fn expand_content_enum(
@@ -28,8 +28,7 @@ pub fn expand_content_enum(
     let variant_decls = variants.iter().map(|v| v.decl()).collect::<Vec<_>>();
     let variant_arms = variants.iter().map(|v| v.match_arm(quote! { Self })).collect::<Vec<_>>();
 
-    let event_content_kind_trait_name =
-        kind.to_content_kind_trait(EventKindContentVariation::Original);
+    let event_content_kind_trait_name = kind.to_content_kind_trait(EventContentVariation::Original);
     let state_event_content_impl = (kind == EventKind::State).then(|| {
         quote! {
             type StateKey = String;
