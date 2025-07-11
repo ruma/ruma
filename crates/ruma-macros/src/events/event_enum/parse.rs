@@ -176,7 +176,7 @@ impl EventEnumEntry {
     }
 
     /// Generate the docs for this entry.
-    pub fn docs(&self) -> syn::Result<TokenStream> {
+    pub fn docs(&self) -> TokenStream {
         let main_name = self.stable_name().unwrap_or(&self.ev_type);
 
         let mut doc = quote! {
@@ -221,7 +221,7 @@ impl EventEnumEntry {
             }
         }
 
-        Ok(doc)
+        doc
     }
 }
 
