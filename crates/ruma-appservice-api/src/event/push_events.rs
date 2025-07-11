@@ -85,7 +85,7 @@ pub mod v1 {
 
         /// A list of ephemeral data.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub ephemeral: Vec<EphemeralData>,
+        pub ephemeral: Vec<Raw<EphemeralData>>,
 
         /// A list of to-device messages.
         #[cfg(feature = "unstable-msc4203")]
