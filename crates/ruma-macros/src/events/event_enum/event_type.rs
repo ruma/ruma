@@ -1,10 +1,14 @@
+//! Functions to generate `*EventType` enums.
+
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::Ident;
 
-use super::event_parse::{EventEnumEntry, EventEnumInput, EventKind};
+use super::{EventEnumEntry, EventEnumInput};
+use crate::events::enums::EventKind;
 
-pub fn expand_event_type_enum(
+/// Generate the `*EventType` enums.
+pub fn expand_event_type_enums(
     input: EventEnumInput,
     ruma_events: TokenStream,
 ) -> syn::Result<TokenStream> {
@@ -67,6 +71,7 @@ pub fn expand_event_type_enum(
     Ok(res)
 }
 
+/// Generate an `*EventType` enum.
 fn generate_enum(
     ident: &str,
     input: &[&Vec<EventEnumEntry>],
