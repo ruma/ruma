@@ -15,7 +15,7 @@ use self::{
     parse::{EventEnumDecl, EventEnumEntry, EventEnumVariant, EventEnumVariation},
 };
 use super::enums::{EventContentVariation, EventKind};
-use crate::import_ruma_common;
+use crate::{events::enums::EventVariation, import_ruma_common};
 
 pub(crate) fn is_non_stripped_room_event(kind: EventKind, var: EventEnumVariation) -> bool {
     matches!(kind, EventKind::MessageLike | EventKind::State)
@@ -94,11 +94,7 @@ pub fn expand_event_kind_enums(input: &EventEnumDecl) -> syn::Result<TokenStream
                 .unwrap_or_else(syn::Error::into_compile_error),
         );
         res.extend(
-            expand_from_full_event(kind, V::None, variants)
-                .unwrap_or_else(syn::Error::into_compile_error),
-        );
-        res.extend(
-            expand_into_full_event(kind, V::Sync, variants, ruma_events)
+            expand_sync_from_into_full(kind, variants, ruma_events)
                 .unwrap_or_else(syn::Error::into_compile_error),
         );
     }
@@ -268,61 +264,48 @@ fn expand_from_impl(
     quote! { #( #from_impls )* }
 }
 
-/// Implement `From<Any*Event>` for an `AnySync*Event` enum.
-fn expand_from_full_event(
+/// Implement `From<Any*Event>` and `.into_full_event()` for an `AnySync*Event` enum.
+fn expand_sync_from_into_full(
     kind: EventKind,
-    var: EventEnumVariation,
-    variants: &[EventEnumVariant],
-) -> syn::Result<TokenStream> {
-    let ident = kind.to_event_enum_ident(var.into())?;
-    let sync = kind.to_event_enum_ident(var.to_sync().into())?;
-
-    let ident_variants = variants.iter().map(|v| v.match_arm(&ident));
-    let self_variants = variants.iter().map(|v| v.ctor(quote! { Self }));
-
-    Ok(quote! {
-        #[automatically_derived]
-        impl ::std::convert::From<#ident> for #sync {
-            fn from(event: #ident) -> Self {
-                match event {
-                    #(
-                        #ident_variants(event) => {
-                            #self_variants(::std::convert::From::from(event))
-                        },
-                    )*
-                    #ident::_Custom(event) => {
-                        Self::_Custom(::std::convert::From::from(event))
-                    },
-                }
-            }
-        }
-    })
-}
-
-/// Implement `.into_full_event()` for an `AnySync*Event` enum.
-fn expand_into_full_event(
-    kind: EventKind,
-    var: EventEnumVariation,
     variants: &[EventEnumVariant],
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let ruma_common = quote! { #ruma_events::exports::ruma_common };
 
-    let ident = kind.to_event_enum_ident(var.into())?;
-    let full = kind.to_event_enum_ident(var.to_full().into())?;
+    let sync = kind.to_event_enum_ident(EventVariation::Sync)?;
+    let full = kind.to_event_enum_ident(EventVariation::None)?;
+    let self_ident = quote! { Self };
 
-    let self_variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
-    let full_variants = variants.iter().map(|v| v.ctor(&full));
+    let self_match_variants = variants.iter().map(|v| v.match_arm(&self_ident));
+    let self_ctor_variants = variants.iter().map(|v| v.ctor(&self_ident));
+    let full_match_variants = variants.iter().map(|v| v.match_arm(&full));
+    let full_ctor_variants = variants.iter().map(|v| v.ctor(&full));
 
     Ok(quote! {
         #[automatically_derived]
-        impl #ident {
+        impl ::std::convert::From<#full> for #sync {
+            fn from(event: #full) -> Self {
+                match event {
+                    #(
+                        #full_match_variants(event) => {
+                            #self_ctor_variants(::std::convert::From::from(event))
+                        },
+                    )*
+                    #full::_Custom(event) => {
+                        Self::_Custom(::std::convert::From::from(event))
+                    },
+                }
+            }
+        }
+
+        #[automatically_derived]
+        impl #sync {
             /// Convert this sync event into a full event (one with a `room_id` field).
             pub fn into_full_event(self, room_id: #ruma_common::OwnedRoomId) -> #full {
                 match self {
                     #(
-                        #self_variants(event) => {
-                            #full_variants(event.into_full_event(room_id))
+                        #self_match_variants(event) => {
+                            #full_ctor_variants(event.into_full_event(room_id))
                         },
                     )*
                     Self::_Custom(event) => {
