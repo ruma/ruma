@@ -68,7 +68,7 @@ pub fn expand_event_kind_enums(input: &EventEnumDecl) -> syn::Result<TokenStream
 
     let kind = input.kind;
     let attrs = &input.attrs;
-    let docs: Vec<_> = input.events.iter().map(EventEnumEntry::docs).collect::<syn::Result<_>>()?;
+    let docs: Vec<_> = input.events.iter().map(EventEnumEntry::docs).collect();
     let variants: Vec<_> =
         input.events.iter().map(EventEnumEntry::to_variant).collect::<syn::Result<_>>()?;
 
