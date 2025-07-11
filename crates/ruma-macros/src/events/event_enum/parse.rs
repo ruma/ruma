@@ -8,13 +8,10 @@ use syn::{
     braced,
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
-    Attribute, Ident, LitStr, Path, Token,
+    Attribute, Ident, Path, Token,
 };
 
-use crate::{
-    events::enums::{EventKind, EventVariation},
-    util::m_prefix_name_to_type_name,
-};
+use crate::events::enums::{EventKind, EventType, EventTypes, EventVariation};
 
 /// Custom keywords for the `event_enum!` macro
 mod kw {
@@ -58,7 +55,7 @@ impl Parse for EventEnumInput {
             for global_event in global_account_data_enum.events.iter_mut() {
                 if let Some(room_event) =
                     room_account_data_enum.events.iter_mut().find(|room_event| {
-                        room_event.ev_type == global_event.ev_type
+                        room_event.types.ev_type == global_event.types.ev_type
                             && room_event.ev_path == global_event.ev_path
                             && room_event.ident == global_event.ident
                     })
@@ -91,59 +88,30 @@ pub struct EventEnumDecl {
 /// An event entry in the `event_enum!` macro.
 pub struct EventEnumEntry {
     pub attrs: Vec<Attribute>,
-    pub aliases: Vec<LitStr>,
-    pub ev_type: LitStr,
+    pub types: EventTypes,
     pub ev_path: Path,
-    pub ident: Option<Ident>,
+    pub ident: Ident,
     pub both_account_data: bool,
 }
 
 impl EventEnumEntry {
     /// Whether this entry has a type fragment.
     pub fn has_type_fragment(&self) -> bool {
-        self.ev_type.value().ends_with(".*")
+        self.types.ev_type.is_prefix()
     }
 
     /// Convert this entry to an enum variant.
-    pub fn to_variant(&self) -> syn::Result<EventEnumVariant> {
+    pub fn to_variant(&self) -> EventEnumVariant {
         let attrs = self.attrs.clone();
-        let ident = self.ident()?;
+        let ident = self.ident.clone();
 
-        Ok(EventEnumVariant { attrs, ident })
-    }
-
-    /// Get the stable event type of this entry.
-    pub fn stable_name(&self) -> syn::Result<&LitStr> {
-        if self.ev_type.value().starts_with("m.") {
-            Ok(&self.ev_type)
-        } else {
-            self.aliases.iter().find(|alias| alias.value().starts_with("m.")).ok_or_else(|| {
-                syn::Error::new(
-                    Span::call_site(),
-                    format!(
-                        "A matrix event must declare a well-known type that starts with `m.` \
-                        either as the main type or as an alias, or must declare the ident that \
-                        should be used if it is only an unstable type, found main type `{}`",
-                        self.ev_type.value()
-                    ),
-                )
-            })
-        }
-    }
-
-    /// Get or generate the name of the event type for this entry.
-    pub fn ident(&self) -> syn::Result<Ident> {
-        if let Some(ident) = self.ident.clone() {
-            Ok(ident)
-        } else {
-            m_prefix_name_to_type_name(self.stable_name()?)
-        }
+        EventEnumVariant { attrs, ident }
     }
 
     /// Get or generate the path of the event type for this entry.
     pub fn to_event_path(&self, kind: EventKind, var: EventVariation) -> TokenStream {
         let path = &self.ev_path;
-        let ident = self.ident().unwrap();
+        let ident = &self.ident;
         let event_name = if kind == EventKind::ToDevice {
             assert_eq!(var, EventVariation::None);
             format_ident!("ToDevice{ident}Event")
@@ -162,7 +130,7 @@ impl EventEnumEntry {
     /// Get or generate the path of the event content type for this entry.
     pub fn to_event_content_path(&self, kind: EventKind, prefix: Option<&str>) -> TokenStream {
         let path = &self.ev_path;
-        let ident = self.ident().unwrap();
+        let ident = &self.ident;
         let content_str = match kind {
             EventKind::ToDevice => {
                 format_ident!("ToDevice{}{ident}EventContent", prefix.unwrap_or(""))
@@ -177,15 +145,15 @@ impl EventEnumEntry {
 
     /// Generate the docs for this entry.
     pub fn docs(&self) -> TokenStream {
-        let main_name = self.stable_name().unwrap_or(&self.ev_type);
+        let main_type = self.types.main_type();
 
         let mut doc = quote! {
-            #[doc = #main_name]
+            #[doc = #main_type]
         };
 
-        if self.ev_type != *main_name {
+        if self.types.ev_type != *main_type {
             let unstable_name =
-                format!("This variant uses the unstable type `{}`.", self.ev_type.value());
+                format!("This variant uses the unstable type `{}`.", self.types.ev_type);
 
             doc.extend(quote! {
                 #[doc = ""]
@@ -193,12 +161,13 @@ impl EventEnumEntry {
             });
         }
 
-        match self.aliases.len() {
+        let aliases = &self.types.aliases;
+        match aliases.len() {
             0 => {}
             1 => {
                 let alias = format!(
                     "This variant can also be deserialized from the `{}` type.",
-                    self.aliases[0].value()
+                    aliases[0]
                 );
                 doc.extend(quote! {
                     #[doc = ""]
@@ -208,11 +177,7 @@ impl EventEnumEntry {
             _ => {
                 let aliases = format!(
                     "This variant can also be deserialized from the following types: {}.",
-                    self.aliases
-                        .iter()
-                        .map(|alias| format!("`{}`", alias.value()))
-                        .collect::<Vec<_>>()
-                        .join(", ")
+                    aliases.iter().map(|alias| format!("`{alias}`")).collect::<Vec<_>>().join(", ")
                 );
                 doc.extend(quote! {
                     #[doc = ""]
@@ -231,10 +196,9 @@ impl Parse for EventEnumEntry {
             .call(Attribute::parse_outer)?
             .into_iter()
             .partition::<Vec<_>, _>(|attr| attr.path().is_ident("ruma_enum"));
-        let ev_type: LitStr = input.parse()?;
+        let ev_type: EventType = input.parse()?;
         let _: Token![=>] = input.parse()?;
         let ev_path = input.call(Path::parse_mod_style)?;
-        let has_suffix = ev_type.value().ends_with(".*");
 
         let mut aliases = Vec::with_capacity(ruma_enum_attrs.len());
         let mut ident = None;
@@ -245,14 +209,7 @@ impl Parse for EventEnumEntry {
             {
                 match attr {
                     EventEnumAttr::Alias(alias) => {
-                        if alias.value().ends_with(".*") == has_suffix {
-                            aliases.push(alias);
-                        } else {
-                            return Err(syn::Error::new_spanned(
-                                &attr_list,
-                                "aliases should have the same `.*` suffix, or lack thereof, as the main event type",
-                            ));
-                        }
+                        aliases.push(alias);
                     }
                     EventEnumAttr::Ident(i) => {
                         if ident.is_some() {
@@ -268,13 +225,19 @@ impl Parse for EventEnumEntry {
             }
         }
 
-        Ok(Self { attrs, aliases, ev_type, ev_path, ident, both_account_data: false })
+        let types = EventTypes::try_from_parts(ev_type, aliases)?;
+
+        // We will need the name of the event type so compute it right now to make sure that we have
+        // enough data for it.
+        let ident = if let Some(ident) = ident { ident } else { types.as_event_ident()? };
+
+        Ok(Self { attrs, types, ev_path, ident, both_account_data: false })
     }
 }
 
 /// An attribute on an event entry in the `event_enum!` macro.
 pub enum EventEnumAttr {
-    Alias(LitStr),
+    Alias(EventType),
     Ident(Ident),
 }
 
@@ -285,7 +248,7 @@ impl Parse for EventEnumAttr {
         if lookahead.peek(kw::alias) {
             let _: kw::alias = input.parse()?;
             let _: Token![=] = input.parse()?;
-            let s: LitStr = input.parse()?;
+            let s: EventType = input.parse()?;
             Ok(Self::Alias(s))
         } else if lookahead.peek(kw::ident) {
             let _: kw::ident = input.parse()?;

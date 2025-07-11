@@ -52,7 +52,7 @@ fn generate_enum(
 
     let mut deduped: Vec<&EventEnumEntry> = vec![];
     for item in entries.iter().copied().flatten() {
-        if let Some(idx) = deduped.iter().position(|e| e.ev_type == item.ev_type) {
+        if let Some(idx) = deduped.iter().position(|e| e.types.ev_type == item.types.ev_type) {
             // If there is a variant without config attributes use that
             if deduped[idx].attrs != item.attrs && item.attrs.is_empty() {
                 deduped[idx] = item;
@@ -62,49 +62,46 @@ fn generate_enum(
         }
     }
 
-    let event_types = deduped.iter().map(|e| &e.ev_type);
+    let event_types = deduped.iter().map(|e| &e.types.ev_type);
 
     let variants: Vec<_> = deduped
         .iter()
         .map(|e| {
-            let start = e.to_variant()?.decl();
+            let start = e.to_variant().decl();
             let data = e.has_type_fragment().then(|| quote! { (::std::string::String) });
 
-            Ok(quote! {
+            quote! {
                 #start #data
-            })
+            }
         })
-        .collect::<syn::Result<_>>()?;
+        .collect();
 
     let to_cow_str_match_arms: Vec<_> = deduped
         .iter()
         .map(|e| {
-            let v = e.to_variant()?;
+            let v = e.to_variant();
             let start = v.match_arm(quote! { Self });
-            let ev_type = &e.ev_type;
+            let ev_type = &e.types.ev_type;
 
-            Ok(if let Some(prefix) = ev_type.value().strip_suffix(".*") {
-                let fstr = prefix.to_owned() + ".{}";
+            if ev_type.is_prefix() {
+                let fstr = ev_type.without_wildcard().to_owned() + "{}";
                 quote! { #start(_s) => ::std::borrow::Cow::Owned(::std::format!(#fstr, _s)) }
             } else {
                 quote! { #start => ::std::borrow::Cow::Borrowed(#ev_type) }
-            })
+            }
         })
-        .collect::<syn::Result<_>>()?;
+        .collect();
 
     let mut from_str_match_arms = TokenStream::new();
     for event in &deduped {
-        let v = event.to_variant()?;
+        let v = event.to_variant();
         let ctor = v.ctor(quote! { Self });
-        let ev_types = event.aliases.iter().chain([&event.ev_type]);
+        let ev_types = event.types.iter();
         let attrs = &event.attrs;
 
-        if event.ev_type.value().ends_with(".*") {
+        if event.has_type_fragment() {
             for ev_type in ev_types {
-                let name = ev_type.value();
-                let prefix = name
-                    .strip_suffix('*')
-                    .expect("aliases have already been checked to have the same suffix");
+                let prefix = ev_type.without_wildcard();
 
                 from_str_match_arms.extend(quote! {
                     #(#attrs)*
@@ -120,20 +117,17 @@ fn generate_enum(
     }
 
     let from_ident_for_timeline = if kind.is_timeline() && !matches!(kind, EventKind::Timeline) {
-        let match_arms: Vec<_> = deduped
-            .iter()
-            .map(|e| {
-                let v = e.to_variant()?;
-                let ident_var = v.match_arm(quote! { #ident });
-                let timeline_var = v.ctor(quote! { Self });
+        let match_arms = deduped.iter().map(|e| {
+            let v = e.to_variant();
+            let ident_var = v.match_arm(quote! { #ident });
+            let timeline_var = v.ctor(quote! { Self });
 
-                Ok(if e.has_type_fragment() {
-                    quote! { #ident_var (_s) => #timeline_var (_s) }
-                } else {
-                    quote! { #ident_var => #timeline_var }
-                })
-            })
-            .collect::<syn::Result<_>>()?;
+            if e.has_type_fragment() {
+                quote! { #ident_var (_s) => #timeline_var (_s) }
+            } else {
+                quote! { #ident_var => #timeline_var }
+            }
+        });
 
         Some(quote! {
             #[allow(deprecated)]
