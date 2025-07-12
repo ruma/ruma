@@ -8,7 +8,7 @@ use syn::{
 };
 
 use crate::events::enums::{
-    EventContentVariation, EventKind, EventType, EventTypes, EventVariation,
+    EventContentTraitVariation, EventKind, EventType, EventTypes, EventVariation,
 };
 
 mod kw {
@@ -392,7 +392,7 @@ impl EventContentKind {
     /// Returns a list of `(type_enum, event_content_trait)`.
     pub fn to_content_kind_enums_and_traits(
         self,
-        variation: EventContentVariation,
+        variation: EventContentTraitVariation,
     ) -> Vec<(Ident, Ident)> {
         match self {
             Self::Single(event_kind) => {
