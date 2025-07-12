@@ -41,18 +41,25 @@ pub fn expand_event_content(
         has_without_relation,
     } = content_meta.try_into()?;
 
+    let variations = kind.event_content_variations();
+
+    let generate_redacted =
+        !is_custom_redacted && variations.contains(&EventContentVariation::Redacted);
+    let generate_possibly_redacted = !is_custom_possibly_redacted
+        && variations.contains(&EventContentVariation::PossiblyRedacted);
+
     let ident = &input.ident;
     let fields = match &input.data {
         syn::Data::Struct(syn::DataStruct { fields, .. }) => Some(fields.iter()),
         _ => {
-            if kind.generate_redacted(is_custom_redacted) {
+            if generate_redacted {
                 return Err(syn::Error::new(
                     Span::call_site(),
                     "To generate a redacted event content, the event content type needs to be a struct. Disable this with the custom_redacted attribute",
                 ));
             }
 
-            if kind.generate_possibly_redacted(is_custom_redacted) {
+            if generate_possibly_redacted {
                 return Err(syn::Error::new(
                     Span::call_site(),
                     "To generate a possibly redacted event content, the event content type needs to be a struct. Disable this with the custom_possibly_redacted attribute",
@@ -73,7 +80,7 @@ pub fn expand_event_content(
     let event_type_fragment = EventTypeFragment::try_from_parts(&types.ev_type, fields.clone())?;
 
     // We only generate redacted content structs for state and message-like events
-    let redacted_event_content = kind.generate_redacted(is_custom_redacted).then(|| {
+    let redacted_event_content = generate_redacted.then(|| {
         generate_redacted_event_content(
             ident,
             &input.vis,
@@ -89,20 +96,19 @@ pub fn expand_event_content(
     });
 
     // We only generate possibly redacted content structs for state events.
-    let possibly_redacted_event_content =
-        kind.generate_possibly_redacted(is_custom_possibly_redacted).then(|| {
-            generate_possibly_redacted_event_content(
-                ident,
-                &input.vis,
-                fields.clone().unwrap(),
-                &types,
-                event_type_fragment.as_ref(),
-                state_key_type.as_ref(),
-                unsigned_type.clone(),
-                ruma_events,
-            )
-            .unwrap_or_else(syn::Error::into_compile_error)
-        });
+    let possibly_redacted_event_content = generate_possibly_redacted.then(|| {
+        generate_possibly_redacted_event_content(
+            ident,
+            &input.vis,
+            fields.clone().unwrap(),
+            &types,
+            event_type_fragment.as_ref(),
+            state_key_type.as_ref(),
+            unsigned_type.clone(),
+            ruma_events,
+        )
+        .unwrap_or_else(syn::Error::into_compile_error)
+    });
 
     let event_content_without_relation = has_without_relation.then(|| {
         generate_event_content_without_relation(
@@ -495,57 +501,49 @@ fn generate_event_type_aliases(
         syn::Error::new_spanned(ident, "Expected content struct name ending in `Content`")
     })?;
 
-    let type_aliases = [
-        EventVariation::None,
-        EventVariation::Sync,
-        EventVariation::Original,
-        EventVariation::OriginalSync,
-        EventVariation::Stripped,
-        EventVariation::Initial,
-        EventVariation::Redacted,
-        EventVariation::RedactedSync,
-    ]
-    .iter()
-    .filter_map(|&var| Some((var, kind.to_event_idents(var)?)))
-    .flat_map(|(var, type_prefixes_and_event_idents)| {
-        type_prefixes_and_event_idents.into_iter().map(move |(type_prefix, ev_struct)| {
-            let ev_type = format_ident!("{var}{type_prefix}{ev_type_s}");
+    let type_aliases = kind
+        .event_variations()
+        .iter()
+        .filter_map(|&var| Some((var, kind.to_event_idents(var)?)))
+        .flat_map(|(var, type_prefixes_and_event_idents)| {
+            type_prefixes_and_event_idents.into_iter().map(move |(type_prefix, ev_struct)| {
+                let ev_type = format_ident!("{var}{type_prefix}{ev_type_s}");
 
-            let doc_text = match var {
-                EventVariation::None | EventVariation::Original => "",
-                EventVariation::Sync | EventVariation::OriginalSync => {
-                    " from a `sync_events` response"
+                let doc_text = match var {
+                    EventVariation::None | EventVariation::Original => "",
+                    EventVariation::Sync | EventVariation::OriginalSync => {
+                        " from a `sync_events` response"
+                    }
+                    EventVariation::Stripped => " from an invited room preview",
+                    EventVariation::Redacted => " that has been redacted",
+                    EventVariation::RedactedSync => {
+                        " from a `sync_events` response that has been redacted"
+                    }
+                    EventVariation::Initial => " for creating a room",
+                };
+
+                let ev_type_doc = if type_prefix.is_empty() {
+                    format!("An `{event_type}` event{doc_text}.")
+                } else {
+                    format!("A {} `{event_type}` event{doc_text}.", type_prefix.to_lowercase())
+                };
+
+                let content_struct = if var.is_redacted() {
+                    Cow::Owned(format_ident!("Redacted{ident}"))
+                } else if let EventVariation::Stripped = var {
+                    Cow::Owned(format_ident!("PossiblyRedacted{ident}"))
+                } else {
+                    Cow::Borrowed(ident)
+                };
+
+                quote! {
+                    #[doc = #ev_type_doc]
+                    #vis type #ev_type = #ruma_events::#ev_struct<#content_struct>;
                 }
-                EventVariation::Stripped => " from an invited room preview",
-                EventVariation::Redacted => " that has been redacted",
-                EventVariation::RedactedSync => {
-                    " from a `sync_events` response that has been redacted"
-                }
-                EventVariation::Initial => " for creating a room",
-            };
-
-            let ev_type_doc = if type_prefix.is_empty() {
-                format!("An `{event_type}` event{doc_text}.")
-            } else {
-                format!("A {} `{event_type}` event{doc_text}.", type_prefix.to_lowercase())
-            };
-
-            let content_struct = if var.is_redacted() {
-                Cow::Owned(format_ident!("Redacted{ident}"))
-            } else if let EventVariation::Stripped = var {
-                Cow::Owned(format_ident!("PossiblyRedacted{ident}"))
-            } else {
-                Cow::Borrowed(ident)
-            };
-
-            quote! {
-                #[doc = #ev_type_doc]
-                #vis type #ev_type = #ruma_events::#ev_struct<#content_struct>;
-            }
+            })
         })
-    })
-    .flatten()
-    .collect();
+        .flatten()
+        .collect();
 
     Ok(type_aliases)
 }
@@ -565,6 +563,8 @@ fn generate_event_content_impl<'a>(
     let serde = quote! { #ruma_events::exports::serde };
     let serde_json = quote! { #ruma_events::exports::serde_json };
 
+    let possible_variations = kind.event_content_variations();
+
     let event_content_kind_trait_impl = generate_event_content_kind_trait_impl(
         ident,
         types,
@@ -575,8 +575,10 @@ fn generate_event_content_impl<'a>(
         ruma_events,
     );
 
-    let static_state_event_content_impl =
-        (kind.is_state() && variation == EventContentVariation::Original).then(|| {
+    let static_state_event_content_impl = (possible_variations
+        .contains(&EventContentVariation::PossiblyRedacted)
+        && variation == EventContentVariation::Original)
+        .then(|| {
             let event_content_kind_trait_name =
                 EventKind::State.to_content_kind_trait(EventContentTraitVariation::Static);
             let possibly_redacted_ident = format_ident!("PossiblyRedacted{ident}");

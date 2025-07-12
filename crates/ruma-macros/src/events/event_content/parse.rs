@@ -8,7 +8,8 @@ use syn::{
 };
 
 use crate::events::enums::{
-    EventContentTraitVariation, EventKind, EventType, EventTypes, EventVariation,
+    EventContentTraitVariation, EventContentVariation, EventKind, EventType, EventTypes,
+    EventVariation,
 };
 
 mod kw {
@@ -344,19 +345,22 @@ impl EventContentKind {
         }
     }
 
-    /// Whether we need to generate the redacted content type for this kind.
-    pub fn generate_redacted(self, is_custom_redacted: bool) -> bool {
-        // `is_custom_redacted` means that the content struct does not need a generated
-        // redacted struct.
-        !is_custom_redacted
-            && matches!(self, Self::Single(EventKind::MessageLike | EventKind::State))
+    /// Get the list of variations for an event type (struct or enum) for this kind.
+    pub fn event_variations(self) -> &'static [EventVariation] {
+        match self {
+            Self::Single(event_kind) => event_kind.event_variations(),
+            // Both account data types have the same variations.
+            Self::DoubleAccountData => EventKind::GlobalAccountData.event_variations(),
+        }
     }
 
-    /// Whether we need to generate the possibly redacted content type for this kind.
-    pub fn generate_possibly_redacted(self, is_custom_possibly_redacted: bool) -> bool {
-        // `is_custom_possibly_redacted` means that the content struct does not need a generated
-        // possibly redacted struct.
-        !is_custom_possibly_redacted && matches!(self, Self::Single(EventKind::State))
+    /// Get the list of variations for an event content type for this kind.
+    pub fn event_content_variations(self) -> &'static [EventContentVariation] {
+        match self {
+            Self::Single(event_kind) => event_kind.event_content_variations(),
+            // Both account data types have the same variations.
+            Self::DoubleAccountData => EventKind::GlobalAccountData.event_content_variations(),
+        }
     }
 
     /// Get the idents of the event struct for these kinds and the given variation.
