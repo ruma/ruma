@@ -22,8 +22,7 @@ pub fn expand_content_enum(
 
     let event_type_enum = kind.to_event_type_enum();
 
-    let content: Vec<_> =
-        events.iter().map(|event| event.to_event_content_path(kind, None)).collect();
+    let content: Vec<_> = events.iter().map(|event| event.to_event_content_path(kind)).collect();
 
     let variant_decls = variants.iter().map(|v| v.decl()).collect::<Vec<_>>();
     let variant_arms = variants.iter().map(|v| v.match_arm(quote! { Self })).collect::<Vec<_>>();
@@ -58,7 +57,7 @@ pub fn expand_content_enum(
                 // If the event has a type fragment, then it implements EventContentFromType itself;
                 // see `generate_event_content_impl` which does that. In this case, forward to its
                 // implementation.
-                let content_type = event.to_event_content_path(kind, None);
+                let content_type = event.to_event_content_path(kind);
                 quote! {
                     #content_type::from_parts(event_type, json)?
                 }
@@ -143,8 +142,7 @@ pub fn expand_full_content_enum(
 
     let event_type_enum = kind.to_event_type_enum();
 
-    let content: Vec<_> =
-        events.iter().map(|event| event.to_event_content_path(kind, None)).collect();
+    let content: Vec<_> = events.iter().map(|event| event.to_event_content_path(kind)).collect();
 
     let variant_decls = variants.iter().map(|v| v.decl()).collect::<Vec<_>>();
     let variant_arms = variants.iter().map(|v| v.match_arm(quote! { Self })).collect::<Vec<_>>();
