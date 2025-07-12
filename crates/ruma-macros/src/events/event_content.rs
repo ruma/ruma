@@ -10,7 +10,9 @@ use syn::{parse_quote, punctuated::Punctuated, DeriveInput, Field, Ident, Meta, 
 mod parse;
 
 use self::parse::{ContentAttrs, ContentMeta, EventContentKind, EventFieldMeta, EventTypeFragment};
-use super::enums::{EventContentVariation, EventKind, EventTypes, EventVariation};
+use super::enums::{
+    EventContentTraitVariation, EventContentVariation, EventKind, EventTypes, EventVariation,
+};
 use crate::{events::enums::EventType, util::PrivateField};
 
 /// `EventContent` derive macro code generation.
@@ -393,7 +395,7 @@ fn generate_possibly_redacted_event_content<'a>(
             ident,
             types,
             EventKind::State.into(),
-            EventContentVariation::PossiblyRedacted,
+            EventContentTraitVariation::PossiblyRedacted,
             event_type_fragment,
             state_key_type,
             ruma_events,
@@ -567,7 +569,7 @@ fn generate_event_content_impl<'a>(
         ident,
         types,
         kind,
-        variation,
+        variation.into(),
         event_type_fragment,
         state_key_type,
         ruma_events,
@@ -575,6 +577,8 @@ fn generate_event_content_impl<'a>(
 
     let static_state_event_content_impl =
         (kind.is_state() && variation == EventContentVariation::Original).then(|| {
+            let event_content_kind_trait_name =
+                EventKind::State.to_content_kind_trait(EventContentTraitVariation::Static);
             let possibly_redacted_ident = format_ident!("PossiblyRedacted{ident}");
 
             let unsigned_type = unsigned_type
@@ -582,7 +586,7 @@ fn generate_event_content_impl<'a>(
 
             quote! {
                 #[automatically_derived]
-                impl #ruma_events::StaticStateEventContent for #ident {
+                impl #ruma_events::#event_content_kind_trait_name for #ident {
                     type PossiblyRedacted = #possibly_redacted_ident;
                     type Unsigned = #unsigned_type;
                 }
@@ -655,7 +659,7 @@ fn generate_event_content_kind_trait_impl(
     ident: &Ident,
     types: &EventTypes,
     kind: EventContentKind,
-    variation: EventContentVariation,
+    variation: EventContentTraitVariation,
     event_type_fragment: Option<&EventTypeFragment<'_>>,
     state_key_type: Option<&TokenStream>,
     ruma_events: &TokenStream,

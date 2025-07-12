@@ -14,7 +14,7 @@ use self::{
     event_type::expand_event_type_enums,
     parse::{EventEnumDecl, EventEnumEntry, EventEnumVariant},
 };
-use super::enums::{EventContentVariation, EventKind, EventType, EventVariation};
+use super::enums::{EventContentTraitVariation, EventKind, EventType, EventVariation};
 use crate::import_ruma_common;
 
 pub(crate) fn is_non_stripped_room_event(kind: EventKind, var: EventVariation) -> bool {
@@ -310,7 +310,7 @@ fn expand_accessor_methods(
     let event_type_enum = format_ident!("{}Type", kind);
     let self_variants: Vec<_> = variants.iter().map(|v| v.match_arm(quote! { Self })).collect();
     let original_event_content_kind_trait_name =
-        kind.to_content_kind_trait(EventContentVariation::Original);
+        kind.to_content_kind_trait(EventContentTraitVariation::Original);
 
     let maybe_redacted =
         kind.is_timeline() && matches!(var, EventVariation::None | EventVariation::Sync);
@@ -322,7 +322,7 @@ fn expand_accessor_methods(
         }
     } else if var == EventVariation::Stripped {
         let possibly_redacted_event_content_kind_trait_name =
-            kind.to_content_kind_trait(EventContentVariation::PossiblyRedacted);
+            kind.to_content_kind_trait(EventContentTraitVariation::PossiblyRedacted);
         quote! {
             #( #self_variants(event) =>
                 #ruma_events::#possibly_redacted_event_content_kind_trait_name::event_type(&event.content), )*
@@ -386,7 +386,7 @@ fn expand_accessor_methods(
             let full_content_variants: Vec<_> =
                 variants.iter().map(|v| v.ctor(&full_content_enum)).collect();
             let redacted_event_content_kind_trait_name =
-                kind.to_content_kind_trait(EventContentVariation::Redacted);
+                kind.to_content_kind_trait(EventContentTraitVariation::Redacted);
 
             accessors = quote! {
                 #accessors
