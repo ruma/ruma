@@ -37,28 +37,30 @@ impl EventKind {
         matches!(self, Self::MessageLike | Self::RoomRedaction | Self::State | Self::Timeline)
     }
 
-    /// Get the name of the event struct for this kind and the given variation.
+    /// Get the name of the event type (struct or enum) for this kind and the given variation.
     pub fn to_event_ident(self, var: EventVariation) -> syn::Result<Ident> {
-        use EventVariation as V;
-
-        match (self, var) {
-            (_, V::None)
-            | (Self::EphemeralRoom | Self::MessageLike | Self::State, V::Sync)
-            | (
-                Self::MessageLike | Self::RoomRedaction | Self::State,
-                V::Original | V::OriginalSync | V::Redacted | V::RedactedSync,
-            )
-            | (Self::State, V::Stripped | V::Initial) => Ok(format_ident!("{var}{self}")),
-            _ => Err(syn::Error::new(
+        if !self.event_variations().contains(&var) {
+            return Err(syn::Error::new(
                 Span::call_site(),
                 format!("({self:?}, {var:?}) is not a valid event kind / variation combination"),
-            )),
+            ));
         }
+
+        Ok(format_ident!("{var}{self}"))
     }
 
     /// Get the name of the `Any*Event` enum for this kind and the given variation.
     pub fn to_event_enum_ident(self, var: EventVariation) -> syn::Result<Ident> {
-        Ok(format_ident!("Any{}", self.to_event_ident(var)?))
+        if !self.event_enum_variations().contains(&var) {
+            return Err(syn::Error::new(
+                Span::call_site(),
+                format!(
+                    "({self:?}, {var:?}) is not a valid event enum kind / variation combination"
+                ),
+            ));
+        }
+
+        Ok(format_ident!("Any{var}{self}"))
     }
 
     /// Get the name of the `*EventType` enum for this kind.
@@ -96,6 +98,56 @@ impl EventKind {
                 EventVariation::Initial,
             ],
             Self::RoomRedaction | Self::HierarchySpaceChild | Self::Decrypted => &[],
+        }
+    }
+
+    /// Get the list of variations for an event type (struct or enum) for this kind.
+    pub fn event_variations(self) -> &'static [EventVariation] {
+        match self {
+            Self::GlobalAccountData
+            | Self::RoomAccountData
+            | Self::ToDevice
+            | Self::HierarchySpaceChild => &[EventVariation::None],
+            Self::EphemeralRoom => &[EventVariation::None, EventVariation::Sync],
+            Self::MessageLike | Self::RoomRedaction => &[
+                EventVariation::None,
+                EventVariation::Original,
+                EventVariation::Redacted,
+                EventVariation::Sync,
+                EventVariation::OriginalSync,
+                EventVariation::RedactedSync,
+            ],
+            Self::State => &[
+                EventVariation::None,
+                EventVariation::Original,
+                EventVariation::Redacted,
+                EventVariation::Sync,
+                EventVariation::OriginalSync,
+                EventVariation::RedactedSync,
+                EventVariation::Stripped,
+                EventVariation::Initial,
+            ],
+            Self::Decrypted | Self::Timeline => &[],
+        }
+    }
+
+    /// Get the list of variations for an event content type for this kind.
+    pub fn event_content_variations(self) -> &'static [EventContentVariation] {
+        match self {
+            Self::GlobalAccountData
+            | Self::RoomAccountData
+            | Self::EphemeralRoom
+            | Self::ToDevice
+            | Self::HierarchySpaceChild => &[EventContentVariation::Original],
+            Self::MessageLike | Self::RoomRedaction => {
+                &[EventContentVariation::Original, EventContentVariation::Redacted]
+            }
+            Self::State => &[
+                EventContentVariation::Original,
+                EventContentVariation::Redacted,
+                EventContentVariation::PossiblyRedacted,
+            ],
+            Self::Decrypted | Self::Timeline => &[],
         }
     }
 }
