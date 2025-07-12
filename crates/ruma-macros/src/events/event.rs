@@ -7,7 +7,7 @@ use syn::{parse_quote, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed
 mod parse;
 
 use self::parse::parse_event_struct_ident_to_kind_variation;
-use super::enums::{EventKind, EventVariation};
+use super::enums::{EventField, EventKind, EventVariation};
 use crate::{import_ruma_events, util::to_camel_case};
 
 /// `Event` derive macro code generation.
@@ -50,7 +50,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         res.extend(expand_sync_from_into_full(&input, kind, var, &fields, &ruma_events));
     }
 
-    if kind.is_timeline() && var.has_event_id() {
+    if EventField::EventId.is_present(kind, var) {
         res.extend(expand_eq_ord_event(&input));
     }
 
