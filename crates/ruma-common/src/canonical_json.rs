@@ -129,7 +129,7 @@ impl RedactedBecause {
     ///
     /// Fails if the raw event is not valid canonical JSON.
     pub fn from_raw_event(ev: &Raw<impl RedactionEvent>) -> serde_json::Result<Self> {
-        ev.deserialize_as().map(Self)
+        ev.deserialize_as_unchecked().map(Self)
     }
 }
 

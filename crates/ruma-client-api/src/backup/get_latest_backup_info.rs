@@ -99,7 +99,7 @@ pub mod v3 {
         {
             let ResponseBody { algorithm, count, etag, version } = self;
             let AlgorithmWithData { algorithm, auth_data } =
-                algorithm.deserialize_as().map_err(ser::Error::custom)?;
+                algorithm.deserialize_as_unchecked().map_err(ser::Error::custom)?;
 
             let repr = RefResponseBodyRepr {
                 algorithm: &algorithm,

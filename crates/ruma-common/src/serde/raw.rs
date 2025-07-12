@@ -9,7 +9,9 @@ use serde::{
     de::{self, Deserialize, DeserializeSeed, Deserializer, IgnoredAny, MapAccess, Visitor},
     ser::{Serialize, Serializer},
 };
-use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue};
+use serde_json::value::{
+    to_raw_value as to_raw_json_value, RawValue as RawJsonValue, Value as JsonValue,
+};
 
 /// A wrapper around `Box<RawValue>` with a generic parameter for the expected Rust type.
 ///
@@ -188,6 +190,15 @@ impl<T> Raw<T> {
     /// Try to deserialize the JSON as a custom type.
     pub fn deserialize_as<'a, U>(&'a self) -> serde_json::Result<U>
     where
+        T: JsonCastable<U>,
+        U: Deserialize<'a>,
+    {
+        self.deserialize_as_unchecked()
+    }
+
+    /// Same as [`deserialize_as`][Self::deserialize_as], but without the trait restriction.
+    pub fn deserialize_as_unchecked<'a, U>(&'a self) -> serde_json::Result<U>
+    where
         U: Deserialize<'a>,
     {
         serde_json::from_str(self.json.get())
@@ -196,13 +207,29 @@ impl<T> Raw<T> {
     /// Turns `Raw<T>` into `Raw<U>` without changing the underlying JSON.
     ///
     /// This is useful for turning raw specific event types into raw event enum types.
-    pub fn cast_unchecked<U>(self) -> Raw<U> {
-        Raw::from_json(self.into_json())
+    pub fn cast<U>(self) -> Raw<U>
+    where
+        T: JsonCastable<U>,
+    {
+        self.cast_unchecked()
     }
 
     /// Turns `&Raw<T>` into `&Raw<U>` without changing the underlying JSON.
     ///
     /// This is useful for turning raw specific event types into raw event enum types.
+    pub fn cast_ref<U>(&self) -> &Raw<U>
+    where
+        T: JsonCastable<U>,
+    {
+        self.cast_ref_unchecked()
+    }
+
+    /// Same as [`cast`][Self::cast], but without the trait restriction.
+    pub fn cast_unchecked<U>(self) -> Raw<U> {
+        Raw::from_json(self.into_json())
+    }
+
+    /// Same as [`cast_ref`][Self::cast_ref], but without the trait restriction.
     pub fn cast_ref_unchecked<U>(&self) -> &Raw<U> {
         unsafe { mem::transmute(self) }
     }
@@ -238,6 +265,17 @@ impl<T> Serialize for Raw<T> {
         self.json.serialize(serializer)
     }
 }
+
+/// Marker trait for restricting the types [`Raw::deserialize_as`], [`Raw::cast`] and
+/// [`Raw::cast_ref`] can be called with.
+///
+/// When implemented for a type `U`, this trait signifies that if `U` is deserialized successfully,
+/// then `T` should also be deserialized successfully. It means that `U` and `T` have a similar JSON
+/// representation, with `T` having the same fields or less than `U`, and those fields can handle
+/// the same scalar values as `U`.
+pub trait JsonCastable<T> {}
+
+impl<T> JsonCastable<JsonValue> for T {}
 
 #[cfg(test)]
 mod tests {
