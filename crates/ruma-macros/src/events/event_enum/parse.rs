@@ -128,14 +128,14 @@ impl EventEnumEntry {
     }
 
     /// Get or generate the path of the event content type for this entry.
-    pub fn to_event_content_path(&self, kind: EventKind, prefix: Option<&str>) -> TokenStream {
+    pub fn to_event_content_path(&self, kind: EventKind) -> TokenStream {
         let path = &self.ev_path;
         let ident = &self.ident;
         let content_str = match kind {
             EventKind::ToDevice => {
-                format_ident!("ToDevice{}{ident}EventContent", prefix.unwrap_or(""))
+                format_ident!("ToDevice{ident}EventContent")
             }
-            _ => format_ident!("{}{ident}EventContent", prefix.unwrap_or("")),
+            _ => format_ident!("{ident}EventContent"),
         };
 
         quote! {
