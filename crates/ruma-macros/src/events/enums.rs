@@ -77,7 +77,7 @@ impl EventKind {
     }
 
     /// Get the name of the `[variation][kind]Content` trait for this kind and the given variation.
-    pub fn to_content_kind_trait(self, variation: EventContentVariation) -> Ident {
+    pub fn to_content_kind_trait(self, variation: EventContentTraitVariation) -> Ident {
         format_ident!("{variation}{self}Content")
     }
 
@@ -231,6 +231,36 @@ impl fmt::Display for EventContentVariation {
             EventContentVariation::Original => Ok(()),
             EventContentVariation::Redacted => write!(f, "Redacted"),
             EventContentVariation::PossiblyRedacted => write!(f, "PossiblyRedacted"),
+        }
+    }
+}
+
+impl From<EventContentVariation> for EventContentTraitVariation {
+    fn from(value: EventContentVariation) -> Self {
+        match value {
+            EventContentVariation::Original => Self::Original,
+            EventContentVariation::Redacted => Self::Redacted,
+            EventContentVariation::PossiblyRedacted => Self::PossiblyRedacted,
+        }
+    }
+}
+
+/// The possible variations of an event content trait.
+#[derive(Clone, Copy, PartialEq)]
+pub enum EventContentTraitVariation {
+    Original,
+    Redacted,
+    PossiblyRedacted,
+    Static,
+}
+
+impl fmt::Display for EventContentTraitVariation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Original => Ok(()),
+            Self::Redacted => write!(f, "Redacted"),
+            Self::PossiblyRedacted => write!(f, "PossiblyRedacted"),
+            Self::Static => write!(f, "Static"),
         }
     }
 }
