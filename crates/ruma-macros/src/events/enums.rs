@@ -212,19 +212,6 @@ pub enum EventVariation {
 }
 
 impl EventVariation {
-    /// Whether this variation can contain an `event_id` (depending on the kind).
-    pub fn has_event_id(self) -> bool {
-        matches!(
-            self,
-            Self::None
-                | Self::Sync
-                | Self::Original
-                | Self::OriginalSync
-                | Self::Redacted
-                | Self::RedactedSync
-        )
-    }
-
     /// Whether this variation was redacted.
     pub fn is_redacted(self) -> bool {
         matches!(self, Self::Redacted | Self::RedactedSync)
@@ -483,5 +470,93 @@ impl EventTypes {
 
         Ok(m_prefix_name_to_type_name(&stable_type.source)
             .expect("we already checked that the event type is stable"))
+    }
+}
+
+/// Common fields in event types.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EventField {
+    OriginServerTs,
+    RoomId,
+    EventId,
+    Sender,
+}
+
+impl EventField {
+    /// All the variants of this enum
+    pub const ALL: &[Self] = &[Self::OriginServerTs, Self::RoomId, Self::EventId, Self::Sender];
+
+    /// Get the string representation of this field.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::OriginServerTs => "origin_server_ts",
+            Self::RoomId => "room_id",
+            Self::EventId => "event_id",
+            Self::Sender => "sender",
+        }
+    }
+
+    /// This field as an [`Ident`].
+    pub fn ident(self) -> Ident {
+        format_ident!("{}", self.as_str())
+    }
+
+    /// Whether this field is present in the given kind and variation.
+    pub fn is_present(self, kind: EventKind, var: EventVariation) -> bool {
+        match self {
+            Self::OriginServerTs | Self::EventId => {
+                kind.is_timeline()
+                    && matches!(
+                        var,
+                        EventVariation::None
+                            | EventVariation::Sync
+                            | EventVariation::Original
+                            | EventVariation::OriginalSync
+                            | EventVariation::Redacted
+                            | EventVariation::RedactedSync
+                    )
+            }
+            Self::RoomId => {
+                matches!(
+                    kind,
+                    EventKind::MessageLike
+                        | EventKind::State
+                        | EventKind::RoomRedaction
+                        | EventKind::EphemeralRoom
+                ) && matches!(
+                    var,
+                    EventVariation::None | EventVariation::Original | EventVariation::Redacted
+                )
+            }
+            Self::Sender => {
+                matches!(
+                    kind,
+                    EventKind::MessageLike
+                        | EventKind::State
+                        | EventKind::RoomRedaction
+                        | EventKind::ToDevice
+                ) && var != EventVariation::Initial
+            }
+        }
+    }
+
+    /// Get the type of this field.
+    ///
+    /// Returns a `(type, is_reference)` tuple.
+    pub fn ty(self, ruma_events: &TokenStream) -> (TokenStream, bool) {
+        let ruma_common = quote! { #ruma_events::exports::ruma_common };
+
+        match self {
+            Self::OriginServerTs => (quote! { #ruma_common::MilliSecondsSinceUnixEpoch }, false),
+            Self::RoomId => (quote! { &#ruma_common::RoomId }, true),
+            Self::EventId => (quote! { &#ruma_common::EventId }, true),
+            Self::Sender => (quote! { &#ruma_common::UserId }, true),
+        }
+    }
+}
+
+impl fmt::Display for EventField {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
     }
 }

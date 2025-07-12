@@ -14,32 +14,8 @@ use self::{
     event_type::expand_event_type_enums,
     parse::{EventEnumDecl, EventEnumEntry, EventEnumVariant},
 };
-use super::enums::{EventContentTraitVariation, EventKind, EventType, EventVariation};
+use super::enums::{EventContentTraitVariation, EventField, EventKind, EventType, EventVariation};
 use crate::import_ruma_common;
-
-pub(crate) fn is_non_stripped_room_event(kind: EventKind, var: EventVariation) -> bool {
-    matches!(kind, EventKind::MessageLike | EventKind::State)
-        && matches!(var, EventVariation::None | EventVariation::Sync)
-}
-
-type EventKindFn = fn(EventKind, EventVariation) -> bool;
-
-/// This const is used to generate the accessor methods for the `Any*Event` enums.
-///
-/// DO NOT alter the field names unless the structs in `ruma_events::event_kinds` have
-/// changed.
-const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
-    ("origin_server_ts", is_non_stripped_room_event),
-    ("room_id", |kind, var| {
-        matches!(kind, EventKind::MessageLike | EventKind::State | EventKind::EphemeralRoom)
-            && matches!(var, EventVariation::None)
-    }),
-    ("event_id", is_non_stripped_room_event),
-    ("sender", |kind, var| {
-        matches!(kind, EventKind::MessageLike | EventKind::State | EventKind::ToDevice)
-            && var != EventVariation::Initial
-    }),
-];
 
 /// `event_enum!` macro code generation.
 pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
@@ -464,14 +440,14 @@ fn expand_accessor_methods(
         }
     };
 
-    let methods = EVENT_FIELDS.iter().map(|(name, has_field)| {
-        has_field(kind, var).then(|| {
-            let docs = format!("Returns this event's `{name}` field.");
-            let ident = Ident::new(name, Span::call_site());
-            let field_type = field_return_type(name, ruma_events);
+    let methods = EventField::ALL.iter().map(|field| {
+        field.is_present(kind, var).then(|| {
+            let docs = format!("Returns this event's `{field}` field.");
+            let ident = field.ident();
+            let (field_type, is_ref) = field.ty(ruma_events);
             let variants = variants.iter().map(|v| v.match_arm(quote! { Self }));
             let call_parens = maybe_redacted.then(|| quote! { () });
-            let ampersand = (*name != "origin_server_ts").then(|| quote! { & });
+            let ampersand = is_ref.then(|| quote! { & });
 
             quote! {
                 #[doc = #docs]
@@ -563,16 +539,4 @@ fn expand_accessor_methods(
             #maybe_redacted_accessors
         }
     })
-}
-
-/// Get the return type of the given field.
-fn field_return_type(name: &str, ruma_events: &TokenStream) -> TokenStream {
-    let ruma_common = quote! { #ruma_events::exports::ruma_common };
-    match name {
-        "origin_server_ts" => quote! { #ruma_common::MilliSecondsSinceUnixEpoch },
-        "room_id" => quote! { &#ruma_common::RoomId },
-        "event_id" => quote! { &#ruma_common::EventId },
-        "sender" => quote! { &#ruma_common::UserId },
-        _ => panic!("the `ruma_macros::event_enum::EVENT_FIELDS` const was changed"),
-    }
 }
