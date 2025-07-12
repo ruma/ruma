@@ -1,85 +1,58 @@
-use proc_macro2::{Span, TokenStream};
-use quote::quote;
-use syn::Ident;
+//! Functions to generate `*EventType` enums.
 
-use super::event_parse::{EventEnumEntry, EventEnumInput, EventKind};
+use std::collections::BTreeMap;
 
-pub fn expand_event_type_enum(
+use proc_macro2::TokenStream;
+use quote::{format_ident, quote};
+
+use super::{EventEnumEntry, EventEnumInput};
+use crate::events::enums::EventKind;
+
+/// Generate the `*EventType` enums.
+pub fn expand_event_type_enums(
     input: EventEnumInput,
     ruma_events: TokenStream,
 ) -> syn::Result<TokenStream> {
-    let mut timeline: Vec<&Vec<EventEnumEntry>> = vec![];
-    let mut state: Vec<&Vec<EventEnumEntry>> = vec![];
-    let mut message: Vec<&Vec<EventEnumEntry>> = vec![];
-    let mut ephemeral: Vec<&Vec<EventEnumEntry>> = vec![];
-    let mut room_account: Vec<&Vec<EventEnumEntry>> = vec![];
-    let mut global_account: Vec<&Vec<EventEnumEntry>> = vec![];
-    let mut to_device: Vec<&Vec<EventEnumEntry>> = vec![];
+    let mut entries_map: BTreeMap<EventKind, Vec<&Vec<EventEnumEntry>>> = BTreeMap::new();
+
     for event in &input.enums {
-        match event.kind {
-            EventKind::GlobalAccountData => global_account.push(&event.events),
-            EventKind::RoomAccountData => room_account.push(&event.events),
-            EventKind::EphemeralRoom => ephemeral.push(&event.events),
-            EventKind::MessageLike => {
-                message.push(&event.events);
-                timeline.push(&event.events);
-            }
-            EventKind::State => {
-                state.push(&event.events);
-                timeline.push(&event.events);
-            }
-            EventKind::ToDevice => to_device.push(&event.events),
-            EventKind::RoomRedaction | EventKind::Decrypted | EventKind::HierarchySpaceChild => {}
+        if event.events.is_empty() {
+            continue;
+        }
+
+        entries_map.entry(event.kind).or_default().push(&event.events);
+
+        if event.kind.is_timeline() {
+            entries_map.entry(EventKind::Timeline).or_default().push(&event.events);
         }
     }
 
     let mut res = TokenStream::new();
 
-    res.extend(
-        generate_enum("TimelineEventType", &timeline, &ruma_events)
-            .unwrap_or_else(syn::Error::into_compile_error),
-    );
-    res.extend(
-        generate_enum("StateEventType", &state, &ruma_events)
-            .unwrap_or_else(syn::Error::into_compile_error),
-    );
-    res.extend(
-        generate_enum("MessageLikeEventType", &message, &ruma_events)
-            .unwrap_or_else(syn::Error::into_compile_error),
-    );
-    res.extend(
-        generate_enum("EphemeralRoomEventType", &ephemeral, &ruma_events)
-            .unwrap_or_else(syn::Error::into_compile_error),
-    );
-    res.extend(
-        generate_enum("RoomAccountDataEventType", &room_account, &ruma_events)
-            .unwrap_or_else(syn::Error::into_compile_error),
-    );
-    res.extend(
-        generate_enum("GlobalAccountDataEventType", &global_account, &ruma_events)
-            .unwrap_or_else(syn::Error::into_compile_error),
-    );
-    res.extend(
-        generate_enum("ToDeviceEventType", &to_device, &ruma_events)
-            .unwrap_or_else(syn::Error::into_compile_error),
-    );
+    for (kind, entries) in entries_map {
+        res.extend(
+            generate_enum(kind, &entries, &ruma_events)
+                .unwrap_or_else(syn::Error::into_compile_error),
+        );
+    }
 
     Ok(res)
 }
 
+/// Generate an `*EventType` enum.
 fn generate_enum(
-    ident: &str,
-    input: &[&Vec<EventEnumEntry>],
+    kind: EventKind,
+    entries: &[&Vec<EventEnumEntry>],
     ruma_common: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let serde = quote! { #ruma_common::exports::serde };
-    let enum_doc = format!("The type of `{}` this is.", ident.strip_suffix("Type").unwrap());
+    let enum_doc = format!("The type of `{kind}` this is.");
 
-    let ident = Ident::new(ident, Span::call_site());
+    let ident = format_ident!("{kind}Type");
 
     let mut deduped: Vec<&EventEnumEntry> = vec![];
-    for item in input.iter().copied().flatten() {
-        if let Some(idx) = deduped.iter().position(|e| e.ev_type == item.ev_type) {
+    for item in entries.iter().copied().flatten() {
+        if let Some(idx) = deduped.iter().position(|e| e.types.ev_type == item.types.ev_type) {
             // If there is a variant without config attributes use that
             if deduped[idx].attrs != item.attrs && item.attrs.is_empty() {
                 deduped[idx] = item;
@@ -89,49 +62,46 @@ fn generate_enum(
         }
     }
 
-    let event_types = deduped.iter().map(|e| &e.ev_type);
+    let event_types = deduped.iter().map(|e| &e.types.ev_type);
 
     let variants: Vec<_> = deduped
         .iter()
         .map(|e| {
-            let start = e.to_variant()?.decl();
+            let start = e.to_variant().decl();
             let data = e.has_type_fragment().then(|| quote! { (::std::string::String) });
 
-            Ok(quote! {
+            quote! {
                 #start #data
-            })
+            }
         })
-        .collect::<syn::Result<_>>()?;
+        .collect();
 
     let to_cow_str_match_arms: Vec<_> = deduped
         .iter()
         .map(|e| {
-            let v = e.to_variant()?;
+            let v = e.to_variant();
             let start = v.match_arm(quote! { Self });
-            let ev_type = &e.ev_type;
+            let ev_type = &e.types.ev_type;
 
-            Ok(if let Some(prefix) = ev_type.value().strip_suffix(".*") {
-                let fstr = prefix.to_owned() + ".{}";
+            if ev_type.is_prefix() {
+                let fstr = ev_type.without_wildcard().to_owned() + "{}";
                 quote! { #start(_s) => ::std::borrow::Cow::Owned(::std::format!(#fstr, _s)) }
             } else {
                 quote! { #start => ::std::borrow::Cow::Borrowed(#ev_type) }
-            })
+            }
         })
-        .collect::<syn::Result<_>>()?;
+        .collect();
 
     let mut from_str_match_arms = TokenStream::new();
     for event in &deduped {
-        let v = event.to_variant()?;
+        let v = event.to_variant();
         let ctor = v.ctor(quote! { Self });
-        let ev_types = event.aliases.iter().chain([&event.ev_type]);
+        let ev_types = event.types.iter();
         let attrs = &event.attrs;
 
-        if event.ev_type.value().ends_with(".*") {
+        if event.has_type_fragment() {
             for ev_type in ev_types {
-                let name = ev_type.value();
-                let prefix = name
-                    .strip_suffix('*')
-                    .expect("aliases have already been checked to have the same suffix");
+                let prefix = ev_type.without_wildcard();
 
                 from_str_match_arms.extend(quote! {
                     #(#attrs)*
@@ -146,21 +116,18 @@ fn generate_enum(
         }
     }
 
-    let from_ident_for_timeline = if ident == "StateEventType" || ident == "MessageLikeEventType" {
-        let match_arms: Vec<_> = deduped
-            .iter()
-            .map(|e| {
-                let v = e.to_variant()?;
-                let ident_var = v.match_arm(quote! { #ident });
-                let timeline_var = v.ctor(quote! { Self });
+    let from_ident_for_timeline = if kind.is_timeline() && !matches!(kind, EventKind::Timeline) {
+        let match_arms = deduped.iter().map(|e| {
+            let v = e.to_variant();
+            let ident_var = v.match_arm(quote! { #ident });
+            let timeline_var = v.ctor(quote! { Self });
 
-                Ok(if e.has_type_fragment() {
-                    quote! { #ident_var (_s) => #timeline_var (_s) }
-                } else {
-                    quote! { #ident_var => #timeline_var }
-                })
-            })
-            .collect::<syn::Result<_>>()?;
+            if e.has_type_fragment() {
+                quote! { #ident_var (_s) => #timeline_var (_s) }
+            } else {
+                quote! { #ident_var => #timeline_var }
+            }
+        });
 
         Some(quote! {
             #[allow(deprecated)]

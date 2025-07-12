@@ -12,7 +12,6 @@
 
 use identifiers::expand_id_dst;
 use proc_macro::TokenStream;
-use proc_macro2 as pm2;
 use quote::quote;
 use ruma_identifiers_validation::{
     base64_public_key, event_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
@@ -34,9 +33,8 @@ use self::{
     events::{
         event::expand_event,
         event_content::expand_event_content,
-        event_enum::{expand_event_enums, expand_from_impls_derived},
-        event_parse::EventEnumInput,
-        event_type::expand_event_type_enum,
+        event_enum::{expand_event_enum, EventEnumInput},
+        event_enum_from_event::expand_event_enum_from_event,
     },
     identifiers::IdentifierInput,
     serde::{
@@ -192,25 +190,8 @@ use self::{
 /// ```
 #[proc_macro]
 pub fn event_enum(input: TokenStream) -> TokenStream {
-    let event_enum_input = syn::parse_macro_input!(input as EventEnumInput);
-
-    let ruma_common = import_ruma_common();
-
-    let enums = event_enum_input
-        .enums
-        .iter()
-        .map(|e| expand_event_enums(e).unwrap_or_else(syn::Error::into_compile_error))
-        .collect::<pm2::TokenStream>();
-
-    let event_types = expand_event_type_enum(event_enum_input, ruma_common)
-        .unwrap_or_else(syn::Error::into_compile_error);
-
-    let tokens = quote! {
-        #enums
-        #event_types
-    };
-
-    tokens.into()
+    let input = syn::parse_macro_input!(input as EventEnumInput);
+    expand_event_enum(input).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 /// Generates traits implementations and types for an event content.
@@ -439,7 +420,7 @@ pub fn derive_event(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(EventEnumFromEvent)]
 pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    expand_from_impls_derived(input).into()
+    expand_event_enum_from_event(input).into()
 }
 
 /// Generate methods and trait impl's for DST identifier type.
