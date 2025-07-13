@@ -7,8 +7,10 @@ use js_int::Int;
 #[cfg(feature = "canonical-json")]
 use ruma_common::canonical_json::RedactionEvent;
 use ruma_common::{
-    room_version_rules::RedactionRules, serde::CanBeEmpty, EventId, MilliSecondsSinceUnixEpoch,
-    OwnedEventId, OwnedRoomId, OwnedTransactionId, OwnedUserId, RoomId, UserId,
+    room_version_rules::RedactionRules,
+    serde::{CanBeEmpty, JsonCastable, JsonObject},
+    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedTransactionId,
+    OwnedUserId, RoomId, UserId,
 };
 use ruma_macros::{Event, EventContent};
 use serde::{Deserialize, Serialize};
@@ -32,6 +34,10 @@ pub enum RoomRedactionEvent {
     Redacted(RedactedRoomRedactionEvent),
 }
 
+impl JsonCastable<SyncRoomRedactionEvent> for RoomRedactionEvent {}
+
+impl JsonCastable<JsonObject> for RoomRedactionEvent {}
+
 /// A possibly-redacted redaction event without a `room_id`.
 #[allow(clippy::exhaustive_enums)]
 #[derive(Clone, Debug)]
@@ -42,6 +48,8 @@ pub enum SyncRoomRedactionEvent {
     /// Redacted form of the event with minimal fields.
     Redacted(RedactedSyncRoomRedactionEvent),
 }
+
+impl JsonCastable<JsonObject> for SyncRoomRedactionEvent {}
 
 /// Redaction event.
 #[derive(Clone, Debug)]
@@ -87,6 +95,14 @@ impl From<OriginalRoomRedactionEvent> for OriginalSyncRoomRedactionEvent {
     }
 }
 
+impl JsonCastable<OriginalSyncRoomRedactionEvent> for OriginalRoomRedactionEvent {}
+
+impl JsonCastable<RoomRedactionEvent> for OriginalRoomRedactionEvent {}
+
+impl JsonCastable<SyncRoomRedactionEvent> for OriginalRoomRedactionEvent {}
+
+impl JsonCastable<JsonObject> for OriginalRoomRedactionEvent {}
+
 /// Redacted redaction event.
 #[derive(Clone, Debug, Event)]
 #[allow(clippy::exhaustive_structs)]
@@ -109,6 +125,14 @@ pub struct RedactedRoomRedactionEvent {
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: RedactedUnsigned,
 }
+
+impl JsonCastable<RedactedSyncRoomRedactionEvent> for RedactedRoomRedactionEvent {}
+
+impl JsonCastable<RoomRedactionEvent> for RedactedRoomRedactionEvent {}
+
+impl JsonCastable<SyncRoomRedactionEvent> for RedactedRoomRedactionEvent {}
+
+impl JsonCastable<JsonObject> for RedactedRoomRedactionEvent {}
 
 /// Redaction event without a `room_id`.
 #[derive(Clone, Debug)]
@@ -156,6 +180,10 @@ impl OriginalSyncRoomRedactionEvent {
     }
 }
 
+impl JsonCastable<SyncRoomRedactionEvent> for OriginalSyncRoomRedactionEvent {}
+
+impl JsonCastable<JsonObject> for OriginalSyncRoomRedactionEvent {}
+
 /// Redacted redaction event without a `room_id`.
 #[derive(Clone, Debug, Event)]
 #[allow(clippy::exhaustive_structs)]
@@ -175,6 +203,10 @@ pub struct RedactedSyncRoomRedactionEvent {
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: RedactedUnsigned,
 }
+
+impl JsonCastable<SyncRoomRedactionEvent> for RedactedSyncRoomRedactionEvent {}
+
+impl JsonCastable<JsonObject> for RedactedSyncRoomRedactionEvent {}
 
 /// A redaction of an event.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]

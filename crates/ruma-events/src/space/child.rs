@@ -5,6 +5,7 @@
 use std::{cmp::Ordering, ops::Deref};
 
 use ruma_common::{
+    serde::{JsonCastable, JsonObject},
     MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedServerName, OwnedSpaceChildOrder, OwnedUserId,
     RoomId, SpaceChildOrder,
 };
@@ -101,6 +102,16 @@ impl PartialOrd for HierarchySpaceChildEvent {
         Some(self.cmp(other))
     }
 }
+
+impl JsonCastable<HierarchySpaceChildEvent> for SpaceChildEvent {}
+
+impl JsonCastable<HierarchySpaceChildEvent> for OriginalSpaceChildEvent {}
+
+impl JsonCastable<HierarchySpaceChildEvent> for SyncSpaceChildEvent {}
+
+impl JsonCastable<HierarchySpaceChildEvent> for OriginalSyncSpaceChildEvent {}
+
+impl JsonCastable<JsonObject> for HierarchySpaceChildEvent {}
 
 /// Helper trait to sort `m.space.child` events using using the algorithm for [ordering children
 /// within a space].
