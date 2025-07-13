@@ -14,18 +14,32 @@ use self::{
     event_type::expand_event_type_enums,
     parse::{EventEnumDecl, EventEnumEntry, EventEnumVariant},
 };
-use super::enums::{EventContentTraitVariation, EventField, EventKind, EventType, EventVariation};
+use super::enums::{
+    EventContentTraitVariation, EventField, EventKind, EventType, EventVariation, EventWithBounds,
+};
 use crate::import_ruma_common;
 
 /// `event_enum!` macro code generation.
 pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
     let ruma_common = import_ruma_common();
 
-    let enums = input
+    let mut enums = input
         .enums
         .iter()
         .map(|e| expand_event_kind_enums(e).unwrap_or_else(syn::Error::into_compile_error))
         .collect::<TokenStream>();
+
+    // Generate `JsonCastable` implementations for `Any*TimelineEvent` enums if we have any events
+    // in it.
+    if input.enums.iter().any(|event_enum| event_enum.kind.is_timeline()) {
+        let ruma_events = crate::import_ruma_events();
+        let kind = EventKind::Timeline;
+
+        for var in kind.event_enum_variations() {
+            let ident = kind.to_event_enum_ident(*var)?;
+            enums.extend(expand_json_castable_impl(&ident, kind, *var, &ruma_events)?);
+        }
+    }
 
     let event_types =
         expand_event_type_enums(input, ruma_common).unwrap_or_else(syn::Error::into_compile_error);
@@ -108,6 +122,7 @@ fn expand_event_kind_enum(
     let field_accessor_impl =
         expand_accessor_methods(kind, var, variants, &event_struct, ruma_events)?;
     let from_impl = expand_from_impl(&ident, &event_ty, variants);
+    let json_castable_impl = expand_json_castable_impl(&ident, kind, var, ruma_events)?;
 
     Ok(quote! {
         #( #attrs )*
@@ -131,6 +146,7 @@ fn expand_event_kind_enum(
         #deserialize_impl
         #field_accessor_impl
         #from_impl
+        #json_castable_impl
     })
 }
 
@@ -539,4 +555,76 @@ fn expand_accessor_methods(
             #maybe_redacted_accessors
         }
     })
+}
+
+/// Generate `JsonCastable` implementations for all compatible types.
+fn expand_json_castable_impl(
+    ident: &Ident,
+    kind: EventKind,
+    var: EventVariation,
+    ruma_events: &TokenStream,
+) -> syn::Result<Option<TokenStream>> {
+    let ruma_common = quote! { #ruma_events::exports::ruma_common };
+
+    // All event types are represented as objects in JSON.
+    let mut json_castable_impls = vec![quote! {
+        #[automatically_derived]
+        impl #ruma_common::serde::JsonCastable<#ruma_common::serde::JsonObject> for #ident {}
+    }];
+
+    // The event type kinds in this enum.
+    let mut event_kinds = vec![kind];
+    event_kinds.extend(kind.extra_enum_kinds());
+
+    for event_kind in event_kinds {
+        let event_variations = event_kind.event_variations();
+
+        // Matching event types (structs or enums) can be cast to this event enum.
+        json_castable_impls.extend(
+            event_variations
+                .iter()
+                // Filter variations that can't be cast from.
+                .filter(|variation| variation.is_json_castable_to(var))
+                // All enum variations can also be cast from event structs from the same variation.
+                .chain(event_variations.contains(&var).then_some(&var))
+                .map(|variation| {
+                    let EventWithBounds { type_with_generics, impl_generics, where_clause } =
+                        event_kind.to_event_with_bounds(*variation, ruma_events)?;
+
+                    Ok(quote! {
+                        #[automatically_derived]
+                        impl #impl_generics #ruma_common::serde::JsonCastable<#ident> for #type_with_generics
+                        #where_clause
+                        {}
+                    })
+                })
+                .collect::<syn::Result<Vec<_>>>()?,
+        );
+
+        // Matching event enums can be cast to this one, e.g. `AnyMessageLikeEvent` can be cast to
+        // `AnyTimelineEvent`.
+        let event_enum_variations = event_kind.event_enum_variations();
+
+        json_castable_impls.extend(
+            event_enum_variations
+                .iter()
+                // Filter variations that can't be cast from.
+                .filter(|variation| variation.is_json_castable_to(var))
+                // All enum variations can also be cast from other event enums from the same
+                // variation.
+                .chain((event_kind != kind && event_enum_variations.contains(&var)).then_some(&var))
+                .map(|variation| {
+                    let other_ident = event_kind
+                        .to_event_enum_ident(*variation)
+                        .expect("we only use variations that match an enum type");
+
+                    quote! {
+                        #[automatically_derived]
+                        impl #ruma_common::serde::JsonCastable<#ident> for #other_ident {}
+                    }
+                }),
+        );
+    }
+
+    Ok(Some(quote! { #( #json_castable_impls )* }))
 }

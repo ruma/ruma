@@ -2,10 +2,13 @@
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::Attribute;
+use syn::{Attribute, Ident};
 
 use super::{expand_from_impl, EventEnumEntry, EventEnumVariant};
-use crate::events::enums::{EventContentTraitVariation, EventKind, EventType};
+use crate::{
+    events::enums::{EventContentTraitVariation, EventKind, EventType},
+    import_ruma_common,
+};
 
 /// Generate an `Any*EventContent` enum.
 pub fn expand_content_enum(
@@ -36,6 +39,7 @@ pub fn expand_content_enum(
     });
 
     let from_impl = expand_from_impl(&ident, &content, variants);
+    let json_castable_impl = expand_json_castable_impl(&ident, &content, variants);
 
     let serialize_custom_event_error_path =
         quote! { #ruma_events::serialize_custom_event_error }.to_string();
@@ -127,6 +131,7 @@ pub fn expand_content_enum(
         }
 
         #from_impl
+        #json_castable_impl
     })
 }
 
@@ -175,4 +180,33 @@ pub fn expand_full_content_enum(
             }
         }
     })
+}
+
+/// Implement `JsonCastable<{enum}>` for all the variants of an enum and `JsonCastable<JsonObject>`
+/// for the enum.
+fn expand_json_castable_impl(
+    ty: &Ident,
+    event_ty: &[TokenStream],
+    variants: &[EventEnumVariant],
+) -> TokenStream {
+    let ruma_common = import_ruma_common();
+
+    // All event content types are represented as objects in JSON.
+    let mut json_castable_impls = vec![quote! {
+        #[automatically_derived]
+        impl #ruma_common::serde::JsonCastable<#ruma_common::serde::JsonObject> for #ty {}
+    }];
+
+    json_castable_impls.extend(event_ty.iter().zip(variants).map(|(event_ty, variant)| {
+        let attrs = &variant.attrs;
+
+        quote! {
+            #[allow(unused_qualifications)]
+            #[automatically_derived]
+            #(#attrs)*
+            impl #ruma_common::serde::JsonCastable<#ty> for #event_ty {}
+        }
+    }));
+
+    quote! { #( #json_castable_impls )* }
 }

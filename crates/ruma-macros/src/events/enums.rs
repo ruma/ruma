@@ -83,6 +83,31 @@ impl EventKind {
         format_ident!("{variation}{self}Content")
     }
 
+    /// Get the event type (struct or enum) with its bounds for this kind and the given variation.
+    pub fn to_event_with_bounds(
+        self,
+        var: EventVariation,
+        ruma_events: &TokenStream,
+    ) -> syn::Result<EventWithBounds> {
+        EventWithBounds::new(self, var, ruma_events)
+    }
+
+    /// Get the list of extra event kinds that are part of the event enum for this kind.
+    pub fn extra_enum_kinds(self) -> Vec<Self> {
+        match self {
+            Self::MessageLike => vec![Self::RoomRedaction],
+            Self::Timeline => vec![Self::MessageLike, Self::State, Self::RoomRedaction],
+            Self::GlobalAccountData
+            | Self::RoomAccountData
+            | Self::EphemeralRoom
+            | Self::State
+            | Self::ToDevice
+            | Self::RoomRedaction
+            | Self::HierarchySpaceChild
+            | Self::Decrypted => vec![],
+        }
+    }
+
     /// Get the list of variations for an event enum for this kind.
     pub fn event_enum_variations(self) -> &'static [EventVariation] {
         match self {
@@ -231,6 +256,26 @@ impl EventVariation {
             EventVariation::OriginalSync => EventVariation::Original,
             EventVariation::RedactedSync => EventVariation::Redacted,
             _ => panic!("No original (unredacted) form of {self:?}"),
+        }
+    }
+
+    /// Whether this variation can implement `JsonCastable` for the other variation, if both are
+    /// available for a kind.
+    ///
+    /// A variation can be cast to another variation when that other variation includes the same
+    /// fields or less.
+    pub fn is_json_castable_to(self, other: Self) -> bool {
+        match self {
+            Self::None | Self::OriginalSync | Self::RedactedSync => {
+                matches!(other, Self::Sync | Self::Stripped)
+            }
+            Self::Original => {
+                matches!(other, Self::None | Self::Sync | Self::OriginalSync | Self::Stripped)
+            }
+            Self::Redacted => {
+                matches!(other, Self::None | Self::Sync | Self::RedactedSync | Self::Stripped)
+            }
+            Self::Sync | Self::Stripped | Self::Initial => false,
         }
     }
 }
@@ -558,5 +603,84 @@ impl EventField {
 impl fmt::Display for EventField {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.as_str())
+    }
+}
+
+/// An event type (struct or enum) with its bounds.
+pub struct EventWithBounds {
+    pub type_with_generics: TokenStream,
+    pub impl_generics: Option<TokenStream>,
+    pub where_clause: Option<TokenStream>,
+}
+
+impl EventWithBounds {
+    pub fn new(
+        kind: EventKind,
+        var: EventVariation,
+        ruma_events: &TokenStream,
+    ) -> syn::Result<Self> {
+        let ident = kind.to_event_ident(var)?;
+
+        let event_content_trait = match var {
+            EventVariation::None
+            | EventVariation::Sync
+            | EventVariation::Original
+            | EventVariation::OriginalSync
+            | EventVariation::Initial => {
+                // `State` event structs have a `StaticStateEventContent` bound.
+                if kind == EventKind::State {
+                    kind.to_content_kind_trait(EventContentTraitVariation::Static)
+                } else {
+                    kind.to_content_kind_trait(EventContentTraitVariation::Original)
+                }
+            }
+            EventVariation::Stripped => {
+                kind.to_content_kind_trait(EventContentTraitVariation::PossiblyRedacted)
+            }
+            EventVariation::Redacted | EventVariation::RedactedSync => {
+                kind.to_content_kind_trait(EventContentTraitVariation::Redacted)
+            }
+        };
+
+        let (type_with_generics, impl_generics, where_clause) = match kind {
+            EventKind::MessageLike | EventKind::State
+                if matches!(var, EventVariation::None | EventVariation::Sync) =>
+            {
+                // `MessageLike` and `State` event kinds have an extra `RedactContent` bound with a
+                // `where` clause on the variations that match enum types.
+                let redacted_trait =
+                    kind.to_content_kind_trait(EventContentTraitVariation::Redacted);
+
+                (
+                    quote! { #ruma_events::#ident<C> },
+                    Some(
+                        quote! { <C: #ruma_events::#event_content_trait + #ruma_events::RedactContent> },
+                    ),
+                    Some(quote! {
+                        where
+                            C::Redacted: #ruma_events::#redacted_trait,
+                    }),
+                )
+            }
+            EventKind::GlobalAccountData
+            | EventKind::RoomAccountData
+            | EventKind::EphemeralRoom
+            | EventKind::MessageLike
+            | EventKind::State
+            | EventKind::ToDevice => (
+                quote! { #ruma_events::#ident<C> },
+                Some(quote! { <C: #ruma_events::#event_content_trait> }),
+                None,
+            ),
+            EventKind::RoomRedaction => {
+                (quote! { #ruma_events::room::redaction::#ident }, None, None)
+            }
+            // These don't have an event type and will fail in the `to_event_ident()` call above.
+            EventKind::HierarchySpaceChild | EventKind::Decrypted | EventKind::Timeline => {
+                unreachable!()
+            }
+        };
+
+        Ok(Self { impl_generics, type_with_generics, where_clause })
     }
 }
