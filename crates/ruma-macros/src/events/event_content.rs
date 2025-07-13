@@ -13,7 +13,7 @@ use self::parse::{ContentAttrs, ContentMeta, EventContentKind, EventFieldMeta, E
 use super::enums::{
     EventContentTraitVariation, EventContentVariation, EventKind, EventTypes, EventVariation,
 };
-use crate::{events::enums::EventType, util::PrivateField};
+use crate::{events::enums::EventType, import_ruma_common, util::PrivateField};
 
 /// `EventContent` derive macro code generation.
 pub fn expand_event_content(
@@ -105,6 +105,7 @@ pub fn expand_event_content(
             event_type_fragment.as_ref(),
             state_key_type.as_ref(),
             unsigned_type.clone(),
+            generate_redacted,
             ruma_events,
         )
         .unwrap_or_else(syn::Error::into_compile_error)
@@ -136,6 +137,8 @@ pub fn expand_event_content(
     let type_aliases = generate_event_type_aliases(kind, ident, &input.vis, &types, ruma_events)
         .unwrap_or_else(syn::Error::into_compile_error);
 
+    let json_castable_impl = generate_json_castable_impl(ident, &[]);
+
     Ok(quote! {
         #redacted_event_content
         #possibly_redacted_event_content
@@ -143,6 +146,7 @@ pub fn expand_event_content(
         #event_content_impl
         #static_event_content_impl
         #type_aliases
+        #json_castable_impl
     })
 }
 
@@ -229,6 +233,8 @@ fn generate_redacted_event_content<'a>(
     let static_event_content_impl =
         generate_static_event_content_impl(&redacted_ident, types, ruma_events);
 
+    let json_castable_impl = generate_json_castable_impl(&redacted_ident, &[ident]);
+
     Ok(quote! {
         // this is the non redacted event content's impl
         #[automatically_derived]
@@ -254,6 +260,8 @@ fn generate_redacted_event_content<'a>(
         #redacted_event_content
 
         #static_event_content_impl
+
+        #json_castable_impl
     })
 }
 
@@ -266,6 +274,7 @@ fn generate_possibly_redacted_event_content<'a>(
     event_type_fragment: Option<&EventTypeFragment<'_>>,
     state_key_type: Option<&TokenStream>,
     unsigned_type: Option<TokenStream>,
+    generate_redacted: bool,
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
     assert!(
@@ -384,6 +393,13 @@ fn generate_possibly_redacted_event_content<'a>(
         let static_event_content_impl =
             generate_static_event_content_impl(&possibly_redacted_ident, types, ruma_events);
 
+        let json_castable_impl = if generate_redacted {
+            let redacted_ident = format_ident!("Redacted{ident}");
+            generate_json_castable_impl(&possibly_redacted_ident, &[ident, &redacted_ident])
+        } else {
+            generate_json_castable_impl(&possibly_redacted_ident, &[ident])
+        };
+
         Ok(quote! {
             #[doc = #doc]
             #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
@@ -395,6 +411,8 @@ fn generate_possibly_redacted_event_content<'a>(
             #possibly_redacted_event_content
 
             #static_event_content_impl
+
+            #json_castable_impl
         })
     } else {
         let event_content_kind_trait_impl = generate_event_content_kind_trait_impl(
@@ -454,6 +472,8 @@ fn generate_event_content_without_relation<'a>(
         }
     };
 
+    let json_castable_impl = generate_json_castable_impl(&without_relation_ident, &[ident]);
+
     Ok(quote! {
         #[allow(unused_qualifications)]
         #[automatically_derived]
@@ -479,6 +499,8 @@ fn generate_event_content_without_relation<'a>(
                 }
             }
         }
+
+        #json_castable_impl
     })
 }
 
@@ -723,4 +745,23 @@ fn generate_static_event_content_impl(
             type IsPrefix = #is_prefix;
         }
     }
+}
+
+/// Implement `JsonCastable<JsonObject> for {ident}` and `JsonCastable<{ident}> for {other}`.
+fn generate_json_castable_impl(ident: &Ident, others: &[&Ident]) -> TokenStream {
+    let ruma_common = import_ruma_common();
+
+    let mut json_castable_impls = quote! {
+        #[automatically_derived]
+        impl #ruma_common::serde::JsonCastable<#ruma_common::serde::JsonObject> for #ident {}
+    };
+
+    json_castable_impls.extend(others.iter().map(|other| {
+        quote! {
+            #[automatically_derived]
+            impl #ruma_common::serde::JsonCastable<#ident> for #other {}
+        }
+    }));
+
+    json_castable_impls
 }
