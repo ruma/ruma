@@ -30,7 +30,7 @@ pub use self::{
     buf::{json_to_buf, slice_to_buf},
     can_be_empty::{is_empty, CanBeEmpty},
     cow::deserialize_cow_str,
-    raw::Raw,
+    raw::{JsonCastable, Raw},
     strings::{
         btreemap_deserialize_v1_powerlevel_values, deserialize_as_number_or_string,
         deserialize_as_optional_number_or_string, deserialize_v1_powerlevel, empty_string_as_none,
