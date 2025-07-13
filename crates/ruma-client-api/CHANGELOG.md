@@ -21,6 +21,11 @@ Breaking changes:
 - Update the endpoint metadata definitions to use the new syntax for variables.
 - `SpaceHierarchyRoomsChunk` is now built around `RoomSummary`, and
   `SpaceHierarchyRoomsChunkInit` was removed.
+- Add `JsonCastable` bound to `Raw::{cast, cast_ref, deserialize_as}`. When
+  a type `U` implements `JsonCastable<T>` it means that it is safe to cast from
+  `U` to `T` because `T` can be deserialized from the same JSON as `U`. It is
+  still possible to bypass that bound by using the corresponding methods of
+  `Raw` with an `_unchecked` suffix.
 
 Improvements:
 
