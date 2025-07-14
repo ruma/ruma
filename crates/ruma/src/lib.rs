@@ -139,4 +139,8 @@ pub use js_int::{int, uint, Int, UInt};
 #[doc(no_inline)]
 pub use js_option::JsOption;
 pub use ruma_common::*;
+#[cfg(feature = "canonical-json")]
+pub use ruma_common::{
+    canonical_json, CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue,
+};
 pub use web_time as time;
