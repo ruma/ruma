@@ -48,6 +48,9 @@ Breaking changes:
   prefix is statically-known.
 - `AnyEphemeralRoomEvent` was removed. There is no reason to use it, only
   `AnySyncEphemeralRoomEvent` can be received via `/sync`.
+- The `redacted_because` field of `RedactedUnsigned` is wrapped in `Raw`. It avoids to fail
+  deserialization of the whole event if only deserialization of this field fails. It is also more
+  forward-compatible in case events other than `m.room.redaction` are used here in the future.
 
 Improvements:
 
