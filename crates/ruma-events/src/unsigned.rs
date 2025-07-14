@@ -1,6 +1,7 @@
 use js_int::Int;
 use ruma_common::{
-    serde::CanBeEmpty, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedTransactionId, OwnedUserId,
+    serde::{CanBeEmpty, Raw},
+    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedTransactionId, OwnedUserId,
 };
 use serde::{de::DeserializeOwned, Deserialize};
 
@@ -114,12 +115,12 @@ impl<C: PossiblyRedactedStateEventContent> Default for StateUnsigned<C> {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RedactedUnsigned {
     /// The event that redacted this event, if any.
-    pub redacted_because: UnsignedRoomRedactionEvent,
+    pub redacted_because: Raw<UnsignedRoomRedactionEvent>,
 }
 
 impl RedactedUnsigned {
     /// Create a new `RedactedUnsigned` with the given redaction event.
-    pub fn new(redacted_because: UnsignedRoomRedactionEvent) -> Self {
+    pub fn new(redacted_because: Raw<UnsignedRoomRedactionEvent>) -> Self {
         Self { redacted_because }
     }
 }
