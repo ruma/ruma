@@ -11,7 +11,6 @@ pub use self::value::{CanonicalJsonObject, CanonicalJsonValue};
 use crate::{room_version_rules::RedactionRules, serde::Raw};
 
 /// The set of possible errors when serializing to canonical JSON.
-#[cfg(feature = "canonical-json")]
 #[derive(Debug)]
 #[allow(clippy::exhaustive_enums)]
 pub enum CanonicalJsonError {
@@ -36,7 +35,6 @@ impl fmt::Display for CanonicalJsonError {
 impl std::error::Error for CanonicalJsonError {}
 
 /// Errors that can happen in redaction.
-#[cfg(feature = "canonical-json")]
 #[derive(Debug)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum RedactionError {
