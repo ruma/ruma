@@ -257,7 +257,7 @@ mod tests {
         use ruma_common::api::IncomingRequest;
 
         let request = Request::try_from_http_request(
-            http::Request::put("http://localhost/_matrix/client/unstable/uk.tcpip.msc4133/profile/@alice:localhost/displayname").body(Vec::<u8>::new()).unwrap(),
+            http::Request::get("http://localhost/_matrix/client/unstable/uk.tcpip.msc4133/profile/@alice:localhost/displayname").body(Vec::<u8>::new()).unwrap(),
                 &["@alice:localhost", "displayname"],
             ).unwrap();
 

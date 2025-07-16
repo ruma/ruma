@@ -15,7 +15,7 @@ pub mod v3 {
     use crate::profile::ProfileFieldName;
 
     const METADATA: Metadata = metadata! {
-        method: PUT,
+        method: DELETE,
         rate_limited: true,
         authentication: AccessToken,
         history: {
