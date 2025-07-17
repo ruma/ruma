@@ -179,13 +179,7 @@ impl PushCondition {
                 let Some(sender_id) = event.get_str("sender") else { return false };
                 let Ok(sender_id) = <&UserId>::try_from(sender_id) else { return false };
 
-                let sender_level =
-                    power_levels.users.get(sender_id).unwrap_or(&power_levels.users_default);
-
-                match power_levels.notifications.get(key) {
-                    Some(l) => sender_level >= l,
-                    None => false,
-                }
+                power_levels.has_sender_notification_permission(sender_id, key)
             }
             #[cfg(feature = "unstable-msc3931")]
             Self::RoomVersionSupports { feature } => match feature {
@@ -292,6 +286,22 @@ impl PushConditionPowerLevelsCtx {
         notifications: NotificationPowerLevels,
     ) -> Self {
         Self { users, users_default, notifications }
+    }
+
+    /// Whether the given user has the permission to notify for the given key.
+    pub fn has_sender_notification_permission(
+        &self,
+        user_id: &UserId,
+        key: &NotificationPowerLevelsKey,
+    ) -> bool {
+        let Some(notification_power_level) = self.notifications.get(key) else {
+            // We don't know the required power level for the key.
+            return false;
+        };
+
+        let user_power_level = self.users.get(user_id).unwrap_or(&self.users_default);
+
+        user_power_level >= notification_power_level
     }
 }
 
