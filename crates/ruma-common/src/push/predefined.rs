@@ -8,7 +8,7 @@ use super::{
     Action::*, ConditionalPushRule, PatternedPushRule, PushCondition::*, RoomMemberCountIs,
     RuleKind, Ruleset, Tweak,
 };
-use crate::{PrivOwnedStr, UserId};
+use crate::{power_levels::NotificationPowerLevelsKey, PrivOwnedStr, UserId};
 
 impl Ruleset {
     /// The list of all [predefined push rules].
@@ -256,7 +256,7 @@ impl ConditionalPushRule {
             rule_id: PredefinedOverrideRuleId::IsRoomMention.to_string(),
             conditions: vec![
                 EventPropertyIs { key: r"content.m\.mentions.room".to_owned(), value: true.into() },
-                SenderNotificationPermission { key: "room".to_owned() },
+                SenderNotificationPermission { key: NotificationPowerLevelsKey::Room },
             ],
         }
     }

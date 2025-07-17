@@ -53,6 +53,10 @@ Breaking changes:
 - Make `PushConditionRoomCtx` and `PushConditionPowerLevelsCtx` non-exhaustive.
 - The `versions` field of `SupportedVersions` is now a `BTreeSet<MatrixVersion>`,
   to make sure that the versions are always deduplicated and sorted.
+- `NotificationPowerLevels` now takes a `NotificationPowerLevelsKey` for the
+  `key`, an enum that accepts any string.
+  - The `key` field of `PushCondition::SenderNotificationPermission` uses the
+    same type.
 
 Bug fix:
 

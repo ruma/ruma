@@ -4,7 +4,7 @@ use serde_json::value::RawValue as RawJsonValue;
 #[cfg(feature = "unstable-msc3931")]
 use super::RoomVersionFeature;
 use super::{PushCondition, RoomMemberCountIs, ScalarJsonValue};
-use crate::serde::from_raw_json_value;
+use crate::{power_levels::NotificationPowerLevelsKey, serde::from_raw_json_value};
 
 impl Serialize for PushCondition {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -84,7 +84,7 @@ enum PushConditionSerDeHelper {
         ///
         /// Fields must be specified under the `notifications` property in the power level event's
         /// `content`.
-        key: String,
+        key: NotificationPowerLevelsKey,
     },
 
     /// Apply the rule only to rooms that support a given feature.
