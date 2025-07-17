@@ -8,7 +8,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::value::Value as JsonValue;
 use wildmatch::WildMatch;
 
-use crate::{power_levels::NotificationPowerLevels, OwnedRoomId, OwnedUserId, UserId};
+use crate::{
+    power_levels::{NotificationPowerLevels, NotificationPowerLevelsKey},
+    OwnedRoomId, OwnedUserId, UserId,
+};
 #[cfg(feature = "unstable-msc3931")]
 use crate::{PrivOwnedStr, RoomVersionId};
 
@@ -98,7 +101,7 @@ pub enum PushCondition {
         ///
         /// Fields must be specified under the `notifications` property in the power level event's
         /// `content`.
-        key: String,
+        key: NotificationPowerLevelsKey,
     },
 
     /// Apply the rule only to rooms that support a given feature.
@@ -495,7 +498,9 @@ mod tests {
         RoomMemberCountIs, StrExt,
     };
     use crate::{
-        owned_room_id, owned_user_id, power_levels::NotificationPowerLevels, serde::Raw,
+        owned_room_id, owned_user_id,
+        power_levels::{NotificationPowerLevels, NotificationPowerLevelsKey},
+        serde::Raw,
         OwnedUserId,
     };
 
@@ -596,7 +601,7 @@ mod tests {
             from_json_value::<PushCondition>(json_data).unwrap(),
             PushCondition::SenderNotificationPermission { key }
         );
-        assert_eq!(key, "room");
+        assert_eq!(key, NotificationPowerLevelsKey::Room);
     }
 
     #[test]
