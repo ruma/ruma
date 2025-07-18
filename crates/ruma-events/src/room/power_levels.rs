@@ -2,13 +2,16 @@
 //!
 //! [`m.room.power_levels`]: https://spec.matrix.org/latest/client-server-api/#mroompower_levels
 
-use std::{cmp::max, collections::BTreeMap};
+use std::{
+    cmp::{max, Ordering},
+    collections::BTreeMap,
+};
 
 use js_int::{int, Int};
 use ruma_common::{
     power_levels::{default_power_level, NotificationPowerLevels},
     push::PushConditionPowerLevelsCtx,
-    room_version_rules::RedactionRules,
+    room_version_rules::{AuthorizationRules, RedactionRules, RoomPowerLevelsRules},
     OwnedUserId, UserId,
 };
 use ruma_macros::EventContent;
@@ -176,28 +179,40 @@ fn is_default_power_level(l: &Int) -> bool {
 
 impl RoomPowerLevelsEvent {
     /// Obtain the effective power levels, regardless of whether this event is redacted.
-    pub fn power_levels(&self) -> RoomPowerLevels {
+    pub fn power_levels(
+        &self,
+        rules: &AuthorizationRules,
+        creators: Vec<OwnedUserId>,
+    ) -> RoomPowerLevels {
         match self {
-            Self::Original(ev) => ev.content.clone().into(),
-            Self::Redacted(ev) => ev.content.clone().into(),
+            Self::Original(ev) => RoomPowerLevels::new(ev.content.clone().into(), rules, creators),
+            Self::Redacted(ev) => RoomPowerLevels::new(ev.content.clone().into(), rules, creators),
         }
     }
 }
 
 impl SyncRoomPowerLevelsEvent {
     /// Obtain the effective power levels, regardless of whether this event is redacted.
-    pub fn power_levels(&self) -> RoomPowerLevels {
+    pub fn power_levels(
+        &self,
+        rules: &AuthorizationRules,
+        creators: Vec<OwnedUserId>,
+    ) -> RoomPowerLevels {
         match self {
-            Self::Original(ev) => ev.content.clone().into(),
-            Self::Redacted(ev) => ev.content.clone().into(),
+            Self::Original(ev) => RoomPowerLevels::new(ev.content.clone().into(), rules, creators),
+            Self::Redacted(ev) => RoomPowerLevels::new(ev.content.clone().into(), rules, creators),
         }
     }
 }
 
 impl StrippedRoomPowerLevelsEvent {
     /// Obtain the effective power levels from this event.
-    pub fn power_levels(&self) -> RoomPowerLevels {
-        self.content.clone().into()
+    pub fn power_levels(
+        &self,
+        rules: &AuthorizationRules,
+        creators: Vec<OwnedUserId>,
+    ) -> RoomPowerLevels {
+        RoomPowerLevels::new(self.content.clone().into(), rules, creators)
     }
 }
 
@@ -298,57 +313,255 @@ impl RedactedStateEventContent for RedactedRoomPowerLevelsEventContent {
     }
 }
 
+/// The power level of a particular user.
+///
+/// Is either considered "infinite" if that user is a room creator, or an integer if they are not.
+#[derive(PartialEq, Copy, Clone, Eq, Debug)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub enum UserPowerLevel {
+    /// The user is considered to have "infinite" power level, due to being a room creator, from
+    /// room version `org.matrix.hydra.11` onwards.
+    Infinite,
+
+    /// The user is either not a creator, or the room version is prior to `org.matrix.hydra.11`,
+    /// and hence has an integer power level.
+    Int(Int),
+}
+
+impl Ord for UserPowerLevel {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match (self, other) {
+            (UserPowerLevel::Infinite, UserPowerLevel::Infinite) => Ordering::Equal,
+            (UserPowerLevel::Infinite, UserPowerLevel::Int(_)) => Ordering::Greater,
+            (UserPowerLevel::Int(_), UserPowerLevel::Infinite) => Ordering::Less,
+            (UserPowerLevel::Int(self_int), UserPowerLevel::Int(other_int)) => {
+                self_int.cmp(other_int)
+            }
+        }
+    }
+}
+
+impl PartialOrd for UserPowerLevel {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq<Int> for UserPowerLevel {
+    fn eq(&self, other: &Int) -> bool {
+        match self {
+            UserPowerLevel::Infinite => false,
+            UserPowerLevel::Int(int) => int.eq(other),
+        }
+    }
+}
+
+impl PartialEq<UserPowerLevel> for Int {
+    fn eq(&self, other: &UserPowerLevel) -> bool {
+        other.eq(self)
+    }
+}
+
+impl PartialOrd<Int> for UserPowerLevel {
+    fn partial_cmp(&self, other: &Int) -> Option<Ordering> {
+        match self {
+            UserPowerLevel::Infinite => Some(Ordering::Greater),
+            UserPowerLevel::Int(int) => int.partial_cmp(other),
+        }
+    }
+}
+
+impl PartialOrd<UserPowerLevel> for Int {
+    fn partial_cmp(&self, other: &UserPowerLevel) -> Option<Ordering> {
+        match other {
+            UserPowerLevel::Infinite => Some(Ordering::Less),
+            UserPowerLevel::Int(int) => self.partial_cmp(int),
+        }
+    }
+}
+
+impl From<Int> for UserPowerLevel {
+    fn from(value: Int) -> Self {
+        Self::Int(value)
+    }
+}
+
 /// The effective power levels of a room.
 ///
-/// This struct contains the same fields as [`RoomPowerLevelsEventContent`] and be created from that
-/// using a `From` trait implementation, but it is also implements
-/// `From<`[`RedactedRoomPowerLevelsEventContent`]`>`, so can be used when wanting to inspect the
-/// power levels of a room, regardless of whether the most recent power-levels event is redacted or
-/// not.
+/// This struct contains all the power levels settings from the specification and can be constructed
+/// from several [`RoomPowerLevelsSource`]s, which means that it can be used when wanting to inspect
+/// the power levels of a room, regardless of whether the most recent power levels event is redacted
+/// or not, or the room has no power levels event.
+///
+/// This can also be used to change the power levels of a room by mutating it and then converting it
+/// to a [`RoomPowerLevelsEventContent`] using `RoomPowerLevelsEventContent::try_from` /
+/// `.try_into()`. This allows to validate the format of the power levels before sending them. Note
+/// that the homeserver might still refuse the power levels changes depending on the current power
+/// level of the sender.
 #[derive(Clone, Debug)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomPowerLevels {
     /// The level required to ban a user.
+    ///
+    /// When built from [`RoomPowerLevelsSource::None`], defaults to `50`.
     pub ban: Int,
 
     /// The level required to send specific event types.
     ///
     /// This is a mapping from event type to power level required.
+    ///
+    /// When built from [`RoomPowerLevelsSource::None`], defaults to an empty map.
     pub events: BTreeMap<TimelineEventType, Int>,
 
     /// The default level required to send message events.
+    ///
+    /// When built from [`RoomPowerLevelsSource::None`], defaults to `0`.
     pub events_default: Int,
 
     /// The level required to invite a user.
+    ///
+    /// When built from [`RoomPowerLevelsSource::None`], defaults to `0`.
     pub invite: Int,
 
     /// The level required to kick a user.
+    ///
+    /// When built from [`RoomPowerLevelsSource::None`], defaults to `50`.
     pub kick: Int,
 
     /// The level required to redact an event.
+    ///
+    /// When built from [`RoomPowerLevelsSource::None`], defaults to `50`.
     pub redact: Int,
 
     /// The default level required to send state events.
+    ///
+    /// When built from [`RoomPowerLevelsSource::None`], defaults to `50`.
     pub state_default: Int,
 
     /// The power levels for specific users.
     ///
     /// This is a mapping from `user_id` to power level for that user.
+    ///
+    /// Must NOT contain creators of the room in room versions where the
+    /// `explicitly_privilege_room_creators` field of [`AuthorizationRules`] is set to `true`. This
+    /// would result in an error when trying to convert this to a [`RoomPowerLevelsEventContent`].
+    ///
+    /// When built from [`RoomPowerLevelsSource::None`]:
+    ///
+    /// * If `explicitly_privilege_room_creators` is set to `false` for the room version, defaults
+    ///   to setting the power level to `100` for the creator(s) of the room.
+    /// * Otherwise, defaults to an empty map.
     pub users: BTreeMap<OwnedUserId, Int>,
 
     /// The default power level for every user in the room.
+    ///
+    /// When built from [`RoomPowerLevelsSource::None`], defaults to `0`.
     pub users_default: Int,
 
     /// The power level requirements for specific notification types.
     ///
     /// This is a mapping from `key` to power level for that notifications key.
+    ///
+    /// When built from [`RoomPowerLevelsSource::None`], uses its `Default` implementation.
     pub notifications: NotificationPowerLevels,
+
+    /// The tweaks for determining the power level of a user.
+    pub rules: RoomPowerLevelsRules,
 }
 
 impl RoomPowerLevels {
+    /// Constructs `RoomPowerLevels` from `RoomPowerLevelsSource`, `AuthorizationRules` and the
+    /// creators of a room.
+    pub fn new(
+        power_levels: RoomPowerLevelsSource,
+        rules: &AuthorizationRules,
+        creators: impl IntoIterator<Item = OwnedUserId> + Clone,
+    ) -> Self {
+        match power_levels {
+            RoomPowerLevelsSource::Original(RoomPowerLevelsEventContent {
+                ban,
+                events,
+                events_default,
+                invite,
+                kick,
+                redact,
+                state_default,
+                users,
+                users_default,
+                notifications,
+            }) => Self {
+                ban,
+                events,
+                events_default,
+                invite,
+                kick,
+                redact,
+                state_default,
+                users,
+                users_default,
+                notifications,
+                rules: RoomPowerLevelsRules::new(rules, creators),
+            },
+            RoomPowerLevelsSource::Redacted(RedactedRoomPowerLevelsEventContent {
+                ban,
+                events,
+                events_default,
+                invite,
+                kick,
+                redact,
+                state_default,
+                users,
+                users_default,
+            }) => Self {
+                ban,
+                events,
+                events_default,
+                invite,
+                kick,
+                redact,
+                state_default,
+                users,
+                users_default,
+                notifications: NotificationPowerLevels::new(),
+                rules: RoomPowerLevelsRules::new(rules, creators),
+            },
+            // events_default, users_default and invite having a default of 0 while the others have
+            // a default of 50 is not an oversight, these defaults are from the Matrix
+            // specification.
+            RoomPowerLevelsSource::None => Self {
+                ban: default_power_level(),
+                events: BTreeMap::new(),
+                events_default: int!(0),
+                invite: int!(0),
+                kick: default_power_level(),
+                redact: default_power_level(),
+                state_default: default_power_level(),
+                users: if rules.explicitly_privilege_room_creators {
+                    BTreeMap::new()
+                } else {
+                    // If creators are not explicitly privileged, their power level is 100 if there
+                    // is no power levels state.
+                    BTreeMap::from_iter(creators.clone().into_iter().map(|user| (user, int!(100))))
+                },
+                users_default: int!(0),
+                notifications: NotificationPowerLevels::default(),
+                rules: RoomPowerLevelsRules::new(rules, creators),
+            },
+        }
+    }
+
+    /// Whether the given user ID is a privileged creator.
+    fn is_privileged_creator(&self, user_id: &UserId) -> bool {
+        self.rules.privileged_creators.as_ref().is_some_and(|creators| creators.contains(user_id))
+    }
+
     /// Get the power level of a specific user.
-    pub fn for_user(&self, user_id: &UserId) -> Int {
-        self.users.get(user_id).map_or(self.users_default, |pl| *pl)
+    pub fn for_user(&self, user_id: &UserId) -> UserPowerLevel {
+        if self.is_privileged_creator(user_id) {
+            return UserPowerLevel::Infinite;
+        }
+
+        self.users.get(user_id).map_or(self.users_default, |pl| *pl).into()
     }
 
     /// Get the power level required to perform a given action.
@@ -502,6 +715,11 @@ impl RoomPowerLevels {
             return false;
         }
 
+        // No one can change the power level of a privileged creator.
+        if self.is_privileged_creator(target_user_id) {
+            return false;
+        }
+
         // A user can change their own power level.
         if acting_user_id == target_user_id {
             return true;
@@ -562,9 +780,27 @@ impl RoomPowerLevels {
     }
 }
 
-impl From<RoomPowerLevelsEventContent> for RoomPowerLevels {
-    fn from(c: RoomPowerLevelsEventContent) -> Self {
-        Self {
+/// An error encountered when trying to build a [`RoomPowerLevelsEventContent`] from
+/// [`RoomPowerLevels`].
+#[derive(Copy, Clone, Debug, PartialEq, Eq, thiserror::Error)]
+#[non_exhaustive]
+pub enum PowerLevelsError {
+    /// A creator is in the `users` map, and it is not allowed by the current room version.
+    #[error("a creator is in the `users` map, and it is not allowed by the current room version")]
+    CreatorInUsersMap,
+}
+
+impl TryFrom<RoomPowerLevels> for RoomPowerLevelsEventContent {
+    type Error = PowerLevelsError;
+
+    fn try_from(c: RoomPowerLevels) -> Result<Self, Self::Error> {
+        if c.rules.privileged_creators.as_ref().is_some_and(|creators| {
+            !c.users.is_empty() && creators.iter().any(|user_id| c.users.contains_key(user_id))
+        }) {
+            return Err(PowerLevelsError::CreatorInUsersMap);
+        }
+
+        Ok(Self {
             ban: c.ban,
             events: c.events,
             events_default: c.events_default,
@@ -575,47 +811,52 @@ impl From<RoomPowerLevelsEventContent> for RoomPowerLevels {
             users: c.users,
             users_default: c.users_default,
             notifications: c.notifications,
-        }
-    }
-}
-
-impl From<RedactedRoomPowerLevelsEventContent> for RoomPowerLevels {
-    fn from(c: RedactedRoomPowerLevelsEventContent) -> Self {
-        Self {
-            ban: c.ban,
-            events: c.events,
-            events_default: c.events_default,
-            invite: c.invite,
-            kick: c.kick,
-            redact: c.redact,
-            state_default: c.state_default,
-            users: c.users,
-            users_default: c.users_default,
-            notifications: NotificationPowerLevels::default(),
-        }
-    }
-}
-
-impl From<RoomPowerLevels> for RoomPowerLevelsEventContent {
-    fn from(c: RoomPowerLevels) -> Self {
-        Self {
-            ban: c.ban,
-            events: c.events,
-            events_default: c.events_default,
-            invite: c.invite,
-            kick: c.kick,
-            redact: c.redact,
-            state_default: c.state_default,
-            users: c.users,
-            users_default: c.users_default,
-            notifications: c.notifications,
-        }
+        })
     }
 }
 
 impl From<RoomPowerLevels> for PushConditionPowerLevelsCtx {
     fn from(c: RoomPowerLevels) -> Self {
-        Self::new(c.users, c.users_default, c.notifications)
+        Self::new(c.users, c.users_default, c.notifications, c.rules)
+    }
+}
+
+/// The possible power level sources for [`RoomPowerLevels`].
+#[derive(Default)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub enum RoomPowerLevelsSource {
+    /// Construct `RoomPowerLevels` from the non-redacted `m.room.power_levels` event content.
+    Original(RoomPowerLevelsEventContent),
+    /// Construct `RoomPowerLevels` from the redacted `m.room.power_levels` event content.
+    Redacted(RedactedRoomPowerLevelsEventContent),
+    /// Use the default values defined in the specification.
+    ///
+    /// Should only be used when there is no power levels state in a room.
+    #[default]
+    None,
+}
+
+impl From<Option<RoomPowerLevelsEventContent>> for RoomPowerLevelsSource {
+    fn from(value: Option<RoomPowerLevelsEventContent>) -> Self {
+        value.map(Self::Original).unwrap_or_default()
+    }
+}
+
+impl From<Option<RedactedRoomPowerLevelsEventContent>> for RoomPowerLevelsSource {
+    fn from(value: Option<RedactedRoomPowerLevelsEventContent>) -> Self {
+        value.map(Self::Redacted).unwrap_or_default()
+    }
+}
+
+impl From<RoomPowerLevelsEventContent> for RoomPowerLevelsSource {
+    fn from(value: RoomPowerLevelsEventContent) -> Self {
+        Self::Original(value)
+    }
+}
+
+impl From<RedactedRoomPowerLevelsEventContent> for RoomPowerLevelsSource {
+    fn from(value: RedactedRoomPowerLevelsEventContent) -> Self {
+        Self::Redacted(value)
     }
 }
 
@@ -686,10 +927,13 @@ mod tests {
     use assign::assign;
     use js_int::int;
     use maplit::btreemap;
-    use ruma_common::user_id;
+    use ruma_common::{owned_user_id, room_version_rules::AuthorizationRules, user_id};
     use serde_json::{json, to_value as to_json_value};
 
-    use super::{default_power_level, NotificationPowerLevels, RoomPowerLevelsEventContent};
+    use super::{
+        default_power_level, NotificationPowerLevels, RoomPowerLevels, RoomPowerLevelsEventContent,
+        RoomPowerLevelsSource,
+    };
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
@@ -755,5 +999,46 @@ mod tests {
         });
 
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn cannot_change_power_level_of_privileged_creator() {
+        let creator = user_id!("@lola:localhost");
+
+        let v1_power_levels = RoomPowerLevels::new(
+            RoomPowerLevelsSource::None,
+            &AuthorizationRules::V1,
+            vec![creator.to_owned()],
+        );
+        assert!(v1_power_levels.user_can_change_user_power_level(creator, creator));
+
+        let hydra_power_levels = RoomPowerLevels::new(
+            RoomPowerLevelsSource::None,
+            &AuthorizationRules::HYDRA,
+            vec![creator.to_owned()],
+        );
+        assert!(!hydra_power_levels.user_can_change_user_power_level(creator, creator));
+    }
+
+    #[test]
+    fn cannot_convert_to_event_content_with_creator_in_users() {
+        let creator = owned_user_id!("@lola:localhost");
+
+        let mut v1_power_levels = RoomPowerLevels::new(
+            RoomPowerLevelsSource::None,
+            &AuthorizationRules::V1,
+            vec![creator.clone()],
+        );
+        v1_power_levels.users.insert(creator.clone(), int!(75));
+        let v1_event_content = RoomPowerLevelsEventContent::try_from(v1_power_levels).unwrap();
+        assert_eq!(*v1_event_content.users.get(&creator).unwrap(), int!(75));
+
+        let mut hydra_power_levels = RoomPowerLevels::new(
+            RoomPowerLevelsSource::None,
+            &AuthorizationRules::HYDRA,
+            vec![creator.to_owned()],
+        );
+        hydra_power_levels.users.insert(creator.clone(), int!(75));
+        RoomPowerLevelsEventContent::try_from(hydra_power_levels).unwrap_err();
     }
 }

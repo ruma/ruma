@@ -60,6 +60,11 @@ pub struct RoomCreateEventContent {
     /// This is currently only used for spaces.
     #[serde(skip_serializing_if = "Option::is_none", rename = "type")]
     pub room_type: Option<RoomType>,
+
+    /// Additional room creators, considered to have "infinite" power level, in room versions
+    /// `org.matrix.hydra.11` onwards.
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    pub additional_creators: Vec<OwnedUserId>,
 }
 
 impl RoomCreateEventContent {
@@ -73,6 +78,7 @@ impl RoomCreateEventContent {
             room_version: default_room_version_id(),
             predecessor: None,
             room_type: None,
+            additional_creators: Vec::new(),
         }
     }
 
@@ -88,6 +94,7 @@ impl RoomCreateEventContent {
             room_version: RoomVersionId::V11,
             predecessor: None,
             room_type: None,
+            additional_creators: Vec::new(),
         }
     }
 }
@@ -167,6 +174,7 @@ mod tests {
             room_version: RoomVersionId::V4,
             predecessor: None,
             room_type: None,
+            additional_creators: Vec::new(),
         };
 
         let json = json!({
@@ -187,6 +195,7 @@ mod tests {
             room_version: RoomVersionId::V4,
             predecessor: None,
             room_type: Some(RoomType::Space),
+            additional_creators: Vec::new(),
         };
 
         let json = json!({
