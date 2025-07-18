@@ -988,6 +988,7 @@ mod tests {
         owned_room_id, owned_user_id,
         power_levels::NotificationPowerLevels,
         push::{PredefinedContentRuleId, PredefinedOverrideRuleId},
+        room_version_rules::{AuthorizationRules, RoomPowerLevelsRules},
         serde::Raw,
         user_id,
     };
@@ -1014,6 +1015,7 @@ mod tests {
             users: BTreeMap::new(),
             users_default: int!(50),
             notifications: NotificationPowerLevels { room: int!(50) },
+            rules: RoomPowerLevelsRules::new(&AuthorizationRules::V1, None),
         }
     }
 
