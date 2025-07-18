@@ -4,8 +4,13 @@ use std::{
 };
 
 use js_int::Int;
-use ruma_common::{room::JoinRuleKind, room_version_rules::AuthorizationRules, EventId, UserId};
-use ruma_events::{room::member::MembershipState, StateEventType, TimelineEventType};
+use ruma_common::{
+    room::JoinRuleKind, room_version_rules::AuthorizationRules, EventId, OwnedUserId, UserId,
+};
+use ruma_events::{
+    room::{member::MembershipState, power_levels::UserPowerLevel},
+    StateEventType, TimelineEventType,
+};
 use serde_json::value::RawValue as RawJsonValue;
 use tracing::{debug, info, instrument, warn};
 
@@ -296,11 +301,11 @@ pub fn check_state_dependent_auth_rules<E: Event>(
         return Err("sender's membership is not `join`".to_owned());
     }
 
-    let creator = room_create_event.creator(rules)?;
+    let creators = room_create_event.creators(rules)?;
     let current_room_power_levels_event = fetch_state.room_power_levels_event();
 
     let sender_power_level =
-        current_room_power_levels_event.user_power_level(sender, &creator, rules)?;
+        current_room_power_levels_event.user_power_level(sender, &creators, rules)?;
 
     // Since v1, if type is m.room.third_party_invite:
     if *incoming_event.event_type() == TimelineEventType::RoomThirdPartyInvite {
@@ -349,6 +354,7 @@ pub fn check_state_dependent_auth_rules<E: Event>(
             current_room_power_levels_event,
             rules,
             sender_power_level,
+            &creators,
         );
     }
 
@@ -402,6 +408,10 @@ fn check_room_create(
         return Err("missing `creator` field in `m.room.create` event".into());
     }
 
+    // Since v12, if the `additional_creators` field is present and is not an array of strings
+    // where each string passes the same user ID validation that is applied to the sender, reject.
+    room_create_event.additional_creators(rules)?;
+
     // Otherwise, allow.
     info!("`m.room.create` event was allowed");
     Ok(())
@@ -412,7 +422,8 @@ fn check_room_power_levels(
     room_power_levels_event: RoomPowerLevelsEvent<impl Event>,
     current_room_power_levels_event: Option<RoomPowerLevelsEvent<impl Event>>,
     rules: &AuthorizationRules,
-    sender_power_level: Int,
+    sender_power_level: UserPowerLevel,
+    room_creators: &HashSet<OwnedUserId>,
 ) -> Result<(), String> {
     debug!("starting m.room.power_levels check");
 
@@ -430,6 +441,16 @@ fn check_room_power_levels(
     // Since v10, if the users property in content is not an object with keys that are valid user
     // IDs with values that are integers, reject.
     let new_users = room_power_levels_event.users(rules)?;
+
+    // Since v12, if the `users` property in `content` contains the `sender` of the `m.room.create`
+    // event or any of the user IDs in the create event's `content.additional_creators`, reject.
+    if rules.explicitly_privilege_room_creators
+        && new_users.is_some_and(|new_users| {
+            room_creators.iter().any(|creator| new_users.contains_key(creator))
+        })
+    {
+        return Err("creator user IDs are not allowed in the `users` field".to_owned());
+    }
 
     debug!("validation of power event finished");
 
@@ -549,7 +570,7 @@ fn check_room_power_levels(
 fn check_power_level_maps<K: Ord>(
     current: Option<&BTreeMap<K, Int>>,
     new: Option<&BTreeMap<K, Int>>,
-    sender_power_level: &Int,
+    sender_power_level: &UserPowerLevel,
     reject_current_power_level_change_fn: impl FnOnce(&K, Int) -> bool + Copy,
     error_fn: impl FnOnce(&K) -> String,
 ) -> Result<(), String> {
@@ -573,7 +594,7 @@ fn check_power_level_maps<K: Ord>(
 
         // For each entry being added to, or changed in, the property:
         // - If the new value is higher than the sender's current power level, reject.
-        let new_power_level_too_big = new_power_level > Some(sender_power_level);
+        let new_power_level_too_big = new_power_level.is_some_and(|pl| pl > sender_power_level);
 
         if current_power_level_change_rejected || new_power_level_too_big {
             return Err(error_fn(key));
@@ -588,7 +609,7 @@ fn check_room_redaction(
     room_redaction_event: impl Event,
     current_room_power_levels_event: Option<RoomPowerLevelsEvent<impl Event>>,
     rules: &AuthorizationRules,
-    sender_level: Int,
+    sender_level: UserPowerLevel,
 ) -> Result<(), String> {
     let redact_level = current_room_power_levels_event
         .get_as_int_or_default(RoomPowerLevelsIntField::Redact, rules)?;

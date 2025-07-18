@@ -6,11 +6,13 @@ use std::{
     sync::OnceLock,
 };
 
-use js_int::Int;
 use ruma_common::{
     room_version_rules::AuthorizationRules, EventId, MilliSecondsSinceUnixEpoch, OwnedUserId,
 };
-use ruma_events::{room::member::MembershipState, StateEventType, TimelineEventType};
+use ruma_events::{
+    room::{member::MembershipState, power_levels::UserPowerLevel},
+    StateEventType, TimelineEventType,
+};
 use tracing::{debug, info, instrument, trace, warn};
 
 #[cfg(test)]
@@ -288,16 +290,16 @@ fn sort_power_events<E: Event>(
     let mut event_to_power_level = HashMap::new();
     // We need to know the creator in case of missing power levels. Given that it's the same for all
     // the events in the room, we will just load it for the first event and reuse it.
-    let creator_lock = OnceLock::new();
+    let creators_lock = OnceLock::new();
 
     // Get the power level of the sender of each event in the graph.
     for event_id in graph.keys() {
         let sender_power_level =
-            power_level_for_sender(event_id.borrow(), rules, &creator_lock, &fetch_event)
+            power_level_for_sender(event_id.borrow(), rules, &creators_lock, &fetch_event)
                 .map_err(Error::AuthEvent)?;
         debug!(
             event_id = event_id.borrow().as_str(),
-            power_level = i64::from(sender_power_level),
+            power_level = ?sender_power_level,
             "found the power level of an event's sender",
         );
 
@@ -355,12 +357,12 @@ pub fn reverse_topological_power_sort<Id, F>(
     event_details_fn: F,
 ) -> Result<Vec<Id>>
 where
-    F: Fn(&EventId) -> Result<(Int, MilliSecondsSinceUnixEpoch)>,
+    F: Fn(&EventId) -> Result<(UserPowerLevel, MilliSecondsSinceUnixEpoch)>,
     Id: Clone + Eq + Ord + Hash + Borrow<EventId>,
 {
     #[derive(PartialEq, Eq)]
     struct TieBreaker<'a, Id> {
-        power_level: Int,
+        power_level: UserPowerLevel,
         origin_server_ts: MilliSecondsSinceUnixEpoch,
         event_id: &'a Id,
     }
@@ -479,9 +481,9 @@ where
 fn power_level_for_sender<E: Event>(
     event_id: &EventId,
     rules: &AuthorizationRules,
-    creator_lock: &OnceLock<OwnedUserId>,
+    creators_lock: &OnceLock<HashSet<OwnedUserId>>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
-) -> std::result::Result<Int, String> {
+) -> std::result::Result<UserPowerLevel, String> {
     let event = fetch_event(event_id);
     let mut room_create_event = None;
     let mut room_power_levels_event = None;
@@ -490,14 +492,14 @@ fn power_level_for_sender<E: Event>(
         if let Some(auth_event) = fetch_event(auth_event_id.borrow()) {
             if is_type_and_key(&auth_event, &TimelineEventType::RoomPowerLevels, "") {
                 room_power_levels_event = Some(RoomPowerLevelsEvent::new(auth_event));
-            } else if creator_lock.get().is_none()
+            } else if creators_lock.get().is_none()
                 && is_type_and_key(&auth_event, &TimelineEventType::RoomCreate, "")
             {
                 room_create_event = Some(RoomCreateEvent::new(auth_event));
             }
 
             if room_power_levels_event.is_some()
-                && (creator_lock.get().is_some() || room_create_event.is_some())
+                && (creators_lock.get().is_some() || room_create_event.is_some())
             {
                 break;
             }
@@ -505,19 +507,21 @@ fn power_level_for_sender<E: Event>(
     }
 
     // TODO: Use OnceLock::try_or_get_init when it is stabilized.
-    let creator = if let Some(creator) = creator_lock.get() {
-        Some(creator)
+    let creators = if let Some(creators) = creators_lock.get() {
+        Some(creators)
     } else if let Some(room_create_event) = room_create_event {
-        let creator = room_create_event.creator(rules)?;
-        Some(creator_lock.get_or_init(|| creator.into_owned()))
+        let creators = room_create_event.creators(rules)?;
+        Some(creators_lock.get_or_init(|| creators))
     } else {
         None
     };
 
-    if let Some((event, creator)) = event.zip(creator) {
-        room_power_levels_event.user_power_level(event.sender(), creator, rules)
+    if let Some((event, creators)) = event.zip(creators) {
+        room_power_levels_event.user_power_level(event.sender(), creators, rules)
     } else {
-        room_power_levels_event.get_as_int_or_default(RoomPowerLevelsIntField::UsersDefault, rules)
+        room_power_levels_event
+            .get_as_int_or_default(RoomPowerLevelsIntField::UsersDefault, rules)
+            .map(Into::into)
     }
 }
 

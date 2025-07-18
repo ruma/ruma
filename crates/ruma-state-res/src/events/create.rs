@@ -1,6 +1,6 @@
 //! Types to deserialize `m.room.create` events.
 
-use std::{borrow::Cow, ops::Deref};
+use std::{borrow::Cow, collections::HashSet, ops::Deref};
 
 use ruma_common::{
     room_version_rules::AuthorizationRules, serde::from_raw_json_value, OwnedUserId, RoomVersionId,
@@ -56,7 +56,10 @@ impl<E: Event> RoomCreateEvent<E> {
     /// If the `use_room_create_sender` field of `AuthorizationRules` is set, the creator is the
     /// sender of this `m.room.create` event, otherwise it is deserialized from the `creator`
     /// field of this event's content.
-    pub fn creator(&self, rules: &AuthorizationRules) -> Result<Cow<'_, UserId>, String> {
+    ///
+    /// This function ignores any `content.additional_creators`, and should only be used in
+    /// `check_room_member_join`. Otherwise, you should use `creators` instead.
+    pub(crate) fn creator(&self, rules: &AuthorizationRules) -> Result<Cow<'_, UserId>, String> {
         #[derive(Deserialize)]
         struct RoomCreateContentCreator {
             creator: OwnedUserId,
@@ -72,6 +75,51 @@ impl<E: Event> RoomCreateEvent<E> {
 
             Ok(Cow::Owned(content.creator))
         }
+    }
+
+    /// The additional creators of the room (if any).
+    ///
+    /// If the `explicitly_privilege_room_creators`
+    /// field of `AuthorizationRules` is set, any additional user IDs in `additional_creators`, if
+    /// present, will also be considered creators.
+    ///
+    /// This function ignores the primary room creator, and should only be used in
+    /// `check_room_member_join`. Otherwise, you should use `creators` instead.
+    pub(crate) fn additional_creators(
+        &self,
+        rules: &AuthorizationRules,
+    ) -> Result<HashSet<OwnedUserId>, String> {
+        #[derive(Deserialize)]
+        struct RoomCreateContentAdditionalCreators {
+            #[serde(default)]
+            additional_creators: HashSet<OwnedUserId>,
+        }
+
+        Ok(if rules.additional_room_creators {
+            let content: RoomCreateContentAdditionalCreators = from_raw_json_value(self.content())
+                .map_err(|err: serde_json::Error| {
+                    format!("invalid `additional_creators` field in `m.room.create` event: {err}")
+                })?;
+
+            content.additional_creators
+        } else {
+            HashSet::new()
+        })
+    }
+
+    /// The creators of the room.
+    ///
+    /// If the `use_room_create_sender` field of `AuthorizationRules` is set, the creator is the
+    /// sender of this `m.room.create` event, otherwise it is deserialized from the `creator`
+    /// field of this event's content. Additionally if the `explicitly_privilege_room_creators`
+    /// field of `AuthorizationRules` is set, any additional user IDs in `additional_creators`, if
+    /// present, will also be considered creators.
+    pub fn creators(&self, rules: &AuthorizationRules) -> Result<HashSet<OwnedUserId>, String> {
+        let mut creators = self.additional_creators(rules)?;
+
+        creators.insert(self.creator(rules)?.into_owned());
+
+        Ok(creators)
     }
 
     /// Whether the event has a `creator` field.

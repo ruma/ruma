@@ -32,6 +32,9 @@ Breaking:
 - `lexicographical_topological_sort()` was renamed to
   `reverse_topological_power_sort()`, to match the name of the algorithm defined
   in the Matrix spec.
+- Return `UserPowerLevel` in place of `Int` for `reverse_topological_power_sort`.
+- Rename `RoomCreateEvent::creator` to `RoomCreateEvent::creators`, and have it return a set of
+  user IDs instead of only ever returning one.
 
 Bug fixes:
 

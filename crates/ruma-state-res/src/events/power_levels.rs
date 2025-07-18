@@ -1,7 +1,7 @@
 //! Types to deserialize `m.room.power_levels` events.
 
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, HashSet},
     ops::Deref,
     sync::{Arc, Mutex, OnceLock},
 };
@@ -16,7 +16,7 @@ use ruma_common::{
     },
     OwnedUserId, UserId,
 };
-use ruma_events::TimelineEventType;
+use ruma_events::{room::power_levels::UserPowerLevel, TimelineEventType};
 use serde::de::DeserializeOwned;
 use serde_json::{from_value as from_json_value, Error};
 
@@ -253,9 +253,9 @@ pub(crate) trait RoomPowerLevelsEventOptionExt {
     fn user_power_level(
         &self,
         user_id: &UserId,
-        creator: &UserId,
+        creators: &HashSet<OwnedUserId>,
         rules: &AuthorizationRules,
-    ) -> Result<Int, String>;
+    ) -> Result<UserPowerLevel, String>;
 
     /// Get the value of a field that should contain an integer, or its default value if it is
     /// absent.
@@ -278,18 +278,20 @@ impl<E: Event> RoomPowerLevelsEventOptionExt for Option<RoomPowerLevelsEvent<E>>
     fn user_power_level(
         &self,
         user_id: &UserId,
-        creator: &UserId,
+        creators: &HashSet<OwnedUserId>,
         rules: &AuthorizationRules,
-    ) -> Result<Int, String> {
-        if let Some(room_power_levels_event) = self {
-            room_power_levels_event.user_power_level(user_id, rules)
+    ) -> Result<UserPowerLevel, String> {
+        if rules.explicitly_privilege_room_creators && creators.contains(user_id) {
+            Ok(UserPowerLevel::Infinite)
+        } else if let Some(room_power_levels_event) = self {
+            room_power_levels_event.user_power_level(user_id, rules).map(Into::into)
         } else {
-            let power_level = if user_id == creator {
+            let power_level = if creators.contains(user_id) {
                 DEFAULT_CREATOR_POWER_LEVEL.into()
             } else {
                 RoomPowerLevelsIntField::UsersDefault.default_value()
             };
-            Ok(power_level)
+            Ok(power_level.into())
         }
     }
 

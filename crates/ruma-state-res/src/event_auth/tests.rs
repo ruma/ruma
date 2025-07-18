@@ -97,6 +97,35 @@ fn valid_room_create() {
         );
         check_room_create(RoomCreateEvent::new(event), &AuthorizationRules::V11).unwrap();
     }
+
+    // Check `additional_creators` is allowed to contain invalid user IDs if the room version
+    // doesn't acknowledge them.
+    let content = json!({
+        "room_version": "11",
+        "additional_creators": ["@::example.org"]
+    });
+    let event = to_init_pdu_event(
+        "CREATE",
+        alice(),
+        TimelineEventType::RoomCreate,
+        Some(""),
+        to_raw_json_value(&content).unwrap(),
+    );
+    check_room_create(RoomCreateEvent::new(event), &AuthorizationRules::V11).unwrap();
+
+    // Check `additional_creators` only contains valid user IDs.
+    let content = json!({
+        "room_version": "12",
+        "additional_creators": ["@alice:example.org"]
+    });
+    let event = to_init_pdu_event(
+        "CREATE",
+        alice(),
+        TimelineEventType::RoomCreate,
+        Some(""),
+        to_raw_json_value(&content).unwrap(),
+    );
+    check_room_create(RoomCreateEvent::new(event), &AuthorizationRules::HYDRA).unwrap();
 }
 
 #[test]
@@ -140,6 +169,20 @@ fn invalid_room_create() {
         to_raw_json_value(&content).unwrap(),
     );
     check_room_create(RoomCreateEvent::new(event), &AuthorizationRules::V1).unwrap_err();
+
+    // Check `additional_creators` only contains valid user IDs.
+    let content = json!({
+        "room_version": "12",
+        "additional_creators": ["@::example.org"]
+    });
+    let event = to_init_pdu_event(
+        "CREATE",
+        alice(),
+        TimelineEventType::RoomCreate,
+        Some(""),
+        to_raw_json_value(&content).unwrap(),
+    );
+    check_room_create(RoomCreateEvent::new(event), &AuthorizationRules::V12).unwrap_err();
 }
 
 #[test]
@@ -158,8 +201,13 @@ fn redact_higher_power_level() {
     let room_power_levels_event = Some(default_room_power_levels());
 
     // Cannot redact if redact level is higher than user's.
-    check_room_redaction(incoming_event, room_power_levels_event, &AuthorizationRules::V1, int!(0))
-        .unwrap_err();
+    check_room_redaction(
+        incoming_event,
+        room_power_levels_event,
+        &AuthorizationRules::V1,
+        int!(0).into(),
+    )
+    .unwrap_err();
 }
 
 #[test]
@@ -190,7 +238,7 @@ fn redact_same_power_level() {
         incoming_event,
         room_power_levels_event,
         &AuthorizationRules::V1,
-        int!(50),
+        int!(50).into(),
     )
     .unwrap();
 }
@@ -211,8 +259,13 @@ fn redact_same_server() {
     let room_power_levels_event = Some(default_room_power_levels());
 
     // Can redact if redact level is same as user's.
-    check_room_redaction(incoming_event, room_power_levels_event, &AuthorizationRules::V1, int!(0))
-        .unwrap();
+    check_room_redaction(
+        incoming_event,
+        room_power_levels_event,
+        &AuthorizationRules::V1,
+        int!(0).into(),
+    )
+    .unwrap();
 }
 
 #[test]

@@ -51,7 +51,7 @@ fn reverse_topological_power_sort(c: &mut Criterion) {
         };
         b.iter(|| {
             let _ = state_res::reverse_topological_power_sort(&graph, |_id| {
-                Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0))))
+                Ok((int!(0).into(), MilliSecondsSinceUnixEpoch(uint!(0))))
             });
         });
     });

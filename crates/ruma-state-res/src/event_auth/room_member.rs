@@ -103,6 +103,7 @@ fn check_room_member_join<E: Event>(
     fetch_state: impl Fn(&StateEventType, &str) -> Option<E>,
 ) -> Result<(), String> {
     let creator = room_create_event.creator(rules)?;
+    let creators = room_create_event.creators(rules)?;
 
     let mut prev_events = room_member_event.prev_events();
     let prev_event_is_room_create_event = prev_events
@@ -176,7 +177,7 @@ fn check_room_member_join<E: Event>(
         let room_power_levels_event = fetch_state.room_power_levels_event();
 
         let authorized_via_user_power_level =
-            room_power_levels_event.user_power_level(&authorized_via_user, &creator, rules)?;
+            room_power_levels_event.user_power_level(&authorized_via_user, &creators, rules)?;
         let invite_power_level = room_power_levels_event
             .get_as_int_or_default(RoomPowerLevelsIntField::Invite, rules)?;
 
@@ -231,11 +232,11 @@ fn check_room_member_invite<E: Event>(
         return Err("cannot invite user that is joined or banned".to_owned());
     }
 
-    let creator = room_create_event.creator(rules)?;
+    let creators = room_create_event.creators(rules)?;
     let room_power_levels_event = fetch_state.room_power_levels_event();
 
     let sender_power_level =
-        room_power_levels_event.user_power_level(room_member_event.sender(), &creator, rules)?;
+        room_power_levels_event.user_power_level(room_member_event.sender(), &creators, rules)?;
     let invite_power_level =
         room_power_levels_event.get_as_int_or_default(RoomPowerLevelsIntField::Invite, rules)?;
 
@@ -380,12 +381,12 @@ fn check_room_member_leave<E: Event>(
         return Err("cannot kick if sender is not joined".to_owned());
     }
 
-    let creator = room_create_event.creator(rules)?;
+    let creators = room_create_event.creators(rules)?;
     let room_power_levels_event = fetch_state.room_power_levels_event();
 
     let current_target_user_membership = fetch_state.user_membership(target_user)?;
     let sender_power_level =
-        room_power_levels_event.user_power_level(room_member_event.sender(), &creator, rules)?;
+        room_power_levels_event.user_power_level(room_member_event.sender(), &creators, rules)?;
     let ban_power_level =
         room_power_levels_event.get_as_int_or_default(RoomPowerLevelsIntField::Ban, rules)?;
 
@@ -400,7 +401,7 @@ fn check_room_member_leave<E: Event>(
     let kick_power_level =
         room_power_levels_event.get_as_int_or_default(RoomPowerLevelsIntField::Kick, rules)?;
     let target_user_power_level =
-        room_power_levels_event.user_power_level(target_user, &creator, rules)?;
+        room_power_levels_event.user_power_level(target_user, &creators, rules)?;
 
     // Since v1, if the sender’s power level is greater than or equal to the kick level,
     // and the target user’s power level is less than the sender’s power level, allow.
@@ -429,15 +430,15 @@ fn check_room_member_ban<E: Event>(
         return Err("cannot ban if sender is not joined".to_owned());
     }
 
-    let creator = room_create_event.creator(rules)?;
+    let creators = room_create_event.creators(rules)?;
     let room_power_levels_event = fetch_state.room_power_levels_event();
 
     let sender_power_level =
-        room_power_levels_event.user_power_level(room_member_event.sender(), &creator, rules)?;
+        room_power_levels_event.user_power_level(room_member_event.sender(), &creators, rules)?;
     let ban_power_level =
         room_power_levels_event.get_as_int_or_default(RoomPowerLevelsIntField::Ban, rules)?;
     let target_user_power_level =
-        room_power_levels_event.user_power_level(target_user, &creator, rules)?;
+        room_power_levels_event.user_power_level(target_user, &creators, rules)?;
 
     // If the sender’s power level is greater than or equal to the ban level, and the
     // target user’s power level is less than the sender’s power level, allow.
