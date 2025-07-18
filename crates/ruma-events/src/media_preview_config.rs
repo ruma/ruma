@@ -2,6 +2,7 @@
 //!
 //! [`m.media_preview_config`]: https://github.com/matrix-org/matrix-spec-proposals/pull/4278
 
+use ruma_common::serde::JsonCastable;
 use ruma_macros::StringEnum;
 use serde::{Deserialize, Serialize};
 
@@ -21,6 +22,8 @@ pub struct MediaPreviewConfigEventContent {
     pub invite_avatars: Option<InviteAvatars>,
 }
 
+impl JsonCastable<UnstableMediaPreviewConfigEventContent> for MediaPreviewConfigEventContent {}
+
 /// The content of an `io.element.msc4278.media_preview_config` event,
 /// the unstable version of `m.media_preview_config` in global account data.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
@@ -28,6 +31,8 @@ pub struct MediaPreviewConfigEventContent {
 #[ruma_event(type = "io.element.msc4278.media_preview_config", kind = GlobalAccountData + RoomAccountData)]
 #[serde(transparent)]
 pub struct UnstableMediaPreviewConfigEventContent(pub MediaPreviewConfigEventContent);
+
+impl JsonCastable<MediaPreviewConfigEventContent> for UnstableMediaPreviewConfigEventContent {}
 
 /// The configuration that handles if media previews should be shown in the timeline.
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum, Default)]
