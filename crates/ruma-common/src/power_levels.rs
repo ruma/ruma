@@ -13,6 +13,8 @@ use crate::PrivOwnedStr;
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct NotificationPowerLevels {
     /// The level required to trigger an `@room` notification.
+    ///
+    /// Defaults to `50`.
     #[serde(
         default = "default_power_level",
         deserialize_with = "crate::serde::deserialize_v1_powerlevel"

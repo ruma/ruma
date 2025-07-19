@@ -10,6 +10,7 @@ use wildmatch::WildMatch;
 
 use crate::{
     power_levels::{NotificationPowerLevels, NotificationPowerLevelsKey},
+    room_version_rules::RoomPowerLevelsRules,
     OwnedRoomId, OwnedUserId, UserId,
 };
 #[cfg(feature = "unstable-msc3931")]
@@ -59,6 +60,7 @@ impl RoomVersionFeature {
             | RoomVersionId::V9
             | RoomVersionId::V10
             | RoomVersionId::V11
+            | RoomVersionId::Hydra
             | RoomVersionId::_Custom(_) => vec![],
             #[cfg(feature = "unstable-msc2870")]
             RoomVersionId::MSC2870 => vec![],
@@ -276,6 +278,9 @@ pub struct PushConditionPowerLevelsCtx {
 
     /// The notification power levels of the room.
     pub notifications: NotificationPowerLevels,
+
+    /// The tweaks for determining the power level of a user.
+    pub rules: RoomPowerLevelsRules,
 }
 
 impl PushConditionPowerLevelsCtx {
@@ -284,8 +289,9 @@ impl PushConditionPowerLevelsCtx {
         users: BTreeMap<OwnedUserId, Int>,
         users_default: Int,
         notifications: NotificationPowerLevels,
+        rules: RoomPowerLevelsRules,
     ) -> Self {
-        Self { users, users_default, notifications }
+        Self { users, users_default, notifications, rules }
     }
 
     /// Whether the given user has the permission to notify for the given key.
@@ -298,6 +304,15 @@ impl PushConditionPowerLevelsCtx {
             // We don't know the required power level for the key.
             return false;
         };
+
+        if self
+            .rules
+            .privileged_creators
+            .as_ref()
+            .is_some_and(|creators| creators.contains(user_id))
+        {
+            return true;
+        }
 
         let user_power_level = self.users.get(user_id).unwrap_or(&self.users_default);
 
@@ -498,7 +513,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     use assert_matches2::assert_matches;
-    use js_int::{int, uint};
+    use js_int::{int, uint, Int};
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
@@ -510,6 +525,7 @@ mod tests {
     use crate::{
         owned_room_id, owned_user_id,
         power_levels::{NotificationPowerLevels, NotificationPowerLevelsKey},
+        room_version_rules::{AuthorizationRules, RoomPowerLevelsRules},
         serde::Raw,
         OwnedUserId,
     };
@@ -711,6 +727,7 @@ mod tests {
             users,
             users_default: int!(50),
             notifications: NotificationPowerLevels { room: int!(50) },
+            rules: RoomPowerLevelsRules::new(&AuthorizationRules::V1, None),
         };
 
         PushConditionRoomCtx {
@@ -987,5 +1004,23 @@ mod tests {
             value: ScalarJsonValue::Null,
         };
         assert!(null_match.applies(&event, &context));
+    }
+
+    #[test]
+    fn room_creators_always_have_notification_permission() {
+        let mut context = push_context();
+        context.power_levels = Some(PushConditionPowerLevelsCtx {
+            users: BTreeMap::new(),
+            users_default: Int::MIN,
+            notifications: NotificationPowerLevels { room: Int::MAX },
+            rules: RoomPowerLevelsRules::new(&AuthorizationRules::HYDRA, Some(sender())),
+        });
+
+        let first_event = first_flattened_event();
+
+        let sender_notification_permission =
+            PushCondition::SenderNotificationPermission { key: NotificationPowerLevelsKey::Room };
+
+        assert!(sender_notification_permission.applies(&first_event, &context));
     }
 }

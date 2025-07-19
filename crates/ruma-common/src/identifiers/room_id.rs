@@ -3,7 +3,8 @@
 use ruma_macros::IdDst;
 
 use super::{
-    matrix_uri::UriAction, MatrixToUri, MatrixUri, OwnedEventId, OwnedServerName, ServerName,
+    matrix_uri::UriAction, IdParseError, MatrixToUri, MatrixUri, OwnedEventId, OwnedServerName,
+    ServerName,
 };
 use crate::RoomOrAliasId;
 
@@ -26,13 +27,50 @@ pub struct RoomId(str);
 impl RoomId {
     /// Attempts to generate a `RoomId` for the given origin server with a localpart consisting of
     /// 18 random ASCII alphanumeric characters, as recommended in the spec.
+    ///
+    /// This generates a room ID matching the [`RoomIdFormatVersion::V1`] variant of the
+    /// `room_id_format` field of [`RoomVersionRules`]. To construct a room ID matching the
+    /// [`RoomIdFormatVersion::V2`] variant, use [`RoomId::new_v2()`] instead.
+    ///
+    /// [`RoomIdFormatVersion::V1`]: crate::room_version_rules::RoomIdFormatVersion::V1
+    /// [`RoomIdFormatVersion::V2`]: crate::room_version_rules::RoomIdFormatVersion::V2
+    /// [`RoomVersionRules`]: crate::room_version_rules::RoomVersionRules
     #[cfg(feature = "rand")]
-    #[allow(clippy::new_ret_no_self)]
-    pub fn new(server_name: &ServerName) -> OwnedRoomId {
+    pub fn new_v1(server_name: &ServerName) -> OwnedRoomId {
         Self::from_borrowed(&format!("!{}:{server_name}", super::generate_localpart(18))).to_owned()
     }
 
-    /// Returns the server name of the room ID.
+    /// Construct an `OwnedRoomId` using the reference hash of the `m.room.create` event of the
+    /// room.
+    ///
+    /// This generates a room ID matching the [`RoomIdFormatVersion::V2`] variant of the
+    /// `room_id_format` field of [`RoomVersionRules`]. To construct a room ID matching the
+    /// [`RoomIdFormatVersion::V1`] variant, use [`RoomId::new_v1()`] instead.
+    ///
+    /// Returns an error if the given string contains a NUL byte or is too long.
+    ///
+    /// [`RoomIdFormatVersion::V1`]: crate::room_version_rules::RoomIdFormatVersion::V1
+    /// [`RoomIdFormatVersion::V2`]: crate::room_version_rules::RoomIdFormatVersion::V2
+    /// [`RoomVersionRules`]: crate::room_version_rules::RoomVersionRules
+    pub fn new_v2(room_create_reference_hash: &str) -> Result<OwnedRoomId, IdParseError> {
+        Self::parse(format!("!{room_create_reference_hash}"))
+    }
+
+    /// Returns the room ID without the initial `!` sigil.
+    ///
+    /// For room versions using [`RoomIdFormatVersion::V2`], this is the reference hash of the
+    /// `m.room.create` event of the room.
+    ///
+    /// [`RoomIdFormatVersion::V2`]: crate::room_version_rules::RoomIdFormatVersion::V2
+    pub fn strip_sigil(&self) -> &str {
+        self.as_str().strip_prefix('!').expect("sigil should be checked during construction")
+    }
+
+    /// Returns the server name of the room ID, if it has the format `!localpart:server_name`.
+    ///
+    /// This should only return `Some(_)` for room versions using [`RoomIdFormatVersion::V1`].
+    ///
+    /// [`RoomIdFormatVersion::V1`]: crate::room_version_rules::RoomIdFormatVersion::V1
     pub fn server_name(&self) -> Option<&ServerName> {
         <&RoomOrAliasId>::from(self).server_name()
     }
@@ -220,7 +258,7 @@ mod tests {
     #[cfg(feature = "rand")]
     #[test]
     fn generate_random_valid_room_id() {
-        let room_id = RoomId::new(server_name!("example.com"));
+        let room_id = RoomId::new_v1(server_name!("example.com"));
         let id_str = room_id.as_str();
 
         assert!(id_str.starts_with('!'));
@@ -292,5 +330,15 @@ mod tests {
             .expect("Failed to create RoomId.");
         assert_eq!(room_id, "!29fhd83h92h0:example.com:notaport");
         assert_eq!(room_id.server_name(), None);
+    }
+
+    #[test]
+    fn room_id_from_reference_hash() {
+        let reference_hash = "Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg";
+        let room_id = RoomId::new_v2(reference_hash).unwrap();
+        let id_str = room_id.as_str();
+
+        assert!(id_str.starts_with('!'));
+        assert_eq!(&id_str[1..], reference_hash);
     }
 }

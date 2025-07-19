@@ -40,6 +40,11 @@ pub mod v3 {
     #[request(error = crate::Error)]
     #[derive(Default)]
     pub struct Request {
+        /// A list of user IDs to consider as additional creators, and hence grant an "infinite"
+        /// immutable power level, from room version `org.matrix.hydra.11` onwards.
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        pub additional_creators: Vec<OwnedUserId>,
+
         /// Extra keys to be added to the content of the `m.room.create`.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub creation_content: Option<Raw<CreationContent>>,
