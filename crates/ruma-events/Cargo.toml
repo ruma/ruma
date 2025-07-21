@@ -31,6 +31,7 @@ unstable-msc3245-v1-compat = []
 unstable-msc3246 = ["unstable-msc3927"]
 unstable-msc3381 = ["unstable-msc1767"]
 unstable-msc3401 = []
+unstable-msc3414 = []
 unstable-msc3488 = ["unstable-msc1767"]
 unstable-msc3489 = ["unstable-msc3488"]
 unstable-msc3551 = ["unstable-msc3956"]
@@ -79,8 +80,13 @@ indexmap = { version = "2.0.0", features = ["serde"] }
 js_int = { workspace = true, features = ["serde"] }
 js_option = "0.1.0"
 percent-encoding = "2.1.0"
-pulldown-cmark = { version = "0.13.0", optional = true, default-features = false, features = ["html"] }
-regex = { version = "1.5.6", default-features = false, features = ["std", "perf"] }
+pulldown-cmark = { version = "0.13.0", optional = true, default-features = false, features = [
+    "html",
+] }
+regex = { version = "1.5.6", default-features = false, features = [
+    "std",
+    "perf",
+] }
 ruma-common = { workspace = true }
 ruma-html = { workspace = true, optional = true }
 ruma-identifiers-validation = { workspace = true }

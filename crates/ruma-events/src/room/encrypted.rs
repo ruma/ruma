@@ -13,6 +13,8 @@ use super::message;
 use crate::relation::{Annotation, CustomRelation, InReplyTo, Reference, RelationType, Thread};
 
 mod relation_serde;
+#[cfg(feature = "unstable-msc3414")]
+pub mod unstable_state;
 
 /// The content of an `m.room.encrypted` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
