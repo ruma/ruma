@@ -13,29 +13,39 @@ pub mod v1 {
 
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, OwnedRoomId, OwnedUserId,
+        metadata,
+        serde::Raw,
+        OwnedRoomId, OwnedUserId,
     };
-    use ruma_events::{room::member::ThirdPartyInvite, StateEventType};
+    use ruma_events::{
+        room::{
+            member::{MembershipState, RoomMemberEventContent, ThirdPartyInvite},
+            third_party_invite::RoomThirdPartyInviteEventContent,
+        },
+        StateEventType,
+    };
+
+    use crate::thirdparty::bind_callback;
 
     const METADATA: Metadata = metadata! {
         method: PUT,
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            1.0 => "/_matrix/federation/v1/exchange_third_party_invite/:room_id",
+            1.0 => "/_matrix/federation/v1/exchange_third_party_invite/{room_id}",
         }
     };
 
     /// Request type for the `exchange_invite` endpoint.
     #[request]
     pub struct Request {
-        /// The room ID to exchange a third party invite in.
+        /// The room ID to exchange the third-party invite in.
         #[ruma_api(path)]
         pub room_id: OwnedRoomId,
 
         /// The event type.
         ///
-        /// Must be `StateEventType::RoomMember`.
+        /// Must be [`StateEventType::RoomMember`].
         #[serde(rename = "type")]
         pub kind: StateEventType,
 
@@ -46,7 +56,9 @@ pub mod v1 {
         pub state_key: OwnedUserId,
 
         /// The content of the invite event.
-        pub content: ThirdPartyInvite,
+        ///
+        /// It must have a `membership` of `invite` and the `third_party_invite` field must be set.
+        pub content: Raw<RoomMemberEventContent>,
     }
 
     /// Response type for the `exchange_invite` endpoint.
@@ -55,14 +67,52 @@ pub mod v1 {
     pub struct Response {}
 
     impl Request {
-        /// Creates a new `Request` for a third party invite exchange
+        /// Creates a new `Request` for a third-party invite exchange.
         pub fn new(
             room_id: OwnedRoomId,
             sender: OwnedUserId,
             state_key: OwnedUserId,
-            content: ThirdPartyInvite,
+            content: Raw<RoomMemberEventContent>,
         ) -> Self {
             Self { room_id, kind: StateEventType::RoomMember, sender, state_key, content }
+        }
+
+        /// Creates a new `Request` for a third-party invite exchange from a `ThirdPartyInvite`.
+        ///
+        /// Returns an error if the serialization of the event content fails.
+        pub fn with_third_party_invite(
+            room_id: OwnedRoomId,
+            sender: OwnedUserId,
+            state_key: OwnedUserId,
+            third_party_invite: ThirdPartyInvite,
+        ) -> Result<Self, serde_json::Error> {
+            let mut content = RoomMemberEventContent::new(MembershipState::Invite);
+            content.third_party_invite = Some(third_party_invite);
+            let content = Raw::new(&content)?;
+
+            Ok(Self::new(room_id, sender, state_key, content))
+        }
+
+        /// Creates a new `Request` for a third-party invite exchange from a `ThirdPartyInvite` in
+        /// the [`bind_callback::v1::Request`] and the matching
+        /// [`RoomThirdPartyInviteEventContent`].
+        ///
+        /// Returns an error if the serialization of the event content fails.
+        pub fn with_bind_callback_request_and_event(
+            bind_callback_invite: bind_callback::v1::ThirdPartyInvite,
+            room_third_party_invite_event: &RoomThirdPartyInviteEventContent,
+        ) -> Result<Self, serde_json::Error> {
+            let third_party_invite = ThirdPartyInvite::new(
+                room_third_party_invite_event.display_name.clone(),
+                bind_callback_invite.signed,
+            );
+
+            Self::with_third_party_invite(
+                bind_callback_invite.room_id,
+                bind_callback_invite.sender,
+                bind_callback_invite.mxid,
+                third_party_invite,
+            )
         }
     }
 

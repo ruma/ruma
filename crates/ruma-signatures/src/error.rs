@@ -1,7 +1,7 @@
 use ruma_common::{
     canonical_json::{JsonType, RedactionError},
     serde::Base64DecodeError,
-    EventId, OwnedEventId, OwnedServerName, RoomVersionId,
+    OwnedEventId,
 };
 use thiserror::Error;
 
@@ -25,18 +25,6 @@ pub enum Error {
     /// Wrapper for [`pkcs8::Error`].
     #[error("DER Parse error: {0}")]
     DerParse(pkcs8::Error),
-
-    /// The signature's ID does not have exactly two components separated by a colon.
-    #[error("malformed signature ID: expected exactly 2 segment separated by a colon, found {0}")]
-    InvalidLength(usize),
-
-    /// The signature's ID contains invalid characters in its version.
-    #[error("malformed signature ID: expected version to contain only characters in the character set `[a-zA-Z0-9_]`, found `{0}`")]
-    InvalidVersion(String),
-
-    /// The signature uses an unsupported algorithm.
-    #[error("signature uses an unsupported algorithm: {0}")]
-    UnsupportedAlgorithm(String),
 
     /// PDU was too large
     #[error("PDU is larger than maximum of 65535 bytes")]
@@ -86,21 +74,6 @@ pub enum JsonError {
     #[error("JSON object must contain the field {0:?}")]
     JsonFieldMissingFromObject(String),
 
-    /// A key is missing from a JSON object.
-    ///
-    /// Note that this is different from [`JsonError::JsonFieldMissingFromObject`],
-    /// this error talks about an expected identifying key (`"ed25519:abcd"`)
-    /// missing from a target, where the key has a specific "type"/name.
-    #[error("JSON object {for_target:?} does not have {type_of} key {with_key:?}")]
-    JsonKeyMissing {
-        /// The target from which the key is missing.
-        for_target: String,
-        /// The kind of thing the key indicates.
-        type_of: String,
-        /// The key that is missing.
-        with_key: String,
-    },
-
     /// A more generic JSON error from [`serde_json`].
     #[error(transparent)]
     Serde(#[from] serde_json::Error),
@@ -119,50 +92,41 @@ impl JsonError {
     pub(crate) fn field_missing_from_object<T: Into<String>>(target: T) -> Error {
         Self::JsonFieldMissingFromObject(target.into()).into()
     }
-
-    pub(crate) fn key_missing<T1: Into<String>, T2: Into<String>, T3: Into<String>>(
-        for_target: T1,
-        type_of: T2,
-        with_key: T3,
-    ) -> Error {
-        Self::JsonKeyMissing {
-            for_target: for_target.into(),
-            type_of: type_of.into(),
-            with_key: with_key.into(),
-        }
-        .into()
-    }
 }
 
-/// Errors relating to verification of events and signatures.
+/// Errors relating to verification of signatures.
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum VerificationError {
-    /// For when a signature cannot be found for a `target`.
-    #[error("Could not find signatures for {0:?}")]
-    SignatureNotFound(OwnedServerName),
+    /// The signature uses an unsupported algorithm.
+    #[error("signature uses an unsupported algorithm")]
+    UnsupportedAlgorithm,
 
-    /// For when a public key cannot be found for a `target`.
-    #[error("Could not find public key for {0:?}")]
-    PublicKeyNotFound(OwnedServerName),
+    /// The signatures for an entity cannot be found in the signatures map.
+    #[error("Could not find signatures for entity {0:?}")]
+    NoSignaturesForEntity(String),
 
-    /// For when no public key matches the signature given.
-    #[error("Not signed with any of the given public keys")]
-    UnknownPublicKeysForSignature,
+    /// The public keys for an entity cannot be found in the public keys map.
+    #[error("Could not find public keys for entity {0:?}")]
+    NoPublicKeysForEntity(String),
 
-    /// For when [`ed25519_dalek`] cannot verify a signature.
+    /// The public key with the given identifier cannot be found for the given entity.
+    #[error("Could not find public key {key_id:?} for entity {entity:?}")]
+    PublicKeyNotFound {
+        /// The entity for which the key is missing.
+        entity: String,
+
+        /// The identifier of the key that is missing.
+        key_id: String,
+    },
+
+    /// No signature with a supported algorithm was found for the given entity.
+    #[error("Could not find supported signature for entity {0:?}")]
+    NoSupportedSignatureForEntity(String),
+
+    /// The signature verification failed.
     #[error("Could not verify signature: {0}")]
     Signature(#[source] ed25519_dalek::SignatureError),
-}
-
-impl VerificationError {
-    pub(crate) fn signature_not_found(target: OwnedServerName) -> Error {
-        Self::SignatureNotFound(target).into()
-    }
-
-    pub(crate) fn public_key_not_found(target: OwnedServerName) -> Error {
-        Self::PublicKeyNotFound(target).into()
-    }
 }
 
 /// Errors relating to parsing of all sorts.
@@ -179,8 +143,8 @@ pub enum ParseError {
 
     /// For when an event ID, coupled with a specific room version, doesn't have a server name
     /// embedded.
-    #[error("Event Id {0:?} should have a server name for the given room version {1:?}")]
-    ServerNameFromEventIdByRoomVersion(OwnedEventId, RoomVersionId),
+    #[error("Event ID {0:?} should have a server name for the given room version")]
+    ServerNameFromEventId(OwnedEventId),
 
     /// For when the extracted/"parsed" public key from a PKCS#8 v2 document doesn't match the
     /// public key derived from it's private key.
@@ -229,11 +193,8 @@ pub enum ParseError {
 }
 
 impl ParseError {
-    pub(crate) fn from_event_id_by_room_version(
-        event_id: &EventId,
-        room_version: &RoomVersionId,
-    ) -> Error {
-        Self::ServerNameFromEventIdByRoomVersion(event_id.to_owned(), room_version.clone()).into()
+    pub(crate) fn server_name_from_event_id(event_id: OwnedEventId) -> Error {
+        Self::ServerNameFromEventId(event_id).into()
     }
 
     pub(crate) fn derived_vs_parsed_mismatch<P: Into<Vec<u8>>, D: Into<Vec<u8>>>(

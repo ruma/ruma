@@ -76,11 +76,15 @@ impl ReleaseTask {
             ["ruma-identifiers-validation", "ruma-macros"].contains(&self.package.name.as_str());
 
         println!(
-            "Starting {} for {title}…",
+            "Starting {}{} for {title}…",
             match prerelease {
                 true => "pre-release",
                 false => "release",
             },
+            match self.dry_run {
+                true => " dry run",
+                false => "",
+            }
         );
 
         if self.is_released()? {

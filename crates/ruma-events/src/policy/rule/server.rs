@@ -6,7 +6,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{PolicyRuleEventContent, PossiblyRedactedPolicyRuleEventContent};
-use crate::{EventContent, PossiblyRedactedStateEventContent, StateEventType, StaticEventContent};
+use crate::{PossiblyRedactedStateEventContent, StateEventType, StaticEventContent};
 
 /// The content of an `m.policy.rule.server` event.
 ///
@@ -23,18 +23,15 @@ pub struct PolicyRuleServerEventContent(pub PolicyRuleEventContent);
 #[allow(clippy::exhaustive_structs)]
 pub struct PossiblyRedactedPolicyRuleServerEventContent(pub PossiblyRedactedPolicyRuleEventContent);
 
-impl EventContent for PossiblyRedactedPolicyRuleServerEventContent {
-    type EventType = StateEventType;
+impl PossiblyRedactedStateEventContent for PossiblyRedactedPolicyRuleServerEventContent {
+    type StateKey = String;
 
-    fn event_type(&self) -> Self::EventType {
+    fn event_type(&self) -> StateEventType {
         StateEventType::PolicyRuleServer
     }
 }
 
-impl PossiblyRedactedStateEventContent for PossiblyRedactedPolicyRuleServerEventContent {
-    type StateKey = String;
-}
-
 impl StaticEventContent for PossiblyRedactedPolicyRuleServerEventContent {
     const TYPE: &'static str = PolicyRuleServerEventContent::TYPE;
+    type IsPrefix = <PolicyRuleServerEventContent as StaticEventContent>::IsPrefix;
 }

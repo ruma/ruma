@@ -13,6 +13,7 @@ use std::fmt;
 mod serde;
 
 pub mod authenticated_media;
+pub mod authentication;
 pub mod authorization;
 pub mod backfill;
 pub mod device;

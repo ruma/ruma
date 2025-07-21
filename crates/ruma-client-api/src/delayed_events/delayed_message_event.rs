@@ -24,7 +24,7 @@ pub mod unstable {
         authentication: AccessToken,
         history: {
             // We use the unstable prefix for the delay query parameter but the stable v3 endpoint.
-            unstable => "/_matrix/client/v3/rooms/:room_id/send/:event_type/:txn_id",
+            unstable => "/_matrix/client/v3/rooms/{room_id}/send/{event_type}/{txn_id}",
         }
     };
     /// Request type for the [`delayed_message_event`](crate::delayed_events::delayed_message_event)
@@ -118,7 +118,7 @@ pub mod unstable {
     #[cfg(all(test, feature = "client"))]
     mod tests {
         use ruma_common::{
-            api::{MatrixVersion, OutgoingRequest, SendAccessToken},
+            api::{MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions},
             owned_room_id,
         };
         use ruma_events::room::message::RoomMessageEventContent;
@@ -131,6 +131,10 @@ pub mod unstable {
         #[test]
         fn serialize_delayed_message_request() {
             let room_id = owned_room_id!("!roomid:example.org");
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: Default::default(),
+            };
 
             let req = Request::new(
                 room_id,
@@ -143,7 +147,7 @@ pub mod unstable {
                 .try_into_http_request(
                     "https://homeserver.tld",
                     SendAccessToken::IfRequired("auth_tok"),
-                    &[MatrixVersion::V1_1],
+                    &supported,
                 )
                 .unwrap();
             let (parts, body) = request.into_parts();

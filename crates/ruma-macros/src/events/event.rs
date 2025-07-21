@@ -1,22 +1,22 @@
-//! Implementation of the top level `*Event` derive macro.
+//! Implementation of the `Event` derive macro.
 
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{parse_quote, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed};
 
-use super::{
-    event_parse::{to_kind_variation, EventKind, EventKindVariation},
-    util::is_non_stripped_room_event,
-};
+mod parse;
+
+use self::parse::parse_event_struct_ident_to_kind_variation;
+use super::enums::{EventField, EventKind, EventVariation};
 use crate::{import_ruma_events, util::to_camel_case};
 
-/// Derive `Event` macro code generation.
+/// `Event` derive macro code generation.
 pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
     let ruma_events = import_ruma_events();
 
     let ident = &input.ident;
-    let (kind, var) = to_kind_variation(ident).ok_or_else(|| {
-        syn::Error::new_spanned(ident, "not a valid ruma event struct identifier")
+    let (kind, var) = parse_event_struct_ident_to_kind_variation(ident).ok_or_else(|| {
+        syn::Error::new_spanned(ident, "not a supported ruma event struct identifier")
     })?;
 
     let fields: Vec<_> = if let Data::Struct(DataStruct {
@@ -50,16 +50,17 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         res.extend(expand_sync_from_into_full(&input, kind, var, &fields, &ruma_events));
     }
 
-    if is_non_stripped_room_event(kind, var) {
+    if EventField::EventId.is_present(kind, var) {
         res.extend(expand_eq_ord_event(&input));
     }
 
     Ok(res)
 }
 
+/// Implement `Deserialize` for the event struct.
 fn expand_deserialize_event(
     input: &DeriveInput,
-    var: EventKindVariation,
+    var: EventVariation,
     fields: &[Field],
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
@@ -96,7 +97,7 @@ fn expand_deserialize_event(
                 } else {
                     quote! { #content_type }
                 }
-            } else if name == "state_key" && var == EventKindVariation::Initial {
+            } else if name == "state_key" && var == EventVariation::Initial {
                 quote! { ::std::string::String }
             } else {
                 let ty = &field.ty;
@@ -121,7 +122,7 @@ fn expand_deserialize_event(
                 quote! {
                     let unsigned = unsigned.unwrap_or_default();
                 }
-            } else if name == "state_key" && var == EventKindVariation::Initial {
+            } else if name == "state_key" && var == EventVariation::Initial {
                 let ty = &field.ty;
                 quote! {
                     let state_key: ::std::string::String = state_key.unwrap_or_default();
@@ -246,10 +247,11 @@ fn expand_deserialize_event(
     })
 }
 
+/// Implement `From<{full}>` and `.into_full_event()` for a sync event struct.
 fn expand_sync_from_into_full(
     input: &DeriveInput,
     kind: EventKind,
-    var: EventKindVariation,
+    var: EventVariation,
     fields: &[Field],
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
@@ -286,6 +288,8 @@ fn expand_sync_from_into_full(
     })
 }
 
+/// Implement `PartialEq`, `Eq`, `PartialOrd`, `Ord` for the event struct by comparing the
+/// `event_id`.
 fn expand_eq_ord_event(input: &DeriveInput) -> TokenStream {
     let ident = &input.ident;
     let (impl_gen, ty_gen, where_clause) = input.generics.split_for_impl();

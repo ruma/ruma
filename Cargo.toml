@@ -5,7 +5,7 @@ default-members = ["crates/*"]
 resolver = "2"
 
 [workspace.package]
-rust-version = "1.75"
+rust-version = "1.82"
 
 [workspace.dependencies]
 as_variant = "1.2.0"
@@ -20,7 +20,6 @@ js_int = "0.2.2"
 maplit = "1.0.2"
 rand = "0.8.5"
 ruma-appservice-api = { version = "0.12.2", path = "crates/ruma-appservice-api" }
-ruma-client = { version = "0.15.0", path = "crates/ruma-client" }
 ruma-client-api = { version = "0.20.4", path = "crates/ruma-client-api" }
 ruma-common = { version = "0.15.4", path = "crates/ruma-common" }
 ruma-events = { version = "0.30.4", path = "crates/ruma-events" }
@@ -30,7 +29,6 @@ ruma-identifiers-validation = { version = "0.10.1", path = "crates/ruma-identifi
 ruma-identity-service-api = { version = "0.11.1", path = "crates/ruma-identity-service-api" }
 ruma-macros = { version = "=0.15.2", path = "crates/ruma-macros" }
 ruma-push-gateway-api = { version = "0.11.0", path = "crates/ruma-push-gateway-api" }
-ruma-server-util = { version = "0.5.0", path = "crates/ruma-server-util" }
 ruma-signatures = { version = "0.17.1", path = "crates/ruma-signatures" }
 ruma-state-res = { version = "0.13.0", path = "crates/ruma-state-res" }
 serde = { version = "1.0.164", features = ["derive"] }
@@ -41,12 +39,13 @@ thiserror = "2.0.0"
 tracing = { version = "0.1.37", default-features = false, features = ["std"] }
 url = { version = "2.5.0" }
 web-time = "1.1.0"
+zeroize = "1.8.1"
 
 [workspace.lints.rust]
 rust_2018_idioms = { level = "warn", priority = -1 }
 semicolon_in_expressions_from_macros = "warn"
 unexpected_cfgs = { level = "warn", check-cfg = [
-    'cfg(ruma_identifiers_storage, values("Arc"))', # used by the IdZst macro
+    'cfg(ruma_identifiers_storage, values("Arc"))', # used by the IdDst macro
     'cfg(ruma_unstable_exhaustive_types)', # set all types as exhaustive
 ] }
 unreachable_pub = "warn"
@@ -63,6 +62,7 @@ exhaustive_enums = "warn"
 exhaustive_structs = "warn"
 inefficient_to_string = "warn"
 macro_use_imports = "warn"
+manual_let_else = "warn"
 map_flatten = "warn"
 missing_enforced_import_renames = "warn"
 mod_module_files = "warn"
@@ -71,14 +71,13 @@ nonstandard_macro_braces = "warn"
 semicolon_if_nothing_returned = "warn"
 str_to_string = "warn"
 todo = "warn"
+unnecessary_semicolon = "warn"
 unreadable_literal = "warn"
 unseparated_literal_suffix = "warn"
 wildcard_imports = "warn"
 
 # Not that good of a lint
 new_without_default = "allow"
-# Disabled temporarily because it triggers false positives for types with generics.
-arc_with_non_send_sync = "allow"
 
 [profile.dev]
 # Speeds up test times by more than 10% in a simple test

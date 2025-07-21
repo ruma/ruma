@@ -7,6 +7,7 @@ use base64::{
     Engine,
 };
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+use zeroize::Zeroize;
 
 /// A wrapper around `B` (usually `Vec<u8>`) that (de)serializes from / to a base64 string.
 ///
@@ -17,6 +18,15 @@ pub struct Base64<C = Standard, B = Vec<u8>> {
     bytes: B,
     // Invariant PhantomData, Send + Sync
     _phantom_conf: PhantomData<fn(C) -> C>,
+}
+
+impl<C, B> Zeroize for Base64<C, B>
+where
+    B: Zeroize,
+{
+    fn zeroize(&mut self) {
+        self.bytes.zeroize();
+    }
 }
 
 /// Config used for the [`Base64`] type.

@@ -8,7 +8,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::value::Value as JsonValue;
 use wildmatch::WildMatch;
 
-use crate::{power_levels::NotificationPowerLevels, OwnedRoomId, OwnedUserId, UserId};
+use crate::{
+    power_levels::{NotificationPowerLevels, NotificationPowerLevelsKey},
+    OwnedRoomId, OwnedUserId, UserId,
+};
 #[cfg(feature = "unstable-msc3931")]
 use crate::{PrivOwnedStr, RoomVersionId};
 
@@ -57,6 +60,8 @@ impl RoomVersionFeature {
             | RoomVersionId::V10
             | RoomVersionId::V11
             | RoomVersionId::_Custom(_) => vec![],
+            #[cfg(feature = "unstable-msc2870")]
+            RoomVersionId::MSC2870 => vec![],
         }
     }
 }
@@ -96,7 +101,7 @@ pub enum PushCondition {
         ///
         /// Fields must be specified under the `notifications` property in the power level event's
         /// `content`.
-        key: String,
+        key: NotificationPowerLevelsKey,
     },
 
     /// Apply the rule only to rooms that support a given feature.
@@ -165,34 +170,16 @@ impl PushCondition {
         match self {
             Self::EventMatch { key, pattern } => check_event_match(event, key, pattern, context),
             Self::ContainsDisplayName => {
-                let value = match event.get_str("content.body") {
-                    Some(v) => v,
-                    None => return false,
-                };
-
+                let Some(value) = event.get_str("content.body") else { return false };
                 value.matches_pattern(&context.user_display_name, true)
             }
             Self::RoomMemberCount { is } => is.contains(&context.member_count),
             Self::SenderNotificationPermission { key } => {
-                let Some(power_levels) = &context.power_levels else {
-                    return false;
-                };
+                let Some(power_levels) = &context.power_levels else { return false };
+                let Some(sender_id) = event.get_str("sender") else { return false };
+                let Ok(sender_id) = <&UserId>::try_from(sender_id) else { return false };
 
-                let sender_id = match event.get_str("sender") {
-                    Some(v) => match <&UserId>::try_from(v) {
-                        Ok(u) => u,
-                        Err(_) => return false,
-                    },
-                    None => return false,
-                };
-
-                let sender_level =
-                    power_levels.users.get(sender_id).unwrap_or(&power_levels.users_default);
-
-                match power_levels.notifications.get(key) {
-                    Some(l) => sender_level >= l,
-                    None => false,
-                }
+                power_levels.has_sender_notification_permission(sender_id, key)
             }
             #[cfg(feature = "unstable-msc3931")]
             Self::RoomVersionSupports { feature } => match feature {
@@ -226,7 +213,7 @@ pub struct _CustomPushCondition {
 
 /// The context of the room associated to an event to be able to test all push conditions.
 #[derive(Clone, Debug)]
-#[allow(clippy::exhaustive_structs)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PushConditionRoomCtx {
     /// The ID of the room.
     pub room_id: OwnedRoomId,
@@ -250,9 +237,36 @@ pub struct PushConditionRoomCtx {
     pub supported_features: Vec<RoomVersionFeature>,
 }
 
+impl PushConditionRoomCtx {
+    /// Create a new `PushConditionRoomCtx`.
+    pub fn new(
+        room_id: OwnedRoomId,
+        member_count: UInt,
+        user_id: OwnedUserId,
+        user_display_name: String,
+    ) -> Self {
+        Self {
+            room_id,
+            member_count,
+            user_id,
+            user_display_name,
+            power_levels: None,
+            #[cfg(feature = "unstable-msc3931")]
+            supported_features: Vec::new(),
+        }
+    }
+
+    /// Add the given power levels context to this `PushConditionRoomCtx`.
+    pub fn with_power_levels(self, power_levels: PushConditionPowerLevelsCtx) -> Self {
+        Self { power_levels: Some(power_levels), ..self }
+    }
+}
+
 /// The room power levels context to be able to test the corresponding push conditions.
+///
+/// Should be constructed using `From<RoomPowerLevels>`.
 #[derive(Clone, Debug)]
-#[allow(clippy::exhaustive_structs)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PushConditionPowerLevelsCtx {
     /// The power levels of the users of the room.
     pub users: BTreeMap<OwnedUserId, Int>,
@@ -262,6 +276,33 @@ pub struct PushConditionPowerLevelsCtx {
 
     /// The notification power levels of the room.
     pub notifications: NotificationPowerLevels,
+}
+
+impl PushConditionPowerLevelsCtx {
+    /// Create a new `PushConditionPowerLevelsCtx`.
+    pub fn new(
+        users: BTreeMap<OwnedUserId, Int>,
+        users_default: Int,
+        notifications: NotificationPowerLevels,
+    ) -> Self {
+        Self { users, users_default, notifications }
+    }
+
+    /// Whether the given user has the permission to notify for the given key.
+    pub fn has_sender_notification_permission(
+        &self,
+        user_id: &UserId,
+        key: &NotificationPowerLevelsKey,
+    ) -> bool {
+        let Some(notification_power_level) = self.notifications.get(key) else {
+            // We don't know the required power level for the key.
+            return false;
+        };
+
+        let user_power_level = self.users.get(user_id).unwrap_or(&self.users_default);
+
+        user_power_level >= notification_power_level
+    }
 }
 
 /// Additional functions for character matching.
@@ -422,15 +463,13 @@ impl StrExt for str {
 
                     // Find next word.
                     let non_word_str = &self[start..];
-                    let non_word = match non_word_str.find(|c: char| !c.is_word_char()) {
-                        Some(pos) => pos,
-                        None => return false,
+                    let Some(non_word) = non_word_str.find(|c: char| !c.is_word_char()) else {
+                        return false;
                     };
 
                     let word_str = &non_word_str[non_word..];
-                    let word = match word_str.find(|c: char| c.is_word_char()) {
-                        Some(pos) => pos,
-                        None => return false,
+                    let Some(word) = word_str.find(|c: char| c.is_word_char()) else {
+                        return false;
                     };
 
                     word_str[word..].matches_word(pattern)
@@ -469,7 +508,9 @@ mod tests {
         RoomMemberCountIs, StrExt,
     };
     use crate::{
-        owned_room_id, owned_user_id, power_levels::NotificationPowerLevels, serde::Raw,
+        owned_room_id, owned_user_id,
+        power_levels::{NotificationPowerLevels, NotificationPowerLevelsKey},
+        serde::Raw,
         OwnedUserId,
     };
 
@@ -570,7 +611,7 @@ mod tests {
             from_json_value::<PushCondition>(json_data).unwrap(),
             PushCondition::SenderNotificationPermission { key }
         );
-        assert_eq!(key, "room");
+        assert_eq!(key, NotificationPowerLevelsKey::Room);
     }
 
     #[test]
@@ -602,7 +643,7 @@ mod tests {
         assert!(!"m".matches_word("[[:alpha:]]?"));
         assert!("[[:alpha:]]!".matches_word("[[:alpha:]]?"));
 
-        // From the spec: <https://spec.matrix.org/v1.14/client-server-api/#conditions-1>
+        // From the spec: <https://spec.matrix.org/v1.15/client-server-api/#conditions-1>
         assert!("An example event.".matches_word("ex*ple"));
         assert!("exple".matches_word("ex*ple"));
         assert!("An exciting triple-whammy".matches_word("ex*ple"));
@@ -651,7 +692,7 @@ mod tests {
         assert!("".matches_pattern("*", false));
         assert!(!"foo".matches_pattern("", false));
 
-        // From the spec: <https://spec.matrix.org/v1.14/client-server-api/#conditions-1>
+        // From the spec: <https://spec.matrix.org/v1.15/client-server-api/#conditions-1>
         assert!("Lunch plans".matches_pattern("lunc?*", false));
         assert!("LUNCH".matches_pattern("lunc?*", false));
         assert!(!" lunch".matches_pattern("lunc?*", false));

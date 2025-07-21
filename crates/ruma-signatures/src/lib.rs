@@ -2,35 +2,39 @@
 #![doc(html_logo_url = "https://ruma.dev/images/logo.png")]
 //! Digital signatures according to the [Matrix](https://matrix.org/) specification.
 //!
-//! Digital signatures are used by Matrix homeservers to verify the authenticity of events in the
-//! Matrix system, as well as requests between homeservers for federation. Each homeserver has one
-//! or more signing key pairs (sometimes referred to as "verify keys") which it uses to sign all
-//! events and federation requests. Matrix clients and other Matrix homeservers can ask the
-//! homeserver for its public keys and use those keys to verify the signed data.
+//! Digital signatures are used in several places in the Matrix specification, here are a few
+//! examples:
+//!
+//! * Homeservers sign events to ensure their authenticity
+//! * Homeservers sign requests to other homeservers to prove their identity
+//! * Identity servers sign third-party invites to ensure their authenticity
+//! * Clients sign user keys to mark other users as verified
 //!
 //! Each signing key pair has an identifier, which consists of the name of the digital signature
-//! algorithm it uses and a "version" string, separated by a colon. The version is an arbitrary
-//! identifier used to distinguish key pairs using the same algorithm from the same homeserver.
+//! algorithm it uses and an opaque string called the "key name", separated by a colon. The key name
+//! is used to distinguish key pairs using the same algorithm from the same entity. How it is
+//! generated depends on the entity that uses it. For example, homeservers use an arbitrary
+//! string called a "version" for their public keys, while cross-signing keys use the public key
+//! encoded as unpadded base64.
 //!
-//! Arbitrary JSON objects can be signed as well as JSON representations of Matrix events. In both
-//! cases, the signatures are stored within the JSON object itself under a `signatures` key. Events
-//! are also required to contain hashes of their content, which are similarly stored within the
-//! hashed JSON object under a `hashes` key.
+//! This library focuses on JSON objects signing. The signatures are stored within the JSON object
+//! itself under a `signatures` key. Events are also required to contain hashes of their content,
+//! which are similarly stored within the hashed JSON object under a `hashes` key.
 //!
-//! In JSON representations, both signatures and hashes appear as base64-encoded strings, using the
-//! standard character set, without padding.
+//! In JSON representations, both signatures and hashes appear as base64-encoded strings, usually
+//! using the standard character set, without padding.
 //!
 //! # Signing and hashing
 //!
-//! To sign an arbitrary JSON object, use the `sign_json` function. See the documentation of this
-//! function for more details and a full example of use.
+//! To sign an arbitrary JSON object, use the [`sign_json()`] function. See the documentation of
+//! this function for more details and a full example of use.
 //!
 //! Signing an event uses a more complicated process than signing arbitrary JSON, because events can
 //! be redacted, and signatures need to remain valid even if data is removed from an event later.
 //! Homeservers are required to generate hashes of event contents as well as signing events before
 //! exchanging them with other homeservers. Although the algorithm for hashing and signing an event
 //! is more complicated than for signing arbitrary JSON, the interface to a user of ruma-signatures
-//! is the same. To hash and sign an event, use the `hash_and_sign_event` function. See the
+//! is the same. To hash and sign an event, use the [`hash_and_sign_event()`] function. See the
 //! documentation of this function for more details and a full example of use.
 //!
 //! # Verifying signatures and hashes
@@ -38,19 +42,19 @@
 //! When a homeserver receives data from another homeserver via the federation, it's necessary to
 //! verify the authenticity and integrity of the data by verifying their signatures.
 //!
-//! To verify a signature on arbitrary JSON, use the `verify_json` function. To verify the
-//! signatures and hashes on an event, use the `verify_event` function. See the documentation for
-//! these respective functions for more details and full examples of use.
+//! To verify a signature on arbitrary JSON, use the [`verify_json()`] function. To verify the
+//! signatures and hashes on an event, use the [`verify_event()`] function. See the documentation
+//! for these respective functions for more details and full examples of use.
 
 #![warn(missing_docs)]
 
-use ruma_common::serde::{AsRefStr, DisplayAsRefStr};
+pub use ruma_common::{IdParseError, SigningKeyAlgorithm};
 
 pub use self::{
     error::{Error, JsonError, ParseError, VerificationError},
     functions::{
-        canonical_json, content_hash, hash_and_sign_event, reference_hash, sign_json, verify_event,
-        verify_json,
+        canonical_json, content_hash, hash_and_sign_event, reference_hash, sign_json,
+        verify_canonical_json_bytes, verify_event, verify_json,
     },
     keys::{Ed25519KeyPair, KeyPair, PublicKeyMap, PublicKeySet},
     signatures::Signature,
@@ -63,56 +67,14 @@ mod keys;
 mod signatures;
 mod verification;
 
-/// The algorithm used for signing data.
-#[derive(Clone, Debug, Eq, Hash, PartialEq, AsRefStr, DisplayAsRefStr)]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[ruma_enum(rename_all = "snake_case")]
-pub enum Algorithm {
-    /// The Ed25519 digital signature algorithm.
-    Ed25519,
-}
-
-/// Extract the algorithm and version from a key identifier.
-fn split_id(id: &str) -> Result<(Algorithm, String), Error> {
-    /// The length of a valid signature ID.
-    const SIGNATURE_ID_LENGTH: usize = 2;
-
-    let signature_id: Vec<&str> = id.split(':').collect();
-
-    let signature_id_length = signature_id.len();
-
-    if signature_id_length != SIGNATURE_ID_LENGTH {
-        return Err(Error::InvalidLength(signature_id_length));
-    }
-
-    let version = signature_id[1];
-
-    #[cfg(feature = "compat-signature-id")]
-    const EXTRA_ALLOWED: [u8; 3] = [b'_', b'+', b'/'];
-    #[cfg(not(feature = "compat-signature-id"))]
-    const EXTRA_ALLOWED: [u8; 1] = [b'_'];
-    if !version.bytes().all(|ch| ch.is_ascii_alphanumeric() || EXTRA_ALLOWED.contains(&ch)) {
-        return Err(Error::InvalidVersion(version.into()));
-    }
-
-    let algorithm_input = signature_id[0];
-
-    let algorithm = match algorithm_input {
-        "ed25519" => Algorithm::Ed25519,
-        algorithm => return Err(Error::UnsupportedAlgorithm(algorithm.into())),
-    };
-
-    Ok((algorithm, signature_id[1].to_owned()))
-}
-
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;
 
     use pkcs8::{der::Decode, PrivateKeyInfo};
     use ruma_common::{
+        room_version_rules::{RedactionRules, RoomVersionRules},
         serde::{base64::Standard, Base64},
-        RoomVersionId,
     };
     use serde_json::{from_str as from_json_str, to_string as to_json_string};
 
@@ -334,7 +296,7 @@ mod tests {
         }"#;
 
         let mut object = from_json_str(json).unwrap();
-        hash_and_sign_event("domain", &key_pair, &mut object, &RoomVersionId::V5).unwrap();
+        hash_and_sign_event("domain", &key_pair, &mut object, &RedactionRules::V1).unwrap();
 
         assert_eq!(
             to_json_string(&object).unwrap(),
@@ -363,7 +325,7 @@ mod tests {
         }"#;
 
         let mut object = from_json_str(json).unwrap();
-        hash_and_sign_event("domain", &key_pair, &mut object, &RoomVersionId::V5).unwrap();
+        hash_and_sign_event("domain", &key_pair, &mut object, &RedactionRules::V1).unwrap();
 
         assert_eq!(
             to_json_string(&object).unwrap(),
@@ -404,6 +366,6 @@ mod tests {
             }"#
         ).unwrap();
 
-        verify_event(&public_key_map, &value, &RoomVersionId::V5).unwrap();
+        verify_event(&public_key_map, &value, &RoomVersionRules::V5).unwrap();
     }
 }

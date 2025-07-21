@@ -1,5 +1,5 @@
 use assert_matches2::assert_matches;
-use ruma_common::RoomVersionId;
+use ruma_common::room_version_rules::RedactionRules;
 use ruma_events::{
     room::{
         aliases::RedactedRoomAliasesEventContent,
@@ -217,7 +217,7 @@ fn redact_message_content() {
     let raw_json = to_raw_json_value(&json).unwrap();
     let content = RoomMessageEventContent::from_parts("m.room.message", &raw_json).unwrap();
 
-    assert_matches!(content.redact(&RoomVersionId::V6), RedactedRoomMessageEventContent { .. });
+    assert_matches!(content.redact(&RedactionRules::V6), RedactedRoomMessageEventContent { .. });
 }
 
 #[test]
@@ -233,7 +233,7 @@ fn redact_state_content() {
     let content = RoomCreateEventContent::from_parts("m.room.create", &raw_json).unwrap();
 
     assert_matches!(
-        content.redact(&RoomVersionId::V6),
+        content.redact(&RedactionRules::V6),
         RedactedRoomCreateEventContent { creator, .. }
     );
     assert_eq!(creator.unwrap(), "@carl:example.com");

@@ -314,9 +314,11 @@ impl MatrixToUri {
 
                 query_parts
                     .map(|(key, value)| {
-                        (key == "via")
-                            .then(|| ServerName::parse(&value))
-                            .unwrap_or_else(|| Err(MatrixToError::UnknownArgument.into()))
+                        if key == "via" {
+                            ServerName::parse(&value)
+                        } else {
+                            Err(MatrixToError::UnknownArgument.into())
+                        }
                     })
                     .collect::<Result<Vec<_>, _>>()
             })
@@ -492,7 +494,7 @@ impl MatrixUri {
             } else if key.as_ref() == "action" {
                 if action.is_some() {
                     return Err(MatrixUriError::TooManyActions.into());
-                };
+                }
 
                 action = Some(value.as_ref().into());
             } else {

@@ -1,55 +1,44 @@
 //! Digital signatures and collections of signatures.
 
-use ruma_common::serde::{base64::Standard, Base64};
-
-use crate::{split_id, Algorithm, Error};
+use ruma_common::{
+    serde::{base64::Standard, Base64},
+    AnyKeyName, IdParseError, OwnedSigningKeyId, SigningKeyAlgorithm, SigningKeyId,
+};
 
 /// A digital signature.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Signature {
-    /// The cryptographic algorithm that generated this signature.
-    pub(crate) algorithm: Algorithm,
+    /// The ID of the key used to generate this signature.
+    pub(crate) key_id: OwnedSigningKeyId<AnyKeyName>,
 
     /// The signature data.
     pub(crate) signature: Vec<u8>,
-
-    /// The "version" of the key identifier for the public key used to generate this signature.
-    pub(crate) version: String,
 }
 
 impl Signature {
     /// Creates a signature from raw bytes.
     ///
-    /// While a signature can be created directly using struct literal syntax, this constructor can
-    /// be used to automatically determine the algorithm and version from a key identifier in the
-    /// form *algorithm:version*, e.g. "ed25519:1".
-    ///
-    /// This constructor will ensure that the version does not contain characters that violate the
-    /// guidelines in the specification. Because it may be necessary to represent signatures with
-    /// versions that don't adhere to these guidelines, it's possible to simply use the struct
-    /// literal syntax to construct a `Signature` with an arbitrary key.
+    /// This constructor will ensure that the key ID has the correct `algorithm:key_name` format.
     ///
     /// # Parameters
     ///
-    /// * id: A key identifier, e.g. "ed25519:1".
-    /// * bytes: The digital signature, as a series of bytes.
+    /// * `id`: A key identifier, e.g. `ed25519:1`.
+    /// * `bytes`: The digital signature, as a series of bytes.
     ///
     /// # Errors
     ///
     /// Returns an error if:
     ///
-    /// * The key ID specifies an unknown algorithm.
     /// * The key ID is malformed.
-    /// * The key ID contains a version with invalid characters.
-    pub fn new(id: &str, bytes: &[u8]) -> Result<Self, Error> {
-        let (algorithm, version) = split_id(id)?;
+    pub fn new(id: &str, bytes: &[u8]) -> Result<Self, IdParseError> {
+        let key_id = SigningKeyId::<AnyKeyName>::parse(id)?;
 
-        Ok(Self { algorithm, signature: bytes.to_vec(), version })
+        Ok(Self { key_id, signature: bytes.to_vec() })
     }
 
     /// The algorithm used to generate the signature.
-    pub fn algorithm(&self) -> &Algorithm {
-        &self.algorithm
+    pub fn algorithm(&self) -> SigningKeyAlgorithm {
+        self.key_id.algorithm()
     }
 
     /// The raw bytes of the signature.
@@ -65,9 +54,9 @@ impl Signature {
     }
 
     /// The key identifier, a string containing the signature algorithm and the key "version"
-    /// separated by a colon, e.g. "ed25519:1".
+    /// separated by a colon, e.g. `ed25519:1`.
     pub fn id(&self) -> String {
-        format!("{}:{}", self.algorithm, self.version)
+        self.key_id.to_string()
     }
 
     /// The "version" of the key used for this signature.
@@ -75,31 +64,32 @@ impl Signature {
     /// Versions are used as an identifier to distinguish signatures generated from different keys
     /// but using the same algorithm on the same homeserver.
     pub fn version(&self) -> &str {
-        &self.version
+        self.key_id.key_name().as_ref()
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use ruma_common::SigningKeyAlgorithm;
+
     use super::Signature;
 
     #[test]
     fn valid_key_id() {
-        Signature::new("ed25519:abcdef", &[]).unwrap();
+        let signature = Signature::new("ed25519:abcdef", &[]).unwrap();
+        assert_eq!(signature.algorithm(), SigningKeyAlgorithm::Ed25519);
+        assert_eq!(signature.version(), "abcdef");
     }
 
     #[test]
-    fn invalid_valid_key_id_length() {
-        Signature::new("ed25519:abcdef:123456", &[]).unwrap_err();
+    fn unknown_key_id_algorithm() {
+        let signature = Signature::new("foobar:abcdef", &[]).unwrap();
+        assert_eq!(signature.algorithm().as_str(), "foobar");
+        assert_eq!(signature.version(), "abcdef");
     }
 
     #[test]
-    fn invalid_key_id_version() {
-        Signature::new("ed25519:abc!def", &[]).unwrap_err();
-    }
-
-    #[test]
-    fn invalid_key_id_algorithm() {
-        Signature::new("foobar:abcdef", &[]).unwrap_err();
+    fn invalid_key_id_format() {
+        Signature::new("ed25519", &[]).unwrap_err();
     }
 }

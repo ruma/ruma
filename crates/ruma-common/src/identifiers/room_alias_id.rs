@@ -1,6 +1,6 @@
 //! Matrix room alias identifiers.
 
-use ruma_macros::IdZst;
+use ruma_macros::IdDst;
 
 use super::{matrix_uri::UriAction, server_name::ServerName, MatrixToUri, MatrixUri, OwnedEventId};
 
@@ -16,7 +16,7 @@ use super::{matrix_uri::UriAction, server_name::ServerName, MatrixToUri, MatrixU
 ///
 /// [room alias ID]: https://spec.matrix.org/latest/appendices/#room-aliases
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(validate = ruma_identifiers_validation::room_alias_id::validate)]
 pub struct RoomAliasId(str);
 

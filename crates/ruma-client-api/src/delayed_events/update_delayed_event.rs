@@ -21,7 +21,7 @@ pub mod unstable {
         rate_limited: true,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/org.matrix.msc4140/delayed_events/:delay_id",
+            unstable("org.matrix.msc4140") => "/_matrix/client/unstable/org.matrix.msc4140/delayed_events/{delay_id}",
         }
     };
 
@@ -73,18 +73,24 @@ pub mod unstable {
 
     #[cfg(all(test, feature = "client"))]
     mod tests {
-        use ruma_common::api::{MatrixVersion, OutgoingRequest, SendAccessToken};
+        use ruma_common::api::{
+            MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions,
+        };
         use serde_json::{json, Value as JsonValue};
 
         use super::{Request, UpdateAction};
         #[test]
         fn serialize_update_delayed_event_request() {
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: Default::default(),
+            };
             let request: http::Request<Vec<u8>> =
                 Request::new("1234".to_owned(), UpdateAction::Cancel)
                     .try_into_http_request(
                         "https://homeserver.tld",
                         SendAccessToken::IfRequired("auth_tok"),
-                        &[MatrixVersion::V1_1],
+                        &supported,
                     )
                     .unwrap();
 

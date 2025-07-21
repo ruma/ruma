@@ -1,9 +1,9 @@
-use ruma_common::RoomVersionId;
+use ruma_common::room_version_rules::RedactionRules;
 use serde::Serialize;
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
-    EphemeralRoomEventContent, EphemeralRoomEventType, EventContent, EventContentFromType,
+    EphemeralRoomEventContent, EphemeralRoomEventType, EventContentFromType,
     GlobalAccountDataEventContent, GlobalAccountDataEventType, MessageLikeEventContent,
     MessageLikeEventType, MessageLikeUnsigned, PossiblyRedactedStateEventContent, RedactContent,
     RedactedMessageLikeEventContent, RedactedStateEventContent, RoomAccountDataEventContent,
@@ -23,14 +23,6 @@ macro_rules! custom_event_content {
             event_type: Box<str>,
         }
 
-        impl EventContent for $i {
-            type EventType = $evt;
-
-            fn event_type(&self) -> Self::EventType {
-                self.event_type[..].into()
-            }
-        }
-
         impl EventContentFromType for $i {
             fn from_parts(event_type: &str, _content: &RawJsonValue) -> serde_json::Result<Self> {
                 Ok(Self { event_type: event_type.into() })
@@ -46,7 +38,7 @@ macro_rules! custom_room_event_content {
         impl RedactContent for $i {
             type Redacted = Self;
 
-            fn redact(self, _: &RoomVersionId) -> Self {
+            fn redact(self, _: &RedactionRules) -> Self {
                 self
             }
         }
@@ -54,21 +46,45 @@ macro_rules! custom_room_event_content {
 }
 
 custom_event_content!(CustomGlobalAccountDataEventContent, GlobalAccountDataEventType);
-impl GlobalAccountDataEventContent for CustomGlobalAccountDataEventContent {}
+impl GlobalAccountDataEventContent for CustomGlobalAccountDataEventContent {
+    fn event_type(&self) -> GlobalAccountDataEventType {
+        self.event_type[..].into()
+    }
+}
 
 custom_event_content!(CustomRoomAccountDataEventContent, RoomAccountDataEventType);
-impl RoomAccountDataEventContent for CustomRoomAccountDataEventContent {}
+impl RoomAccountDataEventContent for CustomRoomAccountDataEventContent {
+    fn event_type(&self) -> RoomAccountDataEventType {
+        self.event_type[..].into()
+    }
+}
 
 custom_event_content!(CustomEphemeralRoomEventContent, EphemeralRoomEventType);
-impl EphemeralRoomEventContent for CustomEphemeralRoomEventContent {}
+impl EphemeralRoomEventContent for CustomEphemeralRoomEventContent {
+    fn event_type(&self) -> EphemeralRoomEventType {
+        self.event_type[..].into()
+    }
+}
 
 custom_room_event_content!(CustomMessageLikeEventContent, MessageLikeEventType);
-impl MessageLikeEventContent for CustomMessageLikeEventContent {}
-impl RedactedMessageLikeEventContent for CustomMessageLikeEventContent {}
+impl MessageLikeEventContent for CustomMessageLikeEventContent {
+    fn event_type(&self) -> MessageLikeEventType {
+        self.event_type[..].into()
+    }
+}
+impl RedactedMessageLikeEventContent for CustomMessageLikeEventContent {
+    fn event_type(&self) -> MessageLikeEventType {
+        self.event_type[..].into()
+    }
+}
 
 custom_room_event_content!(CustomStateEventContent, StateEventType);
 impl StateEventContent for CustomStateEventContent {
     type StateKey = String;
+
+    fn event_type(&self) -> StateEventType {
+        self.event_type[..].into()
+    }
 }
 impl StaticStateEventContent for CustomStateEventContent {
     // Like `StateUnsigned`, but without `prev_content`.
@@ -79,10 +95,22 @@ impl StaticStateEventContent for CustomStateEventContent {
 }
 impl PossiblyRedactedStateEventContent for CustomStateEventContent {
     type StateKey = String;
+
+    fn event_type(&self) -> StateEventType {
+        self.event_type[..].into()
+    }
 }
 impl RedactedStateEventContent for CustomStateEventContent {
     type StateKey = String;
+
+    fn event_type(&self) -> StateEventType {
+        self.event_type[..].into()
+    }
 }
 
 custom_event_content!(CustomToDeviceEventContent, ToDeviceEventType);
-impl ToDeviceEventContent for CustomToDeviceEventContent {}
+impl ToDeviceEventContent for CustomToDeviceEventContent {
+    fn event_type(&self) -> ToDeviceEventType {
+        self.event_type[..].into()
+    }
+}

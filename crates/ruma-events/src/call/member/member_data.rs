@@ -171,8 +171,11 @@ impl LegacyMembershipData {
         } else {
             // This should not be reached since we only allow events that have copied over
             // the origin server ts. `set_created_ts_if_none`
-            warn!("Encountered a Call Member state event where the origin_ts (or origin_server_ts) could not be found.\
-            It is treated as a non expired event but this might be wrong.");
+            warn!(
+                "Encountered a Call Member state event where the origin_ts (or origin_server_ts) \
+                 could not be found. \
+                 It is treated as a non-expired event but this might be wrong."
+            );
             false
         }
     }

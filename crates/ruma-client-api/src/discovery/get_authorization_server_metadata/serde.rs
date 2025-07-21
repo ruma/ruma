@@ -72,8 +72,8 @@ impl<'de> Deserialize<'de> for AuthorizationServerMetadata {
         let refresh_token_found = grant_types_supported.contains(&GrantType::RefreshToken);
         if !authorization_code_found && !refresh_token_found {
             return Err(de::Error::custom(
-                    "missing values `authorization_code` and `refresh_token` in `grant_types_supported`",
-                ));
+                "missing values `authorization_code` and `refresh_token` in `grant_types_supported`",
+            ));
         }
         if !authorization_code_found {
             return Err(de::Error::custom(

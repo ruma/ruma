@@ -1,12 +1,10 @@
 //! Types for the `m.room.aliases` event.
 
-use ruma_common::{OwnedRoomAliasId, OwnedServerName, RoomVersionId};
+use ruma_common::{room_version_rules::RedactionRules, OwnedRoomAliasId, OwnedServerName};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    EventContent, RedactContent, RedactedStateEventContent, StateEventType, StaticEventContent,
-};
+use crate::{RedactContent, RedactedStateEventContent, StateEventType, StaticEventContent};
 
 /// The content of an `m.room.aliases` event.
 ///
@@ -29,18 +27,8 @@ impl RoomAliasesEventContent {
 impl RedactContent for RoomAliasesEventContent {
     type Redacted = RedactedRoomAliasesEventContent;
 
-    fn redact(self, version: &RoomVersionId) -> RedactedRoomAliasesEventContent {
-        // We compare the long way to avoid pre version 6 behavior if/when
-        // a new room version is introduced.
-        let aliases = match version {
-            RoomVersionId::V1
-            | RoomVersionId::V2
-            | RoomVersionId::V3
-            | RoomVersionId::V4
-            | RoomVersionId::V5 => Some(self.aliases),
-            _ => None,
-        };
-
+    fn redact(self, rules: &RedactionRules) -> RedactedRoomAliasesEventContent {
+        let aliases = rules.keep_room_aliases_aliases.then_some(self.aliases);
         RedactedRoomAliasesEventContent { aliases }
     }
 }
@@ -73,18 +61,15 @@ impl RedactedRoomAliasesEventContent {
     }
 }
 
-impl EventContent for RedactedRoomAliasesEventContent {
-    type EventType = StateEventType;
+impl RedactedStateEventContent for RedactedRoomAliasesEventContent {
+    type StateKey = OwnedServerName;
 
     fn event_type(&self) -> StateEventType {
         StateEventType::RoomAliases
     }
 }
 
-impl RedactedStateEventContent for RedactedRoomAliasesEventContent {
-    type StateKey = OwnedServerName;
-}
-
 impl StaticEventContent for RedactedRoomAliasesEventContent {
     const TYPE: &'static str = RoomAliasesEventContent::TYPE;
+    type IsPrefix = <RoomAliasesEventContent as StaticEventContent>::IsPrefix;
 }

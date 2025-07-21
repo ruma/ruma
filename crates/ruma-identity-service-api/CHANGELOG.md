@@ -1,5 +1,20 @@
 # [unreleased]
 
+Breaking changes:
+
+- The `store_invitation`, `check_public_key_validity`, `get_public_key` and
+  `validate_ephemeral_key` endpoints use `IdentityServerBase64PublicKey` instead
+  of `Base64` for the public keys, to avoid deserialization errors when public
+  keys encoded using URL-safe base64 is encountered.
+- `get_supported_versions::Response::known_versions()` was removed.
+  `as_supported_versions()` should be used instead.
+- Update the endpoint metadata definitions to use the new syntax for variables.
+
+Improvements:
+
+- Implement `From<store_invitation::v2::Response>` for
+  `RoomThirdPartyEventContent`.
+
 # 0.11.1
 
 Improvements:

@@ -1,5 +1,108 @@
 # [unreleased]
 
+Breaking changes:
+
+- `UserId` parsing and deserialization are now compatible with all non-compliant
+  user IDs in the wild by default, due to a clarification in the spec.
+  - The `compat-user-id` cargo feature was removed.
+  - `UserId::validate_historical()` and `UserId::validate_strict()` allow to
+    check for spec compliance.
+  - The `(owned_)user_id!` macros always validate against the strict grammar in
+    the spec, regardless of the compat features that are enabled.
+- `(owned_)room_id!` macros disallow the `NUL` byte, due to a clarification in
+  the spec.
+- `(owned_)room_alias_id!` macros disallow the `NUL` byte for the localpart, due
+  to a clarification in the spec.
+- `MatrixVersion` does not implement `Display` anymore as it is not correct to
+  convert `V1_0` to a string. Instead `MatrixVersion::as_str()` can be used that
+  only returns `None` for that same variant.
+- `MatrixVersion::(into/from)_parts` are no longer exposed as public methods.
+  They were usually used to sort `MatrixVersion`s, now the `PartialOrd` and
+  `Ord` implementations can be used instead.
+- `Protocol` and `ProtocolInit` are generic on the protocol instance type.
+- Add support for endpoints that only allow appservices to call them, renaming
+  `AppserviceToken` to `AppserviceTokenOptional`, with the new variant taking
+  `AppserviceToken`'s place.
+- The `redact*` functions in `canonical_json` take `RedactionRules` instead of
+  `RoomVersionId`. This avoids undefined behavior for unknown room versions.
+- `OutgoingRequest::try_into_http_request()`,
+  `OutgoingRequestAppserviceExt::try_into_http_request_with_user_id()` and
+  `Metadata::make_endpoint_url()` take a `SupportedVersions` instead of a
+  `&[MatrixVersion]`.
+- The `metadata` macro allows to specify stable and unstable feature flags for
+  the paths in `history`.
+  - `VersionHistory::new()` takes a
+    `&'static [(Option<&'static str>, &'static str)]` for the unstable paths and
+    a `&'static [(StablePathSelector, &'static str)]` for the stable paths.
+  - `VersionHistory::unstable_paths()` returns an
+    `impl Iterator<Item = (Option<&'static str>, &'static str)>`.
+  - `VersionHistory::stable_paths()` returns an
+    `impl Iterator<Item = (StablePathSelector, &'static str)>`.
+  - `VersionHistory::stable_endpoint_for()` was renamed to `version_path()`.
+  - `VersioningDecision`'s `Stable` variant was renamed to `Version` and
+    `Unstable` was renamed to `Feature`.
+- The syntax of variables in endpoint paths segments in the `metadata` macro has
+  changed: the variable must now be surrounded by `{}` instead of being preceded
+  by `:`. For example `/_matrix/client/foo/{bar}`. This matches the OpenAPI
+  syntax and the new syntax supported by axum 0.8.
+- `JoinRule` and its associated types where imported from `ruma-events` into the
+  `room` module.
+- `space::SpaceRoomJoinRule` was removed and replaced by `room::JoinRuleSummary`.
+- `directory::PublicRoomJoinRule` was moved and renamed to `room::JoinRuleKind`.
+  - It can be constructed with `JoinRule::kind()` and `JoinRuleSummary::kind()`.
+- Make `PushConditionRoomCtx` and `PushConditionPowerLevelsCtx` non-exhaustive.
+- The `versions` field of `SupportedVersions` is now a `BTreeSet<MatrixVersion>`,
+  to make sure that the versions are always deduplicated and sorted.
+- `NotificationPowerLevels` now takes a `NotificationPowerLevelsKey` for the
+  `key`, an enum that accepts any string.
+  - The `key` field of `PushCondition::SenderNotificationPermission` uses the
+    same type.
+
+Bug fix:
+
+- Set the `disposition` of `RoomVersionRules::MSC2870` as unstable.
+
+Improvements:
+
+- Implement the `Zeroize` trait for the `Base64` type.
+- `ProtocolInstance` has an `instance_id` field, due to a clarification in the
+  spec.
+- The `unstable-unspecified` cargo feature was removed.
+- Add `AnyKeyName` as a helper type to use `KeyId` APIs without validating the
+  key name.
+- Add `IdentityServerBase64PublicKey` as a helper type to decode identity server
+  public keys encoded using standard or URL-safe base64.
+- `RoomVersion` was imported from ruma-state-res and renamed to
+  `RoomVersionRules`, along with the following changes:
+  - `RoomVersionRules::new()` was removed and replaced by
+    `RoomVersionId::rules()`.
+  - The `RoomDisposition` enum was renamed to `RoomVersionDisposition`.
+  - The `event_format` field was renamed to `event_id_format` and the
+    `EventFormat` enum was renamed to `EventIdFormat`.
+  - The tweaks in the authorization rules were extracted into the
+    `AuthorizationRules` struct, which is available in the `authorization` field
+    of `RoomVersionRules`.
+  - The `special_case_aliases_auth` field was renamed to
+    `special_case_room_aliases`.
+  - The `strict_canonicaljson` field was renamed to `strict_canonical_json`.
+  - The `extra_redaction_checks` field was renamed to
+    `special_case_room_redaction`.
+  - The `allow_knocking` field was renamed to `knocking`.
+  - The `restricted_join_rules` field was renamed to `restricted_join_rule`.
+  - `RedactionRules` was added under the `redaction` field.
+  - `SignaturesRules` was added under the `signatures` field.
+- `RoomVersionId` has an `MSC2870` variant for the `org.matrix.msc2870` room
+  version defined in MSC2870.
+- Add `OutgoingRequest::is_supported()` and `VersionHistory::is_supported()` to
+  be able to know if a server advertises support for an endpoint.
+- Re-export `ID_MAX_BYTES` from `ruma-identifiers-validation`.
+- Implement `From<PublicRoomsChunk>` for `RoomSummary`.
+- Add `content_field_redacts` field to `RedactionRules`, which is used to determine whether the
+  `content` or top-level `redacts` field should be used to determine what event an
+  `m.room.redaction` event redacts.
+- Add `SpaceChildOrder` which allows to validate the `order` of an
+  `m.space.child` event.
+
 # 0.15.4
 
 Bug fix:
@@ -8,6 +111,7 @@ Bug fix:
   `serde_json::from_value` but not other functions like
   `serde_json::from_(str/slice)`. It now works with all 3 methods but is limited
   to deserializing JSON.
+
 
 # 0.15.3
 

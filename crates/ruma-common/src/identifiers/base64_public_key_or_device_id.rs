@@ -1,4 +1,4 @@
-use ruma_macros::IdZst;
+use ruma_macros::IdDst;
 
 use super::{
     Base64PublicKey, DeviceId, IdParseError, KeyName, OwnedBase64PublicKey, OwnedDeviceId,
@@ -25,7 +25,7 @@ use super::{
 /// assert_eq!(owned_id.as_str(), "ijklmnop");
 /// ```
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 pub struct Base64PublicKeyOrDeviceId(str);
 
 impl KeyName for Base64PublicKeyOrDeviceId {

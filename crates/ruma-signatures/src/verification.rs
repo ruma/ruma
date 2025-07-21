@@ -1,6 +1,7 @@
 //! Verification of digital signatures.
 
 use ed25519_dalek::{Verifier as _, VerifyingKey};
+use ruma_common::SigningKeyAlgorithm;
 
 use crate::{Error, ParseError, VerificationError};
 
@@ -10,9 +11,9 @@ pub(crate) trait Verifier {
     ///
     /// # Parameters
     ///
-    /// * public_key: The raw bytes of the public key of the key pair used to sign the message.
-    /// * signature: The raw bytes of the signature to verify.
-    /// * message: The raw bytes of the message that was signed.
+    /// * `public_key`: The raw bytes of the public key of the key pair used to sign the message.
+    /// * `signature`: The raw bytes of the signature to verify.
+    /// * `message`: The raw bytes of the message that was signed.
     ///
     /// # Errors
     ///
@@ -61,4 +62,12 @@ pub enum Verified {
     ///
     /// This may indicate a redacted event.
     Signatures,
+}
+
+/// Get the verifier for the given algorithm, if it is supported.
+pub(crate) fn verifier_from_algorithm(algorithm: &SigningKeyAlgorithm) -> Option<impl Verifier> {
+    match algorithm {
+        SigningKeyAlgorithm::Ed25519 => Some(Ed25519Verifier),
+        _ => None,
+    }
 }

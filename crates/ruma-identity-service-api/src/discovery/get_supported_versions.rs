@@ -13,7 +13,7 @@
 use std::collections::BTreeMap;
 
 use ruma_common::{
-    api::{request, response, MatrixVersion, Metadata, SupportedVersions},
+    api::{request, response, Metadata, SupportedVersions},
     metadata,
 };
 
@@ -51,28 +51,8 @@ impl Response {
         Self { versions }
     }
 
-    /// Extracts known Matrix versions from this response.
-    ///
-    /// Matrix versions that Ruma cannot parse, or does not know about, are discarded.
-    ///
-    /// The versions returned will be sorted from oldest to latest. Use [`.find()`][Iterator::find]
-    /// or [`.rfind()`][DoubleEndedIterator::rfind] to look for a minimum or maximum version to use
-    /// given some constraint.
-    pub fn known_versions(&self) -> impl DoubleEndedIterator<Item = MatrixVersion> {
-        self.versions
-            .iter()
-            // Parse, discard unknown versions
-            .flat_map(|s| s.parse::<MatrixVersion>())
-            // Map to key-value pairs where the key is the major-minor representation
-            // (which can be used as a BTreeMap unlike MatrixVersion itself)
-            .map(|v| (v.into_parts(), v))
-            // Collect to BTreeMap
-            .collect::<BTreeMap<_, _>>()
-            // Return an iterator over just the values (`MatrixVersion`s)
-            .into_values()
-    }
-
-    /// Convert this `Response` into a [`SupportedVersions`].
+    /// Convert this `Response` into a [`SupportedVersions`] that can be used with
+    /// `OutgoingRequest::try_into_http_request()`.
     ///
     /// Matrix versions that can't be parsed to a `MatrixVersion`, and features with the boolean
     /// value set to `false` are discarded.

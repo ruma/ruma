@@ -21,8 +21,8 @@ pub mod v3 {
         rate_limited: false,
         authentication: None,
         history: {
-            unstable => "/_matrix/client/unstable/org.matrix.msc2858/login/sso/redirect/:idp_id",
-            1.1 => "/_matrix/client/v3/login/sso/redirect/:idp_id",
+            unstable => "/_matrix/client/unstable/org.matrix.msc2858/login/sso/redirect/{idp_id}",
+            1.1 => "/_matrix/client/v3/login/sso/redirect/{idp_id}",
         }
     };
 
@@ -83,24 +83,30 @@ pub mod v3 {
 
     #[cfg(all(test, feature = "client"))]
     mod tests {
-        use ruma_common::api::{MatrixVersion, OutgoingRequest as _, SendAccessToken};
+        use ruma_common::api::{
+            MatrixVersion, OutgoingRequest as _, SendAccessToken, SupportedVersions,
+        };
 
         use super::Request;
 
         #[test]
         fn serialize_sso_login_with_provider_request_uri() {
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: Default::default(),
+            };
             let req = Request::new("provider".to_owned(), "https://example.com/sso".to_owned())
                 .try_into_http_request::<Vec<u8>>(
                     "https://homeserver.tld",
                     SendAccessToken::None,
-                    &[MatrixVersion::V1_1],
+                    &supported,
                 )
                 .unwrap();
 
             assert_eq!(
-            req.uri().to_string(),
-            "https://homeserver.tld/_matrix/client/v3/login/sso/redirect/provider?redirectUrl=https%3A%2F%2Fexample.com%2Fsso"
-        );
+                req.uri().to_string(),
+                "https://homeserver.tld/_matrix/client/v3/login/sso/redirect/provider?redirectUrl=https%3A%2F%2Fexample.com%2Fsso"
+            );
         }
     }
 }

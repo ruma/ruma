@@ -209,7 +209,7 @@ impl Response {
                 return Err(syn::Error::new_spanned(
                     &self.ident,
                     "Can't have more than one newtype body field",
-                ))
+                ));
             }
         };
 

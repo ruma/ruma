@@ -8,14 +8,15 @@ use js_int::{int, Int};
 use ruma_common::{
     power_levels::{default_power_level, NotificationPowerLevels},
     push::PushConditionPowerLevelsCtx,
-    OwnedUserId, RoomVersionId, UserId,
+    room_version_rules::RedactionRules,
+    OwnedUserId, UserId,
 };
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    EmptyStateKey, EventContent, MessageLikeEventType, RedactContent, RedactedStateEventContent,
-    StateEventType, StaticEventContent, TimelineEventType,
+    EmptyStateKey, MessageLikeEventType, RedactContent, RedactedStateEventContent, StateEventType,
+    StaticEventContent, TimelineEventType,
 };
 
 /// The content of an `m.room.power_levels` event.
@@ -137,7 +138,7 @@ impl Default for RoomPowerLevelsEventContent {
 impl RedactContent for RoomPowerLevelsEventContent {
     type Redacted = RedactedRoomPowerLevelsEventContent;
 
-    fn redact(self, version: &RoomVersionId) -> Self::Redacted {
+    fn redact(self, rules: &RedactionRules) -> Self::Redacted {
         let Self {
             ban,
             events,
@@ -151,19 +152,7 @@ impl RedactContent for RoomPowerLevelsEventContent {
             ..
         } = self;
 
-        let invite = match version {
-            RoomVersionId::V1
-            | RoomVersionId::V2
-            | RoomVersionId::V3
-            | RoomVersionId::V4
-            | RoomVersionId::V5
-            | RoomVersionId::V6
-            | RoomVersionId::V7
-            | RoomVersionId::V8
-            | RoomVersionId::V9
-            | RoomVersionId::V10 => int!(0),
-            _ => invite,
-        };
+        let invite = if rules.keep_room_power_levels_invite { invite } else { int!(0) };
 
         RedactedRoomPowerLevelsEventContent {
             ban,
@@ -296,20 +285,17 @@ pub struct RedactedRoomPowerLevelsEventContent {
     pub users_default: Int,
 }
 
-impl EventContent for RedactedRoomPowerLevelsEventContent {
-    type EventType = StateEventType;
-
-    fn event_type(&self) -> Self::EventType {
-        StateEventType::RoomPowerLevels
-    }
-}
-
 impl StaticEventContent for RedactedRoomPowerLevelsEventContent {
     const TYPE: &'static str = RoomPowerLevelsEventContent::TYPE;
+    type IsPrefix = <RoomPowerLevelsEventContent as StaticEventContent>::IsPrefix;
 }
 
 impl RedactedStateEventContent for RedactedRoomPowerLevelsEventContent {
     type StateKey = EmptyStateKey;
+
+    fn event_type(&self) -> StateEventType {
+        StateEventType::RoomPowerLevels
+    }
 }
 
 /// The effective power levels of a room.
@@ -629,7 +615,7 @@ impl From<RoomPowerLevels> for RoomPowerLevelsEventContent {
 
 impl From<RoomPowerLevels> for PushConditionPowerLevelsCtx {
     fn from(c: RoomPowerLevels) -> Self {
-        Self { users: c.users, users_default: c.users_default, notifications: c.notifications }
+        Self::new(c.users, c.users_default, c.notifications)
     }
 }
 

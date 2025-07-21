@@ -371,7 +371,7 @@ pub enum ErrorKind {
     ///
     /// The password was [rejected] by the server for being too weak.
     ///
-    /// [rejected]: https://spec.matrix.org/latest/client-server-api/#notes-on-password-management
+    /// [rejected]: https://spec.matrix.org/latest/client-server-api/#password-management
     WeakPassword,
 
     /// `M_WRONG_ROOM_KEYS_VERSION`
@@ -782,7 +782,7 @@ pub enum ErrorCode {
     ///
     /// The password was [rejected] by the server for being too weak.
     ///
-    /// [rejected]: https://spec.matrix.org/latest/client-server-api/#notes-on-password-management
+    /// [rejected]: https://spec.matrix.org/latest/client-server-api/#password-management
     WeakPassword,
 
     /// `M_WRONG_ROOM_KEYS_VERSION`

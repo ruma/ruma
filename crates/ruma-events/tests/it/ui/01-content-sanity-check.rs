@@ -9,4 +9,10 @@ pub struct MacroTestContent {
     pub url: String,
 }
 
-fn main() {}
+fn main() {
+    use ruma_events::{BooleanType, StateEventContent, StaticEventContent};
+
+    assert_eq!(MacroTestContent::TYPE, "m.macro.test");
+    assert!(!<MacroTestContent as StaticEventContent>::IsPrefix::as_bool());
+    assert_eq!(MacroTestContent { url: "foo".to_owned() }.event_type().to_string(), "m.macro.test");
+}

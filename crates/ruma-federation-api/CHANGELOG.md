@@ -1,5 +1,34 @@
 # [unreleased]
 
+Breaking changes:
+
+- Remove the `origin` field in `create_join_event::{v1/v2}::RoomState` due to a
+  clarification in the spec.
+- The type of `signed` in `thirdparty::bind_callback::v1::Request` was fixed. It
+  uses `Raw<SignedContent>` from `RoomMemberEventContent`.
+- The type of `content` in `thirdparty::exchange_invite::v1::Request` was fixed.
+  It is a `RoomMemberEventContent`. A new constructor was added,
+  `with_third_party_invite()` that constructs the event content from a
+  `ThirdPartyInvite`.
+- Update the endpoint metadata definitions to use the new syntax for variables.
+- Use `ruma_common::RoomSummary` for the `space::get_hierarchy` endpoint.
+  - `SpaceHierarchyParentSummary` is now built around `RoomSummary`, and
+    `SpaceHierarchyParentSummaryInit` was removed.
+  - `SpaceHierarchyChildSummary` was replaced by `RoomSummary` and
+    `SpaceHierarchyChildSummaryInit` was removed.
+
+Bug fixes:
+
+- Add constructor for `thirdparty::bind_callback::v1::Response`.
+
+Improvements:
+
+- ruma-server-util was merged into this crate. `XMatrix` is available in the
+  `authentication` module.
+- Add a method to construct a `thirdparty::exchange_invite::v1::Request` from a
+  `thirdparty::bind_callback::v1::ThirdPartyInvite` and a
+  `RoomThirdPartyInviteEventContent`.
+
 # 0.11.2
 
 Bug fixes:

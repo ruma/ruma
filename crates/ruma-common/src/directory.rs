@@ -7,17 +7,15 @@ mod filter_room_type_serde;
 mod room_network_serde;
 
 use crate::{
-    room::{RoomSummary, RoomType},
-    serde::StringEnum,
-    space::SpaceRoomJoinRule,
+    room::{JoinRuleKind, RoomSummary, RoomType},
     OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr,
 };
 
 /// A chunk of a room list response, describing one room.
 ///
 /// To create an instance of this type, first create a [`PublicRoomsChunkInit`] and convert it via
-/// `PublicRoomsChunk::from` / `.into()`. It is also possible to construct this type from a
-/// [`RoomSummary`].
+/// `PublicRoomsChunk::from` / `.into()`. It is also possible to construct this type from or convert
+/// it to a [`RoomSummary`].
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PublicRoomsChunk {
@@ -64,7 +62,7 @@ pub struct PublicRoomsChunk {
 
     /// The join rule of the room.
     #[serde(default, skip_serializing_if = "crate::serde::is_default")]
-    pub join_rule: PublicRoomJoinRule,
+    pub join_rule: JoinRuleKind,
 
     /// The type of room from `m.room.create`, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -107,7 +105,7 @@ impl From<PublicRoomsChunkInit> for PublicRoomsChunk {
             world_readable,
             guest_can_join,
             avatar_url: None,
-            join_rule: PublicRoomJoinRule::default(),
+            join_rule: JoinRuleKind::default(),
             room_type: None,
         }
     }
@@ -138,8 +136,40 @@ impl From<RoomSummary> for PublicRoomsChunk {
             world_readable,
             guest_can_join,
             avatar_url,
+            join_rule: join_rule.as_str().into(),
+            room_type,
+        }
+    }
+}
+
+impl From<PublicRoomsChunk> for RoomSummary {
+    fn from(value: PublicRoomsChunk) -> Self {
+        let PublicRoomsChunk {
+            room_id,
+            canonical_alias,
+            name,
+            topic,
+            avatar_url,
+            room_type,
+            num_joined_members,
+            join_rule,
+            world_readable,
+            guest_can_join,
+        } = value;
+
+        Self {
+            canonical_alias,
+            name,
+            num_joined_members,
+            room_id,
+            topic,
+            world_readable,
+            guest_can_join,
+            avatar_url,
             join_rule: join_rule.into(),
             room_type,
+            encryption: None,
+            room_version: None,
         }
     }
 }
@@ -189,68 +219,6 @@ pub enum RoomNetwork {
 
     /// Return rooms from a specific third party network/protocol.
     ThirdParty(String),
-}
-
-/// The rule used for users wishing to join a public room.
-#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Default, PartialEq, Eq, StringEnum)]
-#[ruma_enum(rename_all = "snake_case")]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub enum PublicRoomJoinRule {
-    /// A user who wishes to join the room must first receive an invite to the room from someone
-    /// already inside of the room.
-    Invite,
-
-    /// Users can join the room if they are invited, or they can request an invite to the room.
-    ///
-    /// They can be allowed (invited) or denied (kicked/banned) access.
-    Knock,
-
-    /// Reserved but not yet implemented by the Matrix specification.
-    Private,
-
-    /// Users can join the room if they are invited, or if they meet any of the conditions
-    /// described in a set of rules.
-    Restricted,
-
-    /// Users can join the room if they are invited, or if they meet any of the conditions
-    /// described in a set of rules, or they can request an invite to the room.
-    KnockRestricted,
-
-    /// Anyone can join the room without any prior action.
-    #[default]
-    Public,
-
-    #[doc(hidden)]
-    _Custom(PrivOwnedStr),
-}
-
-impl From<PublicRoomJoinRule> for SpaceRoomJoinRule {
-    fn from(value: PublicRoomJoinRule) -> Self {
-        match value {
-            PublicRoomJoinRule::Invite => Self::Invite,
-            PublicRoomJoinRule::Knock => Self::Knock,
-            PublicRoomJoinRule::Private => Self::Private,
-            PublicRoomJoinRule::Restricted => Self::Restricted,
-            PublicRoomJoinRule::KnockRestricted => Self::KnockRestricted,
-            PublicRoomJoinRule::Public => Self::Public,
-            PublicRoomJoinRule::_Custom(custom) => Self::_Custom(custom),
-        }
-    }
-}
-
-impl From<SpaceRoomJoinRule> for PublicRoomJoinRule {
-    fn from(value: SpaceRoomJoinRule) -> Self {
-        match value {
-            SpaceRoomJoinRule::Invite => Self::Invite,
-            SpaceRoomJoinRule::Knock => Self::Knock,
-            SpaceRoomJoinRule::Private => Self::Private,
-            SpaceRoomJoinRule::Restricted => Self::Restricted,
-            SpaceRoomJoinRule::KnockRestricted => Self::KnockRestricted,
-            SpaceRoomJoinRule::Public => Self::Public,
-            SpaceRoomJoinRule::_Custom(custom) => Self::_Custom(custom),
-        }
-    }
 }
 
 /// An enum of possible room types to filter.

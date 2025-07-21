@@ -10,7 +10,7 @@ mod content_serde;
 mod unstable_poll_answers_serde;
 mod unstable_poll_kind_serde;
 
-use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedEventId};
+use ruma_common::{room_version_rules::RedactionRules, MilliSecondsSinceUnixEpoch, OwnedEventId};
 
 use self::unstable_poll_answers_serde::UnstablePollAnswersDeHelper;
 use super::{
@@ -20,9 +20,8 @@ use super::{
     PollResponseData,
 };
 use crate::{
-    relation::Replacement, room::message::RelationWithoutReplacement, EventContent,
-    MessageLikeEventContent, MessageLikeEventType, RedactContent, RedactedMessageLikeEventContent,
-    StaticEventContent,
+    relation::Replacement, room::message::RelationWithoutReplacement, MessageLikeEventContent,
+    MessageLikeEventType, RedactContent, RedactedMessageLikeEventContent, StaticEventContent,
 };
 
 /// The payload for an unstable poll start event.
@@ -61,7 +60,7 @@ impl UnstablePollStartEventContent {
 impl RedactContent for UnstablePollStartEventContent {
     type Redacted = RedactedUnstablePollStartEventContent;
 
-    fn redact(self, _version: &crate::RoomVersionId) -> Self::Redacted {
+    fn redact(self, _rules: &RedactionRules) -> Self::Redacted {
         RedactedUnstablePollStartEventContent::default()
     }
 }
@@ -138,19 +137,16 @@ impl NewUnstablePollStartEventContent {
     }
 }
 
-impl EventContent for NewUnstablePollStartEventContent {
-    type EventType = MessageLikeEventType;
+impl StaticEventContent for NewUnstablePollStartEventContent {
+    const TYPE: &'static str = UnstablePollStartEventContent::TYPE;
+    type IsPrefix = <UnstablePollStartEventContent as StaticEventContent>::IsPrefix;
+}
 
-    fn event_type(&self) -> Self::EventType {
+impl MessageLikeEventContent for NewUnstablePollStartEventContent {
+    fn event_type(&self) -> MessageLikeEventType {
         MessageLikeEventType::UnstablePollStart
     }
 }
-
-impl StaticEventContent for NewUnstablePollStartEventContent {
-    const TYPE: &'static str = UnstablePollStartEventContent::TYPE;
-}
-
-impl MessageLikeEventContent for NewUnstablePollStartEventContent {}
 
 /// Form of [`NewUnstablePollStartEventContent`] without relation.
 ///
@@ -225,19 +221,16 @@ impl ReplacementUnstablePollStartEventContent {
     }
 }
 
-impl EventContent for ReplacementUnstablePollStartEventContent {
-    type EventType = MessageLikeEventType;
+impl StaticEventContent for ReplacementUnstablePollStartEventContent {
+    const TYPE: &'static str = UnstablePollStartEventContent::TYPE;
+    type IsPrefix = <UnstablePollStartEventContent as StaticEventContent>::IsPrefix;
+}
 
-    fn event_type(&self) -> Self::EventType {
+impl MessageLikeEventContent for ReplacementUnstablePollStartEventContent {
+    fn event_type(&self) -> MessageLikeEventType {
         MessageLikeEventType::UnstablePollStart
     }
 }
-
-impl StaticEventContent for ReplacementUnstablePollStartEventContent {
-    const TYPE: &'static str = UnstablePollStartEventContent::TYPE;
-}
-
-impl MessageLikeEventContent for ReplacementUnstablePollStartEventContent {}
 
 /// Redacted form of UnstablePollStartEventContent
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -251,19 +244,16 @@ impl RedactedUnstablePollStartEventContent {
     }
 }
 
-impl EventContent for RedactedUnstablePollStartEventContent {
-    type EventType = MessageLikeEventType;
+impl StaticEventContent for RedactedUnstablePollStartEventContent {
+    const TYPE: &'static str = UnstablePollStartEventContent::TYPE;
+    type IsPrefix = <UnstablePollStartEventContent as StaticEventContent>::IsPrefix;
+}
 
-    fn event_type(&self) -> Self::EventType {
+impl RedactedMessageLikeEventContent for RedactedUnstablePollStartEventContent {
+    fn event_type(&self) -> MessageLikeEventType {
         MessageLikeEventType::UnstablePollStart
     }
 }
-
-impl StaticEventContent for RedactedUnstablePollStartEventContent {
-    const TYPE: &'static str = UnstablePollStartEventContent::TYPE;
-}
-
-impl RedactedMessageLikeEventContent for RedactedUnstablePollStartEventContent {}
 
 /// An unstable block for poll start content.
 #[derive(Debug, Clone, Serialize, Deserialize)]

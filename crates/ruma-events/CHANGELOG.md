@@ -1,5 +1,81 @@
 # [unreleased]
 
+Breaking changes:
+
+- Zeroize the secret key contained in JsonWebKey if the struct gets dropped.
+  This change means you can no longer move any fields out of the struct.
+- Reply fallbacks are not generated anymore, according to MSC2781 / Matrix 1.13.
+  As a result, the following methods of `RoomMessageEventContent(WithoutRelation)`
+  were simplified:
+  - `make_reply_to` and `make_reply_to_raw` have been merged into
+    `make_reply_to`. It takes a `ReplyMetadata`, that can be virtually
+    constructed from any event and includes built-in conversions for room
+    message events.
+  - `make_for_thread` also takes a `ReplyMetadata` instead of a room message
+    event.
+  - `make_replacement` does not take the replied-to message anymore.
+- `RoomThirdPartyInviteEventContent` uses `IdentityServerBase64PublicKey`
+  instead of `Base64` for the `public_key` fields, to avoid deserialization
+  errors when public keys encoded using URL-safe base64 are encountered.
+- The `msgtype` is no longer serialized in `AudioMessageEventContent`, `EmoteMessageEventContent`,
+  `FileMessageEventContent`, `ImageMessageEventContent`, `LocationMessageEventContent`,
+  `NoticeMessageEventContent`, `ServerNoticeMessageEventContent`, `TextMessageEventContent`,
+  `VideoMessageEventContent` and `KeyVerificationRequestEventContent`. Instead the `msgtype`
+  is now serialized on the variants of `MessageType`.
+- `RedactContent::redact()` and `FullStateEventContent::redact()` take a
+  `RedactionRules` instead of `RoomVersionId`. This avoids undefined behavior
+  for unknown room versions.
+- Add the `sender_device_keys` field to `DecryptedOlmV1Event`, according to
+  MSC4147.
+- `signed` in `ThirdPartyInvite` is now wrapped inside a `Raw` because it is
+  signed so we need the full raw JSON to verify the signature.
+- `PresenceEventContent` doesn't implement `EventContent` and `StaticEventContent` anymore.
+  They are not useful when `PresenceEvent` can only contain one type.
+- The `EventContent` macro now requires the `kind` attribute.
+- The `EventContent` trait was removed.
+  - The `event_type` method is now available on the per-kind `*EventContent` traits.
+  - For an event content type to automatically implement `EventContentFromType` it must now match
+    the bound `StaticEventContent + DeserializeOwned`.
+- The `BundledThread::latest_event` field is now an `AnySyncMessageLikeEvent` instead of
+  `AnyMessageLikeEvent`, to reflect that it may not always include a `room_id` field (if the owning
+  event came from sync, for instance), which can usually be obtained from the surrounding context.
+- The `(Original)(Sync)RedactEvent` events take a `RedactionRules` instead of `RoomVersionId` for
+  their `redacts()` method. This avoids unexpected behavior for unknown room versions.
+- `SpaceChildEventContent` now uses `OwnedSpaceChildOrder` for the `order` field. This is a type
+  with strong validation according to the rules of the spec. If its deserialization fails, this
+  field is set to `None` to ignore it, as recommended in the spec.
+- `StaticEventContent` has a new associated type `IsPrefix` to identify event types where only the
+  prefix is statically-known.
+- `AnyEphemeralRoomEvent` was removed. There is no reason to use it, only
+  `AnySyncEphemeralRoomEvent` can be received via `/sync`.
+- The `redacted_because` field of `RedactedUnsigned` is wrapped in `Raw`. It avoids to fail
+  deserialization of the whole event if only deserialization of this field fails. It is also more
+  forward-compatible in case events other than `m.room.redaction` are used here in the future.
+
+Improvements:
+
+- Remove the `pdu` module and the corresponding `unstable-pdu` cargo feature. As far as we know, it
+  was not used anywhere outside of the tests of ruma-state-res.
+- The `EventContent` and `event_enum!` macros support declaring the same type for both global and
+  room account data. The syntax to use for the `EventContent` macro is `kind = GlobalAccountData +
+  RoomAccountData`.
+- The `(Unstable)MediaPreviewConfigEventContent` types are also declared as room account data: they
+  implement `RoomAccountDataEventContent` and have variants in the `AnyRoomAccountDataEvent*` and
+  `RoomAccountDataEventType` enums. The `MediaPreviewConfigEvent` and
+  `UnstableMediaPreviewConfigEvent` type aliases are renamed to `GlobalMediaPreviewConfigEvent` and
+  `GlobalUnstableMediaPreviewConfigEvent`, respectively.
+- The fields of `MediaPreviewConfigEventContent` are now optional. It allows to differentiate
+  whether the room account data is unset or explicitly set to the default value. This allows in
+  turn to know whether the room account data should override the global account data or not.
+  - `MediaPreviewConfigEventContent::new()` doesn't take any arguments and creates an empty config.
+    The fields can be set with a builder pattern, e.g.
+    `MediaPreviewConfigEventContent::new().media_previews(Some(MediaPreviews::Off))`.
+  - `MediaPreviewConfigEventContent::merge_global_and_room_config()` can be used to get the current
+    config for a room.
+- `m.space.child` events can be sorted with the algorithm defined in the spec by using the new
+  `SpaceChildOrd` trait and `SpaceChildOrdHelper` type, and `HierarchySpaceChildEvent` specifically
+  now implements `Ord` using the aforementioned trait.
+
 # 0.30.4
 
 Bug fixes:

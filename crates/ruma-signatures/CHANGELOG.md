@@ -1,5 +1,29 @@
 # [unreleased]
 
+Breaking changes:
+
+- `Algorithm` is replaced by `SigningKeyAlgorithm` from `ruma-common`.
+  - `Signature::new()` returns an `IdParseError`.
+  - `Error::UnsupportedAlgorithm` is removed since it is now unused.
+- The `compat-signature-id` cargo feature was removed. No validation is done on
+  the key name of a key ID, to stop assuming that this crate is only used to
+  check server signatures.
+- The variants of `VerificationError` were changed to be clearer, have more
+  details about the error, and to support any type of entity.
+- `JsonError::JsonKeyMissing` was replaced by
+  `VerificationError::PublicKeyNotFound`
+- `reference_hash` and `verify_event` take `RoomVersionRules` instead of
+  `RoomVersionId`. This avoids undefined behavior for unknown room versions.
+- `hash_and_sign_event` take `RedactionRules` instead of `RoomVersionId`. This
+  avoids undefined behavior for unknown room versions.
+- The `ServerNameFromEventIdByRoomVersion` variant of `ParseError` was renamed
+  to `ServerNameFromEventId`, and doesn't hold a `RoomVersionId` anymore.
+
+Improvements:
+
+- Add `verify_canonical_json_bytes()` as a low-level function to check the
+  signature of canonical JSON bytes.
+
 # 0.17.1
 
 Bug fixes:

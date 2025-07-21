@@ -6,15 +6,17 @@ use std::path::Path;
 use clap::{Args, Subcommand};
 use xshell::Shell;
 
-use crate::{cmd, Metadata, Result, NIGHTLY};
+use crate::{bench::BenchPackage, cmd, Metadata, Result, NIGHTLY};
 
 mod reexport_features;
 mod spec_links;
+mod unused_features;
 
 use reexport_features::check_reexport_features;
 use spec_links::check_spec_links;
+use unused_features::check_unused_features;
 
-const MSRV: &str = "1.75";
+const MSRV: &str = "1.82";
 
 #[derive(Args)]
 pub struct CiArgs {
@@ -38,10 +40,10 @@ pub enum CiCmd {
     Stable,
     /// Check all crates with all features (stable)
     StableAll,
-    /// Check ruma-client without default features (stable)
-    StableClient,
     /// Check ruma-common with only the required features (stable)
     StableCommon,
+    /// Check all benchmarks (stable)
+    StableBenches,
     /// Run all tests with almost all features (stable)
     TestAll,
     /// Run all tests with almost all features, including the compat features (stable)
@@ -62,6 +64,8 @@ pub enum CiCmd {
     ClippyWasm,
     /// Lint almost all features with clippy (nightly)
     ClippyAll,
+    /// Lint all benchmarks with clippy (nightly)
+    ClippyBenches,
     /// Run all lints that don't need compilation
     Lint,
     /// Check sorting of dependencies (lint)
@@ -72,6 +76,8 @@ pub enum CiCmd {
     ReexportFeatures,
     /// Check typos
     Typos,
+    /// Check whether there are unused cargo features (lint)
+    UnusedFeatures,
 }
 
 /// Task to run CI tests.
@@ -108,8 +114,8 @@ impl CiTask {
             Some(CiCmd::MsrvOwnedIdArc) => self.msrv_owned_id_arc()?,
             Some(CiCmd::Stable) => self.stable()?,
             Some(CiCmd::StableAll) => self.stable_all()?,
-            Some(CiCmd::StableClient) => self.stable_client()?,
             Some(CiCmd::StableCommon) => self.stable_common()?,
+            Some(CiCmd::StableBenches) => self.stable_benches()?,
             Some(CiCmd::TestAll) => self.test_all()?,
             Some(CiCmd::TestCompat) => self.test_compat()?,
             Some(CiCmd::TestDoc) => self.test_doc()?,
@@ -120,11 +126,13 @@ impl CiTask {
             Some(CiCmd::ClippyDefault) => self.clippy_default()?,
             Some(CiCmd::ClippyWasm) => self.clippy_wasm()?,
             Some(CiCmd::ClippyAll) => self.clippy_all()?,
+            Some(CiCmd::ClippyBenches) => self.clippy_benches()?,
             Some(CiCmd::Lint) => self.lint()?,
             Some(CiCmd::Dependencies) => self.dependencies()?,
             Some(CiCmd::SpecLinks) => check_spec_links(&self.project_root().join("crates"))?,
             Some(CiCmd::ReexportFeatures) => check_reexport_features(&self.project_metadata)?,
             Some(CiCmd::Typos) => self.typos()?,
+            Some(CiCmd::UnusedFeatures) => check_unused_features(&self.sh, &self.project_metadata)?,
             None => {
                 self.msrv()
                     .and(self.stable())
@@ -170,8 +178,8 @@ impl CiTask {
     /// Run all the tasks that use the stable version.
     fn stable(&self) -> Result<()> {
         self.stable_all()?;
-        self.stable_client()?;
         self.stable_common()?;
+        self.stable_benches()?;
         self.test_all()?;
         self.test_doc()?;
         Ok(())
@@ -190,13 +198,6 @@ impl CiTask {
         .map_err(Into::into)
     }
 
-    /// Check ruma-client without default features with the stable version.
-    fn stable_client(&self) -> Result<()> {
-        cmd!(&self.sh, "rustup run stable cargo check -p ruma-client --no-default-features")
-            .run()
-            .map_err(Into::into)
-    }
-
     /// Check ruma-common with onjy the required features with the stable version.
     fn stable_common(&self) -> Result<()> {
         cmd!(
@@ -206,6 +207,15 @@ impl CiTask {
         )
         .run()
         .map_err(Into::into)
+    }
+
+    /// Check all the benchmarks with the stable version.
+    fn stable_benches(&self) -> Result<()> {
+        let packages = BenchPackage::ALL_PACKAGES_ARGS;
+
+        cmd!(&self.sh, "rustup run stable cargo check {packages...} --benches --features criterion")
+            .run()
+            .map_err(Into::into)
     }
 
     /// Run tests on all crates with almost all features with the stable version.
@@ -218,7 +228,7 @@ impl CiTask {
     /// Run tests on all crates with almost all features and the compat features with the stable
     /// version.
     fn test_compat(&self) -> Result<()> {
-        cmd!(&self.sh, "rustup run stable cargo test --tests --features __ci,compat")
+        cmd!(&self.sh, "rustup run stable cargo test --tests --features __ci,__compat")
             .run()
             .map_err(Into::into)
     }
@@ -236,7 +246,8 @@ impl CiTask {
         self.nightly_full()?;
         self.clippy_default()?;
         self.clippy_wasm()?;
-        self.clippy_all()
+        self.clippy_all()?;
+        self.clippy_benches()
     }
 
     /// Check the formatting with the nightly version.
@@ -306,7 +317,7 @@ impl CiTask {
             &self.sh,
             "
             rustup run {NIGHTLY} cargo clippy --target wasm32-unknown-unknown -p ruma --features
-                __unstable-mscs,api,canonical-json,client-api,events,html-matrix,identity-service-api,js,markdown,rand,signatures,unstable-unspecified -- -D warnings
+                __unstable-mscs,api,canonical-json,client-api,events,html-matrix,identity-service-api,js,markdown,rand,signatures -- -D warnings
             "
         )
         .env("CLIPPY_CONF_DIR", ".wasm")
@@ -320,7 +331,22 @@ impl CiTask {
             &self.sh,
             "
             rustup run {NIGHTLY} cargo clippy
-                --workspace --all-targets --features=__ci,compat -- -D warnings
+                --workspace --all-targets --features=__ci,__compat -- -D warnings
+            "
+        )
+        .run()
+        .map_err(Into::into)
+    }
+
+    /// Lint all benchmarks with clippy with the nightly version.
+    fn clippy_benches(&self) -> Result<()> {
+        let packages = BenchPackage::ALL_PACKAGES_ARGS;
+
+        cmd!(
+            &self.sh,
+            "
+            rustup run {NIGHTLY} cargo clippy {packages...}
+                --benches --features criterion -- -D warnings
             "
         )
         .run()
@@ -335,8 +361,10 @@ impl CiTask {
         let spec_links_res = check_spec_links(&self.project_root().join("crates"));
         // Check that all cargo features of sub-crates can be enabled from ruma.
         let reexport_features_res = check_reexport_features(&self.project_metadata);
+        // Check whether there are unused cargo features.
+        let unused_features_res = check_unused_features(&self.sh, &self.project_metadata);
 
-        dependencies_res.and(spec_links_res).and(reexport_features_res)
+        dependencies_res.and(spec_links_res).and(reexport_features_res).and(unused_features_res)
     }
 
     /// Check the sorting of dependencies with the nightly version.

@@ -16,8 +16,9 @@ all-features = true
 
 [dependencies]
 js_int = { workspace = true }
-ruma-common = { workspace = true }
+ruma-common = { workspace = true, features = ["canonical-json"] }
 ruma-events = { workspace = true }
+ruma-signatures = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
@@ -27,10 +28,10 @@ tracing = { workspace = true }
 criterion = { workspace = true, optional = true }
 
 [dev-dependencies]
+as_variant = { workspace = true }
 insta = { workspace = true }
 maplit = { workspace = true }
 rand = { workspace = true }
-ruma-events = { workspace = true, features = ["unstable-pdu"] }
 similar = { workspace = true }
 tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
 

@@ -156,7 +156,7 @@ impl FromStr for CallMemberStateKeyEnum {
                         error: err,
                         user_id: state_key.to_owned(),
                     }),
-                }
+                };
             }
             Some(suffix_idx) => {
                 (&state_key[..colon_idx + 1 + suffix_idx], &state_key[colon_idx + 2 + suffix_idx..])
@@ -167,7 +167,7 @@ impl FromStr for CallMemberStateKeyEnum {
             (Ok(user_id), device_id) => {
                 if device_id.as_str().is_empty() {
                     return Err(KeyParseError::EmptyDevice);
-                };
+                }
                 Ok(CallMemberStateKeyEnum::new(user_id, Some(device_id), underscore))
             }
             (Err(err), _) => {
@@ -191,7 +191,9 @@ pub enum KeyParseError {
     },
     /// Uses a leading underscore but no trailing device id. The part after the underscore is a
     /// valid user id.
-    #[error("uses a leading underscore but no trailing device id. The part after the underscore is a valid user id.")]
+    #[error(
+        "uses a leading underscore but no trailing device id. The part after the underscore is a valid user id."
+    )]
     LeadingUnderscoreNoDevice,
     /// Uses an empty device id. (UserId with trailing underscore)
     #[error("uses an empty device id. (UserId with trailing underscore)")]
@@ -200,7 +202,7 @@ pub enum KeyParseError {
 
 impl de::Expected for KeyParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "correct call member event key format. The provided string, {})", self)
+        write!(f, "correct call member event key format. The provided string, {self})")
     }
 }
 

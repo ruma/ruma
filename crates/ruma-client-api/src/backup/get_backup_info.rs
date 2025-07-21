@@ -24,8 +24,8 @@ pub mod v3 {
         rate_limited: true,
         authentication: AccessToken,
         history: {
-            unstable => "/_matrix/client/unstable/room_keys/version/:version",
-            1.1 => "/_matrix/client/v3/room_keys/version/:version",
+            unstable => "/_matrix/client/unstable/room_keys/version/{version}",
+            1.1 => "/_matrix/client/v3/room_keys/version/{version}",
         }
     };
 
@@ -123,7 +123,7 @@ pub mod v3 {
         {
             let ResponseBody { algorithm, count, etag, version } = self;
             let AlgorithmWithData { algorithm, auth_data } =
-                algorithm.deserialize_as().map_err(ser::Error::custom)?;
+                algorithm.deserialize_as_unchecked().map_err(ser::Error::custom)?;
 
             let repr = RefResponseBodyRepr {
                 algorithm: &algorithm,

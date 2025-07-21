@@ -23,8 +23,8 @@ pub mod v3 {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            1.0 => "/_matrix/client/r0/rooms/:room_id/messages",
-            1.1 => "/_matrix/client/v3/rooms/:room_id/messages",
+            1.0 => "/_matrix/client/r0/rooms/{room_id}/messages",
+            1.1 => "/_matrix/client/v3/rooms/{room_id}/messages",
         }
     };
 
@@ -174,7 +174,7 @@ pub mod v3 {
     mod tests {
         use js_int::uint;
         use ruma_common::{
-            api::{Direction, MatrixVersion, OutgoingRequest, SendAccessToken},
+            api::{Direction, MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions},
             owned_room_id,
         };
 
@@ -204,22 +204,26 @@ pub mod v3 {
                 limit: uint!(0),
                 filter,
             };
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: Default::default(),
+            };
 
             let request: http::Request<Vec<u8>> = req
                 .try_into_http_request(
                     "https://homeserver.tld",
                     SendAccessToken::IfRequired("auth_tok"),
-                    &[MatrixVersion::V1_1],
+                    &supported,
                 )
                 .unwrap();
             assert_eq!(
-            "from=token\
-             &to=token2\
-             &dir=b\
-             &limit=0\
-             &filter=%7B%22not_types%22%3A%5B%22type%22%5D%2C%22not_rooms%22%3A%5B%22%21room%3Aexample.org%22%2C%22%21room2%3Aexample.org%22%2C%22%21room3%3Aexample.org%22%5D%2C%22rooms%22%3A%5B%22%21roomid%3Aexample.org%22%5D%2C%22lazy_load_members%22%3Atrue%2C%22include_redundant_members%22%3Atrue%7D",
-            request.uri().query().unwrap()
-        );
+                "from=token\
+                 &to=token2\
+                 &dir=b\
+                 &limit=0\
+                 &filter=%7B%22not_types%22%3A%5B%22type%22%5D%2C%22not_rooms%22%3A%5B%22%21room%3Aexample.org%22%2C%22%21room2%3Aexample.org%22%2C%22%21room3%3Aexample.org%22%5D%2C%22rooms%22%3A%5B%22%21roomid%3Aexample.org%22%5D%2C%22lazy_load_members%22%3Atrue%2C%22include_redundant_members%22%3Atrue%7D",
+                request.uri().query().unwrap()
+            );
         }
 
         #[test]
@@ -233,12 +237,16 @@ pub mod v3 {
                 limit: uint!(0),
                 filter: RoomEventFilter::default(),
             };
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: Default::default(),
+            };
 
             let request = req
                 .try_into_http_request::<Vec<u8>>(
                     "https://homeserver.tld",
                     SendAccessToken::IfRequired("auth_tok"),
-                    &[MatrixVersion::V1_1],
+                    &supported,
                 )
                 .unwrap();
             assert_eq!("from=token&to=token2&dir=b&limit=0", request.uri().query().unwrap(),);

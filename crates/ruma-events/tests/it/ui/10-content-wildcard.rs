@@ -11,8 +11,10 @@ pub struct MacroTestContent {
 }
 
 fn main() {
-    use ruma_events::EventContent;
+    use ruma_events::{BooleanType, GlobalAccountDataEventContent, StaticEventContent};
 
+    assert_eq!(MacroTestContent::TYPE, "m.macro.test.");
+    assert!(<MacroTestContent as StaticEventContent>::IsPrefix::as_bool());
     assert_eq!(
         MacroTestContent { frag: "foo".to_owned() }.event_type().to_string(),
         "m.macro.test.foo"

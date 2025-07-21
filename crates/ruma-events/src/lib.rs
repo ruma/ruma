@@ -106,7 +106,7 @@
 
 use std::{collections::BTreeSet, fmt};
 
-use ruma_common::{EventEncryptionAlgorithm, OwnedUserId, RoomVersionId};
+use ruma_common::{room_version_rules::RedactionRules, EventEncryptionAlgorithm, OwnedUserId};
 use serde::{de::IgnoredAny, Deserialize, Serialize, Serializer};
 
 // Needs to be public for trybuild tests
@@ -169,8 +169,6 @@ pub mod media_preview_config;
 #[cfg(feature = "unstable-msc4171")]
 pub mod member_hints;
 pub mod message;
-#[cfg(feature = "unstable-pdu")]
-pub mod pdu;
 pub mod policy;
 #[cfg(feature = "unstable-msc3381")]
 pub mod poll;
@@ -211,9 +209,9 @@ pub trait RedactContent {
 
     /// Transform `self` into a redacted form (removing most or all fields) according to the spec.
     ///
-    /// A small number of events have room-version specific redaction behavior, so a version has to
-    /// be specified.
-    fn redact(self, version: &RoomVersionId) -> Self::Redacted;
+    /// A small number of events have room-version specific redaction behavior, so a
+    /// [`RedactionRules`] has to be specified.
+    fn redact(self, rules: &RedactionRules) -> Self::Redacted;
 }
 
 /// Helper struct to determine the event kind from a `serde_json::value::RawValue`.

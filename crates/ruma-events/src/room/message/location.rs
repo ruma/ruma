@@ -12,7 +12,6 @@ use crate::{
 /// The payload for a location message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[serde(tag = "msgtype", rename = "m.location")]
 #[cfg_attr(
     feature = "unstable-msc3488",
     serde(

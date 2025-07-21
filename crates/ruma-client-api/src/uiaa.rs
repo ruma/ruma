@@ -630,7 +630,8 @@ pub struct UiaaInfo {
     /// Authentication parameters required for the client to complete authentication.
     ///
     /// To create a `Box<RawJsonValue>`, use `serde_json::value::to_raw_value`.
-    pub params: Box<RawJsonValue>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub params: Option<Box<RawJsonValue>>,
 
     /// Session key for client to use to complete authentication.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -642,9 +643,9 @@ pub struct UiaaInfo {
 }
 
 impl UiaaInfo {
-    /// Creates a new `UiaaInfo` with the given flows and parameters.
-    pub fn new(flows: Vec<AuthFlow>, params: Box<RawJsonValue>) -> Self {
-        Self { flows, completed: Vec::new(), params, session: None, auth_error: None }
+    /// Creates a new `UiaaInfo` with the given flows.
+    pub fn new(flows: Vec<AuthFlow>) -> Self {
+        Self { flows, completed: Vec::new(), params: None, session: None, auth_error: None }
     }
 }
 

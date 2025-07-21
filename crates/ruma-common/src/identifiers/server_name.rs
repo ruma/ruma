@@ -2,7 +2,7 @@
 
 use std::net::Ipv4Addr;
 
-use ruma_macros::IdZst;
+use ruma_macros::IdDst;
 
 /// A Matrix-spec compliant [server name].
 ///
@@ -10,7 +10,7 @@ use ruma_macros::IdZst;
 ///
 /// [server name]: https://spec.matrix.org/latest/appendices/#server-name
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(validate = ruma_identifiers_validation::server_name::validate)]
 pub struct ServerName(str);
 

@@ -9,7 +9,9 @@ use serde::{
     de::{self, Deserialize, DeserializeSeed, Deserializer, IgnoredAny, MapAccess, Visitor},
     ser::{Serialize, Serializer},
 };
-use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue};
+use serde_json::value::{
+    to_raw_value as to_raw_json_value, RawValue as RawJsonValue, Value as JsonValue,
+};
 
 /// A wrapper around `Box<RawValue>` with a generic parameter for the expected Rust type.
 ///
@@ -95,7 +97,7 @@ impl<T> Raw<T> {
     /// # fn foo() -> serde_json::Result<()> {
     /// # let raw_event: ruma_common::serde::Raw<()> = todo!();
     /// if raw_event.get_field::<String>("type")?.as_deref() == Some("org.custom.matrix.event") {
-    ///     let event = raw_event.deserialize_as::<CustomMatrixEvent>()?;
+    ///     let event = raw_event.deserialize_as_unchecked::<CustomMatrixEvent>()?;
     ///     // ...
     /// }
     /// # Ok(())
@@ -188,6 +190,15 @@ impl<T> Raw<T> {
     /// Try to deserialize the JSON as a custom type.
     pub fn deserialize_as<'a, U>(&'a self) -> serde_json::Result<U>
     where
+        T: JsonCastable<U>,
+        U: Deserialize<'a>,
+    {
+        self.deserialize_as_unchecked()
+    }
+
+    /// Same as [`deserialize_as`][Self::deserialize_as], but without the trait restriction.
+    pub fn deserialize_as_unchecked<'a, U>(&'a self) -> serde_json::Result<U>
+    where
         U: Deserialize<'a>,
     {
         serde_json::from_str(self.json.get())
@@ -196,14 +207,30 @@ impl<T> Raw<T> {
     /// Turns `Raw<T>` into `Raw<U>` without changing the underlying JSON.
     ///
     /// This is useful for turning raw specific event types into raw event enum types.
-    pub fn cast<U>(self) -> Raw<U> {
-        Raw::from_json(self.into_json())
+    pub fn cast<U>(self) -> Raw<U>
+    where
+        T: JsonCastable<U>,
+    {
+        self.cast_unchecked()
     }
 
     /// Turns `&Raw<T>` into `&Raw<U>` without changing the underlying JSON.
     ///
     /// This is useful for turning raw specific event types into raw event enum types.
-    pub fn cast_ref<U>(&self) -> &Raw<U> {
+    pub fn cast_ref<U>(&self) -> &Raw<U>
+    where
+        T: JsonCastable<U>,
+    {
+        self.cast_ref_unchecked()
+    }
+
+    /// Same as [`cast`][Self::cast], but without the trait restriction.
+    pub fn cast_unchecked<U>(self) -> Raw<U> {
+        Raw::from_json(self.into_json())
+    }
+
+    /// Same as [`cast_ref`][Self::cast_ref], but without the trait restriction.
+    pub fn cast_ref_unchecked<U>(&self) -> &Raw<U> {
         unsafe { mem::transmute(self) }
     }
 }
@@ -238,6 +265,15 @@ impl<T> Serialize for Raw<T> {
         self.json.serialize(serializer)
     }
 }
+
+/// Marker trait for restricting the types [`Raw::deserialize_as`], [`Raw::cast`] and
+/// [`Raw::cast_ref`] can be called with.
+///
+/// Implementing this trait for a type `U` means that it is safe to cast from `U` to `T` because `T`
+/// can be deserialized from the same JSON as `U`.
+pub trait JsonCastable<T> {}
+
+impl<T> JsonCastable<JsonValue> for T {}
 
 #[cfg(test)]
 mod tests {

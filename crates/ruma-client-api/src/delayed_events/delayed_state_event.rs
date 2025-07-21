@@ -24,7 +24,7 @@ pub mod unstable {
         authentication: AccessToken,
         history: {
             // We use the unstable prefix for the delay query parameter but the stable v3 endpoint.
-            unstable => "/_matrix/client/v3/rooms/:room_id/state/:event_type/:state_key",
+            unstable => "/_matrix/client/v3/rooms/{room_id}/state/{event_type}/{state_key}",
         }
     };
 
@@ -114,7 +114,7 @@ pub mod unstable {
     #[cfg(all(test, feature = "client"))]
     mod tests {
         use ruma_common::{
-            api::{MatrixVersion, OutgoingRequest, SendAccessToken},
+            api::{MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions},
             owned_room_id,
             serde::Raw,
         };
@@ -127,17 +127,22 @@ pub mod unstable {
         fn create_delayed_event_request(
             delay_parameters: DelayParameters,
         ) -> (http::request::Parts, Vec<u8>) {
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: Default::default(),
+            };
+
             Request::new_raw(
                 owned_room_id!("!roomid:example.org"),
                 "@userAsStateKey:example.org".to_owned(),
                 "com.example.custom_state".into(),
                 delay_parameters,
-                Raw::new(&json!({ "key": "value" })).unwrap().cast(),
+                Raw::new(&json!({ "key": "value" })).unwrap().cast_unchecked(),
             )
             .try_into_http_request(
                 "https://homeserver.tld",
                 SendAccessToken::IfRequired("auth_tok"),
-                &[MatrixVersion::V1_1],
+                &supported,
             )
             .unwrap()
             .into_parts()

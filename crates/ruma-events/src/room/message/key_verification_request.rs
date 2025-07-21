@@ -7,7 +7,6 @@ use crate::key::verification::VerificationMethod;
 /// The payload for a key verification request message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[serde(tag = "msgtype", rename = "m.key.verification.request")]
 pub struct KeyVerificationRequestEventContent {
     /// A fallback message to alert users that their client does not support the key verification
     /// framework.

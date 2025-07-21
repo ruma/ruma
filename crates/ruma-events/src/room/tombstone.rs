@@ -6,10 +6,7 @@ use ruma_common::OwnedRoomId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    EmptyStateKey, EventContent, PossiblyRedactedStateEventContent, StateEventType,
-    StaticEventContent,
-};
+use crate::{EmptyStateKey, PossiblyRedactedStateEventContent, StateEventType, StaticEventContent};
 
 /// The content of an `m.room.tombstone` event.
 ///
@@ -55,18 +52,15 @@ pub struct PossiblyRedactedRoomTombstoneEventContent {
     pub replacement_room: Option<OwnedRoomId>,
 }
 
-impl EventContent for PossiblyRedactedRoomTombstoneEventContent {
-    type EventType = StateEventType;
+impl PossiblyRedactedStateEventContent for PossiblyRedactedRoomTombstoneEventContent {
+    type StateKey = EmptyStateKey;
 
-    fn event_type(&self) -> Self::EventType {
+    fn event_type(&self) -> StateEventType {
         StateEventType::RoomTombstone
     }
 }
 
-impl PossiblyRedactedStateEventContent for PossiblyRedactedRoomTombstoneEventContent {
-    type StateKey = EmptyStateKey;
-}
-
 impl StaticEventContent for PossiblyRedactedRoomTombstoneEventContent {
     const TYPE: &'static str = RoomTombstoneEventContent::TYPE;
+    type IsPrefix = <RoomTombstoneEventContent as StaticEventContent>::IsPrefix;
 }

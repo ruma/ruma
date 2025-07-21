@@ -32,17 +32,12 @@ unstable-msc3932 = ["unstable-msc3931"]
 unstable-msc4108 = []
 unstable-msc4140 = []
 unstable-msc4186 = []
-unstable-unspecified = []
 
 # Allow IDs to exceed 255 bytes.
 compat-arbitrary-length-ids = ["ruma-identifiers-validation/compat-arbitrary-length-ids"]
 
 # Don't validate `ServerSigningKeyVersion`.
 compat-server-signing-key-version = ["ruma-identifiers-validation/compat-server-signing-key-version"]
-
-# Allow some user IDs that are invalid even with the specified historical
-# user ID scheme.
-compat-user-id = ["ruma-identifiers-validation/compat-user-id"]
 
 # Allow some mandatory fields to be missing, defaulting them to an empty string
 # in deserialization.
@@ -81,8 +76,9 @@ url = { workspace = true }
 uuid = { version = "1.0.0", optional = true, features = ["v4"] }
 web-time = { workspace = true }
 wildmatch = "2.0.0"
+zeroize = { workspace = true }
 
-[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+[target.'cfg(all(target_family = "wasm", target_os = "unknown"))'.dependencies]
 js-sys = { version = "0.3", optional = true }
 
 [dev-dependencies]

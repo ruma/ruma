@@ -17,23 +17,9 @@ all-features = true
 [features]
 api = ["ruma-common/api"]
 canonical-json = ["ruma-common/canonical-json", "ruma-events?/canonical-json"]
-client = ["dep:ruma-client"]
 events = ["dep:ruma-events"]
-server-util = ["dep:ruma-server-util"]
 signatures = ["dep:ruma-signatures", "canonical-json"]
 state-res = ["dep:ruma-state-res"]
-
-# ruma-client feature flags
-client-ext-client-api = ["client", "ruma-client?/client-api"]
-client-hyper = ["client", "ruma-client?/hyper"]
-client-hyper-native-tls = ["client", "ruma-client?/hyper-native-tls"]
-client-reqwest = ["client", "ruma-client?/reqwest"]
-client-reqwest-native-tls = ["client", "ruma-client?/reqwest-native-tls"]
-client-reqwest-native-tls-alpn = ["client", "ruma-client?/reqwest-native-tls-alpn"]
-client-reqwest-native-tls-vendored = ["client", "ruma-client?/reqwest-native-tls-vendored"]
-client-reqwest-rustls-manual-roots = ["client", "ruma-client?/reqwest-rustls-manual-roots"]
-client-reqwest-rustls-webpki-roots = ["client", "ruma-client?/reqwest-rustls-webpki-roots"]
-client-reqwest-rustls-native-roots = ["client", "ruma-client?/reqwest-rustls-native-roots"]
 
 appservice-api-c = ["api", "events", "dep:ruma-appservice-api", "ruma-appservice-api?/client"]
 appservice-api-s = ["api", "events", "dep:ruma-appservice-api", "ruma-appservice-api?/server"]
@@ -75,8 +61,6 @@ html-matrix = ["html", "ruma-html/matrix"]
 # Everything except compat, js and unstable features
 full = [
     "api",
-    "client",
-    "client-ext-client-api",
     "events",
     "signatures",
     "state-res",
@@ -91,31 +75,11 @@ full = [
     "html-matrix",
 ]
 
-# Enable all compatibility hacks. Deprecated.
-compat = [
-    "compat-server-signing-key-version",
-    "compat-user-id",
-    "compat-empty-string-null",
-    "compat-null",
-    "compat-optional",
-    "compat-unset-avatar",
-    "compat-get-3pids",
-    "compat-signature-id",
-    "compat-tag-info",
-    "compat-optional-txn-pdus",
-    "compat-lax-room-create-deser",
-    "compat-lax-room-topic-deser",
-]
-
 # Allow IDs to exceed 255 bytes.
 compat-arbitrary-length-ids = ["ruma-common/compat-arbitrary-length-ids"]
 
 # Don't validate `ServerSigningKeyVersion`.
 compat-server-signing-key-version = ["ruma-common/compat-server-signing-key-version"]
-
-# Allow some user IDs that are invalid even with the specified historical
-# user ID scheme.
-compat-user-id = ["ruma-common/compat-user-id"]
 
 # Allow some mandatory fields in requests / responses to be missing, defaulting
 # them to an empty string in deserialization.
@@ -132,10 +96,7 @@ compat-null = ["ruma-common/compat-null"]
 
 # Allow certain fields to be absent even though the spec marks them as
 # mandatory. Deserialization will yield a default value like an empty string.
-compat-optional = [
-    "ruma-common/compat-optional",
-    "ruma-events?/compat-optional",
-]
+compat-optional = ["ruma-common/compat-optional", "ruma-events?/compat-optional"]
 
 # Unset avatars by sending an empty string, same as what Element Web does, c.f.
 # https://github.com/matrix-org/matrix-spec/issues/378#issuecomment-1055831264
@@ -148,9 +109,6 @@ compat-get-3pids = ["ruma-client-api?/compat-get-3pids"]
 # Accept `message` as an alias for `error` in `upload_signatures::v3::Failure`,
 # since that's what Synapse sends.
 compat-upload-signatures = ["ruma-client-api?/compat-upload-signatures"]
-
-# Allow extra characters in signature IDs not allowed in the specification.
-compat-signature-id = ["ruma-signatures?/compat-signature-id"]
 
 # Allow TagInfo to contain a stringified floating-point value for the `order` field.
 compat-tag-info = ["ruma-events?/compat-tag-info"]
@@ -187,7 +145,7 @@ unstable-msc1767 = ["ruma-events?/unstable-msc1767"]
 unstable-msc2448 = [
     "ruma-client-api?/unstable-msc2448",
     "ruma-events?/unstable-msc2448",
-    "ruma-federation-api?/unstable-msc2448"
+    "ruma-federation-api?/unstable-msc2448",
 ]
 unstable-msc2545 = ["ruma-events?/unstable-msc2545"]
 unstable-msc2654 = ["ruma-client-api?/unstable-msc2654"]
@@ -241,11 +199,6 @@ unstable-msc4268 = ["ruma-events?/unstable-msc4268"]
 unstable-msc4274 = ["ruma-events?/unstable-msc4274"]
 unstable-msc4278 = ["ruma-events?/unstable-msc4278"]
 unstable-msc4286 = ["ruma-html?/unstable-msc4286"]
-unstable-pdu = ["ruma-events?/unstable-pdu"]
-unstable-unspecified = [
-    "ruma-common/unstable-unspecified",
-    "ruma-federation-api?/unstable-unspecified",
-]
 
 # Private features, only used in test / benchmarking code
 __unstable-mscs = [
@@ -301,11 +254,21 @@ __unstable-mscs = [
     "unstable-msc4278",
     "unstable-msc4286",
 ]
-__ci = [
-    "full",
+__ci = ["full", "compat-upload-signatures", "__unstable-mscs"]
+__compat = [
+    "compat-arbitrary-length-ids",
+    "compat-server-signing-key-version",
+    "compat-empty-string-null",
+    "compat-null",
+    "compat-optional",
+    "compat-unset-avatar",
+    "compat-get-3pids",
     "compat-upload-signatures",
-    "__unstable-mscs",
-    "unstable-unspecified",
+    "compat-tag-info",
+    "compat-encrypted-stickers",
+    "compat-optional-txn-pdus",
+    "compat-lax-room-create-deser",
+    "compat-lax-room-topic-deser",
 ]
 
 [dependencies]
@@ -316,10 +279,8 @@ web-time = { workspace = true }
 
 ruma-common = { workspace = true }
 
-ruma-client = { workspace = true, optional = true }
 ruma-events = { workspace = true, optional = true }
 ruma-html = { workspace = true, optional = true }
-ruma-server-util = { workspace = true, optional = true }
 ruma-signatures = { workspace = true, optional = true }
 ruma-state-res = { workspace = true, optional = true }
 

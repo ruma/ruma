@@ -33,6 +33,8 @@ ruma = { git = "https://github.com/ruma/ruma", branch = "main", features = ["...
 them as a user. Check out the documentation [on docs.rs][docs] (or on
 [docs.ruma.dev][unstable-docs] if you use use the git dependency).
 
+You can find a low level Matrix client in the [ruma-client repository](https://github.com/ruma/ruma-client).
+
 You can also find a small number of examples in our dedicated
 [examples repository](https://github.com/ruma/examples).
 
@@ -46,16 +48,13 @@ Ruma 0.12.0 supports all events and REST endpoints of Matrix 1.12.
 Various changes from in-progress or finished MSCs are also implemented, gated
 behind the `unstable-mscXXXX` (where `XXXX` is the MSC number) Cargo features.
 
-A few less formalized things are gated behind the `unstable-unspecified` Cargo
-feature.
-
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Minimum Rust version
 
-Ruma currently requires Rust 1.75. In general, we will never require beta or
+Ruma currently requires Rust 1.82. In general, we will never require beta or
 nightly for crates.io releases of our crates, and we will try to avoid releasing
 crates that depend on features that were only just stabilized.
 

@@ -1,5 +1,14 @@
 # [unreleased]
 
+Breaking changes:
+
+- The `thirdparty::get_protocol` response uses `AppserviceProtocolInstance`
+  instead of `ProtocolInstance`.
+- Update the endpoint metadata definitions to use the new syntax for variables.
+- The `ephemeral` field of `push_events::v1::Request` is now a
+  `Vec<Raw<EphemeralData>>`. This avoids the entire deserialization of the
+  `Request` to fail if a single `EphemeralData` deserialization fails.
+
 # 0.12.2
 
 Bug fixes:

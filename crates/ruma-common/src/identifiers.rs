@@ -10,7 +10,7 @@ pub use ruma_identifiers_validation::{
         Error as IdParseError, MatrixIdError, MatrixToError, MatrixUriError, MxcUriError,
         VoipVersionIdError,
     },
-    KeyName,
+    KeyName, ID_MAX_BYTES,
 };
 use serde::de::{self, Deserializer, Unexpected};
 
@@ -26,8 +26,8 @@ pub use self::{
     device_id::{DeviceId, OwnedDeviceId},
     event_id::{EventId, OwnedEventId},
     key_id::{
-        CrossSigningKeyId, CrossSigningOrDeviceSigningKeyId, DeviceKeyId, DeviceSigningKeyId,
-        KeyAlgorithm, KeyId, OneTimeKeyId, OwnedCrossSigningKeyId,
+        AnyKeyName, CrossSigningKeyId, CrossSigningOrDeviceSigningKeyId, DeviceKeyId,
+        DeviceSigningKeyId, KeyAlgorithm, KeyId, OneTimeKeyId, OwnedCrossSigningKeyId,
         OwnedCrossSigningOrDeviceSigningKeyId, OwnedDeviceKeyId, OwnedDeviceSigningKeyId,
         OwnedKeyId, OwnedOneTimeKeyId, OwnedServerSigningKeyId, OwnedSigningKeyId,
         ServerSigningKeyId, SigningKeyId,
@@ -46,6 +46,7 @@ pub use self::{
         CrossSigningOrDeviceSignatures, DeviceSignatures, EntitySignatures, ServerSignatures,
         Signatures,
     },
+    space_child_order::{OwnedSpaceChildOrder, SpaceChildOrder},
     transaction_id::{OwnedTransactionId, TransactionId},
     user_id::{OwnedUserId, UserId},
     voip_id::{OwnedVoipId, VoipId},
@@ -72,6 +73,7 @@ mod server_name;
 mod server_signing_key_version;
 mod session_id;
 mod signatures;
+mod space_child_order;
 mod transaction_id;
 mod voip_id;
 mod voip_version_id;

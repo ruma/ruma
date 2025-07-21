@@ -389,8 +389,7 @@ mod tests {
         try_from_multipart_mixed_response(response).unwrap_err();
 
         // Wrong boundary.
-        let body =
-            "\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\n\r\nsome plain text\r\n--abcdef--";
+        let body = "\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\n\r\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=012345")
             .body(body)
@@ -409,8 +408,7 @@ mod tests {
         try_from_multipart_mixed_response(response).unwrap_err();
 
         // Missing header and content empty line separator in body part.
-        let body =
-            "\r\n--abcdef\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\n\r\nsome plain text\r\n--abcdef--";
+        let body = "\r\n--abcdef\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\n\r\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
             .body(body)
@@ -419,8 +417,7 @@ mod tests {
         try_from_multipart_mixed_response(response).unwrap_err();
 
         // Control character in header.
-        let body =
-            "\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\nContent-Disposition: inline; filename=\"my\nfile\"\r\nsome plain text\r\n--abcdef--";
+        let body = "\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\nContent-Disposition: inline; filename=\"my\nfile\"\r\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
             .body(body)
@@ -441,8 +438,7 @@ mod tests {
     #[test]
     fn multipart_mixed_deserialize_valid() {
         // Simple.
-        let body =
-            "\r\n--abcdef\r\ncontent-type: application/json\r\n\r\n{}\r\n--abcdef\r\ncontent-type: text/plain\r\n\r\nsome plain text\r\n--abcdef--";
+        let body = "\r\n--abcdef\r\ncontent-type: application/json\r\n\r\n{}\r\n--abcdef\r\ncontent-type: text/plain\r\n\r\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
             .body(body)
@@ -456,8 +452,7 @@ mod tests {
         assert_eq!(file_content.content_disposition, None);
 
         // Case-insensitive headers.
-        let body =
-            "\r\n--abcdef\r\nCONTENT-type: application/json\r\n\r\n{}\r\n--abcdef\r\nCONTENT-TYPE: text/plain\r\ncoNtenT-disPosItioN: attachment; filename=my_file.txt\r\n\r\nsome plain text\r\n--abcdef--";
+        let body = "\r\n--abcdef\r\nCONTENT-type: application/json\r\n\r\n{}\r\n--abcdef\r\nCONTENT-TYPE: text/plain\r\ncoNtenT-disPosItioN: attachment; filename=my_file.txt\r\n\r\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
             .body(body)
@@ -473,8 +468,7 @@ mod tests {
         assert_eq!(content_disposition.filename.unwrap(), "my_file.txt");
 
         // Extra whitespace.
-        let body =
-            "   \r\n--abcdef\r\ncontent-type:   application/json   \r\n\r\n {} \r\n--abcdef\r\ncontent-type: text/plain  \r\n\r\nsome plain text\r\n--abcdef--  ";
+        let body = "   \r\n--abcdef\r\ncontent-type:   application/json   \r\n\r\n {} \r\n--abcdef\r\ncontent-type: text/plain  \r\n\r\nsome plain text\r\n--abcdef--  ";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
             .body(body)
@@ -488,8 +482,7 @@ mod tests {
         assert_eq!(file_content.content_disposition, None);
 
         // Missing CR except in boundaries.
-        let body =
-            "\r\n--abcdef\ncontent-type: application/json\n\n{}\r\n--abcdef\ncontent-type: text/plain  \n\nsome plain text\r\n--abcdef--";
+        let body = "\r\n--abcdef\ncontent-type: application/json\n\n{}\r\n--abcdef\ncontent-type: text/plain  \n\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
             .body(body)
@@ -547,8 +540,7 @@ mod tests {
         assert_eq!(file_content.content_disposition, None);
 
         // Raw UTF-8 filename (some kind of compatibility with multipart/form-data).
-        let body =
-            "\r\n--abcdef\r\ncontent-type: application/json\r\n\r\n{}\r\n--abcdef\r\ncontent-type: text/plain\r\ncontent-disposition: inline; filename=\"ȵ⌾Ⱦԩ💈Ňɠ\"\r\n\r\nsome plain text\r\n--abcdef--";
+        let body = "\r\n--abcdef\r\ncontent-type: application/json\r\n\r\n{}\r\n--abcdef\r\ncontent-type: text/plain\r\ncontent-disposition: inline; filename=\"ȵ⌾Ⱦԩ💈Ňɠ\"\r\n\r\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
             .body(body)

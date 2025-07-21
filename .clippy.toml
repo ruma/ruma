@@ -1,11 +1,11 @@
 avoid-breaking-exported-api = false
 disallowed-methods = [
     # https://github.com/serde-rs/json/issues/160
-    "serde_json::from_reader",
+    { path = "serde_json::from_reader", reason = "this function is slow", replacement = "serde_json::from_str" },
 ]
 disallowed-types = [
-    "std::collections::HashMap",
-    "std::collections::HashSet",
+    { path = "std::collections::HashMap", reason = "non-deterministic iteration / serialization order", replacement = "std::collections::BTreeMap" },
+    { path = "std::collections::HashSet", reason = "non-deterministic iteration / serialization order", replacement = "std::collections::BTreeSet" },
 ]
 enforced-import-renames = [
     { path = "serde_json::from_slice", rename = "from_json_slice" },

@@ -1,14 +1,13 @@
 avoid-breaking-exported-api = false
 disallowed-methods = [
     # https://github.com/serde-rs/json/issues/160
-    "serde_json::from_reader",
+    { path = "serde_json::from_reader", reason = "this function is slow", replacement = "serde_json::from_str" },
 ]
 disallowed-types = [
-    "std::collections::HashMap",
-    "std::collections::HashSet",
-    { path = "std::time::UNIX_EPOCH", reason = "Use web-time to return a UNIX_EPOCH that works under WASM" },
-    { path = "std::time::SystemTime", reason = "Use web-time to return a SystemTime that works under WASM" },
-    { path = "std::time::Instant", reason = "Use web-time to return an Instant that works under WASM" },
+    { path = "std::collections::HashMap", reason = "non-deterministic iteration / serialization order", replacement = "std::collections::BTreeMap" },
+    { path = "std::collections::HashSet", reason = "non-deterministic iteration / serialization order", replacement = "std::collections::BTreeSet" },
+    { path = "std::time::SystemTime", reason = "doesn't work under WASM", replacement = "web_time::SystemTime" },
+    { path = "std::time::Instant", reason = "doesn't work under WASM", replacement = "web_time::Instant" },
 ]
 enforced-import-renames = [
     { path = "serde_json::from_slice", rename = "from_json_slice" },

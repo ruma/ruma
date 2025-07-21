@@ -1,5 +1,39 @@
 # [unreleased]
 
+Breaking changes:
+
+- Use `AuthType` for the `auth_type` of `get_uiaa_fallback_page`'s Request.
+- Only allow appservices to call `appservice::request_ping::v1` and
+  `appservice::set_room_visibility::v1`
+- The `params` field of `UiaaInfo` is now optional. It was never required in the
+  specification. Servers are encouraged to keep sending it for compatibility with
+  clients that required it.
+- The `reason` field of `report_room::v3::Request` is now required, due to a
+  clarification in the spec.
+- Remove `Capabilities::iter()` and the associated types. The code is completely
+  custom and hasn't been kept up-to-date, and as far as we know it is not used
+  by anyone, so we prefer to remove it to avoid an unnecessary maintenance
+  burden and potential issues in the future.
+- Move `Capabilities` and associated types into the
+  `discovery::get_capabilities::v3` module, for consistency with other endpoints.
+- `get_supported_versions::Response::known_versions()` was removed.
+  `as_supported_versions()` should be used instead.
+- Update the endpoint metadata definitions to use the new syntax for variables.
+- `SpaceHierarchyRoomsChunk` is now built around `RoomSummary`, and
+  `SpaceHierarchyRoomsChunkInit` was removed.
+- Add `JsonCastable` bound to `Raw::{cast, cast_ref, deserialize_as}`. When
+  a type `U` implements `JsonCastable<T>` it means that it is safe to cast from
+  `U` to `T` because `T` can be deserialized from the same JSON as `U`. It is
+  still possible to bypass that bound by using the corresponding methods of
+  `Raw` with an `_unchecked` suffix.
+
+Improvements:
+
+- For the `membership::join_room_by_id_or_alias` and `knock::knock_room`
+  endpoints, the `server_name` query parameter is only serialized if the server
+  doesn't advertise at least one version that supports the `via` query
+  parameter. The former was removed in Matrix 1.14.
+
 # 0.20.4
 
 Improvements:

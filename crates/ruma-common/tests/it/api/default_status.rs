@@ -1,4 +1,5 @@
 #![allow(clippy::exhaustive_structs)]
+#![allow(dead_code)]
 
 use http::StatusCode;
 use ruma_common::{

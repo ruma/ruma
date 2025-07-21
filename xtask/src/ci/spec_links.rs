@@ -100,7 +100,7 @@ fn collect_links(path: &Path) -> Result<Vec<SpecLink>> {
                         return Err(err.into());
                     }
                 }
-            };
+            }
 
             line += 1;
 

@@ -20,8 +20,8 @@ pub mod v3 {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            1.0 => "/_matrix/client/r0/user/:user_id/account_data/:event_type",
-            1.1 => "/_matrix/client/v3/user/:user_id/account_data/:event_type",
+            1.0 => "/_matrix/client/r0/user/{user_id}/account_data/{event_type}",
+            1.1 => "/_matrix/client/v3/user/{user_id}/account_data/{event_type}",
         }
     };
 
@@ -43,9 +43,9 @@ pub mod v3 {
         /// Account data content for the given type.
         ///
         /// Since the inner type of the `Raw` does not implement `Deserialize`, you need to use
-        /// `.deserialize_as::<T>()` or `.cast_ref::<T>().deserialize_with_type()` for event
-        /// types with a variable suffix (like [`SecretStorageKeyEventContent`]) to
-        /// deserialize it.
+        /// `.deserialize_as_unchecked::<T>()` or
+        /// `.cast_ref_unchecked::<T>().deserialize_with_type()` for event types with a
+        /// variable suffix (like [`SecretStorageKeyEventContent`]) to deserialize it.
         ///
         /// [`SecretStorageKeyEventContent`]: ruma_events::secret_storage::key::SecretStorageKeyEventContent
         #[ruma_api(body)]

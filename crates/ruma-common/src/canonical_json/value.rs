@@ -6,13 +6,14 @@ use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
 use serde_json::{to_string as to_json_string, Value as JsonValue};
 
 use super::CanonicalJsonError;
+use crate::serde::{JsonCastable, JsonObject};
 
 /// The inner type of `CanonicalJsonValue::Object`.
-#[cfg(feature = "canonical-json")]
 pub type CanonicalJsonObject = BTreeMap<String, CanonicalJsonValue>;
 
+impl<T> JsonCastable<CanonicalJsonObject> for T where T: JsonCastable<JsonObject> {}
+
 /// Represents a canonical JSON value as per the Matrix specification.
-#[cfg(feature = "canonical-json")]
 #[derive(Clone, Default, Eq, PartialEq)]
 #[allow(clippy::exhaustive_enums)]
 pub enum CanonicalJsonValue {
@@ -211,6 +212,8 @@ impl From<CanonicalJsonValue> for JsonValue {
         }
     }
 }
+
+impl<T> JsonCastable<CanonicalJsonValue> for T {}
 
 macro_rules! variant_impls {
     ($variant:ident($ty:ty)) => {

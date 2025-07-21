@@ -1,15 +1,14 @@
 //! Common types for rooms.
 
-use std::borrow::Cow;
+use std::{borrow::Cow, collections::BTreeMap};
 
+use as_variant::as_variant;
 use js_int::UInt;
 use serde::{de, Deserialize, Serialize};
-use serde_json::value::RawValue as RawJsonValue;
+use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
 use crate::{
-    directory::PublicRoomJoinRule,
     serde::{from_raw_json_value, StringEnum},
-    space::SpaceRoomJoinRule,
     EventEncryptionAlgorithm, OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr,
     RoomVersionId,
 };
@@ -28,6 +27,236 @@ pub enum RoomType {
     _Custom(PrivOwnedStr),
 }
 
+/// The rule used for users wishing to join this room.
+///
+/// This type can hold an arbitrary string. To check for values that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[serde(tag = "join_rule", rename_all = "snake_case")]
+pub enum JoinRule {
+    /// A user who wishes to join the room must first receive an invite to the room from someone
+    /// already inside of the room.
+    Invite,
+
+    /// Users can join the room if they are invited, or they can request an invite to the room.
+    ///
+    /// They can be allowed (invited) or denied (kicked/banned) access.
+    Knock,
+
+    /// Reserved but not yet implemented by the Matrix specification.
+    Private,
+
+    /// Users can join the room if they are invited, or if they meet any of the conditions
+    /// described in a set of [`AllowRule`]s.
+    Restricted(Restricted),
+
+    /// Users can join the room if they are invited, or if they meet any of the conditions
+    /// described in a set of [`AllowRule`]s, or they can request an invite to the room.
+    KnockRestricted(Restricted),
+
+    /// Anyone can join the room without any prior action.
+    Public,
+
+    #[doc(hidden)]
+    #[serde(skip_serializing)]
+    _Custom(PrivOwnedStr),
+}
+
+impl JoinRule {
+    /// Returns the kind of this `JoinRule`.
+    pub fn kind(&self) -> JoinRuleKind {
+        match self {
+            Self::Invite => JoinRuleKind::Invite,
+            Self::Knock => JoinRuleKind::Knock,
+            Self::Private => JoinRuleKind::Private,
+            Self::Restricted(_) => JoinRuleKind::Restricted,
+            Self::KnockRestricted(_) => JoinRuleKind::KnockRestricted,
+            Self::Public => JoinRuleKind::Public,
+            Self::_Custom(rule) => JoinRuleKind::_Custom(rule.clone()),
+        }
+    }
+
+    /// Returns the string name of this `JoinRule`
+    pub fn as_str(&self) -> &str {
+        match self {
+            JoinRule::Invite => "invite",
+            JoinRule::Knock => "knock",
+            JoinRule::Private => "private",
+            JoinRule::Restricted(_) => "restricted",
+            JoinRule::KnockRestricted(_) => "knock_restricted",
+            JoinRule::Public => "public",
+            JoinRule::_Custom(rule) => &rule.0,
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for JoinRule {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let json: Box<RawJsonValue> = Box::deserialize(deserializer)?;
+
+        #[derive(Deserialize)]
+        struct ExtractType<'a> {
+            #[serde(borrow)]
+            join_rule: Option<Cow<'a, str>>,
+        }
+
+        let join_rule = serde_json::from_str::<ExtractType<'_>>(json.get())
+            .map_err(de::Error::custom)?
+            .join_rule
+            .ok_or_else(|| de::Error::missing_field("join_rule"))?;
+
+        match join_rule.as_ref() {
+            "invite" => Ok(Self::Invite),
+            "knock" => Ok(Self::Knock),
+            "private" => Ok(Self::Private),
+            "restricted" => from_raw_json_value(&json).map(Self::Restricted),
+            "knock_restricted" => from_raw_json_value(&json).map(Self::KnockRestricted),
+            "public" => Ok(Self::Public),
+            _ => Ok(Self::_Custom(PrivOwnedStr(join_rule.into()))),
+        }
+    }
+}
+
+/// Configuration of the `Restricted` join rule.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct Restricted {
+    /// Allow rules which describe conditions that allow joining a room.
+    #[serde(default, deserialize_with = "crate::serde::ignore_invalid_vec_items")]
+    pub allow: Vec<AllowRule>,
+}
+
+impl Restricted {
+    /// Constructs a new rule set for restricted rooms with the given rules.
+    pub fn new(allow: Vec<AllowRule>) -> Self {
+        Self { allow }
+    }
+}
+
+/// An allow rule which defines a condition that allows joining a room.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[serde(untagged)]
+pub enum AllowRule {
+    /// Joining is allowed if a user is already a member of the room with the id `room_id`.
+    RoomMembership(RoomMembership),
+
+    #[doc(hidden)]
+    _Custom(Box<CustomAllowRule>),
+}
+
+impl AllowRule {
+    /// Constructs an `AllowRule` with membership of the room with the given id as its predicate.
+    pub fn room_membership(room_id: OwnedRoomId) -> Self {
+        Self::RoomMembership(RoomMembership::new(room_id))
+    }
+}
+
+/// Allow rule which grants permission to join based on the membership of another room.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[serde(tag = "type", rename = "m.room_membership")]
+pub struct RoomMembership {
+    /// The id of the room which being a member of grants permission to join another room.
+    pub room_id: OwnedRoomId,
+}
+
+impl RoomMembership {
+    /// Constructs a new room membership rule for the given room id.
+    pub fn new(room_id: OwnedRoomId) -> Self {
+        Self { room_id }
+    }
+}
+
+#[doc(hidden)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct CustomAllowRule {
+    #[serde(rename = "type")]
+    rule_type: String,
+    #[serde(flatten)]
+    extra: BTreeMap<String, JsonValue>,
+}
+
+impl<'de> Deserialize<'de> for AllowRule {
+    fn deserialize<D>(deserializer: D) -> Result<AllowRule, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let json: Box<RawJsonValue> = Box::deserialize(deserializer)?;
+
+        // Extracts the `type` value.
+        #[derive(Deserialize)]
+        struct ExtractType<'a> {
+            #[serde(borrow, rename = "type")]
+            rule_type: Option<Cow<'a, str>>,
+        }
+
+        // Get the value of `type` if present.
+        let rule_type = serde_json::from_str::<ExtractType<'_>>(json.get())
+            .map_err(de::Error::custom)?
+            .rule_type;
+
+        match rule_type.as_deref() {
+            Some("m.room_membership") => from_raw_json_value(&json).map(Self::RoomMembership),
+            Some(_) => from_raw_json_value(&json).map(Self::_Custom),
+            None => Err(de::Error::missing_field("type")),
+        }
+    }
+}
+
+/// The kind of rule used for users wishing to join this room.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, Default, PartialEq, Eq, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub enum JoinRuleKind {
+    /// A user who wishes to join the room must first receive an invite to the room from someone
+    /// already inside of the room.
+    Invite,
+
+    /// Users can join the room if they are invited, or they can request an invite to the room.
+    ///
+    /// They can be allowed (invited) or denied (kicked/banned) access.
+    Knock,
+
+    /// Reserved but not yet implemented by the Matrix specification.
+    Private,
+
+    /// Users can join the room if they are invited, or if they meet any of the conditions
+    /// described in a set of rules.
+    Restricted,
+
+    /// Users can join the room if they are invited, or if they meet any of the conditions
+    /// described in a set of rules, or they can request an invite to the room.
+    KnockRestricted,
+
+    /// Anyone can join the room without any prior action.
+    #[default]
+    Public,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
+
+impl From<JoinRuleKind> for JoinRuleSummary {
+    fn from(value: JoinRuleKind) -> Self {
+        match value {
+            JoinRuleKind::Invite => Self::Invite,
+            JoinRuleKind::Knock => Self::Knock,
+            JoinRuleKind::Private => Self::Private,
+            JoinRuleKind::Restricted => Self::Restricted(Default::default()),
+            JoinRuleKind::KnockRestricted => Self::KnockRestricted(Default::default()),
+            JoinRuleKind::Public => Self::Public,
+            JoinRuleKind::_Custom(s) => Self::_Custom(s),
+        }
+    }
+}
+
 /// The summary of a room's state.
 #[derive(Debug, Clone, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
@@ -40,10 +269,6 @@ pub struct RoomSummary {
     /// If the `compat-empty-string-null` cargo feature is enabled, this field being an empty
     /// string in JSON will result in `None` here during deserialization.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(
-        feature = "compat-empty-string-null",
-        serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
-    )]
     pub canonical_alias: Option<OwnedRoomAliasId>,
 
     /// The name of the room, if any.
@@ -59,10 +284,6 @@ pub struct RoomSummary {
     /// If you activate the `compat-empty-string-null` feature, this field being an empty string in
     /// JSON will result in `None` here during deserialization.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(
-        feature = "compat-empty-string-null",
-        serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
-    )]
     pub avatar_url: Option<OwnedMxcUri>,
 
     /// The type of room from `m.room.create`, if any.
@@ -184,7 +405,7 @@ impl<'de> Deserialize<'de> for RoomSummary {
 
 /// The rule used for users wishing to join a room.
 ///
-/// In contrast to the regular `JoinRule` in `ruma_events`, this enum does holds only simplified
+/// In contrast to the regular `JoinRule` in `ruma_events`, this enum holds only simplified
 /// conditions for joining restricted rooms.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
@@ -220,7 +441,20 @@ pub enum JoinRuleSummary {
 }
 
 impl JoinRuleSummary {
-    /// Returns the string name of this `JoinRule`.
+    /// Returns the kind of this `JoinRuleSummary`.
+    pub fn kind(&self) -> JoinRuleKind {
+        match self {
+            Self::Invite => JoinRuleKind::Invite,
+            Self::Knock => JoinRuleKind::Knock,
+            Self::Private => JoinRuleKind::Private,
+            Self::Restricted(_) => JoinRuleKind::Restricted,
+            Self::KnockRestricted(_) => JoinRuleKind::KnockRestricted,
+            Self::Public => JoinRuleKind::Public,
+            Self::_Custom(rule) => JoinRuleKind::_Custom(rule.clone()),
+        }
+    }
+
+    /// Returns the string name of this `JoinRuleSummary`.
     pub fn as_str(&self) -> &str {
         match self {
             Self::Invite => "invite",
@@ -234,30 +468,16 @@ impl JoinRuleSummary {
     }
 }
 
-impl From<JoinRuleSummary> for PublicRoomJoinRule {
-    fn from(value: JoinRuleSummary) -> Self {
+impl From<JoinRule> for JoinRuleSummary {
+    fn from(value: JoinRule) -> Self {
         match value {
-            JoinRuleSummary::Invite => Self::Invite,
-            JoinRuleSummary::Knock => Self::Knock,
-            JoinRuleSummary::Private => Self::Private,
-            JoinRuleSummary::Restricted(_) => Self::Restricted,
-            JoinRuleSummary::KnockRestricted(_) => Self::KnockRestricted,
-            JoinRuleSummary::Public => Self::Public,
-            JoinRuleSummary::_Custom(custom) => Self::_Custom(custom),
-        }
-    }
-}
-
-impl From<JoinRuleSummary> for SpaceRoomJoinRule {
-    fn from(value: JoinRuleSummary) -> Self {
-        match value {
-            JoinRuleSummary::Invite => Self::Invite,
-            JoinRuleSummary::Knock => Self::Knock,
-            JoinRuleSummary::Private => Self::Private,
-            JoinRuleSummary::Restricted(_) => Self::Restricted,
-            JoinRuleSummary::KnockRestricted(_) => Self::KnockRestricted,
-            JoinRuleSummary::Public => Self::Public,
-            JoinRuleSummary::_Custom(custom) => Self::_Custom(custom),
+            JoinRule::Invite => Self::Invite,
+            JoinRule::Knock => Self::Knock,
+            JoinRule::Private => Self::Private,
+            JoinRule::Restricted(restricted) => Self::Restricted(restricted.into()),
+            JoinRule::KnockRestricted(restricted) => Self::KnockRestricted(restricted.into()),
+            JoinRule::Public => Self::Public,
+            JoinRule::_Custom(rule) => Self::_Custom(rule),
         }
     }
 }
@@ -310,14 +530,34 @@ impl RestrictedSummary {
     }
 }
 
+impl From<Restricted> for RestrictedSummary {
+    fn from(value: Restricted) -> Self {
+        let allowed_room_ids = value
+            .allow
+            .into_iter()
+            .filter_map(|allow_rule| {
+                let membership = as_variant!(allow_rule, AllowRule::RoomMembership)?;
+                Some(membership.room_id)
+            })
+            .collect();
+
+        Self::new(allowed_room_ids)
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeMap;
+
     use assert_matches2::assert_matches;
     use js_int::uint;
-    use ruma_common::owned_room_id;
+    use ruma_common::{owned_room_id, OwnedRoomId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{JoinRuleSummary, RestrictedSummary, RoomSummary};
+    use super::{
+        AllowRule, CustomAllowRule, JoinRule, JoinRuleSummary, Restricted, RestrictedSummary,
+        RoomMembership, RoomSummary,
+    };
 
     #[test]
     fn deserialize_summary_no_join_rule() {
@@ -437,6 +677,84 @@ mod tests {
                 "join_rule": "restricted",
                 "allowed_room_ids": ["!otherroom:localhost"],
             })
+        );
+    }
+
+    #[test]
+    fn join_rule_to_join_rule_summary() {
+        assert_eq!(JoinRuleSummary::Invite, JoinRule::Invite.into());
+        assert_eq!(JoinRuleSummary::Knock, JoinRule::Knock.into());
+        assert_eq!(JoinRuleSummary::Public, JoinRule::Public.into());
+        assert_eq!(JoinRuleSummary::Private, JoinRule::Private.into());
+
+        assert_matches!(
+            JoinRule::KnockRestricted(Restricted::default()).into(),
+            JoinRuleSummary::KnockRestricted(restricted)
+        );
+        assert_eq!(restricted.allowed_room_ids, &[] as &[OwnedRoomId]);
+
+        let room_id = owned_room_id!("!room:localhost");
+        assert_matches!(
+            JoinRule::Restricted(Restricted::new(vec![AllowRule::RoomMembership(
+                RoomMembership::new(room_id.clone())
+            )]))
+            .into(),
+            JoinRuleSummary::Restricted(restricted)
+        );
+        assert_eq!(restricted.allowed_room_ids, [room_id]);
+    }
+
+    #[test]
+    fn roundtrip_custom_allow_rule() {
+        let json = r#"{"type":"org.msc9000.something","foo":"bar"}"#;
+        let allow_rule: AllowRule = serde_json::from_str(json).unwrap();
+        assert_matches!(&allow_rule, AllowRule::_Custom(_));
+        assert_eq!(serde_json::to_string(&allow_rule).unwrap(), json);
+    }
+
+    #[test]
+    fn invalid_allow_items() {
+        let json = r#"{
+            "join_rule": "restricted",
+            "allow": [
+                {
+                    "type": "m.room_membership",
+                    "room_id": "!mods:example.org"
+                },
+                {
+                    "type": "m.room_membership",
+                    "room_id": ""
+                },
+                {
+                    "type": "m.room_membership",
+                    "room_id": "not a room id"
+                },
+                {
+                    "type": "org.example.custom",
+                    "org.example.minimum_role": "developer"
+                },
+                {
+                    "not even close": "to being correct",
+                    "any object": "passes this test",
+                    "only non-objects in this array": "cause deserialization to fail"
+                }
+            ]
+        }"#;
+        let join_rule: JoinRule = serde_json::from_str(json).unwrap();
+
+        assert_matches!(join_rule, JoinRule::Restricted(restricted));
+        assert_eq!(
+            restricted.allow,
+            &[
+                AllowRule::room_membership(owned_room_id!("!mods:example.org")),
+                AllowRule::_Custom(Box::new(CustomAllowRule {
+                    rule_type: "org.example.custom".into(),
+                    extra: BTreeMap::from([(
+                        "org.example.minimum_role".into(),
+                        "developer".into()
+                    )])
+                }))
+            ]
         );
     }
 }

@@ -29,10 +29,20 @@
 //!   * `client-api-c` -- The Client-Server API optimized for the client side.
 //!   * `client-api-s` -- The Client-Server API optimized for the server side.
 //!
-//! # Compatibility feature
+//! # Compatibility features
 //!
-//! * `compat` increases compatibility with other parts of the Matrix ecosystem, at the expense of
-//!   deviating from the specification.
+//! By default, the ruma crates are only able to handle strictly spec-compliant data and behaviour.
+//! However, due to the fact that Matrix is federated, that it is used by various implementations
+//! that might have different bugs, and that much of its data is immutable, they need to be able to
+//! interoperate with data that might differ slightly from the specification.
+//!
+//! This is the role of the `compat-*` cargo features. They allow the crates be more tolerant of
+//! external data and incoming requests for known and reasonable deviations from the spec, usually
+//! for historical reasons. They however do not permit the ruma crates to generate data that is not
+//! spec-compliant.
+//!
+//! Each cargo feature is documented briefly in the cargo manifest of the crate, and more thoroughly
+//! where the feature applies.
 //!
 //! # Convenience features
 //!
@@ -50,8 +60,6 @@
 //!
 //! * `unstable-mscXXXX`, where `XXXX` is the MSC number -- Upcoming Matrix features that may be
 //!   subject to change or removal.
-//! * `unstable-unspecified` -- Undocumented Matrix features that may be subject to change or
-//!   removal.
 //!
 //! # Common features
 //!
@@ -60,16 +68,6 @@
 //! * `api`
 //! * `events`
 //! * `signatures`
-//!
-//! # `ruma-client` features
-//!
-//! The `client` feature activates [`ruma::client`][client], and `client-ext-client-api` activates
-//! `ruma-client`s `client-api` feature. All other `client-*` features activate the same feature
-//! without the `client-` prefix on `ruma-client`. See the crate's documentation for the effect of
-//! these features.
-//!
-//! If you are viewing this on `docs.rs`, you can have a look at the feature dependencies by
-//! clicking **Feature flags** in the toolbar at the top.
 //!
 //! # Compile-time `cfg` settings
 //!
@@ -92,18 +90,12 @@
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
-#[cfg(feature = "client")]
-#[doc(inline)]
-pub use ruma_client as client;
 #[cfg(feature = "events")]
 #[doc(inline)]
 pub use ruma_events as events;
 #[cfg(feature = "html")]
 #[doc(inline)]
 pub use ruma_html as html;
-#[cfg(feature = "server-util")]
-#[doc(inline)]
-pub use ruma_server_util as server_util;
 #[cfg(feature = "signatures")]
 #[doc(inline)]
 pub use ruma_signatures as signatures;
@@ -123,10 +115,12 @@ pub mod api {
     #[cfg(any(feature = "client-api-c", feature = "client-api-s"))]
     #[doc(inline)]
     pub use ruma_client_api as client;
-    // The metadata macro is also exported at the crate root because `#[macro_export]` always
-    // places things at the crate root of the defining crate and we do a glob re-export of
-    // `ruma_common`, but here is the more logical (preferred) location.
-    pub use ruma_common::{api::*, metadata};
+    // The metadata macro is `#[doc(hidden)]` by default to only show it in the `api` module
+    // instead of at the root of `ruma_common`, so we need to explicitly inline it where we
+    // want it.
+    #[doc(inline)]
+    pub use ruma_common::api::metadata;
+    pub use ruma_common::api::*;
     #[cfg(any(feature = "federation-api-c", feature = "federation-api-s"))]
     #[doc(inline)]
     pub use ruma_federation_api as federation;
@@ -144,7 +138,9 @@ pub use assign::assign;
 pub use js_int::{int, uint, Int, UInt};
 #[doc(no_inline)]
 pub use js_option::JsOption;
-#[cfg(feature = "client-ext-client-api")]
-pub use ruma_client::Client;
 pub use ruma_common::*;
+#[cfg(feature = "canonical-json")]
+pub use ruma_common::{
+    canonical_json, CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue,
+};
 pub use web_time as time;

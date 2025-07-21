@@ -67,7 +67,6 @@ where
     }
 }
 
-#[cfg(not(feature = "unstable-unspecified"))]
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
@@ -82,15 +81,13 @@ mod tests {
         let response = json!([
             200,
             {
-                "origin": "example.com",
                 "auth_chain": [],
                 "state": []
             }
         ]);
 
         #[allow(deprecated)]
-        let RoomState { origin, auth_chain, state, event } = deserialize(response).unwrap();
-        assert_eq!(origin, "example.com");
+        let RoomState { auth_chain, state, event } = deserialize(response).unwrap();
         assert_matches!(auth_chain.as_slice(), []);
         assert_matches!(state.as_slice(), []);
         assert_matches!(event, None);
@@ -99,19 +96,13 @@ mod tests {
     #[test]
     fn serialize_response() {
         #[allow(deprecated)]
-        let room_state = RoomState {
-            origin: "matrix.org".into(),
-            auth_chain: Vec::new(),
-            state: Vec::new(),
-            event: None,
-        };
+        let room_state = RoomState { auth_chain: Vec::new(), state: Vec::new(), event: None };
 
         let serialized = serialize(&room_state, serde_json::value::Serializer).unwrap();
         let expected = json!(
             [
                 200,
                 {
-                    "origin": "matrix.org",
                     "auth_chain": [],
                     "state": []
                 }
@@ -150,10 +141,9 @@ mod tests {
 
     #[test]
     fn too_long_array() {
-        let json = json!([200, { "origin": "", "auth_chain": [], "state": [] }, 200]);
+        let json = json!([200, { "auth_chain": [], "state": [] }, 200]);
         #[allow(deprecated)]
-        let RoomState { origin, auth_chain, state, event } = deserialize(json).unwrap();
-        assert_eq!(origin, "");
+        let RoomState { auth_chain, state, event } = deserialize(json).unwrap();
         assert_matches!(auth_chain.as_slice(), []);
         assert_matches!(state.as_slice(), []);
         assert_matches!(event, None);

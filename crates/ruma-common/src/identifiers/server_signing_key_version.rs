@@ -1,4 +1,4 @@
-use ruma_macros::IdZst;
+use ruma_macros::IdDst;
 
 use super::{IdParseError, KeyName};
 
@@ -12,7 +12,7 @@ use super::{IdParseError, KeyName};
 ///
 /// [homeserver signing key]: https://spec.matrix.org/latest/server-server-api/#retrieving-server-keys
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(
     validate = ruma_identifiers_validation::server_signing_key_version::validate,
 )]

@@ -1,6 +1,6 @@
 //! Matrix session ID.
 
-use ruma_macros::IdZst;
+use ruma_macros::IdDst;
 
 use super::IdParseError;
 
@@ -9,7 +9,7 @@ use super::IdParseError;
 /// Session IDs in Matrix are opaque character sequences of `[0-9a-zA-Z.=_-]`. Their length must
 /// must not exceed 255 characters.
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(validate = validate_session_id)]
 pub struct SessionId(str);
 

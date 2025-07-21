@@ -1,6 +1,6 @@
 //! Matrix room identifiers.
 
-use ruma_macros::IdZst;
+use ruma_macros::IdDst;
 
 use super::{
     matrix_uri::UriAction, MatrixToUri, MatrixUri, OwnedEventId, OwnedServerName, ServerName,
@@ -19,15 +19,13 @@ use crate::RoomOrAliasId;
 ///
 /// [room ID]: https://spec.matrix.org/latest/appendices/#room-ids
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(validate = ruma_identifiers_validation::room_id::validate)]
 pub struct RoomId(str);
 
 impl RoomId {
     /// Attempts to generate a `RoomId` for the given origin server with a localpart consisting of
-    /// 18 random ASCII characters.
-    ///
-    /// Fails if the given homeserver cannot be parsed as a valid host.
+    /// 18 random ASCII alphanumeric characters, as recommended in the spec.
     #[cfg(feature = "rand")]
     #[allow(clippy::new_ret_no_self)]
     pub fn new(server_name: &ServerName) -> OwnedRoomId {

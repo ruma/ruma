@@ -321,7 +321,7 @@ pub mod v1 {
                             tweaks.push(Tweak::Highlight(highlight));
                         }
                         _ => tweaks.push(Tweak::Custom { name: key, value: access.next_value()? }),
-                    };
+                    }
                 }
 
                 // If no highlight tweak is given at all then the value of highlight is defined to

@@ -2,11 +2,14 @@
 //!
 //! [`m.room.create`]: https://spec.matrix.org/latest/client-server-api/#mroomcreate
 
-use ruma_common::{room::RoomType, OwnedEventId, OwnedRoomId, OwnedUserId, RoomVersionId};
+use ruma_common::{
+    room::RoomType, room_version_rules::RedactionRules, OwnedEventId, OwnedRoomId, OwnedUserId,
+    RoomVersionId,
+};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{EmptyStateKey, RedactContent, RedactedStateEventContent};
+use crate::{EmptyStateKey, RedactContent, RedactedStateEventContent, StateEventType};
 
 /// The content of an `m.room.create` event.
 ///
@@ -92,24 +95,16 @@ impl RoomCreateEventContent {
 impl RedactContent for RoomCreateEventContent {
     type Redacted = RedactedRoomCreateEventContent;
 
-    fn redact(self, version: &RoomVersionId) -> Self::Redacted {
+    fn redact(self, rules: &RedactionRules) -> Self::Redacted {
         #[allow(deprecated)]
-        match version {
-            RoomVersionId::V1
-            | RoomVersionId::V2
-            | RoomVersionId::V3
-            | RoomVersionId::V4
-            | RoomVersionId::V5
-            | RoomVersionId::V6
-            | RoomVersionId::V7
-            | RoomVersionId::V8
-            | RoomVersionId::V9
-            | RoomVersionId::V10 => Self {
+        if rules.keep_room_create_content {
+            self
+        } else {
+            Self {
                 room_version: default_room_version_id(),
                 creator: self.creator,
                 ..Self::new_v11()
-            },
-            _ => self,
+            }
         }
     }
 }
@@ -149,6 +144,10 @@ pub type RedactedRoomCreateEventContent = RoomCreateEventContent;
 
 impl RedactedStateEventContent for RedactedRoomCreateEventContent {
     type StateKey = EmptyStateKey;
+
+    fn event_type(&self) -> StateEventType {
+        StateEventType::RoomCreate
+    }
 }
 
 #[cfg(test)]

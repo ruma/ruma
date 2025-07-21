@@ -20,8 +20,8 @@ pub mod v1 {
         rate_limited: false,
         authentication: AccessTokenOptional,
         history: {
-            unstable => "/_matrix/client/unstable/im.nheko.summary/rooms/:room_id_or_alias/summary",
-            1.15 => "/_matrix/client/v1/room_summary/:room_id_or_alias",
+            unstable => "/_matrix/client/unstable/im.nheko.summary/rooms/{room_id_or_alias}/summary",
+            1.15 => "/_matrix/client/v1/room_summary/{room_id_or_alias}",
         }
     };
 

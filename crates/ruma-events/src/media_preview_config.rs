@@ -2,6 +2,7 @@
 //!
 //! [`m.media_preview_config`]: https://github.com/matrix-org/matrix-spec-proposals/pull/4278
 
+use ruma_common::serde::JsonCastable;
 use ruma_macros::StringEnum;
 use serde::{Deserialize, Serialize};
 
@@ -10,24 +11,28 @@ use crate::{macros::EventContent, PrivOwnedStr};
 /// The content of an `m.media_preview_config` event.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[ruma_event(type = "m.media_preview_config", kind = GlobalAccountData)]
+#[ruma_event(type = "m.media_preview_config", kind = GlobalAccountData + RoomAccountData)]
 pub struct MediaPreviewConfigEventContent {
     /// The media previews configuration.
-    #[serde(default)]
-    pub media_previews: MediaPreviews,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub media_previews: Option<MediaPreviews>,
 
     /// The invite avatars configuration.
-    #[serde(default)]
-    pub invite_avatars: InviteAvatars,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub invite_avatars: Option<InviteAvatars>,
 }
+
+impl JsonCastable<UnstableMediaPreviewConfigEventContent> for MediaPreviewConfigEventContent {}
 
 /// The content of an `io.element.msc4278.media_preview_config` event,
 /// the unstable version of `m.media_preview_config` in global account data.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[ruma_event(type = "io.element.msc4278.media_preview_config", kind = GlobalAccountData)]
+#[ruma_event(type = "io.element.msc4278.media_preview_config", kind = GlobalAccountData + RoomAccountData)]
 #[serde(transparent)]
 pub struct UnstableMediaPreviewConfigEventContent(pub MediaPreviewConfigEventContent);
+
+impl JsonCastable<MediaPreviewConfigEventContent> for UnstableMediaPreviewConfigEventContent {}
 
 /// The configuration that handles if media previews should be shown in the timeline.
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum, Default)]
@@ -65,9 +70,32 @@ pub enum InviteAvatars {
 }
 
 impl MediaPreviewConfigEventContent {
-    /// Create a new [`MediaPreviewConfigEventContent`] with the given values.
-    pub fn new(media_previews: MediaPreviews, invite_avatars: InviteAvatars) -> Self {
-        Self { media_previews, invite_avatars }
+    /// Create a new empty [`MediaPreviewConfigEventContent`].
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Set the value of the setting for the media previews.
+    pub fn media_previews(mut self, media_previews: Option<MediaPreviews>) -> Self {
+        self.media_previews = media_previews;
+        self
+    }
+
+    /// Set the value of the setting for the media previews.
+    pub fn invite_avatars(mut self, invite_avatars: Option<InviteAvatars>) -> Self {
+        self.invite_avatars = invite_avatars;
+        self
+    }
+
+    /// Merge the config from the global account data with the config from the room account data.
+    ///
+    /// The values that are set in the room account data take precedence over the values in the
+    /// global account data.
+    pub fn merge_global_and_room_config(global_config: Self, room_config: Self) -> Self {
+        Self {
+            media_previews: room_config.media_previews.or(global_config.media_previews),
+            invite_avatars: room_config.invite_avatars.or(global_config.invite_avatars),
+        }
     }
 }
 
@@ -118,8 +146,11 @@ mod tests {
             unstable_media_preview_config_data,
             AnyGlobalAccountDataEvent::UnstableMediaPreviewConfig(unstable_media_preview_config)
         );
-        assert_eq!(unstable_media_preview_config.content.media_previews, MediaPreviews::Private);
-        assert_eq!(unstable_media_preview_config.content.invite_avatars, InviteAvatars::Off);
+        assert_eq!(
+            unstable_media_preview_config.content.media_previews,
+            Some(MediaPreviews::Private)
+        );
+        assert_eq!(unstable_media_preview_config.content.invite_avatars, Some(InviteAvatars::Off));
 
         let raw_media_preview_config = json!({
             "type": "m.media_preview_config",
@@ -134,14 +165,16 @@ mod tests {
             media_preview_config_data,
             AnyGlobalAccountDataEvent::MediaPreviewConfig(media_preview_config)
         );
-        assert_eq!(media_preview_config.content.media_previews, MediaPreviews::On);
-        assert_eq!(media_preview_config.content.invite_avatars, InviteAvatars::On);
+        assert_eq!(media_preview_config.content.media_previews, Some(MediaPreviews::On));
+        assert_eq!(media_preview_config.content.invite_avatars, Some(InviteAvatars::On));
     }
 
     #[test]
     fn serialize() {
         let unstable_media_preview_config = UnstableMediaPreviewConfigEventContent(
-            MediaPreviewConfigEventContent::new(MediaPreviews::Off, InviteAvatars::On),
+            MediaPreviewConfigEventContent::new()
+                .media_previews(Some(MediaPreviews::Off))
+                .invite_avatars(Some(InviteAvatars::On)),
         );
         let unstable_media_preview_config_account_data =
             GlobalAccountDataEvent { content: unstable_media_preview_config };
@@ -156,8 +189,9 @@ mod tests {
             })
         );
 
-        let media_preview_config =
-            MediaPreviewConfigEventContent::new(MediaPreviews::On, InviteAvatars::Off);
+        let media_preview_config = MediaPreviewConfigEventContent::new()
+            .media_previews(Some(MediaPreviews::On))
+            .invite_avatars(Some(InviteAvatars::Off));
         let media_preview_config_account_data =
             GlobalAccountDataEvent { content: media_preview_config };
         assert_eq!(

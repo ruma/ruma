@@ -11,7 +11,7 @@ mod member_state_key;
 pub use focus::*;
 pub use member_data::*;
 pub use member_state_key::*;
-use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedDeviceId};
+use ruma_common::{room_version_rules::RedactionRules, MilliSecondsSinceUnixEpoch, OwnedDeviceId};
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
 
@@ -167,7 +167,7 @@ pub enum LeaveReason {
 impl RedactContent for CallMemberEventContent {
     type Redacted = RedactedCallMemberEventContent;
 
-    fn redact(self, _version: &ruma_common::RoomVersionId) -> Self::Redacted {
+    fn redact(self, _rules: &RedactionRules) -> Self::Redacted {
         RedactedCallMemberEventContent {}
     }
 }
@@ -180,6 +180,10 @@ pub type PossiblyRedactedCallMemberEventContent = CallMemberEventContent;
 
 impl PossiblyRedactedStateEventContent for PossiblyRedactedCallMemberEventContent {
     type StateKey = CallMemberStateKey;
+
+    fn event_type(&self) -> StateEventType {
+        StateEventType::CallMember
+    }
 }
 
 /// The Redacted version of [`CallMemberEventContent`].
@@ -187,19 +191,17 @@ impl PossiblyRedactedStateEventContent for PossiblyRedactedCallMemberEventConten
 #[allow(clippy::exhaustive_structs)]
 pub struct RedactedCallMemberEventContent {}
 
-impl ruma_events::content::EventContent for RedactedCallMemberEventContent {
-    type EventType = StateEventType;
-    fn event_type(&self) -> Self::EventType {
+impl RedactedStateEventContent for RedactedCallMemberEventContent {
+    type StateKey = CallMemberStateKey;
+
+    fn event_type(&self) -> StateEventType {
         StateEventType::CallMember
     }
 }
 
-impl RedactedStateEventContent for RedactedCallMemberEventContent {
-    type StateKey = CallMemberStateKey;
-}
-
 impl StaticEventContent for RedactedCallMemberEventContent {
     const TYPE: &'static str = CallMemberEventContent::TYPE;
+    type IsPrefix = <CallMemberEventContent as StaticEventContent>::IsPrefix;
 }
 
 /// Legacy content with an array of memberships. See also: [`CallMemberEventContent`]

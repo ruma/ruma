@@ -4,7 +4,7 @@ use std::{
     marker::PhantomData,
 };
 
-use ruma_macros::IdZst;
+use ruma_macros::IdDst;
 
 use super::{
     crypto_algorithms::SigningKeyAlgorithm, Base64PublicKey, Base64PublicKeyOrDeviceId, DeviceId,
@@ -46,7 +46,7 @@ use super::{
 /// assert_eq!(k.as_str(), "curve25519:MYDEVICE");
 /// ```
 #[repr(transparent)]
-#[derive(IdZst)]
+#[derive(IdDst)]
 #[ruma_id(
     validate = ruma_identifiers_validation::key_id::validate::<K>,
 )]
@@ -203,6 +203,19 @@ impl KeyAlgorithm for SigningKeyAlgorithm {}
 impl KeyAlgorithm for DeviceKeyAlgorithm {}
 
 impl KeyAlgorithm for OneTimeKeyAlgorithm {}
+
+/// An opaque identifier type to use with [`KeyId`].
+///
+/// This type has no semantic value and no validation is done. It is meant to be able to use the
+/// [`KeyId`] API without validating the key name.
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
+pub struct AnyKeyName(str);
+
+impl KeyName for AnyKeyName {
+    fn validate(_s: &str) -> Result<(), ruma_common::IdParseError> {
+        Ok(())
+    }
+}
 
 #[cfg(test)]
 mod tests {

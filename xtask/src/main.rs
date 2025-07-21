@@ -17,6 +17,7 @@ use serde_json::from_str as from_json_str;
 // Keep in sync with version in `rust-toolchain.toml` and `.github/workflows/ci.yml`
 const NIGHTLY: &str = "nightly-2025-06-27";
 
+mod bench;
 mod cargo;
 mod ci;
 mod doc;
@@ -25,6 +26,7 @@ mod release;
 #[cfg(feature = "default")]
 mod util;
 
+use bench::BenchTask;
 use cargo::Package;
 use ci::{CiArgs, CiTask};
 use doc::DocTask;
@@ -50,6 +52,8 @@ enum Command {
     #[cfg(feature = "default")]
     #[clap(alias = "publish")]
     Release(ReleaseArgs),
+    /// Run benchmarks
+    Bench(BenchTask),
 }
 
 fn main() -> Result<()> {
@@ -64,6 +68,7 @@ fn main() -> Result<()> {
             let mut task = ReleaseTask::new(args.package, args.version, args.dry_run)?;
             task.run()
         }
+        Command::Bench(bench) => bench.run(),
     }
 }
 

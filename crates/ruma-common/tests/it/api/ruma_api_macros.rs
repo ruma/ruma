@@ -1,4 +1,5 @@
 #![allow(clippy::exhaustive_structs)]
+#![allow(dead_code)]
 
 pub mod some_endpoint {
     use http::header::CONTENT_TYPE;
@@ -14,7 +15,7 @@ pub mod some_endpoint {
         rate_limited: false,
         authentication: None,
         history: {
-            unstable => "/_matrix/some/endpoint/:user",
+            unstable => "/_matrix/some/endpoint/{user}",
         }
     };
 

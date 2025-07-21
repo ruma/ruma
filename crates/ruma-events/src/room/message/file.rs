@@ -11,7 +11,6 @@ use crate::room::{
 /// The payload for a file message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[serde(tag = "msgtype", rename = "m.file")]
 pub struct FileMessageEventContent {
     /// A human-readable description of the file.
     ///

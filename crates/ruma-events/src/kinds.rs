@@ -2,18 +2,19 @@
 
 use as_variant::as_variant;
 use ruma_common::{
-    serde::{from_raw_json_value, Raw},
-    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId,
-    RoomVersionId, UserId,
+    encryption::DeviceKeys,
+    room_version_rules::RedactionRules,
+    serde::{from_raw_json_value, JsonCastable, JsonObject, Raw},
+    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId, UserId,
 };
 use ruma_macros::Event;
 use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
-    AnyInitialStateEvent, EmptyStateKey, EphemeralRoomEventContent, EventContent,
-    EventContentFromType, GlobalAccountDataEventContent, MessageLikeEventContent,
-    MessageLikeEventType, MessageLikeUnsigned, PossiblyRedactedStateEventContent, RedactContent,
+    AnyInitialStateEvent, EmptyStateKey, EphemeralRoomEventContent, EventContentFromType,
+    GlobalAccountDataEventContent, MessageLikeEventContent, MessageLikeEventType,
+    MessageLikeUnsigned, PossiblyRedactedStateEventContent, RedactContent,
     RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
     RedactionDeHelper, RoomAccountDataEventContent, StateEventType, StaticStateEventContent,
     ToDeviceEventContent,
@@ -38,6 +39,8 @@ impl<C: GlobalAccountDataEventContent> Serialize for GlobalAccountDataEvent<C> {
     }
 }
 
+impl<C: GlobalAccountDataEventContent> JsonCastable<JsonObject> for GlobalAccountDataEvent<C> {}
+
 /// A room account data event.
 #[derive(Clone, Debug, Event)]
 pub struct RoomAccountDataEvent<C: RoomAccountDataEventContent> {
@@ -56,6 +59,8 @@ impl<C: RoomAccountDataEventContent> Serialize for RoomAccountDataEvent<C> {
         state.end()
     }
 }
+
+impl<C: RoomAccountDataEventContent> JsonCastable<JsonObject> for RoomAccountDataEvent<C> {}
 
 /// An ephemeral room event.
 #[derive(Clone, Debug, Event)]
@@ -80,6 +85,13 @@ impl<C: EphemeralRoomEventContent> Serialize for EphemeralRoomEvent<C> {
     }
 }
 
+impl<C: EphemeralRoomEventContent> JsonCastable<SyncEphemeralRoomEvent<C>>
+    for EphemeralRoomEvent<C>
+{
+}
+
+impl<C: EphemeralRoomEventContent> JsonCastable<JsonObject> for EphemeralRoomEvent<C> {}
+
 /// An ephemeral room event without a `room_id`.
 #[derive(Clone, Debug, Event)]
 pub struct SyncEphemeralRoomEvent<C: EphemeralRoomEventContent> {
@@ -98,6 +110,8 @@ impl<C: EphemeralRoomEventContent> Serialize for SyncEphemeralRoomEvent<C> {
         state.end()
     }
 }
+
+impl<C: EphemeralRoomEventContent> JsonCastable<JsonObject> for SyncEphemeralRoomEvent<C> {}
 
 /// An unredacted message-like event.
 ///
@@ -123,6 +137,27 @@ pub struct OriginalMessageLikeEvent<C: MessageLikeEventContent> {
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: MessageLikeUnsigned<C>,
 }
+
+impl<C: MessageLikeEventContent> JsonCastable<OriginalSyncMessageLikeEvent<C>>
+    for OriginalMessageLikeEvent<C>
+{
+}
+
+impl<C: MessageLikeEventContent + RedactContent> JsonCastable<MessageLikeEvent<C>>
+    for OriginalMessageLikeEvent<C>
+where
+    C::Redacted: RedactedMessageLikeEventContent,
+{
+}
+
+impl<C: MessageLikeEventContent + RedactContent> JsonCastable<SyncMessageLikeEvent<C>>
+    for OriginalMessageLikeEvent<C>
+where
+    C::Redacted: RedactedMessageLikeEventContent,
+{
+}
+
+impl<C: MessageLikeEventContent> JsonCastable<JsonObject> for OriginalMessageLikeEvent<C> {}
 
 /// An unredacted message-like event without a `room_id`.
 ///
@@ -155,6 +190,15 @@ where
     }
 }
 
+impl<C: MessageLikeEventContent + RedactContent> JsonCastable<SyncMessageLikeEvent<C>>
+    for OriginalSyncMessageLikeEvent<C>
+where
+    C::Redacted: RedactedMessageLikeEventContent,
+{
+}
+
+impl<C: MessageLikeEventContent> JsonCastable<JsonObject> for OriginalSyncMessageLikeEvent<C> {}
+
 /// A redacted message-like event.
 ///
 /// `RedactedMessageLikeEvent` implements the comparison traits using only the `event_id` field, a
@@ -180,6 +224,27 @@ pub struct RedactedMessageLikeEvent<C: RedactedMessageLikeEventContent> {
     pub unsigned: RedactedUnsigned,
 }
 
+impl<C: RedactedMessageLikeEventContent> JsonCastable<RedactedSyncMessageLikeEvent<C>>
+    for RedactedMessageLikeEvent<C>
+{
+}
+
+impl<C: MessageLikeEventContent + RedactContent> JsonCastable<MessageLikeEvent<C>>
+    for RedactedMessageLikeEvent<C::Redacted>
+where
+    C::Redacted: RedactedMessageLikeEventContent,
+{
+}
+
+impl<C: MessageLikeEventContent + RedactContent> JsonCastable<SyncMessageLikeEvent<C>>
+    for RedactedMessageLikeEvent<C::Redacted>
+where
+    C::Redacted: RedactedMessageLikeEventContent,
+{
+}
+
+impl<C: RedactedMessageLikeEventContent> JsonCastable<JsonObject> for RedactedMessageLikeEvent<C> {}
+
 /// A redacted message-like event without a `room_id`.
 ///
 /// `RedactedSyncMessageLikeEvent` implements the comparison traits using only the `event_id` field,
@@ -202,6 +267,18 @@ pub struct RedactedSyncMessageLikeEvent<C: RedactedMessageLikeEventContent> {
     pub unsigned: RedactedUnsigned,
 }
 
+impl<C: MessageLikeEventContent + RedactContent> JsonCastable<SyncMessageLikeEvent<C>>
+    for RedactedSyncMessageLikeEvent<C::Redacted>
+where
+    C::Redacted: RedactedMessageLikeEventContent,
+{
+}
+
+impl<C: RedactedMessageLikeEventContent> JsonCastable<JsonObject>
+    for RedactedSyncMessageLikeEvent<C>
+{
+}
+
 /// A possibly-redacted message-like event.
 ///
 /// `MessageLikeEvent` implements the comparison traits using only the `event_id` field, a sorted
@@ -219,6 +296,18 @@ where
     Redacted(RedactedMessageLikeEvent<C::Redacted>),
 }
 
+impl<C: MessageLikeEventContent + RedactContent> JsonCastable<SyncMessageLikeEvent<C>>
+    for MessageLikeEvent<C>
+where
+    C::Redacted: RedactedMessageLikeEventContent,
+{
+}
+
+impl<C: MessageLikeEventContent + RedactContent> JsonCastable<JsonObject> for MessageLikeEvent<C> where
+    C::Redacted: RedactedMessageLikeEventContent
+{
+}
+
 /// A possibly-redacted message-like event without a `room_id`.
 ///
 /// `SyncMessageLikeEvent` implements the comparison traits using only the `event_id` field, a
@@ -234,6 +323,13 @@ where
 
     /// Redacted form of the event with minimal fields.
     Redacted(RedactedSyncMessageLikeEvent<C::Redacted>),
+}
+
+impl<C: MessageLikeEventContent + RedactContent> JsonCastable<JsonObject>
+    for SyncMessageLikeEvent<C>
+where
+    C::Redacted: RedactedMessageLikeEventContent,
+{
 }
 
 /// An unredacted state event.
@@ -267,6 +363,31 @@ pub struct OriginalStateEvent<C: StaticStateEventContent> {
     pub unsigned: C::Unsigned,
 }
 
+impl<C: StaticStateEventContent> JsonCastable<OriginalSyncStateEvent<C>> for OriginalStateEvent<C> {}
+
+impl<C: StaticStateEventContent + RedactContent> JsonCastable<StateEvent<C>>
+    for OriginalStateEvent<C>
+where
+    C::Redacted: RedactedStateEventContent,
+{
+}
+
+impl<C: StaticStateEventContent + RedactContent> JsonCastable<SyncStateEvent<C>>
+    for OriginalStateEvent<C>
+where
+    C::Redacted: RedactedStateEventContent,
+{
+}
+
+impl<C: StaticStateEventContent> JsonCastable<StrippedStateEvent<C::PossiblyRedacted>>
+    for OriginalStateEvent<C>
+where
+    C::PossiblyRedacted: PossiblyRedactedStateEventContent,
+{
+}
+
+impl<C: StaticStateEventContent> JsonCastable<JsonObject> for OriginalStateEvent<C> {}
+
 /// An unredacted state event without a `room_id`.
 ///
 /// `OriginalSyncStateEvent` implements the comparison traits using only the `event_id` field, a
@@ -295,6 +416,22 @@ pub struct OriginalSyncStateEvent<C: StaticStateEventContent> {
     pub unsigned: C::Unsigned,
 }
 
+impl<C: StaticStateEventContent + RedactContent> JsonCastable<SyncStateEvent<C>>
+    for OriginalSyncStateEvent<C>
+where
+    C::Redacted: RedactedStateEventContent,
+{
+}
+
+impl<C: StaticStateEventContent> JsonCastable<StrippedStateEvent<C::PossiblyRedacted>>
+    for OriginalSyncStateEvent<C>
+where
+    C::PossiblyRedacted: PossiblyRedactedStateEventContent,
+{
+}
+
+impl<C: StaticStateEventContent> JsonCastable<JsonObject> for OriginalSyncStateEvent<C> {}
+
 /// A stripped-down state event, used for previews of rooms the user has been invited to.
 #[derive(Clone, Debug, Event)]
 pub struct StrippedStateEvent<C: PossiblyRedactedStateEventContent> {
@@ -310,6 +447,8 @@ pub struct StrippedStateEvent<C: PossiblyRedactedStateEventContent> {
     /// affects.
     pub state_key: C::StateKey,
 }
+
+impl<C: PossiblyRedactedStateEventContent> JsonCastable<JsonObject> for StrippedStateEvent<C> {}
 
 /// A minimal state event, used for creating a new room.
 #[derive(Clone, Debug, Event)]
@@ -382,6 +521,8 @@ impl<C: StaticStateEventContent> Serialize for InitialStateEvent<C> {
     }
 }
 
+impl<C: StaticStateEventContent> JsonCastable<JsonObject> for InitialStateEvent<C> {}
+
 /// A redacted state event.
 ///
 /// `RedactedStateEvent` implements the comparison traits using only the `event_id` field, a sorted
@@ -413,6 +554,27 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
     pub unsigned: RedactedUnsigned,
 }
 
+impl<C: RedactedStateEventContent> JsonCastable<RedactedSyncStateEvent<C>>
+    for RedactedStateEvent<C>
+{
+}
+
+impl<C: StaticStateEventContent + RedactContent> JsonCastable<StateEvent<C>>
+    for RedactedStateEvent<C::Redacted>
+where
+    C::Redacted: RedactedStateEventContent,
+{
+}
+
+impl<C: StaticStateEventContent + RedactContent> JsonCastable<SyncStateEvent<C>>
+    for RedactedStateEvent<C::Redacted>
+where
+    C::Redacted: RedactedStateEventContent,
+{
+}
+
+impl<C: RedactedStateEventContent> JsonCastable<JsonObject> for RedactedStateEvent<C> {}
+
 /// A redacted state event without a `room_id`.
 ///
 /// `RedactedSyncStateEvent` implements the comparison traits using only the `event_id` field, a
@@ -441,6 +603,15 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     pub unsigned: RedactedUnsigned,
 }
 
+impl<C: StaticStateEventContent + RedactContent> JsonCastable<SyncStateEvent<C>>
+    for RedactedSyncStateEvent<C::Redacted>
+where
+    C::Redacted: RedactedStateEventContent,
+{
+}
+
+impl<C: RedactedStateEventContent> JsonCastable<JsonObject> for RedactedSyncStateEvent<C> {}
+
 /// A possibly-redacted state event.
 ///
 /// `StateEvent` implements the comparison traits using only the `event_id` field, a sorted list
@@ -458,6 +629,24 @@ where
     Redacted(RedactedStateEvent<C::Redacted>),
 }
 
+impl<C: StaticStateEventContent + RedactContent> JsonCastable<SyncStateEvent<C>> for StateEvent<C> where
+    C::Redacted: RedactedStateEventContent
+{
+}
+
+impl<C: StaticStateEventContent + RedactContent>
+    JsonCastable<StrippedStateEvent<C::PossiblyRedacted>> for StateEvent<C>
+where
+    C::Redacted: RedactedStateEventContent,
+    C::PossiblyRedacted: PossiblyRedactedStateEventContent,
+{
+}
+
+impl<C: StaticStateEventContent + RedactContent> JsonCastable<JsonObject> for StateEvent<C> where
+    C::Redacted: RedactedStateEventContent
+{
+}
+
 /// A possibly-redacted state event without a `room_id`.
 ///
 /// `SyncStateEvent` implements the comparison traits using only the `event_id` field, a sorted list
@@ -473,6 +662,19 @@ where
 
     /// Redacted form of the event with minimal fields.
     Redacted(RedactedSyncStateEvent<C::Redacted>),
+}
+
+impl<C: StaticStateEventContent + RedactContent>
+    JsonCastable<StrippedStateEvent<C::PossiblyRedacted>> for SyncStateEvent<C>
+where
+    C::Redacted: RedactedStateEventContent,
+    C::PossiblyRedacted: PossiblyRedactedStateEventContent,
+{
+}
+
+impl<C: StaticStateEventContent + RedactContent> JsonCastable<JsonObject> for SyncStateEvent<C> where
+    C::Redacted: RedactedStateEventContent
+{
 }
 
 /// An event sent using send-to-device messaging.
@@ -498,6 +700,8 @@ impl<C: ToDeviceEventContent> Serialize for ToDeviceEvent<C> {
     }
 }
 
+impl<C: ToDeviceEventContent> JsonCastable<JsonObject> for ToDeviceEvent<C> {}
+
 /// The decrypted payload of an `m.olm.v1.curve25519-aes-sha2` event.
 #[derive(Clone, Debug, Event)]
 pub struct DecryptedOlmV1Event<C: MessageLikeEventContent> {
@@ -515,6 +719,9 @@ pub struct DecryptedOlmV1Event<C: MessageLikeEventContent> {
 
     /// The sender's ed25519 key.
     pub keys: OlmV1Keys,
+
+    /// The sender's device keys.
+    pub sender_device_keys: Option<Raw<DeviceKeys>>,
 }
 
 /// Public keys used for an `m.olm.v1.curve25519-aes-sha2` event.
@@ -569,11 +776,11 @@ where
     ///
     /// If `self` is already [`Redacted`](Self::Redacted), return the inner data unmodified.
     ///
-    /// A small number of events have room-version specific redaction behavior, so a version has to
-    /// be specified.
-    pub fn redact(self, version: &RoomVersionId) -> C::Redacted {
+    /// A small number of events have room-version specific redaction behavior, so a
+    /// [`RedactionRules`] has to be specified.
+    pub fn redact(self, rules: &RedactionRules) -> C::Redacted {
         match self {
-            FullStateEventContent::Original { content, .. } => content.redact(version),
+            FullStateEventContent::Original { content, .. } => content.redact(rules),
             FullStateEventContent::Redacted(content) => content,
         }
     }

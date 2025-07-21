@@ -112,12 +112,12 @@ impl Request {
                     self,
                     base_url: &::std::primitive::str,
                     access_token: #ruma_common::api::SendAccessToken<'_>,
-                    considering_versions: &'_ [#ruma_common::api::MatrixVersion],
+                    considering: &'_ #ruma_common::api::SupportedVersions,
                 ) -> ::std::result::Result<#http::Request<T>, #ruma_common::api::error::IntoHttpError> {
                     let mut req_builder = #http::Request::builder()
                         .method(METADATA.method)
                         .uri(METADATA.make_endpoint_url(
-                            considering_versions,
+                            considering,
                             base_url,
                             &[ #( &self.#path_fields ),* ],
                             #request_query_string,

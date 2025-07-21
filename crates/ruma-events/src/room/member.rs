@@ -4,15 +4,16 @@
 
 use js_int::Int;
 use ruma_common::{
+    room_version_rules::RedactionRules,
     serde::{CanBeEmpty, Raw, StringEnum},
-    OwnedMxcUri, OwnedTransactionId, OwnedUserId, RoomVersionId, ServerSignatures, UserId,
+    OwnedMxcUri, OwnedTransactionId, OwnedUserId, ServerSignatures, UserId,
 };
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AnyStrippedStateEvent, BundledStateRelations, EventContent, PossiblyRedactedStateEventContent,
-    PrivOwnedStr, RedactContent, RedactedStateEventContent, StateEventType, StaticEventContent,
+    AnyStrippedStateEvent, BundledStateRelations, PossiblyRedactedStateEventContent, PrivOwnedStr,
+    RedactContent, RedactedStateEventContent, StateEventType, StaticEventContent,
 };
 
 mod change;
@@ -160,21 +161,13 @@ impl RoomMemberEventContent {
 impl RedactContent for RoomMemberEventContent {
     type Redacted = RedactedRoomMemberEventContent;
 
-    fn redact(self, version: &RoomVersionId) -> RedactedRoomMemberEventContent {
+    fn redact(self, rules: &RedactionRules) -> RedactedRoomMemberEventContent {
         RedactedRoomMemberEventContent {
             membership: self.membership,
-            third_party_invite: self.third_party_invite.and_then(|i| i.redact(version)),
-            join_authorized_via_users_server: match version {
-                RoomVersionId::V1
-                | RoomVersionId::V2
-                | RoomVersionId::V3
-                | RoomVersionId::V4
-                | RoomVersionId::V5
-                | RoomVersionId::V6
-                | RoomVersionId::V7
-                | RoomVersionId::V8 => None,
-                _ => self.join_authorized_via_users_server,
-            },
+            third_party_invite: self.third_party_invite.and_then(|i| i.redact(rules)),
+            join_authorized_via_users_server: self
+                .join_authorized_via_users_server
+                .filter(|_| rules.keep_room_member_join_authorised_via_users_server),
         }
     }
 }
@@ -186,6 +179,10 @@ pub type PossiblyRedactedRoomMemberEventContent = RoomMemberEventContent;
 
 impl PossiblyRedactedStateEventContent for RoomMemberEventContent {
     type StateKey = OwnedUserId;
+
+    fn event_type(&self) -> StateEventType {
+        StateEventType::RoomMember
+    }
 }
 
 /// A member event that has been redacted.
@@ -246,20 +243,17 @@ impl RedactedRoomMemberEventContent {
     }
 }
 
-impl EventContent for RedactedRoomMemberEventContent {
-    type EventType = StateEventType;
+impl RedactedStateEventContent for RedactedRoomMemberEventContent {
+    type StateKey = OwnedUserId;
 
     fn event_type(&self) -> StateEventType {
         StateEventType::RoomMember
     }
 }
 
-impl RedactedStateEventContent for RedactedRoomMemberEventContent {
-    type StateKey = OwnedUserId;
-}
-
 impl StaticEventContent for RedactedRoomMemberEventContent {
     const TYPE: &'static str = RoomMemberEventContent::TYPE;
+    type IsPrefix = <RoomMemberEventContent as StaticEventContent>::IsPrefix;
 }
 
 impl RoomMemberEvent {
@@ -318,33 +312,23 @@ pub struct ThirdPartyInvite {
     /// A block of content which has been signed, which servers can use to verify the event.
     ///
     /// Clients should ignore this.
-    pub signed: SignedContent,
+    pub signed: Raw<SignedContent>,
 }
 
 impl ThirdPartyInvite {
     /// Creates a new `ThirdPartyInvite` with the given display name and signed content.
-    pub fn new(display_name: String, signed: SignedContent) -> Self {
+    pub fn new(display_name: String, signed: Raw<SignedContent>) -> Self {
         Self { display_name, signed }
     }
 
     /// Transform `self` into a redacted form (removing most or all fields) according to the spec.
     ///
-    /// Returns `None` if the field for this object was redacted in the given room version,
-    /// otherwise returns the redacted form.
-    fn redact(self, version: &RoomVersionId) -> Option<RedactedThirdPartyInvite> {
-        match version {
-            RoomVersionId::V1
-            | RoomVersionId::V2
-            | RoomVersionId::V3
-            | RoomVersionId::V4
-            | RoomVersionId::V5
-            | RoomVersionId::V6
-            | RoomVersionId::V7
-            | RoomVersionId::V8
-            | RoomVersionId::V9
-            | RoomVersionId::V10 => None,
-            _ => Some(RedactedThirdPartyInvite { signed: self.signed }),
-        }
+    /// Returns `None` if the field for this object was redacted according to the given
+    /// [`RedactionRules`], otherwise returns the redacted form.
+    fn redact(self, rules: &RedactionRules) -> Option<RedactedThirdPartyInvite> {
+        rules
+            .keep_room_member_third_party_invite_signed
+            .then_some(RedactedThirdPartyInvite { signed: self.signed })
     }
 }
 
@@ -355,7 +339,7 @@ pub struct RedactedThirdPartyInvite {
     /// A block of content which has been signed, which servers can use to verify the event.
     ///
     /// Clients should ignore this.
-    pub signed: SignedContent,
+    pub signed: Raw<SignedContent>,
 }
 
 /// A block of content which has been signed, which servers can use to verify a third party
@@ -702,10 +686,10 @@ mod tests {
 
         let third_party_invite = ev.content.third_party_invite.unwrap();
         assert_eq!(third_party_invite.display_name, "alice");
-        assert_eq!(third_party_invite.signed.mxid, "@alice:example.org");
-        assert_eq!(third_party_invite.signed.signatures.len(), 1);
-        let server_signatures =
-            third_party_invite.signed.signatures.get(server_name!("magic.forest")).unwrap();
+        let signed = third_party_invite.signed.deserialize().unwrap();
+        assert_eq!(signed.mxid, "@alice:example.org");
+        assert_eq!(signed.signatures.len(), 1);
+        let server_signatures = signed.signatures.get(server_name!("magic.forest")).unwrap();
         assert_eq!(
             *server_signatures,
             btreemap! {
@@ -715,7 +699,7 @@ mod tests {
                 ) => "foobar".to_owned()
             }
         );
-        assert_eq!(third_party_invite.signed.token, "abc123");
+        assert_eq!(signed.token, "abc123");
     }
 
     #[test]
@@ -776,10 +760,10 @@ mod tests {
 
         let third_party_invite = prev_content.third_party_invite.unwrap();
         assert_eq!(third_party_invite.display_name, "alice");
-        assert_eq!(third_party_invite.signed.mxid, "@alice:example.org");
-        assert_eq!(third_party_invite.signed.signatures.len(), 1);
-        let server_signatures =
-            third_party_invite.signed.signatures.get(server_name!("magic.forest")).unwrap();
+        let signed = third_party_invite.signed.deserialize().unwrap();
+        assert_eq!(signed.mxid, "@alice:example.org");
+        assert_eq!(signed.signatures.len(), 1);
+        let server_signatures = signed.signatures.get(server_name!("magic.forest")).unwrap();
         assert_eq!(
             *server_signatures,
             btreemap! {
@@ -789,7 +773,7 @@ mod tests {
                 ) => "foobar".to_owned()
             }
         );
-        assert_eq!(third_party_invite.signed.token, "abc123");
+        assert_eq!(signed.token, "abc123");
     }
 
     #[test]

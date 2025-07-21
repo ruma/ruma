@@ -1,6 +1,6 @@
 //! VoIP identifier.
 
-use ruma_macros::IdZst;
+use ruma_macros::IdDst;
 
 /// A VoIP identifier.
 ///
@@ -11,7 +11,7 @@ use ruma_macros::IdZst;
 /// use `VoipId::new()` to generate a random one. If that function is not available for you,
 /// you need to activate this crate's `rand` Cargo feature.
 #[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 pub struct VoipId(str);
 
 impl VoipId {

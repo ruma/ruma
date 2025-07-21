@@ -7,7 +7,6 @@ use super::FormattedBody;
 /// The payload for a text message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[serde(tag = "msgtype", rename = "m.text")]
 pub struct TextMessageEventContent {
     /// The body of the message.
     pub body: String,

@@ -23,8 +23,8 @@ pub mod v3 {
         rate_limited: false,
         authentication: None,
         history: {
-            1.0 => "/_matrix/media/r0/download/:server_name/:media_id/:filename",
-            1.1 => "/_matrix/media/v3/download/:server_name/:media_id/:filename",
+            1.0 => "/_matrix/media/r0/download/{server_name}/{media_id}/{filename}",
+            1.1 => "/_matrix/media/v3/download/{server_name}/{media_id}/{filename}",
             1.11 => deprecated,
         }
     };

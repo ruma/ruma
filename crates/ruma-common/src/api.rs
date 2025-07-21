@@ -16,85 +16,6 @@ use std::{convert::TryInto as _, error::Error as StdError};
 
 use as_variant::as_variant;
 use bytes::BufMut;
-use serde::{Deserialize, Serialize};
-
-use self::error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
-use crate::UserId;
-
-/// Convenient constructor for [`Metadata`] constants.
-///
-/// Usage:
-///
-/// ```
-/// # use ruma_common::{metadata, api::Metadata};
-/// const _: Metadata = metadata! {
-///     method: GET, // one of the associated constants of http::Method
-///     rate_limited: true,
-///     authentication: AccessToken, // one of the variants of api::AuthScheme
-///
-///     // history of endpoint paths
-///     // there must be at least one path but otherwise everything is optional
-///     history: {
-///         unstable => "/_matrix/foo/org.bar.msc9000/baz",
-///         unstable => "/_matrix/foo/org.bar.msc9000/qux",
-///         1.0 => "/_matrix/media/r0/qux",
-///         1.1 => "/_matrix/media/v3/qux",
-///         1.2 => deprecated,
-///         1.3 => removed,
-///     }
-/// };
-/// ```
-#[macro_export]
-macro_rules! metadata {
-    ( $( $field:ident: $rhs:tt ),+ $(,)? ) => {
-        $crate::api::Metadata {
-            $( $field: $crate::metadata!(@field $field: $rhs) ),+
-        }
-    };
-
-    ( @field method: $method:ident ) => { $crate::exports::http::Method::$method };
-
-    ( @field authentication: $scheme:ident ) => { $crate::api::AuthScheme::$scheme };
-
-    ( @field history: {
-        $( unstable => $unstable_path:literal, )*
-        $( $( $version:literal => $rhs:tt, )+ )?
-    } ) => {
-        $crate::metadata! {
-            @history_impl
-            [ $($unstable_path),* ]
-            // Flip left and right to avoid macro parsing ambiguities
-            $( $( $rhs = $version ),+ )?
-        }
-    };
-
-    // Simple literal case: used for description, name, rate_limited
-    ( @field $_field:ident: $rhs:expr ) => { $rhs };
-
-    ( @history_impl
-        [ $($unstable_path:literal),* ]
-        $(
-            $( $stable_path:literal = $version:literal ),+
-            $(,
-                deprecated = $deprecated_version:literal
-                $(, removed = $removed_version:literal )?
-            )?
-        )?
-    ) => {
-        $crate::api::VersionHistory::new(
-            &[ $( $unstable_path ),* ],
-            &[ $($(
-                ($crate::api::MatrixVersion::from_lit(stringify!($version)), $stable_path)
-            ),+)? ],
-            $crate::metadata!(@optional_version $($( $deprecated_version )?)?),
-            $crate::metadata!(@optional_version $($($( $removed_version )?)?)?),
-        )
-    };
-
-    ( @optional_version ) => { None };
-    ( @optional_version $version:literal ) => { Some($crate::api::MatrixVersion::from_lit(stringify!($version))) }
-}
-
 /// Generates [`OutgoingRequest`] and [`IncomingRequest`] implementations.
 ///
 /// The `OutgoingRequest` impl is on the `Request` type this attribute is used on. It is
@@ -161,7 +82,7 @@ macro_rules! metadata {
 ///     #     rate_limited: false,
 ///     #     authentication: None,
 ///     #     history: {
-///     #         unstable => "/_matrix/some/endpoint/:room_id",
+///     #         unstable => "/_matrix/some/endpoint/{room_id}",
 ///     #     },
 ///     # };
 ///
@@ -197,7 +118,7 @@ macro_rules! metadata {
 ///     #     rate_limited: false,
 ///     #     authentication: None,
 ///     #     history: {
-///     #         unstable => "/_matrix/some/endpoint/:file_name",
+///     #         unstable => "/_matrix/some/endpoint/{file_name}",
 ///     #     },
 ///     # };
 ///
@@ -325,12 +246,19 @@ pub use ruma_macros::request;
 /// }
 /// ```
 pub use ruma_macros::response;
+use serde::{Deserialize, Serialize};
+
+use self::error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
+#[doc(inline)]
+pub use crate::metadata;
+use crate::UserId;
 
 pub mod error;
 mod metadata;
 
 pub use self::metadata::{
-    FeatureFlag, MatrixVersion, Metadata, SupportedVersions, VersionHistory, VersioningDecision,
+    FeatureFlag, MatrixVersion, Metadata, StablePathSelector, SupportedVersions, VersionHistory,
+    VersioningDecision,
 };
 
 /// An enum to control whether an access token should be added to outgoing requests
@@ -395,14 +323,14 @@ pub trait OutgoingRequest: Sized + Clone {
     /// access_token, this could result in an error. It may also fail with a serialization error
     /// in case of bugs in Ruma though.
     ///
-    /// It may also fail if, for every version in `considering_versions`;
+    /// It may also fail if, for every version in `considering`;
     /// - The endpoint is too old, and has been removed in all versions.
     ///   ([`EndpointRemoved`](error::IntoHttpError::EndpointRemoved))
     /// - The endpoint is too new, and no unstable path is known for this endpoint.
     ///   ([`NoUnstablePath`](error::IntoHttpError::NoUnstablePath))
     ///
-    /// Finally, this will emit a warning through `tracing` if it detects if any version in
-    /// `considering_versions` has deprecated this endpoint.
+    /// Finally, this will emit a warning through [`tracing`] if it detects that any version in
+    /// `considering` has deprecated this endpoint.
     ///
     /// The endpoints path will be appended to the given `base_url`, for example
     /// `https://matrix.org`. Since all paths begin with a slash, it is not necessary for the
@@ -411,8 +339,20 @@ pub trait OutgoingRequest: Sized + Clone {
         self,
         base_url: &str,
         access_token: SendAccessToken<'_>,
-        considering_versions: &'_ [MatrixVersion],
+        considering: &'_ SupportedVersions,
     ) -> Result<http::Request<T>, IntoHttpError>;
+
+    /// Whether the homeserver advertises support for this endpoint.
+    ///
+    /// Returns `true` if any version or feature in the given [`SupportedVersions`] matches a path
+    /// in the history of this endpoint, unless the endpoint was removed.
+    ///
+    /// Note that this is likely to return false negatives, since some endpoints don't specify a
+    /// stable or unstable feature, and homeservers should not advertise support for a Matrix
+    /// version unless they support all of its features.
+    fn is_supported(considering_versions: &SupportedVersions) -> bool {
+        Self::METADATA.history.is_supported(considering_versions)
+    }
 }
 
 /// A response type for a Matrix API endpoint, used for receiving responses.
@@ -437,10 +377,9 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
         base_url: &str,
         access_token: SendAccessToken<'_>,
         user_id: &UserId,
-        considering_versions: &'_ [MatrixVersion],
+        considering: &'_ SupportedVersions,
     ) -> Result<http::Request<T>, IntoHttpError> {
-        let mut http_request =
-            self.try_into_http_request(base_url, access_token, considering_versions)?;
+        let mut http_request = self.try_into_http_request(base_url, access_token, considering)?;
         let user_id_query = serde_html_form::to_string([("user_id", user_id)])?;
 
         let uri = http_request.uri().to_owned();
@@ -528,11 +467,19 @@ pub enum AuthScheme {
     /// Using the query parameter is deprecated since Matrix 1.11.
     AccessTokenOptional,
 
-    /// Authentication is only performed for appservices, by including an access token in the
-    /// `Authentication` http header, or an `access_token` query parameter.
+    /// Authentication is required, and can only be performed for appservices, by including an
+    /// appservice access token in the `Authentication` http header, or `access_token` query
+    /// parameter.
     ///
     /// Using the query parameter is deprecated since Matrix 1.11.
     AppserviceToken,
+
+    /// No authentication is performed for clients, but it can be performed for appservices, by
+    /// including an appservice access token in the `Authentication` http header, or an
+    /// `access_token` query parameter.
+    ///
+    /// Using the query parameter is deprecated since Matrix 1.11.
+    AppserviceTokenOptional,
 
     /// Authentication is performed by including X-Matrix signatures in the request headers,
     /// as defined in the federation API.

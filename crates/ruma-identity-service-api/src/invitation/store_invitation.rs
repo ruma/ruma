@@ -11,9 +11,11 @@ pub mod v2 {
         api::{request, response, Metadata},
         metadata,
         room::RoomType,
+        third_party_invite::IdentityServerBase64PublicKey,
         thirdparty::Medium,
         OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, OwnedUserId,
     };
+    use ruma_events::room::third_party_invite::RoomThirdPartyInviteEventContent;
     use serde::{ser::SerializeSeq, Deserialize, Serialize};
 
     const METADATA: Metadata = metadata! {
@@ -175,8 +177,8 @@ pub mod v2 {
     #[derive(Clone, Debug, Serialize, Deserialize)]
     #[non_exhaustive]
     pub struct PublicKey {
-        /// The public key, encoded using [unpadded Base64](https://spec.matrix.org/latest/appendices/#unpadded-base64).
-        pub public_key: String,
+        /// The public key, encoded using unpadded base64.
+        pub public_key: IdentityServerBase64PublicKey,
 
         /// The URI of an endpoint where the validity of this key can be checked by passing it as a
         /// `public_key` query parameter.
@@ -185,8 +187,31 @@ pub mod v2 {
 
     impl PublicKey {
         /// Constructs a new `PublicKey` with the given encoded public key and key validity URL.
-        pub fn new(public_key: String, key_validity_url: String) -> Self {
+        pub fn new(public_key: IdentityServerBase64PublicKey, key_validity_url: String) -> Self {
             Self { public_key, key_validity_url }
+        }
+    }
+
+    impl From<PublicKey> for ruma_events::room::third_party_invite::PublicKey {
+        fn from(key: PublicKey) -> Self {
+            let mut new_key = Self::new(key.public_key);
+            new_key.key_validity_url = Some(key.key_validity_url);
+            new_key
+        }
+    }
+
+    impl From<Response> for RoomThirdPartyInviteEventContent {
+        fn from(response: Response) -> Self {
+            let mut content = RoomThirdPartyInviteEventContent::new(
+                response.display_name,
+                response.public_keys.server_key.key_validity_url.clone(),
+                response.public_keys.server_key.public_key.clone(),
+            );
+            content.public_keys = Some(vec![
+                response.public_keys.server_key.into(),
+                response.public_keys.ephemeral_key.into(),
+            ]);
+            content
         }
     }
 }

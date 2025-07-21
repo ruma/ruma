@@ -3,7 +3,7 @@
 use ruma_macros::event_enum;
 
 event_enum! {
-    enum State {
+    enum RoomAccountData {
         "m.not.a.path" => ruma_events::not::a::path,
     }
 }

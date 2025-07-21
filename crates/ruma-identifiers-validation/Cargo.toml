@@ -18,10 +18,6 @@ compat-arbitrary-length-ids = []
 # Don't validate the version in `server_signing_key_version::validate`.
 compat-server-signing-key-version = []
 
-# Allow some user IDs that are invalid even with the specified historical
-# user ID scheme.
-compat-user-id = []
-
 [dependencies]
 js_int = { workspace = true }
 thiserror = { workspace = true }

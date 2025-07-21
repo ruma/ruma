@@ -20,8 +20,8 @@ pub mod v3 {
         rate_limited: false,
         authentication: AccessToken,
         history: {
-            1.0 => "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key",
-            1.1 => "/_matrix/client/v3/rooms/:room_id/state/:event_type/:state_key",
+            1.0 => "/_matrix/client/r0/rooms/{room_id}/state/{event_type}/{state_key}",
+            1.1 => "/_matrix/client/v3/rooms/{room_id}/state/{event_type}/{state_key}",
         }
     };
 
@@ -75,14 +75,14 @@ pub mod v3 {
             self,
             base_url: &str,
             access_token: ruma_common::api::SendAccessToken<'_>,
-            considering_versions: &'_ [ruma_common::api::MatrixVersion],
+            considering: &'_ ruma_common::api::SupportedVersions,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use http::header;
 
             http::Request::builder()
                 .method(http::Method::GET)
                 .uri(METADATA.make_endpoint_url(
-                    considering_versions,
+                    considering,
                     base_url,
                     &[&self.room_id, &self.event_type, &self.state_key],
                     "",

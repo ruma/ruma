@@ -12,7 +12,6 @@ use super::{
 /// The payload for a gallery message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[serde(tag = "msgtype", rename = "dm.filament.gallery")]
 pub struct GalleryMessageEventContent {
     /// A human-readable description of the gallery.
     pub body: String,
@@ -37,23 +36,29 @@ impl GalleryMessageEventContent {
 }
 
 /// The content that is specific to each gallery item type variant.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(tag = "itemtype")]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum GalleryItemType {
     /// An audio item.
+    #[serde(rename = "m.audio")]
     Audio(AudioMessageEventContent),
 
     /// A file item.
+    #[serde(rename = "m.file")]
     File(FileMessageEventContent),
 
     /// An image item.
+    #[serde(rename = "m.image")]
     Image(ImageMessageEventContent),
 
     /// A video item.
+    #[serde(rename = "m.video")]
     Video(VideoMessageEventContent),
 
     /// A custom item.
     #[doc(hidden)]
+    #[serde(untagged)]
     _Custom(CustomEventContent),
 }
 
