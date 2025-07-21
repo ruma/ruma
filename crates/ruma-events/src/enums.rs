@@ -148,7 +148,6 @@ event_enum! {
         "m.room.create" => super::room::create,
         "m.room.encryption" => super::room::encryption,
         #[cfg(feature = "unstable-msc3414")]
-        #[ruma_enum(ident = StateRoomEncrypted)]
         "m.room.encrypted" => super::room::encrypted::unstable_state,
         "m.room.guest_access" => super::room::guest_access,
         "m.room.history_visibility" => super::room::history_visibility,
