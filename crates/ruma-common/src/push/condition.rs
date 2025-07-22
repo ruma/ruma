@@ -61,6 +61,7 @@ impl RoomVersionFeature {
             | RoomVersionId::V10
             | RoomVersionId::V11
             | RoomVersionId::Hydra
+            | RoomVersionId::V12
             | RoomVersionId::_Custom(_) => vec![],
             #[cfg(feature = "unstable-msc2870")]
             RoomVersionId::MSC2870 => vec![],
@@ -1013,7 +1014,7 @@ mod tests {
             users: BTreeMap::new(),
             users_default: Int::MIN,
             notifications: NotificationPowerLevels { room: Int::MAX },
-            rules: RoomPowerLevelsRules::new(&AuthorizationRules::HYDRA, Some(sender())),
+            rules: RoomPowerLevelsRules::new(&AuthorizationRules::V12, Some(sender())),
         });
 
         let first_event = first_flattened_event();

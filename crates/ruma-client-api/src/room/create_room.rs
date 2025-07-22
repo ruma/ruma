@@ -129,7 +129,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct CreationContent {
         /// A list of user IDs to consider as additional creators, and hence grant an "infinite"
-        /// immutable power level, from room version `org.matrix.hydra.11` onwards.
+        /// immutable power level, from room version 12 onwards.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
         pub additional_creators: Vec<OwnedUserId>,
 

@@ -130,11 +130,13 @@ impl RoomVersionRules {
         ..Self::V10
     };
 
-    /// Rules for room version `org.matrix.hydra.11`
-    pub const HYDRA: Self = Self {
-        disposition: RoomVersionDisposition::Unstable,
+    /// Rules for room version `org.matrix.hydra.11`.
+    pub const HYDRA: Self = Self { disposition: RoomVersionDisposition::Unstable, ..Self::V12 };
+
+    /// Rules for room version 12.
+    pub const V12: Self = Self {
         room_id_format: RoomIdFormatVersion::V2,
-        authorization: AuthorizationRules::HYDRA,
+        authorization: AuthorizationRules::V12,
         ..Self::V11
     };
 
@@ -192,7 +194,7 @@ pub enum RoomIdFormatVersion {
     V1,
 
     /// `!hash` format using the reference hash of the `m.room.create` event of the room,
-    /// introduced in room version `org.matrix.hydra.11`.
+    /// introduced in room version 12.
     V2,
 }
 
@@ -281,11 +283,11 @@ pub struct AuthorizationRules {
     pub use_room_create_sender: bool,
 
     /// Whether room creators should always be considered to have "infinite" power level,
-    /// introduced in room version `org.matrix.hydra.11`.
+    /// introduced in room version 12.
     pub explicitly_privilege_room_creators: bool,
 
     /// Whether additional room creators can be set with the `content.additional_creators` field of
-    /// an `m.room.create` event, introduced in room version `org.matrix.hydra.11`.
+    /// an `m.room.create` event, introduced in room version 12.
     pub additional_room_creators: bool,
 }
 
@@ -343,8 +345,8 @@ impl AuthorizationRules {
     /// [spec]: https://spec.matrix.org/latest/rooms/v11/#authorization-rules
     pub const V11: Self = Self { use_room_create_sender: true, ..Self::V10 };
 
-    /// Authorization rules with tweaks introduced in room version `org.matrix.hydra.11`.
-    pub const HYDRA: Self = Self {
+    /// Authorization rules with tweaks introduced in room version 12.
+    pub const V12: Self = Self {
         explicitly_privilege_room_creators: true,
         additional_room_creators: true,
         ..Self::V11
@@ -533,7 +535,7 @@ impl EventFormatRules {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomPowerLevelsRules {
     /// The creator(s) of the room which are considered to have "infinite" power level, introduced
-    /// in room version `org.matrix.hydra.11`.
+    /// in room version 12.
     #[allow(clippy::disallowed_types)]
     pub privileged_creators: Option<HashSet<OwnedUserId>>,
 }
