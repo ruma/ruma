@@ -61,8 +61,8 @@ pub struct RoomCreateEventContent {
     #[serde(skip_serializing_if = "Option::is_none", rename = "type")]
     pub room_type: Option<RoomType>,
 
-    /// Additional room creators, considered to have "infinite" power level, in room versions
-    /// `org.matrix.hydra.11` onwards.
+    /// Additional room creators, considered to have "infinite" power level, in room version 12
+    /// onwards.
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub additional_creators: Vec<OwnedUserId>,
 }

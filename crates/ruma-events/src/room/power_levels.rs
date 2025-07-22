@@ -132,8 +132,8 @@ impl RoomPowerLevelsEventContent {
         };
 
         if rules.explicitly_privilege_room_creators {
-            // Since `org.matrix.hydra.11`, the default power level to send m.room.tombstone
-            // events is increased to PL150.
+            // Since v12, the default power level to send m.room.tombstone events is increased to
+            // PL150.
             pl.events.insert(TimelineEventType::RoomTombstone, int!(150));
         }
 
@@ -323,11 +323,11 @@ impl RedactedStateEventContent for RedactedRoomPowerLevelsEventContent {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum UserPowerLevel {
     /// The user is considered to have "infinite" power level, due to being a room creator, from
-    /// room version `org.matrix.hydra.11` onwards.
+    /// room version 12 onwards.
     Infinite,
 
-    /// The user is either not a creator, or the room version is prior to `org.matrix.hydra.11`,
-    /// and hence has an integer power level.
+    /// The user is either not a creator, or the room version is prior to 12, and hence has an
+    /// integer power level.
     Int(Int),
 }
 
@@ -1015,12 +1015,12 @@ mod tests {
         );
         assert!(v1_power_levels.user_can_change_user_power_level(creator, creator));
 
-        let hydra_power_levels = RoomPowerLevels::new(
+        let v12_power_levels = RoomPowerLevels::new(
             RoomPowerLevelsSource::None,
-            &AuthorizationRules::HYDRA,
+            &AuthorizationRules::V12,
             vec![creator.to_owned()],
         );
-        assert!(!hydra_power_levels.user_can_change_user_power_level(creator, creator));
+        assert!(!v12_power_levels.user_can_change_user_power_level(creator, creator));
     }
 
     #[test]
@@ -1036,12 +1036,12 @@ mod tests {
         let v1_event_content = RoomPowerLevelsEventContent::try_from(v1_power_levels).unwrap();
         assert_eq!(*v1_event_content.users.get(&creator).unwrap(), int!(75));
 
-        let mut hydra_power_levels = RoomPowerLevels::new(
+        let mut v12_power_levels = RoomPowerLevels::new(
             RoomPowerLevelsSource::None,
-            &AuthorizationRules::HYDRA,
+            &AuthorizationRules::V12,
             vec![creator.to_owned()],
         );
-        hydra_power_levels.users.insert(creator.clone(), int!(75));
-        RoomPowerLevelsEventContent::try_from(hydra_power_levels).unwrap_err();
+        v12_power_levels.users.insert(creator.clone(), int!(75));
+        RoomPowerLevelsEventContent::try_from(v12_power_levels).unwrap_err();
     }
 }

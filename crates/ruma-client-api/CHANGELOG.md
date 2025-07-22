@@ -35,7 +35,7 @@ Improvements:
   parameter. The former was removed in Matrix 1.14.
 - Add `additional_creators` field to `CreationContent` of `create_room` and `Request` of
   `upgrade_room`, allowing clients to specify which other users (if any) should be considered
-  additional creators from room version `org.matrix.hydra.11` onwards.
+  additional creators from room version 12 onwards.
 
 # 0.20.4
 

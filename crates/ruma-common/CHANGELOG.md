@@ -104,7 +104,7 @@ Improvements:
   `m.room.redaction` event redacts.
 - Add `SpaceChildOrder` which allows to validate the `order` of an
   `m.space.child` event.
-- Add support for room version `org.matrix.hydra.11`.
+- Add support for room version 12 and its unstable version `org.matrix.hydra.11`.
 - Add `explicitly_privilege_room_creators` and `additional_room_creators` to `AuthorizationRules`
   to indicate whether room creators are considered to have "infinite" power level and whether
   additional room creators can be specified with the `content.additional_creators` field of an
