@@ -27,6 +27,9 @@ Breaking changes:
   still possible to bypass that bound by using the corresponding methods of
   `Raw` with an `_unchecked` suffix.
 - Rename `state::get_state_events_for_key` to `state::get_state_event_for_key`.
+- Allow specifying the event format for `state::get_state_event_for_key`, meaning the response may
+  either be `Raw<AnyStateEvent>` or `Raw<AnyStateEventContent>`, depending on the format specified
+  in the request.
 
 Improvements:
 
