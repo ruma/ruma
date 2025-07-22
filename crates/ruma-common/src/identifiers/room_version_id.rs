@@ -65,7 +65,8 @@ pub enum RoomVersionId {
     V11,
 
     /// `org.matrix.hydra.11`, the unstable version of [`V12`](Self::V12).
-    Hydra,
+    #[cfg(feature = "unstable-hydra")]
+    HydraV11,
 
     /// A version 12 room.
     V12,
@@ -97,7 +98,8 @@ impl RoomVersionId {
             Self::V9 => "9",
             Self::V10 => "10",
             Self::V11 => "11",
-            Self::Hydra => "org.matrix.hydra.11",
+            #[cfg(feature = "unstable-hydra")]
+            Self::HydraV11 => "org.matrix.hydra.11",
             Self::V12 => "12",
             #[cfg(feature = "unstable-msc2870")]
             Self::MSC2870 => "org.matrix.msc2870",
@@ -127,7 +129,8 @@ impl RoomVersionId {
             Self::V9 => RoomVersionRules::V9,
             Self::V10 => RoomVersionRules::V10,
             Self::V11 => RoomVersionRules::V11,
-            Self::Hydra => RoomVersionRules::HYDRA,
+            #[cfg(feature = "unstable-hydra")]
+            Self::HydraV11 => RoomVersionRules::HYDRA_V11,
             Self::V12 => RoomVersionRules::V12,
             #[cfg(feature = "unstable-msc2870")]
             Self::MSC2870 => RoomVersionRules::MSC2870,
@@ -214,7 +217,8 @@ where
         "9" => RoomVersionId::V9,
         "10" => RoomVersionId::V10,
         "11" => RoomVersionId::V11,
-        "org.matrix.hydra.11" => RoomVersionId::Hydra,
+        #[cfg(feature = "unstable-hydra")]
+        "org.matrix.hydra.11" => RoomVersionId::HydraV11,
         "12" => RoomVersionId::V12,
         #[cfg(feature = "unstable-msc2870")]
         "org.matrix.msc2870" => RoomVersionId::MSC2870,

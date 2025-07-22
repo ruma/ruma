@@ -60,9 +60,10 @@ impl RoomVersionFeature {
             | RoomVersionId::V9
             | RoomVersionId::V10
             | RoomVersionId::V11
-            | RoomVersionId::Hydra
             | RoomVersionId::V12
             | RoomVersionId::_Custom(_) => vec![],
+            #[cfg(feature = "unstable-hydra")]
+            RoomVersionId::HydraV11 => vec![],
             #[cfg(feature = "unstable-msc2870")]
             RoomVersionId::MSC2870 => vec![],
         }
