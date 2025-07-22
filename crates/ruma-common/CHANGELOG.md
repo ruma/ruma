@@ -115,6 +115,8 @@ Improvements:
   on the room version.
 - Add `RoomId::new_v2()` for the new format of room IDs. `RoomId::strip_sigil()` allows to access
   the reference hash used in that format.
+- Add unstable support for in-app-only notifications as per MSC3768 under a new `unstable-msc3768`
+  feature.
 
 # 0.15.4
 
