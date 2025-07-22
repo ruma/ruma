@@ -26,6 +26,7 @@ Breaking changes:
   `U` to `T` because `T` can be deserialized from the same JSON as `U`. It is
   still possible to bypass that bound by using the corresponding methods of
   `Raw` with an `_unchecked` suffix.
+- Rename `state::get_state_events_for_key` to `state::get_state_event_for_key`.
 
 Improvements:
 
