@@ -52,7 +52,8 @@ pub mod v3 {
         /// The content of the state event.
         ///
         /// Since the inner type of the `Raw` does not implement `Deserialize`, you need to use
-        /// [`Raw::deserialize_as`] to deserialize it.
+        /// `.deserialize_as_unchecked::<T>()` or
+        /// `.cast_ref_unchecked::<T>().deserialize_with_type()` to deserialize it.
         #[ruma_api(body)]
         pub content: Raw<AnyStateEventContent>,
     }
