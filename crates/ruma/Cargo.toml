@@ -201,6 +201,9 @@ unstable-msc4274 = ["ruma-events?/unstable-msc4274"]
 unstable-msc4278 = ["ruma-events?/unstable-msc4278"]
 unstable-msc4286 = ["ruma-html?/unstable-msc4286"]
 
+# Thread subscription support.
+unstable-msc4306 = ["ruma-client-api?/unstable-msc4306"]
+
 # Private features, only used in test / benchmarking code
 __unstable-mscs = [
     "unstable-hydra",
