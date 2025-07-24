@@ -17,7 +17,7 @@ pub mod unstable {
         rate_limited: true,
         authentication: AccessToken,
         history: {
-            unstable("org.matrix.msc4306") => "/_matrix/client/unstable/io.element.msc4306/rooms/{room_id}/thread/{event_id}/subscription",
+            unstable("org.matrix.msc4306") => "/_matrix/client/unstable/io.element.msc4306/rooms/{room_id}/thread/{thread_root}/subscription",
         }
     };
 
@@ -30,7 +30,7 @@ pub mod unstable {
 
         /// The event ID of the thread root to get the status for.
         #[ruma_api(path)]
-        pub event_id: OwnedEventId,
+        pub thread_root: OwnedEventId,
     }
 
     /// Response type for the `get_thread_subscription` endpoint.
@@ -43,7 +43,7 @@ pub mod unstable {
     impl Request {
         /// Creates a new `Request` for the given room and thread IDs.
         pub fn new(room_id: OwnedRoomId, thread_root: OwnedEventId) -> Self {
-            Self { room_id, event_id: thread_root }
+            Self { room_id, thread_root }
         }
     }
 
