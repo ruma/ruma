@@ -29,6 +29,7 @@ Breaking changes:
 
 Improvements:
 
+- Added support for the experiment MSC4036 thread subscription endpoints.
 - For the `membership::join_room_by_id_or_alias` and `knock::knock_room`
   endpoints, the `server_name` query parameter is only serialized if the server
   doesn't advertise at least one version that supports the `via` query

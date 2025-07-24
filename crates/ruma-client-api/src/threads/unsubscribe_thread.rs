@@ -5,7 +5,7 @@
 pub mod unstable {
     //! `/unstable/` ([spec])
     //!
-    //! [spec]: https://github.com/matrix-org/matrix-spec-proposals/blob/rei/msc_thread_subscriptions/proposals/4306-thread-subscriptions.md
+    //! [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
 
     use ruma_common::{
         api::{request, response, Metadata},
@@ -17,7 +17,7 @@ pub mod unstable {
         rate_limited: true,
         authentication: AccessToken,
         history: {
-            unstable("org.matrix.msc4306") => "/_matrix/client/unstable/io.element.msc4306/rooms/{room_id}/thread/{event_id}/subscription",
+            unstable("org.matrix.msc4306") => "/_matrix/client/unstable/io.element.msc4306/rooms/{room_id}/thread/{thread_root}/subscription",
         }
     };
 
@@ -30,7 +30,7 @@ pub mod unstable {
 
         /// The event ID of the thread root to unsubscribe to.
         #[ruma_api(path)]
-        pub event_id: OwnedEventId,
+        pub thread_root: OwnedEventId,
     }
 
     /// Response type for the `unsubscribe_thread` endpoint.
@@ -40,7 +40,7 @@ pub mod unstable {
     impl Request {
         /// Creates a new `Request` for the given room and thread IDs.
         pub fn new(room_id: OwnedRoomId, thread_root: OwnedEventId) -> Self {
-            Self { room_id, event_id: thread_root }
+            Self { room_id, thread_root }
         }
     }
 

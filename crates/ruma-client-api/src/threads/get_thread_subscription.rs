@@ -5,7 +5,7 @@
 pub mod unstable {
     //! `/unstable/` ([spec])
     //!
-    //! [spec]: https://github.com/matrix-org/matrix-spec-proposals/blob/rei/msc_thread_subscriptions/proposals/4306-thread-subscriptions.md
+    //! [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
 
     use ruma_common::{
         api::{request, response, Metadata},
