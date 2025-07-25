@@ -30,6 +30,13 @@ Breaking changes:
 - Allow specifying the event format for `state::get_state_event_for_key`, meaning the response may
   either be `Raw<AnyStateEvent>` or `Raw<AnyStateEventContent>`, depending on the format specified
   in the request.
+- In the responses to `sync_events`, the invite or knock `m.room.member` event
+  should be in the sync rather than the stripped state event format. The
+  `AnySyncOrStrippedStateEvent` enum is introduced to represent this.
+  - The format of `events` items in `InviteState` and `KnockState` of 
+    `sync_events::v3` is now a `Raw<AnySyncOrStrippedStateEvent>`. 
+  - The format of `invite_state` items in `Room` of `sync_events::v5` is now a
+    `Raw<AnySyncOrStrippedStateEvent>`. 
 
 Improvements:
 

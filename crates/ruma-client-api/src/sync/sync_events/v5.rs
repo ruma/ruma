@@ -17,10 +17,8 @@ use ruma_common::{
     serde::{duration::opt_ms, Raw},
     OwnedMxcUri, OwnedRoomId, OwnedUserId,
 };
-use ruma_events::{AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent, StateEventType};
+use ruma_events::{AnySyncStateEvent, AnySyncTimelineEvent, StateEventType};
 use serde::{Deserialize, Serialize};
-
-use super::UnreadNotificationsCount;
 
 const METADATA: Metadata = metadata! {
     method: POST,
@@ -449,9 +447,9 @@ pub mod response {
     };
 
     use super::{
-        super::DeviceLists, AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent,
-        BTreeMap, Deserialize, JsOption, OwnedMxcUri, OwnedRoomId, OwnedUserId, Raw, Serialize,
-        UInt, UnreadNotificationsCount,
+        super::{AnySyncOrStrippedStateEvent, DeviceLists, UnreadNotificationsCount},
+        AnySyncStateEvent, AnySyncTimelineEvent, BTreeMap, Deserialize, JsOption, OwnedMxcUri,
+        OwnedRoomId, OwnedUserId, Raw, Serialize, UInt,
     };
 
     /// A sliding sync response updates to joiend rooms (see
@@ -486,7 +484,7 @@ pub mod response {
         /// If this is `Some(_)`, this is a not-yet-accepted invite containing
         /// the given stripped state events.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub invite_state: Option<Vec<Raw<AnyStrippedStateEvent>>>,
+        pub invite_state: Option<Vec<Raw<AnySyncOrStrippedStateEvent>>>,
 
         /// Number of unread notifications.
         #[serde(flatten, default, skip_serializing_if = "UnreadNotificationsCount::is_empty")]

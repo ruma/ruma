@@ -14,12 +14,11 @@ use ruma_common::{
 };
 use ruma_events::{
     presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
-    AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncStateEvent, AnySyncTimelineEvent,
-    AnyToDeviceEvent,
+    AnySyncEphemeralRoomEvent, AnySyncStateEvent, AnySyncTimelineEvent, AnyToDeviceEvent,
 };
 use serde::{Deserialize, Serialize};
 
-use super::{DeviceLists, UnreadNotificationsCount};
+use super::{AnySyncOrStrippedStateEvent, DeviceLists, UnreadNotificationsCount};
 use crate::filter::FilterDefinition;
 
 const METADATA: Metadata = metadata! {
@@ -349,7 +348,7 @@ impl From<KnockState> for KnockedRoom {
 pub struct KnockState {
     /// The stripped state of a room that the user has knocked upon.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub events: Vec<Raw<AnyStrippedStateEvent>>,
+    pub events: Vec<Raw<AnySyncOrStrippedStateEvent>>,
 }
 
 impl KnockState {
@@ -563,7 +562,7 @@ impl From<InviteState> for InvitedRoom {
 pub struct InviteState {
     /// A list of state events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub events: Vec<Raw<AnyStrippedStateEvent>>,
+    pub events: Vec<Raw<AnySyncOrStrippedStateEvent>>,
 }
 
 impl InviteState {
@@ -578,8 +577,8 @@ impl InviteState {
     }
 }
 
-impl From<Vec<Raw<AnyStrippedStateEvent>>> for InviteState {
-    fn from(events: Vec<Raw<AnyStrippedStateEvent>>) -> Self {
+impl From<Vec<Raw<AnySyncOrStrippedStateEvent>>> for InviteState {
+    fn from(events: Vec<Raw<AnySyncOrStrippedStateEvent>>) -> Self {
         InviteState { events, ..Default::default() }
     }
 }
@@ -655,14 +654,23 @@ mod tests {
 mod client_tests {
     use std::time::Duration;
 
-    use ruma_common::api::{
-        MatrixVersion, OutgoingRequest as _, SendAccessToken, SupportedVersions,
+    use assert_matches2::assert_matches;
+    use ruma_common::{
+        api::{
+            IncomingResponse, MatrixVersion, OutgoingRequest as _, SendAccessToken,
+            SupportedVersions,
+        },
+        event_id, room_id, user_id, RoomVersionId,
     };
+    use ruma_events::{
+        room::member::MembershipState, AnyStrippedStateEvent, AnySyncStateEvent, SyncStateEvent,
+    };
+    use serde_json::{json, to_vec as to_json_vec};
 
-    use super::{Filter, PresenceState, Request};
+    use super::{AnySyncOrStrippedStateEvent, Filter, PresenceState, Request, Response};
 
     #[test]
-    fn serialize_all_params() {
+    fn serialize_request_all_params() {
         let supported = SupportedVersions {
             versions: [MatrixVersion::V1_1].into(),
             features: Default::default(),
@@ -691,6 +699,70 @@ mod client_tests {
         assert!(query.contains("set_presence=offline"));
         assert!(query.contains("timeout=30000"));
     }
+
+    #[test]
+    fn deserialize_response_invite() {
+        let creator = user_id!("@creator:localhost");
+        let invitee = user_id!("@invitee:localhost");
+        let room_id = room_id!("!privateroom:localhost");
+        let event_id = event_id!("$invite");
+
+        let body = json!({
+            "next_batch": "a00",
+            "rooms": {
+                "invite": {
+                    room_id: {
+                        "invite_state": {
+                            "events": [
+                                {
+                                    "content": {
+                                        "room_version": "11",
+                                    },
+                                    "type": "m.room.create",
+                                    "state_key": "",
+                                    "sender": creator,
+                                },
+                                {
+                                    "content": {
+                                        "membership": "invite",
+                                    },
+                                    "type": "m.room.member",
+                                    "state_key": invitee,
+                                    "sender": creator,
+                                    "origin_server_ts": 4_345_456,
+                                    "event_id": event_id,
+                                },
+                            ],
+                        },
+                    },
+                },
+            },
+        });
+        let http_response = http::Response::new(to_json_vec(&body).unwrap());
+
+        let response = Response::try_from_http_response(http_response).unwrap();
+        assert_eq!(response.next_batch, "a00");
+        let private_room = response.rooms.invite.get(room_id).unwrap();
+
+        let first_event = private_room.invite_state.events[0].deserialize().unwrap();
+        assert_matches!(
+            first_event,
+            AnySyncOrStrippedStateEvent::Stripped(AnyStrippedStateEvent::RoomCreate(create_event))
+        );
+        assert_eq!(create_event.sender, creator);
+        assert_eq!(create_event.content.room_version, RoomVersionId::V11);
+
+        let second_event = private_room.invite_state.events[1].deserialize().unwrap();
+        assert_matches!(
+            second_event,
+            AnySyncOrStrippedStateEvent::Sync(AnySyncStateEvent::RoomMember(
+                SyncStateEvent::Original(invite_event)
+            ))
+        );
+        assert_eq!(invite_event.sender, creator);
+        assert_eq!(invite_event.state_key, invitee);
+        assert_eq!(invite_event.content.membership, MembershipState::Invite);
+    }
 }
 
 #[cfg(all(test, feature = "server"))]
@@ -703,7 +775,7 @@ mod server_tests {
     use super::{Filter, Request};
 
     #[test]
-    fn deserialize_all_query_params() {
+    fn deserialize_request_all_query_params() {
         let uri = http::Uri::builder()
             .scheme("https")
             .authority("matrix.org")
@@ -733,7 +805,7 @@ mod server_tests {
     }
 
     #[test]
-    fn deserialize_no_query_params() {
+    fn deserialize_request_no_query_params() {
         let uri = http::Uri::builder()
             .scheme("https")
             .authority("matrix.org")
@@ -755,7 +827,7 @@ mod server_tests {
     }
 
     #[test]
-    fn deserialize_some_query_params() {
+    fn deserialize_request_some_query_params() {
         let uri = http::Uri::builder()
             .scheme("https")
             .authority("matrix.org")
