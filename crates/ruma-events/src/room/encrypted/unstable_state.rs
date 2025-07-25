@@ -19,7 +19,11 @@ pub struct StateRoomEncryptedEventContent {
 /// The PossiblyRedacted form of [StateRoomEncryptedEventContent].
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct PossiblyRedactedStateRoomEncryptedEventContent;
+pub struct PossiblyRedactedStateRoomEncryptedEventContent {
+    /// Algorithm-specific fields.
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub scheme: Option<EncryptedEventScheme>,
+}
 
 impl StaticEventContent for PossiblyRedactedStateRoomEncryptedEventContent {
     const TYPE: &'static str = "m.room.encrypted";
