@@ -20,6 +20,10 @@ pub mod prepare_leave_event;
 pub enum RawStrippedState {
     /// A stripped state event.
     Stripped(Raw<AnyStrippedStateEvent>),
+
+    /// A full federation PDU.
+    #[cfg(feature = "unstable-msc4311")]
+    Pdu(Box<RawJsonValue>),
 }
 
 impl<'de> Deserialize<'de> for RawStrippedState {
@@ -28,6 +32,31 @@ impl<'de> Deserialize<'de> for RawStrippedState {
         D: ::serde::Deserializer<'de>,
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+
+        #[cfg(feature = "unstable-msc4311")]
+        {
+            use ruma_common::serde::from_raw_json_value;
+            use serde::de;
+
+            #[derive(Deserialize)]
+            struct PotentialPduDeHelper {
+                auth_events: Option<de::IgnoredAny>,
+                prev_events: Option<de::IgnoredAny>,
+                signatures: Option<de::IgnoredAny>,
+                hashes: Option<de::IgnoredAny>,
+            }
+
+            let PotentialPduDeHelper { auth_events, prev_events, signatures, hashes } =
+                from_raw_json_value(&json)?;
+
+            if auth_events.is_some()
+                && prev_events.is_some()
+                && signatures.is_some()
+                && hashes.is_some()
+            {
+                return Ok(Self::Pdu(json));
+            }
+        }
 
         Ok(Raw::from_json(json).into())
     }
@@ -73,6 +102,42 @@ mod tests {
         assert_eq!(stripped_member_event.sender, user_id);
         assert_eq!(stripped_member_event.state_key, user_id);
         assert_eq!(stripped_member_event.content.membership, MembershipState::Join);
+
+        #[cfg(feature = "unstable-msc4311")]
+        {
+            // PDU format
+            let pdu_event_json = json!({
+                "auth_events": [
+                    "$one",
+                    "$two",
+                    "$three"
+                ],
+                "content": content,
+                "depth": 10,
+                "hashes": {
+                    "sha256": "thisisahash"
+                },
+                "origin_server_ts": 1_000_000,
+                "prev_events": [
+                    "$one",
+                    "$two",
+                    "$three"
+                ],
+                "room_id": "!room:localhost",
+                "sender": user_id,
+                "signatures": {
+                    "localhost": {
+                        "ed25519:1": "thisisakey"
+                    }
+                },
+                "state_key": user_id,
+                "type": "m.room.member",
+            });
+            assert_matches!(
+                from_json_value::<RawStrippedState>(pdu_event_json).unwrap(),
+                RawStrippedState::Pdu(_pdu_member_event)
+            );
+        }
     }
 
     #[test]

@@ -32,6 +32,8 @@ Improvements:
 - Add a method to construct a `thirdparty::exchange_invite::v1::Request` from a
   `thirdparty::bind_callback::v1::ThirdPartyInvite` and a
   `RoomThirdPartyInviteEventContent`.
+- Add unstable support for full PDUs in `create_invite` and `create_knock_event` alongside stripped
+  events from MSC4311 behind the `unstable-msc4311` feature.
 
 # 0.11.2
 
