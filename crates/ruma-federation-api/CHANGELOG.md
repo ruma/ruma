@@ -18,7 +18,7 @@ Breaking changes:
     `SpaceHierarchyChildSummaryInit` was removed.
 - Merge the `knock` module into `membership`, and rename `create_knock_event_template` and
   `send_knock` to `prepare_knock_event` and `create_knock_event` respectively for consistency.
-- Use `StrippedState` instead of `Raw<AnyStrippedStateEvent>`, to allow non-stripped events to be
+- Use `RawStrippedState` instead of `Raw<AnyStrippedStateEvent>`, to allow non-stripped events to be
   represented for `create_invite` and `create_knock_event`.
 
 Bug fixes:
