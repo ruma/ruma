@@ -30,6 +30,8 @@ Breaking changes:
 - Allow specifying the event format for `state::get_state_event_for_key`, meaning the response may
   either be `Raw<AnyStateEvent>` or `Raw<AnyStateEventContent>`, depending on the format specified
   in the request.
+- Use `StrippedState` instead of `AnyStrippedStateEvent`, to allow non-stripped events to be
+  represented for `sync_events`.
 
 Improvements:
 
