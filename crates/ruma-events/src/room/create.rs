@@ -60,6 +60,11 @@ pub struct RoomCreateEventContent {
     /// This is currently only used for spaces.
     #[serde(skip_serializing_if = "Option::is_none", rename = "type")]
     pub room_type: Option<RoomType>,
+
+    /// Additional room creators, considered to have "infinite" power level, in room version 12
+    /// onwards.
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    pub additional_creators: Vec<OwnedUserId>,
 }
 
 impl RoomCreateEventContent {
@@ -73,6 +78,7 @@ impl RoomCreateEventContent {
             room_version: default_room_version_id(),
             predecessor: None,
             room_type: None,
+            additional_creators: Vec::new(),
         }
     }
 
@@ -88,6 +94,7 @@ impl RoomCreateEventContent {
             room_version: RoomVersionId::V11,
             predecessor: None,
             room_type: None,
+            additional_creators: Vec::new(),
         }
     }
 }
@@ -117,13 +124,18 @@ pub struct PreviousRoom {
     pub room_id: OwnedRoomId,
 
     /// The event ID of the last known event in the old room.
-    pub event_id: OwnedEventId,
+    #[deprecated = "\
+        This field should be sent by servers when possible for backwards compatibility \
+        but clients should not rely on it."]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub event_id: Option<OwnedEventId>,
 }
 
 impl PreviousRoom {
-    /// Creates a new `PreviousRoom` from the given room and event IDs.
-    pub fn new(room_id: OwnedRoomId, event_id: OwnedEventId) -> Self {
-        Self { room_id, event_id }
+    /// Creates a new `PreviousRoom` from the given room ID.
+    pub fn new(room_id: OwnedRoomId) -> Self {
+        #[allow(deprecated)]
+        Self { room_id, event_id: None }
     }
 }
 
@@ -167,6 +179,7 @@ mod tests {
             room_version: RoomVersionId::V4,
             predecessor: None,
             room_type: None,
+            additional_creators: Vec::new(),
         };
 
         let json = json!({
@@ -187,6 +200,7 @@ mod tests {
             room_version: RoomVersionId::V4,
             predecessor: None,
             room_type: Some(RoomType::Space),
+            additional_creators: Vec::new(),
         };
 
         let json = json!({

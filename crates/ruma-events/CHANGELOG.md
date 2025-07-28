@@ -51,6 +51,21 @@ Breaking changes:
 - The `redacted_because` field of `RedactedUnsigned` is wrapped in `Raw`. It avoids to fail
   deserialization of the whole event if only deserialization of this field fails. It is also more
   forward-compatible in case events other than `m.room.redaction` are used here in the future.
+- Add `UserPowerLevel` and return it instead of `Int` for `RoomPowerLevels::for_user`.
+- Remove `impl From<(Redacted)RoomPowerLevelsEventContent> for RoomPowerLevels` and replace them
+  with `new`, as `RoomPowerLevels` now additionally needs `RoomPowerLevelsRules` to specify
+  additional rules required to determine the power level of a user.
+  - This function also now takes a new `RoomPowerLevelsSource` type, to also allow
+    `RoomPowerLevels` to be constructed without `(Redacted)RoomPowerLevelsEventContent`, for when
+    rooms have no `m.room.power_levels` state.
+- Change `impl From<RoomPowerLevels> for RoomPowerLevelsEventContent` to a `TryFrom` implementation.
+  The `users` field is now validated against the creators of the room, depending on the
+  `RoomPowerLevelsRules`.
+- Remove `Default` implementation for `RoomPowerLevelsEventContent` and make `new` take
+  `AuthorizationRules` as a parameter.
+- The `event_id` field of `PreviousRoom` is now optional and deprecated. It has been removed in new
+  room versions so clients should not rely on it. They can obtain it by requesting the
+  `m.room.tombstone` event in the state of the predecessor.
 
 Improvements:
 
@@ -76,6 +91,8 @@ Improvements:
   `SpaceChildOrd` trait and `SpaceChildOrdHelper` type, and `HierarchySpaceChildEvent` specifically
   now implements `Ord` using the aforementioned trait.
 - Implement types for encrypted state events, according to MSC3414.
+- Add `additional_creators` field to `RoomCreateEventContent`, used to optionally specify
+  additional creators of a room.
 
 # 0.30.4
 

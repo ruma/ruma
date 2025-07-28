@@ -184,6 +184,7 @@ unstable-extensible-events = [
     "unstable-msc3954",
     "unstable-msc3955",
 ]
+unstable-hydra = ["ruma-common/unstable-hydra"]
 unstable-msc1767 = ["ruma-events?/unstable-msc1767"]
 unstable-msc2448 = [
     "ruma-client-api?/unstable-msc2448",
@@ -222,6 +223,7 @@ unstable-msc3553 = ["ruma-events?/unstable-msc3553"]
 unstable-msc3554 = ["ruma-events?/unstable-msc3554"]
 unstable-msc3618 = ["ruma-federation-api?/unstable-msc3618"]
 unstable-msc3723 = ["ruma-federation-api?/unstable-msc3723"]
+unstable-msc3768 = ["ruma-common/unstable-msc3768"]
 unstable-msc3814 = ["ruma-client-api?/unstable-msc3814"]
 unstable-msc3824 = ["ruma-client-api?/unstable-msc3824"]
 unstable-msc3843 = [
@@ -261,9 +263,13 @@ unstable-msc4268 = ["ruma-events?/unstable-msc4268"]
 unstable-msc4274 = ["ruma-events?/unstable-msc4274"]
 unstable-msc4278 = ["ruma-events?/unstable-msc4278"]
 unstable-msc4286 = ["ruma-html?/unstable-msc4286"]
+# Thread subscription support.
+unstable-msc4306 = ["ruma-client-api?/unstable-msc4306"]
+unstable-msc4311 = ["ruma-federation-api?/unstable-msc4311"]
 
 # Private features, only used in test / benchmarking code
 __unstable-mscs = [
+    "unstable-hydra",
     "unstable-msc1767",
     "unstable-msc2448",
     "unstable-msc2545",
@@ -288,6 +294,7 @@ __unstable-mscs = [
     "unstable-msc3554",
     "unstable-msc3618",
     "unstable-msc3723",
+    "unstable-msc3768",
     "unstable-msc3814",
     "unstable-msc3824",
     "unstable-msc3843",
@@ -315,6 +322,8 @@ __unstable-mscs = [
     "unstable-msc4274",
     "unstable-msc4278",
     "unstable-msc4286",
+    "unstable-msc4306",
+    "unstable-msc4311",
 ]
 __ci = ["full", "compat-upload-signatures", "__unstable-mscs"]
 __compat = [
