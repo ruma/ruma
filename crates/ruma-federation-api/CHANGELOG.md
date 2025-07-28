@@ -16,6 +16,8 @@ Breaking changes:
     `SpaceHierarchyParentSummaryInit` was removed.
   - `SpaceHierarchyChildSummary` was replaced by `RoomSummary` and
     `SpaceHierarchyChildSummaryInit` was removed.
+- Merge the `knock` module into `membership`, and rename `create_knock_event_template` and
+  `send_knock` to `prepare_knock_event` and `create_knock_event` respectively for consistency.
 
 Bug fixes:
 
