@@ -14,12 +14,11 @@ use ruma_common::{
 };
 use ruma_events::{
     presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
-    AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncStateEvent, AnySyncTimelineEvent,
-    AnyToDeviceEvent,
+    AnySyncEphemeralRoomEvent, AnySyncStateEvent, AnySyncTimelineEvent, AnyToDeviceEvent,
 };
 use serde::{Deserialize, Serialize};
 
-use super::{DeviceLists, UnreadNotificationsCount};
+use super::{DeviceLists, StrippedState, UnreadNotificationsCount};
 use crate::filter::FilterDefinition;
 
 const METADATA: Metadata = metadata! {
@@ -349,7 +348,7 @@ impl From<KnockState> for KnockedRoom {
 pub struct KnockState {
     /// The stripped state of a room that the user has knocked upon.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub events: Vec<Raw<AnyStrippedStateEvent>>,
+    pub events: Vec<Raw<StrippedState>>,
 }
 
 impl KnockState {
@@ -563,7 +562,7 @@ impl From<InviteState> for InvitedRoom {
 pub struct InviteState {
     /// A list of state events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub events: Vec<Raw<AnyStrippedStateEvent>>,
+    pub events: Vec<Raw<StrippedState>>,
 }
 
 impl InviteState {
@@ -578,8 +577,8 @@ impl InviteState {
     }
 }
 
-impl From<Vec<Raw<AnyStrippedStateEvent>>> for InviteState {
-    fn from(events: Vec<Raw<AnyStrippedStateEvent>>) -> Self {
+impl From<Vec<Raw<StrippedState>>> for InviteState {
+    fn from(events: Vec<Raw<StrippedState>>) -> Self {
         InviteState { events, ..Default::default() }
     }
 }

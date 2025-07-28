@@ -3,8 +3,18 @@
 //! Get all new events from all rooms since the last sync or a given point in time.
 
 use js_int::UInt;
-use ruma_common::OwnedUserId;
+use ruma_common::{
+    serde::{from_raw_json_value, JsonCastable, JsonObject},
+    OwnedUserId, UserId,
+};
+use ruma_events::{
+    AnyStateEvent, AnyStrippedStateEvent, AnySyncStateEvent, OriginalStateEvent,
+    OriginalSyncStateEvent, PossiblyRedactedStateEventContent, RedactContent, RedactedStateEvent,
+    RedactedStateEventContent, RedactedSyncStateEvent, StateEvent, StateEventType,
+    StaticStateEventContent, StrippedStateEvent, SyncStateEvent,
+};
 use serde::{self, Deserialize, Serialize};
+use serde_json::value::RawValue as RawJsonValue;
 
 pub mod v3;
 
@@ -60,5 +70,121 @@ impl DeviceLists {
     /// Returns true if there are no device list updates.
     pub fn is_empty(&self) -> bool {
         self.changed.is_empty() && self.left.is_empty()
+    }
+}
+
+/// Possible event formats that may appear in stripped state.
+#[derive(Debug, Clone)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub enum StrippedState {
+    /// A stripped state event.
+    Stripped(AnyStrippedStateEvent),
+}
+
+impl StrippedState {
+    /// Returns the `type` of this event.
+    pub fn event_type(&self) -> StateEventType {
+        match self {
+            Self::Stripped(event) => event.event_type(),
+        }
+    }
+
+    /// Returns this event's `sender` field.
+    pub fn sender(&self) -> &UserId {
+        match self {
+            Self::Stripped(event) => event.sender(),
+        }
+    }
+
+    /// Returns this event's `state_key` field.
+    pub fn state_key(&self) -> &str {
+        match self {
+            Self::Stripped(event) => event.state_key(),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for StrippedState {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+
+        from_raw_json_value(&json).map(Self::Stripped)
+    }
+}
+
+impl From<AnyStrippedStateEvent> for StrippedState {
+    fn from(value: AnyStrippedStateEvent) -> Self {
+        Self::Stripped(value)
+    }
+}
+
+impl JsonCastable<StrippedState> for AnySyncStateEvent {}
+
+impl JsonCastable<StrippedState> for AnyStrippedStateEvent {}
+
+impl JsonCastable<StrippedState> for AnyStateEvent {}
+
+impl<C> JsonCastable<StrippedState> for OriginalStateEvent<C> where C: StaticStateEventContent {}
+
+impl<C> JsonCastable<StrippedState> for OriginalSyncStateEvent<C> where C: StaticStateEventContent {}
+
+impl<C> JsonCastable<StrippedState> for RedactedStateEvent<C> where C: RedactedStateEventContent {}
+
+impl<C> JsonCastable<StrippedState> for RedactedSyncStateEvent<C> where C: RedactedStateEventContent {}
+
+impl<C> JsonCastable<StrippedState> for StateEvent<C>
+where
+    C: StaticStateEventContent + RedactContent,
+    <C as RedactContent>::Redacted: RedactedStateEventContent,
+{
+}
+
+impl<C> JsonCastable<StrippedState> for SyncStateEvent<C>
+where
+    C: StaticStateEventContent + RedactContent,
+    <C as RedactContent>::Redacted: RedactedStateEventContent,
+{
+}
+
+impl<C> JsonCastable<StrippedState> for StrippedStateEvent<C> where
+    C: PossiblyRedactedStateEventContent
+{
+}
+
+impl JsonCastable<JsonObject> for StrippedState {}
+
+#[cfg(test)]
+mod tests {
+    use assert_matches2::assert_matches;
+    use ruma_common::user_id;
+    use ruma_events::{room::member::MembershipState, AnyStrippedStateEvent};
+    use serde_json::{from_value as from_json_value, json};
+
+    use crate::sync::sync_events::StrippedState;
+
+    #[test]
+    fn deserialize_stripped_state() {
+        let user_id = user_id!("@patrick:localhost");
+        let content = json!({
+            "membership": "join",
+        });
+
+        // Stripped format.
+        let stripped_event_json = json!({
+            "content": content,
+            "type": "m.room.member",
+            "state_key": user_id,
+            "sender": user_id,
+        });
+        assert_matches!(
+            from_json_value::<StrippedState>(stripped_event_json).unwrap(),
+            StrippedState::Stripped(AnyStrippedStateEvent::RoomMember(stripped_member_event))
+        );
+        assert_eq!(stripped_member_event.sender, user_id);
+        assert_eq!(stripped_member_event.state_key, user_id);
+        assert_eq!(stripped_member_event.content.membership, MembershipState::Join);
     }
 }
