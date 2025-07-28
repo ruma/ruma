@@ -13,8 +13,13 @@ use crate::serde::from_raw_json_value;
 #[derive(Clone, Debug)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum Action {
-    /// Causes matching events to generate a notification.
+    /// Causes matching events to generate a notification (both in-app and remote / push).
     Notify,
+
+    /// Causes matching events to generate an in-app notification but no remote / push
+    /// notification.
+    #[cfg(feature = "unstable-msc3768")]
+    NotifyInApp,
 
     /// Sets an entry in the 'tweaks' dictionary sent to the push gateway.
     SetTweak(Tweak),
@@ -30,8 +35,19 @@ impl Action {
         matches!(self, Action::SetTweak(Tweak::Highlight(true)))
     }
 
-    /// Whether this action should trigger a notification.
+    /// Whether this action should trigger a notification (either in-app or remote / push).
     pub fn should_notify(&self) -> bool {
+        match self {
+            Action::Notify => true,
+            #[cfg(feature = "unstable-msc3768")]
+            Action::NotifyInApp => true,
+            _ => false,
+        }
+    }
+
+    /// Whether this action should trigger a remote / push notification.
+    #[cfg(feature = "unstable-msc3768")]
+    pub fn should_notify_remote(&self) -> bool {
         matches!(self, Action::Notify)
     }
 
@@ -82,6 +98,8 @@ impl<'de> Deserialize<'de> for Action {
         match &custom {
             CustomAction::String(s) => match s.as_str() {
                 "notify" => Ok(Action::Notify),
+                #[cfg(feature = "unstable-msc3768")]
+                "org.matrix.msc3768.notify_in_app" => Ok(Action::NotifyInApp),
                 _ => Ok(Action::_Custom(custom)),
             },
             CustomAction::Object(o) => {
@@ -102,6 +120,10 @@ impl Serialize for Action {
     {
         match self {
             Action::Notify => serializer.serialize_unit_variant("Action", 0, "notify"),
+            #[cfg(feature = "unstable-msc3768")]
+            Action::NotifyInApp => {
+                serializer.serialize_unit_variant("Action", 0, "org.matrix.msc3768.notify_in_app")
+            }
             Action::SetTweak(kind) => kind.serialize(serializer),
             Action::_Custom(custom) => custom.serialize(serializer),
         }
@@ -187,8 +209,17 @@ mod tests {
     use super::{Action, Tweak};
 
     #[test]
-    fn serialize_string() {
+    fn serialize_notify() {
         assert_eq!(to_json_value(Action::Notify).unwrap(), json!("notify"));
+    }
+
+    #[cfg(feature = "unstable-msc3768")]
+    #[test]
+    fn serialize_notify_in_app() {
+        assert_eq!(
+            to_json_value(Action::NotifyInApp).unwrap(),
+            json!("org.matrix.msc3768.notify_in_app")
+        );
     }
 
     #[test]
@@ -213,8 +244,17 @@ mod tests {
     }
 
     #[test]
-    fn deserialize_string() {
+    fn deserialize_notify() {
         assert_matches!(from_json_value::<Action>(json!("notify")), Ok(Action::Notify));
+    }
+
+    #[cfg(feature = "unstable-msc3768")]
+    #[test]
+    fn deserialize_notify_in_app() {
+        assert_matches!(
+            from_json_value::<Action>(json!("org.matrix.msc3768.notify_in_app")),
+            Ok(Action::NotifyInApp)
+        );
     }
 
     #[test]

@@ -6,12 +6,11 @@
 use ruma_common::OwnedServerName;
 use ruma_common::{
     api::{request, response, Metadata},
-    metadata,
-    serde::Raw,
-    OwnedEventId, OwnedRoomId, RoomVersionId,
+    metadata, OwnedEventId, OwnedRoomId, RoomVersionId,
 };
-use ruma_events::AnyStrippedStateEvent;
 use serde_json::value::RawValue as RawJsonValue;
+
+use crate::membership::RawStrippedState;
 
 const METADATA: Metadata = metadata! {
     method: PUT,
@@ -40,7 +39,7 @@ pub struct Request {
     pub event: Box<RawJsonValue>,
 
     /// An optional list of simplified events to help the receiver of the invite identify the room.
-    pub invite_room_state: Vec<Raw<AnyStrippedStateEvent>>,
+    pub invite_room_state: Vec<RawStrippedState>,
 
     /// An optional list of servers the invited homeserver should attempt to join or leave via,
     /// according to [MSC4125](https://github.com/matrix-org/matrix-spec-proposals/pull/4125).
@@ -66,7 +65,7 @@ impl Request {
         event_id: OwnedEventId,
         room_version: RoomVersionId,
         event: Box<RawJsonValue>,
-        invite_room_state: Vec<Raw<AnyStrippedStateEvent>>,
+        invite_room_state: Vec<RawStrippedState>,
     ) -> Self {
         Self {
             room_id,

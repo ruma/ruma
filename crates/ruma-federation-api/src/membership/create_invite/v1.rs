@@ -4,13 +4,13 @@
 
 use ruma_common::{
     api::{request, response, Metadata},
-    metadata,
-    serde::Raw,
-    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName, OwnedUserId,
+    metadata, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName, OwnedUserId,
 };
-use ruma_events::{room::member::RoomMemberEventContent, AnyStrippedStateEvent, StateEventType};
+use ruma_events::{room::member::RoomMemberEventContent, StateEventType};
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
+
+use crate::membership::RawStrippedState;
 
 const METADATA: Metadata = metadata! {
     method: PUT,
@@ -73,7 +73,7 @@ pub struct UnsignedEventContent {
     /// The recommended events to include are the join rules, canonical alias, avatar, and name of
     /// the room.
     #[serde(skip_serializing_if = "<[_]>::is_empty")]
-    pub invite_room_state: Vec<Raw<AnyStrippedStateEvent>>,
+    pub invite_room_state: Vec<RawStrippedState>,
 }
 
 impl UnsignedEventContent {

@@ -26,13 +26,21 @@ Breaking changes:
   `U` to `T` because `T` can be deserialized from the same JSON as `U`. It is
   still possible to bypass that bound by using the corresponding methods of
   `Raw` with an `_unchecked` suffix.
+- Rename `state::get_state_events_for_key` to `state::get_state_event_for_key`.
+- Allow specifying the event format for `state::get_state_event_for_key`, meaning the response may
+  either be `Raw<AnyStateEvent>` or `Raw<AnyStateEventContent>`, depending on the format specified
+  in the request.
 
 Improvements:
 
+- Added support for the experiment MSC4036 thread subscription endpoints.
 - For the `membership::join_room_by_id_or_alias` and `knock::knock_room`
   endpoints, the `server_name` query parameter is only serialized if the server
   doesn't advertise at least one version that supports the `via` query
   parameter. The former was removed in Matrix 1.14.
+- Add `additional_creators` field to `CreationContent` of `create_room` and `Request` of
+  `upgrade_room`, allowing clients to specify which other users (if any) should be considered
+  additional creators from room version 12 onwards.
 
 # 0.20.4
 

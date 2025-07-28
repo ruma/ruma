@@ -16,6 +16,10 @@ Breaking changes:
     `SpaceHierarchyParentSummaryInit` was removed.
   - `SpaceHierarchyChildSummary` was replaced by `RoomSummary` and
     `SpaceHierarchyChildSummaryInit` was removed.
+- Merge the `knock` module into `membership`, and rename `create_knock_event_template` and
+  `send_knock` to `prepare_knock_event` and `create_knock_event` respectively for consistency.
+- Use `StrippedState` instead of `Raw<AnyStrippedStateEvent>`, to allow non-stripped events to be
+  represented for `create_invite` and `create_knock_event`.
 
 Bug fixes:
 
@@ -28,6 +32,8 @@ Improvements:
 - Add a method to construct a `thirdparty::exchange_invite::v1::Request` from a
   `thirdparty::bind_callback::v1::ThirdPartyInvite` and a
   `RoomThirdPartyInviteEventContent`.
+- Add unstable support for full PDUs in `create_invite` and `create_knock_event` alongside stripped
+  events from MSC4311 behind the `unstable-msc4311` feature.
 
 # 0.11.2
 

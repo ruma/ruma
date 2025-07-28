@@ -2,6 +2,11 @@
 //!
 //! [room versions]: https://spec.matrix.org/latest/rooms/
 
+#[allow(clippy::disallowed_types)]
+use std::collections::HashSet;
+
+use crate::OwnedUserId;
+
 /// The rules applied to a [room version].
 ///
 /// This type can be constructed from one of its constants (like [`RoomVersionRules::V1`]), or from
@@ -17,6 +22,9 @@ pub struct RoomVersionRules {
 
     /// The format of event IDs.
     pub event_id_format: EventIdFormatVersion,
+
+    /// The format of room IDs.
+    pub room_id_format: RoomIdFormatVersion,
 
     /// The state resolution algorithm used.
     pub state_res: StateResolutionVersion,
@@ -47,6 +55,7 @@ impl RoomVersionRules {
     pub const V1: Self = Self {
         disposition: RoomVersionDisposition::Stable,
         event_id_format: EventIdFormatVersion::V1,
+        room_id_format: RoomIdFormatVersion::V1,
         state_res: StateResolutionVersion::V1,
         enforce_key_validity: false,
         authorization: AuthorizationRules::V1,
@@ -121,6 +130,17 @@ impl RoomVersionRules {
         ..Self::V10
     };
 
+    /// Rules for room version `org.matrix.hydra.11`.
+    #[cfg(feature = "unstable-hydra")]
+    pub const HYDRA_V11: Self = Self { disposition: RoomVersionDisposition::Unstable, ..Self::V12 };
+
+    /// Rules for room version 12.
+    pub const V12: Self = Self {
+        room_id_format: RoomIdFormatVersion::V2,
+        authorization: AuthorizationRules::V12,
+        ..Self::V11
+    };
+
     /// Rules for room version `org.matrix.msc2870` ([MSC2870]).
     ///
     /// [MSC2870]: https://github.com/matrix-org/matrix-spec-proposals/pull/2870
@@ -163,6 +183,20 @@ pub enum EventIdFormatVersion {
     ///
     /// [spec]: https://spec.matrix.org/latest/rooms/v4/#event-ids
     V3,
+}
+
+/// The format of [room IDs] for a room version.
+///
+/// [room IDs]: https://spec.matrix.org/latest/appendices/#room-ids
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub enum RoomIdFormatVersion {
+    /// `!id:server` format, introduced in room version 1.
+    V1,
+
+    /// `!hash` format using the reference hash of the `m.room.create` event of the room,
+    /// introduced in room version 12.
+    V2,
 }
 
 /// The version of [state resolution] for a room version.
@@ -248,6 +282,14 @@ pub struct AuthorizationRules {
     ///
     /// [spec]: https://spec.matrix.org/v1.15/rooms/v11/#event-format
     pub use_room_create_sender: bool,
+
+    /// Whether room creators should always be considered to have "infinite" power level,
+    /// introduced in room version 12.
+    pub explicitly_privilege_room_creators: bool,
+
+    /// Whether additional room creators can be set with the `content.additional_creators` field of
+    /// an `m.room.create` event, introduced in room version 12.
+    pub additional_room_creators: bool,
 }
 
 impl AuthorizationRules {
@@ -264,6 +306,8 @@ impl AuthorizationRules {
         knock_restricted_join_rule: false,
         integer_power_levels: false,
         use_room_create_sender: false,
+        explicitly_privilege_room_creators: false,
+        additional_room_creators: false,
     };
 
     /// Authorization rules with tweaks introduced in room version 3 ([spec]).
@@ -301,6 +345,13 @@ impl AuthorizationRules {
     ///
     /// [spec]: https://spec.matrix.org/latest/rooms/v11/#authorization-rules
     pub const V11: Self = Self { use_room_create_sender: true, ..Self::V10 };
+
+    /// Authorization rules with tweaks introduced in room version 12.
+    pub const V12: Self = Self {
+        explicitly_privilege_room_creators: true,
+        additional_room_creators: true,
+        ..Self::V11
+    };
 }
 
 /// The tweaks in the [redaction] algorithm for a room version.
@@ -478,4 +529,29 @@ impl EventFormatRules {
 
     /// Event format rules with tweaks introduced in room version 3.
     pub const V3: Self = Self { require_event_id: false };
+}
+
+/// The tweaks for determining the power level of a user.
+#[derive(Clone, Debug)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct RoomPowerLevelsRules {
+    /// The creator(s) of the room which are considered to have "infinite" power level, introduced
+    /// in room version 12.
+    #[allow(clippy::disallowed_types)]
+    pub privileged_creators: Option<HashSet<OwnedUserId>>,
+}
+
+impl RoomPowerLevelsRules {
+    /// Creates a new `RoomPowerLevelsRules` from the given parameters, using the `creators` if
+    /// the rule `explicitly_privilege_room_creators` is `true`.
+    pub fn new(
+        rules: &AuthorizationRules,
+        creators: impl IntoIterator<Item = OwnedUserId>,
+    ) -> Self {
+        Self {
+            privileged_creators: rules
+                .explicitly_privilege_room_creators
+                .then(|| creators.into_iter().collect()),
+        }
+    }
 }

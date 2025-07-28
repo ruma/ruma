@@ -128,6 +128,11 @@ pub mod v3 {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct CreationContent {
+        /// A list of user IDs to consider as additional creators, and hence grant an "infinite"
+        /// immutable power level, from room version 12 onwards.
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        pub additional_creators: Vec<OwnedUserId>,
+
         /// Whether users on other servers can join this room.
         ///
         /// Defaults to `true` if key does not exist.
@@ -152,7 +157,12 @@ pub mod v3 {
     impl CreationContent {
         /// Creates a new `CreationContent` with all fields defaulted.
         pub fn new() -> Self {
-            Self { federate: true, predecessor: None, room_type: None }
+            Self {
+                additional_creators: Vec::new(),
+                federate: true,
+                predecessor: None,
+                room_type: None,
+            }
         }
 
         /// Given a `CreationContent` and the other fields that a homeserver has to fill, construct
