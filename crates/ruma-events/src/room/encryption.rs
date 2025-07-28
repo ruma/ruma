@@ -21,6 +21,7 @@ pub struct RoomEncryptionEventContent {
     pub algorithm: EventEncryptionAlgorithm,
 
     /// Whether state events should be encrypted alongside message-like events.
+    #[cfg(feature = "unstable-msc3414")]
     pub encrypt_state_events: bool,
 
     /// How long the session should be used before changing it.
@@ -41,6 +42,7 @@ impl RoomEncryptionEventContent {
     pub fn new(algorithm: EventEncryptionAlgorithm) -> Self {
         Self {
             algorithm,
+            #[cfg(feature = "unstable-msc3414")]
             encrypt_state_events: false,
             rotation_period_ms: None,
             rotation_period_msgs: None,
@@ -56,6 +58,7 @@ impl RoomEncryptionEventContent {
         // Defaults defined at <https://spec.matrix.org/latest/client-server-api/#mroomencryption>
         Self {
             algorithm: EventEncryptionAlgorithm::MegolmV1AesSha2,
+            #[cfg(feature = "unstable-msc3414")]
             encrypt_state_events: false,
             rotation_period_ms: Some(uint!(604_800_000)),
             rotation_period_msgs: Some(uint!(100)),
@@ -65,6 +68,7 @@ impl RoomEncryptionEventContent {
     /// Enable encrypted state as specified in [MSC3414][msc].
     ///
     /// [msc]: https://github.com/matrix-org/matrix-spec-proposals/blob/travis/msc/encrypted-state/proposals/3414-encrypted-state.md
+    #[cfg(feature = "unstable-msc3414")]
     pub fn with_encrypted_state(mut self) -> Self {
         self.encrypt_state_events = true;
         self
