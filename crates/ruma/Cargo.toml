@@ -203,7 +203,7 @@ unstable-msc4278 = ["ruma-events?/unstable-msc4278"]
 unstable-msc4286 = ["ruma-html?/unstable-msc4286"]
 # Thread subscription support.
 unstable-msc4306 = ["ruma-client-api?/unstable-msc4306"]
-unstable-msc4311 = ["ruma-federation-api?/unstable-msc4311"]
+unstable-msc4311 = ["ruma-client-api?/unstable-msc4311", "ruma-federation-api?/unstable-msc4311"]
 
 # Private features, only used in test / benchmarking code
 __unstable-mscs = [
