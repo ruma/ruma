@@ -20,6 +20,9 @@ pub struct RoomEncryptionEventContent {
     /// Must be `m.megolm.v1.aes-sha2`.
     pub algorithm: EventEncryptionAlgorithm,
 
+    /// Whether state events should be encrypted alongside message-like events.
+    pub encrypt_state_events: bool,
+
     /// How long the session should be used before changing it.
     ///
     /// `uint!(604800000)` (a week) is the recommended default.
@@ -36,7 +39,12 @@ pub struct RoomEncryptionEventContent {
 impl RoomEncryptionEventContent {
     /// Creates a new `RoomEncryptionEventContent` with the given algorithm.
     pub fn new(algorithm: EventEncryptionAlgorithm) -> Self {
-        Self { algorithm, rotation_period_ms: None, rotation_period_msgs: None }
+        Self {
+            algorithm,
+            encrypt_state_events: false,
+            rotation_period_ms: None,
+            rotation_period_msgs: None,
+        }
     }
 
     /// Creates a new `RoomEncryptionEventContent` with the mandatory algorithm and the recommended
@@ -48,6 +56,7 @@ impl RoomEncryptionEventContent {
         // Defaults defined at <https://spec.matrix.org/latest/client-server-api/#mroomencryption>
         Self {
             algorithm: EventEncryptionAlgorithm::MegolmV1AesSha2,
+            encrypt_state_events: false,
             rotation_period_ms: Some(uint!(604_800_000)),
             rotation_period_msgs: Some(uint!(100)),
         }

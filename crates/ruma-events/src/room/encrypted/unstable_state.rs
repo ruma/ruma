@@ -1,3 +1,6 @@
+//! Types for `m.room.encrypted` state events, as defined in [MSC3414][msc].
+//!
+//! [msc]: https://github.com/matrix-org/matrix-spec-proposals/blob/travis/msc/encrypted-state/proposals/3414-encrypted-state.md
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
