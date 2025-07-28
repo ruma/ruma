@@ -61,4 +61,12 @@ impl RoomEncryptionEventContent {
             rotation_period_msgs: Some(uint!(100)),
         }
     }
+
+    /// Enable encrypted state as specified in [MSC3414][msc].
+    ///
+    /// [msc]: https://github.com/matrix-org/matrix-spec-proposals/blob/travis/msc/encrypted-state/proposals/3414-encrypted-state.md
+    pub fn with_encrypted_state(mut self) -> Self {
+        self.encrypt_state_events = true;
+        self
+    }
 }
