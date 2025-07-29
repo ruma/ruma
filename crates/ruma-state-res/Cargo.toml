@@ -15,6 +15,9 @@ rust-version = { workspace = true }
 all-features = true
 
 [dependencies]
+
+# dev-dependencies can't be optional, so this is a regular dependency
+criterion = { workspace = true, optional = true }
 js_int = { workspace = true }
 ruma-common = { workspace = true, features = ["canonical-json"] }
 ruma-events = { workspace = true }
@@ -23,9 +26,6 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
-
-# dev-dependencies can't be optional, so this is a regular dependency
-criterion = { workspace = true, optional = true }
 
 [dev-dependencies]
 as_variant = { workspace = true }

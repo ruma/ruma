@@ -75,6 +75,9 @@ compat-lax-room-topic-deser = []
 
 [dependencies]
 as_variant = { workspace = true }
+
+# dev-dependencies can't be optional, so this is a regular dependency
+criterion = { workspace = true, optional = true }
 indexmap = { version = "2.0.0", features = ["serde"] }
 js_int = { workspace = true, features = ["serde"] }
 js_option = "0.1.0"
@@ -98,9 +101,6 @@ url = { workspace = true }
 web-time = { workspace = true }
 wildmatch = "2.0.0"
 zeroize = { workspace = true }
-
-# dev-dependencies can't be optional, so this is a regular dependency
-criterion = { workspace = true, optional = true }
 
 [dev-dependencies]
 assert_matches2 = { workspace = true }

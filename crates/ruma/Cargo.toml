@@ -117,9 +117,7 @@ full = [
 compat-arbitrary-length-ids = ["ruma-common/compat-arbitrary-length-ids"]
 
 # Don't validate `ServerSigningKeyVersion`.
-compat-server-signing-key-version = [
-    "ruma-common/compat-server-signing-key-version",
-]
+compat-server-signing-key-version = ["ruma-common/compat-server-signing-key-version"]
 
 # Allow some mandatory fields in requests / responses to be missing, defaulting
 # them to an empty string in deserialization.
@@ -136,10 +134,7 @@ compat-null = ["ruma-common/compat-null"]
 
 # Allow certain fields to be absent even though the spec marks them as
 # mandatory. Deserialization will yield a default value like an empty string.
-compat-optional = [
-    "ruma-common/compat-optional",
-    "ruma-events?/compat-optional",
-]
+compat-optional = ["ruma-common/compat-optional", "ruma-events?/compat-optional"]
 
 # Unset avatars by sending an empty string, same as what Element Web does, c.f.
 # https://github.com/matrix-org/matrix-spec/issues/378#issuecomment-1055831264
@@ -286,6 +281,7 @@ __unstable-mscs = [
     "unstable-msc3246",
     "unstable-msc3381",
     "unstable-msc3401",
+    "unstable-msc3414",
     "unstable-msc3488",
     "unstable-msc3489",
     "unstable-msc3551",
@@ -346,20 +342,20 @@ __compat = [
 assign = { workspace = true }
 js_int = { workspace = true }
 js_option = "0.1.1"
-web-time = { workspace = true }
+
+ruma-appservice-api = { workspace = true, optional = true }
+ruma-client-api = { workspace = true, optional = true }
 
 ruma-common = { workspace = true }
 
 ruma-events = { workspace = true, optional = true }
-ruma-html = { workspace = true, optional = true }
-ruma-signatures = { workspace = true, optional = true }
-ruma-state-res = { workspace = true, optional = true }
-
-ruma-appservice-api = { workspace = true, optional = true }
-ruma-client-api = { workspace = true, optional = true }
 ruma-federation-api = { workspace = true, optional = true }
+ruma-html = { workspace = true, optional = true }
 ruma-identity-service-api = { workspace = true, optional = true }
 ruma-push-gateway-api = { workspace = true, optional = true }
+ruma-signatures = { workspace = true, optional = true }
+ruma-state-res = { workspace = true, optional = true }
+web-time = { workspace = true }
 
 [dev-dependencies]
 serde = { workspace = true }
