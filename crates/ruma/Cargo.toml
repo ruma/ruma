@@ -21,46 +21,16 @@ events = ["dep:ruma-events"]
 signatures = ["dep:ruma-signatures", "canonical-json"]
 state-res = ["dep:ruma-state-res"]
 
-appservice-api-c = [
-    "api",
-    "events",
-    "dep:ruma-appservice-api",
-    "ruma-appservice-api?/client",
-]
-appservice-api-s = [
-    "api",
-    "events",
-    "dep:ruma-appservice-api",
-    "ruma-appservice-api?/server",
-]
+appservice-api-c = ["api", "events", "dep:ruma-appservice-api", "ruma-appservice-api?/client",]
+appservice-api-s = ["api", "events", "dep:ruma-appservice-api", "ruma-appservice-api?/server",]
 appservice-api = ["appservice-api-c", "appservice-api-s"]
 
-client-api-c = [
-    "api",
-    "events",
-    "dep:ruma-client-api",
-    "ruma-client-api?/client",
-]
-client-api-s = [
-    "api",
-    "events",
-    "dep:ruma-client-api",
-    "ruma-client-api?/server",
-]
+client-api-c = ["api", "events", "dep:ruma-client-api", "ruma-client-api?/client",]
+client-api-s = ["api", "events", "dep:ruma-client-api", "ruma-client-api?/server",]
 client-api = ["client-api-c", "client-api-s"]
 
-federation-api-c = [
-    "api",
-    "signatures",
-    "dep:ruma-federation-api",
-    "ruma-federation-api?/client",
-]
-federation-api-s = [
-    "api",
-    "signatures",
-    "dep:ruma-federation-api",
-    "ruma-federation-api?/server",
-]
+federation-api-c = ["api", "signatures", "dep:ruma-federation-api", "ruma-federation-api?/client",]
+federation-api-s = ["api", "signatures", "dep:ruma-federation-api", "ruma-federation-api?/server",]
 federation-api = ["federation-api-c", "federation-api-s"]
 
 identity-service-api-c = [
@@ -75,16 +45,8 @@ identity-service-api-s = [
 ]
 identity-service-api = ["identity-service-api-c", "identity-service-api-s"]
 
-push-gateway-api-c = [
-    "api",
-    "dep:ruma-push-gateway-api",
-    "ruma-push-gateway-api?/client",
-]
-push-gateway-api-s = [
-    "api",
-    "dep:ruma-push-gateway-api",
-    "ruma-push-gateway-api?/server",
-]
+push-gateway-api-c = ["api", "dep:ruma-push-gateway-api", "ruma-push-gateway-api?/client"]
+push-gateway-api-s = ["api", "dep:ruma-push-gateway-api", "ruma-push-gateway-api?/server"]
 push-gateway-api = ["push-gateway-api-c", "push-gateway-api-s"]
 
 # Required for randomness, current system time in browser environments
@@ -188,10 +150,7 @@ unstable-msc2448 = [
 ]
 unstable-msc2545 = ["ruma-events?/unstable-msc2545"]
 unstable-msc2654 = ["ruma-client-api?/unstable-msc2654"]
-unstable-msc2666 = [
-    "ruma-common/unstable-msc2666",
-    "ruma-client-api?/unstable-msc2666",
-]
+unstable-msc2666 = ["ruma-common/unstable-msc2666", "ruma-client-api?/unstable-msc2666"]
 unstable-msc2747 = ["ruma-events?/unstable-msc2747"]
 unstable-msc2867 = ["ruma-events?/unstable-msc2867"]
 unstable-msc2870 = ["ruma-common/unstable-msc2870"]
@@ -207,10 +166,7 @@ unstable-msc3246 = ["ruma-events?/unstable-msc3246"]
 unstable-msc3381 = ["ruma-events?/unstable-msc3381"]
 unstable-msc3401 = ["ruma-events?/unstable-msc3401"]
 unstable-msc3414 = ["ruma-events?/unstable-msc3414"]
-unstable-msc3488 = [
-    "ruma-client-api?/unstable-msc3488",
-    "ruma-events?/unstable-msc3488",
-]
+unstable-msc3488 = ["ruma-client-api?/unstable-msc3488", "ruma-events?/unstable-msc3488"]
 unstable-msc3489 = ["ruma-events?/unstable-msc3489"]
 unstable-msc3551 = ["ruma-events?/unstable-msc3551"]
 unstable-msc3552 = ["ruma-events?/unstable-msc3552"]
@@ -221,10 +177,7 @@ unstable-msc3723 = ["ruma-federation-api?/unstable-msc3723"]
 unstable-msc3768 = ["ruma-common/unstable-msc3768"]
 unstable-msc3814 = ["ruma-client-api?/unstable-msc3814"]
 unstable-msc3824 = ["ruma-client-api?/unstable-msc3824"]
-unstable-msc3843 = [
-    "ruma-client-api?/unstable-msc3843",
-    "ruma-federation-api?/unstable-msc3843",
-]
+unstable-msc3843 = ["ruma-client-api?/unstable-msc3843", "ruma-federation-api?/unstable-msc3843"]
 unstable-msc3927 = ["ruma-events?/unstable-msc3927"]
 unstable-msc3930 = ["ruma-common/unstable-msc3930"]
 unstable-msc3931 = ["ruma-common/unstable-msc3931"]
@@ -235,22 +188,13 @@ unstable-msc3956 = ["ruma-events?/unstable-msc3956"]
 unstable-msc3983 = ["ruma-client-api?/unstable-msc3983"]
 unstable-msc4075 = ["ruma-events?/unstable-msc4075"]
 unstable-msc4095 = ["ruma-events?/unstable-msc4095"]
-unstable-msc4108 = [
-    "ruma-common/unstable-msc4108",
-    "ruma-client-api?/unstable-msc4108",
-]
+unstable-msc4108 = ["ruma-common/unstable-msc4108", "ruma-client-api?/unstable-msc4108"]
 unstable-msc4121 = ["ruma-client-api?/unstable-msc4121"]
 unstable-msc4125 = ["ruma-federation-api?/unstable-msc4125"]
-unstable-msc4140 = [
-    "ruma-common/unstable-msc4140",
-    "ruma-client-api?/unstable-msc4140",
-]
+unstable-msc4140 = ["ruma-common/unstable-msc4140", "ruma-client-api?/unstable-msc4140"]
 unstable-msc4143 = ["ruma-client-api?/unstable-msc4143"]
 unstable-msc4171 = ["ruma-events?/unstable-msc4171"]
-unstable-msc4186 = [
-    "ruma-common/unstable-msc4186",
-    "ruma-client-api?/unstable-msc4186",
-]
+unstable-msc4186 = ["ruma-common/unstable-msc4186", "ruma-client-api?/unstable-msc4186"]
 unstable-msc4191 = ["ruma-client-api?/unstable-msc4191"]
 unstable-msc4203 = ["ruma-appservice-api?/unstable-msc4203"]
 unstable-msc4230 = ["ruma-events?/unstable-msc4230"]
@@ -342,20 +286,20 @@ __compat = [
 assign = { workspace = true }
 js_int = { workspace = true }
 js_option = "0.1.1"
-
-ruma-appservice-api = { workspace = true, optional = true }
-ruma-client-api = { workspace = true, optional = true }
+web-time = { workspace = true }
 
 ruma-common = { workspace = true }
 
 ruma-events = { workspace = true, optional = true }
-ruma-federation-api = { workspace = true, optional = true }
 ruma-html = { workspace = true, optional = true }
-ruma-identity-service-api = { workspace = true, optional = true }
-ruma-push-gateway-api = { workspace = true, optional = true }
 ruma-signatures = { workspace = true, optional = true }
 ruma-state-res = { workspace = true, optional = true }
-web-time = { workspace = true }
+
+ruma-appservice-api = { workspace = true, optional = true }
+ruma-client-api = { workspace = true, optional = true }
+ruma-federation-api = { workspace = true, optional = true }
+ruma-identity-service-api = { workspace = true, optional = true }
+ruma-push-gateway-api = { workspace = true, optional = true }
 
 [dev-dependencies]
 serde = { workspace = true }
