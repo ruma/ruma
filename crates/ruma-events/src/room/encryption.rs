@@ -23,7 +23,7 @@ pub struct RoomEncryptionEventContent {
     /// Whether state events should be encrypted alongside message-like events.
     #[cfg(feature = "unstable-msc3414")]
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
-    #[serde(rename = "org.matrix.msc3414.encrypt_state_events")]
+    #[serde(rename = "io.element.msc3414.encrypt_state_events")]
     pub encrypt_state_events: bool,
 
     /// How long the session should be used before changing it.
