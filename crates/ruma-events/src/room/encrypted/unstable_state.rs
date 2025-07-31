@@ -19,7 +19,7 @@ pub struct StateRoomEncryptedEventContent {
     pub scheme: EncryptedEventScheme,
 }
 
-/// The possibly redacted form of [StateRoomEncryptedEventContent].
+/// The possibly redacted form of [`StateRoomEncryptedEventContent`].
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PossiblyRedactedStateRoomEncryptedEventContent {
