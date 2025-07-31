@@ -149,6 +149,8 @@ impl JsonCastable<StrippedState> for AnySyncStateEvent {}
 
 impl JsonCastable<StrippedState> for AnyStrippedStateEvent {}
 
+impl JsonCastable<AnyStrippedStateEvent> for StrippedState {}
+
 impl JsonCastable<StrippedState> for AnyStateEvent {}
 
 impl<C> JsonCastable<StrippedState> for OriginalStateEvent<C> where C: StaticStateEventContent {}
