@@ -112,18 +112,23 @@ impl EventEnumEntry {
     pub fn to_event_path(&self, kind: EventKind, var: EventVariation) -> TokenStream {
         let path = &self.ev_path;
         let ident = &self.ident;
-        let event_name = if kind == EventKind::ToDevice {
-            assert_eq!(var, EventVariation::None);
-            format_ident!("ToDevice{ident}Event")
-        } else {
-            let type_prefix = match kind {
-                EventKind::GlobalAccountData if self.both_account_data => "Global",
-                EventKind::RoomAccountData if self.both_account_data => "Room",
-                _ => "",
-            };
 
-            format_ident!("{}{type_prefix}{ident}Event", var)
+        let type_prefix = match kind {
+            EventKind::ToDevice => "ToDevice",
+            EventKind::GlobalAccountData if self.both_account_data => "Global",
+            EventKind::RoomAccountData if self.both_account_data => "Room",
+            EventKind::State
+                if self
+                    .types
+                    .stable_type()
+                    .is_some_and(|ev_type| ev_type.as_str() == "m.room.encrypted") =>
+            {
+                "State"
+            }
+            _ => "",
         };
+        let event_name = format_ident!("{var}{type_prefix}{ident}Event");
+
         quote! { #path::#event_name }
     }
 
@@ -131,15 +136,23 @@ impl EventEnumEntry {
     pub fn to_event_content_path(&self, kind: EventKind) -> TokenStream {
         let path = &self.ev_path;
         let ident = &self.ident;
-        let content_str = match kind {
-            EventKind::ToDevice => {
-                format_ident!("ToDevice{ident}EventContent")
+
+        let type_prefix = match kind {
+            EventKind::ToDevice => "ToDevice",
+            EventKind::State
+                if self
+                    .types
+                    .stable_type()
+                    .is_some_and(|ev_type| ev_type.as_str() == "m.room.encrypted") =>
+            {
+                "State"
             }
-            _ => format_ident!("{ident}EventContent"),
+            _ => "",
         };
+        let content_name = format_ident!("{type_prefix}{ident}EventContent");
 
         quote! {
-            #path::#content_str
+            #path::#content_name
         }
     }
 

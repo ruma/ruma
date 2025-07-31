@@ -147,6 +147,8 @@ event_enum! {
         "m.room.canonical_alias" => super::room::canonical_alias,
         "m.room.create" => super::room::create,
         "m.room.encryption" => super::room::encryption,
+        #[cfg(feature = "unstable-msc3414")]
+        "m.room.encrypted" => super::room::encrypted::unstable_state,
         "m.room.guest_access" => super::room::guest_access,
         "m.room.history_visibility" => super::room::history_visibility,
         "m.room.join_rules" => super::room::join_rules,

@@ -90,6 +90,7 @@ Improvements:
 - `m.space.child` events can be sorted with the algorithm defined in the spec by using the new
   `SpaceChildOrd` trait and `SpaceChildOrdHelper` type, and `HierarchySpaceChildEvent` specifically
   now implements `Ord` using the aforementioned trait.
+- Implement types for encrypted state events, according to MSC3414.
 - Add `additional_creators` field to `RoomCreateEventContent`, used to optionally specify
   additional creators of a room.
 
