@@ -5,7 +5,7 @@
 use js_int::UInt;
 use ruma_common::{
     serde::{from_raw_json_value, JsonCastable, JsonObject},
-    OwnedUserId, UserId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, UserId,
 };
 use ruma_events::{
     AnyStateEvent, AnyStrippedStateEvent, AnySyncStateEvent, OriginalStateEvent,
@@ -121,6 +121,28 @@ impl StrippedState {
             Self::Sync(event) => event.state_key(),
             #[cfg(feature = "unstable-msc4311")]
             Self::Full(event) => event.state_key(),
+        }
+    }
+
+    /// Returns this event's `event_id` field, if there is one.
+    pub fn event_id(&self) -> Option<&EventId> {
+        match self {
+            Self::Stripped(_) => None,
+            #[cfg(feature = "unstable-msc4319")]
+            Self::Sync(event) => Some(event.event_id()),
+            #[cfg(feature = "unstable-msc4311")]
+            Self::Full(event) => Some(event.event_id()),
+        }
+    }
+
+    /// Returns this event's `origin_server_ts` field, if there is one.
+    pub fn origin_server_ts(&self) -> Option<MilliSecondsSinceUnixEpoch> {
+        match self {
+            Self::Stripped(_) => None,
+            #[cfg(feature = "unstable-msc4319")]
+            Self::Sync(event) => Some(event.origin_server_ts()),
+            #[cfg(feature = "unstable-msc4311")]
+            Self::Full(event) => Some(event.origin_server_ts()),
         }
     }
 }
