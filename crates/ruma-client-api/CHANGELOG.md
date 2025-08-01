@@ -45,6 +45,8 @@ Improvements:
   additional creators from room version 12 onwards.
 - Add unstable support for `AnyStateEvent` formatted events in `sync_events`, alongside stripped
   events from MSC4311 behind the `unstable-msc4311` feature.
+- Add unstable support for `AnySyncStateEvent` formatted events in `sync_events`, alongside stripped
+  events, according to MSC4319.
 
 # 0.20.4
 
