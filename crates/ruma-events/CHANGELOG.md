@@ -69,6 +69,10 @@ Breaking changes:
 - The `sender_key` and `device_id` fields of `MegolmV1AesSha2Content` are now optional. They were
   deprecated in Matrix 1.3.
 - The `sender_key` field of `RequestedKeyInfo` is now optional. It was deprecated in Matrix 1.3.
+- `RedactedRoomJoinRulesEventContent` is now a type alias of `RoomJoinRulesEventContent`, since they
+  were identical. This also solves a deserialization error for `RedactedRoomJoinRulesEventContent`.
+- `RedactedRoomHistoryVisibilityEventContent` is now a type alias of
+  `RoomHistoryVisibilityEventContent`, since they were identical.
 
 Improvements:
 

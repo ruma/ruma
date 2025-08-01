@@ -173,6 +173,7 @@ fn generate_redacted_event_content<'a>(
     let doc = format!("Redacted form of [`{ident}`]");
     let redacted_ident = format_ident!("Redacted{ident}");
 
+    let mut field_changed = false;
     let kept_redacted_fields: Vec<_> = fields
         .map(|f| {
             let mut keep_field = false;
@@ -197,72 +198,103 @@ fn generate_redacted_event_content<'a>(
             if keep_field {
                 Ok(Some(Field { attrs, ..f.clone() }))
             } else {
+                field_changed = true;
                 Ok(None)
             }
         })
         .filter_map(Result::transpose)
         .collect::<syn::Result<_>>()?;
 
-    let redaction_struct_fields = kept_redacted_fields.iter().flat_map(|f| &f.ident);
+    // If at least one field needs to change, generate a new struct, else use a type alias.
+    if field_changed {
+        let redaction_struct_fields = kept_redacted_fields.iter().flat_map(|f| &f.ident);
 
-    let constructor = kept_redacted_fields.is_empty().then(|| {
-        let doc = format!("Creates an empty {redacted_ident}.");
-        quote! {
-            impl #redacted_ident {
-                #[doc = #doc]
-                #vis fn new() -> Self {
-                    Self {}
+        let constructor = kept_redacted_fields.is_empty().then(|| {
+            let doc = format!("Creates an empty {redacted_ident}.");
+            quote! {
+                impl #redacted_ident {
+                    #[doc = #doc]
+                    #vis fn new() -> Self {
+                        Self {}
+                    }
                 }
             }
-        }
-    });
+        });
 
-    let redacted_event_content = generate_event_content_impl(
-        &redacted_ident,
-        Some(kept_redacted_fields.iter()),
-        types,
-        kind,
-        EventContentVariation::Redacted,
-        event_type_fragment,
-        state_key_type,
-        unsigned_type,
-        ruma_events,
-    )
-    .unwrap_or_else(syn::Error::into_compile_error);
+        let redacted_event_content = generate_event_content_impl(
+            &redacted_ident,
+            Some(kept_redacted_fields.iter()),
+            types,
+            kind,
+            EventContentVariation::Redacted,
+            event_type_fragment,
+            state_key_type,
+            unsigned_type,
+            ruma_events,
+        )
+        .unwrap_or_else(syn::Error::into_compile_error);
 
-    let static_event_content_impl =
-        generate_static_event_content_impl(&redacted_ident, types, ruma_events);
+        let static_event_content_impl =
+            generate_static_event_content_impl(&redacted_ident, types, ruma_events);
 
-    let json_castable_impl = generate_json_castable_impl(&redacted_ident, &[ident]);
+        let json_castable_impl = generate_json_castable_impl(&redacted_ident, &[ident]);
 
-    Ok(quote! {
-        // this is the non redacted event content's impl
-        #[automatically_derived]
-        impl #ruma_events::RedactContent for #ident {
-            type Redacted = #redacted_ident;
+        Ok(quote! {
+            // this is the non redacted event content's impl
+            #[automatically_derived]
+            impl #ruma_events::RedactContent for #ident {
+                type Redacted = #redacted_ident;
 
-            fn redact(self, _rules: &#ruma_common::room_version_rules::RedactionRules) -> #redacted_ident {
-                #redacted_ident {
-                    #( #redaction_struct_fields: self.#redaction_struct_fields, )*
+                fn redact(self, _rules: &#ruma_common::room_version_rules::RedactionRules) -> #redacted_ident {
+                    #redacted_ident {
+                        #( #redaction_struct_fields: self.#redaction_struct_fields, )*
+                    }
                 }
             }
-        }
 
-        #[doc = #doc]
-        #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
-        #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-        #vis struct #redacted_ident {
-            #( #kept_redacted_fields, )*
-        }
+            #[doc = #doc]
+            #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
+            #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+            #vis struct #redacted_ident {
+                #( #kept_redacted_fields, )*
+            }
 
-        #constructor
+            #constructor
 
-        #redacted_event_content
+            #redacted_event_content
 
-        #static_event_content_impl
+            #static_event_content_impl
 
-        #json_castable_impl
-    })
+            #json_castable_impl
+        })
+    } else {
+        let event_content_kind_trait_impl = generate_event_content_kind_trait_impl(
+            ident,
+            types,
+            kind,
+            EventContentTraitVariation::Redacted,
+            event_type_fragment,
+            state_key_type,
+            ruma_events,
+        );
+
+        Ok(quote! {
+            // this is the non redacted event content's impl
+            #[automatically_derived]
+            impl #ruma_events::RedactContent for #ident {
+                type Redacted = #redacted_ident;
+
+                fn redact(self, _rules: &#ruma_common::room_version_rules::RedactionRules) -> #redacted_ident {
+                    self
+                }
+            }
+
+            #[doc = #doc]
+            #vis type #redacted_ident = #ident;
+
+            #event_content_kind_trait_impl
+        })
+    }
 }
 
 /// Generate the `PossiblyRedacted*EventContent` variation of the type.
