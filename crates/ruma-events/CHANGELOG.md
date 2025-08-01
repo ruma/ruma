@@ -66,6 +66,10 @@ Breaking changes:
 - The `event_id` field of `PreviousRoom` is now optional and deprecated. It has been removed in new
   room versions so clients should not rely on it. They can obtain it by requesting the
   `m.room.tombstone` event in the state of the predecessor.
+- `RedactedRoomJoinRulesEventContent` is now a type alias of `RoomJoinRulesEventContent`, since they
+  were identical. This also solves a deserialization error for `RedactedRoomJoinRulesEventContent`.
+- `RedactedRoomHistoryVisibilityEventContent` is now a type alias of
+  `RoomHistoryVisibilityEventContent`, since they were identical.
 
 Improvements:
 
