@@ -13,7 +13,7 @@ use ruma_events::{
     RedactedStateEventContent, RedactedSyncStateEvent, StateEvent, StateEventType,
     StaticStateEventContent, StrippedStateEvent, SyncStateEvent,
 };
-use serde::{self, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 pub mod v3;
@@ -81,6 +81,10 @@ pub enum StrippedState {
     /// A stripped state event.
     Stripped(AnyStrippedStateEvent),
 
+    /// An event using the sync format.
+    #[cfg(feature = "unstable-msc4319")]
+    Sync(AnySyncStateEvent),
+
     /// A full state event.
     #[cfg(feature = "unstable-msc4311")]
     Full(AnyStateEvent),
@@ -91,6 +95,8 @@ impl StrippedState {
     pub fn event_type(&self) -> StateEventType {
         match self {
             Self::Stripped(event) => event.event_type(),
+            #[cfg(feature = "unstable-msc4319")]
+            Self::Sync(event) => event.event_type(),
             #[cfg(feature = "unstable-msc4311")]
             Self::Full(event) => event.event_type(),
         }
@@ -100,6 +106,8 @@ impl StrippedState {
     pub fn sender(&self) -> &UserId {
         match self {
             Self::Stripped(event) => event.sender(),
+            #[cfg(feature = "unstable-msc4319")]
+            Self::Sync(event) => event.sender(),
             #[cfg(feature = "unstable-msc4311")]
             Self::Full(event) => event.sender(),
         }
@@ -109,6 +117,8 @@ impl StrippedState {
     pub fn state_key(&self) -> &str {
         match self {
             Self::Stripped(event) => event.state_key(),
+            #[cfg(feature = "unstable-msc4319")]
+            Self::Sync(event) => event.state_key(),
             #[cfg(feature = "unstable-msc4311")]
             Self::Full(event) => event.state_key(),
         }
@@ -118,26 +128,37 @@ impl StrippedState {
 impl<'de> Deserialize<'de> for StrippedState {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        D: ::serde::Deserializer<'de>,
+        D: serde::Deserializer<'de>,
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
 
-        #[cfg(feature = "unstable-msc4311")]
+        #[cfg(any(feature = "unstable-msc4311", feature = "unstable-msc4319"))]
         {
             use serde::de;
 
             #[derive(Deserialize)]
-            struct PotentialFullEventDeHelper {
+            struct StrippedStateDeHelper {
                 event_id: Option<de::IgnoredAny>,
                 origin_server_ts: Option<de::IgnoredAny>,
+                #[cfg(feature = "unstable-msc4311")]
                 room_id: Option<de::IgnoredAny>,
             }
 
-            let PotentialFullEventDeHelper { event_id, origin_server_ts, room_id } =
-                from_raw_json_value(&json)?;
+            let StrippedStateDeHelper {
+                event_id,
+                origin_server_ts,
+                #[cfg(feature = "unstable-msc4311")]
+                room_id,
+            } = from_raw_json_value(&json)?;
 
-            if event_id.is_some() && origin_server_ts.is_some() && room_id.is_some() {
-                return from_raw_json_value(&json).map(Self::Full);
+            if event_id.is_some() && origin_server_ts.is_some() {
+                #[cfg(feature = "unstable-msc4311")]
+                if room_id.is_some() {
+                    return from_raw_json_value(&json).map(Self::Full);
+                }
+
+                #[cfg(feature = "unstable-msc4319")]
+                return from_raw_json_value(&json).map(Self::Sync);
             }
         }
 
@@ -212,6 +233,36 @@ mod tests {
         assert_eq!(stripped_member_event.sender, user_id);
         assert_eq!(stripped_member_event.state_key, user_id);
         assert_eq!(stripped_member_event.content.membership, MembershipState::Join);
+
+        #[cfg(feature = "unstable-msc4319")]
+        {
+            use js_int::uint;
+            use ruma_common::event_id;
+            use ruma_events::{AnySyncStateEvent, SyncStateEvent};
+
+            let event_id = event_id!("$abcdefgh");
+
+            // Sync format.
+            let sync_event_json = json!({
+                "content": content,
+                "event_id": event_id,
+                "origin_server_ts": 1_000_000,
+                "sender": user_id,
+                "state_key": user_id,
+                "type": "m.room.member",
+            });
+            assert_matches!(
+                from_json_value::<StrippedState>(sync_event_json).unwrap(),
+                StrippedState::Sync(AnySyncStateEvent::RoomMember(SyncStateEvent::Original(
+                    sync_member_event
+                )))
+            );
+            assert_eq!(sync_member_event.content.membership, MembershipState::Join);
+            assert_eq!(sync_member_event.event_id, event_id);
+            assert_eq!(sync_member_event.origin_server_ts.0, uint!(1_000_000));
+            assert_eq!(sync_member_event.sender, user_id);
+            assert_eq!(sync_member_event.state_key, user_id);
+        }
 
         #[cfg(feature = "unstable-msc4311")]
         {
