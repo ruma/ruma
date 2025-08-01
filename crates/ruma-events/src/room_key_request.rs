@@ -74,8 +74,9 @@ pub struct RequestedKeyInfo {
     pub room_id: OwnedRoomId,
 
     /// The Curve25519 key of the device which initiated the session originally.
-    #[deprecated = "this field still needs to be sent but should not be used when received"]
-    pub sender_key: String,
+    #[deprecated = "Since Matrix 1.3, this field should still be sent but should not be used when received"]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sender_key: Option<String>,
 
     /// The ID of the session that the key is for.
     pub session_id: String,
@@ -91,6 +92,6 @@ impl RequestedKeyInfo {
         session_id: String,
     ) -> Self {
         #[allow(deprecated)]
-        Self { algorithm, room_id, sender_key, session_id }
+        Self { algorithm, room_id, sender_key: Some(sender_key), session_id }
     }
 }

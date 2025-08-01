@@ -88,8 +88,6 @@ mod tests {
         let json_data = json!({
             "algorithm": "m.megolm.v1.aes-sha2",
             "ciphertext": "ciphertext",
-            "sender_key": "sender_key",
-            "device_id": "device_id",
             "session_id": "session_id",
         });
 
@@ -97,8 +95,8 @@ mod tests {
 
         assert_matches!(content.scheme, EncryptedEventScheme::MegolmV1AesSha2(scheme));
         assert_eq!(scheme.ciphertext, "ciphertext");
-        assert_eq!(scheme.sender_key, "sender_key");
-        assert_eq!(scheme.device_id, "device_id");
+        assert_eq!(scheme.sender_key, None);
+        assert_eq!(scheme.device_id, None);
         assert_eq!(scheme.session_id, "session_id");
     }
 
@@ -115,8 +113,6 @@ mod tests {
             "content": {
                 "algorithm": "m.megolm.v1.aes-sha2",
                 "ciphertext": "ciphertext",
-                "sender_key": "sender_key",
-                "device_id": "device_id",
                 "session_id": "session_id",
             }
         });
@@ -126,8 +122,8 @@ mod tests {
 
         assert_matches!(ev.content.scheme, EncryptedEventScheme::MegolmV1AesSha2(scheme));
         assert_eq!(scheme.ciphertext, "ciphertext");
-        assert_eq!(scheme.sender_key, "sender_key");
-        assert_eq!(scheme.device_id, "device_id");
+        assert_eq!(scheme.sender_key, None);
+        assert_eq!(scheme.device_id, None);
         assert_eq!(scheme.session_id, "session_id");
 
         assert_eq!(ev.sender, user_id!("@example:example.com"));

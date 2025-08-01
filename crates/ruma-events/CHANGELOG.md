@@ -66,6 +66,9 @@ Breaking changes:
 - The `event_id` field of `PreviousRoom` is now optional and deprecated. It has been removed in new
   room versions so clients should not rely on it. They can obtain it by requesting the
   `m.room.tombstone` event in the state of the predecessor.
+- The `sender_key` and `device_id` fields of `MegolmV1AesSha2Content` are now optional. They were
+  deprecated in Matrix 1.3.
+- The `sender_key` field of `RequestedKeyInfo` is now optional. It was deprecated in Matrix 1.3.
 
 Improvements:
 
