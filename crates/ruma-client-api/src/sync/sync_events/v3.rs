@@ -4,6 +4,7 @@
 
 use std::{collections::BTreeMap, time::Duration};
 
+use as_variant::as_variant;
 use js_int::UInt;
 use ruma_common::{
     api::{request, response, Metadata},
@@ -17,6 +18,8 @@ use ruma_events::{
     AnySyncEphemeralRoomEvent, AnySyncStateEvent, AnySyncTimelineEvent, AnyToDeviceEvent,
 };
 use serde::{Deserialize, Serialize};
+
+mod response_serde;
 
 use super::{DeviceLists, StrippedState, UnreadNotificationsCount};
 use crate::filter::FilterDefinition;
@@ -68,6 +71,17 @@ pub struct Request {
     )]
     #[ruma_api(query)]
     pub timeout: Option<Duration>,
+
+    /// Controls whether to receive state changes between the previous sync and the **start** of
+    /// the timeline, or between the previous sync and the **end** of the timeline.
+    #[cfg(feature = "unstable-msc4222")]
+    #[serde(
+        default,
+        skip_serializing_if = "ruma_common::serde::is_default",
+        rename = "org.matrix.msc4222.use_state_after"
+    )]
+    #[ruma_api(query)]
+    pub use_state_after: bool,
 }
 
 /// Response type for the `sync` endpoint.
@@ -204,20 +218,20 @@ impl Rooms {
 }
 
 /// Historical updates to left rooms.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct LeftRoom {
     /// The timeline of messages and state changes in the room up to the point when the user
     /// left.
-    #[serde(default, skip_serializing_if = "Timeline::is_empty")]
+    #[serde(skip_serializing_if = "Timeline::is_empty")]
     pub timeline: Timeline,
 
     /// The state updates for the room up to the start of the timeline.
-    #[serde(default, skip_serializing_if = "State::is_empty")]
+    #[serde(flatten, skip_serializing_if = "State::is_before_and_empty")]
     pub state: State,
 
     /// The private data that this user has attached to this room.
-    #[serde(default, skip_serializing_if = "RoomAccountData::is_empty")]
+    #[serde(skip_serializing_if = "RoomAccountData::is_empty")]
     pub account_data: RoomAccountData,
 }
 
@@ -234,12 +248,12 @@ impl LeftRoom {
 }
 
 /// Updates to joined rooms.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct JoinedRoom {
     /// Information about the room which clients may need to correctly render it
     /// to users.
-    #[serde(default, skip_serializing_if = "RoomSummary::is_empty")]
+    #[serde(skip_serializing_if = "RoomSummary::is_empty")]
     pub summary: RoomSummary,
 
     /// Counts of [unread notifications] for this room.
@@ -249,7 +263,7 @@ pub struct JoinedRoom {
     ///
     /// [unread notifications]: https://spec.matrix.org/latest/client-server-api/#receiving-notifications
     /// [`RoomEventFilter`]: crate::filter::RoomEventFilter
-    #[serde(default, skip_serializing_if = "UnreadNotificationsCount::is_empty")]
+    #[serde(skip_serializing_if = "UnreadNotificationsCount::is_empty")]
     pub unread_notifications: UnreadNotificationsCount,
 
     /// Counts of [unread notifications] for threads in this room.
@@ -260,26 +274,26 @@ pub struct JoinedRoom {
     ///
     /// [unread notifications]: https://spec.matrix.org/latest/client-server-api/#receiving-notifications
     /// [`RoomEventFilter`]: crate::filter::RoomEventFilter
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
     pub unread_thread_notifications: BTreeMap<OwnedEventId, UnreadNotificationsCount>,
 
     /// The timeline of messages and state changes in the room.
-    #[serde(default, skip_serializing_if = "Timeline::is_empty")]
+    #[serde(skip_serializing_if = "Timeline::is_empty")]
     pub timeline: Timeline,
 
     /// Updates to the state, between the time indicated by the `since` parameter, and the
     /// start of the `timeline` (or all state up to the start of the `timeline`, if
     /// `since` is not given, or `full_state` is true).
-    #[serde(default, skip_serializing_if = "State::is_empty")]
+    #[serde(flatten, skip_serializing_if = "State::is_before_and_empty")]
     pub state: State,
 
     /// The private data that this user has attached to this room.
-    #[serde(default, skip_serializing_if = "RoomAccountData::is_empty")]
+    #[serde(skip_serializing_if = "RoomAccountData::is_empty")]
     pub account_data: RoomAccountData,
 
     /// The ephemeral events in the room that aren't recorded in the timeline or state of the
     /// room.
-    #[serde(default, skip_serializing_if = "Ephemeral::is_empty")]
+    #[serde(skip_serializing_if = "Ephemeral::is_empty")]
     pub ephemeral: Ephemeral,
 
     /// The number of unread events since the latest read receipt.
@@ -398,16 +412,63 @@ impl Timeline {
     }
 }
 
+/// State changes in a room.
+#[derive(Clone, Debug, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub enum State {
+    /// The state changes between the previous sync and the **start** of the timeline.
+    ///
+    /// To get the full list of state changes since the previous sync, the state events in
+    /// [`Timeline`] must be added to these events to update the local state.
+    ///
+    /// With the `unstable-msc4222` feature, to get this variant, `use_state_after` must be set to
+    /// `false` in the [`Request`], which is the default.
+    #[serde(rename = "state")]
+    Before(StateEvents),
+
+    /// The state changes between the previous sync and the **end** of the timeline.
+    ///
+    /// This contains the full list of state changes since the previous sync. State events in
+    /// [`Timeline`] must be ignored to update the local state.
+    ///
+    /// To get this variant, `use_state_after` must be set to `true` in the [`Request`].
+    #[cfg(feature = "unstable-msc4222")]
+    #[serde(rename = "org.matrix.msc4222.state_after")]
+    After(StateEvents),
+}
+
+impl State {
+    /// Returns true if this is the `Before` variant and there are no state updates.
+    fn is_before_and_empty(&self) -> bool {
+        as_variant!(self, Self::Before).is_some_and(|state| state.is_empty())
+    }
+
+    /// Returns true if there are no state updates.
+    pub fn is_empty(&self) -> bool {
+        match self {
+            Self::Before(state) => state.is_empty(),
+            #[cfg(feature = "unstable-msc4222")]
+            Self::After(state) => state.is_empty(),
+        }
+    }
+}
+
+impl Default for State {
+    fn default() -> Self {
+        Self::Before(Default::default())
+    }
+}
+
 /// State events in the room.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct State {
+pub struct StateEvents {
     /// A list of state events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnySyncStateEvent>>,
 }
 
-impl State {
+impl StateEvents {
     /// Creates an empty `State`.
     pub fn new() -> Self {
         Default::default()
@@ -420,13 +481,13 @@ impl State {
 
     /// Creates a `State` with events
     pub fn with_events(events: Vec<Raw<AnySyncStateEvent>>) -> Self {
-        State { events, ..Default::default() }
+        Self { events, ..Default::default() }
     }
 }
 
-impl From<Vec<Raw<AnySyncStateEvent>>> for State {
+impl From<Vec<Raw<AnySyncStateEvent>>> for StateEvents {
     fn from(events: Vec<Raw<AnySyncStateEvent>>) -> Self {
-        State::with_events(events)
+        Self::with_events(events)
     }
 }
 
@@ -664,9 +725,28 @@ mod client_tests {
         event_id, room_id, user_id, RoomVersionId,
     };
     use ruma_events::AnyStrippedStateEvent;
-    use serde_json::{json, to_vec as to_json_vec};
+    use serde_json::{json, to_vec as to_json_vec, Value as JsonValue};
 
-    use super::{Filter, PresenceState, Request, Response, StrippedState};
+    use super::{Filter, PresenceState, Request, Response, State, StrippedState};
+
+    fn sync_state_event() -> JsonValue {
+        json!({
+            "content": {
+              "avatar_url": "mxc://example.org/SEsfnsuifSDFSSEF",
+              "displayname": "Alice Margatroid",
+              "membership": "join",
+            },
+            "event_id": "$143273582443PhrSn",
+            "origin_server_ts": 1_432_735_824,
+            "sender": "@alice:example.org",
+            "state_key": "@alice:example.org",
+            "type": "m.room.member",
+            "unsigned": {
+              "age": 1234,
+              "membership": "join",
+            },
+        })
+    }
 
     #[test]
     fn serialize_request_all_params() {
@@ -680,6 +760,8 @@ mod client_tests {
             full_state: true,
             set_presence: PresenceState::Offline,
             timeout: Some(Duration::from_millis(30000)),
+            #[cfg(feature = "unstable-msc4222")]
+            use_state_after: true,
         }
         .try_into_http_request(
             "https://homeserver.tld",
@@ -697,6 +779,8 @@ mod client_tests {
         assert!(query.contains("full_state=true"));
         assert!(query.contains("set_presence=offline"));
         assert!(query.contains("timeout=30000"));
+        #[cfg(feature = "unstable-msc4222")]
+        assert!(query.contains("org.matrix.msc4222.use_state_after=true"));
     }
 
     #[test]
@@ -767,6 +851,181 @@ mod client_tests {
             assert_eq!(invite_event.content.membership, MembershipState::Invite);
         }
     }
+
+    #[test]
+    fn deserialize_response_no_state() {
+        let joined_room_id = room_id!("!joined:localhost");
+        let left_room_id = room_id!("!left:localhost");
+        let event = sync_state_event();
+
+        let body = json!({
+            "next_batch": "aaa",
+            "rooms": {
+                "join": {
+                    joined_room_id: {
+                        "timeline": {
+                            "events": [
+                                event,
+                            ],
+                        },
+                    },
+                },
+                "leave": {
+                    left_room_id: {
+                        "timeline": {
+                            "events": [
+                                event,
+                            ],
+                        },
+                    },
+                },
+            },
+        });
+
+        let http_response = http::Response::new(to_json_vec(&body).unwrap());
+
+        let response = Response::try_from_http_response(http_response).unwrap();
+        assert_eq!(response.next_batch, "aaa");
+
+        let joined_room = response.rooms.join.get(joined_room_id).unwrap();
+        assert_eq!(joined_room.timeline.events.len(), 1);
+        assert!(joined_room.state.is_before_and_empty());
+
+        let left_room = response.rooms.leave.get(left_room_id).unwrap();
+        assert_eq!(left_room.timeline.events.len(), 1);
+        assert!(left_room.state.is_before_and_empty());
+    }
+
+    #[test]
+    fn deserialize_response_state_before() {
+        let joined_room_id = room_id!("!joined:localhost");
+        let left_room_id = room_id!("!left:localhost");
+        let event = sync_state_event();
+
+        let body = json!({
+            "next_batch": "aaa",
+            "rooms": {
+                "join": {
+                    joined_room_id: {
+                        "state": {
+                            "events": [
+                                event,
+                            ],
+                        },
+                    },
+                },
+                "leave": {
+                    left_room_id: {
+                        "state": {
+                            "events": [
+                                event,
+                            ],
+                        },
+                    },
+                },
+            },
+        });
+
+        let http_response = http::Response::new(to_json_vec(&body).unwrap());
+
+        let response = Response::try_from_http_response(http_response).unwrap();
+        assert_eq!(response.next_batch, "aaa");
+
+        let joined_room = response.rooms.join.get(joined_room_id).unwrap();
+        assert!(joined_room.timeline.is_empty());
+        assert_matches!(&joined_room.state, State::Before(state));
+        assert_eq!(state.events.len(), 1);
+
+        let left_room = response.rooms.leave.get(left_room_id).unwrap();
+        assert!(left_room.timeline.is_empty());
+        assert_matches!(&left_room.state, State::Before(state));
+        assert_eq!(state.events.len(), 1);
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-msc4222")]
+    fn deserialize_response_empty_state_after() {
+        let joined_room_id = room_id!("!joined:localhost");
+        let left_room_id = room_id!("!left:localhost");
+
+        let body = json!({
+            "next_batch": "aaa",
+            "rooms": {
+                "join": {
+                    joined_room_id: {
+                        "org.matrix.msc4222.state_after": {},
+                    },
+                },
+                "leave": {
+                    left_room_id: {
+                        "org.matrix.msc4222.state_after": {},
+                    },
+                },
+            },
+        });
+
+        let http_response = http::Response::new(to_json_vec(&body).unwrap());
+
+        let response = Response::try_from_http_response(http_response).unwrap();
+        assert_eq!(response.next_batch, "aaa");
+
+        let joined_room = response.rooms.join.get(joined_room_id).unwrap();
+        assert!(joined_room.timeline.is_empty());
+        assert_matches!(&joined_room.state, State::After(state));
+        assert_eq!(state.events.len(), 0);
+
+        let left_room = response.rooms.leave.get(left_room_id).unwrap();
+        assert!(left_room.timeline.is_empty());
+        assert_matches!(&left_room.state, State::After(state));
+        assert_eq!(state.events.len(), 0);
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-msc4222")]
+    fn deserialize_response_non_empty_state_after() {
+        let joined_room_id = room_id!("!joined:localhost");
+        let left_room_id = room_id!("!left:localhost");
+        let event = sync_state_event();
+
+        let body = json!({
+            "next_batch": "aaa",
+            "rooms": {
+                "join": {
+                    joined_room_id: {
+                        "org.matrix.msc4222.state_after": {
+                            "events": [
+                                event,
+                            ],
+                        },
+                    },
+                },
+                "leave": {
+                    left_room_id: {
+                        "org.matrix.msc4222.state_after": {
+                            "events": [
+                                event,
+                            ],
+                        },
+                    },
+                },
+            },
+        });
+
+        let http_response = http::Response::new(to_json_vec(&body).unwrap());
+
+        let response = Response::try_from_http_response(http_response).unwrap();
+        assert_eq!(response.next_batch, "aaa");
+
+        let joined_room = response.rooms.join.get(joined_room_id).unwrap();
+        assert!(joined_room.timeline.is_empty());
+        assert_matches!(&joined_room.state, State::After(state));
+        assert_eq!(state.events.len(), 1);
+
+        let left_room = response.rooms.leave.get(left_room_id).unwrap();
+        assert!(left_room.timeline.is_empty());
+        assert_matches!(&left_room.state, State::After(state));
+        assert_eq!(state.events.len(), 1);
+    }
 }
 
 #[cfg(all(test, feature = "server"))]
@@ -774,9 +1033,37 @@ mod server_tests {
     use std::time::Duration;
 
     use assert_matches2::assert_matches;
-    use ruma_common::{api::IncomingRequest as _, presence::PresenceState};
+    use ruma_common::{
+        api::{IncomingRequest as _, OutgoingResponse as _},
+        owned_room_id,
+        presence::PresenceState,
+        serde::Raw,
+    };
+    use ruma_events::AnySyncStateEvent;
+    use serde_json::{from_slice as from_json_slice, json, Value as JsonValue};
 
-    use super::{Filter, Request};
+    use super::{Filter, JoinedRoom, LeftRoom, Request, Response, State};
+
+    fn sync_state_event() -> Raw<AnySyncStateEvent> {
+        Raw::new(&json!({
+            "content": {
+              "avatar_url": "mxc://example.org/SEsfnsuifSDFSSEF",
+              "displayname": "Alice Margatroid",
+              "membership": "join",
+            },
+            "event_id": "$143273582443PhrSn",
+            "origin_server_ts": 1_432_735_824,
+            "sender": "@alice:example.org",
+            "state_key": "@alice:example.org",
+            "type": "m.room.member",
+            "unsigned": {
+              "age": 1234,
+              "membership": "join",
+            },
+        }))
+        .unwrap()
+        .cast_unchecked()
+    }
 
     #[test]
     fn deserialize_request_all_query_params() {
@@ -855,5 +1142,182 @@ mod server_tests {
         assert!(!req.full_state);
         assert_eq!(req.set_presence, PresenceState::Online);
         assert_eq!(req.timeout, Some(Duration::from_millis(0)));
+    }
+
+    #[test]
+    fn serialize_response_no_state() {
+        let joined_room_id = owned_room_id!("!joined:localhost");
+        let left_room_id = owned_room_id!("!left:localhost");
+        let event = sync_state_event();
+
+        let mut response = Response::new("aaa".to_owned());
+
+        let mut joined_room = JoinedRoom::new();
+        joined_room.timeline.events.push(event.clone().cast());
+        response.rooms.join.insert(joined_room_id.clone(), joined_room);
+
+        let mut left_room = LeftRoom::new();
+        left_room.timeline.events.push(event.clone().cast());
+        response.rooms.leave.insert(left_room_id.clone(), left_room);
+
+        let http_response = response.try_into_http_response::<Vec<u8>>().unwrap();
+
+        assert_eq!(
+            from_json_slice::<JsonValue>(http_response.body()).unwrap(),
+            json!({
+                "next_batch": "aaa",
+                "rooms": {
+                    "join": {
+                        joined_room_id: {
+                            "timeline": {
+                                "events": [
+                                    event,
+                                ],
+                            },
+                        },
+                    },
+                    "leave": {
+                        left_room_id: {
+                            "timeline": {
+                                "events": [
+                                    event,
+                                ],
+                            },
+                        },
+                    },
+                },
+            })
+        );
+    }
+
+    #[test]
+    fn serialize_response_state_before() {
+        let joined_room_id = owned_room_id!("!joined:localhost");
+        let left_room_id = owned_room_id!("!left:localhost");
+        let event = sync_state_event();
+
+        let mut response = Response::new("aaa".to_owned());
+
+        let mut joined_room = JoinedRoom::new();
+        joined_room.state = State::Before(vec![event.clone()].into());
+        response.rooms.join.insert(joined_room_id.clone(), joined_room);
+
+        let mut left_room = LeftRoom::new();
+        left_room.state = State::Before(vec![event.clone()].into());
+        response.rooms.leave.insert(left_room_id.clone(), left_room);
+
+        let http_response = response.try_into_http_response::<Vec<u8>>().unwrap();
+
+        assert_eq!(
+            from_json_slice::<JsonValue>(http_response.body()).unwrap(),
+            json!({
+                "next_batch": "aaa",
+                "rooms": {
+                    "join": {
+                        joined_room_id: {
+                            "state": {
+                                "events": [
+                                    event,
+                                ],
+                            },
+                        },
+                    },
+                    "leave": {
+                        left_room_id: {
+                            "state": {
+                                "events": [
+                                    event,
+                                ],
+                            },
+                        },
+                    },
+                },
+            })
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-msc4222")]
+    fn serialize_response_empty_state_after() {
+        let joined_room_id = owned_room_id!("!joined:localhost");
+        let left_room_id = owned_room_id!("!left:localhost");
+
+        let mut response = Response::new("aaa".to_owned());
+
+        let mut joined_room = JoinedRoom::new();
+        joined_room.state = State::After(Default::default());
+        response.rooms.join.insert(joined_room_id.clone(), joined_room);
+
+        let mut left_room = LeftRoom::new();
+        left_room.state = State::After(Default::default());
+        response.rooms.leave.insert(left_room_id.clone(), left_room);
+
+        let http_response = response.try_into_http_response::<Vec<u8>>().unwrap();
+
+        assert_eq!(
+            from_json_slice::<JsonValue>(http_response.body()).unwrap(),
+            json!({
+                "next_batch": "aaa",
+                "rooms": {
+                    "join": {
+                        joined_room_id: {
+                            "org.matrix.msc4222.state_after": {},
+                        },
+                    },
+                    "leave": {
+                        left_room_id: {
+                            "org.matrix.msc4222.state_after": {},
+                        },
+                    },
+                },
+            })
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-msc4222")]
+    fn serialize_response_non_empty_state_after() {
+        let joined_room_id = owned_room_id!("!joined:localhost");
+        let left_room_id = owned_room_id!("!left:localhost");
+        let event = sync_state_event();
+
+        let mut response = Response::new("aaa".to_owned());
+
+        let mut joined_room = JoinedRoom::new();
+        joined_room.state = State::After(vec![event.clone()].into());
+        response.rooms.join.insert(joined_room_id.clone(), joined_room);
+
+        let mut left_room = LeftRoom::new();
+        left_room.state = State::After(vec![event.clone()].into());
+        response.rooms.leave.insert(left_room_id.clone(), left_room);
+
+        let http_response = response.try_into_http_response::<Vec<u8>>().unwrap();
+
+        assert_eq!(
+            from_json_slice::<JsonValue>(http_response.body()).unwrap(),
+            json!({
+                "next_batch": "aaa",
+                "rooms": {
+                    "join": {
+                        joined_room_id: {
+                            "org.matrix.msc4222.state_after": {
+                                "events": [
+                                    event,
+                                ],
+                            },
+                        },
+                    },
+                    "leave": {
+                        left_room_id: {
+                            "org.matrix.msc4222.state_after": {
+                                "events": [
+                                    event,
+                                ],
+                            },
+                        },
+                    },
+                },
+            })
+        );
     }
 }
