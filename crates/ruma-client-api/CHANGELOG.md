@@ -32,6 +32,9 @@ Breaking changes:
   in the request.
 - Use `StrippedState` instead of `AnyStrippedStateEvent`, to allow non-stripped events to be
   represented for `sync_events`.
+- `sync_events::v3::State` is now an enum, to prepare for the stabilization of MSC4222. The state
+  before the timeline, corresponding to the `state` field in the Matrix specification, is available
+  in the `Before` variant, and the struct representing its content was renamed to `StateEvents`. 
 
 Improvements:
 
@@ -47,6 +50,9 @@ Improvements:
   events from MSC4311 behind the `unstable-msc4311` feature.
 - Add unstable support for `AnySyncStateEvent` formatted events in `sync_events`, alongside stripped
   events, according to MSC4319.
+- Add unstable support for the `use_state_after` query parameter in `sync_events::v3::Request`, and
+  the corresponding `State::After` variant in the response (`state_after` in the spec), according to
+  MSC4222.
 
 # 0.20.4
 
