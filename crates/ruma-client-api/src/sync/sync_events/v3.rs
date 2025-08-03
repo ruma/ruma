@@ -107,6 +107,7 @@ pub struct Response {
     ///
     /// The presence of this field indicates that the server supports
     /// fallback keys.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub device_unused_fallback_key_types: Option<Vec<OneTimeKeyAlgorithm>>,
 }
 
