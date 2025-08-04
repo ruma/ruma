@@ -181,6 +181,8 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrorCode::CannotOverwriteMedia => ErrorKind::CannotOverwriteMedia,
             ErrorCode::CaptchaInvalid => ErrorKind::CaptchaInvalid,
             ErrorCode::CaptchaNeeded => ErrorKind::CaptchaNeeded,
+            #[cfg(feature = "unstable-msc4306")]
+            ErrorCode::ConflictingUnsubscription => ErrorKind::ConflictingUnsubscription,
             ErrorCode::ConnectionFailed => ErrorKind::ConnectionFailed,
             ErrorCode::ConnectionTimeout => ErrorKind::ConnectionTimeout,
             ErrorCode::DuplicateAnnotation => ErrorKind::DuplicateAnnotation,
@@ -208,6 +210,8 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrorCode::MissingParam => ErrorKind::MissingParam,
             ErrorCode::MissingToken => ErrorKind::MissingToken,
             ErrorCode::NotFound => ErrorKind::NotFound,
+            #[cfg(feature = "unstable-msc4306")]
+            ErrorCode::NotInThread => ErrorKind::NotInThread,
             ErrorCode::NotJson => ErrorKind::NotJson,
             ErrorCode::NotYetUploaded => ErrorKind::NotYetUploaded,
             ErrorCode::ResourceLimitExceeded => ErrorKind::ResourceLimitExceeded {
