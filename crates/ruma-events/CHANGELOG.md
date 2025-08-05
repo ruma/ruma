@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.30.5
+
 Bug fixes:
 
 - If the `sender_key` and `device_id` fields of `MegolmV1AesSha2Content` are missing during
