@@ -69,6 +69,8 @@ Breaking changes:
 - The `sender_key` and `device_id` fields of `MegolmV1AesSha2Content` are now optional. They were
   deprecated in Matrix 1.3.
 - The `sender_key` field of `RequestedKeyInfo` is now optional. It was deprecated in Matrix 1.3.
+- The `EventContent` derive macro doesn't generate a type alias anymore if the
+  `PossiblyRedacted*EventContent` type is identical to the original type.
 
 Improvements:
 

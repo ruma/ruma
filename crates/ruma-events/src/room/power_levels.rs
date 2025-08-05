@@ -18,8 +18,9 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    EmptyStateKey, MessageLikeEventType, RedactContent, RedactedStateEventContent, StateEventType,
-    StaticEventContent, TimelineEventType,
+    EmptyStateKey, MessageLikeEventType, PossiblyRedactedStateEventContent, RedactContent,
+    RedactedStateEventContent, StateEventContent, StateEventType, StaticEventContent,
+    TimelineEventType,
 };
 
 /// The content of an `m.room.power_levels` event.
@@ -27,7 +28,7 @@ use crate::{
 /// Defines the power levels (privileges) of users in the room.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[ruma_event(type = "m.room.power_levels", kind = State, state_key_type = EmptyStateKey, custom_redacted)]
+#[ruma_event(type = "m.room.power_levels", kind = State, state_key_type = EmptyStateKey, custom_redacted, custom_possibly_redacted)]
 pub struct RoomPowerLevelsEventContent {
     /// The level required to ban a user.
     #[serde(
@@ -171,6 +172,19 @@ impl RedactContent for RoomPowerLevelsEventContent {
             users,
             users_default,
         }
+    }
+}
+
+/// The possibly redacted form of [`RoomPowerLevelsEventContent`].
+///
+/// This type is used when it’s not obvious whether the content is redacted or not.
+pub type PossiblyRedactedRoomPowerLevelsEventContent = RoomPowerLevelsEventContent;
+
+impl PossiblyRedactedStateEventContent for PossiblyRedactedRoomPowerLevelsEventContent {
+    type StateKey = <RoomPowerLevelsEventContent as StateEventContent>::StateKey;
+
+    fn event_type(&self) -> StateEventType {
+        StateEventType::RoomPowerLevels
     }
 }
 

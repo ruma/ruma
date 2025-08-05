@@ -290,7 +290,6 @@ fn generate_possibly_redacted_event_content<'a>(
     );
     let possibly_redacted_ident = format_ident!("PossiblyRedacted{ident}");
 
-    let mut field_changed = false;
     let possibly_redacted_fields: Vec<_> = fields
         .map(|f| {
             let mut keep_field = false;
@@ -364,8 +363,6 @@ fn generate_possibly_redacted_event_content<'a>(
                 ))
             } else {
                 // Change the field to an `Option`.
-                field_changed = true;
-
                 let old_type = &f.ty;
                 let ty = parse_quote! { Option<#old_type> };
                 attrs.push(parse_quote! { #[serde(skip_serializing_if = "Option::is_none")] });
@@ -375,63 +372,43 @@ fn generate_possibly_redacted_event_content<'a>(
         })
         .collect::<syn::Result<_>>()?;
 
-    // If at least one field needs to change, generate a new struct, else use a type alias.
-    if field_changed {
-        let possibly_redacted_event_content = generate_event_content_impl(
-            &possibly_redacted_ident,
-            Some(possibly_redacted_fields.iter()),
-            types,
-            EventKind::State.into(),
-            EventContentVariation::PossiblyRedacted,
-            event_type_fragment,
-            state_key_type,
-            unsigned_type,
-            ruma_events,
-        )
-        .unwrap_or_else(syn::Error::into_compile_error);
+    let possibly_redacted_event_content = generate_event_content_impl(
+        &possibly_redacted_ident,
+        Some(possibly_redacted_fields.iter()),
+        types,
+        EventKind::State.into(),
+        EventContentVariation::PossiblyRedacted,
+        event_type_fragment,
+        state_key_type,
+        unsigned_type,
+        ruma_events,
+    )
+    .unwrap_or_else(syn::Error::into_compile_error);
 
-        let static_event_content_impl =
-            generate_static_event_content_impl(&possibly_redacted_ident, types, ruma_events);
+    let static_event_content_impl =
+        generate_static_event_content_impl(&possibly_redacted_ident, types, ruma_events);
 
-        let json_castable_impl = if generate_redacted {
-            let redacted_ident = format_ident!("Redacted{ident}");
-            generate_json_castable_impl(&possibly_redacted_ident, &[ident, &redacted_ident])
-        } else {
-            generate_json_castable_impl(&possibly_redacted_ident, &[ident])
-        };
-
-        Ok(quote! {
-            #[doc = #doc]
-            #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
-            #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-            #vis struct #possibly_redacted_ident {
-                #( #possibly_redacted_fields, )*
-            }
-
-            #possibly_redacted_event_content
-
-            #static_event_content_impl
-
-            #json_castable_impl
-        })
+    let json_castable_impl = if generate_redacted {
+        let redacted_ident = format_ident!("Redacted{ident}");
+        generate_json_castable_impl(&possibly_redacted_ident, &[ident, &redacted_ident])
     } else {
-        let event_content_kind_trait_impl = generate_event_content_kind_trait_impl(
-            ident,
-            types,
-            EventKind::State.into(),
-            EventContentTraitVariation::PossiblyRedacted,
-            event_type_fragment,
-            state_key_type,
-            ruma_events,
-        );
+        generate_json_castable_impl(&possibly_redacted_ident, &[ident])
+    };
 
-        Ok(quote! {
-            #[doc = #doc]
-            #vis type #possibly_redacted_ident = #ident;
+    Ok(quote! {
+        #[doc = #doc]
+        #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
+        #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+        #vis struct #possibly_redacted_ident {
+            #( #possibly_redacted_fields, )*
+        }
 
-            #event_content_kind_trait_impl
-        })
-    }
+        #possibly_redacted_event_content
+
+        #static_event_content_impl
+
+        #json_castable_impl
+    })
 }
 
 /// Generate the `*EventContentWithoutRelation` variation of the type.
