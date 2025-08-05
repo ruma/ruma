@@ -6,6 +6,7 @@ Bug fixes:
   deserialization, they default to an empty string. They are optional since Matrix 1.3.
 - If the `sender_key` field of `RequestedKeyInfo` is missing during deserialization, it defaults to
   an empty string. It is optional since Matrix 1.3.
+- Fix the deserialization of `RedactedRoomJoinRulesEventContent`.
 
 # 0.30.4
 

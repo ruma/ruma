@@ -7,7 +7,7 @@ use std::{borrow::Cow, collections::BTreeMap};
 use ruma_common::{
     serde::{from_raw_json_value, ignore_invalid_vec_items},
     space::SpaceRoomJoinRule,
-    OwnedRoomId,
+    OwnedRoomId, RoomVersionId,
 };
 use ruma_macros::EventContent;
 use serde::{
@@ -16,14 +16,17 @@ use serde::{
 };
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
-use crate::{EmptyStateKey, PrivOwnedStr};
+use crate::{
+    EmptyStateKey, EventContent, PrivOwnedStr, RedactContent, RedactedStateEventContent,
+    StateEventContent, StateEventType, StaticEventContent,
+};
 
 /// The content of an `m.room.join_rules` event.
 ///
 /// Describes how users are allowed to join the room.
 #[derive(Clone, Debug, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[ruma_event(type = "m.room.join_rules", kind = State, state_key_type = EmptyStateKey)]
+#[ruma_event(type = "m.room.join_rules", kind = State, state_key_type = EmptyStateKey, custom_redacted)]
 pub struct RoomJoinRulesEventContent {
     /// The type of rules used for users wishing to join this room.
     #[ruma_event(skip_redaction)]
@@ -50,6 +53,14 @@ impl RoomJoinRulesEventContent {
     }
 }
 
+impl RedactContent for RoomJoinRulesEventContent {
+    type Redacted = RedactedRoomJoinRulesEventContent;
+
+    fn redact(self, _version: &RoomVersionId) -> Self::Redacted {
+        RedactedRoomJoinRulesEventContent { join_rule: self.join_rule }
+    }
+}
+
 impl<'de> Deserialize<'de> for RoomJoinRulesEventContent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -57,6 +68,41 @@ impl<'de> Deserialize<'de> for RoomJoinRulesEventContent {
     {
         let join_rule = JoinRule::deserialize(deserializer)?;
         Ok(RoomJoinRulesEventContent { join_rule })
+    }
+}
+
+/// The redacted form of [`RoomJoinRulesEventContent`].
+#[derive(Clone, Debug, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct RedactedRoomJoinRulesEventContent {
+    /// The type of rules used for users wishing to join this room.
+    #[serde(flatten)]
+    pub join_rule: JoinRule,
+}
+
+impl EventContent for RedactedRoomJoinRulesEventContent {
+    type EventType = StateEventType;
+
+    fn event_type(&self) -> Self::EventType {
+        StateEventType::RoomJoinRules
+    }
+}
+
+impl StaticEventContent for RedactedRoomJoinRulesEventContent {
+    const TYPE: &str = RoomJoinRulesEventContent::TYPE;
+}
+
+impl RedactedStateEventContent for RedactedRoomJoinRulesEventContent {
+    type StateKey = <RoomJoinRulesEventContent as StateEventContent>::StateKey;
+}
+
+impl<'de> Deserialize<'de> for RedactedRoomJoinRulesEventContent {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let join_rule = JoinRule::deserialize(deserializer)?;
+        Ok(Self { join_rule })
     }
 }
 
