@@ -22,7 +22,7 @@ rand = "0.8.5"
 ruma-appservice-api = { version = "0.12.2", path = "crates/ruma-appservice-api" }
 ruma-client-api = { version = "0.20.4", path = "crates/ruma-client-api" }
 ruma-common = { version = "0.15.4", path = "crates/ruma-common" }
-ruma-events = { version = "0.30.4", path = "crates/ruma-events" }
+ruma-events = { version = "0.30.5", path = "crates/ruma-events" }
 ruma-federation-api = { version = "0.11.2", path = "crates/ruma-federation-api" }
 ruma-html = { version = "0.4.1", path = "crates/ruma-html" }
 ruma-identifiers-validation = { version = "0.10.1", path = "crates/ruma-identifiers-validation" }

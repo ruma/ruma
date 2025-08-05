@@ -70,10 +70,6 @@ Breaking changes:
   deprecated in Matrix 1.3.
 - The `sender_key` field of `RequestedKeyInfo` is now optional. It was deprecated in Matrix 1.3.
 
-Bug fixes:
-
-- Fix the deserialization of `RedactedRoomJoinRulesEventContent`.
-
 Improvements:
 
 - Remove the `pdu` module and the corresponding `unstable-pdu` cargo feature. As far as we know, it
@@ -100,6 +96,16 @@ Improvements:
 - Implement types for encrypted state events, according to MSC3414.
 - Add `additional_creators` field to `RoomCreateEventContent`, used to optionally specify
   additional creators of a room.
+
+# 0.30.5
+
+Bug fixes:
+
+- If the `sender_key` and `device_id` fields of `MegolmV1AesSha2Content` are missing during
+  deserialization, they default to an empty string. They are optional since Matrix 1.3.
+- If the `sender_key` field of `RequestedKeyInfo` is missing during deserialization, it defaults to
+  an empty string. It is optional since Matrix 1.3.
+- Fix the deserialization of `RedactedRoomJoinRulesEventContent`.
 
 # 0.30.4
 

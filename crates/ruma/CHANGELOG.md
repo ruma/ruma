@@ -10,6 +10,10 @@
   `api::federation::authentication` module.
 - Bump MSRV to 1.82
 
+# 0.12.6
+
+Please refer to the changelog of ruma-events 0.30.5.
+
 # 0.12.5
 
 Please refer to the changelog of ruma-common 0.15.4.
