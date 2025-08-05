@@ -70,6 +70,10 @@ Breaking changes:
   deprecated in Matrix 1.3.
 - The `sender_key` field of `RequestedKeyInfo` is now optional. It was deprecated in Matrix 1.3.
 
+Bug fixes:
+
+- Fix the deserialization of `RedactedRoomJoinRulesEventContent`.
+
 Improvements:
 
 - Remove the `pdu` module and the corresponding `unstable-pdu` cargo feature. As far as we know, it
