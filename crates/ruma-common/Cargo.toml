@@ -35,6 +35,8 @@ unstable-msc3932 = ["unstable-msc3931"]
 unstable-msc4108 = []
 unstable-msc4140 = []
 unstable-msc4186 = []
+# Thread subscriptions.
+unstable-msc4306 = []
 
 # Allow IDs to exceed 255 bytes.
 compat-arbitrary-length-ids = ["ruma-identifiers-validation/compat-arbitrary-length-ids"]
