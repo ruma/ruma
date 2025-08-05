@@ -86,8 +86,8 @@ impl AnyPushRule {
     ///
     /// * `event` - The flattened JSON representation of a room message event.
     /// * `context` - The context of the room at the time of the event.
-    pub fn applies(&self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
-        self.as_ref().applies(event, context)
+    pub async fn applies(&self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
+        self.as_ref().applies(event, context).await
     }
 }
 
@@ -234,14 +234,14 @@ impl<'a> AnyPushRuleRef<'a> {
     ///
     /// * `event` - The flattened JSON representation of a room message event.
     /// * `context` - The context of the room at the time of the event.
-    pub fn applies(self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
+    pub async fn applies(self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
         if event.get_str("sender").is_some_and(|sender| sender == context.user_id) {
             return false;
         }
 
         match self {
-            Self::Override(rule) => rule.applies(event, context),
-            Self::Underride(rule) => rule.applies(event, context),
+            Self::Override(rule) => rule.applies(event, context).await,
+            Self::Underride(rule) => rule.applies(event, context).await,
             Self::Content(rule) => rule.applies_to("content.body", event, context),
             Self::Room(rule) => {
                 rule.enabled

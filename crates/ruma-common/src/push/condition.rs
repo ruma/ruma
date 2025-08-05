@@ -1,6 +1,6 @@
-#[cfg(feature = "unstable-msc4306")]
-use std::collections::HashSet;
 use std::{collections::BTreeMap, ops::RangeBounds, str::FromStr};
+#[cfg(feature = "unstable-msc4306")]
+use std::{future::Future, pin::Pin, sync::Arc};
 
 use js_int::{Int, UInt};
 use regex::bytes::Regex;
@@ -10,13 +10,13 @@ use serde::{Deserialize, Serialize};
 use serde_json::value::Value as JsonValue;
 use wildmatch::WildMatch;
 
-#[cfg(feature = "unstable-msc4306")]
-use crate::OwnedEventId;
 use crate::{
     power_levels::{NotificationPowerLevels, NotificationPowerLevelsKey},
     room_version_rules::RoomPowerLevelsRules,
     OwnedRoomId, OwnedUserId, UserId,
 };
+#[cfg(feature = "unstable-msc4306")]
+use crate::{EventId, OwnedEventId};
 #[cfg(feature = "unstable-msc3931")]
 use crate::{PrivOwnedStr, RoomVersionId};
 
@@ -180,7 +180,7 @@ impl PushCondition {
     /// * `event` - The flattened JSON representation of a room message event.
     /// * `context` - The context of the room at the time of the event. If the power levels context
     ///   is missing from it, conditions that depend on it will never apply.
-    pub fn applies(&self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
+    pub async fn applies(&self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
         if event.get_str("sender").is_some_and(|sender| sender == context.user_id) {
             return false;
         }
@@ -212,7 +212,13 @@ impl PushCondition {
                 .and_then(FlattenedJsonValue::as_array)
                 .is_some_and(|a| a.contains(value)),
             #[cfg(feature = "unstable-msc4306")]
-            Self::ThreadSubscription { subscribed } => {
+            Self::ThreadSubscription { subscribed: must_be_subscribed } => {
+                let Some(has_thread_subscription_fn) = &context.has_thread_subscription_fn else {
+                    // If we don't have a function to check thread subscriptions, we can't
+                    // determine if the condition applies.
+                    return false;
+                };
+
                 // The event must have a relation of type `m.thread`.
                 if event.get_str("content.m\\.relates_to.rel_type") != Some("m.thread") {
                     return false;
@@ -226,10 +232,12 @@ impl PushCondition {
                     return false;
                 };
 
-                if *subscribed {
-                    context.thread_subscriptions.contains(&thread_root)
+                let is_subscribed = has_thread_subscription_fn(&thread_root).await;
+
+                if *must_be_subscribed {
+                    is_subscribed
                 } else {
-                    !context.thread_subscriptions.contains(&thread_root)
+                    !is_subscribed
                 }
             }
             Self::_Custom(_) => false,
@@ -251,7 +259,7 @@ pub struct _CustomPushCondition {
 }
 
 /// The context of the room associated to an event to be able to test all push conditions.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PushConditionRoomCtx {
     /// The ID of the room.
@@ -286,7 +294,29 @@ pub struct PushConditionRoomCtx {
     ///
     /// [MSC4306]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
     #[cfg(feature = "unstable-msc4306")]
-    pub thread_subscriptions: HashSet<OwnedEventId>,
+    pub(super) has_thread_subscription_fn: Option<Arc<HasThreadSubscriptionFn>>,
+}
+
+#[cfg(feature = "unstable-msc4306")]
+type HasThreadSubscriptionFn =
+    dyn for<'a> Fn(&'a EventId) -> Pin<Box<dyn Future<Output = bool> + Send + 'a>> + Send + Sync;
+
+impl std::fmt::Debug for PushConditionRoomCtx {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug_struct = f.debug_struct("PushConditionRoomCtx");
+
+        debug_struct
+            .field("room_id", &self.room_id)
+            .field("member_count", &self.member_count)
+            .field("user_id", &self.user_id)
+            .field("user_display_name", &self.user_display_name)
+            .field("power_levels", &self.power_levels);
+
+        #[cfg(feature = "unstable-msc3931")]
+        debug_struct.field("supported_features", &self.supported_features);
+
+        debug_struct.finish_non_exhaustive()
+    }
 }
 
 impl PushConditionRoomCtx {
@@ -296,7 +326,6 @@ impl PushConditionRoomCtx {
         member_count: UInt,
         user_id: OwnedUserId,
         user_display_name: String,
-        #[cfg(feature = "unstable-msc4306")] thread_subscriptions: HashSet<OwnedEventId>,
     ) -> Self {
         Self {
             room_id,
@@ -307,8 +336,23 @@ impl PushConditionRoomCtx {
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Vec::new(),
             #[cfg(feature = "unstable-msc4306")]
-            thread_subscriptions,
+            has_thread_subscription_fn: None,
         }
+    }
+
+    /// Set a function to check if the user is subscribed to a thread, so as to define the push
+    /// rules defined in [MSC4306].
+    ///
+    /// [MSC4306]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
+    #[cfg(feature = "unstable-msc4306")]
+    pub fn with_has_thread_subscription_fn(
+        self,
+        has_thread_subscription_fn: impl for<'a> Fn(&'a EventId) -> Pin<Box<dyn Future<Output = bool> + Send + 'a>>
+            + Send
+            + Sync
+            + 'static,
+    ) -> Self {
+        Self { has_thread_subscription_fn: Some(Arc::new(has_thread_subscription_fn)), ..self }
     }
 
     /// Add the given power levels context to this `PushConditionRoomCtx`.
@@ -792,7 +836,7 @@ mod tests {
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
             #[cfg(feature = "unstable-msc4306")]
-            thread_subscriptions: Default::default(),
+            has_thread_subscription_fn: Default::default(),
         }
     }
 
@@ -826,8 +870,8 @@ mod tests {
         FlattenedJson::from_raw(&raw)
     }
 
-    #[test]
-    fn event_match_applies() {
+    #[tokio::test]
+    async fn event_match_applies() {
         let context = push_context();
         let first_event = first_flattened_event();
         let second_event = second_flattened_event();
@@ -841,24 +885,24 @@ mod tests {
             pattern: "!incorrect:server.name".into(),
         };
 
-        assert!(correct_room.applies(&first_event, &context));
-        assert!(!incorrect_room.applies(&first_event, &context));
+        assert!(correct_room.applies(&first_event, &context).await);
+        assert!(!incorrect_room.applies(&first_event, &context).await);
 
         let keyword =
             PushCondition::EventMatch { key: "content.body".into(), pattern: "come".into() };
 
-        assert!(!keyword.applies(&first_event, &context));
-        assert!(keyword.applies(&second_event, &context));
+        assert!(!keyword.applies(&first_event, &context).await);
+        assert!(keyword.applies(&second_event, &context).await);
 
         let msgtype =
             PushCondition::EventMatch { key: "content.msgtype".into(), pattern: "m.notice".into() };
 
-        assert!(!msgtype.applies(&first_event, &context));
-        assert!(msgtype.applies(&second_event, &context));
+        assert!(!msgtype.applies(&first_event, &context).await);
+        assert!(msgtype.applies(&second_event, &context).await);
     }
 
-    #[test]
-    fn room_member_count_is_applies() {
+    #[tokio::test]
+    async fn room_member_count_is_applies() {
         let context = push_context();
         let event = first_flattened_event();
 
@@ -869,25 +913,25 @@ mod tests {
         let member_count_lt =
             PushCondition::RoomMemberCount { is: RoomMemberCountIs::from(..uint!(3)) };
 
-        assert!(member_count_eq.applies(&event, &context));
-        assert!(member_count_gt.applies(&event, &context));
-        assert!(!member_count_lt.applies(&event, &context));
+        assert!(member_count_eq.applies(&event, &context).await);
+        assert!(member_count_gt.applies(&event, &context).await);
+        assert!(!member_count_lt.applies(&event, &context).await);
     }
 
-    #[test]
-    fn contains_display_name_applies() {
+    #[tokio::test]
+    async fn contains_display_name_applies() {
         let context = push_context();
         let first_event = first_flattened_event();
         let second_event = second_flattened_event();
 
         let contains_display_name = PushCondition::ContainsDisplayName;
 
-        assert!(contains_display_name.applies(&first_event, &context));
-        assert!(!contains_display_name.applies(&second_event, &context));
+        assert!(contains_display_name.applies(&first_event, &context).await);
+        assert!(!contains_display_name.applies(&second_event, &context).await);
     }
 
-    #[test]
-    fn sender_notification_permission_applies() {
+    #[tokio::test]
+    async fn sender_notification_permission_applies() {
         let context = push_context();
         let first_event = first_flattened_event();
         let second_event = second_flattened_event();
@@ -895,13 +939,13 @@ mod tests {
         let sender_notification_permission =
             PushCondition::SenderNotificationPermission { key: "room".into() };
 
-        assert!(!sender_notification_permission.applies(&first_event, &context));
-        assert!(sender_notification_permission.applies(&second_event, &context));
+        assert!(!sender_notification_permission.applies(&first_event, &context).await);
+        assert!(sender_notification_permission.applies(&second_event, &context).await);
     }
 
     #[cfg(feature = "unstable-msc3932")]
-    #[test]
-    fn room_version_supports_applies() {
+    #[tokio::test]
+    async fn room_version_supports_applies() {
         let context_not_matching = push_context();
 
         let context_matching = PushConditionRoomCtx {
@@ -912,7 +956,7 @@ mod tests {
             power_levels: context_not_matching.power_levels.clone(),
             supported_features: vec![super::RoomVersionFeature::ExtensibleEvents],
             #[cfg(feature = "unstable-msc4306")]
-            thread_subscriptions: Default::default(),
+            has_thread_subscription_fn: Default::default(),
         };
 
         let simple_event_raw = serde_json::from_str::<Raw<JsonValue>>(
@@ -931,12 +975,12 @@ mod tests {
             feature: super::RoomVersionFeature::ExtensibleEvents,
         };
 
-        assert!(room_version_condition.applies(&simple_event, &context_matching));
-        assert!(!room_version_condition.applies(&simple_event, &context_not_matching));
+        assert!(room_version_condition.applies(&simple_event, &context_matching).await);
+        assert!(!room_version_condition.applies(&simple_event, &context_not_matching).await);
     }
 
-    #[test]
-    fn event_property_is_applies() {
+    #[tokio::test]
+    async fn event_property_is_applies() {
         use crate::push::condition::ScalarJsonValue;
 
         let context = push_context();
@@ -959,49 +1003,49 @@ mod tests {
             key: "content.body".to_owned(),
             value: "Boom!".into(),
         };
-        assert!(string_match.applies(&event, &context));
+        assert!(string_match.applies(&event, &context).await);
 
         let string_no_match =
             PushCondition::EventPropertyIs { key: "content.body".to_owned(), value: "Boom".into() };
-        assert!(!string_no_match.applies(&event, &context));
+        assert!(!string_no_match.applies(&event, &context).await);
 
         let wrong_type =
             PushCondition::EventPropertyIs { key: "content.body".to_owned(), value: false.into() };
-        assert!(!wrong_type.applies(&event, &context));
+        assert!(!wrong_type.applies(&event, &context).await);
 
         let bool_match = PushCondition::EventPropertyIs {
             key: r"content.org\.fake\.boolean".to_owned(),
             value: false.into(),
         };
-        assert!(bool_match.applies(&event, &context));
+        assert!(bool_match.applies(&event, &context).await);
 
         let bool_no_match = PushCondition::EventPropertyIs {
             key: r"content.org\.fake\.boolean".to_owned(),
             value: true.into(),
         };
-        assert!(!bool_no_match.applies(&event, &context));
+        assert!(!bool_no_match.applies(&event, &context).await);
 
         let int_match = PushCondition::EventPropertyIs {
             key: r"content.org\.fake\.number".to_owned(),
             value: int!(13).into(),
         };
-        assert!(int_match.applies(&event, &context));
+        assert!(int_match.applies(&event, &context).await);
 
         let int_no_match = PushCondition::EventPropertyIs {
             key: r"content.org\.fake\.number".to_owned(),
             value: int!(130).into(),
         };
-        assert!(!int_no_match.applies(&event, &context));
+        assert!(!int_no_match.applies(&event, &context).await);
 
         let null_match = PushCondition::EventPropertyIs {
             key: r"content.org\.fake\.null".to_owned(),
             value: ScalarJsonValue::Null,
         };
-        assert!(null_match.applies(&event, &context));
+        assert!(null_match.applies(&event, &context).await);
     }
 
-    #[test]
-    fn event_property_contains_applies() {
+    #[tokio::test]
+    async fn event_property_contains_applies() {
         use crate::push::condition::ScalarJsonValue;
 
         let context = push_context();
@@ -1018,53 +1062,53 @@ mod tests {
 
         let wrong_key =
             PushCondition::EventPropertyContains { key: "send".to_owned(), value: false.into() };
-        assert!(!wrong_key.applies(&event, &context));
+        assert!(!wrong_key.applies(&event, &context).await);
 
         let string_match = PushCondition::EventPropertyContains {
             key: r"content.org\.fake\.array".to_owned(),
             value: "Boom!".into(),
         };
-        assert!(string_match.applies(&event, &context));
+        assert!(string_match.applies(&event, &context).await);
 
         let string_no_match = PushCondition::EventPropertyContains {
             key: r"content.org\.fake\.array".to_owned(),
             value: "Boom".into(),
         };
-        assert!(!string_no_match.applies(&event, &context));
+        assert!(!string_no_match.applies(&event, &context).await);
 
         let bool_match = PushCondition::EventPropertyContains {
             key: r"content.org\.fake\.array".to_owned(),
             value: false.into(),
         };
-        assert!(bool_match.applies(&event, &context));
+        assert!(bool_match.applies(&event, &context).await);
 
         let bool_no_match = PushCondition::EventPropertyContains {
             key: r"content.org\.fake\.array".to_owned(),
             value: true.into(),
         };
-        assert!(!bool_no_match.applies(&event, &context));
+        assert!(!bool_no_match.applies(&event, &context).await);
 
         let int_match = PushCondition::EventPropertyContains {
             key: r"content.org\.fake\.array".to_owned(),
             value: int!(13).into(),
         };
-        assert!(int_match.applies(&event, &context));
+        assert!(int_match.applies(&event, &context).await);
 
         let int_no_match = PushCondition::EventPropertyContains {
             key: r"content.org\.fake\.array".to_owned(),
             value: int!(130).into(),
         };
-        assert!(!int_no_match.applies(&event, &context));
+        assert!(!int_no_match.applies(&event, &context).await);
 
         let null_match = PushCondition::EventPropertyContains {
             key: r"content.org\.fake\.array".to_owned(),
             value: ScalarJsonValue::Null,
         };
-        assert!(null_match.applies(&event, &context));
+        assert!(null_match.applies(&event, &context).await);
     }
 
-    #[test]
-    fn room_creators_always_have_notification_permission() {
+    #[tokio::test]
+    async fn room_creators_always_have_notification_permission() {
         let mut context = push_context();
         context.power_levels = Some(PushConditionPowerLevelsCtx {
             users: BTreeMap::new(),
@@ -1078,17 +1122,20 @@ mod tests {
         let sender_notification_permission =
             PushCondition::SenderNotificationPermission { key: NotificationPowerLevelsKey::Room };
 
-        assert!(sender_notification_permission.applies(&first_event, &context));
+        assert!(sender_notification_permission.applies(&first_event, &context).await);
     }
 
     #[cfg(feature = "unstable-msc4306")]
-    #[test]
-    fn thread_subscriptions_match() {
-        use crate::owned_event_id;
+    #[tokio::test]
+    async fn thread_subscriptions_match() {
+        use crate::{event_id, EventId};
 
-        let mut context = push_context();
-
-        context.thread_subscriptions.insert(owned_event_id!("$subscribed_thread"));
+        let context = push_context().with_has_thread_subscription_fn(|event_id: &EventId| {
+            Box::pin(async move {
+                // Simulate thread subscriptions for testing.
+                event_id == event_id!("$subscribed_thread")
+            })
+        });
 
         let subscribed_thread_event = FlattenedJson::from_raw(
             &serde_json::from_str::<Raw<JsonValue>>(
@@ -1152,13 +1199,13 @@ mod tests {
         );
 
         let subscribed_thread_condition = PushCondition::ThreadSubscription { subscribed: true };
-        assert!(subscribed_thread_condition.applies(&subscribed_thread_event, &context));
-        assert!(!subscribed_thread_condition.applies(&unsubscribed_thread_event, &context));
-        assert!(!subscribed_thread_condition.applies(&non_thread_related_event, &context));
+        assert!(subscribed_thread_condition.applies(&subscribed_thread_event, &context).await);
+        assert!(!subscribed_thread_condition.applies(&unsubscribed_thread_event, &context).await);
+        assert!(!subscribed_thread_condition.applies(&non_thread_related_event, &context).await);
 
         let unsubscribed_thread_condition = PushCondition::ThreadSubscription { subscribed: false };
-        assert!(unsubscribed_thread_condition.applies(&unsubscribed_thread_event, &context));
-        assert!(!unsubscribed_thread_condition.applies(&subscribed_thread_event, &context));
-        assert!(!unsubscribed_thread_condition.applies(&non_thread_related_event, &context));
+        assert!(unsubscribed_thread_condition.applies(&unsubscribed_thread_event, &context).await);
+        assert!(!unsubscribed_thread_condition.applies(&subscribed_thread_event, &context).await);
+        assert!(!unsubscribed_thread_condition.applies(&non_thread_related_event, &context).await);
     }
 }
