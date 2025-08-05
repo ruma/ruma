@@ -287,7 +287,7 @@ impl Ruleset {
     /// * `event` - The raw JSON of a room message event.
     /// * `context` - The context of the message and room at the time of the event.
     #[instrument(skip_all, fields(context.room_id = %context.room_id))]
-    pub fn get_match<T>(
+    pub async fn get_match<T>(
         &self,
         event: &Raw<T>,
         context: &PushConditionRoomCtx,
@@ -296,10 +296,16 @@ impl Ruleset {
 
         if event.get_str("sender").is_some_and(|sender| sender == context.user_id) {
             // no need to look at the rules if the event was by the user themselves
-            None
-        } else {
-            self.iter().find(|rule| rule.applies(&event, context))
+            return None;
         }
+
+        for rule in self.iter() {
+            if rule.applies(&event, context).await {
+                return Some(rule);
+            }
+        }
+
+        None
     }
 
     /// Get the push actions that apply to this event.
@@ -311,8 +317,12 @@ impl Ruleset {
     /// * `event` - The raw JSON of a room message event.
     /// * `context` - The context of the message and room at the time of the event.
     #[instrument(skip_all, fields(context.room_id = %context.room_id))]
-    pub fn get_actions<T>(&self, event: &Raw<T>, context: &PushConditionRoomCtx) -> &[Action] {
-        self.get_match(event, context).map(|rule| rule.actions()).unwrap_or(&[])
+    pub async fn get_actions<T>(
+        &self,
+        event: &Raw<T>,
+        context: &PushConditionRoomCtx,
+    ) -> &[Action] {
+        self.get_match(event, context).await.map(|rule| rule.actions()).unwrap_or(&[])
     }
 
     /// Removes a user-defined rule in the rule set.
@@ -480,7 +490,7 @@ impl ConditionalPushRule {
     ///
     /// * `event` - The flattened JSON representation of a room message event.
     /// * `context` - The context of the room at the time of the event.
-    pub fn applies(&self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
+    pub async fn applies(&self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
         if !self.enabled {
             return false;
         }
@@ -517,7 +527,12 @@ impl ConditionalPushRule {
             return false;
         }
 
-        self.conditions.iter().all(|cond| cond.applies(event, context))
+        for cond in self.conditions.iter() {
+            if !cond.applies(event, context).await {
+                return false;
+            }
+        }
+        true
     }
 }
 
@@ -1422,8 +1437,8 @@ mod tests {
         assert_matches!(iter.next(), None);
     }
 
-    #[test]
-    fn default_ruleset_applies() {
+    #[tokio::test]
+    async fn default_ruleset_applies() {
         let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
 
         let context_one_to_one = &PushConditionRoomCtx {
@@ -1435,7 +1450,7 @@ mod tests {
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
             #[cfg(feature = "unstable-msc4306")]
-            thread_subscriptions: Default::default(),
+            has_thread_subscription_fn: Default::default(),
         };
 
         let context_public_room = &PushConditionRoomCtx {
@@ -1447,7 +1462,7 @@ mod tests {
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
             #[cfg(feature = "unstable-msc4306")]
-            thread_subscriptions: Default::default(),
+            has_thread_subscription_fn: Default::default(),
         };
 
         let message = serde_json::from_str::<Raw<JsonValue>>(
@@ -1458,7 +1473,7 @@ mod tests {
         .unwrap();
 
         assert_matches!(
-            set.get_actions(&message, context_one_to_one),
+            set.get_actions(&message, context_one_to_one).await,
             [
                 Action::Notify,
                 Action::SetTweak(Tweak::Sound(_)),
@@ -1466,7 +1481,7 @@ mod tests {
             ]
         );
         assert_matches!(
-            set.get_actions(&message, context_public_room),
+            set.get_actions(&message, context_public_room).await,
             [Action::Notify, Action::SetTweak(Tweak::Highlight(false))]
         );
 
@@ -1481,7 +1496,7 @@ mod tests {
         .unwrap();
 
         assert_matches!(
-            set.get_actions(&user_name, context_one_to_one),
+            set.get_actions(&user_name, context_one_to_one).await,
             [
                 Action::Notify,
                 Action::SetTweak(Tweak::Sound(_)),
@@ -1489,7 +1504,7 @@ mod tests {
             ]
         );
         assert_matches!(
-            set.get_actions(&user_name, context_public_room),
+            set.get_actions(&user_name, context_public_room).await,
             [
                 Action::Notify,
                 Action::SetTweak(Tweak::Sound(_)),
@@ -1506,7 +1521,7 @@ mod tests {
             }"#,
         )
         .unwrap();
-        assert_matches!(set.get_actions(&notice, context_one_to_one), []);
+        assert_matches!(set.get_actions(&notice, context_one_to_one).await, []);
 
         let at_room = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
@@ -1521,16 +1536,16 @@ mod tests {
         .unwrap();
 
         assert_matches!(
-            set.get_actions(&at_room, context_public_room),
+            set.get_actions(&at_room, context_public_room).await,
             [Action::Notify, Action::SetTweak(Tweak::Highlight(true)),]
         );
 
         let empty = serde_json::from_str::<Raw<JsonValue>>(r#"{}"#).unwrap();
-        assert_matches!(set.get_actions(&empty, context_one_to_one), []);
+        assert_matches!(set.get_actions(&empty, context_one_to_one).await, []);
     }
 
-    #[test]
-    fn custom_ruleset_applies() {
+    #[tokio::test]
+    async fn custom_ruleset_applies() {
         let context_one_to_one = &PushConditionRoomCtx {
             room_id: owned_room_id!("!dm:server.name"),
             member_count: uint!(2),
@@ -1540,7 +1555,7 @@ mod tests {
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
             #[cfg(feature = "unstable-msc4306")]
-            thread_subscriptions: Default::default(),
+            has_thread_subscription_fn: Default::default(),
         };
 
         let message = serde_json::from_str::<Raw<JsonValue>>(
@@ -1568,7 +1583,7 @@ mod tests {
         set.underride.insert(disabled);
 
         let test_set = set.clone();
-        assert_matches!(test_set.get_actions(&message, context_one_to_one), []);
+        assert_matches!(test_set.get_actions(&message, context_one_to_one).await, []);
 
         let no_conditions = ConditionalPushRule {
             actions: vec![Action::SetTweak(Tweak::Highlight(true))],
@@ -1581,7 +1596,7 @@ mod tests {
 
         let test_set = set.clone();
         assert_matches!(
-            test_set.get_actions(&message, context_one_to_one),
+            test_set.get_actions(&message, context_one_to_one).await,
             [Action::SetTweak(Tweak::Highlight(true))]
         );
 
@@ -1594,7 +1609,7 @@ mod tests {
         set.sender.insert(sender);
 
         let test_set = set.clone();
-        assert_matches!(test_set.get_actions(&message, context_one_to_one), [Action::Notify]);
+        assert_matches!(test_set.get_actions(&message, context_one_to_one).await, [Action::Notify]);
 
         let room = SimplePushRule {
             actions: vec![Action::SetTweak(Tweak::Highlight(true))],
@@ -1606,7 +1621,7 @@ mod tests {
 
         let test_set = set.clone();
         assert_matches!(
-            test_set.get_actions(&message, context_one_to_one),
+            test_set.get_actions(&message, context_one_to_one).await,
             [Action::SetTweak(Tweak::Highlight(true))]
         );
 
@@ -1621,7 +1636,7 @@ mod tests {
 
         let test_set = set.clone();
         assert_matches!(
-            test_set.get_actions(&message, context_one_to_one),
+            test_set.get_actions(&message, context_one_to_one).await,
             [Action::SetTweak(Tweak::Sound(sound))]
         );
         assert_eq!(sound, "content");
@@ -1643,7 +1658,7 @@ mod tests {
         set.override_.insert(three_conditions);
 
         assert_matches!(
-            set.get_actions(&message, context_one_to_one),
+            set.get_actions(&message, context_one_to_one).await,
             [Action::SetTweak(Tweak::Sound(sound))]
         );
         assert_eq!(sound, "content");
@@ -1661,15 +1676,15 @@ mod tests {
         .unwrap();
 
         assert_matches!(
-            set.get_actions(&new_message, context_one_to_one),
+            set.get_actions(&new_message, context_one_to_one).await,
             [Action::SetTweak(Tweak::Sound(sound))]
         );
         assert_eq!(sound, "three");
     }
 
-    #[test]
+    #[tokio::test]
     #[allow(deprecated)]
-    fn old_mentions_apply() {
+    async fn old_mentions_apply() {
         let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
 
         let context = &PushConditionRoomCtx {
@@ -1681,7 +1696,7 @@ mod tests {
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
             #[cfg(feature = "unstable-msc4306")]
-            thread_subscriptions: Default::default(),
+            has_thread_subscription_fn: Default::default(),
         };
 
         let message = serde_json::from_str::<Raw<JsonValue>>(
@@ -1695,7 +1710,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(
-            set.get_match(&message, context).unwrap().rule_id(),
+            set.get_match(&message, context).await.unwrap().rule_id(),
             PredefinedContentRuleId::ContainsUserName.as_ref()
         );
 
@@ -1711,7 +1726,7 @@ mod tests {
         .unwrap();
 
         assert_ne!(
-            set.get_match(&message, context).unwrap().rule_id(),
+            set.get_match(&message, context).await.unwrap().rule_id(),
             PredefinedContentRuleId::ContainsUserName.as_ref()
         );
 
@@ -1726,7 +1741,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(
-            set.get_match(&message, context).unwrap().rule_id(),
+            set.get_match(&message, context).await.unwrap().rule_id(),
             PredefinedOverrideRuleId::ContainsDisplayName.as_ref()
         );
 
@@ -1742,7 +1757,7 @@ mod tests {
         .unwrap();
 
         assert_ne!(
-            set.get_match(&message, context).unwrap().rule_id(),
+            set.get_match(&message, context).await.unwrap().rule_id(),
             PredefinedOverrideRuleId::ContainsDisplayName.as_ref()
         );
 
@@ -1758,7 +1773,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(
-            set.get_match(&message, context).unwrap().rule_id(),
+            set.get_match(&message, context).await.unwrap().rule_id(),
             PredefinedOverrideRuleId::RoomNotif.as_ref()
         );
 
@@ -1775,13 +1790,13 @@ mod tests {
         .unwrap();
 
         assert_ne!(
-            set.get_match(&message, context).unwrap().rule_id(),
+            set.get_match(&message, context).await.unwrap().rule_id(),
             PredefinedOverrideRuleId::RoomNotif.as_ref()
         );
     }
 
-    #[test]
-    fn intentional_mentions_apply() {
+    #[tokio::test]
+    async fn intentional_mentions_apply() {
         let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
 
         let context = &PushConditionRoomCtx {
@@ -1793,7 +1808,7 @@ mod tests {
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
             #[cfg(feature = "unstable-msc4306")]
-            thread_subscriptions: Default::default(),
+            has_thread_subscription_fn: Default::default(),
         };
 
         let message = serde_json::from_str::<Raw<JsonValue>>(
@@ -1811,7 +1826,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(
-            set.get_match(&message, context).unwrap().rule_id(),
+            set.get_match(&message, context).await.unwrap().rule_id(),
             PredefinedOverrideRuleId::IsUserMention.as_ref()
         );
 
@@ -1830,13 +1845,13 @@ mod tests {
         .unwrap();
 
         assert_eq!(
-            set.get_match(&message, context).unwrap().rule_id(),
+            set.get_match(&message, context).await.unwrap().rule_id(),
             PredefinedOverrideRuleId::IsRoomMention.as_ref()
         );
     }
 
-    #[test]
-    fn invite_for_me_applies() {
+    #[tokio::test]
+    async fn invite_for_me_applies() {
         let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
 
         let context = &PushConditionRoomCtx {
@@ -1849,7 +1864,7 @@ mod tests {
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
             #[cfg(feature = "unstable-msc4306")]
-            thread_subscriptions: Default::default(),
+            has_thread_subscription_fn: Default::default(),
         };
 
         let message = serde_json::from_str::<Raw<JsonValue>>(
@@ -1865,7 +1880,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(
-            set.get_match(&message, context).unwrap().rule_id(),
+            set.get_match(&message, context).await.unwrap().rule_id(),
             PredefinedOverrideRuleId::InviteForMe.as_ref()
         );
     }
