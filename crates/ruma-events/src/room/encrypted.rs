@@ -229,10 +229,12 @@ pub struct MegolmV1AesSha2Content {
 
     /// The Curve25519 key of the sender.
     #[deprecated = "this field still needs to be sent but should not be used when received"]
+    #[serde(default)]
     pub sender_key: String,
 
     /// The ID of the sending device.
     #[deprecated = "this field still needs to be sent but should not be used when received"]
+    #[serde(default = "empty_device_id")]
     pub device_id: OwnedDeviceId,
 
     /// The ID of the session used to encrypt the message.
@@ -266,6 +268,10 @@ impl From<MegolmV1AesSha2ContentInit> for MegolmV1AesSha2Content {
         #[allow(deprecated)]
         Self { ciphertext, sender_key, device_id, session_id }
     }
+}
+
+fn empty_device_id() -> OwnedDeviceId {
+    OwnedDeviceId::from("")
 }
 
 #[cfg(test)]

@@ -75,6 +75,7 @@ pub struct RequestedKeyInfo {
 
     /// The Curve25519 key of the device which initiated the session originally.
     #[deprecated = "this field still needs to be sent but should not be used when received"]
+    #[serde(default)]
     pub sender_key: String,
 
     /// The ID of the session that the key is for.

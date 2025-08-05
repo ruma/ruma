@@ -1,5 +1,12 @@
 # [unreleased]
 
+Bug fixes:
+
+- If the `sender_key` and `device_id` fields of `MegolmV1AesSha2Content` are missing during
+  deserialization, they default to an empty string. They are optional since Matrix 1.3.
+- If the `sender_key` field of `RequestedKeyInfo` is missing during deserialization, it defaults to
+  an empty string. It is optional since Matrix 1.3.
+
 # 0.30.4
 
 Bug fixes:
