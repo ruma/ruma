@@ -1,3 +1,5 @@
+#[cfg(feature = "unstable-msc4306")]
+use std::collections::HashSet;
 use std::{collections::BTreeMap, ops::RangeBounds, str::FromStr};
 
 use js_int::{Int, UInt};
@@ -8,6 +10,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::value::Value as JsonValue;
 use wildmatch::WildMatch;
 
+#[cfg(feature = "unstable-msc4306")]
+use crate::OwnedEventId;
 use crate::{
     power_levels::{NotificationPowerLevels, NotificationPowerLevelsKey},
     room_version_rules::RoomPowerLevelsRules,
@@ -137,6 +141,16 @@ pub enum PushCondition {
         value: ScalarJsonValue,
     },
 
+    /// Matches a thread event based on the user's thread subscription status, as defined by
+    /// [MSC4306].
+    ///
+    /// [MSC4306]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
+    #[cfg(feature = "unstable-msc4306")]
+    ThreadSubscription {
+        /// Whether the user must be subscribed to the thread for the condition to match.
+        subscribed: bool,
+    },
+
     #[doc(hidden)]
     _Custom(_CustomPushCondition),
 }
@@ -197,6 +211,27 @@ impl PushCondition {
                 .get(key)
                 .and_then(FlattenedJsonValue::as_array)
                 .is_some_and(|a| a.contains(value)),
+            #[cfg(feature = "unstable-msc4306")]
+            Self::ThreadSubscription { subscribed } => {
+                // The event must have a relation of type `m.thread`.
+                if event.get_str("content.m\\.relates_to.rel_type") != Some("m.thread") {
+                    return false;
+                }
+
+                // Retrieve the thread root event ID.
+                let Some(Ok(thread_root)) = event
+                    .get_str("content.m\\.relates_to.event_id")
+                    .map(|str| str.parse::<OwnedEventId>())
+                else {
+                    return false;
+                };
+
+                if *subscribed {
+                    context.thread_subscriptions.contains(&thread_root)
+                } else {
+                    !context.thread_subscriptions.contains(&thread_root)
+                }
+            }
             Self::_Custom(_) => false,
         }
     }
@@ -239,6 +274,19 @@ pub struct PushConditionRoomCtx {
     /// The list of features this room's version or the room itself supports.
     #[cfg(feature = "unstable-msc3931")]
     pub supported_features: Vec<RoomVersionFeature>,
+
+    /// The list of known thread subscriptions for the current room, as materialized by the thread
+    /// root event IDs.
+    ///
+    /// All the event IDs present in this set must represent root event IDs for threads which are
+    /// subscribed to by the current user, where subscriptions are defined as per [MSC4306].
+    ///
+    /// Note: in the future, this may become a boxed closure returning a future, to avoid requiring
+    /// to store all the thread subscriptions in memory.
+    ///
+    /// [MSC4306]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
+    #[cfg(feature = "unstable-msc4306")]
+    pub thread_subscriptions: HashSet<OwnedEventId>,
 }
 
 impl PushConditionRoomCtx {
@@ -248,6 +296,7 @@ impl PushConditionRoomCtx {
         member_count: UInt,
         user_id: OwnedUserId,
         user_display_name: String,
+        #[cfg(feature = "unstable-msc4306")] thread_subscriptions: HashSet<OwnedEventId>,
     ) -> Self {
         Self {
             room_id,
@@ -257,6 +306,8 @@ impl PushConditionRoomCtx {
             power_levels: None,
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Vec::new(),
+            #[cfg(feature = "unstable-msc4306")]
+            thread_subscriptions,
         }
     }
 
@@ -740,6 +791,8 @@ mod tests {
             power_levels: Some(power_levels),
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
+            #[cfg(feature = "unstable-msc4306")]
+            thread_subscriptions: Default::default(),
         }
     }
 
@@ -858,6 +911,8 @@ mod tests {
             user_display_name: "Groovy Gorilla".into(),
             power_levels: context_not_matching.power_levels.clone(),
             supported_features: vec![super::RoomVersionFeature::ExtensibleEvents],
+            #[cfg(feature = "unstable-msc4306")]
+            thread_subscriptions: Default::default(),
         };
 
         let simple_event_raw = serde_json::from_str::<Raw<JsonValue>>(
@@ -1024,5 +1079,86 @@ mod tests {
             PushCondition::SenderNotificationPermission { key: NotificationPowerLevelsKey::Room };
 
         assert!(sender_notification_permission.applies(&first_event, &context));
+    }
+
+    #[cfg(feature = "unstable-msc4306")]
+    #[test]
+    fn thread_subscriptions_match() {
+        use crate::owned_event_id;
+
+        let mut context = push_context();
+
+        context.thread_subscriptions.insert(owned_event_id!("$subscribed_thread"));
+
+        let subscribed_thread_event = FlattenedJson::from_raw(
+            &serde_json::from_str::<Raw<JsonValue>>(
+                r#"{
+                "event_id": "$thread_response",
+                "sender": "@worthy_whale:server.name",
+                "content": {
+                    "msgtype": "m.text",
+                    "body": "response in thread $subscribed_thread",
+                    "m.relates_to": {
+                        "rel_type": "m.thread",
+                        "event_id": "$subscribed_thread",
+                        "is_falling_back": true,
+                        "m.in_reply_to": {
+                            "event_id": "$prev_event"
+                        }
+                    }
+                }
+            }"#,
+            )
+            .unwrap(),
+        );
+
+        let unsubscribed_thread_event = FlattenedJson::from_raw(
+            &serde_json::from_str::<Raw<JsonValue>>(
+                r#"{
+                "event_id": "$thread_response2",
+                "sender": "@worthy_whale:server.name",
+                "content": {
+                    "msgtype": "m.text",
+                    "body": "response in thread $unsubscribed_thread",
+                    "m.relates_to": {
+                        "rel_type": "m.thread",
+                        "event_id": "$unsubscribed_thread",
+                        "is_falling_back": true,
+                        "m.in_reply_to": {
+                            "event_id": "$prev_event2"
+                        }
+                    }
+                }
+            }"#,
+            )
+            .unwrap(),
+        );
+
+        let non_thread_related_event = FlattenedJson::from_raw(
+            &serde_json::from_str::<Raw<JsonValue>>(
+                r#"{
+                "event_id": "$thread_response2",
+                "sender": "@worthy_whale:server.name",
+                "content": {
+                    "m.relates_to": {
+                        "rel_type": "m.reaction",
+                        "event_id": "$subscribed_thread",
+                        "key": "👍"
+                    }
+                }
+            }"#,
+            )
+            .unwrap(),
+        );
+
+        let subscribed_thread_condition = PushCondition::ThreadSubscription { subscribed: true };
+        assert!(subscribed_thread_condition.applies(&subscribed_thread_event, &context));
+        assert!(!subscribed_thread_condition.applies(&unsubscribed_thread_event, &context));
+        assert!(!subscribed_thread_condition.applies(&non_thread_related_event, &context));
+
+        let unsubscribed_thread_condition = PushCondition::ThreadSubscription { subscribed: false };
+        assert!(unsubscribed_thread_condition.applies(&unsubscribed_thread_event, &context));
+        assert!(!unsubscribed_thread_condition.applies(&subscribed_thread_event, &context));
+        assert!(!unsubscribed_thread_condition.applies(&non_thread_related_event, &context));
     }
 }

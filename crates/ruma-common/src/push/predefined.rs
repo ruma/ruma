@@ -46,6 +46,10 @@ impl Ruleset {
             ]
             .into(),
             underride: [
+                #[cfg(feature = "unstable-msc4306")]
+                ConditionalPushRule::unsubscribed_thread(),
+                #[cfg(feature = "unstable-msc4306")]
+                ConditionalPushRule::subscribed_thread(),
                 ConditionalPushRule::call(),
                 ConditionalPushRule::encrypted_room_one_to_one(),
                 ConditionalPushRule::room_one_to_one(),
@@ -539,6 +543,38 @@ impl ConditionalPushRule {
             actions: vec![Notify],
         }
     }
+
+    /// Matches an event that's part of a thread, that is *not* subscribed to, by the current user.
+    ///
+    /// Thread subscriptions are defined in [MSC4306].
+    ///
+    /// [MSC4306]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
+    #[cfg(feature = "unstable-msc4306")]
+    pub fn unsubscribed_thread() -> Self {
+        Self {
+            rule_id: PredefinedUnderrideRuleId::UnsubscribedThread.to_string(),
+            default: true,
+            enabled: true,
+            conditions: vec![ThreadSubscription { subscribed: false }],
+            actions: vec![],
+        }
+    }
+
+    /// Matches an event that's part of a thread, that *is* subscribed to, by the current user.
+    ///
+    /// Thread subscriptions are defined in [MSC4306].
+    ///
+    /// [MSC4306]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
+    #[cfg(feature = "unstable-msc4306")]
+    pub fn subscribed_thread() -> Self {
+        Self {
+            rule_id: PredefinedUnderrideRuleId::SubscribedThread.to_string(),
+            default: true,
+            enabled: true,
+            conditions: vec![ThreadSubscription { subscribed: true }],
+            actions: vec![Notify, SetTweak(Tweak::Sound("default".into()))],
+        }
+    }
 }
 
 /// The rule IDs of the predefined server push rules.
@@ -703,6 +739,24 @@ pub enum PredefinedUnderrideRuleId {
     #[cfg(feature = "unstable-msc3930")]
     #[ruma_enum(rename = ".org.matrix.msc3930.rule.poll_end")]
     PollEnd,
+
+    /// `.m.rule.unsubscribed_thread`
+    ///
+    /// This uses the unstable prefix defined in [MSC4306].
+    ///
+    /// [MSC4306]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
+    #[cfg(feature = "unstable-msc4306")]
+    #[ruma_enum(rename = ".io.element.msc4306.rule.unsubscribed_thread")]
+    UnsubscribedThread,
+
+    /// `.m.rule.subscribed_thread`
+    ///
+    /// This uses the unstable prefix defined in [MSC4306].
+    ///
+    /// [MSC4306]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
+    #[cfg(feature = "unstable-msc4306")]
+    #[ruma_enum(rename = ".io.element.msc4306.rule.subscribed_thread")]
+    SubscribedThread,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),

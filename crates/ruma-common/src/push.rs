@@ -1434,6 +1434,8 @@ mod tests {
             power_levels: Some(power_levels()),
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
+            #[cfg(feature = "unstable-msc4306")]
+            thread_subscriptions: Default::default(),
         };
 
         let context_public_room = &PushConditionRoomCtx {
@@ -1444,6 +1446,8 @@ mod tests {
             power_levels: Some(power_levels()),
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
+            #[cfg(feature = "unstable-msc4306")]
+            thread_subscriptions: Default::default(),
         };
 
         let message = serde_json::from_str::<Raw<JsonValue>>(
@@ -1535,6 +1539,8 @@ mod tests {
             power_levels: Some(power_levels()),
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
+            #[cfg(feature = "unstable-msc4306")]
+            thread_subscriptions: Default::default(),
         };
 
         let message = serde_json::from_str::<Raw<JsonValue>>(
@@ -1674,6 +1680,8 @@ mod tests {
             power_levels: Some(power_levels()),
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
+            #[cfg(feature = "unstable-msc4306")]
+            thread_subscriptions: Default::default(),
         };
 
         let message = serde_json::from_str::<Raw<JsonValue>>(
@@ -1784,6 +1792,8 @@ mod tests {
             power_levels: Some(power_levels()),
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
+            #[cfg(feature = "unstable-msc4306")]
+            thread_subscriptions: Default::default(),
         };
 
         let message = serde_json::from_str::<Raw<JsonValue>>(
@@ -1838,6 +1848,8 @@ mod tests {
             power_levels: None,
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Default::default(),
+            #[cfg(feature = "unstable-msc4306")]
+            thread_subscriptions: Default::default(),
         };
 
         let message = serde_json::from_str::<Raw<JsonValue>>(
