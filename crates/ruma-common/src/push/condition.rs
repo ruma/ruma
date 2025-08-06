@@ -297,9 +297,18 @@ pub struct PushConditionRoomCtx {
     pub(super) has_thread_subscription_fn: Option<Arc<HasThreadSubscriptionFn>>,
 }
 
-#[cfg(feature = "unstable-msc4306")]
+#[cfg(all(feature = "unstable-msc4306", not(target_family = "wasm")))]
+type HasThreadSubscriptionFuture<'a> = Pin<Box<dyn Future<Output = bool> + Send + 'a>>;
+
+#[cfg(all(feature = "unstable-msc4306", target_family = "wasm"))]
+type HasThreadSubscriptionFuture<'a> = Pin<Box<dyn Future<Output = bool> + 'a>>;
+
+#[cfg(all(feature = "unstable-msc4306", not(target_family = "wasm")))]
 type HasThreadSubscriptionFn =
-    dyn for<'a> Fn(&'a EventId) -> Pin<Box<dyn Future<Output = bool> + Send + 'a>> + Send + Sync;
+    dyn for<'a> Fn(&'a EventId) -> HasThreadSubscriptionFuture<'a> + Send + Sync;
+
+#[cfg(all(feature = "unstable-msc4306", target_family = "wasm"))]
+type HasThreadSubscriptionFn = dyn for<'a> Fn(&'a EventId) -> HasThreadSubscriptionFuture<'a>;
 
 impl std::fmt::Debug for PushConditionRoomCtx {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -347,9 +356,13 @@ impl PushConditionRoomCtx {
     #[cfg(feature = "unstable-msc4306")]
     pub fn with_has_thread_subscription_fn(
         self,
-        has_thread_subscription_fn: impl for<'a> Fn(&'a EventId) -> Pin<Box<dyn Future<Output = bool> + Send + 'a>>
+        #[cfg(not(target_family = "wasm"))]
+        has_thread_subscription_fn: impl for<'a> Fn(&'a EventId) -> HasThreadSubscriptionFuture<'a>
             + Send
             + Sync
+            + 'static,
+        #[cfg(target_family = "wasm")]
+        has_thread_subscription_fn: impl for<'a> Fn(&'a EventId) -> HasThreadSubscriptionFuture<'a>
             + 'static,
     ) -> Self {
         Self { has_thread_subscription_fn: Some(Arc::new(has_thread_subscription_fn)), ..self }
