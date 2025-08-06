@@ -611,9 +611,11 @@ mod tests {
 
     use assert_matches2::assert_matches;
     use js_int::{int, uint, Int};
+    use macro_rules_attribute::apply;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
+    use smol_macros::test;
 
     use super::{
         FlattenedJson, PushCondition, PushConditionPowerLevelsCtx, PushConditionRoomCtx,
@@ -870,7 +872,7 @@ mod tests {
         FlattenedJson::from_raw(&raw)
     }
 
-    #[tokio::test]
+    #[apply(test!)]
     async fn event_match_applies() {
         let context = push_context();
         let first_event = first_flattened_event();
@@ -901,7 +903,7 @@ mod tests {
         assert!(msgtype.applies(&second_event, &context).await);
     }
 
-    #[tokio::test]
+    #[apply(test!)]
     async fn room_member_count_is_applies() {
         let context = push_context();
         let event = first_flattened_event();
@@ -918,7 +920,7 @@ mod tests {
         assert!(!member_count_lt.applies(&event, &context).await);
     }
 
-    #[tokio::test]
+    #[apply(test!)]
     async fn contains_display_name_applies() {
         let context = push_context();
         let first_event = first_flattened_event();
@@ -930,7 +932,7 @@ mod tests {
         assert!(!contains_display_name.applies(&second_event, &context).await);
     }
 
-    #[tokio::test]
+    #[apply(test!)]
     async fn sender_notification_permission_applies() {
         let context = push_context();
         let first_event = first_flattened_event();
@@ -944,7 +946,7 @@ mod tests {
     }
 
     #[cfg(feature = "unstable-msc3932")]
-    #[tokio::test]
+    #[apply(test!)]
     async fn room_version_supports_applies() {
         let context_not_matching = push_context();
 
@@ -979,7 +981,7 @@ mod tests {
         assert!(!room_version_condition.applies(&simple_event, &context_not_matching).await);
     }
 
-    #[tokio::test]
+    #[apply(test!)]
     async fn event_property_is_applies() {
         use crate::push::condition::ScalarJsonValue;
 
@@ -1044,7 +1046,7 @@ mod tests {
         assert!(null_match.applies(&event, &context).await);
     }
 
-    #[tokio::test]
+    #[apply(test!)]
     async fn event_property_contains_applies() {
         use crate::push::condition::ScalarJsonValue;
 
@@ -1107,7 +1109,7 @@ mod tests {
         assert!(null_match.applies(&event, &context).await);
     }
 
-    #[tokio::test]
+    #[apply(test!)]
     async fn room_creators_always_have_notification_permission() {
         let mut context = push_context();
         context.power_levels = Some(PushConditionPowerLevelsCtx {
@@ -1126,7 +1128,7 @@ mod tests {
     }
 
     #[cfg(feature = "unstable-msc4306")]
-    #[tokio::test]
+    #[apply(test!)]
     async fn thread_subscriptions_match() {
         use crate::{event_id, EventId};
 

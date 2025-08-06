@@ -9,6 +9,9 @@ exclude = [
 
 [advisories]
 version = 2
+ignore = [
+    "RUSTSEC-2024-0436" # in paste, used transitively by `smol_macros`, which is test-only.
+]
 
 [licenses]
 version = 2

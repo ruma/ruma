@@ -987,10 +987,12 @@ mod tests {
 
     use assert_matches2::assert_matches;
     use js_int::{int, uint};
+    use macro_rules_attribute::apply;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value,
         value::RawValue as RawJsonValue, Value as JsonValue,
     };
+    use smol_macros::test;
 
     use super::{
         action::{Action, Tweak},
@@ -1437,7 +1439,7 @@ mod tests {
         assert_matches!(iter.next(), None);
     }
 
-    #[tokio::test]
+    #[apply(test!)]
     async fn default_ruleset_applies() {
         let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
 
@@ -1544,7 +1546,7 @@ mod tests {
         assert_matches!(set.get_actions(&empty, context_one_to_one).await, []);
     }
 
-    #[tokio::test]
+    #[apply(test!)]
     async fn custom_ruleset_applies() {
         let context_one_to_one = &PushConditionRoomCtx {
             room_id: owned_room_id!("!dm:server.name"),
@@ -1682,7 +1684,7 @@ mod tests {
         assert_eq!(sound, "three");
     }
 
-    #[tokio::test]
+    #[apply(test!)]
     #[allow(deprecated)]
     async fn old_mentions_apply() {
         let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
@@ -1795,7 +1797,7 @@ mod tests {
         );
     }
 
-    #[tokio::test]
+    #[apply(test!)]
     async fn intentional_mentions_apply() {
         let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
 
@@ -1850,7 +1852,7 @@ mod tests {
         );
     }
 
-    #[tokio::test]
+    #[apply(test!)]
     async fn invite_for_me_applies() {
         let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
 
