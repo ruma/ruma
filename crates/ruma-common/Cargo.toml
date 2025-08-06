@@ -89,8 +89,9 @@ js-sys = { version = "0.3", optional = true }
 [dev-dependencies]
 assert_matches2 = { workspace = true }
 assign = { workspace = true }
+macro_rules_attribute = "0.2.2"
 maplit = { workspace = true }
-tokio = { version = "1.45.0", features = ["macros", "rt"] }
+smol-macros = "0.1.1"
 trybuild = "1.0.71"
 
 [lints]
