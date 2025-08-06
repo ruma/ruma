@@ -299,7 +299,7 @@ impl Ruleset {
             return None;
         }
 
-        for rule in self.iter() {
+        for rule in self {
             if rule.applies(&event, context).await {
                 return Some(rule);
             }
@@ -527,7 +527,7 @@ impl ConditionalPushRule {
             return false;
         }
 
-        for cond in self.conditions.iter() {
+        for cond in &self.conditions {
             if !cond.applies(event, context).await {
                 return false;
             }
