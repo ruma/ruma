@@ -434,6 +434,8 @@ impl ErrorKind {
             ErrorKind::CannotOverwriteMedia => ErrorCode::CannotOverwriteMedia,
             ErrorKind::CaptchaInvalid => ErrorCode::CaptchaInvalid,
             ErrorKind::CaptchaNeeded => ErrorCode::CaptchaNeeded,
+            #[cfg(feature = "unstable-msc4306")]
+            ErrorKind::ConflictingUnsubscription => ErrorCode::ConflictingUnsubscription,
             ErrorKind::ConnectionFailed => ErrorCode::ConnectionFailed,
             ErrorKind::ConnectionTimeout => ErrorCode::ConnectionTimeout,
             ErrorKind::DuplicateAnnotation => ErrorCode::DuplicateAnnotation,
@@ -455,8 +457,6 @@ impl ErrorKind {
             ErrorKind::ResourceLimitExceeded { .. } => ErrorCode::ResourceLimitExceeded,
             ErrorKind::RoomInUse => ErrorCode::RoomInUse,
             ErrorKind::ServerNotTrusted => ErrorCode::ServerNotTrusted,
-            #[cfg(feature = "unstable-msc4306")]
-            ErrorKind::ConflictingUnsubscription => ErrorCode::ConflictingUnsubscription,
             ErrorKind::ThreepidAuthFailed => ErrorCode::ThreepidAuthFailed,
             ErrorKind::ThreepidDenied => ErrorCode::ThreepidDenied,
             ErrorKind::ThreepidInUse => ErrorCode::ThreepidInUse,

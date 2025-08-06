@@ -3,8 +3,8 @@
 Breaking changes:
 
 - `PushCondition::applies`, `ConditionalPushRule::applies`, `AnyPushRuleRef::applies`,
-  `AnyPushRule::applies`, `Ruleset::applies`, `Ruleset::get_actions` all became async,
-  to allow for lazy evaluation of push rules.
+  `AnyPushRule::applies`, `Ruleset::applies`, `Ruleset::get_actions`, `Ruleset::get_match` all
+  became async, to allow for lazy evaluation of push rules.
 - `UserId` parsing and deserialization are now compatible with all non-compliant
   user IDs in the wild by default, due to a clarification in the spec.
   - The `compat-user-id` cargo feature was removed.

@@ -10,13 +10,13 @@ use serde::{Deserialize, Serialize};
 use serde_json::value::Value as JsonValue;
 use wildmatch::WildMatch;
 
+#[cfg(feature = "unstable-msc4306")]
+use crate::EventId;
 use crate::{
     power_levels::{NotificationPowerLevels, NotificationPowerLevelsKey},
     room_version_rules::RoomPowerLevelsRules,
     OwnedRoomId, OwnedUserId, UserId,
 };
-#[cfg(feature = "unstable-msc4306")]
-use crate::{EventId, OwnedEventId};
 #[cfg(feature = "unstable-msc3931")]
 use crate::{PrivOwnedStr, RoomVersionId};
 
@@ -147,7 +147,8 @@ pub enum PushCondition {
     /// [MSC4306]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
     #[cfg(feature = "unstable-msc4306")]
     ThreadSubscription {
-        /// Whether the user must be subscribed to the thread for the condition to match.
+        /// Whether the user must be subscribed (`true`) or unsubscribed (`false`) to the thread
+        /// for the condition to match.
         subscribed: bool,
     },
 
@@ -225,20 +226,15 @@ impl PushCondition {
                 }
 
                 // Retrieve the thread root event ID.
-                let Some(Ok(thread_root)) = event
-                    .get_str("content.m\\.relates_to.event_id")
-                    .map(|str| str.parse::<OwnedEventId>())
+                let Some(Ok(thread_root)) =
+                    event.get_str("content.m\\.relates_to.event_id").map(<&EventId>::try_from)
                 else {
                     return false;
                 };
 
-                let is_subscribed = has_thread_subscription_fn(&thread_root).await;
+                let is_subscribed = has_thread_subscription_fn(thread_root).await;
 
-                if *must_be_subscribed {
-                    is_subscribed
-                } else {
-                    !is_subscribed
-                }
+                *must_be_subscribed == is_subscribed
             }
             Self::_Custom(_) => false,
         }
@@ -283,14 +279,9 @@ pub struct PushConditionRoomCtx {
     #[cfg(feature = "unstable-msc3931")]
     pub supported_features: Vec<RoomVersionFeature>,
 
-    /// The list of known thread subscriptions for the current room, as materialized by the thread
-    /// root event IDs.
-    ///
-    /// All the event IDs present in this set must represent root event IDs for threads which are
-    /// subscribed to by the current user, where subscriptions are defined as per [MSC4306].
-    ///
-    /// Note: in the future, this may become a boxed closure returning a future, to avoid requiring
-    /// to store all the thread subscriptions in memory.
+    /// A closure that returns a future indicating if the given thread (represented by its thread
+    /// root event id) is subscribed to by the current user, where subscriptions are defined as per
+    /// [MSC4306].
     ///
     /// [MSC4306]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
     #[cfg(feature = "unstable-msc4306")]
@@ -1155,21 +1146,21 @@ mod tests {
         let subscribed_thread_event = FlattenedJson::from_raw(
             &serde_json::from_str::<Raw<JsonValue>>(
                 r#"{
-                "event_id": "$thread_response",
-                "sender": "@worthy_whale:server.name",
-                "content": {
-                    "msgtype": "m.text",
-                    "body": "response in thread $subscribed_thread",
-                    "m.relates_to": {
-                        "rel_type": "m.thread",
-                        "event_id": "$subscribed_thread",
-                        "is_falling_back": true,
-                        "m.in_reply_to": {
-                            "event_id": "$prev_event"
+                    "event_id": "$thread_response",
+                    "sender": "@worthy_whale:server.name",
+                    "content": {
+                        "msgtype": "m.text",
+                        "body": "response in thread $subscribed_thread",
+                        "m.relates_to": {
+                            "rel_type": "m.thread",
+                            "event_id": "$subscribed_thread",
+                            "is_falling_back": true,
+                            "m.in_reply_to": {
+                                "event_id": "$prev_event"
+                            }
                         }
                     }
-                }
-            }"#,
+                }"#,
             )
             .unwrap(),
         );
@@ -1177,21 +1168,21 @@ mod tests {
         let unsubscribed_thread_event = FlattenedJson::from_raw(
             &serde_json::from_str::<Raw<JsonValue>>(
                 r#"{
-                "event_id": "$thread_response2",
-                "sender": "@worthy_whale:server.name",
-                "content": {
-                    "msgtype": "m.text",
-                    "body": "response in thread $unsubscribed_thread",
-                    "m.relates_to": {
-                        "rel_type": "m.thread",
-                        "event_id": "$unsubscribed_thread",
-                        "is_falling_back": true,
-                        "m.in_reply_to": {
-                            "event_id": "$prev_event2"
+                    "event_id": "$thread_response2",
+                    "sender": "@worthy_whale:server.name",
+                    "content": {
+                        "msgtype": "m.text",
+                        "body": "response in thread $unsubscribed_thread",
+                        "m.relates_to": {
+                            "rel_type": "m.thread",
+                            "event_id": "$unsubscribed_thread",
+                            "is_falling_back": true,
+                            "m.in_reply_to": {
+                                "event_id": "$prev_event2"
+                            }
                         }
                     }
-                }
-            }"#,
+                }"#,
             )
             .unwrap(),
         );
@@ -1199,16 +1190,16 @@ mod tests {
         let non_thread_related_event = FlattenedJson::from_raw(
             &serde_json::from_str::<Raw<JsonValue>>(
                 r#"{
-                "event_id": "$thread_response2",
-                "sender": "@worthy_whale:server.name",
-                "content": {
-                    "m.relates_to": {
-                        "rel_type": "m.reaction",
-                        "event_id": "$subscribed_thread",
-                        "key": "👍"
+                    "event_id": "$thread_response2",
+                    "sender": "@worthy_whale:server.name",
+                    "content": {
+                        "m.relates_to": {
+                            "rel_type": "m.reaction",
+                            "event_id": "$subscribed_thread",
+                            "key": "👍"
+                        }
                     }
-                }
-            }"#,
+                }"#,
             )
             .unwrap(),
         );
