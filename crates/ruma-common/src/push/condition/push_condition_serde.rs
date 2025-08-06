@@ -112,6 +112,7 @@ impl From<PushConditionSerDeHelper> for PushCondition {
             PushConditionSerDeHelper::EventMatch { key, pattern } => {
                 Self::EventMatch { key, pattern }
             }
+            #[allow(deprecated)]
             PushConditionSerDeHelper::ContainsDisplayName => Self::ContainsDisplayName,
             PushConditionSerDeHelper::RoomMemberCount { is } => Self::RoomMemberCount { is },
             PushConditionSerDeHelper::SenderNotificationPermission { key } => {
@@ -135,6 +136,7 @@ impl From<PushCondition> for PushConditionSerDeHelper {
     fn from(value: PushCondition) -> Self {
         match value {
             PushCondition::EventMatch { key, pattern } => Self::EventMatch { key, pattern },
+            #[allow(deprecated)]
             PushCondition::ContainsDisplayName => Self::ContainsDisplayName,
             PushCondition::RoomMemberCount { is } => Self::RoomMemberCount { is },
             PushCondition::SenderNotificationPermission { key } => {

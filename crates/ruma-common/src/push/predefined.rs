@@ -5,8 +5,7 @@
 use ruma_macros::StringEnum;
 
 use super::{
-    Action::*, ConditionalPushRule, PatternedPushRule, PushCondition::*, RoomMemberCountIs,
-    RuleKind, Ruleset, Tweak,
+    Action::*, ConditionalPushRule, PushCondition::*, RoomMemberCountIs, RuleKind, Ruleset, Tweak,
 };
 use crate::{power_levels::NotificationPowerLevelsKey, PrivOwnedStr, UserId};
 
@@ -21,22 +20,13 @@ impl Ruleset {
     /// [predefined push rules]: https://spec.matrix.org/latest/client-server-api/#predefined-rules
     pub fn server_default(user_id: &UserId) -> Self {
         Self {
-            content: [
-                #[allow(deprecated)]
-                PatternedPushRule::contains_user_name(user_id),
-            ]
-            .into(),
             override_: [
                 ConditionalPushRule::master(),
                 ConditionalPushRule::suppress_notices(),
                 ConditionalPushRule::invite_for_me(user_id),
                 ConditionalPushRule::member_event(),
                 ConditionalPushRule::is_user_mention(user_id),
-                #[allow(deprecated)]
-                ConditionalPushRule::contains_display_name(),
                 ConditionalPushRule::is_room_mention(),
-                #[allow(deprecated)]
-                ConditionalPushRule::roomnotif(),
                 ConditionalPushRule::tombstone(),
                 ConditionalPushRule::reaction(),
                 ConditionalPushRule::server_acl(),
@@ -209,27 +199,6 @@ impl ConditionalPushRule {
         }
     }
 
-    /// Matches any message whose content is unencrypted and contains the user's current display
-    /// name in the room in which it was sent.
-    ///
-    /// Since Matrix 1.7, this rule only matches if the event's content does not contain an
-    /// `m.mentions` property.
-    #[deprecated = "Since Matrix 1.7. Use the m.mentions property with ConditionalPushRule::is_user_mention() instead."]
-    pub fn contains_display_name() -> Self {
-        #[allow(deprecated)]
-        Self {
-            actions: vec![
-                Notify,
-                SetTweak(Tweak::Sound("default".into())),
-                SetTweak(Tweak::Highlight(true)),
-            ],
-            default: true,
-            enabled: true,
-            rule_id: PredefinedOverrideRuleId::ContainsDisplayName.to_string(),
-            conditions: vec![ContainsDisplayName],
-        }
-    }
-
     /// Matches any state event whose type is `m.room.tombstone`. This
     /// is intended to notify users of a room when it is upgraded,
     /// similar to what an `@room` notification would accomplish.
@@ -257,26 +226,6 @@ impl ConditionalPushRule {
             conditions: vec![
                 EventPropertyIs { key: r"content.m\.mentions.room".to_owned(), value: true.into() },
                 SenderNotificationPermission { key: NotificationPowerLevelsKey::Room },
-            ],
-        }
-    }
-
-    /// Matches any message whose content is unencrypted and contains the text `@room`, signifying
-    /// the whole room should be notified of the event.
-    ///
-    /// Since Matrix 1.7, this rule only matches if the event's content does not contain an
-    /// `m.mentions` property.
-    #[deprecated = "Since Matrix 1.7. Use the m.mentions property with ConditionalPushRule::is_room_mention() instead."]
-    pub fn roomnotif() -> Self {
-        #[allow(deprecated)]
-        Self {
-            actions: vec![Notify, SetTweak(Tweak::Highlight(true))],
-            default: true,
-            enabled: true,
-            rule_id: PredefinedOverrideRuleId::RoomNotif.to_string(),
-            conditions: vec![
-                EventMatch { key: "content.body".into(), pattern: "@room".into() },
-                SenderNotificationPermission { key: "room".into() },
             ],
         }
     }
@@ -343,30 +292,6 @@ impl ConditionalPushRule {
                 value: "org.matrix.msc3381.poll.response".into(),
             }],
             actions: vec![],
-        }
-    }
-}
-
-/// Default content push rules
-impl PatternedPushRule {
-    /// Matches any message whose content is unencrypted and contains the local part of the user's
-    /// Matrix ID, separated by word boundaries.
-    ///
-    /// Since Matrix 1.7, this rule only matches if the event's content does not contain an
-    /// `m.mentions` property.
-    #[deprecated = "Since Matrix 1.7. Use the m.mentions property with ConditionalPushRule::is_user_mention() instead."]
-    pub fn contains_user_name(user_id: &UserId) -> Self {
-        #[allow(deprecated)]
-        Self {
-            rule_id: PredefinedContentRuleId::ContainsUserName.to_string(),
-            enabled: true,
-            default: true,
-            pattern: user_id.localpart().into(),
-            actions: vec![
-                Notify,
-                SetTweak(Tweak::Sound("default".into())),
-                SetTweak(Tweak::Highlight(true)),
-            ],
         }
     }
 }

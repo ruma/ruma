@@ -59,6 +59,14 @@ Breaking changes:
     same type.
 - `RoomId::new()` was renamed to `RoomId::new_v1()`, as several formats are now
   supported for this type.
+- The predefined push rules for legacy mentions
+  `PatternedPushRule::contains_user_name()`,
+  `ConditionalPushRule::contains_display_name()` and
+  `ConditionalPushRule::roomnotif()` were removed, according to MSC4210.
+  Their rule IDs are still available in `PredefinedContentRuleId` and
+  `PredefinedOverrideRuleId`, and they are still supported in
+  `PatternedPushRule::applies_to()` and `ConditionalPushRule::applies()`, for
+  backwards-compatibility for clients.
 
 Bug fix:
 
@@ -117,6 +125,7 @@ Improvements:
   the reference hash used in that format.
 - Add unstable support for in-app-only notifications as per MSC3768 under a new `unstable-msc3768`
   feature.
+- `PushCondition::ContainsDisplayName` is deprecated, according to MSC4210.
 
 # 0.15.4
 

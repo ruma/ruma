@@ -1082,6 +1082,7 @@ mod tests {
             rule_id: ".m.rule.call".into(),
             conditions: vec![
                 PushCondition::EventMatch { key: "type".into(), pattern: "m.call.invite".into() },
+                #[allow(deprecated)]
                 PushCondition::ContainsDisplayName,
                 PushCondition::RoomMemberCount { is: RoomMemberCountIs::gt(uint!(2)) },
                 PushCondition::SenderNotificationPermission { key: "room".into() },
@@ -1424,7 +1425,7 @@ mod tests {
 
     #[test]
     fn default_ruleset_applies() {
-        let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
+        let set = Ruleset::server_default(user_id!("@jj:server.name"));
 
         let context_one_to_one = &PushConditionRoomCtx {
             room_id: owned_room_id!("!dm:server.name"),
@@ -1466,18 +1467,21 @@ mod tests {
             [Action::Notify, Action::SetTweak(Tweak::Highlight(false))]
         );
 
-        let user_name = serde_json::from_str::<Raw<JsonValue>>(
+        let user_mention = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
                 "type": "m.room.message",
                 "content": {
-                    "body": "Hi jolly_jumper!"
+                    "body": "Hi jolly_jumper!",
+                    "m.mentions": {
+                        "user_ids": ["@jj:server.name"]
+                    }
                 }
             }"#,
         )
         .unwrap();
 
         assert_matches!(
-            set.get_actions(&user_name, context_one_to_one),
+            set.get_actions(&user_mention, context_one_to_one),
             [
                 Action::Notify,
                 Action::SetTweak(Tweak::Sound(_)),
@@ -1485,7 +1489,7 @@ mod tests {
             ]
         );
         assert_matches!(
-            set.get_actions(&user_name, context_public_room),
+            set.get_actions(&user_mention, context_public_room),
             [
                 Action::Notify,
                 Action::SetTweak(Tweak::Sound(_)),
@@ -1504,20 +1508,23 @@ mod tests {
         .unwrap();
         assert_matches!(set.get_actions(&notice, context_one_to_one), []);
 
-        let at_room = serde_json::from_str::<Raw<JsonValue>>(
+        let room_mention = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
                 "type": "m.room.message",
                 "sender": "@rantanplan:server.name",
                 "content": {
                     "body": "@room Attention please!",
-                    "msgtype": "m.text"
+                    "msgtype": "m.text",
+                    "m.mentions": {
+                        "room": true
+                    }
                 }
             }"#,
         )
         .unwrap();
 
         assert_matches!(
-            set.get_actions(&at_room, context_public_room),
+            set.get_actions(&room_mention, context_public_room),
             [Action::Notify, Action::SetTweak(Tweak::Highlight(true)),]
         );
 
@@ -1627,6 +1634,7 @@ mod tests {
             rule_id: "three.conditions".into(),
             conditions: vec![
                 PushCondition::RoomMemberCount { is: RoomMemberCountIs::from(uint!(2)) },
+                #[allow(deprecated)]
                 PushCondition::ContainsDisplayName,
                 PushCondition::EventMatch {
                     key: "room_id".into(),
@@ -1664,7 +1672,44 @@ mod tests {
     #[test]
     #[allow(deprecated)]
     fn old_mentions_apply() {
-        let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
+        let mut set = Ruleset::new();
+        set.content.insert(PatternedPushRule {
+            rule_id: PredefinedContentRuleId::ContainsUserName.to_string(),
+            enabled: true,
+            default: true,
+            pattern: "jolly_jumper".to_owned(),
+            actions: vec![
+                Action::Notify,
+                Action::SetTweak(Tweak::Sound("default".into())),
+                Action::SetTweak(Tweak::Highlight(true)),
+            ],
+        });
+        set.override_.extend([
+            ConditionalPushRule {
+                actions: vec![
+                    Action::Notify,
+                    Action::SetTweak(Tweak::Sound("default".into())),
+                    Action::SetTweak(Tweak::Highlight(true)),
+                ],
+                default: true,
+                enabled: true,
+                rule_id: PredefinedOverrideRuleId::ContainsDisplayName.to_string(),
+                conditions: vec![PushCondition::ContainsDisplayName],
+            },
+            ConditionalPushRule {
+                actions: vec![Action::Notify, Action::SetTweak(Tweak::Highlight(true))],
+                default: true,
+                enabled: true,
+                rule_id: PredefinedOverrideRuleId::RoomNotif.to_string(),
+                conditions: vec![
+                    PushCondition::EventMatch {
+                        key: "content.body".into(),
+                        pattern: "@room".into(),
+                    },
+                    PushCondition::SenderNotificationPermission { key: "room".into() },
+                ],
+            },
+        ]);
 
         let context = &PushConditionRoomCtx {
             room_id: owned_room_id!("!far_west:server.name"),
@@ -1702,10 +1747,7 @@ mod tests {
         )
         .unwrap();
 
-        assert_ne!(
-            set.get_match(&message, context).unwrap().rule_id(),
-            PredefinedContentRuleId::ContainsUserName.as_ref()
-        );
+        assert_eq!(set.get_match(&message, context).map(|rule| rule.rule_id()), None);
 
         let message = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
@@ -1733,10 +1775,7 @@ mod tests {
         )
         .unwrap();
 
-        assert_ne!(
-            set.get_match(&message, context).unwrap().rule_id(),
-            PredefinedOverrideRuleId::ContainsDisplayName.as_ref()
-        );
+        assert_eq!(set.get_match(&message, context).map(|rule| rule.rule_id()), None);
 
         let message = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
@@ -1766,10 +1805,7 @@ mod tests {
         )
         .unwrap();
 
-        assert_ne!(
-            set.get_match(&message, context).unwrap().rule_id(),
-            PredefinedOverrideRuleId::RoomNotif.as_ref()
-        );
+        assert_eq!(set.get_match(&message, context).map(|rule| rule.rule_id()), None);
     }
 
     #[test]
