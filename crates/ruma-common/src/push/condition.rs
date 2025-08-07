@@ -833,17 +833,14 @@ mod tests {
             rules: RoomPowerLevelsRules::new(&AuthorizationRules::V1, None),
         };
 
-        PushConditionRoomCtx {
-            room_id: owned_room_id!("!room:server.name"),
-            member_count: uint!(3),
-            user_id: owned_user_id!("@gorilla:server.name"),
-            user_display_name: "Groovy Gorilla".into(),
-            power_levels: Some(power_levels),
-            #[cfg(feature = "unstable-msc3931")]
-            supported_features: Default::default(),
-            #[cfg(feature = "unstable-msc4306")]
-            has_thread_subscription_fn: Default::default(),
-        }
+        let mut ctx = PushConditionRoomCtx::new(
+            owned_room_id!("!room:server.name"),
+            uint!(3),
+            owned_user_id!("@gorilla:server.name"),
+            "Groovy Gorilla".into(),
+        );
+        ctx.power_levels = Some(power_levels);
+        ctx
     }
 
     fn first_flattened_event() -> FlattenedJson {
@@ -952,18 +949,20 @@ mod tests {
     #[cfg(feature = "unstable-msc3932")]
     #[apply(test!)]
     async fn room_version_supports_applies() {
-        let context_not_matching = push_context();
+        use assign::assign;
 
-        let context_matching = PushConditionRoomCtx {
-            room_id: owned_room_id!("!room:server.name"),
-            member_count: uint!(3),
-            user_id: owned_user_id!("@gorilla:server.name"),
-            user_display_name: "Groovy Gorilla".into(),
-            power_levels: context_not_matching.power_levels.clone(),
-            supported_features: vec![super::RoomVersionFeature::ExtensibleEvents],
-            #[cfg(feature = "unstable-msc4306")]
-            has_thread_subscription_fn: Default::default(),
-        };
+        let context_not_matching = push_context();
+        let context_matching = assign!(
+            PushConditionRoomCtx::new(
+                owned_room_id!("!room:server.name"),
+                uint!(3),
+                owned_user_id!("@gorilla:server.name"),
+                "Groovy Gorilla".into(),
+            ), {
+                power_levels: context_not_matching.power_levels.clone(),
+                supported_features: vec![super::RoomVersionFeature::ExtensibleEvents],
+            }
+        );
 
         let simple_event_raw = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
