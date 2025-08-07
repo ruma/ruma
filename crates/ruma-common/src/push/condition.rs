@@ -285,7 +285,7 @@ pub struct PushConditionRoomCtx {
     ///
     /// [MSC4306]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
     #[cfg(feature = "unstable-msc4306")]
-    pub(super) has_thread_subscription_fn: Option<Arc<HasThreadSubscriptionFn>>,
+    has_thread_subscription_fn: Option<Arc<HasThreadSubscriptionFn>>,
 }
 
 #[cfg(all(feature = "unstable-msc4306", not(target_family = "wasm")))]
