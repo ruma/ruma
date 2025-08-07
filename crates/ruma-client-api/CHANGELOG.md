@@ -35,6 +35,10 @@ Breaking changes:
 - `sync_events::v3::State` is now an enum, to prepare for the stabilization of MSC4222. The state
   before the timeline, corresponding to the `state` field in the Matrix specification, is available
   in the `Before` variant, and the struct representing its content was renamed to `StateEvents`. 
+- `get_profile::v3::Response` has no public fields anymore but stores custom
+  fields. The fields can be accessed with `.get()`, `.iter()` or `.into_iter()`.
+  `Response::new()` takes no arguments and creates an empty response. Fields can
+  be added using `.set()`, or the `FromIterator` and `Extend` implementations.
 
 Improvements:
 
@@ -53,6 +57,7 @@ Improvements:
 - Add unstable support for the `use_state_after` query parameter in `sync_events::v3::Request`, and
   the corresponding `State::After` variant in the response (`state_after` in the spec), according to
   MSC4222.
+- Add unstable support for extended profiles, as per MSC4133.
 
 # 0.20.4
 
