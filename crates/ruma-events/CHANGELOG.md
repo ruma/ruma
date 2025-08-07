@@ -72,6 +72,8 @@ Breaking changes:
 
 Improvements:
 
+- Don't print out the secret key contained in JsonWebKey and JsonWebKeyInit in
+  their `Debug` implementations.
 - Remove the `pdu` module and the corresponding `unstable-pdu` cargo feature. As far as we know, it
   was not used anywhere outside of the tests of ruma-state-res.
 - The `EventContent` and `event_enum!` macros support declaring the same type for both global and
