@@ -24,6 +24,8 @@ pub mod v3 {
         from_value as from_json_value, to_value as to_json_value, Value as JsonValue,
     };
 
+    #[cfg(feature = "unstable-msc4133")]
+    use crate::profile::ProfileFieldName;
     use crate::PrivOwnedStr;
 
     const METADATA: Metadata = metadata! {
@@ -121,6 +123,15 @@ pub mod v3 {
             skip_serializing_if = "GetLoginTokenCapability::is_default"
         )]
         pub get_login_token: GetLoginTokenCapability,
+
+        /// Capability to indicate if the user can set extended profile fields.
+        #[cfg(feature = "unstable-msc4133")]
+        #[serde(
+            rename = "uk.tcpip.msc4133.profile_fields",
+            alias = "m.profile_fields",
+            skip_serializing_if = "Option::is_none"
+        )]
+        pub profile_fields: Option<ProfileFieldsCapability>,
 
         /// Any other custom capabilities that the server supports outside of the specification,
         /// labeled using the Java package naming convention and stored as arbitrary JSON values.
@@ -356,6 +367,49 @@ pub mod v3 {
         /// Returns whether all fields have their default value.
         pub fn is_default(&self) -> bool {
             !self.enabled
+        }
+    }
+
+    /// Information about the `m.profile_fields` capability.
+    #[cfg(feature = "unstable-msc4133")]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct ProfileFieldsCapability {
+        /// Whether the user can set extended profile fields.
+        pub enabled: bool,
+
+        /// The fields that can be set by the user.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub allowed: Option<Vec<ProfileFieldName>>,
+
+        /// The fields that cannot be set by the user.
+        ///
+        /// This list is ignored if `allowed` is provided.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub disallowed: Option<Vec<ProfileFieldName>>,
+    }
+
+    #[cfg(feature = "unstable-msc4133")]
+    impl ProfileFieldsCapability {
+        /// Creates a new `ProfileFieldsCapability` with the given enabled flag.
+        pub fn new(enabled: bool) -> Self {
+            Self { enabled, allowed: None, disallowed: None }
+        }
+
+        /// Whether the server advertises that the field with the given name can be set.
+        pub fn can_set_field(&self, field: &ProfileFieldName) -> bool {
+            if !self.enabled {
+                return false;
+            }
+
+            if let Some(allowed) = &self.allowed {
+                allowed.contains(field)
+            } else if let Some(disallowed) = &self.disallowed {
+                !disallowed.contains(field)
+            } else {
+                // The default is that any field is allowed.
+                true
+            }
         }
     }
 }

@@ -1,16 +1,22 @@
 //! `GET /_matrix/client/*/profile/{userId}`
 //!
-//! Get all profile information of an user.
+//! Get all profile information of a user.
 
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3profileuserid
 
+    use std::collections::{btree_map, BTreeMap};
+
     use ruma_common::{
         api::{request, response, Metadata},
-        metadata, OwnedMxcUri, OwnedUserId,
+        metadata, OwnedUserId,
     };
+    use serde_json::Value as JsonValue;
+
+    #[cfg(feature = "unstable-msc4133")]
+    use crate::profile::{ProfileFieldName, ProfileFieldValue, StaticProfileField};
 
     const METADATA: Metadata = metadata! {
         method: GET,
@@ -34,28 +40,9 @@ pub mod v3 {
     #[response(error = crate::Error)]
     #[derive(Default)]
     pub struct Response {
-        /// The user's avatar URL, if set.
-        ///
-        /// If you activate the `compat-empty-string-null` feature, this field being an empty
-        /// string in JSON will result in `None` here during deserialization.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[cfg_attr(
-            feature = "compat-empty-string-null",
-            serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
-        )]
-        pub avatar_url: Option<OwnedMxcUri>,
-
-        /// The user's display name, if set.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub displayname: Option<String>,
-
-        /// The [BlurHash](https://blurha.sh) for the avatar pointed to by `avatar_url`.
-        ///
-        /// This uses the unstable prefix in
-        /// [MSC2448](https://github.com/matrix-org/matrix-spec-proposals/pull/2448).
-        #[cfg(feature = "unstable-msc2448")]
-        #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
-        pub blurhash: Option<String>,
+        /// The profile data.
+        #[ruma_api(body)]
+        data: BTreeMap<String, JsonValue>,
     }
 
     impl Request {
@@ -66,14 +53,157 @@ pub mod v3 {
     }
 
     impl Response {
-        /// Creates a new `Response` with the given avatar URL and display name.
-        pub fn new(avatar_url: Option<OwnedMxcUri>, displayname: Option<String>) -> Self {
-            Self {
-                avatar_url,
-                displayname,
-                #[cfg(feature = "unstable-msc2448")]
-                blurhash: None,
-            }
+        /// Creates a new empty `Response`.
+        pub fn new() -> Self {
+            Self::default()
         }
+
+        /// Returns the value of the given capability.
+        pub fn get(&self, field: &str) -> Option<&JsonValue> {
+            self.data.get(field)
+        }
+
+        /// Returns the value of the given [`StaticProfileField`].
+        ///
+        /// Returns `Ok(Some(_))` if the field is present and the value was deserialized
+        /// successfully, `Ok(None)` if the field is not set, or an error if deserialization of the
+        /// value failed.
+        #[cfg(feature = "unstable-msc4133")]
+        pub fn get_static<F: StaticProfileField>(
+            &self,
+        ) -> Result<Option<F::Value>, serde_json::Error> {
+            self.data.get(F::NAME).map(|value| serde_json::from_value(value.clone())).transpose()
+        }
+
+        /// Gets an iterator over the fields of the profile.
+        pub fn iter(&self) -> btree_map::Iter<'_, String, JsonValue> {
+            self.data.iter()
+        }
+
+        /// Sets a field to the given value.
+        #[cfg(feature = "unstable-msc4133")]
+        pub fn set(&mut self, field: &str, value: JsonValue) {
+            self.data.insert(field.to_owned(), value);
+        }
+    }
+
+    impl FromIterator<(String, JsonValue)> for Response {
+        fn from_iter<T: IntoIterator<Item = (String, JsonValue)>>(iter: T) -> Self {
+            Self { data: iter.into_iter().collect() }
+        }
+    }
+
+    #[cfg(feature = "unstable-msc4133")]
+    impl FromIterator<(ProfileFieldName, JsonValue)> for Response {
+        fn from_iter<T: IntoIterator<Item = (ProfileFieldName, JsonValue)>>(iter: T) -> Self {
+            iter.into_iter().map(|(field, value)| (field.as_str().to_owned(), value)).collect()
+        }
+    }
+
+    #[cfg(feature = "unstable-msc4133")]
+    impl FromIterator<ProfileFieldValue> for Response {
+        fn from_iter<T: IntoIterator<Item = ProfileFieldValue>>(iter: T) -> Self {
+            iter.into_iter().map(|value| (value.field_name(), value.value().into_owned())).collect()
+        }
+    }
+
+    impl Extend<(String, JsonValue)> for Response {
+        fn extend<T: IntoIterator<Item = (String, JsonValue)>>(&mut self, iter: T) {
+            self.data.extend(iter);
+        }
+    }
+
+    #[cfg(feature = "unstable-msc4133")]
+    impl Extend<(ProfileFieldName, JsonValue)> for Response {
+        fn extend<T: IntoIterator<Item = (ProfileFieldName, JsonValue)>>(&mut self, iter: T) {
+            self.extend(iter.into_iter().map(|(field, value)| (field.as_str().to_owned(), value)));
+        }
+    }
+
+    #[cfg(feature = "unstable-msc4133")]
+    impl Extend<ProfileFieldValue> for Response {
+        fn extend<T: IntoIterator<Item = ProfileFieldValue>>(&mut self, iter: T) {
+            self.extend(
+                iter.into_iter().map(|value| (value.field_name(), value.value().into_owned())),
+            );
+        }
+    }
+
+    impl IntoIterator for Response {
+        type Item = (String, JsonValue);
+        type IntoIter = btree_map::IntoIter<String, JsonValue>;
+
+        fn into_iter(self) -> Self::IntoIter {
+            self.data.into_iter()
+        }
+    }
+}
+
+#[cfg(all(test, feature = "unstable-msc4133"))]
+mod tests {
+    use ruma_common::owned_mxc_uri;
+    use serde_json::{
+        from_slice as from_json_slice, json, to_vec as to_json_vec, Value as JsonValue,
+    };
+
+    use super::v3::Response;
+
+    #[test]
+    #[cfg(feature = "server")]
+    fn serialize_response() {
+        use ruma_common::api::OutgoingResponse;
+
+        use crate::profile::ProfileFieldValue;
+
+        let response = [
+            ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef")),
+            ProfileFieldValue::DisplayName("Alice".to_owned()),
+            ProfileFieldValue::new("custom_field", "value".into()).unwrap(),
+        ]
+        .into_iter()
+        .collect::<Response>();
+
+        let http_response = response.try_into_http_response::<Vec<u8>>().unwrap();
+
+        assert_eq!(
+            from_json_slice::<JsonValue>(http_response.body().as_ref()).unwrap(),
+            json!({
+                "avatar_url": "mxc://localhost/abcdef",
+                "displayname": "Alice",
+                "custom_field": "value",
+            })
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "client")]
+    fn deserialize_response() {
+        use ruma_common::api::IncomingResponse;
+
+        use crate::profile::{AvatarUrl, DisplayName};
+
+        // Values are set.
+        let body = to_json_vec(&json!({
+            "avatar_url": "mxc://localhost/abcdef",
+            "displayname": "Alice",
+            "custom_field": "value",
+        }))
+        .unwrap();
+
+        let response = Response::try_from_http_response(http::Response::new(body)).unwrap();
+        assert_eq!(response.get_static::<AvatarUrl>().unwrap().unwrap(), "mxc://localhost/abcdef");
+        assert_eq!(response.get_static::<DisplayName>().unwrap().unwrap(), "Alice");
+        assert_eq!(response.get("custom_field").unwrap().as_str().unwrap(), "value");
+
+        // Values are missing or null.
+        let body = to_json_vec(&json!({
+            "custom_field": null,
+        }))
+        .unwrap();
+
+        let response = Response::try_from_http_response(http::Response::new(body)).unwrap();
+        assert_eq!(response.get_static::<AvatarUrl>().unwrap(), None);
+        assert_eq!(response.get_static::<DisplayName>().unwrap(), None);
+        assert!(response.get("custom_field").unwrap().is_null());
     }
 }
