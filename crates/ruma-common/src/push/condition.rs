@@ -616,9 +616,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use js_int::{int, uint, Int};
     use macro_rules_attribute::apply;
-    use serde_json::{
-        from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
-    };
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
     use smol_macros::test;
 
     use super::{
@@ -629,7 +627,6 @@ mod tests {
         owned_room_id, owned_user_id,
         power_levels::{NotificationPowerLevels, NotificationPowerLevelsKey},
         room_version_rules::{AuthorizationRules, RoomPowerLevelsRules},
-        serde::Raw,
         OwnedUserId,
     };
 
@@ -844,33 +841,23 @@ mod tests {
     }
 
     fn first_flattened_event() -> FlattenedJson {
-        let raw = serde_json::from_str::<Raw<JsonValue>>(
-            r#"{
-                "sender": "@worthy_whale:server.name",
-                "content": {
-                    "msgtype": "m.text",
-                    "body": "@room Give a warm welcome to Groovy Gorilla"
-                }
-            }"#,
-        )
-        .unwrap();
-
-        FlattenedJson::from_raw(&raw)
+        FlattenedJson::from_value(json!({
+            "sender": "@worthy_whale:server.name",
+            "content": {
+                "msgtype": "m.text",
+                "body": "@room Give a warm welcome to Groovy Gorilla",
+            },
+        }))
     }
 
     fn second_flattened_event() -> FlattenedJson {
-        let raw = serde_json::from_str::<Raw<JsonValue>>(
-            r#"{
-                "sender": "@party_bot:server.name",
-                "content": {
-                    "msgtype": "m.notice",
-                    "body": "Everybody come to party!"
-                }
-            }"#,
-        )
-        .unwrap();
-
-        FlattenedJson::from_raw(&raw)
+        FlattenedJson::from_value(json!({
+            "sender": "@party_bot:server.name",
+            "content": {
+                "msgtype": "m.notice",
+                "body": "Everybody come to party!",
+            },
+        }))
     }
 
     #[apply(test!)]
@@ -964,17 +951,13 @@ mod tests {
             }
         );
 
-        let simple_event_raw = serde_json::from_str::<Raw<JsonValue>>(
-            r#"{
-                "sender": "@worthy_whale:server.name",
-                "content": {
-                    "msgtype": "org.matrix.msc3932.extensible_events",
-                    "body": "@room Give a warm welcome to Groovy Gorilla"
-                }
-            }"#,
-        )
-        .unwrap();
-        let simple_event = FlattenedJson::from_raw(&simple_event_raw);
+        let simple_event = FlattenedJson::from_value(json!({
+            "sender": "@worthy_whale:server.name",
+            "content": {
+                "msgtype": "org.matrix.msc3932.extensible_events",
+                "body": "@room Give a warm welcome to Groovy Gorilla",
+            },
+        }));
 
         let room_version_condition = PushCondition::RoomVersionSupports {
             feature: super::RoomVersionFeature::ExtensibleEvents,
@@ -989,20 +972,16 @@ mod tests {
         use crate::push::condition::ScalarJsonValue;
 
         let context = push_context();
-        let event_raw = serde_json::from_str::<Raw<JsonValue>>(
-            r#"{
-                "sender": "@worthy_whale:server.name",
-                "content": {
-                    "msgtype": "m.text",
-                    "body": "Boom!",
-                    "org.fake.boolean": false,
-                    "org.fake.number": 13,
-                    "org.fake.null": null
-                }
-            }"#,
-        )
-        .unwrap();
-        let event = FlattenedJson::from_raw(&event_raw);
+        let event = FlattenedJson::from_value(json!({
+            "sender": "@worthy_whale:server.name",
+            "content": {
+                "msgtype": "m.text",
+                "body": "Boom!",
+                "org.fake.boolean": false,
+                "org.fake.number": 13,
+                "org.fake.null": null,
+            },
+        }));
 
         let string_match = PushCondition::EventPropertyIs {
             key: "content.body".to_owned(),
@@ -1054,16 +1033,12 @@ mod tests {
         use crate::push::condition::ScalarJsonValue;
 
         let context = push_context();
-        let event_raw = serde_json::from_str::<Raw<JsonValue>>(
-            r#"{
-                "sender": "@worthy_whale:server.name",
-                "content": {
-                    "org.fake.array": ["Boom!", false, 13, null]
-                }
-            }"#,
-        )
-        .unwrap();
-        let event = FlattenedJson::from_raw(&event_raw);
+        let event = FlattenedJson::from_value(json!({
+            "sender": "@worthy_whale:server.name",
+            "content": {
+                "org.fake.array": ["Boom!", false, 13, null],
+            },
+        }));
 
         let wrong_key =
             PushCondition::EventPropertyContains { key: "send".to_owned(), value: false.into() };
@@ -1142,66 +1117,51 @@ mod tests {
             })
         });
 
-        let subscribed_thread_event = FlattenedJson::from_raw(
-            &serde_json::from_str::<Raw<JsonValue>>(
-                r#"{
-                    "event_id": "$thread_response",
-                    "sender": "@worthy_whale:server.name",
-                    "content": {
-                        "msgtype": "m.text",
-                        "body": "response in thread $subscribed_thread",
-                        "m.relates_to": {
-                            "rel_type": "m.thread",
-                            "event_id": "$subscribed_thread",
-                            "is_falling_back": true,
-                            "m.in_reply_to": {
-                                "event_id": "$prev_event"
-                            }
-                        }
-                    }
-                }"#,
-            )
-            .unwrap(),
-        );
+        let subscribed_thread_event = FlattenedJson::from_value(json!({
+            "event_id": "$thread_response",
+            "sender": "@worthy_whale:server.name",
+            "content": {
+                "msgtype": "m.text",
+                "body": "response in thread $subscribed_thread",
+                "m.relates_to": {
+                    "rel_type": "m.thread",
+                    "event_id": "$subscribed_thread",
+                    "is_falling_back": true,
+                    "m.in_reply_to": {
+                        "event_id": "$prev_event",
+                    },
+                },
+            },
+        }));
 
-        let unsubscribed_thread_event = FlattenedJson::from_raw(
-            &serde_json::from_str::<Raw<JsonValue>>(
-                r#"{
-                    "event_id": "$thread_response2",
-                    "sender": "@worthy_whale:server.name",
-                    "content": {
-                        "msgtype": "m.text",
-                        "body": "response in thread $unsubscribed_thread",
-                        "m.relates_to": {
-                            "rel_type": "m.thread",
-                            "event_id": "$unsubscribed_thread",
-                            "is_falling_back": true,
-                            "m.in_reply_to": {
-                                "event_id": "$prev_event2"
-                            }
-                        }
-                    }
-                }"#,
-            )
-            .unwrap(),
-        );
+        let unsubscribed_thread_event = FlattenedJson::from_value(json!({
+            "event_id": "$thread_response2",
+            "sender": "@worthy_whale:server.name",
+            "content": {
+                "msgtype": "m.text",
+                "body": "response in thread $unsubscribed_thread",
+                "m.relates_to": {
+                    "rel_type": "m.thread",
+                    "event_id": "$unsubscribed_thread",
+                    "is_falling_back": true,
+                    "m.in_reply_to": {
+                        "event_id": "$prev_event2",
+                    },
+                },
+            },
+        }));
 
-        let non_thread_related_event = FlattenedJson::from_raw(
-            &serde_json::from_str::<Raw<JsonValue>>(
-                r#"{
-                    "event_id": "$thread_response2",
-                    "sender": "@worthy_whale:server.name",
-                    "content": {
-                        "m.relates_to": {
-                            "rel_type": "m.reaction",
-                            "event_id": "$subscribed_thread",
-                            "key": "👍"
-                        }
-                    }
-                }"#,
-            )
-            .unwrap(),
-        );
+        let non_thread_related_event = FlattenedJson::from_value(json!({
+            "event_id": "$thread_response2",
+            "sender": "@worthy_whale:server.name",
+            "content": {
+                "m.relates_to": {
+                    "rel_type": "m.reaction",
+                    "event_id": "$subscribed_thread",
+                    "key": "👍",
+                },
+            },
+        }));
 
         let subscribed_thread_condition = PushCondition::ThreadSubscription { subscribed: true };
         assert!(subscribed_thread_condition.applies(&subscribed_thread_event, &context).await);

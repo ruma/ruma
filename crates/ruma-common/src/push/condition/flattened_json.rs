@@ -19,8 +19,12 @@ pub struct FlattenedJson {
 impl FlattenedJson {
     /// Create a `FlattenedJson` from `Raw`.
     pub fn from_raw<T>(raw: &Raw<T>) -> Self {
+        Self::from_value(to_json_value(raw).unwrap())
+    }
+
+    pub(crate) fn from_value(v: JsonValue) -> Self {
         let mut s = Self { map: BTreeMap::new() };
-        s.flatten_value(to_json_value(raw).unwrap(), "".into());
+        s.flatten_value(v, "".into());
         s
     }
 
@@ -306,26 +310,20 @@ impl PartialEq<ScalarJsonValue> for FlattenedJsonValue {
 mod tests {
     use js_int::int;
     use maplit::btreemap;
-    use serde_json::Value as JsonValue;
+    use serde_json::json;
 
     use super::{FlattenedJson, FlattenedJsonValue};
-    use crate::serde::Raw;
 
     #[test]
     fn flattened_json_values() {
-        let raw = serde_json::from_str::<Raw<JsonValue>>(
-            r#"{
-                "string": "Hello World",
-                "number": 10,
-                "array": [1, 2],
-                "boolean": true,
-                "null": null,
-                "empty_object": {}
-            }"#,
-        )
-        .unwrap();
-
-        let flattened = FlattenedJson::from_raw(&raw);
+        let flattened = FlattenedJson::from_value(json!({
+            "string": "Hello World",
+            "number": 10,
+            "array": [1, 2],
+            "boolean": true,
+            "null": null,
+            "empty_object": {},
+        }));
         assert_eq!(
             flattened.map,
             btreemap! {
@@ -341,23 +339,18 @@ mod tests {
 
     #[test]
     fn flattened_json_nested() {
-        let raw = serde_json::from_str::<Raw<JsonValue>>(
-            r#"{
-                "desc": "Level 0",
-                "desc.bis": "Level 0 bis",
+        let flattened = FlattenedJson::from_value(json!({
+            "desc": "Level 0",
+            "desc.bis": "Level 0 bis",
+            "up": {
+                "desc": 1,
+                "desc.bis": null,
                 "up": {
-                    "desc": 1,
-                    "desc.bis": null,
-                    "up": {
-                        "desc": ["Level 2a", "Level 2b"],
-                        "desc\\bis": true
-                    }
-                }
-            }"#,
-        )
-        .unwrap();
-
-        let flattened = FlattenedJson::from_raw(&raw);
+                    "desc": ["Level 2a", "Level 2b"],
+                    "desc\\bis": true,
+                },
+            },
+        }));
         assert_eq!(
             flattened.map,
             btreemap! {
@@ -373,45 +366,30 @@ mod tests {
 
     #[test]
     fn contains_mentions() {
-        let raw = serde_json::from_str::<Raw<JsonValue>>(
-            r#"{
-                "m.mentions": {},
-                "content": {
-                    "body": "Text"
-                }
-            }"#,
-        )
-        .unwrap();
-
-        let flattened = FlattenedJson::from_raw(&raw);
+        let flattened = FlattenedJson::from_value(json!({
+            "m.mentions": {},
+            "content": {
+                "body": "Text",
+            },
+        }));
         assert!(!flattened.contains_mentions());
 
-        let raw = serde_json::from_str::<Raw<JsonValue>>(
-            r#"{
-                "content": {
-                    "body": "Text",
-                    "m.mentions": {}
-                }
-            }"#,
-        )
-        .unwrap();
-
-        let flattened = FlattenedJson::from_raw(&raw);
+        let flattened = FlattenedJson::from_value(json!({
+            "content": {
+                "body": "Text",
+                "m.mentions": {},
+            },
+        }));
         assert!(flattened.contains_mentions());
 
-        let raw = serde_json::from_str::<Raw<JsonValue>>(
-            r#"{
-                "content": {
-                    "body": "Text",
-                    "m.mentions": {
-                        "room": true
-                    }
-                }
-            }"#,
-        )
-        .unwrap();
-
-        let flattened = FlattenedJson::from_raw(&raw);
+        let flattened = FlattenedJson::from_value(json!({
+            "content": {
+                "body": "Text",
+                "m.mentions": {
+                    "room": true,
+                },
+            },
+        }));
         assert!(flattened.contains_mentions());
     }
 }
