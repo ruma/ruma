@@ -1,6 +1,6 @@
 //! Parsing helpers specific to the `Event` derive macro.
 
-use syn::Ident;
+use syn::{Field, Ident};
 
 use crate::events::enums::{EventKind, EventVariation};
 
@@ -47,5 +47,37 @@ pub(super) fn parse_event_struct_ident_to_kind_variation(
             Some((EventKind::Decrypted, EventVariation::None))
         }
         _ => None,
+    }
+}
+
+pub(super) trait EventFieldExt {
+    /// Whether the given field as the `#[ruma_event(default)]` attribute.
+    fn has_default_attr(&self) -> Result<bool, syn::Error>;
+}
+
+impl EventFieldExt for Field {
+    fn has_default_attr(&self) -> Result<bool, syn::Error> {
+        for attr in &self.attrs {
+            if !attr.path().is_ident("ruma_event") {
+                continue;
+            }
+
+            let mut has_default = false;
+
+            attr.parse_nested_meta(|meta| {
+                if meta.path.is_ident("default") {
+                    has_default = true;
+                    return Ok(());
+                }
+
+                Err(meta.error("unsupported attribute, only `default` is supported"))
+            })?;
+
+            if has_default {
+                return Ok(true);
+            }
+        }
+
+        Ok(false)
     }
 }
