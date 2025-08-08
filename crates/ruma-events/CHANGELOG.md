@@ -98,6 +98,10 @@ Improvements:
 - Implement types for encrypted state events, according to MSC3414.
 - Add `additional_creators` field to `RoomCreateEventContent`, used to optionally specify
   additional creators of a room.
+- Add unstable support for events with the same format as `StateEvent` in `StrippedStateEvent`,
+  according to MSC4311.
+- Add unstable support for events with the same format as `SyncStateEvent` in `StrippedStateEvent`,
+  according to MSC4319.
 
 # 0.30.5
 
