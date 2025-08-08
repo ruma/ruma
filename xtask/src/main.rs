@@ -15,7 +15,7 @@ use serde::Deserialize;
 use serde_json::from_str as from_json_str;
 
 // Keep in sync with version in `rust-toolchain.toml` and `.github/workflows/ci.yml`
-const NIGHTLY: &str = "nightly-2025-06-27";
+const NIGHTLY: &str = "nightly-2025-08-08";
 
 mod bench;
 mod cargo;
