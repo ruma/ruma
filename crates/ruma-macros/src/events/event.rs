@@ -8,7 +8,7 @@ mod parse;
 
 use self::parse::parse_event_struct_ident_to_kind_variation;
 use super::enums::{EventField, EventKind, EventVariation};
-use crate::{import_ruma_events, util::to_camel_case};
+use crate::{events::event::parse::EventFieldExt, import_ruma_events, util::to_camel_case};
 
 /// `Event` derive macro code generation.
 pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
@@ -109,7 +109,9 @@ fn expand_deserialize_event(
     let ok_or_else_fields: Vec<_> = fields
         .iter()
         .map(|field| {
+            let has_default_attr = field.has_default_attr()?;
             let name = field.ident.as_ref().unwrap();
+
             Ok(if name == "content" && is_generic {
                 quote! {
                     let content = {
@@ -118,9 +120,9 @@ fn expand_deserialize_event(
                         C::from_parts(&event_type, &json).map_err(#serde::de::Error::custom)?
                     };
                 }
-            } else if name == "unsigned" && !var.is_redacted() {
+            } else if has_default_attr || (name == "unsigned" && !var.is_redacted()) {
                 quote! {
-                    let unsigned = unsigned.unwrap_or_default();
+                    let #name = #name.unwrap_or_default();
                 }
             } else if name == "state_key" && var == EventVariation::Initial {
                 let ty = &field.ty;
