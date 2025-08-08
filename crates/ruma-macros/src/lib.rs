@@ -408,6 +408,15 @@ pub fn derive_event_content(input: TokenStream) -> TokenStream {
 /// If the type is a non-stripped timeline event, i.e. a struct with an `event_id` field, this
 /// implements `PartialEq`, `Eq`, `PartialOrd` and `Ord` by comparing the `event_id` fields.
 ///
+/// ## Field attributes
+///
+/// The following settings can be used on the fields of the struct, with the `#[ruma_event(_)]`
+/// attribute.
+///
+/// ### `default`
+///
+/// If the field is missing, its `Default` implementation is used.
+///
 /// You can use `cargo doc` to find out more details, its `--document-private-items` flag also lets
 /// you generate documentation for binaries or private parts of a library.
 #[proc_macro_derive(Event, attributes(ruma_event))]
