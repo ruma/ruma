@@ -1,0 +1,169 @@
+name: Semver Checks
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  changes:
+    name: Changed Crates
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      crates: ${{ steps.filter.outputs.changes }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            ruma:
+              - 'crates/ruma/**'
+            ruma-appservice-api:
+              - 'crates/ruma-appservice-api/**'
+              - 'crates/ruma-macros/**'
+            ruma-client-api:
+              - 'crates/ruma-client-api/**'
+              - 'crates/ruma-macros/**'
+            ruma-common:
+              - 'crates/ruma-common/**'
+              - 'crates/ruma-macros/**'
+            ruma-events:
+              - 'crates/ruma-events/**'
+              - 'crates/ruma-macros/**'
+            ruma-federation-api:
+              - 'crates/ruma-federation-api/**'
+              - 'crates/ruma-macros/**'
+            ruma-html:
+              - 'crates/ruma-html/**'
+            ruma-identity-service-api:
+              - 'crates/ruma-identity-service-api/**'
+              - 'crates/ruma-macros/**'
+            ruma-push-gateway-api:
+              - 'crates/ruma-push-gateway-api/**'
+              - 'crates/ruma-macros/**'
+            ruma-signatures:
+              - 'crates/ruma-signatures/**'
+            ruma-state-res:
+              - 'crates/ruma-state-res/**'
+
+  debug-changes:
+    name: Debug Changed Crates Output
+    runs-on: ubuntu-latest
+    needs: changes
+    env:
+      CHANGED_CRATES: ${{ needs.changes.outputs.crates }}
+    steps:
+      - run: echo "$CHANGED_CRATES"
+
+  semver:
+    name: Breaking Changes
+    runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ needs.changes.outputs.crates != '[]' }}
+    outputs:
+      ruma: ${{ steps.checks.outputs.ruma }}
+      ruma-appservice-api: ${{ steps.checks.outputs.ruma-appservice-api }}
+      ruma-client-api: ${{ steps.checks.outputs.ruma-client-api }}
+      ruma-common: ${{ steps.checks.outputs.ruma-common }}
+      ruma-events: ${{ steps.checks.outputs.ruma-events }}
+      ruma-federation-api: ${{ steps.checks.outputs.ruma-federation-api }}
+      ruma-html: ${{ steps.checks.outputs.ruma-html }}
+      ruma-identity-service-api: ${{ steps.checks.outputs.ruma-identity-service-api }}
+      ruma-push-gateway-api: ${{ steps.checks.outputs.ruma-push-gateway-api }}
+      ruma-signatures: ${{ steps.checks.outputs.ruma-signatures }}
+      ruma-state-res: ${{ steps.checks.outputs.ruma-state-res }}
+    strategy:
+      matrix:
+        crate: ${{ fromJSON(needs.changes.outputs.crates) }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install rust stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-semver-checks
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-semver-checks
+
+      - name: Run checks
+        id: checks
+        run: |
+          # Ignore errors
+          set +e
+
+          # This is the syntax for multiline output
+          echo "${{ matrix.crate }}<<EOF" >> "$GITHUB_OUTPUT"
+
+          cargo semver-checks --color never --release-type minor \
+                              -p ${{ matrix.crate }} \
+                              --baseline-rev origin/${{ github.base_ref }} >> "$GITHUB_OUTPUT"
+
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+  debug-semver:
+    name: Debug Breaking Changes
+    runs-on: ubuntu-latest
+    needs: semver
+    env:
+      SEMVER_RESULTS: ${{ toJSON(needs.semver.outputs) }}
+    steps:
+      - run: echo "$SEMVER_RESULTS"
+
+  comment:
+    name: Comment
+    runs-on: ubuntu-latest
+    needs: [changes, semver]
+    if: ${{ always() }}
+    steps:
+      - name: Build comment
+        id: build
+        if: ${{ toJSON(needs.semver.outputs) != '{}' }}
+        env:
+          SEMVER_RESULTS: ${{ toJSON(needs.semver.outputs) }}
+        run: |
+          # This is the syntax for multiline output
+          echo "comment<<EOF" >> "$GITHUB_OUTPUT"
+
+          # Intro
+          echo "The following breaking changes were detected." >> "$GITHUB_OUTPUT"
+          echo "Please make sure these are intentional and listed in the respective changelogs." >> "$GITHUB_OUTPUT"
+          echo "" >> "$GITHUB_OUTPUT"
+
+          # Convert input to HTML details
+          echo "$SEMVER_RESULTS" | \
+            jq -r 'to_entries | .[] |
+                  "<details><summary>\(.key)</summary>\n<pre><code>\(.value)</code></pre></details>\n"' >> "$GITHUB_OUTPUT"
+
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Debug comment
+        if: ${{ steps.build.outputs.comment }}
+        env:
+          COMMENT: ${{ steps.build.outputs.comment }}
+        run: echo "$COMMENT"
+
+      - name: Upsert comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: ${{ steps.build.outputs.comment }}
+        with:
+          message: ${{ steps.build.outputs.comment }}
+
+      - name: Hide comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: ${{ !steps.build.outputs.comment }}
+        with:
+          hide: true
