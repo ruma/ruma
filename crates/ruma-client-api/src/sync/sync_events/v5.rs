@@ -20,7 +20,7 @@ use ruma_common::{
 use ruma_events::{AnySyncStateEvent, AnySyncTimelineEvent, StateEventType};
 use serde::{Deserialize, Serialize};
 
-use super::{StrippedState, UnreadNotificationsCount};
+use super::UnreadNotificationsCount;
 
 const METADATA: Metadata = metadata! {
     method: POST,
@@ -445,12 +445,12 @@ pub mod response {
     use ruma_common::OneTimeKeyAlgorithm;
     use ruma_events::{
         receipt::SyncReceiptEvent, typing::SyncTypingEvent, AnyGlobalAccountDataEvent,
-        AnyRoomAccountDataEvent, AnyToDeviceEvent,
+        AnyRoomAccountDataEvent, AnyStrippedStateEvent, AnyToDeviceEvent,
     };
 
     use super::{
         super::DeviceLists, AnySyncStateEvent, AnySyncTimelineEvent, BTreeMap, Deserialize,
-        JsOption, OwnedMxcUri, OwnedRoomId, OwnedUserId, Raw, Serialize, StrippedState, UInt,
+        JsOption, OwnedMxcUri, OwnedRoomId, OwnedUserId, Raw, Serialize, UInt,
         UnreadNotificationsCount,
     };
 
@@ -486,7 +486,7 @@ pub mod response {
         /// If this is `Some(_)`, this is a not-yet-accepted invite containing
         /// the given stripped state events.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub invite_state: Option<Vec<Raw<StrippedState>>>,
+        pub invite_state: Option<Vec<Raw<AnyStrippedStateEvent>>>,
 
         /// Number of unread notifications.
         #[serde(flatten, default, skip_serializing_if = "UnreadNotificationsCount::is_empty")]

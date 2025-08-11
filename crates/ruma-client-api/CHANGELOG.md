@@ -30,8 +30,6 @@ Breaking changes:
 - Allow specifying the event format for `state::get_state_event_for_key`, meaning the response may
   either be `Raw<AnyStateEvent>` or `Raw<AnyStateEventContent>`, depending on the format specified
   in the request.
-- Use `StrippedState` instead of `AnyStrippedStateEvent`, to allow non-stripped events to be
-  represented for `sync_events`.
 - `sync_events::v3::State` is now an enum, to prepare for the stabilization of MSC4222. The state
   before the timeline, corresponding to the `state` field in the Matrix specification, is available
   in the `Before` variant, and the struct representing its content was renamed to `StateEvents`. 
@@ -46,8 +44,6 @@ Improvements:
 - Add `additional_creators` field to `CreationContent` of `create_room` and `Request` of
   `upgrade_room`, allowing clients to specify which other users (if any) should be considered
   additional creators from room version 12 onwards.
-- Add unstable support for `AnySyncStateEvent` formatted events in `sync_events`, alongside stripped
-  events, according to MSC4319.
 - Add unstable support for the `use_state_after` query parameter in `sync_events::v3::Request`, and
   the corresponding `State::After` variant in the response (`state_after` in the spec), according to
   MSC4222.

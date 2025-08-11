@@ -15,13 +15,14 @@ use ruma_common::{
 };
 use ruma_events::{
     presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
-    AnySyncEphemeralRoomEvent, AnySyncStateEvent, AnySyncTimelineEvent, AnyToDeviceEvent,
+    AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncStateEvent, AnySyncTimelineEvent,
+    AnyToDeviceEvent,
 };
 use serde::{Deserialize, Serialize};
 
 mod response_serde;
 
-use super::{DeviceLists, StrippedState, UnreadNotificationsCount};
+use super::{DeviceLists, UnreadNotificationsCount};
 use crate::filter::FilterDefinition;
 
 const METADATA: Metadata = metadata! {
@@ -363,7 +364,7 @@ impl From<KnockState> for KnockedRoom {
 pub struct KnockState {
     /// The stripped state of a room that the user has knocked upon.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub events: Vec<Raw<StrippedState>>,
+    pub events: Vec<Raw<AnyStrippedStateEvent>>,
 }
 
 impl KnockState {
@@ -624,7 +625,7 @@ impl From<InviteState> for InvitedRoom {
 pub struct InviteState {
     /// A list of state events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub events: Vec<Raw<StrippedState>>,
+    pub events: Vec<Raw<AnyStrippedStateEvent>>,
 }
 
 impl InviteState {
@@ -639,8 +640,8 @@ impl InviteState {
     }
 }
 
-impl From<Vec<Raw<StrippedState>>> for InviteState {
-    fn from(events: Vec<Raw<StrippedState>>) -> Self {
+impl From<Vec<Raw<AnyStrippedStateEvent>>> for InviteState {
+    fn from(events: Vec<Raw<AnyStrippedStateEvent>>) -> Self {
         InviteState { events, ..Default::default() }
     }
 }
@@ -727,7 +728,7 @@ mod client_tests {
     use ruma_events::AnyStrippedStateEvent;
     use serde_json::{json, to_vec as to_json_vec, Value as JsonValue};
 
-    use super::{Filter, PresenceState, Request, Response, State, StrippedState};
+    use super::{Filter, PresenceState, Request, Response, State};
 
     fn sync_state_event() -> JsonValue {
         json!({
@@ -828,28 +829,9 @@ mod client_tests {
         let private_room = response.rooms.invite.get(room_id).unwrap();
 
         let first_event = private_room.invite_state.events[0].deserialize().unwrap();
-        assert_matches!(
-            first_event,
-            StrippedState::Stripped(AnyStrippedStateEvent::RoomCreate(create_event))
-        );
+        assert_matches!(first_event, AnyStrippedStateEvent::RoomCreate(create_event));
         assert_eq!(create_event.sender, creator);
         assert_eq!(create_event.content.room_version, RoomVersionId::V11);
-
-        #[cfg(feature = "unstable-msc4319")]
-        {
-            use ruma_events::{room::member::MembershipState, AnySyncStateEvent, SyncStateEvent};
-
-            let second_event = private_room.invite_state.events[1].deserialize().unwrap();
-            assert_matches!(
-                second_event,
-                StrippedState::Sync(AnySyncStateEvent::RoomMember(SyncStateEvent::Original(
-                    invite_event
-                )))
-            );
-            assert_eq!(invite_event.sender, creator);
-            assert_eq!(invite_event.state_key, invitee);
-            assert_eq!(invite_event.content.membership, MembershipState::Invite);
-        }
     }
 
     #[test]
