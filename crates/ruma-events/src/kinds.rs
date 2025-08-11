@@ -446,6 +446,20 @@ pub struct StrippedStateEvent<C: PossiblyRedactedStateEventContent> {
     /// This is often an empty string, but some events send a `UserId` to show which user the event
     /// affects.
     pub state_key: C::StateKey,
+
+    /// The globally unique event identifier for the user who sent the event.
+    ///
+    /// This field is usually stripped, but some events might include it.
+    #[cfg(feature = "unstable-msc4319")]
+    #[ruma_event(default)]
+    pub event_id: Option<OwnedEventId>,
+
+    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    ///
+    /// This field is usually stripped, but some events might include it.
+    #[cfg(feature = "unstable-msc4319")]
+    #[ruma_event(default)]
+    pub origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
 }
 
 impl<C: PossiblyRedactedStateEventContent> JsonCastable<JsonObject> for StrippedStateEvent<C> {}

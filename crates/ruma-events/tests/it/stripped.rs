@@ -91,3 +91,36 @@ fn deserialize_stripped_state_events() {
     assert_eq!(image_info.size, Some(uint!(1024)));
     assert_eq!(image_info.thumbnail_info.unwrap().size, Some(uint!(32)));
 }
+
+#[test]
+#[cfg(feature = "unstable-msc4319")]
+fn deserialize_stripped_state_sync_format() {
+    use js_int::uint;
+    use ruma_common::{event_id, user_id, MilliSecondsSinceUnixEpoch};
+    use ruma_events::room::member::MembershipState;
+
+    let user_id = user_id!("@patrick:localhost");
+    let event_id = event_id!("$abcdefgh");
+    let origin_server_ts = MilliSecondsSinceUnixEpoch(uint!(1_000_000));
+
+    // Sync format.
+    let sync_event_json = json!({
+        "content": {
+            "membership": "join",
+        },
+        "event_id": event_id,
+        "origin_server_ts": origin_server_ts,
+        "sender": user_id,
+        "state_key": user_id,
+        "type": "m.room.member",
+    });
+    assert_matches!(
+        from_json_value::<AnyStrippedStateEvent>(sync_event_json).unwrap(),
+        AnyStrippedStateEvent::RoomMember(sync_member_event)
+    );
+    assert_eq!(sync_member_event.content.membership, MembershipState::Join);
+    assert_eq!(sync_member_event.event_id.as_deref(), Some(event_id));
+    assert_eq!(sync_member_event.origin_server_ts, Some(origin_server_ts));
+    assert_eq!(sync_member_event.sender, user_id);
+    assert_eq!(sync_member_event.state_key, user_id);
+}

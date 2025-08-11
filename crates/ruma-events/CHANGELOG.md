@@ -99,6 +99,8 @@ Improvements:
   additional creators of a room.
 - The state key type `CallMemberStateKey` for `m.call.member` state events changed to allow any postfix
   for state keys. The `device_id()` method is not available anymore. Use the event content instead.
+- Add unstable support for events with the same format as `SyncStateEvent` in `StrippedStateEvent`,
+  according to MSC4319.
 
 # 0.30.5
 
