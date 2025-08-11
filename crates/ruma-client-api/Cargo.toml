@@ -54,7 +54,6 @@ unstable-msc4191 = []
 unstable-msc4222 = []
 # Thread subscription support.
 unstable-msc4306 = []
-unstable-msc4311 = []
 unstable-msc4319 = []
 
 [dependencies]

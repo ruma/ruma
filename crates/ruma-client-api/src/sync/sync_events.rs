@@ -84,10 +84,6 @@ pub enum StrippedState {
     /// An event using the sync format.
     #[cfg(feature = "unstable-msc4319")]
     Sync(AnySyncStateEvent),
-
-    /// A full state event.
-    #[cfg(feature = "unstable-msc4311")]
-    Full(AnyStateEvent),
 }
 
 impl StrippedState {
@@ -97,8 +93,6 @@ impl StrippedState {
             Self::Stripped(event) => event.event_type(),
             #[cfg(feature = "unstable-msc4319")]
             Self::Sync(event) => event.event_type(),
-            #[cfg(feature = "unstable-msc4311")]
-            Self::Full(event) => event.event_type(),
         }
     }
 
@@ -108,8 +102,6 @@ impl StrippedState {
             Self::Stripped(event) => event.sender(),
             #[cfg(feature = "unstable-msc4319")]
             Self::Sync(event) => event.sender(),
-            #[cfg(feature = "unstable-msc4311")]
-            Self::Full(event) => event.sender(),
         }
     }
 
@@ -119,8 +111,6 @@ impl StrippedState {
             Self::Stripped(event) => event.state_key(),
             #[cfg(feature = "unstable-msc4319")]
             Self::Sync(event) => event.state_key(),
-            #[cfg(feature = "unstable-msc4311")]
-            Self::Full(event) => event.state_key(),
         }
     }
 
@@ -130,8 +120,6 @@ impl StrippedState {
             Self::Stripped(_) => None,
             #[cfg(feature = "unstable-msc4319")]
             Self::Sync(event) => Some(event.event_id()),
-            #[cfg(feature = "unstable-msc4311")]
-            Self::Full(event) => Some(event.event_id()),
         }
     }
 
@@ -141,8 +129,6 @@ impl StrippedState {
             Self::Stripped(_) => None,
             #[cfg(feature = "unstable-msc4319")]
             Self::Sync(event) => Some(event.origin_server_ts()),
-            #[cfg(feature = "unstable-msc4311")]
-            Self::Full(event) => Some(event.origin_server_ts()),
         }
     }
 }
@@ -154,7 +140,7 @@ impl<'de> Deserialize<'de> for StrippedState {
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
 
-        #[cfg(any(feature = "unstable-msc4311", feature = "unstable-msc4319"))]
+        #[cfg(feature = "unstable-msc4319")]
         {
             use serde::de;
 
@@ -162,24 +148,11 @@ impl<'de> Deserialize<'de> for StrippedState {
             struct StrippedStateDeHelper {
                 event_id: Option<de::IgnoredAny>,
                 origin_server_ts: Option<de::IgnoredAny>,
-                #[cfg(feature = "unstable-msc4311")]
-                room_id: Option<de::IgnoredAny>,
             }
 
-            let StrippedStateDeHelper {
-                event_id,
-                origin_server_ts,
-                #[cfg(feature = "unstable-msc4311")]
-                room_id,
-            } = from_raw_json_value(&json)?;
+            let StrippedStateDeHelper { event_id, origin_server_ts } = from_raw_json_value(&json)?;
 
             if event_id.is_some() && origin_server_ts.is_some() {
-                #[cfg(feature = "unstable-msc4311")]
-                if room_id.is_some() {
-                    return from_raw_json_value(&json).map(Self::Full);
-                }
-
-                #[cfg(feature = "unstable-msc4319")]
                 return from_raw_json_value(&json).map(Self::Sync);
             }
         }
@@ -284,39 +257,6 @@ mod tests {
             assert_eq!(sync_member_event.origin_server_ts.0, uint!(1_000_000));
             assert_eq!(sync_member_event.sender, user_id);
             assert_eq!(sync_member_event.state_key, user_id);
-        }
-
-        #[cfg(feature = "unstable-msc4311")]
-        {
-            use js_int::uint;
-            use ruma_common::{event_id, room_id};
-            use ruma_events::{AnyStateEvent, StateEvent};
-
-            let event_id = event_id!("$abcdefgh");
-            let room_id = room_id!("!room:localhost");
-
-            // Timeline format.
-            let timeline_event_json = json!({
-                "content": content,
-                "event_id": event_id,
-                "origin_server_ts": 1_000_000,
-                "room_id": room_id,
-                "sender": user_id,
-                "state_key": user_id,
-                "type": "m.room.member",
-            });
-            assert_matches!(
-                from_json_value::<StrippedState>(timeline_event_json).unwrap(),
-                StrippedState::Full(AnyStateEvent::RoomMember(StateEvent::Original(
-                    timeline_member_event
-                )))
-            );
-            assert_eq!(timeline_member_event.content.membership, MembershipState::Join);
-            assert_eq!(timeline_member_event.event_id, event_id);
-            assert_eq!(timeline_member_event.origin_server_ts.0, uint!(1_000_000));
-            assert_eq!(timeline_member_event.room_id, room_id);
-            assert_eq!(timeline_member_event.sender, user_id);
-            assert_eq!(timeline_member_event.state_key, user_id);
         }
     }
 }
