@@ -46,8 +46,6 @@ Improvements:
 - Add `additional_creators` field to `CreationContent` of `create_room` and `Request` of
   `upgrade_room`, allowing clients to specify which other users (if any) should be considered
   additional creators from room version 12 onwards.
-- Add unstable support for `AnyStateEvent` formatted events in `sync_events`, alongside stripped
-  events from MSC4311 behind the `unstable-msc4311` feature.
 - Add unstable support for `AnySyncStateEvent` formatted events in `sync_events`, alongside stripped
   events, according to MSC4319.
 - Add unstable support for the `use_state_after` query parameter in `sync_events::v3::Request`, and
