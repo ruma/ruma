@@ -122,13 +122,13 @@ pub struct OriginalMessageLikeEvent<C: MessageLikeEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
-    /// The globally unique event identifier for the user who sent the event.
+    /// The globally unique identifier for the event.
     pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
 
-    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    /// Timestamp on the originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
@@ -168,13 +168,13 @@ pub struct OriginalSyncMessageLikeEvent<C: MessageLikeEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
-    /// The globally unique event identifier for the user who sent the event.
+    /// The globally unique identifier for the event.
     pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
 
-    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    /// Timestamp on the originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// Additional key-value pairs not signed by the homeserver.
@@ -208,13 +208,13 @@ pub struct RedactedMessageLikeEvent<C: RedactedMessageLikeEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
-    /// The globally unique event identifier for the user who sent the event.
+    /// The globally unique identifier for the event.
     pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
 
-    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    /// Timestamp on the originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
@@ -254,13 +254,13 @@ pub struct RedactedSyncMessageLikeEvent<C: RedactedMessageLikeEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
-    /// The globally unique event identifier for the user who sent the event.
+    /// The globally unique identifier for the event.
     pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
 
-    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    /// Timestamp on the originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// Additional key-value pairs not signed by the homeserver.
@@ -341,13 +341,13 @@ pub struct OriginalStateEvent<C: StaticStateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
-    /// The globally unique event identifier for the user who sent the event.
+    /// The globally unique identifier for the event.
     pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
 
-    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    /// Timestamp on the originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
@@ -355,8 +355,10 @@ pub struct OriginalStateEvent<C: StaticStateEventContent> {
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
-    /// This is often an empty string, but some events send a `UserId` to show which user the event
-    /// affects.
+    /// This must be a string type, and is often an empty string.
+    ///
+    /// A state event is keyed by its `(type, state_key)` tuple. Sending another state event with
+    /// the same tuple replaces the previous one.
     pub state_key: C::StateKey,
 
     /// Additional key-value pairs not signed by the homeserver.
@@ -397,19 +399,21 @@ pub struct OriginalSyncStateEvent<C: StaticStateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
-    /// The globally unique event identifier for the user who sent the event.
+    /// The globally unique identifier for the event.
     pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
 
-    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    /// Timestamp on the originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
-    /// This is often an empty string, but some events send a `UserId` to show which user the event
-    /// affects.
+    /// This must be a string type, and is often an empty string.
+    ///
+    /// A state event is keyed by its `(type, state_key)` tuple. Sending another state event with
+    /// the same tuple replaces the previous one.
     pub state_key: C::StateKey,
 
     /// Additional key-value pairs not signed by the homeserver.
@@ -443,18 +447,20 @@ pub struct StrippedStateEvent<C: PossiblyRedactedStateEventContent> {
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
-    /// This is often an empty string, but some events send a `UserId` to show which user the event
-    /// affects.
+    /// This must be a string type, and is often an empty string.
+    ///
+    /// A state event is keyed by its `(type, state_key)` tuple. Sending another state event with
+    /// the same tuple replaces the previous one.
     pub state_key: C::StateKey,
 
-    /// The globally unique event identifier for the user who sent the event.
+    /// The globally unique identifier for the event.
     ///
     /// This field is usually stripped, but some events might include it.
     #[cfg(feature = "unstable-msc4319")]
     #[ruma_event(default)]
     pub event_id: Option<OwnedEventId>,
 
-    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    /// Timestamp on the originating homeserver when this event was sent.
     ///
     /// This field is usually stripped, but some events might include it.
     #[cfg(feature = "unstable-msc4319")]
@@ -472,8 +478,10 @@ pub struct InitialStateEvent<C: StaticStateEventContent> {
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
-    /// This is often an empty string, but some events send a `UserId` to show which user the event
-    /// affects.
+    /// This must be a string type, and is often an empty string.
+    ///
+    /// A state event is keyed by its `(type, state_key)` tuple. Sending another state event with
+    /// the same tuple replaces the previous one.
     ///
     /// Defaults to the empty string.
     pub state_key: C::StateKey,
@@ -546,13 +554,13 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
-    /// The globally unique event identifier for the user who sent the event.
+    /// The globally unique identifier for the event.
     pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
 
-    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    /// Timestamp on the originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
@@ -560,8 +568,10 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
-    /// This is often an empty string, but some events send a `UserId` to show which user the event
-    /// affects.
+    /// This must be a string type, and is often an empty string.
+    ///
+    /// A state event is keyed by its `(type, state_key)` tuple. Sending another state event with
+    /// the same tuple replaces the previous one.
     pub state_key: C::StateKey,
 
     /// Additional key-value pairs not signed by the homeserver.
@@ -598,19 +608,21 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
-    /// The globally unique event identifier for the user who sent the event.
+    /// The globally unique identifier for the event.
     pub event_id: OwnedEventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
 
-    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    /// Timestamp on the originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
-    /// This is often an empty string, but some events send a `UserId` to show which user the event
-    /// affects.
+    /// This must be a string type, and is often an empty string.
+    ///
+    /// A state event is keyed by its `(type, state_key)` tuple. Sending another state event with
+    /// the same tuple replaces the previous one.
     pub state_key: C::StateKey,
 
     /// Additional key-value pairs not signed by the homeserver.
