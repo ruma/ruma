@@ -2,11 +2,18 @@ use ruma_common::{
     serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, RoomId,
     TransactionId, UserId,
 };
+#[cfg(feature = "unstable-msc3381")]
+use ruma_events::{
+    poll::{start::PollStartEventContent, unstable_start::UnstablePollStartEventContent},
+    room::encrypted::Replacement,
+};
 use ruma_macros::{event_enum, EventEnumFromEvent};
 use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::room::encrypted;
+#[cfg(feature = "unstable-msc3381")]
+use crate::room::message::{Relation, RelationWithoutReplacement};
 
 /// Event types that servers should send as [stripped state] to help clients identify a room when
 /// they can't access the full room state.
@@ -414,7 +421,34 @@ impl AnyMessageLikeEventContent {
                 Some(encrypted::Relation::Reference(relates_to.clone()))
             }
             #[cfg(feature = "unstable-msc3381")]
-            Self::PollStart(_) | Self::UnstablePollStart(_) => None,
+            Self::UnstablePollStart(UnstablePollStartEventContent::New(content)) => {
+                match &content.relates_to {
+                    Some(RelationWithoutReplacement::Thread(thread)) => {
+                        Some(encrypted::Relation::Thread(thread.clone()))
+                    }
+                    Some(RelationWithoutReplacement::Reply { in_reply_to }) => {
+                        Some(encrypted::Relation::Reply { in_reply_to: in_reply_to.clone() })
+                    }
+                    Some(RelationWithoutReplacement::_Custom(_)) | None => None,
+                }
+            }
+            #[cfg(feature = "unstable-msc3381")]
+            Self::UnstablePollStart(UnstablePollStartEventContent::Replacement(content)) => {
+                Some(encrypted::Relation::Replacement(Replacement::new(
+                    content.relates_to.event_id.clone(),
+                )))
+            }
+            #[cfg(feature = "unstable-msc3381")]
+            Self::PollStart(PollStartEventContent { relates_to, .. }) => match relates_to {
+                Some(Relation::Thread(thread)) => Some(encrypted::Relation::Thread(thread.clone())),
+                Some(Relation::Reply { in_reply_to }) => {
+                    Some(encrypted::Relation::Reply { in_reply_to: in_reply_to.clone() })
+                }
+                Some(Relation::Replacement(replacement)) => Some(encrypted::Relation::Replacement(
+                    Replacement::new(replacement.event_id.clone()),
+                )),
+                Some(Relation::_Custom(_)) | None => None,
+            },
             #[cfg(feature = "unstable-msc4075")]
             Self::CallNotify(_) => None,
             Self::CallSdpStreamMetadataChanged(_)
