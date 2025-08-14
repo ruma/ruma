@@ -1,9 +1,21 @@
-use assert_matches2::assert_matches;
+use assert_matches2::{assert_let, assert_matches};
 use assign::assign;
-use ruma_common::{owned_event_id, serde::Raw};
+use ruma_common::{event_id, owned_event_id, serde::Raw};
 use ruma_events::{
+    message::TextContentBlock,
+    poll::{
+        start::{PollAnswer, PollContentBlock, PollStartEventContent},
+        unstable_start::{
+            NewUnstablePollStartEventContent, UnstablePollAnswer, UnstablePollStartContentBlock,
+            UnstablePollStartEventContent,
+        },
+    },
     relation::{CustomRelation, InReplyTo, Replacement, Thread},
-    room::message::{MessageType, Relation, RoomMessageEventContent},
+    room::{
+        encrypted,
+        message::{MessageType, Relation, RelationWithoutReplacement, RoomMessageEventContent},
+    },
+    AnyMessageLikeEventContent,
 };
 use serde_json::{
     from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
@@ -386,4 +398,60 @@ fn custom_serialization_roundtrip() {
     assert_eq!(deser_relation.get("rel_type").unwrap().as_str().unwrap(), rel_type);
     assert_eq!(deser_relation.get("event_id").unwrap().as_str().unwrap(), event_id);
     assert_eq!(deser_relation.get("key").unwrap().as_str().unwrap(), key);
+}
+
+#[cfg(feature = "unstable-msc3381")]
+#[test]
+fn unstable_poll_start_event_return_relations() {
+    let event_content = AnyMessageLikeEventContent::UnstablePollStart(
+        UnstablePollStartEventContent::New(assign!(NewUnstablePollStartEventContent::plain_text(
+            "A poll",
+            UnstablePollStartContentBlock::new(
+                "A question",
+                vec![
+                    UnstablePollAnswer::new("id1", "A"),
+                    UnstablePollAnswer::new("id2", "B")
+                ].try_into().unwrap()
+            )
+        ), {
+          relates_to: Some(RelationWithoutReplacement::Thread(Thread::plain(
+                owned_event_id!("$thread_root_id"),
+                owned_event_id!("$prev_event_id")
+            ))),
+        })),
+    );
+    assert_let!(Some(encrypted::Relation::Thread(thread)) = event_content.relation());
+    assert_eq!(thread.event_id, event_id!("$thread_root_id"));
+    assert!(thread.is_falling_back);
+
+    assert_let!(Some(in_reply_to) = thread.in_reply_to);
+    assert_eq!(in_reply_to.event_id, event_id!("$prev_event_id"));
+}
+
+#[cfg(feature = "unstable-msc3381")]
+#[test]
+fn stable_poll_start_event_return_relations() {
+    let event_content =
+        AnyMessageLikeEventContent::PollStart(assign!(PollStartEventContent::with_plain_text(
+            "A poll",
+            PollContentBlock::new(
+                TextContentBlock::plain("A question"),
+                vec![
+                    PollAnswer::new("id1".to_owned(), TextContentBlock::plain("A")),
+                    PollAnswer::new("id2".to_owned(), TextContentBlock::plain("B"))
+                ].try_into().unwrap()
+            )
+        ), {
+          relates_to: Some(Relation::Thread(Thread::plain(
+                owned_event_id!("$thread_root_id"),
+                owned_event_id!("$prev_event_id")
+            ))),
+        }));
+
+    assert_let!(Some(encrypted::Relation::Thread(thread)) = event_content.relation());
+    assert_eq!(thread.event_id, event_id!("$thread_root_id"));
+    assert!(thread.is_falling_back);
+
+    assert_let!(Some(in_reply_to) = thread.in_reply_to);
+    assert_eq!(in_reply_to.event_id, event_id!("$prev_event_id"));
 }
