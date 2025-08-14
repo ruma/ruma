@@ -2,6 +2,11 @@ use ruma_common::{
     serde::from_raw_json_value, EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, RoomId,
     TransactionId, UserId,
 };
+#[cfg(feature = "unstable-msc3381")]
+use ruma_events::{
+    poll::{start::PollStartEventContent, unstable_start::UnstablePollStartEventContent},
+    room::encrypted::Replacement,
+};
 use ruma_macros::{event_enum, EventEnumFromEvent};
 use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
@@ -414,7 +419,19 @@ impl AnyMessageLikeEventContent {
                 Some(encrypted::Relation::Reference(relates_to.clone()))
             }
             #[cfg(feature = "unstable-msc3381")]
-            Self::PollStart(_) | Self::UnstablePollStart(_) => None,
+            Self::UnstablePollStart(UnstablePollStartEventContent::New(content)) => {
+                content.relates_to.clone().map(Into::into)
+            }
+            #[cfg(feature = "unstable-msc3381")]
+            Self::UnstablePollStart(UnstablePollStartEventContent::Replacement(content)) => {
+                Some(encrypted::Relation::Replacement(Replacement::new(
+                    content.relates_to.event_id.clone(),
+                )))
+            }
+            #[cfg(feature = "unstable-msc3381")]
+            Self::PollStart(PollStartEventContent { relates_to, .. }) => {
+                relates_to.clone().map(Into::into)
+            }
             #[cfg(feature = "unstable-msc4075")]
             Self::CallNotify(_) => None,
             Self::CallSdpStreamMetadataChanged(_)

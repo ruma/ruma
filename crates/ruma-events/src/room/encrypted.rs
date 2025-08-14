@@ -10,7 +10,10 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::message;
-use crate::relation::{Annotation, CustomRelation, InReplyTo, Reference, RelationType, Thread};
+use crate::{
+    relation::{Annotation, CustomRelation, InReplyTo, Reference, RelationType, Thread},
+    room::message::RelationWithoutReplacement,
+};
 
 mod relation_serde;
 #[cfg(feature = "unstable-msc3414")]
@@ -154,6 +157,16 @@ impl<C> From<message::Relation<C>> for Relation {
                 is_falling_back: t.is_falling_back,
             }),
             message::Relation::_Custom(c) => Self::_Custom(c),
+        }
+    }
+}
+
+impl From<RelationWithoutReplacement> for Relation {
+    fn from(value: RelationWithoutReplacement) -> Self {
+        match value {
+            RelationWithoutReplacement::Thread(t) => Self::Thread(t),
+            RelationWithoutReplacement::_Custom(c) => Self::_Custom(c),
+            RelationWithoutReplacement::Reply { in_reply_to } => Self::Reply { in_reply_to },
         }
     }
 }
