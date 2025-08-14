@@ -1,21 +1,27 @@
-use assert_matches2::{assert_let, assert_matches};
+#[cfg(feature = "unstable-msc3381")]
+use assert_matches2::assert_let;
+use assert_matches2::assert_matches;
 use assign::assign;
-use ruma_common::{event_id, owned_event_id, serde::Raw};
+#[cfg(feature = "unstable-msc3381")]
+use ruma_common::event_id;
+use ruma_common::{owned_event_id, serde::Raw};
+#[cfg(feature = "unstable-msc3381")]
+use ruma_events::poll::{
+    start::{PollAnswer, PollContentBlock, PollStartEventContent},
+    unstable_start::{
+        NewUnstablePollStartEventContent, UnstablePollAnswer, UnstablePollStartContentBlock,
+        UnstablePollStartEventContent,
+    },
+};
+#[cfg(feature = "unstable-msc3381")]
 use ruma_events::{
     message::TextContentBlock,
-    poll::{
-        start::{PollAnswer, PollContentBlock, PollStartEventContent},
-        unstable_start::{
-            NewUnstablePollStartEventContent, UnstablePollAnswer, UnstablePollStartContentBlock,
-            UnstablePollStartEventContent,
-        },
-    },
-    relation::{CustomRelation, InReplyTo, Replacement, Thread},
-    room::{
-        encrypted,
-        message::{MessageType, Relation, RelationWithoutReplacement, RoomMessageEventContent},
-    },
+    room::{encrypted, message::RelationWithoutReplacement},
     AnyMessageLikeEventContent,
+};
+use ruma_events::{
+    relation::{CustomRelation, InReplyTo, Replacement, Thread},
+    room::message::{MessageType, Relation, RoomMessageEventContent},
 };
 use serde_json::{
     from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
