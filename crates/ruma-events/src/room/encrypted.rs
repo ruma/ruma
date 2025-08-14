@@ -10,8 +10,10 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::message;
-use crate::relation::{Annotation, CustomRelation, InReplyTo, Reference, RelationType, Thread};
-use crate::room::message::RelationWithoutReplacement;
+use crate::{
+    relation::{Annotation, CustomRelation, InReplyTo, Reference, RelationType, Thread},
+    room::message::RelationWithoutReplacement,
+};
 
 mod relation_serde;
 #[cfg(feature = "unstable-msc3414")]
