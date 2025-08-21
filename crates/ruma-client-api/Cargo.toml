@@ -55,6 +55,7 @@ unstable-msc4191 = []
 unstable-msc4222 = []
 # Thread subscription support.
 unstable-msc4306 = []
+unstable-msc4308 = []
 
 [dependencies]
 as_variant = { workspace = true }
