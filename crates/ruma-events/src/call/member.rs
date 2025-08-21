@@ -56,6 +56,16 @@ impl CallMemberEventContent {
     }
 
     /// Creates a new [`CallMemberEventContent`] with [`SessionMembershipData`].
+    ///
+    /// # Arguments
+    /// * `application` - The application that is creating the membership.
+    /// * `device_id` - The device ID of the member.
+    /// * `focus_active` - The active focus state of the member.
+    /// * `foci_preferred` - The preferred focus states of the member.
+    /// * `created_ts` - The timestamp when this state event chain for memberships was created. when
+    ///   updating the event the `created_ts` should be copied from the previous state. Set to
+    ///   `None` if this is the initial join event for the session.
+    /// * `expires` - The time after which the event is considered as expired. Defaults to 4 hours.
     pub fn new(
         application: Application,
         device_id: OwnedDeviceId,
