@@ -45,11 +45,14 @@ impl Ruleset {
                 ConditionalPushRule::poll_response(),
             ]
             .into(),
-            underride: [
+            postcontent: [
                 #[cfg(feature = "unstable-msc4306")]
                 ConditionalPushRule::unsubscribed_thread(),
                 #[cfg(feature = "unstable-msc4306")]
                 ConditionalPushRule::subscribed_thread(),
+            ]
+            .into(),
+            underride: [
                 ConditionalPushRule::call(),
                 ConditionalPushRule::encrypted_room_one_to_one(),
                 ConditionalPushRule::room_one_to_one(),
