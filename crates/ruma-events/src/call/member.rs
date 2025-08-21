@@ -8,6 +8,8 @@ mod focus;
 mod member_data;
 mod member_state_key;
 
+use std::time::Duration;
+
 pub use focus::*;
 pub use member_data::*;
 pub use member_state_key::*;
@@ -54,12 +56,23 @@ impl CallMemberEventContent {
     }
 
     /// Creates a new [`CallMemberEventContent`] with [`SessionMembershipData`].
+    ///
+    /// # Arguments
+    /// * `application` - The application that is creating the membership.
+    /// * `device_id` - The device ID of the member.
+    /// * `focus_active` - The active focus state of the member.
+    /// * `foci_preferred` - The preferred focus states of the member.
+    /// * `created_ts` - The timestamp when this state event chain for memberships was created. when
+    ///   updating the event the `created_ts` should be copied from the previous state. Set to
+    ///   `None` if this is the initial join event for the session.
+    /// * `expires` - The time after which the event is considered as expired. Defaults to 4 hours.
     pub fn new(
         application: Application,
         device_id: OwnedDeviceId,
         focus_active: ActiveFocus,
         foci_preferred: Vec<Focus>,
         created_ts: Option<MilliSecondsSinceUnixEpoch>,
+        expires: Option<Duration>,
     ) -> Self {
         Self::SessionContent(SessionMembershipData {
             application,
@@ -67,6 +80,7 @@ impl CallMemberEventContent {
             focus_active,
             foci_preferred,
             created_ts,
+            expires: expires.unwrap_or(Duration::from_secs(14_400)), // Default to 4 hours
         })
     }
 
@@ -84,19 +98,26 @@ impl CallMemberEventContent {
     /// # Arguments
     ///
     /// * `origin_server_ts` - optionally the `origin_server_ts` can be passed as a fallback in the
-    ///   Membership does not contain [`LegacyMembershipData::created_ts`]. (`origin_server_ts` will
-    ///   be ignored if [`LegacyMembershipData::created_ts`] is `Some`)
+    ///   Membership does not contain [`MembershipData::created_ts`]. (`origin_server_ts` will be
+    ///   ignored if [`MembershipData::created_ts`] is `Some`)
     pub fn active_memberships(
         &self,
         origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
     ) -> Vec<MembershipData<'_>> {
         match self {
-            CallMemberEventContent::LegacyContent(content) => {
-                content.active_memberships(origin_server_ts)
-            }
+            CallMemberEventContent::LegacyContent(content) => content
+                .memberships
+                .iter()
+                .map(MembershipData::Legacy)
+                .filter(|m| !m.is_expired(origin_server_ts))
+                .collect(),
             CallMemberEventContent::SessionContent(content) => {
-                [content].map(MembershipData::Session).to_vec()
+                vec![MembershipData::Session(content)]
+                    .into_iter()
+                    .filter(|m| !m.is_expired(origin_server_ts))
+                    .collect()
             }
+
             CallMemberEventContent::Empty(_) => Vec::new(),
         }
     }
@@ -115,7 +136,7 @@ impl CallMemberEventContent {
         }
     }
 
-    /// Set the `created_ts` of each [`MembershipData::Legacy`] in this event.
+    /// Set the `created_ts` in this event.
     ///
     /// Each call member event contains the `origin_server_ts` and `content.create_ts`.
     /// `content.create_ts` is undefined for the initial event of a session (because the
@@ -221,19 +242,6 @@ pub struct LegacyMembershipContent {
     memberships: Vec<LegacyMembershipData>,
 }
 
-impl LegacyMembershipContent {
-    fn active_memberships(
-        &self,
-        origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
-    ) -> Vec<MembershipData<'_>> {
-        self.memberships
-            .iter()
-            .filter(|m| !m.is_expired(origin_server_ts))
-            .map(MembershipData::Legacy)
-            .collect()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::time::Duration;
@@ -289,6 +297,7 @@ mod tests {
                 service_url: "https://livekit.com".to_owned(),
             })],
             None,
+            Duration::from_secs(3600).into(), // Default to 1 hour
         )
     }
 
@@ -299,6 +308,7 @@ mod tests {
             "call_id": "123456",
             "scope": "m.room",
             "device_id": "ABCDE",
+            "expires": 3_600_000, // Default to 1 hour
             "foci_preferred": [
                 {
                     "livekit_alias": "1",
@@ -369,12 +379,14 @@ mod tests {
                 service_url: "https://livekit1.com".to_owned(),
             })],
             None,
+            None,
         );
 
         let call_member_ev_json = json!({
             "application": "m.call",
             "call_id": "123456",
             "scope": "m.room",
+            "expires": 14_400_000, // Default to 4 hours
             "device_id": "THIS_DEVICE",
             "focus_active":{
                 "type": "livekit",
@@ -481,6 +493,7 @@ mod tests {
     fn member_event_json(state_key: &str) -> JsonValue {
         json!({
             "content":{
+                "expires": 3_600_000, // Default to 4 hours
                 "application": "m.call",
                 "call_id": "",
                 "scope": "m.room",
@@ -542,6 +555,7 @@ mod tests {
                 focus_selection: FocusSelection::OldestMembership,
             }),
             created_ts: None,
+            expires: Duration::from_secs(3600),
         };
         assert_eq!(
             member_event.content,
@@ -570,12 +584,12 @@ mod tests {
 
     #[test]
     fn deserialize_member_event_with_scoped_state_key_prefixed() {
-        deserialize_member_event_helper("_@user:example.org_THIS_DEVICE");
+        deserialize_member_event_helper("_@user:example.org_THIS_DEVICE_m.call");
     }
 
     #[test]
     fn deserialize_member_event_with_scoped_state_key_unprefixed() {
-        deserialize_member_event_helper("@user:example.org_THIS_DEVICE");
+        deserialize_member_event_helper("@user:example.org_THIS_DEVICE_m.call");
     }
 
     fn timestamps() -> (TS, TS, TS) {
@@ -605,16 +619,18 @@ mod tests {
             content_legacy.active_memberships(Some(two_hours_ago)),
             (vec![] as Vec<MembershipData<'_>>)
         );
-        // session do never expire
-        let content_session = create_call_member_event_content();
+    }
+
+    #[test]
+    fn session_membership_does_expire() {
+        let content = create_call_member_event_content();
+        let (now, one_second_ago, two_hours_ago) = timestamps();
+
+        assert_eq!(content.active_memberships(Some(now)), content.memberships());
+        assert_eq!(content.active_memberships(Some(one_second_ago)), content.memberships());
         assert_eq!(
-            content_session.active_memberships(Some(one_second_ago)),
-            content_session.memberships()
-        );
-        assert_eq!(content_session.active_memberships(Some(now)), content_session.memberships());
-        assert_eq!(
-            content_session.active_memberships(Some(two_hours_ago)),
-            content_session.memberships()
+            content.active_memberships(Some(two_hours_ago)),
+            (vec![] as Vec<MembershipData<'_>>)
         );
     }
 
