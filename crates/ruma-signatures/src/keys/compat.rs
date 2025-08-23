@@ -1,5 +1,3 @@
-use subslice::SubsliceExt as _;
-
 #[derive(Debug)]
 pub(super) enum CompatibleDocument<'a> {
     WellFormed(&'a [u8]),
@@ -38,8 +36,7 @@ fn fix_ring_doc(mut doc: Vec<u8>) -> Vec<u8> {
     // Second byte asserts the length for the rest of the document
     assert_eq!(doc[1] as usize, doc.len() - 2);
 
-    let idx = doc
-        .find(RING_TEMPLATE_CONTEXT_SPECIFIC)
+    let idx = memchr::memmem::find(&doc, RING_TEMPLATE_CONTEXT_SPECIFIC)
         .expect("Expected to find ring template in doc, but found none.");
 
     // Snip off the malformed bit.
@@ -57,5 +54,5 @@ fn fix_ring_doc(mut doc: Vec<u8>) -> Vec<u8> {
 }
 
 fn is_ring(bytes: &[u8]) -> bool {
-    bytes.find(RING_TEMPLATE_CONTEXT_SPECIFIC).is_some()
+    memchr::memmem::find(bytes, RING_TEMPLATE_CONTEXT_SPECIFIC).is_some()
 }

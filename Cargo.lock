@@ -2081,12 +2081,12 @@ dependencies = [
  "base64",
  "ed25519-dalek",
  "insta",
+ "memchr",
  "pkcs8",
  "rand",
  "ruma-common",
  "serde_json",
  "sha2",
- "subslice",
  "thiserror",
 ]
 
@@ -2461,15 +2461,6 @@ name = "strsim"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
-
-[[package]]
-name = "subslice"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0a8e4809a3bb02de01f1f7faf1ba01a83af9e8eabcd4d31dd6e413d14d56aae"
-dependencies = [
- "memchr",
-]
 
 [[package]]
 name = "subtle"
