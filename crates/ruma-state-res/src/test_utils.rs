@@ -1,6 +1,6 @@
 use std::{
     borrow::Borrow,
-    collections::{BTreeMap, HashMap, HashSet},
+    collections::{BTreeMap, BTreeSet},
     slice,
     sync::{
         atomic::{AtomicU64, Ordering::SeqCst},
@@ -53,35 +53,35 @@ pub(crate) fn do_check(
     );
 
     // This will be lexi_topo_sorted for resolution
-    let mut graph = HashMap::new();
+    let mut graph = BTreeMap::new();
     // This is the same as in `resolve` event_id -> OriginalStateEvent
-    let mut fake_event_map = HashMap::new();
+    let mut fake_event_map = BTreeMap::new();
 
     // Create the DB of events that led up to this point
     // TODO maybe clean up some of these clones it is just tests but...
     for ev in init_events.values().chain(events) {
-        graph.insert(ev.event_id().to_owned(), HashSet::new());
+        graph.insert(ev.event_id().to_owned(), BTreeSet::new());
         fake_event_map.insert(ev.event_id().to_owned(), ev.clone());
     }
 
     for pair in INITIAL_EDGES().windows(2) {
         if let [a, b] = &pair {
-            graph.entry(a.to_owned()).or_insert_with(HashSet::new).insert(b.clone());
+            graph.entry(a.to_owned()).or_insert_with(BTreeSet::new).insert(b.clone());
         }
     }
 
     for edge_list in edges {
         for pair in edge_list.windows(2) {
             if let [a, b] = &pair {
-                graph.entry(a.to_owned()).or_insert_with(HashSet::new).insert(b.clone());
+                graph.entry(a.to_owned()).or_insert_with(BTreeSet::new).insert(b.clone());
             }
         }
     }
 
     // event_id -> PduEvent
-    let mut event_map: HashMap<OwnedEventId, Arc<PduEvent>> = HashMap::new();
+    let mut event_map: BTreeMap<OwnedEventId, Arc<PduEvent>> = BTreeMap::new();
     // event_id -> StateMap<OwnedEventId>
-    let mut state_at_event: HashMap<OwnedEventId, StateMap<OwnedEventId>> = HashMap::new();
+    let mut state_at_event: BTreeMap<OwnedEventId, StateMap<OwnedEventId>> = BTreeMap::new();
 
     // Resolve the current state and add it to the state_at_event map then continue
     // on in "time"
@@ -96,7 +96,7 @@ pub(crate) fn do_check(
         let prev_events = graph.get(&node).unwrap();
 
         let state_before: StateMap<OwnedEventId> = if prev_events.is_empty() {
-            HashMap::new()
+            BTreeMap::new()
         } else if prev_events.len() == 1 {
             state_at_event.get(prev_events.iter().next().unwrap()).unwrap().clone()
         } else {
@@ -214,7 +214,7 @@ pub(crate) fn do_check(
 }
 
 #[allow(clippy::exhaustive_structs)]
-pub(crate) struct TestStore<E: Event>(pub(crate) HashMap<OwnedEventId, Arc<E>>);
+pub(crate) struct TestStore<E: Event>(pub(crate) BTreeMap<OwnedEventId, Arc<E>>);
 
 impl<E: Event> TestStore<E> {
     pub(crate) fn get_event(&self, _: &RoomId, event_id: &EventId) -> Result<Arc<E>> {
@@ -226,8 +226,8 @@ impl<E: Event> TestStore<E> {
         &self,
         room_id: &RoomId,
         event_ids: Vec<E::Id>,
-    ) -> Result<HashSet<E::Id>> {
-        let mut result = HashSet::new();
+    ) -> Result<BTreeSet<E::Id>> {
+        let mut result = BTreeSet::new();
         let mut stack = event_ids;
 
         // DFS for auth event chain
@@ -556,7 +556,7 @@ pub(crate) fn room_create_v12_pdu_event(
 
 /// Batch of initial events to use for incoming events in the v1-v11 room versions.
 #[allow(non_snake_case)]
-pub(crate) fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
+pub(crate) fn INITIAL_EVENTS() -> BTreeMap<OwnedEventId, Arc<PduEvent>> {
     vec![
         to_pdu_event::<&EventId>(
             "CREATE",
@@ -638,7 +638,7 @@ pub(crate) fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
 
 /// Batch of initial events to use for incoming events from room version 12 onwards.
 #[allow(non_snake_case)]
-pub(crate) fn INITIAL_V12_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
+pub(crate) fn INITIAL_V12_EVENTS() -> BTreeMap<OwnedEventId, Arc<PduEvent>> {
     vec![
         room_create_v12_pdu_event(
             "CREATE",
@@ -716,7 +716,7 @@ pub(crate) fn INITIAL_V12_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-pub(crate) fn INITIAL_EVENTS_CREATE_ROOM() -> HashMap<OwnedEventId, Arc<PduEvent>> {
+pub(crate) fn INITIAL_EVENTS_CREATE_ROOM() -> BTreeMap<OwnedEventId, Arc<PduEvent>> {
     vec![to_pdu_event::<&EventId>(
         "CREATE",
         alice(),
@@ -872,12 +872,13 @@ pub(crate) fn init_subscriber() -> tracing::dispatcher::DefaultGuard {
 }
 
 /// Wrapper around a state map.
-pub(crate) struct TestStateMap(HashMap<StateEventType, HashMap<String, Arc<PduEvent>>>);
+pub(crate) struct TestStateMap(BTreeMap<StateEventType, BTreeMap<String, Arc<PduEvent>>>);
 
 impl TestStateMap {
     /// Construct a `TestStateMap` from the given event map.
-    pub(crate) fn new(events: &HashMap<OwnedEventId, Arc<PduEvent>>) -> Self {
-        let mut state_map: HashMap<StateEventType, HashMap<String, Arc<PduEvent>>> = HashMap::new();
+    pub(crate) fn new(events: &BTreeMap<OwnedEventId, Arc<PduEvent>>) -> Self {
+        let mut state_map: BTreeMap<StateEventType, BTreeMap<String, Arc<PduEvent>>> =
+            BTreeMap::new();
 
         for event in events.values() {
             let event_type = StateEventType::from(event.event_type().to_string());

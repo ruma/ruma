@@ -1,10 +1,10 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{BTreeMap, BTreeSet, HashMap},
     sync::Arc,
 };
 
 use js_int::{int, uint};
-use maplit::{hashmap, hashset};
+use maplit::{btreemap, btreeset};
 use rand::seq::SliceRandom;
 use ruma_common::{
     room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
@@ -35,7 +35,7 @@ fn test_event_sort() {
         .map(|ev| (ev.event_type().with_state_key(ev.state_key().unwrap()), ev.clone()))
         .collect::<StateMap<_>>();
 
-    let auth_chain: HashSet<OwnedEventId> = HashSet::new();
+    let auth_chain: BTreeSet<OwnedEventId> = BTreeSet::new();
 
     let power_events = event_map
         .values()
@@ -52,7 +52,7 @@ fn test_event_sort() {
     let resolved_power = super::iterative_auth_checks(
         &AuthorizationRules::V6,
         &sorted_power_events,
-        HashMap::new(), // unconflicted events
+        BTreeMap::new(), // unconflicted events
         |id| events.get(id).cloned(),
     )
     .expect("iterative auth check failed on resolved events");
@@ -393,7 +393,7 @@ fn topic_setting() {
 fn test_event_map_none() {
     let _ = tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
 
-    let mut store = TestStore::<PduEvent>(hashmap! {});
+    let mut store = TestStore::<PduEvent>(BTreeMap::new());
 
     // build up the DAG
     let (state_at_bob, state_at_charlie, expected) = store.set_up();
@@ -422,12 +422,12 @@ fn test_event_map_none() {
 fn test_reverse_topological_power_sort() {
     let _ = tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
 
-    let graph = hashmap! {
-        event_id("l") => hashset![event_id("o")],
-        event_id("m") => hashset![event_id("n"), event_id("o")],
-        event_id("n") => hashset![event_id("o")],
-        event_id("o") => hashset![], // "o" has zero outgoing edges but 4 incoming edges
-        event_id("p") => hashset![event_id("o")],
+    let graph = btreemap! {
+        event_id("l") => btreeset![event_id("o")],
+        event_id("m") => btreeset![event_id("n"), event_id("o")],
+        event_id("n") => btreeset![event_id("o")],
+        event_id("o") => btreeset![], // "o" has zero outgoing edges but 4 incoming edges
+        event_id("p") => btreeset![event_id("o")],
     };
 
     let res = crate::reverse_topological_power_sort(&graph, |_id| {

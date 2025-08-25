@@ -9,7 +9,7 @@
 
 use std::{
     borrow::Borrow,
-    collections::{HashMap, HashSet},
+    collections::{BTreeMap, BTreeSet},
     slice,
     sync::{
         atomic::{AtomicU64, Ordering::SeqCst},
@@ -20,7 +20,7 @@ use std::{
 use criterion::{criterion_group, criterion_main, Criterion};
 use event::{EventHash, PduEvent};
 use js_int::{int, uint};
-use maplit::{btreemap, hashmap, hashset};
+use maplit::{btreemap, btreeset};
 use ruma_common::{
     room_id,
     room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
@@ -43,12 +43,12 @@ static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 
 fn reverse_topological_power_sort(c: &mut Criterion) {
     c.bench_function("reverse_topological_power_sort", |b| {
-        let graph = hashmap! {
-            event_id("l") => hashset![event_id("o")],
-            event_id("m") => hashset![event_id("n"), event_id("o")],
-            event_id("n") => hashset![event_id("o")],
-            event_id("o") => hashset![], // "o" has zero outgoing edges but 4 incoming edges
-            event_id("p") => hashset![event_id("o")],
+        let graph = btreemap! {
+            event_id("l") => btreeset![event_id("o")],
+            event_id("m") => btreeset![event_id("n"), event_id("o")],
+            event_id("n") => btreeset![event_id("o")],
+            event_id("o") => btreeset![], // "o" has zero outgoing edges but 4 incoming edges
+            event_id("p") => btreeset![event_id("o")],
         };
         b.iter(|| {
             let _ = state_res::reverse_topological_power_sort(&graph, |_id| {
@@ -60,7 +60,7 @@ fn reverse_topological_power_sort(c: &mut Criterion) {
 
 fn resolution_shallow_auth_chain(c: &mut Criterion) {
     c.bench_function("resolve state of 5 events one fork", |b| {
-        let mut store = TestStore(hashmap! {});
+        let mut store = TestStore(btreemap! {});
 
         // build up the DAG
         let (state_at_bob, state_at_charlie, _) = store.set_up();
@@ -160,7 +160,7 @@ criterion_main!(benches);
 //  IMPLEMENTATION DETAILS AHEAD
 //
 /////////////////////////////////////////////////////////////////////*/
-struct TestStore<E: Event>(HashMap<OwnedEventId, Arc<E>>);
+struct TestStore<E: Event>(BTreeMap<OwnedEventId, Arc<E>>);
 
 #[allow(unused)]
 impl<E: Event> TestStore<E> {
@@ -178,8 +178,8 @@ impl<E: Event> TestStore<E> {
     }
 
     /// Returns a Vec of the related auth events to the given `event`.
-    fn auth_event_ids(&self, room_id: &RoomId, event_ids: Vec<E::Id>) -> Result<HashSet<E::Id>> {
-        let mut result = HashSet::new();
+    fn auth_event_ids(&self, room_id: &RoomId, event_ids: Vec<E::Id>) -> Result<BTreeSet<E::Id>> {
+        let mut result = BTreeSet::new();
         let mut stack = event_ids;
 
         // DFS for auth event chain
@@ -204,7 +204,7 @@ impl<E: Event> TestStore<E> {
         for ids in event_ids {
             // TODO state store `auth_event_ids` returns self in the event ids list
             // when an event returns `auth_event_ids` self is not contained
-            let chain = self.auth_event_ids(room_id, ids)?.into_iter().collect::<HashSet<_>>();
+            let chain = self.auth_event_ids(room_id, ids)?.into_iter().collect::<BTreeSet<_>>();
             auth_chain_sets.push(chain);
         }
 
@@ -212,7 +212,7 @@ impl<E: Event> TestStore<E> {
             let common = auth_chain_sets
                 .iter()
                 .skip(1)
-                .fold(first, |a, b| a.intersection(b).cloned().collect::<HashSet<_>>());
+                .fold(first, |a, b| a.intersection(b).cloned().collect::<BTreeSet<_>>());
 
             Ok(auth_chain_sets
                 .into_iter()
@@ -389,7 +389,7 @@ where
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
+fn INITIAL_EVENTS() -> BTreeMap<OwnedEventId, Arc<PduEvent>> {
     vec![
         to_pdu_event::<&EventId>(
             "CREATE",
@@ -471,7 +471,7 @@ fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn BAN_STATE_SET() -> HashMap<OwnedEventId, Arc<PduEvent>> {
+fn BAN_STATE_SET() -> BTreeMap<OwnedEventId, Arc<PduEvent>> {
     vec![
         to_pdu_event(
             "PA",

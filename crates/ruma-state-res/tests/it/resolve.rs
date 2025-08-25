@@ -378,7 +378,7 @@ fn test_contrived_states(pdus_paths: &[&str], state_sets_paths: &[&str]) -> Snap
 
     let mut auth_chain_sets = Vec::new();
     for state_map in &state_sets {
-        let mut auth_chain = HashSet::new();
+        let mut auth_chain = BTreeSet::new();
 
         for event_id in state_map.values() {
             let pdu = pdus_by_id
@@ -517,7 +517,7 @@ where
 
     let auth_chain_from_state_map =
         |state_map: &StateMap<OwnedEventId>| -> Result<_, Box<dyn Error>> {
-            let mut auth_chain_sets = HashSet::new();
+            let mut auth_chain_sets = BTreeSet::new();
 
             for event_id in state_map.values() {
                 let pdu = pdus_by_id.get(event_id).expect("every pdu should be available");
@@ -628,8 +628,8 @@ where
 fn auth_events_dfs(
     pdus_by_id: &HashMap<OwnedEventId, Pdu>,
     pdu: &Pdu,
-) -> Result<HashSet<OwnedEventId>, Box<dyn Error>> {
-    let mut out = HashSet::new();
+) -> Result<BTreeSet<OwnedEventId>, Box<dyn Error>> {
+    let mut out = BTreeSet::new();
     let mut stack = pdu.auth_events().cloned().collect::<Vec<_>>();
 
     while let Some(event_id) = stack.pop() {
@@ -656,10 +656,10 @@ fn auth_events_dfs(
 fn conflicted_state_subgraph_dfs(
     conflicted_state_set: &StateMap<Vec<OwnedEventId>>,
     pdus_by_id: &HashMap<OwnedEventId, Pdu>,
-) -> Option<HashSet<OwnedEventId>> {
+) -> Option<BTreeSet<OwnedEventId>> {
     let conflicted_event_ids: HashSet<_> =
         conflicted_state_set.values().flatten().cloned().collect();
-    let mut conflicted_state_subgraph = HashSet::new();
+    let mut conflicted_state_subgraph = BTreeSet::new();
 
     let mut stack = vec![conflicted_event_ids.iter().cloned().collect::<Vec<_>>()];
     let mut path = Vec::new();
