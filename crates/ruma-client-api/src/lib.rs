@@ -52,6 +52,8 @@ pub mod sync;
 pub mod tag;
 pub mod thirdparty;
 pub mod threads;
+#[cfg(feature = "unstable-msc4308")]
+pub mod threads_subscriptions;
 pub mod to_device;
 pub mod typing;
 pub mod uiaa;
