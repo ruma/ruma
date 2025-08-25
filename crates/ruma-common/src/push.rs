@@ -797,6 +797,7 @@ pub enum RuleKind {
 
     /// Post-content specific rules.
     #[cfg(feature = "unstable-msc4306")]
+    #[ruma_enum(rename = "io.element.msc4306.postcontent")]
     PostContent,
 
     #[doc(hidden)]
