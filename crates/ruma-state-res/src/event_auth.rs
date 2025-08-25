@@ -1,6 +1,6 @@
 use std::{
     borrow::Borrow,
-    collections::{BTreeMap, BTreeSet, HashSet},
+    collections::{BTreeMap, BTreeSet},
 };
 
 use js_int::Int;
@@ -164,14 +164,13 @@ pub fn check_state_independent_auth_rules<E: Event>(
     )?
     .into_iter()
     .map(|(event_type, state_key)| (TimelineEventType::from(event_type), state_key))
-    .collect::<HashSet<_>>();
+    .collect::<BTreeSet<_>>();
 
     let Some(room_id) = incoming_event.room_id() else {
         return Err("missing `room_id` field for event".to_owned());
     };
 
-    let mut seen_auth_types: HashSet<(TimelineEventType, String)> =
-        HashSet::with_capacity(expected_auth_types.len());
+    let mut seen_auth_types: BTreeSet<(TimelineEventType, String)> = BTreeSet::new();
 
     // Since v1, considering auth_events:
     for auth_event_id in incoming_event.auth_events() {
@@ -460,7 +459,7 @@ fn check_room_power_levels(
     current_room_power_levels_event: Option<RoomPowerLevelsEvent<impl Event>>,
     rules: &AuthorizationRules,
     sender_power_level: UserPowerLevel,
-    room_creators: &HashSet<OwnedUserId>,
+    room_creators: &BTreeSet<OwnedUserId>,
 ) -> Result<(), String> {
     debug!("starting m.room.power_levels check");
 

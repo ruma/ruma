@@ -1,7 +1,7 @@
 //! Types to deserialize `m.room.power_levels` events.
 
 use std::{
-    collections::{BTreeMap, HashSet},
+    collections::{BTreeMap, BTreeSet},
     ops::Deref,
     sync::{Arc, Mutex, OnceLock},
 };
@@ -253,7 +253,7 @@ pub(crate) trait RoomPowerLevelsEventOptionExt {
     fn user_power_level(
         &self,
         user_id: &UserId,
-        creators: &HashSet<OwnedUserId>,
+        creators: &BTreeSet<OwnedUserId>,
         rules: &AuthorizationRules,
     ) -> Result<UserPowerLevel, String>;
 
@@ -278,7 +278,7 @@ impl<E: Event> RoomPowerLevelsEventOptionExt for Option<RoomPowerLevelsEvent<E>>
     fn user_power_level(
         &self,
         user_id: &UserId,
-        creators: &HashSet<OwnedUserId>,
+        creators: &BTreeSet<OwnedUserId>,
         rules: &AuthorizationRules,
     ) -> Result<UserPowerLevel, String> {
         if rules.explicitly_privilege_room_creators && creators.contains(user_id) {

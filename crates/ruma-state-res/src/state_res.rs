@@ -1,7 +1,7 @@
 use std::{
     borrow::Borrow,
     cmp::{Ordering, Reverse},
-    collections::{BinaryHeap, HashMap, HashSet},
+    collections::{BTreeMap, BTreeSet, BinaryHeap},
     hash::Hash,
     sync::OnceLock,
 };
@@ -35,7 +35,7 @@ use crate::{
 /// map" during [state resolution].
 ///
 /// [state resolution]: https://spec.matrix.org/latest/rooms/v2/#state-resolution
-pub type StateMap<T> = HashMap<(StateEventType, String), T>;
+pub type StateMap<T> = BTreeMap<(StateEventType, String), T>;
 
 /// Apply the [state resolution] algorithm introduced in room version 2 to resolve the state of a
 /// room.
@@ -72,9 +72,9 @@ pub fn resolve<'a, E, MapsIter>(
     auth_rules: &AuthorizationRules,
     state_res_rules: &StateResolutionV2Rules,
     state_maps: impl IntoIterator<IntoIter = MapsIter>,
-    auth_chains: Vec<HashSet<E::Id>>,
+    auth_chains: Vec<BTreeSet<E::Id>>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
-    fetch_conflicted_state_subgraph: impl Fn(&StateMap<Vec<E::Id>>) -> Option<HashSet<E::Id>>,
+    fetch_conflicted_state_subgraph: impl Fn(&StateMap<Vec<E::Id>>) -> Option<BTreeSet<E::Id>>,
 ) -> Result<StateMap<E::Id>>
 where
     E: Event + Clone,
@@ -108,12 +108,12 @@ where
 
         conflicted_state_subgraph
     } else {
-        HashSet::new()
+        BTreeSet::new()
     };
 
     // The full conflicted set is the union of the conflicted state set and the auth difference,
     // and since v12, the conflicted state subgraph.
-    let full_conflicted_set: HashSet<_> = auth_difference(auth_chains)
+    let full_conflicted_set: BTreeSet<_> = auth_difference(auth_chains)
         .chain(conflicted_state_set.into_values().flatten())
         .chain(conflicted_state_subgraph)
         // Don't honor events we cannot "verify"
@@ -143,7 +143,7 @@ where
 
     // Since v12, begin the first phase of iterative auth checks with an empty state map.
     let initial_state_map = if state_res_rules.begin_iterative_auth_checks_with_empty_state_map {
-        HashMap::new()
+        BTreeMap::new()
     } else {
         unconflicted_state_map.clone()
     };
@@ -156,7 +156,7 @@ where
 
     // 3. Take all remaining events that weren’t picked in step 1 and order them by the mainline
     //    ordering based on the power level in the partially resolved state obtained in step 2.
-    let sorted_power_events_set = sorted_power_events.into_iter().collect::<HashSet<_>>();
+    let sorted_power_events_set = sorted_power_events.into_iter().collect::<BTreeSet<_>>();
     let remaining_events = full_conflicted_set
         .iter()
         .filter(|&id| !sorted_power_events_set.contains(id.borrow()))
@@ -218,10 +218,10 @@ fn split_conflicted_state_set<'a, Id>(
     state_maps: impl Iterator<Item = &'a StateMap<Id>>,
 ) -> (StateMap<Id>, StateMap<Vec<Id>>)
 where
-    Id: Clone + Eq + Hash + 'a,
+    Id: Clone + Eq + Hash + Ord + 'a,
 {
     let mut state_set_count = 0_usize;
-    let mut occurrences = HashMap::<_, HashMap<_, _>>::new();
+    let mut occurrences = BTreeMap::<_, BTreeMap<_, _>>::new();
 
     let state_maps = state_maps.inspect(|_| state_set_count += 1);
     for (k, v) in state_maps.flatten() {
@@ -263,13 +263,13 @@ where
 /// ## Returns
 ///
 /// Returns an iterator over all the event IDs that are not present in all the auth chains.
-fn auth_difference<Id>(auth_chains: Vec<HashSet<Id>>) -> impl Iterator<Item = Id>
+fn auth_difference<Id>(auth_chains: Vec<BTreeSet<Id>>) -> impl Iterator<Item = Id>
 where
-    Id: Eq + Hash,
+    Id: Eq + Hash + Ord,
 {
     let num_sets = auth_chains.len();
 
-    let mut id_counts: HashMap<Id, usize> = HashMap::new();
+    let mut id_counts: BTreeMap<Id, usize> = BTreeMap::new();
     for id in auth_chains.into_iter().flatten() {
         *id_counts.entry(id).or_default() += 1;
     }
@@ -296,7 +296,7 @@ where
 #[instrument(skip_all)]
 fn sort_power_events<E: Event>(
     conflicted_power_events: Vec<E::Id>,
-    full_conflicted_set: &HashSet<E::Id>,
+    full_conflicted_set: &BTreeSet<E::Id>,
     rules: &AuthorizationRules,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> Result<Vec<E::Id>> {
@@ -304,7 +304,7 @@ fn sort_power_events<E: Event>(
 
     // A representation of the DAG, a map of event ID to its list of auth events that are in the
     // full conflicted set.
-    let mut graph = HashMap::new();
+    let mut graph = BTreeMap::new();
 
     // Fill the graph.
     for event_id in conflicted_power_events {
@@ -316,7 +316,7 @@ fn sort_power_events<E: Event>(
     }
 
     // The map of event ID to the power level of the sender of the event.
-    let mut event_to_power_level = HashMap::new();
+    let mut event_to_power_level = BTreeMap::new();
     // We need to know the creator in case of missing power levels. Given that it's the same for all
     // the events in the room, we will just load it for the first event and reuse it.
     let creators_lock = OnceLock::new();
@@ -382,7 +382,7 @@ fn sort_power_events<E: Event>(
 /// Returns the ordered list of event IDs from earliest to latest.
 #[instrument(skip_all)]
 pub fn reverse_topological_power_sort<Id, F>(
-    graph: &HashMap<Id, HashSet<Id>>,
+    graph: &BTreeMap<Id, BTreeSet<Id>>,
     event_details_fn: F,
 ) -> Result<Vec<Id>>
 where
@@ -426,7 +426,7 @@ where
     let mut outgoing_edges_map = graph.clone();
 
     // Map of event to the list of events that reference it in its auth events.
-    let mut incoming_edges_map: HashMap<_, HashSet<_>> = HashMap::new();
+    let mut incoming_edges_map: BTreeMap<_, BTreeSet<_>> = BTreeMap::new();
 
     // Vec of events that have an outdegree of zero (no outgoing edges), i.e. the oldest events.
     let mut zero_outdegrees = Vec::new();
@@ -510,7 +510,7 @@ where
 fn power_level_for_sender<E: Event>(
     event_id: &EventId,
     rules: &AuthorizationRules,
-    creators_lock: &OnceLock<HashSet<OwnedUserId>>,
+    creators_lock: &OnceLock<BTreeSet<OwnedUserId>>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> std::result::Result<UserPowerLevel, String> {
     let event = fetch_event(event_id);
@@ -757,9 +757,9 @@ fn mainline_sort<E: Event>(
         .rev()
         .enumerate()
         .map(|(idx, event_id)| ((*event_id).clone(), idx))
-        .collect::<HashMap<_, _>>();
+        .collect::<BTreeMap<_, _>>();
 
-    let mut order_map = HashMap::new();
+    let mut order_map = BTreeMap::new();
     for event_id in events.iter() {
         if let Some(event) = fetch_event(event_id.borrow()) {
             if let Ok(position) = mainline_position(event, &mainline_map, &fetch_event) {
@@ -821,7 +821,7 @@ fn mainline_sort<E: Event>(
 /// chain of the event was not found.
 fn mainline_position<E: Event>(
     event: E,
-    mainline_map: &HashMap<E::Id, usize>,
+    mainline_map: &BTreeMap<E::Id, usize>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> Result<usize> {
     let mut current_event = Some(event);
@@ -856,9 +856,9 @@ fn mainline_position<E: Event>(
 /// Add the event with the given event ID and all the events in its auth chain that are in the full
 /// conflicted set to the graph.
 fn add_event_and_auth_chain_to_graph<E: Event>(
-    graph: &mut HashMap<E::Id, HashSet<E::Id>>,
+    graph: &mut BTreeMap<E::Id, BTreeSet<E::Id>>,
     event_id: E::Id,
-    full_conflicted_set: &HashSet<E::Id>,
+    full_conflicted_set: &BTreeSet<E::Id>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) {
     let mut state = vec![event_id];

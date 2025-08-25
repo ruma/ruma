@@ -1,4 +1,4 @@
-use std::{collections::HashSet, sync::Arc};
+use std::{collections::BTreeSet, sync::Arc};
 
 use as_variant::as_variant;
 use js_int::int;
@@ -77,7 +77,7 @@ fn not_int_or_string_int_in_content() {
                 current_room_power_levels_event.clone(),
                 &AuthorizationRules::V6,
                 int!(100).into(),
-                &HashSet::new(),
+                &BTreeSet::new(),
             );
 
             if *is_int {
@@ -92,7 +92,7 @@ fn not_int_or_string_int_in_content() {
                 current_room_power_levels_event.clone(),
                 &AuthorizationRules::V10,
                 int!(100).into(),
-                &HashSet::new(),
+                &BTreeSet::new(),
             );
 
             if *is_string {
@@ -149,7 +149,7 @@ fn not_int_or_string_int_in_events() {
             current_room_power_levels_event.clone(),
             &AuthorizationRules::V6,
             int!(100).into(),
-            &HashSet::new(),
+            &BTreeSet::new(),
         );
 
         if *is_int {
@@ -164,7 +164,7 @@ fn not_int_or_string_int_in_events() {
             current_room_power_levels_event.clone(),
             &AuthorizationRules::V10,
             int!(100).into(),
-            &HashSet::new(),
+            &BTreeSet::new(),
         );
 
         if *is_string {
@@ -220,7 +220,7 @@ fn not_int_or_string_int_in_notifications() {
             current_room_power_levels_event.clone(),
             &AuthorizationRules::V6,
             int!(100).into(),
-            &HashSet::new(),
+            &BTreeSet::new(),
         );
 
         if *is_int {
@@ -235,7 +235,7 @@ fn not_int_or_string_int_in_notifications() {
             current_room_power_levels_event.clone(),
             &AuthorizationRules::V10,
             int!(100).into(),
-            &HashSet::new(),
+            &BTreeSet::new(),
         );
 
         if *is_string {
@@ -274,7 +274,7 @@ fn not_user_id_in_users() {
         current_room_power_levels_event,
         &AuthorizationRules::V6,
         int!(100).into(),
-        &HashSet::new(),
+        &BTreeSet::new(),
     )
     .unwrap_err();
 }
@@ -325,7 +325,7 @@ fn not_int_or_string_int_in_users() {
             current_room_power_levels_event.clone(),
             &AuthorizationRules::V6,
             int!(100).into(),
-            &HashSet::new(),
+            &BTreeSet::new(),
         );
 
         if *is_int {
@@ -340,7 +340,7 @@ fn not_int_or_string_int_in_users() {
             current_room_power_levels_event.clone(),
             &AuthorizationRules::V10,
             int!(100).into(),
-            &HashSet::new(),
+            &BTreeSet::new(),
         );
 
         if *is_string {
@@ -378,7 +378,7 @@ fn first_power_levels_event() {
         current_room_power_levels_event,
         &AuthorizationRules::V6,
         int!(100).into(),
-        &HashSet::new(),
+        &BTreeSet::new(),
     )
     .unwrap();
 }
@@ -435,7 +435,7 @@ fn change_content_level_with_current_higher_power_level() {
             Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
             &AuthorizationRules::V6,
             int!(40).into(),
-            &HashSet::new(),
+            &BTreeSet::new(),
         )
         .unwrap_err();
     }
@@ -493,7 +493,7 @@ fn change_content_level_with_new_higher_power_level() {
             Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
             &AuthorizationRules::V6,
             int!(40).into(),
-            &HashSet::new(),
+            &BTreeSet::new(),
         )
         .unwrap_err();
     }
@@ -551,7 +551,7 @@ fn change_content_level_with_same_power_level() {
             Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
             &AuthorizationRules::V6,
             int!(40).into(),
-            &HashSet::new(),
+            &BTreeSet::new(),
         )
         .unwrap();
     }
@@ -605,7 +605,7 @@ fn change_events_level_with_current_higher_power_level() {
         Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
         &AuthorizationRules::V6,
         int!(40).into(),
-        &HashSet::new(),
+        &BTreeSet::new(),
     )
     .unwrap_err();
 }
@@ -658,7 +658,7 @@ fn change_events_level_with_new_higher_power_level() {
         Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
         &AuthorizationRules::V6,
         int!(40).into(),
-        &HashSet::new(),
+        &BTreeSet::new(),
     )
     .unwrap_err();
 }
@@ -711,7 +711,7 @@ fn change_events_level_with_same_power_level() {
         Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
         &AuthorizationRules::V6,
         int!(40).into(),
-        &HashSet::new(),
+        &BTreeSet::new(),
     )
     .unwrap();
 }
@@ -764,7 +764,7 @@ fn change_notifications_level_with_current_higher_power_level() {
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V3,
         int!(40).into(),
-        &HashSet::new(),
+        &BTreeSet::new(),
     )
     .unwrap();
 
@@ -774,7 +774,7 @@ fn change_notifications_level_with_current_higher_power_level() {
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V6,
         int!(40).into(),
-        &HashSet::new(),
+        &BTreeSet::new(),
     )
     .unwrap_err();
 }
@@ -827,7 +827,7 @@ fn change_notifications_level_with_new_higher_power_level() {
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V3,
         int!(40).into(),
-        &HashSet::new(),
+        &BTreeSet::new(),
     )
     .unwrap();
 
@@ -837,7 +837,7 @@ fn change_notifications_level_with_new_higher_power_level() {
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V6,
         int!(40).into(),
-        &HashSet::new(),
+        &BTreeSet::new(),
     )
     .unwrap_err();
 }
@@ -890,7 +890,7 @@ fn change_notifications_level_with_same_power_level() {
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V3,
         int!(40).into(),
-        &HashSet::new(),
+        &BTreeSet::new(),
     )
     .unwrap();
 
@@ -900,7 +900,7 @@ fn change_notifications_level_with_same_power_level() {
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V6,
         int!(40).into(),
-        &HashSet::new(),
+        &BTreeSet::new(),
     )
     .unwrap();
 }
@@ -948,7 +948,7 @@ fn change_other_user_level_with_current_higher_power_level() {
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V6,
         int!(40).into(),
-        &HashSet::new(),
+        &BTreeSet::new(),
     )
     .unwrap_err();
 }
@@ -997,7 +997,7 @@ fn change_other_user_level_with_new_higher_power_level() {
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V6,
         int!(40).into(),
-        &HashSet::new(),
+        &BTreeSet::new(),
     )
     .unwrap_err();
 }
@@ -1046,7 +1046,7 @@ fn change_other_user_level_with_same_power_level() {
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V6,
         int!(40).into(),
-        &HashSet::new(),
+        &BTreeSet::new(),
     )
     .unwrap();
 }
@@ -1093,7 +1093,7 @@ fn change_own_user_level_to_new_higher_power_level() {
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V6,
         int!(40).into(),
-        &HashSet::new(),
+        &BTreeSet::new(),
     )
     .unwrap_err();
 }
@@ -1140,7 +1140,7 @@ fn change_own_user_level_to_lower_power_level() {
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V6,
         int!(40).into(),
-        &HashSet::new(),
+        &BTreeSet::new(),
     )
     .unwrap();
 }
@@ -1186,7 +1186,7 @@ fn creator_has_infinite_power() {
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V12,
         UserPowerLevel::Infinite,
-        &HashSet::new(),
+        &BTreeSet::new(),
     )
     .unwrap();
 }
@@ -1232,7 +1232,7 @@ fn dont_allow_creator_in_users_field() {
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V12,
         UserPowerLevel::Infinite,
-        &HashSet::from_iter([alice().to_owned()]),
+        &BTreeSet::from_iter([alice().to_owned()]),
     )
     .unwrap_err();
 }
