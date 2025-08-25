@@ -45,10 +45,9 @@ impl Ruleset {
                 ConditionalPushRule::poll_response(),
             ]
             .into(),
+            #[cfg(feature = "unstable-msc4306")]
             postcontent: [
-                #[cfg(feature = "unstable-msc4306")]
                 ConditionalPushRule::unsubscribed_thread(),
-                #[cfg(feature = "unstable-msc4306")]
                 ConditionalPushRule::subscribed_thread(),
             ]
             .into(),
