@@ -58,6 +58,12 @@ pub struct Ruleset {
     #[serde(default, skip_serializing_if = "IndexSet::is_empty")]
     pub content: IndexSet<PatternedPushRule>,
 
+    /// These rules are identical to override rules, but have a lower priority than `room` and
+    /// `sender` rules.
+    #[cfg(feature = "unstable-msc4306")]
+    #[serde(default, skip_serializing_if = "IndexSet::is_empty")]
+    pub postcontent: IndexSet<ConditionalPushRule>,
+
     /// These user-configured rules are given the highest priority.
     ///
     /// This field is named `override_` instead of `override` because the latter is a reserved
@@ -139,6 +145,16 @@ impl Ruleset {
 
                 insert_and_move_rule(&mut self.override_, rule, default_position, after, before)
             }
+            #[cfg(feature = "unstable-msc4306")]
+            NewPushRule::PostContent(r) => {
+                let mut rule = ConditionalPushRule::from(r);
+
+                if let Some(prev_rule) = self.postcontent.get(rule.rule_id.as_str()) {
+                    rule.enabled = prev_rule.enabled;
+                }
+
+                insert_and_move_rule(&mut self.postcontent, rule, 0, after, before)
+            }
             NewPushRule::Underride(r) => {
                 let mut rule = ConditionalPushRule::from(r);
 
@@ -188,6 +204,8 @@ impl Ruleset {
             RuleKind::Sender => self.sender.get(rule_id).map(AnyPushRuleRef::Sender),
             RuleKind::Room => self.room.get(rule_id).map(AnyPushRuleRef::Room),
             RuleKind::Content => self.content.get(rule_id).map(AnyPushRuleRef::Content),
+            #[cfg(feature = "unstable-msc4306")]
+            RuleKind::PostContent => self.postcontent.get(rule_id).map(AnyPushRuleRef::PostContent),
             RuleKind::_Custom(_) => None,
         }
     }
@@ -229,6 +247,12 @@ impl Ruleset {
                 let mut rule = self.content.get(rule_id).ok_or(RuleNotFoundError)?.clone();
                 rule.enabled = enabled;
                 self.content.replace(rule);
+            }
+            #[cfg(feature = "unstable-msc4306")]
+            RuleKind::PostContent => {
+                let mut rule = self.postcontent.get(rule_id).ok_or(RuleNotFoundError)?.clone();
+                rule.enabled = enabled;
+                self.postcontent.replace(rule);
             }
             RuleKind::_Custom(_) => return Err(RuleNotFoundError),
         }
@@ -273,6 +297,12 @@ impl Ruleset {
                 let mut rule = self.content.get(rule_id).ok_or(RuleNotFoundError)?.clone();
                 rule.actions = actions;
                 self.content.replace(rule);
+            }
+            #[cfg(feature = "unstable-msc4306")]
+            RuleKind::PostContent => {
+                let mut rule = self.postcontent.get(rule_id).ok_or(RuleNotFoundError)?.clone();
+                rule.actions = actions;
+                self.postcontent.replace(rule);
             }
             RuleKind::_Custom(_) => return Err(RuleNotFoundError),
         }
@@ -358,6 +388,10 @@ impl Ruleset {
             }
             RuleKind::Content => {
                 self.content.shift_remove(rule_id);
+            }
+            #[cfg(feature = "unstable-msc4306")]
+            RuleKind::PostContent => {
+                self.postcontent.shift_remove(rule_id);
             }
             // This has been handled in the `self.get` call earlier.
             RuleKind::_Custom(_) => unreachable!(),
@@ -761,6 +795,11 @@ pub enum RuleKind {
     /// Content-specific rules.
     Content,
 
+    /// Post-content specific rules.
+    #[cfg(feature = "unstable-msc4306")]
+    #[ruma_enum(rename = "io.element.msc4306.postcontent")]
+    PostContent,
+
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
@@ -774,6 +813,10 @@ pub enum NewPushRule {
 
     /// Content-specific rules.
     Content(NewPatternedPushRule),
+
+    /// Post-content specific rules.
+    #[cfg(feature = "unstable-msc4306")]
+    PostContent(NewConditionalPushRule),
 
     /// Room-specific rules.
     Room(NewSimplePushRule<OwnedRoomId>),
@@ -791,6 +834,8 @@ impl NewPushRule {
         match self {
             NewPushRule::Override(_) => RuleKind::Override,
             NewPushRule::Content(_) => RuleKind::Content,
+            #[cfg(feature = "unstable-msc4306")]
+            NewPushRule::PostContent(_) => RuleKind::PostContent,
             NewPushRule::Room(_) => RuleKind::Room,
             NewPushRule::Sender(_) => RuleKind::Sender,
             NewPushRule::Underride(_) => RuleKind::Underride,
@@ -802,6 +847,8 @@ impl NewPushRule {
         match self {
             NewPushRule::Override(r) => &r.rule_id,
             NewPushRule::Content(r) => &r.rule_id,
+            #[cfg(feature = "unstable-msc4306")]
+            NewPushRule::PostContent(r) => &r.rule_id,
             NewPushRule::Room(r) => r.rule_id.as_ref(),
             NewPushRule::Sender(r) => r.rule_id.as_ref(),
             NewPushRule::Underride(r) => &r.rule_id,

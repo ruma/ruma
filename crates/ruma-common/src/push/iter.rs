@@ -16,6 +16,10 @@ pub enum AnyPushRule {
     /// Content-specific rules.
     Content(PatternedPushRule),
 
+    /// Post-content specific rules.
+    #[cfg(feature = "unstable-msc4306")]
+    PostContent(ConditionalPushRule),
+
     /// Room-specific rules.
     Room(SimplePushRule<OwnedRoomId>),
 
@@ -32,6 +36,8 @@ impl AnyPushRule {
         match self {
             Self::Override(o) => AnyPushRuleRef::Override(o),
             Self::Content(c) => AnyPushRuleRef::Content(c),
+            #[cfg(feature = "unstable-msc4306")]
+            Self::PostContent(c) => AnyPushRuleRef::PostContent(c),
             Self::Room(r) => AnyPushRuleRef::Room(r),
             Self::Sender(s) => AnyPushRuleRef::Sender(s),
             Self::Underride(u) => AnyPushRuleRef::Underride(u),
@@ -95,6 +101,8 @@ impl AnyPushRule {
 #[derive(Debug)]
 pub struct RulesetIntoIter {
     content: IndexSetIntoIter<PatternedPushRule>,
+    #[cfg(feature = "unstable-msc4306")]
+    postcontent: IndexSetIntoIter<ConditionalPushRule>,
     override_: IndexSetIntoIter<ConditionalPushRule>,
     room: IndexSetIntoIter<SimplePushRule<OwnedRoomId>>,
     sender: IndexSetIntoIter<SimplePushRule<OwnedUserId>>,
@@ -105,11 +113,16 @@ impl Iterator for RulesetIntoIter {
     type Item = AnyPushRule;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.override_
+        let it = self
+            .override_
             .next()
             .map(AnyPushRule::Override)
-            .or_else(|| self.content.next().map(AnyPushRule::Content))
-            .or_else(|| self.room.next().map(AnyPushRule::Room))
+            .or_else(|| self.content.next().map(AnyPushRule::Content));
+
+        #[cfg(feature = "unstable-msc4306")]
+        let it = it.or_else(|| self.postcontent.next().map(AnyPushRule::PostContent));
+
+        it.or_else(|| self.room.next().map(AnyPushRule::Room))
             .or_else(|| self.sender.next().map(AnyPushRule::Sender))
             .or_else(|| self.underride.next().map(AnyPushRule::Underride))
     }
@@ -122,6 +135,8 @@ impl IntoIterator for Ruleset {
     fn into_iter(self) -> Self::IntoIter {
         RulesetIntoIter {
             content: self.content.into_iter(),
+            #[cfg(feature = "unstable-msc4306")]
+            postcontent: self.postcontent.into_iter(),
             override_: self.override_.into_iter(),
             room: self.room.into_iter(),
             sender: self.sender.into_iter(),
@@ -140,6 +155,10 @@ pub enum AnyPushRuleRef<'a> {
     /// Content-specific rules.
     Content(&'a PatternedPushRule),
 
+    /// Post-content specific rules.
+    #[cfg(feature = "unstable-msc4306")]
+    PostContent(&'a ConditionalPushRule),
+
     /// Room-specific rules.
     Room(&'a SimplePushRule<OwnedRoomId>),
 
@@ -156,6 +175,8 @@ impl<'a> AnyPushRuleRef<'a> {
         match self {
             Self::Override(o) => AnyPushRule::Override(o.clone()),
             Self::Content(c) => AnyPushRule::Content(c.clone()),
+            #[cfg(feature = "unstable-msc4306")]
+            Self::PostContent(c) => AnyPushRule::PostContent(c.clone()),
             Self::Room(r) => AnyPushRule::Room(r.clone()),
             Self::Sender(s) => AnyPushRule::Sender(s.clone()),
             Self::Underride(u) => AnyPushRule::Underride(u.clone()),
@@ -168,6 +189,8 @@ impl<'a> AnyPushRuleRef<'a> {
             Self::Override(rule) => rule.enabled,
             Self::Underride(rule) => rule.enabled,
             Self::Content(rule) => rule.enabled,
+            #[cfg(feature = "unstable-msc4306")]
+            Self::PostContent(rule) => rule.enabled,
             Self::Room(rule) => rule.enabled,
             Self::Sender(rule) => rule.enabled,
         }
@@ -179,6 +202,8 @@ impl<'a> AnyPushRuleRef<'a> {
             Self::Override(rule) => &rule.actions,
             Self::Underride(rule) => &rule.actions,
             Self::Content(rule) => &rule.actions,
+            #[cfg(feature = "unstable-msc4306")]
+            Self::PostContent(rule) => &rule.actions,
             Self::Room(rule) => &rule.actions,
             Self::Sender(rule) => &rule.actions,
         }
@@ -212,6 +237,8 @@ impl<'a> AnyPushRuleRef<'a> {
             Self::Override(rule) => &rule.rule_id,
             Self::Underride(rule) => &rule.rule_id,
             Self::Content(rule) => &rule.rule_id,
+            #[cfg(feature = "unstable-msc4306")]
+            Self::PostContent(rule) => &rule.rule_id,
             Self::Room(rule) => rule.rule_id.as_ref(),
             Self::Sender(rule) => rule.rule_id.as_ref(),
         }
@@ -223,6 +250,8 @@ impl<'a> AnyPushRuleRef<'a> {
             Self::Override(rule) => rule.default,
             Self::Underride(rule) => rule.default,
             Self::Content(rule) => rule.default,
+            #[cfg(feature = "unstable-msc4306")]
+            Self::PostContent(rule) => rule.default,
             Self::Room(rule) => rule.default,
             Self::Sender(rule) => rule.default,
         }
@@ -243,6 +272,8 @@ impl<'a> AnyPushRuleRef<'a> {
             Self::Override(rule) => rule.applies(event, context).await,
             Self::Underride(rule) => rule.applies(event, context).await,
             Self::Content(rule) => rule.applies_to("content.body", event, context),
+            #[cfg(feature = "unstable-msc4306")]
+            Self::PostContent(rule) => rule.applies(event, context).await,
             Self::Room(rule) => {
                 rule.enabled
                     && condition::check_event_match(
@@ -264,6 +295,8 @@ impl<'a> AnyPushRuleRef<'a> {
 #[derive(Debug)]
 pub struct RulesetIter<'a> {
     content: IndexSetIter<'a, PatternedPushRule>,
+    #[cfg(feature = "unstable-msc4306")]
+    postcontent: IndexSetIter<'a, ConditionalPushRule>,
     override_: IndexSetIter<'a, ConditionalPushRule>,
     room: IndexSetIter<'a, SimplePushRule<OwnedRoomId>>,
     sender: IndexSetIter<'a, SimplePushRule<OwnedUserId>>,
@@ -274,11 +307,16 @@ impl<'a> Iterator for RulesetIter<'a> {
     type Item = AnyPushRuleRef<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.override_
+        let it = self
+            .override_
             .next()
             .map(AnyPushRuleRef::Override)
-            .or_else(|| self.content.next().map(AnyPushRuleRef::Content))
-            .or_else(|| self.room.next().map(AnyPushRuleRef::Room))
+            .or_else(|| self.content.next().map(AnyPushRuleRef::Content));
+
+        #[cfg(feature = "unstable-msc4306")]
+        let it = it.or_else(|| self.postcontent.next().map(AnyPushRuleRef::PostContent));
+
+        it.or_else(|| self.room.next().map(AnyPushRuleRef::Room))
             .or_else(|| self.sender.next().map(AnyPushRuleRef::Sender))
             .or_else(|| self.underride.next().map(AnyPushRuleRef::Underride))
     }
@@ -291,6 +329,8 @@ impl<'a> IntoIterator for &'a Ruleset {
     fn into_iter(self) -> Self::IntoIter {
         RulesetIter {
             content: self.content.iter(),
+            #[cfg(feature = "unstable-msc4306")]
+            postcontent: self.postcontent.iter(),
             override_: self.override_.iter(),
             room: self.room.iter(),
             sender: self.sender.iter(),
