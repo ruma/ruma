@@ -140,6 +140,9 @@ event_enum! {
         #[cfg(feature = "unstable-msc4075")]
         #[ruma_enum(alias = "m.call.notify")]
         "org.matrix.msc4075.call.notify" => super::call::notify,
+        #[cfg(feature = "unstable-msc4310")]
+        #[ruma_enum(alias = "m.rtc.decline")]
+        "org.matrix.msc4310.rtc.decline" => super::rtc::decline,
     }
 
     /// Any state event.
@@ -434,6 +437,8 @@ impl AnyMessageLikeEventContent {
             }
             #[cfg(feature = "unstable-msc4075")]
             Self::CallNotify(_) => None,
+            #[cfg(feature = "unstable-msc4310")]
+            Self::RtcDecline(ev) => Some(encrypted::Relation::Reference(ev.relates_to.clone())),
             Self::CallSdpStreamMetadataChanged(_)
             | Self::CallNegotiate(_)
             | Self::CallReject(_)
