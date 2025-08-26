@@ -40,7 +40,9 @@ Breaking changes:
 
 Improvements:
 
-- Added support for the experiment MSC4036 thread subscription endpoints.
+- Added support for the sliding sync extension for thread subscriptions, as well as the
+  accompanying endpoint, both from experimental MSC4308.
+- Added support for the experiment MSC4306 thread subscription endpoints.
 - For the `membership::join_room_by_id_or_alias` and `knock::knock_room`
   endpoints, the `server_name` query parameter is only serialized if the server
   doesn't advertise at least one version that supports the `via` query
