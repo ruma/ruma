@@ -32,7 +32,7 @@ pub mod set_profile_field;
 #[cfg(feature = "unstable-msc4133")]
 pub trait StaticProfileField {
     /// The type for the value of the field.
-    type Value: Sized + Serialize + DeserializeOwned;
+    type Value: DeserializeOwned + Send + Serialize + Sized;
 
     /// The string representation of this field.
     const NAME: &str;
