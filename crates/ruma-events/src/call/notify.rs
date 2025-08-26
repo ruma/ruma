@@ -6,12 +6,13 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::member::Application;
-use crate::Mentions;
+use crate::{rtc, Mentions};
 
 /// The content of an `m.call.notify` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.call.notify", kind = MessageLike)]
+#[deprecated = "Use the m.rtc.notification event instead."]
 pub struct CallNotifyEventContent {
     /// A unique identifier for the call.
     pub call_id: String,
@@ -20,7 +21,7 @@ pub struct CallNotifyEventContent {
     pub application: ApplicationType,
 
     /// How this notify event should notify the receiver.
-    pub notify_type: NotifyType,
+    pub notify_type: rtc::notification::NotificationType,
 
     /// The users that are notified by this event (See [MSC3952] (Intentional Mentions)).
     ///
@@ -28,30 +29,16 @@ pub struct CallNotifyEventContent {
     #[serde(rename = "m.mentions")]
     pub mentions: Mentions,
 }
-
 impl CallNotifyEventContent {
     /// Creates a new `CallNotifyEventContent` with the given configuration.
     pub fn new(
         call_id: String,
         application: ApplicationType,
-        notify_type: NotifyType,
+        notify_type: rtc::notification::NotificationType,
         mentions: Mentions,
     ) -> Self {
         Self { call_id, application, notify_type, mentions }
     }
-}
-
-/// How this notify event should notify the receiver.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub enum NotifyType {
-    /// The receiving client should ring with an audible sound.
-    #[serde(rename = "ring")]
-    Ring,
-
-    /// The receiving client should display a visual notification.
-    #[serde(rename = "notify")]
-    Notify,
 }
 
 /// The type of matrix RTC application.
@@ -62,6 +49,7 @@ pub enum NotifyType {
 /// An `Application` can be converted into an `ApplicationType` using `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[deprecated = "Part of the deprecated CallNotifyEventContent."]
 pub enum ApplicationType {
     /// A VoIP call.
     #[serde(rename = "m.call")]
@@ -81,8 +69,8 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use crate::{
-        call::notify::{ApplicationType, CallNotifyEventContent, NotifyType},
-        Mentions,
+        call::notify::{ApplicationType, CallNotifyEventContent},
+        rtc, Mentions,
     };
 
     #[test]
@@ -92,7 +80,7 @@ mod tests {
         let content_user_mention = CallNotifyEventContent::new(
             "abcdef".into(),
             ApplicationType::Call,
-            NotifyType::Ring,
+            rtc::notification::NotificationType::Ring,
             Mentions::with_user_ids(vec![
                 owned_user_id!("@user:example.com"),
                 owned_user_id!("@user2:example.com"),
@@ -102,7 +90,7 @@ mod tests {
         let content_room_mention = CallNotifyEventContent::new(
             "abcdef".into(),
             ApplicationType::Call,
-            NotifyType::Ring,
+            rtc::notification::NotificationType::Ring,
             Mentions::with_room_mention(),
         );
 
