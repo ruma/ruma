@@ -72,10 +72,9 @@ impl RtcNotificationEventContent {
     ///
     /// # Examples
     /// To start a timer until this client should stop ringing for this notification:
-    /// ```
-    /// let duration_ring = MilliSecondsSinceUnixEpoch::now()
-    ///     .saturated_sub(content.invalid_ts(event.origin_server_ts(), None));
-    /// ```
+    /// `let duration_ring =
+    /// MilliSecondsSinceUnixEpoch::now().saturated_sub(content.invalid_ts(event.origin_server_ts(),
+    /// None));`
     pub fn invalid_ts(
         &self,
         origin_server_ts: MilliSecondsSinceUnixEpoch,
