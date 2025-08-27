@@ -67,7 +67,7 @@ Breaking changes:
   room versions so clients should not rely on it. They can obtain it by requesting the
   `m.room.tombstone` event in the state of the predecessor.
 - The `sender_key` field of `RequestedKeyInfo` is now optional. It was deprecated in Matrix 1.3.
-
+- Add `m.rtc.decline` support ([unstable_MSC4310](https://github.com/matrix-org/matrix-spec-proposals/pull/4310)).
 
 Improvements:
 
