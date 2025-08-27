@@ -7,10 +7,12 @@ use serde::{Deserialize, Serialize};
 
 use super::member::Application;
 use crate::{rtc, Mentions};
+
 /// The content of an `m.call.notify` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.call.notify", kind = MessageLike)]
+#[deprecated = "Use the m.rtc.notification event instead."]
 pub struct CallNotifyEventContent {
     /// A unique identifier for the call.
     pub call_id: String,
@@ -27,7 +29,6 @@ pub struct CallNotifyEventContent {
     #[serde(rename = "m.mentions")]
     pub mentions: Mentions,
 }
-
 impl CallNotifyEventContent {
     /// Creates a new `CallNotifyEventContent` with the given configuration.
     pub fn new(
@@ -48,6 +49,7 @@ impl CallNotifyEventContent {
 /// An `Application` can be converted into an `ApplicationType` using `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[deprecated = "Deprecated as its part of deprecated: CallNotifyEventContent."]
 pub enum ApplicationType {
     /// A VoIP call.
     #[serde(rename = "m.call")]
@@ -72,7 +74,6 @@ mod tests {
     };
 
     #[test]
-    #[allow(deprecated)]
     fn notify_event_serialization() {
         use ruma_common::owned_user_id;
 
@@ -116,7 +117,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(deprecated)]
     fn notify_event_deserialization() {
         use std::collections::BTreeSet;
 

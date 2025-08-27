@@ -68,7 +68,7 @@ Breaking changes:
   `m.room.tombstone` event in the state of the predecessor.
 - The `sender_key` field of `RequestedKeyInfo` is now optional. It was deprecated in Matrix 1.3.
 - Add `m.rtc.decline` support ([unstable_MSC4310](https://github.com/matrix-org/matrix-spec-proposals/pull/4310)).
-- Add `m.rtc.notification` event support. Also deprecated the (non MSC conform) `m.call.notify` event.
+- Add `m.rtc.notification` event support. Also deprecated the (non MSC conformant) `m.call.notify` event.
 
 Improvements:
 

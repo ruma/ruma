@@ -1,13 +1,19 @@
-//! Type for the MatrixRTC notification event (MSC4075).
+//! Type for the MatrixRTC notification event ([MSC4075]).
 //!
 //! Stable: `m.rtc.notification`
 //! Unstable: `org.matrix.msc4075.rtc.notification`
+//!
+//! [MSC4075]: https://github.com/matrix-org/matrix-spec-proposals/pull/4075
+
+use std::time::Duration;
 
 use js_int::UInt;
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{relation::Reference, Mentions};
-use ruma_macros::EventContent;
+use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
+
+use crate::PrivOwnedStr;
 
 /// The content of an `m.rtc.notification` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
@@ -24,7 +30,8 @@ pub struct RtcNotificationEventContent {
     pub sender_ts: MilliSecondsSinceUnixEpoch,
 
     /// Relative time from `sender_ts` during which the notification is considered valid.
-    pub lifetime: UInt,
+    #[serde(with = "ruma_common::serde::duration::ms")]
+    pub lifetime: Duration,
 
     /// Intentional mentions determining who should be notified.
     #[serde(rename = "m.mentions", default, skip_serializing_if = "Option::is_none")]
@@ -35,7 +42,6 @@ pub struct RtcNotificationEventContent {
     pub relates_to: Option<Reference>,
 
     /// How this notification should notify the receiver.
-    #[serde(rename = "notification_type")]
     pub notification_type: NotificationType,
 }
 
@@ -43,7 +49,7 @@ impl RtcNotificationEventContent {
     /// Creates a new `RtcNotificationEventContent` with the given configuration.
     pub fn new(
         sender_ts: MilliSecondsSinceUnixEpoch,
-        lifetime: UInt,
+        lifetime: Duration,
         notification_type: NotificationType,
     ) -> Self {
         Self { sender_ts, lifetime, mentions: None, relates_to: None, notification_type }
@@ -84,26 +90,31 @@ impl RtcNotificationEventContent {
             larger.saturating_sub(smaller) > max_sender_ts_offset.unwrap_or(20_000).into();
         let start_ts =
             if use_origin_server_ts { origin_server_ts.get() } else { self.sender_ts.get() };
-        MilliSecondsSinceUnixEpoch(start_ts.saturating_add(self.lifetime))
+        MilliSecondsSinceUnixEpoch(
+            start_ts.saturating_add(UInt::from(self.lifetime.as_millis() as u32)),
+        )
     }
 }
 
 /// How this notification should notify the receiver.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, StringEnum)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum NotificationType {
     /// The receiving client should ring with an audible sound.
-    #[serde(rename = "ring")]
     Ring,
-
     /// The receiving client should display a visual notification.
-    #[serde(rename = "notification")]
     Notification,
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
 }
 
 #[cfg(test)]
 mod tests {
-    use js_int::{uint, UInt};
+    use std::time::Duration;
+
+    use assert_matches2::assert_matches;
+    use js_int::UInt;
     use ruma_common::{owned_event_id, MilliSecondsSinceUnixEpoch};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -114,7 +125,7 @@ mod tests {
     fn notification_event_serialization() {
         let mut content = RtcNotificationEventContent::new(
             MilliSecondsSinceUnixEpoch(UInt::new(1_752_583_130_365).unwrap()),
-            uint!(30_000),
+            Duration::from_millis(30_000),
             NotificationType::Ring,
         );
         content.mentions = Some(Mentions::with_room_mention());
@@ -150,19 +161,18 @@ mod tests {
         });
 
         let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-        match event {
-            AnyMessageLikeEvent::RtcNotification(MessageLikeEvent::Original(ev)) => {
-                assert_eq!(ev.content.lifetime, uint!(30_000));
-            }
-            _ => panic!("wrong event variant"),
-        }
+        assert_matches!(
+            event,
+            AnyMessageLikeEvent::RtcNotification(MessageLikeEvent::Original(ev))
+        );
+        assert_eq!(ev.content.lifetime, Duration::from_millis(30_000));
     }
 
     #[test]
     fn invalid_ts_computation() {
         let content = RtcNotificationEventContent::new(
             MilliSecondsSinceUnixEpoch(UInt::new(100_365).unwrap()),
-            uint!(30_000),
+            Duration::from_millis(30_000),
             NotificationType::Ring,
         );
 

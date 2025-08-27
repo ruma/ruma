@@ -10,7 +10,7 @@ pub mod invite;
 pub mod member;
 pub mod negotiate;
 #[cfg(feature = "unstable-msc4075")]
-#[deprecated = "Since Matrix 0.30.6. Use the m.rtc.notification event instead."]
+#[allow(deprecated)]
 pub mod notify;
 pub mod reject;
 pub mod sdp_stream_metadata_changed;
