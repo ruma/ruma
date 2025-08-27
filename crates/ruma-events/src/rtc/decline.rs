@@ -1,8 +1,10 @@
-//! Type for the MatrixRTC decline event (MSC4310).
+//! Type for the MatrixRTC decline event ([MSC4310]).
 //!
 //! Unstable: `org.matrix.msc4310.rtc.decline`
 //!
 //! This event is sent as a reference relation to an `m.rtc.notification` event.
+//!
+//! [MSC4310]: https://github.com/matrix-org/matrix-spec-proposals/pull/MSC4310
 
 use ruma_events::relation::Reference;
 use ruma_macros::EventContent;
