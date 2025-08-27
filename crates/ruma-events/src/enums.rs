@@ -139,6 +139,7 @@ event_enum! {
         "org.matrix.msc3245.voice.v2" => super::voice,
         #[cfg(feature = "unstable-msc4075")]
         #[ruma_enum(alias = "m.call.notify")]
+        #[allow(deprecated)]
         "org.matrix.msc4075.call.notify" => super::call::notify,
         #[cfg(feature = "unstable-msc4075")]
         #[ruma_enum(alias = "m.rtc.notification")]

@@ -60,7 +60,7 @@ impl RtcNotificationEventContent {
     /// # Arguments:
     ///
     /// - `max_sender_ts_offset` is the maximum allowed offset between the two timestamps. (default
-    /// 20s)
+    ///   20s)
     /// - `origin_server_ts` has to be set to the origin_server_ts from the event containing this
     ///   event content.
     ///
