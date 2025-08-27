@@ -2,7 +2,7 @@
 //!
 //! Unstable: `org.matrix.msc4310.rtc.decline`
 //!
-//! This event is sent as a reference relation to a `m.rtc.notification` event.
+//! This event is sent as a reference relation to an `m.rtc.notification` event.
 
 use ruma_events::relation::Reference;
 use ruma_macros::EventContent;
@@ -29,12 +29,13 @@ impl RtcDeclineEventContent {
 
 #[cfg(test)]
 mod tests {
+    use assert_matches2::assert_matches;
     use js_int::uint;
     use ruma_common::owned_event_id;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::RtcDeclineEventContent;
-    use crate::AnyMessageLikeEvent;
+    use crate::{AnyMessageLikeEvent, MessageLikeEvent};
 
     #[test]
     fn decline_event_serialization() {
@@ -56,7 +57,10 @@ mod tests {
     fn decline_event_deserialization() {
         let json_data = json!({
             "content": {
-                "m.relates_to": {"rel_type": "m.reference", "event_id": "$abc:example.org"},
+                "m.relates_to": {
+                    "rel_type": "m.reference",
+                    "event_id": "$abc:example.org"
+                },
             },
             "event_id": "$event:notareal.hs",
             "origin_server_ts": 134_829_848,
@@ -66,15 +70,13 @@ mod tests {
         });
 
         let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-        if let AnyMessageLikeEvent::RtcDecline(ce) = event {
-            assert_eq!(ce.event_type().to_string(), "org.matrix.msc4310.rtc.decline");
-            assert_eq!(ce.origin_server_ts().get(), uint!(134_829_848));
-            assert_eq!(ce.room_id().to_string(), "!roomid:notareal.hs");
-            assert_eq!(ce.sender().to_string(), "@user:notareal.hs");
-            assert_eq!(
-                ce.as_original().unwrap().content.relates_to.event_id,
-                owned_event_id!("$abc:example.org")
-            );
-        }
+        assert_matches!(
+            event,
+            AnyMessageLikeEvent::RtcDecline(MessageLikeEvent::Original(decline_event))
+        );
+        assert_eq!(decline_event.sender, "@user:notareal.hs");
+        assert_eq!(decline_event.origin_server_ts.get(), uint!(134_829_848));
+        assert_eq!(decline_event.room_id, "!roomid:notareal.hs");
+        assert_eq!(decline_event.content.relates_to.event_id, "$abc:example.org");
     }
 }
