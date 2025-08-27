@@ -74,6 +74,13 @@ pub mod unstable {
         pub bump_stamp: UInt,
     }
 
+    impl ThreadSubscription {
+        /// Create a new [`ThreadSubscription`] with the given values.
+        pub fn new(automatic: bool, bump_stamp: UInt) -> Self {
+            Self { automatic, bump_stamp }
+        }
+    }
+
     /// A thread has been unsubscribed to at some point.
     #[derive(Clone, Debug, Serialize, Deserialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
@@ -81,6 +88,13 @@ pub mod unstable {
         /// The bump stamp of the thread subscription, to be used to compare with other changes
         /// related to the same thread.
         pub bump_stamp: UInt,
+    }
+
+    impl ThreadUnsubscription {
+        /// Create a new [`ThreadUnsubscription`] with the given bump stamp.
+        pub fn new(bump_stamp: UInt) -> Self {
+            Self { bump_stamp }
+        }
     }
 
     /// Response type for the `get_thread_subscriptions_changes` endpoint.
