@@ -72,6 +72,7 @@ mod tests {
     };
 
     #[test]
+    #[allow(deprecated)]
     fn notify_event_serialization() {
         use ruma_common::owned_user_id;
 
@@ -115,6 +116,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn notify_event_deserialization() {
         use std::collections::BTreeSet;
 
