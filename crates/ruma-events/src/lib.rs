@@ -143,6 +143,7 @@ pub mod audio;
 pub mod beacon;
 #[cfg(feature = "unstable-msc3489")]
 pub mod beacon_info;
+pub mod bookmarks;
 pub mod call;
 pub mod direct;
 pub mod dummy;

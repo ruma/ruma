@@ -36,6 +36,7 @@ event_enum! {
         "m.push_rules" => super::push_rules,
         "m.secret_storage.default_key" => super::secret_storage::default_key,
         "m.secret_storage.key.*" => super::secret_storage::key,
+        "m.bookmarks" => super::bookmarks,
         #[cfg(feature = "unstable-msc4278")]
         "m.media_preview_config" => super::media_preview_config,
         #[cfg(feature = "unstable-msc4278")]
