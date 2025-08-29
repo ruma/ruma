@@ -160,6 +160,8 @@ event_enum! {
         "m.room.guest_access" => super::room::guest_access,
         "m.room.history_visibility" => super::room::history_visibility,
         "m.room.join_rules" => super::room::join_rules,
+        #[cfg(feature = "unstable-msc4334")]
+        "m.room.language" => super::room::language,
         "m.room.member" => super::room::member,
         "m.room.name" => super::room::name,
         "m.room.pinned_events" => super::room::pinned_events,
