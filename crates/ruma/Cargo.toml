@@ -275,6 +275,7 @@ __unstable-mscs = [
     "unstable-msc4311",
     "unstable-msc4310",
     "unstable-msc4319",
+    "unstable-msc4334",
 ]
 __ci = ["full", "compat-upload-signatures", "__unstable-mscs"]
 __compat = [
