@@ -12,7 +12,7 @@ use crate::EmptyStateKey;
 /// The room language is a [IETF BCP 47](https://developer.mozilla.org/en-US/docs/Glossary/BCP_47_language_tag) language code.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[ruma_event(type = "m.room.language", kind = State, state_key_type = EmptyStateKey)]
+#[ruma_event(type = "org.matrix.msc4334.room.language", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomLanguageEventContent {
     /// The language of the room.
     pub language: String,
@@ -61,14 +61,14 @@ mod tests {
             "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
             "state_key": "",
-            "type": "m.room.name"
+            "type": "org.matrix.msc4334.room.language"
         });
 
         assert_eq!(
             from_json_value::<OriginalStateEvent<RoomLanguageEventContent>>(json_data)
                 .unwrap()
                 .content
-                .name,
+                .language,
             "fr"
         );
     }
