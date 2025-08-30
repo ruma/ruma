@@ -117,7 +117,10 @@ pub(super) fn membership_change<'a>(
     };
 
     match (&prev_details.membership, &details.membership) {
-        (St::Leave, St::Join) => Ch::Joined,
+        (St::Leave, St::Join)
+        // This transition is legal if the join rule is knock_restricted, or if it changes from
+        // knock to public or restricted.
+        | (St::Knock, St::Join) => Ch::Joined,
         (St::Invite, St::Join) => Ch::InvitationAccepted,
         (St::Invite, St::Leave) if sender == state_key => Ch::InvitationRejected,
         (St::Invite, St::Leave) => Ch::InvitationRevoked,
@@ -127,8 +130,7 @@ pub(super) fn membership_change<'a>(
         | (St::Ban, St::Join)
         | (St::Join, St::Knock)
         | (St::Invite, St::Knock)
-        | (St::Ban, St::Knock)
-        | (St::Knock, St::Join) => Ch::Error,
+        | (St::Ban, St::Knock) => Ch::Error,
         (St::Join, St::Join)
             if sender == state_key
                 && (prev_details.displayname != details.displayname

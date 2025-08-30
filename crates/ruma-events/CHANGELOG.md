@@ -69,6 +69,12 @@ Breaking changes:
 - The `sender_key` field of `RequestedKeyInfo` is now optional. It was deprecated in Matrix 1.3.
 - Add `m.rtc.decline` support ([unstable_MSC4310](https://github.com/matrix-org/matrix-spec-proposals/pull/4310)).
 
+Bug fixes:
+
+- When calling `membership_change()` for a `MembershipState` change from `Knock` to `Join`,
+  `MembershipChange::Joined` is returned instead of `Error`, since this change is legal in some
+  cases.
+
 Improvements:
 
 - Don't print out the secret key contained in JsonWebKey and JsonWebKeyInit in
