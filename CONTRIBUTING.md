@@ -12,7 +12,6 @@ Welcome! Thanks for looking into contributing to our project!
   - [Submitting PRs](#submitting-prs)
   - [Where do I start?](#where-do-i-start)
 - [Testing](#testing)
-- [Contact](#contact)
 
 # Looking for Help?
 
