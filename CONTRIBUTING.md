@@ -155,8 +155,8 @@ for more information on writing good commit messages.)
 
 ### Matrix Spec Version
 
-Use the [latest v1.x documentation](https://spec.matrix.org/latest/) when adding or modifying code. We target
-the latest minor version of the Matrix specification.
+Use the [latest v1.x documentation](https://spec.matrix.org/latest/) when adding or modifying code.
+We target the latest minor version of the Matrix specification.
 
 ### Endpoint Module Structure
 
@@ -241,4 +241,6 @@ at one of the [open issues][] we've marked for new contributors.
 
 # Testing
 
-Before committing, run `cargo check` to make sure that your changes can build, as well as running the formatting and linting tools [mentioned above](#code-formatting-and-linting).
+Before committing, run `cargo check` to make sure that your changes can build,
+as well as running the formatting and linting tools
+[mentioned above](#code-formatting-and-linting).
