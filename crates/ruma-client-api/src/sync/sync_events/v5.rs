@@ -426,6 +426,7 @@ pub mod request {
         ///
         /// Defaults to 100.
         /// Servers may impose a smaller limit than what is requested here.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub limit: Option<UInt>,
     }
 
