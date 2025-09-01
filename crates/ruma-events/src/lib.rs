@@ -107,7 +107,7 @@
 use std::{collections::BTreeSet, fmt};
 
 use ruma_common::{room_version_rules::RedactionRules, EventEncryptionAlgorithm, OwnedUserId};
-use serde::{de::IgnoredAny, Deserialize, Serialize, Serializer};
+use serde::{de::IgnoredAny, Deserialize, Deserializer, Serialize, Serializer};
 
 // Needs to be public for trybuild tests
 #[doc(hidden)]
@@ -303,5 +303,52 @@ pub struct PrivOwnedStr(Box<str>);
 impl fmt::Debug for PrivOwnedStr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.0.fmt(f)
+    }
+}
+
+/// A wrapper for [`language_tags::LanguageTag`] that implements [`serde::Serialize`]
+/// and [`serde::Deserialize`].
+#[derive(Clone, Debug, PartialEq)]
+pub struct RumaLanguageTag {
+    inner: language_tags::LanguageTag,
+}
+
+impl RumaLanguageTag {
+    /// Create a new [`RumaLanguageTag`] from a [`language_tags::LanguageTag`].
+    pub fn new(lang: language_tags::LanguageTag) -> Self {
+        Self { inner: lang }
+    }
+}
+
+impl TryFrom<&str> for RumaLanguageTag {
+    type Error = language_tags::ParseError;
+
+    /// Create a new [`RumaLanguageTag`] from a `&str`. Returns a
+    /// [`language_tags::ParseError`] if the `lang` is not a valid
+    /// BCP-47 language tag.
+    fn try_from(lang: &str) -> Result<Self, Self::Error> {
+        let lang = language_tags::LanguageTag::parse(lang)?;
+        Ok(Self { inner: lang })
+    }
+}
+
+impl Serialize for RumaLanguageTag {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(self.inner.as_str())
+    }
+}
+
+impl<'de> Deserialize<'de> for RumaLanguageTag {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        language_tags::LanguageTag::parse(&s)
+            .map_err(serde::de::Error::custom)
+            .map(RumaLanguageTag::new)
     }
 }

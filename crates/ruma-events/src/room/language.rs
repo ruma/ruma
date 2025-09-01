@@ -5,22 +5,22 @@
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::EmptyStateKey;
+use crate::{EmptyStateKey, RumaLanguageTag};
 
 /// The content of an `m.room.language` event.
 ///
-/// The room language is a [IETF BCP 47](https://developer.mozilla.org/en-US/docs/Glossary/BCP_47_language_tag) language code.
+/// The room language is a [IETF BCP 47](https://datatracker.ietf.org/doc/bcp47/) language code.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "org.matrix.msc4334.room.language", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomLanguageEventContent {
     /// The language of the room.
-    pub language: String,
+    pub language: RumaLanguageTag,
 }
 
 impl RoomLanguageEventContent {
     /// Create a new `RoomLanguageEventContent` with the given language.
-    pub fn new(language: String) -> Self {
+    pub fn new(language: RumaLanguageTag) -> Self {
         Self { language }
     }
 }
@@ -30,11 +30,12 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::RoomLanguageEventContent;
-    use crate::OriginalStateEvent;
+    use crate::{OriginalStateEvent, RumaLanguageTag};
 
     #[test]
     fn serialization() {
-        let content = RoomLanguageEventContent { language: "fr".to_owned() };
+        let content =
+            RoomLanguageEventContent { language: RumaLanguageTag::try_from("fr").unwrap() };
 
         let actual = to_json_value(content).unwrap();
         let expected = json!({
@@ -63,7 +64,7 @@ mod tests {
                 .unwrap()
                 .content
                 .language,
-            "fr"
+            RumaLanguageTag::try_from("fr").unwrap()
         );
     }
 }
