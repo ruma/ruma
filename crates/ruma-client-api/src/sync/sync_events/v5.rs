@@ -201,6 +201,15 @@ pub mod request {
         #[serde(default, skip_serializing_if = "Typing::is_empty")]
         pub typing: Typing,
 
+        /// Configure the thread subscriptions extension.
+        #[cfg(feature = "unstable-msc4308")]
+        #[serde(
+            default,
+            skip_serializing_if = "ThreadSubscriptions::is_empty",
+            rename = "io.element.msc4308.thread_subscriptions"
+        )]
+        pub thread_subscriptions: ThreadSubscriptions,
+
         /// Extensions may add further fields to the list.
         #[serde(flatten)]
         other: BTreeMap<String, serde_json::Value>,
@@ -401,6 +410,33 @@ pub mod request {
             self.enabled.is_none()
         }
     }
+
+    /// Thread subscriptions extension.
+    ///
+    /// Specified as part of [MSC4308](https://github.com/matrix-org/matrix-spec-proposals/pull/4308).
+    #[cfg(feature = "unstable-msc4308")]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct ThreadSubscriptions {
+        /// Activate or deactivate this extension.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub enabled: Option<bool>,
+
+        /// Maximum number of thread subscription changes to receive in the response.
+        ///
+        /// Defaults to 100.
+        /// Servers may impose a smaller limit than what is requested here.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub limit: Option<UInt>,
+    }
+
+    #[cfg(feature = "unstable-msc4308")]
+    impl ThreadSubscriptions {
+        /// Whether all fields are empty or `None`.
+        pub fn is_empty(&self) -> bool {
+            self.enabled.is_none() && self.limit.is_none()
+        }
+    }
 }
 
 /// Response type for the `/sync` endpoint.
@@ -443,6 +479,8 @@ impl Response {
 /// HTTP types related to a [`Response`].
 pub mod response {
     use ruma_common::OneTimeKeyAlgorithm;
+    #[cfg(feature = "unstable-msc4308")]
+    use ruma_common::OwnedEventId;
     use ruma_events::{
         receipt::SyncReceiptEvent, typing::SyncTypingEvent, AnyGlobalAccountDataEvent,
         AnyRoomAccountDataEvent, AnyStrippedStateEvent, AnyToDeviceEvent,
@@ -452,6 +490,10 @@ pub mod response {
         super::DeviceLists, AnySyncStateEvent, AnySyncTimelineEvent, BTreeMap, Deserialize,
         JsOption, OwnedMxcUri, OwnedRoomId, OwnedUserId, Raw, Serialize, UInt,
         UnreadNotificationsCount,
+    };
+    #[cfg(feature = "unstable-msc4308")]
+    use crate::threads::get_thread_subscriptions_changes::unstable::{
+        ThreadSubscription, ThreadUnsubscription,
     };
 
     /// A sliding sync response updates to joiend rooms (see
@@ -591,6 +633,15 @@ pub mod response {
         /// Typing extension response.
         #[serde(default, skip_serializing_if = "Typing::is_empty")]
         pub typing: Typing,
+
+        /// Thread subscriptions extension response.
+        #[cfg(feature = "unstable-msc4308")]
+        #[serde(
+            default,
+            skip_serializing_if = "ThreadSubscriptions::is_empty",
+            rename = "io.element.msc4308.thread_subscriptions"
+        )]
+        pub thread_subscriptions: ThreadSubscriptions,
     }
 
     impl Extensions {
@@ -709,6 +760,38 @@ pub mod response {
         /// Whether all fields are empty or `None`.
         pub fn is_empty(&self) -> bool {
             self.rooms.is_empty()
+        }
+    }
+
+    /// Thread subscriptions extension response.
+    ///
+    /// Specified as part of [MSC4308](https://github.com/matrix-org/matrix-spec-proposals/pull/4308).
+    #[cfg(feature = "unstable-msc4308")]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct ThreadSubscriptions {
+        /// New thread subscriptions.
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        pub subscribed: BTreeMap<OwnedRoomId, BTreeMap<OwnedEventId, ThreadSubscription>>,
+
+        /// New thread unsubscriptions.
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        pub unsubscribed: BTreeMap<OwnedRoomId, BTreeMap<OwnedEventId, ThreadUnsubscription>>,
+
+        /// A token that can be used to backpaginate (via the companion endpoint) other thread
+        /// subscription changes that occurred since the last sync, but that were not included in
+        /// this response.
+        ///
+        /// Only set when there are more changes to fetch.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub prev_batch: Option<String>,
+    }
+
+    #[cfg(feature = "unstable-msc4308")]
+    impl ThreadSubscriptions {
+        /// Whether all fields are empty or `None`.
+        pub fn is_empty(&self) -> bool {
+            self.subscribed.is_empty() && self.unsubscribed.is_empty() && self.prev_batch.is_none()
         }
     }
 }
