@@ -28,6 +28,9 @@ pub struct RoomVersionRules {
     /// The format of room IDs.
     pub room_id_format: RoomIdFormatVersion,
 
+    /// The format of arrays referencing events in PDUs.
+    pub events_reference_format: EventsReferenceFormatVersion,
+
     /// The state resolution algorithm used.
     pub state_res: StateResolutionVersion,
 
@@ -58,6 +61,7 @@ impl RoomVersionRules {
         disposition: RoomVersionDisposition::Stable,
         event_id_format: EventIdFormatVersion::V1,
         room_id_format: RoomIdFormatVersion::V1,
+        events_reference_format: EventsReferenceFormatVersion::V1,
         state_res: StateResolutionVersion::V1,
         enforce_key_validity: false,
         authorization: AuthorizationRules::V1,
@@ -77,6 +81,7 @@ impl RoomVersionRules {
     /// [room version 3]: https://spec.matrix.org/latest/rooms/v3/
     pub const V3: Self = Self {
         event_id_format: EventIdFormatVersion::V2,
+        events_reference_format: EventsReferenceFormatVersion::V2,
         authorization: AuthorizationRules::V3,
         signatures: SignaturesRules::V3,
         event_format: EventFormatRules::V3,
@@ -201,6 +206,23 @@ pub enum RoomIdFormatVersion {
 
     /// `!hash` format using the reference hash of the `m.room.create` event of the room,
     /// introduced in room version 12.
+    V2,
+}
+
+/// The format of [PDU] `auth_events` and `prev_events` for a room version.
+///
+/// [PDU]: https://spec.matrix.org/latest/server-server-api/#pdus
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub enum EventsReferenceFormatVersion {
+    /// `[["$id:server", {"sha256": "hash"}]]` format ([spec]), introduced in room version 1.
+    ///
+    /// [spec]: https://spec.matrix.org/latest/rooms/v1/#event-format
+    V1,
+
+    /// `["$hash"]` format ([spec]), introduced in room version 3.
+    ///
+    /// [spec]: https://spec.matrix.org/latest/rooms/v3/#event-format
     V2,
 }
 
