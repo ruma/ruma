@@ -37,6 +37,8 @@ Breaking changes:
   fields. The fields can be accessed with `.get()`, `.iter()` or `.into_iter()`.
   `Response::new()` takes no arguments and creates an empty response. Fields can
   be added using `.set()`, or the `FromIterator` and `Extend` implementations.
+- Replace `MembershipEventFilter` with `MembershipState` in `get_member_events`, since both enums
+  should always be identical.
 
 Improvements:
 
