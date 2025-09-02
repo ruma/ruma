@@ -8,9 +8,6 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  pull-requests: write
-
 jobs:
   changes:
     name: Changed Crates
@@ -105,47 +102,20 @@ jobs:
 
           echo "EOF" >> "$GITHUB_OUTPUT"
 
-  comment:
-    name: Comment
+  artifact:
+    name: Artifact
     runs-on: ubuntu-latest
     needs: [changes, semver]
     if: ${{ always() }}
     steps:
-      - name: Build comment
-        id: build
-        if: ${{ toJSON(needs.semver.outputs) != '{}' }}
+      - name: Build artifact
         env:
           SEMVER_RESULTS: ${{ toJSON(needs.semver.outputs) }}
         run: |
-          # This is the syntax for multiline output
-          echo "comment<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$SEMVER_RESULTS" >> semver-results.json
 
-          # Intro
-          echo "The following breaking changes were detected." >> "$GITHUB_OUTPUT"
-          echo "Please make sure these are intentional and listed in the respective changelogs." >> "$GITHUB_OUTPUT"
-          echo "" >> "$GITHUB_OUTPUT"
-
-          # Convert input to HTML details
-          echo "$SEMVER_RESULTS" | \
-            jq -r 'to_entries | .[] |
-                  "<details><summary>\(.key)</summary>\n<pre><code>\(.value)</code></pre></details>\n"' >> "$GITHUB_OUTPUT"
-
-          echo "EOF" >> "$GITHUB_OUTPUT"
-
-      - name: Debug comment
-        if: ${{ steps.build.outputs.comment }}
-        env:
-          COMMENT: ${{ steps.build.outputs.comment }}
-        run: echo "$COMMENT"
-
-      - name: Upsert comment
-        uses: marocchino/sticky-pull-request-comment@v2
-        if: ${{ steps.build.outputs.comment }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          message: ${{ steps.build.outputs.comment }}
-
-      - name: Hide comment
-        uses: marocchino/sticky-pull-request-comment@v2
-        if: ${{ !steps.build.outputs.comment }}
-        with:
-          hide: true
+          name: semver-results
+          path: semver-results.json

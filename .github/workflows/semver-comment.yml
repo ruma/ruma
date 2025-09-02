@@ -1,0 +1,59 @@
+name: Semver Checks Comment
+
+on:
+  workflow_run:
+    workflows: ["Semver Checks"]
+    types:
+      - completed
+
+permissions:
+  actions: read
+  pull-requests: write
+
+jobs:
+  update:
+    name: Update
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download results
+        uses: actions/download-artifact@v5
+        with:
+          name: semver-results
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Build comment
+        id: build
+        run: |
+          SEMVER_RESULTS=$(cat semver-results.json)
+
+          if [[ "$SEMVER_RESULTS" != "{}" ]]; then
+            # This is the syntax for multiline output
+            echo "comment<<EOF" >> "$GITHUB_OUTPUT"
+
+            # Intro
+            echo "The following breaking changes were detected." >> "$GITHUB_OUTPUT"
+            echo "Please make sure these are intentional and listed in the respective changelogs." >> "$GITHUB_OUTPUT"
+            echo "" >> "$GITHUB_OUTPUT"
+
+            # Convert input to HTML details
+            echo "$SEMVER_RESULTS"  | \
+              jq -r 'to_entries | .[] |
+                    @html "<details><summary>\(.key)</summary>\n<pre><code>\(.value)</code></pre></details>\n"' >> "$GITHUB_OUTPUT"
+
+            echo "EOF" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upsert comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: ${{ steps.build.outputs.comment }}
+        with:
+          number: ${{ github.event.workflow_run.pull_requests[0].number }}
+          message: ${{ steps.build.outputs.comment }}
+
+      - name: Hide comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: ${{ !steps.build.outputs.comment }}
+        with:
+          number: ${{ github.event.workflow_run.pull_requests[0].number }}
+          hide: true
