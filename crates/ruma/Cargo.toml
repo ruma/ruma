@@ -210,7 +210,7 @@ unstable-msc4308 = ["ruma-client-api?/unstable-msc4308"]
 unstable-msc4311 = ["ruma-federation-api?/unstable-msc4311"]
 unstable-msc4319 = ["ruma-events?/unstable-msc4319"]
 unstable-msc4310 = ["ruma-events?/unstable-msc4310"]
-unstable-msc4334 = ["ruma-events?/unstable-msc4334", "language-tags"]
+unstable-msc4334 = ["ruma-events?/unstable-msc4334", "dep:language-tags"]
 
 # Private features, only used in test / benchmarking code
 __unstable-mscs = [
@@ -298,7 +298,7 @@ __compat = [
 assign = { workspace = true }
 js_int = { workspace = true }
 js_option = "0.1.1"
-language-tags = { version = "0.3.2", features = ["serde"], optional = true }
+language-tags = { workspace = true }
 web-time = { workspace = true }
 
 ruma-common = { workspace = true }

@@ -51,7 +51,7 @@ unstable-msc4274 = []
 unstable-msc4278 = []
 unstable-msc4319 = []
 unstable-msc4310 = []
-unstable-msc4334 = ["language-tags"]
+unstable-msc4334 = ["dep:language-tags"]
 
 # Allow some mandatory fields to be missing, defaulting them to an empty string
 # in deserialization.
@@ -81,7 +81,7 @@ as_variant = { workspace = true }
 indexmap = { version = "2.0.0", features = ["serde"] }
 js_int = { workspace = true, features = ["serde"] }
 js_option = "0.1.0"
-language-tags = { version = "0.3.2", features = ["serde"], optional = true }
+language-tags = { workspace = true }
 percent-encoding = "2.1.0"
 pulldown-cmark = { version = "0.13.0", optional = true, default-features = false, features = ["html"] }
 regex = { version = "1.5.6", default-features = false, features = ["std", "perf"] }

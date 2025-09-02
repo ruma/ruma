@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::EmptyStateKey;
 
-/// The content of an `m.room.language` event.
+/// The content of an `org.matrix.msc4334.room.language` event.
 ///
 /// The room language is a [IETF BCP 47](https://datatracker.ietf.org/doc/bcp47/) language code.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
