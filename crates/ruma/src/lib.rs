@@ -138,6 +138,9 @@ pub use assign::assign;
 pub use js_int::{int, uint, Int, UInt};
 #[doc(no_inline)]
 pub use js_option::JsOption;
+#[cfg(all(feature = "events", feature = "unstable-msc4334"))]
+#[doc(no_inline)]
+pub use language_tags::LanguageTag;
 pub use ruma_common::*;
 #[cfg(feature = "canonical-json")]
 pub use ruma_common::{

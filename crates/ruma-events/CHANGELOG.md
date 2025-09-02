@@ -77,6 +77,7 @@ Bug fixes:
 
 Improvements:
 
+- Add `RoomLanguageEventContent` and derived state events to specify language of a room.
 - Don't print out the secret key contained in JsonWebKey and JsonWebKeyInit in
   their `Debug` implementations.
 - Remove the `pdu` module and the corresponding `unstable-pdu` cargo feature. As far as we know, it
