@@ -4,7 +4,7 @@
 //!
 //! This event is sent as a reference relation to an `m.rtc.notification` event.
 //!
-//! [MSC4310]: https://github.com/matrix-org/matrix-spec-proposals/pull/MSC4310
+//! [MSC4310]: https://github.com/matrix-org/matrix-spec-proposals/pull/4310
 
 use ruma_events::relation::Reference;
 use ruma_macros::EventContent;
