@@ -2,10 +2,11 @@
 //!
 //! [`m.room.language`]: https://github.com/matrix-org/matrix-spec-proposals/pull/4334
 
+use language_tags::LanguageTag;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{EmptyStateKey, RumaLanguageTag};
+use crate::EmptyStateKey;
 
 /// The content of an `m.room.language` event.
 ///
@@ -15,12 +16,12 @@ use crate::{EmptyStateKey, RumaLanguageTag};
 #[ruma_event(type = "org.matrix.msc4334.room.language", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomLanguageEventContent {
     /// The language of the room.
-    pub language: RumaLanguageTag,
+    pub language: LanguageTag,
 }
 
 impl RoomLanguageEventContent {
     /// Create a new `RoomLanguageEventContent` with the given language.
-    pub fn new(language: RumaLanguageTag) -> Self {
+    pub fn new(language: LanguageTag) -> Self {
         Self { language }
     }
 }
@@ -30,12 +31,11 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::RoomLanguageEventContent;
-    use crate::{OriginalStateEvent, RumaLanguageTag};
+    use crate::{room::language::LanguageTag, OriginalStateEvent};
 
     #[test]
     fn serialization() {
-        let content =
-            RoomLanguageEventContent { language: RumaLanguageTag::try_from("fr").unwrap() };
+        let content = RoomLanguageEventContent { language: LanguageTag::parse("fr").unwrap() };
 
         let actual = to_json_value(content).unwrap();
         let expected = json!({
@@ -64,7 +64,7 @@ mod tests {
                 .unwrap()
                 .content
                 .language,
-            RumaLanguageTag::try_from("fr").unwrap()
+            LanguageTag::parse("fr").unwrap()
         );
     }
 }

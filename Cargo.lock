@@ -1224,6 +1224,9 @@ name = "language-tags"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d4345964bb142484797b161f473a503a434de77149dd8c7427788c6e13379388"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "lazy_static"
@@ -1882,6 +1885,7 @@ dependencies = [
  "assign",
  "js_int",
  "js_option",
+ "language-tags",
  "ruma-appservice-api",
  "ruma-client-api",
  "ruma-common",
