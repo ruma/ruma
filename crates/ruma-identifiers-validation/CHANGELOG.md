@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.11.0
+
 Breaking changes:
 
 - `user_id::validate` is now compatible with all non-compliant user IDs in the
