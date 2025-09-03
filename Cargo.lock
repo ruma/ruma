@@ -2039,7 +2039,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-macros"
-version = "0.15.2"
+version = "0.16.0"
 dependencies = [
  "cfg-if",
  "proc-macro-crate",
