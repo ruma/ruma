@@ -30,7 +30,7 @@ ruma-identifiers-validation = { version = "0.11.0", path = "crates/ruma-identifi
 ruma-identity-service-api = { version = "0.11.1", path = "crates/ruma-identity-service-api" }
 ruma-macros = { version = "=0.16.0", path = "crates/ruma-macros" }
 ruma-push-gateway-api = { version = "0.11.0", path = "crates/ruma-push-gateway-api" }
-ruma-signatures = { version = "0.17.1", path = "crates/ruma-signatures" }
+ruma-signatures = { version = "0.18.0", path = "crates/ruma-signatures" }
 ruma-state-res = { version = "0.13.0", path = "crates/ruma-state-res" }
 serde = { version = "1.0.164", features = ["derive"] }
 serde_html_form = "0.2.0"

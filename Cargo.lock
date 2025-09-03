@@ -2064,7 +2064,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-signatures"
-version = "0.17.1"
+version = "0.18.0"
 dependencies = [
  "assert_matches2",
  "base64",

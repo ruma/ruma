@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.18.0
+
 Breaking changes:
 
 - `Algorithm` is replaced by `SigningKeyAlgorithm` from `ruma-common`.
