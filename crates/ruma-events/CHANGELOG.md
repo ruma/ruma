@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.31.0
+
 Breaking changes:
 
 - Zeroize the secret key contained in JsonWebKey if the struct gets dropped.
