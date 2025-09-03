@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.21.0
+
 Breaking changes:
 
 - Use `AuthType` for the `auth_type` of `get_uiaa_fallback_page`'s Request.
