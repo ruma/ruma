@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.12.0
+
 Breaking changes:
 
 - The `store_invitation`, `check_public_key_validity`, `get_public_key` and
