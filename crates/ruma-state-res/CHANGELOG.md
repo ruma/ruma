@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.14.0
+
 Breaking:
 
 - `auth_check` returns a `Result<(), String>` instead of a
