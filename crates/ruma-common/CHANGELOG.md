@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.16.0
+
 Breaking changes:
 
 - `PushCondition::applies`, `ConditionalPushRule::applies`, `AnyPushRuleRef::applies`,
