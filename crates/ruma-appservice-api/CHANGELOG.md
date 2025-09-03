@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.13.0
+
 Breaking changes:
 
 - The `thirdparty::get_protocol` response uses `AppserviceProtocolInstance`
