@@ -228,6 +228,11 @@ pub struct Pusher {
 
     /// The preferred language for receiving notifications (e.g. 'en' or 'en-US')
     pub lang: String,
+
+    /// Asks the server to stop sending the unread badge count push notification.
+    #[cfg(feature = "unstable-msc4076")]
+    #[serde(rename = "org.matrix.msc4076.disable_badge_count")]
+    pub disable_badge_count: bool,
 }
 
 /// Initial set of fields of `Pusher`.
@@ -254,13 +259,34 @@ pub struct PusherInit {
 
     /// The preferred language for receiving notifications (e.g. 'en' or 'en-US').
     pub lang: String,
+
+    /// Will disable getting push notifications about unread counts when `true`.
+    #[cfg(feature = "unstable-msc4076")]
+    pub disable_badge_count: bool,
 }
 
 impl From<PusherInit> for Pusher {
     fn from(init: PusherInit) -> Self {
-        let PusherInit { ids, kind, app_display_name, device_display_name, profile_tag, lang } =
-            init;
-        Self { ids, kind, app_display_name, device_display_name, profile_tag, lang }
+        let PusherInit {
+            ids,
+            kind,
+            app_display_name,
+            device_display_name,
+            profile_tag,
+            lang,
+            #[cfg(feature = "unstable-msc4076")]
+            disable_badge_count,
+        } = init;
+        Self {
+            ids,
+            kind,
+            app_display_name,
+            device_display_name,
+            profile_tag,
+            lang,
+            #[cfg(feature = "unstable-msc4076")]
+            disable_badge_count,
+        }
     }
 }
 
