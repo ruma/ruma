@@ -64,7 +64,7 @@ bytes = { workspace = true }
 date_header = "1.0.5"
 http = { workspace = true }
 js_int = { workspace = true, features = ["serde"] }
-js_option = "0.1.1"
+js_option = { workspace = true }
 maplit = { workspace = true }
 ruma-common = { workspace = true, features = ["api"] }
 ruma-events = { workspace = true }
