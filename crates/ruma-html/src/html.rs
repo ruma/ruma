@@ -8,7 +8,7 @@ use std::{
 
 use as_variant::as_variant;
 use html5ever::{
-    local_name, namespace_url, ns, parse_fragment,
+    local_name, ns, parse_fragment,
     serialize::{serialize, Serialize, SerializeOpts, Serializer, TraversalScope},
     tendril::{StrTendril, TendrilSink},
     tree_builder::{NodeOrText, TreeSink},
@@ -42,6 +42,7 @@ impl Html {
             ParseOpts::default(),
             QualName::new(None, ns!(html), local_name!("div")),
             Vec::new(),
+            true,
         );
         parser.process(string.into());
         parser.finish()

@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+- Upgrade html5ever to `0.35.0`
+
 # 0.5.0
 
 Upgrade `ruma-common` to 0.16.0.
