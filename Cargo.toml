@@ -17,6 +17,7 @@ criterion = "0.7.0"
 http = "1.1.0"
 insta = { version = "1.41.1", features = ["json"] }
 js_int = "0.2.2"
+js_option = "0.2.0"
 language-tags = { version = "0.3.2", features = ["serde"] }
 maplit = "1.0.2"
 rand = "0.8.5"

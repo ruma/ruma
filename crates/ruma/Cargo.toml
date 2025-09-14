@@ -297,7 +297,7 @@ __compat = [
 [dependencies]
 assign = { workspace = true }
 js_int = { workspace = true }
-js_option = "0.1.1"
+js_option = { workspace = true }
 language-tags = { workspace = true, optional = true }
 web-time = { workspace = true }
 
