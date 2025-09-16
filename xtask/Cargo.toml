@@ -14,8 +14,8 @@ reqwest = { version = "0.12.4", features = ["blocking", "json"] }
 semver = { version = "1.0.6", features = ["serde"], optional = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-toml = { version = "0.8.2", default-features = false, features = ["parse"] }
-toml_edit = { version = "0.22.22", optional = true }
+toml = { workspace = true }
+toml_edit = { version = "0.23.5", optional = true }
 xshell = "0.2.7"
 
 [lints]

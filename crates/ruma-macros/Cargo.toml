@@ -28,7 +28,7 @@ quote = "1.0.8"
 ruma-identifiers-validation = { workspace = true }
 serde = { workspace = true }
 syn = { version = "2.0.2", features = ["extra-traits", "full", "visit"] }
-toml = { version = "0.8.2", default-features = false, features = ["parse"] }
+toml = { workspace = true }
 
 [lints]
 workspace = true
