@@ -31,6 +31,9 @@ event_enum! {
     /// Any global account data event.
     enum GlobalAccountData {
         "m.direct" => super::direct,
+        #[cfg(feature = "unstable-msc4359")]
+        #[ruma_enum(ident = DoNotDisturb, alias = "m.do_not_disturb")]
+        "dm.filament.do_not_disturb" => super::do_not_disturb,
         "m.identity_server" => super::identity_server,
         "m.ignored_user_list" => super::ignored_user_list,
         "m.push_rules" => super::push_rules,

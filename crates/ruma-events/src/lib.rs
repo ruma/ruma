@@ -145,6 +145,8 @@ pub mod beacon;
 pub mod beacon_info;
 pub mod call;
 pub mod direct;
+#[cfg(feature = "unstable-msc4359")]
+pub mod do_not_disturb;
 pub mod dummy;
 #[cfg(feature = "unstable-msc3954")]
 pub mod emote;
