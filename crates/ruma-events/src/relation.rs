@@ -61,7 +61,7 @@ impl Annotation {
 /// The content of a [replacement] relation.
 ///
 /// [replacement]: https://spec.matrix.org/latest/client-server-api/#event-replacements
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Replacement<C> {
     /// The ID of the event being replaced.

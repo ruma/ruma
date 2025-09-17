@@ -1,8 +1,10 @@
 //! `Deserialize` implementation for RoomMessageEventContent and MessageType.
 
+use std::collections::BTreeMap;
+
 use ruma_common::serde::from_raw_json_value;
 use serde::{de, Deserialize};
-use serde_json::value::RawValue as RawJsonValue;
+use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
 #[cfg(feature = "unstable-msc4274")]
 use super::gallery::GalleryItemType;
@@ -24,7 +26,48 @@ impl<'de> Deserialize<'de> for RoomMessageEventContent {
 
         let MentionsDeHelper { mentions } = from_raw_json_value(&json)?;
 
-        Ok(Self { msgtype: from_raw_json_value(&json)?, relates_to, mentions })
+        // Extract custom fields by parsing the JSON and removing known fields
+        let mut additional_fields = BTreeMap::new();
+        if let Ok(mut map) = serde_json::from_str::<serde_json::Map<String, JsonValue>>(json.get())
+        {
+            // Remove known fields
+            map.remove("msgtype");
+            map.remove("body");
+            map.remove("format");
+            map.remove("formatted_body");
+            map.remove("m.relates_to");
+            map.remove("m.mentions");
+            map.remove("m.new_content");
+            // Also remove message type-specific fields
+            map.remove("info");
+            map.remove("file");
+            map.remove("filename");
+            map.remove("url");
+            map.remove("geo_uri");
+            map.remove("key");
+            map.remove("server_notice_type");
+            map.remove("admin_contact");
+            map.remove("limit_type");
+            map.remove("to");
+            map.remove("from_device");
+            map.remove("methods");
+            // MSC-specific fields that are handled elsewhere
+            map.remove("org.matrix.msc1767.text");
+            map.remove("org.matrix.msc1767.html");
+            map.remove("org.matrix.msc1767.message");
+            map.remove("org.matrix.msc3245.voice");
+            map.remove("org.matrix.msc1767.audio");
+            map.remove("org.matrix.msc1767.file");
+            map.remove("org.matrix.msc1767.image");
+            map.remove("org.matrix.msc1767.video");
+            map.remove("org.matrix.msc3551.extensible_events");
+            // Convert remaining fields to additional_fields
+            for (k, v) in map {
+                additional_fields.insert(k, v);
+            }
+        }
+
+        Ok(Self { msgtype: from_raw_json_value(&json)?, relates_to, mentions, additional_fields })
     }
 }
 
@@ -37,7 +80,46 @@ impl<'de> Deserialize<'de> for RoomMessageEventContentWithoutRelation {
 
         let MentionsDeHelper { mentions } = from_raw_json_value(&json)?;
 
-        Ok(Self { msgtype: from_raw_json_value(&json)?, mentions })
+        // Extract custom fields by parsing the JSON and removing known fields
+        let mut additional_fields = BTreeMap::new();
+        if let Ok(mut map) = serde_json::from_str::<serde_json::Map<String, JsonValue>>(json.get())
+        {
+            // Remove known fields
+            map.remove("msgtype");
+            map.remove("body");
+            map.remove("format");
+            map.remove("formatted_body");
+            map.remove("m.mentions");
+            // Also remove message type-specific fields
+            map.remove("info");
+            map.remove("file");
+            map.remove("filename");
+            map.remove("url");
+            map.remove("geo_uri");
+            map.remove("key");
+            map.remove("server_notice_type");
+            map.remove("admin_contact");
+            map.remove("limit_type");
+            map.remove("to");
+            map.remove("from_device");
+            map.remove("methods");
+            // MSC-specific fields that are handled elsewhere
+            map.remove("org.matrix.msc1767.text");
+            map.remove("org.matrix.msc1767.html");
+            map.remove("org.matrix.msc1767.message");
+            map.remove("org.matrix.msc3245.voice");
+            map.remove("org.matrix.msc1767.audio");
+            map.remove("org.matrix.msc1767.file");
+            map.remove("org.matrix.msc1767.image");
+            map.remove("org.matrix.msc1767.video");
+            map.remove("org.matrix.msc3551.extensible_events");
+            // Convert remaining fields to additional_fields
+            for (k, v) in map {
+                additional_fields.insert(k, v);
+            }
+        }
+
+        Ok(Self { msgtype: from_raw_json_value(&json)?, mentions, additional_fields })
     }
 }
 

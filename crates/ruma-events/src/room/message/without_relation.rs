@@ -1,4 +1,7 @@
+use std::collections::BTreeMap;
+
 use serde::Serialize;
+use serde_json::Value as JsonValue;
 
 use super::{
     AddMentions, ForwardThread, MessageType, Relation, ReplacementMetadata, ReplyMetadata,
@@ -24,12 +27,43 @@ pub struct RoomMessageEventContentWithoutRelation {
     /// [mentions]: https://spec.matrix.org/latest/client-server-api/#user-and-room-mentions
     #[serde(rename = "m.mentions", skip_serializing_if = "Option::is_none")]
     pub mentions: Option<Mentions>,
+
+    /// Additional custom fields for protocol extensions (MSCs, etc.)
+    /// This allows clients to add arbitrary fields without SDK modifications
+    #[serde(flatten, skip_serializing_if = "BTreeMap::is_empty", default)]
+    pub additional_fields: BTreeMap<String, JsonValue>,
 }
 
 impl RoomMessageEventContentWithoutRelation {
     /// Creates a new `RoomMessageEventContentWithoutRelation` with the given `MessageType`.
     pub fn new(msgtype: MessageType) -> Self {
-        Self { msgtype, mentions: None }
+        Self { msgtype, mentions: None, additional_fields: BTreeMap::new() }
+    }
+
+    /// Add a custom field to the message content.
+    pub fn add_custom_field(&mut self, key: impl Into<String>, value: JsonValue) -> &mut Self {
+        self.additional_fields.insert(key.into(), value);
+        self
+    }
+
+    /// Get a custom field from the message content.
+    pub fn get_custom_field(&self, key: &str) -> Option<&JsonValue> {
+        self.additional_fields.get(key)
+    }
+
+    /// Remove a custom field from the message content.
+    pub fn remove_custom_field(&mut self, key: &str) -> Option<JsonValue> {
+        self.additional_fields.remove(key)
+    }
+
+    /// Check if a custom field exists.
+    pub fn has_custom_field(&self, key: &str) -> bool {
+        self.additional_fields.contains_key(key)
+    }
+
+    /// Clear all custom fields.
+    pub fn clear_custom_fields(&mut self) {
+        self.additional_fields.clear();
     }
 
     /// A constructor to create a plain text message.
@@ -85,8 +119,8 @@ impl RoomMessageEventContentWithoutRelation {
         self,
         relates_to: Option<Relation<RoomMessageEventContentWithoutRelation>>,
     ) -> RoomMessageEventContent {
-        let Self { msgtype, mentions } = self;
-        RoomMessageEventContent { msgtype, relates_to, mentions }
+        let Self { msgtype, mentions, additional_fields } = self;
+        RoomMessageEventContent { msgtype, relates_to, mentions, additional_fields }
     }
 
     /// Turns `self` into a [rich reply] to the message using the given metadata.
@@ -226,6 +260,7 @@ impl RoomMessageEventContentWithoutRelation {
             new_content: RoomMessageEventContentWithoutRelation {
                 msgtype: self.msgtype.clone(),
                 mentions,
+                additional_fields: self.additional_fields.clone(),
             },
         });
 
@@ -258,14 +293,14 @@ impl From<MessageType> for RoomMessageEventContentWithoutRelation {
 
 impl From<RoomMessageEventContent> for RoomMessageEventContentWithoutRelation {
     fn from(value: RoomMessageEventContent) -> Self {
-        let RoomMessageEventContent { msgtype, mentions, .. } = value;
-        Self { msgtype, mentions }
+        let RoomMessageEventContent { msgtype, mentions, additional_fields, .. } = value;
+        Self { msgtype, mentions, additional_fields }
     }
 }
 
 impl From<RoomMessageEventContentWithoutRelation> for RoomMessageEventContent {
     fn from(value: RoomMessageEventContentWithoutRelation) -> Self {
-        let RoomMessageEventContentWithoutRelation { msgtype, mentions } = value;
-        Self { msgtype, relates_to: None, mentions }
+        let RoomMessageEventContentWithoutRelation { msgtype, mentions, additional_fields } = value;
+        Self { msgtype, relates_to: None, mentions, additional_fields }
     }
 }

@@ -8,6 +8,11 @@ Improvements:
 
 - Add `m.rtc.notification` event support and deprecate the (non MSC conformant)
   `m.call.notify` event.
+- Add `additional_fields` BTreeMap to `RoomMessageEventContent` and `RoomMessageEventContentWithoutRelation`
+  to support custom protocol extensions and MSCs without SDK modifications. The field is transparently
+  handled during serialization/deserialization and doesn't break existing code.
+- Add methods to manage custom fields in message content: `add_custom_field`, `get_custom_field`,
+  `remove_custom_field`, `has_custom_field`, and `clear_custom_fields`.
 
 # 0.31.0
 

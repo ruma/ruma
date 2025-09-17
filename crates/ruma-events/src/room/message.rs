@@ -2,7 +2,7 @@
 //!
 //! [`m.room.message`]: https://spec.matrix.org/latest/client-server-api/#mroommessage
 
-use std::borrow::Cow;
+use std::{borrow::Cow, collections::BTreeMap};
 
 use as_variant::as_variant;
 use ruma_common::{
@@ -98,12 +98,58 @@ pub struct RoomMessageEventContent {
     /// [mentions]: https://spec.matrix.org/latest/client-server-api/#user-and-room-mentions
     #[serde(rename = "m.mentions", skip_serializing_if = "Option::is_none")]
     pub mentions: Option<Mentions>,
+
+    /// Additional custom fields for protocol extensions (MSCs, etc.)
+    /// This allows clients to add arbitrary fields without SDK modifications
+    #[serde(flatten, skip_serializing_if = "BTreeMap::is_empty", default)]
+    pub additional_fields: BTreeMap<String, JsonValue>,
 }
 
 impl RoomMessageEventContent {
     /// Create a `RoomMessageEventContent` with the given `MessageType`.
     pub fn new(msgtype: MessageType) -> Self {
-        Self { msgtype, relates_to: None, mentions: None }
+        Self { msgtype, relates_to: None, mentions: None, additional_fields: BTreeMap::new() }
+    }
+
+    /// Add a custom field to the message content.
+    ///
+    /// This is useful for MSC extensions and experimental features.
+    ///
+    /// # Example
+    /// ```ignore
+    /// use ruma_events::room::message::{RoomMessageEventContent, MessageType};
+    /// use serde_json::json;
+    ///
+    /// let mut content = RoomMessageEventContent::text_plain("Hello");
+    /// content.add_custom_field("org.matrix.msc4357.live", json!({}));
+    /// ```
+    pub fn add_custom_field(&mut self, key: impl Into<String>, value: JsonValue) -> &mut Self {
+        self.additional_fields.insert(key.into(), value);
+        self
+    }
+
+    /// Get a custom field from the message content.
+    ///
+    /// Returns `None` if the field doesn't exist.
+    pub fn get_custom_field(&self, key: &str) -> Option<&JsonValue> {
+        self.additional_fields.get(key)
+    }
+
+    /// Remove a custom field from the message content.
+    ///
+    /// Returns the removed value if it existed.
+    pub fn remove_custom_field(&mut self, key: &str) -> Option<JsonValue> {
+        self.additional_fields.remove(key)
+    }
+
+    /// Check if a custom field exists.
+    pub fn has_custom_field(&self, key: &str) -> bool {
+        self.additional_fields.contains_key(key)
+    }
+
+    /// Clear all custom fields.
+    pub fn clear_custom_fields(&mut self) {
+        self.additional_fields.clear();
     }
 
     /// A constructor to create a plain text message.
@@ -290,9 +336,11 @@ impl RoomMessageEventContent {
 
     /// Apply the given new content from a [`Replacement`] to this message.
     pub fn apply_replacement(&mut self, new_content: RoomMessageEventContentWithoutRelation) {
-        let RoomMessageEventContentWithoutRelation { msgtype, mentions } = new_content;
+        let RoomMessageEventContentWithoutRelation { msgtype, mentions, additional_fields } =
+            new_content;
         self.msgtype = msgtype;
         self.mentions = mentions;
+        self.additional_fields = additional_fields;
     }
 
     /// Sanitize this message.

@@ -1238,3 +1238,50 @@ fn test_video_caption() {
         Some("You missed a <strong>great</strong> evening".to_owned())
     );
 }
+
+#[test]
+fn backwards_compatibility_custom_fields() {
+    use ruma_events::room::message::RoomMessageEventContent;
+
+    // Test 1: Old JSON without custom fields should deserialize correctly
+    let old_json = json!({
+        "msgtype": "m.text",
+        "body": "Hello, world!"
+    });
+
+    let content: RoomMessageEventContent = from_json_value(old_json.clone()).unwrap();
+    assert_eq!(content.body(), "Hello, world!");
+    assert!(content.additional_fields.is_empty());
+
+    // Test 2: Serialization without custom fields should not include the field
+    let new_content = RoomMessageEventContent::text_plain("Test");
+    let serialized = to_json_value(&new_content).unwrap();
+    // The additional_fields shouldn't appear in JSON when empty
+    assert!(serialized.get("additional_fields").is_none());
+    // Also check it doesn't leak any internal representation
+    let serialized_str = serde_json::to_string(&serialized).unwrap();
+    assert!(!serialized_str.contains("additional_fields"));
+
+    // Test 3: JSON with custom fields should preserve them
+    let json_with_custom = json!({
+        "msgtype": "m.text",
+        "body": "Hello",
+        "org.matrix.msc4357.live": {"enabled": true}
+    });
+
+    let content_with_custom: RoomMessageEventContent = from_json_value(json_with_custom).unwrap();
+    assert!(content_with_custom.has_custom_field("org.matrix.msc4357.live"));
+    assert_eq!(
+        content_with_custom.get_custom_field("org.matrix.msc4357.live").unwrap(),
+        &json!({"enabled": true})
+    );
+
+    // Test 4: Adding custom fields and serializing
+    let mut content = RoomMessageEventContent::text_plain("Test");
+    content.add_custom_field("custom.field", json!({"value": 42}));
+    let serialized = to_json_value(&content).unwrap();
+    assert_eq!(serialized.get("custom.field").unwrap(), &json!({"value": 42}));
+    // Ensure standard fields are still present
+    assert_eq!(serialized.get("msgtype").unwrap(), "m.text");
+    assert_eq!(serialized.get("body").unwrap(), "Test");
+}
