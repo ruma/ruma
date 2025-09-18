@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+- `RawStrippedState::Stripped` is deprecated in favor of the `Pdu` variant,
+  according to Matrix 1.16.
+
 # 0.12.0
 
 Breaking changes:
