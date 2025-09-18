@@ -14,9 +14,9 @@ use super::{
 #[derive(Debug, Deserialize)]
 struct StateDeHelper {
     state: Option<StateEvents>,
-    #[cfg(feature = "unstable-msc4222")]
-    #[serde(rename = "org.matrix.msc4222.state_after")]
     state_after: Option<StateEvents>,
+    #[serde(rename = "org.matrix.msc4222.state_after")]
+    state_after_unstable: Option<StateEvents>,
 }
 
 impl<'de> Deserialize<'de> for State {
@@ -24,18 +24,14 @@ impl<'de> Deserialize<'de> for State {
     where
         D: Deserializer<'de>,
     {
-        let StateDeHelper {
-            state,
-            #[cfg(feature = "unstable-msc4222")]
-            state_after,
-        } = StateDeHelper::deserialize(deserializer)?;
+        let StateDeHelper { state, state_after, state_after_unstable } =
+            StateDeHelper::deserialize(deserializer)?;
 
-        #[cfg(feature = "unstable-msc4222")]
-        if let Some(state) = state_after {
-            return Ok(Self::After(state));
-        }
-
-        Ok(state.map(Self::Before).unwrap_or_default())
+        Ok(state_after
+            .or(state_after_unstable)
+            .map(Self::After)
+            .or_else(|| state.map(Self::Before))
+            .unwrap_or_default())
     }
 }
 
