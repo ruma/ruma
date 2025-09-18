@@ -3,6 +3,7 @@
 Improvements:
 
 - Add `MatrixVersion::V1_16`
+- `Metadata::make_endpoint_url()` is also available as `VersionHistory::make_endpoint_url()`.
 
 # 0.16.0
 

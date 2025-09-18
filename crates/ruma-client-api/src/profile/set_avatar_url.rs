@@ -69,6 +69,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID and avatar URL.
+        #[deprecated = "Use the set_profile_field endpoint instead."]
         pub fn new(user_id: OwnedUserId, avatar_url: Option<OwnedMxcUri>) -> Self {
             Self {
                 user_id,

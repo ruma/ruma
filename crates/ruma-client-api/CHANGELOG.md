@@ -4,6 +4,16 @@ Breaking changes:
 
 - Upgrade `js_option` to v0.2.0
 
+Improvements:
+
+- Stabilize support for extended profiles according to Matrix 1.16.
+  - `SetDisplayNameCapability` and `SetAvatarCapability` are deprecated in
+    favour of `ProfileFieldsCapability`.
+  - The `get_display_name` and `get_avatar_url` endpoints are deprecated in
+    favour of `get_profile_field`.
+  - The `set_display_name` and `set_avatar_url` endpoints are deprecated in
+    favour of `set_profile_field`.
+
 # 0.21.0
 
 Breaking changes:
