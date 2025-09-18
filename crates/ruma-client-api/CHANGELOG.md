@@ -4,6 +4,11 @@ Breaking changes:
 
 - Upgrade `js_option` to v0.2.0
 
+Improvements:
+
+- Stabilize support for the `use_state_after` query parameter and `State::After`
+  response property to `sync_events::v3`, according to Matrix 1.16.
+
 # 0.21.0
 
 Breaking changes:
