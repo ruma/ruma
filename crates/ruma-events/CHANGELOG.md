@@ -8,6 +8,7 @@ Improvements:
 
 - Add `m.rtc.notification` event support and deprecate the (non MSC conformant)
   `m.call.notify` event.
+- Add `dm.filament.do_not_disturb` account data event as per MSC4359.
 
 # 0.31.0
 

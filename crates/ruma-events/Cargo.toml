@@ -52,6 +52,7 @@ unstable-msc4278 = []
 unstable-msc4319 = []
 unstable-msc4310 = []
 unstable-msc4334 = ["dep:language-tags"]
+unstable-msc4359 = []
 
 # Allow some mandatory fields to be missing, defaulting them to an empty string
 # in deserialization.
