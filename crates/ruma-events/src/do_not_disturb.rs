@@ -27,15 +27,29 @@ impl DoNotDisturbEventContent {
     pub fn new(rooms: BTreeMap<DoNotDisturbRoomIds, DoNotDisturbRoom>) -> Self {
         Self { rooms }
     }
+}
 
-    /// Creates a new `DoNotDisturbEventContent` from the given list of room IDs.
-    pub fn rooms(rooms: impl IntoIterator<Item = OwnedRoomId>) -> Self {
-        Self::new(
-            rooms
-                .into_iter()
-                .map(|id| (DoNotDisturbRoomIds::SingleRoom(id), DoNotDisturbRoom {}))
-                .collect(),
-        )
+impl FromIterator<DoNotDisturbRoomIds> for DoNotDisturbEventContent {
+    fn from_iter<T: IntoIterator<Item = DoNotDisturbRoomIds>>(iter: T) -> Self {
+        Self::new(iter.into_iter().map(|ids| (ids, DoNotDisturbRoom {})).collect())
+    }
+}
+
+impl FromIterator<OwnedRoomId> for DoNotDisturbEventContent {
+    fn from_iter<T: IntoIterator<Item = OwnedRoomId>>(iter: T) -> Self {
+        iter.into_iter().map(DoNotDisturbRoomIds::SingleRoom).collect()
+    }
+}
+
+impl Extend<DoNotDisturbRoomIds> for DoNotDisturbEventContent {
+    fn extend<T: IntoIterator<Item = DoNotDisturbRoomIds>>(&mut self, iter: T) {
+        self.rooms.extend(iter.into_iter().map(|ids| (ids, DoNotDisturbRoom {})));
+    }
+}
+
+impl Extend<OwnedRoomId> for DoNotDisturbEventContent {
+    fn extend<T: IntoIterator<Item = OwnedRoomId>>(&mut self, iter: T) {
+        self.extend(iter.into_iter().map(DoNotDisturbRoomIds::SingleRoom));
     }
 }
 
@@ -80,8 +94,8 @@ mod tests {
 
     #[test]
     fn serialization_with_single_room() {
-        let do_not_disturb_room_list =
-            DoNotDisturbEventContent::rooms(vec![owned_room_id!("!foo:bar.baz")]);
+        let do_not_disturb_room_list: DoNotDisturbEventContent =
+            vec![owned_room_id!("!foo:bar.baz")].into_iter().collect();
 
         let json = json!({
             "rooms": {
