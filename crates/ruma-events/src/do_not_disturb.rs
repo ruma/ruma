@@ -62,6 +62,7 @@ pub enum DoNotDisturbRoomKey {
     /// Match any room.
     #[serde(rename = "*")]
     AllRooms,
+
     /// Match a single room based on its room ID.
     #[serde(untagged)]
     SingleRoom(OwnedRoomId),
