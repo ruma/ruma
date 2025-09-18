@@ -15,7 +15,6 @@ pub mod v3 {
     };
     use serde_json::Value as JsonValue;
 
-    #[cfg(feature = "unstable-msc4133")]
     use crate::profile::{ProfileFieldName, ProfileFieldValue, StaticProfileField};
 
     const METADATA: Metadata = metadata! {
@@ -68,7 +67,6 @@ pub mod v3 {
         /// Returns `Ok(Some(_))` if the field is present and the value was deserialized
         /// successfully, `Ok(None)` if the field is not set, or an error if deserialization of the
         /// value failed.
-        #[cfg(feature = "unstable-msc4133")]
         pub fn get_static<F: StaticProfileField>(
             &self,
         ) -> Result<Option<F::Value>, serde_json::Error> {
@@ -81,9 +79,8 @@ pub mod v3 {
         }
 
         /// Sets a field to the given value.
-        #[cfg(feature = "unstable-msc4133")]
-        pub fn set(&mut self, field: &str, value: JsonValue) {
-            self.data.insert(field.to_owned(), value);
+        pub fn set(&mut self, field: String, value: JsonValue) {
+            self.data.insert(field, value);
         }
     }
 
@@ -93,14 +90,12 @@ pub mod v3 {
         }
     }
 
-    #[cfg(feature = "unstable-msc4133")]
     impl FromIterator<(ProfileFieldName, JsonValue)> for Response {
         fn from_iter<T: IntoIterator<Item = (ProfileFieldName, JsonValue)>>(iter: T) -> Self {
             iter.into_iter().map(|(field, value)| (field.as_str().to_owned(), value)).collect()
         }
     }
 
-    #[cfg(feature = "unstable-msc4133")]
     impl FromIterator<ProfileFieldValue> for Response {
         fn from_iter<T: IntoIterator<Item = ProfileFieldValue>>(iter: T) -> Self {
             iter.into_iter().map(|value| (value.field_name(), value.value().into_owned())).collect()
@@ -113,14 +108,12 @@ pub mod v3 {
         }
     }
 
-    #[cfg(feature = "unstable-msc4133")]
     impl Extend<(ProfileFieldName, JsonValue)> for Response {
         fn extend<T: IntoIterator<Item = (ProfileFieldName, JsonValue)>>(&mut self, iter: T) {
             self.extend(iter.into_iter().map(|(field, value)| (field.as_str().to_owned(), value)));
         }
     }
 
-    #[cfg(feature = "unstable-msc4133")]
     impl Extend<ProfileFieldValue> for Response {
         fn extend<T: IntoIterator<Item = ProfileFieldValue>>(&mut self, iter: T) {
             self.extend(
@@ -139,7 +132,7 @@ pub mod v3 {
     }
 }
 
-#[cfg(all(test, feature = "unstable-msc4133"))]
+#[cfg(test)]
 mod tests {
     use ruma_common::owned_mxc_uri;
     use serde_json::{

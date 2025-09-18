@@ -5,14 +5,17 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/4133
+    //! Although this endpoint has a similar format to [`get_avatar_url`] and [`get_display_name`],
+    //! it will only work with homeservers advertising support for the proper unstable feature or
+    //! a version compatible with Matrix 1.16.
+    //!
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3profileuseridkeyname
+    //! [`get_avatar_url`]: crate::profile::get_avatar_url
+    //! [`get_display_name`]: crate::profile::get_display_name
 
     use std::marker::PhantomData;
 
-    use ruma_common::{
-        api::{request, Metadata},
-        metadata, OwnedUserId,
-    };
+    use ruma_common::{api::Metadata, metadata, OwnedUserId};
 
     use crate::profile::{
         profile_field_serde::StaticProfileFieldVisitor, ProfileFieldName, ProfileFieldValue,
@@ -23,21 +26,22 @@ pub mod v3 {
         method: GET,
         rate_limited: false,
         authentication: None,
+        // History valid for fields that existed in Matrix 1.0, i.e. `displayname` and `avatar_url`.
         history: {
             unstable("uk.tcpip.msc4133") => "/_matrix/client/unstable/uk.tcpip.msc4133/profile/{user_id}/{field}",
-            // 1.15 => "/_matrix/client/v3/profile/{user_id}/{field}",
+            1.0 => "/_matrix/client/r0/profile/{user_id}/{field}",
+            1.1 => "/_matrix/client/v3/profile/{user_id}/{field}",
         }
     };
 
     /// Request type for the `get_profile_field` endpoint.
-    #[request(error = crate::Error)]
+    #[derive(Clone, Debug)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
         /// The user whose profile will be fetched.
-        #[ruma_api(path)]
         pub user_id: OwnedUserId,
 
         /// The profile field to get.
-        #[ruma_api(path)]
         pub field: ProfileFieldName,
     }
 
@@ -50,6 +54,87 @@ pub mod v3 {
         /// Creates a new request with the given user ID and statically-known field.
         pub fn new_static<F: StaticProfileField>(user_id: OwnedUserId) -> RequestStatic<F> {
             RequestStatic::new(user_id)
+        }
+    }
+
+    #[cfg(feature = "client")]
+    impl ruma_common::api::OutgoingRequest for Request {
+        type EndpointError = crate::Error;
+        type IncomingResponse = Response;
+
+        const METADATA: Metadata = METADATA;
+
+        fn try_into_http_request<T: Default + bytes::BufMut>(
+            self,
+            base_url: &str,
+            access_token: ruma_common::api::SendAccessToken<'_>,
+            considering: &'_ ruma_common::api::SupportedVersions,
+        ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
+            use http::header::{self, HeaderValue};
+
+            let url = if self.field.existed_before_extended_profiles() {
+                METADATA.make_endpoint_url(
+                    considering,
+                    base_url,
+                    &[&self.user_id, &self.field],
+                    "",
+                )?
+            } else {
+                crate::profile::EXTENDED_PROFILE_FIELD_HISTORY.make_endpoint_url(
+                    considering,
+                    base_url,
+                    &[&self.user_id, &self.field],
+                    "",
+                )?
+            };
+
+            let mut http_request_builder = http::Request::builder()
+                .method(METADATA.method)
+                .uri(url)
+                .header(header::CONTENT_TYPE, "application/json");
+
+            if let Some(access_token) = access_token.get_not_required_for_endpoint() {
+                http_request_builder = http_request_builder.header(
+                    header::AUTHORIZATION,
+                    HeaderValue::from_str(&format!("Bearer {access_token}"))?,
+                );
+            }
+
+            Ok(http_request_builder.body(T::default())?)
+        }
+    }
+
+    #[cfg(feature = "server")]
+    impl ruma_common::api::IncomingRequest for Request {
+        type EndpointError = crate::Error;
+        type OutgoingResponse = Response;
+
+        const METADATA: Metadata = METADATA;
+
+        fn try_from_http_request<B, S>(
+            request: http::Request<B>,
+            path_args: &[S],
+        ) -> Result<Self, ruma_common::api::error::FromHttpRequestError>
+        where
+            B: AsRef<[u8]>,
+            S: AsRef<str>,
+        {
+            if request.method() != METADATA.method {
+                return Err(ruma_common::api::error::FromHttpRequestError::MethodMismatch {
+                    expected: METADATA.method,
+                    received: request.method().clone(),
+                });
+            }
+
+            let (user_id, field) =
+                serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
+                    _,
+                    serde::de::value::Error,
+                >::new(
+                    path_args.iter().map(::std::convert::AsRef::as_ref),
+                ))?;
+
+            Ok(Self { user_id, field })
         }
     }
 
@@ -218,19 +303,66 @@ mod tests {
     fn serialize_request() {
         use ruma_common::api::{OutgoingRequest, SendAccessToken, SupportedVersions};
 
-        let request = Request::new(owned_user_id!("@alice:localhost"), ProfileFieldName::AvatarUrl);
+        // Profile field that existed in Matrix 1.0.
+        let avatar_url_request =
+            Request::new(owned_user_id!("@alice:localhost"), ProfileFieldName::AvatarUrl);
 
-        let http_request = request
+        // Matrix 1.11
+        let http_request = avatar_url_request
+            .clone()
             .try_into_http_request::<Vec<u8>>(
                 "http://localhost/",
-                SendAccessToken::Always("access_token"),
-                &SupportedVersions::from_parts(&["v11".to_owned()], &Default::default()),
+                SendAccessToken::None,
+                &SupportedVersions::from_parts(&["v1.11".to_owned()], &Default::default()),
             )
             .unwrap();
-
         assert_eq!(
             http_request.uri().path(),
-            "/_matrix/client/unstable/uk.tcpip.msc4133/profile/@alice:localhost/avatar_url"
+            "/_matrix/client/v3/profile/@alice:localhost/avatar_url"
+        );
+
+        // Matrix 1.16
+        let http_request = avatar_url_request
+            .try_into_http_request::<Vec<u8>>(
+                "http://localhost/",
+                SendAccessToken::None,
+                &SupportedVersions::from_parts(&["v1.16".to_owned()], &Default::default()),
+            )
+            .unwrap();
+        assert_eq!(
+            http_request.uri().path(),
+            "/_matrix/client/v3/profile/@alice:localhost/avatar_url"
+        );
+
+        // Profile field that didn't exist in Matrix 1.0.
+        let custom_field_request =
+            Request::new(owned_user_id!("@alice:localhost"), "dev.ruma.custom_field".into());
+
+        // Matrix 1.11
+        let http_request = custom_field_request
+            .clone()
+            .try_into_http_request::<Vec<u8>>(
+                "http://localhost/",
+                SendAccessToken::None,
+                &SupportedVersions::from_parts(&["v1.11".to_owned()], &Default::default()),
+            )
+            .unwrap();
+        assert_eq!(
+            http_request.uri().path(),
+            "/_matrix/client/unstable/uk.tcpip.msc4133/profile/@alice:localhost/dev.ruma.custom_field"
+        );
+
+        // Matrix 1.16
+        let http_request = custom_field_request
+            .try_into_http_request::<Vec<u8>>(
+                "http://localhost/",
+                SendAccessToken::None,
+                &SupportedVersions::from_parts(&["v1.16".to_owned()], &Default::default()),
+            )
+            .unwrap();
+        assert_eq!(
+            http_request.uri().path(),
+            "/_matrix/client/v3/profile/@alice:localhost/dev.ruma.custom_field"
         );
     }
 
@@ -240,9 +372,14 @@ mod tests {
         use ruma_common::api::IncomingRequest;
 
         let request = Request::try_from_http_request(
-            http::Request::get("http://localhost/_matrix/client/unstable/uk.tcpip.msc4133/profile/@alice:localhost/displayname").body(Vec::<u8>::new()).unwrap(),
-                &["@alice:localhost", "displayname"],
-            ).unwrap();
+            http::Request::get(
+                "http://localhost/_matrix/client/v3/profile/@alice:localhost/displayname",
+            )
+            .body(Vec::<u8>::new())
+            .unwrap(),
+            &["@alice:localhost", "displayname"],
+        )
+        .unwrap();
 
         assert_eq!(request.user_id, "@alice:localhost");
         assert_eq!(request.field, ProfileFieldName::DisplayName);

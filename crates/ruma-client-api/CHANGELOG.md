@@ -8,6 +8,13 @@ Improvements:
 
 - Stabilize support for the `use_state_after` query parameter and `State::After`
   response property to `sync_events::v3`, according to Matrix 1.16.
+- Stabilize support for extended profiles according to Matrix 1.16.
+  - `SetDisplayNameCapability` and `SetAvatarCapability` are deprecated in
+    favour of `ProfileFieldsCapability`.
+  - The `get_display_name` and `get_avatar_url` endpoints are deprecated in
+    favour of `get_profile_field`.
+  - The `set_display_name` and `set_avatar_url` endpoints are deprecated in
+    favour of `set_profile_field`.
 
 # 0.21.0
 
