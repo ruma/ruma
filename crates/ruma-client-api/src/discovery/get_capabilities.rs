@@ -24,9 +24,7 @@ pub mod v3 {
         from_value as from_json_value, to_value as to_json_value, Value as JsonValue,
     };
 
-    #[cfg(feature = "unstable-msc4133")]
-    use crate::profile::ProfileFieldName;
-    use crate::PrivOwnedStr;
+    use crate::{profile::ProfileFieldName, PrivOwnedStr};
 
     const METADATA: Metadata = metadata! {
         method: GET,
@@ -73,6 +71,7 @@ pub mod v3 {
     /// Contains information about all the capabilities that the server supports.
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    #[allow(deprecated)]
     pub struct Capabilities {
         /// Capability to indicate if the user can change their password.
         #[serde(
@@ -96,6 +95,7 @@ pub mod v3 {
             default,
             skip_serializing_if = "SetDisplayNameCapability::is_default"
         )]
+        #[deprecated = "Since Matrix 1.16, prefer profile_fields if it is set."]
         pub set_displayname: SetDisplayNameCapability,
 
         /// Capability to indicate if the user can change their avatar.
@@ -104,6 +104,7 @@ pub mod v3 {
             default,
             skip_serializing_if = "SetAvatarUrlCapability::is_default"
         )]
+        #[deprecated = "Since Matrix 1.16, prefer profile_fields if it is set."]
         pub set_avatar_url: SetAvatarUrlCapability,
 
         /// Capability to indicate if the user can change the third-party identifiers associated
@@ -125,10 +126,9 @@ pub mod v3 {
         pub get_login_token: GetLoginTokenCapability,
 
         /// Capability to indicate if the user can set extended profile fields.
-        #[cfg(feature = "unstable-msc4133")]
         #[serde(
-            rename = "uk.tcpip.msc4133.profile_fields",
-            alias = "m.profile_fields",
+            rename = "m.profile_fields",
+            alias = "uk.tcpip.msc4133.profile_fields",
             skip_serializing_if = "Option::is_none"
         )]
         pub profile_fields: Option<ProfileFieldsCapability>,
@@ -157,7 +157,9 @@ pub mod v3 {
             match capability {
                 "m.change_password" => Some(Cow::Owned(serialize(&self.change_password))),
                 "m.room_versions" => Some(Cow::Owned(serialize(&self.room_versions))),
+                #[allow(deprecated)]
                 "m.set_displayname" => Some(Cow::Owned(serialize(&self.set_displayname))),
+                #[allow(deprecated)]
                 "m.set_avatar_url" => Some(Cow::Owned(serialize(&self.set_avatar_url))),
                 "m.3pid_changes" => Some(Cow::Owned(serialize(&self.thirdparty_id_changes))),
                 "m.get_login_token" => Some(Cow::Owned(serialize(&self.get_login_token))),
@@ -174,7 +176,9 @@ pub mod v3 {
             match capability {
                 "m.change_password" => self.change_password = from_json_value(value)?,
                 "m.room_versions" => self.room_versions = from_json_value(value)?,
+                #[allow(deprecated)]
                 "m.set_displayname" => self.set_displayname = from_json_value(value)?,
+                #[allow(deprecated)]
                 "m.set_avatar_url" => self.set_avatar_url = from_json_value(value)?,
                 "m.3pid_changes" => self.thirdparty_id_changes = from_json_value(value)?,
                 "m.get_login_token" => self.get_login_token = from_json_value(value)?,
@@ -274,11 +278,13 @@ pub mod v3 {
     /// Information about the `m.set_displayname` capability
     #[derive(Clone, Debug, Serialize, Deserialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    #[deprecated = "Since Matrix 1.16, prefer ProfileFieldsCapability instead."]
     pub struct SetDisplayNameCapability {
         /// `true` if the user can change their display name, `false` otherwise.
         pub enabled: bool,
     }
 
+    #[allow(deprecated)]
     impl SetDisplayNameCapability {
         /// Creates a new `SetDisplayNameCapability` with the given enabled flag.
         pub fn new(enabled: bool) -> Self {
@@ -291,6 +297,7 @@ pub mod v3 {
         }
     }
 
+    #[allow(deprecated)]
     impl Default for SetDisplayNameCapability {
         fn default() -> Self {
             Self { enabled: true }
@@ -300,11 +307,13 @@ pub mod v3 {
     /// Information about the `m.set_avatar_url` capability
     #[derive(Clone, Debug, Serialize, Deserialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    #[deprecated = "Since Matrix 1.16, prefer ProfileFieldsCapability instead."]
     pub struct SetAvatarUrlCapability {
         /// `true` if the user can change their avatar, `false` otherwise.
         pub enabled: bool,
     }
 
+    #[allow(deprecated)]
     impl SetAvatarUrlCapability {
         /// Creates a new `SetAvatarUrlCapability` with the given enabled flag.
         pub fn new(enabled: bool) -> Self {
@@ -317,6 +326,7 @@ pub mod v3 {
         }
     }
 
+    #[allow(deprecated)]
     impl Default for SetAvatarUrlCapability {
         fn default() -> Self {
             Self { enabled: true }
@@ -371,7 +381,6 @@ pub mod v3 {
     }
 
     /// Information about the `m.profile_fields` capability.
-    #[cfg(feature = "unstable-msc4133")]
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct ProfileFieldsCapability {
@@ -389,7 +398,6 @@ pub mod v3 {
         pub disallowed: Option<Vec<ProfileFieldName>>,
     }
 
-    #[cfg(feature = "unstable-msc4133")]
     impl ProfileFieldsCapability {
         /// Creates a new `ProfileFieldsCapability` with the given enabled flag.
         pub fn new(enabled: bool) -> Self {

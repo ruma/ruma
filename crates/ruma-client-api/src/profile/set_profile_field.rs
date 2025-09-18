@@ -5,7 +5,13 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/4133
+    //! Although this endpoint has a similar format to [`set_avatar_url`] and [`set_display_name`],
+    //! it will only work with homeservers advertising support for the proper unstable feature or
+    //! a version compatible with Matrix 1.16.
+    //!
+    //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3profileuseridkeyname
+    //! [`set_avatar_url`]: crate::profile::set_avatar_url
+    //! [`set_display_name`]: crate::profile::set_display_name
 
     use ruma_common::{
         api::{response, Metadata},
@@ -18,9 +24,11 @@ pub mod v3 {
         method: PUT,
         rate_limited: true,
         authentication: AccessToken,
+        // History valid for fields that existed in Matrix 1.0, i.e. `displayname` and `avatar_url`.
         history: {
             unstable("uk.tcpip.msc4133") => "/_matrix/client/unstable/uk.tcpip.msc4133/profile/{user_id}/{field}",
-            // 1.15 => "/_matrix/client/v3/profile/{user_id}/{field}",
+            1.0 => "/_matrix/client/r0/profile/{user_id}/{field}",
+            1.1 => "/_matrix/client/v3/profile/{user_id}/{field}",
         }
     };
 
@@ -55,12 +63,18 @@ pub mod v3 {
             _access_token: ruma_common::api::SendAccessToken<'_>,
             considering: &'_ ruma_common::api::SupportedVersions,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
-            let url = METADATA.make_endpoint_url(
-                considering,
-                base_url,
-                &[&self.user_id, &self.value.field_name()],
-                "",
-            )?;
+            let field = self.value.field_name();
+
+            let url = if field.existed_before_extended_profiles() {
+                METADATA.make_endpoint_url(considering, base_url, &[&self.user_id, &field], "")?
+            } else {
+                crate::profile::EXTENDED_PROFILE_FIELD_HISTORY.make_endpoint_url(
+                    considering,
+                    base_url,
+                    &[&self.user_id, &field],
+                    "",
+                )?
+            };
 
             let http_request = http::Request::builder()
                 .method(METADATA.method)
@@ -138,27 +152,93 @@ mod tests {
     fn serialize_request() {
         use ruma_common::api::{OutgoingRequest, SendAccessToken, SupportedVersions};
 
-        let request = Request::new(
+        // Profile field that existed in Matrix 1.0.
+        let avatar_url_request = Request::new(
             owned_user_id!("@alice:localhost"),
             ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef")),
         );
 
-        let http_request = request
+        // Matrix 1.11.
+        let http_request = avatar_url_request
+            .clone()
             .try_into_http_request::<Vec<u8>>(
                 "http://localhost/",
                 SendAccessToken::Always("access_token"),
-                &SupportedVersions::from_parts(&["v11".to_owned()], &Default::default()),
+                &SupportedVersions::from_parts(&["v1.11".to_owned()], &Default::default()),
             )
             .unwrap();
-
         assert_eq!(
             http_request.uri().path(),
-            "/_matrix/client/unstable/uk.tcpip.msc4133/profile/@alice:localhost/avatar_url"
+            "/_matrix/client/v3/profile/@alice:localhost/avatar_url"
         );
         assert_eq!(
             from_json_slice::<JsonValue>(http_request.body().as_ref()).unwrap(),
             json!({
                 "avatar_url": "mxc://localhost/abcdef",
+            })
+        );
+
+        // Matrix 1.16.
+        let http_request = avatar_url_request
+            .try_into_http_request::<Vec<u8>>(
+                "http://localhost/",
+                SendAccessToken::Always("access_token"),
+                &SupportedVersions::from_parts(&["v1.16".to_owned()], &Default::default()),
+            )
+            .unwrap();
+        assert_eq!(
+            http_request.uri().path(),
+            "/_matrix/client/v3/profile/@alice:localhost/avatar_url"
+        );
+        assert_eq!(
+            from_json_slice::<JsonValue>(http_request.body().as_ref()).unwrap(),
+            json!({
+                "avatar_url": "mxc://localhost/abcdef",
+            })
+        );
+
+        // Profile field that didn't exist in Matrix 1.0.
+        let custom_field_request = Request::new(
+            owned_user_id!("@alice:localhost"),
+            ProfileFieldValue::new("dev.ruma.custom_field", json!(true)).unwrap(),
+        );
+
+        // Matrix 1.11.
+        let http_request = custom_field_request
+            .clone()
+            .try_into_http_request::<Vec<u8>>(
+                "http://localhost/",
+                SendAccessToken::Always("access_token"),
+                &SupportedVersions::from_parts(&["v1.11".to_owned()], &Default::default()),
+            )
+            .unwrap();
+        assert_eq!(
+            http_request.uri().path(),
+            "/_matrix/client/unstable/uk.tcpip.msc4133/profile/@alice:localhost/dev.ruma.custom_field"
+        );
+        assert_eq!(
+            from_json_slice::<JsonValue>(http_request.body().as_ref()).unwrap(),
+            json!({
+                "dev.ruma.custom_field": true,
+            })
+        );
+
+        // Matrix 1.16.
+        let http_request = custom_field_request
+            .try_into_http_request::<Vec<u8>>(
+                "http://localhost/",
+                SendAccessToken::Always("access_token"),
+                &SupportedVersions::from_parts(&["v1.16".to_owned()], &Default::default()),
+            )
+            .unwrap();
+        assert_eq!(
+            http_request.uri().path(),
+            "/_matrix/client/v3/profile/@alice:localhost/dev.ruma.custom_field"
+        );
+        assert_eq!(
+            from_json_slice::<JsonValue>(http_request.body().as_ref()).unwrap(),
+            json!({
+                "dev.ruma.custom_field": true,
             })
         );
     }
@@ -174,9 +254,14 @@ mod tests {
         .unwrap();
 
         let request = Request::try_from_http_request(
-            http::Request::put("http://localhost/_matrix/client/unstable/uk.tcpip.msc4133/profile/@alice:localhost/displayname").body(body).unwrap(),
+            http::Request::put(
+                "http://localhost/_matrix/client/v3/profile/@alice:localhost/displayname",
+            )
+            .body(body)
+            .unwrap(),
             &["@alice:localhost", "displayname"],
-        ).unwrap();
+        )
+        .unwrap();
 
         assert_eq!(request.user_id, "@alice:localhost");
         assert_matches!(request.value, ProfileFieldValue::DisplayName(display_name));
@@ -194,8 +279,13 @@ mod tests {
         .unwrap();
 
         Request::try_from_http_request(
-            http::Request::put("http://localhost/_matrix/client/unstable/uk.tcpip.msc4133/profile/@alice:localhost/displayname").body(body).unwrap(),
+            http::Request::put(
+                "http://localhost/_matrix/client/v3/profile/@alice:localhost/displayname",
+            )
+            .body(body)
+            .unwrap(),
             &["@alice:localhost", "displayname"],
-        ).unwrap_err();
+        )
+        .unwrap_err();
     }
 }
