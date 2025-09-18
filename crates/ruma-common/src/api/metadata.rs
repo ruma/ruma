@@ -833,6 +833,11 @@ pub enum MatrixVersion {
     ///
     /// See <https://spec.matrix.org/v1.15/>.
     V1_15,
+
+    /// Version 1.16 of the Matrix specification, released in Q3 2025.
+    ///
+    /// See <https://spec.matrix.org/v1.16/>.
+    V1_16,
 }
 
 impl TryFrom<&str> for MatrixVersion {
@@ -862,6 +867,7 @@ impl TryFrom<&str> for MatrixVersion {
             "v1.13" => V1_13,
             "v1.14" => V1_14,
             "v1.15" => V1_15,
+            "v1.16" => V1_16,
             _ => return Err(UnknownVersionError),
         })
     }
@@ -913,6 +919,7 @@ impl MatrixVersion {
             MatrixVersion::V1_13 => "v1.13",
             MatrixVersion::V1_14 => "v1.14",
             MatrixVersion::V1_15 => "v1.15",
+            MatrixVersion::V1_16 => "v1.16",
         };
 
         Some(string)
@@ -937,6 +944,7 @@ impl MatrixVersion {
             MatrixVersion::V1_13 => (1, 13),
             MatrixVersion::V1_14 => (1, 14),
             MatrixVersion::V1_15 => (1, 15),
+            MatrixVersion::V1_16 => (1, 16),
         }
     }
 
@@ -959,6 +967,7 @@ impl MatrixVersion {
             (1, 13) => Ok(MatrixVersion::V1_13),
             (1, 14) => Ok(MatrixVersion::V1_14),
             (1, 15) => Ok(MatrixVersion::V1_15),
+            (1, 16) => Ok(MatrixVersion::V1_16),
             _ => Err(UnknownVersionError),
         }
     }
@@ -1064,6 +1073,8 @@ impl MatrixVersion {
             | MatrixVersion::V1_14
             // <https://spec.matrix.org/v1.15/rooms/#complete-list-of-room-versions>
             | MatrixVersion::V1_15 => RoomVersionId::V11,
+            // <https://spec.matrix.org/v1.16/rooms/#complete-list-of-room-versions>
+            MatrixVersion::V1_16 => RoomVersionId::V12,
         }
     }
 }

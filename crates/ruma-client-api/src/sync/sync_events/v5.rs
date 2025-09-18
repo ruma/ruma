@@ -505,7 +505,7 @@ pub mod response {
         pub count: UInt,
     }
 
-    /// A slising sync response updated room (see [`super::Response::rooms`]).
+    /// A sliding sync response updated room (see [`super::Response::rooms`]).
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Room {

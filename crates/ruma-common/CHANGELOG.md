@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+- Add `MatrixVersion::V1_16`
+
 # 0.16.0
 
 Breaking changes:
