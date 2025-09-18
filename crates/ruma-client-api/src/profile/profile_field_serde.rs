@@ -52,7 +52,6 @@ impl Serialize for CustomProfileFieldValue {
 /// this will deserialize the first key-value pair encountered.
 pub(super) struct ProfileFieldValueVisitor(pub(super) Option<ProfileFieldName>);
 
-#[cfg(feature = "unstable-msc4133")]
 impl<'de> de::Visitor<'de> for ProfileFieldValueVisitor {
     type Value = Option<ProfileFieldValue>;
 

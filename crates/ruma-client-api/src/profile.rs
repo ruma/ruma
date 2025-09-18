@@ -1,35 +1,29 @@
 //! Endpoints for user profiles.
 
-#[cfg(feature = "unstable-msc4133")]
 use std::borrow::Cow;
 
-#[cfg(feature = "unstable-msc4133")]
 use ruma_common::{
+    api::{MatrixVersion, StablePathSelector, VersionHistory},
     serde::{OrdAsRefStr, PartialOrdAsRefStr, StringEnum},
     OwnedMxcUri,
 };
-#[cfg(feature = "unstable-msc4133")]
 use serde::{de::DeserializeOwned, Serialize};
-#[cfg(feature = "unstable-msc4133")]
 use serde_json::{from_value as from_json_value, to_value as to_json_value, Value as JsonValue};
 
-#[cfg(feature = "unstable-msc4133")]
 pub mod delete_profile_field;
 pub mod get_avatar_url;
 pub mod get_display_name;
 pub mod get_profile;
-#[cfg(feature = "unstable-msc4133")]
 pub mod get_profile_field;
-#[cfg(feature = "unstable-msc4133")]
 mod profile_field_serde;
 pub mod set_avatar_url;
 pub mod set_display_name;
-#[cfg(feature = "unstable-msc4133")]
 pub mod set_profile_field;
 
-/// Trait implemented by types representing a field in a user's profile having a statically-known
+/// Trait implemented by types representing a field in a user's [profile] having a statically-known
 /// name.
-#[cfg(feature = "unstable-msc4133")]
+///
+/// [profile]: https://spec.matrix.org/latest/client-server-api/#profiles
 pub trait StaticProfileField {
     /// The type for the value of the field.
     type Value: Sized + Serialize + DeserializeOwned;
@@ -40,11 +34,9 @@ pub trait StaticProfileField {
 
 /// The user's avatar URL.
 #[derive(Debug, Clone, Copy)]
-#[cfg(feature = "unstable-msc4133")]
 #[allow(clippy::exhaustive_structs)]
 pub struct AvatarUrl;
 
-#[cfg(feature = "unstable-msc4133")]
 impl StaticProfileField for AvatarUrl {
     type Value = OwnedMxcUri;
     const NAME: &str = "avatar_url";
@@ -52,19 +44,18 @@ impl StaticProfileField for AvatarUrl {
 
 /// The user's display name.
 #[derive(Debug, Clone, Copy)]
-#[cfg(feature = "unstable-msc4133")]
 #[allow(clippy::exhaustive_structs)]
 pub struct DisplayName;
 
-#[cfg(feature = "unstable-msc4133")]
 impl StaticProfileField for DisplayName {
     type Value = String;
     const NAME: &str = "displayname";
 }
 
-/// The possible fields of a user's profile.
+/// The possible fields of a user's [profile].
+///
+/// [profile]: https://spec.matrix.org/latest/client-server-api/#profiles
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[cfg(feature = "unstable-msc4133")]
 #[derive(Clone, PartialEq, Eq, PartialOrdAsRefStr, OrdAsRefStr, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
@@ -80,8 +71,17 @@ pub enum ProfileFieldName {
     _Custom(crate::PrivOwnedStr),
 }
 
-/// The possible values of a field of a user's profile.
-#[cfg(feature = "unstable-msc4133")]
+impl ProfileFieldName {
+    /// Whether this field name existed already before custom fields were officially supported in
+    /// profiles.
+    fn existed_before_extended_profiles(&self) -> bool {
+        matches!(self, Self::AvatarUrl | Self::DisplayName)
+    }
+}
+
+/// The possible values of a field of a user's [profile].
+///
+/// [profile]: https://spec.matrix.org/latest/client-server-api/#profiles
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]
@@ -98,7 +98,6 @@ pub enum ProfileFieldValue {
     _Custom(CustomProfileFieldValue),
 }
 
-#[cfg(feature = "unstable-msc4133")]
 impl ProfileFieldValue {
     /// Construct a new `ProfileFieldValue` with the given field and value.
     ///
@@ -145,7 +144,6 @@ impl ProfileFieldValue {
 }
 
 /// A custom value for a user's profile field.
-#[cfg(feature = "unstable-msc4133")]
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[doc(hidden)]
 pub struct CustomProfileFieldValue {
@@ -156,7 +154,21 @@ pub struct CustomProfileFieldValue {
     value: JsonValue,
 }
 
-#[cfg(all(test, feature = "unstable-msc4133"))]
+/// Endpoint version history valid only for profile fields that didn't exist before Matrix 1.16.
+const EXTENDED_PROFILE_FIELD_HISTORY: VersionHistory = VersionHistory::new(
+    &[(
+        Some("uk.tcpip.msc4133"),
+        "/_matrix/client/unstable/uk.tcpip.msc4133/profile/{user_id}/{field}",
+    )],
+    &[(
+        StablePathSelector::Version(MatrixVersion::V1_16),
+        "/_matrix/client/v3/profile/{user_id}/{field}",
+    )],
+    None,
+    None,
+);
+
+#[cfg(test)]
 mod tests {
     use ruma_common::owned_mxc_uri;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};

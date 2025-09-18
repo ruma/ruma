@@ -56,6 +56,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID.
+        #[deprecated = "Use the get_profile_field endpoint instead."]
         pub fn new(user_id: OwnedUserId) -> Self {
             Self { user_id }
         }
