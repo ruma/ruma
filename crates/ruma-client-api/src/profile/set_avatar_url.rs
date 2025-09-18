@@ -5,7 +5,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3profileuseridavatar_url
+    //! [spec]: https://spec.matrix.org/v1.15/client-server-api/#put_matrixclientv3profileuseridavatar_url
 
     use ruma_common::{
         api::{request, response, Metadata},
