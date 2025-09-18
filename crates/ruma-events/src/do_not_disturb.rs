@@ -19,37 +19,37 @@ pub struct DoNotDisturbEventContent {
     ///
     /// As [`DoNotDisturbRoom`] is currently empty, only the room IDs are useful and
     /// can be accessed with the `.keys()` and `into_keys()` iterators.
-    pub rooms: BTreeMap<DoNotDisturbRoomIds, DoNotDisturbRoom>,
+    pub rooms: BTreeMap<DoNotDisturbRoomKey, DoNotDisturbRoom>,
 }
 
 impl DoNotDisturbEventContent {
     /// Creates a new `DoNotDisturbEventContent` from the given map of [`DoNotDisturbRoom`]s.
-    pub fn new(rooms: BTreeMap<DoNotDisturbRoomIds, DoNotDisturbRoom>) -> Self {
+    pub fn new(rooms: BTreeMap<DoNotDisturbRoomKey, DoNotDisturbRoom>) -> Self {
         Self { rooms }
     }
 }
 
-impl FromIterator<DoNotDisturbRoomIds> for DoNotDisturbEventContent {
-    fn from_iter<T: IntoIterator<Item = DoNotDisturbRoomIds>>(iter: T) -> Self {
-        Self::new(iter.into_iter().map(|ids| (ids, DoNotDisturbRoom {})).collect())
+impl FromIterator<DoNotDisturbRoomKey> for DoNotDisturbEventContent {
+    fn from_iter<T: IntoIterator<Item = DoNotDisturbRoomKey>>(iter: T) -> Self {
+        Self::new(iter.into_iter().map(|key| (key, DoNotDisturbRoom {})).collect())
     }
 }
 
 impl FromIterator<OwnedRoomId> for DoNotDisturbEventContent {
     fn from_iter<T: IntoIterator<Item = OwnedRoomId>>(iter: T) -> Self {
-        iter.into_iter().map(DoNotDisturbRoomIds::SingleRoom).collect()
+        iter.into_iter().map(DoNotDisturbRoomKey::SingleRoom).collect()
     }
 }
 
-impl Extend<DoNotDisturbRoomIds> for DoNotDisturbEventContent {
-    fn extend<T: IntoIterator<Item = DoNotDisturbRoomIds>>(&mut self, iter: T) {
-        self.rooms.extend(iter.into_iter().map(|ids| (ids, DoNotDisturbRoom {})));
+impl Extend<DoNotDisturbRoomKey> for DoNotDisturbEventContent {
+    fn extend<T: IntoIterator<Item = DoNotDisturbRoomKey>>(&mut self, iter: T) {
+        self.rooms.extend(iter.into_iter().map(|key| (key, DoNotDisturbRoom {})));
     }
 }
 
 impl Extend<OwnedRoomId> for DoNotDisturbEventContent {
     fn extend<T: IntoIterator<Item = OwnedRoomId>>(&mut self, iter: T) {
-        self.extend(iter.into_iter().map(DoNotDisturbRoomIds::SingleRoom));
+        self.extend(iter.into_iter().map(DoNotDisturbRoomKey::SingleRoom));
     }
 }
 
@@ -58,7 +58,7 @@ impl Extend<OwnedRoomId> for DoNotDisturbEventContent {
 /// This either matches a single room or all rooms.
 #[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub enum DoNotDisturbRoomIds {
+pub enum DoNotDisturbRoomKey {
     /// Match any room.
     #[serde(rename = "*")]
     AllRooms,
@@ -90,7 +90,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::DoNotDisturbEventContent;
-    use crate::{do_not_disturb::DoNotDisturbRoomIds, AnyGlobalAccountDataEvent};
+    use crate::{do_not_disturb::DoNotDisturbRoomKey, AnyGlobalAccountDataEvent};
 
     #[test]
     fn serialization_with_single_room() {
@@ -109,7 +109,7 @@ mod tests {
     #[test]
     fn serialization_with_all_rooms() {
         let do_not_disturb_room_list = DoNotDisturbEventContent::new(BTreeMap::from([(
-            DoNotDisturbRoomIds::AllRooms,
+            DoNotDisturbRoomKey::AllRooms,
             Default::default(),
         )]));
 
@@ -139,7 +139,7 @@ mod tests {
         );
         assert_eq!(
             ev.content.rooms.keys().collect::<Vec<_>>(),
-            vec![&DoNotDisturbRoomIds::SingleRoom(owned_room_id!("!foo:bar.baz"))]
+            vec![&DoNotDisturbRoomKey::SingleRoom(owned_room_id!("!foo:bar.baz"))]
         );
     }
 
@@ -160,7 +160,7 @@ mod tests {
         );
         assert_eq!(
             ev.content.rooms.keys().collect::<Vec<_>>(),
-            vec![&DoNotDisturbRoomIds::AllRooms]
+            vec![&DoNotDisturbRoomKey::AllRooms]
         );
     }
 }
