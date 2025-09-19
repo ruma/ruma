@@ -12,6 +12,8 @@ struct PusherDeHelper {
     device_display_name: String,
     profile_tag: Option<String>,
     lang: String,
+    #[cfg(feature = "unstable-msc4076")]
+    disable_badge_count: bool,
 }
 
 impl<'de> Deserialize<'de> for Pusher {
@@ -21,11 +23,27 @@ impl<'de> Deserialize<'de> for Pusher {
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
 
-        let PusherDeHelper { ids, app_display_name, device_display_name, profile_tag, lang } =
-            from_raw_json_value(&json)?;
+        let PusherDeHelper {
+            ids,
+            app_display_name,
+            device_display_name,
+            profile_tag,
+            lang,
+            #[cfg(feature = "unstable-msc4076")]
+            disable_badge_count,
+        } = from_raw_json_value(&json)?;
         let kind = from_raw_json_value(&json)?;
 
-        Ok(Self { ids, kind, app_display_name, device_display_name, profile_tag, lang })
+        Ok(Self {
+            ids,
+            kind,
+            app_display_name,
+            device_display_name,
+            profile_tag,
+            lang,
+            #[cfg(feature = "unstable-msc4076")]
+            disable_badge_count,
+        })
     }
 }
 
