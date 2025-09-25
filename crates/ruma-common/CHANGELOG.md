@@ -3,6 +3,9 @@
 Improvements:
 
 - Add `MatrixVersion::V1_16`
+- Remove support for the `org.matrix.hydra.11` room version and the
+  corresponding `unstable-hydra` cargo feature. It should only have been used
+  for development, and room version 12 should be used instead.
 
 # 0.16.0
 
