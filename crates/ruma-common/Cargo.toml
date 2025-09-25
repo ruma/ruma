@@ -25,7 +25,6 @@ canonical-json = []
 js = ["dep:js-sys", "getrandom?/js", "uuid?/js"]
 rand = ["dep:rand", "dep:getrandom", "dep:uuid"]
 
-unstable-hydra = []
 unstable-msc2666 = []
 unstable-msc2870 = []
 unstable-msc3768 = []
