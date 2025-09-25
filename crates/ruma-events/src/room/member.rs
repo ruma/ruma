@@ -523,9 +523,14 @@ pub struct RoomMemberUnsigned {
     /// Optional previous content of the event.
     pub prev_content: Option<PossiblyRedactedRoomMemberEventContent>,
 
-    /// State events to assist the receiver in identifying the room.
+    /// Stripped state events to assist the receiver in identifying the room when receiving an
+    /// invite.
     #[serde(default)]
     pub invite_room_state: Vec<Raw<AnyStrippedStateEvent>>,
+
+    /// Stripped state events to assist the receiver in identifying the room after knocking.
+    #[serde(default)]
+    pub knock_room_state: Vec<Raw<AnyStrippedStateEvent>>,
 
     /// [Bundled aggregations] of related child events.
     ///

@@ -9,6 +9,8 @@ Improvements:
 - Add `m.rtc.notification` event support and deprecate the (non MSC conformant)
   `m.call.notify` event.
 - Add `dm.filament.do_not_disturb` account data event as per MSC4359.
+- `RoomMemberUnsigned` has a `knock_room_state` field. This is the equivalent to
+  `invite_room_state` but after a knock rather than an invite.
 
 # 0.31.0
 
