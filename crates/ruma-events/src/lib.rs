@@ -200,7 +200,6 @@ pub mod voice;
 #[cfg(feature = "unstable-msc4354")]
 pub mod sticky;
 
-
 pub use self::{
     content::*,
     enums::*,

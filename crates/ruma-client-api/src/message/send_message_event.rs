@@ -13,10 +13,10 @@ pub mod v3 {
         serde::Raw,
         MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedTransactionId,
     };
-    use ruma_events::{AnyMessageLikeEventContent, MessageLikeEventContent, MessageLikeEventType};
-    use serde_json::value::to_raw_value as to_raw_json_value;
     #[cfg(feature = "unstable-msc4354")]
     use ruma_events::sticky::StickyDurationMs;
+    use ruma_events::{AnyMessageLikeEventContent, MessageLikeEventContent, MessageLikeEventType};
+    use serde_json::value::to_raw_value as to_raw_json_value;
 
     const METADATA: Metadata = metadata! {
         method: PUT,
@@ -133,8 +133,8 @@ pub mod v3 {
             }
         }
 
-        /// Creates a new `Request` for a sticky event with the given room id, transaction id, event type and raw event
-        /// content.
+        /// Creates a new `Request` for a sticky event with the given room id, transaction id, event
+        /// type and raw event content.
         #[cfg(feature = "unstable-msc4354")]
         pub fn new_raw_sticky(
             room_id: OwnedRoomId,

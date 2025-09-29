@@ -143,8 +143,11 @@ pub mod v3 {
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use http::header::{self, HeaderValue};
 
-            let query_string =
-                serde_html_form::to_string(RequestQuery { timestamp: self.timestamp, #[cfg(feature = "unstable-msc4354")] stick_duration_ms: self.stick_duration_ms })?;
+            let query_string = serde_html_form::to_string(RequestQuery {
+                timestamp: self.timestamp,
+                #[cfg(feature = "unstable-msc4354")]
+                stick_duration_ms: self.stick_duration_ms,
+            })?;
 
             let http_request = http::Request::builder()
                 .method(http::Method::PUT)
