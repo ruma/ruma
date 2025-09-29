@@ -56,7 +56,7 @@ unstable-msc4222 = []
 # Thread subscription support.
 unstable-msc4306 = []
 unstable-msc4308 = []
-unstable-msc4354 = ["ruma-events/unstable-msc4354"]
+unstable-msc4354 = []
 
 [dependencies]
 as_variant = { workspace = true }
