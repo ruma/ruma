@@ -15,6 +15,8 @@ pub mod v3 {
         serde::Raw,
         MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
     };
+    #[cfg(feature = "unstable-msc4354")]
+    use ruma_events::sticky::StickyDurationMs;
     use ruma_events::{AnyStateEventContent, StateEventContent, StateEventType};
     use serde_json::value::to_raw_value as to_raw_json_value;
 
@@ -52,6 +54,16 @@ pub mod v3 {
         ///
         /// [timestamp massaging]: https://spec.matrix.org/latest/application-service-api/#timestamp-massaging
         pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
+
+        /// The duration to stick the event for.
+        ///
+        /// Valid values are the integer range 0-3600000 (1 hour)
+        /// The presence of this field indicates that the event should be sticky, this
+        /// will give this event additional delivery guarantees.
+        ///
+        /// See [MSC4354 sticky events](https://github.com/matrix-org/matrix-spec-proposals/pull/4354)
+        #[cfg(feature = "unstable-msc4354")]
+        pub stick_duration_ms: Option<StickyDurationMs>,
     }
 
     impl Request {
@@ -77,6 +89,8 @@ pub mod v3 {
                 event_type: content.event_type(),
                 body: Raw::from_json(to_raw_json_value(content)?),
                 timestamp: None,
+                #[cfg(feature = "unstable-msc4354")]
+                stick_duration_ms: None,
             })
         }
 
@@ -88,7 +102,15 @@ pub mod v3 {
             state_key: String,
             body: Raw<AnyStateEventContent>,
         ) -> Self {
-            Self { room_id, event_type, state_key, body, timestamp: None }
+            Self {
+                room_id,
+                event_type,
+                state_key,
+                body,
+                timestamp: None,
+                #[cfg(feature = "unstable-msc4354")]
+                stick_duration_ms: None,
+            }
         }
     }
 
@@ -122,7 +144,7 @@ pub mod v3 {
             use http::header::{self, HeaderValue};
 
             let query_string =
-                serde_html_form::to_string(RequestQuery { timestamp: self.timestamp })?;
+                serde_html_form::to_string(RequestQuery { timestamp: self.timestamp, #[cfg(feature = "unstable-msc4354")] stick_duration_ms: self.stick_duration_ms })?;
 
             let http_request = http::Request::builder()
                 .method(http::Method::PUT)
@@ -190,7 +212,15 @@ pub mod v3 {
 
             let body = serde_json::from_slice(request.body().as_ref())?;
 
-            Ok(Self { room_id, event_type, state_key, body, timestamp: request_query.timestamp })
+            Ok(Self {
+                room_id,
+                event_type,
+                state_key,
+                body,
+                timestamp: request_query.timestamp,
+                #[cfg(feature = "unstable-msc4354")]
+                stick_duration_ms: request_query.stick_duration_ms,
+            })
         }
     }
 
@@ -202,6 +232,10 @@ pub mod v3 {
         /// Timestamp to use for the `origin_server_ts` of the event.
         #[serde(rename = "ts", skip_serializing_if = "Option::is_none")]
         timestamp: Option<MilliSecondsSinceUnixEpoch>,
+
+        #[cfg(feature = "unstable-msc4354")]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub stick_duration_ms: Option<StickyDurationMs>,
     }
 
     #[cfg(feature = "client")]

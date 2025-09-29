@@ -19,6 +19,8 @@ use super::{
     RedactionDeHelper, RoomAccountDataEventContent, StateEventType, StaticStateEventContent,
     ToDeviceEventContent,
 };
+#[cfg(feature = "unstable-msc4354")]
+use crate::sticky::StickyObject;
 
 /// A global account data event.
 #[derive(Clone, Debug, Event)]
@@ -136,6 +138,12 @@ pub struct OriginalMessageLikeEvent<C: MessageLikeEventContent> {
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: MessageLikeUnsigned<C>,
+
+    #[cfg(feature = "unstable-msc4354")]
+    /// Message events can be annotated with a new top-level sticky object,
+    /// which MUST have a duration_ms, which is the number of milliseconds for the event to be
+    /// sticky.
+    pub sticky: Option<StickyObject>,
 }
 
 impl<C: MessageLikeEventContent> JsonCastable<OriginalSyncMessageLikeEvent<C>>
@@ -179,6 +187,12 @@ pub struct OriginalSyncMessageLikeEvent<C: MessageLikeEventContent> {
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: MessageLikeUnsigned<C>,
+
+    #[cfg(feature = "unstable-msc4354")]
+    /// Message events can be annotated with a new top-level sticky object,
+    /// which MUST have a duration_ms, which is the number of milliseconds for the event to be
+    /// sticky.
+    pub sticky: Option<StickyObject>,
 }
 
 impl<C: MessageLikeEventContent + RedactContent> OriginalSyncMessageLikeEvent<C>

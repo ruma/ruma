@@ -15,6 +15,8 @@ pub mod v3 {
     };
     use ruma_events::{AnyMessageLikeEventContent, MessageLikeEventContent, MessageLikeEventType};
     use serde_json::value::to_raw_value as to_raw_json_value;
+    #[cfg(feature = "unstable-msc4354")]
+    use ruma_events::sticky::StickyDurationMs;
 
     const METADATA: Metadata = metadata! {
         method: PUT,
@@ -63,6 +65,20 @@ pub mod v3 {
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none", rename = "ts")]
         pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
+
+        /// The duration to stick the event for.
+        ///
+        /// Valid values are the integer range 0-3600000 (1 hour)
+        /// The presence of this field indicates that the event should be sticky, this
+        /// will give this event additional delivery guarantees.
+        ///
+        /// Caller must first check that the server supports sticky events (via `/versions`),
+        /// or it will be no-op.
+        ///
+        /// See [MSC4354 sticky events](https://github.com/matrix-org/matrix-spec-proposals/pull/4354)
+        #[cfg(feature = "unstable-msc4354")]
+        #[ruma_api(query)]
+        pub stick_duration_ms: Option<StickyDurationMs>,
     }
 
     /// Response type for the `create_message_event` endpoint.
@@ -93,6 +109,8 @@ pub mod v3 {
                 event_type: content.event_type(),
                 body: Raw::from_json(to_raw_json_value(content)?),
                 timestamp: None,
+                #[cfg(feature = "unstable-msc4354")]
+                stick_duration_ms: None,
             })
         }
 
@@ -104,7 +122,35 @@ pub mod v3 {
             event_type: MessageLikeEventType,
             body: Raw<AnyMessageLikeEventContent>,
         ) -> Self {
-            Self { room_id, event_type, txn_id, body, timestamp: None }
+            Self {
+                room_id,
+                event_type,
+                txn_id,
+                body,
+                timestamp: None,
+                #[cfg(feature = "unstable-msc4354")]
+                stick_duration_ms: None,
+            }
+        }
+
+        /// Creates a new `Request` for a sticky event with the given room id, transaction id, event type and raw event
+        /// content.
+        #[cfg(feature = "unstable-msc4354")]
+        pub fn new_raw_sticky(
+            room_id: OwnedRoomId,
+            txn_id: OwnedTransactionId,
+            event_type: MessageLikeEventType,
+            body: Raw<AnyMessageLikeEventContent>,
+            stick_duration_ms: StickyDurationMs,
+        ) -> Self {
+            Self {
+                room_id,
+                event_type,
+                txn_id,
+                body,
+                timestamp: None,
+                stick_duration_ms: Some(stick_duration_ms),
+            }
         }
     }
 
