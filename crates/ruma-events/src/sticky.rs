@@ -63,7 +63,7 @@ mod tests {
 
     #[test]
     fn new_wrapping_keeps_in_range_values() {
-        let d = StickyDurationMs::new_wrapping(42u32);
+        let d = StickyDurationMs::new_wrapping(42_u32);
         assert_eq!(d.0, 42);
     }
 
