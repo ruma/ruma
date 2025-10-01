@@ -6,7 +6,7 @@
 //! [client-api]: https://spec.matrix.org/latest/client-server-api/
 
 #![cfg(any(feature = "client", feature = "server"))]
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![warn(missing_docs)]
 
 pub mod account;

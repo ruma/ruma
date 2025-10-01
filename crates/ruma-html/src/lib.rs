@@ -15,7 +15,7 @@
 //! [spec]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
 
 #![warn(missing_docs)]
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 pub use html5ever::{tendril::StrTendril, Attribute, LocalName, Namespace, Prefix, QualName};
 

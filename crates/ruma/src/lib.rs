@@ -88,7 +88,7 @@
 //!   `RUMA_UNSTABLE_EXHAUSTIVE_TYPES` environment variable.
 
 #![warn(missing_docs)]
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 #[cfg(feature = "events")]
 #[doc(inline)]
