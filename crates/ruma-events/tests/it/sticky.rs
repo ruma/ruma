@@ -17,7 +17,7 @@ fn deserialize_sticky_event() {
         "room_id": "!roomid:room.com",
         "sender": "@alice:example.com",
         "type": "m.room.message",
-        "sticky": {
+        "msc4354_sticky": {
             "duration_ms": 3600000
         }
     });
@@ -36,7 +36,7 @@ fn deserialize_sticky_event() {
     let content = message_event.content;
     assert_eq!(content.body(), "Hello, but sticky");
 
-    assert!(message_event.sticky.is_some());
+    assert!(message_event.msc4354_sticky.is_some());
 }
 
 #[test]
@@ -51,7 +51,7 @@ fn deserialize_sticky_event_to_high() {
         "room_id": "!roomid:room.com",
         "sender": "@alice:example.com",
         "type": "m.room.message",
-        "sticky": {
+        "msc4354_sticky": {
             "duration_ms": 4600000
         }
     });
@@ -64,9 +64,9 @@ fn deserialize_sticky_event_to_high() {
     let content = message_event.content;
     assert_eq!(content.body(), "Hello, but sticky");
 
-    assert!(message_event.sticky.is_some());
+    assert!(message_event.msc4354_sticky.is_some());
     assert_eq!(
-        message_event.sticky.unwrap().clamped_duration_ms(),
+        message_event.msc4354_sticky.unwrap().clamped_duration_ms(),
         StickyDurationMs::new(3600000).expect("valid duration")
     );
 }
@@ -89,5 +89,5 @@ fn deserialize_sticky_event_default() {
         AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(message_event))
     );
 
-    assert!(message_event.sticky.is_none());
+    assert!(message_event.msc4354_sticky.is_none());
 }

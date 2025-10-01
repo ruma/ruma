@@ -63,7 +63,7 @@ pub mod v3 {
         ///
         /// See [MSC4354 sticky events](https://github.com/matrix-org/matrix-spec-proposals/pull/4354)
         #[cfg(feature = "unstable-msc4354")]
-        pub stick_duration_ms: Option<StickyDurationMs>,
+        pub sticky_duration_ms: Option<StickyDurationMs>,
     }
 
     impl Request {
@@ -90,7 +90,7 @@ pub mod v3 {
                 body: Raw::from_json(to_raw_json_value(content)?),
                 timestamp: None,
                 #[cfg(feature = "unstable-msc4354")]
-                stick_duration_ms: None,
+                sticky_duration_ms: None,
             })
         }
 
@@ -109,7 +109,7 @@ pub mod v3 {
                 body,
                 timestamp: None,
                 #[cfg(feature = "unstable-msc4354")]
-                stick_duration_ms: None,
+                sticky_duration_ms: None,
             }
         }
     }
@@ -146,7 +146,7 @@ pub mod v3 {
             let query_string = serde_html_form::to_string(RequestQuery {
                 timestamp: self.timestamp,
                 #[cfg(feature = "unstable-msc4354")]
-                stick_duration_ms: self.stick_duration_ms,
+                sticky_duration_ms: self.sticky_duration_ms,
             })?;
 
             let http_request = http::Request::builder()
@@ -222,7 +222,7 @@ pub mod v3 {
                 body,
                 timestamp: request_query.timestamp,
                 #[cfg(feature = "unstable-msc4354")]
-                stick_duration_ms: request_query.stick_duration_ms,
+                sticky_duration_ms: request_query.sticky_duration_ms,
             })
         }
     }
@@ -237,8 +237,11 @@ pub mod v3 {
         timestamp: Option<MilliSecondsSinceUnixEpoch>,
 
         #[cfg(feature = "unstable-msc4354")]
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub stick_duration_ms: Option<StickyDurationMs>,
+        #[serde(
+            skip_serializing_if = "Option::is_none",
+            rename = "org.matrix.msc4354.sticky_duration_ms"
+        )]
+        pub sticky_duration_ms: Option<StickyDurationMs>,
     }
 
     #[cfg(feature = "client")]

@@ -144,7 +144,7 @@ pub struct OriginalMessageLikeEvent<C: MessageLikeEventContent> {
     /// Message events can be annotated with a new top-level sticky object,
     /// which MUST have a duration_ms, which is the number of milliseconds for the event to be
     /// sticky.
-    pub sticky: Option<StickyObject>,
+    pub msc4354_sticky: Option<StickyObject>,
 }
 
 impl<C: MessageLikeEventContent> JsonCastable<OriginalSyncMessageLikeEvent<C>>
@@ -194,7 +194,7 @@ pub struct OriginalSyncMessageLikeEvent<C: MessageLikeEventContent> {
     /// which MUST have a duration_ms, which is the number of milliseconds for the event to be
     /// sticky.
     #[ruma_event(default)]
-    pub sticky: Option<StickyObject>,
+    pub msc4354_sticky: Option<StickyObject>,
 }
 
 impl<C: MessageLikeEventContent + RedactContent> OriginalSyncMessageLikeEvent<C>
@@ -385,7 +385,7 @@ pub struct OriginalStateEvent<C: StaticStateEventContent> {
     /// which MUST have a duration_ms, which is the number of milliseconds for the event to be
     /// sticky.
     #[ruma_event(default)]
-    pub sticky: Option<StickyObject>,
+    pub msc4354_sticky: Option<StickyObject>,
 }
 
 impl<C: StaticStateEventContent> JsonCastable<OriginalSyncStateEvent<C>> for OriginalStateEvent<C> {}
@@ -447,7 +447,7 @@ pub struct OriginalSyncStateEvent<C: StaticStateEventContent> {
     /// which MUST have a duration_ms, which is the number of milliseconds for the event to be
     /// sticky.
     #[ruma_event(default)]
-    pub sticky: Option<StickyObject>,
+    pub msc4354_sticky: Option<StickyObject>,
 }
 
 impl<C: StaticStateEventContent + RedactContent> JsonCastable<SyncStateEvent<C>>

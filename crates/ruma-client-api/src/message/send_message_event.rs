@@ -78,7 +78,11 @@ pub mod v3 {
         /// See [MSC4354 sticky events](https://github.com/matrix-org/matrix-spec-proposals/pull/4354)
         #[cfg(feature = "unstable-msc4354")]
         #[ruma_api(query)]
-        pub stick_duration_ms: Option<StickyDurationMs>,
+        #[serde(
+            skip_serializing_if = "Option::is_none",
+            rename = "org.matrix.msc4354.sticky_duration_ms"
+        )]
+        pub sticky_duration_ms: Option<StickyDurationMs>,
     }
 
     /// Response type for the `create_message_event` endpoint.
@@ -110,7 +114,7 @@ pub mod v3 {
                 body: Raw::from_json(to_raw_json_value(content)?),
                 timestamp: None,
                 #[cfg(feature = "unstable-msc4354")]
-                stick_duration_ms: None,
+                sticky_duration_ms: None,
             })
         }
 
@@ -129,7 +133,7 @@ pub mod v3 {
                 body,
                 timestamp: None,
                 #[cfg(feature = "unstable-msc4354")]
-                stick_duration_ms: None,
+                sticky_duration_ms: None,
             }
         }
 
@@ -141,7 +145,7 @@ pub mod v3 {
             txn_id: OwnedTransactionId,
             event_type: MessageLikeEventType,
             body: Raw<AnyMessageLikeEventContent>,
-            stick_duration_ms: StickyDurationMs,
+            sticky_duration_ms: StickyDurationMs,
         ) -> Self {
             Self {
                 room_id,
@@ -149,7 +153,7 @@ pub mod v3 {
                 txn_id,
                 body,
                 timestamp: None,
-                stick_duration_ms: Some(stick_duration_ms),
+                sticky_duration_ms: Some(sticky_duration_ms),
             }
         }
     }
