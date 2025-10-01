@@ -140,6 +140,7 @@ pub struct OriginalMessageLikeEvent<C: MessageLikeEventContent> {
     pub unsigned: MessageLikeUnsigned<C>,
 
     #[cfg(feature = "unstable-msc4354")]
+    #[ruma_event(default)]
     /// Message events can be annotated with a new top-level sticky object,
     /// which MUST have a duration_ms, which is the number of milliseconds for the event to be
     /// sticky.
@@ -192,6 +193,7 @@ pub struct OriginalSyncMessageLikeEvent<C: MessageLikeEventContent> {
     /// Message events can be annotated with a new top-level sticky object,
     /// which MUST have a duration_ms, which is the number of milliseconds for the event to be
     /// sticky.
+    #[ruma_event(default)]
     pub sticky: Option<StickyObject>,
 }
 
@@ -377,6 +379,13 @@ pub struct OriginalStateEvent<C: StaticStateEventContent> {
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: C::Unsigned,
+
+    #[cfg(feature = "unstable-msc4354")]
+    /// Message events can be annotated with a new top-level sticky object,
+    /// which MUST have a duration_ms, which is the number of milliseconds for the event to be
+    /// sticky.
+    #[ruma_event(default)]
+    pub sticky: Option<StickyObject>,
 }
 
 impl<C: StaticStateEventContent> JsonCastable<OriginalSyncStateEvent<C>> for OriginalStateEvent<C> {}
@@ -432,6 +441,13 @@ pub struct OriginalSyncStateEvent<C: StaticStateEventContent> {
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: C::Unsigned,
+
+    #[cfg(feature = "unstable-msc4354")]
+    /// Message events can be annotated with a new top-level sticky object,
+    /// which MUST have a duration_ms, which is the number of milliseconds for the event to be
+    /// sticky.
+    #[ruma_event(default)]
+    pub sticky: Option<StickyObject>,
 }
 
 impl<C: StaticStateEventContent + RedactContent> JsonCastable<SyncStateEvent<C>>
