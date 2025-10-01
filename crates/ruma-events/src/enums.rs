@@ -65,6 +65,9 @@ event_enum! {
         #[cfg(feature = "unstable-msc4278")]
         #[ruma_enum(ident = UnstableMediaPreviewConfig)]
         "io.element.msc4278.media_preview_config" => super::media_preview_config,
+        #[cfg(feature = "unstable-msc3230")]
+        #[ruma_enum(alias = "m.space_order")]
+        "org.matrix.msc3230.space_order" => super::space_order,
     }
 
     /// Any ephemeral room event.
