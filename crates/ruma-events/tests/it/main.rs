@@ -20,6 +20,7 @@ mod relations;
 mod room_message;
 mod state_event;
 mod sticker;
+mod sticky;
 mod stripped;
 mod to_device;
 mod video;
