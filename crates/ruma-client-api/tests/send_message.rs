@@ -26,7 +26,7 @@ fn test_sticky_send_message_request() {
         MessageLikeEventType::RoomMessage,
         Raw::new(&json!({ "body": "Hello" })).unwrap().cast_unchecked(),
     );
-    request.sticky_duration_ms = Some(StickyDurationMs::new_wrapping(123_456_u32));
+    request.sticky_duration_ms = Some(StickyDurationMs::new_clamped(123_456_u32));
     let http_request: http::Request<Vec<u8>> = request
         .try_into_http_request(
             "https://homeserver.tld",
@@ -89,7 +89,7 @@ fn serialize_sticky_state_event() {
     )
     .unwrap();
 
-    req.sticky_duration_ms = Some(StickyDurationMs::new_wrapping(1_000_u32));
+    req.sticky_duration_ms = Some(StickyDurationMs::new_clamped(1_000_u32));
 
     let http_req = req
         .try_into_http_request::<Vec<u8>>(

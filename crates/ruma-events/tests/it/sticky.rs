@@ -6,19 +6,19 @@ use serde_json::{from_value as from_json_value, json};
 
 #[test]
 fn new_wrapping_keeps_in_range_values() {
-    let d = StickyDurationMs::new_wrapping(42_u32);
+    let d = StickyDurationMs::new_clamped(42_u32);
     assert_eq!(d.get(), 42);
 }
 
 #[test]
 fn new_wrapping_clamps_to_max_for_just_over_max() {
-    let d = StickyDurationMs::new_wrapping(3_600_000_u32 + 10_000);
+    let d = StickyDurationMs::new_clamped(3_600_000_u32 + 10_000);
     assert_eq!(d.get(), 3_600_000);
 }
 
 #[test]
 fn new_wrapping_clamps_large_values_to_max() {
-    let d = StickyDurationMs::new_wrapping(u64::MAX);
+    let d = StickyDurationMs::new_clamped(u64::MAX);
     assert_eq!(d.get(), 3_600_000);
 }
 
@@ -84,7 +84,7 @@ fn deserialize_sticky_event_to_high() {
     assert!(message_event.msc4354_sticky.is_some());
     assert_eq!(
         message_event.msc4354_sticky.unwrap().clamped_duration_ms(),
-        StickyDurationMs::new(3_600_000).expect("valid duration")
+        StickyDurationMs::new_clamped(3_600_000_u32)
     );
 }
 #[test]

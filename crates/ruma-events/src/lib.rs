@@ -319,19 +319,8 @@ pub struct StickyDurationMs(u32);
 impl StickyDurationMs {
     const MAX: u32 = 3_600_000;
 
-    /// Creates a new `StickyDurationMs` if `v` is within `[0, 1h]`.
-    ///
-    /// Returns an error if `v` exceeds the maximum.
-    pub fn new(v: u32) -> Result<Self, &'static str> {
-        if v <= Self::MAX {
-            Ok(Self(v))
-        } else {
-            Err("out of range [0, 3_600_000]")
-        }
-    }
-
     /// Creates a `DurationMs` by clamping `v` into `[0, 1h]`.
-    pub fn new_wrapping<T: Into<u64>>(v: T) -> Self {
+    pub fn new_clamped<T: Into<u64>>(v: T) -> Self {
         let v = v.into();
         let clamped = v.min(Self::MAX as u64) as u32;
         Self(clamped)
@@ -364,6 +353,6 @@ pub struct StickyObject {
 impl StickyObject {
     /// Valid values are the integer range 0-3600000 (1 hour)
     pub fn clamped_duration_ms(&self) -> StickyDurationMs {
-        StickyDurationMs::new_wrapping(self.duration_ms)
+        StickyDurationMs::new_clamped(self.duration_ms)
     }
 }
