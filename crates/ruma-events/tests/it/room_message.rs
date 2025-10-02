@@ -313,6 +313,8 @@ fn reply_thread_fallback() {
         room_id: owned_room_id!("!testroomid:example.org"),
         sender: owned_user_id!("@user:example.org"),
         unsigned: MessageLikeUnsigned::default(),
+        #[cfg(feature = "unstable-msc4354")]
+        msc4354_sticky: None,
     };
     let threaded_message = OriginalRoomMessageEvent {
         content: RoomMessageEventContent::text_plain("Threaded message").make_for_thread(
@@ -325,6 +327,8 @@ fn reply_thread_fallback() {
         room_id: owned_room_id!("!testroomid:example.org"),
         sender: owned_user_id!("@user:example.org"),
         unsigned: MessageLikeUnsigned::default(),
+        #[cfg(feature = "unstable-msc4354")]
+        msc4354_sticky: None,
     };
     let reply_as_thread_fallback = RoomMessageEventContent::text_plain(
         "Reply from a thread-incapable client",
@@ -350,6 +354,8 @@ fn reply_thread_serialization_roundtrip() {
         room_id: owned_room_id!("!testroomid:example.org"),
         sender: owned_user_id!("@user:example.org"),
         unsigned: MessageLikeUnsigned::default(),
+        #[cfg(feature = "unstable-msc4354")]
+        msc4354_sticky: None,
     };
     let threaded_message = OriginalRoomMessageEvent {
         content: RoomMessageEventContent::text_plain("Threaded message").make_for_thread(
@@ -362,6 +368,8 @@ fn reply_thread_serialization_roundtrip() {
         room_id: owned_room_id!("!testroomid:example.org"),
         sender: owned_user_id!("@user:example.org"),
         unsigned: MessageLikeUnsigned::default(),
+        #[cfg(feature = "unstable-msc4354")]
+        msc4354_sticky: None,
     };
 
     let reply_as_thread_fallback = RoomMessageEventContent::text_plain(
@@ -398,6 +406,8 @@ fn reply_add_mentions() {
         room_id: owned_room_id!("!testroomid:example.org"),
         sender: user.clone(),
         unsigned: MessageLikeUnsigned::default(),
+        #[cfg(feature = "unstable-msc4354")]
+        msc4354_sticky: None,
     };
     let mut second_message = RoomMessageEventContent::text_plain("User! Other friend!")
         .make_reply_to(&first_message, ForwardThread::Yes, AddMentions::Yes);
