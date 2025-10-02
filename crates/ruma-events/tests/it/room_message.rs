@@ -1,11 +1,10 @@
 use std::borrow::Cow;
 
 use assert_matches2::assert_matches;
-use js_int::uint;
 use ruma_common::{
-    mxc_uri, owned_event_id, owned_room_id, owned_user_id,
+    mxc_uri, owned_user_id,
     serde::{Base64, Raw},
-    user_id, MilliSecondsSinceUnixEpoch, OwnedDeviceId,
+    user_id, OwnedDeviceId,
 };
 #[cfg(feature = "unstable-msc4274")]
 use ruma_events::room::message::{GalleryItemType, GalleryMessageEventContent};
@@ -16,12 +15,12 @@ use ruma_events::{
             AddMentions, AudioMessageEventContent, EmoteMessageEventContent,
             FileMessageEventContent, FormattedBody, ForwardThread, ImageMessageEventContent,
             KeyVerificationRequestEventContent, MessageType, OriginalRoomMessageEvent,
-            OriginalSyncRoomMessageEvent, Relation, ReplyWithinThread, RoomMessageEventContent,
+            OriginalSyncRoomMessageEvent, Relation, RoomMessageEventContent,
             TextMessageEventContent, VideoMessageEventContent,
         },
         EncryptedFileInit, JsonWebKeyInit, MediaSource,
     },
-    Mentions, MessageLikeUnsigned,
+    Mentions,
 };
 use serde_json::{
     from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
@@ -306,26 +305,38 @@ fn content_deserialization_failure() {
 
 #[test]
 fn reply_thread_fallback() {
-    let thread_root = OriginalRoomMessageEvent {
-        content: RoomMessageEventContent::text_plain("Thread root"),
-        event_id: owned_event_id!("$thread_root"),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
-        room_id: owned_room_id!("!testroomid:example.org"),
-        sender: owned_user_id!("@user:example.org"),
-        unsigned: MessageLikeUnsigned::default(),
-    };
-    let threaded_message = OriginalRoomMessageEvent {
-        content: RoomMessageEventContent::text_plain("Threaded message").make_for_thread(
-            &thread_root,
-            ReplyWithinThread::No,
-            AddMentions::No,
-        ),
-        event_id: owned_event_id!("$threaded_message"),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
-        room_id: owned_room_id!("!testroomid:example.org"),
-        sender: owned_user_id!("@user:example.org"),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+    let thread_root = from_json_value::<OriginalRoomMessageEvent>(json!({
+        "content": {
+            "msgtype": "m.text",
+            "body": "Thread root",
+        },
+        "event_id": "$thread_root",
+        "origin_server_ts": 10_000,
+        "room_id": "!testroomid:example.org",
+        "sender": "@user:example.org",
+        "type": "m.room.message",
+    }))
+    .unwrap();
+    let threaded_message = from_json_value::<OriginalRoomMessageEvent>(json!({
+        "content": {
+            "msgtype": "m.text",
+            "body": "Threaded message",
+            "m.relates_to": {
+                "rel_type": "m.thread",
+                "event_id": "$thread_root",
+                "is_falling_back": true,
+                "m.in_reply_to": {
+                    "event_id": "$thread_root",
+                },
+            }
+        },
+        "event_id": "$threaded_message",
+        "origin_server_ts": 10_000,
+        "room_id": "!testroomid:example.org",
+        "sender": "@user:example.org",
+        "type": "m.room.message",
+    }))
+    .unwrap();
     let reply_as_thread_fallback = RoomMessageEventContent::text_plain(
         "Reply from a thread-incapable client",
     )
@@ -343,26 +354,38 @@ fn reply_thread_fallback() {
 
 #[test]
 fn reply_thread_serialization_roundtrip() {
-    let thread_root = OriginalRoomMessageEvent {
-        content: RoomMessageEventContent::text_plain("Thread root"),
-        event_id: owned_event_id!("$thread_root"),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
-        room_id: owned_room_id!("!testroomid:example.org"),
-        sender: owned_user_id!("@user:example.org"),
-        unsigned: MessageLikeUnsigned::default(),
-    };
-    let threaded_message = OriginalRoomMessageEvent {
-        content: RoomMessageEventContent::text_plain("Threaded message").make_for_thread(
-            &thread_root,
-            ReplyWithinThread::No,
-            AddMentions::No,
-        ),
-        event_id: owned_event_id!("$threaded_message"),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
-        room_id: owned_room_id!("!testroomid:example.org"),
-        sender: owned_user_id!("@user:example.org"),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+    let thread_root = from_json_value::<OriginalRoomMessageEvent>(json!({
+        "content": {
+            "msgtype": "m.text",
+            "body": "Thread root",
+        },
+        "event_id": "$thread_root",
+        "origin_server_ts": 10_000,
+        "room_id": "!testroomid:example.org",
+        "sender": "@user:example.org",
+        "type": "m.room.message",
+    }))
+    .unwrap();
+    let threaded_message = from_json_value::<OriginalRoomMessageEvent>(json!({
+        "content": {
+            "msgtype": "m.text",
+            "body": "Threaded message",
+            "m.relates_to": {
+                "rel_type": "m.thread",
+                "event_id": "$thread_root",
+                "is_falling_back": true,
+                "m.in_reply_to": {
+                    "event_id": "$thread_root",
+                },
+            }
+        },
+        "event_id": "$threaded_message",
+        "origin_server_ts": 10_000,
+        "room_id": "!testroomid:example.org",
+        "sender": "@user:example.org",
+        "type": "m.room.message",
+    }))
+    .unwrap();
 
     let reply_as_thread_fallback = RoomMessageEventContent::text_plain(
         "Reply from a thread client",
@@ -389,16 +412,21 @@ fn reply_add_mentions() {
     let friend = owned_user_id!("@friend:example.org");
     let other_friend = owned_user_id!("@other_friend:example.org");
 
-    let mut first_message_content = RoomMessageEventContent::text_plain("My friend!");
-    first_message_content.mentions = Some(Mentions::with_user_ids([friend.clone()]));
-    let first_message = OriginalRoomMessageEvent {
-        content: first_message_content,
-        event_id: owned_event_id!("$143273582443PhrSn"),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(10_000)),
-        room_id: owned_room_id!("!testroomid:example.org"),
-        sender: user.clone(),
-        unsigned: MessageLikeUnsigned::default(),
-    };
+    let first_message = from_json_value::<OriginalRoomMessageEvent>(json!({
+        "content": {
+            "msgtype": "m.text",
+            "body": "My friend!",
+            "m.mentions": {
+                "user_ids": [friend],
+            },
+        },
+        "event_id": "$143273582443PhrSn",
+        "origin_server_ts": 10_000,
+        "room_id": "!testroomid:example.org",
+        "sender": user,
+        "type": "m.room.message",
+    }))
+    .unwrap();
     let mut second_message = RoomMessageEventContent::text_plain("User! Other friend!")
         .make_reply_to(&first_message, ForwardThread::Yes, AddMentions::Yes);
 

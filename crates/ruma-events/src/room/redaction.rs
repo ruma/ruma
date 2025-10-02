@@ -53,7 +53,7 @@ impl JsonCastable<JsonObject> for SyncRoomRedactionEvent {}
 
 /// Redaction event.
 #[derive(Clone, Debug)]
-#[allow(clippy::exhaustive_structs)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct OriginalRoomRedactionEvent {
     /// Data specific to the event type.
     pub content: RoomRedactionEventContent,
@@ -105,7 +105,7 @@ impl JsonCastable<JsonObject> for OriginalRoomRedactionEvent {}
 
 /// Redacted redaction event.
 #[derive(Clone, Debug, Event)]
-#[allow(clippy::exhaustive_structs)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RedactedRoomRedactionEvent {
     /// Data specific to the event type.
     pub content: RedactedRoomRedactionEventContent,
@@ -136,7 +136,7 @@ impl JsonCastable<JsonObject> for RedactedRoomRedactionEvent {}
 
 /// Redaction event without a `room_id`.
 #[derive(Clone, Debug)]
-#[allow(clippy::exhaustive_structs)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct OriginalSyncRoomRedactionEvent {
     /// Data specific to the event type.
     pub content: RoomRedactionEventContent,
@@ -186,7 +186,7 @@ impl JsonCastable<JsonObject> for OriginalSyncRoomRedactionEvent {}
 
 /// Redacted redaction event without a `room_id`.
 #[derive(Clone, Debug, Event)]
-#[allow(clippy::exhaustive_structs)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RedactedSyncRoomRedactionEvent {
     /// Data specific to the event type.
     pub content: RedactedRoomRedactionEventContent,
