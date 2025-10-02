@@ -136,26 +136,6 @@ pub mod v3 {
                 sticky_duration_ms: None,
             }
         }
-
-        /// Creates a new `Request` for a sticky event with the given room id, transaction id, event
-        /// type and raw event content.
-        #[cfg(feature = "unstable-msc4354")]
-        pub fn new_raw_sticky(
-            room_id: OwnedRoomId,
-            txn_id: OwnedTransactionId,
-            event_type: MessageLikeEventType,
-            body: Raw<AnyMessageLikeEventContent>,
-            sticky_duration_ms: StickyDurationMs,
-        ) -> Self {
-            Self {
-                room_id,
-                event_type,
-                txn_id,
-                body,
-                timestamp: None,
-                sticky_duration_ms: Some(sticky_duration_ms),
-            }
-        }
     }
 
     impl Response {
@@ -184,19 +164,20 @@ pub mod v3 {
                 features: Default::default(),
             };
 
-            let http_request: http::Request<Vec<u8>> = Request::new_raw_sticky(
+            let mut request = Request::new_raw(
                 owned_room_id!("!roomid:example.org"),
                 "0000".into(),
                 MessageLikeEventType::RoomMessage,
                 Raw::new(&json!({ "body": "Hello" })).unwrap().cast_unchecked(),
-                StickyDurationMs::new_wrapping(123_456_u32),
-            )
-            .try_into_http_request(
-                "https://homeserver.tld",
-                SendAccessToken::IfRequired("auth_tok"),
-                &supported,
-            )
-            .unwrap();
+            );
+            request.sticky_duration_ms = Some(StickyDurationMs::new_wrapping(123_456_u32));
+            let http_request: http::Request<Vec<u8>> = request
+                .try_into_http_request(
+                    "https://homeserver.tld",
+                    SendAccessToken::IfRequired("auth_tok"),
+                    &supported,
+                )
+                .unwrap();
 
             assert_eq!(
                 http_request.uri().query().unwrap(),
