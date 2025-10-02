@@ -16,7 +16,7 @@ pub mod v3 {
         MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
     };
     #[cfg(feature = "unstable-msc4354")]
-    use ruma_events::sticky::StickyDurationMs;
+    use ruma_events::StickyDurationMs;
     use ruma_events::{AnyStateEventContent, StateEventContent, StateEventType};
     use serde_json::value::to_raw_value as to_raw_json_value;
 

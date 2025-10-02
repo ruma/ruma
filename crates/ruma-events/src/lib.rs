@@ -106,6 +106,7 @@
 
 use std::{collections::BTreeSet, fmt};
 
+use js_int::UInt;
 use ruma_common::{room_version_rules::RedactionRules, EventEncryptionAlgorithm, OwnedUserId};
 use serde::{de::IgnoredAny, Deserialize, Serialize, Serializer};
 
@@ -196,9 +197,6 @@ pub mod typing;
 pub mod video;
 #[cfg(feature = "unstable-msc3245")]
 pub mod voice;
-
-#[cfg(feature = "unstable-msc4354")]
-pub mod sticky;
 
 pub use self::{
     content::*,
@@ -308,5 +306,64 @@ pub struct PrivOwnedStr(Box<str>);
 impl fmt::Debug for PrivOwnedStr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.0.fmt(f)
+    }
+}
+
+/// Sticky duration in milliseconds.
+/// Valid values are the integer range 0-3600000 (1 hour)
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Deserialize, Serialize)]
+#[cfg(feature = "unstable-msc4354")]
+pub struct StickyDurationMs(u32);
+
+#[cfg(feature = "unstable-msc4354")]
+impl StickyDurationMs {
+    const MAX: u32 = 3_600_000;
+
+    /// Creates a new `StickyDurationMs` if `v` is within `[0, 1h]`.
+    ///
+    /// Returns an error if `v` exceeds the maximum.
+    pub fn new(v: u32) -> Result<Self, &'static str> {
+        if v <= Self::MAX {
+            Ok(Self(v))
+        } else {
+            Err("out of range [0, 3_600_000]")
+        }
+    }
+
+    /// Creates a `DurationMs` by clamping `v` into `[0, 1h]`.
+    pub fn new_wrapping<T: Into<u64>>(v: T) -> Self {
+        let v = v.into();
+        let clamped = v.min(Self::MAX as u64) as u32;
+        Self(clamped)
+    }
+
+    /// Get the value as a `u32`.
+    pub fn get(self) -> u32 {
+        self.into()
+    }
+}
+
+#[cfg(feature = "unstable-msc4354")]
+impl From<StickyDurationMs> for u32 {
+    fn from(d: StickyDurationMs) -> Self {
+        d.0
+    }
+}
+
+/// Message events can be annotated with a new top-level sticky object,
+/// which MUST have a duration_ms, which is the number of milliseconds for the event to be
+/// sticky.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg(feature = "unstable-msc4354")]
+pub struct StickyObject {
+    // private, use `capped_duration_ms()`
+    duration_ms: UInt,
+}
+
+#[cfg(feature = "unstable-msc4354")]
+impl StickyObject {
+    /// Valid values are the integer range 0-3600000 (1 hour)
+    pub fn clamped_duration_ms(&self) -> StickyDurationMs {
+        StickyDurationMs::new_wrapping(self.duration_ms)
     }
 }

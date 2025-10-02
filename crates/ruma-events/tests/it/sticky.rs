@@ -1,8 +1,26 @@
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{serde::CanBeEmpty, MilliSecondsSinceUnixEpoch};
-use ruma_events::{sticky::StickyDurationMs, AnyMessageLikeEvent, MessageLikeEvent};
+use ruma_events::{AnyMessageLikeEvent, MessageLikeEvent, StickyDurationMs};
 use serde_json::{from_value as from_json_value, json};
+
+#[test]
+fn new_wrapping_keeps_in_range_values() {
+    let d = StickyDurationMs::new_wrapping(42_u32);
+    assert_eq!(d.get(), 42);
+}
+
+#[test]
+fn new_wrapping_clamps_to_max_for_just_over_max() {
+    let d = StickyDurationMs::new_wrapping(3_600_000_u32 + 10_000);
+    assert_eq!(d.get(), 3_600_000);
+}
+
+#[test]
+fn new_wrapping_clamps_large_values_to_max() {
+    let d = StickyDurationMs::new_wrapping(u64::MAX);
+    assert_eq!(d.get(), 3_600_000);
+}
 
 #[test]
 fn deserialize_sticky_event() {

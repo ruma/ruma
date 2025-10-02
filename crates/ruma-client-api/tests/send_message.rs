@@ -10,7 +10,7 @@ use ruma_common::{
     serde::Raw,
 };
 #[cfg(feature = "unstable-msc4354")]
-use ruma_events::sticky::StickyDurationMs;
+use ruma_events::StickyDurationMs;
 use ruma_events::MessageLikeEventType;
 use serde_json::json;
 

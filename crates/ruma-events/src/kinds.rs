@@ -11,6 +11,8 @@ use ruma_macros::Event;
 use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
+#[cfg(feature = "unstable-msc4354")]
+use super::StickyObject;
 use super::{
     AnyInitialStateEvent, EmptyStateKey, EphemeralRoomEventContent, EventContentFromType,
     GlobalAccountDataEventContent, MessageLikeEventContent, MessageLikeEventType,
@@ -19,8 +21,6 @@ use super::{
     RedactionDeHelper, RoomAccountDataEventContent, StateEventType, StaticStateEventContent,
     ToDeviceEventContent,
 };
-#[cfg(feature = "unstable-msc4354")]
-use crate::sticky::StickyObject;
 
 /// A global account data event.
 #[derive(Clone, Debug, Event)]
