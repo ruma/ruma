@@ -20,6 +20,7 @@ mod relations;
 mod room_message;
 mod state_event;
 mod sticker;
+#[cfg(feature = "unstable-msc4354")]
 mod sticky;
 mod stripped;
 mod to_device;

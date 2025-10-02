@@ -1,4 +1,3 @@
-#[cfg(feature = "unstable-msc4354")]
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{serde::CanBeEmpty, MilliSecondsSinceUnixEpoch};
@@ -18,7 +17,7 @@ fn deserialize_sticky_event() {
         "sender": "@alice:example.com",
         "type": "m.room.message",
         "msc4354_sticky": {
-            "duration_ms": 3600000
+            "duration_ms": 3_600_000
         }
     });
 
@@ -52,7 +51,7 @@ fn deserialize_sticky_event_to_high() {
         "sender": "@alice:example.com",
         "type": "m.room.message",
         "msc4354_sticky": {
-            "duration_ms": 4600000
+            "duration_ms": 4_600_000
         }
     });
 
@@ -67,7 +66,7 @@ fn deserialize_sticky_event_to_high() {
     assert!(message_event.msc4354_sticky.is_some());
     assert_eq!(
         message_event.msc4354_sticky.unwrap().clamped_duration_ms(),
-        StickyDurationMs::new(3600000).expect("valid duration")
+        StickyDurationMs::new(3_600_000).expect("valid duration")
     );
 }
 #[test]
