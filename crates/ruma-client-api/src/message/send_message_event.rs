@@ -189,7 +189,7 @@ pub mod v3 {
                 "0000".into(),
                 MessageLikeEventType::RoomMessage,
                 Raw::new(&json!({ "body": "Hello" })).unwrap().cast_unchecked(),
-                StickyDurationMs::new_wrapping(123456u32),
+                StickyDurationMs::new_wrapping(123_456_u32),
             )
             .try_into_http_request(
                 "https://homeserver.tld",
@@ -201,7 +201,7 @@ pub mod v3 {
             assert_eq!(
                 http_request.uri().query().unwrap(),
                 "org.matrix.msc4354.sticky_duration_ms=123456"
-            )
+            );
         }
     }
 }

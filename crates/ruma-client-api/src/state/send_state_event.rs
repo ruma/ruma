@@ -300,7 +300,7 @@ pub mod v3 {
         )
         .unwrap();
 
-        req.sticky_duration_ms = Some(StickyDurationMs::new_wrapping(1_000u32));
+        req.sticky_duration_ms = Some(StickyDurationMs::new_wrapping(1_000_u32));
 
         let http_req = req
             .try_into_http_request::<Vec<u8>>(
