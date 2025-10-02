@@ -87,6 +87,7 @@ fn deserialize_sticky_event_to_high() {
         StickyDurationMs::new_clamped(3_600_000_u32)
     );
 }
+
 #[test]
 fn deserialize_sticky_event_default() {
     let json_data = json!({
