@@ -89,7 +89,7 @@ pub struct EphemeralRoomEvent<C: EphemeralRoomEventContent> {
 
 impl<C: EphemeralRoomEventContent> EphemeralRoomEvent<C> {
     /// Construct a new `EphemeralRoomEvent` with the given content and room ID.
-    pub fn new(content: C, room_id: OwnedRoomId) -> Self {
+    pub fn new(room_id: OwnedRoomId, content: C) -> Self {
         Self { content, room_id }
     }
 }
@@ -530,7 +530,7 @@ impl<C: StaticStateEventContent> InitialStateEvent<C> {
     ///
     /// For cases where the state key is empty,
     /// [`with_empty_state_key()`](Self::with_empty_state_key) can be used instead.
-    pub fn new(content: C, state_key: C::StateKey) -> Self {
+    pub fn new(state_key: C::StateKey, content: C) -> Self {
         Self { content, state_key }
     }
 
@@ -541,7 +541,7 @@ impl<C: StaticStateEventContent> InitialStateEvent<C> {
     where
         C: StaticStateEventContent<StateKey = EmptyStateKey>,
     {
-        Self::new(content, EmptyStateKey)
+        Self::new(EmptyStateKey, content)
     }
 
     /// Shorthand for `Raw::new(self).unwrap()`.
@@ -764,7 +764,7 @@ pub struct ToDeviceEvent<C: ToDeviceEventContent> {
 
 impl<C: ToDeviceEventContent> ToDeviceEvent<C> {
     /// Construct a new `ToDeviceEvent` with the given content and sender.
-    pub fn new(content: C, sender: OwnedUserId) -> Self {
+    pub fn new(sender: OwnedUserId, content: C) -> Self {
         Self { content, sender }
     }
 }
