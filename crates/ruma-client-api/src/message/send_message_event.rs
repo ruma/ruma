@@ -164,4 +164,44 @@ pub mod v3 {
             Self { event_id }
         }
     }
+
+    #[cfg(test)]
+    mod tests {
+
+        #[test]
+        #[cfg(feature = "unstable-msc4354")]
+        fn test_sticky_request() {
+            use ruma_common::{
+                api::{MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions},
+                owned_room_id,
+            };
+            use serde_json::json;
+
+            use super::*;
+
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: Default::default(),
+            };
+
+            let http_request: http::Request<Vec<u8>> = Request::new_raw_sticky(
+                owned_room_id!("!roomid:example.org"),
+                "0000".into(),
+                MessageLikeEventType::RoomMessage,
+                Raw::new(&json!({ "body": "Hello" })).unwrap().cast_unchecked(),
+                StickyDurationMs::new_wrapping(123456u32),
+            )
+            .try_into_http_request(
+                "https://homeserver.tld",
+                SendAccessToken::IfRequired("auth_tok"),
+                &supported,
+            )
+            .unwrap();
+
+            assert_eq!(
+                http_request.uri().query().unwrap(),
+                "org.matrix.msc4354.sticky_duration_ms=123456"
+            )
+        }
+    }
 }
