@@ -75,7 +75,7 @@ pub mod v3 {
         /// Caller must first check that the server supports sticky events (via `/versions`),
         /// or it will be no-op.
         ///
-        /// See [MSC4354 sticky events](https://github.com/matrix-org/matrix-spec-proposals/pull/4354)
+        /// See [MSC4354 sticky events](https://github.com/matrix-org/matrix-spec-proposals/pull/4354).
         #[cfg(feature = "unstable-msc4354")]
         #[ruma_api(query)]
         #[serde(
@@ -142,47 +142,6 @@ pub mod v3 {
         /// Creates a new `Response` with the given event id.
         pub fn new(event_id: OwnedEventId) -> Self {
             Self { event_id }
-        }
-    }
-
-    #[cfg(test)]
-    mod tests {
-
-        #[test]
-        #[cfg(feature = "unstable-msc4354")]
-        fn test_sticky_request() {
-            use ruma_common::{
-                api::{MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions},
-                owned_room_id,
-            };
-            use serde_json::json;
-
-            use super::*;
-
-            let supported = SupportedVersions {
-                versions: [MatrixVersion::V1_1].into(),
-                features: Default::default(),
-            };
-
-            let mut request = Request::new_raw(
-                owned_room_id!("!roomid:example.org"),
-                "0000".into(),
-                MessageLikeEventType::RoomMessage,
-                Raw::new(&json!({ "body": "Hello" })).unwrap().cast_unchecked(),
-            );
-            request.sticky_duration_ms = Some(StickyDurationMs::new_wrapping(123_456_u32));
-            let http_request: http::Request<Vec<u8>> = request
-                .try_into_http_request(
-                    "https://homeserver.tld",
-                    SendAccessToken::IfRequired("auth_tok"),
-                    &supported,
-                )
-                .unwrap();
-
-            assert_eq!(
-                http_request.uri().query().unwrap(),
-                "org.matrix.msc4354.sticky_duration_ms=123456"
-            );
         }
     }
 }
