@@ -6,6 +6,8 @@ Breaking changes:
 
 Improvements:
 
+- Add support for the room account data `m.space_order` event which powers top 
+  level space ordering as per [MSC3230](https://github.com/matrix-org/matrix-spec-proposals/pull/3230).
 - Add `m.rtc.notification` event support and deprecate the (non MSC conformant)
   `m.call.notify` event.
 - Add `dm.filament.do_not_disturb` account data event as per MSC4359.
