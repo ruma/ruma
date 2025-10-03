@@ -157,6 +157,21 @@ fn expand_deserialize_event(
         .collect::<syn::Result<_>>()?;
 
     let field_names: Vec<_> = fields.iter().map(ParsedEventField::name).collect();
+    let field_error_handlers = fields
+        .iter()
+        .map(|field| {
+            if field.default_on_error {
+                quote! {
+                    .map_err(|error| {
+                        tracing::debug!("deserialization error, using default value: {error}");
+                    })
+                    .unwrap_or_default()
+                }
+            } else {
+                quote! { ? }
+            }
+        })
+        .collect::<Vec<_>>();
 
     let deserialize_impl_gen = if is_generic {
         let gen = &input.generics.params;
@@ -241,7 +256,7 @@ fn expand_deserialize_event(
                                                 #serialized_field_names,
                                             ));
                                         }
-                                        #field_names = Some(map.next_value()?);
+                                        #field_names = Some(map.next_value() #field_error_handlers);
                                     }
                                 )*
                             }
