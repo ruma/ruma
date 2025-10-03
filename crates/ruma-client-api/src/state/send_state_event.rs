@@ -61,7 +61,7 @@ pub mod v3 {
         /// The presence of this field indicates that the event should be sticky, this
         /// will give this event additional delivery guarantees.
         ///
-        /// See [MSC4354 sticky events](https://github.com/matrix-org/matrix-spec-proposals/pull/4354)
+        /// See [MSC4354 sticky events](https://github.com/matrix-org/matrix-spec-proposals/pull/4354).
         #[cfg(feature = "unstable-msc4354")]
         pub sticky_duration_ms: Option<StickyDurationMs>,
     }
