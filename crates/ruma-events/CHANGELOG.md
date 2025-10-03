@@ -3,6 +3,15 @@
 Breaking changes:
 
 - Upgrade `js_option` to v0.2.0
+- The following structs are now marked as non-exhaustive:
+  `GlobalAccountDataEvent`, `RoomAccountDataEvent`, `(Sync)EphemeralRoomEvent`,
+  `Original(Sync)MessageLikeEvent`, `Redacted(Sync)MessageLikeEvent`,
+  `Original(Sync)StateEvent`, `Redacted(Sync)StateEvent`, `StrippedStateEvent`,
+  `Original(Sync)RoomRedactionEvent`, `Redacted(Sync)RoomRedactionEvent`,
+  `InitialStateEvent`, `ToDeviceEvent`,  `DecryptedMegolmV1Event`, `OlmV1Keys`.
+   Some of them can only be constructed through deserialization.
+   - `InitialStateEvent::new()` takes a `state_key`. For events with an empty
+     state key, `InitialStateEvent::with_empty_state_key()` can be used instead.
 
 Improvements:
 

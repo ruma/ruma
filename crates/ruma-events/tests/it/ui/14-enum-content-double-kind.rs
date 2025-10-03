@@ -39,10 +39,8 @@ fn main() {
     );
 
     // Both event type aliases are created, and they work with the enum variants.
-    let _ = AnyGlobalAccountDataEvent::MacroTest(event::GlobalMacroTestEvent {
-        content: content.clone(),
-    });
-    let _ = AnyRoomAccountDataEvent::MacroTest(event::RoomMacroTestEvent { content });
+    let _ = AnyGlobalAccountDataEvent::MacroTest(event::GlobalMacroTestEvent::new(content.clone()));
+    let _ = AnyRoomAccountDataEvent::MacroTest(event::RoomMacroTestEvent::new(content));
 
     // Both event type enums variants are created.
     assert_eq!(GlobalAccountDataEventType::MacroTest.to_string(), "m.macro.test");
