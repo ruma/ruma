@@ -12,6 +12,7 @@ Breaking changes:
    Some of them can only be constructed through deserialization.
    - `InitialStateEvent::new()` takes a `state_key`. For events with an empty
      state key, `InitialStateEvent::with_empty_state_key()` can be used instead.
+- Remove the deprecated `RoomMessageEventContent::set_mentions()`.
 
 Improvements:
 

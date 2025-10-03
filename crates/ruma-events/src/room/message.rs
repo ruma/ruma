@@ -92,8 +92,8 @@ pub struct RoomMessageEventContent {
     /// The [mentions] of this event.
     ///
     /// This should always be set to avoid triggering the legacy mention push rules. It is
-    /// recommended to use [`Self::set_mentions()`] to set this field, that will take care of
-    /// populating the fields correctly if this is a replacement.
+    /// recommended to set this field before calling a method that adds a relation, as they
+    /// take care of setting the mentions correctly.
     ///
     /// [mentions]: https://spec.matrix.org/latest/client-server-api/#user-and-room-mentions
     #[serde(rename = "m.mentions", skip_serializing_if = "Option::is_none")]
@@ -216,48 +216,6 @@ impl RoomMessageEventContent {
     #[track_caller]
     pub fn make_replacement(self, metadata: impl Into<ReplacementMetadata>) -> Self {
         self.without_relation().make_replacement(metadata)
-    }
-
-    /// Set the [mentions] of this event.
-    ///
-    /// If this event is a replacement, it will update the mentions both in the `content` and the
-    /// `m.new_content` so only new mentions will trigger a notification. As such, this needs to be
-    /// called after [`Self::make_replacement()`].
-    ///
-    /// It is not recommended to call this method after one that sets mentions automatically, like
-    /// [`Self::make_reply_to()`] as these will be overwritten. [`Self::add_mentions()`] should be
-    /// used instead.
-    ///
-    /// [mentions]: https://spec.matrix.org/latest/client-server-api/#user-and-room-mentions
-    #[deprecated = "Call add_mentions before adding the relation instead."]
-    pub fn set_mentions(mut self, mentions: Mentions) -> Self {
-        if let Some(Relation::Replacement(replacement)) = &mut self.relates_to {
-            let old_mentions = &replacement.new_content.mentions;
-
-            let new_mentions = if let Some(old_mentions) = old_mentions {
-                let mut new_mentions = Mentions::new();
-
-                new_mentions.user_ids = mentions
-                    .user_ids
-                    .iter()
-                    .filter(|u| !old_mentions.user_ids.contains(*u))
-                    .cloned()
-                    .collect();
-
-                new_mentions.room = mentions.room && !old_mentions.room;
-
-                new_mentions
-            } else {
-                mentions.clone()
-            };
-
-            replacement.new_content.mentions = Some(mentions);
-            self.mentions = Some(new_mentions);
-        } else {
-            self.mentions = Some(mentions);
-        }
-
-        self
     }
 
     /// Add the given [mentions] to this event.

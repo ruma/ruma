@@ -954,19 +954,6 @@ fn video_msgtype_deserialization() {
 }
 
 #[test]
-#[allow(deprecated)]
-fn set_mentions() {
-    let mut content = RoomMessageEventContent::text_plain("you!");
-    let mentions = content.mentions.take();
-    assert_matches!(mentions, None);
-
-    let user_id = owned_user_id!("@you:localhost");
-    content = content.set_mentions(Mentions::with_user_ids(vec![user_id.clone()]));
-    let mentions = content.mentions.unwrap();
-    assert_eq!(mentions.user_ids, [user_id].into());
-}
-
-#[test]
 fn add_mentions_then_make_replacement() {
     let alice = owned_user_id!("@alice:localhost");
     let bob = owned_user_id!("@bob:localhost");
