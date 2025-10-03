@@ -106,6 +106,7 @@
 
 use std::{collections::BTreeSet, fmt};
 
+#[cfg(feature = "unstable-msc4354")]
 use js_int::UInt;
 use ruma_common::{room_version_rules::RedactionRules, EventEncryptionAlgorithm, OwnedUserId};
 use serde::{de::IgnoredAny, Deserialize, Serialize, Serializer};
@@ -317,7 +318,8 @@ pub struct StickyDurationMs(u32);
 
 #[cfg(feature = "unstable-msc4354")]
 impl StickyDurationMs {
-    const MAX: u32 = 3_600_000;
+    /// The maximum possible sticky duration in millis (1 hour).
+    pub const MAX: u32 = 3_600_000;
 
     /// Creates a `DurationMs` by clamping `v` into `[0, 1h]`.
     pub fn new_clamped<T: Into<u64>>(v: T) -> Self {
@@ -342,17 +344,64 @@ impl From<StickyDurationMs> for u32 {
 /// Message events can be annotated with a new top-level sticky object,
 /// which MUST have a duration_ms, which is the number of milliseconds for the event to be
 /// sticky.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug)]
 #[cfg(feature = "unstable-msc4354")]
-pub struct StickyObject {
-    // private, use `capped_duration_ms()`
+#[non_exhaustive]
+pub enum StickyObject {
+    /// A valid sticky duration within the allowed range (0 to 1 hour).
+    Valid(StickyDurationMs),
+    /// An invalid sticky duration outside the allowed range.
+    OutOfRange(UInt),
+}
+
+#[derive(Deserialize, Serialize)]
+#[cfg(feature = "unstable-msc4354")]
+struct StickyDeHelper {
     duration_ms: UInt,
 }
 
 #[cfg(feature = "unstable-msc4354")]
+impl<'de> Deserialize<'de> for StickyObject {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let helper = StickyDeHelper::deserialize(deserializer)?;
+        let sticky_object = if helper.duration_ms <= StickyDurationMs::MAX.into() {
+            Self::Valid(StickyDurationMs::new_clamped(helper.duration_ms))
+        } else {
+            Self::OutOfRange(helper.duration_ms)
+        };
+
+        Ok(sticky_object)
+    }
+}
+
+#[cfg(feature = "unstable-msc4354")]
+impl Serialize for StickyObject {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            Self::Valid(duration) => {
+                StickyDeHelper { duration_ms: duration.get().into() }.serialize(serializer)
+            }
+            Self::OutOfRange(out_of_range) => {
+                StickyDeHelper { duration_ms: *out_of_range }.serialize(serializer)
+            }
+        }
+    }
+}
+
+#[cfg(feature = "unstable-msc4354")]
 impl StickyObject {
-    /// Valid values are the integer range 0-3600000 (1 hour).
-    pub fn clamped_duration_ms(&self) -> StickyDurationMs {
-        StickyDurationMs::new_clamped(self.duration_ms)
+    /// Returns the sticky duration if the sticky event is valid.
+    /// Returns `None` if the sticky property is invalid (out of range).
+    pub fn sticky_duration(&self) -> Option<StickyDurationMs> {
+        match self {
+            StickyObject::Valid(duration) => Some(*duration),
+            StickyObject::OutOfRange(_) => None,
+        }
     }
 }
