@@ -57,7 +57,7 @@ pub mod v3 {
 
         /// The duration to stick the event for.
         ///
-        /// Valid values are the integer range 0-3600000 (1 hour)
+        /// Valid values are the integer range 0-3600000 (1 hour).
         /// The presence of this field indicates that the event should be sticky, this
         /// will give this event additional delivery guarantees.
         ///

@@ -310,7 +310,7 @@ impl fmt::Debug for PrivOwnedStr {
 }
 
 /// Sticky duration in milliseconds.
-/// Valid values are the integer range 0-3600000 (1 hour)
+/// Valid values are the integer range 0-3600000 (1 hour).
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Deserialize, Serialize)]
 #[cfg(feature = "unstable-msc4354")]
 pub struct StickyDurationMs(u32);
@@ -351,7 +351,7 @@ pub struct StickyObject {
 
 #[cfg(feature = "unstable-msc4354")]
 impl StickyObject {
-    /// Valid values are the integer range 0-3600000 (1 hour)
+    /// Valid values are the integer range 0-3600000 (1 hour).
     pub fn clamped_duration_ms(&self) -> StickyDurationMs {
         StickyDurationMs::new_clamped(self.duration_ms)
     }
