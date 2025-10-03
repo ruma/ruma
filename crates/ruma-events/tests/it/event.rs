@@ -232,3 +232,62 @@ fn alias_attribute() {
         assert!(event.flag);
     }
 }
+
+#[test]
+fn default_on_error_attribute() {
+    let json_with_boolean_flag = json!({
+        "content": {
+            "tag": TAG,
+        },
+        "type": "m.macro.test",
+        "flag": true,
+    });
+    let json_with_string_flag = json!({
+        "content": {
+            "tag": TAG,
+        },
+        "type": "m.macro.test",
+        "flag": "true",
+    });
+
+    // Event with propagated error.
+    {
+        #[derive(Clone, Debug, Event)]
+        struct GlobalAccountDataEvent<C: GlobalAccountDataEventContent> {
+            content: C,
+            flag: bool,
+        }
+
+        let event = from_json_value::<GlobalAccountDataEvent<MacroTestContent>>(
+            json_with_boolean_flag.clone(),
+        )
+        .unwrap();
+        assert_eq!(event.content.tag, TAG);
+        assert!(event.flag);
+
+        from_json_value::<GlobalAccountDataEvent<MacroTestContent>>(json_with_string_flag.clone())
+            .unwrap_err();
+    }
+
+    // Event with ignored error.
+    {
+        #[derive(Clone, Debug, Event)]
+        struct GlobalAccountDataEvent<C: GlobalAccountDataEventContent> {
+            content: C,
+            #[ruma_event(default_on_error)]
+            flag: bool,
+        }
+
+        let event =
+            from_json_value::<GlobalAccountDataEvent<MacroTestContent>>(json_with_boolean_flag)
+                .unwrap();
+        assert_eq!(event.content.tag, TAG);
+        assert!(event.flag);
+
+        let event =
+            from_json_value::<GlobalAccountDataEvent<MacroTestContent>>(json_with_string_flag)
+                .unwrap();
+        assert_eq!(event.content.tag, TAG);
+        assert!(!event.flag);
+    }
+}
