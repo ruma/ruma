@@ -1,6 +1,6 @@
 //! Parsing helpers specific to the `Event` derive macro.
 
-use syn::{Field, Ident, Type};
+use syn::{Field, Ident, LitStr, Type};
 
 use crate::events::enums::{EventKind, EventVariation};
 
@@ -57,6 +57,11 @@ pub(super) struct ParsedEventField {
 
     /// Whether this field should deserialize to the default value if it is missing.
     pub(super) default: bool,
+
+    /// The name to use when (de)serializing this field.
+    ///
+    /// If this is not set, the name of the field will be used.
+    pub(super) rename: Option<LitStr>,
 }
 
 impl ParsedEventField {
@@ -65,7 +70,7 @@ impl ParsedEventField {
     /// Returns an error if an unknown `ruma_event` attribute is encountered, or if an attribute
     /// that accepts a single value appears several times.
     pub(super) fn parse(inner: Field) -> Result<Self, syn::Error> {
-        let mut parsed = Self { inner, default: false };
+        let mut parsed = Self { inner, default: false, rename: None };
 
         for attr in &parsed.inner.attrs {
             if !attr.path().is_ident("ruma_event") {
@@ -80,6 +85,14 @@ impl ParsedEventField {
                         parsed.default = true;
                         Ok(())
                     }
+                } else if meta.path.is_ident("rename") {
+                    if parsed.rename.is_some() {
+                        Err(meta.error("duplicate `rename` attribute"))
+                    } else {
+                        let value = meta.value()?;
+                        parsed.rename = Some(value.parse()?);
+                        Ok(())
+                    }
                 } else {
                     Err(meta.error("unsupported attribute, only `default` is supported"))
                 }
@@ -92,6 +105,14 @@ impl ParsedEventField {
     /// The name of this field.
     pub(super) fn name(&self) -> &Ident {
         self.inner.ident.as_ref().unwrap()
+    }
+
+    /// The name of this field in its serialized form.
+    pub(super) fn serialized_name(&self) -> LitStr {
+        self.rename.clone().unwrap_or_else(|| {
+            let name = self.name();
+            LitStr::new(&name.to_string(), name.span())
+        })
     }
 
     /// The type of this field.

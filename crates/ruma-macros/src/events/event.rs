@@ -80,6 +80,16 @@ fn expand_deserialize_event(
     let is_generic = !input.generics.params.is_empty();
 
     let enum_variants: Vec<_> = fields.iter().map(|field| to_camel_case(field.name())).collect();
+    let enum_variants_serde_attributes = fields
+        .iter()
+        .map(|field| {
+            field.rename.as_ref().map(|rename| {
+                quote! { #[serde(rename = #rename)]}
+            })
+        })
+        .collect::<Vec<_>>();
+    let serialized_field_names =
+        fields.iter().map(ParsedEventField::serialized_name).collect::<Vec<_>>();
 
     let deserialize_var_types: Vec<_> = fields
         .iter()
@@ -102,7 +112,8 @@ fn expand_deserialize_event(
 
     let ok_or_else_fields: Vec<_> = fields
         .iter()
-        .map(|field| {
+        .zip(&serialized_field_names)
+        .map(|(field, serialized_name)| {
             let name = field.name();
 
             Ok(if name == "content" && is_generic {
@@ -128,7 +139,7 @@ fn expand_deserialize_event(
             } else {
                 quote! {
                     let #name = #name.ok_or_else(|| {
-                        #serde::de::Error::missing_field(stringify!(#name))
+                        #serde::de::Error::missing_field(#serialized_name)
                     })?;
                 }
             })
@@ -173,7 +184,7 @@ fn expand_deserialize_event(
                     // since this is represented as an enum we have to add it so the JSON picks it
                     // up
                     Type,
-                    #( #enum_variants, )*
+                    #( #enum_variants_serde_attributes #enum_variants, )*
                     #[serde(other)]
                     Unknown,
                 }
@@ -217,7 +228,7 @@ fn expand_deserialize_event(
                                     Field::#enum_variants => {
                                         if #field_names.is_some() {
                                             return Err(#serde::de::Error::duplicate_field(
-                                                stringify!(#field_names),
+                                                #serialized_field_names,
                                             ));
                                         }
                                         #field_names = Some(map.next_value()?);
