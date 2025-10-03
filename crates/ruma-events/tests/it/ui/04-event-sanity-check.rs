@@ -14,7 +14,7 @@ pub struct OriginalStateEvent<C: StaticStateEventContent> {
     pub unsigned: C::Unsigned,
     #[ruma_event(default)]
     pub custom_flag: bool,
-    #[ruma_event(rename = "unstable_name")]
+    #[ruma_event(rename = "unstable_name", alias = "stable_name")]
     pub renamed_field: String,
 }
 
