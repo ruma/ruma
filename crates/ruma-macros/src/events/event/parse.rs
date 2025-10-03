@@ -62,6 +62,9 @@ pub(super) struct ParsedEventField {
     ///
     /// If this is not set, the name of the field will be used.
     pub(super) rename: Option<LitStr>,
+
+    /// The alternate names to recognize when deserializing this field.
+    pub(super) aliases: Vec<LitStr>,
 }
 
 impl ParsedEventField {
@@ -70,7 +73,7 @@ impl ParsedEventField {
     /// Returns an error if an unknown `ruma_event` attribute is encountered, or if an attribute
     /// that accepts a single value appears several times.
     pub(super) fn parse(inner: Field) -> Result<Self, syn::Error> {
-        let mut parsed = Self { inner, default: false, rename: None };
+        let mut parsed = Self { inner, default: false, rename: None, aliases: Vec::new() };
 
         for attr in &parsed.inner.attrs {
             if !attr.path().is_ident("ruma_event") {
@@ -93,6 +96,10 @@ impl ParsedEventField {
                         parsed.rename = Some(value.parse()?);
                         Ok(())
                     }
+                } else if meta.path.is_ident("alias") {
+                    let value = meta.value()?;
+                    parsed.aliases.push(value.parse()?);
+                    Ok(())
                 } else {
                     Err(meta.error("unsupported attribute, only `default` is supported"))
                 }

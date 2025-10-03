@@ -83,8 +83,18 @@ fn expand_deserialize_event(
     let enum_variants_serde_attributes = fields
         .iter()
         .map(|field| {
-            field.rename.as_ref().map(|rename| {
-                quote! { #[serde(rename = #rename)]}
+            let mut attrs = Vec::new();
+
+            if let Some(rename) = &field.rename {
+                attrs.push(quote! { rename = #rename });
+            }
+
+            attrs.extend(field.aliases.iter().map(|alias| {
+                quote! { alias = #alias }
+            }));
+
+            (!attrs.is_empty()).then(|| {
+                quote! { #[serde(#( #attrs, )*)] }
             })
         })
         .collect::<Vec<_>>();
