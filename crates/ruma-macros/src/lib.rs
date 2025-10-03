@@ -413,6 +413,12 @@ pub fn derive_event_content(input: TokenStream) -> TokenStream {
 ///
 /// If the field is missing, its `Default` implementation is used.
 ///
+/// ### `default_on_error`
+///
+/// If an error occurs during deserialization of the value of this field, its `Default`
+/// implementation is used. The error is logged with the [tracing] crate at the debug level, which
+/// means that it must be a dependency of the crate where the macro is used.
+///
 /// ### `rename = "serialized_name"`
 ///
 /// Use a different name when the field is serialized. The name is used both during serialization
@@ -425,6 +431,8 @@ pub fn derive_event_content(input: TokenStream) -> TokenStream {
 ///
 /// You can use `cargo doc` to find out more details, its `--document-private-items` flag also lets
 /// you generate documentation for binaries or private parts of a library.
+///
+/// [tracing]: https://crates.io/crates/tracing
 #[proc_macro_derive(Event, attributes(ruma_event))]
 pub fn derive_event(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);

@@ -58,6 +58,10 @@ pub(super) struct ParsedEventField {
     /// Whether this field should deserialize to the default value if it is missing.
     pub(super) default: bool,
 
+    /// Whether this field should deserialize to the default value if an error occurs during
+    /// deserialization.
+    pub(super) default_on_error: bool,
+
     /// The name to use when (de)serializing this field.
     ///
     /// If this is not set, the name of the field will be used.
@@ -73,7 +77,13 @@ impl ParsedEventField {
     /// Returns an error if an unknown `ruma_event` attribute is encountered, or if an attribute
     /// that accepts a single value appears several times.
     pub(super) fn parse(inner: Field) -> Result<Self, syn::Error> {
-        let mut parsed = Self { inner, default: false, rename: None, aliases: Vec::new() };
+        let mut parsed = Self {
+            inner,
+            default: false,
+            default_on_error: false,
+            rename: None,
+            aliases: Vec::new(),
+        };
 
         for attr in &parsed.inner.attrs {
             if !attr.path().is_ident("ruma_event") {
@@ -86,6 +96,13 @@ impl ParsedEventField {
                         Err(meta.error("duplicate `default` attribute"))
                     } else {
                         parsed.default = true;
+                        Ok(())
+                    }
+                } else if meta.path.is_ident("default_on_error") {
+                    if parsed.default_on_error {
+                        Err(meta.error("duplicate `default_on_error` attribute"))
+                    } else {
+                        parsed.default_on_error = true;
                         Ok(())
                     }
                 } else if meta.path.is_ident("rename") {
