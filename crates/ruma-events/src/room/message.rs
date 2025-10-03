@@ -94,7 +94,7 @@ pub struct RoomMessageEventContent {
     /// This should always be set to avoid triggering the legacy mention push rules. It is
     /// recommended to modify this field only before calling a method that adds a relation. For
     /// example, [`make_replacement()`](Self::make_replacement) needs to know all the mentions
-    /// beforehand to avoid re-triggering notifications for users that were already mentionned in
+    /// beforehand to avoid re-triggering notifications for users that were already mentioned in
     /// the original event.
     ///
     /// [mentions]: https://spec.matrix.org/latest/client-server-api/#user-and-room-mentions
