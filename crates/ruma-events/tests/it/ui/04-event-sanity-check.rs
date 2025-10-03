@@ -12,6 +12,10 @@ pub struct OriginalStateEvent<C: StaticStateEventContent> {
     pub room_id: OwnedRoomId,
     pub state_key: C::StateKey,
     pub unsigned: C::Unsigned,
+    #[ruma_event(default, default_on_error)]
+    pub custom_flag: bool,
+    #[ruma_event(rename = "unstable_name", alias = "stable_name")]
+    pub renamed_field: String,
 }
 
 fn main() {}

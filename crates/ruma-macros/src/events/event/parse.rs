@@ -1,6 +1,6 @@
 //! Parsing helpers specific to the `Event` derive macro.
 
-use syn::{Field, Ident};
+use syn::{Field, Ident, LitStr, Type};
 
 use crate::events::enums::{EventKind, EventVariation};
 
@@ -50,34 +50,96 @@ pub(super) fn parse_event_struct_ident_to_kind_variation(
     }
 }
 
-pub(super) trait EventFieldExt {
-    /// Whether the given field as the `#[ruma_event(default)]` attribute.
-    fn has_default_attr(&self) -> Result<bool, syn::Error>;
+/// The parsed field of a struct with an `Event` derive macro.
+pub(super) struct ParsedEventField {
+    /// The parsed field.
+    inner: Field,
+
+    /// Whether this field should deserialize to the default value if it is missing.
+    pub(super) default: bool,
+
+    /// Whether this field should deserialize to the default value if an error occurs during
+    /// deserialization.
+    pub(super) default_on_error: bool,
+
+    /// The name to use when (de)serializing this field.
+    ///
+    /// If this is not set, the name of the field will be used.
+    pub(super) rename: Option<LitStr>,
+
+    /// The alternate names to recognize when deserializing this field.
+    pub(super) aliases: Vec<LitStr>,
 }
 
-impl EventFieldExt for Field {
-    fn has_default_attr(&self) -> Result<bool, syn::Error> {
-        for attr in &self.attrs {
+impl ParsedEventField {
+    /// Parse the given field to construct an `EventField`.
+    ///
+    /// Returns an error if the `ruma_event` attributes are not
+    pub(super) fn parse(inner: Field) -> Result<Self, syn::Error> {
+        let mut parsed = Self {
+            inner,
+            default: false,
+            default_on_error: false,
+            rename: None,
+            aliases: Vec::new(),
+        };
+
+        for attr in &parsed.inner.attrs {
             if !attr.path().is_ident("ruma_event") {
                 continue;
             }
 
-            let mut has_default = false;
-
             attr.parse_nested_meta(|meta| {
                 if meta.path.is_ident("default") {
-                    has_default = true;
-                    return Ok(());
+                    if parsed.default {
+                        Err(meta.error("duplicate `default` attribute"))
+                    } else {
+                        parsed.default = true;
+                        Ok(())
+                    }
+                } else if meta.path.is_ident("default_on_error") {
+                    if parsed.default_on_error {
+                        Err(meta.error("duplicate `default_on_error` attribute"))
+                    } else {
+                        parsed.default_on_error = true;
+                        Ok(())
+                    }
+                } else if meta.path.is_ident("rename") {
+                    if parsed.rename.is_some() {
+                        Err(meta.error("duplicate `rename` attribute"))
+                    } else {
+                        let value = meta.value()?;
+                        parsed.rename = Some(value.parse()?);
+                        Ok(())
+                    }
+                } else if meta.path.is_ident("alias") {
+                    let value = meta.value()?;
+                    parsed.aliases.push(value.parse()?);
+                    Ok(())
+                } else {
+                    Err(meta.error("unsupported attribute, only `default` is supported"))
                 }
-
-                Err(meta.error("unsupported attribute, only `default` is supported"))
             })?;
-
-            if has_default {
-                return Ok(true);
-            }
         }
 
-        Ok(false)
+        Ok(parsed)
+    }
+
+    /// The name of this field.
+    pub(super) fn name(&self) -> &Ident {
+        self.inner.ident.as_ref().unwrap()
+    }
+
+    /// The name of this field in its serialized form.
+    pub(super) fn serialized_name(&self) -> LitStr {
+        self.rename.clone().unwrap_or_else(|| {
+            let name = self.name();
+            LitStr::new(&name.to_string(), name.span())
+        })
+    }
+
+    /// The type of this field.
+    pub(super) fn ty(&self) -> &Type {
+        &self.inner.ty
     }
 }
