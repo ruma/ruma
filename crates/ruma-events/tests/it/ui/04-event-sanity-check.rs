@@ -12,6 +12,8 @@ pub struct OriginalStateEvent<C: StaticStateEventContent> {
     pub room_id: OwnedRoomId,
     pub state_key: C::StateKey,
     pub unsigned: C::Unsigned,
+    #[ruma_event(default)]
+    pub custom_flag: bool,
 }
 
 fn main() {}
