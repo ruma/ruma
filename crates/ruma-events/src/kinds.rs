@@ -490,19 +490,16 @@ pub struct StrippedStateEvent<C: PossiblyRedactedStateEventContent> {
     /// the same tuple replaces the previous one.
     pub state_key: C::StateKey,
 
-    /// The globally unique identifier for the event.
-    ///
-    /// This field is usually stripped, but some events might include it.
-    #[cfg(feature = "unstable-msc4319")]
-    #[ruma_event(default)]
-    pub event_id: Option<OwnedEventId>,
-
     /// Timestamp on the originating homeserver when this event was sent.
     ///
     /// This field is usually stripped, but some events might include it.
     #[cfg(feature = "unstable-msc4319")]
     #[ruma_event(default)]
     pub origin_server_ts: Option<MilliSecondsSinceUnixEpoch>,
+
+    /// Additional key-value pairs not signed by the homeserver.
+    #[cfg(feature = "unstable-msc4319")]
+    pub unsigned: Option<Raw<crate::StateUnsigned<C>>>,
 }
 
 impl<C: PossiblyRedactedStateEventContent> JsonCastable<JsonObject> for StrippedStateEvent<C> {}
