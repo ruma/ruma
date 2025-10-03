@@ -1,6 +1,6 @@
 //! Parsing helpers specific to the `Event` derive macro.
 
-use syn::{Field, Ident};
+use syn::{Field, Ident, Type};
 
 use crate::events::enums::{EventKind, EventVariation};
 
@@ -50,34 +50,52 @@ pub(super) fn parse_event_struct_ident_to_kind_variation(
     }
 }
 
-pub(super) trait EventFieldExt {
-    /// Whether the given field as the `#[ruma_event(default)]` attribute.
-    fn has_default_attr(&self) -> Result<bool, syn::Error>;
+/// The parsed field of a struct with an `Event` derive macro.
+pub(super) struct ParsedEventField {
+    /// The parsed field.
+    inner: Field,
+
+    /// Whether this field should deserialize to the default value if it is missing.
+    pub(super) default: bool,
 }
 
-impl EventFieldExt for Field {
-    fn has_default_attr(&self) -> Result<bool, syn::Error> {
-        for attr in &self.attrs {
+impl ParsedEventField {
+    /// Parse the given field to construct a `ParsedEventField`.
+    ///
+    /// Returns an error if an unknown `ruma_event` attribute is encountered, or if an attribute
+    /// that accepts a single value appears several times.
+    pub(super) fn parse(inner: Field) -> Result<Self, syn::Error> {
+        let mut parsed = Self { inner, default: false };
+
+        for attr in &parsed.inner.attrs {
             if !attr.path().is_ident("ruma_event") {
                 continue;
             }
 
-            let mut has_default = false;
-
             attr.parse_nested_meta(|meta| {
                 if meta.path.is_ident("default") {
-                    has_default = true;
-                    return Ok(());
+                    if parsed.default {
+                        Err(meta.error("duplicate `default` attribute"))
+                    } else {
+                        parsed.default = true;
+                        Ok(())
+                    }
+                } else {
+                    Err(meta.error("unsupported attribute, only `default` is supported"))
                 }
-
-                Err(meta.error("unsupported attribute, only `default` is supported"))
             })?;
-
-            if has_default {
-                return Ok(true);
-            }
         }
 
-        Ok(false)
+        Ok(parsed)
+    }
+
+    /// The name of this field.
+    pub(super) fn name(&self) -> &Ident {
+        self.inner.ident.as_ref().unwrap()
+    }
+
+    /// The type of this field.
+    pub(super) fn ty(&self) -> &Type {
+        &self.inner.ty
     }
 }
