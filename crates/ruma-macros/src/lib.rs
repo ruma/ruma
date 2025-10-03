@@ -418,6 +418,11 @@ pub fn derive_event_content(input: TokenStream) -> TokenStream {
 /// Use a different name when the field is serialized. The name is used both during serialization
 /// and deserialization.
 ///
+/// ### `alias = "alt_name"`
+///
+/// Allow a different name for the field during deserialization. This can be used several times for
+/// different aliases.
+///
 /// You can use `cargo doc` to find out more details, its `--document-private-items` flag also lets
 /// you generate documentation for binaries or private parts of a library.
 #[proc_macro_derive(Event, attributes(ruma_event))]

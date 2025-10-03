@@ -132,3 +132,103 @@ fn rename_attribute() {
         assert!(event.flag);
     }
 }
+
+#[test]
+fn alias_attribute() {
+    let json_with_flag = json!({
+        "content": {
+            "tag": TAG,
+        },
+        "type": "m.macro.test",
+        "flag": true,
+    });
+    let json_with_unstable_flag = json!({
+        "content": {
+            "tag": TAG,
+        },
+        "type": "m.macro.test",
+        "unstable_flag": true,
+    });
+    let json_with_alt_flag = json!({
+        "content": {
+            "tag": TAG,
+        },
+        "type": "m.macro.test",
+        "alt_flag": true,
+    });
+
+    // Event with field not renamed and no alias.
+    {
+        #[derive(Clone, Debug, Event)]
+        struct GlobalAccountDataEvent<C: GlobalAccountDataEventContent> {
+            content: C,
+            flag: bool,
+        }
+
+        let event =
+            from_json_value::<GlobalAccountDataEvent<MacroTestContent>>(json_with_flag.clone())
+                .unwrap();
+        assert_eq!(event.content.tag, TAG);
+        assert!(event.flag);
+
+        from_json_value::<GlobalAccountDataEvent<MacroTestContent>>(
+            json_with_unstable_flag.clone(),
+        )
+        .unwrap_err();
+
+        from_json_value::<GlobalAccountDataEvent<MacroTestContent>>(json_with_alt_flag.clone())
+            .unwrap_err();
+    }
+
+    // Event with field not renamed and aliases.
+    {
+        #[derive(Clone, Debug, Event)]
+        struct GlobalAccountDataEvent<C: GlobalAccountDataEventContent> {
+            content: C,
+            #[ruma_event(alias = "unstable_flag", alias = "alt_flag")]
+            flag: bool,
+        }
+
+        let event =
+            from_json_value::<GlobalAccountDataEvent<MacroTestContent>>(json_with_flag.clone())
+                .unwrap();
+        assert_eq!(event.content.tag, TAG);
+        assert!(event.flag);
+
+        let event = from_json_value::<GlobalAccountDataEvent<MacroTestContent>>(
+            json_with_unstable_flag.clone(),
+        )
+        .unwrap();
+        assert_eq!(event.content.tag, TAG);
+        assert!(event.flag);
+
+        let event =
+            from_json_value::<GlobalAccountDataEvent<MacroTestContent>>(json_with_alt_flag.clone())
+                .unwrap();
+        assert_eq!(event.content.tag, TAG);
+        assert!(event.flag);
+    }
+
+    // Event with field renamed and alias.
+    {
+        #[derive(Clone, Debug, Event)]
+        struct GlobalAccountDataEvent<C: GlobalAccountDataEventContent> {
+            content: C,
+            #[ruma_event(rename = "unstable_flag", alias = "alt_flag")]
+            flag: bool,
+        }
+
+        from_json_value::<GlobalAccountDataEvent<MacroTestContent>>(json_with_flag).unwrap_err();
+
+        let event =
+            from_json_value::<GlobalAccountDataEvent<MacroTestContent>>(json_with_unstable_flag)
+                .unwrap();
+        assert_eq!(event.content.tag, TAG);
+        assert!(event.flag);
+
+        let event = from_json_value::<GlobalAccountDataEvent<MacroTestContent>>(json_with_alt_flag)
+            .unwrap();
+        assert_eq!(event.content.tag, TAG);
+        assert!(event.flag);
+    }
+}
