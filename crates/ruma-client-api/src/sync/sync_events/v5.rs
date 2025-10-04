@@ -14,6 +14,7 @@ use js_option::JsOption;
 use ruma_common::{
     api::{request, response, Metadata},
     metadata,
+    presence::PresenceState,
     serde::{duration::opt_ms, Raw},
     OwnedMxcUri, OwnedRoomId, OwnedUserId,
 };
@@ -69,6 +70,13 @@ pub struct Request {
     #[serde(with = "opt_ms", default, skip_serializing_if = "Option::is_none")]
     #[ruma_api(query)]
     pub timeout: Option<Duration>,
+
+    /// Controls whether the client is automatically marked as online by polling this API.
+    ///
+    /// Defaults to `PresenceState::Online`.
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+    #[ruma_api(query)]
+    pub set_presence: PresenceState,
 
     /// Lists of rooms we are interested by, represented by ranges.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
