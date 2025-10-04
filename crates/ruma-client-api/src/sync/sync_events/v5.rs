@@ -104,6 +104,7 @@ impl Request {
 /// HTTP types related to a [`Request`].
 pub mod request {
     use ruma_common::{directory::RoomTypeFilter, serde::deserialize_cow_str, RoomId};
+    use ruma_events::tag::TagName;
     use serde::de::Error as _;
 
     use super::{BTreeMap, Deserialize, OwnedRoomId, Serialize, StateEventType, UInt};
@@ -158,6 +159,27 @@ pub mod request {
         /// `not_room_types` wins and the corresponding rooms are not included.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
         pub not_room_types: Vec<RoomTypeFilter>,
+
+        /// Filter a room based on its room tags.
+        ///
+        /// If multiple tags are present, a room can match any of the tags.
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        pub tags: Vec<TagName>,
+
+        /// Filter a room based on its room tags.
+        ///
+        /// Takes priority over `tags`. If a tag is listed in both `tags` and `not_tags`,
+        /// `not_tags` wins and the corresponding rooms are not included.
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        pub not_tags: Vec<TagName>,
+
+        /// Filter a room based on the space it belongs to according to m.space.child events.
+        ///
+        /// If multiple spaces are present, a room can be part of any one of the listed spaces. The
+        /// server will not navigate subspaces. The client must give a complete list of spaces to
+        /// navigate.
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        pub spaces: Vec<OwnedRoomId>,
     }
 
     /// Sliding sync request room subscription (see [`super::Request::room_subscriptions`]).
