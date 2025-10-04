@@ -64,6 +64,7 @@ impl Response {
         quote! {
             #[automatically_derived]
             #[cfg(feature = "server")]
+            #[allow(deprecated)]
             impl #ruma_common::api::OutgoingResponse for Response {
                 fn try_into_http_response<T: ::std::default::Default + #bytes::BufMut>(
                     self,

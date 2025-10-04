@@ -123,7 +123,7 @@ pub fn cfg_expand_struct(item: &mut syn::ItemStruct) {
     struct CfgAttrExpand;
 
     impl VisitMut for CfgAttrExpand {
-        fn visit_attribute_mut(&mut self, attr: &mut syn::Attribute) {
+        fn visit_attribute_mut(&mut self, attr: &mut Attribute) {
             if attr.meta.path().is_ident("cfg_attr") {
                 // Ignore invalid cfg attributes
                 let Meta::List(list) = &attr.meta else { return };

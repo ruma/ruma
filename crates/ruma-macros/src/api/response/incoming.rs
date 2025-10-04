@@ -119,6 +119,7 @@ impl Response {
         quote! {
             #[automatically_derived]
             #[cfg(feature = "client")]
+            #[allow(deprecated)]
             impl #ruma_common::api::IncomingResponse for Response {
                 type EndpointError = #error_ty;
 
