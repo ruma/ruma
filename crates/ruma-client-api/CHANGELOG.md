@@ -45,6 +45,8 @@ Breaking changes:
   be added using `.set()`, or the `FromIterator` and `Extend` implementations.
 - Replace `MembershipEventFilter` with `MembershipState` in `get_member_events`, since both enums
   should always be identical.
+- Add `set_presence` field to `sync_events::v5::Request` as per MSC4186; specified identically
+  to the field appearing in prior sync versions.
 
 Improvements:
 
