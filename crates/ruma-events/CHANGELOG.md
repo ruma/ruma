@@ -13,6 +13,9 @@ Breaking changes:
    - `InitialStateEvent::new()` takes a `state_key`. For events with an empty
      state key, `InitialStateEvent::with_empty_state_key()` can be used instead.
 - Remove the deprecated `RoomMessageEventContent::set_mentions()`.
+- The `Ord` and `PartialOrd` implementations of the `*EventType` enums are now
+  ordered using the string representations of the variants. It used to be
+  ordered using the variants declaration order.
 
 Improvements:
 
