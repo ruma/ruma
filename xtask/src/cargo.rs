@@ -34,7 +34,6 @@ pub struct Package {
     pub dependencies: Vec<Dependency>,
 
     /// A map of the package features.
-    #[serde(default)]
     pub features: HashMap<String, Vec<String>>,
 }
 
@@ -70,6 +69,21 @@ impl Package {
         }
 
         false
+    }
+
+    /// The list of features beginning with the given prefix for this package.
+    fn features_with_prefix(&self, prefix: &'static str) -> impl Iterator<Item = &str> {
+        self.features.keys().filter(move |feature| feature.starts_with(prefix)).map(String::as_str)
+    }
+
+    /// The list of features beginning with the `unstable-` prefix for this package.
+    pub fn unstable_features(&self) -> impl Iterator<Item = &str> {
+        self.features_with_prefix("unstable-")
+    }
+
+    /// The list of features beginning with the `compat-` prefix for this package.
+    pub fn compat_features(&self) -> impl Iterator<Item = &str> {
+        self.features_with_prefix("compat-")
     }
 }
 
