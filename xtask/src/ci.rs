@@ -220,7 +220,7 @@ impl CiTask {
 
     /// Run tests on all crates with almost all features with the stable version.
     fn test_all(&self) -> Result<()> {
-        let features = RumaFeatures::All.to_string(&self.project_metadata)?;
+        let features = self.project_metadata.ruma_features(RumaFeatures::All)?;
 
         cmd!(&self.sh, "rustup run stable cargo test --tests --features {features}")
             .run()
@@ -230,7 +230,7 @@ impl CiTask {
     /// Run tests on all crates with almost all features and the compat features with the stable
     /// version.
     fn test_compat(&self) -> Result<()> {
-        let features = RumaFeatures::Compat.to_string(&self.project_metadata)?;
+        let features = self.project_metadata.ruma_features(RumaFeatures::Compat)?;
 
         cmd!(&self.sh, "rustup run stable cargo test --tests --features {features}")
             .run()
@@ -239,7 +239,7 @@ impl CiTask {
 
     /// Run doctests on all crates with almost all features with the stable version.
     fn test_doc(&self) -> Result<()> {
-        let features = RumaFeatures::All.to_string(&self.project_metadata)?;
+        let features = self.project_metadata.ruma_features(RumaFeatures::All)?;
 
         cmd!(&self.sh, "rustup run stable cargo test --doc --features {features}")
             .run()
@@ -319,7 +319,7 @@ impl CiTask {
 
     /// Lint ruma with clippy with the nightly version and wasm target.
     fn clippy_wasm(&self) -> Result<()> {
-        let features = RumaFeatures::Wasm.to_string(&self.project_metadata)?;
+        let features = self.project_metadata.ruma_features(RumaFeatures::Wasm)?;
 
         cmd!(
             &self.sh,
@@ -335,7 +335,7 @@ impl CiTask {
 
     /// Lint almost all features with clippy with the nightly version.
     fn clippy_all(&self) -> Result<()> {
-        let features = RumaFeatures::Compat.to_string(&self.project_metadata)?;
+        let features = self.project_metadata.ruma_features(RumaFeatures::Compat)?;
 
         cmd!(
             &self.sh,
@@ -426,26 +426,26 @@ enum RumaFeatures {
     Wasm,
 }
 
-impl RumaFeatures {
-    /// Get the features from the given project metadata as a string.
+impl Metadata {
+    /// Get the ruma features from this project metadata as a string.
     ///
     /// Returns a list of comma-separated features.
     ///
     /// Errors if the ruma package cannot be found in the project metadata.
-    fn to_string(self, project_metadata: &Metadata) -> Result<String> {
-        let Some(ruma_package) = project_metadata.find_package("ruma") else {
+    fn ruma_features(&self, ruma_features: RumaFeatures) -> Result<String> {
+        let Some(ruma_package) = self.find_package("ruma") else {
             return Err("Could not find ruma package in project metadata".into());
         };
 
         let mut features = ruma_package.unstable_features().collect::<Vec<_>>();
 
-        match self {
-            Self::All => features.push("full"),
-            Self::Compat => {
+        match ruma_features {
+            RumaFeatures::All => features.push("full"),
+            RumaFeatures::Compat => {
                 features.extend(ruma_package.compat_features());
                 features.push("full");
             }
-            Self::Wasm => {
+            RumaFeatures::Wasm => {
                 features.extend([
                     "api",
                     "canonical-json",
