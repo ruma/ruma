@@ -6,7 +6,7 @@ use std::path::Path;
 use clap::{Args, Subcommand};
 use xshell::Shell;
 
-use crate::{bench::BenchPackage, cmd, Metadata, Result, NIGHTLY};
+use crate::{bench::BenchPackage, cargo::FeatureFilter, cmd, Metadata, Result, NIGHTLY};
 
 mod reexport_features;
 mod spec_links;
@@ -440,15 +440,19 @@ impl Metadata {
             return Err("Could not find ruma package in project metadata".into());
         };
 
-        let mut features = ruma_package.unstable_features().collect::<Vec<_>>();
-
-        match ruma_features {
-            RumaFeatures::All => features.push("full"),
-            RumaFeatures::Compat => {
-                features.extend(ruma_package.compat_features());
+        let features = match ruma_features {
+            RumaFeatures::All => {
+                let mut features = ruma_package.filtered_features(FeatureFilter::Unstable);
                 features.push("full");
+                features
+            }
+            RumaFeatures::Compat => {
+                let mut features = ruma_package.filtered_features(FeatureFilter::UnstableAndCompat);
+                features.push("full");
+                features
             }
             RumaFeatures::Wasm => {
+                let mut features = ruma_package.filtered_features(FeatureFilter::Unstable);
                 features.extend([
                     "api",
                     "canonical-json",
@@ -461,8 +465,9 @@ impl Metadata {
                     "rand",
                     "signatures",
                 ]);
+                features
             }
-        }
+        };
 
         Ok(features.join(","))
     }
