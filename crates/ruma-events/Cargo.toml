@@ -78,6 +78,9 @@ compat-lax-room-create-deser = []
 # deserialization fails.
 compat-lax-room-topic-deser = []
 
+# Private feature used for benchmarks.
+__criterion = ["dep:criterion"]
+
 [dependencies]
 as_variant = { workspace = true }
 indexmap = { version = "2.0.0", features = ["serde"] }
@@ -113,7 +116,7 @@ trybuild = "1.0.71"
 [[bench]]
 name = "event_deserialize"
 harness = false
-required-features = ["criterion"]
+required-features = ["__criterion"]
 
 [lints]
 workspace = true

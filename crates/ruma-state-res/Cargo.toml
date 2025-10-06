@@ -14,6 +14,10 @@ rust-version = { workspace = true }
 [package.metadata.docs.rs]
 all-features = true
 
+[features]
+# Private feature used for benchmarks.
+__criterion = ["dep:criterion"]
+
 [dependencies]
 js_int = { workspace = true }
 ruma-common = { workspace = true, features = ["canonical-json"] }
@@ -38,7 +42,7 @@ test-log = { version = "0.2", default-features = false, features = ["trace"] }
 [[bench]]
 name = "state_res_bench"
 harness = false
-required-features = ["criterion"]
+required-features = ["__criterion"]
 
 [lints]
 workspace = true

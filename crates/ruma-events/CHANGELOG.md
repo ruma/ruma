@@ -16,6 +16,8 @@ Breaking changes:
 - The `Ord` and `PartialOrd` implementations of the `*EventType` enums are now
   ordered using the string representations of the variants. It used to be
   ordered using the variants declaration order.
+- The `criterion` cargo feature used for benchmarks was renamed to `__criterion`,
+  to make it obvious that it is private.
 
 Improvements:
 
