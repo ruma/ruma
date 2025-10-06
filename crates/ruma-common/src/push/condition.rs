@@ -1,6 +1,6 @@
 use std::{collections::BTreeMap, ops::RangeBounds, str::FromStr};
 #[cfg(feature = "unstable-msc4306")]
-use std::{future::Future, pin::Pin, sync::Arc};
+use std::{future::Future, panic::RefUnwindSafe, pin::Pin, sync::Arc};
 
 use js_int::{Int, UInt};
 use regex::bytes::Regex;
@@ -296,10 +296,11 @@ type HasThreadSubscriptionFuture<'a> = Pin<Box<dyn Future<Output = bool> + 'a>>;
 
 #[cfg(all(feature = "unstable-msc4306", not(target_family = "wasm")))]
 type HasThreadSubscriptionFn =
-    dyn for<'a> Fn(&'a EventId) -> HasThreadSubscriptionFuture<'a> + Send + Sync;
+    dyn for<'a> Fn(&'a EventId) -> HasThreadSubscriptionFuture<'a> + Send + Sync + RefUnwindSafe;
 
 #[cfg(all(feature = "unstable-msc4306", target_family = "wasm"))]
-type HasThreadSubscriptionFn = dyn for<'a> Fn(&'a EventId) -> HasThreadSubscriptionFuture<'a>;
+type HasThreadSubscriptionFn =
+    dyn for<'a> Fn(&'a EventId) -> HasThreadSubscriptionFuture<'a> + RefUnwindSafe;
 
 impl std::fmt::Debug for PushConditionRoomCtx {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -351,9 +352,11 @@ impl PushConditionRoomCtx {
         has_thread_subscription_fn: impl for<'a> Fn(&'a EventId) -> HasThreadSubscriptionFuture<'a>
             + Send
             + Sync
+            + RefUnwindSafe
             + 'static,
         #[cfg(target_family = "wasm")]
         has_thread_subscription_fn: impl for<'a> Fn(&'a EventId) -> HasThreadSubscriptionFuture<'a>
+            + RefUnwindSafe
             + 'static,
     ) -> Self {
         Self { has_thread_subscription_fn: Some(Arc::new(has_thread_subscription_fn)), ..self }
