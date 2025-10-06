@@ -213,9 +213,12 @@ impl CiTask {
     fn stable_benches(&self) -> Result<()> {
         let packages = BenchPackage::ALL_PACKAGES_ARGS;
 
-        cmd!(&self.sh, "rustup run stable cargo check {packages...} --benches --features criterion")
-            .run()
-            .map_err(Into::into)
+        cmd!(
+            &self.sh,
+            "rustup run stable cargo check {packages...} --benches --features __criterion"
+        )
+        .run()
+        .map_err(Into::into)
     }
 
     /// Run tests on all crates with almost all features with the stable version.
@@ -356,7 +359,7 @@ impl CiTask {
             &self.sh,
             "
             rustup run {NIGHTLY} cargo clippy {packages...}
-                --benches --features criterion -- -D warnings
+                --benches --features __criterion -- -D warnings
             "
         )
         .run()

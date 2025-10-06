@@ -43,7 +43,7 @@ impl BenchTask {
         };
 
         let sh = Shell::new()?;
-        cmd!(sh, "rustup run stable cargo bench {packages...} --features criterion")
+        cmd!(sh, "rustup run stable cargo bench {packages...} --features __criterion")
             .run()
             .map_err(Into::into)
     }
