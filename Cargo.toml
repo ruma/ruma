@@ -82,6 +82,10 @@ wildcard_imports = "warn"
 # Not that good of a lint
 new_without_default = "allow"
 
+[workspace.metadata.cargo-semver-checks.lints]
+# Triggers false positives
+partial_ord_enum_variants_reordered = "allow"
+
 [profile.dev]
 # Speeds up test times by more than 10% in a simple test
 # Set to 1 or 2 if you want to use a debugger in this workspace
