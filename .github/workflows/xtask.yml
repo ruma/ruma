@@ -1,0 +1,30 @@
+name: xtask
+
+on:
+  workflow_call:
+
+# Make sure that xtask is built only once per CI run if needed.
+concurrency:
+  group: xtask-${{ github.ref }}
+
+jobs:
+  xtask:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5
+
+      - name: Check xtask cache
+        uses: actions/cache@v4
+        id: xtask-cache
+        with:
+          path: target/debug/xtask
+          key: xtask-${{ hashFiles('Cargo.toml', 'xtask/src/**', 'xtask/Cargo.toml') }}
+
+      - name: Install rust stable toolchain
+        if: steps.xtask-cache.outputs.cache-hit != 'true'
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build
+        if: steps.xtask-cache.outputs.cache-hit != 'true'
+        run: cargo build -p xtask

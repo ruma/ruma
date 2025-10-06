@@ -51,7 +51,7 @@ jobs:
             ruma-state-res:
               - 'crates/ruma-state-res/**'
 
-  semver:
+  breaking-changes:
     name: Breaking Changes
     runs-on: ubuntu-latest
     needs: changes
@@ -103,19 +103,69 @@ jobs:
           echo "EOF" >> "$GITHUB_OUTPUT"
 
   artifact:
-    name: Artifact
+    name: Breaking Changes Artifact
     runs-on: ubuntu-latest
-    needs: [changes, semver]
+    needs: [changes, breaking-changes]
     if: ${{ always() }}
     steps:
       - name: Build artifact
         env:
-          SEMVER_RESULTS: ${{ toJSON(needs.semver.outputs) }}
+          BREAKING_CHANGES_RESULTS: ${{ toJSON(needs.breaking-changes.outputs) }}
         run: |
-          echo "$SEMVER_RESULTS" >> semver-results.json
+          echo "$BREAKING_CHANGES_RESULTS" >> breaking-changes-results.json
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: semver-results
-          path: semver-results.json
+          name: breaking-changes-results
+          path: breaking-changes-results.json
+
+  xtask:
+    needs: changes
+    if: ${{ needs.changes.outputs.crates != '[]' }}
+    uses: ./.github/workflows/xtask.yml
+
+  additive-features:
+    name: Additive Features
+    runs-on: ubuntu-latest
+    needs: [changes, xtask]
+    if: ${{ needs.changes.outputs.crates != '[]' }}
+    outputs:
+      ruma: ${{ steps.checks.outputs.ruma }}
+      ruma-appservice-api: ${{ steps.checks.outputs.ruma-appservice-api }}
+      ruma-client-api: ${{ steps.checks.outputs.ruma-client-api }}
+      ruma-common: ${{ steps.checks.outputs.ruma-common }}
+      ruma-events: ${{ steps.checks.outputs.ruma-events }}
+      ruma-federation-api: ${{ steps.checks.outputs.ruma-federation-api }}
+      ruma-html: ${{ steps.checks.outputs.ruma-html }}
+      ruma-identity-service-api: ${{ steps.checks.outputs.ruma-identity-service-api }}
+      ruma-push-gateway-api: ${{ steps.checks.outputs.ruma-push-gateway-api }}
+      ruma-signatures: ${{ steps.checks.outputs.ruma-signatures }}
+      ruma-state-res: ${{ steps.checks.outputs.ruma-state-res }}
+    strategy:
+      matrix:
+        crate: ${{ fromJSON(needs.changes.outputs.crates) }}
+        features: [stable, unstable]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5
+
+      - name: Install rust stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-semver-checks
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-semver-checks
+
+      - name: Get xtask
+        uses: actions/cache@v4
+        with:
+          path: target/debug/xtask
+          key: xtask-${{ hashFiles('Cargo.toml', 'xtask/src/**', 'xtask/Cargo.toml') }}
+
+      - name: Run checks
+        run: |
+          target/debug/xtask semver --no-color additive-features ${{ matrix.crate }} ${{ matrix.features }}

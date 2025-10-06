@@ -71,19 +71,40 @@ impl Package {
         false
     }
 
-    /// The list of features beginning with the given prefix for this package.
-    fn features_with_prefix(&self, prefix: &'static str) -> impl Iterator<Item = &str> {
-        self.features.keys().filter(move |feature| feature.starts_with(prefix)).map(String::as_str)
-    }
+    /// The list of features matching the given filter.
+    pub fn filtered_features(&self, filter: FeatureFilter) -> Vec<&str> {
+        if filter == FeatureFilter::Default {
+            return self
+                .features
+                .get("default")
+                .into_iter()
+                .flatten()
+                .map(String::as_str)
+                .collect();
+        }
 
-    /// The list of features beginning with the `unstable-` prefix for this package.
-    pub fn unstable_features(&self) -> impl Iterator<Item = &str> {
-        self.features_with_prefix("unstable-")
-    }
+        self.features
+            .keys()
+            .filter(move |feature| {
+                // We always filter out private features.
+                if FeatureFilter::is_private(feature) {
+                    return false;
+                }
 
-    /// The list of features beginning with the `compat-` prefix for this package.
-    pub fn compat_features(&self) -> impl Iterator<Item = &str> {
-        self.features_with_prefix("compat-")
+                match filter {
+                    FeatureFilter::Default => unreachable!(),
+                    FeatureFilter::Stable => {
+                        !FeatureFilter::is_unstable(feature) && !FeatureFilter::is_compat(feature)
+                    }
+                    FeatureFilter::Unstable => FeatureFilter::is_unstable(feature),
+                    FeatureFilter::UnstableAndCompat => {
+                        FeatureFilter::is_unstable(feature) || FeatureFilter::is_compat(feature)
+                    }
+                    FeatureFilter::All => true,
+                }
+            })
+            .map(String::as_str)
+            .collect()
     }
 }
 
@@ -258,6 +279,42 @@ impl Package {
         }
 
         Ok(())
+    }
+}
+
+/// The package features to filter.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FeatureFilter {
+    /// Only the default features.
+    Default,
+
+    /// Only the stable features.
+    Stable,
+
+    /// Only the unstable features.
+    Unstable,
+
+    /// Only the unstable and compat features.
+    UnstableAndCompat,
+
+    /// All the public features.
+    All,
+}
+
+impl FeatureFilter {
+    /// Whether the given feature is an unstable feature.
+    fn is_unstable(feature: &str) -> bool {
+        feature.starts_with("unstable-")
+    }
+
+    /// Whether the given feature is an unstable feature.
+    fn is_compat(feature: &str) -> bool {
+        feature.starts_with("compat-")
+    }
+
+    /// Whether the given features is a private feature.
+    fn is_private(feature: &str) -> bool {
+        feature.starts_with("_")
     }
 }
 
