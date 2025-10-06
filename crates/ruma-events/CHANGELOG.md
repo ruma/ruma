@@ -13,6 +13,8 @@ Breaking changes:
    - `InitialStateEvent::new()` takes a `state_key`. For events with an empty
      state key, `InitialStateEvent::with_empty_state_key()` can be used instead.
 - Remove the deprecated `RoomMessageEventContent::set_mentions()`.
+- The `criterion` cargo feature used for benchmarks was renamed to `__criterion`,
+  to make it obvious that it is private.
 
 Improvements:
 
