@@ -225,7 +225,7 @@ pub mod v3 {
     ///
     /// [matrix-spec-proposals]: https://github.com/matrix-org/matrix-spec-proposals/blob/v1.1/informal/idp-brands.md
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-    #[derive(Clone, PartialEq, Eq, StringEnum)]
+    #[derive(Clone, StringEnum)]
     #[ruma_enum(rename_all = "lowercase")]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum IdentityProviderBrand {

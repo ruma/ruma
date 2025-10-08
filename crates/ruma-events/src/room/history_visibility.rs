@@ -50,7 +50,7 @@ impl SyncRoomHistoryVisibilityEvent {
 
 /// Who can see a room's history.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, PartialEq, Eq, StringEnum)]
+#[derive(Clone, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum HistoryVisibility {

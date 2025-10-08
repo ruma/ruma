@@ -4,7 +4,7 @@ use std::borrow::Cow;
 
 use ruma_common::{
     api::{MatrixVersion, StablePathSelector, VersionHistory},
-    serde::{OrdAsRefStr, StringEnum},
+    serde::StringEnum,
     OwnedMxcUri,
 };
 use serde::Serialize;
@@ -27,7 +27,7 @@ pub use self::static_profile_field::*;
 ///
 /// [profile]: https://spec.matrix.org/latest/client-server-api/#profiles
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, PartialEq, Eq, OrdAsRefStr, StringEnum)]
+#[derive(Clone, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum ProfileFieldName {

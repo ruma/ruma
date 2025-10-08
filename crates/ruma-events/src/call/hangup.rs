@@ -69,7 +69,7 @@ impl CallHangupEventContent {
 /// in the call negotiation, this should be `ice_failed` for when ICE negotiation fails or
 /// `invite_timeout` for when the other party did not answer in time.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Default, PartialEq, Eq, StringEnum)]
+#[derive(Clone, Default, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum Reason {

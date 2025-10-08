@@ -54,7 +54,7 @@ pub fn default_power_level() -> Int {
 }
 
 /// The possible keys of [`NotificationPowerLevels`].
-#[derive(Clone, PartialEq, Eq, StringEnum)]
+#[derive(Clone, StringEnum)]
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[ruma_enum(rename_all = "lowercase")]
 #[non_exhaustive]

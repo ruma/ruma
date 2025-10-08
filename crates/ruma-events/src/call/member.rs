@@ -174,7 +174,7 @@ pub struct EmptyMembershipData {
 ///
 /// It is used when the user disconnected and a Future ([MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140))
 /// was used to update the membership after the client was not reachable anymore.
-#[derive(Clone, PartialEq, StringEnum)]
+#[derive(Clone, StringEnum)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_enum(rename_all = "m.snake_case")]
 pub enum LeaveReason {

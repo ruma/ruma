@@ -659,7 +659,7 @@ pub fn derive_eq_as_ref_str(input: TokenStream) -> TokenStream {
 }
 
 /// Shorthand for the derives `AsRefStr`, `FromString`, `DisplayAsRefStr`, `DebugAsRefStr`,
-/// `SerializeAsRefStr` and `DeserializeFromCowStr`.
+/// `SerializeAsRefStr`, `DeserializeFromCowStr`, `EqAsRefStr` and `OrdAsRefStr`.
 #[proc_macro_derive(StringEnum, attributes(ruma_enum))]
 pub fn derive_string_enum(input: TokenStream) -> TokenStream {
     fn expand_all(input: ItemEnum) -> syn::Result<proc_macro2::TokenStream> {
@@ -670,6 +670,8 @@ pub fn derive_string_enum(input: TokenStream) -> TokenStream {
         let debug_impl = expand_debug_as_ref_str(&input.ident)?;
         let serialize_impl = expand_serialize_as_ref_str(&input.ident)?;
         let deserialize_impl = expand_deserialize_from_cow_str(&input.ident)?;
+        let eq_and_partial_eq_impl = expand_eq_as_ref_str(&input.ident)?;
+        let ord_and_partial_ord_impl = expand_ord_as_ref_str(&input.ident)?;
 
         Ok(quote! {
             #as_ref_str_impl
@@ -679,6 +681,8 @@ pub fn derive_string_enum(input: TokenStream) -> TokenStream {
             #debug_impl
             #serialize_impl
             #deserialize_impl
+            #eq_and_partial_eq_impl
+            #ord_and_partial_ord_impl
         })
     }
 

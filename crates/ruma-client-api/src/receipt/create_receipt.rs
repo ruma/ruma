@@ -10,7 +10,7 @@ pub mod v3 {
     use ruma_common::{
         api::{request, response, Metadata},
         metadata,
-        serde::{EqAsRefStr, OrdAsRefStr, StringEnum},
+        serde::StringEnum,
         OwnedEventId, OwnedRoomId,
     };
     use ruma_events::receipt::ReceiptThread;
@@ -81,7 +81,7 @@ pub mod v3 {
 
     /// The type of receipt.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-    #[derive(Clone, OrdAsRefStr, EqAsRefStr, StringEnum)]
+    #[derive(Clone, StringEnum)]
     #[non_exhaustive]
     pub enum ReceiptType {
         /// A [public read receipt].

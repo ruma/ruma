@@ -191,7 +191,7 @@ pub struct CustomRoomKeyWithheldCodeInfo {
 
 /// The possible codes for why a megolm key was not sent.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, PartialEq, Eq, StringEnum)]
+#[derive(Clone, StringEnum)]
 #[ruma_enum(rename_all = "m.snake_case")]
 #[non_exhaustive]
 pub enum RoomKeyWithheldCode {

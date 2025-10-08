@@ -179,7 +179,7 @@ impl AssetContent {
 
 /// The type of an asset.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Default, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[derive(Clone, Default, StringEnum)]
 #[ruma_enum(rename_all = "m.snake_case")]
 #[non_exhaustive]
 pub enum AssetType {

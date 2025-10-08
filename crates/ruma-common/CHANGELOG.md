@@ -6,6 +6,8 @@ Breaking changes:
   are always implemented using the same logic.
 - Rename the `PartialEqAsRefStr` derive macro to `EqAsRefStr` and make it
   implement both `PartialEq` and `Eq`.
+- The `StringEnum` derive macro also implements `Ord`, `PartialOrd`, `Eq` and
+  `PartialEq` using the `AsRef<str>` implementation of the enum.
 
 Improvements:
 

@@ -4,7 +4,7 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 #[derive(Debug, PartialEq)]
 struct PrivOwnedStr(Box<str>);
 
-#[derive(PartialEq, StringEnum)]
+#[derive(StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 enum MyEnum {
     First,
