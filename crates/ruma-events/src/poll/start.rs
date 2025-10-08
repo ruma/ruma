@@ -187,7 +187,7 @@ impl From<TextContentBlock> for PollQuestion {
 
 /// The kind of poll.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, Default, PartialEq, Eq, StringEnum)]
+#[derive(Clone, Default, StringEnum)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum PollKind {
     /// The results are revealed once the poll is closed.

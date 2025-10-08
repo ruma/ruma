@@ -719,7 +719,7 @@ impl<'a> From<&'a OriginalSyncRoomMessageEvent> for ReplyMetadata<'a> {
 
 /// The format for the formatted representation of a message body.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, PartialEq, Eq, StringEnum)]
+#[derive(Clone, StringEnum)]
 #[non_exhaustive]
 pub enum MessageFormat {
     /// HTML.

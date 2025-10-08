@@ -107,7 +107,7 @@ pub mod v3 {
 
     /// Error code for signed key processing failures.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-    #[derive(Clone, PartialEq, Eq, StringEnum)]
+    #[derive(Clone, StringEnum)]
     #[non_exhaustive]
     #[ruma_enum(rename_all = "M_MATRIX_ERROR_CASE")]
     pub enum FailureErrorCode {

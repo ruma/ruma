@@ -32,7 +32,7 @@ pub use self::{
 /// Features supported by room versions.
 #[cfg(feature = "unstable-msc3931")]
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, PartialEq, Eq, StringEnum)]
+#[derive(Clone, StringEnum)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum RoomVersionFeature {
     /// m.extensible_events

@@ -88,7 +88,7 @@ pub mod v1 {
 
     /// Which threads to include in the response.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-    #[derive(Clone, Default, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+    #[derive(Clone, Default, StringEnum)]
     #[ruma_enum(rename_all = "lowercase")]
     #[non_exhaustive]
     pub enum IncludeThreads {

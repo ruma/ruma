@@ -71,7 +71,7 @@ impl DehydratedDeviceV2 {
 
 /// The algorithms used for dehydrated devices.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, PartialEq, Eq, StringEnum)]
+#[derive(Clone, StringEnum)]
 #[non_exhaustive]
 pub enum DeviceDehydrationAlgorithm {
     /// The `org.matrix.msc3814.v1.olm` device dehydration algorithm.

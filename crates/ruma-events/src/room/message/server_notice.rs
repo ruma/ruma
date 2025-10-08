@@ -35,7 +35,7 @@ impl ServerNoticeMessageEventContent {
 
 /// Types of server notices.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, PartialEq, Eq, StringEnum)]
+#[derive(Clone, StringEnum)]
 #[non_exhaustive]
 pub enum ServerNoticeType {
     /// The server has exceeded some limit which requires the server administrator to intervene.
@@ -48,7 +48,7 @@ pub enum ServerNoticeType {
 
 /// Types of usage limits.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, PartialEq, Eq, StringEnum)]
+#[derive(Clone, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum LimitType {

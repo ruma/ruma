@@ -147,7 +147,7 @@ pub mod v1 {
     /// This type can hold an arbitrary string. To build this with a custom value, convert it from a
     /// string with `::from()` / `.into()`. To check for values that are not available as a
     /// documented variant here, use its string representation, obtained through `.as_str()`.
-    #[derive(Clone, Default, PartialEq, Eq, StringEnum)]
+    #[derive(Clone, Default, StringEnum)]
     #[ruma_enum(rename_all = "snake_case")]
     #[non_exhaustive]
     pub enum NotificationPriority {

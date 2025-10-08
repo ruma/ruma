@@ -12,7 +12,7 @@ use std::{
 use ruma_common::{
     EventId, IdParseError, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedUserId, UserId,
 };
-use ruma_macros::{EqAsRefStr, EventContent, OrdAsRefStr, StringEnum};
+use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
 
 use crate::PrivOwnedStr;
@@ -77,7 +77,7 @@ pub type Receipts = BTreeMap<ReceiptType, UserReceipts>;
 
 /// The type of receipt.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, OrdAsRefStr, EqAsRefStr, StringEnum, Hash)]
+#[derive(Clone, StringEnum, Hash)]
 #[non_exhaustive]
 pub enum ReceiptType {
     /// A [public read receipt].

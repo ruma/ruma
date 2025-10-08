@@ -250,7 +250,7 @@ pub mod v3 {
 
     /// The key within events to use for this grouping.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-    #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+    #[derive(Clone, StringEnum)]
     #[ruma_enum(rename_all = "snake_case")]
     #[non_exhaustive]
     pub enum GroupingKey {
@@ -287,7 +287,7 @@ pub mod v3 {
 
     /// The keys to search for.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-    #[derive(Clone, PartialEq, Eq, StringEnum)]
+    #[derive(Clone, StringEnum)]
     #[non_exhaustive]
     pub enum SearchKeys {
         /// content.body
@@ -308,7 +308,7 @@ pub mod v3 {
 
     /// The order in which to search for results.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-    #[derive(Clone, PartialEq, Eq, StringEnum)]
+    #[derive(Clone, StringEnum)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     #[ruma_enum(rename_all = "snake_case")]
     pub enum OrderBy {
