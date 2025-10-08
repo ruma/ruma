@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+- Merge the `PartialOrdAsRefStr` derive macro into `OrdAsRefStr`, so both traits
+  are always implemented using the same logic.
+
 Improvements:
 
 - Add `MatrixVersion::V1_16`
