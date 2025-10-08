@@ -13,6 +13,7 @@ use ruma_events::{
     TimelineEventType,
 };
 use serde_json::{json, value::to_raw_value as to_raw_json_value};
+use test_log::test;
 
 mod room_power_levels;
 
@@ -23,10 +24,9 @@ use crate::{
     event_auth::check_room_redaction,
     events::{RoomCreateEvent, RoomPowerLevelsEvent},
     test_utils::{
-        alice, charlie, ella, event_id, init_subscriber, member_content_join,
-        room_create_v12_pdu_event, room_id, room_redaction_pdu_event, room_third_party_invite,
-        to_init_pdu_event, to_pdu_event, to_v12_pdu_event, EventHash, PduEvent, TestStateMap,
-        INITIAL_EVENTS, INITIAL_V12_EVENTS,
+        alice, charlie, ella, event_id, member_content_join, room_create_v12_pdu_event, room_id,
+        room_redaction_pdu_event, room_third_party_invite, to_init_pdu_event, to_pdu_event,
+        to_v12_pdu_event, EventHash, PduEvent, TestStateMap, INITIAL_EVENTS, INITIAL_V12_EVENTS,
     },
 };
 
@@ -182,8 +182,6 @@ fn invalid_room_create() {
 
 #[test]
 fn redact_higher_power_level() {
-    let _guard = init_subscriber();
-
     let incoming_event = room_redaction_pdu_event(
         "HELLO",
         charlie(),
@@ -207,8 +205,6 @@ fn redact_higher_power_level() {
 
 #[test]
 fn redact_same_power_level() {
-    let _guard = init_subscriber();
-
     let incoming_event = room_redaction_pdu_event(
         "HELLO",
         charlie(),
@@ -240,8 +236,6 @@ fn redact_same_power_level() {
 
 #[test]
 fn redact_same_server() {
-    let _guard = init_subscriber();
-
     let incoming_event = room_redaction_pdu_event(
         "HELLO",
         charlie(),
@@ -265,8 +259,6 @@ fn redact_same_server() {
 
 #[test]
 fn missing_room_create_in_state() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         alice(),
@@ -289,8 +281,6 @@ fn missing_room_create_in_state() {
 
 #[test]
 fn reject_missing_room_create_auth_events() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         alice(),
@@ -312,8 +302,6 @@ fn reject_missing_room_create_auth_events() {
 
 #[test]
 fn no_federate_different_server() {
-    let _guard = init_subscriber();
-
     let sender = user_id!("@aya:other.server");
     let incoming_event = to_pdu_event(
         "AYA_JOIN",
@@ -348,8 +336,6 @@ fn no_federate_different_server() {
 
 #[test]
 fn no_federate_same_server() {
-    let _guard = init_subscriber();
-
     let sender = user_id!("@aya:foo");
     let incoming_event = to_pdu_event(
         "AYA_JOIN",
@@ -383,8 +369,6 @@ fn no_federate_same_server() {
 
 #[test]
 fn room_aliases_no_state_key() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "ALIASES",
         alice(),
@@ -414,8 +398,6 @@ fn room_aliases_no_state_key() {
 
 #[test]
 fn room_aliases_other_server() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "ALIASES",
         alice(),
@@ -445,8 +427,6 @@ fn room_aliases_other_server() {
 
 #[test]
 fn room_aliases_same_server() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "ALIASES",
         alice(),
@@ -476,8 +456,6 @@ fn room_aliases_same_server() {
 
 #[test]
 fn sender_not_in_room() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         ella(),
@@ -499,8 +477,6 @@ fn sender_not_in_room() {
 
 #[test]
 fn room_third_party_invite_not_enough_power() {
-    let _guard = init_subscriber();
-
     let incoming_event = room_third_party_invite(charlie());
 
     let mut init_events = INITIAL_EVENTS();
@@ -528,8 +504,6 @@ fn room_third_party_invite_not_enough_power() {
 
 #[test]
 fn room_third_party_invite_with_enough_power() {
-    let _guard = init_subscriber();
-
     let incoming_event = room_third_party_invite(charlie());
 
     let init_events = INITIAL_EVENTS();
@@ -542,8 +516,6 @@ fn room_third_party_invite_with_enough_power() {
 
 #[test]
 fn event_type_not_enough_power() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -581,8 +553,6 @@ fn event_type_not_enough_power() {
 
 #[test]
 fn user_id_state_key_not_sender() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         alice(),
@@ -604,8 +574,6 @@ fn user_id_state_key_not_sender() {
 
 #[test]
 fn user_id_state_key_is_sender() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         alice(),
@@ -626,8 +594,6 @@ fn user_id_state_key_is_sender() {
 
 #[test]
 fn auth_event_in_different_room() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         alice(),
@@ -667,8 +633,6 @@ fn auth_event_in_different_room() {
 
 #[test]
 fn duplicate_auth_event_type() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         alice(),
@@ -702,8 +666,6 @@ fn duplicate_auth_event_type() {
 
 #[test]
 fn unexpected_auth_event_type() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         alice(),
@@ -737,8 +699,6 @@ fn unexpected_auth_event_type() {
 
 #[test]
 fn rejected_auth_event() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         alice(),
@@ -819,8 +779,6 @@ fn room_create_with_allowed_or_rejected_room_id() {
 
 #[test]
 fn event_without_room_id() {
-    let _guard = init_subscriber();
-
     let incoming_event = PduEvent {
         event_id: owned_event_id!("$HELLO"),
         room_id: None,
@@ -854,8 +812,6 @@ fn event_without_room_id() {
 
 #[test]
 fn allow_missing_room_create_auth_events() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_v12_pdu_event(
         "HELLO",
         alice(),
@@ -877,8 +833,6 @@ fn allow_missing_room_create_auth_events() {
 
 #[test]
 fn reject_room_create_in_auth_events() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_v12_pdu_event(
         "HELLO",
         alice(),
@@ -900,8 +854,6 @@ fn reject_room_create_in_auth_events() {
 
 #[test]
 fn missing_room_create_in_fetch_event() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_v12_pdu_event(
         "HELLO",
         alice(),
@@ -924,8 +876,6 @@ fn missing_room_create_in_fetch_event() {
 
 #[test]
 fn rejected_room_create_in_fetch_event() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_v12_pdu_event(
         "HELLO",
         alice(),

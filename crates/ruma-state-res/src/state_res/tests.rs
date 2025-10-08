@@ -15,6 +15,7 @@ use ruma_events::{
     StateEventType, TimelineEventType,
 };
 use serde_json::{json, value::to_raw_value as to_raw_json_value};
+use test_log::test;
 use tracing::debug;
 
 use super::{is_power_event, EventTypeExt, StateMap};
@@ -27,7 +28,6 @@ use crate::{
 };
 
 fn test_event_sort() {
-    let _ = tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
     let events = INITIAL_EVENTS();
 
     let event_map = events
@@ -94,8 +94,6 @@ fn test_sort() {
 
 #[test]
 fn ban_vs_power_level() {
-    let _ = tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
-
     let events = &[
         to_init_pdu_event(
             "PA",
@@ -139,8 +137,6 @@ fn ban_vs_power_level() {
 
 #[test]
 fn topic_basic() {
-    let _ = tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
-
     let events = &[
         to_init_pdu_event(
             "T1",
@@ -199,8 +195,6 @@ fn topic_basic() {
 
 #[test]
 fn topic_reset() {
-    let _ = tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
-
     let events = &[
         to_init_pdu_event(
             "T1",
@@ -244,8 +238,6 @@ fn topic_reset() {
 
 #[test]
 fn join_rule_evasion() {
-    let _ = tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
-
     let events = &[
         to_init_pdu_event(
             "JR",
@@ -275,8 +267,6 @@ fn join_rule_evasion() {
 
 #[test]
 fn offtopic_power_level() {
-    let _ = tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
-
     let events = &[
         to_init_pdu_event(
             "PA",
@@ -315,8 +305,6 @@ fn offtopic_power_level() {
 
 #[test]
 fn topic_setting() {
-    let _ = tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
-
     let events = &[
         to_init_pdu_event(
             "T1",
@@ -391,8 +379,6 @@ fn topic_setting() {
 
 #[test]
 fn test_event_map_none() {
-    let _ = tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
-
     let mut store = TestStore::<PduEvent>(hashmap! {});
 
     // build up the DAG
@@ -420,8 +406,6 @@ fn test_event_map_none() {
 
 #[test]
 fn test_reverse_topological_power_sort() {
-    let _ = tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
-
     let graph = hashmap! {
         event_id("l") => hashset![event_id("o")],
         event_id("m") => hashset![event_id("n"), event_id("o")],
@@ -446,7 +430,6 @@ fn test_reverse_topological_power_sort() {
 
 #[test]
 fn ban_with_auth_chains() {
-    let _ = tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
     let ban = BAN_STATE_SET();
 
     let edges = vec![vec!["END", "MB", "PA", "START"], vec!["END", "IME", "MB"]]
@@ -461,7 +444,6 @@ fn ban_with_auth_chains() {
 
 #[test]
 fn ban_with_auth_chains2() {
-    let _ = tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish());
     let init = INITIAL_EVENTS();
     let ban = BAN_STATE_SET();
 

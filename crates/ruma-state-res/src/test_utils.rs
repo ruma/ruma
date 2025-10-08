@@ -867,10 +867,6 @@ pub(crate) mod event {
     }
 }
 
-pub(crate) fn init_subscriber() -> tracing::dispatcher::DefaultGuard {
-    tracing::subscriber::set_default(tracing_subscriber::fmt().with_test_writer().finish())
-}
-
 /// Wrapper around a state map.
 pub(crate) struct TestStateMap(HashMap<StateEventType, HashMap<String, Arc<PduEvent>>>);
 
