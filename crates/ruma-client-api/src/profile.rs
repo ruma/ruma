@@ -7,7 +7,7 @@ use ruma_common::{
     serde::{OrdAsRefStr, PartialOrdAsRefStr, StringEnum},
     OwnedMxcUri,
 };
-use serde::{de::DeserializeOwned, Serialize};
+use serde::Serialize;
 use serde_json::{from_value as from_json_value, to_value as to_json_value, Value as JsonValue};
 
 pub mod delete_profile_field;
@@ -19,48 +19,9 @@ mod profile_field_serde;
 pub mod set_avatar_url;
 pub mod set_display_name;
 pub mod set_profile_field;
+mod static_profile_field;
 
-/// Trait implemented by types representing a field in a user's [profile] having a statically-known
-/// name.
-///
-/// [profile]: https://spec.matrix.org/latest/client-server-api/#profiles
-pub trait StaticProfileField {
-    /// The type for the value of the field.
-    type Value: Sized + Serialize + DeserializeOwned;
-
-    /// The string representation of this field.
-    const NAME: &str;
-}
-
-/// The user's avatar URL.
-#[derive(Debug, Clone, Copy)]
-#[allow(clippy::exhaustive_structs)]
-pub struct AvatarUrl;
-
-impl StaticProfileField for AvatarUrl {
-    type Value = OwnedMxcUri;
-    const NAME: &str = "avatar_url";
-}
-
-/// The user's display name.
-#[derive(Debug, Clone, Copy)]
-#[allow(clippy::exhaustive_structs)]
-pub struct DisplayName;
-
-impl StaticProfileField for DisplayName {
-    type Value = String;
-    const NAME: &str = "displayname";
-}
-
-/// The user's time zone.
-#[derive(Debug, Clone, Copy)]
-#[allow(clippy::exhaustive_structs)]
-pub struct TimeZone;
-
-impl StaticProfileField for TimeZone {
-    type Value = String;
-    const NAME: &str = "m.tz";
-}
+pub use self::static_profile_field::*;
 
 /// The possible fields of a user's [profile].
 ///
