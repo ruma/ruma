@@ -4,6 +4,8 @@ Breaking changes:
 
 - Merge the `PartialOrdAsRefStr` derive macro into `OrdAsRefStr`, so both traits
   are always implemented using the same logic.
+- Rename the `PartialEqAsRefStr` derive macro to `EqAsRefStr` and make it
+  implement both `PartialEq` and `Eq`.
 
 Improvements:
 

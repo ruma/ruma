@@ -4,13 +4,13 @@
 
 use std::time::Duration;
 
-use ruma_macros::{OrdAsRefStr, PartialEqAsRefStr};
+use ruma_macros::{EqAsRefStr, OrdAsRefStr};
 
 use crate::{serde::StringEnum, PrivOwnedStr};
 
 /// The desired resizing method for a thumbnail.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, OrdAsRefStr)]
+#[derive(Clone, StringEnum, EqAsRefStr, OrdAsRefStr)]
 #[ruma_enum(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum Method {
