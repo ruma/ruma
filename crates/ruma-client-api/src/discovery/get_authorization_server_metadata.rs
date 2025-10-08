@@ -14,7 +14,7 @@ pub mod v1 {
     use ruma_common::{
         api::{request, response, Metadata},
         metadata,
-        serde::{OrdAsRefStr, PartialEqAsRefStr, PartialOrdAsRefStr, Raw, StringEnum},
+        serde::{OrdAsRefStr, PartialEqAsRefStr, Raw, StringEnum},
     };
     use serde::Serialize;
     use url::Url;
@@ -241,7 +241,7 @@ pub mod v1 {
 
     /// The method to use at the authorization endpoint.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-    #[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, PartialOrdAsRefStr, OrdAsRefStr)]
+    #[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, OrdAsRefStr)]
     #[ruma_enum(rename_all = "lowercase")]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum ResponseType {
@@ -261,7 +261,7 @@ pub mod v1 {
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
     ///
     /// [OAuth 2.0 Multiple Response Type Encoding Practices]: https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
-    #[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, PartialOrdAsRefStr, OrdAsRefStr)]
+    #[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, OrdAsRefStr)]
     #[ruma_enum(rename_all = "lowercase")]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum ResponseMode {
@@ -279,7 +279,7 @@ pub mod v1 {
 
     /// The grant type to use at the token endpoint.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-    #[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, PartialOrdAsRefStr, OrdAsRefStr)]
+    #[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, OrdAsRefStr)]
     #[ruma_enum(rename_all = "snake_case")]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum GrantType {
@@ -306,7 +306,7 @@ pub mod v1 {
 
     /// The code challenge method to use at the authorization endpoint.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-    #[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, PartialOrdAsRefStr, OrdAsRefStr)]
+    #[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, OrdAsRefStr)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum CodeChallengeMethod {
         /// Use a SHA-256, base64url-encoded code challenge ([RFC 7636]).
@@ -325,7 +325,7 @@ pub mod v1 {
     ///
     /// [MSC 4191]: https://github.com/matrix-org/matrix-spec-proposals/pull/4191
     #[cfg(feature = "unstable-msc4191")]
-    #[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, PartialOrdAsRefStr, OrdAsRefStr)]
+    #[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, OrdAsRefStr)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum AccountManagementAction {
         /// The user wishes to view their profile (name, avatar, contact details).
@@ -372,7 +372,7 @@ pub mod v1 {
     }
 
     /// The desired user experience when using the authorization endpoint.
-    #[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, PartialOrdAsRefStr, OrdAsRefStr)]
+    #[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, OrdAsRefStr)]
     #[ruma_enum(rename_all = "lowercase")]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum Prompt {

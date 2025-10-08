@@ -38,15 +38,11 @@ use self::{
     },
     identifiers::IdentifierInput,
     serde::{
-        as_str_as_ref_str::expand_as_str_as_ref_str,
-        debug_as_ref_str::expand_debug_as_ref_str,
+        as_str_as_ref_str::expand_as_str_as_ref_str, debug_as_ref_str::expand_debug_as_ref_str,
         deserialize_from_cow_str::expand_deserialize_from_cow_str,
-        display_as_ref_str::expand_display_as_ref_str,
-        enum_as_ref_str::expand_enum_as_ref_str,
-        enum_from_string::expand_enum_from_string,
-        eq_as_ref_str::expand_partial_eq_as_ref_str,
-        ord_as_ref_str::{expand_ord_as_ref_str, expand_partial_ord_as_ref_str},
-        serialize_as_ref_str::expand_serialize_as_ref_str,
+        display_as_ref_str::expand_display_as_ref_str, enum_as_ref_str::expand_enum_as_ref_str,
+        enum_from_string::expand_enum_from_string, eq_as_ref_str::expand_partial_eq_as_ref_str,
+        ord_as_ref_str::expand_ord_as_ref_str, serialize_as_ref_str::expand_serialize_as_ref_str,
     },
     util::{import_ruma_common, import_ruma_events},
 };
@@ -648,16 +644,7 @@ pub fn derive_deserialize_from_cow_str(input: TokenStream) -> TokenStream {
         .into()
 }
 
-/// Derive the `PartialOrd` trait using the `AsRef<str>` implementation of the type.
-#[proc_macro_derive(PartialOrdAsRefStr)]
-pub fn derive_partial_ord_as_ref_str(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
-    expand_partial_ord_as_ref_str(&input.ident)
-        .unwrap_or_else(syn::Error::into_compile_error)
-        .into()
-}
-
-/// Derive the `Ord` trait using the `AsRef<str>` implementation of the type.
+/// Derive the `Ord` and `PartialOrd` traits using the `AsRef<str>` implementation of the type.
 #[proc_macro_derive(OrdAsRefStr)]
 pub fn derive_ord_as_ref_str(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);

@@ -12,7 +12,6 @@ use ruma_common::{
     serde::{
         btreemap_deserialize_v1_powerlevel_values, deserialize_v1_powerlevel, from_raw_json_value,
         DebugAsRefStr, DisplayAsRefStr, JsonObject, OrdAsRefStr, PartialEqAsRefStr,
-        PartialOrdAsRefStr,
     },
     OwnedUserId, UserId,
 };
@@ -328,16 +327,7 @@ impl<E: Event> RoomPowerLevelsEventOptionExt for Option<RoomPowerLevelsEvent<E>>
 }
 
 /// Fields in the `content` of an `m.room.power_levels` event with an integer value.
-#[derive(
-    DebugAsRefStr,
-    Clone,
-    Copy,
-    DisplayAsRefStr,
-    PartialEqAsRefStr,
-    Eq,
-    PartialOrdAsRefStr,
-    OrdAsRefStr,
-)]
+#[derive(DebugAsRefStr, Clone, Copy, DisplayAsRefStr, PartialEqAsRefStr, Eq, OrdAsRefStr)]
 #[non_exhaustive]
 pub enum RoomPowerLevelsIntField {
     /// `users_default`
