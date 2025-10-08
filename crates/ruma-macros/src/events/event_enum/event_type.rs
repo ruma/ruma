@@ -76,6 +76,45 @@ fn generate_enum(
         })
         .collect();
 
+    let event_type_str_match_arms: Vec<_> = deduped
+        .iter()
+        .map(|e| {
+            let v = e.to_variant();
+            let start = v.match_arm(quote! { Self });
+            let ev_type = &e.types.ev_type;
+
+            if ev_type.is_prefix() {
+                let ev_type = ev_type.without_wildcard();
+                quote! { #start(_s) => #ev_type }
+            } else {
+                quote! { #start => #ev_type }
+            }
+        })
+        .collect();
+
+    let cmp_type_fragment_match_arms: Vec<_> = deduped
+        .iter()
+        // We only need to compare types with fragment, others will be equal.
+        .filter(|e| e.has_type_fragment())
+        .map(|e| {
+            let v = e.to_variant();
+            let start = v.match_arm(quote! { Self });
+
+            quote! { (#start(this), #start(other)) => this.cmp(other) }
+        })
+        .collect();
+
+    let cmp_type_fragment_impl = if cmp_type_fragment_match_arms.is_empty() {
+        quote! { ::std::cmp::Ordering::Equal }
+    } else {
+        quote! {
+            match (self, other) {
+                #(#cmp_type_fragment_match_arms,)*
+                _ => ::std::cmp::Ordering::Equal,
+            }
+        }
+    };
+
     let to_cow_str_match_arms: Vec<_> = deduped
         .iter()
         .map(|e| {
@@ -150,7 +189,7 @@ fn generate_enum(
         /// This type can hold an arbitrary string. To build events with a custom type, convert it
         /// from a string with `::from()` / `.into()`. To check for events that are not available as a
         /// documented variant here, use its string representation, obtained through `.to_string()`.
-        #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+        #[derive(Clone, PartialEq, Eq, Hash)]
         #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
         pub enum #ident {
             #(
@@ -163,6 +202,17 @@ fn generate_enum(
 
         #[allow(deprecated)]
         impl #ident {
+            fn event_type_str(&self) -> &::std::primitive::str {
+                match self {
+                    #(#event_type_str_match_arms,)*
+                    Self::_Custom(crate::PrivOwnedStr(s)) => s,
+                }
+            }
+
+            fn cmp_type_fragment(&self, other: &Self) -> ::std::cmp::Ordering {
+                #cmp_type_fragment_impl
+            }
+
             fn to_cow_str(&self) -> ::std::borrow::Cow<'_, ::std::primitive::str> {
                 match self {
                     #(#to_cow_str_match_arms,)*
@@ -199,6 +249,25 @@ fn generate_enum(
         impl ::std::convert::From<::std::string::String> for #ident {
             fn from(s: ::std::string::String) -> Self {
                 ::std::convert::From::from(s.as_str())
+            }
+        }
+
+
+        impl ::std::cmp::Ord for #ident {
+            fn cmp(&self, other: &Self) -> ::std::cmp::Ordering {
+                let event_type_cmp = self.event_type_str().cmp(&other.event_type_str());
+
+                if event_type_cmp.is_eq() {
+                    self.cmp_type_fragment(other)
+                } else {
+                    event_type_cmp
+                }
+            }
+        }
+
+        impl ::std::cmp::PartialOrd for #ident {
+            fn partial_cmp(&self, other: &Self) -> Option<::std::cmp::Ordering> {
+                Some(self.cmp(other))
             }
         }
 
