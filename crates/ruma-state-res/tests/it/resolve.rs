@@ -24,7 +24,6 @@ use serde_json::{
     Value as JsonValue,
 };
 use similar::{udiff::unified_diff, Algorithm};
-use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 static FIXTURES_PATH: LazyLock<&'static Path> = LazyLock::new(|| Path::new("tests/it/fixtures"));
 
@@ -36,7 +35,7 @@ static FIXTURES_PATH: LazyLock<&'static Path> = LazyLock::new(|| Path::new("test
 /// * A list of JSON files relative to `tests/it/fixtures` to load PDUs to resolve from.
 macro_rules! snapshot_test {
     ($name:ident, $paths:expr $(,)?) => {
-        #[test]
+        #[test_log::test]
         fn $name() {
             let crate::resolve::Snapshots {
                 resolved_state,
@@ -63,7 +62,7 @@ macro_rules! snapshot_test {
 ///   states to resolve.
 macro_rules! snapshot_test_contrived_states {
     ($name:ident, $pdus_path:expr, $state_set_paths:expr $(,)?) => {
-        #[test]
+        #[test_log::test]
         fn $name() {
             let crate::resolve::Snapshots {
                 resolved_state,
@@ -200,13 +199,6 @@ struct Snapshots {
 fn snapshot_test_prelude(
     paths: &[&str],
 ) -> (Vec<Vec<Pdu>>, AuthorizationRules, StateResolutionV2Rules) {
-    // Run `cargo test -- --show-output` to view traces, set `RUST_LOG` to control filtering.
-    let _subscriber = tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env())
-        .with_test_writer()
-        .finish()
-        .set_default();
-
     let pdu_batches = paths
         .iter()
         .map(|x| {

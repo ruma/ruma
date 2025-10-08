@@ -11,21 +11,20 @@ use ruma_events::{
     TimelineEventType,
 };
 use serde_json::{json, value::to_raw_value as to_raw_json_value};
+use test_log::test;
 
 use super::check_room_member;
 use crate::{
     events::RoomMemberEvent,
     test_utils::{
-        alice, bob, charlie, ella, event_id, init_subscriber, member_content_ban,
-        member_content_join, room_third_party_invite, to_pdu_event, zara, TestStateMap,
-        INITIAL_EVENTS, INITIAL_EVENTS_CREATE_ROOM,
+        alice, bob, charlie, ella, event_id, member_content_ban, member_content_join,
+        room_third_party_invite, to_pdu_event, zara, TestStateMap, INITIAL_EVENTS,
+        INITIAL_EVENTS_CREATE_ROOM,
     },
 };
 
 #[test]
 fn missing_state_key() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -53,8 +52,6 @@ fn missing_state_key() {
 
 #[test]
 fn missing_membership() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -82,8 +79,6 @@ fn missing_membership() {
 
 #[test]
 fn join_after_create_creator_match() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         alice(),
@@ -111,8 +106,6 @@ fn join_after_create_creator_match() {
 
 #[test]
 fn join_after_create_creator_mismatch() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -140,8 +133,6 @@ fn join_after_create_creator_mismatch() {
 
 #[test]
 fn join_after_create_sender_match() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         alice(),
@@ -169,8 +160,6 @@ fn join_after_create_sender_match() {
 
 #[test]
 fn join_after_create_sender_mismatch() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -198,8 +187,6 @@ fn join_after_create_sender_mismatch() {
 
 #[test]
 fn join_sender_state_key_mismatch() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -227,8 +214,6 @@ fn join_sender_state_key_mismatch() {
 
 #[test]
 fn join_banned() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -266,8 +251,6 @@ fn join_banned() {
 
 #[test]
 fn join_invite_join_rule_already_joined() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -305,8 +288,6 @@ fn join_invite_join_rule_already_joined() {
 
 #[test]
 fn join_knock_join_rule_already_invited() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -354,8 +335,6 @@ fn join_knock_join_rule_already_invited() {
 
 #[test]
 fn join_knock_join_rule_not_supported() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -395,8 +374,6 @@ fn join_knock_join_rule_not_supported() {
 
 #[test]
 fn join_restricted_join_rule_not_supported() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -439,8 +416,6 @@ fn join_restricted_join_rule_not_supported() {
 
 #[test]
 fn join_knock_restricted_join_rule_not_supported() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -483,8 +458,6 @@ fn join_knock_restricted_join_rule_not_supported() {
 
 #[test]
 fn join_restricted_join_rule_already_joined() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -526,8 +499,6 @@ fn join_restricted_join_rule_already_joined() {
 
 #[test]
 fn join_knock_restricted_join_rule_already_invited() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -578,8 +549,6 @@ fn join_knock_restricted_join_rule_already_invited() {
 
 #[test]
 fn join_restricted_join_rule_missing_join_authorised_via_users_server() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         ella(),
@@ -621,8 +590,6 @@ fn join_restricted_join_rule_missing_join_authorised_via_users_server() {
 
 #[test]
 fn join_restricted_join_rule_authorised_via_user_not_in_room() {
-    let _guard = init_subscriber();
-
     let mut content = RoomMemberEventContent::new(MembershipState::Join);
     content.join_authorized_via_users_server = Some(zara().to_owned());
 
@@ -667,8 +634,6 @@ fn join_restricted_join_rule_authorised_via_user_not_in_room() {
 
 #[test]
 fn join_restricted_join_rule_authorised_via_user_with_not_enough_power() {
-    let _guard = init_subscriber();
-
     let mut content = RoomMemberEventContent::new(MembershipState::Join);
     content.join_authorized_via_users_server = Some(charlie().to_owned());
 
@@ -722,8 +687,6 @@ fn join_restricted_join_rule_authorised_via_user_with_not_enough_power() {
 
 #[test]
 fn join_restricted_join_rule_authorised_via_user() {
-    let _guard = init_subscriber();
-
     // Check various contents that might not match the definition of `m.room.join_rules` in the
     // spec, to ensure that we only care about the `join_rule` field.
     let join_rules_to_check = [
@@ -799,8 +762,6 @@ fn join_restricted_join_rule_authorised_via_user() {
 
 #[test]
 fn join_public_join_rule() {
-    let _guard = init_subscriber();
-
     // Check various contents that might not match the definition of `m.room.member` in the
     // spec, to ensure that we only care about a few fields.
     let contents_to_check = [
@@ -849,8 +810,6 @@ fn join_public_join_rule() {
 
 #[test]
 fn invite_via_third_party_invite_banned() {
-    let _guard = init_subscriber();
-
     let mut content = RoomMemberEventContent::new(MembershipState::Invite);
     content.third_party_invite = Some(ThirdPartyInvite::new(
         "e..@p..".to_owned(),
@@ -902,8 +861,6 @@ fn invite_via_third_party_invite_banned() {
 
 #[test]
 fn invite_via_third_party_invite_missing_signed() {
-    let _guard = init_subscriber();
-
     let content = json!({
         "membership": "invite",
         "third_party_invite": {
@@ -938,8 +895,6 @@ fn invite_via_third_party_invite_missing_signed() {
 
 #[test]
 fn invite_via_third_party_invite_missing_mxid() {
-    let _guard = init_subscriber();
-
     let content = json!({
         "membership": "invite",
         "third_party_invite": {
@@ -977,8 +932,6 @@ fn invite_via_third_party_invite_missing_mxid() {
 
 #[test]
 fn invite_via_third_party_invite_missing_token() {
-    let _guard = init_subscriber();
-
     let content = json!({
         "membership": "invite",
         "third_party_invite": {
@@ -1016,8 +969,6 @@ fn invite_via_third_party_invite_missing_token() {
 
 #[test]
 fn invite_via_third_party_invite_mxid_mismatch() {
-    let _guard = init_subscriber();
-
     let mut content = RoomMemberEventContent::new(MembershipState::Invite);
     content.third_party_invite = Some(ThirdPartyInvite::new(
         "z..@p..".to_owned(),
@@ -1056,8 +1007,6 @@ fn invite_via_third_party_invite_mxid_mismatch() {
 
 #[test]
 fn invite_via_third_party_invite_missing_room_third_party_invite() {
-    let _guard = init_subscriber();
-
     let mut content = RoomMemberEventContent::new(MembershipState::Invite);
     content.third_party_invite = Some(ThirdPartyInvite::new(
         "e..@p..".to_owned(),
@@ -1114,8 +1063,6 @@ fn invite_via_third_party_invite_missing_room_third_party_invite() {
 
 #[test]
 fn invite_via_third_party_invite_room_third_party_invite_sender_mismatch() {
-    let _guard = init_subscriber();
-
     let mut content = RoomMemberEventContent::new(MembershipState::Invite);
     content.third_party_invite = Some(ThirdPartyInvite::new(
         "e..@p..".to_owned(),
@@ -1156,8 +1103,6 @@ fn invite_via_third_party_invite_room_third_party_invite_sender_mismatch() {
 
 #[test]
 fn invite_via_third_party_invite_with_room_missing_signatures() {
-    let _guard = init_subscriber();
-
     let content = json!({
         "membership": "invite",
         "third_party_invite": {
@@ -1199,8 +1144,6 @@ fn invite_via_third_party_invite_with_room_missing_signatures() {
 
 #[test]
 fn invite_via_third_party_invite_with_room_empty_signatures() {
-    let _guard = init_subscriber();
-
     let content = json!({
         "membership": "invite",
         "third_party_invite": {
@@ -1243,8 +1186,6 @@ fn invite_via_third_party_invite_with_room_empty_signatures() {
 
 #[test]
 fn invite_via_third_party_invite_with_wrong_signature() {
-    let _guard = init_subscriber();
-
     let content = json!({
         "membership": "invite",
         "third_party_invite": {
@@ -1291,8 +1232,6 @@ fn invite_via_third_party_invite_with_wrong_signature() {
 
 #[test]
 fn invite_via_third_party_invite_with_wrong_signing_algorithm() {
-    let _guard = init_subscriber();
-
     let content = json!({
         "membership": "invite",
         "third_party_invite": {
@@ -1339,8 +1278,6 @@ fn invite_via_third_party_invite_with_wrong_signing_algorithm() {
 
 #[test]
 fn invite_via_third_party_invite() {
-    let _guard = init_subscriber();
-
     let content = json!({
         "membership": "invite",
         "third_party_invite": {
@@ -1392,8 +1329,6 @@ fn invite_via_third_party_invite() {
 
 #[test]
 fn invite_sender_not_joined() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         zara(),
@@ -1421,8 +1356,6 @@ fn invite_sender_not_joined() {
 
 #[test]
 fn invite_banned() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         alice(),
@@ -1460,8 +1393,6 @@ fn invite_banned() {
 
 #[test]
 fn invite_already_joined() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         alice(),
@@ -1489,8 +1420,6 @@ fn invite_already_joined() {
 
 #[test]
 fn invite_sender_not_enough_power() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -1528,8 +1457,6 @@ fn invite_sender_not_enough_power() {
 
 #[test]
 fn invite() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -1557,8 +1484,6 @@ fn invite() {
 
 #[test]
 fn leave_after_leave() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         ella(),
@@ -1586,8 +1511,6 @@ fn leave_after_leave() {
 
 #[test]
 fn leave_after_join() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -1615,8 +1538,6 @@ fn leave_after_join() {
 
 #[test]
 fn leave_after_invite() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -1654,8 +1575,6 @@ fn leave_after_invite() {
 
 #[test]
 fn leave_after_knock() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -1693,8 +1612,6 @@ fn leave_after_knock() {
 
 #[test]
 fn leave_after_knock_not_supported() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -1733,8 +1650,6 @@ fn leave_after_knock_not_supported() {
 
 #[test]
 fn leave_kick_sender_left() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         zara(),
@@ -1762,8 +1677,6 @@ fn leave_kick_sender_left() {
 
 #[test]
 fn leave_unban_not_enough_power() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         bob(),
@@ -1801,8 +1714,6 @@ fn leave_unban_not_enough_power() {
 
 #[test]
 fn leave_unban() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         alice(),
@@ -1840,8 +1751,6 @@ fn leave_unban() {
 
 #[test]
 fn leave_kick_not_enough_power() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         bob(),
@@ -1869,8 +1778,6 @@ fn leave_kick_not_enough_power() {
 
 #[test]
 fn leave_kick_greater_power() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         bob(),
@@ -1915,8 +1822,6 @@ fn leave_kick_greater_power() {
 
 #[test]
 fn leave_kick_same_power() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         bob(),
@@ -1961,8 +1866,6 @@ fn leave_kick_same_power() {
 
 #[test]
 fn leave_kick() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         alice(),
@@ -1990,8 +1893,6 @@ fn leave_kick() {
 
 #[test]
 fn ban_sender_not_joined() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         ella(),
@@ -2019,8 +1920,6 @@ fn ban_sender_not_joined() {
 
 #[test]
 fn ban_not_enough_power() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -2048,8 +1947,6 @@ fn ban_not_enough_power() {
 
 #[test]
 fn ban_greater_power() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -2094,8 +1991,6 @@ fn ban_greater_power() {
 
 #[test]
 fn ban_same_power() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -2140,8 +2035,6 @@ fn ban_same_power() {
 
 #[test]
 fn ban() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         alice(),
@@ -2169,8 +2062,6 @@ fn ban() {
 
 #[test]
 fn knock_public_join_rule() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         ella(),
@@ -2198,8 +2089,6 @@ fn knock_public_join_rule() {
 
 #[test]
 fn knock_knock_join_rule() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         ella(),
@@ -2237,8 +2126,6 @@ fn knock_knock_join_rule() {
 
 #[test]
 fn knock_knock_join_rule_not_supported() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         ella(),
@@ -2276,8 +2163,6 @@ fn knock_knock_join_rule_not_supported() {
 
 #[test]
 fn knock_knock_restricted_join_rule() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         ella(),
@@ -2318,8 +2203,6 @@ fn knock_knock_restricted_join_rule() {
 
 #[test]
 fn knock_knock_restricted_join_rule_not_supported() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         ella(),
@@ -2360,8 +2243,6 @@ fn knock_knock_restricted_join_rule_not_supported() {
 
 #[test]
 fn knock_sender_state_key_mismatch() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         zara(),
@@ -2399,8 +2280,6 @@ fn knock_sender_state_key_mismatch() {
 
 #[test]
 fn knock_after_ban() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -2447,8 +2326,6 @@ fn knock_after_ban() {
 
 #[test]
 fn knock_after_invite() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),
@@ -2495,8 +2372,6 @@ fn knock_after_invite() {
 
 #[test]
 fn knock_after_join() {
-    let _guard = init_subscriber();
-
     let incoming_event = to_pdu_event(
         "HELLO",
         charlie(),

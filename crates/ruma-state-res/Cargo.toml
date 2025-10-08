@@ -33,7 +33,7 @@ insta = { workspace = true }
 maplit = { workspace = true }
 rand = { workspace = true }
 similar = { workspace = true }
-tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
+test-log = { version = "0.2", default-features = false, features = ["trace"] }
 
 [[bench]]
 name = "state_res_bench"
