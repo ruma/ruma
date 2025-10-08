@@ -144,6 +144,6 @@ where
 }
 
 pub use ruma_macros::{
-    AsRefStr, AsStrAsRefStr, DebugAsRefStr, DeserializeFromCowStr, DisplayAsRefStr, FromString,
-    OrdAsRefStr, PartialEqAsRefStr, SerializeAsRefStr, StringEnum, _FakeDeriveSerde,
+    AsRefStr, AsStrAsRefStr, DebugAsRefStr, DeserializeFromCowStr, DisplayAsRefStr, EqAsRefStr,
+    FromString, OrdAsRefStr, SerializeAsRefStr, StringEnum, _FakeDeriveSerde,
 };

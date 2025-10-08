@@ -11,7 +11,7 @@ use http::{
     Method,
 };
 use percent_encoding::utf8_percent_encode;
-use ruma_macros::{OrdAsRefStr, PartialEqAsRefStr, StringEnum};
+use ruma_macros::{EqAsRefStr, OrdAsRefStr, StringEnum};
 use tracing::warn;
 
 use super::{
@@ -1180,7 +1180,7 @@ impl SupportedVersions {
 /// specification and that Ruma still supports, like the unstable version of an endpoint or a stable
 /// feature. Features behind a cargo feature are only supported when this feature is enabled.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, StringEnum, PartialEqAsRefStr, Eq, Hash, OrdAsRefStr)]
+#[derive(Clone, StringEnum, EqAsRefStr, Hash, OrdAsRefStr)]
 #[non_exhaustive]
 pub enum FeatureFlag {
     /// `fi.mau.msc2246` ([MSC])
