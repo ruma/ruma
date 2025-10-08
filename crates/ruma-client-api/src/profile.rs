@@ -52,6 +52,16 @@ impl StaticProfileField for DisplayName {
     const NAME: &str = "displayname";
 }
 
+/// The user's time zone.
+#[derive(Debug, Clone, Copy)]
+#[allow(clippy::exhaustive_structs)]
+pub struct TimeZone;
+
+impl StaticProfileField for TimeZone {
+    type Value = String;
+    const NAME: &str = "m.tz";
+}
+
 /// The possible fields of a user's [profile].
 ///
 /// [profile]: https://spec.matrix.org/latest/client-server-api/#profiles
@@ -66,6 +76,10 @@ pub enum ProfileFieldName {
     /// The user's display name.
     #[ruma_enum(rename = "displayname")]
     DisplayName,
+
+    /// The user's time zone.
+    #[ruma_enum(rename = "m.tz")]
+    TimeZone,
 
     #[doc(hidden)]
     _Custom(crate::PrivOwnedStr),
@@ -93,6 +107,10 @@ pub enum ProfileFieldValue {
     #[serde(rename = "displayname")]
     DisplayName(String),
 
+    /// The user's time zone.
+    #[serde(rename = "m.tz")]
+    TimeZone(String),
+
     #[doc(hidden)]
     #[serde(untagged)]
     _Custom(CustomProfileFieldValue),
@@ -113,6 +131,7 @@ impl ProfileFieldValue {
         Ok(match field {
             "avatar_url" => Self::AvatarUrl(from_json_value(value)?),
             "displayname" => Self::DisplayName(from_json_value(value)?),
+            "m.tz" => Self::TimeZone(from_json_value(value)?),
             _ => Self::_Custom(CustomProfileFieldValue { field: field.to_owned(), value }),
         })
     }
@@ -122,6 +141,7 @@ impl ProfileFieldValue {
         match self {
             Self::AvatarUrl(_) => ProfileFieldName::AvatarUrl,
             Self::DisplayName(_) => ProfileFieldName::DisplayName,
+            Self::TimeZone(_) => ProfileFieldName::TimeZone,
             Self::_Custom(CustomProfileFieldValue { field, .. }) => field.as_str().into(),
         }
     }
@@ -136,6 +156,9 @@ impl ProfileFieldValue {
                 Cow::Owned(to_json_value(value).expect("value should serialize successfully"))
             }
             Self::DisplayName(value) => {
+                Cow::Owned(to_json_value(value).expect("value should serialize successfully"))
+            }
+            Self::TimeZone(value) => {
                 Cow::Owned(to_json_value(value).expect("value should serialize successfully"))
             }
             Self::_Custom(c) => Cow::Borrowed(&c.value),

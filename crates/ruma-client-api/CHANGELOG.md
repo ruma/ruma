@@ -15,6 +15,7 @@ Improvements:
     favour of `get_profile_field`.
   - The `set_display_name` and `set_avatar_url` endpoints are deprecated in
     favour of `set_profile_field`.
+- Add supports for the `m.tz` profile field according to Matrix 1.16.
 
 # 0.21.0
 

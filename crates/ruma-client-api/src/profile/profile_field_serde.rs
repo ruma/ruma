@@ -89,6 +89,7 @@ impl<'de> de::Visitor<'de> for ProfileFieldValueVisitor {
         Ok(Some(match field {
             ProfileFieldName::AvatarUrl => ProfileFieldValue::AvatarUrl(map.next_value()?),
             ProfileFieldName::DisplayName => ProfileFieldValue::DisplayName(map.next_value()?),
+            ProfileFieldName::TimeZone => ProfileFieldValue::TimeZone(map.next_value()?),
             ProfileFieldName::_Custom(field) => {
                 ProfileFieldValue::_Custom(CustomProfileFieldValue {
                     field: field.0.into(),
