@@ -499,8 +499,9 @@ pub mod response {
     #[cfg(feature = "unstable-msc4308")]
     use ruma_common::OwnedEventId;
     use ruma_events::{
-        receipt::SyncReceiptEvent, typing::SyncTypingEvent, AnyGlobalAccountDataEvent,
-        AnyRoomAccountDataEvent, AnyStrippedStateEvent, AnyToDeviceEvent,
+        receipt::SyncReceiptEvent, room::member::MembershipState, typing::SyncTypingEvent,
+        AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent, AnyStrippedStateEvent,
+        AnyToDeviceEvent,
     };
 
     use super::{
@@ -595,6 +596,15 @@ pub mod response {
         /// Heroes of the room.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub heroes: Option<Vec<Hero>>,
+
+        /// The current membership of the user, or omitted if user not in room (for peeking).
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub membership: Option<MembershipState>,
+
+        /// The name of the lists that match this room. The field is omitted if it doesn't match
+        /// any list and is included only due to a subscription.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub lists: Vec<String>,
     }
 
     impl Room {
