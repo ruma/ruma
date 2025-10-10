@@ -3,8 +3,8 @@
 use http::header::CONTENT_TYPE;
 use ruma_common::{
     api::{
-        request, response, IncomingRequest as _, MatrixVersion, Metadata, OutgoingRequest as _,
-        OutgoingRequestAppserviceExt, SendAccessToken, SupportedVersions,
+        request, response, AppserviceUserIdentity, IncomingRequest as _, MatrixVersion, Metadata,
+        OutgoingRequest as _, OutgoingRequestAppserviceExt, SendAccessToken, SupportedVersions,
     },
     metadata, owned_user_id, user_id, OwnedUserId,
 };
@@ -113,12 +113,12 @@ fn request_with_user_id_serde() {
     let supported =
         SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
 
-    let user_id = user_id!("@_virtual_:ruma.io");
+    let identity = AppserviceUserIdentity::new(user_id!("@_virtual_:ruma.io"));
     let http_req = req
-        .try_into_http_request_with_user_id::<Vec<u8>>(
+        .try_into_http_request_with_identity::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            user_id,
+            identity,
             &supported,
         )
         .unwrap();
@@ -132,14 +132,7 @@ fn request_with_user_id_serde() {
 }
 
 mod without_query {
-    use http::header::CONTENT_TYPE;
-    use ruma_common::{
-        api::{
-            request, response, MatrixVersion, Metadata, OutgoingRequestAppserviceExt,
-            SendAccessToken, SupportedVersions,
-        },
-        metadata, owned_user_id, user_id, OwnedUserId,
-    };
+    use super::*;
 
     const METADATA: Metadata = metadata! {
         method: POST,
@@ -190,12 +183,12 @@ mod without_query {
             features: Default::default(),
         };
 
-        let user_id = user_id!("@_virtual_:ruma.io");
+        let identity = AppserviceUserIdentity::new(user_id!("@_virtual_:ruma.io"));
         let http_req = req
-            .try_into_http_request_with_user_id::<Vec<u8>>(
+            .try_into_http_request_with_identity::<Vec<u8>>(
                 "https://homeserver.tld",
                 SendAccessToken::None,
-                user_id,
+                identity,
                 &supported,
             )
             .unwrap();
