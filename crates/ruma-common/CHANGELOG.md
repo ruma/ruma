@@ -41,6 +41,10 @@ Breaking changes:
     type named `Request` by default. This type can be changed with an `@for`
     setting.
 - The `http_headers` module is now behind the `api` cargo feature.
+- `OutgoingRequestAppserviceExt::try_into_http_request_with_user_id()` is
+  renamed to `try_into_http_request_with_identity()` and takes an
+  `AppserviceUserIdentity` instead of a `UserId`. This allows to specify a
+  device ID, according to MSC4326.
 
 Bug fixes:
 
