@@ -251,7 +251,7 @@ use serde::{Deserialize, Serialize};
 use self::error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
 #[doc(inline)]
 pub use crate::metadata;
-use crate::UserId;
+use crate::{DeviceId, UserId};
 
 pub mod auth_scheme;
 pub mod error;
@@ -308,36 +308,37 @@ where
     for<'a> Self::Authentication:
         auth_scheme::AuthScheme<Input<'a> = auth_scheme::SendAccessToken<'a>>,
 {
-    /// Tries to convert this request into an `http::Request` and appends a virtual `user_id` to
-    /// [assert Appservice identity][id_assert].
-    ///
-    /// [id_assert]: https://spec.matrix.org/latest/application-service-api/#identity-assertion
-    fn try_into_http_request_with_user_id<T: Default + BufMut>(
+    /// Tries to convert this request into an `http::Request` and adds the given
+    /// [`AppserviceUserIdentity`] to it, if the identity is not empty.
+    fn try_into_http_request_with_identity<T: Default + BufMut>(
         self,
         base_url: &str,
         access_token: auth_scheme::SendAccessToken<'_>,
-        user_id: &UserId,
+        identity: AppserviceUserIdentity<'_>,
         path_builder_input: <Self::PathBuilder as path_builder::PathBuilder>::Input<'_>,
     ) -> Result<http::Request<T>, IntoHttpError> {
         let mut http_request =
             self.try_into_http_request(base_url, access_token, path_builder_input)?;
-        let user_id_query = serde_html_form::to_string([("user_id", user_id)])?;
 
-        let uri = http_request.uri().to_owned();
-        let mut parts = uri.into_parts();
+        if !identity.is_empty() {
+            let identity_query = serde_html_form::to_string(identity)?;
 
-        let path_and_query_with_user_id = match &parts.path_and_query {
-            Some(path_and_query) => match path_and_query.query() {
-                Some(_) => format!("{path_and_query}&{user_id_query}"),
-                None => format!("{path_and_query}?{user_id_query}"),
-            },
-            None => format!("/?{user_id_query}"),
-        };
+            let uri = http_request.uri().to_owned();
+            let mut parts = uri.into_parts();
 
-        parts.path_and_query =
-            Some(path_and_query_with_user_id.try_into().map_err(http::Error::from)?);
+            let path_and_query_with_user_id = match &parts.path_and_query {
+                Some(path_and_query) => match path_and_query.query() {
+                    Some(_) => format!("{path_and_query}&{identity_query}"),
+                    None => format!("{path_and_query}?{identity_query}"),
+                },
+                None => format!("/?{identity_query}"),
+            };
 
-        *http_request.uri_mut() = parts.try_into().map_err(http::Error::from)?;
+            parts.path_and_query =
+                Some(path_and_query_with_user_id.try_into().map_err(http::Error::from)?);
+
+            *http_request.uri_mut() = parts.try_into().map_err(http::Error::from)?;
+        }
 
         Ok(http_request)
     }
@@ -417,4 +418,34 @@ pub enum Direction {
     /// Return events forwards in time from the requested `from` token.
     #[serde(rename = "f")]
     Forward,
+}
+
+/// Data to [assert the identity] of an appservice virtual user.
+///
+/// [assert the identity]: https://spec.matrix.org/latest/application-service-api/#identity-assertion
+#[derive(Debug, Clone, Copy, Default, Serialize)]
+#[non_exhaustive]
+pub struct AppserviceUserIdentity<'a> {
+    /// The ID of the virtual user.
+    ///
+    /// If this is not set, the user implied by the `sender_localpart` property of the registration
+    /// will be used by the server.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub user_id: Option<&'a UserId>,
+
+    /// The ID of a specific device belonging to the virtual user.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub device_id: Option<&'a DeviceId>,
+}
+
+impl<'a> AppserviceUserIdentity<'a> {
+    /// Construct a new `AppserviceUserIdentity` with the given user ID.
+    pub fn new(user_id: &'a UserId) -> Self {
+        Self { user_id: Some(user_id), device_id: None }
+    }
+
+    /// Whether this identity is empty.
+    fn is_empty(&self) -> bool {
+        self.user_id.is_none() && self.device_id.is_none()
+    }
 }

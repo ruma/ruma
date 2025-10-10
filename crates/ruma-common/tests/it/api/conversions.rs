@@ -6,8 +6,8 @@ use http::header::CONTENT_TYPE;
 use ruma_common::{
     api::{
         auth_scheme::{NoAuthentication, SendAccessToken},
-        request, response, IncomingRequest as _, MatrixVersion, OutgoingRequest as _,
-        OutgoingRequestAppserviceExt, SupportedVersions,
+        request, response, AppserviceUserIdentity, IncomingRequest as _, MatrixVersion,
+        OutgoingRequest as _, OutgoingRequestAppserviceExt, SupportedVersions,
     },
     metadata, owned_user_id, user_id, OwnedUserId,
 };
@@ -119,12 +119,12 @@ fn request_with_user_id_serde() {
     let supported =
         SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
 
-    let user_id = user_id!("@_virtual_:ruma.io");
+    let identity = AppserviceUserIdentity::new(user_id!("@_virtual_:ruma.io"));
     let http_req = req
-        .try_into_http_request_with_user_id::<Vec<u8>>(
+        .try_into_http_request_with_identity::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            user_id,
+            identity,
             Cow::Owned(supported),
         )
         .unwrap();
@@ -144,7 +144,8 @@ mod without_query {
     use ruma_common::{
         api::{
             auth_scheme::{NoAuthentication, SendAccessToken},
-            request, response, MatrixVersion, OutgoingRequestAppserviceExt, SupportedVersions,
+            request, response, AppserviceUserIdentity, MatrixVersion, OutgoingRequestAppserviceExt,
+            SupportedVersions,
         },
         metadata, owned_user_id, user_id, OwnedUserId,
     };
@@ -198,12 +199,12 @@ mod without_query {
             features: Default::default(),
         };
 
-        let user_id = user_id!("@_virtual_:ruma.io");
+        let identity = AppserviceUserIdentity::new(user_id!("@_virtual_:ruma.io"));
         let http_req = req
-            .try_into_http_request_with_user_id::<Vec<u8>>(
+            .try_into_http_request_with_identity::<Vec<u8>>(
                 "https://homeserver.tld",
                 SendAccessToken::None,
-                user_id,
+                identity,
                 Cow::Owned(supported),
             )
             .unwrap();
