@@ -16,6 +16,10 @@ Breaking changes:
   `PredefinedOverrideRuleId`, and they are still supported in
   `PatternedPushRule::applies_to()` and `ConditionalPushRule::applies()`, for
   backwards-compatibility for clients.
+- `OutgoingRequestAppserviceExt::try_into_http_request_with_user_id()` is
+  renamed to `try_into_http_request_with_identity()` and takes an
+  `AppserviceUserIdentity` instead of a `UserId`. This allows to specify a
+  device ID, according to MSC4326.
 
 Improvements:
 
