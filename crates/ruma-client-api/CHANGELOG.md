@@ -4,6 +4,11 @@ Breaking changes:
 
 - Upgrade `js_option` to v0.2.0
 
+Fixes:
+
+- Set the `Authorization` header with the provided access token in
+  `set_profile_field::v3::Request::try_into_http_request()`.
+
 Improvements:
 
 - Stabilize support for the `use_state_after` query parameter and `State::After`

@@ -60,9 +60,11 @@ pub mod v3 {
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
             base_url: &str,
-            _access_token: ruma_common::api::SendAccessToken<'_>,
+            access_token: ruma_common::api::SendAccessToken<'_>,
             considering: &'_ ruma_common::api::SupportedVersions,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
+            use http::{header, HeaderValue};
+
             let field = self.value.field_name();
 
             let url = if field.existed_before_extended_profiles() {
@@ -79,6 +81,16 @@ pub mod v3 {
             let http_request = http::Request::builder()
                 .method(METADATA.method)
                 .uri(url)
+                .header(header::CONTENT_TYPE, "application/json")
+                .header(
+                    header::AUTHORIZATION,
+                    HeaderValue::from_str(&format!(
+                        "Bearer {}",
+                        access_token
+                            .get_required_for_endpoint()
+                            .ok_or(ruma_common::api::error::IntoHttpError::NeedsAuthentication)?
+                    ))?,
+                )
                 .body(ruma_common::serde::json_to_buf(&self.value)?)
                 // this cannot fail because we don't give user-supplied data to any of the
                 // builder methods
@@ -150,6 +162,7 @@ mod tests {
     #[test]
     #[cfg(feature = "client")]
     fn serialize_request() {
+        use http::header;
         use ruma_common::api::{OutgoingRequest, SendAccessToken, SupportedVersions};
 
         // Profile field that existed in Matrix 1.0.
@@ -177,6 +190,10 @@ mod tests {
                 "avatar_url": "mxc://localhost/abcdef",
             })
         );
+        assert_eq!(
+            http_request.headers().get(header::AUTHORIZATION).unwrap(),
+            "Bearer access_token"
+        );
 
         // Matrix 1.16.
         let http_request = avatar_url_request
@@ -195,6 +212,10 @@ mod tests {
             json!({
                 "avatar_url": "mxc://localhost/abcdef",
             })
+        );
+        assert_eq!(
+            http_request.headers().get(header::AUTHORIZATION).unwrap(),
+            "Bearer access_token"
         );
 
         // Profile field that didn't exist in Matrix 1.0.
@@ -222,6 +243,10 @@ mod tests {
                 "dev.ruma.custom_field": true,
             })
         );
+        assert_eq!(
+            http_request.headers().get(header::AUTHORIZATION).unwrap(),
+            "Bearer access_token"
+        );
 
         // Matrix 1.16.
         let http_request = custom_field_request
@@ -240,6 +265,10 @@ mod tests {
             json!({
                 "dev.ruma.custom_field": true,
             })
+        );
+        assert_eq!(
+            http_request.headers().get(header::AUTHORIZATION).unwrap(),
+            "Bearer access_token"
         );
     }
 
