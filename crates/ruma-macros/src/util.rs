@@ -13,9 +13,6 @@ pub(crate) fn import_ruma_common() -> TokenStream {
     } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk") {
         let import = format_ident!("{name}");
         quote! { ::#import::ruma }
-    } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk-appservice") {
-        let import = format_ident!("{name}");
-        quote! { ::#import::ruma }
     } else {
         quote! { ::ruma_common }
     }
@@ -29,9 +26,6 @@ pub(crate) fn import_ruma_events() -> TokenStream {
         let import = format_ident!("{name}");
         quote! { ::#import::events }
     } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk") {
-        let import = format_ident!("{name}");
-        quote! { ::#import::ruma::events }
-    } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk-appservice") {
         let import = format_ident!("{name}");
         quote! { ::#import::ruma::events }
     } else {

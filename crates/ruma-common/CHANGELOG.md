@@ -16,6 +16,8 @@ Breaking changes:
   `PredefinedOverrideRuleId`, and they are still supported in
   `PatternedPushRule::applies_to()` and `ConditionalPushRule::applies()`, for
   backwards-compatibility for clients.
+- Macros no longer support importing the `ruma` and `ruma-events` crate from the
+  `matrix-sdk-appservice` crate. This crate was dropped 2 years ago.
 
 Improvements:
 
