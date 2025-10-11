@@ -24,11 +24,15 @@ pub(crate) fn check_reexport_features(metadata: &Metadata) -> Result<()> {
             continue;
         }
 
-        // Filter features that are enabled by other features of the same package.
+        // Filter private features and features that are enabled by other features of the same
+        // package.
         let features = package.features.keys().filter(|feature_name| {
-            !package.features.values().flatten().any(|activated_feature| {
-                activated_feature.trim_start_matches("dep:") == *feature_name
-            })
+            !feature_name.starts_with("_")
+                && !package
+                    .features
+                    .values()
+                    .flatten()
+                    .any(|activated_feature| activated_feature == *feature_name)
         });
 
         for feature_name in features {
