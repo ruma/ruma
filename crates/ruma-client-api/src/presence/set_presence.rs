@@ -8,13 +8,13 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3presenceuseridstatus
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         presence::PresenceState,
         OwnedUserId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: PUT,
         rate_limited: true,
         authentication: AccessToken,
@@ -22,7 +22,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/presence/{user_id}/status",
             1.1 => "/_matrix/client/v3/presence/{user_id}/status",
         }
-    };
+    }
 
     /// Request type for the `set_presence` endpoint.
     #[request(error = crate::Error)]

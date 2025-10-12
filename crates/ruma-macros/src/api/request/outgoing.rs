@@ -81,7 +81,7 @@ impl Request {
         }));
 
         header_kvs.extend(quote! {
-            req_headers.extend(METADATA.authorization_header(access_token)?);
+            req_headers.extend(<Self as #ruma_common::api::Metadata>::authorization_header(access_token)?);
         });
 
         let request_body = if let Some(field) = self.raw_body_field() {
@@ -94,7 +94,7 @@ impl Request {
                 #ruma_common::serde::json_to_buf(&RequestBody { #initializers })?
             }
         } else {
-            quote! { METADATA.empty_request_body::<T>() }
+            quote! { <Self as #ruma_common::api::Metadata>::empty_request_body::<T>() }
         };
 
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
@@ -106,8 +106,6 @@ impl Request {
                 type EndpointError = #error_ty;
                 type IncomingResponse = Response;
 
-                const METADATA: #ruma_common::api::Metadata = METADATA;
-
                 fn try_into_http_request<T: ::std::default::Default + #bytes::BufMut>(
                     self,
                     base_url: &::std::primitive::str,
@@ -115,8 +113,8 @@ impl Request {
                     considering: &'_ #ruma_common::api::SupportedVersions,
                 ) -> ::std::result::Result<#http::Request<T>, #ruma_common::api::error::IntoHttpError> {
                     let mut req_builder = #http::Request::builder()
-                        .method(METADATA.method)
-                        .uri(METADATA.make_endpoint_url(
+                        .method(<Self as #ruma_common::api::Metadata>::METHOD)
+                        .uri(<Self as #ruma_common::api::Metadata>::make_endpoint_url(
                             considering,
                             base_url,
                             &[ #( &self.#path_fields ),* ],

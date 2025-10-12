@@ -1,6 +1,6 @@
 use ruma_common::{api::Metadata, metadata};
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: GET,
     rate_limited: false,
     authentication: None,
@@ -8,6 +8,8 @@ const METADATA: Metadata = metadata! {
         unstable => "/a/path",
         1.1 => removed,
     }
-};
+}
+
+pub struct Request;
 
 fn main() {}

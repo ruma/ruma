@@ -10,14 +10,14 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3pushersset
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
     use serde::Serialize;
 
     use crate::push::{Pusher, PusherIds};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: true,
         authentication: AccessToken,
@@ -25,7 +25,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/pushers/set",
             1.1 => "/_matrix/client/v3/pushers/set",
         }
-    };
+    }
 
     /// Request type for the `set_pusher` endpoint.
     #[request(error = crate::Error)]

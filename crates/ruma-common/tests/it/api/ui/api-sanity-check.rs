@@ -7,7 +7,7 @@ use ruma_common::{
     serde::Raw,
 };
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: POST, // An `http::Method` constant. No imports required.
     rate_limited: false,
     authentication: None,
@@ -20,7 +20,7 @@ const METADATA: Metadata = metadata! {
         1.2 => deprecated,
         1.3 => removed,
     }
-};
+}
 
 /// Request type for the `some_endpoint` endpoint.
 #[request]
@@ -70,14 +70,14 @@ fn main() {
     use ruma_common::api::{MatrixVersion, StablePathSelector};
 
     assert_eq!(
-        METADATA.history.unstable_paths().collect::<Vec<_>>(),
+        Request::HISTORY.unstable_paths().collect::<Vec<_>>(),
         &[
             (None, "/_matrix/some/msc1234/endpoint/{baz}"),
             (Some("org.bar.msc1234"), "/_matrix/unstable/org.bar.msc1234/endpoint/{baz}")
         ],
     );
     assert_eq!(
-        METADATA.history.stable_paths().collect::<Vec<_>>(),
+        Request::HISTORY.stable_paths().collect::<Vec<_>>(),
         &[
             (
                 StablePathSelector::Feature("org.bar.msc1234.stable"),
@@ -94,7 +94,7 @@ fn main() {
         ],
     );
     assert_eq!(
-        METADATA.history.all_paths().collect::<Vec<_>>(),
+        Request::HISTORY.all_paths().collect::<Vec<_>>(),
         &[
             "/_matrix/some/msc1234/endpoint/{baz}",
             "/_matrix/unstable/org.bar.msc1234/endpoint/{baz}",
@@ -104,7 +104,7 @@ fn main() {
         ],
     );
 
-    assert_eq!(METADATA.history.added_in(), Some(MatrixVersion::V1_0));
-    assert_eq!(METADATA.history.deprecated_in(), Some(MatrixVersion::V1_2));
-    assert_eq!(METADATA.history.removed_in(), Some(MatrixVersion::V1_3));
+    assert_eq!(Request::HISTORY.added_in(), Some(MatrixVersion::V1_0));
+    assert_eq!(Request::HISTORY.deprecated_in(), Some(MatrixVersion::V1_2));
+    assert_eq!(Request::HISTORY.removed_in(), Some(MatrixVersion::V1_3));
 }

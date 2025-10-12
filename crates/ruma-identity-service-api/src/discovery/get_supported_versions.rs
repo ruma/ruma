@@ -13,18 +13,18 @@
 use std::collections::BTreeMap;
 
 use ruma_common::{
-    api::{request, response, Metadata, SupportedVersions},
+    api::{request, response, SupportedVersions},
     metadata,
 };
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: GET,
     rate_limited: false,
     authentication: None,
     history: {
         1.1 => "/_matrix/identity/versions",
     }
-};
+}
 
 /// Request type for the `versions` endpoint.
 #[request]

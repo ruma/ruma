@@ -9,13 +9,13 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedClientSecret, OwnedSessionId,
     };
 
     use crate::account::IdentityServerInfo;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: None,
@@ -23,7 +23,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/account/3pid/msisdn/requestToken",
             1.1 => "/_matrix/client/v3/account/3pid/msisdn/requestToken",
         }
-    };
+    }
 
     /// Request type for the `request_3pid_management_token_via_msisdn` endpoint.
     #[request(error = crate::Error)]

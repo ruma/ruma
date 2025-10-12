@@ -9,11 +9,11 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: true,
         authentication: AccessToken,
@@ -22,7 +22,7 @@ pub mod v3 {
             1.1 => "/_matrix/media/v3/config",
             1.11 => deprecated,
         }
-    };
+    }
 
     /// Request type for the `get_media_config` endpoint.
     #[request(error = crate::Error)]

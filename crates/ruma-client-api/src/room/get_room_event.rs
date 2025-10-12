@@ -8,14 +8,14 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3roomsroomideventeventid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         serde::Raw,
         OwnedEventId, OwnedRoomId,
     };
     use ruma_events::AnyTimelineEvent;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
@@ -23,7 +23,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/rooms/{room_id}/event/{event_id}",
             1.1 => "/_matrix/client/v3/rooms/{room_id}/event/{event_id}",
         }
-    };
+    }
 
     /// Request type for the `get_room_event` endpoint.
     #[request(error = crate::Error)]

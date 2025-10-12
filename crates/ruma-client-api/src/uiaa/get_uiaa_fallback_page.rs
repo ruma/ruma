@@ -7,14 +7,11 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#fallback
 
-    use ruma_common::{
-        api::{request, Metadata},
-        metadata,
-    };
+    use ruma_common::{api::request, metadata};
 
     use crate::uiaa::AuthType;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: None,
@@ -22,7 +19,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/auth/{auth_type}/fallback/web",
             1.1 => "/_matrix/client/v3/auth/{auth_type}/fallback/web",
         }
-    };
+    }
 
     /// Request type for the `authorize_fallback` endpoint.
     #[request(error = crate::Error)]

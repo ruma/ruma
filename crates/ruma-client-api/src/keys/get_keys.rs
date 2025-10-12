@@ -10,7 +10,7 @@ pub mod v3 {
     use std::{collections::BTreeMap, time::Duration};
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         encryption::{CrossSigningKey, DeviceKeys},
         metadata,
         serde::Raw,
@@ -18,7 +18,7 @@ pub mod v3 {
     };
     use serde_json::Value as JsonValue;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,
@@ -26,7 +26,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/keys/query",
             1.1 => "/_matrix/client/v3/keys/query",
         }
-    };
+    }
 
     /// Request type for the `get_keys` endpoint.
     #[request(error = crate::Error)]

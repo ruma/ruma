@@ -9,14 +9,11 @@ pub mod v1 {
 
     use std::time::Duration;
 
-    use ruma_common::{
-        api::{request, Metadata},
-        metadata,
-    };
+    use ruma_common::{api::request, metadata};
 
     use crate::authenticated_media::{ContentMetadata, FileOrLocation};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: true,
         authentication: ServerSignatures,
@@ -24,7 +21,7 @@ pub mod v1 {
             unstable => "/_matrix/federation/unstable/org.matrix.msc3916.v2/media/download/{media_id}",
             1.11 => "/_matrix/federation/v1/media/download/{media_id}",
         }
-    };
+    }
 
     /// Request type for the `get_content` endpoint.
     #[request]

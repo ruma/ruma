@@ -10,7 +10,7 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         encryption::{CrossSigningKey, DeviceKeys},
         metadata,
         serde::{Raw, StringEnum},
@@ -22,7 +22,7 @@ pub mod v3 {
     pub use super::iter::SignedKeysIter;
     use crate::PrivOwnedStr;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,
@@ -30,7 +30,7 @@ pub mod v3 {
             unstable => "/_matrix/client/unstable/keys/signatures/upload",
             1.1 => "/_matrix/client/v3/keys/signatures/upload",
         }
-    };
+    }
 
     /// Request type for the `upload_signatures` endpoint.
     #[request(error = crate::Error)]

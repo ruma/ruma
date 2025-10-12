@@ -8,12 +8,12 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1make_knockroomiduserid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedRoomId, OwnedUserId, RoomVersionId,
     };
     use serde_json::value::RawValue as RawJsonValue;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: ServerSignatures,
@@ -21,7 +21,7 @@ pub mod v1 {
             unstable => "/_matrix/federation/unstable/xyz.amorgan.knock/make_knock/{room_id}/{user_id}",
             1.1 => "/_matrix/federation/v1/make_knock/{room_id}/{user_id}",
         }
-    };
+    }
 
     /// Request type for the `create_knock_event_template` endpoint.
     #[request]

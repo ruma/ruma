@@ -3,20 +3,20 @@
 use http::header::{Entry, CONTENT_TYPE, LOCATION};
 use ruma_common::{
     api::{
-        request, response, MatrixVersion, Metadata, OutgoingRequest as _, OutgoingResponse as _,
+        request, response, MatrixVersion, OutgoingRequest as _, OutgoingResponse as _,
         SendAccessToken, SupportedVersions,
     },
     metadata,
 };
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: GET,
     rate_limited: false,
     authentication: None,
     history: {
         unstable => "/_matrix/my/endpoint",
     }
-};
+}
 
 /// Request type for the `no_fields` endpoint.
 #[request]

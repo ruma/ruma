@@ -11,14 +11,14 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         encryption::{DeviceKeys, OneTimeKey},
         metadata,
         serde::Raw,
         OneTimeKeyAlgorithm, OwnedOneTimeKeyId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,
@@ -26,7 +26,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/keys/upload",
             1.1 => "/_matrix/client/v3/keys/upload",
         }
-    };
+    }
 
     /// Request type for the `upload_keys` endpoint.
     #[request(error = crate::Error)]

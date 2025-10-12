@@ -9,7 +9,7 @@ pub mod v3 {
 
     use assign::assign;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         room::RoomType,
         serde::{Raw, StringEnum},
@@ -26,7 +26,7 @@ pub mod v3 {
 
     use crate::{membership::Invite3pid, room::Visibility, PrivOwnedStr};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,
@@ -34,7 +34,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/createRoom",
             1.1 => "/_matrix/client/v3/createRoom",
         }
-    };
+    }
 
     /// Request type for the `create_room` endpoint.
     #[request(error = crate::Error)]

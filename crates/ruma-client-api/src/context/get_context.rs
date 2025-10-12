@@ -9,7 +9,7 @@ pub mod v3 {
 
     use js_int::{uint, UInt};
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         serde::Raw,
         OwnedEventId, OwnedRoomId,
@@ -18,7 +18,7 @@ pub mod v3 {
 
     use crate::filter::RoomEventFilter;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
@@ -26,7 +26,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/rooms/{room_id}/context/{event_id}",
             1.1 => "/_matrix/client/v3/rooms/{room_id}/context/{event_id}",
         }
-    };
+    }
 
     /// Request type for the `get_context` endpoint.
     #[request(error = crate::Error)]

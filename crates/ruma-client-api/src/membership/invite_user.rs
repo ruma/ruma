@@ -13,14 +13,14 @@ pub mod v3 {
     //! [spec-3pid]: https://spec.matrix.org/latest/client-server-api/#thirdparty_post_matrixclientv3roomsroomidinvite
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedRoomId, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
 
     use crate::membership::Invite3pid;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: true,
         authentication: AccessToken,
@@ -28,7 +28,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/rooms/{room_id}/invite",
             1.1 => "/_matrix/client/v3/rooms/{room_id}/invite",
         }
-    };
+    }
 
     /// Request type for the `invite_user` endpoint.
     #[request(error = crate::Error)]

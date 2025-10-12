@@ -8,19 +8,19 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1stateroomid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedEventId, OwnedRoomId,
     };
     use serde_json::value::RawValue as RawJsonValue;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
             1.0 => "/_matrix/federation/v1/state/{room_id}",
         }
-    };
+    }
 
     /// Request type for the `get_room_state` endpoint.
     #[request]

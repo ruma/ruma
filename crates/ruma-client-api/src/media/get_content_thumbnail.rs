@@ -13,14 +13,14 @@ pub mod v3 {
     use js_int::UInt;
     pub use ruma_common::media::Method;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         http_headers::ContentDisposition,
         metadata, IdParseError, MxcUri, OwnedServerName,
     };
 
     use crate::http_headers::CROSS_ORIGIN_RESOURCE_POLICY;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: true,
         authentication: None,
@@ -29,7 +29,7 @@ pub mod v3 {
             1.1 => "/_matrix/media/v3/thumbnail/{server_name}/{media_id}",
             1.11 => deprecated,
         }
-    };
+    }
 
     /// Request type for the `get_content_thumbnail` endpoint.
     #[request(error = crate::Error)]

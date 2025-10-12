@@ -9,19 +9,19 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/latest/identity-service-api/#get_matrixidentityv2pubkeyisvalid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         third_party_invite::IdentityServerBase64PublicKey,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: None,
         history: {
             1.0 => "/_matrix/identity/v2/pubkey/isvalid",
         }
-    };
+    }
 
     /// Request type for the `check_public_key_validity` endpoint.
     #[request]

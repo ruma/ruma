@@ -11,13 +11,13 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedRoomId,
     };
 
     use crate::backup::RoomKeyBackup;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: PUT,
         rate_limited: true,
         authentication: AccessToken,
@@ -25,7 +25,7 @@ pub mod v3 {
             unstable => "/_matrix/client/unstable/room_keys/keys",
             1.1 => "/_matrix/client/v3/room_keys/keys",
         }
-    };
+    }
 
     /// Request type for the `add_backup_keys` endpoint.
     #[request(error = crate::Error)]

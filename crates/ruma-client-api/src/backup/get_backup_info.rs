@@ -10,7 +10,7 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         serde::Raw,
     };
@@ -19,7 +19,7 @@ pub mod v3 {
 
     use crate::backup::BackupAlgorithm;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: true,
         authentication: AccessToken,
@@ -27,7 +27,7 @@ pub mod v3 {
             unstable => "/_matrix/client/unstable/room_keys/version/{version}",
             1.1 => "/_matrix/client/v3/room_keys/version/{version}",
         }
-    };
+    }
 
     /// Request type for the `get_backup_info` endpoint.
     #[request(error = crate::Error)]

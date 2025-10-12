@@ -8,13 +8,13 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3delete_devices
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedDeviceId,
     };
 
     use crate::uiaa::{AuthData, UiaaResponse};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,
@@ -22,7 +22,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/delete_devices",
             1.1 => "/_matrix/client/v3/delete_devices",
         }
-    };
+    }
 
     /// Request type for the `delete_devices` endpoint.
     #[request(error = UiaaResponse)]

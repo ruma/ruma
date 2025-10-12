@@ -183,8 +183,6 @@ impl Request {
                 type EndpointError = #error_ty;
                 type OutgoingResponse = Response;
 
-                const METADATA: #ruma_common::api::Metadata = METADATA;
-
                 fn try_from_http_request<B, S>(
                     request: #http::Request<B>,
                     path_args: &[S],
@@ -193,12 +191,12 @@ impl Request {
                     B: ::std::convert::AsRef<[::std::primitive::u8]>,
                     S: ::std::convert::AsRef<::std::primitive::str>,
                 {
-                    if !(request.method() == METADATA.method
+                    if !(request.method() == <Self as #ruma_common::api::Metadata>::METHOD
                         || request.method() == #http::Method::HEAD
-                            && METADATA.method == #http::Method::GET)
+                            && <Self as #ruma_common::api::Metadata>::METHOD == #http::Method::GET)
                     {
                         return Err(#ruma_common::api::error::FromHttpRequestError::MethodMismatch {
-                            expected: METADATA.method,
+                            expected: <Self as #ruma_common::api::Metadata>::METHOD,
                             received: request.method().clone(),
                         });
                     }

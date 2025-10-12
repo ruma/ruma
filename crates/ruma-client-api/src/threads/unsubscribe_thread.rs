@@ -8,18 +8,18 @@ pub mod unstable {
     //! [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedEventId, OwnedRoomId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: DELETE,
         rate_limited: true,
         authentication: AccessToken,
         history: {
             unstable("org.matrix.msc4306") => "/_matrix/client/unstable/io.element.msc4306/rooms/{room_id}/thread/{thread_root}/subscription",
         }
-    };
+    }
 
     /// Request type for the `unsubscribe_thread` endpoint.
     #[request(error = crate::Error)]

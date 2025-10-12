@@ -11,19 +11,19 @@ pub mod unstable {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Direction, Metadata},
+        api::{request, response, Direction},
         metadata, OwnedEventId, OwnedRoomId,
     };
     use serde::{Deserialize, Serialize};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: true,
         authentication: AccessToken,
         history: {
             unstable("org.matrix.msc4308") => "/_matrix/client/unstable/io.element.msc4308/thread_subscriptions",
         }
-    };
+    }
 
     /// Request type for the `get_thread_subscriptions_changes` endpoint.
     #[request(error = crate::Error)]

@@ -20,7 +20,7 @@ pub mod v3 {
 
     use crate::profile::{profile_field_serde::ProfileFieldValueVisitor, ProfileFieldValue};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: PUT,
         rate_limited: true,
         authentication: AccessToken,
@@ -30,7 +30,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/profile/{user_id}/{field}",
             1.1 => "/_matrix/client/v3/profile/{user_id}/{field}",
         }
-    };
+    }
 
     /// Request type for the `set_profile_field` endpoint.
     #[derive(Debug, Clone)]
@@ -55,8 +55,6 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
 
-        const METADATA: Metadata = METADATA;
-
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
             base_url: &str,
@@ -68,7 +66,7 @@ pub mod v3 {
             let field = self.value.field_name();
 
             let url = if field.existed_before_extended_profiles() {
-                METADATA.make_endpoint_url(considering, base_url, &[&self.user_id, &field], "")?
+                Self::make_endpoint_url(considering, base_url, &[&self.user_id, &field], "")?
             } else {
                 crate::profile::EXTENDED_PROFILE_FIELD_HISTORY.make_endpoint_url(
                     considering,
@@ -79,7 +77,7 @@ pub mod v3 {
             };
 
             let http_request = http::Request::builder()
-                .method(METADATA.method)
+                .method(Self::METHOD)
                 .uri(url)
                 .header(header::CONTENT_TYPE, "application/json")
                 .header(
@@ -104,8 +102,6 @@ pub mod v3 {
     impl ruma_common::api::IncomingRequest for Request {
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
-
-        const METADATA: Metadata = METADATA;
 
         fn try_from_http_request<B, S>(
             request: http::Request<B>,

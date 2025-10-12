@@ -9,11 +9,11 @@ pub mod v3 {
 
     use http::header::CONTENT_TYPE;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, IdParseError, MxcUri, OwnedServerName,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: PUT,
         rate_limited: true,
         authentication: AccessToken,
@@ -21,7 +21,7 @@ pub mod v3 {
             unstable("fi.mau.msc2246") => "/_matrix/media/unstable/fi.mau.msc2246/upload/{server_name}/{media_id}",
             1.7 => "/_matrix/media/v3/upload/{server_name}/{media_id}",
         }
-    };
+    }
 
     /// Request type for the `create_content_async` endpoint.
     #[request(error = crate::Error)]

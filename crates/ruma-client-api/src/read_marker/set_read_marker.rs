@@ -13,11 +13,11 @@ pub mod v3 {
     //! [`create_receipt`]: crate::receipt::create_receipt
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedEventId, OwnedRoomId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: true,
         authentication: AccessToken,
@@ -25,7 +25,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/rooms/{room_id}/read_markers",
             1.1 => "/_matrix/client/v3/rooms/{room_id}/read_markers",
         }
-    };
+    }
 
     /// Request type for the `set_read_marker` endpoint.
     #[request(error = crate::Error)]

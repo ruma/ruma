@@ -11,12 +11,12 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedMxcUri, OwnedRoomId, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
@@ -24,7 +24,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/rooms/{room_id}/joined_members",
             1.1 => "/_matrix/client/v3/rooms/{room_id}/joined_members",
         }
-    };
+    }
 
     /// Request type for the `joined_members` endpoint.
     #[request(error = crate::Error)]

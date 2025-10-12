@@ -3,19 +3,19 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv2send_leaveroomideventid
 
 use ruma_common::{
-    api::{request, response, Metadata},
+    api::{request, response},
     metadata, OwnedEventId, OwnedRoomId,
 };
 use serde_json::value::RawValue as RawJsonValue;
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: PUT,
     rate_limited: false,
     authentication: ServerSignatures,
     history: {
         1.0 => "/_matrix/federation/v2/send_leave/{room_id}/{event_id}",
     }
-};
+}
 
 /// Request type for the `create_leave_event` endpoint.
 #[request]

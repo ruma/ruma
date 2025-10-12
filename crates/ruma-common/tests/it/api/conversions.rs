@@ -3,20 +3,20 @@
 use http::header::CONTENT_TYPE;
 use ruma_common::{
     api::{
-        request, response, IncomingRequest as _, MatrixVersion, Metadata, OutgoingRequest as _,
+        request, response, IncomingRequest as _, MatrixVersion, OutgoingRequest as _,
         OutgoingRequestAppserviceExt, SendAccessToken, SupportedVersions,
     },
     metadata, owned_user_id, user_id, OwnedUserId,
 };
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: POST,
     rate_limited: false,
     authentication: None,
     history: {
         unstable => "/_matrix/foo/{bar}/{user}",
     }
-};
+}
 
 /// Request type for the `my_endpoint` endpoint.
 #[request]
@@ -135,20 +135,20 @@ mod without_query {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
         api::{
-            request, response, MatrixVersion, Metadata, OutgoingRequestAppserviceExt,
-            SendAccessToken, SupportedVersions,
+            request, response, MatrixVersion, OutgoingRequestAppserviceExt, SendAccessToken,
+            SupportedVersions,
         },
         metadata, owned_user_id, user_id, OwnedUserId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: None,
         history: {
             unstable => "/_matrix/foo/{bar}/{user}",
         }
-    };
+    }
 
     /// Request type for the `my_endpoint` endpoint.
     #[request]

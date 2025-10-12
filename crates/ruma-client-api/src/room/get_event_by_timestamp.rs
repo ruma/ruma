@@ -8,11 +8,11 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv1roomsroomidtimestamp_to_event
 
     use ruma_common::{
-        api::{request, response, Direction, Metadata},
+        api::{request, response, Direction},
         metadata, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: true,
         authentication: AccessToken,
@@ -20,7 +20,7 @@ pub mod v1 {
             unstable("org.matrix.msc3030") => "/_matrix/client/unstable/org.matrix.msc3030/rooms/{room_id}/timestamp_to_event",
             1.6 => "/_matrix/client/v1/rooms/{room_id}/timestamp_to_event",
         }
-    };
+    }
 
     /// Request type for the `get_event_by_timestamp` endpoint.
     #[request(error = crate::Error)]

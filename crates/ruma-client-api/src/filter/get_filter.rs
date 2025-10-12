@@ -8,13 +8,13 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3useruseridfilterfilterid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedUserId,
     };
 
     use crate::filter::FilterDefinition;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
@@ -22,7 +22,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/user/{user_id}/filter/{filter_id}",
             1.1 => "/_matrix/client/v3/user/{user_id}/filter/{filter_id}",
         }
-    };
+    }
 
     /// Request type for the `get_filter` endpoint.
     #[request(error = crate::Error)]

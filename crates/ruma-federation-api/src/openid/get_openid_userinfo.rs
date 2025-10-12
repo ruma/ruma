@@ -8,18 +8,18 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1openiduserinfo
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedUserId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: None,
         history: {
             1.0 => "/_matrix/federation/v1/openid/userinfo",
         }
-    };
+    }
 
     /// Request type for the `get_openid_userinfo` endpoint.
     #[request]

@@ -9,7 +9,7 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         push::Action,
         serde::Raw,
@@ -18,7 +18,7 @@ pub mod v3 {
     use ruma_events::AnySyncTimelineEvent;
     use serde::{Deserialize, Serialize};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
@@ -26,7 +26,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/notifications",
             1.1 => "/_matrix/client/v3/notifications",
         }
-    };
+    }
 
     /// Request type for the `get_notifications` endpoint.
     #[request(error = crate::Error)]

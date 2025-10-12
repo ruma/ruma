@@ -9,18 +9,18 @@ pub mod v2 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedClientSecret, OwnedSessionId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,
         history: {
             1.0 => "/_matrix/identity/v2/validate/email/requestToken",
         }
-    };
+    }
 
     /// Request type for the `create_email_validation_session` endpoint.
     #[request]

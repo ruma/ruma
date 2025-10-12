@@ -8,12 +8,12 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3account3pid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         thirdparty::ThirdPartyIdentifier,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
@@ -21,7 +21,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/account/3pid",
             1.1 => "/_matrix/client/v3/account/3pid",
         }
-    };
+    }
 
     /// Request type for the `get_3pids` endpoint.
     #[request(error = crate::Error)]

@@ -71,20 +71,17 @@ use bytes::BufMut;
 /// ```
 /// pub mod do_a_thing {
 ///     use ruma_common::{api::request, OwnedRoomId};
-///     # use ruma_common::{
-///     #     api::{response, Metadata},
-///     #     metadata,
-///     # };
+///     # use ruma_common::{api::response, metadata};
 ///
-///     // const METADATA: Metadata = metadata! { ... };
-///     # const METADATA: Metadata = metadata! {
+///     // metadata! { ... };
+///     # metadata! {
 ///     #     method: POST,
 ///     #     rate_limited: false,
 ///     #     authentication: None,
 ///     #     history: {
 ///     #         unstable => "/_matrix/some/endpoint/{room_id}",
 ///     #     },
-///     # };
+///     # }
 ///
 ///     #[request]
 ///     pub struct Request {
@@ -107,20 +104,17 @@ use bytes::BufMut;
 /// pub mod upload_file {
 ///     use http::header::CONTENT_TYPE;
 ///     use ruma_common::api::request;
-///     # use ruma_common::{
-///     #     api::{response, Metadata},
-///     #     metadata,
-///     # };
+///     # use ruma_common::{api::response, metadata};
 ///
-///     // const METADATA: Metadata = metadata! { ... };
-///     # const METADATA: Metadata = metadata! {
+///     // metadata! { ... };
+///     # metadata! {
 ///     #     method: POST,
 ///     #     rate_limited: false,
 ///     #     authentication: None,
 ///     #     history: {
 ///     #         unstable => "/_matrix/some/endpoint/{file_name}",
 ///     #     },
-///     # };
+///     # }
 ///
 ///     #[request]
 ///     pub struct Request {
@@ -185,20 +179,17 @@ pub use ruma_macros::request;
 /// ```
 /// pub mod do_a_thing {
 ///     use ruma_common::{api::response, OwnedRoomId};
-///     # use ruma_common::{
-///     #     api::{request, Metadata},
-///     #     metadata,
-///     # };
+///     # use ruma_common::{api::request, metadata};
 ///
-///     // const METADATA: Metadata = metadata! { ... };
-///     # const METADATA: Metadata = metadata! {
+///     // metadata! { ... };
+///     # metadata! {
 ///     #     method: POST,
 ///     #     rate_limited: false,
 ///     #     authentication: None,
 ///     #     history: {
 ///     #         unstable => "/_matrix/some/endpoint",
 ///     #     },
-///     # };
+///     # }
 ///
 ///     // #[request]
 ///     // pub struct Request { ... }
@@ -215,20 +206,17 @@ pub use ruma_macros::request;
 /// pub mod download_file {
 ///     use http::header::CONTENT_TYPE;
 ///     use ruma_common::api::response;
-///     # use ruma_common::{
-///     #     api::{request, Metadata},
-///     #     metadata,
-///     # };
+///     # use ruma_common::{api::request, metadata};
 ///
-///     // const METADATA: Metadata = metadata! { ... };
-///     # const METADATA: Metadata = metadata! {
+///     // metadata! { ... };
+///     # metadata! {
 ///     #     method: POST,
 ///     #     rate_limited: false,
 ///     #     authentication: None,
 ///     #     history: {
 ///     #         unstable => "/_matrix/some/endpoint",
 ///     #     },
-///     # };
+///     # }
 ///
 ///     // #[request]
 ///     // pub struct Request { ... }
@@ -307,15 +295,12 @@ impl<'a> SendAccessToken<'a> {
 }
 
 /// A request type for a Matrix API endpoint, used for sending requests.
-pub trait OutgoingRequest: Sized + Clone {
+pub trait OutgoingRequest: Metadata + Clone {
     /// A type capturing the expected error conditions the server can return.
     type EndpointError: EndpointError;
 
     /// Response type returned when the request is successful.
     type IncomingResponse: IncomingResponse<EndpointError = Self::EndpointError>;
-
-    /// Metadata about the endpoint.
-    const METADATA: Metadata;
 
     /// Tries to convert this request into an `http::Request`.
     ///
@@ -351,7 +336,7 @@ pub trait OutgoingRequest: Sized + Clone {
     /// stable or unstable feature, and homeservers should not advertise support for a Matrix
     /// version unless they support all of its features.
     fn is_supported(considering_versions: &SupportedVersions) -> bool {
-        Self::METADATA.history.is_supported(considering_versions)
+        Self::HISTORY.is_supported(considering_versions)
     }
 }
 
@@ -405,15 +390,12 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
 impl<T: OutgoingRequest> OutgoingRequestAppserviceExt for T {}
 
 /// A request type for a Matrix API endpoint, used for receiving requests.
-pub trait IncomingRequest: Sized {
+pub trait IncomingRequest: Metadata {
     /// A type capturing the error conditions that can be returned in the response.
     type EndpointError: EndpointError;
 
     /// Response type to return when the request is successful.
     type OutgoingResponse: OutgoingResponse;
-
-    /// Metadata about the endpoint.
-    const METADATA: Metadata;
 
     /// Tries to turn the given `http::Request` into this request type,
     /// together with the corresponding path arguments.

@@ -14,7 +14,7 @@ pub mod v3 {
 
     use crate::membership::ThirdPartySigned;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: true,
         authentication: AccessToken,
@@ -22,7 +22,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/join/{room_id_or_alias}",
             1.1 => "/_matrix/client/v3/join/{room_id_or_alias}",
         }
-    };
+    }
 
     /// Request type for the `join_room_by_id_or_alias` endpoint.
     #[derive(Clone, Debug)]
@@ -84,8 +84,6 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
 
-        const METADATA: Metadata = METADATA;
-
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
             base_url: &str,
@@ -111,8 +109,8 @@ pub mod v3 {
                 serde_html_form::to_string(RequestQuery { server_name, via: self.via })?;
 
             let http_request = http::Request::builder()
-                .method(METADATA.method)
-                .uri(METADATA.make_endpoint_url(
+                .method(Self::METHOD)
+                .uri(Self::make_endpoint_url(
                     considering,
                     base_url,
                     &[&self.room_id_or_alias],
@@ -142,8 +140,6 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
 
-        const METADATA: Metadata = METADATA;
-
         fn try_from_http_request<B, S>(
             request: http::Request<B>,
             path_args: &[S],
@@ -152,9 +148,9 @@ pub mod v3 {
             B: AsRef<[u8]>,
             S: AsRef<str>,
         {
-            if request.method() != METADATA.method {
+            if request.method() != Self::METHOD {
                 return Err(ruma_common::api::error::FromHttpRequestError::MethodMismatch {
-                    expected: METADATA.method,
+                    expected: Self::METHOD,
                     received: request.method().clone(),
                 });
             }

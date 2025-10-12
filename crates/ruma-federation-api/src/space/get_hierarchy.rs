@@ -8,7 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1hierarchyroomid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         room::RoomSummary,
         OwnedRoomId,
@@ -16,7 +16,7 @@ pub mod v1 {
 
     use crate::space::SpaceHierarchyParentSummary;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: ServerSignatures,
@@ -24,7 +24,7 @@ pub mod v1 {
             unstable => "/_matrix/federation/unstable/org.matrix.msc2946/hierarchy/{room_id}",
             1.2 => "/_matrix/federation/v1/hierarchy/{room_id}",
         }
-    };
+    }
 
     /// Request type for the `hierarchy` endpoint.
     #[request]

@@ -11,14 +11,14 @@ pub mod v3 {
 
     use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         http_headers::ContentDisposition,
         metadata, IdParseError, MxcUri, OwnedServerName,
     };
 
     use crate::http_headers::CROSS_ORIGIN_RESOURCE_POLICY;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: None,
@@ -27,7 +27,7 @@ pub mod v3 {
             1.1 => "/_matrix/media/v3/download/{server_name}/{media_id}/{filename}",
             1.11 => deprecated,
         }
-    };
+    }
 
     /// Request type for the `get_media_content_as_filename` endpoint.
     #[request(error = crate::Error)]

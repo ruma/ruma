@@ -10,12 +10,12 @@ pub mod v3 {
     use std::time::Duration;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedRoomId, OwnedUserId,
     };
     use serde::{de::Error, Deserialize, Deserializer, Serialize};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: PUT,
         authentication: AccessToken,
         rate_limited: true,
@@ -23,7 +23,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/rooms/{room_id}/typing/{user_id}",
             1.1 => "/_matrix/client/v3/rooms/{room_id}/typing/{user_id}",
         }
-    };
+    }
 
     /// Request type for the `create_typing_event` endpoint.
     #[request(error = crate::Error)]

@@ -16,7 +16,7 @@ pub mod v1 {
     #[cfg(feature = "unstable-msc3202")]
     use ruma_common::OwnedUserId;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         serde::{from_raw_json_value, JsonObject, Raw},
         OwnedTransactionId,
@@ -31,14 +31,14 @@ pub mod v1 {
     use serde::{Deserialize, Deserializer, Serialize};
     use serde_json::value::{RawValue as RawJsonValue, Value as JsonValue};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: PUT,
         rate_limited: false,
         authentication: AccessToken,
         history: {
             1.0 => "/_matrix/app/v1/transactions/{txn_id}",
         }
-    };
+    }
 
     /// Request type for the `push_events` endpoint.
     #[request]

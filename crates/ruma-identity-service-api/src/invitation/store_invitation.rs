@@ -8,7 +8,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/latest/identity-service-api/#post_matrixidentityv2store-invite
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         room::RoomType,
         third_party_invite::IdentityServerBase64PublicKey,
@@ -18,14 +18,14 @@ pub mod v2 {
     use ruma_events::room::third_party_invite::RoomThirdPartyInviteEventContent;
     use serde::{ser::SerializeSeq, Deserialize, Serialize};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,
         history: {
             1.0 => "/_matrix/identity/v2/store-invite",
         }
-    };
+    }
 
     /// Request type for the `store_invitation` endpoint.
     #[request]

@@ -9,11 +9,11 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedClientSecret, OwnedSessionId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: None,
@@ -21,7 +21,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/account/password/msisdn/requestToken",
             1.1 => "/_matrix/client/v3/account/password/msisdn/requestToken",
         }
-    };
+    }
 
     /// Request type for the `request_password_change_token_via_msisdn` endpoint.
     #[request(error = crate::Error)]

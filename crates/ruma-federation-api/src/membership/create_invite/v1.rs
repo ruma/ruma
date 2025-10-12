@@ -3,7 +3,7 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1inviteroomideventid
 
 use ruma_common::{
-    api::{request, response, Metadata},
+    api::{request, response},
     metadata, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName, OwnedUserId,
 };
 use ruma_events::{room::member::RoomMemberEventContent, StateEventType};
@@ -12,14 +12,14 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use crate::membership::RawStrippedState;
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: PUT,
     rate_limited: false,
     authentication: ServerSignatures,
     history: {
         1.0 => "/_matrix/federation/v1/invite/{room_id}/{event_id}",
     }
-};
+}
 
 /// Request type for the `create_invite` endpoint.
 #[request]

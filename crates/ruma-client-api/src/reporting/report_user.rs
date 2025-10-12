@@ -8,11 +8,11 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3usersuseridreport
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedUserId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: true,
         authentication: AccessToken,
@@ -20,7 +20,7 @@ pub mod v3 {
             unstable => "/_matrix/client/unstable/org.matrix.msc4260/users/{user_id}/report",
             1.14 => "/_matrix/client/v3/users/{user_id}/report",
         }
-    };
+    }
 
     /// Request type for the `report_user` endpoint.
     #[request(error = crate::Error)]

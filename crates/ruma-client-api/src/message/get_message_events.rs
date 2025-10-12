@@ -9,7 +9,7 @@ pub mod v3 {
 
     use js_int::{uint, UInt};
     use ruma_common::{
-        api::{request, response, Direction, Metadata},
+        api::{request, response, Direction},
         metadata,
         serde::Raw,
         OwnedRoomId,
@@ -18,7 +18,7 @@ pub mod v3 {
 
     use crate::filter::RoomEventFilter;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
@@ -26,7 +26,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/rooms/{room_id}/messages",
             1.1 => "/_matrix/client/v3/rooms/{room_id}/messages",
         }
-    };
+    }
 
     /// Request type for the `get_message_events` endpoint.
     #[request(error = crate::Error)]

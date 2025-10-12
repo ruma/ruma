@@ -21,14 +21,14 @@ pub mod unstable {
     use url::Url;
     use web_time::SystemTime;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: true,
         authentication: None,
         history: {
             unstable("org.matrix.msc4108") => "/_matrix/client/unstable/org.matrix.msc4108/rendezvous",
         }
-    };
+    }
 
     /// Request type for the `POST` `rendezvous` endpoint.
     #[derive(Debug, Default, Clone)]
@@ -42,7 +42,6 @@ pub mod unstable {
     impl ruma_common::api::OutgoingRequest for Request {
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
-        const METADATA: Metadata = METADATA;
 
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
@@ -50,12 +49,12 @@ pub mod unstable {
             _: ruma_common::api::SendAccessToken<'_>,
             considering: &'_ ruma_common::api::SupportedVersions,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
-            let url = METADATA.make_endpoint_url(considering, base_url, &[], "")?;
+            let url = Self::make_endpoint_url(considering, base_url, &[], "")?;
             let body = self.content.as_bytes();
             let content_length = body.len();
 
             Ok(http::Request::builder()
-                .method(METADATA.method)
+                .method(Self::METHOD)
                 .uri(url)
                 .header(CONTENT_TYPE, "text/plain")
                 .header(CONTENT_LENGTH, content_length)
@@ -67,7 +66,6 @@ pub mod unstable {
     impl ruma_common::api::IncomingRequest for Request {
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
-        const METADATA: Metadata = METADATA;
 
         fn try_from_http_request<B, S>(
             request: http::Request<B>,

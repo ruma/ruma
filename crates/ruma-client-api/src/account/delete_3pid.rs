@@ -8,14 +8,14 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3account3piddelete
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         thirdparty::Medium,
     };
 
     use crate::account::ThirdPartyIdRemovalStatus;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,
@@ -23,7 +23,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/account/3pid/delete",
             1.1 => "/_matrix/client/v3/account/3pid/delete",
         }
-    };
+    }
 
     /// Request type for the `delete_3pid` endpoint.
     #[request(error = crate::Error)]

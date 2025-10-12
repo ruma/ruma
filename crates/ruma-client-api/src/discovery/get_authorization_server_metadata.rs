@@ -12,7 +12,7 @@ pub mod v1 {
     use std::collections::BTreeSet;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         serde::{Raw, StringEnum},
     };
@@ -21,7 +21,7 @@ pub mod v1 {
 
     use crate::PrivOwnedStr;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: None,
@@ -29,7 +29,7 @@ pub mod v1 {
             unstable => "/_matrix/client/unstable/org.matrix.msc2965/auth_metadata",
             1.15 => "/_matrix/client/v1/auth_metadata",
         }
-    };
+    }
 
     /// Request type for the `auth_metadata` endpoint.
     #[request(error = crate::Error)]

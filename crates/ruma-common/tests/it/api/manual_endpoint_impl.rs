@@ -23,11 +23,11 @@ pub struct Request {
     pub room_alias: OwnedRoomAliasId, // path
 }
 
-const METADATA: Metadata = Metadata {
-    method: Method::PUT,
-    rate_limited: false,
-    authentication: AuthScheme::None,
-    history: VersionHistory::new(
+impl Metadata for Request {
+    const METHOD: Method = Method::PUT;
+    const RATE_LIMITED: bool = false;
+    const AUTHENTICATION: AuthScheme = AuthScheme::None;
+    const HISTORY: VersionHistory = VersionHistory::new(
         &[
             (None, "/_matrix/client/unstable/directory/room/{room_alias}"),
             (
@@ -50,14 +50,12 @@ const METADATA: Metadata = Metadata {
         ],
         Some(MatrixVersion::V1_2),
         Some(MatrixVersion::V1_3),
-    ),
-};
+    );
+}
 
 impl OutgoingRequest for Request {
     type EndpointError = MatrixError;
     type IncomingResponse = Response;
-
-    const METADATA: Metadata = METADATA;
 
     fn try_into_http_request<T: Default + BufMut>(
         self,
@@ -65,12 +63,12 @@ impl OutgoingRequest for Request {
         _access_token: SendAccessToken<'_>,
         considering: &'_ SupportedVersions,
     ) -> Result<http::Request<T>, IntoHttpError> {
-        let url = METADATA.make_endpoint_url(considering, base_url, &[&self.room_alias], "")?;
+        let url = Self::make_endpoint_url(considering, base_url, &[&self.room_alias], "")?;
 
         let request_body = RequestBody { room_id: self.room_id };
 
         let http_request = http::Request::builder()
-            .method(METADATA.method)
+            .method(Self::METHOD)
             .uri(url)
             .body(ruma_common::serde::json_to_buf(&request_body)?)
             // this cannot fail because we don't give user-supplied data to any of the
@@ -84,8 +82,6 @@ impl OutgoingRequest for Request {
 impl IncomingRequest for Request {
     type EndpointError = MatrixError;
     type OutgoingResponse = Response;
-
-    const METADATA: Metadata = METADATA;
 
     fn try_from_http_request<B, S>(
         request: http::Request<B>,

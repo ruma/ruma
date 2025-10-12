@@ -8,18 +8,18 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/application-service-api/#get_matrixappv1roomsroomalias
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedRoomAliasId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
         history: {
             1.0 => "/_matrix/app/v1/rooms/{room_alias}",
         }
-    };
+    }
 
     /// Request type for the `query_room_alias` endpoint.
     #[request]

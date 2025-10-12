@@ -8,11 +8,11 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3roomsroomidredacteventidtxnid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedEventId, OwnedRoomId, OwnedTransactionId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: PUT,
         rate_limited: false,
         authentication: AccessToken,
@@ -20,7 +20,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/rooms/{room_id}/redact/{event_id}/{txn_id}",
             1.1 => "/_matrix/client/v3/rooms/{room_id}/redact/{event_id}/{txn_id}",
         }
-    };
+    }
 
     /// Request type for the `redact_event` endpoint.
     #[request(error = crate::Error)]

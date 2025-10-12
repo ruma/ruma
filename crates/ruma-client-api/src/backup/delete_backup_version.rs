@@ -10,11 +10,11 @@ pub mod v3 {
     //! This deletes a backup version and its room keys.
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: DELETE,
         rate_limited: true,
         authentication: AccessToken,
@@ -23,7 +23,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/room_keys/version/{version}",
             1.1 => "/_matrix/client/v3/room_keys/version/{version}",
         }
-    };
+    }
 
     /// Request type for the `delete_backup_version` endpoint.
     #[request(error = crate::Error)]

@@ -3,13 +3,13 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1send_leaveroomideventid
 
 use ruma_common::{
-    api::{request, response, Metadata},
+    api::{request, response},
     metadata, OwnedEventId, OwnedRoomId,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: PUT,
     rate_limited: false,
     authentication: ServerSignatures,
@@ -17,7 +17,7 @@ const METADATA: Metadata = metadata! {
         1.0 => "/_matrix/federation/v1/send_leave/{room_id}/{event_id}",
         1.0 => deprecated,
     }
-};
+}
 
 /// Request type for the `create_leave_event` endpoint.
 #[request]

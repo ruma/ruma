@@ -8,14 +8,14 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3room_keysversion
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         serde::Raw,
     };
 
     use crate::backup::BackupAlgorithm;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: true,
         authentication: AccessToken,
@@ -23,7 +23,7 @@ pub mod v3 {
             unstable => "/_matrix/client/unstable/room_keys/version",
             1.1 => "/_matrix/client/v3/room_keys/version",
         }
-    };
+    }
 
     /// Request type for the `create_backup_version` endpoint.
     #[request(error = crate::Error)]

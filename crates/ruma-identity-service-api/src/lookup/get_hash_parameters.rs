@@ -9,20 +9,20 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/latest/identity-service-api/#get_matrixidentityv2hash_details
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
     use crate::lookup::IdentifierHashingAlgorithm;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
         history: {
             1.0 => "/_matrix/identity/v2/hash_details",
         }
-    };
+    }
 
     /// Request type for the `get_hash_parameters` endpoint.
     #[request]

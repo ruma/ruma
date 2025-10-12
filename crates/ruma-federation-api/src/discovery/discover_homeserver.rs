@@ -5,18 +5,18 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#getwell-knownmatrixserver
 
 use ruma_common::{
-    api::{request, response, Metadata},
+    api::{request, response},
     metadata, OwnedServerName,
 };
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: GET,
     rate_limited: false,
     authentication: None,
     history: {
         1.0 => "/.well-known/matrix/server",
     }
-};
+}
 
 /// Request type for the `discover_homeserver` endpoint.
 #[request]

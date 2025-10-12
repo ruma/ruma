@@ -4,18 +4,18 @@ use ruma_common::api::{
 
 mod get {
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: None,
         history: {
             unstable => "/_matrix/my/endpoint",
         }
-    };
+    }
 
     /// Request type for the `no_fields` endpoint.
     #[request]
@@ -28,18 +28,18 @@ mod get {
 
 mod post {
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: None,
         history: {
             unstable => "/_matrix/my/endpoint",
         }
-    };
+    }
 
     /// Request type for the `no_fields` endpoint.
     #[request]

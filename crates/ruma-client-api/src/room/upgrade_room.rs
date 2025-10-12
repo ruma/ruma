@@ -8,11 +8,11 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3roomsroomidupgrade
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedRoomId, OwnedUserId, RoomVersionId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,
@@ -20,7 +20,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/rooms/{room_id}/upgrade",
             1.1 => "/_matrix/client/v3/rooms/{room_id}/upgrade",
         }
-    };
+    }
 
     /// Request type for the `upgrade_room` endpoint.
     #[request(error = crate::Error)]

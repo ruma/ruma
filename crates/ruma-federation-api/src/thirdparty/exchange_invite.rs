@@ -12,7 +12,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1exchange_third_party_inviteroomid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         serde::Raw,
         OwnedRoomId, OwnedUserId,
@@ -27,14 +27,14 @@ pub mod v1 {
 
     use crate::thirdparty::bind_callback;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: PUT,
         rate_limited: false,
         authentication: AccessToken,
         history: {
             1.0 => "/_matrix/federation/v1/exchange_third_party_invite/{room_id}",
         }
-    };
+    }
 
     /// Request type for the `exchange_invite` endpoint.
     #[request]

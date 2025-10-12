@@ -10,14 +10,14 @@ pub mod v3 {
     use std::time::Duration;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         serde::Raw,
         OwnedRoomId,
     };
     use ruma_events::AnyTimelineEvent;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
@@ -25,7 +25,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/events",
             1.1 => "/_matrix/client/v3/events",
         }
-    };
+    }
 
     /// Request type for the `listen_to_new_events` endpoint.
     #[request(error = crate::Error)]

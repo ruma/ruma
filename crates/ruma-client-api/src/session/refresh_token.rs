@@ -28,11 +28,11 @@ pub mod v3 {
     use std::time::Duration;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: true,
         authentication: None,
@@ -40,7 +40,7 @@ pub mod v3 {
             unstable => "/_matrix/client/unstable/org.matrix.msc2918/refresh",
             1.3 => "/_matrix/client/v3/refresh",
         }
-    };
+    }
 
     /// Request type for the `refresh` endpoint.
     #[request(error = crate::Error)]

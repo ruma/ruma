@@ -11,11 +11,11 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: DELETE,
         rate_limited: true,
         authentication: AccessToken,
@@ -24,7 +24,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/room_keys/keys",
             1.1 => "/_matrix/client/v3/room_keys/keys",
         }
-    };
+    }
 
     /// Request type for the `delete_backup_keys` endpoint.
     #[request(error = crate::Error)]
