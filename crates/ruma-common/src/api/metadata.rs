@@ -1292,29 +1292,17 @@ mod tests {
     use std::collections::{BTreeMap, BTreeSet};
 
     use assert_matches2::assert_matches;
-    use http::Method;
 
     use super::{
-        AuthScheme,
         MatrixVersion::{self, V1_0, V1_1, V1_2, V1_3},
-        Metadata, StablePathSelector, SupportedVersions, VersionHistory,
+        StablePathSelector, SupportedVersions, VersionHistory,
     };
     use crate::api::error::IntoHttpError;
 
-    fn stable_only_metadata(
+    fn stable_only_history(
         stable_paths: &'static [(StablePathSelector, &'static str)],
-    ) -> Metadata {
-        Metadata {
-            method: Method::GET,
-            rate_limited: false,
-            authentication: AuthScheme::None,
-            history: VersionHistory {
-                unstable_paths: &[],
-                stable_paths,
-                deprecated: None,
-                removed: None,
-            },
-        }
+    ) -> VersionHistory {
+        VersionHistory { unstable_paths: &[], stable_paths, deprecated: None, removed: None }
     }
 
     fn version_only_supported(versions: &[MatrixVersion]) -> SupportedVersions {
@@ -1328,8 +1316,8 @@ mod tests {
 
     #[test]
     fn make_simple_endpoint_url() {
-        let meta = stable_only_metadata(&[(StablePathSelector::Version(V1_0), "/s")]);
-        let url = meta
+        let history = stable_only_history(&[(StablePathSelector::Version(V1_0), "/s")]);
+        let url = history
             .make_endpoint_url(&version_only_supported(&[V1_0]), "https://example.org", &[], "")
             .unwrap();
         assert_eq!(url, "https://example.org/s");
@@ -1337,8 +1325,8 @@ mod tests {
 
     #[test]
     fn make_endpoint_url_with_path_args() {
-        let meta = stable_only_metadata(&[(StablePathSelector::Version(V1_0), "/s/{x}")]);
-        let url = meta
+        let history = stable_only_history(&[(StablePathSelector::Version(V1_0), "/s/{x}")]);
+        let url = history
             .make_endpoint_url(
                 &version_only_supported(&[V1_0]),
                 "https://example.org",
@@ -1351,8 +1339,8 @@ mod tests {
 
     #[test]
     fn make_endpoint_url_with_path_args_with_dash() {
-        let meta = stable_only_metadata(&[(StablePathSelector::Version(V1_0), "/s/{x}")]);
-        let url = meta
+        let history = stable_only_history(&[(StablePathSelector::Version(V1_0), "/s/{x}")]);
+        let url = history
             .make_endpoint_url(
                 &version_only_supported(&[V1_0]),
                 "https://example.org",
@@ -1365,8 +1353,8 @@ mod tests {
 
     #[test]
     fn make_endpoint_url_with_path_args_with_reserved_char() {
-        let meta = stable_only_metadata(&[(StablePathSelector::Version(V1_0), "/s/{x}")]);
-        let url = meta
+        let history = stable_only_history(&[(StablePathSelector::Version(V1_0), "/s/{x}")]);
+        let url = history
             .make_endpoint_url(
                 &version_only_supported(&[V1_0]),
                 "https://example.org",
@@ -1379,8 +1367,8 @@ mod tests {
 
     #[test]
     fn make_endpoint_url_with_query() {
-        let meta = stable_only_metadata(&[(StablePathSelector::Version(V1_0), "/s/")]);
-        let url = meta
+        let history = stable_only_history(&[(StablePathSelector::Version(V1_0), "/s/")]);
+        let url = history
             .make_endpoint_url(
                 &version_only_supported(&[V1_0]),
                 "https://example.org",
@@ -1394,8 +1382,8 @@ mod tests {
     #[test]
     #[should_panic]
     fn make_endpoint_url_wrong_num_path_args() {
-        let meta = stable_only_metadata(&[(StablePathSelector::Version(V1_0), "/s/{x}")]);
-        _ = meta.make_endpoint_url(
+        let history = stable_only_history(&[(StablePathSelector::Version(V1_0), "/s/{x}")]);
+        _ = history.make_endpoint_url(
             &version_only_supported(&[V1_0]),
             "https://example.org",
             &[],
@@ -1662,8 +1650,8 @@ mod tests {
     #[test]
     #[should_panic]
     fn make_endpoint_url_with_path_args_old_syntax() {
-        let meta = stable_only_metadata(&[(StablePathSelector::Version(V1_0), "/s/:x")]);
-        let url = meta
+        let history = stable_only_history(&[(StablePathSelector::Version(V1_0), "/s/:x")]);
+        let url = history
             .make_endpoint_url(
                 &version_only_supported(&[V1_0]),
                 "https://example.org",
