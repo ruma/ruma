@@ -11,12 +11,12 @@ pub mod v1 {
 
     use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         http_headers::ContentDisposition,
         metadata, IdParseError, MxcUri, OwnedServerName,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: true,
         authentication: AccessToken,
@@ -24,7 +24,7 @@ pub mod v1 {
             unstable("org.matrix.msc3916") => "/_matrix/client/unstable/org.matrix.msc3916/media/download/{server_name}/{media_id}",
             1.11 | stable("org.matrix.msc3916.stable") => "/_matrix/client/v1/media/download/{server_name}/{media_id}",
         }
-    };
+    }
 
     /// Request type for the `get_media_content` endpoint.
     #[request(error = crate::Error)]

@@ -8,11 +8,11 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3roomsroomidreport
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedRoomId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: true,
         authentication: AccessToken,
@@ -20,7 +20,7 @@ pub mod v3 {
             unstable => "/_matrix/client/unstable/org.matrix.msc4151/rooms/{room_id}/report",
             1.13 => "/_matrix/client/v3/rooms/{room_id}/report",
         }
-    };
+    }
 
     /// Request type for the `report_room` endpoint.
     #[request(error = crate::Error)]

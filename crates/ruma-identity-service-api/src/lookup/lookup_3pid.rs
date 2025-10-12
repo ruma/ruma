@@ -10,20 +10,20 @@ pub mod v2 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedUserId,
     };
 
     use crate::lookup::IdentifierHashingAlgorithm;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,
         history: {
             1.0 => "/_matrix/identity/v2/lookup",
         }
-    };
+    }
 
     /// Request type for the `lookup_3pid` endpoint.
     #[request]

@@ -8,7 +8,7 @@ pub mod unstable {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         serde::Raw,
         OwnedRoomId, OwnedTransactionId,
@@ -18,7 +18,7 @@ pub mod unstable {
 
     use crate::delayed_events::DelayParameters;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: PUT,
         rate_limited: false,
         authentication: AccessToken,
@@ -26,7 +26,7 @@ pub mod unstable {
             // We use the unstable prefix for the delay query parameter but the stable v3 endpoint.
             unstable => "/_matrix/client/v3/rooms/{room_id}/send/{event_type}/{txn_id}",
         }
-    };
+    }
     /// Request type for the [`delayed_message_event`](crate::delayed_events::delayed_message_event)
     /// endpoint.
     #[request(error = crate::Error)]

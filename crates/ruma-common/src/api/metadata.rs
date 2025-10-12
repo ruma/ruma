@@ -22,11 +22,15 @@ use crate::{
     percent_encode::PATH_PERCENT_ENCODE_SET, serde::slice_to_buf, PrivOwnedStr, RoomVersionId,
 };
 
-/// Convenient constructor for [`Metadata`] constants.
+/// Convenient constructor for [`Metadata`] implementation.
 ///
 /// ## Definition
 ///
-/// The definition of the macro is made to look like a struct, with the following fields:
+/// By default, `Metadata` is implemented on a type named `Request` that is in scope. This can be
+/// overridden by adding `@for MyType` at the beginning of the declaration.
+///
+/// The rest of the definition of the macro is made to look like a struct, with the following
+/// fields:
 ///
 /// * `method` - The HTTP method to use for the endpoint. Its value must be one of the associated
 ///   constants of [`http::Method`]. In most cases it should be one of `GET`, `POST`, `PUT` or
@@ -76,8 +80,15 @@ use crate::{
 /// ## Example
 ///
 /// ```
-/// use ruma_common::{api::Metadata, metadata};
-/// const METADATA: Metadata = metadata! {
+/// use ruma_common::metadata;
+///
+/// pub struct MyRequest {
+///     body: Vec<u8>,
+/// }
+///
+/// metadata! {
+///     @for MyRequest,
+///
 ///     method: GET,
 ///     rate_limited: true,
 ///     authentication: AccessToken,
@@ -95,15 +106,26 @@ use crate::{
 #[doc(hidden)]
 #[macro_export]
 macro_rules! metadata {
-    ( $( $field:ident: $rhs:tt ),+ $(,)? ) => {
-        $crate::api::Metadata {
-            $( $field: $crate::metadata!(@field $field: $rhs) ),+
+    ( @for $request_type:ty, $( $field:ident: $rhs:tt ),+ $(,)? ) => {
+        #[allow(deprecated)]
+        impl $crate::api::Metadata for $request_type {
+            $( $crate::metadata!(@field $field: $rhs); )+
         }
     };
 
-    ( @field method: $method:ident ) => { $crate::exports::http::Method::$method };
+    ( $( $field:ident: $rhs:tt ),+ $(,)? ) => {
+        $crate::metadata!{ @for Request, $( $field: $rhs),+ }
+    };
 
-    ( @field authentication: $scheme:ident ) => { $crate::api::AuthScheme::$scheme };
+    ( @field method: $method:ident ) => {
+        const METHOD: $crate::exports::http::Method = $crate::exports::http::Method::$method;
+    };
+
+    ( @field rate_limited: $rate_limited:literal ) => { const RATE_LIMITED: bool = $rate_limited; };
+
+    ( @field authentication: $scheme:ident ) => {
+        const AUTHENTICATION: $crate::api::AuthScheme = $crate::api::AuthScheme::$scheme;
+    };
 
     ( @field history: {
         $( unstable $(($unstable_feature:literal))? => $unstable_path:literal, )*
@@ -119,9 +141,6 @@ macro_rules! metadata {
         }
     };
 
-    // Simple literal case: used for description, name, rate_limited
-    ( @field $_field:ident: $rhs:expr ) => { $rhs };
-
     ( @history_impl
         [ $( $unstable_path:literal $(= $unstable_feature:literal)? ),* ]
         $( stable ($stable_feature_only:literal) => $stable_feature_path:literal, )?
@@ -133,7 +152,7 @@ macro_rules! metadata {
             )?
         )?
     ) => {
-        $crate::api::VersionHistory::new(
+        const HISTORY: $crate::api::VersionHistory = $crate::api::VersionHistory::new(
             &[ $(($crate::metadata!(@optional_feature $($unstable_feature)?), $unstable_path)),* ],
             &[
                 $((
@@ -147,7 +166,7 @@ macro_rules! metadata {
             ],
             $crate::metadata!(@optional_version $($( $deprecated_version )?)?),
             $crate::metadata!(@optional_version $($($( $removed_version )?)?)?),
-        )
+        );
     };
 
     ( @optional_feature ) => { None };
@@ -165,32 +184,28 @@ macro_rules! metadata {
 }
 
 /// Metadata about an API endpoint.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[allow(clippy::exhaustive_structs)]
-pub struct Metadata {
+pub trait Metadata: Sized {
     /// The HTTP method used by this endpoint.
-    pub method: Method,
+    const METHOD: Method;
 
     /// Whether or not this endpoint is rate limited by the server.
-    pub rate_limited: bool,
+    const RATE_LIMITED: bool;
 
     /// What authentication scheme the server uses for this endpoint.
-    pub authentication: AuthScheme,
+    const AUTHENTICATION: AuthScheme;
 
     /// All info pertaining to an endpoint's (historic) paths, deprecation version, and removal.
-    pub history: VersionHistory,
-}
+    const HISTORY: VersionHistory;
 
-impl Metadata {
     /// Returns an empty request body for this Matrix request.
     ///
     /// For `GET` requests, it returns an entirely empty buffer, for others it returns an empty JSON
     /// object (`{}`).
-    pub fn empty_request_body<B>(&self) -> B
+    fn empty_request_body<B>() -> B
     where
         B: Default + BufMut,
     {
-        if self.method == Method::GET {
+        if Self::METHOD == Method::GET {
             Default::default()
         } else {
             slice_to_buf(b"{}")
@@ -202,11 +217,10 @@ impl Metadata {
     ///
     /// Fails if the endpoint requires an access token but the parameter is `SendAccessToken::None`,
     /// or if the access token can't be converted to a [`HeaderValue`].
-    pub fn authorization_header(
-        &self,
+    fn authorization_header(
         access_token: SendAccessToken<'_>,
     ) -> Result<Option<(HeaderName, HeaderValue)>, IntoHttpError> {
-        Ok(match self.authentication {
+        Ok(match Self::AUTHENTICATION {
             AuthScheme::None => match access_token.get_not_required_for_endpoint() {
                 Some(token) => Some((header::AUTHORIZATION, format!("Bearer {token}").try_into()?)),
                 None => None,
@@ -244,22 +258,21 @@ impl Metadata {
     }
 
     /// Generate the endpoint URL for this endpoint.
-    pub fn make_endpoint_url(
-        &self,
+    fn make_endpoint_url(
         considering: &SupportedVersions,
         base_url: &str,
         path_args: &[&dyn Display],
         query_string: &str,
     ) -> Result<String, IntoHttpError> {
-        self.history.make_endpoint_url(considering, base_url, path_args, query_string)
+        Self::HISTORY.make_endpoint_url(considering, base_url, path_args, query_string)
     }
 
     /// The list of path parameters in the metadata.
     ///
     /// Used for `#[test]`s generated by the API macros.
     #[doc(hidden)]
-    pub fn _path_parameters(&self) -> Vec<&'static str> {
-        self.history._path_parameters()
+    fn _path_parameters() -> Vec<&'static str> {
+        Self::HISTORY._path_parameters()
     }
 }
 

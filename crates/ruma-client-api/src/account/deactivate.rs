@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3accountdeactivate
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
@@ -17,7 +17,7 @@ pub mod v3 {
         uiaa::{AuthData, UiaaResponse},
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: true,
         authentication: AccessTokenOptional,
@@ -25,7 +25,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/account/deactivate",
             1.1 => "/_matrix/client/v3/account/deactivate",
         }
-    };
+    }
 
     /// Request type for the `deactivate` endpoint.
     #[request(error = UiaaResponse)]

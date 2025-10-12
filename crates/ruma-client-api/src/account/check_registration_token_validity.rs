@@ -8,11 +8,11 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv1registermloginregistration_tokenvalidity
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: true,
         authentication: None,
@@ -20,7 +20,7 @@ pub mod v1 {
             unstable => "/_matrix/client/unstable/org.matrix.msc3231/register/org.matrix.msc3231.login.registration_token/validity",
             1.2 => "/_matrix/client/v1/register/m.login.registration_token/validity",
         }
-    };
+    }
 
     /// Request type for the `check_registration_token_validity` endpoint.
     #[request(error = crate::Error)]

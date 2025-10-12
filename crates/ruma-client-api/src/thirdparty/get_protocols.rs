@@ -10,12 +10,12 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         thirdparty::Protocol,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
@@ -23,7 +23,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/thirdparty/protocols",
             1.1 => "/_matrix/client/v3/thirdparty/protocols",
         }
-    };
+    }
 
     /// Request type for the `get_protocols` endpoint.
     #[request(error = crate::Error)]

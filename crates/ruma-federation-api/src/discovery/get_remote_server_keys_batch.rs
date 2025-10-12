@@ -11,7 +11,7 @@ pub mod v2 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         serde::Raw,
         MilliSecondsSinceUnixEpoch, OwnedServerName, OwnedServerSigningKeyId,
@@ -20,14 +20,14 @@ pub mod v2 {
 
     use crate::discovery::ServerSigningKeys;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: None,
         history: {
             1.0 => "/_matrix/key/v2/query",
         }
-    };
+    }
 
     /// Request type for the `get_remote_server_keys_batch` endpoint.
     #[request]

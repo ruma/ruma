@@ -8,13 +8,13 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3pushrulesglobalkindruleidenabled
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
     use crate::push::RuleKind;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
@@ -22,7 +22,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/pushrules/global/{kind}/{rule_id}/enabled",
             1.1 => "/_matrix/client/v3/pushrules/global/{kind}/{rule_id}/enabled",
         }
-    };
+    }
 
     /// Request type for the `get_pushrule_enabled` endpoint.
     #[request(error = crate::Error)]

@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         serde::Raw,
         MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedTransactionId,
@@ -16,7 +16,7 @@ pub mod v3 {
     use ruma_events::{AnyMessageLikeEventContent, MessageLikeEventContent, MessageLikeEventType};
     use serde_json::value::to_raw_value as to_raw_json_value;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: PUT,
         rate_limited: false,
         authentication: AccessToken,
@@ -24,7 +24,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/rooms/{room_id}/send/{event_type}/{txn_id}",
             1.1 => "/_matrix/client/v3/rooms/{room_id}/send/{event_type}/{txn_id}",
         }
-    };
+    }
 
     /// Request type for the `create_message_event` endpoint.
     #[request(error = crate::Error)]

@@ -9,11 +9,11 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: true,
         authentication: AccessToken,
@@ -21,7 +21,7 @@ pub mod v1 {
             unstable("org.matrix.msc3916") => "/_matrix/client/unstable/org.matrix.msc3916/media/config",
             1.11 | stable("org.matrix.msc3916.stable") => "/_matrix/client/v1/media/config",
         }
-    };
+    }
 
     /// Request type for the `get_media_config` endpoint.
     #[request(error = crate::Error)]

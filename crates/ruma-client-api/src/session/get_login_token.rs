@@ -10,13 +10,13 @@ pub mod v1 {
     use std::time::Duration;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
     use crate::uiaa::{AuthData, UiaaResponse};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: true,
         authentication: AccessToken,
@@ -24,7 +24,7 @@ pub mod v1 {
             unstable("org.matrix.msc3882") => "/_matrix/client/unstable/org.matrix.msc3882/login/get_token",
             1.7 => "/_matrix/client/v1/login/get_token",
         }
-    };
+    }
 
     /// Request type for the `login` endpoint.
     #[request(error = UiaaResponse)]

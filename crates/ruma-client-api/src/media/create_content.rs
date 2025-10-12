@@ -9,11 +9,11 @@ pub mod v3 {
 
     use http::header::CONTENT_TYPE;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedMxcUri,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: true,
         authentication: AccessToken,
@@ -21,7 +21,7 @@ pub mod v3 {
             1.0 => "/_matrix/media/r0/upload",
             1.1 => "/_matrix/media/v3/upload",
         }
-    };
+    }
 
     /// Request type for the `create_media_content` endpoint.
     #[request(error = crate::Error)]

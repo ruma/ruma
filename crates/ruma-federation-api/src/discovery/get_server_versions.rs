@@ -6,18 +6,18 @@ pub mod msc3723 {
     //! [GET /_matrix/federation/versions](https://github.com/matrix-org/matrix-spec-proposals/pull/3723)
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: None,
         history: {
             unstable => "/_matrix/federation/unstable/org.matrix.msc3723/versions",
         }
-    };
+    }
 
     /// Request type for the `get_server_versions` endpoint.
     #[request]

@@ -12,14 +12,14 @@ pub mod v3 {
     use std::time::Duration;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedDeviceId, OwnedUserId,
     };
 
     use super::{LoginType, RegistrationKind};
     use crate::uiaa::{AuthData, UiaaResponse};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: true,
         authentication: AppserviceTokenOptional,
@@ -27,7 +27,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/register",
             1.1 => "/_matrix/client/v3/register",
         }
-    };
+    }
 
     /// Request type for the `register` endpoint.
     #[request(error = UiaaResponse)]

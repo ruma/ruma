@@ -10,19 +10,19 @@ pub mod v2 {
     use std::time::Duration;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         authentication::TokenType,
         metadata, OwnedServerName,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: None,
         history: {
             1.0 => "/_matrix/identity/v2/account/register",
         }
-    };
+    }
 
     /// Request type for the `register_account` endpoint.
     #[request]

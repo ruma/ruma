@@ -8,11 +8,11 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3registeravailable
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: true,
         authentication: None,
@@ -20,7 +20,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/register/available",
             1.1 => "/_matrix/client/v3/register/available",
         }
-    };
+    }
 
     /// Request type for the `get_username_availability` endpoint.
     #[request(error = crate::Error)]

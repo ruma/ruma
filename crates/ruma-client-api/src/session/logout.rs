@@ -12,7 +12,7 @@ pub mod v3 {
         metadata,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,
@@ -20,7 +20,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/logout",
             1.1 => "/_matrix/client/v3/logout",
         }
-    };
+    }
 
     /// Request type for the `logout` endpoint.
     #[derive(Debug, Clone, Default)]
@@ -39,18 +39,16 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
 
-        const METADATA: Metadata = METADATA;
-
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
             base_url: &str,
             access_token: ruma_common::api::SendAccessToken<'_>,
             considering: &'_ ruma_common::api::SupportedVersions,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
-            let url = METADATA.make_endpoint_url(considering, base_url, &[], "")?;
+            let url = Self::make_endpoint_url(considering, base_url, &[], "")?;
 
             http::Request::builder()
-                .method(METADATA.method)
+                .method(Self::METHOD)
                 .uri(url)
                 .header(
                     http::header::AUTHORIZATION,
@@ -71,8 +69,6 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
 
-        const METADATA: Metadata = METADATA;
-
         fn try_from_http_request<B, S>(
             request: http::Request<B>,
             _path_args: &[S],
@@ -81,9 +77,9 @@ pub mod v3 {
             B: AsRef<[u8]>,
             S: AsRef<str>,
         {
-            if request.method() != METADATA.method {
+            if request.method() != Self::METHOD {
                 return Err(ruma_common::api::error::FromHttpRequestError::MethodMismatch {
-                    expected: METADATA.method,
+                    expected: Self::METHOD,
                     received: request.method().clone(),
                 });
             }

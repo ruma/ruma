@@ -10,12 +10,12 @@ pub mod v3 {
     use http::header::ACCEPT_LANGUAGE;
     use js_int::{uint, UInt};
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedMxcUri, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: true,
         authentication: AccessToken,
@@ -23,7 +23,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/user_directory/search",
             1.1 => "/_matrix/client/v3/user_directory/search",
         }
-    };
+    }
 
     /// Request type for the `search_users` endpoint.
     #[request(error = crate::Error)]

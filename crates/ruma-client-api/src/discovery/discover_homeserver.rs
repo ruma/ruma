@@ -10,7 +10,7 @@ use std::borrow::Cow;
 #[cfg(feature = "unstable-msc4143")]
 use ruma_common::serde::JsonObject;
 use ruma_common::{
-    api::{request, response, Metadata},
+    api::{request, response},
     metadata,
 };
 #[cfg(feature = "unstable-msc4143")]
@@ -19,14 +19,14 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "unstable-msc4143")]
 use serde_json::Value as JsonValue;
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: GET,
     rate_limited: false,
     authentication: None,
     history: {
         1.0 => "/.well-known/matrix/client",
     }
-};
+}
 
 /// Request type for the `client_well_known` endpoint.
 #[request(error = crate::Error)]

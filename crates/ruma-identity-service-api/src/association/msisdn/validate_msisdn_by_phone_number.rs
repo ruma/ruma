@@ -8,18 +8,18 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/latest/identity-service-api/#get_matrixidentityv2validatemsisdnsubmittoken
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedClientSecret, OwnedSessionId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
         history: {
             1.0 => "/_matrix/identity/v2/validate/msisdn/submitToken",
         }
-    };
+    }
 
     /// Request type for the `validate_email_by_end_user` endpoint.
     #[request]

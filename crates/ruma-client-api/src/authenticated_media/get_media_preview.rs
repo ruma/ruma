@@ -8,13 +8,13 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv1mediapreview_url
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, MilliSecondsSinceUnixEpoch,
     };
     use serde::Serialize;
     use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: true,
         authentication: AccessToken,
@@ -22,7 +22,7 @@ pub mod v1 {
             unstable("org.matrix.msc3916") => "/_matrix/client/unstable/org.matrix.msc3916/media/preview_url",
             1.11 | stable("org.matrix.msc3916.stable") => "/_matrix/client/v1/media/preview_url",
         }
-    };
+    }
 
     /// Request type for the `get_media_preview` endpoint.
     #[request(error = crate::Error)]

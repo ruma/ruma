@@ -10,19 +10,19 @@ pub mod v2 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
     use serde::{Deserialize, Serialize};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: None,
         history: {
             1.0 => "/_matrix/identity/v2/terms",
         }
-    };
+    }
 
     /// Request type for the `get_terms_of_service` endpoint.
     #[request]

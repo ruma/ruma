@@ -9,13 +9,13 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedRoomId,
     };
 
     use crate::space::SpaceHierarchyRoomsChunk;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: true,
         authentication: AccessToken,
@@ -23,7 +23,7 @@ pub mod v1 {
             unstable => "/_matrix/client/unstable/org.matrix.msc2946/rooms/{room_id}/hierarchy",
             1.2 => "/_matrix/client/v1/rooms/{room_id}/hierarchy",
         }
-    };
+    }
 
     /// Request type for the `hierarchy` endpoint.
     #[request(error = crate::Error)]

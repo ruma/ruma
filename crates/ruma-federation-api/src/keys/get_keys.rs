@@ -10,21 +10,21 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         encryption::{CrossSigningKey, DeviceKeys},
         metadata,
         serde::Raw,
         OwnedDeviceId, OwnedUserId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
             1.0 => "/_matrix/federation/v1/user/keys/query",
         }
-    };
+    }
 
     /// Request type for the `get_keys` endpoint.
     #[request]

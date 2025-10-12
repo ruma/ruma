@@ -4,19 +4,19 @@ use bytes::BufMut;
 use ruma_common::{
     api::{
         error::{FromHttpResponseError, IntoHttpError, MatrixError},
-        request, IncomingResponse, Metadata, OutgoingResponse,
+        request, IncomingResponse, OutgoingResponse,
     },
     metadata,
 };
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: POST, // An `http::Method` constant. No imports required.
     rate_limited: false,
     authentication: None,
     history: {
         unstable => "/_matrix/some/endpoint/{foo}",
     }
-};
+}
 
 #[request]
 #[derive(PartialEq)] // Make sure attributes work

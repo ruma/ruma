@@ -7,7 +7,7 @@ use std::{collections::BTreeMap, time::Duration};
 use as_variant::as_variant;
 use js_int::UInt;
 use ruma_common::{
-    api::{request, response, Metadata},
+    api::{request, response},
     metadata,
     presence::PresenceState,
     serde::Raw,
@@ -25,7 +25,7 @@ mod response_serde;
 use super::{DeviceLists, UnreadNotificationsCount};
 use crate::filter::FilterDefinition;
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: GET,
     rate_limited: false,
     authentication: AccessToken,
@@ -33,7 +33,7 @@ const METADATA: Metadata = metadata! {
         1.0 => "/_matrix/client/r0/sync",
         1.1 => "/_matrix/client/v3/sync",
     }
-};
+}
 
 /// Request type for the `sync` endpoint.
 #[request(error = crate::Error)]

@@ -15,14 +15,17 @@ pub mod v3 {
 
     use std::marker::PhantomData;
 
-    use ruma_common::{api::Metadata, metadata, OwnedUserId};
+    use ruma_common::{
+        api::{AuthScheme, Metadata, VersionHistory},
+        metadata, OwnedUserId,
+    };
 
     use crate::profile::{
         profile_field_serde::StaticProfileFieldVisitor, ProfileFieldName, ProfileFieldValue,
         StaticProfileField,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: None,
@@ -32,7 +35,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/profile/{user_id}/{field}",
             1.1 => "/_matrix/client/v3/profile/{user_id}/{field}",
         }
-    };
+    }
 
     /// Request type for the `get_profile_field` endpoint.
     #[derive(Clone, Debug)]
@@ -62,8 +65,6 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
 
-        const METADATA: Metadata = METADATA;
-
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
             base_url: &str,
@@ -73,12 +74,7 @@ pub mod v3 {
             use http::header::{self, HeaderValue};
 
             let url = if self.field.existed_before_extended_profiles() {
-                METADATA.make_endpoint_url(
-                    considering,
-                    base_url,
-                    &[&self.user_id, &self.field],
-                    "",
-                )?
+                Self::make_endpoint_url(considering, base_url, &[&self.user_id, &self.field], "")?
             } else {
                 crate::profile::EXTENDED_PROFILE_FIELD_HISTORY.make_endpoint_url(
                     considering,
@@ -89,7 +85,7 @@ pub mod v3 {
             };
 
             let mut http_request_builder = http::Request::builder()
-                .method(METADATA.method)
+                .method(Self::METHOD)
                 .uri(url)
                 .header(header::CONTENT_TYPE, "application/json");
 
@@ -109,8 +105,6 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
 
-        const METADATA: Metadata = METADATA;
-
         fn try_from_http_request<B, S>(
             request: http::Request<B>,
             path_args: &[S],
@@ -119,9 +113,9 @@ pub mod v3 {
             B: AsRef<[u8]>,
             S: AsRef<str>,
         {
-            if request.method() != METADATA.method {
+            if request.method() != Self::METHOD {
                 return Err(ruma_common::api::error::FromHttpRequestError::MethodMismatch {
-                    expected: METADATA.method,
+                    expected: Self::METHOD,
                     received: request.method().clone(),
                 });
             }
@@ -162,12 +156,17 @@ pub mod v3 {
         }
     }
 
+    impl<F: StaticProfileField> Metadata for RequestStatic<F> {
+        const METHOD: http::Method = Request::METHOD;
+        const RATE_LIMITED: bool = Request::RATE_LIMITED;
+        const AUTHENTICATION: AuthScheme = Request::AUTHENTICATION;
+        const HISTORY: VersionHistory = Request::HISTORY;
+    }
+
     #[cfg(feature = "client")]
     impl<F: StaticProfileField> ruma_common::api::OutgoingRequest for RequestStatic<F> {
         type EndpointError = crate::Error;
         type IncomingResponse = ResponseStatic<F>;
-
-        const METADATA: Metadata = METADATA;
 
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,

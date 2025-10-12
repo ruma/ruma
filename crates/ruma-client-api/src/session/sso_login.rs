@@ -7,14 +7,14 @@ pub mod v3 {
 
     use http::header::{LOCATION, SET_COOKIE};
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
     #[cfg(feature = "unstable-msc3824")]
     use crate::session::SsoRedirectOidcAction;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: None,
@@ -22,7 +22,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/login/sso/redirect",
             1.1 => "/_matrix/client/v3/login/sso/redirect",
         }
-    };
+    }
 
     /// Request type for the `sso_login` endpoint.
     #[request(error = crate::Error)]

@@ -8,19 +8,19 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1make_joinroomiduserid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedRoomId, OwnedUserId, RoomVersionId,
     };
     use serde_json::value::RawValue as RawJsonValue;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
             1.0 => "/_matrix/federation/v1/make_join/{room_id}/{user_id}",
         }
-    };
+    }
 
     /// Request type for the `create_join_event_template` endpoint.
     #[request]

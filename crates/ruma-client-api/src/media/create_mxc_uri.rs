@@ -8,11 +8,11 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixmediav1create
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, MilliSecondsSinceUnixEpoch, OwnedMxcUri,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: true,
         authentication: AccessToken,
@@ -20,7 +20,7 @@ pub mod v1 {
             unstable("fi.mau.msc2246") => "/_matrix/media/unstable/fi.mau.msc2246/create",
             1.7 => "/_matrix/media/v1/create",
         }
-    };
+    }
 
     /// Request type for the `create_mxc_uri` endpoint.
     #[request(error = crate::Error)]

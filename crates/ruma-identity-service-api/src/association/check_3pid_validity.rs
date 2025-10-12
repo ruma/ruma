@@ -9,20 +9,20 @@ pub mod v2 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         thirdparty::Medium,
         OwnedClientSecret, OwnedSessionId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
         history: {
             1.0 => "/_matrix/identity/v2/3pid/getValidated3pid/",
         }
-    };
+    }
 
     /// Request type for the `check_3pid_validity` endpoint.
     #[request]

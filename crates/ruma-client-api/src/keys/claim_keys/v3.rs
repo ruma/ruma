@@ -5,7 +5,7 @@
 use std::{collections::BTreeMap, time::Duration};
 
 use ruma_common::{
-    api::{request, response, Metadata},
+    api::{request, response},
     encryption::OneTimeKey,
     metadata,
     serde::Raw,
@@ -13,7 +13,7 @@ use ruma_common::{
 };
 use serde_json::Value as JsonValue;
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: POST,
     rate_limited: false,
     authentication: AccessToken,
@@ -21,7 +21,7 @@ const METADATA: Metadata = metadata! {
         1.0 => "/_matrix/client/r0/keys/claim",
         1.1 => "/_matrix/client/v3/keys/claim",
     }
-};
+}
 
 /// Request type for the `claim_keys` endpoint.
 #[request(error = crate::Error)]

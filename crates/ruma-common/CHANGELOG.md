@@ -18,6 +18,12 @@ Breaking changes:
   backwards-compatibility for clients.
 - Macros no longer support importing the `ruma` and `ruma-events` crate from the
   `matrix-sdk-appservice` crate. This crate was dropped 2 years ago.
+- `Metadata` was changed from a `struct` to a `trait`.
+  - Its fields are now associated constants with the same name converted to
+    uppercase.
+  - The `metadata!` macro generates the trait implementation for a type named
+    `Request` by default. The type can be changed with an `@for` setting.
+  - `Metadata` is a supertrait of `OutgoingRequest` and `IncomingRequest`.
 
 Improvements:
 

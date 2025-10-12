@@ -12,7 +12,7 @@ use std::{collections::BTreeMap, time::Duration};
 use js_int::UInt;
 use js_option::JsOption;
 use ruma_common::{
-    api::{request, response, Metadata},
+    api::{request, response},
     metadata,
     presence::PresenceState,
     serde::{duration::opt_ms, Raw},
@@ -23,7 +23,7 @@ use serde::{Deserialize, Serialize};
 
 use super::UnreadNotificationsCount;
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: POST,
     rate_limited: false,
     authentication: AccessToken,
@@ -31,7 +31,7 @@ const METADATA: Metadata = metadata! {
         unstable("org.matrix.simplified_msc3575") => "/_matrix/client/unstable/org.matrix.simplified_msc3575/sync",
         // 1.4 => "/_matrix/client/v5/sync",
     }
-};
+}
 
 /// Request type for the `/sync` endpoint.
 #[request(error = crate::Error)]

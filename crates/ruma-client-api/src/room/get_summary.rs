@@ -8,14 +8,11 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv1room_summaryroomidoralias
 
     use ruma_common::{
-        api::{request, Metadata},
-        metadata,
-        room::RoomSummary,
-        OwnedRoomOrAliasId, OwnedServerName,
+        api::request, metadata, room::RoomSummary, OwnedRoomOrAliasId, OwnedServerName,
     };
     use ruma_events::room::member::MembershipState;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessTokenOptional,
@@ -23,7 +20,7 @@ pub mod v1 {
             unstable => "/_matrix/client/unstable/im.nheko.summary/rooms/{room_id_or_alias}/summary",
             1.15 => "/_matrix/client/v1/room_summary/{room_id_or_alias}",
         }
-    };
+    }
 
     /// Request type for the `get_summary` endpoint.
     #[request(error = crate::Error)]

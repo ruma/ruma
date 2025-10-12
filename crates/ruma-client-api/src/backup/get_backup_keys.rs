@@ -10,13 +10,13 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedRoomId,
     };
 
     use crate::backup::RoomKeyBackup;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: true,
         authentication: AccessToken,
@@ -25,7 +25,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/room_keys/keys",
             1.1 => "/_matrix/client/v3/room_keys/keys",
         }
-    };
+    }
 
     /// Request type for the `get_backup_keys` endpoint.
     #[request(error = crate::Error)]

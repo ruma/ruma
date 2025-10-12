@@ -9,19 +9,19 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         directory::{Filter, PublicRoomsChunk, RoomNetwork},
         metadata,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: ServerSignatures,
         history: {
             1.0 => "/_matrix/federation/v1/publicRooms",
         }
-    };
+    }
 
     /// Request type for the `get_public_rooms_filtered` endpoint.
     #[request]

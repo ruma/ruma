@@ -10,7 +10,7 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         serde::Raw,
         to_device::DeviceIdOrAllDevices,
@@ -18,7 +18,7 @@ pub mod v3 {
     };
     use ruma_events::{AnyToDeviceEventContent, ToDeviceEventType};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: PUT,
         rate_limited: false,
         authentication: AccessToken,
@@ -26,7 +26,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/sendToDevice/{event_type}/{txn_id}",
             1.1 => "/_matrix/client/v3/sendToDevice/{event_type}/{txn_id}",
         }
-    };
+    }
 
     /// Request type for the `send_event_to_device` endpoint.
     #[request(error = crate::Error)]

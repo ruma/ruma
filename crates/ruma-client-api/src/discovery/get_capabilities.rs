@@ -14,7 +14,7 @@ pub mod v3 {
 
     use maplit::btreemap;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         serde::StringEnum,
         RoomVersionId,
@@ -26,7 +26,7 @@ pub mod v3 {
 
     use crate::{profile::ProfileFieldName, PrivOwnedStr};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: true,
         authentication: AccessToken,
@@ -34,7 +34,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/capabilities",
             1.1 => "/_matrix/client/v3/capabilities",
         }
-    };
+    }
 
     /// Request type for the `get_capabilities` endpoint.
     #[request(error = crate::Error)]

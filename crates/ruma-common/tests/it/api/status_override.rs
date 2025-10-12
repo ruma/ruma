@@ -6,18 +6,18 @@ use http::{
     StatusCode,
 };
 use ruma_common::{
-    api::{request, response, Metadata, OutgoingResponse as _},
+    api::{request, response, OutgoingResponse as _},
     metadata,
 };
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: GET,
     rate_limited: false,
     authentication: None,
     history: {
         unstable => "/_matrix/my/endpoint",
     }
-};
+}
 
 /// Request type for the `status_override` endpoint.
 #[request]

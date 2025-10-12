@@ -2,21 +2,21 @@ use assert_matches2::assert_matches;
 use http::header::{CONTENT_DISPOSITION, LOCATION};
 use ruma_common::{
     api::{
-        request, response, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
-        OutgoingRequest, OutgoingResponse, SendAccessToken, SupportedVersions,
+        request, response, IncomingRequest, IncomingResponse, MatrixVersion, OutgoingRequest,
+        OutgoingResponse, SendAccessToken, SupportedVersions,
     },
     http_headers::{ContentDisposition, ContentDispositionType},
     metadata,
 };
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: GET,
     rate_limited: false,
     authentication: None,
     history: {
         unstable => "/_matrix/my/endpoint",
     }
-};
+}
 
 /// Request type for the `optional_headers` endpoint.
 #[request]

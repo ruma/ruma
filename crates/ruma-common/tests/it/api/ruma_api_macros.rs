@@ -4,20 +4,20 @@
 pub mod some_endpoint {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         serde::Raw,
         OwnedUserId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST, // An `http::Method` constant. No imports required.
         rate_limited: false,
         authentication: None,
         history: {
             unstable => "/_matrix/some/endpoint/{user}",
         }
-    };
+    }
 
     /// Request type for the `some_endpoint` endpoint.
     #[request]
@@ -66,7 +66,7 @@ pub mod some_endpoint {
 
 pub mod newtype_body_endpoint {
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
@@ -75,14 +75,14 @@ pub mod newtype_body_endpoint {
         pub a_field: String,
     }
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: PUT,
         rate_limited: false,
         authentication: None,
         history: {
             unstable => "/_matrix/some/newtype/body/endpoint",
         }
-    };
+    }
 
     /// Request type for the `newtype_body_endpoint` endpoint.
     #[request]
@@ -101,7 +101,7 @@ pub mod newtype_body_endpoint {
 
 pub mod raw_body_endpoint {
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
@@ -110,14 +110,14 @@ pub mod raw_body_endpoint {
         pub a_field: String,
     }
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: PUT,
         rate_limited: false,
         authentication: None,
         history: {
             unstable => "/_matrix/some/newtype/body/endpoint",
         }
-    };
+    }
 
     /// Request type for the `newtype_body_endpoint` endpoint.
     #[request]
@@ -136,7 +136,7 @@ pub mod raw_body_endpoint {
 
 pub mod query_all_enum_endpoint {
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
@@ -147,14 +147,14 @@ pub mod query_all_enum_endpoint {
         VariantB { field_b: String },
     }
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: None,
         history: {
             unstable => "/_matrix/some/query/map/endpoint",
         }
-    };
+    }
 
     /// Request type for the `query_all_enum_endpoint` endpoint.
     #[request]
@@ -170,18 +170,18 @@ pub mod query_all_enum_endpoint {
 
 pub mod query_all_vec_endpoint {
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: None,
         history: {
             unstable => "/_matrix/some/query/map/endpoint",
         }
-    };
+    }
 
     /// Request type for the `query_all_vec_endpoint` endpoint.
     #[request]

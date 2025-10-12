@@ -1,7 +1,7 @@
 #![allow(unexpected_cfgs)]
 
 use ruma_common::{
-    api::{request, response, Metadata},
+    api::{request, response},
     metadata,
 };
 use serde::{Deserialize, Serialize};
@@ -11,14 +11,14 @@ pub struct CustomResponseBody {
     pub bar: String,
 }
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: GET, // An `http::Method` constant. No imports required.
     rate_limited: false,
     authentication: None,
     history: {
         unstable => "/_matrix/some/endpoint",
     }
-};
+}
 
 #[request]
 pub struct Request;

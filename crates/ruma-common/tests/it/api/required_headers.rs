@@ -6,21 +6,21 @@ use ruma_common::{
             DeserializationError, FromHttpRequestError, FromHttpResponseError,
             HeaderDeserializationError,
         },
-        request, response, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
-        OutgoingRequest, OutgoingResponse, SendAccessToken, SupportedVersions,
+        request, response, IncomingRequest, IncomingResponse, MatrixVersion, OutgoingRequest,
+        OutgoingResponse, SendAccessToken, SupportedVersions,
     },
     http_headers::{ContentDisposition, ContentDispositionType},
     metadata,
 };
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: GET,
     rate_limited: false,
     authentication: None,
     history: {
         unstable => "/_matrix/my/endpoint",
     }
-};
+}
 
 /// Request type for the `required_headers` endpoint.
 #[request]

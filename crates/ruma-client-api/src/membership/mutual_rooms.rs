@@ -8,18 +8,18 @@ pub mod unstable {
     //! [spec]: https://github.com/matrix-org/matrix-spec-proposals/blob/hs/shared-rooms/proposals/2666-get-rooms-in-common.md
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedRoomId, OwnedUserId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: true,
         authentication: AccessToken,
         history: {
             unstable("uk.half-shot.msc2666.query_mutual_rooms") => "/_matrix/client/unstable/uk.half-shot.msc2666/user/mutual_rooms",
         }
-    };
+    }
 
     /// Request type for the `mutual_rooms` endpoint.
     #[request(error = crate::Error)]

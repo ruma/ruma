@@ -282,11 +282,13 @@ impl Request {
             ));
         }
 
+        let ident = &self.ident;
+
         let path_fields = self.path_fields().map(|f| f.ident.as_ref().unwrap().to_string());
         let mut tests = quote! {
             #[::std::prelude::v1::test]
             fn path_parameters() {
-                let path_params = super::METADATA._path_parameters();
+                let path_params = <super::#ident as #ruma_common::api::Metadata>::_path_parameters();
                 let request_path_fields: &[&::std::primitive::str] = &[#(#path_fields),*];
                 ::std::assert_eq!(
                     path_params, request_path_fields,
@@ -300,7 +302,7 @@ impl Request {
                 #[::std::prelude::v1::test]
                 fn request_is_not_get() {
                     ::std::assert_ne!(
-                        super::METADATA.method, #http::Method::GET,
+                        <super::#ident as #ruma_common::api::Metadata>::METHOD, #http::Method::GET,
                         "GET endpoints can't have body fields",
                     );
                 }

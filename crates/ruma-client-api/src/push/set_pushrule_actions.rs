@@ -9,14 +9,14 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3pushrulesglobalkindruleidactions
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         push::Action,
     };
 
     use crate::push::RuleKind;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: PUT,
         rate_limited: false,
         authentication: AccessToken,
@@ -24,7 +24,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/pushrules/global/{kind}/{rule_id}/actions",
             1.1 => "/_matrix/client/v3/pushrules/global/{kind}/{rule_id}/actions",
         }
-    };
+    }
 
     /// Request type for the `set_pushrule_actions` endpoint.
     #[request(error = crate::Error)]

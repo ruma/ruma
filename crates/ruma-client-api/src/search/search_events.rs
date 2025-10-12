@@ -11,7 +11,7 @@ pub mod v3 {
 
     use js_int::{uint, UInt};
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         serde::{Raw, StringEnum},
         OwnedEventId, OwnedMxcUri, OwnedRoomId, OwnedUserId,
@@ -21,7 +21,7 @@ pub mod v3 {
 
     use crate::{filter::RoomEventFilter, PrivOwnedStr};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: true,
         authentication: AccessToken,
@@ -29,7 +29,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/search",
             1.1 => "/_matrix/client/v3/search",
         }
-    };
+    }
 
     /// Request type for the `search` endpoint.
     #[request(error = crate::Error)]

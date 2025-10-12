@@ -9,11 +9,11 @@ pub mod v3 {
 
     use js_int::Int;
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedEventId, OwnedRoomId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,
@@ -21,7 +21,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/rooms/{room_id}/report/{event_id}",
             1.1 => "/_matrix/client/v3/rooms/{room_id}/report/{event_id}",
         }
-    };
+    }
 
     /// Request type for the `report_content` endpoint.
     #[request(error = crate::Error)]

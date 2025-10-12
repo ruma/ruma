@@ -10,15 +10,11 @@ pub mod v1 {
     use std::time::Duration;
 
     use js_int::UInt;
-    use ruma_common::{
-        api::{request, Metadata},
-        media::Method,
-        metadata,
-    };
+    use ruma_common::{api::request, media::Method, metadata};
 
     use crate::authenticated_media::{ContentMetadata, FileOrLocation};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: true,
         authentication: ServerSignatures,
@@ -26,7 +22,7 @@ pub mod v1 {
             unstable => "/_matrix/federation/unstable/org.matrix.msc3916.v2/media/thumbnail/{media_id}",
             1.11 => "/_matrix/federation/v1/media/thumbnail/{media_id}",
         }
-    };
+    }
 
     /// Request type for the `get_content_thumbnail` endpoint.
     #[request]

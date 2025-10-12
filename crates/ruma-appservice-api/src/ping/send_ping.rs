@@ -8,11 +8,11 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/application-service-api/#post_matrixappv1ping
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedTransactionId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,
@@ -20,7 +20,7 @@ pub mod v1 {
             unstable => "/_matrix/app/unstable/fi.mau.msc2659/ping",
             1.7 => "/_matrix/app/v1/ping",
         }
-    };
+    }
 
     /// Request type for the `send_ping` endpoint.
     #[request]

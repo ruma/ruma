@@ -5,21 +5,21 @@
 #[cfg(feature = "unstable-msc4125")]
 use ruma_common::OwnedServerName;
 use ruma_common::{
-    api::{request, response, Metadata},
+    api::{request, response},
     metadata, OwnedEventId, OwnedRoomId, RoomVersionId,
 };
 use serde_json::value::RawValue as RawJsonValue;
 
 use crate::membership::RawStrippedState;
 
-const METADATA: Metadata = metadata! {
+metadata! {
     method: PUT,
     rate_limited: false,
     authentication: ServerSignatures,
     history: {
         1.0 => "/_matrix/federation/v2/invite/{room_id}/{event_id}",
     }
-};
+}
 
 /// Request type for the `create_invite` endpoint.
 #[request]

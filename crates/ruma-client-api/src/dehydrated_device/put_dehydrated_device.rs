@@ -10,7 +10,7 @@ pub mod unstable {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         encryption::{DeviceKeys, OneTimeKey},
         metadata,
         serde::Raw,
@@ -19,14 +19,14 @@ pub mod unstable {
 
     use crate::dehydrated_device::DehydratedDeviceData;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: PUT,
         rate_limited: false,
         authentication: AccessToken,
         history: {
             unstable => "/_matrix/client/unstable/org.matrix.msc3814.v1/dehydrated_device",
         }
-    };
+    }
 
     /// Request type for the `PUT` `dehydrated_device` endpoint.
     #[request(error = crate::Error)]

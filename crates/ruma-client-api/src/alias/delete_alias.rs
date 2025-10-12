@@ -8,11 +8,11 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#delete_matrixclientv3directoryroomroomalias
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedRoomAliasId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: DELETE,
         rate_limited: false,
         authentication: AccessToken,
@@ -20,7 +20,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/directory/room/{room_alias}",
             1.1 => "/_matrix/client/v3/directory/room/{room_alias}",
         }
-    };
+    }
 
     /// Request type for the `delete_alias` endpoint.
     #[request(error = crate::Error)]

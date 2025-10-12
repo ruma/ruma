@@ -9,14 +9,14 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response, Direction, Metadata},
+        api::{request, response, Direction},
         metadata,
         serde::Raw,
         OwnedEventId, OwnedRoomId,
     };
     use ruma_events::AnyMessageLikeEvent;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
@@ -24,7 +24,7 @@ pub mod v1 {
             unstable => "/_matrix/client/unstable/rooms/{room_id}/relations/{event_id}",
             1.3 => "/_matrix/client/v1/rooms/{room_id}/relations/{event_id}",
         }
-    };
+    }
 
     /// Request type for the `get_relating_events` endpoint.
     #[request(error = crate::Error)]

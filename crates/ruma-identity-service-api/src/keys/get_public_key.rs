@@ -8,20 +8,20 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/latest/identity-service-api/#get_matrixidentityv2pubkeykeyid
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         third_party_invite::IdentityServerBase64PublicKey,
         OwnedServerSigningKeyId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: None,
         history: {
             1.0 => "/_matrix/identity/v2/pubkey/{key_id}",
         }
-    };
+    }
 
     /// Request type for the `get_public_key` endpoint.
     #[request]

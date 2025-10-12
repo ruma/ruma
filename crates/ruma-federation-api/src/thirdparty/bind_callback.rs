@@ -10,7 +10,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv13pidonbind
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         serde::Raw,
         thirdparty::Medium,
@@ -19,14 +19,14 @@ pub mod v1 {
     use ruma_events::room::member::SignedContent;
     use serde::{Deserialize, Serialize};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: PUT,
         rate_limited: false,
         authentication: None,
         history: {
             1.0 => "/_matrix/federation/v1/3pid/onbind",
         }
-    };
+    }
 
     /// Request type for the `bind_callback` endpoint.
     #[request]

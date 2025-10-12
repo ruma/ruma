@@ -8,21 +8,21 @@ pub mod unstable {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3814
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata,
         serde::Raw,
         OwnedDeviceId,
     };
     use ruma_events::AnyToDeviceEvent;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: AccessToken,
         history: {
             unstable => "/_matrix/client/unstable/org.matrix.msc3814.v1/dehydrated_device/{device_id}/events",
         }
-    };
+    }
 
     /// Request type for the `dehydrated_device/{device_id}/events` endpoint.
     #[request(error = crate::Error)]

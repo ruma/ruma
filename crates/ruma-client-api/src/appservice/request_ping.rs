@@ -10,11 +10,11 @@ pub mod v1 {
     use std::time::Duration;
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedTransactionId,
     };
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: false,
         authentication: AppserviceToken,
@@ -22,7 +22,7 @@ pub mod v1 {
             unstable("fi.mau.msc2659") => "/_matrix/client/unstable/fi.mau.msc2659/appservice/{appservice_id}/ping",
             1.7 | stable("fi.mau.msc2659.stable") => "/_matrix/client/v1/appservice/{appservice_id}/ping",
         }
-    };
+    }
 
     /// Request type for the `request_ping` endpoint.
     #[request(error = crate::Error)]

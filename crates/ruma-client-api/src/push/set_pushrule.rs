@@ -14,7 +14,7 @@ pub mod v3 {
     };
     use serde::{Deserialize, Serialize};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: PUT,
         rate_limited: true,
         authentication: AccessToken,
@@ -22,7 +22,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/pushrules/global/{kind}/{rule_id}",
             1.1 => "/_matrix/client/v3/pushrules/global/{kind}/{rule_id}",
         }
-    };
+    }
 
     /// Request type for the `set_pushrule` endpoint.
     #[derive(Clone, Debug)]
@@ -64,8 +64,6 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
 
-        const METADATA: Metadata = METADATA;
-
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
             base_url: &str,
@@ -79,7 +77,7 @@ pub mod v3 {
                 after: self.after,
             })?;
 
-            let url = METADATA.make_endpoint_url(
+            let url = Self::make_endpoint_url(
                 considering,
                 base_url,
                 &[&self.rule.kind(), &self.rule.rule_id()],
@@ -89,7 +87,7 @@ pub mod v3 {
             let body: RequestBody = self.rule.into();
 
             http::Request::builder()
-                .method(METADATA.method)
+                .method(Self::METHOD)
                 .uri(url)
                 .header(header::CONTENT_TYPE, "application/json")
                 .header(
@@ -110,8 +108,6 @@ pub mod v3 {
     impl ruma_common::api::IncomingRequest for Request {
         type EndpointError = crate::Error;
         type OutgoingResponse = Response;
-
-        const METADATA: Metadata = METADATA;
 
         fn try_from_http_request<B, S>(
             request: http::Request<B>,

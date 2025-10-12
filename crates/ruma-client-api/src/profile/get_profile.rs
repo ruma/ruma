@@ -10,14 +10,14 @@ pub mod v3 {
     use std::collections::{btree_map, BTreeMap};
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedUserId,
     };
     use serde_json::Value as JsonValue;
 
     use crate::profile::{ProfileFieldName, ProfileFieldValue, StaticProfileField};
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: GET,
         rate_limited: false,
         authentication: None,
@@ -25,7 +25,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/profile/{user_id}",
             1.1 => "/_matrix/client/v3/profile/{user_id}",
         }
-    };
+    }
 
     /// Request type for the `get_profile` endpoint.
     #[request(error = crate::Error)]

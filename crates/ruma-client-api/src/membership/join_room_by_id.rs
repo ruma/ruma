@@ -8,13 +8,13 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3roomsroomidjoin
 
     use ruma_common::{
-        api::{request, response, Metadata},
+        api::{request, response},
         metadata, OwnedRoomId,
     };
 
     use crate::membership::ThirdPartySigned;
 
-    const METADATA: Metadata = metadata! {
+    metadata! {
         method: POST,
         rate_limited: true,
         authentication: AccessToken,
@@ -22,7 +22,7 @@ pub mod v3 {
             1.0 => "/_matrix/client/r0/rooms/{room_id}/join",
             1.1 => "/_matrix/client/v3/rooms/{room_id}/join",
         }
-    };
+    }
 
     /// Request type for the `join_room_by_id` endpoint.
     #[request(error = crate::Error)]
