@@ -9,7 +9,7 @@ use ruma_common::{api::request, metadata, OwnedDeviceId};
 metadata! {
     method: GET,
     rate_limited: false,
-    authentication: None,
+    authentication: NoAuthentication,
     history: {
         1.0 => "/_matrix/static/client/login/",
     }

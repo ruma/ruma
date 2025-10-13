@@ -6,17 +6,14 @@ use std::{
 };
 
 use bytes::BufMut;
-use http::{
-    header::{self, HeaderName, HeaderValue},
-    Method,
-};
+use http::Method;
 use percent_encoding::utf8_percent_encode;
 use ruma_macros::StringEnum;
 use tracing::warn;
 
 use super::{
+    auth_scheme::AuthScheme,
     error::{IntoHttpError, UnknownVersionError},
-    AuthScheme, SendAccessToken,
 };
 use crate::{
     percent_encode::PATH_PERCENT_ENCODE_SET, serde::slice_to_buf, PrivOwnedStr, RoomVersionId,
@@ -124,7 +121,7 @@ macro_rules! metadata {
     ( @field rate_limited: $rate_limited:literal ) => { const RATE_LIMITED: bool = $rate_limited; };
 
     ( @field authentication: $scheme:ident ) => {
-        const AUTHENTICATION: $crate::api::AuthScheme = $crate::api::AuthScheme::$scheme;
+        type Authentication = $crate::api::auth_scheme::$scheme;
     };
 
     ( @field history: {
@@ -192,7 +189,7 @@ pub trait Metadata: Sized {
     const RATE_LIMITED: bool;
 
     /// What authentication scheme the server uses for this endpoint.
-    const AUTHENTICATION: AuthScheme;
+    type Authentication: AuthScheme;
 
     /// All info pertaining to an endpoint's (historic) paths, deprecation version, and removal.
     const HISTORY: VersionHistory;
@@ -210,51 +207,6 @@ pub trait Metadata: Sized {
         } else {
             slice_to_buf(b"{}")
         }
-    }
-
-    /// Transform the `SendAccessToken` into an access token if the endpoint requires it, or if it
-    /// is `SendAccessToken::Force`.
-    ///
-    /// Fails if the endpoint requires an access token but the parameter is `SendAccessToken::None`,
-    /// or if the access token can't be converted to a [`HeaderValue`].
-    fn authorization_header(
-        access_token: SendAccessToken<'_>,
-    ) -> Result<Option<(HeaderName, HeaderValue)>, IntoHttpError> {
-        Ok(match Self::AUTHENTICATION {
-            AuthScheme::None => match access_token.get_not_required_for_endpoint() {
-                Some(token) => Some((header::AUTHORIZATION, format!("Bearer {token}").try_into()?)),
-                None => None,
-            },
-
-            AuthScheme::AccessToken => {
-                let token = access_token
-                    .get_required_for_endpoint()
-                    .ok_or(IntoHttpError::NeedsAuthentication)?;
-
-                Some((header::AUTHORIZATION, format!("Bearer {token}").try_into()?))
-            }
-
-            AuthScheme::AccessTokenOptional => match access_token.get_required_for_endpoint() {
-                Some(token) => Some((header::AUTHORIZATION, format!("Bearer {token}").try_into()?)),
-                None => None,
-            },
-
-            AuthScheme::AppserviceToken => {
-                let token = access_token
-                    .get_required_for_appservice()
-                    .ok_or(IntoHttpError::NeedsAuthentication)?;
-
-                Some((header::AUTHORIZATION, format!("Bearer {token}").try_into()?))
-            }
-
-            AuthScheme::AppserviceTokenOptional => match access_token.get_required_for_appservice()
-            {
-                Some(token) => Some((header::AUTHORIZATION, format!("Bearer {token}").try_into()?)),
-                None => None,
-            },
-
-            AuthScheme::ServerSignatures => None,
-        })
     }
 
     /// Generate the endpoint URL for this endpoint.

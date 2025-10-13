@@ -23,7 +23,7 @@ pub mod v3 {
     metadata! {
         method: GET,
         rate_limited: true,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             1.0 => "/_matrix/media/r0/thumbnail/{server_name}/{media_id}",
             1.1 => "/_matrix/media/v3/thumbnail/{server_name}/{media_id}",

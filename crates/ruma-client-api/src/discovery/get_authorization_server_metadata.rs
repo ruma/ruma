@@ -24,7 +24,7 @@ pub mod v1 {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             unstable => "/_matrix/client/unstable/org.matrix.msc2965/auth_metadata",
             1.15 => "/_matrix/client/v1/auth_metadata",

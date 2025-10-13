@@ -12,7 +12,7 @@ use ruma_common::{
 metadata! {
     method: POST,
     rate_limited: false,
-    authentication: None,
+    authentication: NoAuthentication,
     history: {
         unstable => "/_matrix/foo/{bar}/{user}",
     }
@@ -144,7 +144,7 @@ mod without_query {
     metadata! {
         method: POST,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             unstable => "/_matrix/foo/{bar}/{user}",
         }

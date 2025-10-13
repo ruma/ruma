@@ -14,7 +14,7 @@ pub struct CustomResponseBody {
 metadata! {
     method: GET, // An `http::Method` constant. No imports required.
     rate_limited: false,
-    authentication: None,
+    authentication: NoAuthentication,
     history: {
         unstable => "/_matrix/some/endpoint",
     }

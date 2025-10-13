@@ -17,7 +17,7 @@ use crate::PrivOwnedStr;
 metadata! {
     method: GET,
     rate_limited: false,
-    authentication: None,
+    authentication: NoAuthentication,
     history: {
         1.10 => "/.well-known/matrix/support",
     }

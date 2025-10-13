@@ -13,7 +13,7 @@ pub mod msc3723 {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             unstable => "/_matrix/federation/unstable/org.matrix.msc3723/versions",
         }

@@ -77,7 +77,7 @@ use bytes::BufMut;
 ///     # metadata! {
 ///     #     method: POST,
 ///     #     rate_limited: false,
-///     #     authentication: None,
+///     #     authentication: NoAuthentication,
 ///     #     history: {
 ///     #         unstable => "/_matrix/some/endpoint/{room_id}",
 ///     #     },
@@ -110,7 +110,7 @@ use bytes::BufMut;
 ///     # metadata! {
 ///     #     method: POST,
 ///     #     rate_limited: false,
-///     #     authentication: None,
+///     #     authentication: NoAuthentication,
 ///     #     history: {
 ///     #         unstable => "/_matrix/some/endpoint/{file_name}",
 ///     #     },
@@ -185,7 +185,7 @@ pub use ruma_macros::request;
 ///     # metadata! {
 ///     #     method: POST,
 ///     #     rate_limited: false,
-///     #     authentication: None,
+///     #     authentication: NoAuthentication,
 ///     #     history: {
 ///     #         unstable => "/_matrix/some/endpoint",
 ///     #     },
@@ -212,7 +212,7 @@ pub use ruma_macros::request;
 ///     # metadata! {
 ///     #     method: POST,
 ///     #     rate_limited: false,
-///     #     authentication: None,
+///     #     authentication: NoAuthentication,
 ///     #     history: {
 ///     #         unstable => "/_matrix/some/endpoint",
 ///     #     },
@@ -241,6 +241,7 @@ use self::error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
 pub use crate::metadata;
 use crate::UserId;
 
+pub mod auth_scheme;
 pub mod error;
 mod metadata;
 
@@ -428,44 +429,6 @@ pub trait EndpointError: OutgoingResponse + StdError + Sized + Send + 'static {
     /// This will always return `Err` variant when no `error` field is defined in
     /// the `ruma_api` macro.
     fn from_http_response<T: AsRef<[u8]>>(response: http::Response<T>) -> Self;
-}
-
-/// Authentication scheme used by the endpoint.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-#[allow(clippy::exhaustive_enums)]
-pub enum AuthScheme {
-    /// No authentication is performed.
-    None,
-
-    /// Authentication is performed by including an access token in the `Authentication` http
-    /// header, or an `access_token` query parameter.
-    ///
-    /// Using the query parameter is deprecated since Matrix 1.11.
-    AccessToken,
-
-    /// Authentication is optional, and it is performed by including an access token in the
-    /// `Authentication` http header, or an `access_token` query parameter.
-    ///
-    /// Using the query parameter is deprecated since Matrix 1.11.
-    AccessTokenOptional,
-
-    /// Authentication is required, and can only be performed for appservices, by including an
-    /// appservice access token in the `Authentication` http header, or `access_token` query
-    /// parameter.
-    ///
-    /// Using the query parameter is deprecated since Matrix 1.11.
-    AppserviceToken,
-
-    /// No authentication is performed for clients, but it can be performed for appservices, by
-    /// including an appservice access token in the `Authentication` http header, or an
-    /// `access_token` query parameter.
-    ///
-    /// Using the query parameter is deprecated since Matrix 1.11.
-    AppserviceTokenOptional,
-
-    /// Authentication is performed by including X-Matrix signatures in the request headers,
-    /// as defined in the federation API.
-    ServerSignatures,
 }
 
 /// The direction to return events from.

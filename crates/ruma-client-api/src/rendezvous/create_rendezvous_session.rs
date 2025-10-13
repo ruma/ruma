@@ -24,7 +24,7 @@ pub mod unstable {
     metadata! {
         method: POST,
         rate_limited: true,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             unstable("org.matrix.msc4108") => "/_matrix/client/unstable/org.matrix.msc4108/rendezvous",
         }
