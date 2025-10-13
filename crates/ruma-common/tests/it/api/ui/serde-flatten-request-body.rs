@@ -14,7 +14,7 @@ pub struct CustomRequestBody {
 metadata! {
     method: POST, // An `http::Method` constant. No imports required.
     rate_limited: false,
-    authentication: None,
+    authentication: NoAuthentication,
     history: {
         unstable => "/_matrix/some/endpoint",
     }

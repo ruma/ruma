@@ -16,7 +16,7 @@ pub mod v1 {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             1.0 => "/_matrix/federation/v1/version",
         }

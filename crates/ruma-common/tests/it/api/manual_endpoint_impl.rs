@@ -7,10 +7,10 @@ use bytes::BufMut;
 use http::{header::CONTENT_TYPE, method::Method};
 use ruma_common::{
     api::{
+        auth_scheme::NoAuthentication,
         error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError},
-        AuthScheme, EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata,
-        OutgoingRequest, OutgoingResponse, SendAccessToken, StablePathSelector, SupportedVersions,
-        VersionHistory,
+        EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata, OutgoingRequest,
+        OutgoingResponse, SendAccessToken, StablePathSelector, SupportedVersions, VersionHistory,
     },
     OwnedRoomAliasId, OwnedRoomId,
 };
@@ -26,7 +26,7 @@ pub struct Request {
 impl Metadata for Request {
     const METHOD: Method = Method::PUT;
     const RATE_LIMITED: bool = false;
-    const AUTHENTICATION: AuthScheme = AuthScheme::None;
+    type Authentication = NoAuthentication;
     const HISTORY: VersionHistory = VersionHistory::new(
         &[
             (None, "/_matrix/client/unstable/directory/room/{room_alias}"),

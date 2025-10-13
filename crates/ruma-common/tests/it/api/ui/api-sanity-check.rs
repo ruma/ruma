@@ -10,7 +10,7 @@ use ruma_common::{
 metadata! {
     method: POST, // An `http::Method` constant. No imports required.
     rate_limited: false,
-    authentication: None,
+    authentication: NoAuthentication,
     history: {
         unstable => "/_matrix/some/msc1234/endpoint/{baz}",
         unstable("org.bar.msc1234") => "/_matrix/unstable/org.bar.msc1234/endpoint/{baz}",

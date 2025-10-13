@@ -15,7 +15,7 @@ pub mod v1 {
     metadata! {
         method: GET,
         rate_limited: true,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             unstable => "/_matrix/client/unstable/org.matrix.msc3231/register/org.matrix.msc3231.login.registration_token/validity",
             1.2 => "/_matrix/client/v1/register/m.login.registration_token/validity",

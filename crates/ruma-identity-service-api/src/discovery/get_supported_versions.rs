@@ -20,7 +20,7 @@ use ruma_common::{
 metadata! {
     method: GET,
     rate_limited: false,
-    authentication: None,
+    authentication: NoAuthentication,
     history: {
         1.1 => "/_matrix/identity/versions",
     }

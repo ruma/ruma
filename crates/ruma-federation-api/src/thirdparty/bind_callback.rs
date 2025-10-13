@@ -22,7 +22,7 @@ pub mod v1 {
     metadata! {
         method: PUT,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             1.0 => "/_matrix/federation/v1/3pid/onbind",
         }

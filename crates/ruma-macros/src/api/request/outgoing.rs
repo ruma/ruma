@@ -81,7 +81,7 @@ impl Request {
         }));
 
         header_kvs.extend(quote! {
-            req_headers.extend(<Self as #ruma_common::api::Metadata>::authorization_header(access_token)?);
+            req_headers.extend(<<Self as #ruma_common::api::Metadata>::Authentication as #ruma_common::api::auth_scheme::AuthScheme>::authorization_header(access_token)?);
         });
 
         let request_body = if let Some(field) = self.raw_body_field() {

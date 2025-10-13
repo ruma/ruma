@@ -24,7 +24,7 @@ pub mod v1 {
     metadata! {
         method: POST,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             1.0 => "/_matrix/push/v1/notify",
         }

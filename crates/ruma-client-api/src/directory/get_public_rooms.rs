@@ -17,7 +17,7 @@ pub mod v3 {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             1.0 => "/_matrix/client/r0/publicRooms",
             1.1 => "/_matrix/client/v3/publicRooms",

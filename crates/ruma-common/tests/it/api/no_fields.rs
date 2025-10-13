@@ -11,7 +11,7 @@ mod get {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             unstable => "/_matrix/my/endpoint",
         }
@@ -35,7 +35,7 @@ mod post {
     metadata! {
         method: POST,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             unstable => "/_matrix/my/endpoint",
         }

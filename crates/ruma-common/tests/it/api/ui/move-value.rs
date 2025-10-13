@@ -15,7 +15,7 @@ pub mod newtype_body {
     metadata! {
         method: POST,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             unstable => "/_matrix/foo/{bar}/",
         }
@@ -58,7 +58,7 @@ pub mod raw_body {
     metadata! {
         method: POST,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             unstable => "/_matrix/foo/{bar}/",
         }
@@ -104,7 +104,7 @@ pub mod plain {
     metadata! {
         method: POST,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             unstable => "/_matrix/foo/{bar}/",
         }

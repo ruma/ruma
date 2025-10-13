@@ -12,7 +12,7 @@ use ruma_common::{
 metadata! {
     method: GET,
     rate_limited: false,
-    authentication: None,
+    authentication: NoAuthentication,
     history: {
         1.0 => "/.well-known/matrix/server",
     }

@@ -21,7 +21,7 @@ pub mod v3 {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             1.0 => "/_matrix/media/r0/download/{server_name}/{media_id}/{filename}",
             1.1 => "/_matrix/media/v3/download/{server_name}/{media_id}/{filename}",

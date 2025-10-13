@@ -35,7 +35,7 @@ pub mod v3 {
     metadata! {
         method: POST,
         rate_limited: true,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             unstable => "/_matrix/client/unstable/org.matrix.msc2918/refresh",
             1.3 => "/_matrix/client/v3/refresh",

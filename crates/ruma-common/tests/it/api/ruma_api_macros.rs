@@ -13,7 +13,7 @@ pub mod some_endpoint {
     metadata! {
         method: POST, // An `http::Method` constant. No imports required.
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             unstable => "/_matrix/some/endpoint/{user}",
         }
@@ -78,7 +78,7 @@ pub mod newtype_body_endpoint {
     metadata! {
         method: PUT,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             unstable => "/_matrix/some/newtype/body/endpoint",
         }
@@ -113,7 +113,7 @@ pub mod raw_body_endpoint {
     metadata! {
         method: PUT,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             unstable => "/_matrix/some/newtype/body/endpoint",
         }
@@ -150,7 +150,7 @@ pub mod query_all_enum_endpoint {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             unstable => "/_matrix/some/query/map/endpoint",
         }
@@ -177,7 +177,7 @@ pub mod query_all_vec_endpoint {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             unstable => "/_matrix/some/query/map/endpoint",
         }

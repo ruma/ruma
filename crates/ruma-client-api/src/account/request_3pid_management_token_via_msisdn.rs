@@ -18,7 +18,7 @@ pub mod v3 {
     metadata! {
         method: POST,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             1.0 => "/_matrix/client/r0/account/3pid/msisdn/requestToken",
             1.1 => "/_matrix/client/v3/account/3pid/msisdn/requestToken",

@@ -16,7 +16,7 @@ pub mod v3 {
     use std::marker::PhantomData;
 
     use ruma_common::{
-        api::{AuthScheme, Metadata, VersionHistory},
+        api::{Metadata, VersionHistory},
         metadata, OwnedUserId,
     };
 
@@ -28,7 +28,7 @@ pub mod v3 {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         // History valid for fields that existed in Matrix 1.0, i.e. `displayname` and `avatar_url`.
         history: {
             unstable("uk.tcpip.msc4133") => "/_matrix/client/unstable/uk.tcpip.msc4133/profile/{user_id}/{field}",
@@ -159,7 +159,7 @@ pub mod v3 {
     impl<F: StaticProfileField> Metadata for RequestStatic<F> {
         const METHOD: http::Method = Request::METHOD;
         const RATE_LIMITED: bool = Request::RATE_LIMITED;
-        const AUTHENTICATION: AuthScheme = Request::AUTHENTICATION;
+        type Authentication = <Request as Metadata>::Authentication;
         const HISTORY: VersionHistory = Request::HISTORY;
     }
 

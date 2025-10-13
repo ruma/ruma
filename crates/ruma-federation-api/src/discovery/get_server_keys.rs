@@ -18,7 +18,7 @@ pub mod v2 {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: None,
+        authentication: NoAuthentication,
         history: {
             1.0 => "/_matrix/key/v2/server",
         }
