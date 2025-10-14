@@ -67,17 +67,20 @@ pub struct Response {
 pub struct Event {}
 
 fn main() {
-    use ruma_common::api::{MatrixVersion, StablePathSelector};
+    use ruma_common::api::{
+        path_builder::{PathBuilder, StablePathSelector},
+        MatrixVersion,
+    };
 
     assert_eq!(
-        Request::HISTORY.unstable_paths().collect::<Vec<_>>(),
+        Request::PATH_BUILDER.unstable_paths().collect::<Vec<_>>(),
         &[
             (None, "/_matrix/some/msc1234/endpoint/{baz}"),
             (Some("org.bar.msc1234"), "/_matrix/unstable/org.bar.msc1234/endpoint/{baz}")
         ],
     );
     assert_eq!(
-        Request::HISTORY.stable_paths().collect::<Vec<_>>(),
+        Request::PATH_BUILDER.stable_paths().collect::<Vec<_>>(),
         &[
             (
                 StablePathSelector::Feature("org.bar.msc1234.stable"),
@@ -94,7 +97,7 @@ fn main() {
         ],
     );
     assert_eq!(
-        Request::HISTORY.all_paths().collect::<Vec<_>>(),
+        Request::PATH_BUILDER.all_paths().collect::<Vec<_>>(),
         &[
             "/_matrix/some/msc1234/endpoint/{baz}",
             "/_matrix/unstable/org.bar.msc1234/endpoint/{baz}",
@@ -104,7 +107,7 @@ fn main() {
         ],
     );
 
-    assert_eq!(Request::HISTORY.added_in(), Some(MatrixVersion::V1_0));
-    assert_eq!(Request::HISTORY.deprecated_in(), Some(MatrixVersion::V1_2));
-    assert_eq!(Request::HISTORY.removed_in(), Some(MatrixVersion::V1_3));
+    assert_eq!(Request::PATH_BUILDER.added_in(), Some(MatrixVersion::V1_0));
+    assert_eq!(Request::PATH_BUILDER.deprecated_in(), Some(MatrixVersion::V1_2));
+    assert_eq!(Request::PATH_BUILDER.removed_in(), Some(MatrixVersion::V1_3));
 }

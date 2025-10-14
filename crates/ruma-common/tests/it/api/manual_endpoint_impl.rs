@@ -11,8 +11,9 @@ use ruma_common::{
     api::{
         auth_scheme::NoAuthentication,
         error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError},
+        path_builder::{StablePathSelector, VersionHistory},
         EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata, OutgoingRequest,
-        OutgoingResponse, SendAccessToken, StablePathSelector, SupportedVersions, VersionHistory,
+        OutgoingResponse, SendAccessToken, SupportedVersions,
     },
     OwnedRoomAliasId, OwnedRoomId,
 };
@@ -29,7 +30,8 @@ impl Metadata for Request {
     const METHOD: Method = Method::PUT;
     const RATE_LIMITED: bool = false;
     type Authentication = NoAuthentication;
-    const HISTORY: VersionHistory = VersionHistory::new(
+    type PathBuilder = VersionHistory;
+    const PATH_BUILDER: VersionHistory = VersionHistory::new(
         &[
             (None, "/_matrix/client/unstable/directory/room/{room_alias}"),
             (

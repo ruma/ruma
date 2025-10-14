@@ -16,7 +16,7 @@ pub mod v3 {
     use std::marker::PhantomData;
 
     use ruma_common::{
-        api::{Metadata, VersionHistory},
+        api::{path_builder::VersionHistory, Metadata},
         metadata, OwnedUserId,
     };
 
@@ -72,6 +72,7 @@ pub mod v3 {
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use http::header::{self, HeaderValue};
+            use ruma_common::api::path_builder::PathBuilder;
 
             let url = if self.field.existed_before_extended_profiles() {
                 Self::make_endpoint_url(considering, base_url, &[&self.user_id, &self.field], "")?
@@ -160,7 +161,8 @@ pub mod v3 {
         const METHOD: http::Method = Request::METHOD;
         const RATE_LIMITED: bool = Request::RATE_LIMITED;
         type Authentication = <Request as Metadata>::Authentication;
-        const HISTORY: VersionHistory = Request::HISTORY;
+        type PathBuilder = <Request as Metadata>::PathBuilder;
+        const PATH_BUILDER: VersionHistory = Request::PATH_BUILDER;
     }
 
     #[cfg(feature = "client")]
