@@ -12,7 +12,7 @@
 //!
 //! [apis]: https://spec.matrix.org/latest/#matrix-apis
 
-use std::{borrow::Cow, convert::TryInto as _, error::Error as StdError};
+use std::{convert::TryInto as _, error::Error as StdError};
 
 use as_variant::as_variant;
 use bytes::BufMut;
@@ -244,11 +244,9 @@ use crate::UserId;
 pub mod auth_scheme;
 pub mod error;
 mod metadata;
+pub mod path_builder;
 
-pub use self::metadata::{
-    FeatureFlag, MatrixVersion, Metadata, StablePathSelector, SupportedVersions, VersionHistory,
-    VersioningDecision,
-};
+pub use self::metadata::{FeatureFlag, MatrixVersion, Metadata, SupportedVersions};
 
 /// An enum to control whether an access token should be added to outgoing requests
 #[derive(Clone, Copy, Debug)]
@@ -309,14 +307,7 @@ pub trait OutgoingRequest: Metadata + Clone {
     /// access_token, this could result in an error. It may also fail with a serialization error
     /// in case of bugs in Ruma though.
     ///
-    /// It may also fail if, for every version in `considering`;
-    /// - The endpoint is too old, and has been removed in all versions.
-    ///   ([`EndpointRemoved`](error::IntoHttpError::EndpointRemoved))
-    /// - The endpoint is too new, and no unstable path is known for this endpoint.
-    ///   ([`NoUnstablePath`](error::IntoHttpError::NoUnstablePath))
-    ///
-    /// Finally, this will emit a warning through [`tracing`] if it detects that any version in
-    /// `considering` has deprecated this endpoint.
+    /// It may also fail if the `PathData::make_endpoint_url()` implementation returns an error.
     ///
     /// The endpoints path will be appended to the given `base_url`, for example
     /// `https://matrix.org`. Since all paths begin with a slash, it is not necessary for the
@@ -325,20 +316,8 @@ pub trait OutgoingRequest: Metadata + Clone {
         self,
         base_url: &str,
         access_token: SendAccessToken<'_>,
-        considering: Cow<'_, SupportedVersions>,
+        path_builder_input: <Self::PathBuilder as path_builder::PathBuilder>::Input<'_>,
     ) -> Result<http::Request<T>, IntoHttpError>;
-
-    /// Whether the homeserver advertises support for this endpoint.
-    ///
-    /// Returns `true` if any version or feature in the given [`SupportedVersions`] matches a path
-    /// in the history of this endpoint, unless the endpoint was removed.
-    ///
-    /// Note that this is likely to return false negatives, since some endpoints don't specify a
-    /// stable or unstable feature, and homeservers should not advertise support for a Matrix
-    /// version unless they support all of its features.
-    fn is_supported(considering_versions: &SupportedVersions) -> bool {
-        Self::HISTORY.is_supported(considering_versions)
-    }
 }
 
 /// A response type for a Matrix API endpoint, used for receiving responses.
@@ -363,9 +342,10 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
         base_url: &str,
         access_token: SendAccessToken<'_>,
         user_id: &UserId,
-        considering: Cow<'_, SupportedVersions>,
+        path_builder_input: <Self::PathBuilder as path_builder::PathBuilder>::Input<'_>,
     ) -> Result<http::Request<T>, IntoHttpError> {
-        let mut http_request = self.try_into_http_request(base_url, access_token, considering)?;
+        let mut http_request =
+            self.try_into_http_request(base_url, access_token, path_builder_input)?;
         let user_id_query = serde_html_form::to_string([("user_id", user_id)])?;
 
         let uri = http_request.uri().to_owned();

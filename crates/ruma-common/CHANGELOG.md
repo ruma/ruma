@@ -18,18 +18,25 @@ Breaking changes:
   backwards-compatibility for clients.
 - Macros no longer support importing the `ruma` and `ruma-events` crate from the
   `matrix-sdk-appservice` crate. This crate was dropped 2 years ago.
-- `Metadata` and `AuthScheme` were changed from a `struct` and an enum
-  respectively to `trait`s.
-  - The variants of the `AuthScheme` enum are now structs implementing the
-    `AuthScheme` trait. The `None` variant was renamed to `NoAuthentication`.
+- `Metadata` was changed from a `struct` to a `trait`. It is a supertrait of
+  `OutgoingRequest` and `IncomingRequest`, and its fields are now associated
+  types or constants.
   - The `authentication` field of the `Metadata` struct is now an associated
-    type named `Authentication` that must implement `AuthScheme`. 
+    type named `Authentication`. The `AuthScheme` enum was changed from an
+    `enum` to a `trait`. Its variants are now structs implementing the
+    `AuthScheme` trait. The `None` variant was renamed to `NoAuthentication`.
+  - The `history` field of the `Metadata` struct is now an associated constant
+    named `PATH_BUILDER`. The type of this constant is defined by the
+    `PathBuilder` associated type, which must implement the `PathBuilder` trait.
+    The `considering` argument of `OutgoingRequest::try_into_http_request()` is
+    renamed to `path_builder_input` and is generic over the `Input` associated
+    type of the `PathBuilder` trait. The `Input` of `VersionHistory` was changed
+    from `&'_ SupportedVersions` to `Cow<'_, SupportedVersions>`.
   - The other fields of the `Metadata` struct are now associated constants with
     the same name converted to uppercase.
   - The `metadata!` macro generates the `Metadata` trait implementation for a
     type named `Request` by default. This type can be changed with an `@for`
     setting.
-  - `Metadata` is a supertrait of `OutgoingRequest` and `IncomingRequest`.
 
 Improvements:
 

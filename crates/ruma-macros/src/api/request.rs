@@ -288,7 +288,9 @@ impl Request {
         let mut tests = quote! {
             #[::std::prelude::v1::test]
             fn path_parameters() {
-                let path_params = <super::#ident as #ruma_common::api::Metadata>::_path_parameters();
+                use #ruma_common::api::path_builder::PathBuilder as _;
+
+                let path_params = <super::#ident as #ruma_common::api::Metadata>::PATH_BUILDER._path_parameters();
                 let request_path_fields: &[&::std::primitive::str] = &[#(#path_fields),*];
                 ::std::assert_eq!(
                     path_params, request_path_fields,

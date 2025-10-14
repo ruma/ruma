@@ -3,7 +3,10 @@
 use std::borrow::Cow;
 
 use ruma_common::{
-    api::{MatrixVersion, StablePathSelector, VersionHistory},
+    api::{
+        path_builder::{StablePathSelector, VersionHistory},
+        MatrixVersion,
+    },
     serde::StringEnum,
     OwnedMxcUri,
 };

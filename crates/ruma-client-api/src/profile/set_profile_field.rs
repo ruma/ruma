@@ -62,6 +62,7 @@ pub mod v3 {
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use http::{header, HeaderValue};
+            use ruma_common::api::path_builder::PathBuilder;
 
             let field = self.value.field_name();
 

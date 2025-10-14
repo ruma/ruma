@@ -110,12 +110,12 @@ impl Request {
                     self,
                     base_url: &::std::primitive::str,
                     access_token: #ruma_common::api::SendAccessToken<'_>,
-                    considering: ::std::borrow::Cow<'_, #ruma_common::api::SupportedVersions>,
+                    path_builder_input: <<Self as #ruma_common::api::Metadata>::PathBuilder as #ruma_common::api::path_builder::PathBuilder>::Input<'_>,
                 ) -> ::std::result::Result<#http::Request<T>, #ruma_common::api::error::IntoHttpError> {
                     let mut req_builder = #http::Request::builder()
                         .method(<Self as #ruma_common::api::Metadata>::METHOD)
                         .uri(<Self as #ruma_common::api::Metadata>::make_endpoint_url(
-                            considering,
+                            path_builder_input,
                             base_url,
                             &[ #( &self.#path_fields ),* ],
                             #request_query_string,
