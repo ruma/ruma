@@ -24,9 +24,7 @@ pub mod v2 {
         method: POST,
         rate_limited: false,
         authentication: NoAuthentication,
-        history: {
-            1.0 => "/_matrix/key/v2/query",
-        }
+        path: "/_matrix/key/v2/query",
     }
 
     /// Request type for the `get_remote_server_keys_batch` endpoint.

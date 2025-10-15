@@ -31,9 +31,7 @@ pub mod v1 {
         method: PUT,
         rate_limited: false,
         authentication: AccessToken,
-        history: {
-            1.0 => "/_matrix/federation/v1/exchange_third_party_invite/{room_id}",
-        }
+        path: "/_matrix/federation/v1/exchange_third_party_invite/{room_id}",
     }
 
     /// Request type for the `exchange_invite` endpoint.

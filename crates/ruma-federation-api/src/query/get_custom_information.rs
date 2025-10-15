@@ -20,9 +20,7 @@ pub mod v1 {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
-        history: {
-            1.0 => "/_matrix/federation/v1/query/{query_type}",
-        }
+        path: "/_matrix/federation/v1/query/{query_type}",
     }
 
     /// Request type for the `get_custom_information` endpoint.
