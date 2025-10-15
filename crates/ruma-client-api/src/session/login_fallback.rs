@@ -10,9 +10,7 @@ metadata! {
     method: GET,
     rate_limited: false,
     authentication: NoAuthentication,
-    history: {
-        1.0 => "/_matrix/static/client/login/",
-    }
+    path: "/_matrix/static/client/login/",
 }
 
 /// Request type for the `login_fallback` endpoint.

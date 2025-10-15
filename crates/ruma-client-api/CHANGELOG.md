@@ -3,6 +3,13 @@
 Breaking changes:
 
 - Upgrade `js_option` to v0.2.0
+- The following endpoints use a `SinglePath` rather than a `VersionHistory` as
+  `Metadata::PathBuilder`. Making a request doesn't require to provide a dummy
+  `SupportedVersions` anymore.
+  - `discover_homeserver`
+  - `discover_support`
+  - `get_supported_versions`
+  - `login_fallback`
 
 Fixes:
 
