@@ -16,9 +16,7 @@ pub mod v1 {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
-        history: {
-            1.0 => "/_matrix/app/v1/users/{user_id}",
-        }
+        path: "/_matrix/app/v1/users/{user_id}",
     }
 
     /// Request type for the `query_user_id` endpoint.
