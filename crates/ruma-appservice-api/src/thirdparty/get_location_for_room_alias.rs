@@ -18,9 +18,7 @@ pub mod v1 {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
-        history: {
-            1.0 => "/_matrix/app/v1/thirdparty/location",
-        }
+        path: "/_matrix/app/v1/thirdparty/location",
     }
 
     /// Request type for the `get_location_for_room_alias` endpoint.

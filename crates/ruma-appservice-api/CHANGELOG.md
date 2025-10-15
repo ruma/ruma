@@ -10,6 +10,9 @@ Breaking changes:
 - The `ephemeral` field of `push_events::v1::Request` is now a
   `Vec<Raw<EphemeralData>>`. This avoids the entire deserialization of the
   `Request` to fail if a single `EphemeralData` deserialization fails.
+- All the endpoints use a `SinglePath` rather than a `VersionHistory` as
+  `Metadata::PathBuilder`. Making a request doesn't require to provide a dummy
+  `SupportedVersions` anymore.
 
 # 0.12.2
 
