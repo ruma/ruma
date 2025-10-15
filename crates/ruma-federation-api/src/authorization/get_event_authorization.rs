@@ -17,9 +17,7 @@ pub mod v1 {
         method: GET,
         rate_limited: false,
         authentication: ServerSignatures,
-        history: {
-            1.0 => "/_matrix/federation/v1/event_auth/{room_id}/{event_id}",
-        }
+        path: "/_matrix/federation/v1/event_auth/{room_id}/{event_id}",
     }
 
     /// Request type for the `get_event_authorization` endpoint.

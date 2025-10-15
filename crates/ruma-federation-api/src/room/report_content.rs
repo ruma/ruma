@@ -16,9 +16,7 @@ pub mod msc3843 {
         method: POST,
         rate_limited: false,
         authentication: ServerSignatures,
-        history: {
-            unstable => "/_matrix/federation/unstable/org.matrix.msc3843/rooms/{room_id}/report/{event_id}",
-        }
+        path: "/_matrix/federation/unstable/org.matrix.msc3843/rooms/{room_id}/report/{event_id}",
     }
 
     /// Request type for the `report_content` endpoint.

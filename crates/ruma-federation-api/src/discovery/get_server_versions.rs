@@ -14,9 +14,7 @@ pub mod msc3723 {
         method: GET,
         rate_limited: false,
         authentication: NoAuthentication,
-        history: {
-            unstable => "/_matrix/federation/unstable/org.matrix.msc3723/versions",
-        }
+        path: "/_matrix/federation/unstable/org.matrix.msc3723/versions",
     }
 
     /// Request type for the `get_server_versions` endpoint.

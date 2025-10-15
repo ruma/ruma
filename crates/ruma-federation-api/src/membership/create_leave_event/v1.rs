@@ -13,10 +13,7 @@ metadata! {
     method: PUT,
     rate_limited: false,
     authentication: ServerSignatures,
-    history: {
-        1.0 => "/_matrix/federation/v1/send_leave/{room_id}/{event_id}",
-        1.0 => deprecated,
-    }
+    path: "/_matrix/federation/v1/send_leave/{room_id}/{event_id}",
 }
 
 /// Request type for the `create_leave_event` endpoint.

@@ -16,9 +16,7 @@ metadata! {
     method: PUT,
     rate_limited: false,
     authentication: ServerSignatures,
-    history: {
-        1.0 => "/_matrix/federation/v1/invite/{room_id}/{event_id}",
-    }
+    path: "/_matrix/federation/v1/invite/{room_id}/{event_id}",
 }
 
 /// Request type for the `create_invite` endpoint.

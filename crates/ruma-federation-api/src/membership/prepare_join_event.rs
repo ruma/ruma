@@ -17,9 +17,7 @@ pub mod v1 {
         method: GET,
         rate_limited: false,
         authentication: ServerSignatures,
-        history: {
-            1.0 => "/_matrix/federation/v1/make_join/{room_id}/{user_id}",
-        }
+        path: "/_matrix/federation/v1/make_join/{room_id}/{user_id}",
     }
 
     /// Request type for the `create_join_event_template` endpoint.
