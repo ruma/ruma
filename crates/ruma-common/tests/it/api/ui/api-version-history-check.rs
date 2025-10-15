@@ -1,8 +1,13 @@
 #![allow(unexpected_cfgs)]
 
+use std::borrow::Cow;
+
 use http::header::CONTENT_TYPE;
 use ruma_common::{
-    api::{request, response, Metadata},
+    api::{
+        path_builder::{PathBuilder, StablePathSelector},
+        request, response, MatrixVersion, Metadata, SupportedVersions,
+    },
     metadata,
     serde::Raw,
 };
@@ -37,7 +42,7 @@ pub struct Request {
     pub bar: String,
 
     // This value will be inserted into the request's URL in place of the
-    // ":baz" path component.
+    // "{baz}" path component.
     #[ruma_api(path)]
     pub baz: String,
 }
@@ -67,11 +72,6 @@ pub struct Response {
 pub struct Event {}
 
 fn main() {
-    use ruma_common::api::{
-        path_builder::{PathBuilder, StablePathSelector},
-        MatrixVersion,
-    };
-
     assert_eq!(
         Request::PATH_BUILDER.unstable_paths().collect::<Vec<_>>(),
         &[
@@ -110,4 +110,18 @@ fn main() {
     assert_eq!(Request::PATH_BUILDER.added_in(), Some(MatrixVersion::V1_0));
     assert_eq!(Request::PATH_BUILDER.deprecated_in(), Some(MatrixVersion::V1_2));
     assert_eq!(Request::PATH_BUILDER.removed_in(), Some(MatrixVersion::V1_3));
+
+    let path = Request::PATH_BUILDER
+        .select_path(Cow::Owned(SupportedVersions {
+            versions: [
+                MatrixVersion::V1_0,
+                MatrixVersion::V1_1,
+                MatrixVersion::V1_2,
+                MatrixVersion::V1_3,
+            ]
+            .into(),
+            features: Default::default(),
+        }))
+        .unwrap();
+    assert_eq!(path, "/_matrix/some/v3/endpoint/{baz}");
 }
