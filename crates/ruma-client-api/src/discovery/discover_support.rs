@@ -18,9 +18,7 @@ metadata! {
     method: GET,
     rate_limited: false,
     authentication: NoAuthentication,
-    history: {
-        1.10 => "/.well-known/matrix/support",
-    }
+    path: "/.well-known/matrix/support",
 }
 
 /// Request type for the `discover_support` endpoint.
