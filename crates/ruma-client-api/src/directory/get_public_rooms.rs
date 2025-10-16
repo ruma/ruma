@@ -86,6 +86,8 @@ pub mod v3 {
         #[cfg(feature = "client")]
         #[test]
         fn construct_request_from_refs() {
+            use std::borrow::Cow;
+
             use ruma_common::{
                 api::{MatrixVersion, OutgoingRequest as _, SendAccessToken, SupportedVersions},
                 server_name,
@@ -104,7 +106,7 @@ pub mod v3 {
             .try_into_http_request::<Vec<u8>>(
                 "https://homeserver.tld",
                 SendAccessToken::IfRequired("auth_tok"),
-                &supported,
+                Cow::Owned(supported),
             )
             .unwrap();
 

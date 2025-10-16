@@ -266,6 +266,8 @@ pub mod v1 {
         #[cfg(feature = "client")]
         #[test]
         fn request_contains_events_field() {
+            use std::borrow::Cow;
+
             use ruma_common::api::{
                 MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions,
             };
@@ -292,7 +294,7 @@ pub mod v1 {
                 .try_into_http_request::<Vec<u8>>(
                     "https://homeserver.tld",
                     SendAccessToken::IfRequired("auth_tok"),
-                    &supported,
+                    Cow::Owned(supported),
                 )
                 .unwrap();
             let json_body: serde_json::Value = serde_json::from_slice(req.body()).unwrap();

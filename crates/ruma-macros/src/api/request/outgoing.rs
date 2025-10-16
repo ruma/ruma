@@ -110,7 +110,7 @@ impl Request {
                     self,
                     base_url: &::std::primitive::str,
                     access_token: #ruma_common::api::SendAccessToken<'_>,
-                    considering: &'_ #ruma_common::api::SupportedVersions,
+                    considering: ::std::borrow::Cow<'_, #ruma_common::api::SupportedVersions>,
                 ) -> ::std::result::Result<#http::Request<T>, #ruma_common::api::error::IntoHttpError> {
                     let mut req_builder = #http::Request::builder()
                         .method(<Self as #ruma_common::api::Metadata>::METHOD)

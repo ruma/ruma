@@ -76,6 +76,8 @@ pub mod v3 {
 
     #[cfg(all(test, feature = "client"))]
     mod tests {
+        use std::borrow::Cow;
+
         use ruma_common::api::{
             MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions,
         };
@@ -89,7 +91,11 @@ pub mod v3 {
                 features: Default::default(),
             };
             let req: http::Request<Vec<u8>> = Request::new("https://example.com/sso".to_owned())
-                .try_into_http_request("https://homeserver.tld", SendAccessToken::None, &supported)
+                .try_into_http_request(
+                    "https://homeserver.tld",
+                    SendAccessToken::None,
+                    Cow::Owned(supported),
+                )
                 .unwrap();
 
             assert_eq!(

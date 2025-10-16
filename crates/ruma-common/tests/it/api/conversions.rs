@@ -1,5 +1,7 @@
 #![allow(clippy::exhaustive_structs)]
 
+use std::borrow::Cow;
+
 use http::header::CONTENT_TYPE;
 use ruma_common::{
     api::{
@@ -69,7 +71,7 @@ fn request_serde() {
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            &supported,
+            Cow::Owned(supported),
         )
         .unwrap();
     let req2 = Request::try_from_http_request(http_req, &["barVal", "@bazme:ruma.io"]).unwrap();
@@ -95,8 +97,11 @@ fn invalid_uri_should_not_panic() {
     let supported =
         SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
 
-    let result =
-        req.try_into_http_request::<Vec<u8>>("invalid uri", SendAccessToken::None, &supported);
+    let result = req.try_into_http_request::<Vec<u8>>(
+        "invalid uri",
+        SendAccessToken::None,
+        Cow::Owned(supported),
+    );
     result.unwrap_err();
 }
 
@@ -119,7 +124,7 @@ fn request_with_user_id_serde() {
             "https://homeserver.tld",
             SendAccessToken::None,
             user_id,
-            &supported,
+            Cow::Owned(supported),
         )
         .unwrap();
 
@@ -132,6 +137,8 @@ fn request_with_user_id_serde() {
 }
 
 mod without_query {
+    use std::borrow::Cow;
+
     use http::header::CONTENT_TYPE;
     use ruma_common::{
         api::{
@@ -196,7 +203,7 @@ mod without_query {
                 "https://homeserver.tld",
                 SendAccessToken::None,
                 user_id,
-                &supported,
+                Cow::Owned(supported),
             )
             .unwrap();
 

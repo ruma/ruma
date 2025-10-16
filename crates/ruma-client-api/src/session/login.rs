@@ -435,6 +435,8 @@ pub mod v3 {
         #[test]
         #[cfg(feature = "client")]
         fn serialize_login_request_body() {
+            use std::borrow::Cow;
+
             use ruma_common::api::{
                 MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions,
             };
@@ -454,7 +456,11 @@ pub mod v3 {
                 initial_device_display_name: Some("test".to_owned()),
                 refresh_token: false,
             }
-            .try_into_http_request("https://homeserver.tld", SendAccessToken::None, &supported)
+            .try_into_http_request(
+                "https://homeserver.tld",
+                SendAccessToken::None,
+                Cow::Borrowed(&supported),
+            )
             .unwrap();
 
             let req_body_value: JsonValue = serde_json::from_slice(req.body()).unwrap();
@@ -482,7 +488,11 @@ pub mod v3 {
                 initial_device_display_name: Some("test".to_owned()),
                 refresh_token: false,
             }
-            .try_into_http_request("https://homeserver.tld", SendAccessToken::None, &supported)
+            .try_into_http_request(
+                "https://homeserver.tld",
+                SendAccessToken::None,
+                Cow::Borrowed(&supported),
+            )
             .unwrap();
 
             let req_body_value: JsonValue = serde_json::from_slice(req.body()).unwrap();

@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use assert_matches2::assert_matches;
 use http::header::{CONTENT_DISPOSITION, LOCATION};
 use ruma_common::{
@@ -47,7 +49,7 @@ fn request_serde_no_header() {
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            &supported,
+            Cow::Owned(supported),
         )
         .unwrap();
     assert_matches!(http_req.headers().get(LOCATION), None);
@@ -75,7 +77,7 @@ fn request_serde_with_header() {
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            &supported,
+            Cow::Owned(supported),
         )
         .unwrap();
     assert_matches!(http_req.headers().get(LOCATION), Some(_));

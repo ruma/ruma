@@ -47,7 +47,7 @@ pub mod unstable {
             self,
             base_url: &str,
             _: ruma_common::api::SendAccessToken<'_>,
-            considering: &'_ ruma_common::api::SupportedVersions,
+            considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             let url = Self::make_endpoint_url(considering, base_url, &[], "")?;
             let body = self.content.as_bytes();

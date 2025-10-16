@@ -88,7 +88,7 @@ pub mod v3 {
             self,
             base_url: &str,
             access_token: ruma_common::api::SendAccessToken<'_>,
-            considering: &'_ ruma_common::api::SupportedVersions,
+            considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use http::header::{self, HeaderValue};
 
@@ -205,6 +205,9 @@ pub mod v3 {
 
     #[cfg(all(test, any(feature = "client", feature = "server")))]
     mod tests {
+        #[cfg(feature = "client")]
+        use std::borrow::Cow;
+
         use ruma_common::{
             api::{
                 IncomingRequest as _, MatrixVersion, OutgoingRequest, SendAccessToken,
@@ -229,7 +232,7 @@ pub mod v3 {
                 .try_into_http_request::<Vec<u8>>(
                     "https://matrix.org",
                     SendAccessToken::IfRequired("tok"),
-                    &supported,
+                    Cow::Owned(supported),
                 )
                 .unwrap();
             assert_eq!(req.uri().query(), Some("via=f.oo&server_name=f.oo"));
@@ -249,7 +252,7 @@ pub mod v3 {
                 .try_into_http_request::<Vec<u8>>(
                     "https://matrix.org",
                     SendAccessToken::IfRequired("tok"),
-                    &supported,
+                    Cow::Owned(supported),
                 )
                 .unwrap();
             assert_eq!(req.uri().query(), Some("via=f.oo"));

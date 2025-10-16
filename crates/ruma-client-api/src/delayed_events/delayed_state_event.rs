@@ -113,6 +113,8 @@ pub mod unstable {
 
     #[cfg(all(test, feature = "client"))]
     mod tests {
+        use std::borrow::Cow;
+
         use ruma_common::{
             api::{MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions},
             owned_room_id,
@@ -142,7 +144,7 @@ pub mod unstable {
             .try_into_http_request(
                 "https://homeserver.tld",
                 SendAccessToken::IfRequired("auth_tok"),
-                &supported,
+                Cow::Owned(supported),
             )
             .unwrap()
             .into_parts()

@@ -59,7 +59,7 @@ pub mod v3 {
             self,
             base_url: &str,
             access_token: ruma_common::api::SendAccessToken<'_>,
-            considering: &'_ ruma_common::api::SupportedVersions,
+            considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use http::{header, HeaderValue};
 
@@ -158,6 +158,8 @@ mod tests {
     #[test]
     #[cfg(feature = "client")]
     fn serialize_request() {
+        use std::borrow::Cow;
+
         use http::header;
         use ruma_common::api::{OutgoingRequest, SendAccessToken, SupportedVersions};
 
@@ -173,7 +175,10 @@ mod tests {
             .try_into_http_request::<Vec<u8>>(
                 "http://localhost/",
                 SendAccessToken::Always("access_token"),
-                &SupportedVersions::from_parts(&["v1.11".to_owned()], &Default::default()),
+                Cow::Owned(SupportedVersions::from_parts(
+                    &["v1.11".to_owned()],
+                    &Default::default(),
+                )),
             )
             .unwrap();
         assert_eq!(
@@ -196,7 +201,10 @@ mod tests {
             .try_into_http_request::<Vec<u8>>(
                 "http://localhost/",
                 SendAccessToken::Always("access_token"),
-                &SupportedVersions::from_parts(&["v1.16".to_owned()], &Default::default()),
+                Cow::Owned(SupportedVersions::from_parts(
+                    &["v1.16".to_owned()],
+                    &Default::default(),
+                )),
             )
             .unwrap();
         assert_eq!(
@@ -226,7 +234,10 @@ mod tests {
             .try_into_http_request::<Vec<u8>>(
                 "http://localhost/",
                 SendAccessToken::Always("access_token"),
-                &SupportedVersions::from_parts(&["v1.11".to_owned()], &Default::default()),
+                Cow::Owned(SupportedVersions::from_parts(
+                    &["v1.11".to_owned()],
+                    &Default::default(),
+                )),
             )
             .unwrap();
         assert_eq!(
@@ -249,7 +260,10 @@ mod tests {
             .try_into_http_request::<Vec<u8>>(
                 "http://localhost/",
                 SendAccessToken::Always("access_token"),
-                &SupportedVersions::from_parts(&["v1.16".to_owned()], &Default::default()),
+                Cow::Owned(SupportedVersions::from_parts(
+                    &["v1.16".to_owned()],
+                    &Default::default(),
+                )),
             )
             .unwrap();
         assert_eq!(
