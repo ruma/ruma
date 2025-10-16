@@ -3,6 +3,8 @@
 #![allow(clippy::exhaustive_structs)]
 #![allow(dead_code)]
 
+use std::borrow::Cow;
+
 use bytes::BufMut;
 use http::{header::CONTENT_TYPE, method::Method};
 use ruma_common::{
@@ -61,7 +63,7 @@ impl OutgoingRequest for Request {
         self,
         base_url: &str,
         _access_token: SendAccessToken<'_>,
-        considering: &'_ SupportedVersions,
+        considering: Cow<'_, SupportedVersions>,
     ) -> Result<http::Request<T>, IntoHttpError> {
         let url = Self::make_endpoint_url(considering, base_url, &[&self.room_alias], "")?;
 

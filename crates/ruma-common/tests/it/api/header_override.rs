@@ -1,5 +1,7 @@
 #![allow(clippy::exhaustive_structs)]
 
+use std::borrow::Cow;
+
 use http::header::{Entry, CONTENT_TYPE, LOCATION};
 use ruma_common::{
     api::{
@@ -62,7 +64,7 @@ fn request_content_type_override() {
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            &supported,
+            Cow::Owned(supported),
         )
         .unwrap();
 

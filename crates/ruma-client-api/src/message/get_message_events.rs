@@ -172,6 +172,8 @@ pub mod v3 {
 
     #[cfg(all(test, feature = "client"))]
     mod tests {
+        use std::borrow::Cow;
+
         use js_int::uint;
         use ruma_common::{
             api::{Direction, MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions},
@@ -213,7 +215,7 @@ pub mod v3 {
                 .try_into_http_request(
                     "https://homeserver.tld",
                     SendAccessToken::IfRequired("auth_tok"),
-                    &supported,
+                    Cow::Owned(supported),
                 )
                 .unwrap();
             assert_eq!(
@@ -246,7 +248,7 @@ pub mod v3 {
                 .try_into_http_request::<Vec<u8>>(
                     "https://homeserver.tld",
                     SendAccessToken::IfRequired("auth_tok"),
-                    &supported,
+                    Cow::Owned(supported),
                 )
                 .unwrap();
             assert_eq!("from=token&to=token2&dir=b&limit=0", request.uri().query().unwrap(),);

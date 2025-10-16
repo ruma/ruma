@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     cmp::Ordering,
     collections::{BTreeMap, BTreeSet},
     fmt::{Display, Write},
@@ -211,7 +212,7 @@ pub trait Metadata: Sized {
 
     /// Generate the endpoint URL for this endpoint.
     fn make_endpoint_url(
-        considering: &SupportedVersions,
+        considering: Cow<'_, SupportedVersions>,
         base_url: &str,
         path_args: &[&dyn Display],
         query_string: &str,
@@ -428,7 +429,10 @@ impl VersionHistory {
 
     /// Picks the right path (or an error) according to the supported versions and features of a
     /// homeserver.
-    fn select_path(&self, considering: &SupportedVersions) -> Result<&'static str, IntoHttpError> {
+    fn select_path(
+        &self,
+        considering: Cow<'_, SupportedVersions>,
+    ) -> Result<&'static str, IntoHttpError> {
         match self.versioning_decision_for(&considering.versions) {
             VersioningDecision::Removed => Err(IntoHttpError::EndpointRemoved(
                 self.removed.expect("VersioningDecision::Removed implies metadata.removed"),
@@ -519,7 +523,7 @@ impl VersionHistory {
     /// Generate the endpoint URL for this history.
     pub fn make_endpoint_url(
         &self,
-        considering: &SupportedVersions,
+        considering: Cow<'_, SupportedVersions>,
         base_url: &str,
         path_args: &[&dyn Display],
         query_string: &str,
@@ -1254,7 +1258,10 @@ pub enum FeatureFlag {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::{BTreeMap, BTreeSet};
+    use std::{
+        borrow::Cow,
+        collections::{BTreeMap, BTreeSet},
+    };
 
     use assert_matches2::assert_matches;
 
@@ -1283,7 +1290,12 @@ mod tests {
     fn make_simple_endpoint_url() {
         let history = stable_only_history(&[(StablePathSelector::Version(V1_0), "/s")]);
         let url = history
-            .make_endpoint_url(&version_only_supported(&[V1_0]), "https://example.org", &[], "")
+            .make_endpoint_url(
+                Cow::Owned(version_only_supported(&[V1_0])),
+                "https://example.org",
+                &[],
+                "",
+            )
             .unwrap();
         assert_eq!(url, "https://example.org/s");
     }
@@ -1293,7 +1305,7 @@ mod tests {
         let history = stable_only_history(&[(StablePathSelector::Version(V1_0), "/s/{x}")]);
         let url = history
             .make_endpoint_url(
-                &version_only_supported(&[V1_0]),
+                Cow::Owned(version_only_supported(&[V1_0])),
                 "https://example.org",
                 &[&"123"],
                 "",
@@ -1307,7 +1319,7 @@ mod tests {
         let history = stable_only_history(&[(StablePathSelector::Version(V1_0), "/s/{x}")]);
         let url = history
             .make_endpoint_url(
-                &version_only_supported(&[V1_0]),
+                Cow::Owned(version_only_supported(&[V1_0])),
                 "https://example.org",
                 &[&"my-path"],
                 "",
@@ -1321,7 +1333,7 @@ mod tests {
         let history = stable_only_history(&[(StablePathSelector::Version(V1_0), "/s/{x}")]);
         let url = history
             .make_endpoint_url(
-                &version_only_supported(&[V1_0]),
+                Cow::Owned(version_only_supported(&[V1_0])),
                 "https://example.org",
                 &[&"#path"],
                 "",
@@ -1335,7 +1347,7 @@ mod tests {
         let history = stable_only_history(&[(StablePathSelector::Version(V1_0), "/s/")]);
         let url = history
             .make_endpoint_url(
-                &version_only_supported(&[V1_0]),
+                Cow::Owned(version_only_supported(&[V1_0])),
                 "https://example.org",
                 &[],
                 "foo=bar",
@@ -1349,7 +1361,7 @@ mod tests {
     fn make_endpoint_url_wrong_num_path_args() {
         let history = stable_only_history(&[(StablePathSelector::Version(V1_0), "/s/{x}")]);
         _ = history.make_endpoint_url(
-            &version_only_supported(&[V1_0]),
+            Cow::Owned(version_only_supported(&[V1_0])),
             "https://example.org",
             &[],
             "",
@@ -1367,9 +1379,9 @@ mod tests {
         // With version only.
         let hist =
             VersionHistory { stable_paths: &[(StablePathSelector::Version(V1_0), "/s")], ..EMPTY };
-        assert_matches!(hist.select_path(&version_supported), Ok("/s"));
+        assert_matches!(hist.select_path(Cow::Borrowed(&version_supported)), Ok("/s"));
         assert!(hist.is_supported(&version_supported));
-        assert_matches!(hist.select_path(&superset_supported), Ok("/s"));
+        assert_matches!(hist.select_path(Cow::Borrowed(&superset_supported)), Ok("/s"));
         assert!(hist.is_supported(&superset_supported));
 
         // With feature and version.
@@ -1380,9 +1392,9 @@ mod tests {
             )],
             ..EMPTY
         };
-        assert_matches!(hist.select_path(&version_supported), Ok("/s"));
+        assert_matches!(hist.select_path(Cow::Borrowed(&version_supported)), Ok("/s"));
         assert!(hist.is_supported(&version_supported));
-        assert_matches!(hist.select_path(&superset_supported), Ok("/s"));
+        assert_matches!(hist.select_path(Cow::Borrowed(&superset_supported)), Ok("/s"));
         assert!(hist.is_supported(&superset_supported));
 
         // Select latest stable version.
@@ -1393,7 +1405,7 @@ mod tests {
             ],
             ..EMPTY
         };
-        assert_matches!(hist.select_path(&version_supported), Ok("/s_v2"));
+        assert_matches!(hist.select_path(Cow::Borrowed(&version_supported)), Ok("/s_v2"));
         assert!(hist.is_supported(&version_supported));
 
         // With unstable feature.
@@ -1406,7 +1418,7 @@ mod tests {
             stable_paths: &[(StablePathSelector::Version(V1_0), "/s")],
             ..EMPTY
         };
-        assert_matches!(hist.select_path(&unstable_supported), Ok("/s"));
+        assert_matches!(hist.select_path(Cow::Borrowed(&unstable_supported)), Ok("/s"));
         assert!(hist.is_supported(&unstable_supported));
     }
 
@@ -1423,7 +1435,7 @@ mod tests {
             stable_paths: &[(StablePathSelector::Feature("org.boo.stable"), "/s")],
             ..EMPTY
         };
-        assert_matches!(hist.select_path(&supported), Ok("/s"));
+        assert_matches!(hist.select_path(Cow::Borrowed(&supported)), Ok("/s"));
         assert!(hist.is_supported(&supported));
 
         // With feature and version.
@@ -1435,7 +1447,7 @@ mod tests {
             )],
             ..EMPTY
         };
-        assert_matches!(hist.select_path(&supported), Ok("/s"));
+        assert_matches!(hist.select_path(Cow::Borrowed(&supported)), Ok("/s"));
         assert!(hist.is_supported(&supported));
     }
 
@@ -1454,7 +1466,7 @@ mod tests {
             )],
             ..EMPTY
         };
-        assert_matches!(hist.select_path(&supported), Ok("/u"));
+        assert_matches!(hist.select_path(Cow::Borrowed(&supported)), Ok("/u"));
         assert!(hist.is_supported(&supported));
     }
 
@@ -1462,7 +1474,7 @@ mod tests {
     fn select_unstable_fallback() {
         let supported = version_only_supported(&[V1_0]);
         let hist = VersionHistory { unstable_paths: &[(None, "/u")], ..EMPTY };
-        assert_matches!(hist.select_path(&supported), Ok("/u"));
+        assert_matches!(hist.select_path(Cow::Borrowed(&supported)), Ok("/u"));
         assert!(!hist.is_supported(&supported));
     }
 
@@ -1471,7 +1483,7 @@ mod tests {
         let supported = version_only_supported(&[V1_0]);
         let hist =
             VersionHistory { stable_paths: &[(StablePathSelector::Version(V1_0), "/r")], ..EMPTY };
-        assert_matches!(hist.select_path(&supported), Ok("/r"));
+        assert_matches!(hist.select_path(Cow::Borrowed(&supported)), Ok("/r"));
         assert!(hist.is_supported(&supported));
     }
 
@@ -1487,7 +1499,10 @@ mod tests {
             deprecated: Some(V1_2),
             removed: Some(V1_3),
         };
-        assert_matches!(hist.select_path(&supported), Err(IntoHttpError::EndpointRemoved(V1_3)));
+        assert_matches!(
+            hist.select_path(Cow::Borrowed(&supported)),
+            Err(IntoHttpError::EndpointRemoved(V1_3))
+        );
         assert!(!hist.is_supported(&supported));
     }
 
@@ -1503,7 +1518,7 @@ mod tests {
             deprecated: Some(V1_2),
             removed: Some(V1_3),
         };
-        assert_matches!(hist.select_path(&supported), Ok("/s"));
+        assert_matches!(hist.select_path(Cow::Borrowed(&supported)), Ok("/s"));
         assert!(hist.is_supported(&supported));
     }
 
@@ -1512,7 +1527,10 @@ mod tests {
         let supported = version_only_supported(&[V1_0]);
         let hist =
             VersionHistory { stable_paths: &[(StablePathSelector::Version(V1_1), "/s")], ..EMPTY };
-        assert_matches!(hist.select_path(&supported), Err(IntoHttpError::NoUnstablePath));
+        assert_matches!(
+            hist.select_path(Cow::Borrowed(&supported)),
+            Err(IntoHttpError::NoUnstablePath)
+        );
         assert!(!hist.is_supported(&supported));
     }
 
@@ -1618,7 +1636,7 @@ mod tests {
         let history = stable_only_history(&[(StablePathSelector::Version(V1_0), "/s/:x")]);
         let url = history
             .make_endpoint_url(
-                &version_only_supported(&[V1_0]),
+                Cow::Owned(version_only_supported(&[V1_0])),
                 "https://example.org",
                 &[&"123"],
                 "",

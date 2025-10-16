@@ -85,6 +85,8 @@ pub mod v3 {
         #[cfg(feature = "client")]
         #[test]
         fn serialize_request() {
+            use std::borrow::Cow;
+
             use ruma_common::{
                 api::{MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions},
                 owned_user_id,
@@ -102,7 +104,7 @@ pub mod v3 {
                     .try_into_http_request::<Vec<u8>>(
                         "https://matrix.org",
                         SendAccessToken::IfRequired("tok"),
-                        &supported,
+                        Cow::Owned(supported),
                     )
                     .unwrap();
             assert_eq!(req.body(), b"{}");

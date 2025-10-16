@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use ruma_common::api::{
     MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken, SupportedVersions,
 };
@@ -60,7 +62,7 @@ fn empty_post_request_http_repr() {
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            &supported,
+            Cow::Owned(supported),
         )
         .unwrap();
 
@@ -77,7 +79,7 @@ fn empty_get_request_http_repr() {
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            &supported,
+            Cow::Owned(supported),
         )
         .unwrap();
 

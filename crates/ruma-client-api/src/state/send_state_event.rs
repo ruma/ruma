@@ -115,7 +115,7 @@ pub mod v3 {
             self,
             base_url: &str,
             access_token: ruma_common::api::SendAccessToken<'_>,
-            considering: &'_ ruma_common::api::SupportedVersions,
+            considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use http::header::{self, HeaderValue};
 
@@ -203,6 +203,8 @@ pub mod v3 {
     #[cfg(feature = "client")]
     #[test]
     fn serialize() {
+        use std::borrow::Cow;
+
         use ruma_common::{
             api::{MatrixVersion, OutgoingRequest as _, SendAccessToken, SupportedVersions},
             owned_room_id,
@@ -224,7 +226,7 @@ pub mod v3 {
         .try_into_http_request::<Vec<u8>>(
             "https://server.tld",
             SendAccessToken::IfRequired("access_token"),
-            &supported,
+            Cow::Owned(supported),
         )
         .unwrap();
 

@@ -12,7 +12,7 @@
 //!
 //! [apis]: https://spec.matrix.org/latest/#matrix-apis
 
-use std::{convert::TryInto as _, error::Error as StdError};
+use std::{borrow::Cow, convert::TryInto as _, error::Error as StdError};
 
 use as_variant::as_variant;
 use bytes::BufMut;
@@ -325,7 +325,7 @@ pub trait OutgoingRequest: Metadata + Clone {
         self,
         base_url: &str,
         access_token: SendAccessToken<'_>,
-        considering: &'_ SupportedVersions,
+        considering: Cow<'_, SupportedVersions>,
     ) -> Result<http::Request<T>, IntoHttpError>;
 
     /// Whether the homeserver advertises support for this endpoint.
@@ -363,7 +363,7 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
         base_url: &str,
         access_token: SendAccessToken<'_>,
         user_id: &UserId,
-        considering: &'_ SupportedVersions,
+        considering: Cow<'_, SupportedVersions>,
     ) -> Result<http::Request<T>, IntoHttpError> {
         let mut http_request = self.try_into_http_request(base_url, access_token, considering)?;
         let user_id_query = serde_html_form::to_string([("user_id", user_id)])?;

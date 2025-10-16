@@ -708,7 +708,7 @@ mod tests {
 
 #[cfg(all(test, feature = "client"))]
 mod client_tests {
-    use std::time::Duration;
+    use std::{borrow::Cow, time::Duration};
 
     use assert_matches2::assert_matches;
     use ruma_common::{
@@ -759,7 +759,7 @@ mod client_tests {
         .try_into_http_request(
             "https://homeserver.tld",
             SendAccessToken::IfRequired("auth_tok"),
-            &supported,
+            Cow::Owned(supported),
         )
         .unwrap();
 
