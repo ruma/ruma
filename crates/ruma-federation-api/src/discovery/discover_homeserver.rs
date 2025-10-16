@@ -13,9 +13,7 @@ metadata! {
     method: GET,
     rate_limited: false,
     authentication: NoAuthentication,
-    history: {
-        1.0 => "/.well-known/matrix/server",
-    }
+    path: "/.well-known/matrix/server",
 }
 
 /// Request type for the `discover_homeserver` endpoint.

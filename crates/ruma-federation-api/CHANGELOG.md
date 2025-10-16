@@ -1,5 +1,14 @@
 # [unreleased]
 
+Breaking changes:
+
+- All the endpoints use a `SinglePath` rather than a `VersionHistory` as
+  `Metadata::PathBuilder`. Making a request doesn't require to provide a dummy
+  `SupportedVersions` anymore.
+  - The endpoints that became stable from Matrix 1.1 onwards have a new
+    `unstable` module to be able to support the unstable endpoint defined in
+    their MSC.
+
 Improvements:
 
 - `RawStrippedState::Stripped` is deprecated in favor of the `Pdu` variant,

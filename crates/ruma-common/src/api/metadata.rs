@@ -29,10 +29,17 @@ use crate::{api::error::IntoHttpError, serde::slice_to_buf, PrivOwnedStr, RoomVe
 ///   Its value must be a `bool`.
 /// * `authentication` - The type of authentication that is required for the endpoint, according to
 ///   the specification. Its value must be one of the variants of [`AuthScheme`].
-/// * `history` - The history of the paths of the endpoint. Its definition is made to look like
-///   match arms and must include at least one arm.
 ///
-///   The match arms accept the following syntax:
+/// And either of the following fields to define the path(s) of the endpoint.
+///
+/// * `history` - The history of the paths of the endpoint. This should be used for endpoints from
+///   Matrix APIs that have a `/versions` endpoint that returns a list a [`MatrixVersion`]s and
+///   possibly features, like the Client-Server API or the Identity Service API. However, a few
+///   endpoints from those APIs shouldn't use this field because they cannot be versioned, like the
+///   `/versions` or the `/.well-known` endpoints.
+///
+///   Its definition is made to look like match arms and must include at least one arm. The match
+///   arms accept the following syntax:
 ///
 ///   * `unstable => "unstable/endpoint/path/{variable}"` - An unstable version of the endpoint as
 ///     defined in the MSC that adds it, if the MSC does **NOT** define an unstable feature in the
@@ -67,18 +74,29 @@ use crate::{api::error::IntoHttpError, serde::slice_to_buf, PrivOwnedStr, RoomVe
 ///   * All unstable and stable paths contain the same variables (or lack thereof).
 ///   * Matrix versions in match arms are all different and in ascending order.
 ///
+///   This field is represented as the [`VersionHistory`](super::path_builder::VersionHistory) type
+///   in the generated implementation.
+/// * `path` - The only path of the endpoint. This should be used for endpoints from Matrix APIs
+///   that do NOT have a `/versions` endpoint that returns a list a [`MatrixVersion`]s, like the
+///   Server-Server API or the Appservice API. It should also be used for endpoints that cannot be
+///   versioned, like the `/versions` or the `/.well-known` endpoints.
+///
+///   Its value must be a static string representing the path, like `"endpoint/path/{variable}"`.
+///
+///   This field is represented as the [`SinglePath`](super::path_builder::SinglePath) type in the
+///   generated implementation.
+///
 /// ## Example
 ///
 /// ```
 /// use ruma_common::metadata;
 ///
-/// pub struct MyRequest {
+/// /// A Request with a path version history.
+/// pub struct Request {
 ///     body: Vec<u8>,
 /// }
 ///
 /// metadata! {
-///     @for MyRequest,
-///
 ///     method: GET,
 ///     rate_limited: true,
 ///     authentication: AccessToken,
@@ -91,6 +109,20 @@ use crate::{api::error::IntoHttpError, serde::slice_to_buf, PrivOwnedStr, RoomVe
 ///         1.2 => deprecated,
 ///         1.3 => removed,
 ///     }
+/// };
+///
+/// /// A request with a single path.
+/// pub struct MySinglePathRequest {
+///     body: Vec<u8>,
+/// }
+///
+/// metadata! {
+///     @for MySinglePathRequest,
+///
+///     method: GET,
+///     rate_limited: false,
+///     authentication: NoAuthentication,
+///     path: "/_matrix/key/query",
 /// };
 /// ```
 #[doc(hidden)]
@@ -115,6 +147,11 @@ macro_rules! metadata {
 
     ( @field authentication: $scheme:ident ) => {
         type Authentication = $crate::api::auth_scheme::$scheme;
+    };
+
+    ( @field path: $path:literal ) => {
+        type PathBuilder = $crate::api::path_builder::SinglePath;
+        const PATH_BUILDER: $crate::api::path_builder::SinglePath = $crate::api::path_builder::SinglePath::new($path);
     };
 
     ( @field history: {

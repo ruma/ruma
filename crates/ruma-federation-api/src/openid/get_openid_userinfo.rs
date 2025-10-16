@@ -16,9 +16,7 @@ pub mod v1 {
         method: GET,
         rate_limited: false,
         authentication: NoAuthentication,
-        history: {
-            1.0 => "/_matrix/federation/v1/openid/userinfo",
-        }
+        path: "/_matrix/federation/v1/openid/userinfo",
     }
 
     /// Request type for the `get_openid_userinfo` endpoint.

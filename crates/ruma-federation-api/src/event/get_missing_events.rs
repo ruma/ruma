@@ -18,9 +18,7 @@ pub mod v1 {
         method: POST,
         rate_limited: false,
         authentication: ServerSignatures,
-        history: {
-            1.0 => "/_matrix/federation/v1/get_missing_events/{room_id}",
-        }
+        path: "/_matrix/federation/v1/get_missing_events/{room_id}",
     }
 
     /// Request type for the `get_missing_events` endpoint.

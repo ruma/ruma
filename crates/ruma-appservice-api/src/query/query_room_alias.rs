@@ -16,9 +16,7 @@ pub mod v1 {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
-        history: {
-            1.0 => "/_matrix/app/v1/rooms/{room_alias}",
-        }
+        path: "/_matrix/app/v1/rooms/{room_alias}",
     }
 
     /// Request type for the `query_room_alias` endpoint.

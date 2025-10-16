@@ -553,6 +553,42 @@ impl From<MatrixVersion> for StablePathSelector {
     }
 }
 
+/// The endpoint has a single path.
+///
+/// This means that the endpoint has no path history, or the Matrix spec has no way to manage path
+/// history in the API that it is a part of.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[allow(clippy::exhaustive_structs)]
+pub struct SinglePath(&'static str);
+
+impl SinglePath {
+    /// Construct a new `SinglePath` for the given path.
+    pub const fn new(path: &'static str) -> Self {
+        Self(path)
+    }
+
+    /// The path of the endpoint.
+    pub fn path(&self) -> &'static str {
+        self.0
+    }
+}
+
+impl PathBuilder for SinglePath {
+    type Input<'a> = ();
+
+    fn select_path(&self, _input: ()) -> Result<&'static str, IntoHttpError> {
+        Ok(self.0)
+    }
+
+    fn all_paths(&self) -> impl Iterator<Item = &'static str> {
+        std::iter::once(self.0)
+    }
+
+    fn _path_parameters(&self) -> Vec<&'static str> {
+        self.0.split('/').filter_map(extract_endpoint_path_segment_variable).collect()
+    }
+}
+
 /// Extract the variable of the given endpoint path segment.
 ///
 /// The supported syntax for an endpoint path segment variable is `{var}`.

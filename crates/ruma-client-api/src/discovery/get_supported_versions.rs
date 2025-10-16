@@ -15,9 +15,7 @@ metadata! {
     method: GET,
     rate_limited: false,
     authentication: AccessTokenOptional,
-    history: {
-        1.0 => "/_matrix/client/versions",
-    }
+    path: "/_matrix/client/versions",
 }
 
 /// Request type for the `api_versions` endpoint.

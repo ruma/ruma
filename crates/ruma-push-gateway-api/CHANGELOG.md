@@ -1,5 +1,11 @@
 # [unreleased]
 
+Breaking changes:
+
+- The `send_event_notification` endpoint use a `SinglePath` rather than a
+  `VersionHistory` as `Metadata::PathBuilder`. Making a request doesn't require
+  to provide a dummy `SupportedVersions` anymore.
+
 # 0.12.0
 
 Upgrade `ruma-events` to 0.31.0.

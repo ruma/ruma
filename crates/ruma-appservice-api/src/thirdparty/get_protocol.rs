@@ -20,9 +20,7 @@ pub mod v1 {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
-        history: {
-            1.0 => "/_matrix/app/v1/thirdparty/protocol/{protocol}",
-        }
+        path: "/_matrix/app/v1/thirdparty/protocol/{protocol}",
     }
 
     /// Request type for the `get_protocol` endpoint.

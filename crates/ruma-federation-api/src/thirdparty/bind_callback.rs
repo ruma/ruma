@@ -23,9 +23,7 @@ pub mod v1 {
         method: PUT,
         rate_limited: false,
         authentication: NoAuthentication,
-        history: {
-            1.0 => "/_matrix/federation/v1/3pid/onbind",
-        }
+        path: "/_matrix/federation/v1/3pid/onbind",
     }
 
     /// Request type for the `bind_callback` endpoint.

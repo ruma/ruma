@@ -46,6 +46,8 @@ Improvements:
   for development, and room version 12 should be used instead.
 - `Metadata::make_endpoint_url()` is also available as `VersionHistory::make_endpoint_url()`.
 - `PushCondition::ContainsDisplayName` is deprecated, according to MSC4210.
+- Add `SinglePath` as a `PathBuilder`. It should be used for APIs that don't
+  have a `/versions` endpoint and for endpoints that can't be versioned.
 
 # 0.16.0
 

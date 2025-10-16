@@ -19,9 +19,7 @@ pub mod v2 {
         method: GET,
         rate_limited: false,
         authentication: NoAuthentication,
-        history: {
-            1.0 => "/_matrix/key/v2/server",
-        }
+        path: "/_matrix/key/v2/server",
     }
 
     /// Request type for the `get_server_keys` endpoint.

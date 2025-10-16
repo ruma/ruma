@@ -20,9 +20,7 @@ pub mod v1 {
         method: GET,
         rate_limited: false,
         authentication: ServerSignatures,
-        history: {
-            1.0 => "/_matrix/federation/v1/query/profile",
-        }
+        path: "/_matrix/federation/v1/query/profile",
     }
 
     /// Request type for the `get_profile_information` endpoint.

@@ -1,7 +1,8 @@
 #[test]
 fn ui() {
     let t = trybuild::TestCases::new();
-    t.pass("tests/it/api/ui/api-sanity-check.rs");
+    t.pass("tests/it/api/ui/api-single-path-check.rs");
+    t.pass("tests/it/api/ui/api-version-history-check.rs");
     t.pass("tests/it/api/ui/move-value.rs");
     t.pass("tests/it/api/ui/request-only.rs");
     t.pass("tests/it/api/ui/response-only.rs");

@@ -21,9 +21,7 @@ pub mod v2 {
         method: GET,
         rate_limited: false,
         authentication: NoAuthentication,
-        history: {
-            1.0 => "/_matrix/key/v2/query/{server_name}",
-        }
+        path: "/_matrix/key/v2/query/{server_name}",
     }
 
     /// Request type for the `get_remote_server_keys` endpoint.

@@ -21,9 +21,7 @@ metadata! {
     method: GET,
     rate_limited: false,
     authentication: NoAuthentication,
-    history: {
-        1.1 => "/_matrix/identity/versions",
-    }
+    path: "/_matrix/identity/versions",
 }
 
 /// Request type for the `versions` endpoint.

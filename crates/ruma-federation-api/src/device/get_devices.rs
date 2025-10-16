@@ -21,9 +21,7 @@ pub mod v1 {
         method: GET,
         rate_limited: false,
         authentication: ServerSignatures,
-        history: {
-            1.0 => "/_matrix/federation/v1/user/devices/{user_id}",
-        }
+        path: "/_matrix/federation/v1/user/devices/{user_id}",
     }
 
     /// Request type for the `get_devices` endpoint.

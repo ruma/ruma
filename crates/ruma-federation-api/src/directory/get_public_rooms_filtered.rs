@@ -18,9 +18,7 @@ pub mod v1 {
         method: POST,
         rate_limited: false,
         authentication: ServerSignatures,
-        history: {
-            1.0 => "/_matrix/federation/v1/publicRooms",
-        }
+        path: "/_matrix/federation/v1/publicRooms",
     }
 
     /// Request type for the `get_public_rooms_filtered` endpoint.

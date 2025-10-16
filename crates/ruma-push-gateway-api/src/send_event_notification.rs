@@ -25,9 +25,7 @@ pub mod v1 {
         method: POST,
         rate_limited: false,
         authentication: NoAuthentication,
-        history: {
-            1.0 => "/_matrix/push/v1/notify",
-        }
+        path: "/_matrix/push/v1/notify",
     }
 
     /// Request type for the `send_event_notification` endpoint.

@@ -17,9 +17,7 @@ pub mod v1 {
         method: GET,
         rate_limited: false,
         authentication: NoAuthentication,
-        history: {
-            1.0 => "/_matrix/federation/v1/version",
-        }
+        path: "/_matrix/federation/v1/version",
     }
 
     /// Request type for the `get_server_version` endpoint.

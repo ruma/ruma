@@ -35,9 +35,7 @@ pub mod v1 {
         method: PUT,
         rate_limited: false,
         authentication: AccessToken,
-        history: {
-            1.0 => "/_matrix/app/v1/transactions/{txn_id}",
-        }
+        path: "/_matrix/app/v1/transactions/{txn_id}",
     }
 
     /// Request type for the `push_events` endpoint.
@@ -266,11 +264,7 @@ pub mod v1 {
         #[cfg(feature = "client")]
         #[test]
         fn request_contains_events_field() {
-            use std::borrow::Cow;
-
-            use ruma_common::api::{
-                MatrixVersion, OutgoingRequest, SendAccessToken, SupportedVersions,
-            };
+            use ruma_common::api::{OutgoingRequest, SendAccessToken};
 
             let dummy_event_json = json!({
                 "type": "m.room.message",
@@ -285,16 +279,12 @@ pub mod v1 {
             });
             let dummy_event = from_json_value(dummy_event_json.clone()).unwrap();
             let events = vec![dummy_event];
-            let supported = SupportedVersions {
-                versions: [MatrixVersion::V1_1].into(),
-                features: Default::default(),
-            };
 
             let req = super::Request::new("any_txn_id".into(), events)
                 .try_into_http_request::<Vec<u8>>(
                     "https://homeserver.tld",
                     SendAccessToken::IfRequired("auth_tok"),
-                    Cow::Owned(supported),
+                    (),
                 )
                 .unwrap();
             let json_body: serde_json::Value = serde_json::from_slice(req.body()).unwrap();

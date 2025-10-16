@@ -1,5 +1,11 @@
 # [unreleased]
 
+Breaking changes:
+
+- The `get_supported_versions` endpoint use a `SinglePath` rather than a
+  `VersionHistory` as `Metadata::PathBuilder`. Making a request doesn't require
+  to provide a dummy `SupportedVersions` anymore.
+  
 # 0.12.0
 
 Breaking changes:
