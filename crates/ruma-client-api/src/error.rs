@@ -844,13 +844,7 @@ pub enum ErrorCode {
 #[allow(clippy::exhaustive_enums)]
 pub enum ErrorBody {
     /// A JSON body with the fields expected for Client API errors.
-    Standard {
-        /// A value which can be used to handle an error message.
-        kind: ErrorKind,
-
-        /// A human-readable error message, usually a sentence explaining what went wrong.
-        message: String,
-    },
+    Standard(StandardErrorBody),
 
     /// A JSON body with an unexpected structure.
     Json(JsonValue),
@@ -900,7 +894,7 @@ impl Error {
     /// If `self` is a server error in the `errcode` + `error` format expected
     /// for client-server API endpoints, returns the error kind (`errcode`).
     pub fn error_kind(&self) -> Option<&ErrorKind> {
-        as_variant!(&self.body, ErrorBody::Standard { kind, .. } => kind)
+        as_variant!(&self.body, ErrorBody::Standard(StandardErrorBody { kind, .. }) => kind)
     }
 }
 
@@ -909,11 +903,11 @@ impl EndpointError for Error {
         let status = response.status();
 
         let body_bytes = &response.body().as_ref();
-        let error_body: ErrorBody = match from_json_slice(body_bytes) {
-            Ok(StandardErrorBody { mut kind, message }) => {
+        let error_body: ErrorBody = match from_json_slice::<StandardErrorBody>(body_bytes) {
+            Ok(mut standard_body) => {
                 let headers = response.headers();
 
-                match &mut kind {
+                match &mut standard_body.kind {
                     #[cfg(feature = "unstable-msc2967")]
                     ErrorKind::Forbidden { authenticate } => {
                         *authenticate = headers
@@ -933,7 +927,7 @@ impl EndpointError for Error {
                     _ => {}
                 }
 
-                ErrorBody::Standard { kind, message }
+                ErrorBody::Standard(standard_body)
             }
             Err(_) => match MatrixErrorBody::from_bytes(body_bytes) {
                 MatrixErrorBody::Json(json) => ErrorBody::Json(json),
@@ -951,7 +945,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let status_code = self.status_code.as_u16();
         match &self.body {
-            ErrorBody::Standard { kind, message } => {
+            ErrorBody::Standard(StandardErrorBody { kind, message }) => {
                 let errcode = kind.errcode();
                 write!(f, "[{status_code} / {errcode}] {message}")
             }
@@ -981,7 +975,7 @@ impl OutgoingResponse for Error {
             .status(self.status_code);
 
         #[allow(clippy::collapsible_match)]
-        if let ErrorBody::Standard { kind, .. } = &self.body {
+        if let Some(kind) = self.error_kind() {
             match kind {
                 #[cfg(feature = "unstable-msc2967")]
                 ErrorKind::Forbidden { authenticate: Some(auth_error) } => {
@@ -997,8 +991,8 @@ impl OutgoingResponse for Error {
 
         builder
             .body(match self.body {
-                ErrorBody::Standard { kind, message } => {
-                    ruma_common::serde::json_to_buf(&StandardErrorBody { kind, message })?
+                ErrorBody::Standard(standard_body) => {
+                    ruma_common::serde::json_to_buf(&standard_body)?
                 }
                 ErrorBody::Json(json) => ruma_common::serde::json_to_buf(&json)?,
                 ErrorBody::NotJson { .. } => {
@@ -1250,7 +1244,7 @@ mod tests {
         let error = Error::from_http_response(response);
 
         assert_eq!(error.status_code, http::StatusCode::UNAUTHORIZED);
-        assert_matches!(error.body, ErrorBody::Standard { kind, message });
+        assert_matches!(error.body, ErrorBody::Standard(StandardErrorBody { kind, message }));
         assert_matches!(kind, ErrorKind::Forbidden { authenticate });
         assert_eq!(message, "Insufficient privilege");
         assert_matches!(authenticate, Some(AuthenticateError::InsufficientScope { scope }));
@@ -1274,7 +1268,10 @@ mod tests {
         assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
         assert_matches!(
             error.body,
-            ErrorBody::Standard { kind: ErrorKind::LimitExceeded { retry_after: None }, message }
+            ErrorBody::Standard(StandardErrorBody {
+                kind: ErrorKind::LimitExceeded { retry_after: None },
+                message
+            })
         );
         assert_eq!(message, "Too many requests");
     }
@@ -1297,10 +1294,10 @@ mod tests {
         assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
         assert_matches!(
             error.body,
-            ErrorBody::Standard {
+            ErrorBody::Standard(StandardErrorBody {
                 kind: ErrorKind::LimitExceeded { retry_after: Some(retry_after) },
                 message
-            }
+            })
         );
         assert_matches!(retry_after, RetryAfter::Delay(delay));
         assert_eq!(delay.as_millis(), 2000);
@@ -1325,10 +1322,10 @@ mod tests {
         assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
         assert_matches!(
             error.body,
-            ErrorBody::Standard {
+            ErrorBody::Standard(StandardErrorBody {
                 kind: ErrorKind::LimitExceeded { retry_after: Some(retry_after) },
                 message
-            }
+            })
         );
         assert_matches!(retry_after, RetryAfter::Delay(delay));
         assert_eq!(delay.as_millis(), 2000);
@@ -1353,10 +1350,10 @@ mod tests {
         assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
         assert_matches!(
             error.body,
-            ErrorBody::Standard {
+            ErrorBody::Standard(StandardErrorBody {
                 kind: ErrorKind::LimitExceeded { retry_after: Some(retry_after) },
                 message
-            }
+            })
         );
         assert_matches!(retry_after, RetryAfter::DateTime(time));
         assert_eq!(time.duration_since(UNIX_EPOCH).unwrap().as_secs(), 1_431_704_061);
@@ -1382,10 +1379,10 @@ mod tests {
         assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
         assert_matches!(
             error.body,
-            ErrorBody::Standard {
+            ErrorBody::Standard(StandardErrorBody {
                 kind: ErrorKind::LimitExceeded { retry_after: Some(retry_after) },
                 message
-            }
+            })
         );
         assert_matches!(retry_after, RetryAfter::Delay(delay));
         assert_eq!(delay.as_millis(), 2000);
@@ -1396,10 +1393,10 @@ mod tests {
     fn serialize_limit_exceeded_retry_after_none() {
         let error = Error::new(
             http::StatusCode::TOO_MANY_REQUESTS,
-            ErrorBody::Standard {
+            ErrorBody::Standard(StandardErrorBody {
                 kind: ErrorKind::LimitExceeded { retry_after: None },
                 message: "Too many requests".to_owned(),
-            },
+            }),
         );
 
         let response = error.try_into_http_response::<Vec<u8>>().unwrap();
@@ -1421,12 +1418,12 @@ mod tests {
     fn serialize_limit_exceeded_retry_after_delay() {
         let error = Error::new(
             http::StatusCode::TOO_MANY_REQUESTS,
-            ErrorBody::Standard {
+            ErrorBody::Standard(StandardErrorBody {
                 kind: ErrorKind::LimitExceeded {
                     retry_after: Some(RetryAfter::Delay(Duration::from_secs(3))),
                 },
                 message: "Too many requests".to_owned(),
-            },
+            }),
         );
 
         let response = error.try_into_http_response::<Vec<u8>>().unwrap();
@@ -1450,14 +1447,14 @@ mod tests {
     fn serialize_limit_exceeded_retry_after_datetime() {
         let error = Error::new(
             http::StatusCode::TOO_MANY_REQUESTS,
-            ErrorBody::Standard {
+            ErrorBody::Standard(StandardErrorBody {
                 kind: ErrorKind::LimitExceeded {
                     retry_after: Some(RetryAfter::DateTime(
                         UNIX_EPOCH + Duration::from_secs(1_431_704_061),
                     )),
                 },
                 message: "Too many requests".to_owned(),
-            },
+            }),
         );
 
         let response = error.try_into_http_response::<Vec<u8>>().unwrap();
@@ -1480,10 +1477,10 @@ mod tests {
     fn serialize_user_locked() {
         let error = Error::new(
             http::StatusCode::UNAUTHORIZED,
-            ErrorBody::Standard {
+            ErrorBody::Standard(StandardErrorBody {
                 kind: ErrorKind::UserLocked,
                 message: "This account has been locked".to_owned(),
-            },
+            }),
         );
 
         let response = error.try_into_http_response::<Vec<u8>>().unwrap();

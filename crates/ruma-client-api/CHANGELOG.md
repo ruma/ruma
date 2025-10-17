@@ -3,6 +3,7 @@
 Breaking changes:
 
 - Upgrade `js_option` to v0.2.0
+- Make the `ErrorBody::Standard` variant a newtype around `StandardErrorBody`.
 
 Fixes:
 
