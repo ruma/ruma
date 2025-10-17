@@ -44,11 +44,18 @@ impl Request {
         // `application/json` content-type would be wrong. It may also cause problems with CORS
         // policies that don't allow the `Content-Type` header (for things such as `.well-known`
         // that are commonly handled by something else than a homeserver).
-        let mut header_kvs = if self.raw_body_field().is_some() || self.has_body_fields() {
+        let mut header_kvs = if self.has_body_fields() {
             quote! {
                 req_headers.insert(
                     #http::header::CONTENT_TYPE,
                     #http::header::HeaderValue::from_static("application/json"),
+                );
+            }
+        } else if self.raw_body_field().is_some() {
+            quote! {
+                req_headers.insert(
+                    #http::header::CONTENT_TYPE,
+                    #http::header::HeaderValue::from_static("application/octet-stream"),
                 );
             }
         } else {

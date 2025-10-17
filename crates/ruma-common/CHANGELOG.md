@@ -38,6 +38,12 @@ Breaking changes:
     type named `Request` by default. This type can be changed with an `@for`
     setting.
 
+Bug fixes:
+
+- With the `request` and `response` attribute macros, the `Content-Type` header
+  defaults to `application/octet-stream` instead of `application/json` if the
+  `raw_body` attribute is set on a field.
+
 Improvements:
 
 - Add `MatrixVersion::V1_16`
