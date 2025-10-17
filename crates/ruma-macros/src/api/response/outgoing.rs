@@ -9,7 +9,25 @@ impl Response {
         let bytes = quote! { #ruma_common::exports::bytes };
         let http = quote! { #ruma_common::exports::http };
 
-        let serialize_response_headers = self.fields.iter().filter_map(|response_field| {
+        // If there is a `raw_body` field, the `application/json` content-type is likely to be
+        // wrong.
+        let mut headers = if self.has_raw_body() {
+            quote! {
+                headers.insert(
+                    #http::header::CONTENT_TYPE,
+                    #http::header::HeaderValue::from_static("application/octet-stream"),
+                );
+            }
+        } else {
+            quote! {
+                headers.insert(
+                    #http::header::CONTENT_TYPE,
+                    #http::header::HeaderValue::from_static("application/json"),
+                );
+            }
+        };
+
+        headers.extend(self.fields.iter().filter_map(|response_field| {
             response_field.as_header_field().map(|(field, header_name)| {
                 let field_name =
                     field.ident.as_ref().expect("expected field to have an identifier");
@@ -35,7 +53,7 @@ impl Response {
                     },
                 }
             })
-        });
+        }));
 
         let body = if let Some(field) =
             self.fields.iter().find_map(ResponseField::as_raw_body_field)
@@ -70,11 +88,10 @@ impl Response {
                     self,
                 ) -> ::std::result::Result<#http::Response<T>, #ruma_common::api::error::IntoHttpError> {
                     let mut resp_builder = #http::Response::builder()
-                        .status(#http::StatusCode::#status_ident)
-                        .header(#http::header::CONTENT_TYPE, "application/json");
+                        .status(#http::StatusCode::#status_ident);
 
                     if let Some(mut headers) = resp_builder.headers_mut() {
-                        #(#serialize_response_headers)*
+                        #headers
                     }
 
                     ::std::result::Result::Ok(resp_builder.body(#body)?)

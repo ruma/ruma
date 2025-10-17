@@ -29,6 +29,10 @@ use bytes::BufMut;
 /// alongside a `Response` type that implements [`OutgoingResponse`] (for
 /// `cfg(feature = "server")`) and / or [`IncomingResponse`] (for `cfg(feature = "client")`).
 ///
+/// The `Content-Type` header of the `OutgoingRequest` is unset for endpoints using the `GET`
+/// method, and defaults to `application/json` for all other methods, except if the `raw_body`
+/// attribute is set on a field, in which case it defaults to `application/octet-stream`.
+///
 /// By default, the type this macro is used on gets a `#[non_exhaustive]` attribute. This
 /// behavior can be controlled by setting the `ruma_unstable_exhaustive_types` compile-time
 /// `cfg` setting as `--cfg=ruma_unstable_exhaustive_types` using `RUSTFLAGS` or
@@ -143,6 +147,10 @@ pub use ruma_macros::request;
 /// The `IncomingResponse` impl is feature-gated behind `cfg(feature = "client")`.
 ///
 /// The generated code expects a `METADATA` constant of type [`Metadata`] to be in scope.
+///
+/// The `Content-Type` header of the `OutgoingResponse` defaults to `application/json`, except
+/// if the `raw_body` attribute is set on a field, in which case it defaults to
+/// `application/octet-stream`.
 ///
 /// By default, the type this macro is used on gets a `#[non_exhaustive]` attribute. This
 /// behavior can be controlled by setting the `ruma_unstable_exhaustive_types` compile-time
