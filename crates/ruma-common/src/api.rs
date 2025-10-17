@@ -18,16 +18,12 @@ use as_variant::as_variant;
 use bytes::BufMut;
 /// Generates [`OutgoingRequest`] and [`IncomingRequest`] implementations.
 ///
-/// The `OutgoingRequest` impl is on the `Request` type this attribute is used on. It is
-/// feature-gated behind `cfg(feature = "client")`.
+/// The `OutgoingRequest` impl is feature-gated behind `cfg(feature = "client")`.
+/// The `IncomingRequest` impl is feature-gated behind `cfg(feature = "server")`.
 ///
-/// The `IncomingRequest` impl is on `IncomingRequest`, which is either a type alias to
-/// `Request` or a fully-owned version of the same, depending of whether `Request` has any
-/// lifetime parameters. It is feature-gated behind `cfg(feature = "server")`.
-///
-/// The generated code expects a `METADATA` constant of type [`Metadata`] to be in scope,
-/// alongside a `Response` type that implements [`OutgoingResponse`] (for
-/// `cfg(feature = "server")`) and / or [`IncomingResponse`] (for `cfg(feature = "client")`).
+/// The generated code expects the `Request` type to implement [`Metadata`], alongside a
+/// `Response` type that implements [`OutgoingResponse`] (for `cfg(feature = "server")`) and /
+/// or [`IncomingResponse`] (for `cfg(feature = "client")`).
 ///
 /// By default, the type this macro is used on gets a `#[non_exhaustive]` attribute. This
 /// behavior can be controlled by setting the `ruma_unstable_exhaustive_types` compile-time
@@ -35,7 +31,13 @@ use bytes::BufMut;
 /// `.cargo/config.toml` (under `[build]` -> `rustflags = ["..."]`). When that setting is
 /// activated, the attribute is not applied so the type is exhaustive.
 ///
-/// ## Attributes
+/// ## Container Attributes
+///
+/// * `#[request(error = ERROR_TYPE)]`: Override the `EndpointError` associated type of the
+///   `OutgoingRequest` and `IncomingRequest` implementations. The default error type is
+///   [`MatrixError`](error::MatrixError).
+///
+/// ## Field Attributes
 ///
 /// To declare which part of the request a field belongs to:
 ///
@@ -142,28 +144,31 @@ pub use ruma_macros::request;
 /// The `OutgoingResponse` impl is feature-gated behind `cfg(feature = "server")`.
 /// The `IncomingResponse` impl is feature-gated behind `cfg(feature = "client")`.
 ///
-/// The generated code expects a `METADATA` constant of type [`Metadata`] to be in scope.
-///
 /// By default, the type this macro is used on gets a `#[non_exhaustive]` attribute. This
 /// behavior can be controlled by setting the `ruma_unstable_exhaustive_types` compile-time
 /// `cfg` setting as `--cfg=ruma_unstable_exhaustive_types` using `RUSTFLAGS` or
 /// `.cargo/config.toml` (under `[build]` -> `rustflags = ["..."]`). When that setting is
 /// activated, the attribute is not applied so the type is exhaustive.
 ///
-/// The status code of `OutgoingResponse` can be optionally overridden by adding the `status`
-/// attribute to `response`. The attribute value must be a status code constant from
-/// `http::StatusCode`, e.g. `IM_A_TEAPOT`.
+/// ## Container Attributes
 ///
-/// ## Attributes
+/// * `#[response(error = ERROR_TYPE)]`: Override the `EndpointError` associated type of the
+///   `IncomingResponse` implementation. The default error type is
+///   [`MatrixError`](error::MatrixError).
+/// * `#[response(status = HTTP_STATUS)]`: Override the status code of `OutgoingResponse`.
+///   `HTTP_STATUS` must be a status code constant from [`http::StatusCode`], e.g.
+///   `IM_A_TEAPOT`. The default status code is [`200 OK`](http::StatusCode::OK);
+///
+/// ## Field Attributes
 ///
 /// To declare which part of the response a field belongs to:
 ///
 /// * `#[ruma_api(header = HEADER_NAME)]`: Fields with this attribute will be treated as HTTP
-///   headers on the response. The value must implement `ToString` and `FromStr`. Generally
-///   this is a `String`. The attribute value shown above as `HEADER_NAME` must be a header
-///   name constant from `http::header`, e.g. `CONTENT_TYPE`. During deserialization of the
-///   response, if the field is an `Option` and parsing the header fails, the error will be
-///   ignored and the value will be `None`.
+///   headers on the response. `HEADER_NAME` must implement
+///   `TryInto<http::header::HeaderName>`, this is usually a constant from [`http::header`].
+///   The value of the field must implement `ToString` and `FromStr`, this is usually a
+///   `String`. During deserialization of the response, if the field is an `Option` and parsing
+///   the header fails, the error will be ignored and the value will be `None`.
 /// * No attribute: Fields without an attribute are part of the body. They can use `#[serde]`
 ///   attributes to customize (de)serialization.
 /// * `#[ruma_api(body)]`: Use this if multiple endpoints should share a response body type, or
