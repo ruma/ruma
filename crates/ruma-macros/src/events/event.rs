@@ -2,13 +2,13 @@
 
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
-use syn::{parse_quote, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed};
+use syn::{parse_quote, Data, DataStruct, DeriveInput, Fields, FieldsNamed};
 
 mod parse;
 
-use self::parse::parse_event_struct_ident_to_kind_variation;
+use self::parse::{parse_event_struct_ident_to_kind_variation, ParsedEventField};
 use super::enums::{EventField, EventKind, EventVariation};
-use crate::{events::event::parse::EventFieldExt, import_ruma_events, util::to_camel_case};
+use crate::{import_ruma_events, util::to_camel_case};
 
 /// `Event` derive macro code generation.
 pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
@@ -19,7 +19,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         syn::Error::new_spanned(ident, "not a supported ruma event struct identifier")
     })?;
 
-    let fields: Vec<_> = if let Data::Struct(DataStruct {
+    let fields = if let Data::Struct(DataStruct {
         fields: Fields::Named(FieldsNamed { named, .. }),
         ..
     }) = &input.data
@@ -31,7 +31,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
             ));
         }
 
-        named.iter().cloned().collect()
+        named.iter().cloned().map(ParsedEventField::parse).collect::<Result<Vec<_>, _>>()?
     } else {
         return Err(syn::Error::new_spanned(
             input.ident,
@@ -61,7 +61,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
 fn expand_deserialize_event(
     input: &DeriveInput,
     var: EventVariation,
-    fields: &[Field],
+    fields: &[ParsedEventField],
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let serde = quote! { #ruma_events::exports::serde };
@@ -72,25 +72,39 @@ fn expand_deserialize_event(
     let content_type = &fields
         .iter()
         // we also know that the fields are named and have an ident
-        .find(|f| f.ident.as_ref().unwrap() == "content")
+        .find(|f| f.name() == "content")
         .unwrap()
-        .ty;
+        .ty();
 
     let (impl_generics, ty_gen, where_clause) = input.generics.split_for_impl();
     let is_generic = !input.generics.params.is_empty();
 
-    let enum_variants: Vec<_> = fields
+    let enum_variants: Vec<_> = fields.iter().map(|field| to_camel_case(field.name())).collect();
+    let enum_variants_serde_attributes = fields
         .iter()
         .map(|field| {
-            let name = field.ident.as_ref().unwrap();
-            to_camel_case(name)
+            let mut attrs = Vec::new();
+
+            if let Some(rename) = &field.rename {
+                attrs.push(quote! { rename = #rename });
+            }
+
+            attrs.extend(field.aliases.iter().map(|alias| {
+                quote! { alias = #alias }
+            }));
+
+            (!attrs.is_empty()).then(|| {
+                quote! { #[serde(#( #attrs, )*)] }
+            })
         })
-        .collect();
+        .collect::<Vec<_>>();
+    let serialized_field_names =
+        fields.iter().map(ParsedEventField::serialized_name).collect::<Vec<_>>();
 
     let deserialize_var_types: Vec<_> = fields
         .iter()
         .map(|field| {
-            let name = field.ident.as_ref().unwrap();
+            let name = field.name();
             if name == "content" {
                 if is_generic {
                     quote! { ::std::boxed::Box<#serde_json::value::RawValue> }
@@ -100,7 +114,7 @@ fn expand_deserialize_event(
             } else if name == "state_key" && var == EventVariation::Initial {
                 quote! { ::std::string::String }
             } else {
-                let ty = &field.ty;
+                let ty = field.ty();
                 quote! { #ty }
             }
         })
@@ -108,9 +122,9 @@ fn expand_deserialize_event(
 
     let ok_or_else_fields: Vec<_> = fields
         .iter()
-        .map(|field| {
-            let has_default_attr = field.has_default_attr()?;
-            let name = field.ident.as_ref().unwrap();
+        .zip(&serialized_field_names)
+        .map(|(field, serialized_name)| {
+            let name = field.name();
 
             Ok(if name == "content" && is_generic {
                 quote! {
@@ -120,12 +134,12 @@ fn expand_deserialize_event(
                         C::from_parts(&event_type, &json).map_err(#serde::de::Error::custom)?
                     };
                 }
-            } else if has_default_attr || (name == "unsigned" && !var.is_redacted()) {
+            } else if field.default || (name == "unsigned" && !var.is_redacted()) {
                 quote! {
                     let #name = #name.unwrap_or_default();
                 }
             } else if name == "state_key" && var == EventVariation::Initial {
-                let ty = &field.ty;
+                let ty = field.ty();
                 quote! {
                     let state_key: ::std::string::String = state_key.unwrap_or_default();
                     let state_key: #ty = <#ty as #serde::de::Deserialize>::deserialize(
@@ -135,14 +149,29 @@ fn expand_deserialize_event(
             } else {
                 quote! {
                     let #name = #name.ok_or_else(|| {
-                        #serde::de::Error::missing_field(stringify!(#name))
+                        #serde::de::Error::missing_field(#serialized_name)
                     })?;
                 }
             })
         })
         .collect::<syn::Result<_>>()?;
 
-    let field_names: Vec<_> = fields.iter().flat_map(|f| &f.ident).collect();
+    let field_names: Vec<_> = fields.iter().map(ParsedEventField::name).collect();
+    let field_error_handlers = fields
+        .iter()
+        .map(|field| {
+            if field.default_on_error {
+                quote! {
+                    .map_err(|error| {
+                        tracing::debug!("deserialization error, using default value: {error}");
+                    })
+                    .unwrap_or_default()
+                }
+            } else {
+                quote! { ? }
+            }
+        })
+        .collect::<Vec<_>>();
 
     let deserialize_impl_gen = if is_generic {
         let gen = &input.generics.params;
@@ -180,7 +209,7 @@ fn expand_deserialize_event(
                     // since this is represented as an enum we have to add it so the JSON picks it
                     // up
                     Type,
-                    #( #enum_variants, )*
+                    #( #enum_variants_serde_attributes #enum_variants, )*
                     #[serde(other)]
                     Unknown,
                 }
@@ -224,10 +253,10 @@ fn expand_deserialize_event(
                                     Field::#enum_variants => {
                                         if #field_names.is_some() {
                                             return Err(#serde::de::Error::duplicate_field(
-                                                stringify!(#field_names),
+                                                #serialized_field_names,
                                             ));
                                         }
-                                        #field_names = Some(map.next_value()?);
+                                        #field_names = Some(map.next_value() #field_error_handlers);
                                     }
                                 )*
                             }
@@ -254,13 +283,13 @@ fn expand_sync_from_into_full(
     input: &DeriveInput,
     kind: EventKind,
     var: EventVariation,
-    fields: &[Field],
+    fields: &[ParsedEventField],
     ruma_events: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let ident = &input.ident;
     let full_struct = kind.to_event_ident(var.to_full())?;
     let (impl_generics, ty_gen, where_clause) = input.generics.split_for_impl();
-    let fields: Vec<_> = fields.iter().flat_map(|f| &f.ident).collect();
+    let fields: Vec<_> = fields.iter().map(ParsedEventField::name).collect();
 
     Ok(quote! {
         #[automatically_derived]
