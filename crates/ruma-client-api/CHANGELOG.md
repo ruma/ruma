@@ -10,6 +10,7 @@ Breaking changes:
   - `discover_support`
   - `get_supported_versions`
   - `login_fallback`
+- Make the `ErrorBody::Standard` variant a newtype around `StandardErrorBody`.
 
 Fixes:
 
