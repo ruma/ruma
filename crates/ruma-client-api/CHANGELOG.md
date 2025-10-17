@@ -11,6 +11,8 @@ Breaking changes:
   - `get_supported_versions`
   - `login_fallback`
 - Make the `ErrorBody::Standard` variant a newtype around `StandardErrorBody`.
+- `StandardErrorBody` is non-exhaustive. Allowing to add fields in the future
+  without it being a breaking change.
 
 Fixes:
 

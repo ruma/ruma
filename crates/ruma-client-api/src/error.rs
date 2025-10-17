@@ -861,7 +861,7 @@ pub enum ErrorBody {
 
 /// A JSON body with the fields expected for Client API errors.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[allow(clippy::exhaustive_structs)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct StandardErrorBody {
     /// A value which can be used to handle an error message.
     #[serde(flatten)]
@@ -870,6 +870,13 @@ pub struct StandardErrorBody {
     /// A human-readable error message, usually a sentence explaining what went wrong.
     #[serde(rename = "error")]
     pub message: String,
+}
+
+impl StandardErrorBody {
+    /// Construct a new `StandardErrorBody` with the given kind and message.
+    pub fn new(kind: ErrorKind, message: String) -> Self {
+        Self { kind, message }
+    }
 }
 
 /// A Matrix Error
