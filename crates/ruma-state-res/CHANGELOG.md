@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking:
+
+- The `criterion` cargo feature used for benchmarks was renamed to `__criterion`,
+  to make it obvious that it is private.
+
 # 0.14.0
 
 Breaking:

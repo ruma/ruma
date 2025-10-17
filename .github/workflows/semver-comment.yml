@@ -18,16 +18,16 @@ jobs:
       - name: Download results
         uses: actions/download-artifact@v5
         with:
-          name: semver-results
+          name: breaking-changes-results
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
 
       - name: Build comment
         id: build
         run: |
-          SEMVER_RESULTS=$(cat semver-results.json)
+          BREAKING_CHANGES_RESULTS=$(cat breaking-changes-results.json)
 
-          if [[ "$SEMVER_RESULTS" != "{}" ]]; then
+          if [[ "$BREAKING_CHANGES_RESULTS" != "{}" ]]; then
             # This is the syntax for multiline output
             echo "comment<<EOF" >> "$GITHUB_OUTPUT"
 
@@ -37,7 +37,7 @@ jobs:
             echo "" >> "$GITHUB_OUTPUT"
 
             # Convert input to HTML details
-            echo "$SEMVER_RESULTS"  | \
+            echo "$BREAKING_CHANGES_RESULTS"  | \
               jq -r 'to_entries | .[] |
                     @html "<details><summary>\(.key)</summary>\n<pre><code>\(.value)</code></pre></details>\n"' >> "$GITHUB_OUTPUT"
 
