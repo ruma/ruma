@@ -6,6 +6,8 @@ Breaking changes:
 - Make the `ErrorBody::Standard` variant a newtype around `StandardErrorBody`.
 - The `message` field of `StandardErrorBody` is an `Option<String>`. It was
   never required in the spec.
+- `StandardErrorBody` is non-exhaustive. Allowing to add fields in the future
+  without it being a breaking change.
 
 Fixes:
 
