@@ -869,7 +869,7 @@ pub struct StandardErrorBody {
 
     /// A human-readable error message, usually a sentence explaining what went wrong.
     #[serde(rename = "error")]
-    pub message: String,
+    pub message: Option<String>,
 }
 
 /// A Matrix Error
@@ -947,7 +947,13 @@ impl fmt::Display for Error {
         match &self.body {
             ErrorBody::Standard(StandardErrorBody { kind, message }) => {
                 let errcode = kind.errcode();
-                write!(f, "[{status_code} / {errcode}] {message}")
+                write!(f, "[{status_code} / {errcode}]")?;
+
+                if let Some(message) = message {
+                    write!(f, " {message}")?;
+                }
+
+                Ok(())
             }
             ErrorBody::Json(json) => write!(f, "[{status_code}] {json}"),
             ErrorBody::NotJson { .. } => write!(f, "[{status_code}] <non-json bytes>"),
@@ -1177,7 +1183,10 @@ mod tests {
                 authenticate: None
             }
         );
-        assert_eq!(deserialized.message, "You are not authorized to ban users in this room.");
+        assert_eq!(
+            deserialized.message.as_deref(),
+            Some("You are not authorized to ban users in this room.")
+        );
     }
 
     #[test]
@@ -1191,7 +1200,7 @@ mod tests {
 
         assert_matches!(deserialized.kind, ErrorKind::WrongRoomKeysVersion { current_version });
         assert_eq!(current_version.as_deref(), Some("42"));
-        assert_eq!(deserialized.message, "Wrong backup version.");
+        assert_eq!(deserialized.message.as_deref(), Some("Wrong backup version."));
     }
 
     #[cfg(feature = "unstable-msc2967")]
@@ -1246,7 +1255,7 @@ mod tests {
         assert_eq!(error.status_code, http::StatusCode::UNAUTHORIZED);
         assert_matches!(error.body, ErrorBody::Standard(StandardErrorBody { kind, message }));
         assert_matches!(kind, ErrorKind::Forbidden { authenticate });
-        assert_eq!(message, "Insufficient privilege");
+        assert_eq!(message.as_deref(), Some("Insufficient privilege"));
         assert_matches!(authenticate, Some(AuthenticateError::InsufficientScope { scope }));
         assert_eq!(scope, "something_privileged");
     }
@@ -1273,7 +1282,7 @@ mod tests {
                 message
             })
         );
-        assert_eq!(message, "Too many requests");
+        assert_eq!(message.as_deref(), Some("Too many requests"));
     }
 
     #[test]
@@ -1301,7 +1310,7 @@ mod tests {
         );
         assert_matches!(retry_after, RetryAfter::Delay(delay));
         assert_eq!(delay.as_millis(), 2000);
-        assert_eq!(message, "Too many requests");
+        assert_eq!(message.as_deref(), Some("Too many requests"));
     }
 
     #[test]
@@ -1329,7 +1338,7 @@ mod tests {
         );
         assert_matches!(retry_after, RetryAfter::Delay(delay));
         assert_eq!(delay.as_millis(), 2000);
-        assert_eq!(message, "Too many requests");
+        assert_eq!(message.as_deref(), Some("Too many requests"));
     }
 
     #[test]
@@ -1357,7 +1366,7 @@ mod tests {
         );
         assert_matches!(retry_after, RetryAfter::DateTime(time));
         assert_eq!(time.duration_since(UNIX_EPOCH).unwrap().as_secs(), 1_431_704_061);
-        assert_eq!(message, "Too many requests");
+        assert_eq!(message.as_deref(), Some("Too many requests"));
     }
 
     #[test]
@@ -1386,7 +1395,7 @@ mod tests {
         );
         assert_matches!(retry_after, RetryAfter::Delay(delay));
         assert_eq!(delay.as_millis(), 2000);
-        assert_eq!(message, "Too many requests");
+        assert_eq!(message.as_deref(), Some("Too many requests"));
     }
 
     #[test]
@@ -1395,7 +1404,7 @@ mod tests {
             http::StatusCode::TOO_MANY_REQUESTS,
             ErrorBody::Standard(StandardErrorBody {
                 kind: ErrorKind::LimitExceeded { retry_after: None },
-                message: "Too many requests".to_owned(),
+                message: Some("Too many requests".to_owned()),
             }),
         );
 
@@ -1422,7 +1431,7 @@ mod tests {
                 kind: ErrorKind::LimitExceeded {
                     retry_after: Some(RetryAfter::Delay(Duration::from_secs(3))),
                 },
-                message: "Too many requests".to_owned(),
+                message: Some("Too many requests".to_owned()),
             }),
         );
 
@@ -1453,7 +1462,7 @@ mod tests {
                         UNIX_EPOCH + Duration::from_secs(1_431_704_061),
                     )),
                 },
-                message: "Too many requests".to_owned(),
+                message: Some("Too many requests".to_owned()),
             }),
         );
 
@@ -1479,7 +1488,7 @@ mod tests {
             http::StatusCode::UNAUTHORIZED,
             ErrorBody::Standard(StandardErrorBody {
                 kind: ErrorKind::UserLocked,
-                message: "This account has been locked".to_owned(),
+                message: Some("This account has been locked".to_owned()),
             }),
         );
 

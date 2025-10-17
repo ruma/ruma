@@ -4,6 +4,8 @@ Breaking changes:
 
 - Upgrade `js_option` to v0.2.0
 - Make the `ErrorBody::Standard` variant a newtype around `StandardErrorBody`.
+- The `message` field of `StandardErrorBody` is an `Option<String>`. It was
+  never required in the spec.
 
 Fixes:
 
