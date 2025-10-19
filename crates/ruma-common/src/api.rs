@@ -266,8 +266,8 @@ pub trait OutgoingRequest: Metadata + Clone {
     /// Tries to convert this request into an `http::Request`.
     ///
     /// On endpoints with authentication, when adequate information isn't provided through
-    /// access_token, this could result in an error. It may also fail with a serialization error
-    /// in case of bugs in Ruma though.
+    /// `authentication_input`, this could result in an error. It may also fail with a serialization
+    /// error in case of bugs in Ruma though.
     ///
     /// It may also fail if the `PathData::make_endpoint_url()` implementation returns an error.
     ///
@@ -277,7 +277,7 @@ pub trait OutgoingRequest: Metadata + Clone {
     fn try_into_http_request<T: Default + BufMut>(
         self,
         base_url: &str,
-        access_token: auth_scheme::SendAccessToken<'_>,
+        authentication_input: <Self::Authentication as auth_scheme::AuthScheme>::Input<'_>,
         path_builder_input: <Self::PathBuilder as path_builder::PathBuilder>::Input<'_>,
     ) -> Result<http::Request<T>, IntoHttpError>;
 }
@@ -294,7 +294,15 @@ pub trait IncomingResponse: Sized {
 }
 
 /// An extension to [`OutgoingRequest`] which provides Appservice specific methods.
-pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
+///
+/// This is only implemented for implementors of [`AuthScheme`](auth_scheme::AuthScheme) that use a
+/// [`SendAccessToken`](auth_scheme::SendAccessToken), because application services should only use
+/// these methods with the Client-Server API.
+pub trait OutgoingRequestAppserviceExt: OutgoingRequest
+where
+    for<'a> Self::Authentication:
+        auth_scheme::AuthScheme<Input<'a> = auth_scheme::SendAccessToken<'a>>,
+{
     /// Tries to convert this request into an `http::Request` and appends a virtual `user_id` to
     /// [assert Appservice identity][id_assert].
     ///
@@ -330,7 +338,11 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
     }
 }
 
-impl<T: OutgoingRequest> OutgoingRequestAppserviceExt for T {}
+impl<T: OutgoingRequest> OutgoingRequestAppserviceExt for T where
+    for<'a> Self::Authentication:
+        auth_scheme::AuthScheme<Input<'a> = auth_scheme::SendAccessToken<'a>>
+{
+}
 
 /// A request type for a Matrix API endpoint, used for receiving requests.
 pub trait IncomingRequest: Metadata {

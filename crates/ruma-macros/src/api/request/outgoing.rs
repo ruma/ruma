@@ -88,7 +88,7 @@ impl Request {
         }));
 
         header_kvs.extend(quote! {
-            req_headers.extend(<<Self as #ruma_common::api::Metadata>::Authentication as #ruma_common::api::auth_scheme::AuthScheme>::authorization_header(access_token)?);
+            req_headers.extend(<<Self as #ruma_common::api::Metadata>::Authentication as #ruma_common::api::auth_scheme::AuthScheme>::authorization_header(authentication_input)?);
         });
 
         let request_body = if let Some(field) = self.raw_body_field() {
@@ -116,7 +116,7 @@ impl Request {
                 fn try_into_http_request<T: ::std::default::Default + #bytes::BufMut>(
                     self,
                     base_url: &::std::primitive::str,
-                    access_token: #ruma_common::api::auth_scheme::SendAccessToken<'_>,
+                    authentication_input: <<Self as #ruma_common::api::Metadata>::Authentication as #ruma_common::api::auth_scheme::AuthScheme>::Input<'_>,
                     path_builder_input: <<Self as #ruma_common::api::Metadata>::PathBuilder as #ruma_common::api::path_builder::PathBuilder>::Input<'_>,
                 ) -> ::std::result::Result<#http::Request<T>, #ruma_common::api::error::IntoHttpError> {
                     let mut req_builder = #http::Request::builder()
