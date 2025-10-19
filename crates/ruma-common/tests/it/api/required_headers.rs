@@ -4,12 +4,13 @@ use assert_matches2::assert_matches;
 use http::header::{CONTENT_DISPOSITION, LOCATION};
 use ruma_common::{
     api::{
+        auth_scheme::SendAccessToken,
         error::{
             DeserializationError, FromHttpRequestError, FromHttpResponseError,
             HeaderDeserializationError,
         },
         request, response, IncomingRequest, IncomingResponse, MatrixVersion, OutgoingRequest,
-        OutgoingResponse, SendAccessToken, SupportedVersions,
+        OutgoingResponse, SupportedVersions,
     },
     http_headers::{ContentDisposition, ContentDispositionType},
     metadata,

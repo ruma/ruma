@@ -116,7 +116,7 @@ impl Request {
                 fn try_into_http_request<T: ::std::default::Default + #bytes::BufMut>(
                     self,
                     base_url: &::std::primitive::str,
-                    access_token: #ruma_common::api::SendAccessToken<'_>,
+                    access_token: #ruma_common::api::auth_scheme::SendAccessToken<'_>,
                     path_builder_input: <<Self as #ruma_common::api::Metadata>::PathBuilder as #ruma_common::api::path_builder::PathBuilder>::Input<'_>,
                 ) -> ::std::result::Result<#http::Request<T>, #ruma_common::api::error::IntoHttpError> {
                     let mut req_builder = #http::Request::builder()

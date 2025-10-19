@@ -2,7 +2,7 @@
 
 use http::HeaderMap;
 use ruma_client_api::discovery::discover_homeserver;
-use ruma_common::api::{OutgoingRequest as _, SendAccessToken};
+use ruma_common::api::{auth_scheme::SendAccessToken, OutgoingRequest as _};
 
 #[test]
 fn get_request_headers() {

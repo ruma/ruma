@@ -264,7 +264,7 @@ pub mod v1 {
         #[cfg(feature = "client")]
         #[test]
         fn request_contains_events_field() {
-            use ruma_common::api::{OutgoingRequest, SendAccessToken};
+            use ruma_common::api::{auth_scheme::SendAccessToken, OutgoingRequest};
 
             let dummy_event_json = json!({
                 "type": "m.room.message",

@@ -9,11 +9,11 @@ use bytes::BufMut;
 use http::{header::CONTENT_TYPE, method::Method};
 use ruma_common::{
     api::{
-        auth_scheme::NoAuthentication,
+        auth_scheme::{NoAuthentication, SendAccessToken},
         error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError},
         path_builder::{StablePathSelector, VersionHistory},
         EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata, OutgoingRequest,
-        OutgoingResponse, SendAccessToken, SupportedVersions,
+        OutgoingResponse, SupportedVersions,
     },
     OwnedRoomAliasId, OwnedRoomId,
 };
