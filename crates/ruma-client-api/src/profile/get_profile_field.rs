@@ -68,7 +68,7 @@ pub mod v3 {
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
             base_url: &str,
-            access_token: ruma_common::api::SendAccessToken<'_>,
+            access_token: ruma_common::api::auth_scheme::SendAccessToken<'_>,
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use http::header::{self, HeaderValue};
@@ -173,7 +173,7 @@ pub mod v3 {
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
             base_url: &str,
-            access_token: ruma_common::api::SendAccessToken<'_>,
+            access_token: ruma_common::api::auth_scheme::SendAccessToken<'_>,
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             Request::new(self.user_id, F::NAME.into()).try_into_http_request(
@@ -304,7 +304,7 @@ mod tests {
     fn serialize_request() {
         use std::borrow::Cow;
 
-        use ruma_common::api::{OutgoingRequest, SendAccessToken, SupportedVersions};
+        use ruma_common::api::{auth_scheme::SendAccessToken, OutgoingRequest, SupportedVersions};
 
         // Profile field that existed in Matrix 1.0.
         let avatar_url_request =

@@ -14,7 +14,6 @@
 
 use std::{convert::TryInto as _, error::Error as StdError};
 
-use as_variant::as_variant;
 use bytes::BufMut;
 /// Generates [`OutgoingRequest`] and [`IncomingRequest`] implementations.
 ///
@@ -256,51 +255,6 @@ pub mod path_builder;
 
 pub use self::metadata::{FeatureFlag, MatrixVersion, Metadata, SupportedVersions};
 
-/// An enum to control whether an access token should be added to outgoing requests
-#[derive(Clone, Copy, Debug)]
-#[allow(clippy::exhaustive_enums)]
-pub enum SendAccessToken<'a> {
-    /// Add the given access token to the request only if the `METADATA` on the request requires
-    /// it.
-    IfRequired(&'a str),
-
-    /// Always add the access token.
-    Always(&'a str),
-
-    /// Add the given appservice token to the request only if the `METADATA` on the request
-    /// requires it.
-    Appservice(&'a str),
-
-    /// Don't add an access token.
-    ///
-    /// This will lead to an error if the request endpoint requires authentication
-    None,
-}
-
-impl<'a> SendAccessToken<'a> {
-    /// Get the access token for an endpoint that requires one.
-    ///
-    /// Returns `Some(_)` if `self` contains an access token.
-    pub fn get_required_for_endpoint(self) -> Option<&'a str> {
-        as_variant!(self, Self::IfRequired | Self::Appservice | Self::Always)
-    }
-
-    /// Get the access token for an endpoint that should not require one.
-    ///
-    /// Returns `Some(_)` only if `self` is `SendAccessToken::Always(_)`.
-    pub fn get_not_required_for_endpoint(self) -> Option<&'a str> {
-        as_variant!(self, Self::Always)
-    }
-
-    /// Gets the access token for an endpoint that requires one for appservices.
-    ///
-    /// Returns `Some(_)` if `self` is either `SendAccessToken::Appservice(_)`
-    /// or `SendAccessToken::Always(_)`
-    pub fn get_required_for_appservice(self) -> Option<&'a str> {
-        as_variant!(self, Self::Appservice | Self::Always)
-    }
-}
-
 /// A request type for a Matrix API endpoint, used for sending requests.
 pub trait OutgoingRequest: Metadata + Clone {
     /// A type capturing the expected error conditions the server can return.
@@ -323,7 +277,7 @@ pub trait OutgoingRequest: Metadata + Clone {
     fn try_into_http_request<T: Default + BufMut>(
         self,
         base_url: &str,
-        access_token: SendAccessToken<'_>,
+        access_token: auth_scheme::SendAccessToken<'_>,
         path_builder_input: <Self::PathBuilder as path_builder::PathBuilder>::Input<'_>,
     ) -> Result<http::Request<T>, IntoHttpError>;
 }
@@ -348,7 +302,7 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
     fn try_into_http_request_with_user_id<T: Default + BufMut>(
         self,
         base_url: &str,
-        access_token: SendAccessToken<'_>,
+        access_token: auth_scheme::SendAccessToken<'_>,
         user_id: &UserId,
         path_builder_input: <Self::PathBuilder as path_builder::PathBuilder>::Input<'_>,
     ) -> Result<http::Request<T>, IntoHttpError> {

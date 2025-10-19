@@ -713,8 +713,8 @@ mod client_tests {
     use assert_matches2::assert_matches;
     use ruma_common::{
         api::{
-            IncomingResponse as _, MatrixVersion, OutgoingRequest as _, SendAccessToken,
-            SupportedVersions,
+            auth_scheme::SendAccessToken, IncomingResponse as _, MatrixVersion,
+            OutgoingRequest as _, SupportedVersions,
         },
         event_id, room_id, user_id, RoomVersionId,
     };

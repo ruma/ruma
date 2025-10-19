@@ -42,7 +42,7 @@ pub mod v3 {
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
             base_url: &str,
-            access_token: ruma_common::api::SendAccessToken<'_>,
+            access_token: ruma_common::api::auth_scheme::SendAccessToken<'_>,
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             let url = Self::make_endpoint_url(considering, base_url, &[], "")?;

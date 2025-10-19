@@ -58,7 +58,7 @@ pub mod v3 {
         fn try_into_http_request<T: Default + bytes::BufMut>(
             self,
             base_url: &str,
-            access_token: ruma_common::api::SendAccessToken<'_>,
+            access_token: ruma_common::api::auth_scheme::SendAccessToken<'_>,
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use http::{header, HeaderValue};
@@ -162,7 +162,7 @@ mod tests {
         use std::borrow::Cow;
 
         use http::header;
-        use ruma_common::api::{OutgoingRequest, SendAccessToken, SupportedVersions};
+        use ruma_common::api::{auth_scheme::SendAccessToken, OutgoingRequest, SupportedVersions};
 
         // Profile field that existed in Matrix 1.0.
         let avatar_url_request = Request::new(

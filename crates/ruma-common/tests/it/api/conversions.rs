@@ -5,8 +5,8 @@ use std::borrow::Cow;
 use http::header::CONTENT_TYPE;
 use ruma_common::{
     api::{
-        request, response, IncomingRequest as _, MatrixVersion, OutgoingRequest as _,
-        OutgoingRequestAppserviceExt, SendAccessToken, SupportedVersions,
+        auth_scheme::SendAccessToken, request, response, IncomingRequest as _, MatrixVersion,
+        OutgoingRequest as _, OutgoingRequestAppserviceExt, SupportedVersions,
     },
     metadata, owned_user_id, user_id, OwnedUserId,
 };
@@ -142,8 +142,8 @@ mod without_query {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
         api::{
-            request, response, MatrixVersion, OutgoingRequestAppserviceExt, SendAccessToken,
-            SupportedVersions,
+            auth_scheme::SendAccessToken, request, response, MatrixVersion,
+            OutgoingRequestAppserviceExt, SupportedVersions,
         },
         metadata, owned_user_id, user_id, OwnedUserId,
     };
