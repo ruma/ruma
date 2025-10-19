@@ -10,23 +10,28 @@ use crate::api::error::IntoHttpError;
 
 /// Trait implemented by types representing an authentication scheme used by an endpoint.
 pub trait AuthScheme: Sized {
+    /// The input necessary to generate the authentication.
+    type Input<'a>;
+
     /// The `Authorization` HTTP header to add to an outgoing request with this scheme.
     ///
-    /// Transforms the `SendAccessToken` into an access token if the endpoint requires it, or if it
-    /// is `SendAccessToken::Force`.
-    ///
-    /// Fails if the endpoint requires an access token but the parameter is `SendAccessToken::None`,
-    /// or if the access token can't be converted to a [`HeaderValue`].
+    /// Returns an error if the endpoint requires authentication but the input doesn't provide it,
+    /// or if the input can't be converted to a [`HeaderValue`].
     fn authorization_header(
-        access_token: SendAccessToken<'_>,
+        input: Self::Input<'_>,
     ) -> Result<Option<(HeaderName, HeaderValue)>, IntoHttpError>;
 }
 
 /// No authentication is performed.
+///
+/// This type accepts a [`SendAccessToken`] as input to be able to send it regardless of whether it
+/// is required.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct NoAuthentication;
 
 impl AuthScheme for NoAuthentication {
+    type Input<'a> = SendAccessToken<'a>;
+
     fn authorization_header(
         access_token: SendAccessToken<'_>,
     ) -> Result<Option<(HeaderName, HeaderValue)>, IntoHttpError> {
@@ -45,6 +50,8 @@ impl AuthScheme for NoAuthentication {
 pub struct AccessToken;
 
 impl AuthScheme for AccessToken {
+    type Input<'a> = SendAccessToken<'a>;
+
     fn authorization_header(
         access_token: SendAccessToken<'_>,
     ) -> Result<Option<(HeaderName, HeaderValue)>, IntoHttpError> {
@@ -62,6 +69,8 @@ impl AuthScheme for AccessToken {
 pub struct AccessTokenOptional;
 
 impl AuthScheme for AccessTokenOptional {
+    type Input<'a> = SendAccessToken<'a>;
+
     fn authorization_header(
         access_token: SendAccessToken<'_>,
     ) -> Result<Option<(HeaderName, HeaderValue)>, IntoHttpError> {
@@ -81,6 +90,8 @@ impl AuthScheme for AccessTokenOptional {
 pub struct AppserviceToken;
 
 impl AuthScheme for AppserviceToken {
+    type Input<'a> = SendAccessToken<'a>;
+
     fn authorization_header(
         access_token: SendAccessToken<'_>,
     ) -> Result<Option<(HeaderName, HeaderValue)>, IntoHttpError> {
@@ -99,6 +110,8 @@ impl AuthScheme for AppserviceToken {
 pub struct AppserviceTokenOptional;
 
 impl AuthScheme for AppserviceTokenOptional {
+    type Input<'a> = SendAccessToken<'a>;
+
     fn authorization_header(
         access_token: SendAccessToken<'_>,
     ) -> Result<Option<(HeaderName, HeaderValue)>, IntoHttpError> {
@@ -109,14 +122,19 @@ impl AuthScheme for AppserviceTokenOptional {
     }
 }
 
-/// Authentication is performed by including X-Matrix signatures in the request headers,
-/// as defined in the federation API.
+/// Authentication is performed by adding an `X-Matrix` header including a signature in the request
+/// headers, as defined in the federation API.
+///
+/// Currently the `add_authentication` implementation is a noop, and the header must be computed and
+/// added manually.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ServerSignatures;
 
 impl AuthScheme for ServerSignatures {
+    type Input<'a> = ();
+
     fn authorization_header(
-        _access_token: SendAccessToken<'_>,
+        _input: (),
     ) -> Result<Option<(HeaderName, HeaderValue)>, IntoHttpError> {
         Ok(None)
     }

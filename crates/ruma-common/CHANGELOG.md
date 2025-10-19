@@ -25,6 +25,9 @@ Breaking changes:
     type named `Authentication`. The `AuthScheme` enum was changed from an
     `enum` to a `trait`. Its variants are now structs implementing the
     `AuthScheme` trait. The `None` variant was renamed to `NoAuthentication`.
+    The `access_token` argument of `OutgoingRequest::try_into_http_request()` is
+    renamed to `authentication_input` and is generic over the `Input` associated
+    type of the `AuthScheme` trait.
   - The `history` field of the `Metadata` struct is now an associated constant
     named `PATH_BUILDER`. The type of this constant is defined by the
     `PathBuilder` associated type, which must implement the `PathBuilder` trait.
