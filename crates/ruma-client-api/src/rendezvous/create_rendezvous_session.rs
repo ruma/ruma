@@ -193,7 +193,7 @@ pub mod unstable {
 
             Ok(http::Response::builder()
                 .status(http::StatusCode::OK)
-                .header(CONTENT_TYPE, "application/json")
+                .header(CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
                 .header(PRAGMA, "no-cache")
                 .header(CACHE_CONTROL, "no-store")
                 .header(ETAG, self.etag)

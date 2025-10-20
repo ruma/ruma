@@ -713,7 +713,7 @@ impl OutgoingResponse for UiaaResponse {
     ) -> Result<http::Response<T>, IntoHttpError> {
         match self {
             UiaaResponse::AuthResponse(authentication_info) => http::Response::builder()
-                .header(http::header::CONTENT_TYPE, "application/json")
+                .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
                 .status(http::StatusCode::UNAUTHORIZED)
                 .body(ruma_common::serde::json_to_buf(&authentication_info)?)
                 .map_err(Into::into),

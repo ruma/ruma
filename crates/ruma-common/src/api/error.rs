@@ -40,7 +40,7 @@ impl OutgoingResponse for MatrixError {
         self,
     ) -> Result<http::Response<T>, IntoHttpError> {
         http::Response::builder()
-            .header(http::header::CONTENT_TYPE, "application/json")
+            .header(http::header::CONTENT_TYPE, crate::http_headers::APPLICATION_JSON)
             .status(self.status_code)
             .body(match self.body {
                 MatrixErrorBody::Json(json) => crate::serde::json_to_buf(&json)?,

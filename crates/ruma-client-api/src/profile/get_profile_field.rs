@@ -88,7 +88,7 @@ pub mod v3 {
             let mut http_request_builder = http::Request::builder()
                 .method(Self::METHOD)
                 .uri(url)
-                .header(header::CONTENT_TYPE, "application/json");
+                .header(header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON);
 
             if let Some(access_token) = access_token.get_not_required_for_endpoint() {
                 http_request_builder = http_request_builder.header(
@@ -242,7 +242,7 @@ pub mod v3 {
 
             Ok(http::Response::builder()
                 .status(http::StatusCode::OK)
-                .header(http::header::CONTENT_TYPE, "application/json")
+                .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
                 .body(body)?)
         }
     }

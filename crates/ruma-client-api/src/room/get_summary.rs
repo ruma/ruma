@@ -91,7 +91,7 @@ pub mod v1 {
             let body = ResponseSerHelper { summary: self.summary, membership: self.membership };
 
             http::Response::builder()
-                .header(http::header::CONTENT_TYPE, "application/json")
+                .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
                 .body(ruma_common::serde::json_to_buf(&body)?)
                 .map_err(Into::into)
         }

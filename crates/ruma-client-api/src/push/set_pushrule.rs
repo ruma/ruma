@@ -89,7 +89,7 @@ pub mod v3 {
             http::Request::builder()
                 .method(Self::METHOD)
                 .uri(url)
-                .header(header::CONTENT_TYPE, "application/json")
+                .header(header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
                 .header(
                     header::AUTHORIZATION,
                     format!(
