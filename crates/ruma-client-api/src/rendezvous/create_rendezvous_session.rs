@@ -79,6 +79,8 @@ pub mod unstable {
 
             use ruma_common::api::error::DeserializationError;
 
+            Self::check_request_method(request.method())?;
+
             let content_type = request
                 .headers()
                 .get(CONTENT_TYPE)

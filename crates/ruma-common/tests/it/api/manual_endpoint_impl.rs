@@ -95,6 +95,8 @@ impl IncomingRequest for Request {
         B: AsRef<[u8]>,
         S: AsRef<str>,
     {
+        Self::check_request_method(request.method())?;
+
         let (room_alias,) = Deserialize::deserialize(serde::de::value::SeqDeserializer::<
             _,
             serde::de::value::Error,

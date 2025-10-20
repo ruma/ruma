@@ -352,6 +352,21 @@ pub trait IncomingRequest: Metadata {
     /// Response type to return when the request is successful.
     type OutgoingResponse: OutgoingResponse;
 
+    /// Check whether the given HTTP method from an incoming request is compatible with the expected
+    /// [`METHOD`](Metadata::METHOD) of this endpoint.
+    fn check_request_method(method: &http::Method) -> Result<(), FromHttpRequestError> {
+        if !(method == Self::METHOD
+            || (Self::METHOD == http::Method::GET && method == http::Method::HEAD))
+        {
+            return Err(FromHttpRequestError::MethodMismatch {
+                expected: Self::METHOD,
+                received: method.clone(),
+            });
+        }
+
+        Ok(())
+    }
+
     /// Tries to turn the given `http::Request` into this request type,
     /// together with the corresponding path arguments.
     ///
