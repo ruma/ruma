@@ -8,7 +8,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/latest/identity-service-api/#post_matrixidentityv2store-invite
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::AccessToken, request, response},
         metadata,
         room::RoomType,
         third_party_invite::IdentityServerBase64PublicKey,

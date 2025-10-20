@@ -14,7 +14,7 @@ pub mod v3 {
     //! [`set_display_name`]: crate::profile::set_display_name
 
     use ruma_common::{
-        api::{response, Metadata},
+        api::{auth_scheme::AccessToken, response, Metadata},
         metadata, OwnedUserId,
     };
 

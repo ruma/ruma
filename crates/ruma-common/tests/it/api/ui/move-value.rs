@@ -5,7 +5,7 @@
 pub mod newtype_body {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::NoAuthentication, request, response},
         metadata, OwnedUserId,
     };
 
@@ -51,7 +51,7 @@ pub mod newtype_body {
 pub mod raw_body {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::NoAuthentication, request, response},
         metadata, OwnedUserId,
     };
 
@@ -94,7 +94,7 @@ pub mod raw_body {
 pub mod plain {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::NoAuthentication, request, response},
         metadata, OwnedUserId,
     };
 

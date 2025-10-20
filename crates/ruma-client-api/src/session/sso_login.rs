@@ -7,7 +7,7 @@ pub mod v3 {
 
     use http::header::{LOCATION, SET_COOKIE};
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::NoAuthentication, request, response},
         metadata,
     };
 

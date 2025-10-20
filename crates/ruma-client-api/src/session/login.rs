@@ -10,7 +10,7 @@ pub mod v3 {
     use std::{fmt, time::Duration};
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::AppserviceTokenOptional, request, response},
         metadata,
         serde::JsonObject,
         OwnedDeviceId, OwnedServerName, OwnedUserId,

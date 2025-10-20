@@ -14,7 +14,7 @@ pub mod unstable {
     #[cfg(feature = "client")]
     use ruma_common::api::error::FromHttpResponseError;
     use ruma_common::{
-        api::{error::HeaderDeserializationError, Metadata},
+        api::{auth_scheme::NoAuthentication, error::HeaderDeserializationError, Metadata},
         metadata,
     };
     use serde::{Deserialize, Serialize};

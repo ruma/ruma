@@ -8,7 +8,7 @@ pub mod unstable {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2659
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::AccessToken, request, response},
         metadata, OwnedTransactionId,
     };
 
@@ -55,7 +55,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/application-service-api/#post_matrixappv1ping
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::AccessToken, request, response},
         metadata, OwnedTransactionId,
     };
 

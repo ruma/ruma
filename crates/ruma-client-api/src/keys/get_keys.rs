@@ -10,7 +10,7 @@ pub mod v3 {
     use std::{collections::BTreeMap, time::Duration};
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::AccessToken, request, response},
         encryption::{CrossSigningKey, DeviceKeys},
         metadata,
         serde::Raw,

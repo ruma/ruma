@@ -1,4 +1,7 @@
-use ruma_common::{api::Metadata, metadata};
+use ruma_common::{
+    api::{auth_scheme::NoAuthentication, Metadata},
+    metadata,
+};
 
 metadata! {
     method: GET,

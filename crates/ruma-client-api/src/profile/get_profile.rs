@@ -10,7 +10,7 @@ pub mod v3 {
     use std::collections::{btree_map, BTreeMap};
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::NoAuthentication, request, response},
         metadata, OwnedUserId,
     };
     use serde_json::Value as JsonValue;

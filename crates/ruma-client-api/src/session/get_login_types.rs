@@ -11,7 +11,7 @@ pub mod v3 {
     use std::borrow::Cow;
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         serde::{JsonObject, StringEnum},
         OwnedMxcUri,

@@ -12,7 +12,7 @@ use std::{collections::BTreeMap, time::Duration};
 use js_int::UInt;
 use js_option::JsOption;
 use ruma_common::{
-    api::{request, response},
+    api::{auth_scheme::AccessToken, request, response},
     metadata,
     presence::PresenceState,
     serde::{duration::opt_ms, Raw},

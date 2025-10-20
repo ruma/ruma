@@ -7,7 +7,10 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#fallback
 
-    use ruma_common::{api::request, metadata};
+    use ruma_common::{
+        api::{auth_scheme::NoAuthentication, request},
+        metadata,
+    };
 
     use crate::uiaa::AuthType;
 

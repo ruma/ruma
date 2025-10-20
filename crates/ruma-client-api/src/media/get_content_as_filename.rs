@@ -11,7 +11,7 @@ pub mod v3 {
 
     use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::NoAuthentication, request, response},
         http_headers::ContentDisposition,
         metadata, IdParseError, MxcUri, OwnedServerName,
     };

@@ -4,7 +4,7 @@ use assert_matches2::assert_matches;
 use http::header::{CONTENT_DISPOSITION, LOCATION};
 use ruma_common::{
     api::{
-        auth_scheme::SendAccessToken,
+        auth_scheme::{NoAuthentication, SendAccessToken},
         error::{
             DeserializationError, FromHttpRequestError, FromHttpResponseError,
             HeaderDeserializationError,

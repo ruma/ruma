@@ -3,6 +3,7 @@
 use bytes::BufMut;
 use ruma_common::{
     api::{
+        auth_scheme::NoAuthentication,
         error::{FromHttpResponseError, IntoHttpError, MatrixError},
         request, IncomingResponse, OutgoingResponse,
     },

@@ -13,7 +13,7 @@ pub mod v3 {
     use js_int::UInt;
     pub use ruma_common::media::Method;
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::NoAuthentication, request, response},
         http_headers::ContentDisposition,
         metadata, IdParseError, MxcUri, OwnedServerName,
     };

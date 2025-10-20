@@ -9,7 +9,7 @@ pub mod v3 {
 
     use assign::assign;
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::AccessToken, request, response},
         metadata,
         room::RoomType,
         serde::{Raw, StringEnum},

@@ -5,6 +5,7 @@ use std::borrow::Cow;
 use http::header::CONTENT_TYPE;
 use ruma_common::{
     api::{
+        auth_scheme::NoAuthentication,
         path_builder::{PathBuilder, StablePathSelector},
         request, response, MatrixVersion, Metadata, SupportedVersions,
     },

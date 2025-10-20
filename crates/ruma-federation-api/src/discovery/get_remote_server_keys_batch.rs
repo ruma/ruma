@@ -11,7 +11,7 @@ pub mod v2 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         serde::Raw,
         MilliSecondsSinceUnixEpoch, OwnedServerName, OwnedServerSigningKeyId,

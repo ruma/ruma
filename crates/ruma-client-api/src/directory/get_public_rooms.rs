@@ -9,7 +9,7 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::NoAuthentication, request, response},
         directory::PublicRoomsChunk,
         metadata, OwnedServerName,
     };

@@ -3,7 +3,7 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1inviteroomideventid
 
 use ruma_common::{
-    api::{request, response},
+    api::{auth_scheme::ServerSignatures, request, response},
     metadata, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName, OwnedUserId,
 };
 use ruma_events::{room::member::RoomMemberEventContent, StateEventType};

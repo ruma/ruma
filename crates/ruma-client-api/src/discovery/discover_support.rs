@@ -5,7 +5,7 @@
 //! Get server admin contact and support page of a homeserver's domain.
 
 use ruma_common::{
-    api::{request, response},
+    api::{auth_scheme::NoAuthentication, request, response},
     metadata,
     serde::StringEnum,
     OwnedUserId,

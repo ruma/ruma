@@ -10,7 +10,7 @@ pub mod v3 {
     use http::header::ACCEPT_LANGUAGE;
     use js_int::{uint, UInt};
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::AccessToken, request, response},
         metadata, OwnedMxcUri, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};

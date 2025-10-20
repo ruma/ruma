@@ -10,7 +10,7 @@ use std::borrow::Cow;
 #[cfg(feature = "unstable-msc4143")]
 use ruma_common::serde::JsonObject;
 use ruma_common::{
-    api::{request, response},
+    api::{auth_scheme::NoAuthentication, request, response},
     metadata,
 };
 #[cfg(feature = "unstable-msc4143")]

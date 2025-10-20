@@ -9,7 +9,7 @@ pub mod v3 {
 
     use js_int::Int;
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::AccessToken, request, response},
         metadata, OwnedEventId, OwnedRoomId,
     };
 

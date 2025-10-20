@@ -14,7 +14,7 @@ pub mod v3 {
 
     use maplit::btreemap;
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::StringEnum,
         RoomVersionId,

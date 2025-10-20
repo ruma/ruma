@@ -16,7 +16,7 @@ pub mod v3 {
     use std::marker::PhantomData;
 
     use ruma_common::{
-        api::{path_builder::VersionHistory, Metadata},
+        api::{auth_scheme::NoAuthentication, path_builder::VersionHistory, Metadata},
         metadata, OwnedUserId,
     };
 
