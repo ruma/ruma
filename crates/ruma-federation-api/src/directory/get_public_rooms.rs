@@ -9,7 +9,7 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::ServerSignatures, request, response},
         directory::{PublicRoomsChunk, RoomNetwork},
         metadata,
     };

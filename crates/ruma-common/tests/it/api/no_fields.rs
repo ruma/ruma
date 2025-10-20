@@ -7,7 +7,7 @@ use ruma_common::api::{
 
 mod get {
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::NoAuthentication, request, response},
         metadata,
     };
 
@@ -31,7 +31,7 @@ mod get {
 
 mod post {
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::NoAuthentication, request, response},
         metadata,
     };
 

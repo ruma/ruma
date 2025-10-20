@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3accountdeactivate
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::AccessTokenOptional, request, response},
         metadata,
     };
 

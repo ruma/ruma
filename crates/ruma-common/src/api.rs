@@ -74,7 +74,7 @@ use bytes::BufMut;
 /// ```
 /// pub mod do_a_thing {
 ///     use ruma_common::{api::request, OwnedRoomId};
-///     # use ruma_common::{api::response, metadata};
+///     # use ruma_common::{api::{auth_scheme::NoAuthentication, response}, metadata};
 ///
 ///     // metadata! { ... };
 ///     # metadata! {
@@ -107,7 +107,7 @@ use bytes::BufMut;
 /// pub mod upload_file {
 ///     use http::header::CONTENT_TYPE;
 ///     use ruma_common::api::request;
-///     # use ruma_common::{api::response, metadata};
+///     # use ruma_common::{api::{auth_scheme::NoAuthentication, response}, metadata};
 ///
 ///     // metadata! { ... };
 ///     # metadata! {
@@ -186,7 +186,7 @@ pub use ruma_macros::request;
 /// ```
 /// pub mod do_a_thing {
 ///     use ruma_common::{api::response, OwnedRoomId};
-///     # use ruma_common::{api::request, metadata};
+///     # use ruma_common::{api::{auth_scheme::NoAuthentication, request}, metadata};
 ///
 ///     // metadata! { ... };
 ///     # metadata! {
@@ -213,7 +213,7 @@ pub use ruma_macros::request;
 /// pub mod download_file {
 ///     use http::header::CONTENT_TYPE;
 ///     use ruma_common::api::response;
-///     # use ruma_common::{api::request, metadata};
+///     # use ruma_common::{api::{auth_scheme::NoAuthentication, request}, metadata};
 ///
 ///     // metadata! { ... };
 ///     # metadata! {

@@ -8,7 +8,7 @@ pub mod unstable {
     //! [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::AccessToken, request, response},
         metadata, OwnedEventId, OwnedRoomId,
     };
 

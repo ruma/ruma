@@ -5,7 +5,7 @@
 use std::{collections::BTreeMap, time::Duration};
 
 use ruma_common::{
-    api::{request, response},
+    api::{auth_scheme::AccessToken, request, response},
     encryption::OneTimeKey,
     metadata,
     serde::Raw,

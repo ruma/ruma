@@ -28,7 +28,7 @@ use crate::{api::error::IntoHttpError, serde::slice_to_buf, PrivOwnedStr, RoomVe
 /// * `rate_limited` - Whether the endpoint should be rate-limited, according to the specification.
 ///   Its value must be a `bool`.
 /// * `authentication` - The type of authentication that is required for the endpoint, according to
-///   the specification. Its value must be one of the variants of [`AuthScheme`].
+///   the specification. The type must be in scope and implement [`AuthScheme`].
 ///
 /// And either of the following fields to define the path(s) of the endpoint.
 ///
@@ -89,7 +89,10 @@ use crate::{api::error::IntoHttpError, serde::slice_to_buf, PrivOwnedStr, RoomVe
 /// ## Example
 ///
 /// ```
-/// use ruma_common::metadata;
+/// use ruma_common::{
+///     api::auth_scheme::{AccessToken, NoAuthentication},
+///     metadata,
+/// };
 ///
 /// /// A Request with a path version history.
 /// pub struct Request {
@@ -145,8 +148,8 @@ macro_rules! metadata {
 
     ( @field rate_limited: $rate_limited:literal ) => { const RATE_LIMITED: bool = $rate_limited; };
 
-    ( @field authentication: $scheme:ident ) => {
-        type Authentication = $crate::api::auth_scheme::$scheme;
+    ( @field authentication: $scheme:path ) => {
+        type Authentication = $scheme;
     };
 
     ( @field path: $path:literal ) => {

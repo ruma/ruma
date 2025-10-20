@@ -12,7 +12,7 @@ pub mod v1 {
     use std::collections::BTreeSet;
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         serde::{Raw, StringEnum},
     };

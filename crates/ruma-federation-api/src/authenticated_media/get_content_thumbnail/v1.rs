@@ -5,7 +5,11 @@
 use std::time::Duration;
 
 use js_int::UInt;
-use ruma_common::{api::request, media::Method, metadata};
+use ruma_common::{
+    api::{auth_scheme::ServerSignatures, request},
+    media::Method,
+    metadata,
+};
 
 use crate::authenticated_media::{ContentMetadata, FileOrLocation};
 

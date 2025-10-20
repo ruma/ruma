@@ -3,7 +3,7 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1timestamp_to_eventroomid
 
 use ruma_common::{
-    api::{request, response, Direction},
+    api::{auth_scheme::ServerSignatures, request, response, Direction},
     metadata, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
 };
 

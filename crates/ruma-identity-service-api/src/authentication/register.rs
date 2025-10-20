@@ -10,7 +10,7 @@ pub mod v2 {
     use std::time::Duration;
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::NoAuthentication, request, response},
         authentication::TokenType,
         metadata, OwnedServerName,
     };

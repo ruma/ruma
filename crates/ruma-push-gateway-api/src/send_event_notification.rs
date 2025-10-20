@@ -9,7 +9,7 @@ pub mod v1 {
 
     use js_int::{uint, UInt};
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         push::{PushFormat, Tweak},
         serde::{JsonObject, StringEnum},

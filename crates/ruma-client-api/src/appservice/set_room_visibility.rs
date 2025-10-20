@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/application-service-api/#put_matrixclientv3directorylistappservicenetworkidroomid
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::AppserviceToken, request, response},
         metadata, OwnedRoomId,
     };
 

@@ -10,7 +10,7 @@ pub mod unstable {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::AccessToken, request, response},
         encryption::{DeviceKeys, OneTimeKey},
         metadata,
         serde::Raw,

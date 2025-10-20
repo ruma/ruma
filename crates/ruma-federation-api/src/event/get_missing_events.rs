@@ -9,7 +9,7 @@ pub mod v1 {
 
     use js_int::{uint, UInt};
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::ServerSignatures, request, response},
         metadata, OwnedEventId, OwnedRoomId,
     };
     use serde_json::value::RawValue as RawJsonValue;

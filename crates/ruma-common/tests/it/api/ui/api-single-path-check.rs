@@ -1,7 +1,7 @@
 #![allow(unexpected_cfgs)]
 
 use ruma_common::{
-    api::{path_builder::PathBuilder, request, response, Metadata},
+    api::{auth_scheme::AccessToken, path_builder::PathBuilder, request, response, Metadata},
     metadata,
 };
 

@@ -8,7 +8,7 @@ pub mod msc3843 {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3843
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::ServerSignatures, request, response},
         metadata, OwnedEventId, OwnedRoomId,
     };
 

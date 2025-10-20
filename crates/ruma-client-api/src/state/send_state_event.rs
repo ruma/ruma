@@ -10,7 +10,7 @@ pub mod v3 {
     use std::borrow::Borrow;
 
     use ruma_common::{
-        api::{response, Metadata},
+        api::{auth_scheme::AccessToken, response, Metadata},
         metadata,
         serde::Raw,
         MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,

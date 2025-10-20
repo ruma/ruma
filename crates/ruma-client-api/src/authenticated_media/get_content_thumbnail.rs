@@ -12,7 +12,7 @@ pub mod v1 {
     use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
     use js_int::UInt;
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::AccessToken, request, response},
         http_headers::ContentDisposition,
         media::Method,
         metadata, IdParseError, MxcUri, OwnedServerName,

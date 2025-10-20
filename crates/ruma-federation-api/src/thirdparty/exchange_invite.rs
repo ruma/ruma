@@ -12,7 +12,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1exchange_third_party_inviteroomid
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::ServerSignatures, request, response},
         metadata,
         serde::Raw,
         OwnedRoomId, OwnedUserId,
@@ -30,7 +30,7 @@ pub mod v1 {
     metadata! {
         method: PUT,
         rate_limited: false,
-        authentication: AccessToken,
+        authentication: ServerSignatures,
         path: "/_matrix/federation/v1/exchange_third_party_invite/{room_id}",
     }
 

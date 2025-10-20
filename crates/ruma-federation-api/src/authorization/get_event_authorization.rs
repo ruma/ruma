@@ -8,7 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1event_authroomideventid
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::ServerSignatures, request, response},
         metadata, OwnedEventId, OwnedRoomId,
     };
     use serde_json::value::RawValue as RawJsonValue;

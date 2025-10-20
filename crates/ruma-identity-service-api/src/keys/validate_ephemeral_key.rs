@@ -8,7 +8,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/latest/identity-service-api/#get_matrixidentityv2pubkeyephemeralisvalid
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         third_party_invite::IdentityServerBase64PublicKey,
     };

@@ -4,7 +4,10 @@
 
 use std::time::Duration;
 
-use ruma_common::{api::request, metadata};
+use ruma_common::{
+    api::{auth_scheme::ServerSignatures, request},
+    metadata,
+};
 
 use crate::authenticated_media::{ContentMetadata, FileOrLocation};
 

@@ -4,7 +4,10 @@
 //!
 //! [spec]: https://spec.matrix.org/latest/client-server-api/#login-fallback
 
-use ruma_common::{api::request, metadata, OwnedDeviceId};
+use ruma_common::{
+    api::{auth_scheme::NoAuthentication, request},
+    metadata, OwnedDeviceId,
+};
 
 metadata! {
     method: GET,

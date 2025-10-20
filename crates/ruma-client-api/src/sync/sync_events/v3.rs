@@ -7,7 +7,7 @@ use std::{collections::BTreeMap, time::Duration};
 use as_variant::as_variant;
 use js_int::UInt;
 use ruma_common::{
-    api::{request, response},
+    api::{auth_scheme::AccessToken, request, response},
     metadata,
     presence::PresenceState,
     serde::Raw,

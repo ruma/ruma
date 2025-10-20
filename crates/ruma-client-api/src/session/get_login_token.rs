@@ -10,7 +10,7 @@ pub mod v1 {
     use std::time::Duration;
 
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
 

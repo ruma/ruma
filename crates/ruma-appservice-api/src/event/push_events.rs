@@ -16,7 +16,7 @@ pub mod v1 {
     #[cfg(feature = "unstable-msc3202")]
     use ruma_common::OwnedUserId;
     use ruma_common::{
-        api::{request, response},
+        api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::{from_raw_json_value, JsonObject, Raw},
         OwnedTransactionId,
