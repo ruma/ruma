@@ -40,6 +40,7 @@ Breaking changes:
   - The `metadata!` macro generates the `Metadata` trait implementation for a
     type named `Request` by default. This type can be changed with an `@for`
     setting.
+- The `http_headers` module is now behind the `api` cargo feature.
 
 Bug fixes:
 
