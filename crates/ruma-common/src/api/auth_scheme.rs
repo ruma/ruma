@@ -4,7 +4,7 @@
 #![allow(clippy::exhaustive_structs)]
 
 use as_variant::as_variant;
-use http::{header, HeaderName, HeaderValue};
+use http::{header, HeaderMap};
 
 use crate::api::error::IntoHttpError;
 
@@ -13,13 +13,15 @@ pub trait AuthScheme: Sized {
     /// The input necessary to generate the authentication.
     type Input<'a>;
 
-    /// The `Authorization` HTTP header to add to an outgoing request with this scheme.
+    /// Add the appropriate header to the given outgoing request headers map for this
+    /// authentication, if any.
     ///
     /// Returns an error if the endpoint requires authentication but the input doesn't provide it,
-    /// or if the input can't be converted to a [`HeaderValue`].
-    fn authorization_header(
+    /// or if the input can't be converted to a [`HeaderValue`](http::HeaderValue).
+    fn add_authentication(
+        headers: &mut HeaderMap,
         input: Self::Input<'_>,
-    ) -> Result<Option<(HeaderName, HeaderValue)>, IntoHttpError>;
+    ) -> Result<(), IntoHttpError>;
 }
 
 /// No authentication is performed.
@@ -32,13 +34,15 @@ pub struct NoAuthentication;
 impl AuthScheme for NoAuthentication {
     type Input<'a> = SendAccessToken<'a>;
 
-    fn authorization_header(
+    fn add_authentication(
+        headers: &mut HeaderMap,
         access_token: SendAccessToken<'_>,
-    ) -> Result<Option<(HeaderName, HeaderValue)>, IntoHttpError> {
-        access_token
-            .get_not_required_for_endpoint()
-            .map(access_token_to_authorization_header)
-            .transpose()
+    ) -> Result<(), IntoHttpError> {
+        if let Some(access_token) = access_token.get_not_required_for_endpoint() {
+            add_access_token_as_authorization_header(headers, access_token)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -52,12 +56,13 @@ pub struct AccessToken;
 impl AuthScheme for AccessToken {
     type Input<'a> = SendAccessToken<'a>;
 
-    fn authorization_header(
+    fn add_authentication(
+        headers: &mut HeaderMap,
         access_token: SendAccessToken<'_>,
-    ) -> Result<Option<(HeaderName, HeaderValue)>, IntoHttpError> {
+    ) -> Result<(), IntoHttpError> {
         let token =
             access_token.get_required_for_endpoint().ok_or(IntoHttpError::NeedsAuthentication)?;
-        access_token_to_authorization_header(token).map(Some)
+        add_access_token_as_authorization_header(headers, token)
     }
 }
 
@@ -71,13 +76,15 @@ pub struct AccessTokenOptional;
 impl AuthScheme for AccessTokenOptional {
     type Input<'a> = SendAccessToken<'a>;
 
-    fn authorization_header(
+    fn add_authentication(
+        headers: &mut HeaderMap,
         access_token: SendAccessToken<'_>,
-    ) -> Result<Option<(HeaderName, HeaderValue)>, IntoHttpError> {
-        access_token
-            .get_required_for_endpoint()
-            .map(access_token_to_authorization_header)
-            .transpose()
+    ) -> Result<(), IntoHttpError> {
+        if let Some(access_token) = access_token.get_required_for_endpoint() {
+            add_access_token_as_authorization_header(headers, access_token)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -92,12 +99,13 @@ pub struct AppserviceToken;
 impl AuthScheme for AppserviceToken {
     type Input<'a> = SendAccessToken<'a>;
 
-    fn authorization_header(
+    fn add_authentication(
+        headers: &mut HeaderMap,
         access_token: SendAccessToken<'_>,
-    ) -> Result<Option<(HeaderName, HeaderValue)>, IntoHttpError> {
+    ) -> Result<(), IntoHttpError> {
         let token =
             access_token.get_required_for_appservice().ok_or(IntoHttpError::NeedsAuthentication)?;
-        access_token_to_authorization_header(token).map(Some)
+        add_access_token_as_authorization_header(headers, token)
     }
 }
 
@@ -112,13 +120,15 @@ pub struct AppserviceTokenOptional;
 impl AuthScheme for AppserviceTokenOptional {
     type Input<'a> = SendAccessToken<'a>;
 
-    fn authorization_header(
+    fn add_authentication(
+        headers: &mut HeaderMap,
         access_token: SendAccessToken<'_>,
-    ) -> Result<Option<(HeaderName, HeaderValue)>, IntoHttpError> {
-        access_token
-            .get_required_for_appservice()
-            .map(access_token_to_authorization_header)
-            .transpose()
+    ) -> Result<(), IntoHttpError> {
+        if let Some(access_token) = access_token.get_required_for_appservice() {
+            add_access_token_as_authorization_header(headers, access_token)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -133,18 +143,18 @@ pub struct ServerSignatures;
 impl AuthScheme for ServerSignatures {
     type Input<'a> = ();
 
-    fn authorization_header(
-        _input: (),
-    ) -> Result<Option<(HeaderName, HeaderValue)>, IntoHttpError> {
-        Ok(None)
+    fn add_authentication(_headers: &mut HeaderMap, _input: ()) -> Result<(), IntoHttpError> {
+        Ok(())
     }
 }
 
-/// Convert the given access token to an `Authorization` HTTP header.
-fn access_token_to_authorization_header(
+/// Add the given access token as an `Authorization` HTTP header to the given map.
+fn add_access_token_as_authorization_header(
+    headers: &mut HeaderMap,
     token: &str,
-) -> Result<(HeaderName, HeaderValue), IntoHttpError> {
-    Ok((header::AUTHORIZATION, format!("Bearer {token}").try_into()?))
+) -> Result<(), IntoHttpError> {
+    headers.insert(header::AUTHORIZATION, format!("Bearer {token}").try_into()?);
+    Ok(())
 }
 
 /// An enum to control whether an access token should be added to outgoing requests
