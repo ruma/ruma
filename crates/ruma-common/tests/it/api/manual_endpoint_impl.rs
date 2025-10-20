@@ -136,7 +136,7 @@ impl OutgoingResponse for Response {
         self,
     ) -> Result<http::Response<T>, IntoHttpError> {
         let response = http::Response::builder()
-            .header(CONTENT_TYPE, "application/json")
+            .header(CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
             .body(ruma_common::serde::slice_to_buf(b"{}"))
             .unwrap();
 

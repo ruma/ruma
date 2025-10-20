@@ -15,14 +15,14 @@ impl Response {
             quote! {
                 headers.insert(
                     #http::header::CONTENT_TYPE,
-                    #http::header::HeaderValue::from_static("application/octet-stream"),
+                    #ruma_common::http_headers::APPLICATION_OCTET_STREAM,
                 );
             }
         } else {
             quote! {
                 headers.insert(
                     #http::header::CONTENT_TYPE,
-                    #http::header::HeaderValue::from_static("application/json"),
+                    #ruma_common::http_headers::APPLICATION_JSON,
                 );
             }
         };

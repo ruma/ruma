@@ -5,10 +5,19 @@ use std::borrow::Cow;
 mod content_disposition;
 mod rfc8187;
 
+use http::HeaderValue;
+
 pub use self::content_disposition::{
     ContentDisposition, ContentDispositionParseError, ContentDispositionType, TokenString,
     TokenStringParseError,
 };
+
+/// The `application/json` media type as a [`HeaderValue`].
+pub const APPLICATION_JSON: HeaderValue = HeaderValue::from_static("application/json");
+
+/// The `application/octet-stream` media type as a [`HeaderValue`].
+pub const APPLICATION_OCTET_STREAM: HeaderValue =
+    HeaderValue::from_static("application/octet-stream");
 
 /// Whether the given byte is a [`token` char].
 ///

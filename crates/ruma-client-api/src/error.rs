@@ -978,7 +978,7 @@ impl OutgoingResponse for Error {
         self,
     ) -> Result<http::Response<T>, IntoHttpError> {
         let mut builder = http::Response::builder()
-            .header(http::header::CONTENT_TYPE, "application/json")
+            .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
             .status(self.status_code);
 
         #[allow(clippy::collapsible_match)]

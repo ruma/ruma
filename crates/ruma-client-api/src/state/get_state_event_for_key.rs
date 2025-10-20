@@ -142,7 +142,7 @@ pub mod v3 {
                     &[&self.room_id, &self.event_type, &self.state_key],
                     &query_string,
                 )?)
-                .header(header::CONTENT_TYPE, "application/json")
+                .header(header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
                 .header(
                     header::AUTHORIZATION,
                     format!(
