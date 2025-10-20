@@ -134,6 +134,8 @@ pub mod v3 {
                 after: Option<String>,
             }
 
+            Self::check_request_method(request.method())?;
+
             let (kind, rule_id): (RuleKind, String) =
                 Deserialize::deserialize(serde::de::value::SeqDeserializer::<
                     _,

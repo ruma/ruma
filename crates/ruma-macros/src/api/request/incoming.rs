@@ -191,15 +191,7 @@ impl Request {
                     B: ::std::convert::AsRef<[::std::primitive::u8]>,
                     S: ::std::convert::AsRef<::std::primitive::str>,
                 {
-                    if !(request.method() == <Self as #ruma_common::api::Metadata>::METHOD
-                        || request.method() == #http::Method::HEAD
-                            && <Self as #ruma_common::api::Metadata>::METHOD == #http::Method::GET)
-                    {
-                        return Err(#ruma_common::api::error::FromHttpRequestError::MethodMismatch {
-                            expected: <Self as #ruma_common::api::Metadata>::METHOD,
-                            received: request.method().clone(),
-                        });
-                    }
+                    <Self as #ruma_common::api::IncomingRequest>::check_request_method(request.method())?;
 
                     #parse_request_path
                     #parse_query

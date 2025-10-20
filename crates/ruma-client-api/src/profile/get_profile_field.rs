@@ -107,12 +107,7 @@ pub mod v3 {
             B: AsRef<[u8]>,
             S: AsRef<str>,
         {
-            if request.method() != Self::METHOD {
-                return Err(ruma_common::api::error::FromHttpRequestError::MethodMismatch {
-                    expected: Self::METHOD,
-                    received: request.method().clone(),
-                });
-            }
+            Self::check_request_method(request.method())?;
 
             let (user_id, field) =
                 serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<

@@ -111,6 +111,8 @@ pub mod v3 {
 
             use crate::profile::ProfileFieldName;
 
+            Self::check_request_method(request.method())?;
+
             let (user_id, field): (OwnedUserId, ProfileFieldName) =
                 serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
                     _,
