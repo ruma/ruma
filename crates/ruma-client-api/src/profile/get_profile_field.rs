@@ -71,8 +71,7 @@ pub mod v3 {
             access_token: ruma_common::api::auth_scheme::SendAccessToken<'_>,
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
-            use http::header::{self, HeaderValue};
-            use ruma_common::api::path_builder::PathBuilder;
+            use ruma_common::api::{auth_scheme::AuthScheme, path_builder::PathBuilder};
 
             let url = if self.field.existed_before_extended_profiles() {
                 Self::make_endpoint_url(considering, base_url, &[&self.user_id, &self.field], "")?
@@ -85,16 +84,10 @@ pub mod v3 {
                 )?
             };
 
-            let mut http_request_builder = http::Request::builder()
-                .method(Self::METHOD)
-                .uri(url)
-                .header(header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON);
+            let mut http_request_builder = http::Request::builder().method(Self::METHOD).uri(url);
 
-            if let Some(access_token) = access_token.get_not_required_for_endpoint() {
-                http_request_builder = http_request_builder.header(
-                    header::AUTHORIZATION,
-                    HeaderValue::from_str(&format!("Bearer {access_token}"))?,
-                );
+            if let Some(headers) = http_request_builder.headers_mut() {
+                Self::Authentication::add_authentication(headers, access_token)?;
             }
 
             Ok(http_request_builder.body(T::default())?)

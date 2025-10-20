@@ -79,7 +79,7 @@ pub mod v3 {
             access_token: ruma_common::api::auth_scheme::SendAccessToken<'_>,
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
-            use http::header::{self, HeaderValue};
+            use ruma_common::api::auth_scheme::AuthScheme;
 
             // Only send `server_name` if the `via` parameter is not supported by the server.
             // `via` was introduced in Matrix 1.12.
@@ -97,27 +97,24 @@ pub mod v3 {
             let query_string =
                 serde_html_form::to_string(RequestQuery { server_name, via: self.via })?;
 
-            let http_request = http::Request::builder()
-                .method(Self::METHOD)
-                .uri(Self::make_endpoint_url(
+            let mut http_request_builder =
+                http::Request::builder().method(Self::METHOD).uri(Self::make_endpoint_url(
                     considering,
                     base_url,
                     &[&self.room_id_or_alias],
                     &query_string,
-                )?)
-                .header(header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
-                .header(
-                    header::AUTHORIZATION,
-                    HeaderValue::from_str(&format!(
-                        "Bearer {}",
-                        access_token
-                            .get_required_for_endpoint()
-                            .ok_or(ruma_common::api::error::IntoHttpError::NeedsAuthentication)?
-                    ))?,
-                )
-                .body(ruma_common::serde::json_to_buf(&RequestBody { reason: self.reason })?)?;
+                )?);
 
-            Ok(http_request)
+            if let Some(headers) = http_request_builder.headers_mut() {
+                headers.insert(
+                    http::header::CONTENT_TYPE,
+                    ruma_common::http_headers::APPLICATION_JSON,
+                );
+                Self::Authentication::add_authentication(headers, access_token)?;
+            }
+
+            Ok(http_request_builder
+                .body(ruma_common::serde::json_to_buf(&RequestBody { reason: self.reason })?)?)
         }
     }
 
