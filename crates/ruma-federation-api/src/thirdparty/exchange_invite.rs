@@ -12,7 +12,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1exchange_third_party_inviteroomid
 
     use ruma_common::{
-        api::{auth_scheme::ServerSignatures, request, response},
+        api::{request, response},
         metadata,
         serde::Raw,
         OwnedRoomId, OwnedUserId,
@@ -25,7 +25,7 @@ pub mod v1 {
         StateEventType,
     };
 
-    use crate::thirdparty::bind_callback;
+    use crate::{authentication::ServerSignatures, thirdparty::bind_callback};
 
     metadata! {
         method: PUT,

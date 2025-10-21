@@ -3,15 +3,35 @@
 use std::{fmt, str::FromStr};
 
 use headers::authorization::Credentials;
-use http::HeaderValue;
+use http::{HeaderMap, HeaderValue};
 use http_auth::ChallengeParser;
 use ruma_common::{
+    api::{auth_scheme::AuthScheme, error::IntoHttpError},
     http_headers::quote_ascii_string_if_required,
     serde::{Base64, Base64DecodeError},
     IdParseError, OwnedServerName, OwnedServerSigningKeyId,
 };
 use thiserror::Error;
 use tracing::debug;
+
+/// Authentication is performed by adding an `X-Matrix` header including a signature in the request
+/// headers, as defined in the [Matrix Server-Server API][spec].
+///
+/// Currently the `add_authentication` implementation is a noop, and the header must be computed and
+/// added manually.
+///
+/// [spec]: https://spec.matrix.org/latest/server-server-api/#request-authentication
+#[derive(Debug, Clone, Copy, Default)]
+#[allow(clippy::exhaustive_structs)]
+pub struct ServerSignatures;
+
+impl AuthScheme for ServerSignatures {
+    type Input<'a> = ();
+
+    fn add_authentication(_headers: &mut HeaderMap, _input: ()) -> Result<(), IntoHttpError> {
+        Ok(())
+    }
+}
 
 /// Typed representation of an `Authorization` header of scheme `X-Matrix`, as defined in the
 /// [Matrix Server-Server API][spec].

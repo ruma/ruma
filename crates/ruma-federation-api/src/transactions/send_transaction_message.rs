@@ -10,14 +10,14 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{auth_scheme::ServerSignatures, request, response},
+        api::{request, response},
         metadata,
         serde::Raw,
         MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedServerName, OwnedTransactionId,
     };
     use serde_json::value::RawValue as RawJsonValue;
 
-    use crate::transactions::edu::Edu;
+    use crate::{authentication::ServerSignatures, transactions::edu::Edu};
 
     metadata! {
         method: PUT,

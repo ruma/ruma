@@ -8,10 +8,12 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1eventeventid
 
     use ruma_common::{
-        api::{auth_scheme::ServerSignatures, request, response},
+        api::{request, response},
         metadata, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedServerName,
     };
     use serde_json::value::RawValue as RawJsonValue;
+
+    use crate::authentication::ServerSignatures;
 
     metadata! {
         method: GET,

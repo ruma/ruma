@@ -132,22 +132,6 @@ impl AuthScheme for AppserviceTokenOptional {
     }
 }
 
-/// Authentication is performed by adding an `X-Matrix` header including a signature in the request
-/// headers, as defined in the federation API.
-///
-/// Currently the `add_authentication` implementation is a noop, and the header must be computed and
-/// added manually.
-#[derive(Debug, Clone, Copy, Default)]
-pub struct ServerSignatures;
-
-impl AuthScheme for ServerSignatures {
-    type Input<'a> = ();
-
-    fn add_authentication(_headers: &mut HeaderMap, _input: ()) -> Result<(), IntoHttpError> {
-        Ok(())
-    }
-}
-
 /// Add the given access token as an `Authorization` HTTP header to the given map.
 fn add_access_token_as_authorization_header(
     headers: &mut HeaderMap,

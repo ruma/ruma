@@ -3,13 +3,13 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1hierarchyroomid
 
 use ruma_common::{
-    api::{auth_scheme::ServerSignatures, request, response},
+    api::{request, response},
     metadata,
     room::RoomSummary,
     OwnedRoomId,
 };
 
-use crate::space::SpaceHierarchyParentSummary;
+use crate::{authentication::ServerSignatures, space::SpaceHierarchyParentSummary};
 
 metadata! {
     method: GET,

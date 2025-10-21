@@ -24,7 +24,8 @@ Breaking changes:
   - The `authentication` field of the `Metadata` struct is now an associated
     type named `Authentication`. The `AuthScheme` enum was changed from an
     `enum` to a `trait`. Its variants are now structs implementing the
-    `AuthScheme` trait. The `None` variant was renamed to `NoAuthentication`.
+    `AuthScheme` trait. The `None` variant was renamed to `NoAuthentication` and
+    the `ServerSignatures` variant was moved to ruma-federation-api.
     The `access_token` argument of `OutgoingRequest::try_into_http_request()` is
     renamed to `authentication_input` and is generic over the `Input` associated
     type of the `AuthScheme` trait.
