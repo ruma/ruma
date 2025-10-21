@@ -172,8 +172,7 @@ pub mod unstable {
             let expires = get_date(EXPIRES)?;
             let last_modified = get_date(LAST_MODIFIED)?;
 
-            let body = response.into_body();
-            let body: ResponseBody = serde_json::from_slice(body.as_ref())?;
+            let body: ResponseBody = serde_json::from_slice(response.body().as_ref())?;
 
             Ok(Self { url: body.url, etag, expires, last_modified })
         }
@@ -186,9 +185,8 @@ pub mod unstable {
         ) -> Result<http::Response<T>, ruma_common::api::error::IntoHttpError> {
             use http::header::{CACHE_CONTROL, PRAGMA};
 
-            let body = ResponseBody { url: self.url.clone() };
-            let body = serde_json::to_vec(&body)?;
-            let body = ruma_common::serde::slice_to_buf(&body);
+            let body = ResponseBody { url: self.url };
+            let body = ruma_common::serde::json_to_buf(&body)?;
 
             let expires = crate::http_headers::system_time_to_http_date(&self.expires)?;
             let last_modified = crate::http_headers::system_time_to_http_date(&self.last_modified)?;
