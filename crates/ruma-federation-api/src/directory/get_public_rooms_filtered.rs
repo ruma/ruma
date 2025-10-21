@@ -9,10 +9,12 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{auth_scheme::ServerSignatures, request, response},
+        api::{request, response},
         directory::{Filter, PublicRoomsChunk, RoomNetwork},
         metadata,
     };
+
+    use crate::authentication::ServerSignatures;
 
     metadata! {
         method: POST,

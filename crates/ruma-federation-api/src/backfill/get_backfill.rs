@@ -9,10 +9,12 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{auth_scheme::ServerSignatures, request, response},
+        api::{request, response},
         metadata, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName,
     };
     use serde_json::value::RawValue as RawJsonValue;
+
+    use crate::authentication::ServerSignatures;
 
     metadata! {
         method: GET,

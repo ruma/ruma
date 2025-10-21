@@ -11,10 +11,12 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{auth_scheme::ServerSignatures, request, response},
+        api::{request, response},
         metadata,
     };
     use serde_json::Value as JsonValue;
+
+    use crate::authentication::ServerSignatures;
 
     metadata! {
         method: GET,

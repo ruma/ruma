@@ -8,9 +8,11 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1querydirectory
 
     use ruma_common::{
-        api::{auth_scheme::ServerSignatures, request, response},
+        api::{request, response},
         metadata, OwnedRoomAliasId, OwnedRoomId, OwnedServerName,
     };
+
+    use crate::authentication::ServerSignatures;
 
     metadata! {
         method: GET,

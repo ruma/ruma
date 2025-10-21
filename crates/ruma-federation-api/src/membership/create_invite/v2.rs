@@ -5,12 +5,12 @@
 #[cfg(feature = "unstable-msc4125")]
 use ruma_common::OwnedServerName;
 use ruma_common::{
-    api::{auth_scheme::ServerSignatures, request, response},
+    api::{request, response},
     metadata, OwnedEventId, OwnedRoomId, RoomVersionId,
 };
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::membership::RawStrippedState;
+use crate::{authentication::ServerSignatures, membership::RawStrippedState};
 
 metadata! {
     method: PUT,

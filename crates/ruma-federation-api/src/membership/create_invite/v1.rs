@@ -3,14 +3,14 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1inviteroomideventid
 
 use ruma_common::{
-    api::{auth_scheme::ServerSignatures, request, response},
+    api::{request, response},
     metadata, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName, OwnedUserId,
 };
 use ruma_events::{room::member::RoomMemberEventContent, StateEventType};
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::membership::RawStrippedState;
+use crate::{authentication::ServerSignatures, membership::RawStrippedState};
 
 metadata! {
     method: PUT,

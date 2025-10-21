@@ -8,9 +8,11 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1state_idsroomid
 
     use ruma_common::{
-        api::{auth_scheme::ServerSignatures, request, response},
+        api::{request, response},
         metadata, OwnedEventId, OwnedRoomId,
     };
+
+    use crate::authentication::ServerSignatures;
 
     metadata! {
         method: GET,

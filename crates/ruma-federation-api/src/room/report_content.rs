@@ -8,9 +8,11 @@ pub mod msc3843 {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3843
 
     use ruma_common::{
-        api::{auth_scheme::ServerSignatures, request, response},
+        api::{request, response},
         metadata, OwnedEventId, OwnedRoomId,
     };
+
+    use crate::authentication::ServerSignatures;
 
     metadata! {
         method: POST,

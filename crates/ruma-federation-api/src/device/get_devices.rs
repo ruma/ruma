@@ -9,13 +9,15 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{auth_scheme::ServerSignatures, request, response},
+        api::{request, response},
         encryption::{CrossSigningKey, DeviceKeys},
         metadata,
         serde::Raw,
         OwnedDeviceId, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
+
+    use crate::authentication::ServerSignatures;
 
     metadata! {
         method: GET,

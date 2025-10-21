@@ -10,12 +10,14 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{auth_scheme::ServerSignatures, request, response},
+        api::{request, response},
         encryption::OneTimeKey,
         metadata,
         serde::Raw,
         OneTimeKeyAlgorithm, OwnedDeviceId, OwnedOneTimeKeyId, OwnedUserId,
     };
+
+    use crate::authentication::ServerSignatures;
 
     metadata! {
         method: POST,

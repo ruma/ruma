@@ -3,10 +3,12 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1make_knockroomiduserid
 
 use ruma_common::{
-    api::{auth_scheme::ServerSignatures, request, response},
+    api::{request, response},
     metadata, OwnedRoomId, OwnedUserId, RoomVersionId,
 };
 use serde_json::value::RawValue as RawJsonValue;
+
+use crate::authentication::ServerSignatures;
 
 metadata! {
     method: GET,
