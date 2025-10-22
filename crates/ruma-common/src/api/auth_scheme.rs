@@ -60,7 +60,9 @@ impl AuthScheme for AccessToken {
         access_token: SendAccessToken<'_>,
     ) -> Result<(), IntoHttpError> {
         let token =
-            access_token.get_required_for_endpoint().ok_or(IntoHttpError::NeedsAuthentication)?;
+            access_token.get_required_for_endpoint().ok_or(IntoHttpError::Authentication(
+                "no access token given, but this endpoint requires one".into(),
+            ))?;
         add_access_token_as_authorization_header(request.headers_mut(), token)
     }
 }
@@ -103,7 +105,9 @@ impl AuthScheme for AppserviceToken {
         access_token: SendAccessToken<'_>,
     ) -> Result<(), IntoHttpError> {
         let token =
-            access_token.get_required_for_appservice().ok_or(IntoHttpError::NeedsAuthentication)?;
+            access_token.get_required_for_appservice().ok_or(IntoHttpError::Authentication(
+                "no access token given, but this endpoint requires one".into(),
+            ))?;
         add_access_token_as_authorization_header(request.headers_mut(), token)
     }
 }

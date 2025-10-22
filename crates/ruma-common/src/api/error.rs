@@ -97,9 +97,9 @@ impl MatrixErrorBody {
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum IntoHttpError {
-    /// Tried to create an authentication request without an access token.
-    #[error("no access token given, but this endpoint requires one")]
-    NeedsAuthentication,
+    /// Failed to add the authentication scheme to the request.
+    #[error("failed to add authentication scheme: {0}")]
+    Authentication(Box<dyn std::error::Error + Send + Sync + 'static>),
 
     /// Tried to create a request with an old enough version, for which no unstable endpoint
     /// exists.

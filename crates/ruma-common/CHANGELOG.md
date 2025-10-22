@@ -46,6 +46,8 @@ Breaking changes:
   renamed to `try_into_http_request_with_identity()` and takes an
   `AppserviceUserIdentity` instead of a `UserId`. This allows to specify a
   device ID, according to MSC4326.
+- `IntoHttpError::NeedsAuthentication` is a newtype variant renamed to
+  `Authentication` that accepts any error type. 
 
 Bug fixes:
 
