@@ -279,7 +279,7 @@ pub trait OutgoingRequest: Metadata + Clone {
     /// The endpoints path will be appended to the given `base_url`, for example
     /// `https://matrix.org`. Since all paths begin with a slash, it is not necessary for the
     /// `base_url` to have a trailing slash. If it has one however, it will be ignored.
-    fn try_into_http_request<T: Default + BufMut>(
+    fn try_into_http_request<T: Default + BufMut + AsRef<[u8]>>(
         self,
         base_url: &str,
         authentication_input: <Self::Authentication as auth_scheme::AuthScheme>::Input<'_>,
@@ -310,7 +310,7 @@ where
 {
     /// Tries to convert this request into an `http::Request` and adds the given
     /// [`AppserviceUserIdentity`] to it, if the identity is not empty.
-    fn try_into_http_request_with_identity<T: Default + BufMut>(
+    fn try_into_http_request_with_identity<T: Default + BufMut + AsRef<[u8]>>(
         self,
         base_url: &str,
         access_token: auth_scheme::SendAccessToken<'_>,

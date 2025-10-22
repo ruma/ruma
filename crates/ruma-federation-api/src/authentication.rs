@@ -3,7 +3,7 @@
 use std::{fmt, str::FromStr};
 
 use headers::authorization::Credentials;
-use http::{HeaderMap, HeaderValue};
+use http::HeaderValue;
 use http_auth::ChallengeParser;
 use ruma_common::{
     api::{auth_scheme::AuthScheme, error::IntoHttpError},
@@ -28,7 +28,10 @@ pub struct ServerSignatures;
 impl AuthScheme for ServerSignatures {
     type Input<'a> = ();
 
-    fn add_authentication(_headers: &mut HeaderMap, _input: ()) -> Result<(), IntoHttpError> {
+    fn add_authentication<T: AsRef<[u8]>>(
+        _request: &mut http::Request<T>,
+        _input: (),
+    ) -> Result<(), IntoHttpError> {
         Ok(())
     }
 }

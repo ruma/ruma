@@ -124,7 +124,7 @@ pub mod v3 {
         type EndpointError = crate::Error;
         type IncomingResponse = Response;
 
-        fn try_into_http_request<T: Default + bytes::BufMut>(
+        fn try_into_http_request<T: Default + bytes::BufMut + AsRef<[u8]>>(
             self,
             base_url: &str,
             access_token: ruma_common::api::auth_scheme::SendAccessToken<'_>,
@@ -134,19 +134,19 @@ pub mod v3 {
 
             let query_string = serde_html_form::to_string(RequestQuery { format: self.format })?;
 
-            let mut http_request_builder =
-                http::Request::builder().method(Self::METHOD).uri(Self::make_endpoint_url(
+            let mut http_request = http::Request::builder()
+                .method(Self::METHOD)
+                .uri(Self::make_endpoint_url(
                     considering,
                     base_url,
                     &[&self.room_id, &self.event_type, &self.state_key],
                     &query_string,
-                )?);
+                )?)
+                .body(T::default())?;
 
-            if let Some(headers) = http_request_builder.headers_mut() {
-                Self::Authentication::add_authentication(headers, access_token)?;
-            }
+            Self::Authentication::add_authentication(&mut http_request, access_token)?;
 
-            Ok(http_request_builder.body(T::default())?)
+            Ok(http_request)
         }
     }
 

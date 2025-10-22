@@ -87,9 +87,14 @@ impl Request {
             }
         }));
 
-        header_kvs.extend(quote! {
-            <<Self as #ruma_common::api::Metadata>::Authentication as #ruma_common::api::auth_scheme::AuthScheme>::add_authentication(req_headers, authentication_input)?;
-        });
+        if !header_kvs.is_empty() {
+            header_kvs = quote! {
+                {
+                    let req_headers = http_request.headers_mut();
+                    #header_kvs
+                }
+            };
+        }
 
         let request_body = if let Some(field) = self.raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
@@ -113,26 +118,25 @@ impl Request {
                 type EndpointError = #error_ty;
                 type IncomingResponse = Response;
 
-                fn try_into_http_request<T: ::std::default::Default + #bytes::BufMut>(
+                fn try_into_http_request<T: ::std::default::Default + #bytes::BufMut + ::std::convert::AsRef<[::std::primitive::u8]>>(
                     self,
                     base_url: &::std::primitive::str,
                     authentication_input: <<Self as #ruma_common::api::Metadata>::Authentication as #ruma_common::api::auth_scheme::AuthScheme>::Input<'_>,
                     path_builder_input: <<Self as #ruma_common::api::Metadata>::PathBuilder as #ruma_common::api::path_builder::PathBuilder>::Input<'_>,
                 ) -> ::std::result::Result<#http::Request<T>, #ruma_common::api::error::IntoHttpError> {
-                    let mut req_builder = #http::Request::builder()
+                    let mut http_request = #http::Request::builder()
                         .method(<Self as #ruma_common::api::Metadata>::METHOD)
                         .uri(<Self as #ruma_common::api::Metadata>::make_endpoint_url(
                             path_builder_input,
                             base_url,
                             &[ #( &self.#path_fields ),* ],
                             #request_query_string,
-                        )?);
+                        )?)
+                        .body(#request_body)?;
 
-                    if let Some(mut req_headers) = req_builder.headers_mut() {
-                        #header_kvs
-                    }
+                    #header_kvs
 
-                    let http_request = req_builder.body(#request_body)?;
+                    <<Self as #ruma_common::api::Metadata>::Authentication as #ruma_common::api::auth_scheme::AuthScheme>::add_authentication(&mut http_request, authentication_input)?;
 
                     Ok(http_request)
                 }
