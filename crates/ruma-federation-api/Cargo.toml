@@ -43,6 +43,7 @@ mime = { version = "0.3.0" }
 rand = { workspace = true, optional = true }
 ruma-common = { workspace = true, features = ["api"] }
 ruma-events = { workspace = true }
+ruma-signatures = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

@@ -66,6 +66,11 @@ impl Signature {
     pub fn version(&self) -> &str {
         self.key_id.key_name().as_ref()
     }
+
+    /// Split this `Signature` into its key identifier and bytes.
+    pub fn into_parts(self) -> (OwnedSigningKeyId<AnyKeyName>, Vec<u8>) {
+        (self.key_id, self.signature)
+    }
 }
 
 #[cfg(test)]
