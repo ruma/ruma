@@ -1,1 +1,2 @@
+mod authentication;
 mod membership;

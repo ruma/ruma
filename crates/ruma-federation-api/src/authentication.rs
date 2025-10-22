@@ -9,16 +9,14 @@ use ruma_common::{
     api::{auth_scheme::AuthScheme, error::IntoHttpError},
     http_headers::quote_ascii_string_if_required,
     serde::{Base64, Base64DecodeError},
-    IdParseError, OwnedServerName, OwnedServerSigningKeyId,
+    CanonicalJsonObject, IdParseError, OwnedServerName, OwnedServerSigningKeyId, ServerName,
 };
+use ruma_signatures::{Ed25519KeyPair, KeyPair};
 use thiserror::Error;
 use tracing::debug;
 
 /// Authentication is performed by adding an `X-Matrix` header including a signature in the request
 /// headers, as defined in the [Matrix Server-Server API][spec].
-///
-/// Currently the `add_authentication` implementation is a noop, and the header must be computed and
-/// added manually.
 ///
 /// [spec]: https://spec.matrix.org/latest/server-server-api/#request-authentication
 #[derive(Debug, Clone, Copy, Default)]
@@ -26,13 +24,41 @@ use tracing::debug;
 pub struct ServerSignatures;
 
 impl AuthScheme for ServerSignatures {
-    type Input<'a> = ();
+    type Input<'a> = ServerSignaturesInput<'a>;
 
     fn add_authentication<T: AsRef<[u8]>>(
-        _request: &mut http::Request<T>,
-        _input: (),
+        request: &mut http::Request<T>,
+        input: ServerSignaturesInput<'_>,
     ) -> Result<(), IntoHttpError> {
+        let authorization = HeaderValue::from(&XMatrix::try_from_http_request(request, input)?);
+        request.headers_mut().insert(http::header::AUTHORIZATION, authorization);
+
         Ok(())
+    }
+}
+
+/// The input necessary to generate the [`ServerSignatures`] authentication scheme.
+#[derive(Debug, Clone)]
+#[non_exhaustive]
+pub struct ServerSignaturesInput<'a> {
+    /// The server making the request.
+    pub origin: OwnedServerName,
+
+    /// The server receiving the request.
+    pub destination: OwnedServerName,
+
+    /// The key pair to use to sign the request.
+    pub key_pair: &'a Ed25519KeyPair,
+}
+
+impl<'a> ServerSignaturesInput<'a> {
+    /// Construct a new `ServerSignaturesInput` with the given origin and key pair.
+    pub fn new(
+        origin: OwnedServerName,
+        destination: OwnedServerName,
+        key_pair: &'a Ed25519KeyPair,
+    ) -> Self {
+        Self { origin, destination, key_pair }
     }
 }
 
@@ -130,6 +156,55 @@ impl XMatrix {
             key: key.ok_or_else(|| XMatrixParseError::MissingParameter("key".to_owned()))?,
             sig: sig.ok_or_else(|| XMatrixParseError::MissingParameter("sig".to_owned()))?,
         })
+    }
+
+    /// Construct the canonical JSON object representation of the request to sign for the `XMatrix`
+    /// scheme.
+    pub fn request_object<T: AsRef<[u8]>>(
+        request: &http::Request<T>,
+        origin: &ServerName,
+        destination: &ServerName,
+    ) -> Result<CanonicalJsonObject, serde_json::Error> {
+        let body = request.body().as_ref();
+        let uri = request.uri().path_and_query().expect("http::Request should have a path");
+
+        let mut request_object = CanonicalJsonObject::from([
+            ("destination".to_owned(), destination.as_str().into()),
+            ("method".to_owned(), request.method().as_str().into()),
+            ("origin".to_owned(), origin.as_str().into()),
+            ("uri".to_owned(), uri.as_str().into()),
+        ]);
+
+        if !body.is_empty() {
+            let content = serde_json::from_slice(body)?;
+            request_object.insert("content".to_owned(), content);
+        }
+
+        Ok(request_object)
+    }
+
+    /// Try to construct this header from the given HTTP request and input.
+    pub fn try_from_http_request<T: AsRef<[u8]>>(
+        request: &http::Request<T>,
+        input: ServerSignaturesInput<'_>,
+    ) -> Result<Self, IntoHttpError> {
+        let ServerSignaturesInput { origin, destination, key_pair } = input;
+
+        let request_object = Self::request_object(request, &origin, &destination)
+            .map_err(|error| IntoHttpError::Authentication(error.into()))?;
+
+        // The spec says to use the algorithm to sign JSON, so we could use
+        // ruma_signatures::sign_json, however since we would need to extract the signature from the
+        // JSON afterwards let's be a bit more efficient about it.
+        let serialized_request_object = serde_json::to_vec(&request_object)
+            .map_err(|error| IntoHttpError::Authentication(error.into()))?;
+        let (key_id, signature) = key_pair.sign(&serialized_request_object).into_parts();
+
+        let key = OwnedServerSigningKeyId::try_from(key_id.as_str())
+            .map_err(|error| IntoHttpError::Authentication(error.into()))?;
+        let sig = Base64::new(signature);
+
+        Ok(Self { origin, destination: Some(destination), key, sig })
     }
 }
 
