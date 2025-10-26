@@ -1,6 +1,7 @@
 #![cfg(feature = "api")]
 #![allow(unreachable_pub)]
 
+mod auth_scheme;
 mod conversions;
 mod default_status;
 mod header_override;

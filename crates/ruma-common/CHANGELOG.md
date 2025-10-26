@@ -65,6 +65,8 @@ Improvements:
 - `PushCondition::ContainsDisplayName` is deprecated, according to MSC4210.
 - Add `SinglePath` as a `PathBuilder`. It should be used for APIs that don't
   have a `/versions` endpoint and for endpoints that can't be versioned.
+- `AuthScheme` data can be extracted from incoming HTTP requests with
+  `AuthScheme::extract_authentication()`.
 
 # 0.16.0
 
