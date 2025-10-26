@@ -17,6 +17,8 @@ Improvements:
 - `XMatrix::request_object()` allows to construct the canonical JSON object to
   sign from a request.
 - `XMatrix` can be constructed from a request with `try_from_http_request()`.
+- The signature in the `sig` field of `XMatrix` can be used to verify a request
+  with `verify_request()`.
 
 # 0.12.0
 

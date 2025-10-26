@@ -3,18 +3,20 @@
 use js_int::uint;
 use ruma_common::{
     api::{auth_scheme::AuthScheme, OutgoingRequest},
-    owned_server_name, MilliSecondsSinceUnixEpoch,
+    owned_server_name,
+    serde::Base64,
+    server_name, MilliSecondsSinceUnixEpoch,
 };
 use ruma_federation_api::{
     authentication::{ServerSignatures, ServerSignaturesInput},
     transactions::send_transaction_message,
 };
-use ruma_signatures::Ed25519KeyPair;
+use ruma_signatures::{Ed25519KeyPair, PublicKeyMap, PublicKeySet};
 
 static PKCS8_ED25519_DER: &[u8] = include_bytes!("../../../ruma-signatures/tests/keys/ed25519.der");
 
 #[test]
-fn server_signatures_add_and_extract_authentication() {
+fn server_signatures_roundtrip() {
     let key_pair = Ed25519KeyPair::from_der(PKCS8_ED25519_DER, "1".to_owned()).unwrap();
     let origin = owned_server_name!("origin.local");
     let destination = owned_server_name!("destination.local");
@@ -36,10 +38,22 @@ fn server_signatures_add_and_extract_authentication() {
     let xmatrix = ServerSignatures::extract_authentication(&http_request).unwrap();
 
     assert_eq!(xmatrix.origin, origin);
-    assert_eq!(xmatrix.destination, Some(destination));
+    assert_eq!(xmatrix.destination.as_ref(), Some(&destination));
     assert_eq!(xmatrix.key, "ed25519:1");
     assert_eq!(
         xmatrix.sig.encode(),
         "hyxb9TkzuQtnqYUo2nOQLhhsWs8yzrObbfBWKGCA0GZnHtniTfY8pTFPu1BmW3O47rRCm2tRODUaJXIYZeJFCQ"
     );
+
+    let public_key_set =
+        PublicKeySet::from([("ed25519:1".to_owned(), Base64::new(key_pair.public_key().to_vec()))]);
+    let public_key_map = PublicKeyMap::from([(origin.to_string(), public_key_set)]);
+
+    // With invalid destination.
+    xmatrix
+        .verify_request(&http_request, server_name!("invalid.local"), &public_key_map)
+        .unwrap_err();
+
+    // With valid destination.
+    xmatrix.verify_request(&http_request, &destination, &public_key_map).unwrap();
 }
