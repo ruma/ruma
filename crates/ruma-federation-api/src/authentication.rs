@@ -26,6 +26,8 @@ pub struct ServerSignatures;
 impl AuthScheme for ServerSignatures {
     type Input<'a> = ServerSignaturesInput<'a>;
     type AddAuthenticationError = XMatrixFromRequestError;
+    type Output = XMatrix;
+    type ExtractAuthenticationError = XMatrixExtractError;
 
     fn add_authentication<T: AsRef<[u8]>>(
         request: &mut http::Request<T>,
@@ -35,6 +37,16 @@ impl AuthScheme for ServerSignatures {
         request.headers_mut().insert(http::header::AUTHORIZATION, authorization);
 
         Ok(())
+    }
+
+    fn extract_authentication<T: AsRef<[u8]>>(
+        request: &http::Request<T>,
+    ) -> Result<Self::Output, Self::ExtractAuthenticationError> {
+        let value = request
+            .headers()
+            .get(http::header::AUTHORIZATION)
+            .ok_or(XMatrixExtractError::MissingAuthorizationHeader)?;
+        Ok(value.try_into()?)
     }
 }
 
@@ -321,6 +333,19 @@ impl<'a> From<http_auth::parser::Error<'a>> for XMatrixParseError {
     fn from(value: http_auth::parser::Error<'a>) -> Self {
         Self::ParseStr(value.to_string())
     }
+}
+
+/// An error when trying to extract an [`XMatrix`] from an HTTP request.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum XMatrixExtractError {
+    /// No Authorization HTTP header was found, but the endpoint requires a server signature.
+    #[error("no Authorization HTTP header found, but this endpoint requires a server signature")]
+    MissingAuthorizationHeader,
+
+    /// Failed to convert the header value to an [`XMatrix`].
+    #[error("failed to parse header value: {0}")]
+    Parse(#[from] XMatrixParseError),
 }
 
 #[cfg(test)]

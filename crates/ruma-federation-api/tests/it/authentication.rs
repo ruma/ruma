@@ -1,9 +1,12 @@
-#![cfg(feature = "client")]
+#![cfg(all(feature = "client", feature = "server"))]
 
 use js_int::uint;
-use ruma_common::{api::OutgoingRequest, owned_server_name, MilliSecondsSinceUnixEpoch};
+use ruma_common::{
+    api::{auth_scheme::AuthScheme, OutgoingRequest},
+    owned_server_name, MilliSecondsSinceUnixEpoch,
+};
 use ruma_federation_api::{
-    authentication::{ServerSignaturesInput, XMatrix},
+    authentication::{ServerSignatures, ServerSignaturesInput},
     transactions::send_transaction_message,
 };
 use ruma_signatures::Ed25519KeyPair;
@@ -11,7 +14,7 @@ use ruma_signatures::Ed25519KeyPair;
 static PKCS8_ED25519_DER: &[u8] = include_bytes!("../../../ruma-signatures/tests/keys/ed25519.der");
 
 #[test]
-fn server_signatures_add_authentication() {
+fn server_signatures_add_and_extract_authentication() {
     let key_pair = Ed25519KeyPair::from_der(PKCS8_ED25519_DER, "1".to_owned()).unwrap();
     let origin = owned_server_name!("origin.local");
     let destination = owned_server_name!("destination.local");
@@ -30,8 +33,7 @@ fn server_signatures_add_authentication() {
         )
         .unwrap();
 
-    let authorization_header = http_request.headers().get(http::header::AUTHORIZATION).unwrap();
-    let xmatrix = XMatrix::try_from(authorization_header).unwrap();
+    let xmatrix = ServerSignatures::extract_authentication(&http_request).unwrap();
 
     assert_eq!(xmatrix.origin, origin);
     assert_eq!(xmatrix.destination, Some(destination));
