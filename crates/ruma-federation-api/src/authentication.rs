@@ -6,7 +6,7 @@ use headers::authorization::Credentials;
 use http::HeaderValue;
 use http_auth::ChallengeParser;
 use ruma_common::{
-    api::{auth_scheme::AuthScheme, error::IntoHttpError},
+    api::auth_scheme::AuthScheme,
     http_headers::quote_ascii_string_if_required,
     serde::{Base64, Base64DecodeError},
     CanonicalJsonObject, IdParseError, OwnedServerName, OwnedServerSigningKeyId, ServerName,
@@ -25,11 +25,12 @@ pub struct ServerSignatures;
 
 impl AuthScheme for ServerSignatures {
     type Input<'a> = ServerSignaturesInput<'a>;
+    type AddAuthenticationError = XMatrixFromRequestError;
 
     fn add_authentication<T: AsRef<[u8]>>(
         request: &mut http::Request<T>,
         input: ServerSignaturesInput<'_>,
-    ) -> Result<(), IntoHttpError> {
+    ) -> Result<(), Self::AddAuthenticationError> {
         let authorization = HeaderValue::from(&XMatrix::try_from_http_request(request, input)?);
         request.headers_mut().insert(http::header::AUTHORIZATION, authorization);
 
@@ -187,21 +188,19 @@ impl XMatrix {
     pub fn try_from_http_request<T: AsRef<[u8]>>(
         request: &http::Request<T>,
         input: ServerSignaturesInput<'_>,
-    ) -> Result<Self, IntoHttpError> {
+    ) -> Result<Self, XMatrixFromRequestError> {
         let ServerSignaturesInput { origin, destination, key_pair } = input;
 
-        let request_object = Self::request_object(request, &origin, &destination)
-            .map_err(|error| IntoHttpError::Authentication(error.into()))?;
+        let request_object = Self::request_object(request, &origin, &destination)?;
 
         // The spec says to use the algorithm to sign JSON, so we could use
         // ruma_signatures::sign_json, however since we would need to extract the signature from the
         // JSON afterwards let's be a bit more efficient about it.
-        let serialized_request_object = serde_json::to_vec(&request_object)
-            .map_err(|error| IntoHttpError::Authentication(error.into()))?;
+        let serialized_request_object = serde_json::to_vec(&request_object)?;
         let (key_id, signature) = key_pair.sign(&serialized_request_object).into_parts();
 
         let key = OwnedServerSigningKeyId::try_from(key_id.as_str())
-            .map_err(|error| IntoHttpError::Authentication(error.into()))?;
+            .map_err(XMatrixFromRequestError::SigningKeyId)?;
         let sig = Base64::new(signature);
 
         Ok(Self { origin, destination: Some(destination), key, sig })
@@ -270,6 +269,19 @@ impl Credentials for XMatrix {
     fn encode(&self) -> HeaderValue {
         self.into()
     }
+}
+
+/// An error when trying to construct an [`XMatrix`] from a [`http::Request`].
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum XMatrixFromRequestError {
+    /// Failed to construct the request object to sign.
+    #[error("failed to construct request object to sign: {0}")]
+    IntoJson(#[from] serde_json::Error),
+
+    /// The signing key ID is invalid.
+    #[error("invalid signing key ID: {0}")]
+    SigningKeyId(IdParseError),
 }
 
 /// An error when trying to parse an X-Matrix Authorization header.
