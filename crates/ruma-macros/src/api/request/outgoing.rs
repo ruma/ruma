@@ -136,7 +136,11 @@ impl Request {
 
                     #header_kvs
 
-                    <<Self as #ruma_common::api::Metadata>::Authentication as #ruma_common::api::auth_scheme::AuthScheme>::add_authentication(&mut http_request, authentication_input)?;
+                    <<Self as #ruma_common::api::Metadata>::Authentication as #ruma_common::api::auth_scheme::AuthScheme>::add_authentication(
+                        &mut http_request,
+                        authentication_input
+                    )
+                        .map_err(|error| #ruma_common::api::error::IntoHttpError::Authentication(error.into()))?;
 
                     Ok(http_request)
                 }

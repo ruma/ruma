@@ -108,7 +108,9 @@ pub mod v3 {
                 .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
                 .body(ruma_common::serde::json_to_buf(&RequestBody { reason: self.reason })?)?;
 
-            Self::Authentication::add_authentication(&mut http_request, access_token)?;
+            Self::Authentication::add_authentication(&mut http_request, access_token).map_err(
+                |error| ruma_common::api::error::IntoHttpError::Authentication(error.into()),
+            )?;
 
             Ok(http_request)
         }

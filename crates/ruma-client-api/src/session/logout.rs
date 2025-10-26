@@ -52,7 +52,9 @@ pub mod v3 {
             let mut http_request =
                 http::Request::builder().method(Self::METHOD).uri(url).body(T::default())?;
 
-            Self::Authentication::add_authentication(&mut http_request, access_token)?;
+            Self::Authentication::add_authentication(&mut http_request, access_token).map_err(
+                |error| ruma_common::api::error::IntoHttpError::Authentication(error.into()),
+            )?;
 
             Ok(http_request)
         }

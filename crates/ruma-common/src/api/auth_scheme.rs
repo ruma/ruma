@@ -6,12 +6,13 @@
 use as_variant::as_variant;
 use http::{header, HeaderMap};
 
-use crate::api::error::IntoHttpError;
-
 /// Trait implemented by types representing an authentication scheme used by an endpoint.
 pub trait AuthScheme: Sized {
     /// The input necessary to generate the authentication.
     type Input<'a>;
+
+    /// The error type returned from [`add_authentication()`](Self::add_authentication).
+    type AddAuthenticationError: Into<Box<dyn std::error::Error + Send + Sync + 'static>>;
 
     /// Add this authentication scheme to the given outgoing request, if necessary.
     ///
@@ -20,7 +21,7 @@ pub trait AuthScheme: Sized {
     fn add_authentication<T: AsRef<[u8]>>(
         request: &mut http::Request<T>,
         input: Self::Input<'_>,
-    ) -> Result<(), IntoHttpError>;
+    ) -> Result<(), Self::AddAuthenticationError>;
 }
 
 /// No authentication is performed.
@@ -32,11 +33,12 @@ pub struct NoAuthentication;
 
 impl AuthScheme for NoAuthentication {
     type Input<'a> = SendAccessToken<'a>;
+    type AddAuthenticationError = header::InvalidHeaderValue;
 
     fn add_authentication<T: AsRef<[u8]>>(
         request: &mut http::Request<T>,
         access_token: SendAccessToken<'_>,
-    ) -> Result<(), IntoHttpError> {
+    ) -> Result<(), Self::AddAuthenticationError> {
         if let Some(access_token) = access_token.get_not_required_for_endpoint() {
             add_access_token_as_authorization_header(request.headers_mut(), access_token)?;
         }
@@ -54,16 +56,16 @@ pub struct AccessToken;
 
 impl AuthScheme for AccessToken {
     type Input<'a> = SendAccessToken<'a>;
+    type AddAuthenticationError = AddRequiredTokenError;
 
     fn add_authentication<T: AsRef<[u8]>>(
         request: &mut http::Request<T>,
         access_token: SendAccessToken<'_>,
-    ) -> Result<(), IntoHttpError> {
-        let token =
-            access_token.get_required_for_endpoint().ok_or(IntoHttpError::Authentication(
-                "no access token given, but this endpoint requires one".into(),
-            ))?;
-        add_access_token_as_authorization_header(request.headers_mut(), token)
+    ) -> Result<(), Self::AddAuthenticationError> {
+        let token = access_token
+            .get_required_for_endpoint()
+            .ok_or(AddRequiredTokenError::MissingAccessToken)?;
+        Ok(add_access_token_as_authorization_header(request.headers_mut(), token)?)
     }
 }
 
@@ -76,11 +78,12 @@ pub struct AccessTokenOptional;
 
 impl AuthScheme for AccessTokenOptional {
     type Input<'a> = SendAccessToken<'a>;
+    type AddAuthenticationError = header::InvalidHeaderValue;
 
     fn add_authentication<T: AsRef<[u8]>>(
         request: &mut http::Request<T>,
         access_token: SendAccessToken<'_>,
-    ) -> Result<(), IntoHttpError> {
+    ) -> Result<(), Self::AddAuthenticationError> {
         if let Some(access_token) = access_token.get_required_for_endpoint() {
             add_access_token_as_authorization_header(request.headers_mut(), access_token)?;
         }
@@ -99,16 +102,16 @@ pub struct AppserviceToken;
 
 impl AuthScheme for AppserviceToken {
     type Input<'a> = SendAccessToken<'a>;
+    type AddAuthenticationError = AddRequiredTokenError;
 
     fn add_authentication<T: AsRef<[u8]>>(
         request: &mut http::Request<T>,
         access_token: SendAccessToken<'_>,
-    ) -> Result<(), IntoHttpError> {
-        let token =
-            access_token.get_required_for_appservice().ok_or(IntoHttpError::Authentication(
-                "no access token given, but this endpoint requires one".into(),
-            ))?;
-        add_access_token_as_authorization_header(request.headers_mut(), token)
+    ) -> Result<(), Self::AddAuthenticationError> {
+        let token = access_token
+            .get_required_for_appservice()
+            .ok_or(AddRequiredTokenError::MissingAccessToken)?;
+        Ok(add_access_token_as_authorization_header(request.headers_mut(), token)?)
     }
 }
 
@@ -122,11 +125,12 @@ pub struct AppserviceTokenOptional;
 
 impl AuthScheme for AppserviceTokenOptional {
     type Input<'a> = SendAccessToken<'a>;
+    type AddAuthenticationError = header::InvalidHeaderValue;
 
     fn add_authentication<T: AsRef<[u8]>>(
         request: &mut http::Request<T>,
         access_token: SendAccessToken<'_>,
-    ) -> Result<(), IntoHttpError> {
+    ) -> Result<(), Self::AddAuthenticationError> {
         if let Some(access_token) = access_token.get_required_for_appservice() {
             add_access_token_as_authorization_header(request.headers_mut(), access_token)?;
         }
@@ -139,7 +143,7 @@ impl AuthScheme for AppserviceTokenOptional {
 fn add_access_token_as_authorization_header(
     headers: &mut HeaderMap,
     token: &str,
-) -> Result<(), IntoHttpError> {
+) -> Result<(), header::InvalidHeaderValue> {
     headers.insert(header::AUTHORIZATION, format!("Bearer {token}").try_into()?);
     Ok(())
 }
@@ -187,4 +191,17 @@ impl<'a> SendAccessToken<'a> {
     pub fn get_required_for_appservice(self) -> Option<&'a str> {
         as_variant!(self, Self::Appservice | Self::Always)
     }
+}
+
+/// An error that can occur when adding an [`AuthScheme`] that requires an access token.
+#[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
+pub enum AddRequiredTokenError {
+    /// No access token was provided, but the endpoint requires one.
+    #[error("no access token provided, but this endpoint requires one")]
+    MissingAccessToken,
+
+    /// Failed to convert the authentication to a header value.
+    #[error(transparent)]
+    IntoHeader(#[from] header::InvalidHeaderValue),
 }
