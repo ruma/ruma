@@ -11,7 +11,7 @@ use ruma_common::{
     serde::{Base64, Base64DecodeError},
     CanonicalJsonObject, IdParseError, OwnedServerName, OwnedServerSigningKeyId, ServerName,
 };
-use ruma_signatures::{Ed25519KeyPair, KeyPair};
+use ruma_signatures::{Ed25519KeyPair, KeyPair, PublicKeyMap};
 use thiserror::Error;
 use tracing::debug;
 
@@ -217,6 +217,33 @@ impl XMatrix {
 
         Ok(Self { origin, destination: Some(destination), key, sig })
     }
+
+    /// Verify that the signature in the `sig` field is valid for the given incoming HTTP request,
+    /// with the given public keys map from the origin.
+    pub fn verify_request<T: AsRef<[u8]>>(
+        &self,
+        request: &http::Request<T>,
+        destination: &ServerName,
+        public_key_map: &PublicKeyMap,
+    ) -> Result<(), XMatrixVerificationError> {
+        if self
+            .destination
+            .as_deref()
+            .is_some_and(|xmatrix_destination| xmatrix_destination != destination)
+        {
+            return Err(XMatrixVerificationError::DestinationMismatch);
+        }
+
+        let mut request_object = Self::request_object(request, &self.origin, destination)
+            .map_err(|error| ruma_signatures::Error::Json(error.into()))?;
+        let entity_signature =
+            CanonicalJsonObject::from([(self.key.to_string(), self.sig.encode().into())]);
+        let signatures =
+            CanonicalJsonObject::from([(self.origin.to_string(), entity_signature.into())]);
+        request_object.insert("signatures".to_owned(), signatures.into());
+
+        Ok(ruma_signatures::verify_json(public_key_map, &request_object)?)
+    }
 }
 
 impl fmt::Debug for XMatrix {
@@ -346,6 +373,19 @@ pub enum XMatrixExtractError {
     /// Failed to convert the header value to an [`XMatrix`].
     #[error("failed to parse header value: {0}")]
     Parse(#[from] XMatrixParseError),
+}
+
+/// An error when trying to verify the signature in an [`XMatrix`] for an HTTP request.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum XMatrixVerificationError {
+    /// The `destination` in [`XMatrix`] doesn't match the one to verify.
+    #[error("destination in XMatrix doesn't match the one to verify")]
+    DestinationMismatch,
+
+    /// The signature verification failed.
+    #[error("signature verification failed: {0}")]
+    Signature(#[from] ruma_signatures::Error),
 }
 
 #[cfg(test)]
