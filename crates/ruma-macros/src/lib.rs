@@ -609,6 +609,29 @@ pub fn base64_public_key(input: TokenStream) -> TokenStream {
 }
 
 /// Derive the `AsRef<str>` trait for an enum.
+///
+/// The enum can contain unit variants, or tuple or struct variants containing a single field
+/// which is a newtype struct around a type implementing `Deref` with a `Target` of `str`.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/ruma_enum_attributes.md"))]
+///
+/// ## Example
+///
+/// ```
+/// # use ruma_macros::AsRefStr;
+/// #[derive(AsRefStr)]
+/// #[ruma_enum(rename_all = "lowercase")]
+/// pub enum MyEnum {
+///     Unit,
+///     #[ruma_enum(rename = "unstable_other_unit")]
+///     OtherUnit,
+///     Struct {
+///         inner: PrivOwnedStr,
+///     },
+///     Tuple(PrivOwnedStr),
+/// }
+///
+/// pub struct PrivOwnedStr(Box<str>);
+/// ```
 #[proc_macro_derive(AsRefStr, attributes(ruma_enum))]
 pub fn derive_enum_as_ref_str(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ItemEnum);
@@ -616,6 +639,39 @@ pub fn derive_enum_as_ref_str(input: TokenStream) -> TokenStream {
 }
 
 /// Derive the `From<T: AsRef<str> + Into<Box<str>>>` trait for an enum.
+///
+/// The enum can contain any number of unit variants, and must contain a single tuple or struct
+/// variant containing a single field which is a newtype struct around a `Box<str>`. This tuple or
+/// struct variant will be used as a fallback to catch any string that doesn't match any of the unit
+/// variants.
+///
+/// The string to convert from must match exactly the expected string representation of a unit
+/// variants to be converted to it. If there is a difference of case, it will match the fallback
+/// variant instead.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/ruma_enum_attributes.md"))]
+/// * `#[ruma_enum(alias = "value")]` - Allow this variant to be converted from a string that is not
+///   its main string representation, which is `value`. This attribute can be used several times to
+///   match more strings.
+///
+/// _Note that for this macro, there is no difference between `rename` and `alias`. It only matters
+/// when used with [`AsRefStr`]._
+///
+/// ## Example
+///
+/// ```
+/// # use ruma_macros::FromString;
+/// #[derive(FromString)]
+/// #[ruma_enum(rename_all = "lowercase")]
+/// pub enum MyEnum {
+///     Unit,
+///     #[ruma_enum(rename = "stable_other_unit", alias = "unstable_other_unit")]
+///     OtherUnit,
+///     #[doc(hidden)]
+///     _Custom(PrivOwnedStr),
+/// }
+///
+/// pub struct PrivOwnedStr(Box<str>);
+/// ```
 #[proc_macro_derive(FromString, attributes(ruma_enum))]
 pub fn derive_enum_from_string(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ItemEnum);
@@ -626,7 +682,7 @@ pub fn derive_enum_from_string(input: TokenStream) -> TokenStream {
 //        generics in the future). They probably shouldn't use `DeriveInput`.
 
 /// Derive the `as_str()` method using the `AsRef<str>` implementation of the type.
-#[proc_macro_derive(AsStrAsRefStr, attributes(ruma_enum))]
+#[proc_macro_derive(AsStrAsRefStr)]
 pub fn derive_as_str_as_ref_str(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     expand_as_str_as_ref_str(&input.ident).unwrap_or_else(syn::Error::into_compile_error).into()
@@ -676,8 +732,49 @@ pub fn derive_eq_as_ref_str(input: TokenStream) -> TokenStream {
     expand_eq_as_ref_str(&input.ident).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
-/// Shorthand for the derives `AsRefStr`, `FromString`, `DisplayAsRefStr`, `DebugAsRefStr`,
-/// `SerializeAsRefStr`, `DeserializeFromCowStr`, `EqAsRefStr` and `OrdAsRefStr`.
+/// Shorthand for the derives [`AsRefStr`], [`FromString`], [`DisplayAsRefStr`], [`DebugAsRefStr`],
+/// [`SerializeAsRefStr`], [`DeserializeFromCowStr`], [`EqAsRefStr`] and [`OrdAsRefStr`].
+///
+/// The enum can contain any number of unit variants, and must contain a single tuple or struct
+/// variant containing a single field which is a newtype struct around a `Box<str>`. This tuple or
+/// struct variant will be used as a fallback to catch any string that doesn't match any of the unit
+/// variants.
+///
+/// This will generate the following implementations:
+///
+/// * `AsRef<str>` to convert variants to their string representation, and the following
+///   implementations based on it:
+///   * `fn as_str(&self) -> &str`
+///   * `fmt::Display`
+///   * `fmt::Debug`
+///   * `Serialize`
+///   * `Ord` and `PartialOrd`
+///   * `Eq` and `PartialEq`
+/// * `From<T: AsRef<str> + Into<Box<str>>>` to convert a string to variants, and a `Deserialize`
+///   implementation based on it. The string to convert from must match exactly the expected string
+///   representation of a unit variants to be converted to it. If there is a difference of case, it
+///   will match the fallback variant instead.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/ruma_enum_attributes.md"))]
+/// * `#[ruma_enum(alias = "value")]` - Allow this variant to be converted from a string that is not
+///   its main string representation, which is `value`. This attribute can be used several times to
+///   match more strings.
+///
+/// ## Example
+///
+/// ```ignore
+/// # // HACK: This is "ignore" because of cyclical dependency drama.
+/// #[derive(StringEnum)]
+/// #[ruma_enum(rename_all = "lowercase")]
+/// pub enum MyEnum {
+///     Unit,
+///     #[ruma_enum(rename = "stable_other_unit", alias = "unstable_other_unit")]
+///     OtherUnit,
+///     #[doc(hidden)]
+///     _Custom(PrivOwnedStr),
+/// }
+///
+/// pub struct PrivOwnedStr(Box<str>);
+/// ```
 #[proc_macro_derive(StringEnum, attributes(ruma_enum))]
 pub fn derive_string_enum(input: TokenStream) -> TokenStream {
     fn expand_all(input: ItemEnum) -> syn::Result<proc_macro2::TokenStream> {
