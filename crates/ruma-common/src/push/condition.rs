@@ -1,6 +1,6 @@
-use std::{collections::BTreeMap, ops::RangeBounds, str::FromStr};
-#[cfg(feature = "unstable-msc4306")]
-use std::{future::Future, panic::RefUnwindSafe, pin::Pin, sync::Arc};
+use std::{
+    collections::BTreeMap, future::Future, ops::RangeBounds, pin::Pin, str::FromStr, sync::Arc,
+};
 
 use js_int::{Int, UInt};
 use regex::bytes::Regex;
@@ -10,12 +10,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::value::Value as JsonValue;
 use wildmatch::WildMatch;
 
-#[cfg(feature = "unstable-msc4306")]
-use crate::EventId;
 use crate::{
     power_levels::{NotificationPowerLevels, NotificationPowerLevelsKey},
     room_version_rules::RoomPowerLevelsRules,
-    OwnedRoomId, OwnedUserId, UserId,
+    EventId, OwnedRoomId, OwnedUserId, UserId,
 };
 #[cfg(feature = "unstable-msc3931")]
 use crate::{PrivOwnedStr, RoomVersionId};
@@ -286,21 +284,27 @@ pub struct PushConditionRoomCtx {
     /// [MSC4306]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
     #[cfg(feature = "unstable-msc4306")]
     has_thread_subscription_fn: Option<Arc<HasThreadSubscriptionFn>>,
+
+    /// When the `unstable-msc4306` feature is enabled with the field above, it changes the auto
+    /// trait implementations of the struct to `!RefUnwindSafe` and `!UnwindSafe`. So we use
+    /// `PhantomData` to keep the same bounds on the field when the feature is disabled, to always
+    /// have the same auto trait implementations.
+    #[cfg(not(feature = "unstable-msc4306"))]
+    has_thread_subscription_fn: std::marker::PhantomData<Arc<HasThreadSubscriptionFn>>,
 }
 
-#[cfg(all(feature = "unstable-msc4306", not(target_family = "wasm")))]
+#[cfg(not(target_family = "wasm"))]
 type HasThreadSubscriptionFuture<'a> = Pin<Box<dyn Future<Output = bool> + Send + 'a>>;
 
-#[cfg(all(feature = "unstable-msc4306", target_family = "wasm"))]
+#[cfg(target_family = "wasm")]
 type HasThreadSubscriptionFuture<'a> = Pin<Box<dyn Future<Output = bool> + 'a>>;
 
-#[cfg(all(feature = "unstable-msc4306", not(target_family = "wasm")))]
+#[cfg(not(target_family = "wasm"))]
 type HasThreadSubscriptionFn =
-    dyn for<'a> Fn(&'a EventId) -> HasThreadSubscriptionFuture<'a> + Send + Sync + RefUnwindSafe;
+    dyn for<'a> Fn(&'a EventId) -> HasThreadSubscriptionFuture<'a> + Send + Sync;
 
-#[cfg(all(feature = "unstable-msc4306", target_family = "wasm"))]
-type HasThreadSubscriptionFn =
-    dyn for<'a> Fn(&'a EventId) -> HasThreadSubscriptionFuture<'a> + RefUnwindSafe;
+#[cfg(target_family = "wasm")]
+type HasThreadSubscriptionFn = dyn for<'a> Fn(&'a EventId) -> HasThreadSubscriptionFuture<'a>;
 
 impl std::fmt::Debug for PushConditionRoomCtx {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -336,8 +340,7 @@ impl PushConditionRoomCtx {
             power_levels: None,
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Vec::new(),
-            #[cfg(feature = "unstable-msc4306")]
-            has_thread_subscription_fn: None,
+            has_thread_subscription_fn: Default::default(),
         }
     }
 
@@ -352,11 +355,9 @@ impl PushConditionRoomCtx {
         has_thread_subscription_fn: impl for<'a> Fn(&'a EventId) -> HasThreadSubscriptionFuture<'a>
             + Send
             + Sync
-            + RefUnwindSafe
             + 'static,
         #[cfg(target_family = "wasm")]
         has_thread_subscription_fn: impl for<'a> Fn(&'a EventId) -> HasThreadSubscriptionFuture<'a>
-            + RefUnwindSafe
             + 'static,
     ) -> Self {
         Self { has_thread_subscription_fn: Some(Arc::new(has_thread_subscription_fn)), ..self }
