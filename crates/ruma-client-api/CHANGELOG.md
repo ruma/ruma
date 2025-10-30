@@ -13,6 +13,9 @@ Breaking changes:
 - Make the `ErrorBody::Standard` variant a newtype around `StandardErrorBody`.
 - `StandardErrorBody` is non-exhaustive. Allowing to add fields in the future
   without it being a breaking change.
+- The `room_id` field of `listen_to_new_events::v3::Request` is required due to
+  a clarification in the specification. The struct doesn't implement `Default`
+  anymore.
 
 Fixes:
 
