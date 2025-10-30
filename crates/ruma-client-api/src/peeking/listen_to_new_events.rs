@@ -29,7 +29,6 @@ pub mod v3 {
 
     /// Request type for the `listen_to_new_events` endpoint.
     #[request(error = crate::Error)]
-    #[derive(Default)]
     pub struct Request {
         /// The token to stream from.
         ///
@@ -39,14 +38,8 @@ pub mod v3 {
         pub from: Option<String>,
 
         /// The room ID for which events should be returned.
-        ///
-        /// This field [should be required], but the spec marks it as optional so it is an
-        /// `Option`.
-        ///
-        /// [should be required]: https://github.com/matrix-org/matrix-spec/issues/2098
         #[ruma_api(query)]
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_id: Option<OwnedRoomId>,
+        pub room_id: OwnedRoomId,
 
         /// The maximum time to wait for an event.
         #[ruma_api(query)]
@@ -61,7 +54,7 @@ pub mod v3 {
     impl Request {
         /// Creates a `Request` for the given room.
         pub fn new(room_id: OwnedRoomId) -> Self {
-            Self { room_id: Some(room_id), ..Default::default() }
+            Self { from: None, room_id, timeout: None }
         }
     }
 
