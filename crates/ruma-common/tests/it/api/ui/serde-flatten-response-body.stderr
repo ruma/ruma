@@ -9,8 +9,13 @@ error[E0277]: the trait bound `Response: IncomingResponse` is not satisfied
   --> tests/it/api/ui/serde-flatten-response-body.rs:23:1
    |
 23 | #[request]
-   | ^^^^^^^^^^ the trait `IncomingResponse` is not implemented for `Response`
+   | ^^^^^^^^^^ unsatisfied trait bound
    |
+help: the trait `IncomingResponse` is not implemented for `Response`
+  --> tests/it/api/ui/serde-flatten-response-body.rs:27:1
+   |
+27 | pub struct Response {
+   | ^^^^^^^^^^^^^^^^^^^
 note: required by a bound in `ruma_common::api::OutgoingRequest::IncomingResponse`
   --> src/api.rs
    |
@@ -22,8 +27,13 @@ error[E0277]: the trait bound `Response: OutgoingResponse` is not satisfied
   --> tests/it/api/ui/serde-flatten-response-body.rs:23:1
    |
 23 | #[request]
-   | ^^^^^^^^^^ the trait `OutgoingResponse` is not implemented for `Response`
+   | ^^^^^^^^^^ unsatisfied trait bound
    |
+help: the trait `OutgoingResponse` is not implemented for `Response`
+  --> tests/it/api/ui/serde-flatten-response-body.rs:27:1
+   |
+27 | pub struct Response {
+   | ^^^^^^^^^^^^^^^^^^^
    = help: the trait `OutgoingResponse` is implemented for `MatrixError`
 note: required by a bound in `ruma_common::api::IncomingRequest::OutgoingResponse`
   --> src/api.rs
