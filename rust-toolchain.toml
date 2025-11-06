@@ -1,5 +1,5 @@
 [toolchain]
 # Keep in sync with version in `xtask/src/main.rs` and `.github/workflows/ci.yml`
-channel = "nightly-2025-10-01"
+channel = "nightly-2025-11-06"
 components = ["rustfmt", "clippy"]
 targets = ["wasm32-unknown-unknown"]
