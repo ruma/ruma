@@ -489,7 +489,7 @@ Deprecation of the crate. It is now part of ruma-common 0.9.0.
 
 Breaking changes:
 
-* Bump versions of `ruma-common`, `ruma-idenfiers`
+* Bump versions of `ruma-common`, `ruma-identifiers`
 
 # 0.25.0
 
