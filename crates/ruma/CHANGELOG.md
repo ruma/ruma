@@ -1,5 +1,7 @@
 # [unreleased]
 
+- Bump MSRV to 1.85
+
 # 0.13.0
 
 - The deprecated global `compat` cargo feature was removed. The `compat-*` cargo

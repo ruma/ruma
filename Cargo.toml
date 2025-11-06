@@ -5,7 +5,8 @@ default-members = ["crates/*"]
 resolver = "2"
 
 [workspace.package]
-rust-version = "1.82"
+# Keep in sync with README.md, xtask/src/ci.rs and .github/workflows/ci.yml
+rust-version = "1.85"
 
 [workspace.dependencies]
 as_variant = "1.2.0"
