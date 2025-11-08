@@ -7,13 +7,13 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/latest/push-gateway-api/#post_matrixpushv1notify
 
-    use js_int::{uint, UInt};
+    use js_int::{UInt, uint};
     use ruma_common::{
+        OwnedEventId, OwnedRoomAliasId, OwnedRoomId, OwnedUserId, SecondsSinceUnixEpoch,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         push::{PushFormat, Tweak},
         serde::{JsonObject, StringEnum},
-        OwnedEventId, OwnedRoomAliasId, OwnedRoomId, OwnedUserId, SecondsSinceUnixEpoch,
     };
     use ruma_events::TimelineEventType;
     use serde::{Deserialize, Serialize};
@@ -272,9 +272,9 @@ pub mod v1 {
 
         use ruma_common::push::Tweak;
         use serde::{
+            Deserializer, Serializer,
             de::{MapAccess, Visitor},
             ser::SerializeMap,
-            Deserializer, Serializer,
         };
 
         pub(super) fn serialize<S>(tweak: &[Tweak], serializer: S) -> Result<S::Ok, S::Error>
@@ -344,12 +344,12 @@ pub mod v1 {
     mod tests {
         use js_int::uint;
         use ruma_common::{
-            owned_event_id, owned_room_alias_id, owned_room_id, owned_user_id,
-            SecondsSinceUnixEpoch,
+            SecondsSinceUnixEpoch, owned_event_id, owned_room_alias_id, owned_room_id,
+            owned_user_id,
         };
         use ruma_events::TimelineEventType;
         use serde_json::{
-            from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
+            Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
         };
 
         use super::{Device, Notification, NotificationCounts, NotificationPriority, Tweak};
