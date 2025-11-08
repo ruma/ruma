@@ -15,18 +15,18 @@ pub mod v1 {
     use js_int::UInt;
     #[cfg(feature = "unstable-msc3202")]
     use ruma_common::OwnedUserId;
-    use ruma_common::{
-        api::{auth_scheme::AccessToken, request, response},
-        metadata,
-        serde::{from_raw_json_value, JsonObject, Raw},
-        OwnedTransactionId,
-    };
     #[cfg(feature = "unstable-msc3202")]
     use ruma_common::{OneTimeKeyAlgorithm, OwnedDeviceId};
+    use ruma_common::{
+        OwnedTransactionId,
+        api::{auth_scheme::AccessToken, request, response},
+        metadata,
+        serde::{JsonObject, Raw, from_raw_json_value},
+    };
     #[cfg(feature = "unstable-msc4203")]
     use ruma_events::AnyToDeviceEvent;
     use ruma_events::{
-        presence::PresenceEvent, receipt::ReceiptEvent, typing::TypingEvent, AnyTimelineEvent,
+        AnyTimelineEvent, presence::PresenceEvent, receipt::ReceiptEvent, typing::TypingEvent,
     };
     use serde::{Deserialize, Deserializer, Serialize};
     use serde_json::value::{RawValue as RawJsonValue, Value as JsonValue};
@@ -255,7 +255,7 @@ pub mod v1 {
     mod tests {
         use assert_matches2::assert_matches;
         use js_int::uint;
-        use ruma_common::{event_id, room_id, user_id, MilliSecondsSinceUnixEpoch};
+        use ruma_common::{MilliSecondsSinceUnixEpoch, event_id, room_id, user_id};
         use ruma_events::receipt::ReceiptType;
         use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -264,7 +264,7 @@ pub mod v1 {
         #[cfg(feature = "client")]
         #[test]
         fn request_contains_events_field() {
-            use ruma_common::api::{auth_scheme::SendAccessToken, OutgoingRequest};
+            use ruma_common::api::{OutgoingRequest, auth_scheme::SendAccessToken};
 
             let dummy_event_json = json!({
                 "type": "m.room.message",
