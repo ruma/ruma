@@ -301,8 +301,8 @@ mod tests {
     use ruma_common::http_headers::{ContentDisposition, ContentDispositionType};
 
     use super::{
-        try_from_multipart_mixed_response, try_into_multipart_mixed_response, Content,
-        ContentMetadata, FileOrLocation,
+        Content, ContentMetadata, FileOrLocation, try_from_multipart_mixed_response,
+        try_into_multipart_mixed_response,
     };
 
     #[test]

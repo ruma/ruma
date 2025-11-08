@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use js_int::UInt;
 use ruma_common::{
-    api::{path_builder::SinglePath, request, Metadata},
+    api::{Metadata, path_builder::SinglePath, request},
     media::Method,
 };
 

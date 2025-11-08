@@ -2,10 +2,11 @@
 
 use js_int::uint;
 use ruma_common::{
-    api::{auth_scheme::AuthScheme, OutgoingRequest},
+    MilliSecondsSinceUnixEpoch,
+    api::{OutgoingRequest, auth_scheme::AuthScheme},
     owned_server_name,
     serde::Base64,
-    server_name, MilliSecondsSinceUnixEpoch,
+    server_name,
 };
 use ruma_federation_api::{
     authentication::{ServerSignatures, ServerSignaturesInput},

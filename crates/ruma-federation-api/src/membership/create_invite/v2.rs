@@ -5,8 +5,9 @@
 #[cfg(feature = "unstable-msc4125")]
 use ruma_common::OwnedServerName;
 use ruma_common::{
+    OwnedEventId, OwnedRoomId, RoomVersionId,
     api::{request, response},
-    metadata, OwnedEventId, OwnedRoomId, RoomVersionId,
+    metadata,
 };
 use serde_json::value::RawValue as RawJsonValue;
 

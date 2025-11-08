@@ -3,8 +3,8 @@
 use std::collections::BTreeMap;
 
 use ruma_common::{
-    serde::Base64, MilliSecondsSinceUnixEpoch, OwnedServerName, OwnedServerSigningKeyId,
-    ServerSignatures,
+    MilliSecondsSinceUnixEpoch, OwnedServerName, OwnedServerSigningKeyId, ServerSignatures,
+    serde::Base64,
 };
 use serde::{Deserialize, Serialize};
 

@@ -3,8 +3,9 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1make_knockroomiduserid
 
 use ruma_common::{
+    OwnedRoomId, OwnedUserId, RoomVersionId,
     api::{request, response},
-    metadata, OwnedRoomId, OwnedUserId, RoomVersionId,
+    metadata,
 };
 use serde_json::value::RawValue as RawJsonValue;
 

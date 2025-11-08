@@ -4,7 +4,7 @@
 
 use std::time::Duration;
 
-use ruma_common::api::{path_builder::SinglePath, request, Metadata};
+use ruma_common::api::{Metadata, path_builder::SinglePath, request};
 
 use crate::authenticated_media::{ContentMetadata, FileOrLocation};
 

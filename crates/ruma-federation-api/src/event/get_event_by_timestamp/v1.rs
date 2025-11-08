@@ -3,8 +3,9 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1timestamp_to_eventroomid
 
 use ruma_common::{
-    api::{request, response, Direction},
-    metadata, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
+    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
+    api::{Direction, request, response},
+    metadata,
 };
 
 use crate::authentication::ServerSignatures;

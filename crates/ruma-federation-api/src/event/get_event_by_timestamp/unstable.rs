@@ -3,8 +3,8 @@
 //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3030
 
 use ruma_common::{
-    api::{path_builder::SinglePath, request, response, Direction, Metadata},
     MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
+    api::{Direction, Metadata, path_builder::SinglePath, request, response},
 };
 
 /// Request type for the `get_event_by_timestamp` endpoint.

@@ -12,17 +12,17 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1exchange_third_party_inviteroomid
 
     use ruma_common::{
+        OwnedRoomId, OwnedUserId,
         api::{request, response},
         metadata,
         serde::Raw,
-        OwnedRoomId, OwnedUserId,
     };
     use ruma_events::{
+        StateEventType,
         room::{
             member::{MembershipState, RoomMemberEventContent, ThirdPartyInvite},
             third_party_invite::RoomThirdPartyInviteEventContent,
         },
-        StateEventType,
     };
 
     use crate::{authentication::ServerSignatures, thirdparty::bind_callback};
