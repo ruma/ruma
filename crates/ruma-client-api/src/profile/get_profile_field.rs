@@ -16,13 +16,14 @@ pub mod v3 {
     use std::marker::PhantomData;
 
     use ruma_common::{
-        api::{auth_scheme::NoAuthentication, path_builder::VersionHistory, Metadata},
-        metadata, OwnedUserId,
+        OwnedUserId,
+        api::{Metadata, auth_scheme::NoAuthentication, path_builder::VersionHistory},
+        metadata,
     };
 
     use crate::profile::{
-        profile_field_serde::StaticProfileFieldVisitor, ProfileFieldName, ProfileFieldValue,
-        StaticProfileField,
+        ProfileFieldName, ProfileFieldValue, StaticProfileField,
+        profile_field_serde::StaticProfileFieldVisitor,
     };
 
     metadata! {
@@ -280,7 +281,7 @@ pub mod v3 {
 mod tests {
     use ruma_common::{owned_mxc_uri, owned_user_id};
     use serde_json::{
-        from_slice as from_json_slice, json, to_vec as to_json_vec, Value as JsonValue,
+        Value as JsonValue, from_slice as from_json_slice, json, to_vec as to_json_vec,
     };
 
     use super::v3::{Request, RequestStatic, Response};
@@ -291,7 +292,7 @@ mod tests {
     fn serialize_request() {
         use std::borrow::Cow;
 
-        use ruma_common::api::{auth_scheme::SendAccessToken, OutgoingRequest, SupportedVersions};
+        use ruma_common::api::{OutgoingRequest, SupportedVersions, auth_scheme::SendAccessToken};
 
         // Profile field that existed in Matrix 1.0.
         let avatar_url_request =

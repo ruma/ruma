@@ -1,7 +1,7 @@
 #![allow(clippy::exhaustive_structs)]
 
 use ruma_common::OwnedMxcUri;
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 
 /// Trait implemented by types representing a field in a user's [profile] having a statically-known
 /// name.

@@ -389,7 +389,7 @@ pub mod v1 {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{from_value as from_json_value, json, Value as JsonValue};
+    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
     use url::Url;
 
     use super::v1::AuthorizationServerMetadata;

@@ -3,15 +3,15 @@
 use std::borrow::Cow;
 
 use ruma_common::{
+    OwnedMxcUri,
     api::{
-        path_builder::{StablePathSelector, VersionHistory},
         MatrixVersion,
+        path_builder::{StablePathSelector, VersionHistory},
     },
     serde::StringEnum,
-    OwnedMxcUri,
 };
 use serde::Serialize;
-use serde_json::{from_value as from_json_value, to_value as to_json_value, Value as JsonValue};
+use serde_json::{Value as JsonValue, from_value as from_json_value, to_value as to_json_value};
 
 pub mod delete_profile_field;
 pub mod get_avatar_url;

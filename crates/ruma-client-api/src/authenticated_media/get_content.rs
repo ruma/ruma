@@ -11,9 +11,10 @@ pub mod v1 {
 
     use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
     use ruma_common::{
+        IdParseError, MxcUri, OwnedServerName,
         api::{auth_scheme::AccessToken, request, response},
         http_headers::ContentDisposition,
-        metadata, IdParseError, MxcUri, OwnedServerName,
+        metadata,
     };
 
     metadata! {

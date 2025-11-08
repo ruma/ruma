@@ -19,8 +19,8 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_common::{
-    serde::{Base64, Raw},
     CrossSigningOrDeviceSignatures,
+    serde::{Base64, Raw},
 };
 use serde::{Deserialize, Serialize};
 

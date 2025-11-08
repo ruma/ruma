@@ -8,11 +8,12 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixmediav3preview_url
 
     use ruma_common::{
+        MilliSecondsSinceUnixEpoch,
         api::{auth_scheme::AccessToken, request, response},
-        metadata, MilliSecondsSinceUnixEpoch,
+        metadata,
     };
     use serde::Serialize;
-    use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue};
+    use serde_json::value::{RawValue as RawJsonValue, to_raw_value as to_raw_json_value};
 
     metadata! {
         method: GET,
@@ -86,7 +87,7 @@ pub mod v3 {
         use assert_matches2::assert_matches;
         use serde_json::{
             from_value as from_json_value, json,
-            value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue},
+            value::{RawValue as RawJsonValue, to_raw_value as to_raw_json_value},
         };
 
         // Since BTreeMap<String, Box<RawJsonValue>> deserialization doesn't seem to

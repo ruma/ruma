@@ -14,8 +14,8 @@ pub mod v3 {
         metadata,
         serde::Raw,
     };
-    use serde::{ser, Deserialize, Deserializer, Serialize};
-    use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue};
+    use serde::{Deserialize, Deserializer, Serialize, ser};
+    use serde_json::value::{RawValue as RawJsonValue, to_raw_value as to_raw_json_value};
 
     use crate::backup::BackupAlgorithm;
 

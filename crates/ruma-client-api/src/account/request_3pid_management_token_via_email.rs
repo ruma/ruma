@@ -9,8 +9,9 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
+        OwnedClientSecret, OwnedSessionId,
         api::{auth_scheme::NoAuthentication, request, response},
-        metadata, OwnedClientSecret, OwnedSessionId,
+        metadata,
     };
 
     use crate::account::IdentityServerInfo;

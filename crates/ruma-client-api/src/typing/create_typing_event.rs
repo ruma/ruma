@@ -10,10 +10,11 @@ pub mod v3 {
     use std::time::Duration;
 
     use ruma_common::{
+        OwnedRoomId, OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
-        metadata, OwnedRoomId, OwnedUserId,
+        metadata,
     };
-    use serde::{de::Error, Deserialize, Deserializer, Serialize};
+    use serde::{Deserialize, Deserializer, Serialize, de::Error};
 
     metadata! {
         method: PUT,

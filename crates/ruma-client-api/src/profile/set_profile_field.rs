@@ -14,11 +14,12 @@ pub mod v3 {
     //! [`set_display_name`]: crate::profile::set_display_name
 
     use ruma_common::{
-        api::{auth_scheme::AccessToken, response, Metadata},
-        metadata, OwnedUserId,
+        OwnedUserId,
+        api::{Metadata, auth_scheme::AccessToken, response},
+        metadata,
     };
 
-    use crate::profile::{profile_field_serde::ProfileFieldValueVisitor, ProfileFieldValue};
+    use crate::profile::{ProfileFieldValue, profile_field_serde::ProfileFieldValueVisitor};
 
     metadata! {
         method: PUT,
@@ -143,7 +144,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use ruma_common::{owned_mxc_uri, owned_user_id};
     use serde_json::{
-        from_slice as from_json_slice, json, to_vec as to_json_vec, Value as JsonValue,
+        Value as JsonValue, from_slice as from_json_slice, json, to_vec as to_json_vec,
     };
 
     use super::v3::Request;
@@ -155,7 +156,7 @@ mod tests {
         use std::borrow::Cow;
 
         use http::header;
-        use ruma_common::api::{auth_scheme::SendAccessToken, OutgoingRequest, SupportedVersions};
+        use ruma_common::api::{OutgoingRequest, SupportedVersions, auth_scheme::SendAccessToken};
 
         // Profile field that existed in Matrix 1.0.
         let avatar_url_request = Request::new(

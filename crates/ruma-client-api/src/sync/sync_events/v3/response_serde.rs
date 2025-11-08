@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 #[cfg(feature = "unstable-msc2654")]
 use js_int::UInt;
-use ruma_common::{serde::from_raw_json_value, OwnedEventId};
+use ruma_common::{OwnedEventId, serde::from_raw_json_value};
 use serde::{Deserialize, Deserializer};
 use serde_json::value::RawValue as RawJsonValue;
 

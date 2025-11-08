@@ -7,16 +7,16 @@ use std::{collections::BTreeMap, time::Duration};
 use as_variant::as_variant;
 use js_int::UInt;
 use ruma_common::{
+    OneTimeKeyAlgorithm, OwnedEventId, OwnedRoomId, OwnedUserId,
     api::{auth_scheme::AccessToken, request, response},
     metadata,
     presence::PresenceState,
     serde::Raw,
-    OneTimeKeyAlgorithm, OwnedEventId, OwnedRoomId, OwnedUserId,
 };
 use ruma_events::{
-    presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
-    AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncStateEvent, AnySyncTimelineEvent,
-    AnyToDeviceEvent,
+    AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent, AnyStrippedStateEvent,
+    AnySyncEphemeralRoomEvent, AnySyncStateEvent, AnySyncTimelineEvent, AnyToDeviceEvent,
+    presence::PresenceEvent,
 };
 use serde::{Deserialize, Serialize};
 
@@ -712,14 +712,15 @@ mod client_tests {
 
     use assert_matches2::assert_matches;
     use ruma_common::{
+        RoomVersionId,
         api::{
-            auth_scheme::SendAccessToken, IncomingResponse as _, MatrixVersion,
-            OutgoingRequest as _, SupportedVersions,
+            IncomingResponse as _, MatrixVersion, OutgoingRequest as _, SupportedVersions,
+            auth_scheme::SendAccessToken,
         },
-        event_id, room_id, user_id, RoomVersionId,
+        event_id, room_id, user_id,
     };
     use ruma_events::AnyStrippedStateEvent;
-    use serde_json::{json, to_vec as to_json_vec, Value as JsonValue};
+    use serde_json::{Value as JsonValue, json, to_vec as to_json_vec};
 
     use super::{Filter, PresenceState, Request, Response, State};
 
@@ -1011,7 +1012,7 @@ mod server_tests {
         serde::Raw,
     };
     use ruma_events::AnySyncStateEvent;
-    use serde_json::{from_slice as from_json_slice, json, Value as JsonValue};
+    use serde_json::{Value as JsonValue, from_slice as from_json_slice, json};
 
     use super::{Filter, JoinedRoom, LeftRoom, Request, Response, State};
 

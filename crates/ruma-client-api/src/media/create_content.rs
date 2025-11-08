@@ -9,8 +9,9 @@ pub mod v3 {
 
     use http::header::CONTENT_TYPE;
     use ruma_common::{
+        OwnedMxcUri,
         api::{auth_scheme::AccessToken, request, response},
-        metadata, OwnedMxcUri,
+        metadata,
     };
 
     metadata! {

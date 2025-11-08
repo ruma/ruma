@@ -12,11 +12,11 @@ use std::{collections::BTreeMap, time::Duration};
 use js_int::UInt;
 use js_option::JsOption;
 use ruma_common::{
+    OwnedMxcUri, OwnedRoomId, OwnedUserId,
     api::{auth_scheme::AccessToken, request, response},
     metadata,
     presence::PresenceState,
-    serde::{duration::opt_ms, Raw},
-    OwnedMxcUri, OwnedRoomId, OwnedUserId,
+    serde::{Raw, duration::opt_ms},
 };
 use ruma_events::{AnySyncStateEvent, AnySyncTimelineEvent, StateEventType};
 use serde::{Deserialize, Serialize};
@@ -103,7 +103,7 @@ impl Request {
 
 /// HTTP types related to a [`Request`].
 pub mod request {
-    use ruma_common::{directory::RoomTypeFilter, serde::deserialize_cow_str, RoomId};
+    use ruma_common::{RoomId, directory::RoomTypeFilter, serde::deserialize_cow_str};
     use serde::de::Error as _;
 
     use super::{BTreeMap, Deserialize, OwnedRoomId, Serialize, StateEventType, UInt};
@@ -490,8 +490,8 @@ pub mod response {
     #[cfg(feature = "unstable-msc4308")]
     use ruma_common::OwnedEventId;
     use ruma_events::{
-        receipt::SyncReceiptEvent, typing::SyncTypingEvent, AnyGlobalAccountDataEvent,
-        AnyRoomAccountDataEvent, AnyStrippedStateEvent, AnyToDeviceEvent,
+        AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent, AnyStrippedStateEvent,
+        AnyToDeviceEvent, receipt::SyncReceiptEvent, typing::SyncTypingEvent,
     };
 
     use super::{

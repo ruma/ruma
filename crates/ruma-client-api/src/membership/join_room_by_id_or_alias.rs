@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3joinroomidoralias
 
     use ruma_common::{
-        api::{auth_scheme::AccessToken, response, Metadata},
-        metadata, OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName,
+        OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName,
+        api::{Metadata, auth_scheme::AccessToken, response},
+        metadata,
     };
 
     use crate::membership::ThirdPartySigned;
@@ -200,8 +201,8 @@ pub mod v3 {
 
         use ruma_common::{
             api::{
-                auth_scheme::SendAccessToken, IncomingRequest as _, MatrixVersion, OutgoingRequest,
-                SupportedVersions,
+                IncomingRequest as _, MatrixVersion, OutgoingRequest, SupportedVersions,
+                auth_scheme::SendAccessToken,
             },
             owned_room_id, owned_server_name,
         };

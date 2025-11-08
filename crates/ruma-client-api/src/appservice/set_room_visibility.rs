@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/application-service-api/#put_matrixclientv3directorylistappservicenetworkidroomid
 
     use ruma_common::{
+        OwnedRoomId,
         api::{auth_scheme::AppserviceToken, request, response},
-        metadata, OwnedRoomId,
+        metadata,
     };
 
     use crate::room::Visibility;

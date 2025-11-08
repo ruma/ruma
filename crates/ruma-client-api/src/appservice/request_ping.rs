@@ -10,8 +10,9 @@ pub mod v1 {
     use std::time::Duration;
 
     use ruma_common::{
+        OwnedTransactionId,
         api::{auth_scheme::AppserviceToken, request, response},
-        metadata, OwnedTransactionId,
+        metadata,
     };
 
     metadata! {

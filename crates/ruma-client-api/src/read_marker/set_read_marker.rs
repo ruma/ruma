@@ -13,8 +13,9 @@ pub mod v3 {
     //! [`create_receipt`]: crate::receipt::create_receipt
 
     use ruma_common::{
+        OwnedEventId, OwnedRoomId,
         api::{auth_scheme::AccessToken, request, response},
-        metadata, OwnedEventId, OwnedRoomId,
+        metadata,
     };
 
     metadata! {

@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3useruseridfilterfilterid
 
     use ruma_common::{
+        OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
-        metadata, OwnedUserId,
+        metadata,
     };
 
     use crate::filter::FilterDefinition;

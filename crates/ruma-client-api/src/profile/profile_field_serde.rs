@@ -1,6 +1,6 @@
 use std::{borrow::Cow, fmt, marker::PhantomData};
 
-use serde::{de, ser::SerializeMap, Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize, Serializer, de, ser::SerializeMap};
 
 use super::{CustomProfileFieldValue, ProfileFieldName, ProfileFieldValue, StaticProfileField};
 

@@ -7,7 +7,7 @@
 use std::collections::BTreeMap;
 
 use ruma_common::{
-    api::{auth_scheme::AccessTokenOptional, request, response, SupportedVersions},
+    api::{SupportedVersions, auth_scheme::AccessTokenOptional, request, response},
     metadata,
 };
 

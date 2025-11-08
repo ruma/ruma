@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3roomsroomidjoin
 
     use ruma_common::{
+        OwnedRoomId,
         api::{auth_scheme::AccessToken, request, response},
-        metadata, OwnedRoomId,
+        metadata,
     };
 
     use crate::membership::ThirdPartySigned;

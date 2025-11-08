@@ -109,8 +109,8 @@ pub mod v3 {
         ) -> Result<Self, ruma_common::api::error::FromHttpResponseError<Self::EndpointError>>
         {
             use ruma_common::api::{
-                error::{DeserializationError, FromHttpResponseError, HeaderDeserializationError},
                 EndpointError,
+                error::{DeserializationError, FromHttpResponseError, HeaderDeserializationError},
             };
 
             if response.status().as_u16() >= 400 {

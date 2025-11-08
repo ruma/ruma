@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3roomsroomidunban
 
     use ruma_common::{
+        OwnedRoomId, OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
-        metadata, OwnedRoomId, OwnedUserId,
+        metadata,
     };
 
     metadata! {

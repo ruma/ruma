@@ -5,11 +5,11 @@
 use std::{collections::BTreeMap, time::Duration};
 
 use ruma_common::{
+    OneTimeKeyAlgorithm, OwnedDeviceId, OwnedOneTimeKeyId, OwnedUserId,
     api::{auth_scheme::AccessToken, request, response},
     encryption::OneTimeKey,
     metadata,
     serde::Raw,
-    OneTimeKeyAlgorithm, OwnedDeviceId, OwnedOneTimeKeyId, OwnedUserId,
 };
 use serde_json::Value as JsonValue;
 

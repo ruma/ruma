@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3directorylistroomroomid
 
     use ruma_common::{
+        OwnedRoomId,
         api::{auth_scheme::NoAuthentication, request, response},
-        metadata, OwnedRoomId,
+        metadata,
     };
 
     use crate::room::Visibility;

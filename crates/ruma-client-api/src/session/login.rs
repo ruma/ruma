@@ -10,14 +10,14 @@ pub mod v3 {
     use std::{fmt, time::Duration};
 
     use ruma_common::{
+        OwnedDeviceId, OwnedServerName, OwnedUserId,
         api::{auth_scheme::AppserviceTokenOptional, request, response},
         metadata,
         serde::JsonObject,
-        OwnedDeviceId, OwnedServerName, OwnedUserId,
     };
     use serde::{
-        de::{self, DeserializeOwned},
         Deserialize, Deserializer, Serialize,
+        de::{self, DeserializeOwned},
     };
     use serde_json::Value as JsonValue;
 
@@ -438,7 +438,7 @@ pub mod v3 {
             use std::borrow::Cow;
 
             use ruma_common::api::{
-                auth_scheme::SendAccessToken, MatrixVersion, OutgoingRequest, SupportedVersions,
+                MatrixVersion, OutgoingRequest, SupportedVersions, auth_scheme::SendAccessToken,
             };
             use serde_json::Value as JsonValue;
 

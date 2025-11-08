@@ -10,11 +10,11 @@ pub mod v3 {
     use std::{collections::BTreeMap, time::Duration};
 
     use ruma_common::{
+        OwnedDeviceId, OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
         encryption::{CrossSigningKey, DeviceKeys},
         metadata,
         serde::Raw,
-        OwnedDeviceId, OwnedUserId,
     };
     use serde_json::Value as JsonValue;
 

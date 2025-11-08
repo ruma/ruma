@@ -10,8 +10,9 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
+        MilliSecondsSinceUnixEpoch, OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
-        metadata, MilliSecondsSinceUnixEpoch, OwnedUserId,
+        metadata,
     };
     use serde::{Deserialize, Serialize};
 

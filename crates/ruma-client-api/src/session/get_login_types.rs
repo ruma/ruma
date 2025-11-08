@@ -11,12 +11,12 @@ pub mod v3 {
     use std::borrow::Cow;
 
     use ruma_common::{
+        OwnedMxcUri,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         serde::{JsonObject, StringEnum},
-        OwnedMxcUri,
     };
-    use serde::{de::DeserializeOwned, Deserialize, Serialize};
+    use serde::{Deserialize, Serialize, de::DeserializeOwned};
     use serde_json::Value as JsonValue;
 
     use crate::PrivOwnedStr;
@@ -288,7 +288,7 @@ pub mod v3 {
 
     mod login_type_serde {
         use ruma_common::serde::from_raw_json_value;
-        use serde::{de, Deserialize};
+        use serde::{Deserialize, de};
         use serde_json::value::RawValue as RawJsonValue;
 
         use super::LoginType;
@@ -328,7 +328,7 @@ pub mod v3 {
         use ruma_common::mxc_uri;
         use serde::{Deserialize, Serialize};
         use serde_json::{
-            from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
+            Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
         };
 
         use super::{

@@ -2,7 +2,7 @@
 //! in the parent module.
 
 use ruma_common::{serde::from_raw_json_value, thirdparty::Medium};
-use serde::{de, ser::SerializeStruct, Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, de, ser::SerializeStruct};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{CustomThirdPartyId, UserIdentifier};

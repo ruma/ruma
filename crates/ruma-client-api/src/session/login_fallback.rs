@@ -5,8 +5,9 @@
 //! [spec]: https://spec.matrix.org/latest/client-server-api/#login-fallback
 
 use ruma_common::{
+    OwnedDeviceId,
     api::{auth_scheme::NoAuthentication, request},
-    metadata, OwnedDeviceId,
+    metadata,
 };
 
 metadata! {
@@ -77,7 +78,7 @@ impl ruma_common::api::IncomingResponse for Response {
     fn try_from_http_response<T: AsRef<[u8]>>(
         response: http::Response<T>,
     ) -> Result<Self, ruma_common::api::error::FromHttpResponseError<Self::EndpointError>> {
-        use ruma_common::api::{error::FromHttpResponseError, EndpointError};
+        use ruma_common::api::{EndpointError, error::FromHttpResponseError};
 
         if response.status().as_u16() >= 400 {
             return Err(FromHttpResponseError::Server(Self::EndpointError::from_http_response(

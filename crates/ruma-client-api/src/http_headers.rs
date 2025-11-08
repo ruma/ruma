@@ -1,7 +1,7 @@
 //! Helpers for HTTP headers with the `http` crate.
 #![allow(clippy::declare_interior_mutable_const)]
 
-use http::{header::HeaderName, HeaderValue};
+use http::{HeaderValue, header::HeaderName};
 use ruma_common::api::error::{HeaderDeserializationError, HeaderSerializationError};
 pub use ruma_common::http_headers::{
     ContentDisposition, ContentDispositionParseError, ContentDispositionType, TokenString,
