@@ -8,8 +8,9 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1openiduserinfo
 
     use ruma_common::{
+        OwnedUserId,
         api::{auth_scheme::NoAuthentication, request, response},
-        metadata, OwnedUserId,
+        metadata,
     };
 
     metadata! {

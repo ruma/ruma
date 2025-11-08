@@ -6,10 +6,10 @@ use headers::authorization::Credentials;
 use http::HeaderValue;
 use http_auth::ChallengeParser;
 use ruma_common::{
+    CanonicalJsonObject, IdParseError, OwnedServerName, OwnedServerSigningKeyId, ServerName,
     api::auth_scheme::AuthScheme,
     http_headers::quote_ascii_string_if_required,
     serde::{Base64, Base64DecodeError},
-    CanonicalJsonObject, IdParseError, OwnedServerName, OwnedServerSigningKeyId, ServerName,
 };
 use ruma_signatures::{Ed25519KeyPair, KeyPair, PublicKeyMap};
 use thiserror::Error;
@@ -390,8 +390,8 @@ pub enum XMatrixVerificationError {
 
 #[cfg(test)]
 mod tests {
-    use headers::{authorization::Credentials, HeaderValue};
-    use ruma_common::{serde::Base64, OwnedServerName};
+    use headers::{HeaderValue, authorization::Credentials};
+    use ruma_common::{OwnedServerName, serde::Base64};
 
     use super::XMatrix;
 

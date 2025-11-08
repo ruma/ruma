@@ -10,11 +10,11 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv13pidonbind
 
     use ruma_common::{
+        OwnedRoomId, OwnedUserId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         serde::Raw,
         thirdparty::Medium,
-        OwnedRoomId, OwnedUserId,
     };
     use ruma_events::room::member::SignedContent;
     use serde::{Deserialize, Serialize};

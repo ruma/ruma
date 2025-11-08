@@ -3,10 +3,10 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1hierarchyroomid
 
 use ruma_common::{
+    OwnedRoomId,
     api::{request, response},
     metadata,
     room::RoomSummary,
-    OwnedRoomId,
 };
 
 use crate::{authentication::ServerSignatures, space::SpaceHierarchyParentSummary};
@@ -67,7 +67,7 @@ impl Response {
 
 #[cfg(all(test, feature = "client"))]
 mod tests {
-    use ruma_common::{api::IncomingResponse, OwnedRoomId};
+    use ruma_common::{OwnedRoomId, api::IncomingResponse};
     use serde_json::{json, to_vec as to_json_vec};
 
     use super::Response;

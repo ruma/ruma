@@ -1,8 +1,8 @@
 //! Room membership endpoints.
 
-use ruma_common::serde::{from_raw_json_value, Raw};
+use ruma_common::serde::{Raw, from_raw_json_value};
 use ruma_events::AnyStrippedStateEvent;
-use serde::{de, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de};
 use serde_json::value::RawValue as RawJsonValue;
 
 pub mod create_invite;
@@ -69,7 +69,7 @@ impl From<Raw<AnyStrippedStateEvent>> for RawStrippedState {
 mod tests {
     use assert_matches2::assert_matches;
     use ruma_common::{serde::Raw, user_id};
-    use ruma_events::{room::member::MembershipState, AnyStrippedStateEvent};
+    use ruma_events::{AnyStrippedStateEvent, room::member::MembershipState};
     use serde_json::{from_value as from_json_value, json};
 
     use super::RawStrippedState;

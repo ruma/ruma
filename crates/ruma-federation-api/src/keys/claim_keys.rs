@@ -10,11 +10,11 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
+        OneTimeKeyAlgorithm, OwnedDeviceId, OwnedOneTimeKeyId, OwnedUserId,
         api::{request, response},
         encryption::OneTimeKey,
         metadata,
         serde::Raw,
-        OneTimeKeyAlgorithm, OwnedDeviceId, OwnedOneTimeKeyId, OwnedUserId,
     };
 
     use crate::authentication::ServerSignatures;

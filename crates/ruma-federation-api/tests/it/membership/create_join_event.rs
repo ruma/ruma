@@ -3,7 +3,7 @@
 mod v1 {
     use ruma_common::api::OutgoingResponse;
     use ruma_federation_api::membership::create_join_event::v1::{Response, RoomState};
-    use serde_json::{from_slice as from_json_slice, json, Value as JsonValue};
+    use serde_json::{Value as JsonValue, from_slice as from_json_slice, json};
 
     #[test]
     fn response_body() {

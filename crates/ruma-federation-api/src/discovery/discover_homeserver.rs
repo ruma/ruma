@@ -5,8 +5,9 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#getwell-knownmatrixserver
 
 use ruma_common::{
+    OwnedServerName,
     api::{auth_scheme::NoAuthentication, request, response},
-    metadata, OwnedServerName,
+    metadata,
 };
 
 metadata! {

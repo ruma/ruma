@@ -3,8 +3,9 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1send_leaveroomideventid
 
 use ruma_common::{
+    OwnedEventId, OwnedRoomId,
     api::{request, response},
-    metadata, OwnedEventId, OwnedRoomId,
+    metadata,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;

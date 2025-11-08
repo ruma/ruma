@@ -3,9 +3,9 @@
 //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2946
 
 use ruma_common::{
-    api::{path_builder::SinglePath, request, response, Metadata},
-    room::RoomSummary,
     OwnedRoomId,
+    api::{Metadata, path_builder::SinglePath, request, response},
+    room::RoomSummary,
 };
 
 use crate::space::SpaceHierarchyParentSummary;

@@ -8,13 +8,13 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1queryprofile
 
     use ruma_common::{
+        OwnedMxcUri, OwnedUserId,
         api::{request, response},
         metadata,
         serde::StringEnum,
-        OwnedMxcUri, OwnedUserId,
     };
 
-    use crate::{authentication::ServerSignatures, PrivOwnedStr};
+    use crate::{PrivOwnedStr, authentication::ServerSignatures};
 
     metadata! {
         method: GET,

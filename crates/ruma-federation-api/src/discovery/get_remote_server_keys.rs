@@ -9,10 +9,10 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixkeyv2queryservername
 
     use ruma_common::{
+        MilliSecondsSinceUnixEpoch, OwnedServerName,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         serde::Raw,
-        MilliSecondsSinceUnixEpoch, OwnedServerName,
     };
 
     use crate::discovery::ServerSigningKeys;

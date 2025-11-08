@@ -3,8 +3,8 @@
 //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2403
 
 use ruma_common::{
-    api::{path_builder::SinglePath, request, response, Metadata},
     OwnedEventId, OwnedRoomId,
+    api::{Metadata, path_builder::SinglePath, request, response},
 };
 use serde_json::value::RawValue as RawJsonValue;
 

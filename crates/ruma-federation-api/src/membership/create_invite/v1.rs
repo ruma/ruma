@@ -3,10 +3,11 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1inviteroomideventid
 
 use ruma_common::{
+    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName, OwnedUserId,
     api::{request, response},
-    metadata, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName, OwnedUserId,
+    metadata,
 };
-use ruma_events::{room::member::RoomMemberEventContent, StateEventType};
+use ruma_events::{StateEventType, room::member::RoomMemberEventContent};
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
