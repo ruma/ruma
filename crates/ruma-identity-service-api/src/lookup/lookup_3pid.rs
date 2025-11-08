@@ -10,8 +10,9 @@ pub mod v2 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
+        OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
-        metadata, OwnedUserId,
+        metadata,
     };
 
     use crate::lookup::IdentifierHashingAlgorithm;

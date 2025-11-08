@@ -8,10 +8,10 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/latest/identity-service-api/#post_matrixidentityv23pidunbind
 
     use ruma_common::{
+        OwnedClientSecret, OwnedSessionId, OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         thirdparty::Medium,
-        OwnedClientSecret, OwnedSessionId, OwnedUserId,
     };
     use serde::{Deserialize, Serialize};
 
