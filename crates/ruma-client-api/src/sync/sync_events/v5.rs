@@ -43,7 +43,6 @@ pub struct Request {
     /// response. A `None` value asks the server to start a new _session_ (mind
     /// it can be costly)
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ruma_api(query)]
     pub pos: Option<String>,
 
     /// A unique string identifier for this connection to the server.
@@ -59,23 +58,16 @@ pub struct Request {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub conn_id: Option<String>,
 
-    /// Allows clients to know what request params reached the server,
-    /// functionally similar to txn IDs on `/send` for events.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub txn_id: Option<String>,
-
     /// The maximum time to poll before responding to this request.
     ///
     /// `None` means no timeout, so virtually an infinite wait from the server.
     #[serde(with = "opt_ms", default, skip_serializing_if = "Option::is_none")]
-    #[ruma_api(query)]
     pub timeout: Option<Duration>,
 
     /// Controls whether the client is automatically marked as online by polling this API.
     ///
     /// Defaults to `PresenceState::Online`.
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
-    #[ruma_api(query)]
     pub set_presence: PresenceState,
 
     /// Lists of rooms we are interested by, represented by ranges.
@@ -104,6 +96,7 @@ impl Request {
 /// HTTP types related to a [`Request`].
 pub mod request {
     use ruma_common::{directory::RoomTypeFilter, serde::deserialize_cow_str, RoomId};
+    use ruma_events::tag::TagName;
     use serde::de::Error as _;
 
     use super::{BTreeMap, Deserialize, OwnedRoomId, Serialize, StateEventType, UInt};
@@ -158,6 +151,27 @@ pub mod request {
         /// `not_room_types` wins and the corresponding rooms are not included.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
         pub not_room_types: Vec<RoomTypeFilter>,
+
+        /// Filter a room based on its room tags.
+        ///
+        /// If multiple tags are present, a room can match any of the tags.
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        pub tags: Vec<TagName>,
+
+        /// Filter a room based on its room tags.
+        ///
+        /// Takes priority over `tags`. If a tag is listed in both `tags` and `not_tags`,
+        /// `not_tags` wins and the corresponding rooms are not included.
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        pub not_tags: Vec<TagName>,
+
+        /// Filter a room based on the space it belongs to according to m.space.child events.
+        ///
+        /// If multiple spaces are present, a room can be part of any one of the listed spaces. The
+        /// server will not navigate subspaces. The client must give a complete list of spaces to
+        /// navigate.
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        pub spaces: Vec<OwnedRoomId>,
     }
 
     /// Sliding sync request room subscription (see [`super::Request::room_subscriptions`]).
@@ -450,10 +464,6 @@ pub mod request {
 /// Response type for the `/sync` endpoint.
 #[response(error = crate::Error)]
 pub struct Response {
-    /// Matches the `txn_id` sent by the request (see [`Request::txn_id`]).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub txn_id: Option<String>,
-
     /// The token to supply in the `pos` parameter of the next `/sync` request
     /// (see [`Request::pos`]).
     pub pos: String,
@@ -475,7 +485,6 @@ impl Response {
     /// Creates a new `Response` with the given `pos`.
     pub fn new(pos: String) -> Self {
         Self {
-            txn_id: None,
             pos,
             lists: Default::default(),
             rooms: Default::default(),
@@ -490,8 +499,9 @@ pub mod response {
     #[cfg(feature = "unstable-msc4308")]
     use ruma_common::OwnedEventId;
     use ruma_events::{
-        receipt::SyncReceiptEvent, typing::SyncTypingEvent, AnyGlobalAccountDataEvent,
-        AnyRoomAccountDataEvent, AnyStrippedStateEvent, AnyToDeviceEvent,
+        receipt::SyncReceiptEvent, room::member::MembershipState, typing::SyncTypingEvent,
+        AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent, AnyStrippedStateEvent,
+        AnyToDeviceEvent,
     };
 
     use super::{
@@ -586,6 +596,15 @@ pub mod response {
         /// Heroes of the room.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub heroes: Option<Vec<Hero>>,
+
+        /// The current membership of the user, or omitted if user not in room (for peeking).
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub membership: Option<MembershipState>,
+
+        /// The name of the lists that match this room. The field is omitted if it doesn't match
+        /// any list and is included only due to a subscription.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub lists: Vec<String>,
     }
 
     impl Room {

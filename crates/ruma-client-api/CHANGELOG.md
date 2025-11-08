@@ -78,6 +78,8 @@ Breaking changes:
   should always be identical.
 - Add `set_presence` field to `sync_events::v5::Request` as per MSC4186; specified identically
   to the field appearing in prior sync versions.
+- Add `tags`, `not_tags`, and `spaces` fields to `sync_events::v5::request::ListFilters` as
+  specified in MSC4186 `SlidingRoomFilter` properties.
 
 Improvements:
 
