@@ -13,12 +13,12 @@ pub mod v3 {
         metadata,
         serde::Raw,
     };
-    use serde::{ser, Deserialize, Deserializer, Serialize};
+    use serde::{Deserialize, Deserializer, Serialize, ser};
     use serde_json::value::to_raw_value as to_raw_json_value;
 
     use crate::backup::{
-        get_backup_info::v3::{AlgorithmWithData, RefResponseBodyRepr, ResponseBodyRepr},
         BackupAlgorithm,
+        get_backup_info::v3::{AlgorithmWithData, RefResponseBodyRepr, ResponseBodyRepr},
     };
 
     metadata! {

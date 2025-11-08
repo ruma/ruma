@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3roomsroomidupgrade
 
     use ruma_common::{
+        OwnedRoomId, OwnedUserId, RoomVersionId,
         api::{auth_scheme::AccessToken, request, response},
-        metadata, OwnedRoomId, OwnedUserId, RoomVersionId,
+        metadata,
     };
 
     metadata! {

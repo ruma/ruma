@@ -76,9 +76,9 @@ pub mod unstable {
         use std::borrow::Cow;
 
         use ruma_common::api::{
-            auth_scheme::SendAccessToken, MatrixVersion, OutgoingRequest, SupportedVersions,
+            MatrixVersion, OutgoingRequest, SupportedVersions, auth_scheme::SendAccessToken,
         };
-        use serde_json::{json, Value as JsonValue};
+        use serde_json::{Value as JsonValue, json};
 
         use super::{Request, UpdateAction};
         #[test]

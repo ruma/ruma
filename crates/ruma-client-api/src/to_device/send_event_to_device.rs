@@ -10,11 +10,11 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
+        OwnedTransactionId, OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
         to_device::DeviceIdOrAllDevices,
-        OwnedTransactionId, OwnedUserId,
     };
     use ruma_events::{AnyToDeviceEventContent, ToDeviceEventType};
 

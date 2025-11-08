@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3useruseridroomsroomidtagstag
 
     use ruma_common::{
+        OwnedRoomId, OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
-        metadata, OwnedRoomId, OwnedUserId,
+        metadata,
     };
     use ruma_events::tag::TagInfo;
 

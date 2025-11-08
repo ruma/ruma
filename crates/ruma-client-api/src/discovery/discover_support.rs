@@ -5,10 +5,10 @@
 //! Get server admin contact and support page of a homeserver's domain.
 
 use ruma_common::{
+    OwnedUserId,
     api::{auth_scheme::NoAuthentication, request, response},
     metadata,
     serde::StringEnum,
-    OwnedUserId,
 };
 use serde::{Deserialize, Serialize};
 

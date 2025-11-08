@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3account3pidbind
 
     use ruma_common::{
+        OwnedClientSecret, OwnedSessionId,
         api::{auth_scheme::AccessToken, request, response},
-        metadata, OwnedClientSecret, OwnedSessionId,
+        metadata,
     };
 
     use crate::account::IdentityServerInfo;

@@ -13,9 +13,10 @@ pub mod v3 {
     use js_int::UInt;
     pub use ruma_common::media::Method;
     use ruma_common::{
+        IdParseError, MxcUri, OwnedServerName,
         api::{auth_scheme::NoAuthentication, request, response},
         http_headers::ContentDisposition,
-        metadata, IdParseError, MxcUri, OwnedServerName,
+        metadata,
     };
 
     use crate::http_headers::CROSS_ORIGIN_RESOURCE_POLICY;

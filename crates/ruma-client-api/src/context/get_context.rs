@@ -7,12 +7,12 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3roomsroomidcontexteventid
 
-    use js_int::{uint, UInt};
+    use js_int::{UInt, uint};
     use ruma_common::{
+        OwnedEventId, OwnedRoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
-        OwnedEventId, OwnedRoomId,
     };
     use ruma_events::{AnyStateEvent, AnyTimelineEvent};
 

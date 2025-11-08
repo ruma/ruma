@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3delete_devices
 
     use ruma_common::{
+        OwnedDeviceId,
         api::{auth_scheme::AccessToken, request, response},
-        metadata, OwnedDeviceId,
+        metadata,
     };
 
     use crate::uiaa::{AuthData, UiaaResponse};

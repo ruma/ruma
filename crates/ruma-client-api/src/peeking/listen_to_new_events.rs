@@ -10,10 +10,10 @@ pub mod v3 {
     use std::time::Duration;
 
     use ruma_common::{
+        OwnedRoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
-        OwnedRoomId,
     };
     use ruma_events::AnyTimelineEvent;
 

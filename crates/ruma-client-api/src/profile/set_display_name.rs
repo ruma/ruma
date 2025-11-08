@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.15/client-server-api/#put_matrixclientv3profileuseriddisplayname
 
     use ruma_common::{
+        OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
-        metadata, OwnedUserId,
+        metadata,
     };
 
     metadata! {

@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3roomsroomidredacteventidtxnid
 
     use ruma_common::{
+        OwnedEventId, OwnedRoomId, OwnedTransactionId,
         api::{auth_scheme::AccessToken, request, response},
-        metadata, OwnedEventId, OwnedRoomId, OwnedTransactionId,
+        metadata,
     };
 
     metadata! {

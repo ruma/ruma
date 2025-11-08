@@ -7,11 +7,12 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3profileuserid
 
-    use std::collections::{btree_map, BTreeMap};
+    use std::collections::{BTreeMap, btree_map};
 
     use ruma_common::{
+        OwnedUserId,
         api::{auth_scheme::NoAuthentication, request, response},
-        metadata, OwnedUserId,
+        metadata,
     };
     use serde_json::Value as JsonValue;
 
@@ -136,7 +137,7 @@ pub mod v3 {
 mod tests {
     use ruma_common::owned_mxc_uri;
     use serde_json::{
-        from_slice as from_json_slice, json, to_vec as to_json_vec, Value as JsonValue,
+        Value as JsonValue, from_slice as from_json_slice, json, to_vec as to_json_vec,
     };
 
     use super::v3::Response;

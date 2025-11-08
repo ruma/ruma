@@ -11,11 +11,11 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
+        OneTimeKeyAlgorithm, OwnedOneTimeKeyId,
         api::{auth_scheme::AccessToken, request, response},
         encryption::{DeviceKeys, OneTimeKey},
         metadata,
         serde::Raw,
-        OneTimeKeyAlgorithm, OwnedOneTimeKeyId,
     };
 
     metadata! {

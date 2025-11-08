@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3accountwhoami
 
     use ruma_common::{
+        OwnedDeviceId, OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
-        metadata, OwnedDeviceId, OwnedUserId,
+        metadata,
     };
 
     metadata! {

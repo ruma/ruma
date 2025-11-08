@@ -8,10 +8,10 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv1room_summaryroomidoralias
 
     use ruma_common::{
+        OwnedRoomOrAliasId, OwnedServerName,
         api::{auth_scheme::AccessTokenOptional, request},
         metadata,
         room::RoomSummary,
-        OwnedRoomOrAliasId, OwnedServerName,
     };
     use ruma_events::room::member::MembershipState;
 

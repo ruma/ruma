@@ -8,10 +8,10 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3roomsroomidreceiptreceipttypeeventid
 
     use ruma_common::{
+        OwnedEventId, OwnedRoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::StringEnum,
-        OwnedEventId, OwnedRoomId,
     };
     use ruma_events::receipt::ReceiptThread;
 

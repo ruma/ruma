@@ -8,8 +8,9 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#delete_matrixclientv3profileuseridkeyname
 
     use ruma_common::{
+        OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
-        metadata, OwnedUserId,
+        metadata,
     };
 
     use crate::profile::ProfileFieldName;

@@ -11,8 +11,9 @@ pub mod unstable {
 
     use js_int::UInt;
     use ruma_common::{
-        api::{auth_scheme::AccessToken, request, response, Direction},
-        metadata, OwnedEventId, OwnedRoomId,
+        OwnedEventId, OwnedRoomId,
+        api::{Direction, auth_scheme::AccessToken, request, response},
+        metadata,
     };
     use serde::{Deserialize, Serialize};
 

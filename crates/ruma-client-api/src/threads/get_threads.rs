@@ -9,10 +9,10 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
+        OwnedRoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::{Raw, StringEnum},
-        OwnedRoomId,
     };
     use ruma_events::AnyTimelineEvent;
 

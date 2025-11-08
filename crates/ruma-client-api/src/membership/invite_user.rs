@@ -13,8 +13,9 @@ pub mod v3 {
     //! [spec-3pid]: https://spec.matrix.org/latest/client-server-api/#thirdparty_post_matrixclientv3roomsroomidinvite
 
     use ruma_common::{
+        OwnedRoomId, OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
-        metadata, OwnedRoomId, OwnedUserId,
+        metadata,
     };
     use serde::{Deserialize, Serialize};
 

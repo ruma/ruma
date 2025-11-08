@@ -9,9 +9,10 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
+        OwnedServerName,
         api::{auth_scheme::NoAuthentication, request, response},
         directory::PublicRoomsChunk,
-        metadata, OwnedServerName,
+        metadata,
     };
 
     metadata! {
@@ -90,8 +91,8 @@ pub mod v3 {
 
             use ruma_common::{
                 api::{
-                    auth_scheme::SendAccessToken, MatrixVersion, OutgoingRequest as _,
-                    SupportedVersions,
+                    MatrixVersion, OutgoingRequest as _, SupportedVersions,
+                    auth_scheme::SendAccessToken,
                 },
                 server_name,
             };

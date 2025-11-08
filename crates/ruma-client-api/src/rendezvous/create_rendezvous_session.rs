@@ -8,13 +8,13 @@ pub mod unstable {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
 
     use http::{
-        header::{CONTENT_LENGTH, CONTENT_TYPE, ETAG, EXPIRES, LAST_MODIFIED},
         HeaderName,
+        header::{CONTENT_LENGTH, CONTENT_TYPE, ETAG, EXPIRES, LAST_MODIFIED},
     };
     #[cfg(feature = "client")]
     use ruma_common::api::error::FromHttpResponseError;
     use ruma_common::{
-        api::{auth_scheme::NoAuthentication, error::HeaderDeserializationError, Metadata},
+        api::{Metadata, auth_scheme::NoAuthentication, error::HeaderDeserializationError},
         metadata,
     };
     use serde::{Deserialize, Serialize};

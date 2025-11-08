@@ -9,17 +9,17 @@ pub mod v3 {
 
     use std::collections::BTreeMap;
 
-    use js_int::{uint, UInt};
+    use js_int::{UInt, uint};
     use ruma_common::{
+        OwnedEventId, OwnedMxcUri, OwnedRoomId, OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::{Raw, StringEnum},
-        OwnedEventId, OwnedMxcUri, OwnedRoomId, OwnedUserId,
     };
     use ruma_events::{AnyStateEvent, AnyTimelineEvent};
     use serde::{Deserialize, Serialize};
 
-    use crate::{filter::RoomEventFilter, PrivOwnedStr};
+    use crate::{PrivOwnedStr, filter::RoomEventFilter};
 
     metadata! {
         method: POST,
