@@ -135,7 +135,7 @@ pub mod api {
 #[doc(no_inline)]
 pub use assign::assign;
 #[doc(no_inline)]
-pub use js_int::{int, uint, Int, UInt};
+pub use js_int::{Int, UInt, int, uint};
 #[doc(no_inline)]
 pub use js_option::JsOption;
 #[cfg(all(feature = "events", feature = "unstable-msc4334"))]
@@ -144,6 +144,6 @@ pub use language_tags::LanguageTag;
 pub use ruma_common::*;
 #[cfg(feature = "canonical-json")]
 pub use ruma_common::{
-    canonical_json, CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue,
+    CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue, canonical_json,
 };
 pub use web_time as time;
