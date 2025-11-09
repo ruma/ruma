@@ -3,9 +3,10 @@
 use std::{collections::BTreeMap, ops::Range};
 
 use assert_matches2::assert_matches;
-use js_int::{uint, UInt};
-use ruma_common::{owned_event_id, MilliSecondsSinceUnixEpoch};
+use js_int::{UInt, uint};
+use ruma_common::{MilliSecondsSinceUnixEpoch, owned_event_id};
 use ruma_events::{
+    AnyMessageLikeEvent, MessageLikeEvent,
     message::TextContentBlock,
     poll::{
         compile_poll_results, compile_unstable_poll_results,
@@ -27,7 +28,6 @@ use ruma_events::{
     },
     relation::Reference,
     room::message::{Relation, RelationWithoutReplacement},
-    AnyMessageLikeEvent, MessageLikeEvent,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

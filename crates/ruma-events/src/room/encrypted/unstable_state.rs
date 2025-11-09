@@ -5,8 +5,8 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    room::encrypted::EncryptedEventScheme, PossiblyRedactedStateEventContent, StateEventType,
-    StaticEventContent,
+    PossiblyRedactedStateEventContent, StateEventType, StaticEventContent,
+    room::encrypted::EncryptedEventScheme,
 };
 
 /// The content of an `m.room.encrypted` state event.
@@ -46,15 +46,15 @@ mod tests {
 
     use assert_matches2::assert_matches;
     use js_int::uint;
-    use ruma_common::{room_id, user_id, MilliSecondsSinceUnixEpoch};
+    use ruma_common::{MilliSecondsSinceUnixEpoch, room_id, user_id};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use crate::{
-        room::encrypted::{
-            unstable_state::StateRoomEncryptedEventContent, EncryptedEventScheme,
-            MegolmV1AesSha2ContentInit,
-        },
         AnyStateEvent, StateEvent,
+        room::encrypted::{
+            EncryptedEventScheme, MegolmV1AesSha2ContentInit,
+            unstable_state::StateRoomEncryptedEventContent,
+        },
     };
 
     #[test]

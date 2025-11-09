@@ -2,19 +2,19 @@ use std::ops::Not;
 
 use cfg_if::cfg_if;
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::{
+    Field, Generics, Ident, ItemStruct, Lifetime, Token, Type,
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
     visit::Visit,
-    Field, Generics, Ident, ItemStruct, Lifetime, Token, Type,
 };
 
 use super::{
     attribute::{DeriveResponseMeta, ResponseMeta},
     ensure_feature_presence,
 };
-use crate::util::{field_has_serde_flatten_attribute, import_ruma_common, PrivateField};
+use crate::util::{PrivateField, field_has_serde_flatten_attribute, import_ruma_common};
 
 mod incoming;
 mod outgoing;

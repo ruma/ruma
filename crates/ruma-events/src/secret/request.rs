@@ -2,9 +2,9 @@
 //!
 //! [`m.secret.request`]: https://spec.matrix.org/latest/client-server-api/#msecretrequest
 
-use ruma_common::{serde::StringEnum, OwnedDeviceId, OwnedTransactionId};
+use ruma_common::{OwnedDeviceId, OwnedTransactionId, serde::StringEnum};
 use ruma_macros::EventContent;
-use serde::{ser::SerializeStruct, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, ser::SerializeStruct};
 
 use crate::{GlobalAccountDataEventType, PrivOwnedStr};
 

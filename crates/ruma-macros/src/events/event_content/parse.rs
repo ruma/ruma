@@ -1,10 +1,10 @@
 //! Parsing helpers for the `EventContent` derive macro.
 
 use proc_macro2::{Span, TokenStream};
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::{
-    parse::{Parse, ParseStream},
     Field, Ident, Token, Type,
+    parse::{Parse, ParseStream},
 };
 
 use crate::events::enums::{

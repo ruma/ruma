@@ -1,12 +1,12 @@
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    owned_event_id, room_version_rules::RedactionRules, serde::CanBeEmpty,
-    MilliSecondsSinceUnixEpoch,
+    MilliSecondsSinceUnixEpoch, owned_event_id, room_version_rules::RedactionRules,
+    serde::CanBeEmpty,
 };
 use ruma_events::{
-    room::redaction::{RoomRedactionEvent, RoomRedactionEventContent},
     AnyMessageLikeEvent,
+    room::redaction::{RoomRedactionEvent, RoomRedactionEventContent},
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

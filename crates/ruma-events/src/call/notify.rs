@@ -6,7 +6,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::member::Application;
-use crate::{rtc, Mentions};
+use crate::{Mentions, rtc};
 
 /// The content of an `m.call.notify` event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
@@ -69,8 +69,9 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use crate::{
+        Mentions,
         call::notify::{ApplicationType, CallNotifyEventContent},
-        rtc, Mentions,
+        rtc,
     };
 
     #[test]

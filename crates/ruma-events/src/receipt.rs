@@ -5,7 +5,7 @@
 mod receipt_thread_serde;
 
 use std::{
-    collections::{btree_map, BTreeMap},
+    collections::{BTreeMap, btree_map},
     ops::{Deref, DerefMut},
 };
 
@@ -212,7 +212,7 @@ where
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use ruma_common::{owned_event_id, MilliSecondsSinceUnixEpoch};
+    use ruma_common::{MilliSecondsSinceUnixEpoch, owned_event_id};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{Receipt, ReceiptThread};

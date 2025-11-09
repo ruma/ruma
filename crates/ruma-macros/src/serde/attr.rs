@@ -1,6 +1,6 @@
 use syn::{
-    parse::{Parse, ParseStream},
     LitStr, Token,
+    parse::{Parse, ParseStream},
 };
 
 use super::case::RenameRule;

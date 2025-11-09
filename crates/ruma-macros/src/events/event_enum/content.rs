@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{Attribute, Ident};
 
-use super::{expand_from_impl, EventEnumEntry, EventEnumVariant};
+use super::{EventEnumEntry, EventEnumVariant, expand_from_impl};
 use crate::{
     events::enums::{EventContentTraitVariation, EventKind, EventType},
     import_ruma_common,

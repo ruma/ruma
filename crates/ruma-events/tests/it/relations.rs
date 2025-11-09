@@ -15,16 +15,16 @@ use ruma_events::poll::{
 };
 #[cfg(feature = "unstable-msc3381")]
 use ruma_events::{
+    AnyMessageLikeEventContent,
     message::TextContentBlock,
     room::{encrypted, message::RelationWithoutReplacement},
-    AnyMessageLikeEventContent,
 };
 use ruma_events::{
     relation::{CustomRelation, InReplyTo, Replacement, Thread},
     room::message::{MessageType, Relation, RoomMessageEventContent},
 };
 use serde_json::{
-    from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
+    Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
 };
 
 #[test]

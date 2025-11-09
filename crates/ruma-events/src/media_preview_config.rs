@@ -6,7 +6,7 @@ use ruma_common::serde::JsonCastable;
 use ruma_macros::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::{macros::EventContent, PrivOwnedStr};
+use crate::{PrivOwnedStr, macros::EventContent};
 
 /// The content of an `m.media_preview_config` event.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
@@ -126,8 +126,8 @@ mod tests {
 
     use super::{MediaPreviewConfigEventContent, UnstableMediaPreviewConfigEventContent};
     use crate::{
-        media_preview_config::{InviteAvatars, MediaPreviews},
         AnyGlobalAccountDataEvent, GlobalAccountDataEvent,
+        media_preview_config::{InviteAvatars, MediaPreviews},
     };
 
     #[test]

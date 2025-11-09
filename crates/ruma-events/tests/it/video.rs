@@ -5,18 +5,17 @@ use std::time::Duration;
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    mxc_uri, owned_event_id,
+    MilliSecondsSinceUnixEpoch, mxc_uri, owned_event_id,
     serde::{Base64, CanBeEmpty},
-    MilliSecondsSinceUnixEpoch,
 };
 use ruma_events::{
+    AnyMessageLikeEvent, MessageLikeEvent,
     file::{CaptionContentBlock, EncryptedContentInit, FileContentBlock},
     image::{Thumbnail, ThumbnailFileContentBlock, ThumbnailImageDetailsContentBlock},
     message::TextContentBlock,
     relation::InReplyTo,
-    room::{message::Relation, JsonWebKeyInit},
+    room::{JsonWebKeyInit, message::Relation},
     video::{VideoDetailsContentBlock, VideoEventContent},
-    AnyMessageLikeEvent, MessageLikeEvent,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

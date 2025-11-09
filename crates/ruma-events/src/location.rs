@@ -140,11 +140,7 @@ impl ZoomLevel {
 
     /// Creates a new `ZoomLevel` with the given value.
     pub fn new(value: u8) -> Option<Self> {
-        if value > Self::MAX {
-            None
-        } else {
-            Some(Self(value.into()))
-        }
+        if value > Self::MAX { None } else { Some(Self(value.into())) }
     }
 
     /// The value of this `ZoomLevel`.

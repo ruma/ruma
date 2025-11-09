@@ -2,7 +2,7 @@
 //!
 //! [`m.key.verification.key`]: https://spec.matrix.org/latest/client-server-api/#mkeyverificationkey
 
-use ruma_common::{serde::Base64, OwnedTransactionId};
+use ruma_common::{OwnedTransactionId, serde::Base64};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 

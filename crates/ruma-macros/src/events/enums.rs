@@ -3,10 +3,10 @@
 use std::fmt;
 
 use proc_macro2::{Span, TokenStream};
-use quote::{format_ident, quote, IdentFragment, ToTokens};
+use quote::{IdentFragment, ToTokens, format_ident, quote};
 use syn::{
-    parse::{Parse, ParseStream},
     Ident, LitStr,
+    parse::{Parse, ParseStream},
 };
 
 use crate::util::m_prefix_name_to_type_name;
@@ -370,11 +370,7 @@ impl EventType {
 
     /// Access the inner string of this event type and remove the final `*` if this is a prefix.
     pub fn without_wildcard(&self) -> &str {
-        if self.is_prefix {
-            self.value.trim_end_matches('*')
-        } else {
-            &self.value
-        }
+        if self.is_prefix { self.value.trim_end_matches('*') } else { &self.value }
     }
 
     /// Whether this event type is stable.

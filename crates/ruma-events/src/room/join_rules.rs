@@ -8,7 +8,7 @@ use ruma_common::{
     serde::{JsonCastable, JsonObject},
 };
 use ruma_macros::EventContent;
-use serde::{de, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de};
 
 use crate::{
     EmptyStateKey, RedactContent, RedactedStateEventContent, StateEventContent, StateEventType,

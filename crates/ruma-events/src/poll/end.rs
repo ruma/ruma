@@ -1,7 +1,7 @@
 //! Types for the `m.poll.end` event.
 
 use std::{
-    collections::{btree_map, BTreeMap},
+    collections::{BTreeMap, btree_map},
     ops::Deref,
 };
 

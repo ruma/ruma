@@ -3,16 +3,16 @@
 //! [`m.room.power_levels`]: https://spec.matrix.org/latest/client-server-api/#mroompower_levels
 
 use std::{
-    cmp::{max, Ordering},
+    cmp::{Ordering, max},
     collections::BTreeMap,
 };
 
-use js_int::{int, Int};
+use js_int::{Int, int};
 use ruma_common::{
-    power_levels::{default_power_level, NotificationPowerLevels},
+    OwnedUserId, UserId,
+    power_levels::{NotificationPowerLevels, default_power_level},
     push::PushConditionPowerLevelsCtx,
     room_version_rules::{AuthorizationRules, RedactionRules, RoomPowerLevelsRules},
-    OwnedUserId, UserId,
 };
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -934,8 +934,8 @@ mod tests {
     use serde_json::{json, to_value as to_json_value};
 
     use super::{
-        default_power_level, NotificationPowerLevels, RoomPowerLevels, RoomPowerLevelsEventContent,
-        RoomPowerLevelsSource,
+        NotificationPowerLevels, RoomPowerLevels, RoomPowerLevelsEventContent,
+        RoomPowerLevelsSource, default_power_level,
     };
 
     #[test]

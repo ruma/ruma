@@ -4,10 +4,10 @@
 
 use std::borrow::Cow;
 
-use js_int::{uint, UInt};
+use js_int::{UInt, uint};
 use ruma_common::{
-    serde::{Base64, JsonObject},
     KeyDerivationAlgorithm,
+    serde::{Base64, JsonObject},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
@@ -172,7 +172,7 @@ pub struct CustomSecretEncryptionAlgorithm {
 mod tests {
     use assert_matches2::assert_matches;
     use js_int::uint;
-    use ruma_common::{serde::Base64, KeyDerivationAlgorithm};
+    use ruma_common::{KeyDerivationAlgorithm, serde::Base64};
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value,
         value::to_raw_value as to_raw_json_value,

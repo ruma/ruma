@@ -3,13 +3,13 @@
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    owned_event_id, room_id, serde::CanBeEmpty, user_id, MilliSecondsSinceUnixEpoch,
+    MilliSecondsSinceUnixEpoch, owned_event_id, room_id, serde::CanBeEmpty, user_id,
 };
 use ruma_events::{
-    beacon::BeaconEventContent, relation::Reference, AnyMessageLikeEvent, MessageLikeEvent,
+    AnyMessageLikeEvent, MessageLikeEvent, beacon::BeaconEventContent, relation::Reference,
 };
 use serde_json::{
-    from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
+    Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
 };
 
 fn get_beacon_event_content() -> BeaconEventContent {

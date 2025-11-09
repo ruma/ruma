@@ -3,8 +3,8 @@
 //! [`m.room.create`]: https://spec.matrix.org/latest/client-server-api/#mroomcreate
 
 use ruma_common::{
-    room::RoomType, room_version_rules::RedactionRules, OwnedEventId, OwnedRoomId, OwnedUserId,
-    RoomVersionId,
+    OwnedEventId, OwnedRoomId, OwnedUserId, RoomVersionId, room::RoomType,
+    room_version_rules::RedactionRules,
 };
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -165,7 +165,7 @@ impl RedactedStateEventContent for RedactedRoomCreateEventContent {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use ruma_common::{owned_user_id, RoomVersionId};
+    use ruma_common::{RoomVersionId, owned_user_id};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{RoomCreateEventContent, RoomType};

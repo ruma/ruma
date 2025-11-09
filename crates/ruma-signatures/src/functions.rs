@@ -6,24 +6,24 @@ use std::{
     mem,
 };
 
-use base64::{alphabet, Engine};
+use base64::{Engine, alphabet};
 use ruma_common::{
-    canonical_json::{redact, JsonType},
-    room_version_rules::{EventIdFormatVersion, RedactionRules, RoomVersionRules, SignaturesRules},
-    serde::{base64::Standard, Base64},
     AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, OwnedEventId, OwnedServerName,
     SigningKeyAlgorithm, SigningKeyId, UserId,
+    canonical_json::{JsonType, redact},
+    room_version_rules::{EventIdFormatVersion, RedactionRules, RoomVersionRules, SignaturesRules},
+    serde::{Base64, base64::Standard},
 };
 use serde_json::to_string as to_json_string;
-use sha2::{digest::Digest, Sha256};
+use sha2::{Sha256, digest::Digest};
 
 #[cfg(test)]
 mod tests;
 
 use crate::{
-    keys::{KeyPair, PublicKeyMap},
-    verification::{verifier_from_algorithm, Verified, Verifier},
     Error, JsonError, ParseError, VerificationError,
+    keys::{KeyPair, PublicKeyMap},
+    verification::{Verified, Verifier, verifier_from_algorithm},
 };
 
 /// The [maximum size allowed] for a PDU.

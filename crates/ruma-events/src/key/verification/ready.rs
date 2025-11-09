@@ -75,7 +75,7 @@ impl KeyVerificationReadyEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::{owned_event_id, OwnedDeviceId};
+    use ruma_common::{OwnedDeviceId, owned_event_id};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{KeyVerificationReadyEventContent, ToDeviceKeyVerificationReadyEventContent};

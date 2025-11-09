@@ -19,7 +19,7 @@ pub(crate) trait Verifier {
     ///
     /// Returns an error if verification fails.
     fn verify_json(&self, public_key: &[u8], signature: &[u8], message: &[u8])
-        -> Result<(), Error>;
+    -> Result<(), Error>;
 }
 
 /// A verifier for Ed25519 digital signatures.

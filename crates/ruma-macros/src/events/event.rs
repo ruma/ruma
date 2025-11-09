@@ -2,11 +2,11 @@
 
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
-use syn::{parse_quote, Data, DataStruct, DeriveInput, Fields, FieldsNamed};
+use syn::{Data, DataStruct, DeriveInput, Fields, FieldsNamed, parse_quote};
 
 mod parse;
 
-use self::parse::{parse_event_struct_ident_to_kind_variation, ParsedEventField};
+use self::parse::{ParsedEventField, parse_event_struct_ident_to_kind_variation};
 use super::enums::{EventField, EventKind, EventVariation};
 use crate::{import_ruma_events, util::to_camel_case};
 
@@ -174,8 +174,8 @@ fn expand_deserialize_event(
         .collect::<Vec<_>>();
 
     let deserialize_impl_gen = if is_generic {
-        let gen = &input.generics.params;
-        quote! { <'de, #gen> }
+        let generic_params = &input.generics.params;
+        quote! { <'de, #generic_params> }
     } else {
         quote! { <'de> }
     };

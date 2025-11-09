@@ -5,9 +5,9 @@
 use std::{cmp::Ordering, ops::Deref};
 
 use ruma_common::{
-    serde::{JsonCastable, JsonObject},
     MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedServerName, OwnedSpaceChildOrder, OwnedUserId,
     RoomId, SpaceChildOrder,
+    serde::{JsonCastable, JsonObject},
 };
 use ruma_macros::{Event, EventContent};
 use serde::{Deserialize, Serialize};
@@ -289,10 +289,10 @@ impl<T: SpaceChildOrd> Deref for SpaceChildOrdHelper<T> {
 mod tests {
     use std::{collections::BTreeSet, iter::repeat_n};
 
-    use js_int::{uint, UInt};
+    use js_int::{UInt, uint};
     use ruma_common::{
-        owned_server_name, owned_user_id, room_id, server_name, MilliSecondsSinceUnixEpoch, RoomId,
-        SpaceChildOrder,
+        MilliSecondsSinceUnixEpoch, RoomId, SpaceChildOrder, owned_server_name, owned_user_id,
+        room_id, server_name,
     };
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

@@ -8,11 +8,10 @@ use std::{
 
 use as_variant::as_variant;
 use html5ever::{
-    local_name, ns, parse_fragment,
-    serialize::{serialize, Serialize, SerializeOpts, Serializer, TraversalScope},
+    Attribute, LocalName, ParseOpts, QualName, local_name, ns, parse_fragment,
+    serialize::{Serialize, SerializeOpts, Serializer, TraversalScope, serialize},
     tendril::{StrTendril, TendrilSink},
     tree_builder::{NodeOrText, TreeSink},
-    Attribute, LocalName, ParseOpts, QualName,
 };
 use tracing::debug;
 

@@ -1,11 +1,11 @@
 use assert_matches2::assert_matches;
 use js_int::uint;
-use ruma_common::{mxc_uri, room_alias_id, serde::CanBeEmpty, MilliSecondsSinceUnixEpoch};
+use ruma_common::{MilliSecondsSinceUnixEpoch, mxc_uri, room_alias_id, serde::CanBeEmpty};
 use ruma_events::{
-    room::aliases::RoomAliasesEventContent, AnyStateEvent, AnySyncStateEvent, AnyTimelineEvent,
-    StateEvent, SyncStateEvent,
+    AnyStateEvent, AnySyncStateEvent, AnyTimelineEvent, StateEvent, SyncStateEvent,
+    room::aliases::RoomAliasesEventContent,
 };
-use serde_json::{from_value as from_json_value, json, Value as JsonValue};
+use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
 fn aliases_event_with_prev_content() -> JsonValue {
     json!({

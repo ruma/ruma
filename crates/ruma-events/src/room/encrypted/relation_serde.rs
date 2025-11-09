@@ -1,9 +1,9 @@
 use ruma_common::{
-    serde::{from_raw_json_value, JsonObject},
     OwnedEventId,
+    serde::{JsonObject, from_raw_json_value},
 };
-use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize};
-use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
+use serde::{Deserialize, Deserializer, Serialize, ser::SerializeStruct};
+use serde_json::{Value as JsonValue, value::RawValue as RawJsonValue};
 
 use super::{InReplyTo, Relation, Thread};
 

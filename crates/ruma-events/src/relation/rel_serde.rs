@@ -1,5 +1,5 @@
 use ruma_common::serde::Raw;
-use serde::{de::DeserializeOwned, Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, de::DeserializeOwned};
 
 use super::{BundledMessageLikeRelations, BundledThread, ReferenceChunk};
 

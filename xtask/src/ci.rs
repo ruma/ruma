@@ -6,7 +6,7 @@ use std::path::Path;
 use clap::{Args, Subcommand};
 use xshell::Shell;
 
-use crate::{bench::BenchPackage, cargo::FeatureFilter, cmd, Metadata, Result, NIGHTLY};
+use crate::{Metadata, NIGHTLY, Result, bench::BenchPackage, cargo::FeatureFilter, cmd};
 
 mod reexport_features;
 mod spec_links;

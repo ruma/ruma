@@ -1,7 +1,7 @@
 use clap::Args;
 use xshell::Shell;
 
-use crate::{cmd, Result, NIGHTLY};
+use crate::{NIGHTLY, Result, cmd};
 
 #[derive(Args)]
 pub struct DocTask {

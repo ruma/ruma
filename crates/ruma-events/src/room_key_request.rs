@@ -3,7 +3,7 @@
 //! [`m.room_key_request`]: https://spec.matrix.org/latest/client-server-api/#mroom_key_request
 
 use ruma_common::{
-    serde::StringEnum, EventEncryptionAlgorithm, OwnedDeviceId, OwnedRoomId, OwnedTransactionId,
+    EventEncryptionAlgorithm, OwnedDeviceId, OwnedRoomId, OwnedTransactionId, serde::StringEnum,
 };
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

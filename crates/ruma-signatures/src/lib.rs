@@ -71,15 +71,15 @@ mod verification;
 mod tests {
     use std::collections::BTreeMap;
 
-    use pkcs8::{der::Decode, PrivateKeyInfo};
+    use pkcs8::{PrivateKeyInfo, der::Decode};
     use ruma_common::{
         room_version_rules::{RedactionRules, RoomVersionRules},
-        serde::{base64::Standard, Base64},
+        serde::{Base64, base64::Standard},
     };
     use serde_json::{from_str as from_json_str, to_string as to_json_string};
 
     use super::{
-        canonical_json, hash_and_sign_event, sign_json, verify_event, verify_json, Ed25519KeyPair,
+        Ed25519KeyPair, canonical_json, hash_and_sign_event, sign_json, verify_event, verify_json,
     };
 
     fn pkcs8() -> Vec<u8> {

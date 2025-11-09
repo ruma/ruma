@@ -2,19 +2,19 @@ use assert_matches2::assert_matches;
 use js_int::int;
 use ruma_common::{room_alias_id, serde::test::serde_json_eq};
 use ruma_events::{
-    room::{
-        aliases::RoomAliasesEventContent,
-        message::{MessageType, RoomMessageEventContent},
-        power_levels::RoomPowerLevelsEventContent,
-    },
     AnyMessageLikeEvent, AnyStateEvent, AnySyncEphemeralRoomEvent, AnySyncMessageLikeEvent,
     AnySyncStateEvent, AnySyncTimelineEvent, AnyTimelineEvent, EphemeralRoomEventType,
     GlobalAccountDataEventType, MessageLikeEvent, MessageLikeEventType, OriginalMessageLikeEvent,
     OriginalStateEvent, OriginalSyncMessageLikeEvent, OriginalSyncStateEvent,
     RoomAccountDataEventType, StateEvent, StateEventType, SyncMessageLikeEvent, SyncStateEvent,
     ToDeviceEventType,
+    room::{
+        aliases::RoomAliasesEventContent,
+        message::{MessageType, RoomMessageEventContent},
+        power_levels::RoomPowerLevelsEventContent,
+    },
 };
-use serde_json::{from_value as from_json_value, json, Value as JsonValue};
+use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
 fn message_event() -> JsonValue {
     json!({

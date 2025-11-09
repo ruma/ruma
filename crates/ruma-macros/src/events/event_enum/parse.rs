@@ -3,12 +3,11 @@
 use std::collections::BTreeMap;
 
 use proc_macro2::{Span, TokenStream};
-use quote::{format_ident, quote, ToTokens};
+use quote::{ToTokens, format_ident, quote};
 use syn::{
-    braced,
+    Attribute, Ident, Path, Token, braced,
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
-    Attribute, Ident, Path, Token,
 };
 
 use crate::events::enums::{EventKind, EventType, EventTypes, EventVariation};

@@ -6,10 +6,10 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_common::{
-    serde::{base64::UrlSafe, Base64},
     OwnedMxcUri,
+    serde::{Base64, base64::UrlSafe},
 };
-use serde::{de, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de};
 use zeroize::Zeroize;
 
 pub mod aliases;

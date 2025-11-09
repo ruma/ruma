@@ -1,17 +1,17 @@
 use cfg_if::cfg_if;
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::{
+    Field, Generics, Ident, ItemStruct, Token, Type,
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
-    Field, Generics, Ident, ItemStruct, Token, Type,
 };
 
 use super::{
     attribute::{DeriveRequestMeta, RequestMeta},
     ensure_feature_presence,
 };
-use crate::util::{field_has_serde_flatten_attribute, import_ruma_common, PrivateField};
+use crate::util::{PrivateField, field_has_serde_flatten_attribute, import_ruma_common};
 
 mod incoming;
 mod outgoing;

@@ -5,15 +5,15 @@ use std::{collections::HashMap, path::PathBuf};
 #[cfg(feature = "default")]
 use reqwest::blocking::Client;
 use semver::Version;
-use serde::{de::IgnoredAny, Deserialize};
+use serde::{Deserialize, de::IgnoredAny};
 #[cfg(feature = "default")]
-use toml_edit::{value, DocumentMut};
+use toml_edit::{DocumentMut, value};
 #[cfg(feature = "default")]
 use xshell::Shell;
 
 #[cfg(feature = "default")]
 use crate::cmd;
-use crate::{util::ask_yes_no, Metadata, Result};
+use crate::{Metadata, Result, util::ask_yes_no};
 
 const CRATESIO_API: &str = "https://crates.io/api/v1/crates";
 

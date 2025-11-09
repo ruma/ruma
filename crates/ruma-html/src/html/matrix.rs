@@ -4,7 +4,7 @@
 
 use std::collections::BTreeSet;
 
-use html5ever::{ns, tendril::StrTendril, Attribute, QualName};
+use html5ever::{Attribute, QualName, ns, tendril::StrTendril};
 use ruma_common::{
     IdParseError, MatrixToError, MatrixToUri, MatrixUri, MatrixUriError, MxcUri, OwnedMxcUri,
 };

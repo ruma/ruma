@@ -5,8 +5,8 @@ use super::{
     ReplyWithinThread, RoomMessageEventContent,
 };
 use crate::{
-    relation::{InReplyTo, Replacement, Thread},
     Mentions,
+    relation::{InReplyTo, Replacement, Thread},
 };
 
 /// Form of [`RoomMessageEventContent`] without relation.

@@ -1,11 +1,11 @@
 use assert_matches2::assert_matches;
 use js_int::uint;
 use maplit::btreemap;
-use ruma_common::{event_id, owned_event_id, owned_user_id, user_id, MilliSecondsSinceUnixEpoch};
+use ruma_common::{MilliSecondsSinceUnixEpoch, event_id, owned_event_id, owned_user_id, user_id};
 use ruma_events::{
+    AnySyncEphemeralRoomEvent,
     receipt::{Receipt, ReceiptEventContent, ReceiptType},
     typing::TypingEventContent,
-    AnySyncEphemeralRoomEvent,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

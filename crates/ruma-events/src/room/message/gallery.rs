@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use ruma_common::serde::JsonObject;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::Value as JsonValue;
 
 use super::{

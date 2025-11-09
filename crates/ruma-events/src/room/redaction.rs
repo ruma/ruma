@@ -7,10 +7,10 @@ use js_int::Int;
 #[cfg(feature = "canonical-json")]
 use ruma_common::canonical_json::RedactionEvent;
 use ruma_common::{
-    room_version_rules::RedactionRules,
-    serde::{CanBeEmpty, JsonCastable, JsonObject},
     EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedTransactionId,
     OwnedUserId, RoomId, UserId,
+    room_version_rules::RedactionRules,
+    serde::{CanBeEmpty, JsonCastable, JsonObject},
 };
 use ruma_macros::{Event, EventContent};
 use serde::{Deserialize, Serialize};

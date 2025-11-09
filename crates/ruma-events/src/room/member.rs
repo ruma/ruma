@@ -4,9 +4,9 @@
 
 use js_int::Int;
 use ruma_common::{
+    OwnedMxcUri, OwnedTransactionId, OwnedUserId, ServerSignatures, UserId,
     room_version_rules::RedactionRules,
     serde::{CanBeEmpty, Raw, StringEnum},
-    OwnedMxcUri, OwnedTransactionId, OwnedUserId, ServerSignatures, UserId,
 };
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -567,8 +567,8 @@ mod tests {
     use js_int::uint;
     use maplit::btreemap;
     use ruma_common::{
-        mxc_uri, serde::CanBeEmpty, server_name, server_signing_key_version, user_id,
-        MilliSecondsSinceUnixEpoch, ServerSigningKeyId, SigningKeyAlgorithm,
+        MilliSecondsSinceUnixEpoch, ServerSigningKeyId, SigningKeyAlgorithm, mxc_uri,
+        serde::CanBeEmpty, server_name, server_signing_key_version, user_id,
     };
     use serde_json::{from_value as from_json_value, json};
 

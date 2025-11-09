@@ -1,7 +1,7 @@
 use ruma_common::{
+    OwnedEventId,
     canonical_json::{JsonType, RedactionError},
     serde::Base64DecodeError,
-    OwnedEventId,
 };
 use thiserror::Error;
 

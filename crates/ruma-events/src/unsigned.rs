@@ -1,14 +1,14 @@
 use js_int::Int;
 use ruma_common::{
-    serde::{CanBeEmpty, Raw},
     MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedTransactionId, OwnedUserId,
+    serde::{CanBeEmpty, Raw},
 };
-use serde::{de::DeserializeOwned, Deserialize};
+use serde::{Deserialize, de::DeserializeOwned};
 
 use super::{
+    MessageLikeEventContent, OriginalSyncMessageLikeEvent, PossiblyRedactedStateEventContent,
     relation::{BundledMessageLikeRelations, BundledStateRelations},
     room::redaction::RoomRedactionEventContent,
-    MessageLikeEventContent, OriginalSyncMessageLikeEvent, PossiblyRedactedStateEventContent,
 };
 
 /// Extra information about a message event that is not incorporated into the event's hash.

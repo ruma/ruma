@@ -2,8 +2,8 @@ use std::str::FromStr;
 
 use ruma_common::{OwnedUserId, UserId};
 use serde::{
-    de::{self, Deserialize, Deserializer, Unexpected},
     Serialize, Serializer,
+    de::{self, Deserialize, Deserializer, Unexpected},
 };
 /// A type that can be used as the `state_key` for call member state events.
 /// Those state keys can be a combination of UserId and DeviceId.
@@ -204,7 +204,7 @@ mod tests {
 
     use ruma_common::user_id;
 
-    use crate::call::member::{member_state_key::CallMemberStateKeyEnum, CallMemberStateKey};
+    use crate::call::member::{CallMemberStateKey, member_state_key::CallMemberStateKeyEnum};
 
     #[test]
     fn convert_state_key_enum_to_state_key() {

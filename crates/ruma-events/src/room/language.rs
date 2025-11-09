@@ -31,7 +31,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::RoomLanguageEventContent;
-    use crate::{room::language::LanguageTag, OriginalStateEvent};
+    use crate::{OriginalStateEvent, room::language::LanguageTag};
 
     #[test]
     fn serialization() {

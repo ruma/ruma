@@ -3,14 +3,14 @@
 use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::uint;
-use ruma_common::{owned_event_id, serde::CanBeEmpty, MilliSecondsSinceUnixEpoch};
+use ruma_common::{MilliSecondsSinceUnixEpoch, owned_event_id, serde::CanBeEmpty};
 #[cfg(feature = "unstable-msc3954")]
 use ruma_events::emote::EmoteEventContent;
 use ruma_events::{
+    AnyMessageLikeEvent, MessageLikeEvent,
     message::{MessageEventContent, TextContentBlock, TextRepresentation},
     relation::InReplyTo,
     room::message::Relation,
-    AnyMessageLikeEvent, MessageLikeEvent,
 };
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

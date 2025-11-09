@@ -5,13 +5,13 @@
 use std::collections::BTreeMap;
 
 use js_int::UInt;
-use ruma_common::{serde::Base64, OwnedMxcUri};
+use ruma_common::{OwnedMxcUri, serde::Base64};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{
     message::TextContentBlock,
-    room::{message::Relation, EncryptedFile, JsonWebKey},
+    room::{EncryptedFile, JsonWebKey, message::Relation},
 };
 
 /// The payload for an extensible file message.

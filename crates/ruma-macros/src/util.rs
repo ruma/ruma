@@ -1,6 +1,6 @@
+use proc_macro_crate::{FoundCrate, crate_name};
 use proc_macro2::TokenStream;
-use proc_macro_crate::{crate_name, FoundCrate};
-use quote::{format_ident, quote, ToTokens};
+use quote::{ToTokens, format_ident, quote};
 use syn::{Attribute, Field, Ident, LitStr};
 
 pub(crate) fn import_ruma_common() -> TokenStream {
@@ -91,7 +91,7 @@ pub fn cfg_expand_struct(item: &mut syn::ItemStruct) {
     use std::mem;
 
     use proc_macro2::TokenTree;
-    use syn::{visit_mut::VisitMut, Fields, LitBool, Meta};
+    use syn::{Fields, LitBool, Meta, visit_mut::VisitMut};
 
     fn eval_cfg(cfg_expr: TokenStream) -> Option<bool> {
         let cfg_macro_call = quote! { ::core::cfg!(#cfg_expr) };

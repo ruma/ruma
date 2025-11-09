@@ -91,7 +91,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::DoNotDisturbEventContent;
-    use crate::{do_not_disturb::DoNotDisturbRoomKey, AnyGlobalAccountDataEvent};
+    use crate::{AnyGlobalAccountDataEvent, do_not_disturb::DoNotDisturbRoomKey};
 
     #[test]
     fn serialization_with_single_room() {

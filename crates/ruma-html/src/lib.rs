@@ -17,7 +17,7 @@
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
-pub use html5ever::{tendril::StrTendril, Attribute, LocalName, Namespace, Prefix, QualName};
+pub use html5ever::{Attribute, LocalName, Namespace, Prefix, QualName, tendril::StrTendril};
 
 mod helpers;
 mod html;

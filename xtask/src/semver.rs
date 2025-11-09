@@ -1,7 +1,7 @@
 use clap::{Args, Subcommand, ValueEnum};
 use xshell::Shell;
 
-use crate::{cargo::FeatureFilter, cmd, Metadata, Result};
+use crate::{Metadata, Result, cargo::FeatureFilter, cmd};
 
 #[derive(Args)]
 pub struct SemverArgs {
@@ -79,11 +79,7 @@ impl SemverTask {
 
     /// The arguments to add to disable colored output, if any.
     fn no_color_args(&self) -> &[&str] {
-        if self.no_color {
-            Self::NO_COLOR_ARGS
-        } else {
-            &[]
-        }
+        if self.no_color { Self::NO_COLOR_ARGS } else { &[] }
     }
 
     /// Check for breaking changes in the given crate, against the given revision.
@@ -149,7 +145,9 @@ impl SemverTask {
 
                 if all_features.is_empty() {
                     // There is nothing to check, return early.
-                    println!("\nIgnoring additive unstable features check, the {package} crate has no public features.\n");
+                    println!(
+                        "\nIgnoring additive unstable features check, the {package} crate has no public features.\n"
+                    );
                     return Ok(());
                 }
 
