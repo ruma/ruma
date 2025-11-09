@@ -3,10 +3,10 @@
 use std::{borrow::Cow, collections::HashSet, ops::Deref};
 
 use ruma_common::{
-    room_version_rules::AuthorizationRules, serde::from_raw_json_value, OwnedUserId, RoomVersionId,
-    UserId,
+    OwnedUserId, RoomVersionId, UserId, room_version_rules::AuthorizationRules,
+    serde::from_raw_json_value,
 };
-use serde::{de::IgnoredAny, Deserialize};
+use serde::{Deserialize, de::IgnoredAny};
 
 use super::Event;
 

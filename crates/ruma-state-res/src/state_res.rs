@@ -7,12 +7,12 @@ use std::{
 };
 
 use ruma_common::{
-    room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
     EventId, MilliSecondsSinceUnixEpoch, OwnedUserId,
+    room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
 };
 use ruma_events::{
-    room::{member::MembershipState, power_levels::UserPowerLevel},
     StateEventType, TimelineEventType,
+    room::{member::MembershipState, power_levels::UserPowerLevel},
 };
 use tracing::{debug, info, instrument, trace, warn};
 
@@ -20,13 +20,12 @@ use tracing::{debug, info, instrument, trace, warn};
 mod tests;
 
 use crate::{
-    auth_types_for_event, check_state_dependent_auth_rules,
+    Error, Event, Result, auth_types_for_event, check_state_dependent_auth_rules,
     events::{
-        power_levels::RoomPowerLevelsEventOptionExt, RoomCreateEvent, RoomMemberEvent,
-        RoomPowerLevelsEvent, RoomPowerLevelsIntField,
+        RoomCreateEvent, RoomMemberEvent, RoomPowerLevelsEvent, RoomPowerLevelsIntField,
+        power_levels::RoomPowerLevelsEventOptionExt,
     },
     utils::RoomIdExt,
-    Error, Event, Result,
 };
 
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.

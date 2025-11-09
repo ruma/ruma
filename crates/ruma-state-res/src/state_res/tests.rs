@@ -7,24 +7,24 @@ use js_int::{int, uint};
 use maplit::{hashmap, hashset};
 use rand::seq::SliceRandom;
 use ruma_common::{
-    room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
     MilliSecondsSinceUnixEpoch, OwnedEventId,
+    room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
 };
 use ruma_events::{
-    room::join_rules::{JoinRule, RoomJoinRulesEventContent},
     StateEventType, TimelineEventType,
+    room::join_rules::{JoinRule, RoomJoinRulesEventContent},
 };
 use serde_json::{json, value::to_raw_value as to_raw_json_value};
 use test_log::test;
 use tracing::debug;
 
-use super::{is_power_event, EventTypeExt, StateMap};
+use super::{EventTypeExt, StateMap, is_power_event};
 use crate::{
-    test_utils::{
-        alice, bob, charlie, do_check, ella, event_id, member_content_ban, member_content_join,
-        room_id, to_init_pdu_event, to_pdu_event, zara, PduEvent, TestStore, INITIAL_EVENTS,
-    },
     Event,
+    test_utils::{
+        INITIAL_EVENTS, PduEvent, TestStore, alice, bob, charlie, do_check, ella, event_id,
+        member_content_ban, member_content_join, room_id, to_init_pdu_event, to_pdu_event, zara,
+    },
 };
 
 fn test_event_sort() {

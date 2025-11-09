@@ -1,7 +1,7 @@
 use js_int::int;
 use ruma_common::{
-    room_version_rules::EventFormatRules, CanonicalJsonObject, CanonicalJsonValue, RoomId,
-    ID_MAX_BYTES,
+    CanonicalJsonObject, CanonicalJsonValue, ID_MAX_BYTES, RoomId,
+    room_version_rules::EventFormatRules,
 };
 use serde_json::to_string as to_json_string;
 
@@ -197,7 +197,7 @@ mod tests {
 
     use js_int::int;
     use ruma_common::{
-        room_version_rules::EventFormatRules, CanonicalJsonObject, CanonicalJsonValue,
+        CanonicalJsonObject, CanonicalJsonValue, room_version_rules::EventFormatRules,
     };
     use serde_json::{from_value as from_json_value, json};
 

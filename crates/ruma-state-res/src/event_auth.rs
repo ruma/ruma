@@ -5,11 +5,11 @@ use std::{
 
 use js_int::Int;
 use ruma_common::{
-    room::JoinRuleKind, room_version_rules::AuthorizationRules, EventId, OwnedUserId, UserId,
+    EventId, OwnedUserId, UserId, room::JoinRuleKind, room_version_rules::AuthorizationRules,
 };
 use ruma_events::{
-    room::{member::MembershipState, power_levels::UserPowerLevel},
     StateEventType, TimelineEventType,
+    room::{member::MembershipState, power_levels::UserPowerLevel},
 };
 use serde_json::value::RawValue as RawJsonValue;
 use tracing::{debug, info, instrument, warn};
@@ -20,14 +20,14 @@ mod tests;
 
 use self::room_member::check_room_member;
 use crate::{
+    Event,
     events::{
-        member::{RoomMemberEventContent, RoomMemberEventOptionExt},
-        power_levels::{RoomPowerLevelsEventOptionExt, RoomPowerLevelsIntField},
         RoomCreateEvent, RoomJoinRulesEvent, RoomMemberEvent, RoomPowerLevelsEvent,
         RoomThirdPartyInviteEvent,
+        member::{RoomMemberEventContent, RoomMemberEventOptionExt},
+        power_levels::{RoomPowerLevelsEventOptionExt, RoomPowerLevelsIntField},
     },
     utils::RoomIdExt,
-    Event,
 };
 
 /// Get the list of [relevant auth events] required to authorize the event of the given type.

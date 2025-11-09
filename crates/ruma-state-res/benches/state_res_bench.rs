@@ -12,31 +12,31 @@ use std::{
     collections::{HashMap, HashSet},
     slice,
     sync::{
-        atomic::{AtomicU64, Ordering::SeqCst},
         Arc,
+        atomic::{AtomicU64, Ordering::SeqCst},
     },
 };
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use event::{EventHash, PduEvent};
 use js_int::{int, uint};
 use maplit::{btreemap, hashmap, hashset};
 use ruma_common::{
-    room_id,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, UserId, room_id,
     room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
-    user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, UserId,
+    user_id,
 };
 use ruma_events::{
+    StateEventType, TimelineEventType,
     room::{
         join_rules::{JoinRule, RoomJoinRulesEventContent},
         member::{MembershipState, RoomMemberEventContent},
     },
-    StateEventType, TimelineEventType,
 };
 use ruma_state_res::{self as state_res, Error, Event, Result, StateMap};
 use serde_json::{
     json,
-    value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue},
+    value::{RawValue as RawJsonValue, to_raw_value as to_raw_json_value},
 };
 
 static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);

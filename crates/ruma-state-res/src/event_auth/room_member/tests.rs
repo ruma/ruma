@@ -1,14 +1,14 @@
 use ruma_common::{
-    room_version_rules::AuthorizationRules, serde::Raw,
-    third_party_invite::IdentityServerBase64PublicKey, Signatures,
+    Signatures, room_version_rules::AuthorizationRules, serde::Raw,
+    third_party_invite::IdentityServerBase64PublicKey,
 };
 use ruma_events::{
+    TimelineEventType,
     room::{
         join_rules::{JoinRule, Restricted, RoomJoinRulesEventContent},
         member::{MembershipState, RoomMemberEventContent, SignedContent, ThirdPartyInvite},
         third_party_invite::RoomThirdPartyInviteEventContent,
     },
-    TimelineEventType,
 };
 use serde_json::{json, value::to_raw_value as to_raw_json_value};
 use test_log::test;
@@ -17,9 +17,9 @@ use super::check_room_member;
 use crate::{
     events::RoomMemberEvent,
     test_utils::{
-        alice, bob, charlie, ella, event_id, member_content_ban, member_content_join,
-        room_third_party_invite, to_pdu_event, zara, TestStateMap, INITIAL_EVENTS,
-        INITIAL_EVENTS_CREATE_ROOM,
+        INITIAL_EVENTS, INITIAL_EVENTS_CREATE_ROOM, TestStateMap, alice, bob, charlie, ella,
+        event_id, member_content_ban, member_content_join, room_third_party_invite, to_pdu_event,
+        zara,
     },
 };
 

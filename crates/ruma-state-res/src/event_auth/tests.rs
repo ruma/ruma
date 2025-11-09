@@ -2,15 +2,15 @@ use std::collections::BTreeMap;
 
 use js_int::{int, uint};
 use ruma_common::{
-    owned_event_id, owned_room_alias_id, owned_room_id, room_version_rules::AuthorizationRules,
-    user_id, MilliSecondsSinceUnixEpoch, ServerSignatures,
+    MilliSecondsSinceUnixEpoch, ServerSignatures, owned_event_id, owned_room_alias_id,
+    owned_room_id, room_version_rules::AuthorizationRules, user_id,
 };
 use ruma_events::{
+    TimelineEventType,
     room::{
         aliases::RoomAliasesEventContent, message::RoomMessageEventContent,
         redaction::RoomRedactionEventContent,
     },
-    TimelineEventType,
 };
 use serde_json::{json, value::to_raw_value as to_raw_json_value};
 use test_log::test;
@@ -24,9 +24,10 @@ use crate::{
     event_auth::check_room_redaction,
     events::{RoomCreateEvent, RoomPowerLevelsEvent},
     test_utils::{
-        alice, charlie, ella, event_id, member_content_join, room_create_v12_pdu_event, room_id,
+        EventHash, INITIAL_EVENTS, INITIAL_V12_EVENTS, PduEvent, TestStateMap, alice, charlie,
+        ella, event_id, member_content_join, room_create_v12_pdu_event, room_id,
         room_redaction_pdu_event, room_third_party_invite, to_init_pdu_event, to_pdu_event,
-        to_v12_pdu_event, EventHash, PduEvent, TestStateMap, INITIAL_EVENTS, INITIAL_V12_EVENTS,
+        to_v12_pdu_event,
     },
 };
 

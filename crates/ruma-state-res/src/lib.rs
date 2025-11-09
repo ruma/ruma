@@ -67,5 +67,5 @@ pub use self::{
     },
     event_format::check_pdu_format,
     events::Event,
-    state_res::{resolve, reverse_topological_power_sort, StateMap},
+    state_res::{StateMap, resolve, reverse_topological_power_sort},
 };

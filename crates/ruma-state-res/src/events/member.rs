@@ -2,7 +2,7 @@
 
 use std::ops::Deref;
 
-use ruma_common::{serde::from_raw_json_value, CanonicalJsonObject, OwnedUserId};
+use ruma_common::{CanonicalJsonObject, OwnedUserId, serde::from_raw_json_value};
 use ruma_events::room::member::MembershipState;
 use ruma_signatures::canonical_json;
 use serde::Deserialize;
