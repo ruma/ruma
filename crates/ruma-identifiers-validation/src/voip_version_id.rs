@@ -1,6 +1,6 @@
-use js_int::{uint, UInt};
+use js_int::{UInt, uint};
 
-use crate::{error::VoipVersionIdError, Error};
+use crate::{Error, error::VoipVersionIdError};
 
 pub fn validate(u: UInt) -> Result<(), Error> {
     if u != uint!(0) {

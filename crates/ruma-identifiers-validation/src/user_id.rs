@@ -1,4 +1,4 @@
-use crate::{localpart_is_backwards_compatible, parse_id, Error, ID_MAX_BYTES};
+use crate::{Error, ID_MAX_BYTES, localpart_is_backwards_compatible, parse_id};
 
 /// Validate a [user ID] as used by clients.
 ///

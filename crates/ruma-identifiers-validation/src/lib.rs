@@ -64,9 +64,5 @@ pub trait KeyName: AsRef<str> {
 /// [allowed over federation]: https://spec.matrix.org/latest/appendices/#historical-user-ids
 pub fn localpart_is_backwards_compatible(localpart: &str) -> Result<(), Error> {
     let is_invalid = localpart.contains([':', '\0']);
-    if is_invalid {
-        Err(Error::InvalidCharacters)
-    } else {
-        Ok(())
-    }
+    if is_invalid { Err(Error::InvalidCharacters) } else { Ok(()) }
 }

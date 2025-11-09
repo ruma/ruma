@@ -1,4 +1,4 @@
-use crate::{validate_id, Error};
+use crate::{Error, validate_id};
 
 /// Validate a [room ID] as used by clients.
 ///
