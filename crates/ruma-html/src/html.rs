@@ -438,8 +438,7 @@ impl NodeRef {
     pub fn next_sibling(&self) -> Option<NodeRef> {
         let (parent, index) = self.parent_and_index()?;
         let index = index.checked_add(1)?;
-        let sibling = parent.0.children.borrow().get(index).cloned();
-        sibling
+        parent.0.children.borrow().get(index).cloned()
     }
 
     /// The previous sibling node of this node.
@@ -448,8 +447,7 @@ impl NodeRef {
     pub fn prev_sibling(&self) -> Option<NodeRef> {
         let (parent, index) = self.parent_and_index()?;
         let index = index.checked_sub(1)?;
-        let sibling = parent.0.children.borrow().get(index).cloned();
-        sibling
+        parent.0.children.borrow().get(index).cloned()
     }
 
     /// Whether this node has children.
