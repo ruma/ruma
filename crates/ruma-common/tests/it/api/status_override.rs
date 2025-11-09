@@ -2,11 +2,11 @@
 #![allow(dead_code)]
 
 use http::{
-    header::{Entry, LOCATION},
     StatusCode,
+    header::{Entry, LOCATION},
 };
 use ruma_common::{
-    api::{auth_scheme::NoAuthentication, request, response, OutgoingResponse as _},
+    api::{OutgoingResponse as _, auth_scheme::NoAuthentication, request, response},
     metadata,
 };
 

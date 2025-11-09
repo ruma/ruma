@@ -10,7 +10,7 @@ use http::Method;
 use ruma_macros::StringEnum;
 
 use super::{auth_scheme::AuthScheme, error::UnknownVersionError, path_builder::PathBuilder};
-use crate::{api::error::IntoHttpError, serde::slice_to_buf, PrivOwnedStr, RoomVersionId};
+use crate::{PrivOwnedStr, RoomVersionId, api::error::IntoHttpError, serde::slice_to_buf};
 
 /// Convenient constructor for [`Metadata`] implementation.
 ///
@@ -245,11 +245,7 @@ pub trait Metadata: Sized {
     where
         B: Default + BufMut,
     {
-        if Self::METHOD == Method::GET {
-            Default::default()
-        } else {
-            slice_to_buf(b"{}")
-        }
+        if Self::METHOD == Method::GET { Default::default() } else { slice_to_buf(b"{}") }
     }
 
     /// Generate the endpoint URL for this endpoint.
@@ -570,11 +566,7 @@ impl MatrixVersion {
         use konst::primitive::cmp::cmp_u8;
 
         let major_ord = cmp_u8(self_parts.0, other_parts.0);
-        if major_ord.is_ne() {
-            major_ord
-        } else {
-            cmp_u8(self_parts.1, other_parts.1)
-        }
+        if major_ord.is_ne() { major_ord } else { cmp_u8(self_parts.1, other_parts.1) }
     }
 
     // Internal function to check if this version is the legacy (v1.0) version in const-fn contexts

@@ -1,8 +1,8 @@
 use std::borrow::Cow;
 
 use ruma_common::api::{
-    auth_scheme::SendAccessToken, MatrixVersion, OutgoingRequest as _, OutgoingResponse as _,
-    SupportedVersions,
+    MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SupportedVersions,
+    auth_scheme::SendAccessToken,
 };
 
 mod get {

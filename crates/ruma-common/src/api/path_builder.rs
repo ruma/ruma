@@ -10,7 +10,7 @@ use std::{
 use percent_encoding::utf8_percent_encode;
 use tracing::warn;
 
-use super::{error::IntoHttpError, FeatureFlag, MatrixVersion, SupportedVersions};
+use super::{FeatureFlag, MatrixVersion, SupportedVersions, error::IntoHttpError};
 use crate::percent_encode::PATH_PERCENT_ENCODE_SET;
 
 /// Trait implemented by types providing a method to construct the path used to query an endpoint.
@@ -631,9 +631,9 @@ mod tests {
 
     use super::{PathBuilder, StablePathSelector, VersionHistory};
     use crate::api::{
-        error::IntoHttpError,
         MatrixVersion::{self, V1_0, V1_1, V1_2, V1_3},
         SupportedVersions,
+        error::IntoHttpError,
     };
 
     fn stable_only_history(

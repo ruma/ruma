@@ -1,6 +1,6 @@
 use std::fmt;
 
-use js_int::{uint, UInt};
+use js_int::{UInt, uint};
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use web_time::{Duration, SystemTime, UNIX_EPOCH};

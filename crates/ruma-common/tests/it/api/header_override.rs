@@ -2,12 +2,12 @@
 
 use std::borrow::Cow;
 
-use http::header::{Entry, CONTENT_TYPE, LOCATION};
+use http::header::{CONTENT_TYPE, Entry, LOCATION};
 use ruma_common::{
     api::{
+        MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SupportedVersions,
         auth_scheme::{NoAuthentication, SendAccessToken},
-        request, response, MatrixVersion, OutgoingRequest as _, OutgoingResponse as _,
-        SupportedVersions,
+        request, response,
     },
     metadata,
 };

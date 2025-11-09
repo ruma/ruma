@@ -8,10 +8,10 @@
 use std::{fmt, marker::PhantomData};
 
 use serde::{
-    de::{self, DeserializeOwned, SeqAccess, Visitor},
     Deserialize, Deserializer,
+    de::{self, DeserializeOwned, SeqAccess, Visitor},
 };
-use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
+use serde_json::{Value as JsonValue, value::RawValue as RawJsonValue};
 use tracing::debug;
 
 pub mod base64;
@@ -28,7 +28,7 @@ pub mod test;
 pub use self::{
     base64::{Base64, Base64DecodeError},
     buf::{json_to_buf, slice_to_buf},
-    can_be_empty::{is_empty, CanBeEmpty},
+    can_be_empty::{CanBeEmpty, is_empty},
     cow::deserialize_cow_str,
     raw::{JsonCastable, Raw},
     strings::{
@@ -144,6 +144,6 @@ where
 }
 
 pub use ruma_macros::{
-    AsRefStr, AsStrAsRefStr, DebugAsRefStr, DeserializeFromCowStr, DisplayAsRefStr, EqAsRefStr,
-    FromString, OrdAsRefStr, SerializeAsRefStr, StringEnum, _FakeDeriveSerde,
+    _FakeDeriveSerde, AsRefStr, AsStrAsRefStr, DebugAsRefStr, DeserializeFromCowStr,
+    DisplayAsRefStr, EqAsRefStr, FromString, OrdAsRefStr, SerializeAsRefStr, StringEnum,
 };

@@ -22,8 +22,8 @@ use thiserror::Error;
 use tracing::instrument;
 
 use crate::{
-    serde::{JsonObject, Raw, StringEnum},
     OwnedRoomId, OwnedUserId, PrivOwnedStr,
+    serde::{JsonObject, Raw, StringEnum},
 };
 
 mod action;
@@ -36,9 +36,8 @@ pub use self::condition::RoomVersionFeature;
 pub use self::{
     action::{Action, Tweak},
     condition::{
-        ComparisonOperator, FlattenedJson, FlattenedJsonValue, PushCondition,
+        _CustomPushCondition, ComparisonOperator, FlattenedJson, FlattenedJsonValue, PushCondition,
         PushConditionPowerLevelsCtx, PushConditionRoomCtx, RoomMemberCountIs, ScalarJsonValue,
-        _CustomPushCondition,
     },
     iter::{AnyPushRule, AnyPushRuleRef, RulesetIntoIter, RulesetIter},
     predefined::{
@@ -1036,17 +1035,17 @@ mod tests {
     use js_int::{int, uint};
     use macro_rules_attribute::apply;
     use serde_json::{
-        from_value as from_json_value, json, to_value as to_json_value,
-        value::RawValue as RawJsonValue, Value as JsonValue,
+        Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
+        value::RawValue as RawJsonValue,
     };
     use smol_macros::test;
 
     use super::{
+        AnyPushRule, ConditionalPushRule, PatternedPushRule, Ruleset, SimplePushRule,
         action::{Action, Tweak},
         condition::{
             PushCondition, PushConditionPowerLevelsCtx, PushConditionRoomCtx, RoomMemberCountIs,
         },
-        AnyPushRule, ConditionalPushRule, PatternedPushRule, Ruleset, SimplePushRule,
     };
     use crate::{
         owned_room_id, owned_user_id,

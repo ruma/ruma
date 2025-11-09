@@ -2,7 +2,7 @@
 //!
 //! [power_levels]: https://spec.matrix.org/latest/client-server-api/#mroompower_levels
 
-use js_int::{int, Int};
+use js_int::{Int, int};
 use ruma_macros::StringEnum;
 use serde::{Deserialize, Serialize};
 

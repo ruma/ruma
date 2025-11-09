@@ -4,10 +4,10 @@
 pub mod some_endpoint {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
+        OwnedUserId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         serde::Raw,
-        OwnedUserId,
     };
 
     metadata! {

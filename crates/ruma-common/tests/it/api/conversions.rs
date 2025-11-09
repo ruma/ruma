@@ -4,12 +4,14 @@ use std::borrow::Cow;
 
 use http::header::CONTENT_TYPE;
 use ruma_common::{
+    OwnedUserId,
     api::{
+        AppserviceUserIdentity, IncomingRequest as _, MatrixVersion, OutgoingRequest as _,
+        OutgoingRequestAppserviceExt, SupportedVersions,
         auth_scheme::{NoAuthentication, SendAccessToken},
-        request, response, AppserviceUserIdentity, IncomingRequest as _, MatrixVersion,
-        OutgoingRequest as _, OutgoingRequestAppserviceExt, SupportedVersions,
+        request, response,
     },
-    metadata, owned_user_id, user_id, OwnedUserId,
+    metadata, owned_user_id, user_id,
 };
 
 metadata! {
@@ -142,12 +144,13 @@ mod without_query {
 
     use http::header::CONTENT_TYPE;
     use ruma_common::{
+        OwnedUserId,
         api::{
+            AppserviceUserIdentity, MatrixVersion, OutgoingRequestAppserviceExt, SupportedVersions,
             auth_scheme::{NoAuthentication, SendAccessToken},
-            request, response, AppserviceUserIdentity, MatrixVersion, OutgoingRequestAppserviceExt,
-            SupportedVersions,
+            request, response,
         },
-        metadata, owned_user_id, user_id, OwnedUserId,
+        metadata, owned_user_id, user_id,
     };
 
     metadata! {

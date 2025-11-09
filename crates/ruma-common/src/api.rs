@@ -75,7 +75,7 @@ use bytes::BufMut;
 ///
 /// ```
 /// pub mod do_a_thing {
-///     use ruma_common::{api::request, OwnedRoomId};
+///     use ruma_common::{OwnedRoomId, api::request};
 ///     # use ruma_common::{api::{auth_scheme::NoAuthentication, response}, metadata};
 ///
 ///     // metadata! { ... };
@@ -190,7 +190,7 @@ pub use ruma_macros::request;
 ///
 /// ```
 /// pub mod do_a_thing {
-///     use ruma_common::{api::response, OwnedRoomId};
+///     use ruma_common::{OwnedRoomId, api::response};
 ///     # use ruma_common::{api::{auth_scheme::NoAuthentication, request}, metadata};
 ///
 ///     // metadata! { ... };

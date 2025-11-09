@@ -162,8 +162,8 @@ mod tests {
     #[test]
     fn signatures_into_iter() {
         use ruma_common::{
-            owned_server_name, server_signing_key_version, ServerSigningKeyId, Signatures,
-            SigningKeyAlgorithm,
+            ServerSigningKeyId, Signatures, SigningKeyAlgorithm, owned_server_name,
+            server_signing_key_version,
         };
         let key_identifier = ServerSigningKeyId::from_parts(
             SigningKeyAlgorithm::Ed25519,

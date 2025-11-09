@@ -1,6 +1,6 @@
 //! Common types for authentication.
 
-use crate::{serde::StringEnum, PrivOwnedStr};
+use crate::{PrivOwnedStr, serde::StringEnum};
 
 /// Access token types.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]

@@ -10,7 +10,7 @@ use std::{
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    serde::StringEnum, MilliSecondsSinceUnixEpoch, OwnedRoomAliasId, OwnedUserId, PrivOwnedStr,
+    MilliSecondsSinceUnixEpoch, OwnedRoomAliasId, OwnedUserId, PrivOwnedStr, serde::StringEnum,
 };
 
 /// Metadata about a third party protocol.

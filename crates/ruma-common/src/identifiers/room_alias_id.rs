@@ -2,7 +2,7 @@
 
 use ruma_macros::IdDst;
 
-use super::{matrix_uri::UriAction, server_name::ServerName, MatrixToUri, MatrixUri, OwnedEventId};
+use super::{MatrixToUri, MatrixUri, OwnedEventId, matrix_uri::UriAction, server_name::ServerName};
 
 /// A Matrix [room alias ID].
 ///

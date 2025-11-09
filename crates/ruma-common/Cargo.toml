@@ -7,7 +7,7 @@ keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-edition = "2021"
+edition = "2024"
 rust-version = { workspace = true }
 
 [package.metadata.docs.rs]

@@ -4,7 +4,7 @@
 #![allow(clippy::exhaustive_structs)]
 
 use as_variant::as_variant;
-use http::{header, HeaderMap};
+use http::{HeaderMap, header};
 use serde::Deserialize;
 
 /// Trait implemented by types representing an authentication scheme used by an endpoint.

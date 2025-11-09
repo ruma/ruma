@@ -2,8 +2,8 @@ use std::{collections::BTreeMap, fmt};
 
 use as_variant::as_variant;
 use js_int::{Int, UInt};
-use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
-use serde_json::{to_string as to_json_string, Value as JsonValue};
+use serde::{Deserialize, Serialize, de::Deserializer, ser::Serializer};
+use serde_json::{Value as JsonValue, to_string as to_json_string};
 
 use super::CanonicalJsonError;
 use crate::serde::{JsonCastable, JsonObject};

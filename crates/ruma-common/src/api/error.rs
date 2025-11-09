@@ -5,7 +5,7 @@
 use std::{error::Error as StdError, fmt, num::ParseIntError, sync::Arc};
 
 use bytes::{BufMut, Bytes};
-use serde_json::{from_slice as from_json_slice, Value as JsonValue};
+use serde_json::{Value as JsonValue, from_slice as from_json_slice};
 use thiserror::Error;
 
 use super::{EndpointError, MatrixVersion, OutgoingResponse};

@@ -8,14 +8,14 @@ use std::borrow::Cow;
 use bytes::BufMut;
 use http::{header::CONTENT_TYPE, method::Method};
 use ruma_common::{
+    OwnedRoomAliasId, OwnedRoomId,
     api::{
+        EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata, OutgoingRequest,
+        OutgoingResponse, SupportedVersions,
         auth_scheme::{NoAuthentication, SendAccessToken},
         error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError},
         path_builder::{StablePathSelector, VersionHistory},
-        EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata, OutgoingRequest,
-        OutgoingResponse, SupportedVersions,
     },
-    OwnedRoomAliasId, OwnedRoomId,
 };
 use serde::{Deserialize, Serialize};
 

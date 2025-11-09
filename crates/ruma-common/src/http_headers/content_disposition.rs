@@ -179,11 +179,7 @@ impl<'a> RawParam<'a> {
         } else {
             let s = String::from_utf8_lossy(self.value);
 
-            if self.is_quoted_string {
-                Some(unescape_string(&s))
-            } else {
-                Some(s.into_owned())
-            }
+            if self.is_quoted_string { Some(unescape_string(&s)) } else { Some(s.into_owned()) }
         }
     }
 }

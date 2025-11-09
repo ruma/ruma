@@ -7,7 +7,7 @@ use ruma_macros::StringEnum;
 use super::{
     Action::*, ConditionalPushRule, PushCondition::*, RoomMemberCountIs, RuleKind, Ruleset, Tweak,
 };
-use crate::{power_levels::NotificationPowerLevelsKey, PrivOwnedStr, UserId};
+use crate::{PrivOwnedStr, UserId, power_levels::NotificationPowerLevelsKey};
 
 impl Ruleset {
     /// The list of all [predefined push rules].

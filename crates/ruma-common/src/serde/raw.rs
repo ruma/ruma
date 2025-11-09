@@ -10,7 +10,7 @@ use serde::{
     ser::{Serialize, Serializer},
 };
 use serde_json::value::{
-    to_raw_value as to_raw_json_value, RawValue as RawJsonValue, Value as JsonValue,
+    RawValue as RawJsonValue, Value as JsonValue, to_raw_value as to_raw_json_value,
 };
 
 /// A wrapper around `Box<RawValue>` with a generic parameter for the expected Rust type.
