@@ -47,7 +47,13 @@ Breaking changes:
   `AppserviceUserIdentity` instead of a `UserId`. This allows to specify a
   device ID, according to MSC4326.
 - `IntoHttpError::NeedsAuthentication` is a newtype variant renamed to
-  `Authentication` that accepts any error type. 
+  `Authentication` that accepts any error type.
+- Remove support for the following rules for the `StringEnum`, `AsRefStr` and
+  `FromString` derive macros' `rename_all` attribute, because they are unused as
+  far as we know:
+  - `"PascalCase"`
+  - `"SCREAMING-KEBAB-CASE"`
+  - `"m.dotted.case"`
 
 Bug fixes:
 
