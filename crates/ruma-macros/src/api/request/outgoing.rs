@@ -124,13 +124,15 @@ impl Request {
                     authentication_input: <<Self as #ruma_common::api::Metadata>::Authentication as #ruma_common::api::auth_scheme::AuthScheme>::Input<'_>,
                     path_builder_input: <<Self as #ruma_common::api::Metadata>::PathBuilder as #ruma_common::api::path_builder::PathBuilder>::Input<'_>,
                 ) -> ::std::result::Result<#http::Request<T>, #ruma_common::api::error::IntoHttpError> {
+                    let request_query_string = #request_query_string;
+
                     let mut http_request = #http::Request::builder()
                         .method(<Self as #ruma_common::api::Metadata>::METHOD)
                         .uri(<Self as #ruma_common::api::Metadata>::make_endpoint_url(
                             path_builder_input,
                             base_url,
                             &[ #( &self.#path_fields ),* ],
-                            #request_query_string,
+                            &request_query_string,
                         )?)
                         .body(#request_body)?;
 
