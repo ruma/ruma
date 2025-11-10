@@ -87,7 +87,7 @@ fn validate_selections<'a>(
     answer_ids: &BTreeSet<&str>,
     max_selections: UInt,
     selections: &'a [String],
-) -> Option<impl Iterator<Item = &'a str>> {
+) -> Option<impl Iterator<Item = &'a str> + use<'a>> {
     // Vote is spoiled if any answer is unknown.
     if selections.iter().any(|s| !answer_ids.contains(s.as_str())) {
         return None;
@@ -100,12 +100,18 @@ fn validate_selections<'a>(
     Some(selections.iter().take(max_selections).map(Deref::deref))
 }
 
-fn filter_selections<'a>(
+fn filter_selections<'a, R>(
     answer_ids: BTreeSet<&str>,
     max_selections: UInt,
-    responses: impl IntoIterator<Item = PollResponseData<'a>>,
+    responses: R,
     end_timestamp: Option<MilliSecondsSinceUnixEpoch>,
-) -> BTreeMap<&'a UserId, (MilliSecondsSinceUnixEpoch, Option<impl Iterator<Item = &'a str>>)> {
+) -> BTreeMap<
+    &'a UserId,
+    (MilliSecondsSinceUnixEpoch, Option<impl Iterator<Item = &'a str> + use<'a, R>>),
+>
+where
+    R: IntoIterator<Item = PollResponseData<'a>>,
+{
     responses
         .into_iter()
         .filter(|ev| {

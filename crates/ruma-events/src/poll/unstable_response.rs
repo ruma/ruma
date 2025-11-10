@@ -85,7 +85,7 @@ impl UnstablePollResponseContentBlock {
     pub fn validate<'a>(
         &'a self,
         poll: &UnstablePollStartContentBlock,
-    ) -> Option<impl Iterator<Item = &'a str>> {
+    ) -> Option<impl Iterator<Item = &'a str> + use<'a>> {
         let answer_ids = poll.answers.iter().map(|a| a.id.as_str()).collect();
         validate_selections(&answer_ids, poll.max_selections, &self.answers)
     }
