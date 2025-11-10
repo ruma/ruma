@@ -15,8 +15,6 @@
     convert all characters to uppercase. `MyVariant` becomes `MY_VARIANT`.
   * `kebab-case` - Add a `-` before all uppercase characters except at the start and convert all
     characters to lowercase. `MyVariant` becomes `my-variant`.
-  * `SCREAMING-KEBAB-CASE` - Add a `-` before all uppercase characters except at the start and
-    convert all characters to uppercase. `MyVariant` becomes `MY-VARIANT`.
   * `M_MATRIX_ERROR_CASE` - The case usually used for error codes in the Matrix specification.
     This is the same as `SCREAMING_SNAKE_CASE`, prepended with `M_`. `MyVariant` becomes
     `M_MY_VARIANT`.
@@ -24,8 +22,6 @@
     This is the same as `snake_case`, prepended with `m.`. `MyVariant` becomes `m.my_variant`.
   * `m.lowercase` => A variant of `m.snake_case` based on the `lowercase` rule. `MyVariant`
     becomes `m.myvariant`.
-  * `m.dotted.case` => A variant of `m.snake_case` where the `_` is replaced by a `.`. `MyVariant`
-    becomes `m.my.variant`.
   * `.m.rule.snake_case` => A variant of `m.snake_case` where the prefix is `.m.rule.`, usually
     used for push rules `rule_id`s in the Matrix Specification. `MyVariant` becomes
     `.m.rule.my_variant`.
