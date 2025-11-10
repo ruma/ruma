@@ -73,6 +73,11 @@ Improvements:
   have a `/versions` endpoint and for endpoints that can't be versioned.
 - `AuthScheme` data can be extracted from incoming HTTP requests with
   `AuthScheme::extract_authentication()`.
+- The `StringEnum`, `AsRefStr` and `FromString` derive macros allow to set a
+  custom prefix alongside the rule to rename all the variants, like this:
+  `#[ruma_enum(rename_all(prefix = "m.", rule = "snake_case"))]`. The previous
+  syntax using `#[ruma_enum(rename_all = "snake_case")]` still works and assumes
+  that the prefix is empty. 
 
 # 0.16.0
 

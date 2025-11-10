@@ -1,27 +1,23 @@
 use proc_macro2::Span;
 use syn::{ItemEnum, Token, Variant, punctuated::Punctuated};
 
-use super::{
-    attr::{Attr, EnumAttrs, RenameAllAttr},
-    case::RenameRule,
-};
+use super::attr::{Attr, EnumAttrs, RenameAllAttr};
 
-pub fn get_rename_rule(input: &ItemEnum) -> syn::Result<RenameRule> {
-    let rules: Vec<_> = input
-        .attrs
-        .iter()
-        .filter(|attr| attr.path().is_ident("ruma_enum"))
-        .map(|attr| attr.parse_args::<RenameAllAttr>().map(RenameAllAttr::into_inner))
-        .collect::<syn::Result<_>>()?;
+pub fn get_rename_all(input: &ItemEnum) -> syn::Result<RenameAllAttr> {
+    let mut rename_all = RenameAllAttr::default();
 
-    match rules.len() {
-        0 => Ok(RenameRule::None),
-        1 => Ok(rules[0]),
-        _ => Err(syn::Error::new(
-            Span::call_site(),
-            "found multiple ruma_enum(rename_all) attributes",
-        )),
+    for attr in input.attrs.iter().filter(|attr| attr.path().is_ident("ruma_enum")) {
+        attr.parse_nested_meta(|meta| {
+            if meta.path.is_ident("rename_all") {
+                rename_all.try_merge(meta)?;
+                return Ok(());
+            }
+
+            Err(meta.error("unsupported `ruma_enum` attribute"))
+        })?;
     }
+
+    Ok(rename_all)
 }
 
 pub fn get_enum_attributes(input: &Variant) -> syn::Result<EnumAttrs> {
