@@ -56,7 +56,7 @@ impl Request {
 
             let parse = quote! {
                 let request_query: RequestQuery =
-                    #serde_html_form::from_str(&request.uri().query().unwrap_or(""))?;
+                    #serde_html_form::from_str(request.uri().query().unwrap_or(""))?;
 
                 #decls
             };
