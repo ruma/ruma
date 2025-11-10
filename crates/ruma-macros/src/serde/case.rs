@@ -5,14 +5,15 @@
 //!
 //! [serde]: https://github.com/serde-rs/serde/blame/a9f8ea0a1e8ba1206f8c28d96b924606847b85a9/serde_derive/src/internals/case.rs
 
-use std::str::FromStr;
+use syn::{LitStr, parse::Parse};
 
 use self::RenameRule::*;
 
 /// The different possible ways to change case of fields in a struct, or variants in an enum.
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, Default, PartialEq)]
 pub enum RenameRule {
     /// Don't apply a default rename rule.
+    #[default]
     None,
     /// Rename direct children to "lowercase" style.
     LowerCase,
@@ -70,11 +71,11 @@ impl RenameRule {
     }
 }
 
-impl FromStr for RenameRule {
-    type Err = ();
+impl Parse for RenameRule {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        let str: LitStr = input.parse()?;
 
-    fn from_str(rename_all_str: &str) -> Result<Self, Self::Err> {
-        match rename_all_str {
+        match str.value().as_str() {
             "lowercase" => Ok(LowerCase),
             "UPPERCASE" => Ok(Uppercase),
             "camelCase" => Ok(CamelCase),
@@ -86,7 +87,10 @@ impl FromStr for RenameRule {
             "m.lowercase" => Ok(MatrixLowerCase),
             ".m.rule.snake_case" => Ok(MatrixRuleSnakeCase),
             "m.role.snake_case" => Ok(MatrixRoleSnakeCase),
-            _ => Err(()),
+            _ => Err(syn::Error::new_spanned(
+                str,
+                "unsupported value for `#[ruma_enum(rename_all)]`'s rule",
+            )),
         }
     }
 }

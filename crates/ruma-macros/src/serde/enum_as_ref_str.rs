@@ -4,12 +4,12 @@ use syn::{Fields, FieldsNamed, FieldsUnnamed, ItemEnum};
 
 use super::{
     attr::EnumAttrs,
-    util::{get_enum_attributes, get_rename_rule},
+    util::{get_enum_attributes, get_rename_all},
 };
 
 pub fn expand_enum_as_ref_str(input: &ItemEnum) -> syn::Result<TokenStream> {
     let enum_name = &input.ident;
-    let rename_rule = get_rename_rule(input)?;
+    let rename_all = get_rename_all(input)?;
     let branches: Vec<_> = input
         .variants
         .iter()
@@ -19,7 +19,7 @@ pub fn expand_enum_as_ref_str(input: &ItemEnum) -> syn::Result<TokenStream> {
             let (field_capture, variant_str) = match (rename, &v.fields) {
                 (None, Fields::Unit) => (
                     None,
-                    rename_rule.apply_to_variant(&variant_name.to_string()).into_token_stream(),
+                    rename_all.apply_to_variant(&variant_name.to_string()).into_token_stream(),
                 ),
                 (Some(rename), Fields::Unit) => (None, rename.into_token_stream()),
                 (None, Fields::Named(FieldsNamed { named: fields, .. }))

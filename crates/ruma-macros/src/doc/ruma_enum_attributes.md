@@ -1,10 +1,13 @@
 <!-- Keep this comment so the content is always included as a new paragraph -->
 ## Container Attributes
 
-* `#[ruma_enum(rename_all = "rule")]` - Override the string representation of all unit variants
-  by using the given `rule`. By default, the string representation uses the unit variant name,
-  with the same case. This attribute allows to vary the case of the string representation with the
-  following rules. The name of the rule always matches the transformation of the string.
+* `#[ruma_enum(rename_all = "rule")]` or
+  `#[ruma_enum(rename_all(prefix = "prefix", rule = "rule"))]` - Override the string representation
+  of all unit variants by using the given `prefix` and `rule`. By default, the string representation
+  uses the unit variant name, with the same case. This attribute allows to change the string
+  representation by adding the given prefix or applying case transformation according to one of the
+  following rules. When using the first syntax, the prefix is assumed to be empty. The case of the
+  name of the rule always matches the transformation of the string.
 
   * `lowercase` - Convert to lowercase. `MyVariant` becomes `myvariant`.
   * `UPPERCASE` - Convert to uppercase. `MyVariant` becomes `MYVARIANT`.
