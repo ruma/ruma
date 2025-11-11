@@ -270,15 +270,22 @@ pub trait OutgoingRequest: Metadata + Clone {
 
     /// Tries to convert this request into an `http::Request`.
     ///
-    /// On endpoints with authentication, when adequate information isn't provided through
-    /// `authentication_input`, this could result in an error. It may also fail with a serialization
-    /// error in case of bugs in Ruma though.
-    ///
-    /// It may also fail if the `PathData::make_endpoint_url()` implementation returns an error.
-    ///
     /// The endpoints path will be appended to the given `base_url`, for example
     /// `https://matrix.org`. Since all paths begin with a slash, it is not necessary for the
     /// `base_url` to have a trailing slash. If it has one however, it will be ignored.
+    ///
+    /// ## Errors
+    ///
+    /// This method can return an error in the following cases:
+    ///
+    /// * On endpoints that require authentication, when adequate information isn't provided through
+    ///   `authentication_input`, i.e. when [`AuthScheme::add_authentication()`] returns an error.
+    /// * On endpoints that have several versions for the path, when there are no supported versions
+    ///   for the endpoint, i.e. when [`PathBuilder::make_endpoint_url()`] returns an error.
+    /// * If the request serialization fails, which should only happen in case of bugs in Ruma.
+    ///
+    /// [`AuthScheme::add_authentication()`]: auth_scheme::AuthScheme::add_authentication
+    /// [`PathBuilder::make_endpoint_url()`]: path_builder::PathBuilder::make_endpoint_url
     fn try_into_http_request<T: Default + BufMut + AsRef<[u8]>>(
         self,
         base_url: &str,

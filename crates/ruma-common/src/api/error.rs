@@ -351,8 +351,10 @@ impl fmt::Display for UnknownVersionError {
 
 impl StdError for UnknownVersionError {}
 
-/// An error that happens when an incorrect amount of arguments have been passed to PathData parts
-/// formatting.
+/// An error that happens when an incorrect amount of arguments have been passed to [`PathBuilder`]
+/// parts formatting.
+///
+/// [`PathBuilder`]: super::path_builder::PathBuilder
 #[derive(Debug)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct IncorrectArgumentCount {
