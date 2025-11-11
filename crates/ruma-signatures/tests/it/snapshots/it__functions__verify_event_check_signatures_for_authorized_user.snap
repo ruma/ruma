@@ -1,6 +1,6 @@
 ---
-source: crates/ruma-signatures/tests/tests.rs
+source: crates/ruma-signatures/tests/it/functions.rs
+assertion_line: 60
 expression: signature
-snapshot_kind: text
 ---
 R258cU0L4dWp5oCluQv3ffXctzob7aneCt60xpo4Y0htpLMgf+iLMPUGyYBnF8PdjQrsX/0cKFCZVAV0UFU3BQ

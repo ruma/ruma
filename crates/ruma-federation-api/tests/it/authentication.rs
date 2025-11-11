@@ -14,7 +14,8 @@ use ruma_federation_api::{
 };
 use ruma_signatures::{Ed25519KeyPair, PublicKeyMap, PublicKeySet};
 
-static PKCS8_ED25519_DER: &[u8] = include_bytes!("../../../ruma-signatures/tests/keys/ed25519.der");
+static PKCS8_ED25519_DER: &[u8] =
+    include_bytes!("../../../ruma-signatures/tests/it/keys/ed25519.der");
 
 #[test]
 fn server_signatures_roundtrip() {
