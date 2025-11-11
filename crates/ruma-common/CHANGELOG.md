@@ -49,11 +49,17 @@ Breaking changes:
 - `IntoHttpError::NeedsAuthentication` is a newtype variant renamed to
   `Authentication` that accepts any error type.
 - Remove support for the following rules for the `StringEnum`, `AsRefStr` and
-  `FromString` derive macros' `rename_all` attribute, because they are unused as
+  `FromString` derive macros' `rename_all` attribute, because they either can be
+  replaced by the `(prefix = "prefix", rule = "rule")` syntax or are unused as
   far as we know:
   - `"PascalCase"`
   - `"SCREAMING-KEBAB-CASE"`
   - `"m.dotted.case"`
+  - `"M_MATRIX_ERROR_CASE"`
+  - `"m.lowercase"`
+  - `"m.snake_case"`
+  - `".m.rule.snake_case"`
+  - `"m.role.snake_case"`
 
 Bug fixes:
 

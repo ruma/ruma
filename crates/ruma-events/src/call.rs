@@ -79,7 +79,7 @@ impl StreamMetadata {
 /// The purpose of a VoIP stream.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, StringEnum)]
-#[ruma_enum(rename_all = "m.lowercase")]
+#[ruma_enum(rename_all(prefix = "m.", rule = "lowercase"))]
 #[non_exhaustive]
 pub enum StreamPurpose {
     /// `m.usermedia`.

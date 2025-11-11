@@ -293,7 +293,7 @@ impl BundledStateRelations {
 /// Relation types as defined in `rel_type` of an `m.relates_to` field.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, StringEnum)]
-#[ruma_enum(rename_all = "m.snake_case")]
+#[ruma_enum(rename_all(prefix = "m.", rule = "snake_case"))]
 #[non_exhaustive]
 pub enum RelationType {
     /// `m.annotation`, an annotation, principally used by reactions.

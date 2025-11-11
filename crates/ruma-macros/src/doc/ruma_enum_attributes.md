@@ -18,19 +18,6 @@
     convert all characters to uppercase. `MyVariant` becomes `MY_VARIANT`.
   * `kebab-case` - Add a `-` before all uppercase characters except at the start and convert all
     characters to lowercase. `MyVariant` becomes `my-variant`.
-  * `M_MATRIX_ERROR_CASE` - The case usually used for error codes in the Matrix specification.
-    This is the same as `SCREAMING_SNAKE_CASE`, prepended with `M_`. `MyVariant` becomes
-    `M_MY_VARIANT`.
-  * `m.snake_case` => The case usually used for namespaced fields in the Matrix specification.
-    This is the same as `snake_case`, prepended with `m.`. `MyVariant` becomes `m.my_variant`.
-  * `m.lowercase` => A variant of `m.snake_case` based on the `lowercase` rule. `MyVariant`
-    becomes `m.myvariant`.
-  * `.m.rule.snake_case` => A variant of `m.snake_case` where the prefix is `.m.rule.`, usually
-    used for push rules `rule_id`s in the Matrix Specification. `MyVariant` becomes
-    `.m.rule.my_variant`.
-  * `m.role.snake_case` => A variant of `m.snake_case` where the prefix is `m.role.`, usually used
-    for contact methods roles in the Matrix Specification. `MyVariant` becomes
-    `m.role.my_variant`.
 
 ## Field attributes
 

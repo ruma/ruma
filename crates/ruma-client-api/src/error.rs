@@ -495,7 +495,7 @@ pub struct Extra(BTreeMap<String, JsonValue>);
 /// [error codes]: https://spec.matrix.org/latest/client-server-api/#standard-error-response
 #[derive(Clone, StringEnum)]
 #[non_exhaustive]
-#[ruma_enum(rename_all = "M_MATRIX_ERROR_CASE")]
+#[ruma_enum(rename_all(prefix = "M_", rule = "SCREAMING_SNAKE_CASE"))]
 // Please keep the variants sorted alphabetically.
 pub enum ErrorCode {
     /// `M_BAD_ALIAS`
