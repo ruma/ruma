@@ -176,7 +176,7 @@ pub struct EmptyMembershipData {
 /// was used to update the membership after the client was not reachable anymore.
 #[derive(Clone, StringEnum)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[ruma_enum(rename_all = "m.snake_case")]
+#[ruma_enum(rename_all(prefix = "m.", rule = "snake_case"))]
 pub enum LeaveReason {
     /// The user left the call by losing network connection or closing
     /// the client before it was able to send the leave event.

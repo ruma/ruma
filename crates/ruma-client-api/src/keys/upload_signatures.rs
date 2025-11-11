@@ -109,7 +109,7 @@ pub mod v3 {
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
     #[derive(Clone, StringEnum)]
     #[non_exhaustive]
-    #[ruma_enum(rename_all = "M_MATRIX_ERROR_CASE")]
+    #[ruma_enum(rename_all(prefix = "M_", rule = "SCREAMING_SNAKE_CASE"))]
     pub enum FailureErrorCode {
         /// The signature is invalid.
         InvalidSignature,
