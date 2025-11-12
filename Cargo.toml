@@ -2,7 +2,7 @@
 members = ["crates/*", "xtask"]
 # Only compile / check / document the public crates by default
 default-members = ["crates/*"]
-resolver = "2"
+resolver = "3"
 
 [workspace.package]
 # Keep in sync with README.md, xtask/src/ci.rs and .github/workflows/ci.yml
