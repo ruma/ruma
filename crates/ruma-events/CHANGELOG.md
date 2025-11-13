@@ -18,6 +18,9 @@ Breaking changes:
   ordered using the variants declaration order.
 - The `criterion` cargo feature used for benchmarks was renamed to `__criterion`,
   to make it obvious that it is private.
+- The `unstable-msc4362` feature is renamed (previously `unstable-msc3414`).
+- The unstable prefix for `encrypt_state_events` in `RoomEncryptionEventContent`
+  is renamed to `io.element.msc4362.` (previously `io.element.msc3414.`).
 
 Improvements:
 
