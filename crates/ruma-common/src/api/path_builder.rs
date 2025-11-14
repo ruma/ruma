@@ -7,6 +7,7 @@ use std::{
     fmt::{Display, Write},
 };
 
+use konst::{iter, slice, string};
 use percent_encoding::utf8_percent_encode;
 use tracing::warn;
 
@@ -157,8 +158,6 @@ impl VersionHistory {
         deprecated: Option<MatrixVersion>,
         removed: Option<MatrixVersion>,
     ) -> Self {
-        use konst::{iter, slice, string};
-
         const fn check_path_is_valid(path: &'static str) {
             iter::for_each!(path_b in slice::iter(path.as_bytes()) => {
                 match *path_b {
@@ -171,14 +170,14 @@ impl VersionHistory {
         const fn check_path_args_equal(first: &'static str, second: &'static str) {
             let mut second_iter = string::split(second, "/").next();
 
-            iter::for_each!(first_s in string::split(first, "/") => {
-                if let Some(first_arg) = string::strip_prefix(first_s, ":") {
+            iter::for_each!(first_s in string::split(first, '/') => {
+                if let Some(first_arg) = extract_endpoint_path_segment_variable(first_s) {
                     let second_next_arg: Option<&'static str> = loop {
                         let Some((second_s, second_n_iter)) = second_iter else {
                             break None;
                         };
 
-                        let maybe_second_arg = string::strip_prefix(second_s, ":");
+                        let maybe_second_arg = extract_endpoint_path_segment_variable(second_s);
 
                         second_iter = second_n_iter.next();
 
@@ -199,7 +198,7 @@ impl VersionHistory {
 
             // If second iterator still has some values, empty first.
             while let Some((second_s, second_n_iter)) = second_iter {
-                if string::starts_with(second_s, ":") {
+                if extract_endpoint_path_segment_variable(second_s).is_some() {
                     panic!("Amount of Path Arguments do not match");
                 }
                 second_iter = second_n_iter.next();
@@ -601,19 +600,18 @@ impl PathBuilder for SinglePath {
 /// * The segment begins with `{` but doesn't end with `}`.
 /// * The segment ends with `}` but doesn't begin with `{`.
 /// * The segment begins with `:`, which matches the old syntax for endpoint path segment variables.
-pub fn extract_endpoint_path_segment_variable(segment: &str) -> Option<&str> {
-    if segment.starts_with(':') {
+pub const fn extract_endpoint_path_segment_variable(segment: &str) -> Option<&str> {
+    if string::starts_with(segment, ':') {
         panic!("endpoint paths syntax has changed and segment variables must be wrapped by `{{}}`");
     }
 
-    if let Some(var) = segment.strip_prefix('{').map(|s| {
-        s.strip_suffix('}')
-            .expect("endpoint path segment variable braces mismatch: missing ending `}`")
-    }) {
+    if let Some(s) = string::strip_prefix(segment, '{') {
+        let var = string::strip_suffix(s, '}')
+            .expect("endpoint path segment variable braces mismatch: missing ending `}`");
         return Some(var);
     }
 
-    if segment.ends_with('}') {
+    if string::ends_with(segment, '}') {
         panic!("endpoint path segment variable braces mismatch: missing starting `{{`");
     }
 
