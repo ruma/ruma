@@ -6,9 +6,8 @@ fn ui() {
     t.pass("tests/it/api/ui/move-value.rs");
     t.pass("tests/it/api/ui/request-only.rs");
     t.pass("tests/it/api/ui/response-only.rs");
-    t.compile_fail("tests/it/api/ui/deprecated-without-added.rs");
-    t.compile_fail("tests/it/api/ui/removed-without-deprecated.rs");
     t.compile_fail("tests/it/api/ui/serde-flatten-request-body.rs");
     t.compile_fail("tests/it/api/ui/serde-flatten-response-body.rs");
     t.compile_fail("tests/it/api/ui/invalid-path.rs");
+    t.compile_fail("tests/it/api/ui/invalid-version-history.rs");
 }
