@@ -66,6 +66,9 @@ Bug fixes:
 - With the `request` and `response` attribute macros, the `Content-Type` header
   defaults to `application/octet-stream` instead of `application/json` if the
   `raw_body` attribute is set on a field.
+- Fix the check to make sure that all paths used to build `VersionHistory`
+  contain the same number of variables. It was broken since the syntax was
+  changed from `:variable` to `{variable}`.
 
 Improvements:
 
