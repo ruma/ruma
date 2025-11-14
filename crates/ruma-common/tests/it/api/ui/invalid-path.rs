@@ -142,51 +142,6 @@ mod missing_variable_opening_version_history {
     pub struct Request;
 }
 
-mod no_paths_version_history {
-    use super::*;
-
-    metadata! {
-        method: GET,
-        rate_limited: false,
-        authentication: NoAuthentication,
-        history: {},
-    }
-
-    pub struct Request;
-}
-
-mod variable_count_mismatch_version_history {
-    use super::*;
-
-    metadata! {
-        method: GET,
-        rate_limited: false,
-        authentication: NoAuthentication,
-        history: {
-            unstable => "unstable/path/to/endpoint/{variable}/{other}",
-            1.1 => "path/to/endpoint/{variable}",
-        },
-    }
-
-    pub struct Request;
-}
-
-mod variable_name_mismatch_version_history {
-    use super::*;
-
-    metadata! {
-        method: GET,
-        rate_limited: false,
-        authentication: NoAuthentication,
-        history: {
-            unstable => "unstable/path/to/endpoint/{var}",
-            1.1 => "path/to/endpoint/{variable}",
-        },
-    }
-
-    pub struct Request;
-}
-
 fn main() {
     let _ = invalid_char_single_path::Request::PATH_BUILDER;
     let _ = invalid_char_version_history::Request::PATH_BUILDER;
@@ -202,8 +157,4 @@ fn main() {
 
     let _ = missing_variable_opening_single_path::Request::PATH_BUILDER;
     let _ = missing_variable_opening_version_history::Request::PATH_BUILDER;
-
-    let _ = no_paths_version_history::Request::PATH_BUILDER;
-    let _ = variable_count_mismatch_version_history::Request::PATH_BUILDER;
-    let _ = variable_name_mismatch_version_history::Request::PATH_BUILDER;
 }

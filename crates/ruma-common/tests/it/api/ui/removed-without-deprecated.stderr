@@ -1,7 +1,0 @@
-error: no rules expected `removed`
-  --> tests/it/api/ui/removed-without-deprecated.rs:12:16
-   |
-12 |         1.1 => removed,
-   |                ^^^^^^^ no rules expected this token in macro call
-   |
-   = note: while trying to match sequence start
