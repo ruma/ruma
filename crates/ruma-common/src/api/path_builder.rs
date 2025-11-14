@@ -179,10 +179,10 @@ impl VersionHistory {
 
                     if let Some(second_next_arg) = second_next_arg {
                         if !string::eq_str(second_next_arg, first_arg) {
-                            panic!("Path Arguments do not match");
+                            panic!("names of endpoint path segment variables do not match");
                         }
                     } else {
-                        panic!("Amount of Path Arguments do not match");
+                        panic!("counts of endpoint path segment variables do not match");
                     }
                 }
             });
@@ -190,7 +190,7 @@ impl VersionHistory {
             // If second iterator still has some values, empty first.
             while let Some((second_s, second_n_iter)) = second_iter {
                 if extract_endpoint_path_segment_variable(second_s).is_some() {
-                    panic!("Amount of Path Arguments do not match");
+                    panic!("counts of endpoint path segment variables do not match");
                 }
                 second_iter = second_n_iter.next();
             }
@@ -202,7 +202,7 @@ impl VersionHistory {
         } else if let Some((_, s)) = stable_paths.first() {
             s
         } else {
-            panic!("No paths supplied")
+            panic!("no endpoint paths supplied")
         };
 
         iter::for_each!(unstable_path in slice::iter(unstable_paths) => {
@@ -222,10 +222,10 @@ impl VersionHistory {
 
                     if cmp_result.is_eq() {
                         // Found a duplicate, current == previous
-                        panic!("Duplicate matrix version in stable_paths")
+                        panic!("duplicate matrix version in stable paths")
                     } else if cmp_result.is_lt() {
                         // Found an older version, current < previous
-                        panic!("No ascending order in stable_paths")
+                        panic!("stable paths are not in ascending order")
                     }
                 }
 
@@ -246,7 +246,7 @@ impl VersionHistory {
                     panic!("deprecated version is older than latest stable path version")
                 }
             } else {
-                panic!("Defined deprecated version while no stable path exists")
+                panic!("defined deprecated version while no stable path exists")
             }
         }
 
@@ -261,7 +261,7 @@ impl VersionHistory {
                     panic!("removed version is older than deprecated version")
                 }
             } else {
-                panic!("Defined removed version while no deprecated version exists")
+                panic!("defined removed version while no deprecated version exists")
             }
         }
 
