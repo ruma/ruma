@@ -1,0 +1,386 @@
+error[E0080]: evaluation panicked: path contains invalid (non-ascii or whitespace) characters
+  --> tests/it/api/ui/invalid-path.rs:8:5
+   |
+ 8 | /     metadata! {
+ 9 | |         method: GET,
+10 | |         rate_limited: false,
+11 | |         authentication: NoAuthentication,
+12 | |         path: "µ/°/§/€",
+13 | |     }
+   | |_____^ evaluation of `<invalid_char_single_path::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+   |
+note: inside `SinglePath::new`
+  --> src/api/path_builder.rs
+   |
+   |         check_path_is_valid(path);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `path_builder::check_path_is_valid`
+  --> src/api/path_builder.rs
+   |
+   |             _ => panic!("path contains invalid (non-ascii or whitespace) characters")
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-path.rs:191:13
+    |
+191 |     let _ = invalid_char_single_path::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: path contains invalid (non-ascii or whitespace) characters
+  --> tests/it/api/ui/invalid-path.rs:21:5
+   |
+21 | /     metadata! {
+22 | |         method: GET,
+23 | |         rate_limited: false,
+24 | |         authentication: NoAuthentication,
+...  |
+27 | |         },
+28 | |     }
+   | |_____^ evaluation of `<invalid_char_version_history::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+   |
+note: inside `VersionHistory::new`
+  --> src/api/path_builder.rs
+   |
+   |             check_path_is_valid(version_path.1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `path_builder::check_path_is_valid`
+  --> src/api/path_builder.rs
+   |
+   |             _ => panic!("path contains invalid (non-ascii or whitespace) characters")
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-path.rs:192:13
+    |
+192 |     let _ = invalid_char_version_history::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: path contains invalid (non-ascii or whitespace) characters
+  --> tests/it/api/ui/invalid-path.rs:36:5
+   |
+36 | /     metadata! {
+37 | |         method: GET,
+38 | |         rate_limited: false,
+39 | |         authentication: NoAuthentication,
+40 | |         path: "path/to/invalid space/endpoint",
+41 | |     }
+   | |_____^ evaluation of `<whitespace_single_path::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+   |
+note: inside `SinglePath::new`
+  --> src/api/path_builder.rs
+   |
+   |         check_path_is_valid(path);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `path_builder::check_path_is_valid`
+  --> src/api/path_builder.rs
+   |
+   |             _ => panic!("path contains invalid (non-ascii or whitespace) characters")
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-path.rs:194:13
+    |
+194 |     let _ = whitespace_single_path::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: path contains invalid (non-ascii or whitespace) characters
+  --> tests/it/api/ui/invalid-path.rs:49:5
+   |
+49 | /     metadata! {
+50 | |         method: GET,
+51 | |         rate_limited: false,
+52 | |         authentication: NoAuthentication,
+...  |
+55 | |         },
+56 | |     }
+   | |_____^ evaluation of `<whitespace_version_history::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+   |
+note: inside `VersionHistory::new`
+  --> src/api/path_builder.rs
+   |
+   |             check_path_is_valid(version_path.1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `path_builder::check_path_is_valid`
+  --> src/api/path_builder.rs
+   |
+   |             _ => panic!("path contains invalid (non-ascii or whitespace) characters")
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-path.rs:195:13
+    |
+195 |     let _ = whitespace_version_history::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: endpoint paths syntax has changed and segment variables must be wrapped by `{}`
+  --> tests/it/api/ui/invalid-path.rs:64:5
+   |
+64 | /     metadata! {
+65 | |         method: GET,
+66 | |         rate_limited: false,
+67 | |         authentication: NoAuthentication,
+68 | |         path: "path/to/endpoint/:variable",
+69 | |     }
+   | |_____^ evaluation of `<old_variable_syntax_single_path::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+   |
+note: inside `SinglePath::new`
+  --> src/api/path_builder.rs
+   |
+   |             extract_endpoint_path_segment_variable(segment);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `extract_endpoint_path_segment_variable`
+  --> src/api/path_builder.rs
+   |
+   |         panic!("endpoint paths syntax has changed and segment variables must be wrapped by `{{}}`");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-path.rs:197:13
+    |
+197 |     let _ = old_variable_syntax_single_path::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: endpoint paths syntax has changed and segment variables must be wrapped by `{}`
+  --> tests/it/api/ui/invalid-path.rs:77:5
+   |
+77 | /     metadata! {
+78 | |         method: GET,
+79 | |         rate_limited: false,
+80 | |         authentication: NoAuthentication,
+...  |
+83 | |         },
+84 | |     }
+   | |_____^ evaluation of `<old_variable_syntax_version_history::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+   |
+note: inside `VersionHistory::new`
+  --> src/api/path_builder.rs
+   |
+   |             check_path_args_equal(ref_path, version_path.1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `VersionHistory::new::check_path_args_equal`
+  --> src/api/path_builder.rs
+   |
+   |                 if let Some(first_arg) = extract_endpoint_path_segment_variable(first_s) {
+   |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `extract_endpoint_path_segment_variable`
+  --> src/api/path_builder.rs
+   |
+   |         panic!("endpoint paths syntax has changed and segment variables must be wrapped by `{{}}`");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-path.rs:198:13
+    |
+198 |     let _ = old_variable_syntax_version_history::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: endpoint path segment variable braces mismatch: missing ending `}`
+  --> tests/it/api/ui/invalid-path.rs:92:5
+   |
+92 | /     metadata! {
+93 | |         method: GET,
+94 | |         rate_limited: false,
+95 | |         authentication: NoAuthentication,
+96 | |         path: "path/to/endpoint/{variable",
+97 | |     }
+   | |_____^ evaluation of `<missing_variable_closing_single_path::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+   |
+note: inside `SinglePath::new`
+  --> src/api/path_builder.rs
+   |
+   |             extract_endpoint_path_segment_variable(segment);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `extract_endpoint_path_segment_variable`
+  --> src/api/path_builder.rs
+   |
+   |           let var = string::strip_suffix(s, '}')
+   |  ___________________^
+   | |             .expect("endpoint path segment variable braces mismatch: missing ending `}`");
+   | |_________________________________________________________________________________________^ the failure occurred here
+   = note: this error originates in the macro `$crate::metadata` which comes from the expansion of the macro `metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-path.rs:200:13
+    |
+200 |     let _ = missing_variable_closing_single_path::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: endpoint path segment variable braces mismatch: missing ending `}`
+   --> tests/it/api/ui/invalid-path.rs:105:5
+    |
+105 | /     metadata! {
+106 | |         method: GET,
+107 | |         rate_limited: false,
+108 | |         authentication: NoAuthentication,
+...   |
+111 | |         },
+112 | |     }
+    | |_____^ evaluation of `<missing_variable_closing_version_history::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+    |
+note: inside `VersionHistory::new`
+   --> src/api/path_builder.rs
+    |
+    |             check_path_args_equal(ref_path, version_path.1);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `VersionHistory::new::check_path_args_equal`
+   --> src/api/path_builder.rs
+    |
+    |                 if let Some(first_arg) = extract_endpoint_path_segment_variable(first_s) {
+    |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `extract_endpoint_path_segment_variable`
+   --> src/api/path_builder.rs
+    |
+    |           let var = string::strip_suffix(s, '}')
+    |  ___________________^
+    | |             .expect("endpoint path segment variable braces mismatch: missing ending `}`");
+    | |_________________________________________________________________________________________^ the failure occurred here
+    = note: this error originates in the macro `$crate::metadata` which comes from the expansion of the macro `metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-path.rs:201:13
+    |
+201 |     let _ = missing_variable_closing_version_history::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: endpoint path segment variable braces mismatch: missing starting `{`
+   --> tests/it/api/ui/invalid-path.rs:120:5
+    |
+120 | /     metadata! {
+121 | |         method: GET,
+122 | |         rate_limited: false,
+123 | |         authentication: NoAuthentication,
+124 | |         path: "path/to/endpoint/variable}",
+125 | |     }
+    | |_____^ evaluation of `<missing_variable_opening_single_path::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+    |
+note: inside `SinglePath::new`
+   --> src/api/path_builder.rs
+    |
+    |             extract_endpoint_path_segment_variable(segment);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `extract_endpoint_path_segment_variable`
+   --> src/api/path_builder.rs
+    |
+    |         panic!("endpoint path segment variable braces mismatch: missing starting `{{`");
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-path.rs:203:13
+    |
+203 |     let _ = missing_variable_opening_single_path::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: endpoint path segment variable braces mismatch: missing starting `{`
+   --> tests/it/api/ui/invalid-path.rs:133:5
+    |
+133 | /     metadata! {
+134 | |         method: GET,
+135 | |         rate_limited: false,
+136 | |         authentication: NoAuthentication,
+...   |
+139 | |         },
+140 | |     }
+    | |_____^ evaluation of `<missing_variable_opening_version_history::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+    |
+note: inside `VersionHistory::new`
+   --> src/api/path_builder.rs
+    |
+    |             check_path_args_equal(ref_path, version_path.1);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `VersionHistory::new::check_path_args_equal`
+   --> src/api/path_builder.rs
+    |
+    |                 if let Some(first_arg) = extract_endpoint_path_segment_variable(first_s) {
+    |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `extract_endpoint_path_segment_variable`
+   --> src/api/path_builder.rs
+    |
+    |         panic!("endpoint path segment variable braces mismatch: missing starting `{{`");
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-path.rs:204:13
+    |
+204 |     let _ = missing_variable_opening_version_history::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: no endpoint paths supplied
+   --> tests/it/api/ui/invalid-path.rs:148:5
+    |
+148 | /     metadata! {
+149 | |         method: GET,
+150 | |         rate_limited: false,
+151 | |         authentication: NoAuthentication,
+152 | |         history: {},
+153 | |     }
+    | |_____^ evaluation of `<no_paths_version_history::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+    |
+note: inside `VersionHistory::new`
+   --> src/api/path_builder.rs
+    |
+    |             panic!("no endpoint paths supplied")
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-path.rs:206:13
+    |
+206 |     let _ = no_paths_version_history::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: counts of endpoint path segment variables do not match
+   --> tests/it/api/ui/invalid-path.rs:161:5
+    |
+161 | /     metadata! {
+162 | |         method: GET,
+163 | |         rate_limited: false,
+164 | |         authentication: NoAuthentication,
+...   |
+168 | |         },
+169 | |     }
+    | |_____^ evaluation of `<variable_count_mismatch_version_history::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+    |
+note: inside `VersionHistory::new`
+   --> src/api/path_builder.rs
+    |
+    |             check_path_args_equal(ref_path, version_path.1);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `VersionHistory::new::check_path_args_equal`
+   --> src/api/path_builder.rs
+    |
+    |                         panic!("counts of endpoint path segment variables do not match");
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-path.rs:207:13
+    |
+207 |     let _ = variable_count_mismatch_version_history::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: names of endpoint path segment variables do not match
+   --> tests/it/api/ui/invalid-path.rs:177:5
+    |
+177 | /     metadata! {
+178 | |         method: GET,
+179 | |         rate_limited: false,
+180 | |         authentication: NoAuthentication,
+...   |
+184 | |         },
+185 | |     }
+    | |_____^ evaluation of `<variable_name_mismatch_version_history::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+    |
+note: inside `VersionHistory::new`
+   --> src/api/path_builder.rs
+    |
+    |             check_path_args_equal(ref_path, version_path.1);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `VersionHistory::new::check_path_args_equal`
+   --> src/api/path_builder.rs
+    |
+    | ...                   panic!("names of endpoint path segment variables do not match");
+    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-path.rs:208:13
+    |
+208 |     let _ = variable_name_mismatch_version_history::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
