@@ -10,4 +10,5 @@ fn ui() {
     t.compile_fail("tests/it/api/ui/removed-without-deprecated.rs");
     t.compile_fail("tests/it/api/ui/serde-flatten-request-body.rs");
     t.compile_fail("tests/it/api/ui/serde-flatten-response-body.rs");
+    t.compile_fail("tests/it/api/ui/invalid-path.rs");
 }
