@@ -158,15 +158,6 @@ impl VersionHistory {
         deprecated: Option<MatrixVersion>,
         removed: Option<MatrixVersion>,
     ) -> Self {
-        const fn check_path_is_valid(path: &'static str) {
-            iter::for_each!(path_b in slice::iter(path.as_bytes()) => {
-                match *path_b {
-                    0x21..=0x7E => {},
-                    _ => panic!("path contains invalid (non-ascii or whitespace) characters")
-                }
-            });
-        }
-
         const fn check_path_args_equal(first: &'static str, second: &'static str) {
             let mut second_iter = string::split(second, "/").next();
 
@@ -563,6 +554,13 @@ pub struct SinglePath(&'static str);
 impl SinglePath {
     /// Construct a new `SinglePath` for the given path.
     pub const fn new(path: &'static str) -> Self {
+        check_path_is_valid(path);
+
+        // Check that path variables are valid.
+        iter::for_each!(segment in string::split(path, '/') => {
+            extract_endpoint_path_segment_variable(segment);
+        });
+
         Self(path)
     }
 
@@ -586,6 +584,18 @@ impl PathBuilder for SinglePath {
     fn _path_parameters(&self) -> Vec<&'static str> {
         self.0.split('/').filter_map(extract_endpoint_path_segment_variable).collect()
     }
+}
+
+/// Check that the given path is valid.
+///
+/// Panics if the path contains invalid (non-ascii or whitespace) characters.
+const fn check_path_is_valid(path: &'static str) {
+    iter::for_each!(path_b in slice::iter(path.as_bytes()) => {
+        match *path_b {
+            0x21..=0x7E => {},
+            _ => panic!("path contains invalid (non-ascii or whitespace) characters")
+        }
+    });
 }
 
 /// Extract the variable of the given endpoint path segment.
