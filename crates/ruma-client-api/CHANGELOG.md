@@ -7,6 +7,7 @@ Improvements:
   `Option<Int>`, which allows uploading explicit values no matter what the 
   default ones are. When in `Raw` form, this type can be cast to
   `RoomPowerLevelsEventContent` and used to populate `power_level_content_override`.
+- Add support for updated rendezvous session from MSC4388 behind `unstable-msc4388`.
 
 # 0.22.1
 

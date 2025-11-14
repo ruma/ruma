@@ -1,6 +1,6 @@
 //! `POST /_matrix/client/*/rendezvous/`
 //!
-//! Create a rendezvous session.
+//! Create a rendezvous session (2024 version of MSC4108).
 
 pub mod unstable {
     //! `msc4108` ([MSC])
@@ -27,7 +27,7 @@ pub mod unstable {
         }
     }
 
-    /// Request type for the `POST` `rendezvous` endpoint.
+    /// Request type for the `POST` `rendezvous` endpoint from the 2024 version of MSC4108.
     #[derive(Debug, Default, Clone)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
@@ -112,7 +112,7 @@ pub mod unstable {
         }
     }
 
-    /// Response type for the `POST` `rendezvous` endpoint.
+    /// Response type for the `POST` `rendezvous` endpoint from the 2024 version of MSC4108.
     #[derive(Debug, Clone)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Response {
