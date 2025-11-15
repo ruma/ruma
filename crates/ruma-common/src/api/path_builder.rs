@@ -7,6 +7,7 @@ use std::{
     fmt::{Display, Write},
 };
 
+use konst::{iter, slice, string};
 use percent_encoding::utf8_percent_encode;
 use tracing::warn;
 
@@ -157,28 +158,17 @@ impl VersionHistory {
         deprecated: Option<MatrixVersion>,
         removed: Option<MatrixVersion>,
     ) -> Self {
-        use konst::{iter, slice, string};
-
-        const fn check_path_is_valid(path: &'static str) {
-            iter::for_each!(path_b in slice::iter(path.as_bytes()) => {
-                match *path_b {
-                    0x21..=0x7E => {},
-                    _ => panic!("path contains invalid (non-ascii or whitespace) characters")
-                }
-            });
-        }
-
         const fn check_path_args_equal(first: &'static str, second: &'static str) {
             let mut second_iter = string::split(second, "/").next();
 
-            iter::for_each!(first_s in string::split(first, "/") => {
-                if let Some(first_arg) = string::strip_prefix(first_s, ":") {
+            iter::for_each!(first_s in string::split(first, '/') => {
+                if let Some(first_arg) = extract_endpoint_path_segment_variable(first_s) {
                     let second_next_arg: Option<&'static str> = loop {
                         let Some((second_s, second_n_iter)) = second_iter else {
                             break None;
                         };
 
-                        let maybe_second_arg = string::strip_prefix(second_s, ":");
+                        let maybe_second_arg = extract_endpoint_path_segment_variable(second_s);
 
                         second_iter = second_n_iter.next();
 
@@ -189,18 +179,18 @@ impl VersionHistory {
 
                     if let Some(second_next_arg) = second_next_arg {
                         if !string::eq_str(second_next_arg, first_arg) {
-                            panic!("Path Arguments do not match");
+                            panic!("names of endpoint path segment variables do not match");
                         }
                     } else {
-                        panic!("Amount of Path Arguments do not match");
+                        panic!("counts of endpoint path segment variables do not match");
                     }
                 }
             });
 
             // If second iterator still has some values, empty first.
             while let Some((second_s, second_n_iter)) = second_iter {
-                if string::starts_with(second_s, ":") {
-                    panic!("Amount of Path Arguments do not match");
+                if extract_endpoint_path_segment_variable(second_s).is_some() {
+                    panic!("counts of endpoint path segment variables do not match");
                 }
                 second_iter = second_n_iter.next();
             }
@@ -212,7 +202,7 @@ impl VersionHistory {
         } else if let Some((_, s)) = stable_paths.first() {
             s
         } else {
-            panic!("No paths supplied")
+            panic!("no endpoint paths supplied")
         };
 
         iter::for_each!(unstable_path in slice::iter(unstable_paths) => {
@@ -232,10 +222,10 @@ impl VersionHistory {
 
                     if cmp_result.is_eq() {
                         // Found a duplicate, current == previous
-                        panic!("Duplicate matrix version in stable_paths")
+                        panic!("duplicate matrix version in stable paths")
                     } else if cmp_result.is_lt() {
                         // Found an older version, current < previous
-                        panic!("No ascending order in stable_paths")
+                        panic!("stable paths are not in ascending order")
                     }
                 }
 
@@ -256,7 +246,7 @@ impl VersionHistory {
                     panic!("deprecated version is older than latest stable path version")
                 }
             } else {
-                panic!("Defined deprecated version while no stable path exists")
+                panic!("defined deprecated version while no stable path exists")
             }
         }
 
@@ -271,7 +261,7 @@ impl VersionHistory {
                     panic!("removed version is older than deprecated version")
                 }
             } else {
-                panic!("Defined removed version while no deprecated version exists")
+                panic!("defined removed version while no deprecated version exists")
             }
         }
 
@@ -564,6 +554,13 @@ pub struct SinglePath(&'static str);
 impl SinglePath {
     /// Construct a new `SinglePath` for the given path.
     pub const fn new(path: &'static str) -> Self {
+        check_path_is_valid(path);
+
+        // Check that path variables are valid.
+        iter::for_each!(segment in string::split(path, '/') => {
+            extract_endpoint_path_segment_variable(segment);
+        });
+
         Self(path)
     }
 
@@ -589,6 +586,18 @@ impl PathBuilder for SinglePath {
     }
 }
 
+/// Check that the given path is valid.
+///
+/// Panics if the path contains invalid (non-ascii or whitespace) characters.
+const fn check_path_is_valid(path: &'static str) {
+    iter::for_each!(path_b in slice::iter(path.as_bytes()) => {
+        match *path_b {
+            0x21..=0x7E => {},
+            _ => panic!("path contains invalid (non-ascii or whitespace) characters")
+        }
+    });
+}
+
 /// Extract the variable of the given endpoint path segment.
 ///
 /// The supported syntax for an endpoint path segment variable is `{var}`.
@@ -601,19 +610,18 @@ impl PathBuilder for SinglePath {
 /// * The segment begins with `{` but doesn't end with `}`.
 /// * The segment ends with `}` but doesn't begin with `{`.
 /// * The segment begins with `:`, which matches the old syntax for endpoint path segment variables.
-pub fn extract_endpoint_path_segment_variable(segment: &str) -> Option<&str> {
-    if segment.starts_with(':') {
+pub const fn extract_endpoint_path_segment_variable(segment: &str) -> Option<&str> {
+    if string::starts_with(segment, ':') {
         panic!("endpoint paths syntax has changed and segment variables must be wrapped by `{{}}`");
     }
 
-    if let Some(var) = segment.strip_prefix('{').map(|s| {
-        s.strip_suffix('}')
-            .expect("endpoint path segment variable braces mismatch: missing ending `}`")
-    }) {
+    if let Some(s) = string::strip_prefix(segment, '{') {
+        let var = string::strip_suffix(s, '}')
+            .expect("endpoint path segment variable braces mismatch: missing ending `}`");
         return Some(var);
     }
 
-    if segment.ends_with('}') {
+    if string::ends_with(segment, '}') {
         panic!("endpoint path segment variable braces mismatch: missing starting `{{`");
     }
 

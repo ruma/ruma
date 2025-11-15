@@ -1,0 +1,218 @@
+error[E0080]: evaluation panicked: no endpoint paths supplied
+  --> tests/it/api/ui/invalid-version-history.rs:6:5
+   |
+ 6 | /     metadata! {
+ 7 | |         method: GET,
+ 8 | |         rate_limited: false,
+ 9 | |         authentication: NoAuthentication,
+10 | |         history: {},
+11 | |     }
+   | |_____^ evaluation of `<no_paths::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+   |
+note: inside `VersionHistory::new`
+  --> src/api/path_builder.rs
+   |
+   |             panic!("no endpoint paths supplied")
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-version-history.rs:146:13
+    |
+146 |     let _ = no_paths::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: counts of endpoint path segment variables do not match
+  --> tests/it/api/ui/invalid-version-history.rs:19:5
+   |
+19 | /     metadata! {
+20 | |         method: GET,
+21 | |         rate_limited: false,
+22 | |         authentication: NoAuthentication,
+...  |
+26 | |         },
+27 | |     }
+   | |_____^ evaluation of `<variable_count_mismatch::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+   |
+note: inside `VersionHistory::new`
+  --> src/api/path_builder.rs
+   |
+   |             check_path_args_equal(ref_path, version_path.1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `VersionHistory::new::check_path_args_equal`
+  --> src/api/path_builder.rs
+   |
+   |                         panic!("counts of endpoint path segment variables do not match");
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-version-history.rs:147:13
+    |
+147 |     let _ = variable_count_mismatch::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: names of endpoint path segment variables do not match
+  --> tests/it/api/ui/invalid-version-history.rs:35:5
+   |
+35 | /     metadata! {
+36 | |         method: GET,
+37 | |         rate_limited: false,
+38 | |         authentication: NoAuthentication,
+...  |
+42 | |         },
+43 | |     }
+   | |_____^ evaluation of `<variable_name_mismatch::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+   |
+note: inside `VersionHistory::new`
+  --> src/api/path_builder.rs
+   |
+   |             check_path_args_equal(ref_path, version_path.1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `VersionHistory::new::check_path_args_equal`
+  --> src/api/path_builder.rs
+   |
+   | ...                   panic!("names of endpoint path segment variables do not match");
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-version-history.rs:148:13
+    |
+148 |     let _ = variable_name_mismatch::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: defined deprecated version while no stable path exists
+  --> tests/it/api/ui/invalid-version-history.rs:51:5
+   |
+51 | /     metadata! {
+52 | |         method: GET,
+53 | |         rate_limited: false,
+54 | |         authentication: NoAuthentication,
+...  |
+59 | |     }
+   | |_____^ evaluation of `<deprecated_without_added::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+   |
+note: inside `VersionHistory::new`
+  --> src/api/path_builder.rs
+   |
+   |                 panic!("defined deprecated version while no stable path exists")
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-version-history.rs:149:13
+    |
+149 |     let _ = deprecated_without_added::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: deprecated version is equal to latest stable path version
+  --> tests/it/api/ui/invalid-version-history.rs:67:5
+   |
+67 | /     metadata! {
+68 | |         method: GET,
+69 | |         rate_limited: false,
+70 | |         authentication: NoAuthentication,
+...  |
+75 | |     }
+   | |_____^ evaluation of `<deprecated_same_version::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+   |
+note: inside `VersionHistory::new`
+  --> src/api/path_builder.rs
+   |
+   |                     panic!("deprecated version is equal to latest stable path version")
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-version-history.rs:150:13
+    |
+150 |     let _ = deprecated_same_version::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: defined removed version while no deprecated version exists
+  --> tests/it/api/ui/invalid-version-history.rs:83:5
+   |
+83 | /     metadata! {
+84 | |         method: GET,
+85 | |         rate_limited: false,
+86 | |         authentication: NoAuthentication,
+...  |
+91 | |     }
+   | |_____^ evaluation of `<removed_without_deprecated::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+   |
+note: inside `VersionHistory::new`
+  --> src/api/path_builder.rs
+   |
+   |                 panic!("defined removed version while no deprecated version exists")
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-version-history.rs:151:13
+    |
+151 |     let _ = removed_without_deprecated::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: removed version is equal to deprecated version
+   --> tests/it/api/ui/invalid-version-history.rs:99:5
+    |
+ 99 | /     metadata! {
+100 | |         method: GET,
+101 | |         rate_limited: false,
+102 | |         authentication: NoAuthentication,
+...   |
+108 | |     }
+    | |_____^ evaluation of `<removed_same_version::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+    |
+note: inside `VersionHistory::new`
+   --> src/api/path_builder.rs
+    |
+    |                     panic!("removed version is equal to deprecated version")
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-version-history.rs:152:13
+    |
+152 |     let _ = removed_same_version::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: duplicate matrix version in stable paths
+   --> tests/it/api/ui/invalid-version-history.rs:116:5
+    |
+116 | /     metadata! {
+117 | |         method: GET,
+118 | |         rate_limited: false,
+119 | |         authentication: NoAuthentication,
+...   |
+124 | |     }
+    | |_____^ evaluation of `<duplicate_version::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+    |
+note: inside `VersionHistory::new`
+   --> src/api/path_builder.rs
+    |
+    |                         panic!("duplicate matrix version in stable paths")
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-version-history.rs:153:13
+    |
+153 |     let _ = duplicate_version::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0080]: evaluation panicked: stable paths are not in ascending order
+   --> tests/it/api/ui/invalid-version-history.rs:132:5
+    |
+132 | /     metadata! {
+133 | |         method: GET,
+134 | |         rate_limited: false,
+135 | |         authentication: NoAuthentication,
+...   |
+140 | |     }
+    | |_____^ evaluation of `<unsorted_versions::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
+    |
+note: inside `VersionHistory::new`
+   --> src/api/path_builder.rs
+    |
+    |                         panic!("stable paths are not in ascending order")
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+note: erroneous constant encountered
+   --> tests/it/api/ui/invalid-version-history.rs:154:13
+    |
+154 |     let _ = unsorted_versions::Request::PATH_BUILDER;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

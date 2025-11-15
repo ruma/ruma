@@ -1,7 +1,0 @@
-error: no rules expected `deprecated`
- --> tests/it/api/ui/deprecated-without-added.rs:9:16
-  |
-9 |         1.1 => deprecated,
-  |                ^^^^^^^^^^ no rules expected this token in macro call
-  |
-  = note: while trying to match sequence start
