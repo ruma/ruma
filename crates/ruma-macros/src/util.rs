@@ -1,20 +1,77 @@
 use proc_macro_crate::{FoundCrate, crate_name};
-use proc_macro2::TokenStream;
-use quote::{ToTokens, format_ident, quote};
+use proc_macro2::{Span, TokenStream};
+use quote::{ToTokens, TokenStreamExt, format_ident, quote};
 use syn::{Attribute, Field, Ident, LitStr, visit::Visit};
 
-pub(crate) fn import_ruma_common() -> TokenStream {
-    if let Ok(FoundCrate::Name(name)) = crate_name("ruma-common") {
-        let import = format_ident!("{name}");
-        quote! { ::#import }
-    } else if let Ok(FoundCrate::Name(name)) = crate_name("ruma") {
-        let import = format_ident!("{name}");
-        quote! { ::#import }
-    } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk") {
-        let import = format_ident!("{name}");
-        quote! { ::#import::ruma }
-    } else {
-        quote! { ::ruma_common }
+/// The path to use for imports from the ruma-common crate.
+///
+/// To access a reexported crate, prefer to use the [`reexported()`](Self::reexported) method.
+pub(crate) struct RumaCommon(TokenStream);
+
+impl RumaCommon {
+    /// Construct a new `RumaCommon`.
+    pub(crate) fn new() -> Self {
+        let inner = if let Ok(FoundCrate::Name(name)) = crate_name("ruma-common") {
+            let import = format_ident!("{name}");
+            quote! { ::#import }
+        } else if let Ok(FoundCrate::Name(name)) = crate_name("ruma") {
+            let import = format_ident!("{name}");
+            quote! { ::#import }
+        } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk") {
+            let import = format_ident!("{name}");
+            quote! { ::#import::ruma }
+        } else {
+            quote! { ::ruma_common }
+        };
+
+        Self(inner)
+    }
+
+    /// The path to use for imports from the given reexported crate.
+    pub(crate) fn reexported(&self, reexport: RumaCommonReexport) -> TokenStream {
+        quote! { #self::exports::#reexport }
+    }
+}
+
+impl ToTokens for RumaCommon {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.0.to_tokens(tokens);
+    }
+}
+
+/// The crates reexported by ruma-common.
+pub(crate) enum RumaCommonReexport {
+    /// The ruma-macros crate.
+    RumaMacros,
+
+    /// The serde crate.
+    Serde,
+
+    /// The serde_html_form crate.
+    SerdeHtmlForm,
+
+    /// The serde_json crate.
+    SerdeJson,
+
+    /// The http crate.
+    Http,
+
+    /// The bytes crate.
+    Bytes,
+}
+
+impl ToTokens for RumaCommonReexport {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let crate_name = match self {
+            Self::RumaMacros => "ruma_macros",
+            Self::Serde => "serde",
+            Self::SerdeHtmlForm => "serde_html_form",
+            Self::SerdeJson => "serde_json",
+            Self::Http => "http",
+            Self::Bytes => "bytes",
+        };
+
+        tokens.append(Ident::new(crate_name, Span::call_site()));
     }
 }
 

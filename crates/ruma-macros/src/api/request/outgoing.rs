@@ -2,13 +2,16 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 use super::{KIND, Request, RequestQuery};
-use crate::{api::StructSuffix, util::StructFieldExt};
+use crate::{
+    api::StructSuffix,
+    util::{RumaCommon, RumaCommonReexport, StructFieldExt},
+};
 
 impl Request {
     /// Generate the `ruma_common::api::OutgoingRequest` implementation for this request struct.
-    pub fn expand_outgoing(&self, ruma_common: &TokenStream) -> TokenStream {
-        let bytes = quote! { #ruma_common::exports::bytes };
-        let http = quote! { #ruma_common::exports::http };
+    pub fn expand_outgoing(&self, ruma_common: &RumaCommon) -> TokenStream {
+        let bytes = ruma_common.reexported(RumaCommonReexport::Bytes);
+        let http = ruma_common.reexported(RumaCommonReexport::Http);
 
         let path_fields = self.path.expand_fields();
         let path_idents = self.path.0.iter().map(|field| field.ident());
@@ -76,12 +79,12 @@ impl Request {
 
 impl RequestQuery {
     /// Generate code to serialize the query string.
-    fn expand_serialize(&self, ruma_common: &TokenStream) -> TokenStream {
+    fn expand_serialize(&self, ruma_common: &RumaCommon) -> TokenStream {
         if matches!(self, Self::None) {
             return quote! { "" };
         }
 
-        let serde_html_form = quote! { #ruma_common::exports::serde_html_form };
+        let serde_html_form = ruma_common.reexported(RumaCommonReexport::SerdeHtmlForm);
         let fields = self.expand_fields();
         let serde_struct = KIND.as_struct_ident(StructSuffix::Query);
 

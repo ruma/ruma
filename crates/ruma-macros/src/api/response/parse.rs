@@ -1,12 +1,12 @@
 //! Types and implementations to parse the request macro's input.
 
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::Span;
 use syn::{meta::ParseNestedMeta, parse_quote};
 
 use super::Response;
 use crate::{
     api::{Body, Headers},
-    util::TypeExt,
+    util::{RumaCommon, TypeExt},
 };
 
 impl Response {
@@ -155,7 +155,7 @@ impl ResponseAttrs {
     }
 
     /// The error type that was set on the response, or the default value which is `MatrixError`.
-    pub(super) fn error_ty_or_default(&self, ruma_common: &TokenStream) -> syn::Type {
+    pub(super) fn error_ty_or_default(&self, ruma_common: &RumaCommon) -> syn::Type {
         self.error_ty
             .clone()
             .unwrap_or_else(|| parse_quote! { #ruma_common::api::error::MatrixError })

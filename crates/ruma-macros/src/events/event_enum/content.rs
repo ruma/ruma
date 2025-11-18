@@ -7,7 +7,7 @@ use syn::{Attribute, Ident};
 use super::{EventEnumEntry, EventEnumVariant, expand_from_impl};
 use crate::{
     events::enums::{EventContentTraitVariation, EventKind, EventType},
-    import_ruma_common,
+    util::RumaCommon,
 };
 
 /// Generate an `Any*EventContent` enum.
@@ -189,7 +189,7 @@ fn expand_json_castable_impl(
     event_ty: &[TokenStream],
     variants: &[EventEnumVariant],
 ) -> TokenStream {
-    let ruma_common = import_ruma_common();
+    let ruma_common = RumaCommon::new();
 
     // All event content types are represented as objects in JSON.
     let mut json_castable_impls = vec![quote! {

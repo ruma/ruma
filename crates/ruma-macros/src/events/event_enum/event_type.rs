@@ -6,12 +6,15 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use super::{EventEnumEntry, EventEnumInput};
-use crate::events::enums::EventKind;
+use crate::{
+    events::enums::EventKind,
+    util::{RumaCommon, RumaCommonReexport},
+};
 
 /// Generate the `*EventType` enums.
 pub fn expand_event_type_enums(
     input: EventEnumInput,
-    ruma_events: TokenStream,
+    ruma_common: &RumaCommon,
 ) -> syn::Result<TokenStream> {
     let mut entries_map: BTreeMap<EventKind, Vec<&Vec<EventEnumEntry>>> = BTreeMap::new();
 
@@ -31,7 +34,7 @@ pub fn expand_event_type_enums(
 
     for (kind, entries) in entries_map {
         res.extend(
-            generate_enum(kind, &entries, &ruma_events)
+            generate_enum(kind, &entries, ruma_common)
                 .unwrap_or_else(syn::Error::into_compile_error),
         );
     }
@@ -43,9 +46,9 @@ pub fn expand_event_type_enums(
 fn generate_enum(
     kind: EventKind,
     entries: &[&Vec<EventEnumEntry>],
-    ruma_common: &TokenStream,
+    ruma_common: &RumaCommon,
 ) -> syn::Result<TokenStream> {
-    let serde = quote! { #ruma_common::exports::serde };
+    let serde = ruma_common.reexported(RumaCommonReexport::Serde);
     let enum_doc = format!("The type of `{kind}` this is.");
 
     let ident = format_ident!("{kind}Type");

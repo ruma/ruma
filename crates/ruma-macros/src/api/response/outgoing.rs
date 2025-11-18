@@ -2,12 +2,13 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 use super::{KIND, Response};
+use crate::util::{RumaCommon, RumaCommonReexport};
 
 impl Response {
     /// Generate the `ruma_common::api::OutgoingResponse` implementation for this response struct.
-    pub fn expand_outgoing(&self, ruma_common: &TokenStream) -> TokenStream {
-        let bytes = quote! { #ruma_common::exports::bytes };
-        let http = quote! { #ruma_common::exports::http };
+    pub fn expand_outgoing(&self, ruma_common: &RumaCommon) -> TokenStream {
+        let bytes = ruma_common.reexported(RumaCommonReexport::Bytes);
+        let http = ruma_common.reexported(RumaCommonReexport::Http);
 
         let headers_serialize = self.headers.expand_serialize(KIND, &self.body, ruma_common, &http);
         let headers_fields = self.headers.expand_fields();
