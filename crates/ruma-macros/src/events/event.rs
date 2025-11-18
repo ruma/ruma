@@ -8,11 +8,11 @@ mod parse;
 
 use self::parse::{ParsedEventField, parse_event_struct_ident_to_kind_variation};
 use super::enums::{EventField, EventKind, EventVariation};
-use crate::{import_ruma_events, util::to_camel_case};
+use crate::util::{RumaEvents, RumaEventsReexport, to_camel_case};
 
 /// `Event` derive macro code generation.
 pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
-    let ruma_events = import_ruma_events();
+    let ruma_events = RumaEvents::new();
 
     let ident = &input.ident;
     let (kind, var) = parse_event_struct_ident_to_kind_variation(ident).ok_or_else(|| {
@@ -62,10 +62,10 @@ fn expand_deserialize_event(
     input: &DeriveInput,
     var: EventVariation,
     fields: &[ParsedEventField],
-    ruma_events: &TokenStream,
+    ruma_events: &RumaEvents,
 ) -> syn::Result<TokenStream> {
-    let serde = quote! { #ruma_events::exports::serde };
-    let serde_json = quote! { #ruma_events::exports::serde_json };
+    let serde = ruma_events.reexported(RumaEventsReexport::Serde);
+    let serde_json = ruma_events.reexported(RumaEventsReexport::SerdeJson);
 
     let ident = &input.ident;
     // we know there is a content field already
@@ -284,8 +284,10 @@ fn expand_sync_from_into_full(
     kind: EventKind,
     var: EventVariation,
     fields: &[ParsedEventField],
-    ruma_events: &TokenStream,
+    ruma_events: &RumaEvents,
 ) -> syn::Result<TokenStream> {
+    let ruma_common = ruma_events.ruma_common();
+
     let ident = &input.ident;
     let full_struct = kind.to_event_ident(var.to_full())?;
     let (impl_generics, ty_gen, where_clause) = input.generics.split_for_impl();
@@ -307,7 +309,7 @@ fn expand_sync_from_into_full(
             /// Convert this sync event into a full event, one with a room_id field.
             pub fn into_full_event(
                 self,
-                room_id: #ruma_events::exports::ruma_common::OwnedRoomId,
+                room_id: #ruma_common::OwnedRoomId,
             ) -> #full_struct #ty_gen {
                 let Self { #( #fields, )* } = self;
                 #full_struct {

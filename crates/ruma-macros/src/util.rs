@@ -75,18 +75,65 @@ impl ToTokens for RumaCommonReexport {
     }
 }
 
-pub(crate) fn import_ruma_events() -> TokenStream {
-    if let Ok(FoundCrate::Name(name)) = crate_name("ruma-events") {
-        let import = format_ident!("{name}");
-        quote! { ::#import }
-    } else if let Ok(FoundCrate::Name(name)) = crate_name("ruma") {
-        let import = format_ident!("{name}");
-        quote! { ::#import::events }
-    } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk") {
-        let import = format_ident!("{name}");
-        quote! { ::#import::ruma::events }
-    } else {
-        quote! { ::ruma_events }
+/// The path to use for imports from the ruma-events crate.
+///
+/// To access a reexported crate, prefer to use [`reexported()`](Self::reexported) or one of the
+/// other methods.
+pub(crate) struct RumaEvents(TokenStream);
+
+impl RumaEvents {
+    /// Construct a new `RumaEvents`.
+    pub(crate) fn new() -> Self {
+        let inner = if let Ok(FoundCrate::Name(name)) = crate_name("ruma-events") {
+            let import = format_ident!("{name}");
+            quote! { ::#import }
+        } else if let Ok(FoundCrate::Name(name)) = crate_name("ruma") {
+            let import = format_ident!("{name}");
+            quote! { ::#import::events }
+        } else if let Ok(FoundCrate::Name(name)) = crate_name("matrix-sdk") {
+            let import = format_ident!("{name}");
+            quote! { ::#import::ruma::events }
+        } else {
+            quote! { ::ruma_events }
+        };
+
+        Self(inner)
+    }
+
+    /// The path to use for imports from the given reexported crate.
+    pub(crate) fn reexported(&self, reexport: RumaEventsReexport) -> TokenStream {
+        quote! { #self::exports::#reexport }
+    }
+
+    /// The path to use for imports from the ruma-common crate.
+    pub(crate) fn ruma_common(&self) -> RumaCommon {
+        RumaCommon(quote! { #self::exports::ruma_common })
+    }
+}
+
+impl ToTokens for RumaEvents {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.0.to_tokens(tokens);
+    }
+}
+
+/// The crates reexported by ruma-events.
+pub(crate) enum RumaEventsReexport {
+    /// The serde crate.
+    Serde,
+
+    /// The serde_json crate.
+    SerdeJson,
+}
+
+impl ToTokens for RumaEventsReexport {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let crate_name = match self {
+            Self::Serde => "serde",
+            Self::SerdeJson => "serde_json",
+        };
+
+        tokens.append(Ident::new(crate_name, Span::call_site()));
     }
 }
 

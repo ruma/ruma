@@ -17,7 +17,7 @@ use self::{
 use super::enums::{
     EventContentTraitVariation, EventField, EventKind, EventType, EventVariation, EventWithBounds,
 };
-use crate::util::RumaCommon;
+use crate::util::{RumaCommon, RumaEvents, RumaEventsReexport};
 
 /// `event_enum!` macro code generation.
 pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
@@ -32,7 +32,7 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
     // Generate `JsonCastable` implementations for `Any*TimelineEvent` enums if we have any events
     // in it.
     if input.enums.iter().any(|event_enum| event_enum.kind.is_timeline()) {
-        let ruma_events = crate::import_ruma_events();
+        let ruma_events = RumaEvents::new();
         let kind = EventKind::Timeline;
 
         for var in kind.event_enum_variations() {
@@ -52,7 +52,7 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
 
 /// Generate `Any*Event(Content)` enums from `EventEnumDecl`.
 pub fn expand_event_kind_enums(input: &EventEnumDecl) -> syn::Result<TokenStream> {
-    let ruma_events = crate::import_ruma_events();
+    let ruma_events = RumaEvents::new();
 
     let mut res = TokenStream::new();
 
@@ -108,7 +108,7 @@ fn expand_event_kind_enum(
     docs: &[TokenStream],
     attrs: &[Attribute],
     variants: &[EventEnumVariant],
-    ruma_events: &TokenStream,
+    ruma_events: &RumaEvents,
 ) -> syn::Result<TokenStream> {
     let event_struct = kind.to_event_ident(var)?;
     let ident = kind.to_event_enum_ident(var)?;
@@ -155,11 +155,11 @@ fn expand_deserialize_impl(
     kind: EventKind,
     var: EventVariation,
     events: &[EventEnumEntry],
-    ruma_events: &TokenStream,
+    ruma_events: &RumaEvents,
 ) -> syn::Result<TokenStream> {
-    let ruma_common = quote! { #ruma_events::exports::ruma_common };
-    let serde = quote! { #ruma_events::exports::serde };
-    let serde_json = quote! { #ruma_events::exports::serde_json };
+    let ruma_common = ruma_events.ruma_common();
+    let serde = ruma_events.reexported(RumaEventsReexport::Serde);
+    let serde_json = ruma_events.reexported(RumaEventsReexport::SerdeJson);
 
     let ident = kind.to_event_enum_ident(var)?;
 
@@ -239,9 +239,9 @@ fn expand_from_impl(
 fn expand_sync_from_into_full(
     kind: EventKind,
     variants: &[EventEnumVariant],
-    ruma_events: &TokenStream,
+    ruma_events: &RumaEvents,
 ) -> syn::Result<TokenStream> {
-    let ruma_common = quote! { #ruma_events::exports::ruma_common };
+    let ruma_common = ruma_events.ruma_common();
 
     let sync = kind.to_event_enum_ident(EventVariation::Sync)?;
     let full = kind.to_event_enum_ident(EventVariation::None)?;
@@ -294,9 +294,9 @@ fn expand_accessor_methods(
     var: EventVariation,
     variants: &[EventEnumVariant],
     event_struct: &Ident,
-    ruma_events: &TokenStream,
+    ruma_events: &RumaEvents,
 ) -> syn::Result<TokenStream> {
-    let ruma_common = quote! { #ruma_events::exports::ruma_common };
+    let ruma_common = ruma_events.ruma_common();
 
     let ident = kind.to_event_enum_ident(var)?;
     let event_type_enum = format_ident!("{}Type", kind);
@@ -562,9 +562,9 @@ fn expand_json_castable_impl(
     ident: &Ident,
     kind: EventKind,
     var: EventVariation,
-    ruma_events: &TokenStream,
+    ruma_events: &RumaEvents,
 ) -> syn::Result<Option<TokenStream>> {
-    let ruma_common = quote! { #ruma_events::exports::ruma_common };
+    let ruma_common = ruma_events.ruma_common();
 
     // All event types are represented as objects in JSON.
     let mut json_castable_impls = vec![quote! {
