@@ -7,7 +7,7 @@ use syn::{Attribute, Ident};
 use super::{EventEnumEntry, EventEnumVariant, expand_from_impl};
 use crate::{
     events::enums::{EventContentTraitVariation, EventKind, EventType},
-    util::RumaCommon,
+    util::{RumaCommon, RumaEvents, RumaEventsReexport},
 };
 
 /// Generate an `Any*EventContent` enum.
@@ -17,9 +17,9 @@ pub fn expand_content_enum(
     docs: &[TokenStream],
     attrs: &[Attribute],
     variants: &[EventEnumVariant],
-    ruma_events: &TokenStream,
+    ruma_events: &RumaEvents,
 ) -> syn::Result<TokenStream> {
-    let serde = quote! { #ruma_events::exports::serde };
+    let serde = ruma_events.reexported(RumaEventsReexport::Serde);
 
     let ident = kind.to_content_enum();
 
@@ -45,7 +45,7 @@ pub fn expand_content_enum(
         quote! { #ruma_events::serialize_custom_event_error }.to_string();
 
     // Generate an `EventContentFromType` implementation.
-    let serde_json = quote! { #ruma_events::exports::serde_json };
+    let serde_json = ruma_events.reexported(RumaEventsReexport::SerdeJson);
     let event_type_match_arms: TokenStream = events
         .iter()
         .map(|event| {
@@ -142,7 +142,7 @@ pub fn expand_full_content_enum(
     docs: &[TokenStream],
     attrs: &[Attribute],
     variants: &[EventEnumVariant],
-    ruma_events: &TokenStream,
+    ruma_events: &RumaEvents,
 ) -> syn::Result<TokenStream> {
     let ident = kind.to_full_content_enum();
 

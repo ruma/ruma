@@ -9,7 +9,7 @@ use syn::{
     parse::{Parse, ParseStream},
 };
 
-use crate::util::m_prefix_name_to_type_name;
+use crate::util::{RumaEvents, m_prefix_name_to_type_name};
 
 /// All the possible event struct kinds.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord)]
@@ -87,7 +87,7 @@ impl EventKind {
     pub fn to_event_with_bounds(
         self,
         var: EventVariation,
-        ruma_events: &TokenStream,
+        ruma_events: &RumaEvents,
     ) -> syn::Result<EventWithBounds> {
         EventWithBounds::new(self, var, ruma_events)
     }
@@ -584,8 +584,8 @@ impl EventField {
     /// Get the type of this field.
     ///
     /// Returns a `(type, is_reference)` tuple.
-    pub fn ty(self, ruma_events: &TokenStream) -> (TokenStream, bool) {
-        let ruma_common = quote! { #ruma_events::exports::ruma_common };
+    pub fn ty(self, ruma_events: &RumaEvents) -> (TokenStream, bool) {
+        let ruma_common = ruma_events.ruma_common();
 
         match self {
             Self::OriginServerTs => (quote! { #ruma_common::MilliSecondsSinceUnixEpoch }, false),
@@ -613,7 +613,7 @@ impl EventWithBounds {
     pub fn new(
         kind: EventKind,
         var: EventVariation,
-        ruma_events: &TokenStream,
+        ruma_events: &RumaEvents,
     ) -> syn::Result<Self> {
         let ident = kind.to_event_ident(var)?;
 
