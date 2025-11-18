@@ -7,7 +7,7 @@ use quote::{format_ident, quote};
 use syn::parse_quote;
 
 use crate::util::{
-    PrivateField, StructFieldExt, TypeExt, expand_fields_as_list,
+    PrivateField, RumaCommon, RumaCommonReexport, StructFieldExt, TypeExt, expand_fields_as_list,
     expand_fields_as_variable_declarations,
 };
 
@@ -44,7 +44,7 @@ impl Headers {
     pub(super) fn expand_parse(
         &self,
         kind: MacroKind,
-        ruma_common: &TokenStream,
+        ruma_common: &RumaCommon,
     ) -> Option<TokenStream> {
         if self.0.is_empty() {
             return None;
@@ -68,7 +68,7 @@ impl Headers {
     pub(super) fn expand_parse_header(
         header_name: &syn::Ident,
         field: &syn::Field,
-        ruma_common: &TokenStream,
+        ruma_common: &RumaCommon,
     ) -> TokenStream {
         let ident = field.ident();
         let cfg_attrs = field.cfg_attrs();
@@ -120,7 +120,7 @@ impl Headers {
         &self,
         kind: MacroKind,
         body: &Body,
-        ruma_common: &TokenStream,
+        ruma_common: &RumaCommon,
         http: &TokenStream,
     ) -> Option<TokenStream> {
         let mut serialize = TokenStream::new();
@@ -279,16 +279,16 @@ impl Body {
     pub(super) fn expand_serde_struct_definition(
         &self,
         kind: MacroKind,
-        ruma_common: &TokenStream,
+        ruma_common: &RumaCommon,
     ) -> Option<TokenStream> {
         let fields = self.fields.json_fields()?.iter().map(PrivateField);
         let ident = kind.as_struct_ident(StructSuffix::Body);
 
-        let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
+        let ruma_macros = ruma_common.reexported(RumaCommonReexport::RumaMacros);
         let mut extra_attrs = TokenStream::new();
 
         if !self.manual_serde {
-            let serde = quote! { #ruma_common::exports::serde };
+            let serde = ruma_common.reexported(RumaCommonReexport::Serde);
 
             extra_attrs.extend(quote! {
                 #[cfg_attr(feature = "client", derive(#serde::Serialize))]
@@ -314,7 +314,7 @@ impl Body {
     pub(super) fn expand_parse(
         &self,
         kind: MacroKind,
-        ruma_common: &TokenStream,
+        ruma_common: &RumaCommon,
     ) -> Option<TokenStream> {
         match &self.fields {
             BodyFields::Empty => None,
@@ -343,12 +343,12 @@ impl Body {
     fn expand_parse_json_body(
         fields: &[syn::Field],
         kind: MacroKind,
-        ruma_common: &TokenStream,
+        ruma_common: &RumaCommon,
     ) -> TokenStream {
         let body = parse_quote! { body };
         let src = kind.as_variable_ident();
         let ident = kind.as_struct_ident(StructSuffix::Body);
-        let serde_json = quote! { #ruma_common::exports::serde_json };
+        let serde_json = ruma_common.reexported(RumaCommonReexport::SerdeJson);
 
         let assignments = expand_fields_as_variable_declarations(fields, &body);
 
@@ -374,7 +374,7 @@ impl Body {
     pub(super) fn expand_serialize(
         &self,
         kind: MacroKind,
-        ruma_common: &TokenStream,
+        ruma_common: &RumaCommon,
     ) -> TokenStream {
         match &self.fields {
             BodyFields::Empty => match kind {
@@ -394,7 +394,7 @@ impl Body {
     }
 
     /// Generate code to serialize the JSON body with the given fields.
-    fn expand_serialize_json(&self, kind: MacroKind, ruma_common: &TokenStream) -> TokenStream {
+    fn expand_serialize_json(&self, kind: MacroKind, ruma_common: &RumaCommon) -> TokenStream {
         let fields = self.expand_fields();
         let serde_struct = kind.as_struct_ident(StructSuffix::Body);
 

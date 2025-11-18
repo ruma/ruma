@@ -13,7 +13,10 @@ use self::parse::{ContentAttrs, ContentMeta, EventContentKind, EventFieldMeta, E
 use super::enums::{
     EventContentTraitVariation, EventContentVariation, EventKind, EventTypes, EventVariation,
 };
-use crate::{events::enums::EventType, import_ruma_common, util::PrivateField};
+use crate::{
+    events::enums::EventType,
+    util::{PrivateField, RumaCommon},
+};
 
 /// `EventContent` derive macro code generation.
 pub fn expand_event_content(
@@ -744,7 +747,7 @@ fn generate_static_event_content_impl(
 
 /// Implement `JsonCastable<JsonObject> for {ident}` and `JsonCastable<{ident}> for {other}`.
 fn generate_json_castable_impl(ident: &Ident, others: &[&Ident]) -> TokenStream {
-    let ruma_common = import_ruma_common();
+    let ruma_common = RumaCommon::new();
 
     let mut json_castable_impls = quote! {
         #[automatically_derived]

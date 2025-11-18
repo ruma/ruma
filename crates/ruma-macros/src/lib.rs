@@ -44,7 +44,7 @@ use self::{
         enum_from_string::expand_enum_from_string, eq_as_ref_str::expand_eq_as_ref_str,
         ord_as_ref_str::expand_ord_as_ref_str, serialize_as_ref_str::expand_serialize_as_ref_str,
     },
-    util::{import_ruma_common, import_ruma_events},
+    util::import_ruma_events,
 };
 
 /// Generates enums to represent the various Matrix event types.

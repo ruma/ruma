@@ -17,11 +17,11 @@ use self::{
 use super::enums::{
     EventContentTraitVariation, EventField, EventKind, EventType, EventVariation, EventWithBounds,
 };
-use crate::import_ruma_common;
+use crate::util::RumaCommon;
 
 /// `event_enum!` macro code generation.
 pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
-    let ruma_common = import_ruma_common();
+    let ruma_common = RumaCommon::new();
 
     let mut enums = input
         .enums
@@ -42,7 +42,7 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
     }
 
     let event_types =
-        expand_event_type_enums(input, ruma_common).unwrap_or_else(syn::Error::into_compile_error);
+        expand_event_type_enums(input, &ruma_common).unwrap_or_else(syn::Error::into_compile_error);
 
     Ok(quote! {
         #enums

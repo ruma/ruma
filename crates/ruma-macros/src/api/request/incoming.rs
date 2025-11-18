@@ -3,12 +3,15 @@ use quote::quote;
 use syn::parse_quote;
 
 use super::{KIND, Request, RequestPath, RequestQuery};
-use crate::{api::StructSuffix, util::expand_fields_as_variable_declarations};
+use crate::{
+    api::StructSuffix,
+    util::{RumaCommon, RumaCommonReexport, expand_fields_as_variable_declarations},
+};
 
 impl Request {
     /// Generate the `ruma_common::api::IncomingRequest` implementation for this request struct.
-    pub fn expand_incoming(&self, ruma_common: &TokenStream) -> TokenStream {
-        let http = quote! { #ruma_common::exports::http };
+    pub fn expand_incoming(&self, ruma_common: &RumaCommon) -> TokenStream {
+        let http = ruma_common.reexported(RumaCommonReexport::Http);
 
         let path_parse = self.path.expand_parse(ruma_common);
         let path_fields = self.path.expand_fields();
@@ -62,12 +65,12 @@ impl Request {
 
 impl RequestPath {
     /// Generate code to parse the path arguments of a `&[dyn AsRef<[u8]>]` named `path_args`.
-    fn expand_parse(&self, ruma_common: &TokenStream) -> Option<TokenStream> {
+    fn expand_parse(&self, ruma_common: &RumaCommon) -> Option<TokenStream> {
         if self.0.is_empty() {
             return None;
         }
 
-        let serde = quote! { #ruma_common::exports::serde };
+        let serde = ruma_common.reexported(RumaCommonReexport::Serde);
         let fields = self.expand_fields();
 
         Some(quote! {
@@ -82,14 +85,14 @@ impl RequestPath {
 
 impl RequestQuery {
     /// Generate code to parse the query from an `http::request::Request`.
-    fn expand_parse(&self, ruma_common: &TokenStream) -> Option<TokenStream> {
+    fn expand_parse(&self, ruma_common: &RumaCommon) -> Option<TokenStream> {
         let fields = match self {
             Self::None => return None,
             Self::Fields(fields) => fields.as_slice(),
             Self::All(field) => std::slice::from_ref(field),
         };
 
-        let serde_html_form = quote! { #ruma_common::exports::serde_html_form };
+        let serde_html_form = ruma_common.reexported(RumaCommonReexport::SerdeHtmlForm);
         let src = parse_quote! { request_query };
         let request = KIND.as_variable_ident();
         let serde_struct = KIND.as_struct_ident(StructSuffix::Query);
