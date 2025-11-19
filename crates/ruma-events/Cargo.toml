@@ -54,6 +54,7 @@ unstable-msc4319 = []
 unstable-msc4334 = ["dep:language-tags"]
 unstable-msc4359 = []
 unstable-msc4362 = []
+unstable-msc4380 = ["ruma-common/unstable-msc4380"]
 
 # Allow some mandatory fields to be missing, defaulting them to an empty string
 # in deserialization.

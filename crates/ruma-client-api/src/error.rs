@@ -166,6 +166,13 @@ pub enum ErrorKind {
     /// The desired user name is not valid.
     InvalidUsername,
 
+    /// `M_INVITE_BLOCKED`
+    ///
+    /// The invite was interdicted by moderation tools or configured access controls without having
+    /// been witnessed by the invitee.
+    #[cfg(feature = "unstable-msc4380")]
+    InviteBlocked,
+
     /// `M_LIMIT_EXCEEDED`
     ///
     /// The request has been refused due to [rate limiting]: too many requests have been sent in a
@@ -446,6 +453,8 @@ impl ErrorKind {
             ErrorKind::InvalidParam => ErrorCode::InvalidParam,
             ErrorKind::InvalidRoomState => ErrorCode::InvalidRoomState,
             ErrorKind::InvalidUsername => ErrorCode::InvalidUsername,
+            #[cfg(feature = "unstable-msc4380")]
+            ErrorKind::InviteBlocked => ErrorCode::InviteBlocked,
             ErrorKind::LimitExceeded { .. } => ErrorCode::LimitExceeded,
             ErrorKind::MissingParam => ErrorCode::MissingParam,
             ErrorKind::MissingToken => ErrorCode::MissingToken,
@@ -615,6 +624,16 @@ pub enum ErrorCode {
     ///
     /// The desired user name is not valid.
     InvalidUsername,
+
+    /// `M_INVITE_BLOCKED`
+    ///
+    /// The invite was interdicted by moderation tools or configured access controls without having
+    /// been witnessed by the invitee.
+    ///
+    /// Unstable prefix intentionally shared with MSC4155 for compatibility.
+    #[cfg(feature = "unstable-msc4380")]
+    #[ruma_enum(rename = "ORG.MATRIX.MSC4155.INVITE_BLOCKED")]
+    InviteBlocked,
 
     /// `M_LIMIT_EXCEEDED`
     ///

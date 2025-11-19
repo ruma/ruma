@@ -35,6 +35,9 @@ event_enum! {
         #[ruma_enum(ident = DoNotDisturb, alias = "m.do_not_disturb")]
         "dm.filament.do_not_disturb" => super::do_not_disturb,
         "m.identity_server" => super::identity_server,
+        #[cfg(feature = "unstable-msc4380")]
+        #[ruma_enum(ident = InvitePermissionConfig, alias = "m.invite_permission_config")]
+        "org.matrix.msc4380.invite_permission_config" => super::invite_permission_config,
         "m.ignored_user_list" => super::ignored_user_list,
         "m.push_rules" => super::push_rules,
         "m.secret_storage.default_key" => super::secret_storage::default_key,
