@@ -209,6 +209,11 @@ unstable-msc4319 = ["ruma-events?/unstable-msc4319"]
 unstable-msc4334 = ["ruma-events?/unstable-msc4334", "dep:language-tags"]
 unstable-msc4359 = ["ruma-events?/unstable-msc4359"]
 unstable-msc4362 = ["ruma-events?/unstable-msc4362"]
+unstable-msc4380 = [
+    "ruma-common/unstable-msc4380",
+    "ruma-events?/unstable-msc4380",
+    "ruma-client-api?/unstable-msc4380",
+]
 
 [dependencies]
 assign = { workspace = true }

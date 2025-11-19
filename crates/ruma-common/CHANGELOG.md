@@ -72,6 +72,7 @@ Bug fixes:
 
 Improvements:
 
+- Add `org.matrix.msc4380` unstable feature support to `/versions`.
 - Add `MatrixVersion::V1_16`
 - Remove support for the `org.matrix.hydra.11` room version and the
   corresponding `unstable-hydra` cargo feature. It should only have been used

@@ -24,6 +24,10 @@ Fixes:
 
 Improvements:
 
+- Add `M_INVITE_BLOCKED` candidate error code proposed by
+  [MSC4380](https://github.com/matrix-org/matrix-spec-proposals/pull/4380)
+  sharing an unstable prefix with the preceding
+  [MSC4155](https://github.com/matrix-org/matrix-spec-proposals/pull/4155).
 - Stabilize support for the `use_state_after` query parameter and `State::After`
   response property to `sync_events::v3`, according to Matrix 1.16.
 - Stabilize support for extended profiles according to Matrix 1.16.
