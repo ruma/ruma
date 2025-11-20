@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.15.0
+
 Breaking:
 
 - The `criterion` cargo feature used for benchmarks was renamed to `__criterion`,
