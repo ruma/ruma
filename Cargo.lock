@@ -2024,7 +2024,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-identity-service-api"
-version = "0.12.0"
+version = "0.13.0"
 dependencies = [
  "js_int",
  "ruma-common",
@@ -2060,7 +2060,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-signatures"
-version = "0.18.0"
+version = "0.19.0"
 dependencies = [
  "assert_matches2",
  "base64",
