@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.22.0
+
 Breaking changes:
 
 - Upgrade `js_option` to v0.2.0
