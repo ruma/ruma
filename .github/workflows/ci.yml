@@ -75,14 +75,14 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           # keep in sync with README.md, the root Cargo.toml and xtask/src/ci.rs
-          toolchain: "1.85"
+          toolchain: "1.88"
 
       - uses: Swatinem/rust-cache@v2
         with:
           # A stable compiler update should automatically not reuse old caches.
           # Add the MSRV as a stable cache key too so bumping it also gets us a
           # fresh cache.
-          shared-key: msrv1.85
+          shared-key: msrv1.88
 
       - name: Get xtask
         uses: actions/cache@v4
