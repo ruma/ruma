@@ -1,6 +1,6 @@
 [package]
 name = "ruma-events"
-version = "0.31.0"
+version = "0.32.0"
 description = "Serializable types for the events in the Matrix specification."
 homepage = "https://ruma.dev/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
