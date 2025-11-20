@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.13.0
+
 Breaking changes:
 
 - The `send_event_notification` endpoint use a `SinglePath` rather than a
