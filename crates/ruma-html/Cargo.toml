@@ -1,6 +1,6 @@
 [package]
 name = "ruma-html"
-version = "0.5.0"
+version = "0.6.0"
 description = "Opinionated HTML parsing and manipulating."
 homepage = "https://ruma.dev/"
 keywords = ["matrix", "ruma", "html", "parser"]

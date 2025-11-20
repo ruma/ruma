@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.6.0
+
 Breaking changes:
 
 - Upgrade html5ever to `0.35.0`
