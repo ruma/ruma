@@ -139,12 +139,11 @@ impl<E: Clone, K: KeyName + ?Sized> Iterator for IntoIter<E, K> {
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            if let Some(inner) = &mut self.inner {
-                if let Some((k, v)) = inner.next() {
-                    if let Some(entity) = self.entity.clone() {
-                        return Some((entity, k, v));
-                    }
-                }
+            if let Some(inner) = &mut self.inner
+                && let Some((k, v)) = inner.next()
+                && let Some(entity) = self.entity.clone()
+            {
+                return Some((entity, k, v));
             }
 
             if let Some((e, map)) = self.outer.next() {
