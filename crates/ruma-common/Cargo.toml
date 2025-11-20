@@ -1,6 +1,6 @@
 [package]
 name = "ruma-common"
-version = "0.16.0"
+version = "0.17.0"
 description = "Common types for other ruma crates."
 homepage = "https://ruma.dev/"
 keywords = ["matrix", "chat", "messaging", "ruma"]

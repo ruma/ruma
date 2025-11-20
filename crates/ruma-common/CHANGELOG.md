@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.17.0
+
 Breaking changes:
 
 - Merge the `PartialOrdAsRefStr` derive macro into `OrdAsRefStr`, so both traits
@@ -87,7 +89,7 @@ Improvements:
   custom prefix alongside the rule to rename all the variants, like this:
   `#[ruma_enum(rename_all(prefix = "m.", rule = "snake_case"))]`. The previous
   syntax using `#[ruma_enum(rename_all = "snake_case")]` still works and assumes
-  that the prefix is empty. 
+  that the prefix is empty.
 
 # 0.16.0
 
