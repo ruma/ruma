@@ -1,6 +1,6 @@
 # [unreleased]
 
-- Bump MSRV to 1.85
+- Bump MSRV to 1.88
 
 # 0.13.0
 

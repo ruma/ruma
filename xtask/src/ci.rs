@@ -17,7 +17,7 @@ use spec_links::check_spec_links;
 use unused_features::check_unused_features;
 
 // Keep in sync with README.md, the root Cargo.toml and .github/workflows/ci.yml
-const MSRV: &str = "1.85";
+const MSRV: &str = "1.88";
 
 #[derive(Args)]
 pub struct CiArgs {
