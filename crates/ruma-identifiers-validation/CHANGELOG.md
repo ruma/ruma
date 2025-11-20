@@ -1,5 +1,9 @@
 # [unreleased]
 
+# 0.12.0
+
+- Bump MSRV to 1.88
+
 # 0.11.0
 
 Breaking changes:
