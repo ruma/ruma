@@ -516,14 +516,15 @@ fn power_level_for_sender<E: Event>(
     let mut room_create_event = None;
     let mut room_power_levels_event = None;
 
-    if let Some(event) = &event {
-        if rules.room_create_event_id_as_room_id && creators_lock.get().is_none() {
-            // The m.room.create event is not in the auth events, we can get its ID via the room ID.
-            room_create_event = event
-                .room_id()
-                .and_then(|room_id| room_id.room_create_event_id().ok())
-                .and_then(|room_create_event_id| fetch_event(&room_create_event_id));
-        }
+    if let Some(event) = &event
+        && rules.room_create_event_id_as_room_id
+        && creators_lock.get().is_none()
+    {
+        // The m.room.create event is not in the auth events, we can get its ID via the room ID.
+        room_create_event = event
+            .room_id()
+            .and_then(|room_id| room_id.room_create_event_id().ok())
+            .and_then(|room_create_event_id| fetch_event(&room_create_event_id));
     }
 
     for auth_event_id in event.as_ref().map(|pdu| pdu.auth_events()).into_iter().flatten() {
@@ -760,17 +761,17 @@ fn mainline_sort<E: Event>(
 
     let mut order_map = HashMap::new();
     for event_id in events.iter() {
-        if let Some(event) = fetch_event(event_id.borrow()) {
-            if let Ok(position) = mainline_position(event, &mainline_map, &fetch_event) {
-                order_map.insert(
+        if let Some(event) = fetch_event(event_id.borrow())
+            && let Ok(position) = mainline_position(event, &mainline_map, &fetch_event)
+        {
+            order_map.insert(
+                event_id,
+                (
+                    position,
+                    fetch_event(event_id.borrow()).map(|event| event.origin_server_ts()),
                     event_id,
-                    (
-                        position,
-                        fetch_event(event_id.borrow()).map(|event| event.origin_server_ts()),
-                        event_id,
-                    ),
-                );
-            }
+                ),
+            );
         }
 
         // TODO: if these functions are ever made async here

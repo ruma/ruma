@@ -292,11 +292,11 @@ fn generate_possibly_redacted_event_content<'a>(
             let mut keep_field = false;
             let mut unsupported_serde_attribute = None;
 
-            if let Type::Path(type_path) = &f.ty {
-                if type_path.path.segments.first().filter(|s| s.ident == "Option").is_some() {
-                    // Keep the field if it's an `Option`.
-                    keep_field = true;
-                }
+            if let Type::Path(type_path) = &f.ty
+                && type_path.path.segments.first().filter(|s| s.ident == "Option").is_some()
+            {
+                // Keep the field if it's an `Option`.
+                keep_field = true;
             }
 
             let mut attrs = f
@@ -312,30 +312,29 @@ fn generate_possibly_redacted_event_content<'a>(
                         // Don't re-emit our `ruma_event` attributes.
                         Ok(None)
                     } else {
-                        if a.path().is_ident("serde") {
-                            if let Meta::List(list) = &a.meta {
-                                let nested: Punctuated<Meta, Token![,]> =
-                                    list.parse_args_with(Punctuated::parse_terminated)?;
-                                for meta in &nested {
-                                    if meta.path().is_ident("default") {
-                                        // Keep the field if it deserializes to its default value.
-                                        keep_field = true;
-                                    } else if !meta.path().is_ident("rename")
-                                        && !meta.path().is_ident("alias")
-                                        && unsupported_serde_attribute.is_none()
-                                    {
-                                        // Error if the field is not kept and uses an unsupported
-                                        // serde attribute.
-                                        unsupported_serde_attribute =
-                                            Some(syn::Error::new_spanned(
-                                                meta,
-                                                "Can't generate PossiblyRedacted struct with \
+                        if a.path().is_ident("serde")
+                            && let Meta::List(list) = &a.meta
+                        {
+                            let nested: Punctuated<Meta, Token![,]> =
+                                list.parse_args_with(Punctuated::parse_terminated)?;
+                            for meta in &nested {
+                                if meta.path().is_ident("default") {
+                                    // Keep the field if it deserializes to its default value.
+                                    keep_field = true;
+                                } else if !meta.path().is_ident("rename")
+                                    && !meta.path().is_ident("alias")
+                                    && unsupported_serde_attribute.is_none()
+                                {
+                                    // Error if the field is not kept and uses an unsupported
+                                    // serde attribute.
+                                    unsupported_serde_attribute = Some(syn::Error::new_spanned(
+                                        meta,
+                                        "Can't generate PossiblyRedacted struct with \
                                                  unsupported serde attribute\n\
                                                  Expected one of `default`, `rename` or `alias`\n\
                                                  Use the `custom_possibly_redacted` attribute \
                                                  and create the struct manually",
-                                            ));
-                                    }
+                                    ));
                                 }
                             }
                         }

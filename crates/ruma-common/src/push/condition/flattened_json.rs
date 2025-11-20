@@ -46,10 +46,10 @@ impl FlattenedJson {
                 }
             }
             value => {
-                if let Some(v) = FlattenedJsonValue::from_json_value(value) {
-                    if self.map.insert(path.clone(), v).is_some() {
-                        warn!("Duplicate path in flattened JSON: {path}");
-                    }
+                if let Some(v) = FlattenedJsonValue::from_json_value(value)
+                    && self.map.insert(path.clone(), v).is_some()
+                {
+                    warn!("Duplicate path in flattened JSON: {path}");
                 }
             }
         }
