@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.13.0
+
 Breaking changes:
 
 - All the endpoints use a `SinglePath` rather than a `VersionHistory` as
