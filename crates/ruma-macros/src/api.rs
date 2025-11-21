@@ -5,13 +5,11 @@ use std::{env, fs, path::Path, sync::OnceLock};
 use proc_macro2::Span;
 use serde::{Deserialize, de::IgnoredAny};
 
-mod attribute;
+mod common;
 pub mod request;
 pub mod response;
 
-mod kw {
-    syn::custom_keyword!(error);
-}
+use self::common::{Body, Headers, MacroKind, StructSuffix};
 
 // Returns an error with a helpful error if the crate the request or response macro is used from
 // doesn't declare both a `client` and a `server` feature.

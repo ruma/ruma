@@ -1,100 +1,44 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::Ident;
 
-use super::{Response, ResponseField};
+use super::{KIND, Response};
 
 impl Response {
-    pub fn expand_outgoing(&self, status_ident: &Ident, ruma_common: &TokenStream) -> TokenStream {
+    /// Generate the `ruma_common::api::OutgoingResponse` implementation for this response struct.
+    pub fn expand_outgoing(&self, ruma_common: &TokenStream) -> TokenStream {
         let bytes = quote! { #ruma_common::exports::bytes };
         let http = quote! { #ruma_common::exports::http };
 
-        // If there is a `raw_body` field, the `application/json` content-type is likely to be
-        // wrong.
-        let mut headers = if self.has_raw_body() {
-            quote! {
-                headers.insert(
-                    #http::header::CONTENT_TYPE,
-                    #ruma_common::http_headers::APPLICATION_OCTET_STREAM,
-                );
-            }
-        } else {
-            quote! {
-                headers.insert(
-                    #http::header::CONTENT_TYPE,
-                    #ruma_common::http_headers::APPLICATION_JSON,
-                );
-            }
-        };
+        let headers_serialize = self.headers.expand_serialize(KIND, &self.body, ruma_common, &http);
+        let headers_fields = self.headers.expand_fields();
 
-        headers.extend(self.fields.iter().filter_map(|response_field| {
-            response_field.as_header_field().map(|(field, header_name)| {
-                let field_name =
-                    field.ident.as_ref().expect("expected field to have an identifier");
+        let body_serialize = self.body.expand_serialize(KIND, ruma_common);
+        let body_fields = self.body.expand_fields();
 
-                match &field.ty {
-                    syn::Type::Path(syn::TypePath { path: syn::Path { segments, .. }, .. })
-                        if segments.last().unwrap().ident == "Option" =>
-                    {
-                        quote! {
-                            if let Some(header) = self.#field_name {
-                                headers.insert(
-                                    #header_name,
-                                    header.to_string().parse()?,
-                                );
-                            }
-                        }
-                    }
-                    _ => quote! {
-                        headers.insert(
-                            #header_name,
-                            self.#field_name.to_string().parse()?,
-                        );
-                    },
-                }
-            })
-        }));
-
-        let body = if let Some(field) =
-            self.fields.iter().find_map(ResponseField::as_raw_body_field)
-        {
-            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            quote! { #ruma_common::serde::slice_to_buf(&self.#field_name) }
-        } else {
-            let fields = self.fields.iter().filter_map(|response_field| {
-                response_field.as_body_field().map(|field| {
-                    let field_name =
-                        field.ident.as_ref().expect("expected field to have an identifier");
-                    let cfg_attrs = field.attrs.iter().filter(|a| a.path().is_ident("cfg"));
-
-                    quote! {
-                        #( #cfg_attrs )*
-                        #field_name: self.#field_name,
-                    }
-                })
-            });
-
-            quote! {
-                #ruma_common::serde::json_to_buf(&ResponseBody { #(#fields)* })?
-            }
-        };
+        let ident = &self.ident;
+        let status = &self.status;
+        let src = KIND.as_variable_ident();
 
         quote! {
             #[automatically_derived]
             #[cfg(feature = "server")]
             #[allow(deprecated)]
-            impl #ruma_common::api::OutgoingResponse for Response {
+            impl #ruma_common::api::OutgoingResponse for #ident {
                 fn try_into_http_response<T: ::std::default::Default + #bytes::BufMut>(
                     self,
                 ) -> ::std::result::Result<#http::Response<T>, #ruma_common::api::error::IntoHttpError> {
-                    let mut resp_builder = #http::Response::builder()
-                        .status(#http::StatusCode::#status_ident);
+                    let Self {
+                        #headers_fields
+                        #body_fields
+                    } = self;
 
-                    if let Some(mut headers) = resp_builder.headers_mut() {
-                        #headers
-                    }
+                    let mut #src = #http::Response::builder()
+                        .status(#http::StatusCode::#status)
+                        .body(#body_serialize)?;
 
-                    ::std::result::Result::Ok(resp_builder.body(#body)?)
+                    #headers_serialize
+
+                    ::std::result::Result::Ok(#src)
                 }
             }
         }

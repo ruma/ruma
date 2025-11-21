@@ -1,7 +1,7 @@
 use proc_macro_crate::{FoundCrate, crate_name};
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident, quote};
-use syn::{Attribute, Field, Ident, LitStr};
+use syn::{Attribute, Field, Ident, LitStr, visit::Visit};
 
 pub(crate) fn import_ruma_common() -> TokenStream {
     if let Ok(FoundCrate::Name(name)) = crate_name("ruma-common") {
@@ -249,6 +249,9 @@ fn is_serde_flatten_attribute(attr: &Attribute) -> bool {
 pub(crate) trait TypeExt {
     /// Get the inner type if this is wrapped in an `Option`.
     fn option_inner_type(&self) -> Option<&syn::Type>;
+
+    /// Whether this type has a lifetime.
+    fn has_lifetime(&self) -> bool;
 }
 
 impl TypeExt for syn::Type {
@@ -273,6 +276,23 @@ impl TypeExt for syn::Type {
         };
 
         Some(inner_type)
+    }
+
+    fn has_lifetime(&self) -> bool {
+        struct Visitor {
+            found_lifetime: bool,
+        }
+
+        impl<'ast> Visit<'ast> for Visitor {
+            fn visit_lifetime(&mut self, _lt: &'ast syn::Lifetime) {
+                self.found_lifetime = true;
+            }
+        }
+
+        let mut vis = Visitor { found_lifetime: false };
+        vis.visit_type(self);
+
+        vis.found_lifetime
     }
 }
 
