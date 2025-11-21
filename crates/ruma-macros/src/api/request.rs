@@ -1,33 +1,32 @@
+use std::collections::BTreeMap;
+
 use cfg_if::cfg_if;
 use proc_macro2::TokenStream;
-use quote::{ToTokens, quote};
-use syn::{
-    Field, Generics, Ident, ItemStruct, Token, Type,
-    parse::{Parse, ParseStream},
-    punctuated::Punctuated,
-};
+use quote::quote;
 
-use super::{
-    attribute::{DeriveRequestMeta, RequestMeta},
-    ensure_feature_presence,
-};
-use crate::util::{PrivateField, field_has_serde_flatten_attribute, import_ruma_common};
+use super::ensure_feature_presence;
+use crate::util::{PrivateField, StructFieldExt, expand_fields_as_list, import_ruma_common};
 
 mod incoming;
 mod outgoing;
+mod parse;
 
-pub fn expand_request(attr: RequestAttr, item: ItemStruct) -> TokenStream {
+pub(crate) use self::parse::RequestAttrs;
+
+/// Expand the `#[request]` macro on a struct.
+///
+/// This uses the `#[derive(Request)]` macro internally.
+pub fn expand_request(attrs: RequestAttrs, item: syn::ItemStruct) -> TokenStream {
     let ruma_common = import_ruma_common();
     let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
 
     let maybe_feature_error = ensure_feature_presence().map(syn::Error::to_compile_error);
 
-    let error_ty = attr.0.first().map_or_else(
-        || quote! { #ruma_common::api::error::MatrixError },
-        |DeriveRequestMeta::Error(ty)| quote! { #ty },
-    );
+    let error_ty = attrs.error_ty_or_default(&ruma_common);
 
     cfg_if! {
+        // Make the macro expand the internal derives, such that Rust Analyzer's expand macro helper can
+        // render their output. Requires a nightly toolchain.
         if #[cfg(feature = "__internal_macro_expand")] {
             use syn::parse_quote;
 
@@ -58,156 +57,67 @@ pub fn expand_request(attr: RequestAttr, item: ItemStruct) -> TokenStream {
     }
 }
 
-pub struct RequestAttr(Punctuated<DeriveRequestMeta, Token![,]>);
-
-impl Parse for RequestAttr {
-    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        Punctuated::<DeriveRequestMeta, Token![,]>::parse_terminated(input).map(Self)
-    }
-}
-
-pub fn expand_derive_request(input: ItemStruct) -> syn::Result<TokenStream> {
-    let fields =
-        input.fields.into_iter().map(RequestField::try_from).collect::<syn::Result<_>>()?;
-
-    let mut error_ty = None;
-
-    for attr in input.attrs {
-        if !attr.path().is_ident("ruma_api") {
-            continue;
-        }
-
-        let metas =
-            attr.parse_args_with(Punctuated::<DeriveRequestMeta, Token![,]>::parse_terminated)?;
-        for meta in metas {
-            match meta {
-                DeriveRequestMeta::Error(t) => error_ty = Some(t),
-            }
-        }
-    }
-
-    let request = Request {
-        ident: input.ident,
-        generics: input.generics,
-        fields,
-        error_ty: error_ty.expect("missing error_ty attribute"),
-    };
+/// Expand the `#[derive(Request)]` macro.
+pub fn expand_derive_request(input: syn::ItemStruct) -> syn::Result<TokenStream> {
+    let request = Request::try_from(input)?;
 
     let ruma_common = import_ruma_common();
-    let test = request.check(&ruma_common)?;
-    let types_impls = request.expand_all(&ruma_common);
+    let impls = request.expand_impls(&ruma_common);
+    let tests = request.expand_tests(&ruma_common);
 
     Ok(quote! {
-        #types_impls
+        #impls
 
         #[allow(deprecated)]
         #[cfg(test)]
         mod __request {
-            #test
+            #tests
         }
     })
 }
 
+/// A parsed struct representing an API request.
 struct Request {
-    ident: Ident,
-    generics: Generics,
-    fields: Vec<RequestField>,
+    /// The name of the struct.
+    ident: syn::Ident,
 
-    error_ty: Type,
+    /// The generics of the struct.
+    generics: syn::Generics,
+
+    /// The HTTP headers.
+    headers: RequestHeaders,
+
+    /// The path variables.
+    path: RequestPath,
+
+    /// The query variables.
+    query: RequestQuery,
+
+    /// The body.
+    body: RequestBody,
+
+    /// The type used for the `EndpointError` associated type on `OutgoingRequest` and
+    /// `IncomingRequest` implementations.
+    error_ty: syn::Type,
 }
 
 impl Request {
-    fn body_fields(&self) -> impl Iterator<Item = &Field> {
-        self.fields.iter().filter_map(RequestField::as_body_field)
-    }
-
-    fn has_body_fields(&self) -> bool {
-        self.fields
-            .iter()
-            .any(|f| matches!(&f.kind, RequestFieldKind::Body | RequestFieldKind::NewtypeBody))
-    }
-
-    fn has_newtype_body(&self) -> bool {
-        self.fields.iter().any(|f| matches!(&f.kind, RequestFieldKind::NewtypeBody))
-    }
-
-    fn has_header_fields(&self) -> bool {
-        self.fields.iter().any(|f| matches!(&f.kind, RequestFieldKind::Header(_)))
-    }
-
-    fn has_path_fields(&self) -> bool {
-        self.fields.iter().any(|f| matches!(&f.kind, RequestFieldKind::Path))
-    }
-
-    fn has_query_fields(&self) -> bool {
-        self.fields.iter().any(|f| matches!(&f.kind, RequestFieldKind::Query))
-    }
-
-    fn header_fields(&self) -> impl Iterator<Item = (&Field, &Ident)> {
-        self.fields.iter().filter_map(RequestField::as_header_field)
-    }
-
-    fn path_fields(&self) -> impl Iterator<Item = &Field> {
-        self.fields.iter().filter_map(RequestField::as_path_field)
-    }
-
-    fn raw_body_field(&self) -> Option<&Field> {
-        self.fields.iter().find_map(RequestField::as_raw_body_field)
-    }
-
-    fn query_all_field(&self) -> Option<&Field> {
-        self.fields.iter().find_map(RequestField::as_query_all_field)
-    }
-
-    fn expand_all(&self, ruma_common: &TokenStream) -> TokenStream {
+    /// Expand the implementations generated by this macro.
+    fn expand_impls(&self, ruma_common: &TokenStream) -> TokenStream {
         let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
         let serde = quote! { #ruma_common::exports::serde };
 
-        let request_body_struct = self.has_body_fields().then(|| {
-            let serde_attr = self.has_newtype_body().then(|| quote! { #[serde(transparent)] });
-            let fields =
-                self.fields.iter().filter_map(RequestField::as_body_field).map(PrivateField);
-
-            quote! {
-                /// Data in the request body.
-                #[cfg(any(feature = "client", feature = "server"))]
-                #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
-                #[cfg_attr(feature = "client", derive(#serde::Serialize))]
-                #[cfg_attr(feature = "server", derive(#serde::Deserialize))]
-                #serde_attr
-                struct RequestBody { #(#fields),* }
-            }
-        });
-
-        let request_query_def = if let Some(f) = self.query_all_field() {
-            let field = Field { ident: None, colon_token: None, ..f.clone() };
-            let field = PrivateField(&field);
-            Some(quote! { (#field); })
-        } else if self.has_query_fields() {
-            let fields =
-                self.fields.iter().filter_map(RequestField::as_query_field).map(PrivateField);
-            Some(quote! { { #(#fields),* } })
-        } else {
-            None
-        };
-
-        let request_query_struct = request_query_def.map(|def| {
-            quote! {
-                /// Data in the request's query string.
-                #[cfg(any(feature = "client", feature = "server"))]
-                #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
-                #[cfg_attr(feature = "client", derive(#serde::Serialize))]
-                #[cfg_attr(feature = "server", derive(#serde::Deserialize))]
-                struct RequestQuery #def
-            }
-        });
+        let request_body_serde_struct =
+            self.body.expand_serde_struct_definition(&ruma_macros, &serde);
+        let request_query_serde_struct =
+            self.query.expand_serde_struct_definition(&ruma_macros, &serde);
 
         let outgoing_request_impl = self.expand_outgoing(ruma_common);
         let incoming_request_impl = self.expand_incoming(ruma_common);
 
         quote! {
-            #request_body_struct
-            #request_query_struct
+            #request_body_serde_struct
+            #request_query_serde_struct
 
             #[allow(deprecated)]
             mod __request_impls {
@@ -218,74 +128,40 @@ impl Request {
         }
     }
 
-    pub(super) fn check(&self, ruma_common: &TokenStream) -> syn::Result<TokenStream> {
-        let http = quote! { #ruma_common::exports::http };
-
-        // TODO: highlight problematic fields
-
-        let newtype_body_fields = self.fields.iter().filter(|f| {
-            matches!(&f.kind, RequestFieldKind::NewtypeBody | RequestFieldKind::RawBody)
-        });
-
-        let has_newtype_body_field = match newtype_body_fields.count() {
-            0 => false,
-            1 => true,
-            _ => {
-                return Err(syn::Error::new_spanned(
-                    &self.ident,
-                    "Can't have more than one newtype body field",
-                ));
-            }
-        };
-
-        let query_all_fields =
-            self.fields.iter().filter(|f| matches!(&f.kind, RequestFieldKind::QueryAll));
-        let has_query_all_field = match query_all_fields.count() {
-            0 => false,
-            1 => true,
-            _ => {
-                return Err(syn::Error::new_spanned(
-                    &self.ident,
-                    "Can't have more than one query_all field",
-                ));
-            }
-        };
-
-        let mut body_fields =
-            self.fields.iter().filter(|f| matches!(f.kind, RequestFieldKind::Body));
-        let first_body_field = body_fields.next();
-        let has_body_fields = first_body_field.is_some();
-
-        if has_newtype_body_field && has_body_fields {
-            return Err(syn::Error::new_spanned(
-                &self.ident,
-                "Can't have both a newtype body field and regular body fields",
-            ));
-        }
-
-        if let Some(first_body_field) = first_body_field {
-            let is_single_body_field = body_fields.next().is_none();
-
-            if is_single_body_field && field_has_serde_flatten_attribute(&first_body_field.inner) {
-                return Err(syn::Error::new_spanned(
-                    first_body_field,
-                    "Use `#[ruma_api(body)]` to represent the JSON body as a single field",
-                ));
-            }
-        }
-
-        let has_query_fields = self.has_query_fields();
-        if has_query_all_field && has_query_fields {
-            return Err(syn::Error::new_spanned(
-                &self.ident,
-                "Can't have both a query_all field and regular query fields",
-            ));
-        }
-
+    /// Expand the tests generated by this macro.
+    fn expand_tests(&self, ruma_common: &TokenStream) -> TokenStream {
         let ident = &self.ident;
 
-        let path_fields = self.path_fields().map(|f| f.ident.as_ref().unwrap().to_string());
-        let mut tests = quote! {
+        let mut tests = self.path.expand_tests(ident, ruma_common);
+        tests.extend(self.body.expand_tests(ident, ruma_common));
+
+        tests
+    }
+}
+
+/// Parsed HTTP headers of a request struct.
+#[derive(Default)]
+pub struct RequestHeaders(BTreeMap<syn::Ident, syn::Field>);
+
+impl RequestHeaders {
+    /// Generate code for a comma-separated list of field names.
+    ///
+    /// Only the `#[cfg]` attributes on the fields are forwarded.
+    fn expand_fields(&self) -> TokenStream {
+        expand_fields_as_list(self.0.values())
+    }
+}
+
+/// Request path fields.
+#[derive(Default)]
+pub struct RequestPath(Vec<syn::Field>);
+
+impl RequestPath {
+    /// Generate code to test the path parameters for the request with the given ident.
+    fn expand_tests(&self, ident: &syn::Ident, ruma_common: &TokenStream) -> TokenStream {
+        let path_fields = self.0.iter().map(|f| f.ident().to_string());
+
+        quote! {
             #[::std::prelude::v1::test]
             fn path_parameters() {
                 use #ruma_common::api::path_builder::PathBuilder as _;
@@ -297,10 +173,137 @@ impl Request {
                     "Path parameters must match the `Request`'s `#[ruma_api(path)]` fields"
                 );
             }
+        }
+    }
+
+    /// Generate code for a comma-separated list of field names.
+    ///
+    /// No attributes are forwarded.
+    fn expand_fields(&self) -> TokenStream {
+        expand_fields_as_list(&self.0)
+    }
+}
+
+/// Request query fields.
+#[derive(Default)]
+#[allow(clippy::large_enum_variant)]
+enum RequestQuery {
+    /// The request doesn't contain a query.
+    #[default]
+    None,
+
+    /// The fields containing the query parameters.
+    Fields(Vec<syn::Field>),
+
+    /// The single field containing the whole query.
+    All(syn::Field),
+}
+
+impl RequestQuery {
+    /// Generate code to define a `struct RequestQuery` used for (de)serializing the query of
+    /// request.
+    fn expand_serde_struct_definition(
+        &self,
+        ruma_macros: &TokenStream,
+        serde: &TokenStream,
+    ) -> Option<TokenStream> {
+        let (fields, extra_attrs) = match self {
+            Self::None => return None,
+            Self::Fields(fields) => (fields.as_slice(), None),
+            Self::All(field) => {
+                let extra_attrs = quote! { #[serde(transparent)] };
+                (std::slice::from_ref(field), Some(extra_attrs))
+            }
         };
 
-        if has_body_fields || has_newtype_body_field {
-            tests.extend(quote! {
+        let fields = fields.iter().map(PrivateField);
+
+        Some(quote! {
+            /// Data in the request's query string.
+            #[cfg(any(feature = "client", feature = "server"))]
+            #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
+            #[cfg_attr(feature = "client", derive(#serde::Serialize))]
+            #[cfg_attr(feature = "server", derive(#serde::Deserialize))]
+            #extra_attrs
+            struct RequestQuery { #( #fields ),* }
+        })
+    }
+
+    /// Generate code for a comma-separated list of field names.
+    ///
+    /// Only the `#[cfg]` attributes on the fields are forwarded.
+    fn expand_fields(&self) -> Option<TokenStream> {
+        let fields = match self {
+            Self::None => return None,
+            Self::Fields(fields) => fields.as_slice(),
+            Self::All(field) => std::slice::from_ref(field),
+        };
+
+        Some(expand_fields_as_list(fields))
+    }
+}
+
+/// Parsed request body fields.
+#[derive(Default)]
+enum RequestBody {
+    /// The request has an empty body.
+    ///
+    /// An empty body might contain no data at all or an empty JSON object, depending on the
+    /// expected content type of the request.
+    #[default]
+    Empty,
+
+    /// The body is a JSON object containing the given fields.
+    JsonFields(Vec<syn::Field>),
+
+    /// The body is a JSON object represented by the given single field.
+    JsonAll(syn::Field),
+
+    /// The body contains raw data represented by the given single field.
+    Raw(syn::Field),
+}
+
+impl RequestBody {
+    /// The list of fields for the JSON data of the body.
+    fn json_fields(&self) -> Option<&[syn::Field]> {
+        let fields = match self {
+            Self::Empty | Self::Raw(_) => return None,
+            Self::JsonFields(fields) => fields.as_slice(),
+            Self::JsonAll(field) => std::slice::from_ref(field),
+        };
+
+        Some(fields)
+    }
+
+    /// Generate code to define a `struct RequestBody` used for (de)serializing the JSON body of
+    /// request.
+    fn expand_serde_struct_definition(
+        &self,
+        ruma_macros: &TokenStream,
+        serde: &TokenStream,
+    ) -> Option<TokenStream> {
+        let fields = self.json_fields()?.iter().map(PrivateField);
+
+        let extra_attrs =
+            matches!(self, Self::JsonAll(_)).then(|| quote! { #[serde(transparent)] });
+
+        Some(quote! {
+            /// Data in the request body.
+            #[cfg(any(feature = "client", feature = "server"))]
+            #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
+            #[cfg_attr(feature = "client", derive(#serde::Serialize))]
+            #[cfg_attr(feature = "server", derive(#serde::Deserialize))]
+            #extra_attrs
+            struct RequestBody { #( #fields ),* }
+        })
+    }
+
+    /// Generate code to test the body for the request with given ident.
+    fn expand_tests(&self, ident: &syn::Ident, ruma_common: &TokenStream) -> Option<TokenStream> {
+        if !matches!(self, RequestBody::Empty) {
+            let http = quote! { #ruma_common::exports::http };
+
+            Some(quote! {
                 #[::std::prelude::v1::test]
                 fn request_is_not_get() {
                     ::std::assert_ne!(
@@ -308,139 +311,23 @@ impl Request {
                         "GET endpoints can't have body fields",
                     );
                 }
-            });
+            })
+        } else {
+            None
         }
-
-        Ok(tests)
     }
-}
 
-/// A field of the request struct.
-pub(super) struct RequestField {
-    pub(super) inner: Field,
-    pub(super) kind: RequestFieldKind,
-}
-
-/// The kind of a request field.
-pub(super) enum RequestFieldKind {
-    /// JSON data in the body of the request.
-    Body,
-
-    /// Data in an HTTP header.
-    Header(Ident),
-
-    /// A specific data type in the body of the request.
-    NewtypeBody,
-
-    /// Arbitrary bytes in the body of the request.
-    RawBody,
-
-    /// Data that appears in the URL path.
-    Path,
-
-    /// Data that appears in the query string.
-    Query,
-
-    /// Data that represents all the query string as a single type.
-    QueryAll,
-}
-
-impl RequestField {
-    /// Creates a new `RequestField`.
-    fn new(inner: Field, kind_attr: Option<RequestMeta>) -> Self {
-        let kind = match kind_attr {
-            Some(RequestMeta::NewtypeBody) => RequestFieldKind::NewtypeBody,
-            Some(RequestMeta::RawBody) => RequestFieldKind::RawBody,
-            Some(RequestMeta::Path) => RequestFieldKind::Path,
-            Some(RequestMeta::Query) => RequestFieldKind::Query,
-            Some(RequestMeta::QueryAll) => RequestFieldKind::QueryAll,
-            Some(RequestMeta::Header(header)) => RequestFieldKind::Header(header),
-            None => RequestFieldKind::Body,
+    /// Generate code for a comma-separated list of field names.
+    ///
+    /// Only the `#[cfg]` attributes on the fields are forwarded.
+    fn expand_fields(&self) -> Option<TokenStream> {
+        let fields = match self {
+            Self::Empty => return None,
+            Self::JsonFields(fields) => fields.as_slice(),
+            Self::JsonAll(field) => std::slice::from_ref(field),
+            Self::Raw(field) => std::slice::from_ref(field),
         };
 
-        Self { inner, kind }
-    }
-
-    /// Return the contained field if this request field is a body kind.
-    pub fn as_body_field(&self) -> Option<&Field> {
-        match &self.kind {
-            RequestFieldKind::Body | RequestFieldKind::NewtypeBody => Some(&self.inner),
-            _ => None,
-        }
-    }
-
-    /// Return the contained field if this request field is a raw body kind.
-    pub fn as_raw_body_field(&self) -> Option<&Field> {
-        match &self.kind {
-            RequestFieldKind::RawBody => Some(&self.inner),
-            _ => None,
-        }
-    }
-
-    /// Return the contained field if this request field is a path kind.
-    pub fn as_path_field(&self) -> Option<&Field> {
-        match &self.kind {
-            RequestFieldKind::Path => Some(&self.inner),
-            _ => None,
-        }
-    }
-
-    /// Return the contained field if this request field is a query kind.
-    pub fn as_query_field(&self) -> Option<&Field> {
-        match &self.kind {
-            RequestFieldKind::Query => Some(&self.inner),
-            _ => None,
-        }
-    }
-
-    /// Return the contained field if this request field is a query all kind.
-    pub fn as_query_all_field(&self) -> Option<&Field> {
-        match &self.kind {
-            RequestFieldKind::QueryAll => Some(&self.inner),
-            _ => None,
-        }
-    }
-
-    /// Return the contained field and header ident if this request field is a header kind.
-    pub fn as_header_field(&self) -> Option<(&Field, &Ident)> {
-        match &self.kind {
-            RequestFieldKind::Header(header_name) => Some((&self.inner, header_name)),
-            _ => None,
-        }
-    }
-}
-
-impl TryFrom<Field> for RequestField {
-    type Error = syn::Error;
-
-    fn try_from(mut field: Field) -> syn::Result<Self> {
-        let (mut api_attrs, attrs) =
-            field.attrs.into_iter().partition::<Vec<_>, _>(|attr| attr.path().is_ident("ruma_api"));
-        field.attrs = attrs;
-
-        let kind_attr = match api_attrs.as_slice() {
-            [] => None,
-            [_] => Some(api_attrs.pop().unwrap().parse_args::<RequestMeta>()?),
-            _ => {
-                return Err(syn::Error::new_spanned(
-                    &api_attrs[1],
-                    "multiple field kind attribute found, there can only be one",
-                ));
-            }
-        };
-
-        Ok(RequestField::new(field, kind_attr))
-    }
-}
-
-impl Parse for RequestField {
-    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        input.call(Field::parse_named)?.try_into()
-    }
-}
-
-impl ToTokens for RequestField {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.inner.to_tokens(tokens);
+        Some(expand_fields_as_list(fields))
     }
 }

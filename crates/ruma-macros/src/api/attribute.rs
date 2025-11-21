@@ -17,60 +17,6 @@ mod kw {
     syn::custom_keyword!(status);
 }
 
-pub enum RequestMeta {
-    NewtypeBody,
-    RawBody,
-    Path,
-    Query,
-    QueryAll,
-    Header(Ident),
-}
-
-impl Parse for RequestMeta {
-    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let lookahead = input.lookahead1();
-        if lookahead.peek(kw::body) {
-            let _: kw::body = input.parse()?;
-            Ok(Self::NewtypeBody)
-        } else if lookahead.peek(kw::raw_body) {
-            let _: kw::raw_body = input.parse()?;
-            Ok(Self::RawBody)
-        } else if lookahead.peek(kw::path) {
-            let _: kw::path = input.parse()?;
-            Ok(Self::Path)
-        } else if lookahead.peek(kw::query) {
-            let _: kw::query = input.parse()?;
-            Ok(Self::Query)
-        } else if lookahead.peek(kw::query_all) {
-            let _: kw::query_all = input.parse()?;
-            Ok(Self::QueryAll)
-        } else if lookahead.peek(kw::header) {
-            let _: kw::header = input.parse()?;
-            let _: Token![=] = input.parse()?;
-            input.parse().map(Self::Header)
-        } else {
-            Err(lookahead.error())
-        }
-    }
-}
-
-pub enum DeriveRequestMeta {
-    Error(Type),
-}
-
-impl Parse for DeriveRequestMeta {
-    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let lookahead = input.lookahead1();
-        if lookahead.peek(kw::error) {
-            let _: kw::error = input.parse()?;
-            let _: Token![=] = input.parse()?;
-            input.parse().map(Self::Error)
-        } else {
-            Err(lookahead.error())
-        }
-    }
-}
-
 pub enum ResponseMeta {
     NewtypeBody,
     RawBody,

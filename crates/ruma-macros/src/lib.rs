@@ -817,10 +817,14 @@ pub fn fake_derive_serde(_input: TokenStream) -> TokenStream {
 /// > ⚠ If this is the only documentation you see, please navigate to the docs for
 /// > `ruma_common::api::request`, where actual documentation can be found.
 #[proc_macro_attribute]
-pub fn request(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let attr = parse_macro_input!(attr);
+pub fn request(attrs: TokenStream, item: TokenStream) -> TokenStream {
+    let mut request_attrs = api::request::RequestAttrs::default();
+    let attrs_parser = syn::meta::parser(|meta| request_attrs.try_merge(meta));
+    parse_macro_input!(attrs with attrs_parser);
+
     let item = parse_macro_input!(item);
-    expand_request(attr, item).into()
+
+    expand_request(request_attrs, item).into()
 }
 
 /// > ⚠ If this is the only documentation you see, please navigate to the docs for
