@@ -3,9 +3,10 @@
 use bytes::BufMut;
 use ruma_common::{
     api::{
+        IncomingResponse, OutgoingResponse,
         auth_scheme::NoAuthentication,
         error::{FromHttpResponseError, IntoHttpError, MatrixError},
-        request, IncomingResponse, OutgoingResponse,
+        request,
     },
     metadata,
 };
