@@ -5,8 +5,9 @@
 pub mod newtype_body {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
+        OwnedUserId,
         api::{auth_scheme::NoAuthentication, request, response},
-        metadata, OwnedUserId,
+        metadata,
     };
 
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
@@ -51,8 +52,9 @@ pub mod newtype_body {
 pub mod raw_body {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
+        OwnedUserId,
         api::{auth_scheme::NoAuthentication, request, response},
-        metadata, OwnedUserId,
+        metadata,
     };
 
     metadata! {
@@ -94,8 +96,9 @@ pub mod raw_body {
 pub mod plain {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
+        OwnedUserId,
         api::{auth_scheme::NoAuthentication, request, response},
-        metadata, OwnedUserId,
+        metadata,
     };
 
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
