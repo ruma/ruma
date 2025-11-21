@@ -830,10 +830,14 @@ pub fn request(attrs: TokenStream, item: TokenStream) -> TokenStream {
 /// > ⚠ If this is the only documentation you see, please navigate to the docs for
 /// > `ruma_common::api::response`, where actual documentation can be found.
 #[proc_macro_attribute]
-pub fn response(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let attr = parse_macro_input!(attr);
+pub fn response(attrs: TokenStream, item: TokenStream) -> TokenStream {
+    let mut response_attrs = api::response::ResponseAttrs::default();
+    let attrs_parser = syn::meta::parser(|meta| response_attrs.try_merge(meta));
+    parse_macro_input!(attrs with attrs_parser);
+
     let item = parse_macro_input!(item);
-    expand_response(attr, item).into()
+
+    expand_response(response_attrs, item).into()
 }
 
 /// Internal helper that the request macro delegates most of its work to.

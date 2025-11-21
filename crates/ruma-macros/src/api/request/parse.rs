@@ -3,8 +3,8 @@
 use proc_macro2::{Span, TokenStream};
 use syn::{meta::ParseNestedMeta, parse_quote};
 
-use super::{Request, RequestBody, RequestHeaders, RequestPath, RequestQuery};
-use crate::util::StructFieldExt;
+use super::{Request, RequestPath, RequestQuery};
+use crate::api::{Body, Headers};
 
 impl Request {
     /// Validate this request after it is fully parsed.
@@ -34,10 +34,10 @@ impl TryFrom<syn::ItemStruct> for Request {
         let mut request = Request {
             ident: input.ident,
             generics: input.generics,
-            headers: RequestHeaders::default(),
+            headers: Headers::default(),
             path: RequestPath::default(),
             query: RequestQuery::default(),
-            body: RequestBody::default(),
+            body: Body::default(),
             error_ty: request_attrs
                 .error_ty
                 .ok_or_else(|| syn::Error::new(Span::call_site(), "missing `error` attribute"))?,
@@ -65,24 +65,6 @@ impl TryFrom<syn::ItemStruct> for Request {
         request.validate()?;
 
         Ok(request)
-    }
-}
-
-impl RequestHeaders {
-    /// Insert the given header to this `RequestHeaders`.
-    ///
-    /// Returns an error if the given header is already set.
-    fn insert(&mut self, header: syn::Ident, field: syn::Field) -> syn::Result<()> {
-        if self.0.contains_key(&header) {
-            return Err(syn::Error::new(
-                Span::call_site(),
-                format!("cannot have multiple values for `{header}` header"),
-            ));
-        }
-
-        self.0.insert(header, field);
-
-        Ok(())
     }
 }
 
@@ -143,78 +125,6 @@ impl RequestQuery {
         };
 
         Err(syn::Error::new(Span::call_site(), error_msg))
-    }
-}
-
-impl RequestBody {
-    /// Add the given field to the list of [`RequestBody::JsonFields`].
-    ///
-    /// Returns an error if this is not a [`RequestBody::Empty`] or [`RequestBody::JsonFields`].
-    fn push_json_field(&mut self, field: syn::Field) -> syn::Result<()> {
-        let error_msg = match self {
-            Self::Empty => {
-                *self = Self::JsonFields(vec![field]);
-                return Ok(());
-            }
-            Self::JsonFields(fields) => {
-                fields.push(field);
-                return Ok(());
-            }
-            Self::JsonAll(_) => "cannot have both a `body` field and regular body fields",
-            Self::Raw(_) => "cannot have both a `raw_body` field and regular body fields",
-        };
-
-        Err(syn::Error::new(Span::call_site(), error_msg))
-    }
-
-    /// Set this as a [`RequestBody::JsonAll`] with the given field.
-    ///
-    /// Returns an error if this is not a [`RequestBody::Empty`].
-    fn set_json_all(&mut self, field: syn::Field) -> syn::Result<()> {
-        let error_msg = match self {
-            Self::Empty => {
-                *self = Self::JsonAll(field);
-                return Ok(());
-            }
-            Self::JsonFields(_) => "cannot have both a `body` field and regular body fields",
-            Self::JsonAll(_) => "cannot have multiple `body` fields",
-            Self::Raw(_) => "cannot have both a `raw_body` field and a `body` field",
-        };
-
-        Err(syn::Error::new(Span::call_site(), error_msg))
-    }
-
-    /// Set this as a [`RequestBody::Raw`] with the given field.
-    ///
-    /// Returns an error if this is not a [`RequestBody::Empty`].
-    fn set_raw(&mut self, field: syn::Field) -> syn::Result<()> {
-        let error_msg = match self {
-            Self::Empty => {
-                *self = Self::Raw(field);
-                return Ok(());
-            }
-            Self::JsonFields(_) => "cannot have both a `raw_body` field and regular body fields",
-            Self::JsonAll(_) => "cannot have both a `raw_body` field and a `body` field",
-            Self::Raw(_) => "cannot have multiple `raw_body` fields",
-        };
-
-        Err(syn::Error::new(Span::call_site(), error_msg))
-    }
-
-    /// Validate the fields in this `RequestBody`.
-    fn validate(&self) -> syn::Result<()> {
-        if let Self::JsonFields(fields) = self
-            && fields.len() == 1
-            && let Some(single_field) = fields.first()
-            && single_field.has_serde_flatten_attribute()
-        {
-            return Err(syn::Error::new_spanned(
-                single_field,
-                "Use `#[ruma_api(body)]` to represent the JSON body as a single field",
-            ));
-        }
-
-        Ok(())
     }
 }
 

@@ -1,148 +1,53 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::Type;
 
-use super::{Response, ResponseFieldKind};
+use super::{KIND, Response};
 
 impl Response {
-    pub fn expand_incoming(&self, error_ty: &Type, ruma_common: &TokenStream) -> TokenStream {
+    /// Generate the `ruma_common::api::IncomingResponse` implementation for this response struct.
+    pub fn expand_incoming(&self, ruma_common: &TokenStream) -> TokenStream {
         let http = quote! { #ruma_common::exports::http };
-        let serde_json = quote! { #ruma_common::exports::serde_json };
 
-        let extract_response_headers = self.has_header_fields().then(|| {
-            quote! {
-                let mut headers = response.headers().clone();
-            }
-        });
+        let headers_parse = self.headers.expand_parse(KIND, ruma_common);
+        let headers_fields = self.headers.expand_fields();
 
-        let typed_response_body_decl = self.has_body_fields().then(|| {
-            quote! {
-                let response_body: ResponseBody = {
-                    let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
-                        response.body(),
-                    );
+        let body_parse = self.body.expand_parse(KIND, ruma_common);
+        let body_fields = self.body.expand_fields();
 
-                    #serde_json::from_slice(match body {
-                        // If the response body is completely empty, pretend it is an empty
-                        // JSON object instead. This allows responses with only optional body
-                        // parameters to be deserialized in that case.
-                        [] => b"{}",
-                        b => b,
-                    })?
-                };
-            }
-        });
-
-        let response_init_fields = {
-            let mut fields = vec![];
-            let mut raw_body = None;
-
-            for response_field in &self.fields {
-                let field = &response_field.inner;
-                let field_name =
-                    field.ident.as_ref().expect("expected field to have an identifier");
-                let cfg_attrs =
-                    field.attrs.iter().filter(|a| a.path().is_ident("cfg")).collect::<Vec<_>>();
-
-                fields.push(match &response_field.kind {
-                    ResponseFieldKind::Body | ResponseFieldKind::NewtypeBody => {
-                        quote! {
-                            #( #cfg_attrs )*
-                            #field_name: response_body.#field_name
-                        }
-                    }
-                    ResponseFieldKind::Header(header_name) => {
-                        let optional_header = match &field.ty {
-                            Type::Path(syn::TypePath {
-                                path: syn::Path { segments, .. }, ..
-                            }) if segments.last().unwrap().ident == "Option" => {
-                                let syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
-                                    args: option_args, ..
-                                }) = &segments.last().unwrap().arguments else {
-                                    panic!("Option should use angle brackets");
-                                };
-                                let syn::GenericArgument::Type(field_type) = option_args.first().unwrap() else {
-                                    panic!("Option brackets should contain type");
-                                };
-                                quote! {
-                                    #( #cfg_attrs )*
-                                    #field_name: {
-                                        headers.remove(#header_name)
-                                            .and_then(|h| { h.to_str().ok()?.parse::<#field_type>().ok() })
-                                    }
-                                }
-                            }
-                            _ => {
-                                let field_type = &field.ty;
-                                quote! {
-                                    #( #cfg_attrs )*
-                                    #field_name: {
-                                        headers.remove(#header_name)
-                                            .ok_or_else(|| #ruma_common::api::error::HeaderDeserializationError::MissingHeader(
-                                                #header_name.to_string()
-                                            ))?
-                                            .to_str()?
-                                            .parse::<#field_type>()
-                                            .map_err(|e| #ruma_common::api::error::HeaderDeserializationError::InvalidHeader(e.into()))?
-                                    }
-                                }
-                            }
-                        };
-                        quote! { #optional_header }
-                    }
-                    // This field must be instantiated last to avoid `use of move value` error.
-                    // We are guaranteed only one new body field because of a check in
-                    // `parse_response`.
-                    ResponseFieldKind::RawBody => {
-                        raw_body = Some(quote! {
-                            #( #cfg_attrs )*
-                            #field_name: {
-                                ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
-                                    response.body(),
-                                )
-                                .to_vec()
-                            }
-                        });
-                        // skip adding to the vec
-                        continue;
-                    }
-                });
-            }
-
-            fields.extend(raw_body);
-
-            quote! {
-                #(#fields,)*
-            }
-        };
+        let ident = &self.ident;
+        let error_ty = &self.error_ty;
+        let src = KIND.as_variable_ident();
 
         quote! {
             #[automatically_derived]
             #[cfg(feature = "client")]
             #[allow(deprecated)]
-            impl #ruma_common::api::IncomingResponse for Response {
+            impl #ruma_common::api::IncomingResponse for #ident {
                 type EndpointError = #error_ty;
 
                 fn try_from_http_response<T: ::std::convert::AsRef<[::std::primitive::u8]>>(
-                    response: #http::Response<T>,
+                    #src: #http::Response<T>,
                 ) -> ::std::result::Result<
                     Self,
                     #ruma_common::api::error::FromHttpResponseError<#error_ty>,
                 > {
-                    if response.status().as_u16() < 400 {
-                        #extract_response_headers
-                        #typed_response_body_decl
-
-                        ::std::result::Result::Ok(Self {
-                            #response_init_fields
-                        })
-                    } else {
-                        Err(#ruma_common::api::error::FromHttpResponseError::Server(
-                            <#error_ty as #ruma_common::api::EndpointError>::from_http_response(
-                                response,
+                    if #src.status().as_u16() >= 400 {
+                        return ::std::result::Result::Err(
+                            #ruma_common::api::error::FromHttpResponseError::Server(
+                                <#error_ty as #ruma_common::api::EndpointError>::from_http_response(
+                                    #src,
+                                )
                             )
-                        ))
+                        );
                     }
+
+                    #headers_parse
+                    #body_parse
+
+                    ::std::result::Result::Ok(Self {
+                        #headers_fields
+                        #body_fields
+                    })
                 }
             }
         }

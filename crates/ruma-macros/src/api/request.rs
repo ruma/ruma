@@ -1,10 +1,8 @@
-use std::collections::BTreeMap;
-
 use cfg_if::cfg_if;
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use super::ensure_feature_presence;
+use super::{Body, Headers, MacroKind, StructSuffix, ensure_feature_presence};
 use crate::util::{PrivateField, StructFieldExt, expand_fields_as_list, import_ruma_common};
 
 mod incoming;
@@ -12,6 +10,8 @@ mod outgoing;
 mod parse;
 
 pub(crate) use self::parse::RequestAttrs;
+
+const KIND: MacroKind = MacroKind::Request;
 
 /// Expand the `#[request]` macro on a struct.
 ///
@@ -85,7 +85,7 @@ struct Request {
     generics: syn::Generics,
 
     /// The HTTP headers.
-    headers: RequestHeaders,
+    headers: Headers,
 
     /// The path variables.
     path: RequestPath,
@@ -94,7 +94,7 @@ struct Request {
     query: RequestQuery,
 
     /// The body.
-    body: RequestBody,
+    body: Body,
 
     /// The type used for the `EndpointError` associated type on `OutgoingRequest` and
     /// `IncomingRequest` implementations.
@@ -107,8 +107,7 @@ impl Request {
         let ruma_macros = quote! { #ruma_common::exports::ruma_macros };
         let serde = quote! { #ruma_common::exports::serde };
 
-        let request_body_serde_struct =
-            self.body.expand_serde_struct_definition(&ruma_macros, &serde);
+        let request_body_serde_struct = self.body.expand_serde_struct_definition(KIND, ruma_common);
         let request_query_serde_struct =
             self.query.expand_serde_struct_definition(&ruma_macros, &serde);
 
@@ -133,22 +132,22 @@ impl Request {
         let ident = &self.ident;
 
         let mut tests = self.path.expand_tests(ident, ruma_common);
-        tests.extend(self.body.expand_tests(ident, ruma_common));
+
+        if !self.body.is_empty() {
+            let http = quote! { #ruma_common::exports::http };
+
+            tests.extend(quote! {
+                #[::std::prelude::v1::test]
+                fn request_is_not_get() {
+                    ::std::assert_ne!(
+                        <super::#ident as #ruma_common::api::Metadata>::METHOD, #http::Method::GET,
+                        "GET endpoints can't have body fields",
+                    );
+                }
+            });
+        }
 
         tests
-    }
-}
-
-/// Parsed HTTP headers of a request struct.
-#[derive(Default)]
-pub struct RequestHeaders(BTreeMap<syn::Ident, syn::Field>);
-
-impl RequestHeaders {
-    /// Generate code for a comma-separated list of field names.
-    ///
-    /// Only the `#[cfg]` attributes on the fields are forwarded.
-    fn expand_fields(&self) -> TokenStream {
-        expand_fields_as_list(self.0.values())
     }
 }
 
@@ -217,6 +216,7 @@ impl RequestQuery {
         };
 
         let fields = fields.iter().map(PrivateField);
+        let ident = KIND.as_struct_ident(StructSuffix::Query);
 
         Some(quote! {
             /// Data in the request's query string.
@@ -225,7 +225,7 @@ impl RequestQuery {
             #[cfg_attr(feature = "client", derive(#serde::Serialize))]
             #[cfg_attr(feature = "server", derive(#serde::Deserialize))]
             #extra_attrs
-            struct RequestQuery { #( #fields ),* }
+            struct #ident { #( #fields ),* }
         })
     }
 
@@ -237,95 +237,6 @@ impl RequestQuery {
             Self::None => return None,
             Self::Fields(fields) => fields.as_slice(),
             Self::All(field) => std::slice::from_ref(field),
-        };
-
-        Some(expand_fields_as_list(fields))
-    }
-}
-
-/// Parsed request body fields.
-#[derive(Default)]
-enum RequestBody {
-    /// The request has an empty body.
-    ///
-    /// An empty body might contain no data at all or an empty JSON object, depending on the
-    /// expected content type of the request.
-    #[default]
-    Empty,
-
-    /// The body is a JSON object containing the given fields.
-    JsonFields(Vec<syn::Field>),
-
-    /// The body is a JSON object represented by the given single field.
-    JsonAll(syn::Field),
-
-    /// The body contains raw data represented by the given single field.
-    Raw(syn::Field),
-}
-
-impl RequestBody {
-    /// The list of fields for the JSON data of the body.
-    fn json_fields(&self) -> Option<&[syn::Field]> {
-        let fields = match self {
-            Self::Empty | Self::Raw(_) => return None,
-            Self::JsonFields(fields) => fields.as_slice(),
-            Self::JsonAll(field) => std::slice::from_ref(field),
-        };
-
-        Some(fields)
-    }
-
-    /// Generate code to define a `struct RequestBody` used for (de)serializing the JSON body of
-    /// request.
-    fn expand_serde_struct_definition(
-        &self,
-        ruma_macros: &TokenStream,
-        serde: &TokenStream,
-    ) -> Option<TokenStream> {
-        let fields = self.json_fields()?.iter().map(PrivateField);
-
-        let extra_attrs =
-            matches!(self, Self::JsonAll(_)).then(|| quote! { #[serde(transparent)] });
-
-        Some(quote! {
-            /// Data in the request body.
-            #[cfg(any(feature = "client", feature = "server"))]
-            #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
-            #[cfg_attr(feature = "client", derive(#serde::Serialize))]
-            #[cfg_attr(feature = "server", derive(#serde::Deserialize))]
-            #extra_attrs
-            struct RequestBody { #( #fields ),* }
-        })
-    }
-
-    /// Generate code to test the body for the request with given ident.
-    fn expand_tests(&self, ident: &syn::Ident, ruma_common: &TokenStream) -> Option<TokenStream> {
-        if !matches!(self, RequestBody::Empty) {
-            let http = quote! { #ruma_common::exports::http };
-
-            Some(quote! {
-                #[::std::prelude::v1::test]
-                fn request_is_not_get() {
-                    ::std::assert_ne!(
-                        <super::#ident as #ruma_common::api::Metadata>::METHOD, #http::Method::GET,
-                        "GET endpoints can't have body fields",
-                    );
-                }
-            })
-        } else {
-            None
-        }
-    }
-
-    /// Generate code for a comma-separated list of field names.
-    ///
-    /// Only the `#[cfg]` attributes on the fields are forwarded.
-    fn expand_fields(&self) -> Option<TokenStream> {
-        let fields = match self {
-            Self::Empty => return None,
-            Self::JsonFields(fields) => fields.as_slice(),
-            Self::JsonAll(field) => std::slice::from_ref(field),
-            Self::Raw(field) => std::slice::from_ref(field),
         };
 
         Some(expand_fields_as_list(fields))
