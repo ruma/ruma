@@ -197,9 +197,32 @@ pub fn cfg_expand_struct(item: &mut syn::ItemStruct) {
     }
 }
 
-/// Whether the given field has a `#[serde(flatten)]` attribute.
-pub fn field_has_serde_flatten_attribute(field: &Field) -> bool {
-    field.attrs.iter().any(is_serde_flatten_attribute)
+/// Helper trait for a [`syn::Field`] belonging to a `struct`.
+pub(crate) trait StructFieldExt {
+    /// Get a reference to the `ident` of this field.
+    ///
+    /// Panics if this is not a named field.
+    fn ident(&self) -> &Ident;
+
+    /// Get the `#[cfg]` attributes on this field.
+    fn cfg_attrs(&self) -> impl Iterator<Item = &'_ Attribute>;
+
+    /// Whether this field has a `#[serde(flatten)]` attribute.
+    fn has_serde_flatten_attribute(&self) -> bool;
+}
+
+impl StructFieldExt for Field {
+    fn ident(&self) -> &Ident {
+        self.ident.as_ref().expect("struct field should be named")
+    }
+
+    fn cfg_attrs(&self) -> impl Iterator<Item = &'_ Attribute> {
+        self.attrs.iter().filter(|a| a.path().is_ident("cfg"))
+    }
+
+    fn has_serde_flatten_attribute(&self) -> bool {
+        self.attrs.iter().any(is_serde_flatten_attribute)
+    }
 }
 
 /// Whether the given attribute is a `#[serde(flatten)]` attribute.
@@ -220,4 +243,87 @@ fn is_serde_flatten_attribute(attr: &Attribute) -> bool {
     });
 
     contains_flatten
+}
+
+/// Helper trait for a [`syn::Type`].
+pub(crate) trait TypeExt {
+    /// Get the inner type if this is wrapped in an `Option`.
+    fn option_inner_type(&self) -> Option<&syn::Type>;
+}
+
+impl TypeExt for syn::Type {
+    fn option_inner_type(&self) -> Option<&syn::Type> {
+        let syn::Type::Path(syn::TypePath { path: syn::Path { segments, .. }, .. }) = self else {
+            return None;
+        };
+
+        if segments.last().unwrap().ident != "Option" {
+            return None;
+        }
+
+        let syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
+            args: option_args,
+            ..
+        }) = &segments.last().unwrap().arguments
+        else {
+            panic!("Option should use angle brackets");
+        };
+        let syn::GenericArgument::Type(inner_type) = option_args.first().unwrap() else {
+            panic!("Option brackets should contain type");
+        };
+
+        Some(inner_type)
+    }
+}
+
+/// Generate code for a list of struct fields.
+///
+/// If the fields have `cfg` attributes, they are also used.
+///
+/// This generates code looking like this for each field:
+///
+/// ```ignore
+/// #[cfg(feature = "my-feature")]
+/// ident,
+/// ```
+pub(crate) fn expand_fields_as_list<'a>(
+    fields: impl IntoIterator<Item = &'a Field>,
+) -> TokenStream {
+    fields
+        .into_iter()
+        .map(|field| {
+            let ident = field.ident();
+            let cfg_attrs = field.cfg_attrs();
+
+            quote! {
+                #( #cfg_attrs )*
+                #ident,
+            }
+        })
+        .collect()
+}
+
+/// Generate code to create variable declarations for the given struct fields.
+///
+/// If the fields have `cfg` attributes, they are also used.
+///
+/// This generates code looking like this for each field:
+///
+/// ```ignore
+/// #[cfg(feature = "my-feature")]
+/// let ident = src.ident;
+/// ```
+pub(crate) fn expand_fields_as_variable_declarations(fields: &[Field], src: &Ident) -> TokenStream {
+    fields
+        .iter()
+        .map(|field| {
+            let ident = field.ident();
+            let cfg_attrs = field.cfg_attrs();
+
+            quote! {
+                #( #cfg_attrs )*
+                let #ident = #src.#ident;
+            }
+        })
+        .collect()
 }

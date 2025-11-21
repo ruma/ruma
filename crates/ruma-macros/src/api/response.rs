@@ -14,7 +14,7 @@ use super::{
     attribute::{DeriveResponseMeta, ResponseMeta},
     ensure_feature_presence,
 };
-use crate::util::{PrivateField, field_has_serde_flatten_attribute, import_ruma_common};
+use crate::util::{PrivateField, StructFieldExt, import_ruma_common};
 
 mod incoming;
 mod outgoing;
@@ -228,7 +228,7 @@ impl Response {
         if let Some(first_body_field) = first_body_field {
             let is_single_body_field = body_fields.next().is_none();
 
-            if is_single_body_field && field_has_serde_flatten_attribute(&first_body_field.inner) {
+            if is_single_body_field && first_body_field.inner.has_serde_flatten_attribute() {
                 return Err(syn::Error::new_spanned(
                     first_body_field,
                     "Use `#[ruma_api(body)]` to represent the JSON body as a single field",
