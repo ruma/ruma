@@ -1,64 +1,88 @@
 use proc_macro2::TokenStream;
-use quote::{ToTokens, quote};
-use syn::{Fields, FieldsNamed, FieldsUnnamed, ItemEnum};
+use quote::quote;
 
-use super::{
-    attr::EnumAttrs,
-    util::{get_enum_attributes, get_rename_all},
-};
+use super::util::{RenameAll, RumaEnumAttrs, UnitVariant, VariantWithSingleField};
 
-pub fn expand_enum_as_ref_str(input: &ItemEnum) -> syn::Result<TokenStream> {
-    let enum_name = &input.ident;
-    let rename_all = get_rename_all(input)?;
-    let branches: Vec<_> = input
-        .variants
-        .iter()
-        .map(|v| {
-            let variant_name = &v.ident;
-            let EnumAttrs { rename, .. } = get_enum_attributes(v)?;
-            let (field_capture, variant_str) = match (rename, &v.fields) {
-                (None, Fields::Unit) => (
-                    None,
-                    rename_all.apply_to_variant(&variant_name.to_string()).into_token_stream(),
-                ),
-                (Some(rename), Fields::Unit) => (None, rename.into_token_stream()),
-                (None, Fields::Named(FieldsNamed { named: fields, .. }))
-                | (None, Fields::Unnamed(FieldsUnnamed { unnamed: fields, .. })) => {
-                    if fields.len() != 1 {
-                        return Err(syn::Error::new_spanned(
-                            v,
-                            "multiple data fields are not supported",
-                        ));
-                    }
+/// Generate the `AsRef<str>` implementation for the given enum.
+pub fn expand_enum_as_ref_str(input: &syn::ItemEnum) -> syn::Result<TokenStream> {
+    let ruma_enum = RumaEnumWithAnyVariants::try_from(input)?;
 
-                    let capture = match &fields[0].ident {
-                        Some(name) => quote! { { #name: inner } },
-                        None => quote! { (inner) },
-                    };
+    let ident = &input.ident;
 
-                    (Some(capture), quote! { &inner.0 })
-                }
-                (Some(_), _) => {
-                    return Err(syn::Error::new_spanned(
-                        v,
-                        "ruma_enum(rename) is only allowed on unit variants",
-                    ));
-                }
-            };
+    let unit_variants = ruma_enum.unit_variants_data().map(|(variant, string)| {
+        quote! {
+            Self::#variant => #string,
+        }
+    });
 
-            Ok(quote! {
-                #enum_name :: #variant_name #field_capture => #variant_str
-            })
-        })
-        .collect::<syn::Result<_>>()?;
+    let field_variants = ruma_enum.expand_field_variants_variables().map(|variant| {
+        quote! {
+            Self::#variant => &inner.0,
+        }
+    });
 
     Ok(quote! {
         #[automatically_derived]
         #[allow(deprecated)]
-        impl ::std::convert::AsRef<::std::primitive::str> for #enum_name {
+        impl ::std::convert::AsRef<::std::primitive::str> for #ident {
             fn as_ref(&self) -> &::std::primitive::str {
-                match self { #(#branches),* }
+                match self {
+                    #( #unit_variants )*
+                    #( #field_variants )*
+                }
             }
         }
     })
+}
+
+/// A parsed enum with `ruma_enum` attributes and any [`UnitVariant`] or [`VariantWithSingleField`].
+pub(crate) struct RumaEnumWithAnyVariants {
+    /// The unit variants of the enum.
+    unit_variants: Vec<UnitVariant>,
+
+    /// The variants of the enum containing a single field.
+    field_variants: Vec<VariantWithSingleField>,
+
+    /// The global renaming rule for the variants.
+    rename_all: RenameAll,
+}
+
+impl RumaEnumWithAnyVariants {
+    /// The names and string representations of the unit variants.
+    pub(super) fn unit_variants_data(&self) -> impl Iterator<Item = (&syn::Ident, String)> {
+        self.unit_variants
+            .iter()
+            .map(|variant| (&variant.ident, variant.string_representation(&self.rename_all)))
+    }
+
+    /// Generate the code to extract or set the inner value of the field variants into or from a
+    /// variable called `inner`.
+    pub(super) fn expand_field_variants_variables(&self) -> impl Iterator<Item = TokenStream> {
+        self.field_variants.iter().map(|variant| variant.expand_variable())
+    }
+}
+
+impl TryFrom<&syn::ItemEnum> for RumaEnumWithAnyVariants {
+    type Error = syn::Error;
+
+    fn try_from(input: &syn::ItemEnum) -> Result<Self, Self::Error> {
+        let enum_attrs = RumaEnumAttrs::parse(&input.attrs)?;
+
+        let mut field_variants = Vec::new();
+        let mut unit_variants = Vec::new();
+
+        // Parse enum variants.
+        for variant in &input.variants {
+            match &variant.fields {
+                syn::Fields::Named(_) | syn::Fields::Unnamed(_) => {
+                    field_variants.push(VariantWithSingleField::try_from(variant)?);
+                }
+                syn::Fields::Unit => {
+                    unit_variants.push(UnitVariant::try_from(variant)?);
+                }
+            }
+        }
+
+        Ok(Self { unit_variants, field_variants, rename_all: enum_attrs.rename_all })
+    }
 }
