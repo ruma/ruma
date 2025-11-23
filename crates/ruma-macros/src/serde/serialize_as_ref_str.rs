@@ -3,6 +3,8 @@ use quote::quote;
 
 use crate::util::{RumaCommon, RumaCommonReexport};
 
+/// Generate the `serde::ser::Serialize` implementation for the type with the given ident, using its
+/// `AsRef<str>` implementation.
 pub fn expand_serialize_as_ref_str(ident: &Ident) -> syn::Result<TokenStream> {
     let ruma_common = RumaCommon::new();
     let serde = ruma_common.reexported(RumaCommonReexport::Serde);

@@ -1,95 +1,113 @@
 use proc_macro2::{Span, TokenStream};
-use quote::{ToTokens, quote};
-use syn::{Fields, FieldsNamed, FieldsUnnamed, ItemEnum};
+use quote::quote;
 
-use super::{
-    attr::EnumAttrs,
-    util::{get_enum_attributes, get_rename_all},
-};
+use super::util::{RenameAll, RumaEnumAttrs, UnitVariant, VariantWithSingleField};
 
-pub fn expand_enum_from_string(input: &ItemEnum) -> syn::Result<TokenStream> {
-    let enum_name = &input.ident;
-    let rename_all = get_rename_all(input)?;
-    let mut fallback = None;
-    let branches: Vec<_> = input
-        .variants
-        .iter()
-        .map(|v| {
-            let variant_name = &v.ident;
-            let EnumAttrs { rename, aliases } = get_enum_attributes(v)?;
-            let variant_str = match (rename, &v.fields) {
-                (None, Fields::Unit) => {
-                    Some(rename_all.apply_to_variant(&variant_name.to_string()).into_token_stream())
-                }
-                (Some(rename), Fields::Unit) => Some(rename.into_token_stream()),
-                (None, Fields::Named(FieldsNamed { named: fields, .. }))
-                | (None, Fields::Unnamed(FieldsUnnamed { unnamed: fields, .. })) => {
-                    if fields.len() != 1 {
-                        return Err(syn::Error::new_spanned(
-                            v,
-                            "multiple data fields are not supported",
-                        ));
-                    }
+/// Generate the `From<T> where T: AsRef<str> + Into<Box<str>>` implementation for the given enum.
+pub fn expand_enum_from_string(input: &syn::ItemEnum) -> syn::Result<TokenStream> {
+    let ruma_enum = RumaEnumWithFallbackVariant::try_from(input)?;
 
-                    if fallback.is_some() {
-                        return Err(syn::Error::new_spanned(
-                            v,
-                            "multiple data-carrying variants are not supported",
-                        ));
-                    }
+    let ident = &input.ident;
 
-                    let member = match &fields[0].ident {
-                        Some(name) => name.into_token_stream(),
-                        None => quote! { 0 },
-                    };
+    let unit_variants = ruma_enum.unit_variants_data().map(|(variant, string, aliases)| {
+        quote! {
+            #string #( | #aliases )* => Self::#variant,
+        }
+    });
 
-                    let ty = &fields[0].ty;
-                    fallback = Some(quote! {
-                        _ => #enum_name::#variant_name {
-                            #member: #ty(s.into()),
-                        }
-                    });
+    let fallback_variant = {
+        let variant = ruma_enum.fallback_variant.expand_variable();
+        let field_ty = &ruma_enum.fallback_variant.field.ty;
 
-                    None
-                }
-                (Some(_), _) => {
-                    return Err(syn::Error::new_spanned(
-                        v,
-                        "ruma_enum(rename) is only allowed on unit variants",
-                    ));
-                }
-            };
-
-            Ok(variant_str.map(|s| {
-                quote! {
-                    #( #aliases => #enum_name :: #variant_name, )*
-                    #s => #enum_name :: #variant_name
-                }
-            }))
-        })
-        .collect::<syn::Result<_>>()?;
-
-    // Remove `None` from the iterator to avoid emitting consecutive commas in repetition
-    let branches = branches.iter().flatten();
-
-    if fallback.is_none() {
-        return Err(syn::Error::new(Span::call_site(), "required fallback variant not found"));
-    }
+        quote! {
+            _ => {
+                let inner = #field_ty(s.into());
+                Self::#variant
+            }
+        }
+    };
 
     Ok(quote! {
         #[automatically_derived]
         #[allow(deprecated)]
-        impl<T> ::std::convert::From<T> for #enum_name
+        impl<T> ::std::convert::From<T> for #ident
         where
             T: ::std::convert::AsRef<::std::primitive::str>
                 + ::std::convert::Into<::std::boxed::Box<::std::primitive::str>>
         {
             fn from(s: T) -> Self {
                 match s.as_ref() {
-                    #( #branches, )*
-                    #fallback
+                    #( #unit_variants )*
+                    #fallback_variant
                 }
             }
         }
     })
+}
+
+/// A parsed enum with `ruma_enum` attributes and a single fallback variant.
+pub(crate) struct RumaEnumWithFallbackVariant {
+    /// The unit variants of the enum.
+    unit_variants: Vec<UnitVariant>,
+
+    /// The fallback variant of the enum.
+    fallback_variant: VariantWithSingleField,
+
+    /// The global renaming rule for the variants.
+    rename_all: RenameAll,
+}
+
+impl RumaEnumWithFallbackVariant {
+    /// The names, string representations and aliases of the unit variants.
+    pub(super) fn unit_variants_data(
+        &self,
+    ) -> impl Iterator<Item = (&syn::Ident, String, &[syn::LitStr])> {
+        self.unit_variants.iter().map(|variant| {
+            (
+                &variant.ident,
+                variant.string_representation(&self.rename_all),
+                variant.aliases.as_slice(),
+            )
+        })
+    }
+}
+
+impl TryFrom<&syn::ItemEnum> for RumaEnumWithFallbackVariant {
+    type Error = syn::Error;
+
+    fn try_from(input: &syn::ItemEnum) -> Result<Self, Self::Error> {
+        let enum_attrs = RumaEnumAttrs::parse(&input.attrs)?;
+
+        let mut fallback_variant = None;
+        let mut unit_variants = Vec::new();
+
+        // Parse enum variants.
+        for variant in &input.variants {
+            match &variant.fields {
+                syn::Fields::Named(_) | syn::Fields::Unnamed(_) => {
+                    if fallback_variant.is_some() {
+                        return Err(syn::Error::new_spanned(
+                            variant,
+                            "cannot have multiple fallback variants",
+                        ));
+                    }
+
+                    fallback_variant = Some(VariantWithSingleField::try_from(variant)?);
+                }
+                syn::Fields::Unit => {
+                    unit_variants.push(UnitVariant::try_from(variant)?);
+                }
+            }
+        }
+
+        let ruma_enum = Self {
+            unit_variants,
+            fallback_variant: fallback_variant.ok_or_else(|| {
+                syn::Error::new(Span::call_site(), "required fallback variant not found")
+            })?,
+            rename_all: enum_attrs.rename_all,
+        };
+
+        Ok(ruma_enum)
+    }
 }
