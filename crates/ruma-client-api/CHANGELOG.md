@@ -6,6 +6,8 @@ Improvements:
   parameters of the `m.login.terms` authentication type.
 - Add `UiaaInfo::params()` as a helper to extract UIAA authentication type
   parameters.
+- Add unstable support for RTC transports discovery endpoint from MSC4143, with
+  support for the LiveKit transport from MSC4195.
 
 # 0.22.0
 
