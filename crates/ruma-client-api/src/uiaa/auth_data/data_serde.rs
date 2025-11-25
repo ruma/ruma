@@ -1,11 +1,45 @@
-//! Helper module for the Serialize / Deserialize impl's for the UserIdentifier struct
-//! in the parent module.
+//! Custom Serialize / Deserialize implementations for the authentication data types.
+
+use std::borrow::Cow;
 
 use ruma_common::{serde::from_raw_json_value, thirdparty::Medium};
 use serde::{Deserialize, Deserializer, Serialize, de, ser::SerializeStruct};
 use serde_json::value::RawValue as RawJsonValue;
 
-use super::{CustomThirdPartyId, UserIdentifier};
+use super::{AuthData, CustomThirdPartyId, UserIdentifier};
+
+impl<'de> Deserialize<'de> for AuthData {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+
+        #[derive(Deserialize)]
+        struct ExtractType<'a> {
+            #[serde(borrow, rename = "type")]
+            auth_type: Option<Cow<'a, str>>,
+        }
+
+        let auth_type = serde_json::from_str::<ExtractType<'_>>(json.get())
+            .map_err(de::Error::custom)?
+            .auth_type;
+
+        match auth_type.as_deref() {
+            Some("m.login.password") => from_raw_json_value(&json).map(Self::Password),
+            Some("m.login.recaptcha") => from_raw_json_value(&json).map(Self::ReCaptcha),
+            Some("m.login.email.identity") => from_raw_json_value(&json).map(Self::EmailIdentity),
+            Some("m.login.msisdn") => from_raw_json_value(&json).map(Self::Msisdn),
+            Some("m.login.dummy") => from_raw_json_value(&json).map(Self::Dummy),
+            Some("m.login.registration_token") => {
+                from_raw_json_value(&json).map(Self::RegistrationToken)
+            }
+            Some("m.login.terms") => from_raw_json_value(&json).map(Self::Terms),
+            None => from_raw_json_value(&json).map(Self::FallbackAcknowledgement),
+            Some(_) => from_raw_json_value(&json).map(Self::_Custom),
+        }
+    }
+}
 
 impl Serialize for UserIdentifier {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
