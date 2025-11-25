@@ -35,6 +35,9 @@ impl<'de> Deserialize<'de> for AuthData {
                 from_raw_json_value(&json).map(Self::RegistrationToken)
             }
             Some("m.login.terms") => from_raw_json_value(&json).map(Self::Terms),
+            Some("m.oauth" | "org.matrix.cross_signing_reset") => {
+                from_raw_json_value(&json).map(Self::OAuth)
+            }
             None => from_raw_json_value(&json).map(Self::FallbackAcknowledgement),
             Some(_) => from_raw_json_value(&json).map(Self::_Custom),
         }

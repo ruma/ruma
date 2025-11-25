@@ -44,6 +44,12 @@ pub enum AuthData {
     /// This type is only valid during account registration.
     Terms(Terms),
 
+    /// OAuth 2.0 (`m.oauth`).
+    ///
+    /// This type is only valid with the cross-signing keys upload endpoint, after logging in with
+    /// the OAuth 2.0 API.
+    OAuth(OAuth),
+
     /// Unsupported authentication type.
     #[doc(hidden)]
     _Custom(CustomAuthData),
@@ -83,6 +89,9 @@ impl AuthData {
             "m.login.dummy" => Self::Dummy(deserialize_variant(session, data)?),
             "m.registration_token" => Self::RegistrationToken(deserialize_variant(session, data)?),
             "m.login.terms" => Self::Terms(deserialize_variant(session, data)?),
+            "m.oauth" | "org.matrix.cross_signing_reset" => {
+                Self::OAuth(deserialize_variant(session, data)?)
+            }
             _ => {
                 Self::_Custom(CustomAuthData { auth_type: auth_type.into(), session, extra: data })
             }
@@ -105,6 +114,7 @@ impl AuthData {
             Self::RegistrationToken(_) => Some(AuthType::RegistrationToken),
             Self::FallbackAcknowledgement(_) => None,
             Self::Terms(_) => Some(AuthType::Terms),
+            Self::OAuth(_) => Some(AuthType::OAuth),
             Self::_Custom(c) => Some(AuthType::_Custom(PrivOwnedStr(c.auth_type.as_str().into()))),
         }
     }
@@ -120,6 +130,7 @@ impl AuthData {
             Self::RegistrationToken(x) => x.session.as_deref(),
             Self::FallbackAcknowledgement(x) => Some(&x.session),
             Self::Terms(x) => x.session.as_deref(),
+            Self::OAuth(x) => x.session.as_deref(),
             Self::_Custom(x) => x.session.as_deref(),
         }
     }
@@ -159,8 +170,8 @@ impl AuthData {
             Self::RegistrationToken(x) => {
                 Cow::Owned(serialize(RegistrationToken { token: x.token.clone(), session: None }))
             }
-            // Dummy, fallback acknowledgement, and terms of service have no associated data
-            Self::Dummy(_) | Self::FallbackAcknowledgement(_) | Self::Terms(_) => {
+            // These types have no associated data.
+            Self::Dummy(_) | Self::FallbackAcknowledgement(_) | Self::Terms(_) | Self::OAuth(_) => {
                 Cow::Owned(JsonObject::default())
             }
             Self::_Custom(c) => Cow::Borrowed(&c.extra),
@@ -180,6 +191,7 @@ impl fmt::Debug for AuthData {
             Self::RegistrationToken(inner) => inner.fmt(f),
             Self::FallbackAcknowledgement(inner) => inner.fmt(f),
             Self::Terms(inner) => inner.fmt(f),
+            Self::OAuth(inner) => inner.fmt(f),
             Self::_Custom(inner) => inner.fmt(f),
         }
     }
@@ -371,6 +383,26 @@ pub struct Terms {
 
 impl Terms {
     /// Creates an empty `Terms`.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+/// Data for an OAuth 2.0-based UIAA flow.
+///
+/// See [MSC4312] for how to use this.
+///
+/// [MSC4312]: https://github.com/matrix-org/matrix-spec-proposals/pull/4312
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[serde(tag = "type", rename = "m.oauth")]
+pub struct OAuth {
+    /// The value of the session key given by the homeserver, if any.
+    pub session: Option<String>,
+}
+
+impl OAuth {
+    /// Construct an empty `OAuth`.
     pub fn new() -> Self {
         Self::default()
     }
