@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+- Add `uiaa::LoginTermsParams`, that allows to construct or extract the
+  parameters of the `m.login.terms` authentication type.
+
 # 0.22.0
 
 Breaking changes:
