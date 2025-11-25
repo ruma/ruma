@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+- Add unstable support for RTC transports discovery endpoint from MSC4143, with
+  support for the LiveKit transport from MSC4195.
+
 # 0.22.0
 
 Breaking changes:
