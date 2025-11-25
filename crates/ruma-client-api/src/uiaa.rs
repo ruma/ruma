@@ -18,9 +18,10 @@ use crate::{
 };
 
 mod auth_data;
+mod auth_params;
 pub mod get_uiaa_fallback_page;
 
-pub use self::auth_data::*;
+pub use self::{auth_data::*, auth_params::*};
 
 /// The type of an authentication stage.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
