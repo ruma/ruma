@@ -1,6 +1,8 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 
+/// Generate the `std::cmp::Ord` and `std::cmp::PartialOrd` implementations for the type with the
+/// given ident, using its `AsRef<str>` implementation.
 pub fn expand_ord_as_ref_str(ident: &Ident) -> syn::Result<TokenStream> {
     Ok(quote! {
         #[automatically_derived]

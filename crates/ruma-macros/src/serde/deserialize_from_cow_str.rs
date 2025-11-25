@@ -3,6 +3,8 @@ use quote::quote;
 
 use crate::util::{RumaCommon, RumaCommonReexport};
 
+/// Generate the `serde::de:Deserialize` implementation for the type with the given ident, using its
+/// `From<Cow<'a, str>>` implementation.
 pub fn expand_deserialize_from_cow_str(ident: &Ident) -> syn::Result<TokenStream> {
     let ruma_common = RumaCommon::new();
     let serde = ruma_common.reexported(RumaCommonReexport::Serde);
