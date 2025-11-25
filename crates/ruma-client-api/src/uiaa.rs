@@ -62,6 +62,13 @@ pub enum AuthType {
     #[ruma_enum(rename = "m.login.terms")]
     Terms,
 
+    /// OAuth 2.0 (`m.oauth`).
+    ///
+    /// This type is only valid with the cross-signing keys upload endpoint, after logging in with
+    /// the OAuth 2.0 API.
+    #[ruma_enum(rename = "m.oauth", alias = "org.matrix.cross_signing_reset")]
+    OAuth,
+
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
