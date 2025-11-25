@@ -2,14 +2,14 @@
 //!
 //! [uiaa]: https://spec.matrix.org/latest/client-server-api/#user-interactive-authentication-api
 
-use std::fmt;
+use std::{borrow::Cow, fmt, marker::PhantomData};
 
 use bytes::BufMut;
 use ruma_common::{
     api::{EndpointError, OutgoingResponse, error::IntoHttpError},
     serde::StringEnum,
 };
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, de};
 use serde_json::{from_slice as from_json_slice, value::RawValue as RawJsonValue};
 
 use crate::{
@@ -98,6 +98,68 @@ impl UiaaInfo {
     pub fn new(flows: Vec<AuthFlow>) -> Self {
         Self { flows, completed: Vec::new(), params: None, session: None, auth_error: None }
     }
+
+    /// Get the parameters for the given [`AuthType`], if they are available in the `params` object.
+    ///
+    /// Returns `Ok(Some(_))` if the parameters for the authentication type were found and the
+    /// deserialization worked, `Ok(None)` if the parameters for the authentication type were not
+    /// found, and `Err(_)` if the parameters for the authentication type were found but their
+    /// deserialization failed.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use ruma_client_api::uiaa::UiaaInfo;
+    /// use ruma_client_api::uiaa::{AuthType, LoginTermsParams};
+    ///
+    /// # let uiaa_info = UiaaInfo::new(Vec::new());
+    /// let login_terms_params = uiaa_info.params::<LoginTermsParams>(&AuthType::Terms)?;
+    /// # Ok::<(), serde_json::Error>(())
+    /// ```
+    pub fn params<'a, T: Deserialize<'a>>(
+        &'a self,
+        auth_type: &AuthType,
+    ) -> Result<Option<T>, serde_json::Error> {
+        struct AuthTypeVisitor<'b, T> {
+            auth_type: &'b AuthType,
+            _phantom: PhantomData<T>,
+        }
+
+        impl<'de, T> de::Visitor<'de> for AuthTypeVisitor<'_, T>
+        where
+            T: Deserialize<'de>,
+        {
+            type Value = Option<T>;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                formatter.write_str("a key-value map")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: de::MapAccess<'de>,
+            {
+                let mut params = None;
+
+                while let Some(key) = map.next_key::<Cow<'de, str>>()? {
+                    if key == self.auth_type.as_str() {
+                        params = Some(map.next_value()?);
+                    } else {
+                        map.next_value::<de::IgnoredAny>()?;
+                    }
+                }
+
+                Ok(params)
+            }
+        }
+
+        let Some(params) = &self.params else {
+            return Ok(None);
+        };
+
+        let mut deserializer = serde_json::Deserializer::from_str(params.get());
+        deserializer.deserialize_map(AuthTypeVisitor { auth_type, _phantom: PhantomData })
+    }
 }
 
 /// Description of steps required to authenticate via the User-Interactive Authentication API.
@@ -170,5 +232,65 @@ impl OutgoingResponse for UiaaResponse {
                 .map_err(Into::into),
             UiaaResponse::MatrixError(error) => error.try_into_http_response(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use assert_matches2::assert_matches;
+    use ruma_common::serde::JsonObject;
+    use serde_json::{from_value as from_json_value, json};
+
+    use super::{AuthType, LoginTermsParams, UiaaInfo};
+
+    #[test]
+    fn uiaa_info_params() {
+        let json = json!({
+            "flows": [{
+                "stages": ["m.login.terms", "m.login.email.identity", "local.custom.stage"],
+            }],
+            "params": {
+                "local.custom.stage": {
+                    "foo": "bar",
+                },
+                "m.login.terms": {
+                    "policies": {
+                        "privacy": {
+                            "en-US": {
+                                "name": "Privacy Policy",
+                                "url": "http://matrix.local/en-US/privacy",
+                            },
+                            "fr-FR": {
+                                "name": "Politique de confidentialité",
+                                "url": "http://matrix.local/fr-FR/privacy",
+                            },
+                            "version": "1",
+                        },
+                    },
+                }
+            },
+            "session": "abcdef",
+        });
+
+        let info = from_json_value::<UiaaInfo>(json).unwrap();
+
+        assert_matches!(info.params::<JsonObject>(&AuthType::EmailIdentity), Ok(None));
+        assert_matches!(
+            info.params::<JsonObject>(&AuthType::from("local.custom.stage")),
+            Ok(Some(_))
+        );
+
+        assert_matches!(info.params::<LoginTermsParams>(&AuthType::Terms), Ok(Some(params)));
+        assert_eq!(params.policies.len(), 1);
+
+        let policy = params.policies.get("privacy").unwrap();
+        assert_eq!(policy.version, "1");
+        assert_eq!(policy.translations.len(), 2);
+        let translation = policy.translations.get("en-US").unwrap();
+        assert_eq!(translation.name, "Privacy Policy");
+        assert_eq!(translation.url, "http://matrix.local/en-US/privacy");
+        let translation = policy.translations.get("fr-FR").unwrap();
+        assert_eq!(translation.name, "Politique de confidentialité");
+        assert_eq!(translation.url, "http://matrix.local/fr-FR/privacy");
     }
 }

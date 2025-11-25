@@ -154,18 +154,11 @@ mod tests {
                     },
                     // Unsupported field will be ignored.
                     "foo": "bar",
-                    "version": "1.2"
+                    "version": "1.2",
                 },
+                // No translations is fine.
                 "terms_of_service": {
-                    "en": {
-                        "name": "Terms of Service",
-                        "url": "https://example.org/somewhere/terms-1.2-en.html"
-                    },
-                    "fr": {
-                        "name": "Conditions d'utilisation",
-                        "url": "https://example.org/somewhere/terms-1.2-fr.html"
-                    },
-                    "version": "1.2"
+                    "version": "1.2",
                 }
             }
         });
@@ -186,12 +179,6 @@ mod tests {
 
         let policy = params.policies.get("terms_of_service").unwrap();
         assert_eq!(policy.version, "1.2");
-        assert_eq!(policy.translations.len(), 2);
-        let translation = policy.translations.get("en").unwrap();
-        assert_eq!(translation.name, "Terms of Service");
-        assert_eq!(translation.url, "https://example.org/somewhere/terms-1.2-en.html");
-        let translation = policy.translations.get("fr").unwrap();
-        assert_eq!(translation.name, "Conditions d'utilisation");
-        assert_eq!(translation.url, "https://example.org/somewhere/terms-1.2-fr.html");
+        assert_eq!(policy.translations.len(), 0);
     }
 }
