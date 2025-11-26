@@ -8,14 +8,31 @@ use super::{
     EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEventType,
     RoomAccountDataEventType, StateEventType, ToDeviceEventType,
 };
+use crate::{
+    EphemeralRoomEvent, MessageLikeEvent, RedactContent, RedactedMessageLikeEvent,
+    RedactedStateEvent, RedactedSyncMessageLikeEvent, RedactedSyncStateEvent, StateEvent,
+    SyncEphemeralRoomEvent, SyncMessageLikeEvent, SyncStateEvent,
+};
 
 /// Extension trait for [`Raw<T>`].
-pub trait RawExt<T: EventContentFromType> {
+pub trait RawEventContentExt<T: EventContentFromType> {
     /// Try to deserialize the JSON as an event's content with the given event type.
     fn deserialize_with_type(&self, event_type: &str) -> serde_json::Result<T>;
 }
 
-impl<T> RawExt<T> for Raw<T>
+pub trait RawRoomEventExt {
+    type SyncEvent;
+
+    fn to_sync_event(&self) -> Raw<Self::SyncEvent>;
+}
+
+pub trait RawSyncRoomEventExt {
+    type FullEvent;
+
+    fn to_full_event(&self) -> Raw<Self::FullEvent>;
+}
+
+impl<T> RawEventContentExt<T> for Raw<T>
 where
     T: EventContentFromType,
 {
@@ -160,5 +177,119 @@ where
 {
     fn from_parts(_event_type: &str, content: &RawJsonValue) -> serde_json::Result<Self> {
         from_json_str(content.get())
+    }
+}
+
+impl<C> RawRoomEventExt for Raw<EphemeralRoomEvent<C>>
+where
+    C: EphemeralRoomEventContent,
+{
+    type SyncEvent;
+
+    fn to_sync_event(&self) -> Raw<Self::SyncEvent> {
+        todo!()
+    }
+}
+
+impl<C> RawSyncRoomEventExt for Raw<SyncEphemeralRoomEvent<C>>
+where
+    C: EphemeralRoomEventContent,
+{
+    type FullEvent;
+
+    fn to_full_event(&self) -> Raw<Self::FullEvent> {
+        todo!()
+    }
+}
+
+impl<C> RawRoomEventExt for Raw<MessageLikeEvent<C>>
+where
+    C: MessageLikeEventContent + RedactContent,
+    <C as RedactContent>::Redacted: RedactedMessageLikeEventContent,
+{
+    type SyncEvent;
+
+    fn to_sync_event(&self) -> Raw<Self::SyncEvent> {
+        todo!()
+    }
+}
+
+impl<C> RawSyncRoomEventExt for Raw<SyncMessageLikeEvent<C>>
+where
+    C: MessageLikeEventContent + RedactContent,
+    <C as RedactContent>::Redacted: RedactedMessageLikeEventContent,
+{
+    type FullEvent;
+
+    fn to_full_event(&self) -> Raw<Self::FullEvent> {
+        todo!()
+    }
+}
+
+impl<C> RawRoomEventExt for Raw<RedactedMessageLikeEvent<C>>
+where
+    C: RedactedMessageLikeEventContent,
+{
+    type SyncEvent;
+
+    fn to_sync_event(&self) -> Raw<Self::SyncEvent> {
+        todo!()
+    }
+}
+
+impl<C> RawSyncRoomEventExt for Raw<RedactedSyncMessageLikeEvent<C>>
+where
+    C: RedactedMessageLikeEventContent,
+{
+    type FullEvent;
+
+    fn to_full_event(&self) -> Raw<Self::FullEvent> {
+        todo!()
+    }
+}
+
+impl<C> RawRoomEventExt for Raw<StateEvent<C>>
+where
+    C: StateEventContent + StaticStateEventContent + RedactContent,
+    <C as RedactContent>::Redacted: RedactedStateEventContent,
+{
+    type SyncEvent;
+
+    fn to_sync_event(&self) -> Raw<Self::SyncEvent> {
+        todo!()
+    }
+}
+
+impl<C> RawSyncRoomEventExt for Raw<SyncStateEvent<C>>
+where
+    C: StateEventContent + StaticStateEventContent + RedactContent,
+    <C as RedactContent>::Redacted: RedactedStateEventContent,
+{
+    type FullEvent;
+
+    fn to_full_event(&self) -> Raw<Self::FullEvent> {
+        todo!()
+    }
+}
+
+impl<C> RawRoomEventExt for Raw<RedactedStateEvent<C>>
+where
+    C: RedactedStateEventContent,
+{
+    type SyncEvent;
+
+    fn to_sync_event(&self) -> Raw<Self::SyncEvent> {
+        todo!()
+    }
+}
+
+impl<C> RawSyncRoomEventExt for Raw<RedactedSyncStateEvent<C>>
+where
+    C: RedactedStateEventContent,
+{
+    type FullEvent;
+
+    fn to_full_event(&self) -> Raw<Self::FullEvent> {
+        todo!()
     }
 }
