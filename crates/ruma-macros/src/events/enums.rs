@@ -49,33 +49,9 @@ impl EventKind {
         Ok(format_ident!("{var}{self}"))
     }
 
-    /// Get the name of the `Any*Event` enum for this kind and the given variation.
-    pub fn to_event_enum_ident(self, var: EventVariation) -> syn::Result<Ident> {
-        if !self.event_enum_variations().contains(&var) {
-            return Err(syn::Error::new(
-                Span::call_site(),
-                format!(
-                    "({self:?}, {var:?}) is not a valid event enum kind / variation combination"
-                ),
-            ));
-        }
-
-        Ok(format_ident!("Any{var}{self}"))
-    }
-
     /// Get the name of the `*EventType` enum for this kind.
     pub fn to_event_type_enum(self) -> Ident {
         format_ident!("{}Type", self)
-    }
-
-    /// Get the name of the `Any[kind]EventContent` for this kind.
-    pub fn to_content_enum(self) -> Ident {
-        format_ident!("Any{}Content", self)
-    }
-
-    /// Get the name of the `AnyFull[kind]EventContent` for this kind.
-    pub fn to_full_content_enum(self) -> Ident {
-        format_ident!("AnyFull{}Content", self)
     }
 
     /// Get the name of the `[variation][kind]Content` trait for this kind and the given variation.
@@ -426,6 +402,7 @@ impl ToTokens for EventType {
 }
 
 /// All the event types supported by an event.
+#[derive(Clone)]
 pub struct EventTypes {
     pub ev_type: EventType,
     pub aliases: Vec<EventType>,
