@@ -327,25 +327,7 @@ where
         let mut http_request =
             self.try_into_http_request(base_url, access_token, path_builder_input)?;
 
-        if !identity.is_empty() {
-            let identity_query = serde_html_form::to_string(identity)?;
-
-            let uri = http_request.uri().to_owned();
-            let mut parts = uri.into_parts();
-
-            let path_and_query_with_user_id = match &parts.path_and_query {
-                Some(path_and_query) => match path_and_query.query() {
-                    Some(_) => format!("{path_and_query}&{identity_query}"),
-                    None => format!("{path_and_query}?{identity_query}"),
-                },
-                None => format!("/?{identity_query}"),
-            };
-
-            parts.path_and_query =
-                Some(path_and_query_with_user_id.try_into().map_err(http::Error::from)?);
-
-            *http_request.uri_mut() = parts.try_into().map_err(http::Error::from)?;
-        }
+        identity.maybe_add_to_request(&mut http_request)?;
 
         Ok(http_request)
     }
@@ -454,5 +436,38 @@ impl<'a> AppserviceUserIdentity<'a> {
     /// Whether this identity is empty.
     fn is_empty(&self) -> bool {
         self.user_id.is_none() && self.device_id.is_none()
+    }
+
+    /// Add this identity to the given request, if the identity is not empty.
+    pub fn maybe_add_to_request<T>(
+        &self,
+        request: &mut http::Request<T>,
+    ) -> Result<(), IntoHttpError> {
+        if self.is_empty() {
+            // There will be no change to the request.
+            return Ok(());
+        }
+
+        // Serialize the query arguments of the identity.
+        let identity_query = serde_html_form::to_string(self)?;
+
+        // Add the query arguments to the request's URI.
+        let uri = request.uri().to_owned();
+        let mut parts = uri.into_parts();
+
+        let path_and_query_with_user_id = match &parts.path_and_query {
+            Some(path_and_query) => match path_and_query.query() {
+                Some(_) => format!("{path_and_query}&{identity_query}"),
+                None => format!("{path_and_query}?{identity_query}"),
+            },
+            None => format!("/?{identity_query}"),
+        };
+
+        parts.path_and_query =
+            Some(path_and_query_with_user_id.try_into().map_err(http::Error::from)?);
+
+        *request.uri_mut() = parts.try_into().map_err(http::Error::from)?;
+
+        Ok(())
     }
 }
