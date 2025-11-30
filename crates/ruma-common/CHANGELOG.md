@@ -1,5 +1,12 @@
 # [unreleased]
 
+Improvements:
+
+- Add `AppserviceUserIdentity::maybe_add_to_uri()` to add an identity
+  assertion to an `http::Uri`. This allows to reimplement the behavior of
+  `OutgoingRequestAppserviceExt::try_into_http_request_with_identity()` outside
+  of Ruma, if using this trait is inconvenient.
+
 # 0.17.0
 
 Breaking changes:
