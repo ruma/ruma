@@ -53,10 +53,12 @@ pub mod v1 {
         pub event: Box<RawJsonValue>,
     }
 
+    #[cfg(feature = "server")]
     fn default_ver() -> Vec<RoomVersionId> {
         vec![RoomVersionId::V1]
     }
 
+    #[cfg(feature = "client")]
     fn is_default_ver(ver: &[RoomVersionId]) -> bool {
         *ver == [RoomVersionId::V1]
     }

@@ -8,13 +8,15 @@
 //!
 //! [issue]: https://github.com/matrix-org/matrix-spec-proposals/issues/2541
 
+#[cfg(feature = "client")]
 use std::{fmt, marker::PhantomData};
 
-use serde::{
-    de::{Deserialize, Deserializer, Error, IgnoredAny, SeqAccess, Visitor},
-    ser::{Serialize, SerializeSeq, Serializer},
-};
+#[cfg(feature = "client")]
+use serde::de::{Deserialize, Deserializer, Error, IgnoredAny, SeqAccess, Visitor};
+#[cfg(feature = "server")]
+use serde::ser::{Serialize, SerializeSeq, Serializer};
 
+#[cfg(feature = "server")]
 pub(crate) fn serialize<T, S>(val: &T, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
@@ -26,6 +28,7 @@ where
     seq.end()
 }
 
+#[cfg(feature = "client")]
 pub(crate) fn deserialize<'de, T, D>(deserializer: D) -> Result<T, D::Error>
 where
     D: Deserializer<'de>,
@@ -34,10 +37,12 @@ where
     deserializer.deserialize_seq(PduVisitor { phantom: PhantomData })
 }
 
+#[cfg(feature = "client")]
 struct PduVisitor<T> {
     phantom: PhantomData<T>,
 }
 
+#[cfg(feature = "client")]
 impl<'de, T> Visitor<'de> for PduVisitor<T>
 where
     T: Deserialize<'de>,
@@ -67,12 +72,12 @@ where
     }
 }
 
-#[cfg(test)]
-mod tests {
+#[cfg(all(test, feature = "client"))]
+mod tests_client {
     use assert_matches2::assert_matches;
     use serde_json::json;
 
-    use super::{deserialize, serialize};
+    use super::deserialize;
     #[allow(deprecated)]
     use crate::membership::create_join_event::v1::RoomState;
 
@@ -91,25 +96,6 @@ mod tests {
         assert_matches!(auth_chain.as_slice(), []);
         assert_matches!(state.as_slice(), []);
         assert_matches!(event, None);
-    }
-
-    #[test]
-    fn serialize_response() {
-        #[allow(deprecated)]
-        let room_state = RoomState { auth_chain: Vec::new(), state: Vec::new(), event: None };
-
-        let serialized = serialize(&room_state, serde_json::value::Serializer).unwrap();
-        let expected = json!(
-            [
-                200,
-                {
-                    "auth_chain": [],
-                    "state": []
-                }
-            ]
-        );
-
-        assert_eq!(serialized, expected);
     }
 
     #[test]
@@ -147,5 +133,33 @@ mod tests {
         assert_matches!(auth_chain.as_slice(), []);
         assert_matches!(state.as_slice(), []);
         assert_matches!(event, None);
+    }
+}
+
+#[cfg(all(test, feature = "server"))]
+mod tests_server {
+    use serde_json::json;
+
+    use super::serialize;
+    #[allow(deprecated)]
+    use crate::membership::create_join_event::v1::RoomState;
+
+    #[test]
+    fn serialize_response() {
+        #[allow(deprecated)]
+        let room_state = RoomState { auth_chain: Vec::new(), state: Vec::new(), event: None };
+
+        let serialized = serialize(&room_state, serde_json::value::Serializer).unwrap();
+        let expected = json!(
+            [
+                200,
+                {
+                    "auth_chain": [],
+                    "state": []
+                }
+            ]
+        );
+
+        assert_eq!(serialized, expected);
     }
 }
