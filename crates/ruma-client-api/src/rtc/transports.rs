@@ -89,6 +89,7 @@ pub mod v1 {
             }
 
             Ok(match transport_type.as_str() {
+                #[cfg(feature = "unstable-msc4195")]
                 "livekit_multi_sfu" => Self::LivekitMultiSfu(deserialize_variant(data)?),
                 _ => Self::_Custom(CustomRtcTransport { transport_type, data }),
             })
@@ -97,6 +98,7 @@ pub mod v1 {
         /// Returns a reference to the type of this RTC transport.
         pub fn transport_type(&self) -> &str {
             match self {
+                #[cfg(feature = "unstable-msc4195")]
                 Self::LivekitMultiSfu(_) => "livekit_multi_sfu",
                 Self::_Custom(custom) => &custom.transport_type,
             }
