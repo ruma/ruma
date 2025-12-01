@@ -11,8 +11,10 @@ pub mod get_content_thumbnail;
 /// The `multipart/mixed` mime "essence".
 const MULTIPART_MIXED: &str = "multipart/mixed";
 /// The maximum number of headers to parse in a body part.
+#[cfg(feature = "client")]
 const MAX_HEADERS_COUNT: usize = 32;
 /// The length of the generated boundary.
+#[cfg(feature = "server")]
 const GENERATED_BOUNDARY_LENGTH: usize = 30;
 
 /// The metadata of a file from the content repository.

@@ -1,18 +1,19 @@
-use std::{collections::BTreeMap, fmt};
+use std::collections::BTreeMap;
 
 use ruma_common::OwnedEventId;
-use serde::{
-    Deserialize, Serialize,
-    de::{Deserializer, MapAccess, Visitor},
-    ser::{SerializeMap, Serializer},
-};
+#[cfg(feature = "client")]
+use serde::de::{Deserializer, MapAccess, Visitor};
+#[cfg(feature = "server")]
+use serde::ser::{SerializeMap, Serializer};
 
-#[derive(Deserialize, Serialize)]
+#[cfg_attr(feature = "client", derive(serde::Deserialize))]
+#[cfg_attr(feature = "server", derive(serde::Serialize))]
 struct WrappedError {
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "server", serde(skip_serializing_if = "Option::is_none"))]
     error: Option<String>,
 }
 
+#[cfg(feature = "server")]
 pub(crate) fn serialize<S>(
     response: &BTreeMap<OwnedEventId, Result<(), String>>,
     serializer: S,
@@ -28,6 +29,7 @@ where
     map.end()
 }
 
+#[cfg(feature = "client")]
 #[allow(clippy::type_complexity)]
 pub(crate) fn deserialize<'de, D>(
     deserializer: D,
@@ -35,6 +37,8 @@ pub(crate) fn deserialize<'de, D>(
 where
     D: Deserializer<'de>,
 {
+    use std::fmt;
+
     struct PduProcessResponseVisitor;
 
     impl<'de> Visitor<'de> for PduProcessResponseVisitor {
@@ -64,39 +68,12 @@ where
     deserializer.deserialize_map(PduProcessResponseVisitor)
 }
 
-#[cfg(test)]
-mod tests {
-    use std::collections::BTreeMap;
+#[cfg(all(test, feature = "client"))]
+mod tests_client {
+    use ruma_common::event_id;
+    use serde_json::json;
 
-    use ruma_common::{OwnedEventId, event_id, owned_event_id};
-    use serde_json::{json, value::Serializer as JsonSerializer};
-
-    use super::{deserialize, serialize};
-
-    #[test]
-    fn serialize_error() {
-        let mut response: BTreeMap<OwnedEventId, Result<(), String>> = BTreeMap::new();
-        response
-            .insert(owned_event_id!("$someevent:matrix.org"), Err("Some processing error.".into()));
-
-        let serialized = serialize(&response, JsonSerializer).unwrap();
-        let json = json!({
-            "$someevent:matrix.org": { "error": "Some processing error." }
-        });
-        assert_eq!(serialized, json);
-    }
-
-    #[test]
-    fn serialize_ok() {
-        let mut response: BTreeMap<OwnedEventId, Result<(), String>> = BTreeMap::new();
-        response.insert(owned_event_id!("$someevent:matrix.org"), Ok(()));
-
-        let serialized = serialize(&response, serde_json::value::Serializer).unwrap();
-        let json = json!({
-            "$someevent:matrix.org": {}
-        });
-        assert_eq!(serialized, json);
-    }
+    use super::deserialize;
 
     #[test]
     fn deserialize_error() {
@@ -143,5 +120,40 @@ mod tests {
         });
         let response = deserialize(json).unwrap();
         response.get(event_id!("$someevent:matrix.org")).unwrap().as_ref().unwrap();
+    }
+}
+
+#[cfg(all(test, feature = "server"))]
+mod tests_server {
+    use std::collections::BTreeMap;
+
+    use ruma_common::{OwnedEventId, owned_event_id};
+    use serde_json::{json, value::Serializer as JsonSerializer};
+
+    use super::serialize;
+
+    #[test]
+    fn serialize_error() {
+        let mut response: BTreeMap<OwnedEventId, Result<(), String>> = BTreeMap::new();
+        response
+            .insert(owned_event_id!("$someevent:matrix.org"), Err("Some processing error.".into()));
+
+        let serialized = serialize(&response, JsonSerializer).unwrap();
+        let json = json!({
+            "$someevent:matrix.org": { "error": "Some processing error." }
+        });
+        assert_eq!(serialized, json);
+    }
+
+    #[test]
+    fn serialize_ok() {
+        let mut response: BTreeMap<OwnedEventId, Result<(), String>> = BTreeMap::new();
+        response.insert(owned_event_id!("$someevent:matrix.org"), Ok(()));
+
+        let serialized = serialize(&response, serde_json::value::Serializer).unwrap();
+        let json = json!({
+            "$someevent:matrix.org": {}
+        });
+        assert_eq!(serialized, json);
     }
 }
