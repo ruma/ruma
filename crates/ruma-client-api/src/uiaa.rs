@@ -149,7 +149,7 @@ impl UiaaInfo {
                 let mut params = None;
 
                 while let Some(key) = map.next_key::<Cow<'de, str>>()? {
-                    if key == self.auth_type.as_str() {
+                    if AuthType::from(key) == *self.auth_type {
                         params = Some(map.next_value()?);
                     } else {
                         map.next_value::<de::IgnoredAny>()?;
@@ -248,7 +248,7 @@ mod tests {
     use ruma_common::serde::JsonObject;
     use serde_json::{from_value as from_json_value, json};
 
-    use super::{AuthType, LoginTermsParams, UiaaInfo};
+    use super::{AuthType, LoginTermsParams, OAuthParams, UiaaInfo};
 
     #[test]
     fn uiaa_info_params() {
@@ -299,5 +299,40 @@ mod tests {
         let translation = policy.translations.get("fr-FR").unwrap();
         assert_eq!(translation.name, "Politique de confidentialité");
         assert_eq!(translation.url, "http://matrix.local/fr-FR/privacy");
+    }
+
+    #[test]
+    fn uiaa_info_oauth_params() {
+        let url = "http://auth.matrix.local/reset";
+        let stable_json = json!({
+            "flows": [{
+                "stages": ["m.oauth"],
+            }],
+            "params": {
+                "m.oauth": {
+                    "url": url,
+                }
+            },
+            "session": "abcdef",
+        });
+        let unstable_json = json!({
+            "flows": [{
+                "stages": ["org.matrix.cross_signing_reset"],
+            }],
+            "params": {
+                "org.matrix.cross_signing_reset": {
+                    "url": url,
+                }
+            },
+            "session": "abcdef",
+        });
+
+        let info = from_json_value::<UiaaInfo>(stable_json).unwrap();
+        assert_matches!(info.params::<OAuthParams>(&AuthType::OAuth), Ok(Some(params)));
+        assert_eq!(params.url, url);
+
+        let info = from_json_value::<UiaaInfo>(unstable_json).unwrap();
+        assert_matches!(info.params::<OAuthParams>(&AuthType::OAuth), Ok(Some(params)));
+        assert_eq!(params.url, url);
     }
 }
