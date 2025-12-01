@@ -15,11 +15,11 @@ pub mod v3 {
 
     use ruma_common::{
         OwnedUserId,
-        api::{Metadata, auth_scheme::AccessToken, response},
+        api::{auth_scheme::AccessToken, response},
         metadata,
     };
 
-    use crate::profile::{ProfileFieldValue, profile_field_serde::ProfileFieldValueVisitor};
+    use crate::profile::ProfileFieldValue;
 
     metadata! {
         method: PUT,
@@ -62,7 +62,7 @@ pub mod v3 {
             access_token: ruma_common::api::auth_scheme::SendAccessToken<'_>,
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
-            use ruma_common::api::{auth_scheme::AuthScheme, path_builder::PathBuilder};
+            use ruma_common::api::{Metadata, auth_scheme::AuthScheme, path_builder::PathBuilder};
 
             let field = self.value.field_name();
 
@@ -106,7 +106,7 @@ pub mod v3 {
         {
             use serde::de::{Deserializer, Error as _};
 
-            use crate::profile::ProfileFieldName;
+            use crate::profile::{ProfileFieldName, profile_field_serde::ProfileFieldValueVisitor};
 
             Self::check_request_method(request.method())?;
 
@@ -139,25 +139,22 @@ pub mod v3 {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use assert_matches2::assert_matches;
-    use ruma_common::{owned_mxc_uri, owned_user_id};
-    use serde_json::{
-        Value as JsonValue, from_slice as from_json_slice, json, to_vec as to_json_vec,
+#[cfg(all(test, feature = "client"))]
+mod tests_client {
+    use std::borrow::Cow;
+
+    use http::header;
+    use ruma_common::{
+        api::{OutgoingRequest, SupportedVersions, auth_scheme::SendAccessToken},
+        owned_mxc_uri, owned_user_id,
     };
+    use serde_json::{Value as JsonValue, from_slice as from_json_slice, json};
 
     use super::v3::Request;
     use crate::profile::ProfileFieldValue;
 
     #[test]
-    #[cfg(feature = "client")]
     fn serialize_request() {
-        use std::borrow::Cow;
-
-        use http::header;
-        use ruma_common::api::{OutgoingRequest, SupportedVersions, auth_scheme::SendAccessToken};
-
         // Profile field that existed in Matrix 1.0.
         let avatar_url_request = Request::new(
             owned_user_id!("@alice:localhost"),
@@ -276,12 +273,19 @@ mod tests {
             "Bearer access_token"
         );
     }
+}
+
+#[cfg(all(test, feature = "server"))]
+mod tests_server {
+    use assert_matches2::assert_matches;
+    use ruma_common::api::IncomingRequest;
+    use serde_json::{json, to_vec as to_json_vec};
+
+    use super::v3::Request;
+    use crate::profile::ProfileFieldValue;
 
     #[test]
-    #[cfg(feature = "server")]
     fn deserialize_request_valid_field() {
-        use ruma_common::api::IncomingRequest;
-
         let body = to_json_vec(&json!({
             "displayname": "Alice",
         }))
@@ -303,10 +307,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "server")]
     fn deserialize_request_invalid_field() {
-        use ruma_common::api::IncomingRequest;
-
         let body = to_json_vec(&json!({
             "custom_field": "value",
         }))

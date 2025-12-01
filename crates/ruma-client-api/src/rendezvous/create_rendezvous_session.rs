@@ -7,14 +7,11 @@ pub mod unstable {
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
 
-    use http::{
-        HeaderName,
-        header::{CONTENT_LENGTH, CONTENT_TYPE, ETAG, EXPIRES, LAST_MODIFIED},
-    };
+    use http::header::{CONTENT_TYPE, ETAG, EXPIRES, LAST_MODIFIED};
     #[cfg(feature = "client")]
     use ruma_common::api::error::FromHttpResponseError;
     use ruma_common::{
-        api::{Metadata, auth_scheme::NoAuthentication, error::HeaderDeserializationError},
+        api::{auth_scheme::NoAuthentication, error::HeaderDeserializationError},
         metadata,
     };
     use serde::{Deserialize, Serialize};
@@ -49,6 +46,9 @@ pub mod unstable {
             _: ruma_common::api::auth_scheme::SendAccessToken<'_>,
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
+            use http::header::CONTENT_LENGTH;
+            use ruma_common::api::Metadata;
+
             let url = Self::make_endpoint_url(considering, base_url, &[], "")?;
             let body = self.content.as_bytes();
             let content_length = body.len();
@@ -152,7 +152,7 @@ pub mod unstable {
                 ));
             }
 
-            let get_date = |header: HeaderName| -> Result<SystemTime, FromHttpResponseError<Self::EndpointError>> {
+            let get_date = |header: http::HeaderName| -> Result<SystemTime, FromHttpResponseError<Self::EndpointError>> {
                 let date = response
                     .headers()
                     .get(&header)

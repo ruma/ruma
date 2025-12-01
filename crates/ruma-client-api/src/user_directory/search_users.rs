@@ -75,6 +75,7 @@ pub mod v3 {
         uint!(10)
     }
 
+    #[cfg(feature = "client")]
     fn is_default_limit(limit: &UInt) -> bool {
         limit == &default_limit()
     }

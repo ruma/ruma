@@ -165,6 +165,7 @@ pub mod v3 {
         uint!(10)
     }
 
+    #[cfg(feature = "client")]
     #[allow(clippy::trivially_copy_pass_by_ref)]
     fn is_default_limit(val: &UInt) -> bool {
         *val == default_limit()

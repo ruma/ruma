@@ -21,10 +21,7 @@ pub mod v3 {
         metadata,
     };
 
-    use crate::profile::{
-        ProfileFieldName, ProfileFieldValue, StaticProfileField,
-        profile_field_serde::StaticProfileFieldVisitor,
-    };
+    use crate::profile::{ProfileFieldName, ProfileFieldValue, StaticProfileField};
 
     metadata! {
         method: GET,
@@ -263,6 +260,8 @@ pub mod v3 {
             use ruma_common::api::EndpointError;
             use serde::de::Deserializer;
 
+            use crate::profile::profile_field_serde::StaticProfileFieldVisitor;
+
             if response.status().as_u16() >= 400 {
                 return Err(ruma_common::api::error::FromHttpResponseError::Server(
                     Self::EndpointError::from_http_response(response),
@@ -277,18 +276,15 @@ pub mod v3 {
     }
 }
 
-#[cfg(test)]
-mod tests {
+#[cfg(all(test, feature = "client"))]
+mod tests_client {
     use ruma_common::{owned_mxc_uri, owned_user_id};
-    use serde_json::{
-        Value as JsonValue, from_slice as from_json_slice, json, to_vec as to_json_vec,
-    };
+    use serde_json::{json, to_vec as to_json_vec};
 
     use super::v3::{Request, RequestStatic, Response};
     use crate::profile::{ProfileFieldName, ProfileFieldValue};
 
     #[test]
-    #[cfg(feature = "client")]
     fn serialize_request() {
         use std::borrow::Cow;
 
@@ -370,44 +366,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "server")]
-    fn deserialize_request() {
-        use ruma_common::api::IncomingRequest;
-
-        let request = Request::try_from_http_request(
-            http::Request::get(
-                "http://localhost/_matrix/client/v3/profile/@alice:localhost/displayname",
-            )
-            .body(Vec::<u8>::new())
-            .unwrap(),
-            &["@alice:localhost", "displayname"],
-        )
-        .unwrap();
-
-        assert_eq!(request.user_id, "@alice:localhost");
-        assert_eq!(request.field, ProfileFieldName::DisplayName);
-    }
-
-    #[test]
-    #[cfg(feature = "server")]
-    fn serialize_response() {
-        use ruma_common::api::OutgoingResponse;
-
-        let response =
-            Response::new(ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef")));
-
-        let http_response = response.try_into_http_response::<Vec<u8>>().unwrap();
-
-        assert_eq!(
-            from_json_slice::<JsonValue>(http_response.body().as_ref()).unwrap(),
-            json!({
-                "avatar_url": "mxc://localhost/abcdef",
-            })
-        );
-    }
-
-    #[test]
-    #[cfg(feature = "client")]
     fn deserialize_response() {
         use ruma_common::api::IncomingResponse;
 
@@ -429,7 +387,6 @@ mod tests {
 
     /// Mock a response from the homeserver to a request of type `R` and return the given `value` as
     /// a typed response.
-    #[cfg(feature = "client")]
     fn get_static_response<R: ruma_common::api::OutgoingRequest>(
         value: Option<ProfileFieldValue>,
     ) -> Result<R::IncomingResponse, ruma_common::api::error::FromHttpResponseError<R::EndpointError>>
@@ -442,7 +399,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "client")]
     fn static_request_and_valid_response() {
         use crate::profile::AvatarUrl;
 
@@ -457,7 +413,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "client")]
     fn static_request_and_invalid_response() {
         use crate::profile::AvatarUrl;
 
@@ -465,5 +420,49 @@ mod tests {
             "Alice".to_owned(),
         )))
         .unwrap_err();
+    }
+}
+
+#[cfg(all(test, feature = "server"))]
+mod tests_server {
+    use ruma_common::owned_mxc_uri;
+    use serde_json::{Value as JsonValue, from_slice as from_json_slice, json};
+
+    use super::v3::{Request, Response};
+    use crate::profile::{ProfileFieldName, ProfileFieldValue};
+
+    #[test]
+    fn deserialize_request() {
+        use ruma_common::api::IncomingRequest;
+
+        let request = Request::try_from_http_request(
+            http::Request::get(
+                "http://localhost/_matrix/client/v3/profile/@alice:localhost/displayname",
+            )
+            .body(Vec::<u8>::new())
+            .unwrap(),
+            &["@alice:localhost", "displayname"],
+        )
+        .unwrap();
+
+        assert_eq!(request.user_id, "@alice:localhost");
+        assert_eq!(request.field, ProfileFieldName::DisplayName);
+    }
+
+    #[test]
+    fn serialize_response() {
+        use ruma_common::api::OutgoingResponse;
+
+        let response =
+            Response::new(ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef")));
+
+        let http_response = response.try_into_http_response::<Vec<u8>>().unwrap();
+
+        assert_eq!(
+            from_json_slice::<JsonValue>(http_response.body().as_ref()).unwrap(),
+            json!({
+                "avatar_url": "mxc://localhost/abcdef",
+            })
+        );
     }
 }
