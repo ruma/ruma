@@ -61,6 +61,10 @@ pub enum CiCmd {
     NightlyAll,
     /// Lint default features with clippy (nightly)
     ClippyDefault,
+    /// Lint client API and unstable features with clippy (nightly)
+    ClippyApiClient,
+    /// Lint server API and unstable features with clippy (nightly)
+    ClippyApiServer,
     /// Lint client features with clippy on a wasm target (nightly)
     ClippyWasm,
     /// Lint almost all features with clippy (nightly)
@@ -125,8 +129,10 @@ impl CiTask {
             Some(CiCmd::NightlyFull) => self.nightly_full()?,
             Some(CiCmd::NightlyAll) => self.nightly_all()?,
             Some(CiCmd::ClippyDefault) => self.clippy_default()?,
+            Some(CiCmd::ClippyApiClient) => self.clippy_with_features(RumaFeatures::ApiClient)?,
+            Some(CiCmd::ClippyApiServer) => self.clippy_with_features(RumaFeatures::ApiServer)?,
             Some(CiCmd::ClippyWasm) => self.clippy_wasm()?,
-            Some(CiCmd::ClippyAll) => self.clippy_all()?,
+            Some(CiCmd::ClippyAll) => self.clippy_with_features(RumaFeatures::Compat)?,
             Some(CiCmd::ClippyBenches) => self.clippy_benches()?,
             Some(CiCmd::Lint) => self.lint()?,
             Some(CiCmd::Dependencies) => self.dependencies()?,
@@ -255,8 +261,10 @@ impl CiTask {
         self.fmt()?;
         self.nightly_full()?;
         self.clippy_default()?;
+        self.clippy_with_features(RumaFeatures::ApiClient)?;
+        self.clippy_with_features(RumaFeatures::ApiServer)?;
         self.clippy_wasm()?;
-        self.clippy_all()?;
+        self.clippy_with_features(RumaFeatures::Compat)?;
         self.clippy_benches()
     }
 
@@ -338,8 +346,8 @@ impl CiTask {
     }
 
     /// Lint almost all features with clippy with the nightly version.
-    fn clippy_all(&self) -> Result<()> {
-        let features = self.project_metadata.ruma_features(RumaFeatures::Compat)?;
+    fn clippy_with_features(&self, features: RumaFeatures) -> Result<()> {
+        let features = self.project_metadata.ruma_features(features)?;
 
         cmd!(
             &self.sh,
@@ -423,6 +431,12 @@ enum RumaFeatures {
     /// `All` features and compat features.
     Compat,
 
+    /// The client API and unstable features.
+    ApiClient,
+
+    /// The server API and unstable features.
+    ApiServer,
+
     /// Features that we want to test for WASM.
     ///
     /// Includes all the stable features that can be enabled by Matrix clients and all the unstable
@@ -452,6 +466,8 @@ impl Metadata {
                 features.push("full");
                 features
             }
+            RumaFeatures::ApiClient => ruma_package.filtered_features(FeatureFilter::ApiClient),
+            RumaFeatures::ApiServer => ruma_package.filtered_features(FeatureFilter::ApiServer),
             RumaFeatures::Wasm => {
                 let mut features = ruma_package.filtered_features(FeatureFilter::Unstable);
                 features.extend([

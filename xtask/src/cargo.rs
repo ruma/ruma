@@ -100,6 +100,12 @@ impl Package {
                     FeatureFilter::UnstableAndCompat => {
                         FeatureFilter::is_unstable(feature) || FeatureFilter::is_compat(feature)
                     }
+                    FeatureFilter::ApiClient => {
+                        FeatureFilter::is_api_client(feature) || FeatureFilter::is_unstable(feature)
+                    }
+                    FeatureFilter::ApiServer => {
+                        FeatureFilter::is_api_server(feature) || FeatureFilter::is_unstable(feature)
+                    }
                     FeatureFilter::All => true,
                 }
             })
@@ -297,6 +303,12 @@ pub enum FeatureFilter {
     /// Only the unstable and compat features.
     UnstableAndCompat,
 
+    /// The client API and unstable features.
+    ApiClient,
+
+    /// The server API and unstable features.
+    ApiServer,
+
     /// All the public features.
     All,
 }
@@ -315,6 +327,16 @@ impl FeatureFilter {
     /// Whether the given features is a private feature.
     fn is_private(feature: &str) -> bool {
         feature.starts_with("_")
+    }
+
+    /// Whether the given features is a client API feature.
+    fn is_api_client(feature: &str) -> bool {
+        feature.ends_with("-api-c")
+    }
+
+    /// Whether the given features is a server API feature.
+    fn is_api_server(feature: &str) -> bool {
+        feature.ends_with("-api-s")
     }
 }
 
