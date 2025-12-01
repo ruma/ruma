@@ -157,6 +157,14 @@ jobs:
             cmd: clippy-default
             components: clippy
 
+          - name: Clippy Client API Features
+            cmd: clippy-api-client
+            components: clippy
+
+          - name: Clippy Server API Features
+            cmd: clippy-api-server
+            components: clippy
+
           - name: Clippy All Features
             cmd: clippy-all
             components: clippy
