@@ -290,9 +290,18 @@ impl Body {
         if !self.manual_serde {
             let serde = ruma_common.reexported(RumaCommonReexport::Serde);
 
+            let serialize_feature = match kind {
+                MacroKind::Request => "client",
+                MacroKind::Response => "server",
+            };
+            let deserialize_feature = match kind {
+                MacroKind::Request => "server",
+                MacroKind::Response => "client",
+            };
+
             extra_attrs.extend(quote! {
-                #[cfg_attr(feature = "client", derive(#serde::Serialize))]
-                #[cfg_attr(feature = "server", derive(#serde::Deserialize))]
+                #[cfg_attr(feature = #serialize_feature, derive(#serde::Serialize))]
+                #[cfg_attr(feature = #deserialize_feature, derive(#serde::Deserialize))]
             });
         }
 
