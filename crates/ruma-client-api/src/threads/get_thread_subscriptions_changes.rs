@@ -34,6 +34,8 @@ pub mod unstable {
         /// Only `Direction::Backward` is meant to be supported, which is why this field is private
         /// for now (as of 2025-08-21).
         #[ruma_api(query)]
+        // Because this field is private, it is never read.
+        #[allow(dead_code)]
         dir: Direction,
 
         /// A token to continue pagination from.

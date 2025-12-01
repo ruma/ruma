@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3logoutall
 
     use ruma_common::{
-        api::{Metadata, auth_scheme::AccessToken, response},
+        api::{auth_scheme::AccessToken, response},
         metadata,
     };
 
@@ -45,7 +45,7 @@ pub mod v3 {
             access_token: ruma_common::api::auth_scheme::SendAccessToken<'_>,
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
-            use ruma_common::api::auth_scheme::AuthScheme;
+            use ruma_common::api::{Metadata, auth_scheme::AuthScheme};
 
             let url = Self::make_endpoint_url(considering, base_url, &[], "")?;
 

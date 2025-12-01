@@ -8,11 +8,10 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3pushrulesglobalkindruleid
 
     use ruma_common::{
-        api::{Metadata, auth_scheme::AccessToken, response},
+        api::{auth_scheme::AccessToken, response},
         metadata,
         push::{Action, NewPushRule, PushCondition},
     };
-    use serde::{Deserialize, Serialize};
 
     metadata! {
         method: PUT,
@@ -70,7 +69,35 @@ pub mod v3 {
             access_token: ruma_common::api::auth_scheme::SendAccessToken<'_>,
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
-            use ruma_common::api::auth_scheme::AuthScheme;
+            use ruma_common::api::{Metadata, auth_scheme::AuthScheme};
+
+            fn serialize_rule<T: Default + bytes::BufMut>(
+                rule: NewPushRule,
+            ) -> serde_json::Result<T> {
+                match rule {
+                    NewPushRule::Override(r) | NewPushRule::Underride(r) => {
+                        let body =
+                            ConditionalRequestBody { actions: r.actions, conditions: r.conditions };
+                        ruma_common::serde::json_to_buf(&body)
+                    }
+                    NewPushRule::Content(r) => {
+                        let body = PatternedRequestBody { actions: r.actions, pattern: r.pattern };
+                        ruma_common::serde::json_to_buf(&body)
+                    }
+                    NewPushRule::Room(r) => {
+                        let body = SimpleRequestBody { actions: r.actions };
+                        ruma_common::serde::json_to_buf(&body)
+                    }
+                    NewPushRule::Sender(r) => {
+                        let body = SimpleRequestBody { actions: r.actions };
+                        ruma_common::serde::json_to_buf(&body)
+                    }
+                    #[cfg(not(ruma_unstable_exhaustive_types))]
+                    _ => unreachable!(
+                        "variant added to NewPushRule not serializable to request body"
+                    ),
+                }
+            }
 
             let query_string = serde_html_form::to_string(RequestQuery {
                 before: self.before,
@@ -84,13 +111,11 @@ pub mod v3 {
                 &query_string,
             )?;
 
-            let body: RequestBody = self.rule.into();
-
             let mut http_request = http::Request::builder()
                 .method(Self::METHOD)
                 .uri(url)
                 .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
-                .body(ruma_common::serde::json_to_buf(&body)?)?;
+                .body(serialize_rule(self.rule)?)?;
 
             Self::Authentication::add_authentication(&mut http_request, access_token).map_err(
                 |error| ruma_common::api::error::IntoHttpError::Authentication(error.into()),
@@ -118,7 +143,7 @@ pub mod v3 {
             };
 
             // Exhaustive enum to fail deserialization on unknown variants.
-            #[derive(Debug, Deserialize)]
+            #[derive(Debug, serde::Deserialize)]
             #[serde(rename_all = "lowercase")]
             enum RuleKind {
                 Override,
@@ -128,23 +153,17 @@ pub mod v3 {
                 Content,
             }
 
-            #[derive(Deserialize)]
-            struct IncomingRequestQuery {
-                before: Option<String>,
-                after: Option<String>,
-            }
-
             Self::check_request_method(request.method())?;
 
             let (kind, rule_id): (RuleKind, String) =
-                Deserialize::deserialize(serde::de::value::SeqDeserializer::<
+                serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
                     _,
                     serde::de::value::Error,
                 >::new(
-                    path_args.iter().map(::std::convert::AsRef::as_ref)
+                    path_args.iter().map(::std::convert::AsRef::as_ref),
                 ))?;
 
-            let IncomingRequestQuery { before, after } =
+            let RequestQuery { before, after } =
                 serde_html_form::from_str(request.uri().query().unwrap_or(""))?;
 
             let rule = match kind {
@@ -183,7 +202,9 @@ pub mod v3 {
         }
     }
 
-    #[derive(Debug, Serialize)]
+    #[derive(Debug)]
+    #[cfg_attr(feature = "client", derive(serde::Serialize))]
+    #[cfg_attr(feature = "server", derive(serde::Deserialize))]
     struct RequestQuery {
         #[serde(skip_serializing_if = "Option::is_none")]
         before: Option<String>,
@@ -192,59 +213,28 @@ pub mod v3 {
         after: Option<String>,
     }
 
-    #[derive(Debug, Serialize)]
-    #[serde(untagged)]
-    enum RequestBody {
-        Simple(SimpleRequestBody),
-
-        Patterned(PatternedRequestBody),
-
-        Conditional(ConditionalRequestBody),
-    }
-
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug)]
+    #[cfg_attr(feature = "client", derive(serde::Serialize))]
+    #[cfg_attr(feature = "server", derive(serde::Deserialize))]
     struct SimpleRequestBody {
         actions: Vec<Action>,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug)]
+    #[cfg_attr(feature = "client", derive(serde::Serialize))]
+    #[cfg_attr(feature = "server", derive(serde::Deserialize))]
     struct PatternedRequestBody {
         actions: Vec<Action>,
 
         pattern: String,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug)]
+    #[cfg_attr(feature = "client", derive(serde::Serialize))]
+    #[cfg_attr(feature = "server", derive(serde::Deserialize))]
     struct ConditionalRequestBody {
         actions: Vec<Action>,
 
         conditions: Vec<PushCondition>,
-    }
-
-    impl From<NewPushRule> for RequestBody {
-        fn from(rule: NewPushRule) -> Self {
-            match rule {
-                NewPushRule::Override(r) => RequestBody::Conditional(ConditionalRequestBody {
-                    actions: r.actions,
-                    conditions: r.conditions,
-                }),
-                NewPushRule::Content(r) => RequestBody::Patterned(PatternedRequestBody {
-                    actions: r.actions,
-                    pattern: r.pattern,
-                }),
-                NewPushRule::Room(r) => {
-                    RequestBody::Simple(SimpleRequestBody { actions: r.actions })
-                }
-                NewPushRule::Sender(r) => {
-                    RequestBody::Simple(SimpleRequestBody { actions: r.actions })
-                }
-                NewPushRule::Underride(r) => RequestBody::Conditional(ConditionalRequestBody {
-                    actions: r.actions,
-                    conditions: r.conditions,
-                }),
-                #[cfg(not(ruma_unstable_exhaustive_types))]
-                _ => unreachable!("variant added to NewPushRule not covered by RequestBody"),
-            }
-        }
     }
 }

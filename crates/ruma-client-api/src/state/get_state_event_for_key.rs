@@ -9,7 +9,7 @@ pub mod v3 {
 
     use ruma_common::{
         OwnedRoomId,
-        api::{Metadata, auth_scheme::AccessToken, response},
+        api::{auth_scheme::AccessToken, response},
         metadata,
         serde::Raw,
     };
@@ -130,7 +130,7 @@ pub mod v3 {
             access_token: ruma_common::api::auth_scheme::SendAccessToken<'_>,
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
-            use ruma_common::api::auth_scheme::AuthScheme;
+            use ruma_common::api::{Metadata, auth_scheme::AuthScheme};
 
             let query_string = serde_html_form::to_string(RequestQuery { format: self.format })?;
 

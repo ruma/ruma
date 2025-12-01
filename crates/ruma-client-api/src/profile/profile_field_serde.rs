@@ -1,13 +1,17 @@
-use std::{borrow::Cow, fmt, marker::PhantomData};
+use std::fmt;
 
 use serde::{Deserialize, Serialize, Serializer, de, ser::SerializeMap};
 
-use super::{CustomProfileFieldValue, ProfileFieldName, ProfileFieldValue, StaticProfileField};
+use super::{CustomProfileFieldValue, ProfileFieldName, ProfileFieldValue};
 
 /// Helper type to deserialize any type that implements [`StaticProfileField`].
-pub(super) struct StaticProfileFieldVisitor<F: StaticProfileField>(pub(super) PhantomData<F>);
+#[cfg(feature = "client")]
+pub(super) struct StaticProfileFieldVisitor<F: super::StaticProfileField>(
+    pub(super) std::marker::PhantomData<F>,
+);
 
-impl<'de, F: StaticProfileField> de::Visitor<'de> for StaticProfileFieldVisitor<F> {
+#[cfg(feature = "client")]
+impl<'de, F: super::StaticProfileField> de::Visitor<'de> for StaticProfileFieldVisitor<F> {
     type Value = Option<F::Value>;
 
     fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -18,6 +22,8 @@ impl<'de, F: StaticProfileField> de::Visitor<'de> for StaticProfileFieldVisitor<
     where
         V: de::MapAccess<'de>,
     {
+        use std::borrow::Cow;
+
         let mut found = false;
 
         while let Some(key) = map.next_key::<Cow<'_, str>>()? {

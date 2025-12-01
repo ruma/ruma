@@ -2,14 +2,12 @@
 
 use std::borrow::Cow;
 
-use ruma_common::{
-    OwnedMxcUri,
-    api::{
-        MatrixVersion,
-        path_builder::{StablePathSelector, VersionHistory},
-    },
-    serde::StringEnum,
+#[cfg(feature = "client")]
+use ruma_common::api::{
+    MatrixVersion,
+    path_builder::{StablePathSelector, VersionHistory},
 };
+use ruma_common::{OwnedMxcUri, serde::StringEnum};
 use serde::Serialize;
 use serde_json::{Value as JsonValue, from_value as from_json_value, to_value as to_json_value};
 
@@ -52,6 +50,7 @@ pub enum ProfileFieldName {
 impl ProfileFieldName {
     /// Whether this field name existed already before custom fields were officially supported in
     /// profiles.
+    #[cfg(feature = "client")]
     fn existed_before_extended_profiles(&self) -> bool {
         matches!(self, Self::AvatarUrl | Self::DisplayName)
     }
@@ -142,6 +141,7 @@ pub struct CustomProfileFieldValue {
 }
 
 /// Endpoint version history valid only for profile fields that didn't exist before Matrix 1.16.
+#[cfg(feature = "client")]
 const EXTENDED_PROFILE_FIELD_HISTORY: VersionHistory = VersionHistory::new(
     &[(
         Some("uk.tcpip.msc4133"),

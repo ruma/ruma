@@ -135,17 +135,15 @@ pub mod v3 {
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::owned_mxc_uri;
-    use serde_json::{
-        Value as JsonValue, from_slice as from_json_slice, json, to_vec as to_json_vec,
-    };
+    use serde_json::json;
 
     use super::v3::Response;
 
     #[test]
     #[cfg(feature = "server")]
     fn serialize_response() {
-        use ruma_common::api::OutgoingResponse;
+        use ruma_common::{api::OutgoingResponse, owned_mxc_uri};
+        use serde_json::{Value as JsonValue, from_slice as from_json_slice};
 
         use crate::profile::ProfileFieldValue;
 
@@ -173,6 +171,7 @@ mod tests {
     #[cfg(feature = "client")]
     fn deserialize_response() {
         use ruma_common::api::IncomingResponse;
+        use serde_json::to_vec as to_json_vec;
 
         use crate::profile::{AvatarUrl, DisplayName};
 

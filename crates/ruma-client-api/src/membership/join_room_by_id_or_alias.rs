@@ -9,7 +9,7 @@ pub mod v3 {
 
     use ruma_common::{
         OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName,
-        api::{Metadata, auth_scheme::AccessToken, response},
+        api::{auth_scheme::AccessToken, response},
         metadata,
     };
 
@@ -91,7 +91,7 @@ pub mod v3 {
             access_token: ruma_common::api::auth_scheme::SendAccessToken<'_>,
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
-            use ruma_common::api::auth_scheme::AuthScheme;
+            use ruma_common::api::{Metadata, auth_scheme::AuthScheme};
 
             // Only send `server_name` if the `via` parameter is not supported by the server.
             // `via` was introduced in Matrix 1.12.
@@ -194,22 +194,19 @@ pub mod v3 {
         }
     }
 
-    #[cfg(all(test, any(feature = "client", feature = "server")))]
-    mod tests {
-        #[cfg(feature = "client")]
+    #[cfg(all(test, feature = "client"))]
+    mod tests_client {
         use std::borrow::Cow;
 
         use ruma_common::{
             api::{
-                IncomingRequest as _, MatrixVersion, OutgoingRequest, SupportedVersions,
-                auth_scheme::SendAccessToken,
+                MatrixVersion, OutgoingRequest, SupportedVersions, auth_scheme::SendAccessToken,
             },
             owned_room_id, owned_server_name,
         };
 
         use super::Request;
 
-        #[cfg(feature = "client")]
         #[test]
         fn serialize_request_via_and_server_name() {
             let mut req = Request::new(owned_room_id!("!foo:b.ar").into());
@@ -229,7 +226,6 @@ pub mod v3 {
             assert_eq!(req.uri().query(), Some("via=f.oo&server_name=f.oo"));
         }
 
-        #[cfg(feature = "client")]
         #[test]
         fn serialize_request_only_via() {
             let mut req = Request::new(owned_room_id!("!foo:b.ar").into());
@@ -248,8 +244,14 @@ pub mod v3 {
                 .unwrap();
             assert_eq!(req.uri().query(), Some("via=f.oo"));
         }
+    }
 
-        #[cfg(feature = "server")]
+    #[cfg(all(test, feature = "server"))]
+    mod tests_server {
+        use ruma_common::{api::IncomingRequest as _, owned_server_name};
+
+        use super::Request;
+
         #[test]
         fn deserialize_request_wrong_method() {
             Request::try_from_http_request(
@@ -263,7 +265,6 @@ pub mod v3 {
             .expect_err("Should not deserialize request with illegal method");
         }
 
-        #[cfg(feature = "server")]
         #[test]
         fn deserialize_request_only_via() {
             let req = Request::try_from_http_request(
@@ -281,7 +282,6 @@ pub mod v3 {
             assert_eq!(req.via, vec![owned_server_name!("f.oo")]);
         }
 
-        #[cfg(feature = "server")]
         #[test]
         fn deserialize_request_only_server_name() {
             let req = Request::try_from_http_request(
@@ -299,7 +299,6 @@ pub mod v3 {
             assert_eq!(req.via, vec![owned_server_name!("f.oo")]);
         }
 
-        #[cfg(feature = "server")]
         #[test]
         fn deserialize_request_via_and_server_name() {
             let req = Request::try_from_http_request(

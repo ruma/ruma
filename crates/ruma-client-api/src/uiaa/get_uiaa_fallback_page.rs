@@ -138,18 +138,14 @@ pub mod v3 {
         }
     }
 
-    #[cfg(all(test, any(feature = "client", feature = "server")))]
-    mod tests {
+    #[cfg(all(test, feature = "client"))]
+    mod tests_client {
         use assert_matches2::assert_matches;
         use http::header::{CONTENT_TYPE, LOCATION};
-        #[cfg(feature = "client")]
         use ruma_common::api::IncomingResponse;
-        #[cfg(feature = "server")]
-        use ruma_common::api::OutgoingResponse;
 
         use super::Response;
 
-        #[cfg(feature = "client")]
         #[test]
         fn incoming_redirect() {
             use super::Redirect;
@@ -165,7 +161,6 @@ pub mod v3 {
             assert_eq!(url, "http://localhost/redirect");
         }
 
-        #[cfg(feature = "client")]
         #[test]
         fn incoming_html() {
             use super::HtmlPage;
@@ -180,8 +175,15 @@ pub mod v3 {
             assert_matches!(response, Response::Html(HtmlPage { body }));
             assert_eq!(body, b"<h1>My Page</h1>");
         }
+    }
 
-        #[cfg(feature = "server")]
+    #[cfg(all(test, feature = "server"))]
+    mod tests_server {
+        use http::header::{CONTENT_TYPE, LOCATION};
+        use ruma_common::api::OutgoingResponse;
+
+        use super::Response;
+
         #[test]
         fn outgoing_redirect() {
             let response = Response::redirect("http://localhost/redirect".to_owned());
@@ -196,7 +198,6 @@ pub mod v3 {
             assert!(http_response.into_body().is_empty());
         }
 
-        #[cfg(feature = "server")]
         #[test]
         fn outgoing_html() {
             let response = Response::html(b"<h1>My Page</h1>".to_vec());
