@@ -121,6 +121,7 @@ pub mod v1 {
             }
 
             match self {
+                #[cfg(feature = "unstable-msc4195")]
                 Self::LivekitMultiSfu(info) => Cow::Owned(serialize(info)),
                 Self::_Custom(info) => Cow::Borrowed(&info.data),
             }
