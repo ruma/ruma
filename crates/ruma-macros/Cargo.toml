@@ -21,6 +21,7 @@ proc-macro = true
 __internal_macro_expand = ["syn/visit-mut"]
 
 [dependencies]
+as_variant = { workspace = true }
 cfg-if = "1.0.0"
 proc-macro-crate = "3.1.0"
 proc-macro2 = "1.0.24"

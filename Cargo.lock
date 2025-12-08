@@ -2037,6 +2037,7 @@ dependencies = [
 name = "ruma-macros"
 version = "0.17.0"
 dependencies = [
+ "as_variant",
  "cfg-if",
  "proc-macro-crate",
  "proc-macro2",

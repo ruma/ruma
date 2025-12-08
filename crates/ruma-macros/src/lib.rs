@@ -317,7 +317,7 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 /// The kind of the event, always required. It must be one of these values, which matches the
 /// [`event_enum!`] macro:
 ///
-/// * `MessageLike` - A message-like event sent in the timeline
+/// * `MessageLike` - A message-like (i.e. non-state) event sent in the timeline
 /// * `State` - A state event sent in the timeline
 /// * `GlobalAccountData` - Global config event
 /// * `RoomAccountData` - Per-room config event
@@ -382,7 +382,7 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(EventContent, attributes(ruma_event))]
 pub fn derive_event_content(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    expand_event_content(&input).unwrap_or_else(syn::Error::into_compile_error).into()
+    expand_event_content(input).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 /// Generates trait implementations for Matrix event types.

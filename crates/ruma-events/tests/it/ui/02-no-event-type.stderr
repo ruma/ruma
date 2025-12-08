@@ -1,4 +1,4 @@
-error: no event type attribute found, add `#[ruma_event(type = "any.room.event", kind = Kind)]` below the event content derive
+error: missing `type` attribute, add `#[ruma_event(type = "m.event_type", kind = Kind)]` below the event content derive
  --> tests/it/ui/02-no-event-type.rs:6:48
   |
 6 | #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
