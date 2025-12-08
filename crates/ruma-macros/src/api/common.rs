@@ -7,8 +7,8 @@ use quote::{format_ident, quote};
 use syn::parse_quote;
 
 use crate::util::{
-    PrivateField, RumaCommon, RumaCommonReexport, StructFieldExt, TypeExt, expand_fields_as_list,
-    expand_fields_as_variable_declarations,
+    PrivateField, RumaCommon, RumaCommonReexport, SerdeMetaItem, StructFieldExt, TypeExt,
+    expand_fields_as_list, expand_fields_as_variable_declarations,
 };
 
 /// Parsed HTTP headers of a request or response struct.
@@ -227,7 +227,7 @@ impl Body {
         if let BodyFields::JsonFields(fields) = &self.fields
             && fields.len() == 1
             && let Some(single_field) = fields.first()
-            && single_field.has_serde_flatten_attribute()
+            && single_field.has_serde_meta_item(SerdeMetaItem::Flatten)
         {
             return Err(syn::Error::new_spanned(
                 single_field,

@@ -1,4 +1,4 @@
-error: `without_relation` can only be used on events with a `relates_to` field
+error: To generate an event content without relation, the event content type needs to be a struct with a field named `relates_to`. Disable this by removing the `without_relation` attribute
  --> tests/it/ui/12-no-relates_to.rs:6:48
   |
 6 | #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]

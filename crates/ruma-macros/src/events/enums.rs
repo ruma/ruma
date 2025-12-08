@@ -131,26 +131,6 @@ impl EventKind {
             Self::Decrypted | Self::Timeline => &[],
         }
     }
-
-    /// Get the list of variations for an event content type for this kind.
-    pub fn event_content_variations(self) -> &'static [EventContentVariation] {
-        match self {
-            Self::GlobalAccountData
-            | Self::RoomAccountData
-            | Self::EphemeralRoom
-            | Self::ToDevice
-            | Self::HierarchySpaceChild => &[EventContentVariation::Original],
-            Self::MessageLike | Self::RoomRedaction => {
-                &[EventContentVariation::Original, EventContentVariation::Redacted]
-            }
-            Self::State => &[
-                EventContentVariation::Original,
-                EventContentVariation::Redacted,
-                EventContentVariation::PossiblyRedacted,
-            ],
-            Self::Decrypted | Self::Timeline => &[],
-        }
-    }
 }
 
 impl fmt::Display for EventKind {
@@ -274,34 +254,6 @@ impl fmt::Display for EventVariation {
 impl IdentFragment for EventVariation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Display::fmt(self, f)
-    }
-}
-
-/// The possible variations of an event content type.
-#[derive(Clone, Copy, PartialEq)]
-pub enum EventContentVariation {
-    Original,
-    Redacted,
-    PossiblyRedacted,
-}
-
-impl fmt::Display for EventContentVariation {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            EventContentVariation::Original => Ok(()),
-            EventContentVariation::Redacted => write!(f, "Redacted"),
-            EventContentVariation::PossiblyRedacted => write!(f, "PossiblyRedacted"),
-        }
-    }
-}
-
-impl From<EventContentVariation> for EventContentTraitVariation {
-    fn from(value: EventContentVariation) -> Self {
-        match value {
-            EventContentVariation::Original => Self::Original,
-            EventContentVariation::Redacted => Self::Redacted,
-            EventContentVariation::PossiblyRedacted => Self::PossiblyRedacted,
-        }
     }
 }
 

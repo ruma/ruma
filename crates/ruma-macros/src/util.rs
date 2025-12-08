@@ -1,7 +1,9 @@
 use proc_macro_crate::{FoundCrate, crate_name};
 use proc_macro2::{Span, TokenStream};
 use quote::{ToTokens, TokenStreamExt, format_ident, quote};
-use syn::{Attribute, Field, Ident, LitStr, visit::Visit};
+use syn::{
+    Attribute, Field, Ident, LitStr, meta::ParseNestedMeta, punctuated::Punctuated, visit::Visit,
+};
 
 /// The path to use for imports from the ruma-common crate.
 ///
@@ -311,8 +313,11 @@ pub(crate) trait StructFieldExt {
     /// Get the `#[cfg]` attributes on this field.
     fn cfg_attrs(&self) -> impl Iterator<Item = &'_ Attribute>;
 
-    /// Whether this field has a `#[serde(flatten)]` attribute.
-    fn has_serde_flatten_attribute(&self) -> bool;
+    /// Get the serde meta items on this field, if it has `#[serde(…)]` attributes.
+    fn serde_meta_items(&self) -> impl Iterator<Item = syn::Meta>;
+
+    /// Whether this field has a `#[serde(…)]` containing the given meta item.
+    fn has_serde_meta_item(&self, meta: SerdeMetaItem) -> bool;
 }
 
 impl StructFieldExt for Field {
@@ -324,29 +329,67 @@ impl StructFieldExt for Field {
         self.attrs.iter().filter(|a| a.path().is_ident("cfg"))
     }
 
-    fn has_serde_flatten_attribute(&self) -> bool {
-        self.attrs.iter().any(is_serde_flatten_attribute)
+    fn serde_meta_items(&self) -> impl Iterator<Item = syn::Meta> {
+        self.attrs.iter().flat_map(AttributeExt::serde_meta_items)
+    }
+
+    fn has_serde_meta_item(&self, meta: SerdeMetaItem) -> bool {
+        self.serde_meta_items().any(|serde_meta| serde_meta == meta)
     }
 }
 
-/// Whether the given attribute is a `#[serde(flatten)]` attribute.
-fn is_serde_flatten_attribute(attr: &Attribute) -> bool {
-    if !attr.path().is_ident("serde") {
-        return false;
-    }
+/// Possible meta items for `#[serde(…)]` attributes.
+#[derive(Clone, Copy)]
+pub(crate) enum SerdeMetaItem {
+    /// `flatten`.
+    Flatten,
 
-    let mut contains_flatten = false;
-    let _ = attr.parse_nested_meta(|meta| {
-        if meta.path.is_ident("flatten") {
-            contains_flatten = true;
-            // Return an error to stop the parsing early.
-            return Err(meta.error("found"));
+    /// `default`.
+    Default,
+
+    /// `rename`.
+    Rename,
+
+    /// `alias`.
+    Alias,
+}
+
+impl SerdeMetaItem {
+    /// The string representation of this meta item.
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::Flatten => "flatten",
+            Self::Default => "default",
+            Self::Rename => "rename",
+            Self::Alias => "alias",
         }
+    }
+}
 
-        Ok(())
-    });
+impl PartialEq<SerdeMetaItem> for syn::Meta {
+    fn eq(&self, other: &SerdeMetaItem) -> bool {
+        self.path().is_ident(other.as_str())
+    }
+}
 
-    contains_flatten
+/// Helper trait for a [`syn::Attribute`].
+pub(crate) trait AttributeExt {
+    /// Get the list of meta items if this is a `#[serde(…)]` attribute.
+    fn serde_meta_items(&self) -> impl Iterator<Item = syn::Meta>;
+}
+
+impl AttributeExt for Attribute {
+    fn serde_meta_items(&self) -> impl Iterator<Item = syn::Meta> {
+        if self.path().is_ident("serde")
+            && let syn::Meta::List(list) = &self.meta
+        {
+            list.parse_args_with(Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated).ok()
+        } else {
+            None
+        }
+        .into_iter()
+        .flatten()
+    }
 }
 
 /// Helper trait for a [`syn::Type`].
@@ -450,4 +493,16 @@ pub(crate) fn expand_fields_as_variable_declarations(fields: &[Field], src: &Ide
             }
         })
         .collect()
+}
+
+/// Extension trait for [`syn::meta::ParseNestedMeta`].
+pub(crate) trait ParseNestedMetaExt {
+    /// Whether this meta item has a value.
+    fn has_value(&self) -> bool;
+}
+
+impl ParseNestedMetaExt for ParseNestedMeta<'_> {
+    fn has_value(&self) -> bool {
+        !self.input.is_empty() && !self.input.peek(syn::Token![,])
+    }
 }
