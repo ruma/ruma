@@ -7,7 +7,7 @@ use quote::quote;
 
 use super::EventEnumData;
 use crate::{
-    events::enums::EventKind,
+    events::common::EventKind,
     util::{RumaEvents, RumaEventsReexport},
 };
 

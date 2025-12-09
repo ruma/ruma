@@ -10,7 +10,7 @@ use syn::{
 
 use super::{EventContent, EventContentField, EventContentKind};
 use crate::{
-    events::enums::{EventKind, EventType, EventTypes},
+    events::common::{EventKind, EventType, EventTypes},
     util::{ParseNestedMetaExt, RumaEvents, SerdeMetaItem, StructFieldExt},
 };
 
