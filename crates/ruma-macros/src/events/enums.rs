@@ -203,16 +203,16 @@ impl EventVariation {
         matches!(self, Self::Sync | Self::OriginalSync | Self::RedactedSync)
     }
 
-    /// Convert this "sync" variation to one which contains a `room_id`.
+    /// Convert this "sync" variation to one which contains a `room_id`, if possible.
     ///
-    /// Panics if this is not a "sync" variation.
-    pub fn to_full(self) -> Self {
-        match self {
+    /// Returns `None` if this is not a "sync" variation.
+    pub(super) fn to_full(self) -> Option<Self> {
+        Some(match self {
             EventVariation::Sync => EventVariation::None,
             EventVariation::OriginalSync => EventVariation::Original,
             EventVariation::RedactedSync => EventVariation::Redacted,
-            _ => panic!("No original (unredacted) form of {self:?}"),
-        }
+            _ => return None,
+        })
     }
 
     /// Whether this variation can implement `JsonCastable` for the other variation, if both are

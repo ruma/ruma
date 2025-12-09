@@ -1,166 +1,140 @@
 //! Implementation of the `Event` derive macro.
 
-use proc_macro2::{Span, TokenStream};
+use std::borrow::Cow;
+
+use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{Data, DataStruct, DeriveInput, Fields, FieldsNamed, parse_quote};
+use syn::parse_quote;
 
 mod parse;
 
-use self::parse::{ParsedEventField, parse_event_struct_ident_to_kind_variation};
 use super::enums::{CommonEventField, EventKind, EventVariation};
 use crate::util::{RumaEvents, RumaEventsReexport, to_camel_case};
 
 /// `Event` derive macro code generation.
-pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
-    let ruma_events = RumaEvents::new();
+pub(crate) fn expand_event(input: syn::DeriveInput) -> syn::Result<TokenStream> {
+    let event = Event::parse(input)?;
 
-    let ident = &input.ident;
-    let (kind, var) = parse_event_struct_ident_to_kind_variation(ident).ok_or_else(|| {
-        syn::Error::new_spanned(ident, "not a supported ruma event struct identifier")
-    })?;
+    let deserialize_impl = event.expand_deserialize_impl();
+    let sync_from_and_into_full = event.expand_sync_from_and_into_full();
 
-    let fields = if let Data::Struct(DataStruct {
-        fields: Fields::Named(FieldsNamed { named, .. }),
-        ..
-    }) = &input.data
-    {
-        if !named.iter().any(|f| f.ident.as_ref().unwrap() == "content") {
-            return Err(syn::Error::new(
-                Span::call_site(),
-                "struct must contain a `content` field",
-            ));
-        }
+    let eq_and_ord_impl = event.expand_eq_and_ord_impl();
 
-        named.iter().cloned().map(ParsedEventField::parse).collect::<Result<Vec<_>, _>>()?
-    } else {
-        return Err(syn::Error::new_spanned(
-            input.ident,
-            "the `Event` derive only supports structs with named fields",
-        ));
-    };
-
-    let mut res = TokenStream::new();
-
-    res.extend(
-        expand_deserialize_event(&input, var, &fields, &ruma_events)
-            .unwrap_or_else(syn::Error::into_compile_error),
-    );
-
-    if var.is_sync() {
-        res.extend(expand_sync_from_into_full(&input, kind, var, &fields, &ruma_events));
-    }
-
-    if CommonEventField::EventId.is_present(kind, var) {
-        res.extend(expand_eq_ord_event(&input));
-    }
-
-    Ok(res)
+    Ok(quote! {
+        #deserialize_impl
+        #sync_from_and_into_full
+        #eq_and_ord_impl
+    })
 }
 
-/// Implement `Deserialize` for the event struct.
-fn expand_deserialize_event(
-    input: &DeriveInput,
-    var: EventVariation,
-    fields: &[ParsedEventField],
-    ruma_events: &RumaEvents,
-) -> syn::Result<TokenStream> {
-    let serde = ruma_events.reexported(RumaEventsReexport::Serde);
-    let serde_json = ruma_events.reexported(RumaEventsReexport::SerdeJson);
+/// The parsed `Event` container data.
+struct Event {
+    /// The name of the event struct.
+    ident: syn::Ident,
 
-    let ident = &input.ident;
-    // we know there is a content field already
-    let content_type = &fields
-        .iter()
-        // we also know that the fields are named and have an ident
-        .find(|f| f.name() == "content")
-        .unwrap()
-        .ty();
+    /// The generics on the event struct.
+    generics: syn::Generics,
 
-    let (impl_generics, ty_gen, where_clause) = input.generics.split_for_impl();
-    let is_generic = !input.generics.params.is_empty();
+    /// The kind of event.
+    kind: EventKind,
 
-    let enum_variants: Vec<_> = fields.iter().map(|field| to_camel_case(field.name())).collect();
-    let enum_variants_serde_attributes = fields
-        .iter()
-        .map(|field| {
-            let mut attrs = Vec::new();
+    /// The variation of the event struct.
+    variation: EventVariation,
 
-            if let Some(rename) = &field.rename {
-                attrs.push(quote! { rename = #rename });
-            }
+    /// The fields of the struct.
+    fields: Vec<EventField>,
 
-            attrs.extend(field.aliases.iter().map(|alias| {
-                quote! { alias = #alias }
-            }));
+    /// The path to imports from the ruma-events crate.
+    ruma_events: RumaEvents,
+}
 
-            (!attrs.is_empty()).then(|| {
-                quote! { #[serde(#( #attrs, )*)] }
-            })
-        })
-        .collect::<Vec<_>>();
-    let serialized_field_names =
-        fields.iter().map(ParsedEventField::serialized_name).collect::<Vec<_>>();
+impl Event {
+    /// Generate the `serde::Deserialize` implementation for this struct.
+    fn expand_deserialize_impl(&self) -> TokenStream {
+        let ruma_events = &self.ruma_events;
+        let serde = ruma_events.reexported(RumaEventsReexport::Serde);
+        let serde_json = ruma_events.reexported(RumaEventsReexport::SerdeJson);
 
-    let deserialize_var_types: Vec<_> = fields
-        .iter()
-        .map(|field| {
-            let name = field.name();
-            if name == "content" {
-                if is_generic {
-                    quote! { ::std::boxed::Box<#serde_json::value::RawValue> }
-                } else {
-                    quote! { #content_type }
-                }
-            } else if name == "state_key" && var == EventVariation::Initial {
+        let ident = &self.ident;
+        let is_content_generic = !self.generics.params.is_empty();
+        let (impl_generics, ty_gen, where_clause) = self.generics.split_for_impl();
+
+        let field_idents = self.fields.iter().map(EventField::ident).collect::<Vec<_>>();
+        let serialized_field_names =
+            self.fields.iter().map(EventField::serialized_name).collect::<Vec<_>>();
+        let enum_variants = field_idents.iter().copied().map(to_camel_case).collect::<Vec<_>>();
+        let enum_variants_serde_attributes = self.fields.iter().map(EventField::serde_attribute);
+
+        // Get the type of each field to deserialize to.
+        let field_types = self.fields.iter().map(|field| {
+            let field_ident = field.ident();
+
+            if *field_ident == "content" && is_content_generic {
+                // Deserialize the content to a `Box<RawValue>` so we can use the
+                // `EventContentFromType` implementation later.
+                quote! { ::std::boxed::Box<#serde_json::value::RawValue> }
+            } else if *field_ident == "state_key" && self.variation == EventVariation::Initial {
+                // Because the state key is allowed to be missing if it is empty when sending an
+                // initial state event during creation, we default to deserializing a string first
+                // so we can default to an empty string if it is missing.
                 quote! { ::std::string::String }
             } else {
-                let ty = field.ty();
-                quote! { #ty }
+                let field_type = &field.inner.ty;
+                quote! { #field_type }
             }
-        })
-        .collect();
+        });
 
-    let ok_or_else_fields: Vec<_> = fields
-        .iter()
-        .zip(&serialized_field_names)
-        .map(|(field, serialized_name)| {
-            let name = field.name();
+        // Validate the deserialized values of the fields.
+        let validate_field_values = self
+            .fields
+            .iter()
+            .zip(&serialized_field_names)
+            .map(|(field, serialized_name)| {
+                let field_ident = field.ident();
 
-            Ok(if name == "content" && is_generic {
-                quote! {
-                    let content = {
-                        let json = content
-                            .ok_or_else(|| #serde::de::Error::missing_field("content"))?;
-                        C::from_parts(&event_type, &json).map_err(#serde::de::Error::custom)?
-                    };
-                }
-            } else if field.default || (name == "unsigned" && !var.is_redacted()) {
-                quote! {
-                    let #name = #name.unwrap_or_default();
-                }
-            } else if name == "state_key" && var == EventVariation::Initial {
-                let ty = field.ty();
-                quote! {
-                    let state_key: ::std::string::String = state_key.unwrap_or_default();
-                    let state_key: #ty = <#ty as #serde::de::Deserialize>::deserialize(
-                        #serde::de::IntoDeserializer::<A::Error>::into_deserializer(state_key),
-                    )?;
-                }
-            } else {
-                quote! {
-                    let #name = #name.ok_or_else(|| {
-                        #serde::de::Error::missing_field(#serialized_name)
-                    })?;
+                if *field_ident == "content" && is_content_generic {
+                    // Return an error if the content is missing, and use the `EventContentFromType`
+                    // implementation to deserialize the `RawValue`.
+                    quote! {
+                        let content = {
+                            let json = content
+                                .ok_or_else(|| #serde::de::Error::missing_field("content"))?;
+                            C::from_parts(&event_type, &json).map_err(#serde::de::Error::custom)?
+                        };
+                    }
+                } else if field.default
+                    || (*field_ident == "unsigned" && !self.variation.is_redacted())
+                {
+                    // The field is allowed to be missing, and uses its `Default` implementation.
+                    quote! {
+                        let #field_ident = #field_ident.unwrap_or_default();
+                    }
+                } else if *field_ident == "state_key" && self.variation == EventVariation::Initial {
+                    // The state key is allowed to be missing if it is empty, when sending an
+                    // initial state event during creation.
+                    let field_type = &field.inner.ty;
+                    quote! {
+                        let state_key = <#field_type as #serde::de::Deserialize>::deserialize(
+                            #serde::de::IntoDeserializer::<A::Error>::into_deserializer(
+                                state_key.unwrap_or_default(),
+                            ),
+                        )?;
+                    }
+                } else {
+                    // The default behavior is to return an error if the field is missing.
+                    quote! {
+                        let #field_ident = #field_ident.ok_or_else(|| {
+                            #serde::de::Error::missing_field(#serialized_name)
+                        })?;
+                    }
                 }
             })
-        })
-        .collect::<syn::Result<_>>()?;
+            .collect::<Vec<_>>();
 
-    let field_names: Vec<_> = fields.iter().map(ParsedEventField::name).collect();
-    let field_error_handlers = fields
-        .iter()
-        .map(|field| {
+        // Handle deserialization errors for the fields.
+        let field_deserialize_error_handlers = self.fields.iter().map(|field| {
             if field.default_on_error {
+                // Just log the deserialization error and use the `Default` implementation instead.
                 quote! {
                     .map_err(|error| {
                         tracing::debug!("deserialization error, using default value: {error}");
@@ -168,191 +142,258 @@ fn expand_deserialize_event(
                     .unwrap_or_default()
                 }
             } else {
+                // Just forward the deserialization error.
                 quote! { ? }
             }
-        })
-        .collect::<Vec<_>>();
+        });
 
-    let deserialize_impl_gen = if is_generic {
-        let generic_params = &input.generics.params;
-        quote! { <'de, #generic_params> }
-    } else {
-        quote! { <'de> }
-    };
-    let deserialize_phantom_type = if is_generic {
-        quote! { ::std::marker::PhantomData }
-    } else {
-        quote! {}
-    };
-    let where_clause = if is_generic {
-        let predicate = parse_quote! { C: #ruma_events::EventContentFromType };
-        if let Some(mut where_clause) = where_clause.cloned() {
-            where_clause.predicates.push(predicate);
-            Some(where_clause)
+        // Add the deserialization lifetime to the list of generics.
+        let deserialize_generics = if is_content_generic {
+            let generic_params = &self.generics.params;
+            quote! { <'de, #generic_params> }
         } else {
-            Some(parse_quote! { where #predicate })
-        }
-    } else {
-        where_clause.cloned()
-    };
+            quote! { <'de> }
+        };
 
-    Ok(quote! {
-        #[automatically_derived]
-        impl #deserialize_impl_gen #serde::de::Deserialize<'de> for #ident #ty_gen #where_clause {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: #serde::de::Deserializer<'de>,
-            {
-                #[derive(#serde::Deserialize)]
-                #[serde(field_identifier, rename_all = "snake_case")]
-                enum Field {
-                    // since this is represented as an enum we have to add it so the JSON picks it
-                    // up
-                    Type,
-                    #( #enum_variants_serde_attributes #enum_variants, )*
-                    #[serde(other)]
-                    Unknown,
-                }
+        // If the struct has generics, it needs to be forwarded to the `EventVisitor` as
+        // `PhantomData`.
+        let visitor_phantom_type = if is_content_generic {
+            quote! { ::std::marker::PhantomData }
+        } else {
+            quote! {}
+        };
 
-                /// Visits the fields of an event struct to handle deserialization of
-                /// the `content` and `prev_content` fields.
-                struct EventVisitor #impl_generics (#deserialize_phantom_type #ty_gen);
+        // If the content is generic, we must add a bound for the `EventContentFromType`
+        // implementation.
+        let where_clause = if is_content_generic {
+            let predicate = parse_quote! { C: #ruma_events::EventContentFromType };
 
-                #[automatically_derived]
-                impl #deserialize_impl_gen #serde::de::Visitor<'de>
-                    for EventVisitor #ty_gen #where_clause
+            let where_clause = if let Some(mut where_clause) = where_clause.cloned() {
+                where_clause.predicates.push(predicate);
+                where_clause
+            } else {
+                parse_quote! { where #predicate }
+            };
+
+            Some(Cow::Owned(where_clause))
+        } else {
+            where_clause.map(Cow::Borrowed)
+        };
+
+        quote! {
+            #[automatically_derived]
+            impl #deserialize_generics #serde::de::Deserialize<'de> for #ident #ty_gen #where_clause {
+                fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                where
+                    D: #serde::de::Deserializer<'de>,
                 {
-                    type Value = #ident #ty_gen;
-
-                    fn expecting(
-                        &self,
-                        formatter: &mut ::std::fmt::Formatter<'_>,
-                    ) -> ::std::fmt::Result {
-                        write!(formatter, "struct implementing {}", stringify!(#content_type))
+                    #[derive(#serde::Deserialize)]
+                    #[serde(field_identifier, rename_all = "snake_case")]
+                    enum Field {
+                        // This field is hidden as the content type in Ruma, but it is always a
+                        // valid field and we need to extract it to deserialize the content type.
+                        Type,
+                        #( #enum_variants_serde_attributes #enum_variants, )*
+                        #[serde(other)]
+                        Unknown,
                     }
 
-                    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-                    where
-                        A: #serde::de::MapAccess<'de>,
-                    {
-                        let mut event_type: Option<String> = None;
-                        #( let mut #field_names: Option<#deserialize_var_types> = None; )*
+                    /// Visits the fields of an event struct, in particular to handle deserialization of
+                    /// the `content` field.
+                    struct EventVisitor #impl_generics (#visitor_phantom_type #ty_gen);
 
-                        while let Some(key) = map.next_key()? {
-                            match key {
-                                Field::Unknown => {
-                                    let _: #serde::de::IgnoredAny = map.next_value()?;
-                                },
-                                Field::Type => {
-                                    if event_type.is_some() {
-                                        return Err(#serde::de::Error::duplicate_field("type"));
-                                    }
-                                    event_type = Some(map.next_value()?);
-                                }
-                                #(
-                                    Field::#enum_variants => {
-                                        if #field_names.is_some() {
-                                            return Err(#serde::de::Error::duplicate_field(
-                                                #serialized_field_names,
-                                            ));
-                                        }
-                                        #field_names = Some(map.next_value() #field_error_handlers);
-                                    }
-                                )*
-                            }
+                    #[automatically_derived]
+                    impl #deserialize_generics #serde::de::Visitor<'de>
+                        for EventVisitor #ty_gen #where_clause
+                    {
+                        type Value = #ident #ty_gen;
+
+                        fn expecting(
+                            &self,
+                            formatter: &mut ::std::fmt::Formatter<'_>,
+                        ) -> ::std::fmt::Result {
+                            write!(formatter, "a key-value map")
                         }
 
-                        let event_type =
-                            event_type.ok_or_else(|| #serde::de::Error::missing_field("type"))?;
-                        #( #ok_or_else_fields )*
+                        fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+                        where
+                            A: #serde::de::MapAccess<'de>,
+                        {
+                            let mut event_type: Option<String> = None;
+                            #( let mut #field_idents: Option<#field_types> = None; )*
 
-                        Ok(#ident {
-                            #( #field_names ),*
-                        })
+                            while let Some(key) = map.next_key()? {
+                                match key {
+                                    // We ignore unknown fields, for forwards compatibility.
+                                    Field::Unknown => {
+                                        let _: #serde::de::IgnoredAny = map.next_value()?;
+                                    },
+                                    Field::Type => {
+                                        if event_type.is_some() {
+                                            return Err(#serde::de::Error::duplicate_field("type"));
+                                        }
+                                        event_type = Some(map.next_value()?);
+                                    }
+                                    #(
+                                        Field::#enum_variants => {
+                                            if #field_idents.is_some() {
+                                                return Err(#serde::de::Error::duplicate_field(
+                                                    #serialized_field_names,
+                                                ));
+                                            }
+                                            #field_idents = Some(map.next_value() #field_deserialize_error_handlers);
+                                        }
+                                    )*
+                                }
+                            }
+
+                            let event_type =
+                                event_type.ok_or_else(|| #serde::de::Error::missing_field("type"))?;
+                            #( #validate_field_values )*
+
+                            Ok(#ident {
+                                #( #field_idents ),*
+                            })
+                        }
+                    }
+
+                    deserializer.deserialize_map(EventVisitor(#visitor_phantom_type))
+                }
+            }
+        }
+    }
+
+    /// Generate `From<{full_event}>` and `.into_full_event()` implementations if this is a "sync"
+    /// event struct.
+    fn expand_sync_from_and_into_full(&self) -> Option<TokenStream> {
+        let full_ident = self.kind.to_event_ident(self.variation.to_full()?).ok()?;
+
+        let ruma_common = self.ruma_events.ruma_common();
+        let ident = &self.ident;
+        let (impl_generics, ty_gen, where_clause) = self.generics.split_for_impl();
+        let field_idents = self.fields.iter().map(EventField::ident).collect::<Vec<_>>();
+
+        Some(quote! {
+            #[automatically_derived]
+            impl #impl_generics ::std::convert::From<#full_ident #ty_gen>
+                for #ident #ty_gen #where_clause
+            {
+                fn from(event: #full_ident #ty_gen) -> Self {
+                    let #full_ident { #( #field_idents, )* .. } = event;
+                    Self { #( #field_idents, )* }
+                }
+            }
+
+            #[automatically_derived]
+            impl #impl_generics #ident #ty_gen #where_clause {
+                /// Convert this sync event into a full event, one with a `room_id` field.
+                pub fn into_full_event(
+                    self,
+                    room_id: #ruma_common::OwnedRoomId,
+                ) -> #full_ident #ty_gen {
+                    let Self { #( #field_idents, )* } = self;
+                    #full_ident {
+                        #( #field_idents, )*
+                        room_id,
                     }
                 }
-
-                deserializer.deserialize_map(EventVisitor(#deserialize_phantom_type))
             }
-        }
-    })
-}
+        })
+    }
 
-/// Implement `From<{full}>` and `.into_full_event()` for a sync event struct.
-fn expand_sync_from_into_full(
-    input: &DeriveInput,
-    kind: EventKind,
-    var: EventVariation,
-    fields: &[ParsedEventField],
-    ruma_events: &RumaEvents,
-) -> syn::Result<TokenStream> {
-    let ruma_common = ruma_events.ruma_common();
-
-    let ident = &input.ident;
-    let full_struct = kind.to_event_ident(var.to_full())?;
-    let (impl_generics, ty_gen, where_clause) = input.generics.split_for_impl();
-    let fields: Vec<_> = fields.iter().map(ParsedEventField::name).collect();
-
-    Ok(quote! {
-        #[automatically_derived]
-        impl #impl_generics ::std::convert::From<#full_struct #ty_gen>
-            for #ident #ty_gen #where_clause
-        {
-            fn from(event: #full_struct #ty_gen) -> Self {
-                let #full_struct { #( #fields, )* .. } = event;
-                Self { #( #fields, )* }
-            }
+    /// Implement `std::cmp::PartialEq`, `std::cmp::Eq`, `std::cmp::PartialOrd`, `std::cmp::Ord` for
+    /// this event struct by comparing the `event_id`, if this field is present.
+    fn expand_eq_and_ord_impl(&self) -> Option<TokenStream> {
+        if !CommonEventField::EventId.is_present(self.kind, self.variation) {
+            return None;
         }
 
-        #[automatically_derived]
-        impl #impl_generics #ident #ty_gen #where_clause {
-            /// Convert this sync event into a full event, one with a room_id field.
-            pub fn into_full_event(
-                self,
-                room_id: #ruma_common::OwnedRoomId,
-            ) -> #full_struct #ty_gen {
-                let Self { #( #fields, )* } = self;
-                #full_struct {
-                    #( #fields, )*
-                    room_id,
+        let ident = &self.ident;
+        let (impl_gen, ty_gen, where_clause) = self.generics.split_for_impl();
+
+        Some(quote! {
+            #[automatically_derived]
+            impl #impl_gen ::std::cmp::PartialEq for #ident #ty_gen #where_clause {
+                /// Checks if the `EventId`s of the events are equal.
+                fn eq(&self, other: &Self) -> ::std::primitive::bool {
+                    self.event_id == other.event_id
                 }
             }
-        }
-    })
+
+            #[automatically_derived]
+            impl #impl_gen ::std::cmp::Eq for #ident #ty_gen #where_clause {}
+
+            #[automatically_derived]
+            impl #impl_gen ::std::cmp::PartialOrd for #ident #ty_gen #where_clause {
+                /// Compares the `EventId`s of the events and orders them lexicographically.
+                fn partial_cmp(&self, other: &Self) -> ::std::option::Option<::std::cmp::Ordering> {
+                    self.event_id.partial_cmp(&other.event_id)
+                }
+            }
+
+            #[automatically_derived]
+            impl #impl_gen ::std::cmp::Ord for #ident #ty_gen #where_clause {
+                /// Compares the `EventId`s of the events and orders them lexicographically.
+                fn cmp(&self, other: &Self) -> ::std::cmp::Ordering {
+                    self.event_id.cmp(&other.event_id)
+                }
+            }
+        })
+    }
 }
 
-/// Implement `PartialEq`, `Eq`, `PartialOrd`, `Ord` for the event struct by comparing the
-/// `event_id`.
-fn expand_eq_ord_event(input: &DeriveInput) -> TokenStream {
-    let ident = &input.ident;
-    let (impl_gen, ty_gen, where_clause) = input.generics.split_for_impl();
+/// A parsed field of an [`Event`].
+struct EventField {
+    /// The parsed field, without the `ruma_event` attributes.
+    inner: syn::Field,
 
-    quote! {
-        #[automatically_derived]
-        impl #impl_gen ::std::cmp::PartialEq for #ident #ty_gen #where_clause {
-            /// Checks if two `EventId`s are equal.
-            fn eq(&self, other: &Self) -> ::std::primitive::bool {
-                self.event_id == other.event_id
-            }
+    /// Whether this field should deserialize to the default value if it is missing.
+    default: bool,
+
+    /// Whether this field should deserialize to the default value if an error occurs during
+    /// deserialization.
+    default_on_error: bool,
+
+    /// The name to use when (de)serializing this field.
+    ///
+    /// If this is not set, the name of the field will be used.
+    rename: Option<syn::LitStr>,
+
+    /// The alternate names to recognize when deserializing this field.
+    aliases: Vec<syn::LitStr>,
+}
+
+impl EventField {
+    /// The ident of this field.
+    fn ident(&self) -> &syn::Ident {
+        self.inner.ident.as_ref().expect(
+            "all fields of Event struct should be named; \
+             this should have been checked during parsing",
+        )
+    }
+
+    /// The name of this field in its serialized form.
+    fn serialized_name(&self) -> Cow<'_, syn::LitStr> {
+        self.rename.as_ref().map(Cow::Borrowed).unwrap_or_else(|| {
+            let ident = self.ident();
+            Cow::Owned(syn::LitStr::new(&ident.to_string(), ident.span()))
+        })
+    }
+
+    /// The serde attribute to apply to this field.
+    fn serde_attribute(&self) -> Option<TokenStream> {
+        let mut attrs = Vec::new();
+
+        if let Some(rename) = &self.rename {
+            attrs.push(quote! { rename = #rename });
         }
 
-        #[automatically_derived]
-        impl #impl_gen ::std::cmp::Eq for #ident #ty_gen #where_clause {}
+        attrs.extend(self.aliases.iter().map(|alias| {
+            quote! { alias = #alias }
+        }));
 
-        #[automatically_derived]
-        impl #impl_gen ::std::cmp::PartialOrd for #ident #ty_gen #where_clause {
-            /// Compares `EventId`s and orders them lexicographically.
-            fn partial_cmp(&self, other: &Self) -> ::std::option::Option<::std::cmp::Ordering> {
-                self.event_id.partial_cmp(&other.event_id)
-            }
-        }
-
-        #[automatically_derived]
-        impl #impl_gen ::std::cmp::Ord for #ident #ty_gen #where_clause {
-            /// Compares `EventId`s and orders them lexicographically.
-            fn cmp(&self, other: &Self) -> ::std::cmp::Ordering {
-                self.event_id.cmp(&other.event_id)
-            }
-        }
+        (!attrs.is_empty()).then(|| {
+            quote! { #[serde(#( #attrs ),*)] }
+        })
     }
 }
