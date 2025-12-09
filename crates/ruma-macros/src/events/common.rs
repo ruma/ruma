@@ -4,10 +4,7 @@ use std::fmt;
 
 use proc_macro2::{Span, TokenStream};
 use quote::{ToTokens, format_ident, quote};
-use syn::{
-    Ident, LitStr,
-    parse::{Parse, ParseStream},
-};
+use syn::parse::{Parse, ParseStream};
 
 use crate::util::{RumaEvents, m_prefix_name_to_type_name};
 
@@ -90,7 +87,7 @@ impl fmt::Display for CommonEventKind {
 
 impl Parse for CommonEventKind {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let ident: Ident = input.parse()?;
+        let ident: syn::Ident = input.parse()?;
         Ok(match ident.to_string().as_str() {
             "GlobalAccountData" => Self::GlobalAccountData,
             "RoomAccountData" => Self::RoomAccountData,
@@ -111,27 +108,48 @@ impl Parse for CommonEventKind {
     }
 }
 
-/// All the possible event struct variations.
+/// All the possible event variations.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum EventVariation {
+pub(super) enum EventVariation {
+    /// The full format of an event.
+    ///
+    /// Either the event cannot be redacted, or the type contains variants for the original and
+    /// redacted variations.
     None,
+
+    /// The sync format of an event.
+    ///
+    /// Either the event cannot be redacted, or the type contains variants for the original and
+    /// redacted variations.
     Sync,
+
+    /// The full format of an event that can be redacted.
     Original,
+
+    /// The sync format of an event that can be redacted.
     OriginalSync,
+
+    /// The stripped format of an event.
     Stripped,
+
+    /// The format of an event passed during room creation.
     Initial,
+
+    /// The full format of an event that was redacted.
     Redacted,
+
+    /// The sync format of an event that was redacted.
     RedactedSync,
 }
 
 impl EventVariation {
     /// Whether this variation was redacted.
-    pub fn is_redacted(self) -> bool {
+    pub(super) fn is_redacted(self) -> bool {
         matches!(self, Self::Redacted | Self::RedactedSync)
     }
 
     /// Whether this variation was received via the `/sync` endpoint.
-    pub fn is_sync(self) -> bool {
+    pub(super) fn is_sync(self) -> bool {
         matches!(self, Self::Sync | Self::OriginalSync | Self::RedactedSync)
     }
 
@@ -140,9 +158,9 @@ impl EventVariation {
     /// Returns `None` if this is not a "sync" variation.
     pub(super) fn to_full(self) -> Option<Self> {
         Some(match self {
-            EventVariation::Sync => EventVariation::None,
-            EventVariation::OriginalSync => EventVariation::Original,
-            EventVariation::RedactedSync => EventVariation::Redacted,
+            Self::Sync => Self::None,
+            Self::OriginalSync => Self::Original,
+            Self::RedactedSync => Self::Redacted,
             _ => return None,
         })
     }
@@ -152,7 +170,7 @@ impl EventVariation {
     ///
     /// A variation can be cast to another variation when that other variation includes the same
     /// fields or less.
-    pub fn is_json_castable_to(self, other: Self) -> bool {
+    pub(super) fn is_json_castable_to(self, other: Self) -> bool {
         match self {
             Self::None | Self::OriginalSync | Self::RedactedSync => {
                 matches!(other, Self::Sync | Self::Stripped)
@@ -171,24 +189,31 @@ impl EventVariation {
 impl fmt::Display for EventVariation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            EventVariation::None => write!(f, ""),
-            EventVariation::Sync => write!(f, "Sync"),
-            EventVariation::Original => write!(f, "Original"),
-            EventVariation::OriginalSync => write!(f, "OriginalSync"),
-            EventVariation::Stripped => write!(f, "Stripped"),
-            EventVariation::Initial => write!(f, "Initial"),
-            EventVariation::Redacted => write!(f, "Redacted"),
-            EventVariation::RedactedSync => write!(f, "RedactedSync"),
+            Self::None => write!(f, ""),
+            Self::Sync => write!(f, "Sync"),
+            Self::Original => write!(f, "Original"),
+            Self::OriginalSync => write!(f, "OriginalSync"),
+            Self::Stripped => write!(f, "Stripped"),
+            Self::Initial => write!(f, "Initial"),
+            Self::Redacted => write!(f, "Redacted"),
+            Self::RedactedSync => write!(f, "RedactedSync"),
         }
     }
 }
 
 /// The possible variations of an event content trait.
 #[derive(Clone, Copy, PartialEq)]
-pub enum EventContentTraitVariation {
+pub(super) enum EventContentTraitVariation {
+    /// An event content that wasn't redacted.
     Original,
+
+    /// An event content that was redacted.
     Redacted,
+
+    /// An event content that might have been redacted.
     PossiblyRedacted,
+
+    /// Static data about an event content that wasn't redacted.
     Static,
 }
 
@@ -205,37 +230,42 @@ impl fmt::Display for EventContentTraitVariation {
 
 /// An event type.
 #[derive(Debug, Clone)]
-pub struct EventType {
-    source: LitStr,
+pub(super) struct EventType {
+    /// The source of the event type.
+    source: syn::LitStr,
+
+    /// Whether this event type is a prefix.
     is_prefix: bool,
+
+    /// The value of the event type.
     value: String,
 }
 
 impl EventType {
     /// Whether this event type is a prefix.
-    pub fn is_prefix(&self) -> bool {
+    pub(super) fn is_prefix(&self) -> bool {
         self.is_prefix
     }
 
     /// Access the inner string of this event type.
-    pub fn as_str(&self) -> &str {
+    pub(super) fn as_str(&self) -> &str {
         &self.value
     }
 
     /// Access the inner string of this event type and remove the final `*` if this is a prefix.
-    pub fn without_wildcard(&self) -> &str {
+    pub(super) fn without_wildcard(&self) -> &str {
         if self.is_prefix { self.value.trim_end_matches('*') } else { &self.value }
     }
 
     /// Whether this event type is stable.
     ///
     /// A stable event type starts with `m.`.
-    pub fn is_stable(&self) -> bool {
+    pub(super) fn is_stable(&self) -> bool {
         self.value.starts_with("m.")
     }
 
     /// Get the `match` arm representation of this event type.
-    pub fn as_match_arm(&self) -> TokenStream {
+    pub(super) fn as_match_arm(&self) -> TokenStream {
         let ev_type = self.without_wildcard();
 
         if self.is_prefix() {
@@ -254,8 +284,8 @@ impl PartialEq for EventType {
 
 impl Eq for EventType {}
 
-impl From<LitStr> for EventType {
-    fn from(source: LitStr) -> Self {
+impl From<syn::LitStr> for EventType {
+    fn from(source: syn::LitStr) -> Self {
         let value = source.value();
         Self { source, is_prefix: value.ends_with(".*"), value }
     }
@@ -263,7 +293,7 @@ impl From<LitStr> for EventType {
 
 impl Parse for EventType {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        Ok(input.parse::<LitStr>()?.into())
+        Ok(input.parse::<syn::LitStr>()?.into())
     }
 }
 
@@ -281,9 +311,12 @@ impl ToTokens for EventType {
 
 /// All the event types supported by an event.
 #[derive(Clone)]
-pub struct EventTypes {
-    pub ev_type: EventType,
-    pub aliases: Vec<EventType>,
+pub(super) struct EventTypes {
+    /// The main event type.
+    pub(super) ev_type: EventType,
+
+    /// The alternate event types.
+    pub(super) aliases: Vec<EventType>,
 }
 
 impl EventTypes {
@@ -293,7 +326,7 @@ impl EventTypes {
     ///
     /// - `*` cannot be used anywhere in the event type but as a wildcard at the end.
     /// - If one event type ends with `.*`, all event types must end with it.
-    pub fn try_from_parts(ev_type: EventType, aliases: Vec<EventType>) -> syn::Result<Self> {
+    pub(super) fn try_from_parts(ev_type: EventType, aliases: Vec<EventType>) -> syn::Result<Self> {
         if ev_type.without_wildcard().contains('*') {
             return Err(syn::Error::new_spanned(
                 ev_type,
@@ -323,35 +356,35 @@ impl EventTypes {
     }
 
     /// Get an iterator over all the event types.
-    pub fn iter(&self) -> impl Iterator<Item = &EventType> {
+    pub(super) fn iter(&self) -> impl Iterator<Item = &EventType> {
         std::iter::once(&self.ev_type).chain(&self.aliases)
     }
 
     /// Whether the default event type is a prefix.
     ///
     /// If one event type is a prefix, all event types are prefixes.
-    pub fn is_prefix(&self) -> bool {
+    pub(super) fn is_prefix(&self) -> bool {
         self.ev_type.is_prefix
     }
 
     /// Get the stable event type, if any.
     ///
     /// A stable type is a type beginning with `m.`.
-    pub fn stable_type(&self) -> Option<&EventType> {
+    pub(super) fn stable_type(&self) -> Option<&EventType> {
         self.iter().find(|ev_type| ev_type.is_stable())
     }
 
     /// Get the main event type.
     ///
     /// It is the stable event type or the default event type as a fallback.
-    pub fn main_type(&self) -> &EventType {
+    pub(super) fn main_type(&self) -> &EventType {
         self.stable_type().unwrap_or(&self.ev_type)
     }
 
     /// Get the type name for these event types.
     ///
     /// Returns an error if none of these types are the stable type.
-    pub fn as_event_ident(&self) -> syn::Result<Ident> {
+    pub(super) fn as_event_ident(&self) -> syn::Result<syn::Ident> {
         let stable_type = self.stable_type().ok_or_else(|| {
             syn::Error::new(
                 Span::call_site(),
@@ -401,7 +434,7 @@ impl CommonEventField {
     }
 
     /// This field as a [`syn::Ident`].
-    pub(super) fn ident(self) -> Ident {
+    pub(super) fn ident(self) -> syn::Ident {
         format_ident!("{}", self.as_str())
     }
 
