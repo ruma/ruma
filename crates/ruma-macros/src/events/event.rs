@@ -1,14 +1,14 @@
 //! Implementation of the `Event` derive macro.
 
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt};
 
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{format_ident, quote};
 use syn::parse_quote;
 
 mod parse;
 
-use super::common::{CommonEventField, EventKind, EventVariation};
+use super::common::{CommonEventKind, EventVariation};
 use crate::util::{RumaEvents, RumaEventsReexport, to_camel_case};
 
 /// `Event` derive macro code generation.
@@ -266,7 +266,7 @@ impl Event {
     /// Generate `From<{full_event}>` and `.into_full_event()` implementations if this is a "sync"
     /// event struct.
     fn expand_sync_from_and_into_full(&self) -> Option<TokenStream> {
-        let full_ident = self.kind.to_event_ident(self.variation.to_full()?).ok()?;
+        let full_ident = self.kind.to_event_ident(self.variation.to_full()?);
 
         let ruma_common = self.ruma_events.ruma_common();
         let ident = &self.ident;
@@ -304,7 +304,7 @@ impl Event {
     /// Implement `std::cmp::PartialEq`, `std::cmp::Eq`, `std::cmp::PartialOrd`, `std::cmp::Ord` for
     /// this event struct by comparing the `event_id`, if this field is present.
     fn expand_eq_and_ord_impl(&self) -> Option<TokenStream> {
-        if !CommonEventField::EventId.is_present(self.kind, self.variation) {
+        if !self.kind.is_event_id_present(self.variation) {
             return None;
         }
 
@@ -339,6 +339,104 @@ impl Event {
                 }
             }
         })
+    }
+}
+
+/// All the supported [`Event`] struct kinds.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord)]
+enum EventKind {
+    /// Global account data.
+    ///
+    /// This is user data for the whole account.
+    GlobalAccountData,
+
+    /// Room account data.
+    ///
+    /// This is user data specific to a room.
+    RoomAccountData,
+
+    /// Ephemeral room data.
+    ///
+    /// This is data associated to a room and that is not persisted.
+    EphemeralRoom,
+
+    /// Message-like event.
+    ///
+    /// This is an event that can occur in the timeline and that doesn't have a state key.
+    MessageLike,
+
+    /// State event.
+    ///
+    /// This is an event that can occur in the timeline and that has a state key.
+    State,
+
+    /// A to-device event.
+    ///
+    /// This is an event that is sent directly to another device.
+    ToDevice,
+
+    /// `m.room.redaction` event.
+    RoomRedaction,
+
+    /// `m.space.child` event in the format returned at the space hierarchy endpoint.
+    HierarchySpaceChild,
+
+    /// Decrypted event.
+    Decrypted,
+}
+
+impl EventKind {
+    /// Whether this kind can be found in a room's timeline.
+    fn is_timeline(self) -> bool {
+        matches!(self, Self::MessageLike | Self::State | Self::RoomRedaction)
+    }
+
+    /// The common kind matching this kind, if any.
+    ///
+    /// Returns `None` for the [`EventEnumKind::Timeline`] variant.
+    fn common_kind(self) -> Option<CommonEventKind> {
+        Some(match self {
+            Self::GlobalAccountData => CommonEventKind::GlobalAccountData,
+            Self::RoomAccountData => CommonEventKind::RoomAccountData,
+            Self::EphemeralRoom => CommonEventKind::EphemeralRoom,
+            Self::MessageLike => CommonEventKind::MessageLike,
+            Self::State => CommonEventKind::State,
+            Self::ToDevice => CommonEventKind::ToDevice,
+            _ => return None,
+        })
+    }
+
+    /// Get the name of the event type (struct or enum) for this kind and the given variation.
+    fn to_event_ident(self, variation: EventVariation) -> syn::Ident {
+        format_ident!("{variation}{self}")
+    }
+
+    /// Whether the `event_id` field is present with this kind and the given variation.
+    fn is_event_id_present(self, variation: EventVariation) -> bool {
+        self.is_timeline()
+            && matches!(
+                variation,
+                EventVariation::None
+                    | EventVariation::Sync
+                    | EventVariation::Original
+                    | EventVariation::OriginalSync
+                    | EventVariation::Redacted
+                    | EventVariation::RedactedSync
+            )
+    }
+}
+
+impl fmt::Display for EventKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(common_kind) = self.common_kind() {
+            fmt::Display::fmt(&common_kind, f)
+        } else {
+            match self {
+                Self::RoomRedaction => write!(f, "RoomRedactionEvent"),
+                Self::HierarchySpaceChild => write!(f, "HierarchySpaceChildEvent"),
+                _ => unreachable!(),
+            }
+        }
     }
 }
 

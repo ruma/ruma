@@ -3,9 +3,9 @@
 use proc_macro2::Span;
 use syn::meta::ParseNestedMeta;
 
-use super::{Event, EventField};
+use super::{Event, EventField, EventKind};
 use crate::{
-    events::common::{EventKind, EventVariation},
+    events::common::EventVariation,
     util::{ParseNestedMetaExt, RumaEvents},
 };
 

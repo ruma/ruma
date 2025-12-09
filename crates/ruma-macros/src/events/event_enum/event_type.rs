@@ -5,11 +5,8 @@ use std::ops::Deref;
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use super::EventEnumData;
-use crate::{
-    events::common::EventKind,
-    util::{RumaEvents, RumaEventsReexport},
-};
+use super::{EventEnumData, EventEnumKind};
+use crate::util::{RumaEvents, RumaEventsReexport};
 
 /// Data to generate an `*EventType` enum.
 pub(super) struct EventTypeEnum<'a> {
@@ -307,7 +304,7 @@ impl EventTypeEnum<'_> {
 
     /// Generate the `From<{ident}> for TimelineEventType` implementation for the timeline kinds.
     fn expand_into_timeline_event_type_impl(&self) -> Option<TokenStream> {
-        if !self.kind.is_timeline() || self.kind == EventKind::Timeline {
+        if !self.kind.is_timeline() || self.kind == EventEnumKind::Timeline {
             return None;
         }
 

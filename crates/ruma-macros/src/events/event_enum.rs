@@ -1,5 +1,7 @@
 //! Implementation of the `event_enum!` macro.
 
+use std::fmt;
+
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
@@ -11,7 +13,9 @@ mod util;
 use self::{
     event_kind_enum::EventEnum, event_type::EventTypeEnum, util::expand_json_castable_impl,
 };
-use super::common::{EventKind, EventTypes, EventVariation};
+use super::common::{
+    CommonEventField, CommonEventKind, EventContentTraitVariation, EventTypes, EventVariation,
+};
 use crate::util::RumaEvents;
 
 /// Generates enums to represent the various Matrix event types.
@@ -34,7 +38,7 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
             timeline_data
                 .get_or_insert_with(|| EventEnumData {
                     attrs: Vec::new(),
-                    kind: EventKind::Timeline,
+                    kind: EventEnumKind::Timeline,
                     events: Vec::new(),
                 })
                 .events
@@ -66,7 +70,7 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
         for variation in data.kind.event_enum_variations() {
             let ident = data.kind.to_event_enum_ident(*variation)?;
 
-            tokens.extend(expand_json_castable_impl(&ident, data.kind, *variation, &ruma_events)?);
+            tokens.extend(expand_json_castable_impl(&ident, data.kind, *variation, &ruma_events));
         }
 
         event_enums_data.push(data);
@@ -92,11 +96,168 @@ struct EventEnumData {
     /// Outer attributes on the declaration, such as docstrings.
     attrs: Vec<syn::Attribute>,
 
-    /// The event kind.
-    kind: EventKind,
+    /// The event enum kind.
+    kind: EventEnumKind,
 
     /// The event types for this kind.
     events: Vec<EventEnumEntry>,
+}
+
+/// All the possible [`EventEnum`] kinds.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum EventEnumKind {
+    /// Global account data.
+    ///
+    /// This is user data for the whole account.
+    GlobalAccountData,
+
+    /// Room account data.
+    ///
+    /// This is user data specific to a room.
+    RoomAccountData,
+
+    /// Ephemeral room data.
+    ///
+    /// This is data associated to a room and that is not persisted.
+    EphemeralRoom,
+
+    /// Message-like event.
+    ///
+    /// This is an event that can occur in the timeline and that doesn't have a state key.
+    MessageLike,
+
+    /// State event.
+    ///
+    /// This is an event that can occur in the timeline and that has a state key.
+    State,
+
+    /// Timeline event.
+    ///
+    /// This is any event that can occur in the timeline, so this includes message-like and state
+    /// events.
+    Timeline,
+
+    /// A to-device event.
+    ///
+    /// This is an event that is sent directly to another device.
+    ToDevice,
+}
+
+impl EventEnumKind {
+    /// Whether this kind can be found in a room's timeline.
+    fn is_timeline(self) -> bool {
+        matches!(self, Self::MessageLike | Self::State)
+    }
+
+    /// The common kind matching this kind, if any.
+    ///
+    /// Returns `None` for the [`EventEnumKind::Timeline`] variant.
+    fn common_kind(self) -> Option<CommonEventKind> {
+        Some(match self {
+            Self::GlobalAccountData => CommonEventKind::GlobalAccountData,
+            Self::RoomAccountData => CommonEventKind::RoomAccountData,
+            Self::EphemeralRoom => CommonEventKind::EphemeralRoom,
+            Self::MessageLike => CommonEventKind::MessageLike,
+            Self::State => CommonEventKind::State,
+            Self::ToDevice => CommonEventKind::ToDevice,
+            Self::Timeline => return None,
+        })
+    }
+
+    /// Get the name of the event type (struct or enum) for this kind and the given variation.
+    fn to_event_ident(self, variation: EventVariation) -> syn::Ident {
+        format_ident!("{variation}{self}")
+    }
+
+    /// Get the name of the `*EventType` enum for this kind.
+    fn to_event_type_enum(self) -> syn::Ident {
+        format_ident!("{self}Type")
+    }
+
+    /// Get the name of the `{variation}{kind}Content` trait for this kind and the given variation.
+    fn to_content_kind_trait(self, variation: EventContentTraitVariation) -> syn::Ident {
+        format_ident!("{variation}{self}Content")
+    }
+
+    /// Get the list of variations for an event type (struct or enum) for this kind.
+    fn event_variations(self) -> &'static [EventVariation] {
+        if let Some(common_kind) = self.common_kind() {
+            common_kind.event_variations()
+        } else {
+            // The Timeline kind has no variations.
+            &[]
+        }
+    }
+
+    /// Get the list of variations for an event enum for this kind.
+    fn event_enum_variations(self) -> &'static [EventVariation] {
+        match self {
+            Self::GlobalAccountData | Self::RoomAccountData | Self::ToDevice => {
+                &[EventVariation::None]
+            }
+            Self::EphemeralRoom => &[EventVariation::Sync],
+            Self::MessageLike | Self::Timeline => &[EventVariation::None, EventVariation::Sync],
+            Self::State => &[
+                EventVariation::None,
+                EventVariation::Sync,
+                EventVariation::Stripped,
+                EventVariation::Initial,
+            ],
+        }
+    }
+
+    /// Whether the given field is present in this kind and variation.
+    fn field_is_present(self, field: CommonEventField, var: EventVariation) -> bool {
+        match field {
+            CommonEventField::OriginServerTs | CommonEventField::EventId => {
+                self.is_timeline()
+                    && matches!(
+                        var,
+                        EventVariation::None
+                            | EventVariation::Sync
+                            | EventVariation::Original
+                            | EventVariation::OriginalSync
+                            | EventVariation::Redacted
+                            | EventVariation::RedactedSync
+                    )
+            }
+            CommonEventField::RoomId => {
+                matches!(self, Self::MessageLike | Self::State | Self::EphemeralRoom)
+                    && matches!(
+                        var,
+                        EventVariation::None | EventVariation::Original | EventVariation::Redacted
+                    )
+            }
+            CommonEventField::Sender => {
+                matches!(self, Self::MessageLike | Self::State | Self::ToDevice)
+                    && var != EventVariation::Initial
+            }
+        }
+    }
+}
+
+impl From<CommonEventKind> for EventEnumKind {
+    fn from(value: CommonEventKind) -> Self {
+        match value {
+            CommonEventKind::GlobalAccountData => Self::GlobalAccountData,
+            CommonEventKind::RoomAccountData => Self::RoomAccountData,
+            CommonEventKind::EphemeralRoom => Self::EphemeralRoom,
+            CommonEventKind::MessageLike => Self::MessageLike,
+            CommonEventKind::State => Self::State,
+            CommonEventKind::ToDevice => Self::ToDevice,
+        }
+    }
+}
+
+impl fmt::Display for EventEnumKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(common_kind) = self.common_kind() {
+            fmt::Display::fmt(&common_kind, f)
+        } else {
+            // This is the Timeline kind
+            write!(f, "TimelineEvent")
+        }
+    }
 }
 
 /// An entry for an event type in the `event_enum!` macro.
@@ -125,14 +286,14 @@ impl EventEnumEntry {
     }
 
     /// Get or generate the path of the event type for this entry.
-    fn to_event_path(&self, kind: EventKind, var: EventVariation) -> syn::Path {
+    fn to_event_path(&self, kind: EventEnumKind, var: EventVariation) -> syn::Path {
         let type_prefix = match kind {
-            EventKind::ToDevice => "ToDevice",
+            EventEnumKind::ToDevice => "ToDevice",
             // Special case event types that represent both account data kinds.
-            EventKind::GlobalAccountData if self.both_account_data => "Global",
-            EventKind::RoomAccountData if self.both_account_data => "Room",
+            EventEnumKind::GlobalAccountData if self.both_account_data => "Global",
+            EventEnumKind::RoomAccountData if self.both_account_data => "Room",
             // Special case encrypted state event for MSC4362.
-            EventKind::State
+            EventEnumKind::State
                 if self
                     .types
                     .stable_type()
@@ -152,11 +313,11 @@ impl EventEnumEntry {
     }
 
     /// Get or generate the path of the event content type for this entry.
-    fn to_event_content_path(&self, kind: EventKind) -> syn::Path {
+    fn to_event_content_path(&self, kind: EventEnumKind) -> syn::Path {
         let type_prefix = match kind {
-            EventKind::ToDevice => "ToDevice",
+            EventEnumKind::ToDevice => "ToDevice",
             // Special case encrypted state event for MSC4362.
-            EventKind::State
+            EventEnumKind::State
                 if self
                     .types
                     .stable_type()

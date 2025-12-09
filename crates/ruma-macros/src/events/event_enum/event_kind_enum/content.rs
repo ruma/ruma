@@ -3,9 +3,11 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use super::EventEnum;
 use crate::{
-    events::common::{EventContentTraitVariation, EventKind},
+    events::{
+        common::EventContentTraitVariation,
+        event_enum::{EventEnum, EventEnumKind},
+    },
     util::RumaEventsReexport,
 };
 
@@ -126,7 +128,7 @@ impl EventEnum<'_> {
 
         let event_content_kind_trait =
             self.kind.to_content_kind_trait(EventContentTraitVariation::Original);
-        let extra_event_content_impl = (self.kind == EventKind::State).then(|| {
+        let extra_event_content_impl = (self.kind == EventEnumKind::State).then(|| {
             quote! {
                 type StateKey = String;
             }

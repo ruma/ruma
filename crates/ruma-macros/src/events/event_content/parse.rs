@@ -10,7 +10,7 @@ use syn::{
 
 use super::{EventContent, EventContentField, EventContentKind};
 use crate::{
-    events::common::{EventKind, EventType, EventTypes},
+    events::common::{CommonEventKind, EventType, EventTypes},
     util::{ParseNestedMetaExt, RumaEvents, SerdeMetaItem, StructFieldExt},
 };
 
@@ -505,8 +505,9 @@ impl EventContentKind {
             )
         })?;
 
-        let is_state = matches!(kind, EventContentKindAttr::Single(EventKind::State));
-        let is_message_like = matches!(kind, EventContentKindAttr::Single(EventKind::MessageLike));
+        let is_state = matches!(kind, EventContentKindAttr::Single(CommonEventKind::State));
+        let is_message_like =
+            matches!(kind, EventContentKindAttr::Single(CommonEventKind::MessageLike));
 
         if let Some(state_key_type) = &state_key_type
             && !is_state
@@ -542,11 +543,13 @@ impl EventContentKind {
 
         Ok(match kind {
             EventContentKindAttr::Single(kind) => match kind {
-                EventKind::GlobalAccountData => EventContentKind::GlobalAccountData,
-                EventKind::RoomAccountData => EventContentKind::RoomAccountData,
-                EventKind::EphemeralRoom => EventContentKind::EphemeralRoom,
-                EventKind::MessageLike => EventContentKind::MessageLike { has_custom_redacted },
-                EventKind::State => {
+                CommonEventKind::GlobalAccountData => EventContentKind::GlobalAccountData,
+                CommonEventKind::RoomAccountData => EventContentKind::RoomAccountData,
+                CommonEventKind::EphemeralRoom => EventContentKind::EphemeralRoom,
+                CommonEventKind::MessageLike => {
+                    EventContentKind::MessageLike { has_custom_redacted }
+                }
+                CommonEventKind::State => {
                     let state_key_type = state_key_type.ok_or_else(|| {
                         syn::Error::new(Span::call_site(), "missing `state_key_type` attribute")
                     })?;
@@ -563,9 +566,7 @@ impl EventContentKind {
                         has_custom_possibly_redacted,
                     }
                 }
-                EventKind::ToDevice => EventContentKind::ToDevice,
-                // The `Parse` implementation of `EventKind` doesn't allow other variants.
-                _ => unreachable!(),
+                CommonEventKind::ToDevice => EventContentKind::ToDevice,
             },
             EventContentKindAttr::BothAccountData => EventContentKind::BothAccountData,
         })
@@ -579,7 +580,7 @@ impl EventContentKind {
 #[derive(Clone, Copy)]
 enum EventContentKindAttr {
     /// The event content has a single kind.
-    Single(EventKind),
+    Single(CommonEventKind),
 
     /// The event content is of the two account data kinds.
     BothAccountData,
@@ -587,20 +588,20 @@ enum EventContentKindAttr {
 
 impl Parse for EventContentKindAttr {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let first_event_kind: EventKind = input.parse()?;
+        let first_event_kind: CommonEventKind = input.parse()?;
 
         let second_event_kind = input
             .peek(syn::Token![+])
             .then(|| {
                 let _: syn::Token![+] = input.parse()?;
-                input.parse::<EventKind>()
+                input.parse::<CommonEventKind>()
             })
             .transpose()?;
 
         match (first_event_kind, second_event_kind) {
             (event_kind, None) => Ok(Self::Single(event_kind)),
-            (EventKind::GlobalAccountData, Some(EventKind::RoomAccountData))
-            | (EventKind::RoomAccountData, Some(EventKind::GlobalAccountData)) => {
+            (CommonEventKind::GlobalAccountData, Some(CommonEventKind::RoomAccountData))
+            | (CommonEventKind::RoomAccountData, Some(CommonEventKind::GlobalAccountData)) => {
                 Ok(Self::BothAccountData)
             }
             _ => Err(syn::Error::new(Span::call_site(), "only account data can have two kinds")),

@@ -3,7 +3,7 @@
 use std::fmt;
 
 use proc_macro2::{Span, TokenStream};
-use quote::{IdentFragment, ToTokens, format_ident, quote};
+use quote::{ToTokens, format_ident, quote};
 use syn::{
     Ident, LitStr,
     parse::{Parse, ParseStream},
@@ -11,106 +11,49 @@ use syn::{
 
 use crate::util::{RumaEvents, m_prefix_name_to_type_name};
 
-/// All the possible event struct kinds.
+/// All the common event kinds.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord)]
-pub enum EventKind {
+pub(super) enum CommonEventKind {
+    /// Global account data.
+    ///
+    /// This is user data for the whole account.
     GlobalAccountData,
+
+    /// Room account data.
+    ///
+    /// This is user data specific to a room.
     RoomAccountData,
+
+    /// Ephemeral room data.
+    ///
+    /// This is data associated to a room and that is not persisted.
     EphemeralRoom,
+
+    /// Message-like event.
+    ///
+    /// This is an event that can occur in the timeline and that doesn't have a state key.
     MessageLike,
+
+    /// State event.
+    ///
+    /// This is an event that can occur in the timeline and that has a state key.
     State,
+
+    /// A to-device event.
+    ///
+    /// This is an event that is sent directly to another device.
     ToDevice,
-    RoomRedaction,
-    HierarchySpaceChild,
-    Decrypted,
-    Timeline,
 }
 
-impl EventKind {
-    /// Whether this kind is account data.
-    pub fn is_account_data(self) -> bool {
-        matches!(self, Self::GlobalAccountData | Self::RoomAccountData)
-    }
-
-    /// Whether this kind can be found in a room's timeline.
-    pub fn is_timeline(self) -> bool {
-        matches!(self, Self::MessageLike | Self::RoomRedaction | Self::State | Self::Timeline)
-    }
-
-    /// Get the name of the event type (struct or enum) for this kind and the given variation.
-    pub fn to_event_ident(self, var: EventVariation) -> syn::Result<Ident> {
-        if !self.event_variations().contains(&var) {
-            return Err(syn::Error::new(
-                Span::call_site(),
-                format!("({self:?}, {var:?}) is not a valid event kind / variation combination"),
-            ));
-        }
-
-        Ok(format_ident!("{var}{self}"))
-    }
-
-    /// Get the name of the `*EventType` enum for this kind.
-    pub fn to_event_type_enum(self) -> Ident {
-        format_ident!("{}Type", self)
-    }
-
-    /// Get the name of the `[variation][kind]Content` trait for this kind and the given variation.
-    pub fn to_content_kind_trait(self, variation: EventContentTraitVariation) -> Ident {
-        format_ident!("{variation}{self}Content")
-    }
-
-    /// Get the event type (struct or enum) with its bounds for this kind and the given variation.
-    pub fn to_event_with_bounds(
-        self,
-        var: EventVariation,
-        ruma_events: &RumaEvents,
-    ) -> syn::Result<EventWithBounds> {
-        EventWithBounds::new(self, var, ruma_events)
-    }
-
-    /// Get the list of extra event kinds that are part of the event enum for this kind.
-    pub fn extra_enum_kinds(self) -> Vec<Self> {
-        match self {
-            Self::MessageLike => vec![Self::RoomRedaction],
-            Self::Timeline => vec![Self::MessageLike, Self::State, Self::RoomRedaction],
-            Self::GlobalAccountData
-            | Self::RoomAccountData
-            | Self::EphemeralRoom
-            | Self::State
-            | Self::ToDevice
-            | Self::RoomRedaction
-            | Self::HierarchySpaceChild
-            | Self::Decrypted => vec![],
-        }
-    }
-
-    /// Get the list of variations for an event enum for this kind.
-    pub fn event_enum_variations(self) -> &'static [EventVariation] {
+impl CommonEventKind {
+    /// Get the list of variations for an event type (struct or enum) for this kind.
+    pub(super) fn event_variations(self) -> &'static [EventVariation] {
         match self {
             Self::GlobalAccountData | Self::RoomAccountData | Self::ToDevice => {
                 &[EventVariation::None]
             }
-            Self::EphemeralRoom => &[EventVariation::Sync],
-            Self::MessageLike | Self::Timeline => &[EventVariation::None, EventVariation::Sync],
-            Self::State => &[
-                EventVariation::None,
-                EventVariation::Sync,
-                EventVariation::Stripped,
-                EventVariation::Initial,
-            ],
-            Self::RoomRedaction | Self::HierarchySpaceChild | Self::Decrypted => &[],
-        }
-    }
-
-    /// Get the list of variations for an event type (struct or enum) for this kind.
-    pub fn event_variations(self) -> &'static [EventVariation] {
-        match self {
-            Self::GlobalAccountData
-            | Self::RoomAccountData
-            | Self::ToDevice
-            | Self::HierarchySpaceChild => &[EventVariation::None],
             Self::EphemeralRoom => &[EventVariation::None, EventVariation::Sync],
-            Self::MessageLike | Self::RoomRedaction => &[
+            Self::MessageLike => &[
                 EventVariation::None,
                 EventVariation::Original,
                 EventVariation::Redacted,
@@ -128,44 +71,33 @@ impl EventKind {
                 EventVariation::Stripped,
                 EventVariation::Initial,
             ],
-            Self::Decrypted | Self::Timeline => &[],
         }
     }
 }
 
-impl fmt::Display for EventKind {
+impl fmt::Display for CommonEventKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            EventKind::GlobalAccountData => write!(f, "GlobalAccountDataEvent"),
-            EventKind::RoomAccountData => write!(f, "RoomAccountDataEvent"),
-            EventKind::EphemeralRoom => write!(f, "EphemeralRoomEvent"),
-            EventKind::MessageLike => write!(f, "MessageLikeEvent"),
-            EventKind::State => write!(f, "StateEvent"),
-            EventKind::ToDevice => write!(f, "ToDeviceEvent"),
-            EventKind::RoomRedaction => write!(f, "RoomRedactionEvent"),
-            EventKind::HierarchySpaceChild => write!(f, "HierarchySpaceChildEvent"),
-            EventKind::Decrypted => unreachable!(),
-            EventKind::Timeline => write!(f, "TimelineEvent"),
+            Self::GlobalAccountData => write!(f, "GlobalAccountDataEvent"),
+            Self::RoomAccountData => write!(f, "RoomAccountDataEvent"),
+            Self::EphemeralRoom => write!(f, "EphemeralRoomEvent"),
+            Self::MessageLike => write!(f, "MessageLikeEvent"),
+            Self::State => write!(f, "StateEvent"),
+            Self::ToDevice => write!(f, "ToDeviceEvent"),
         }
     }
 }
 
-impl IdentFragment for EventKind {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(self, f)
-    }
-}
-
-impl Parse for EventKind {
+impl Parse for CommonEventKind {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let ident: Ident = input.parse()?;
         Ok(match ident.to_string().as_str() {
-            "GlobalAccountData" => EventKind::GlobalAccountData,
-            "RoomAccountData" => EventKind::RoomAccountData,
-            "EphemeralRoom" => EventKind::EphemeralRoom,
-            "MessageLike" => EventKind::MessageLike,
-            "State" => EventKind::State,
-            "ToDevice" => EventKind::ToDevice,
+            "GlobalAccountData" => Self::GlobalAccountData,
+            "RoomAccountData" => Self::RoomAccountData,
+            "EphemeralRoom" => Self::EphemeralRoom,
+            "MessageLike" => Self::MessageLike,
+            "State" => Self::State,
+            "ToDevice" => Self::ToDevice,
             id => {
                 return Err(syn::Error::new_spanned(
                     ident,
@@ -248,12 +180,6 @@ impl fmt::Display for EventVariation {
             EventVariation::Redacted => write!(f, "Redacted"),
             EventVariation::RedactedSync => write!(f, "RedactedSync"),
         }
-    }
-}
-
-impl IdentFragment for EventVariation {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(self, f)
     }
 }
 
@@ -479,45 +405,6 @@ impl CommonEventField {
         format_ident!("{}", self.as_str())
     }
 
-    /// Whether this field is present in the given kind and variation.
-    pub(super) fn is_present(self, kind: EventKind, var: EventVariation) -> bool {
-        match self {
-            Self::OriginServerTs | Self::EventId => {
-                kind.is_timeline()
-                    && matches!(
-                        var,
-                        EventVariation::None
-                            | EventVariation::Sync
-                            | EventVariation::Original
-                            | EventVariation::OriginalSync
-                            | EventVariation::Redacted
-                            | EventVariation::RedactedSync
-                    )
-            }
-            Self::RoomId => {
-                matches!(
-                    kind,
-                    EventKind::MessageLike
-                        | EventKind::State
-                        | EventKind::RoomRedaction
-                        | EventKind::EphemeralRoom
-                ) && matches!(
-                    var,
-                    EventVariation::None | EventVariation::Original | EventVariation::Redacted
-                )
-            }
-            Self::Sender => {
-                matches!(
-                    kind,
-                    EventKind::MessageLike
-                        | EventKind::State
-                        | EventKind::RoomRedaction
-                        | EventKind::ToDevice
-                ) && var != EventVariation::Initial
-            }
-        }
-    }
-
     /// Get the type of this field.
     ///
     /// Returns a `(type, is_reference)` tuple.
@@ -536,84 +423,5 @@ impl CommonEventField {
 impl fmt::Display for CommonEventField {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.as_str())
-    }
-}
-
-/// An event type (struct or enum) with its bounds.
-pub struct EventWithBounds {
-    pub type_with_generics: TokenStream,
-    pub impl_generics: Option<TokenStream>,
-    pub where_clause: Option<TokenStream>,
-}
-
-impl EventWithBounds {
-    pub fn new(
-        kind: EventKind,
-        var: EventVariation,
-        ruma_events: &RumaEvents,
-    ) -> syn::Result<Self> {
-        let ident = kind.to_event_ident(var)?;
-
-        let event_content_trait = match var {
-            EventVariation::None
-            | EventVariation::Sync
-            | EventVariation::Original
-            | EventVariation::OriginalSync
-            | EventVariation::Initial => {
-                // `State` event structs have a `StaticStateEventContent` bound.
-                if kind == EventKind::State {
-                    kind.to_content_kind_trait(EventContentTraitVariation::Static)
-                } else {
-                    kind.to_content_kind_trait(EventContentTraitVariation::Original)
-                }
-            }
-            EventVariation::Stripped => {
-                kind.to_content_kind_trait(EventContentTraitVariation::PossiblyRedacted)
-            }
-            EventVariation::Redacted | EventVariation::RedactedSync => {
-                kind.to_content_kind_trait(EventContentTraitVariation::Redacted)
-            }
-        };
-
-        let (type_with_generics, impl_generics, where_clause) = match kind {
-            EventKind::MessageLike | EventKind::State
-                if matches!(var, EventVariation::None | EventVariation::Sync) =>
-            {
-                // `MessageLike` and `State` event kinds have an extra `RedactContent` bound with a
-                // `where` clause on the variations that match enum types.
-                let redacted_trait =
-                    kind.to_content_kind_trait(EventContentTraitVariation::Redacted);
-
-                (
-                    quote! { #ruma_events::#ident<C> },
-                    Some(
-                        quote! { <C: #ruma_events::#event_content_trait + #ruma_events::RedactContent> },
-                    ),
-                    Some(quote! {
-                        where
-                            C::Redacted: #ruma_events::#redacted_trait,
-                    }),
-                )
-            }
-            EventKind::GlobalAccountData
-            | EventKind::RoomAccountData
-            | EventKind::EphemeralRoom
-            | EventKind::MessageLike
-            | EventKind::State
-            | EventKind::ToDevice => (
-                quote! { #ruma_events::#ident<C> },
-                Some(quote! { <C: #ruma_events::#event_content_trait> }),
-                None,
-            ),
-            EventKind::RoomRedaction => {
-                (quote! { #ruma_events::room::redaction::#ident }, None, None)
-            }
-            // These don't have an event type and will fail in the `to_event_ident()` call above.
-            EventKind::HierarchySpaceChild | EventKind::Decrypted | EventKind::Timeline => {
-                unreachable!()
-            }
-        };
-
-        Ok(Self { impl_generics, type_with_generics, where_clause })
     }
 }
