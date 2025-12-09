@@ -5,7 +5,7 @@ use syn::meta::ParseNestedMeta;
 
 use super::{Event, EventField};
 use crate::{
-    events::enums::{EventKind, EventVariation},
+    events::common::{EventKind, EventVariation},
     util::{ParseNestedMetaExt, RumaEvents},
 };
 

@@ -9,7 +9,7 @@ use syn::{
 };
 
 use super::{EventEnumData, EventEnumEntry, EventEnumInput};
-use crate::events::enums::{EventKind, EventType, EventTypes};
+use crate::events::common::{EventKind, EventType, EventTypes};
 
 impl Parse for EventEnumInput {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {

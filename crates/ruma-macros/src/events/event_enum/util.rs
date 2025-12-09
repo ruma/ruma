@@ -2,7 +2,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 
 use super::{EventKind, EventVariation};
-use crate::{events::enums::EventWithBounds, util::RumaEvents};
+use crate::{events::common::EventWithBounds, util::RumaEvents};
 
 /// Generate `ruma_common::serde::JsonCastable` implementations for all compatible types.
 pub(super) fn expand_json_castable_impl(

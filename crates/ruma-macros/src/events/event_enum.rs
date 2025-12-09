@@ -11,7 +11,7 @@ mod util;
 use self::{
     event_kind_enum::EventEnum, event_type::EventTypeEnum, util::expand_json_castable_impl,
 };
-use super::enums::{EventKind, EventTypes, EventVariation};
+use super::common::{EventKind, EventTypes, EventVariation};
 use crate::util::RumaEvents;
 
 /// Generates enums to represent the various Matrix event types.

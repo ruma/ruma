@@ -9,7 +9,7 @@ use syn::parse_quote;
 
 mod parse;
 
-use super::enums::{EventContentTraitVariation, EventKind, EventType, EventTypes, EventVariation};
+use super::common::{EventContentTraitVariation, EventKind, EventType, EventTypes, EventVariation};
 use crate::util::{
     PrivateField, RumaCommon, RumaEvents, RumaEventsReexport, SerdeMetaItem, StructFieldExt,
     TypeExt,

@@ -7,7 +7,7 @@ mod content;
 
 use super::{EventEnumData, EventEnumEntry, util::expand_json_castable_impl};
 use crate::{
-    events::enums::{
+    events::common::{
         CommonEventField, EventContentTraitVariation, EventKind, EventType, EventVariation,
     },
     util::{RumaEvents, RumaEventsReexport},

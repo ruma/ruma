@@ -8,7 +8,7 @@ use syn::parse_quote;
 
 mod parse;
 
-use super::enums::{CommonEventField, EventKind, EventVariation};
+use super::common::{CommonEventField, EventKind, EventVariation};
 use crate::util::{RumaEvents, RumaEventsReexport, to_camel_case};
 
 /// `Event` derive macro code generation.
