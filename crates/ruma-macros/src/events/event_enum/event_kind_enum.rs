@@ -5,11 +5,9 @@ use quote::{format_ident, quote};
 
 mod content;
 
-use super::{EventEnumData, EventEnumEntry, util::expand_json_castable_impl};
+use super::{EventEnumData, EventEnumEntry, EventEnumKind, util::expand_json_castable_impl};
 use crate::{
-    events::common::{
-        CommonEventField, EventContentTraitVariation, EventKind, EventType, EventVariation,
-    },
+    events::common::{CommonEventField, EventContentTraitVariation, EventType, EventVariation},
     util::{RumaEvents, RumaEventsReexport},
 };
 
@@ -61,9 +59,10 @@ impl<'a> EventEnum<'a> {
             .map(|event| event.types.iter().map(EventType::as_match_arm).collect())
             .collect();
 
-        let content_enum = format_ident!("Any{}Content", data.kind);
-        let full_content_enum = format_ident!("AnyFull{}Content", data.kind);
-        let event_type_enum = data.kind.to_event_type_enum();
+        let kind = data.kind;
+        let content_enum = format_ident!("Any{kind}Content");
+        let full_content_enum = format_ident!("AnyFull{kind}Content");
+        let event_type_enum = kind.to_event_type_enum();
 
         Self {
             data,
@@ -113,7 +112,7 @@ impl EventEnum<'_> {
         }
 
         // Generate the `AnyFull*EventContent` enum.
-        if matches!(self.kind, EventKind::State) {
+        if matches!(self.kind, EventEnumKind::State) {
             tokens.extend(self.expand_full_content_enum());
         }
 
@@ -218,7 +217,7 @@ impl<'a> EventEnumVariation<'a> {
     /// Construct an `EventEnumVariation` for the given data and variation.
     fn new(inner: &'a EventEnum<'a>, variation: EventVariation) -> syn::Result<Self> {
         let ident = inner.kind.to_event_enum_ident(variation)?;
-        let event_struct = inner.kind.to_event_ident(variation)?;
+        let event_struct = inner.kind.to_event_ident(variation);
         let event_types =
             inner.events.iter().map(|event| event.to_event_path(inner.kind, variation)).collect();
 
@@ -245,13 +244,14 @@ impl EventEnumVariation<'_> {
         let variant_docs = &self.variant_docs;
         let event_types = &self.event_types;
 
-        let custom_content_ty = format_ident!("Custom{}Content", self.kind);
+        let kind = self.kind;
+        let custom_content_ty = format_ident!("Custom{kind}Content");
 
         let deserialize_impl = self.expand_deserialize_impl();
         let field_accessor_impl = self.expand_accessor_methods()?;
         let from_impl = self.expand_from_impl(ident, event_types);
         let json_castable_impl =
-            expand_json_castable_impl(ident, self.kind, self.variation, ruma_events)?;
+            expand_json_castable_impl(ident, kind, self.variation, ruma_events);
 
         Ok(quote! {
             #( #attrs )*
@@ -457,7 +457,7 @@ impl EventEnumVariation<'_> {
                 }
             };
 
-            if self.kind == EventKind::State {
+            if self.kind == EventEnumKind::State {
                 let full_content_enum = &self.full_content_enum;
                 let redacted_event_content_kind_trait_name =
                     self.kind.to_content_kind_trait(EventContentTraitVariation::Redacted);
@@ -545,7 +545,7 @@ impl EventEnumVariation<'_> {
     fn expand_event_field_accessors(&self) -> impl Iterator<Item = TokenStream> {
         CommonEventField::ALL
             .iter()
-            .filter(|field| field.is_present(self.kind, self.variation))
+            .filter(|field| self.kind.field_is_present(**field, self.variation))
             .map(|field| {
                 let variants = &self.variants;
                 let variant_attrs = &self.variant_attrs;
@@ -578,7 +578,7 @@ impl EventEnumVariation<'_> {
 
     /// Generate an accessor for the `state_key` field for this enum, if present.
     fn expand_state_key_accessor(&self) -> Option<TokenStream> {
-        if self.kind != EventKind::State {
+        if self.kind != EventEnumKind::State {
             return None;
         }
 
@@ -605,7 +605,7 @@ impl EventEnumVariation<'_> {
 
     /// Generate an accessor for the `unsigned.relations` field for this enum, if present.
     fn expand_relations_accessor(&self) -> Option<TokenStream> {
-        if self.kind != EventKind::MessageLike {
+        if self.kind != EventEnumKind::MessageLike {
             return None;
         }
 

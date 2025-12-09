@@ -9,7 +9,7 @@ use syn::{
 };
 
 use super::{EventEnumData, EventEnumEntry, EventEnumInput};
-use crate::events::common::{EventKind, EventType, EventTypes};
+use crate::events::common::{CommonEventKind, EventType, EventTypes};
 
 impl Parse for EventEnumInput {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
@@ -19,14 +19,15 @@ impl Parse for EventEnumInput {
             let attrs = input.call(syn::Attribute::parse_outer)?;
 
             let _: syn::Token![enum] = input.parse()?;
-            let kind: EventKind = input.parse()?;
+            let kind: CommonEventKind = input.parse()?;
 
             let content;
             syn::braced!(content in input);
             let events = content.parse_terminated(EventEnumEntry::parse, syn::Token![,])?;
             let events = events.into_iter().collect();
 
-            if enums_map.insert(kind, EventEnumData { attrs, kind, events }).is_some() {
+            if enums_map.insert(kind, EventEnumData { attrs, kind: kind.into(), events }).is_some()
+            {
                 return Err(syn::Error::new(
                     Span::call_site(),
                     format!("duplicate definition for kind `{kind:?}`"),
@@ -36,9 +37,9 @@ impl Parse for EventEnumInput {
 
         // Mark event types which are declared for both account data kinds, because they use a
         // different name for the event struct.
-        let mut room_account_data = enums_map.remove(&EventKind::RoomAccountData);
+        let mut room_account_data = enums_map.remove(&CommonEventKind::RoomAccountData);
         if let Some((global_account_data, room_account_data)) =
-            enums_map.get_mut(&EventKind::GlobalAccountData).zip(room_account_data.as_mut())
+            enums_map.get_mut(&CommonEventKind::GlobalAccountData).zip(room_account_data.as_mut())
         {
             for global_event in global_account_data.events.iter_mut() {
                 if let Some(room_event) = room_account_data.events.iter_mut().find(|room_event| {
@@ -52,7 +53,7 @@ impl Parse for EventEnumInput {
             }
         }
         if let Some(room_account_data) = room_account_data {
-            enums_map.insert(EventKind::RoomAccountData, room_account_data);
+            enums_map.insert(CommonEventKind::RoomAccountData, room_account_data);
         }
 
         Ok(EventEnumInput { enums: enums_map.into_values().collect() })

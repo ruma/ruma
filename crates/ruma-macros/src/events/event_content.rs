@@ -9,7 +9,9 @@ use syn::parse_quote;
 
 mod parse;
 
-use super::common::{EventContentTraitVariation, EventKind, EventType, EventTypes, EventVariation};
+use super::common::{
+    CommonEventKind, EventContentTraitVariation, EventType, EventTypes, EventVariation,
+};
 use crate::util::{
     PrivateField, RumaCommon, RumaEvents, RumaEventsReexport, SerdeMetaItem, StructFieldExt,
     TypeExt,
@@ -650,25 +652,30 @@ enum EventContentKind {
 }
 
 impl EventContentKind {
-    /// The [`EventKind`] matching this event content kind, if there is a single one.
+    /// The [`CommonEventKind`] matching this event content kind, if there is a single one.
     ///
     /// Returns `None` for [`EventContentKind::BothAccountData`].
-    fn event_kind(&self) -> Option<EventKind> {
+    fn event_kind(&self) -> Option<CommonEventKind> {
         Some(match self {
-            Self::GlobalAccountData => EventKind::GlobalAccountData,
-            Self::RoomAccountData => EventKind::RoomAccountData,
+            Self::GlobalAccountData => CommonEventKind::GlobalAccountData,
+            Self::RoomAccountData => CommonEventKind::RoomAccountData,
             Self::BothAccountData => return None,
-            Self::EphemeralRoom => EventKind::EphemeralRoom,
-            Self::MessageLike { .. } => EventKind::MessageLike,
-            Self::State { .. } => EventKind::State,
-            Self::ToDevice => EventKind::ToDevice,
+            Self::EphemeralRoom => CommonEventKind::EphemeralRoom,
+            Self::MessageLike { .. } => CommonEventKind::MessageLike,
+            Self::State { .. } => CommonEventKind::State,
+            Self::ToDevice => CommonEventKind::ToDevice,
         })
     }
 
     /// Whether this matches an account data kind.
     fn is_account_data(&self) -> bool {
         matches!(self, Self::BothAccountData)
-            || self.event_kind().is_some_and(|event_kind| event_kind.is_account_data())
+            || self.event_kind().is_some_and(|event_kind| {
+                matches!(
+                    event_kind,
+                    CommonEventKind::GlobalAccountData | CommonEventKind::RoomAccountData
+                )
+            })
     }
 
     /// Whether we should generate a `Redacted*EventContent` variation for this kind.
@@ -689,7 +696,7 @@ impl EventContentKind {
             event_kind.event_variations()
         } else {
             // Both account data types have the same variations.
-            EventKind::GlobalAccountData.event_variations()
+            CommonEventKind::GlobalAccountData.event_variations()
         }
     }
 
@@ -702,15 +709,13 @@ impl EventContentKind {
         variation: EventVariation,
     ) -> Option<Vec<(&'static str, syn::Ident)>> {
         if let Some(event_kind) = self.event_kind() {
-            event_kind.to_event_ident(variation).ok().map(|event_ident| vec![("", event_ident)])
+            event_kind.to_event_ident(variation).map(|event_ident| vec![("", event_ident)])
         } else {
-            let first_event_ident = EventKind::GlobalAccountData
+            let first_event_ident = CommonEventKind::GlobalAccountData
                 .to_event_ident(variation)
-                .ok()
                 .map(|event_ident| ("Global", event_ident));
-            let second_event_ident = EventKind::RoomAccountData
+            let second_event_ident = CommonEventKind::RoomAccountData
                 .to_event_ident(variation)
-                .ok()
                 .map(|event_ident| ("Room", event_ident));
 
             if first_event_ident.is_none() && second_event_ident.is_none() {
@@ -732,7 +737,7 @@ impl EventContentKind {
         if let Some(event_kind) = self.event_kind() {
             vec![(event_kind.to_event_type_enum(), event_kind.to_content_kind_trait(variation))]
         } else {
-            [EventKind::GlobalAccountData, EventKind::RoomAccountData]
+            [CommonEventKind::GlobalAccountData, CommonEventKind::RoomAccountData]
                 .iter()
                 .map(|event_kind| {
                     (event_kind.to_event_type_enum(), event_kind.to_content_kind_trait(variation))
@@ -792,5 +797,27 @@ impl From<EventContentVariation> for EventContentTraitVariation {
             EventContentVariation::Redacted => Self::Redacted,
             EventContentVariation::PossiblyRedacted => Self::PossiblyRedacted,
         }
+    }
+}
+
+impl CommonEventKind {
+    /// Get the name of the event type (struct or enum) for this kind and the given variation, if
+    /// any is supported.
+    fn to_event_ident(self, variation: EventVariation) -> Option<syn::Ident> {
+        if !self.event_variations().contains(&variation) {
+            return None;
+        }
+
+        Some(format_ident!("{variation}{self}"))
+    }
+
+    /// Get the name of the `*EventType` enum for this kind.
+    fn to_event_type_enum(self) -> syn::Ident {
+        format_ident!("{self}Type")
+    }
+
+    /// Get the name of the `[variation][kind]Content` trait for this kind and the given variation.
+    fn to_content_kind_trait(self, variation: EventContentTraitVariation) -> syn::Ident {
+        format_ident!("{variation}{self}Content")
     }
 }
