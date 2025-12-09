@@ -445,19 +445,27 @@ impl EventTypes {
 
 /// Common fields in event types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum EventField {
+pub(super) enum CommonEventField {
+    /// `origin_server_ts`.
     OriginServerTs,
+
+    /// `room_id`.
     RoomId,
+
+    /// `event_id`.
     EventId,
+
+    /// `sender`.
     Sender,
 }
 
-impl EventField {
+impl CommonEventField {
     /// All the variants of this enum
-    pub const ALL: &[Self] = &[Self::OriginServerTs, Self::RoomId, Self::EventId, Self::Sender];
+    pub(super) const ALL: &[Self] =
+        &[Self::OriginServerTs, Self::RoomId, Self::EventId, Self::Sender];
 
     /// Get the string representation of this field.
-    pub fn as_str(self) -> &'static str {
+    pub(super) fn as_str(self) -> &'static str {
         match self {
             Self::OriginServerTs => "origin_server_ts",
             Self::RoomId => "room_id",
@@ -466,13 +474,13 @@ impl EventField {
         }
     }
 
-    /// This field as an [`Ident`].
-    pub fn ident(self) -> Ident {
+    /// This field as a [`syn::Ident`].
+    pub(super) fn ident(self) -> Ident {
         format_ident!("{}", self.as_str())
     }
 
     /// Whether this field is present in the given kind and variation.
-    pub fn is_present(self, kind: EventKind, var: EventVariation) -> bool {
+    pub(super) fn is_present(self, kind: EventKind, var: EventVariation) -> bool {
         match self {
             Self::OriginServerTs | Self::EventId => {
                 kind.is_timeline()
@@ -513,7 +521,7 @@ impl EventField {
     /// Get the type of this field.
     ///
     /// Returns a `(type, is_reference)` tuple.
-    pub fn ty(self, ruma_events: &RumaEvents) -> (TokenStream, bool) {
+    pub(super) fn ty(self, ruma_events: &RumaEvents) -> (TokenStream, bool) {
         let ruma_common = ruma_events.ruma_common();
 
         match self {
@@ -525,7 +533,7 @@ impl EventField {
     }
 }
 
-impl fmt::Display for EventField {
+impl fmt::Display for CommonEventField {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.as_str())
     }
