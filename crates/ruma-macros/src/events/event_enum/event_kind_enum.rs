@@ -98,16 +98,13 @@ impl EventEnum<'_> {
         // Generate the `Any*Event` enums for all the variations.
         for variation in variations {
             tokens.extend(
-                EventEnumVariation::new(self, *variation)?
+                EventEnumVariation::new(self, *variation)
                     .expand_event_kind_enum()
                     .unwrap_or_else(syn::Error::into_compile_error),
             );
 
             if variation.is_sync() && has_full {
-                tokens.extend(
-                    self.expand_sync_from_into_full()
-                        .unwrap_or_else(syn::Error::into_compile_error),
-                );
+                tokens.extend(self.expand_sync_from_into_full());
             }
         }
 
@@ -120,16 +117,16 @@ impl EventEnum<'_> {
     }
 
     /// Implement `From<Any*Event>` and `.into_full_event()` for an `AnySync*Event` enum.
-    fn expand_sync_from_into_full(&self) -> syn::Result<TokenStream> {
+    fn expand_sync_from_into_full(&self) -> TokenStream {
         let ruma_common = self.ruma_events.ruma_common();
 
-        let sync = self.kind.to_event_enum_ident(EventVariation::Sync)?;
-        let full = self.kind.to_event_enum_ident(EventVariation::None)?;
+        let sync = self.kind.to_event_enum_ident(EventVariation::Sync);
+        let full = self.kind.to_event_enum_ident(EventVariation::None);
 
         let variants = &self.variants;
         let variant_attrs = &self.variant_attrs;
 
-        Ok(quote! {
+        quote! {
             #[automatically_derived]
             impl ::std::convert::From<#full> for #sync {
                 fn from(event: #full) -> Self {
@@ -164,7 +161,7 @@ impl EventEnum<'_> {
                     }
                 }
             }
-        })
+        }
     }
 
     /// Implement `From<{event_type}>` for all the variants of the given enum.
@@ -215,13 +212,13 @@ struct EventEnumVariation<'a> {
 
 impl<'a> EventEnumVariation<'a> {
     /// Construct an `EventEnumVariation` for the given data and variation.
-    fn new(inner: &'a EventEnum<'a>, variation: EventVariation) -> syn::Result<Self> {
-        let ident = inner.kind.to_event_enum_ident(variation)?;
+    fn new(inner: &'a EventEnum<'a>, variation: EventVariation) -> Self {
+        let ident = inner.kind.to_event_enum_ident(variation);
         let event_struct = inner.kind.to_event_ident(variation);
         let event_types =
             inner.events.iter().map(|event| event.to_event_path(inner.kind, variation)).collect();
 
-        Ok(Self { inner, variation, ident, event_struct, event_types })
+        Self { inner, variation, ident, event_struct, event_types }
     }
 }
 

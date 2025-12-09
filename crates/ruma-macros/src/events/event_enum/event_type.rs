@@ -36,7 +36,7 @@ impl<'a> EventTypeEnum<'a> {
 
 impl EventTypeEnum<'_> {
     /// Generate the `*EventType` enum and its implementations.
-    pub(super) fn expand(&self) -> syn::Result<TokenStream> {
+    pub(super) fn expand(&self) -> TokenStream {
         let ident = &self.ident;
         let enum_doc = format!("The type of `{}` this is.", self.kind);
 
@@ -65,7 +65,7 @@ impl EventTypeEnum<'_> {
         let from_string_impl = self.expand_from_string_impl();
         let into_timeline_event_type_impl = self.expand_into_timeline_event_type_impl();
 
-        Ok(quote! {
+        quote! {
             #[doc = #enum_doc]
             ///
             /// This type can hold an arbitrary string. To build events with a custom type, convert it
@@ -83,7 +83,7 @@ impl EventTypeEnum<'_> {
             #to_string_impl
             #from_string_impl
             #into_timeline_event_type_impl
-        })
+        }
     }
 
     /// Generate the `Ord` and `PartialOrd` implementations for the event type enum.

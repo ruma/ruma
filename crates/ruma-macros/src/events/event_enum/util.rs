@@ -1,4 +1,4 @@
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use super::EventEnumKind;
@@ -66,9 +66,7 @@ pub(super) fn expand_json_castable_impl(
                         .then_some(&variation),
                 )
                 .map(|event_enum_variation| {
-                    let other_ident = event_kind
-                        .to_event_enum_ident(*event_enum_variation)
-                        .expect("we only use variations that match an enum type");
+                    let other_ident = event_kind.to_event_enum_ident(*event_enum_variation);
 
                     quote! {
                         #[automatically_derived]
@@ -83,17 +81,8 @@ pub(super) fn expand_json_castable_impl(
 
 impl EventEnumKind {
     /// Get the name of the `Any*Event` enum for this kind and the given variation.
-    pub(super) fn to_event_enum_ident(self, var: EventVariation) -> syn::Result<syn::Ident> {
-        if !self.event_enum_variations().contains(&var) {
-            return Err(syn::Error::new(
-                Span::call_site(),
-                format!(
-                    "({self:?}, {var:?}) is not a valid event enum kind / variation combination"
-                ),
-            ));
-        }
-
-        Ok(format_ident!("Any{var}{self}"))
+    pub(super) fn to_event_enum_ident(self, variation: EventVariation) -> syn::Ident {
+        format_ident!("Any{variation}{self}")
     }
 
     /// Get the list of extra event kinds that are part of the event enum for this kind.
