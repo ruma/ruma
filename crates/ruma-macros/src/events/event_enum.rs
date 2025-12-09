@@ -19,7 +19,7 @@ use super::common::{
 use crate::util::RumaEvents;
 
 /// Generates enums to represent the various Matrix event types.
-pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
+pub(crate) fn expand_event_enum(input: EventEnumInput) -> TokenStream {
     let ruma_events = RumaEvents::new();
     let mut event_enums_data = input.enums;
     let mut tokens = TokenStream::new();
@@ -67,22 +67,19 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
         data.events = deduped_events;
 
         // Generate `JsonCastable` implementations for `Any*TimelineEvent` enums.
-        for variation in data.kind.event_enum_variations() {
-            let ident = data.kind.to_event_enum_ident(*variation)?;
-
-            tokens.extend(expand_json_castable_impl(&ident, data.kind, *variation, &ruma_events));
-        }
+        tokens.extend(data.kind.event_enum_variations().iter().map(|variation| {
+            let ident = data.kind.to_event_enum_ident(*variation);
+            expand_json_castable_impl(&ident, data.kind, *variation, &ruma_events)
+        }));
 
         event_enums_data.push(data);
     }
 
-    tokens.extend(event_enums_data.iter().map(|data| {
-        EventTypeEnum::new(data, &ruma_events)
-            .expand()
-            .unwrap_or_else(syn::Error::into_compile_error)
-    }));
+    tokens.extend(
+        event_enums_data.iter().map(|data| EventTypeEnum::new(data, &ruma_events).expand()),
+    );
 
-    Ok(tokens)
+    tokens
 }
 
 /// The parsed `event_enum!` macro.

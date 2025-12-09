@@ -186,7 +186,7 @@ use self::{
 #[proc_macro]
 pub fn event_enum(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as EventEnumInput);
-    expand_event_enum(input).unwrap_or_else(syn::Error::into_compile_error).into()
+    expand_event_enum(input).into()
 }
 
 /// Generates traits implementations and types for an event content.
