@@ -7,7 +7,9 @@ mod content;
 
 use super::{EventEnumData, EventEnumEntry, util::expand_json_castable_impl};
 use crate::{
-    events::enums::{EventContentTraitVariation, EventField, EventKind, EventType, EventVariation},
+    events::enums::{
+        CommonEventField, EventContentTraitVariation, EventKind, EventType, EventVariation,
+    },
     util::{RumaEvents, RumaEventsReexport},
 };
 
@@ -541,8 +543,10 @@ impl EventEnumVariation<'_> {
 
     /// Generate accessors for the [`EventField`]s that are present for this enum.
     fn expand_event_field_accessors(&self) -> impl Iterator<Item = TokenStream> {
-        EventField::ALL.iter().filter(|field| field.is_present(self.kind, self.variation)).map(
-            |field| {
+        CommonEventField::ALL
+            .iter()
+            .filter(|field| field.is_present(self.kind, self.variation))
+            .map(|field| {
                 let variants = &self.variants;
                 let variant_attrs = &self.variant_attrs;
 
@@ -569,8 +573,7 @@ impl EventEnumVariation<'_> {
                         }
                     }
                 }
-            },
-        )
+            })
     }
 
     /// Generate an accessor for the `state_key` field for this enum, if present.

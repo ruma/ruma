@@ -7,7 +7,7 @@ use syn::{Data, DataStruct, DeriveInput, Fields, FieldsNamed, parse_quote};
 mod parse;
 
 use self::parse::{ParsedEventField, parse_event_struct_ident_to_kind_variation};
-use super::enums::{EventField, EventKind, EventVariation};
+use super::enums::{CommonEventField, EventKind, EventVariation};
 use crate::util::{RumaEvents, RumaEventsReexport, to_camel_case};
 
 /// `Event` derive macro code generation.
@@ -50,7 +50,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         res.extend(expand_sync_from_into_full(&input, kind, var, &fields, &ruma_events));
     }
 
-    if EventField::EventId.is_present(kind, var) {
+    if CommonEventField::EventId.is_present(kind, var) {
         res.extend(expand_eq_ord_event(&input));
     }
 
