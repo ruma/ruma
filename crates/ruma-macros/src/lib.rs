@@ -440,7 +440,7 @@ pub fn derive_event(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(EventEnumFromEvent)]
 pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    expand_event_enum_from_event(input).into()
+    expand_event_enum_from_event(input).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 /// Generate methods and trait impl's for DST identifier type.
