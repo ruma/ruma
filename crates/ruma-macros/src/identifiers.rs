@@ -3,25 +3,12 @@
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::{
-    Fields, ImplGenerics, Index, ItemStruct, LitStr, Path, Token,
+    Fields, ImplGenerics, Index, ItemStruct, Path, Token,
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
 };
 
-pub struct IdentifierInput {
-    pub dollar_crate: Path,
-    pub id: LitStr,
-}
-
-impl Parse for IdentifierInput {
-    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let dollar_crate = input.parse()?;
-        let _: Token![,] = input.parse()?;
-        let id = input.parse()?;
-
-        Ok(Self { dollar_crate, id })
-    }
-}
+pub(crate) mod constructor;
 
 pub fn expand_id_dst(input: ItemStruct) -> syn::Result<TokenStream> {
     let id = &input.ident;
