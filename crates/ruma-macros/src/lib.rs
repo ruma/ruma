@@ -10,7 +10,6 @@
 // https://github.com/rust-lang/rust-clippy/issues/9029
 #![allow(clippy::derive_partial_eq_without_eq)]
 
-use identifiers::expand_id_dst;
 use proc_macro::TokenStream;
 use quote::quote;
 use ruma_identifiers_validation::{
@@ -36,7 +35,7 @@ use self::{
         event_enum::{EventEnumInput, expand_event_enum},
         event_enum_from_event::expand_event_enum_from_event,
     },
-    identifiers::constructor::IdentifierConstructor,
+    identifiers::{constructor::IdentifierConstructor, id_dst::expand_id_dst},
     serde::{
         as_str_as_ref_str::expand_as_str_as_ref_str, debug_as_ref_str::expand_debug_as_ref_str,
         deserialize_from_cow_str::expand_deserialize_from_cow_str,
