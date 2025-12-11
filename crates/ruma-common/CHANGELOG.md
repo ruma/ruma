@@ -1,5 +1,11 @@
 # [unreleased]
 
+Bug fixes:
+
+- Fix the `Clone` implementation of the `Owned*` types generated with the
+  `IdDst` macro. It used to always create a new instance from the borrowed type
+  instead of using the `Clone` implementation of the internal type.
+
 Improvements:
 
 - Add `AppserviceUserIdentity::maybe_add_to_uri()` to add an identity
