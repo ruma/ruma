@@ -535,7 +535,7 @@ impl IdDst {
             #[automatically_derived]
             impl #impl_generics ::std::clone::Clone for #owned_type {
                 fn clone(&self) -> Self {
-                    (&*self.inner).into()
+                    Self { inner: self.inner.clone() }
                 }
             }
 
