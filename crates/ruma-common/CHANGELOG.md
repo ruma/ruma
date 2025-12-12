@@ -13,6 +13,9 @@ Improvements:
   `OutgoingRequestAppserviceExt::try_into_http_request_with_identity()` outside
   of Ruma, if using this trait is inconvenient.
 - Add `MatrixVersion::V1_17`.
+- `JoinRule` holds arbitrary data in its fallback variant, with can be accessed
+  with `JoinRule::data()`. It also means that this type won't fail to serialize
+  for undocumented variants anymore.
 
 # 0.17.0
 
