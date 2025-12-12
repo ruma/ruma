@@ -455,9 +455,10 @@ impl<'de> Deserialize<'de> for RoomSummary {
 /// documented variant here, get its kind with `.kind()` or use its string representation, obtained
 /// through `.as_str()`.
 ///
-/// This type will fail to serialize if it doesn't match one of the documented variants. It is only
-/// possible to construct an undocumented variant by deserializing it, so do not re-serialize this
-/// type.
+/// Because this type contains a few neighbouring fields instead of a whole object, and it is not
+/// possible to know which fields to parse for unknown variants, this type will fail to serialize if
+/// it doesn't match one of the documented variants. It is only possible to construct an
+/// undocumented variant by deserializing it, so do not re-serialize this type.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "join_rule", rename_all = "snake_case")]
