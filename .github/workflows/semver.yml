@@ -73,7 +73,7 @@ jobs:
         crate: ${{ fromJSON(needs.changes.outputs.crates) }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -115,7 +115,7 @@ jobs:
           echo "$BREAKING_CHANGES_RESULTS" >> breaking-changes-results.json
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: breaking-changes-results
           path: breaking-changes-results.json
@@ -148,7 +148,7 @@ jobs:
         features: [stable, unstable]
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install rust stable toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -161,7 +161,7 @@ jobs:
           tool: cargo-semver-checks
 
       - name: Get xtask
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: target/debug/xtask
           key: xtask-${{ hashFiles('Cargo.toml', 'xtask/src/**', 'xtask/Cargo.toml') }}
