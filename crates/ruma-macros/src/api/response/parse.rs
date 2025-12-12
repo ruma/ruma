@@ -6,7 +6,7 @@ use syn::{meta::ParseNestedMeta, parse_quote};
 use super::Response;
 use crate::{
     api::{Body, Headers},
-    util::{RumaCommon, TypeExt},
+    util::{ParseNestedMetaExt, RumaCommon, TypeExt},
 };
 
 impl Response {
@@ -264,14 +264,14 @@ impl ResponseFieldKind {
 
         match ident.to_string().as_str() {
             "body" => {
-                if !meta.input.is_empty() {
+                if meta.has_value() {
                     return Err(meta.error("`body` attribute doesn't expect a value"));
                 }
 
                 Ok(Some(Self::NewtypeBody))
             }
             "raw_body" => {
-                if !meta.input.is_empty() {
+                if meta.has_value() {
                     return Err(meta.error("`raw_body` attribute doesn't expect a value"));
                 }
 

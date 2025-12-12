@@ -6,7 +6,7 @@ use syn::{meta::ParseNestedMeta, parse_quote};
 use super::{Request, RequestPath, RequestQuery};
 use crate::{
     api::{Body, Headers},
-    util::RumaCommon,
+    util::{ParseNestedMetaExt, RumaCommon},
 };
 
 impl Request {
@@ -273,35 +273,35 @@ impl RequestFieldKind {
 
         match ident.to_string().as_str() {
             "body" => {
-                if !meta.input.is_empty() {
+                if meta.has_value() {
                     return Err(meta.error("`body` attribute doesn't expect a value"));
                 }
 
                 Ok(Some(Self::NewtypeBody))
             }
             "raw_body" => {
-                if !meta.input.is_empty() {
+                if meta.has_value() {
                     return Err(meta.error("`raw_body` attribute doesn't expect a value"));
                 }
 
                 Ok(Some(Self::RawBody))
             }
             "path" => {
-                if !meta.input.is_empty() {
+                if meta.has_value() {
                     return Err(meta.error("`path` attribute doesn't expect a value"));
                 }
 
                 Ok(Some(Self::Path))
             }
             "query" => {
-                if !meta.input.is_empty() {
+                if meta.has_value() {
                     return Err(meta.error("`query` attribute doesn't expect a value"));
                 }
 
                 Ok(Some(Self::Query))
             }
             "query_all" => {
-                if !meta.input.is_empty() {
+                if meta.has_value() {
                     return Err(meta.error("`query_all` attribute doesn't expect a value"));
                 }
 
