@@ -468,7 +468,7 @@ impl EventContentFieldAttrs {
 
     fn try_merge(&mut self, meta: ParseNestedMeta<'_>, attr: &syn::Attribute) -> syn::Result<()> {
         if meta.path.is_ident("skip_redaction") {
-            if !meta.input.is_empty() {
+            if meta.has_value() {
                 return Err(meta.error("`skip_redaction` attribute doesn't expect a value"));
             }
 
@@ -476,7 +476,7 @@ impl EventContentFieldAttrs {
         }
 
         if meta.path.is_ident("type_fragment") {
-            if !meta.input.is_empty() {
+            if meta.has_value() {
                 return Err(meta.error("`type_fragment` attribute doesn't expect a value"));
             }
 
