@@ -21,10 +21,10 @@ use crate::{
 #[derive(Clone, Debug, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room.join_rules", kind = State, state_key_type = EmptyStateKey, custom_redacted)]
+#[serde(transparent)]
 pub struct RoomJoinRulesEventContent {
-    /// The type of rules used for users wishing to join this room.
+    /// The rule used for users wishing to join this room.
     #[ruma_event(skip_redaction)]
-    #[serde(flatten)]
     pub join_rule: JoinRule,
 }
 
@@ -125,6 +125,7 @@ impl SyncRoomJoinRulesEvent {
 mod tests {
     use assert_matches2::assert_matches;
     use ruma_common::owned_room_id;
+    use serde_json::json;
 
     use super::{
         AllowRule, JoinRule, OriginalSyncRoomJoinRulesEvent, RedactedRoomJoinRulesEventContent,
@@ -241,5 +242,17 @@ mod tests {
             join_rules,
             RoomJoinRulesEventContent { join_rule: JoinRule::Restricted(_) }
         );
+    }
+
+    #[test]
+    fn reserialize_unsupported_join_rule() {
+        let json = json!({"join_rule": "local.matrix.custom", "foo": "bar"});
+
+        let content = serde_json::from_value::<RoomJoinRulesEventContent>(json.clone()).unwrap();
+        assert_eq!(content.join_rule.as_str(), "local.matrix.custom");
+        let data = content.join_rule.data();
+        assert_eq!(data.get("foo").unwrap().as_str(), Some("bar"));
+
+        assert_eq!(serde_json::to_value(&content).unwrap(), json);
     }
 }
