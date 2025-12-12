@@ -1,11 +1,10 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::parse_quote;
 
 use super::{KIND, Request, RequestPath, RequestQuery};
 use crate::{
     api::StructSuffix,
-    util::{RumaCommon, RumaCommonReexport, expand_fields_as_variable_declarations},
+    util::{RumaCommon, RumaCommonReexport, expand_fields_as_list},
 };
 
 impl Request {
@@ -93,17 +92,18 @@ impl RequestQuery {
         };
 
         let serde_html_form = ruma_common.reexported(RumaCommonReexport::SerdeHtmlForm);
-        let src = parse_quote! { request_query };
         let request = KIND.as_variable_ident();
-        let serde_struct = KIND.as_struct_ident(StructSuffix::Query);
+        let query_ident = KIND.as_struct_ident(StructSuffix::Query);
 
-        let decls = expand_fields_as_variable_declarations(fields, &src);
+        let query_fields = expand_fields_as_list(fields);
 
         Some(quote! {
-            let #src: #serde_struct =
+            let query: #query_ident =
                 #serde_html_form::from_str(#request.uri().query().unwrap_or(""))?;
 
-            #decls
+            let #query_ident {
+                #query_fields
+            } = query;
         })
     }
 }
