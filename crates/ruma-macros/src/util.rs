@@ -470,31 +470,6 @@ pub(crate) fn expand_fields_as_list<'a>(
         .collect()
 }
 
-/// Generate code to create variable declarations for the given struct fields.
-///
-/// If the fields have `cfg` attributes, they are also used.
-///
-/// This generates code looking like this for each field:
-///
-/// ```ignore
-/// #[cfg(feature = "my-feature")]
-/// let ident = src.ident;
-/// ```
-pub(crate) fn expand_fields_as_variable_declarations(fields: &[Field], src: &Ident) -> TokenStream {
-    fields
-        .iter()
-        .map(|field| {
-            let ident = field.ident();
-            let cfg_attrs = field.cfg_attrs();
-
-            quote! {
-                #( #cfg_attrs )*
-                let #ident = #src.#ident;
-            }
-        })
-        .collect()
-}
-
 /// Extension trait for [`syn::meta::ParseNestedMeta`].
 pub(crate) trait ParseNestedMetaExt {
     /// Whether this meta item has a value.

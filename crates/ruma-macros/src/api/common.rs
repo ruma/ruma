@@ -8,7 +8,7 @@ use syn::parse_quote;
 
 use crate::util::{
     PrivateField, RumaCommon, RumaCommonReexport, SerdeMetaItem, StructFieldExt, TypeExt,
-    expand_fields_as_list, expand_fields_as_variable_declarations,
+    expand_fields_as_list,
 };
 
 /// Parsed HTTP headers of a request or response struct.
@@ -354,15 +354,14 @@ impl Body {
         kind: MacroKind,
         ruma_common: &RumaCommon,
     ) -> TokenStream {
-        let body = parse_quote! { body };
         let src = kind.as_variable_ident();
-        let ident = kind.as_struct_ident(StructSuffix::Body);
+        let body_ident = kind.as_struct_ident(StructSuffix::Body);
         let serde_json = ruma_common.reexported(RumaCommonReexport::SerdeJson);
 
-        let assignments = expand_fields_as_variable_declarations(fields, &body);
+        let body_fields = expand_fields_as_list(fields);
 
         quote! {
-            let #body: #ident = {
+            let body: #body_ident = {
                 let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
                     #src.body(),
                 );
@@ -375,7 +374,9 @@ impl Body {
                 })?
             };
 
-            #assignments
+            let #body_ident {
+                #body_fields
+            } = body;
         }
     }
 
