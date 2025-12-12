@@ -176,7 +176,7 @@ pub(crate) fn m_prefix_name_to_type_name(name: &LitStr) -> syn::Result<Ident> {
 
 /// Wrapper around [`syn::Field`] that emits the field without its visibility,
 /// thus making it private.
-pub struct PrivateField<'a>(pub &'a Field);
+pub(crate) struct PrivateField<'a>(pub(crate) &'a Field);
 
 impl ToTokens for PrivateField<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
@@ -192,8 +192,9 @@ impl ToTokens for PrivateField<'_> {
     }
 }
 
+/// Expand the `cfg` and `cfg_attr` attributes on the given struct.
 #[cfg(feature = "__internal_macro_expand")]
-pub fn cfg_expand_struct(item: &mut syn::ItemStruct) {
+pub(crate) fn cfg_expand_struct(item: &mut syn::ItemStruct) {
     use std::mem;
 
     use proc_macro2::TokenTree;
