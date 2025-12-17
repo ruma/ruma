@@ -1,6 +1,7 @@
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, RoomId, TransactionId, UserId,
-    serde::from_raw_json_value,
+    DeviceId, EventId, MilliSecondsSinceUnixEpoch, OwnedDeviceId, OwnedRoomId, OwnedUserId, RoomId,
+    TransactionId, UserId,
+    serde::{JsonCastable, JsonObject, from_raw_json_value},
 };
 #[cfg(feature = "unstable-msc3381")]
 use ruma_events::{
@@ -490,3 +491,69 @@ impl AnyMessageLikeEventContent {
         }
     }
 }
+
+/// An event sent using send-to-device messaging with additional fields when pushed to an
+/// application service.
+#[derive(Clone, Debug)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct AnyAppserviceToDeviceEvent {
+    /// The to-device event.
+    pub event: AnyToDeviceEvent,
+
+    /// The fully-qualified user ID of the intended recipient.
+    pub to_user_id: OwnedUserId,
+
+    /// The device ID of the intended recipient.
+    pub to_device_id: OwnedDeviceId,
+}
+
+impl AnyAppserviceToDeviceEvent {
+    /// The fully-qualified ID of the user who sent this event.
+    pub fn sender(&self) -> &UserId {
+        self.event.sender()
+    }
+
+    /// The event type of the to-device event.
+    pub fn event_type(&self) -> ToDeviceEventType {
+        self.event.event_type()
+    }
+
+    /// The content of the to-device event.
+    pub fn content(&self) -> AnyToDeviceEventContent {
+        self.event.content()
+    }
+
+    /// The fully-qualified user ID of the intended recipient.
+    pub fn to_user_id(&self) -> &UserId {
+        &self.to_user_id
+    }
+
+    /// The device ID of the intended recipient.
+    pub fn to_device_id(&self) -> &DeviceId {
+        &self.to_device_id
+    }
+}
+
+impl<'de> Deserialize<'de> for AnyAppserviceToDeviceEvent {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+
+        let event = from_raw_json_value(&json)?;
+
+        #[derive(Deserialize)]
+        struct AppserviceFields {
+            to_user_id: OwnedUserId,
+            to_device_id: OwnedDeviceId,
+        }
+
+        let AppserviceFields { to_user_id, to_device_id } = from_raw_json_value(&json)?;
+
+        Ok(AnyAppserviceToDeviceEvent { event, to_user_id, to_device_id })
+    }
+}
+
+impl JsonCastable<JsonObject> for AnyAppserviceToDeviceEvent {}
+impl JsonCastable<AnyToDeviceEvent> for AnyAppserviceToDeviceEvent {}
