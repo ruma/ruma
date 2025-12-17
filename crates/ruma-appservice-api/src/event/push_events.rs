@@ -24,7 +24,7 @@ pub mod v1 {
         serde::{JsonObject, Raw, from_raw_json_value},
     };
     #[cfg(feature = "unstable-msc4203")]
-    use ruma_events::AnyToDeviceEvent;
+    use ruma_events::AnyAppserviceToDeviceEvent;
     use ruma_events::{
         AnyTimelineEvent, presence::PresenceEvent, receipt::ReceiptEvent, typing::TypingEvent,
     };
@@ -92,7 +92,7 @@ pub mod v1 {
             skip_serializing_if = "<[_]>::is_empty",
             rename = "de.sorunome.msc2409.to_device"
         )]
-        pub to_device: Vec<Raw<AnyToDeviceEvent>>,
+        pub to_device: Vec<Raw<AnyAppserviceToDeviceEvent>>,
     }
 
     /// Response type for the `push_events` endpoint.
