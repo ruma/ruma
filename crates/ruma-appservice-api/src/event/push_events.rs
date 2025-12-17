@@ -14,9 +14,9 @@ pub mod v1 {
     #[cfg(feature = "unstable-msc3202")]
     use js_int::UInt;
     #[cfg(feature = "unstable-msc3202")]
-    use ruma_common::OwnedUserId;
-    #[cfg(feature = "unstable-msc3202")]
-    use ruma_common::{OneTimeKeyAlgorithm, OwnedDeviceId};
+    use ruma_common::OneTimeKeyAlgorithm;
+    #[cfg(any(feature = "unstable-msc3202", feature = "unstable-msc4203"))]
+    use ruma_common::{OwnedDeviceId, OwnedUserId};
     use ruma_common::{
         OwnedTransactionId,
         api::{auth_scheme::AccessToken, request, response},
@@ -24,10 +24,14 @@ pub mod v1 {
         serde::{JsonObject, Raw, from_raw_json_value},
     };
     #[cfg(feature = "unstable-msc4203")]
-    use ruma_events::AnyAppserviceToDeviceEvent;
+    use ruma_common::{UserId, serde::JsonCastable};
     use ruma_events::{
         AnyTimelineEvent, presence::PresenceEvent, receipt::ReceiptEvent, typing::TypingEvent,
     };
+    #[cfg(feature = "unstable-msc4203")]
+    use ruma_events::{AnyToDeviceEvent, AnyToDeviceEventContent, ToDeviceEventType};
+    #[cfg(feature = "unstable-msc4203")]
+    use serde::ser::SerializeStruct;
     use serde::{Deserialize, Deserializer, Serialize};
     use serde_json::value::{RawValue as RawJsonValue, Value as JsonValue};
 
@@ -251,6 +255,93 @@ pub mod v1 {
         }
     }
 
+    /// An event sent using send-to-device messaging with additional fields when pushed to an
+    /// application service.
+    #[derive(Clone, Debug)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    #[cfg(feature = "unstable-msc4203")]
+    pub struct AnyAppserviceToDeviceEvent {
+        /// The to-device event.
+        pub event: AnyToDeviceEvent,
+
+        /// The fully-qualified user ID of the intended recipient.
+        pub to_user_id: OwnedUserId,
+
+        /// The device ID of the intended recipient.
+        pub to_device_id: OwnedDeviceId,
+    }
+
+    #[cfg(feature = "unstable-msc4203")]
+    impl AnyAppserviceToDeviceEvent {
+        /// Construct a new `AnyAppserviceToDeviceEvent` with the given event and recipient
+        /// information.
+        pub fn new(
+            event: AnyToDeviceEvent,
+            to_user_id: OwnedUserId,
+            to_device_id: OwnedDeviceId,
+        ) -> Self {
+            Self { event, to_user_id, to_device_id }
+        }
+
+        /// The fully-qualified ID of the user who sent this event.
+        pub fn sender(&self) -> &UserId {
+            self.event.sender()
+        }
+
+        /// The event type of the to-device event.
+        pub fn event_type(&self) -> ToDeviceEventType {
+            self.event.event_type()
+        }
+
+        /// The content of the to-device event.
+        pub fn content(&self) -> AnyToDeviceEventContent {
+            self.event.content()
+        }
+    }
+
+    #[cfg(feature = "unstable-msc4203")]
+    impl Serialize for AnyAppserviceToDeviceEvent {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer,
+        {
+            let mut state = serializer.serialize_struct("AnyAppserviceToDeviceEvent", 5)?;
+            state.serialize_field("type", &self.event.event_type())?;
+            state.serialize_field("content", &self.event.content())?;
+            state.serialize_field("sender", &self.event.sender())?;
+            state.serialize_field("to_user_id", &self.to_user_id)?;
+            state.serialize_field("to_device_id", &self.to_device_id)?;
+            state.end()
+        }
+    }
+
+    #[cfg(feature = "unstable-msc4203")]
+    impl<'de> Deserialize<'de> for AnyAppserviceToDeviceEvent {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            #[derive(Deserialize)]
+            struct AppserviceFields {
+                to_user_id: OwnedUserId,
+                to_device_id: OwnedDeviceId,
+            }
+
+            let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+
+            let event = from_raw_json_value(&json)?;
+
+            let AppserviceFields { to_user_id, to_device_id } = from_raw_json_value(&json)?;
+
+            Ok(AnyAppserviceToDeviceEvent::new(event, to_user_id, to_device_id))
+        }
+    }
+
+    #[cfg(feature = "unstable-msc4203")]
+    impl JsonCastable<JsonObject> for AnyAppserviceToDeviceEvent {}
+    #[cfg(feature = "unstable-msc4203")]
+    impl JsonCastable<AnyToDeviceEvent> for AnyAppserviceToDeviceEvent {}
+
     #[cfg(test)]
     mod tests {
         use assert_matches2::assert_matches;
@@ -382,6 +473,40 @@ pub mod v1 {
 
             let serialized_data = to_json_value(data).unwrap();
             assert_eq!(serialized_data, custom_json);
+        }
+
+        #[test]
+        #[cfg(feature = "unstable-msc4203")]
+        fn serde_any_appservice_to_device_event() {
+            use ruma_common::{device_id, user_id};
+
+            use super::AnyAppserviceToDeviceEvent;
+
+            let event_json = json!({
+                "type": "m.key.verification.request",
+                "sender": "@alice:example.org",
+                "content": {
+                    "from_device": "AliceDevice2",
+                    "methods": [
+                    "m.sas.v1"
+                    ],
+                    "timestamp": 1559598944869_i64,
+                    "transaction_id": "S0meUniqueAndOpaqueString"
+                },
+                "to_user_id": "@bob:example.org",
+                "to_device_id": "DEVICEID"
+            });
+
+            // Test deserialization
+            let event = from_json_value::<AnyAppserviceToDeviceEvent>(event_json.clone()).unwrap();
+            assert_eq!(event.sender(), user_id!("@alice:example.org"));
+            assert_eq!(event.to_user_id, user_id!("@bob:example.org"));
+            assert_eq!(event.to_device_id, device_id!("DEVICEID"));
+            assert_eq!(event.event_type().to_string(), "m.key.verification.request");
+
+            // Test serialization
+            let serialized = to_json_value(event).unwrap();
+            assert_eq!(serialized, event_json);
         }
     }
 }

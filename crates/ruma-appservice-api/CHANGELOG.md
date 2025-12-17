@@ -1,9 +1,9 @@
 # [unreleased]
 
-Breaking changes:
+Improvements:
 
-- Update the `to_device` field of `push_events::v1::Request` to use
-  `Vec<Raw<AnyAppserviceToDeviceEvent>>`.
+- Update the `to_device` field, which is behind `unstable-msc4203`, of
+  `push_events::v1::Request` to use `Vec<Raw<AnyAppserviceToDeviceEvent>>`.
 
 # 0.14.0
 
