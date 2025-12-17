@@ -490,7 +490,7 @@ pub mod v1 {
                     "methods": [
                     "m.sas.v1"
                     ],
-                    "timestamp": 1559598944869_i64,
+                    "timestamp": 1_559_598_944_869_i64,
                     "transaction_id": "S0meUniqueAndOpaqueString"
                 },
                 "to_user_id": "@bob:example.org",
