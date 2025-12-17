@@ -4,8 +4,6 @@ Improvements:
 
 - Add list of state event types recommended by the spec for servers to transfer
   upon room upgrade.
-- Add `AnyAppserviceToDeviceEvent` struct to handle `to_user_id` and `to_device_id`
-  fields for to-device events pushed to application services.
 
 # 0.32.0
 
