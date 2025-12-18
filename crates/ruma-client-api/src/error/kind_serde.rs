@@ -163,6 +163,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
         let extra = Extra(extra);
 
         Ok(match errcode {
+            ErrorCode::AppserviceLoginUnsupported => ErrorKind::AppserviceLoginUnsupported,
             ErrorCode::BadAlias => ErrorKind::BadAlias,
             ErrorCode::BadJson => ErrorKind::BadJson,
             ErrorCode::BadState => ErrorKind::BadState,

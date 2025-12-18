@@ -9,6 +9,8 @@ Improvements:
 - Add support for the `m.oauth` UIAA authentication type according to MSC4312.
 - Add unstable support for RTC transports discovery endpoint from MSC4143, with
   support for the LiveKit transport from MSC4195.
+- Add `Error(Code/Kind)::AppserviceLoginUnsupported` according to MSC4910 /
+  Matrix 1.17.
 
 # 0.22.0
 
