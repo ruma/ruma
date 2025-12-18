@@ -1,6 +1,8 @@
 //! `PUT /_matrix/client/*/devices/{deviceId}`
 //!
-//! Update metadata for a device.
+//! Update metadata for a device, or create a new device.
+//!
+//! Only application services can use this endpoint to create new devices.
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -26,7 +28,7 @@ pub mod v3 {
     /// Request type for the `update_device` endpoint.
     #[request(error = crate::Error)]
     pub struct Request {
-        /// The device to update.
+        /// The device to update or create.
         #[ruma_api(path)]
         pub device_id: OwnedDeviceId,
 

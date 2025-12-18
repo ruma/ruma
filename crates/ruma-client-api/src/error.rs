@@ -35,6 +35,17 @@ mod kind_serde;
 #[non_exhaustive]
 // Please keep the variants sorted alphabetically.
 pub enum ErrorKind {
+    /// `M_APPSERVICE_LOGIN_UNSUPPORTED`
+    ///
+    /// An application service used the [`m.login.application_service`] type an endpoint from the
+    /// [legacy authentication API] in a way that is not supported by the homeserver, because the
+    /// server only supports the [OAuth 2.0 API].
+    ///
+    /// [`m.login.application_service`]: https://spec.matrix.org/latest/application-service-api/#server-admin-style-permissions
+    /// [legacy authentication API]: https://spec.matrix.org/latest/client-server-api/#legacy-api
+    /// [OAuth 2.0 API]: https://spec.matrix.org/latest/client-server-api/#oauth-20-api
+    AppserviceLoginUnsupported,
+
     /// `M_BAD_ALIAS`
     ///
     /// One or more [room aliases] within the `m.room.canonical_alias` event do not point to the
@@ -433,6 +444,7 @@ impl ErrorKind {
     /// Get the [`ErrorCode`] for this `ErrorKind`.
     pub fn errcode(&self) -> ErrorCode {
         match self {
+            ErrorKind::AppserviceLoginUnsupported => ErrorCode::AppserviceLoginUnsupported,
             ErrorKind::BadAlias => ErrorCode::BadAlias,
             ErrorKind::BadJson => ErrorCode::BadJson,
             ErrorKind::BadState => ErrorCode::BadState,
@@ -507,6 +519,17 @@ pub struct Extra(BTreeMap<String, JsonValue>);
 #[ruma_enum(rename_all(prefix = "M_", rule = "SCREAMING_SNAKE_CASE"))]
 // Please keep the variants sorted alphabetically.
 pub enum ErrorCode {
+    /// `M_APPSERVICE_LOGIN_UNSUPPORTED`
+    ///
+    /// An application service used the [`m.login.application_service`] type an endpoint from the
+    /// [legacy authentication API] in a way that is not supported by the homeserver, because the
+    /// server only supports the [OAuth 2.0 API].
+    ///
+    /// [`m.login.application_service`]: https://spec.matrix.org/latest/application-service-api/#server-admin-style-permissions
+    /// [legacy authentication API]: https://spec.matrix.org/latest/client-server-api/#legacy-api
+    /// [OAuth 2.0 API]: https://spec.matrix.org/latest/client-server-api/#oauth-20-api
+    AppserviceLoginUnsupported,
+
     /// `M_BAD_ALIAS`
     ///
     /// One or more [room aliases] within the `m.room.canonical_alias` event do not point to the
