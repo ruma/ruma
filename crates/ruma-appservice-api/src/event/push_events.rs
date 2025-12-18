@@ -30,8 +30,6 @@ pub mod v1 {
     };
     #[cfg(feature = "unstable-msc4203")]
     use ruma_events::{AnyToDeviceEvent, AnyToDeviceEventContent, ToDeviceEventType};
-    #[cfg(feature = "unstable-msc4203")]
-    use serde::ser::SerializeStruct;
     use serde::{Deserialize, Deserializer, Serialize};
     use serde_json::value::{RawValue as RawJsonValue, Value as JsonValue};
 
@@ -300,22 +298,6 @@ pub mod v1 {
     }
 
     #[cfg(feature = "unstable-msc4203")]
-    impl Serialize for AnyAppserviceToDeviceEvent {
-        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: serde::Serializer,
-        {
-            let mut state = serializer.serialize_struct("AnyAppserviceToDeviceEvent", 5)?;
-            state.serialize_field("type", &self.event.event_type())?;
-            state.serialize_field("content", &self.event.content())?;
-            state.serialize_field("sender", &self.event.sender())?;
-            state.serialize_field("to_user_id", &self.to_user_id)?;
-            state.serialize_field("to_device_id", &self.to_device_id)?;
-            state.end()
-        }
-    }
-
-    #[cfg(feature = "unstable-msc4203")]
     impl<'de> Deserialize<'de> for AnyAppserviceToDeviceEvent {
         fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where
@@ -488,7 +470,7 @@ pub mod v1 {
                 "content": {
                     "from_device": "AliceDevice2",
                     "methods": [
-                    "m.sas.v1"
+                        "m.sas.v1"
                     ],
                     "timestamp": 1_559_598_944_869_i64,
                     "transaction_id": "S0meUniqueAndOpaqueString"
@@ -503,10 +485,6 @@ pub mod v1 {
             assert_eq!(event.to_user_id, user_id!("@bob:example.org"));
             assert_eq!(event.to_device_id, device_id!("DEVICEID"));
             assert_eq!(event.event_type().to_string(), "m.key.verification.request");
-
-            // Test serialization
-            let serialized = to_json_value(event).unwrap();
-            assert_eq!(serialized, event_json);
         }
     }
 }
