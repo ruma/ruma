@@ -6,6 +6,7 @@ Improvements:
   assertion to an `http::Uri`. This allows to reimplement the behavior of
   `OutgoingRequestAppserviceExt::try_into_http_request_with_identity()` outside
   of Ruma, if using this trait is inconvenient.
+- Add `MatrixVersion::V1_17`.
 
 # 0.17.0
 
