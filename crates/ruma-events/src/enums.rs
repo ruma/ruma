@@ -30,7 +30,7 @@ pub const RECOMMENDED_STRIPPED_STATE_EVENT_TYPES: &[StateEventType] = &[
 /// Event types that servers should transfer upon [room upgrade]. The exact details for what is
 /// transferred is left as an implementation detail.
 ///
-/// [room upgrade]: https://spec.matrix.org/v1.16/client-server-api/#server-behaviour-19
+/// [room upgrade]: https://spec.matrix.org/v1.17/client-server-api/#server-behaviour-19
 pub const RECOMMENDED_TRANSFERABLE_STATE_EVENT_TYPES: &[StateEventType] = &[
     StateEventType::RoomServerAcl,
     StateEventType::RoomEncryption,
