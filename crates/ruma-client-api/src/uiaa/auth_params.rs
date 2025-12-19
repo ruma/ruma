@@ -70,11 +70,9 @@ impl PolicyTranslation {
     }
 }
 
-/// Parameters for an OAuth 2.0-based UIAA flow.
+/// Parameters for an [OAuth 2.0-based] UIAA flow.
 ///
-/// See [MSC4312] for how to use this.
-///
-/// [MSC4312]: https://github.com/matrix-org/matrix-spec-proposals/pull/4312
+/// [OAuth 2.0-based]: https://spec.matrix.org/latest/client-server-api/#oauth-authentication
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct OAuthParams {
