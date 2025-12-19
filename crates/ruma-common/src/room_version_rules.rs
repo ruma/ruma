@@ -347,7 +347,7 @@ pub struct AuthorizationRules {
     /// Whether the room creator should be determined using the `m.room.create` event's `sender`,
     /// instead of the event content's `creator` field ([spec]), introduced in room version 11.
     ///
-    /// [spec]: https://spec.matrix.org/v1.16/rooms/v11/#event-format
+    /// [spec]: https://spec.matrix.org/v1.17/rooms/v11/#event-format
     pub use_room_create_sender: bool,
 
     /// Whether room creators should always be considered to have "infinite" power level,
@@ -439,56 +439,56 @@ pub struct RedactionRules {
     /// Whether to keep the `aliases` field in the `content` of `m.room.aliases` events ([spec]),
     /// disabled since room version 6.
     ///
-    /// [spec]: https://spec.matrix.org/v1.16/rooms/v6/#redactions
+    /// [spec]: https://spec.matrix.org/v1.17/rooms/v6/#redactions
     pub keep_room_aliases_aliases: bool,
 
     /// Whether to keep the `allow` field in the `content` of `m.room.join_rules` events ([spec]),
     /// introduced in room version 8.
     ///
-    /// [spec]: https://spec.matrix.org/v1.16/rooms/v8/#redactions
+    /// [spec]: https://spec.matrix.org/v1.17/rooms/v8/#redactions
     pub keep_room_join_rules_allow: bool,
 
     /// Whether to keep the `join_authorised_via_users_server` field in the `content` of
     /// `m.room.member` events ([spec]), introduced in room version 9.
     ///
-    /// [spec]: https://spec.matrix.org/v1.16/rooms/v9/#redactions
+    /// [spec]: https://spec.matrix.org/v1.17/rooms/v9/#redactions
     pub keep_room_member_join_authorised_via_users_server: bool,
 
     /// Whether to keep the `origin`, `membership` and `prev_state` fields a the top-level of all
     /// events ([spec]), disabled since room version 11.
     ///
-    /// [spec]: https://spec.matrix.org/v1.16/rooms/v11/#redactions
+    /// [spec]: https://spec.matrix.org/v1.17/rooms/v11/#redactions
     pub keep_origin_membership_prev_state: bool,
 
     /// Whether to keep the entire `content` of `m.room.create` events ([spec]), introduced in room
     /// version 11.
     ///
-    /// [spec]: https://spec.matrix.org/v1.16/rooms/v11/#redactions
+    /// [spec]: https://spec.matrix.org/v1.17/rooms/v11/#redactions
     pub keep_room_create_content: bool,
 
     /// Whether to keep the `redacts` field in the `content` of `m.room.redaction` events ([spec]),
     /// introduced in room version 11.
     ///
-    /// [spec]: https://spec.matrix.org/v1.16/rooms/v11/#redactions
+    /// [spec]: https://spec.matrix.org/v1.17/rooms/v11/#redactions
     pub keep_room_redaction_redacts: bool,
 
     /// Whether to keep the `invite` field in the `content` of `m.room.power_levels` events
     /// ([spec]), introduced in room version 11.
     ///
-    /// [spec]: https://spec.matrix.org/v1.16/rooms/v11/#redactions
+    /// [spec]: https://spec.matrix.org/v1.17/rooms/v11/#redactions
     pub keep_room_power_levels_invite: bool,
 
     /// Whether to keep the `signed` field in `third_party_invite` of the `content` of
     /// `m.room.member` events ([spec]), introduced in room version 11.
     ///
-    /// [spec]: https://spec.matrix.org/v1.16/rooms/v11/#redactions
+    /// [spec]: https://spec.matrix.org/v1.17/rooms/v11/#redactions
     pub keep_room_member_third_party_invite_signed: bool,
 
     /// Whether the `content.redacts` field should be used to determine the event an event
     /// redacts, as opposed to the top-level `redacts` field ([spec]), introduced in room version
     /// 11.
     ///
-    /// [spec]: https://spec.matrix.org/v1.16/rooms/v11/#redactions
+    /// [spec]: https://spec.matrix.org/v1.17/rooms/v11/#redactions
     pub content_field_redacts: bool,
 
     /// Whether to keep the `allow`, `deny` and `allow_ip_literals` in the `content` of
@@ -502,7 +502,7 @@ pub struct RedactionRules {
 impl RedactionRules {
     /// Redaction rules as introduced in room version 1 ([spec]).
     ///
-    /// [spec]: https://spec.matrix.org/v1.16/rooms/v1/#redactions
+    /// [spec]: https://spec.matrix.org/v1.17/rooms/v1/#redactions
     pub const V1: Self = Self {
         keep_room_aliases_aliases: true,
         keep_room_join_rules_allow: false,
@@ -519,23 +519,23 @@ impl RedactionRules {
 
     /// Redaction rules with tweaks introduced in room version 6 ([spec]).
     ///
-    /// [spec]: https://spec.matrix.org/v1.16/rooms/v6/#redactions
+    /// [spec]: https://spec.matrix.org/v1.17/rooms/v6/#redactions
     pub const V6: Self = Self { keep_room_aliases_aliases: false, ..Self::V1 };
 
     /// Redaction rules with tweaks introduced in room version 8 ([spec]).
     ///
-    /// [spec]: https://spec.matrix.org/v1.16/rooms/v8/#redactions
+    /// [spec]: https://spec.matrix.org/v1.17/rooms/v8/#redactions
     pub const V8: Self = Self { keep_room_join_rules_allow: true, ..Self::V6 };
 
     /// Redaction rules with tweaks introduced in room version 9 ([spec]).
     ///
-    /// [spec]: https://spec.matrix.org/v1.16/rooms/v9/#redactions
+    /// [spec]: https://spec.matrix.org/v1.17/rooms/v9/#redactions
     pub const V9: Self =
         Self { keep_room_member_join_authorised_via_users_server: true, ..Self::V8 };
 
     /// Redaction rules with tweaks introduced in room version 11 ([spec]).
     ///
-    /// [spec]: https://spec.matrix.org/v1.16/rooms/v11/#redactions
+    /// [spec]: https://spec.matrix.org/v1.17/rooms/v11/#redactions
     pub const V11: Self = Self {
         keep_origin_membership_prev_state: false,
         keep_room_create_content: true,
