@@ -55,6 +55,7 @@ unstable-msc4195 = ["unstable-msc4143"]
 # Thread subscription support.
 unstable-msc4306 = []
 unstable-msc4308 = []
+unstable-msc4319 = []
 unstable-msc4380 = ["ruma-common/unstable-msc4380", "ruma-events/unstable-msc4380"]
 
 [dependencies]

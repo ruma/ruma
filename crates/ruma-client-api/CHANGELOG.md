@@ -12,6 +12,8 @@ Improvements:
   support for the LiveKit transport from MSC4195.
 - Add `Error(Code/Kind)::AppserviceLoginUnsupported` according to MSC4910 /
   Matrix 1.17.
+- Add unstable `state` key to `InvitedRoom` and `KnockedRoom` of
+  `sync_events::v3::Response`, according to MSC4319.
 
 # 0.22.0
 
