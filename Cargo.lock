@@ -2035,7 +2035,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-macros"
-version = "0.17.0"
+version = "0.17.1"
 dependencies = [
  "as_variant",
  "cfg-if",
