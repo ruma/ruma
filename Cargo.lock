@@ -1875,7 +1875,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-appservice-api"
-version = "0.14.0"
+version = "0.14.1"
 dependencies = [
  "assert_matches2",
  "js_int",

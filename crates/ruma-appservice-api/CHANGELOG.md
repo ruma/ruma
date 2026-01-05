@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.14.1
+
 Improvements:
 
 - Update the `to_device` field, which is behind `unstable-msc4203`, of

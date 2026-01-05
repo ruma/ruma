@@ -22,7 +22,7 @@ js_option = "0.2.0"
 language-tags = { version = "0.3.2", features = ["serde"] }
 maplit = "1.0.2"
 rand = "0.8.5"
-ruma-appservice-api = { version = "0.14.0", path = "crates/ruma-appservice-api" }
+ruma-appservice-api = { version = "0.14.1", path = "crates/ruma-appservice-api" }
 ruma-client-api = { version = "0.22.0", path = "crates/ruma-client-api" }
 ruma-common = { version = "0.17.1", path = "crates/ruma-common" }
 ruma-events = { version = "0.32.1", path = "crates/ruma-events" }
