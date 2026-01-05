@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.22.1
+
 Improvements:
 
 - Add `uiaa::LoginTermsParams`, that allows to construct or extract the
