@@ -26,7 +26,7 @@ ruma-appservice-api = { version = "0.14.1", path = "crates/ruma-appservice-api" 
 ruma-client-api = { version = "0.22.1", path = "crates/ruma-client-api" }
 ruma-common = { version = "0.17.1", path = "crates/ruma-common" }
 ruma-events = { version = "0.32.1", path = "crates/ruma-events" }
-ruma-federation-api = { version = "0.13.0", path = "crates/ruma-federation-api" }
+ruma-federation-api = { version = "0.13.1", path = "crates/ruma-federation-api" }
 ruma-html = { version = "0.6.0", path = "crates/ruma-html" }
 ruma-identifiers-validation = { version = "0.12.0", path = "crates/ruma-identifiers-validation" }
 ruma-identity-service-api = { version = "0.13.0", path = "crates/ruma-identity-service-api" }
