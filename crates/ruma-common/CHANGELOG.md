@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.17.1
+
 Bug fixes:
 
 - Fix the `Clone` implementation of the `Owned*` types generated with the
