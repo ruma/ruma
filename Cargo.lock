@@ -1853,7 +1853,7 @@ dependencies = [
 
 [[package]]
 name = "ruma"
-version = "0.14.0"
+version = "0.14.1"
 dependencies = [
  "assign",
  "js_int",

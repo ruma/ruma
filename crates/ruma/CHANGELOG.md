@@ -1,5 +1,15 @@
 # [unreleased]
 
+# 0.14.1
+
+Please refer to the changelogs of:
+
+- ruma-appservice-api 0.14.1
+- ruma-client-api 0.22.1
+- ruma-common 0.17.1
+- ruma-events 0.32.1
+- ruma-federation-api 0.13.1
+
 # 0.14.0
 
 - Bump MSRV to 1.88
