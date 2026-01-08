@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+- Get a better error message when verifying a signature with a public key that
+  has the wrong length.
+
 # 0.19.0
 
 No changes for this version
