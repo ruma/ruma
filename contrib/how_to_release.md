@@ -47,5 +47,5 @@ Crates in other repositories in the ruma organization depend on the ruma crate
 and should be updated and possibly released at least after a breaking release:
 
 - [ruma-client](https://github.com/ruma/ruma-client)
-- [examples](https://github.com/ruma/examples)
+- [ruma-examples](https://github.com/ruma/ruma-examples)
 - [synapse-admin-api](https://github.com/ruma/synapse-admin-api)
