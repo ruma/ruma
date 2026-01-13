@@ -121,7 +121,6 @@ pub(in super::super) mod msc3488 {
 
     /// Deserialize helper type for `LocationMessageEventContent` with unstable fields from msc3488.
     #[derive(Serialize, Deserialize)]
-    #[serde(tag = "msgtype", rename = "m.location")]
     pub(in super::super) struct LocationMessageEventContentSerDeHelper {
         pub body: String,
 
