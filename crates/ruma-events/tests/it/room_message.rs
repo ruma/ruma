@@ -818,6 +818,34 @@ fn location_msgtype_serialization() {
     );
 }
 
+#[cfg(feature = "unstable-msc3488")]
+#[test]
+fn location_msgtype_serialization() {
+    use ruma_events::room::message::LocationMessageEventContent;
+
+    let message_event_content =
+        RoomMessageEventContent::new(MessageType::Location(LocationMessageEventContent::new(
+            "Alice was at geo:51.5008,0.1247;u=35".to_owned(),
+            "geo:51.5008,0.1247;u=35".to_owned(),
+        )));
+
+    assert_eq!(
+        to_json_value(&message_event_content).unwrap(),
+        json!({
+            "body": "Alice was at geo:51.5008,0.1247;u=35",
+            "geo_uri": "geo:51.5008,0.1247;u=35",
+            "msgtype": "m.location",
+            "org.matrix.msc1767.text": "Alice was at geo:51.5008,0.1247;u=35",
+            "org.matrix.msc3488.asset": {
+                "type": "m.self",
+            },
+            "org.matrix.msc3488.location": {
+                "uri": "geo:51.5008,0.1247;u=35"
+            },
+        })
+    );
+}
+
 #[test]
 fn location_msgtype_deserialization() {
     let json_data = json!({
