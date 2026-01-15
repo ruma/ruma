@@ -1,5 +1,9 @@
 # [unreleased]
 
+Bug fixes:
+
+- Fix a double `msgtype` in a `m.location` event.
+
 # 0.32.1
 
 Improvements:
