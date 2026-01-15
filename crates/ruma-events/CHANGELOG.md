@@ -2,6 +2,9 @@
 
 Breaking changes:
 
+- Fix the deserialization of an empty `SpaceChildEventContent`, where the `via` key would be
+  omitted, per spec. As such, it's the caller's responsibility to handle missing `via` values, by
+  calling `SpaceChildEventContent::is_valid()` before considering the event as valid.
 - `PossiblyRedactedRoomMemberEventContent` is no longer a type alias for
   `RoomMemberEventContent`. It would previously fail to deserialize if the
   `third_party_invite` field was redacted as the `display_name` field was

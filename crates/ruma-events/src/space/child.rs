@@ -26,7 +26,8 @@ use crate::{StateEvent, SyncStateEvent};
 #[ruma_event(type = "m.space.child", kind = State, state_key_type = OwnedRoomId)]
 pub struct SpaceChildEventContent {
     /// List of candidate servers that can be used to join the room.
-    pub via: Vec<OwnedServerName>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub via: Option<Vec<OwnedServerName>>,
 
     /// Provide a default ordering of siblings in the room list.
     ///
@@ -61,7 +62,13 @@ pub struct SpaceChildEventContent {
 impl SpaceChildEventContent {
     /// Creates a new `SpaceChildEventContent` with the given routing servers.
     pub fn new(via: Vec<OwnedServerName>) -> Self {
-        Self { via, order: None, suggested: false }
+        Self { via: Some(via), order: None, suggested: false }
+    }
+
+    /// Whether the content is considered valid, viz. there's no parents anymore (because they've
+    /// been cleared previously).
+    pub fn is_valid(&self) -> bool {
+        self.via.is_none()
     }
 }
 
@@ -304,7 +311,7 @@ mod tests {
     #[test]
     fn space_child_serialization() {
         let content = SpaceChildEventContent {
-            via: vec![server_name!("example.com").to_owned()],
+            via: Some(vec![server_name!("example.com").to_owned()]),
             order: Some(SpaceChildOrder::parse("uwu").unwrap()),
             suggested: false,
         };
@@ -320,9 +327,18 @@ mod tests {
 
     #[test]
     fn space_child_empty_serialization() {
-        let content = SpaceChildEventContent { via: vec![], order: None, suggested: false };
+        let content = SpaceChildEventContent { via: None, order: None, suggested: false };
 
-        assert_to_canonical_json_eq!(content, json!({ "via": [] }));
+        assert_to_canonical_json_eq!(content, json!({}));
+    }
+
+    #[test]
+    fn space_child_empty_deserialization() {
+        let json = json!({});
+        let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
+
+        assert!(content.via.is_none());
+        assert!(content.is_valid());
     }
 
     #[test]
@@ -337,7 +353,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order.unwrap(), "aaa");
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via.as_deref().unwrap(), &[via]);
 
         // Not a string.
         let json = json!({
@@ -347,7 +363,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order, None);
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via.as_deref().unwrap(), &[via]);
 
         // Empty string.
         let json = json!({
@@ -357,7 +373,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order.unwrap(), "");
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via.as_deref().unwrap(), &[via]);
 
         // String too long.
         let order = repeat_n('a', 60).collect::<String>();
@@ -368,7 +384,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order, None);
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via.as_deref().unwrap(), &[via]);
 
         // Invalid character.
         let json = json!({
@@ -378,7 +394,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order, None);
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via.as_deref().unwrap(), &[via]);
     }
 
     #[test]
@@ -399,7 +415,7 @@ mod tests {
         assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1_629_413_349)));
         assert_eq!(ev.sender, "@alice:example.org");
         assert_eq!(ev.state_key, "!a:example.org");
-        assert_eq!(ev.content.via, ["example.org"]);
+        assert_eq!(ev.content.via.as_deref().unwrap(), ["example.org"]);
         assert_eq!(ev.content.order, None);
         assert!(!ev.content.suggested);
     }
