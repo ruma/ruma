@@ -281,7 +281,9 @@ mod tests {
     use js_int::int;
     use maplit::btreemap;
     use ruma_common::{power_levels::NotificationPowerLevels, user_id};
-    use serde_json::json;
+    use serde_json::{json, to_value as to_json_value};
+
+    use super::RoomPowerLevelsContentOverride;
 
     #[test]
     fn serialization_of_power_levels_overridden_values_with_optional_fields_as_none() {
