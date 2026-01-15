@@ -19,7 +19,7 @@ pub mod v3 {
         AnyInitialStateEvent,
         room::{
             create::{PreviousRoom, RoomCreateEventContent},
-            power_levels::RoomPowerLevelsEventContent,
+            power_levels::RoomPowerLevelsContentOverride,
         },
     };
     use serde::{Deserialize, Serialize};
@@ -71,7 +71,7 @@ pub mod v3 {
 
         /// Power level content to override in the default power level event.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub power_level_content_override: Option<Raw<RoomPowerLevelsEventContent>>,
+        pub power_level_content_override: Option<Raw<RoomPowerLevelsContentOverride>>,
 
         /// Convenience parameter for setting various default state events based on a preset.
         #[serde(skip_serializing_if = "Option::is_none")]

@@ -1,5 +1,13 @@
 # [unreleased]
 
+Breaking changes:
+
+- `create_room::v3::Request::power_level_content_override` is now of type 
+  `Option<Raw<RoomPowerLevelsContentOverride>>`. This `RoomPowerLevelsContentOverride` 
+  type has the same signature as `RoomPowerLevelsEventContent` except all `Int` 
+  fields are `Option<Int>`, which allows uploading explicit values no matter what the 
+  default ones are.
+
 # 0.22.1
 
 Improvements:
