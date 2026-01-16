@@ -5,7 +5,11 @@
 use std::collections::BTreeMap;
 
 use js_int::Int;
-use ruma_common::{OwnedUserId, power_levels::NotificationPowerLevels, serde::JsonCastable};
+use ruma_common::{
+    OwnedUserId,
+    power_levels::NotificationPowerLevels,
+    serde::{JsonCastable, JsonObject},
+};
 use ruma_events::{TimelineEventType, room::power_levels::RoomPowerLevelsEventContent};
 use serde::Serialize;
 
@@ -277,7 +281,11 @@ impl RoomPowerLevelsContentOverride {
         Self::default()
     }
 }
+
+// Allows casting `Raw<RoomPowerLevelsContentOverride>` to `Raw<RoomPowerLevelsEventContent>`.
 impl JsonCastable<RoomPowerLevelsEventContent> for RoomPowerLevelsContentOverride {}
+
+impl JsonCastable<JsonObject> for RoomPowerLevelsContentOverride {}
 
 #[cfg(test)]
 mod tests {
