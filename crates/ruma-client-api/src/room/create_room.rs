@@ -271,6 +271,12 @@ pub struct RoomPowerLevelsContentOverride {
     pub notifications: NotificationPowerLevels,
 }
 
+impl RoomPowerLevelsContentOverride {
+    /// Creates a new, empty [`RoomPowerLevelsContentOverride`] instance.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
 impl JsonCastable<RoomPowerLevelsEventContent> for RoomPowerLevelsContentOverride {}
 
 #[cfg(test)]
