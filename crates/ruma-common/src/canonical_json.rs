@@ -5,34 +5,59 @@ use std::{fmt, mem};
 use serde::Serialize;
 use serde_json::Value as JsonValue;
 
+mod serializer;
 mod value;
 
-pub use self::value::{CanonicalJsonObject, CanonicalJsonValue};
+pub use self::{
+    serializer::Serializer,
+    value::{CanonicalJsonObject, CanonicalJsonValue},
+};
 use crate::{room_version_rules::RedactionRules, serde::Raw};
 
 /// The set of possible errors when serializing to canonical JSON.
 #[derive(Debug)]
 #[allow(clippy::exhaustive_enums)]
 pub enum CanonicalJsonError {
-    /// The numeric value failed conversion to js_int::Int.
-    IntConvert,
+    /// The integer value is out of the range of [`js_int::Int`].
+    IntegerOutOfRange,
 
-    /// An error occurred while serializing/deserializing.
-    SerDe(serde_json::Error),
+    /// The given type cannot be serialized to canonical JSON.
+    InvalidType(String),
+
+    /// The given type cannot be serialized to an object key.
+    InvalidObjectKeyType(String),
+
+    /// The same object key was serialized twice.
+    DuplicateObjectKey(String),
+
+    /// An other error happened.
+    Other(String),
 }
 
 impl fmt::Display for CanonicalJsonError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            CanonicalJsonError::IntConvert => {
-                f.write_str("number found is not a valid `js_int::Int`")
+            Self::IntegerOutOfRange => f.write_str("integer is out of the range of `js_int::Int`"),
+            Self::InvalidType(ty) => write!(f, "{ty} cannot be serialized as canonical JSON"),
+            Self::InvalidObjectKeyType(ty) => {
+                write!(f, "{ty} cannot be used as an object key, expected a string type")
             }
-            CanonicalJsonError::SerDe(err) => write!(f, "serde Error: {err}"),
+            Self::DuplicateObjectKey(key) => write!(f, "duplicate object key `{key}`"),
+            Self::Other(msg) => f.write_str(msg),
         }
     }
 }
 
 impl std::error::Error for CanonicalJsonError {}
+
+impl serde::ser::Error for CanonicalJsonError {
+    fn custom<T>(msg: T) -> Self
+    where
+        T: fmt::Display,
+    {
+        Self::Other(msg.to_string())
+    }
+}
 
 /// Errors that can happen in redaction.
 #[derive(Debug)]
@@ -106,11 +131,21 @@ pub fn try_from_json_map(
     json.into_iter().map(|(k, v)| Ok((k, v.try_into()?))).collect()
 }
 
-/// Fallible conversion from any value that impl's `Serialize` to a `CanonicalJsonValue`.
+/// Fallible conversion from any value that implements [`Serialize`] to a [`CanonicalJsonValue`].
+///
+/// This behaves similarly to [`serde_json::to_value()`], except for the following restrictions
+/// which return errors:
+///
+/// - Integers must be in the range accepted by [`js_int::Int`].
+/// - Floats and bytes are not serializable.
+/// - Booleans and integers cannot be used as keys for an object. `serde_json` accepts those types
+///   as keys by serializing them as strings.
+/// - The same key cannot be serialized twice in an object. `serde_json` uses the last value that is
+///   serialized for the same key.
 pub fn to_canonical_value<T: Serialize>(
     value: T,
 ) -> Result<CanonicalJsonValue, CanonicalJsonError> {
-    serde_json::to_value(value).map_err(CanonicalJsonError::SerDe)?.try_into()
+    value.serialize(Serializer)
 }
 
 /// The value to put in `unsigned.redacted_because`.
@@ -416,7 +451,8 @@ mod tests {
     };
 
     use super::{
-        redact_in_place, to_canonical_value, try_from_json_map, value::CanonicalJsonValue,
+        CanonicalJsonError, redact_in_place, to_canonical_value, try_from_json_map,
+        value::CanonicalJsonValue,
     };
     use crate::room_version_rules::RedactionRules;
 
@@ -487,26 +523,140 @@ mod tests {
     }
 
     #[test]
-    fn to_canonical() {
+    fn to_canonical_value_success() {
         #[derive(Debug, serde::Serialize)]
-        struct Thing {
-            foo: String,
-            bar: Vec<u8>,
+        struct MyStruct {
+            string: String,
+            array: Vec<u8>,
+            boolean: Option<bool>,
+            object: BTreeMap<String, MyEnum>,
+            null: (),
         }
-        let t = Thing { foo: "string".into(), bar: vec![0, 1, 2] };
+
+        #[derive(Debug, serde::Serialize)]
+        enum MyEnum {
+            Foo,
+            #[serde(rename = "bar")]
+            Bar,
+        }
+
+        let t = MyStruct {
+            string: "string".into(),
+            array: vec![0, 1, 2],
+            boolean: Some(true),
+            object: [("foo".to_owned(), MyEnum::Foo), ("bar".to_owned(), MyEnum::Bar)].into(),
+            null: (),
+        };
 
         let mut expected = BTreeMap::new();
-        expected.insert("foo".into(), CanonicalJsonValue::String("string".into()));
+        expected.insert("string".to_owned(), CanonicalJsonValue::String("string".to_owned()));
         expected.insert(
-            "bar".into(),
+            "array".to_owned(),
             CanonicalJsonValue::Array(vec![
                 CanonicalJsonValue::Integer(int!(0)),
                 CanonicalJsonValue::Integer(int!(1)),
                 CanonicalJsonValue::Integer(int!(2)),
             ]),
         );
+        expected.insert("boolean".to_owned(), CanonicalJsonValue::Bool(true));
+        let mut child_object = BTreeMap::new();
+        child_object.insert("foo".to_owned(), CanonicalJsonValue::String("Foo".to_owned()));
+        child_object.insert("bar".to_owned(), CanonicalJsonValue::String("bar".to_owned()));
+        expected.insert("object".to_owned(), CanonicalJsonValue::Object(child_object));
+        expected.insert("null".to_owned(), CanonicalJsonValue::Null);
 
         assert_eq!(to_canonical_value(t).unwrap(), CanonicalJsonValue::Object(expected));
+    }
+
+    #[test]
+    fn to_canonical_value_out_of_range_int() {
+        #[derive(Debug, serde::Serialize)]
+        struct StructWithInt {
+            foo: i64,
+        }
+
+        let t = StructWithInt { foo: i64::MAX };
+        assert_matches!(to_canonical_value(t), Err(CanonicalJsonError::IntegerOutOfRange));
+    }
+
+    #[test]
+    fn to_canonical_value_invalid_type() {
+        #[derive(Debug, serde::Serialize)]
+        struct StructWithFloat {
+            foo: f32,
+        }
+
+        let t = StructWithFloat { foo: 10.0 };
+        assert_matches!(to_canonical_value(t), Err(CanonicalJsonError::InvalidType(_)));
+    }
+
+    #[test]
+    fn to_canonical_value_invalid_object_key_type() {
+        {
+            #[derive(Debug, serde::Serialize)]
+            struct StructWithBoolKey {
+                foo: BTreeMap<bool, String>,
+            }
+
+            let t = StructWithBoolKey { foo: [(true, "bar".to_owned())].into() };
+            assert_matches!(
+                to_canonical_value(t),
+                Err(CanonicalJsonError::InvalidObjectKeyType(_))
+            );
+        }
+
+        {
+            #[derive(Debug, serde::Serialize)]
+            struct StructWithIntKey {
+                foo: BTreeMap<i8, String>,
+            }
+
+            let t = StructWithIntKey { foo: [(4, "bar".to_owned())].into() };
+            assert_matches!(
+                to_canonical_value(t),
+                Err(CanonicalJsonError::InvalidObjectKeyType(_))
+            );
+        }
+
+        {
+            #[derive(Debug, serde::Serialize)]
+            struct StructWithUnitKey {
+                foo: BTreeMap<(), String>,
+            }
+
+            let t = StructWithUnitKey { foo: [((), "bar".to_owned())].into() };
+            assert_matches!(
+                to_canonical_value(t),
+                Err(CanonicalJsonError::InvalidObjectKeyType(_))
+            );
+        }
+
+        {
+            #[derive(Debug, serde::Serialize)]
+            struct StructWithTupleKey {
+                foo: BTreeMap<(String, String), bool>,
+            }
+
+            let t =
+                StructWithTupleKey { foo: [(("bar".to_owned(), "baz".to_owned()), false)].into() };
+            assert_matches!(
+                to_canonical_value(t),
+                Err(CanonicalJsonError::InvalidObjectKeyType(_))
+            );
+        }
+    }
+
+    #[test]
+    fn to_canonical_value_duplicate_object_key() {
+        #[derive(Debug, serde::Serialize)]
+        struct StructWithDuplicateKey {
+            foo: String,
+            #[serde(rename = "foo")]
+            bar: Vec<u8>,
+        }
+
+        let t = StructWithDuplicateKey { foo: "string".into(), bar: vec![0, 1, 2] };
+        assert_matches!(to_canonical_value(t), Err(CanonicalJsonError::DuplicateObjectKey(_)));
     }
 
     #[test]
