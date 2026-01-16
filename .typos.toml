@@ -7,6 +7,9 @@ Nd = "Nd"
 Pn = "Pn"
 Wya = "Wya"
 
+# Short for "serialize".
+Ser = "Ser"
+
 # all of these are valid words, but should never appear in this repo
 sing = "sign"
 singed = "signed"
