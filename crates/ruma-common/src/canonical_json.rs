@@ -5,6 +5,7 @@ use std::{fmt, mem};
 use serde::Serialize;
 use serde_json::Value as JsonValue;
 
+mod macros;
 mod serializer;
 mod value;
 
@@ -12,6 +13,8 @@ pub use self::{
     serializer::Serializer,
     value::{CanonicalJsonObject, CanonicalJsonValue},
 };
+#[doc(inline)]
+pub use crate::assert_to_canonical_json_eq;
 use crate::{room_version_rules::RedactionRules, serde::Raw};
 
 /// The set of possible errors when serializing to canonical JSON.
@@ -458,8 +461,8 @@ mod tests {
     };
 
     use super::{
-        CanonicalJsonError, redact_in_place, to_canonical_value, try_from_json_map,
-        value::CanonicalJsonValue,
+        CanonicalJsonError, assert_to_canonical_json_eq, redact_in_place, to_canonical_value,
+        try_from_json_map, value::CanonicalJsonValue,
     };
     use crate::room_version_rules::RedactionRules;
 
@@ -577,7 +580,9 @@ mod tests {
         raw_object.insert("baz".to_owned(), CanonicalJsonValue::Bool(false));
         expected.insert("raw".to_owned(), CanonicalJsonValue::Object(raw_object));
 
-        assert_eq!(to_canonical_value(t).unwrap(), CanonicalJsonValue::Object(expected));
+        let expected = CanonicalJsonValue::Object(expected);
+        assert_eq!(to_canonical_value(&t).unwrap(), expected);
+        assert_to_canonical_json_eq!(t, expected.into());
     }
 
     #[test]
@@ -711,37 +716,35 @@ mod tests {
 
         redact_in_place(&mut object, &RedactionRules::V1, None).unwrap();
 
-        let redacted_event = to_json_value(&object).unwrap();
-
-        assert_eq!(
-            redacted_event,
-            json!({
-                "content": {
-                    "ban": 50,
-                    "events": {
-                        "m.room.avatar": 50,
-                        "m.room.canonical_alias": 50,
-                        "m.room.history_visibility": 100,
-                        "m.room.name": 50,
-                        "m.room.power_levels": 100
-                    },
-                    "events_default": 0,
-                    "kick": 50,
-                    "redact": 50,
-                    "state_default": 50,
-                    "users": {
-                        "@example:localhost": 100
-                    },
-                    "users_default": 0
+        let expected = json!({
+            "content": {
+                "ban": 50,
+                "events": {
+                    "m.room.avatar": 50,
+                    "m.room.canonical_alias": 50,
+                    "m.room.history_visibility": 100,
+                    "m.room.name": 50,
+                    "m.room.power_levels": 100
                 },
-                "event_id": "$15139375512JaHAW:localhost",
-                "origin_server_ts": 45,
-                "sender": "@example:localhost",
-                "room_id": "!room:localhost",
-                "state_key": "",
-                "type": "m.room.power_levels",
-            })
-        );
+                "events_default": 0,
+                "kick": 50,
+                "redact": 50,
+                "state_default": 50,
+                "users": {
+                    "@example:localhost": 100
+                },
+                "users_default": 0
+            },
+            "event_id": "$15139375512JaHAW:localhost",
+            "origin_server_ts": 45,
+            "sender": "@example:localhost",
+            "room_id": "!room:localhost",
+            "state_key": "",
+            "type": "m.room.power_levels",
+        });
+
+        assert_eq!(to_json_value(&object).unwrap(), expected);
+        assert_to_canonical_json_eq!(object, expected);
     }
 
     #[test]
@@ -768,20 +771,18 @@ mod tests {
 
         redact_in_place(&mut object, &RedactionRules::V9, None).unwrap();
 
-        let redacted_event = to_json_value(&object).unwrap();
+        let expected = json!({
+            "content": {},
+            "event_id": "$152037280074GZeOm:localhost",
+            "origin_server_ts": 1,
+            "sender": "@example:localhost",
+            "state_key": "room.com",
+            "room_id": "!room:room.com",
+            "type": "m.room.aliases",
+        });
 
-        assert_eq!(
-            redacted_event,
-            json!({
-                "content": {},
-                "event_id": "$152037280074GZeOm:localhost",
-                "origin_server_ts": 1,
-                "sender": "@example:localhost",
-                "state_key": "room.com",
-                "room_id": "!room:room.com",
-                "type": "m.room.aliases",
-            })
-        );
+        assert_eq!(to_json_value(&object).unwrap(), expected);
+        assert_to_canonical_json_eq!(object, expected);
     }
 
     #[test]
@@ -813,26 +814,24 @@ mod tests {
 
         redact_in_place(&mut object, &RedactionRules::V11, None).unwrap();
 
-        let redacted_event = to_json_value(&object).unwrap();
+        let expected = json!({
+            "content": {
+              "m.federate": true,
+              "predecessor": {
+                "event_id": "$something",
+                "room_id": "!oldroom:example.org"
+              },
+              "room_version": "11",
+            },
+            "event_id": "$143273582443PhrSn",
+            "origin_server_ts": 1_432_735,
+            "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
+            "sender": "@example:example.org",
+            "state_key": "",
+            "type": "m.room.create",
+        });
 
-        assert_eq!(
-            redacted_event,
-            json!({
-                "content": {
-                  "m.federate": true,
-                  "predecessor": {
-                    "event_id": "$something",
-                    "room_id": "!oldroom:example.org"
-                  },
-                  "room_version": "11",
-                },
-                "event_id": "$143273582443PhrSn",
-                "origin_server_ts": 1_432_735,
-                "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
-                "sender": "@example:example.org",
-                "state_key": "",
-                "type": "m.room.create",
-            })
-        );
+        assert_eq!(to_json_value(&object).unwrap(), expected);
+        assert_to_canonical_json_eq!(object, expected);
     }
 }
