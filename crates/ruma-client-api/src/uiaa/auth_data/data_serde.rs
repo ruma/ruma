@@ -142,27 +142,26 @@ impl<'de> Deserialize<'de> for UserIdentifier {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    use serde_json::{from_value as from_json_value, json};
 
     use crate::uiaa::UserIdentifier;
 
     #[test]
     fn serialize() {
-        assert_eq!(
-            to_json_value(UserIdentifier::UserIdOrLocalpart("@user:notareal.hs".to_owned()))
-                .unwrap(),
+        assert_to_canonical_json_eq!(
+            UserIdentifier::UserIdOrLocalpart("@user:notareal.hs".to_owned()),
             json!({
                 "type": "m.id.user",
                 "user": "@user:notareal.hs",
             })
         );
 
-        assert_eq!(
-            to_json_value(UserIdentifier::PhoneNumber {
+        assert_to_canonical_json_eq!(
+            UserIdentifier::PhoneNumber {
                 country: "33".to_owned(),
                 phone: "0102030405".to_owned()
-            })
-            .unwrap(),
+            },
             json!({
                 "type": "m.id.phone",
                 "country": "33",
@@ -170,9 +169,8 @@ mod tests {
             })
         );
 
-        assert_eq!(
-            to_json_value(UserIdentifier::Email { address: "me@myprovider.net".to_owned() })
-                .unwrap(),
+        assert_to_canonical_json_eq!(
+            UserIdentifier::Email { address: "me@myprovider.net".to_owned() },
             json!({
                 "type": "m.id.thirdparty",
                 "medium": "email",
@@ -180,8 +178,8 @@ mod tests {
             })
         );
 
-        assert_eq!(
-            to_json_value(UserIdentifier::Msisdn { number: "330102030405".to_owned() }).unwrap(),
+        assert_to_canonical_json_eq!(
+            UserIdentifier::Msisdn { number: "330102030405".to_owned() },
             json!({
                 "type": "m.id.thirdparty",
                 "medium": "msisdn",
@@ -189,9 +187,8 @@ mod tests {
             })
         );
 
-        assert_eq!(
-            to_json_value(UserIdentifier::third_party_id("robot".into(), "01001110".to_owned()))
-                .unwrap(),
+        assert_to_canonical_json_eq!(
+            UserIdentifier::third_party_id("robot".into(), "01001110".to_owned()),
             json!({
                 "type": "m.id.thirdparty",
                 "medium": "robot",
