@@ -17,6 +17,8 @@ Improvements:
   a `CanonicalJsonValue`, with stricter rules than
   `serde_json::value::Serializer`. This serializer is also used in
   `to_canonical_value()`.
+- Add the `assert_to_canonical_json_eq!` macro that can be used in tests to
+  check the canonical JSON serialization of a type against its expected value.
 
 # 0.17.1
 

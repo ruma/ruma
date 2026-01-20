@@ -132,6 +132,16 @@ pub mod api {
     pub use ruma_push_gateway_api as push_gateway;
 }
 
+/// Canonical JSON types and related functions.
+pub mod canonical_json {
+    // The assert_to_canonical_json_eq macro is `#[doc(hidden)]` by default to only show it in the
+    // `canonical_json` module instead of at the root of `ruma_common`, so we need to explicitly
+    // inline it where we want it.
+    #[doc(inline)]
+    pub use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    pub use ruma_common::canonical_json::*;
+}
+
 #[doc(no_inline)]
 pub use assign::assign;
 #[doc(no_inline)]
@@ -141,7 +151,5 @@ pub use js_option::JsOption;
 #[cfg(all(feature = "events", feature = "unstable-msc4334"))]
 #[doc(no_inline)]
 pub use language_tags::LanguageTag;
-pub use ruma_common::{
-    CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue, canonical_json, *,
-};
+pub use ruma_common::{CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue, *};
 pub use web_time as time;
