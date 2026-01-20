@@ -30,6 +30,9 @@ pub enum CanonicalJsonError {
     /// The same object key was serialized twice.
     DuplicateObjectKey(String),
 
+    /// An error occurred while re-serializing a [`serde_json::value::RawValue`].
+    InvalidRawValue(serde_json::Error),
+
     /// An other error happened.
     Other(String),
 }
@@ -41,6 +44,9 @@ impl fmt::Display for CanonicalJsonError {
             Self::InvalidType(ty) => write!(f, "{ty} cannot be serialized as canonical JSON"),
             Self::InvalidObjectKeyType(ty) => {
                 write!(f, "{ty} cannot be used as an object key, expected a string type")
+            }
+            Self::InvalidRawValue(error) => {
+                write!(f, "invalid raw value: {error}")
             }
             Self::DuplicateObjectKey(key) => write!(f, "duplicate object key `{key}`"),
             Self::Other(msg) => f.write_str(msg),
@@ -448,6 +454,7 @@ mod tests {
     use js_int::int;
     use serde_json::{
         from_str as from_json_str, json, to_string as to_json_string, to_value as to_json_value,
+        value::RawValue as RawJsonValue,
     };
 
     use super::{
@@ -531,6 +538,7 @@ mod tests {
             boolean: Option<bool>,
             object: BTreeMap<String, MyEnum>,
             null: (),
+            raw: Box<RawJsonValue>,
         }
 
         #[derive(Debug, serde::Serialize)]
@@ -546,6 +554,7 @@ mod tests {
             boolean: Some(true),
             object: [("foo".to_owned(), MyEnum::Foo), ("bar".to_owned(), MyEnum::Bar)].into(),
             null: (),
+            raw: RawJsonValue::from_string(r#"{"baz":false}"#.to_owned()).unwrap(),
         };
 
         let mut expected = BTreeMap::new();
@@ -564,6 +573,9 @@ mod tests {
         child_object.insert("bar".to_owned(), CanonicalJsonValue::String("bar".to_owned()));
         expected.insert("object".to_owned(), CanonicalJsonValue::Object(child_object));
         expected.insert("null".to_owned(), CanonicalJsonValue::Null);
+        let mut raw_object = BTreeMap::new();
+        raw_object.insert("baz".to_owned(), CanonicalJsonValue::Bool(false));
+        expected.insert("raw".to_owned(), CanonicalJsonValue::Object(raw_object));
 
         assert_eq!(to_canonical_value(t).unwrap(), CanonicalJsonValue::Object(expected));
     }
