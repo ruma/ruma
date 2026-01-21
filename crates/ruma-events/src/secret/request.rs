@@ -142,7 +142,8 @@ impl From<SecretName> for GlobalAccountDataEventType {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{RequestAction, SecretName, ToDeviceSecretRequestEventContent};
     use crate::PrivOwnedStr;
@@ -162,7 +163,7 @@ mod tests {
             "request_id": "randomly_generated_id_9573"
         });
 
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(content, json);
     }
 
     #[test]
@@ -180,7 +181,7 @@ mod tests {
             "request_id": "this_is_a_request_id"
         });
 
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(content, json);
     }
 
     #[test]
@@ -197,7 +198,7 @@ mod tests {
             "request_id": "this_is_a_request_id"
         });
 
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(content, json);
     }
 
     #[test]
@@ -214,7 +215,7 @@ mod tests {
             "request_id": "randomly_generated_id_9573"
         });
 
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(content, json);
     }
 
     #[test]

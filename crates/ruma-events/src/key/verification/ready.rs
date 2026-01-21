@@ -75,8 +75,8 @@ impl KeyVerificationReadyEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::{OwnedDeviceId, owned_event_id};
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::{OwnedDeviceId, canonical_json::assert_to_canonical_json_eq, owned_event_id};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{KeyVerificationReadyEventContent, ToDeviceKeyVerificationReadyEventContent};
     use crate::{key::verification::VerificationMethod, relation::Reference};
@@ -101,7 +101,7 @@ mod tests {
             methods: vec![VerificationMethod::SasV1],
         };
 
-        assert_eq!(to_json_value(&content).unwrap(), json_data);
+        assert_to_canonical_json_eq!(content, json_data);
 
         let json_data = json!({
             "from_device": device,
@@ -115,7 +115,7 @@ mod tests {
             methods: vec![VerificationMethod::SasV1],
         };
 
-        assert_eq!(to_json_value(&content).unwrap(), json_data);
+        assert_to_canonical_json_eq!(content, json_data);
     }
 
     #[test]

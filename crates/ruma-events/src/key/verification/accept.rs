@@ -166,12 +166,11 @@ mod tests {
 
     use assert_matches2::assert_matches;
     use ruma_common::{
+        canonical_json::assert_to_canonical_json_eq,
         event_id,
         serde::{Base64, Raw},
     };
-    use serde_json::{
-        Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
-    };
+    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
     use super::{
         _CustomContent, AcceptMethod, HashAlgorithm, KeyAgreementProtocol,
@@ -203,7 +202,7 @@ mod tests {
             "short_authentication_string": ["decimal"]
         });
 
-        assert_eq!(to_json_value(&key_verification_accept_content).unwrap(), json_data);
+        assert_to_canonical_json_eq!(key_verification_accept_content, json_data);
 
         let json_data = json!({
             "transaction_id": "456",
@@ -221,7 +220,7 @@ mod tests {
             }),
         };
 
-        assert_eq!(to_json_value(&key_verification_accept_content).unwrap(), json_data);
+        assert_to_canonical_json_eq!(key_verification_accept_content, json_data);
     }
 
     #[test]
@@ -252,7 +251,7 @@ mod tests {
             }
         });
 
-        assert_eq!(to_json_value(&key_verification_accept_content).unwrap(), json_data);
+        assert_to_canonical_json_eq!(key_verification_accept_content, json_data);
     }
 
     #[test]

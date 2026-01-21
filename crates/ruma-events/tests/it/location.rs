@@ -4,7 +4,8 @@ use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::uint;
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, event_id, owned_event_id, room_id, serde::CanBeEmpty, user_id,
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id,
+    owned_event_id, room_id, serde::CanBeEmpty, user_id,
 };
 use ruma_events::{
     AnyMessageLikeEvent, MessageLikeEvent,
@@ -13,7 +14,7 @@ use ruma_events::{
     relation::InReplyTo,
     room::message::{LocationMessageEventContent, MessageType, Relation, RoomMessageEventContent},
 };
-use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+use serde_json::{from_value as from_json_value, json};
 
 #[test]
 fn plain_content_serialization() {
@@ -22,8 +23,8 @@ fn plain_content_serialization() {
         LocationContent::new("geo:51.5008,0.1247;u=35".to_owned()),
     );
 
-    assert_eq!(
-        to_json_value(&event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        event_content,
         json!({
             "org.matrix.msc1767.text": [
                 { "body": "Alice was at geo:51.5008,0.1247;u=35" },
@@ -59,8 +60,8 @@ fn event_serialization() {
         }
     );
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "org.matrix.msc1767.text": [
                 {
@@ -215,8 +216,8 @@ fn room_message_unstable_serialization() {
             "Alice was at geo:51.5008,0.1247;u=35".to_owned(),
             "geo:51.5008,0.1247;u=35".to_owned(),
         )));
-    assert_eq!(
-        to_json_value(&message_event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        message_event_content,
         json!({
             "body": "Alice was at geo:51.5008,0.1247;u=35",
             "geo_uri": "geo:51.5008,0.1247;u=35",

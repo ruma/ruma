@@ -52,8 +52,8 @@ impl From<RedactedPolicyRuleRoomEventContent> for PossiblyRedactedPolicyRuleRoom
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::serde::Raw;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, serde::Raw};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{OriginalPolicyRuleRoomEvent, PolicyRuleRoomEventContent};
     use crate::policy::rule::{PolicyRuleEventContent, Recommendation};
@@ -72,7 +72,7 @@ mod tests {
             "recommendation": "m.ban"
         });
 
-        assert_eq!(to_json_value(content).unwrap(), json);
+        assert_to_canonical_json_eq!(content, json);
     }
 
     #[test]

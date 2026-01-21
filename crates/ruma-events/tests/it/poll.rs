@@ -4,7 +4,9 @@ use std::{collections::BTreeMap, ops::Range};
 
 use assert_matches2::assert_matches;
 use js_int::{UInt, uint};
-use ruma_common::{MilliSecondsSinceUnixEpoch, owned_event_id};
+use ruma_common::{
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
+};
 use ruma_events::{
     AnyMessageLikeEvent, MessageLikeEvent,
     message::TextContentBlock,
@@ -29,7 +31,7 @@ use ruma_events::{
     relation::Reference,
     room::message::{Relation, RelationWithoutReplacement},
 };
-use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+use serde_json::{from_value as from_json_value, json};
 
 #[test]
 fn poll_answers_deserialization_valid() {
@@ -98,8 +100,8 @@ fn start_content_serialization() {
         ),
     );
 
-    assert_eq!(
-        to_json_value(&event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        event_content,
         json!({
             "m.text": [{ "body": "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!" }],
             "m.poll": {
@@ -133,8 +135,8 @@ fn start_content_other_serialization() {
         poll,
     );
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "m.text": [{ "body": "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!" }],
             "m.poll": {
@@ -242,8 +244,8 @@ fn response_content_serialization() {
         owned_event_id!("$related_event:notareal.hs"),
     );
 
-    assert_eq!(
-        to_json_value(&event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        event_content,
         json!({
             "m.selections": ["my-answer"],
             "m.relates_to": {
@@ -261,8 +263,8 @@ fn response_content_other_serialization() {
         owned_event_id!("$related_event:notareal.hs"),
     );
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "m.selections": ["first-answer", "second-answer"],
             "m.relates_to": {
@@ -309,8 +311,8 @@ fn end_content_serialization() {
         owned_event_id!("$related_event:notareal.hs"),
     );
 
-    assert_eq!(
-        to_json_value(&event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        event_content,
         json!({
             "m.text":  [{ "body": "The poll has closed. Top answer: Amazing!" }],
             "m.relates_to": {
@@ -336,8 +338,8 @@ fn end_content_with_results_serialization() {
         .into(),
     );
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "m.text":  [{ "body": "The poll has closed. Top answer: Amazing!" }],
             "m.poll.results": {
@@ -400,8 +402,8 @@ fn new_unstable_start_content_serialization() {
         ),
     );
 
-    assert_eq!(
-        to_json_value(&event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        event_content,
         json!({
             "org.matrix.msc1767.text": "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!",
             "org.matrix.msc3381.poll.start": {
@@ -436,8 +438,8 @@ fn replacement_unstable_start_content_serialization() {
         replaces.clone(),
     );
 
-    assert_eq!(
-        to_json_value(&event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        event_content,
         json!({
             "m.new_content": {
                 "org.matrix.msc1767.text": "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!",
@@ -596,8 +598,8 @@ fn unstable_response_content_serialization() {
         owned_event_id!("$related_event:notareal.hs"),
     );
 
-    assert_eq!(
-        to_json_value(&event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        event_content,
         json!({
             "org.matrix.msc3381.poll.response": {
                 "answers": ["my-answer"],
@@ -648,8 +650,8 @@ fn unstable_end_content_serialization() {
         owned_event_id!("$related_event:notareal.hs"),
     );
 
-    assert_eq!(
-        to_json_value(&event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        event_content,
         json!({
             "org.matrix.msc1767.text":  "The poll has closed. Top answer: Amazing!",
             "org.matrix.msc3381.poll.end": {},

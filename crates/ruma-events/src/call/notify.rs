@@ -66,7 +66,8 @@ impl From<Application> for ApplicationType {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    use serde_json::{from_value as from_json_value, json};
 
     use crate::{
         Mentions,
@@ -95,8 +96,8 @@ mod tests {
             Mentions::with_room_mention(),
         );
 
-        assert_eq!(
-            to_json_value(&content_user_mention).unwrap(),
+        assert_to_canonical_json_eq!(
+            content_user_mention,
             json!({
                 "call_id": "abcdef",
                 "application": "m.call",
@@ -106,8 +107,8 @@ mod tests {
                 "notify_type": "ring",
             })
         );
-        assert_eq!(
-            to_json_value(&content_room_mention).unwrap(),
+        assert_to_canonical_json_eq!(
+            content_room_mention,
             json!({
                 "call_id": "abcdef",
                 "application": "m.call",

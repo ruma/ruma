@@ -1,10 +1,10 @@
 use assert_matches2::assert_matches;
-use ruma_common::owned_event_id;
+use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_event_id};
 use ruma_events::{
     relation::InReplyTo,
     room::message::{MessageType, Relation, RoomMessageEventContent},
 };
-use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+use serde_json::{from_value as from_json_value, json};
 
 #[test]
 fn serialize_room_message_content_without_relation() {
@@ -13,8 +13,8 @@ fn serialize_room_message_content_without_relation() {
         Some(Relation::Reply { in_reply_to: InReplyTo::new(owned_event_id!("$eventId")) });
     let without_relation = MessageType::from(content);
 
-    assert_eq!(
-        to_json_value(&without_relation).unwrap(),
+    assert_to_canonical_json_eq!(
+        without_relation,
         json!({
             "body": "Hello, world!",
             "msgtype": "m.text",

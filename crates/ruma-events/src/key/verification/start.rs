@@ -210,10 +210,8 @@ mod tests {
     use std::collections::BTreeMap;
 
     use assert_matches2::assert_matches;
-    use ruma_common::{event_id, serde::Base64};
-    use serde_json::{
-        Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
-    };
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, event_id, serde::Base64};
+    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
     use super::{
         _CustomContent, HashAlgorithm, KeyAgreementProtocol, KeyVerificationStartEventContent,
@@ -248,7 +246,7 @@ mod tests {
             "short_authentication_string": ["decimal"]
         });
 
-        assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
+        assert_to_canonical_json_eq!(key_verification_start_content, json_data);
 
         let json_data = json!({
             "from_device": "123",
@@ -268,7 +266,7 @@ mod tests {
             }),
         };
 
-        assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
+        assert_to_canonical_json_eq!(key_verification_start_content, json_data);
 
         {
             let secret = Base64::new(b"This is a secret to everybody".to_vec());
@@ -286,7 +284,7 @@ mod tests {
                 "transaction_id": "456"
             });
 
-            assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
+            assert_to_canonical_json_eq!(key_verification_start_content, json_data);
         }
     }
 
@@ -321,7 +319,7 @@ mod tests {
             }
         });
 
-        assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
+        assert_to_canonical_json_eq!(key_verification_start_content, json_data);
 
         let secret = Base64::new(b"This is a secret to everybody".to_vec());
 
@@ -341,7 +339,7 @@ mod tests {
             }
         });
 
-        assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
+        assert_to_canonical_json_eq!(key_verification_start_content, json_data);
     }
 
     #[test]

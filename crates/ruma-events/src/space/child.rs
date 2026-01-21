@@ -291,10 +291,11 @@ mod tests {
 
     use js_int::{UInt, uint};
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch, RoomId, SpaceChildOrder, owned_server_name, owned_user_id,
-        room_id, server_name,
+        MilliSecondsSinceUnixEpoch, RoomId, SpaceChildOrder,
+        canonical_json::assert_to_canonical_json_eq, owned_server_name, owned_user_id, room_id,
+        server_name,
     };
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{
         HierarchySpaceChildEvent, SpaceChildEventContent, SpaceChildOrd, SpaceChildOrdHelper,
@@ -313,7 +314,7 @@ mod tests {
             "order": "uwu",
         });
 
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(content, json);
     }
 
     #[test]
@@ -322,7 +323,7 @@ mod tests {
 
         let json = json!({ "via": [] });
 
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(content, json);
     }
 
     #[test]
