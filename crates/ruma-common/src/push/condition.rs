@@ -624,7 +624,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use js_int::{Int, int, uint};
     use macro_rules_attribute::apply;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use serde_json::{from_value as from_json_value, json};
     use smol_macros::test;
 
     use super::{
@@ -632,7 +632,7 @@ mod tests {
         RoomMemberCountIs, StrExt,
     };
     use crate::{
-        OwnedUserId, owned_room_id, owned_user_id,
+        OwnedUserId, assert_to_canonical_json_eq, owned_room_id, owned_user_id,
         power_levels::{NotificationPowerLevels, NotificationPowerLevelsKey},
         room_version_rules::{AuthorizationRules, RoomPowerLevelsRules},
     };
@@ -644,12 +644,8 @@ mod tests {
             "kind": "event_match",
             "pattern": "m.notice"
         });
-        assert_eq!(
-            to_json_value(PushCondition::EventMatch {
-                key: "content.msgtype".into(),
-                pattern: "m.notice".into(),
-            })
-            .unwrap(),
+        assert_to_canonical_json_eq!(
+            PushCondition::EventMatch { key: "content.msgtype".into(), pattern: "m.notice".into() },
             json_data
         );
     }
@@ -657,8 +653,8 @@ mod tests {
     #[test]
     #[allow(deprecated)]
     fn serialize_contains_display_name_condition() {
-        assert_eq!(
-            to_json_value(PushCondition::ContainsDisplayName).unwrap(),
+        assert_to_canonical_json_eq!(
+            PushCondition::ContainsDisplayName,
             json!({ "kind": "contains_display_name" })
         );
     }
@@ -669,9 +665,8 @@ mod tests {
             "is": "2",
             "kind": "room_member_count"
         });
-        assert_eq!(
-            to_json_value(PushCondition::RoomMemberCount { is: RoomMemberCountIs::from(uint!(2)) })
-                .unwrap(),
+        assert_to_canonical_json_eq!(
+            PushCondition::RoomMemberCount { is: RoomMemberCountIs::from(uint!(2)) },
             json_data
         );
     }
@@ -682,10 +677,9 @@ mod tests {
             "key": "room",
             "kind": "sender_notification_permission"
         });
-        assert_eq!(
+        assert_to_canonical_json_eq!(
             json_data,
-            to_json_value(PushCondition::SenderNotificationPermission { key: "room".into() })
-                .unwrap()
+            PushCondition::SenderNotificationPermission { key: "room".into() }
         );
     }
 
