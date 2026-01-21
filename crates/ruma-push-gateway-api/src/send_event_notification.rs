@@ -344,13 +344,11 @@ pub mod v1 {
     mod tests {
         use js_int::uint;
         use ruma_common::{
-            SecondsSinceUnixEpoch, owned_event_id, owned_room_alias_id, owned_room_id,
-            owned_user_id,
+            SecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
+            owned_room_alias_id, owned_room_id, owned_user_id,
         };
         use ruma_events::TimelineEventType;
-        use serde_json::{
-            Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
-        };
+        use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
         use super::{Device, Notification, NotificationCounts, NotificationPriority, Tweak};
 
@@ -420,7 +418,7 @@ pub mod v1 {
                 ..Notification::default()
             };
 
-            assert_eq!(expected, to_json_value(notice).unwrap());
+            assert_to_canonical_json_eq!(expected, notice);
         }
     }
 }
