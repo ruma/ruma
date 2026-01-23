@@ -71,11 +71,14 @@ impl EventTypeEnum<'_> {
             /// This type can hold an arbitrary string. To build events with a custom type, convert it
             /// from a string with `::from()` / `.into()`. To check for events that are not available as a
             /// documented variant here, use its string representation, obtained through `.to_string()`.
+            #[cfg_attr(feature = "unstable-uniffi", derive(uniffi::Enum))]
             #[derive(Clone, PartialEq, Eq, Hash)]
             #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
             pub enum #ident {
                 #( #variants )*
-                #[doc(hidden)]
+                #[cfg_attr(not(feature = "unstable-uniffi"), doc(hidden))]
+                /// This variant ensures forward compatibility of the library. It should NOT be used to
+                /// create custom variants in client code.
                 _Custom(crate::PrivOwnedStr),
             }
 
