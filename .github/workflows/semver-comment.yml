@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download results
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: breaking-changes-results
           run-id: ${{ github.event.workflow_run.id }}
