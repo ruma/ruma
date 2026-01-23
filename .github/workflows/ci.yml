@@ -32,10 +32,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Check spelling
-        uses: crate-ci/typos@v1.40.0
+        uses: crate-ci/typos@v1.42.1
 
       - name: Install cargo-sort
-        uses: taiki-e/cache-cargo-install-action@v2
+        uses: taiki-e/cache-cargo-install-action@v3
         with:
           tool: cargo-sort
 
