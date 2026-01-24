@@ -92,16 +92,12 @@ impl EventEnum<'_> {
         }
 
         // Generate the `Any*EventContent` enum.
-        let mut tokens = self.expand_content_enum()?;
+        let mut tokens = self.expand_content_enum();
         let has_full = variations.contains(&EventVariation::None);
 
         // Generate the `Any*Event` enums for all the variations.
         for variation in variations {
-            tokens.extend(
-                EventEnumVariation::new(self, *variation)
-                    .expand_event_kind_enum()
-                    .unwrap_or_else(syn::Error::into_compile_error),
-            );
+            tokens.extend(EventEnumVariation::new(self, *variation).expand_event_kind_enum());
 
             if variation.is_sync() && has_full {
                 tokens.extend(self.expand_sync_from_into_full());
@@ -230,7 +226,7 @@ impl EventEnumVariation<'_> {
     }
 
     /// Generate this `Any*Event` enum.
-    fn expand_event_kind_enum(&self) -> syn::Result<TokenStream> {
+    fn expand_event_kind_enum(&self) -> TokenStream {
         let ruma_events = self.ruma_events;
 
         let ident = &self.ident;
@@ -245,12 +241,12 @@ impl EventEnumVariation<'_> {
         let custom_content_ty = format_ident!("Custom{kind}Content");
 
         let deserialize_impl = self.expand_deserialize_impl();
-        let field_accessor_impl = self.expand_accessor_methods()?;
+        let field_accessor_impl = self.expand_accessor_methods();
         let from_impl = self.expand_from_impl(ident, event_types);
         let json_castable_impl =
             expand_json_castable_impl(ident, kind, self.variation, ruma_events);
 
-        Ok(quote! {
+        quote! {
             #( #attrs )*
             #[derive(Clone, Debug)]
             #[allow(clippy::large_enum_variant, unused_qualifications)]
@@ -274,7 +270,7 @@ impl EventEnumVariation<'_> {
             #field_accessor_impl
             #from_impl
             #json_castable_impl
-        })
+        }
     }
 
     /// Generate the `serde::de::Deserialize` implementation for this enum.
@@ -323,7 +319,7 @@ impl EventEnumVariation<'_> {
     }
 
     /// Implement accessors for the common fields of an `Any*Event` enum.
-    fn expand_accessor_methods(&self) -> syn::Result<TokenStream> {
+    fn expand_accessor_methods(&self) -> TokenStream {
         let ruma_events = self.ruma_events;
 
         let ident = &self.ident;
@@ -375,7 +371,7 @@ impl EventEnumVariation<'_> {
         let relations_accessor = self.expand_relations_accessor();
         let transaction_id_accessor = self.expand_transaction_id_accessor();
 
-        Ok(quote! {
+        quote! {
             #[automatically_derived]
             impl #ident {
                 /// Returns the `type` of this event.
@@ -389,7 +385,7 @@ impl EventEnumVariation<'_> {
                 #state_key_accessor
                 #transaction_id_accessor
             }
-        })
+        }
     }
 
     /// Generate accessors for the `content` field for this enum.

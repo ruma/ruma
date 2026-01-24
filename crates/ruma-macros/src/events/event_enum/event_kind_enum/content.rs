@@ -13,7 +13,7 @@ use crate::{
 
 impl EventEnum<'_> {
     /// Generate the `Any*EventContent` enum for this kind.
-    pub(super) fn expand_content_enum(&self) -> syn::Result<TokenStream> {
+    pub(super) fn expand_content_enum(&self) -> TokenStream {
         let ruma_events = self.ruma_events;
         let serde = ruma_events.reexported(RumaEventsReexport::Serde);
 
@@ -34,7 +34,7 @@ impl EventEnum<'_> {
         let serialize_custom_event_error_path =
             quote! { #ruma_events::serialize_custom_event_error }.to_string();
 
-        Ok(quote! {
+        quote! {
             #( #attrs )*
             #[derive(Clone, Debug, #serde::Serialize)]
             #[serde(untagged)]
@@ -57,7 +57,7 @@ impl EventEnum<'_> {
             #event_content_kind_trait_impl
             #from_impl
             #json_castable_impl
-        })
+        }
     }
 
     /// Generate the `ruma_events::EventContentFromType` implementation for the
@@ -153,7 +153,7 @@ impl EventEnum<'_> {
     }
 
     /// Generate an `AnyFull*EventContent` enum.
-    pub(super) fn expand_full_content_enum(&self) -> syn::Result<TokenStream> {
+    pub(super) fn expand_full_content_enum(&self) -> TokenStream {
         let ruma_events = self.ruma_events;
 
         let attrs = &self.attrs;
@@ -164,7 +164,7 @@ impl EventEnum<'_> {
         let variant_docs = &self.variant_docs;
         let event_content_types = &self.event_content_types;
 
-        Ok(quote! {
+        quote! {
             #( #attrs )*
             #[derive(Clone, Debug)]
             #[allow(clippy::large_enum_variant, unused_qualifications)]
@@ -194,7 +194,7 @@ impl EventEnum<'_> {
                     }
                 }
             }
-        })
+        }
     }
 
     /// Implement `JsonCastable<{enum}>` for all the variants and `JsonCastable<JsonObject>` for the
