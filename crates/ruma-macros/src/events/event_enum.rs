@@ -389,6 +389,8 @@ impl EventEnumEntry {
 enum EventContentVariation {
     /// The non-redacted version of the event content, `Any{kind}EventContent`.
     Original,
+    /// The possibly redacted version of the event content, `AnyPossiblyRedacted{kind}EventContent`.
+    PossiblyRedacted,
 }
 
 impl EventContentVariation {
@@ -398,8 +400,8 @@ impl EventContentVariation {
             EventVariation::None | EventVariation::Sync | EventVariation::Initial => {
                 Some(Self::Original)
             }
-            EventVariation::Stripped
-            | EventVariation::Original
+            EventVariation::Stripped => Some(Self::PossiblyRedacted),
+            EventVariation::Original
             | EventVariation::OriginalSync
             | EventVariation::Redacted
             | EventVariation::RedactedSync => None,
@@ -410,14 +412,16 @@ impl EventContentVariation {
     fn to_event_content_trait(self) -> EventContentTraitVariation {
         match self {
             Self::Original => EventContentTraitVariation::Original,
+            Self::PossiblyRedacted => EventContentTraitVariation::PossiblyRedacted,
         }
     }
 }
 
 impl fmt::Display for EventContentVariation {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Original => Ok(()),
+            Self::PossiblyRedacted => write!(f, "PossiblyRedacted"),
         }
     }
 }
