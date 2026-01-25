@@ -41,6 +41,21 @@ impl PossiblyRedactedStateEventContent for PossiblyRedactedStateRoomEncryptedEve
     }
 }
 
+impl From<StateRoomEncryptedEventContent> for PossiblyRedactedStateRoomEncryptedEventContent {
+    fn from(value: StateRoomEncryptedEventContent) -> Self {
+        let StateRoomEncryptedEventContent { scheme } = value;
+        Self { scheme: Some(scheme) }
+    }
+}
+
+impl From<RedactedStateRoomEncryptedEventContent>
+    for PossiblyRedactedStateRoomEncryptedEventContent
+{
+    fn from(_value: RedactedStateRoomEncryptedEventContent) -> Self {
+        Self { scheme: None }
+    }
+}
+
 #[cfg(test)]
 mod tests {
 

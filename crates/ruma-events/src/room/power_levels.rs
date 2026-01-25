@@ -316,6 +316,35 @@ impl RedactedStateEventContent for RedactedRoomPowerLevelsEventContent {
     }
 }
 
+impl From<RedactedRoomPowerLevelsEventContent> for PossiblyRedactedRoomPowerLevelsEventContent {
+    fn from(value: RedactedRoomPowerLevelsEventContent) -> Self {
+        let RedactedRoomPowerLevelsEventContent {
+            ban,
+            events,
+            events_default,
+            invite,
+            kick,
+            redact,
+            state_default,
+            users,
+            users_default,
+        } = value;
+
+        Self {
+            ban,
+            events,
+            events_default,
+            invite,
+            kick,
+            redact,
+            state_default,
+            users,
+            users_default,
+            notifications: NotificationPowerLevels::default(),
+        }
+    }
+}
+
 /// The power level of a particular user.
 ///
 /// Is either considered "infinite" if that user is a room creator, or an integer if they are not.

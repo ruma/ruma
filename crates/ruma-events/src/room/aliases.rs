@@ -73,3 +73,9 @@ impl StaticEventContent for RedactedRoomAliasesEventContent {
     const TYPE: &'static str = RoomAliasesEventContent::TYPE;
     type IsPrefix = <RoomAliasesEventContent as StaticEventContent>::IsPrefix;
 }
+
+impl From<RedactedRoomAliasesEventContent> for PossiblyRedactedRoomAliasesEventContent {
+    fn from(value: RedactedRoomAliasesEventContent) -> Self {
+        Self { aliases: value.aliases }
+    }
+}
