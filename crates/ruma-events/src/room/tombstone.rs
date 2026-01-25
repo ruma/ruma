@@ -6,7 +6,10 @@ use ruma_common::OwnedRoomId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{EmptyStateKey, PossiblyRedactedStateEventContent, StateEventType, StaticEventContent};
+use crate::{
+    EmptyStateKey, PossiblyRedactedStateEventContent, RedactContent, StateEventType,
+    StaticEventContent,
+};
 
 /// The content of an `m.room.tombstone` event.
 ///
@@ -63,6 +66,14 @@ impl PossiblyRedactedStateEventContent for PossiblyRedactedRoomTombstoneEventCon
 impl StaticEventContent for PossiblyRedactedRoomTombstoneEventContent {
     const TYPE: &'static str = RoomTombstoneEventContent::TYPE;
     type IsPrefix = <RoomTombstoneEventContent as StaticEventContent>::IsPrefix;
+}
+
+impl RedactContent for PossiblyRedactedRoomTombstoneEventContent {
+    type Redacted = Self;
+
+    fn redact(self, _rules: &ruma_common::room_version_rules::RedactionRules) -> Self::Redacted {
+        Self { body: None, replacement_room: None }
+    }
 }
 
 impl From<RoomTombstoneEventContent> for PossiblyRedactedRoomTombstoneEventContent {

@@ -79,3 +79,12 @@ impl From<RedactedRoomAliasesEventContent> for PossiblyRedactedRoomAliasesEventC
         Self { aliases: value.aliases }
     }
 }
+
+impl RedactContent for PossiblyRedactedRoomAliasesEventContent {
+    type Redacted = Self;
+
+    fn redact(self, rules: &RedactionRules) -> Self {
+        let aliases = self.aliases.filter(|_| rules.keep_room_aliases_aliases);
+        Self { aliases }
+    }
+}

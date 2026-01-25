@@ -1,11 +1,12 @@
 //! Types for `m.room.encrypted` state events, as defined in [MSC4362][msc].
 //!
 //! [msc]: https://github.com/matrix-org/matrix-spec-proposals/pull/4362
+use ruma_common::room_version_rules::RedactionRules;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    PossiblyRedactedStateEventContent, StateEventType, StaticEventContent,
+    PossiblyRedactedStateEventContent, RedactContent, StateEventType, StaticEventContent,
     room::encrypted::EncryptedEventScheme,
 };
 
@@ -38,6 +39,14 @@ impl PossiblyRedactedStateEventContent for PossiblyRedactedStateRoomEncryptedEve
 
     fn event_type(&self) -> StateEventType {
         StateEventType::RoomEncrypted
+    }
+}
+
+impl RedactContent for PossiblyRedactedStateRoomEncryptedEventContent {
+    type Redacted = Self;
+
+    fn redact(self, _rules: &RedactionRules) -> Self::Redacted {
+        Self { scheme: None }
     }
 }
 

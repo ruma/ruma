@@ -2,11 +2,12 @@
 //!
 //! [`m.policy.rule.server`]: https://spec.matrix.org/latest/client-server-api/#mpolicyruleserver
 
+use ruma_common::room_version_rules::RedactionRules;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{PolicyRuleEventContent, PossiblyRedactedPolicyRuleEventContent};
-use crate::{PossiblyRedactedStateEventContent, StateEventType, StaticEventContent};
+use crate::{PossiblyRedactedStateEventContent, RedactContent, StateEventType, StaticEventContent};
 
 /// The content of an `m.policy.rule.server` event.
 ///
@@ -34,6 +35,14 @@ impl PossiblyRedactedStateEventContent for PossiblyRedactedPolicyRuleServerEvent
 impl StaticEventContent for PossiblyRedactedPolicyRuleServerEventContent {
     const TYPE: &'static str = PolicyRuleServerEventContent::TYPE;
     type IsPrefix = <PolicyRuleServerEventContent as StaticEventContent>::IsPrefix;
+}
+
+impl RedactContent for PossiblyRedactedPolicyRuleServerEventContent {
+    type Redacted = Self;
+
+    fn redact(self, _rules: &RedactionRules) -> Self::Redacted {
+        Self(PossiblyRedactedPolicyRuleEventContent::empty())
+    }
 }
 
 impl From<PolicyRuleServerEventContent> for PossiblyRedactedPolicyRuleServerEventContent {

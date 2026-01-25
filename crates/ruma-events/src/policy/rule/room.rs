@@ -2,11 +2,12 @@
 //!
 //! [`m.policy.rule.room`]: https://spec.matrix.org/latest/client-server-api/#mpolicyruleroom
 
+use ruma_common::room_version_rules::RedactionRules;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{PolicyRuleEventContent, PossiblyRedactedPolicyRuleEventContent};
-use crate::{PossiblyRedactedStateEventContent, StateEventType, StaticEventContent};
+use crate::{PossiblyRedactedStateEventContent, RedactContent, StateEventType, StaticEventContent};
 
 /// The content of an `m.policy.rule.room` event.
 ///
@@ -34,6 +35,14 @@ impl PossiblyRedactedStateEventContent for PossiblyRedactedPolicyRuleRoomEventCo
 impl StaticEventContent for PossiblyRedactedPolicyRuleRoomEventContent {
     const TYPE: &'static str = PolicyRuleRoomEventContent::TYPE;
     type IsPrefix = <PolicyRuleRoomEventContent as StaticEventContent>::IsPrefix;
+}
+
+impl RedactContent for PossiblyRedactedPolicyRuleRoomEventContent {
+    type Redacted = Self;
+
+    fn redact(self, _rules: &RedactionRules) -> Self::Redacted {
+        Self(PossiblyRedactedPolicyRuleEventContent::empty())
+    }
 }
 
 impl From<PolicyRuleRoomEventContent> for PossiblyRedactedPolicyRuleRoomEventContent {
