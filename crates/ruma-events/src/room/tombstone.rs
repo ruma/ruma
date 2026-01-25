@@ -64,3 +64,16 @@ impl StaticEventContent for PossiblyRedactedRoomTombstoneEventContent {
     const TYPE: &'static str = RoomTombstoneEventContent::TYPE;
     type IsPrefix = <RoomTombstoneEventContent as StaticEventContent>::IsPrefix;
 }
+
+impl From<RoomTombstoneEventContent> for PossiblyRedactedRoomTombstoneEventContent {
+    fn from(value: RoomTombstoneEventContent) -> Self {
+        let RoomTombstoneEventContent { body, replacement_room } = value;
+        Self { body: Some(body), replacement_room: Some(replacement_room) }
+    }
+}
+
+impl From<RedactedRoomTombstoneEventContent> for PossiblyRedactedRoomTombstoneEventContent {
+    fn from(_value: RedactedRoomTombstoneEventContent) -> Self {
+        Self { body: None, replacement_room: None }
+    }
+}

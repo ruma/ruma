@@ -17,6 +17,8 @@ Improvements:
   possibly redacted state event contents.
   - Add `AnyStrippedStateEvent::content()` to access only the content of the
     event.
+- Implement `From<(Redacted)*EventContent> for PossiblyRedacted*EventContent`
+  for all state events.
 
 # 0.32.1
 

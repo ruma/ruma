@@ -36,6 +36,20 @@ impl StaticEventContent for PossiblyRedactedPolicyRuleRoomEventContent {
     type IsPrefix = <PolicyRuleRoomEventContent as StaticEventContent>::IsPrefix;
 }
 
+impl From<PolicyRuleRoomEventContent> for PossiblyRedactedPolicyRuleRoomEventContent {
+    fn from(value: PolicyRuleRoomEventContent) -> Self {
+        let PolicyRuleRoomEventContent(policy) = value;
+        Self(policy.into())
+    }
+}
+
+impl From<RedactedPolicyRuleRoomEventContent> for PossiblyRedactedPolicyRuleRoomEventContent {
+    fn from(value: RedactedPolicyRuleRoomEventContent) -> Self {
+        let RedactedPolicyRuleRoomEventContent {} = value;
+        Self(PossiblyRedactedPolicyRuleEventContent::empty())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use ruma_common::serde::Raw;

@@ -35,3 +35,17 @@ impl StaticEventContent for PossiblyRedactedPolicyRuleUserEventContent {
     const TYPE: &'static str = PolicyRuleUserEventContent::TYPE;
     type IsPrefix = <PolicyRuleUserEventContent as StaticEventContent>::IsPrefix;
 }
+
+impl From<PolicyRuleUserEventContent> for PossiblyRedactedPolicyRuleUserEventContent {
+    fn from(value: PolicyRuleUserEventContent) -> Self {
+        let PolicyRuleUserEventContent(policy) = value;
+        Self(policy.into())
+    }
+}
+
+impl From<RedactedPolicyRuleUserEventContent> for PossiblyRedactedPolicyRuleUserEventContent {
+    fn from(value: RedactedPolicyRuleUserEventContent) -> Self {
+        let RedactedPolicyRuleUserEventContent {} = value;
+        Self(PossiblyRedactedPolicyRuleEventContent::empty())
+    }
+}
