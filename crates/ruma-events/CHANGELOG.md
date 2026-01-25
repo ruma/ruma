@@ -1,5 +1,12 @@
 # [unreleased]
 
+Breaking changes:
+
+- `PossiblyRedactedRoomMemberEventContent` is no longer a type alias for
+  `RoomMemberEventContent`. It would previously fail to deserialize if the
+  `third_party_invite` field was redacted as the `display_name` field was
+  required but it is removed during redaction.
+
 Bug fixes:
 
 - Fix a double `msgtype` in a `m.location` event.
