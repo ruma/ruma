@@ -212,6 +212,51 @@ impl EventContent {
                 generate_json_castable_impl(&possibly_redacted_ident, &[ident])
             };
 
+            let field_idents = possibly_redacted_fields.iter().map(|field| &field.inner.ident);
+            let from_original_field_exprs = possibly_redacted_fields.iter().map(|field| {
+                let ident = &field.inner.ident;
+
+                if matches!(field, Cow::Borrowed(_)) {
+                    quote! { #ident }
+                } else {
+                    quote! { #ident: Some(#ident) }
+                }
+            });
+
+            // Implement `From<Redacted*EventContent>` if we generated it automatically.
+            let from_redacted_impl = self.kind.should_generate_redacted().then(|| {
+                let redacted_ident = EventContentVariation::Redacted.variation_ident(ident);
+                let redacted_field_idents = possibly_redacted_fields
+                    .iter()
+                    .filter(|field| field.skip_redaction)
+                    .map(|field| &field.inner.ident);
+                let from_redacted_field_exprs = possibly_redacted_fields.iter().map(|field| {
+                    let ident = &field.inner.ident;
+
+                    if field.skip_redaction {
+                        quote! { #ident }
+                    } else if let Some(default_expr) = field.inner.serde_default_expr() {
+                        quote! { #ident: #default_expr() }
+                    } else {
+                        quote! { #ident: Default::default() }
+                    }
+                });
+
+                quote! {
+                    impl From<#redacted_ident> for #possibly_redacted_ident {
+                        fn from(value: #redacted_ident) -> #possibly_redacted_ident {
+                            let #redacted_ident {
+                                #( #redacted_field_idents, )*
+                            } = value;
+
+                            Self {
+                                #( #from_redacted_field_exprs, )*
+                            }
+                        }
+                    }
+                }
+            });
+
             Some(quote! {
                 #[doc = #possibly_redacted_doc]
                 #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
@@ -220,6 +265,19 @@ impl EventContent {
                     #( #possibly_redacted_fields, )*
                 }
 
+                impl From<#ident> for #possibly_redacted_ident {
+                    fn from(value: #ident) -> #possibly_redacted_ident {
+                        let #ident {
+                            #( #field_idents, )*
+                        } = value;
+
+                        Self {
+                            #( #from_original_field_exprs, )*
+                        }
+                    }
+                }
+
+                #from_redacted_impl
                 #possibly_redacted_event_content
                 #static_event_content_impl
                 #json_castable_impl
