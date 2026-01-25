@@ -19,6 +19,8 @@ Improvements:
     event.
 - Implement `From<(Redacted)*EventContent> for PossiblyRedacted*EventContent`
   for all state events.
+- Implement `RedactContent for PossiblyRedacted*EventContent` for all state
+  events. 
 
 # 0.32.1
 
