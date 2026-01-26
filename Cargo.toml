@@ -41,7 +41,7 @@ similar = "2.6.0"
 thiserror = "2.0.0"
 toml = { version = "0.9.6", default-features = false, features = ["parse", "serde"] }
 tracing = { version = "0.1.37", default-features = false, features = ["std"] }
-uniffi = { git = "https://github.com/mozilla/uniffi-rs", rev = "870b814" }
+uniffi = { version = "0.31.0" }
 url = { version = "2.5.0" }
 web-time = "1.1.0"
 zeroize = "1.8.1"

@@ -76,7 +76,7 @@ impl EventTypeEnum<'_> {
             #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
             pub enum #ident {
                 #( #variants )*
-                #[cfg_attr(not(feature = "unstable-uniffi"), doc(hidden))]
+                #[doc(hidden)]
                 /// This variant ensures forward compatibility of the library. It should NOT be used to
                 /// create custom variants in client code.
                 _Custom(crate::PrivOwnedStr),
