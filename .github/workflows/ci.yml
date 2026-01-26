@@ -4,7 +4,7 @@ env:
   CARGO_TERM_COLOR: always
   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
   # Keep in sync with version in `rust-toolchain.toml` and `xtask/src/main.rs`
-  NIGHTLY: nightly-2025-12-12
+  NIGHTLY: nightly-2026-01-23
 
 on:
   push:
@@ -32,10 +32,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Check spelling
-        uses: crate-ci/typos@v1.40.0
+        uses: crate-ci/typos@v1.42.1
 
       - name: Install cargo-sort
-        uses: taiki-e/cache-cargo-install-action@v2
+        uses: taiki-e/cache-cargo-install-action@v3
         with:
           tool: cargo-sort
 
@@ -242,7 +242,7 @@ jobs:
 
       - name: Upload docs as artifact
         if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: docs
           path: docs.tar.zstd

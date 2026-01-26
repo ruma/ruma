@@ -310,7 +310,11 @@ impl EventEnumEntry {
     }
 
     /// Get or generate the path of the event content type for this entry.
-    fn to_event_content_path(&self, kind: EventEnumKind) -> syn::Path {
+    fn to_event_content_path(
+        &self,
+        kind: EventEnumKind,
+        variation: EventContentVariation,
+    ) -> syn::Path {
         let type_prefix = match kind {
             EventEnumKind::ToDevice => "ToDevice",
             // Special case encrypted state event for MSC4362.
@@ -325,7 +329,7 @@ impl EventEnumEntry {
             _ => "",
         };
 
-        let content_name = format_ident!("{type_prefix}{}EventContent", self.ident);
+        let content_name = format_ident!("{variation}{type_prefix}{}EventContent", self.ident);
 
         let mut path = self.ev_path.clone();
         path.segments.push(content_name.into());
@@ -377,5 +381,47 @@ impl EventEnumEntry {
         }
 
         doc
+    }
+}
+
+/// The supported variations for `Any*EventContent` enums.
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum EventContentVariation {
+    /// The non-redacted version of the event content, `Any{kind}EventContent`.
+    Original,
+    /// The possibly redacted version of the event content, `AnyPossiblyRedacted{kind}EventContent`.
+    PossiblyRedacted,
+}
+
+impl EventContentVariation {
+    /// Get the event content enum variation matching the given event variation.
+    fn from_event_variation(event_variation: EventVariation) -> Option<Self> {
+        match event_variation {
+            EventVariation::None | EventVariation::Sync | EventVariation::Initial => {
+                Some(Self::Original)
+            }
+            EventVariation::Stripped => Some(Self::PossiblyRedacted),
+            EventVariation::Original
+            | EventVariation::OriginalSync
+            | EventVariation::Redacted
+            | EventVariation::RedactedSync => None,
+        }
+    }
+
+    /// Get the event content trait matching this variation.
+    fn to_event_content_trait(self) -> EventContentTraitVariation {
+        match self {
+            Self::Original => EventContentTraitVariation::Original,
+            Self::PossiblyRedacted => EventContentTraitVariation::PossiblyRedacted,
+        }
+    }
+}
+
+impl fmt::Display for EventContentVariation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Original => Ok(()),
+            Self::PossiblyRedacted => write!(f, "PossiblyRedacted"),
+        }
     }
 }

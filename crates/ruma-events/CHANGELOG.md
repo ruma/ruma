@@ -4,6 +4,13 @@ Bug fixes:
 
 - Fix a double `msgtype` in a `m.location` event.
 
+Improvements:
+
+- Add `AnyPossiblyRedactedStateEventContent`, an enum containing all the
+  possibly redacted state event contents.
+  - Add `AnyStrippedStateEvent::content()` to access only the content of the
+    event.
+
 # 0.32.1
 
 Improvements:

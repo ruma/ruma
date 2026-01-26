@@ -34,7 +34,11 @@ help: the trait `OutgoingResponse` is not implemented for `Response`
    |
 27 | pub struct Response {
    | ^^^^^^^^^^^^^^^^^^^
-   = help: the trait `OutgoingResponse` is implemented for `MatrixError`
+help: the trait `OutgoingResponse` is implemented for `MatrixError`
+  --> src/api/error.rs
+   |
+   | impl OutgoingResponse for MatrixError {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: required by a bound in `ruma_common::api::IncomingRequest::OutgoingResponse`
   --> src/api.rs
    |
