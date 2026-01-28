@@ -1035,8 +1035,7 @@ mod tests {
     use js_int::{int, uint};
     use macro_rules_attribute::apply;
     use serde_json::{
-        Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
-        value::RawValue as RawJsonValue,
+        Value as JsonValue, from_value as from_json_value, json, value::RawValue as RawJsonValue,
     };
     use smol_macros::test;
 
@@ -1048,7 +1047,7 @@ mod tests {
         },
     };
     use crate::{
-        owned_room_id, owned_user_id,
+        assert_to_canonical_json_eq, owned_room_id, owned_user_id,
         power_levels::NotificationPowerLevels,
         push::{PredefinedContentRuleId, PredefinedOverrideRuleId},
         room_version_rules::{AuthorizationRules, RoomPowerLevelsRules},
@@ -1174,9 +1173,8 @@ mod tests {
             ],
         };
 
-        let rule_value: JsonValue = to_json_value(rule).unwrap();
-        assert_eq!(
-            rule_value,
+        assert_to_canonical_json_eq!(
+            rule,
             json!({
                 "conditions": [
                     {
@@ -1218,9 +1216,8 @@ mod tests {
             rule_id: owned_room_id!("!roomid:server.name"),
         };
 
-        let rule_value: JsonValue = to_json_value(rule).unwrap();
-        assert_eq!(
-            rule_value,
+        assert_to_canonical_json_eq!(
+            rule,
             json!({
                 "actions": [
                     "notify"
@@ -1249,9 +1246,8 @@ mod tests {
             rule_id: ".m.rule.contains_user_name".into(),
         };
 
-        let rule_value: JsonValue = to_json_value(rule).unwrap();
-        assert_eq!(
-            rule_value,
+        assert_to_canonical_json_eq!(
+            rule,
             json!({
                 "actions": [
                     "notify",
@@ -1302,9 +1298,8 @@ mod tests {
             default: true,
         });
 
-        let set_value: JsonValue = to_json_value(set).unwrap();
-        assert_eq!(
-            set_value,
+        assert_to_canonical_json_eq!(
+            set,
             json!({
                 "override": [
                     {

@@ -172,10 +172,11 @@ pub struct CustomSecretEncryptionAlgorithm {
 mod tests {
     use assert_matches2::assert_matches;
     use js_int::uint;
-    use ruma_common::{KeyDerivationAlgorithm, serde::Base64};
+    use ruma_common::{
+        KeyDerivationAlgorithm, canonical_json::assert_to_canonical_json_eq, serde::Base64,
+    };
     use serde_json::{
-        from_value as from_json_value, json, to_value as to_json_value,
-        value::to_raw_value as to_raw_json_value,
+        from_value as from_json_value, json, value::to_raw_value as to_raw_json_value,
     };
 
     use super::{
@@ -202,7 +203,7 @@ mod tests {
             "mac": "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U"
         });
 
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(content, json);
     }
 
     #[test]
@@ -285,7 +286,7 @@ mod tests {
             }
         });
 
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(content, json);
     }
 
     #[test]
@@ -343,7 +344,7 @@ mod tests {
             "mac": "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U"
         });
 
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(content, json);
     }
 
     #[test]
@@ -368,7 +369,7 @@ mod tests {
             }
         });
 
-        assert_eq!(to_json_value(&event).unwrap(), json);
+        assert_to_canonical_json_eq!(event, json);
     }
 
     #[test]

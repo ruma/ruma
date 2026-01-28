@@ -45,8 +45,8 @@ mod tests {
     use std::collections::BTreeMap;
 
     use assert_matches2::assert_matches;
-    use ruma_common::serde::Base64;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, serde::Base64};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{SecretEncryptedData, SecretEventContent};
 
@@ -73,7 +73,7 @@ mod tests {
             }
         });
 
-        assert_eq!(to_json_value(content).unwrap(), json);
+        assert_to_canonical_json_eq!(content, json);
     }
 
     #[test]

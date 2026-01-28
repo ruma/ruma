@@ -92,7 +92,8 @@ impl OAuthParams {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{LoginTermsParams, PolicyDefinition, PolicyTranslation};
 
@@ -120,8 +121,8 @@ mod tests {
         );
         let params = LoginTermsParams::new([("privacy".to_owned(), privacy_definition)].into());
 
-        assert_eq!(
-            to_json_value(&params).unwrap(),
+        assert_to_canonical_json_eq!(
+            params,
             json!({
                 "policies": {
                     "privacy": {

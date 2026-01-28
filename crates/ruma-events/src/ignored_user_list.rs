@@ -51,8 +51,8 @@ impl IgnoredUser {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use ruma_common::{owned_user_id, user_id};
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_user_id, user_id};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::IgnoredUserListEventContent;
     use crate::AnyGlobalAccountDataEvent;
@@ -68,7 +68,7 @@ mod tests {
             },
         });
 
-        assert_eq!(to_json_value(ignored_user_list).unwrap(), json);
+        assert_to_canonical_json_eq!(ignored_user_list, json);
     }
 
     #[test]

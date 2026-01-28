@@ -87,8 +87,8 @@ mod tests {
     use std::collections::BTreeMap;
 
     use assert_matches2::assert_matches;
-    use ruma_common::owned_room_id;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_room_id};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::DoNotDisturbEventContent;
     use crate::{AnyGlobalAccountDataEvent, do_not_disturb::DoNotDisturbRoomKey};
@@ -104,7 +104,7 @@ mod tests {
             },
         });
 
-        assert_eq!(to_json_value(do_not_disturb_room_list).unwrap(), json);
+        assert_to_canonical_json_eq!(do_not_disturb_room_list, json);
     }
 
     #[test]
@@ -120,7 +120,7 @@ mod tests {
             },
         });
 
-        assert_eq!(to_json_value(do_not_disturb_room_list).unwrap(), json);
+        assert_to_canonical_json_eq!(do_not_disturb_room_list, json);
     }
 
     #[test]

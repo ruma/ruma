@@ -20,7 +20,6 @@ extern crate self as ruma_common;
 #[cfg(feature = "api")]
 pub mod api;
 pub mod authentication;
-#[cfg(feature = "canonical-json")]
 pub mod canonical_json;
 pub mod directory;
 pub mod encryption;
@@ -42,9 +41,8 @@ pub mod to_device;
 
 use std::fmt;
 
-#[cfg(feature = "canonical-json")]
-pub use self::canonical_json::{CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue};
 pub use self::{
+    canonical_json::{CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue},
     identifiers::*,
     time::{MilliSecondsSinceUnixEpoch, SecondsSinceUnixEpoch},
 };

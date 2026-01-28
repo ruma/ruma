@@ -40,20 +40,21 @@ impl<'de> Deserialize<'de> for UrlFilter {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    use serde_json::{from_value as from_json_value, json};
 
     use super::UrlFilter;
 
     #[test]
     fn serialize_filter_events_with_url() {
         let events_with_url = UrlFilter::EventsWithUrl;
-        assert_eq!(to_json_value(events_with_url).unwrap(), json!(true));
+        assert_to_canonical_json_eq!(events_with_url, json!(true));
     }
 
     #[test]
     fn serialize_filter_events_without_url() {
         let events_without_url = UrlFilter::EventsWithoutUrl;
-        assert_eq!(to_json_value(events_without_url).unwrap(), json!(false));
+        assert_to_canonical_json_eq!(events_without_url, json!(false));
     }
 
     #[test]

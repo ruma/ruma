@@ -42,8 +42,8 @@ impl SpaceParentEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::server_name;
-    use serde_json::{json, to_value as to_json_value};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, server_name};
+    use serde_json::json;
 
     use super::SpaceParentEventContent;
 
@@ -59,7 +59,7 @@ mod tests {
             "canonical": true,
         });
 
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(content, json);
     }
 
     #[test]
@@ -68,6 +68,6 @@ mod tests {
 
         let json = json!({ "via": [] });
 
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(content, json);
     }
 }

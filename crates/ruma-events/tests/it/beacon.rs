@@ -3,14 +3,13 @@
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, owned_event_id, room_id, serde::CanBeEmpty, user_id,
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
+    room_id, serde::CanBeEmpty, user_id,
 };
 use ruma_events::{
     AnyMessageLikeEvent, MessageLikeEvent, beacon::BeaconEventContent, relation::Reference,
 };
-use serde_json::{
-    Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
-};
+use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
 fn get_beacon_event_content() -> BeaconEventContent {
     BeaconEventContent::new(
@@ -37,7 +36,7 @@ fn get_beacon_event_content_json() -> JsonValue {
 fn beacon_event_content_serialization() {
     let event_content = get_beacon_event_content();
 
-    assert_eq!(to_json_value(&event_content).unwrap(), get_beacon_event_content_json());
+    assert_to_canonical_json_eq!(event_content, get_beacon_event_content_json());
 }
 
 #[test]

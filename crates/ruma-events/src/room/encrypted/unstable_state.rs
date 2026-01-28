@@ -61,8 +61,10 @@ mod tests {
 
     use assert_matches2::assert_matches;
     use js_int::uint;
-    use ruma_common::{MilliSecondsSinceUnixEpoch, room_id, user_id};
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::{
+        MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, room_id, user_id,
+    };
+    use serde_json::{from_value as from_json_value, json};
 
     use crate::{
         AnyStateEvent, StateEvent,
@@ -94,7 +96,7 @@ mod tests {
             "session_id": "session_id",
         });
 
-        assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
+        assert_to_canonical_json_eq!(key_verification_start_content, json_data);
     }
 
     #[test]

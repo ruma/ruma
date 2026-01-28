@@ -4,7 +4,10 @@ use std::time::Duration;
 
 use assert_matches2::assert_matches;
 use js_int::uint;
-use ruma_common::{MilliSecondsSinceUnixEpoch, mxc_uri, owned_event_id, serde::CanBeEmpty};
+use ruma_common::{
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, mxc_uri,
+    owned_event_id, serde::CanBeEmpty,
+};
 use ruma_events::{
     AnyMessageLikeEvent, MessageLikeEvent,
     audio::Amplitude,
@@ -13,7 +16,7 @@ use ruma_events::{
     room::message::Relation,
     voice::{VoiceAudioDetailsContentBlock, VoiceEventContent},
 };
-use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+use serde_json::{from_value as from_json_value, json};
 
 #[test]
 fn event_serialization() {
@@ -35,8 +38,8 @@ fn event_serialization() {
         in_reply_to: InReplyTo::new(owned_event_id!("$replyevent:example.com")),
     });
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "org.matrix.msc1767.text": [
                 { "body": "Voice message" },
