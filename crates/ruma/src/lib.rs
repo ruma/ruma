@@ -60,6 +60,8 @@
 //!
 //! * `unstable-mscXXXX`, where `XXXX` is the MSC number -- Upcoming Matrix features that may be
 //!   subject to change or removal.
+//! * `unstable-uniffi` -- Enables UniFFI bindings by adding conditional `uniffi` derives to _some_
+//!   types. This feature is currently a work in progress and, thus, unstable.
 //!
 //! # Common features
 //!

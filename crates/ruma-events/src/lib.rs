@@ -104,6 +104,9 @@
 
 #![warn(missing_docs)]
 
+#[cfg(feature = "unstable-uniffi")]
+uniffi::setup_scaffolding!();
+
 use std::{collections::BTreeSet, fmt};
 
 use ruma_common::{EventEncryptionAlgorithm, OwnedUserId, room_version_rules::RedactionRules};
@@ -311,3 +314,9 @@ impl fmt::Debug for PrivOwnedStr {
         self.0.fmt(f)
     }
 }
+
+#[cfg(feature = "unstable-uniffi")]
+uniffi::custom_type!(PrivOwnedStr, String, {
+    lower: |s| s.0.into(),
+    try_lift: |s| Ok(PrivOwnedStr(s.into())),
+});
