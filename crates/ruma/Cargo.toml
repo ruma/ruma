@@ -215,6 +215,7 @@ unstable-msc4380 = [
     "ruma-events?/unstable-msc4380",
     "ruma-client-api?/unstable-msc4380",
 ]
+unstable-msc4388 = ["ruma-common/unstable-msc4388", "ruma-client-api?/unstable-msc4388"]
 
 [dependencies]
 assign = { workspace = true }

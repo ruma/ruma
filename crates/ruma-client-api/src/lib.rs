@@ -39,7 +39,7 @@ pub mod read_marker;
 pub mod receipt;
 pub mod redact;
 pub mod relations;
-#[cfg(feature = "unstable-msc4108")]
+#[cfg(any(feature = "unstable-msc4108", feature = "unstable-msc4388"))]
 pub mod rendezvous;
 pub mod reporting;
 pub mod room;

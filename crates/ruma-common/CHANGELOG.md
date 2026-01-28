@@ -15,6 +15,7 @@ Improvements:
   a `CanonicalJsonValue`, with stricter rules than
   `serde_json::value::Serializer`. This serializer is also used in
   `to_canonical_value()`.
+- Add `io.element.msc4388` unstable feature support to `/versions`.
 
 # 0.17.1
 

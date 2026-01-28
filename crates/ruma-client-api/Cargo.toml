@@ -56,6 +56,7 @@ unstable-msc4195 = ["unstable-msc4143"]
 unstable-msc4306 = []
 unstable-msc4308 = []
 unstable-msc4380 = ["ruma-common/unstable-msc4380", "ruma-events/unstable-msc4380"]
+unstable-msc4388 = ["ruma-common/unstable-msc4388"]
 
 [dependencies]
 as_variant = { workspace = true }

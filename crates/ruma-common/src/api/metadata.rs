@@ -745,6 +745,8 @@ pub enum FeatureFlag {
     ///
     /// Mechanism to allow OIDC sign in and E2EE set up via QR code.
     ///
+    /// This is for the unstable 2024 version of the [MSC].
+    ///
     /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
     #[cfg(feature = "unstable-msc4108")]
     #[ruma_enum(rename = "org.matrix.msc4108")]
@@ -776,6 +778,17 @@ pub enum FeatureFlag {
     #[cfg(feature = "unstable-msc4380")]
     #[ruma_enum(rename = "org.matrix.msc4380")]
     Msc4380,
+
+    /// `io.element.msc4388` ([MSC])
+    ///
+    /// Secure out-of-band channel for sign in with QR. This is part of the
+    /// 2025 version of [MSC4108]
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4388
+    /// [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
+    #[cfg(feature = "unstable-msc4388")]
+    #[ruma_enum(rename = "io.element.msc4388")]
+    Msc4388,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
