@@ -333,6 +333,19 @@ pub struct KnockedRoom {
     /// Updates to the stripped state of the room.
     #[serde(default, skip_serializing_if = "KnockState::is_empty")]
     pub knock_state: KnockState,
+
+    /// Updates to the non-stripped state of the room.
+    ///
+    /// Uses the unstable prefix defined in [MSC4319].
+    ///
+    /// [MSC4319]: https://github.com/matrix-org/matrix-spec-proposals/pull/4319
+    #[cfg(feature = "unstable-msc4319")]
+    #[serde(
+        rename = "org.matrix.msc4319.state",
+        default,
+        skip_serializing_if = "StateEvents::is_empty"
+    )]
+    pub state: StateEvents,
 }
 
 impl KnockedRoom {
@@ -343,7 +356,15 @@ impl KnockedRoom {
 
     /// Whether there are updates for this room.
     pub fn is_empty(&self) -> bool {
-        self.knock_state.is_empty()
+        #[cfg(not(feature = "unstable-msc4319"))]
+        {
+            self.knock_state.is_empty()
+        }
+
+        #[cfg(feature = "unstable-msc4319")]
+        {
+            self.knock_state.is_empty() && self.state.is_empty()
+        }
     }
 }
 
@@ -592,6 +613,19 @@ pub struct InvitedRoom {
     /// The state of a room that the user has been invited to.
     #[serde(default, skip_serializing_if = "InviteState::is_empty")]
     pub invite_state: InviteState,
+
+    /// Updates to the non-stripped state of the room.
+    ///
+    /// Uses the unstable prefix defined in [MSC4319].
+    ///
+    /// [MSC4319]: https://github.com/matrix-org/matrix-spec-proposals/pull/4319
+    #[cfg(feature = "unstable-msc4319")]
+    #[serde(
+        rename = "org.matrix.msc4319.state",
+        default,
+        skip_serializing_if = "StateEvents::is_empty"
+    )]
+    pub state: StateEvents,
 }
 
 impl InvitedRoom {
@@ -602,7 +636,15 @@ impl InvitedRoom {
 
     /// Returns true if there are no updates to this room.
     pub fn is_empty(&self) -> bool {
-        self.invite_state.is_empty()
+        #[cfg(not(feature = "unstable-msc4319"))]
+        {
+            self.invite_state.is_empty()
+        }
+
+        #[cfg(feature = "unstable-msc4319")]
+        {
+            self.invite_state.is_empty() && self.state.is_empty()
+        }
     }
 }
 
