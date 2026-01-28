@@ -10,6 +10,9 @@ Breaking changes:
 Bug fixes:
 
 - Fix a double `msgtype` in a `m.location` event.
+- Fix the deserialization of a redacted `SpaceChildEventContent`, where the `via` key would be
+  omitted, per spec. As such, it's the caller's responsibility to handle missing `via` values, by
+  calling `SpaceChildEventContent::is_empty()` before considering the event as valid.
 
 Improvements:
 
