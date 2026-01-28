@@ -21,7 +21,6 @@ client = []
 server = []
 
 api = ["dep:http", "dep:konst"]
-canonical-json = []
 js = ["dep:js-sys", "getrandom?/js", "uuid?/js"]
 rand = ["dep:rand", "dep:getrandom", "dep:uuid"]
 

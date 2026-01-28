@@ -8,6 +8,8 @@ Breaking changes:
   - Serializing bytes.
   - Serializing booleans and integers as keys for an object.
   - Serializing the same key twice in an object.
+- The `canonical-json` feature was removed. The `canonical_json` module is no
+  longer gated behind a cargo feature.
 
 Improvements:
 

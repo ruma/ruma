@@ -1,5 +1,7 @@
 # [unreleased]
 
+- The `canonical-json` feature was removed.
+
 # 0.14.1
 
 Please refer to the changelogs of:
