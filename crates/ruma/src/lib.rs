@@ -141,9 +141,7 @@ pub use js_option::JsOption;
 #[cfg(all(feature = "events", feature = "unstable-msc4334"))]
 #[doc(no_inline)]
 pub use language_tags::LanguageTag;
-pub use ruma_common::*;
-#[cfg(feature = "canonical-json")]
 pub use ruma_common::{
-    CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue, canonical_json,
+    CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue, canonical_json, *,
 };
 pub use web_time as time;

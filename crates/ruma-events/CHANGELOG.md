@@ -6,6 +6,8 @@ Breaking changes:
   `RoomMemberEventContent`. It would previously fail to deserialize if the
   `third_party_invite` field was redacted as the `display_name` field was
   required but it is removed during redaction.
+- The `canonical-json` feature was removed. The code that was behind it is no
+  longer gated behind a cargo feature.
 
 Bug fixes:
 
