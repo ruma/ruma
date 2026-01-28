@@ -297,6 +297,26 @@ impl StaticEventContent for PossiblyRedactedRoomMemberEventContent {
     type IsPrefix = <RoomMemberEventContent as StaticEventContent>::IsPrefix;
 }
 
+impl RedactContent for PossiblyRedactedRoomMemberEventContent {
+    type Redacted = Self;
+
+    fn redact(self, rules: &RedactionRules) -> Self {
+        Self {
+            membership: self.membership,
+            third_party_invite: self.third_party_invite.and_then(|i| i.redact(rules)),
+            join_authorized_via_users_server: self
+                .join_authorized_via_users_server
+                .filter(|_| rules.keep_room_member_join_authorised_via_users_server),
+            avatar_url: None,
+            displayname: None,
+            is_direct: None,
+            #[cfg(feature = "unstable-msc2448")]
+            blurhash: None,
+            reason: None,
+        }
+    }
+}
+
 impl From<RoomMemberEventContent> for PossiblyRedactedRoomMemberEventContent {
     fn from(value: RoomMemberEventContent) -> Self {
         let RoomMemberEventContent {
@@ -524,6 +544,16 @@ impl PossiblyRedactedThirdPartyInvite {
     /// content.
     pub fn new(display_name: String, signed: Raw<SignedContent>) -> Self {
         Self { display_name: Some(display_name), signed }
+    }
+
+    /// Transform `self` into a redacted form (removing most or all fields) according to the spec.
+    ///
+    /// Returns `None` if the field for this object was redacted according to the given
+    /// [`RedactionRules`], otherwise returns the redacted form.
+    fn redact(self, rules: &RedactionRules) -> Option<Self> {
+        rules
+            .keep_room_member_third_party_invite_signed
+            .then_some(Self { display_name: None, signed: self.signed })
     }
 }
 
