@@ -231,7 +231,10 @@ pub enum RoomKeyWithheldCode {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use ruma_common::{EventEncryptionAlgorithm, owned_room_id, serde::Base64};
+    use ruma_common::{
+        EventEncryptionAlgorithm, canonical_json::assert_to_canonical_json_eq, owned_room_id,
+        serde::Base64,
+    };
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{
@@ -249,8 +252,8 @@ mod tests {
             Base64::new(PUBLIC_KEY.to_owned()),
         );
 
-        assert_eq!(
-            to_json_value(content).unwrap(),
+        assert_to_canonical_json_eq!(
+            content,
             json!({
                 "algorithm": "m.megolm.v1.aes-sha2",
                 "code": "m.no_olm",
@@ -270,8 +273,8 @@ mod tests {
             Base64::new(PUBLIC_KEY.to_owned()),
         );
 
-        assert_eq!(
-            to_json_value(content).unwrap(),
+        assert_to_canonical_json_eq!(
+            content,
             json!({
                 "algorithm": "m.megolm.v1.aes-sha2",
                 "code": "m.blacklisted",

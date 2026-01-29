@@ -1,14 +1,17 @@
 use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::{UInt, uint};
-use ruma_common::{MilliSecondsSinceUnixEpoch, mxc_uri, owned_event_id, serde::CanBeEmpty};
+use ruma_common::{
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, mxc_uri,
+    owned_event_id, serde::CanBeEmpty,
+};
 use ruma_events::{
     AnyMessageLikeEvent, MessageLikeEvent,
     relation::Replacement,
     room::{ImageInfo, MediaSource, ThumbnailInfo, message::Relation},
     sticker::{StickerEventContent, StickerEventContentWithoutRelation, StickerMediaSource},
 };
-use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+use serde_json::{from_value as from_json_value, json};
 
 #[test]
 fn content_serialization() {
@@ -18,8 +21,8 @@ fn content_serialization() {
         mxc_uri!("mxc://notareal.hs/file").to_owned(),
     );
 
-    assert_eq!(
-        to_json_value(&message_event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        message_event_content,
         json!({
             "body": "Upload: my_image.jpg",
             "url": "mxc://notareal.hs/file",
@@ -46,8 +49,8 @@ fn replace_content_serialization() {
     let relation = Relation::Replacement(replacement);
     message_event_content.relates_to = Some(relation);
 
-    assert_eq!(
-        to_json_value(&message_event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        message_event_content,
         json!({
             "body": "* Upload: my_image.jpg",
             "url": "mxc://notareal.hs/file",
@@ -85,26 +88,26 @@ fn event_serialization() {
         mxc_uri!("mxc://matrix.org/rnsldl8srs98IRrs").to_owned(),
     );
 
-    let actual = to_json_value(&content).unwrap();
-
-    let expected = json!({
-        "body": "Hello",
-        "info": {
-            "h": 423,
-            "mimetype": "image/png",
-            "size": 84242,
-            "thumbnail_info": {
-                "h": 334,
+    assert_to_canonical_json_eq!(
+        content,
+        json!({
+            "body": "Hello",
+            "info": {
+                "h": 423,
                 "mimetype": "image/png",
-                "size": 82595,
-                "w": 800
+                "size": 84242,
+                "thumbnail_info": {
+                    "h": 334,
+                    "mimetype": "image/png",
+                    "size": 82595,
+                    "w": 800,
+                },
+                "thumbnail_url": "mxc://matrix.org/irsns989Rrsn",
+                "w": 1011,
             },
-            "thumbnail_url": "mxc://matrix.org/irsns989Rrsn",
-            "w": 1011
-            },
-        "url": "mxc://matrix.org/rnsldl8srs98IRrs",
-    });
-    assert_eq!(actual, expected);
+            "url": "mxc://matrix.org/rnsldl8srs98IRrs",
+        }),
+    );
 }
 
 #[test]

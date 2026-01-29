@@ -1,5 +1,7 @@
 use assert_matches2::assert_matches;
-use ruma_common::room_version_rules::RedactionRules;
+use ruma_common::{
+    canonical_json::assert_to_canonical_json_eq, room_version_rules::RedactionRules,
+};
 use ruma_events::{
     AnyMessageLikeEvent, AnySyncMessageLikeEvent, AnySyncStateEvent, AnySyncTimelineEvent,
     AnyTimelineEvent, EventContentFromType, MessageLikeEvent, RedactContent, SyncMessageLikeEvent,
@@ -12,7 +14,7 @@ use ruma_events::{
     },
 };
 use serde_json::{
-    Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
+    Value as JsonValue, from_value as from_json_value, json,
     value::to_raw_value as to_raw_json_value,
 };
 
@@ -31,19 +33,20 @@ fn unsigned() -> JsonValue {
 
 #[test]
 fn serialize_redacted_message_event_content() {
-    assert_eq!(to_json_value(RedactedRoomMessageEventContent::new()).unwrap(), json!({}));
+    assert_to_canonical_json_eq!(RedactedRoomMessageEventContent::new(), json!({}));
 }
 
 #[test]
 fn serialize_empty_redacted_aliases_event_content() {
-    assert_eq!(to_json_value(RedactedRoomAliasesEventContent::default()).unwrap(), json!({}));
+    assert_to_canonical_json_eq!(RedactedRoomAliasesEventContent::default(), json!({}));
 }
 
 #[test]
 fn redacted_aliases_event_serialize_with_content() {
-    let expected = json!({ "aliases": [] });
-    let actual = to_json_value(RedactedRoomAliasesEventContent::new_v1(vec![])).unwrap();
-    assert_eq!(actual, expected);
+    assert_to_canonical_json_eq!(
+        RedactedRoomAliasesEventContent::new_v1(vec![]),
+        json!({ "aliases": [] }),
+    );
 }
 
 #[test]

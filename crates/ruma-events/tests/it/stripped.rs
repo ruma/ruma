@@ -1,18 +1,16 @@
 use assert_matches2::assert_matches;
 use js_int::uint;
-use ruma_common::mxc_uri;
+use ruma_common::{canonical_json::assert_to_canonical_json_eq, mxc_uri};
 use ruma_events::{
     AnyStrippedStateEvent,
     room::{join_rules::JoinRule, topic::RoomTopicEventContent},
 };
-use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+use serde_json::{from_value as from_json_value, json};
 
 #[test]
 fn serialize_stripped_state_event_any_content() {
-    let json = to_json_value(RoomTopicEventContent::new("Testing room".into())).unwrap();
-
-    assert_eq!(
-        json,
+    assert_to_canonical_json_eq!(
+        RoomTopicEventContent::new("Testing room".into()),
         json!({
             "topic": "Testing room",
             "m.topic": {

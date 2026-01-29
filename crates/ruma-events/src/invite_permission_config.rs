@@ -33,7 +33,8 @@ impl InvitePermissionConfigEventContent {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    use serde_json::{from_value as from_json_value, json};
 
     use super::InvitePermissionConfigEventContent;
     use crate::AnyGlobalAccountDataEvent;
@@ -42,11 +43,12 @@ mod tests {
     fn serialization() {
         let invite_permission_config = InvitePermissionConfigEventContent::new(true);
 
-        let json = json!({
-            "block_all": true
-        });
-
-        assert_eq!(to_json_value(invite_permission_config).unwrap(), json);
+        assert_to_canonical_json_eq!(
+            invite_permission_config,
+            json!({
+                "block_all": true,
+            }),
+        );
     }
 
     #[test]
