@@ -152,10 +152,10 @@ impl From<String> for VoipVersionId {
 mod tests {
     use assert_matches2::assert_matches;
     use js_int::uint;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::VoipVersionId;
-    use crate::IdParseError;
+    use crate::{IdParseError, assert_to_canonical_json_eq};
 
     #[test]
     fn valid_version_0() {
@@ -183,7 +183,7 @@ mod tests {
 
     #[test]
     fn serialize_version_0() {
-        assert_eq!(to_json_value(&VoipVersionId::V0).unwrap(), json!(0));
+        assert_to_canonical_json_eq!(VoipVersionId::V0, json!(0));
     }
 
     #[test]
@@ -193,7 +193,7 @@ mod tests {
 
     #[test]
     fn serialize_version_1() {
-        assert_eq!(to_json_value(&VoipVersionId::V1).unwrap(), json!("1"));
+        assert_to_canonical_json_eq!(VoipVersionId::V1, json!("1"));
     }
 
     #[test]
@@ -204,7 +204,7 @@ mod tests {
     #[test]
     fn serialize_custom_string() {
         let version = VoipVersionId::from("io.ruma.1");
-        assert_eq!(to_json_value(&version).unwrap(), json!("io.ruma.1"));
+        assert_to_canonical_json_eq!(version, json!("io.ruma.1"));
     }
 
     #[test]

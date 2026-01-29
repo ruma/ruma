@@ -286,10 +286,10 @@ impl From<Option<RoomType>> for RoomTypeFilter {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{Filter, RoomNetwork, RoomTypeFilter};
-    use crate::room::RoomType;
+    use crate::{assert_to_canonical_json_eq, room::RoomType};
 
     #[test]
     fn test_from_room_type() {
@@ -300,8 +300,7 @@ mod tests {
 
     #[test]
     fn serialize_matrix_network_only() {
-        let json = json!({});
-        assert_eq!(to_json_value(RoomNetwork::Matrix).unwrap(), json);
+        assert_to_canonical_json_eq!(RoomNetwork::Matrix, json!({}));
     }
 
     #[test]
@@ -312,8 +311,7 @@ mod tests {
 
     #[test]
     fn serialize_default_network_is_empty() {
-        let json = json!({});
-        assert_eq!(to_json_value(RoomNetwork::default()).unwrap(), json);
+        assert_to_canonical_json_eq!(RoomNetwork::default(), json!({}));
     }
 
     #[test]
@@ -324,8 +322,7 @@ mod tests {
 
     #[test]
     fn serialize_include_all_networks() {
-        let json = json!({ "include_all_networks": true });
-        assert_eq!(to_json_value(RoomNetwork::All).unwrap(), json);
+        assert_to_canonical_json_eq!(RoomNetwork::All, json!({ "include_all_networks": true }));
     }
 
     #[test]
@@ -336,8 +333,10 @@ mod tests {
 
     #[test]
     fn serialize_third_party_network() {
-        let json = json!({ "third_party_instance_id": "freenode" });
-        assert_eq!(to_json_value(RoomNetwork::ThirdParty("freenode".to_owned())).unwrap(), json);
+        assert_to_canonical_json_eq!(
+            RoomNetwork::ThirdParty("freenode".to_owned()),
+            json!({ "third_party_instance_id": "freenode" }),
+        );
     }
 
     #[test]
@@ -360,9 +359,7 @@ mod tests {
 
     #[test]
     fn serialize_filter_empty() {
-        let filter = Filter::default();
-        let json = json!({});
-        assert_eq!(to_json_value(filter).unwrap(), json);
+        assert_to_canonical_json_eq!(Filter::default(), json!({}));
     }
 
     #[test]
@@ -383,8 +380,10 @@ mod tests {
                 Some("custom_type").into(),
             ],
         };
-        let json = json!({ "room_types": [null, "m.space", "custom_type"] });
-        assert_eq!(to_json_value(filter).unwrap(), json);
+        assert_to_canonical_json_eq!(
+            filter,
+            json!({ "room_types": [null, "m.space", "custom_type"] }),
+        );
     }
 
     #[test]
