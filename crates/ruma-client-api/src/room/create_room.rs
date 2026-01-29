@@ -294,8 +294,10 @@ mod tests {
     use assign::assign;
     use js_int::int;
     use maplit::btreemap;
-    use ruma_common::{power_levels::NotificationPowerLevels, user_id};
-    use serde_json::{json, to_value as to_json_value};
+    use ruma_common::{
+        canonical_json::assert_to_canonical_json_eq, power_levels::NotificationPowerLevels, user_id,
+    };
+    use serde_json::json;
 
     use super::RoomPowerLevelsContentOverride;
 
@@ -314,10 +316,7 @@ mod tests {
             notifications: NotificationPowerLevels::default(),
         };
 
-        let actual = to_json_value(&power_levels).unwrap();
-        let expected = json!({});
-
-        assert_eq!(actual, expected);
+        assert_to_canonical_json_eq!(power_levels, json!({}));
     }
 
     #[test]
@@ -340,26 +339,26 @@ mod tests {
             notifications: assign!(NotificationPowerLevels::new(), { room: int!(23) }),
         };
 
-        let actual = to_json_value(&power_levels_event).unwrap();
-        let expected = json!({
-            "ban": 23,
-            "events": {
-                "m.dummy": 23
-            },
-            "events_default": 23,
-            "invite": 23,
-            "kick": 23,
-            "redact": 23,
-            "state_default": 23,
-            "users": {
-                "@carl:example.com": 23
-            },
-            "users_default": 23,
-            "notifications": {
-                "room": 23
-            },
-        });
-
-        assert_eq!(actual, expected);
+        assert_to_canonical_json_eq!(
+            power_levels_event,
+            json!({
+                "ban": 23,
+                "events": {
+                    "m.dummy": 23
+                },
+                "events_default": 23,
+                "invite": 23,
+                "kick": 23,
+                "redact": 23,
+                "state_default": 23,
+                "users": {
+                    "@carl:example.com": 23
+                },
+                "users_default": 23,
+                "notifications": {
+                    "room": 23
+                },
+            })
+        );
     }
 }
