@@ -30,8 +30,8 @@ impl SpaceOrderEventContent {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use ruma_common::SpaceChildOrder;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::{SpaceChildOrder, canonical_json::assert_to_canonical_json_eq};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::SpaceOrderEventContent;
     use crate::{AnyRoomAccountDataEvent, RoomAccountDataEvent};
@@ -68,8 +68,8 @@ mod tests {
     fn serialize() {
         let space_order = SpaceOrderEventContent::new(SpaceChildOrder::parse("a").unwrap());
         let space_order_account_data = RoomAccountDataEvent { content: space_order };
-        assert_eq!(
-            to_json_value(space_order_account_data).unwrap(),
+        assert_to_canonical_json_eq!(
+            space_order_account_data,
             json!({
                 "type": "org.matrix.msc3230.space_order",
                 "content": {

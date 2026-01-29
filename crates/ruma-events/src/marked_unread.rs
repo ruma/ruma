@@ -66,7 +66,8 @@ impl From<UnstableMarkedUnreadEventContent> for MarkedUnreadEventContent {
 #[cfg(all(test, feature = "unstable-msc2867"))]
 mod tests {
     use assert_matches2::assert_matches;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{MarkedUnreadEventContent, UnstableMarkedUnreadEventContent};
     use crate::{AnyRoomAccountDataEvent, RoomAccountDataEvent};
@@ -106,8 +107,8 @@ mod tests {
     fn serialize() {
         let marked_unread = MarkedUnreadEventContent::new(true);
         let marked_unread_account_data = RoomAccountDataEvent { content: marked_unread.clone() };
-        assert_eq!(
-            to_json_value(marked_unread_account_data).unwrap(),
+        assert_to_canonical_json_eq!(
+            marked_unread_account_data,
             json!({
                 "type": "m.marked_unread",
                 "content": {
@@ -119,8 +120,8 @@ mod tests {
         let unstable_marked_unread = UnstableMarkedUnreadEventContent::from(marked_unread);
         let unstable_marked_unread_account_data =
             RoomAccountDataEvent { content: unstable_marked_unread };
-        assert_eq!(
-            to_json_value(unstable_marked_unread_account_data).unwrap(),
+        assert_to_canonical_json_eq!(
+            unstable_marked_unread_account_data,
             json!({
                 "type": "com.famedly.marked_unread",
                 "content": {

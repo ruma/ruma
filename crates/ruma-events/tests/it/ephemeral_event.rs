@@ -1,24 +1,27 @@
 use assert_matches2::assert_matches;
 use js_int::uint;
 use maplit::btreemap;
-use ruma_common::{MilliSecondsSinceUnixEpoch, event_id, owned_event_id, owned_user_id, user_id};
+use ruma_common::{
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id,
+    owned_event_id, owned_user_id, user_id,
+};
 use ruma_events::{
     AnySyncEphemeralRoomEvent,
     receipt::{Receipt, ReceiptEventContent, ReceiptType},
     typing::TypingEventContent,
 };
-use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+use serde_json::{from_value as from_json_value, json};
 
 #[test]
 fn ephemeral_serialize_typing() {
     let content = TypingEventContent::new(vec![owned_user_id!("@carl:example.com")]);
 
-    let actual = to_json_value(&content).unwrap();
-    let expected = json!({
-        "user_ids": ["@carl:example.com"],
-    });
-
-    assert_eq!(actual, expected);
+    assert_to_canonical_json_eq!(
+        content,
+        json!({
+            "user_ids": ["@carl:example.com"],
+        }),
+    );
 }
 
 #[test]
@@ -51,16 +54,16 @@ fn ephemeral_serialize_receipt() {
         },
     });
 
-    let actual = to_json_value(&content).unwrap();
-    let expected = json!({
-        "$h29iv0s8:example.com": {
-            "m.read": {
-                "@carl:example.com": { "ts": 1 }
-            }
-        }
-    });
-
-    assert_eq!(actual, expected);
+    assert_to_canonical_json_eq!(
+        content,
+        json!({
+            "$h29iv0s8:example.com": {
+                "m.read": {
+                    "@carl:example.com": { "ts": 1 },
+                },
+            },
+        }),
+    );
 }
 
 #[test]

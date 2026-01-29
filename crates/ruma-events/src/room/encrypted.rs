@@ -289,8 +289,10 @@ impl From<MegolmV1AesSha2ContentInit> for MegolmV1AesSha2Content {
 mod tests {
     use assert_matches2::assert_matches;
     use js_int::uint;
-    use ruma_common::{device_id, owned_event_id, serde::Raw};
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::{
+        canonical_json::assert_to_canonical_json_eq, device_id, owned_event_id, serde::Raw,
+    };
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{
         EncryptedEventScheme, InReplyTo, MegolmV1AesSha2ContentInit, Relation,
@@ -314,20 +316,21 @@ mod tests {
             }),
         };
 
-        let json_data = json!({
-            "algorithm": "m.megolm.v1.aes-sha2",
-            "ciphertext": "ciphertext",
-            "sender_key": "sender_key",
-            "device_id": "device_id",
-            "session_id": "session_id",
-            "m.relates_to": {
-                "m.in_reply_to": {
-                    "event_id": "$h29iv0s8:example.com"
-                }
-            },
-        });
-
-        assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
+        assert_to_canonical_json_eq!(
+            key_verification_start_content,
+            json!({
+                "algorithm": "m.megolm.v1.aes-sha2",
+                "ciphertext": "ciphertext",
+                "sender_key": "sender_key",
+                "device_id": "device_id",
+                "session_id": "session_id",
+                "m.relates_to": {
+                    "m.in_reply_to": {
+                        "event_id": "$h29iv0s8:example.com"
+                    }
+                },
+            }),
+        );
     }
 
     #[test]

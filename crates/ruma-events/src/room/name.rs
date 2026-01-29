@@ -27,7 +27,8 @@ impl RoomNameEventContent {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    use serde_json::{from_value as from_json_value, json};
 
     use super::RoomNameEventContent;
     use crate::OriginalStateEvent;
@@ -36,12 +37,12 @@ mod tests {
     fn serialization() {
         let content = RoomNameEventContent { name: "The room name".to_owned() };
 
-        let actual = to_json_value(content).unwrap();
-        let expected = json!({
-            "name": "The room name",
-        });
-
-        assert_eq!(actual, expected);
+        assert_to_canonical_json_eq!(
+            content,
+            json!({
+                "name": "The room name",
+            }),
+        );
     }
 
     #[test]

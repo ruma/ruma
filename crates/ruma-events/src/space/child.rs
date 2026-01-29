@@ -291,10 +291,11 @@ mod tests {
 
     use js_int::{UInt, uint};
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch, RoomId, SpaceChildOrder, owned_server_name, owned_user_id,
-        room_id, server_name,
+        MilliSecondsSinceUnixEpoch, RoomId, SpaceChildOrder,
+        canonical_json::assert_to_canonical_json_eq, owned_server_name, owned_user_id, room_id,
+        server_name,
     };
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{
         HierarchySpaceChildEvent, SpaceChildEventContent, SpaceChildOrd, SpaceChildOrdHelper,
@@ -308,21 +309,20 @@ mod tests {
             suggested: false,
         };
 
-        let json = json!({
-            "via": ["example.com"],
-            "order": "uwu",
-        });
-
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(
+            content,
+            json!({
+                "via": ["example.com"],
+                "order": "uwu",
+            }),
+        );
     }
 
     #[test]
     fn space_child_empty_serialization() {
         let content = SpaceChildEventContent { via: vec![], order: None, suggested: false };
 
-        let json = json!({ "via": [] });
-
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(content, json!({ "via": [] }));
     }
 
     #[test]

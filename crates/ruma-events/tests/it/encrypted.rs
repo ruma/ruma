@@ -1,5 +1,7 @@
 use assert_matches2::assert_matches;
-use ruma_common::{owned_device_id, owned_event_id, serde::Raw};
+use ruma_common::{
+    canonical_json::assert_to_canonical_json_eq, owned_device_id, owned_event_id, serde::Raw,
+};
 use ruma_events::{
     relation::{Annotation, CustomRelation, InReplyTo, Reference, Thread},
     room::encrypted::{
@@ -7,9 +9,7 @@ use ruma_events::{
         RoomEncryptedEventContent,
     },
 };
-use serde_json::{
-    Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
-};
+use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
 fn encrypted_scheme() -> EncryptedEventScheme {
     EncryptedEventScheme::MegolmV1AesSha2(
@@ -33,8 +33,8 @@ fn encrypted_scheme() -> EncryptedEventScheme {
 fn content_no_relation_serialization() {
     let content = RoomEncryptedEventContent::new(encrypted_scheme(), None);
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "algorithm": "m.megolm.v1.aes-sha2",
             "sender_key": "aV9BpqYFqJpKYmgERyGv/6QyKMcgLqxM05V0gvzg9Yk",
@@ -100,8 +100,8 @@ fn content_reply_serialization() {
         Some(Relation::Reply { in_reply_to: InReplyTo::new(owned_event_id!("$replied_to_event")) }),
     );
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "algorithm": "m.megolm.v1.aes-sha2",
             "sender_key": "aV9BpqYFqJpKYmgERyGv/6QyKMcgLqxM05V0gvzg9Yk",
@@ -183,8 +183,8 @@ fn content_replacement_serialization() {
         Some(Relation::Replacement(Replacement::new(owned_event_id!("$replaced_event")))),
     );
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "algorithm": "m.megolm.v1.aes-sha2",
             "sender_key": "aV9BpqYFqJpKYmgERyGv/6QyKMcgLqxM05V0gvzg9Yk",
@@ -264,8 +264,8 @@ fn content_reference_serialization() {
         Some(Relation::Reference(Reference::new(owned_event_id!("$referenced_event")))),
     );
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "algorithm": "m.megolm.v1.aes-sha2",
             "sender_key": "aV9BpqYFqJpKYmgERyGv/6QyKMcgLqxM05V0gvzg9Yk",
@@ -348,8 +348,8 @@ fn content_thread_serialization() {
         ))),
     );
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "algorithm": "m.megolm.v1.aes-sha2",
             "sender_key": "aV9BpqYFqJpKYmgERyGv/6QyKMcgLqxM05V0gvzg9Yk",
@@ -441,8 +441,8 @@ fn content_annotation_serialization() {
         ))),
     );
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "algorithm": "m.megolm.v1.aes-sha2",
             "sender_key": "aV9BpqYFqJpKYmgERyGv/6QyKMcgLqxM05V0gvzg9Yk",
@@ -571,8 +571,8 @@ fn custom_relation_serialization() {
     let content =
         RoomEncryptedEventContent::new(encrypted_scheme(), Some(Relation::_Custom(relation)));
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "algorithm": "m.megolm.v1.aes-sha2",
             "sender_key": "aV9BpqYFqJpKYmgERyGv/6QyKMcgLqxM05V0gvzg9Yk",

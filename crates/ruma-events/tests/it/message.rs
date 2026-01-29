@@ -3,7 +3,10 @@
 use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::uint;
-use ruma_common::{MilliSecondsSinceUnixEpoch, owned_event_id, serde::CanBeEmpty};
+use ruma_common::{
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
+    serde::CanBeEmpty,
+};
 #[cfg(feature = "unstable-msc3954")]
 use ruma_events::emote::EmoteEventContent;
 use ruma_events::{
@@ -12,15 +15,15 @@ use ruma_events::{
     relation::InReplyTo,
     room::message::Relation,
 };
-use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+use serde_json::{from_value as from_json_value, json};
 
 #[test]
 fn html_content_serialization() {
     let message_event_content =
         MessageEventContent::html("Hello, World!", "Hello, <em>World</em>!");
 
-    assert_eq!(
-        to_json_value(&message_event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        message_event_content,
         json!({
             "org.matrix.msc1767.text": [
                 { "mimetype": "text/html", "body": "Hello, <em>World</em>!" },
@@ -35,8 +38,8 @@ fn plain_text_content_serialization() {
     let message_event_content =
         MessageEventContent::plain("> <@test:example.com> test\n\ntest reply");
 
-    assert_eq!(
-        to_json_value(&message_event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        message_event_content,
         json!({
             "org.matrix.msc1767.text": [
                 { "body": "> <@test:example.com> test\n\ntest reply" },
@@ -55,8 +58,8 @@ fn unknown_mimetype_content_serialization() {
         ),
     ]));
 
-    assert_eq!(
-        to_json_value(&message_event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        message_event_content,
         json!({
             "org.matrix.msc1767.text": [
                 {
@@ -76,8 +79,8 @@ fn unknown_mimetype_content_serialization() {
 fn markdown_content_serialization() {
     let formatted_message = MessageEventContent::markdown("Testing **bold** and _italic_!");
 
-    assert_eq!(
-        to_json_value(&formatted_message).unwrap(),
+    assert_to_canonical_json_eq!(
+        formatted_message,
         json!({
             "org.matrix.msc1767.text": [
                 {
@@ -93,8 +96,8 @@ fn markdown_content_serialization() {
 
     let plain_message_simple = MessageEventContent::markdown("Testing a simple phrase…");
 
-    assert_eq!(
-        to_json_value(&plain_message_simple).unwrap(),
+    assert_to_canonical_json_eq!(
+        plain_message_simple,
         json!({
             "org.matrix.msc1767.text": [
                 { "body": "Testing a simple phrase…" },
@@ -105,8 +108,8 @@ fn markdown_content_serialization() {
     let plain_message_paragraphs =
         MessageEventContent::markdown("Testing\n\nSeveral\n\nParagraphs.");
 
-    assert_eq!(
-        to_json_value(&plain_message_paragraphs).unwrap(),
+    assert_to_canonical_json_eq!(
+        plain_message_paragraphs,
         json!({
             "org.matrix.msc1767.text": [
                 {
@@ -133,25 +136,26 @@ fn reply_content_serialization() {
             }),
         });
 
-    let json_data = json!({
-        "org.matrix.msc1767.text": [
-            { "body": "> <@test:example.com> test\n\ntest reply" },
-        ],
-        "m.relates_to": {
-            "m.in_reply_to": {
-                "event_id": "$15827405538098VGFWH:example.com"
-            }
-        }
-    });
-
-    assert_eq!(to_json_value(&message_event_content).unwrap(), json_data);
+    assert_to_canonical_json_eq!(
+        message_event_content,
+        json!({
+            "org.matrix.msc1767.text": [
+                { "body": "> <@test:example.com> test\n\ntest reply" },
+            ],
+            "m.relates_to": {
+                "m.in_reply_to": {
+                    "event_id": "$15827405538098VGFWH:example.com",
+                },
+            },
+        }),
+    );
 }
 
 #[test]
 fn message_event_serialization() {
     let content = MessageEventContent::plain("Hello, World!");
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "org.matrix.msc1767.text": [
                 { "body": "Hello, World!" },
@@ -283,8 +287,8 @@ fn emote_event_serialization() {
     let content =
         EmoteEventContent::html("is testing some code…", "is testing some <code>code</code>…");
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "org.matrix.msc1767.text": [
                 { "mimetype": "text/html", "body": "is testing some <code>code</code>…" },
@@ -335,8 +339,8 @@ fn lang_serialization() {
         assign!(TextRepresentation::plain("Hello World!"), { lang: "en".into() }),
     ]);
 
-    assert_eq!(
-        to_json_value(content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!([
             { "body": "Bonjour le monde !", "org.matrix.msc3554.lang": "fr"},
             { "body": "Hallo Welt!", "org.matrix.msc3554.lang": "de"},
@@ -367,8 +371,8 @@ fn automated_content_serialization() {
         MessageEventContent::plain("> <@test:example.com> test\n\ntest reply");
     message_event_content.automated = true;
 
-    assert_eq!(
-        to_json_value(&message_event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        message_event_content,
         json!({
             "org.matrix.msc1767.text": [
                 { "body": "> <@test:example.com> test\n\ntest reply" },

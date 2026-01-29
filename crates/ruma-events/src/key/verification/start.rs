@@ -210,10 +210,8 @@ mod tests {
     use std::collections::BTreeMap;
 
     use assert_matches2::assert_matches;
-    use ruma_common::{event_id, serde::Base64};
-    use serde_json::{
-        Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
-    };
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, event_id, serde::Base64};
+    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
     use super::{
         _CustomContent, HashAlgorithm, KeyAgreementProtocol, KeyVerificationStartEventContent,
@@ -238,24 +236,18 @@ mod tests {
             ),
         };
 
-        let json_data = json!({
-            "from_device": "123",
-            "transaction_id": "456",
-            "method": "m.sas.v1",
-            "key_agreement_protocols": ["curve25519"],
-            "hashes": ["sha256"],
-            "message_authentication_codes": ["hkdf-hmac-sha256.v2"],
-            "short_authentication_string": ["decimal"]
-        });
-
-        assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
-
-        let json_data = json!({
-            "from_device": "123",
-            "transaction_id": "456",
-            "method": "m.sas.custom",
-            "test": "field",
-        });
+        assert_to_canonical_json_eq!(
+            key_verification_start_content,
+            json!({
+                "from_device": "123",
+                "transaction_id": "456",
+                "method": "m.sas.v1",
+                "key_agreement_protocols": ["curve25519"],
+                "hashes": ["sha256"],
+                "message_authentication_codes": ["hkdf-hmac-sha256.v2"],
+                "short_authentication_string": ["decimal"],
+            }),
+        );
 
         let key_verification_start_content = ToDeviceKeyVerificationStartEventContent {
             from_device: "123".into(),
@@ -268,26 +260,33 @@ mod tests {
             }),
         };
 
-        assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
+        assert_to_canonical_json_eq!(
+            key_verification_start_content,
+            json!({
+                "from_device": "123",
+                "transaction_id": "456",
+                "method": "m.sas.custom",
+                "test": "field",
+            }),
+        );
 
-        {
-            let secret = Base64::new(b"This is a secret to everybody".to_vec());
+        let secret = Base64::new(b"This is a secret to everybody".to_vec());
 
-            let key_verification_start_content = ToDeviceKeyVerificationStartEventContent {
-                from_device: "123".into(),
-                transaction_id: "456".into(),
-                method: StartMethod::ReciprocateV1(ReciprocateV1Content::new(secret.clone())),
-            };
+        let key_verification_start_content = ToDeviceKeyVerificationStartEventContent {
+            from_device: "123".into(),
+            transaction_id: "456".into(),
+            method: StartMethod::ReciprocateV1(ReciprocateV1Content::new(secret.clone())),
+        };
 
-            let json_data = json!({
+        assert_to_canonical_json_eq!(
+            key_verification_start_content,
+            json!({
                 "from_device": "123",
                 "method": "m.reciprocate.v1",
                 "secret": secret,
-                "transaction_id": "456"
-            });
-
-            assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
-        }
+                "transaction_id": "456",
+            }),
+        );
     }
 
     #[test]
@@ -308,20 +307,21 @@ mod tests {
             ),
         };
 
-        let json_data = json!({
-            "from_device": "123",
-            "method": "m.sas.v1",
-            "key_agreement_protocols": ["curve25519"],
-            "hashes": ["sha256"],
-            "message_authentication_codes": ["hkdf-hmac-sha256.v2"],
-            "short_authentication_string": ["decimal"],
-            "m.relates_to": {
-                "rel_type": "m.reference",
-                "event_id": event_id,
-            }
-        });
-
-        assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
+        assert_to_canonical_json_eq!(
+            key_verification_start_content,
+            json!({
+                "from_device": "123",
+                "method": "m.sas.v1",
+                "key_agreement_protocols": ["curve25519"],
+                "hashes": ["sha256"],
+                "message_authentication_codes": ["hkdf-hmac-sha256.v2"],
+                "short_authentication_string": ["decimal"],
+                "m.relates_to": {
+                    "rel_type": "m.reference",
+                    "event_id": event_id,
+                },
+            }),
+        );
 
         let secret = Base64::new(b"This is a secret to everybody".to_vec());
 
@@ -331,17 +331,18 @@ mod tests {
             method: StartMethod::ReciprocateV1(ReciprocateV1Content::new(secret.clone())),
         };
 
-        let json_data = json!({
-            "from_device": "123",
-            "method": "m.reciprocate.v1",
-            "secret": secret,
-            "m.relates_to": {
-                "rel_type": "m.reference",
-                "event_id": event_id,
-            }
-        });
-
-        assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
+        assert_to_canonical_json_eq!(
+            key_verification_start_content,
+            json!({
+                "from_device": "123",
+                "method": "m.reciprocate.v1",
+                "secret": secret,
+                "m.relates_to": {
+                    "rel_type": "m.reference",
+                    "event_id": event_id,
+                },
+            }),
+        );
     }
 
     #[test]

@@ -33,8 +33,8 @@ impl RtcDeclineEventContent {
 mod tests {
     use assert_matches2::assert_matches;
     use js_int::uint;
-    use ruma_common::owned_event_id;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_event_id};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::RtcDeclineEventContent;
     use crate::{AnyMessageLikeEvent, MessageLikeEvent};
@@ -43,9 +43,8 @@ mod tests {
     fn decline_event_serialization() {
         let content = RtcDeclineEventContent::new(owned_event_id!("$abc:example.org"));
 
-        let value = to_json_value(&content).unwrap();
-        assert_eq!(
-            value,
+        assert_to_canonical_json_eq!(
+            content,
             json!({
                 "m.relates_to": {
                     "rel_type": "m.reference",

@@ -101,7 +101,8 @@ impl From<TextContentBlock> for TopicContentBlock {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    use serde_json::{from_value as from_json_value, json};
 
     use super::RoomTopicEventContent;
     use crate::message::TextContentBlock;
@@ -110,8 +111,8 @@ mod tests {
     fn serialize_content() {
         // Content with plain text block.
         let mut content = RoomTopicEventContent::new("Hot Topic".to_owned());
-        assert_eq!(
-            to_json_value(&content).unwrap(),
+        assert_to_canonical_json_eq!(
+            content,
             json!({
                 "topic": "Hot Topic",
                 "m.topic": {
@@ -124,8 +125,8 @@ mod tests {
 
         // Content without block.
         content.topic_block.text = TextContentBlock::from(vec![]);
-        assert_eq!(
-            to_json_value(&content).unwrap(),
+        assert_to_canonical_json_eq!(
+            content,
             json!({
                 "topic": "Hot Topic",
             })
@@ -133,8 +134,8 @@ mod tests {
 
         // Content with HTML block.
         let content = RoomTopicEventContent::html("Hot Topic", "<strong>Hot</strong> Topic");
-        assert_eq!(
-            to_json_value(&content).unwrap(),
+        assert_to_canonical_json_eq!(
+            content,
             json!({
                 "topic": "Hot Topic",
                 "m.topic": {
