@@ -328,9 +328,12 @@ pub mod v1 {
     mod tests {
         use assert_matches2::assert_matches;
         use js_int::uint;
-        use ruma_common::{MilliSecondsSinceUnixEpoch, event_id, room_id, user_id};
+        use ruma_common::{
+            MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id,
+            room_id, user_id,
+        };
         use ruma_events::receipt::ReceiptType;
-        use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+        use serde_json::{from_value as from_json_value, json};
 
         use super::EphemeralData;
 
@@ -392,8 +395,7 @@ pub mod v1 {
             assert_eq!(typing.room_id, room_id);
             assert_eq!(typing.content.user_ids, &[user_id.to_owned()]);
 
-            let serialized_data = to_json_value(data).unwrap();
-            assert_eq!(serialized_data, typing_json);
+            assert_to_canonical_json_eq!(data, typing_json);
 
             // Test m.receipt serde.
             let receipt_json = json!({
@@ -418,8 +420,7 @@ pub mod v1 {
             let event_user_read_receipt = event_read_receipts.get(user_id).unwrap();
             assert_eq!(event_user_read_receipt.ts, Some(MilliSecondsSinceUnixEpoch(uint!(453))));
 
-            let serialized_data = to_json_value(data).unwrap();
-            assert_eq!(serialized_data, receipt_json);
+            assert_to_canonical_json_eq!(data, receipt_json);
 
             // Test m.presence serde.
             let presence_json = json!({
@@ -439,8 +440,7 @@ pub mod v1 {
             assert_eq!(presence.sender, user_id);
             assert_eq!(presence.content.currently_active, Some(false));
 
-            let serialized_data = to_json_value(data).unwrap();
-            assert_eq!(serialized_data, presence_json);
+            assert_to_canonical_json_eq!(data, presence_json);
 
             // Test custom serde.
             let custom_json = json!({
@@ -453,8 +453,7 @@ pub mod v1 {
 
             let data = from_json_value::<EphemeralData>(custom_json.clone()).unwrap();
 
-            let serialized_data = to_json_value(data).unwrap();
-            assert_eq!(serialized_data, custom_json);
+            assert_to_canonical_json_eq!(data, custom_json);
         }
 
         #[test]
