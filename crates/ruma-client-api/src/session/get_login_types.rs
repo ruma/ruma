@@ -173,18 +173,13 @@ pub mod v3 {
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub identity_providers: Vec<IdentityProvider>,
 
-        /// Whether this SSO login is for OIDC-aware compatibility.
+        /// Whether this flow is preferred over other flows.
         ///
-        /// This field uses the unstable prefix defined in [MSC3824].
+        /// If this is `true`, [OAuth 2.0 aware] clients must only offer this flow to the user.
         ///
-        /// [MSC3824]: https://github.com/matrix-org/matrix-spec-proposals/pull/3824
-        #[cfg(feature = "unstable-msc3824")]
-        #[serde(
-            default,
-            skip_serializing_if = "ruma_common::serde::is_default",
-            rename = "org.matrix.msc3824.delegated_oidc_compatibility"
-        )]
-        pub delegated_oidc_compatibility: bool,
+        /// [OAuth 2.0 aware]: https://github.com/matrix-org/matrix-spec-proposals/pull/3824
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        pub oauth_aware_preferred: bool,
     }
 
     impl SsoLoginType {
@@ -395,11 +390,7 @@ pub mod v3 {
 
             assert_matches!(
                 flow,
-                LoginType::Sso(SsoLoginType {
-                    identity_providers,
-                    #[cfg(feature = "unstable-msc3824")]
-                    delegated_oidc_compatibility: false
-                })
+                LoginType::Sso(SsoLoginType { identity_providers, oauth_aware_preferred: false })
             );
             assert_eq!(identity_providers.len(), 2);
 
@@ -428,8 +419,7 @@ pub mod v3 {
                             icon: Some("mxc://localhost/github-icon".into()),
                             brand: Some(IdentityProviderBrand::GitHub),
                         }],
-                        #[cfg(feature = "unstable-msc3824")]
-                        delegated_oidc_compatibility: false,
+                        oauth_aware_preferred: false,
                     }),
                 ],
             };

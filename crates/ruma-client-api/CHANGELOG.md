@@ -23,6 +23,8 @@ Improvements:
     advertises.
 - Add support for updated rendezvous session from MSC4388 behind `unstable-msc4388`.
 - Stabilize support for the `M_INVITE_BLOCKED` error code, according to MSC4380.
+- Stabilize support for OAuth 2.0 aware clients, according to MSC3824. Unstable
+  support was dropped entirely.
 
 # 0.22.1
 
