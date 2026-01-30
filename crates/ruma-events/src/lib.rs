@@ -180,6 +180,7 @@ pub mod presence;
 pub mod push_rules;
 pub mod reaction;
 pub mod receipt;
+pub mod recent_emoji;
 pub mod relation;
 pub mod room;
 pub mod room_key;
