@@ -7,6 +7,11 @@ Breaking changes:
   `RoomPowerLevelsEventContent` except all `Int` fields are `Option<Int>`, which
   allows uploading explicit values no matter what the default ones are.
 
+Improvements:
+
+- Stabilize support for OAuth 2.0 aware clients, according to MSC3824. Unstable
+  support was dropped entirely.
+
 # 0.22.1
 
 Improvements:
