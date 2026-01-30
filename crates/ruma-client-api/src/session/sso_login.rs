@@ -11,8 +11,7 @@ pub mod v3 {
         metadata,
     };
 
-    #[cfg(feature = "unstable-msc3824")]
-    use crate::session::SsoRedirectOidcAction;
+    use crate::session::SsoRedirectAction;
 
     metadata! {
         method: GET,
@@ -33,15 +32,10 @@ pub mod v3 {
         #[serde(rename = "redirectUrl")]
         pub redirect_url: String,
 
-        /// The purpose for using the SSO redirect URL for OIDC-aware compatibility.
-        ///
-        /// This field uses the unstable prefix defined in [MSC3824].
-        ///
-        /// [MSC3824]: https://github.com/matrix-org/matrix-spec-proposals/pull/3824
-        #[cfg(feature = "unstable-msc3824")]
+        /// The action that the user wishes to take at the SSO redirect.
         #[ruma_api(query)]
-        #[serde(skip_serializing_if = "Option::is_none", rename = "org.matrix.msc3824.action")]
-        pub action: Option<SsoRedirectOidcAction>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub action: Option<SsoRedirectAction>,
     }
 
     /// Response type for the `sso_login` endpoint.
@@ -59,11 +53,7 @@ pub mod v3 {
     impl Request {
         /// Creates a new `Request` with the given redirect URL.
         pub fn new(redirect_url: String) -> Self {
-            Self {
-                redirect_url,
-                #[cfg(feature = "unstable-msc3824")]
-                action: None,
-            }
+            Self { redirect_url, action: None }
         }
     }
 
