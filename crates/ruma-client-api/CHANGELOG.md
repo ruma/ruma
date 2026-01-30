@@ -11,6 +11,16 @@ Improvements:
 
 - Add the `M_TOKEN_INCORRECT` error code according to MSC4183.
 - Add the `m.forget_forced_upon_leave` capability, according to MSC4267.
+- Stabilize support for the OAuth 2.0 account management URL, according to
+  MSC4191. The `AccountManagementAction` variants that were replaced when the
+  MSC was stabilized now have an `Unstable` prefix.
+  - `AuthorizationServerMetadata` has helper methods to work with both stable
+    and unstable account management actions:
+    `is_account_management_action_supported()` allows to check whether either of
+    the stable or unstable version of an action is advertised by the server, and
+    `action_management_url_with_action` allows to build an account management
+    URL including the proper version of the action, depending on what the server
+    advertises.
 
 # 0.22.1
 
