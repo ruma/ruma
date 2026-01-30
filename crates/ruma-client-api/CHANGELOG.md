@@ -7,6 +7,12 @@ Breaking changes:
   `RoomPowerLevelsEventContent` except all `Int` fields are `Option<Int>`, which
   allows uploading explicit values no matter what the default ones are.
 
+Improvements:
+
+- Stabilize support for the OAuth 2.0 account management URL, according to
+  MSC4191. The `AccountManagementAction` variants that were replaced when the
+  MSC was stabilized now have an `Unstable` prefix.
+
 # 0.22.1
 
 Improvements:
