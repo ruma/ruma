@@ -10,6 +10,7 @@ Breaking changes:
 Improvements:
 
 - Add the `M_TOKEN_INCORRECT` error code according to MSC4183.
+- Add the `m.forget_forced_upon_leave` capability, according to MSC4267.
 
 # 0.22.1
 
