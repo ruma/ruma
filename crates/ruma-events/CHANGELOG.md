@@ -8,6 +8,29 @@ Breaking changes:
   required but it is removed during redaction.
 - The `canonical-json` feature was removed. The code that was behind it is no
   longer gated behind a cargo feature.
+- Non-redacted and redacted state event contents are no longer separate types.
+  The `(Possibly)(Redacted)*EventContent` structs for a state event type were
+  merged into a single `*EventContent` struct that matches the previous
+  `PossiblyRedacted*EventContent` type.
+  - The `(Possibly)RedactedStateEventContent` traits were removed.
+  - The `(Sync)StateEvent` enums are now structs that contain directly the
+    `content` struct and the `(Original/Redacted)(Sync)StateEvent` structs were
+    removed. Most of the accessors on those types were removed as those fields
+    are now accessible directly from the `content`. The bound for the content
+    was simplified to `StaticStateEventContent`.
+  - The `(Redacted/PossiblyRedacted)*EventContent` types are no longer generated
+    by the `EventContent` macro for the `State` kind. Instead the macro
+    generates the `RedactContent` implementation, and returns compile errors on
+    fields that cannot be redacted easily. This behavior can be disabled with
+    the `custom_redacted` attribute. The `custom_possibly_redacted` attribute is
+    no longer supported.
+  - The bound for the content in `StrippedStateEvent` was changed to
+    `StaticStateEventContent`.
+  - `StateUnsigned` has an optional `redacted_because` field.
+  - `FullStateEventContent` is now a struct that matches the previous
+    `FullStateEventContent::Original` variant.
+  - `StaticStateEventContent` no longer has a `PossiblyRedacted` associated type.
+- The `compat-optional` cargo feature was removed because it is no longer used.
 
 Bug fixes:
 

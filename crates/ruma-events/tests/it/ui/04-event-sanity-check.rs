@@ -4,7 +4,7 @@ use ruma_macros::Event;
 
 /// State event.
 #[derive(Clone, Debug, Event)]
-pub struct OriginalStateEvent<C: StaticStateEventContent> {
+pub struct StateEvent<C: StaticStateEventContent> {
     pub content: C,
     pub event_id: OwnedEventId,
     pub sender: OwnedUserId,

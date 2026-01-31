@@ -12,8 +12,6 @@ use ruma_common::{
 use ruma_macros::{Event, EventContent};
 use serde::{Deserialize, Serialize};
 
-use crate::{StateEvent, SyncStateEvent};
-
 /// The content of an `m.space.child` event.
 ///
 /// The admins of a space can advertise rooms and subspaces for their space by setting
@@ -26,7 +24,8 @@ use crate::{StateEvent, SyncStateEvent};
 #[ruma_event(type = "m.space.child", kind = State, state_key_type = OwnedRoomId)]
 pub struct SpaceChildEventContent {
     /// List of candidate servers that can be used to join the room.
-    pub via: Vec<OwnedServerName>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub via: Option<Vec<OwnedServerName>>,
 
     /// Provide a default ordering of siblings in the room list.
     ///
@@ -61,7 +60,7 @@ pub struct SpaceChildEventContent {
 impl SpaceChildEventContent {
     /// Creates a new `SpaceChildEventContent` with the given routing servers.
     pub fn new(via: Vec<OwnedServerName>) -> Self {
-        Self { via, order: None, suggested: false }
+        Self { via: Some(via), order: None, suggested: false }
     }
 }
 
@@ -105,11 +104,7 @@ impl PartialOrd for HierarchySpaceChildEvent {
 
 impl JsonCastable<HierarchySpaceChildEvent> for SpaceChildEvent {}
 
-impl JsonCastable<HierarchySpaceChildEvent> for OriginalSpaceChildEvent {}
-
 impl JsonCastable<HierarchySpaceChildEvent> for SyncSpaceChildEvent {}
-
-impl JsonCastable<HierarchySpaceChildEvent> for OriginalSyncSpaceChildEvent {}
 
 impl JsonCastable<JsonObject> for HierarchySpaceChildEvent {}
 
@@ -187,53 +182,23 @@ where
     }
 }
 
-impl SpaceChildOrd for OriginalSpaceChildEvent {
-    fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
-        SpaceChildOrdFields::new(
-            self.content.order.as_deref(),
-            self.origin_server_ts,
-            &self.state_key,
-        )
-    }
-}
-
-impl SpaceChildOrd for RedactedSpaceChildEvent {
-    fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
-        SpaceChildOrdFields::new(None, self.origin_server_ts, &self.state_key)
-    }
-}
-
 impl SpaceChildOrd for SpaceChildEvent {
     fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
-        match self {
-            StateEvent::Original(original) => original.space_child_ord_fields(),
-            StateEvent::Redacted(redacted) => redacted.space_child_ord_fields(),
-        }
-    }
-}
-
-impl SpaceChildOrd for OriginalSyncSpaceChildEvent {
-    fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
         SpaceChildOrdFields::new(
             self.content.order.as_deref(),
             self.origin_server_ts,
             &self.state_key,
         )
-    }
-}
-
-impl SpaceChildOrd for RedactedSyncSpaceChildEvent {
-    fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
-        SpaceChildOrdFields::new(None, self.origin_server_ts, &self.state_key)
     }
 }
 
 impl SpaceChildOrd for SyncSpaceChildEvent {
     fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
-        match self {
-            SyncStateEvent::Original(original) => original.space_child_ord_fields(),
-            SyncStateEvent::Redacted(redacted) => redacted.space_child_ord_fields(),
-        }
+        SpaceChildOrdFields::new(
+            self.content.order.as_deref(),
+            self.origin_server_ts,
+            &self.state_key,
+        )
     }
 }
 
@@ -304,7 +269,7 @@ mod tests {
     #[test]
     fn space_child_serialization() {
         let content = SpaceChildEventContent {
-            via: vec![server_name!("example.com").to_owned()],
+            via: Some(vec![server_name!("example.com").to_owned()]),
             order: Some(SpaceChildOrder::parse("uwu").unwrap()),
             suggested: false,
         };
@@ -320,9 +285,9 @@ mod tests {
 
     #[test]
     fn space_child_empty_serialization() {
-        let content = SpaceChildEventContent { via: vec![], order: None, suggested: false };
+        let content = SpaceChildEventContent { via: None, order: None, suggested: false };
 
-        assert_to_canonical_json_eq!(content, json!({ "via": [] }));
+        assert_to_canonical_json_eq!(content, json!({}));
     }
 
     #[test]
@@ -337,7 +302,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order.unwrap(), "aaa");
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via.unwrap(), &[via]);
 
         // Not a string.
         let json = json!({
@@ -347,7 +312,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order, None);
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via.unwrap(), &[via]);
 
         // Empty string.
         let json = json!({
@@ -357,7 +322,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order.unwrap(), "");
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via.unwrap(), &[via]);
 
         // String too long.
         let order = repeat_n('a', 60).collect::<String>();
@@ -368,7 +333,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order, None);
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via.unwrap(), &[via]);
 
         // Invalid character.
         let json = json!({
@@ -378,7 +343,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order, None);
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via.unwrap(), &[via]);
     }
 
     #[test]
@@ -399,7 +364,7 @@ mod tests {
         assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1_629_413_349)));
         assert_eq!(ev.sender, "@alice:example.org");
         assert_eq!(ev.state_key, "!a:example.org");
-        assert_eq!(ev.content.via, ["example.org"]);
+        assert_eq!(ev.content.via.unwrap(), ["example.org"]);
         assert_eq!(ev.content.order, None);
         assert!(!ev.content.suggested);
     }

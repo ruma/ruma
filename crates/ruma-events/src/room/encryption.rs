@@ -18,7 +18,8 @@ pub struct RoomEncryptionEventContent {
     /// The encryption algorithm to be used to encrypt messages sent in this room.
     ///
     /// Must be `m.megolm.v1.aes-sha2`.
-    pub algorithm: EventEncryptionAlgorithm,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub algorithm: Option<EventEncryptionAlgorithm>,
 
     /// Whether state events should be encrypted alongside message-like events.
     #[cfg(feature = "unstable-msc4362")]
@@ -43,7 +44,7 @@ impl RoomEncryptionEventContent {
     /// Creates a new `RoomEncryptionEventContent` with the given algorithm.
     pub fn new(algorithm: EventEncryptionAlgorithm) -> Self {
         Self {
-            algorithm,
+            algorithm: Some(algorithm),
             #[cfg(feature = "unstable-msc4362")]
             encrypt_state_events: false,
             rotation_period_ms: None,
@@ -59,7 +60,7 @@ impl RoomEncryptionEventContent {
     pub fn with_recommended_defaults() -> Self {
         // Defaults defined at <https://spec.matrix.org/latest/client-server-api/#mroomencryption>
         Self {
-            algorithm: EventEncryptionAlgorithm::MegolmV1AesSha2,
+            algorithm: Some(EventEncryptionAlgorithm::MegolmV1AesSha2),
             #[cfg(feature = "unstable-msc4362")]
             encrypt_state_events: false,
             rotation_period_ms: Some(uint!(604_800_000)),

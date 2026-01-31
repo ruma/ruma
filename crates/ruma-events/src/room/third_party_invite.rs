@@ -18,28 +18,16 @@ use serde::{Deserialize, Serialize};
 #[ruma_event(type = "m.room.third_party_invite", kind = State, state_key_type = String)]
 pub struct RoomThirdPartyInviteEventContent {
     /// A user-readable string which represents the user who has been invited.
-    ///
-    /// If the `compat-optional` feature is enabled, this field being absent in JSON will result
-    /// in an empty string instead of an error when deserializing.
-    #[cfg_attr(feature = "compat-optional", serde(default))]
-    pub display_name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub display_name: Option<String>,
 
     /// A URL which can be fetched to validate whether the key has been revoked.
-    ///
-    /// If the `compat-optional` feature is enabled, this field being absent in JSON will result
-    /// in an empty string instead of an error when deserializing.
-    #[cfg_attr(feature = "compat-optional", serde(default))]
-    pub key_validity_url: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub key_validity_url: Option<String>,
 
     /// A base64-encoded Ed25519 key with which the token must be signed.
-    ///
-    /// If the `compat-optional` feature is enabled, this field being absent in JSON will result
-    /// in an empty string instead of an error when deserializing.
-    #[cfg_attr(
-        feature = "compat-optional",
-        serde(default = "empty_identity_server_base64_public_key")
-    )]
-    pub public_key: IdentityServerBase64PublicKey,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub public_key: Option<IdentityServerBase64PublicKey>,
 
     /// Keys with which the token may be signed.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -54,7 +42,12 @@ impl RoomThirdPartyInviteEventContent {
         key_validity_url: String,
         public_key: IdentityServerBase64PublicKey,
     ) -> Self {
-        Self { display_name, key_validity_url, public_key, public_keys: None }
+        Self {
+            display_name: Some(display_name),
+            key_validity_url: Some(key_validity_url),
+            public_key: Some(public_key),
+            public_keys: None,
+        }
     }
 }
 
@@ -78,10 +71,4 @@ impl PublicKey {
     pub fn new(public_key: IdentityServerBase64PublicKey) -> Self {
         Self { key_validity_url: None, public_key }
     }
-}
-
-/// Generate an empty [`IdentityServerBase64PublicKey`].
-#[cfg(feature = "compat-optional")]
-fn empty_identity_server_base64_public_key() -> IdentityServerBase64PublicKey {
-    IdentityServerBase64PublicKey(String::new())
 }
