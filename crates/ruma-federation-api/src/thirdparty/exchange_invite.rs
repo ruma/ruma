@@ -95,15 +95,18 @@ pub mod v1 {
         /// the [`bind_callback::v1::Request`] and the matching
         /// [`RoomThirdPartyInviteEventContent`].
         ///
-        /// Returns an error if the serialization of the event content fails.
+        /// Returns `Ok(None)` if the display name is missing from the event content. Returns an
+        /// error if the serialization of the event content fails.
         pub fn with_bind_callback_request_and_event(
             bind_callback_invite: bind_callback::v1::ThirdPartyInvite,
             room_third_party_invite_event: &RoomThirdPartyInviteEventContent,
-        ) -> Result<Self, serde_json::Error> {
-            let third_party_invite = ThirdPartyInvite::new(
-                room_third_party_invite_event.display_name.clone(),
-                bind_callback_invite.signed,
-            );
+        ) -> Result<Option<Self>, serde_json::Error> {
+            let Some(display_name) = room_third_party_invite_event.display_name.clone() else {
+                return Ok(None);
+            };
+
+            let third_party_invite =
+                ThirdPartyInvite::new(display_name, bind_callback_invite.signed);
 
             Self::with_third_party_invite(
                 bind_callback_invite.room_id,
@@ -111,6 +114,7 @@ pub mod v1 {
                 bind_callback_invite.mxid,
                 third_party_invite,
             )
+            .map(Some)
         }
     }
 

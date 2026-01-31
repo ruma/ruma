@@ -226,6 +226,6 @@ mod tests {
         let content =
             response.into_content().deserialize_as_unchecked::<RoomNameEventContent>().unwrap();
 
-        assert_eq!(&content.name, "Nice room 🙂");
+        assert_eq!(content.name.as_deref(), Some("Nice room 🙂"));
     }
 }

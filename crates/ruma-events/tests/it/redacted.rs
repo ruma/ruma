@@ -5,10 +5,9 @@ use ruma_common::{
 use ruma_events::{
     AnyMessageLikeEvent, AnySyncMessageLikeEvent, AnySyncStateEvent, AnySyncTimelineEvent,
     AnyTimelineEvent, EventContentFromType, MessageLikeEvent, RedactContent, SyncMessageLikeEvent,
-    SyncStateEvent,
     room::{
-        aliases::RedactedRoomAliasesEventContent,
-        create::{RedactedRoomCreateEventContent, RoomCreateEventContent},
+        aliases::RoomAliasesEventContent,
+        create::RoomCreateEventContent,
         message::{RedactedRoomMessageEventContent, RoomMessageEventContent},
         redaction::RoomRedactionEventContent,
     },
@@ -38,15 +37,14 @@ fn serialize_redacted_message_event_content() {
 
 #[test]
 fn serialize_empty_redacted_aliases_event_content() {
-    assert_to_canonical_json_eq!(RedactedRoomAliasesEventContent::default(), json!({}));
+    let mut content = RoomAliasesEventContent::new(vec![]);
+    content.aliases.take();
+    assert_to_canonical_json_eq!(content, json!({}));
 }
 
 #[test]
 fn redacted_aliases_event_serialize_with_content() {
-    assert_to_canonical_json_eq!(
-        RedactedRoomAliasesEventContent::new_v1(vec![]),
-        json!({ "aliases": [] }),
-    );
+    assert_to_canonical_json_eq!(RoomAliasesEventContent::new(vec![]), json!({ "aliases": [] }),);
 }
 
 #[test]
@@ -66,9 +64,8 @@ fn deserialize_redacted_state() {
         from_json_value::<AnySyncTimelineEvent>(redacted),
         Ok(AnySyncTimelineEvent::State(event))
     );
-    assert!(event.is_redacted());
 
-    assert_matches!(event, AnySyncStateEvent::RoomAliases(SyncStateEvent::Redacted(redacted)));
+    assert_matches!(event, AnySyncStateEvent::RoomAliases(redacted));
     assert_eq!(redacted.event_id, "$h29iv0s8:example.com");
     assert_eq!(redacted.content.aliases, None);
 }
@@ -139,9 +136,8 @@ fn deserialize_redacted_sync_state() {
         from_json_value::<AnySyncTimelineEvent>(redacted),
         Ok(AnySyncTimelineEvent::State(event))
     );
-    assert!(event.is_redacted());
 
-    assert_matches!(event, AnySyncStateEvent::RoomCreate(SyncStateEvent::Redacted(redacted)));
+    assert_matches!(event, AnySyncStateEvent::RoomCreate(redacted));
     assert_eq!(redacted.event_id, "$h29iv0s8:example.com");
     assert_eq!(redacted.content.creator.unwrap(), "@carl:example.com");
 }
@@ -162,7 +158,6 @@ fn deserialize_redacted_custom_sync_state() {
         from_json_value::<AnySyncTimelineEvent>(redacted),
         Ok(AnySyncTimelineEvent::State(state_ev))
     );
-    assert!(state_ev.is_redacted());
     assert_eq!(state_ev.event_id(), "$h29iv0s8:example.com");
 }
 
@@ -235,9 +230,6 @@ fn redact_state_content() {
     let raw_json = to_raw_json_value(&json).unwrap();
     let content = RoomCreateEventContent::from_parts("m.room.create", &raw_json).unwrap();
 
-    assert_matches!(
-        content.redact(&RedactionRules::V6),
-        RedactedRoomCreateEventContent { creator, .. }
-    );
+    assert_matches!(content.redact(&RedactionRules::V6), RoomCreateEventContent { creator, .. });
     assert_eq!(creator.unwrap(), "@carl:example.com");
 }

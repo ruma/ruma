@@ -17,10 +17,7 @@ use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedDeviceId, room_version_rules:
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    PossiblyRedactedStateEventContent, PrivOwnedStr, RedactContent, RedactedStateEventContent,
-    StateEventType, StaticEventContent,
-};
+use crate::{PrivOwnedStr, RedactContent};
 
 /// The member state event for a MatrixRTC session.
 ///
@@ -33,7 +30,7 @@ use crate::{
 ///
 /// This struct also exposes allows to call the methods from [`CallMemberEventContent`].
 #[derive(Clone, Debug, Serialize, Deserialize, EventContent, PartialEq)]
-#[ruma_event(type = "org.matrix.msc3401.call.member", kind = State, state_key_type = CallMemberStateKey, custom_redacted, custom_possibly_redacted)]
+#[ruma_event(type = "org.matrix.msc3401.call.member", kind = State, state_key_type = CallMemberStateKey, custom_redacted)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(untagged)]
 pub enum CallMemberEventContent {
@@ -181,52 +178,15 @@ pub enum LeaveReason {
     /// The user left the call by losing network connection or closing
     /// the client before it was able to send the leave event.
     LostConnection,
+
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
 
 impl RedactContent for CallMemberEventContent {
-    type Redacted = RedactedCallMemberEventContent;
+    type Redacted = Self;
 
     fn redact(self, _rules: &RedactionRules) -> Self::Redacted {
-        RedactedCallMemberEventContent {}
-    }
-}
-
-/// The PossiblyRedacted version of [`CallMemberEventContent`].
-///
-/// Since [`CallMemberEventContent`] has the [`CallMemberEventContent::Empty`] state it already is
-/// compatible with the redacted version of the state event content.
-pub type PossiblyRedactedCallMemberEventContent = CallMemberEventContent;
-
-impl PossiblyRedactedStateEventContent for PossiblyRedactedCallMemberEventContent {
-    type StateKey = CallMemberStateKey;
-
-    fn event_type(&self) -> StateEventType {
-        StateEventType::CallMember
-    }
-}
-
-/// The Redacted version of [`CallMemberEventContent`].
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[allow(clippy::exhaustive_structs)]
-pub struct RedactedCallMemberEventContent {}
-
-impl RedactedStateEventContent for RedactedCallMemberEventContent {
-    type StateKey = CallMemberStateKey;
-
-    fn event_type(&self) -> StateEventType {
-        StateEventType::CallMember
-    }
-}
-
-impl StaticEventContent for RedactedCallMemberEventContent {
-    const TYPE: &'static str = CallMemberEventContent::TYPE;
-    type IsPrefix = <CallMemberEventContent as StaticEventContent>::IsPrefix;
-}
-
-impl From<RedactedCallMemberEventContent> for PossiblyRedactedCallMemberEventContent {
-    fn from(_value: RedactedCallMemberEventContent) -> Self {
         Self::new_empty(None)
     }
 }
@@ -260,16 +220,13 @@ mod tests {
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
     use super::{
-        CallMemberEventContent,
+        CallMemberEventContent, EmptyMembershipData, FocusSelection, SessionMembershipData,
         focus::{ActiveFocus, ActiveLivekitFocus, Focus, LivekitFocus},
         member_data::{
             Application, CallApplicationContent, CallScope, LegacyMembershipData, MembershipData,
         },
     };
-    use crate::{
-        AnyStateEvent, StateEvent,
-        call::member::{EmptyMembershipData, FocusSelection, SessionMembershipData},
-    };
+    use crate::AnyStateEvent;
 
     fn create_call_member_legacy_event_content() -> CallMemberEventContent {
         CallMemberEventContent::new_legacy(vec![LegacyMembershipData {
@@ -533,10 +490,7 @@ mod tests {
     fn deserialize_member_event_helper(state_key: &str) {
         let ev = member_event_json(state_key);
 
-        assert_matches!(
-            from_json_value(ev),
-            Ok(AnyStateEvent::CallMember(StateEvent::Original(member_event)))
-        );
+        assert_matches!(from_json_value(ev), Ok(AnyStateEvent::CallMember(member_event)));
 
         let event_id = OwnedEventId::try_from("$3qfxjGYSu4sL25FtR0ep6vePOc").unwrap();
         let sender = OwnedUserId::try_from("@user:example.org").unwrap();

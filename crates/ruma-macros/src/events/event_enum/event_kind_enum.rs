@@ -154,7 +154,7 @@ impl<'a> EventEnumVariation<'a> {
 
     /// Whether the content in the variants of this enum can be redacted.
     fn maybe_redacted(&self) -> bool {
-        self.kind.is_timeline()
+        matches!(self.kind, EventEnumKind::MessageLike)
             && matches!(self.variation, EventVariation::None | EventVariation::Sync)
     }
 
@@ -273,20 +273,6 @@ impl<'a> EventEnumVariation<'a> {
                 )*
                 Self::_Custom(event) => event.event_type(),
             }
-        } else if self.variation == EventVariation::Stripped {
-            let possibly_redacted_event_content_kind_trait =
-                self.kind.to_content_kind_trait(EventContentTraitVariation::PossiblyRedacted);
-
-            quote! {
-                #(
-                    #( #variant_attrs )*
-                    Self::#variants(event) =>
-                        #ruma_events::#possibly_redacted_event_content_kind_trait::event_type(&event.content),
-                )*
-                Self::_Custom(event) => ::std::convert::From::from(
-                    #ruma_events::#possibly_redacted_event_content_kind_trait::event_type(&event.content),
-                ),
-            }
         } else {
             let original_event_content_kind_trait =
                 self.kind.to_content_kind_trait(EventContentTraitVariation::Original);
@@ -340,17 +326,15 @@ impl<'a> EventEnumVariation<'a> {
         &self,
         event_content_enums: &mut EventContentEnums<'a>,
     ) -> Option<TokenStream> {
-        let event_content_enum = event_content_enums.get_or_create(self.variation)?;
+        let event_content_enum = event_content_enums.any_enum()?;
         let maybe_redacted = self.maybe_redacted();
 
         let mut tokens = event_content_enum.expand_content_accessors(maybe_redacted);
 
-        if matches!(self.kind, EventEnumKind::State) && maybe_redacted {
-            tokens.extend(
-                event_content_enums
-                    .full_event_content_enum()
-                    .expand_content_accessors(&self.event_struct),
-            );
+        if matches!(self.kind, EventEnumKind::State)
+            && matches!(self.variation, EventVariation::None | EventVariation::Sync)
+        {
+            tokens.extend(event_content_enums.full_event_content_enum().expand_content_accessors());
         }
 
         Some(tokens)
@@ -456,7 +440,9 @@ impl<'a> EventEnumVariation<'a> {
 
     /// Generate an accessor for the `unsigned.transaction_id` field for this enum, if present.
     fn expand_transaction_id_accessor(&self) -> Option<TokenStream> {
-        if !self.maybe_redacted() {
+        if !self.kind.is_timeline()
+            || !matches!(self.variation, EventVariation::None | EventVariation::Sync)
+        {
             return None;
         }
 
@@ -464,22 +450,45 @@ impl<'a> EventEnumVariation<'a> {
         let variants = &self.variants;
         let variant_attrs = &self.variant_attrs;
 
-        Some(quote! {
-            /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
-            pub fn transaction_id(&self) -> Option<&#ruma_common::TransactionId> {
-                match self {
-                    #(
-                        #( #variant_attrs )*
-                        Self::#variants(event) => {
-                            event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_deref())
+        match self.kind {
+            EventEnumKind::State => Some(quote! {
+                /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
+                pub fn transaction_id(&self) -> Option<&#ruma_common::TransactionId> {
+                    match self {
+                        #(
+                            #( #variant_attrs )*
+                            Self::#variants(event) => {
+                                event.unsigned.transaction_id.as_deref()
+                            }
+                        )*
+                        Self::_Custom(event) => {
+                            event.unsigned.transaction_id.as_deref()
                         }
-                    )*
-                    Self::_Custom(event) => {
-                        event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_deref())
                     }
                 }
-            }
-        })
+            }),
+            EventEnumKind::MessageLike => Some(quote! {
+                /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
+                pub fn transaction_id(&self) -> Option<&#ruma_common::TransactionId> {
+                    match self {
+                        #(
+                            #( #variant_attrs )*
+                            Self::#variants(event) => {
+                                event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_deref())
+                            }
+                        )*
+                        Self::_Custom(event) => {
+                            event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_deref())
+                        }
+                    }
+                }
+            }),
+            EventEnumKind::GlobalAccountData
+            | EventEnumKind::RoomAccountData
+            | EventEnumKind::EphemeralRoom
+            | EventEnumKind::Timeline
+            | EventEnumKind::ToDevice => None,
+        }
     }
 
     /// Implement `From<Any*Event>` and `.into_full_event()` for this enum, if this is a sync

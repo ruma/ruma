@@ -120,7 +120,8 @@ impl EventWithBounds {
             | EventVariation::Sync
             | EventVariation::Original
             | EventVariation::OriginalSync
-            | EventVariation::Initial => {
+            | EventVariation::Initial
+            | EventVariation::Stripped => {
                 // `State` event structs have a `StaticStateEventContent` bound.
                 if kind == EventEnumKind::State {
                     kind.to_content_kind_trait(EventContentTraitVariation::Static)
@@ -128,20 +129,17 @@ impl EventWithBounds {
                     kind.to_content_kind_trait(EventContentTraitVariation::Original)
                 }
             }
-            EventVariation::Stripped => {
-                kind.to_content_kind_trait(EventContentTraitVariation::PossiblyRedacted)
-            }
             EventVariation::Redacted | EventVariation::RedactedSync => {
                 kind.to_content_kind_trait(EventContentTraitVariation::Redacted)
             }
         };
 
         let (type_with_generics, impl_generics, where_clause) = match kind {
-            EventEnumKind::MessageLike | EventEnumKind::State
+            EventEnumKind::MessageLike
                 if matches!(variation, EventVariation::None | EventVariation::Sync) =>
             {
-                // `MessageLike` and `State` event kinds have an extra `RedactContent` bound with a
-                // `where` clause on the variations that match enum types.
+                // `MessageLike` event kind has an extra `RedactContent` bound with a `where` clause
+                // on the variations that match enum types.
                 let redacted_trait =
                     kind.to_content_kind_trait(EventContentTraitVariation::Redacted);
 

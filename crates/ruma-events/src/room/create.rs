@@ -9,7 +9,7 @@ use ruma_common::{
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{EmptyStateKey, RedactContent, RedactedStateEventContent, StateEventType};
+use crate::{EmptyStateKey, RedactContent};
 
 /// The content of an `m.room.create` event.
 ///
@@ -100,7 +100,7 @@ impl RoomCreateEventContent {
 }
 
 impl RedactContent for RoomCreateEventContent {
-    type Redacted = RedactedRoomCreateEventContent;
+    type Redacted = Self;
 
     fn redact(self, rules: &RedactionRules) -> Self::Redacted {
         #[allow(deprecated)]
@@ -142,24 +142,6 @@ impl PreviousRoom {
 /// Used to default the `room_version` field to room version 1.
 fn default_room_version_id() -> RoomVersionId {
     RoomVersionId::V1
-}
-
-/// Redacted form of [`RoomCreateEventContent`].
-///
-/// The redaction rules of this event changed with room version 11:
-///
-/// - In room versions 1 through 10, the `creator` field was preserved during redaction, starting
-///   from room version 11 the field is removed.
-/// - In room versions 1 through 10, all the other fields were redacted, starting from room version
-///   11 all the fields are preserved.
-pub type RedactedRoomCreateEventContent = RoomCreateEventContent;
-
-impl RedactedStateEventContent for RedactedRoomCreateEventContent {
-    type StateKey = EmptyStateKey;
-
-    fn event_type(&self) -> StateEventType {
-        StateEventType::RoomCreate
-    }
 }
 
 #[cfg(test)]

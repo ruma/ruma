@@ -3,6 +3,6 @@ use ruma_macros::Event;
 
 /// State event.
 #[derive(Clone, Debug, Event)]
-pub struct OriginalStateEvent<C: StateEventContent>(C);
+pub struct StateEvent<C: StateEventContent>(C);
 
 fn main() {}

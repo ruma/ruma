@@ -197,6 +197,7 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 /// * `{kind}EventContent`
 /// * `StaticEventContent`
 /// * `StaticStateEventContent`, for the `State` kind.
+/// * `RedactContent`, for the `MessageLike` and `State` kinds if `custom_redacted` is not set.
 ///
 /// # Generated types
 ///
@@ -223,21 +224,6 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 ///   on the container. The `RedactedFooEventContent` type must still exist and implement the same
 ///   traits, even if it is only a type alias, and the `RedactContent` trait must still be
 ///   implemented for those kinds.
-/// * `PossiblyRedactedFooEventContent`: the form of the event content that is used when we don't
-///   know whether a `State` event is redacted or not. It means that on this type any field that is
-///   redacted must be optional, or it must have the `#[serde(default)]` attribute for
-///   deserialization.
-///
-///   The generated type implements `PossiblyRedactedStateEventContent`, `StaticEventContent`,
-///   `Serialize` and `Deserialize`.
-///
-///   The generation uses the rules as the redacted type, using the `#[ruma_event(skip_redaction)]`
-///   attribute.
-///
-///   To skip the generation of this type to use a custom type, the
-///   `#[ruma_event(custom_possibly_redacted)]` attribute can be used on the container. The
-///   `PossiblyRedactedFooEventContent` type must still exist for the `State` kind and implement the
-///   same traits, even if it is only a type alias.
 ///
 /// Event content types of the `MessageLike` kind that use the `Relation` type also need a clone of
 /// the event content without the `relates_to` field for use within relations, where nested
@@ -269,17 +255,17 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 /// * `type SyncFooEvent = Sync{Kind}Event<FooEventContent>`: an event received via the `/sync` API,
 ///   for the `MessageLike`, `State` and `EphemeralRoom` kinds
 /// * `type OriginalFooEvent = Original{Kind}Event<FooEventContent>`, a non-redacted event, for the
-///   `MessageLike` and `State` kinds
+///   `MessageLike` kind
 /// * `type OriginalSyncFooEvent = OriginalSync{Kind}Event<FooEventContent>`, a non-redacted event
-///   received via the `/sync` API, for the `MessageLike` and `State` kinds
+///   received via the `/sync` API, for the `MessageLike` kind
 /// * `type RedactedFooEvent = Redacted{Kind}Event<RedactedFooEventContent>`, a redacted event, for
-///   the `MessageLike` and `State` kinds
+///   the `MessageLike` kind
 /// * `type OriginalSyncFooEvent = RedactedSync{Kind}Event<RedactedFooEventContent>`, a redacted
-///   event received via the `/sync` API, for the `MessageLike` and `State` kinds
+///   event received via the `/sync` API, for the `MessageLike` kind
 /// * `type InitialFooEvent = InitialStateEvent<FooEventContent>`, an event sent during room
 ///   creation, for the `State` kind
-/// * `type StrippedFooEvent = StrippedStateEvent<PossiblyRedactedFooEventContent>`, an event that
-///   is in a room state preview when receiving an invite, for the `State` kind
+/// * `type StrippedFooEvent = StrippedStateEvent<FooEventContent>`, an event that is in a room
+///   state preview when receiving an invite, for the `State` kind
 ///
 /// You can use `cargo doc` to find out more details, its `--document-private-items` flag also lets
 /// you generate documentation for binaries or private parts of a library.
@@ -345,15 +331,9 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 ///
 /// ### `custom_redacted`
 ///
-/// If the kind requires a `Redacted{}EventContent` type and a `RedactContent` implementation and it
-/// is not possible to generate them with the macro, setting this attribute prevents the macro from
-/// trying to generate them. The type and trait must be implemented manually.
-///
-/// ### `custom_possibly_redacted`
-///
-/// If the kind requires a `PossiblyRedacted{}EventContent` type and it is not possible to generate
-/// it with the macro, setting this attribute prevents the macro from trying to generate it. The
-/// type must be implemented manually.
+/// If the kind requires a `Redacted{}EventContent` type and/or a `RedactContent` implementation and
+/// it is not possible to generate them with the macro, setting this attribute prevents the macro
+/// from trying to generate them. The type and/or trait must be implemented manually.
 ///
 /// ### `without_relation`
 ///

@@ -18,7 +18,8 @@ use serde::{Deserialize, Serialize};
 #[ruma_event(type = "m.space.parent", kind = State, state_key_type = OwnedRoomId)]
 pub struct SpaceParentEventContent {
     /// List of candidate servers that can be used to join the room.
-    pub via: Vec<OwnedServerName>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub via: Option<Vec<OwnedServerName>>,
 
     /// Determines whether this is the main parent for the space.
     ///
@@ -36,13 +37,13 @@ pub struct SpaceParentEventContent {
 impl SpaceParentEventContent {
     /// Creates a new `SpaceParentEventContent` with the given routing servers.
     pub fn new(via: Vec<OwnedServerName>) -> Self {
-        Self { via, canonical: false }
+        Self { via: Some(via), canonical: false }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::{canonical_json::assert_to_canonical_json_eq, server_name};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_server_name};
     use serde_json::json;
 
     use super::SpaceParentEventContent;
@@ -50,7 +51,7 @@ mod tests {
     #[test]
     fn space_parent_serialization() {
         let content = SpaceParentEventContent {
-            via: vec![server_name!("example.com").to_owned()],
+            via: Some(vec![owned_server_name!("example.com")]),
             canonical: true,
         };
 
@@ -65,8 +66,8 @@ mod tests {
 
     #[test]
     fn space_parent_empty_serialization() {
-        let content = SpaceParentEventContent { via: vec![], canonical: false };
+        let content = SpaceParentEventContent { via: None, canonical: false };
 
-        assert_to_canonical_json_eq!(content, json!({ "via": [] }));
+        assert_to_canonical_json_eq!(content, json!({}));
     }
 }

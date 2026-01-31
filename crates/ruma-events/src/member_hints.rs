@@ -21,6 +21,7 @@ use crate::EmptyStateKey;
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct MemberHintsEventContent {
     /// The list of user IDs that should be considered a service member of the room.
+    #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
     pub service_members: BTreeSet<OwnedUserId>,
 }
 
@@ -64,8 +65,6 @@ mod test {
             .expect("We should be able to deserialize the member hints event");
 
         assert_matches!(event, AnyStateEvent::MemberHints(event));
-        assert_matches!(event, crate::StateEvent::Original(event));
-
         assert!(event.content.service_members.contains(user_id));
 
         let data = json!({
@@ -86,8 +85,6 @@ mod test {
             .expect("We should be able to deserialize the member hints event");
 
         assert_matches!(event, AnyStateEvent::MemberHints(event));
-        assert_matches!(event, crate::StateEvent::Original(event));
-
         assert!(event.content.service_members.contains(user_id));
     }
 
