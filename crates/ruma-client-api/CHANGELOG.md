@@ -7,6 +7,10 @@ Breaking changes:
   `RoomPowerLevelsEventContent` except all `Int` fields are `Option<Int>`, which
   allows uploading explicit values no matter what the default ones are.
 
+Improvements:
+
+- Add the `M_TOKEN_INCORRECT` error code according to MSC4183.
+
 # 0.22.1
 
 Improvements:

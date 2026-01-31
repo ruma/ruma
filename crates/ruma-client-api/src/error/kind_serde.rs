@@ -230,6 +230,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrorCode::ThreepidInUse => ErrorKind::ThreepidInUse,
             ErrorCode::ThreepidMediumNotSupported => ErrorKind::ThreepidMediumNotSupported,
             ErrorCode::ThreepidNotFound => ErrorKind::ThreepidNotFound,
+            ErrorCode::TokenIncorrect => ErrorKind::TokenIncorrect,
             ErrorCode::TooLarge => ErrorKind::TooLarge,
             ErrorCode::UnableToAuthorizeJoin => ErrorKind::UnableToAuthorizeJoin,
             ErrorCode::UnableToGrantJoin => ErrorKind::UnableToGrantJoin,
