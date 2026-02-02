@@ -16,7 +16,7 @@ pub mod unstable {
 
     metadata! {
         method: GET,
-        rate_limited: false,
+        rate_limited: true,
         authentication: NoAuthentication,
         history: {
             unstable("io.element.msc4388") => "/_matrix/client/unstable/io.element.msc4388/rendezvous/{id}",
