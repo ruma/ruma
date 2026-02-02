@@ -157,8 +157,8 @@ const EXTENDED_PROFILE_FIELD_HISTORY: VersionHistory = VersionHistory::new(
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::owned_mxc_uri;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_mxc_uri};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::ProfileFieldValue;
 
@@ -166,18 +166,15 @@ mod tests {
     fn serialize_profile_field_value() {
         // Avatar URL.
         let value = ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef"));
-        assert_eq!(
-            to_json_value(value).unwrap(),
-            json!({ "avatar_url": "mxc://localhost/abcdef" })
-        );
+        assert_to_canonical_json_eq!(value, json!({ "avatar_url": "mxc://localhost/abcdef" }));
 
         // Display name.
         let value = ProfileFieldValue::DisplayName("Alice".to_owned());
-        assert_eq!(to_json_value(value).unwrap(), json!({ "displayname": "Alice" }));
+        assert_to_canonical_json_eq!(value, json!({ "displayname": "Alice" }));
 
         // Custom field.
         let value = ProfileFieldValue::new("custom_field", "value".into()).unwrap();
-        assert_eq!(to_json_value(value).unwrap(), json!({ "custom_field": "value" }));
+        assert_to_canonical_json_eq!(value, json!({ "custom_field": "value" }));
     }
 
     #[test]

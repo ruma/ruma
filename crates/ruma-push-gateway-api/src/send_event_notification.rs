@@ -344,44 +344,16 @@ pub mod v1 {
     mod tests {
         use js_int::uint;
         use ruma_common::{
-            SecondsSinceUnixEpoch, owned_event_id, owned_room_alias_id, owned_room_id,
-            owned_user_id,
+            SecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
+            owned_room_alias_id, owned_room_id, owned_user_id,
         };
         use ruma_events::TimelineEventType;
-        use serde_json::{
-            Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
-        };
+        use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
         use super::{Device, Notification, NotificationCounts, NotificationPriority, Tweak};
 
         #[test]
         fn serialize_request() {
-            let expected = json!({
-                "event_id": "$3957tyerfgewrf384",
-                "room_id": "!slw48wfj34rtnrf:example.com",
-                "type": "m.room.message",
-                "sender": "@exampleuser:matrix.org",
-                "sender_display_name": "Major Tom",
-                "room_alias": "#exampleroom:matrix.org",
-                "prio": "low",
-                "content": {},
-                "counts": {
-                  "unread": 2,
-                },
-                "devices": [
-                  {
-                    "app_id": "org.matrix.matrixConsole.ios",
-                    "pushkey": "V2h5IG9uIGVhcnRoIGRpZCB5b3UgZGVjb2RlIHRoaXM/",
-                    "pushkey_ts": 123,
-                    "tweaks": {
-                      "sound": "silence",
-                      "highlight": true,
-                      "custom": "go wild"
-                    }
-                  }
-                ]
-            });
-
             let eid = owned_event_id!("$3957tyerfgewrf384");
             let rid = owned_room_id!("!slw48wfj34rtnrf:example.com");
             let uid = owned_user_id!("@exampleuser:matrix.org");
@@ -420,7 +392,34 @@ pub mod v1 {
                 ..Notification::default()
             };
 
-            assert_eq!(expected, to_json_value(notice).unwrap());
+            assert_to_canonical_json_eq!(
+                notice,
+                json!({
+                    "event_id": "$3957tyerfgewrf384",
+                    "room_id": "!slw48wfj34rtnrf:example.com",
+                    "type": "m.room.message",
+                    "sender": "@exampleuser:matrix.org",
+                    "sender_display_name": "Major Tom",
+                    "room_alias": "#exampleroom:matrix.org",
+                    "prio": "low",
+                    "content": {},
+                    "counts": {
+                      "unread": 2,
+                    },
+                    "devices": [
+                      {
+                        "app_id": "org.matrix.matrixConsole.ios",
+                        "pushkey": "V2h5IG9uIGVhcnRoIGRpZCB5b3UgZGVjb2RlIHRoaXM/",
+                        "pushkey_ts": 123,
+                        "tweaks": {
+                          "sound": "silence",
+                          "highlight": true,
+                          "custom": "go wild"
+                        },
+                      }
+                    ],
+                }),
+            );
         }
     }
 }

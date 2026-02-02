@@ -624,7 +624,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use js_int::{Int, int, uint};
     use macro_rules_attribute::apply;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use serde_json::{from_value as from_json_value, json};
     use smol_macros::test;
 
     use super::{
@@ -632,60 +632,51 @@ mod tests {
         RoomMemberCountIs, StrExt,
     };
     use crate::{
-        OwnedUserId, owned_room_id, owned_user_id,
+        OwnedUserId, assert_to_canonical_json_eq, owned_room_id, owned_user_id,
         power_levels::{NotificationPowerLevels, NotificationPowerLevelsKey},
         room_version_rules::{AuthorizationRules, RoomPowerLevelsRules},
     };
 
     #[test]
     fn serialize_event_match_condition() {
-        let json_data = json!({
-            "key": "content.msgtype",
-            "kind": "event_match",
-            "pattern": "m.notice"
-        });
-        assert_eq!(
-            to_json_value(PushCondition::EventMatch {
-                key: "content.msgtype".into(),
-                pattern: "m.notice".into(),
-            })
-            .unwrap(),
-            json_data
+        assert_to_canonical_json_eq!(
+            PushCondition::EventMatch { key: "content.msgtype".into(), pattern: "m.notice".into() },
+            json!({
+                "key": "content.msgtype",
+                "kind": "event_match",
+                "pattern": "m.notice"
+            }),
         );
     }
 
     #[test]
     #[allow(deprecated)]
     fn serialize_contains_display_name_condition() {
-        assert_eq!(
-            to_json_value(PushCondition::ContainsDisplayName).unwrap(),
-            json!({ "kind": "contains_display_name" })
+        assert_to_canonical_json_eq!(
+            PushCondition::ContainsDisplayName,
+            json!({ "kind": "contains_display_name" }),
         );
     }
 
     #[test]
     fn serialize_room_member_count_condition() {
-        let json_data = json!({
-            "is": "2",
-            "kind": "room_member_count"
-        });
-        assert_eq!(
-            to_json_value(PushCondition::RoomMemberCount { is: RoomMemberCountIs::from(uint!(2)) })
-                .unwrap(),
-            json_data
+        assert_to_canonical_json_eq!(
+            PushCondition::RoomMemberCount { is: RoomMemberCountIs::from(uint!(2)) },
+            json!({
+                "is": "2",
+                "kind": "room_member_count"
+            }),
         );
     }
 
     #[test]
     fn serialize_sender_notification_permission_condition() {
-        let json_data = json!({
-            "key": "room",
-            "kind": "sender_notification_permission"
-        });
-        assert_eq!(
-            json_data,
-            to_json_value(PushCondition::SenderNotificationPermission { key: "room".into() })
-                .unwrap()
+        assert_to_canonical_json_eq!(
+            PushCondition::SenderNotificationPermission { key: "room".into() },
+            json!({
+                "key": "room",
+                "kind": "sender_notification_permission"
+            }),
         );
     }
 

@@ -6,11 +6,13 @@ use ruma_client_api::{
     error::ErrorKind,
     uiaa::{self, AuthData, AuthFlow, AuthType, UiaaInfo, UiaaResponse, UserIdentifier},
 };
-use ruma_common::api::{EndpointError, OutgoingResponse};
+use ruma_common::{
+    api::{EndpointError, OutgoingResponse},
+    canonical_json::assert_to_canonical_json_eq,
+};
 use serde_json::{
     Value as JsonValue, from_slice as from_json_slice, from_str as from_json_str,
-    from_value as from_json_value, json, to_value as to_json_value,
-    value::to_raw_value as to_raw_json_value,
+    from_value as from_json_value, json, value::to_raw_value as to_raw_json_value,
 };
 
 #[test]
@@ -33,8 +35,8 @@ fn serialize_auth_data_registration_token() {
             session: Some("session".to_owned()),
         }));
 
-    assert_eq!(
-        to_json_value(auth_data).unwrap(),
+    assert_to_canonical_json_eq!(
+        auth_data,
         json!({
             "type": "m.login.registration_token",
             "token": "mytoken",
@@ -61,7 +63,7 @@ fn serialize_auth_data_fallback() {
     let auth_data =
         AuthData::FallbackAcknowledgement(uiaa::FallbackAcknowledgement::new("ZXY000".to_owned()));
 
-    assert_eq!(json!({ "session": "ZXY000" }), to_json_value(auth_data).unwrap());
+    assert_to_canonical_json_eq!(auth_data, json!({ "session": "ZXY000" }));
 }
 
 #[test]
@@ -86,16 +88,18 @@ fn serialize_uiaa_info() {
         completed: vec!["m.login.password".into()],
     });
 
-    let json = json!({
-        "flows": [{ "stages": ["m.login.password", "m.login.dummy"] }],
-        "completed": ["m.login.password"],
-        "params": {
-            "example.type.baz": {
-                "example_key": "foobar"
+    assert_to_canonical_json_eq!(
+        uiaa_info,
+        json!({
+            "flows": [{ "stages": ["m.login.password", "m.login.dummy"] }],
+            "completed": ["m.login.password"],
+            "params": {
+                "example.type.baz": {
+                    "example_key": "foobar"
+                }
             }
-        }
-    });
-    assert_eq!(to_json_value(uiaa_info).unwrap(), json);
+        })
+    );
 }
 
 #[test]

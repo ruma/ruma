@@ -4,11 +4,14 @@ use std::time::Duration;
 
 use assert_matches2::assert_matches;
 use js_int::uint;
-use ruma_common::{MilliSecondsSinceUnixEpoch, event_id, room_id, serde::CanBeEmpty, user_id};
+use ruma_common::{
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id, room_id,
+    serde::CanBeEmpty, user_id,
+};
 use ruma_events::{
     AnyStateEvent, StateEvent, beacon_info::BeaconInfoEventContent, location::AssetType,
 };
-use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+use serde_json::{from_value as from_json_value, json};
 
 fn get_beacon_info_event_content(
     duration: Option<Duration>,
@@ -56,8 +59,8 @@ fn beacon_info_stop_event() {
 
     event_content.stop();
 
-    assert_eq!(
-        to_json_value(&event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        event_content,
         json!({
             "org.matrix.msc3488.ts": 1_636_829_458,
             "org.matrix.msc3488.asset": {
@@ -83,8 +86,8 @@ fn beacon_info_start_event() {
 
     event_content.start();
 
-    assert_eq!(
-        to_json_value(&event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        event_content,
         json!({
             "org.matrix.msc3488.ts": 1_636_829_458,
             "org.matrix.msc3488.asset": {
@@ -103,8 +106,8 @@ fn beacon_info_start_event_content_serialization() {
 
     let event_content = get_beacon_info_event_content(None, ts);
 
-    assert_eq!(
-        to_json_value(&event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        event_content,
         json!({
             "org.matrix.msc3488.ts": 1_636_829_458,
             "org.matrix.msc3488.asset": {

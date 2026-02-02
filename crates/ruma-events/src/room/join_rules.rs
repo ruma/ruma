@@ -101,6 +101,13 @@ impl<'de> Deserialize<'de> for RedactedRoomJoinRulesEventContent {
 
 impl JsonCastable<JsonObject> for RedactedRoomJoinRulesEventContent {}
 
+impl From<RedactedRoomJoinRulesEventContent> for PossiblyRedactedRoomJoinRulesEventContent {
+    fn from(value: RedactedRoomJoinRulesEventContent) -> Self {
+        let RedactedRoomJoinRulesEventContent { join_rule } = value;
+        Self { join_rule }
+    }
+}
+
 impl RoomJoinRulesEvent {
     /// Obtain the join rule, regardless of whether this event is redacted.
     pub fn join_rule(&self) -> &JoinRule {

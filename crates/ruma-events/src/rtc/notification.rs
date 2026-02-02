@@ -117,8 +117,10 @@ mod tests {
 
     use assert_matches2::assert_matches;
     use js_int::UInt;
-    use ruma_common::{MilliSecondsSinceUnixEpoch, owned_event_id};
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::{
+        MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
+    };
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{NotificationType, RtcNotificationEventContent};
     use crate::{AnyMessageLikeEvent, Mentions, MessageLikeEvent};
@@ -133,8 +135,8 @@ mod tests {
         content.mentions = Some(Mentions::with_room_mention());
         content.relates_to = Some(ruma_events::relation::Reference::new(owned_event_id!("$m:ex")));
 
-        assert_eq!(
-            to_json_value(&content).unwrap(),
+        assert_to_canonical_json_eq!(
+            content,
             json!({
                 "sender_ts": 1_752_583_130_365_u64,
                 "lifetime": 30_000_u32,

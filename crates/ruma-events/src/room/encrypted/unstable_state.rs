@@ -1,11 +1,12 @@
 //! Types for `m.room.encrypted` state events, as defined in [MSC4362][msc].
 //!
 //! [msc]: https://github.com/matrix-org/matrix-spec-proposals/pull/4362
+use ruma_common::room_version_rules::RedactionRules;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    PossiblyRedactedStateEventContent, StateEventType, StaticEventContent,
+    PossiblyRedactedStateEventContent, RedactContent, StateEventType, StaticEventContent,
     room::encrypted::EncryptedEventScheme,
 };
 
@@ -41,13 +42,38 @@ impl PossiblyRedactedStateEventContent for PossiblyRedactedStateRoomEncryptedEve
     }
 }
 
+impl RedactContent for PossiblyRedactedStateRoomEncryptedEventContent {
+    type Redacted = Self;
+
+    fn redact(self, _rules: &RedactionRules) -> Self::Redacted {
+        Self { scheme: None }
+    }
+}
+
+impl From<StateRoomEncryptedEventContent> for PossiblyRedactedStateRoomEncryptedEventContent {
+    fn from(value: StateRoomEncryptedEventContent) -> Self {
+        let StateRoomEncryptedEventContent { scheme } = value;
+        Self { scheme: Some(scheme) }
+    }
+}
+
+impl From<RedactedStateRoomEncryptedEventContent>
+    for PossiblyRedactedStateRoomEncryptedEventContent
+{
+    fn from(_value: RedactedStateRoomEncryptedEventContent) -> Self {
+        Self { scheme: None }
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
     use assert_matches2::assert_matches;
     use js_int::uint;
-    use ruma_common::{MilliSecondsSinceUnixEpoch, room_id, user_id};
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::{
+        MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, room_id, user_id,
+    };
+    use serde_json::{from_value as from_json_value, json};
 
     use crate::{
         AnyStateEvent, StateEvent,
@@ -71,15 +97,16 @@ mod tests {
             ),
         };
 
-        let json_data = json!({
-            "algorithm": "m.megolm.v1.aes-sha2",
-            "ciphertext": "ciphertext",
-            "sender_key": "sender_key",
-            "device_id": "device_id",
-            "session_id": "session_id",
-        });
-
-        assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
+        assert_to_canonical_json_eq!(
+            key_verification_start_content,
+            json!({
+                "algorithm": "m.megolm.v1.aes-sha2",
+                "ciphertext": "ciphertext",
+                "sender_key": "sender_key",
+                "device_id": "device_id",
+                "session_id": "session_id",
+            }),
+        );
     }
 
     #[test]

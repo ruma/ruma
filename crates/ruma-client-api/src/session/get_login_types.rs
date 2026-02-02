@@ -325,11 +325,9 @@ pub mod v3 {
     #[cfg(test)]
     mod tests {
         use assert_matches2::assert_matches;
-        use ruma_common::mxc_uri;
+        use ruma_common::{canonical_json::assert_to_canonical_json_eq, mxc_uri};
         use serde::{Deserialize, Serialize};
-        use serde_json::{
-            Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
-        };
+        use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
         use super::{
             IdentityProvider, IdentityProviderBrand, LoginType, SsoLoginType, TokenLoginType,
@@ -420,7 +418,7 @@ pub mod v3 {
 
         #[test]
         fn serialize_sso_login_type() {
-            let wrapper = to_json_value(Wrapper {
+            let wrapper = Wrapper {
                 flows: vec![
                     LoginType::Token(TokenLoginType::new()),
                     LoginType::Sso(SsoLoginType {
@@ -434,10 +432,9 @@ pub mod v3 {
                         delegated_oidc_compatibility: false,
                     }),
                 ],
-            })
-            .unwrap();
+            };
 
-            assert_eq!(
+            assert_to_canonical_json_eq!(
                 wrapper,
                 json!({
                     "flows": [

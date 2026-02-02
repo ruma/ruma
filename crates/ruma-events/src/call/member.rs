@@ -225,6 +225,12 @@ impl StaticEventContent for RedactedCallMemberEventContent {
     type IsPrefix = <CallMemberEventContent as StaticEventContent>::IsPrefix;
 }
 
+impl From<RedactedCallMemberEventContent> for PossiblyRedactedCallMemberEventContent {
+    fn from(_value: RedactedCallMemberEventContent) -> Self {
+        Self::new_empty(None)
+    }
+}
+
 /// Legacy content with an array of memberships. See also: [`CallMemberEventContent`]
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]

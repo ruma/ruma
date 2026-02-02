@@ -14,7 +14,6 @@ rust-version = { workspace = true }
 all-features = true
 
 [features]
-canonical-json = ["ruma-common/canonical-json"]
 html = ["dep:ruma-html"]
 markdown = ["dep:pulldown-cmark"]
 unstable-msc1767 = []

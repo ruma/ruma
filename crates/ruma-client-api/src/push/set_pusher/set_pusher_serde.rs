@@ -68,7 +68,8 @@ impl<'de> Deserialize<'de> for PusherAction {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    use serde_json::{from_value as from_json_value, json};
 
     use super::PusherAction;
     use crate::push::{
@@ -89,8 +90,8 @@ mod tests {
             append: false,
         });
 
-        assert_eq!(
-            to_json_value(action).unwrap(),
+        assert_to_canonical_json_eq!(
+            action,
             json!({
                 "pushkey": "abcdef",
                 "app_id": "my.matrix.app",
@@ -108,8 +109,8 @@ mod tests {
         let action =
             PusherAction::Delete(PusherIds::new("abcdef".to_owned(), "my.matrix.app".to_owned()));
 
-        assert_eq!(
-            to_json_value(action).unwrap(),
+        assert_to_canonical_json_eq!(
+            action,
             json!({
                 "pushkey": "abcdef",
                 "app_id": "my.matrix.app",

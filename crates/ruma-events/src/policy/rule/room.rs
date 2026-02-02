@@ -2,11 +2,12 @@
 //!
 //! [`m.policy.rule.room`]: https://spec.matrix.org/latest/client-server-api/#mpolicyruleroom
 
+use ruma_common::room_version_rules::RedactionRules;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{PolicyRuleEventContent, PossiblyRedactedPolicyRuleEventContent};
-use crate::{PossiblyRedactedStateEventContent, StateEventType, StaticEventContent};
+use crate::{PossiblyRedactedStateEventContent, RedactContent, StateEventType, StaticEventContent};
 
 /// The content of an `m.policy.rule.room` event.
 ///
@@ -36,10 +37,32 @@ impl StaticEventContent for PossiblyRedactedPolicyRuleRoomEventContent {
     type IsPrefix = <PolicyRuleRoomEventContent as StaticEventContent>::IsPrefix;
 }
 
+impl RedactContent for PossiblyRedactedPolicyRuleRoomEventContent {
+    type Redacted = Self;
+
+    fn redact(self, _rules: &RedactionRules) -> Self::Redacted {
+        Self(PossiblyRedactedPolicyRuleEventContent::empty())
+    }
+}
+
+impl From<PolicyRuleRoomEventContent> for PossiblyRedactedPolicyRuleRoomEventContent {
+    fn from(value: PolicyRuleRoomEventContent) -> Self {
+        let PolicyRuleRoomEventContent(policy) = value;
+        Self(policy.into())
+    }
+}
+
+impl From<RedactedPolicyRuleRoomEventContent> for PossiblyRedactedPolicyRuleRoomEventContent {
+    fn from(value: RedactedPolicyRuleRoomEventContent) -> Self {
+        let RedactedPolicyRuleRoomEventContent {} = value;
+        Self(PossiblyRedactedPolicyRuleEventContent::empty())
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use ruma_common::serde::Raw;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, serde::Raw};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{OriginalPolicyRuleRoomEvent, PolicyRuleRoomEventContent};
     use crate::policy::rule::{PolicyRuleEventContent, Recommendation};
@@ -52,13 +75,14 @@ mod tests {
             recommendation: Recommendation::Ban,
         });
 
-        let json = json!({
-            "entity": "#*:example.org",
-            "reason": "undesirable content",
-            "recommendation": "m.ban"
-        });
-
-        assert_eq!(to_json_value(content).unwrap(), json);
+        assert_to_canonical_json_eq!(
+            content,
+            json!({
+                "entity": "#*:example.org",
+                "reason": "undesirable content",
+                "recommendation": "m.ban",
+            }),
+        );
     }
 
     #[test]

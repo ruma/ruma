@@ -316,6 +316,35 @@ impl RedactedStateEventContent for RedactedRoomPowerLevelsEventContent {
     }
 }
 
+impl From<RedactedRoomPowerLevelsEventContent> for PossiblyRedactedRoomPowerLevelsEventContent {
+    fn from(value: RedactedRoomPowerLevelsEventContent) -> Self {
+        let RedactedRoomPowerLevelsEventContent {
+            ban,
+            events,
+            events_default,
+            invite,
+            kick,
+            redact,
+            state_default,
+            users,
+            users_default,
+        } = value;
+
+        Self {
+            ban,
+            events,
+            events_default,
+            invite,
+            kick,
+            redact,
+            state_default,
+            users,
+            users_default,
+            notifications: NotificationPowerLevels::default(),
+        }
+    }
+}
+
 /// The power level of a particular user.
 ///
 /// Is either considered "infinite" if that user is a room creator, or an integer if they are not.
@@ -930,8 +959,11 @@ mod tests {
     use assign::assign;
     use js_int::int;
     use maplit::btreemap;
-    use ruma_common::{owned_user_id, room_version_rules::AuthorizationRules, user_id};
-    use serde_json::{json, to_value as to_json_value};
+    use ruma_common::{
+        canonical_json::assert_to_canonical_json_eq, owned_user_id,
+        room_version_rules::AuthorizationRules, user_id,
+    };
+    use serde_json::json;
 
     use super::{
         NotificationPowerLevels, RoomPowerLevels, RoomPowerLevelsEventContent,
@@ -955,10 +987,7 @@ mod tests {
             notifications: NotificationPowerLevels::default(),
         };
 
-        let actual = to_json_value(&power_levels).unwrap();
-        let expected = json!({});
-
-        assert_eq!(actual, expected);
+        assert_to_canonical_json_eq!(power_levels, json!({}));
     }
 
     #[test]
@@ -981,27 +1010,27 @@ mod tests {
             notifications: assign!(NotificationPowerLevels::new(), { room: int!(23) }),
         };
 
-        let actual = to_json_value(&power_levels_event).unwrap();
-        let expected = json!({
-            "ban": 23,
-            "events": {
-                "m.dummy": 23
-            },
-            "events_default": 23,
-            "invite": 23,
-            "kick": 23,
-            "redact": 23,
-            "state_default": 23,
-            "users": {
-                "@carl:example.com": 23
-            },
-            "users_default": 23,
-            "notifications": {
-                "room": 23
-            },
-        });
-
-        assert_eq!(actual, expected);
+        assert_to_canonical_json_eq!(
+            power_levels_event,
+            json!({
+                "ban": 23,
+                "events": {
+                    "m.dummy": 23,
+                },
+                "events_default": 23,
+                "invite": 23,
+                "kick": 23,
+                "redact": 23,
+                "state_default": 23,
+                "users": {
+                    "@carl:example.com": 23,
+                },
+                "users_default": 23,
+                "notifications": {
+                    "room": 23,
+                },
+            }),
+        );
     }
 
     #[test]

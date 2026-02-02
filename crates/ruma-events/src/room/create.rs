@@ -165,8 +165,8 @@ impl RedactedStateEventContent for RedactedRoomCreateEventContent {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use ruma_common::{RoomVersionId, owned_user_id};
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::{RoomVersionId, canonical_json::assert_to_canonical_json_eq, owned_user_id};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{RoomCreateEventContent, RoomType};
 
@@ -182,13 +182,14 @@ mod tests {
             additional_creators: Vec::new(),
         };
 
-        let json = json!({
-            "creator": "@carl:example.com",
-            "m.federate": false,
-            "room_version": "4"
-        });
-
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(
+            content,
+            json!({
+                "creator": "@carl:example.com",
+                "m.federate": false,
+                "room_version": "4",
+            }),
+        );
     }
 
     #[test]
@@ -203,14 +204,15 @@ mod tests {
             additional_creators: Vec::new(),
         };
 
-        let json = json!({
-            "creator": "@carl:example.com",
-            "m.federate": false,
-            "room_version": "4",
-            "type": "m.space"
-        });
-
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(
+            content,
+            json!({
+                "creator": "@carl:example.com",
+                "m.federate": false,
+                "room_version": "4",
+                "type": "m.space",
+            }),
+        );
     }
 
     #[test]

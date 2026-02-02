@@ -1,12 +1,16 @@
 # [unreleased]
 
+Breaking changes:
+
+- The `power_level_content_override` field of `create_room::v3::Request` use a
+  new `RoomPowerLevelsContentOverride` type. It has the same fields as
+  `RoomPowerLevelsEventContent` except all `Int` fields are `Option<Int>`, which
+  allows uploading explicit values no matter what the default ones are.
+
 Improvements:
 
-- Add `create_room::v3::RoomPowerLevelsContentOverride`. This has the same 
-  signature as `RoomPowerLevelsEventContent` except all `Int` fields are 
-  `Option<Int>`, which allows uploading explicit values no matter what the 
-  default ones are. When in `Raw` form, this type can be cast to
-  `RoomPowerLevelsEventContent` and used to populate `power_level_content_override`.
+- Add the `M_TOKEN_INCORRECT` error code according to MSC4183.
+- Add the `m.forget_forced_upon_leave` capability, according to MSC4267.
 - Add support for updated rendezvous session from MSC4388 behind `unstable-msc4388`.
 
 # 0.22.1

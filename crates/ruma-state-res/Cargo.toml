@@ -20,7 +20,7 @@ __criterion = ["dep:criterion"]
 
 [dependencies]
 js_int = { workspace = true }
-ruma-common = { workspace = true, features = ["canonical-json"] }
+ruma-common = { workspace = true }
 ruma-events = { workspace = true }
 ruma-signatures = { workspace = true }
 serde = { workspace = true }

@@ -1,8 +1,28 @@
 # [unreleased]
 
+Breaking changes:
+
+- `PossiblyRedactedRoomMemberEventContent` is no longer a type alias for
+  `RoomMemberEventContent`. It would previously fail to deserialize if the
+  `third_party_invite` field was redacted as the `display_name` field was
+  required but it is removed during redaction.
+- The `canonical-json` feature was removed. The code that was behind it is no
+  longer gated behind a cargo feature.
+
 Bug fixes:
 
 - Fix a double `msgtype` in a `m.location` event.
+
+Improvements:
+
+- Add `AnyPossiblyRedactedStateEventContent`, an enum containing all the
+  possibly redacted state event contents.
+  - Add `AnyStrippedStateEvent::content()` to access only the content of the
+    event.
+- Implement `From<(Redacted)*EventContent> for PossiblyRedacted*EventContent`
+  for all state events.
+- Implement `RedactContent for PossiblyRedacted*EventContent` for all state
+  events. 
 
 # 0.32.1
 
