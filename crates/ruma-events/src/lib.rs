@@ -315,8 +315,16 @@ impl fmt::Debug for PrivOwnedStr {
     }
 }
 
+// Wrapper around `Box<str>` for transferring `PrivOwnedStr` over UniFFI.
+// We cannot derive `PrivOwnedStr` from `uniffi::Object` directly because
+// that would require wrapping it in an `Arc` inside the `_Custom` variants.
+#[cfg_attr(feature = "unstable-uniffi", derive(uniffi::Object))]
+#[doc(hidden)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct PrivOwnedStrObject(Box<str>);
+
 #[cfg(feature = "unstable-uniffi")]
-uniffi::custom_type!(PrivOwnedStr, String, {
-    lower: |s| s.0.into(),
-    try_lift: |s| Ok(PrivOwnedStr(s.into())),
+uniffi::custom_type!(PrivOwnedStr, std::sync::Arc<PrivOwnedStrObject> , {
+    lower: |value| std::sync::Arc::new(PrivOwnedStrObject(value.0)),
+    try_lift: |value| Ok(PrivOwnedStr(value.0.clone())),
 });
