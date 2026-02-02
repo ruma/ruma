@@ -12,6 +12,8 @@ Breaking changes:
   `(Any)StateEventContentChange` to reflect better the purpose of those enums.
   The method to access `AnyStateEventContentChange` on `Any(Sync)StateEvent` is
   called `content_change()`.
+- The `content()` method on `Any(Sync)StateEvent` returns an
+  `AnyPossiblyRedactedStateEventContent`.
 
 Bug fixes:
 

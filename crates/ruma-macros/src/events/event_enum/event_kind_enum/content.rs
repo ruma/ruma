@@ -264,7 +264,11 @@ impl EventContentEnumVariation<'_> {
     }
 
     /// Generate the accessors on an event enum to get the event content.
-    pub(super) fn expand_content_accessors(&self, maybe_redacted: bool) -> TokenStream {
+    pub(super) fn expand_content_accessors(
+        &self,
+        event_variation: EventVariation,
+        event_struct: &syn::Ident,
+    ) -> TokenStream {
         let ruma_events = self.ruma_events;
 
         let ident = &self.ident;
@@ -274,64 +278,104 @@ impl EventContentEnumVariation<'_> {
         let event_content_kind_trait =
             self.kind.to_content_kind_trait(self.variation.to_event_content_trait());
 
-        if maybe_redacted {
-            quote! {
-                /// Returns the content for this event if it is not redacted, or `None` if it is.
-                pub fn original_content(&self) -> Option<#ident> {
-                    match self {
-                        #(
-                            #( #variant_attrs )*
-                            Self::#variants(event) => {
-                                event.as_original().map(|ev| #ident::#variants(ev.content.clone()))
-                            }
-                        )*
-                        Self::_Custom(event) => event.as_original().map(|ev| {
-                            #ident::_Custom {
-                                event_type: crate::PrivOwnedStr(
-                                    ::std::convert::From::from(
-                                        ::std::string::ToString::to_string(
-                                            &#ruma_events::#event_content_kind_trait::event_type(
-                                                &ev.content,
+        match (self.kind, self.variation, event_variation) {
+            (
+                EventEnumKind::State | EventEnumKind::MessageLike,
+                EventContentVariation::Original,
+                EventVariation::None | EventVariation::Sync,
+            ) => {
+                quote! {
+                    /// Returns the content for this event if it is not redacted, or `None` if it is.
+                    pub fn original_content(&self) -> Option<#ident> {
+                        match self {
+                            #(
+                                #( #variant_attrs )*
+                                Self::#variants(event) => {
+                                    event.as_original().map(|ev| #ident::#variants(ev.content.clone()))
+                                }
+                            )*
+                            Self::_Custom(event) => event.as_original().map(|ev| {
+                                #ident::_Custom {
+                                    event_type: crate::PrivOwnedStr(
+                                        ::std::convert::From::from(
+                                            ::std::string::ToString::to_string(
+                                                &#ruma_events::#event_content_kind_trait::event_type(
+                                                    &ev.content,
+                                                ),
                                             ),
                                         ),
                                     ),
-                                ),
-                            }
-                        }),
+                                }
+                            }),
+                        }
                     }
-                }
 
-                /// Returns whether this event is redacted.
-                pub fn is_redacted(&self) -> bool {
-                    match self {
-                        #(
-                            #( #variant_attrs )*
-                            Self::#variants(event) => {
-                                event.as_original().is_none()
-                            }
-                        )*
-                        Self::_Custom(event) => event.as_original().is_none(),
+                    /// Returns whether this event is redacted.
+                    pub fn is_redacted(&self) -> bool {
+                        match self {
+                            #(
+                                #( #variant_attrs )*
+                                Self::#variants(event) => {
+                                    event.as_original().is_none()
+                                }
+                            )*
+                            Self::_Custom(event) => event.as_original().is_none(),
+                        }
                     }
                 }
             }
-        } else {
-            quote! {
-                /// Returns the content for this event.
-                pub fn content(&self) -> #ident {
-                    match self {
-                        #(
-                            #( #variant_attrs )*
-                            Self::#variants(event) => #ident::#variants(event.content.clone()),
-                        )*
-                        Self::_Custom(event) => #ident::_Custom {
-                            event_type: crate::PrivOwnedStr(
-                                ::std::convert::From::from(
-                                    ::std::string::ToString::to_string(
-                                        &#ruma_events::#event_content_kind_trait::event_type(&event.content)
-                                    )
+            (
+                EventEnumKind::State,
+                EventContentVariation::PossiblyRedacted,
+                EventVariation::None | EventVariation::Sync,
+            ) => {
+                quote! {
+                    /// Returns the content for this event.
+                    pub fn content(&self) -> #ident {
+                        match self {
+                            #(
+                                #( #variant_attrs )*
+                                Self::#variants(event) => match event {
+                                    #ruma_events::#event_struct::Original(ev) => {
+                                        #ident::#variants(ev.content.clone().into())
+                                    }
+                                    #ruma_events::#event_struct::Redacted(ev) => {
+                                        #ident::#variants(ev.content.clone().into())
+                                    }
+                                },
+                            )*
+                            Self::_Custom(event) => #ident::_Custom {
+                                event_type: crate::PrivOwnedStr(
+                                    ::std::convert::From::from(
+                                        ::std::string::ToString::to_string(
+                                            &event.event_type()
+                                        )
+                                    ),
                                 ),
-                            ),
-                        },
+                            },
+                        }
+                    }
+                }
+            }
+            _ => {
+                quote! {
+                    /// Returns the content for this event.
+                    pub fn content(&self) -> #ident {
+                        match self {
+                            #(
+                                #( #variant_attrs )*
+                                Self::#variants(event) => #ident::#variants(event.content.clone()),
+                            )*
+                            Self::_Custom(event) => #ident::_Custom {
+                                event_type: crate::PrivOwnedStr(
+                                    ::std::convert::From::from(
+                                        ::std::string::ToString::to_string(
+                                            &#ruma_events::#event_content_kind_trait::event_type(&event.content)
+                                        )
+                                    ),
+                                ),
+                            },
+                        }
                     }
                 }
             }
