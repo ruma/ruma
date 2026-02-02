@@ -348,7 +348,7 @@ impl<'a> EventEnumVariation<'a> {
         if matches!(self.kind, EventEnumKind::State) && maybe_redacted {
             tokens.extend(
                 event_content_enums
-                    .full_event_content_enum()
+                    .event_content_change_enum()
                     .expand_content_accessors(&self.event_struct),
             );
         }

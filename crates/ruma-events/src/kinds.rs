@@ -830,12 +830,11 @@ pub struct DecryptedMegolmV1Event<C: MessageLikeEventContent> {
     pub room_id: OwnedRoomId,
 }
 
-/// A possibly-redacted state event content.
-///
-/// A non-redacted content also contains the `prev_content` from the unsigned event data.
+/// A possibly-redacted state event content and the corresponding previous content from the unsigned
+/// event data, if available.
 #[allow(clippy::exhaustive_enums)]
 #[derive(Clone, Debug)]
-pub enum FullStateEventContent<C: StaticStateEventContent + RedactContent> {
+pub enum StateEventContentChange<C: StaticStateEventContent + RedactContent> {
     /// Original, unredacted content of the event.
     Original {
         /// Current content of the room state.
@@ -849,7 +848,7 @@ pub enum FullStateEventContent<C: StaticStateEventContent + RedactContent> {
     Redacted(C::Redacted),
 }
 
-impl<C: StaticStateEventContent + RedactContent> FullStateEventContent<C>
+impl<C: StaticStateEventContent + RedactContent> StateEventContentChange<C>
 where
     C::Redacted: RedactedStateEventContent,
 {
@@ -869,8 +868,8 @@ where
     /// [`RedactionRules`] has to be specified.
     pub fn redact(self, rules: &RedactionRules) -> C::Redacted {
         match self {
-            FullStateEventContent::Original { content, .. } => content.redact(rules),
-            FullStateEventContent::Redacted(content) => content,
+            Self::Original { content, .. } => content.redact(rules),
+            Self::Redacted(content) => content,
         }
     }
 }
