@@ -11,6 +11,10 @@ Breaking changes:
 - The `Reply` struct variant of `message::Relation`, `encrypted::Relation` and
   `RelationWithoutReplacement` is now a tuple variant containing a
   non-exhaustive struct.
+- The `(Any)FullStateEventContent` enums were renamed to
+  `(Any)StateEventContentChange` to reflect better the purpose of those enums.
+  The method to access `AnyStateEventContentChange` on `Any(Sync)StateEvent` is
+  called `content_change()`.
 
 Bug fixes:
 

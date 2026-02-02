@@ -20,14 +20,14 @@ pub(super) struct EventContentEnums<'a> {
     /// Enums matching an `EventContentVariation`.
     enums: BTreeMap<EventContentVariation, EventContentEnumVariation<'a>>,
 
-    /// The special `AnyFullStateEventContent` enum.
-    full: Option<FullEventContentEnum<'a>>,
+    /// The special `AnyStateEventContentChange` enum.
+    change: Option<EventContentChangeEnum<'a>>,
 }
 
 impl<'a> EventContentEnums<'a> {
     /// Construct an `EventContentEnums` with the given event enum data.
     pub(super) fn new(inner: &'a EventEnum<'a>) -> Self {
-        Self { inner, enums: BTreeMap::new(), full: None }
+        Self { inner, enums: BTreeMap::new(), change: None }
     }
 
     /// Get the `EventContentEnumVariation` matching the given event variation, if possible.
@@ -47,11 +47,11 @@ impl<'a> EventContentEnums<'a> {
         )
     }
 
-    /// Get the `FullEventContentEnum`.
+    /// Get the `EventContentChangeEnum`.
     ///
     /// If it doesn't exist in this list, it is created.
-    pub(super) fn full_event_content_enum(&mut self) -> &FullEventContentEnum<'a> {
-        self.full.get_or_insert_with(|| FullEventContentEnum::new(self.inner))
+    pub(super) fn event_content_change_enum(&mut self) -> &EventContentChangeEnum<'a> {
+        self.change.get_or_insert_with(|| EventContentChangeEnum::new(self.inner))
     }
 
     /// Expand the event content enums in this list.
@@ -59,7 +59,7 @@ impl<'a> EventContentEnums<'a> {
         self.enums
             .values()
             .map(EventContentEnumVariation::expand)
-            .chain(self.full.iter().map(FullEventContentEnum::expand))
+            .chain(self.change.iter().map(EventContentChangeEnum::expand))
             .collect()
     }
 }
@@ -347,8 +347,8 @@ impl<'a> Deref for EventContentEnumVariation<'a> {
     }
 }
 
-/// The data for the `AnyFullStateEventContent` enum.
-pub(super) struct FullEventContentEnum<'a> {
+/// The data for the `AnyStateEventContentChange` enum.
+pub(super) struct EventContentChangeEnum<'a> {
     /// The event enum data.
     inner: &'a EventEnum<'a>,
 
@@ -359,10 +359,10 @@ pub(super) struct FullEventContentEnum<'a> {
     event_content_types: Vec<syn::Path>,
 }
 
-impl<'a> FullEventContentEnum<'a> {
-    /// Construct a `FullEventContentEnum` with the given event enum data.
+impl<'a> EventContentChangeEnum<'a> {
+    /// Construct an `EventContentChangeEnum` with the given event enum data.
     fn new(inner: &'a EventEnum<'a>) -> Self {
-        let ident = syn::Ident::new("AnyFullStateEventContent", Span::call_site());
+        let ident = syn::Ident::new("AnyStateEventContentChange", Span::call_site());
         let kind = inner.kind;
         let event_content_types = inner
             .events
@@ -374,8 +374,8 @@ impl<'a> FullEventContentEnum<'a> {
     }
 }
 
-impl FullEventContentEnum<'_> {
-    /// Generate the `AnyFullStateEventContent` enum.
+impl EventContentChangeEnum<'_> {
+    /// Generate the `AnyStateEventContentChange` enum.
     fn expand(&self) -> TokenStream {
         let ruma_events = self.ruma_events;
 
@@ -396,7 +396,7 @@ impl FullEventContentEnum<'_> {
                 #(
                     #variant_docs
                     #( #variant_attrs )*
-                    #variants(#ruma_events::FullStateEventContent<#event_content_types>),
+                    #variants(#ruma_events::StateEventContentChange<#event_content_types>),
                 )*
                 #[doc(hidden)]
                 _Custom {
@@ -437,20 +437,20 @@ impl FullEventContentEnum<'_> {
             self.kind.to_content_kind_trait(EventContentTraitVariation::Redacted);
 
         quote! {
-            /// Returns the content of this state event.
-            pub fn content(&self) -> #ident {
+            /// Returns the content change of this state event.
+            pub fn content_change(&self) -> #ident {
                 match self {
                     #(
                         #( #variant_attrs )*
                         Self::#variants(event) => match event {
                             #ruma_events::#event_enum::Original(ev) => #ident::#variants(
-                                #ruma_events::FullStateEventContent::Original {
+                                #ruma_events::StateEventContentChange::Original {
                                     content: ev.content.clone(),
                                     prev_content: ev.unsigned.prev_content.clone()
                                 }
                             ),
                             #ruma_events::#event_enum::Redacted(ev) => #ident::#variants(
-                                #ruma_events::FullStateEventContent::Redacted(
+                                #ruma_events::StateEventContentChange::Redacted(
                                     ev.content.clone()
                                 )
                             ),
@@ -488,7 +488,7 @@ impl FullEventContentEnum<'_> {
     }
 }
 
-impl<'a> Deref for FullEventContentEnum<'a> {
+impl<'a> Deref for EventContentChangeEnum<'a> {
     type Target = EventEnum<'a>;
 
     fn deref(&self) -> &Self::Target {
