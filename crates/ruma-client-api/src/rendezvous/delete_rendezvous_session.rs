@@ -3,7 +3,7 @@
 //! Delete/close a rendezvous session.
 
 pub mod unstable {
-    //! `msc4388` ([MSC])
+    //! `unstable/io.element.msc4388` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4388
 

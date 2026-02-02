@@ -782,7 +782,7 @@ pub enum FeatureFlag {
     /// `io.element.msc4388` ([MSC])
     ///
     /// Secure out-of-band channel for sign in with QR. This is part of the
-    /// 2025 version of [MSC4108]
+    /// 2025 version of [MSC4108].
     ///
     /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4388
     /// [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
