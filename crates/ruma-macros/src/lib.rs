@@ -65,7 +65,7 @@ use self::{
 ///     * `AnyInitialStateEvent` for state events sent during room creation.
 ///     * `AnyStrippedStateEvent` for state events that are in room state previews when receiving
 ///       invites.
-///     * `AnyFullStateEventContent` a helper type to be able to access the `content` and
+///     * `AnyStateEventContentChange` a helper type to be able to access the `content` and
 ///       `prev_content` of a state event.
 ///
 /// This macro also implements the following traits for these enums, where it makes sense:
