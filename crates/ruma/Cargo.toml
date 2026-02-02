@@ -16,9 +16,8 @@ all-features = true
 
 [features]
 api = ["ruma-common/api"]
-canonical-json = ["ruma-common/canonical-json", "ruma-events?/canonical-json"]
 events = ["dep:ruma-events"]
-signatures = ["dep:ruma-signatures", "canonical-json"]
+signatures = ["dep:ruma-signatures"]
 state-res = ["dep:ruma-state-res"]
 
 appservice-api-c = ["api", "events", "dep:ruma-appservice-api", "ruma-appservice-api?/client"]

@@ -684,7 +684,8 @@ impl ToDevice {
 #[cfg(test)]
 mod tests {
     use assign::assign;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    use serde_json::{from_value as from_json_value, json};
 
     use super::Timeline;
 
@@ -692,13 +693,13 @@ mod tests {
     fn timeline_serde() {
         let timeline = assign!(Timeline::new(), { limited: true });
         let timeline_serialized = json!({ "events": [], "limited": true });
-        assert_eq!(to_json_value(timeline).unwrap(), timeline_serialized);
+        assert_to_canonical_json_eq!(timeline, timeline_serialized.clone());
 
         let timeline_deserialized = from_json_value::<Timeline>(timeline_serialized).unwrap();
         assert!(timeline_deserialized.limited);
 
         let timeline_default = Timeline::default();
-        assert_eq!(to_json_value(timeline_default).unwrap(), json!({ "events": [] }));
+        assert_to_canonical_json_eq!(timeline_default, json!({ "events": [] }));
 
         let timeline_default_deserialized =
             from_json_value::<Timeline>(json!({ "events": [] })).unwrap();

@@ -122,7 +122,8 @@ impl From<UnstableMediaPreviewConfigEventContent> for MediaPreviewConfigEventCon
 #[cfg(all(test, feature = "unstable-msc4278"))]
 mod tests {
     use assert_matches2::assert_matches;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{MediaPreviewConfigEventContent, UnstableMediaPreviewConfigEventContent};
     use crate::{
@@ -178,8 +179,8 @@ mod tests {
         );
         let unstable_media_preview_config_account_data =
             GlobalAccountDataEvent { content: unstable_media_preview_config };
-        assert_eq!(
-            to_json_value(unstable_media_preview_config_account_data).unwrap(),
+        assert_to_canonical_json_eq!(
+            unstable_media_preview_config_account_data,
             json!({
                 "type": "io.element.msc4278.media_preview_config",
                 "content": {
@@ -194,8 +195,8 @@ mod tests {
             .invite_avatars(Some(InviteAvatars::Off));
         let media_preview_config_account_data =
             GlobalAccountDataEvent { content: media_preview_config };
-        assert_eq!(
-            to_json_value(media_preview_config_account_data).unwrap(),
+        assert_to_canonical_json_eq!(
+            media_preview_config_account_data,
             json!({
                 "type": "m.media_preview_config",
                 "content": {

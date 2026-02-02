@@ -80,10 +80,10 @@ impl<'de> Deserialize<'de> for PusherKind {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use ruma_common::{push::HttpPusherData, serde::JsonObject};
-    use serde_json::{
-        Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
+    use ruma_common::{
+        canonical_json::assert_to_canonical_json_eq, push::HttpPusherData, serde::JsonObject,
     };
+    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
     use crate::push::{CustomPusherData, EmailPusherData, PusherKind};
 
@@ -93,8 +93,8 @@ mod tests {
         let mut data = EmailPusherData::new();
         let action = PusherKind::Email(data.clone());
 
-        assert_eq!(
-            to_json_value(action).unwrap(),
+        assert_to_canonical_json_eq!(
+            action,
             json!({
                 "kind": "email",
                 "data": {},
@@ -105,8 +105,8 @@ mod tests {
         data.data.insert("custom_key".to_owned(), "value".into());
         let action = PusherKind::Email(data);
 
-        assert_eq!(
-            to_json_value(action).unwrap(),
+        assert_to_canonical_json_eq!(
+            action,
             json!({
                 "kind": "email",
                 "data": {
@@ -122,8 +122,8 @@ mod tests {
         let mut data = HttpPusherData::new("http://localhost".to_owned());
         let action = PusherKind::Http(data.clone());
 
-        assert_eq!(
-            to_json_value(action).unwrap(),
+        assert_to_canonical_json_eq!(
+            action,
             json!({
                 "kind": "http",
                 "data": {
@@ -136,8 +136,8 @@ mod tests {
         data.data.insert("custom_key".to_owned(), "value".into());
         let action = PusherKind::Http(data);
 
-        assert_eq!(
-            to_json_value(action).unwrap(),
+        assert_to_canonical_json_eq!(
+            action,
             json!({
                 "kind": "http",
                 "data": {
@@ -155,8 +155,8 @@ mod tests {
             data: JsonObject::new(),
         });
 
-        assert_eq!(
-            to_json_value(action).unwrap(),
+        assert_to_canonical_json_eq!(
+            action,
             json!({
                 "kind": "my.custom.kind",
                 "data": {}

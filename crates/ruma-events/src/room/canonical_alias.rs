@@ -40,8 +40,8 @@ impl RoomCanonicalAliasEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::owned_room_alias_id;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_room_alias_id};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::RoomCanonicalAliasEventContent;
     use crate::OriginalStateEvent;
@@ -53,12 +53,12 @@ mod tests {
             alt_aliases: Vec::new(),
         };
 
-        let actual = to_json_value(&content).unwrap();
-        let expected = json!({
-            "alias": "#somewhere:localhost",
-        });
-
-        assert_eq!(actual, expected);
+        assert_to_canonical_json_eq!(
+            content,
+            json!({
+                "alias": "#somewhere:localhost",
+            }),
+        );
     }
 
     #[test]

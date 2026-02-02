@@ -204,41 +204,42 @@ mod tweak_serde {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{Action, Tweak};
+    use crate::assert_to_canonical_json_eq;
 
     #[test]
     fn serialize_notify() {
-        assert_eq!(to_json_value(Action::Notify).unwrap(), json!("notify"));
+        assert_to_canonical_json_eq!(Action::Notify, json!("notify"));
     }
 
     #[cfg(feature = "unstable-msc3768")]
     #[test]
     fn serialize_notify_in_app() {
-        assert_eq!(
-            to_json_value(Action::NotifyInApp).unwrap(),
-            json!("org.matrix.msc3768.notify_in_app")
+        assert_to_canonical_json_eq!(
+            Action::NotifyInApp,
+            json!("org.matrix.msc3768.notify_in_app"),
         );
     }
 
     #[test]
     fn serialize_tweak_sound() {
-        assert_eq!(
-            to_json_value(Action::SetTweak(Tweak::Sound("default".into()))).unwrap(),
+        assert_to_canonical_json_eq!(
+            Action::SetTweak(Tweak::Sound("default".into())),
             json!({ "set_tweak": "sound", "value": "default" })
         );
     }
 
     #[test]
     fn serialize_tweak_highlight() {
-        assert_eq!(
-            to_json_value(Action::SetTweak(Tweak::Highlight(true))).unwrap(),
+        assert_to_canonical_json_eq!(
+            Action::SetTweak(Tweak::Highlight(true)),
             json!({ "set_tweak": "highlight" })
         );
 
-        assert_eq!(
-            to_json_value(Action::SetTweak(Tweak::Highlight(false))).unwrap(),
+        assert_to_canonical_json_eq!(
+            Action::SetTweak(Tweak::Highlight(false)),
             json!({ "set_tweak": "highlight", "value": false })
         );
     }

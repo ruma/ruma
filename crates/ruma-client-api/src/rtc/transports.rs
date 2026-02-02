@@ -185,9 +185,8 @@ pub mod v1 {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use serde_json::{
-        Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
-    };
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
     use super::v1::{LivekitMultiSfuTransport, RtcTransport};
 
@@ -211,7 +210,7 @@ mod tests {
 
         assert_eq!(transport.transport_type(), transport_type);
         assert_eq!(*transport.data().as_ref(), transport_data);
-        assert_eq!(to_json_value(&transport).unwrap(), json);
+        assert_to_canonical_json_eq!(transport, json.clone());
         assert_eq!(from_json_value::<RtcTransport>(json).unwrap(), transport);
     }
 
@@ -228,7 +227,7 @@ mod tests {
         });
 
         assert_eq!(transport.transport_type(), transport_type);
-        assert_eq!(to_json_value(&transport).unwrap(), json);
+        assert_to_canonical_json_eq!(transport, json.clone());
         assert_eq!(from_json_value::<RtcTransport>(json).unwrap(), transport);
     }
 }

@@ -87,8 +87,8 @@ mod tests {
     use std::collections::BTreeMap;
 
     use assert_matches2::assert_matches;
-    use ruma_common::owned_room_id;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_room_id};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::DoNotDisturbEventContent;
     use crate::{AnyGlobalAccountDataEvent, do_not_disturb::DoNotDisturbRoomKey};
@@ -98,13 +98,14 @@ mod tests {
         let do_not_disturb_room_list: DoNotDisturbEventContent =
             vec![owned_room_id!("!foo:bar.baz")].into_iter().collect();
 
-        let json = json!({
-            "rooms": {
-                "!foo:bar.baz": {}
-            },
-        });
-
-        assert_eq!(to_json_value(do_not_disturb_room_list).unwrap(), json);
+        assert_to_canonical_json_eq!(
+            do_not_disturb_room_list,
+            json!({
+                "rooms": {
+                    "!foo:bar.baz": {}
+                },
+            }),
+        );
     }
 
     #[test]
@@ -114,13 +115,14 @@ mod tests {
             Default::default(),
         )]));
 
-        let json = json!({
-            "rooms": {
-                "*": {}
-            },
-        });
-
-        assert_eq!(to_json_value(do_not_disturb_room_list).unwrap(), json);
+        assert_to_canonical_json_eq!(
+            do_not_disturb_room_list,
+            json!({
+                "rooms": {
+                    "*": {}
+                },
+            }),
+        );
     }
 
     #[test]

@@ -5,6 +5,7 @@ use std::{fmt, mem};
 use serde::Serialize;
 use serde_json::Value as JsonValue;
 
+mod macros;
 mod serializer;
 mod value;
 
@@ -12,6 +13,8 @@ pub use self::{
     serializer::Serializer,
     value::{CanonicalJsonObject, CanonicalJsonValue},
 };
+#[doc(inline)]
+pub use crate::assert_to_canonical_json_eq;
 use crate::{room_version_rules::RedactionRules, serde::Raw};
 
 /// The set of possible errors when serializing to canonical JSON.
@@ -30,6 +33,9 @@ pub enum CanonicalJsonError {
     /// The same object key was serialized twice.
     DuplicateObjectKey(String),
 
+    /// An error occurred while re-serializing a [`serde_json::value::RawValue`].
+    InvalidRawValue(serde_json::Error),
+
     /// An other error happened.
     Other(String),
 }
@@ -41,6 +47,9 @@ impl fmt::Display for CanonicalJsonError {
             Self::InvalidType(ty) => write!(f, "{ty} cannot be serialized as canonical JSON"),
             Self::InvalidObjectKeyType(ty) => {
                 write!(f, "{ty} cannot be used as an object key, expected a string type")
+            }
+            Self::InvalidRawValue(error) => {
+                write!(f, "invalid raw value: {error}")
             }
             Self::DuplicateObjectKey(key) => write!(f, "duplicate object key `{key}`"),
             Self::Other(msg) => f.write_str(msg),
@@ -448,11 +457,12 @@ mod tests {
     use js_int::int;
     use serde_json::{
         from_str as from_json_str, json, to_string as to_json_string, to_value as to_json_value,
+        value::RawValue as RawJsonValue,
     };
 
     use super::{
-        CanonicalJsonError, redact_in_place, to_canonical_value, try_from_json_map,
-        value::CanonicalJsonValue,
+        CanonicalJsonError, assert_to_canonical_json_eq, redact_in_place, to_canonical_value,
+        try_from_json_map, value::CanonicalJsonValue,
     };
     use crate::room_version_rules::RedactionRules;
 
@@ -531,6 +541,7 @@ mod tests {
             boolean: Option<bool>,
             object: BTreeMap<String, MyEnum>,
             null: (),
+            raw: Box<RawJsonValue>,
         }
 
         #[derive(Debug, serde::Serialize)]
@@ -546,6 +557,7 @@ mod tests {
             boolean: Some(true),
             object: [("foo".to_owned(), MyEnum::Foo), ("bar".to_owned(), MyEnum::Bar)].into(),
             null: (),
+            raw: RawJsonValue::from_string(r#"{"baz":false}"#.to_owned()).unwrap(),
         };
 
         let mut expected = BTreeMap::new();
@@ -564,8 +576,13 @@ mod tests {
         child_object.insert("bar".to_owned(), CanonicalJsonValue::String("bar".to_owned()));
         expected.insert("object".to_owned(), CanonicalJsonValue::Object(child_object));
         expected.insert("null".to_owned(), CanonicalJsonValue::Null);
+        let mut raw_object = BTreeMap::new();
+        raw_object.insert("baz".to_owned(), CanonicalJsonValue::Bool(false));
+        expected.insert("raw".to_owned(), CanonicalJsonValue::Object(raw_object));
 
-        assert_eq!(to_canonical_value(t).unwrap(), CanonicalJsonValue::Object(expected));
+        let expected = CanonicalJsonValue::Object(expected);
+        assert_eq!(to_canonical_value(&t).unwrap(), expected);
+        assert_to_canonical_json_eq!(t, expected.into());
     }
 
     #[test]
@@ -699,37 +716,35 @@ mod tests {
 
         redact_in_place(&mut object, &RedactionRules::V1, None).unwrap();
 
-        let redacted_event = to_json_value(&object).unwrap();
-
-        assert_eq!(
-            redacted_event,
-            json!({
-                "content": {
-                    "ban": 50,
-                    "events": {
-                        "m.room.avatar": 50,
-                        "m.room.canonical_alias": 50,
-                        "m.room.history_visibility": 100,
-                        "m.room.name": 50,
-                        "m.room.power_levels": 100
-                    },
-                    "events_default": 0,
-                    "kick": 50,
-                    "redact": 50,
-                    "state_default": 50,
-                    "users": {
-                        "@example:localhost": 100
-                    },
-                    "users_default": 0
+        let expected = json!({
+            "content": {
+                "ban": 50,
+                "events": {
+                    "m.room.avatar": 50,
+                    "m.room.canonical_alias": 50,
+                    "m.room.history_visibility": 100,
+                    "m.room.name": 50,
+                    "m.room.power_levels": 100
                 },
-                "event_id": "$15139375512JaHAW:localhost",
-                "origin_server_ts": 45,
-                "sender": "@example:localhost",
-                "room_id": "!room:localhost",
-                "state_key": "",
-                "type": "m.room.power_levels",
-            })
-        );
+                "events_default": 0,
+                "kick": 50,
+                "redact": 50,
+                "state_default": 50,
+                "users": {
+                    "@example:localhost": 100
+                },
+                "users_default": 0
+            },
+            "event_id": "$15139375512JaHAW:localhost",
+            "origin_server_ts": 45,
+            "sender": "@example:localhost",
+            "room_id": "!room:localhost",
+            "state_key": "",
+            "type": "m.room.power_levels",
+        });
+
+        assert_eq!(to_json_value(&object).unwrap(), expected);
+        assert_to_canonical_json_eq!(object, expected);
     }
 
     #[test]
@@ -756,20 +771,18 @@ mod tests {
 
         redact_in_place(&mut object, &RedactionRules::V9, None).unwrap();
 
-        let redacted_event = to_json_value(&object).unwrap();
+        let expected = json!({
+            "content": {},
+            "event_id": "$152037280074GZeOm:localhost",
+            "origin_server_ts": 1,
+            "sender": "@example:localhost",
+            "state_key": "room.com",
+            "room_id": "!room:room.com",
+            "type": "m.room.aliases",
+        });
 
-        assert_eq!(
-            redacted_event,
-            json!({
-                "content": {},
-                "event_id": "$152037280074GZeOm:localhost",
-                "origin_server_ts": 1,
-                "sender": "@example:localhost",
-                "state_key": "room.com",
-                "room_id": "!room:room.com",
-                "type": "m.room.aliases",
-            })
-        );
+        assert_eq!(to_json_value(&object).unwrap(), expected);
+        assert_to_canonical_json_eq!(object, expected);
     }
 
     #[test]
@@ -801,26 +814,24 @@ mod tests {
 
         redact_in_place(&mut object, &RedactionRules::V11, None).unwrap();
 
-        let redacted_event = to_json_value(&object).unwrap();
+        let expected = json!({
+            "content": {
+              "m.federate": true,
+              "predecessor": {
+                "event_id": "$something",
+                "room_id": "!oldroom:example.org"
+              },
+              "room_version": "11",
+            },
+            "event_id": "$143273582443PhrSn",
+            "origin_server_ts": 1_432_735,
+            "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
+            "sender": "@example:example.org",
+            "state_key": "",
+            "type": "m.room.create",
+        });
 
-        assert_eq!(
-            redacted_event,
-            json!({
-                "content": {
-                  "m.federate": true,
-                  "predecessor": {
-                    "event_id": "$something",
-                    "room_id": "!oldroom:example.org"
-                  },
-                  "room_version": "11",
-                },
-                "event_id": "$143273582443PhrSn",
-                "origin_server_ts": 1_432_735,
-                "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
-                "sender": "@example:example.org",
-                "state_key": "",
-                "type": "m.room.create",
-            })
-        );
+        assert_eq!(to_json_value(&object).unwrap(), expected);
+        assert_to_canonical_json_eq!(object, expected);
     }
 }

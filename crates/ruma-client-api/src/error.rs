@@ -294,6 +294,11 @@ pub enum ErrorKind {
     /// [third-party identifier]: https://spec.matrix.org/latest/client-server-api/#adding-account-administrative-contact-information
     ThreepidNotFound,
 
+    /// `M_TOKEN_INCORRECT`
+    ///
+    /// The token that the user entered to validate the session is incorrect.
+    TokenIncorrect,
+
     /// `M_TOO_LARGE`
     ///
     /// The request or entity was too large.
@@ -483,6 +488,7 @@ impl ErrorKind {
             ErrorKind::ThreepidInUse => ErrorCode::ThreepidInUse,
             ErrorKind::ThreepidMediumNotSupported => ErrorCode::ThreepidMediumNotSupported,
             ErrorKind::ThreepidNotFound => ErrorCode::ThreepidNotFound,
+            ErrorKind::TokenIncorrect => ErrorCode::TokenIncorrect,
             ErrorKind::TooLarge => ErrorCode::TooLarge,
             ErrorKind::UnableToAuthorizeJoin => ErrorCode::UnableToAuthorizeJoin,
             ErrorKind::UnableToGrantJoin => ErrorCode::UnableToGrantJoin,
@@ -762,6 +768,11 @@ pub enum ErrorCode {
     ///
     /// [third-party identifier]: https://spec.matrix.org/latest/client-server-api/#adding-account-administrative-contact-information
     ThreepidNotFound,
+
+    /// `M_TOKEN_INCORRECT`
+    ///
+    /// The token that the user entered to validate the session is incorrect.
+    TokenIncorrect,
 
     /// `M_TOO_LARGE`
     ///

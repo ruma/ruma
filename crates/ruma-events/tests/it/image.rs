@@ -3,7 +3,9 @@
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, mxc_uri, owned_event_id,
+    MilliSecondsSinceUnixEpoch,
+    canonical_json::assert_to_canonical_json_eq,
+    mxc_uri, owned_event_id,
     serde::{Base64, CanBeEmpty},
 };
 use ruma_events::{
@@ -17,7 +19,7 @@ use ruma_events::{
     relation::InReplyTo,
     room::{JsonWebKeyInit, message::Relation},
 };
-use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+use serde_json::{from_value as from_json_value, json};
 
 #[test]
 fn plain_content_serialization() {
@@ -29,8 +31,8 @@ fn plain_content_serialization() {
         ),
     );
 
-    assert_eq!(
-        to_json_value(&event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        event_content,
         json!({
             "org.matrix.msc1767.text": [
                 { "body": "Upload: my_image.jpg" },
@@ -71,8 +73,8 @@ fn encrypted_content_serialization() {
         ),
     );
 
-    assert_eq!(
-        to_json_value(&event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        event_content,
         json!({
             "org.matrix.msc1767.text": [
                 { "body": "Upload: my_image.jpg" },
@@ -124,8 +126,8 @@ fn image_event_serialization() {
         in_reply_to: InReplyTo::new(owned_event_id!("$replyevent:example.com")),
     });
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "org.matrix.msc1767.text": [
                 { "mimetype": "text/html", "body": "Upload: <strong>my_house.jpg</strong>" },

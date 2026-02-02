@@ -1,6 +1,7 @@
 mod string {
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
     use serde::{Deserialize, Serialize};
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use serde_json::{from_value as from_json_value, json};
 
     #[derive(Serialize, Deserialize, PartialEq, Debug)]
     struct StringStruct {
@@ -15,15 +16,13 @@ mod string {
     #[test]
     fn none_se() {
         let decoded = StringStruct { x: None };
-        let encoded = json!({ "x": "" });
-        assert_eq!(to_json_value(decoded).unwrap(), encoded);
+        assert_to_canonical_json_eq!(decoded, json!({ "x": "" }));
     }
 
     #[test]
     fn some_se() {
         let decoded = StringStruct { x: Some("foo".into()) };
-        let encoded = json!({ "x": "foo" });
-        assert_eq!(to_json_value(decoded).unwrap(), encoded);
+        assert_to_canonical_json_eq!(decoded, json!({ "x": "foo" }));
     }
 
     #[test]
@@ -49,9 +48,9 @@ mod string {
 }
 
 mod user {
-    use ruma_common::{OwnedUserId, UserId, user_id};
+    use ruma_common::{OwnedUserId, UserId, canonical_json::assert_to_canonical_json_eq, user_id};
     use serde::{Deserialize, Serialize};
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use serde_json::{from_value as from_json_value, json};
 
     const CARL: &str = "@carl:example.com";
 
@@ -72,15 +71,13 @@ mod user {
     #[test]
     fn none_se() {
         let decoded = User { x: None };
-        let encoded = json!({ "x": "" });
-        assert_eq!(to_json_value(decoded).unwrap(), encoded);
+        assert_to_canonical_json_eq!(decoded, json!({ "x": "" }));
     }
 
     #[test]
     fn some_se() {
         let decoded = User { x: Some(carl().to_owned()) };
-        let encoded = json!({ "x": CARL });
-        assert_eq!(to_json_value(decoded).unwrap(), encoded);
+        assert_to_canonical_json_eq!(decoded, json!({ "x": CARL }));
     }
 
     #[test]

@@ -55,6 +55,26 @@ pub struct PossiblyRedactedPolicyRuleEventContent {
     pub reason: Option<String>,
 }
 
+impl PossiblyRedactedPolicyRuleEventContent {
+    /// Creates a new `PossiblyRedactedPolicyRuleEventContent` with the given entity, recommendation
+    /// and reason.
+    pub fn new(entity: String, recommendation: Recommendation, reason: String) -> Self {
+        Self { entity: Some(entity), recommendation: Some(recommendation), reason: Some(reason) }
+    }
+
+    /// Creates an empty `PossiblyRedactedPolicyRuleEventContent`.
+    pub(crate) fn empty() -> Self {
+        Self { entity: None, recommendation: None, reason: None }
+    }
+}
+
+impl From<PolicyRuleEventContent> for PossiblyRedactedPolicyRuleEventContent {
+    fn from(value: PolicyRuleEventContent) -> Self {
+        let PolicyRuleEventContent { entity, recommendation, reason } = value;
+        Self { entity: Some(entity), recommendation: Some(recommendation), reason: Some(reason) }
+    }
+}
+
 /// The possible actions that can be taken.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, StringEnum)]

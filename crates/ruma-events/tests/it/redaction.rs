@@ -1,25 +1,25 @@
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, owned_event_id, room_version_rules::RedactionRules,
-    serde::CanBeEmpty,
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
+    room_version_rules::RedactionRules, serde::CanBeEmpty,
 };
 use ruma_events::{
     AnyMessageLikeEvent,
     room::redaction::{RoomRedactionEvent, RoomRedactionEventContent},
 };
-use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+use serde_json::{from_value as from_json_value, json};
 
 #[test]
 fn serialize_redaction_content() {
     let content = RoomRedactionEventContent::new_v1().with_reason("being very unfriendly".into());
 
-    let actual = to_json_value(content).unwrap();
-    let expected = json!({
-        "reason": "being very unfriendly"
-    });
-
-    assert_eq!(actual, expected);
+    assert_to_canonical_json_eq!(
+        content,
+        json!({
+            "reason": "being very unfriendly",
+        }),
+    );
 }
 
 #[test]
@@ -28,13 +28,13 @@ fn serialize_redaction_content_v11() {
     let content = RoomRedactionEventContent::new_v11(redacts.clone())
         .with_reason("being very unfriendly".into());
 
-    let actual = to_json_value(content).unwrap();
-    let expected = json!({
-        "redacts": redacts,
-        "reason": "being very unfriendly"
-    });
-
-    assert_eq!(actual, expected);
+    assert_to_canonical_json_eq!(
+        content,
+        json!({
+            "redacts": redacts,
+            "reason": "being very unfriendly",
+        }),
+    );
 }
 
 #[test]

@@ -128,9 +128,9 @@ mod tests {
     use assert_matches2::assert_matches;
     use assign::assign;
     use js_int::uint;
-    use ruma_common::{owned_mxc_uri, serde::Base64};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_mxc_uri, serde::Base64};
     use ruma_events::room::message::{MessageType, RoomMessageEventContent};
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{super::text::TextMessageEventContent, *};
     use crate::room::{EncryptedFile, JsonWebKey};
@@ -159,54 +159,45 @@ mod tests {
 
     #[test]
     fn serialize_preview_image() {
-        let expected_result = json!({
-            "og:image": "mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO"
-        });
-
         let preview =
             PreviewImage::plain(owned_mxc_uri!("mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO"));
 
-        assert_eq!(to_json_value(&preview).unwrap(), expected_result);
-
-        let encrypted_result = json!({
-            "beeper:image:encryption": {
-                "hashes" : {
-                    "sha256": "AQEBAQEBAQEBAQ",
-                },
-                "iv": "AQEBAQEBAQEBAQEB",
-                "key": {
-                    "alg": "A256CTR",
-                    "ext": true,
-                    "k": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                    "key_ops": [
-                        "encrypt",
-                        "decrypt"
-                    ],
-                    "kty": "oct",
-                },
-                "v": "v2",
-                "url": "mxc://localhost/encryptedfile",
-            },
-        });
+        assert_to_canonical_json_eq!(
+            preview,
+            json!({
+                "og:image": "mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO",
+            }),
+        );
 
         let preview = PreviewImage::encrypted(encrypted_file());
 
-        assert_eq!(to_json_value(&preview).unwrap(), encrypted_result);
+        assert_to_canonical_json_eq!(
+            preview,
+            json!({
+                "beeper:image:encryption": {
+                    "hashes" : {
+                        "sha256": "AQEBAQEBAQEBAQ",
+                    },
+                    "iv": "AQEBAQEBAQEBAQEB",
+                    "key": {
+                        "alg": "A256CTR",
+                        "ext": true,
+                        "k": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                        "key_ops": [
+                            "encrypt",
+                            "decrypt"
+                        ],
+                        "kty": "oct",
+                    },
+                    "v": "v2",
+                    "url": "mxc://localhost/encryptedfile",
+                },
+            }),
+        );
     }
 
     #[test]
     fn serialize_room_message_with_url_preview() {
-        let expected_result = json!({
-            "msgtype": "m.text",
-            "body": "Test message",
-            "com.beeper.linkpreviews": [
-                {
-                    "matched_url": "https://matrix.org/",
-                    "og:image": "mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO",
-                }
-            ]
-        });
-
         let preview_img =
             PreviewImage::plain(owned_mxc_uri!("mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO"));
         let full_preview = assign!(UrlPreview::matched_url("https://matrix.org/".to_owned()), {image: Some(preview_img)});
@@ -214,39 +205,23 @@ mod tests {
             url_previews: Some(vec![full_preview])
         }));
 
-        assert_eq!(to_json_value(RoomMessageEventContent::new(msg)).unwrap(), expected_result);
+        assert_to_canonical_json_eq!(
+            RoomMessageEventContent::new(msg),
+            json!({
+                "msgtype": "m.text",
+                "body": "Test message",
+                "com.beeper.linkpreviews": [
+                    {
+                        "matched_url": "https://matrix.org/",
+                        "og:image": "mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO",
+                    }
+                ],
+            }),
+        );
     }
 
     #[test]
     fn serialize_room_message_with_url_preview_with_encrypted_image() {
-        let expected_result = json!({
-            "msgtype": "m.text",
-            "body": "Test message",
-            "com.beeper.linkpreviews": [
-                {
-                    "matched_url": "https://matrix.org/",
-                    "beeper:image:encryption": {
-                        "hashes" : {
-                            "sha256": "AQEBAQEBAQEBAQ",
-                        },
-                        "iv": "AQEBAQEBAQEBAQEB",
-                        "key": {
-                            "alg": "A256CTR",
-                            "ext": true,
-                            "k": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                            "key_ops": [
-                                "encrypt",
-                                "decrypt"
-                            ],
-                            "kty": "oct",
-                        },
-                        "v": "v2",
-                        "url": "mxc://localhost/encryptedfile",
-                    }
-                }
-            ]
-        });
-
         let preview_img = PreviewImage::encrypted(encrypted_file());
         let full_preview = assign!(UrlPreview::matched_url("https://matrix.org/".to_owned()), {
             image: Some(preview_img),
@@ -256,31 +231,42 @@ mod tests {
             url_previews: Some(vec![full_preview])
         }));
 
-        assert_eq!(to_json_value(RoomMessageEventContent::new(msg)).unwrap(), expected_result);
+        assert_to_canonical_json_eq!(
+            RoomMessageEventContent::new(msg),
+            json!({
+                "msgtype": "m.text",
+                "body": "Test message",
+                "com.beeper.linkpreviews": [
+                    {
+                        "matched_url": "https://matrix.org/",
+                        "beeper:image:encryption": {
+                            "hashes" : {
+                                "sha256": "AQEBAQEBAQEBAQ",
+                            },
+                            "iv": "AQEBAQEBAQEBAQEB",
+                            "key": {
+                                "alg": "A256CTR",
+                                "ext": true,
+                                "k": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                                "key_ops": [
+                                    "encrypt",
+                                    "decrypt"
+                                ],
+                                "kty": "oct",
+                            },
+                            "v": "v2",
+                            "url": "mxc://localhost/encryptedfile",
+                        },
+                    }
+                ],
+            }),
+        );
     }
 
     #[cfg(feature = "unstable-msc1767")]
     #[test]
     fn serialize_extensible_room_message_with_preview() {
         use crate::message::MessageEventContent;
-        let expected_result = json!({
-            "org.matrix.msc1767.text": [
-                {"body": "matrix.org/support"}
-            ],
-            "com.beeper.linkpreviews": [
-                {
-                    "matched_url": "matrix.org/support",
-                    "matrix:image:size": 16588,
-                    "og:description": "Matrix, the open protocol for secure decentralised communications",
-                    "og:image":"mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO",
-                    "og:image:height": 400,
-                    "og:image:type": "image/jpeg",
-                    "og:image:width": 800,
-                    "og:title": "Support Matrix",
-                    "og:url": "https://matrix.org/support/"
-                }
-            ],
-        });
 
         let preview_img = assign!(PreviewImage::plain(owned_mxc_uri!("mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO")), {
                 height: Some(uint!(400)),
@@ -297,7 +283,27 @@ mod tests {
         let msg = assign!(MessageEventContent::plain("matrix.org/support"),  {
             url_previews: Some(vec![full_preview])
         });
-        assert_eq!(to_json_value(&msg).unwrap(), expected_result);
+        assert_to_canonical_json_eq!(
+            msg,
+            json!({
+                "org.matrix.msc1767.text": [
+                    {"body": "matrix.org/support"}
+                ],
+                "com.beeper.linkpreviews": [
+                    {
+                        "matched_url": "matrix.org/support",
+                        "matrix:image:size": 16588,
+                        "og:description": "Matrix, the open protocol for secure decentralised communications",
+                        "og:image":"mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO",
+                        "og:image:height": 400,
+                        "og:image:type": "image/jpeg",
+                        "og:image:width": 800,
+                        "og:title": "Support Matrix",
+                        "og:url": "https://matrix.org/support/",
+                    }
+                ],
+            }),
+        );
     }
 
     #[test]

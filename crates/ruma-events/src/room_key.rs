@@ -63,8 +63,8 @@ impl ToDeviceRoomKeyEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::owned_room_id;
-    use serde_json::{json, to_value as to_json_value};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_room_id};
+    use serde_json::json;
 
     use super::ToDeviceRoomKeyEventContent;
     use crate::EventEncryptionAlgorithm;
@@ -81,8 +81,8 @@ mod tests {
         };
 
         #[cfg(not(feature = "unstable-msc3061"))]
-        assert_eq!(
-            to_json_value(content).unwrap(),
+        assert_to_canonical_json_eq!(
+            content,
             json!({
                 "algorithm": "m.megolm.v1.aes-sha2",
                 "room_id": "!testroomid:example.org",
@@ -92,8 +92,8 @@ mod tests {
         );
 
         #[cfg(feature = "unstable-msc3061")]
-        assert_eq!(
-            to_json_value(content).unwrap(),
+        assert_to_canonical_json_eq!(
+            content,
             json!({
                 "algorithm": "m.megolm.v1.aes-sha2",
                 "room_id": "!testroomid:example.org",

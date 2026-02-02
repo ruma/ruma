@@ -166,12 +166,11 @@ mod tests {
 
     use assert_matches2::assert_matches;
     use ruma_common::{
+        canonical_json::assert_to_canonical_json_eq,
         event_id,
         serde::{Base64, Raw},
     };
-    use serde_json::{
-        Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
-    };
+    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
     use super::{
         _CustomContent, AcceptMethod, HashAlgorithm, KeyAgreementProtocol,
@@ -193,23 +192,18 @@ mod tests {
             }),
         };
 
-        let json_data = json!({
-            "transaction_id": "456",
-            "method": "m.sas.v1",
-            "commitment": "aGVsbG8",
-            "key_agreement_protocol": "curve25519",
-            "hash": "sha256",
-            "message_authentication_code": "hkdf-hmac-sha256.v2",
-            "short_authentication_string": ["decimal"]
-        });
-
-        assert_eq!(to_json_value(&key_verification_accept_content).unwrap(), json_data);
-
-        let json_data = json!({
-            "transaction_id": "456",
-            "method": "m.sas.custom",
-            "test": "field",
-        });
+        assert_to_canonical_json_eq!(
+            key_verification_accept_content,
+            json!({
+                "transaction_id": "456",
+                "method": "m.sas.v1",
+                "commitment": "aGVsbG8",
+                "key_agreement_protocol": "curve25519",
+                "hash": "sha256",
+                "message_authentication_code": "hkdf-hmac-sha256.v2",
+                "short_authentication_string": ["decimal"],
+            }),
+        );
 
         let key_verification_accept_content = ToDeviceKeyVerificationAcceptEventContent {
             transaction_id: "456".into(),
@@ -221,7 +215,14 @@ mod tests {
             }),
         };
 
-        assert_eq!(to_json_value(&key_verification_accept_content).unwrap(), json_data);
+        assert_to_canonical_json_eq!(
+            key_verification_accept_content,
+            json!({
+                "transaction_id": "456",
+                "method": "m.sas.custom",
+                "test": "field",
+            }),
+        );
     }
 
     #[test]
@@ -239,20 +240,21 @@ mod tests {
             }),
         };
 
-        let json_data = json!({
-            "method": "m.sas.v1",
-            "commitment": "aGVsbG8",
-            "key_agreement_protocol": "curve25519",
-            "hash": "sha256",
-            "message_authentication_code": "hkdf-hmac-sha256.v2",
-            "short_authentication_string": ["decimal"],
-            "m.relates_to": {
-                "rel_type": "m.reference",
-                "event_id": event_id,
-            }
-        });
-
-        assert_eq!(to_json_value(&key_verification_accept_content).unwrap(), json_data);
+        assert_to_canonical_json_eq!(
+            key_verification_accept_content,
+            json!({
+                "method": "m.sas.v1",
+                "commitment": "aGVsbG8",
+                "key_agreement_protocol": "curve25519",
+                "hash": "sha256",
+                "message_authentication_code": "hkdf-hmac-sha256.v2",
+                "short_authentication_string": ["decimal"],
+                "m.relates_to": {
+                    "rel_type": "m.reference",
+                    "event_id": event_id,
+                },
+            }),
+        );
     }
 
     #[test]

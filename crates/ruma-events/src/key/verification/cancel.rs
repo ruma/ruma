@@ -118,18 +118,19 @@ pub enum CancelCode {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    use serde_json::{from_value as from_json_value, json};
 
     use super::CancelCode;
 
     #[test]
     fn cancel_codes_serialize_to_display_form() {
-        assert_eq!(to_json_value(&CancelCode::User).unwrap(), json!("m.user"));
+        assert_to_canonical_json_eq!(CancelCode::User, json!("m.user"));
     }
 
     #[test]
     fn custom_cancel_codes_serialize_to_display_form() {
-        assert_eq!(to_json_value(CancelCode::from("io.ruma.test")).unwrap(), json!("io.ruma.test"));
+        assert_to_canonical_json_eq!(CancelCode::from("io.ruma.test"), json!("io.ruma.test"));
     }
 
     #[test]

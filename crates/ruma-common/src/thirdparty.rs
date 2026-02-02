@@ -299,10 +299,10 @@ impl From<ThirdPartyIdentifierInit> for ThirdPartyIdentifier {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{Medium, ThirdPartyIdentifier};
-    use crate::MilliSecondsSinceUnixEpoch;
+    use crate::{MilliSecondsSinceUnixEpoch, assert_to_canonical_json_eq};
 
     #[test]
     fn third_party_identifier_serde() {
@@ -320,7 +320,7 @@ mod tests {
             "added_at": 1_535_336_848_756_u64
         });
 
-        assert_eq!(to_json_value(third_party_id.clone()).unwrap(), third_party_id_serialized);
+        assert_to_canonical_json_eq!(third_party_id, third_party_id_serialized.clone());
         assert_eq!(third_party_id, from_json_value(third_party_id_serialized).unwrap());
     }
 }

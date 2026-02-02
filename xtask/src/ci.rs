@@ -472,7 +472,6 @@ impl Metadata {
                 let mut features = ruma_package.filtered_features(FeatureFilter::Unstable);
                 features.extend([
                     "api",
-                    "canonical-json",
                     "client-api",
                     "events",
                     "html-matrix",

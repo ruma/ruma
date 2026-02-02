@@ -1,3 +1,4 @@
+use as_variant::as_variant;
 use proc_macro_crate::{FoundCrate, crate_name};
 use proc_macro2::{Span, TokenStream};
 use quote::{ToTokens, TokenStreamExt, format_ident, quote};
@@ -319,6 +320,10 @@ pub(crate) trait StructFieldExt {
 
     /// Whether this field has a `#[serde(…)]` containing the given meta item.
     fn has_serde_meta_item(&self, meta: SerdeMetaItem) -> bool;
+
+    /// If this field has a `#[serde(default = "…")]` attribute, get the expression in the
+    /// literal string.
+    fn serde_default_expr(&self) -> Option<syn::ExprPath>;
 }
 
 impl StructFieldExt for Field {
@@ -336,6 +341,17 @@ impl StructFieldExt for Field {
 
     fn has_serde_meta_item(&self, meta: SerdeMetaItem) -> bool {
         self.serde_meta_items().any(|serde_meta| serde_meta == meta)
+    }
+
+    fn serde_default_expr(&self) -> Option<syn::ExprPath> {
+        self.serde_meta_items().filter(|serde_meta| *serde_meta == SerdeMetaItem::Default).find_map(
+            |default_meta| {
+                let name_value = as_variant!(default_meta, syn::Meta::NameValue)?;
+                let lit = as_variant!(name_value.value, syn::Expr::Lit)?;
+                let lit_str = as_variant!(lit.lit, syn::Lit::Str)?;
+                lit_str.parse().ok()
+            },
+        )
     }
 }
 

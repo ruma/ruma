@@ -72,8 +72,10 @@ impl PresenceEventContent {
 #[cfg(test)]
 mod tests {
     use js_int::uint;
-    use ruma_common::{mxc_uri, presence::PresenceState};
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::{
+        canonical_json::assert_to_canonical_json_eq, mxc_uri, presence::PresenceState,
+    };
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{PresenceEvent, PresenceEventContent};
 
@@ -88,15 +90,16 @@ mod tests {
             status_msg: Some("Making cupcakes".into()),
         };
 
-        let json = json!({
-            "avatar_url": "mxc://localhost/wefuiwegh8742w",
-            "currently_active": false,
-            "last_active_ago": 2_478_593,
-            "presence": "online",
-            "status_msg": "Making cupcakes"
-        });
-
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(
+            content,
+            json!({
+                "avatar_url": "mxc://localhost/wefuiwegh8742w",
+                "currently_active": false,
+                "last_active_ago": 2_478_593,
+                "presence": "online",
+                "status_msg": "Making cupcakes",
+            }),
+        );
     }
 
     #[test]

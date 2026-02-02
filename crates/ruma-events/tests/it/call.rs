@@ -2,7 +2,10 @@ use assert_matches2::assert_matches;
 #[cfg(feature = "unstable-msc2747")]
 use assign::assign;
 use js_int::uint;
-use ruma_common::{MilliSecondsSinceUnixEpoch, VoipVersionId, room_id, serde::CanBeEmpty};
+use ruma_common::{
+    MilliSecondsSinceUnixEpoch, VoipVersionId, canonical_json::assert_to_canonical_json_eq,
+    room_id, serde::CanBeEmpty,
+};
 #[cfg(feature = "unstable-msc2747")]
 use ruma_events::call::CallCapabilities;
 use ruma_events::{
@@ -18,7 +21,7 @@ use ruma_events::{
         select_answer::CallSelectAnswerEventContent,
     },
 };
-use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+use serde_json::{from_value as from_json_value, json};
 
 #[test]
 fn answer_v0_content_serialization() {
@@ -27,8 +30,8 @@ fn answer_v0_content_serialization() {
         "abcdef".into(),
     );
 
-    assert_eq!(
-        to_json_value(&event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        event_content,
         json!({
             "call_id": "abcdef",
             "version": 0,
@@ -138,8 +141,8 @@ fn invite_v0_content_serialization() {
         SessionDescription::new("offer".to_owned(), "not a real sdp".to_owned()),
     );
 
-    assert_eq!(
-        to_json_value(&event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        event_content,
         json!({
             "call_id": "abcdef",
             "lifetime": 30000,
@@ -159,8 +162,8 @@ fn candidates_v0_content_serialization() {
         vec![Candidate::version_0("not a real candidate".to_owned(), "0".to_owned(), uint!(0))],
     );
 
-    assert_eq!(
-        to_json_value(&event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        event_content,
         json!({
             "call_id": "abcdef",
             "version": 0,
@@ -179,8 +182,8 @@ fn candidates_v0_content_serialization() {
 fn hangup_v0_content_serialization() {
     let event_content = CallHangupEventContent::version_0("abcdef".into());
 
-    assert_eq!(
-        to_json_value(&event_content).unwrap(),
+    assert_to_canonical_json_eq!(
+        event_content,
         json!({
             "call_id": "abcdef",
             "version": 0,
@@ -198,8 +201,8 @@ fn invite_v1_event_serialization() {
         SessionDescription::new("offer".to_owned(), "not a real sdp".to_owned()),
     );
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "call_id": "abcdef",
             "party_id": "9876",
@@ -255,8 +258,8 @@ fn answer_v1_event_serialization() {
         "9876".into(),
     );
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "call_id": "abcdef",
             "party_id": "9876",
@@ -283,8 +286,8 @@ fn answer_v1_event_capabilities_serialization() {
         }
     );
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "call_id": "abcdef",
             "party_id": "9876",
@@ -349,8 +352,8 @@ fn candidates_v1_event_serialization() {
         ],
     );
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "call_id": "abcdef",
             "party_id": "9876",
@@ -430,8 +433,8 @@ fn hangup_v1_event_serialization() {
     let content =
         CallHangupEventContent::version_1("abcdef".into(), "9876".into(), Reason::IceFailed);
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "call_id": "abcdef",
             "party_id": "9876",
@@ -477,8 +480,8 @@ fn negotiate_v1_event_serialization() {
         SessionDescription::new("offer".to_owned(), "not a real sdp".to_owned()),
     );
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "call_id": "abcdef",
             "party_id": "9876",
@@ -529,8 +532,8 @@ fn negotiate_v1_event_deserialization() {
 fn reject_v1_event_serialization() {
     let content = CallRejectEventContent::version_1("abcdef".into(), "9876".into());
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "call_id": "abcdef",
             "party_id": "9876",
@@ -570,8 +573,8 @@ fn select_v1_answer_event_serialization() {
     let content =
         CallSelectAnswerEventContent::version_1("abcdef".into(), "9876".into(), "6336".into());
 
-    assert_eq!(
-        to_json_value(&content).unwrap(),
+    assert_to_canonical_json_eq!(
+        content,
         json!({
             "call_id": "abcdef",
             "party_id": "9876",

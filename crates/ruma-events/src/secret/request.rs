@@ -142,7 +142,8 @@ impl From<SecretName> for GlobalAccountDataEventType {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{RequestAction, SecretName, ToDeviceSecretRequestEventContent};
     use crate::PrivOwnedStr;
@@ -155,14 +156,15 @@ mod tests {
             "randomly_generated_id_9573".into(),
         );
 
-        let json = json!({
-            "name": "org.example.some.secret",
-            "action": "request",
-            "requesting_device_id": "ABCDEFG",
-            "request_id": "randomly_generated_id_9573"
-        });
-
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(
+            content,
+            json!({
+                "name": "org.example.some.secret",
+                "action": "request",
+                "requesting_device_id": "ABCDEFG",
+                "request_id": "randomly_generated_id_9573",
+            }),
+        );
     }
 
     #[test]
@@ -173,14 +175,15 @@ mod tests {
             "this_is_a_request_id".into(),
         );
 
-        let json = json!({
-            "name": "m.megolm_backup.v1",
-            "action": "request",
-            "requesting_device_id": "XYZxyz",
-            "request_id": "this_is_a_request_id"
-        });
-
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(
+            content,
+            json!({
+                "name": "m.megolm_backup.v1",
+                "action": "request",
+                "requesting_device_id": "XYZxyz",
+                "request_id": "this_is_a_request_id",
+            }),
+        );
     }
 
     #[test]
@@ -191,13 +194,14 @@ mod tests {
             "this_is_a_request_id".into(),
         );
 
-        let json = json!({
-            "action": "my_custom_action",
-            "requesting_device_id": "XYZxyz",
-            "request_id": "this_is_a_request_id"
-        });
-
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(
+            content,
+            json!({
+                "action": "my_custom_action",
+                "requesting_device_id": "XYZxyz",
+                "request_id": "this_is_a_request_id",
+            }),
+        );
     }
 
     #[test]
@@ -208,13 +212,14 @@ mod tests {
             "randomly_generated_id_9573".into(),
         );
 
-        let json = json!({
-            "action": "request_cancellation",
-            "requesting_device_id": "ABCDEFG",
-            "request_id": "randomly_generated_id_9573"
-        });
-
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(
+            content,
+            json!({
+                "action": "request_cancellation",
+                "requesting_device_id": "ABCDEFG",
+                "request_id": "randomly_generated_id_9573",
+            }),
+        );
     }
 
     #[test]

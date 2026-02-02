@@ -367,42 +367,41 @@ can_be_empty!(RoomFilter);
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    use serde_json::{
+        from_str as from_json_str, from_value as from_json_value, json, to_string as to_json_string,
+    };
 
     use super::{
         Filter, FilterDefinition, LazyLoadOptions, RoomEventFilter, RoomFilter, UrlFilter,
     };
 
     #[test]
-    fn default_filters_are_empty() -> serde_json::Result<()> {
-        assert_eq!(to_json_value(Filter::default())?, json!({}));
-        assert_eq!(to_json_value(FilterDefinition::default())?, json!({}));
-        assert_eq!(to_json_value(RoomEventFilter::default())?, json!({}));
-        assert_eq!(to_json_value(RoomFilter::default())?, json!({}));
-
-        Ok(())
+    fn default_filters_are_empty() {
+        assert_to_canonical_json_eq!(Filter::default(), json!({}));
+        assert_to_canonical_json_eq!(FilterDefinition::default(), json!({}));
+        assert_to_canonical_json_eq!(RoomEventFilter::default(), json!({}));
+        assert_to_canonical_json_eq!(RoomFilter::default(), json!({}));
     }
 
     #[test]
-    fn filter_definition_roundtrip() -> serde_json::Result<()> {
+    fn filter_definition_roundtrip() {
         let filter = FilterDefinition::default();
-        let filter_str = to_json_value(&filter)?;
+        assert_to_canonical_json_eq!(filter, json!({}));
 
-        let incoming_filter = from_json_value::<FilterDefinition>(filter_str)?;
+        let filter_str = to_json_string(&filter).unwrap();
+        let incoming_filter = from_json_str::<FilterDefinition>(&filter_str).unwrap();
         assert!(incoming_filter.is_empty());
-
-        Ok(())
     }
 
     #[test]
-    fn room_filter_definition_roundtrip() -> serde_json::Result<()> {
+    fn room_filter_definition_roundtrip() {
         let filter = RoomFilter::default();
-        let room_filter = to_json_value(filter)?;
+        assert_to_canonical_json_eq!(filter, json!({}));
 
-        let incoming_room_filter = from_json_value::<RoomFilter>(room_filter)?;
+        let filter_str = to_json_string(&filter).unwrap();
+        let incoming_room_filter = from_json_str::<RoomFilter>(&filter_str).unwrap();
         assert!(incoming_room_filter.is_empty());
-
-        Ok(())
     }
 
     #[test]

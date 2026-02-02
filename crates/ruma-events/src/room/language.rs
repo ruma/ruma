@@ -28,7 +28,8 @@ impl RoomLanguageEventContent {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    use serde_json::{from_value as from_json_value, json};
 
     use super::RoomLanguageEventContent;
     use crate::{OriginalStateEvent, room::language::LanguageTag};
@@ -37,12 +38,12 @@ mod tests {
     fn serialization() {
         let content = RoomLanguageEventContent { language: LanguageTag::parse("fr").unwrap() };
 
-        let actual = to_json_value(content).unwrap();
-        let expected = json!({
-            "language": "fr",
-        });
-
-        assert_eq!(actual, expected);
+        assert_to_canonical_json_eq!(
+            content,
+            json!({
+                "language": "fr",
+            }),
+        );
     }
 
     #[test]

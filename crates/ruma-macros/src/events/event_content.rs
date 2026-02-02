@@ -195,6 +195,55 @@ impl EventContent {
             })
             .collect::<Vec<_>>();
 
+        let should_generate_redacted = self.kind.should_generate_redacted();
+        let redacted_ident = should_generate_redacted
+            .then(|| EventContentVariation::Redacted.variation_ident(ident));
+        let redacted_field_idents = should_generate_redacted
+            .then(|| {
+                possibly_redacted_fields
+                    .iter()
+                    .filter(|field| field.skip_redaction)
+                    .map(|field| &field.inner.ident)
+            })
+            .into_iter()
+            .flatten()
+            .collect::<Vec<_>>();
+        let from_redacted_field_exprs = should_generate_redacted
+            .then(|| {
+                possibly_redacted_fields.iter().map(|field| {
+                    let ident = &field.inner.ident;
+
+                    if field.skip_redaction {
+                        quote! { #ident }
+                    } else if let Some(default_expr) = field.inner.serde_default_expr() {
+                        quote! { #ident: #default_expr() }
+                    } else {
+                        quote! { #ident: Default::default() }
+                    }
+                })
+            })
+            .into_iter()
+            .flatten()
+            .collect::<Vec<_>>();
+
+        // Implement `From<Redacted*EventContent>` if we generated it automatically.
+        let from_redacted_impl = should_generate_redacted.then(|| {
+            quote! {
+
+                impl From<#redacted_ident> for #possibly_redacted_ident {
+                    fn from(value: #redacted_ident) -> #possibly_redacted_ident {
+                        let #redacted_ident {
+                            #( #redacted_field_idents, )*
+                        } = value;
+
+                        Self {
+                            #( #from_redacted_field_exprs, )*
+                        }
+                    }
+                }
+            }
+        });
+
         // If at least one field needs to change, generate a new struct, else use a type alias.
         if field_changed {
             let possibly_redacted_event_content = self.expand_event_content_impl(
@@ -212,6 +261,42 @@ impl EventContent {
                 generate_json_castable_impl(&possibly_redacted_ident, &[ident])
             };
 
+            let field_idents = possibly_redacted_fields.iter().map(|field| &field.inner.ident);
+            let from_original_field_exprs = possibly_redacted_fields.iter().map(|field| {
+                let ident = &field.inner.ident;
+
+                if matches!(field, Cow::Borrowed(_)) {
+                    quote! { #ident }
+                } else {
+                    quote! { #ident: Some(#ident) }
+                }
+            });
+
+            let redact_content_impl = self.kind.should_generate_redacted().then(|| {
+                let ruma_events = &self.ruma_events;
+                let ruma_common = ruma_events.ruma_common();
+
+                let maybe_remaining_fields = (redacted_field_idents.len() != from_redacted_field_exprs.len()).then(|| quote! { .. });
+
+                quote! {
+                    #[automatically_derived]
+                    impl #ruma_events::RedactContent for #possibly_redacted_ident {
+                        type Redacted = #possibly_redacted_ident;
+
+                        fn redact(self, _rules: &#ruma_common::room_version_rules::RedactionRules) -> #possibly_redacted_ident {
+                            let Self {
+                                #( #redacted_field_idents, )*
+                                #maybe_remaining_fields
+                            } = self;
+
+                            Self {
+                                #( #from_redacted_field_exprs, )*
+                            }
+                        }
+                    }
+                }
+            });
+
             Some(quote! {
                 #[doc = #possibly_redacted_doc]
                 #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
@@ -220,6 +305,20 @@ impl EventContent {
                     #( #possibly_redacted_fields, )*
                 }
 
+                impl From<#ident> for #possibly_redacted_ident {
+                    fn from(value: #ident) -> #possibly_redacted_ident {
+                        let #ident {
+                            #( #field_idents, )*
+                        } = value;
+
+                        Self {
+                            #( #from_original_field_exprs, )*
+                        }
+                    }
+                }
+
+                #redact_content_impl
+                #from_redacted_impl
                 #possibly_redacted_event_content
                 #static_event_content_impl
                 #json_castable_impl
@@ -234,6 +333,7 @@ impl EventContent {
                 #[doc = #possibly_redacted_doc]
                 #vis type #possibly_redacted_ident = #ident;
 
+                #from_redacted_impl
                 #event_content_kind_trait_impl
             })
         }
