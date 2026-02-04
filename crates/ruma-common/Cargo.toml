@@ -35,7 +35,6 @@ unstable-msc4140 = []
 unstable-msc4186 = []
 # Thread subscriptions.
 unstable-msc4306 = []
-unstable-msc4380 = []
 unstable-msc4388 = []
 
 # Allow IDs to exceed 255 bytes.
