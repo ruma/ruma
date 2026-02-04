@@ -340,15 +340,21 @@ impl<'a> EventEnumVariation<'a> {
         &self,
         event_content_enums: &mut EventContentEnums<'a>,
     ) -> Option<TokenStream> {
-        let event_content_enum = event_content_enums.get_or_create(self.variation)?;
-        let maybe_redacted = self.maybe_redacted();
+        let mut tokens = event_content_enums
+            .get_or_create(self.variation)?
+            .expand_content_accessors(self.variation, &self.event_struct);
 
-        let mut tokens = event_content_enum.expand_content_accessors(maybe_redacted);
-
-        if matches!(self.kind, EventEnumKind::State) && maybe_redacted {
+        // Generate the `AnyPossiblyRedactedStateEventContent` and `AnyStateEventContentChange`
+        // accessors for state enums that contain `Original` and `Redacted` variants.
+        if matches!(self.kind, EventEnumKind::State) && self.maybe_redacted() {
+            tokens.extend(event_content_enums.get_or_create(EventVariation::Stripped).map(
+                |event_content_enum| {
+                    event_content_enum.expand_content_accessors(self.variation, &self.event_struct)
+                },
+            ));
             tokens.extend(
                 event_content_enums
-                    .full_event_content_enum()
+                    .event_content_change_enum()
                     .expand_content_accessors(&self.event_struct),
             );
         }
