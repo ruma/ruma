@@ -72,6 +72,7 @@ impl EventTypeEnum<'_> {
             /// from a string with `::from()` / `.into()`. To check for events that are not available as a
             /// documented variant here, use its string representation, obtained through `.to_string()`.
             #[cfg_attr(feature = "unstable-uniffi", derive(uniffi::Enum))]
+            #[cfg_attr(feature = "unstable-uniffi", uniffi::export(Display, Eq, Hash))]
             #[derive(Clone, PartialEq, Eq, Hash)]
             #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
             pub enum #ident {
@@ -289,6 +290,16 @@ impl EventTypeEnum<'_> {
             impl ::std::convert::From<::std::string::String> for #ident {
                 fn from(s: ::std::string::String) -> Self {
                     ::std::convert::From::from(s.as_str())
+                }
+            }
+
+            #[cfg(feature = "unstable-uniffi")]
+            #[uniffi::export]
+            impl #ident {
+                /// Construct a variant of the enum from a string.
+                #[uniffi::constructor]
+                pub fn from_string(s: ::std::string::String) -> Self {
+                    s.into()
                 }
             }
 
