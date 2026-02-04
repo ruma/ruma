@@ -775,7 +775,6 @@ pub enum FeatureFlag {
     /// Invite Blocking.
     ///
     /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4380
-    #[cfg(feature = "unstable-msc4380")]
     #[ruma_enum(rename = "org.matrix.msc4380")]
     Msc4380,
 

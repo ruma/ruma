@@ -22,6 +22,7 @@ Improvements:
     URL including the proper version of the action, depending on what the server
     advertises.
 - Add support for updated rendezvous session from MSC4388 behind `unstable-msc4388`.
+- Stabilize support for the `M_INVITE_BLOCKED` error code, according to MSC4380.
 
 # 0.22.1
 
