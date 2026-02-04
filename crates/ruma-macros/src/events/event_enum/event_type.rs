@@ -77,8 +77,8 @@ impl EventTypeEnum<'_> {
             pub enum #ident {
                 #( #variants )*
                 #[doc(hidden)]
-                /// This variant ensures forward compatibility of the library. It should NOT be used to
-                /// create custom variants in client code.
+                /// This variant ensures forward compatibility of the library. It deliberately cannot be
+                /// used to create custom variants in client code.
                 _Custom(crate::PrivOwnedStr),
             }
 
