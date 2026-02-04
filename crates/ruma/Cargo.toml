@@ -95,7 +95,7 @@ compat-null = ["ruma-common/compat-null"]
 
 # Allow certain fields to be absent even though the spec marks them as
 # mandatory. Deserialization will yield a default value like an empty string.
-compat-optional = ["ruma-common/compat-optional", "ruma-events?/compat-optional"]
+compat-optional = ["ruma-common/compat-optional"]
 
 # Unset avatars by sending an empty string, same as what Element Web does, c.f.
 # https://github.com/matrix-org/matrix-spec/issues/378#issuecomment-1055831264

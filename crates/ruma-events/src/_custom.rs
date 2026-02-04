@@ -5,10 +5,9 @@ use serde_json::value::RawValue as RawJsonValue;
 use super::{
     EphemeralRoomEventContent, EphemeralRoomEventType, EventContentFromType,
     GlobalAccountDataEventContent, GlobalAccountDataEventType, MessageLikeEventContent,
-    MessageLikeEventType, MessageLikeUnsigned, PossiblyRedactedStateEventContent, RedactContent,
-    RedactedMessageLikeEventContent, RedactedStateEventContent, RoomAccountDataEventContent,
-    RoomAccountDataEventType, StateEventContent, StateEventType, StaticStateEventContent,
-    ToDeviceEventContent, ToDeviceEventType,
+    MessageLikeEventType, MessageLikeUnsigned, RedactContent, RedactedMessageLikeEventContent,
+    RoomAccountDataEventContent, RoomAccountDataEventType, StateEventContent, StateEventType,
+    StaticStateEventContent, ToDeviceEventContent, ToDeviceEventType,
 };
 
 macro_rules! custom_event_content {
@@ -91,21 +90,6 @@ impl StaticStateEventContent for CustomStateEventContent {
     // We don't care about `prev_content` since we'd only store the event type that is the same
     // as in the content.
     type Unsigned = MessageLikeUnsigned<CustomMessageLikeEventContent>;
-    type PossiblyRedacted = Self;
-}
-impl PossiblyRedactedStateEventContent for CustomStateEventContent {
-    type StateKey = String;
-
-    fn event_type(&self) -> StateEventType {
-        self.event_type[..].into()
-    }
-}
-impl RedactedStateEventContent for CustomStateEventContent {
-    type StateKey = String;
-
-    fn event_type(&self) -> StateEventType {
-        self.event_type[..].into()
-    }
 }
 
 custom_event_content!(CustomToDeviceEventContent, ToDeviceEventType);

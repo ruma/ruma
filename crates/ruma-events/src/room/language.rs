@@ -16,13 +16,14 @@ use crate::EmptyStateKey;
 #[ruma_event(type = "org.matrix.msc4334.room.language", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomLanguageEventContent {
     /// The language of the room.
-    pub language: LanguageTag,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub language: Option<LanguageTag>,
 }
 
 impl RoomLanguageEventContent {
     /// Create a new `RoomLanguageEventContent` with the given language.
     pub fn new(language: LanguageTag) -> Self {
-        Self { language }
+        Self { language: Some(language) }
     }
 }
 
@@ -32,11 +33,11 @@ mod tests {
     use serde_json::{from_value as from_json_value, json};
 
     use super::RoomLanguageEventContent;
-    use crate::{OriginalStateEvent, room::language::LanguageTag};
+    use crate::{StateEvent, room::language::LanguageTag};
 
     #[test]
     fn serialization() {
-        let content = RoomLanguageEventContent { language: LanguageTag::parse("fr").unwrap() };
+        let content = RoomLanguageEventContent { language: LanguageTag::parse("fr").ok() };
 
         assert_to_canonical_json_eq!(
             content,
@@ -61,11 +62,11 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<OriginalStateEvent<RoomLanguageEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomLanguageEventContent>>(json_data)
                 .unwrap()
                 .content
                 .language,
-            LanguageTag::parse("fr").unwrap()
+            Some(LanguageTag::parse("fr").unwrap())
         );
     }
 }
