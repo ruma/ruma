@@ -3072,8 +3072,7 @@ checksum = "f63a545481291138910575129486daeaf8ac54aee4387fe7906919f7830c7d9d"
 [[package]]
 name = "uniffi"
 version = "0.31.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8c6dec3fc6645f71a16a3fa9ff57991028153bd194ca97f4b55e610c73ce66a"
+source = "git+https://github.com/Johennes/uniffi-rs.git?rev=e16719f57c63c2d1fd7176b1b1a23ab77ab790b1#e16719f57c63c2d1fd7176b1b1a23ab77ab790b1"
 dependencies = [
  "anyhow",
  "cargo_metadata",
@@ -3086,8 +3085,7 @@ dependencies = [
 [[package]]
 name = "uniffi_bindgen"
 version = "0.31.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ed0150801958d4825da56a41c71f000a457ac3a4613fa9647df78ac4b6b6881"
+source = "git+https://github.com/Johennes/uniffi-rs.git?rev=e16719f57c63c2d1fd7176b1b1a23ab77ab790b1#e16719f57c63c2d1fd7176b1b1a23ab77ab790b1"
 dependencies = [
  "anyhow",
  "askama",
@@ -3112,8 +3110,7 @@ dependencies = [
 [[package]]
 name = "uniffi_core"
 version = "0.31.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0ef62e69762fbb9386dcb6c87cd3dd05d525fa8a3a579a290892e60ddbda47e"
+source = "git+https://github.com/Johennes/uniffi-rs.git?rev=e16719f57c63c2d1fd7176b1b1a23ab77ab790b1#e16719f57c63c2d1fd7176b1b1a23ab77ab790b1"
 dependencies = [
  "anyhow",
  "bytes",
@@ -3124,8 +3121,7 @@ dependencies = [
 [[package]]
 name = "uniffi_internal_macros"
 version = "0.31.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "98f51ebca0d9a4b2aa6c644d5ede45c56f73906b96403c08a1985e75ccb64a01"
+source = "git+https://github.com/Johennes/uniffi-rs.git?rev=e16719f57c63c2d1fd7176b1b1a23ab77ab790b1#e16719f57c63c2d1fd7176b1b1a23ab77ab790b1"
 dependencies = [
  "anyhow",
  "indexmap",
@@ -3137,8 +3133,7 @@ dependencies = [
 [[package]]
 name = "uniffi_macros"
 version = "0.31.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db9d12529f1223d014fd501e5f29ca0884d15d6ed5ddddd9f506e55350327dc3"
+source = "git+https://github.com/Johennes/uniffi-rs.git?rev=e16719f57c63c2d1fd7176b1b1a23ab77ab790b1#e16719f57c63c2d1fd7176b1b1a23ab77ab790b1"
 dependencies = [
  "camino",
  "fs-err",
@@ -3154,8 +3149,7 @@ dependencies = [
 [[package]]
 name = "uniffi_meta"
 version = "0.31.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9df6d413db2827c68588f8149d30d49b71d540d46539e435b23a7f7dbd4d4f86"
+source = "git+https://github.com/Johennes/uniffi-rs.git?rev=e16719f57c63c2d1fd7176b1b1a23ab77ab790b1#e16719f57c63c2d1fd7176b1b1a23ab77ab790b1"
 dependencies = [
  "anyhow",
  "siphasher",
@@ -3166,8 +3160,7 @@ dependencies = [
 [[package]]
 name = "uniffi_pipeline"
 version = "0.31.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a806dddc8208f22efd7e95a5cdf88ed43d0f3271e8f63b47e757a8bbdb43b63a"
+source = "git+https://github.com/Johennes/uniffi-rs.git?rev=e16719f57c63c2d1fd7176b1b1a23ab77ab790b1#e16719f57c63c2d1fd7176b1b1a23ab77ab790b1"
 dependencies = [
  "anyhow",
  "heck",
@@ -3179,8 +3172,7 @@ dependencies = [
 [[package]]
 name = "uniffi_udl"
 version = "0.31.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d1a7339539bf6f6fa3e9b534dece13f778bda2d54b1a6d4e40b4d6090ac26e7"
+source = "git+https://github.com/Johennes/uniffi-rs.git?rev=e16719f57c63c2d1fd7176b1b1a23ab77ab790b1#e16719f57c63c2d1fd7176b1b1a23ab77ab790b1"
 dependencies = [
  "anyhow",
  "textwrap",
@@ -3403,8 +3395,7 @@ dependencies = [
 [[package]]
 name = "weedle2"
 version = "5.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "998d2c24ec099a87daf9467808859f9d82b61f1d9c9701251aea037f514eae0e"
+source = "git+https://github.com/Johennes/uniffi-rs.git?rev=e16719f57c63c2d1fd7176b1b1a23ab77ab790b1#e16719f57c63c2d1fd7176b1b1a23ab77ab790b1"
 dependencies = [
  "nom",
 ]
