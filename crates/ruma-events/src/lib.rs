@@ -321,10 +321,10 @@ impl fmt::Debug for PrivOwnedStr {
 #[cfg_attr(feature = "unstable-uniffi", derive(uniffi::Object))]
 #[doc(hidden)]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PrivOwnedStrObject(Box<str>);
+pub struct PrivateString(Box<str>);
 
 #[cfg(feature = "unstable-uniffi")]
-uniffi::custom_type!(PrivOwnedStr, std::sync::Arc<PrivOwnedStrObject> , {
-    lower: |value| std::sync::Arc::new(PrivOwnedStrObject(value.0)),
+uniffi::custom_type!(PrivOwnedStr, std::sync::Arc<PrivateString> , {
+    lower: |value| std::sync::Arc::new(PrivateString(value.0)),
     try_lift: |value| Ok(PrivOwnedStr(value.0.clone())),
 });
