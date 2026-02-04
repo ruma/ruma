@@ -31,6 +31,8 @@ Improvements:
 
 - Add list of state event types recommended by the spec for servers to transfer
   upon room upgrade.
+- Remove outdated support for MSC4319 in `StrippedStateEvent`, the format of
+  stripped state has been reverted.
 
 # 0.32.0
 
