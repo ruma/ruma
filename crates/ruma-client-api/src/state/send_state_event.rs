@@ -9,6 +9,8 @@ pub mod v3 {
 
     use std::borrow::Borrow;
 
+    #[cfg(feature = "unstable-msc3911")]
+    use ruma_common::OwnedMxcUri;
     use ruma_common::{
         MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
         api::{auth_scheme::AccessToken, response},
@@ -52,6 +54,13 @@ pub mod v3 {
         ///
         /// [timestamp massaging]: https://spec.matrix.org/latest/application-service-api/#timestamp-massaging
         pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
+
+        /// Media that should be attached to this event.
+        ///
+        /// This should be used to determine who has access to a given MXC URI, as well as when to
+        /// delete media
+        #[cfg(feature = "unstable-msc3911")]
+        pub attach_media: Option<OwnedMxcUri>,
     }
 
     impl Request {
@@ -77,6 +86,8 @@ pub mod v3 {
                 event_type: content.event_type(),
                 body: Raw::from_json(to_raw_json_value(content)?),
                 timestamp: None,
+                #[cfg(feature = "unstable-msc3911")]
+                attach_media: None,
             })
         }
 
@@ -88,7 +99,15 @@ pub mod v3 {
             state_key: String,
             body: Raw<AnyStateEventContent>,
         ) -> Self {
-            Self { room_id, event_type, state_key, body, timestamp: None }
+            Self {
+                room_id,
+                event_type,
+                state_key,
+                body,
+                timestamp: None,
+                #[cfg(feature = "unstable-msc3911")]
+                attach_media: None,
+            }
         }
     }
 
@@ -119,8 +138,11 @@ pub mod v3 {
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use ruma_common::api::{Metadata, auth_scheme::AuthScheme};
 
-            let query_string =
-                serde_html_form::to_string(RequestQuery { timestamp: self.timestamp })?;
+            let query_string = serde_html_form::to_string(RequestQuery {
+                timestamp: self.timestamp,
+                #[cfg(feature = "unstable-msc3911")]
+                attach_media: self.attach_media,
+            })?;
 
             let mut http_request = http::Request::builder()
                 .method(Self::METHOD)
@@ -183,7 +205,15 @@ pub mod v3 {
 
             let body = serde_json::from_slice(request.body().as_ref())?;
 
-            Ok(Self { room_id, event_type, state_key, body, timestamp: request_query.timestamp })
+            Ok(Self {
+                room_id,
+                event_type,
+                state_key,
+                body,
+                timestamp: request_query.timestamp,
+                #[cfg(feature = "unstable-msc3911")]
+                attach_media: request_query.attach_media,
+            })
         }
     }
 
@@ -195,6 +225,10 @@ pub mod v3 {
         /// Timestamp to use for the `origin_server_ts` of the event.
         #[serde(rename = "ts", skip_serializing_if = "Option::is_none")]
         timestamp: Option<MilliSecondsSinceUnixEpoch>,
+
+        /// Media ID to link to this event
+        #[cfg(feature = "unstable-msc3911")]
+        attach_media: Option<OwnedMxcUri>,
     }
 
     #[cfg(feature = "client")]
