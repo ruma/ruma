@@ -23,6 +23,7 @@ Improvements:
   for all state events.
 - Implement `RedactContent for PossiblyRedacted*EventContent` for all state
   events. 
+- Add support for the recently used emoji account data, according to MSC4356.
 
 # 0.32.1
 
