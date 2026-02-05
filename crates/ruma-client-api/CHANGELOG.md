@@ -21,6 +21,7 @@ Improvements:
     `action_management_url_with_action` allows to build an account management
     URL including the proper version of the action, depending on what the server
     advertises.
+- Add support for updated rendezvous session from MSC4388 behind `unstable-msc4388`.
 
 # 0.22.1
 
