@@ -12,6 +12,7 @@ pub mod v1 {
     use std::collections::BTreeSet;
 
     use ruma_common::{
+        DeviceId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         serde::{Raw, StringEnum},
@@ -147,14 +148,12 @@ pub mod v1 {
         /// authorization server ([MSC4191]).
         ///
         /// [MSC4191]: https://github.com/matrix-org/matrix-spec-proposals/pull/4191
-        #[cfg(feature = "unstable-msc4191")]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub account_management_uri: Option<Url>,
 
         /// List of actions that the account management URL supports ([MSC4191]).
         ///
         /// [MSC4191]: https://github.com/matrix-org/matrix-spec-proposals/pull/4191
-        #[cfg(feature = "unstable-msc4191")]
         #[serde(skip_serializing_if = "BTreeSet::is_empty")]
         pub account_management_actions_supported: BTreeSet<AccountManagementAction>,
 
@@ -219,7 +218,6 @@ pub mod v1 {
             ];
             let optional_urls = &[
                 self.registration_endpoint.as_ref().map(|string| ("registration_endpoint", string)),
-                #[cfg(feature = "unstable-msc4191")]
                 self.account_management_uri
                     .as_ref()
                     .map(|string| ("account_management_uri", string)),
@@ -236,6 +234,143 @@ pub mod v1 {
             }
 
             Ok(())
+        }
+
+        /// Whether the given account management action is advertised as supported by the server.
+        ///
+        /// This function tries to be backwards compatible with unstable implementations by checking
+        /// both the stable and unstable values of the given action, if they differ.
+        pub fn is_action_management_action_supported(
+            &self,
+            action: &AccountManagementAction,
+        ) -> bool {
+            match action {
+                AccountManagementAction::UnstableSessionsList
+                | AccountManagementAction::DevicesList => {
+                    self.account_management_actions_supported
+                        .contains(&AccountManagementAction::DevicesList)
+                        || self
+                            .account_management_actions_supported
+                            .contains(&AccountManagementAction::UnstableSessionsList)
+                }
+                AccountManagementAction::UnstableSessionView
+                | AccountManagementAction::DeviceView => {
+                    self.account_management_actions_supported
+                        .contains(&AccountManagementAction::DeviceView)
+                        || self
+                            .account_management_actions_supported
+                            .contains(&AccountManagementAction::UnstableSessionView)
+                }
+                AccountManagementAction::UnstableSessionEnd
+                | AccountManagementAction::DeviceDelete => {
+                    self.account_management_actions_supported
+                        .contains(&AccountManagementAction::DeviceDelete)
+                        || self
+                            .account_management_actions_supported
+                            .contains(&AccountManagementAction::UnstableSessionEnd)
+                }
+                action => self.account_management_actions_supported.contains(action),
+            }
+        }
+
+        /// Build the action management URL with the given action.
+        ///
+        /// This function tries to be backwards compatible with unstable implementations by
+        /// selecting the proper action value to add to the URL (stable or unstable) given
+        /// the supported actions advertised in this metadata. If the action is not present
+        /// in the metadata, the stable value is used.
+        ///
+        /// Returns `None` if the `action_management_url` is `None`.
+        pub fn action_management_url_with_action(
+            &self,
+            action: AccountManagementActionData<'_>,
+        ) -> Option<Url> {
+            const QUERY_NAME_ACTION: &str = "action";
+            const QUERY_NAME_DEVICE_ID: &str = "device_id";
+
+            let mut url = self.account_management_uri.clone()?;
+
+            match action {
+                AccountManagementActionData::Profile => {
+                    url.query_pairs_mut()
+                        .append_pair(QUERY_NAME_ACTION, AccountManagementAction::Profile.as_str());
+                }
+                AccountManagementActionData::DevicesList => {
+                    // Prefer the stable action if it is supported, and default to the stable action
+                    // if no actions are advertised in the metadata.
+                    let action = if self
+                        .account_management_actions_supported
+                        .contains(&AccountManagementAction::DevicesList)
+                    {
+                        AccountManagementAction::DevicesList
+                    } else if self
+                        .account_management_actions_supported
+                        .contains(&AccountManagementAction::UnstableSessionsList)
+                    {
+                        AccountManagementAction::UnstableSessionsList
+                    } else {
+                        AccountManagementAction::DevicesList
+                    };
+
+                    url.query_pairs_mut().append_pair(QUERY_NAME_ACTION, action.as_str());
+                }
+                AccountManagementActionData::DeviceView(DeviceViewData { device_id }) => {
+                    // Prefer the stable action if it is supported, and default to the stable action
+                    // if no actions are advertised in the metadata.
+                    let action = if self
+                        .account_management_actions_supported
+                        .contains(&AccountManagementAction::DeviceView)
+                    {
+                        AccountManagementAction::DeviceView
+                    } else if self
+                        .account_management_actions_supported
+                        .contains(&AccountManagementAction::UnstableSessionView)
+                    {
+                        AccountManagementAction::UnstableSessionView
+                    } else {
+                        AccountManagementAction::DeviceView
+                    };
+
+                    url.query_pairs_mut()
+                        .append_pair(QUERY_NAME_ACTION, action.as_str())
+                        .append_pair(QUERY_NAME_DEVICE_ID, device_id.as_str());
+                }
+                AccountManagementActionData::DeviceDelete(DeviceDeleteData { device_id }) => {
+                    // Prefer the stable action if it is supported, and default to the stable action
+                    // if no actions are advertised in the metadata.
+                    let action = if self
+                        .account_management_actions_supported
+                        .contains(&AccountManagementAction::DeviceDelete)
+                    {
+                        AccountManagementAction::DeviceDelete
+                    } else if self
+                        .account_management_actions_supported
+                        .contains(&AccountManagementAction::UnstableSessionEnd)
+                    {
+                        AccountManagementAction::UnstableSessionEnd
+                    } else {
+                        AccountManagementAction::DeviceDelete
+                    };
+
+                    url.query_pairs_mut()
+                        .append_pair(QUERY_NAME_ACTION, action.as_str())
+                        .append_pair(QUERY_NAME_DEVICE_ID, device_id.as_str());
+                }
+                AccountManagementActionData::AccountDeactivate => {
+                    url.query_pairs_mut().append_pair(
+                        QUERY_NAME_ACTION,
+                        AccountManagementAction::AccountDeactivate.as_str(),
+                    );
+                }
+                AccountManagementActionData::CrossSigningReset => {
+                    url.query_pairs_mut().append_pair(
+                        QUERY_NAME_ACTION,
+                        AccountManagementAction::CrossSigningReset.as_str(),
+                    );
+                }
+            }
+
+            Some(url)
         }
     }
 
@@ -320,42 +455,140 @@ pub mod v1 {
 
     /// The action that the user wishes to do at the account management URL.
     ///
-    /// The values are specified in [MSC 4191].
+    /// This enum supports both the values that were first specified in [MSC4191] and the values
+    /// that replaced them in the Matrix specification, for backwards compatibility with unstable
+    /// implementations. The variants that were replaced all use an `Unstable` prefix.
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
     ///
-    /// [MSC 4191]: https://github.com/matrix-org/matrix-spec-proposals/pull/4191
-    #[cfg(feature = "unstable-msc4191")]
+    /// [MSC4191]: https://github.com/matrix-org/matrix-spec-proposals/pull/4191
     #[derive(Clone, StringEnum)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum AccountManagementAction {
-        /// The user wishes to view their profile (name, avatar, contact details).
-        ///
-        /// [RFC 7636]: https://datatracker.ietf.org/doc/html/rfc7636
+        /// The user wishes to view or edit their profile (name, avatar, contact details).
         #[ruma_enum(rename = "org.matrix.profile")]
         Profile,
 
-        /// The user wishes to view a list of their sessions.
+        /// The unstable version of [`AccountManagementAction::DevicesList`].
+        ///
+        /// This uses the `org.matrix.sessions_list` string that was first specified in [MSC4191]
+        /// before being replaced by `org.matrix.devices_list`.
+        ///
+        /// [MSC4191]: https://github.com/matrix-org/matrix-spec-proposals/pull/4191
         #[ruma_enum(rename = "org.matrix.sessions_list")]
-        SessionsList,
+        UnstableSessionsList,
 
-        /// The user wishes to view the details of a specific session.
+        /// The user wishes to view a list of their devices.
+        #[ruma_enum(rename = "org.matrix.devices_list")]
+        DevicesList,
+
+        /// The unstable version of [`AccountManagementAction::DeviceView`].
+        ///
+        /// This uses the `org.matrix.session_view` string that was first specified in [MSC4191]
+        /// before being replaced by `org.matrix.device_view`.
+        ///
+        /// [MSC4191]: https://github.com/matrix-org/matrix-spec-proposals/pull/4191
         #[ruma_enum(rename = "org.matrix.session_view")]
-        SessionView,
+        UnstableSessionView,
 
-        /// The user wishes to end/logout a specific session.
+        /// The user wishes to view the details of a specific device.
+        #[ruma_enum(rename = "org.matrix.device_view")]
+        DeviceView,
+
+        /// The unstable version of [`AccountManagementAction::DeviceDelete`].
+        ///
+        /// This uses the `org.matrix.session_end` string that was first specified in [MSC4191]
+        /// before being replaced by `org.matrix.device_delete`.
+        ///
+        /// [MSC4191]: https://github.com/matrix-org/matrix-spec-proposals/pull/4191
         #[ruma_enum(rename = "org.matrix.session_end")]
-        SessionEnd,
+        UnstableSessionEnd,
+
+        /// The user wishes to delete/log out a specific device.
+        #[ruma_enum(rename = "org.matrix.device_delete")]
+        DeviceDelete,
 
         /// The user wishes to deactivate their account.
         #[ruma_enum(rename = "org.matrix.account_deactivate")]
         AccountDeactivate,
 
         /// The user wishes to reset their cross-signing keys.
+        ///
+        /// Servers should use this action in the URL of the [`m.oauth`] UIA type.
+        ///
+        /// [`m.oauth`]: https://spec.matrix.org/latest/client-server-api/#oauth-authentication
         #[ruma_enum(rename = "org.matrix.cross_signing_reset")]
         CrossSigningReset,
 
         #[doc(hidden)]
         _Custom(PrivOwnedStr),
+    }
+
+    /// The action that the user wishes to do at the account management URL with its associated
+    /// data.
+    ///
+    /// [MSC 4191]: https://github.com/matrix-org/matrix-spec-proposals/pull/4191
+    #[derive(Debug, Clone)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub enum AccountManagementActionData<'a> {
+        /// The user wishes to view or edit their profile (name, avatar, contact details).
+        Profile,
+
+        /// The user wishes to view a list of their devices.
+        DevicesList,
+
+        /// The user wishes to view the details of a specific device.
+        DeviceView(DeviceViewData<'a>),
+
+        /// The user wishes to delete/log out a specific device.
+        DeviceDelete(DeviceDeleteData<'a>),
+
+        /// The user wishes to deactivate their account.
+        AccountDeactivate,
+
+        /// The user wishes to reset their cross-signing keys.
+        CrossSigningReset,
+    }
+
+    /// The data associated with [`AccountManagementAction::DeviceView`].
+    #[derive(Debug, Clone)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct DeviceViewData<'a> {
+        /// The ID of the device to view.
+        pub device_id: &'a DeviceId,
+    }
+
+    impl<'a> DeviceViewData<'a> {
+        /// Construct a new `DeviceViewData` with the given device ID.
+        fn new(device_id: &'a DeviceId) -> Self {
+            Self { device_id }
+        }
+    }
+
+    impl<'a> From<&'a DeviceId> for DeviceViewData<'a> {
+        fn from(device_id: &'a DeviceId) -> Self {
+            Self::new(device_id)
+        }
+    }
+
+    /// The data associated with [`AccountManagementAction::DeviceDelete`].
+    #[derive(Debug, Clone)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct DeviceDeleteData<'a> {
+        /// The ID of the device to delete/log out.
+        pub device_id: &'a DeviceId,
+    }
+
+    impl<'a> DeviceDeleteData<'a> {
+        /// Construct a new `DeviceDeleteData` with the given device ID.
+        fn new(device_id: &'a DeviceId) -> Self {
+            Self { device_id }
+        }
+    }
+
+    impl<'a> From<&'a DeviceId> for DeviceDeleteData<'a> {
+        fn from(device_id: &'a DeviceId) -> Self {
+            Self::new(device_id)
+        }
     }
 
     /// The possible errors when validating URLs of [`AuthorizationServerMetadata`].
@@ -389,10 +622,13 @@ pub mod v1 {
 
 #[cfg(test)]
 mod tests {
+    use ruma_common::device_id;
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
     use url::Url;
 
-    use super::v1::AuthorizationServerMetadata;
+    use super::v1::{
+        AccountManagementAction, AccountManagementActionData, AuthorizationServerMetadata,
+    };
 
     /// A valid `AuthorizationServerMetadata` with all fields and values, as a JSON object.
     pub(super) fn authorization_server_metadata_json() -> JsonValue {
@@ -409,9 +645,9 @@ mod tests {
             "account_management_uri": "https://server.local/account",
             "account_management_actions_supported": [
                 "org.matrix.profile",
-                "org.matrix.sessions_list",
-                "org.matrix.session_view",
-                "org.matrix.session_end",
+                "org.matrix.devices_list",
+                "org.matrix.device_view",
+                "org.matrix.device_delete",
                 "org.matrix.account_deactivate",
                 "org.matrix.cross_signing_reset",
             ],
@@ -478,14 +714,10 @@ mod tests {
         metadata.validate_urls().unwrap_err();
         metadata.insecure_validate_urls().unwrap();
 
-        #[cfg(feature = "unstable-msc4191")]
-        {
-            let mut metadata = original_metadata.clone();
-            metadata.account_management_uri =
-                Some(Url::parse("http://server.local/account").unwrap());
-            metadata.validate_urls().unwrap_err();
-            metadata.insecure_validate_urls().unwrap();
-        }
+        let mut metadata = original_metadata.clone();
+        metadata.account_management_uri = Some(Url::parse("http://server.local/account").unwrap());
+        metadata.validate_urls().unwrap_err();
+        metadata.insecure_validate_urls().unwrap();
 
         #[cfg(feature = "unstable-msc4108")]
         {
@@ -495,5 +727,227 @@ mod tests {
             metadata.validate_urls().unwrap_err();
             metadata.insecure_validate_urls().unwrap();
         }
+    }
+
+    #[test]
+    fn metadata_is_account_management_action_supported() {
+        let mut original_metadata = authorization_server_metadata();
+
+        // View profile.
+        assert!(
+            original_metadata
+                .is_action_management_action_supported(&AccountManagementAction::Profile)
+        );
+
+        // Remove it.
+        original_metadata
+            .account_management_actions_supported
+            .remove(&AccountManagementAction::Profile);
+        assert!(
+            !original_metadata
+                .is_action_management_action_supported(&AccountManagementAction::Profile)
+        );
+
+        // View devices list.
+        assert!(
+            original_metadata
+                .is_action_management_action_supported(&AccountManagementAction::DevicesList)
+        );
+        assert!(
+            original_metadata.is_action_management_action_supported(
+                &AccountManagementAction::UnstableSessionsList
+            )
+        );
+
+        // Remove it.
+        original_metadata
+            .account_management_actions_supported
+            .remove(&AccountManagementAction::DevicesList);
+        assert!(
+            !original_metadata
+                .is_action_management_action_supported(&AccountManagementAction::DevicesList)
+        );
+        assert!(
+            !original_metadata.is_action_management_action_supported(
+                &AccountManagementAction::UnstableSessionsList
+            )
+        );
+
+        // View device.
+        assert!(
+            original_metadata
+                .is_action_management_action_supported(&AccountManagementAction::DeviceView)
+        );
+        assert!(
+            original_metadata.is_action_management_action_supported(
+                &AccountManagementAction::UnstableSessionView
+            )
+        );
+
+        // Remove it.
+        original_metadata
+            .account_management_actions_supported
+            .remove(&AccountManagementAction::DeviceView);
+        assert!(
+            !original_metadata
+                .is_action_management_action_supported(&AccountManagementAction::DeviceView)
+        );
+        assert!(
+            !original_metadata.is_action_management_action_supported(
+                &AccountManagementAction::UnstableSessionView
+            )
+        );
+
+        // Delete device.
+        assert!(
+            original_metadata
+                .is_action_management_action_supported(&AccountManagementAction::DeviceDelete)
+        );
+        assert!(
+            original_metadata.is_action_management_action_supported(
+                &AccountManagementAction::UnstableSessionEnd
+            )
+        );
+
+        // Remove it.
+        original_metadata
+            .account_management_actions_supported
+            .remove(&AccountManagementAction::DeviceDelete);
+        assert!(
+            !original_metadata
+                .is_action_management_action_supported(&AccountManagementAction::DeviceDelete)
+        );
+        assert!(
+            !original_metadata.is_action_management_action_supported(
+                &AccountManagementAction::UnstableSessionEnd
+            )
+        );
+    }
+
+    #[test]
+    fn metadata_account_management_url_with_action() {
+        let mut original_metadata = authorization_server_metadata();
+        let device_id = device_id!("DEVICE");
+
+        // View profile.
+        let url = original_metadata
+            .action_management_url_with_action(AccountManagementActionData::Profile)
+            .unwrap();
+        assert_eq!(url.query().unwrap(), "action=org.matrix.profile");
+
+        // View devices list, with only the stable action advertised.
+        let url = original_metadata
+            .action_management_url_with_action(AccountManagementActionData::DevicesList)
+            .unwrap();
+        assert_eq!(url.query().unwrap(), "action=org.matrix.devices_list");
+
+        // View devices list, with both stable and unstable actions advertised.
+        original_metadata
+            .account_management_actions_supported
+            .insert(AccountManagementAction::UnstableSessionsList);
+        let url = original_metadata
+            .action_management_url_with_action(AccountManagementActionData::DevicesList)
+            .unwrap();
+        assert_eq!(url.query().unwrap(), "action=org.matrix.devices_list");
+
+        // View devices list, with only the unstable action advertised.
+        original_metadata
+            .account_management_actions_supported
+            .remove(&AccountManagementAction::DevicesList);
+        let url = original_metadata
+            .action_management_url_with_action(AccountManagementActionData::DevicesList)
+            .unwrap();
+        assert_eq!(url.query().unwrap(), "action=org.matrix.sessions_list");
+
+        // View devices list, with no actions advertised.
+        original_metadata
+            .account_management_actions_supported
+            .remove(&AccountManagementAction::UnstableSessionsList);
+        let url = original_metadata
+            .action_management_url_with_action(AccountManagementActionData::DevicesList)
+            .unwrap();
+        assert_eq!(url.query().unwrap(), "action=org.matrix.devices_list");
+
+        // View device, with only the stable action advertised.
+        let url = original_metadata
+            .action_management_url_with_action(AccountManagementActionData::DeviceView(
+                device_id.into(),
+            ))
+            .unwrap();
+        assert_eq!(url.query().unwrap(), "action=org.matrix.device_view&device_id=DEVICE");
+
+        // View device, with both stable and unstable actions advertised.
+        original_metadata
+            .account_management_actions_supported
+            .insert(AccountManagementAction::UnstableSessionView);
+        let url = original_metadata
+            .action_management_url_with_action(AccountManagementActionData::DeviceView(
+                device_id.into(),
+            ))
+            .unwrap();
+        assert_eq!(url.query().unwrap(), "action=org.matrix.device_view&device_id=DEVICE");
+
+        // View device, with only the unstable action advertised.
+        original_metadata
+            .account_management_actions_supported
+            .remove(&AccountManagementAction::DeviceView);
+        let url = original_metadata
+            .action_management_url_with_action(AccountManagementActionData::DeviceView(
+                device_id.into(),
+            ))
+            .unwrap();
+        assert_eq!(url.query().unwrap(), "action=org.matrix.session_view&device_id=DEVICE");
+
+        // View device, with no actions advertised.
+        original_metadata
+            .account_management_actions_supported
+            .remove(&AccountManagementAction::UnstableSessionView);
+        let url = original_metadata
+            .action_management_url_with_action(AccountManagementActionData::DeviceView(
+                device_id.into(),
+            ))
+            .unwrap();
+        assert_eq!(url.query().unwrap(), "action=org.matrix.device_view&device_id=DEVICE");
+
+        // Delete device, with only the stable action advertised.
+        let url = original_metadata
+            .action_management_url_with_action(AccountManagementActionData::DeviceDelete(
+                device_id.into(),
+            ))
+            .unwrap();
+        assert_eq!(url.query().unwrap(), "action=org.matrix.device_delete&device_id=DEVICE");
+
+        // Delete device, with both stable and unstable actions advertised.
+        original_metadata
+            .account_management_actions_supported
+            .insert(AccountManagementAction::UnstableSessionEnd);
+        let url = original_metadata
+            .action_management_url_with_action(AccountManagementActionData::DeviceDelete(
+                device_id.into(),
+            ))
+            .unwrap();
+        assert_eq!(url.query().unwrap(), "action=org.matrix.device_delete&device_id=DEVICE");
+
+        // Delete device, with only the unstable action advertised.
+        original_metadata
+            .account_management_actions_supported
+            .remove(&AccountManagementAction::DeviceDelete);
+        let url = original_metadata
+            .action_management_url_with_action(AccountManagementActionData::DeviceDelete(
+                device_id.into(),
+            ))
+            .unwrap();
+        assert_eq!(url.query().unwrap(), "action=org.matrix.session_end&device_id=DEVICE");
+
+        // Delete device, with no actions advertised.
+        original_metadata
+            .account_management_actions_supported
+            .remove(&AccountManagementAction::UnstableSessionEnd);
+        let url = original_metadata
+            .action_management_url_with_action(AccountManagementActionData::DeviceDelete(
+                device_id.into(),
+            ))
+            .unwrap();
+        assert_eq!(url.query().unwrap(), "action=org.matrix.device_delete&device_id=DEVICE");
     }
 }

@@ -23,6 +23,12 @@ Improvements:
   for all state events.
 - Implement `RedactContent for PossiblyRedacted*EventContent` for all state
   events. 
+- Add support for the recently used emoji account data, according to MSC4356.
+- Stabilize support for invite blocking, according to MSC4380. Since the format
+  of the account data changed, the previous event content struct as well as its
+  variants in `AnyGlobalAccountDataEvent(Content)` are now prefixed with
+  `Unstable`. The new `InvitePermissionConfigEventContent` struct uses the new
+  format with a `default_action` field instead of `block_all`.
 
 # 0.32.1
 

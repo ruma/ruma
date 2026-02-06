@@ -19,6 +19,7 @@ Improvements:
   `to_canonical_value()`.
 - Add the `assert_to_canonical_json_eq!` macro that can be used in tests to
   check the canonical JSON serialization of a type against its expected value.
+- Add `io.element.msc4388` unstable feature support to `/versions`.
 
 # 0.17.1
 

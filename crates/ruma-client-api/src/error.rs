@@ -181,7 +181,6 @@ pub enum ErrorKind {
     ///
     /// The invite was interdicted by moderation tools or configured access controls without having
     /// been witnessed by the invitee.
-    #[cfg(feature = "unstable-msc4380")]
     InviteBlocked,
 
     /// `M_LIMIT_EXCEEDED`
@@ -470,7 +469,6 @@ impl ErrorKind {
             ErrorKind::InvalidParam => ErrorCode::InvalidParam,
             ErrorKind::InvalidRoomState => ErrorCode::InvalidRoomState,
             ErrorKind::InvalidUsername => ErrorCode::InvalidUsername,
-            #[cfg(feature = "unstable-msc4380")]
             ErrorKind::InviteBlocked => ErrorCode::InviteBlocked,
             ErrorKind::LimitExceeded { .. } => ErrorCode::LimitExceeded,
             ErrorKind::MissingParam => ErrorCode::MissingParam,
@@ -660,8 +658,7 @@ pub enum ErrorCode {
     /// been witnessed by the invitee.
     ///
     /// Unstable prefix intentionally shared with MSC4155 for compatibility.
-    #[cfg(feature = "unstable-msc4380")]
-    #[ruma_enum(rename = "ORG.MATRIX.MSC4155.INVITE_BLOCKED")]
+    #[ruma_enum(alias = "ORG.MATRIX.MSC4155.INVITE_BLOCKED")]
     InviteBlocked,
 
     /// `M_LIMIT_EXCEEDED`

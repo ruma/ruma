@@ -165,7 +165,6 @@ pub mod ignored_user_list;
 pub mod image;
 #[cfg(feature = "unstable-msc2545")]
 pub mod image_pack;
-#[cfg(feature = "unstable-msc4380")]
 pub mod invite_permission_config;
 pub mod key;
 #[cfg(feature = "unstable-msc3488")]
@@ -183,6 +182,7 @@ pub mod presence;
 pub mod push_rules;
 pub mod reaction;
 pub mod receipt;
+pub mod recent_emoji;
 pub mod relation;
 pub mod room;
 pub mod room_key;
