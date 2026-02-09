@@ -61,8 +61,8 @@ impl RoomServerAclEventContent {
 
         let host = server_name.host();
 
-        self.deny.iter().all(|d| !WildMatch::new(d).matches(host))
-            && self.allow.iter().any(|a| WildMatch::new(a).matches(host))
+        self.deny.iter().all(|d| !WildMatch::new_case_insensitive(d).matches(host))
+            && self.allow.iter().any(|a| WildMatch::new_case_insensitive(a).matches(host))
     }
 }
 
@@ -177,5 +177,20 @@ mod tests {
         };
         assert!(!acl_event.is_allowed(server_name!("[2001:db8:1234::2]")));
         assert!(acl_event.is_allowed(server_name!("[2001:db8:1234::1]")));
+    }
+
+    #[test]
+    fn acl_case_insensitive() {
+        let acl_event = RoomServerAclEventContent {
+            allow_ip_literals: false,
+            allow: vec!["good.ServEr".to_owned()],
+            deny: vec!["bad.ServeR".to_owned()],
+        };
+        assert!(!acl_event.is_allowed(server_name!("Bad.ServeR")));
+        assert!(!acl_event.is_allowed(server_name!("bAD.sERvER")));
+        assert!(!acl_event.is_allowed(server_name!("bAd.server")));
+        assert!(acl_event.is_allowed(server_name!("good.ServEr")));
+        assert!(acl_event.is_allowed(server_name!("good.server")));
+        assert!(acl_event.is_allowed(server_name!("GOOD.SERVER")));
     }
 }
