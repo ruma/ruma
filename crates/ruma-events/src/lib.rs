@@ -104,6 +104,9 @@
 
 #![warn(missing_docs)]
 
+#[cfg(feature = "unstable-uniffi")]
+uniffi::setup_scaffolding!();
+
 use std::{collections::BTreeSet, fmt};
 
 use ruma_common::{EventEncryptionAlgorithm, OwnedUserId, room_version_rules::RedactionRules};
@@ -311,3 +314,17 @@ impl fmt::Debug for PrivOwnedStr {
         self.0.fmt(f)
     }
 }
+
+// Wrapper around `Box<str>` for transferring `PrivOwnedStr` over UniFFI.
+// We cannot derive `PrivOwnedStr` from `uniffi::Object` directly because
+// that would require wrapping it in an `Arc` inside the `_Custom` variants.
+#[cfg_attr(feature = "unstable-uniffi", derive(uniffi::Object))]
+#[doc(hidden)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct PrivateString(Box<str>);
+
+#[cfg(feature = "unstable-uniffi")]
+uniffi::custom_type!(PrivOwnedStr, std::sync::Arc<PrivateString> , {
+    lower: |value| std::sync::Arc::new(PrivateString(value.0)),
+    try_lift: |value| Ok(PrivOwnedStr(value.0.clone())),
+});
