@@ -1,8 +1,7 @@
 use ruma_common::serde::StringEnum;
 use serde_json::{from_value as from_json_value, json};
 
-#[derive(Debug, PartialEq)]
-struct PrivOwnedStr(Box<str>);
+ruma_common::priv_owned_str!();
 
 #[derive(StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
