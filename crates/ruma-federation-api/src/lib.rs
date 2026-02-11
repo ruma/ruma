@@ -8,8 +8,6 @@
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
-use std::fmt;
-
 mod serde;
 
 pub mod authenticated_media;
@@ -29,15 +27,4 @@ pub mod space;
 pub mod thirdparty;
 pub mod transactions;
 
-// Wrapper around `Box<str>` that cannot be used in a meaningful way outside of
-// this crate. Used for string enums because their `_Custom` variant can't be
-// truly private (only `#[doc(hidden)]`).
-#[doc(hidden)]
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PrivOwnedStr(Box<str>);
-
-impl fmt::Debug for PrivOwnedStr {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
+ruma_common::priv_owned_str!();

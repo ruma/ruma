@@ -30,6 +30,7 @@ pub mod media;
 mod percent_encode;
 pub mod power_levels;
 pub mod presence;
+mod priv_owned_str;
 pub mod push;
 pub mod room;
 pub mod room_version_rules;
@@ -39,26 +40,13 @@ pub mod thirdparty;
 mod time;
 pub mod to_device;
 
-use std::fmt;
-
 pub use self::{
     canonical_json::{CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue},
     identifiers::*,
     time::{MilliSecondsSinceUnixEpoch, SecondsSinceUnixEpoch},
 };
 
-// Wrapper around `Box<str>` that cannot be used in a meaningful way outside of
-// this crate. Used for string enums because their `_Custom` variant can't be
-// truly private (only `#[doc(hidden)]`).
-#[doc(hidden)]
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PrivOwnedStr(Box<str>);
-
-impl fmt::Debug for PrivOwnedStr {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
+priv_owned_str!();
 
 /// Re-exports used by macro-generated code.
 ///
