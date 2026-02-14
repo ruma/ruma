@@ -1,5 +1,10 @@
 # [unreleased]
 
+Bug fixes:
+
+- Reject server names with an empty host and only a port in
+  `server_name::validate()` (e.g. `:8448`).
+
 # 0.12.0
 
 - Bump MSRV to 1.88
