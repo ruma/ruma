@@ -20,6 +20,9 @@ Improvements:
 - Add the `assert_to_canonical_json_eq!` macro that can be used in tests to
   check the canonical JSON serialization of a type against its expected value.
 - Add `io.element.msc4388` unstable feature support to `/versions`.
+- Avoid extra allocations when converting between `OwnedRoomId` /
+  `OwnedRoomAliasId` and `OwnedRoomOrAliasId` in the default `Box` storage
+  path.
 
 # 0.17.1
 
