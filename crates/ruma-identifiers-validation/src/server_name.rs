@@ -21,6 +21,10 @@ pub fn validate(server_name: &str) -> Result<(), Error> {
         #[allow(clippy::unnecessary_lazy_evaluations)]
         let end_of_host = server_name.find(':').unwrap_or_else(|| server_name.len());
 
+        if end_of_host == 0 {
+            return Err(Error::InvalidServerName);
+        }
+
         if server_name[..end_of_host]
             .bytes()
             .any(|byte| !(byte.is_ascii_alphanumeric() || byte == b'-' || byte == b'.'))
@@ -42,5 +46,21 @@ pub fn validate(server_name: &str) -> Result<(), Error> {
         Err(Error::InvalidServerName)
     } else {
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::validate;
+    use crate::user_id;
+
+    #[test]
+    fn rejects_hostless_server_name_with_port() {
+        assert!(validate(":8448").is_err());
+    }
+
+    #[test]
+    fn rejects_user_id_with_hostless_server_name() {
+        assert!(user_id::validate("@alice::8448").is_err());
     }
 }
