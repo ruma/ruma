@@ -92,6 +92,7 @@ impl<'a> From<&'a RoomAliasId> for &'a RoomOrAliasId {
 
 impl From<OwnedRoomId> for OwnedRoomOrAliasId {
     fn from(room_id: OwnedRoomId) -> Self {
+        // FIXME: Arc storage still allocates here.
         let room_id: Box<RoomId> = room_id.into();
         RoomOrAliasId::from_box(room_id.into()).into()
     }
@@ -99,6 +100,7 @@ impl From<OwnedRoomId> for OwnedRoomOrAliasId {
 
 impl From<OwnedRoomAliasId> for OwnedRoomOrAliasId {
     fn from(room_alias_id: OwnedRoomAliasId) -> Self {
+        // FIXME: Arc storage still allocates here.
         let room_alias_id: Box<RoomAliasId> = room_alias_id.into();
         RoomOrAliasId::from_box(room_alias_id.into()).into()
     }
@@ -130,6 +132,7 @@ impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomId {
     type Error = OwnedRoomAliasId;
 
     fn try_from(id: OwnedRoomOrAliasId) -> Result<OwnedRoomId, OwnedRoomAliasId> {
+        // FIXME: Arc storage still allocates here.
         let variant = id.variant();
         let id: Box<RoomOrAliasId> = id.into();
 
@@ -144,6 +147,7 @@ impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomAliasId {
     type Error = OwnedRoomId;
 
     fn try_from(id: OwnedRoomOrAliasId) -> Result<OwnedRoomAliasId, OwnedRoomId> {
+        // FIXME: Arc storage still allocates here.
         let variant = id.variant();
         let id: Box<RoomOrAliasId> = id.into();
 
