@@ -92,15 +92,15 @@ impl<'a> From<&'a RoomAliasId> for &'a RoomOrAliasId {
 
 impl From<OwnedRoomId> for OwnedRoomOrAliasId {
     fn from(room_id: OwnedRoomId) -> Self {
-        // FIXME: Don't allocate
-        RoomOrAliasId::from_borrowed(room_id.as_str()).to_owned()
+        let room_id: Box<RoomId> = room_id.into();
+        RoomOrAliasId::from_box(room_id.into()).into()
     }
 }
 
 impl From<OwnedRoomAliasId> for OwnedRoomOrAliasId {
     fn from(room_alias_id: OwnedRoomAliasId) -> Self {
-        // FIXME: Don't allocate
-        RoomOrAliasId::from_borrowed(room_alias_id.as_str()).to_owned()
+        let room_alias_id: Box<RoomAliasId> = room_alias_id.into();
+        RoomOrAliasId::from_box(room_alias_id.into()).into()
     }
 }
 
@@ -130,10 +130,12 @@ impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomId {
     type Error = OwnedRoomAliasId;
 
     fn try_from(id: OwnedRoomOrAliasId) -> Result<OwnedRoomId, OwnedRoomAliasId> {
-        // FIXME: Don't allocate
-        match id.variant() {
-            Variant::RoomId => Ok(RoomId::from_borrowed(id.as_str()).to_owned()),
-            Variant::RoomAliasId => Err(RoomAliasId::from_borrowed(id.as_str()).to_owned()),
+        let variant = id.variant();
+        let id: Box<RoomOrAliasId> = id.into();
+
+        match variant {
+            Variant::RoomId => Ok(RoomId::from_box(id.into()).into()),
+            Variant::RoomAliasId => Err(RoomAliasId::from_box(id.into()).into()),
         }
     }
 }
@@ -142,10 +144,12 @@ impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomAliasId {
     type Error = OwnedRoomId;
 
     fn try_from(id: OwnedRoomOrAliasId) -> Result<OwnedRoomAliasId, OwnedRoomId> {
-        // FIXME: Don't allocate
-        match id.variant() {
-            Variant::RoomAliasId => Ok(RoomAliasId::from_borrowed(id.as_str()).to_owned()),
-            Variant::RoomId => Err(RoomId::from_borrowed(id.as_str()).to_owned()),
+        let variant = id.variant();
+        let id: Box<RoomOrAliasId> = id.into();
+
+        match variant {
+            Variant::RoomAliasId => Ok(RoomAliasId::from_box(id.into()).into()),
+            Variant::RoomId => Err(RoomId::from_box(id.into()).into()),
         }
     }
 }
