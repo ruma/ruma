@@ -165,7 +165,9 @@ impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomId {
             unsafe {
                 match variant {
                     Variant::RoomId => Ok(Self::from_raw(ptr as *const RoomId)),
-                    Variant::RoomAliasId => Err(OwnedRoomAliasId::from_raw(ptr as *const RoomAliasId)),
+                    Variant::RoomAliasId => {
+                        Err(OwnedRoomAliasId::from_raw(ptr as *const RoomAliasId))
+                    }
                 }
             }
         }
