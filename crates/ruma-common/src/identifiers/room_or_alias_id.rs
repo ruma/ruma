@@ -92,17 +92,13 @@ impl<'a> From<&'a RoomAliasId> for &'a RoomOrAliasId {
 
 impl From<OwnedRoomId> for OwnedRoomOrAliasId {
     fn from(room_id: OwnedRoomId) -> Self {
-        // FIXME: Arc storage still allocates here.
-        let room_id: Box<RoomId> = room_id.into();
-        RoomOrAliasId::from_box(room_id.into()).into()
+        unsafe { Self::from_raw(room_id.into_raw() as *const RoomOrAliasId) }
     }
 }
 
 impl From<OwnedRoomAliasId> for OwnedRoomOrAliasId {
     fn from(room_alias_id: OwnedRoomAliasId) -> Self {
-        // FIXME: Arc storage still allocates here.
-        let room_alias_id: Box<RoomAliasId> = room_alias_id.into();
-        RoomOrAliasId::from_box(room_alias_id.into()).into()
+        unsafe { Self::from_raw(room_alias_id.into_raw() as *const RoomOrAliasId) }
     }
 }
 
@@ -132,13 +128,14 @@ impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomId {
     type Error = OwnedRoomAliasId;
 
     fn try_from(id: OwnedRoomOrAliasId) -> Result<OwnedRoomId, OwnedRoomAliasId> {
-        // FIXME: Arc storage still allocates here.
         let variant = id.variant();
-        let id: Box<RoomOrAliasId> = id.into();
+        let ptr = id.into_raw();
 
-        match variant {
-            Variant::RoomId => Ok(RoomId::from_box(id.into()).into()),
-            Variant::RoomAliasId => Err(RoomAliasId::from_box(id.into()).into()),
+        unsafe {
+            match variant {
+                Variant::RoomId => Ok(Self::from_raw(ptr as *const RoomId)),
+                Variant::RoomAliasId => Err(OwnedRoomAliasId::from_raw(ptr as *const RoomAliasId)),
+            }
         }
     }
 }
@@ -147,13 +144,14 @@ impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomAliasId {
     type Error = OwnedRoomId;
 
     fn try_from(id: OwnedRoomOrAliasId) -> Result<OwnedRoomAliasId, OwnedRoomId> {
-        // FIXME: Arc storage still allocates here.
         let variant = id.variant();
-        let id: Box<RoomOrAliasId> = id.into();
+        let ptr = id.into_raw();
 
-        match variant {
-            Variant::RoomAliasId => Ok(RoomAliasId::from_box(id.into()).into()),
-            Variant::RoomId => Err(RoomId::from_box(id.into()).into()),
+        unsafe {
+            match variant {
+                Variant::RoomAliasId => Ok(Self::from_raw(ptr as *const RoomAliasId)),
+                Variant::RoomId => Err(OwnedRoomId::from_raw(ptr as *const RoomId)),
+            }
         }
     }
 }
