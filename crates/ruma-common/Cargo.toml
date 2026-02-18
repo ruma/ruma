@@ -79,7 +79,7 @@ tracing = { workspace = true, features = ["attributes"] }
 url = { workspace = true }
 uuid = { version = "1.0.0", optional = true, features = ["v4"] }
 web-time = { workspace = true }
-wildmatch = "2.0.0"
+wildmatch = { workspace = true }
 zeroize = { workspace = true }
 
 [target.'cfg(all(target_family = "wasm", target_os = "unknown"))'.dependencies]

@@ -22,7 +22,7 @@ as_variant = { workspace = true }
 html5ever = "0.35.0"
 ruma-common = { workspace = true, optional = true }
 tracing = { workspace = true, features = ["attributes"] }
-wildmatch = "2.0.0"
+wildmatch = { workspace = true }
 
 [dev-dependencies]
 assert_matches2 = { workspace = true }
