@@ -12,10 +12,8 @@ use serde_json::value::RawValue as RawJsonValue;
 use super::{
     AnyInitialStateEvent, EmptyStateKey, EphemeralRoomEventContent, EventContentFromType,
     GlobalAccountDataEventContent, MessageLikeEventContent, MessageLikeEventType,
-    MessageLikeUnsigned, PossiblyRedactedStateEventContent, RedactContent,
-    RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
-    RedactionDeHelper, RoomAccountDataEventContent, StateEventType, StaticStateEventContent,
-    ToDeviceEventContent,
+    MessageLikeUnsigned, RedactContent, RedactedMessageLikeEventContent, RedactedUnsigned,
+    RedactionDeHelper, RoomAccountDataEventContent, StaticStateEventContent, ToDeviceEventContent,
 };
 
 /// A global account data event.
@@ -366,13 +364,13 @@ where
 {
 }
 
-/// An unredacted state event.
+/// A state event.
 ///
-/// `OriginalStateEvent` implements the comparison traits using only the `event_id` field, a sorted
+/// `StateEvent` implements the comparison traits using only the `event_id` field, a sorted
 /// list would be sorted lexicographically based on the event's `EventId`.
 #[derive(Clone, Debug, Event)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct OriginalStateEvent<C: StaticStateEventContent> {
+pub struct StateEvent<C: StaticStateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -400,38 +398,19 @@ pub struct OriginalStateEvent<C: StaticStateEventContent> {
     pub unsigned: C::Unsigned,
 }
 
-impl<C: StaticStateEventContent> JsonCastable<OriginalSyncStateEvent<C>> for OriginalStateEvent<C> {}
+impl<C: StaticStateEventContent> JsonCastable<SyncStateEvent<C>> for StateEvent<C> {}
 
-impl<C: StaticStateEventContent + RedactContent> JsonCastable<StateEvent<C>>
-    for OriginalStateEvent<C>
-where
-    C::Redacted: RedactedStateEventContent,
-{
-}
+impl<C: StaticStateEventContent> JsonCastable<StrippedStateEvent<C>> for StateEvent<C> {}
 
-impl<C: StaticStateEventContent + RedactContent> JsonCastable<SyncStateEvent<C>>
-    for OriginalStateEvent<C>
-where
-    C::Redacted: RedactedStateEventContent,
-{
-}
+impl<C: StaticStateEventContent> JsonCastable<JsonObject> for StateEvent<C> {}
 
-impl<C: StaticStateEventContent> JsonCastable<StrippedStateEvent<C::PossiblyRedacted>>
-    for OriginalStateEvent<C>
-where
-    C::PossiblyRedacted: PossiblyRedactedStateEventContent,
-{
-}
-
-impl<C: StaticStateEventContent> JsonCastable<JsonObject> for OriginalStateEvent<C> {}
-
-/// An unredacted state event without a `room_id`.
+/// A state event without a `room_id`.
 ///
-/// `OriginalSyncStateEvent` implements the comparison traits using only the `event_id` field, a
-/// sorted list would be sorted lexicographically based on the event's `EventId`.
+/// `SyncStateEvent` implements the comparison traits using only the `event_id` field, a
+/// sorted list would be sorted lexicographically based on the event's [`OwnedEventId`].
 #[derive(Clone, Debug, Event)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct OriginalSyncStateEvent<C: StaticStateEventContent> {
+pub struct SyncStateEvent<C: StaticStateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -456,26 +435,14 @@ pub struct OriginalSyncStateEvent<C: StaticStateEventContent> {
     pub unsigned: C::Unsigned,
 }
 
-impl<C: StaticStateEventContent + RedactContent> JsonCastable<SyncStateEvent<C>>
-    for OriginalSyncStateEvent<C>
-where
-    C::Redacted: RedactedStateEventContent,
-{
-}
+impl<C: StaticStateEventContent> JsonCastable<StrippedStateEvent<C>> for SyncStateEvent<C> {}
 
-impl<C: StaticStateEventContent> JsonCastable<StrippedStateEvent<C::PossiblyRedacted>>
-    for OriginalSyncStateEvent<C>
-where
-    C::PossiblyRedacted: PossiblyRedactedStateEventContent,
-{
-}
-
-impl<C: StaticStateEventContent> JsonCastable<JsonObject> for OriginalSyncStateEvent<C> {}
+impl<C: StaticStateEventContent> JsonCastable<JsonObject> for SyncStateEvent<C> {}
 
 /// A stripped-down state event, used for previews of rooms the user has been invited to.
 #[derive(Clone, Debug, Event)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct StrippedStateEvent<C: PossiblyRedactedStateEventContent> {
+pub struct StrippedStateEvent<C: StaticStateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -502,7 +469,7 @@ pub struct StrippedStateEvent<C: PossiblyRedactedStateEventContent> {
     pub unsigned: Option<Raw<crate::StateUnsigned<C>>>,
 }
 
-impl<C: PossiblyRedactedStateEventContent> JsonCastable<JsonObject> for StrippedStateEvent<C> {}
+impl<C: StaticStateEventContent> JsonCastable<JsonObject> for StrippedStateEvent<C> {}
 
 /// A minimal state event, used for creating a new room.
 #[derive(Clone, Debug, Event)]
@@ -588,166 +555,6 @@ impl<C: StaticStateEventContent> Serialize for InitialStateEvent<C> {
 
 impl<C: StaticStateEventContent> JsonCastable<JsonObject> for InitialStateEvent<C> {}
 
-/// A redacted state event.
-///
-/// `RedactedStateEvent` implements the comparison traits using only the `event_id` field, a sorted
-/// list would be sorted lexicographically based on the event's `EventId`.
-#[derive(Clone, Debug, Event)]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct RedactedStateEvent<C: RedactedStateEventContent> {
-    /// Data specific to the event type.
-    pub content: C,
-
-    /// The globally unique identifier for the event.
-    pub event_id: OwnedEventId,
-
-    /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
-
-    /// Timestamp on the originating homeserver when this event was sent.
-    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
-
-    /// The ID of the room associated with this event.
-    pub room_id: OwnedRoomId,
-
-    /// A unique key which defines the overwriting semantics for this piece of room state.
-    ///
-    /// This must be a string type, and is often an empty string.
-    ///
-    /// A state event is keyed by its `(type, state_key)` tuple. Sending another state event with
-    /// the same tuple replaces the previous one.
-    pub state_key: C::StateKey,
-
-    /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: RedactedUnsigned,
-}
-
-impl<C: RedactedStateEventContent> JsonCastable<RedactedSyncStateEvent<C>>
-    for RedactedStateEvent<C>
-{
-}
-
-impl<C: StaticStateEventContent + RedactContent> JsonCastable<StateEvent<C>>
-    for RedactedStateEvent<C::Redacted>
-where
-    C::Redacted: RedactedStateEventContent,
-{
-}
-
-impl<C: StaticStateEventContent + RedactContent> JsonCastable<SyncStateEvent<C>>
-    for RedactedStateEvent<C::Redacted>
-where
-    C::Redacted: RedactedStateEventContent,
-{
-}
-
-impl<C: RedactedStateEventContent> JsonCastable<JsonObject> for RedactedStateEvent<C> {}
-
-/// A redacted state event without a `room_id`.
-///
-/// `RedactedSyncStateEvent` implements the comparison traits using only the `event_id` field, a
-/// sorted list would be sorted lexicographically based on the event's `EventId`.
-#[derive(Clone, Debug, Event)]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
-    /// Data specific to the event type.
-    pub content: C,
-
-    /// The globally unique identifier for the event.
-    pub event_id: OwnedEventId,
-
-    /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
-
-    /// Timestamp on the originating homeserver when this event was sent.
-    pub origin_server_ts: MilliSecondsSinceUnixEpoch,
-
-    /// A unique key which defines the overwriting semantics for this piece of room state.
-    ///
-    /// This must be a string type, and is often an empty string.
-    ///
-    /// A state event is keyed by its `(type, state_key)` tuple. Sending another state event with
-    /// the same tuple replaces the previous one.
-    pub state_key: C::StateKey,
-
-    /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: RedactedUnsigned,
-}
-
-impl<C: StaticStateEventContent + RedactContent> JsonCastable<SyncStateEvent<C>>
-    for RedactedSyncStateEvent<C::Redacted>
-where
-    C::Redacted: RedactedStateEventContent,
-{
-}
-
-impl<C: RedactedStateEventContent> JsonCastable<JsonObject> for RedactedSyncStateEvent<C> {}
-
-/// A possibly-redacted state event.
-///
-/// `StateEvent` implements the comparison traits using only the `event_id` field, a sorted list
-/// would be sorted lexicographically based on the event's `EventId`.
-#[allow(clippy::exhaustive_enums)]
-#[derive(Clone, Debug)]
-pub enum StateEvent<C: StaticStateEventContent + RedactContent>
-where
-    C::Redacted: RedactedStateEventContent,
-{
-    /// Original, unredacted form of the event.
-    Original(OriginalStateEvent<C>),
-
-    /// Redacted form of the event with minimal fields.
-    Redacted(RedactedStateEvent<C::Redacted>),
-}
-
-impl<C: StaticStateEventContent + RedactContent> JsonCastable<SyncStateEvent<C>> for StateEvent<C> where
-    C::Redacted: RedactedStateEventContent
-{
-}
-
-impl<C: StaticStateEventContent + RedactContent>
-    JsonCastable<StrippedStateEvent<C::PossiblyRedacted>> for StateEvent<C>
-where
-    C::Redacted: RedactedStateEventContent,
-    C::PossiblyRedacted: PossiblyRedactedStateEventContent,
-{
-}
-
-impl<C: StaticStateEventContent + RedactContent> JsonCastable<JsonObject> for StateEvent<C> where
-    C::Redacted: RedactedStateEventContent
-{
-}
-
-/// A possibly-redacted state event without a `room_id`.
-///
-/// `SyncStateEvent` implements the comparison traits using only the `event_id` field, a sorted list
-/// would be sorted lexicographically based on the event's `EventId`.
-#[allow(clippy::exhaustive_enums)]
-#[derive(Clone, Debug)]
-pub enum SyncStateEvent<C: StaticStateEventContent + RedactContent>
-where
-    C::Redacted: RedactedStateEventContent,
-{
-    /// Original, unredacted form of the event.
-    Original(OriginalSyncStateEvent<C>),
-
-    /// Redacted form of the event with minimal fields.
-    Redacted(RedactedSyncStateEvent<C::Redacted>),
-}
-
-impl<C: StaticStateEventContent + RedactContent>
-    JsonCastable<StrippedStateEvent<C::PossiblyRedacted>> for SyncStateEvent<C>
-where
-    C::Redacted: RedactedStateEventContent,
-    C::PossiblyRedacted: PossiblyRedactedStateEventContent,
-{
-}
-
-impl<C: StaticStateEventContent + RedactContent> JsonCastable<JsonObject> for SyncStateEvent<C> where
-    C::Redacted: RedactedStateEventContent
-{
-}
-
 /// An event sent using send-to-device messaging.
 #[derive(Clone, Debug, Event)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
@@ -830,48 +637,24 @@ pub struct DecryptedMegolmV1Event<C: MessageLikeEventContent> {
     pub room_id: OwnedRoomId,
 }
 
-/// A possibly-redacted state event content.
-///
-/// A non-redacted content also contains the `prev_content` from the unsigned event data.
-#[allow(clippy::exhaustive_enums)]
+/// A state event content with an optional `prev_content` from the unsigned event data.
+#[allow(clippy::exhaustive_structs)]
 #[derive(Clone, Debug)]
-pub enum FullStateEventContent<C: StaticStateEventContent + RedactContent> {
-    /// Original, unredacted content of the event.
-    Original {
-        /// Current content of the room state.
-        content: C,
+pub struct FullStateEventContent<C: StaticStateEventContent> {
+    /// Current content of the room state.
+    pub content: C,
 
-        /// Previous content of the room state.
-        prev_content: Option<C::PossiblyRedacted>,
-    },
-
-    /// Redacted content of the event.
-    Redacted(C::Redacted),
+    /// Previous content of the room state.
+    pub prev_content: Option<C>,
 }
 
-impl<C: StaticStateEventContent + RedactContent> FullStateEventContent<C>
-where
-    C::Redacted: RedactedStateEventContent,
-{
-    /// Get the event’s type, like `m.room.create`.
-    pub fn event_type(&self) -> StateEventType {
-        match self {
-            Self::Original { content, .. } => content.event_type(),
-            Self::Redacted(content) => content.event_type(),
-        }
-    }
-
+impl<C: StaticStateEventContent + RedactContent> FullStateEventContent<C> {
     /// Transform `self` into a redacted form (removing most or all fields) according to the spec.
-    ///
-    /// If `self` is already [`Redacted`](Self::Redacted), return the inner data unmodified.
     ///
     /// A small number of events have room-version specific redaction behavior, so a
     /// [`RedactionRules`] has to be specified.
     pub fn redact(self, rules: &RedactionRules) -> C::Redacted {
-        match self {
-            FullStateEventContent::Original { content, .. } => content.redact(rules),
-            FullStateEventContent::Redacted(content) => content,
-        }
+        self.content.redact(rules)
     }
 }
 
@@ -984,62 +767,6 @@ impl_possibly_redacted_event!(
     }
 );
 
-impl_possibly_redacted_event!(
-    StateEvent(StaticStateEventContent, RedactedStateEventContent, StateEventType)
-    where
-        C::Redacted: RedactedStateEventContent<StateKey = C::StateKey>,
-    {
-        /// Returns this event's `room_id` field.
-        pub fn room_id(&self) -> &RoomId {
-            match self {
-                Self::Original(ev) => &ev.room_id,
-                Self::Redacted(ev) => &ev.room_id,
-            }
-        }
-
-        /// Returns this event's `state_key` field.
-        pub fn state_key(&self) -> &C::StateKey {
-            match self {
-                Self::Original(ev) => &ev.state_key,
-                Self::Redacted(ev) => &ev.state_key,
-            }
-        }
-
-        /// Get the inner `OriginalStateEvent` if this is an unredacted event.
-        pub fn as_original(&self) -> Option<&OriginalStateEvent<C>> {
-            as_variant!(self, Self::Original)
-        }
-    }
-);
-
-impl_possibly_redacted_event!(
-    SyncStateEvent(StaticStateEventContent, RedactedStateEventContent, StateEventType)
-    where
-        C::Redacted: RedactedStateEventContent<StateKey = C::StateKey>,
-    {
-        /// Returns this event's `state_key` field.
-        pub fn state_key(&self) -> &C::StateKey {
-            match self {
-                Self::Original(ev) => &ev.state_key,
-                Self::Redacted(ev) => &ev.state_key,
-            }
-        }
-
-        /// Get the inner `OriginalSyncStateEvent` if this is an unredacted event.
-        pub fn as_original(&self) -> Option<&OriginalSyncStateEvent<C>> {
-            as_variant!(self, Self::Original)
-        }
-
-        /// Convert this sync event into a full event (one with a `room_id` field).
-        pub fn into_full_event(self, room_id: OwnedRoomId) -> StateEvent<C> {
-            match self {
-                Self::Original(ev) => StateEvent::Original(ev.into_full_event(room_id)),
-                Self::Redacted(ev) => StateEvent::Redacted(ev.into_full_event(room_id)),
-            }
-        }
-    }
-);
-
 macro_rules! impl_sync_from_full {
     ($ty:ident, $full:ident, $content_trait:ident, $redacted_content_trait: ident) => {
         impl<C> From<$full<C>> for $ty<C>
@@ -1062,10 +789,4 @@ impl_sync_from_full!(
     MessageLikeEvent,
     MessageLikeEventContent,
     RedactedMessageLikeEventContent
-);
-impl_sync_from_full!(
-    SyncStateEvent,
-    StateEvent,
-    StaticStateEventContent,
-    RedactedStateEventContent
 );

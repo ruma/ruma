@@ -5,7 +5,6 @@ use std::borrow::Cow;
 use as_variant::as_variant;
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident, quote};
-use syn::parse_quote;
 
 mod parse;
 
@@ -23,10 +22,10 @@ pub(crate) fn expand_event_content(input: syn::DeriveInput) -> syn::Result<Token
 
     // Generate alternate variations.
     let redacted_event_content = event_content.expand_redacted_event_content();
-    let possibly_redacted_event_content = event_content.expand_possibly_redacted_event_content();
     let event_content_without_relation = event_content.expand_event_content_without_relation();
 
     // Generate trait implementations of the original variation.
+    let redact_content_impl = event_content.expand_redact_content_impl();
     let event_content_impl = event_content.expand_event_content_impl(
         EventContentVariation::Original,
         &event_content.ident,
@@ -41,8 +40,8 @@ pub(crate) fn expand_event_content(input: syn::DeriveInput) -> syn::Result<Token
 
     Ok(quote! {
         #redacted_event_content
-        #possibly_redacted_event_content
         #event_content_without_relation
+        #redact_content_impl
         #event_content_impl
         #static_event_content_impl
         #json_castable_impl
@@ -84,7 +83,8 @@ impl EventContent {
             .and_then(|field| field.inner.ident.as_ref())
     }
 
-    /// Generate the `Redacted*EventContent` variation of this struct, if it needs one.
+    /// Generate the `Redacted*EventContent` variation and `RedactContent` implementation of this
+    /// struct, if needed.
     fn expand_redacted_event_content(&self) -> Option<TokenStream> {
         if !self.kind.should_generate_redacted() {
             return None;
@@ -151,192 +151,46 @@ impl EventContent {
         })
     }
 
-    /// Generate the `PossiblyRedacted*EventContent` variation of this struct, if it needs one.
-    fn expand_possibly_redacted_event_content(&self) -> Option<TokenStream> {
-        if !self.kind.should_generate_possibly_redacted() {
+    /// Generate the `RedactContent` implementation of this struct, if needed.
+    fn expand_redact_content_impl(&self) -> Option<TokenStream> {
+        if !self.kind.should_generate_redact_content_impl() {
             return None;
         }
 
-        let serde = self.ruma_events.reexported(RumaEventsReexport::Serde);
+        let ruma_events = &self.ruma_events;
+        let ruma_common = ruma_events.ruma_common();
 
         let ident = &self.ident;
-        let vis = &self.vis;
 
-        let possibly_redacted_doc = format!(
-            "The possibly redacted form of [`{ident}`].\n\n\
-             This type is used when it's not obvious whether the content is redacted or not."
-        );
-        let possibly_redacted_ident =
-            EventContentVariation::PossiblyRedacted.variation_ident(ident);
+        let field_idents = self.fields.iter().flatten().map(|field| &field.inner.ident);
+        let redact_content_field_exprs = self.fields.iter().flatten().map(|field| {
+            let ident = &field.inner.ident;
 
-        let mut field_changed = false;
-
-        let possibly_redacted_fields = self
-            .fields
-            .iter()
-            .flatten()
-            .map(|field| {
-                if field.keep_in_possibly_redacted() {
-                    return Cow::Borrowed(field);
-                }
-
-                // Otherwise, change the field to an `Option`.
-                field_changed = true;
-
-                let mut field = field.clone();
-                let wrapped_type = &field.inner.ty;
-                field.inner.ty = parse_quote! { Option<#wrapped_type> };
-                field
-                    .inner
-                    .attrs
-                    .push(parse_quote! { #[serde(skip_serializing_if = "Option::is_none")] });
-
-                Cow::Owned(field)
-            })
-            .collect::<Vec<_>>();
-
-        let should_generate_redacted = self.kind.should_generate_redacted();
-        let redacted_ident = should_generate_redacted
-            .then(|| EventContentVariation::Redacted.variation_ident(ident));
-        let redacted_field_idents = should_generate_redacted
-            .then(|| {
-                possibly_redacted_fields
-                    .iter()
-                    .filter(|field| field.skip_redaction)
-                    .map(|field| &field.inner.ident)
-            })
-            .into_iter()
-            .flatten()
-            .collect::<Vec<_>>();
-        let from_redacted_field_exprs = should_generate_redacted
-            .then(|| {
-                possibly_redacted_fields.iter().map(|field| {
-                    let ident = &field.inner.ident;
-
-                    if field.skip_redaction {
-                        quote! { #ident }
-                    } else if let Some(default_expr) = field.inner.serde_default_expr() {
-                        quote! { #ident: #default_expr() }
-                    } else {
-                        quote! { #ident: Default::default() }
-                    }
-                })
-            })
-            .into_iter()
-            .flatten()
-            .collect::<Vec<_>>();
-
-        // Implement `From<Redacted*EventContent>` if we generated it automatically.
-        let from_redacted_impl = should_generate_redacted.then(|| {
-            quote! {
-
-                impl From<#redacted_ident> for #possibly_redacted_ident {
-                    fn from(value: #redacted_ident) -> #possibly_redacted_ident {
-                        let #redacted_ident {
-                            #( #redacted_field_idents, )*
-                        } = value;
-
-                        Self {
-                            #( #from_redacted_field_exprs, )*
-                        }
-                    }
-                }
+            if field.skip_redaction {
+                quote! { #ident }
+            } else if let Some(default_expr) = field.inner.serde_default_expr() {
+                quote! { #ident: #default_expr() }
+            } else {
+                quote! { #ident: Default::default() }
             }
         });
 
-        // If at least one field needs to change, generate a new struct, else use a type alias.
-        if field_changed {
-            let possibly_redacted_event_content = self.expand_event_content_impl(
-                EventContentVariation::PossiblyRedacted,
-                &possibly_redacted_ident,
-                Some(possibly_redacted_fields.iter().map(|field| field.as_ref())),
-            );
-            let static_event_content_impl =
-                self.expand_static_event_content_impl(&possibly_redacted_ident);
+        Some(quote! {
+            #[automatically_derived]
+            impl #ruma_events::RedactContent for #ident {
+                type Redacted = Self;
 
-            let json_castable_impl = if self.kind.should_generate_redacted() {
-                let redacted_ident = EventContentVariation::PossiblyRedacted.variation_ident(ident);
-                generate_json_castable_impl(&possibly_redacted_ident, &[ident, &redacted_ident])
-            } else {
-                generate_json_castable_impl(&possibly_redacted_ident, &[ident])
-            };
+                fn redact(self, _rules: &#ruma_common::room_version_rules::RedactionRules) -> Self {
+                    let Self {
+                        #( #field_idents, )*
+                    } = self;
 
-            let field_idents = possibly_redacted_fields.iter().map(|field| &field.inner.ident);
-            let from_original_field_exprs = possibly_redacted_fields.iter().map(|field| {
-                let ident = &field.inner.ident;
-
-                if matches!(field, Cow::Borrowed(_)) {
-                    quote! { #ident }
-                } else {
-                    quote! { #ident: Some(#ident) }
-                }
-            });
-
-            let redact_content_impl = self.kind.should_generate_redacted().then(|| {
-                let ruma_events = &self.ruma_events;
-                let ruma_common = ruma_events.ruma_common();
-
-                let maybe_remaining_fields = (redacted_field_idents.len() != from_redacted_field_exprs.len()).then(|| quote! { .. });
-
-                quote! {
-                    #[automatically_derived]
-                    impl #ruma_events::RedactContent for #possibly_redacted_ident {
-                        type Redacted = #possibly_redacted_ident;
-
-                        fn redact(self, _rules: &#ruma_common::room_version_rules::RedactionRules) -> #possibly_redacted_ident {
-                            let Self {
-                                #( #redacted_field_idents, )*
-                                #maybe_remaining_fields
-                            } = self;
-
-                            Self {
-                                #( #from_redacted_field_exprs, )*
-                            }
-                        }
+                    Self {
+                        #( #redact_content_field_exprs, )*
                     }
                 }
-            });
-
-            Some(quote! {
-                #[doc = #possibly_redacted_doc]
-                #[derive(Clone, Debug, #serde::Deserialize, #serde::Serialize)]
-                #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-                #vis struct #possibly_redacted_ident {
-                    #( #possibly_redacted_fields, )*
-                }
-
-                impl From<#ident> for #possibly_redacted_ident {
-                    fn from(value: #ident) -> #possibly_redacted_ident {
-                        let #ident {
-                            #( #field_idents, )*
-                        } = value;
-
-                        Self {
-                            #( #from_original_field_exprs, )*
-                        }
-                    }
-                }
-
-                #redact_content_impl
-                #from_redacted_impl
-                #possibly_redacted_event_content
-                #static_event_content_impl
-                #json_castable_impl
-            })
-        } else {
-            let event_content_kind_trait_impl = self.expand_event_content_kind_trait_impl(
-                EventContentTraitVariation::PossiblyRedacted,
-                ident,
-            );
-
-            Some(quote! {
-                #[doc = #possibly_redacted_doc]
-                #vis type #possibly_redacted_ident = #ident;
-
-                #from_redacted_impl
-                #event_content_kind_trait_impl
-            })
-        }
+            }
+        })
     }
 
     /// Generate the `*EventContentWithoutRelation` variation of the type.
@@ -410,8 +264,8 @@ impl EventContent {
         })
     }
 
-    /// Generate the `ruma_events::*EventContent` trait implementations for this kind and the given
-    /// event content variation with the given ident and fields.
+    /// Generate the `ruma_events::*EventContent` trait implementations for this kind with the given
+    /// ident and fields.
     fn expand_event_content_impl<'a>(
         &self,
         variation: EventContentVariation,
@@ -420,8 +274,7 @@ impl EventContent {
     ) -> TokenStream {
         let event_content_kind_trait_impl =
             self.expand_event_content_kind_trait_impl(variation.into(), ident);
-        let static_state_event_content_impl =
-            self.expand_static_state_event_content_impl(variation, ident);
+        let static_state_event_content_impl = self.expand_static_state_event_content_impl(ident);
         let event_content_from_type_impl = self.expand_event_content_from_type_impl(ident, fields);
 
         quote! {
@@ -478,29 +331,17 @@ impl EventContent {
 
     /// Generate the `ruma_events::StaticStateEventContent` trait implementation for this kind and
     /// the given variation with the given ident, if it needs one.
-    fn expand_static_state_event_content_impl(
-        &self,
-        variation: EventContentVariation,
-        ident: &syn::Ident,
-    ) -> Option<TokenStream> {
+    fn expand_static_state_event_content_impl(&self, ident: &syn::Ident) -> Option<TokenStream> {
         let EventContentKind::State { unsigned_type, .. } = &self.kind else {
             // Only the `State` kind can implement this trait.
             return None;
         };
 
-        if variation != EventContentVariation::Original {
-            // Only the original variation can implement this trait.
-            return None;
-        }
-
         let ruma_events = &self.ruma_events;
-        let possibly_redacted_ident =
-            EventContentVariation::PossiblyRedacted.variation_ident(ident);
 
         Some(quote! {
             #[automatically_derived]
             impl #ruma_events::StaticStateEventContent for #ident {
-                type PossiblyRedacted = #possibly_redacted_ident;
                 type Unsigned = #unsigned_type;
             }
         })
@@ -645,8 +486,6 @@ impl EventContent {
 
                     let content_ident = if variation.is_redacted() {
                         EventContentVariation::Redacted.variation_ident(ident)
-                    } else if let EventVariation::Stripped = variation {
-                        EventContentVariation::PossiblyRedacted.variation_ident(ident)
                     } else {
                         EventContentVariation::Original.variation_ident(ident)
                     };
@@ -675,12 +514,11 @@ struct EventContentField {
 }
 
 impl EventContentField {
-    /// Whether to keep this field as-is when generating the `PossiblyRedacted*EventContent`
-    /// variation.
+    /// Whether this field is supported in an automatic `RedactContent` implementation.
     ///
     /// Returns `true` if the field has the `skip_redaction` attribute, if its type is wrapped in an
     /// `Option`, or if it has the serde `default` attribute.
-    fn keep_in_possibly_redacted(&self) -> bool {
+    fn is_supported_for_redact_content(&self) -> bool {
         self.skip_redaction
             || self.inner.ty.option_inner_type().is_some()
             || self.inner.has_serde_meta_item(SerdeMetaItem::Default)
@@ -736,13 +574,9 @@ enum EventContentKind {
         /// The type of the unsigned data.
         unsigned_type: syn::Type,
 
-        /// Whether the `Redacted*EventContent` type is implemented manually rather than generated
-        /// by this macro.
-        has_custom_redacted: bool,
-
-        /// Whether the `PossiblyRedacted*EventContent` type is implemented manually rather than
+        /// Whether the `RedactContent` implementation is implemented manually rather than
         /// generated by this macro.
-        has_custom_possibly_redacted: bool,
+        has_custom_redacted: bool,
     },
 
     /// A to-device event.
@@ -778,16 +612,17 @@ impl EventContentKind {
             })
     }
 
-    /// Whether we should generate a `Redacted*EventContent` variation for this kind.
+    /// Whether we should generate a `Redacted*EventContent` variation and a `RedactContent`
+    /// implementation for this kind.
     fn should_generate_redacted(&self) -> bool {
         // We only generate redacted content structs for state and message-like events.
-        matches!(self, Self::MessageLike { has_custom_redacted, .. } | Self::State { has_custom_redacted, .. } if !*has_custom_redacted)
+        matches!(self, Self::MessageLike { has_custom_redacted, .. } if !*has_custom_redacted)
     }
 
-    /// Whether we should generate a `Redacted*EventContent` variation for this kind.
-    fn should_generate_possibly_redacted(&self) -> bool {
-        // We only generate possibly redacted content structs for state events.
-        matches!(self, Self::State { has_custom_possibly_redacted, .. } if !*has_custom_possibly_redacted)
+    /// Whether we should generate only a `RedactedContent` implementation for this kind.
+    fn should_generate_redact_content_impl(&self) -> bool {
+        // We only generate redacted content structs for state and message-like events.
+        matches!(self, Self::State { has_custom_redacted, .. } if !*has_custom_redacted)
     }
 
     /// Get the list of variations for an event type (struct or enum) for this kind.
@@ -874,9 +709,6 @@ enum EventContentVariation {
 
     /// The redacted event content.
     Redacted,
-
-    /// Event content that might be redacted or not.
-    PossiblyRedacted,
 }
 
 impl EventContentVariation {
@@ -885,7 +717,6 @@ impl EventContentVariation {
         match self {
             Self::Original => Cow::Borrowed(ident),
             Self::Redacted => Cow::Owned(format_ident!("Redacted{ident}")),
-            Self::PossiblyRedacted => Cow::Owned(format_ident!("PossiblyRedacted{ident}")),
         }
     }
 }
@@ -895,7 +726,6 @@ impl From<EventContentVariation> for EventContentTraitVariation {
         match value {
             EventContentVariation::Original => Self::Original,
             EventContentVariation::Redacted => Self::Redacted,
-            EventContentVariation::PossiblyRedacted => Self::PossiblyRedacted,
         }
     }
 }

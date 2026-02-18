@@ -19,6 +19,7 @@ use crate::{EmptyStateKey, PrivOwnedStr};
 #[ruma_event(type = "m.room.guest_access", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomGuestAccessEventContent {
     /// A policy for guest user access to a room.
+    #[serde(default = "default_guest_access", skip_serializing_if = "is_default_guest_access")]
     pub guest_access: GuestAccess,
 }
 
@@ -26,26 +27,6 @@ impl RoomGuestAccessEventContent {
     /// Creates a new `RoomGuestAccessEventContent` with the given policy.
     pub fn new(guest_access: GuestAccess) -> Self {
         Self { guest_access }
-    }
-}
-
-impl RoomGuestAccessEvent {
-    /// Obtain the guest access policy, regardless of whether this event is redacted.
-    pub fn guest_access(&self) -> &GuestAccess {
-        match self {
-            Self::Original(ev) => &ev.content.guest_access,
-            Self::Redacted(_) => &GuestAccess::Forbidden,
-        }
-    }
-}
-
-impl SyncRoomGuestAccessEvent {
-    /// Obtain the guest access policy, regardless of whether this event is redacted.
-    pub fn guest_access(&self) -> &GuestAccess {
-        match self {
-            Self::Original(ev) => &ev.content.guest_access,
-            Self::Redacted(_) => &GuestAccess::Forbidden,
-        }
     }
 }
 
@@ -63,4 +44,14 @@ pub enum GuestAccess {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
+}
+
+/// The default guest access when the state is unset.
+fn default_guest_access() -> GuestAccess {
+    GuestAccess::Forbidden
+}
+
+/// Whether the given guest access matches the default when the state is unset.
+fn is_default_guest_access(access: &GuestAccess) -> bool {
+    matches!(access, GuestAccess::Forbidden)
 }

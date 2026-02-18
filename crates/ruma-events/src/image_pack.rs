@@ -21,6 +21,7 @@ pub struct RoomImagePackEventContent {
     /// A list of images available in this image pack.
     ///
     /// Keys in the map are shortcodes for the images.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub images: BTreeMap<String, PackImage>,
 
     /// Image pack info.

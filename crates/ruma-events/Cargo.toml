@@ -60,10 +60,6 @@ unstable-uniffi = ["dep:uniffi"]
 # in deserialization.
 compat-empty-string-null = []
 
-# Allow certain fields to be absent even though the spec marks them as
-# mandatory. Deserialization will yield a default value like an empty string.
-compat-optional = []
-
 # Allow TagInfo to contain a stringified floating-point value for the `order` field.
 compat-tag-info = []
 

@@ -18,8 +18,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    EmptyStateKey, MessageLikeEventType, RedactContent, RedactedStateEventContent, StateEventType,
-    StaticEventContent, TimelineEventType,
+    EmptyStateKey, MessageLikeEventType, RedactContent, StateEventType, TimelineEventType,
 };
 
 /// The content of an `m.room.power_levels` event.
@@ -142,7 +141,7 @@ impl RoomPowerLevelsEventContent {
 }
 
 impl RedactContent for RoomPowerLevelsEventContent {
-    type Redacted = RedactedRoomPowerLevelsEventContent;
+    type Redacted = Self;
 
     fn redact(self, rules: &RedactionRules) -> Self::Redacted {
         let Self {
@@ -160,7 +159,7 @@ impl RedactContent for RoomPowerLevelsEventContent {
 
         let invite = if rules.keep_room_power_levels_invite { invite } else { int!(0) };
 
-        RedactedRoomPowerLevelsEventContent {
+        Self {
             ban,
             events,
             events_default,
@@ -170,6 +169,7 @@ impl RedactContent for RoomPowerLevelsEventContent {
             state_default,
             users,
             users_default,
+            notifications: NotificationPowerLevels::default(),
         }
     }
 }
@@ -187,10 +187,7 @@ impl RoomPowerLevelsEvent {
         rules: &AuthorizationRules,
         creators: Vec<OwnedUserId>,
     ) -> RoomPowerLevels {
-        match self {
-            Self::Original(ev) => RoomPowerLevels::new(ev.content.clone().into(), rules, creators),
-            Self::Redacted(ev) => RoomPowerLevels::new(ev.content.clone().into(), rules, creators),
-        }
+        RoomPowerLevels::new(self.content.clone().into(), rules, creators)
     }
 }
 
@@ -201,10 +198,7 @@ impl SyncRoomPowerLevelsEvent {
         rules: &AuthorizationRules,
         creators: Vec<OwnedUserId>,
     ) -> RoomPowerLevels {
-        match self {
-            Self::Original(ev) => RoomPowerLevels::new(ev.content.clone().into(), rules, creators),
-            Self::Redacted(ev) => RoomPowerLevels::new(ev.content.clone().into(), rules, creators),
-        }
+        RoomPowerLevels::new(self.content.clone().into(), rules, creators)
     }
 }
 
@@ -216,132 +210,6 @@ impl StrippedRoomPowerLevelsEvent {
         creators: Vec<OwnedUserId>,
     ) -> RoomPowerLevels {
         RoomPowerLevels::new(self.content.clone().into(), rules, creators)
-    }
-}
-
-/// Redacted form of [`RoomPowerLevelsEventContent`].
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct RedactedRoomPowerLevelsEventContent {
-    /// The level required to ban a user.
-    #[serde(
-        default = "default_power_level",
-        skip_serializing_if = "is_default_power_level",
-        deserialize_with = "ruma_common::serde::deserialize_v1_powerlevel"
-    )]
-    pub ban: Int,
-
-    /// The level required to send specific event types.
-    ///
-    /// This is a mapping from event type to power level required.
-    #[serde(
-        default,
-        skip_serializing_if = "BTreeMap::is_empty",
-        deserialize_with = "ruma_common::serde::btreemap_deserialize_v1_powerlevel_values"
-    )]
-    pub events: BTreeMap<TimelineEventType, Int>,
-
-    /// The default level required to send message events.
-    #[serde(
-        default,
-        skip_serializing_if = "ruma_common::serde::is_default",
-        deserialize_with = "ruma_common::serde::deserialize_v1_powerlevel"
-    )]
-    pub events_default: Int,
-
-    /// The level required to invite a user.
-    ///
-    /// This field was redacted in room versions 1 through 10. Starting from room version 11 it is
-    /// preserved.
-    #[serde(
-        default,
-        skip_serializing_if = "ruma_common::serde::is_default",
-        deserialize_with = "ruma_common::serde::deserialize_v1_powerlevel"
-    )]
-    pub invite: Int,
-
-    /// The level required to kick a user.
-    #[serde(
-        default = "default_power_level",
-        skip_serializing_if = "is_default_power_level",
-        deserialize_with = "ruma_common::serde::deserialize_v1_powerlevel"
-    )]
-    pub kick: Int,
-
-    /// The level required to redact an event.
-    #[serde(
-        default = "default_power_level",
-        skip_serializing_if = "is_default_power_level",
-        deserialize_with = "ruma_common::serde::deserialize_v1_powerlevel"
-    )]
-    pub redact: Int,
-
-    /// The default level required to send state events.
-    #[serde(
-        default = "default_power_level",
-        skip_serializing_if = "is_default_power_level",
-        deserialize_with = "ruma_common::serde::deserialize_v1_powerlevel"
-    )]
-    pub state_default: Int,
-
-    /// The power levels for specific users.
-    ///
-    /// This is a mapping from `user_id` to power level for that user.
-    #[serde(
-        default,
-        skip_serializing_if = "BTreeMap::is_empty",
-        deserialize_with = "ruma_common::serde::btreemap_deserialize_v1_powerlevel_values"
-    )]
-    pub users: BTreeMap<OwnedUserId, Int>,
-
-    /// The default power level for every user in the room.
-    #[serde(
-        default,
-        skip_serializing_if = "ruma_common::serde::is_default",
-        deserialize_with = "ruma_common::serde::deserialize_v1_powerlevel"
-    )]
-    pub users_default: Int,
-}
-
-impl StaticEventContent for RedactedRoomPowerLevelsEventContent {
-    const TYPE: &'static str = RoomPowerLevelsEventContent::TYPE;
-    type IsPrefix = <RoomPowerLevelsEventContent as StaticEventContent>::IsPrefix;
-}
-
-impl RedactedStateEventContent for RedactedRoomPowerLevelsEventContent {
-    type StateKey = EmptyStateKey;
-
-    fn event_type(&self) -> StateEventType {
-        StateEventType::RoomPowerLevels
-    }
-}
-
-impl From<RedactedRoomPowerLevelsEventContent> for PossiblyRedactedRoomPowerLevelsEventContent {
-    fn from(value: RedactedRoomPowerLevelsEventContent) -> Self {
-        let RedactedRoomPowerLevelsEventContent {
-            ban,
-            events,
-            events_default,
-            invite,
-            kick,
-            redact,
-            state_default,
-            users,
-            users_default,
-        } = value;
-
-        Self {
-            ban,
-            events,
-            events_default,
-            invite,
-            kick,
-            redact,
-            state_default,
-            users,
-            users_default,
-            notifications: NotificationPowerLevels::default(),
-        }
     }
 }
 
@@ -532,29 +400,6 @@ impl RoomPowerLevels {
                 users,
                 users_default,
                 notifications,
-                rules: RoomPowerLevelsRules::new(rules, creators),
-            },
-            RoomPowerLevelsSource::Redacted(RedactedRoomPowerLevelsEventContent {
-                ban,
-                events,
-                events_default,
-                invite,
-                kick,
-                redact,
-                state_default,
-                users,
-                users_default,
-            }) => Self {
-                ban,
-                events,
-                events_default,
-                invite,
-                kick,
-                redact,
-                state_default,
-                users,
-                users_default,
-                notifications: NotificationPowerLevels::new(),
                 rules: RoomPowerLevelsRules::new(rules, creators),
             },
             // events_default, users_default and invite having a default of 0 while the others have
@@ -857,10 +702,8 @@ impl From<RoomPowerLevels> for PushConditionPowerLevelsCtx {
 #[derive(Default)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum RoomPowerLevelsSource {
-    /// Construct `RoomPowerLevels` from the non-redacted `m.room.power_levels` event content.
+    /// Construct `RoomPowerLevels` from an `m.room.power_levels` event content.
     Original(RoomPowerLevelsEventContent),
-    /// Construct `RoomPowerLevels` from the redacted `m.room.power_levels` event content.
-    Redacted(RedactedRoomPowerLevelsEventContent),
     /// Use the default values defined in the specification.
     ///
     /// Should only be used when there is no power levels state in a room.
@@ -874,21 +717,9 @@ impl From<Option<RoomPowerLevelsEventContent>> for RoomPowerLevelsSource {
     }
 }
 
-impl From<Option<RedactedRoomPowerLevelsEventContent>> for RoomPowerLevelsSource {
-    fn from(value: Option<RedactedRoomPowerLevelsEventContent>) -> Self {
-        value.map(Self::Redacted).unwrap_or_default()
-    }
-}
-
 impl From<RoomPowerLevelsEventContent> for RoomPowerLevelsSource {
     fn from(value: RoomPowerLevelsEventContent) -> Self {
         Self::Original(value)
-    }
-}
-
-impl From<RedactedRoomPowerLevelsEventContent> for RoomPowerLevelsSource {
-    fn from(value: RedactedRoomPowerLevelsEventContent) -> Self {
-        Self::Redacted(value)
     }
 }
 

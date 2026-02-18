@@ -28,26 +28,6 @@ impl RoomHistoryVisibilityEventContent {
     }
 }
 
-impl RoomHistoryVisibilityEvent {
-    /// Obtain the history visibility, regardless of whether this event is redacted.
-    pub fn history_visibility(&self) -> &HistoryVisibility {
-        match self {
-            Self::Original(ev) => &ev.content.history_visibility,
-            Self::Redacted(ev) => &ev.content.history_visibility,
-        }
-    }
-}
-
-impl SyncRoomHistoryVisibilityEvent {
-    /// Obtain the history visibility, regardless of whether this event is redacted.
-    pub fn history_visibility(&self) -> &HistoryVisibility {
-        match self {
-            Self::Original(ev) => &ev.content.history_visibility,
-            Self::Redacted(ev) => &ev.content.history_visibility,
-        }
-    }
-}
-
 /// Who can see a room's history.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, StringEnum)]

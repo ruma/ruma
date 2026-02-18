@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.macro.test", kind = State, state_key_type = String)]
 struct MacroTestContent {
-    url: String,
+    url: Option<String>,
 }
 
 fn main() {}
