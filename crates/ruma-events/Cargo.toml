@@ -102,7 +102,7 @@ tracing = { workspace = true, features = ["attributes"] }
 uniffi = { workspace = true, optional = true }
 url = { workspace = true }
 web-time = { workspace = true }
-wildmatch = "2.0.0"
+wildmatch = { workspace = true }
 zeroize = { workspace = true }
 
 # dev-dependencies can't be optional, so this is a regular dependency
