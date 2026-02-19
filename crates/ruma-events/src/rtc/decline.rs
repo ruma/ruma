@@ -24,7 +24,7 @@ pub struct RtcDeclineEventContent {
 
 impl RtcDeclineEventContent {
     /// Creates a new `RtcDeclineEventContent` targeting the given notification event id.
-    pub fn new<E: Into<ruma_common::OwnedEventId>>(notification_event_id: E) -> Self {
+    pub fn new<E: Into<ruma_common::EventId>>(notification_event_id: E) -> Self {
         Self { relates_to: Reference::new(notification_event_id.into()) }
     }
 }
@@ -33,7 +33,7 @@ impl RtcDeclineEventContent {
 mod tests {
     use assert_matches2::assert_matches;
     use js_int::uint;
-    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_event_id};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, event_id};
     use serde_json::{from_value as from_json_value, json};
 
     use super::RtcDeclineEventContent;
@@ -41,7 +41,7 @@ mod tests {
 
     #[test]
     fn decline_event_serialization() {
-        let content = RtcDeclineEventContent::new(owned_event_id!("$abc:example.org"));
+        let content = RtcDeclineEventContent::new(event_id!("$abc:example.org"));
 
         assert_to_canonical_json_eq!(
             content,

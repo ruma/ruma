@@ -11,7 +11,7 @@ pub mod v3 {
     use std::borrow::Cow;
 
     use ruma_common::{
-        OwnedMxcUri,
+        MxcUri,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         serde::{JsonObject, StringEnum},
@@ -205,7 +205,7 @@ pub mod v3 {
         pub name: String,
 
         /// The icon for the provider.
-        pub icon: Option<OwnedMxcUri>,
+        pub icon: Option<MxcUri>,
 
         /// The brand identifier for the provider.
         pub brand: Option<IdentityProviderBrand>,
@@ -406,7 +406,7 @@ pub mod v3 {
             let provider = &identity_providers[0];
             assert_eq!(provider.id, "oidc-gitlab");
             assert_eq!(provider.name, "GitLab");
-            assert_eq!(provider.icon.as_deref(), Some(mxc_uri!("mxc://localhost/gitlab-icon")));
+            assert_eq!(provider.icon, Some(mxc_uri!("mxc://localhost/gitlab-icon")));
             assert_eq!(provider.brand, Some(IdentityProviderBrand::GitLab));
 
             let provider = &identity_providers[1];

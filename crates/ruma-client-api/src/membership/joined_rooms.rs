@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3joined_rooms
 
     use ruma_common::{
-        OwnedRoomId,
+        RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -33,7 +33,7 @@ pub mod v3 {
     pub struct Response {
         /// A list of the rooms the user is in, i.e. the ID of each room in
         /// which the user has joined membership.
-        pub joined_rooms: Vec<OwnedRoomId>,
+        pub joined_rooms: Vec<RoomId>,
     }
 
     impl Request {
@@ -45,7 +45,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given joined rooms.
-        pub fn new(joined_rooms: Vec<OwnedRoomId>) -> Self {
+        pub fn new(joined_rooms: Vec<RoomId>) -> Self {
             Self { joined_rooms }
         }
     }

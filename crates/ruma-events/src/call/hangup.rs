@@ -2,7 +2,7 @@
 //!
 //! [`m.call.hangup`]: https://spec.matrix.org/latest/client-server-api/#mcallhangup
 
-use ruma_common::{OwnedVoipId, VoipVersionId, serde::StringEnum};
+use ruma_common::{VoipId, VoipVersionId, serde::StringEnum};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -25,14 +25,14 @@ use crate::PrivOwnedStr;
 #[ruma_event(type = "m.call.hangup", kind = MessageLike)]
 pub struct CallHangupEventContent {
     /// A unique identifier for the call.
-    pub call_id: OwnedVoipId,
+    pub call_id: VoipId,
 
     /// **Required in VoIP version 1.** A unique ID for this session for the duration of the call.
     ///
     /// Must be the same as the one sent by the previous invite or answer from
     /// this session.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub party_id: Option<OwnedVoipId>,
+    pub party_id: Option<VoipId>,
 
     /// The version of the VoIP specification this messages adheres to.
     pub version: VoipVersionId,
@@ -46,19 +46,19 @@ pub struct CallHangupEventContent {
 
 impl CallHangupEventContent {
     /// Creates a new `CallHangupEventContent` with the given call ID and VoIP version.
-    pub fn new(call_id: OwnedVoipId, version: VoipVersionId) -> Self {
+    pub fn new(call_id: VoipId, version: VoipVersionId) -> Self {
         Self { call_id, party_id: None, version, reason: Default::default() }
     }
 
     /// Convenience method to create a VoIP version 0 `CallHangupEventContent` with all the required
     /// fields.
-    pub fn version_0(call_id: OwnedVoipId) -> Self {
+    pub fn version_0(call_id: VoipId) -> Self {
         Self::new(call_id, VoipVersionId::V0)
     }
 
     /// Convenience method to create a VoIP version 1 `CallHangupEventContent` with all the required
     /// fields.
-    pub fn version_1(call_id: OwnedVoipId, party_id: OwnedVoipId, reason: Reason) -> Self {
+    pub fn version_1(call_id: VoipId, party_id: VoipId, reason: Reason) -> Self {
         Self { call_id, party_id: Some(party_id), version: VoipVersionId::V1, reason }
     }
 }

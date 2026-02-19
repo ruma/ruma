@@ -2,7 +2,7 @@
 
 use std::ops::Deref;
 
-use ruma_common::{CanonicalJsonObject, OwnedUserId, serde::from_raw_json_value};
+use ruma_common::{CanonicalJsonObject, UserId, serde::from_raw_json_value};
 use ruma_events::room::member::MembershipState;
 use ruma_signatures::canonical_json;
 use serde::Deserialize;
@@ -28,7 +28,7 @@ impl<E: Event> RoomMemberEvent<E> {
     }
 
     /// If this is a `join` event, the ID of a user on the homeserver that authorized it.
-    pub fn join_authorised_via_users_server(&self) -> Result<Option<OwnedUserId>, String> {
+    pub fn join_authorised_via_users_server(&self) -> Result<Option<UserId>, String> {
         RoomMemberEventContent(self.content()).join_authorised_via_users_server()
     }
 
@@ -90,10 +90,10 @@ impl RoomMemberEventContent<'_> {
     }
 
     /// If this is a `join` event, the ID of a user on the homeserver that authorized it.
-    pub(crate) fn join_authorised_via_users_server(&self) -> Result<Option<OwnedUserId>, String> {
+    pub(crate) fn join_authorised_via_users_server(&self) -> Result<Option<UserId>, String> {
         #[derive(Deserialize)]
         struct RoomMemberContentJoinAuthorizedViaUsersServer {
-            join_authorised_via_users_server: Option<OwnedUserId>,
+            join_authorised_via_users_server: Option<UserId>,
         }
 
         let content: RoomMemberContentJoinAuthorizedViaUsersServer = from_raw_json_value(self.0)

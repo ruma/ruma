@@ -2,7 +2,7 @@
 //!
 //! [MSC4268]: https://github.com/matrix-org/matrix-spec-proposals/pull/4268
 
-use ruma_common::OwnedRoomId;
+use ruma_common::RoomId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -18,7 +18,7 @@ use crate::room::EncryptedFile;
 #[ruma_event(type = "io.element.msc4268.room_key_bundle", alias = "m.room_key_bundle", kind = ToDevice)]
 pub struct ToDeviceRoomKeyBundleEventContent {
     /// The room that these keys are for.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The location and encryption info of the key bundle.
     pub file: EncryptedFile,
@@ -27,7 +27,7 @@ pub struct ToDeviceRoomKeyBundleEventContent {
 impl ToDeviceRoomKeyBundleEventContent {
     /// Creates a new `ToDeviceRoomKeyBundleEventContent` with the given room ID, and
     /// [`EncryptedFile`] which contains the room keys from the bundle.
-    pub fn new(room_id: OwnedRoomId, file: EncryptedFile) -> Self {
+    pub fn new(room_id: RoomId, file: EncryptedFile) -> Self {
         Self { room_id, file }
     }
 }
@@ -36,7 +36,7 @@ impl ToDeviceRoomKeyBundleEventContent {
 mod tests {
     use std::collections::BTreeMap;
 
-    use ruma_common::{owned_mxc_uri, owned_room_id, serde::Base64};
+    use ruma_common::{mxc_uri, room_id, serde::Base64};
     use serde_json::json;
 
     use super::ToDeviceRoomKeyBundleEventContent;
@@ -45,9 +45,9 @@ mod tests {
     #[test]
     fn serialization() {
         let content = ToDeviceRoomKeyBundleEventContent {
-            room_id: owned_room_id!("!testroomid:example.org"),
+            room_id: room_id!("!testroomid:example.org"),
             file: EncryptedFile {
-                url: owned_mxc_uri!("mxc://example.org/FHyPlCeYUSFFxlgbQYZmoEoe"),
+                url: mxc_uri!("mxc://example.org/FHyPlCeYUSFFxlgbQYZmoEoe"),
                 key: JsonWebKey {
                     kty: "A256CTR".to_owned(),
                     key_ops: vec!["encrypt".to_owned(), "decrypt".to_owned()],

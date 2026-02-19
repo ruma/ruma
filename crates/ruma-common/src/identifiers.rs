@@ -16,40 +16,37 @@ use serde::de::{self, Deserializer, Unexpected};
 
 #[doc(inline)]
 pub use self::{
-    base64_public_key::{Base64PublicKey, OwnedBase64PublicKey},
-    base64_public_key_or_device_id::{Base64PublicKeyOrDeviceId, OwnedBase64PublicKeyOrDeviceId},
-    client_secret::{ClientSecret, OwnedClientSecret},
+    base64_public_key::Base64PublicKey,
+    base64_public_key_or_device_id::Base64PublicKeyOrDeviceId,
+    client_secret::ClientSecret,
     crypto_algorithms::{
         DeviceKeyAlgorithm, EventEncryptionAlgorithm, KeyDerivationAlgorithm, OneTimeKeyAlgorithm,
         SigningKeyAlgorithm,
     },
-    device_id::{DeviceId, OwnedDeviceId},
-    event_id::{EventId, OwnedEventId},
+    device_id::DeviceId,
+    event_id::EventId,
     key_id::{
         AnyKeyName, CrossSigningKeyId, CrossSigningOrDeviceSigningKeyId, DeviceKeyId,
-        DeviceSigningKeyId, KeyAlgorithm, KeyId, OneTimeKeyId, OwnedCrossSigningKeyId,
-        OwnedCrossSigningOrDeviceSigningKeyId, OwnedDeviceKeyId, OwnedDeviceSigningKeyId,
-        OwnedKeyId, OwnedOneTimeKeyId, OwnedServerSigningKeyId, OwnedSigningKeyId,
-        ServerSigningKeyId, SigningKeyId,
+        DeviceSigningKeyId, KeyAlgorithm, KeyId, OneTimeKeyId, ServerSigningKeyId, SigningKeyId,
     },
     matrix_uri::{MatrixToUri, MatrixUri},
-    mxc_uri::{MxcUri, OwnedMxcUri},
-    one_time_key_name::{OneTimeKeyName, OwnedOneTimeKeyName},
-    room_alias_id::{OwnedRoomAliasId, RoomAliasId},
-    room_id::{OwnedRoomId, RoomId},
-    room_or_alias_id::{OwnedRoomOrAliasId, RoomOrAliasId},
+    mxc_uri::MxcUri,
+    one_time_key_name::OneTimeKeyName,
+    room_alias_id::RoomAliasId,
+    room_id::RoomId,
+    room_or_alias_id::RoomOrAliasId,
     room_version_id::RoomVersionId,
-    server_name::{OwnedServerName, ServerName},
-    server_signing_key_version::{OwnedServerSigningKeyVersion, ServerSigningKeyVersion},
-    session_id::{OwnedSessionId, SessionId},
+    server_name::ServerName,
+    server_signing_key_version::ServerSigningKeyVersion,
+    session_id::SessionId,
     signatures::{
         CrossSigningOrDeviceSignatures, DeviceSignatures, EntitySignatures, ServerSignatures,
         Signatures,
     },
-    space_child_order::{OwnedSpaceChildOrder, SpaceChildOrder},
-    transaction_id::{OwnedTransactionId, TransactionId},
-    user_id::{OwnedUserId, UserId},
-    voip_id::{OwnedVoipId, VoipId},
+    space_child_order::SpaceChildOrder,
+    transaction_id::TransactionId,
+    user_id::UserId,
+    voip_id::VoipId,
     voip_version_id::VoipVersionId,
 };
 
@@ -103,19 +100,11 @@ where
     })
 }
 
-/// Shorthand for `<&DeviceId>::from`.
+/// Shorthand for `DeviceId::from`.
 #[macro_export]
 macro_rules! device_id {
     ($s:expr) => {
-        <&$crate::DeviceId as ::std::convert::From<_>>::from($s)
-    };
-}
-
-/// Shorthand for `OwnedDeviceId::from`.
-#[macro_export]
-macro_rules! owned_device_id {
-    ($s:expr) => {
-        <$crate::OwnedDeviceId as ::std::convert::From<_>>::from($s)
+        <$crate::DeviceId as ::std::convert::From<_>>::from($s)
     };
 }
 
@@ -123,7 +112,7 @@ macro_rules! owned_device_id {
 pub mod __private_macros {
     pub use ruma_macros::{
         base64_public_key, event_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
-        server_signing_key_version, user_id,
+        server_signing_key_version, session_id, user_id,
     };
 }
 
@@ -135,14 +124,6 @@ macro_rules! event_id {
     };
 }
 
-/// Compile-time checked [`OwnedEventId`] construction.
-#[macro_export]
-macro_rules! owned_event_id {
-    ($s:literal) => {
-        $crate::event_id!($s).to_owned()
-    };
-}
-
 /// Compile-time checked [`RoomAliasId`] construction.
 #[macro_export]
 macro_rules! room_alias_id {
@@ -151,27 +132,11 @@ macro_rules! room_alias_id {
     };
 }
 
-/// Compile-time checked [`OwnedRoomAliasId`] construction.
-#[macro_export]
-macro_rules! owned_room_alias_id {
-    ($s:literal) => {
-        $crate::room_alias_id!($s).to_owned()
-    };
-}
-
 /// Compile-time checked [`RoomId`] construction.
 #[macro_export]
 macro_rules! room_id {
     ($s:literal) => {
         $crate::__private_macros::room_id!($crate, $s)
-    };
-}
-
-/// Compile-time checked [`OwnedRoomId`] construction.
-#[macro_export]
-macro_rules! owned_room_id {
-    ($s:literal) => {
-        $crate::room_id!($s).to_owned()
     };
 }
 
@@ -191,14 +156,6 @@ macro_rules! server_signing_key_version {
     };
 }
 
-/// Compile-time checked [`OwnedServerSigningKeyVersion`] construction.
-#[macro_export]
-macro_rules! owned_server_signing_key_version {
-    ($s:literal) => {
-        $crate::server_signing_key_version!($s).to_owned()
-    };
-}
-
 /// Compile-time checked [`ServerName`] construction.
 #[macro_export]
 macro_rules! server_name {
@@ -207,32 +164,11 @@ macro_rules! server_name {
     };
 }
 
-/// Compile-time checked [`OwnedServerName`] construction.
-#[macro_export]
-macro_rules! owned_server_name {
-    ($s:literal) => {
-        $crate::server_name!($s).to_owned()
-    };
-}
-
 /// Compile-time checked [`SessionId`] construction.
 #[macro_export]
 macro_rules! session_id {
-    ($s:literal) => {{
-        const SESSION_ID: &$crate::SessionId = match $crate::SessionId::_priv_const_new($s) {
-            Ok(id) => id,
-            Err(e) => panic!("{}", e),
-        };
-
-        SESSION_ID
-    }};
-}
-
-/// Compile-time checked [`OwnedSessionId`] construction.
-#[macro_export]
-macro_rules! owned_session_id {
     ($s:literal) => {
-        $crate::session_id!($s).to_owned()
+        $crate::__private_macros::session_id!($crate, $s)
     };
 }
 
@@ -244,14 +180,6 @@ macro_rules! mxc_uri {
     };
 }
 
-/// Compile-time checked [`OwnedMxcUri`] construction.
-#[macro_export]
-macro_rules! owned_mxc_uri {
-    ($s:literal) => {
-        $crate::mxc_uri!($s).to_owned()
-    };
-}
-
 /// Compile-time checked [`UserId`] construction.
 #[macro_export]
 macro_rules! user_id {
@@ -260,26 +188,10 @@ macro_rules! user_id {
     };
 }
 
-/// Compile-time checked [`OwnedUserId`] construction.
-#[macro_export]
-macro_rules! owned_user_id {
-    ($s:literal) => {
-        $crate::user_id!($s).to_owned()
-    };
-}
-
 /// Compile-time checked [`Base64PublicKey`] construction.
 #[macro_export]
 macro_rules! base64_public_key {
     ($s:literal) => {
         $crate::__private_macros::base64_public_key!($crate, $s)
-    };
-}
-
-/// Compile-time checked [`OwnedBase64PublicKey`] construction.
-#[macro_export]
-macro_rules! owned_base64_public_key {
-    ($s:literal) => {
-        $crate::base64_public_key!($s).to_owned()
     };
 }

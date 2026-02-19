@@ -8,7 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/application-service-api/#get_matrixappv1thirdpartyuser
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         thirdparty::User,
@@ -26,7 +26,7 @@ pub mod v1 {
     pub struct Request {
         /// The Matrix User ID to look up.
         #[ruma_api(query)]
-        pub userid: OwnedUserId,
+        pub userid: UserId,
     }
 
     /// Response type for the `get_user_for_user_id` endpoint.
@@ -39,7 +39,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given user id.
-        pub fn new(userid: OwnedUserId) -> Self {
+        pub fn new(userid: UserId) -> Self {
             Self { userid }
         }
     }

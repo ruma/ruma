@@ -7,7 +7,7 @@ use std::{collections::BTreeMap, time::Duration};
 use as_variant::as_variant;
 use js_int::UInt;
 use ruma_common::{
-    OneTimeKeyAlgorithm, OwnedEventId, OwnedRoomId, OwnedUserId,
+    EventId, OneTimeKeyAlgorithm, RoomId, UserId,
     api::{auth_scheme::AccessToken, request, response},
     metadata,
     presence::PresenceState,
@@ -186,19 +186,19 @@ impl From<String> for Filter {
 pub struct Rooms {
     /// The rooms that the user has left or been banned from.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub leave: BTreeMap<OwnedRoomId, LeftRoom>,
+    pub leave: BTreeMap<RoomId, LeftRoom>,
 
     /// The rooms that the user has joined.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub join: BTreeMap<OwnedRoomId, JoinedRoom>,
+    pub join: BTreeMap<RoomId, JoinedRoom>,
 
     /// The rooms that the user has been invited to.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub invite: BTreeMap<OwnedRoomId, InvitedRoom>,
+    pub invite: BTreeMap<RoomId, InvitedRoom>,
 
     /// The rooms that the user has knocked on.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub knock: BTreeMap<OwnedRoomId, KnockedRoom>,
+    pub knock: BTreeMap<RoomId, KnockedRoom>,
 }
 
 impl Rooms {
@@ -271,7 +271,7 @@ pub struct JoinedRoom {
     /// [unread notifications]: https://spec.matrix.org/latest/client-server-api/#receiving-notifications
     /// [`RoomEventFilter`]: crate::filter::RoomEventFilter
     #[serde(skip_serializing_if = "BTreeMap::is_empty")]
-    pub unread_thread_notifications: BTreeMap<OwnedEventId, UnreadNotificationsCount>,
+    pub unread_thread_notifications: BTreeMap<EventId, UnreadNotificationsCount>,
 
     /// The timeline of messages and state changes in the room.
     #[serde(skip_serializing_if = "Timeline::is_empty")]
@@ -556,7 +556,7 @@ pub struct RoomSummary {
     ///
     /// Required if room name or canonical aliases are not set or empty.
     #[serde(rename = "m.heroes", default, skip_serializing_if = "Vec::is_empty")]
-    pub heroes: Vec<OwnedUserId>,
+    pub heroes: Vec<UserId>,
 
     /// Number of users whose membership status is `join`.
     /// Required if field has changed since last sync; otherwise, it may be
@@ -788,7 +788,7 @@ mod client_tests {
             "next_batch": "a00",
             "rooms": {
                 "invite": {
-                    room_id: {
+                    room_id.clone(): {
                         "invite_state": {
                             "events": [
                                 {
@@ -819,7 +819,7 @@ mod client_tests {
 
         let response = Response::try_from_http_response(http_response).unwrap();
         assert_eq!(response.next_batch, "a00");
-        let private_room = response.rooms.invite.get(room_id).unwrap();
+        let private_room = response.rooms.invite.get(&room_id).unwrap();
 
         let first_event = private_room.invite_state.events[0].deserialize().unwrap();
         assert_matches!(first_event, AnyStrippedStateEvent::RoomCreate(create_event));
@@ -837,7 +837,7 @@ mod client_tests {
             "next_batch": "aaa",
             "rooms": {
                 "join": {
-                    joined_room_id: {
+                    joined_room_id.clone(): {
                         "timeline": {
                             "events": [
                                 event,
@@ -846,7 +846,7 @@ mod client_tests {
                     },
                 },
                 "leave": {
-                    left_room_id: {
+                    left_room_id.clone(): {
                         "timeline": {
                             "events": [
                                 event,
@@ -862,11 +862,11 @@ mod client_tests {
         let response = Response::try_from_http_response(http_response).unwrap();
         assert_eq!(response.next_batch, "aaa");
 
-        let joined_room = response.rooms.join.get(joined_room_id).unwrap();
+        let joined_room = response.rooms.join.get(&joined_room_id).unwrap();
         assert_eq!(joined_room.timeline.events.len(), 1);
         assert!(joined_room.state.is_before_and_empty());
 
-        let left_room = response.rooms.leave.get(left_room_id).unwrap();
+        let left_room = response.rooms.leave.get(&left_room_id).unwrap();
         assert_eq!(left_room.timeline.events.len(), 1);
         assert!(left_room.state.is_before_and_empty());
     }
@@ -881,7 +881,7 @@ mod client_tests {
             "next_batch": "aaa",
             "rooms": {
                 "join": {
-                    joined_room_id: {
+                    joined_room_id.clone(): {
                         "state": {
                             "events": [
                                 event,
@@ -890,7 +890,7 @@ mod client_tests {
                     },
                 },
                 "leave": {
-                    left_room_id: {
+                    left_room_id.clone(): {
                         "state": {
                             "events": [
                                 event,
@@ -906,12 +906,12 @@ mod client_tests {
         let response = Response::try_from_http_response(http_response).unwrap();
         assert_eq!(response.next_batch, "aaa");
 
-        let joined_room = response.rooms.join.get(joined_room_id).unwrap();
+        let joined_room = response.rooms.join.get(&joined_room_id).unwrap();
         assert!(joined_room.timeline.is_empty());
         assert_matches!(&joined_room.state, State::Before(state));
         assert_eq!(state.events.len(), 1);
 
-        let left_room = response.rooms.leave.get(left_room_id).unwrap();
+        let left_room = response.rooms.leave.get(&left_room_id).unwrap();
         assert!(left_room.timeline.is_empty());
         assert_matches!(&left_room.state, State::Before(state));
         assert_eq!(state.events.len(), 1);
@@ -926,12 +926,12 @@ mod client_tests {
             "next_batch": "aaa",
             "rooms": {
                 "join": {
-                    joined_room_id: {
+                    joined_room_id.clone(): {
                         "state_after": {},
                     },
                 },
                 "leave": {
-                    left_room_id: {
+                    left_room_id.clone(): {
                         "state_after": {},
                     },
                 },
@@ -943,12 +943,12 @@ mod client_tests {
         let response = Response::try_from_http_response(http_response).unwrap();
         assert_eq!(response.next_batch, "aaa");
 
-        let joined_room = response.rooms.join.get(joined_room_id).unwrap();
+        let joined_room = response.rooms.join.get(&joined_room_id).unwrap();
         assert!(joined_room.timeline.is_empty());
         assert_matches!(&joined_room.state, State::After(state));
         assert_eq!(state.events.len(), 0);
 
-        let left_room = response.rooms.leave.get(left_room_id).unwrap();
+        let left_room = response.rooms.leave.get(&left_room_id).unwrap();
         assert!(left_room.timeline.is_empty());
         assert_matches!(&left_room.state, State::After(state));
         assert_eq!(state.events.len(), 0);
@@ -964,7 +964,7 @@ mod client_tests {
             "next_batch": "aaa",
             "rooms": {
                 "join": {
-                    joined_room_id: {
+                    joined_room_id.clone(): {
                         "state_after": {
                             "events": [
                                 event,
@@ -973,7 +973,7 @@ mod client_tests {
                     },
                 },
                 "leave": {
-                    left_room_id: {
+                    left_room_id.clone(): {
                         "state_after": {
                             "events": [
                                 event,
@@ -989,12 +989,12 @@ mod client_tests {
         let response = Response::try_from_http_response(http_response).unwrap();
         assert_eq!(response.next_batch, "aaa");
 
-        let joined_room = response.rooms.join.get(joined_room_id).unwrap();
+        let joined_room = response.rooms.join.get(&joined_room_id).unwrap();
         assert!(joined_room.timeline.is_empty());
         assert_matches!(&joined_room.state, State::After(state));
         assert_eq!(state.events.len(), 1);
 
-        let left_room = response.rooms.leave.get(left_room_id).unwrap();
+        let left_room = response.rooms.leave.get(&left_room_id).unwrap();
         assert!(left_room.timeline.is_empty());
         assert_matches!(&left_room.state, State::After(state));
         assert_eq!(state.events.len(), 1);
@@ -1008,8 +1008,8 @@ mod server_tests {
     use assert_matches2::assert_matches;
     use ruma_common::{
         api::{IncomingRequest as _, OutgoingResponse as _},
-        owned_room_id,
         presence::PresenceState,
+        room_id,
         serde::Raw,
     };
     use ruma_events::AnySyncStateEvent;
@@ -1119,8 +1119,8 @@ mod server_tests {
 
     #[test]
     fn serialize_response_no_state() {
-        let joined_room_id = owned_room_id!("!joined:localhost");
-        let left_room_id = owned_room_id!("!left:localhost");
+        let joined_room_id = room_id!("!joined:localhost");
+        let left_room_id = room_id!("!left:localhost");
         let event = sync_state_event();
 
         let mut response = Response::new("aaa".to_owned());
@@ -1165,8 +1165,8 @@ mod server_tests {
 
     #[test]
     fn serialize_response_state_before() {
-        let joined_room_id = owned_room_id!("!joined:localhost");
-        let left_room_id = owned_room_id!("!left:localhost");
+        let joined_room_id = room_id!("!joined:localhost");
+        let left_room_id = room_id!("!left:localhost");
         let event = sync_state_event();
 
         let mut response = Response::new("aaa".to_owned());
@@ -1211,8 +1211,8 @@ mod server_tests {
 
     #[test]
     fn serialize_response_empty_state_after() {
-        let joined_room_id = owned_room_id!("!joined:localhost");
-        let left_room_id = owned_room_id!("!left:localhost");
+        let joined_room_id = room_id!("!joined:localhost");
+        let left_room_id = room_id!("!left:localhost");
 
         let mut response = Response::new("aaa".to_owned());
 
@@ -1248,8 +1248,8 @@ mod server_tests {
 
     #[test]
     fn serialize_response_non_empty_state_after() {
-        let joined_room_id = owned_room_id!("!joined:localhost");
-        let left_room_id = owned_room_id!("!left:localhost");
+        let joined_room_id = room_id!("!joined:localhost");
+        let left_room_id = room_id!("!left:localhost");
         let event = sync_state_event();
 
         let mut response = Response::new("aaa".to_owned());

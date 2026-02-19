@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.15/client-server-api/#get_matrixclientv3profileuseriddisplayname
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
     };
@@ -28,7 +28,7 @@ pub mod v3 {
     pub struct Request {
         /// The user whose display name will be retrieved.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
     }
 
     /// Response type for the `get_display_name` endpoint.
@@ -43,7 +43,7 @@ pub mod v3 {
     impl Request {
         /// Creates a new `Request` with the given user ID.
         #[deprecated = "Use the get_profile_field endpoint instead."]
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id }
         }
     }

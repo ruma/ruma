@@ -9,7 +9,7 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        OwnedRoomId,
+        RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::{Raw, StringEnum},
@@ -33,7 +33,7 @@ pub mod v1 {
     pub struct Request {
         /// The room ID where the thread roots are located.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The pagination token to start returning results from.
         ///
@@ -74,7 +74,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given room ID.
-        pub fn new(room_id: OwnedRoomId) -> Self {
+        pub fn new(room_id: RoomId) -> Self {
             Self { room_id, from: None, include: IncludeThreads::default(), limit: None }
         }
     }

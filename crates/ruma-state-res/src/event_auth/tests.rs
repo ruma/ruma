@@ -2,8 +2,8 @@ use std::collections::BTreeMap;
 
 use js_int::{int, uint};
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, ServerSignatures, owned_event_id, owned_room_alias_id,
-    owned_room_id, room_version_rules::AuthorizationRules, user_id,
+    MilliSecondsSinceUnixEpoch, ServerSignatures, event_id, room_alias_id, room_id,
+    room_version_rules::AuthorizationRules, user_id,
 };
 use ruma_events::{
     TimelineEventType,
@@ -186,7 +186,7 @@ fn redact_higher_power_level() {
     let incoming_event = room_redaction_pdu_event(
         "HELLO",
         charlie(),
-        owned_event_id!("$redacted_event:other.server"),
+        event_id!("$redacted_event:other.server"),
         to_raw_json_value(&RoomRedactionEventContent::new_v1()).unwrap(),
         &["CREATE", "IMA", "IPOWER"],
         &["IPOWER"],
@@ -209,7 +209,7 @@ fn redact_same_power_level() {
     let incoming_event = room_redaction_pdu_event(
         "HELLO",
         charlie(),
-        owned_event_id!("$redacted_event:other.server"),
+        event_id!("$redacted_event:other.server"),
         to_raw_json_value(&RoomRedactionEventContent::new_v1()).unwrap(),
         &["CREATE", "IMA", "IPOWER"],
         &["IPOWER"],
@@ -306,7 +306,7 @@ fn no_federate_different_server() {
     let sender = user_id!("@aya:other.server");
     let incoming_event = to_pdu_event(
         "AYA_JOIN",
-        sender,
+        sender.clone(),
         TimelineEventType::RoomMember,
         Some(sender.as_str()),
         member_content_join(),
@@ -340,7 +340,7 @@ fn no_federate_same_server() {
     let sender = user_id!("@aya:foo");
     let incoming_event = to_pdu_event(
         "AYA_JOIN",
-        sender,
+        sender.clone(),
         TimelineEventType::RoomMember,
         Some(sender.as_str()),
         member_content_join(),
@@ -376,8 +376,8 @@ fn room_aliases_no_state_key() {
         TimelineEventType::RoomAliases,
         None,
         to_raw_json_value(&RoomAliasesEventContent::new(vec![
-            owned_room_alias_id!("#room:foo"),
-            owned_room_alias_id!("#room_alt:foo"),
+            room_alias_id!("#room:foo"),
+            room_alias_id!("#room_alt:foo"),
         ]))
         .unwrap(),
         &["CREATE", "IJR", "IPOWER"],
@@ -405,8 +405,8 @@ fn room_aliases_other_server() {
         TimelineEventType::RoomAliases,
         Some("bar"),
         to_raw_json_value(&RoomAliasesEventContent::new(vec![
-            owned_room_alias_id!("#room:bar"),
-            owned_room_alias_id!("#room_alt:bar"),
+            room_alias_id!("#room:bar"),
+            room_alias_id!("#room_alt:bar"),
         ]))
         .unwrap(),
         &["CREATE", "IJR", "IPOWER"],
@@ -434,8 +434,8 @@ fn room_aliases_same_server() {
         TimelineEventType::RoomAliases,
         Some("foo"),
         to_raw_json_value(&RoomAliasesEventContent::new(vec![
-            owned_room_alias_id!("#room:foo"),
-            owned_room_alias_id!("#room_alt:foo"),
+            room_alias_id!("#room:foo"),
+            room_alias_id!("#room_alt:foo"),
         ]))
         .unwrap(),
         &["CREATE", "IJR", "IPOWER"],
@@ -608,8 +608,8 @@ fn auth_event_in_different_room() {
     let mut init_events = INITIAL_EVENTS();
     let power_level = PduEvent {
         event_id: event_id("IPOWER"),
-        room_id: Some(owned_room_id!("!wrongroom:foo")),
-        sender: alice().to_owned(),
+        room_id: Some(room_id!("!wrongroom:foo")),
+        sender: alice(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(3)),
         state_key: Some(String::new()),
         kind: TimelineEventType::RoomPowerLevels,
@@ -713,8 +713,8 @@ fn rejected_auth_event() {
     let mut init_events = INITIAL_EVENTS();
     let power_level = PduEvent {
         event_id: event_id("IPOWER"),
-        room_id: Some(room_id().to_owned()),
-        sender: alice().to_owned(),
+        room_id: Some(room_id()),
+        sender: alice(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(3)),
         state_key: Some(String::new()),
         kind: TimelineEventType::RoomPowerLevels,
@@ -781,21 +781,17 @@ fn room_create_with_allowed_or_rejected_room_id() {
 #[test]
 fn event_without_room_id() {
     let incoming_event = PduEvent {
-        event_id: owned_event_id!("$HELLO"),
+        event_id: event_id!("$HELLO"),
         room_id: None,
-        sender: alice().to_owned(),
+        sender: alice(),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(3)),
         state_key: None,
         kind: TimelineEventType::RoomMessage,
         content: to_raw_json_value(&RoomMessageEventContent::text_plain("Hi!")).unwrap(),
         redacts: None,
         unsigned: BTreeMap::new(),
-        auth_events: vec![
-            owned_event_id!("$CREATE"),
-            owned_event_id!("$IMA"),
-            owned_event_id!("$IPOWER"),
-        ],
-        prev_events: vec![owned_event_id!("$IPOWER")],
+        auth_events: vec![event_id!("$CREATE"), event_id!("$IMA"), event_id!("$IPOWER")],
+        prev_events: vec![event_id!("$IPOWER")],
         depth: uint!(0),
         hashes: EventHash { sha256: "".to_owned() },
         signatures: ServerSignatures::default(),
@@ -866,7 +862,7 @@ fn missing_room_create_in_fetch_event() {
     );
 
     let mut init_events = INITIAL_V12_EVENTS();
-    init_events.remove(&owned_event_id!("$CREATE")).unwrap();
+    init_events.remove(&event_id!("$CREATE")).unwrap();
 
     // Reject event if `m.room.create` can't be found.
     check_state_independent_auth_rules(&AuthorizationRules::V12, incoming_event, |event_id| {
@@ -888,7 +884,7 @@ fn rejected_room_create_in_fetch_event() {
     );
 
     let mut init_events = INITIAL_V12_EVENTS();
-    let create_event_id = owned_event_id!("$CREATE");
+    let create_event_id = event_id!("$CREATE");
     let mut create_event =
         std::sync::Arc::into_inner(init_events.remove(&create_event_id).unwrap()).unwrap();
     create_event.rejected = true;

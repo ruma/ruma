@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3presenceuseridstatus
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         presence::PresenceState,
@@ -29,7 +29,7 @@ pub mod v3 {
     pub struct Request {
         /// The user whose presence state will be updated.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The new presence state.
         pub presence: PresenceState,
@@ -46,7 +46,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID and presence state.
-        pub fn new(user_id: OwnedUserId, presence: PresenceState) -> Self {
+        pub fn new(user_id: UserId, presence: PresenceState) -> Self {
             Self { user_id, presence, status_msg: None }
         }
     }

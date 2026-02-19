@@ -9,7 +9,7 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        OwnedRoomId,
+        RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -39,7 +39,7 @@ pub mod v3 {
 
         /// The ID of the room to add keys to.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The ID of the megolm session to add keys to.
         #[ruma_api(path)]
@@ -67,7 +67,7 @@ pub mod v3 {
         /// Creates a new `Request` with the given version, room_id, session_id and session_data.
         pub fn new(
             version: String,
-            room_id: OwnedRoomId,
+            room_id: RoomId,
             session_id: String,
             session_data: Raw<KeyBackupData>,
         ) -> Self {

@@ -5,7 +5,7 @@
 use std::collections::BTreeMap;
 
 use js_int::UInt;
-use ruma_common::{OwnedVoipId, VoipVersionId};
+use ruma_common::{VoipId, VoipVersionId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -23,13 +23,13 @@ use super::{SessionDescription, StreamMetadata};
 #[ruma_event(type = "m.call.negotiate", kind = MessageLike)]
 pub struct CallNegotiateEventContent {
     /// The ID of the call this event relates to.
-    pub call_id: OwnedVoipId,
+    pub call_id: VoipId,
 
     /// The unique ID for this session for the duration of the call.
     ///
     /// Must be the same as the one sent by the previous invite or answer from
     /// this session.
-    pub party_id: OwnedVoipId,
+    pub party_id: VoipId,
 
     /// The version of the VoIP specification this messages adheres to.
     pub version: VoipVersionId,
@@ -51,8 +51,8 @@ impl CallNegotiateEventContent {
     /// Creates a `CallNegotiateEventContent` with the given call ID, party ID, lifetime and
     /// description.
     pub fn new(
-        call_id: OwnedVoipId,
-        party_id: OwnedVoipId,
+        call_id: VoipId,
+        party_id: VoipId,
         version: VoipVersionId,
         lifetime: UInt,
         description: SessionDescription,
@@ -70,8 +70,8 @@ impl CallNegotiateEventContent {
     /// Convenience method to create a version 1 `CallNegotiateEventContent` with all the required
     /// fields.
     pub fn version_1(
-        call_id: OwnedVoipId,
-        party_id: OwnedVoipId,
+        call_id: VoipId,
+        party_id: VoipId,
         lifetime: UInt,
         description: SessionDescription,
     ) -> Self {

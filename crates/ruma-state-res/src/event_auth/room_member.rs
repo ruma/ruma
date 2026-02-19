@@ -39,7 +39,7 @@ pub(super) fn check_room_member<E: Event>(
     let Some(state_key) = room_member_event.state_key() else {
         return Err("missing `state_key` field in `m.room.member` event".to_owned());
     };
-    let target_user = <&UserId>::try_from(state_key)
+    let target_user = UserId::try_from(state_key)
         .map_err(|e| format!("invalid `state_key` field in `m.room.member` event: {e}"))?;
 
     let target_membership = room_member_event.membership()?;
@@ -55,7 +55,7 @@ pub(super) fn check_room_member<E: Event>(
         // Since v1, if membership is join:
         MembershipState::Join => check_room_member_join(
             &room_member_event,
-            target_user,
+            &target_user,
             rules,
             room_create_event,
             fetch_state,
@@ -63,7 +63,7 @@ pub(super) fn check_room_member<E: Event>(
         // Since v1, if membership is invite:
         MembershipState::Invite => check_room_member_invite(
             &room_member_event,
-            target_user,
+            &target_user,
             rules,
             room_create_event,
             fetch_state,
@@ -71,7 +71,7 @@ pub(super) fn check_room_member<E: Event>(
         // Since v1, if membership is leave:
         MembershipState::Leave => check_room_member_leave(
             &room_member_event,
-            target_user,
+            &target_user,
             rules,
             room_create_event,
             fetch_state,
@@ -79,14 +79,14 @@ pub(super) fn check_room_member<E: Event>(
         // Since v1, if membership is ban:
         MembershipState::Ban => check_room_member_ban(
             &room_member_event,
-            target_user,
+            &target_user,
             rules,
             room_create_event,
             fetch_state,
         ),
         // Since v7, if membership is knock:
         MembershipState::Knock if rules.knocking => {
-            check_room_member_knock(&room_member_event, target_user, rules, fetch_state)
+            check_room_member_knock(&room_member_event, &target_user, rules, fetch_state)
         }
         // Since v1, otherwise, the membership is unknown. Reject.
         _ => Err("unknown membership".to_owned()),
@@ -311,7 +311,7 @@ fn check_third_party_invite<E: Event>(
         // verified from a public key.
 
         for (key_id, signature_value) in entity_signatures {
-            let Ok(parsed_key_id) = <&SigningKeyId<AnyKeyName>>::try_from(key_id.as_str()) else {
+            let Ok(parsed_key_id) = SigningKeyId::<AnyKeyName>::try_from(key_id.as_str()) else {
                 continue;
             };
             let algorithm = parsed_key_id.algorithm();

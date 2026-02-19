@@ -9,7 +9,7 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        OwnedServerName,
+        ServerName,
         api::{auth_scheme::NoAuthentication, request, response},
         directory::PublicRoomsChunk,
         metadata,
@@ -44,7 +44,7 @@ pub mod v3 {
         /// `None` means the server this request is sent to.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub server: Option<OwnedServerName>,
+        pub server: Option<ServerName>,
     }
 
     /// Response type for the `get_public_rooms` endpoint.
@@ -94,7 +94,7 @@ pub mod v3 {
                     MatrixVersion, OutgoingRequest as _, SupportedVersions,
                     auth_scheme::SendAccessToken,
                 },
-                owned_server_name,
+                server_name,
             };
 
             let supported = SupportedVersions {
@@ -105,7 +105,7 @@ pub mod v3 {
             let req = super::Request {
                 limit: Some(uint!(10)),
                 since: Some("hello".to_owned()),
-                server: Some(owned_server_name!("test.tld")),
+                server: Some(server_name!("test.tld")),
             }
             .try_into_http_request::<Vec<u8>>(
                 "https://homeserver.tld",

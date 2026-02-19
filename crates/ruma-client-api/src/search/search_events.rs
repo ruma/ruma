@@ -11,7 +11,7 @@ pub mod v3 {
 
     use js_int::{UInt, uint};
     use ruma_common::{
-        OwnedEventId, OwnedMxcUri, OwnedRoomId, OwnedUserId,
+        EventId, MxcUri, RoomId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::{Raw, StringEnum},
@@ -205,7 +205,7 @@ pub mod v3 {
 
         /// The historic profile information of the users that sent the events returned.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub profile_info: BTreeMap<OwnedUserId, UserProfile>,
+        pub profile_info: BTreeMap<UserId, UserProfile>,
 
         /// Pagination token for the start of the chunk.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -349,7 +349,7 @@ pub mod v3 {
 
         /// Any groups that were requested.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub groups: BTreeMap<GroupingKey, BTreeMap<OwnedRoomIdOrUserId, ResultGroup>>,
+        pub groups: BTreeMap<GroupingKey, BTreeMap<RoomIdOrUserId, ResultGroup>>,
 
         /// Token that can be used to get the next batch of results, by passing as the `next_batch`
         /// parameter to the next call.
@@ -366,7 +366,7 @@ pub mod v3 {
         ///
         /// This is included if the request had the `include_state` key set with a value of `true`.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub state: BTreeMap<OwnedRoomId, Vec<Raw<AnyStateEvent>>>,
+        pub state: BTreeMap<RoomId, Vec<Raw<AnyStateEvent>>>,
 
         /// List of words which should be highlighted, useful for stemming which may
         /// change the query terms.
@@ -408,7 +408,7 @@ pub mod v3 {
 
         /// Which results are in this group.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub results: Vec<OwnedEventId>,
+        pub results: Vec<EventId>,
     }
 
     impl ResultGroup {
@@ -467,7 +467,7 @@ pub mod v3 {
             feature = "compat-empty-string-null",
             serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
         )]
-        pub avatar_url: Option<OwnedMxcUri>,
+        pub avatar_url: Option<MxcUri>,
 
         /// The user's display name, if set.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -489,11 +489,11 @@ pub mod v3 {
     /// Represents either a room or user ID for returning grouped search results.
     #[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
     #[allow(clippy::exhaustive_enums)]
-    pub enum OwnedRoomIdOrUserId {
+    pub enum RoomIdOrUserId {
         /// Represents a room ID.
-        RoomId(OwnedRoomId),
+        RoomId(RoomId),
 
         /// Represents a user ID.
-        UserId(OwnedUserId),
+        UserId(UserId),
     }
 }

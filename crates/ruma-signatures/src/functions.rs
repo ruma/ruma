@@ -8,8 +8,8 @@ use std::{
 
 use base64::{Engine, alphabet};
 use ruma_common::{
-    AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, OwnedEventId, OwnedServerName,
-    SigningKeyAlgorithm, SigningKeyId, UserId,
+    AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, EventId, ServerName, SigningKeyAlgorithm,
+    SigningKeyId, UserId,
     canonical_json::{JsonType, redact},
     room_version_rules::{EventIdFormatVersion, RedactionRules, RoomVersionRules, SignaturesRules},
     serde::{Base64, base64::Standard},
@@ -276,7 +276,7 @@ fn verify_canonical_json_for_entity(
     let mut checked = false;
     for (key_id, signature) in signature_set {
         // If we cannot parse the key ID, ignore.
-        let Ok(parsed_key_id) = <&SigningKeyId<AnyKeyName>>::try_from(key_id.as_str()) else {
+        let Ok(parsed_key_id) = SigningKeyId::<AnyKeyName>::try_from(key_id.as_str()) else {
             continue;
         };
 
@@ -725,16 +725,16 @@ fn canonical_json_with_fields_to_remove(
 fn servers_to_check_signatures(
     object: &CanonicalJsonObject,
     rules: &SignaturesRules,
-) -> Result<BTreeSet<OwnedServerName>, Error> {
+) -> Result<BTreeSet<ServerName>, Error> {
     let mut servers_to_check = BTreeSet::new();
 
     if !is_invite_via_third_party_id(object)? {
         match object.get("sender") {
             Some(CanonicalJsonValue::String(raw_sender)) => {
-                let user_id = <&UserId>::try_from(raw_sender.as_str())
+                let user_id = UserId::try_from(raw_sender.as_str())
                     .map_err(|e| Error::from(ParseError::UserId(e)))?;
 
-                servers_to_check.insert(user_id.server_name().to_owned());
+                servers_to_check.insert(user_id.server_name());
             }
             Some(_) => return Err(JsonError::not_of_type("sender", JsonType::String)),
             _ => return Err(JsonError::field_missing_from_object("sender")),
@@ -744,12 +744,11 @@ fn servers_to_check_signatures(
     if rules.check_event_id_server {
         match object.get("event_id") {
             Some(CanonicalJsonValue::String(raw_event_id)) => {
-                let event_id: OwnedEventId =
+                let event_id: EventId =
                     raw_event_id.parse().map_err(|e| Error::from(ParseError::EventId(e)))?;
 
                 let server_name = event_id
                     .server_name()
-                    .map(ToOwned::to_owned)
                     .ok_or_else(|| ParseError::server_name_from_event_id(event_id))?;
 
                 servers_to_check.insert(server_name);
@@ -771,9 +770,9 @@ fn servers_to_check_signatures(
             JsonError::not_of_type("join_authorised_via_users_server", JsonType::String)
         })?;
         let authorized_user =
-            <&UserId>::try_from(authorized_user).map_err(|e| Error::from(ParseError::UserId(e)))?;
+            UserId::try_from(authorized_user).map_err(|e| Error::from(ParseError::UserId(e)))?;
 
-        servers_to_check.insert(authorized_user.server_name().to_owned());
+        servers_to_check.insert(authorized_user.server_name());
     }
 
     Ok(servers_to_check)

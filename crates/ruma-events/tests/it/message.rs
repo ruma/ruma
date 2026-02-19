@@ -4,7 +4,7 @@ use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::uint;
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id,
     serde::CanBeEmpty,
 };
 #[cfg(feature = "unstable-msc3954")]
@@ -131,7 +131,7 @@ fn reply_content_serialization() {
         assign!(MessageEventContent::plain("> <@test:example.com> test\n\ntest reply"), {
             relates_to: Some(Relation::Reply {
                 in_reply_to: InReplyTo::new(
-                    owned_event_id!("$15827405538098VGFWH:example.com"),
+                    event_id!("$15827405538098VGFWH:example.com"),
                 ),
             }),
         });

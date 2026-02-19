@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3keyschanges
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -44,11 +44,11 @@ pub mod v3 {
     #[response(error = crate::Error)]
     pub struct Response {
         /// The Matrix User IDs of all users who updated their device identity keys.
-        pub changed: Vec<OwnedUserId>,
+        pub changed: Vec<UserId>,
 
         /// The Matrix User IDs of all users who may have left all the end-to-end
         /// encrypted rooms they previously shared with the user.
-        pub left: Vec<OwnedUserId>,
+        pub left: Vec<UserId>,
     }
 
     impl Request {
@@ -60,7 +60,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given changed and left user ID lists.
-        pub fn new(changed: Vec<OwnedUserId>, left: Vec<OwnedUserId>) -> Self {
+        pub fn new(changed: Vec<UserId>, left: Vec<UserId>) -> Self {
             Self { changed, left }
         }
     }

@@ -158,7 +158,7 @@ impl KeyPair for Ed25519KeyPair {
         Signature {
             key_id: SigningKeyId::from_parts(
                 SigningKeyAlgorithm::Ed25519,
-                self.version.as_str().into(),
+                &self.version.as_str().into(),
             ),
             signature: self.signing_key.sign(message).to_bytes().to_vec(),
         }

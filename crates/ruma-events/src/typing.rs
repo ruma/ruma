@@ -2,7 +2,7 @@
 //!
 //! [`m.typing`]: https://spec.matrix.org/latest/client-server-api/#mtyping
 
-use ruma_common::OwnedUserId;
+use ruma_common::UserId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -14,12 +14,12 @@ use serde::{Deserialize, Serialize};
 #[ruma_event(type = "m.typing", kind = EphemeralRoom)]
 pub struct TypingEventContent {
     /// The list of user IDs typing in this room, if any.
-    pub user_ids: Vec<OwnedUserId>,
+    pub user_ids: Vec<UserId>,
 }
 
 impl TypingEventContent {
     /// Creates a new `TypingEventContent` with the given user IDs.
-    pub fn new(user_ids: Vec<OwnedUserId>) -> Self {
+    pub fn new(user_ids: Vec<UserId>) -> Self {
         Self { user_ids }
     }
 }

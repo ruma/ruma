@@ -3,7 +3,7 @@
 //!
 //! [MSC3489]: https://github.com/matrix-org/matrix-spec-proposals/pull/3489
 
-use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedEventId};
+use ruma_common::{EventId, MilliSecondsSinceUnixEpoch};
 use ruma_events::{location::LocationContent, relation::Reference};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -30,7 +30,7 @@ impl BeaconEventContent {
     /// Creates a new `BeaconEventContent` with the given beacon_info event id, geo uri and
     /// optional ts. If ts is None, the current time will be used.
     pub fn new(
-        beacon_info_event_id: OwnedEventId,
+        beacon_info_event_id: EventId,
         geo_uri: String,
         ts: Option<MilliSecondsSinceUnixEpoch>,
     ) -> Self {

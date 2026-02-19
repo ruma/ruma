@@ -7,7 +7,7 @@ use std::collections::HashSet;
 
 use as_variant::as_variant;
 
-use crate::OwnedUserId;
+use crate::UserId;
 
 /// The rules applied to a [room version].
 ///
@@ -630,16 +630,13 @@ pub struct RoomPowerLevelsRules {
     /// The creator(s) of the room which are considered to have "infinite" power level, introduced
     /// in room version 12.
     #[allow(clippy::disallowed_types)]
-    pub privileged_creators: Option<HashSet<OwnedUserId>>,
+    pub privileged_creators: Option<HashSet<UserId>>,
 }
 
 impl RoomPowerLevelsRules {
     /// Creates a new `RoomPowerLevelsRules` from the given parameters, using the `creators` if
     /// the rule `explicitly_privilege_room_creators` is `true`.
-    pub fn new(
-        rules: &AuthorizationRules,
-        creators: impl IntoIterator<Item = OwnedUserId>,
-    ) -> Self {
+    pub fn new(rules: &AuthorizationRules, creators: impl IntoIterator<Item = UserId>) -> Self {
         Self {
             privileged_creators: rules
                 .explicitly_privilege_room_creators

@@ -871,7 +871,7 @@ mod tests {
         // View device, with only the stable action advertised.
         let url = original_metadata
             .action_management_url_with_action(AccountManagementActionData::DeviceView(
-                device_id.into(),
+                (&device_id).into(),
             ))
             .unwrap();
         assert_eq!(url.query().unwrap(), "action=org.matrix.device_view&device_id=DEVICE");
@@ -882,7 +882,7 @@ mod tests {
             .insert(AccountManagementAction::UnstableSessionView);
         let url = original_metadata
             .action_management_url_with_action(AccountManagementActionData::DeviceView(
-                device_id.into(),
+                (&device_id).into(),
             ))
             .unwrap();
         assert_eq!(url.query().unwrap(), "action=org.matrix.device_view&device_id=DEVICE");
@@ -893,7 +893,7 @@ mod tests {
             .remove(&AccountManagementAction::DeviceView);
         let url = original_metadata
             .action_management_url_with_action(AccountManagementActionData::DeviceView(
-                device_id.into(),
+                (&device_id).into(),
             ))
             .unwrap();
         assert_eq!(url.query().unwrap(), "action=org.matrix.session_view&device_id=DEVICE");
@@ -904,7 +904,7 @@ mod tests {
             .remove(&AccountManagementAction::UnstableSessionView);
         let url = original_metadata
             .action_management_url_with_action(AccountManagementActionData::DeviceView(
-                device_id.into(),
+                (&device_id).into(),
             ))
             .unwrap();
         assert_eq!(url.query().unwrap(), "action=org.matrix.device_view&device_id=DEVICE");
@@ -912,7 +912,7 @@ mod tests {
         // Delete device, with only the stable action advertised.
         let url = original_metadata
             .action_management_url_with_action(AccountManagementActionData::DeviceDelete(
-                device_id.into(),
+                (&device_id).into(),
             ))
             .unwrap();
         assert_eq!(url.query().unwrap(), "action=org.matrix.device_delete&device_id=DEVICE");
@@ -923,7 +923,7 @@ mod tests {
             .insert(AccountManagementAction::UnstableSessionEnd);
         let url = original_metadata
             .action_management_url_with_action(AccountManagementActionData::DeviceDelete(
-                device_id.into(),
+                (&device_id).into(),
             ))
             .unwrap();
         assert_eq!(url.query().unwrap(), "action=org.matrix.device_delete&device_id=DEVICE");
@@ -934,7 +934,7 @@ mod tests {
             .remove(&AccountManagementAction::DeviceDelete);
         let url = original_metadata
             .action_management_url_with_action(AccountManagementActionData::DeviceDelete(
-                device_id.into(),
+                (&device_id).into(),
             ))
             .unwrap();
         assert_eq!(url.query().unwrap(), "action=org.matrix.session_end&device_id=DEVICE");
@@ -945,7 +945,7 @@ mod tests {
             .remove(&AccountManagementAction::UnstableSessionEnd);
         let url = original_metadata
             .action_management_url_with_action(AccountManagementActionData::DeviceDelete(
-                device_id.into(),
+                (&device_id).into(),
             ))
             .unwrap();
         assert_eq!(url.query().unwrap(), "action=org.matrix.device_delete&device_id=DEVICE");

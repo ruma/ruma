@@ -2,7 +2,7 @@
 //!
 //! [`m.key.verification.done`]: https://spec.matrix.org/latest/client-server-api/#mkeyverificationdone
 
-use ruma_common::OwnedTransactionId;
+use ruma_common::TransactionId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -18,12 +18,12 @@ pub struct ToDeviceKeyVerificationDoneEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the `m.key.verification.start` message.
-    pub transaction_id: OwnedTransactionId,
+    pub transaction_id: TransactionId,
 }
 
 impl ToDeviceKeyVerificationDoneEventContent {
     /// Creates a new `ToDeviceKeyVerificationDoneEventContent` with the given transaction ID.
-    pub fn new(transaction_id: OwnedTransactionId) -> Self {
+    pub fn new(transaction_id: TransactionId) -> Self {
         Self { transaction_id }
     }
 }
@@ -49,7 +49,7 @@ impl KeyVerificationDoneEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_event_id};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, event_id};
     use serde_json::{from_value as from_json_value, json};
 
     use super::KeyVerificationDoneEventContent;
@@ -57,7 +57,7 @@ mod tests {
 
     #[test]
     fn serialization() {
-        let event_id = owned_event_id!("$1598361704261elfgc:localhost");
+        let event_id = event_id!("$1598361704261elfgc:localhost");
         let content = KeyVerificationDoneEventContent {
             relates_to: Reference { event_id: event_id.clone() },
         };

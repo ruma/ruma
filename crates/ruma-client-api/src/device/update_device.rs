@@ -10,7 +10,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3devicesdeviceid
 
     use ruma_common::{
-        OwnedDeviceId,
+        DeviceId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -30,7 +30,7 @@ pub mod v3 {
     pub struct Request {
         /// The device to update or create.
         #[ruma_api(path)]
-        pub device_id: OwnedDeviceId,
+        pub device_id: DeviceId,
 
         /// The new display name for this device.
         ///
@@ -46,7 +46,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given device ID.
-        pub fn new(device_id: OwnedDeviceId) -> Self {
+        pub fn new(device_id: DeviceId) -> Self {
             Self { device_id, display_name: None }
         }
     }

@@ -2,7 +2,7 @@
 //!
 //! [`m.room.canonical_alias`]: https://spec.matrix.org/latest/client-server-api/#mroomcanonical_alias
 
-use ruma_common::OwnedRoomAliasId;
+use ruma_common::RoomAliasId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -24,11 +24,11 @@ pub struct RoomCanonicalAliasEventContent {
         deserialize_with = "ruma_common::serde::empty_string_as_none",
         skip_serializing_if = "Option::is_none"
     )]
-    pub alias: Option<OwnedRoomAliasId>,
+    pub alias: Option<RoomAliasId>,
 
     /// List of alternative aliases to the room.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub alt_aliases: Vec<OwnedRoomAliasId>,
+    pub alt_aliases: Vec<RoomAliasId>,
 }
 
 impl RoomCanonicalAliasEventContent {
@@ -40,7 +40,7 @@ impl RoomCanonicalAliasEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_room_alias_id};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, room_alias_id};
     use serde_json::{from_value as from_json_value, json};
 
     use super::RoomCanonicalAliasEventContent;
@@ -49,7 +49,7 @@ mod tests {
     #[test]
     fn serialization_with_optional_fields_as_none() {
         let content = RoomCanonicalAliasEventContent {
-            alias: Some(owned_room_alias_id!("#somewhere:localhost")),
+            alias: Some(room_alias_id!("#somewhere:localhost")),
             alt_aliases: Vec::new(),
         };
 
@@ -128,7 +128,7 @@ mod tests {
 
     #[test]
     fn nonempty_field_as_some() {
-        let alias = Some(owned_room_alias_id!("#somewhere:localhost"));
+        let alias = Some(room_alias_id!("#somewhere:localhost"));
         let json_data = json!({
             "content": {
                 "alias": "#somewhere:localhost"

@@ -9,7 +9,7 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        OwnedRoomId,
+        RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -31,7 +31,7 @@ pub mod v1 {
     pub struct Request {
         /// The room ID of the space to get a hierarchy for.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// A pagination token from a previous result.
         ///
@@ -76,7 +76,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given room ID.
-        pub fn new(room_id: OwnedRoomId) -> Self {
+        pub fn new(room_id: RoomId) -> Self {
             Self { room_id, from: None, limit: None, max_depth: None, suggested_only: false }
         }
     }

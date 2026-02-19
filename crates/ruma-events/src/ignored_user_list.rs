@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::OwnedUserId;
+use ruma_common::UserId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -19,17 +19,17 @@ pub struct IgnoredUserListEventContent {
     ///
     /// As [`IgnoredUser`] is currently empty, only the user IDs are useful and
     /// can be accessed with the `.keys()` and `into_keys()` iterators.
-    pub ignored_users: BTreeMap<OwnedUserId, IgnoredUser>,
+    pub ignored_users: BTreeMap<UserId, IgnoredUser>,
 }
 
 impl IgnoredUserListEventContent {
     /// Creates a new `IgnoredUserListEventContent` from the given map of ignored user.
-    pub fn new(ignored_users: BTreeMap<OwnedUserId, IgnoredUser>) -> Self {
+    pub fn new(ignored_users: BTreeMap<UserId, IgnoredUser>) -> Self {
         Self { ignored_users }
     }
 
     /// Creates a new `IgnoredUserListEventContent` from the given list of users.
-    pub fn users(ignored_users: impl IntoIterator<Item = OwnedUserId>) -> Self {
+    pub fn users(ignored_users: impl IntoIterator<Item = UserId>) -> Self {
         Self::new(ignored_users.into_iter().map(|id| (id, IgnoredUser {})).collect())
     }
 }
@@ -51,7 +51,7 @@ impl IgnoredUser {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_user_id, user_id};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, user_id};
     use serde_json::{from_value as from_json_value, json};
 
     use super::IgnoredUserListEventContent;
@@ -60,7 +60,7 @@ mod tests {
     #[test]
     fn serialization() {
         let ignored_user_list =
-            IgnoredUserListEventContent::users(vec![owned_user_id!("@carl:example.com")]);
+            IgnoredUserListEventContent::users(vec![user_id!("@carl:example.com")]);
 
         assert_to_canonical_json_eq!(
             ignored_user_list,
@@ -89,7 +89,7 @@ mod tests {
         );
         assert_eq!(
             ev.content.ignored_users.keys().collect::<Vec<_>>(),
-            vec![user_id!("@carl:example.com")]
+            vec![&user_id!("@carl:example.com")]
         );
     }
 }

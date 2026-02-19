@@ -10,7 +10,7 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        OwnedTransactionId, OwnedUserId,
+        TransactionId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -45,7 +45,7 @@ pub mod v3 {
         ///
         /// [access token is refreshed]: https://spec.matrix.org/latest/client-server-api/#refreshing-access-tokens
         #[ruma_api(path)]
-        pub txn_id: OwnedTransactionId,
+        pub txn_id: TransactionId,
 
         /// Messages to send.
         ///
@@ -63,7 +63,7 @@ pub mod v3 {
         /// Creates a new `Request` with the given event type, transaction ID and raw messages.
         pub fn new_raw(
             event_type: ToDeviceEventType,
-            txn_id: OwnedTransactionId,
+            txn_id: TransactionId,
             messages: Messages,
         ) -> Self {
             Self { event_type, txn_id, messages }
@@ -81,5 +81,5 @@ pub mod v3 {
     ///
     /// Represented as a map of `{ user-ids => { device-ids => message-content } }`.
     pub type Messages =
-        BTreeMap<OwnedUserId, BTreeMap<DeviceIdOrAllDevices, Raw<AnyToDeviceEventContent>>>;
+        BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, Raw<AnyToDeviceEventContent>>>;
 }

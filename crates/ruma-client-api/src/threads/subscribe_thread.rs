@@ -8,7 +8,7 @@ pub mod unstable {
     //! [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
 
     use ruma_common::{
-        OwnedEventId, OwnedRoomId,
+        EventId, RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -27,16 +27,16 @@ pub mod unstable {
     pub struct Request {
         /// The room ID where the thread is located.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The event ID of the thread root to subscribe to.
         #[ruma_api(path)]
-        pub thread_root: OwnedEventId,
+        pub thread_root: EventId,
 
         /// Whether the subscription was made automatically by a client, not by manual user choice,
         /// and up to which event.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub automatic: Option<OwnedEventId>,
+        pub automatic: Option<EventId>,
     }
 
     /// Response type for the `subscribe_thread` endpoint.
@@ -48,11 +48,7 @@ pub mod unstable {
         ///
         /// If `automatic` is set, it must be the ID of the last thread event causing an automatic
         /// update, which is not necessarily the latest thread event. See the MSC for more details.
-        pub fn new(
-            room_id: OwnedRoomId,
-            thread_root: OwnedEventId,
-            automatic: Option<OwnedEventId>,
-        ) -> Self {
+        pub fn new(room_id: RoomId, thread_root: EventId, automatic: Option<EventId>) -> Self {
             Self { room_id, thread_root, automatic }
         }
     }

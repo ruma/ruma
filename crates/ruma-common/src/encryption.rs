@@ -7,8 +7,8 @@ use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    CrossSigningOrDeviceSignatures, DeviceSignatures, EventEncryptionAlgorithm,
-    OwnedCrossSigningKeyId, OwnedDeviceId, OwnedDeviceKeyId, OwnedUserId, PrivOwnedStr,
+    CrossSigningKeyId, CrossSigningOrDeviceSignatures, DeviceId, DeviceKeyId, DeviceSignatures,
+    EventEncryptionAlgorithm, PrivOwnedStr, UserId,
     serde::{Base64, StringEnum},
 };
 
@@ -19,18 +19,18 @@ pub struct DeviceKeys {
     /// The ID of the user the device belongs to.
     ///
     /// Must match the user ID used when logging in.
-    pub user_id: OwnedUserId,
+    pub user_id: UserId,
 
     /// The ID of the device these keys belong to.
     ///
     /// Must match the device ID used when logging in.
-    pub device_id: OwnedDeviceId,
+    pub device_id: DeviceId,
 
     /// The encryption algorithms supported by this device.
     pub algorithms: Vec<EventEncryptionAlgorithm>,
 
     /// Public identity keys.
-    pub keys: BTreeMap<OwnedDeviceKeyId, String>,
+    pub keys: BTreeMap<DeviceKeyId, String>,
 
     /// Signatures for the device key object.
     pub signatures: CrossSigningOrDeviceSignatures,
@@ -45,10 +45,10 @@ impl DeviceKeys {
     /// Creates a new `DeviceKeys` from the given user id, device id, algorithms, keys and
     /// signatures.
     pub fn new(
-        user_id: OwnedUserId,
-        device_id: OwnedDeviceId,
+        user_id: UserId,
+        device_id: DeviceId,
         algorithms: Vec<EventEncryptionAlgorithm>,
-        keys: BTreeMap<OwnedDeviceKeyId, String>,
+        keys: BTreeMap<DeviceKeyId, String>,
         signatures: CrossSigningOrDeviceSignatures,
     ) -> Self {
         Self { user_id, device_id, algorithms, keys, signatures, unsigned: Default::default() }
@@ -122,7 +122,7 @@ pub enum OneTimeKey {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct CrossSigningKey {
     /// The ID of the user the key belongs to.
-    pub user_id: OwnedUserId,
+    pub user_id: UserId,
 
     /// What the key is used for.
     pub usage: Vec<KeyUsage>,
@@ -130,7 +130,7 @@ pub struct CrossSigningKey {
     /// The public key.
     ///
     /// The object must have exactly one property.
-    pub keys: BTreeMap<OwnedCrossSigningKeyId, String>,
+    pub keys: BTreeMap<CrossSigningKeyId, String>,
 
     /// Signatures of the key.
     ///
@@ -146,9 +146,9 @@ pub struct CrossSigningKey {
 impl CrossSigningKey {
     /// Creates a new `CrossSigningKey` with the given user ID, usage, keys and signatures.
     pub fn new(
-        user_id: OwnedUserId,
+        user_id: UserId,
         usage: Vec<KeyUsage>,
-        keys: BTreeMap<OwnedCrossSigningKeyId, String>,
+        keys: BTreeMap<CrossSigningKeyId, String>,
         signatures: CrossSigningOrDeviceSignatures,
     ) -> Self {
         Self { user_id, usage, keys, signatures }

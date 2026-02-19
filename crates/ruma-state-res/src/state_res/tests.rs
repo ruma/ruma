@@ -7,7 +7,7 @@ use js_int::{int, uint};
 use maplit::{hashmap, hashset};
 use rand::seq::SliceRandom;
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, OwnedEventId,
+    EventId, MilliSecondsSinceUnixEpoch,
     room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
 };
 use ruma_events::{
@@ -35,7 +35,7 @@ fn test_event_sort() {
         .map(|ev| (ev.event_type().with_state_key(ev.state_key().unwrap()), ev.clone()))
         .collect::<StateMap<_>>();
 
-    let auth_chain: HashSet<OwnedEventId> = HashSet::new();
+    let auth_chain: HashSet<EventId> = HashSet::new();
 
     let power_events = event_map
         .values()
@@ -380,6 +380,7 @@ fn topic_setting() {
 #[test]
 fn test_event_map_none() {
     let mut store = TestStore::<PduEvent>(hashmap! {});
+    let room_id = room_id();
 
     // build up the DAG
     let (state_at_bob, state_at_charlie, expected) = store.set_up();
@@ -392,7 +393,7 @@ fn test_event_map_none() {
         &state_sets,
         state_sets
             .iter()
-            .map(|map| store.auth_event_ids(room_id(), map.values().cloned().collect()).unwrap())
+            .map(|map| store.auth_event_ids(&room_id, map.values().cloned().collect()).unwrap())
             .collect(),
         |id| ev_map.get(id).cloned(),
         |_| unreachable!(),
@@ -446,6 +447,7 @@ fn ban_with_auth_chains() {
 fn ban_with_auth_chains2() {
     let init = INITIAL_EVENTS();
     let ban = BAN_STATE_SET();
+    let room_id = room_id();
 
     let mut inner = init.clone();
     inner.extend(ban);
@@ -485,7 +487,7 @@ fn ban_with_auth_chains2() {
         &state_sets,
         state_sets
             .iter()
-            .map(|map| store.auth_event_ids(room_id(), map.values().cloned().collect()).unwrap())
+            .map(|map| store.auth_event_ids(&room_id, map.values().cloned().collect()).unwrap())
             .collect(),
         |id| ev_map.get(id).cloned(),
         |_| unreachable!(),
@@ -527,7 +529,7 @@ fn join_rule_with_auth_chain() {
 }
 
 #[allow(non_snake_case)]
-fn BAN_STATE_SET() -> HashMap<OwnedEventId, Arc<PduEvent>> {
+fn BAN_STATE_SET() -> HashMap<EventId, Arc<PduEvent>> {
     vec![
         to_pdu_event(
             "PA",
@@ -572,7 +574,7 @@ fn BAN_STATE_SET() -> HashMap<OwnedEventId, Arc<PduEvent>> {
 }
 
 #[allow(non_snake_case)]
-fn JOIN_RULE() -> HashMap<OwnedEventId, Arc<PduEvent>> {
+fn JOIN_RULE() -> HashMap<EventId, Arc<PduEvent>> {
     vec![
         to_pdu_event(
             "JR",

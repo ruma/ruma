@@ -5,7 +5,7 @@
 use std::{collections::BTreeMap, time::Duration};
 
 use ruma_common::{
-    OneTimeKeyAlgorithm, OwnedDeviceId, OwnedOneTimeKeyId, OwnedUserId,
+    DeviceId, OneTimeKeyAlgorithm, OneTimeKeyId, UserId,
     api::{auth_scheme::AccessToken, request, response},
     encryption::OneTimeKey,
     metadata,
@@ -36,7 +36,7 @@ pub struct Request {
     pub timeout: Option<Duration>,
 
     /// The keys to be claimed.
-    pub one_time_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, OneTimeKeyAlgorithm>>,
+    pub one_time_keys: BTreeMap<UserId, BTreeMap<DeviceId, OneTimeKeyAlgorithm>>,
 }
 
 /// Response type for the `claim_keys` endpoint.
@@ -49,24 +49,22 @@ pub struct Response {
     pub failures: BTreeMap<String, JsonValue>,
 
     /// One-time keys for the queried devices.
-    pub one_time_keys: BTreeMap<OwnedUserId, OneTimeKeys>,
+    pub one_time_keys: BTreeMap<UserId, OneTimeKeys>,
 }
 
 impl Request {
     /// Creates a new `Request` with the given key claims and the recommended 10 second timeout.
-    pub fn new(
-        one_time_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, OneTimeKeyAlgorithm>>,
-    ) -> Self {
+    pub fn new(one_time_keys: BTreeMap<UserId, BTreeMap<DeviceId, OneTimeKeyAlgorithm>>) -> Self {
         Self { timeout: Some(Duration::from_secs(10)), one_time_keys }
     }
 }
 
 impl Response {
     /// Creates a new `Response` with the given keys and no failures.
-    pub fn new(one_time_keys: BTreeMap<OwnedUserId, OneTimeKeys>) -> Self {
+    pub fn new(one_time_keys: BTreeMap<UserId, OneTimeKeys>) -> Self {
         Self { failures: BTreeMap::new(), one_time_keys }
     }
 }
 
 /// The one-time keys for a given device.
-pub type OneTimeKeys = BTreeMap<OwnedDeviceId, BTreeMap<OwnedOneTimeKeyId, Raw<OneTimeKey>>>;
+pub type OneTimeKeys = BTreeMap<DeviceId, BTreeMap<OneTimeKeyId, Raw<OneTimeKey>>>;

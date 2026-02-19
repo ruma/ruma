@@ -8,8 +8,7 @@ use serde::{Deserialize, Serialize, de};
 use serde_json::{Value as JsonValue, value::RawValue as RawJsonValue};
 
 use crate::{
-    EventEncryptionAlgorithm, OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr,
-    RoomVersionId,
+    EventEncryptionAlgorithm, MxcUri, PrivOwnedStr, RoomAliasId, RoomId, RoomVersionId,
     serde::{JsonObject, StringEnum, from_raw_json_value},
 };
 
@@ -194,7 +193,7 @@ pub enum AllowRule {
 
 impl AllowRule {
     /// Constructs an `AllowRule` with membership of the room with the given id as its predicate.
-    pub fn room_membership(room_id: OwnedRoomId) -> Self {
+    pub fn room_membership(room_id: RoomId) -> Self {
         Self::RoomMembership(RoomMembership::new(room_id))
     }
 }
@@ -205,12 +204,12 @@ impl AllowRule {
 #[serde(tag = "type", rename = "m.room_membership")]
 pub struct RoomMembership {
     /// The id of the room which being a member of grants permission to join another room.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 }
 
 impl RoomMembership {
     /// Constructs a new room membership rule for the given room id.
-    pub fn new(room_id: OwnedRoomId) -> Self {
+    pub fn new(room_id: RoomId) -> Self {
         Self { room_id }
     }
 }
@@ -305,14 +304,14 @@ impl From<JoinRuleKind> for JoinRuleSummary {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomSummary {
     /// The ID of the room.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The canonical alias of the room, if any.
     ///
     /// If the `compat-empty-string-null` cargo feature is enabled, this field being an empty
     /// string in JSON will result in `None` here during deserialization.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub canonical_alias: Option<OwnedRoomAliasId>,
+    pub canonical_alias: Option<RoomAliasId>,
 
     /// The name of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -327,7 +326,7 @@ pub struct RoomSummary {
     /// If you activate the `compat-empty-string-null` feature, this field being an empty string in
     /// JSON will result in `None` here during deserialization.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar_url: Option<OwnedMxcUri>,
+    pub avatar_url: Option<MxcUri>,
 
     /// The type of room from `m.room.create`, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -360,7 +359,7 @@ pub struct RoomSummary {
 impl RoomSummary {
     /// Construct a new `RoomSummary` with the given required fields.
     pub fn new(
-        room_id: OwnedRoomId,
+        room_id: RoomId,
         join_rule: JoinRuleSummary,
         guest_can_join: bool,
         num_joined_members: UInt,
@@ -392,19 +391,19 @@ impl<'de> Deserialize<'de> for RoomSummary {
         /// returns an error.
         #[derive(Deserialize)]
         struct RoomSummaryDeHelper {
-            room_id: OwnedRoomId,
+            room_id: RoomId,
             #[cfg_attr(
                 feature = "compat-empty-string-null",
                 serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
             )]
-            canonical_alias: Option<OwnedRoomAliasId>,
+            canonical_alias: Option<RoomAliasId>,
             name: Option<String>,
             topic: Option<String>,
             #[cfg_attr(
                 feature = "compat-empty-string-null",
                 serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
             )]
-            avatar_url: Option<OwnedMxcUri>,
+            avatar_url: Option<MxcUri>,
             room_type: Option<RoomType>,
             num_joined_members: UInt,
             world_readable: bool,
@@ -574,12 +573,12 @@ impl<'de> Deserialize<'de> for JoinRuleSummary {
 pub struct RestrictedSummary {
     /// The room IDs which are specified by the join rules.
     #[serde(default)]
-    pub allowed_room_ids: Vec<OwnedRoomId>,
+    pub allowed_room_ids: Vec<RoomId>,
 }
 
 impl RestrictedSummary {
     /// Constructs a new `RestrictedSummary` with the given room IDs.
-    pub fn new(allowed_room_ids: Vec<OwnedRoomId>) -> Self {
+    pub fn new(allowed_room_ids: Vec<RoomId>) -> Self {
         Self { allowed_room_ids }
     }
 }
@@ -605,7 +604,7 @@ mod tests {
 
     use assert_matches2::assert_matches;
     use js_int::uint;
-    use ruma_common::{OwnedRoomId, owned_room_id};
+    use ruma_common::{RoomId, room_id};
     use serde_json::{from_value as from_json_value, json};
 
     use super::{
@@ -691,7 +690,7 @@ mod tests {
     #[test]
     fn serialize_summary_knock_join_rule() {
         let summary = RoomSummary::new(
-            owned_room_id!("!room:localhost"),
+            room_id!("!room:localhost"),
             JoinRuleSummary::Knock,
             false,
             uint!(5),
@@ -713,8 +712,8 @@ mod tests {
     #[test]
     fn serialize_summary_restricted_join_rule() {
         let summary = RoomSummary::new(
-            owned_room_id!("!room:localhost"),
-            JoinRuleSummary::Restricted(RestrictedSummary::new(vec![owned_room_id!(
+            room_id!("!room:localhost"),
+            JoinRuleSummary::Restricted(RestrictedSummary::new(vec![room_id!(
                 "!otherroom:localhost"
             )])),
             false,
@@ -746,9 +745,9 @@ mod tests {
             JoinRule::KnockRestricted(Restricted::default()).into(),
             JoinRuleSummary::KnockRestricted(restricted)
         );
-        assert_eq!(restricted.allowed_room_ids, &[] as &[OwnedRoomId]);
+        assert_eq!(restricted.allowed_room_ids, &[] as &[RoomId]);
 
-        let room_id = owned_room_id!("!room:localhost");
+        let room_id = room_id!("!room:localhost");
         assert_matches!(
             JoinRule::Restricted(Restricted::new(vec![AllowRule::RoomMembership(
                 RoomMembership::new(room_id.clone())
@@ -801,7 +800,7 @@ mod tests {
         assert_eq!(
             restricted.allow,
             &[
-                AllowRule::room_membership(owned_room_id!("!mods:example.org")),
+                AllowRule::room_membership(room_id!("!mods:example.org")),
                 AllowRule::_Custom(Box::new(CustomAllowRule {
                     rule_type: "org.example.custom".into(),
                     extra: BTreeMap::from([(

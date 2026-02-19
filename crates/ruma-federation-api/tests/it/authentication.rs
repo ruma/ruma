@@ -4,7 +4,6 @@ use js_int::uint;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch,
     api::{OutgoingRequest, auth_scheme::AuthScheme},
-    owned_server_name,
     serde::Base64,
     server_name,
 };
@@ -20,8 +19,8 @@ static PKCS8_ED25519_DER: &[u8] =
 #[test]
 fn server_signatures_roundtrip() {
     let key_pair = Ed25519KeyPair::from_der(PKCS8_ED25519_DER, "1".to_owned()).unwrap();
-    let origin = owned_server_name!("origin.local");
-    let destination = owned_server_name!("destination.local");
+    let origin = server_name!("origin.local");
+    let destination = server_name!("destination.local");
 
     let request = send_transaction_message::v1::Request::new(
         "12345".into(),
@@ -53,7 +52,7 @@ fn server_signatures_roundtrip() {
 
     // With invalid destination.
     xmatrix
-        .verify_request(&http_request, server_name!("invalid.local"), &public_key_map)
+        .verify_request(&http_request, &server_name!("invalid.local"), &public_key_map)
         .unwrap_err();
 
     // With valid destination.

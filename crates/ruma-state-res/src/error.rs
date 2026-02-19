@@ -1,4 +1,4 @@
-use ruma_common::OwnedEventId;
+use ruma_common::EventId;
 use thiserror::Error;
 
 /// Result type for state resolution.
@@ -10,7 +10,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     /// The given event was not found.
     #[error("Failed to find event {0}")]
-    NotFound(OwnedEventId),
+    NotFound(EventId),
 
     /// An auth event is invalid.
     #[error("Invalid auth event: {0}")]

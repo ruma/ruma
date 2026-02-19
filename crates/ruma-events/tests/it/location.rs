@@ -4,8 +4,8 @@ use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::uint;
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id,
-    owned_event_id, room_id, serde::CanBeEmpty, user_id,
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id, room_id,
+    serde::CanBeEmpty, user_id,
 };
 use ruma_events::{
     AnyMessageLikeEvent, MessageLikeEvent,
@@ -55,7 +55,7 @@ fn event_serialization() {
         {
             ts: Some(MilliSecondsSinceUnixEpoch(uint!(1_636_829_458))),
             relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo::new(owned_event_id!("$replyevent:example.com")),
+                in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com")),
             }),
         }
     );

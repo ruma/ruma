@@ -14,7 +14,7 @@ pub mod leave_room;
 pub mod mutual_rooms;
 pub mod unban_user;
 
-use ruma_common::{OwnedUserId, ServerSignatures, thirdparty::Medium};
+use ruma_common::{ServerSignatures, UserId, thirdparty::Medium};
 use serde::{Deserialize, Serialize};
 
 /// A signature of an `m.third_party_invite` token to prove that this user owns a third party
@@ -23,10 +23,10 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ThirdPartySigned {
     /// The Matrix ID of the user who issued the invite.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// The Matrix ID of the invitee.
-    pub mxid: OwnedUserId,
+    pub mxid: UserId,
 
     /// The state key of the `m.third_party_invite` event.
     pub token: String,
@@ -38,12 +38,7 @@ pub struct ThirdPartySigned {
 impl ThirdPartySigned {
     /// Creates a new `ThirdPartySigned` from the given sender and invitee user IDs, state key token
     /// and signatures.
-    pub fn new(
-        sender: OwnedUserId,
-        mxid: OwnedUserId,
-        token: String,
-        signatures: ServerSignatures,
-    ) -> Self {
+    pub fn new(sender: UserId, mxid: UserId, token: String, signatures: ServerSignatures) -> Self {
         Self { sender, mxid, token, signatures }
     }
 }

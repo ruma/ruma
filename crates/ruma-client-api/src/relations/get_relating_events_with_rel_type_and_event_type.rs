@@ -10,7 +10,7 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        OwnedEventId, OwnedRoomId,
+        EventId, RoomId,
         api::{Direction, auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -32,11 +32,11 @@ pub mod v1 {
     pub struct Request {
         /// The ID of the room containing the parent event.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The ID of the parent event whose child events are to be returned.
         #[ruma_api(path)]
-        pub event_id: OwnedEventId,
+        pub event_id: EventId,
 
         /// The relationship type to search for.
         #[ruma_api(path)]
@@ -140,8 +140,8 @@ pub mod v1 {
         /// Creates a new `Request` with the given room ID, parent event ID, relationship type and
         /// event type.
         pub fn new(
-            room_id: OwnedRoomId,
-            event_id: OwnedEventId,
+            room_id: RoomId,
+            event_id: EventId,
             rel_type: RelationType,
             event_type: TimelineEventType,
         ) -> Self {

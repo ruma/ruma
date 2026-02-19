@@ -8,7 +8,7 @@ pub mod unstable {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 
     use ruma_common::{
-        OwnedRoomId,
+        RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -34,7 +34,7 @@ pub mod unstable {
     pub struct Request {
         /// The room to send the event to.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The type of event to send.
         #[ruma_api(path)]
@@ -73,7 +73,7 @@ pub mod unstable {
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`::serde::Serialize`] implementation can fail.
         pub fn new<T>(
-            room_id: OwnedRoomId,
+            room_id: RoomId,
             state_key: String,
             delay_parameters: DelayParameters,
             content: &T,
@@ -93,7 +93,7 @@ pub mod unstable {
         /// Creates a new `Request` with the given room id, event type, state key,
         /// delay parameters and raw event content.
         pub fn new_raw(
-            room_id: OwnedRoomId,
+            room_id: RoomId,
             state_key: String,
             event_type: StateEventType,
             delay_parameters: DelayParameters,
@@ -119,7 +119,7 @@ pub mod unstable {
             api::{
                 MatrixVersion, OutgoingRequest, SupportedVersions, auth_scheme::SendAccessToken,
             },
-            owned_room_id,
+            room_id,
             serde::Raw,
         };
         use serde_json::{Value as JsonValue, json};
@@ -137,7 +137,7 @@ pub mod unstable {
             };
 
             Request::new_raw(
-                owned_room_id!("!roomid:example.org"),
+                room_id!("!roomid:example.org"),
                 "@userAsStateKey:example.org".to_owned(),
                 "com.example.custom_state".into(),
                 delay_parameters,

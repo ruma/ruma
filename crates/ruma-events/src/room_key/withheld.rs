@@ -5,7 +5,7 @@
 use std::borrow::Cow;
 
 use ruma_common::{
-    EventEncryptionAlgorithm, OwnedRoomId,
+    EventEncryptionAlgorithm, RoomId,
     serde::{Base64, JsonObject, from_raw_json_value},
 };
 use ruma_macros::{EventContent, StringEnum};
@@ -164,7 +164,7 @@ impl<'de> Deserialize<'de> for RoomKeyWithheldCodeInfo {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomKeyWithheldSessionData {
     /// The room for the key.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The session ID of the key.
     pub session_id: String,
@@ -172,7 +172,7 @@ pub struct RoomKeyWithheldSessionData {
 
 impl RoomKeyWithheldSessionData {
     /// Construct a new `RoomKeyWithheldSessionData` with the given room ID and session ID.
-    pub fn new(room_id: OwnedRoomId, session_id: String) -> Self {
+    pub fn new(room_id: RoomId, session_id: String) -> Self {
         Self { room_id, session_id }
     }
 }
@@ -232,7 +232,7 @@ pub enum RoomKeyWithheldCode {
 mod tests {
     use assert_matches2::assert_matches;
     use ruma_common::{
-        EventEncryptionAlgorithm, canonical_json::assert_to_canonical_json_eq, owned_room_id,
+        EventEncryptionAlgorithm, canonical_json::assert_to_canonical_json_eq, room_id,
         serde::Base64,
     };
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
@@ -264,7 +264,7 @@ mod tests {
 
     #[test]
     fn serialization_blacklisted() {
-        let room_id = owned_room_id!("!roomid:localhost");
+        let room_id = room_id!("!roomid:localhost");
         let content = ToDeviceRoomKeyWithheldEventContent::new(
             EventEncryptionAlgorithm::MegolmV1AesSha2,
             RoomKeyWithheldCodeInfo::Blacklisted(
@@ -303,7 +303,7 @@ mod tests {
 
     #[test]
     fn deserialization_blacklisted() {
-        let room_id = owned_room_id!("!roomid:localhost");
+        let room_id = room_id!("!roomid:localhost");
         let json = json!({
             "algorithm": "m.megolm.v1.aes-sha2",
             "code": "m.blacklisted",
@@ -323,7 +323,7 @@ mod tests {
 
     #[test]
     fn custom_room_key_withheld_code_info_round_trip() {
-        let room_id = owned_room_id!("!roomid:localhost");
+        let room_id = room_id!("!roomid:localhost");
         let json = json!({
             "algorithm": "m.megolm.v1.aes-sha2",
             "code": "dev.ruma.custom_code",

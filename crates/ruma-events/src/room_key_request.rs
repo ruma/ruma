@@ -2,9 +2,7 @@
 //!
 //! [`m.room_key_request`]: https://spec.matrix.org/latest/client-server-api/#mroom_key_request
 
-use ruma_common::{
-    EventEncryptionAlgorithm, OwnedDeviceId, OwnedRoomId, OwnedTransactionId, serde::StringEnum,
-};
+use ruma_common::{DeviceId, EventEncryptionAlgorithm, RoomId, TransactionId, serde::StringEnum};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -24,13 +22,13 @@ pub struct ToDeviceRoomKeyRequestEventContent {
     pub body: Option<RequestedKeyInfo>,
 
     /// ID of the device requesting the key.
-    pub requesting_device_id: OwnedDeviceId,
+    pub requesting_device_id: DeviceId,
 
     /// A random string uniquely identifying the request for a key.
     ///
     /// If the key is requested multiple times, it should be reused. It should also reused
     /// in order to cancel a request.
-    pub request_id: OwnedTransactionId,
+    pub request_id: TransactionId,
 }
 
 impl ToDeviceRoomKeyRequestEventContent {
@@ -39,8 +37,8 @@ impl ToDeviceRoomKeyRequestEventContent {
     pub fn new(
         action: Action,
         body: Option<RequestedKeyInfo>,
-        requesting_device_id: OwnedDeviceId,
-        request_id: OwnedTransactionId,
+        requesting_device_id: DeviceId,
+        request_id: TransactionId,
     ) -> Self {
         Self { action, body, requesting_device_id, request_id }
     }
@@ -71,7 +69,7 @@ pub struct RequestedKeyInfo {
     pub algorithm: EventEncryptionAlgorithm,
 
     /// The room where the key is used.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The Curve25519 key of the device which initiated the session originally.
     #[deprecated = "Since Matrix 1.3, this field should still be sent but should not be used when received"]
@@ -87,7 +85,7 @@ impl RequestedKeyInfo {
     /// ID.
     pub fn new(
         algorithm: EventEncryptionAlgorithm,
-        room_id: OwnedRoomId,
+        room_id: RoomId,
         sender_key: String,
         session_id: String,
     ) -> Self {

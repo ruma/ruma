@@ -1,6 +1,6 @@
 //! De-/serialization functions for `Option<MediaSource>` objects representing a thumbnail source.
 
-use ruma_common::OwnedMxcUri;
+use ruma_common::MxcUri;
 use serde::{
     Deserialize, Deserializer,
     ser::{SerializeStruct, Serializer},
@@ -32,7 +32,7 @@ where
 {
     #[derive(Deserialize)]
     struct ThumbnailSourceJsonRepr {
-        thumbnail_url: Option<OwnedMxcUri>,
+        thumbnail_url: Option<MxcUri>,
         thumbnail_file: Option<Box<EncryptedFile>>,
     }
 
@@ -51,7 +51,7 @@ where
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use ruma_common::{owned_mxc_uri, serde::Base64};
+    use ruma_common::{mxc_uri, serde::Base64};
     use serde::{Deserialize, Serialize};
     use serde_json::json;
 
@@ -134,7 +134,7 @@ mod tests {
     #[test]
     fn serialize_plain() {
         let request = ThumbnailSourceTest {
-            source: Some(MediaSource::Plain(owned_mxc_uri!("mxc://notareal.hs/abcdef"))),
+            source: Some(MediaSource::Plain(mxc_uri!("mxc://notareal.hs/abcdef"))),
         };
         assert_eq!(
             serde_json::to_value(&request).unwrap(),
@@ -147,7 +147,7 @@ mod tests {
         let request = ThumbnailSourceTest {
             source: Some(MediaSource::Encrypted(Box::new(
                 EncryptedFileInit {
-                    url: owned_mxc_uri!("mxc://notareal.hs/abcdef"),
+                    url: mxc_uri!("mxc://notareal.hs/abcdef"),
                     key: JsonWebKeyInit {
                         kty: "oct".to_owned(),
                         key_ops: vec!["encrypt".to_owned(), "decrypt".to_owned()],

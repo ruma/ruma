@@ -183,10 +183,10 @@ fn redact_method_properly_redacts() {
 
     let redaction = OriginalSyncRoomRedactionEvent {
         content: RoomRedactionEventContent::with_reason("redacted because".into()),
-        redacts: owned_event_id!("$143273582443PhrSn:example.com"),
-        event_id: owned_event_id!("$h29iv0s8:example.com"),
+        redacts: event_id!("$143273582443PhrSn:example.com"),
+        event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        sender: owned_user_id!("@carl:example.com"),
+        sender: user_id!("@carl:example.com"),
         unsigned: MessageLikeUnsigned::default(),
     };
 

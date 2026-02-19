@@ -1,6 +1,4 @@
-use ruma_common::{
-    EventEncryptionAlgorithm, canonical_json::assert_to_canonical_json_eq, owned_room_id,
-};
+use ruma_common::{EventEncryptionAlgorithm, canonical_json::assert_to_canonical_json_eq, room_id};
 use ruma_events::room_key::ToDeviceRoomKeyEventContent;
 use serde_json::json;
 
@@ -8,7 +6,7 @@ use serde_json::json;
 fn serialization() {
     let content = ToDeviceRoomKeyEventContent::new(
         EventEncryptionAlgorithm::MegolmV1AesSha2,
-        owned_room_id!("!testroomid:example.org"),
+        room_id!("!testroomid:example.org"),
         "SessId".into(),
         "SessKey".into(),
     );

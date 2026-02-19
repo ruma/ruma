@@ -77,15 +77,15 @@ mod tests {
 
     #[test]
     fn notify_event_serialization() {
-        use ruma_common::owned_user_id;
+        use ruma_common::user_id;
 
         let content_user_mention = CallNotifyEventContent::new(
             "abcdef".into(),
             ApplicationType::Call,
             rtc::notification::NotificationType::Ring,
             Mentions::with_user_ids(vec![
-                owned_user_id!("@user:example.com"),
-                owned_user_id!("@user2:example.com"),
+                user_id!("@user:example.com"),
+                user_id!("@user2:example.com"),
             ]),
         );
 
@@ -123,7 +123,7 @@ mod tests {
         use std::collections::BTreeSet;
 
         use assert_matches2::assert_matches;
-        use ruma_common::owned_user_id;
+        use ruma_common::user_id;
 
         use crate::{AnyMessageLikeEvent, MessageLikeEvent};
 
@@ -154,10 +154,7 @@ mod tests {
         assert!(!content.mentions.room);
         assert_eq!(
             content.mentions.user_ids,
-            BTreeSet::from([
-                owned_user_id!("@user:example.com"),
-                owned_user_id!("@user2:example.com")
-            ])
+            BTreeSet::from([user_id!("@user:example.com"), user_id!("@user2:example.com")])
         );
     }
 }

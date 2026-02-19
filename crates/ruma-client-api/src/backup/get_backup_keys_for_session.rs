@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3room_keyskeysroomidsessionid
 
     use ruma_common::{
-        OwnedRoomId,
+        RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -36,7 +36,7 @@ pub mod v3 {
 
         /// The ID of the room that the requested key is for.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The ID of the megolm session whose key is requested.
         #[ruma_api(path)]
@@ -53,7 +53,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given version, room_id and session_id.
-        pub fn new(version: String, room_id: OwnedRoomId, session_id: String) -> Self {
+        pub fn new(version: String, room_id: RoomId, session_id: String) -> Self {
             Self { version, room_id, session_id }
         }
     }

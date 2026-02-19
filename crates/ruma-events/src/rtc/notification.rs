@@ -118,7 +118,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use js_int::UInt;
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
+        MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id,
     };
     use serde_json::{from_value as from_json_value, json};
 
@@ -133,7 +133,7 @@ mod tests {
             NotificationType::Ring,
         );
         content.mentions = Some(Mentions::with_room_mention());
-        content.relates_to = Some(ruma_events::relation::Reference::new(owned_event_id!("$m:ex")));
+        content.relates_to = Some(ruma_events::relation::Reference::new(event_id!("$m:ex")));
 
         assert_to_canonical_json_eq!(
             content,

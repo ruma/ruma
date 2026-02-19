@@ -591,7 +591,7 @@ fn join_restricted_join_rule_missing_join_authorised_via_users_server() {
 #[test]
 fn join_restricted_join_rule_authorised_via_user_not_in_room() {
     let mut content = RoomMemberEventContent::new(MembershipState::Join);
-    content.join_authorized_via_users_server = Some(zara().to_owned());
+    content.join_authorized_via_users_server = Some(zara());
 
     let incoming_event = to_pdu_event(
         "HELLO",
@@ -635,7 +635,7 @@ fn join_restricted_join_rule_authorised_via_user_not_in_room() {
 #[test]
 fn join_restricted_join_rule_authorised_via_user_with_not_enough_power() {
     let mut content = RoomMemberEventContent::new(MembershipState::Join);
-    content.join_authorized_via_users_server = Some(charlie().to_owned());
+    content.join_authorized_via_users_server = Some(charlie());
 
     let incoming_event = to_pdu_event(
         "HELLO",
@@ -719,7 +719,7 @@ fn join_restricted_join_rule_authorised_via_user() {
     ];
 
     let mut content = RoomMemberEventContent::new(MembershipState::Join);
-    content.join_authorized_via_users_server = Some(charlie().to_owned());
+    content.join_authorized_via_users_server = Some(charlie());
 
     let incoming_event = to_pdu_event(
         "HELLO",
@@ -813,12 +813,8 @@ fn invite_via_third_party_invite_banned() {
     let mut content = RoomMemberEventContent::new(MembershipState::Invite);
     content.third_party_invite = Some(ThirdPartyInvite::new(
         "e..@p..".to_owned(),
-        Raw::new(&SignedContent::new(
-            Signatures::new(),
-            ella().to_owned(),
-            "somerandomtoken".to_owned(),
-        ))
-        .unwrap(),
+        Raw::new(&SignedContent::new(Signatures::new(), ella(), "somerandomtoken".to_owned()))
+            .unwrap(),
     ));
 
     let incoming_event = to_pdu_event(
@@ -972,12 +968,8 @@ fn invite_via_third_party_invite_mxid_mismatch() {
     let mut content = RoomMemberEventContent::new(MembershipState::Invite);
     content.third_party_invite = Some(ThirdPartyInvite::new(
         "z..@p..".to_owned(),
-        Raw::new(&SignedContent::new(
-            Signatures::new(),
-            zara().to_owned(),
-            "somerandomtoken".to_owned(),
-        ))
-        .unwrap(),
+        Raw::new(&SignedContent::new(Signatures::new(), zara(), "somerandomtoken".to_owned()))
+            .unwrap(),
     ));
 
     let incoming_event = to_pdu_event(
@@ -1010,12 +1002,8 @@ fn invite_via_third_party_invite_missing_room_third_party_invite() {
     let mut content = RoomMemberEventContent::new(MembershipState::Invite);
     content.third_party_invite = Some(ThirdPartyInvite::new(
         "e..@p..".to_owned(),
-        Raw::new(&SignedContent::new(
-            Signatures::new(),
-            ella().to_owned(),
-            "somerandomtoken".to_owned(),
-        ))
-        .unwrap(),
+        Raw::new(&SignedContent::new(Signatures::new(), ella(), "somerandomtoken".to_owned()))
+            .unwrap(),
     ));
 
     let incoming_event = to_pdu_event(
@@ -1066,12 +1054,8 @@ fn invite_via_third_party_invite_room_third_party_invite_sender_mismatch() {
     let mut content = RoomMemberEventContent::new(MembershipState::Invite);
     content.third_party_invite = Some(ThirdPartyInvite::new(
         "e..@p..".to_owned(),
-        Raw::new(&SignedContent::new(
-            Signatures::new(),
-            ella().to_owned(),
-            "somerandomtoken".to_owned(),
-        ))
-        .unwrap(),
+        Raw::new(&SignedContent::new(Signatures::new(), ella(), "somerandomtoken".to_owned()))
+            .unwrap(),
     ));
 
     let incoming_event = to_pdu_event(

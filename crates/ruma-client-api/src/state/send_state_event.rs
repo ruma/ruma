@@ -10,7 +10,7 @@ pub mod v3 {
     use std::borrow::Borrow;
 
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
+        EventId, MilliSecondsSinceUnixEpoch, RoomId,
         api::{auth_scheme::AccessToken, response},
         metadata,
         serde::Raw,
@@ -33,7 +33,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
         /// The room to set the state in.
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The type of event to send.
         pub event_type: StateEventType,
@@ -61,11 +61,7 @@ pub mod v3 {
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
-        pub fn new<T, K>(
-            room_id: OwnedRoomId,
-            state_key: &K,
-            content: &T,
-        ) -> serde_json::Result<Self>
+        pub fn new<T, K>(room_id: RoomId, state_key: &K, content: &T) -> serde_json::Result<Self>
         where
             T: StateEventContent,
             T::StateKey: Borrow<K>,
@@ -83,7 +79,7 @@ pub mod v3 {
         /// Creates a new `Request` with the given room id, event type, state key and raw event
         /// content.
         pub fn new_raw(
-            room_id: OwnedRoomId,
+            room_id: RoomId,
             event_type: StateEventType,
             state_key: String,
             body: Raw<AnyStateEventContent>,
@@ -96,12 +92,12 @@ pub mod v3 {
     #[response(error = crate::Error)]
     pub struct Response {
         /// A unique identifier for the event.
-        pub event_id: OwnedEventId,
+        pub event_id: EventId,
     }
 
     impl Response {
         /// Creates a new `Response` with the given event id.
-        pub fn new(event_id: OwnedEventId) -> Self {
+        pub fn new(event_id: EventId) -> Self {
             Self { event_id }
         }
     }
@@ -158,7 +154,7 @@ pub mod v3 {
 
             // FIXME: find a way to make this if-else collapse with serde recognizing trailing
             // Option
-            let (room_id, event_type, state_key): (OwnedRoomId, StateEventType, String) =
+            let (room_id, event_type, state_key): (RoomId, StateEventType, String) =
                 if path_args.len() == 3 {
                     serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
                         _,
@@ -207,7 +203,7 @@ pub mod v3 {
                 MatrixVersion, OutgoingRequest as _, SupportedVersions,
                 auth_scheme::SendAccessToken,
             },
-            owned_room_id,
+            room_id,
         };
         use ruma_events::{EmptyStateKey, room::name::RoomNameEventContent};
 
@@ -218,7 +214,7 @@ pub mod v3 {
 
         // This used to panic in make_endpoint_url because of a mismatch in the path parameter count
         let req = Request::new(
-            owned_room_id!("!room:server.tld"),
+            room_id!("!room:server.tld"),
             &EmptyStateKey,
             &RoomNameEventContent::new("Test room".to_owned()),
         )

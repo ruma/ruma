@@ -2,7 +2,7 @@
 //!
 //! [`m.forwarded_room_key`]: https://spec.matrix.org/latest/client-server-api/#mforwarded_room_key
 
-use ruma_common::{EventEncryptionAlgorithm, OwnedRoomId};
+use ruma_common::{EventEncryptionAlgorithm, RoomId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -18,7 +18,7 @@ pub struct ToDeviceForwardedRoomKeyEventContent {
     pub algorithm: EventEncryptionAlgorithm,
 
     /// The room where the key is used.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The Curve25519 key of the device which initiated the session originally.
     pub sender_key: String,
@@ -67,7 +67,7 @@ pub struct ToDeviceForwardedRoomKeyEventContentInit {
     pub algorithm: EventEncryptionAlgorithm,
 
     /// The room where the key is used.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The Curve25519 key of the device which initiated the session originally.
     pub sender_key: String,

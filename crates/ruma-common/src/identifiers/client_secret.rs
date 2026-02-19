@@ -1,6 +1,6 @@
 //! Client secret identifier.
 
-use ruma_macros::IdDst;
+use ruma_macros::ruma_id;
 
 /// A client secret.
 ///
@@ -10,10 +10,8 @@ use ruma_macros::IdDst;
 /// You can create one from a string (using `ClientSecret::parse()`) but the recommended way is to
 /// use `ClientSecret::new()` to generate a random one. If that function is not available for you,
 /// you need to activate this crate's `rand` Cargo feature.
-#[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(validate = ruma_identifiers_validation::client_secret::validate)]
-pub struct ClientSecret(str);
+pub struct ClientSecret;
 
 impl ClientSecret {
     /// Creates a random client secret.
@@ -21,10 +19,9 @@ impl ClientSecret {
     /// This will currently be a UUID without hyphens, but no guarantees are made about the
     /// structure of client secrets generated from this function.
     #[cfg(feature = "rand")]
-    #[allow(clippy::new_ret_no_self)]
-    pub fn new() -> OwnedClientSecret {
+    pub fn new() -> Self {
         let id = uuid::Uuid::new_v4();
-        OwnedClientSecret::from_string_unchecked(id.simple().to_string())
+        Self::from_string_unchecked(id.simple().to_string())
     }
 }
 
@@ -34,6 +31,6 @@ mod tests {
 
     #[test]
     fn valid_secret() {
-        <&ClientSecret>::try_from("this_=_a_valid_secret_1337").unwrap();
+        ClientSecret::try_from("this_=_a_valid_secret_1337").unwrap();
     }
 }
