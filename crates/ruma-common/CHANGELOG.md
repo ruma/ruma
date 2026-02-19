@@ -23,6 +23,8 @@ Improvements:
 - Add crate-internal into_raw() / from_raw() helpers for IdDst owned IDs and
   use them in OwnedRoomId / OwnedRoomAliasId <-> OwnedRoomOrAliasId
   conversions.
+- Use raw ownership transfer for conversions from OwnedDeviceId and
+  OwnedBase64PublicKey to OwnedBase64PublicKeyOrDeviceId.
 
 # 0.17.1
 
