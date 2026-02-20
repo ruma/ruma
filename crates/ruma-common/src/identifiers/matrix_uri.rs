@@ -415,8 +415,7 @@ impl AsRef<str> for UriAction {
 
 impl fmt::Display for UriAction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_ref())?;
-        Ok(())
+        self.as_str().fmt(f)
     }
 }
 
