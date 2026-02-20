@@ -42,7 +42,7 @@ impl SpaceParentEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::{canonical_json::assert_to_canonical_json_eq, server_name};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_server_name};
     use serde_json::json;
 
     use super::SpaceParentEventContent;
@@ -50,7 +50,7 @@ mod tests {
     #[test]
     fn space_parent_serialization() {
         let content = SpaceParentEventContent {
-            via: vec![server_name!("example.com").to_owned()],
+            via: vec![owned_server_name!("example.com")],
             canonical: true,
         };
 

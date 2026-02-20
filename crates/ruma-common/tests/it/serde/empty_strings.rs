@@ -48,14 +48,14 @@ mod string {
 }
 
 mod user {
-    use ruma_common::{OwnedUserId, UserId, canonical_json::assert_to_canonical_json_eq, user_id};
+    use ruma_common::{OwnedUserId, canonical_json::assert_to_canonical_json_eq, owned_user_id};
     use serde::{Deserialize, Serialize};
     use serde_json::{from_value as from_json_value, json};
 
     const CARL: &str = "@carl:example.com";
 
-    fn carl() -> &'static UserId {
-        user_id!("@carl:example.com")
+    fn carl() -> OwnedUserId {
+        owned_user_id!("@carl:example.com")
     }
 
     #[derive(Serialize, Deserialize, PartialEq, Debug)]
@@ -76,7 +76,7 @@ mod user {
 
     #[test]
     fn some_se() {
-        let decoded = User { x: Some(carl().to_owned()) };
+        let decoded = User { x: Some(carl()) };
         assert_to_canonical_json_eq!(decoded, json!({ "x": CARL }));
     }
 
@@ -97,7 +97,7 @@ mod user {
     #[test]
     fn some_de() {
         let encoded = json!({ "x": CARL });
-        let decoded = User { x: Some(carl().to_owned()) };
+        let decoded = User { x: Some(carl()) };
         assert_eq!(from_json_value::<User>(encoded).unwrap(), decoded);
     }
 }

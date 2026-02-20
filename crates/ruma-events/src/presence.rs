@@ -73,7 +73,8 @@ impl PresenceEventContent {
 mod tests {
     use js_int::uint;
     use ruma_common::{
-        canonical_json::assert_to_canonical_json_eq, mxc_uri, presence::PresenceState,
+        canonical_json::assert_to_canonical_json_eq, mxc_uri, owned_mxc_uri,
+        presence::PresenceState,
     };
     use serde_json::{from_value as from_json_value, json};
 
@@ -82,7 +83,7 @@ mod tests {
     #[test]
     fn serialization() {
         let content = PresenceEventContent {
-            avatar_url: Some(mxc_uri!("mxc://localhost/wefuiwegh8742w").to_owned()),
+            avatar_url: Some(owned_mxc_uri!("mxc://localhost/wefuiwegh8742w")),
             currently_active: Some(false),
             displayname: None,
             last_active_ago: Some(uint!(2_478_593)),

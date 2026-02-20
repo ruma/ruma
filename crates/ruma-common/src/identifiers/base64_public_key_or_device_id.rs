@@ -67,7 +67,7 @@ impl From<OwnedBase64PublicKey> for OwnedBase64PublicKeyOrDeviceId {
 #[cfg(test)]
 mod tests {
     use super::OwnedBase64PublicKeyOrDeviceId;
-    use crate::{Base64PublicKey, OwnedBase64PublicKey, OwnedDeviceId};
+    use crate::{OwnedBase64PublicKey, OwnedDeviceId};
 
     #[test]
     fn convert_owned_device_id_to_owned_base64_public_key_or_device_id() {
@@ -80,7 +80,7 @@ mod tests {
     #[test]
     fn convert_owned_base64_public_key_to_owned_base64_public_key_or_device_id() {
         let base64_public_key: OwnedBase64PublicKey =
-            <&Base64PublicKey>::try_from("base64+master+public+key").unwrap().to_owned();
+            "base64+master+public+key".try_into().unwrap();
         let mixed: OwnedBase64PublicKeyOrDeviceId = base64_public_key.into();
 
         assert_eq!(mixed.as_str(), "base64+master+public+key");
