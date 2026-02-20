@@ -13,7 +13,7 @@ use super::{
     EventId, OwnedEventId, OwnedRoomAliasId, OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName,
     OwnedUserId, RoomAliasId, RoomId, RoomOrAliasId, UserId,
 };
-use crate::{PrivOwnedStr, ServerName, percent_encode::PATH_PERCENT_ENCODE_SET};
+use crate::{PrivOwnedStr, percent_encode::PATH_PERCENT_ENCODE_SET};
 
 const MATRIX_TO_BASE_URL: &str = "https://matrix.to/#/";
 const MATRIX_SCHEME: &str = "matrix";
@@ -63,14 +63,10 @@ impl MatrixId {
 
             match first.as_bytes()[0] {
                 b'!' | b'#' if second.as_bytes()[0] == b'$' => {
-                    let room_id = <&RoomOrAliasId>::try_from(first.as_ref())?;
-                    let event_id = <&EventId>::try_from(second.as_ref())?;
-                    Ok((room_id, event_id).into())
+                    Ok(Self::Event(first.try_into()?, second.try_into()?))
                 }
                 b'$' if matches!(second.as_bytes()[0], b'!' | b'#') => {
-                    let room_id = <&RoomOrAliasId>::try_from(second.as_ref())?;
-                    let event_id = <&EventId>::try_from(first.as_ref())?;
-                    Ok((room_id, event_id).into())
+                    Ok(Self::Event(second.try_into()?, first.try_into()?))
                 }
                 _ => Err(MatrixIdError::UnknownIdentifierPair.into()),
             }
@@ -78,9 +74,9 @@ impl MatrixId {
             let id = percent_decode_str(s).decode_utf8()?;
 
             match id.as_bytes()[0] {
-                b'@' => Ok(<&UserId>::try_from(id.as_ref())?.into()),
-                b'!' => Ok(<&RoomId>::try_from(id.as_ref())?.into()),
-                b'#' => Ok(<&RoomAliasId>::try_from(id.as_ref())?.into()),
+                b'@' => Ok(Self::User(id.try_into()?)),
+                b'!' => Ok(Self::Room(id.try_into()?)),
+                b'#' => Ok(Self::RoomAlias(id.try_into()?)),
                 b'$' => Err(MatrixIdError::MissingRoom.into()),
                 _ => Err(MatrixIdError::UnknownIdentifier.into()),
             }
@@ -315,7 +311,7 @@ impl MatrixToUri {
                 query_parts
                     .map(|(key, value)| {
                         if key == "via" {
-                            ServerName::parse(&value)
+                            OwnedServerName::try_from(value)
                         } else {
                             Err(MatrixToError::UnknownArgument.into())
                         }
