@@ -94,7 +94,7 @@ pub mod v3 {
                     MatrixVersion, OutgoingRequest as _, SupportedVersions,
                     auth_scheme::SendAccessToken,
                 },
-                server_name,
+                owned_server_name,
             };
 
             let supported = SupportedVersions {
@@ -105,7 +105,7 @@ pub mod v3 {
             let req = super::Request {
                 limit: Some(uint!(10)),
                 since: Some("hello".to_owned()),
-                server: Some(server_name!("test.tld").to_owned()),
+                server: Some(owned_server_name!("test.tld")),
             }
             .try_into_http_request::<Vec<u8>>(
                 "https://homeserver.tld",

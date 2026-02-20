@@ -265,7 +265,7 @@ pub mod request {
         {
             match deserialize_cow_str(deserializer)?.as_ref() {
                 "*" => Ok(Self::AllSubscribed),
-                other => Ok(Self::Room(RoomId::parse(other).map_err(D::Error::custom)?.to_owned())),
+                other => Ok(Self::Room(RoomId::parse(other).map_err(D::Error::custom)?)),
             }
         }
     }

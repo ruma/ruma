@@ -5,7 +5,7 @@ use js_int::uint;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch,
     canonical_json::assert_to_canonical_json_eq,
-    mxc_uri, owned_event_id,
+    owned_event_id, owned_mxc_uri,
     serde::{Base64, CanBeEmpty},
 };
 use ruma_events::{
@@ -26,7 +26,7 @@ fn plain_content_serialization() {
     let event_content = ImageEventContent::with_plain_text(
         "Upload: my_image.jpg",
         FileContentBlock::plain(
-            mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+            owned_mxc_uri!("mxc://notareal.hs/abcdef"),
             "my_image.jpg".to_owned(),
         ),
     );
@@ -50,7 +50,7 @@ fn encrypted_content_serialization() {
     let event_content = ImageEventContent::with_plain_text(
         "Upload: my_image.jpg",
         FileContentBlock::encrypted(
-            mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+            owned_mxc_uri!("mxc://notareal.hs/abcdef"),
             "my_image.jpg".to_owned(),
             EncryptedContentInit {
                 key: JsonWebKeyInit {
@@ -104,7 +104,7 @@ fn image_event_serialization() {
     let mut content = ImageEventContent::new(
         TextContentBlock::html("Upload: my_house.jpg", "Upload: <strong>my_house.jpg</strong>"),
         FileContentBlock::plain(
-            mxc_uri!("mxc://notareal.hs/abcdef").to_owned(),
+            owned_mxc_uri!("mxc://notareal.hs/abcdef"),
             "my_house.jpg".to_owned(),
         ),
     );
@@ -114,7 +114,7 @@ fn image_event_serialization() {
     content.image_details = Some(ImageDetailsContentBlock::new(uint!(1920), uint!(1080)));
     let mut thumbnail = Thumbnail::new(
         ThumbnailFileContentBlock::plain(
-            mxc_uri!("mxc://notareal.hs/thumbnail").to_owned(),
+            owned_mxc_uri!("mxc://notareal.hs/thumbnail"),
             "image/jpeg".to_owned(),
         ),
         ThumbnailImageDetailsContentBlock::new(uint!(560), uint!(480)),

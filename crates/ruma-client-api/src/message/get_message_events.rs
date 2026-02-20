@@ -190,7 +190,7 @@ pub mod v3 {
         #[test]
         fn serialize_some_room_event_filter() {
             let room_id = owned_room_id!("!roomid:example.org");
-            let rooms = vec![room_id.to_owned()];
+            let rooms = vec![room_id.clone()];
             let filter = RoomEventFilter {
                 lazy_load_options: LazyLoadOptions::Enabled { include_redundant_members: true },
                 rooms: Some(rooms),

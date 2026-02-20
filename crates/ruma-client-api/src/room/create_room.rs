@@ -334,7 +334,8 @@ mod tests {
     use js_int::int;
     use maplit::btreemap;
     use ruma_common::{
-        canonical_json::assert_to_canonical_json_eq, power_levels::NotificationPowerLevels, user_id,
+        canonical_json::assert_to_canonical_json_eq, owned_user_id,
+        power_levels::NotificationPowerLevels,
     };
     use serde_json::json;
 
@@ -360,7 +361,7 @@ mod tests {
 
     #[test]
     fn serialization_of_power_levels_overridden_values_with_all_fields() {
-        let user = user_id!("@carl:example.com");
+        let user = owned_user_id!("@carl:example.com");
         let power_levels_event = RoomPowerLevelsContentOverride {
             ban: Some(int!(23)),
             events: btreemap! {
@@ -372,7 +373,7 @@ mod tests {
             redact: Some(int!(23)),
             state_default: Some(int!(23)),
             users: btreemap! {
-                user.to_owned() => int!(23)
+                user => int!(23)
             },
             users_default: Some(int!(23)),
             notifications: assign!(NotificationPowerLevels::new(), { room: int!(23) }),

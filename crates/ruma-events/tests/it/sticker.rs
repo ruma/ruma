@@ -2,8 +2,8 @@ use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::{UInt, uint};
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, mxc_uri,
-    owned_event_id, serde::CanBeEmpty,
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
+    owned_mxc_uri, serde::CanBeEmpty,
 };
 use ruma_events::{
     AnyMessageLikeEvent, MessageLikeEvent,
@@ -18,7 +18,7 @@ fn content_serialization() {
     let message_event_content = StickerEventContent::new(
         "Upload: my_image.jpg".to_owned(),
         ImageInfo::new(),
-        mxc_uri!("mxc://notareal.hs/file").to_owned(),
+        owned_mxc_uri!("mxc://notareal.hs/file"),
     );
 
     assert_to_canonical_json_eq!(
@@ -36,13 +36,13 @@ fn replace_content_serialization() {
     let mut message_event_content = StickerEventContent::new(
         "* Upload: my_image.jpg".to_owned(),
         ImageInfo::new(),
-        mxc_uri!("mxc://notareal.hs/file").to_owned(),
+        owned_mxc_uri!("mxc://notareal.hs/file"),
     );
     let old_event_id = owned_event_id!("$15827405538098VGFWH:example.com");
     let new_message_event_content = StickerEventContent::new(
         "Upload: my_image.jpg".to_owned(),
         ImageInfo::new(),
-        mxc_uri!("mxc://notareal.hs/file").to_owned(),
+        owned_mxc_uri!("mxc://notareal.hs/file"),
     );
     let new_content = StickerEventContentWithoutRelation::from(new_message_event_content);
     let replacement = Replacement::new(old_event_id.clone(), new_content);
@@ -83,9 +83,9 @@ fn event_serialization() {
                 mimetype: Some("image/png".into()),
                 size: UInt::new(82595),
             }))),
-            thumbnail_source: Some(MediaSource::Plain(mxc_uri!("mxc://matrix.org/irsns989Rrsn").to_owned())),
+            thumbnail_source: Some(MediaSource::Plain(owned_mxc_uri!("mxc://matrix.org/irsns989Rrsn"))),
         }),
-        mxc_uri!("mxc://matrix.org/rnsldl8srs98IRrs").to_owned(),
+        owned_mxc_uri!("mxc://matrix.org/rnsldl8srs98IRrs"),
     );
 
     assert_to_canonical_json_eq!(

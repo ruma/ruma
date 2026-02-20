@@ -4,7 +4,7 @@ use assign::assign;
 use js_int::uint;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, VoipVersionId, canonical_json::assert_to_canonical_json_eq,
-    room_id, serde::CanBeEmpty,
+    owned_room_id, serde::CanBeEmpty,
 };
 #[cfg(feature = "unstable-msc2747")]
 use ruma_events::call::CallCapabilities;
@@ -99,7 +99,6 @@ fn answer_v0_event_deserialization() {
 
 #[test]
 fn answer_v0_event_deserialization_then_convert_to_full() {
-    let rid = room_id!("!roomid:room.com");
     let json_data = json!({
         "content": {
             "answer": {
@@ -118,7 +117,7 @@ fn answer_v0_event_deserialization_then_convert_to_full() {
     let sync_ev: AnySyncMessageLikeEvent = from_json_value(json_data).unwrap();
 
     assert_matches!(
-        sync_ev.into_full_event(rid.to_owned()),
+        sync_ev.into_full_event(owned_room_id!("!roomid:room.com")),
         AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(message_event))
     );
     assert_eq!(message_event.event_id, "$h29iv0s8:example.com");

@@ -325,7 +325,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     use assert_matches2::assert_matches;
-    use ruma_common::{mxc_uri, serde::Base64};
+    use ruma_common::{owned_mxc_uri, serde::Base64};
     use serde::Deserialize;
     use serde_json::{from_value as from_json_value, json};
 
@@ -351,7 +351,7 @@ mod tests {
 
     fn encrypted_file() -> EncryptedFile {
         EncryptedFile {
-            url: mxc_uri!("mxc://localhost/encryptedfile").to_owned(),
+            url: owned_mxc_uri!("mxc://localhost/encryptedfile"),
             key: dummy_jwt(),
             iv: Base64::new(vec![0; 64]),
             hashes: BTreeMap::new(),

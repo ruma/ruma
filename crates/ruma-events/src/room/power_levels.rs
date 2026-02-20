@@ -992,7 +992,7 @@ mod tests {
 
     #[test]
     fn serialization_with_all_fields() {
-        let user = user_id!("@carl:example.com");
+        let user = owned_user_id!("@carl:example.com");
         let power_levels_event = RoomPowerLevelsEventContent {
             ban: int!(23),
             events: btreemap! {
@@ -1004,7 +1004,7 @@ mod tests {
             redact: int!(23),
             state_default: int!(23),
             users: btreemap! {
-                user.to_owned() => int!(23)
+                user => int!(23)
             },
             users_default: int!(23),
             notifications: assign!(NotificationPowerLevels::new(), { room: int!(23) }),

@@ -202,7 +202,7 @@ impl de::Expected for KeyParseError {
 mod tests {
     use std::str::FromStr;
 
-    use ruma_common::user_id;
+    use ruma_common::owned_user_id;
 
     use crate::call::member::{CallMemberStateKey, member_state_key::CallMemberStateKeyEnum};
 
@@ -216,7 +216,7 @@ mod tests {
         assert_eq!(state_key.as_ref(), key);
         // Compare to the from string without `CallMemberStateKeyEnum` step.
         let state_key_direct = CallMemberStateKey::new(
-            user_id!("@user:domain.org").to_owned(),
+            owned_user_id!("@user:domain.org"),
             Some("ABC".to_owned()),
             true,
         );
@@ -233,7 +233,7 @@ mod tests {
         assert_eq!(state_key.as_ref(), key);
         // Compare to the from string without `CallMemberStateKeyEnum` step.
         let state_key_direct =
-            CallMemberStateKey::new(user_id!("@user:domain.org").to_owned(), None, false);
+            CallMemberStateKey::new(owned_user_id!("@user:domain.org"), None, false);
         assert_eq!(state_key, state_key_direct);
     }
 
@@ -247,7 +247,7 @@ mod tests {
         assert_eq!(state_key.as_ref(), key);
         // Compare to the from string without `CallMemberStateKeyEnum` step.
         let state_key_direct = CallMemberStateKey::new(
-            user_id!("@user:domain.org").to_owned(),
+            owned_user_id!("@user:domain.org"),
             Some("ABC_m.callTestId".to_owned()),
             false,
         );

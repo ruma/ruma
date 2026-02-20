@@ -553,8 +553,8 @@ mod tests {
 
     use super::{MatrixId, MatrixToUri, MatrixUri};
     use crate::{
-        RoomOrAliasId, event_id, matrix_uri::UriAction, room_alias_id, room_id, server_name,
-        user_id,
+        RoomOrAliasId, event_id, matrix_uri::UriAction, owned_server_name, room_alias_id, room_id,
+        server_name, user_id,
     };
 
     #[test]
@@ -743,7 +743,7 @@ mod tests {
         assert_eq!(matrix_to.id(), &room_id!("!ruma:notareal.hs").into());
         assert_eq!(
             matrix_to.via(),
-            &[server_name!("notareal.hs").to_owned(), server_name!("anotherunreal.hs").to_owned(),]
+            &[owned_server_name!("notareal.hs"), owned_server_name!("anotherunreal.hs"),]
         );
 
         let matrix_to =
@@ -777,7 +777,7 @@ mod tests {
         let matrix_to = MatrixToUri::parse("https://matrix.to/#/!ruma:notareal.hs?via=notareal.hs")
             .expect("Failed to create MatrixToUri.");
         assert_eq!(matrix_to.id(), &room_id!("!ruma:notareal.hs").into());
-        assert_eq!(matrix_to.via(), &[server_name!("notareal.hs").to_owned()]);
+        assert_eq!(matrix_to.via(), &[owned_server_name!("notareal.hs")]);
 
         let matrix_to =
             MatrixToUri::parse("https://matrix.to/#/#ruma:notareal.hs/$event:notareal.hs")
@@ -1022,7 +1022,7 @@ mod tests {
         let matrix_uri = MatrixUri::parse("matrix:roomid/ruma:notareal.hs?via=notareal.hs")
             .expect("Failed to create MatrixToUri.");
         assert_eq!(matrix_uri.id(), &room_id!("!ruma:notareal.hs").into());
-        assert_eq!(matrix_uri.via(), &[server_name!("notareal.hs").to_owned()]);
+        assert_eq!(matrix_uri.via(), &[owned_server_name!("notareal.hs")]);
         assert_eq!(matrix_uri.action(), None);
 
         let matrix_uri = MatrixUri::parse("matrix:r/ruma:notareal.hs/e/event:notareal.hs")
@@ -1050,10 +1050,7 @@ mod tests {
         );
         assert_eq!(
             matrix_uri.via(),
-            &vec![
-                server_name!("notareal.hs").to_owned(),
-                server_name!("anotherinexistant.hs").to_owned()
-            ]
+            &vec![owned_server_name!("notareal.hs"), owned_server_name!("anotherinexistant.hs")]
         );
         assert_eq!(matrix_uri.action(), Some(&UriAction::Join));
     }
