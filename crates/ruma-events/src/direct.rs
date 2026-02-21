@@ -73,19 +73,19 @@ impl<'a> TryFrom<&'a DirectUserIdentifier> for &'a UserId {
 
 impl From<OwnedUserId> for OwnedDirectUserIdentifier {
     fn from(value: OwnedUserId) -> Self {
-        DirectUserIdentifier::from_borrowed_unchecked(value.as_str()).to_owned()
+        Self::from_str_unchecked(value.as_str())
     }
 }
 
 impl From<&OwnedUserId> for OwnedDirectUserIdentifier {
     fn from(value: &OwnedUserId) -> Self {
-        DirectUserIdentifier::from_borrowed_unchecked(value.as_str()).to_owned()
+        Self::from_str_unchecked(value.as_str())
     }
 }
 
 impl From<&UserId> for OwnedDirectUserIdentifier {
     fn from(value: &UserId) -> Self {
-        DirectUserIdentifier::from_borrowed_unchecked(value.as_str()).to_owned()
+        Self::from_str_unchecked(value.as_str())
     }
 }
 

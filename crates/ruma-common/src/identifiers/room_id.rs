@@ -37,8 +37,10 @@ impl RoomId {
     /// [`RoomVersionRules`]: crate::room_version_rules::RoomVersionRules
     #[cfg(feature = "rand")]
     pub fn new_v1(server_name: &ServerName) -> OwnedRoomId {
-        Self::from_borrowed_unchecked(&format!("!{}:{server_name}", super::generate_localpart(18)))
-            .to_owned()
+        OwnedRoomId::from_string_unchecked(format!(
+            "!{}:{server_name}",
+            super::generate_localpart(18)
+        ))
     }
 
     /// Construct an `OwnedRoomId` using the reference hash of the `m.room.create` event of the
@@ -54,7 +56,7 @@ impl RoomId {
     /// [`RoomIdFormatVersion::V2`]: crate::room_version_rules::RoomIdFormatVersion::V2
     /// [`RoomVersionRules`]: crate::room_version_rules::RoomVersionRules
     pub fn new_v2(room_create_reference_hash: &str) -> Result<OwnedRoomId, IdParseError> {
-        Self::parse(format!("!{room_create_reference_hash}"))
+        OwnedRoomId::try_from(format!("!{room_create_reference_hash}"))
     }
 
     /// Returns the room ID without the initial `!` sigil.
