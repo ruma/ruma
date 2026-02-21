@@ -32,12 +32,11 @@ impl UserId {
     #[cfg(feature = "rand")]
     #[allow(clippy::new_ret_no_self)]
     pub fn new(server_name: &ServerName) -> OwnedUserId {
-        Self::from_borrowed_unchecked(&format!(
+        OwnedUserId::from_string_unchecked(format!(
             "@{}:{}",
             super::generate_localpart(12).to_lowercase(),
             server_name
         ))
-        .to_owned()
     }
 
     /// Attempts to complete a user ID, by adding the colon + server name and `@` prefix, if not
@@ -57,7 +56,7 @@ impl UserId {
             Self::parse(id)
         } else {
             localpart_is_backwards_compatible(id_str)?;
-            Ok(Self::from_borrowed_unchecked(&format!("@{id_str}:{server_name}")).to_owned())
+            Ok(OwnedUserId::from_string_unchecked(format!("@{id_str}:{server_name}")))
         }
     }
 
