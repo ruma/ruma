@@ -38,21 +38,21 @@ pub(crate) fn expand_id_dst(input: syn::ItemStruct) -> syn::Result<TokenStream> 
         #[automatically_derived]
         impl #impl_generics ::std::convert::From<&#id> for #box_id {
             fn from(id: &#id) -> Self {
-                #ident::from_box(id.as_str().into())
+                #ident::from_box_unchecked(id.as_str().into())
             }
         }
 
         #[automatically_derived]
         impl #impl_generics ::std::convert::From<&#id> for #rc_id {
             fn from(id: &#id) -> Self {
-                #ident::from_rc(id.as_str().into())
+                #ident::from_rc_unchecked(id.as_str().into())
             }
         }
 
         #[automatically_derived]
         impl #impl_generics ::std::convert::From<&#id> for #arc_id {
             fn from(id: &#id) -> Self {
-                #ident::from_arc(id.as_str().into())
+                #ident::from_arc_unchecked(id.as_str().into())
             }
         }
 
@@ -206,19 +206,19 @@ impl IdDst {
         quote! {
             #[automatically_derived]
             impl #impl_generics #id {
-                pub(super) const fn from_borrowed(s: &#str) -> &Self {
+                pub(super) const fn from_borrowed_unchecked(s: &#str) -> &Self {
                     unsafe { ::std::mem::transmute(s) }
                 }
 
-                pub(super) fn from_box(s: #box_str) -> #boxed<Self> {
+                pub(super) fn from_box_unchecked(s: #box_str) -> #boxed<Self> {
                     unsafe { #boxed::from_raw(#boxed::into_raw(s) as _) }
                 }
 
-                pub(super) fn from_rc(s: #rc_str) -> #rc<Self> {
+                pub(super) fn from_rc_unchecked(s: #rc_str) -> #rc<Self> {
                     unsafe { #rc::from_raw(#rc::into_raw(s) as _) }
                 }
 
-                pub(super) fn from_arc(s: #arc_str) -> #arc<Self> {
+                pub(super) fn from_arc_unchecked(s: #arc_str) -> #arc<Self> {
                     unsafe { #arc::from_raw(#arc::into_raw(s) as _) }
                 }
             }
@@ -379,9 +379,9 @@ impl IdDst {
                 fn to_owned(&self) -> Self::Owned {
                     #owned_ident {
                         #box_cfg
-                        inner: #ident::from_box(self.as_str().into()),
+                        inner: #ident::from_box_unchecked(self.as_str().into()),
                         #arc_cfg
-                        inner: #ident::from_arc(self.as_str().into()),
+                        inner: #ident::from_arc_unchecked(self.as_str().into()),
                     }
                 }
             }
@@ -531,7 +531,7 @@ impl IdDst {
                 ) -> ::std::result::Result<#owned_id, #ruma_common::IdParseError> {
                     let s = s.as_ref();
                     #validate(s)?;
-                    ::std::result::Result::Ok(#ident::from_borrowed(s).to_owned())
+                    ::std::result::Result::Ok(#ident::from_borrowed_unchecked(s).to_owned())
                 }
 
                 #[doc = #parse_box_doc_header]
@@ -542,7 +542,7 @@ impl IdDst {
                     s: impl ::std::convert::AsRef<#str> + ::std::convert::Into<#box_str>,
                 ) -> ::std::result::Result<#boxed<Self>, #ruma_common::IdParseError> {
                     #validate(s.as_ref())?;
-                    ::std::result::Result::Ok(#ident::from_box(s.into()))
+                    ::std::result::Result::Ok(#ident::from_box_unchecked(s.into()))
                 }
 
                 #[doc = #parse_rc_docs]
@@ -550,7 +550,7 @@ impl IdDst {
                     s: impl ::std::convert::AsRef<#str> + ::std::convert::Into<#rc_str>,
                 ) -> ::std::result::Result<#rc<Self>, #ruma_common::IdParseError> {
                     #validate(s.as_ref())?;
-                    ::std::result::Result::Ok(#ident::from_rc(s.into()))
+                    ::std::result::Result::Ok(#ident::from_rc_unchecked(s.into()))
                 }
 
                 #[doc = #parse_arc_docs]
@@ -558,7 +558,7 @@ impl IdDst {
                     s: impl ::std::convert::AsRef<#str> + ::std::convert::Into<#arc_str>,
                 ) -> ::std::result::Result<#arc<Self>, #ruma_common::IdParseError> {
                     #validate(s.as_ref())?;
-                    ::std::result::Result::Ok(#ident::from_arc(s.into()))
+                    ::std::result::Result::Ok(#ident::from_arc_unchecked(s.into()))
                 }
             }
 
@@ -568,7 +568,7 @@ impl IdDst {
 
                 fn try_from(s: &'a #str) -> ::std::result::Result<Self, Self::Error> {
                     #validate(s)?;
-                    ::std::result::Result::Ok(#ident::from_borrowed(s))
+                    ::std::result::Result::Ok(#ident::from_borrowed_unchecked(s))
                 }
             }
 
@@ -628,28 +628,28 @@ impl IdDst {
             #[automatically_derived]
             impl<'a, #generic_params> ::std::convert::From<&'a #str> for &'a #id {
                 fn from(s: &'a #str) -> Self {
-                    #ident::from_borrowed(s)
+                    #ident::from_borrowed_unchecked(s)
                 }
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<&#str> for #box_id {
                 fn from(s: &#str) -> Self {
-                    #ident::from_box(s.into())
+                    #ident::from_box_unchecked(s.into())
                 }
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<#box_str> for #box_id {
                 fn from(s: #box_str) -> Self {
-                    #ident::from_box(s)
+                    #ident::from_box_unchecked(s)
                 }
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<#string> for #box_id {
                 fn from(s: #string) -> Self {
-                    #ident::from_box(s.into())
+                    #ident::from_box_unchecked(s.into())
                 }
             }
 
@@ -659,7 +659,7 @@ impl IdDst {
                 where
                     D: #serde::Deserializer<'de>,
                 {
-                    <#box_str>::deserialize(deserializer).map(#ident::from_box)
+                    <#box_str>::deserialize(deserializer).map(#ident::from_box_unchecked)
                 }
             }
 
@@ -691,7 +691,7 @@ impl IdDst {
                     D: #serde::Deserializer<'de>,
                 {
                     // FIXME: Deserialize inner, convert that
-                    <#box_str>::deserialize(deserializer).map(#ident::from_box).map(::std::convert::Into::into)
+                    <#box_str>::deserialize(deserializer).map(#ident::from_box_unchecked).map(::std::convert::Into::into)
                 }
             }
         })

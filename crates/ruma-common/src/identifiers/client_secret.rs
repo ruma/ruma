@@ -24,7 +24,7 @@ impl ClientSecret {
     #[allow(clippy::new_ret_no_self)]
     pub fn new() -> OwnedClientSecret {
         let id = uuid::Uuid::new_v4();
-        ClientSecret::from_borrowed(&id.simple().to_string()).to_owned()
+        ClientSecret::from_borrowed_unchecked(&id.simple().to_string()).to_owned()
     }
 }
 

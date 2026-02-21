@@ -34,7 +34,7 @@ impl MxcUri {
     pub fn parts(&self) -> Result<(&ServerName, &str)> {
         self.extract_slash_idx().map(|idx| {
             (
-                ServerName::from_borrowed(&self.as_str()[6..idx.get() as usize]),
+                ServerName::from_borrowed_unchecked(&self.as_str()[6..idx.get() as usize]),
                 &self.as_str()[idx.get() as usize + 1..],
             )
         })

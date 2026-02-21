@@ -37,7 +37,7 @@ impl DeviceId {
     #[cfg(feature = "rand")]
     #[allow(clippy::new_ret_no_self)]
     pub fn new() -> OwnedDeviceId {
-        Self::from_borrowed(&generate_localpart(10)).to_owned()
+        Self::from_borrowed_unchecked(&generate_localpart(10)).to_owned()
     }
 }
 

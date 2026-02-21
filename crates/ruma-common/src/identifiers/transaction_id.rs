@@ -21,6 +21,6 @@ impl TransactionId {
     #[allow(clippy::new_ret_no_self)]
     pub fn new() -> OwnedTransactionId {
         let id = uuid::Uuid::new_v4();
-        Self::from_borrowed(&id.simple().to_string()).to_owned()
+        Self::from_borrowed_unchecked(&id.simple().to_string()).to_owned()
     }
 }
