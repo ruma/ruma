@@ -209,6 +209,7 @@ unstable-msc4334 = ["ruma-events?/unstable-msc4334", "dep:language-tags"]
 unstable-msc4359 = ["ruma-events?/unstable-msc4359"]
 unstable-msc4362 = ["ruma-events?/unstable-msc4362"]
 unstable-msc4380 = ["ruma-events?/unstable-msc4380"]
+unstable-msc4385 = ["ruma-events?/unstable-msc4385"]
 unstable-msc4388 = ["ruma-common/unstable-msc4388", "ruma-client-api?/unstable-msc4388"]
 unstable-uniffi = ["ruma-events?/unstable-uniffi"]
 
