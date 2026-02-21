@@ -28,7 +28,7 @@ impl RoomAliasId {
 
     /// Returns the server name of the room alias ID.
     pub fn server_name(&self) -> &ServerName {
-        ServerName::from_borrowed(&self.as_str()[self.colon_idx() + 1..])
+        ServerName::from_borrowed_unchecked(&self.as_str()[self.colon_idx() + 1..])
     }
 
     /// Create a `matrix.to` URI for this room alias ID.

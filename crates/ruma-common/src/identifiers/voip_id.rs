@@ -23,6 +23,6 @@ impl VoipId {
     #[allow(clippy::new_ret_no_self)]
     pub fn new() -> OwnedVoipId {
         let id = uuid::Uuid::new_v4();
-        VoipId::from_borrowed(&id.simple().to_string()).to_owned()
+        VoipId::from_borrowed_unchecked(&id.simple().to_string()).to_owned()
     }
 }

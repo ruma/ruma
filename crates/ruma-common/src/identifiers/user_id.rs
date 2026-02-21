@@ -32,7 +32,7 @@ impl UserId {
     #[cfg(feature = "rand")]
     #[allow(clippy::new_ret_no_self)]
     pub fn new(server_name: &ServerName) -> OwnedUserId {
-        Self::from_borrowed(&format!(
+        Self::from_borrowed_unchecked(&format!(
             "@{}:{}",
             super::generate_localpart(12).to_lowercase(),
             server_name
@@ -57,7 +57,7 @@ impl UserId {
             Self::parse(id)
         } else {
             localpart_is_backwards_compatible(id_str)?;
-            Ok(Self::from_borrowed(&format!("@{id_str}:{server_name}")).to_owned())
+            Ok(Self::from_borrowed_unchecked(&format!("@{id_str}:{server_name}")).to_owned())
         }
     }
 
@@ -74,7 +74,7 @@ impl UserId {
             Self::parse_rc(id)
         } else {
             localpart_is_backwards_compatible(id_str)?;
-            Ok(Self::from_rc(format!("@{id_str}:{server_name}").into()))
+            Ok(Self::from_rc_unchecked(format!("@{id_str}:{server_name}").into()))
         }
     }
 
@@ -91,7 +91,7 @@ impl UserId {
             Self::parse_arc(id)
         } else {
             localpart_is_backwards_compatible(id_str)?;
-            Ok(Self::from_arc(format!("@{id_str}:{server_name}").into()))
+            Ok(Self::from_arc_unchecked(format!("@{id_str}:{server_name}").into()))
         }
     }
 
@@ -102,7 +102,7 @@ impl UserId {
 
     /// Returns the server name of the user ID.
     pub fn server_name(&self) -> &ServerName {
-        ServerName::from_borrowed(&self.as_str()[self.colon_idx() + 1..])
+        ServerName::from_borrowed_unchecked(&self.as_str()[self.colon_idx() + 1..])
     }
 
     /// Validate this user ID against the strict or historical grammar.

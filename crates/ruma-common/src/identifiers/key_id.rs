@@ -64,7 +64,7 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
         res.push(':');
         res.push_str(key_name);
 
-        Self::from_borrowed(&res).to_owned()
+        Self::from_borrowed_unchecked(&res).to_owned()
     }
 
     /// Returns key algorithm of the key ID - the part that comes before the colon.

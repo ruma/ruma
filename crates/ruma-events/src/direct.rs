@@ -73,25 +73,25 @@ impl<'a> TryFrom<&'a DirectUserIdentifier> for &'a UserId {
 
 impl From<OwnedUserId> for OwnedDirectUserIdentifier {
     fn from(value: OwnedUserId) -> Self {
-        DirectUserIdentifier::from_borrowed(value.as_str()).to_owned()
+        DirectUserIdentifier::from_borrowed_unchecked(value.as_str()).to_owned()
     }
 }
 
 impl From<&OwnedUserId> for OwnedDirectUserIdentifier {
     fn from(value: &OwnedUserId) -> Self {
-        DirectUserIdentifier::from_borrowed(value.as_str()).to_owned()
+        DirectUserIdentifier::from_borrowed_unchecked(value.as_str()).to_owned()
     }
 }
 
 impl From<&UserId> for OwnedDirectUserIdentifier {
     fn from(value: &UserId) -> Self {
-        DirectUserIdentifier::from_borrowed(value.as_str()).to_owned()
+        DirectUserIdentifier::from_borrowed_unchecked(value.as_str()).to_owned()
     }
 }
 
 impl<'a> From<&'a UserId> for &'a DirectUserIdentifier {
     fn from(value: &'a UserId) -> Self {
-        DirectUserIdentifier::from_borrowed(value.as_str())
+        DirectUserIdentifier::from_borrowed_unchecked(value.as_str())
     }
 }
 
@@ -245,14 +245,14 @@ mod tests {
 
     #[test]
     fn user_id_conversion() {
-        let alice_direct_uid = DirectUserIdentifier::from_borrowed("@alice:ruma.io");
+        let alice_direct_uid = <&DirectUserIdentifier>::from("@alice:ruma.io");
         let alice_owned_user_id: OwnedUserId = alice_direct_uid
             .to_owned()
             .try_into()
             .expect("@alice:ruma.io should be convertible into a Matrix user ID");
         assert_eq!(alice_direct_uid, alice_owned_user_id);
 
-        let alice_direct_uid_mail = DirectUserIdentifier::from_borrowed("alice@ruma.io");
+        let alice_direct_uid_mail = <&DirectUserIdentifier>::from("alice@ruma.io");
         OwnedUserId::try_from(alice_direct_uid_mail.to_owned())
             .expect_err("alice@ruma.io should not be convertible into a Matrix user ID");
 

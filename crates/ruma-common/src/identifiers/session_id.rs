@@ -17,7 +17,7 @@ impl SessionId {
     #[doc(hidden)]
     pub const fn _priv_const_new(s: &str) -> Result<&Self, &'static str> {
         match validate_session_id(s) {
-            Ok(()) => Ok(Self::from_borrowed(s)),
+            Ok(()) => Ok(Self::from_borrowed_unchecked(s)),
             Err(IdParseError::MaximumLengthExceeded) => {
                 Err("Invalid Session ID: exceeds 255 bytes")
             }
