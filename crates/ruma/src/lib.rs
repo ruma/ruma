@@ -73,16 +73,42 @@
 //!
 //! # Compile-time `cfg` settings
 //!
-//! These settings are accepted at compile time to configure the generated code. They can be set as
-//! `--cfg={key}={value}` using `RUSTFLAGS` or `.cargo/config.toml` (under `[build]` -> `rustflags =
-//! ["..."]`). They can also be configured using an environment variable at compile time, which has
-//! the benefit of not requiring to re-compile the whole dependency chain when their value is
-//! changed.
+//! These settings are accepted at compile time to configure the generated code. They can be set
+//! using the `RUSTFLAGS` environment variable like this:
 //!
-//! * `ruma_identifiers_storage` -- Choose the inner representation of `Owned*` wrapper types for
-//!   identifiers. By default they use [`Box`], setting the value to `Arc` makes them use
-//!   [`Arc`](std::sync::Arc). This can also be configured by setting the `RUMA_IDENTIFIERS_STORAGE`
-//!   environment variable.
+//! ```shell
+//! RUSTFLAGS="--cfg {key}=\"{value}\""
+//! ```
+//!
+//! or in `.cargo/config.toml`:
+//!
+//! ```toml
+//! # General setting for all targets, overridden by per-target `rustflags` setting if set.
+//! [build]
+//! rustflags = ["--cfg", "{key}=\"{value}\""]
+//!
+//! # Per-target setting.
+//! [target.<triple/cfg>]
+//! rustflags = ["--cfg", "{key}=\"{value}\""]
+//! ```
+//!
+//! They can also be configured using an environment variable at compile time, which has the benefit
+//! of not requiring to re-compile the whole dependency chain when their value is changed, like
+//! this:
+//!
+//! ```shell
+//! {UPPERCASE_KEY}="{value}"
+//! ```
+//!
+//! * `ruma_identifiers_storage` -- Choose the inner representation of the identifier types
+//!   generated with the `ruma_id` attribute macro. If the setting is not set or has an unknown
+//!   value, the owned identifiers use a [`Box`] around the borrowed type internally. The following
+//!   values are also supported:
+//!
+//!   * `Arc` -- Use an [`Arc`](std::sync::Arc) around the borrowed type.
+//!
+//!   This setting can also be configured by setting the `RUMA_IDENTIFIERS_STORAGE` environment
+//!   variable.
 //! * `ruma_unstable_exhaustive_types` -- Most types in Ruma are marked as non-exhaustive to avoid
 //!   breaking changes when new fields are added in the specification. This setting compiles all
 //!   types as exhaustive. By enabling this feature you opt out of all semver guarantees Ruma
