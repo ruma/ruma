@@ -707,14 +707,14 @@ impl IdDst {
             #[automatically_derived]
             impl #impl_generics ::std::fmt::Display for #ty {
                 fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                    write!(f, "{}", self.as_str())
+                    self.as_str().fmt(f)
                 }
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::fmt::Debug for #ty {
                 fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                    <str as ::std::fmt::Debug>::fmt(self.as_str(), f)
+                    self.as_str().fmt(f)
                 }
             }
 
