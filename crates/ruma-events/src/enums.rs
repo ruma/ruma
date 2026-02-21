@@ -239,6 +239,9 @@ event_enum! {
         "m.room.encrypted" => super::room::encrypted,
         "m.secret.request"=> super::secret::request,
         "m.secret.send" => super::secret::send,
+        #[cfg(feature = "unstable-msc4385")]
+        #[ruma_enum(alias = "m.secret.push")]
+        "io.element.msc4385.secret.push" => super::secret::push,
     }
 }
 
