@@ -25,6 +25,9 @@ Improvements:
   conversions.
 - Use raw ownership transfer for conversions from OwnedDeviceId and
   OwnedBase64PublicKey to OwnedBase64PublicKeyOrDeviceId.
+- Identifier types implement `(Try)From<Box<str>>`, `(Try)From<Cow<'a, str>>`
+  and `PartialEq<Cow<'a, str>>` and conversions between owned types try not to
+  reallocate when possible.
 
 # 0.17.1
 

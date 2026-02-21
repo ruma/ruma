@@ -235,6 +235,7 @@ impl IdDst {
         let str = &self.types.str;
         let boxed = &self.types.boxed;
         let arc = &self.types.arc;
+        let box_str = &self.types.box_str;
         let string = &self.types.string;
         let bytes = &self.types.bytes;
         let id = &self.types.id;
@@ -266,6 +267,28 @@ impl IdDst {
 
             #[automatically_derived]
             impl #impl_generics #owned_id {
+                pub(super) fn from_str_unchecked(s: &#str) -> Self {
+                    #ident::from_borrowed_unchecked(s).to_owned()
+                }
+
+                pub(super) fn from_box_str_unchecked(s: #box_str) -> Self {
+                    Self {
+                        #box_cfg
+                        inner: #ident::from_box_unchecked(s),
+                        #arc_cfg
+                        inner: #ident::from_arc_unchecked(s.into()),
+                    }
+                }
+
+                pub(super) fn from_string_unchecked(s: #string) -> Self {
+                    Self {
+                        #box_cfg
+                        inner: #ident::from_box_unchecked(s.into()),
+                        #arc_cfg
+                        inner: #ident::from_arc_unchecked(s.into()),
+                    }
+                }
+
                 /// Consumes this ID and returns a raw pointer to its inner data.
                 ///
                 /// The pointer must later be passed to [`Self::from_raw`] to avoid a memory leak.
@@ -396,7 +419,12 @@ impl IdDst {
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<#box_id> for #owned_id {
                 fn from(b: #box_id) -> Self {
-                    Self { inner: b.into() }
+                    Self {
+                        #box_cfg
+                        inner: b,
+                        #arc_cfg
+                        inner: b.into(),
+                    }
                 }
             }
 
@@ -468,37 +496,20 @@ impl IdDst {
         let boxed = &self.types.boxed;
         let arc = &self.types.arc;
         let rc = &self.types.rc;
+        let cow = &self.types.cow;
         let box_str = &self.types.box_str;
         let arc_str = &self.types.arc_str;
         let rc_str = &self.types.rc_str;
         let string = &self.types.string;
+        let cow_str = &self.types.cow_str;
         let ref_str: syn::Type = parse_quote!(&#str);
         let id = &self.types.id;
         let box_id = &self.types.box_id;
         let owned_id = &self.types.owned_id;
 
-        // Generate `TryFrom<{from_type}> for {for_type}` which uses the given `parse_fn` from the
-        // borrowed type.
-        let expand_try_from_impl =
-            |for_type: &syn::Type, from_type: &syn::Type, parse_fn: &syn::Ident| {
-                quote! {
-                    #[automatically_derived]
-                    impl #impl_generics ::std::convert::TryFrom<#from_type> for #for_type {
-                        type Error = #ruma_common::IdParseError;
-
-                        fn try_from(s: #from_type) -> ::std::result::Result<Self, Self::Error> {
-                            #ident::#parse_fn(s)
-                        }
-                    }
-                }
-            };
-
-        // Generate `FromStr` `TryFrom<&str>` and `TryFrom<String>` implementations for the given
-        // type, which use the given `parse_fn` from the borrowed type.
+        // Generate `FromStr` and `TryFrom<&str>` implementations for the given type, using the
+        // given `parse_fn` from the identifier type.
         let expand_from_str_impls = |ty: &syn::Type, parse_fn: &syn::Ident| -> TokenStream {
-            let try_from_ref_str_impl = expand_try_from_impl(ty, &ref_str, parse_fn);
-            let try_from_string_impl = expand_try_from_impl(ty, string, parse_fn);
-
             quote! {
                 #[automatically_derived]
                 impl #impl_generics ::std::str::FromStr for #ty {
@@ -509,8 +520,14 @@ impl IdDst {
                     }
                 }
 
-                #try_from_ref_str_impl
-                #try_from_string_impl
+                #[automatically_derived]
+                impl #impl_generics ::std::convert::TryFrom<&#str> for #ty {
+                    type Error = #ruma_common::IdParseError;
+
+                    fn try_from(s: &#str) -> ::std::result::Result<Self, Self::Error> {
+                        #ident::#parse_fn(s)
+                    }
+                }
             }
         };
 
@@ -531,7 +548,7 @@ impl IdDst {
                 ) -> ::std::result::Result<#owned_id, #ruma_common::IdParseError> {
                     let s = s.as_ref();
                     #validate(s)?;
-                    ::std::result::Result::Ok(#ident::from_borrowed_unchecked(s).to_owned())
+                    ::std::result::Result::Ok(#owned_ident::from_str_unchecked(s))
                 }
 
                 #[doc = #parse_box_doc_header]
@@ -575,6 +592,36 @@ impl IdDst {
             #box_id_from_str_impls
 
             #[automatically_derived]
+            impl #impl_generics ::std::convert::TryFrom<#box_str> for #box_id {
+                type Error = #ruma_common::IdParseError;
+
+                fn try_from(s: #box_str) -> ::std::result::Result<Self, Self::Error> {
+                    #ident::parse_box(s)
+                }
+            }
+
+            #[automatically_derived]
+            impl #impl_generics ::std::convert::TryFrom<#string> for #box_id {
+                type Error = #ruma_common::IdParseError;
+
+                fn try_from(s: #string) -> ::std::result::Result<Self, Self::Error> {
+                    #ident::parse_box(s)
+                }
+            }
+
+            #[automatically_derived]
+            impl<'a, #generic_params> ::std::convert::TryFrom<#cow_str> for #box_id {
+                type Error = #ruma_common::IdParseError;
+
+                fn try_from(s: #cow_str) -> ::std::result::Result<Self, Self::Error> {
+                    match s {
+                        #cow::Borrowed(s) => s.try_into(),
+                        #cow::Owned(s) => s.try_into(),
+                    }
+                }
+            }
+
+            #[automatically_derived]
             impl<'de, #generic_params> #serde::Deserialize<'de> for #box_id {
                 fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
                 where
@@ -582,12 +629,43 @@ impl IdDst {
                 {
                     use #serde::de::Error;
 
-                    let s = #ruma_common::serde::deserialize_cow_str(deserializer)?;
-                    #ident::parse_box(s.as_ref()).map_err(D::Error::custom)
+                    <#box_str>::deserialize(deserializer)?.try_into().map_err(D::Error::custom)
                 }
             }
 
             #owned_id_from_str_impls
+
+            #[automatically_derived]
+            impl #impl_generics ::std::convert::TryFrom<#box_str> for #owned_id {
+                type Error = #ruma_common::IdParseError;
+
+                fn try_from(s: #box_str) -> ::std::result::Result<Self, Self::Error> {
+                    #validate(&s)?;
+                    ::std::result::Result::Ok(#owned_ident::from_box_str_unchecked(s))
+                }
+            }
+
+            #[automatically_derived]
+            impl #impl_generics ::std::convert::TryFrom<#string> for #owned_id {
+                type Error = #ruma_common::IdParseError;
+
+                fn try_from(s: #string) -> ::std::result::Result<Self, Self::Error> {
+                    #validate(&s)?;
+                    ::std::result::Result::Ok(#owned_ident::from_string_unchecked(s))
+                }
+            }
+
+            #[automatically_derived]
+            impl<'a, #generic_params> ::std::convert::TryFrom<#cow_str> for #owned_id {
+                type Error = #ruma_common::IdParseError;
+
+                fn try_from(s: #cow_str) -> ::std::result::Result<Self, Self::Error> {
+                    match s {
+                        #cow::Borrowed(s) => s.try_into(),
+                        #cow::Owned(s) => s.try_into(),
+                    }
+                }
+            }
 
             #[automatically_derived]
             impl<'de, #generic_params> #serde::Deserialize<'de> for #owned_id {
@@ -597,8 +675,11 @@ impl IdDst {
                 {
                     use #serde::de::Error;
 
-                    let s = #ruma_common::serde::deserialize_cow_str(deserializer)?;
-                    #ident::parse(s.as_ref()).map_err(D::Error::custom)
+                    // We always deserialize as a string to make sure that it is valid UTF-8,
+                    // regardless of the inner representation.
+                    #ruma_common::serde::deserialize_cow_str(deserializer)?
+                        .try_into()
+                        .map_err(D::Error::custom)
                 }
             }
         })
@@ -612,17 +693,21 @@ impl IdDst {
         }
 
         let ident = &self.ident;
+        let owned_ident = &self.owned_ident;
         let impl_generics = &self.impl_generics;
         let generic_params = &self.generics.params;
 
         let str = &self.types.str;
+        let cow = &self.types.cow;
         let box_str = &self.types.box_str;
         let string = &self.types.string;
+        let cow_str = &self.types.cow_str;
         let id = &self.types.id;
         let box_id = &self.types.box_id;
         let owned_id = &self.types.owned_id;
 
-        let serde = self.ruma_common.reexported(RumaCommonReexport::Serde);
+        let ruma_common = &self.ruma_common;
+        let serde = ruma_common.reexported(RumaCommonReexport::Serde);
 
         Some(quote! {
             #[automatically_derived]
@@ -654,33 +739,53 @@ impl IdDst {
             }
 
             #[automatically_derived]
+            impl<'a, #generic_params> ::std::convert::From<#cow_str> for #box_id {
+                fn from(s: #cow_str) -> Self {
+                    match s {
+                        #cow::Borrowed(s) => s.into(),
+                        #cow::Owned(s) => s.into(),
+                    }
+                }
+            }
+
+            #[automatically_derived]
             impl<'de, #generic_params> #serde::Deserialize<'de> for #box_id {
                 fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
                 where
                     D: #serde::Deserializer<'de>,
                 {
-                    <#box_str>::deserialize(deserializer).map(#ident::from_box_unchecked)
+                    <#box_str>::deserialize(deserializer).map(::std::convert::Into::into)
                 }
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<&#str> for #owned_id {
                 fn from(s: &#str) -> Self {
-                    <&#id>::from(s).into()
+                    #owned_ident::from_str_unchecked(s)
                 }
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<#box_str> for #owned_id {
                 fn from(s: #box_str) -> Self {
-                    <&#id>::from(&*s).into()
+                    #owned_ident::from_box_str_unchecked(s)
                 }
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<#string> for #owned_id {
                 fn from(s: #string) -> Self {
-                    <&#id>::from(s.as_str()).into()
+                    #owned_ident::from_string_unchecked(s)
+                }
+            }
+
+            #[automatically_derived]
+            impl<'a, #generic_params> ::std::convert::From<#cow_str> for #owned_id {
+                fn from(s: #cow_str) -> Self {
+                    match s {
+                        #cow::Borrowed(s) => s.into(),
+                        #cow::Owned(s) => s.into(),
+                    }
                 }
             }
 
@@ -690,8 +795,9 @@ impl IdDst {
                 where
                     D: #serde::Deserializer<'de>,
                 {
-                    // FIXME: Deserialize inner, convert that
-                    <#box_str>::deserialize(deserializer).map(#ident::from_box_unchecked).map(::std::convert::Into::into)
+                    // We always deserialize as a string to make sure that it is valid UTF-8,
+                    // regardless of the inner representation.
+                    #ruma_common::serde::deserialize_cow_str(deserializer).map(::std::convert::Into::into)
                 }
             }
         })
@@ -732,10 +838,12 @@ impl IdDst {
 
     /// Generate `std::cmp::PartialEq` implementations by comparing strings.
     fn expand_partial_eq_impls(&self) -> TokenStream {
+        let generics_params = &self.generics.params;
         let impl_generics = &self.impl_generics;
 
         let str = &self.types.str;
         let string = &self.types.string;
+        let cow_str = &self.types.cow_str;
         let id = &self.types.id;
         let box_id = &self.types.box_id;
         let arc_id = &self.types.arc_id;
@@ -743,13 +851,14 @@ impl IdDst {
 
         let ref_id: syn::Type = parse_quote! { &#id };
         let ref_str: syn::Type = parse_quote! { &#str };
+        let cow_generics = quote! { <'a, #generics_params> };
 
         let self_ident = syn::Ident::new("self", Span::call_site());
         let other_ident = syn::Ident::new("other", Span::call_site());
 
         // Get the string representation of the type.
         let as_str_impl = |ty: &syn::Type, ident: &syn::Ident| {
-            if *ty == *str || *ty == ref_str {
+            if *ty == *str || *ty == ref_str || *ty == *cow_str {
                 quote! { ::std::convert::AsRef::<#str>::as_ref(#ident) }
             } else {
                 quote! { #ident.as_str() }
@@ -760,6 +869,9 @@ impl IdDst {
         let expand_partial_eq = |lhs: &syn::Type, rhs: &syn::Type| {
             let self_as_str = as_str_impl(lhs, &self_ident);
             let other_as_str = as_str_impl(rhs, &other_ident);
+
+            let impl_generics =
+                if *lhs == *cow_str || *rhs == *cow_str { &cow_generics } else { impl_generics };
 
             quote! {
                 #[automatically_derived]
@@ -808,6 +920,9 @@ struct Types {
     /// `Rc`.
     rc: syn::Type,
 
+    /// `Cow`.
+    cow: syn::Type,
+
     /// `Box<str>`.
     box_str: syn::Type,
 
@@ -819,6 +934,9 @@ struct Types {
 
     /// `String`.
     string: syn::Type,
+
+    /// `Cow<'a, str>`.
+    cow_str: syn::Type,
 
     /// `[u8]`.
     bytes: syn::Type,
@@ -849,6 +967,7 @@ impl Types {
         let boxed = parse_quote! { ::std::boxed::Box };
         let arc = parse_quote! { ::std::sync::Arc };
         let rc = parse_quote! { ::std::rc::Rc };
+        let cow = parse_quote! { ::std::borrow::Cow };
 
         let id = parse_quote! { #ident #type_generics };
 
@@ -857,6 +976,7 @@ impl Types {
             arc_str: parse_quote! { #arc<#str> },
             rc_str: parse_quote! { #rc<#str> },
             string: parse_quote! { ::std::string::String },
+            cow_str: parse_quote! { #cow<'a, #str> },
             bytes: parse_quote! { [::std::primitive::u8] },
             str,
             box_id: parse_quote! { #boxed<#id> },
@@ -867,6 +987,7 @@ impl Types {
             boxed,
             arc,
             rc,
+            cow,
         }
     }
 }
