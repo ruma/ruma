@@ -247,17 +247,47 @@ impl IdDst {
         let arc_cfg = &self.storage_cfg.arc;
 
         let doc_header = format!("Owned variant of [`{ident}`]");
+        let doc_box_cfg = format!("By default, this type uses a `Box<{ident}>` internally.");
+        let doc_arc_cfg = format!("* `Arc` -- Use an `Arc<{ident}>`.");
 
         let to_string_impls = self.expand_to_string_impls(owned_id);
 
         quote! {
             #[doc = #doc_header]
             ///
-            /// The wrapper type for this type is variable, by default it'll use [`Box`],
-            /// but you can change that by setting "`--cfg=ruma_identifiers_storage=...`" using
-            /// `RUSTFLAGS` or `.cargo/config.toml` (under `[build]` -> `rustflags = ["..."]`)
-            /// to the following;
-            /// - `ruma_identifiers_storage="Arc"` to use [`Arc`](std::sync::Arc) as a wrapper type.
+            /// ## Inner representation
+            ///
+            #[doc = #doc_box_cfg]
+            /// The inner representation can be selected at compile time by using one of the following supported values:
+            ///
+            #[doc = #doc_arc_cfg]
+            ///
+            /// The selected value can be set by using the `ruma_identifiers_storage` compile-time `cfg` setting.
+            /// This setting can be configured using the `RUSTFLAGS` environment variable at build time, like this:
+            ///
+            /// ```shell
+            /// RUSTFLAGS="--cfg ruma_identifiers_storage=\"{value}\""
+            /// ```
+            ///
+            /// Or in `.cargo/config.toml`:
+            ///
+            /// ```toml
+            /// # General setting for all targets, overridden by per-target `rustflags` setting if set.
+            /// [build]
+            /// rustflags = ["--cfg", "ruma_identifiers_storage=\"{value}\""]
+            ///
+            /// # Per-target setting.
+            /// [target.<triple/cfg>]
+            /// rustflags = ["--cfg", "ruma_identifiers_storage=\"{value}\""]
+            /// ```
+            ///
+            /// This setting can also be configured using the `RUMA_IDENTIFIERS_STORAGE` environment variable at
+            /// compile time, which has the benefit of not requiring to re-compile the whole dependency chain
+            /// when the value is changed, like this:
+            ///
+            /// ```shell
+            /// RUMA_IDENTIFIERS_STORAGE="{value}"
+            /// ```
             pub struct #owned_ident #generics {
                 #box_cfg
                 inner: #box_id,
