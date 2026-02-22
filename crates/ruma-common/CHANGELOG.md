@@ -10,6 +10,9 @@ Breaking changes:
   - Serializing the same key twice in an object.
 - The `canonical-json` feature was removed. The `canonical_json` module is no
   longer gated behind a cargo feature.
+- The `IdDst` macro doesn't generate methods and trait implementations anymore
+  for `Box{id}`, `Arc<id>` and `Rc<{id}>`. Using `Owned{id}` should be
+  preferred.
 
 Improvements:
 

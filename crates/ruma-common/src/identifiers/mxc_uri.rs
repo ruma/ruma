@@ -66,7 +66,7 @@ mod tests {
 
     #[test]
     fn parse_mxc_uri() {
-        let mxc = Box::<MxcUri>::from("mxc://127.0.0.1/asd32asdfasdsd");
+        let mxc = <&MxcUri>::from("mxc://127.0.0.1/asd32asdfasdsd");
 
         assert!(mxc.is_valid());
         assert_eq!(
@@ -77,7 +77,7 @@ mod tests {
 
     #[test]
     fn parse_mxc_uri_without_media_id() {
-        let mxc = Box::<MxcUri>::from("mxc://127.0.0.1");
+        let mxc = <&MxcUri>::from("mxc://127.0.0.1");
 
         assert!(!mxc.is_valid());
         assert_eq!(mxc.parts(), Err(MxcUriError::MissingSlash));
@@ -85,13 +85,13 @@ mod tests {
 
     #[test]
     fn parse_mxc_uri_without_protocol() {
-        assert!(!Box::<MxcUri>::from("127.0.0.1/asd32asdfasdsd").is_valid());
+        assert!(!<&MxcUri>::from("127.0.0.1/asd32asdfasdsd").is_valid());
     }
 
     #[test]
     fn serialize_mxc_uri() {
         assert_eq!(
-            serde_json::to_string(&Box::<MxcUri>::from("mxc://server/1234id"))
+            serde_json::to_string(<&MxcUri>::from("mxc://server/1234id"))
                 .expect("Failed to convert MxcUri to JSON."),
             r#""mxc://server/1234id""#
         );
