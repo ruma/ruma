@@ -1,7 +1,5 @@
 //! Matrix user identifiers.
 
-use std::{rc::Rc, sync::Arc};
-
 pub use ruma_identifiers_validation::user_id::localpart_is_fully_conforming;
 use ruma_identifiers_validation::{ID_MAX_BYTES, localpart_is_backwards_compatible};
 use ruma_macros::IdDst;
@@ -47,7 +45,7 @@ impl UserId {
     /// localpart, not the localpart plus the `@` prefix, or the localpart plus server name without
     /// the `@` prefix.
     pub fn parse_with_server_name(
-        id: impl AsRef<str> + Into<Box<str>>,
+        id: impl AsRef<str>,
         server_name: &ServerName,
     ) -> Result<OwnedUserId, IdParseError> {
         let id_str = id.as_ref();
@@ -57,40 +55,6 @@ impl UserId {
         } else {
             localpart_is_backwards_compatible(id_str)?;
             Ok(OwnedUserId::from_string_unchecked(format!("@{id_str}:{server_name}")))
-        }
-    }
-
-    /// Variation of [`parse_with_server_name`] that returns `Rc<Self>`.
-    ///
-    /// [`parse_with_server_name`]: Self::parse_with_server_name
-    pub fn parse_with_server_name_rc(
-        id: impl AsRef<str> + Into<Rc<str>>,
-        server_name: &ServerName,
-    ) -> Result<Rc<Self>, IdParseError> {
-        let id_str = id.as_ref();
-
-        if id_str.starts_with('@') {
-            Self::parse_rc(id)
-        } else {
-            localpart_is_backwards_compatible(id_str)?;
-            Ok(Self::from_rc_unchecked(format!("@{id_str}:{server_name}").into()))
-        }
-    }
-
-    /// Variation of [`parse_with_server_name`] that returns `Arc<Self>`.
-    ///
-    /// [`parse_with_server_name`]: Self::parse_with_server_name
-    pub fn parse_with_server_name_arc(
-        id: impl AsRef<str> + Into<Arc<str>>,
-        server_name: &ServerName,
-    ) -> Result<Arc<Self>, IdParseError> {
-        let id_str = id.as_ref();
-
-        if id_str.starts_with('@') {
-            Self::parse_arc(id)
-        } else {
-            localpart_is_backwards_compatible(id_str)?;
-            Ok(Self::from_arc_unchecked(format!("@{id_str}:{server_name}").into()))
         }
     }
 
@@ -261,54 +225,6 @@ mod tests {
         user_id.validate_strict().unwrap_err();
 
         let user_id = UserId::parse_with_server_name(localpart, server_name).unwrap();
-        assert_eq!(user_id.as_str(), user_id_str);
-        assert_eq!(user_id.localpart(), localpart);
-        assert_eq!(user_id.server_name(), server_name);
-        assert!(!user_id.is_historical());
-        user_id.validate_historical().unwrap_err();
-        user_id.validate_strict().unwrap_err();
-
-        let user_id = UserId::parse_with_server_name_rc(user_id_str, server_name).unwrap();
-        assert_eq!(user_id.as_str(), user_id_str);
-        assert_eq!(user_id.localpart(), localpart);
-        assert_eq!(user_id.server_name(), server_name);
-        assert!(!user_id.is_historical());
-        user_id.validate_historical().unwrap_err();
-        user_id.validate_strict().unwrap_err();
-
-        let user_id = UserId::parse_with_server_name_rc(localpart, server_name).unwrap();
-        assert_eq!(user_id.as_str(), user_id_str);
-        assert_eq!(user_id.localpart(), localpart);
-        assert_eq!(user_id.server_name(), server_name);
-        assert!(!user_id.is_historical());
-        user_id.validate_historical().unwrap_err();
-        user_id.validate_strict().unwrap_err();
-
-        let user_id = UserId::parse_with_server_name_arc(user_id_str, server_name).unwrap();
-        assert_eq!(user_id.as_str(), user_id_str);
-        assert_eq!(user_id.localpart(), localpart);
-        assert_eq!(user_id.server_name(), server_name);
-        assert!(!user_id.is_historical());
-        user_id.validate_historical().unwrap_err();
-        user_id.validate_strict().unwrap_err();
-
-        let user_id = UserId::parse_with_server_name_arc(localpart, server_name).unwrap();
-        assert_eq!(user_id.as_str(), user_id_str);
-        assert_eq!(user_id.localpart(), localpart);
-        assert_eq!(user_id.server_name(), server_name);
-        assert!(!user_id.is_historical());
-        user_id.validate_historical().unwrap_err();
-        user_id.validate_strict().unwrap_err();
-
-        let user_id = UserId::parse_rc(user_id_str).unwrap();
-        assert_eq!(user_id.as_str(), user_id_str);
-        assert_eq!(user_id.localpart(), localpart);
-        assert_eq!(user_id.server_name(), server_name);
-        assert!(!user_id.is_historical());
-        user_id.validate_historical().unwrap_err();
-        user_id.validate_strict().unwrap_err();
-
-        let user_id = UserId::parse_arc(user_id_str).unwrap();
         assert_eq!(user_id.as_str(), user_id_str);
         assert_eq!(user_id.localpart(), localpart);
         assert_eq!(user_id.server_name(), server_name);
