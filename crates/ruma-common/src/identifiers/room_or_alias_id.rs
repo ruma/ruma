@@ -92,13 +92,13 @@ impl<'a> From<&'a RoomAliasId> for &'a RoomOrAliasId {
 
 impl From<OwnedRoomId> for OwnedRoomOrAliasId {
     fn from(room_id: OwnedRoomId) -> Self {
-        unsafe { Self::from_raw(room_id.into_raw() as *const RoomOrAliasId) }
+        unsafe { Self::from_inner_unchecked(room_id.into_inner()) }
     }
 }
 
 impl From<OwnedRoomAliasId> for OwnedRoomOrAliasId {
     fn from(room_alias_id: OwnedRoomAliasId) -> Self {
-        unsafe { Self::from_raw(room_alias_id.into_raw() as *const RoomOrAliasId) }
+        unsafe { Self::from_inner_unchecked(room_alias_id.into_inner()) }
     }
 }
 
@@ -129,12 +129,12 @@ impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomId {
 
     fn try_from(id: OwnedRoomOrAliasId) -> Result<OwnedRoomId, OwnedRoomAliasId> {
         let variant = id.variant();
-        let ptr = id.into_raw();
+        let inner = id.into_inner();
 
         unsafe {
             match variant {
-                Variant::RoomId => Ok(Self::from_raw(ptr as *const RoomId)),
-                Variant::RoomAliasId => Err(OwnedRoomAliasId::from_raw(ptr as *const RoomAliasId)),
+                Variant::RoomId => Ok(Self::from_inner_unchecked(inner)),
+                Variant::RoomAliasId => Err(OwnedRoomAliasId::from_inner_unchecked(inner)),
             }
         }
     }
@@ -145,12 +145,12 @@ impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomAliasId {
 
     fn try_from(id: OwnedRoomOrAliasId) -> Result<OwnedRoomAliasId, OwnedRoomId> {
         let variant = id.variant();
-        let ptr = id.into_raw();
+        let inner = id.into_inner();
 
         unsafe {
             match variant {
-                Variant::RoomAliasId => Ok(Self::from_raw(ptr as *const RoomAliasId)),
-                Variant::RoomId => Err(OwnedRoomId::from_raw(ptr as *const RoomId)),
+                Variant::RoomAliasId => Ok(Self::from_inner_unchecked(inner)),
+                Variant::RoomId => Err(OwnedRoomId::from_inner_unchecked(inner)),
             }
         }
     }
