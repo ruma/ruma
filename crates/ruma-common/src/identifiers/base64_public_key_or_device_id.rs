@@ -48,7 +48,7 @@ impl<'a> From<&'a DeviceId> for &'a Base64PublicKeyOrDeviceId {
 
 impl From<OwnedDeviceId> for OwnedBase64PublicKeyOrDeviceId {
     fn from(value: OwnedDeviceId) -> Self {
-        unsafe { Self::from_raw(value.into_raw() as *const Base64PublicKeyOrDeviceId) }
+        unsafe { Self::from_inner_unchecked(value.into_inner()) }
     }
 }
 
@@ -60,7 +60,7 @@ impl<'a> From<&'a Base64PublicKey> for &'a Base64PublicKeyOrDeviceId {
 
 impl From<OwnedBase64PublicKey> for OwnedBase64PublicKeyOrDeviceId {
     fn from(value: OwnedBase64PublicKey) -> Self {
-        unsafe { Self::from_raw(value.into_raw() as *const Base64PublicKeyOrDeviceId) }
+        unsafe { Self::from_inner_unchecked(value.into_inner()) }
     }
 }
 

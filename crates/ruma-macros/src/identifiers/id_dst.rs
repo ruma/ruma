@@ -131,10 +131,6 @@ impl IdDst {
         let impl_generics = &self.impl_generics;
 
         let str = &self.types.str;
-        let boxed = &self.types.boxed;
-        let arc = &self.types.arc;
-        let box_str = &self.types.box_str;
-        let arc_str = &self.types.arc_str;
         let id = &self.types.id;
 
         quote! {
@@ -142,14 +138,6 @@ impl IdDst {
             impl #impl_generics #id {
                 pub(super) const fn from_borrowed_unchecked(s: &#str) -> &Self {
                     unsafe { ::std::mem::transmute(s) }
-                }
-
-                pub(super) fn from_box_unchecked(s: #box_str) -> #boxed<Self> {
-                    unsafe { #boxed::from_raw(#boxed::into_raw(s) as _) }
-                }
-
-                pub(super) fn from_arc_unchecked(s: #arc_str) -> #arc<Self> {
-                    unsafe { #arc::from_raw(#arc::into_raw(s) as _) }
                 }
             }
         }
@@ -163,34 +151,72 @@ impl IdDst {
         let impl_generics = &self.impl_generics;
 
         let str = &self.types.str;
-        let boxed = &self.types.boxed;
-        let arc = &self.types.arc;
         let box_str = &self.types.box_str;
+        let arc_str = &self.types.arc_str;
         let string = &self.types.string;
         let bytes = &self.types.bytes;
         let id = &self.types.id;
-        let box_id = &self.types.box_id;
-        let arc_id = &self.types.arc_id;
         let owned_id = &self.types.owned_id;
 
-        let box_cfg = &self.storage_cfg.boxed;
-        let arc_cfg = &self.storage_cfg.arc;
+        let box_str_cfg = &self.storage_cfg.box_str;
+        let arc_str_cfg = &self.storage_cfg.arc_str;
+
+        let (phantom_decl, phantom_ctor) = if self.generics.params.is_empty() {
+            None
+        } else {
+            let phantom_data = quote! { ::std::marker::PhantomData };
+            let generic_types = generics.type_params().map(|param| &param.ident);
+
+            Some((
+                quote! { phantom: #phantom_data<( #(#generic_types,)* )>, },
+                quote! { phantom: #phantom_data, },
+            ))
+        }
+        .unzip();
 
         let doc_header = format!("Owned variant of [`{ident}`]");
-        let doc_box_cfg = format!("By default, this type uses a `Box<{ident}>` internally.");
-        let doc_arc_cfg = format!("* `Arc` -- Use an `Arc<{ident}>`.");
 
         let to_string_impls = self.expand_to_string_impls(owned_id);
+
+        // Implement `into_inner()` and `from_inner_unchecked()` methods behind the given `cfg`
+        // attribute for all the inner representations.
+        let from_into_inner_cfg_impl = |cfg: &syn::Attribute, inner: &syn::Type| {
+            quote! {
+                /// Consumes this identifier and returns its inner data.
+                #cfg
+                pub(super) fn into_inner(self) -> #inner {
+                    self.inner
+                }
+
+                /// Converts the inner data to this identifier, without checking that it is valid.
+                ///
+                /// # Safety
+                ///
+                /// This function is unsafe because it does not check that the data passed to it is
+                /// valid for this identifier. If this constraint is violated, it may cause memory
+                /// unsafety issues with future users of this type.
+                #cfg
+                pub(super) unsafe fn from_inner_unchecked(inner: #inner) -> Self {
+                    Self {
+                        inner,
+                        #phantom_ctor
+                    }
+                }
+            }
+        };
+        let from_into_inner_impls = [(box_str_cfg, box_str), (arc_str_cfg, arc_str)]
+            .into_iter()
+            .map(|(cfg, inner)| from_into_inner_cfg_impl(cfg, inner));
 
         quote! {
             #[doc = #doc_header]
             ///
             /// ## Inner representation
             ///
-            #[doc = #doc_box_cfg]
-            /// The inner representation can be selected at compile time by using one of the following supported values:
+            /// By default, this type uses a `Box<str>` internally. The inner representation can be selected at
+            /// compile time by using one of the following supported values:
             ///
-            #[doc = #doc_arc_cfg]
+            /// * `Arc` -- Use an `Arc<str>`.
             ///
             /// The selected value can be set by using the `ruma_identifiers_storage` compile-time `cfg` setting.
             /// This setting can be configured using the `RUSTFLAGS` environment variable at build time, like this:
@@ -219,83 +245,85 @@ impl IdDst {
             /// RUMA_IDENTIFIERS_STORAGE="{value}"
             /// ```
             pub struct #owned_ident #generics {
-                #box_cfg
-                inner: #box_id,
-                #arc_cfg
-                inner: #arc_id,
+                #box_str_cfg
+                inner: #box_str,
+                #arc_str_cfg
+                inner: #arc_str,
+                #phantom_decl
             }
 
             #[automatically_derived]
             impl #impl_generics #owned_id {
                 pub(super) fn from_str_unchecked(s: &#str) -> Self {
                     Self {
-                        #box_cfg
-                        inner: #ident::from_box_unchecked(s.into()),
-                        #arc_cfg
-                        inner: #ident::from_arc_unchecked(s.into()),
+                        #box_str_cfg
+                        inner: s.into(),
+                        #arc_str_cfg
+                        inner: s.into(),
+                        #phantom_ctor
                     }
                 }
 
                 pub(super) fn from_box_str_unchecked(s: #box_str) -> Self {
                     Self {
-                        #box_cfg
-                        inner: #ident::from_box_unchecked(s),
-                        #arc_cfg
-                        inner: #ident::from_arc_unchecked(s.into()),
+                        #box_str_cfg
+                        inner: s,
+                        #arc_str_cfg
+                        inner: s.into(),
+                        #phantom_ctor
+                    }
+                }
+
+                pub(super) fn from_arc_str_unchecked(s: #arc_str) -> Self {
+                    Self {
+                        #box_str_cfg
+                        inner: s.as_ref().into(),
+                        #arc_str_cfg
+                        inner: s,
+                        #phantom_ctor
                     }
                 }
 
                 pub(super) fn from_string_unchecked(s: #string) -> Self {
                     Self {
-                        #box_cfg
-                        inner: #ident::from_box_unchecked(s.into()),
-                        #arc_cfg
-                        inner: #ident::from_arc_unchecked(s.into()),
+                        #box_str_cfg
+                        inner: s.into(),
+                        #arc_str_cfg
+                        inner: s.into(),
+                        #phantom_ctor
                     }
                 }
 
-                /// Consumes this ID and returns a raw pointer to its inner data.
-                ///
-                /// The pointer must later be passed to [`Self::from_raw`] to avoid a memory leak.
-                pub(super) fn into_raw(self) -> *const #id {
-                    #box_cfg
-                    { #boxed::into_raw(self.inner).cast_const() }
-                    #arc_cfg
-                    { #arc::into_raw(self.inner) }
+                /// Access the inner string without going through the borrowed type.
+                pub(super) fn as_inner_str(&self) -> &#str {
+                    #box_str_cfg
+                    { &self.inner }
+                    #arc_str_cfg
+                    { &self.inner }
                 }
 
-                /// Reconstruct this ID from a raw pointer created by [`Self::into_raw`].
-                ///
-                /// # Safety
-                ///
-                /// `ptr` must have been returned by an `into_raw` method generated by `IdDst`
-                /// for a compatible ID type and it must not have been passed to `from_raw` before.
-                pub(super) unsafe fn from_raw(ptr: *const #id) -> Self {
-                    Self {
-                        #box_cfg
-                        inner: unsafe { #boxed::from_raw(ptr.cast_mut()) },
-                        #arc_cfg
-                        inner: unsafe { #arc::from_raw(ptr) },
-                    }
+                /// Access the inner bytes without going through the borrowed type.
+                pub(super) fn as_inner_bytes(&self) -> &#bytes {
+                    #box_str_cfg
+                    { self.inner.as_bytes() }
+                    #arc_str_cfg
+                    { self.inner.as_bytes() }
                 }
+
+                #( #from_into_inner_impls )*
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::clone::Clone for #owned_id {
                 fn clone(&self) -> Self {
-                    Self {
-                        #box_cfg
-                        inner: #ident::from_box_unchecked(self.as_str().into()),
-                        #arc_cfg
-                        inner: self.inner.clone(),
-                    }
+                    unsafe { Self::from_inner_unchecked(self.inner.clone()) }
                 }
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::cmp::PartialEq for #owned_id {
                 fn eq(&self, other: &Self) -> bool {
-                    self.as_str() == other.as_str()
+                    self.as_inner_str() == other.as_inner_str()
                 }
             }
 
@@ -312,7 +340,7 @@ impl IdDst {
             #[automatically_derived]
             impl #impl_generics ::std::cmp::Ord for #owned_id {
                 fn cmp(&self, other: &Self) -> ::std::cmp::Ordering {
-                    self.as_str().cmp(other.as_str())
+                    self.as_inner_str().cmp(other.as_inner_str())
                 }
             }
 
@@ -322,7 +350,7 @@ impl IdDst {
                 where
                     H: ::std::hash::Hasher,
                 {
-                    self.as_str().hash(state)
+                    self.as_inner_str().hash(state)
                 }
             }
 
@@ -333,7 +361,7 @@ impl IdDst {
                 type Target = #id;
 
                 fn deref(&self) -> &Self::Target {
-                    &self.inner
+                    self.as_ref()
                 }
             }
 
@@ -347,21 +375,21 @@ impl IdDst {
             #[automatically_derived]
             impl #impl_generics ::std::convert::AsRef<#id> for #owned_id {
                 fn as_ref(&self) -> &#id {
-                    &*self.inner
+                    #ident::from_borrowed_unchecked(self.as_inner_str())
                 }
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::convert::AsRef<#str> for #owned_id {
                 fn as_ref(&self) -> &#str {
-                    self.inner.as_str()
+                    self.as_inner_str()
                 }
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::convert::AsRef<#bytes> for #owned_id {
                 fn as_ref(&self) -> &#bytes {
-                    self.inner.as_bytes()
+                    self.as_inner_bytes()
                 }
             }
 
@@ -377,27 +405,27 @@ impl IdDst {
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<&#id> for #owned_id {
                 fn from(id: &#id) -> Self {
-                    Self::from_str_unchecked(id.as_str())
+                    id.to_owned()
                 }
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<#owned_id> for #box_str {
                 fn from(id: #owned_id) -> Self {
-                    #box_cfg
-                    unsafe { #boxed::from_raw(#boxed::into_raw(id.inner) as _) }
-                    #arc_cfg
-                    { id.inner.as_str().into() }
+                    #box_str_cfg
+                    { id.inner }
+                    #arc_str_cfg
+                    { id.inner.as_ref().into() }
                 }
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<#owned_id> for #string {
                 fn from(id: #owned_id) -> Self {
-                    #box_cfg
-                    { <#box_str>::from(id).into() }
-                    #arc_cfg
-                    { id.inner.as_str().into() }
+                    #box_str_cfg
+                    { id.inner.into() }
+                    #arc_str_cfg
+                    { id.inner.as_ref().into() }
                 }
             }
         }
@@ -703,12 +731,6 @@ struct Types {
     /// `str`.
     str: syn::Type,
 
-    /// `Box`.
-    boxed: syn::Type,
-
-    /// `Arc`.
-    arc: syn::Type,
-
     /// `Cow`.
     cow: syn::Type,
 
@@ -730,12 +752,6 @@ struct Types {
     /// `{id}`, the identifier type with generics, if any.
     id: syn::Type,
 
-    /// `Box<{id}>`.
-    box_id: syn::Type,
-
-    /// `Arc<{id}>`.
-    arc_id: syn::Type,
-
     /// `{owned_id}`, the owned identifier type with generics, if any.
     owned_id: syn::Type,
 }
@@ -747,37 +763,31 @@ impl Types {
         type_generics: syn::TypeGenerics<'_>,
     ) -> Self {
         let str = parse_quote! { ::std::primitive::str };
-        let boxed = parse_quote! { ::std::boxed::Box };
-        let arc = parse_quote! { ::std::sync::Arc };
         let cow = parse_quote! { ::std::borrow::Cow };
 
         let id = parse_quote! { #ident #type_generics };
 
         Self {
-            box_str: parse_quote! { #boxed<#str> },
-            arc_str: parse_quote! { #arc<#str> },
+            box_str: parse_quote! { ::std::boxed::Box<#str> },
+            arc_str: parse_quote! { ::std::sync::Arc<#str> },
             string: parse_quote! { ::std::string::String },
             cow_str: parse_quote! { #cow<'a, #str> },
             bytes: parse_quote! { [::std::primitive::u8] },
             str,
-            box_id: parse_quote! { #boxed<#id> },
-            arc_id: parse_quote! { #arc<#id> },
+            cow,
             id,
             owned_id: parse_quote! { #owned_ident #type_generics },
-            boxed,
-            arc,
-            cow,
         }
     }
 }
 
 /// `#[cfg]` attributes for the supported internal representations.
 struct StorageCfg {
-    /// Attribute for the default internal representation, `Box<{id}}>`.
-    boxed: syn::Attribute,
+    /// Attribute for the default internal representation, `Box<str>`.
+    box_str: syn::Attribute,
 
-    /// Attribute for the `Arc<{id}>` internal representation.
-    arc: syn::Attribute,
+    /// Attribute for the `Arc<str>` internal representation.
+    arc_str: syn::Attribute,
 }
 
 impl StorageCfg {
@@ -785,8 +795,8 @@ impl StorageCfg {
         let key = quote! { ruma_identifiers_storage };
 
         Self {
-            boxed: parse_quote! { #[cfg(not(#key = "Arc"))] },
-            arc: parse_quote! { #[cfg(#key = "Arc")] },
+            box_str: parse_quote! { #[cfg(not(#key = "Arc"))] },
+            arc_str: parse_quote! { #[cfg(#key = "Arc")] },
         }
     }
 }

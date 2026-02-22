@@ -102,10 +102,10 @@
 //!
 //! * `ruma_identifiers_storage` -- Choose the inner representation of the identifier types
 //!   generated with the `ruma_id` attribute macro. If the setting is not set or has an unknown
-//!   value, the owned identifiers use a [`Box`] around the borrowed type internally. The following
-//!   values are also supported:
+//!   value, the owned identifiers use a `Box<str>` internally. The following values are also
+//!   supported:
 //!
-//!   * `Arc` -- Use an [`Arc`](std::sync::Arc) around the borrowed type.
+//!   * `Arc` -- Use an `Arc<str>`.
 //!
 //!   This setting can also be configured by setting the `RUMA_IDENTIFIERS_STORAGE` environment
 //!   variable.
