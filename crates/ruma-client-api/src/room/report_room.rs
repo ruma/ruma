@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3roomsroomidreport
 
     use ruma_common::{
-        OwnedRoomId,
+        RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -28,7 +28,7 @@ pub mod v3 {
     pub struct Request {
         /// The ID of the room to report.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The reason to report the room, may be empty.
         // We deserialize a missing field as an empty string for backwards compatibility. The field
@@ -46,7 +46,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room ID and reason.
-        pub fn new(room_id: OwnedRoomId, reason: String) -> Self {
+        pub fn new(room_id: RoomId, reason: String) -> Self {
             Self { room_id, reason }
         }
     }

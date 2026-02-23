@@ -12,7 +12,7 @@ pub mod v3 {
     use std::time::Duration;
 
     use ruma_common::{
-        OwnedDeviceId, OwnedUserId,
+        DeviceId, UserId,
         api::{auth_scheme::AppserviceTokenOptional, request, response},
         metadata,
     };
@@ -52,7 +52,7 @@ pub mod v3 {
         /// If this does not correspond to a known client device, a new device will be created.
         /// The server will auto-generate a device_id if this is not specified.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub device_id: Option<OwnedDeviceId>,
+        pub device_id: Option<DeviceId>,
 
         /// A display name to assign to the newly-created device.
         ///
@@ -117,14 +117,14 @@ pub mod v3 {
         pub access_token: Option<String>,
 
         /// The fully-qualified Matrix ID that has been registered.
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// ID of the registered device.
         ///
         /// Will be the same as the corresponding parameter in the request, if one was specified.
         ///
         /// Required if the request's `inhibit_login` was set to `false`.
-        pub device_id: Option<OwnedDeviceId>,
+        pub device_id: Option<DeviceId>,
 
         /// A [refresh token] for the account.
         ///
@@ -165,7 +165,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given user ID.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self {
                 access_token: None,
                 user_id,

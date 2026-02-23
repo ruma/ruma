@@ -11,7 +11,7 @@ pub mod v3 {
 
     use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
     use ruma_common::{
-        IdParseError, MxcUri, OwnedServerName,
+        IdParseError, MxcUri, ServerName,
         api::{auth_scheme::NoAuthentication, request, response},
         http_headers::ContentDisposition,
         metadata,
@@ -39,7 +39,7 @@ pub mod v3 {
     pub struct Request {
         /// The server name from the mxc:// URI (the authoritory component).
         #[ruma_api(path)]
-        pub server_name: OwnedServerName,
+        pub server_name: ServerName,
 
         /// The media ID from the mxc:// URI (the path component).
         #[ruma_api(path)]
@@ -104,7 +104,7 @@ pub mod v3 {
     #[allow(deprecated)]
     impl Request {
         /// Creates a new `Request` with the given media ID and server name.
-        pub fn new(media_id: String, server_name: OwnedServerName) -> Self {
+        pub fn new(media_id: String, server_name: ServerName) -> Self {
             Self {
                 media_id,
                 server_name,
@@ -118,7 +118,7 @@ pub mod v3 {
         pub fn from_url(url: &MxcUri) -> Result<Self, IdParseError> {
             let (server_name, media_id) = url.parts()?;
 
-            Ok(Self::new(media_id.to_owned(), server_name.to_owned()))
+            Ok(Self::new(media_id.to_owned(), server_name))
         }
     }
 

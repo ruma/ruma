@@ -2,10 +2,10 @@
 
 use std::hint::unreachable_unchecked;
 
-use ruma_macros::IdDst;
+use ruma_macros::ruma_id;
 use tracing::warn;
 
-use super::{OwnedRoomAliasId, OwnedRoomId, RoomAliasId, RoomId, server_name::ServerName};
+use super::{RoomAliasId, RoomId, ServerName};
 
 /// A Matrix [room ID] or a Matrix [room alias ID].
 ///
@@ -15,28 +15,23 @@ use super::{OwnedRoomAliasId, OwnedRoomId, RoomAliasId, RoomId, server_name::Ser
 ///
 /// ```
 /// # use ruma_common::RoomOrAliasId;
-/// assert_eq!(<&RoomOrAliasId>::try_from("#ruma:example.com").unwrap(), "#ruma:example.com");
+/// assert_eq!(RoomOrAliasId::try_from("#ruma:example.com").unwrap(), "#ruma:example.com");
 ///
-/// assert_eq!(
-///     <&RoomOrAliasId>::try_from("!n8f893n9:example.com").unwrap(),
-///     "!n8f893n9:example.com"
-/// );
+/// assert_eq!(RoomOrAliasId::try_from("!n8f893n9:example.com").unwrap(), "!n8f893n9:example.com");
 /// ```
 ///
 /// It can be converted to a `RoomId` or a `RoomAliasId` using `::try_from()` / `.try_into()`.
-/// For example, `<&RoomId>::try_from(room_or_alias_id)` returns either `Ok(room_id)` or
+/// For example, `RoomId::try_from(room_or_alias_id)` returns either `Ok(room_id)` or
 /// `Err(room_alias_id)`.
 ///
 /// [room ID]: https://spec.matrix.org/latest/appendices/#room-ids
 /// [room alias ID]: https://spec.matrix.org/latest/appendices/#room-aliases
-#[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(validate = ruma_identifiers_validation::room_id_or_alias_id::validate)]
-pub struct RoomOrAliasId(str);
+pub struct RoomOrAliasId;
 
 impl RoomOrAliasId {
     /// Returns the server name of the room (alias) ID.
-    pub fn server_name(&self) -> Option<&ServerName> {
+    pub fn server_name(&self) -> Option<ServerName> {
         let colon_idx = self.as_str().find(':')?;
         let server_name = &self.as_str()[colon_idx + 1..];
         match server_name.try_into() {
@@ -78,95 +73,87 @@ enum Variant {
     RoomAliasId,
 }
 
-impl<'a> From<&'a RoomId> for &'a RoomOrAliasId {
-    fn from(room_id: &'a RoomId) -> Self {
-        RoomOrAliasId::from_borrowed_unchecked(room_id.as_str())
+impl From<RoomId> for RoomOrAliasId {
+    fn from(id: RoomId) -> Self {
+        unsafe { Self::from_inner_unchecked(id.into_inner()) }
     }
 }
 
-impl<'a> From<&'a RoomAliasId> for &'a RoomOrAliasId {
-    fn from(room_alias_id: &'a RoomAliasId) -> Self {
-        RoomOrAliasId::from_borrowed_unchecked(room_alias_id.as_str())
+impl From<&RoomId> for RoomOrAliasId {
+    fn from(id: &RoomId) -> Self {
+        id.to_owned().into()
     }
 }
 
-impl From<OwnedRoomId> for OwnedRoomOrAliasId {
-    fn from(room_id: OwnedRoomId) -> Self {
-        unsafe { Self::from_inner_unchecked(room_id.into_inner()) }
+impl From<RoomAliasId> for RoomOrAliasId {
+    fn from(id: RoomAliasId) -> Self {
+        unsafe { Self::from_inner_unchecked(id.into_inner()) }
     }
 }
 
-impl From<OwnedRoomAliasId> for OwnedRoomOrAliasId {
-    fn from(room_alias_id: OwnedRoomAliasId) -> Self {
-        unsafe { Self::from_inner_unchecked(room_alias_id.into_inner()) }
+impl From<&RoomAliasId> for RoomOrAliasId {
+    fn from(id: &RoomAliasId) -> Self {
+        id.to_owned().into()
     }
 }
 
-impl<'a> TryFrom<&'a RoomOrAliasId> for &'a RoomId {
-    type Error = &'a RoomAliasId;
+impl TryFrom<RoomOrAliasId> for RoomId {
+    type Error = RoomAliasId;
 
-    fn try_from(id: &'a RoomOrAliasId) -> Result<&'a RoomId, &'a RoomAliasId> {
-        match id.variant() {
-            Variant::RoomId => Ok(RoomId::from_borrowed_unchecked(id.as_str())),
-            Variant::RoomAliasId => Err(RoomAliasId::from_borrowed_unchecked(id.as_str())),
-        }
-    }
-}
-
-impl<'a> TryFrom<&'a RoomOrAliasId> for &'a RoomAliasId {
-    type Error = &'a RoomId;
-
-    fn try_from(id: &'a RoomOrAliasId) -> Result<&'a RoomAliasId, &'a RoomId> {
-        match id.variant() {
-            Variant::RoomAliasId => Ok(RoomAliasId::from_borrowed_unchecked(id.as_str())),
-            Variant::RoomId => Err(RoomId::from_borrowed_unchecked(id.as_str())),
-        }
-    }
-}
-
-impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomId {
-    type Error = OwnedRoomAliasId;
-
-    fn try_from(id: OwnedRoomOrAliasId) -> Result<OwnedRoomId, OwnedRoomAliasId> {
+    fn try_from(id: RoomOrAliasId) -> Result<RoomId, RoomAliasId> {
         let variant = id.variant();
         let inner = id.into_inner();
 
         unsafe {
             match variant {
                 Variant::RoomId => Ok(Self::from_inner_unchecked(inner)),
-                Variant::RoomAliasId => Err(OwnedRoomAliasId::from_inner_unchecked(inner)),
+                Variant::RoomAliasId => Err(RoomAliasId::from_inner_unchecked(inner)),
             }
         }
     }
 }
 
-impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomAliasId {
-    type Error = OwnedRoomId;
+impl TryFrom<&RoomOrAliasId> for RoomId {
+    type Error = RoomAliasId;
 
-    fn try_from(id: OwnedRoomOrAliasId) -> Result<OwnedRoomAliasId, OwnedRoomId> {
+    fn try_from(id: &RoomOrAliasId) -> Result<RoomId, RoomAliasId> {
+        id.to_owned().try_into()
+    }
+}
+
+impl TryFrom<RoomOrAliasId> for RoomAliasId {
+    type Error = RoomId;
+
+    fn try_from(id: RoomOrAliasId) -> Result<RoomAliasId, RoomId> {
         let variant = id.variant();
         let inner = id.into_inner();
 
         unsafe {
             match variant {
                 Variant::RoomAliasId => Ok(Self::from_inner_unchecked(inner)),
-                Variant::RoomId => Err(OwnedRoomId::from_inner_unchecked(inner)),
+                Variant::RoomId => Err(RoomId::from_inner_unchecked(inner)),
             }
         }
     }
 }
 
+impl TryFrom<&RoomOrAliasId> for RoomAliasId {
+    type Error = RoomId;
+
+    fn try_from(id: &RoomOrAliasId) -> Result<RoomAliasId, RoomId> {
+        id.to_owned().try_into()
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{OwnedRoomOrAliasId, RoomOrAliasId};
+    use super::RoomOrAliasId;
     use crate::IdParseError;
 
     #[test]
     fn valid_room_id_or_alias_id_with_a_room_alias_id() {
         assert_eq!(
-            <&RoomOrAliasId>::try_from("#ruma:example.com")
-                .expect("Failed to create RoomAliasId.")
-                .as_str(),
+            RoomOrAliasId::try_from("#ruma:example.com").expect("Failed to create RoomAliasId."),
             "#ruma:example.com"
         );
     }
@@ -174,9 +161,7 @@ mod tests {
     #[test]
     fn valid_room_id_or_alias_id_with_a_room_id() {
         assert_eq!(
-            <&RoomOrAliasId>::try_from("!29fhd83h92h0:example.com")
-                .expect("Failed to create RoomId.")
-                .as_str(),
+            RoomOrAliasId::try_from("!29fhd83h92h0:example.com").expect("Failed to create RoomId."),
             "!29fhd83h92h0:example.com"
         );
     }
@@ -184,7 +169,7 @@ mod tests {
     #[test]
     fn missing_sigil_for_room_id_or_alias_id() {
         assert_eq!(
-            <&RoomOrAliasId>::try_from("ruma:example.com").unwrap_err(),
+            RoomOrAliasId::try_from("ruma:example.com").unwrap_err(),
             IdParseError::MissingLeadingSigil
         );
     }
@@ -193,7 +178,7 @@ mod tests {
     fn serialize_valid_room_id_or_alias_id_with_a_room_alias_id() {
         assert_eq!(
             serde_json::to_string(
-                <&RoomOrAliasId>::try_from("#ruma:example.com")
+                &RoomOrAliasId::try_from("#ruma:example.com")
                     .expect("Failed to create RoomAliasId.")
             )
             .expect("Failed to convert RoomAliasId to JSON."),
@@ -205,7 +190,7 @@ mod tests {
     fn serialize_valid_room_id_or_alias_id_with_a_room_id() {
         assert_eq!(
             serde_json::to_string(
-                <&RoomOrAliasId>::try_from("!29fhd83h92h0:example.com")
+                &RoomOrAliasId::try_from("!29fhd83h92h0:example.com")
                     .expect("Failed to create RoomId.")
             )
             .expect("Failed to convert RoomId to JSON."),
@@ -216,18 +201,18 @@ mod tests {
     #[test]
     fn deserialize_valid_room_id_or_alias_id_with_a_room_alias_id() {
         assert_eq!(
-            serde_json::from_str::<OwnedRoomOrAliasId>(r##""#ruma:example.com""##)
+            serde_json::from_str::<RoomOrAliasId>(r##""#ruma:example.com""##)
                 .expect("Failed to convert JSON to RoomAliasId"),
-            <&RoomOrAliasId>::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
+            RoomOrAliasId::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
         );
     }
 
     #[test]
     fn deserialize_valid_room_id_or_alias_id_with_a_room_id() {
         assert_eq!(
-            serde_json::from_str::<OwnedRoomOrAliasId>(r#""!29fhd83h92h0:example.com""#)
+            serde_json::from_str::<RoomOrAliasId>(r#""!29fhd83h92h0:example.com""#)
                 .expect("Failed to convert JSON to RoomId"),
-            <&RoomOrAliasId>::try_from("!29fhd83h92h0:example.com")
+            RoomOrAliasId::try_from("!29fhd83h92h0:example.com")
                 .expect("Failed to create RoomAliasId.")
         );
     }

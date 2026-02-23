@@ -15,16 +15,16 @@ pub mod v1 {
     use js_int::UInt;
     #[cfg(feature = "unstable-msc3202")]
     use ruma_common::OneTimeKeyAlgorithm;
+    #[cfg(feature = "unstable-msc4203")]
+    use ruma_common::serde::JsonCastable;
     #[cfg(any(feature = "unstable-msc3202", feature = "unstable-msc4203"))]
-    use ruma_common::{OwnedDeviceId, OwnedUserId};
+    use ruma_common::{DeviceId, UserId};
     use ruma_common::{
-        OwnedTransactionId,
+        TransactionId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::{JsonObject, Raw, from_raw_json_value},
     };
-    #[cfg(feature = "unstable-msc4203")]
-    use ruma_common::{UserId, serde::JsonCastable};
     use ruma_events::{
         AnyTimelineEvent, presence::PresenceEvent, receipt::ReceiptEvent, typing::TypingEvent,
     };
@@ -47,7 +47,7 @@ pub mod v1 {
         ///
         /// Homeservers generate these IDs and they are used to ensure idempotency of results.
         #[ruma_api(path)]
-        pub txn_id: OwnedTransactionId,
+        pub txn_id: TransactionId,
 
         /// A list of events.
         pub events: Vec<Raw<AnyTimelineEvent>>,
@@ -70,7 +70,7 @@ pub mod v1 {
             rename = "org.matrix.msc3202.device_one_time_keys_count"
         )]
         pub device_one_time_keys_count:
-            BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, BTreeMap<OneTimeKeyAlgorithm, UInt>>>,
+            BTreeMap<UserId, BTreeMap<DeviceId, BTreeMap<OneTimeKeyAlgorithm, UInt>>>,
 
         /// A list of key algorithms for which the server has an unused fallback key for the
         /// device.
@@ -81,7 +81,7 @@ pub mod v1 {
             rename = "org.matrix.msc3202.device_unused_fallback_key_types"
         )]
         pub device_unused_fallback_key_types:
-            BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Vec<OneTimeKeyAlgorithm>>>,
+            BTreeMap<UserId, BTreeMap<DeviceId, Vec<OneTimeKeyAlgorithm>>>,
 
         /// A list of ephemeral data.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
@@ -104,7 +104,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates an `Request` with the given transaction ID and list of events.
-        pub fn new(txn_id: OwnedTransactionId, events: Vec<Raw<AnyTimelineEvent>>) -> Request {
+        pub fn new(txn_id: TransactionId, events: Vec<Raw<AnyTimelineEvent>>) -> Request {
             Request {
                 txn_id,
                 events,
@@ -136,12 +136,12 @@ pub mod v1 {
         /// List of users who have updated their device identity keys or who now
         /// share an encrypted room with the client since the previous sync.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub changed: Vec<OwnedUserId>,
+        pub changed: Vec<UserId>,
 
         /// List of users who no longer share encrypted rooms since the previous sync
         /// response.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub left: Vec<OwnedUserId>,
+        pub left: Vec<UserId>,
     }
 
     #[cfg(feature = "unstable-msc3202")]
@@ -263,21 +263,17 @@ pub mod v1 {
         pub event: AnyToDeviceEvent,
 
         /// The fully-qualified user ID of the intended recipient.
-        pub to_user_id: OwnedUserId,
+        pub to_user_id: UserId,
 
         /// The device ID of the intended recipient.
-        pub to_device_id: OwnedDeviceId,
+        pub to_device_id: DeviceId,
     }
 
     #[cfg(feature = "unstable-msc4203")]
     impl AnyAppserviceToDeviceEvent {
         /// Construct a new `AnyAppserviceToDeviceEvent` with the given event and recipient
         /// information.
-        pub fn new(
-            event: AnyToDeviceEvent,
-            to_user_id: OwnedUserId,
-            to_device_id: OwnedDeviceId,
-        ) -> Self {
+        pub fn new(event: AnyToDeviceEvent, to_user_id: UserId, to_device_id: DeviceId) -> Self {
             Self { event, to_user_id, to_device_id }
         }
 
@@ -305,8 +301,8 @@ pub mod v1 {
         {
             #[derive(Deserialize)]
             struct AppserviceFields {
-                to_user_id: OwnedUserId,
-                to_device_id: OwnedDeviceId,
+                to_user_id: UserId,
+                to_device_id: DeviceId,
             }
 
             let json = Box::<RawJsonValue>::deserialize(deserializer)?;

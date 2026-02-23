@@ -6,7 +6,7 @@ use std::fmt::Debug;
 
 use js_int::UInt;
 use ruma_common::{
-    OwnedEventId,
+    EventId,
     serde::{JsonObject, Raw, StringEnum},
 };
 use serde::{Deserialize, Serialize};
@@ -22,12 +22,12 @@ mod rel_serde;
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct InReplyTo {
     /// The event being replied to.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 }
 
 impl InReplyTo {
     /// Creates a new `InReplyTo` with the given event ID.
-    pub fn new(event_id: OwnedEventId) -> Self {
+    pub fn new(event_id: EventId) -> Self {
         Self { event_id }
     }
 }
@@ -40,7 +40,7 @@ impl InReplyTo {
 #[serde(tag = "rel_type", rename = "m.annotation")]
 pub struct Annotation {
     /// The event that is being annotated.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// A string that indicates the annotation being applied.
     ///
@@ -53,7 +53,7 @@ pub struct Annotation {
 
 impl Annotation {
     /// Creates a new `Annotation` with the given event ID and key.
-    pub fn new(event_id: OwnedEventId, key: String) -> Self {
+    pub fn new(event_id: EventId, key: String) -> Self {
         Self { event_id, key }
     }
 }
@@ -65,7 +65,7 @@ impl Annotation {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Replacement<C> {
     /// The ID of the event being replaced.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// New content.
     pub new_content: C,
@@ -73,7 +73,7 @@ pub struct Replacement<C> {
 
 impl<C> Replacement<C> {
     /// Creates a new `Replacement` with the given event ID and new content.
-    pub fn new(event_id: OwnedEventId, new_content: C) -> Self {
+    pub fn new(event_id: EventId, new_content: C) -> Self {
         Self { event_id, new_content }
     }
 }
@@ -86,7 +86,7 @@ impl<C> Replacement<C> {
 #[serde(tag = "rel_type", rename = "m.thread")]
 pub struct Thread {
     /// The ID of the root message in the thread.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// A reply relation.
     ///
@@ -108,19 +108,19 @@ pub struct Thread {
 impl Thread {
     /// Convenience method to create a regular `Thread` relation with the given root event ID and
     /// latest message-like event ID.
-    pub fn plain(event_id: OwnedEventId, latest_event_id: OwnedEventId) -> Self {
+    pub fn plain(event_id: EventId, latest_event_id: EventId) -> Self {
         Self { event_id, in_reply_to: Some(InReplyTo::new(latest_event_id)), is_falling_back: true }
     }
 
     /// Convenience method to create a regular `Thread` relation with the given root event ID and
     /// *without* the recommended reply fallback.
-    pub fn without_fallback(event_id: OwnedEventId) -> Self {
+    pub fn without_fallback(event_id: EventId) -> Self {
         Self { event_id, in_reply_to: None, is_falling_back: false }
     }
 
     /// Convenience method to create a reply `Thread` relation with the given root event ID and
     /// replied-to event ID.
-    pub fn reply(event_id: OwnedEventId, reply_to_event_id: OwnedEventId) -> Self {
+    pub fn reply(event_id: EventId, reply_to_event_id: EventId) -> Self {
         Self {
             event_id,
             in_reply_to: Some(InReplyTo::new(reply_to_event_id)),
@@ -162,12 +162,12 @@ impl BundledThread {
 #[serde(tag = "rel_type", rename = "m.reference")]
 pub struct Reference {
     /// The ID of the event being referenced.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 }
 
 impl Reference {
     /// Creates a new `Reference` with the given event ID.
-    pub fn new(event_id: OwnedEventId) -> Self {
+    pub fn new(event_id: EventId) -> Self {
         Self { event_id }
     }
 }
@@ -177,12 +177,12 @@ impl Reference {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct BundledReference {
     /// The ID of the event referencing this event.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 }
 
 impl BundledReference {
     /// Creates a new `BundledThread` with the given event ID.
-    pub fn new(event_id: OwnedEventId) -> Self {
+    pub fn new(event_id: EventId) -> Self {
         Self { event_id }
     }
 }

@@ -8,7 +8,7 @@ pub mod unstable {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2659
 
     use ruma_common::{
-        OwnedTransactionId,
+        TransactionId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -27,7 +27,7 @@ pub mod unstable {
         /// A transaction ID for the ping, copied directly from the `POST
         /// /_matrix/client/v1/appservice/{appserviceId}/ping` call.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub transaction_id: Option<OwnedTransactionId>,
+        pub transaction_id: Option<TransactionId>,
     }
 
     /// Response type for the `send_ping` endpoint.
@@ -56,7 +56,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/application-service-api/#post_matrixappv1ping
 
     use ruma_common::{
-        OwnedTransactionId,
+        TransactionId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -75,7 +75,7 @@ pub mod v1 {
         /// A transaction ID for the ping, copied directly from the `POST
         /// /_matrix/client/v1/appservice/{appserviceId}/ping` call.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub transaction_id: Option<OwnedTransactionId>,
+        pub transaction_id: Option<TransactionId>,
     }
 
     /// Response type for the `send_ping` endpoint.

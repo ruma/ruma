@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_common::{
-    OwnedDeviceId, OwnedEventId, OwnedRoomId, OwnedTransactionId, OwnedUserId,
+    DeviceId, EventId, RoomId, TransactionId, UserId,
     encryption::{CrossSigningKey, DeviceKeys},
     presence::PresenceState,
     serde::{Raw, from_raw_json_value},
@@ -99,7 +99,7 @@ impl PresenceContent {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PresenceUpdate {
     /// The user ID this presence EDU is for.
-    pub user_id: OwnedUserId,
+    pub user_id: UserId,
 
     /// The presence of the user.
     pub presence: PresenceState,
@@ -120,7 +120,7 @@ pub struct PresenceUpdate {
 
 impl PresenceUpdate {
     /// Creates a new `PresenceUpdate` with the given `user_id`, `presence` and `last_activity`.
-    pub fn new(user_id: OwnedUserId, presence: PresenceState, last_activity: UInt) -> Self {
+    pub fn new(user_id: UserId, presence: PresenceState, last_activity: UInt) -> Self {
         Self {
             user_id,
             presence,
@@ -137,12 +137,12 @@ impl PresenceUpdate {
 pub struct ReceiptContent {
     /// Receipts for a particular room.
     #[serde(flatten)]
-    pub receipts: BTreeMap<OwnedRoomId, ReceiptMap>,
+    pub receipts: BTreeMap<RoomId, ReceiptMap>,
 }
 
 impl ReceiptContent {
     /// Creates a new `ReceiptContent`.
-    pub fn new(receipts: BTreeMap<OwnedRoomId, ReceiptMap>) -> Self {
+    pub fn new(receipts: BTreeMap<RoomId, ReceiptMap>) -> Self {
         Self { receipts }
     }
 }
@@ -153,12 +153,12 @@ impl ReceiptContent {
 pub struct ReceiptMap {
     /// Read receipts for users in the room.
     #[serde(rename = "m.read")]
-    pub read: BTreeMap<OwnedUserId, ReceiptData>,
+    pub read: BTreeMap<UserId, ReceiptData>,
 }
 
 impl ReceiptMap {
     /// Creates a new `ReceiptMap`.
-    pub fn new(read: BTreeMap<OwnedUserId, ReceiptData>) -> Self {
+    pub fn new(read: BTreeMap<UserId, ReceiptData>) -> Self {
         Self { read }
     }
 }
@@ -171,12 +171,12 @@ pub struct ReceiptData {
     pub data: Receipt,
 
     /// The extremity event ID the user has read up to.
-    pub event_ids: Vec<OwnedEventId>,
+    pub event_ids: Vec<EventId>,
 }
 
 impl ReceiptData {
     /// Creates a new `ReceiptData`.
-    pub fn new(data: Receipt, event_ids: Vec<OwnedEventId>) -> Self {
+    pub fn new(data: Receipt, event_ids: Vec<EventId>) -> Self {
         Self { data, event_ids }
     }
 }
@@ -186,10 +186,10 @@ impl ReceiptData {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct TypingContent {
     /// The room where the user's typing status has been updated.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The user ID that has had their typing status changed.
-    pub user_id: OwnedUserId,
+    pub user_id: UserId,
 
     /// Whether the user is typing in the room or not.
     pub typing: bool,
@@ -197,7 +197,7 @@ pub struct TypingContent {
 
 impl TypingContent {
     /// Creates a new `TypingContent`.
-    pub fn new(room_id: OwnedRoomId, user_id: OwnedUserId, typing: bool) -> Self {
+    pub fn new(room_id: RoomId, user_id: UserId, typing: bool) -> Self {
         Self { room_id, user_id, typing }
     }
 }
@@ -207,10 +207,10 @@ impl TypingContent {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct DeviceListUpdateContent {
     /// The user ID who owns the device.
-    pub user_id: OwnedUserId,
+    pub user_id: UserId,
 
     /// The ID of the device whose details are changing.
-    pub device_id: OwnedDeviceId,
+    pub device_id: DeviceId,
 
     /// The public human-readable name of this device.
     ///
@@ -238,7 +238,7 @@ pub struct DeviceListUpdateContent {
 impl DeviceListUpdateContent {
     /// Create a new `DeviceListUpdateContent` with the given `user_id`, `device_id` and
     /// `stream_id`.
-    pub fn new(user_id: OwnedUserId, device_id: OwnedDeviceId, stream_id: UInt) -> Self {
+    pub fn new(user_id: UserId, device_id: DeviceId, stream_id: UInt) -> Self {
         Self {
             user_id,
             device_id,
@@ -256,14 +256,14 @@ impl DeviceListUpdateContent {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct DirectDeviceContent {
     /// The user ID of the sender.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// Event type for the message.
     #[serde(rename = "type")]
     pub ev_type: ToDeviceEventType,
 
     /// Unique utf8 string ID for the message, used for idempotency.
-    pub message_id: OwnedTransactionId,
+    pub message_id: TransactionId,
 
     /// The contents of the messages to be sent.
     ///
@@ -274,11 +274,7 @@ pub struct DirectDeviceContent {
 
 impl DirectDeviceContent {
     /// Creates a new `DirectDeviceContent` with the given `sender, `ev_type` and `message_id`.
-    pub fn new(
-        sender: OwnedUserId,
-        ev_type: ToDeviceEventType,
-        message_id: OwnedTransactionId,
-    ) -> Self {
+    pub fn new(sender: UserId, ev_type: ToDeviceEventType, message_id: TransactionId) -> Self {
         Self { sender, ev_type, message_id, messages: DirectDeviceMessages::new() }
     }
 }
@@ -287,14 +283,14 @@ impl DirectDeviceContent {
 ///
 /// Represented as a map of `{ user-ids => { device-ids => message-content } }`.
 pub type DirectDeviceMessages =
-    BTreeMap<OwnedUserId, BTreeMap<DeviceIdOrAllDevices, Raw<AnyToDeviceEventContent>>>;
+    BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, Raw<AnyToDeviceEventContent>>>;
 
 /// The content for an `m.signing_key_update` EDU.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SigningKeyUpdateContent {
     /// The user ID whose cross-signing keys have changed.
-    pub user_id: OwnedUserId,
+    pub user_id: UserId,
 
     /// The user's master key, if it was updated.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -307,7 +303,7 @@ pub struct SigningKeyUpdateContent {
 
 impl SigningKeyUpdateContent {
     /// Creates a new `SigningKeyUpdateContent`.
-    pub fn new(user_id: OwnedUserId) -> Self {
+    pub fn new(user_id: UserId) -> Self {
         Self { user_id, master_key: None, self_signing_key: None }
     }
 }

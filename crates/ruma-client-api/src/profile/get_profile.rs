@@ -10,7 +10,7 @@ pub mod v3 {
     use std::collections::{BTreeMap, btree_map};
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
     };
@@ -33,7 +33,7 @@ pub mod v3 {
     pub struct Request {
         /// The user whose profile will be retrieved.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
     }
 
     /// Response type for the `get_profile` endpoint.
@@ -47,7 +47,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id }
         }
     }

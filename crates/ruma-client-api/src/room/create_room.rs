@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 
 use js_int::Int;
 use ruma_common::{
-    OwnedUserId,
+    UserId,
     power_levels::NotificationPowerLevels,
     serde::{JsonCastable, JsonObject},
 };
@@ -20,7 +20,7 @@ pub mod v3 {
 
     use assign::assign;
     use ruma_common::{
-        OwnedRoomId, OwnedUserId, RoomVersionId,
+        RoomId, RoomVersionId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         room::RoomType,
@@ -63,7 +63,7 @@ pub mod v3 {
         ///
         /// This will tell the server to invite everyone in the list to the newly created room.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub invite: Vec<OwnedUserId>,
+        pub invite: Vec<UserId>,
 
         /// List of third party IDs of users to invite.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
@@ -113,7 +113,7 @@ pub mod v3 {
     #[response(error = crate::Error)]
     pub struct Response {
         /// The created room's ID.
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
     }
 
     impl Request {
@@ -125,7 +125,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given room id.
-        pub fn new(room_id: OwnedRoomId) -> Self {
+        pub fn new(room_id: RoomId) -> Self {
             Self { room_id }
         }
     }
@@ -140,7 +140,7 @@ pub mod v3 {
         /// A list of user IDs to consider as additional creators, and hence grant an "infinite"
         /// immutable power level, from room version 12 onwards.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub additional_creators: Vec<OwnedUserId>,
+        pub additional_creators: Vec<UserId>,
 
         /// Whether users on other servers can join this room.
         ///
@@ -178,7 +178,7 @@ pub mod v3 {
         /// a `RoomCreateEventContent`.
         pub fn into_event_content(
             self,
-            creator: OwnedUserId,
+            creator: UserId,
             room_version: RoomVersionId,
         ) -> RoomCreateEventContent {
             assign!(RoomCreateEventContent::new_v1(creator), {
@@ -269,7 +269,7 @@ pub struct RoomPowerLevelsContentOverride {
     ///
     /// This is a mapping from `user_id` to power level for that user.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub users: BTreeMap<OwnedUserId, Int>,
+    pub users: BTreeMap<UserId, Int>,
 
     /// The default power level for every user in the room.
     #[serde(skip_serializing_if = "Option::is_none")]

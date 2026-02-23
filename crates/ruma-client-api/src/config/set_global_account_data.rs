@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3useruseridaccount_datatype
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -35,7 +35,7 @@ pub mod v3 {
         ///
         /// The access token must be authorized to make requests for this user ID.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The event type of the account_data to set.
         ///
@@ -62,7 +62,7 @@ pub mod v3 {
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
-        pub fn new<T>(user_id: OwnedUserId, data: &T) -> serde_json::Result<Self>
+        pub fn new<T>(user_id: UserId, data: &T) -> serde_json::Result<Self>
         where
             T: GlobalAccountDataEventContent,
         {
@@ -75,7 +75,7 @@ pub mod v3 {
 
         /// Creates a new `Request` with the given raw data, event type and user ID.
         pub fn new_raw(
-            user_id: OwnedUserId,
+            user_id: UserId,
             event_type: GlobalAccountDataEventType,
             data: Raw<AnyGlobalAccountDataEventContent>,
         ) -> Self {

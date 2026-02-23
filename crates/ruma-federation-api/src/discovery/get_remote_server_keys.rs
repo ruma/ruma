@@ -9,7 +9,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixkeyv2queryservername
 
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch, OwnedServerName,
+        MilliSecondsSinceUnixEpoch, ServerName,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         serde::Raw,
@@ -29,7 +29,7 @@ pub mod v2 {
     pub struct Request {
         /// The server's DNS name to query
         #[ruma_api(path)]
-        pub server_name: OwnedServerName,
+        pub server_name: ServerName,
 
         /// A millisecond POSIX timestamp in milliseconds indicating when the returned certificates
         /// will need to be valid until to be useful to the requesting server.
@@ -50,7 +50,7 @@ pub mod v2 {
     impl Request {
         /// Creates a new `Request` with the given server name and `minimum_valid_until` timestamp.
         pub fn new(
-            server_name: OwnedServerName,
+            server_name: ServerName,
             minimum_valid_until_ts: MilliSecondsSinceUnixEpoch,
         ) -> Self {
             Self { server_name, minimum_valid_until_ts }

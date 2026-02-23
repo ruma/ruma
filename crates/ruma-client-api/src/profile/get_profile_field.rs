@@ -16,7 +16,7 @@ pub mod v3 {
     use std::marker::PhantomData;
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{Metadata, auth_scheme::NoAuthentication, path_builder::VersionHistory},
         metadata,
     };
@@ -40,7 +40,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
         /// The user whose profile will be fetched.
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The profile field to get.
         pub field: ProfileFieldName,
@@ -48,12 +48,12 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID and field.
-        pub fn new(user_id: OwnedUserId, field: ProfileFieldName) -> Self {
+        pub fn new(user_id: UserId, field: ProfileFieldName) -> Self {
             Self { user_id, field }
         }
 
         /// Creates a new request with the given user ID and statically-known field.
-        pub fn new_static<F: StaticProfileField>(user_id: OwnedUserId) -> RequestStatic<F> {
+        pub fn new_static<F: StaticProfileField>(user_id: UserId) -> RequestStatic<F> {
             RequestStatic::new(user_id)
         }
     }
@@ -123,7 +123,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct RequestStatic<F: StaticProfileField> {
         /// The user whose profile will be fetched.
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The profile field to get.
         field: PhantomData<F>,
@@ -131,7 +131,7 @@ pub mod v3 {
 
     impl<F: StaticProfileField> RequestStatic<F> {
         /// Creates a new request with the given user ID.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id, field: PhantomData }
         }
     }

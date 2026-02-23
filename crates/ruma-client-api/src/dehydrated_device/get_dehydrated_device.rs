@@ -8,7 +8,7 @@ pub mod unstable {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3814
 
     use ruma_common::{
-        OwnedDeviceId,
+        DeviceId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -33,7 +33,7 @@ pub mod unstable {
     #[response(error = crate::Error)]
     pub struct Response {
         /// The unique ID of the device.
-        pub device_id: OwnedDeviceId,
+        pub device_id: DeviceId,
         /// Information about the device.
         pub device_data: Raw<DehydratedDeviceData>,
     }
@@ -47,7 +47,7 @@ pub mod unstable {
 
     impl Response {
         /// Creates a new `Response` with the given device ID and device data.
-        pub fn new(device_id: OwnedDeviceId, device_data: Raw<DehydratedDeviceData>) -> Self {
+        pub fn new(device_id: DeviceId, device_data: Raw<DehydratedDeviceData>) -> Self {
             Self { device_id, device_data }
         }
     }

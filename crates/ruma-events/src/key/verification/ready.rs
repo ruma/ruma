@@ -2,7 +2,7 @@
 //!
 //! [`m.key.verification.ready`]: https://spec.matrix.org/latest/client-server-api/#mkeyverificationready
 
-use ruma_common::{OwnedDeviceId, OwnedTransactionId};
+use ruma_common::{DeviceId, TransactionId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -17,7 +17,7 @@ use crate::relation::Reference;
 #[ruma_event(type = "m.key.verification.ready", kind = ToDevice)]
 pub struct ToDeviceKeyVerificationReadyEventContent {
     /// The device ID which is initiating the request.
-    pub from_device: OwnedDeviceId,
+    pub from_device: DeviceId,
 
     /// The verification methods supported by the sender.
     pub methods: Vec<VerificationMethod>,
@@ -27,16 +27,16 @@ pub struct ToDeviceKeyVerificationReadyEventContent {
     /// Must be unique with respect to the devices involved. Must be the same as the
     /// `transaction_id` given in the `m.key.verification.request` from a
     /// request.
-    pub transaction_id: OwnedTransactionId,
+    pub transaction_id: TransactionId,
 }
 
 impl ToDeviceKeyVerificationReadyEventContent {
     /// Creates a new `ToDeviceKeyVerificationReadyEventContent` with the given device ID,
     /// verification methods and transaction ID.
     pub fn new(
-        from_device: OwnedDeviceId,
+        from_device: DeviceId,
         methods: Vec<VerificationMethod>,
-        transaction_id: OwnedTransactionId,
+        transaction_id: TransactionId,
     ) -> Self {
         Self { from_device, methods, transaction_id }
     }
@@ -50,7 +50,7 @@ impl ToDeviceKeyVerificationReadyEventContent {
 #[ruma_event(type = "m.key.verification.ready", kind = MessageLike)]
 pub struct KeyVerificationReadyEventContent {
     /// The device ID which is initiating the request.
-    pub from_device: OwnedDeviceId,
+    pub from_device: DeviceId,
 
     /// The verification methods supported by the sender.
     pub methods: Vec<VerificationMethod>,
@@ -65,7 +65,7 @@ impl KeyVerificationReadyEventContent {
     /// Creates a new `KeyVerificationReadyEventContent` with the given device ID, methods and
     /// reference.
     pub fn new(
-        from_device: OwnedDeviceId,
+        from_device: DeviceId,
         methods: Vec<VerificationMethod>,
         relates_to: Reference,
     ) -> Self {
@@ -75,7 +75,7 @@ impl KeyVerificationReadyEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::{OwnedDeviceId, canonical_json::assert_to_canonical_json_eq, owned_event_id};
+    use ruma_common::{DeviceId, canonical_json::assert_to_canonical_json_eq, owned_event_id};
     use serde_json::{from_value as from_json_value, json};
 
     use super::{KeyVerificationReadyEventContent, ToDeviceKeyVerificationReadyEventContent};
@@ -84,7 +84,7 @@ mod tests {
     #[test]
     fn serialization() {
         let event_id = owned_event_id!("$1598361704261elfgc:localhost");
-        let device: OwnedDeviceId = "123".into();
+        let device: DeviceId = "123".into();
 
         let content = KeyVerificationReadyEventContent {
             from_device: device.clone(),

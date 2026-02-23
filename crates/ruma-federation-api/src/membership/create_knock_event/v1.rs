@@ -3,7 +3,7 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1send_knockroomideventid
 
 use ruma_common::{
-    OwnedEventId, OwnedRoomId,
+    EventId, RoomId,
     api::{request, response},
     metadata,
 };
@@ -23,11 +23,11 @@ metadata! {
 pub struct Request {
     /// The room ID that should receive the knock.
     #[ruma_api(path)]
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The event ID for the knock event.
     #[ruma_api(path)]
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The PDU.
     #[ruma_api(body)]
@@ -43,7 +43,7 @@ pub struct Response {
 
 impl Request {
     /// Creates a new `Request` with the given room ID, event ID and knock event.
-    pub fn new(room_id: OwnedRoomId, event_id: OwnedEventId, pdu: Box<RawJsonValue>) -> Self {
+    pub fn new(room_id: RoomId, event_id: EventId, pdu: Box<RawJsonValue>) -> Self {
         Self { room_id, event_id, pdu }
     }
 }

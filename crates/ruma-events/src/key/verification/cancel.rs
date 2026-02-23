@@ -2,7 +2,7 @@
 //!
 //! [`m.key.verification.cancel`]: https://spec.matrix.org/latest/client-server-api/#mkeyverificationcancel
 
-use ruma_common::{OwnedTransactionId, serde::StringEnum};
+use ruma_common::{TransactionId, serde::StringEnum};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -16,7 +16,7 @@ use crate::{PrivOwnedStr, relation::Reference};
 #[ruma_event(type = "m.key.verification.cancel", kind = ToDevice)]
 pub struct ToDeviceKeyVerificationCancelEventContent {
     /// The opaque identifier for the verification process/request.
-    pub transaction_id: OwnedTransactionId,
+    pub transaction_id: TransactionId,
 
     /// A human readable description of the `code`.
     ///
@@ -30,7 +30,7 @@ pub struct ToDeviceKeyVerificationCancelEventContent {
 impl ToDeviceKeyVerificationCancelEventContent {
     /// Creates a new `ToDeviceKeyVerificationCancelEventContent` with the given transaction ID,
     /// reason and code.
-    pub fn new(transaction_id: OwnedTransactionId, reason: String, code: CancelCode) -> Self {
+    pub fn new(transaction_id: TransactionId, reason: String, code: CancelCode) -> Self {
         Self { transaction_id, reason, code }
     }
 }

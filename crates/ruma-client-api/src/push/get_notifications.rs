@@ -9,7 +9,7 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch, OwnedRoomId,
+        MilliSecondsSinceUnixEpoch, RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         push::Action,
@@ -98,7 +98,7 @@ pub mod v3 {
         pub read: bool,
 
         /// The ID of the room in which the event was posted.
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The time at which the event notification was sent.
         pub ts: MilliSecondsSinceUnixEpoch,
@@ -111,7 +111,7 @@ pub mod v3 {
             actions: Vec<Action>,
             event: Raw<AnySyncTimelineEvent>,
             read: bool,
-            room_id: OwnedRoomId,
+            room_id: RoomId,
             ts: MilliSecondsSinceUnixEpoch,
         ) -> Self {
             Self { actions, event, profile_tag: None, read, room_id, ts }

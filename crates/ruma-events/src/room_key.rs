@@ -2,7 +2,7 @@
 //!
 //! [`m.room_key`]: https://spec.matrix.org/latest/client-server-api/#mroom_key
 
-use ruma_common::{EventEncryptionAlgorithm, OwnedRoomId};
+use ruma_common::{EventEncryptionAlgorithm, RoomId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -21,7 +21,7 @@ pub struct ToDeviceRoomKeyEventContent {
     pub algorithm: EventEncryptionAlgorithm,
 
     /// The room where the key is used.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The ID of the session that the key is for.
     pub session_id: String,
@@ -46,7 +46,7 @@ impl ToDeviceRoomKeyEventContent {
     /// and session key.
     pub fn new(
         algorithm: EventEncryptionAlgorithm,
-        room_id: OwnedRoomId,
+        room_id: RoomId,
         session_id: String,
         session_key: String,
     ) -> Self {

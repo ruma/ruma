@@ -14,7 +14,7 @@ use proc_macro::TokenStream;
 use quote::quote;
 use ruma_identifiers_validation::{
     base64_public_key, event_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
-    server_signing_key_version, user_id,
+    server_signing_key_version, session_id, user_id,
 };
 use syn::{DeriveInput, ItemEnum, ItemStruct, parse_macro_input};
 
@@ -35,7 +35,10 @@ use self::{
         event_enum::{EventEnumInput, expand_event_enum},
         event_enum_from_event::expand_event_enum_from_event,
     },
-    identifiers::{constructor::IdentifierConstructor, id_dst::expand_id_dst},
+    identifiers::{
+        constructor::IdentifierConstructor,
+        ruma_id::{RumaIdAttrs, expand_ruma_id},
+    },
     serde::{
         as_str_as_ref_str::expand_as_str_as_ref_str, debug_as_ref_str::expand_debug_as_ref_str,
         deserialize_from_cow_str::expand_deserialize_from_cow_str,
@@ -335,7 +338,7 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 ///
 /// The type of the state key of the event, required and only supported if the kind is `State`. This
 /// type should be a string type like `String`, `EmptyStateKey` or an identifier type generated with
-/// the `IdDst` macro.
+/// the `ruma_id` macro.
 ///
 /// ### `unsigned_type = UnsignedType`
 ///
@@ -442,27 +445,23 @@ pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
     expand_event_enum_from_event(input).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
-/// Generate methods and trait impl's for DST identifier type.
+/// Generate the inner representation, methods and trait implementations for an identifier type.
 ///
-/// This macro generates an `Owned*` wrapper type for the identifier type. This wrapper type is
-/// variable, by default it'll use [`Box`], but it can be changed at compile time
-/// by setting `--cfg=ruma_identifiers_storage=...` using `RUSTFLAGS` or `.cargo/config.toml` (under
+/// This macro generates the inner representation for the identifier type. This inner representation
+/// is variable, by default it'll use `Box<str>`, but it can be changed at compile time by setting
+/// `--cfg=ruma_identifiers_storage=...` using `RUSTFLAGS` or `.cargo/config.toml` (under
 /// `[build]` -> `rustflags = ["..."]`). Currently the only supported value is `Arc`, that uses
-/// [`Arc`](std::sync::Arc) as a wrapper type.
+/// `Arc<str>` as an inner representation.
 ///
 /// This macro implements:
 ///
-/// * Conversions to and from string types, `AsRef<[u8]>` and `AsRef<str>`, as well as `as_str()`
-///   and `as_bytes()` methods. The borrowed type can be converted from a borrowed string without
-///   allocation.
-/// * Conversions to and from borrowed and owned type.
-/// * `Deref`, `AsRef` and `Borrow` to the borrowed type for the owned type.
-/// * `PartialEq` implementations for testing equality with string types and owned and borrowed
-///   types.
+/// * `AsRef<[u8]>` and `AsRef<str>`, as well as `as_str()` and `as_bytes()` methods.
+/// * Conversions to and from string types, as well as `PartialEq` implementations for testing
+///   equality with string types.
 ///
-/// # Attributes
+/// # Arguments
 ///
-/// * `#[ruma_api(validate = PATH)]`: the path to a function to validate the string during parsing
+/// * `#[ruma_id(validate = PATH)]`: the path to a function to validate the string during parsing
 ///   and deserialization. By default, the types implement `From` string types, when this is set
 ///   they implement `TryFrom`.
 ///
@@ -470,37 +469,41 @@ pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
 ///
 /// ```ignore
 /// # // HACK: This is "ignore" because of cyclical dependency drama.
-/// use ruma_macros::IdDst;
+/// use ruma_macros::ruma_id;
 ///
-/// #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 /// #[ruma_id(validate = ruma_identifiers_validation::user_id::validate)]
-/// pub struct UserId(str);
+/// pub struct UserId;
 /// ```
-#[proc_macro_derive(IdDst, attributes(ruma_id))]
-pub fn derive_id_dst(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as ItemStruct);
-    expand_id_dst(input).unwrap_or_else(syn::Error::into_compile_error).into()
+#[proc_macro_attribute]
+pub fn ruma_id(args: TokenStream, item: TokenStream) -> TokenStream {
+    let mut attrs = RumaIdAttrs::default();
+    let attrs_parser = syn::meta::parser(|meta| attrs.try_merge(meta));
+    parse_macro_input!(args with attrs_parser);
+
+    let item = parse_macro_input!(item as ItemStruct);
+
+    expand_ruma_id(attrs, item).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 /// Compile-time checked `EventId` construction.
 #[proc_macro]
 pub fn event_id(input: TokenStream) -> TokenStream {
     let id_ctor = parse_macro_input!(input as IdentifierConstructor);
-    id_ctor.validate_and_expand_str_conversion("&EventId", event_id::validate).into()
+    id_ctor.validate_and_expand_str_conversion("EventId", event_id::validate).into()
 }
 
 /// Compile-time checked `RoomAliasId` construction.
 #[proc_macro]
 pub fn room_alias_id(input: TokenStream) -> TokenStream {
     let id_ctor = parse_macro_input!(input as IdentifierConstructor);
-    id_ctor.validate_and_expand_str_conversion("&RoomAliasId", room_alias_id::validate).into()
+    id_ctor.validate_and_expand_str_conversion("RoomAliasId", room_alias_id::validate).into()
 }
 
 /// Compile-time checked `RoomId` construction.
 #[proc_macro]
 pub fn room_id(input: TokenStream) -> TokenStream {
     let id_ctor = parse_macro_input!(input as IdentifierConstructor);
-    id_ctor.validate_and_expand_str_conversion("&RoomId", room_id::validate).into()
+    id_ctor.validate_and_expand_str_conversion("RoomId", room_id::validate).into()
 }
 
 /// Compile-time checked `RoomVersionId` construction.
@@ -510,13 +513,20 @@ pub fn room_version_id(input: TokenStream) -> TokenStream {
     id_ctor.validate_and_expand_str_conversion("RoomVersionId", room_version_id::validate).into()
 }
 
+/// Compile-time checked `SessionId` construction.
+#[proc_macro]
+pub fn session_id(input: TokenStream) -> TokenStream {
+    let id_ctor = parse_macro_input!(input as IdentifierConstructor);
+    id_ctor.validate_and_expand_str_conversion("SessionId", session_id::validate).into()
+}
+
 /// Compile-time checked `ServerSigningKeyVersion` construction.
 #[proc_macro]
 pub fn server_signing_key_version(input: TokenStream) -> TokenStream {
     let id_ctor = parse_macro_input!(input as IdentifierConstructor);
     id_ctor
         .validate_and_expand_str_conversion(
-            "&ServerSigningKeyVersion",
+            "ServerSigningKeyVersion",
             server_signing_key_version::validate,
         )
         .into()
@@ -526,14 +536,14 @@ pub fn server_signing_key_version(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn server_name(input: TokenStream) -> TokenStream {
     let id_ctor = parse_macro_input!(input as IdentifierConstructor);
-    id_ctor.validate_and_expand_str_conversion("&ServerName", server_name::validate).into()
+    id_ctor.validate_and_expand_str_conversion("ServerName", server_name::validate).into()
 }
 
 /// Compile-time checked `MxcUri` construction.
 #[proc_macro]
 pub fn mxc_uri(input: TokenStream) -> TokenStream {
     let id_ctor = parse_macro_input!(input as IdentifierConstructor);
-    id_ctor.validate_and_expand_str_conversion("&MxcUri", mxc_uri::validate).into()
+    id_ctor.validate_and_expand_str_conversion("MxcUri", mxc_uri::validate).into()
 }
 
 /// Compile-time checked `UserId` construction.
@@ -542,7 +552,7 @@ pub fn mxc_uri(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn user_id(input: TokenStream) -> TokenStream {
     let id_ctor = parse_macro_input!(input as IdentifierConstructor);
-    id_ctor.validate_and_expand_str_conversion("&UserId", user_id::validate).into()
+    id_ctor.validate_and_expand_str_conversion("UserId", user_id::validate).into()
 }
 
 /// Compile-time checked `Base64PublicKey` construction.
@@ -550,7 +560,7 @@ pub fn user_id(input: TokenStream) -> TokenStream {
 pub fn base64_public_key(input: TokenStream) -> TokenStream {
     let id_ctor = parse_macro_input!(input as IdentifierConstructor);
     id_ctor
-        .validate_and_expand_str_conversion("&Base64PublicKey", base64_public_key::validate)
+        .validate_and_expand_str_conversion("Base64PublicKey", base64_public_key::validate)
         .into()
 }
 

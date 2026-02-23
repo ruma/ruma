@@ -9,11 +9,10 @@ use ruma_identifiers_validation::{
 };
 use url::Url;
 
-use super::{
-    EventId, OwnedEventId, OwnedRoomAliasId, OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName,
-    OwnedUserId, RoomAliasId, RoomId, RoomOrAliasId, UserId,
+use crate::{
+    EventId, PrivOwnedStr, RoomAliasId, RoomId, RoomOrAliasId, ServerName, UserId,
+    percent_encode::PATH_PERCENT_ENCODE_SET,
 };
-use crate::{PrivOwnedStr, percent_encode::PATH_PERCENT_ENCODE_SET};
 
 const MATRIX_TO_BASE_URL: &str = "https://matrix.to/#/";
 const MATRIX_SCHEME: &str = "matrix";
@@ -23,19 +22,19 @@ const MATRIX_SCHEME: &str = "matrix";
 #[non_exhaustive]
 pub enum MatrixId {
     /// A room ID.
-    Room(OwnedRoomId),
+    Room(RoomId),
 
     /// A room alias.
-    RoomAlias(OwnedRoomAliasId),
+    RoomAlias(RoomAliasId),
 
     /// A user ID.
-    User(OwnedUserId),
+    User(UserId),
 
     /// An event ID.
     ///
-    /// Constructing this variant from an `OwnedRoomAliasId` is deprecated, because room aliases
+    /// Constructing this variant from a [`RoomAliasId`] is deprecated, because room aliases
     /// are mutable, so the URI might break after a while.
-    Event(OwnedRoomOrAliasId, OwnedEventId),
+    Event(RoomOrAliasId, EventId),
 }
 
 impl MatrixId {
@@ -180,8 +179,8 @@ impl MatrixId {
     }
 }
 
-impl From<OwnedRoomId> for MatrixId {
-    fn from(room_id: OwnedRoomId) -> Self {
+impl From<RoomId> for MatrixId {
+    fn from(room_id: RoomId) -> Self {
         Self::Room(room_id)
     }
 }
@@ -192,8 +191,8 @@ impl From<&RoomId> for MatrixId {
     }
 }
 
-impl From<OwnedRoomAliasId> for MatrixId {
-    fn from(room_alias: OwnedRoomAliasId) -> Self {
+impl From<RoomAliasId> for MatrixId {
+    fn from(room_alias: RoomAliasId) -> Self {
         Self::RoomAlias(room_alias)
     }
 }
@@ -204,8 +203,8 @@ impl From<&RoomAliasId> for MatrixId {
     }
 }
 
-impl From<OwnedUserId> for MatrixId {
-    fn from(user_id: OwnedUserId) -> Self {
+impl From<UserId> for MatrixId {
+    fn from(user_id: UserId) -> Self {
         Self::User(user_id)
     }
 }
@@ -216,8 +215,8 @@ impl From<&UserId> for MatrixId {
     }
 }
 
-impl From<(OwnedRoomOrAliasId, OwnedEventId)> for MatrixId {
-    fn from(ids: (OwnedRoomOrAliasId, OwnedEventId)) -> Self {
+impl From<(RoomOrAliasId, EventId)> for MatrixId {
+    fn from(ids: (RoomOrAliasId, EventId)) -> Self {
         Self::Event(ids.0, ids.1)
     }
 }
@@ -228,8 +227,8 @@ impl From<(&RoomOrAliasId, &EventId)> for MatrixId {
     }
 }
 
-impl From<(OwnedRoomId, OwnedEventId)> for MatrixId {
-    fn from(ids: (OwnedRoomId, OwnedEventId)) -> Self {
+impl From<(RoomId, EventId)> for MatrixId {
+    fn from(ids: (RoomId, EventId)) -> Self {
         Self::Event(ids.0.into(), ids.1)
     }
 }
@@ -240,8 +239,8 @@ impl From<(&RoomId, &EventId)> for MatrixId {
     }
 }
 
-impl From<(OwnedRoomAliasId, OwnedEventId)> for MatrixId {
-    fn from(ids: (OwnedRoomAliasId, OwnedEventId)) -> Self {
+impl From<(RoomAliasId, EventId)> for MatrixId {
+    fn from(ids: (RoomAliasId, EventId)) -> Self {
         Self::Event(ids.0.into(), ids.1)
     }
 }
@@ -261,11 +260,11 @@ impl From<(&RoomAliasId, &EventId)> for MatrixId {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MatrixToUri {
     id: MatrixId,
-    via: Vec<OwnedServerName>,
+    via: Vec<ServerName>,
 }
 
 impl MatrixToUri {
-    pub(crate) fn new(id: MatrixId, via: Vec<OwnedServerName>) -> Self {
+    pub(crate) fn new(id: MatrixId, via: Vec<ServerName>) -> Self {
         Self { id, via }
     }
 
@@ -274,8 +273,8 @@ impl MatrixToUri {
         &self.id
     }
 
-    /// Matrix servers usable to route a `RoomId`.
-    pub fn via(&self) -> &[OwnedServerName] {
+    /// Matrix servers usable to route a [`RoomId`].
+    pub fn via(&self) -> &[ServerName] {
         &self.via
     }
 
@@ -311,7 +310,7 @@ impl MatrixToUri {
                 query_parts
                     .map(|(key, value)| {
                         if key == "via" {
-                            OwnedServerName::try_from(value)
+                            ServerName::try_from(value)
                         } else {
                             Err(MatrixToError::UnknownArgument.into())
                         }
@@ -446,12 +445,12 @@ impl From<Box<str>> for UriAction {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MatrixUri {
     id: MatrixId,
-    via: Vec<OwnedServerName>,
+    via: Vec<ServerName>,
     action: Option<UriAction>,
 }
 
 impl MatrixUri {
-    pub(crate) fn new(id: MatrixId, via: Vec<OwnedServerName>, action: Option<UriAction>) -> Self {
+    pub(crate) fn new(id: MatrixId, via: Vec<ServerName>, action: Option<UriAction>) -> Self {
         Self { id, via, action }
     }
 
@@ -461,7 +460,7 @@ impl MatrixUri {
     }
 
     /// Matrix servers usable to route a `RoomId`.
-    pub fn via(&self) -> &[OwnedServerName] {
+    pub fn via(&self) -> &[ServerName] {
         &self.via
     }
 

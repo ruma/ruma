@@ -2,7 +2,7 @@
 //!
 //! [`m.key.verification.done`]: https://spec.matrix.org/latest/client-server-api/#mkeyverificationdone
 
-use ruma_common::OwnedTransactionId;
+use ruma_common::TransactionId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -18,12 +18,12 @@ pub struct ToDeviceKeyVerificationDoneEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the `m.key.verification.start` message.
-    pub transaction_id: OwnedTransactionId,
+    pub transaction_id: TransactionId,
 }
 
 impl ToDeviceKeyVerificationDoneEventContent {
     /// Creates a new `ToDeviceKeyVerificationDoneEventContent` with the given transaction ID.
-    pub fn new(transaction_id: OwnedTransactionId) -> Self {
+    pub fn new(transaction_id: TransactionId) -> Self {
         Self { transaction_id }
     }
 }

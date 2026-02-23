@@ -8,7 +8,7 @@ pub mod unstable {
     //! [spec]: https://github.com/matrix-org/matrix-spec-proposals/blob/hs/shared-rooms/proposals/2666-get-rooms-in-common.md
 
     use ruma_common::{
-        OwnedRoomId, OwnedUserId,
+        RoomId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -27,7 +27,7 @@ pub mod unstable {
     pub struct Request {
         /// The user to search mutual rooms for.
         #[ruma_api(query)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The `next_batch_token` returned from a previous response, to get the next batch of
         /// rooms.
@@ -40,7 +40,7 @@ pub mod unstable {
     #[response(error = crate::Error)]
     pub struct Response {
         /// A list of rooms the user is in together with the authenticated user.
-        pub joined: Vec<OwnedRoomId>,
+        pub joined: Vec<RoomId>,
 
         /// An opaque string, returned when the server paginates this response.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -49,24 +49,24 @@ pub mod unstable {
 
     impl Request {
         /// Creates a new `Request` with the given user id.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id, batch_token: None }
         }
 
         /// Creates a new `Request` with the given user id, together with a batch token.
-        pub fn with_token(user_id: OwnedUserId, token: String) -> Self {
+        pub fn with_token(user_id: UserId, token: String) -> Self {
             Self { user_id, batch_token: Some(token) }
         }
     }
 
     impl Response {
         /// Creates a `Response` with the given room ids.
-        pub fn new(joined: Vec<OwnedRoomId>) -> Self {
+        pub fn new(joined: Vec<RoomId>) -> Self {
             Self { joined, next_batch_token: None }
         }
 
         /// Creates a `Response` with the given room ids, together with a batch token.
-        pub fn with_token(joined: Vec<OwnedRoomId>, token: String) -> Self {
+        pub fn with_token(joined: Vec<RoomId>, token: String) -> Self {
             Self { joined, next_batch_token: Some(token) }
         }
     }

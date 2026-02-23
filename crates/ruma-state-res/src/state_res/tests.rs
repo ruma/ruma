@@ -7,7 +7,7 @@ use js_int::{int, uint};
 use maplit::{hashmap, hashset};
 use rand::seq::SliceRandom;
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, OwnedEventId,
+    EventId, MilliSecondsSinceUnixEpoch,
     room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
 };
 use ruma_events::{
@@ -35,7 +35,7 @@ fn test_event_sort() {
         .map(|ev| (ev.event_type().with_state_key(ev.state_key().unwrap()), ev.clone()))
         .collect::<StateMap<_>>();
 
-    let auth_chain: HashSet<OwnedEventId> = HashSet::new();
+    let auth_chain: HashSet<EventId> = HashSet::new();
 
     let power_events = event_map
         .values()
@@ -507,7 +507,7 @@ fn ban_with_auth_chains2() {
 
     for id in expected.iter().map(|i| event_id(i)) {
         // make sure our resolved events are equal to the expected list
-        assert!(resolved.values().any(|eid| eid == &id) || init.contains_key(&id), "{id}");
+        assert!(resolved.values().any(|eid| *eid == id) || init.contains_key(&id), "{id}");
     }
     assert_eq!(expected.len(), resolved.len());
 }
@@ -527,7 +527,7 @@ fn join_rule_with_auth_chain() {
 }
 
 #[allow(non_snake_case)]
-fn BAN_STATE_SET() -> HashMap<OwnedEventId, Arc<PduEvent>> {
+fn BAN_STATE_SET() -> HashMap<EventId, Arc<PduEvent>> {
     vec![
         to_pdu_event(
             "PA",
@@ -572,7 +572,7 @@ fn BAN_STATE_SET() -> HashMap<OwnedEventId, Arc<PduEvent>> {
 }
 
 #[allow(non_snake_case)]
-fn JOIN_RULE() -> HashMap<OwnedEventId, Arc<PduEvent>> {
+fn JOIN_RULE() -> HashMap<EventId, Arc<PduEvent>> {
     vec![
         to_pdu_event(
             "JR",

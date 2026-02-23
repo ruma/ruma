@@ -1,7 +1,7 @@
 //! Digital signatures and collections of signatures.
 
 use ruma_common::{
-    AnyKeyName, IdParseError, OwnedSigningKeyId, SigningKeyAlgorithm, SigningKeyId,
+    AnyKeyName, IdParseError, SigningKeyAlgorithm, SigningKeyId,
     serde::{Base64, base64::Standard},
 };
 
@@ -9,7 +9,7 @@ use ruma_common::{
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Signature {
     /// The ID of the key used to generate this signature.
-    pub(crate) key_id: OwnedSigningKeyId<AnyKeyName>,
+    pub(crate) key_id: SigningKeyId<AnyKeyName>,
 
     /// The signature data.
     pub(crate) signature: Vec<u8>,
@@ -64,11 +64,11 @@ impl Signature {
     /// Versions are used as an identifier to distinguish signatures generated from different keys
     /// but using the same algorithm on the same homeserver.
     pub fn version(&self) -> &str {
-        self.key_id.key_name().as_ref()
+        self.key_id.key_name_str()
     }
 
     /// Split this `Signature` into its key identifier and bytes.
-    pub fn into_parts(self) -> (OwnedSigningKeyId<AnyKeyName>, Vec<u8>) {
+    pub fn into_parts(self) -> (SigningKeyId<AnyKeyName>, Vec<u8>) {
         (self.key_id, self.signature)
     }
 }

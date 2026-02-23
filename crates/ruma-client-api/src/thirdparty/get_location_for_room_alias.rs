@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3thirdpartylocation
 
     use ruma_common::{
-        OwnedRoomAliasId,
+        RoomAliasId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         thirdparty::Location,
@@ -29,7 +29,7 @@ pub mod v3 {
     pub struct Request {
         /// The Matrix room alias to look up.
         #[ruma_api(query)]
-        pub alias: OwnedRoomAliasId,
+        pub alias: RoomAliasId,
     }
 
     /// Response type for the `get_location_for_room_alias` endpoint.
@@ -42,7 +42,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room alias ID.
-        pub fn new(alias: OwnedRoomAliasId) -> Self {
+        pub fn new(alias: RoomAliasId) -> Self {
             Self { alias }
         }
     }

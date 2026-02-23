@@ -11,7 +11,7 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        OwnedRoomId,
+        RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -41,7 +41,7 @@ pub mod v3 {
 
         /// The ID of the room to add keys to.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// A map of session IDs to key data to store.
         pub sessions: BTreeMap<String, Raw<KeyBackupData>>,
@@ -64,7 +64,7 @@ pub mod v3 {
         /// Creates a new `Request` with the given version, room_id and sessions.
         pub fn new(
             version: String,
-            room_id: OwnedRoomId,
+            room_id: RoomId,
             sessions: BTreeMap<String, Raw<KeyBackupData>>,
         ) -> Self {
             Self { version, room_id, sessions }

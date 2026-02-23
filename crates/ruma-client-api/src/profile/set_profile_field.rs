@@ -14,7 +14,7 @@ pub mod v3 {
     //! [`set_display_name`]: crate::profile::set_display_name
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::AccessToken, response},
         metadata,
     };
@@ -38,7 +38,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
         /// The user whose profile will be updated.
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The value of the profile field to set.
         pub value: ProfileFieldValue,
@@ -46,7 +46,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID, field and value.
-        pub fn new(user_id: OwnedUserId, value: ProfileFieldValue) -> Self {
+        pub fn new(user_id: UserId, value: ProfileFieldValue) -> Self {
             Self { user_id, value }
         }
     }
@@ -110,7 +110,7 @@ pub mod v3 {
 
             Self::check_request_method(request.method())?;
 
-            let (user_id, field): (OwnedUserId, ProfileFieldName) =
+            let (user_id, field): (UserId, ProfileFieldName) =
                 serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
                     _,
                     serde::de::value::Error,

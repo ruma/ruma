@@ -2,7 +2,7 @@
 //!
 //! [`m.space_order`]: https://github.com/matrix-org/matrix-spec-proposals/pull/3230
 
-use ruma_common::OwnedSpaceChildOrder;
+use ruma_common::SpaceChildOrder;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -17,12 +17,12 @@ use serde::{Deserialize, Serialize};
 #[ruma_event(type = "org.matrix.msc3230.space_order", alias = "m.space_order", kind = RoomAccountData)]
 pub struct SpaceOrderEventContent {
     /// The current space order.
-    pub order: OwnedSpaceChildOrder,
+    pub order: SpaceChildOrder,
 }
 
 impl SpaceOrderEventContent {
     /// Creates a new `SpaceOrderEventContent` with the given order.
-    pub fn new(order: OwnedSpaceChildOrder) -> Self {
+    pub fn new(order: SpaceChildOrder) -> Self {
         Self { order }
     }
 }

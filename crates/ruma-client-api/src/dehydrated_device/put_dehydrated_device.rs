@@ -10,7 +10,7 @@ pub mod unstable {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        OwnedDeviceId, OwnedOneTimeKeyId,
+        DeviceId, OneTimeKeyId,
         api::{auth_scheme::AccessToken, request, response},
         encryption::{DeviceKeys, OneTimeKey},
         metadata,
@@ -32,7 +32,7 @@ pub mod unstable {
     #[request(error = crate::Error)]
     pub struct Request {
         /// The unique ID of the device.
-        pub device_id: OwnedDeviceId,
+        pub device_id: DeviceId,
 
         /// The display name of the device.
         pub initial_device_display_name: Option<String>,
@@ -46,24 +46,24 @@ pub mod unstable {
 
         /// One-time public keys for "pre-key" messages.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub one_time_keys: BTreeMap<OwnedOneTimeKeyId, Raw<OneTimeKey>>,
+        pub one_time_keys: BTreeMap<OneTimeKeyId, Raw<OneTimeKey>>,
 
         /// Fallback public keys for "pre-key" messages.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub fallback_keys: BTreeMap<OwnedOneTimeKeyId, Raw<OneTimeKey>>,
+        pub fallback_keys: BTreeMap<OneTimeKeyId, Raw<OneTimeKey>>,
     }
 
     /// Response type for the `upload_keys` endpoint.
     #[response(error = crate::Error)]
     pub struct Response {
         /// The unique ID of the device.
-        pub device_id: OwnedDeviceId,
+        pub device_id: DeviceId,
     }
 
     impl Request {
         /// Creates a new Request.
         pub fn new(
-            device_id: OwnedDeviceId,
+            device_id: DeviceId,
             device_data: Raw<DehydratedDeviceData>,
             device_keys: Raw<DeviceKeys>,
         ) -> Self {
@@ -80,7 +80,7 @@ pub mod unstable {
 
     impl Response {
         /// Creates a new `Response` with the given one time key counts.
-        pub fn new(device_id: OwnedDeviceId) -> Self {
+        pub fn new(device_id: DeviceId) -> Self {
             Self { device_id }
         }
     }

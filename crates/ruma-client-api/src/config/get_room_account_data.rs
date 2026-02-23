@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3useruseridroomsroomidaccount_datatype
 
     use ruma_common::{
-        OwnedRoomId, OwnedUserId,
+        RoomId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -30,11 +30,11 @@ pub mod v3 {
     pub struct Request {
         /// User ID of user for whom to retrieve data.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// Room ID for which to retrieve data.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// Type of data to retrieve.
         #[ruma_api(path)]
@@ -55,11 +55,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID, room ID and event type.
-        pub fn new(
-            user_id: OwnedUserId,
-            room_id: OwnedRoomId,
-            event_type: RoomAccountDataEventType,
-        ) -> Self {
+        pub fn new(user_id: UserId, room_id: RoomId, event_type: RoomAccountDataEventType) -> Self {
             Self { user_id, room_id, event_type }
         }
     }

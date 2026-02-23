@@ -4,7 +4,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use ruma_common::{OwnedMxcUri, OwnedRoomId, serde::StringEnum};
+use ruma_common::{MxcUri, RoomId, serde::StringEnum};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -63,7 +63,7 @@ impl AccountImagePackEventContent {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PackImage {
     /// The MXC URI to the media file.
-    pub url: OwnedMxcUri,
+    pub url: MxcUri,
 
     /// An optional text body for this image.
     /// Useful for the sticker body text or the emote alt text.
@@ -83,7 +83,7 @@ pub struct PackImage {
 
 impl PackImage {
     /// Creates a new `PackImage` with the given MXC URI to the media file.
-    pub fn new(url: OwnedMxcUri) -> Self {
+    pub fn new(url: MxcUri) -> Self {
         Self { url, body: None, info: None, usage: BTreeSet::new() }
     }
 }
@@ -104,7 +104,7 @@ pub struct PackInfo {
     /// Defaults to the room avatar, if the pack is in the room.
     /// Otherwise, the pack does not have an avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar_url: Option<OwnedMxcUri>,
+    pub avatar_url: Option<MxcUri>,
 
     /// The usages for the pack.
     #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
@@ -145,13 +145,13 @@ pub enum PackUsage {
 #[ruma_event(type = "im.ponies.emote_rooms", kind = GlobalAccountData)]
 pub struct ImagePackRoomsEventContent {
     /// A map of enabled image packs in each room.
-    pub rooms: BTreeMap<OwnedRoomId, BTreeMap<String, ImagePackRoomContent>>,
+    pub rooms: BTreeMap<RoomId, BTreeMap<String, ImagePackRoomContent>>,
 }
 
 impl ImagePackRoomsEventContent {
     /// Creates a new `ImagePackRoomsEventContent`
     /// with a map of enabled image packs in each room.
-    pub fn new(rooms: BTreeMap<OwnedRoomId, BTreeMap<String, ImagePackRoomContent>>) -> Self {
+    pub fn new(rooms: BTreeMap<RoomId, BTreeMap<String, ImagePackRoomContent>>) -> Self {
         Self { rooms }
     }
 }

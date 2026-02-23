@@ -11,7 +11,7 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        OwnedRoomId,
+        RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -38,7 +38,7 @@ pub mod v3 {
         pub version: String,
 
         /// A map of room IDs to session IDs to key data to store.
-        pub rooms: BTreeMap<OwnedRoomId, RoomKeyBackup>,
+        pub rooms: BTreeMap<RoomId, RoomKeyBackup>,
     }
 
     /// Response type for the `add_backup_keys` endpoint.
@@ -56,7 +56,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given version and room key backups.
-        pub fn new(version: String, rooms: BTreeMap<OwnedRoomId, RoomKeyBackup>) -> Self {
+        pub fn new(version: String, rooms: BTreeMap<RoomId, RoomKeyBackup>) -> Self {
             Self { version, rooms }
         }
     }

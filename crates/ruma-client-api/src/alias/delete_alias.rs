@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#delete_matrixclientv3directoryroomroomalias
 
     use ruma_common::{
-        OwnedRoomAliasId,
+        RoomAliasId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -28,7 +28,7 @@ pub mod v3 {
     pub struct Request {
         /// The room alias to remove.
         #[ruma_api(path)]
-        pub room_alias: OwnedRoomAliasId,
+        pub room_alias: RoomAliasId,
     }
 
     /// Response type for the `delete_alias` endpoint.
@@ -38,7 +38,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room alias.
-        pub fn new(room_alias: OwnedRoomAliasId) -> Self {
+        pub fn new(room_alias: RoomAliasId) -> Self {
             Self { room_alias }
         }
     }

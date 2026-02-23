@@ -1,6 +1,6 @@
 //! Types for the `m.room.aliases` event.
 
-use ruma_common::{OwnedRoomAliasId, OwnedServerName, room_version_rules::RedactionRules};
+use ruma_common::{RoomAliasId, ServerName, room_version_rules::RedactionRules};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -11,15 +11,15 @@ use crate::{RedactContent, RedactedStateEventContent, StateEventType, StaticEven
 /// Informs the room about what room aliases it has been given.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[ruma_event(type = "m.room.aliases", kind = State, state_key_type = OwnedServerName, custom_redacted)]
+#[ruma_event(type = "m.room.aliases", kind = State, state_key_type = ServerName, custom_redacted)]
 pub struct RoomAliasesEventContent {
     /// A list of room aliases.
-    pub aliases: Vec<OwnedRoomAliasId>,
+    pub aliases: Vec<RoomAliasId>,
 }
 
 impl RoomAliasesEventContent {
     /// Create an `RoomAliasesEventContent` from the given aliases.
-    pub fn new(aliases: Vec<OwnedRoomAliasId>) -> Self {
+    pub fn new(aliases: Vec<RoomAliasId>) -> Self {
         Self { aliases }
     }
 }
@@ -42,14 +42,14 @@ pub struct RedactedRoomAliasesEventContent {
     /// According to the Matrix spec version 1 redaction rules allowed this field to be
     /// kept after redaction, this was changed in version 6.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub aliases: Option<Vec<OwnedRoomAliasId>>,
+    pub aliases: Option<Vec<RoomAliasId>>,
 }
 
 impl RedactedRoomAliasesEventContent {
     /// Create a `RedactedAliasesEventContent` with the given aliases.
     ///
     /// This is only valid for room version 5 and below.
-    pub fn new_v1(aliases: Vec<OwnedRoomAliasId>) -> Self {
+    pub fn new_v1(aliases: Vec<RoomAliasId>) -> Self {
         Self { aliases: Some(aliases) }
     }
 
@@ -62,7 +62,7 @@ impl RedactedRoomAliasesEventContent {
 }
 
 impl RedactedStateEventContent for RedactedRoomAliasesEventContent {
-    type StateKey = OwnedServerName;
+    type StateKey = ServerName;
 
     fn event_type(&self) -> StateEventType {
         StateEventType::RoomAliases

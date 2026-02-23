@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3roomsroomidupgrade
 
     use ruma_common::{
-        OwnedRoomId, OwnedUserId, RoomVersionId,
+        RoomId, RoomVersionId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -29,11 +29,11 @@ pub mod v3 {
         /// A list of user IDs to consider as additional creators, and hence grant an "infinite"
         /// immutable power level, from room version 12 onwards.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub additional_creators: Vec<OwnedUserId>,
+        pub additional_creators: Vec<UserId>,
 
         /// ID of the room to be upgraded.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// New version for the room.
         pub new_version: RoomVersionId,
@@ -43,19 +43,19 @@ pub mod v3 {
     #[response(error = crate::Error)]
     pub struct Response {
         /// ID of the new room.
-        pub replacement_room: OwnedRoomId,
+        pub replacement_room: RoomId,
     }
 
     impl Request {
         /// Creates a new `Request` with the given room ID and new room version.
-        pub fn new(room_id: OwnedRoomId, new_version: RoomVersionId) -> Self {
+        pub fn new(room_id: RoomId, new_version: RoomVersionId) -> Self {
             Self { room_id, new_version, additional_creators: Vec::new() }
         }
     }
 
     impl Response {
         /// Creates a new `Response` with the given room ID.
-        pub fn new(replacement_room: OwnedRoomId) -> Self {
+        pub fn new(replacement_room: RoomId) -> Self {
             Self { replacement_room }
         }
     }

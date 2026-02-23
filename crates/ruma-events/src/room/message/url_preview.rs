@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::room::{EncryptedFile, OwnedMxcUri, UInt};
+use crate::room::{EncryptedFile, MxcUri, UInt};
 
 /// The Source of the PreviewImage.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -12,7 +12,7 @@ pub enum PreviewImageSource {
 
     /// Source of the PreviewImage as a simple MxcUri
     #[serde(rename = "og:image", alias = "og:image:url")]
-    Url(OwnedMxcUri),
+    Url(MxcUri),
 }
 
 /// Metadata and [`PreviewImageSource`] of an [`UrlPreview`] image.
@@ -47,8 +47,8 @@ pub struct PreviewImage {
 }
 
 impl PreviewImage {
-    /// Construct a PreviewImage with the given [`OwnedMxcUri`] as the source.
-    pub fn plain(url: OwnedMxcUri) -> Self {
+    /// Construct a PreviewImage with the given [`MxcUri`] as the source.
+    pub fn plain(url: MxcUri) -> Self {
         Self::with_image(PreviewImageSource::Url(url))
     }
 

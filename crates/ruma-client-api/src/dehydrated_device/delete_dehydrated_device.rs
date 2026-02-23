@@ -8,7 +8,7 @@ pub mod unstable {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3814
 
     use ruma_common::{
-        OwnedDeviceId,
+        DeviceId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -30,7 +30,7 @@ pub mod unstable {
     #[response(error = crate::Error)]
     pub struct Response {
         /// The unique ID of the device that was deleted.
-        pub device_id: OwnedDeviceId,
+        pub device_id: DeviceId,
     }
 
     impl Request {
@@ -42,7 +42,7 @@ pub mod unstable {
 
     impl Response {
         /// Creates a new `Response` with the given device ID.
-        pub fn new(device_id: OwnedDeviceId) -> Self {
+        pub fn new(device_id: DeviceId) -> Self {
             Self { device_id }
         }
     }

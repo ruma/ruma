@@ -6,7 +6,7 @@ use std::borrow::Cow;
 
 use as_variant::as_variant;
 use ruma_common::{
-    EventId, OwnedEventId, UserId,
+    EventId, UserId,
     serde::{JsonObject, StringEnum},
 };
 #[cfg(feature = "html")]
@@ -661,26 +661,26 @@ impl From<RoomMessageEventContent> for MessageType {
 /// To be used with [`RoomMessageEventContent::make_replacement`].
 #[derive(Debug)]
 pub struct ReplacementMetadata {
-    event_id: OwnedEventId,
+    event_id: EventId,
     mentions: Option<Mentions>,
 }
 
 impl ReplacementMetadata {
     /// Creates a new `ReplacementMetadata` with the given event ID and mentions.
-    pub fn new(event_id: OwnedEventId, mentions: Option<Mentions>) -> Self {
+    pub fn new(event_id: EventId, mentions: Option<Mentions>) -> Self {
         Self { event_id, mentions }
     }
 }
 
 impl From<&OriginalRoomMessageEvent> for ReplacementMetadata {
     fn from(value: &OriginalRoomMessageEvent) -> Self {
-        ReplacementMetadata::new(value.event_id.to_owned(), value.content.mentions.clone())
+        ReplacementMetadata::new(value.event_id.clone(), value.content.mentions.clone())
     }
 }
 
 impl From<&OriginalSyncRoomMessageEvent> for ReplacementMetadata {
     fn from(value: &OriginalSyncRoomMessageEvent) -> Self {
-        ReplacementMetadata::new(value.event_id.to_owned(), value.content.mentions.clone())
+        ReplacementMetadata::new(value.event_id.clone(), value.content.mentions.clone())
     }
 }
 

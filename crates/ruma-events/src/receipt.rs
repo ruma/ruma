@@ -9,9 +9,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use ruma_common::{
-    EventId, IdParseError, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedUserId, UserId,
-};
+use ruma_common::{EventId, IdParseError, MilliSecondsSinceUnixEpoch, UserId};
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
 
@@ -24,7 +22,7 @@ use crate::PrivOwnedStr;
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.receipt", kind = EphemeralRoom)]
-pub struct ReceiptEventContent(pub BTreeMap<OwnedEventId, Receipts>);
+pub struct ReceiptEventContent(pub BTreeMap<EventId, Receipts>);
 
 impl ReceiptEventContent {
     /// Get the receipt for the given user ID with the given receipt type, if it exists.
@@ -35,13 +33,13 @@ impl ReceiptEventContent {
     ) -> Option<(&EventId, &Receipt)> {
         self.iter().find_map(|(event_id, receipts)| {
             let receipt = receipts.get(&receipt_type)?.get(user_id)?;
-            Some((event_id.as_ref(), receipt))
+            Some((event_id, receipt))
         })
     }
 }
 
 impl Deref for ReceiptEventContent {
-    type Target = BTreeMap<OwnedEventId, Receipts>;
+    type Target = BTreeMap<EventId, Receipts>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -55,18 +53,18 @@ impl DerefMut for ReceiptEventContent {
 }
 
 impl IntoIterator for ReceiptEventContent {
-    type Item = (OwnedEventId, Receipts);
-    type IntoIter = btree_map::IntoIter<OwnedEventId, Receipts>;
+    type Item = (EventId, Receipts);
+    type IntoIter = btree_map::IntoIter<EventId, Receipts>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
     }
 }
 
-impl FromIterator<(OwnedEventId, Receipts)> for ReceiptEventContent {
+impl FromIterator<(EventId, Receipts)> for ReceiptEventContent {
     fn from_iter<T>(iter: T) -> Self
     where
-        T: IntoIterator<Item = (OwnedEventId, Receipts)>,
+        T: IntoIterator<Item = (EventId, Receipts)>,
     {
         Self(BTreeMap::from_iter(iter))
     }
@@ -116,7 +114,7 @@ pub enum ReceiptType {
 /// A mapping of user ID to receipt.
 ///
 /// The user ID is the entity who sent this receipt.
-pub type UserReceipts = BTreeMap<OwnedUserId, Receipt>;
+pub type UserReceipts = BTreeMap<UserId, Receipt>;
 
 /// An acknowledgement of an event.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -169,7 +167,7 @@ pub enum ReceiptThread {
     /// The receipt applies to a thread.
     ///
     /// Used for events that belong to a thread with the given thread root.
-    Thread(OwnedEventId),
+    Thread(EventId),
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),

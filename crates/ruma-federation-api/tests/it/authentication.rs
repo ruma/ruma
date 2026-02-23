@@ -6,7 +6,6 @@ use ruma_common::{
     api::{OutgoingRequest, auth_scheme::AuthScheme},
     owned_server_name,
     serde::Base64,
-    server_name,
 };
 use ruma_federation_api::{
     authentication::{ServerSignatures, ServerSignaturesInput},
@@ -53,7 +52,7 @@ fn server_signatures_roundtrip() {
 
     // With invalid destination.
     xmatrix
-        .verify_request(&http_request, server_name!("invalid.local"), &public_key_map)
+        .verify_request(&http_request, &owned_server_name!("invalid.local"), &public_key_map)
         .unwrap_err();
 
     // With valid destination.

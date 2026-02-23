@@ -9,7 +9,7 @@ pub mod v3 {
 
     use js_int::{UInt, uint};
     use ruma_common::{
-        OwnedEventId, OwnedRoomId,
+        EventId, RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -33,11 +33,11 @@ pub mod v3 {
     pub struct Request {
         /// The room to get events from.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The event to get context around.
         #[ruma_api(path)]
-        pub event_id: OwnedEventId,
+        pub event_id: EventId,
 
         /// The maximum number of context events to return.
         ///
@@ -92,7 +92,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room id and event id.
-        pub fn new(room_id: OwnedRoomId, event_id: OwnedEventId) -> Self {
+        pub fn new(room_id: RoomId, event_id: EventId) -> Self {
             Self { room_id, event_id, limit: default_limit(), filter: RoomEventFilter::default() }
         }
     }

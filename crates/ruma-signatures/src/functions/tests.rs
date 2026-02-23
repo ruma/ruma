@@ -2,10 +2,9 @@ use std::collections::BTreeMap;
 
 use assert_matches2::assert_matches;
 use ruma_common::{
-    CanonicalJsonValue, ServerSigningKeyId, SigningKeyAlgorithm,
+    CanonicalJsonValue, ServerSigningKeyId, SigningKeyAlgorithm, owned_server_name,
     room_version_rules::{RoomVersionRules, SignaturesRules},
     serde::Base64,
-    server_name,
 };
 use serde_json::json;
 
@@ -28,7 +27,7 @@ fn add_key_to_map(public_key_map: &mut PublicKeyMap, name: &str, pair: &Ed25519K
     let encoded_public_key = Base64::new(pair.public_key().to_vec());
     let version = ServerSigningKeyId::from_parts(
         SigningKeyAlgorithm::Ed25519,
-        pair.version().try_into().unwrap(),
+        &pair.version().try_into().unwrap(),
     );
 
     sender_key_map.insert(version.to_string(), encoded_public_key);
@@ -39,7 +38,7 @@ fn add_invalid_key_to_map(public_key_map: &mut PublicKeyMap, name: &str, pair: &
     let encoded_public_key = Base64::new(pair.public_key().to_vec());
     let version = ServerSigningKeyId::from_parts(
         SigningKeyAlgorithm::from("an-unknown-algorithm"),
-        pair.version().try_into().unwrap(),
+        &pair.version().try_into().unwrap(),
     );
 
     sender_key_map.insert(version.to_string(), encoded_public_key);
@@ -307,7 +306,7 @@ fn verify_event_fails_if_public_key_is_invalid() {
     let encoded_public_key = Base64::new(newly_generated_key_pair.public_key().to_vec());
     let version = ServerSigningKeyId::from_parts(
         SigningKeyAlgorithm::Ed25519,
-        key_pair_sender.version().try_into().unwrap(),
+        &key_pair_sender.version().try_into().unwrap(),
     );
     sender_key_map.insert(version.to_string(), encoded_public_key);
     public_key_map.insert("domain-sender".to_owned(), sender_key_map);
@@ -507,13 +506,13 @@ fn servers_to_check_signatures_message() {
     // Check for room v1.
     let servers = servers_to_check_signatures(&object, &SignaturesRules::V1).unwrap();
     assert_eq!(servers.len(), 2);
-    assert!(servers.contains(server_name!("domain-sender")));
-    assert!(servers.contains(server_name!("domain-event")));
+    assert!(servers.contains(&owned_server_name!("domain-sender")));
+    assert!(servers.contains(&owned_server_name!("domain-event")));
 
     // Check for room v3.
     let servers = servers_to_check_signatures(&object, &SignaturesRules::V3).unwrap();
     assert_eq!(servers.len(), 1);
-    assert!(servers.contains(server_name!("domain-sender")));
+    assert!(servers.contains(&owned_server_name!("domain-sender")));
 }
 
 #[test]
@@ -551,7 +550,7 @@ fn servers_to_check_signatures_invite_via_third_party() {
     // Check for room v1.
     let servers = servers_to_check_signatures(&object, &SignaturesRules::V1).unwrap();
     assert_eq!(servers.len(), 1);
-    assert!(servers.contains(server_name!("domain-event")));
+    assert!(servers.contains(&owned_server_name!("domain-event")));
 
     // Check for room v3.
     let servers = servers_to_check_signatures(&object, &SignaturesRules::V3).unwrap();
@@ -593,19 +592,19 @@ fn servers_to_check_signatures_restricted() {
     // Check for room v1.
     let servers = servers_to_check_signatures(&object, &SignaturesRules::V1).unwrap();
     assert_eq!(servers.len(), 2);
-    assert!(servers.contains(server_name!("domain-sender")));
-    assert!(servers.contains(server_name!("domain-event")));
+    assert!(servers.contains(&owned_server_name!("domain-sender")));
+    assert!(servers.contains(&owned_server_name!("domain-event")));
 
     // Check for room v3.
     let servers = servers_to_check_signatures(&object, &SignaturesRules::V3).unwrap();
     assert_eq!(servers.len(), 1);
-    assert!(servers.contains(server_name!("domain-sender")));
+    assert!(servers.contains(&owned_server_name!("domain-sender")));
 
     // Check for room v8.
     let servers = servers_to_check_signatures(&object, &SignaturesRules::V8).unwrap();
     assert_eq!(servers.len(), 2);
-    assert!(servers.contains(server_name!("domain-sender")));
-    assert!(servers.contains(server_name!("domain-authorize-user")));
+    assert!(servers.contains(&owned_server_name!("domain-sender")));
+    assert!(servers.contains(&owned_server_name!("domain-authorize-user")));
 }
 
 #[test]

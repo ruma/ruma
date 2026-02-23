@@ -1,5 +1,5 @@
 use ruma_common::{
-    OwnedEventId,
+    EventId,
     serde::{JsonObject, from_raw_json_value},
 };
 use serde::{Deserialize, Deserializer, Serialize, ser::SerializeStruct};
@@ -45,7 +45,7 @@ struct RelationDeHelper {
 /// A thread relation without the reply fallback, with unstable names.
 #[derive(Clone, Deserialize)]
 struct ThreadUnstableDeHelper {
-    event_id: OwnedEventId,
+    event_id: EventId,
 
     #[serde(rename = "io.element.show_reply", default)]
     is_falling_back: bool,

@@ -10,7 +10,7 @@ pub mod v3 {
     use std::time::Duration;
 
     use ruma_common::{
-        OwnedRoomId,
+        RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -39,7 +39,7 @@ pub mod v3 {
 
         /// The room ID for which events should be returned.
         #[ruma_api(query)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The maximum time to wait for an event.
         #[ruma_api(query)]
@@ -53,7 +53,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a `Request` for the given room.
-        pub fn new(room_id: OwnedRoomId) -> Self {
+        pub fn new(room_id: RoomId) -> Self {
             Self { from: None, room_id, timeout: None }
         }
     }

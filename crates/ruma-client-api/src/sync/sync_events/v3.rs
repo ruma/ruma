@@ -7,7 +7,7 @@ use std::{collections::BTreeMap, time::Duration};
 use as_variant::as_variant;
 use js_int::UInt;
 use ruma_common::{
-    OneTimeKeyAlgorithm, OwnedEventId, OwnedRoomId, OwnedUserId,
+    EventId, OneTimeKeyAlgorithm, RoomId, UserId,
     api::{auth_scheme::AccessToken, request, response},
     metadata,
     presence::PresenceState,
@@ -186,19 +186,19 @@ impl From<String> for Filter {
 pub struct Rooms {
     /// The rooms that the user has left or been banned from.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub leave: BTreeMap<OwnedRoomId, LeftRoom>,
+    pub leave: BTreeMap<RoomId, LeftRoom>,
 
     /// The rooms that the user has joined.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub join: BTreeMap<OwnedRoomId, JoinedRoom>,
+    pub join: BTreeMap<RoomId, JoinedRoom>,
 
     /// The rooms that the user has been invited to.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub invite: BTreeMap<OwnedRoomId, InvitedRoom>,
+    pub invite: BTreeMap<RoomId, InvitedRoom>,
 
     /// The rooms that the user has knocked on.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub knock: BTreeMap<OwnedRoomId, KnockedRoom>,
+    pub knock: BTreeMap<RoomId, KnockedRoom>,
 }
 
 impl Rooms {
@@ -271,7 +271,7 @@ pub struct JoinedRoom {
     /// [unread notifications]: https://spec.matrix.org/latest/client-server-api/#receiving-notifications
     /// [`RoomEventFilter`]: crate::filter::RoomEventFilter
     #[serde(skip_serializing_if = "BTreeMap::is_empty")]
-    pub unread_thread_notifications: BTreeMap<OwnedEventId, UnreadNotificationsCount>,
+    pub unread_thread_notifications: BTreeMap<EventId, UnreadNotificationsCount>,
 
     /// The timeline of messages and state changes in the room.
     #[serde(skip_serializing_if = "Timeline::is_empty")]
@@ -556,7 +556,7 @@ pub struct RoomSummary {
     ///
     /// Required if room name or canonical aliases are not set or empty.
     #[serde(rename = "m.heroes", default, skip_serializing_if = "Vec::is_empty")]
-    pub heroes: Vec<OwnedUserId>,
+    pub heroes: Vec<UserId>,
 
     /// Number of users whose membership status is `join`.
     /// Required if field has changed since last sync; otherwise, it may be

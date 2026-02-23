@@ -2,7 +2,7 @@
 //!
 //! [`m.key.verification.request`]: https://spec.matrix.org/latest/client-server-api/#mkeyverificationrequest
 
-use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedDeviceId, OwnedTransactionId};
+use ruma_common::{DeviceId, MilliSecondsSinceUnixEpoch, TransactionId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -14,12 +14,12 @@ use super::VerificationMethod;
 #[ruma_event(type = "m.key.verification.request", kind = ToDevice)]
 pub struct ToDeviceKeyVerificationRequestEventContent {
     /// The device ID which is initiating the request.
-    pub from_device: OwnedDeviceId,
+    pub from_device: DeviceId,
 
     /// An opaque identifier for the verification request.
     ///
     /// Must be unique with respect to the devices involved.
-    pub transaction_id: OwnedTransactionId,
+    pub transaction_id: TransactionId,
 
     /// The verification methods supported by the sender.
     pub methods: Vec<VerificationMethod>,
@@ -35,8 +35,8 @@ impl ToDeviceKeyVerificationRequestEventContent {
     /// Creates a new `ToDeviceKeyVerificationRequestEventContent` with the given device ID,
     /// transaction ID, methods and timestamp.
     pub fn new(
-        from_device: OwnedDeviceId,
-        transaction_id: OwnedTransactionId,
+        from_device: DeviceId,
+        transaction_id: TransactionId,
         methods: Vec<VerificationMethod>,
         timestamp: MilliSecondsSinceUnixEpoch,
     ) -> Self {

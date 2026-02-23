@@ -2,7 +2,7 @@
 //!
 //! [`m.room.pinned_events`]: https://spec.matrix.org/latest/client-server-api/#mroompinned_events
 
-use ruma_common::OwnedEventId;
+use ruma_common::EventId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -16,12 +16,12 @@ use crate::EmptyStateKey;
 #[ruma_event(type = "m.room.pinned_events", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomPinnedEventsEventContent {
     /// An ordered list of event IDs to pin.
-    pub pinned: Vec<OwnedEventId>,
+    pub pinned: Vec<EventId>,
 }
 
 impl RoomPinnedEventsEventContent {
     /// Creates a new `RoomPinnedEventsEventContent` with the given events.
-    pub fn new(pinned: Vec<OwnedEventId>) -> Self {
+    pub fn new(pinned: Vec<EventId>) -> Self {
         Self { pinned }
     }
 }

@@ -10,7 +10,7 @@ pub mod v2 {
     use std::time::Duration;
 
     use ruma_common::{
-        OwnedServerName,
+        ServerName,
         api::{auth_scheme::NoAuthentication, request, response},
         authentication::TokenType,
         metadata,
@@ -40,7 +40,7 @@ pub mod v2 {
 
         /// The homeserver domain the consumer should use when attempting to verify the user's
         /// identity.
-        pub matrix_server_name: OwnedServerName,
+        pub matrix_server_name: ServerName,
 
         /// The number of seconds before this token expires and a new one must be generated.
         #[serde(with = "ruma_common::serde::duration::secs")]
@@ -60,7 +60,7 @@ pub mod v2 {
         pub fn new(
             access_token: String,
             token_type: TokenType,
-            matrix_server_name: OwnedServerName,
+            matrix_server_name: ServerName,
             expires_in: Duration,
         ) -> Self {
             Self { access_token, token_type, matrix_server_name, expires_in }

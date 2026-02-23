@@ -5,7 +5,7 @@
 use std::{borrow::Cow, collections::BTreeMap};
 
 use js_int::UInt;
-use ruma_common::{OwnedDeviceId, OwnedEventId, serde::JsonObject};
+use ruma_common::{DeviceId, EventId, serde::JsonObject};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -183,12 +183,12 @@ impl From<RelationWithoutReplacement> for Relation {
 #[serde(tag = "rel_type", rename = "m.replace")]
 pub struct Replacement {
     /// The ID of the event being replaced.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 }
 
 impl Replacement {
     /// Creates a new `Replacement` with the given event ID.
-    pub fn new(event_id: OwnedEventId) -> Self {
+    pub fn new(event_id: EventId) -> Self {
         Self { event_id }
     }
 }
@@ -250,7 +250,7 @@ pub struct MegolmV1AesSha2Content {
     /// The ID of the sending device.
     #[deprecated = "Since Matrix 1.3, this field should still be sent but should not be used when received"]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub device_id: Option<OwnedDeviceId>,
+    pub device_id: Option<DeviceId>,
 
     /// The ID of the session used to encrypt the message.
     pub session_id: String,
@@ -270,7 +270,7 @@ pub struct MegolmV1AesSha2ContentInit {
     pub sender_key: String,
 
     /// The ID of the sending device.
-    pub device_id: OwnedDeviceId,
+    pub device_id: DeviceId,
 
     /// The ID of the session used to encrypt the message.
     pub session_id: String,
@@ -290,7 +290,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use js_int::uint;
     use ruma_common::{
-        canonical_json::assert_to_canonical_json_eq, device_id, owned_event_id, serde::Raw,
+        canonical_json::assert_to_canonical_json_eq, owned_device_id, owned_event_id, serde::Raw,
     };
     use serde_json::{from_value as from_json_value, json};
 
@@ -354,7 +354,7 @@ mod tests {
         assert_matches!(content.scheme, EncryptedEventScheme::MegolmV1AesSha2(scheme));
         assert_eq!(scheme.ciphertext, "ciphertext");
         assert_eq!(scheme.sender_key.as_deref(), Some("sender_key"));
-        assert_eq!(scheme.device_id.as_deref(), Some(device_id!("device_id")));
+        assert_eq!(scheme.device_id, Some(owned_device_id!("device_id")));
         assert_eq!(scheme.session_id, "session_id");
 
         assert_matches!(content.relates_to, Some(Relation::Reply { in_reply_to }));

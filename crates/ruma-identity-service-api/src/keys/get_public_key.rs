@@ -8,7 +8,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/latest/identity-service-api/#get_matrixidentityv2pubkeykeyid
 
     use ruma_common::{
-        OwnedServerSigningKeyId,
+        ServerSigningKeyId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         third_party_invite::IdentityServerBase64PublicKey,
@@ -28,7 +28,7 @@ pub mod v2 {
     pub struct Request {
         /// The ID of the key.
         #[ruma_api(path)]
-        pub key_id: OwnedServerSigningKeyId,
+        pub key_id: ServerSigningKeyId,
     }
 
     /// Response type for the `get_public_key` endpoint.
@@ -40,7 +40,7 @@ pub mod v2 {
 
     impl Request {
         /// Create a `Request` with the given key_id.
-        pub fn new(key_id: OwnedServerSigningKeyId) -> Self {
+        pub fn new(key_id: ServerSigningKeyId) -> Self {
             Self { key_id }
         }
     }

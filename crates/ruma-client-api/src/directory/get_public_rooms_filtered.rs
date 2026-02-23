@@ -9,7 +9,7 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        OwnedServerName,
+        ServerName,
         api::{auth_scheme::AccessToken, request, response},
         directory::{Filter, PublicRoomsChunk, RoomNetwork},
         metadata,
@@ -34,7 +34,7 @@ pub mod v3 {
         /// `None` means the server this request is sent to.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub server: Option<OwnedServerName>,
+        pub server: Option<ServerName>,
 
         /// Limit for the number of results to return.
         #[serde(skip_serializing_if = "Option::is_none")]

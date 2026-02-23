@@ -8,7 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1openiduserinfo
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
     };
@@ -32,7 +32,7 @@ pub mod v1 {
     #[response]
     pub struct Response {
         /// The Matrix User ID who generated the token.
-        pub sub: OwnedUserId,
+        pub sub: UserId,
     }
 
     impl Request {
@@ -44,7 +44,7 @@ pub mod v1 {
 
     impl Response {
         /// Creates a new `Response` with the given user id.
-        pub fn new(sub: OwnedUserId) -> Self {
+        pub fn new(sub: UserId) -> Self {
             Self { sub }
         }
     }

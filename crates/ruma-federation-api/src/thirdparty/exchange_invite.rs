@@ -12,7 +12,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1exchange_third_party_inviteroomid
 
     use ruma_common::{
-        OwnedRoomId, OwnedUserId,
+        RoomId, UserId,
         api::{request, response},
         metadata,
         serde::Raw,
@@ -39,7 +39,7 @@ pub mod v1 {
     pub struct Request {
         /// The room ID to exchange the third-party invite in.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The event type.
         ///
@@ -48,10 +48,10 @@ pub mod v1 {
         pub kind: StateEventType,
 
         /// The user ID of the user who sent the original invite event.
-        pub sender: OwnedUserId,
+        pub sender: UserId,
 
         /// The user ID of the invited user.
-        pub state_key: OwnedUserId,
+        pub state_key: UserId,
 
         /// The content of the invite event.
         ///
@@ -67,9 +67,9 @@ pub mod v1 {
     impl Request {
         /// Creates a new `Request` for a third-party invite exchange.
         pub fn new(
-            room_id: OwnedRoomId,
-            sender: OwnedUserId,
-            state_key: OwnedUserId,
+            room_id: RoomId,
+            sender: UserId,
+            state_key: UserId,
             content: Raw<RoomMemberEventContent>,
         ) -> Self {
             Self { room_id, kind: StateEventType::RoomMember, sender, state_key, content }
@@ -79,9 +79,9 @@ pub mod v1 {
         ///
         /// Returns an error if the serialization of the event content fails.
         pub fn with_third_party_invite(
-            room_id: OwnedRoomId,
-            sender: OwnedUserId,
-            state_key: OwnedUserId,
+            room_id: RoomId,
+            sender: UserId,
+            state_key: UserId,
             third_party_invite: ThirdPartyInvite,
         ) -> Result<Self, serde_json::Error> {
             let mut content = RoomMemberEventContent::new(MembershipState::Invite);

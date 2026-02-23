@@ -4,7 +4,7 @@ use super::{
     Action, ConditionalPushRule, FlattenedJson, PatternedPushRule, PushConditionRoomCtx, Ruleset,
     SimplePushRule, condition,
 };
-use crate::{OwnedRoomId, OwnedUserId};
+use crate::{RoomId, UserId};
 
 /// The kinds of push rules that are available.
 #[derive(Clone, Debug)]
@@ -21,10 +21,10 @@ pub enum AnyPushRule {
     PostContent(ConditionalPushRule),
 
     /// Room-specific rules.
-    Room(SimplePushRule<OwnedRoomId>),
+    Room(SimplePushRule<RoomId>),
 
     /// Sender-specific rules.
-    Sender(SimplePushRule<OwnedUserId>),
+    Sender(SimplePushRule<UserId>),
 
     /// Lowest priority rules.
     Underride(ConditionalPushRule),
@@ -104,8 +104,8 @@ pub struct RulesetIntoIter {
     #[cfg(feature = "unstable-msc4306")]
     postcontent: IndexSetIntoIter<ConditionalPushRule>,
     override_: IndexSetIntoIter<ConditionalPushRule>,
-    room: IndexSetIntoIter<SimplePushRule<OwnedRoomId>>,
-    sender: IndexSetIntoIter<SimplePushRule<OwnedUserId>>,
+    room: IndexSetIntoIter<SimplePushRule<RoomId>>,
+    sender: IndexSetIntoIter<SimplePushRule<UserId>>,
     underride: IndexSetIntoIter<ConditionalPushRule>,
 }
 
@@ -160,10 +160,10 @@ pub enum AnyPushRuleRef<'a> {
     PostContent(&'a ConditionalPushRule),
 
     /// Room-specific rules.
-    Room(&'a SimplePushRule<OwnedRoomId>),
+    Room(&'a SimplePushRule<RoomId>),
 
     /// Sender-specific rules.
-    Sender(&'a SimplePushRule<OwnedUserId>),
+    Sender(&'a SimplePushRule<UserId>),
 
     /// Lowest priority rules.
     Underride(&'a ConditionalPushRule),
@@ -298,8 +298,8 @@ pub struct RulesetIter<'a> {
     #[cfg(feature = "unstable-msc4306")]
     postcontent: IndexSetIter<'a, ConditionalPushRule>,
     override_: IndexSetIter<'a, ConditionalPushRule>,
-    room: IndexSetIter<'a, SimplePushRule<OwnedRoomId>>,
-    sender: IndexSetIter<'a, SimplePushRule<OwnedUserId>>,
+    room: IndexSetIter<'a, SimplePushRule<RoomId>>,
+    sender: IndexSetIter<'a, SimplePushRule<UserId>>,
     underride: IndexSetIter<'a, ConditionalPushRule>,
 }
 

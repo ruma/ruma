@@ -10,7 +10,7 @@ pub mod v2 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -51,7 +51,7 @@ pub mod v2 {
         ///
         /// Addresses which do not have associations will not be included, which can make this
         /// property be an empty object.
-        pub mappings: BTreeMap<String, OwnedUserId>,
+        pub mappings: BTreeMap<String, UserId>,
     }
 
     impl Request {
@@ -68,7 +68,7 @@ pub mod v2 {
     impl Response {
         /// Create a `Response` with the BTreeMap which map addresses from the request which were
         /// found to their corresponding User IDs.
-        pub fn new(mappings: BTreeMap<String, OwnedUserId>) -> Self {
+        pub fn new(mappings: BTreeMap<String, UserId>) -> Self {
             Self { mappings }
         }
     }

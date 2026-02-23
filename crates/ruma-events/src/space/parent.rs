@@ -2,7 +2,7 @@
 //!
 //! [`m.space.parent`]: https://spec.matrix.org/latest/client-server-api/#mspaceparent
 
-use ruma_common::{OwnedRoomId, OwnedServerName};
+use ruma_common::{RoomId, ServerName};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -15,10 +15,10 @@ use serde::{Deserialize, Serialize};
 /// parent.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[ruma_event(type = "m.space.parent", kind = State, state_key_type = OwnedRoomId)]
+#[ruma_event(type = "m.space.parent", kind = State, state_key_type = RoomId)]
 pub struct SpaceParentEventContent {
     /// List of candidate servers that can be used to join the room.
-    pub via: Vec<OwnedServerName>,
+    pub via: Vec<ServerName>,
 
     /// Determines whether this is the main parent for the space.
     ///
@@ -35,7 +35,7 @@ pub struct SpaceParentEventContent {
 
 impl SpaceParentEventContent {
     /// Creates a new `SpaceParentEventContent` with the given routing servers.
-    pub fn new(via: Vec<OwnedServerName>) -> Self {
+    pub fn new(via: Vec<ServerName>) -> Self {
         Self { via, canonical: false }
     }
 }

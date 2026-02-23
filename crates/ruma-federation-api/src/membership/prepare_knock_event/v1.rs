@@ -3,7 +3,7 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1make_knockroomiduserid
 
 use ruma_common::{
-    OwnedRoomId, OwnedUserId, RoomVersionId,
+    RoomId, RoomVersionId, UserId,
     api::{request, response},
     metadata,
 };
@@ -23,11 +23,11 @@ metadata! {
 pub struct Request {
     /// The room ID that should receive the knock.
     #[ruma_api(path)]
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The user ID the knock event will be for.
     #[ruma_api(path)]
-    pub user_id: OwnedUserId,
+    pub user_id: UserId,
 
     /// The room versions the sending has support for.
     ///
@@ -50,7 +50,7 @@ pub struct Response {
 
 impl Request {
     /// Creates a `Request` with the given room ID and user ID.
-    pub fn new(room_id: OwnedRoomId, user_id: OwnedUserId) -> Self {
+    pub fn new(room_id: RoomId, user_id: UserId) -> Self {
         Self { room_id, user_id, ver: vec![RoomVersionId::V1] }
     }
 }

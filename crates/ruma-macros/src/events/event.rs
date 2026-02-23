@@ -289,7 +289,7 @@ impl Event {
                 /// Convert this sync event into a full event, one with a `room_id` field.
                 pub fn into_full_event(
                     self,
-                    room_id: #ruma_common::OwnedRoomId,
+                    room_id: #ruma_common::RoomId,
                 ) -> #full_ident #ty_gen {
                     let Self { #( #field_idents, )* } = self;
                     #full_ident {

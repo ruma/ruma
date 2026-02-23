@@ -5,8 +5,7 @@
 use std::{cmp::Ordering, ops::Deref};
 
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedServerName, OwnedSpaceChildOrder, OwnedUserId,
-    RoomId, SpaceChildOrder,
+    MilliSecondsSinceUnixEpoch, RoomId, ServerName, SpaceChildOrder, UserId,
     serde::{JsonCastable, JsonObject},
 };
 use ruma_macros::{Event, EventContent};
@@ -23,10 +22,10 @@ use crate::{StateEvent, SyncStateEvent};
 /// which gives a list of candidate servers that can be used to join the room.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[ruma_event(type = "m.space.child", kind = State, state_key_type = OwnedRoomId)]
+#[ruma_event(type = "m.space.child", kind = State, state_key_type = RoomId)]
 pub struct SpaceChildEventContent {
     /// List of candidate servers that can be used to join the room.
-    pub via: Vec<OwnedServerName>,
+    pub via: Vec<ServerName>,
 
     /// Provide a default ordering of siblings in the room list.
     ///
@@ -44,7 +43,7 @@ pub struct SpaceChildEventContent {
         deserialize_with = "ruma_common::serde::default_on_error",
         skip_serializing_if = "Option::is_none"
     )]
-    pub order: Option<OwnedSpaceChildOrder>,
+    pub order: Option<SpaceChildOrder>,
 
     /// Space admins can mark particular children of a space as "suggested".
     ///
@@ -60,7 +59,7 @@ pub struct SpaceChildEventContent {
 
 impl SpaceChildEventContent {
     /// Creates a new `SpaceChildEventContent` with the given routing servers.
-    pub fn new(via: Vec<OwnedServerName>) -> Self {
+    pub fn new(via: Vec<ServerName>) -> Self {
         Self { via, order: None, suggested: false }
     }
 }
@@ -74,10 +73,10 @@ pub struct HierarchySpaceChildEvent {
     pub content: SpaceChildEventContent,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// The room ID of the child.
-    pub state_key: OwnedRoomId,
+    pub state_key: RoomId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -190,7 +189,7 @@ where
 impl SpaceChildOrd for OriginalSpaceChildEvent {
     fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
         SpaceChildOrdFields::new(
-            self.content.order.as_deref(),
+            self.content.order.as_ref(),
             self.origin_server_ts,
             &self.state_key,
         )
@@ -215,7 +214,7 @@ impl SpaceChildOrd for SpaceChildEvent {
 impl SpaceChildOrd for OriginalSyncSpaceChildEvent {
     fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
         SpaceChildOrdFields::new(
-            self.content.order.as_deref(),
+            self.content.order.as_ref(),
             self.origin_server_ts,
             &self.state_key,
         )
@@ -240,7 +239,7 @@ impl SpaceChildOrd for SyncSpaceChildEvent {
 impl SpaceChildOrd for HierarchySpaceChildEvent {
     fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
         SpaceChildOrdFields::new(
-            self.content.order.as_deref(),
+            self.content.order.as_ref(),
             self.origin_server_ts,
             &self.state_key,
         )
@@ -291,7 +290,7 @@ mod tests {
 
     use js_int::{UInt, uint};
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch, OwnedRoomId, SpaceChildOrder,
+        MilliSecondsSinceUnixEpoch, RoomId, SpaceChildOrder,
         canonical_json::assert_to_canonical_json_eq, owned_room_id, owned_server_name,
         owned_user_id, server_name,
     };
@@ -406,7 +405,7 @@ mod tests {
 
     /// Construct a [`HierarchySpaceChildEvent`] with the given state key, order and timestamp.
     fn hierarchy_space_child_event(
-        state_key: OwnedRoomId,
+        state_key: RoomId,
         order: Option<&str>,
         origin_server_ts: UInt,
     ) -> HierarchySpaceChildEvent {

@@ -12,7 +12,7 @@ fn add_key_to_map(public_key_map: &mut PublicKeyMap, name: &str, pair: &Ed25519K
     let encoded_public_key = Base64::new(pair.public_key().to_vec());
     let version = ServerSigningKeyId::from_parts(
         SigningKeyAlgorithm::Ed25519,
-        pair.version().try_into().unwrap(),
+        &pair.version().try_into().unwrap(),
     );
 
     sender_key_map.insert(version.to_string(), encoded_public_key);
