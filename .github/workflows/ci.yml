@@ -67,6 +67,9 @@ jobs:
           - name: Check Owned IDs with Arc
             cmd: msrv-owned-id-arc
 
+          - name: Check Owned IDs with ArcStr
+            cmd: msrv-owned-id-arcstr
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
