@@ -274,16 +274,6 @@ impl IdDst {
                     }
                 }
 
-                pub(super) fn from_arc_str_unchecked(s: #arc_str) -> Self {
-                    Self {
-                        #box_str_cfg
-                        inner: s.as_ref().into(),
-                        #arc_str_cfg
-                        inner: s,
-                        #phantom_ctor
-                    }
-                }
-
                 pub(super) fn from_string_unchecked(s: #string) -> Self {
                     Self {
                         #box_str_cfg
