@@ -43,6 +43,8 @@ pub enum CiCmd {
     MsrvOwnedIdSmallvec,
     /// Check ruma-identifiers with `ruma_identifiers_storage="CompactString"`
     MsrvOwnedIdCompactstring,
+    /// Check ruma-identifiers with `ruma_identifiers_storage="ArcIntern"`
+    MsrvOwnedIdArcintern,
     /// Run all the tasks that use the stable version
     Stable,
     /// Check all crates with all features (stable)
@@ -126,6 +128,7 @@ impl CiTask {
             Some(CiCmd::MsrvOwnedIdArcstr) => self.msrv_owned_id_cfg("ArcStr")?,
             Some(CiCmd::MsrvOwnedIdSmallvec) => self.msrv_owned_id_cfg("SmallVec")?,
             Some(CiCmd::MsrvOwnedIdCompactstring) => self.msrv_owned_id_cfg("CompactString")?,
+            Some(CiCmd::MsrvOwnedIdArcintern) => self.msrv_owned_id_cfg("ArcIntern")?,
             Some(CiCmd::Stable) => self.stable()?,
             Some(CiCmd::StableAll) => self.stable_all()?,
             Some(CiCmd::StableCommon) => self.stable_common()?,

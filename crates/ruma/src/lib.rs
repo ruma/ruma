@@ -111,6 +111,8 @@
 //!     crate. The size of the array is variable depending on the identifier type.
 //!   * `CompactString` -- Use a `CompactString` from the [`compact_str`](https://crates.io/crates/compact_str)
 //!     crate.
+//!   * `ArcIntern` -- Use an `ArcIntern<str>` from the [`arc-interner`](https://crates.io/crates/arc-interner)
+//!     crate.
 //!
 //!   This setting can also be configured by setting the `RUMA_IDENTIFIERS_STORAGE` environment
 //!   variable.
