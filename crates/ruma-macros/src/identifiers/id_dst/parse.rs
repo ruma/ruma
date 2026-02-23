@@ -56,9 +56,10 @@ impl IdDst {
         let (impl_generics, type_generics, _where_clause) = generics.split_for_impl();
         let impl_generics = quote! { #impl_generics };
 
+        let ruma_common = RumaCommon::new();
         let ident = input.ident;
         let owned_ident = format_ident!("Owned{ident}");
-        let types = Types::new(&ident, &owned_ident, type_generics);
+        let types = Types::new(&ident, &owned_ident, type_generics, &ruma_common);
 
         Ok(Self {
             ident,
@@ -69,7 +70,7 @@ impl IdDst {
             str_field_index,
             types,
             storage_cfg: StorageCfg::new(),
-            ruma_common: RumaCommon::new(),
+            ruma_common,
         })
     }
 }

@@ -61,6 +61,9 @@ pub(crate) enum RumaCommonReexport {
 
     /// The bytes crate.
     Bytes,
+
+    /// The arcstr crate.
+    Arcstr,
 }
 
 impl ToTokens for RumaCommonReexport {
@@ -72,6 +75,7 @@ impl ToTokens for RumaCommonReexport {
             Self::SerdeJson => "serde_json",
             Self::Http => "http",
             Self::Bytes => "bytes",
+            Self::Arcstr => "arcstr",
         };
 
         tokens.append(Ident::new(crate_name, Span::call_site()));

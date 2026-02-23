@@ -155,11 +155,13 @@ impl IdDst {
         let arc_str = &self.types.arc_str;
         let string = &self.types.string;
         let bytes = &self.types.bytes;
+        let arcstr = &self.types.arcstr;
         let id = &self.types.id;
         let owned_id = &self.types.owned_id;
 
         let box_str_cfg = &self.storage_cfg.box_str;
         let arc_str_cfg = &self.storage_cfg.arc_str;
+        let arcstr_cfg = &self.storage_cfg.arcstr;
 
         let (phantom_decl, phantom_ctor) = if self.generics.params.is_empty() {
             None
@@ -204,9 +206,10 @@ impl IdDst {
                 }
             }
         };
-        let from_into_inner_impls = [(box_str_cfg, box_str), (arc_str_cfg, arc_str)]
-            .into_iter()
-            .map(|(cfg, inner)| from_into_inner_cfg_impl(cfg, inner));
+        let from_into_inner_impls =
+            [(box_str_cfg, box_str), (arc_str_cfg, arc_str), (arcstr_cfg, arcstr)]
+                .into_iter()
+                .map(|(cfg, inner)| from_into_inner_cfg_impl(cfg, inner));
 
         quote! {
             #[doc = #doc_header]
@@ -217,6 +220,7 @@ impl IdDst {
             /// compile time by using one of the following supported values:
             ///
             /// * `Arc` -- Use an `Arc<str>`.
+            /// * `ArcStr` -- Use an `ArcStr` from the [`arcstr`](https://crates.io/crates/arcstr) crate.
             ///
             /// The selected value can be set by using the `ruma_identifiers_storage` compile-time `cfg` setting.
             /// This setting can be configured using the `RUSTFLAGS` environment variable at build time, like this:
@@ -249,6 +253,8 @@ impl IdDst {
                 inner: #box_str,
                 #arc_str_cfg
                 inner: #arc_str,
+                #arcstr_cfg
+                inner: #arcstr,
                 #phantom_decl
             }
 
@@ -260,6 +266,8 @@ impl IdDst {
                         inner: s.into(),
                         #arc_str_cfg
                         inner: s.into(),
+                        #arcstr_cfg
+                        inner: s.into(),
                         #phantom_ctor
                     }
                 }
@@ -269,6 +277,8 @@ impl IdDst {
                         #box_str_cfg
                         inner: s,
                         #arc_str_cfg
+                        inner: s.into(),
+                        #arcstr_cfg
                         inner: s.into(),
                         #phantom_ctor
                     }
@@ -280,6 +290,8 @@ impl IdDst {
                         inner: s.into(),
                         #arc_str_cfg
                         inner: s.into(),
+                        #arcstr_cfg
+                        inner: s.into(),
                         #phantom_ctor
                     }
                 }
@@ -290,6 +302,8 @@ impl IdDst {
                     { &self.inner }
                     #arc_str_cfg
                     { &self.inner }
+                    #arcstr_cfg
+                    { &self.inner }
                 }
 
                 /// Access the inner bytes without going through the borrowed type.
@@ -297,6 +311,8 @@ impl IdDst {
                     #box_str_cfg
                     { self.inner.as_bytes() }
                     #arc_str_cfg
+                    { self.inner.as_bytes() }
+                    #arcstr_cfg
                     { self.inner.as_bytes() }
                 }
 
@@ -405,7 +421,9 @@ impl IdDst {
                     #box_str_cfg
                     { id.inner }
                     #arc_str_cfg
-                    { id.inner.as_ref().into() }
+                    { id.as_inner_str().into() }
+                    #arcstr_cfg
+                    { id.as_inner_str().into() }
                 }
             }
 
@@ -415,7 +433,9 @@ impl IdDst {
                     #box_str_cfg
                     { id.inner.into() }
                     #arc_str_cfg
-                    { id.inner.as_ref().into() }
+                    { id.as_inner_str().into() }
+                    #arcstr_cfg
+                    { id.as_inner_str().into() }
                 }
             }
         }
@@ -726,6 +746,9 @@ struct Types {
     /// `[u8]`.
     bytes: syn::Type,
 
+    /// `ArcStr`.
+    arcstr: syn::Type,
+
     /// `{id}`, the identifier type with generics, if any.
     id: syn::Type,
 
@@ -738,7 +761,10 @@ impl Types {
         ident: &syn::Ident,
         owned_ident: &syn::Ident,
         type_generics: syn::TypeGenerics<'_>,
+        ruma_common: &RumaCommon,
     ) -> Self {
+        let arcstr_crate = ruma_common.reexported(RumaCommonReexport::Arcstr);
+
         let str = parse_quote! { ::std::primitive::str };
         let cow = parse_quote! { ::std::borrow::Cow };
 
@@ -750,6 +776,7 @@ impl Types {
             string: parse_quote! { ::std::string::String },
             cow_str: parse_quote! { #cow<'a, #str> },
             bytes: parse_quote! { [::std::primitive::u8] },
+            arcstr: parse_quote! { #arcstr_crate::ArcStr },
             str,
             cow,
             id,
@@ -765,15 +792,23 @@ struct StorageCfg {
 
     /// Attribute for the `Arc<str>` internal representation.
     arc_str: syn::Attribute,
+
+    /// Attribute for the `ArcStr` internal representation.
+    arcstr: syn::Attribute,
 }
 
 impl StorageCfg {
     fn new() -> Self {
         let key = quote! { ruma_identifiers_storage };
 
+        let arc_str_value = quote! { "Arc" };
+        let arcstr_value = quote! { "ArcStr" };
+        let all_values = &[&arc_str_value, &arcstr_value];
+
         Self {
-            box_str: parse_quote! { #[cfg(not(#key = "Arc"))] },
-            arc_str: parse_quote! { #[cfg(#key = "Arc")] },
+            box_str: parse_quote! { #[cfg(not(any(#( #key = #all_values ),*)))] },
+            arc_str: parse_quote! { #[cfg(#key = #arc_str_value)] },
+            arcstr: parse_quote! { #[cfg(#key = #arcstr_value)] },
         }
     }
 }
