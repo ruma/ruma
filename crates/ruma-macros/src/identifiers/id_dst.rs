@@ -1,6 +1,6 @@
 //! Implementation of the `IdDst` derive macro.
 
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::TokenStream;
 use quote::quote;
 use syn::parse_quote;
 
@@ -674,23 +674,8 @@ impl IdDst {
         let ref_str: syn::Type = parse_quote! { &#str };
         let cow_generics = quote! { <'a, #generics_params> };
 
-        let self_ident = syn::Ident::new("self", Span::call_site());
-        let other_ident = syn::Ident::new("other", Span::call_site());
-
-        // Get the string representation of the type.
-        let as_str_impl = |ty: &syn::Type, ident: &syn::Ident| {
-            if *ty == *str || *ty == ref_str || *ty == *cow_str {
-                quote! { ::std::convert::AsRef::<#str>::as_ref(#ident) }
-            } else {
-                quote! { #ident.as_str() }
-            }
-        };
-
         // Implement `PartialEq` with the given lhs and rhs types.
         let expand_partial_eq = |lhs: &syn::Type, rhs: &syn::Type| {
-            let self_as_str = as_str_impl(lhs, &self_ident);
-            let other_as_str = as_str_impl(rhs, &other_ident);
-
             let impl_generics =
                 if *lhs == *cow_str || *rhs == *cow_str { &cow_generics } else { impl_generics };
 
@@ -698,7 +683,7 @@ impl IdDst {
                 #[automatically_derived]
                 impl #impl_generics ::std::cmp::PartialEq<#rhs> for #lhs {
                     fn eq(&self, other: &#rhs) -> bool {
-                        #self_as_str == #other_as_str
+                        ::std::convert::AsRef::<#str>::as_ref(self) == ::std::convert::AsRef::<#str>::as_ref(other)
                     }
                 }
             }
