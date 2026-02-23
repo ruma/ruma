@@ -161,6 +161,7 @@ impl IdDst {
         let bytes = &self.types.bytes;
         let arcstr = &self.types.arcstr;
         let smallvec = &self.types.smallvec;
+        let compactstring = &self.types.compactstring;
         let id = &self.types.id;
         let owned_id = &self.types.owned_id;
 
@@ -168,6 +169,7 @@ impl IdDst {
         let arc_str_cfg = &self.storage_cfg.arc_str;
         let arcstr_cfg = &self.storage_cfg.arcstr;
         let smallvec_cfg = &self.storage_cfg.smallvec;
+        let compactstring_cfg = &self.storage_cfg.compactstring;
 
         let (phantom_decl, phantom_ctor) = if self.generics.params.is_empty() {
             None
@@ -220,6 +222,7 @@ impl IdDst {
             (arc_str_cfg, arc_str),
             (arcstr_cfg, arcstr),
             (smallvec_cfg, smallvec),
+            (compactstring_cfg, compactstring),
         ]
         .into_iter()
         .map(|(cfg, inner)| from_into_inner_cfg_impl(cfg, inner));
@@ -235,6 +238,7 @@ impl IdDst {
             /// * `Arc` -- Use an `Arc<str>`.
             /// * `ArcStr` -- Use an `ArcStr` from the [`arcstr`](https://crates.io/crates/arcstr) crate.
             #[doc = #doc_smallvec]
+            /// * `CompactString` -- Use a `CompactString` from the [`compact_str`](https://crates.io/crates/compact_str) crate.
             ///
             /// The selected value can be set by using the `ruma_identifiers_storage` compile-time `cfg` setting.
             /// This setting can be configured using the `RUSTFLAGS` environment variable at build time, like this:
@@ -271,6 +275,8 @@ impl IdDst {
                 inner: #arcstr,
                 #smallvec_cfg
                 inner: #smallvec,
+                #compactstring_cfg
+                inner: #compactstring,
                 #phantom_decl
             }
 
@@ -286,6 +292,8 @@ impl IdDst {
                         inner: s.into(),
                         #smallvec_cfg
                         inner: <#smallvec>::from_slice(s.as_bytes()),
+                        #compactstring_cfg
+                        inner: s.into(),
                         #phantom_ctor
                     }
                 }
@@ -300,6 +308,8 @@ impl IdDst {
                         inner: s.into(),
                         #smallvec_cfg
                         inner: <#smallvec>::from_vec(#str::into_string(s).into_bytes()),
+                        #compactstring_cfg
+                        inner: s.into(),
                         #phantom_ctor
                     }
                 }
@@ -314,6 +324,8 @@ impl IdDst {
                         inner: s.into(),
                         #smallvec_cfg
                         inner: <#smallvec>::from_vec(s.into_bytes()),
+                        #compactstring_cfg
+                        inner: s.into(),
                         #phantom_ctor
                     }
                 }
@@ -328,6 +340,8 @@ impl IdDst {
                     { &self.inner }
                     #smallvec_cfg
                     unsafe { #str::from_utf8_unchecked(self.inner.as_slice()) }
+                    #compactstring_cfg
+                    { &self.inner }
                 }
 
                 /// Access the inner bytes without going through the borrowed type.
@@ -340,6 +354,8 @@ impl IdDst {
                     { self.inner.as_bytes() }
                     #smallvec_cfg
                     { self.inner.as_slice() }
+                    #compactstring_cfg
+                    { self.inner.as_bytes() }
                 }
 
                 #( #from_into_inner_impls )*
@@ -452,6 +468,8 @@ impl IdDst {
                     { id.as_inner_str().into() }
                     #smallvec_cfg
                     { #string::from(id).into() }
+                    #compactstring_cfg
+                    { id.inner.into() }
                 }
             }
 
@@ -466,6 +484,8 @@ impl IdDst {
                     { id.as_inner_str().into() }
                     #smallvec_cfg
                     unsafe { #string::from_utf8_unchecked(id.inner.into_vec()) }
+                    #compactstring_cfg
+                    { id.inner.into() }
                 }
             }
         }
@@ -782,6 +802,9 @@ struct Types {
     /// `SmallVec<[u8; N]>`.
     smallvec: syn::Type,
 
+    /// `CompactString`.
+    compactstring: syn::Type,
+
     /// `{id}`, the identifier type with generics, if any.
     id: syn::Type,
 
@@ -799,6 +822,7 @@ impl Types {
     ) -> Self {
         let arcstr_crate = ruma_common.reexported(RumaCommonReexport::Arcstr);
         let smallvec_crate = ruma_common.reexported(RumaCommonReexport::Smallvec);
+        let compact_str = ruma_common.reexported(RumaCommonReexport::CompactStr);
 
         let str = parse_quote! { ::std::primitive::str };
         let cow = parse_quote! { ::std::borrow::Cow };
@@ -814,6 +838,7 @@ impl Types {
             bytes: parse_quote! { [#byte] },
             arcstr: parse_quote! { #arcstr_crate::ArcStr },
             smallvec: parse_quote! { #smallvec_crate::SmallVec<[#byte; #inline_bytes]> },
+            compactstring: parse_quote! { #compact_str::CompactString },
             str,
             cow,
             id,
@@ -835,6 +860,9 @@ struct StorageCfg {
 
     /// Attribute for the `SmallVec<[u8; N]>` internal representation.
     smallvec: syn::Attribute,
+
+    /// Attribute for the `CompactString` internal representation.
+    compactstring: syn::Attribute,
 }
 
 impl StorageCfg {
@@ -844,13 +872,15 @@ impl StorageCfg {
         let arc_str_value = quote! { "Arc" };
         let arcstr_value = quote! { "ArcStr" };
         let smallvec_value = quote! { "SmallVec" };
-        let all_values = &[&arc_str_value, &arcstr_value, &smallvec_value];
+        let compactstring_value = quote! { "CompactString" };
+        let all_values = &[&arc_str_value, &arcstr_value, &smallvec_value, &compactstring_value];
 
         Self {
             box_str: parse_quote! { #[cfg(not(any(#( #key = #all_values ),*)))] },
             arc_str: parse_quote! { #[cfg(#key = #arc_str_value)] },
             arcstr: parse_quote! { #[cfg(#key = #arcstr_value)] },
             smallvec: parse_quote! { #[cfg(#key = #smallvec_value)] },
+            compactstring: parse_quote! { #[cfg(#key = #compactstring_value)] },
         }
     }
 }

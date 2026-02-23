@@ -56,6 +56,7 @@ pub mod exports {
     pub use arcstr;
     #[cfg(feature = "api")]
     pub use bytes;
+    pub use compact_str;
     #[cfg(feature = "api")]
     pub use http;
     pub use ruma_macros;
