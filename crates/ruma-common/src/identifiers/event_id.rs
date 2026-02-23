@@ -37,7 +37,7 @@ use super::ServerName;
 /// [room versions]: https://spec.matrix.org/latest/rooms/#complete-list-of-room-versions
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
-#[ruma_id(validate = ruma_identifiers_validation::event_id::validate)]
+#[ruma_id(validate = ruma_identifiers_validation::event_id::validate, inline_bytes = 48)]
 pub struct EventId(str);
 
 impl EventId {

@@ -74,4 +74,5 @@ pub mod exports {
     pub use serde;
     pub use serde_html_form;
     pub use serde_json;
+    pub use smallvec;
 }

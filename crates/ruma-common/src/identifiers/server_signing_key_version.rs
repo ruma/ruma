@@ -15,6 +15,7 @@ use super::{IdParseError, KeyName};
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(
     validate = ruma_identifiers_validation::server_signing_key_version::validate,
+    inline_bytes = 16,
 )]
 pub struct ServerSigningKeyVersion(str);
 
