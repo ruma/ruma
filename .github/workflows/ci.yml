@@ -76,6 +76,9 @@ jobs:
           - name: Check Owned IDs with CompactString
             cmd: msrv-owned-id-compactstring
 
+          - name: Check Owned IDs with ArcIntern
+            cmd: msrv-owned-id-arcintern
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6

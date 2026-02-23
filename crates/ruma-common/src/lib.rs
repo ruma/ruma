@@ -65,6 +65,7 @@ impl fmt::Debug for PrivOwnedStr {
 /// It is not considered part of this module's public API.
 #[doc(hidden)]
 pub mod exports {
+    pub use arc_interner;
     pub use arcstr;
     #[cfg(feature = "api")]
     pub use bytes;
