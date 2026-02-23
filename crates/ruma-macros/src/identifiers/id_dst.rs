@@ -630,20 +630,22 @@ impl IdDst {
     /// implementations, using it's `.as_str()` function.
     fn expand_to_string_impls(&self, ty: &syn::Type) -> TokenStream {
         let serde = self.ruma_common.reexported(RumaCommonReexport::Serde);
+
         let impl_generics = &self.impl_generics;
+        let str = &self.types.str;
 
         quote! {
             #[automatically_derived]
             impl #impl_generics ::std::fmt::Display for #ty {
                 fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                    self.as_str().fmt(f)
+                    ::std::convert::AsRef::<#str>::as_ref(self).fmt(f)
                 }
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::fmt::Debug for #ty {
                 fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                    self.as_str().fmt(f)
+                    ::std::convert::AsRef::<#str>::as_ref(self).fmt(f)
                 }
             }
 
@@ -653,7 +655,7 @@ impl IdDst {
                 where
                     S: #serde::Serializer,
                 {
-                    serializer.serialize_str(self.as_str())
+                    serializer.serialize_str(::std::convert::AsRef::<#str>::as_ref(self))
                 }
             }
         }
