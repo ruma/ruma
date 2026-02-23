@@ -67,6 +67,9 @@ pub(crate) enum RumaCommonReexport {
 
     /// The smallvec crate.
     Smallvec,
+
+    /// The compact_str crate.
+    CompactStr,
 }
 
 impl ToTokens for RumaCommonReexport {
@@ -80,6 +83,7 @@ impl ToTokens for RumaCommonReexport {
             Self::Bytes => "bytes",
             Self::Arcstr => "arcstr",
             Self::Smallvec => "smallvec",
+            Self::CompactStr => "compact_str",
         };
 
         tokens.append(Ident::new(crate_name, Span::call_site()));

@@ -73,6 +73,9 @@ jobs:
           - name: Check Owned IDs with SmallVec
             cmd: msrv-owned-id-smallvec
 
+          - name: Check Owned IDs with CompactString
+            cmd: msrv-owned-id-compactstring
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
