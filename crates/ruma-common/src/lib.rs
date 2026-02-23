@@ -53,6 +53,7 @@ priv_owned_str!();
 /// It is not considered part of this module's public API.
 #[doc(hidden)]
 pub mod exports {
+    pub use arcstr;
     #[cfg(feature = "api")]
     pub use bytes;
     #[cfg(feature = "api")]

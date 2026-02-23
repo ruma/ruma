@@ -106,6 +106,7 @@
 //!   supported:
 //!
 //!   * `Arc` -- Use an `Arc<str>`.
+//!   * `ArcStr` -- Use an `ArcStr` from the [`arcstr`](https://crates.io/crates/arcstr) crate.
 //!
 //!   This setting can also be configured by setting the `RUMA_IDENTIFIERS_STORAGE` environment
 //!   variable.
