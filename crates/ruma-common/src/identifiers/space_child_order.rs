@@ -11,7 +11,7 @@ use ruma_macros::IdDst;
 /// [`m.space.child`]: https://spec.matrix.org/latest/client-server-api/#mspacechild
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
-#[ruma_id(validate = ruma_identifiers_validation::space_child_order::validate)]
+#[ruma_id(validate = ruma_identifiers_validation::space_child_order::validate, inline_bytes = 50)]
 pub struct SpaceChildOrder(str);
 
 #[cfg(test)]

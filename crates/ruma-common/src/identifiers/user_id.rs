@@ -19,7 +19,7 @@ use super::{IdParseError, MatrixToUri, MatrixUri, ServerName, matrix_uri::UriAct
 /// [user ID]: https://spec.matrix.org/latest/appendices/#user-identifiers
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
-#[ruma_id(validate = ruma_identifiers_validation::user_id::validate)]
+#[ruma_id(validate = ruma_identifiers_validation::user_id::validate, inline_bytes = 40)]
 pub struct UserId(str);
 
 impl UserId {
