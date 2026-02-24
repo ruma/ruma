@@ -207,7 +207,7 @@ mod tests {
                 "event_id": "$IACrEkEKgDa-n4cMk-lEJ3vqLLUL9zX1nVyAnpmFaec",
                 "rel_type": "m.reference"
             },
-            "sender_ts": 17709890710_u64,
+            "sender_ts": 17_709_890_710_u64,
             "lifetime": 30000,
         });
         let content: RtcNotificationEventContent = from_json_value(raw_content).unwrap();
