@@ -45,6 +45,7 @@ pub struct RtcNotificationEventContent {
     pub notification_type: NotificationType,
 
     /// Gives a soft indication of whether the call is a "audio" or "video" (+audio) call.
+    ///
     /// This is just to indicate between trusted callers that they can start with audio or video
     /// off, but the actual call semantics remain the same, and they may switch at will.
     #[serde(rename = "m.call.intent", skip_serializing_if = "Option::is_none")]
@@ -132,9 +133,11 @@ pub enum NotificationType {
 pub enum CallIntent {
     /// Soft indication from the sender that the call is intended for audio.
     Audio,
+
     /// Soft indication from the sender that the call is intended for video.
     /// Hence that the receiver should start with camera enabled.
     Video,
+
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
@@ -219,6 +222,7 @@ mod tests {
         assert_eq!(serde_json::to_string(&CallIntent::Audio).unwrap(), r#""audio""#);
         assert_eq!(serde_json::to_string(&CallIntent::Video).unwrap(), r#""video""#);
     }
+
     #[test]
     fn notification_event_deserialization() {
         let json_data = json!({
