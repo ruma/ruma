@@ -113,6 +113,7 @@
 //!     crate.
 //!   * `ArcIntern` -- Use an `ArcIntern<str>` from the [`arc-interner`](https://crates.io/crates/arc-interner)
 //!     crate.
+//!   * `EcoString` -- Use an `EcoString` from the [`ecow`](https://crates.io/crates/ecow) crate.
 //!
 //!   This setting can also be configured by setting the `RUMA_IDENTIFIERS_STORAGE` environment
 //!   variable.

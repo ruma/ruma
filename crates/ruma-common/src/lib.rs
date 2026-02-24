@@ -70,6 +70,7 @@ pub mod exports {
     #[cfg(feature = "api")]
     pub use bytes;
     pub use compact_str;
+    pub use ecow;
     #[cfg(feature = "api")]
     pub use http;
     pub use ruma_macros;

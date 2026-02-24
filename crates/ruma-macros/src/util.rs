@@ -73,6 +73,9 @@ pub(crate) enum RumaCommonReexport {
 
     /// The arc-interner crate.
     ArcInterner,
+
+    /// The ecow crate.
+    Ecow,
 }
 
 impl ToTokens for RumaCommonReexport {
@@ -88,6 +91,7 @@ impl ToTokens for RumaCommonReexport {
             Self::Smallvec => "smallvec",
             Self::CompactStr => "compact_str",
             Self::ArcInterner => "arc_interner",
+            Self::Ecow => "ecow",
         };
 
         tokens.append(Ident::new(crate_name, Span::call_site()));

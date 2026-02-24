@@ -611,6 +611,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "ecow"
+version = "0.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "78e4f79b296fbaab6ce2e22d52cb4c7f010fe0ebe7a32e34fa25885fd797bd02"
+
+[[package]]
 name = "ed25519"
 version = "2.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2032,6 +2038,7 @@ dependencies = [
  "base64",
  "bytes",
  "compact_str",
+ "ecow",
  "form_urlencoded",
  "getrandom 0.2.16",
  "http",
