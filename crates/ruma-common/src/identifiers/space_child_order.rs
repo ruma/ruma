@@ -1,6 +1,6 @@
 //! `m.space.child` order.
 
-use ruma_macros::IdDst;
+use ruma_macros::ruma_id;
 
 /// The order of an [`m.space.child`] event.
 ///
@@ -9,10 +9,8 @@ use ruma_macros::IdDst;
 /// characters.
 ///
 /// [`m.space.child`]: https://spec.matrix.org/latest/client-server-api/#mspacechild
-#[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(validate = ruma_identifiers_validation::space_child_order::validate)]
-pub struct SpaceChildOrder(str);
+pub struct SpaceChildOrder;
 
 #[cfg(test)]
 mod tests {

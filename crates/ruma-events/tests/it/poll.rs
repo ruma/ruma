@@ -5,7 +5,7 @@ use std::{collections::BTreeMap, ops::Range};
 use assert_matches2::assert_matches;
 use js_int::{UInt, uint};
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id,
 };
 use ruma_events::{
     AnyMessageLikeEvent, MessageLikeEvent,
@@ -241,7 +241,7 @@ fn start_event_deserialization() {
 fn response_content_serialization() {
     let event_content = PollResponseEventContent::new(
         vec!["my-answer".to_owned()].into(),
-        owned_event_id!("$related_event:notareal.hs"),
+        event_id!("$related_event:notareal.hs"),
     );
 
     assert_to_canonical_json_eq!(
@@ -260,7 +260,7 @@ fn response_content_serialization() {
 fn response_content_other_serialization() {
     let content = PollResponseEventContent::new(
         vec!["first-answer".to_owned(), "second-answer".to_owned()].into(),
-        owned_event_id!("$related_event:notareal.hs"),
+        event_id!("$related_event:notareal.hs"),
     );
 
     assert_to_canonical_json_eq!(
@@ -308,7 +308,7 @@ fn response_event_deserialization() {
 fn end_content_serialization() {
     let event_content = PollEndEventContent::with_plain_text(
         "The poll has closed. Top answer: Amazing!",
-        owned_event_id!("$related_event:notareal.hs"),
+        event_id!("$related_event:notareal.hs"),
     );
 
     assert_to_canonical_json_eq!(
@@ -327,7 +327,7 @@ fn end_content_serialization() {
 fn end_content_with_results_serialization() {
     let mut content = PollEndEventContent::with_plain_text(
         "The poll has closed. Top answer: Amazing!",
-        owned_event_id!("$related_event:notareal.hs"),
+        event_id!("$related_event:notareal.hs"),
     );
     content.poll_results = Some(
         BTreeMap::from([
@@ -422,7 +422,7 @@ fn new_unstable_start_content_serialization() {
 
 #[test]
 fn replacement_unstable_start_content_serialization() {
-    let replaces = owned_event_id!("$replacedevent");
+    let replaces = event_id!("$replacedevent");
     let event_content = ReplacementUnstablePollStartEventContent::plain_text(
         "How's the weather?\n1. Not bad…\n2. Fine.\n3. Amazing!",
         UnstablePollStartContentBlock::new(
@@ -595,7 +595,7 @@ fn replacement_unstable_start_event_deserialization() {
 fn unstable_response_content_serialization() {
     let event_content = UnstablePollResponseEventContent::new(
         vec!["my-answer".to_owned()],
-        owned_event_id!("$related_event:notareal.hs"),
+        event_id!("$related_event:notareal.hs"),
     );
 
     assert_to_canonical_json_eq!(
@@ -647,7 +647,7 @@ fn unstable_response_event_deserialization() {
 fn unstable_end_content_serialization() {
     let event_content = UnstablePollEndEventContent::new(
         "The poll has closed. Top answer: Amazing!",
-        owned_event_id!("$related_event:notareal.hs"),
+        event_id!("$related_event:notareal.hs"),
     );
 
     assert_to_canonical_json_eq!(

@@ -8,7 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv1room_summaryroomidoralias
 
     use ruma_common::{
-        OwnedRoomOrAliasId, OwnedServerName,
+        RoomOrAliasId, ServerName,
         api::{auth_scheme::AccessTokenOptional, request},
         metadata,
         room::RoomSummary,
@@ -30,19 +30,19 @@ pub mod v1 {
     pub struct Request {
         /// Alias or ID of the room to be summarized.
         #[ruma_api(path)]
-        pub room_id_or_alias: OwnedRoomOrAliasId,
+        pub room_id_or_alias: RoomOrAliasId,
 
         /// A list of servers the homeserver should attempt to use to peek at the room.
         ///
         /// Defaults to an empty `Vec`.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         #[ruma_api(query)]
-        pub via: Vec<OwnedServerName>,
+        pub via: Vec<ServerName>,
     }
 
     impl Request {
         /// Creates a new `Request` with the given room or alias ID and via server names.
-        pub fn new(room_id_or_alias: OwnedRoomOrAliasId, via: Vec<OwnedServerName>) -> Self {
+        pub fn new(room_id_or_alias: RoomOrAliasId, via: Vec<ServerName>) -> Self {
             Self { room_id_or_alias, via }
         }
     }

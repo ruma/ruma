@@ -22,7 +22,7 @@ use thiserror::Error;
 use tracing::instrument;
 
 use crate::{
-    OwnedRoomId, OwnedUserId, PrivOwnedStr,
+    PrivOwnedStr, RoomId, UserId,
     serde::{JsonObject, Raw, StringEnum},
 };
 
@@ -72,11 +72,11 @@ pub struct Ruleset {
 
     /// These rules change the behavior of all messages for a given room.
     #[serde(default, skip_serializing_if = "IndexSet::is_empty")]
-    pub room: IndexSet<SimplePushRule<OwnedRoomId>>,
+    pub room: IndexSet<SimplePushRule<RoomId>>,
 
     /// These rules configure notification behavior for messages from a specific Matrix user ID.
     #[serde(default, skip_serializing_if = "IndexSet::is_empty")]
-    pub sender: IndexSet<SimplePushRule<OwnedUserId>>,
+    pub sender: IndexSet<SimplePushRule<UserId>>,
 
     /// These rules are identical to override rules, but have a lower priority than `content`,
     /// `room` and `sender` rules.
@@ -818,10 +818,10 @@ pub enum NewPushRule {
     PostContent(NewConditionalPushRule),
 
     /// Room-specific rules.
-    Room(NewSimplePushRule<OwnedRoomId>),
+    Room(NewSimplePushRule<RoomId>),
 
     /// Sender-specific rules.
-    Sender(NewSimplePushRule<OwnedUserId>),
+    Sender(NewSimplePushRule<UserId>),
 
     /// Lowest priority rules.
     Underride(NewConditionalPushRule),
@@ -1047,9 +1047,10 @@ mod tests {
         },
     };
     use crate::{
-        assert_to_canonical_json_eq, owned_room_id, owned_user_id,
+        assert_to_canonical_json_eq,
         power_levels::NotificationPowerLevels,
         push::{PredefinedContentRuleId, PredefinedOverrideRuleId},
+        room_id,
         room_version_rules::{AuthorizationRules, RoomPowerLevelsRules},
         serde::Raw,
         user_id,
@@ -1083,9 +1084,9 @@ mod tests {
 
     static CONTEXT_ONE_TO_ONE: LazyLock<PushConditionRoomCtx> = LazyLock::new(|| {
         let mut ctx = PushConditionRoomCtx::new(
-            owned_room_id!("!dm:server.name"),
+            room_id!("!dm:server.name"),
             uint!(2),
-            owned_user_id!("@jj:server.name"),
+            user_id!("@jj:server.name"),
             "Jolly Jumper".into(),
         );
         ctx.power_levels = Some(power_levels());
@@ -1094,9 +1095,9 @@ mod tests {
 
     static CONTEXT_PUBLIC_ROOM: LazyLock<PushConditionRoomCtx> = LazyLock::new(|| {
         let mut ctx = PushConditionRoomCtx::new(
-            owned_room_id!("!far_west:server.name"),
+            room_id!("!far_west:server.name"),
             uint!(100),
-            owned_user_id!("@jj:server.name"),
+            user_id!("@jj:server.name"),
             "Jolly Jumper".into(),
         );
         ctx.power_levels = Some(power_levels());
@@ -1213,7 +1214,7 @@ mod tests {
             actions: vec![Action::Notify],
             default: false,
             enabled: false,
-            rule_id: owned_room_id!("!roomid:server.name"),
+            rule_id: room_id!("!roomid:server.name"),
         };
 
         assert_to_canonical_json_eq!(
@@ -1505,7 +1506,7 @@ mod tests {
 
     #[apply(test!)]
     async fn default_ruleset_applies() {
-        let set = Ruleset::server_default(user_id!("@jj:server.name"));
+        let set = Ruleset::server_default(&user_id!("@jj:server.name"));
 
         let message = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
@@ -1640,7 +1641,7 @@ mod tests {
             actions: vec![Action::Notify],
             default: false,
             enabled: true,
-            rule_id: owned_user_id!("@rantanplan:server.name"),
+            rule_id: user_id!("@rantanplan:server.name"),
         };
         set.sender.insert(sender);
 
@@ -1654,7 +1655,7 @@ mod tests {
             actions: vec![Action::SetTweak(Tweak::Highlight(true))],
             default: false,
             enabled: true,
-            rule_id: owned_room_id!("!dm:server.name"),
+            rule_id: room_id!("!dm:server.name"),
         };
         set.room.insert(room);
 
@@ -1862,7 +1863,7 @@ mod tests {
 
     #[apply(test!)]
     async fn intentional_mentions_apply() {
-        let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
+        let set = Ruleset::server_default(&user_id!("@jolly_jumper:server.name"));
 
         let message = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
@@ -1905,13 +1906,13 @@ mod tests {
 
     #[apply(test!)]
     async fn invite_for_me_applies() {
-        let set = Ruleset::server_default(user_id!("@jolly_jumper:server.name"));
+        let set = Ruleset::server_default(&user_id!("@jolly_jumper:server.name"));
 
         // `invite_state` usually doesn't include the power levels.
         let context = PushConditionRoomCtx::new(
-            owned_room_id!("!far_west:server.name"),
+            room_id!("!far_west:server.name"),
             uint!(100),
-            owned_user_id!("@jj:server.name"),
+            user_id!("@jj:server.name"),
             "Jolly Jumper".into(),
         );
 

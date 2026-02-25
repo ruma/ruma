@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3roomsroomidinitialsync
 
     use ruma_common::{
-        OwnedRoomId,
+        RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -35,12 +35,12 @@ pub mod v3 {
     pub struct Request {
         /// The room to get the data of.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
     }
 
     impl Request {
         /// Creates a `Request` for the given room.
-        pub fn new(room_id: OwnedRoomId) -> Self {
+        pub fn new(room_id: RoomId) -> Self {
             Self { room_id }
         }
     }
@@ -61,7 +61,7 @@ pub mod v3 {
         pub messages: Option<PaginationChunk>,
 
         /// The room ID for this room.
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The state of the room.
         ///
@@ -79,7 +79,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a `Response` for the given room.
-        pub fn new(room_id: OwnedRoomId) -> Self {
+        pub fn new(room_id: RoomId) -> Self {
             Self {
                 room_id,
                 account_data: Vec::new(),

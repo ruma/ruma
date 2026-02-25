@@ -11,8 +11,7 @@ use std::{
 };
 
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId, RoomVersionId,
-    UserId,
+    EventId, MilliSecondsSinceUnixEpoch, RoomId, RoomVersionId, UserId,
     room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
 };
 use ruma_events::{StateEventType, TimelineEventType};
@@ -85,30 +84,30 @@ mod snapshot_tests;
 /// A persistent data unit.
 #[derive(Deserialize, Clone)]
 struct Pdu {
-    event_id: OwnedEventId,
-    room_id: Option<OwnedRoomId>,
-    sender: OwnedUserId,
+    event_id: EventId,
+    room_id: Option<RoomId>,
+    sender: UserId,
     origin_server_ts: MilliSecondsSinceUnixEpoch,
     #[serde(rename = "type")]
     kind: TimelineEventType,
     content: Box<RawJsonValue>,
     state_key: Option<String>,
-    prev_events: Vec<OwnedEventId>,
-    auth_events: Vec<OwnedEventId>,
-    redacts: Option<OwnedEventId>,
+    prev_events: Vec<EventId>,
+    auth_events: Vec<EventId>,
+    redacts: Option<EventId>,
     #[serde(default)]
     rejected: bool,
 }
 
 impl Event for Pdu {
-    type Id = OwnedEventId;
+    type Id = EventId;
 
     fn event_id(&self) -> &Self::Id {
         &self.event_id
     }
 
     fn room_id(&self) -> Option<&RoomId> {
-        self.room_id.as_deref()
+        self.room_id.as_ref()
     }
 
     fn sender(&self) -> &UserId {
@@ -159,7 +158,7 @@ struct ExtractRoomVersion {
 struct ResolvedStateEvent {
     kind: StateEventType,
     state_key: String,
-    event_id: OwnedEventId,
+    event_id: EventId,
 
     // Ignored in `PartialEq` and `Ord` because we don't want to consider it while sorting.
     content: JsonValue,
@@ -237,8 +236,8 @@ fn snapshot_test_prelude(
 
 /// Reshape the data a bit to make the diff and snapshots easier to compare.
 fn reshape(
-    pdus_by_id: &HashMap<OwnedEventId, Pdu>,
-    x: StateMap<OwnedEventId>,
+    pdus_by_id: &HashMap<EventId, Pdu>,
+    x: StateMap<EventId>,
 ) -> Result<BTreeSet<ResolvedStateEvent>, JsonError> {
     x.into_iter()
         .map(|((kind, state_key), event_id)| {
@@ -338,13 +337,13 @@ fn test_contrived_states(pdus_paths: &[&str], state_sets_paths: &[&str]) -> Snap
 
     let pdus = pdu_batches.into_iter().flat_map(|x| x.into_iter()).collect::<Vec<_>>();
 
-    let pdus_by_id: HashMap<OwnedEventId, Pdu> =
+    let pdus_by_id: HashMap<EventId, Pdu> =
         pdus.clone().into_iter().map(|pdu| (pdu.event_id().to_owned(), pdu.to_owned())).collect();
 
     let state_sets = state_sets_paths
         .iter()
         .map(|x| {
-            from_json_str::<Vec<OwnedEventId>>(
+            from_json_str::<Vec<EventId>>(
                 &fs::read_to_string(FIXTURES_PATH.join(x))
                     .expect("should be able to read JSON file of event IDs"),
             )
@@ -366,7 +365,7 @@ fn test_contrived_states(pdus_paths: &[&str], state_sets_paths: &[&str]) -> Snap
             })
             .collect()
         })
-        .collect::<Vec<StateMap<OwnedEventId>>>();
+        .collect::<Vec<StateMap<EventId>>>();
 
     let mut auth_chain_sets = Vec::new();
     for state_map in &state_sets {
@@ -412,7 +411,7 @@ fn test_contrived_states(pdus_paths: &[&str], state_sets_paths: &[&str]) -> Snap
 /// * `auth_rules`: The authorization rules of the room version.
 /// * `state_res_rules`: The state resolution rules of the room version.
 /// * `pdus`: An iterator of [`Pdu`]s to resolve, either alone or against the `prev_state`.
-/// * `pdus_by_id`: A map of [`OwnedEventId`]s to the [`Pdu`] with that ID.
+/// * `pdus_by_id`: A map of [`EventId`]s to the [`Pdu`] with that ID.
 ///   * Should be empty for the first call.
 ///   * Should not be mutated outside of this function.
 /// * `prev_state`: The state returned by a previous call to this function, if any.
@@ -422,9 +421,9 @@ fn resolve_batch<'a, I, II>(
     auth_rules: &AuthorizationRules,
     state_res_rules: &StateResolutionV2Rules,
     pdus: II,
-    pdus_by_id: &mut HashMap<OwnedEventId, Pdu>,
-    prev_state: &mut Option<StateMap<OwnedEventId>>,
-) -> Result<StateMap<OwnedEventId>, Box<dyn Error>>
+    pdus_by_id: &mut HashMap<EventId, Pdu>,
+    prev_state: &mut Option<StateMap<EventId>>,
+) -> Result<StateMap<EventId>, Box<dyn Error>>
 where
     I: Iterator<Item = &'a Pdu>,
     II: IntoIterator<IntoIter = I> + Clone,
@@ -485,7 +484,7 @@ fn resolve_iteratively<'a, I, II>(
     auth_rules: &AuthorizationRules,
     state_res_rules: &StateResolutionV2Rules,
     pdus: II,
-) -> Result<StateMap<OwnedEventId>, Box<dyn Error>>
+) -> Result<StateMap<EventId>, Box<dyn Error>>
 where
     I: Iterator<Item = &'a Pdu>,
     II: IntoIterator<IntoIter = I> + Clone,
@@ -504,22 +503,21 @@ where
         }
     }
 
-    let pdus_by_id: HashMap<OwnedEventId, Pdu> =
+    let pdus_by_id: HashMap<EventId, Pdu> =
         HashMap::from_iter(pdus.into_iter().map(|pdu| (pdu.event_id().to_owned(), pdu.to_owned())));
 
-    let auth_chain_from_state_map =
-        |state_map: &StateMap<OwnedEventId>| -> Result<_, Box<dyn Error>> {
-            let mut auth_chain_sets = HashSet::new();
+    let auth_chain_from_state_map = |state_map: &StateMap<EventId>| -> Result<_, Box<dyn Error>> {
+        let mut auth_chain_sets = HashSet::new();
 
-            for event_id in state_map.values() {
-                let pdu = pdus_by_id.get(event_id).expect("every pdu should be available");
-                auth_chain_sets.extend(auth_events_dfs(&pdus_by_id, pdu)?);
-            }
+        for event_id in state_map.values() {
+            let pdu = pdus_by_id.get(event_id).expect("every pdu should be available");
+            auth_chain_sets.extend(auth_events_dfs(&pdus_by_id, pdu)?);
+        }
 
-            Ok(auth_chain_sets)
-        };
+        Ok(auth_chain_sets)
+    };
 
-    let mut state_at_events: HashMap<OwnedEventId, StateMap<OwnedEventId>> = HashMap::new();
+    let mut state_at_events: HashMap<EventId, StateMap<EventId>> = HashMap::new();
     let mut leaves = Vec::new();
 
     'outer: while let Some(event_id) = stack.pop() {
@@ -557,7 +555,7 @@ where
                 current_pdu.event_type().to_string().into(),
                 current_pdu.state_key().expect("all pdus are state events").to_owned(),
             ),
-            event_id.to_owned(),
+            event_id.clone(),
         );
 
         let mut auth_chain_at_event = auth_chain_before_event.clone();
@@ -618,9 +616,9 @@ where
 ///
 /// Fails if `pdus` does not contain a PDU that appears in the recursive `auth_events` of `pdu`.
 fn auth_events_dfs(
-    pdus_by_id: &HashMap<OwnedEventId, Pdu>,
+    pdus_by_id: &HashMap<EventId, Pdu>,
     pdu: &Pdu,
-) -> Result<HashSet<OwnedEventId>, Box<dyn Error>> {
+) -> Result<HashSet<EventId>, Box<dyn Error>> {
     let mut out = HashSet::new();
     let mut stack = pdu.auth_events().cloned().collect::<Vec<_>>();
 
@@ -646,9 +644,9 @@ fn auth_events_dfs(
 /// Retrieves the conflicted state subgraph, using Depth-first search on the `auth_events` of the
 /// conflicted state events.
 fn conflicted_state_subgraph_dfs(
-    conflicted_state_set: &StateMap<Vec<OwnedEventId>>,
-    pdus_by_id: &HashMap<OwnedEventId, Pdu>,
-) -> Option<HashSet<OwnedEventId>> {
+    conflicted_state_set: &StateMap<Vec<EventId>>,
+    pdus_by_id: &HashMap<EventId, Pdu>,
+) -> Option<HashSet<EventId>> {
     let conflicted_event_ids: HashSet<_> =
         conflicted_state_set.values().flatten().cloned().collect();
     let mut conflicted_state_subgraph = HashSet::new();

@@ -11,7 +11,7 @@ pub mod v2 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch, OwnedServerName, OwnedServerSigningKeyId,
+        MilliSecondsSinceUnixEpoch, ServerName, ServerSigningKeyId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         serde::Raw,
@@ -38,8 +38,7 @@ pub mod v2 {
         /// notary server must return an empty server_keys array in the response.
         ///
         /// The notary server may return multiple keys regardless of the Key IDs given.
-        pub server_keys:
-            BTreeMap<OwnedServerName, BTreeMap<OwnedServerSigningKeyId, QueryCriteria>>,
+        pub server_keys: BTreeMap<ServerName, BTreeMap<ServerSigningKeyId, QueryCriteria>>,
     }
 
     /// Response type for the `get_remote_server_keys_batch` endpoint.
@@ -52,10 +51,7 @@ pub mod v2 {
     impl Request {
         /// Creates a new `Request` with the given query criteria.
         pub fn new(
-            server_keys: BTreeMap<
-                OwnedServerName,
-                BTreeMap<OwnedServerSigningKeyId, QueryCriteria>,
-            >,
+            server_keys: BTreeMap<ServerName, BTreeMap<ServerSigningKeyId, QueryCriteria>>,
         ) -> Self {
             Self { server_keys }
         }

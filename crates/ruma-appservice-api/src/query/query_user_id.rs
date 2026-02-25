@@ -8,7 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/application-service-api/#get_matrixappv1usersuserid
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -25,7 +25,7 @@ pub mod v1 {
     pub struct Request {
         /// The user ID being queried.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
     }
 
     /// Response type for the `query_user_id` endpoint.
@@ -35,7 +35,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given user id.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id }
         }
     }

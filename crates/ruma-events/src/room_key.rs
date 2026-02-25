@@ -2,7 +2,7 @@
 //!
 //! [`m.room_key`]: https://spec.matrix.org/latest/client-server-api/#mroom_key
 
-use ruma_common::{EventEncryptionAlgorithm, OwnedRoomId};
+use ruma_common::{EventEncryptionAlgorithm, RoomId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -21,7 +21,7 @@ pub struct ToDeviceRoomKeyEventContent {
     pub algorithm: EventEncryptionAlgorithm,
 
     /// The room where the key is used.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The ID of the session that the key is for.
     pub session_id: String,
@@ -46,7 +46,7 @@ impl ToDeviceRoomKeyEventContent {
     /// and session key.
     pub fn new(
         algorithm: EventEncryptionAlgorithm,
-        room_id: OwnedRoomId,
+        room_id: RoomId,
         session_id: String,
         session_key: String,
     ) -> Self {
@@ -63,7 +63,7 @@ impl ToDeviceRoomKeyEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_room_id};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, room_id};
     use serde_json::json;
 
     use super::ToDeviceRoomKeyEventContent;
@@ -73,7 +73,7 @@ mod tests {
     fn serialization() {
         let content = ToDeviceRoomKeyEventContent {
             algorithm: EventEncryptionAlgorithm::MegolmV1AesSha2,
-            room_id: owned_room_id!("!testroomid:example.org"),
+            room_id: room_id!("!testroomid:example.org"),
             session_id: "SessId".into(),
             session_key: "SessKey".into(),
             #[cfg(feature = "unstable-msc3061")]

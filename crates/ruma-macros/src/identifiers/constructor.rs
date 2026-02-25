@@ -45,21 +45,14 @@ impl IdentifierConstructor {
     where
         F: FnOnce(&str) -> Result<T, E>,
     {
-        let (id_type, is_ref) = if let Some(id_type) = id_type.strip_prefix('&') {
-            (id_type, true)
-        } else {
-            (id_type, false)
-        };
-
         assert!(validate_fn(&self.str.value()).is_ok(), "Invalid {id_type}");
 
         let src_crate = &self.src_crate;
         let str = &self.str;
-        let ampersand = is_ref.then(|| quote! { & });
         let ident = syn::Ident::new(id_type, Span::call_site());
 
         quote! {
-            <#ampersand #src_crate::#ident as ::std::convert::TryFrom<&str>>::try_from(#str).unwrap()
+            <#src_crate::#ident as ::std::convert::TryFrom<&::std::primitive::str>>::try_from(#str).unwrap()
         }
     }
 }

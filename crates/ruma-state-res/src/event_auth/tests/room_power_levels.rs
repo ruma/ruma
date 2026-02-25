@@ -1188,7 +1188,7 @@ fn dont_allow_creator_in_users_field() {
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V12,
         UserPowerLevel::Infinite,
-        &HashSet::from_iter([alice().to_owned()]),
+        &HashSet::from_iter([alice()]),
     )
     .unwrap_err();
 }

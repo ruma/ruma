@@ -11,7 +11,7 @@ use serde_json::value::Value as JsonValue;
 use wildmatch::WildMatch;
 
 use crate::{
-    EventId, OwnedRoomId, OwnedUserId, UserId,
+    EventId, RoomId, UserId,
     power_levels::{NotificationPowerLevels, NotificationPowerLevelsKey},
     room_version_rules::RoomPowerLevelsRules,
 };
@@ -194,9 +194,9 @@ impl PushCondition {
             Self::SenderNotificationPermission { key } => {
                 let Some(power_levels) = &context.power_levels else { return false };
                 let Some(sender_id) = event.get_str("sender") else { return false };
-                let Ok(sender_id) = <&UserId>::try_from(sender_id) else { return false };
+                let Ok(sender_id) = UserId::try_from(sender_id) else { return false };
 
-                power_levels.has_sender_notification_permission(sender_id, key)
+                power_levels.has_sender_notification_permission(&sender_id, key)
             }
             #[cfg(feature = "unstable-msc3931")]
             Self::RoomVersionSupports { feature } => match feature {
@@ -225,12 +225,12 @@ impl PushCondition {
 
                 // Retrieve the thread root event ID.
                 let Some(Ok(thread_root)) =
-                    event.get_str("content.m\\.relates_to.event_id").map(<&EventId>::try_from)
+                    event.get_str("content.m\\.relates_to.event_id").map(EventId::try_from)
                 else {
                     return false;
                 };
 
-                let is_subscribed = has_thread_subscription_fn(thread_root).await;
+                let is_subscribed = has_thread_subscription_fn(&thread_root).await;
 
                 *must_be_subscribed == is_subscribed
             }
@@ -257,13 +257,13 @@ pub struct _CustomPushCondition {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PushConditionRoomCtx {
     /// The ID of the room.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The number of members in the room.
     pub member_count: UInt,
 
     /// The user's matrix ID.
-    pub user_id: OwnedUserId,
+    pub user_id: UserId,
 
     /// The display name of the current user in the room.
     pub user_display_name: String,
@@ -327,9 +327,9 @@ impl std::fmt::Debug for PushConditionRoomCtx {
 impl PushConditionRoomCtx {
     /// Create a new `PushConditionRoomCtx`.
     pub fn new(
-        room_id: OwnedRoomId,
+        room_id: RoomId,
         member_count: UInt,
-        user_id: OwnedUserId,
+        user_id: UserId,
         user_display_name: String,
     ) -> Self {
         Self {
@@ -380,7 +380,7 @@ impl PushConditionRoomCtx {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PushConditionPowerLevelsCtx {
     /// The power levels of the users of the room.
-    pub users: BTreeMap<OwnedUserId, Int>,
+    pub users: BTreeMap<UserId, Int>,
 
     /// The default power level of the users of the room.
     pub users_default: Int,
@@ -395,7 +395,7 @@ pub struct PushConditionPowerLevelsCtx {
 impl PushConditionPowerLevelsCtx {
     /// Create a new `PushConditionPowerLevelsCtx`.
     pub fn new(
-        users: BTreeMap<OwnedUserId, Int>,
+        users: BTreeMap<UserId, Int>,
         users_default: Int,
         notifications: NotificationPowerLevels,
         rules: RoomPowerLevelsRules,
@@ -632,9 +632,11 @@ mod tests {
         RoomMemberCountIs, StrExt,
     };
     use crate::{
-        OwnedUserId, assert_to_canonical_json_eq, owned_room_id, owned_user_id,
+        UserId, assert_to_canonical_json_eq,
         power_levels::{NotificationPowerLevels, NotificationPowerLevelsKey},
+        room_id,
         room_version_rules::{AuthorizationRules, RoomPowerLevelsRules},
+        user_id,
     };
 
     #[test]
@@ -815,8 +817,8 @@ mod tests {
         assert!(!"lunc".matches_pattern("lunc?*", false));
     }
 
-    fn sender() -> OwnedUserId {
-        owned_user_id!("@worthy_whale:server.name")
+    fn sender() -> UserId {
+        user_id!("@worthy_whale:server.name")
     }
 
     fn push_context() -> PushConditionRoomCtx {
@@ -831,9 +833,9 @@ mod tests {
         };
 
         let mut ctx = PushConditionRoomCtx::new(
-            owned_room_id!("!room:server.name"),
+            room_id!("!room:server.name"),
             uint!(3),
-            owned_user_id!("@gorilla:server.name"),
+            user_id!("@gorilla:server.name"),
             "Groovy Gorilla".into(),
         );
         ctx.power_levels = Some(power_levels);
@@ -942,9 +944,9 @@ mod tests {
         let context_not_matching = push_context();
         let context_matching = assign!(
             PushConditionRoomCtx::new(
-                owned_room_id!("!room:server.name"),
+                room_id!("!room:server.name"),
                 uint!(3),
-                owned_user_id!("@gorilla:server.name"),
+                user_id!("@gorilla:server.name"),
                 "Groovy Gorilla".into(),
             ), {
                 power_levels: context_not_matching.power_levels.clone(),
@@ -1114,7 +1116,7 @@ mod tests {
         let context = push_context().with_has_thread_subscription_fn(|event_id: &EventId| {
             Box::pin(async move {
                 // Simulate thread subscriptions for testing.
-                event_id == event_id!("$subscribed_thread")
+                *event_id == event_id!("$subscribed_thread")
             })
         });
 

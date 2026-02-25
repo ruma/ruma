@@ -1,4 +1,4 @@
-use ruma_macros::IdDst;
+use ruma_macros::ruma_id;
 
 use super::{IdParseError, KeyName};
 
@@ -8,17 +8,10 @@ use super::{IdParseError, KeyName};
 /// type is provided simply for its semantic value.
 ///
 /// [one-time or fallback key]: https://spec.matrix.org/latest/client-server-api/#one-time-and-fallback-keys
-#[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
-pub struct OneTimeKeyName(str);
+#[ruma_id]
+pub struct OneTimeKeyName;
 
 impl KeyName for OneTimeKeyName {
-    fn validate(_s: &str) -> Result<(), IdParseError> {
-        Ok(())
-    }
-}
-
-impl KeyName for OwnedOneTimeKeyName {
     fn validate(_s: &str) -> Result<(), IdParseError> {
         Ok(())
     }

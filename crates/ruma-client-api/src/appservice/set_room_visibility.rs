@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/application-service-api/#put_matrixclientv3directorylistappservicenetworkidroomid
 
     use ruma_common::{
-        OwnedRoomId,
+        RoomId,
         api::{auth_scheme::AppserviceToken, request, response},
         metadata,
     };
@@ -34,7 +34,7 @@ pub mod v3 {
 
         /// The room ID to add to the directory.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// Whether the room should be visible (public) in the directory or not (private).
         pub visibility: Visibility,
@@ -47,7 +47,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given network ID, room ID and visibility.
-        pub fn new(network_id: String, room_id: OwnedRoomId, visibility: Visibility) -> Self {
+        pub fn new(network_id: String, room_id: RoomId, visibility: Visibility) -> Self {
             Self { network_id, room_id, visibility }
         }
     }

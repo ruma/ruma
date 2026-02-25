@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::room::{EncryptedFile, OwnedMxcUri, UInt};
+use crate::room::{EncryptedFile, MxcUri, UInt};
 
 /// The Source of the PreviewImage.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -12,7 +12,7 @@ pub enum PreviewImageSource {
 
     /// Source of the PreviewImage as a simple MxcUri
     #[serde(rename = "og:image", alias = "og:image:url")]
-    Url(OwnedMxcUri),
+    Url(MxcUri),
 }
 
 /// Metadata and [`PreviewImageSource`] of an [`UrlPreview`] image.
@@ -47,8 +47,8 @@ pub struct PreviewImage {
 }
 
 impl PreviewImage {
-    /// Construct a PreviewImage with the given [`OwnedMxcUri`] as the source.
-    pub fn plain(url: OwnedMxcUri) -> Self {
+    /// Construct a PreviewImage with the given [`MxcUri`] as the source.
+    pub fn plain(url: MxcUri) -> Self {
         Self::with_image(PreviewImageSource::Url(url))
     }
 
@@ -128,7 +128,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use assign::assign;
     use js_int::uint;
-    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_mxc_uri, serde::Base64};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, mxc_uri, serde::Base64};
     use ruma_events::room::message::{MessageType, RoomMessageEventContent};
     use serde_json::{from_value as from_json_value, json};
 
@@ -149,7 +149,7 @@ mod tests {
         let mut hashes: BTreeMap<String, Base64> = BTreeMap::new();
         hashes.insert("sha256".to_owned(), Base64::new(vec![1; 10]));
         EncryptedFile {
-            url: owned_mxc_uri!("mxc://localhost/encryptedfile"),
+            url: mxc_uri!("mxc://localhost/encryptedfile"),
             key: dummy_jwt(),
             iv: Base64::new(vec![1; 12]),
             hashes,
@@ -159,8 +159,7 @@ mod tests {
 
     #[test]
     fn serialize_preview_image() {
-        let preview =
-            PreviewImage::plain(owned_mxc_uri!("mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO"));
+        let preview = PreviewImage::plain(mxc_uri!("mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO"));
 
         assert_to_canonical_json_eq!(
             preview,
@@ -199,7 +198,7 @@ mod tests {
     #[test]
     fn serialize_room_message_with_url_preview() {
         let preview_img =
-            PreviewImage::plain(owned_mxc_uri!("mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO"));
+            PreviewImage::plain(mxc_uri!("mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO"));
         let full_preview = assign!(UrlPreview::matched_url("https://matrix.org/".to_owned()), {image: Some(preview_img)});
         let msg = MessageType::Text(assign!(TextMessageEventContent::plain("Test message"),  {
             url_previews: Some(vec![full_preview])
@@ -268,7 +267,7 @@ mod tests {
     fn serialize_extensible_room_message_with_preview() {
         use crate::message::MessageEventContent;
 
-        let preview_img = assign!(PreviewImage::plain(owned_mxc_uri!("mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO")), {
+        let preview_img = assign!(PreviewImage::plain(mxc_uri!("mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO")), {
                 height: Some(uint!(400)),
                 width: Some(uint!(800)),
                 mimetype: Some("image/jpeg".to_owned()),

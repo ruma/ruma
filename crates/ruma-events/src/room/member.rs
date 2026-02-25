@@ -4,7 +4,7 @@
 
 use js_int::Int;
 use ruma_common::{
-    OwnedMxcUri, OwnedTransactionId, OwnedUserId, ServerSignatures, UserId,
+    MxcUri, ServerSignatures, TransactionId, UserId,
     room_version_rules::RedactionRules,
     serde::{CanBeEmpty, Raw, StringEnum},
 };
@@ -46,7 +46,7 @@ pub use self::change::{Change, MembershipChange, MembershipDetails};
 #[ruma_event(
     type = "m.room.member",
     kind = State,
-    state_key_type = OwnedUserId,
+    state_key_type = UserId,
     unsigned_type = RoomMemberUnsigned,
     custom_redacted,
     custom_possibly_redacted,
@@ -61,7 +61,7 @@ pub struct RoomMemberEventContent {
         feature = "compat-empty-string-null",
         serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<OwnedMxcUri>,
+    pub avatar_url: Option<MxcUri>,
 
     /// The display name for this user, if any.
     ///
@@ -106,7 +106,7 @@ pub struct RoomMemberEventContent {
     /// Arbitrarily chosen `UserId` (MxID) of a local user who can send an invite.
     #[serde(rename = "join_authorised_via_users_server")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub join_authorized_via_users_server: Option<OwnedUserId>,
+    pub join_authorized_via_users_server: Option<UserId>,
 }
 
 impl RoomMemberEventContent {
@@ -131,7 +131,7 @@ impl RoomMemberEventContent {
     /// made.
     pub fn details(&self) -> MembershipDetails<'_> {
         MembershipDetails {
-            avatar_url: self.avatar_url.as_deref(),
+            avatar_url: self.avatar_url.as_ref(),
             displayname: self.displayname.as_deref(),
             membership: &self.membership,
         }
@@ -187,7 +187,7 @@ pub struct PossiblyRedactedRoomMemberEventContent {
         feature = "compat-empty-string-null",
         serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<OwnedMxcUri>,
+    pub avatar_url: Option<MxcUri>,
 
     /// The display name for this user, if any.
     ///
@@ -232,7 +232,7 @@ pub struct PossiblyRedactedRoomMemberEventContent {
     /// Arbitrarily chosen `UserId` (MxID) of a local user who can send an invite.
     #[serde(rename = "join_authorised_via_users_server")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub join_authorized_via_users_server: Option<OwnedUserId>,
+    pub join_authorized_via_users_server: Option<UserId>,
 }
 
 impl PossiblyRedactedRoomMemberEventContent {
@@ -257,7 +257,7 @@ impl PossiblyRedactedRoomMemberEventContent {
     /// made.
     pub fn details(&self) -> MembershipDetails<'_> {
         MembershipDetails {
-            avatar_url: self.avatar_url.as_deref(),
+            avatar_url: self.avatar_url.as_ref(),
             displayname: self.displayname.as_deref(),
             membership: &self.membership,
         }
@@ -285,7 +285,7 @@ impl PossiblyRedactedRoomMemberEventContent {
 }
 
 impl PossiblyRedactedStateEventContent for PossiblyRedactedRoomMemberEventContent {
-    type StateKey = OwnedUserId;
+    type StateKey = UserId;
 
     fn event_type(&self) -> StateEventType {
         StateEventType::RoomMember
@@ -384,7 +384,7 @@ pub struct RedactedRoomMemberEventContent {
     /// This is redacted in room versions 8 and below. It is used for validating
     /// joins when the join rule is restricted.
     #[serde(rename = "join_authorised_via_users_server", skip_serializing_if = "Option::is_none")]
-    pub join_authorized_via_users_server: Option<OwnedUserId>,
+    pub join_authorized_via_users_server: Option<UserId>,
 }
 
 impl RedactedRoomMemberEventContent {
@@ -426,7 +426,7 @@ impl RedactedRoomMemberEventContent {
 }
 
 impl RedactedStateEventContent for RedactedRoomMemberEventContent {
-    type StateKey = OwnedUserId;
+    type StateKey = UserId;
 
     fn event_type(&self) -> StateEventType {
         StateEventType::RoomMember
@@ -579,7 +579,7 @@ pub struct SignedContent {
     /// The invited Matrix user ID.
     ///
     /// Must be equal to the user_id property of the event.
-    pub mxid: OwnedUserId,
+    pub mxid: UserId,
 
     /// A single signature from the verifying server, in the format specified by the Signing Events
     /// section of the server-server API.
@@ -591,7 +591,7 @@ pub struct SignedContent {
 
 impl SignedContent {
     /// Creates a new `SignedContent` with the given mxid, signature and token.
-    pub fn new(signatures: ServerSignatures, mxid: OwnedUserId, token: String) -> Self {
+    pub fn new(signatures: ServerSignatures, mxid: UserId, token: String) -> Self {
         Self { mxid, signatures, token }
     }
 }
@@ -747,7 +747,7 @@ pub struct RoomMemberUnsigned {
 
     /// The client-supplied transaction ID, if the client being given the event is the same one
     /// which sent it.
-    pub transaction_id: Option<OwnedTransactionId>,
+    pub transaction_id: Option<TransactionId>,
 
     /// Optional previous content of the event.
     pub prev_content: Option<PossiblyRedactedRoomMemberEventContent>,
@@ -910,10 +910,7 @@ mod tests {
         assert_eq!(ev.state_key, "@alice:example.org");
         assert!(ev.unsigned.is_empty());
 
-        assert_eq!(
-            ev.content.avatar_url.as_deref(),
-            Some(mxc_uri!("mxc://example.org/SEsfnsuifSDFSSEF"))
-        );
+        assert_eq!(ev.content.avatar_url, Some(mxc_uri!("mxc://example.org/SEsfnsuifSDFSSEF")));
         assert_eq!(ev.content.displayname.as_deref(), Some("Alice Margatroid"));
         assert_eq!(ev.content.is_direct, Some(true));
         assert_eq!(ev.content.membership, MembershipState::Invite);
@@ -923,13 +920,13 @@ mod tests {
         let signed = third_party_invite.signed.deserialize().unwrap();
         assert_eq!(signed.mxid, "@alice:example.org");
         assert_eq!(signed.signatures.len(), 1);
-        let server_signatures = signed.signatures.get(server_name!("magic.forest")).unwrap();
+        let server_signatures = signed.signatures.get(&server_name!("magic.forest")).unwrap();
         assert_eq!(
             *server_signatures,
             btreemap! {
                 ServerSigningKeyId::from_parts(
                     SigningKeyAlgorithm::Ed25519,
-                    server_signing_key_version!("3")
+                    &server_signing_key_version!("3")
                 ) => "foobar".to_owned()
             }
         );
@@ -984,10 +981,7 @@ mod tests {
         assert_matches!(ev.content.third_party_invite, None);
 
         let prev_content = ev.unsigned.prev_content.unwrap();
-        assert_eq!(
-            prev_content.avatar_url.as_deref(),
-            Some(mxc_uri!("mxc://example.org/SEsfnsuifSDFSSEF"))
-        );
+        assert_eq!(prev_content.avatar_url, Some(mxc_uri!("mxc://example.org/SEsfnsuifSDFSSEF")));
         assert_eq!(prev_content.displayname.as_deref(), Some("Alice Margatroid"));
         assert_eq!(prev_content.is_direct, Some(true));
         assert_eq!(prev_content.membership, MembershipState::Invite);
@@ -997,13 +991,13 @@ mod tests {
         let signed = third_party_invite.signed.deserialize().unwrap();
         assert_eq!(signed.mxid, "@alice:example.org");
         assert_eq!(signed.signatures.len(), 1);
-        let server_signatures = signed.signatures.get(server_name!("magic.forest")).unwrap();
+        let server_signatures = signed.signatures.get(&server_name!("magic.forest")).unwrap();
         assert_eq!(
             *server_signatures,
             btreemap! {
                 ServerSigningKeyId::from_parts(
                     SigningKeyAlgorithm::Ed25519,
-                    server_signing_key_version!("3")
+                    &server_signing_key_version!("3")
                 ) => "foobar".to_owned()
             }
         );
@@ -1039,7 +1033,7 @@ mod tests {
         assert_eq!(ev.content.membership, MembershipState::Join);
         assert_matches!(ev.content.third_party_invite, None);
         assert_eq!(
-            ev.content.join_authorized_via_users_server.as_deref(),
+            ev.content.join_authorized_via_users_server,
             Some(user_id!("@notcarl:example.com"))
         );
     }

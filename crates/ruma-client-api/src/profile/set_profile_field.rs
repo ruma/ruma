@@ -14,7 +14,7 @@ pub mod v3 {
     //! [`set_display_name`]: crate::profile::set_display_name
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::AccessToken, response},
         metadata,
     };
@@ -38,7 +38,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
         /// The user whose profile will be updated.
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The value of the profile field to set.
         pub value: ProfileFieldValue,
@@ -46,7 +46,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID, field and value.
-        pub fn new(user_id: OwnedUserId, value: ProfileFieldValue) -> Self {
+        pub fn new(user_id: UserId, value: ProfileFieldValue) -> Self {
             Self { user_id, value }
         }
     }
@@ -110,7 +110,7 @@ pub mod v3 {
 
             Self::check_request_method(request.method())?;
 
-            let (user_id, field): (OwnedUserId, ProfileFieldName) =
+            let (user_id, field): (UserId, ProfileFieldName) =
                 serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
                     _,
                     serde::de::value::Error,
@@ -146,7 +146,7 @@ mod tests_client {
     use http::header;
     use ruma_common::{
         api::{OutgoingRequest, SupportedVersions, auth_scheme::SendAccessToken},
-        owned_mxc_uri, owned_user_id,
+        mxc_uri, user_id,
     };
     use serde_json::{Value as JsonValue, from_slice as from_json_slice, json};
 
@@ -157,8 +157,8 @@ mod tests_client {
     fn serialize_request() {
         // Profile field that existed in Matrix 1.0.
         let avatar_url_request = Request::new(
-            owned_user_id!("@alice:localhost"),
-            ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef")),
+            user_id!("@alice:localhost"),
+            ProfileFieldValue::AvatarUrl(mxc_uri!("mxc://localhost/abcdef")),
         );
 
         // Matrix 1.11.
@@ -216,7 +216,7 @@ mod tests_client {
 
         // Profile field that didn't exist in Matrix 1.0.
         let custom_field_request = Request::new(
-            owned_user_id!("@alice:localhost"),
+            user_id!("@alice:localhost"),
             ProfileFieldValue::new("dev.ruma.custom_field", json!(true)).unwrap(),
         );
 

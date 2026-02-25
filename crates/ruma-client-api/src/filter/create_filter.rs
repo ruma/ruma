@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3useruseridfilter
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -32,7 +32,7 @@ pub mod v3 {
         ///
         /// The access token must be authorized to make requests for this user ID.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The filter definition.
         #[ruma_api(body)]
@@ -48,7 +48,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID and filter definition.
-        pub fn new(user_id: OwnedUserId, filter: FilterDefinition) -> Self {
+        pub fn new(user_id: UserId, filter: FilterDefinition) -> Self {
             Self { user_id, filter }
         }
     }
@@ -92,7 +92,7 @@ pub mod v3 {
                 api::{
                     MatrixVersion, OutgoingRequest, SupportedVersions, auth_scheme::SendAccessToken,
                 },
-                owned_user_id,
+                user_id,
             };
 
             use crate::filter::FilterDefinition;
@@ -102,14 +102,13 @@ pub mod v3 {
                 features: Default::default(),
             };
 
-            let req =
-                super::Request::new(owned_user_id!("@foo:bar.com"), FilterDefinition::default())
-                    .try_into_http_request::<Vec<u8>>(
-                        "https://matrix.org",
-                        SendAccessToken::IfRequired("tok"),
-                        Cow::Owned(supported),
-                    )
-                    .unwrap();
+            let req = super::Request::new(user_id!("@foo:bar.com"), FilterDefinition::default())
+                .try_into_http_request::<Vec<u8>>(
+                    "https://matrix.org",
+                    SendAccessToken::IfRequired("tok"),
+                    Cow::Owned(supported),
+                )
+                .unwrap();
             assert_eq!(req.body(), b"{}");
         }
     }

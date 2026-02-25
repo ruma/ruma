@@ -10,7 +10,7 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        OwnedRoomId,
+        RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -40,7 +40,7 @@ pub mod v3 {
     #[response(error = crate::Error)]
     pub struct Response {
         /// A map from room IDs to session IDs to key data.
-        pub rooms: BTreeMap<OwnedRoomId, RoomKeyBackup>,
+        pub rooms: BTreeMap<RoomId, RoomKeyBackup>,
     }
 
     impl Request {
@@ -52,7 +52,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given room key backups.
-        pub fn new(rooms: BTreeMap<OwnedRoomId, RoomKeyBackup>) -> Self {
+        pub fn new(rooms: BTreeMap<RoomId, RoomKeyBackup>) -> Self {
             Self { rooms }
         }
     }

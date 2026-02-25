@@ -10,5 +10,5 @@ fn main() {
     _ = ruma_common::server_name!("myserver.fish");
     _ = ruma_common::user_id!("@user:ruma.io");
 
-    _ = ruma_common::owned_user_id!("@user:ruma.io");
+    _ = ruma_common::user_id!("@user:ruma.io");
 }

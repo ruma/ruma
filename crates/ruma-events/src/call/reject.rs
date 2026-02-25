@@ -2,7 +2,7 @@
 //!
 //! [`m.call.reject`]: https://spec.matrix.org/latest/client-server-api/#mcallreject
 
-use ruma_common::{OwnedVoipId, VoipVersionId};
+use ruma_common::{VoipId, VoipVersionId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -14,10 +14,10 @@ use serde::{Deserialize, Serialize};
 #[ruma_event(type = "m.call.reject", kind = MessageLike)]
 pub struct CallRejectEventContent {
     /// The ID of the call this event relates to.
-    pub call_id: OwnedVoipId,
+    pub call_id: VoipId,
 
     /// A unique ID for this session for the duration of the call.
-    pub party_id: OwnedVoipId,
+    pub party_id: VoipId,
 
     /// The version of the VoIP specification this messages adheres to.
     ///
@@ -27,13 +27,13 @@ pub struct CallRejectEventContent {
 
 impl CallRejectEventContent {
     /// Creates a `CallRejectEventContent` with the given call ID, VoIP version and party ID.
-    pub fn new(call_id: OwnedVoipId, party_id: OwnedVoipId, version: VoipVersionId) -> Self {
+    pub fn new(call_id: VoipId, party_id: VoipId, version: VoipVersionId) -> Self {
         Self { call_id, party_id, version }
     }
 
     /// Convenience method to create a version 1 `CallRejectEventContent` with all the required
     /// fields.
-    pub fn version_1(call_id: OwnedVoipId, party_id: OwnedVoipId) -> Self {
+    pub fn version_1(call_id: VoipId, party_id: VoipId) -> Self {
         Self::new(call_id, party_id, VoipVersionId::V1)
     }
 }

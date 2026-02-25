@@ -2,7 +2,7 @@
 //!
 //! [`m.sticker`]: https://spec.matrix.org/latest/client-server-api/#msticker
 
-use ruma_common::OwnedMxcUri;
+use ruma_common::MxcUri;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize, de};
 
@@ -16,7 +16,7 @@ use crate::room::{ImageInfo, MediaSource, message::Relation};
 pub enum StickerMediaSource {
     /// The MXC URI to the unencrypted media file.
     #[serde(rename = "url")]
-    Plain(OwnedMxcUri),
+    Plain(MxcUri),
 
     /// The encryption info of the encrypted media file.
     #[cfg(feature = "compat-encrypted-stickers")]
@@ -35,7 +35,7 @@ impl<'de> Deserialize<'de> for StickerMediaSource {
     {
         #[derive(Deserialize)]
         struct StickerMediaSourceJsonRepr {
-            url: Option<OwnedMxcUri>,
+            url: Option<MxcUri>,
             #[cfg(feature = "compat-encrypted-stickers")]
             file: Option<Box<EncryptedFile>>,
         }
@@ -107,7 +107,7 @@ pub struct StickerEventContent {
 
 impl StickerEventContent {
     /// Creates a new `StickerEventContent` with the given body, image info and URL.
-    pub fn new(body: String, info: ImageInfo, url: OwnedMxcUri) -> Self {
+    pub fn new(body: String, info: ImageInfo, url: MxcUri) -> Self {
         Self { body, info, source: StickerMediaSource::Plain(url.clone()), relates_to: None }
     }
 

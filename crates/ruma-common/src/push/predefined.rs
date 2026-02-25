@@ -759,7 +759,7 @@ mod tests {
         .collect();
         let mut ruleset = Ruleset { override_, ..Default::default() };
 
-        let new_server_default = Ruleset::server_default(user_id!("@user:localhost"));
+        let new_server_default = Ruleset::server_default(&user_id!("@user:localhost"));
 
         ruleset.update_with_server_default(new_server_default);
 

@@ -9,7 +9,7 @@ pub mod v3 {
 
     use js_int::{UInt, uint};
     use ruma_common::{
-        OwnedRoomId,
+        RoomId,
         api::{Direction, auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -33,7 +33,7 @@ pub mod v3 {
     pub struct Request {
         /// The room to get events from.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The token to start returning events from.
         ///
@@ -100,7 +100,7 @@ pub mod v3 {
         /// Creates a new `Request` with the given room ID and direction.
         ///
         /// All other parameters will be defaulted.
-        pub fn new(room_id: OwnedRoomId, dir: Direction) -> Self {
+        pub fn new(room_id: RoomId, dir: Direction) -> Self {
             Self {
                 room_id,
                 from: None,
@@ -120,11 +120,11 @@ pub mod v3 {
         ///
         /// ```rust
         /// # use ruma_client_api::message::get_message_events;
-        /// # let room_id = ruma_common::owned_room_id!("!a:example.org");
+        /// # let room_id = ruma_common::room_id!("!a:example.org");
         /// # let token = "prev_batch token".to_owned();
         /// let request = get_message_events::v3::Request::backward(room_id).from(token);
         /// ```
-        pub fn backward(room_id: OwnedRoomId) -> Self {
+        pub fn backward(room_id: RoomId) -> Self {
             Self::new(room_id, Direction::Backward)
         }
 
@@ -137,11 +137,11 @@ pub mod v3 {
         ///
         /// ```rust
         /// # use ruma_client_api::message::get_message_events;
-        /// # let room_id = ruma_common::owned_room_id!("!a:example.org");
+        /// # let room_id = ruma_common::room_id!("!a:example.org");
         /// # let token = "end token".to_owned();
         /// let request = get_message_events::v3::Request::forward(room_id).from(token);
         /// ```
-        pub fn forward(room_id: OwnedRoomId) -> Self {
+        pub fn forward(room_id: RoomId) -> Self {
             Self::new(room_id, Direction::Forward)
         }
 
@@ -181,7 +181,7 @@ pub mod v3 {
                 Direction, MatrixVersion, OutgoingRequest, SupportedVersions,
                 auth_scheme::SendAccessToken,
             },
-            owned_room_id,
+            room_id,
         };
 
         use super::Request;
@@ -189,15 +189,15 @@ pub mod v3 {
 
         #[test]
         fn serialize_some_room_event_filter() {
-            let room_id = owned_room_id!("!roomid:example.org");
+            let room_id = room_id!("!roomid:example.org");
             let rooms = vec![room_id.clone()];
             let filter = RoomEventFilter {
                 lazy_load_options: LazyLoadOptions::Enabled { include_redundant_members: true },
                 rooms: Some(rooms),
                 not_rooms: vec![
-                    owned_room_id!("!room:example.org"),
-                    owned_room_id!("!room2:example.org"),
-                    owned_room_id!("!room3:example.org"),
+                    room_id!("!room:example.org"),
+                    room_id!("!room2:example.org"),
+                    room_id!("!room3:example.org"),
                 ],
                 not_types: vec!["type".into()],
                 ..Default::default()
@@ -234,7 +234,7 @@ pub mod v3 {
 
         #[test]
         fn serialize_default_room_event_filter() {
-            let room_id = owned_room_id!("!roomid:example.org");
+            let room_id = room_id!("!roomid:example.org");
             let req = Request {
                 room_id,
                 from: Some("token".to_owned()),

@@ -108,14 +108,14 @@ fn deserialize_avatar_without_prev_content() {
     assert_eq!(ev.room_id, "!roomid:room.com");
     assert_eq!(ev.sender, "@carl:example.com");
     assert!(ev.unsigned.is_empty());
-    assert_eq!(ev.content.url.as_deref(), Some(mxc_uri!("mxc://matrix.org/rnsldl8srs98IRrs")));
+    assert_eq!(ev.content.url, Some(mxc_uri!("mxc://matrix.org/rnsldl8srs98IRrs")));
 
     let info = ev.content.info.unwrap();
     assert_eq!(info.height, Some(uint!(423)));
     assert_eq!(info.width, Some(uint!(1011)));
     assert_eq!(info.mimetype.as_deref(), Some("image/png"));
     assert_eq!(info.size, Some(uint!(84242)));
-    assert_eq!(info.thumbnail_url.as_deref(), Some(mxc_uri!("mxc://matrix.org/98irRSS23srs")));
+    assert_eq!(info.thumbnail_url, Some(mxc_uri!("mxc://matrix.org/98irRSS23srs")));
 
     let thumbnail_info = info.thumbnail_info.unwrap();
     assert_eq!(thumbnail_info.width, Some(uint!(800)));

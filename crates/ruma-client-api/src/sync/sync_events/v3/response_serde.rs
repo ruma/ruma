@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 #[cfg(feature = "unstable-msc2654")]
 use js_int::UInt;
-use ruma_common::{OwnedEventId, serde::from_raw_json_value};
+use ruma_common::{EventId, serde::from_raw_json_value};
 use serde::{Deserialize, Deserializer};
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -64,7 +64,7 @@ struct JoinedRoomDeHelper {
     #[serde(default)]
     unread_notifications: UnreadNotificationsCount,
     #[serde(default)]
-    unread_thread_notifications: BTreeMap<OwnedEventId, UnreadNotificationsCount>,
+    unread_thread_notifications: BTreeMap<EventId, UnreadNotificationsCount>,
     #[serde(default)]
     timeline: Timeline,
     #[serde(default)]

@@ -7,7 +7,7 @@ use js_int::uint;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch,
     canonical_json::assert_to_canonical_json_eq,
-    owned_event_id, owned_mxc_uri,
+    event_id, mxc_uri,
     serde::{Base64, CanBeEmpty},
 };
 use ruma_events::{
@@ -25,10 +25,7 @@ use serde_json::{from_value as from_json_value, json};
 fn plain_content_serialization() {
     let event_content = VideoEventContent::with_plain_text(
         "Upload: my_video.webm",
-        FileContentBlock::plain(
-            owned_mxc_uri!("mxc://notareal.hs/abcdef"),
-            "my_video.webm".to_owned(),
-        ),
+        FileContentBlock::plain(mxc_uri!("mxc://notareal.hs/abcdef"), "my_video.webm".to_owned()),
     );
 
     assert_to_canonical_json_eq!(
@@ -50,7 +47,7 @@ fn encrypted_content_serialization() {
     let event_content = VideoEventContent::with_plain_text(
         "Upload: my_video.webm",
         FileContentBlock::encrypted(
-            owned_mxc_uri!("mxc://notareal.hs/abcdef"),
+            mxc_uri!("mxc://notareal.hs/abcdef"),
             "my_video.webm".to_owned(),
             EncryptedContentInit {
                 key: JsonWebKeyInit {
@@ -107,7 +104,7 @@ fn event_serialization() {
             "Upload: <strong>my_lava_lamp.webm</strong>",
         ),
         FileContentBlock::plain(
-            owned_mxc_uri!("mxc://notareal.hs/abcdef"),
+            mxc_uri!("mxc://notareal.hs/abcdef"),
             "my_lava_lamp.webm".to_owned(),
         ),
     );
@@ -119,7 +116,7 @@ fn event_serialization() {
     content.video_details = Some(video_details);
     let mut thumbnail = Thumbnail::new(
         ThumbnailFileContentBlock::plain(
-            owned_mxc_uri!("mxc://notareal.hs/thumbnail"),
+            mxc_uri!("mxc://notareal.hs/thumbnail"),
             "image/jpeg".to_owned(),
         ),
         ThumbnailImageDetailsContentBlock::new(uint!(560), uint!(480)),
@@ -127,9 +124,8 @@ fn event_serialization() {
     thumbnail.file.size = Some(uint!(334_593));
     content.thumbnail = vec![thumbnail].into();
     content.caption = Some(CaptionContentBlock::plain("This is my awesome vintage lava lamp"));
-    content.relates_to = Some(Relation::Reply {
-        in_reply_to: InReplyTo::new(owned_event_id!("$replyevent:example.com")),
-    });
+    content.relates_to =
+        Some(Relation::Reply { in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com")) });
 
     assert_to_canonical_json_eq!(
         content,

@@ -2,7 +2,7 @@
 //!
 //! [`m.room.pinned_events`]: https://spec.matrix.org/latest/client-server-api/#mroompinned_events
 
-use ruma_common::OwnedEventId;
+use ruma_common::EventId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -16,19 +16,19 @@ use crate::EmptyStateKey;
 #[ruma_event(type = "m.room.pinned_events", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomPinnedEventsEventContent {
     /// An ordered list of event IDs to pin.
-    pub pinned: Vec<OwnedEventId>,
+    pub pinned: Vec<EventId>,
 }
 
 impl RoomPinnedEventsEventContent {
     /// Creates a new `RoomPinnedEventsEventContent` with the given events.
-    pub fn new(pinned: Vec<OwnedEventId>) -> Self {
+    pub fn new(pinned: Vec<EventId>) -> Self {
         Self { pinned }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::owned_event_id;
+    use ruma_common::event_id;
 
     use super::RoomPinnedEventsEventContent;
 
@@ -37,8 +37,8 @@ mod tests {
         let mut content: RoomPinnedEventsEventContent =
             RoomPinnedEventsEventContent { pinned: Vec::new() };
 
-        content.pinned.push(owned_event_id!("$a:example.com"));
-        content.pinned.push(owned_event_id!("$b:example.com"));
+        content.pinned.push(event_id!("$a:example.com"));
+        content.pinned.push(event_id!("$b:example.com"));
 
         let serialized = serde_json::to_string(&content).unwrap();
         let parsed_content: RoomPinnedEventsEventContent =

@@ -6,7 +6,7 @@
 
 use std::collections::BTreeSet;
 
-use ruma_common::OwnedUserId;
+use ruma_common::UserId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -21,12 +21,12 @@ use crate::EmptyStateKey;
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct MemberHintsEventContent {
     /// The list of user IDs that should be considered a service member of the room.
-    pub service_members: BTreeSet<OwnedUserId>,
+    pub service_members: BTreeSet<UserId>,
 }
 
 impl MemberHintsEventContent {
     /// Create a new [`MemberHintsEventContent`] with the given set of service members.
-    pub fn new(service_members: BTreeSet<OwnedUserId>) -> Self {
+    pub fn new(service_members: BTreeSet<UserId>) -> Self {
         Self { service_members }
     }
 }
@@ -66,7 +66,7 @@ mod test {
         assert_matches!(event, AnyStateEvent::MemberHints(event));
         assert_matches!(event, crate::StateEvent::Original(event));
 
-        assert!(event.content.service_members.contains(user_id));
+        assert!(event.content.service_members.contains(&user_id));
 
         let data = json!({
             "type": "m.member_hints",
@@ -88,13 +88,13 @@ mod test {
         assert_matches!(event, AnyStateEvent::MemberHints(event));
         assert_matches!(event, crate::StateEvent::Original(event));
 
-        assert!(event.content.service_members.contains(user_id));
+        assert!(event.content.service_members.contains(&user_id));
     }
 
     #[test]
     fn serialize() {
         let user_id = user_id!("@slackbot:matrix.org");
-        let content = MemberHintsEventContent::new(BTreeSet::from([user_id.to_owned()]));
+        let content = MemberHintsEventContent::new(BTreeSet::from([user_id.clone()]));
 
         let serialized = serde_json::to_value(content)
             .expect("We should be able to serialize the member hints content");

@@ -10,7 +10,7 @@ pub mod v3 {
     use std::collections::{BTreeMap, btree_map};
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
     };
@@ -33,7 +33,7 @@ pub mod v3 {
     pub struct Request {
         /// The user whose profile will be retrieved.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
     }
 
     /// Response type for the `get_profile` endpoint.
@@ -47,7 +47,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id }
         }
     }
@@ -142,13 +142,13 @@ mod tests {
     #[test]
     #[cfg(feature = "server")]
     fn serialize_response() {
-        use ruma_common::{api::OutgoingResponse, owned_mxc_uri};
+        use ruma_common::{api::OutgoingResponse, mxc_uri};
         use serde_json::{Value as JsonValue, from_slice as from_json_slice};
 
         use crate::profile::ProfileFieldValue;
 
         let response = [
-            ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef")),
+            ProfileFieldValue::AvatarUrl(mxc_uri!("mxc://localhost/abcdef")),
             ProfileFieldValue::DisplayName("Alice".to_owned()),
             ProfileFieldValue::new("custom_field", "value".into()).unwrap(),
         ]

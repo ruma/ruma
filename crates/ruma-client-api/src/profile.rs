@@ -7,7 +7,7 @@ use ruma_common::api::{
     MatrixVersion,
     path_builder::{StablePathSelector, VersionHistory},
 };
-use ruma_common::{OwnedMxcUri, serde::StringEnum};
+use ruma_common::{MxcUri, serde::StringEnum};
 use serde::Serialize;
 use serde_json::{Value as JsonValue, from_value as from_json_value, to_value as to_json_value};
 
@@ -64,7 +64,7 @@ impl ProfileFieldName {
 #[non_exhaustive]
 pub enum ProfileFieldValue {
     /// The user's avatar URL.
-    AvatarUrl(OwnedMxcUri),
+    AvatarUrl(MxcUri),
 
     /// The user's display name.
     #[serde(rename = "displayname")]
@@ -157,7 +157,7 @@ const EXTENDED_PROFILE_FIELD_HISTORY: VersionHistory = VersionHistory::new(
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_mxc_uri};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, mxc_uri};
     use serde_json::{from_value as from_json_value, json};
 
     use super::ProfileFieldValue;
@@ -165,7 +165,7 @@ mod tests {
     #[test]
     fn serialize_profile_field_value() {
         // Avatar URL.
-        let value = ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef"));
+        let value = ProfileFieldValue::AvatarUrl(mxc_uri!("mxc://localhost/abcdef"));
         assert_to_canonical_json_eq!(value, json!({ "avatar_url": "mxc://localhost/abcdef" }));
 
         // Display name.
@@ -183,7 +183,7 @@ mod tests {
         let json = json!({ "avatar_url": "mxc://localhost/abcdef" });
         assert_eq!(
             from_json_value::<ProfileFieldValue>(json).unwrap(),
-            ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef"))
+            ProfileFieldValue::AvatarUrl(mxc_uri!("mxc://localhost/abcdef"))
         );
 
         // Display name.

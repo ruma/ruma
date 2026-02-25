@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3knockroomidoralias
 
     use ruma_common::{
-        OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName,
+        RoomId, RoomOrAliasId, ServerName,
         api::{auth_scheme::AccessToken, response},
         metadata,
     };
@@ -28,7 +28,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
         /// The room the user should knock on.
-        pub room_id_or_alias: OwnedRoomOrAliasId,
+        pub room_id_or_alias: RoomOrAliasId,
 
         /// The reason for joining a room.
         pub reason: Option<String>,
@@ -42,7 +42,7 @@ pub mod v3 {
         ///
         /// When deserializing, the value is read from `via` if it's not missing or
         /// empty and `server_name` otherwise.
-        pub via: Vec<OwnedServerName>,
+        pub via: Vec<ServerName>,
     }
 
     /// Data in the request's query string.
@@ -51,13 +51,13 @@ pub mod v3 {
     struct RequestQuery {
         /// The servers to attempt to knock on the room through.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        via: Vec<OwnedServerName>,
+        via: Vec<ServerName>,
 
         /// The servers to attempt to knock on the room through.
         ///
         /// Deprecated in Matrix >1.11 in favour of `via`.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        server_name: Vec<OwnedServerName>,
+        server_name: Vec<ServerName>,
     }
 
     /// Data in the request's body.
@@ -158,19 +158,19 @@ pub mod v3 {
     #[response(error = crate::Error)]
     pub struct Response {
         /// The room that the user knocked on.
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
     }
 
     impl Request {
         /// Creates a new `Request` with the given room ID or alias.
-        pub fn new(room_id_or_alias: OwnedRoomOrAliasId) -> Self {
+        pub fn new(room_id_or_alias: RoomOrAliasId) -> Self {
             Self { room_id_or_alias, reason: None, via: vec![] }
         }
     }
 
     impl Response {
         /// Creates a new `Response` with the given room ID.
-        pub fn new(room_id: OwnedRoomId) -> Self {
+        pub fn new(room_id: RoomId) -> Self {
             Self { room_id }
         }
     }
@@ -183,15 +183,15 @@ pub mod v3 {
             api::{
                 MatrixVersion, OutgoingRequest, SupportedVersions, auth_scheme::SendAccessToken,
             },
-            owned_room_id, owned_server_name,
+            room_id, server_name,
         };
 
         use super::Request;
 
         #[test]
         fn serialize_request_via_and_server_name() {
-            let mut req = Request::new(owned_room_id!("!foo:b.ar").into());
-            req.via = vec![owned_server_name!("f.oo")];
+            let mut req = Request::new(room_id!("!foo:b.ar").into());
+            req.via = vec![server_name!("f.oo")];
             let supported = SupportedVersions {
                 versions: [MatrixVersion::V1_1].into(),
                 features: Default::default(),
@@ -209,8 +209,8 @@ pub mod v3 {
 
         #[test]
         fn serialize_request_only_via() {
-            let mut req = Request::new(owned_room_id!("!foo:b.ar").into());
-            req.via = vec![owned_server_name!("f.oo")];
+            let mut req = Request::new(room_id!("!foo:b.ar").into());
+            req.via = vec![server_name!("f.oo")];
             let supported = SupportedVersions {
                 versions: [MatrixVersion::V1_12].into(),
                 features: Default::default(),
@@ -229,7 +229,7 @@ pub mod v3 {
 
     #[cfg(all(test, feature = "server"))]
     mod tests_server {
-        use ruma_common::{api::IncomingRequest as _, owned_server_name};
+        use ruma_common::{api::IncomingRequest as _, server_name};
 
         use super::Request;
 
@@ -260,7 +260,7 @@ pub mod v3 {
 
             assert_eq!(req.room_id_or_alias, "!foo:b.ar");
             assert_eq!(req.reason, Some("Let me in already!".to_owned()));
-            assert_eq!(req.via, vec![owned_server_name!("f.oo")]);
+            assert_eq!(req.via, vec![server_name!("f.oo")]);
         }
 
         #[test]
@@ -277,7 +277,7 @@ pub mod v3 {
 
             assert_eq!(req.room_id_or_alias, "!foo:b.ar");
             assert_eq!(req.reason, Some("Let me in already!".to_owned()));
-            assert_eq!(req.via, vec![owned_server_name!("f.oo")]);
+            assert_eq!(req.via, vec![server_name!("f.oo")]);
         }
 
         #[test]
@@ -294,7 +294,7 @@ pub mod v3 {
 
             assert_eq!(req.room_id_or_alias, "!foo:b.ar");
             assert_eq!(req.reason, Some("Let me in already!".to_owned()));
-            assert_eq!(req.via, vec![owned_server_name!("f.oo")]);
+            assert_eq!(req.via, vec![server_name!("f.oo")]);
         }
     }
 }

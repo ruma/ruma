@@ -22,7 +22,7 @@ use event::{EventHash, PduEvent};
 use js_int::{int, uint};
 use maplit::{btreemap, hashmap, hashset};
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, UserId, room_id,
+    EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId, room_id,
     room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
     user_id,
 };
@@ -60,6 +60,7 @@ fn reverse_topological_power_sort(c: &mut Criterion) {
 
 fn resolution_shallow_auth_chain(c: &mut Criterion) {
     c.bench_function("resolve state of 5 events one fork", |b| {
+        let room_id = room_id();
         let mut store = TestStore(hashmap! {});
 
         // build up the DAG
@@ -75,7 +76,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
                 state_sets
                     .iter()
                     .map(|map| {
-                        store.auth_event_ids(room_id(), map.values().cloned().collect()).unwrap()
+                        store.auth_event_ids(&room_id, map.values().cloned().collect()).unwrap()
                     })
                     .collect(),
                 |id| ev_map.get(id).map(Arc::clone),
@@ -92,6 +93,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
     c.bench_function("resolve state of 10 events 3 conflicting", |b| {
         let mut inner = INITIAL_EVENTS();
         let ban = BAN_STATE_SET();
+        let room_id = room_id();
 
         inner.extend(ban);
         let store = TestStore(inner.clone());
@@ -135,7 +137,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
                 state_sets
                     .iter()
                     .map(|map| {
-                        store.auth_event_ids(room_id(), map.values().cloned().collect()).unwrap()
+                        store.auth_event_ids(&room_id, map.values().cloned().collect()).unwrap()
                     })
                     .collect(),
                 |id| inner.get(id).map(Arc::clone),
@@ -160,7 +162,7 @@ criterion_main!(benches);
 //  IMPLEMENTATION DETAILS AHEAD
 //
 /////////////////////////////////////////////////////////////////////*/
-struct TestStore<E: Event>(HashMap<OwnedEventId, Arc<E>>);
+struct TestStore<E: Event>(HashMap<EventId, Arc<E>>);
 
 #[allow(unused)]
 impl<E: Event> TestStore<E> {
@@ -169,7 +171,7 @@ impl<E: Event> TestStore<E> {
     }
 
     /// Returns the events that correspond to the `event_ids` sorted in the same order.
-    fn get_events(&self, room_id: &RoomId, event_ids: &[OwnedEventId]) -> Result<Vec<Arc<E>>> {
+    fn get_events(&self, room_id: &RoomId, event_ids: &[EventId]) -> Result<Vec<Arc<E>>> {
         let mut events = vec![];
         for id in event_ids {
             events.push(self.get_event(room_id, id)?);
@@ -227,9 +229,7 @@ impl<E: Event> TestStore<E> {
 
 impl TestStore<PduEvent> {
     #[allow(clippy::type_complexity)]
-    fn set_up(
-        &mut self,
-    ) -> (StateMap<OwnedEventId>, StateMap<OwnedEventId>, StateMap<OwnedEventId>) {
+    fn set_up(&mut self) -> (StateMap<EventId>, StateMap<EventId>, StateMap<EventId>) {
         let create_event = to_pdu_event::<&EventId>(
             "CREATE",
             alice(),
@@ -313,30 +313,30 @@ impl TestStore<PduEvent> {
     }
 }
 
-fn event_id(id: &str) -> OwnedEventId {
+fn event_id(id: &str) -> EventId {
     if id.contains('$') {
         return id.try_into().unwrap();
     }
     format!("${id}:foo").try_into().unwrap()
 }
 
-fn alice() -> &'static UserId {
+fn alice() -> UserId {
     user_id!("@alice:foo")
 }
 
-fn bob() -> &'static UserId {
+fn bob() -> UserId {
     user_id!("@bob:foo")
 }
 
-fn charlie() -> &'static UserId {
+fn charlie() -> UserId {
     user_id!("@charlie:foo")
 }
 
-fn ella() -> &'static UserId {
+fn ella() -> UserId {
     user_id!("@ella:foo")
 }
 
-fn room_id() -> &'static RoomId {
+fn room_id() -> RoomId {
     room_id!("!test:foo")
 }
 
@@ -350,7 +350,7 @@ fn member_content_join() -> Box<RawJsonValue> {
 
 fn to_pdu_event<S>(
     id: &str,
-    sender: &UserId,
+    sender: UserId,
     ev_type: TimelineEventType,
     state_key: Option<&str>,
     content: Box<RawJsonValue>,
@@ -370,8 +370,8 @@ where
     let state_key = state_key.map(ToOwned::to_owned);
     Arc::new(PduEvent {
         event_id: id.try_into().unwrap(),
-        room_id: Some(room_id().to_owned()),
-        sender: sender.to_owned(),
+        room_id: Some(room_id()),
+        sender,
         origin_server_ts: MilliSecondsSinceUnixEpoch(ts.try_into().unwrap()),
         state_key,
         kind: ev_type,
@@ -389,7 +389,7 @@ where
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
+fn INITIAL_EVENTS() -> HashMap<EventId, Arc<PduEvent>> {
     vec![
         to_pdu_event::<&EventId>(
             "CREATE",
@@ -471,7 +471,7 @@ fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn BAN_STATE_SET() -> HashMap<OwnedEventId, Arc<PduEvent>> {
+fn BAN_STATE_SET() -> HashMap<EventId, Arc<PduEvent>> {
     vec![
         to_pdu_event(
             "PA",
@@ -530,10 +530,7 @@ pub(crate) mod event {
     use std::collections::BTreeMap;
 
     use js_int::UInt;
-    use ruma_common::{
-        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId,
-        ServerSignatures, UserId,
-    };
+    use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, RoomId, ServerSignatures, UserId};
     use ruma_events::TimelineEventType;
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
@@ -541,14 +538,14 @@ pub(crate) mod event {
     use crate::Event;
 
     impl Event for PduEvent {
-        type Id = OwnedEventId;
+        type Id = EventId;
 
         fn event_id(&self) -> &Self::Id {
             &self.event_id
         }
 
         fn room_id(&self) -> Option<&RoomId> {
-            self.room_id.as_deref()
+            self.room_id.as_ref()
         }
 
         fn sender(&self) -> &UserId {
@@ -592,13 +589,13 @@ pub(crate) mod event {
     #[allow(clippy::exhaustive_structs)]
     pub(crate) struct PduEvent {
         /// The ID of the event.
-        pub(crate) event_id: OwnedEventId,
+        pub(crate) event_id: EventId,
 
         /// The room this event belongs to.
-        pub(crate) room_id: Option<OwnedRoomId>,
+        pub(crate) room_id: Option<RoomId>,
 
         /// The user id of the user who sent this event.
-        pub(crate) sender: OwnedUserId,
+        pub(crate) sender: UserId,
 
         /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver
         /// of when this event was created.
@@ -617,18 +614,18 @@ pub(crate) mod event {
 
         /// Event IDs for the most recent events in the room that the homeserver was
         /// aware of when it created this event.
-        pub(crate) prev_events: Vec<OwnedEventId>,
+        pub(crate) prev_events: Vec<EventId>,
 
         /// The maximum depth of the `prev_events`, plus one.
         pub(crate) depth: UInt,
 
         /// Event IDs for the authorization events that would allow this event to be
         /// in the room.
-        pub(crate) auth_events: Vec<OwnedEventId>,
+        pub(crate) auth_events: Vec<EventId>,
 
         /// For redaction events, the ID of the event being redacted.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub(crate) redacts: Option<OwnedEventId>,
+        pub(crate) redacts: Option<EventId>,
 
         /// Additional data added by the origin server but not covered by the
         /// signatures.

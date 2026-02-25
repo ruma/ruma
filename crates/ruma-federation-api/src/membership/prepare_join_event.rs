@@ -8,7 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1make_joinroomiduserid
 
     use ruma_common::{
-        OwnedRoomId, OwnedUserId, RoomVersionId,
+        RoomId, RoomVersionId, UserId,
         api::{request, response},
         metadata,
     };
@@ -28,11 +28,11 @@ pub mod v1 {
     pub struct Request {
         /// The room ID that is about to be joined.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The user ID the join event will be for.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The room versions the sending server has support for.
         ///
@@ -65,7 +65,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given room id and user id.
-        pub fn new(room_id: OwnedRoomId, user_id: OwnedUserId) -> Self {
+        pub fn new(room_id: RoomId, user_id: UserId) -> Self {
             Self { room_id, user_id, ver: vec![RoomVersionId::V1] }
         }
     }

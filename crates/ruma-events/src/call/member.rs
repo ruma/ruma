@@ -13,7 +13,7 @@ use std::time::Duration;
 pub use focus::*;
 pub use member_data::*;
 pub use member_state_key::*;
-use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedDeviceId, room_version_rules::RedactionRules};
+use ruma_common::{DeviceId, MilliSecondsSinceUnixEpoch, room_version_rules::RedactionRules};
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
 
@@ -68,7 +68,7 @@ impl CallMemberEventContent {
     /// * `expires` - The time after which the event is considered as expired. Defaults to 4 hours.
     pub fn new(
         application: Application,
-        device_id: OwnedDeviceId,
+        device_id: DeviceId,
         focus_active: ActiveFocus,
         foci_preferred: Vec<Focus>,
         created_ts: Option<MilliSecondsSinceUnixEpoch>,
@@ -254,8 +254,7 @@ mod tests {
 
     use assert_matches2::assert_matches;
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch as TS, OwnedEventId, OwnedRoomId, OwnedUserId, device_id,
-        owned_device_id, user_id,
+        EventId, MilliSecondsSinceUnixEpoch as TS, RoomId, UserId, device_id, user_id,
     };
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
@@ -277,7 +276,7 @@ mod tests {
                 call_id: "123456".to_owned(),
                 scope: CallScope::Room,
             }),
-            device_id: owned_device_id!("ABCDE"),
+            device_id: device_id!("ABCDE"),
             expires: Duration::from_secs(3600),
             foci_active: vec![Focus::Livekit(LivekitFocus {
                 alias: "1".to_owned(),
@@ -294,7 +293,7 @@ mod tests {
                 call_id: "123456".to_owned(),
                 scope: CallScope::Room,
             }),
-            owned_device_id!("ABCDE"),
+            device_id!("ABCDE"),
             ActiveFocus::Livekit(ActiveLivekitFocus {
                 focus_selection: FocusSelection::OldestMembership,
             }),
@@ -376,7 +375,7 @@ mod tests {
                 call_id: "123456".to_owned(),
                 scope: CallScope::Room,
             }),
-            owned_device_id!("THIS_DEVICE"),
+            device_id!("THIS_DEVICE"),
             ActiveFocus::Livekit(ActiveLivekitFocus {
                 focus_selection: FocusSelection::OldestMembership,
             }),
@@ -428,7 +427,7 @@ mod tests {
                     call_id: "123456".to_owned(),
                     scope: CallScope::Room,
                 }),
-                device_id: owned_device_id!("THIS_DEVICE"),
+                device_id: device_id!("THIS_DEVICE"),
                 expires: Duration::from_secs(3600),
                 foci_active: vec![Focus::Livekit(LivekitFocus {
                     alias: "room1".to_owned(),
@@ -442,7 +441,7 @@ mod tests {
                     call_id: "".to_owned(),
                     scope: CallScope::Room,
                 }),
-                device_id: owned_device_id!("OTHER_DEVICE"),
+                device_id: device_id!("OTHER_DEVICE"),
                 expires: Duration::from_secs(3600),
                 foci_active: vec![Focus::Livekit(LivekitFocus {
                     alias: "room2".to_owned(),
@@ -538,9 +537,9 @@ mod tests {
             Ok(AnyStateEvent::CallMember(StateEvent::Original(member_event)))
         );
 
-        let event_id = OwnedEventId::try_from("$3qfxjGYSu4sL25FtR0ep6vePOc").unwrap();
-        let sender = OwnedUserId::try_from("@user:example.org").unwrap();
-        let room_id = OwnedRoomId::try_from("!1234:example.org").unwrap();
+        let event_id = EventId::try_from("$3qfxjGYSu4sL25FtR0ep6vePOc").unwrap();
+        let sender = UserId::try_from("@user:example.org").unwrap();
+        let room_id = RoomId::try_from("!1234:example.org").unwrap();
         assert_eq!(member_event.state_key.as_ref(), state_key);
         assert_eq!(member_event.event_id, event_id);
         assert_eq!(member_event.sender, sender);
@@ -551,7 +550,7 @@ mod tests {
                 call_id: "".to_owned(),
                 scope: CallScope::Room,
             }),
-            device_id: owned_device_id!("THIS_DEVICE"),
+            device_id: device_id!("THIS_DEVICE"),
             foci_preferred: [Focus::Livekit(LivekitFocus {
                 alias: "room1".to_owned(),
                 service_url: "https://livekit1.com".to_owned(),
@@ -679,10 +678,10 @@ mod tests {
             from_json_value::<AnyStateEvent>(member_event_json("@noserverpart:_suffix")).is_err()
         );
 
-        let user_id = user_id!("@username:example.org").as_str();
-        let device_id = device_id!("VALID_DEVICE_ID").as_str();
+        let user_id = user_id!("@username:example.org");
+        let device_id = device_id!("VALID_DEVICE_ID");
 
-        let parse_result = from_json_value::<AnyStateEvent>(member_event_json(user_id));
+        let parse_result = from_json_value::<AnyStateEvent>(member_event_json(user_id.as_str()));
         assert_matches!(parse_result, Ok(_));
         assert_matches!(
             from_json_value::<AnyStateEvent>(member_event_json(&format!("{user_id}_{device_id}"))),

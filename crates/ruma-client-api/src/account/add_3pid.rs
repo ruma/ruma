@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3account3pidadd
 
     use ruma_common::{
-        OwnedClientSecret, OwnedSessionId,
+        ClientSecret, SessionId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -33,10 +33,10 @@ pub mod v3 {
         pub auth: Option<AuthData>,
 
         /// Client-generated secret string used to protect this session.
-        pub client_secret: OwnedClientSecret,
+        pub client_secret: ClientSecret,
 
         /// The session identifier given by the identity server.
-        pub sid: OwnedSessionId,
+        pub sid: SessionId,
     }
 
     /// Response type for the `add_3pid` endpoint.
@@ -46,7 +46,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given client secret and session identifier.
-        pub fn new(client_secret: OwnedClientSecret, sid: OwnedSessionId) -> Self {
+        pub fn new(client_secret: ClientSecret, sid: SessionId) -> Self {
             Self { auth: None, client_secret, sid }
         }
     }

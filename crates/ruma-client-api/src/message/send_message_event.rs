@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid
 
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedTransactionId,
+        EventId, MilliSecondsSinceUnixEpoch, RoomId, TransactionId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -31,7 +31,7 @@ pub mod v3 {
     pub struct Request {
         /// The room to send the event to.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The type of event to send.
         #[ruma_api(path)]
@@ -47,7 +47,7 @@ pub mod v3 {
         ///
         /// [access token is refreshed]: https://spec.matrix.org/latest/client-server-api/#refreshing-access-tokens
         #[ruma_api(path)]
-        pub txn_id: OwnedTransactionId,
+        pub txn_id: TransactionId,
 
         /// The event content to send.
         #[ruma_api(body)]
@@ -69,7 +69,7 @@ pub mod v3 {
     #[response(error = crate::Error)]
     pub struct Response {
         /// A unique identifier for the event.
-        pub event_id: OwnedEventId,
+        pub event_id: EventId,
     }
 
     impl Request {
@@ -80,8 +80,8 @@ pub mod v3 {
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
         pub fn new<T>(
-            room_id: OwnedRoomId,
-            txn_id: OwnedTransactionId,
+            room_id: RoomId,
+            txn_id: TransactionId,
             content: &T,
         ) -> serde_json::Result<Self>
         where
@@ -99,8 +99,8 @@ pub mod v3 {
         /// Creates a new `Request` with the given room id, transaction id, event type and raw event
         /// content.
         pub fn new_raw(
-            room_id: OwnedRoomId,
-            txn_id: OwnedTransactionId,
+            room_id: RoomId,
+            txn_id: TransactionId,
             event_type: MessageLikeEventType,
             body: Raw<AnyMessageLikeEventContent>,
         ) -> Self {
@@ -110,7 +110,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given event id.
-        pub fn new(event_id: OwnedEventId) -> Self {
+        pub fn new(event_id: EventId) -> Self {
             Self { event_id }
         }
     }

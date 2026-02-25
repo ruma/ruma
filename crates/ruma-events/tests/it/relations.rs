@@ -2,9 +2,7 @@
 use assert_matches2::assert_let;
 use assert_matches2::assert_matches;
 use assign::assign;
-#[cfg(feature = "unstable-msc3381")]
-use ruma_common::event_id;
-use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_event_id, serde::Raw};
+use ruma_common::{canonical_json::assert_to_canonical_json_eq, event_id, serde::Raw};
 #[cfg(feature = "unstable-msc3381")]
 use ruma_events::poll::{
     start::{PollAnswer, PollContentBlock, PollStartEventContent},
@@ -51,7 +49,7 @@ fn reply_deserialize() {
 #[test]
 fn reply_serialize() {
     let content = assign!(RoomMessageEventContent::text_plain("This is a reply"), {
-        relates_to: Some(Relation::Reply { in_reply_to: InReplyTo::new(owned_event_id!("$1598361704261elfgc")) }),
+        relates_to: Some(Relation::Reply { in_reply_to: InReplyTo::new(event_id!("$1598361704261elfgc")) }),
     });
 
     assert_to_canonical_json_eq!(
@@ -72,7 +70,7 @@ fn reply_serialize() {
 fn reply_serialization_roundtrip() {
     let body = "This is a reply";
     let mut content = RoomMessageEventContent::text_plain(body);
-    let reply = InReplyTo::new(owned_event_id!("$1598361704261elfgc"));
+    let reply = InReplyTo::new(event_id!("$1598361704261elfgc"));
     content.relates_to = Some(Relation::Reply { in_reply_to: reply.clone() });
 
     let json_content = Raw::new(&content).unwrap();
@@ -91,7 +89,7 @@ fn replacement_serialize() {
         {
             relates_to: Some(Relation::Replacement(
                 Replacement::new(
-                    owned_event_id!("$1598361704261elfgc"),
+                    event_id!("$1598361704261elfgc"),
                     RoomMessageEventContent::text_plain("This is the new content.").into(),
                 )
             ))
@@ -149,7 +147,7 @@ fn replacement_serialization_roundtrip() {
     let mut content = RoomMessageEventContent::text_plain(body);
     let new_body = "This is the new content.";
     let replacement = Replacement::new(
-        owned_event_id!("$1598361704261elfgc"),
+        event_id!("$1598361704261elfgc"),
         RoomMessageEventContent::text_plain(new_body).into(),
     );
     content.relates_to = Some(Relation::Replacement(replacement.clone()));
@@ -172,8 +170,8 @@ fn thread_plain_serialize() {
         {
             relates_to: Some(Relation::Thread(
                 Thread::plain(
-                    owned_event_id!("$1598361704261elfgc"),
-                    owned_event_id!("$latesteventid"),
+                    event_id!("$1598361704261elfgc"),
+                    event_id!("$latesteventid"),
                 ),
             )),
         }
@@ -203,8 +201,8 @@ fn thread_reply_serialize() {
         {
             relates_to: Some(Relation::Thread(
                 Thread::reply(
-                    owned_event_id!("$1598361704261elfgc"),
-                    owned_event_id!("$repliedtoeventid"),
+                    event_id!("$1598361704261elfgc"),
+                    event_id!("$repliedtoeventid"),
                 ),
             )),
         }
@@ -308,8 +306,7 @@ fn thread_unstable_deserialize() {
 fn thread_serialization_roundtrip() {
     let body = "<text msg>";
     let mut content = RoomMessageEventContent::text_plain(body);
-    let thread =
-        Thread::plain(owned_event_id!("$1598361704261elfgc"), owned_event_id!("$latesteventid"));
+    let thread = Thread::plain(event_id!("$1598361704261elfgc"), event_id!("$latesteventid"));
     content.relates_to = Some(Relation::Thread(thread.clone()));
 
     let json_content = Raw::new(&content).unwrap();
@@ -419,8 +416,8 @@ fn unstable_poll_start_event_return_relations() {
             )
         ), {
           relates_to: Some(RelationWithoutReplacement::Thread(Thread::plain(
-                owned_event_id!("$thread_root_id"),
-                owned_event_id!("$prev_event_id")
+                event_id!("$thread_root_id"),
+                event_id!("$prev_event_id")
             ))),
         })),
     );
@@ -447,8 +444,8 @@ fn stable_poll_start_event_return_relations() {
             )
         ), {
           relates_to: Some(Relation::Thread(Thread::plain(
-                owned_event_id!("$thread_root_id"),
-                owned_event_id!("$prev_event_id")
+                event_id!("$thread_root_id"),
+                event_id!("$prev_event_id")
             ))),
         }));
 

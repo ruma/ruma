@@ -9,7 +9,7 @@ use std::{
 
 use js_int::{Int, int};
 use ruma_common::{
-    OwnedUserId, UserId,
+    UserId,
     power_levels::{NotificationPowerLevels, default_power_level},
     push::PushConditionPowerLevelsCtx,
     room_version_rules::{AuthorizationRules, RedactionRules, RoomPowerLevelsRules},
@@ -95,7 +95,7 @@ pub struct RoomPowerLevelsEventContent {
         skip_serializing_if = "BTreeMap::is_empty",
         deserialize_with = "ruma_common::serde::btreemap_deserialize_v1_powerlevel_values"
     )]
-    pub users: BTreeMap<OwnedUserId, Int>,
+    pub users: BTreeMap<UserId, Int>,
 
     /// The default power level for every user in the room.
     #[serde(
@@ -185,7 +185,7 @@ impl RoomPowerLevelsEvent {
     pub fn power_levels(
         &self,
         rules: &AuthorizationRules,
-        creators: Vec<OwnedUserId>,
+        creators: Vec<UserId>,
     ) -> RoomPowerLevels {
         match self {
             Self::Original(ev) => RoomPowerLevels::new(ev.content.clone().into(), rules, creators),
@@ -199,7 +199,7 @@ impl SyncRoomPowerLevelsEvent {
     pub fn power_levels(
         &self,
         rules: &AuthorizationRules,
-        creators: Vec<OwnedUserId>,
+        creators: Vec<UserId>,
     ) -> RoomPowerLevels {
         match self {
             Self::Original(ev) => RoomPowerLevels::new(ev.content.clone().into(), rules, creators),
@@ -213,7 +213,7 @@ impl StrippedRoomPowerLevelsEvent {
     pub fn power_levels(
         &self,
         rules: &AuthorizationRules,
-        creators: Vec<OwnedUserId>,
+        creators: Vec<UserId>,
     ) -> RoomPowerLevels {
         RoomPowerLevels::new(self.content.clone().into(), rules, creators)
     }
@@ -292,7 +292,7 @@ pub struct RedactedRoomPowerLevelsEventContent {
         skip_serializing_if = "BTreeMap::is_empty",
         deserialize_with = "ruma_common::serde::btreemap_deserialize_v1_powerlevel_values"
     )]
-    pub users: BTreeMap<OwnedUserId, Int>,
+    pub users: BTreeMap<UserId, Int>,
 
     /// The default power level for every user in the room.
     #[serde(
@@ -483,7 +483,7 @@ pub struct RoomPowerLevels {
     /// * If `explicitly_privilege_room_creators` is set to `false` for the room version, defaults
     ///   to setting the power level to `100` for the creator(s) of the room.
     /// * Otherwise, defaults to an empty map.
-    pub users: BTreeMap<OwnedUserId, Int>,
+    pub users: BTreeMap<UserId, Int>,
 
     /// The default power level for every user in the room.
     ///
@@ -507,7 +507,7 @@ impl RoomPowerLevels {
     pub fn new(
         power_levels: RoomPowerLevelsSource,
         rules: &AuthorizationRules,
-        creators: impl IntoIterator<Item = OwnedUserId> + Clone,
+        creators: impl IntoIterator<Item = UserId> + Clone,
     ) -> Self {
         match power_levels {
             RoomPowerLevelsSource::Original(RoomPowerLevelsEventContent {
@@ -960,8 +960,8 @@ mod tests {
     use js_int::int;
     use maplit::btreemap;
     use ruma_common::{
-        canonical_json::assert_to_canonical_json_eq, owned_user_id,
-        room_version_rules::AuthorizationRules, user_id,
+        canonical_json::assert_to_canonical_json_eq, room_version_rules::AuthorizationRules,
+        user_id,
     };
     use serde_json::json;
 
@@ -992,7 +992,7 @@ mod tests {
 
     #[test]
     fn serialization_with_all_fields() {
-        let user = owned_user_id!("@carl:example.com");
+        let user = user_id!("@carl:example.com");
         let power_levels_event = RoomPowerLevelsEventContent {
             ban: int!(23),
             events: btreemap! {
@@ -1040,21 +1040,21 @@ mod tests {
         let v1_power_levels = RoomPowerLevels::new(
             RoomPowerLevelsSource::None,
             &AuthorizationRules::V1,
-            vec![creator.to_owned()],
+            vec![creator.clone()],
         );
-        assert!(v1_power_levels.user_can_change_user_power_level(creator, creator));
+        assert!(v1_power_levels.user_can_change_user_power_level(&creator, &creator));
 
         let v12_power_levels = RoomPowerLevels::new(
             RoomPowerLevelsSource::None,
             &AuthorizationRules::V12,
-            vec![creator.to_owned()],
+            vec![creator.clone()],
         );
-        assert!(!v12_power_levels.user_can_change_user_power_level(creator, creator));
+        assert!(!v12_power_levels.user_can_change_user_power_level(&creator, &creator));
     }
 
     #[test]
     fn cannot_convert_to_event_content_with_creator_in_users() {
-        let creator = owned_user_id!("@lola:localhost");
+        let creator = user_id!("@lola:localhost");
 
         let mut v1_power_levels = RoomPowerLevels::new(
             RoomPowerLevelsSource::None,
@@ -1068,9 +1068,9 @@ mod tests {
         let mut v12_power_levels = RoomPowerLevels::new(
             RoomPowerLevelsSource::None,
             &AuthorizationRules::V12,
-            vec![creator.to_owned()],
+            vec![creator.clone()],
         );
-        v12_power_levels.users.insert(creator.clone(), int!(75));
+        v12_power_levels.users.insert(creator, int!(75));
         RoomPowerLevelsEventContent::try_from(v12_power_levels).unwrap_err();
     }
 }

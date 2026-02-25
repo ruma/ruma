@@ -9,7 +9,7 @@ pub mod v3 {
 
     use http::header::CONTENT_TYPE;
     use ruma_common::{
-        OwnedMxcUri,
+        MxcUri,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -58,7 +58,7 @@ pub mod v3 {
     #[response(error = crate::Error)]
     pub struct Response {
         /// The MXC URI for the uploaded content.
-        pub content_uri: OwnedMxcUri,
+        pub content_uri: MxcUri,
 
         /// The [BlurHash](https://blurha.sh) for the uploaded content.
         ///
@@ -88,7 +88,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given MXC URI.
-        pub fn new(content_uri: OwnedMxcUri) -> Self {
+        pub fn new(content_uri: MxcUri) -> Self {
             Self {
                 content_uri,
                 #[cfg(feature = "unstable-msc2448")]

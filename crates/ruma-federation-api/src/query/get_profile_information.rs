@@ -8,7 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1queryprofile
 
     use ruma_common::{
-        OwnedMxcUri, OwnedUserId,
+        MxcUri, UserId,
         api::{request, response},
         metadata,
         serde::StringEnum,
@@ -28,7 +28,7 @@ pub mod v1 {
     pub struct Request {
         /// User ID to query.
         #[ruma_api(query)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// Profile field to query.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -53,7 +53,7 @@ pub mod v1 {
             feature = "compat-empty-string-null",
             serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
         )]
-        pub avatar_url: Option<OwnedMxcUri>,
+        pub avatar_url: Option<MxcUri>,
 
         /// The [BlurHash](https://blurha.sh) for the avatar pointed to by `avatar_url`.
         ///
@@ -66,7 +66,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given user id.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id, field: None }
         }
     }

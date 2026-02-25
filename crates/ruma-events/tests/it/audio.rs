@@ -7,7 +7,7 @@ use js_int::uint;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch,
     canonical_json::assert_to_canonical_json_eq,
-    owned_event_id, owned_mxc_uri,
+    event_id, mxc_uri,
     serde::{Base64, CanBeEmpty},
 };
 #[cfg(feature = "unstable-msc3246")]
@@ -35,10 +35,7 @@ fn amplitude_deserialization_clamp() {
 fn plain_content_serialization() {
     let event_content = AudioEventContent::with_plain_text(
         "Upload: my_sound.ogg",
-        FileContentBlock::plain(
-            owned_mxc_uri!("mxc://notareal.hs/abcdef"),
-            "my_sound.ogg".to_owned(),
-        ),
+        FileContentBlock::plain(mxc_uri!("mxc://notareal.hs/abcdef"), "my_sound.ogg".to_owned()),
     );
 
     assert_to_canonical_json_eq!(
@@ -60,7 +57,7 @@ fn encrypted_content_serialization() {
     let event_content = AudioEventContent::with_plain_text(
         "Upload: my_sound.ogg",
         FileContentBlock::encrypted(
-            owned_mxc_uri!("mxc://notareal.hs/abcdef"),
+            mxc_uri!("mxc://notareal.hs/abcdef"),
             "my_sound.ogg".to_owned(),
             EncryptedContentInit {
                 key: JsonWebKeyInit {
@@ -113,17 +110,13 @@ fn encrypted_content_serialization() {
 fn event_serialization() {
     let mut content = AudioEventContent::new(
         TextContentBlock::html("Upload: my_mix.mp3", "Upload: <strong>my_mix.mp3</strong>"),
-        FileContentBlock::plain(
-            owned_mxc_uri!("mxc://notareal.hs/abcdef"),
-            "my_mix.mp3".to_owned(),
-        ),
+        FileContentBlock::plain(mxc_uri!("mxc://notareal.hs/abcdef"), "my_mix.mp3".to_owned()),
     );
     content.file.mimetype = Some("audio/mp3".to_owned());
     content.file.size = Some(uint!(897_774));
     content.audio_details = Some(AudioDetailsContentBlock::new(Duration::from_secs(123)));
-    content.relates_to = Some(Relation::Reply {
-        in_reply_to: InReplyTo::new(owned_event_id!("$replyevent:example.com")),
-    });
+    content.relates_to =
+        Some(Relation::Reply { in_reply_to: InReplyTo::new(event_id!("$replyevent:example.com")) });
 
     assert_to_canonical_json_eq!(
         content,

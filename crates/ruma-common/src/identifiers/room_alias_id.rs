@@ -1,8 +1,8 @@
 //! Matrix room alias identifiers.
 
-use ruma_macros::IdDst;
+use ruma_macros::ruma_id;
 
-use super::{MatrixToUri, MatrixUri, OwnedEventId, matrix_uri::UriAction, server_name::ServerName};
+use super::{EventId, MatrixToUri, MatrixUri, matrix_uri::UriAction, server_name::ServerName};
 
 /// A Matrix [room alias ID].
 ///
@@ -11,14 +11,12 @@ use super::{MatrixToUri, MatrixUri, OwnedEventId, matrix_uri::UriAction, server_
 ///
 /// ```
 /// # use ruma_common::RoomAliasId;
-/// assert_eq!(<&RoomAliasId>::try_from("#ruma:example.com").unwrap(), "#ruma:example.com");
+/// assert_eq!(RoomAliasId::try_from("#ruma:example.com").unwrap(), "#ruma:example.com");
 /// ```
 ///
 /// [room alias ID]: https://spec.matrix.org/latest/appendices/#room-aliases
-#[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(validate = ruma_identifiers_validation::room_alias_id::validate)]
-pub struct RoomAliasId(str);
+pub struct RoomAliasId;
 
 impl RoomAliasId {
     /// Returns the room's alias.
@@ -27,8 +25,8 @@ impl RoomAliasId {
     }
 
     /// Returns the server name of the room alias ID.
-    pub fn server_name(&self) -> &ServerName {
-        ServerName::from_borrowed_unchecked(&self.as_str()[self.colon_idx() + 1..])
+    pub fn server_name(&self) -> ServerName {
+        ServerName::from_str_unchecked(&self.as_str()[self.colon_idx() + 1..])
     }
 
     /// Create a `matrix.to` URI for this room alias ID.
@@ -40,7 +38,7 @@ impl RoomAliasId {
     ///
     /// This is deprecated because room aliases are mutable, so the URI might break after a while.
     #[deprecated = "Use `RoomId::matrix_to_event_uri` instead."]
-    pub fn matrix_to_event_uri(&self, ev_id: impl Into<OwnedEventId>) -> MatrixToUri {
+    pub fn matrix_to_event_uri(&self, ev_id: impl Into<EventId>) -> MatrixToUri {
         MatrixToUri::new((self.to_owned(), ev_id.into()).into(), Vec::new())
     }
 
@@ -55,7 +53,7 @@ impl RoomAliasId {
     ///
     /// This is deprecated because room aliases are mutable, so the URI might break after a while.
     #[deprecated = "Use `RoomId::matrix_event_uri` instead."]
-    pub fn matrix_event_uri(&self, ev_id: impl Into<OwnedEventId>) -> MatrixUri {
+    pub fn matrix_event_uri(&self, ev_id: impl Into<EventId>) -> MatrixUri {
         MatrixUri::new((self.to_owned(), ev_id.into()).into(), Vec::new(), None)
     }
 
@@ -66,13 +64,13 @@ impl RoomAliasId {
 
 #[cfg(test)]
 mod tests {
-    use super::{OwnedRoomAliasId, RoomAliasId};
+    use super::RoomAliasId;
     use crate::IdParseError;
 
     #[test]
     fn valid_room_alias_id() {
         assert_eq!(
-            <&RoomAliasId>::try_from("#ruma:example.com").expect("Failed to create RoomAliasId."),
+            RoomAliasId::try_from("#ruma:example.com").expect("Failed to create RoomAliasId."),
             "#ruma:example.com"
         );
     }
@@ -80,7 +78,7 @@ mod tests {
     #[test]
     fn empty_localpart() {
         assert_eq!(
-            <&RoomAliasId>::try_from("#:myhomeserver.io").expect("Failed to create RoomAliasId."),
+            RoomAliasId::try_from("#:myhomeserver.io").expect("Failed to create RoomAliasId."),
             "#:myhomeserver.io"
         );
     }
@@ -89,8 +87,7 @@ mod tests {
     fn serialize_valid_room_alias_id() {
         assert_eq!(
             serde_json::to_string(
-                <&RoomAliasId>::try_from("#ruma:example.com")
-                    .expect("Failed to create RoomAliasId.")
+                &RoomAliasId::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
             )
             .expect("Failed to convert RoomAliasId to JSON."),
             r##""#ruma:example.com""##
@@ -100,17 +97,16 @@ mod tests {
     #[test]
     fn deserialize_valid_room_alias_id() {
         assert_eq!(
-            serde_json::from_str::<OwnedRoomAliasId>(r##""#ruma:example.com""##)
+            serde_json::from_str::<RoomAliasId>(r##""#ruma:example.com""##)
                 .expect("Failed to convert JSON to RoomAliasId"),
-            <&RoomAliasId>::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
+            RoomAliasId::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
         );
     }
 
     #[test]
     fn valid_room_alias_id_with_explicit_standard_port() {
         assert_eq!(
-            <&RoomAliasId>::try_from("#ruma:example.com:443")
-                .expect("Failed to create RoomAliasId."),
+            RoomAliasId::try_from("#ruma:example.com:443").expect("Failed to create RoomAliasId."),
             "#ruma:example.com:443"
         );
     }
@@ -118,8 +114,7 @@ mod tests {
     #[test]
     fn valid_room_alias_id_with_non_standard_port() {
         assert_eq!(
-            <&RoomAliasId>::try_from("#ruma:example.com:5000")
-                .expect("Failed to create RoomAliasId."),
+            RoomAliasId::try_from("#ruma:example.com:5000").expect("Failed to create RoomAliasId."),
             "#ruma:example.com:5000"
         );
     }
@@ -127,8 +122,7 @@ mod tests {
     #[test]
     fn valid_room_alias_id_unicode() {
         assert_eq!(
-            <&RoomAliasId>::try_from("#老虎Â£я:example.com")
-                .expect("Failed to create RoomAliasId."),
+            RoomAliasId::try_from("#老虎Â£я:example.com").expect("Failed to create RoomAliasId."),
             "#老虎Â£я:example.com"
         );
     }
@@ -136,36 +130,33 @@ mod tests {
     #[test]
     fn missing_room_alias_id_sigil() {
         assert_eq!(
-            <&RoomAliasId>::try_from("39hvsi03hlne:example.com").unwrap_err(),
+            RoomAliasId::try_from("39hvsi03hlne:example.com").unwrap_err(),
             IdParseError::MissingLeadingSigil
         );
     }
 
     #[test]
     fn missing_room_alias_id_delimiter() {
-        assert_eq!(<&RoomAliasId>::try_from("#ruma").unwrap_err(), IdParseError::MissingColon);
+        assert_eq!(RoomAliasId::try_from("#ruma").unwrap_err(), IdParseError::MissingColon);
     }
 
     #[test]
     fn invalid_leading_sigil() {
         assert_eq!(
-            <&RoomAliasId>::try_from("!room_id:foo.bar").unwrap_err(),
+            RoomAliasId::try_from("!room_id:foo.bar").unwrap_err(),
             IdParseError::MissingLeadingSigil
         );
     }
 
     #[test]
     fn invalid_room_alias_id_host() {
-        assert_eq!(
-            <&RoomAliasId>::try_from("#ruma:/").unwrap_err(),
-            IdParseError::InvalidServerName
-        );
+        assert_eq!(RoomAliasId::try_from("#ruma:/").unwrap_err(), IdParseError::InvalidServerName);
     }
 
     #[test]
     fn invalid_room_alias_id_port() {
         assert_eq!(
-            <&RoomAliasId>::try_from("#ruma:example.com:notaport").unwrap_err(),
+            RoomAliasId::try_from("#ruma:example.com:notaport").unwrap_err(),
             IdParseError::InvalidServerName
         );
     }

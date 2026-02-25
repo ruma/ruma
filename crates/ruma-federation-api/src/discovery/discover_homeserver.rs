@@ -5,7 +5,7 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#getwell-knownmatrixserver
 
 use ruma_common::{
-    OwnedServerName,
+    ServerName,
     api::{auth_scheme::NoAuthentication, request, response},
     metadata,
 };
@@ -27,7 +27,7 @@ pub struct Request {}
 pub struct Response {
     /// The server name to delegate server-server communications to, with optional port.
     #[serde(rename = "m.server")]
-    pub server: OwnedServerName,
+    pub server: ServerName,
 }
 
 impl Request {
@@ -39,7 +39,7 @@ impl Request {
 
 impl Response {
     /// Creates a new `Response` with the given homeserver.
-    pub fn new(server: OwnedServerName) -> Self {
+    pub fn new(server: ServerName) -> Self {
         Self { server }
     }
 }

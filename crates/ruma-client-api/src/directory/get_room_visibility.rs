@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3directorylistroomroomid
 
     use ruma_common::{
-        OwnedRoomId,
+        RoomId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
     };
@@ -30,7 +30,7 @@ pub mod v3 {
     pub struct Request {
         /// The ID of the room of which to request the visibility.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
     }
 
     /// Response type for the `get_room_visibility` endpoint.
@@ -42,7 +42,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room ID.
-        pub fn new(room_id: OwnedRoomId) -> Self {
+        pub fn new(room_id: RoomId) -> Self {
             Self { room_id }
         }
     }

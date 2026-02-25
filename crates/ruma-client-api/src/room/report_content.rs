@@ -9,7 +9,7 @@ pub mod v3 {
 
     use js_int::Int;
     use ruma_common::{
-        OwnedEventId, OwnedRoomId,
+        EventId, RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -29,11 +29,11 @@ pub mod v3 {
     pub struct Request {
         /// Room in which the event to be reported is located.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// Event to report.
         #[ruma_api(path)]
-        pub event_id: OwnedEventId,
+        pub event_id: EventId,
 
         /// Integer between -100 and 0 rating offensivness.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -52,8 +52,8 @@ pub mod v3 {
     impl Request {
         /// Creates a new `Request` with the given room ID, event ID, score and reason.
         pub fn new(
-            room_id: OwnedRoomId,
-            event_id: OwnedEventId,
+            room_id: RoomId,
+            event_id: EventId,
             score: Option<Int>,
             reason: Option<String>,
         ) -> Self {

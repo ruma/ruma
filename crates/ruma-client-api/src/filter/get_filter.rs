@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3useruseridfilterfilterid
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -30,7 +30,7 @@ pub mod v3 {
     pub struct Request {
         /// The user ID to download a filter for.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The ID of the filter to download.
         #[ruma_api(path)]
@@ -47,7 +47,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID and filter ID.
-        pub fn new(user_id: OwnedUserId, filter_id: String) -> Self {
+        pub fn new(user_id: UserId, filter_id: String) -> Self {
             Self { user_id, filter_id }
         }
     }

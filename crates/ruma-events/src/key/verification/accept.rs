@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::{OwnedTransactionId, serde::Base64};
+use ruma_common::{TransactionId, serde::Base64};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
@@ -24,7 +24,7 @@ pub struct ToDeviceKeyVerificationAcceptEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the `m.key.verification.start` message.
-    pub transaction_id: OwnedTransactionId,
+    pub transaction_id: TransactionId,
 
     /// The method specific content.
     #[serde(flatten)]
@@ -34,7 +34,7 @@ pub struct ToDeviceKeyVerificationAcceptEventContent {
 impl ToDeviceKeyVerificationAcceptEventContent {
     /// Creates a new `ToDeviceKeyVerificationAcceptEventContent` with the given transaction ID and
     /// method-specific content.
-    pub fn new(transaction_id: OwnedTransactionId, method: AcceptMethod) -> Self {
+    pub fn new(transaction_id: TransactionId, method: AcceptMethod) -> Self {
         Self { transaction_id, method }
     }
 }
@@ -230,7 +230,7 @@ mod tests {
         let event_id = event_id!("$1598361704261elfgc:localhost");
 
         let key_verification_accept_content = KeyVerificationAcceptEventContent {
-            relates_to: Reference { event_id: event_id.to_owned() },
+            relates_to: Reference { event_id: event_id.clone() },
             method: AcceptMethod::SasV1(SasV1Content {
                 hash: HashAlgorithm::Sha256,
                 key_agreement_protocol: KeyAgreementProtocol::Curve25519,
@@ -359,7 +359,7 @@ mod tests {
         let event_id = event_id!("$1598361704261elfgc:localhost");
 
         let content = KeyVerificationAcceptEventContent {
-            relates_to: Reference { event_id: event_id.to_owned() },
+            relates_to: Reference { event_id: event_id.clone() },
             method: AcceptMethod::SasV1(SasV1Content {
                 hash: HashAlgorithm::Sha256,
                 key_agreement_protocol: KeyAgreementProtocol::Curve25519,
