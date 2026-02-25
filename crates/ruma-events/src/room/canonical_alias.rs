@@ -2,7 +2,7 @@
 //!
 //! [`m.room.canonical_alias`]: https://spec.matrix.org/latest/client-server-api/#mroomcanonical_alias
 
-use ruma_common::OwnedRoomAliasId;
+use ruma_common::RoomAliasId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -24,11 +24,11 @@ pub struct RoomCanonicalAliasEventContent {
         deserialize_with = "ruma_common::serde::empty_string_as_none",
         skip_serializing_if = "Option::is_none"
     )]
-    pub alias: Option<OwnedRoomAliasId>,
+    pub alias: Option<RoomAliasId>,
 
     /// List of alternative aliases to the room.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub alt_aliases: Vec<OwnedRoomAliasId>,
+    pub alt_aliases: Vec<RoomAliasId>,
 }
 
 impl RoomCanonicalAliasEventContent {

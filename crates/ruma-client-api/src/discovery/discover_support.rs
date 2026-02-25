@@ -5,7 +5,7 @@
 //! Get server admin contact and support page of a homeserver's domain.
 
 use ruma_common::{
-    OwnedUserId,
+    UserId,
     api::{auth_scheme::NoAuthentication, request, response},
     metadata,
     serde::StringEnum,
@@ -83,7 +83,7 @@ pub struct Contact {
     ///
     /// At least one of `matrix_id` or `email_address` is required.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub matrix_id: Option<OwnedUserId>,
+    pub matrix_id: Option<UserId>,
 }
 
 impl Contact {
@@ -93,7 +93,7 @@ impl Contact {
     }
 
     /// Creates a new `Contact` with the given role and Matrix User ID.
-    pub fn with_matrix_id(role: ContactRole, matrix_id: OwnedUserId) -> Self {
+    pub fn with_matrix_id(role: ContactRole, matrix_id: UserId) -> Self {
         Self { role, email_address: None, matrix_id: Some(matrix_id) }
     }
 }

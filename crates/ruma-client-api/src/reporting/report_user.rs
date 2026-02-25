@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3usersuseridreport
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -28,7 +28,7 @@ pub mod v3 {
     pub struct Request {
         /// The ID of the user to report.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The reason to report the user, may be empty.
         pub reason: String,
@@ -41,7 +41,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID and reason.
-        pub fn new(user_id: OwnedUserId, reason: String) -> Self {
+        pub fn new(user_id: UserId, reason: String) -> Self {
             Self { user_id, reason }
         }
     }

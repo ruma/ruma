@@ -1,6 +1,6 @@
 //! De-/serialization functions for `Option<MediaSource>` objects representing a thumbnail source.
 
-use ruma_common::OwnedMxcUri;
+use ruma_common::MxcUri;
 use serde::{
     Deserialize, Deserializer,
     ser::{SerializeStruct, Serializer},
@@ -32,7 +32,7 @@ where
 {
     #[derive(Deserialize)]
     struct ThumbnailSourceJsonRepr {
-        thumbnail_url: Option<OwnedMxcUri>,
+        thumbnail_url: Option<MxcUri>,
         thumbnail_file: Option<Box<EncryptedFile>>,
     }
 

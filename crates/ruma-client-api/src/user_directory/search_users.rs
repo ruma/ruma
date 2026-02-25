@@ -10,7 +10,7 @@ pub mod v3 {
     use http::header::ACCEPT_LANGUAGE;
     use js_int::{UInt, uint};
     use ruma_common::{
-        OwnedMxcUri, OwnedUserId,
+        MxcUri, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -85,7 +85,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct User {
         /// The user's matrix user ID.
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The display name of the user, if one exists.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -100,12 +100,12 @@ pub mod v3 {
             feature = "compat-empty-string-null",
             serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
         )]
-        pub avatar_url: Option<OwnedMxcUri>,
+        pub avatar_url: Option<MxcUri>,
     }
 
     impl User {
         /// Create a new `User` with the given `UserId`.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id, display_name: None, avatar_url: None }
         }
     }

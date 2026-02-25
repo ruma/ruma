@@ -4,9 +4,7 @@ use std::{
 };
 
 use js_int::Int;
-use ruma_common::{
-    EventId, OwnedUserId, UserId, room::JoinRuleKind, room_version_rules::AuthorizationRules,
-};
+use ruma_common::{EventId, UserId, room::JoinRuleKind, room_version_rules::AuthorizationRules};
 use ruma_events::{
     StateEventType, TimelineEventType,
     room::{member::MembershipState, power_levels::UserPowerLevel},
@@ -460,7 +458,7 @@ fn check_room_power_levels(
     current_room_power_levels_event: Option<RoomPowerLevelsEvent<impl Event>>,
     rules: &AuthorizationRules,
     sender_power_level: UserPowerLevel,
-    room_creators: &HashSet<OwnedUserId>,
+    room_creators: &HashSet<UserId>,
 ) -> Result<(), String> {
     debug!("starting m.room.power_levels check");
 

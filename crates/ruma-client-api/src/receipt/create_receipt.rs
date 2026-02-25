@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3roomsroomidreceiptreceipttypeeventid
 
     use ruma_common::{
-        OwnedEventId, OwnedRoomId,
+        EventId, RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::StringEnum,
@@ -32,7 +32,7 @@ pub mod v3 {
     pub struct Request {
         /// The room in which to send the event.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The type of receipt to send.
         #[ruma_api(path)]
@@ -40,7 +40,7 @@ pub mod v3 {
 
         /// The event ID to acknowledge up to.
         #[ruma_api(path)]
-        pub event_id: OwnedEventId,
+        pub event_id: EventId,
 
         /// The thread this receipt applies to.
         ///
@@ -63,11 +63,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room ID, receipt type and event ID.
-        pub fn new(
-            room_id: OwnedRoomId,
-            receipt_type: ReceiptType,
-            event_id: OwnedEventId,
-        ) -> Self {
+        pub fn new(room_id: RoomId, receipt_type: ReceiptType, event_id: EventId) -> Self {
             Self { room_id, receipt_type, event_id, thread: ReceiptThread::default() }
         }
     }

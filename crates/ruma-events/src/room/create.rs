@@ -3,8 +3,7 @@
 //! [`m.room.create`]: https://spec.matrix.org/latest/client-server-api/#mroomcreate
 
 use ruma_common::{
-    OwnedEventId, OwnedRoomId, OwnedUserId, RoomVersionId, room::RoomType,
-    room_version_rules::RedactionRules,
+    EventId, RoomId, RoomVersionId, UserId, room::RoomType, room_version_rules::RedactionRules,
 };
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -28,7 +27,7 @@ pub struct RoomCreateEventContent {
     /// 11.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[deprecated = "Since Matrix 1.8. This field was removed in Room version 11, clients should use the event's sender instead"]
-    pub creator: Option<OwnedUserId>,
+    pub creator: Option<UserId>,
 
     /// Whether or not this room's data should be transferred to other homeservers.
     #[serde(
@@ -64,13 +63,13 @@ pub struct RoomCreateEventContent {
     /// Additional room creators, considered to have "infinite" power level, in room version 12
     /// onwards.
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
-    pub additional_creators: Vec<OwnedUserId>,
+    pub additional_creators: Vec<UserId>,
 }
 
 impl RoomCreateEventContent {
     /// Creates a new `RoomCreateEventContent` with the given creator, as required for room versions
     /// 1 through 10.
-    pub fn new_v1(creator: OwnedUserId) -> Self {
+    pub fn new_v1(creator: UserId) -> Self {
         #[allow(deprecated)]
         Self {
             creator: Some(creator),
@@ -121,19 +120,19 @@ impl RedactContent for RoomCreateEventContent {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PreviousRoom {
     /// The ID of the old room.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The event ID of the last known event in the old room.
     #[deprecated = "\
         This field should be sent by servers when possible for backwards compatibility \
         but clients should not rely on it."]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub event_id: Option<OwnedEventId>,
+    pub event_id: Option<EventId>,
 }
 
 impl PreviousRoom {
     /// Creates a new `PreviousRoom` from the given room ID.
-    pub fn new(room_id: OwnedRoomId) -> Self {
+    pub fn new(room_id: RoomId) -> Self {
         #[allow(deprecated)]
         Self { room_id, event_id: None }
     }

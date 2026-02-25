@@ -8,7 +8,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/latest/identity-service-api/#post_matrixidentityv2sign-ed25519
 
     use ruma_common::{
-        OwnedUserId, ServerSignatures,
+        ServerSignatures, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Base64,
@@ -27,7 +27,7 @@ pub mod v2 {
     #[request]
     pub struct Request {
         /// The Matrix user ID of the user accepting the invitation.
-        pub mxid: OwnedUserId,
+        pub mxid: UserId,
 
         /// The token from the call to store-invite.
         pub token: String,
@@ -40,10 +40,10 @@ pub mod v2 {
     #[response]
     pub struct Response {
         /// The Matrix user ID of the user accepting the invitation.
-        pub mxid: OwnedUserId,
+        pub mxid: UserId,
 
         /// The Matrix user ID of the user who sent the invitation.
-        pub sender: OwnedUserId,
+        pub sender: UserId,
 
         /// The signature of the mxid, sender and token.
         pub signatures: ServerSignatures,
@@ -54,7 +54,7 @@ pub mod v2 {
 
     impl Request {
         /// Creates a `Request` with the given Matrix user ID, token and private_key.
-        pub fn new(mxid: OwnedUserId, token: String, private_key: Base64) -> Self {
+        pub fn new(mxid: UserId, token: String, private_key: Base64) -> Self {
             Self { mxid, token, private_key }
         }
     }
@@ -63,8 +63,8 @@ pub mod v2 {
         /// Creates a `Response` with the given Matrix user ID, sender user ID, signatures and
         /// token.
         pub fn new(
-            mxid: OwnedUserId,
-            sender: OwnedUserId,
+            mxid: UserId,
+            sender: UserId,
             signatures: ServerSignatures,
             token: String,
         ) -> Self {

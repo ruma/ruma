@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use assert_matches2::assert_matches;
 use ruma_common::{
-    OwnedDeviceId,
+    DeviceId,
     canonical_json::assert_to_canonical_json_eq,
     owned_device_id, owned_mxc_uri, owned_user_id,
     serde::{Base64, Raw},
@@ -243,7 +243,7 @@ fn markdown_options() {
 #[test]
 fn verification_request_msgtype_deserialization() {
     let user_id = user_id!("@example2:localhost");
-    let device_id: OwnedDeviceId = "XOWLHHFSWM".into();
+    let device_id: DeviceId = "XOWLHHFSWM".into();
 
     let json_data = json!({
         "body": "@example:localhost is requesting to verify your key, ...",

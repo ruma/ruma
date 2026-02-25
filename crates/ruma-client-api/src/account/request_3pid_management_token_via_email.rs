@@ -9,7 +9,7 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        OwnedClientSecret, OwnedSessionId,
+        ClientSecret, SessionId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
     };
@@ -30,7 +30,7 @@ pub mod v3 {
     #[request(error = crate::Error)]
     pub struct Request {
         /// Client-generated secret string used to protect this session.
-        pub client_secret: OwnedClientSecret,
+        pub client_secret: ClientSecret,
 
         /// The email address.
         pub email: String,
@@ -52,7 +52,7 @@ pub mod v3 {
     #[response(error = crate::Error)]
     pub struct Response {
         /// The session identifier given by the identity server.
-        pub sid: OwnedSessionId,
+        pub sid: SessionId,
 
         /// URL to submit validation token to.
         ///
@@ -71,14 +71,14 @@ pub mod v3 {
     impl Request {
         /// Creates a new `Request` with the client secret, email and send-attempt counter.
         #[allow(deprecated)]
-        pub fn new(client_secret: OwnedClientSecret, email: String, send_attempt: UInt) -> Self {
+        pub fn new(client_secret: ClientSecret, email: String, send_attempt: UInt) -> Self {
             Self { client_secret, email, send_attempt, next_link: None, identity_server_info: None }
         }
     }
 
     impl Response {
         /// Creates a new `Response` with the given session identifier.
-        pub fn new(sid: OwnedSessionId) -> Self {
+        pub fn new(sid: SessionId) -> Self {
             Self { sid, submit_url: None }
         }
     }

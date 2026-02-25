@@ -6,20 +6,20 @@ use std::{
 use serde::{Deserialize, Serialize};
 
 use super::{
-    Base64PublicKeyOrDeviceId, DeviceId, KeyName, OwnedServerName, OwnedSigningKeyId, OwnedUserId,
-    ServerSigningKeyVersion,
+    Base64PublicKeyOrDeviceId, DeviceId, KeyName, ServerName, ServerSigningKeyVersion,
+    SigningKeyId, UserId,
 };
 
 /// Map of key identifier to signature values.
-pub type EntitySignatures<K> = BTreeMap<OwnedSigningKeyId<K>, String>;
+pub type EntitySignatures<K> = BTreeMap<SigningKeyId<K>, String>;
 
 /// Map of all signatures, grouped by entity.
 ///
 /// ```
-/// # use ruma_common::{server_name, server_signing_key_version, ServerSigningKeyId, Signatures, SigningKeyAlgorithm};
+/// # use ruma_common::{server_name, owned_server_signing_key_version, ServerSigningKeyId, Signatures, SigningKeyAlgorithm};
 /// let key_identifier = ServerSigningKeyId::from_parts(
 ///     SigningKeyAlgorithm::Ed25519,
-///     server_signing_key_version!("1")
+///     &owned_server_signing_key_version!("1")
 /// );
 /// let mut signatures = Signatures::new();
 /// let server_name = server_name!("example.org");
@@ -46,7 +46,7 @@ impl<E: Ord, K: KeyName + ?Sized> Signatures<E, K> {
     pub fn insert_signature(
         &mut self,
         entity: E,
-        key_identifier: OwnedSigningKeyId<K>,
+        key_identifier: SigningKeyId<K>,
         value: String,
     ) -> Option<String> {
         self.0.entry(entity).or_default().insert(key_identifier, value)
@@ -54,13 +54,13 @@ impl<E: Ord, K: KeyName + ?Sized> Signatures<E, K> {
 }
 
 /// Map of server signatures, grouped by server.
-pub type ServerSignatures = Signatures<OwnedServerName, ServerSigningKeyVersion>;
+pub type ServerSignatures = Signatures<ServerName, ServerSigningKeyVersion>;
 
 /// Map of device signatures, grouped by user.
-pub type DeviceSignatures = Signatures<OwnedUserId, DeviceId>;
+pub type DeviceSignatures = Signatures<UserId, DeviceId>;
 
 /// Map of cross-signing or device signatures, grouped by user.
-pub type CrossSigningOrDeviceSignatures = Signatures<OwnedUserId, Base64PublicKeyOrDeviceId>;
+pub type CrossSigningOrDeviceSignatures = Signatures<UserId, Base64PublicKeyOrDeviceId>;
 
 impl<E, K> Clone for Signatures<E, K>
 where
@@ -92,18 +92,16 @@ impl<E: Ord, K: KeyName + ?Sized> DerefMut for Signatures<E, K> {
     }
 }
 
-impl<E: Ord, K: KeyName + ?Sized, const N: usize> From<[(E, OwnedSigningKeyId<K>, String); N]>
+impl<E: Ord, K: KeyName + ?Sized, const N: usize> From<[(E, SigningKeyId<K>, String); N]>
     for Signatures<E, K>
 {
-    fn from(value: [(E, OwnedSigningKeyId<K>, String); N]) -> Self {
+    fn from(value: [(E, SigningKeyId<K>, String); N]) -> Self {
         value.into_iter().collect()
     }
 }
 
-impl<E: Ord, K: KeyName + ?Sized> FromIterator<(E, OwnedSigningKeyId<K>, String)>
-    for Signatures<E, K>
-{
-    fn from_iter<T: IntoIterator<Item = (E, OwnedSigningKeyId<K>, String)>>(iter: T) -> Self {
+impl<E: Ord, K: KeyName + ?Sized> FromIterator<(E, SigningKeyId<K>, String)> for Signatures<E, K> {
+    fn from_iter<T: IntoIterator<Item = (E, SigningKeyId<K>, String)>>(iter: T) -> Self {
         iter.into_iter().fold(Self::new(), |mut acc, (entity, key_identifier, value)| {
             acc.insert_signature(entity, key_identifier, value);
             acc
@@ -111,8 +109,8 @@ impl<E: Ord, K: KeyName + ?Sized> FromIterator<(E, OwnedSigningKeyId<K>, String)
     }
 }
 
-impl<E: Ord, K: KeyName + ?Sized> Extend<(E, OwnedSigningKeyId<K>, String)> for Signatures<E, K> {
-    fn extend<T: IntoIterator<Item = (E, OwnedSigningKeyId<K>, String)>>(&mut self, iter: T) {
+impl<E: Ord, K: KeyName + ?Sized> Extend<(E, SigningKeyId<K>, String)> for Signatures<E, K> {
+    fn extend<T: IntoIterator<Item = (E, SigningKeyId<K>, String)>>(&mut self, iter: T) {
         for (entity, key_identifier, value) in iter {
             self.insert_signature(entity, key_identifier, value);
         }
@@ -120,7 +118,7 @@ impl<E: Ord, K: KeyName + ?Sized> Extend<(E, OwnedSigningKeyId<K>, String)> for 
 }
 
 impl<E: Ord + Clone, K: KeyName + ?Sized> IntoIterator for Signatures<E, K> {
-    type Item = (E, OwnedSigningKeyId<K>, String);
+    type Item = (E, SigningKeyId<K>, String);
     type IntoIter = IntoIter<E, K>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -129,13 +127,13 @@ impl<E: Ord + Clone, K: KeyName + ?Sized> IntoIterator for Signatures<E, K> {
 }
 
 pub struct IntoIter<E: Clone, K: KeyName + ?Sized> {
-    outer: std::collections::btree_map::IntoIter<E, BTreeMap<OwnedSigningKeyId<K>, String>>,
-    inner: Option<std::collections::btree_map::IntoIter<OwnedSigningKeyId<K>, String>>,
+    outer: std::collections::btree_map::IntoIter<E, BTreeMap<SigningKeyId<K>, String>>,
+    inner: Option<std::collections::btree_map::IntoIter<SigningKeyId<K>, String>>,
     entity: Option<E>,
 }
 
 impl<E: Clone, K: KeyName + ?Sized> Iterator for IntoIter<E, K> {
-    type Item = (E, OwnedSigningKeyId<K>, String);
+    type Item = (E, SigningKeyId<K>, String);
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -162,11 +160,11 @@ mod tests {
     fn signatures_into_iter() {
         use ruma_common::{
             ServerSigningKeyId, Signatures, SigningKeyAlgorithm, owned_server_name,
-            server_signing_key_version,
+            owned_server_signing_key_version,
         };
         let key_identifier = ServerSigningKeyId::from_parts(
             SigningKeyAlgorithm::Ed25519,
-            server_signing_key_version!("1"),
+            &owned_server_signing_key_version!("1"),
         );
         let mut signatures = Signatures::new();
         let server_name = owned_server_name!("example.org");

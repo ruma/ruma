@@ -9,7 +9,7 @@ use std::{
 
 use js_int::{Int, int};
 use ruma_common::{
-    OwnedUserId, UserId,
+    UserId,
     power_levels::{NotificationPowerLevels, default_power_level},
     push::PushConditionPowerLevelsCtx,
     room_version_rules::{AuthorizationRules, RedactionRules, RoomPowerLevelsRules},
@@ -95,7 +95,7 @@ pub struct RoomPowerLevelsEventContent {
         skip_serializing_if = "BTreeMap::is_empty",
         deserialize_with = "ruma_common::serde::btreemap_deserialize_v1_powerlevel_values"
     )]
-    pub users: BTreeMap<OwnedUserId, Int>,
+    pub users: BTreeMap<UserId, Int>,
 
     /// The default power level for every user in the room.
     #[serde(
@@ -185,7 +185,7 @@ impl RoomPowerLevelsEvent {
     pub fn power_levels(
         &self,
         rules: &AuthorizationRules,
-        creators: Vec<OwnedUserId>,
+        creators: Vec<UserId>,
     ) -> RoomPowerLevels {
         match self {
             Self::Original(ev) => RoomPowerLevels::new(ev.content.clone().into(), rules, creators),
@@ -199,7 +199,7 @@ impl SyncRoomPowerLevelsEvent {
     pub fn power_levels(
         &self,
         rules: &AuthorizationRules,
-        creators: Vec<OwnedUserId>,
+        creators: Vec<UserId>,
     ) -> RoomPowerLevels {
         match self {
             Self::Original(ev) => RoomPowerLevels::new(ev.content.clone().into(), rules, creators),
@@ -213,7 +213,7 @@ impl StrippedRoomPowerLevelsEvent {
     pub fn power_levels(
         &self,
         rules: &AuthorizationRules,
-        creators: Vec<OwnedUserId>,
+        creators: Vec<UserId>,
     ) -> RoomPowerLevels {
         RoomPowerLevels::new(self.content.clone().into(), rules, creators)
     }
@@ -292,7 +292,7 @@ pub struct RedactedRoomPowerLevelsEventContent {
         skip_serializing_if = "BTreeMap::is_empty",
         deserialize_with = "ruma_common::serde::btreemap_deserialize_v1_powerlevel_values"
     )]
-    pub users: BTreeMap<OwnedUserId, Int>,
+    pub users: BTreeMap<UserId, Int>,
 
     /// The default power level for every user in the room.
     #[serde(
@@ -483,7 +483,7 @@ pub struct RoomPowerLevels {
     /// * If `explicitly_privilege_room_creators` is set to `false` for the room version, defaults
     ///   to setting the power level to `100` for the creator(s) of the room.
     /// * Otherwise, defaults to an empty map.
-    pub users: BTreeMap<OwnedUserId, Int>,
+    pub users: BTreeMap<UserId, Int>,
 
     /// The default power level for every user in the room.
     ///
@@ -507,7 +507,7 @@ impl RoomPowerLevels {
     pub fn new(
         power_levels: RoomPowerLevelsSource,
         rules: &AuthorizationRules,
-        creators: impl IntoIterator<Item = OwnedUserId> + Clone,
+        creators: impl IntoIterator<Item = UserId> + Clone,
     ) -> Self {
         match power_levels {
             RoomPowerLevelsSource::Original(RoomPowerLevelsEventContent {

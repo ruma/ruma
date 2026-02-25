@@ -4,7 +4,7 @@
 
 use std::{collections::BTreeMap, fmt};
 
-use ruma_common::{OwnedDeviceId, OwnedTransactionId, serde::Base64};
+use ruma_common::{DeviceId, TransactionId, serde::Base64};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
@@ -22,14 +22,14 @@ use crate::relation::Reference;
 #[ruma_event(type = "m.key.verification.start", kind = ToDevice)]
 pub struct ToDeviceKeyVerificationStartEventContent {
     /// The device ID which is initiating the process.
-    pub from_device: OwnedDeviceId,
+    pub from_device: DeviceId,
 
     /// An opaque identifier for the verification process.
     ///
     /// Must be unique with respect to the devices involved. Must be the same as the
     /// `transaction_id` given in the `m.key.verification.request` if this process is originating
     /// from a request.
-    pub transaction_id: OwnedTransactionId,
+    pub transaction_id: TransactionId,
 
     /// Method specific content.
     #[serde(flatten)]
@@ -39,11 +39,7 @@ pub struct ToDeviceKeyVerificationStartEventContent {
 impl ToDeviceKeyVerificationStartEventContent {
     /// Creates a new `ToDeviceKeyVerificationStartEventContent` with the given device ID,
     /// transaction ID and method specific content.
-    pub fn new(
-        from_device: OwnedDeviceId,
-        transaction_id: OwnedTransactionId,
-        method: StartMethod,
-    ) -> Self {
+    pub fn new(from_device: DeviceId, transaction_id: TransactionId, method: StartMethod) -> Self {
         Self { from_device, transaction_id, method }
     }
 }
@@ -56,7 +52,7 @@ impl ToDeviceKeyVerificationStartEventContent {
 #[ruma_event(type = "m.key.verification.start", kind = MessageLike)]
 pub struct KeyVerificationStartEventContent {
     /// The device ID which is initiating the process.
-    pub from_device: OwnedDeviceId,
+    pub from_device: DeviceId,
 
     /// Method specific content.
     #[serde(flatten)]
@@ -70,7 +66,7 @@ pub struct KeyVerificationStartEventContent {
 impl KeyVerificationStartEventContent {
     /// Creates a new `KeyVerificationStartEventContent` with the given device ID, method and
     /// reference.
-    pub fn new(from_device: OwnedDeviceId, method: StartMethod, relates_to: Reference) -> Self {
+    pub fn new(from_device: DeviceId, method: StartMethod, relates_to: Reference) -> Self {
         Self { from_device, method, relates_to }
     }
 }

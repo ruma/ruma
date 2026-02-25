@@ -8,7 +8,7 @@ pub mod unstable {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3814
 
     use ruma_common::{
-        OwnedDeviceId,
+        DeviceId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -29,7 +29,7 @@ pub mod unstable {
     pub struct Request {
         /// The unique ID of the device for which we would like to fetch events.
         #[ruma_api(path)]
-        pub device_id: OwnedDeviceId,
+        pub device_id: DeviceId,
         /// A point in time to continue getting events from.
         ///
         /// Should be a token from the `next_batch` field of a previous `/events`
@@ -51,7 +51,7 @@ pub mod unstable {
 
     impl Request {
         /// Create a new request.
-        pub fn new(device_id: OwnedDeviceId) -> Self {
+        pub fn new(device_id: DeviceId) -> Self {
             Self { device_id, next_batch: None }
         }
     }

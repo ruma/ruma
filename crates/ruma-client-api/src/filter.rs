@@ -7,7 +7,7 @@ mod lazy_load;
 mod url;
 
 use js_int::UInt;
-use ruma_common::{OwnedRoomId, OwnedUserId, serde::StringEnum};
+use ruma_common::{RoomId, UserId, serde::StringEnum};
 use serde::{Deserialize, Serialize};
 
 pub use self::{lazy_load::LazyLoadOptions, url::UrlFilter};
@@ -47,7 +47,7 @@ pub struct RoomEventFilter {
     /// If this list is absent then no rooms are excluded. A matching room will be excluded even if
     /// it is listed in the 'rooms' filter.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub not_rooms: Vec<OwnedRoomId>,
+    pub not_rooms: Vec<RoomId>,
 
     /// The maximum number of events to return.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -57,20 +57,20 @@ pub struct RoomEventFilter {
     ///
     /// If this list is absent then all rooms are included.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub rooms: Option<Vec<OwnedRoomId>>,
+    pub rooms: Option<Vec<RoomId>>,
 
     /// A list of sender IDs to exclude.
     ///
     /// If this list is absent then no senders are excluded. A matching sender will be excluded
     /// even if it is listed in the 'senders' filter.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub not_senders: Vec<OwnedUserId>,
+    pub not_senders: Vec<UserId>,
 
     /// A list of senders IDs to include.
     ///
     /// If this list is absent then all senders are included.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub senders: Option<Vec<OwnedUserId>>,
+    pub senders: Option<Vec<UserId>>,
 
     /// A list of event types to include.
     ///
@@ -176,14 +176,14 @@ pub struct RoomFilter {
     /// it is listed in the 'rooms' filter. This filter is applied before the filters in
     /// `ephemeral`, `state`, `timeline` or `account_data`.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub not_rooms: Vec<OwnedRoomId>,
+    pub not_rooms: Vec<RoomId>,
 
     /// A list of room IDs to include.
     ///
     /// If this list is absent then all rooms are included. This filter is applied before the
     /// filters in `ephemeral`, `state`, `timeline` or `account_data`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub rooms: Option<Vec<OwnedRoomId>>,
+    pub rooms: Option<Vec<RoomId>>,
 }
 
 impl RoomFilter {
@@ -240,7 +240,7 @@ pub struct Filter {
     ///
     /// If this list is absent then all senders are included.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub senders: Option<Vec<OwnedUserId>>,
+    pub senders: Option<Vec<UserId>>,
 
     /// A list of event types to include.
     ///
@@ -254,7 +254,7 @@ pub struct Filter {
     /// If this list is absent then no senders are excluded. A matching sender will be excluded
     /// even if it is listed in the 'senders' filter.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub not_senders: Vec<OwnedUserId>,
+    pub not_senders: Vec<UserId>,
 }
 
 impl Filter {

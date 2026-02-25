@@ -5,7 +5,7 @@
 //! [spec]: https://spec.matrix.org/latest/client-server-api/#login-fallback
 
 use ruma_common::{
-    OwnedDeviceId,
+    DeviceId,
     api::{auth_scheme::NoAuthentication, request},
     metadata,
 };
@@ -24,7 +24,7 @@ pub struct Request {
     /// ID of the client device.
     #[ruma_api(query)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub device_id: Option<OwnedDeviceId>,
+    pub device_id: Option<DeviceId>,
 
     /// A display name to assign to the newly-created device.
     ///
@@ -36,10 +36,7 @@ pub struct Request {
 
 impl Request {
     /// Creates a new `Request` with the given auth type and session ID.
-    pub fn new(
-        device_id: Option<OwnedDeviceId>,
-        initial_device_display_name: Option<String>,
-    ) -> Self {
+    pub fn new(device_id: Option<DeviceId>, initial_device_display_name: Option<String>) -> Self {
         Self { device_id, initial_device_display_name }
     }
 }

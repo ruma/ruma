@@ -24,7 +24,7 @@ pub struct RtcDeclineEventContent {
 
 impl RtcDeclineEventContent {
     /// Creates a new `RtcDeclineEventContent` targeting the given notification event id.
-    pub fn new<E: Into<ruma_common::OwnedEventId>>(notification_event_id: E) -> Self {
+    pub fn new<E: Into<ruma_common::EventId>>(notification_event_id: E) -> Self {
         Self { relates_to: Reference::new(notification_event_id.into()) }
     }
 }

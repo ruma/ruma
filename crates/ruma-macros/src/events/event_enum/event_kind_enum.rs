@@ -471,11 +471,11 @@ impl<'a> EventEnumVariation<'a> {
                     #(
                         #( #variant_attrs )*
                         Self::#variants(event) => {
-                            event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_deref())
+                            event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_ref())
                         }
                     )*
                     Self::_Custom(event) => {
-                        event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_deref())
+                        event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_ref())
                     }
                 }
             }
@@ -521,7 +521,7 @@ impl<'a> EventEnumVariation<'a> {
             #[automatically_derived]
             impl #ident {
                 /// Convert this sync event into a full event (one with a `room_id` field).
-                pub fn into_full_event(self, room_id: #ruma_common::OwnedRoomId) -> #full {
+                pub fn into_full_event(self, room_id: #ruma_common::RoomId) -> #full {
                     match self {
                         #(
                             #( #variant_attrs )*

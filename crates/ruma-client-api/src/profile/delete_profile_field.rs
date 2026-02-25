@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#delete_matrixclientv3profileuseridkeyname
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -30,7 +30,7 @@ pub mod v3 {
     pub struct Request {
         /// The user whose profile will be updated.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The profile field to delete.
         #[ruma_api(path)]
@@ -39,7 +39,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID and field.
-        pub fn new(user_id: OwnedUserId, field: ProfileFieldName) -> Self {
+        pub fn new(user_id: UserId, field: ProfileFieldName) -> Self {
             Self { user_id, field }
         }
     }

@@ -13,7 +13,7 @@ use std::time::Duration;
 pub use focus::*;
 pub use member_data::*;
 pub use member_state_key::*;
-use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedDeviceId, room_version_rules::RedactionRules};
+use ruma_common::{DeviceId, MilliSecondsSinceUnixEpoch, room_version_rules::RedactionRules};
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
 
@@ -68,7 +68,7 @@ impl CallMemberEventContent {
     /// * `expires` - The time after which the event is considered as expired. Defaults to 4 hours.
     pub fn new(
         application: Application,
-        device_id: OwnedDeviceId,
+        device_id: DeviceId,
         focus_active: ActiveFocus,
         foci_preferred: Vec<Focus>,
         created_ts: Option<MilliSecondsSinceUnixEpoch>,
@@ -254,8 +254,8 @@ mod tests {
 
     use assert_matches2::assert_matches;
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch as TS, OwnedEventId, OwnedRoomId, OwnedUserId, device_id,
-        owned_device_id, user_id,
+        EventId, MilliSecondsSinceUnixEpoch as TS, RoomId, UserId, device_id, owned_device_id,
+        user_id,
     };
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
@@ -538,9 +538,9 @@ mod tests {
             Ok(AnyStateEvent::CallMember(StateEvent::Original(member_event)))
         );
 
-        let event_id = OwnedEventId::try_from("$3qfxjGYSu4sL25FtR0ep6vePOc").unwrap();
-        let sender = OwnedUserId::try_from("@user:example.org").unwrap();
-        let room_id = OwnedRoomId::try_from("!1234:example.org").unwrap();
+        let event_id = EventId::try_from("$3qfxjGYSu4sL25FtR0ep6vePOc").unwrap();
+        let sender = UserId::try_from("@user:example.org").unwrap();
+        let room_id = RoomId::try_from("!1234:example.org").unwrap();
         assert_eq!(member_event.state_key.as_ref(), state_key);
         assert_eq!(member_event.event_id, event_id);
         assert_eq!(member_event.sender, sender);

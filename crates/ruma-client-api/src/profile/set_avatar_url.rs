@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.15/client-server-api/#put_matrixclientv3profileuseridavatar_url
 
     use ruma_common::{
-        OwnedMxcUri, OwnedUserId,
+        MxcUri, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -28,7 +28,7 @@ pub mod v3 {
     pub struct Request {
         /// The user whose avatar URL will be set.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The new avatar URL for the user.
         ///
@@ -52,7 +52,7 @@ pub mod v3 {
             not(feature = "compat-unset-avatar"),
             serde(skip_serializing_if = "Option::is_none")
         )]
-        pub avatar_url: Option<OwnedMxcUri>,
+        pub avatar_url: Option<MxcUri>,
 
         /// The [BlurHash](https://blurha.sh) for the avatar pointed to by `avatar_url`.
         ///
@@ -71,7 +71,7 @@ pub mod v3 {
     impl Request {
         /// Creates a new `Request` with the given user ID and avatar URL.
         #[deprecated = "Use the set_profile_field endpoint instead."]
-        pub fn new(user_id: OwnedUserId, avatar_url: Option<OwnedMxcUri>) -> Self {
+        pub fn new(user_id: UserId, avatar_url: Option<MxcUri>) -> Self {
             Self {
                 user_id,
                 avatar_url,

@@ -5,7 +5,7 @@
 pub mod newtype_body {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
     };
@@ -32,7 +32,7 @@ pub mod newtype_body {
         pub bar: String,
 
         #[ruma_api(query)]
-        pub baz: OwnedUserId,
+        pub baz: UserId,
 
         #[ruma_api(header = CONTENT_TYPE)]
         pub world: String,
@@ -52,7 +52,7 @@ pub mod newtype_body {
 pub mod raw_body {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
     };
@@ -76,7 +76,7 @@ pub mod raw_body {
         pub bar: String,
 
         #[ruma_api(query)]
-        pub baz: OwnedUserId,
+        pub baz: UserId,
 
         #[ruma_api(header = CONTENT_TYPE)]
         pub world: String,
@@ -96,7 +96,7 @@ pub mod raw_body {
 pub mod plain {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
     };
@@ -122,7 +122,7 @@ pub mod plain {
         pub bar: String,
 
         #[ruma_api(query)]
-        pub baz: OwnedUserId,
+        pub baz: UserId,
 
         #[ruma_api(header = CONTENT_TYPE)]
         pub world: String,

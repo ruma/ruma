@@ -3,7 +3,7 @@
 //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1hierarchyroomid
 
 use ruma_common::{
-    OwnedRoomId,
+    RoomId,
     api::{request, response},
     metadata,
     room::RoomSummary,
@@ -23,7 +23,7 @@ metadata! {
 pub struct Request {
     /// The room ID of the space to get a hierarchy for.
     #[ruma_api(path)]
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// Whether or not the server should only consider suggested rooms.
     ///
@@ -45,7 +45,7 @@ pub struct Response {
     ///
     /// Rooms which the responding server cannot provide details on will be outright
     /// excluded from the response instead.
-    pub inaccessible_children: Vec<OwnedRoomId>,
+    pub inaccessible_children: Vec<RoomId>,
 
     /// A summary of the requested room.
     pub room: SpaceHierarchyParentSummary,
@@ -53,7 +53,7 @@ pub struct Response {
 
 impl Request {
     /// Creates a `Request` with the given room ID.
-    pub fn new(room_id: OwnedRoomId) -> Self {
+    pub fn new(room_id: RoomId) -> Self {
         Self { room_id, suggested_only: false }
     }
 }
@@ -67,7 +67,7 @@ impl Response {
 
 #[cfg(all(test, feature = "client"))]
 mod tests {
-    use ruma_common::{OwnedRoomId, api::IncomingResponse};
+    use ruma_common::{RoomId, api::IncomingResponse};
     use serde_json::{json, to_vec as to_json_vec};
 
     use super::Response;
@@ -115,7 +115,7 @@ mod tests {
         assert_eq!(response.room.summary.room_id, "!room:localhost");
         let space_child = response.room.children_state[0].deserialize().unwrap();
         assert_eq!(space_child.state_key, "!a:example.org");
-        assert_eq!(response.inaccessible_children, &[] as &[OwnedRoomId]);
+        assert_eq!(response.inaccessible_children, &[] as &[RoomId]);
         assert_eq!(response.children[0].room_id, "!a:localhost");
     }
 }

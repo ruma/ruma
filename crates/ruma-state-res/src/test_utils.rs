@@ -10,8 +10,7 @@ use std::{
 
 use js_int::{int, uint};
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, ServerSignatures, UserId, event_id,
-    room_id,
+    EventId, MilliSecondsSinceUnixEpoch, RoomId, ServerSignatures, UserId, event_id, room_id,
     room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
     user_id,
 };
@@ -38,8 +37,8 @@ static SERVER_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 
 pub(crate) fn do_check(
     events: &[Arc<PduEvent>],
-    edges: Vec<Vec<OwnedEventId>>,
-    expected_state_ids: Vec<OwnedEventId>,
+    edges: Vec<Vec<EventId>>,
+    expected_state_ids: Vec<EventId>,
 ) {
     // To activate logging use `RUST_LOG=debug cargo t`
 
@@ -80,9 +79,9 @@ pub(crate) fn do_check(
     }
 
     // event_id -> PduEvent
-    let mut event_map: HashMap<OwnedEventId, Arc<PduEvent>> = HashMap::new();
-    // event_id -> StateMap<OwnedEventId>
-    let mut state_at_event: HashMap<OwnedEventId, StateMap<OwnedEventId>> = HashMap::new();
+    let mut event_map: HashMap<EventId, Arc<PduEvent>> = HashMap::new();
+    // event_id -> StateMap<EventId>
+    let mut state_at_event: HashMap<EventId, StateMap<EventId>> = HashMap::new();
 
     // Resolve the current state and add it to the state_at_event map then continue
     // on in "time"
@@ -96,7 +95,7 @@ pub(crate) fn do_check(
 
         let prev_events = graph.get(&node).unwrap();
 
-        let state_before: StateMap<OwnedEventId> = if prev_events.is_empty() {
+        let state_before: StateMap<EventId> = if prev_events.is_empty() {
             HashMap::new()
         } else if prev_events.len() == 1 {
             state_at_event.get(prev_events.iter().next().unwrap()).unwrap().clone()
@@ -209,13 +208,13 @@ pub(crate) fn do_check(
                 && **k != ("m.room.message".into(), "dummy".to_owned())
         })
         .map(|(k, v)| (k.clone(), v.clone()))
-        .collect::<StateMap<OwnedEventId>>();
+        .collect::<StateMap<EventId>>();
 
     assert_eq!(expected_state, end_state);
 }
 
 #[allow(clippy::exhaustive_structs)]
-pub(crate) struct TestStore<E: Event>(pub(crate) HashMap<OwnedEventId, Arc<E>>);
+pub(crate) struct TestStore<E: Event>(pub(crate) HashMap<EventId, Arc<E>>);
 
 impl<E: Event> TestStore<E> {
     pub(crate) fn get_event(&self, _: &RoomId, event_id: &EventId) -> Result<Arc<E>> {
@@ -251,9 +250,7 @@ impl<E: Event> TestStore<E> {
 // A StateStore implementation for testing
 #[allow(clippy::type_complexity)]
 impl TestStore<PduEvent> {
-    pub(crate) fn set_up(
-        &mut self,
-    ) -> (StateMap<OwnedEventId>, StateMap<OwnedEventId>, StateMap<OwnedEventId>) {
+    pub(crate) fn set_up(&mut self) -> (StateMap<EventId>, StateMap<EventId>, StateMap<EventId>) {
         let create_event = to_pdu_event::<&EventId>(
             "CREATE",
             alice(),
@@ -337,7 +334,7 @@ impl TestStore<PduEvent> {
     }
 }
 
-pub(crate) fn event_id(id: &str) -> OwnedEventId {
+pub(crate) fn event_id(id: &str) -> EventId {
     if id.contains('$') {
         return id.try_into().unwrap();
     }
@@ -461,7 +458,7 @@ pub(crate) fn to_v12_pdu_event<S>(
 where
     S: AsRef<str>,
 {
-    fn event_id(id: &str) -> OwnedEventId {
+    fn event_id(id: &str) -> EventId {
         if id.contains('$') { id.try_into().unwrap() } else { format!("${id}").try_into().unwrap() }
     }
 
@@ -492,7 +489,7 @@ where
 pub(crate) fn room_redaction_pdu_event<S>(
     id: &str,
     sender: &UserId,
-    redacts: OwnedEventId,
+    redacts: EventId,
     content: Box<RawJsonValue>,
     auth_events: &[S],
     prev_events: &[S],
@@ -553,7 +550,7 @@ pub(crate) fn room_create_v12_pdu_event(
 
 /// Batch of initial events to use for incoming events in the v1-v11 room versions.
 #[allow(non_snake_case)]
-pub(crate) fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
+pub(crate) fn INITIAL_EVENTS() -> HashMap<EventId, Arc<PduEvent>> {
     vec![
         to_pdu_event::<&EventId>(
             "CREATE",
@@ -635,7 +632,7 @@ pub(crate) fn INITIAL_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
 
 /// Batch of initial events to use for incoming events from room version 12 onwards.
 #[allow(non_snake_case)]
-pub(crate) fn INITIAL_V12_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
+pub(crate) fn INITIAL_V12_EVENTS() -> HashMap<EventId, Arc<PduEvent>> {
     vec![
         room_create_v12_pdu_event(
             "CREATE",
@@ -713,7 +710,7 @@ pub(crate) fn INITIAL_V12_EVENTS() -> HashMap<OwnedEventId, Arc<PduEvent>> {
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-pub(crate) fn INITIAL_EVENTS_CREATE_ROOM() -> HashMap<OwnedEventId, Arc<PduEvent>> {
+pub(crate) fn INITIAL_EVENTS_CREATE_ROOM() -> HashMap<EventId, Arc<PduEvent>> {
     vec![to_pdu_event::<&EventId>(
         "CREATE",
         alice(),
@@ -729,7 +726,7 @@ pub(crate) fn INITIAL_EVENTS_CREATE_ROOM() -> HashMap<OwnedEventId, Arc<PduEvent
 }
 
 #[allow(non_snake_case)]
-pub(crate) fn INITIAL_EDGES() -> Vec<OwnedEventId> {
+pub(crate) fn INITIAL_EDGES() -> Vec<EventId> {
     vec!["START", "IMC", "IMB", "IJR", "IPOWER", "IMA", "CREATE"]
         .into_iter()
         .map(event_id)
@@ -740,10 +737,7 @@ pub(crate) mod event {
     use std::collections::BTreeMap;
 
     use js_int::UInt;
-    use ruma_common::{
-        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId,
-        ServerSignatures, UserId,
-    };
+    use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, RoomId, ServerSignatures, UserId};
     use ruma_events::TimelineEventType;
     use serde::{Deserialize, Serialize};
     use serde_json::value::RawValue as RawJsonValue;
@@ -751,14 +745,14 @@ pub(crate) mod event {
     use crate::Event;
 
     impl Event for PduEvent {
-        type Id = OwnedEventId;
+        type Id = EventId;
 
         fn event_id(&self) -> &Self::Id {
             &self.event_id
         }
 
         fn room_id(&self) -> Option<&RoomId> {
-            self.room_id.as_deref()
+            self.room_id.as_ref()
         }
 
         fn sender(&self) -> &UserId {
@@ -802,13 +796,13 @@ pub(crate) mod event {
     #[allow(clippy::exhaustive_structs)]
     pub(crate) struct PduEvent {
         /// The ID of the event.
-        pub(crate) event_id: OwnedEventId,
+        pub(crate) event_id: EventId,
 
         /// The room this event belongs to.
-        pub(crate) room_id: Option<OwnedRoomId>,
+        pub(crate) room_id: Option<RoomId>,
 
         /// The user id of the user who sent this event.
-        pub(crate) sender: OwnedUserId,
+        pub(crate) sender: UserId,
 
         /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver
         /// of when this event was created.
@@ -827,18 +821,18 @@ pub(crate) mod event {
 
         /// Event IDs for the most recent events in the room that the homeserver was
         /// aware of when it created this event.
-        pub(crate) prev_events: Vec<OwnedEventId>,
+        pub(crate) prev_events: Vec<EventId>,
 
         /// The maximum depth of the `prev_events`, plus one.
         pub(crate) depth: UInt,
 
         /// Event IDs for the authorization events that would allow this event to be
         /// in the room.
-        pub(crate) auth_events: Vec<OwnedEventId>,
+        pub(crate) auth_events: Vec<EventId>,
 
         /// For redaction events, the ID of the event being redacted.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub(crate) redacts: Option<OwnedEventId>,
+        pub(crate) redacts: Option<EventId>,
 
         /// Additional data added by the origin server but not covered by the
         /// signatures.
@@ -869,7 +863,7 @@ pub(crate) struct TestStateMap(HashMap<StateEventType, HashMap<String, Arc<PduEv
 
 impl TestStateMap {
     /// Construct a `TestStateMap` from the given event map.
-    pub(crate) fn new(events: &HashMap<OwnedEventId, Arc<PduEvent>>) -> Self {
+    pub(crate) fn new(events: &HashMap<EventId, Arc<PduEvent>>) -> Self {
         let mut state_map: HashMap<StateEventType, HashMap<String, Arc<PduEvent>>> = HashMap::new();
 
         for event in events.values() {

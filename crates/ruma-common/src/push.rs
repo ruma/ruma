@@ -22,7 +22,7 @@ use thiserror::Error;
 use tracing::instrument;
 
 use crate::{
-    OwnedRoomId, OwnedUserId, PrivOwnedStr,
+    PrivOwnedStr, RoomId, UserId,
     serde::{JsonObject, Raw, StringEnum},
 };
 
@@ -72,11 +72,11 @@ pub struct Ruleset {
 
     /// These rules change the behavior of all messages for a given room.
     #[serde(default, skip_serializing_if = "IndexSet::is_empty")]
-    pub room: IndexSet<SimplePushRule<OwnedRoomId>>,
+    pub room: IndexSet<SimplePushRule<RoomId>>,
 
     /// These rules configure notification behavior for messages from a specific Matrix user ID.
     #[serde(default, skip_serializing_if = "IndexSet::is_empty")]
-    pub sender: IndexSet<SimplePushRule<OwnedUserId>>,
+    pub sender: IndexSet<SimplePushRule<UserId>>,
 
     /// These rules are identical to override rules, but have a lower priority than `content`,
     /// `room` and `sender` rules.
@@ -818,10 +818,10 @@ pub enum NewPushRule {
     PostContent(NewConditionalPushRule),
 
     /// Room-specific rules.
-    Room(NewSimplePushRule<OwnedRoomId>),
+    Room(NewSimplePushRule<RoomId>),
 
     /// Sender-specific rules.
-    Sender(NewSimplePushRule<OwnedUserId>),
+    Sender(NewSimplePushRule<UserId>),
 
     /// Lowest priority rules.
     Underride(NewConditionalPushRule),

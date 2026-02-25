@@ -4,7 +4,7 @@ use std::borrow::Cow;
 
 use http::header::CONTENT_TYPE;
 use ruma_common::{
-    OwnedUserId,
+    UserId,
     api::{
         AppserviceUserIdentity, IncomingRequest as _, MatrixVersion, OutgoingRequest as _,
         OutgoingRequestAppserviceExt, SupportedVersions,
@@ -41,7 +41,7 @@ pub struct Request {
     pub bar: String,
 
     #[ruma_api(path)]
-    pub user: OwnedUserId,
+    pub user: UserId,
 }
 
 /// Response type for the `my_endpoint` endpoint.
@@ -144,7 +144,7 @@ mod without_query {
 
     use http::header::CONTENT_TYPE;
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{
             AppserviceUserIdentity, MatrixVersion, OutgoingRequestAppserviceExt, SupportedVersions,
             auth_scheme::{NoAuthentication, SendAccessToken},
@@ -174,7 +174,7 @@ mod without_query {
         pub bar: String,
 
         #[ruma_api(path)]
-        pub user: OwnedUserId,
+        pub user: UserId,
     }
 
     /// Response type for the `my_endpoint` endpoint.

@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::OwnedRoomId;
+use ruma_common::RoomId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -35,8 +35,8 @@ impl FromIterator<DoNotDisturbRoomKey> for DoNotDisturbEventContent {
     }
 }
 
-impl FromIterator<OwnedRoomId> for DoNotDisturbEventContent {
-    fn from_iter<T: IntoIterator<Item = OwnedRoomId>>(iter: T) -> Self {
+impl FromIterator<RoomId> for DoNotDisturbEventContent {
+    fn from_iter<T: IntoIterator<Item = RoomId>>(iter: T) -> Self {
         iter.into_iter().map(DoNotDisturbRoomKey::SingleRoom).collect()
     }
 }
@@ -47,8 +47,8 @@ impl Extend<DoNotDisturbRoomKey> for DoNotDisturbEventContent {
     }
 }
 
-impl Extend<OwnedRoomId> for DoNotDisturbEventContent {
-    fn extend<T: IntoIterator<Item = OwnedRoomId>>(&mut self, iter: T) {
+impl Extend<RoomId> for DoNotDisturbEventContent {
+    fn extend<T: IntoIterator<Item = RoomId>>(&mut self, iter: T) {
         self.extend(iter.into_iter().map(DoNotDisturbRoomKey::SingleRoom));
     }
 }
@@ -65,7 +65,7 @@ pub enum DoNotDisturbRoomKey {
 
     /// Match a single room based on its room ID.
     #[serde(untagged)]
-    SingleRoom(OwnedRoomId),
+    SingleRoom(RoomId),
 }
 
 /// Details about a room in "Do not Disturb" mode.

@@ -5,7 +5,7 @@
 use std::time::Duration;
 
 use as_variant::as_variant;
-use ruma_common::{DeviceId, MilliSecondsSinceUnixEpoch, OwnedDeviceId};
+use ruma_common::{DeviceId, MilliSecondsSinceUnixEpoch};
 use ruma_macros::StringEnum;
 use serde::{Deserialize, Serialize};
 use tracing::warn;
@@ -161,7 +161,7 @@ pub struct LegacyMembershipData {
     /// The device id of this membership.
     ///
     /// The same user can join with their phone/computer.
-    pub device_id: OwnedDeviceId,
+    pub device_id: DeviceId,
 
     /// The duration in milliseconds relative to the time this membership joined
     /// during which the membership is valid.
@@ -202,7 +202,7 @@ pub struct LegacyMembershipDataInit {
     /// The device id of this membership.
     ///
     /// The same user can join with their phone/computer.
-    pub device_id: OwnedDeviceId,
+    pub device_id: DeviceId,
 
     /// The duration in milliseconds relative to the time this membership joined
     /// during which the membership is valid.
@@ -248,7 +248,7 @@ pub struct SessionMembershipData {
     /// The device id of this membership.
     ///
     /// The same user can join with their phone/computer.
-    pub device_id: OwnedDeviceId,
+    pub device_id: DeviceId,
 
     /// A list of the foci that this membership proposes to use.
     pub foci_preferred: Vec<Focus>,

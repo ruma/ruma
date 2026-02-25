@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3useruseridroomsroomidtags
 
     use ruma_common::{
-        OwnedRoomId, OwnedUserId,
+        RoomId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -29,11 +29,11 @@ pub mod v3 {
     pub struct Request {
         /// The user whose tags will be retrieved.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The room from which tags will be retrieved.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
     }
 
     /// Response type for the `get_tags` endpoint.
@@ -45,7 +45,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID and room ID.
-        pub fn new(user_id: OwnedUserId, room_id: OwnedRoomId) -> Self {
+        pub fn new(user_id: UserId, room_id: RoomId) -> Self {
             Self { user_id, room_id }
         }
     }

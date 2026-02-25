@@ -10,7 +10,7 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch, OwnedUserId,
+        MilliSecondsSinceUnixEpoch, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -31,7 +31,7 @@ pub mod v3 {
     pub struct Request {
         /// The user to look up.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
     }
 
     /// Response type for the `get_user_info` endpoint.
@@ -40,7 +40,7 @@ pub mod v3 {
     pub struct Response {
         /// The Matrix user ID of the user.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub user_id: Option<OwnedUserId>,
+        pub user_id: Option<UserId>,
 
         /// A map of the user's device identifiers to information about that device.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
@@ -49,7 +49,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user id.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id }
         }
     }

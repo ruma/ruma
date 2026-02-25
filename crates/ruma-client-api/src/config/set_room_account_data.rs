@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3useruseridroomsroomidaccount_datatype
 
     use ruma_common::{
-        OwnedRoomId, OwnedUserId,
+        RoomId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -35,11 +35,11 @@ pub mod v3 {
         ///
         /// The access token must be authorized to make requests for this user ID.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The ID of the room to set account_data on.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The event type of the account_data to set.
         ///
@@ -66,11 +66,7 @@ pub mod v3 {
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
-        pub fn new<T>(
-            user_id: OwnedUserId,
-            room_id: OwnedRoomId,
-            data: &T,
-        ) -> serde_json::Result<Self>
+        pub fn new<T>(user_id: UserId, room_id: RoomId, data: &T) -> serde_json::Result<Self>
         where
             T: RoomAccountDataEventContent,
         {
@@ -84,8 +80,8 @@ pub mod v3 {
 
         /// Creates a new `Request` with the given raw data, event type, room ID and user ID.
         pub fn new_raw(
-            user_id: OwnedUserId,
-            room_id: OwnedRoomId,
+            user_id: UserId,
+            room_id: RoomId,
             event_type: RoomAccountDataEventType,
             data: Raw<AnyRoomAccountDataEventContent>,
         ) -> Self {

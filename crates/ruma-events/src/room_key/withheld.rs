@@ -5,7 +5,7 @@
 use std::borrow::Cow;
 
 use ruma_common::{
-    EventEncryptionAlgorithm, OwnedRoomId,
+    EventEncryptionAlgorithm, RoomId,
     serde::{Base64, JsonObject, from_raw_json_value},
 };
 use ruma_macros::{EventContent, StringEnum};
@@ -164,7 +164,7 @@ impl<'de> Deserialize<'de> for RoomKeyWithheldCodeInfo {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct RoomKeyWithheldSessionData {
     /// The room for the key.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The session ID of the key.
     pub session_id: String,
@@ -172,7 +172,7 @@ pub struct RoomKeyWithheldSessionData {
 
 impl RoomKeyWithheldSessionData {
     /// Construct a new `RoomKeyWithheldSessionData` with the given room ID and session ID.
-    pub fn new(room_id: OwnedRoomId, session_id: String) -> Self {
+    pub fn new(room_id: RoomId, session_id: String) -> Self {
         Self { room_id, session_id }
     }
 }

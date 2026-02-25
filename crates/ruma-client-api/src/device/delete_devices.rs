@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3delete_devices
 
     use ruma_common::{
-        OwnedDeviceId,
+        DeviceId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -29,7 +29,7 @@ pub mod v3 {
     #[request(error = UiaaResponse)]
     pub struct Request {
         /// List of devices to delete.
-        pub devices: Vec<OwnedDeviceId>,
+        pub devices: Vec<DeviceId>,
 
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -43,7 +43,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given device list.
-        pub fn new(devices: Vec<OwnedDeviceId>) -> Self {
+        pub fn new(devices: Vec<DeviceId>) -> Self {
             Self { devices, auth: None }
         }
     }

@@ -9,7 +9,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1make_leaveroomiduserid
 
     use ruma_common::{
-        OwnedRoomId, OwnedUserId, RoomVersionId,
+        RoomId, RoomVersionId, UserId,
         api::{request, response},
         metadata,
     };
@@ -29,11 +29,11 @@ pub mod v1 {
     pub struct Request {
         /// The room ID that is about to be left.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The user ID the leave event will be for.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
     }
 
     /// Response type for the `get_leave_event` endpoint.
@@ -55,7 +55,7 @@ pub mod v1 {
         /// Creates a new `Request` with:
         /// * the room ID that is about to be left.
         /// * the user ID the leave event will be for.
-        pub fn new(room_id: OwnedRoomId, user_id: OwnedUserId) -> Self {
+        pub fn new(room_id: RoomId, user_id: UserId) -> Self {
             Self { room_id, user_id }
         }
     }

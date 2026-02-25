@@ -9,7 +9,7 @@ pub mod v1 {
 
     use js_int::{UInt, uint};
     use ruma_common::{
-        OwnedEventId, OwnedRoomAliasId, OwnedRoomId, OwnedUserId, SecondsSinceUnixEpoch,
+        EventId, RoomAliasId, RoomId, SecondsSinceUnixEpoch, UserId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         push::{PushFormat, Tweak},
@@ -73,13 +73,13 @@ pub mod v1 {
         /// notifications that only contain updated badge counts. This ID can and should be used to
         /// detect duplicate notification requests.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub event_id: Option<OwnedEventId>,
+        pub event_id: Option<EventId>,
 
         /// The ID of the room in which this event occurred.
         ///
         /// Required if the notification relates to a specific Matrix event.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_id: Option<OwnedRoomId>,
+        pub room_id: Option<RoomId>,
 
         /// The type of the event as in the event's `type` field.
         #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
@@ -87,7 +87,7 @@ pub mod v1 {
 
         /// The sender of the event as in the corresponding event field.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub sender: Option<OwnedUserId>,
+        pub sender: Option<UserId>,
 
         /// The current display name of the sender in the room in which the event occurred.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -99,7 +99,7 @@ pub mod v1 {
 
         /// An alias to display for the room in which the event occurred.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_alias: Option<OwnedRoomAliasId>,
+        pub room_alias: Option<RoomAliasId>,
 
         /// Whether the user receiving the notification is the subject of a member event (i.e. the
         /// `state_key` of the member event is equal to the user's Matrix ID).

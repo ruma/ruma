@@ -1,6 +1,6 @@
 //! Types for the `org.matrix.msc3381.poll.end` event, the unstable version of `m.poll.end`.
 
-use ruma_common::OwnedEventId;
+use ruma_common::EventId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -40,7 +40,7 @@ pub struct UnstablePollEndEventContent {
 impl UnstablePollEndEventContent {
     /// Creates a new `PollEndEventContent` with the given fallback representation and
     /// that responds to the given poll start event ID.
-    pub fn new(text: impl Into<String>, poll_start_id: OwnedEventId) -> Self {
+    pub fn new(text: impl Into<String>, poll_start_id: EventId) -> Self {
         Self {
             text: text.into(),
             poll_end: UnstablePollEndContentBlock {},

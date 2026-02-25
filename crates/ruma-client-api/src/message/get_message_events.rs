@@ -9,7 +9,7 @@ pub mod v3 {
 
     use js_int::{UInt, uint};
     use ruma_common::{
-        OwnedRoomId,
+        RoomId,
         api::{Direction, auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -33,7 +33,7 @@ pub mod v3 {
     pub struct Request {
         /// The room to get events from.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The token to start returning events from.
         ///
@@ -100,7 +100,7 @@ pub mod v3 {
         /// Creates a new `Request` with the given room ID and direction.
         ///
         /// All other parameters will be defaulted.
-        pub fn new(room_id: OwnedRoomId, dir: Direction) -> Self {
+        pub fn new(room_id: RoomId, dir: Direction) -> Self {
             Self {
                 room_id,
                 from: None,
@@ -124,7 +124,7 @@ pub mod v3 {
         /// # let token = "prev_batch token".to_owned();
         /// let request = get_message_events::v3::Request::backward(room_id).from(token);
         /// ```
-        pub fn backward(room_id: OwnedRoomId) -> Self {
+        pub fn backward(room_id: RoomId) -> Self {
             Self::new(room_id, Direction::Backward)
         }
 
@@ -141,7 +141,7 @@ pub mod v3 {
         /// # let token = "end token".to_owned();
         /// let request = get_message_events::v3::Request::forward(room_id).from(token);
         /// ```
-        pub fn forward(room_id: OwnedRoomId) -> Self {
+        pub fn forward(room_id: RoomId) -> Self {
             Self::new(room_id, Direction::Forward)
         }
 

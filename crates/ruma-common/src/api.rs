@@ -75,7 +75,7 @@ use bytes::BufMut;
 ///
 /// ```
 /// pub mod do_a_thing {
-///     use ruma_common::{OwnedRoomId, api::request};
+///     use ruma_common::{RoomId, api::request};
 ///     # use ruma_common::{api::{auth_scheme::NoAuthentication, response}, metadata};
 ///
 ///     // metadata! { ... };
@@ -91,7 +91,7 @@ use bytes::BufMut;
 ///     #[request]
 ///     pub struct Request {
 ///         #[ruma_api(path)]
-///         pub room_id: OwnedRoomId,
+///         pub room_id: RoomId,
 ///
 ///         #[ruma_api(query)]
 ///         pub bar: String,
@@ -190,7 +190,7 @@ pub use ruma_macros::request;
 ///
 /// ```
 /// pub mod do_a_thing {
-///     use ruma_common::{OwnedRoomId, api::response};
+///     use ruma_common::api::response;
 ///     # use ruma_common::{api::{auth_scheme::NoAuthentication, request}, metadata};
 ///
 ///     // metadata! { ... };

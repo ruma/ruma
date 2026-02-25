@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3roomsroomidredacteventidtxnid
 
     use ruma_common::{
-        OwnedEventId, OwnedRoomId, OwnedTransactionId,
+        EventId, RoomId, TransactionId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -28,11 +28,11 @@ pub mod v3 {
     pub struct Request {
         /// The ID of the room of the event to redact.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The ID of the event to redact.
         #[ruma_api(path)]
-        pub event_id: OwnedEventId,
+        pub event_id: EventId,
 
         /// The transaction ID for this event.
         ///
@@ -44,7 +44,7 @@ pub mod v3 {
         ///
         /// [access token is refreshed]: https://spec.matrix.org/latest/client-server-api/#refreshing-access-tokens
         #[ruma_api(path)]
-        pub txn_id: OwnedTransactionId,
+        pub txn_id: TransactionId,
 
         /// The reason for the redaction.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -55,23 +55,19 @@ pub mod v3 {
     #[response(error = crate::Error)]
     pub struct Response {
         /// The ID of the redacted event.
-        pub event_id: OwnedEventId,
+        pub event_id: EventId,
     }
 
     impl Request {
         /// Creates a new `Request` with the given room ID, event ID and transaction ID.
-        pub fn new(
-            room_id: OwnedRoomId,
-            event_id: OwnedEventId,
-            txn_id: OwnedTransactionId,
-        ) -> Self {
+        pub fn new(room_id: RoomId, event_id: EventId, txn_id: TransactionId) -> Self {
             Self { room_id, event_id, txn_id, reason: None }
         }
     }
 
     impl Response {
         /// Creates a new `Response` with the given event ID.
-        pub fn new(event_id: OwnedEventId) -> Self {
+        pub fn new(event_id: EventId) -> Self {
             Self { event_id }
         }
     }

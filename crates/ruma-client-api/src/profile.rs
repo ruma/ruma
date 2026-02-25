@@ -7,7 +7,7 @@ use ruma_common::api::{
     MatrixVersion,
     path_builder::{StablePathSelector, VersionHistory},
 };
-use ruma_common::{OwnedMxcUri, serde::StringEnum};
+use ruma_common::{MxcUri, serde::StringEnum};
 use serde::Serialize;
 use serde_json::{Value as JsonValue, from_value as from_json_value, to_value as to_json_value};
 
@@ -64,7 +64,7 @@ impl ProfileFieldName {
 #[non_exhaustive]
 pub enum ProfileFieldValue {
     /// The user's avatar URL.
-    AvatarUrl(OwnedMxcUri),
+    AvatarUrl(MxcUri),
 
     /// The user's display name.
     #[serde(rename = "displayname")]

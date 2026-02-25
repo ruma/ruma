@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_common::{
-    OwnedMxcUri,
+    MxcUri,
     serde::{Base64, base64::UrlSafe},
 };
 use serde::{Deserialize, Serialize, de};
@@ -41,7 +41,7 @@ pub mod topic;
 pub enum MediaSource {
     /// The MXC URI to the unencrypted media file.
     #[serde(rename = "url")]
-    Plain(OwnedMxcUri),
+    Plain(MxcUri),
 
     /// The encryption info of the encrypted media file.
     #[serde(rename = "file")]
@@ -59,7 +59,7 @@ impl<'de> Deserialize<'de> for MediaSource {
     {
         #[derive(Deserialize)]
         struct MediaSourceJsonRepr {
-            url: Option<OwnedMxcUri>,
+            url: Option<MxcUri>,
             file: Option<Box<EncryptedFile>>,
         }
 
@@ -169,7 +169,7 @@ impl ThumbnailInfo {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct EncryptedFile {
     /// The URL to the file.
-    pub url: OwnedMxcUri,
+    pub url: MxcUri,
 
     /// A [JSON Web Key](https://tools.ietf.org/html/rfc7517#appendix-A.3) object.
     pub key: JsonWebKey,
@@ -196,7 +196,7 @@ pub struct EncryptedFile {
 #[allow(clippy::exhaustive_structs)]
 pub struct EncryptedFileInit {
     /// The URL to the file.
-    pub url: OwnedMxcUri,
+    pub url: MxcUri,
 
     /// A [JSON Web Key](https://tools.ietf.org/html/rfc7517#appendix-A.3) object.
     pub key: JsonWebKey,

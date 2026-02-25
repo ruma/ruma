@@ -10,7 +10,7 @@ pub mod v1 {
     use std::time::Duration;
 
     use ruma_common::{
-        OwnedTransactionId,
+        TransactionId,
         api::{auth_scheme::AppserviceToken, request, response},
         metadata,
     };
@@ -37,7 +37,7 @@ pub mod v1 {
 
         /// Transaction ID that is passed through to the `POST /_matrix/app/v1/ping` call.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub transaction_id: Option<OwnedTransactionId>,
+        pub transaction_id: Option<TransactionId>,
     }
 
     /// Response type for the `request_ping` endpoint.

@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3joinroomidoralias
 
     use ruma_common::{
-        OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName,
+        RoomId, RoomOrAliasId, ServerName,
         api::{auth_scheme::AccessToken, response},
         metadata,
     };
@@ -30,7 +30,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
         /// The room where the user should be invited.
-        pub room_id_or_alias: OwnedRoomOrAliasId,
+        pub room_id_or_alias: RoomOrAliasId,
 
         /// The signature of a `m.third_party_invite` token to prove that this user owns a third
         /// party identity which has been invited to the room.
@@ -48,7 +48,7 @@ pub mod v3 {
         ///
         /// When deserializing, the value is read from `via` if it's not missing or
         /// empty and `server_name` otherwise.
-        pub via: Vec<OwnedServerName>,
+        pub via: Vec<ServerName>,
     }
 
     /// Data in the request's query string.
@@ -57,13 +57,13 @@ pub mod v3 {
     struct RequestQuery {
         /// The servers to attempt to join the room through.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        via: Vec<OwnedServerName>,
+        via: Vec<ServerName>,
 
         /// The servers to attempt to join the room through.
         ///
         /// Deprecated in Matrix >1.11 in favour of `via`.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        server_name: Vec<OwnedServerName>,
+        server_name: Vec<ServerName>,
     }
 
     /// Data in the request's body.
@@ -177,19 +177,19 @@ pub mod v3 {
     #[response(error = crate::Error)]
     pub struct Response {
         /// The room that the user joined.
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
     }
 
     impl Request {
         /// Creates a new `Request` with the given room ID or alias ID.
-        pub fn new(room_id_or_alias: OwnedRoomOrAliasId) -> Self {
+        pub fn new(room_id_or_alias: RoomOrAliasId) -> Self {
             Self { room_id_or_alias, via: vec![], third_party_signed: None, reason: None }
         }
     }
 
     impl Response {
         /// Creates a new `Response` with the given room ID.
-        pub fn new(room_id: OwnedRoomId) -> Self {
+        pub fn new(room_id: RoomId) -> Self {
             Self { room_id }
         }
     }

@@ -11,7 +11,7 @@ pub mod v3 {
     use std::borrow::Cow;
 
     use ruma_common::{
-        OwnedMxcUri,
+        MxcUri,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         serde::{JsonObject, StringEnum},
@@ -200,7 +200,7 @@ pub mod v3 {
         pub name: String,
 
         /// The icon for the provider.
-        pub icon: Option<OwnedMxcUri>,
+        pub icon: Option<MxcUri>,
 
         /// The brand identifier for the provider.
         pub brand: Option<IdentityProviderBrand>,
@@ -320,7 +320,7 @@ pub mod v3 {
     #[cfg(test)]
     mod tests {
         use assert_matches2::assert_matches;
-        use ruma_common::{canonical_json::assert_to_canonical_json_eq, mxc_uri};
+        use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_mxc_uri};
         use serde::{Deserialize, Serialize};
         use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
@@ -397,7 +397,7 @@ pub mod v3 {
             let provider = &identity_providers[0];
             assert_eq!(provider.id, "oidc-gitlab");
             assert_eq!(provider.name, "GitLab");
-            assert_eq!(provider.icon.as_deref(), Some(mxc_uri!("mxc://localhost/gitlab-icon")));
+            assert_eq!(provider.icon, Some(owned_mxc_uri!("mxc://localhost/gitlab-icon")));
             assert_eq!(provider.brand, Some(IdentityProviderBrand::GitLab));
 
             let provider = &identity_providers[1];

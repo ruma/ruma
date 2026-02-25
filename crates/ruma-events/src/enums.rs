@@ -1,6 +1,5 @@
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, RoomId, TransactionId, UserId,
-    serde::from_raw_json_value,
+    EventId, MilliSecondsSinceUnixEpoch, RoomId, TransactionId, UserId, serde::from_raw_json_value,
 };
 #[cfg(feature = "unstable-msc3381")]
 use ruma_events::{
@@ -342,7 +341,7 @@ impl AnySyncTimelineEvent {
     }
 
     /// Converts `self` to an `AnyTimelineEvent` by adding the given a room ID.
-    pub fn into_full_event(self, room_id: OwnedRoomId) -> AnyTimelineEvent {
+    pub fn into_full_event(self, room_id: RoomId) -> AnyTimelineEvent {
         match self {
             Self::MessageLike(ev) => AnyTimelineEvent::MessageLike(ev.into_full_event(room_id)),
             Self::State(ev) => AnyTimelineEvent::State(ev.into_full_event(room_id)),

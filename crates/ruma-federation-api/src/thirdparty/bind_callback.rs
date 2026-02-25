@@ -10,7 +10,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv13pidonbind
 
     use ruma_common::{
-        OwnedRoomId, OwnedUserId,
+        RoomId, UserId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         serde::Raw,
@@ -40,7 +40,7 @@ pub mod v1 {
         pub address: String,
 
         /// The user that is now bound to the third party identifier.
-        pub mxid: OwnedUserId,
+        pub mxid: UserId,
 
         /// A list of pending invites that the third party identifier has received.
         pub invites: Vec<ThirdPartyInvite>,
@@ -56,14 +56,14 @@ pub mod v1 {
         pub fn new(
             medium: Medium,
             address: String,
-            mxid: OwnedUserId,
+            mxid: UserId,
             invites: Vec<ThirdPartyInvite>,
         ) -> Self {
             Self { medium, address, mxid, invites }
         }
 
         /// Creates a new `Request` with the given email address, user ID and third party invites.
-        pub fn email(address: String, mxid: OwnedUserId, invites: Vec<ThirdPartyInvite>) -> Self {
+        pub fn email(address: String, mxid: UserId, invites: Vec<ThirdPartyInvite>) -> Self {
             Self::new(Medium::Email, address, mxid, invites)
         }
     }
@@ -81,13 +81,13 @@ pub mod v1 {
         pub address: String,
 
         /// The now-bound user ID that received the invite.
-        pub mxid: OwnedUserId,
+        pub mxid: UserId,
 
         /// The room ID the invite is valid for.
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The user ID that sent the invite.
-        pub sender: OwnedUserId,
+        pub sender: UserId,
 
         /// A block of content which has been signed, which servers can use to verify the
         /// third-party invite.
@@ -98,9 +98,9 @@ pub mod v1 {
         /// Creates a new third party invite with the given parameters.
         pub fn new(
             address: String,
-            mxid: OwnedUserId,
-            room_id: OwnedRoomId,
-            sender: OwnedUserId,
+            mxid: UserId,
+            room_id: RoomId,
+            sender: UserId,
             signed: Raw<SignedContent>,
         ) -> Self {
             Self { medium: Medium::Email, address, mxid, room_id, sender, signed }

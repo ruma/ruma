@@ -1,10 +1,4 @@
-use std::{
-    cmp::Ordering,
-    hash::{Hash, Hasher},
-    marker::PhantomData,
-};
-
-use ruma_macros::IdDst;
+use ruma_macros::ruma_id;
 
 use super::{
     Base64PublicKey, Base64PublicKeyOrDeviceId, DeviceId, DeviceKeyAlgorithm, KeyName,
@@ -43,19 +37,17 @@ use super::{
 /// ```
 /// use ruma_common::{DeviceKeyAlgorithm, DeviceKeyId};
 ///
-/// let k = DeviceKeyId::from_parts(DeviceKeyAlgorithm::Curve25519, "MYDEVICE".into());
+/// let k = DeviceKeyId::from_parts(DeviceKeyAlgorithm::Curve25519, &"MYDEVICE".into());
 /// assert_eq!(k.as_str(), "curve25519:MYDEVICE");
 /// ```
-#[repr(transparent)]
-#[derive(IdDst)]
 #[ruma_id(
     validate = ruma_identifiers_validation::key_id::validate::<K>,
 )]
-pub struct KeyId<A: KeyAlgorithm, K: KeyName + ?Sized>(PhantomData<(A, K)>, str);
+pub struct KeyId<A: KeyAlgorithm, K: KeyName + ?Sized>;
 
 impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
     /// Creates a new `KeyId` from an algorithm and key name.
-    pub fn from_parts(algorithm: A, key_name: &K) -> OwnedKeyId<A, K> {
+    pub fn from_parts(algorithm: A, key_name: &K) -> KeyId<A, K> {
         let algorithm = algorithm.as_ref();
         let key_name = key_name.as_ref();
 
@@ -64,7 +56,7 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
         res.push(':');
         res.push_str(key_name);
 
-        OwnedKeyId::from_string_unchecked(res)
+        Self::from_string_unchecked(res)
     }
 
     /// Returns key algorithm of the key ID - the part that comes before the colon.
@@ -81,6 +73,11 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
         A::from(&self.as_str()[..self.colon_idx()])
     }
 
+    /// Returns the key name of the key ID as a string - the part that comes after the colon.
+    pub fn key_name_str(&self) -> &str {
+        &self.as_str()[(self.colon_idx() + 1)..]
+    }
+
     /// Returns the key name of the key ID - the part that comes after the colon.
     ///
     /// # Example
@@ -91,12 +88,11 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
     /// let k = DeviceKeyId::parse("ed25519:DEV1").unwrap();
     /// assert_eq!(k.key_name(), device_id!("DEV1"));
     /// ```
-    pub fn key_name<'a>(&'a self) -> &'a K
+    pub fn key_name<'a>(&'a self) -> K
     where
-        &'a K: TryFrom<&'a str>,
+        K: TryFrom<&'a str>,
     {
-        <&'a K>::try_from(&self.as_str()[(self.colon_idx() + 1)..])
-            .unwrap_or_else(|_| unreachable!())
+        K::try_from(self.key_name_str()).unwrap_or_else(|_| unreachable!())
     }
 
     fn colon_idx(&self) -> usize {
@@ -107,34 +103,18 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
 /// Algorithm + key name for signing keys.
 pub type SigningKeyId<K> = KeyId<SigningKeyAlgorithm, K>;
 
-/// Algorithm + key name for signing keys.
-pub type OwnedSigningKeyId<K> = OwnedKeyId<SigningKeyAlgorithm, K>;
-
 /// Algorithm + key name for homeserver signing keys.
 pub type ServerSigningKeyId = SigningKeyId<ServerSigningKeyVersion>;
-
-/// Algorithm + key name for homeserver signing keys.
-pub type OwnedServerSigningKeyId = OwnedSigningKeyId<ServerSigningKeyVersion>;
 
 /// Algorithm + key name for [device signing keys].
 ///
 /// [device signing keys]: https://spec.matrix.org/latest/client-server-api/#device-keys
 pub type DeviceSigningKeyId = SigningKeyId<DeviceId>;
 
-/// Algorithm + key name for [device signing] keys.
-///
-/// [device signing keys]: https://spec.matrix.org/latest/client-server-api/#device-keys
-pub type OwnedDeviceSigningKeyId = OwnedSigningKeyId<DeviceId>;
-
 /// Algorithm + key name for [cross-signing] keys.
 ///
 /// [cross-signing]: https://spec.matrix.org/latest/client-server-api/#cross-signing
 pub type CrossSigningKeyId = SigningKeyId<Base64PublicKey>;
-
-/// Algorithm + key name for [cross-signing] keys.
-///
-/// [cross-signing]: https://spec.matrix.org/latest/client-server-api/#cross-signing
-pub type OwnedCrossSigningKeyId = OwnedSigningKeyId<Base64PublicKey>;
 
 /// Algorithm + key name for [cross-signing] or [device signing] keys.
 ///
@@ -142,59 +122,15 @@ pub type OwnedCrossSigningKeyId = OwnedSigningKeyId<Base64PublicKey>;
 /// [device signing]: https://spec.matrix.org/latest/client-server-api/#device-keys
 pub type CrossSigningOrDeviceSigningKeyId = SigningKeyId<Base64PublicKeyOrDeviceId>;
 
-/// Algorithm + key name for [cross-signing] or [device signing] keys.
-///
-/// [cross-signing]: https://spec.matrix.org/latest/client-server-api/#cross-signing
-/// [device signing]: https://spec.matrix.org/latest/client-server-api/#device-keys
-pub type OwnedCrossSigningOrDeviceSigningKeyId = OwnedSigningKeyId<Base64PublicKeyOrDeviceId>;
-
 /// Algorithm + key name for [device keys].
 ///
 /// [device keys]: https://spec.matrix.org/latest/client-server-api/#device-keys
 pub type DeviceKeyId = KeyId<DeviceKeyAlgorithm, DeviceId>;
 
-/// Algorithm + key name for [device keys].
-///
-/// [device keys]: https://spec.matrix.org/latest/client-server-api/#device-keys
-pub type OwnedDeviceKeyId = OwnedKeyId<DeviceKeyAlgorithm, DeviceId>;
-
 /// Algorithm + key name for [one-time and fallback keys].
 ///
 /// [one-time and fallback keys]: https://spec.matrix.org/latest/client-server-api/#one-time-and-fallback-keys
 pub type OneTimeKeyId = KeyId<OneTimeKeyAlgorithm, OneTimeKeyName>;
-
-/// Algorithm + key name for [one-time and fallback keys].
-///
-/// [one-time and fallback keys]: https://spec.matrix.org/latest/client-server-api/#one-time-and-fallback-keys
-pub type OwnedOneTimeKeyId = OwnedKeyId<OneTimeKeyAlgorithm, OneTimeKeyName>;
-
-// The following impls are usually derived using the std macros.
-// They are implemented manually here to avoid unnecessary bounds.
-impl<A: KeyAlgorithm, K: KeyName + ?Sized> PartialEq for KeyId<A, K> {
-    fn eq(&self, other: &Self) -> bool {
-        self.as_str() == other.as_str()
-    }
-}
-
-impl<A: KeyAlgorithm, K: KeyName + ?Sized> Eq for KeyId<A, K> {}
-
-impl<A: KeyAlgorithm, K: KeyName + ?Sized> PartialOrd for KeyId<A, K> {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl<A: KeyAlgorithm, K: KeyName + ?Sized> Ord for KeyId<A, K> {
-    fn cmp(&self, other: &Self) -> Ordering {
-        Ord::cmp(self.as_str(), other.as_str())
-    }
-}
-
-impl<A: KeyAlgorithm, K: KeyName + ?Sized> Hash for KeyId<A, K> {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.as_str().hash(state);
-    }
-}
 
 /// The algorithm of a key.
 pub trait KeyAlgorithm: for<'a> From<&'a str> + AsRef<str> {}
@@ -209,8 +145,8 @@ impl KeyAlgorithm for OneTimeKeyAlgorithm {}
 ///
 /// This type has no semantic value and no validation is done. It is meant to be able to use the
 /// [`KeyId`] API without validating the key name.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
-pub struct AnyKeyName(str);
+#[ruma_id]
+pub struct AnyKeyName;
 
 impl KeyName for AnyKeyName {
     fn validate(_s: &str) -> Result<(), ruma_common::IdParseError> {

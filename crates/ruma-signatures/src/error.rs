@@ -1,5 +1,5 @@
 use ruma_common::{
-    OwnedEventId,
+    EventId,
     canonical_json::{JsonType, RedactionError},
     serde::Base64DecodeError,
 };
@@ -144,7 +144,7 @@ pub enum ParseError {
     /// For when an event ID, coupled with a specific room version, doesn't have a server name
     /// embedded.
     #[error("Event ID {0:?} should have a server name for the given room version")]
-    ServerNameFromEventId(OwnedEventId),
+    ServerNameFromEventId(EventId),
 
     /// For when the extracted/"parsed" public key from a PKCS#8 v2 document doesn't match the
     /// public key derived from it's private key.
@@ -193,7 +193,7 @@ pub enum ParseError {
 }
 
 impl ParseError {
-    pub(crate) fn server_name_from_event_id(event_id: OwnedEventId) -> Error {
+    pub(crate) fn server_name_from_event_id(event_id: EventId) -> Error {
         Self::ServerNameFromEventId(event_id).into()
     }
 

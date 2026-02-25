@@ -1,4 +1,4 @@
-use ruma_macros::IdDst;
+use ruma_macros::ruma_id;
 
 #[cfg(feature = "rand")]
 use super::generate_localpart;
@@ -12,7 +12,7 @@ use super::{IdParseError, KeyName};
 /// # Example
 ///
 /// ```
-/// use ruma_common::{DeviceId, OwnedDeviceId, device_id};
+/// use ruma_common::{DeviceId, device_id};
 ///
 /// # #[cfg(feature = "rand")] {
 /// let random_id = DeviceId::new();
@@ -22,22 +22,17 @@ use super::{IdParseError, KeyName};
 /// let static_id = device_id!("01234567");
 /// assert_eq!(static_id.as_str(), "01234567");
 ///
-/// let ref_id: &DeviceId = "abcdefghi".into();
-/// assert_eq!(ref_id.as_str(), "abcdefghi");
-///
-/// let owned_id: OwnedDeviceId = "ijklmnop".into();
-/// assert_eq!(owned_id.as_str(), "ijklmnop");
+/// let id: DeviceId = "ijklmnop".into();
+/// assert_eq!(id.as_str(), "ijklmnop");
 /// ```
-#[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
-pub struct DeviceId(str);
+#[ruma_id]
+pub struct DeviceId;
 
 impl DeviceId {
     /// Generates a random `DeviceId`, suitable for assignment to a new device.
     #[cfg(feature = "rand")]
-    #[allow(clippy::new_ret_no_self)]
-    pub fn new() -> OwnedDeviceId {
-        OwnedDeviceId::from_box_str_unchecked(generate_localpart(10))
+    pub fn new() -> Self {
+        Self::from_box_str_unchecked(generate_localpart(10))
     }
 }
 
@@ -47,15 +42,9 @@ impl KeyName for DeviceId {
     }
 }
 
-impl KeyName for OwnedDeviceId {
-    fn validate(_s: &str) -> Result<(), IdParseError> {
-        Ok(())
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{DeviceId, OwnedDeviceId};
+    use super::DeviceId;
 
     #[cfg(feature = "rand")]
     #[test]
@@ -65,20 +54,13 @@ mod tests {
 
     #[test]
     fn create_device_id_from_str() {
-        let ref_id: &DeviceId = "abcdefgh".into();
-        assert_eq!(ref_id.as_str(), "abcdefgh");
-    }
-
-    #[test]
-    fn create_boxed_device_id_from_str() {
-        let box_id: OwnedDeviceId = "12345678".into();
-        assert_eq!(box_id.as_str(), "12345678");
+        let id = DeviceId::from("abcdefgh");
+        assert_eq!(id, "abcdefgh");
     }
 
     #[test]
     fn create_device_id_from_box() {
-        let box_str: Box<str> = "ijklmnop".into();
-        let device_id: OwnedDeviceId = box_str.into();
-        assert_eq!(device_id.as_str(), "ijklmnop");
+        let box_str = Box::<str>::from("ijklmnop");
+        assert_eq!(DeviceId::from(box_str), "ijklmnop");
     }
 }

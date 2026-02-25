@@ -2,7 +2,7 @@
 //!
 //! [`m.key.verification.key`]: https://spec.matrix.org/latest/client-server-api/#mkeyverificationkey
 
-use ruma_common::{OwnedTransactionId, serde::Base64};
+use ruma_common::{TransactionId, serde::Base64};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -18,7 +18,7 @@ pub struct ToDeviceKeyVerificationKeyEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the `m.key.verification.start` message.
-    pub transaction_id: OwnedTransactionId,
+    pub transaction_id: TransactionId,
 
     /// The device's ephemeral public key, encoded as unpadded base64.
     pub key: Base64,
@@ -27,7 +27,7 @@ pub struct ToDeviceKeyVerificationKeyEventContent {
 impl ToDeviceKeyVerificationKeyEventContent {
     /// Creates a new `ToDeviceKeyVerificationKeyEventContent` with the given transaction ID and
     /// key.
-    pub fn new(transaction_id: OwnedTransactionId, key: Base64) -> Self {
+    pub fn new(transaction_id: TransactionId, key: Base64) -> Self {
         Self { transaction_id, key }
     }
 }

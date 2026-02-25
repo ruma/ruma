@@ -3,7 +3,7 @@
 //! [`m.room.avatar`]: https://spec.matrix.org/latest/client-server-api/#mroomavatar
 
 use js_int::UInt;
-use ruma_common::OwnedMxcUri;
+use ruma_common::MxcUri;
 #[cfg(feature = "unstable-msc2448")]
 use ruma_common::serde::Base64;
 use ruma_macros::EventContent;
@@ -26,7 +26,7 @@ pub struct RoomAvatarEventContent {
     pub info: Option<Box<ImageInfo>>,
 
     /// URL of the avatar image.
-    pub url: Option<OwnedMxcUri>,
+    pub url: Option<MxcUri>,
 }
 
 impl RoomAvatarEventContent {
@@ -62,7 +62,7 @@ pub struct ImageInfo {
 
     /// The URL to the thumbnail of the image.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<OwnedMxcUri>,
+    pub thumbnail_url: Option<MxcUri>,
 
     /// The [BlurHash](https://blurha.sh) for this image.
     ///
