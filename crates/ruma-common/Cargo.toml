@@ -56,9 +56,13 @@ compat-null = []
 compat-optional = []
 
 [dependencies]
+arc-interner = "0.7.0"
+arcstr = { version = "1.2.0", default-features = false }
 as_variant = { workspace = true }
 base64 = { workspace = true }
 bytes = { workspace = true }
+compact_str = "0.9.0"
+ecow = "0.2.6"
 form_urlencoded = "1.0.0"
 getrandom = { version = "0.2.6", optional = true }
 http = { workspace = true, optional = true }
@@ -73,6 +77,7 @@ ruma-macros = { workspace = true }
 serde = { workspace = true }
 serde_html_form = { workspace = true }
 serde_json = { workspace = true, features = ["raw_value"] }
+smallvec = "1.15.1"
 thiserror = { workspace = true }
 time = "0.3.47"
 tracing = { workspace = true, features = ["attributes"] }

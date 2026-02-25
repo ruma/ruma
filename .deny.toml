@@ -18,6 +18,7 @@ version = 2
 allow = [
     "Apache-2.0",
     "BSD-3-Clause",
+    "CC0-1.0",
     "ISC",
     "MIT",
     "MPL-2.0",

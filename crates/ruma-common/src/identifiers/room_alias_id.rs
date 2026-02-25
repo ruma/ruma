@@ -17,7 +17,7 @@ use super::{MatrixToUri, MatrixUri, OwnedEventId, matrix_uri::UriAction, server_
 /// [room alias ID]: https://spec.matrix.org/latest/appendices/#room-aliases
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
-#[ruma_id(validate = ruma_identifiers_validation::room_alias_id::validate)]
+#[ruma_id(validate = ruma_identifiers_validation::room_alias_id::validate, inline_bytes = 48)]
 pub struct RoomAliasId(str);
 
 impl RoomAliasId {

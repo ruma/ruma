@@ -67,6 +67,21 @@ jobs:
           - name: Check Owned IDs with Arc
             cmd: msrv-owned-id-arc
 
+          - name: Check Owned IDs with ArcStr
+            cmd: msrv-owned-id-arcstr
+
+          - name: Check Owned IDs with SmallVec
+            cmd: msrv-owned-id-smallvec
+
+          - name: Check Owned IDs with CompactString
+            cmd: msrv-owned-id-compactstring
+
+          - name: Check Owned IDs with ArcIntern
+            cmd: msrv-owned-id-arcintern
+
+          - name: Check Owned IDs with EcoString
+            cmd: msrv-owned-id-ecostring
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6

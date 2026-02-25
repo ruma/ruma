@@ -21,7 +21,7 @@ use crate::RoomOrAliasId;
 /// [room ID]: https://spec.matrix.org/latest/appendices/#room-ids
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
-#[ruma_id(validate = ruma_identifiers_validation::room_id::validate)]
+#[ruma_id(validate = ruma_identifiers_validation::room_id::validate, inline_bytes = 48)]
 pub struct RoomId(str);
 
 impl RoomId {

@@ -1,6 +1,6 @@
 //! Implementation of the `IdDst` derive macro.
 
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::TokenStream;
 use quote::quote;
 use syn::parse_quote;
 
@@ -49,6 +49,9 @@ struct IdDst {
 
     /// The path to the function to use to validate the identifier.
     validate: Option<syn::Path>,
+
+    /// The size of the inline array for the `SmallVec` inner representation.
+    inline_bytes: usize,
 
     /// The index of the `str` field.
     ///
@@ -149,17 +152,28 @@ impl IdDst {
         let owned_ident = &self.owned_ident;
         let generics = &self.generics;
         let impl_generics = &self.impl_generics;
+        let inline_bytes = &self.inline_bytes;
 
         let str = &self.types.str;
         let box_str = &self.types.box_str;
         let arc_str = &self.types.arc_str;
         let string = &self.types.string;
         let bytes = &self.types.bytes;
+        let arcstr = &self.types.arcstr;
+        let smallvec = &self.types.smallvec;
+        let compactstring = &self.types.compactstring;
+        let arcintern = &self.types.arcintern;
+        let ecostring = &self.types.ecostring;
         let id = &self.types.id;
         let owned_id = &self.types.owned_id;
 
         let box_str_cfg = &self.storage_cfg.box_str;
         let arc_str_cfg = &self.storage_cfg.arc_str;
+        let arcstr_cfg = &self.storage_cfg.arcstr;
+        let smallvec_cfg = &self.storage_cfg.smallvec;
+        let compactstring_cfg = &self.storage_cfg.compactstring;
+        let arcintern_cfg = &self.storage_cfg.arcintern;
+        let ecostring_cfg = &self.storage_cfg.ecostring;
 
         let (phantom_decl, phantom_ctor) = if self.generics.params.is_empty() {
             None
@@ -175,6 +189,9 @@ impl IdDst {
         .unzip();
 
         let doc_header = format!("Owned variant of [`{ident}`]");
+        let doc_smallvec = format!(
+            "* `SmallVec` -- Use a `SmallVec<[u8; {inline_bytes}]>` from the [`smallvec`](https://crates.io/crates/smallvec) crate."
+        );
 
         let to_string_impls = self.expand_to_string_impls(owned_id);
 
@@ -204,9 +221,17 @@ impl IdDst {
                 }
             }
         };
-        let from_into_inner_impls = [(box_str_cfg, box_str), (arc_str_cfg, arc_str)]
-            .into_iter()
-            .map(|(cfg, inner)| from_into_inner_cfg_impl(cfg, inner));
+        let from_into_inner_impls = [
+            (box_str_cfg, box_str),
+            (arc_str_cfg, arc_str),
+            (arcstr_cfg, arcstr),
+            (smallvec_cfg, smallvec),
+            (compactstring_cfg, compactstring),
+            (arcintern_cfg, arcintern),
+            (ecostring_cfg, ecostring),
+        ]
+        .into_iter()
+        .map(|(cfg, inner)| from_into_inner_cfg_impl(cfg, inner));
 
         quote! {
             #[doc = #doc_header]
@@ -217,6 +242,12 @@ impl IdDst {
             /// compile time by using one of the following supported values:
             ///
             /// * `Arc` -- Use an `Arc<str>`.
+            /// * `ArcStr` -- Use an `ArcStr` from the [`arcstr`](https://crates.io/crates/arcstr) crate.
+            #[doc = #doc_smallvec]
+            /// * `CompactString` -- Use a `CompactString` from the [`compact_str`](https://crates.io/crates/compact_str) crate.
+            /// * `ArcIntern` -- Use an `ArcIntern<str>` from the [`arc-interner`](https://crates.io/crates/arc-interner)
+            ///   crate.
+            /// * `EcoString` -- Use an `EcoString` from the [`ecow`](https://crates.io/crates/ecow) crate.
             ///
             /// The selected value can be set by using the `ruma_identifiers_storage` compile-time `cfg` setting.
             /// This setting can be configured using the `RUSTFLAGS` environment variable at build time, like this:
@@ -249,6 +280,16 @@ impl IdDst {
                 inner: #box_str,
                 #arc_str_cfg
                 inner: #arc_str,
+                #arcstr_cfg
+                inner: #arcstr,
+                #smallvec_cfg
+                inner: #smallvec,
+                #compactstring_cfg
+                inner: #compactstring,
+                #arcintern_cfg
+                inner: #arcintern,
+                #ecostring_cfg
+                inner: #ecostring,
                 #phantom_decl
             }
 
@@ -260,6 +301,16 @@ impl IdDst {
                         inner: s.into(),
                         #arc_str_cfg
                         inner: s.into(),
+                        #arcstr_cfg
+                        inner: s.into(),
+                        #smallvec_cfg
+                        inner: <#smallvec>::from_slice(s.as_bytes()),
+                        #compactstring_cfg
+                        inner: s.into(),
+                        #arcintern_cfg
+                        inner: s.into(),
+                        #ecostring_cfg
+                        inner: s.into(),
                         #phantom_ctor
                     }
                 }
@@ -270,16 +321,16 @@ impl IdDst {
                         inner: s,
                         #arc_str_cfg
                         inner: s.into(),
-                        #phantom_ctor
-                    }
-                }
-
-                pub(super) fn from_arc_str_unchecked(s: #arc_str) -> Self {
-                    Self {
-                        #box_str_cfg
-                        inner: s.as_ref().into(),
-                        #arc_str_cfg
-                        inner: s,
+                        #arcstr_cfg
+                        inner: s.into(),
+                        #smallvec_cfg
+                        inner: <#smallvec>::from_vec(#str::into_string(s).into_bytes()),
+                        #compactstring_cfg
+                        inner: s.into(),
+                        #arcintern_cfg
+                        inner: s.into(),
+                        #ecostring_cfg
+                        inner: #string::from(s).into(),
                         #phantom_ctor
                     }
                 }
@@ -289,6 +340,16 @@ impl IdDst {
                         #box_str_cfg
                         inner: s.into(),
                         #arc_str_cfg
+                        inner: s.into(),
+                        #arcstr_cfg
+                        inner: s.into(),
+                        #smallvec_cfg
+                        inner: <#smallvec>::from_vec(s.into_bytes()),
+                        #compactstring_cfg
+                        inner: s.into(),
+                        #arcintern_cfg
+                        inner: s.into_boxed_str().into(),
+                        #ecostring_cfg
                         inner: s.into(),
                         #phantom_ctor
                     }
@@ -300,6 +361,16 @@ impl IdDst {
                     { &self.inner }
                     #arc_str_cfg
                     { &self.inner }
+                    #arcstr_cfg
+                    { &self.inner }
+                    #smallvec_cfg
+                    unsafe { #str::from_utf8_unchecked(self.inner.as_slice()) }
+                    #compactstring_cfg
+                    { &self.inner }
+                    #arcintern_cfg
+                    { &self.inner }
+                    #ecostring_cfg
+                    { &self.inner }
                 }
 
                 /// Access the inner bytes without going through the borrowed type.
@@ -307,6 +378,16 @@ impl IdDst {
                     #box_str_cfg
                     { self.inner.as_bytes() }
                     #arc_str_cfg
+                    { self.inner.as_bytes() }
+                    #arcstr_cfg
+                    { self.inner.as_bytes() }
+                    #smallvec_cfg
+                    { self.inner.as_slice() }
+                    #compactstring_cfg
+                    { self.inner.as_bytes() }
+                    #arcintern_cfg
+                    { self.inner.as_bytes() }
+                    #ecostring_cfg
                     { self.inner.as_bytes() }
                 }
 
@@ -415,7 +496,17 @@ impl IdDst {
                     #box_str_cfg
                     { id.inner }
                     #arc_str_cfg
-                    { id.inner.as_ref().into() }
+                    { id.as_inner_str().into() }
+                    #arcstr_cfg
+                    { id.as_inner_str().into() }
+                    #smallvec_cfg
+                    { #string::from(id).into() }
+                    #compactstring_cfg
+                    { id.inner.into() }
+                    #arcintern_cfg
+                    { id.as_inner_str().into() }
+                    #ecostring_cfg
+                    { id.as_inner_str().into() }
                 }
             }
 
@@ -425,7 +516,17 @@ impl IdDst {
                     #box_str_cfg
                     { id.inner.into() }
                     #arc_str_cfg
-                    { id.inner.as_ref().into() }
+                    { id.as_inner_str().into() }
+                    #arcstr_cfg
+                    { id.as_inner_str().into() }
+                    #smallvec_cfg
+                    unsafe { #string::from_utf8_unchecked(id.inner.into_vec()) }
+                    #compactstring_cfg
+                    { id.inner.into() }
+                    #arcintern_cfg
+                    { id.as_inner_str().into() }
+                    #ecostring_cfg
+                    { id.inner.into() }
                 }
             }
         }
@@ -630,20 +731,22 @@ impl IdDst {
     /// implementations, using it's `.as_str()` function.
     fn expand_to_string_impls(&self, ty: &syn::Type) -> TokenStream {
         let serde = self.ruma_common.reexported(RumaCommonReexport::Serde);
+
         let impl_generics = &self.impl_generics;
+        let str = &self.types.str;
 
         quote! {
             #[automatically_derived]
             impl #impl_generics ::std::fmt::Display for #ty {
                 fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                    self.as_str().fmt(f)
+                    ::std::convert::AsRef::<#str>::as_ref(self).fmt(f)
                 }
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::fmt::Debug for #ty {
                 fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                    self.as_str().fmt(f)
+                    ::std::convert::AsRef::<#str>::as_ref(self).fmt(f)
                 }
             }
 
@@ -653,7 +756,7 @@ impl IdDst {
                 where
                     S: #serde::Serializer,
                 {
-                    serializer.serialize_str(self.as_str())
+                    serializer.serialize_str(::std::convert::AsRef::<#str>::as_ref(self))
                 }
             }
         }
@@ -674,23 +777,8 @@ impl IdDst {
         let ref_str: syn::Type = parse_quote! { &#str };
         let cow_generics = quote! { <'a, #generics_params> };
 
-        let self_ident = syn::Ident::new("self", Span::call_site());
-        let other_ident = syn::Ident::new("other", Span::call_site());
-
-        // Get the string representation of the type.
-        let as_str_impl = |ty: &syn::Type, ident: &syn::Ident| {
-            if *ty == *str || *ty == ref_str || *ty == *cow_str {
-                quote! { ::std::convert::AsRef::<#str>::as_ref(#ident) }
-            } else {
-                quote! { #ident.as_str() }
-            }
-        };
-
         // Implement `PartialEq` with the given lhs and rhs types.
         let expand_partial_eq = |lhs: &syn::Type, rhs: &syn::Type| {
-            let self_as_str = as_str_impl(lhs, &self_ident);
-            let other_as_str = as_str_impl(rhs, &other_ident);
-
             let impl_generics =
                 if *lhs == *cow_str || *rhs == *cow_str { &cow_generics } else { impl_generics };
 
@@ -698,7 +786,7 @@ impl IdDst {
                 #[automatically_derived]
                 impl #impl_generics ::std::cmp::PartialEq<#rhs> for #lhs {
                     fn eq(&self, other: &#rhs) -> bool {
-                        #self_as_str == #other_as_str
+                        ::std::convert::AsRef::<#str>::as_ref(self) == ::std::convert::AsRef::<#str>::as_ref(other)
                     }
                 }
             }
@@ -749,6 +837,21 @@ struct Types {
     /// `[u8]`.
     bytes: syn::Type,
 
+    /// `ArcStr`.
+    arcstr: syn::Type,
+
+    /// `SmallVec<[u8; N]>`.
+    smallvec: syn::Type,
+
+    /// `CompactString`.
+    compactstring: syn::Type,
+
+    /// `ArcIntern<str>`.
+    arcintern: syn::Type,
+
+    /// `EcoString`.
+    ecostring: syn::Type,
+
     /// `{id}`, the identifier type with generics, if any.
     id: syn::Type,
 
@@ -761,9 +864,18 @@ impl Types {
         ident: &syn::Ident,
         owned_ident: &syn::Ident,
         type_generics: syn::TypeGenerics<'_>,
+        inline_bytes: usize,
+        ruma_common: &RumaCommon,
     ) -> Self {
+        let arcstr_crate = ruma_common.reexported(RumaCommonReexport::Arcstr);
+        let smallvec_crate = ruma_common.reexported(RumaCommonReexport::Smallvec);
+        let compact_str = ruma_common.reexported(RumaCommonReexport::CompactStr);
+        let arc_interner = ruma_common.reexported(RumaCommonReexport::ArcInterner);
+        let ecow = ruma_common.reexported(RumaCommonReexport::Ecow);
+
         let str = parse_quote! { ::std::primitive::str };
         let cow = parse_quote! { ::std::borrow::Cow };
+        let byte = quote! { ::std::primitive::u8 };
 
         let id = parse_quote! { #ident #type_generics };
 
@@ -772,7 +884,12 @@ impl Types {
             arc_str: parse_quote! { ::std::sync::Arc<#str> },
             string: parse_quote! { ::std::string::String },
             cow_str: parse_quote! { #cow<'a, #str> },
-            bytes: parse_quote! { [::std::primitive::u8] },
+            bytes: parse_quote! { [#byte] },
+            arcstr: parse_quote! { #arcstr_crate::ArcStr },
+            smallvec: parse_quote! { #smallvec_crate::SmallVec<[#byte; #inline_bytes]> },
+            compactstring: parse_quote! { #compact_str::CompactString },
+            arcintern: parse_quote! { #arc_interner::ArcIntern<#str> },
+            ecostring: parse_quote! { #ecow::EcoString },
             str,
             cow,
             id,
@@ -788,15 +905,50 @@ struct StorageCfg {
 
     /// Attribute for the `Arc<str>` internal representation.
     arc_str: syn::Attribute,
+
+    /// Attribute for the `ArcStr` internal representation.
+    arcstr: syn::Attribute,
+
+    /// Attribute for the `SmallVec<[u8; N]>` internal representation.
+    smallvec: syn::Attribute,
+
+    /// Attribute for the `CompactString` internal representation.
+    compactstring: syn::Attribute,
+
+    /// Attribute for the `ArcIntern` internal representation.
+    arcintern: syn::Attribute,
+
+    /// Attribute for the `EcoString` internal representation.
+    ecostring: syn::Attribute,
 }
 
 impl StorageCfg {
     fn new() -> Self {
         let key = quote! { ruma_identifiers_storage };
 
+        let arc_str_value = quote! { "Arc" };
+        let arcstr_value = quote! { "ArcStr" };
+        let smallvec_value = quote! { "SmallVec" };
+        let compactstring_value = quote! { "CompactString" };
+        let arcintern_value = quote! { "ArcIntern" };
+        let ecostring_value = quote! { "EcoString" };
+        let all_values = &[
+            &arc_str_value,
+            &arcstr_value,
+            &smallvec_value,
+            &compactstring_value,
+            &arcintern_value,
+            &ecostring_value,
+        ];
+
         Self {
-            box_str: parse_quote! { #[cfg(not(#key = "Arc"))] },
-            arc_str: parse_quote! { #[cfg(#key = "Arc")] },
+            box_str: parse_quote! { #[cfg(not(any(#( #key = #all_values ),*)))] },
+            arc_str: parse_quote! { #[cfg(#key = #arc_str_value)] },
+            arcstr: parse_quote! { #[cfg(#key = #arcstr_value)] },
+            smallvec: parse_quote! { #[cfg(#key = #smallvec_value)] },
+            compactstring: parse_quote! { #[cfg(#key = #compactstring_value)] },
+            arcintern: parse_quote! { #[cfg(#key = #arcintern_value)] },
+            ecostring: parse_quote! { #[cfg(#key = #ecostring_value)] },
         }
     }
 }

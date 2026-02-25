@@ -37,6 +37,16 @@ pub enum CiCmd {
     MsrvOwnedIdBox,
     /// Check ruma-identifiers with `ruma_identifiers_storage="Arc"`
     MsrvOwnedIdArc,
+    /// Check ruma-identifiers with `ruma_identifiers_storage="ArcStr"`
+    MsrvOwnedIdArcstr,
+    /// Check ruma-identifiers with `ruma_identifiers_storage="SmallVec"`
+    MsrvOwnedIdSmallvec,
+    /// Check ruma-identifiers with `ruma_identifiers_storage="CompactString"`
+    MsrvOwnedIdCompactstring,
+    /// Check ruma-identifiers with `ruma_identifiers_storage="ArcIntern"`
+    MsrvOwnedIdArcintern,
+    /// Check ruma-identifiers with `ruma_identifiers_storage="EcoString"`
+    MsrvOwnedIdEcostring,
     /// Run all the tasks that use the stable version
     Stable,
     /// Check all crates with all features (stable)
@@ -115,8 +125,13 @@ impl CiTask {
             Some(CiCmd::Msrv) => self.msrv()?,
             Some(CiCmd::MsrvAll) => self.msrv_all()?,
             Some(CiCmd::MsrvRuma) => self.msrv_ruma()?,
-            Some(CiCmd::MsrvOwnedIdBox) => self.msrv_owned_id_box()?,
-            Some(CiCmd::MsrvOwnedIdArc) => self.msrv_owned_id_arc()?,
+            Some(CiCmd::MsrvOwnedIdBox) => self.msrv_owned_id_cfg("Box")?,
+            Some(CiCmd::MsrvOwnedIdArc) => self.msrv_owned_id_cfg("Arc")?,
+            Some(CiCmd::MsrvOwnedIdArcstr) => self.msrv_owned_id_cfg("ArcStr")?,
+            Some(CiCmd::MsrvOwnedIdSmallvec) => self.msrv_owned_id_cfg("SmallVec")?,
+            Some(CiCmd::MsrvOwnedIdCompactstring) => self.msrv_owned_id_cfg("CompactString")?,
+            Some(CiCmd::MsrvOwnedIdArcintern) => self.msrv_owned_id_cfg("ArcIntern")?,
+            Some(CiCmd::MsrvOwnedIdEcostring) => self.msrv_owned_id_cfg("EcoString")?,
             Some(CiCmd::Stable) => self.stable()?,
             Some(CiCmd::StableAll) => self.stable_all()?,
             Some(CiCmd::StableCommon) => self.stable_common()?,
@@ -300,18 +315,10 @@ impl CiTask {
         .map_err(Into::into)
     }
 
-    /// Check ruma-common with `ruma_identifiers_storage="Box"`
-    fn msrv_owned_id_box(&self) -> Result<()> {
+    /// Check ruma-common with `ruma_identifiers_storage="value"`
+    fn msrv_owned_id_cfg(&self, value: &str) -> Result<()> {
         cmd!(&self.sh, "rustup run {MSRV} cargo check -p ruma-common")
-            .env("RUSTFLAGS", "--cfg=ruma_identifiers_storage=\"Box\"")
-            .run()
-            .map_err(Into::into)
-    }
-
-    /// Check ruma-common with `ruma_identifiers_storage="Arc"`
-    fn msrv_owned_id_arc(&self) -> Result<()> {
-        cmd!(&self.sh, "rustup run {MSRV} cargo check -p ruma-common")
-            .env("RUSTFLAGS", "--cfg=ruma_identifiers_storage=\"Arc\"")
+            .env("RUSTFLAGS", format!("--cfg=ruma_identifiers_storage={value:?}"))
             .run()
             .map_err(Into::into)
     }
