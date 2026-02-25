@@ -6,6 +6,9 @@ Breaking changes:
   new `RoomPowerLevelsContentOverride` type. It has the same fields as
   `RoomPowerLevelsEventContent` except all `Int` fields are `Option<Int>`, which
   allows uploading explicit values no matter what the default ones are.
+- The `server` module was renamed to `admin`, to make it easier to find since it
+  contains all the administration endpoints, and it matches the namespace in the
+  spec.
 
 Improvements:
 
