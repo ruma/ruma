@@ -240,7 +240,7 @@ pub mod v1 {
         ///
         /// This function tries to be backwards compatible with unstable implementations by checking
         /// both the stable and unstable values of the given action, if they differ.
-        pub fn is_action_management_action_supported(
+        pub fn is_account_management_action_supported(
             &self,
             action: &AccountManagementAction,
         ) -> bool {
@@ -273,15 +273,15 @@ pub mod v1 {
             }
         }
 
-        /// Build the action management URL with the given action.
+        /// Build the account management URL with the given action.
         ///
         /// This function tries to be backwards compatible with unstable implementations by
         /// selecting the proper action value to add to the URL (stable or unstable) given
         /// the supported actions advertised in this metadata. If the action is not present
         /// in the metadata, the stable value is used.
         ///
-        /// Returns `None` if the `action_management_url` is `None`.
-        pub fn action_management_url_with_action(
+        /// Returns `None` if the `account_management_uri` is `None`.
+        pub fn account_management_url_with_action(
             &self,
             action: AccountManagementActionData<'_>,
         ) -> Option<Url> {
@@ -736,7 +736,7 @@ mod tests {
         // View profile.
         assert!(
             original_metadata
-                .is_action_management_action_supported(&AccountManagementAction::Profile)
+                .is_account_management_action_supported(&AccountManagementAction::Profile)
         );
 
         // Remove it.
@@ -745,19 +745,17 @@ mod tests {
             .remove(&AccountManagementAction::Profile);
         assert!(
             !original_metadata
-                .is_action_management_action_supported(&AccountManagementAction::Profile)
+                .is_account_management_action_supported(&AccountManagementAction::Profile)
         );
 
         // View devices list.
         assert!(
             original_metadata
-                .is_action_management_action_supported(&AccountManagementAction::DevicesList)
+                .is_account_management_action_supported(&AccountManagementAction::DevicesList)
         );
-        assert!(
-            original_metadata.is_action_management_action_supported(
-                &AccountManagementAction::UnstableSessionsList
-            )
-        );
+        assert!(original_metadata.is_account_management_action_supported(
+            &AccountManagementAction::UnstableSessionsList
+        ));
 
         // Remove it.
         original_metadata
@@ -765,21 +763,19 @@ mod tests {
             .remove(&AccountManagementAction::DevicesList);
         assert!(
             !original_metadata
-                .is_action_management_action_supported(&AccountManagementAction::DevicesList)
+                .is_account_management_action_supported(&AccountManagementAction::DevicesList)
         );
-        assert!(
-            !original_metadata.is_action_management_action_supported(
-                &AccountManagementAction::UnstableSessionsList
-            )
-        );
+        assert!(!original_metadata.is_account_management_action_supported(
+            &AccountManagementAction::UnstableSessionsList
+        ));
 
         // View device.
         assert!(
             original_metadata
-                .is_action_management_action_supported(&AccountManagementAction::DeviceView)
+                .is_account_management_action_supported(&AccountManagementAction::DeviceView)
         );
         assert!(
-            original_metadata.is_action_management_action_supported(
+            original_metadata.is_account_management_action_supported(
                 &AccountManagementAction::UnstableSessionView
             )
         );
@@ -790,10 +786,10 @@ mod tests {
             .remove(&AccountManagementAction::DeviceView);
         assert!(
             !original_metadata
-                .is_action_management_action_supported(&AccountManagementAction::DeviceView)
+                .is_account_management_action_supported(&AccountManagementAction::DeviceView)
         );
         assert!(
-            !original_metadata.is_action_management_action_supported(
+            !original_metadata.is_account_management_action_supported(
                 &AccountManagementAction::UnstableSessionView
             )
         );
@@ -801,10 +797,10 @@ mod tests {
         // Delete device.
         assert!(
             original_metadata
-                .is_action_management_action_supported(&AccountManagementAction::DeviceDelete)
+                .is_account_management_action_supported(&AccountManagementAction::DeviceDelete)
         );
         assert!(
-            original_metadata.is_action_management_action_supported(
+            original_metadata.is_account_management_action_supported(
                 &AccountManagementAction::UnstableSessionEnd
             )
         );
@@ -815,10 +811,10 @@ mod tests {
             .remove(&AccountManagementAction::DeviceDelete);
         assert!(
             !original_metadata
-                .is_action_management_action_supported(&AccountManagementAction::DeviceDelete)
+                .is_account_management_action_supported(&AccountManagementAction::DeviceDelete)
         );
         assert!(
-            !original_metadata.is_action_management_action_supported(
+            !original_metadata.is_account_management_action_supported(
                 &AccountManagementAction::UnstableSessionEnd
             )
         );
@@ -831,13 +827,13 @@ mod tests {
 
         // View profile.
         let url = original_metadata
-            .action_management_url_with_action(AccountManagementActionData::Profile)
+            .account_management_url_with_action(AccountManagementActionData::Profile)
             .unwrap();
         assert_eq!(url.query().unwrap(), "action=org.matrix.profile");
 
         // View devices list, with only the stable action advertised.
         let url = original_metadata
-            .action_management_url_with_action(AccountManagementActionData::DevicesList)
+            .account_management_url_with_action(AccountManagementActionData::DevicesList)
             .unwrap();
         assert_eq!(url.query().unwrap(), "action=org.matrix.devices_list");
 
@@ -846,7 +842,7 @@ mod tests {
             .account_management_actions_supported
             .insert(AccountManagementAction::UnstableSessionsList);
         let url = original_metadata
-            .action_management_url_with_action(AccountManagementActionData::DevicesList)
+            .account_management_url_with_action(AccountManagementActionData::DevicesList)
             .unwrap();
         assert_eq!(url.query().unwrap(), "action=org.matrix.devices_list");
 
@@ -855,7 +851,7 @@ mod tests {
             .account_management_actions_supported
             .remove(&AccountManagementAction::DevicesList);
         let url = original_metadata
-            .action_management_url_with_action(AccountManagementActionData::DevicesList)
+            .account_management_url_with_action(AccountManagementActionData::DevicesList)
             .unwrap();
         assert_eq!(url.query().unwrap(), "action=org.matrix.sessions_list");
 
@@ -864,13 +860,13 @@ mod tests {
             .account_management_actions_supported
             .remove(&AccountManagementAction::UnstableSessionsList);
         let url = original_metadata
-            .action_management_url_with_action(AccountManagementActionData::DevicesList)
+            .account_management_url_with_action(AccountManagementActionData::DevicesList)
             .unwrap();
         assert_eq!(url.query().unwrap(), "action=org.matrix.devices_list");
 
         // View device, with only the stable action advertised.
         let url = original_metadata
-            .action_management_url_with_action(AccountManagementActionData::DeviceView(
+            .account_management_url_with_action(AccountManagementActionData::DeviceView(
                 device_id.into(),
             ))
             .unwrap();
@@ -881,7 +877,7 @@ mod tests {
             .account_management_actions_supported
             .insert(AccountManagementAction::UnstableSessionView);
         let url = original_metadata
-            .action_management_url_with_action(AccountManagementActionData::DeviceView(
+            .account_management_url_with_action(AccountManagementActionData::DeviceView(
                 device_id.into(),
             ))
             .unwrap();
@@ -892,7 +888,7 @@ mod tests {
             .account_management_actions_supported
             .remove(&AccountManagementAction::DeviceView);
         let url = original_metadata
-            .action_management_url_with_action(AccountManagementActionData::DeviceView(
+            .account_management_url_with_action(AccountManagementActionData::DeviceView(
                 device_id.into(),
             ))
             .unwrap();
@@ -903,7 +899,7 @@ mod tests {
             .account_management_actions_supported
             .remove(&AccountManagementAction::UnstableSessionView);
         let url = original_metadata
-            .action_management_url_with_action(AccountManagementActionData::DeviceView(
+            .account_management_url_with_action(AccountManagementActionData::DeviceView(
                 device_id.into(),
             ))
             .unwrap();
@@ -911,7 +907,7 @@ mod tests {
 
         // Delete device, with only the stable action advertised.
         let url = original_metadata
-            .action_management_url_with_action(AccountManagementActionData::DeviceDelete(
+            .account_management_url_with_action(AccountManagementActionData::DeviceDelete(
                 device_id.into(),
             ))
             .unwrap();
@@ -922,7 +918,7 @@ mod tests {
             .account_management_actions_supported
             .insert(AccountManagementAction::UnstableSessionEnd);
         let url = original_metadata
-            .action_management_url_with_action(AccountManagementActionData::DeviceDelete(
+            .account_management_url_with_action(AccountManagementActionData::DeviceDelete(
                 device_id.into(),
             ))
             .unwrap();
@@ -933,7 +929,7 @@ mod tests {
             .account_management_actions_supported
             .remove(&AccountManagementAction::DeviceDelete);
         let url = original_metadata
-            .action_management_url_with_action(AccountManagementActionData::DeviceDelete(
+            .account_management_url_with_action(AccountManagementActionData::DeviceDelete(
                 device_id.into(),
             ))
             .unwrap();
@@ -944,7 +940,7 @@ mod tests {
             .account_management_actions_supported
             .remove(&AccountManagementAction::UnstableSessionEnd);
         let url = original_metadata
-            .action_management_url_with_action(AccountManagementActionData::DeviceDelete(
+            .account_management_url_with_action(AccountManagementActionData::DeviceDelete(
                 device_id.into(),
             ))
             .unwrap();
