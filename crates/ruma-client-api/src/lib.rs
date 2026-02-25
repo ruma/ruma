@@ -10,6 +10,7 @@
 #![warn(missing_docs)]
 
 pub mod account;
+pub mod admin;
 pub mod alias;
 pub mod appservice;
 pub mod authenticated_media;
@@ -46,7 +47,6 @@ pub mod room;
 #[cfg(feature = "unstable-msc4143")]
 pub mod rtc;
 pub mod search;
-pub mod server;
 pub mod session;
 pub mod space;
 pub mod state;
