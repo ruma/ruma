@@ -559,7 +559,7 @@ pub mod v1 {
 
     impl<'a> DeviceViewData<'a> {
         /// Construct a new `DeviceViewData` with the given device ID.
-        fn new(device_id: &'a DeviceId) -> Self {
+        pub fn new(device_id: &'a DeviceId) -> Self {
             Self { device_id }
         }
     }
@@ -580,7 +580,7 @@ pub mod v1 {
 
     impl<'a> DeviceDeleteData<'a> {
         /// Construct a new `DeviceDeleteData` with the given device ID.
-        fn new(device_id: &'a DeviceId) -> Self {
+        pub fn new(device_id: &'a DeviceId) -> Self {
             Self { device_id }
         }
     }
