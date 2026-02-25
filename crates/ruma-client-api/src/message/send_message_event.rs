@@ -7,6 +7,8 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid
 
+    #[cfg(feature = "unstable-msc3911")]
+    use ruma_common::OwnedMxcUri;
     use ruma_common::{
         MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedTransactionId,
         api::{auth_scheme::AccessToken, request, response},
@@ -63,6 +65,14 @@ pub mod v3 {
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none", rename = "ts")]
         pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
+
+        /// Media that should be attached to this event.
+        ///
+        /// This should be used to determine who has access to a given MXC URI, as well as when to
+        /// delete media
+        #[cfg(feature = "unstable-msc3911")]
+        #[ruma_api(query)]
+        pub attach_media: Option<OwnedMxcUri>,
     }
 
     /// Response type for the `create_message_event` endpoint.
@@ -93,6 +103,8 @@ pub mod v3 {
                 event_type: content.event_type(),
                 body: Raw::from_json(to_raw_json_value(content)?),
                 timestamp: None,
+                #[cfg(feature = "unstable-msc3911")]
+                attach_media: None,
             })
         }
 
@@ -104,7 +116,15 @@ pub mod v3 {
             event_type: MessageLikeEventType,
             body: Raw<AnyMessageLikeEventContent>,
         ) -> Self {
-            Self { room_id, event_type, txn_id, body, timestamp: None }
+            Self {
+                room_id,
+                event_type,
+                txn_id,
+                body,
+                timestamp: None,
+                #[cfg(feature = "unstable-msc3911")]
+                attach_media: None,
+            }
         }
     }
 
