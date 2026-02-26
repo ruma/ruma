@@ -13,6 +13,8 @@ Breaking changes:
 - The `IdDst` macro doesn't generate methods and trait implementations anymore
   for `Box{id}`, `Arc<id>` and `Rc<{id}>`. Using `Owned{id}` should be
   preferred.
+- `EventId::new()` was renamed to `EventId::new_v1()`, since it works only for
+  the first format of event IDs.
 
 Improvements:
 
@@ -31,6 +33,8 @@ Improvements:
 - Identifier types implement `(Try)From<Box<str>>`, `(Try)From<Cow<'a, str>>`
   and `PartialEq<Cow<'a, str>>` and conversions between owned types try not to
   reallocate when possible.
+- Add `EventId::new_v2_or_v3()` to construct event IDs formats which are based
+  on the event reference hash.
 
 # 0.17.1
 
