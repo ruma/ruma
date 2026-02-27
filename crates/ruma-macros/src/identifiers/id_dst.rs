@@ -313,7 +313,7 @@ impl IdDst {
             #[automatically_derived]
             impl #impl_generics ::std::cmp::PartialEq for #owned_id {
                 fn eq(&self, other: &Self) -> bool {
-                    self.as_inner_str() == other.as_inner_str()
+                    self.inner.eq(&other.inner)
                 }
             }
 
@@ -330,7 +330,7 @@ impl IdDst {
             #[automatically_derived]
             impl #impl_generics ::std::cmp::Ord for #owned_id {
                 fn cmp(&self, other: &Self) -> ::std::cmp::Ordering {
-                    self.as_inner_str().cmp(other.as_inner_str())
+                    self.inner.cmp(&other.inner)
                 }
             }
 
