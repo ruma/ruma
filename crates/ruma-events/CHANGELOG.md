@@ -8,6 +8,12 @@ Breaking changes:
   required but it is removed during redaction.
 - The `canonical-json` feature was removed. The code that was behind it is no
   longer gated behind a cargo feature.
+- The `(Any)FullStateEventContent` enums were renamed to
+  `(Any)StateEventContentChange` to reflect better the purpose of those enums.
+  The method to access `AnyStateEventContentChange` on `Any(Sync)StateEvent` is
+  called `content_change()`.
+- The `content()` method on `Any(Sync)StateEvent` returns an
+  `AnyPossiblyRedactedStateEventContent`.
 
 Bug fixes:
 
