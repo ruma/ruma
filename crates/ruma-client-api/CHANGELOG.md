@@ -17,6 +17,7 @@ Breaking changes:
   non-exhaustive struct:
   - `BadStatus`
   - `IncompatibleRoomVersion`
+  - `LimitExceeded`
 
 Improvements:
 

@@ -13,7 +13,8 @@ use serde::{
 use serde_json::from_value as from_json_value;
 
 use super::{
-    BadStatusErrorData, ErrorCode, ErrorKind, Extra, IncompatibleRoomVersionErrorData, RetryAfter,
+    BadStatusErrorData, ErrorCode, ErrorKind, Extra, IncompatibleRoomVersionErrorData,
+    LimitExceededErrorData, RetryAfter,
 };
 
 enum Field<'de> {
@@ -204,7 +205,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrorCode::InvalidRoomState => ErrorKind::InvalidRoomState,
             ErrorCode::InvalidUsername => ErrorKind::InvalidUsername,
             ErrorCode::InviteBlocked => ErrorKind::InviteBlocked,
-            ErrorCode::LimitExceeded => ErrorKind::LimitExceeded {
+            ErrorCode::LimitExceeded => ErrorKind::LimitExceeded(LimitExceededErrorData {
                 retry_after: retry_after_ms
                     .map(from_json_value::<UInt>)
                     .transpose()
@@ -212,7 +213,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                     .map(Into::into)
                     .map(Duration::from_millis)
                     .map(RetryAfter::Delay),
-            },
+            }),
             ErrorCode::MissingParam => ErrorKind::MissingParam,
             ErrorCode::MissingToken => ErrorKind::MissingToken,
             ErrorCode::NotFound => ErrorKind::NotFound,
@@ -297,7 +298,9 @@ impl Serialize for ErrorKind {
             Self::UnknownToken { soft_logout: true } | Self::UserLocked => {
                 st.serialize_entry("soft_logout", &true)?;
             }
-            Self::LimitExceeded { retry_after: Some(RetryAfter::Delay(duration)) } => {
+            Self::LimitExceeded(LimitExceededErrorData {
+                retry_after: Some(RetryAfter::Delay(duration)),
+            }) => {
                 st.serialize_entry(
                     "retry_after_ms",
                     &UInt::try_from(duration.as_millis()).map_err(ser::Error::custom)?,
