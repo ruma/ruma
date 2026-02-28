@@ -61,20 +61,40 @@ pub mod v3 {
         }
     }
 
-    /// A mark for whether the user is typing within a length of time or not.
-    #[derive(Clone, Copy, Debug, Serialize)]
-    #[serde(into = "TypingInner")]
+    /// A mark for whether the user is typing or not.
+    #[derive(Clone, Copy, Debug)]
     #[allow(clippy::exhaustive_enums)]
     pub enum Typing {
-        /// Not typing.
+        /// The user is currently not typing.
         No,
 
-        /// Typing during the specified length of time.
-        Yes(Duration),
+        /// The user is currently typing.
+        Yes(TypingInfo),
+    }
+
+    impl From<TypingInfo> for Typing {
+        fn from(value: TypingInfo) -> Self {
+            Self::Yes(value)
+        }
+    }
+
+    /// Details about the user currently typing.
+    #[derive(Clone, Copy, Debug)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct TypingInfo {
+        /// The length of time to mark this user as typing.
+        pub timeout: Duration,
+    }
+
+    impl TypingInfo {
+        /// Create a new `TypingInfo` with the given timeout.
+        pub fn new(timeout: Duration) -> Self {
+            Self { timeout }
+        }
     }
 
     #[derive(Deserialize, Serialize)]
-    struct TypingInner {
+    struct TypingSerdeRepr {
         typing: bool,
 
         #[serde(
@@ -85,12 +105,19 @@ pub mod v3 {
         timeout: Option<Duration>,
     }
 
-    impl From<Typing> for TypingInner {
-        fn from(typing: Typing) -> Self {
-            match typing {
-                Typing::No => Self { typing: false, timeout: None },
-                Typing::Yes(time) => Self { typing: true, timeout: Some(time) },
-            }
+    impl Serialize for Typing {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer,
+        {
+            let repr = match self {
+                Self::No => TypingSerdeRepr { typing: false, timeout: None },
+                Self::Yes(TypingInfo { timeout }) => {
+                    TypingSerdeRepr { typing: true, timeout: Some(*timeout) }
+                }
+            };
+
+            repr.serialize(serializer)
         }
     }
 
@@ -99,13 +126,15 @@ pub mod v3 {
         where
             D: Deserializer<'de>,
         {
-            let inner = TypingInner::deserialize(deserializer)?;
+            let repr = TypingSerdeRepr::deserialize(deserializer)?;
 
-            match (inner.typing, inner.timeout) {
-                (false, _) => Ok(Self::No),
-                (true, Some(time)) => Ok(Self::Yes(time)),
-                _ => Err(D::Error::missing_field("timeout")),
-            }
+            Ok(if repr.typing {
+                Typing::Yes(TypingInfo {
+                    timeout: repr.timeout.ok_or_else(|| D::Error::missing_field("timeout"))?,
+                })
+            } else {
+                Typing::No
+            })
         }
     }
 }
