@@ -188,7 +188,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrorCode::ConnectionTimeout => ErrorKind::ConnectionTimeout,
             ErrorCode::DuplicateAnnotation => ErrorKind::DuplicateAnnotation,
             ErrorCode::Exclusive => ErrorKind::Exclusive,
-            ErrorCode::Forbidden => ErrorKind::forbidden(),
+            ErrorCode::Forbidden => ErrorKind::Forbidden,
             ErrorCode::GuestAccessForbidden => ErrorKind::GuestAccessForbidden,
             ErrorCode::IncompatibleRoomVersion => ErrorKind::IncompatibleRoomVersion {
                 room_version: from_json_value(
@@ -318,13 +318,7 @@ mod tests {
     #[test]
     fn deserialize_forbidden() {
         let deserialized: ErrorKind = from_json_value(json!({ "errcode": "M_FORBIDDEN" })).unwrap();
-        assert_eq!(
-            deserialized,
-            ErrorKind::Forbidden {
-                #[cfg(feature = "unstable-msc2967")]
-                authenticate: None
-            }
-        );
+        assert_eq!(deserialized, ErrorKind::Forbidden);
     }
 
     #[test]
@@ -335,13 +329,7 @@ mod tests {
         }))
         .unwrap();
 
-        assert_eq!(
-            deserialized,
-            ErrorKind::Forbidden {
-                #[cfg(feature = "unstable-msc2967")]
-                authenticate: None
-            }
-        );
+        assert_eq!(deserialized, ErrorKind::Forbidden);
     }
 
     #[test]

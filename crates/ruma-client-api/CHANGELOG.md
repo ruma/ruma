@@ -20,6 +20,11 @@ Breaking changes:
   was moved to `InviteUserId`, because it is not available for third-party IDs.
 - `StateEventFormat` can represent any custom string value now, but it doesn't
   implement `Copy` anymore.
+- Remove support for the OAuth 2.0 `WWW-AUTHENTICATE` header data in
+  `ErrorKind::Forbidden`, because it was dropped from MSC2967 and it is not part
+  of any new MSC. `ErrorKind::Forbidden` is now a unit variant, and the
+  `ErrorKind::forbidden()` method to construct it was removed.
+  `AuthenticateError` was removed.
 
 Bug fixes:
 
