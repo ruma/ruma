@@ -29,6 +29,7 @@ Breaking changes:
   non-exhaustive struct:
   - `BadStatus`, and its serialization was fixed.
   - `IncompatibleRoomVersion`
+  - `LimitExceeded`
 
 Bug fixes:
 

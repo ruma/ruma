@@ -176,10 +176,7 @@ pub enum ErrorKind {
     /// short period of time.
     ///
     /// [rate limiting]: https://spec.matrix.org/latest/client-server-api/#rate-limiting
-    LimitExceeded {
-        /// How long a client should wait before they can try again.
-        retry_after: Option<RetryAfter>,
-    },
+    LimitExceeded(LimitExceededErrorData),
 
     /// `M_MISSING_PARAM`
     ///
@@ -442,7 +439,7 @@ impl ErrorKind {
             ErrorKind::InvalidRoomState => ErrorCode::InvalidRoomState,
             ErrorKind::InvalidUsername => ErrorCode::InvalidUsername,
             ErrorKind::InviteBlocked => ErrorCode::InviteBlocked,
-            ErrorKind::LimitExceeded { .. } => ErrorCode::LimitExceeded,
+            ErrorKind::LimitExceeded(_) => ErrorCode::LimitExceeded,
             ErrorKind::MissingParam => ErrorCode::MissingParam,
             ErrorKind::MissingToken => ErrorCode::MissingToken,
             ErrorKind::NotFound => ErrorCode::NotFound,
@@ -513,6 +510,21 @@ impl IncompatibleRoomVersionErrorData {
     /// Construct a new `IncompatibleRoomVersionErrorData` with the given room version.
     pub fn new(room_version: RoomVersionId) -> Self {
         Self { room_version }
+    }
+}
+
+/// Data for the `M_LIMIT_EXCEEDED` [`ErrorKind`].
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct LimitExceededErrorData {
+    /// How long a client should wait before they can try again.
+    pub retry_after: Option<RetryAfter>,
+}
+
+impl LimitExceededErrorData {
+    /// Construct a new empty `LimitExceededErrorData`.
+    pub fn new() -> Self {
+        Self::default()
     }
 }
 
@@ -969,7 +981,9 @@ impl EndpointError for Error {
             Ok(mut standard_body) => {
                 let headers = response.headers();
 
-                if let ErrorKind::LimitExceeded { retry_after } = &mut standard_body.kind {
+                if let ErrorKind::LimitExceeded(LimitExceededErrorData { retry_after }) =
+                    &mut standard_body.kind
+                {
                     // The Retry-After header takes precedence over the retry_after_ms field in
                     // the body.
                     if let Some(Ok(retry_after_header)) =
@@ -1027,7 +1041,9 @@ impl OutgoingResponse for Error {
             .status(self.status_code);
 
         // Add data in headers.
-        if let Some(ErrorKind::LimitExceeded { retry_after: Some(retry_after) }) = self.error_kind()
+        if let Some(ErrorKind::LimitExceeded(LimitExceededErrorData {
+            retry_after: Some(retry_after),
+        })) = self.error_kind()
         {
             let header_value = http::HeaderValue::try_from(retry_after)?;
             builder = builder.header(http::header::RETRY_AFTER, header_value);
@@ -1109,7 +1125,9 @@ mod tests {
     };
     use web_time::{Duration, UNIX_EPOCH};
 
-    use super::{Error, ErrorBody, ErrorKind, RetryAfter, StandardErrorBody};
+    use super::{
+        Error, ErrorBody, ErrorKind, LimitExceededErrorData, RetryAfter, StandardErrorBody,
+    };
 
     #[test]
     fn deserialize_forbidden() {
@@ -1155,7 +1173,7 @@ mod tests {
         assert_matches!(
             error.body,
             ErrorBody::Standard(StandardErrorBody {
-                kind: ErrorKind::LimitExceeded { retry_after: None },
+                kind: ErrorKind::LimitExceeded(LimitExceededErrorData { retry_after: None }),
                 message
             })
         );
@@ -1181,7 +1199,9 @@ mod tests {
         assert_matches!(
             error.body,
             ErrorBody::Standard(StandardErrorBody {
-                kind: ErrorKind::LimitExceeded { retry_after: Some(retry_after) },
+                kind: ErrorKind::LimitExceeded(LimitExceededErrorData {
+                    retry_after: Some(retry_after)
+                }),
                 message
             })
         );
@@ -1209,7 +1229,9 @@ mod tests {
         assert_matches!(
             error.body,
             ErrorBody::Standard(StandardErrorBody {
-                kind: ErrorKind::LimitExceeded { retry_after: Some(retry_after) },
+                kind: ErrorKind::LimitExceeded(LimitExceededErrorData {
+                    retry_after: Some(retry_after)
+                }),
                 message
             })
         );
@@ -1237,7 +1259,9 @@ mod tests {
         assert_matches!(
             error.body,
             ErrorBody::Standard(StandardErrorBody {
-                kind: ErrorKind::LimitExceeded { retry_after: Some(retry_after) },
+                kind: ErrorKind::LimitExceeded(LimitExceededErrorData {
+                    retry_after: Some(retry_after)
+                }),
                 message
             })
         );
@@ -1266,7 +1290,9 @@ mod tests {
         assert_matches!(
             error.body,
             ErrorBody::Standard(StandardErrorBody {
-                kind: ErrorKind::LimitExceeded { retry_after: Some(retry_after) },
+                kind: ErrorKind::LimitExceeded(LimitExceededErrorData {
+                    retry_after: Some(retry_after)
+                }),
                 message
             })
         );
@@ -1280,7 +1306,7 @@ mod tests {
         let error = Error::new(
             http::StatusCode::TOO_MANY_REQUESTS,
             ErrorBody::Standard(StandardErrorBody {
-                kind: ErrorKind::LimitExceeded { retry_after: None },
+                kind: ErrorKind::LimitExceeded(LimitExceededErrorData { retry_after: None }),
                 message: "Too many requests".to_owned(),
             }),
         );
@@ -1305,9 +1331,9 @@ mod tests {
         let error = Error::new(
             http::StatusCode::TOO_MANY_REQUESTS,
             ErrorBody::Standard(StandardErrorBody {
-                kind: ErrorKind::LimitExceeded {
+                kind: ErrorKind::LimitExceeded(LimitExceededErrorData {
                     retry_after: Some(RetryAfter::Delay(Duration::from_secs(3))),
-                },
+                }),
                 message: "Too many requests".to_owned(),
             }),
         );
@@ -1334,11 +1360,11 @@ mod tests {
         let error = Error::new(
             http::StatusCode::TOO_MANY_REQUESTS,
             ErrorBody::Standard(StandardErrorBody {
-                kind: ErrorKind::LimitExceeded {
+                kind: ErrorKind::LimitExceeded(LimitExceededErrorData {
                     retry_after: Some(RetryAfter::DateTime(
                         UNIX_EPOCH + Duration::from_secs(1_431_704_061),
                     )),
-                },
+                }),
                 message: "Too many requests".to_owned(),
             }),
         );
