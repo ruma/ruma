@@ -2,7 +2,9 @@
 //!
 //! Register an account on this homeserver.
 
-use serde::{Deserialize, Serialize};
+use ruma_common::serde::StringEnum;
+
+use crate::PrivOwnedStr;
 
 pub mod v3 {
     //! `/v3/` ([spec])
@@ -178,25 +180,33 @@ pub mod v3 {
 }
 
 /// The kind of account being registered.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, Default, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum RegistrationKind {
-    /// A guest account
+    /// A guest account.
     ///
     /// These accounts may have limited permissions and may not be supported by all servers.
     Guest,
 
-    /// A regular user account
+    /// A regular user account.
     #[default]
     User,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
 }
 
 /// The login type.
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, StringEnum)]
+#[ruma_enum(rename_all(prefix = "m.login.", rule = "snake_case"))]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum LoginType {
-    /// An appservice-specific login type
-    #[serde(rename = "m.login.application_service")]
+    /// An appservice-specific login type.
     ApplicationService,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
 }
