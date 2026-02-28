@@ -334,14 +334,7 @@ pub enum ErrorKind {
     /// The [access or refresh token] specified was not recognized.
     ///
     /// [access or refresh token]: https://spec.matrix.org/latest/client-server-api/#client-authentication
-    UnknownToken {
-        /// If this is `true`, the client is in a "[soft logout]" state, i.e. the server requires
-        /// re-authentication but the session is not invalidated. The client can acquire a new
-        /// access token by specifying the device ID it is already using to the login API.
-        ///
-        /// [soft logout]: https://spec.matrix.org/latest/client-server-api/#soft-logout
-        soft_logout: bool,
-    },
+    UnknownToken(UnknownTokenErrorData),
 
     /// `M_UNRECOGNIZED`
     ///
@@ -462,7 +455,7 @@ impl ErrorKind {
             ErrorKind::Unknown => ErrorCode::Unknown,
             #[cfg(feature = "unstable-msc4186")]
             ErrorKind::UnknownPos => ErrorCode::UnknownPos,
-            ErrorKind::UnknownToken { .. } => ErrorCode::UnknownToken,
+            ErrorKind::UnknownToken(_) => ErrorCode::UnknownToken,
             ErrorKind::Unrecognized => ErrorCode::Unrecognized,
             ErrorKind::UnsupportedRoomVersion => ErrorCode::UnsupportedRoomVersion,
             ErrorKind::UrlNotSet => ErrorCode::UrlNotSet,
@@ -537,6 +530,25 @@ impl ResourceLimitExceededErrorData {
     /// Construct a new `ResourceLimitExceededErrorData` with the given admin contact URI.
     pub fn new(admin_contact: String) -> Self {
         Self { admin_contact }
+    }
+}
+
+/// Data for the `M_UNKNOWN_TOKEN` [`ErrorKind`].
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct UnknownTokenErrorData {
+    /// If this is `true`, the client is in a "[soft logout]" state, i.e. the server requires
+    /// re-authentication but the session is not invalidated. The client can acquire a new
+    /// access token by specifying the device ID it is already using to the login API.
+    ///
+    /// [soft logout]: https://spec.matrix.org/latest/client-server-api/#soft-logout
+    pub soft_logout: bool,
+}
+
+impl UnknownTokenErrorData {
+    /// Construct a new `UnknownTokenErrorData` with `soft_logout` set to `false`.
+    pub fn new() -> Self {
+        Self::default()
     }
 }
 

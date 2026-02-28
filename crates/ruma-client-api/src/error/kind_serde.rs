@@ -14,7 +14,7 @@ use serde_json::from_value as from_json_value;
 
 use super::{
     BadStatusErrorData, ErrorCode, ErrorKind, Extra, IncompatibleRoomVersionErrorData,
-    LimitExceededErrorData, ResourceLimitExceededErrorData, RetryAfter,
+    LimitExceededErrorData, ResourceLimitExceededErrorData, RetryAfter, UnknownTokenErrorData,
 };
 
 enum Field<'de> {
@@ -246,13 +246,13 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrorCode::Unknown => ErrorKind::Unknown,
             #[cfg(feature = "unstable-msc4186")]
             ErrorCode::UnknownPos => ErrorKind::UnknownPos,
-            ErrorCode::UnknownToken => ErrorKind::UnknownToken {
+            ErrorCode::UnknownToken => ErrorKind::UnknownToken(UnknownTokenErrorData {
                 soft_logout: soft_logout
                     .map(from_json_value)
                     .transpose()
                     .map_err(de::Error::custom)?
                     .unwrap_or_default(),
-            },
+            }),
             ErrorCode::Unrecognized => ErrorKind::Unrecognized,
             ErrorCode::UnsupportedRoomVersion => ErrorKind::UnsupportedRoomVersion,
             ErrorCode::UrlNotSet => ErrorKind::UrlNotSet,
@@ -297,7 +297,7 @@ impl Serialize for ErrorKind {
                     st.serialize_entry("body", body)?;
                 }
             }
-            Self::UnknownToken { soft_logout: true } | Self::UserLocked => {
+            Self::UnknownToken(UnknownTokenErrorData { soft_logout: true }) | Self::UserLocked => {
                 st.serialize_entry("soft_logout", &true)?;
             }
             Self::LimitExceeded(LimitExceededErrorData {
