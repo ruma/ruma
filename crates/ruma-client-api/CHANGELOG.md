@@ -31,6 +31,7 @@ Breaking changes:
   - `IncompatibleRoomVersion`
   - `LimitExceeded`
   - `ResourceLimitExceeded`
+  - `UnknownToken`
 
 Bug fixes:
 
