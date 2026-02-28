@@ -9,6 +9,18 @@ Breaking changes:
 - The `server` module was renamed to `admin`, to make it easier to find since it
   contains all the administration endpoints, and it matches the namespace in the
   spec.
+- Remove support for the OAuth 2.0 `WWW-AUTHENTICATE` header data in
+  `ErrorKind::Forbidden`, because it was dropped from MSC2967 and it is not part
+  of any new MSC. `ErrorKind::Forbidden` is now a unit variant, and the
+  `ErrorKind::forbidden()` method to construct it was removed.
+- The following `ErrorKind` struct variants are now tuple structs containing a
+  non-exhaustive struct:
+  - `BadStatus`
+  - `IncompatibleRoomVersion`
+  - `LimitExceeded`
+  - `ResourceLimitExceeded`
+  - `UnknownToken`
+  - `WrongRoomKeysVersion`, and its `current_version` field is now required.
 
 Improvements:
 
