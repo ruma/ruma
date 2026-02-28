@@ -28,6 +28,7 @@ Improvements:
 - Stabilize support for the `M_INVITE_BLOCKED` error code, according to MSC4380.
 - Stabilize support for OAuth 2.0 aware clients, according to MSC3824. Unstable
   support was dropped entirely.
+- `RegistrationKind` and `LoginType` can now represent custom values.
 
 # 0.22.1
 
