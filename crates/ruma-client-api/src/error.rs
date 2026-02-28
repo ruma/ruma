@@ -1,6 +1,6 @@
 //! Errors that can be sent from the homeserver.
 
-use std::{collections::BTreeMap, fmt, str::FromStr, sync::Arc};
+use std::{fmt, str::FromStr, sync::Arc};
 
 use as_variant::as_variant;
 use bytes::{BufMut, Bytes};
@@ -13,7 +13,7 @@ use ruma_common::{
             IntoHttpError, MatrixErrorBody,
         },
     },
-    serde::StringEnum,
+    serde::{JsonObject, StringEnum},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{Value as JsonValue, from_slice as from_json_slice};
@@ -397,7 +397,7 @@ pub enum ErrorKind {
     WrongRoomKeysVersion(WrongRoomKeysVersionErrorData),
 
     #[doc(hidden)]
-    _Custom { errcode: PrivOwnedStr, extra: Extra },
+    _Custom(CustomErrorKind),
 }
 
 impl ErrorKind {
@@ -462,8 +462,13 @@ impl ErrorKind {
             ErrorKind::UserSuspended => ErrorCode::UserSuspended,
             ErrorKind::WeakPassword => ErrorCode::WeakPassword,
             ErrorKind::WrongRoomKeysVersion(_) => ErrorCode::WrongRoomKeysVersion,
-            ErrorKind::_Custom { errcode, .. } => errcode.0.clone().into(),
+            ErrorKind::_Custom(CustomErrorKind { errcode, .. }) => errcode.as_str().into(),
         }
+    }
+
+    /// Get the JSON data for this `ErrorKind`, if it uses a custom error code.
+    pub fn custom_json_data(&self) -> Option<&JsonObject> {
+        as_variant!(self, Self::_Custom).map(|error_kind| &error_kind.data)
     }
 }
 
@@ -565,9 +570,16 @@ impl WrongRoomKeysVersionErrorData {
     }
 }
 
+/// A custom error kind.
 #[doc(hidden)]
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Extra(BTreeMap<String, JsonValue>);
+pub struct CustomErrorKind {
+    /// The error code.
+    errcode: String,
+
+    /// The data for the error.
+    data: JsonObject,
+}
 
 /// The possible [error codes] defined in the Matrix spec.
 ///
@@ -1448,5 +1460,21 @@ mod tests {
                 "soft_logout": true,
             })
         );
+    }
+
+    #[test]
+    fn deserialize_custom_error_kind() {
+        let deserialized: StandardErrorBody = from_json_value(json!({
+            "errcode": "LOCAL_DEV_ERROR",
+            "error": "You are using the homeserver in local dev mode.",
+            "foo": "bar",
+        }))
+        .unwrap();
+
+        assert_eq!(deserialized.kind.errcode().as_str(), "LOCAL_DEV_ERROR");
+        assert_matches!(deserialized.kind.custom_json_data(), Some(json_data));
+        assert_matches!(json_data.get("foo"), Some(JsonValue::String(foo)));
+        assert_eq!(foo, "bar");
+        assert_eq!(deserialized.message, "You are using the homeserver in local dev mode.");
     }
 }
