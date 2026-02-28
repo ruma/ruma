@@ -62,6 +62,7 @@ Improvements:
 - `BackupAlgorithm` can be deserialized from unsupported algorithms. The name
   and data of the algorithm can be accessed via the `algorithm()` and
   `auth_data()` methods respectively.
+- `RegistrationKind` and `LoginType` can now represent custom values.
 
 # 0.22.1
 
