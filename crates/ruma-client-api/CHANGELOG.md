@@ -19,6 +19,7 @@ Breaking changes:
   - `IncompatibleRoomVersion`
   - `LimitExceeded`
   - `ResourceLimitExceeded`
+  - `UnknownToken`
 
 Improvements:
 
