@@ -69,13 +69,7 @@ pub enum ErrorKind {
     /// `M_BAD_STATUS`
     ///
     /// The application service returned a bad status.
-    BadStatus {
-        /// The HTTP status code of the response.
-        status: Option<http::StatusCode>,
-
-        /// The body of the response.
-        body: Option<String>,
-    },
+    BadStatus(BadStatusErrorData),
 
     /// `M_CANNOT_LEAVE_SERVER_NOTICE_ROOM`
     ///
@@ -433,7 +427,7 @@ impl ErrorKind {
             ErrorKind::BadAlias => ErrorCode::BadAlias,
             ErrorKind::BadJson => ErrorCode::BadJson,
             ErrorKind::BadState => ErrorCode::BadState,
-            ErrorKind::BadStatus { .. } => ErrorCode::BadStatus,
+            ErrorKind::BadStatus(_) => ErrorCode::BadStatus,
             ErrorKind::CannotLeaveServerNoticeRoom => ErrorCode::CannotLeaveServerNoticeRoom,
             ErrorKind::CannotOverwriteMedia => ErrorCode::CannotOverwriteMedia,
             ErrorKind::CaptchaInvalid => ErrorCode::CaptchaInvalid,
@@ -489,6 +483,24 @@ impl ErrorKind {
             ErrorKind::WrongRoomKeysVersion { .. } => ErrorCode::WrongRoomKeysVersion,
             ErrorKind::_Custom { errcode, .. } => errcode.0.clone().into(),
         }
+    }
+}
+
+/// Data for the `M_BAD_STATUS` [`ErrorKind`].
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct BadStatusErrorData {
+    /// The HTTP status code of the response.
+    pub status: Option<http::StatusCode>,
+
+    /// The body of the response.
+    pub body: Option<String>,
+}
+
+impl BadStatusErrorData {
+    /// Construct a new empty `BadStatusErrorData`.
+    pub fn new() -> Self {
+        Self::default()
     }
 }
 
