@@ -1,19 +1,15 @@
-use std::{
-    borrow::Cow,
-    collections::btree_map::{BTreeMap, Entry},
-    fmt,
-    time::Duration,
-};
+use std::{borrow::Cow, fmt, time::Duration};
 
 use js_int::UInt;
+use ruma_common::serde::JsonObject;
 use serde::{
     de::{self, Deserialize, Deserializer, MapAccess, Visitor},
     ser::{self, Serialize, SerializeMap, Serializer},
 };
-use serde_json::from_value as from_json_value;
+use serde_json::{from_value as from_json_value, map::Entry};
 
 use super::{
-    BadStatusErrorData, ErrorCode, ErrorKind, Extra, IncompatibleRoomVersionErrorData,
+    BadStatusErrorData, CustomErrorKind, ErrorCode, ErrorKind, IncompatibleRoomVersionErrorData,
     LimitExceededErrorData, ResourceLimitExceededErrorData, RetryAfter, UnknownTokenErrorData,
     WrongRoomKeysVersionErrorData,
 };
@@ -107,7 +103,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
         let mut status = None;
         let mut body = None;
         let mut current_version = None;
-        let mut extra = BTreeMap::new();
+        let mut data = JsonObject::new();
 
         macro_rules! set_field {
             (errcode) => {
@@ -152,7 +148,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                 Field::Status => set_field!(status),
                 Field::Body => set_field!(body),
                 Field::CurrentVersion => set_field!(current_version),
-                Field::Other(other) => match extra.entry(other.into_owned()) {
+                Field::Other(other) => match data.entry(other.into_owned()) {
                     Entry::Vacant(v) => {
                         v.insert(map.next_value()?);
                     }
@@ -164,7 +160,6 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
         }
 
         let errcode = errcode.ok_or_else(|| de::Error::missing_field("errcode"))?;
-        let extra = Extra(extra);
 
         Ok(match errcode {
             ErrorCode::AppserviceLoginUnsupported => ErrorKind::AppserviceLoginUnsupported,
@@ -271,7 +266,9 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                     .map_err(de::Error::custom)?,
                 })
             }
-            ErrorCode::_Custom(errcode) => ErrorKind::_Custom { errcode, extra },
+            ErrorCode::_Custom(errcode) => {
+                ErrorKind::_Custom(CustomErrorKind { errcode: errcode.0.into(), data })
+            }
         })
     }
 }
@@ -321,8 +318,8 @@ impl Serialize for ErrorKind {
             Self::WrongRoomKeysVersion(WrongRoomKeysVersionErrorData { current_version }) => {
                 st.serialize_entry("current_version", current_version)?;
             }
-            Self::_Custom { extra, .. } => {
-                for (k, v) in &extra.0 {
+            Self::_Custom(CustomErrorKind { data, .. }) => {
+                for (k, v) in data {
                     st.serialize_entry(k, v)?;
                 }
             }
