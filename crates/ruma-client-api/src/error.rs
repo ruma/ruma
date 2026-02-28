@@ -222,10 +222,7 @@ pub enum ErrorKind {
     /// The request cannot be completed because the homeserver has reached a resource limit imposed
     /// on it. For example, a homeserver held in a shared hosting environment may reach a resource
     /// limit if it starts using too much memory or disk space.
-    ResourceLimitExceeded {
-        /// A URI giving a contact method for the server administrator.
-        admin_contact: String,
-    },
+    ResourceLimitExceeded(ResourceLimitExceededErrorData),
 
     /// `M_ROOM_IN_USE`
     ///
@@ -447,7 +444,7 @@ impl ErrorKind {
             ErrorKind::NotInThread => ErrorCode::NotInThread,
             ErrorKind::NotJson => ErrorCode::NotJson,
             ErrorKind::NotYetUploaded => ErrorCode::NotYetUploaded,
-            ErrorKind::ResourceLimitExceeded { .. } => ErrorCode::ResourceLimitExceeded,
+            ErrorKind::ResourceLimitExceeded(_) => ErrorCode::ResourceLimitExceeded,
             ErrorKind::RoomInUse => ErrorCode::RoomInUse,
             ErrorKind::ServerNotTrusted => ErrorCode::ServerNotTrusted,
             ErrorKind::ThreepidAuthFailed => ErrorCode::ThreepidAuthFailed,
@@ -525,6 +522,21 @@ impl LimitExceededErrorData {
     /// Construct a new empty `LimitExceededErrorData`.
     pub fn new() -> Self {
         Self::default()
+    }
+}
+
+/// Data for the `M_RESOURCE_LIMIT_EXCEEDED` [`ErrorKind`].
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct ResourceLimitExceededErrorData {
+    /// A URI giving a contact method for the server administrator.
+    pub admin_contact: String,
+}
+
+impl ResourceLimitExceededErrorData {
+    /// Construct a new `ResourceLimitExceededErrorData` with the given admin contact URI.
+    pub fn new(admin_contact: String) -> Self {
+        Self { admin_contact }
     }
 }
 

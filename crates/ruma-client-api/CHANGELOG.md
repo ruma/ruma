@@ -18,6 +18,7 @@ Breaking changes:
   - `BadStatus`
   - `IncompatibleRoomVersion`
   - `LimitExceeded`
+  - `ResourceLimitExceeded`
 
 Improvements:
 
