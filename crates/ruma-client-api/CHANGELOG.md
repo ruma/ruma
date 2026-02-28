@@ -30,6 +30,9 @@ Improvements:
 - Stabilize support for the `M_INVITE_BLOCKED` error code, according to MSC4380.
 - Stabilize support for OAuth 2.0 aware clients, according to MSC3824. Unstable
   support was dropped entirely.
+- `BackupAlgorithm` can be deserialized from unsupported algorithms. The name
+  and data of the algorithm can be accessed via the `algorithm()` and
+  `auth_data()` methods respectively.
 
 # 0.22.1
 
