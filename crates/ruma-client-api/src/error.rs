@@ -394,10 +394,7 @@ pub enum ErrorKind {
     /// backup version.
     ///
     /// [room keys backup]: https://spec.matrix.org/latest/client-server-api/#server-side-key-backups
-    WrongRoomKeysVersion {
-        /// The currently active backup version.
-        current_version: Option<String>,
-    },
+    WrongRoomKeysVersion(WrongRoomKeysVersionErrorData),
 
     #[doc(hidden)]
     _Custom { errcode: PrivOwnedStr, extra: Extra },
@@ -464,7 +461,7 @@ impl ErrorKind {
             ErrorKind::UserLocked => ErrorCode::UserLocked,
             ErrorKind::UserSuspended => ErrorCode::UserSuspended,
             ErrorKind::WeakPassword => ErrorCode::WeakPassword,
-            ErrorKind::WrongRoomKeysVersion { .. } => ErrorCode::WrongRoomKeysVersion,
+            ErrorKind::WrongRoomKeysVersion(_) => ErrorCode::WrongRoomKeysVersion,
             ErrorKind::_Custom { errcode, .. } => errcode.0.clone().into(),
         }
     }
@@ -549,6 +546,22 @@ impl UnknownTokenErrorData {
     /// Construct a new `UnknownTokenErrorData` with `soft_logout` set to `false`.
     pub fn new() -> Self {
         Self::default()
+    }
+}
+
+/// Data for the `M_WRONG_ROOM_KEYS_VERSION` [`ErrorKind`].
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct WrongRoomKeysVersionErrorData {
+    /// The currently active backup version.
+    pub current_version: String,
+}
+
+impl WrongRoomKeysVersionErrorData {
+    /// Construct a new `WrongRoomKeysVersionErrorData` with the given current active backup
+    /// version.
+    pub fn new(current_version: String) -> Self {
+        Self { current_version }
     }
 }
 
@@ -1151,6 +1164,7 @@ mod tests {
 
     use super::{
         Error, ErrorBody, ErrorKind, LimitExceededErrorData, RetryAfter, StandardErrorBody,
+        WrongRoomKeysVersionErrorData,
     };
 
     #[test]
@@ -1174,8 +1188,11 @@ mod tests {
         }))
         .expect("We should be able to deserialize a wrong room keys version error");
 
-        assert_matches!(deserialized.kind, ErrorKind::WrongRoomKeysVersion { current_version });
-        assert_eq!(current_version.as_deref(), Some("42"));
+        assert_matches!(
+            deserialized.kind,
+            ErrorKind::WrongRoomKeysVersion(WrongRoomKeysVersionErrorData { current_version })
+        );
+        assert_eq!(current_version, "42");
         assert_eq!(deserialized.message, "Wrong backup version.");
     }
 
