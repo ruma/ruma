@@ -11,6 +11,9 @@ Breaking changes:
   spec.
 - `BackupAlgorithm::MegolmBackupV1Curve25519AesSha2` is now a tuple variant
   containing a non-exhaustive struct.
+- `InvitationRecipient::UserId` is now a tuple variant containing a
+  non-exhaustive struct, and the `reason` field of `invite_user::v3::Request`
+  was moved to `InviteUserId`, because it is not available for third-party IDs.
 
 Improvements:
 
