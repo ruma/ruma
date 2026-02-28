@@ -14,7 +14,7 @@ use serde_json::from_value as from_json_value;
 
 use super::{
     BadStatusErrorData, ErrorCode, ErrorKind, Extra, IncompatibleRoomVersionErrorData,
-    LimitExceededErrorData, RetryAfter,
+    LimitExceededErrorData, ResourceLimitExceededErrorData, RetryAfter,
 };
 
 enum Field<'de> {
@@ -221,12 +221,14 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrorCode::NotInThread => ErrorKind::NotInThread,
             ErrorCode::NotJson => ErrorKind::NotJson,
             ErrorCode::NotYetUploaded => ErrorKind::NotYetUploaded,
-            ErrorCode::ResourceLimitExceeded => ErrorKind::ResourceLimitExceeded {
-                admin_contact: from_json_value(
-                    admin_contact.ok_or_else(|| de::Error::missing_field("admin_contact"))?,
-                )
-                .map_err(de::Error::custom)?,
-            },
+            ErrorCode::ResourceLimitExceeded => {
+                ErrorKind::ResourceLimitExceeded(ResourceLimitExceededErrorData {
+                    admin_contact: from_json_value(
+                        admin_contact.ok_or_else(|| de::Error::missing_field("admin_contact"))?,
+                    )
+                    .map_err(de::Error::custom)?,
+                })
+            }
             ErrorCode::RoomInUse => ErrorKind::RoomInUse,
             ErrorCode::ServerNotTrusted => ErrorKind::ServerNotTrusted,
             ErrorCode::ThreepidAuthFailed => ErrorKind::ThreepidAuthFailed,
@@ -309,7 +311,7 @@ impl Serialize for ErrorKind {
             Self::IncompatibleRoomVersion(IncompatibleRoomVersionErrorData { room_version }) => {
                 st.serialize_entry("room_version", room_version)?;
             }
-            Self::ResourceLimitExceeded { admin_contact } => {
+            Self::ResourceLimitExceeded(ResourceLimitExceededErrorData { admin_contact }) => {
                 st.serialize_entry("admin_contact", admin_contact)?;
             }
             Self::_Custom { extra, .. } => {
