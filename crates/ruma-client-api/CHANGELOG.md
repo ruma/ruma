@@ -30,6 +30,7 @@ Breaking changes:
   - `BadStatus`, and its serialization was fixed.
   - `IncompatibleRoomVersion`
   - `LimitExceeded`
+  - `ResourceLimitExceeded`
 
 Bug fixes:
 
