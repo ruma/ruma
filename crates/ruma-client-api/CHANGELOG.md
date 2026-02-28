@@ -15,6 +15,9 @@ Breaking changes:
   `ResultGroupMapsByGroupingKey`. This is a wrapper around a map that ensure
   that each `ResultGroupMap` uses the appropriate key type for their
   `GroupingKey`. As a result, the `OwnedRoomIdOrUserId` enum was removed.
+- `InvitationRecipient::UserId` is now a tuple variant containing a
+  non-exhaustive struct, and the `reason` field of `invite_user::v3::Request`
+  was moved to `InviteUserId`, because it is not available for third-party IDs.
 
 Bug fixes:
 
