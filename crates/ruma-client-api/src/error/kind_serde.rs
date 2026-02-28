@@ -298,8 +298,8 @@ impl Serialize for ErrorKind {
                     st.serialize_entry("body", body)?;
                 }
             }
-            Self::UnknownToken(UnknownTokenErrorData { soft_logout: true }) | Self::UserLocked => {
-                st.serialize_entry("soft_logout", &true)?;
+            Self::IncompatibleRoomVersion(IncompatibleRoomVersionErrorData { room_version }) => {
+                st.serialize_entry("room_version", room_version)?;
             }
             Self::LimitExceeded(LimitExceededErrorData {
                 retry_after: Some(RetryAfter::Delay(duration)),
@@ -309,11 +309,11 @@ impl Serialize for ErrorKind {
                     &UInt::try_from(duration.as_millis()).map_err(ser::Error::custom)?,
                 )?;
             }
-            Self::IncompatibleRoomVersion(IncompatibleRoomVersionErrorData { room_version }) => {
-                st.serialize_entry("room_version", room_version)?;
-            }
             Self::ResourceLimitExceeded(ResourceLimitExceededErrorData { admin_contact }) => {
                 st.serialize_entry("admin_contact", admin_contact)?;
+            }
+            Self::UnknownToken(UnknownTokenErrorData { soft_logout: true }) | Self::UserLocked => {
+                st.serialize_entry("soft_logout", &true)?;
             }
             Self::WrongRoomKeysVersion(WrongRoomKeysVersionErrorData { current_version }) => {
                 st.serialize_entry("current_version", current_version)?;
