@@ -37,6 +37,9 @@ Breaking changes:
 - Remove the `score` field from `report_content::v3::Request` according to
   MSC4277. `report_content::v3::Request::new()` now only takes a room ID and an
   event ID.
+- `Typing::Yes` now holds a non-exhaustive struct rather than a `Duration`, to
+  potentially allow to add more fields in the future without it being a breaking
+  change.
 
 Bug fixes:
 
