@@ -18,6 +18,8 @@ Breaking changes:
 - `InvitationRecipient::UserId` is now a tuple variant containing a
   non-exhaustive struct, and the `reason` field of `invite_user::v3::Request`
   was moved to `InviteUserId`, because it is not available for third-party IDs.
+- `StateEventFormat` can represent any custom string value now, but it doesn't
+  implement `Copy` anymore.
 
 Bug fixes:
 

@@ -11,10 +11,12 @@ pub mod v3 {
         OwnedRoomId,
         api::{auth_scheme::AccessToken, response},
         metadata,
-        serde::Raw,
+        serde::{Raw, StringEnum},
     };
     use ruma_events::{AnyStateEvent, AnyStateEventContent, StateEventType};
     use serde_json::value::RawValue as RawJsonValue;
+
+    use crate::PrivOwnedStr;
 
     metadata! {
         method: GET,
@@ -51,11 +53,10 @@ pub mod v3 {
     }
 
     /// The format to use for the returned data.
-    #[cfg_attr(feature = "client", derive(serde::Serialize))]
-    #[cfg_attr(feature = "server", derive(serde::Deserialize))]
+    #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+    #[derive(Default, Clone, StringEnum)]
+    #[ruma_enum(rename_all = "lowercase")]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-    #[derive(Default, Debug, PartialEq, Clone, Copy)]
-    #[serde(rename_all = "lowercase")]
     pub enum StateEventFormat {
         /// Will return only the content of the state event.
         ///
@@ -66,6 +67,9 @@ pub mod v3 {
         /// Will return the entire event in the usual format suitable for clients, including fields
         /// like event ID, sender and timestamp.
         Event,
+
+        #[doc(hidden)]
+        _Custom(PrivOwnedStr),
     }
 
     /// Response type for the `get_state_events_for_key` endpoint, either the `Raw` `AnyStateEvent`
