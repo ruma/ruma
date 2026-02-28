@@ -11,6 +11,8 @@ Breaking changes:
   spec.
 - `BackupAlgorithm::MegolmBackupV1Curve25519AesSha2` is now a tuple variant
   containing a non-exhaustive struct.
+- `StateEventFormat` can represent any custom string value now, but it doesn't
+  implement `Copy` anymore.
 
 Improvements:
 
