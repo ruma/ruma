@@ -12,7 +12,9 @@ use serde::{
 };
 use serde_json::from_value as from_json_value;
 
-use super::{BadStatusErrorData, ErrorCode, ErrorKind, Extra, RetryAfter};
+use super::{
+    BadStatusErrorData, ErrorCode, ErrorKind, Extra, IncompatibleRoomVersionErrorData, RetryAfter,
+};
 
 enum Field<'de> {
     ErrorCode,
@@ -190,12 +192,14 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrorCode::Exclusive => ErrorKind::Exclusive,
             ErrorCode::Forbidden => ErrorKind::Forbidden,
             ErrorCode::GuestAccessForbidden => ErrorKind::GuestAccessForbidden,
-            ErrorCode::IncompatibleRoomVersion => ErrorKind::IncompatibleRoomVersion {
-                room_version: from_json_value(
-                    room_version.ok_or_else(|| de::Error::missing_field("room_version"))?,
-                )
-                .map_err(de::Error::custom)?,
-            },
+            ErrorCode::IncompatibleRoomVersion => {
+                ErrorKind::IncompatibleRoomVersion(IncompatibleRoomVersionErrorData {
+                    room_version: from_json_value(
+                        room_version.ok_or_else(|| de::Error::missing_field("room_version"))?,
+                    )
+                    .map_err(de::Error::custom)?,
+                })
+            }
             ErrorCode::InvalidParam => ErrorKind::InvalidParam,
             ErrorCode::InvalidRoomState => ErrorKind::InvalidRoomState,
             ErrorCode::InvalidUsername => ErrorKind::InvalidUsername,
@@ -299,7 +303,7 @@ impl Serialize for ErrorKind {
                     &UInt::try_from(duration.as_millis()).map_err(ser::Error::custom)?,
                 )?;
             }
-            Self::IncompatibleRoomVersion { room_version } => {
+            Self::IncompatibleRoomVersion(IncompatibleRoomVersionErrorData { room_version }) => {
                 st.serialize_entry("room_version", room_version)?;
             }
             Self::ResourceLimitExceeded { admin_contact } => {
@@ -321,7 +325,7 @@ mod tests {
     use ruma_common::room_version_id;
     use serde_json::{from_value as from_json_value, json};
 
-    use super::ErrorKind;
+    use super::{ErrorKind, IncompatibleRoomVersionErrorData};
 
     #[test]
     fn deserialize_forbidden() {
@@ -350,7 +354,9 @@ mod tests {
 
         assert_eq!(
             deserialized,
-            ErrorKind::IncompatibleRoomVersion { room_version: room_version_id!("7") }
+            ErrorKind::IncompatibleRoomVersion(IncompatibleRoomVersionErrorData {
+                room_version: room_version_id!("7")
+            })
         );
     }
 }
