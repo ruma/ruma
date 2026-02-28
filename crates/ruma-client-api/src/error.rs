@@ -143,10 +143,7 @@ pub enum ErrorKind {
     /// `M_INCOMPATIBLE_ROOM_VERSION`
     ///
     /// The client attempted to join a room that has a version the server does not support.
-    IncompatibleRoomVersion {
-        /// The room's version.
-        room_version: RoomVersionId,
-    },
+    IncompatibleRoomVersion(IncompatibleRoomVersionErrorData),
 
     /// `M_INVALID_PARAM`
     ///
@@ -440,7 +437,7 @@ impl ErrorKind {
             ErrorKind::Exclusive => ErrorCode::Exclusive,
             ErrorKind::Forbidden => ErrorCode::Forbidden,
             ErrorKind::GuestAccessForbidden => ErrorCode::GuestAccessForbidden,
-            ErrorKind::IncompatibleRoomVersion { .. } => ErrorCode::IncompatibleRoomVersion,
+            ErrorKind::IncompatibleRoomVersion(_) => ErrorCode::IncompatibleRoomVersion,
             ErrorKind::InvalidParam => ErrorCode::InvalidParam,
             ErrorKind::InvalidRoomState => ErrorCode::InvalidRoomState,
             ErrorKind::InvalidUsername => ErrorCode::InvalidUsername,
@@ -501,6 +498,21 @@ impl BadStatusErrorData {
     /// Construct a new empty `BadStatusErrorData`.
     pub fn new() -> Self {
         Self::default()
+    }
+}
+
+/// Data for the `M_INCOMPATIBLE_ROOM_VERSION` [`ErrorKind`].
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct IncompatibleRoomVersionErrorData {
+    /// The room's version.
+    pub room_version: RoomVersionId,
+}
+
+impl IncompatibleRoomVersionErrorData {
+    /// Construct a new `IncompatibleRoomVersionErrorData` with the given room version.
+    pub fn new(room_version: RoomVersionId) -> Self {
+        Self { room_version }
     }
 }
 

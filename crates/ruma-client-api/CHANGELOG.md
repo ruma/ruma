@@ -16,6 +16,7 @@ Breaking changes:
 - The following `ErrorKind` struct variants are now tuple structs containing a
   non-exhaustive struct:
   - `BadStatus`
+  - `IncompatibleRoomVersion`
 
 Improvements:
 
