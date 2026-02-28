@@ -13,6 +13,9 @@ Breaking changes:
   `ErrorKind::Forbidden`, because it was dropped from MSC2967 and it is not part
   of any new MSC. `ErrorKind::Forbidden` is now a unit variant, and the
   `ErrorKind::forbidden()` method to construct it was removed.
+- The following `ErrorKind` struct variants are now tuple structs containing a
+  non-exhaustive struct:
+  - `BadStatus`
 
 Improvements:
 
