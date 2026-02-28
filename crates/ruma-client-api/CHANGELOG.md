@@ -20,6 +20,7 @@ Breaking changes:
   - `LimitExceeded`
   - `ResourceLimitExceeded`
   - `UnknownToken`
+  - `WrongRoomKeysVersion`, and its `current_version` field is now required.
 
 Improvements:
 
