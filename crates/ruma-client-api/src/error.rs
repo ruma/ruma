@@ -137,11 +137,7 @@ pub enum ErrorKind {
     ///
     /// Forbidden access, e.g. joining a room without permission, failed login.
     #[non_exhaustive]
-    Forbidden {
-        /// The `WWW-Authenticate` header error message.
-        #[cfg(feature = "unstable-msc2967")]
-        authenticate: Option<AuthenticateError>,
-    },
+    Forbidden,
 
     /// `M_GUEST_ACCESS_FORBIDDEN`
     ///
@@ -430,21 +426,6 @@ pub enum ErrorKind {
 }
 
 impl ErrorKind {
-    /// Constructs an empty [`ErrorKind::Forbidden`] variant.
-    pub fn forbidden() -> Self {
-        Self::Forbidden {
-            #[cfg(feature = "unstable-msc2967")]
-            authenticate: None,
-        }
-    }
-
-    /// Constructs an [`ErrorKind::Forbidden`] variant with the given `WWW-Authenticate` header
-    /// error message.
-    #[cfg(feature = "unstable-msc2967")]
-    pub fn forbidden_with_authenticate(authenticate: AuthenticateError) -> Self {
-        Self::Forbidden { authenticate: Some(authenticate) }
-    }
-
     /// Get the [`ErrorCode`] for this `ErrorKind`.
     pub fn errcode(&self) -> ErrorCode {
         match self {
@@ -463,7 +444,7 @@ impl ErrorKind {
             ErrorKind::ConnectionTimeout => ErrorCode::ConnectionTimeout,
             ErrorKind::DuplicateAnnotation => ErrorCode::DuplicateAnnotation,
             ErrorKind::Exclusive => ErrorCode::Exclusive,
-            ErrorKind::Forbidden { .. } => ErrorCode::Forbidden,
+            ErrorKind::Forbidden => ErrorCode::Forbidden,
             ErrorKind::GuestAccessForbidden => ErrorCode::GuestAccessForbidden,
             ErrorKind::IncompatibleRoomVersion { .. } => ErrorCode::IncompatibleRoomVersion,
             ErrorKind::InvalidParam => ErrorCode::InvalidParam,
@@ -964,24 +945,14 @@ impl EndpointError for Error {
             Ok(mut standard_body) => {
                 let headers = response.headers();
 
-                match &mut standard_body.kind {
-                    #[cfg(feature = "unstable-msc2967")]
-                    ErrorKind::Forbidden { authenticate } => {
-                        *authenticate = headers
-                            .get(http::header::WWW_AUTHENTICATE)
-                            .and_then(|val| val.to_str().ok())
-                            .and_then(AuthenticateError::from_str);
+                if let ErrorKind::LimitExceeded { retry_after } = &mut standard_body.kind {
+                    // The Retry-After header takes precedence over the retry_after_ms field in
+                    // the body.
+                    if let Some(Ok(retry_after_header)) =
+                        headers.get(http::header::RETRY_AFTER).map(RetryAfter::try_from)
+                    {
+                        *retry_after = Some(retry_after_header);
                     }
-                    ErrorKind::LimitExceeded { retry_after } => {
-                        // The Retry-After header takes precedence over the retry_after_ms field in
-                        // the body.
-                        if let Some(Ok(retry_after_header)) =
-                            headers.get(http::header::RETRY_AFTER).map(RetryAfter::try_from)
-                        {
-                            *retry_after = Some(retry_after_header);
-                        }
-                    }
-                    _ => {}
                 }
 
                 ErrorBody::Standard(standard_body)
@@ -1031,19 +1002,11 @@ impl OutgoingResponse for Error {
             .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
             .status(self.status_code);
 
-        #[allow(clippy::collapsible_match)]
-        if let Some(kind) = self.error_kind() {
-            match kind {
-                #[cfg(feature = "unstable-msc2967")]
-                ErrorKind::Forbidden { authenticate: Some(auth_error) } => {
-                    builder = builder.header(http::header::WWW_AUTHENTICATE, auth_error);
-                }
-                ErrorKind::LimitExceeded { retry_after: Some(retry_after) } => {
-                    let header_value = http::HeaderValue::try_from(retry_after)?;
-                    builder = builder.header(http::header::RETRY_AFTER, header_value);
-                }
-                _ => {}
-            }
+        // Add data in headers.
+        if let Some(ErrorKind::LimitExceeded { retry_after: Some(retry_after) }) = self.error_kind()
+        {
+            let header_value = http::HeaderValue::try_from(retry_after)?;
+            builder = builder.header(http::header::RETRY_AFTER, header_value);
         }
 
         builder
@@ -1059,101 +1022,6 @@ impl OutgoingResponse for Error {
                 }
             })
             .map_err(Into::into)
-    }
-}
-
-/// Errors in the `WWW-Authenticate` header.
-///
-/// To construct this use `::from_str()`. To get its serialized form, use its
-/// `TryInto<http::HeaderValue>` implementation.
-#[cfg(feature = "unstable-msc2967")]
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[non_exhaustive]
-pub enum AuthenticateError {
-    /// insufficient_scope
-    ///
-    /// Encountered when authentication is handled by OpenID Connect and the current access token
-    /// isn't authorized for the proper scope for this request. It should be paired with a
-    /// `401` status code and a `M_FORBIDDEN` error.
-    InsufficientScope {
-        /// The new scope to request an authorization for.
-        scope: String,
-    },
-
-    #[doc(hidden)]
-    _Custom { errcode: PrivOwnedStr, attributes: AuthenticateAttrs },
-}
-
-#[cfg(feature = "unstable-msc2967")]
-#[doc(hidden)]
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct AuthenticateAttrs(BTreeMap<String, String>);
-
-#[cfg(feature = "unstable-msc2967")]
-impl AuthenticateError {
-    /// Construct an `AuthenticateError` from a string.
-    ///
-    /// Returns `None` if the string doesn't contain an error.
-    fn from_str(s: &str) -> Option<Self> {
-        if let Some(val) = s.strip_prefix("Bearer").map(str::trim) {
-            let mut errcode = None;
-            let mut attrs = BTreeMap::new();
-
-            // Split the attributes separated by commas and optionally spaces, then split the keys
-            // and the values, with the values optionally surrounded by double quotes.
-            for (key, value) in val
-                .split(',')
-                .filter_map(|attr| attr.trim().split_once('='))
-                .map(|(key, value)| (key, value.trim_matches('"')))
-            {
-                if key == "error" {
-                    errcode = Some(value);
-                } else {
-                    attrs.insert(key.to_owned(), value.to_owned());
-                }
-            }
-
-            if let Some(errcode) = errcode {
-                let error = if let Some(scope) =
-                    attrs.get("scope").filter(|_| errcode == "insufficient_scope")
-                {
-                    AuthenticateError::InsufficientScope { scope: scope.to_owned() }
-                } else {
-                    AuthenticateError::_Custom {
-                        errcode: PrivOwnedStr(errcode.into()),
-                        attributes: AuthenticateAttrs(attrs),
-                    }
-                };
-
-                return Some(error);
-            }
-        }
-
-        None
-    }
-}
-
-#[cfg(feature = "unstable-msc2967")]
-impl TryFrom<&AuthenticateError> for http::HeaderValue {
-    type Error = http::header::InvalidHeaderValue;
-
-    fn try_from(error: &AuthenticateError) -> Result<Self, Self::Error> {
-        let s = match error {
-            AuthenticateError::InsufficientScope { scope } => {
-                format!("Bearer error=\"insufficient_scope\", scope=\"{scope}\"")
-            }
-            AuthenticateError::_Custom { errcode, attributes } => {
-                let mut s = format!("Bearer error=\"{}\"", errcode.0);
-
-                for (key, value) in attributes.0.iter() {
-                    s.push_str(&format!(", {key}=\"{value}\""));
-                }
-
-                s
-            }
-        };
-
-        s.try_into()
     }
 }
 
@@ -1227,13 +1095,7 @@ mod tests {
         }))
         .unwrap();
 
-        assert_eq!(
-            deserialized.kind,
-            ErrorKind::Forbidden {
-                #[cfg(feature = "unstable-msc2967")]
-                authenticate: None
-            }
-        );
+        assert_eq!(deserialized.kind, ErrorKind::Forbidden,);
         assert_eq!(deserialized.message, "You are not authorized to ban users in this room.");
     }
 
@@ -1249,63 +1111,6 @@ mod tests {
         assert_matches!(deserialized.kind, ErrorKind::WrongRoomKeysVersion { current_version });
         assert_eq!(current_version.as_deref(), Some("42"));
         assert_eq!(deserialized.message, "Wrong backup version.");
-    }
-
-    #[cfg(feature = "unstable-msc2967")]
-    #[test]
-    fn custom_authenticate_error_sanity() {
-        use super::AuthenticateError;
-
-        let s = "Bearer error=\"custom_error\", misc=\"some content\"";
-
-        let error = AuthenticateError::from_str(s).unwrap();
-        let error_header = http::HeaderValue::try_from(&error).unwrap();
-
-        assert_eq!(error_header.to_str().unwrap(), s);
-    }
-
-    #[cfg(feature = "unstable-msc2967")]
-    #[test]
-    fn serialize_insufficient_scope() {
-        use super::AuthenticateError;
-
-        let error =
-            AuthenticateError::InsufficientScope { scope: "something_privileged".to_owned() };
-        let error_header = http::HeaderValue::try_from(&error).unwrap();
-
-        assert_eq!(
-            error_header.to_str().unwrap(),
-            "Bearer error=\"insufficient_scope\", scope=\"something_privileged\""
-        );
-    }
-
-    #[cfg(feature = "unstable-msc2967")]
-    #[test]
-    fn deserialize_insufficient_scope() {
-        use super::AuthenticateError;
-
-        let response = http::Response::builder()
-            .header(
-                http::header::WWW_AUTHENTICATE,
-                "Bearer error=\"insufficient_scope\", scope=\"something_privileged\"",
-            )
-            .status(http::StatusCode::UNAUTHORIZED)
-            .body(
-                serde_json::to_string(&json!({
-                    "errcode": "M_FORBIDDEN",
-                    "error": "Insufficient privilege",
-                }))
-                .unwrap(),
-            )
-            .unwrap();
-        let error = Error::from_http_response(response);
-
-        assert_eq!(error.status_code, http::StatusCode::UNAUTHORIZED);
-        assert_matches!(error.body, ErrorBody::Standard(StandardErrorBody { kind, message }));
-        assert_matches!(kind, ErrorKind::Forbidden { authenticate });
-        assert_eq!(message, "Insufficient privilege");
-        assert_matches!(authenticate, Some(AuthenticateError::InsufficientScope { scope }));
-        assert_eq!(scope, "something_privileged");
     }
 
     #[test]

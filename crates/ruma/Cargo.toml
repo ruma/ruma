@@ -152,7 +152,6 @@ unstable-msc2666 = ["ruma-common/unstable-msc2666", "ruma-client-api?/unstable-m
 unstable-msc2747 = ["ruma-events?/unstable-msc2747"]
 unstable-msc2867 = ["ruma-events?/unstable-msc2867"]
 unstable-msc2870 = ["ruma-common/unstable-msc2870"]
-unstable-msc2967 = ["ruma-client-api?/unstable-msc2967"]
 unstable-msc3061 = ["ruma-events?/unstable-msc3061"]
 unstable-msc3202 = ["ruma-appservice-api?/unstable-msc3202"]
 unstable-msc3230 = ["ruma-events?/unstable-msc3230"]
