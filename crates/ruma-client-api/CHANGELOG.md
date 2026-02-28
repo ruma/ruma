@@ -9,6 +9,8 @@ Breaking changes:
 - The `server` module was renamed to `admin`, to make it easier to find since it
   contains all the administration endpoints, and it matches the namespace in the
   spec.
+- `BackupAlgorithm::MegolmBackupV1Curve25519AesSha2` is now a tuple variant
+  containing a non-exhaustive struct.
 
 Improvements:
 
