@@ -15,6 +15,7 @@ use serde_json::from_value as from_json_value;
 use super::{
     BadStatusErrorData, ErrorCode, ErrorKind, Extra, IncompatibleRoomVersionErrorData,
     LimitExceededErrorData, ResourceLimitExceededErrorData, RetryAfter, UnknownTokenErrorData,
+    WrongRoomKeysVersionErrorData,
 };
 
 enum Field<'de> {
@@ -261,12 +262,15 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrorCode::UserLocked => ErrorKind::UserLocked,
             ErrorCode::UserSuspended => ErrorKind::UserSuspended,
             ErrorCode::WeakPassword => ErrorKind::WeakPassword,
-            ErrorCode::WrongRoomKeysVersion => ErrorKind::WrongRoomKeysVersion {
-                current_version: from_json_value(
-                    current_version.ok_or_else(|| de::Error::missing_field("current_version"))?,
-                )
-                .map_err(de::Error::custom)?,
-            },
+            ErrorCode::WrongRoomKeysVersion => {
+                ErrorKind::WrongRoomKeysVersion(WrongRoomKeysVersionErrorData {
+                    current_version: from_json_value(
+                        current_version
+                            .ok_or_else(|| de::Error::missing_field("current_version"))?,
+                    )
+                    .map_err(de::Error::custom)?,
+                })
+            }
             ErrorCode::_Custom(errcode) => ErrorKind::_Custom { errcode, extra },
         })
     }
@@ -313,6 +317,9 @@ impl Serialize for ErrorKind {
             }
             Self::ResourceLimitExceeded(ResourceLimitExceededErrorData { admin_contact }) => {
                 st.serialize_entry("admin_contact", admin_contact)?;
+            }
+            Self::WrongRoomKeysVersion(WrongRoomKeysVersionErrorData { current_version }) => {
+                st.serialize_entry("current_version", current_version)?;
             }
             Self::_Custom { extra, .. } => {
                 for (k, v) in &extra.0 {
