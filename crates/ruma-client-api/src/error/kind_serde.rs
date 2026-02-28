@@ -12,7 +12,7 @@ use serde::{
 };
 use serde_json::from_value as from_json_value;
 
-use super::{ErrorCode, ErrorKind, Extra, RetryAfter};
+use super::{BadStatusErrorData, ErrorCode, ErrorKind, Extra, RetryAfter};
 
 enum Field<'de> {
     ErrorCode,
@@ -167,7 +167,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrorCode::BadAlias => ErrorKind::BadAlias,
             ErrorCode::BadJson => ErrorKind::BadJson,
             ErrorCode::BadState => ErrorKind::BadState,
-            ErrorCode::BadStatus => ErrorKind::BadStatus {
+            ErrorCode::BadStatus => ErrorKind::BadStatus(BadStatusErrorData {
                 status: status
                     .map(|s| {
                         from_json_value::<u16>(s)
@@ -177,7 +177,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                     })
                     .transpose()?,
                 body: body.map(from_json_value).transpose().map_err(de::Error::custom)?,
-            },
+            }),
             ErrorCode::CannotLeaveServerNoticeRoom => ErrorKind::CannotLeaveServerNoticeRoom,
             ErrorCode::CannotOverwriteMedia => ErrorKind::CannotOverwriteMedia,
             ErrorCode::CaptchaInvalid => ErrorKind::CaptchaInvalid,
@@ -282,6 +282,14 @@ impl Serialize for ErrorKind {
         let mut st = serializer.serialize_map(None)?;
         st.serialize_entry("errcode", &self.errcode())?;
         match self {
+            Self::BadStatus(BadStatusErrorData { status, body }) => {
+                if let Some(status) = status {
+                    st.serialize_entry("status", &status.as_u16())?;
+                }
+                if let Some(body) = body {
+                    st.serialize_entry("body", body)?;
+                }
+            }
             Self::UnknownToken { soft_logout: true } | Self::UserLocked => {
                 st.serialize_entry("soft_logout", &true)?;
             }
