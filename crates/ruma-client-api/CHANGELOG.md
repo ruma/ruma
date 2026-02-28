@@ -11,6 +11,9 @@ Breaking changes:
   spec.
 - `BackupAlgorithm::MegolmBackupV1Curve25519AesSha2` is now a tuple variant
   containing a non-exhaustive struct.
+- `Typing::Yes` now holds a non-exhaustive struct rather than a `Duration`, to
+  potentially allow to add more fields in the future without it being a breaking
+  change.
 
 Improvements:
 
