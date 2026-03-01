@@ -1,10 +1,12 @@
 use std::collections::BTreeMap;
 
 use as_variant::as_variant;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use serde_json::value::{RawValue as RawJsonValue, Value as JsonValue};
 
-use crate::serde::from_raw_json_value;
+mod action_serde;
+
+use self::action_serde::TweakSerdeHelper;
 
 /// This represents the different actions that should be taken when a rule is matched, and
 /// controls how notifications are delivered to the client.
@@ -57,10 +59,23 @@ impl Action {
     }
 }
 
+/// An unknown action.
+#[doc(hidden)]
+#[allow(unknown_lints, unnameable_types)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum CustomAction {
+    /// A string.
+    String(String),
+
+    /// An object.
+    Object(BTreeMap<String, JsonValue>),
+}
+
 /// The `set_tweak` action.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[serde(from = "tweak_serde::Tweak", into = "tweak_serde::Tweak")]
+#[serde(from = "TweakSerdeHelper", into = "TweakSerdeHelper")]
 pub enum Tweak {
     /// A string representing the sound to be played when this notification arrives.
     ///
@@ -85,120 +100,6 @@ pub enum Tweak {
         /// The value of the custom tweak
         value: Box<RawJsonValue>,
     },
-}
-
-impl<'de> Deserialize<'de> for Action {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let custom: CustomAction = from_raw_json_value(&json)?;
-
-        match &custom {
-            CustomAction::String(s) => match s.as_str() {
-                "notify" => Ok(Action::Notify),
-                #[cfg(feature = "unstable-msc3768")]
-                "org.matrix.msc3768.notify_in_app" => Ok(Action::NotifyInApp),
-                _ => Ok(Action::_Custom(custom)),
-            },
-            CustomAction::Object(o) => {
-                if o.get("set_tweak").is_some() {
-                    Ok(Action::SetTweak(from_raw_json_value(&json)?))
-                } else {
-                    Ok(Action::_Custom(custom))
-                }
-            }
-        }
-    }
-}
-
-impl Serialize for Action {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match self {
-            Action::Notify => serializer.serialize_unit_variant("Action", 0, "notify"),
-            #[cfg(feature = "unstable-msc3768")]
-            Action::NotifyInApp => {
-                serializer.serialize_unit_variant("Action", 0, "org.matrix.msc3768.notify_in_app")
-            }
-            Action::SetTweak(kind) => kind.serialize(serializer),
-            Action::_Custom(custom) => custom.serialize(serializer),
-        }
-    }
-}
-
-/// An unknown action.
-#[doc(hidden)]
-#[allow(unknown_lints, unnameable_types)]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum CustomAction {
-    /// A string.
-    String(String),
-
-    /// An object.
-    Object(BTreeMap<String, JsonValue>),
-}
-
-mod tweak_serde {
-    use serde::{Deserialize, Serialize};
-    use serde_json::value::RawValue as RawJsonValue;
-
-    /// Values for the `set_tweak` action.
-    #[derive(Clone, Deserialize, Serialize)]
-    #[serde(untagged)]
-    pub(crate) enum Tweak {
-        Sound(SoundTweak),
-        Highlight(HighlightTweak),
-        Custom {
-            #[serde(rename = "set_tweak")]
-            name: String,
-            value: Box<RawJsonValue>,
-        },
-    }
-
-    #[derive(Clone, PartialEq, Deserialize, Serialize)]
-    #[serde(tag = "set_tweak", rename = "sound")]
-    pub(crate) struct SoundTweak {
-        value: String,
-    }
-
-    #[derive(Clone, PartialEq, Deserialize, Serialize)]
-    #[serde(tag = "set_tweak", rename = "highlight")]
-    pub(crate) struct HighlightTweak {
-        #[serde(
-            default = "crate::serde::default_true",
-            skip_serializing_if = "crate::serde::is_true"
-        )]
-        value: bool,
-    }
-
-    impl From<super::Tweak> for Tweak {
-        fn from(tweak: super::Tweak) -> Self {
-            use super::Tweak::*;
-
-            match tweak {
-                Sound(value) => Self::Sound(SoundTweak { value }),
-                Highlight(value) => Self::Highlight(HighlightTweak { value }),
-                Custom { name, value } => Self::Custom { name, value },
-            }
-        }
-    }
-
-    impl From<Tweak> for super::Tweak {
-        fn from(tweak: Tweak) -> Self {
-            use Tweak::*;
-
-            match tweak {
-                Sound(SoundTweak { value }) => Self::Sound(value),
-                Highlight(HighlightTweak { value }) => Self::Highlight(value),
-                Custom { name, value } => Self::Custom { name, value },
-            }
-        }
-    }
 }
 
 #[cfg(test)]
