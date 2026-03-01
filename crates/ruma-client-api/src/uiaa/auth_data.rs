@@ -447,19 +447,7 @@ pub enum UserIdentifier {
     Msisdn(MsisdnUserIdentifier),
 
     /// A phone number as a separate country code and phone number.
-    ///
-    /// The homeserver will be responsible for canonicalizing this to the MSISDN format.
-    PhoneNumber {
-        /// The country that the phone number is from.
-        ///
-        /// This is a two-letter uppercase [ISO-3166-1 alpha-2] country code.
-        ///
-        /// [ISO-3166-1 alpha-2]: https://www.iso.org/iso-3166-country-codes.html
-        country: String,
-
-        /// The phone number.
-        phone: String,
-    },
+    PhoneNumber(PhoneNumberUserIdentifier),
 
     /// Unsupported `m.id.thirdpartyid`.
     #[doc(hidden)]
@@ -516,6 +504,12 @@ impl From<EmailUserIdentifier> for UserIdentifier {
 impl From<MsisdnUserIdentifier> for UserIdentifier {
     fn from(id: MsisdnUserIdentifier) -> Self {
         Self::Msisdn(id)
+    }
+}
+
+impl From<PhoneNumberUserIdentifier> for UserIdentifier {
+    fn from(id: PhoneNumberUserIdentifier) -> Self {
+        Self::PhoneNumber(id)
     }
 }
 
@@ -576,6 +570,31 @@ impl MsisdnUserIdentifier {
     /// Construct a new `MsisdnUserIdentifier` with the given phone number.
     pub fn new(number: String) -> Self {
         Self { number }
+    }
+}
+
+/// Data for a phone number identifier as a separate country code and phone number.
+///
+/// The homeserver is responsible for canonicalizing this to the MSISDN format.
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[serde(tag = "type", rename = "m.id.phone")]
+pub struct PhoneNumberUserIdentifier {
+    /// The country that the phone number is from.
+    ///
+    /// This is a two-letter uppercase [ISO-3166-1 alpha-2] country code.
+    ///
+    /// [ISO-3166-1 alpha-2]: https://www.iso.org/iso-3166-country-codes.html
+    pub country: String,
+
+    /// The phone number.
+    pub phone: String,
+}
+
+impl PhoneNumberUserIdentifier {
+    /// Construct a new `PhoneNumberUserIdentifier` with the given country code and phone number.
+    pub fn new(country: String, phone: String) -> Self {
+        Self { country, phone }
     }
 }
 
