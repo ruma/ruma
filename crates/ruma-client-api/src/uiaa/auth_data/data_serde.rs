@@ -6,7 +6,7 @@ use ruma_common::{serde::from_raw_json_value, thirdparty::Medium};
 use serde::{Deserialize, Deserializer, Serialize, de, ser::SerializeStruct};
 use serde_json::value::RawValue as RawJsonValue;
 
-use super::{AuthData, CustomThirdPartyId, UserIdentifier};
+use super::{AuthData, CustomThirdPartyUserIdentifier, UserIdentifier};
 
 impl<'de> Deserialize<'de> for AuthData {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -72,13 +72,7 @@ impl Serialize for UserIdentifier {
                 id.serialize_field("address", number)?;
                 id.end()
             }
-            Self::_CustomThirdParty(CustomThirdPartyId { medium, address }) => {
-                let mut id = serializer.serialize_struct("UserIdentifier", 3)?;
-                id.serialize_field("type", "m.id.thirdparty")?;
-                id.serialize_field("medium", &medium)?;
-                id.serialize_field("address", address)?;
-                id.end()
-            }
+            Self::_CustomThirdParty(id) => id.serialize(serializer),
         }
     }
 }
@@ -102,12 +96,6 @@ impl<'de> Deserialize<'de> for UserIdentifier {
         }
 
         #[derive(Deserialize)]
-        struct ThirdPartyId {
-            medium: Medium,
-            address: String,
-        }
-
-        #[derive(Deserialize)]
         struct PhoneNumber {
             country: String,
             phone: String,
@@ -120,11 +108,11 @@ impl<'de> Deserialize<'de> for UserIdentifier {
             ExtractType::Phone => from_raw_json_value(&json)
                 .map(|nb: PhoneNumber| Self::PhoneNumber { country: nb.country, phone: nb.phone }),
             ExtractType::ThirdParty => {
-                let ThirdPartyId { medium, address } = from_raw_json_value(&json)?;
-                match medium {
-                    Medium::Email => Ok(Self::Email { address }),
-                    Medium::Msisdn => Ok(Self::Msisdn { number: address }),
-                    _ => Ok(Self::_CustomThirdParty(CustomThirdPartyId { medium, address })),
+                let id: CustomThirdPartyUserIdentifier = from_raw_json_value(&json)?;
+                match &id.medium {
+                    Medium::Email => Ok(Self::Email { address: id.address }),
+                    Medium::Msisdn => Ok(Self::Msisdn { number: id.address }),
+                    _ => Ok(Self::_CustomThirdParty(id)),
                 }
             }
         }

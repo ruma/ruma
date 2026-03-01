@@ -471,7 +471,7 @@ pub enum UserIdentifier {
 
     /// Unsupported `m.id.thirdpartyid`.
     #[doc(hidden)]
-    _CustomThirdParty(CustomThirdPartyId),
+    _CustomThirdParty(CustomThirdPartyUserIdentifier),
 }
 
 impl UserIdentifier {
@@ -480,7 +480,7 @@ impl UserIdentifier {
         match medium {
             Medium::Email => Self::Email { address },
             Medium::Msisdn => Self::Msisdn { number: address },
-            _ => Self::_CustomThirdParty(CustomThirdPartyId { medium, address }),
+            _ => Self::_CustomThirdParty(CustomThirdPartyUserIdentifier { medium, address }),
         }
     }
 
@@ -489,7 +489,7 @@ impl UserIdentifier {
         match self {
             Self::Email { address } => Some((&Medium::Email, address)),
             Self::Msisdn { number } => Some((&Medium::Msisdn, number)),
-            Self::_CustomThirdParty(CustomThirdPartyId { medium, address }) => {
+            Self::_CustomThirdParty(CustomThirdPartyUserIdentifier { medium, address }) => {
                 Some((medium, address))
             }
             _ => None,
@@ -545,8 +545,9 @@ impl From<&OwnedUserId> for MatrixUserIdentifier {
 
 /// Data for an unsupported third-party ID.
 #[doc(hidden)]
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct CustomThirdPartyId {
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(tag = "type", rename = "m.id.thirdparty")]
+pub struct CustomThirdPartyUserIdentifier {
     /// The kind of the third-party ID.
     medium: Medium,
 
