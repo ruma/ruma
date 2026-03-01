@@ -15,6 +15,9 @@ Breaking changes:
   preferred.
 - `EventId::new()` was renamed to `EventId::new_v1()`, since it works only for
   the first format of event IDs.
+- It is no longer possible to construct custom `Action` types directly through
+  the hidden `_Custom` variant. They should be constructed with `Action::new()`
+  and their data should be accessed with `Action::custom_data()`.
 
 Improvements:
 
