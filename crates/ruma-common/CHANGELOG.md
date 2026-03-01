@@ -27,6 +27,8 @@ Breaking changes:
   variant is now hidden and cannot be constructed directly. It should be
   constructed with `Tweak::new()` and its data should be accessed with
   `Tweak::set_tweak()` and `Tweak::custom_value()`.
+- The struct variants of `PushCondition` are now tuple variants containing a
+  non-exhaustive struct.
 
 Improvements:
 
