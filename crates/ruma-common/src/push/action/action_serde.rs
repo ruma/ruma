@@ -1,8 +1,6 @@
-use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
-use serde_json::value::RawValue as RawJsonValue;
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de, ser::SerializeStruct};
 
-use super::{Action, CustomActionData, Tweak};
-use crate::serde::from_raw_json_value;
+use super::{Action, CustomActionData, CustomTweak, HighlightTweakValue, Tweak};
 
 impl<'de> Deserialize<'de> for Action {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -28,50 +26,42 @@ impl Serialize for Action {
     }
 }
 
-/// Values for the `set_tweak` action.
-#[derive(Clone, Deserialize, Serialize)]
-#[serde(untagged)]
-pub(super) enum TweakSerdeHelper {
-    Sound(SoundTweakSerdeHelper),
-    Highlight(HighlightTweakSerdeHelper),
-    Custom {
-        #[serde(rename = "set_tweak")]
-        name: String,
-        value: Box<RawJsonValue>,
-    },
-}
-
-#[derive(Clone, PartialEq, Deserialize, Serialize)]
-#[serde(tag = "set_tweak", rename = "sound")]
-pub(super) struct SoundTweakSerdeHelper {
-    value: String,
-}
-
-#[derive(Clone, PartialEq, Deserialize, Serialize)]
-#[serde(tag = "set_tweak", rename = "highlight")]
-pub(super) struct HighlightTweakSerdeHelper {
-    #[serde(default = "crate::serde::default_true", skip_serializing_if = "crate::serde::is_true")]
-    value: bool,
-}
-
-impl From<Tweak> for TweakSerdeHelper {
-    fn from(tweak: Tweak) -> Self {
-        match tweak {
-            Tweak::Sound(value) => Self::Sound(SoundTweakSerdeHelper { value }),
-            Tweak::Highlight(value) => Self::Highlight(HighlightTweakSerdeHelper { value }),
-            Tweak::Custom { name, value } => Self::Custom { name, value },
-        }
+impl<'de> Deserialize<'de> for Tweak {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let CustomTweak { set_tweak, value } = CustomTweak::deserialize(deserializer)?;
+        Self::new(set_tweak, value).map_err(de::Error::custom)
     }
 }
 
-impl From<TweakSerdeHelper> for Tweak {
-    fn from(tweak: TweakSerdeHelper) -> Self {
-        match tweak {
-            TweakSerdeHelper::Sound(SoundTweakSerdeHelper { value }) => Self::Sound(value),
-            TweakSerdeHelper::Highlight(HighlightTweakSerdeHelper { value }) => {
-                Self::Highlight(value)
+impl Serialize for Tweak {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            Self::Sound(tweak) => {
+                let mut s = serializer.serialize_struct("Tweak", 2)?;
+                s.serialize_field("set_tweak", &"sound")?;
+                s.serialize_field("value", tweak)?;
+                s.end()
             }
-            TweakSerdeHelper::Custom { name, value } => Self::Custom { name, value },
+            Self::Highlight(tweak) => {
+                let is_no_highlight = *tweak == HighlightTweakValue::No;
+                let len = if is_no_highlight { 2 } else { 1 };
+
+                let mut s = serializer.serialize_struct("Tweak", len)?;
+                s.serialize_field("set_tweak", &"highlight")?;
+
+                if is_no_highlight {
+                    s.serialize_field("value", &false)?;
+                }
+
+                s.end()
+            }
+            Self::_Custom(tweak) => tweak.serialize(serializer),
         }
     }
 }

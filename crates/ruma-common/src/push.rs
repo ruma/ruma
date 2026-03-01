@@ -34,7 +34,7 @@ mod predefined;
 #[cfg(feature = "unstable-msc3932")]
 pub use self::condition::RoomVersionFeature;
 pub use self::{
-    action::{Action, Tweak},
+    action::{Action, HighlightTweakValue, SoundTweakValue, Tweak},
     condition::{
         _CustomPushCondition, ComparisonOperator, FlattenedJson, FlattenedJsonValue, PushCondition,
         PushConditionPowerLevelsCtx, PushConditionRoomCtx, RoomMemberCountIs, ScalarJsonValue,
@@ -1049,7 +1049,9 @@ mod tests {
     use crate::{
         assert_to_canonical_json_eq, owned_room_id, owned_user_id,
         power_levels::NotificationPowerLevels,
-        push::{PredefinedContentRuleId, PredefinedOverrideRuleId},
+        push::{
+            HighlightTweakValue, PredefinedContentRuleId, PredefinedOverrideRuleId, SoundTweakValue,
+        },
         room_version_rules::{AuthorizationRules, RoomPowerLevelsRules},
         serde::Raw,
         user_id,
@@ -1063,7 +1065,10 @@ mod tests {
                 key: "type".into(),
                 pattern: "m.call.invite".into(),
             }],
-            actions: vec![Action::Notify, Action::SetTweak(Tweak::Highlight(true))],
+            actions: vec![
+                Action::Notify,
+                Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes)),
+            ],
             rule_id: ".m.rule.call".into(),
             enabled: true,
             default: true,
@@ -1160,7 +1165,10 @@ mod tests {
     #[test]
     fn serialize_conditional_push_rule() {
         let rule = ConditionalPushRule {
-            actions: vec![Action::Notify, Action::SetTweak(Tweak::Highlight(true))],
+            actions: vec![
+                Action::Notify,
+                Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes)),
+            ],
             default: true,
             enabled: true,
             rule_id: ".m.rule.call".into(),
@@ -1234,11 +1242,14 @@ mod tests {
         let rule = PatternedPushRule {
             actions: vec![
                 Action::Notify,
-                Action::SetTweak(Tweak::Sound("default".into())),
-                Action::SetTweak(Tweak::Custom {
-                    name: "dance".into(),
-                    value: RawJsonValue::from_string("true".into()).unwrap(),
-                }),
+                Action::SetTweak(Tweak::Sound(SoundTweakValue::Default)),
+                Action::SetTweak(
+                    Tweak::new(
+                        "dance".into(),
+                        Some(RawJsonValue::from_string("true".into()).unwrap()),
+                    )
+                    .unwrap(),
+                ),
             ],
             default: true,
             enabled: true,
@@ -1279,8 +1290,8 @@ mod tests {
             ],
             actions: vec![
                 Action::Notify,
-                Action::SetTweak(Tweak::Sound("default".into())),
-                Action::SetTweak(Tweak::Highlight(false)),
+                Action::SetTweak(Tweak::Sound(SoundTweakValue::Default)),
+                Action::SetTweak(Tweak::Highlight(HighlightTweakValue::No)),
             ],
             rule_id: ".m.rule.room_one_to_one".into(),
             enabled: true,
@@ -1289,8 +1300,8 @@ mod tests {
         set.content.insert(PatternedPushRule {
             actions: vec![
                 Action::Notify,
-                Action::SetTweak(Tweak::Sound("default".into())),
-                Action::SetTweak(Tweak::Highlight(true)),
+                Action::SetTweak(Tweak::Sound(SoundTweakValue::Default)),
+                Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes)),
             ],
             rule_id: ".m.rule.contains_user_name".into(),
             pattern: "user_id".into(),
@@ -1397,9 +1408,14 @@ mod tests {
 
         let mut iter = rule.actions.iter();
         assert_matches!(iter.next(), Some(Action::Notify));
-        assert_matches!(iter.next(), Some(Action::SetTweak(Tweak::Sound(sound))));
-        assert_eq!(sound, "default");
-        assert_matches!(iter.next(), Some(Action::SetTweak(Tweak::Highlight(true))));
+        assert_matches!(
+            iter.next(),
+            Some(Action::SetTweak(Tweak::Sound(SoundTweakValue::Default)))
+        );
+        assert_matches!(
+            iter.next(),
+            Some(Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes)))
+        );
         assert_matches!(iter.next(), None);
     }
 
@@ -1538,7 +1554,7 @@ mod tests {
             [
                 Action::Notify,
                 Action::SetTweak(Tweak::Sound(_)),
-                Action::SetTweak(Tweak::Highlight(true)),
+                Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes)),
             ]
         );
         assert_matches!(
@@ -1546,7 +1562,7 @@ mod tests {
             [
                 Action::Notify,
                 Action::SetTweak(Tweak::Sound(_)),
-                Action::SetTweak(Tweak::Highlight(true)),
+                Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes)),
             ]
         );
 
@@ -1578,7 +1594,7 @@ mod tests {
 
         assert_matches!(
             set.get_actions(&room_mention, &CONTEXT_PUBLIC_ROOM).await,
-            [Action::Notify, Action::SetTweak(Tweak::Highlight(true)),]
+            [Action::Notify, Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes)),]
         );
 
         let empty = serde_json::from_str::<Raw<JsonValue>>(r#"{}"#).unwrap();
@@ -1615,7 +1631,7 @@ mod tests {
         assert_matches!(test_set.get_actions(&message, &CONTEXT_ONE_TO_ONE).await, []);
 
         let no_conditions = ConditionalPushRule {
-            actions: vec![Action::SetTweak(Tweak::Highlight(true))],
+            actions: vec![Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes))],
             default: false,
             enabled: true,
             rule_id: "no.conditions".into(),
@@ -1626,7 +1642,7 @@ mod tests {
         let test_set = set.clone();
         assert_matches!(
             test_set.get_actions(&message, &CONTEXT_ONE_TO_ONE).await,
-            [Action::SetTweak(Tweak::Highlight(true))]
+            [Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes))]
         );
 
         let sender = SimplePushRule {
@@ -1644,7 +1660,7 @@ mod tests {
         );
 
         let room = SimplePushRule {
-            actions: vec![Action::SetTweak(Tweak::Highlight(true))],
+            actions: vec![Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes))],
             default: false,
             enabled: true,
             rule_id: owned_room_id!("!dm:server.name"),
@@ -1654,7 +1670,7 @@ mod tests {
         let test_set = set.clone();
         assert_matches!(
             test_set.get_actions(&message, &CONTEXT_ONE_TO_ONE).await,
-            [Action::SetTweak(Tweak::Highlight(true))]
+            [Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes))]
         );
 
         let content = PatternedPushRule {
@@ -1671,7 +1687,7 @@ mod tests {
             test_set.get_actions(&message, &CONTEXT_ONE_TO_ONE).await,
             [Action::SetTweak(Tweak::Sound(sound))]
         );
-        assert_eq!(sound, "content");
+        assert_eq!(sound.as_str(), "content");
 
         let three_conditions = ConditionalPushRule {
             actions: vec![Action::SetTweak(Tweak::Sound("three".into()))],
@@ -1694,7 +1710,7 @@ mod tests {
             set.get_actions(&message, &CONTEXT_ONE_TO_ONE).await,
             [Action::SetTweak(Tweak::Sound(sound))]
         );
-        assert_eq!(sound, "content");
+        assert_eq!(sound.as_str(), "content");
 
         let new_message = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
@@ -1712,7 +1728,7 @@ mod tests {
             set.get_actions(&new_message, &CONTEXT_ONE_TO_ONE).await,
             [Action::SetTweak(Tweak::Sound(sound))]
         );
-        assert_eq!(sound, "three");
+        assert_eq!(sound.as_str(), "three");
     }
 
     #[apply(test!)]
@@ -1726,16 +1742,16 @@ mod tests {
             pattern: "jolly_jumper".to_owned(),
             actions: vec![
                 Action::Notify,
-                Action::SetTweak(Tweak::Sound("default".into())),
-                Action::SetTweak(Tweak::Highlight(true)),
+                Action::SetTweak(Tweak::Sound(SoundTweakValue::Default)),
+                Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes)),
             ],
         });
         set.override_.extend([
             ConditionalPushRule {
                 actions: vec![
                     Action::Notify,
-                    Action::SetTweak(Tweak::Sound("default".into())),
-                    Action::SetTweak(Tweak::Highlight(true)),
+                    Action::SetTweak(Tweak::Sound(SoundTweakValue::Default)),
+                    Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes)),
                 ],
                 default: true,
                 enabled: true,
@@ -1743,7 +1759,10 @@ mod tests {
                 conditions: vec![PushCondition::ContainsDisplayName],
             },
             ConditionalPushRule {
-                actions: vec![Action::Notify, Action::SetTweak(Tweak::Highlight(true))],
+                actions: vec![
+                    Action::Notify,
+                    Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes)),
+                ],
                 default: true,
                 enabled: true,
                 rule_id: PredefinedOverrideRuleId::RoomNotif.to_string(),

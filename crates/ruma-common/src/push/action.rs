@@ -1,11 +1,14 @@
 use as_variant::as_variant;
-use serde::{Deserialize, Serialize};
+use ruma_macros::StringEnum;
+use serde::{Deserialize, Serialize, de};
 use serde_json::value::RawValue as RawJsonValue;
 
 mod action_serde;
 
-use self::action_serde::TweakSerdeHelper;
-use crate::serde::JsonObject;
+use crate::{
+    PrivOwnedStr,
+    serde::{JsonObject, from_raw_json_value},
+};
 
 /// This represents the different actions that should be taken when a rule is matched, and
 /// controls how notifications are delivered to the client.
@@ -61,7 +64,7 @@ impl Action {
 
     /// Whether this action is an `Action::SetTweak(Tweak::Highlight(true))`.
     pub fn is_highlight(&self) -> bool {
-        matches!(self, Action::SetTweak(Tweak::Highlight(true)))
+        matches!(self, Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes)))
     }
 
     /// Whether this action should trigger a notification (either in-app or remote / push).
@@ -81,7 +84,7 @@ impl Action {
     }
 
     /// The sound that should be played with this action, if any.
-    pub fn sound(&self) -> Option<&str> {
+    pub fn sound(&self) -> Option<&SoundTweakValue> {
         as_variant!(self, Action::SetTweak(Tweak::Sound(sound)) => sound)
     }
 
@@ -110,33 +113,125 @@ pub enum CustomActionData {
 }
 
 /// The `set_tweak` action.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[serde(from = "TweakSerdeHelper", into = "TweakSerdeHelper")]
 pub enum Tweak {
-    /// A string representing the sound to be played when this notification arrives.
+    /// The sound to be played when this notification arrives.
     ///
-    /// A value of "default" means to play a default sound. A device may choose to alert the user
-    /// by some other means if appropriate, eg. vibration.
-    Sound(String),
+    /// A device may choose to alert the user by some other means if appropriate, eg. vibration.
+    Sound(SoundTweakValue),
 
     /// A boolean representing whether or not this message should be highlighted in the UI.
+    Highlight(HighlightTweakValue),
+
+    #[doc(hidden)]
+    _Custom(CustomTweak),
+}
+
+impl Tweak {
+    /// Creates a new `Tweak`.
     ///
-    /// This will normally take the form of presenting the message in a different color and/or
-    /// style. The UI might also be adjusted to draw particular attention to the room in which the
-    /// event occurred. If a `highlight` tweak is given with no value, its value is defined to be
-    /// `true`. If no highlight tweak is given at all then the value of `highlight` is defined to
-    /// be `false`.
-    Highlight(#[serde(default = "crate::serde::default_true")] bool),
+    /// Prefer to use the public variants of `Tweak` where possible; this constructor is meant
+    /// be used for unsupported tweaks only and does not allow setting arbitrary data for
+    /// supported ones.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the `set_tweak` is known and deserialization of `value` to the
+    /// corresponding variant fails.
+    pub fn new(set_tweak: String, value: Option<Box<RawJsonValue>>) -> serde_json::Result<Self> {
+        Ok(match set_tweak.as_str() {
+            "sound" => Self::Sound(from_raw_json_value(
+                &value.ok_or_else(|| de::Error::missing_field("value"))?,
+            )?),
+            "highlight" => {
+                let value =
+                    value.map(|value| from_raw_json_value::<bool, _>(&value)).transpose()?;
 
-    /// A custom tweak
-    Custom {
-        /// The name of the custom tweak (`set_tweak` field)
-        name: String,
+                let highlight = if value.is_none_or(|value| value) {
+                    HighlightTweakValue::Yes
+                } else {
+                    HighlightTweakValue::No
+                };
 
-        /// The value of the custom tweak
-        value: Box<RawJsonValue>,
-    },
+                Self::Highlight(highlight)
+            }
+            _ => Self::_Custom(CustomTweak { set_tweak, value }),
+        })
+    }
+
+    /// Access the `set_tweak` value.
+    pub fn set_tweak(&self) -> &str {
+        match self {
+            Self::Sound(_) => "sound",
+            Self::Highlight(_) => "highlight",
+            Self::_Custom(CustomTweak { set_tweak, .. }) => set_tweak,
+        }
+    }
+
+    /// Access the value, if it is a custom tweak.
+    pub fn custom_value(&self) -> Option<&RawJsonValue> {
+        as_variant!(self, Self::_Custom).and_then(|tweak| tweak.value.as_deref())
+    }
+}
+
+impl From<SoundTweakValue> for Tweak {
+    fn from(value: SoundTweakValue) -> Self {
+        Self::Sound(value)
+    }
+}
+
+impl From<HighlightTweakValue> for Tweak {
+    fn from(value: HighlightTweakValue) -> Self {
+        Self::Highlight(value)
+    }
+}
+
+/// A sound to play when a notification arrives.
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, StringEnum)]
+#[ruma_enum(rename_all = "lowercase")]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub enum SoundTweakValue {
+    /// Play the default notification sound.
+    Default,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
+
+/// Whether or not a message should be highlighted in the UI.
+///
+/// This will normally take the form of presenting the message in a different color and/or
+/// style. The UI might also be adjusted to draw particular attention to the room in which the
+/// event occurred.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[allow(clippy::exhaustive_enums)]
+pub enum HighlightTweakValue {
+    /// Highlight the message.
+    #[default]
+    Yes,
+
+    /// Don't highlight the message.
+    No,
+}
+
+impl From<bool> for HighlightTweakValue {
+    fn from(value: bool) -> Self {
+        if value { Self::Yes } else { Self::No }
+    }
+}
+
+/// A custom tweak.
+#[doc(hidden)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CustomTweak {
+    /// The kind of the custom tweak.
+    set_tweak: String,
+
+    /// The value of the custom tweak.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    value: Option<Box<RawJsonValue>>,
 }
 
 #[cfg(test)]
@@ -144,7 +239,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use serde_json::{from_value as from_json_value, json};
 
-    use super::{Action, Tweak};
+    use super::{Action, HighlightTweakValue, SoundTweakValue, Tweak};
     use crate::assert_to_canonical_json_eq;
 
     #[test]
@@ -164,7 +259,7 @@ mod tests {
     #[test]
     fn serialize_tweak_sound() {
         assert_to_canonical_json_eq!(
-            Action::SetTweak(Tweak::Sound("default".into())),
+            Action::SetTweak(Tweak::Sound(SoundTweakValue::Default)),
             json!({ "set_tweak": "sound", "value": "default" })
         );
     }
@@ -172,12 +267,12 @@ mod tests {
     #[test]
     fn serialize_tweak_highlight() {
         assert_to_canonical_json_eq!(
-            Action::SetTweak(Tweak::Highlight(true)),
+            Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes)),
             json!({ "set_tweak": "highlight" })
         );
 
         assert_to_canonical_json_eq!(
-            Action::SetTweak(Tweak::Highlight(false)),
+            Action::SetTweak(Tweak::Highlight(HighlightTweakValue::No)),
             json!({ "set_tweak": "highlight", "value": false })
         );
     }
@@ -206,7 +301,17 @@ mod tests {
             from_json_value::<Action>(json_data),
             Ok(Action::SetTweak(Tweak::Sound(value)))
         );
-        assert_eq!(value, "default");
+        assert_eq!(value, SoundTweakValue::Default);
+
+        let json_data = json!({
+            "set_tweak": "sound",
+            "value": "custom"
+        });
+        assert_matches!(
+            from_json_value::<Action>(json_data),
+            Ok(Action::SetTweak(Tweak::Sound(value)))
+        );
+        assert_eq!(value.as_str(), "custom");
     }
 
     #[test]
@@ -217,7 +322,7 @@ mod tests {
         });
         assert_matches!(
             from_json_value::<Action>(json_data),
-            Ok(Action::SetTweak(Tweak::Highlight(true)))
+            Ok(Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes)))
         );
     }
 
@@ -225,7 +330,7 @@ mod tests {
     fn deserialize_tweak_highlight_with_default_value() {
         assert_matches!(
             from_json_value::<Action>(json!({ "set_tweak": "highlight" })),
-            Ok(Action::SetTweak(Tweak::Highlight(true)))
+            Ok(Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes)))
         );
     }
 }

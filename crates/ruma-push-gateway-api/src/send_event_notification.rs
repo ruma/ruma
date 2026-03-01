@@ -270,7 +270,7 @@ pub mod v1 {
     mod tweak_serde {
         use std::fmt;
 
-        use ruma_common::push::Tweak;
+        use ruma_common::push::{HighlightTweakValue, Tweak};
         use serde::{
             Deserializer, Serializer,
             de::{MapAccess, Visitor},
@@ -285,10 +285,17 @@ pub mod v1 {
             for item in tweak {
                 #[allow(unreachable_patterns)]
                 match item {
-                    Tweak::Highlight(b) => map.serialize_entry("highlight", b)?,
+                    Tweak::Highlight(value) => {
+                        map.serialize_entry("highlight", &(*value == HighlightTweakValue::Yes))?;
+                    }
                     Tweak::Sound(value) => map.serialize_entry("sound", value)?,
-                    Tweak::Custom { value, name } => map.serialize_entry(name, value)?,
-                    _ => unreachable!("variant added to Tweak not covered by Custom"),
+                    Tweak::_Custom(_) => map.serialize_entry(
+                        &item.set_tweak(),
+                        &item
+                            .custom_value()
+                            .expect("Tweak::_Custom variant should return a custom value"),
+                    )?,
+                    _ => unreachable!("variant added to Tweak not covered by _Custom"),
                 }
             }
             map.end()
@@ -315,17 +322,19 @@ pub mod v1 {
                         // true.
                         "highlight" => {
                             let highlight = access.next_value().unwrap_or(true);
-
-                            tweaks.push(Tweak::Highlight(highlight));
+                            tweaks.push(Tweak::Highlight(highlight.into()));
                         }
-                        _ => tweaks.push(Tweak::Custom { name: key, value: access.next_value()? }),
+                        _ => tweaks.push(
+                            Tweak::new(key.to_owned(), access.next_value()?)
+                                .map_err(serde::de::Error::custom)?,
+                        ),
                     }
                 }
 
                 // If no highlight tweak is given at all then the value of highlight is defined to
                 // be false.
                 if !tweaks.iter().any(|tw| matches!(tw, Tweak::Highlight(_))) {
-                    tweaks.push(Tweak::Highlight(false));
+                    tweaks.push(Tweak::Highlight(HighlightTweakValue::No));
                 }
 
                 Ok(tweaks)
@@ -345,7 +354,7 @@ pub mod v1 {
         use js_int::uint;
         use ruma_common::{
             SecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
-            owned_room_alias_id, owned_room_id, owned_user_id,
+            owned_room_alias_id, owned_room_id, owned_user_id, push::HighlightTweakValue,
         };
         use ruma_events::TimelineEventType;
         use serde_json::{Value as JsonValue, from_value as from_json_value, json};
@@ -364,12 +373,13 @@ pub mod v1 {
             let device = Device {
                 pushkey_ts: Some(SecondsSinceUnixEpoch(uint!(123))),
                 tweaks: vec![
-                    Tweak::Highlight(true),
+                    Tweak::Highlight(HighlightTweakValue::Yes),
                     Tweak::Sound("silence".into()),
-                    Tweak::Custom {
-                        name: "custom".into(),
-                        value: from_json_value(JsonValue::String("go wild".into())).unwrap(),
-                    },
+                    Tweak::new(
+                        "custom".into(),
+                        from_json_value(JsonValue::String("go wild".into())).unwrap(),
+                    )
+                    .unwrap(),
                 ],
                 ..Device::new(
                     "org.matrix.matrixConsole.ios".into(),
