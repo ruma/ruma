@@ -159,11 +159,7 @@ impl ConditionalPushRule {
     /// Matches any invites to a new room for this user.
     pub fn invite_for_me(user_id: &UserId) -> Self {
         Self {
-            actions: vec![
-                Notify,
-                SetTweak(Tweak::Sound("default".into())),
-                SetTweak(Tweak::Highlight(false)),
-            ],
+            actions: vec![Notify, SetTweak(Tweak::Sound("default".into()))],
             default: true,
             enabled: true,
             rule_id: PredefinedOverrideRuleId::InviteForMe.to_string(),
@@ -311,11 +307,7 @@ impl ConditionalPushRule {
             default: true,
             enabled: true,
             conditions: vec![EventMatch { key: "type".into(), pattern: "m.call.invite".into() }],
-            actions: vec![
-                Notify,
-                SetTweak(Tweak::Sound("ring".into())),
-                SetTweak(Tweak::Highlight(false)),
-            ],
+            actions: vec![Notify, SetTweak(Tweak::Sound("ring".into()))],
         }
     }
 
@@ -333,11 +325,7 @@ impl ConditionalPushRule {
                 RoomMemberCount { is: RoomMemberCountIs::from(js_int::uint!(2)) },
                 EventMatch { key: "type".into(), pattern: "m.room.encrypted".into() },
             ],
-            actions: vec![
-                Notify,
-                SetTweak(Tweak::Sound("default".into())),
-                SetTweak(Tweak::Highlight(false)),
-            ],
+            actions: vec![Notify, SetTweak(Tweak::Sound("default".into()))],
         }
     }
 
@@ -351,11 +339,7 @@ impl ConditionalPushRule {
                 RoomMemberCount { is: RoomMemberCountIs::from(js_int::uint!(2)) },
                 EventMatch { key: "type".into(), pattern: "m.room.message".into() },
             ],
-            actions: vec![
-                Notify,
-                SetTweak(Tweak::Sound("default".into())),
-                SetTweak(Tweak::Highlight(false)),
-            ],
+            actions: vec![Notify, SetTweak(Tweak::Sound("default".into()))],
         }
     }
 
@@ -366,7 +350,7 @@ impl ConditionalPushRule {
             default: true,
             enabled: true,
             conditions: vec![EventMatch { key: "type".into(), pattern: "m.room.message".into() }],
-            actions: vec![Notify, SetTweak(Tweak::Highlight(false))],
+            actions: vec![Notify],
         }
     }
 
@@ -381,7 +365,7 @@ impl ConditionalPushRule {
             default: true,
             enabled: true,
             conditions: vec![EventMatch { key: "type".into(), pattern: "m.room.encrypted".into() }],
-            actions: vec![Notify, SetTweak(Tweak::Highlight(false))],
+            actions: vec![Notify],
         }
     }
 

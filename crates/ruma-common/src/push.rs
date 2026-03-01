@@ -1516,16 +1516,9 @@ mod tests {
 
         assert_matches!(
             set.get_actions(&message, &CONTEXT_ONE_TO_ONE).await,
-            [
-                Action::Notify,
-                Action::SetTweak(Tweak::Sound(_)),
-                Action::SetTweak(Tweak::Highlight(false))
-            ]
+            [Action::Notify, Action::SetTweak(Tweak::Sound(_)),]
         );
-        assert_matches!(
-            set.get_actions(&message, &CONTEXT_PUBLIC_ROOM).await,
-            [Action::Notify, Action::SetTweak(Tweak::Highlight(false))]
-        );
+        assert_matches!(set.get_actions(&message, &CONTEXT_PUBLIC_ROOM).await, [Action::Notify]);
 
         let user_mention = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
