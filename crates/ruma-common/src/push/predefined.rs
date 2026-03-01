@@ -5,7 +5,8 @@
 use ruma_macros::StringEnum;
 
 use super::{
-    Action::*, ConditionalPushRule, PushCondition::*, RoomMemberCountIs, RuleKind, Ruleset, Tweak,
+    Action::*, ConditionalPushRule, HighlightTweakValue, PushCondition::*, RoomMemberCountIs,
+    RuleKind, Ruleset, SoundTweakValue, Tweak,
 };
 use crate::{PrivOwnedStr, UserId, power_levels::NotificationPowerLevelsKey};
 
@@ -159,11 +160,7 @@ impl ConditionalPushRule {
     /// Matches any invites to a new room for this user.
     pub fn invite_for_me(user_id: &UserId) -> Self {
         Self {
-            actions: vec![
-                Notify,
-                SetTweak(Tweak::Sound("default".into())),
-                SetTweak(Tweak::Highlight(false)),
-            ],
+            actions: vec![Notify, SetTweak(Tweak::Sound(SoundTweakValue::Default))],
             default: true,
             enabled: true,
             rule_id: PredefinedOverrideRuleId::InviteForMe.to_string(),
@@ -192,8 +189,8 @@ impl ConditionalPushRule {
         Self {
             actions: vec![
                 Notify,
-                SetTweak(Tweak::Sound("default".to_owned())),
-                SetTweak(Tweak::Highlight(true)),
+                SetTweak(Tweak::Sound(SoundTweakValue::Default)),
+                SetTweak(Tweak::Highlight(HighlightTweakValue::Yes)),
             ],
             default: true,
             enabled: true,
@@ -210,7 +207,7 @@ impl ConditionalPushRule {
     /// similar to what an `@room` notification would accomplish.
     pub fn tombstone() -> Self {
         Self {
-            actions: vec![Notify, SetTweak(Tweak::Highlight(true))],
+            actions: vec![Notify, SetTweak(Tweak::Highlight(HighlightTweakValue::Yes))],
             default: true,
             enabled: true,
             rule_id: PredefinedOverrideRuleId::Tombstone.to_string(),
@@ -225,7 +222,7 @@ impl ConditionalPushRule {
     /// the `m.mentions` property set to `true`.
     pub fn is_room_mention() -> Self {
         Self {
-            actions: vec![Notify, SetTweak(Tweak::Highlight(true))],
+            actions: vec![Notify, SetTweak(Tweak::Highlight(HighlightTweakValue::Yes))],
             default: true,
             enabled: true,
             rule_id: PredefinedOverrideRuleId::IsRoomMention.to_string(),
@@ -311,11 +308,7 @@ impl ConditionalPushRule {
             default: true,
             enabled: true,
             conditions: vec![EventMatch { key: "type".into(), pattern: "m.call.invite".into() }],
-            actions: vec![
-                Notify,
-                SetTweak(Tweak::Sound("ring".into())),
-                SetTweak(Tweak::Highlight(false)),
-            ],
+            actions: vec![Notify, SetTweak(Tweak::Sound("ring".into()))],
         }
     }
 
@@ -333,11 +326,7 @@ impl ConditionalPushRule {
                 RoomMemberCount { is: RoomMemberCountIs::from(js_int::uint!(2)) },
                 EventMatch { key: "type".into(), pattern: "m.room.encrypted".into() },
             ],
-            actions: vec![
-                Notify,
-                SetTweak(Tweak::Sound("default".into())),
-                SetTweak(Tweak::Highlight(false)),
-            ],
+            actions: vec![Notify, SetTweak(Tweak::Sound(SoundTweakValue::Default))],
         }
     }
 
@@ -351,11 +340,7 @@ impl ConditionalPushRule {
                 RoomMemberCount { is: RoomMemberCountIs::from(js_int::uint!(2)) },
                 EventMatch { key: "type".into(), pattern: "m.room.message".into() },
             ],
-            actions: vec![
-                Notify,
-                SetTweak(Tweak::Sound("default".into())),
-                SetTweak(Tweak::Highlight(false)),
-            ],
+            actions: vec![Notify, SetTweak(Tweak::Sound(SoundTweakValue::Default))],
         }
     }
 
@@ -366,7 +351,7 @@ impl ConditionalPushRule {
             default: true,
             enabled: true,
             conditions: vec![EventMatch { key: "type".into(), pattern: "m.room.message".into() }],
-            actions: vec![Notify, SetTweak(Tweak::Highlight(false))],
+            actions: vec![Notify],
         }
     }
 
@@ -381,7 +366,7 @@ impl ConditionalPushRule {
             default: true,
             enabled: true,
             conditions: vec![EventMatch { key: "type".into(), pattern: "m.room.encrypted".into() }],
-            actions: vec![Notify, SetTweak(Tweak::Highlight(false))],
+            actions: vec![Notify],
         }
     }
 
@@ -404,7 +389,7 @@ impl ConditionalPushRule {
                     value: "org.matrix.msc3381.poll.start".into(),
                 },
             ],
-            actions: vec![Notify, SetTweak(Tweak::Sound("default".into()))],
+            actions: vec![Notify, SetTweak(Tweak::Sound(SoundTweakValue::Default))],
         }
     }
 
@@ -447,7 +432,7 @@ impl ConditionalPushRule {
                     value: "org.matrix.msc3381.poll.end".into(),
                 },
             ],
-            actions: vec![Notify, SetTweak(Tweak::Sound("default".into()))],
+            actions: vec![Notify, SetTweak(Tweak::Sound(SoundTweakValue::Default))],
         }
     }
 
@@ -499,7 +484,7 @@ impl ConditionalPushRule {
             default: true,
             enabled: true,
             conditions: vec![ThreadSubscription { subscribed: true }],
-            actions: vec![Notify, SetTweak(Tweak::Sound("default".into()))],
+            actions: vec![Notify, SetTweak(Tweak::Sound(SoundTweakValue::Default))],
         }
     }
 }
