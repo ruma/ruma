@@ -441,10 +441,7 @@ pub enum UserIdentifier {
     Matrix(MatrixUserIdentifier),
 
     /// An email address.
-    Email {
-        /// The email address.
-        address: String,
-    },
+    Email(EmailUserIdentifier),
 
     /// A phone number in the MSISDN format.
     Msisdn {
@@ -478,7 +475,7 @@ impl UserIdentifier {
     /// Creates a new `UserIdentifier` from the given third party identifier.
     pub fn third_party_id(medium: Medium, address: String) -> Self {
         match medium {
-            Medium::Email => Self::Email { address },
+            Medium::Email => Self::Email(EmailUserIdentifier { address }),
             Medium::Msisdn => Self::Msisdn { number: address },
             _ => Self::_CustomThirdParty(CustomThirdPartyUserIdentifier { medium, address }),
         }
@@ -487,7 +484,7 @@ impl UserIdentifier {
     /// Get this `UserIdentifier` as a third party identifier if it is one.
     pub fn as_third_party_id(&self) -> Option<(&Medium, &str)> {
         match self {
-            Self::Email { address } => Some((&Medium::Email, address)),
+            Self::Email(EmailUserIdentifier { address }) => Some((&Medium::Email, address)),
             Self::Msisdn { number } => Some((&Medium::Msisdn, number)),
             Self::_CustomThirdParty(CustomThirdPartyUserIdentifier { medium, address }) => {
                 Some((medium, address))
@@ -512,6 +509,12 @@ impl From<&OwnedUserId> for UserIdentifier {
 impl From<MatrixUserIdentifier> for UserIdentifier {
     fn from(id: MatrixUserIdentifier) -> Self {
         Self::Matrix(id)
+    }
+}
+
+impl From<EmailUserIdentifier> for UserIdentifier {
+    fn from(id: EmailUserIdentifier) -> Self {
+        Self::Email(id)
     }
 }
 
@@ -540,6 +543,21 @@ impl From<OwnedUserId> for MatrixUserIdentifier {
 impl From<&OwnedUserId> for MatrixUserIdentifier {
     fn from(id: &OwnedUserId) -> Self {
         Self::new(id.as_str().to_owned())
+    }
+}
+
+/// Data for a email third-party identifier.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct EmailUserIdentifier {
+    /// The email address.
+    pub address: String,
+}
+
+impl EmailUserIdentifier {
+    /// Construct a new `EmailUserIdentifier` with the given email address.
+    pub fn new(address: String) -> Self {
+        Self { address }
     }
 }
 

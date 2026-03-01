@@ -443,7 +443,7 @@ pub mod v3 {
             use serde_json::Value as JsonValue;
 
             use super::{LoginInfo, Password, Request, Token};
-            use crate::uiaa::UserIdentifier;
+            use crate::uiaa::{EmailUserIdentifier, UserIdentifier};
 
             let supported = SupportedVersions {
                 versions: [MatrixVersion::V1_1].into(),
@@ -476,9 +476,9 @@ pub mod v3 {
             let req: http::Request<Vec<u8>> = Request {
                 #[allow(deprecated)]
                 login_info: LoginInfo::Password(Password {
-                    identifier: Some(UserIdentifier::Email {
-                        address: "hello@example.com".to_owned(),
-                    }),
+                    identifier: Some(UserIdentifier::Email(EmailUserIdentifier::new(
+                        "hello@example.com".to_owned(),
+                    ))),
                     password: "deadbeef".to_owned(),
                     user: None,
                     address: None,

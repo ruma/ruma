@@ -6,7 +6,7 @@ use ruma_common::{serde::from_raw_json_value, thirdparty::Medium};
 use serde::{Deserialize, Deserializer, Serialize, de, ser::SerializeStruct};
 use serde_json::value::RawValue as RawJsonValue;
 
-use super::{AuthData, CustomThirdPartyUserIdentifier, UserIdentifier};
+use super::{AuthData, CustomThirdPartyUserIdentifier, EmailUserIdentifier, UserIdentifier};
 
 impl<'de> Deserialize<'de> for AuthData {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -58,13 +58,7 @@ impl Serialize for UserIdentifier {
                 id.serialize_field("phone", phone)?;
                 id.end()
             }
-            Self::Email { address } => {
-                let mut id = serializer.serialize_struct("UserIdentifier", 3)?;
-                id.serialize_field("type", "m.id.thirdparty")?;
-                id.serialize_field("medium", &Medium::Email)?;
-                id.serialize_field("address", address)?;
-                id.end()
-            }
+            Self::Email(id) => id.serialize(serializer),
             Self::Msisdn { number } => {
                 let mut id = serializer.serialize_struct("UserIdentifier", 3)?;
                 id.serialize_field("type", "m.id.thirdparty")?;
@@ -110,12 +104,43 @@ impl<'de> Deserialize<'de> for UserIdentifier {
             ExtractType::ThirdParty => {
                 let id: CustomThirdPartyUserIdentifier = from_raw_json_value(&json)?;
                 match &id.medium {
-                    Medium::Email => Ok(Self::Email { address: id.address }),
+                    Medium::Email => Ok(Self::Email(EmailUserIdentifier { address: id.address })),
                     Medium::Msisdn => Ok(Self::Msisdn { number: id.address }),
                     _ => Ok(Self::_CustomThirdParty(id)),
                 }
             }
         }
+    }
+}
+
+impl Serialize for EmailUserIdentifier {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let Self { address } = self;
+
+        CustomThirdPartyUserIdentifier { medium: Medium::Email, address: address.clone() }
+            .serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for EmailUserIdentifier {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let CustomThirdPartyUserIdentifier { medium, address } =
+            CustomThirdPartyUserIdentifier::deserialize(deserializer)?;
+
+        if medium != Medium::Email {
+            return Err(de::Error::invalid_value(
+                de::Unexpected::Str(medium.as_str()),
+                &Medium::Email.as_str(),
+            ));
+        }
+
+        Ok(Self { address })
     }
 }
 
@@ -125,7 +150,7 @@ mod tests {
     use ruma_common::canonical_json::assert_to_canonical_json_eq;
     use serde_json::{from_value as from_json_value, json};
 
-    use crate::uiaa::{MatrixUserIdentifier, UserIdentifier};
+    use crate::uiaa::{EmailUserIdentifier, MatrixUserIdentifier, UserIdentifier};
 
     #[test]
     fn serialize() {
@@ -150,7 +175,7 @@ mod tests {
         );
 
         assert_to_canonical_json_eq!(
-            UserIdentifier::Email { address: "me@myprovider.net".to_owned() },
+            UserIdentifier::Email(EmailUserIdentifier::new("me@myprovider.net".to_owned())),
             json!({
                 "type": "m.id.thirdparty",
                 "medium": "email",
@@ -200,8 +225,8 @@ mod tests {
             "medium": "email",
             "address": "me@myprovider.net",
         });
-        assert_matches!(from_json_value(json), Ok(UserIdentifier::Email { address }));
-        assert_eq!(address, "me@myprovider.net");
+        assert_matches!(from_json_value(json), Ok(UserIdentifier::Email(id)));
+        assert_eq!(id.address, "me@myprovider.net");
 
         let json = json!({
             "type": "m.id.thirdparty",
