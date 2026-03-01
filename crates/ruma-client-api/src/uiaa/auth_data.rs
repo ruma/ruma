@@ -437,9 +437,8 @@ impl fmt::Debug for CustomAuthData {
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[allow(clippy::exhaustive_enums)]
 pub enum UserIdentifier {
-    /// Either a fully qualified Matrix user ID, or just the localpart (as part of the 'identifier'
-    /// field).
-    UserIdOrLocalpart(String),
+    /// A Matrix user identifier.
+    Matrix(MatrixUserIdentifier),
 
     /// An email address.
     Email {
@@ -500,20 +499,53 @@ impl UserIdentifier {
 
 impl From<OwnedUserId> for UserIdentifier {
     fn from(id: OwnedUserId) -> Self {
-        Self::UserIdOrLocalpart(id.into())
+        Self::Matrix(id.into())
     }
 }
 
 impl From<&OwnedUserId> for UserIdentifier {
     fn from(id: &OwnedUserId) -> Self {
-        Self::UserIdOrLocalpart(id.as_str().to_owned())
+        Self::Matrix(id.into())
+    }
+}
+
+impl From<MatrixUserIdentifier> for UserIdentifier {
+    fn from(id: MatrixUserIdentifier) -> Self {
+        Self::Matrix(id)
+    }
+}
+
+/// Data for a Matrix user identifier.
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[serde(tag = "type", rename = "m.id.user")]
+pub struct MatrixUserIdentifier {
+    /// Either a fully qualified Matrix user ID, or just the localpart.
+    pub user: String,
+}
+
+impl MatrixUserIdentifier {
+    /// Construct a new `MatrixUserIdentifier` with the given user ID or localpart.
+    pub fn new(user: String) -> Self {
+        Self { user }
+    }
+}
+
+impl From<OwnedUserId> for MatrixUserIdentifier {
+    fn from(id: OwnedUserId) -> Self {
+        Self::new(id.into())
+    }
+}
+
+impl From<&OwnedUserId> for MatrixUserIdentifier {
+    fn from(id: &OwnedUserId) -> Self {
+        Self::new(id.as_str().to_owned())
     }
 }
 
 /// Data for an unsupported third-party ID.
 #[doc(hidden)]
 #[derive(Clone, Debug, PartialEq, Eq)]
-#[non_exhaustive]
 pub struct CustomThirdPartyId {
     /// The kind of the third-party ID.
     medium: Medium,

@@ -49,39 +49,37 @@ impl Serialize for UserIdentifier {
     where
         S: serde::Serializer,
     {
-        let mut id;
         match self {
-            Self::UserIdOrLocalpart(user) => {
-                id = serializer.serialize_struct("UserIdentifier", 2)?;
-                id.serialize_field("type", "m.id.user")?;
-                id.serialize_field("user", user)?;
-            }
+            Self::Matrix(id) => id.serialize(serializer),
             Self::PhoneNumber { country, phone } => {
-                id = serializer.serialize_struct("UserIdentifier", 3)?;
+                let mut id = serializer.serialize_struct("UserIdentifier", 3)?;
                 id.serialize_field("type", "m.id.phone")?;
                 id.serialize_field("country", country)?;
                 id.serialize_field("phone", phone)?;
+                id.end()
             }
             Self::Email { address } => {
-                id = serializer.serialize_struct("UserIdentifier", 3)?;
+                let mut id = serializer.serialize_struct("UserIdentifier", 3)?;
                 id.serialize_field("type", "m.id.thirdparty")?;
                 id.serialize_field("medium", &Medium::Email)?;
                 id.serialize_field("address", address)?;
+                id.end()
             }
             Self::Msisdn { number } => {
-                id = serializer.serialize_struct("UserIdentifier", 3)?;
+                let mut id = serializer.serialize_struct("UserIdentifier", 3)?;
                 id.serialize_field("type", "m.id.thirdparty")?;
                 id.serialize_field("medium", &Medium::Msisdn)?;
                 id.serialize_field("address", number)?;
+                id.end()
             }
             Self::_CustomThirdParty(CustomThirdPartyId { medium, address }) => {
-                id = serializer.serialize_struct("UserIdentifier", 3)?;
+                let mut id = serializer.serialize_struct("UserIdentifier", 3)?;
                 id.serialize_field("type", "m.id.thirdparty")?;
                 id.serialize_field("medium", &medium)?;
                 id.serialize_field("address", address)?;
+                id.end()
             }
         }
-        id.end()
     }
 }
 
@@ -104,11 +102,6 @@ impl<'de> Deserialize<'de> for UserIdentifier {
         }
 
         #[derive(Deserialize)]
-        struct UserIdOrLocalpart {
-            user: String,
-        }
-
-        #[derive(Deserialize)]
         struct ThirdPartyId {
             medium: Medium,
             address: String,
@@ -123,8 +116,7 @@ impl<'de> Deserialize<'de> for UserIdentifier {
         let id_type = serde_json::from_str::<ExtractType>(json.get()).map_err(de::Error::custom)?;
 
         match id_type {
-            ExtractType::User => from_raw_json_value(&json)
-                .map(|user_id: UserIdOrLocalpart| Self::UserIdOrLocalpart(user_id.user)),
+            ExtractType::User => from_raw_json_value(&json).map(Self::Matrix),
             ExtractType::Phone => from_raw_json_value(&json)
                 .map(|nb: PhoneNumber| Self::PhoneNumber { country: nb.country, phone: nb.phone }),
             ExtractType::ThirdParty => {
@@ -145,12 +137,12 @@ mod tests {
     use ruma_common::canonical_json::assert_to_canonical_json_eq;
     use serde_json::{from_value as from_json_value, json};
 
-    use crate::uiaa::UserIdentifier;
+    use crate::uiaa::{MatrixUserIdentifier, UserIdentifier};
 
     #[test]
     fn serialize() {
         assert_to_canonical_json_eq!(
-            UserIdentifier::UserIdOrLocalpart("@user:notareal.hs".to_owned()),
+            UserIdentifier::Matrix(MatrixUserIdentifier::new("@user:notareal.hs".to_owned())),
             json!({
                 "type": "m.id.user",
                 "user": "@user:notareal.hs",
@@ -203,8 +195,8 @@ mod tests {
             "type": "m.id.user",
             "user": "@user:notareal.hs",
         });
-        assert_matches!(from_json_value(json), Ok(UserIdentifier::UserIdOrLocalpart(user)));
-        assert_eq!(user, "@user:notareal.hs");
+        assert_matches!(from_json_value(json), Ok(UserIdentifier::Matrix(id)));
+        assert_eq!(id.user, "@user:notareal.hs");
 
         let json = json!({
             "type": "m.id.phone",

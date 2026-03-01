@@ -11,6 +11,9 @@ Breaking changes:
   spec.
 - `BackupAlgorithm::MegolmBackupV1Curve25519AesSha2` is now a tuple variant
   containing a non-exhaustive struct.
+- The variants of `UserIdentifier` were changed to tuple variants containing a
+  non-exhaustive struct.
+  - `UserIdentifier::UserIdOrLocalpart` was renamed to `UserIdentifier::Matrix`.
 
 Improvements:
 

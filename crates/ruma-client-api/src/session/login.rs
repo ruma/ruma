@@ -417,8 +417,8 @@ pub mod v3 {
                 .unwrap(),
                 LoginInfo::Password(login)
             );
-            assert_matches!(login.identifier, Some(UserIdentifier::UserIdOrLocalpart(user)));
-            assert_eq!(user, "cheeky_monkey");
+            assert_matches!(login.identifier, Some(UserIdentifier::Matrix(id)));
+            assert_eq!(id.user, "cheeky_monkey");
             assert_eq!(login.password, "ilovebananas");
 
             assert_matches!(
