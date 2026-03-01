@@ -47,45 +47,25 @@ impl<'de> Deserialize<'de> for AuthData {
     }
 }
 
-impl Serialize for UserIdentifier {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        match self {
-            Self::Matrix(id) => id.serialize(serializer),
-            Self::PhoneNumber(id) => id.serialize(serializer),
-            Self::Email(id) => id.serialize(serializer),
-            Self::Msisdn(id) => id.serialize(serializer),
-            Self::_CustomThirdParty(id) => id.serialize(serializer),
-        }
-    }
-}
-
 impl<'de> Deserialize<'de> for UserIdentifier {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-
         #[derive(Deserialize)]
-        #[serde(tag = "type")]
-        enum ExtractType {
-            #[serde(rename = "m.id.user")]
-            User,
-            #[serde(rename = "m.id.phone")]
-            Phone,
-            #[serde(rename = "m.id.thirdparty")]
-            ThirdParty,
+        struct ExtractType<'a> {
+            #[serde(borrow, rename = "type")]
+            identifier_type: Cow<'a, str>,
         }
 
-        let id_type = serde_json::from_str::<ExtractType>(json.get()).map_err(de::Error::custom)?;
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+        let ExtractType { identifier_type } =
+            serde_json::from_str(json.get()).map_err(de::Error::custom)?;
 
-        match id_type {
-            ExtractType::User => from_raw_json_value(&json).map(Self::Matrix),
-            ExtractType::Phone => from_raw_json_value(&json).map(Self::PhoneNumber),
-            ExtractType::ThirdParty => {
+        match identifier_type.as_ref() {
+            "m.id.user" => from_raw_json_value(&json).map(Self::Matrix),
+            "m.id.phone" => from_raw_json_value(&json).map(Self::PhoneNumber),
+            "m.id.thirdparty" => {
                 let id: CustomThirdPartyUserIdentifier = from_raw_json_value(&json)?;
                 match &id.medium {
                     Medium::Email => Ok(Self::Email(EmailUserIdentifier { address: id.address })),
@@ -93,6 +73,7 @@ impl<'de> Deserialize<'de> for UserIdentifier {
                     _ => Ok(Self::_CustomThirdParty(id)),
                 }
             }
+            _ => from_raw_json_value(&json).map(Self::_Custom),
         }
     }
 }
@@ -163,7 +144,7 @@ impl<'de> Deserialize<'de> for MsisdnUserIdentifier {
 mod tests {
     use assert_matches2::assert_matches;
     use ruma_common::canonical_json::assert_to_canonical_json_eq;
-    use serde_json::{from_value as from_json_value, json};
+    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
     use crate::uiaa::{
         EmailUserIdentifier, MatrixUserIdentifier, MsisdnUserIdentifier, PhoneNumberUserIdentifier,
@@ -266,5 +247,21 @@ mod tests {
         let (medium, address) = id.as_third_party_id().unwrap();
         assert_eq!(medium.as_str(), "robot");
         assert_eq!(address, "01110010");
+    }
+
+    #[test]
+    fn custom_identifier_roundtrip() {
+        let json = json!({
+            "type": "local.dev.identifier",
+            "foo": "bar",
+        });
+
+        let id = from_json_value::<UserIdentifier>(json.clone()).unwrap();
+        assert_eq!(id.identifier_type(), "local.dev.identifier");
+        assert_matches!(id.custom_identifier_data(), Some(data));
+        assert_matches!(data.get("foo"), Some(JsonValue::String(foo)));
+        assert_eq!(foo, "bar");
+
+        assert_to_canonical_json_eq!(id, json);
     }
 }
