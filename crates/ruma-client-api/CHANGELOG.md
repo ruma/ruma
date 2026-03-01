@@ -42,8 +42,8 @@ Breaking changes:
   change.
 - The endpoints that were using the `NoAuthentication` authentication scheme now
   use `NoAccessToken`.
-- The variants of `UserIdentifier` were changed to tuple variants containing a
-  non-exhaustive struct.
+- `UserIdentifier` can now represent an identifier with a custom type, and its
+  variants were changed to tuple variants containing a non-exhaustive struct.
   - `UserIdentifier::UserIdOrLocalpart` was renamed to `UserIdentifier::Matrix`.
 
 Bug fixes:

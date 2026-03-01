@@ -2,6 +2,7 @@
 
 use std::{borrow::Cow, fmt};
 
+use as_variant::as_variant;
 use ruma_common::{
     OwnedClientSecret, OwnedSessionId, OwnedUserId, serde::JsonObject, thirdparty::Medium,
 };
@@ -434,8 +435,9 @@ impl fmt::Debug for CustomAuthData {
 }
 
 /// Identification information for the user.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[allow(clippy::exhaustive_enums)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[serde(untagged)]
 pub enum UserIdentifier {
     /// A Matrix user identifier.
     Matrix(MatrixUserIdentifier),
@@ -452,9 +454,25 @@ pub enum UserIdentifier {
     /// Unsupported `m.id.thirdpartyid`.
     #[doc(hidden)]
     _CustomThirdParty(CustomThirdPartyUserIdentifier),
+
+    /// Custom identifier type.
+    #[doc(hidden)]
+    _Custom(CustomUserIdentifier),
 }
 
 impl UserIdentifier {
+    /// Returns a reference to the `type` string.
+    pub fn identifier_type(&self) -> &str {
+        match self {
+            Self::Matrix(_) => "m.id.user",
+            Self::Email(_) => "m.id.thirdparty",
+            Self::Msisdn(_) => "m.id.thirdparty",
+            Self::PhoneNumber(_) => "m.id.phone",
+            Self::_CustomThirdParty(_) => "m.id.thirdparty",
+            Self::_Custom(CustomUserIdentifier { identifier_type, .. }) => identifier_type,
+        }
+    }
+
     /// Creates a new `UserIdentifier` from the given third party identifier.
     pub fn third_party_id(medium: Medium, address: String) -> Self {
         match medium {
@@ -474,6 +492,14 @@ impl UserIdentifier {
             }
             _ => None,
         }
+    }
+
+    /// Returns the associated data if this is a custom identifier type.
+    ///
+    /// The returned JSON object won't contain the `type` field, use
+    /// [`.identifier_type()`][Self::identifier_type] to access it.
+    pub fn custom_identifier_data(&self) -> Option<&JsonObject> {
+        as_variant!(self, Self::_Custom).map(|id| &id.data)
     }
 }
 
@@ -608,6 +634,19 @@ pub struct CustomThirdPartyUserIdentifier {
 
     /// The third-party ID.
     address: String,
+}
+
+/// Data for a custom identifier type.
+#[doc(hidden)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+pub struct CustomUserIdentifier {
+    /// The type of the identifier.
+    #[serde(rename = "type")]
+    identifier_type: String,
+
+    /// The data of the identifier.
+    #[serde(flatten)]
+    data: JsonObject,
 }
 
 /// Credentials for third-party authentication (e.g. email / phone number).
