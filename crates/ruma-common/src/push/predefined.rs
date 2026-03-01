@@ -5,8 +5,10 @@
 use ruma_macros::StringEnum;
 
 use super::{
-    Action::*, ConditionalPushRule, HighlightTweakValue, PushCondition::*, RoomMemberCountIs,
-    RuleKind, Ruleset, SoundTweakValue, Tweak,
+    Action::*, ConditionalPushRule, EventMatchConditionData, EventPropertyContainsConditionData,
+    EventPropertyIsConditionData, HighlightTweakValue, PushCondition::*,
+    RoomMemberCountConditionData, RoomMemberCountIs, RuleKind, Ruleset,
+    SenderNotificationPermissionConditionData, SoundTweakValue, Tweak,
 };
 use crate::{PrivOwnedStr, UserId, power_levels::NotificationPowerLevelsKey};
 
@@ -150,10 +152,10 @@ impl ConditionalPushRule {
             default: true,
             enabled: true,
             rule_id: PredefinedOverrideRuleId::SuppressNotices.to_string(),
-            conditions: vec![EventMatch {
-                key: "content.msgtype".into(),
-                pattern: "m.notice".into(),
-            }],
+            conditions: vec![EventMatch(EventMatchConditionData::new(
+                "content.msgtype".into(),
+                "m.notice".into(),
+            ))],
         }
     }
 
@@ -165,9 +167,12 @@ impl ConditionalPushRule {
             enabled: true,
             rule_id: PredefinedOverrideRuleId::InviteForMe.to_string(),
             conditions: vec![
-                EventMatch { key: "type".into(), pattern: "m.room.member".into() },
-                EventMatch { key: "content.membership".into(), pattern: "invite".into() },
-                EventMatch { key: "state_key".into(), pattern: user_id.to_string() },
+                EventMatch(EventMatchConditionData::new("type".into(), "m.room.member".into())),
+                EventMatch(EventMatchConditionData::new(
+                    "content.membership".into(),
+                    "invite".into(),
+                )),
+                EventMatch(EventMatchConditionData::new("state_key".into(), user_id.to_string())),
             ],
         }
     }
@@ -179,7 +184,10 @@ impl ConditionalPushRule {
             default: true,
             enabled: true,
             rule_id: PredefinedOverrideRuleId::MemberEvent.to_string(),
-            conditions: vec![EventMatch { key: "type".into(), pattern: "m.room.member".into() }],
+            conditions: vec![EventMatch(EventMatchConditionData::new(
+                "type".into(),
+                "m.room.member".into(),
+            ))],
         }
     }
 
@@ -195,10 +203,10 @@ impl ConditionalPushRule {
             default: true,
             enabled: true,
             rule_id: PredefinedOverrideRuleId::IsUserMention.to_string(),
-            conditions: vec![EventPropertyContains {
-                key: r"content.m\.mentions.user_ids".to_owned(),
-                value: user_id.as_str().into(),
-            }],
+            conditions: vec![EventPropertyContains(EventPropertyContainsConditionData::new(
+                r"content.m\.mentions.user_ids".to_owned(),
+                user_id.as_str().into(),
+            ))],
         }
     }
 
@@ -212,8 +220,8 @@ impl ConditionalPushRule {
             enabled: true,
             rule_id: PredefinedOverrideRuleId::Tombstone.to_string(),
             conditions: vec![
-                EventMatch { key: "type".into(), pattern: "m.room.tombstone".into() },
-                EventMatch { key: "state_key".into(), pattern: "".into() },
+                EventMatch(EventMatchConditionData::new("type".into(), "m.room.tombstone".into())),
+                EventMatch(EventMatchConditionData::new("state_key".into(), "".into())),
             ],
         }
     }
@@ -227,8 +235,13 @@ impl ConditionalPushRule {
             enabled: true,
             rule_id: PredefinedOverrideRuleId::IsRoomMention.to_string(),
             conditions: vec![
-                EventPropertyIs { key: r"content.m\.mentions.room".to_owned(), value: true.into() },
-                SenderNotificationPermission { key: NotificationPowerLevelsKey::Room },
+                EventPropertyIs(EventPropertyIsConditionData::new(
+                    r"content.m\.mentions.room".to_owned(),
+                    true.into(),
+                )),
+                SenderNotificationPermission(SenderNotificationPermissionConditionData::new(
+                    NotificationPowerLevelsKey::Room,
+                )),
             ],
         }
     }
@@ -242,7 +255,10 @@ impl ConditionalPushRule {
             default: true,
             enabled: true,
             rule_id: PredefinedOverrideRuleId::Reaction.to_string(),
-            conditions: vec![EventMatch { key: "type".into(), pattern: "m.reaction".into() }],
+            conditions: vec![EventMatch(EventMatchConditionData::new(
+                "type".into(),
+                "m.reaction".into(),
+            ))],
         }
     }
 
@@ -256,8 +272,8 @@ impl ConditionalPushRule {
             enabled: true,
             rule_id: PredefinedOverrideRuleId::RoomServerAcl.to_string(),
             conditions: vec![
-                EventMatch { key: "type".into(), pattern: "m.room.server_acl".into() },
-                EventMatch { key: "state_key".into(), pattern: "".into() },
+                EventMatch(EventMatchConditionData::new("type".into(), "m.room.server_acl".into())),
+                EventMatch(EventMatchConditionData::new("state_key".into(), "".into())),
             ],
         }
     }
@@ -271,10 +287,10 @@ impl ConditionalPushRule {
             default: true,
             enabled: true,
             rule_id: PredefinedOverrideRuleId::SuppressEdits.to_string(),
-            conditions: vec![EventPropertyIs {
-                key: r"content.m\.relates_to.rel_type".to_owned(),
-                value: "m.replace".into(),
-            }],
+            conditions: vec![EventPropertyIs(EventPropertyIsConditionData::new(
+                r"content.m\.relates_to.rel_type".to_owned(),
+                "m.replace".into(),
+            ))],
         }
     }
 
@@ -290,10 +306,10 @@ impl ConditionalPushRule {
             rule_id: PredefinedOverrideRuleId::PollResponse.to_string(),
             default: true,
             enabled: true,
-            conditions: vec![EventPropertyIs {
-                key: "type".to_owned(),
-                value: "org.matrix.msc3381.poll.response".into(),
-            }],
+            conditions: vec![EventPropertyIs(EventPropertyIsConditionData::new(
+                "type".to_owned(),
+                "org.matrix.msc3381.poll.response".into(),
+            ))],
             actions: vec![],
         }
     }
@@ -307,7 +323,10 @@ impl ConditionalPushRule {
             rule_id: PredefinedUnderrideRuleId::Call.to_string(),
             default: true,
             enabled: true,
-            conditions: vec![EventMatch { key: "type".into(), pattern: "m.call.invite".into() }],
+            conditions: vec![EventMatch(EventMatchConditionData::new(
+                "type".into(),
+                "m.call.invite".into(),
+            ))],
             actions: vec![Notify, SetTweak(Tweak::Sound("ring".into()))],
         }
     }
@@ -323,8 +342,10 @@ impl ConditionalPushRule {
             default: true,
             enabled: true,
             conditions: vec![
-                RoomMemberCount { is: RoomMemberCountIs::from(js_int::uint!(2)) },
-                EventMatch { key: "type".into(), pattern: "m.room.encrypted".into() },
+                RoomMemberCount(RoomMemberCountConditionData::new(RoomMemberCountIs::from(
+                    js_int::uint!(2),
+                ))),
+                EventMatch(EventMatchConditionData::new("type".into(), "m.room.encrypted".into())),
             ],
             actions: vec![Notify, SetTweak(Tweak::Sound(SoundTweakValue::Default))],
         }
@@ -337,8 +358,8 @@ impl ConditionalPushRule {
             default: true,
             enabled: true,
             conditions: vec![
-                RoomMemberCount { is: RoomMemberCountIs::from(js_int::uint!(2)) },
-                EventMatch { key: "type".into(), pattern: "m.room.message".into() },
+                RoomMemberCount(RoomMemberCountConditionData::new(js_int::uint!(2).into())),
+                EventMatch(EventMatchConditionData::new("type".into(), "m.room.message".into())),
             ],
             actions: vec![Notify, SetTweak(Tweak::Sound(SoundTweakValue::Default))],
         }
@@ -350,7 +371,10 @@ impl ConditionalPushRule {
             rule_id: PredefinedUnderrideRuleId::Message.to_string(),
             default: true,
             enabled: true,
-            conditions: vec![EventMatch { key: "type".into(), pattern: "m.room.message".into() }],
+            conditions: vec![EventMatch(EventMatchConditionData::new(
+                "type".into(),
+                "m.room.message".into(),
+            ))],
             actions: vec![Notify],
         }
     }
@@ -365,7 +389,10 @@ impl ConditionalPushRule {
             rule_id: PredefinedUnderrideRuleId::Encrypted.to_string(),
             default: true,
             enabled: true,
-            conditions: vec![EventMatch { key: "type".into(), pattern: "m.room.encrypted".into() }],
+            conditions: vec![EventMatch(EventMatchConditionData::new(
+                "type".into(),
+                "m.room.encrypted".into(),
+            ))],
             actions: vec![Notify],
         }
     }
@@ -383,11 +410,13 @@ impl ConditionalPushRule {
             default: true,
             enabled: true,
             conditions: vec![
-                RoomMemberCount { is: RoomMemberCountIs::from(js_int::uint!(2)) },
-                EventPropertyIs {
-                    key: "type".to_owned(),
-                    value: "org.matrix.msc3381.poll.start".into(),
-                },
+                RoomMemberCount(RoomMemberCountConditionData::new(RoomMemberCountIs::from(
+                    js_int::uint!(2),
+                ))),
+                EventPropertyIs(EventPropertyIsConditionData::new(
+                    "type".to_owned(),
+                    "org.matrix.msc3381.poll.start".into(),
+                )),
             ],
             actions: vec![Notify, SetTweak(Tweak::Sound(SoundTweakValue::Default))],
         }
@@ -405,10 +434,10 @@ impl ConditionalPushRule {
             rule_id: PredefinedUnderrideRuleId::PollStart.to_string(),
             default: true,
             enabled: true,
-            conditions: vec![EventPropertyIs {
-                key: "type".to_owned(),
-                value: "org.matrix.msc3381.poll.start".into(),
-            }],
+            conditions: vec![EventPropertyIs(EventPropertyIsConditionData::new(
+                "type".to_owned(),
+                "org.matrix.msc3381.poll.start".into(),
+            ))],
             actions: vec![Notify],
         }
     }
@@ -426,11 +455,13 @@ impl ConditionalPushRule {
             default: true,
             enabled: true,
             conditions: vec![
-                RoomMemberCount { is: RoomMemberCountIs::from(js_int::uint!(2)) },
-                EventPropertyIs {
-                    key: "type".to_owned(),
-                    value: "org.matrix.msc3381.poll.end".into(),
-                },
+                RoomMemberCount(RoomMemberCountConditionData::new(RoomMemberCountIs::from(
+                    js_int::uint!(2),
+                ))),
+                EventPropertyIs(EventPropertyIsConditionData::new(
+                    "type".to_owned(),
+                    "org.matrix.msc3381.poll.end".into(),
+                )),
             ],
             actions: vec![Notify, SetTweak(Tweak::Sound(SoundTweakValue::Default))],
         }
@@ -448,10 +479,10 @@ impl ConditionalPushRule {
             rule_id: PredefinedUnderrideRuleId::PollEnd.to_string(),
             default: true,
             enabled: true,
-            conditions: vec![EventPropertyIs {
-                key: "type".to_owned(),
-                value: "org.matrix.msc3381.poll.end".into(),
-            }],
+            conditions: vec![EventPropertyIs(EventPropertyIsConditionData::new(
+                "type".to_owned(),
+                "org.matrix.msc3381.poll.end".into(),
+            ))],
             actions: vec![Notify],
         }
     }
@@ -467,7 +498,9 @@ impl ConditionalPushRule {
             rule_id: PredefinedUnderrideRuleId::UnsubscribedThread.to_string(),
             default: true,
             enabled: true,
-            conditions: vec![ThreadSubscription { subscribed: false }],
+            conditions: vec![ThreadSubscription(super::ThreadSubscriptionConditionData::new(
+                false,
+            ))],
             actions: vec![],
         }
     }
@@ -483,7 +516,7 @@ impl ConditionalPushRule {
             rule_id: PredefinedUnderrideRuleId::SubscribedThread.to_string(),
             default: true,
             enabled: true,
-            conditions: vec![ThreadSubscription { subscribed: true }],
+            conditions: vec![ThreadSubscription(super::ThreadSubscriptionConditionData::new(true))],
             actions: vec![Notify, SetTweak(Tweak::Sound(SoundTweakValue::Default))],
         }
     }
