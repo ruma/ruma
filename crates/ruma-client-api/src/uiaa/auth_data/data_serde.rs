@@ -3,7 +3,7 @@
 use std::borrow::Cow;
 
 use ruma_common::{serde::from_raw_json_value, thirdparty::Medium};
-use serde::{Deserialize, Deserializer, Serialize, de, ser::SerializeStruct};
+use serde::{Deserialize, Deserializer, Serialize, de};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
@@ -54,13 +54,7 @@ impl Serialize for UserIdentifier {
     {
         match self {
             Self::Matrix(id) => id.serialize(serializer),
-            Self::PhoneNumber { country, phone } => {
-                let mut id = serializer.serialize_struct("UserIdentifier", 3)?;
-                id.serialize_field("type", "m.id.phone")?;
-                id.serialize_field("country", country)?;
-                id.serialize_field("phone", phone)?;
-                id.end()
-            }
+            Self::PhoneNumber(id) => id.serialize(serializer),
             Self::Email(id) => id.serialize(serializer),
             Self::Msisdn(id) => id.serialize(serializer),
             Self::_CustomThirdParty(id) => id.serialize(serializer),
@@ -86,18 +80,11 @@ impl<'de> Deserialize<'de> for UserIdentifier {
             ThirdParty,
         }
 
-        #[derive(Deserialize)]
-        struct PhoneNumber {
-            country: String,
-            phone: String,
-        }
-
         let id_type = serde_json::from_str::<ExtractType>(json.get()).map_err(de::Error::custom)?;
 
         match id_type {
             ExtractType::User => from_raw_json_value(&json).map(Self::Matrix),
-            ExtractType::Phone => from_raw_json_value(&json)
-                .map(|nb: PhoneNumber| Self::PhoneNumber { country: nb.country, phone: nb.phone }),
+            ExtractType::Phone => from_raw_json_value(&json).map(Self::PhoneNumber),
             ExtractType::ThirdParty => {
                 let id: CustomThirdPartyUserIdentifier = from_raw_json_value(&json)?;
                 match &id.medium {
@@ -179,7 +166,8 @@ mod tests {
     use serde_json::{from_value as from_json_value, json};
 
     use crate::uiaa::{
-        EmailUserIdentifier, MatrixUserIdentifier, MsisdnUserIdentifier, UserIdentifier,
+        EmailUserIdentifier, MatrixUserIdentifier, MsisdnUserIdentifier, PhoneNumberUserIdentifier,
+        UserIdentifier,
     };
 
     #[test]
@@ -193,10 +181,10 @@ mod tests {
         );
 
         assert_to_canonical_json_eq!(
-            UserIdentifier::PhoneNumber {
-                country: "33".to_owned(),
-                phone: "0102030405".to_owned()
-            },
+            UserIdentifier::PhoneNumber(PhoneNumberUserIdentifier::new(
+                "33".to_owned(),
+                "0102030405".to_owned()
+            )),
             json!({
                 "type": "m.id.phone",
                 "country": "33",
@@ -246,7 +234,10 @@ mod tests {
             "country": "33",
             "phone": "0102030405",
         });
-        assert_matches!(from_json_value(json), Ok(UserIdentifier::PhoneNumber { country, phone }));
+        assert_matches!(
+            from_json_value(json),
+            Ok(UserIdentifier::PhoneNumber(PhoneNumberUserIdentifier { country, phone }))
+        );
         assert_eq!(country, "33");
         assert_eq!(phone, "0102030405");
 
