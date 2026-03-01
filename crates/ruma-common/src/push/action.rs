@@ -1,12 +1,11 @@
-use std::collections::BTreeMap;
-
 use as_variant::as_variant;
 use serde::{Deserialize, Serialize};
-use serde_json::value::{RawValue as RawJsonValue, Value as JsonValue};
+use serde_json::value::RawValue as RawJsonValue;
 
 mod action_serde;
 
 use self::action_serde::TweakSerdeHelper;
+use crate::serde::JsonObject;
 
 /// This represents the different actions that should be taken when a rule is matched, and
 /// controls how notifications are delivered to the client.
@@ -32,6 +31,34 @@ pub enum Action {
 }
 
 impl Action {
+    /// Creates a new `Action`.
+    ///
+    /// Prefer to use the public variants of `Action` where possible; this constructor is meant
+    /// be used for unsupported actions only and does not allow setting arbitrary data for
+    /// supported ones.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the action type is known and deserialization of `data` to the
+    /// corresponding variant fails.
+    pub fn new(data: CustomActionData) -> serde_json::Result<Self> {
+        Ok(match data {
+            CustomActionData::String(s) => match s.as_str() {
+                "notify" => Self::Notify,
+                #[cfg(feature = "unstable-msc3768")]
+                "org.matrix.msc3768.notify_in_app" => Self::NotifyInApp,
+                _ => Self::_Custom(CustomAction(CustomActionData::String(s))),
+            },
+            CustomActionData::Object(o) => {
+                if o.contains_key("set_tweak") {
+                    Self::SetTweak(serde_json::from_value(o.into())?)
+                } else {
+                    Self::_Custom(CustomAction(CustomActionData::Object(o)))
+                }
+            }
+        })
+    }
+
     /// Whether this action is an `Action::SetTweak(Tweak::Highlight(true))`.
     pub fn is_highlight(&self) -> bool {
         matches!(self, Action::SetTweak(Tweak::Highlight(true)))
@@ -57,19 +84,29 @@ impl Action {
     pub fn sound(&self) -> Option<&str> {
         as_variant!(self, Action::SetTweak(Tweak::Sound(sound)) => sound)
     }
+
+    /// Access the data if this is a custom action.
+    pub fn custom_data(&self) -> Option<&CustomActionData> {
+        as_variant!(self, Self::_Custom).map(|action| &action.0)
+    }
 }
 
-/// An unknown action.
+/// A custom action.
 #[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct CustomAction(CustomActionData);
+
+/// The data of a custom action.
 #[allow(unknown_lints, unnameable_types)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum CustomAction {
+pub enum CustomActionData {
     /// A string.
     String(String),
 
     /// An object.
-    Object(BTreeMap<String, JsonValue>),
+    Object(JsonObject),
 }
 
 /// The `set_tweak` action.
