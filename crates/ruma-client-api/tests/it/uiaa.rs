@@ -16,16 +16,16 @@ use serde_json::{
 };
 
 #[test]
-fn deserialize_user_identifier() {
+fn deserialize_matrix_user_identifier() {
     assert_matches!(
         from_json_value(json!({
             "type": "m.id.user",
             "user": "cheeky_monkey"
         }))
         .unwrap(),
-        UserIdentifier::UserIdOrLocalpart(id)
+        UserIdentifier::Matrix(id)
     );
-    assert_eq!(id, "cheeky_monkey");
+    assert_eq!(id.user, "cheeky_monkey");
 }
 
 #[test]
