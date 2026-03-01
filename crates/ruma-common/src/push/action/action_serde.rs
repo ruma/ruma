@@ -1,7 +1,7 @@
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 use serde_json::value::RawValue as RawJsonValue;
 
-use super::{Action, CustomAction, Tweak};
+use super::{Action, CustomActionData, Tweak};
 use crate::serde::from_raw_json_value;
 
 impl<'de> Deserialize<'de> for Action {
@@ -9,24 +9,7 @@ impl<'de> Deserialize<'de> for Action {
     where
         D: Deserializer<'de>,
     {
-        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let custom: CustomAction = from_raw_json_value(&json)?;
-
-        match &custom {
-            CustomAction::String(s) => match s.as_str() {
-                "notify" => Ok(Action::Notify),
-                #[cfg(feature = "unstable-msc3768")]
-                "org.matrix.msc3768.notify_in_app" => Ok(Action::NotifyInApp),
-                _ => Ok(Action::_Custom(custom)),
-            },
-            CustomAction::Object(o) => {
-                if o.get("set_tweak").is_some() {
-                    Ok(Action::SetTweak(from_raw_json_value(&json)?))
-                } else {
-                    Ok(Action::_Custom(custom))
-                }
-            }
-        }
+        Self::new(CustomActionData::deserialize(deserializer)?).map_err(de::Error::custom)
     }
 }
 
@@ -36,11 +19,9 @@ impl Serialize for Action {
         S: Serializer,
     {
         match self {
-            Action::Notify => serializer.serialize_unit_variant("Action", 0, "notify"),
+            Action::Notify => serializer.serialize_str("notify"),
             #[cfg(feature = "unstable-msc3768")]
-            Action::NotifyInApp => {
-                serializer.serialize_unit_variant("Action", 0, "org.matrix.msc3768.notify_in_app")
-            }
+            Action::NotifyInApp => serializer.serialize_str("org.matrix.msc3768.notify_in_app"),
             Action::SetTweak(kind) => kind.serialize(serializer),
             Action::_Custom(custom) => custom.serialize(serializer),
         }

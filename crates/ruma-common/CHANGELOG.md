@@ -20,6 +20,9 @@ Breaking changes:
   tokens for APIs that don't use them as a form of authentication. The new
   `NoAccessToken` authentication scheme should be used instead for APIs that
   rely on access tokens as a form of authentication.
+- It is no longer possible to construct custom `Action` types directly through
+  the hidden `_Custom` variant. They should be constructed with `Action::new()`
+  and their data should be accessed with `Action::custom_data()`.
 
 Improvements:
 
