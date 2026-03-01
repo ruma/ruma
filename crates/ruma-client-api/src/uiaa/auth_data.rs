@@ -2,6 +2,7 @@
 
 use std::{borrow::Cow, fmt};
 
+use as_variant::as_variant;
 use ruma_common::{
     OwnedClientSecret, OwnedSessionId, OwnedUserId, serde::JsonObject, thirdparty::Medium,
 };
@@ -434,92 +435,218 @@ impl fmt::Debug for CustomAuthData {
 }
 
 /// Identification information for the user.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[allow(clippy::exhaustive_enums)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[serde(untagged)]
 pub enum UserIdentifier {
-    /// Either a fully qualified Matrix user ID, or just the localpart (as part of the 'identifier'
-    /// field).
-    UserIdOrLocalpart(String),
+    /// A Matrix user identifier.
+    Matrix(MatrixUserIdentifier),
 
     /// An email address.
-    Email {
-        /// The email address.
-        address: String,
-    },
+    Email(EmailUserIdentifier),
 
     /// A phone number in the MSISDN format.
-    Msisdn {
-        /// The phone number according to the [E.164] numbering plan.
-        ///
-        /// [E.164]: https://www.itu.int/rec/T-REC-E.164-201011-I/en
-        number: String,
-    },
+    Msisdn(MsisdnUserIdentifier),
 
     /// A phone number as a separate country code and phone number.
-    ///
-    /// The homeserver will be responsible for canonicalizing this to the MSISDN format.
-    PhoneNumber {
-        /// The country that the phone number is from.
-        ///
-        /// This is a two-letter uppercase [ISO-3166-1 alpha-2] country code.
-        ///
-        /// [ISO-3166-1 alpha-2]: https://www.iso.org/iso-3166-country-codes.html
-        country: String,
-
-        /// The phone number.
-        phone: String,
-    },
+    PhoneNumber(PhoneNumberUserIdentifier),
 
     /// Unsupported `m.id.thirdpartyid`.
     #[doc(hidden)]
-    _CustomThirdParty(CustomThirdPartyId),
+    _CustomThirdParty(CustomThirdPartyUserIdentifier),
+
+    /// Custom identifier type.
+    #[doc(hidden)]
+    _Custom(CustomUserIdentifier),
 }
 
 impl UserIdentifier {
+    /// Returns a reference to the `type` string.
+    pub fn identifier_type(&self) -> &str {
+        match self {
+            Self::Matrix(_) => "m.id.user",
+            Self::Email(_) => "m.id.thirdparty",
+            Self::Msisdn(_) => "m.id.thirdparty",
+            Self::PhoneNumber(_) => "m.id.phone",
+            Self::_CustomThirdParty(_) => "m.id.thirdparty",
+            Self::_Custom(CustomUserIdentifier { identifier_type, .. }) => identifier_type,
+        }
+    }
+
     /// Creates a new `UserIdentifier` from the given third party identifier.
     pub fn third_party_id(medium: Medium, address: String) -> Self {
         match medium {
-            Medium::Email => Self::Email { address },
-            Medium::Msisdn => Self::Msisdn { number: address },
-            _ => Self::_CustomThirdParty(CustomThirdPartyId { medium, address }),
+            Medium::Email => Self::Email(EmailUserIdentifier { address }),
+            Medium::Msisdn => Self::Msisdn(MsisdnUserIdentifier { number: address }),
+            _ => Self::_CustomThirdParty(CustomThirdPartyUserIdentifier { medium, address }),
         }
     }
 
     /// Get this `UserIdentifier` as a third party identifier if it is one.
     pub fn as_third_party_id(&self) -> Option<(&Medium, &str)> {
         match self {
-            Self::Email { address } => Some((&Medium::Email, address)),
-            Self::Msisdn { number } => Some((&Medium::Msisdn, number)),
-            Self::_CustomThirdParty(CustomThirdPartyId { medium, address }) => {
+            Self::Email(EmailUserIdentifier { address }) => Some((&Medium::Email, address)),
+            Self::Msisdn(MsisdnUserIdentifier { number }) => Some((&Medium::Msisdn, number)),
+            Self::_CustomThirdParty(CustomThirdPartyUserIdentifier { medium, address }) => {
                 Some((medium, address))
             }
             _ => None,
         }
     }
+
+    /// Returns the associated data if this is a custom identifier type.
+    ///
+    /// The returned JSON object won't contain the `type` field, use
+    /// [`.identifier_type()`][Self::identifier_type] to access it.
+    pub fn custom_identifier_data(&self) -> Option<&JsonObject> {
+        as_variant!(self, Self::_Custom).map(|id| &id.data)
+    }
 }
 
 impl From<OwnedUserId> for UserIdentifier {
     fn from(id: OwnedUserId) -> Self {
-        Self::UserIdOrLocalpart(id.into())
+        Self::Matrix(id.into())
     }
 }
 
 impl From<&OwnedUserId> for UserIdentifier {
     fn from(id: &OwnedUserId) -> Self {
-        Self::UserIdOrLocalpart(id.as_str().to_owned())
+        Self::Matrix(id.into())
+    }
+}
+
+impl From<MatrixUserIdentifier> for UserIdentifier {
+    fn from(id: MatrixUserIdentifier) -> Self {
+        Self::Matrix(id)
+    }
+}
+
+impl From<EmailUserIdentifier> for UserIdentifier {
+    fn from(id: EmailUserIdentifier) -> Self {
+        Self::Email(id)
+    }
+}
+
+impl From<MsisdnUserIdentifier> for UserIdentifier {
+    fn from(id: MsisdnUserIdentifier) -> Self {
+        Self::Msisdn(id)
+    }
+}
+
+impl From<PhoneNumberUserIdentifier> for UserIdentifier {
+    fn from(id: PhoneNumberUserIdentifier) -> Self {
+        Self::PhoneNumber(id)
+    }
+}
+
+/// Data for a Matrix user identifier.
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[serde(tag = "type", rename = "m.id.user")]
+pub struct MatrixUserIdentifier {
+    /// Either a fully qualified Matrix user ID, or just the localpart.
+    pub user: String,
+}
+
+impl MatrixUserIdentifier {
+    /// Construct a new `MatrixUserIdentifier` with the given user ID or localpart.
+    pub fn new(user: String) -> Self {
+        Self { user }
+    }
+}
+
+impl From<OwnedUserId> for MatrixUserIdentifier {
+    fn from(id: OwnedUserId) -> Self {
+        Self::new(id.into())
+    }
+}
+
+impl From<&OwnedUserId> for MatrixUserIdentifier {
+    fn from(id: &OwnedUserId) -> Self {
+        Self::new(id.as_str().to_owned())
+    }
+}
+
+/// Data for a email third-party identifier.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct EmailUserIdentifier {
+    /// The email address.
+    pub address: String,
+}
+
+impl EmailUserIdentifier {
+    /// Construct a new `EmailUserIdentifier` with the given email address.
+    pub fn new(address: String) -> Self {
+        Self { address }
+    }
+}
+
+/// Data for a phone number third-party identifier in the MSISDN format.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct MsisdnUserIdentifier {
+    /// The phone number according to the [E.164] numbering plan.
+    ///
+    /// [E.164]: https://www.itu.int/rec/T-REC-E.164-201011-I/en
+    pub number: String,
+}
+
+impl MsisdnUserIdentifier {
+    /// Construct a new `MsisdnUserIdentifier` with the given phone number.
+    pub fn new(number: String) -> Self {
+        Self { number }
+    }
+}
+
+/// Data for a phone number identifier as a separate country code and phone number.
+///
+/// The homeserver is responsible for canonicalizing this to the MSISDN format.
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[serde(tag = "type", rename = "m.id.phone")]
+pub struct PhoneNumberUserIdentifier {
+    /// The country that the phone number is from.
+    ///
+    /// This is a two-letter uppercase [ISO-3166-1 alpha-2] country code.
+    ///
+    /// [ISO-3166-1 alpha-2]: https://www.iso.org/iso-3166-country-codes.html
+    pub country: String,
+
+    /// The phone number.
+    pub phone: String,
+}
+
+impl PhoneNumberUserIdentifier {
+    /// Construct a new `PhoneNumberUserIdentifier` with the given country code and phone number.
+    pub fn new(country: String, phone: String) -> Self {
+        Self { country, phone }
     }
 }
 
 /// Data for an unsupported third-party ID.
 #[doc(hidden)]
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[non_exhaustive]
-pub struct CustomThirdPartyId {
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(tag = "type", rename = "m.id.thirdparty")]
+pub struct CustomThirdPartyUserIdentifier {
     /// The kind of the third-party ID.
     medium: Medium,
 
     /// The third-party ID.
     address: String,
+}
+
+/// Data for a custom identifier type.
+#[doc(hidden)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+pub struct CustomUserIdentifier {
+    /// The type of the identifier.
+    #[serde(rename = "type")]
+    identifier_type: String,
+
+    /// The data of the identifier.
+    #[serde(flatten)]
+    data: JsonObject,
 }
 
 /// Credentials for third-party authentication (e.g. email / phone number).
