@@ -444,12 +444,7 @@ pub enum UserIdentifier {
     Email(EmailUserIdentifier),
 
     /// A phone number in the MSISDN format.
-    Msisdn {
-        /// The phone number according to the [E.164] numbering plan.
-        ///
-        /// [E.164]: https://www.itu.int/rec/T-REC-E.164-201011-I/en
-        number: String,
-    },
+    Msisdn(MsisdnUserIdentifier),
 
     /// A phone number as a separate country code and phone number.
     ///
@@ -476,7 +471,7 @@ impl UserIdentifier {
     pub fn third_party_id(medium: Medium, address: String) -> Self {
         match medium {
             Medium::Email => Self::Email(EmailUserIdentifier { address }),
-            Medium::Msisdn => Self::Msisdn { number: address },
+            Medium::Msisdn => Self::Msisdn(MsisdnUserIdentifier { number: address }),
             _ => Self::_CustomThirdParty(CustomThirdPartyUserIdentifier { medium, address }),
         }
     }
@@ -485,7 +480,7 @@ impl UserIdentifier {
     pub fn as_third_party_id(&self) -> Option<(&Medium, &str)> {
         match self {
             Self::Email(EmailUserIdentifier { address }) => Some((&Medium::Email, address)),
-            Self::Msisdn { number } => Some((&Medium::Msisdn, number)),
+            Self::Msisdn(MsisdnUserIdentifier { number }) => Some((&Medium::Msisdn, number)),
             Self::_CustomThirdParty(CustomThirdPartyUserIdentifier { medium, address }) => {
                 Some((medium, address))
             }
@@ -515,6 +510,12 @@ impl From<MatrixUserIdentifier> for UserIdentifier {
 impl From<EmailUserIdentifier> for UserIdentifier {
     fn from(id: EmailUserIdentifier) -> Self {
         Self::Email(id)
+    }
+}
+
+impl From<MsisdnUserIdentifier> for UserIdentifier {
+    fn from(id: MsisdnUserIdentifier) -> Self {
+        Self::Msisdn(id)
     }
 }
 
@@ -558,6 +559,23 @@ impl EmailUserIdentifier {
     /// Construct a new `EmailUserIdentifier` with the given email address.
     pub fn new(address: String) -> Self {
         Self { address }
+    }
+}
+
+/// Data for a phone number third-party identifier in the MSISDN format.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct MsisdnUserIdentifier {
+    /// The phone number according to the [E.164] numbering plan.
+    ///
+    /// [E.164]: https://www.itu.int/rec/T-REC-E.164-201011-I/en
+    pub number: String,
+}
+
+impl MsisdnUserIdentifier {
+    /// Construct a new `MsisdnUserIdentifier` with the given phone number.
+    pub fn new(number: String) -> Self {
+        Self { number }
     }
 }
 
