@@ -8,6 +8,9 @@ Breaking changes:
   required but it is removed during redaction.
 - The `canonical-json` feature was removed. The code that was behind it is no
   longer gated behind a cargo feature.
+- The `Reply` struct variant of `message::Relation`, `encrypted::Relation` and
+  `RelationWithoutReplacement` is now a tuple variant containing a
+  non-exhaustive struct.
 
 Bug fixes:
 

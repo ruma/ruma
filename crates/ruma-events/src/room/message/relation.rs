@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use ruma_common::serde::JsonObject;
 
-use crate::relation::{CustomRelation, InReplyTo, RelationType, Replacement, Thread};
+use crate::relation::{CustomRelation, RelationType, Replacement, Reply, Thread};
 
 /// Message event relationship.
 #[derive(Clone, Debug)]
@@ -10,10 +10,7 @@ use crate::relation::{CustomRelation, InReplyTo, RelationType, Replacement, Thre
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum Relation<C> {
     /// An `m.in_reply_to` relation indicating that the event is a reply to another event.
-    Reply {
-        /// Information about another message being replied to.
-        in_reply_to: InReplyTo,
-    },
+    Reply(Reply),
 
     /// An event that replaces another event.
     Replacement(Replacement<C>),
@@ -31,7 +28,7 @@ impl<C> Relation<C> {
     /// Returns an `Option` because the `Reply` relation does not have a`rel_type` field.
     pub fn rel_type(&self) -> Option<RelationType> {
         match self {
-            Relation::Reply { .. } => None,
+            Relation::Reply(_) => None,
             Relation::Replacement(_) => Some(RelationType::Replacement),
             Relation::Thread(_) => Some(RelationType::Thread),
             Relation::_Custom(c) => c.rel_type(),
@@ -63,11 +60,8 @@ impl<C> Relation<C> {
 #[allow(clippy::manual_non_exhaustive)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum RelationWithoutReplacement {
-    /// An `m.in_reply_to` relation indicating that the event is a reply to another event.
-    Reply {
-        /// Information about another message being replied to.
-        in_reply_to: InReplyTo,
-    },
+    /// A reply to another event.
+    Reply(Reply),
 
     /// An event that belongs to a thread.
     Thread(Thread),
@@ -82,7 +76,7 @@ impl RelationWithoutReplacement {
     /// Returns an `Option` because the `Reply` relation does not have a`rel_type` field.
     pub fn rel_type(&self) -> Option<RelationType> {
         match self {
-            Self::Reply { .. } => None,
+            Self::Reply(_) => None,
             Self::Thread(_) => Some(RelationType::Thread),
             Self::_Custom(c) => c.rel_type(),
         }
@@ -110,7 +104,7 @@ impl<C> TryFrom<Relation<C>> for RelationWithoutReplacement {
 
     fn try_from(value: Relation<C>) -> Result<Self, Self::Error> {
         let rel = match value {
-            Relation::Reply { in_reply_to } => Self::Reply { in_reply_to },
+            Relation::Reply(r) => Self::Reply(r),
             Relation::Replacement(r) => return Err(r),
             Relation::Thread(t) => Self::Thread(t),
             Relation::_Custom(c) => Self::_Custom(c),

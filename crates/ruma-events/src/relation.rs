@@ -15,6 +15,29 @@ use crate::{AnySyncMessageLikeEvent, PrivOwnedStr};
 
 mod rel_serde;
 
+/// A [rich reply] to an event.
+///
+/// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct Reply {
+    /// The event being replied to.
+    #[serde(rename = "m.in_reply_to")]
+    pub in_reply_to: InReplyTo,
+}
+
+impl Reply {
+    /// Creates a new `Reply` with the given reply information.
+    pub fn new(in_reply_to: InReplyTo) -> Self {
+        Self { in_reply_to }
+    }
+
+    /// Creates a new `Reply` with the given event ID.
+    pub fn with_event_id(event_id: OwnedEventId) -> Self {
+        Self { in_reply_to: InReplyTo::new(event_id) }
+    }
+}
+
 /// Information about the event a [rich reply] is replying to.
 ///
 /// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies

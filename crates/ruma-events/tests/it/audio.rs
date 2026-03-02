@@ -17,7 +17,7 @@ use ruma_events::{
     audio::{AudioDetailsContentBlock, AudioEventContent},
     file::{EncryptedContentInit, FileContentBlock},
     message::TextContentBlock,
-    relation::InReplyTo,
+    relation::Reply,
     room::{JsonWebKeyInit, message::Relation},
 };
 use serde_json::{from_value as from_json_value, json};
@@ -121,9 +121,8 @@ fn event_serialization() {
     content.file.mimetype = Some("audio/mp3".to_owned());
     content.file.size = Some(uint!(897_774));
     content.audio_details = Some(AudioDetailsContentBlock::new(Duration::from_secs(123)));
-    content.relates_to = Some(Relation::Reply {
-        in_reply_to: InReplyTo::new(owned_event_id!("$replyevent:example.com")),
-    });
+    content.relates_to =
+        Some(Relation::Reply(Reply::with_event_id(owned_event_id!("$replyevent:example.com"))));
 
     assert_to_canonical_json_eq!(
         content,

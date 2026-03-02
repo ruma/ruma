@@ -12,7 +12,7 @@ use ruma_events::{
     AnyMessageLikeEvent, MessageLikeEvent,
     audio::Amplitude,
     file::FileContentBlock,
-    relation::InReplyTo,
+    relation::Reply,
     room::message::Relation,
     voice::{VoiceAudioDetailsContentBlock, VoiceEventContent},
 };
@@ -34,9 +34,8 @@ fn event_serialization() {
 
     content.file.mimetype = Some("audio/opus".to_owned());
     content.file.size = Some(uint!(897_774));
-    content.relates_to = Some(Relation::Reply {
-        in_reply_to: InReplyTo::new(owned_event_id!("$replyevent:example.com")),
-    });
+    content.relates_to =
+        Some(Relation::Reply(Reply::with_event_id(owned_event_id!("$replyevent:example.com"))));
 
     assert_to_canonical_json_eq!(
         content,

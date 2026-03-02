@@ -16,7 +16,7 @@ use ruma_events::{
         ThumbnailImageDetailsContentBlock,
     },
     message::TextContentBlock,
-    relation::InReplyTo,
+    relation::Reply,
     room::{JsonWebKeyInit, message::Relation},
 };
 use serde_json::{from_value as from_json_value, json};
@@ -122,9 +122,8 @@ fn image_event_serialization() {
     thumbnail.file.size = Some(uint!(334_593));
     content.thumbnail = vec![thumbnail].into();
     content.caption = Some(CaptionContentBlock::plain("This is my house"));
-    content.relates_to = Some(Relation::Reply {
-        in_reply_to: InReplyTo::new(owned_event_id!("$replyevent:example.com")),
-    });
+    content.relates_to =
+        Some(Relation::Reply(Reply::with_event_id(owned_event_id!("$replyevent:example.com"))));
 
     assert_to_canonical_json_eq!(
         content,

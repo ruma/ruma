@@ -6,7 +6,7 @@ use super::{
 };
 use crate::{
     Mentions,
-    relation::{InReplyTo, Replacement, Thread},
+    relation::{InReplyTo, Replacement, Reply, Thread},
 };
 
 /// Form of [`RoomMessageEventContent`] without relation.
@@ -114,7 +114,7 @@ impl RoomMessageEventContentWithoutRelation {
         let relates_to = if let Some(event_id) = original_thread_id {
             Relation::Thread(Thread::plain(event_id.to_owned(), original_event_id.to_owned()))
         } else {
-            Relation::Reply { in_reply_to: InReplyTo { event_id: original_event_id.to_owned() } }
+            Relation::Reply(Reply::with_event_id(original_event_id.to_owned()))
         };
 
         if add_mentions == AddMentions::Yes {
