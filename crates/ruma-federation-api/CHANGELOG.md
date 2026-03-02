@@ -1,5 +1,18 @@
 # [unreleased]
 
+Breaking changes:
+
+- Add support for extended profile fields to `get_profile_information` endpoint.
+  - The `field` field of `Request` takes a `ProfileFieldName` rather than a
+    custom enum.
+  - `Response` has no public fields anymore but stores all profile fields. The
+    fields can be accessed with `.get()`, `.iter()` or `.into_iter()`.
+    `Response::new()` takes no arguments and creates an empty response. Fields
+    can be added using `.set()`, or the `FromIterator` and `Extend`
+    implementations.
+- The `compat-empty-string-null` cargo feature was removed because it is now
+  unused.
+
 # 0.13.1
 
 Bug fixes:

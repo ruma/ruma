@@ -17,6 +17,7 @@ pub mod v3 {
         RoomVersionId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
+        profile::ProfileFieldName,
         serde::StringEnum,
     };
     use serde::{Deserialize, Serialize};
@@ -24,7 +25,7 @@ pub mod v3 {
         Value as JsonValue, from_value as from_json_value, to_value as to_json_value,
     };
 
-    use crate::{PrivOwnedStr, profile::ProfileFieldName};
+    use crate::PrivOwnedStr;
 
     metadata! {
         method: GET,
