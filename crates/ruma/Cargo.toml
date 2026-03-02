@@ -86,7 +86,6 @@ compat-empty-string-null = [
     "ruma-common/compat-empty-string-null",
     "ruma-client-api?/compat-empty-string-null",
     "ruma-events?/compat-empty-string-null",
-    "ruma-federation-api?/compat-empty-string-null",
 ]
 
 # Allow certain fields to be `null` for compatibility, treating that the same as

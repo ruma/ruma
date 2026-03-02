@@ -10,6 +10,8 @@ Breaking changes:
     `Response::new()` takes no arguments and creates an empty response. Fields
     can be added using `.set()`, or the `FromIterator` and `Extend`
     implementations.
+- The `compat-empty-string-null` cargo feature was removed because it is now
+  unused.
 
 # 0.13.1
 
