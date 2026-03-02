@@ -133,11 +133,7 @@ unstable-extensible-events = [
     "unstable-msc3955",
 ]
 unstable-msc1767 = ["ruma-events?/unstable-msc1767"]
-unstable-msc2448 = [
-    "ruma-client-api?/unstable-msc2448",
-    "ruma-events?/unstable-msc2448",
-    "ruma-federation-api?/unstable-msc2448",
-]
+unstable-msc2448 = ["ruma-client-api?/unstable-msc2448", "ruma-events?/unstable-msc2448"]
 unstable-msc2545 = ["ruma-events?/unstable-msc2545"]
 unstable-msc2654 = ["ruma-client-api?/unstable-msc2654"]
 unstable-msc2666 = ["ruma-common/unstable-msc2666", "ruma-client-api?/unstable-msc2666"]
