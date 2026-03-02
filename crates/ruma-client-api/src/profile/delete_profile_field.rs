@@ -11,9 +11,8 @@ pub mod v3 {
         OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
+        profile::ProfileFieldName,
     };
-
-    use crate::profile::ProfileFieldName;
 
     metadata! {
         method: DELETE,

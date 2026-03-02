@@ -19,9 +19,10 @@ pub mod v3 {
         OwnedUserId,
         api::{Metadata, auth_scheme::NoAccessToken, path_builder::VersionHistory},
         metadata,
+        profile::{ProfileFieldName, ProfileFieldValue},
     };
 
-    use crate::profile::{ProfileFieldName, ProfileFieldValue, StaticProfileField};
+    use crate::profile::StaticProfileField;
 
     metadata! {
         method: GET,
@@ -71,7 +72,9 @@ pub mod v3 {
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use ruma_common::api::{auth_scheme::AuthScheme, path_builder::PathBuilder};
 
-            let url = if self.field.existed_before_extended_profiles() {
+            use crate::profile::field_existed_before_extended_profiles;
+
+            let url = if field_existed_before_extended_profiles(&self.field) {
                 Self::make_endpoint_url(considering, base_url, &[&self.user_id, &self.field], "")?
             } else {
                 crate::profile::EXTENDED_PROFILE_FIELD_HISTORY.make_endpoint_url(
@@ -192,9 +195,8 @@ pub mod v3 {
             response: http::Response<T>,
         ) -> Result<Self, ruma_common::api::error::FromHttpResponseError<Self::EndpointError>>
         {
-            use ruma_common::api::EndpointError;
-
-            use crate::profile::profile_field_serde::deserialize_profile_field_value_option;
+            use ruma_common::{api::EndpointError, profile::ProfileFieldValueVisitor};
+            use serde::Deserializer;
 
             if response.status().as_u16() >= 400 {
                 return Err(ruma_common::api::error::FromHttpResponseError::Server(
@@ -203,7 +205,7 @@ pub mod v3 {
             }
 
             let mut de = serde_json::Deserializer::from_slice(response.body().as_ref());
-            let value = deserialize_profile_field_value_option(&mut de)?;
+            let value = de.deserialize_map(ProfileFieldValueVisitor::new(None))?;
             de.end()?;
 
             Ok(Self { value })
@@ -278,11 +280,13 @@ pub mod v3 {
 
 #[cfg(all(test, feature = "client"))]
 mod tests_client {
-    use ruma_common::{owned_mxc_uri, owned_user_id};
+    use ruma_common::{
+        owned_mxc_uri, owned_user_id,
+        profile::{ProfileFieldName, ProfileFieldValue},
+    };
     use serde_json::{json, to_vec as to_json_vec};
 
     use super::v3::{Request, RequestStatic, Response};
-    use crate::profile::{ProfileFieldName, ProfileFieldValue};
 
     #[test]
     fn serialize_request() {
@@ -425,11 +429,13 @@ mod tests_client {
 
 #[cfg(all(test, feature = "server"))]
 mod tests_server {
-    use ruma_common::owned_mxc_uri;
+    use ruma_common::{
+        owned_mxc_uri,
+        profile::{ProfileFieldName, ProfileFieldValue},
+    };
     use serde_json::{Value as JsonValue, from_slice as from_json_slice, json};
 
     use super::v3::{Request, Response};
-    use crate::profile::{ProfileFieldName, ProfileFieldValue};
 
     #[test]
     fn deserialize_request() {

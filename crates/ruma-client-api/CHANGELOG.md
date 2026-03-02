@@ -45,6 +45,8 @@ Breaking changes:
 - `UserIdentifier` can now represent an identifier with a custom type, and its
   variants were changed to tuple variants containing a non-exhaustive struct.
   - `UserIdentifier::UserIdOrLocalpart` was renamed to `UserIdentifier::Matrix`.
+- The `ProfileFieldName` and `ProfileFieldValue` enums were moved to
+  `ruma_common::profile`.
 
 Bug fixes:
 
