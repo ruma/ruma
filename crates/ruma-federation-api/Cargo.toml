@@ -15,10 +15,6 @@ rust-version = { workspace = true }
 all-features = true
 
 [features]
-# Allow some mandatory fields in requests / responses to be missing, defaulting
-# them to an empty string in deserialization.
-compat-empty-string-null = []
-
 # Allow the `pdus` field in a transaction request to be missing, defaulting to
 # an empty `Vec` in deserialization.
 compat-optional-txn-pdus = []
