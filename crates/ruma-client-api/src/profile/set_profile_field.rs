@@ -17,9 +17,8 @@ pub mod v3 {
         OwnedUserId,
         api::{auth_scheme::AccessToken, response},
         metadata,
+        profile::ProfileFieldValue,
     };
-
-    use crate::profile::ProfileFieldValue;
 
     metadata! {
         method: PUT,
@@ -64,9 +63,11 @@ pub mod v3 {
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use ruma_common::api::{Metadata, auth_scheme::AuthScheme, path_builder::PathBuilder};
 
+            use crate::profile::field_existed_before_extended_profiles;
+
             let field = self.value.field_name();
 
-            let url = if field.existed_before_extended_profiles() {
+            let url = if field_existed_before_extended_profiles(&field) {
                 Self::make_endpoint_url(considering, base_url, &[&self.user_id, &field], "")?
             } else {
                 crate::profile::EXTENDED_PROFILE_FIELD_HISTORY.make_endpoint_url(
@@ -104,9 +105,8 @@ pub mod v3 {
             B: AsRef<[u8]>,
             S: AsRef<str>,
         {
+            use ruma_common::profile::{ProfileFieldName, ProfileFieldValueVisitor};
             use serde::de::{Deserializer, Error as _};
-
-            use crate::profile::{ProfileFieldName, profile_field_serde::ProfileFieldValueVisitor};
 
             Self::check_request_method(request.method())?;
 
@@ -119,7 +119,7 @@ pub mod v3 {
                 ))?;
 
             let value = serde_json::Deserializer::from_slice(request.body().as_ref())
-                .deserialize_map(ProfileFieldValueVisitor(Some(field.clone())))?
+                .deserialize_map(ProfileFieldValueVisitor::new(Some(field.clone())))?
                 .ok_or_else(|| serde_json::Error::custom(format!("missing field `{field}`")))?;
 
             Ok(Request { user_id, value })
@@ -147,11 +147,11 @@ mod tests_client {
     use ruma_common::{
         api::{OutgoingRequest, SupportedVersions, auth_scheme::SendAccessToken},
         owned_mxc_uri, owned_user_id,
+        profile::ProfileFieldValue,
     };
     use serde_json::{Value as JsonValue, from_slice as from_json_slice, json};
 
     use super::v3::Request;
-    use crate::profile::ProfileFieldValue;
 
     #[test]
     fn serialize_request() {
@@ -278,11 +278,10 @@ mod tests_client {
 #[cfg(all(test, feature = "server"))]
 mod tests_server {
     use assert_matches2::assert_let;
-    use ruma_common::api::IncomingRequest;
+    use ruma_common::{api::IncomingRequest, profile::ProfileFieldValue};
     use serde_json::{json, to_vec as to_json_vec};
 
     use super::v3::Request;
-    use crate::profile::ProfileFieldValue;
 
     #[test]
     fn deserialize_request_valid_field() {

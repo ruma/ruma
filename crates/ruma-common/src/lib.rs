@@ -31,6 +31,7 @@ mod percent_encode;
 pub mod power_levels;
 pub mod presence;
 mod priv_owned_str;
+pub mod profile;
 pub mod push;
 pub mod room;
 pub mod room_version_rules;
