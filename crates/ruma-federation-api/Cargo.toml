@@ -25,7 +25,6 @@ compat-optional-txn-pdus = []
 
 client = ["dep:httparse", "dep:memchr"]
 server = ["dep:bytes", "dep:rand"]
-unstable-msc2448 = []
 unstable-msc3618 = []
 unstable-msc3723 = []
 unstable-msc3843 = []
