@@ -4,7 +4,7 @@
 
 use ruma_common::{OwnedDeviceId, OwnedTransactionId, serde::StringEnum};
 use ruma_macros::EventContent;
-use serde::{Deserialize, Serialize, ser::SerializeStruct};
+use serde::{Deserialize, Serialize};
 
 use crate::{GlobalAccountDataEventType, PrivOwnedStr};
 
@@ -45,66 +45,50 @@ impl ToDeviceSecretRequestEventContent {
 }
 
 /// Action for an `m.secret.request` event.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[serde(try_from = "RequestActionJsonRepr")]
+#[serde(tag = "action", rename_all = "snake_case")]
 pub enum RequestAction {
     /// Request a secret by its name.
-    Request(SecretName),
+    Request(SecretRequestAction),
 
     /// Cancel a request for a secret.
     RequestCancellation,
 
     #[doc(hidden)]
-    _Custom(PrivOwnedStr),
+    #[serde(untagged)]
+    _Custom(CustomRequestAction),
 }
 
-impl Serialize for RequestAction {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let mut st = serializer.serialize_struct("request_action", 2)?;
-
+impl RequestAction {
+    /// Access the `action` field of this action.
+    pub fn action(&self) -> &str {
         match self {
-            Self::Request(name) => {
-                st.serialize_field("name", name)?;
-                st.serialize_field("action", "request")?;
-                st.end()
-            }
-            Self::RequestCancellation => {
-                st.serialize_field("action", "request_cancellation")?;
-                st.end()
-            }
-            RequestAction::_Custom(custom) => {
-                st.serialize_field("action", &custom.0)?;
-                st.end()
-            }
+            Self::Request(_) => "request",
+            Self::RequestCancellation => "request_cancellation",
+            Self::_Custom(custom) => &custom.action,
         }
     }
 }
 
-#[derive(Deserialize)]
-struct RequestActionJsonRepr {
-    action: String,
-    name: Option<SecretName>,
+impl From<SecretRequestAction> for RequestAction {
+    fn from(value: SecretRequestAction) -> Self {
+        Self::Request(value)
+    }
 }
 
-impl TryFrom<RequestActionJsonRepr> for RequestAction {
-    type Error = &'static str;
+/// Details about a secret to request in a [`RequestAction`].
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct SecretRequestAction {
+    /// The name of the requested secret.
+    pub name: SecretName,
+}
 
-    fn try_from(value: RequestActionJsonRepr) -> Result<Self, Self::Error> {
-        match value.action.as_str() {
-            "request" => {
-                if let Some(name) = value.name {
-                    Ok(RequestAction::Request(name))
-                } else {
-                    Err("A secret name is required when the action is \"request\".")
-                }
-            }
-            "request_cancellation" => Ok(RequestAction::RequestCancellation),
-            _ => Ok(RequestAction::_Custom(PrivOwnedStr(value.action.into()))),
-        }
+impl SecretRequestAction {
+    /// Construct a new `SecretRequestAction` for the given secret name.
+    pub fn new(name: SecretName) -> Self {
+        Self { name }
     }
 }
 
@@ -139,19 +123,28 @@ impl From<SecretName> for GlobalAccountDataEventType {
     }
 }
 
+/// A custom [`RequestAction`].
+#[doc(hidden)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CustomRequestAction {
+    /// The action of the request.
+    action: String,
+}
+
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
     use ruma_common::canonical_json::assert_to_canonical_json_eq;
     use serde_json::{from_value as from_json_value, json};
 
-    use super::{RequestAction, SecretName, ToDeviceSecretRequestEventContent};
-    use crate::PrivOwnedStr;
+    use super::{
+        RequestAction, SecretName, SecretRequestAction, ToDeviceSecretRequestEventContent,
+    };
 
     #[test]
     fn secret_request_serialization() {
         let content = ToDeviceSecretRequestEventContent::new(
-            RequestAction::Request("org.example.some.secret".into()),
+            RequestAction::Request(SecretRequestAction::new("org.example.some.secret".into())),
             "ABCDEFG".into(),
             "randomly_generated_id_9573".into(),
         );
@@ -170,7 +163,7 @@ mod tests {
     #[test]
     fn secret_request_recovery_key_serialization() {
         let content = ToDeviceSecretRequestEventContent::new(
-            RequestAction::Request(SecretName::RecoveryKey),
+            RequestAction::Request(SecretRequestAction::new(SecretName::RecoveryKey)),
             "XYZxyz".into(),
             "this_is_a_request_id".into(),
         );
@@ -180,24 +173,6 @@ mod tests {
             json!({
                 "name": "m.megolm_backup.v1",
                 "action": "request",
-                "requesting_device_id": "XYZxyz",
-                "request_id": "this_is_a_request_id",
-            }),
-        );
-    }
-
-    #[test]
-    fn secret_custom_action_serialization() {
-        let content = ToDeviceSecretRequestEventContent::new(
-            RequestAction::_Custom(PrivOwnedStr("my_custom_action".into())),
-            "XYZxyz".into(),
-            "this_is_a_request_id".into(),
-        );
-
-        assert_to_canonical_json_eq!(
-            content,
-            json!({
-                "action": "my_custom_action",
                 "requesting_device_id": "XYZxyz",
                 "request_id": "this_is_a_request_id",
             }),
@@ -235,7 +210,7 @@ mod tests {
         assert_eq!(content.requesting_device_id, "ABCDEFG");
         assert_eq!(content.request_id, "randomly_generated_id_9573");
         assert_matches!(content.action, RequestAction::Request(secret));
-        assert_eq!(secret.as_str(), "org.example.some.secret");
+        assert_eq!(secret.name.as_str(), "org.example.some.secret");
     }
 
     #[test]
@@ -265,20 +240,22 @@ mod tests {
         assert_eq!(content.requesting_device_id, "XYZxyz");
         assert_eq!(content.request_id, "this_is_a_request_id");
         assert_matches!(content.action, RequestAction::Request(secret));
-        assert_eq!(secret, SecretName::RecoveryKey);
+        assert_eq!(secret.name, SecretName::RecoveryKey);
     }
 
     #[test]
-    fn secret_custom_action_deserialization() {
+    fn secret_custom_action_serialization_roundtrip() {
         let json = json!({
             "action": "my_custom_action",
             "requesting_device_id": "XYZxyz",
             "request_id": "this_is_a_request_id"
         });
 
-        let content = from_json_value::<ToDeviceSecretRequestEventContent>(json).unwrap();
+        let content = from_json_value::<ToDeviceSecretRequestEventContent>(json.clone()).unwrap();
         assert_eq!(content.requesting_device_id, "XYZxyz");
         assert_eq!(content.request_id, "this_is_a_request_id");
-        assert_eq!(content.action, RequestAction::_Custom(PrivOwnedStr("my_custom_action".into())));
+        assert_eq!(content.action.action(), "my_custom_action");
+
+        assert_to_canonical_json_eq!(content, json);
     }
 }

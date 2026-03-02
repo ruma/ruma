@@ -17,6 +17,9 @@ Breaking changes:
   called `content_change()`.
 - The `content()` method on `Any(Sync)StateEvent` returns an
   `AnyPossiblyRedactedStateEventContent`.
+- `RequestAction` doesn't implement `(Partial)Eq` and `(Partial)Ord` anymore and
+  its `Request` variant contains a non-exhaustive struct instead of a
+  `SecretName`.
 
 Bug fixes:
 
