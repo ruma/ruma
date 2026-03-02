@@ -11,7 +11,7 @@ use ruma_events::{
     AnyMessageLikeEvent, MessageLikeEvent,
     location::{AssetType, LocationContent, LocationEventContent, ZoomLevel, ZoomLevelError},
     message::TextContentBlock,
-    relation::InReplyTo,
+    relation::Reply,
     room::message::{LocationMessageEventContent, MessageType, Relation, RoomMessageEventContent},
 };
 use serde_json::{from_value as from_json_value, json};
@@ -54,9 +54,9 @@ fn event_serialization() {
         ),
         {
             ts: Some(MilliSecondsSinceUnixEpoch(uint!(1_636_829_458))),
-            relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo::new(owned_event_id!("$replyevent:example.com")),
-            }),
+            relates_to: Some(Relation::Reply(
+                Reply::with_event_id(owned_event_id!("$replyevent:example.com"))
+            )),
         }
     );
 

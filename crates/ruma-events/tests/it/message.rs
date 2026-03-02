@@ -12,7 +12,7 @@ use ruma_events::emote::EmoteEventContent;
 use ruma_events::{
     AnyMessageLikeEvent, MessageLikeEvent,
     message::{MessageEventContent, TextContentBlock, TextRepresentation},
-    relation::InReplyTo,
+    relation::Reply,
     room::message::Relation,
 };
 use serde_json::{from_value as from_json_value, json};
@@ -129,11 +129,10 @@ fn reply_content_serialization() {
     #[rustfmt::skip] // rustfmt wants to merge the next two lines
     let message_event_content =
         assign!(MessageEventContent::plain("> <@test:example.com> test\n\ntest reply"), {
-            relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo::new(
+            relates_to: Some(Relation::Reply(Reply::with_event_id(
                     owned_event_id!("$15827405538098VGFWH:example.com"),
                 ),
-            }),
+            )),
         });
 
     assert_to_canonical_json_eq!(
@@ -227,11 +226,8 @@ fn reply_content_deserialization() {
     assert_eq!(content.text.find_plain(), Some("> <@test:example.com> test\n\ntest reply"));
     assert_eq!(content.text.find_html(), None);
 
-    assert_matches!(
-        content.relates_to,
-        Some(Relation::Reply { in_reply_to: InReplyTo { event_id, .. } })
-    );
-    assert_eq!(event_id, "$15827405538098VGFWH:example.com");
+    assert_matches!(content.relates_to, Some(Relation::Reply(reply)));
+    assert_eq!(reply.in_reply_to.event_id, "$15827405538098VGFWH:example.com");
 }
 
 #[test]

@@ -18,10 +18,7 @@ use tracing::warn;
 
 #[cfg(feature = "html")]
 use self::sanitize::remove_plain_reply_fallback;
-use crate::{
-    Mentions, PrivOwnedStr,
-    relation::{InReplyTo, Replacement, Thread},
-};
+use crate::{Mentions, PrivOwnedStr, relation::Thread};
 
 mod audio;
 mod content_serde;
@@ -249,6 +246,8 @@ impl RoomMessageEventContent {
     }
 
     /// Apply the given new content from a [`Replacement`] to this message.
+    ///
+    /// [`Replacement`]: crate::relation::Replacement
     pub fn apply_replacement(&mut self, new_content: RoomMessageEventContentWithoutRelation) {
         let RoomMessageEventContentWithoutRelation { msgtype, mentions } = new_content;
         self.msgtype = msgtype;
@@ -273,7 +272,7 @@ impl RoomMessageEventContent {
         mode: HtmlSanitizerMode,
         remove_reply_fallback: RemoveReplyFallback,
     ) {
-        let remove_reply_fallback = if matches!(self.relates_to, Some(Relation::Reply { .. })) {
+        let remove_reply_fallback = if matches!(self.relates_to, Some(Relation::Reply(_))) {
             remove_reply_fallback
         } else {
             RemoveReplyFallback::No

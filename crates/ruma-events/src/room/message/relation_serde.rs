@@ -2,8 +2,8 @@ use ruma_common::{OwnedEventId, serde::JsonObject};
 use serde::{Deserialize, Deserializer, Serialize, de};
 use serde_json::Value as JsonValue;
 
-use super::{InReplyTo, Relation, RelationWithoutReplacement, Replacement, Thread};
-use crate::relation::CustomRelation;
+use super::{Relation, RelationWithoutReplacement};
+use crate::relation::{CustomRelation, InReplyTo, Replacement, Reply, Thread};
 
 /// Deserialize an event's `relates_to` field.
 ///
@@ -53,7 +53,7 @@ where
         },
         RelationDeHelper::Unknown(c) => {
             if let Some(in_reply_to) = in_reply_to {
-                Relation::Reply { in_reply_to }
+                Relation::Reply(Reply { in_reply_to })
             } else {
                 Relation::_Custom(c)
             }
@@ -172,7 +172,7 @@ impl<C> Relation<C> {
                 RelationSerHelper::Replacement(ReplacementJsonRepr { event_id }),
                 Some(new_content),
             ),
-            Relation::Reply { in_reply_to } => {
+            Relation::Reply(Reply { in_reply_to }) => {
                 (RelationSerHelper::Custom(in_reply_to.into()), None)
             }
             Relation::Thread(t) => (RelationSerHelper::Thread(t), None),
@@ -220,7 +220,7 @@ impl From<CustomRelation> for CustomSerHelper {
 impl From<&RelationWithoutReplacement> for RelationSerHelper {
     fn from(value: &RelationWithoutReplacement) -> Self {
         match value.clone() {
-            RelationWithoutReplacement::Reply { in_reply_to } => {
+            RelationWithoutReplacement::Reply(Reply { in_reply_to }) => {
                 RelationSerHelper::Custom(in_reply_to.into())
             }
             RelationWithoutReplacement::Thread(t) => RelationSerHelper::Thread(t),

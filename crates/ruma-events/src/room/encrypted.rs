@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 use super::message;
 use crate::{
-    relation::{Annotation, CustomRelation, InReplyTo, Reference, RelationType, Thread},
+    relation::{Annotation, CustomRelation, InReplyTo, Reference, RelationType, Reply, Thread},
     room::message::RelationWithoutReplacement,
 };
 
@@ -86,15 +86,13 @@ pub enum EncryptedEventScheme {
 /// Relationship information about an encrypted event.
 ///
 /// Outside of the encrypted payload to support server aggregation.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 #[allow(clippy::manual_non_exhaustive)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[serde(untagged)]
 pub enum Relation {
-    /// An `m.in_reply_to` relation indicating that the event is a reply to another event.
-    Reply {
-        /// Information about another message being replied to.
-        in_reply_to: InReplyTo,
-    },
+    /// A reply to another event.
+    Reply(Reply),
 
     /// An event that replaces another event.
     Replacement(Replacement),
@@ -115,10 +113,10 @@ pub enum Relation {
 impl Relation {
     /// The type of this `Relation`.
     ///
-    /// Returns an `Option` because the `Reply` relation does not have a`rel_type` field.
+    /// Returns an `Option` because the `Reply` relation does not have a `rel_type` field.
     pub fn rel_type(&self) -> Option<RelationType> {
         match self {
-            Relation::Reply { .. } => None,
+            Relation::Reply(_) => None,
             Relation::Replacement(_) => Some(RelationType::Replacement),
             Relation::Reference(_) => Some(RelationType::Reference),
             Relation::Annotation(_) => Some(RelationType::Annotation),
@@ -147,7 +145,7 @@ impl Relation {
 impl<C> From<message::Relation<C>> for Relation {
     fn from(rel: message::Relation<C>) -> Self {
         match rel {
-            message::Relation::Reply { in_reply_to } => Self::Reply { in_reply_to },
+            message::Relation::Reply(r) => Self::Reply(r),
             message::Relation::Replacement(re) => {
                 Self::Replacement(Replacement { event_id: re.event_id })
             }
@@ -164,9 +162,9 @@ impl<C> From<message::Relation<C>> for Relation {
 impl From<RelationWithoutReplacement> for Relation {
     fn from(value: RelationWithoutReplacement) -> Self {
         match value {
+            RelationWithoutReplacement::Reply(r) => Self::Reply(r),
             RelationWithoutReplacement::Thread(t) => Self::Thread(t),
             RelationWithoutReplacement::_Custom(c) => Self::_Custom(c),
-            RelationWithoutReplacement::Reply { in_reply_to } => Self::Reply { in_reply_to },
         }
     }
 }
@@ -295,7 +293,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json};
 
     use super::{
-        EncryptedEventScheme, InReplyTo, MegolmV1AesSha2ContentInit, Relation,
+        EncryptedEventScheme, MegolmV1AesSha2ContentInit, Relation, Reply,
         RoomEncryptedEventContent,
     };
 
@@ -311,9 +309,9 @@ mod tests {
                 }
                 .into(),
             ),
-            relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo { event_id: owned_event_id!("$h29iv0s8:example.com") },
-            }),
+            relates_to: Some(Relation::Reply(Reply::with_event_id(owned_event_id!(
+                "$h29iv0s8:example.com"
+            )))),
         };
 
         assert_to_canonical_json_eq!(
@@ -357,8 +355,8 @@ mod tests {
         assert_eq!(scheme.device_id.as_deref(), Some(device_id!("device_id")));
         assert_eq!(scheme.session_id, "session_id");
 
-        assert_matches!(content.relates_to, Some(Relation::Reply { in_reply_to }));
-        assert_eq!(in_reply_to.event_id, "$h29iv0s8:example.com");
+        assert_matches!(content.relates_to, Some(Relation::Reply(reply)));
+        assert_eq!(reply.in_reply_to.event_id, "$h29iv0s8:example.com");
     }
 
     #[test]

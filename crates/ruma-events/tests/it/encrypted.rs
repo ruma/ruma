@@ -3,7 +3,7 @@ use ruma_common::{
     canonical_json::assert_to_canonical_json_eq, owned_device_id, owned_event_id, serde::Raw,
 };
 use ruma_events::{
-    relation::{Annotation, CustomRelation, InReplyTo, Reference, Thread},
+    relation::{Annotation, CustomRelation, Reference, Reply, Thread},
     room::encrypted::{
         EncryptedEventScheme, MegolmV1AesSha2ContentInit, Relation, Replacement,
         RoomEncryptedEventContent,
@@ -97,7 +97,7 @@ fn content_no_relation_serialization_roundtrip() {
 fn content_reply_serialization() {
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
-        Some(Relation::Reply { in_reply_to: InReplyTo::new(owned_event_id!("$replied_to_event")) }),
+        Some(Relation::Reply(Reply::with_event_id(owned_event_id!("$replied_to_event")))),
     );
 
     assert_to_canonical_json_eq!(
@@ -156,24 +156,24 @@ fn content_reply_deserialization() {
         lDl5mzVO3tPnJMKZ0hn+AF"
     );
 
-    assert_matches!(content.relates_to, Some(Relation::Reply { in_reply_to }));
-    assert_eq!(in_reply_to.event_id, "$replied_to_event");
+    assert_matches!(content.relates_to, Some(Relation::Reply(reply)));
+    assert_eq!(reply.in_reply_to.event_id, "$replied_to_event");
 }
 
 #[test]
 fn content_reply_serialization_roundtrip() {
-    let reply = InReplyTo::new(owned_event_id!("$replied_to_event"));
+    let event_id = owned_event_id!("$replied_to_event");
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
-        Some(Relation::Reply { in_reply_to: reply.clone() }),
+        Some(Relation::Reply(Reply::with_event_id(event_id.clone()))),
     );
 
     let json_content = Raw::new(&content).unwrap();
     let deser_content = json_content.deserialize().unwrap();
 
     assert_matches!(deser_content.scheme, EncryptedEventScheme::MegolmV1AesSha2(_));
-    assert_matches!(deser_content.relates_to, Some(Relation::Reply { in_reply_to: deser_reply }));
-    assert_eq!(deser_reply.event_id, reply.event_id);
+    assert_matches!(deser_content.relates_to, Some(Relation::Reply(reply)));
+    assert_eq!(reply.in_reply_to.event_id, event_id);
 }
 
 #[test]
