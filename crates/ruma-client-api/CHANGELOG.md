@@ -11,6 +11,8 @@ Breaking changes:
   spec.
 - `BackupAlgorithm::MegolmBackupV1Curve25519AesSha2` is now a tuple variant
   containing a non-exhaustive struct.
+- The `ProfileFieldName` and `ProfileFieldValue` enums were moved to
+  `ruma_common::profile`.
 
 Improvements:
 
