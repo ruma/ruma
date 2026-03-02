@@ -11,6 +11,16 @@ Breaking changes:
   spec.
 - `BackupAlgorithm::MegolmBackupV1Curve25519AesSha2` is now a tuple variant
   containing a non-exhaustive struct.
+- The `groups` field of `ResultRoomEvents` is now a
+  `ResultGroupMapsByGroupingKey`. This is a wrapper around a map that ensure
+  that each `ResultGroupMap` uses the appropriate key type for their
+  `GroupingKey`. As a result, the `OwnedRoomIdOrUserId` enum was removed.
+
+Bug fixes:
+
+- In the `search::search_events::v3` module, fix the deserialization of:
+  - `Criteria` when the `filter` field is omitted.
+  - `SearchResult` when the `context` field is omitted.
 
 Improvements:
 

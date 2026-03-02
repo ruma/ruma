@@ -2,13 +2,19 @@
 //!
 //! Search events.
 
+mod result_group_map_serde;
+
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3search
 
-    use std::collections::BTreeMap;
+    use std::{
+        collections::{BTreeMap, btree_map},
+        ops::Deref,
+    };
 
+    use as_variant::as_variant;
     use js_int::{UInt, uint};
     use ruma_common::{
         OwnedEventId, OwnedMxcUri, OwnedRoomId, OwnedUserId,
@@ -95,7 +101,7 @@ pub mod v3 {
         pub keys: Option<Vec<SearchKeys>>,
 
         /// A `Filter` to apply to the search.
-        #[serde(skip_serializing_if = "RoomEventFilter::is_empty")]
+        #[serde(default, skip_serializing_if = "RoomEventFilter::is_empty")]
         pub filter: RoomEventFilter,
 
         /// The order in which to search for results.
@@ -349,7 +355,7 @@ pub mod v3 {
 
         /// Any groups that were requested.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub groups: BTreeMap<GroupingKey, BTreeMap<OwnedRoomIdOrUserId, ResultGroup>>,
+        pub groups: ResultGroupMapsByGroupingKey,
 
         /// Token that can be used to get the next batch of results, by passing as the `next_batch`
         /// parameter to the next call.
@@ -391,7 +397,104 @@ pub mod v3 {
         }
     }
 
-    /// A grouping of results, if requested.
+    /// A map of [`GroupingKey`] to the associated [`ResultGroupMap`].
+    ///
+    /// This type is used to ensure that a supported [`ResultGroupMap`] always uses the appropriate
+    /// [`GroupingKey`].
+    #[derive(Clone, Debug, Default)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct ResultGroupMapsByGroupingKey(BTreeMap<GroupingKey, ResultGroupMap>);
+
+    impl ResultGroupMapsByGroupingKey {
+        /// Construct an empty `ResultGroupMapsByGroupingKey`.
+        pub fn new() -> Self {
+            Self::default()
+        }
+
+        /// Insert the given [`ResultGroupMap`].
+        ///
+        /// If a map with the same [`GroupingKey`] was already present, it is returned.
+        pub fn insert(&mut self, map: ResultGroupMap) -> Option<ResultGroupMap> {
+            self.0.insert(map.grouping_key(), map)
+        }
+    }
+
+    impl Deref for ResultGroupMapsByGroupingKey {
+        type Target = BTreeMap<GroupingKey, ResultGroupMap>;
+
+        fn deref(&self) -> &Self::Target {
+            &self.0
+        }
+    }
+
+    impl FromIterator<ResultGroupMap> for ResultGroupMapsByGroupingKey {
+        fn from_iter<T: IntoIterator<Item = ResultGroupMap>>(iter: T) -> Self {
+            Self(iter.into_iter().map(|map| (map.grouping_key(), map)).collect())
+        }
+    }
+
+    impl Extend<ResultGroupMap> for ResultGroupMapsByGroupingKey {
+        fn extend<T: IntoIterator<Item = ResultGroupMap>>(&mut self, iter: T) {
+            self.0.extend(iter.into_iter().map(|map| (map.grouping_key(), map)));
+        }
+    }
+
+    impl IntoIterator for ResultGroupMapsByGroupingKey {
+        type Item = ResultGroupMap;
+        type IntoIter = btree_map::IntoValues<GroupingKey, ResultGroupMap>;
+
+        fn into_iter(self) -> Self::IntoIter {
+            self.0.into_values()
+        }
+    }
+
+    /// A map of results grouped by key.
+    #[derive(Clone, Debug)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub enum ResultGroupMap {
+        /// Results grouped by room ID.
+        RoomId(BTreeMap<OwnedRoomId, ResultGroup>),
+
+        /// Results grouped by sender.
+        Sender(BTreeMap<OwnedUserId, ResultGroup>),
+
+        #[doc(hidden)]
+        _Custom(CustomResultGroupMap),
+    }
+
+    impl ResultGroupMap {
+        /// The key that was used to group this map.
+        pub fn grouping_key(&self) -> GroupingKey {
+            match self {
+                Self::RoomId(_) => GroupingKey::RoomId,
+                Self::Sender(_) => GroupingKey::Sender,
+                Self::_Custom(custom) => custom.grouping_key.as_str().into(),
+            }
+        }
+
+        /// The map of grouped results, if this uses a custom key.
+        pub fn custom_map(&self) -> Option<&BTreeMap<String, ResultGroup>> {
+            as_variant!(self, Self::_Custom).map(|custom| &custom.map)
+        }
+
+        /// Convert this into the map of grouped results, if this uses a custom key.
+        pub fn into_custom_map(self) -> Option<BTreeMap<String, ResultGroup>> {
+            as_variant!(self, Self::_Custom).map(|custom| custom.map)
+        }
+    }
+
+    /// A map of results grouped by custom key type.
+    #[doc(hidden)]
+    #[derive(Clone, Debug)]
+    pub struct CustomResultGroupMap {
+        /// The type of key that was used to group the results.
+        pub(super) grouping_key: String,
+
+        /// The grouped results.
+        pub(super) map: BTreeMap<String, ResultGroup>,
+    }
+
+    /// A group of results.
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct ResultGroup {
@@ -428,7 +531,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct SearchResult {
         /// Context for result, if requested.
-        #[serde(skip_serializing_if = "EventContextResult::is_empty")]
+        #[serde(default, skip_serializing_if = "EventContextResult::is_empty")]
         pub context: EventContextResult,
 
         /// A number that describes how closely this result matches the search.
@@ -485,15 +588,137 @@ pub mod v3 {
             self.avatar_url.is_none() && self.displayname.is_none()
         }
     }
+}
 
-    /// Represents either a room or user ID for returning grouped search results.
-    #[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
-    #[allow(clippy::exhaustive_enums)]
-    pub enum OwnedRoomIdOrUserId {
-        /// Represents a room ID.
-        RoomId(OwnedRoomId),
+#[cfg(all(test, feature = "client", feature = "server"))]
+mod tests {
+    use std::{borrow::Cow, collections::BTreeMap};
 
-        /// Represents a user ID.
-        UserId(OwnedUserId),
+    use assert_matches2::assert_matches;
+    use js_int::uint;
+    use ruma_common::{
+        api::{
+            IncomingRequest, IncomingResponse, OutgoingRequest, OutgoingResponse,
+            SupportedVersions, auth_scheme::SendAccessToken,
+        },
+        event_id, room_id,
+    };
+    use serde_json::{
+        Value as JsonValue, from_slice as from_json_slice, json, to_vec as to_json_vec,
+    };
+
+    use super::v3::{GroupingKey, OrderBy, Request, Response, ResultGroupMap, SearchKeys};
+
+    #[test]
+    fn request_roundtrip() {
+        let body = json!({
+            "search_categories": {
+                "room_events": {
+                    "groupings": {
+                        "group_by": [
+                            { "key": "room_id" },
+                        ],
+                    },
+                    "keys": ["content.body"],
+                    "order_by": "recent",
+                    "search_term": "martians and men"
+                }
+            }
+        });
+
+        let http_request = http::Request::post("http://localhost/_matrix/client/v3/search")
+            .body(to_json_vec(&body).unwrap())
+            .unwrap();
+        let request = Request::try_from_http_request(http_request, &[] as &[&str]).unwrap();
+
+        let criteria = request.search_categories.room_events.as_ref().unwrap();
+        assert_eq!(criteria.groupings.group_by.len(), 1);
+        assert_eq!(criteria.groupings.group_by[0].key, Some(GroupingKey::RoomId));
+        let keys = criteria.keys.as_ref().unwrap();
+        assert_eq!(keys.len(), 1);
+        assert_eq!(keys[0], SearchKeys::ContentBody);
+        assert_eq!(criteria.order_by, Some(OrderBy::Recent));
+        assert_eq!(criteria.search_term, "martians and men");
+
+        let http_request = request
+            .try_into_http_request::<Vec<u8>>(
+                "http://localhost",
+                SendAccessToken::IfRequired("access_token"),
+                Cow::Owned(SupportedVersions::from_parts(&["v1.4".to_owned()], &BTreeMap::new())),
+            )
+            .unwrap();
+        assert_eq!(from_json_slice::<JsonValue>(http_request.body()).unwrap(), body);
+    }
+
+    #[test]
+    fn response_roundtrip() {
+        let body = json!({
+            "search_categories": {
+                "room_events": {
+                    "count": 1224,
+                    "groups": {
+                        "room_id": {
+                            "!qPewotXpIctQySfjSy:localhost": {
+                                "next_batch": "BdgFsdfHSf-dsFD",
+                                "order": 1,
+                                "results": ["$144429830826TWwbB:localhost"],
+                            },
+                        },
+                    },
+                    "highlights": [
+                        "martians",
+                        "men",
+                    ],
+                    "next_batch": "5FdgFsd234dfgsdfFD",
+                    "results": [
+                        {
+                            "rank": 0.004_248_66,
+                            "result": {
+                                "content": {
+                                    "body": "This is an example text message",
+                                    "format": "org.matrix.custom.html",
+                                    "formatted_body": "<b>This is an example text message</b>",
+                                    "msgtype": "m.text",
+                                },
+                                "event_id": "$144429830826TWwbB:localhost",
+                                "origin_server_ts": 1_735_824_653,
+                                "room_id": "!qPewotXpIctQySfjSy:localhost",
+                                "sender": "@example:example.org",
+                                "type": "m.room.message",
+                                "unsigned": {
+                                    "age": 1234,
+                                    "membership": "join",
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        });
+        let result_event_id = event_id!("$144429830826TWwbB:localhost");
+
+        let http_request = http::Response::new(to_json_vec(&body).unwrap());
+        let response = Response::try_from_http_response(http_request).unwrap();
+
+        let results = &response.search_categories.room_events;
+        assert_eq!(results.count, Some(uint!(1224)));
+        assert_eq!(results.groups.len(), 1);
+        assert_matches!(
+            results.groups.get(&GroupingKey::RoomId),
+            Some(ResultGroupMap::RoomId(room_id_group_map))
+        );
+        assert_eq!(room_id_group_map.len(), 1);
+        let room_id_group =
+            room_id_group_map.get(room_id!("!qPewotXpIctQySfjSy:localhost")).unwrap();
+        assert_eq!(room_id_group.results, &[result_event_id]);
+        assert_eq!(results.highlights, &["martians", "men"]);
+        assert_eq!(results.next_batch.as_deref(), Some("5FdgFsd234dfgsdfFD"));
+        assert_eq!(results.results.len(), 1);
+        assert_eq!(results.results[0].rank, Some(0.004_248_66));
+        let result = results.results[0].result.as_ref().unwrap().deserialize().unwrap();
+        assert_eq!(result.event_id(), result_event_id);
+
+        let http_response = response.try_into_http_response::<Vec<u8>>().unwrap();
+        assert_eq!(from_json_slice::<JsonValue>(http_response.body()).unwrap(), body);
     }
 }
