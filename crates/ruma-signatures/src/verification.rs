@@ -1,12 +1,18 @@
 //! Verification of digital signatures.
 
-use ed25519_dalek::{Verifier as _, VerifyingKey};
+use ed25519_dalek::{
+    Verifier as _, VerifyingKey as Ed25519VerifyingKey, ed25519::Signature as Ed25519Signature,
+};
 use ruma_common::SigningKeyAlgorithm;
+use thiserror::Error;
 
-use crate::{Error, ParseError, VerificationError};
+use crate::VerificationError;
 
 /// A digital signature verifier.
 pub(crate) trait Verifier {
+    /// The error type returned by the verifier.
+    type Error: std::error::Error + Into<VerificationError>;
+
     /// Use a public key to verify a signature against the JSON object that was signed.
     ///
     /// # Parameters
@@ -18,8 +24,12 @@ pub(crate) trait Verifier {
     /// # Errors
     ///
     /// Returns an error if verification fails.
-    fn verify_json(&self, public_key: &[u8], signature: &[u8], message: &[u8])
-    -> Result<(), Error>;
+    fn verify_json(
+        &self,
+        public_key: &[u8],
+        signature: &[u8],
+        message: &[u8],
+    ) -> Result<(), Self::Error>;
 }
 
 /// A verifier for Ed25519 digital signatures.
@@ -27,18 +37,50 @@ pub(crate) trait Verifier {
 pub(crate) struct Ed25519Verifier;
 
 impl Verifier for Ed25519Verifier {
+    type Error = Ed25519VerificationError;
+
     fn verify_json(
         &self,
         public_key: &[u8],
         signature: &[u8],
         message: &[u8],
-    ) -> Result<(), Error> {
-        VerifyingKey::try_from(public_key)
-            .map_err(ParseError::PublicKey)?
-            .verify(message, &signature.try_into().map_err(ParseError::Signature)?)
-            .map_err(VerificationError::Signature)
-            .map_err(Error::from)
+    ) -> Result<(), Self::Error> {
+        Ed25519VerifyingKey::try_from(public_key)
+            .map_err(Ed25519VerificationError::InvalidPublicKey)?
+            .verify(
+                message,
+                &Ed25519Signature::from_bytes(&signature.try_into().map_err(|_| {
+                    Ed25519VerificationError::InvalidSignatureLength {
+                        expected: Ed25519Signature::BYTE_SIZE,
+                        found: signature.len(),
+                    }
+                })?),
+            )
+            .map_err(Ed25519VerificationError::SignatureVerification)
     }
+}
+
+/// Errors relating to the verification of ed25519 signatures.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum Ed25519VerificationError {
+    /// The provided ed25519 public key is invalid.
+    #[error("Invalid ed25519 public key: {0}")]
+    InvalidPublicKey(#[source] ed25519_dalek::SignatureError),
+
+    /// The provided signature has an invalid length.
+    #[error("Invalid ed25519 signature length: expected {expected}, found {found}")]
+    InvalidSignatureLength {
+        /// The expected length of the signature.
+        expected: usize,
+
+        /// The actual length of the signature.
+        found: usize,
+    },
+
+    /// The signature verification failed.
+    #[error("ed25519 signature verification failed: {0}")]
+    SignatureVerification(#[source] ed25519_dalek::SignatureError),
 }
 
 /// A value returned when an event is successfully verified.

@@ -58,7 +58,7 @@ pub use self::{
     },
     keys::{Ed25519KeyPair, Ed25519KeyPairParseError, KeyPair, PublicKeyMap, PublicKeySet},
     signatures::Signature,
-    verification::Verified,
+    verification::{Ed25519VerificationError, Verified},
 };
 
 mod error;

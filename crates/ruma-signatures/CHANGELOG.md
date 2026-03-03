@@ -14,6 +14,15 @@ Breaking changes:
     `Ed25519KeyPairParseError::PublicKeyMismatch`.
   - `ParseError::Oid` is now `Ed25519KeyPairParseError::InvalidOid`.
   - `ParseError::SecretKey` is now `Ed25519KeyPairParseError::InvalidSecretKey`.
+- The error variants returned specifically when verifying an ed25519 signature
+  use a separate error enum named `Ed25519VerificationError`, which is exposed
+  as `VerificationError::Ed25519`.
+  - `ParseError::PublicKey` is now
+    `Ed25519VerificationError::InvalidPublicKey`.
+  - `ParseError::Signature` is now
+    `Ed25519VerificationError::InvalidSignatureLength`.
+  - `VerificationError::Signature` is now
+    `Ed25519VerificationError::SignatureVerification`.
 
 Improvements:
 
