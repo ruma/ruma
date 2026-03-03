@@ -5,6 +5,8 @@ use ruma_common::{
 };
 use thiserror::Error;
 
+use crate::Ed25519VerificationError;
+
 /// `ruma-signature`'s error type, wraps a number of other error types.
 #[derive(Debug, Error)]
 #[non_exhaustive]
@@ -99,9 +101,9 @@ pub enum VerificationError {
     #[error("Could not find supported signature for entity {0:?}")]
     NoSupportedSignatureForEntity(String),
 
-    /// The signature verification failed.
-    #[error("Could not verify signature: {0}")]
-    Signature(#[source] ed25519_dalek::SignatureError),
+    /// Error verifying an ed25519 signature.
+    #[error(transparent)]
+    Ed25519(#[from] Ed25519VerificationError),
 }
 
 /// Errors relating to parsing of all sorts.
@@ -120,14 +122,6 @@ pub enum ParseError {
     /// embedded.
     #[error("Event ID {0:?} should have a server name for the given room version")]
     ServerNameFromEventId(OwnedEventId),
-
-    /// For when [`ed25519_dalek`] cannot parse a public key.
-    #[error("Could not parse public key: {0}")]
-    PublicKey(#[source] ed25519_dalek::SignatureError),
-
-    /// For when [`ed25519_dalek`] cannot parse a signature.
-    #[error("Could not parse signature: {0}")]
-    Signature(#[source] ed25519_dalek::SignatureError),
 
     /// For when parsing base64 gives an error.
     #[error("Could not parse {of_type} base64 string {string:?}: {source}")]

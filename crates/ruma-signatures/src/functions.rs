@@ -371,7 +371,7 @@ pub fn verify_canonical_json_bytes(
     let verifier =
         verifier_from_algorithm(algorithm).ok_or(VerificationError::UnsupportedAlgorithm)?;
 
-    verify_canonical_json_with(&verifier, public_key, signature, canonical_json)
+    verify_canonical_json_with(&verifier, public_key, signature, canonical_json).map_err(Into::into)
 }
 
 /// Uses a public key to verify signed canonical JSON bytes.
@@ -392,11 +392,11 @@ fn verify_canonical_json_with<V>(
     public_key: &[u8],
     signature: &[u8],
     canonical_json: &[u8],
-) -> Result<(), Error>
+) -> Result<(), VerificationError>
 where
     V: Verifier,
 {
-    verifier.verify_json(public_key, signature, canonical_json)
+    verifier.verify_json(public_key, signature, canonical_json).map_err(Into::into)
 }
 
 /// Creates a *content hash* for an event.

@@ -14,7 +14,8 @@ use super::{
     verify_event,
 };
 use crate::{
-    Ed25519KeyPair, Error, KeyPair, PublicKeyMap, PublicKeySet, VerificationError, Verified,
+    Ed25519KeyPair, Ed25519VerificationError, Error, KeyPair, PublicKeyMap, PublicKeySet,
+    VerificationError, Verified,
 };
 
 fn generate_key_pair(name: &str) -> Ed25519KeyPair {
@@ -316,7 +317,9 @@ fn verify_event_fails_if_public_key_is_invalid() {
 
     assert_matches!(
         verification_result,
-        Err(Error::Verification(VerificationError::Signature(error)))
+        Err(Error::Verification(VerificationError::Ed25519(
+            Ed25519VerificationError::SignatureVerification(error)
+        )))
     );
     // dalek doesn't expose InternalError :(
     // https://github.com/dalek-cryptography/ed25519-dalek/issues/174
@@ -672,5 +675,10 @@ fn verify_canonical_json_bytes_wrong_key() {
         canonical_json.as_bytes(),
     )
     .unwrap_err();
-    assert_matches!(err, Error::Verification(VerificationError::Signature(_)));
+    assert_matches!(
+        err,
+        Error::Verification(VerificationError::Ed25519(
+            Ed25519VerificationError::SignatureVerification(_)
+        ))
+    );
 }
