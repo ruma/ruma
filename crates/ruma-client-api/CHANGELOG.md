@@ -34,6 +34,9 @@ Breaking changes:
   - `UnknownToken`
   - `WrongRoomKeysVersion`, and its `current_version` field is now required and
     its serialization was fixed.
+- Remove the `score` field from `report_content::v3::Request` according to
+  MSC4277. `report_content::v3::Request::new()` now only takes a room ID and an
+  event ID.
 
 Bug fixes:
 
