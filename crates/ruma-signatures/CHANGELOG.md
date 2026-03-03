@@ -23,6 +23,13 @@ Breaking changes:
     `Ed25519VerificationError::InvalidSignatureLength`.
   - `VerificationError::Signature` is now
     `Ed25519VerificationError::SignatureVerification`.
+- `Error::PduSize` is now `JsonError::PduTooLarge` allowing the following
+  functions to return `JsonError` as an error type:
+  - `canonical_json()`
+  - `reference_hash()`
+  - `content_hash()`
+  - `sign_json()`
+  - `hash_and_sign_event()`
 
 Improvements:
 
