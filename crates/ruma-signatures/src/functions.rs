@@ -240,7 +240,7 @@ pub fn verify_json(
             }
             .into());
         }
-        None => return Err(JsonError::field_missing_from_object("signatures")),
+        None => return Err(JsonError::MissingField { path: "signatures".to_owned() }.into()),
     };
 
     let canonical_json = canonical_json(object)?;
@@ -698,7 +698,7 @@ pub fn verify_event(
             }
             .into());
         }
-        None => return Err(JsonError::field_missing_from_object("hashes")),
+        None => return Err(JsonError::MissingField { path: "hashes".to_owned() }.into()),
     };
 
     let hash = match hashes.get("sha256") {
@@ -711,7 +711,7 @@ pub fn verify_event(
             }
             .into());
         }
-        None => return Err(JsonError::field_missing_from_object("sha256")),
+        None => return Err(JsonError::MissingField { path: "hashes.sha256".to_owned() }.into()),
     };
 
     let signature_map = match object.get("signatures") {
@@ -724,7 +724,7 @@ pub fn verify_event(
             }
             .into());
         }
-        None => return Err(JsonError::field_missing_from_object("signatures")),
+        None => return Err(JsonError::MissingField { path: "signatures".to_owned() }.into()),
     };
 
     let servers_to_check = servers_to_check_signatures(object, &rules.signatures)?;
@@ -799,7 +799,7 @@ fn servers_to_check_signatures(
                 }
                 .into());
             }
-            _ => return Err(JsonError::field_missing_from_object("sender")),
+            _ => return Err(JsonError::MissingField { path: "sender".to_owned() }.into()),
         }
     }
 
@@ -825,7 +825,7 @@ fn servers_to_check_signatures(
                 .into());
             }
             _ => {
-                return Err(JsonError::field_missing_from_object("event_id"));
+                return Err(JsonError::MissingField { path: "event_id".to_owned() }.into());
             }
         }
     }
@@ -865,7 +865,7 @@ fn is_invite_via_third_party_id(object: &CanonicalJsonObject) -> Result<bool, Er
             }
             .into());
         }
-        None => return Err(JsonError::JsonFieldMissingFromObject("type".to_owned()).into()),
+        None => return Err(JsonError::MissingField { path: "type".to_owned() }.into()),
     };
 
     if raw_type != "m.room.member" {
@@ -882,7 +882,7 @@ fn is_invite_via_third_party_id(object: &CanonicalJsonObject) -> Result<bool, Er
             }
             .into());
         }
-        None => return Err(JsonError::JsonFieldMissingFromObject("content".to_owned()).into()),
+        None => return Err(JsonError::MissingField { path: "content".to_owned() }.into()),
     };
 
     let membership = match content.get("membership") {
@@ -896,9 +896,7 @@ fn is_invite_via_third_party_id(object: &CanonicalJsonObject) -> Result<bool, Er
             .into());
         }
         None => {
-            return Err(
-                JsonError::JsonFieldMissingFromObject("content.membership".to_owned()).into()
-            );
+            return Err(JsonError::MissingField { path: "content.membership".to_owned() }.into());
         }
     };
 

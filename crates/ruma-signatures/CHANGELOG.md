@@ -5,6 +5,8 @@ Breaking changes:
 - Refactor and improve the variants of `JsonError`:
   - `NotOfType` and `NotMultiplesOfType` were merged into a single `InvalidType`
     variant and provide more details about the invalid field.
+  - `JsonFieldMissingFromObject` was renamed to `MissingField` an provides the
+    full path of the missing field.
 
 Improvements:
 
