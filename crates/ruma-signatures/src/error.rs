@@ -22,10 +22,6 @@ pub enum Error {
     #[error("Parse error: {0}")]
     Parse(#[from] ParseError),
 
-    /// Wrapper for [`pkcs8::Error`].
-    #[error("DER Parse error: {0}")]
-    DerParse(pkcs8::Error),
-
     /// PDU was too large
     #[error("PDU is larger than maximum of 65535 bytes")]
     PduSize,
@@ -125,31 +121,6 @@ pub enum ParseError {
     #[error("Event ID {0:?} should have a server name for the given room version")]
     ServerNameFromEventId(OwnedEventId),
 
-    /// For when the extracted/"parsed" public key from a PKCS#8 v2 document doesn't match the
-    /// public key derived from it's private key.
-    #[error("PKCS#8 Document public key does not match public key derived from private key; derived: {0:X?} (len {}), parsed: {1:X?} (len {})", .derived_key.len(), .parsed_key.len())]
-    DerivedPublicKeyDoesNotMatchParsedKey {
-        /// The parsed key.
-        parsed_key: Vec<u8>,
-        /// The derived key.
-        derived_key: Vec<u8>,
-    },
-
-    /// For when the ASN.1 Object Identifier on a PKCS#8 document doesn't match the expected one.
-    ///
-    /// e.g. the document describes a RSA key, while an ed25519 key was expected.
-    #[error("Algorithm OID does not match ed25519, expected {expected}, found {found}")]
-    Oid {
-        /// The expected OID.
-        expected: pkcs8::ObjectIdentifier,
-        /// The OID that was found instead.
-        found: pkcs8::ObjectIdentifier,
-    },
-
-    /// For when [`ed25519_dalek`] cannot parse a secret/private key.
-    #[error("Could not parse secret key")]
-    SecretKey,
-
     /// For when [`ed25519_dalek`] cannot parse a public key.
     #[error("Could not parse public key: {0}")]
     PublicKey(#[source] ed25519_dalek::SignatureError),
@@ -174,17 +145,6 @@ pub enum ParseError {
 impl ParseError {
     pub(crate) fn server_name_from_event_id(event_id: OwnedEventId) -> Error {
         Self::ServerNameFromEventId(event_id).into()
-    }
-
-    pub(crate) fn derived_vs_parsed_mismatch<P: Into<Vec<u8>>, D: Into<Vec<u8>>>(
-        parsed: P,
-        derived: D,
-    ) -> Error {
-        Self::DerivedPublicKeyDoesNotMatchParsedKey {
-            parsed_key: parsed.into(),
-            derived_key: derived.into(),
-        }
-        .into()
     }
 
     pub(crate) fn base64<T1: Into<String>, T2: Into<String>>(
