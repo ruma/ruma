@@ -35,6 +35,8 @@ Breaking changes:
 - Refactor and improve the variants of `RedactionError`:
   - `NotOfType` was renamed to `InvalidType` and provides more details about the
     invalid field.
+  - `JsonFieldMissingFromObject` was renamed to `MissingField` an provides the
+    full path of the missing field.
 
 Improvements:
 

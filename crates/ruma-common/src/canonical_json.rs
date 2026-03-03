@@ -84,8 +84,11 @@ pub enum RedactionError {
         found: CanonicalJsonType,
     },
 
-    /// The given required field is missing from a JSON object.
-    JsonFieldMissingFromObject(String),
+    /// A required field is missing from a JSON object.
+    MissingField {
+        /// The path of the missing field.
+        path: String,
+    },
 }
 
 impl fmt::Display for RedactionError {
@@ -94,8 +97,8 @@ impl fmt::Display for RedactionError {
             RedactionError::InvalidType { path, expected, found } => {
                 write!(f, "invalid type at `{path}`: expected {expected:?}, found {found:?}")
             }
-            RedactionError::JsonFieldMissingFromObject(field) => {
-                write!(f, "JSON object must contain the field {field:?}")
+            RedactionError::MissingField { path } => {
+                write!(f, "missing field: `{path}`")
             }
         }
     }
@@ -103,10 +106,27 @@ impl fmt::Display for RedactionError {
 
 impl std::error::Error for RedactionError {}
 
-impl RedactionError {
-    fn field_missing_from_object(target: &str) -> Self {
-        Self::JsonFieldMissingFromObject(target.to_owned())
-    }
+/// The possible types of a JSON value.
+#[derive(Debug)]
+#[allow(clippy::exhaustive_enums)]
+pub enum JsonType {
+    /// A JSON Object.
+    Object,
+
+    /// A JSON String.
+    String,
+
+    /// A JSON Integer.
+    Integer,
+
+    /// A JSON Array.
+    Array,
+
+    /// A JSON Boolean.
+    Boolean,
+
+    /// JSON Null.
+    Null,
 }
 
 /// Fallible conversion from a `serde_json::Map` to a `CanonicalJsonObject`.
@@ -208,7 +228,7 @@ pub fn redact_in_place(
                 found: value.json_type(),
             });
         }
-        None => return Err(RedactionError::field_missing_from_object("type")),
+        None => return Err(RedactionError::MissingField { path: "type".to_owned() }),
     };
 
     if let Some(content_value) = event.get_mut("content") {

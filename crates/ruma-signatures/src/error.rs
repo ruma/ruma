@@ -37,9 +37,7 @@ impl From<RedactionError> for Error {
             RedactionError::InvalidType { path, expected, found } => {
                 JsonError::InvalidType { path, expected, found }.into()
             }
-            RedactionError::JsonFieldMissingFromObject(field) => {
-                JsonError::JsonFieldMissingFromObject(field).into()
-            }
+            RedactionError::MissingField { path } => JsonError::MissingField { path }.into(),
             #[allow(unreachable_patterns)]
             _ => unreachable!(),
         }
@@ -63,19 +61,16 @@ pub enum JsonError {
         found: CanonicalJsonType,
     },
 
-    /// The given required field is missing from a JSON object.
-    #[error("JSON object must contain the field {0:?}")]
-    JsonFieldMissingFromObject(String),
+    /// A required field is missing from a JSON object.
+    #[error("missing field: `{path}`")]
+    MissingField {
+        /// The path of the missing field.
+        path: String,
+    },
 
     /// A more generic JSON error from [`serde_json`].
     #[error(transparent)]
     Serde(#[from] serde_json::Error),
-}
-
-impl JsonError {
-    pub(crate) fn field_missing_from_object<T: Into<String>>(target: T) -> Error {
-        Self::JsonFieldMissingFromObject(target.into()).into()
-    }
 }
 
 /// Errors relating to verification of signatures.
