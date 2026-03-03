@@ -76,6 +76,18 @@ pub enum CanonicalJsonValue {
 }
 
 impl CanonicalJsonValue {
+    /// The type of this value.
+    pub fn json_type(&self) -> CanonicalJsonType {
+        match self {
+            Self::Null => CanonicalJsonType::Null,
+            Self::Bool(_) => CanonicalJsonType::Boolean,
+            Self::Integer(_) => CanonicalJsonType::Integer,
+            Self::String(_) => CanonicalJsonType::String,
+            Self::Array(_) => CanonicalJsonType::Array,
+            Self::Object(_) => CanonicalJsonType::Object,
+        }
+    }
+
     /// If the `CanonicalJsonValue` is a `Bool`, return the inner value.
     pub fn as_bool(&self) -> Option<bool> {
         as_variant!(self, Self::Bool).copied()
@@ -300,6 +312,29 @@ impl<'de> Deserialize<'de> for CanonicalJsonValue {
         let val = JsonValue::deserialize(deserializer)?;
         val.try_into().map_err(serde::de::Error::custom)
     }
+}
+
+/// The possible types of a [`CanonicalJsonValue`].
+#[derive(Debug)]
+#[allow(clippy::exhaustive_enums)]
+pub enum CanonicalJsonType {
+    /// A JSON Object.
+    Object,
+
+    /// A JSON String.
+    String,
+
+    /// A JSON Integer.
+    Integer,
+
+    /// A JSON Array.
+    Array,
+
+    /// A JSON Boolean.
+    Boolean,
+
+    /// JSON Null.
+    Null,
 }
 
 #[cfg(test)]

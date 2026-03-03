@@ -15,6 +15,9 @@ Breaking changes:
   preferred.
 - `EventId::new()` was renamed to `EventId::new_v1()`, since it works only for
   the first format of event IDs.
+- `JsonType` was renamed to `CanonicalJsonType` to reflect that it only
+  represents the possible types of a `CanonicalJsonValue`. It can also be
+  accessed with `CanonicalJsonValue::json_type()`.
 
 Improvements:
 
