@@ -8,8 +8,8 @@ use std::{
 
 use base64::{Engine, alphabet};
 use ruma_common::{
-    AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, OwnedEventId, OwnedServerName,
-    SigningKeyAlgorithm, SigningKeyId, UserId,
+    AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, IdParseError, OwnedEventId,
+    OwnedServerName, SigningKeyAlgorithm, SigningKeyId, UserId,
     canonical_json::{CanonicalJsonType, redact},
     room_version_rules::{EventIdFormatVersion, RedactionRules, RoomVersionRules, SignaturesRules},
     serde::{Base64, base64::Standard},
@@ -21,7 +21,7 @@ use sha2::{Sha256, digest::Digest};
 mod tests;
 
 use crate::{
-    Error, JsonError, ParseError, VerificationError,
+    JsonError, VerificationError,
     keys::{KeyPair, PublicKeyMap},
     verification::{Verified, Verifier, verifier_from_algorithm},
 };
@@ -227,7 +227,7 @@ pub fn canonical_json(object: &CanonicalJsonObject) -> Result<String, JsonError>
 pub fn verify_json(
     public_key_map: &PublicKeyMap,
     object: &CanonicalJsonObject,
-) -> Result<(), Error> {
+) -> Result<(), VerificationError> {
     let signature_map = match object.get("signatures") {
         Some(CanonicalJsonValue::Object(signatures)) => signatures,
         Some(value) => {
@@ -277,7 +277,7 @@ fn verify_canonical_json_for_entity(
     public_key_map: &PublicKeyMap,
     signature_map: &CanonicalJsonObject,
     canonical_json: &[u8],
-) -> Result<(), Error> {
+) -> Result<(), VerificationError> {
     let signature_set = match signature_map.get(entity_id) {
         Some(CanonicalJsonValue::Object(set)) => set,
         Some(value) => {
@@ -288,7 +288,7 @@ fn verify_canonical_json_for_entity(
             }
             .into());
         }
-        None => return Err(VerificationError::NoSignaturesForEntity(entity_id.to_owned()).into()),
+        None => return Err(VerificationError::NoSignaturesForEntity(entity_id.to_owned())),
     };
 
     let public_keys = public_key_map
@@ -311,8 +311,7 @@ fn verify_canonical_json_for_entity(
             return Err(VerificationError::PublicKeyNotFound {
                 entity: entity_id.to_owned(),
                 key_id: key_id.clone(),
-            }
-            .into());
+            });
         };
 
         let CanonicalJsonValue::String(signature) = signature else {
@@ -324,8 +323,12 @@ fn verify_canonical_json_for_entity(
             .into());
         };
 
-        let signature = Base64::<Standard>::parse(signature)
-            .map_err(|e| ParseError::base64("signature", signature, e))?;
+        let signature = Base64::<Standard>::parse(signature).map_err(|error| {
+            VerificationError::InvalidBase64Signature {
+                path: format!("signatures.{entity_id}.{key_id}"),
+                source: error,
+            }
+        })?;
 
         verify_canonical_json_with(
             &verifier,
@@ -337,7 +340,7 @@ fn verify_canonical_json_for_entity(
     }
 
     if !checked {
-        return Err(VerificationError::NoSupportedSignatureForEntity(entity_id.to_owned()).into());
+        return Err(VerificationError::NoSupportedSignatureForEntity(entity_id.to_owned()));
     }
 
     Ok(())
@@ -365,11 +368,11 @@ pub fn verify_canonical_json_bytes(
     public_key: &[u8],
     signature: &[u8],
     canonical_json: &[u8],
-) -> Result<(), Error> {
+) -> Result<(), VerificationError> {
     let verifier =
         verifier_from_algorithm(algorithm).ok_or(VerificationError::UnsupportedAlgorithm)?;
 
-    verify_canonical_json_with(&verifier, public_key, signature, canonical_json).map_err(Into::into)
+    verify_canonical_json_with(&verifier, public_key, signature, canonical_json)
 }
 
 /// Uses a public key to verify signed canonical JSON bytes.
@@ -684,7 +687,7 @@ pub fn verify_event(
     public_key_map: &PublicKeyMap,
     object: &CanonicalJsonObject,
     rules: &RoomVersionRules,
-) -> Result<Verified, Error> {
+) -> Result<Verified, VerificationError> {
     let redacted = redact(object.clone(), &rules.redaction, None).map_err(JsonError::from)?;
 
     let hashes = match object.get("hashes") {
@@ -779,14 +782,15 @@ fn canonical_json_with_fields_to_remove(
 fn servers_to_check_signatures(
     object: &CanonicalJsonObject,
     rules: &SignaturesRules,
-) -> Result<BTreeSet<OwnedServerName>, Error> {
+) -> Result<BTreeSet<OwnedServerName>, VerificationError> {
     let mut servers_to_check = BTreeSet::new();
 
     if !is_invite_via_third_party_id(object)? {
         match object.get("sender") {
             Some(CanonicalJsonValue::String(raw_sender)) => {
-                let user_id = <&UserId>::try_from(raw_sender.as_str())
-                    .map_err(|e| Error::from(ParseError::UserId(e)))?;
+                let user_id = <&UserId>::try_from(raw_sender.as_str()).map_err(|source| {
+                    VerificationError::ParseIdentifier { identifier_type: "user ID", source }
+                })?;
 
                 servers_to_check.insert(user_id.server_name().to_owned());
             }
@@ -805,13 +809,17 @@ fn servers_to_check_signatures(
     if rules.check_event_id_server {
         match object.get("event_id") {
             Some(CanonicalJsonValue::String(raw_event_id)) => {
-                let event_id: OwnedEventId =
-                    raw_event_id.parse().map_err(|e| Error::from(ParseError::EventId(e)))?;
+                let event_id: OwnedEventId = raw_event_id.parse().map_err(|source| {
+                    VerificationError::ParseIdentifier { identifier_type: "event ID", source }
+                })?;
 
-                let server_name = event_id
-                    .server_name()
-                    .map(ToOwned::to_owned)
-                    .ok_or_else(|| ParseError::server_name_from_event_id(event_id))?;
+                let server_name =
+                    event_id.server_name().map(ToOwned::to_owned).ok_or_else(|| {
+                        VerificationError::ParseIdentifier {
+                            identifier_type: "event ID",
+                            source: IdParseError::InvalidServerName,
+                        }
+                    })?;
 
                 servers_to_check.insert(server_name);
             }
@@ -840,8 +848,9 @@ fn servers_to_check_signatures(
             expected: CanonicalJsonType::String,
             found: authorized_user.json_type(),
         })?;
-        let authorized_user =
-            <&UserId>::try_from(authorized_user).map_err(|e| Error::from(ParseError::UserId(e)))?;
+        let authorized_user = <&UserId>::try_from(authorized_user).map_err(|source| {
+            VerificationError::ParseIdentifier { identifier_type: "user ID", source }
+        })?;
 
         servers_to_check.insert(authorized_user.server_name().to_owned());
     }

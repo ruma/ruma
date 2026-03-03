@@ -30,6 +30,11 @@ Breaking changes:
   - `content_hash()`
   - `sign_json()`
   - `hash_and_sign_event()`
+- The remaining variants of `Error` and `ParseError` were merged into
+  `VerificationError`. This is now the error type returned by:
+  - `verify_canonical_json_bytes()`
+  - `verify_event()`
+  - `verify_json()`
 
 Improvements:
 
