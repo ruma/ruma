@@ -130,7 +130,6 @@ pub enum ErrorKind {
     /// `M_FORBIDDEN`
     ///
     /// Forbidden access, e.g. joining a room without permission, failed login.
-    #[non_exhaustive]
     Forbidden,
 
     /// `M_GUEST_ACCESS_FORBIDDEN`
