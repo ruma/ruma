@@ -7,7 +7,6 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3roomsroomidreporteventid
 
-    use js_int::Int;
     use ruma_common::{
         OwnedEventId, OwnedRoomId,
         api::{auth_scheme::AccessToken, request, response},
@@ -35,10 +34,6 @@ pub mod v3 {
         #[ruma_api(path)]
         pub event_id: OwnedEventId,
 
-        /// Integer between -100 and 0 rating offensivness.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub score: Option<Int>,
-
         /// Reason to report content.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub reason: Option<String>,
@@ -50,14 +45,9 @@ pub mod v3 {
     pub struct Response {}
 
     impl Request {
-        /// Creates a new `Request` with the given room ID, event ID, score and reason.
-        pub fn new(
-            room_id: OwnedRoomId,
-            event_id: OwnedEventId,
-            score: Option<Int>,
-            reason: Option<String>,
-        ) -> Self {
-            Self { room_id, event_id, score, reason }
+        /// Creates a new `Request` with the given room ID ad event ID.
+        pub fn new(room_id: OwnedRoomId, event_id: OwnedEventId) -> Self {
+            Self { room_id, event_id, reason: None }
         }
     }
 
