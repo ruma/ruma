@@ -11,7 +11,7 @@ mod value;
 
 pub use self::{
     serializer::Serializer,
-    value::{CanonicalJsonObject, CanonicalJsonValue},
+    value::{CanonicalJsonObject, CanonicalJsonType, CanonicalJsonValue},
 };
 #[doc(inline)]
 pub use crate::assert_to_canonical_json_eq;
@@ -78,7 +78,7 @@ pub enum RedactionError {
         /// The field name.
         field: String,
         /// The expected JSON type.
-        of_type: JsonType,
+        of_type: CanonicalJsonType,
     },
 
     /// The given required field is missing from a JSON object.
@@ -101,36 +101,13 @@ impl fmt::Display for RedactionError {
 impl std::error::Error for RedactionError {}
 
 impl RedactionError {
-    fn not_of_type(target: &str, of_type: JsonType) -> Self {
+    fn not_of_type(target: &str, of_type: CanonicalJsonType) -> Self {
         Self::NotOfType { field: target.to_owned(), of_type }
     }
 
     fn field_missing_from_object(target: &str) -> Self {
         Self::JsonFieldMissingFromObject(target.to_owned())
     }
-}
-
-/// A JSON type enum for [`RedactionError`] variants.
-#[derive(Debug)]
-#[allow(clippy::exhaustive_enums)]
-pub enum JsonType {
-    /// A JSON Object.
-    Object,
-
-    /// A JSON String.
-    String,
-
-    /// A JSON Integer.
-    Integer,
-
-    /// A JSON Array.
-    Array,
-
-    /// A JSON Boolean.
-    Boolean,
-
-    /// JSON Null.
-    Null,
 }
 
 /// Fallible conversion from a `serde_json::Map` to a `CanonicalJsonObject`.
@@ -225,13 +202,13 @@ pub fn redact_in_place(
         Some(CanonicalJsonValue::String(event_type)) => {
             retained_event_content_keys(event_type.as_ref(), rules)
         }
-        Some(_) => return Err(RedactionError::not_of_type("type", JsonType::String)),
+        Some(_) => return Err(RedactionError::not_of_type("type", CanonicalJsonType::String)),
         None => return Err(RedactionError::field_missing_from_object("type")),
     };
 
     if let Some(content_value) = event.get_mut("content") {
         let CanonicalJsonValue::Object(content) = content_value else {
-            return Err(RedactionError::not_of_type("content", JsonType::Object));
+            return Err(RedactionError::not_of_type("content", CanonicalJsonType::Object));
         };
 
         retained_event_content_keys.apply(rules, content)?;
@@ -362,7 +339,10 @@ fn is_room_member_content_key_retained(
         }
         "third_party_invite" if rules.keep_room_member_third_party_invite_signed => {
             let Some(third_party_invite) = value.as_object_mut() else {
-                return Err(RedactionError::not_of_type("third_party_invite", JsonType::Object));
+                return Err(RedactionError::not_of_type(
+                    "third_party_invite",
+                    CanonicalJsonType::Object,
+                ));
             };
 
             third_party_invite.retain(|key, _| key == "signed");

@@ -1,6 +1,6 @@
 use ruma_common::{
     OwnedEventId,
-    canonical_json::{JsonType, RedactionError},
+    canonical_json::{CanonicalJsonType, RedactionError},
     serde::Base64DecodeError,
 };
 use thiserror::Error;
@@ -56,7 +56,7 @@ pub enum JsonError {
         /// An arbitrary "target" that doesn't have the required type.
         target: String,
         /// The JSON type the target was expected to be.
-        of_type: JsonType,
+        of_type: CanonicalJsonType,
     },
 
     /// Like [`JsonError::NotOfType`], only called when the `target` is a multiple;
@@ -67,7 +67,7 @@ pub enum JsonError {
         /// each or one of it's elements doesn't have the required type.
         target: String,
         /// The JSON type the element was expected to be.
-        of_type: JsonType,
+        of_type: CanonicalJsonType,
     },
 
     /// The given required field is missing from a JSON object.
@@ -81,11 +81,14 @@ pub enum JsonError {
 
 // TODO: make macro for this
 impl JsonError {
-    pub(crate) fn not_of_type<T: Into<String>>(target: T, of_type: JsonType) -> Error {
+    pub(crate) fn not_of_type<T: Into<String>>(target: T, of_type: CanonicalJsonType) -> Error {
         Self::NotOfType { target: target.into(), of_type }.into()
     }
 
-    pub(crate) fn not_multiples_of_type<T: Into<String>>(target: T, of_type: JsonType) -> Error {
+    pub(crate) fn not_multiples_of_type<T: Into<String>>(
+        target: T,
+        of_type: CanonicalJsonType,
+    ) -> Error {
         Self::NotMultiplesOfType { target: target.into(), of_type }.into()
     }
 

@@ -29,6 +29,9 @@ Breaking changes:
   `Tweak::set_tweak()` and `Tweak::custom_value()`.
 - The struct variants of `PushCondition` are now tuple variants containing a
   non-exhaustive struct.
+- `JsonType` was renamed to `CanonicalJsonType` to reflect that it only
+  represents the possible types of a `CanonicalJsonValue`. It can also be
+  accessed with `CanonicalJsonValue::json_type()`.
 
 Improvements:
 
@@ -54,6 +57,7 @@ Improvements:
   an array, and the inner bytes can be accessed without consuming the wrapper
   type with `Base64::as_inner()`.
 - Add `MatrixVersion::V1_18`.
+- `CanonicalJsonValue::json_type()` allows to get the `JsonType` of a value.
 
 # 0.17.1
 
