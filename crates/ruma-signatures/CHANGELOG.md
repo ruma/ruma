@@ -1,5 +1,11 @@
 # [unreleased]
 
+Breaking changes:
+
+- Refactor and improve the variants of `JsonError`:
+  - `NotOfType` and `NotMultiplesOfType` were merged into a single `InvalidType`
+    variant and provide more details about the invalid field.
+
 Improvements:
 
 - Get a better error message when verifying a signature with a public key that

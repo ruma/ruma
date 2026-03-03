@@ -34,8 +34,8 @@ pub enum Error {
 impl From<RedactionError> for Error {
     fn from(err: RedactionError) -> Self {
         match err {
-            RedactionError::NotOfType { field: target, of_type, .. } => {
-                JsonError::NotOfType { target, of_type }.into()
+            RedactionError::InvalidType { path, expected, found } => {
+                JsonError::InvalidType { path, expected, found }.into()
             }
             RedactionError::JsonFieldMissingFromObject(field) => {
                 JsonError::JsonFieldMissingFromObject(field).into()
@@ -50,24 +50,17 @@ impl From<RedactionError> for Error {
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum JsonError {
-    /// `target` is not of the correct type `of_type` ([`JsonType`]).
-    #[error("Value in {target:?} must be a JSON {of_type:?}")]
-    NotOfType {
-        /// An arbitrary "target" that doesn't have the required type.
-        target: String,
-        /// The JSON type the target was expected to be.
-        of_type: CanonicalJsonType,
-    },
+    /// The field at `path` was expected to be of type `expected`, but was received as `found`.
+    #[error("invalid type at `{path}`: expected {expected:?}, found {found:?}")]
+    InvalidType {
+        /// The path of the invalid field.
+        path: String,
 
-    /// Like [`JsonError::NotOfType`], only called when the `target` is a multiple;
-    /// array, set, etc.
-    #[error("Values in {target:?} must be JSON {of_type:?}s")]
-    NotMultiplesOfType {
-        /// An arbitrary "target" where
-        /// each or one of it's elements doesn't have the required type.
-        target: String,
-        /// The JSON type the element was expected to be.
-        of_type: CanonicalJsonType,
+        /// The type that was expected.
+        expected: CanonicalJsonType,
+
+        /// The type that was found.
+        found: CanonicalJsonType,
     },
 
     /// The given required field is missing from a JSON object.
@@ -79,19 +72,7 @@ pub enum JsonError {
     Serde(#[from] serde_json::Error),
 }
 
-// TODO: make macro for this
 impl JsonError {
-    pub(crate) fn not_of_type<T: Into<String>>(target: T, of_type: CanonicalJsonType) -> Error {
-        Self::NotOfType { target: target.into(), of_type }.into()
-    }
-
-    pub(crate) fn not_multiples_of_type<T: Into<String>>(
-        target: T,
-        of_type: CanonicalJsonType,
-    ) -> Error {
-        Self::NotMultiplesOfType { target: target.into(), of_type }.into()
-    }
-
     pub(crate) fn field_missing_from_object<T: Into<String>>(target: T) -> Error {
         Self::JsonFieldMissingFromObject(target.into()).into()
     }
