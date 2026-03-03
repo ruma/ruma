@@ -7,6 +7,13 @@ Breaking changes:
     variant and provide more details about the invalid field.
   - `JsonFieldMissingFromObject` was renamed to `MissingField` an provides the
     full path of the missing field.
+- The methods on `Ed25519KeyPair` use a separate error enum named
+  `Ed25519KeyPairParseError`.
+  - `Error::DerParse` is now `Ed25519KeyPairParseError::Pkcs8`.
+  - `ParseError::DerivedPublicKeyDoesNotMatchParsedKey` is now
+    `Ed25519KeyPairParseError::PublicKeyMismatch`.
+  - `ParseError::Oid` is now `Ed25519KeyPairParseError::InvalidOid`.
+  - `ParseError::SecretKey` is now `Ed25519KeyPairParseError::InvalidSecretKey`.
 
 Improvements:
 

@@ -10,8 +10,9 @@ use pkcs8::{
     DecodePrivateKey, EncodePrivateKey, ObjectIdentifier, PrivateKeyInfo, der::zeroize::Zeroizing,
 };
 use ruma_common::{SigningKeyAlgorithm, SigningKeyId, serde::Base64};
+use thiserror::Error;
 
-use crate::{Error, ParseError, signatures::Signature};
+use crate::signatures::Signature;
 
 #[cfg(feature = "ring-compat")]
 mod compat;
@@ -40,9 +41,12 @@ impl Ed25519KeyPair {
         privkey: &[u8],
         pubkey: Option<&[u8]>,
         version: String,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, Ed25519KeyPairParseError> {
         if oid != ALGORITHM_OID {
-            return Err(ParseError::Oid { expected: ALGORITHM_OID, found: oid }.into());
+            return Err(Ed25519KeyPairParseError::InvalidOid {
+                expected: ALGORITHM_OID,
+                found: oid,
+            });
         }
 
         let secret_key = Self::correct_privkey_from_octolet(privkey)?;
@@ -53,10 +57,10 @@ impl Ed25519KeyPair {
             let verifying_key = signing_key.verifying_key();
 
             if oak_key != verifying_key.as_bytes() {
-                return Err(ParseError::derived_vs_parsed_mismatch(
-                    oak_key,
-                    verifying_key.as_bytes().to_vec(),
-                ));
+                return Err(Ed25519KeyPairParseError::PublicKeyMismatch {
+                    derived: verifying_key.as_bytes().to_vec(),
+                    parsed: oak_key.to_owned(),
+                });
             }
         }
 
@@ -81,7 +85,7 @@ impl Ed25519KeyPair {
     /// Returns an error when the PKCS#8 document had a public key, but it doesn't match the one
     /// generated from the private key. This is a fallback and extra validation against
     /// corruption or
-    pub fn from_der(document: &[u8], version: String) -> Result<Self, Error> {
+    pub fn from_der(document: &[u8], version: String) -> Result<Self, Ed25519KeyPairParseError> {
         #[cfg(feature = "ring-compat")]
         use self::compat::CompatibleDocument;
 
@@ -90,29 +94,31 @@ impl Ed25519KeyPair {
         #[cfg(feature = "ring-compat")]
         {
             signing_key = match CompatibleDocument::from_bytes(document) {
-                CompatibleDocument::WellFormed(bytes) => {
-                    SigningKey::from_pkcs8_der(bytes).map_err(Error::DerParse)?
-                }
-                CompatibleDocument::CleanedFromRing(vec) => {
-                    SigningKey::from_pkcs8_der(&vec).map_err(Error::DerParse)?
-                }
+                CompatibleDocument::WellFormed(bytes) => SigningKey::from_pkcs8_der(bytes)?,
+                CompatibleDocument::CleanedFromRing(vec) => SigningKey::from_pkcs8_der(&vec)?,
             }
         }
         #[cfg(not(feature = "ring-compat"))]
         {
-            signing_key = SigningKey::from_pkcs8_der(document).map_err(Error::DerParse)?;
+            signing_key = SigningKey::from_pkcs8_der(document)?;
         }
 
         Ok(Self { signing_key, version })
     }
 
     /// Constructs a key pair from [`pkcs8::PrivateKeyInfo`].
-    pub fn from_pkcs8_oak(oak: PrivateKeyInfo<'_>, version: String) -> Result<Self, Error> {
+    pub fn from_pkcs8_oak(
+        oak: PrivateKeyInfo<'_>,
+        version: String,
+    ) -> Result<Self, Ed25519KeyPairParseError> {
         Self::new(oak.algorithm.oid, oak.private_key, oak.public_key, version)
     }
 
     /// Constructs a key pair from [`pkcs8::PrivateKeyInfo`].
-    pub fn from_pkcs8_pki(oak: PrivateKeyInfo<'_>, version: String) -> Result<Self, Error> {
+    pub fn from_pkcs8_pki(
+        oak: PrivateKeyInfo<'_>,
+        version: String,
+    ) -> Result<Self, Ed25519KeyPairParseError> {
         Self::new(oak.algorithm.oid, oak.private_key, None, version)
     }
 
@@ -120,11 +126,14 @@ impl Ed25519KeyPair {
     /// so convert it if it is wrongly formatted.
     ///
     /// See [RFC 8310 10.3](https://datatracker.ietf.org/doc/html/rfc8410#section-10.3) for more details
-    fn correct_privkey_from_octolet(key: &[u8]) -> Result<&SecretKey, ParseError> {
+    fn correct_privkey_from_octolet(key: &[u8]) -> Result<&SecretKey, Ed25519KeyPairParseError> {
         if key.len() == 34 && key[..2] == [0x04, 0x20] {
             Ok(key[2..].try_into().unwrap())
         } else {
-            key.try_into().map_err(|_| ParseError::SecretKey)
+            key.try_into().map_err(|_| Ed25519KeyPairParseError::InvalidSecretKeyLength {
+                expected: ed25519_dalek::SECRET_KEY_LENGTH,
+                found: key.len(),
+            })
         }
     }
 
@@ -137,9 +146,9 @@ impl Ed25519KeyPair {
     /// # Errors
     ///
     /// Returns an error if the generation failed.
-    pub fn generate() -> Result<Zeroizing<Vec<u8>>, Error> {
+    pub fn generate() -> Result<Zeroizing<Vec<u8>>, Ed25519KeyPairParseError> {
         let signing_key = SigningKey::generate(&mut rand::rngs::OsRng);
-        Ok(signing_key.to_pkcs8_der().map_err(Error::DerParse)?.to_bytes())
+        Ok(signing_key.to_pkcs8_der()?.to_bytes())
     }
 
     /// Returns the version string for this keypair.
@@ -173,6 +182,48 @@ impl Debug for Ed25519KeyPair {
             .field("version", &self.version)
             .finish()
     }
+}
+
+/// An error encountered when constructing an [`Ed25519KeyPair`] from its constituent parts.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum Ed25519KeyPairParseError {
+    /// The ASN.1 Object Identifier on a PKCS#8 document doesn't match the expected one.
+    ///
+    /// This can happen when the document describes a RSA key, while an ed25519 key was expected.
+    #[error("algorithm OID does not match ed25519 algorithm: expected {expected}, found {found}")]
+    InvalidOid {
+        /// The expected OID.
+        expected: ObjectIdentifier,
+
+        /// The OID that was found instead.
+        found: ObjectIdentifier,
+    },
+
+    /// The length of the ed25519 secret key is invalid.
+    #[error("invalid ed25519 secret key length: expected {expected}, found {found}")]
+    InvalidSecretKeyLength {
+        /// The expected length of the secret key.
+        expected: usize,
+
+        /// The actual size of the secret key.
+        found: usize,
+    },
+
+    /// The public key found in a PKCS#8 v2 document doesn't match the public key derived from its
+    /// private key.
+    #[error("PKCS#8 Document public key does not match public key derived from private key: derived {0:X?} (len {}), parsed {1:X?} (len {})", .derived.len(), .parsed.len())]
+    PublicKeyMismatch {
+        /// The key derived from the private key.
+        derived: Vec<u8>,
+
+        /// The key found in the document.
+        parsed: Vec<u8>,
+    },
+
+    /// An error occurred when parsing a PKCS#8 document.
+    #[error("invalid PKCS#8 document: {0}")]
+    Pkcs8(#[from] pkcs8::Error),
 }
 
 /// A map from entity names to sets of public keys for that entity.
