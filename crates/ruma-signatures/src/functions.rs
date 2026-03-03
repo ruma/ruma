@@ -100,7 +100,7 @@ pub fn sign_json<K>(
     entity_id: &str,
     key_pair: &K,
     object: &mut CanonicalJsonObject,
-) -> Result<(), Error>
+) -> Result<(), JsonError>
 where
     K: KeyPair,
 {
@@ -111,8 +111,7 @@ where
                 path: "signatures".to_owned(),
                 expected: CanonicalJsonType::Object,
                 found: value.json_type(),
-            }
-            .into());
+            });
         }
         None => (Cow::Borrowed("signatures"), BTreeMap::new()),
     };
@@ -135,8 +134,7 @@ where
             path: format!("signatures.{entity_id}"),
             expected: CanonicalJsonType::Object,
             found: signature_set.json_type(),
-        }
-        .into());
+        });
     };
 
     signature_set.insert(signature.id(), CanonicalJsonValue::String(signature.base64()));
@@ -172,7 +170,7 @@ where
 ///
 /// assert_eq!(canonical, r#"{"日":1,"本":2}"#);
 /// ```
-pub fn canonical_json(object: &CanonicalJsonObject) -> Result<String, Error> {
+pub fn canonical_json(object: &CanonicalJsonObject) -> Result<String, JsonError> {
     canonical_json_with_fields_to_remove(object, CANONICAL_JSON_FIELDS_TO_REMOVE)
 }
 
@@ -411,10 +409,11 @@ where
 /// # Errors
 ///
 /// Returns an error if the event is too large.
-pub fn content_hash(object: &CanonicalJsonObject) -> Result<Base64<Standard, [u8; 32]>, Error> {
+pub fn content_hash(object: &CanonicalJsonObject) -> Result<Base64<Standard, [u8; 32]>, JsonError> {
     let json = canonical_json_with_fields_to_remove(object, CONTENT_HASH_FIELDS_TO_REMOVE)?;
+
     if json.len() > MAX_PDU_BYTES {
-        return Err(Error::PduSize);
+        return Err(JsonError::PduTooLarge);
     }
 
     let hash = Sha256::digest(json.as_bytes());
@@ -448,13 +447,14 @@ pub fn content_hash(object: &CanonicalJsonObject) -> Result<Base64<Standard, [u8
 pub fn reference_hash(
     object: &CanonicalJsonObject,
     rules: &RoomVersionRules,
-) -> Result<String, Error> {
+) -> Result<String, JsonError> {
     let redacted_value = redact(object.clone(), &rules.redaction, None)?;
 
     let json =
         canonical_json_with_fields_to_remove(&redacted_value, REFERENCE_HASH_FIELDS_TO_REMOVE)?;
+
     if json.len() > MAX_PDU_BYTES {
-        return Err(Error::PduSize);
+        return Err(JsonError::PduTooLarge);
     }
 
     let hash = Sha256::digest(json.as_bytes());
@@ -577,7 +577,7 @@ pub fn hash_and_sign_event<K>(
     key_pair: &K,
     object: &mut CanonicalJsonObject,
     redaction_rules: &RedactionRules,
-) -> Result<(), Error>
+) -> Result<(), JsonError>
 where
     K: KeyPair,
 {
@@ -596,12 +596,11 @@ where
                 path: "hashes".to_owned(),
                 expected: CanonicalJsonType::Object,
                 found: hashes_value.json_type(),
-            }
-            .into());
+            });
         }
     };
 
-    let mut redacted = redact(object.clone(), redaction_rules, None)?;
+    let mut redacted = redact(object.clone(), redaction_rules, None).map_err(JsonError::from)?;
 
     sign_json(entity_id, key_pair, &mut redacted)?;
 
@@ -686,7 +685,7 @@ pub fn verify_event(
     object: &CanonicalJsonObject,
     rules: &RoomVersionRules,
 ) -> Result<Verified, Error> {
-    let redacted = redact(object.clone(), &rules.redaction, None)?;
+    let redacted = redact(object.clone(), &rules.redaction, None).map_err(JsonError::from)?;
 
     let hashes = match object.get("hashes") {
         Some(CanonicalJsonValue::Object(hashes)) => hashes,
@@ -756,14 +755,14 @@ pub fn verify_event(
 fn canonical_json_with_fields_to_remove(
     object: &CanonicalJsonObject,
     fields: &[&str],
-) -> Result<String, Error> {
+) -> Result<String, JsonError> {
     let mut owned_object = object.clone();
 
     for field in fields {
         owned_object.remove(*field);
     }
 
-    to_json_string(&owned_object).map_err(|e| Error::Json(e.into()))
+    to_json_string(&owned_object).map_err(Into::into)
 }
 
 /// Extracts the server names to check signatures for given event.
@@ -854,7 +853,7 @@ fn servers_to_check_signatures(
 /// third-party invite.
 ///
 /// Returns an error if the object has not the expected format of an `m.room.member` event.
-fn is_invite_via_third_party_id(object: &CanonicalJsonObject) -> Result<bool, Error> {
+fn is_invite_via_third_party_id(object: &CanonicalJsonObject) -> Result<bool, JsonError> {
     let raw_type = match object.get("type") {
         Some(CanonicalJsonValue::String(raw_type)) => raw_type,
         Some(value) => {
@@ -862,10 +861,9 @@ fn is_invite_via_third_party_id(object: &CanonicalJsonObject) -> Result<bool, Er
                 path: "type".to_owned(),
                 expected: CanonicalJsonType::String,
                 found: value.json_type(),
-            }
-            .into());
+            });
         }
-        None => return Err(JsonError::MissingField { path: "type".to_owned() }.into()),
+        None => return Err(JsonError::MissingField { path: "type".to_owned() }),
     };
 
     if raw_type != "m.room.member" {
@@ -879,10 +877,9 @@ fn is_invite_via_third_party_id(object: &CanonicalJsonObject) -> Result<bool, Er
                 path: "content".to_owned(),
                 expected: CanonicalJsonType::Object,
                 found: value.json_type(),
-            }
-            .into());
+            });
         }
-        None => return Err(JsonError::MissingField { path: "content".to_owned() }.into()),
+        None => return Err(JsonError::MissingField { path: "content".to_owned() }),
     };
 
     let membership = match content.get("membership") {
@@ -892,11 +889,10 @@ fn is_invite_via_third_party_id(object: &CanonicalJsonObject) -> Result<bool, Er
                 path: "content.membership".to_owned(),
                 expected: CanonicalJsonType::String,
                 found: value.json_type(),
-            }
-            .into());
+            });
         }
         None => {
-            return Err(JsonError::MissingField { path: "content.membership".to_owned() }.into());
+            return Err(JsonError::MissingField { path: "content.membership".to_owned() });
         }
     };
 
@@ -910,8 +906,7 @@ fn is_invite_via_third_party_id(object: &CanonicalJsonObject) -> Result<bool, Er
             path: "content.third_party_invite".to_owned(),
             expected: CanonicalJsonType::Object,
             found: value.json_type(),
-        }
-        .into()),
+        }),
         None => Ok(false),
     }
 }
