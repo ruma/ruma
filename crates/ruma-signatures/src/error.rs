@@ -23,29 +23,16 @@ pub enum Error {
     /// [`ParseError`] wrapper.
     #[error("Parse error: {0}")]
     Parse(#[from] ParseError),
-
-    /// PDU was too large
-    #[error("PDU is larger than maximum of 65535 bytes")]
-    PduSize,
-}
-
-impl From<RedactionError> for Error {
-    fn from(err: RedactionError) -> Self {
-        match err {
-            RedactionError::InvalidType { path, expected, found } => {
-                JsonError::InvalidType { path, expected, found }.into()
-            }
-            RedactionError::MissingField { path } => JsonError::MissingField { path }.into(),
-            #[allow(unreachable_patterns)]
-            _ => unreachable!(),
-        }
-    }
 }
 
 /// All errors related to JSON validation/parsing.
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum JsonError {
+    /// The PDU is too large.
+    #[error("PDU is larger than maximum of 65535 bytes")]
+    PduTooLarge,
+
     /// The field at `path` was expected to be of type `expected`, but was received as `found`.
     #[error("invalid type at `{path}`: expected {expected:?}, found {found:?}")]
     InvalidType {
@@ -69,6 +56,19 @@ pub enum JsonError {
     /// A more generic JSON error from [`serde_json`].
     #[error(transparent)]
     Serde(#[from] serde_json::Error),
+}
+
+impl From<RedactionError> for JsonError {
+    fn from(err: RedactionError) -> Self {
+        match err {
+            RedactionError::InvalidType { path, expected, found } => {
+                JsonError::InvalidType { path, expected, found }
+            }
+            RedactionError::MissingField { path } => JsonError::MissingField { path },
+            #[allow(unreachable_patterns)]
+            _ => unreachable!(),
+        }
+    }
 }
 
 /// Errors relating to verification of signatures.
