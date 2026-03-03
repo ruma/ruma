@@ -32,6 +32,9 @@ Breaking changes:
 - `JsonType` was renamed to `CanonicalJsonType` to reflect that it only
   represents the possible types of a `CanonicalJsonValue`. It can also be
   accessed with `CanonicalJsonValue::json_type()`.
+- Refactor and improve the variants of `RedactionError`:
+  - `NotOfType` was renamed to `InvalidType` and provides more details about the
+    invalid field.
 
 Improvements:
 
