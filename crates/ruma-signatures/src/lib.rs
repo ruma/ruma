@@ -51,7 +51,7 @@
 pub use ruma_common::{IdParseError, SigningKeyAlgorithm};
 
 pub use self::{
-    error::{Error, JsonError, ParseError, VerificationError},
+    error::{JsonError, VerificationError},
     functions::{
         canonical_json, content_hash, hash_and_sign_event, reference_hash, sign_json,
         verify_canonical_json_bytes, verify_event, verify_json,

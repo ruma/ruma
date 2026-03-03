@@ -1,29 +1,11 @@
 use ruma_common::{
-    OwnedEventId,
+    IdParseError,
     canonical_json::{CanonicalJsonType, RedactionError},
     serde::Base64DecodeError,
 };
 use thiserror::Error;
 
 use crate::Ed25519VerificationError;
-
-/// `ruma-signature`'s error type, wraps a number of other error types.
-#[derive(Debug, Error)]
-#[non_exhaustive]
-#[allow(clippy::enum_variant_names)]
-pub enum Error {
-    /// [`JsonError`] wrapper.
-    #[error("JSON error: {0}")]
-    Json(#[from] JsonError),
-
-    /// [`VerificationError`] wrapper.
-    #[error("Verification error: {0}")]
-    Verification(#[from] VerificationError),
-
-    /// [`ParseError`] wrapper.
-    #[error("Parse error: {0}")]
-    Parse(#[from] ParseError),
-}
 
 /// All errors related to JSON validation/parsing.
 #[derive(Debug, Error)]
@@ -75,6 +57,32 @@ impl From<RedactionError> for JsonError {
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum VerificationError {
+    /// The JSON to check is invalid.
+    #[error("Invalid JSON: {0}")]
+    Json(#[from] JsonError),
+
+    /// Parsing a base64-encoded signature failed.
+    #[error("Could not parse base64-encoded signature at `path`: {source}")]
+    InvalidBase64Signature {
+        /// The full path to the signature.
+        path: String,
+
+        /// The originating error.
+        #[source]
+        source: Base64DecodeError,
+    },
+
+    /// Parsing a Matrix identifier failed.
+    #[error("Could not parse {identifier_type}: {source}")]
+    ParseIdentifier {
+        /// The type of identifier that was parsed.
+        identifier_type: &'static str,
+
+        /// The error when parsing the identifier.
+        #[source]
+        source: IdParseError,
+    },
+
     /// The signature uses an unsupported algorithm.
     #[error("signature uses an unsupported algorithm")]
     UnsupportedAlgorithm,
@@ -104,48 +112,4 @@ pub enum VerificationError {
     /// Error verifying an ed25519 signature.
     #[error(transparent)]
     Ed25519(#[from] Ed25519VerificationError),
-}
-
-/// Errors relating to parsing of all sorts.
-#[derive(Debug, Error)]
-#[non_exhaustive]
-pub enum ParseError {
-    /// For user ID parsing errors.
-    #[error("Could not parse User ID: {0}")]
-    UserId(#[source] ruma_common::IdParseError),
-
-    /// For event ID parsing errors.
-    #[error("Could not parse Event ID: {0}")]
-    EventId(#[source] ruma_common::IdParseError),
-
-    /// For when an event ID, coupled with a specific room version, doesn't have a server name
-    /// embedded.
-    #[error("Event ID {0:?} should have a server name for the given room version")]
-    ServerNameFromEventId(OwnedEventId),
-
-    /// For when parsing base64 gives an error.
-    #[error("Could not parse {of_type} base64 string {string:?}: {source}")]
-    Base64 {
-        /// The "type"/name of the base64 string
-        of_type: String,
-        /// The string itself.
-        string: String,
-        /// The originating error.
-        #[source]
-        source: Base64DecodeError,
-    },
-}
-
-impl ParseError {
-    pub(crate) fn server_name_from_event_id(event_id: OwnedEventId) -> Error {
-        Self::ServerNameFromEventId(event_id).into()
-    }
-
-    pub(crate) fn base64<T1: Into<String>, T2: Into<String>>(
-        of_type: T1,
-        string: T2,
-        source: Base64DecodeError,
-    ) -> Error {
-        Self::Base64 { of_type: of_type.into(), string: string.into(), source }.into()
-    }
 }
