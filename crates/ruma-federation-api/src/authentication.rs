@@ -235,7 +235,7 @@ impl XMatrix {
         }
 
         let mut request_object = Self::request_object(request, &self.origin, destination)
-            .map_err(|error| ruma_signatures::Error::Json(error.into()))?;
+            .map_err(|error| ruma_signatures::VerificationError::Json(error.into()))?;
         let entity_signature =
             CanonicalJsonObject::from([(self.key.to_string(), self.sig.encode().into())]);
         let signatures =
@@ -385,7 +385,7 @@ pub enum XMatrixVerificationError {
 
     /// The signature verification failed.
     #[error("signature verification failed: {0}")]
-    Signature(#[from] ruma_signatures::Error),
+    Signature(#[from] ruma_signatures::VerificationError),
 }
 
 #[cfg(test)]
