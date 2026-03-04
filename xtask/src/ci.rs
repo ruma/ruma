@@ -45,6 +45,8 @@ pub enum CiCmd {
     MsrvOwnedIdCompactstring,
     /// Check ruma-identifiers with `ruma_identifiers_storage="ArcIntern"`
     MsrvOwnedIdArcintern,
+    /// Check ruma-identifiers with `ruma_identifiers_storage="ArcInternment"`
+    MsrvOwnedIdArcinternment,
     /// Run all the tasks that use the stable version
     Stable,
     /// Check all crates with all features (stable)
@@ -129,6 +131,7 @@ impl CiTask {
             Some(CiCmd::MsrvOwnedIdSmallvec) => self.msrv_owned_id_cfg("SmallVec")?,
             Some(CiCmd::MsrvOwnedIdCompactstring) => self.msrv_owned_id_cfg("CompactString")?,
             Some(CiCmd::MsrvOwnedIdArcintern) => self.msrv_owned_id_cfg("ArcIntern")?,
+            Some(CiCmd::MsrvOwnedIdArcinternment) => self.msrv_owned_id_cfg("ArcInternment")?,
             Some(CiCmd::Stable) => self.stable()?,
             Some(CiCmd::StableAll) => self.stable_all()?,
             Some(CiCmd::StableCommon) => self.stable_common()?,
@@ -345,6 +348,7 @@ impl CiTask {
             "
         )
         .env("CLIPPY_CONF_DIR", ".wasm")
+        .env("RUSTFLAGS", "--cfg getrandom_backend=\"wasm_js\"")
         .run()
         .map_err(Into::into)
     }

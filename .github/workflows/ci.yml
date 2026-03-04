@@ -76,8 +76,11 @@ jobs:
           - name: Check Owned IDs with CompactString
             cmd: msrv-owned-id-compactstring
 
-          - name: Check Owned IDs with ArcIntern
+          - name: Check Owned IDs with ArcIntern from arc-interner
             cmd: msrv-owned-id-arcintern
+
+          - name: Check Owned IDs with ArcIntern from internment
+            cmd: msrv-owned-id-arcinternment
 
     steps:
       - name: Checkout repo
