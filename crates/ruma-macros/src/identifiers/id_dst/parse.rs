@@ -21,7 +21,7 @@ impl IdDst {
             attr.parse_nested_meta(|meta| id_dst_attrs.try_merge(meta, attr))?;
         }
 
-        let IdDstAttrs { validate } = id_dst_attrs;
+        let IdDstAttrs { validate, inline_bytes } = id_dst_attrs;
 
         if validate.is_none() && !input.generics.params.is_empty() {
             return Err(syn::Error::new(
@@ -56,9 +56,11 @@ impl IdDst {
         let (impl_generics, type_generics, _where_clause) = generics.split_for_impl();
         let impl_generics = quote! { #impl_generics };
 
+        let ruma_common = RumaCommon::new();
         let ident = input.ident;
         let owned_ident = format_ident!("Owned{ident}");
-        let types = Types::new(&ident, &owned_ident, type_generics);
+        let inline_bytes = inline_bytes.unwrap_or(32);
+        let types = Types::new(&ident, &owned_ident, type_generics, inline_bytes, &ruma_common);
 
         Ok(Self {
             ident,
@@ -66,10 +68,11 @@ impl IdDst {
             generics,
             impl_generics,
             validate,
+            inline_bytes,
             str_field_index,
             types,
             storage_cfg: StorageCfg::new(),
-            ruma_common: RumaCommon::new(),
+            ruma_common,
         })
     }
 }
@@ -79,6 +82,9 @@ impl IdDst {
 struct IdDstAttrs {
     /// The path to the function to use to validate the identifier.
     validate: Option<syn::Path>,
+
+    /// The size of the inline array for the `SmallVec` inner representation.
+    inline_bytes: Option<usize>,
 }
 
 impl IdDstAttrs {
@@ -97,6 +103,21 @@ impl IdDstAttrs {
         Ok(())
     }
 
+    /// Set the size of the inline array for the `SmallVec` inner representation.
+    ///
+    /// Returns an error if it is already set.
+    fn set_inline_bytes(&mut self, inline_bytes: usize, attr: &syn::Attribute) -> syn::Result<()> {
+        if self.inline_bytes.is_some() {
+            return Err(syn::Error::new_spanned(
+                attr,
+                "cannot have multiple values for `inline_bytes` attribute",
+            ));
+        }
+
+        self.inline_bytes = Some(inline_bytes);
+        Ok(())
+    }
+
     /// Try to parse the given meta item and merge it into this `IdDstAttrs`.
     ///
     /// Returns an error if an unknown `ruma_id` attribute is encountered, or if an attribute
@@ -104,6 +125,11 @@ impl IdDstAttrs {
     fn try_merge(&mut self, meta: ParseNestedMeta<'_>, attr: &syn::Attribute) -> syn::Result<()> {
         if meta.path.is_ident("validate") {
             return self.set_validate(meta.value()?.parse()?, attr);
+        }
+
+        if meta.path.is_ident("inline_bytes") {
+            return self
+                .set_inline_bytes(meta.value()?.parse::<syn::LitInt>()?.base10_parse()?, attr);
         }
 
         Err(meta.error("unsupported `ruma_id` attribute"))

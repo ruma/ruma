@@ -465,6 +465,8 @@ pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
 /// * `#[ruma_api(validate = PATH)]`: the path to a function to validate the string during parsing
 ///   and deserialization. By default, the types implement `From` string types, when this is set
 ///   they implement `TryFrom`.
+/// * `#[ruma_api(inline_bytes = USIZE)]`: the size of the bytes array when using the `SmallVec<[u8;
+///   N]>` inner representation. Defaults to `32`.
 ///
 /// # Examples
 ///

@@ -106,6 +106,15 @@
 //!   supported:
 //!
 //!   * `Arc` -- Use an `Arc<str>`.
+//!   * `ArcStr` -- Use an `ArcStr` from the [`arcstr`](https://crates.io/crates/arcstr) crate.
+//!   * `SmallVec` -- Use a `SmallVec<[u8; N]>` from the [`smallvec`](https://crates.io/crates/smallvec)
+//!     crate. The size of the array is variable depending on the identifier type.
+//!   * `CompactString` -- Use a `CompactString` from the [`compact_str`](https://crates.io/crates/compact_str)
+//!     crate.
+//!   * `ArcIntern` -- Use an `ArcIntern<str>` from the [`arc-interner`](https://crates.io/crates/arc-interner)
+//!     crate.
+//!   * `ArcInternment` -- Use an `ArcIntern<str>` from the [`internment`](https://crates.io/crates/internment)
+//!     crate.
 //!
 //!   This setting can also be configured by setting the `RUMA_IDENTIFIERS_STORAGE` environment
 //!   variable.
