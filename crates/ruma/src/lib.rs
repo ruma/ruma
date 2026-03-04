@@ -113,6 +113,8 @@
 //!     crate.
 //!   * `ArcIntern` -- Use an `ArcIntern<str>` from the [`arc-interner`](https://crates.io/crates/arc-interner)
 //!     crate.
+//!   * `ArcInternment` -- Use an `ArcIntern<str>` from the [`internment`](https://crates.io/crates/internment)
+//!     crate.
 //!
 //!   This setting can also be configured by setting the `RUMA_IDENTIFIERS_STORAGE` environment
 //!   variable.

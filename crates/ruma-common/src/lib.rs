@@ -60,6 +60,7 @@ pub mod exports {
     pub use compact_str;
     #[cfg(feature = "api")]
     pub use http;
+    pub use internment;
     pub use ruma_macros;
     pub use serde;
     pub use serde_html_form;

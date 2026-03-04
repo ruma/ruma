@@ -163,6 +163,7 @@ impl IdDst {
         let smallvec = &self.types.smallvec;
         let compactstring = &self.types.compactstring;
         let arcintern = &self.types.arcintern;
+        let arcinternment = &self.types.arcinternment;
         let id = &self.types.id;
         let owned_id = &self.types.owned_id;
 
@@ -172,6 +173,7 @@ impl IdDst {
         let smallvec_cfg = &self.storage_cfg.smallvec;
         let compactstring_cfg = &self.storage_cfg.compactstring;
         let arcintern_cfg = &self.storage_cfg.arcintern;
+        let arcinternment_cfg = &self.storage_cfg.arcinternment;
 
         let (phantom_decl, phantom_ctor) = if self.generics.params.is_empty() {
             None
@@ -226,6 +228,7 @@ impl IdDst {
             (smallvec_cfg, smallvec),
             (compactstring_cfg, compactstring),
             (arcintern_cfg, arcintern),
+            (arcinternment_cfg, arcinternment),
         ]
         .into_iter()
         .map(|(cfg, inner)| from_into_inner_cfg_impl(cfg, inner));
@@ -244,6 +247,7 @@ impl IdDst {
             /// * `CompactString` -- Use a `CompactString` from the [`compact_str`](https://crates.io/crates/compact_str) crate.
             /// * `ArcIntern` -- Use an `ArcIntern<str>` from the [`arc-interner`](https://crates.io/crates/arc-interner)
             ///   crate.
+            /// * `ArcInternment` -- Use an `ArcIntern<str>` from the [`internment`](https://crates.io/crates/internment) crate.
             ///
             /// The selected value can be set by using the `ruma_identifiers_storage` compile-time `cfg` setting.
             /// This setting can be configured using the `RUSTFLAGS` environment variable at build time, like this:
@@ -284,6 +288,8 @@ impl IdDst {
                 inner: #compactstring,
                 #arcintern_cfg
                 inner: #arcintern,
+                #arcinternment_cfg
+                inner: #arcinternment,
                 #phantom_decl
             }
 
@@ -303,6 +309,8 @@ impl IdDst {
                         inner: s.into(),
                         #arcintern_cfg
                         inner: s.into(),
+                        #arcinternment_cfg
+                        inner: s.into(),
                         #phantom_ctor
                     }
                 }
@@ -320,6 +328,8 @@ impl IdDst {
                         #compactstring_cfg
                         inner: s.into(),
                         #arcintern_cfg
+                        inner: s.into(),
+                        #arcinternment_cfg
                         inner: s.into(),
                         #phantom_ctor
                     }
@@ -339,6 +349,8 @@ impl IdDst {
                         inner: s.into(),
                         #arcintern_cfg
                         inner: s.into_boxed_str().into(),
+                        #arcinternment_cfg
+                        inner: s.into(),
                         #phantom_ctor
                     }
                 }
@@ -357,6 +369,8 @@ impl IdDst {
                     { &self.inner }
                     #arcintern_cfg
                     { &self.inner }
+                    #arcinternment_cfg
+                    { &self.inner }
                 }
 
                 /// Access the inner bytes without going through the borrowed type.
@@ -373,6 +387,8 @@ impl IdDst {
                     { self.inner.as_bytes() }
                     #arcintern_cfg
                     { self.inner.as_bytes() }
+                    #arcinternment_cfg
+                    { &self.inner.as_bytes() }
                 }
 
                 #( #from_into_inner_impls )*
@@ -489,6 +505,8 @@ impl IdDst {
                     { id.inner.into() }
                     #arcintern_cfg
                     { id.as_inner_str().into() }
+                    #arcinternment_cfg
+                    { id.as_inner_str().into() }
                 }
             }
 
@@ -506,6 +524,8 @@ impl IdDst {
                     #compactstring_cfg
                     { id.inner.into() }
                     #arcintern_cfg
+                    { id.as_inner_str().into() }
+                    #arcinternment_cfg
                     { id.as_inner_str().into() }
                 }
             }
@@ -826,8 +846,11 @@ struct Types {
     /// `CompactString`.
     compactstring: syn::Type,
 
-    /// `ArcIntern<str>`.
+    /// `ArcIntern<str>` from the `arc-interner` crate.
     arcintern: syn::Type,
+
+    /// `ArcIntern<str>` from the `internment` crate.
+    arcinternment: syn::Type,
 
     /// `{id}`, the identifier type with generics, if any.
     id: syn::Type,
@@ -848,6 +871,7 @@ impl Types {
         let smallvec_crate = ruma_common.reexported(RumaCommonReexport::Smallvec);
         let compact_str = ruma_common.reexported(RumaCommonReexport::CompactStr);
         let arc_interner = ruma_common.reexported(RumaCommonReexport::ArcInterner);
+        let internment = ruma_common.reexported(RumaCommonReexport::Internment);
 
         let str = parse_quote! { ::std::primitive::str };
         let cow = parse_quote! { ::std::borrow::Cow };
@@ -865,6 +889,7 @@ impl Types {
             smallvec: parse_quote! { #smallvec_crate::SmallVec<[#byte; #inline_bytes]> },
             compactstring: parse_quote! { #compact_str::CompactString },
             arcintern: parse_quote! { #arc_interner::ArcIntern<#str> },
+            arcinternment: parse_quote! { #internment::ArcIntern<#str> },
             str,
             cow,
             id,
@@ -890,8 +915,11 @@ struct StorageCfg {
     /// Attribute for the `CompactString` internal representation.
     compactstring: syn::Attribute,
 
-    /// Attribute for the `ArcIntern` internal representation.
+    /// Attribute for the `ArcIntern<str>` internal representation from the `arc-interner` crate.
     arcintern: syn::Attribute,
+
+    /// Attribute for the `ArcIntern<str>` internal representation from the `internment` crate.
+    arcinternment: syn::Attribute,
 }
 
 impl StorageCfg {
@@ -903,12 +931,14 @@ impl StorageCfg {
         let smallvec_value = quote! { "SmallVec" };
         let compactstring_value = quote! { "CompactString" };
         let arcintern_value = quote! { "ArcIntern" };
+        let arcinternment_value = quote! { "ArcInternment" };
         let all_values = &[
             &arc_str_value,
             &arcstr_value,
             &smallvec_value,
             &compactstring_value,
             &arcintern_value,
+            &arcinternment_value,
         ];
 
         Self {
@@ -918,6 +948,7 @@ impl StorageCfg {
             smallvec: parse_quote! { #[cfg(#key = #smallvec_value)] },
             compactstring: parse_quote! { #[cfg(#key = #compactstring_value)] },
             arcintern: parse_quote! { #[cfg(#key = #arcintern_value)] },
+            arcinternment: parse_quote! { #[cfg(#key = #arcinternment_value)] },
         }
     }
 }
