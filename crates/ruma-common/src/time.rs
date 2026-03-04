@@ -22,11 +22,7 @@ impl MilliSecondsSinceUnixEpoch {
 
     /// The current system time in milliseconds since the unix epoch.
     pub fn now() -> Self {
-        #[cfg(not(all(target_family = "wasm", target_os = "unknown", feature = "js")))]
-        return Self::from_system_time(SystemTime::now()).expect("date out of range");
-
-        #[cfg(all(target_family = "wasm", target_os = "unknown", feature = "js"))]
-        return Self(f64_to_uint(js_sys::Date::now()));
+        Self::from_system_time(SystemTime::now()).expect("date out of range")
     }
 
     /// Creates a new `SystemTime` from `self`, if it can be represented.
@@ -89,11 +85,7 @@ impl SecondsSinceUnixEpoch {
 
     /// The current system-time as seconds since the unix epoch.
     pub fn now() -> Self {
-        #[cfg(not(all(target_family = "wasm", target_os = "unknown", feature = "js")))]
-        return Self::from_system_time(SystemTime::now()).expect("date out of range");
-
-        #[cfg(all(target_family = "wasm", target_os = "unknown", feature = "js"))]
-        return Self(f64_to_uint(js_sys::Date::now() / 1000.0));
+        Self::from_system_time(SystemTime::now()).expect("date out of range")
     }
 
     /// Creates a new `SystemTime` from `self`, if it can be represented.
@@ -130,13 +122,6 @@ impl fmt::Debug for SecondsSinceUnixEpoch {
             }
         }
     }
-}
-
-#[cfg(all(target_family = "wasm", target_os = "unknown", feature = "js"))]
-fn f64_to_uint(val: f64) -> UInt {
-    // UInt::MAX milliseconds is ~285 616 years, we do not account for that
-    // (or for dates before the unix epoch which would have to be negative)
-    UInt::try_from(val as u64).expect("date out of range")
 }
 
 #[cfg(test)]
