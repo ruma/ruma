@@ -1943,7 +1943,6 @@ dependencies = [
  "getrandom 0.2.16",
  "http",
  "indexmap",
- "js-sys",
  "js_int",
  "konst",
  "macro_rules_attribute",

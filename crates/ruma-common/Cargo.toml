@@ -21,7 +21,7 @@ client = []
 server = []
 
 api = ["dep:http", "dep:konst"]
-js = ["dep:js-sys", "getrandom?/js", "uuid?/js"]
+js = ["getrandom?/js", "uuid?/js"]
 rand = ["dep:rand", "dep:getrandom", "dep:uuid"]
 
 unstable-msc2666 = []
@@ -81,9 +81,6 @@ uuid = { version = "1.0.0", optional = true, features = ["v4"] }
 web-time = { workspace = true }
 wildmatch = { workspace = true }
 zeroize = { workspace = true }
-
-[target.'cfg(all(target_family = "wasm", target_os = "unknown"))'.dependencies]
-js-sys = { version = "0.3", optional = true }
 
 [dev-dependencies]
 assert_matches2 = { workspace = true }
