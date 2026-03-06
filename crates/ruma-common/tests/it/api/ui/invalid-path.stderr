@@ -15,10 +15,14 @@ note: inside `SinglePath::new`
    |         check_path_is_valid(path);
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^
 note: inside `path_builder::check_path_is_valid`
-  --> src/api/path_builder.rs
+  --> $RUST/core/src/panic.rs
+   |
+   = note: the failure occurred here
+   |
+  ::: src/api/path_builder.rs
    |
    |             _ => panic!("path contains invalid (non-ascii or whitespace) characters")
-   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+   |                  -------------------------------------------------------------------- in this macro invocation
 
 note: erroneous constant encountered
    --> tests/it/api/ui/invalid-path.rs:146:13
@@ -44,10 +48,14 @@ note: inside `VersionHistory::new`
    |             check_path_is_valid(version_path.1);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: inside `path_builder::check_path_is_valid`
-  --> src/api/path_builder.rs
+  --> $RUST/core/src/panic.rs
+   |
+   = note: the failure occurred here
+   |
+  ::: src/api/path_builder.rs
    |
    |             _ => panic!("path contains invalid (non-ascii or whitespace) characters")
-   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+   |                  -------------------------------------------------------------------- in this macro invocation
 
 note: erroneous constant encountered
    --> tests/it/api/ui/invalid-path.rs:147:13
@@ -72,10 +80,14 @@ note: inside `SinglePath::new`
    |         check_path_is_valid(path);
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^
 note: inside `path_builder::check_path_is_valid`
-  --> src/api/path_builder.rs
+  --> $RUST/core/src/panic.rs
+   |
+   = note: the failure occurred here
+   |
+  ::: src/api/path_builder.rs
    |
    |             _ => panic!("path contains invalid (non-ascii or whitespace) characters")
-   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+   |                  -------------------------------------------------------------------- in this macro invocation
 
 note: erroneous constant encountered
    --> tests/it/api/ui/invalid-path.rs:149:13
@@ -101,10 +113,14 @@ note: inside `VersionHistory::new`
    |             check_path_is_valid(version_path.1);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: inside `path_builder::check_path_is_valid`
-  --> src/api/path_builder.rs
+  --> $RUST/core/src/panic.rs
+   |
+   = note: the failure occurred here
+   |
+  ::: src/api/path_builder.rs
    |
    |             _ => panic!("path contains invalid (non-ascii or whitespace) characters")
-   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+   |                  -------------------------------------------------------------------- in this macro invocation
 
 note: erroneous constant encountered
    --> tests/it/api/ui/invalid-path.rs:150:13
@@ -129,10 +145,14 @@ note: inside `SinglePath::new`
    |             extract_endpoint_path_segment_variable(segment);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: inside `extract_endpoint_path_segment_variable`
-  --> src/api/path_builder.rs
+  --> $RUST/core/src/panic.rs
+   |
+   = note: the failure occurred here
+   |
+  ::: src/api/path_builder.rs
    |
    |         panic!("endpoint paths syntax has changed and segment variables must be wrapped by `{{}}`");
-   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+   |         ------------------------------------------------------------------------------------------- in this macro invocation
 
 note: erroneous constant encountered
    --> tests/it/api/ui/invalid-path.rs:152:13
@@ -163,10 +183,14 @@ note: inside `VersionHistory::new::check_path_args_equal`
    |                 if let Some(first_arg) = extract_endpoint_path_segment_variable(first_s) {
    |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: inside `extract_endpoint_path_segment_variable`
-  --> src/api/path_builder.rs
+  --> $RUST/core/src/panic.rs
+   |
+   = note: the failure occurred here
+   |
+  ::: src/api/path_builder.rs
    |
    |         panic!("endpoint paths syntax has changed and segment variables must be wrapped by `{{}}`");
-   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+   |         ------------------------------------------------------------------------------------------- in this macro invocation
 
 note: erroneous constant encountered
    --> tests/it/api/ui/invalid-path.rs:153:13
@@ -259,10 +283,14 @@ note: inside `SinglePath::new`
     |             extract_endpoint_path_segment_variable(segment);
     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: inside `extract_endpoint_path_segment_variable`
-   --> src/api/path_builder.rs
+   --> $RUST/core/src/panic.rs
+    |
+    = note: the failure occurred here
+    |
+   ::: src/api/path_builder.rs
     |
     |         panic!("endpoint path segment variable braces mismatch: missing starting `{{`");
-    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+    |         ------------------------------------------------------------------------------- in this macro invocation
 
 note: erroneous constant encountered
    --> tests/it/api/ui/invalid-path.rs:158:13
@@ -293,10 +321,14 @@ note: inside `VersionHistory::new::check_path_args_equal`
     |                 if let Some(first_arg) = extract_endpoint_path_segment_variable(first_s) {
     |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: inside `extract_endpoint_path_segment_variable`
-   --> src/api/path_builder.rs
+   --> $RUST/core/src/panic.rs
+    |
+    = note: the failure occurred here
+    |
+   ::: src/api/path_builder.rs
     |
     |         panic!("endpoint path segment variable braces mismatch: missing starting `{{`");
-    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+    |         ------------------------------------------------------------------------------- in this macro invocation
 
 note: erroneous constant encountered
    --> tests/it/api/ui/invalid-path.rs:159:13
