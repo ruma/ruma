@@ -10,10 +10,14 @@ error[E0080]: evaluation panicked: no endpoint paths supplied
    | |_____^ evaluation of `<no_paths::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
    |
 note: inside `VersionHistory::new`
-  --> src/api/path_builder.rs
+  --> $RUST/core/src/panic.rs
+   |
+   = note: the failure occurred here
+   |
+  ::: src/api/path_builder.rs
    |
    |             panic!("no endpoint paths supplied")
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+   |             ------------------------------------ in this macro invocation
 
 note: erroneous constant encountered
    --> tests/it/api/ui/invalid-version-history.rs:146:13
@@ -39,10 +43,14 @@ note: inside `VersionHistory::new`
    |             check_path_args_equal(ref_path, version_path.1);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: inside `VersionHistory::new::check_path_args_equal`
-  --> src/api/path_builder.rs
+  --> $RUST/core/src/panic.rs
+   |
+   = note: the failure occurred here
+   |
+  ::: src/api/path_builder.rs
    |
    |                         panic!("counts of endpoint path segment variables do not match");
-   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+   |                         ---------------------------------------------------------------- in this macro invocation
 
 note: erroneous constant encountered
    --> tests/it/api/ui/invalid-version-history.rs:147:13
@@ -68,10 +76,14 @@ note: inside `VersionHistory::new`
    |             check_path_args_equal(ref_path, version_path.1);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: inside `VersionHistory::new::check_path_args_equal`
-  --> src/api/path_builder.rs
+  --> $RUST/core/src/panic.rs
+   |
+   = note: the failure occurred here
+   |
+  ::: src/api/path_builder.rs
    |
    | ...                   panic!("names of endpoint path segment variables do not match");
-   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+   |                       --------------------------------------------------------------- in this macro invocation
 
 note: erroneous constant encountered
    --> tests/it/api/ui/invalid-version-history.rs:148:13
@@ -91,10 +103,14 @@ error[E0080]: evaluation panicked: defined deprecated version while no stable pa
    | |_____^ evaluation of `<deprecated_without_added::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
    |
 note: inside `VersionHistory::new`
-  --> src/api/path_builder.rs
+  --> $RUST/core/src/panic.rs
+   |
+   = note: the failure occurred here
+   |
+  ::: src/api/path_builder.rs
    |
    |                 panic!("defined deprecated version while no stable path exists")
-   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+   |                 ---------------------------------------------------------------- in this macro invocation
 
 note: erroneous constant encountered
    --> tests/it/api/ui/invalid-version-history.rs:149:13
@@ -114,10 +130,14 @@ error[E0080]: evaluation panicked: deprecated version is equal to latest stable 
    | |_____^ evaluation of `<deprecated_same_version::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
    |
 note: inside `VersionHistory::new`
-  --> src/api/path_builder.rs
+  --> $RUST/core/src/panic.rs
+   |
+   = note: the failure occurred here
+   |
+  ::: src/api/path_builder.rs
    |
    |                     panic!("deprecated version is equal to latest stable path version")
-   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+   |                     ------------------------------------------------------------------- in this macro invocation
 
 note: erroneous constant encountered
    --> tests/it/api/ui/invalid-version-history.rs:150:13
@@ -137,10 +157,14 @@ error[E0080]: evaluation panicked: defined removed version while no deprecated v
    | |_____^ evaluation of `<removed_without_deprecated::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
    |
 note: inside `VersionHistory::new`
-  --> src/api/path_builder.rs
+  --> $RUST/core/src/panic.rs
+   |
+   = note: the failure occurred here
+   |
+  ::: src/api/path_builder.rs
    |
    |                 panic!("defined removed version while no deprecated version exists")
-   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+   |                 -------------------------------------------------------------------- in this macro invocation
 
 note: erroneous constant encountered
    --> tests/it/api/ui/invalid-version-history.rs:151:13
@@ -160,10 +184,14 @@ error[E0080]: evaluation panicked: removed version is equal to deprecated versio
     | |_____^ evaluation of `<removed_same_version::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
     |
 note: inside `VersionHistory::new`
-   --> src/api/path_builder.rs
+   --> $RUST/core/src/panic.rs
+    |
+    = note: the failure occurred here
+    |
+   ::: src/api/path_builder.rs
     |
     |                     panic!("removed version is equal to deprecated version")
-    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+    |                     -------------------------------------------------------- in this macro invocation
 
 note: erroneous constant encountered
    --> tests/it/api/ui/invalid-version-history.rs:152:13
@@ -183,10 +211,14 @@ error[E0080]: evaluation panicked: duplicate matrix version in stable paths
     | |_____^ evaluation of `<duplicate_version::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
     |
 note: inside `VersionHistory::new`
-   --> src/api/path_builder.rs
+   --> $RUST/core/src/panic.rs
+    |
+    = note: the failure occurred here
+    |
+   ::: src/api/path_builder.rs
     |
     |                         panic!("duplicate matrix version in stable paths")
-    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+    |                         -------------------------------------------------- in this macro invocation
 
 note: erroneous constant encountered
    --> tests/it/api/ui/invalid-version-history.rs:153:13
@@ -206,10 +238,14 @@ error[E0080]: evaluation panicked: stable paths are not in ascending order
     | |_____^ evaluation of `<unsorted_versions::Request as ruma_common::api::Metadata>::PATH_BUILDER` failed inside this call
     |
 note: inside `VersionHistory::new`
-   --> src/api/path_builder.rs
+   --> $RUST/core/src/panic.rs
+    |
+    = note: the failure occurred here
+    |
+   ::: src/api/path_builder.rs
     |
     |                         panic!("stable paths are not in ascending order")
-    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+    |                         ------------------------------------------------- in this macro invocation
 
 note: erroneous constant encountered
    --> tests/it/api/ui/invalid-version-history.rs:154:13
