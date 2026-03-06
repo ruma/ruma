@@ -68,7 +68,7 @@ impl RecentEmojiEventContent {
         let mut recent_emoji =
             self.recent_emoji.iter().take(Self::RECOMMENDED_MAX_LEN).cloned().collect::<Vec<_>>();
         // We reverse the sorting to get the highest count first.
-        recent_emoji.sort_by(|lhs, rhs| rhs.total.cmp(&lhs.total));
+        recent_emoji.sort_by_key(|emoji| std::cmp::Reverse(emoji.total));
         recent_emoji
     }
 }
