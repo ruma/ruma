@@ -822,15 +822,13 @@ pub(crate) fn parse_markdown(text: &str) -> Option<String> {
 
         for event in parser_events.iter().skip(1) {
             match event {
-                Event::Text(s) => {
-                    // If the string does not contain markdown, the only modification that should
-                    // happen is that newlines are converted to hardbreaks. It means that we should
-                    // find all the other characters from the original string in the text events.
-                    // Let's check that by walking the original string.
-                    if text[pos..].starts_with(s.as_ref()) {
-                        pos += s.len();
-                        continue;
-                    }
+                // If the string does not contain markdown, the only modification that should
+                // happen is that newlines are converted to hardbreaks. It means that we should
+                // find all the other characters from the original string in the text events.
+                // Let's check that by walking the original string.
+                Event::Text(s) if text[pos..].starts_with(s.as_ref()) => {
+                    pos += s.len();
+                    continue;
                 }
                 Event::HardBreak => {
                     // A hard break happens when a newline is encountered, which is not necessarily
