@@ -115,10 +115,10 @@ jobs:
           echo "$BREAKING_CHANGES_RESULTS" >> breaking-changes-results.json
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
-          name: breaking-changes-results
           path: breaking-changes-results.json
+          archive: false
 
   xtask:
     needs: changes
