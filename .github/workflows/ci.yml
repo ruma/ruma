@@ -37,7 +37,7 @@ jobs:
       - name: Install cargo-sort
         uses: taiki-e/cache-cargo-install-action@v3
         with:
-          tool: cargo-sort@2.0.2
+          tool: cargo-sort@2.1.1
 
       - name: Get xtask
         uses: actions/cache@v5
