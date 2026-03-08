@@ -31,13 +31,18 @@ mod condition;
 mod iter;
 mod predefined;
 
+#[cfg(feature = "unstable-msc4306")]
+pub use self::condition::ThreadSubscriptionConditionData;
 #[cfg(feature = "unstable-msc3932")]
-pub use self::condition::RoomVersionFeature;
+pub use self::condition::{RoomVersionFeature, RoomVersionSupportsConditionData};
 pub use self::{
     action::{Action, Tweak},
     condition::{
-        _CustomPushCondition, ComparisonOperator, FlattenedJson, FlattenedJsonValue, PushCondition,
-        PushConditionPowerLevelsCtx, PushConditionRoomCtx, RoomMemberCountIs, ScalarJsonValue,
+        _CustomPushCondition, ComparisonOperator, EventMatchConditionData,
+        EventPropertyContainsConditionData, EventPropertyIsConditionData, FlattenedJson,
+        FlattenedJsonValue, PushCondition, PushConditionPowerLevelsCtx, PushConditionRoomCtx,
+        RoomMemberCountConditionData, RoomMemberCountIs, ScalarJsonValue,
+        SenderNotificationPermissionConditionData,
     },
     iter::{AnyPushRule, AnyPushRuleRef, RulesetIntoIter, RulesetIter},
     predefined::{
@@ -1043,7 +1048,9 @@ mod tests {
         AnyPushRule, ConditionalPushRule, PatternedPushRule, Ruleset, SimplePushRule,
         action::{Action, Tweak},
         condition::{
-            PushCondition, PushConditionPowerLevelsCtx, PushConditionRoomCtx, RoomMemberCountIs,
+            EventMatchConditionData, PushCondition, PushConditionPowerLevelsCtx,
+            PushConditionRoomCtx, RoomMemberCountConditionData, RoomMemberCountIs,
+            SenderNotificationPermissionConditionData,
         },
     };
     use crate::{
@@ -1059,10 +1066,10 @@ mod tests {
         let mut set = Ruleset::new();
 
         set.override_.insert(ConditionalPushRule {
-            conditions: vec![PushCondition::EventMatch {
-                key: "type".into(),
-                pattern: "m.call.invite".into(),
-            }],
+            conditions: vec![PushCondition::EventMatch(EventMatchConditionData::new(
+                "type".into(),
+                "m.call.invite".into(),
+            ))],
             actions: vec![Action::Notify, Action::SetTweak(Tweak::Highlight(true))],
             rule_id: ".m.rule.call".into(),
             enabled: true,
@@ -1108,10 +1115,10 @@ mod tests {
         let mut set = example_ruleset();
 
         let added = set.override_.insert(ConditionalPushRule {
-            conditions: vec![PushCondition::EventMatch {
-                key: "room_id".into(),
-                pattern: "!roomid:matrix.org".into(),
-            }],
+            conditions: vec![PushCondition::EventMatch(EventMatchConditionData::new(
+                "room_id".into(),
+                "!roomid:matrix.org".into(),
+            ))],
             actions: vec![],
             rule_id: "!roomid:matrix.org".into(),
             enabled: true,
@@ -1165,11 +1172,18 @@ mod tests {
             enabled: true,
             rule_id: ".m.rule.call".into(),
             conditions: vec![
-                PushCondition::EventMatch { key: "type".into(), pattern: "m.call.invite".into() },
+                PushCondition::EventMatch(EventMatchConditionData::new(
+                    "type".into(),
+                    "m.call.invite".into(),
+                )),
                 #[allow(deprecated)]
                 PushCondition::ContainsDisplayName,
-                PushCondition::RoomMemberCount { is: RoomMemberCountIs::gt(uint!(2)) },
-                PushCondition::SenderNotificationPermission { key: "room".into() },
+                PushCondition::RoomMemberCount(RoomMemberCountConditionData::new(
+                    RoomMemberCountIs::gt(uint!(2)),
+                )),
+                PushCondition::SenderNotificationPermission(
+                    SenderNotificationPermissionConditionData::new("room".into()),
+                ),
             ],
         };
 
@@ -1274,8 +1288,13 @@ mod tests {
 
         set.override_.insert(ConditionalPushRule {
             conditions: vec![
-                PushCondition::RoomMemberCount { is: RoomMemberCountIs::from(uint!(2)) },
-                PushCondition::EventMatch { key: "type".into(), pattern: "m.room.message".into() },
+                PushCondition::RoomMemberCount(RoomMemberCountConditionData::new(
+                    RoomMemberCountIs::from(uint!(2)),
+                )),
+                PushCondition::EventMatch(EventMatchConditionData::new(
+                    "type".into(),
+                    "m.room.message".into(),
+                )),
             ],
             actions: vec![
                 Action::Notify,
@@ -1612,9 +1631,9 @@ mod tests {
             default: false,
             enabled: false,
             rule_id: "disabled".into(),
-            conditions: vec![PushCondition::RoomMemberCount {
-                is: RoomMemberCountIs::from(uint!(2)),
-            }],
+            conditions: vec![PushCondition::RoomMemberCount(RoomMemberCountConditionData::new(
+                RoomMemberCountIs::from(uint!(2)),
+            ))],
         };
         set.underride.insert(disabled);
 
@@ -1686,13 +1705,15 @@ mod tests {
             enabled: true,
             rule_id: "three.conditions".into(),
             conditions: vec![
-                PushCondition::RoomMemberCount { is: RoomMemberCountIs::from(uint!(2)) },
+                PushCondition::RoomMemberCount(RoomMemberCountConditionData::new(
+                    RoomMemberCountIs::from(uint!(2)),
+                )),
                 #[allow(deprecated)]
                 PushCondition::ContainsDisplayName,
-                PushCondition::EventMatch {
-                    key: "room_id".into(),
-                    pattern: "!dm:server.name".into(),
-                },
+                PushCondition::EventMatch(EventMatchConditionData::new(
+                    "room_id".into(),
+                    "!dm:server.name".into(),
+                )),
             ],
         };
         set.override_.insert(three_conditions);
@@ -1755,11 +1776,13 @@ mod tests {
                 enabled: true,
                 rule_id: PredefinedOverrideRuleId::RoomNotif.to_string(),
                 conditions: vec![
-                    PushCondition::EventMatch {
-                        key: "content.body".into(),
-                        pattern: "@room".into(),
-                    },
-                    PushCondition::SenderNotificationPermission { key: "room".into() },
+                    PushCondition::EventMatch(EventMatchConditionData::new(
+                        "content.body".into(),
+                        "@room".into(),
+                    )),
+                    PushCondition::SenderNotificationPermission(
+                        SenderNotificationPermissionConditionData::new("room".into()),
+                    ),
                 ],
             },
         ]);
