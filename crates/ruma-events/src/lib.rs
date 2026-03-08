@@ -32,7 +32,7 @@
 //! #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 //! #[ruma_event(type = "org.example.event", kind = State, state_key_type = String)]
 //! pub struct ExampleContent {
-//!     field: String,
+//!     field: Option<String>,
 //! }
 //! ```
 //!
@@ -210,7 +210,10 @@ pub use self::{
     kinds::*,
     relation::{BundledMessageLikeRelations, BundledStateRelations},
     state_key::EmptyStateKey,
-    unsigned::{MessageLikeUnsigned, RedactedUnsigned, StateUnsigned, UnsignedRoomRedactionEvent},
+    unsigned::{
+        EventUnsignedData, MessageLikeUnsigned, RedactedUnsigned, StateUnsigned,
+        UnsignedRoomRedactionEvent,
+    },
 };
 
 /// Trait to define the behavior of redact an event's content object.

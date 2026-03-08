@@ -27,6 +27,30 @@ Breaking changes:
   deserialization when more algorithms are added. This type should be `.cast()`
   from and to other types when the algorithm is known from external data. The
   previous `AesHmacSha2EncryptedData` variant is now a separate struct.
+- Non-redacted and redacted state event contents are no longer separate types.
+  The `Redacted/PossiblyRedacted` variations of `*EventContent` structs were
+  merged into the non-prefixed `*EventContent` struct, which matches now the
+  previous `PossiblyRedacted*EventContent` variation.
+  - The `(Redacted/PossiblyRedacted)StateEventContent` traits were removed.
+  - The `(Sync)StateEvent` enums where changed to structs that contain directly
+    the `content` field. As a result, the `(Original/Redacted)(Sync)StateEvent`
+    structs were removed. Most of the accessors on those types were removed as
+    those fields are now accessible directly from the `content`. The bound for
+    the content was simplified to `StaticStateEventContent`.
+  - The `(Redacted/PossiblyRedacted)*EventContent` types are no longer generated
+    by the `EventContent` macro for the `State` kind. Instead the macro
+    generates the `RedactContent` implementation, and returns compile errors on
+    fields that cannot be redacted easily. This behavior can be disabled with
+    the `custom_redacted` attribute like before. The `custom_possibly_redacted`
+    attribute is no longer supported.
+  - The bound for the content in `StrippedStateEvent` was changed to
+    `StaticStateEventContent`.
+  - `StateUnsigned` has an optional `redacted_because` field.
+  - `StateEventContentChange` is now a struct that matches the previous
+    `StateEventContentChange::Original` variant.
+  - `StaticStateEventContent` no longer has a `PossiblyRedacted` associated
+    type.
+- The `compat-optional` cargo feature was removed because it is no longer used.
 
 Bug fixes:
 
