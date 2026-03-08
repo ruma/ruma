@@ -21,6 +21,7 @@ pub struct ImagePackRoomsEventContent {
     /// enabled globally.
     ///
     /// [`m.room.image_pack`]: https://spec.matrix.org/v1.19/client-server-api/#mroomimage_pack
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub rooms: BTreeMap<OwnedRoomId, BTreeMap<String, RoomImagePackMeta>>,
 }
 

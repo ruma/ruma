@@ -8,6 +8,7 @@ use super::{
     EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEventType,
     RoomAccountDataEventType, StateEventType, ToDeviceEventType,
 };
+use crate::EventUnsignedData;
 
 /// Extension trait for [`Raw<T>`].
 pub trait RawExt<T: EventContentFromType> {
@@ -115,31 +116,10 @@ pub trait StateEventContent: Sized + Serialize {
     fn event_type(&self) -> StateEventType;
 }
 
-/// Content of a non-redacted state event with a corresponding possibly-redacted type.
+/// Content of a state event with a corresponding type for its unsigned data.
 pub trait StaticStateEventContent: StateEventContent {
-    /// The possibly redacted form of the event's content.
-    type PossiblyRedacted: PossiblyRedactedStateEventContent;
-
     /// The type of the event's `unsigned` field.
-    type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + DeserializeOwned;
-}
-
-/// Content of a redacted state event.
-pub trait RedactedStateEventContent: Sized + Serialize {
-    /// The type of the event's `state_key` field.
-    type StateKey: AsRef<str> + Clone + fmt::Debug + DeserializeOwned + Serialize;
-
-    /// Get the event's type, like `m.room.name`.
-    fn event_type(&self) -> StateEventType;
-}
-
-/// Content of a state event.
-pub trait PossiblyRedactedStateEventContent: Sized + Serialize {
-    /// The type of the event's `state_key` field.
-    type StateKey: AsRef<str> + Clone + fmt::Debug + DeserializeOwned + Serialize;
-
-    /// Get the event's type, like `m.room.name`.
-    fn event_type(&self) -> StateEventType;
+    type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + DeserializeOwned + EventUnsignedData;
 }
 
 /// Content of a to-device event.

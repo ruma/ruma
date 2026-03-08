@@ -26,6 +26,7 @@ pub struct RoomAvatarEventContent {
     pub info: Option<Box<ImageInfo>>,
 
     /// URL of the avatar image.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<OwnedMxcUri>,
 }
 

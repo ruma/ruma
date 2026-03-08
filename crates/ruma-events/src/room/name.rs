@@ -15,13 +15,14 @@ use crate::EmptyStateKey;
 #[ruma_event(type = "m.room.name", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomNameEventContent {
     /// The name of the room.
-    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
 }
 
 impl RoomNameEventContent {
     /// Create a new `RoomNameEventContent` with the given name.
     pub fn new(name: String) -> Self {
-        Self { name }
+        Self { name: Some(name) }
     }
 }
 
@@ -31,11 +32,11 @@ mod tests {
     use serde_json::{from_value as from_json_value, json};
 
     use super::RoomNameEventContent;
-    use crate::OriginalStateEvent;
+    use crate::StateEvent;
 
     #[test]
     fn serialization() {
-        let content = RoomNameEventContent { name: "The room name".to_owned() };
+        let content = RoomNameEventContent { name: Some("The room name".to_owned()) };
 
         assert_to_canonical_json_eq!(
             content,
@@ -60,11 +61,12 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<OriginalStateEvent<RoomNameEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomNameEventContent>>(json_data)
                 .unwrap()
                 .content
-                .name,
-            "The room name"
+                .name
+                .as_deref(),
+            Some("The room name")
         );
     }
 }

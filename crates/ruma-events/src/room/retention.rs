@@ -10,7 +10,7 @@ use js_int::UInt;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{EmptyStateKey, PossiblyRedactedStateEventContent, StateEventType};
+use crate::EmptyStateKey;
 
 /// The content of an `m.room.retention` state event.
 ///
@@ -22,7 +22,7 @@ use crate::{EmptyStateKey, PossiblyRedactedStateEventContent, StateEventType};
 /// [MSC1763]: https://github.com/matrix-org/matrix-spec-proposals/pull/1763
 #[derive(Clone, Debug, Default, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[ruma_event(type = "org.matrix.msc1763.retention", kind = State, state_key_type = EmptyStateKey, custom_possibly_redacted)]
+#[ruma_event(type = "org.matrix.msc1763.retention", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomRetentionEventContent {
     /// The minimum amount of time messages should be kept on the homeserver.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -176,26 +176,6 @@ impl<'de> Deserialize<'de> for RoomRetentionEventContent {
     }
 }
 
-/// The PossiblyRedacted version of [`RoomRetentionEventContent`].
-///
-/// Since the event has only optional fields it's already compatible with the redacted version of
-/// the state event content.
-pub type PossiblyRedactedRoomRetentionEventContent = RoomRetentionEventContent;
-
-impl PossiblyRedactedStateEventContent for PossiblyRedactedRoomRetentionEventContent {
-    type StateKey = EmptyStateKey;
-
-    fn event_type(&self) -> StateEventType {
-        StateEventType::RoomRetention
-    }
-}
-
-impl From<RedactedRoomRetentionEventContent> for PossiblyRedactedRoomRetentionEventContent {
-    fn from(_value: RedactedRoomRetentionEventContent) -> Self {
-        Self { min_lifetime: None, max_lifetime: None }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use js_int::uint;
@@ -203,7 +183,7 @@ mod tests {
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
     use super::*;
-    use crate::OriginalStateEvent;
+    use crate::StateEvent;
 
     fn raw_json(
         min_lifetime: impl Into<Option<UInt>>,
@@ -227,7 +207,7 @@ mod tests {
     fn deserialization() {
         let json_data = raw_json(None, None);
         let RoomRetentionEventContent { max_lifetime, min_lifetime, .. } =
-            from_json_value::<OriginalStateEvent<RoomRetentionEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomRetentionEventContent>>(json_data)
                 .expect("No lifetimes should deserliaze")
                 .content;
 
@@ -236,7 +216,7 @@ mod tests {
 
         let json_data = raw_json(uint!(10), None);
         let RoomRetentionEventContent { max_lifetime, min_lifetime, .. } =
-            from_json_value::<OriginalStateEvent<RoomRetentionEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomRetentionEventContent>>(json_data)
                 .expect("A min lifetime and no max lifetime should deserialize")
                 .content;
 
@@ -245,7 +225,7 @@ mod tests {
 
         let json_data = raw_json(uint!(10), uint!(10));
         let RoomRetentionEventContent { max_lifetime, min_lifetime, .. } =
-            from_json_value::<OriginalStateEvent<RoomRetentionEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomRetentionEventContent>>(json_data)
                 .expect("Setting both lifetimes, should still deserialize")
                 .content;
 
@@ -253,7 +233,7 @@ mod tests {
         assert_eq!(max_lifetime, Some(uint!(10)));
 
         let json_data = raw_json(uint!(20), uint!(10));
-        from_json_value::<OriginalStateEvent<RoomRetentionEventContent>>(json_data).expect_err(
+        from_json_value::<StateEvent<RoomRetentionEventContent>>(json_data).expect_err(
             "If the max lifetime is smaller than the min lifetime, we should fail to deserialize",
         );
     }
