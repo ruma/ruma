@@ -15,6 +15,14 @@ Breaking changes:
   preferred.
 - `EventId::new()` was renamed to `EventId::new_v1()`, since it works only for
   the first format of event IDs.
+- `JsonType` was renamed to `CanonicalJsonType` to reflect that it only
+  represents the possible types of a `CanonicalJsonValue`. It can also be
+  accessed with `CanonicalJsonValue::json_type()`.
+- Refactor and improve the variants of `RedactionError`:
+  - `NotOfType` was renamed to `InvalidType` and provides more details about the
+    invalid field.
+  - `JsonFieldMissingFromObject` was renamed to `MissingField` an provides the
+    full path of the missing field.
 
 Improvements:
 
@@ -35,6 +43,7 @@ Improvements:
   reallocate when possible.
 - Add `EventId::new_v2_or_v3()` to construct event IDs formats which are based
   on the event reference hash.
+- `CanonicalJsonValue::json_type()` allows to get the `JsonType` of a value.
 
 # 0.17.1
 

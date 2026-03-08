@@ -8,9 +8,9 @@ use std::{
 
 use base64::{Engine, alphabet};
 use ruma_common::{
-    AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, OwnedEventId, OwnedServerName,
-    SigningKeyAlgorithm, SigningKeyId, UserId,
-    canonical_json::{JsonType, redact},
+    AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, IdParseError, OwnedEventId,
+    OwnedServerName, SigningKeyAlgorithm, SigningKeyId, UserId,
+    canonical_json::{CanonicalJsonType, redact},
     room_version_rules::{EventIdFormatVersion, RedactionRules, RoomVersionRules, SignaturesRules},
     serde::{Base64, base64::Standard},
 };
@@ -21,7 +21,7 @@ use sha2::{Sha256, digest::Digest};
 mod tests;
 
 use crate::{
-    Error, JsonError, ParseError, VerificationError,
+    JsonError, VerificationError,
     keys::{KeyPair, PublicKeyMap},
     verification::{Verified, Verifier, verifier_from_algorithm},
 };
@@ -100,13 +100,19 @@ pub fn sign_json<K>(
     entity_id: &str,
     key_pair: &K,
     object: &mut CanonicalJsonObject,
-) -> Result<(), Error>
+) -> Result<(), JsonError>
 where
     K: KeyPair,
 {
     let (signatures_key, mut signature_map) = match object.remove_entry("signatures") {
         Some((key, CanonicalJsonValue::Object(signatures))) => (Cow::Owned(key), signatures),
-        Some(_) => return Err(JsonError::not_of_type("signatures", JsonType::Object)),
+        Some((_, value)) => {
+            return Err(JsonError::InvalidType {
+                path: "signatures".to_owned(),
+                expected: CanonicalJsonType::Object,
+                found: value.json_type(),
+            });
+        }
         None => (Cow::Borrowed("signatures"), BTreeMap::new()),
     };
 
@@ -124,7 +130,11 @@ where
         .or_insert_with(|| CanonicalJsonValue::Object(BTreeMap::new()));
 
     let CanonicalJsonValue::Object(signature_set) = signature_set else {
-        return Err(JsonError::not_multiples_of_type("signatures", JsonType::Object));
+        return Err(JsonError::InvalidType {
+            path: format!("signatures.{entity_id}"),
+            expected: CanonicalJsonType::Object,
+            found: signature_set.json_type(),
+        });
     };
 
     signature_set.insert(signature.id(), CanonicalJsonValue::String(signature.base64()));
@@ -160,7 +170,7 @@ where
 ///
 /// assert_eq!(canonical, r#"{"日":1,"本":2}"#);
 /// ```
-pub fn canonical_json(object: &CanonicalJsonObject) -> Result<String, Error> {
+pub fn canonical_json(object: &CanonicalJsonObject) -> Result<String, JsonError> {
     canonical_json_with_fields_to_remove(object, CANONICAL_JSON_FIELDS_TO_REMOVE)
 }
 
@@ -217,11 +227,18 @@ pub fn canonical_json(object: &CanonicalJsonObject) -> Result<String, Error> {
 pub fn verify_json(
     public_key_map: &PublicKeyMap,
     object: &CanonicalJsonObject,
-) -> Result<(), Error> {
+) -> Result<(), VerificationError> {
     let signature_map = match object.get("signatures") {
         Some(CanonicalJsonValue::Object(signatures)) => signatures,
-        Some(_) => return Err(JsonError::not_of_type("signatures", JsonType::Object)),
-        None => return Err(JsonError::field_missing_from_object("signatures")),
+        Some(value) => {
+            return Err(JsonError::InvalidType {
+                path: "signatures".to_owned(),
+                expected: CanonicalJsonType::Object,
+                found: value.json_type(),
+            }
+            .into());
+        }
+        None => return Err(JsonError::MissingField { path: "signatures".to_owned() }.into()),
     };
 
     let canonical_json = canonical_json(object)?;
@@ -260,13 +277,18 @@ fn verify_canonical_json_for_entity(
     public_key_map: &PublicKeyMap,
     signature_map: &CanonicalJsonObject,
     canonical_json: &[u8],
-) -> Result<(), Error> {
+) -> Result<(), VerificationError> {
     let signature_set = match signature_map.get(entity_id) {
         Some(CanonicalJsonValue::Object(set)) => set,
-        Some(_) => {
-            return Err(JsonError::not_multiples_of_type("signature sets", JsonType::Object));
+        Some(value) => {
+            return Err(JsonError::InvalidType {
+                path: format!("signatures.{entity_id}"),
+                expected: CanonicalJsonType::Object,
+                found: value.json_type(),
+            }
+            .into());
         }
-        None => return Err(VerificationError::NoSignaturesForEntity(entity_id.to_owned()).into()),
+        None => return Err(VerificationError::NoSignaturesForEntity(entity_id.to_owned())),
     };
 
     let public_keys = public_key_map
@@ -289,16 +311,24 @@ fn verify_canonical_json_for_entity(
             return Err(VerificationError::PublicKeyNotFound {
                 entity: entity_id.to_owned(),
                 key_id: key_id.clone(),
+            });
+        };
+
+        let CanonicalJsonValue::String(signature) = signature else {
+            return Err(JsonError::InvalidType {
+                path: format!("signatures.{entity_id}.{key_id}"),
+                expected: CanonicalJsonType::String,
+                found: signature.json_type(),
             }
             .into());
         };
 
-        let CanonicalJsonValue::String(signature) = signature else {
-            return Err(JsonError::not_of_type("signature", JsonType::String));
-        };
-
-        let signature = Base64::<Standard>::parse(signature)
-            .map_err(|e| ParseError::base64("signature", signature, e))?;
+        let signature = Base64::<Standard>::parse(signature).map_err(|error| {
+            VerificationError::InvalidBase64Signature {
+                path: format!("signatures.{entity_id}.{key_id}"),
+                source: error,
+            }
+        })?;
 
         verify_canonical_json_with(
             &verifier,
@@ -310,7 +340,7 @@ fn verify_canonical_json_for_entity(
     }
 
     if !checked {
-        return Err(VerificationError::NoSupportedSignatureForEntity(entity_id.to_owned()).into());
+        return Err(VerificationError::NoSupportedSignatureForEntity(entity_id.to_owned()));
     }
 
     Ok(())
@@ -338,7 +368,7 @@ pub fn verify_canonical_json_bytes(
     public_key: &[u8],
     signature: &[u8],
     canonical_json: &[u8],
-) -> Result<(), Error> {
+) -> Result<(), VerificationError> {
     let verifier =
         verifier_from_algorithm(algorithm).ok_or(VerificationError::UnsupportedAlgorithm)?;
 
@@ -363,11 +393,11 @@ fn verify_canonical_json_with<V>(
     public_key: &[u8],
     signature: &[u8],
     canonical_json: &[u8],
-) -> Result<(), Error>
+) -> Result<(), VerificationError>
 where
     V: Verifier,
 {
-    verifier.verify_json(public_key, signature, canonical_json)
+    verifier.verify_json(public_key, signature, canonical_json).map_err(Into::into)
 }
 
 /// Creates a *content hash* for an event.
@@ -382,10 +412,11 @@ where
 /// # Errors
 ///
 /// Returns an error if the event is too large.
-pub fn content_hash(object: &CanonicalJsonObject) -> Result<Base64<Standard, [u8; 32]>, Error> {
+pub fn content_hash(object: &CanonicalJsonObject) -> Result<Base64<Standard, [u8; 32]>, JsonError> {
     let json = canonical_json_with_fields_to_remove(object, CONTENT_HASH_FIELDS_TO_REMOVE)?;
+
     if json.len() > MAX_PDU_BYTES {
-        return Err(Error::PduSize);
+        return Err(JsonError::PduTooLarge);
     }
 
     let hash = Sha256::digest(json.as_bytes());
@@ -419,13 +450,14 @@ pub fn content_hash(object: &CanonicalJsonObject) -> Result<Base64<Standard, [u8
 pub fn reference_hash(
     object: &CanonicalJsonObject,
     rules: &RoomVersionRules,
-) -> Result<String, Error> {
+) -> Result<String, JsonError> {
     let redacted_value = redact(object.clone(), &rules.redaction, None)?;
 
     let json =
         canonical_json_with_fields_to_remove(&redacted_value, REFERENCE_HASH_FIELDS_TO_REMOVE)?;
+
     if json.len() > MAX_PDU_BYTES {
-        return Err(Error::PduSize);
+        return Err(JsonError::PduTooLarge);
     }
 
     let hash = Sha256::digest(json.as_bytes());
@@ -548,7 +580,7 @@ pub fn hash_and_sign_event<K>(
     key_pair: &K,
     object: &mut CanonicalJsonObject,
     redaction_rules: &RedactionRules,
-) -> Result<(), Error>
+) -> Result<(), JsonError>
 where
     K: KeyPair,
 {
@@ -562,10 +594,16 @@ where
         CanonicalJsonValue::Object(hashes) => {
             hashes.insert("sha256".into(), CanonicalJsonValue::String(hash.encode()))
         }
-        _ => return Err(JsonError::not_of_type("hashes", JsonType::Object)),
+        _ => {
+            return Err(JsonError::InvalidType {
+                path: "hashes".to_owned(),
+                expected: CanonicalJsonType::Object,
+                found: hashes_value.json_type(),
+            });
+        }
     };
 
-    let mut redacted = redact(object.clone(), redaction_rules, None)?;
+    let mut redacted = redact(object.clone(), redaction_rules, None).map_err(JsonError::from)?;
 
     sign_json(entity_id, key_pair, &mut redacted)?;
 
@@ -649,27 +687,46 @@ pub fn verify_event(
     public_key_map: &PublicKeyMap,
     object: &CanonicalJsonObject,
     rules: &RoomVersionRules,
-) -> Result<Verified, Error> {
-    let redacted = redact(object.clone(), &rules.redaction, None)?;
+) -> Result<Verified, VerificationError> {
+    let redacted = redact(object.clone(), &rules.redaction, None).map_err(JsonError::from)?;
 
-    let hash = match object.get("hashes") {
-        Some(hashes_value) => match hashes_value {
-            CanonicalJsonValue::Object(hashes) => match hashes.get("sha256") {
-                Some(hash_value) => match hash_value {
-                    CanonicalJsonValue::String(hash) => hash,
-                    _ => return Err(JsonError::not_of_type("sha256 hash", JsonType::String)),
-                },
-                None => return Err(JsonError::not_of_type("hashes", JsonType::Object)),
-            },
-            _ => return Err(JsonError::field_missing_from_object("sha256")),
-        },
-        None => return Err(JsonError::field_missing_from_object("hashes")),
+    let hashes = match object.get("hashes") {
+        Some(CanonicalJsonValue::Object(hashes)) => hashes,
+        Some(value) => {
+            return Err(JsonError::InvalidType {
+                path: "hashes".to_owned(),
+                expected: CanonicalJsonType::Object,
+                found: value.json_type(),
+            }
+            .into());
+        }
+        None => return Err(JsonError::MissingField { path: "hashes".to_owned() }.into()),
+    };
+
+    let hash = match hashes.get("sha256") {
+        Some(CanonicalJsonValue::String(hash)) => hash,
+        Some(value) => {
+            return Err(JsonError::InvalidType {
+                path: "hashes.sha256".to_owned(),
+                expected: CanonicalJsonType::String,
+                found: value.json_type(),
+            }
+            .into());
+        }
+        None => return Err(JsonError::MissingField { path: "hashes.sha256".to_owned() }.into()),
     };
 
     let signature_map = match object.get("signatures") {
         Some(CanonicalJsonValue::Object(signatures)) => signatures,
-        Some(_) => return Err(JsonError::not_of_type("signatures", JsonType::Object)),
-        None => return Err(JsonError::field_missing_from_object("signatures")),
+        Some(value) => {
+            return Err(JsonError::InvalidType {
+                path: "signatures".to_owned(),
+                expected: CanonicalJsonType::Object,
+                found: value.json_type(),
+            }
+            .into());
+        }
+        None => return Err(JsonError::MissingField { path: "signatures".to_owned() }.into()),
     };
 
     let servers_to_check = servers_to_check_signatures(object, &rules.signatures)?;
@@ -701,14 +758,14 @@ pub fn verify_event(
 fn canonical_json_with_fields_to_remove(
     object: &CanonicalJsonObject,
     fields: &[&str],
-) -> Result<String, Error> {
+) -> Result<String, JsonError> {
     let mut owned_object = object.clone();
 
     for field in fields {
         owned_object.remove(*field);
     }
 
-    to_json_string(&owned_object).map_err(|e| Error::Json(e.into()))
+    to_json_string(&owned_object).map_err(Into::into)
 }
 
 /// Extracts the server names to check signatures for given event.
@@ -725,38 +782,57 @@ fn canonical_json_with_fields_to_remove(
 fn servers_to_check_signatures(
     object: &CanonicalJsonObject,
     rules: &SignaturesRules,
-) -> Result<BTreeSet<OwnedServerName>, Error> {
+) -> Result<BTreeSet<OwnedServerName>, VerificationError> {
     let mut servers_to_check = BTreeSet::new();
 
     if !is_invite_via_third_party_id(object)? {
         match object.get("sender") {
             Some(CanonicalJsonValue::String(raw_sender)) => {
-                let user_id = <&UserId>::try_from(raw_sender.as_str())
-                    .map_err(|e| Error::from(ParseError::UserId(e)))?;
+                let user_id = <&UserId>::try_from(raw_sender.as_str()).map_err(|source| {
+                    VerificationError::ParseIdentifier { identifier_type: "user ID", source }
+                })?;
 
                 servers_to_check.insert(user_id.server_name().to_owned());
             }
-            Some(_) => return Err(JsonError::not_of_type("sender", JsonType::String)),
-            _ => return Err(JsonError::field_missing_from_object("sender")),
+            Some(value) => {
+                return Err(JsonError::InvalidType {
+                    path: "sender".to_owned(),
+                    expected: CanonicalJsonType::String,
+                    found: value.json_type(),
+                }
+                .into());
+            }
+            _ => return Err(JsonError::MissingField { path: "sender".to_owned() }.into()),
         }
     }
 
     if rules.check_event_id_server {
         match object.get("event_id") {
             Some(CanonicalJsonValue::String(raw_event_id)) => {
-                let event_id: OwnedEventId =
-                    raw_event_id.parse().map_err(|e| Error::from(ParseError::EventId(e)))?;
+                let event_id: OwnedEventId = raw_event_id.parse().map_err(|source| {
+                    VerificationError::ParseIdentifier { identifier_type: "event ID", source }
+                })?;
 
-                let server_name = event_id
-                    .server_name()
-                    .map(ToOwned::to_owned)
-                    .ok_or_else(|| ParseError::server_name_from_event_id(event_id))?;
+                let server_name =
+                    event_id.server_name().map(ToOwned::to_owned).ok_or_else(|| {
+                        VerificationError::ParseIdentifier {
+                            identifier_type: "event ID",
+                            source: IdParseError::InvalidServerName,
+                        }
+                    })?;
 
                 servers_to_check.insert(server_name);
             }
-            Some(_) => return Err(JsonError::not_of_type("event_id", JsonType::String)),
+            Some(value) => {
+                return Err(JsonError::InvalidType {
+                    path: "event_id".to_owned(),
+                    expected: CanonicalJsonType::String,
+                    found: value.json_type(),
+                }
+                .into());
+            }
             _ => {
-                return Err(JsonError::field_missing_from_object("event_id"));
+                return Err(JsonError::MissingField { path: "event_id".to_owned() }.into());
             }
         }
     }
@@ -767,11 +843,14 @@ fn servers_to_check_signatures(
             .and_then(|c| c.as_object())
             .and_then(|c| c.get("join_authorised_via_users_server"))
     {
-        let authorized_user = authorized_user.as_str().ok_or_else(|| {
-            JsonError::not_of_type("join_authorised_via_users_server", JsonType::String)
+        let authorized_user = authorized_user.as_str().ok_or_else(|| JsonError::InvalidType {
+            path: "content.join_authorised_via_users_server".to_owned(),
+            expected: CanonicalJsonType::String,
+            found: authorized_user.json_type(),
         })?;
-        let authorized_user =
-            <&UserId>::try_from(authorized_user).map_err(|e| Error::from(ParseError::UserId(e)))?;
+        let authorized_user = <&UserId>::try_from(authorized_user).map_err(|source| {
+            VerificationError::ParseIdentifier { identifier_type: "user ID", source }
+        })?;
 
         servers_to_check.insert(authorized_user.server_name().to_owned());
     }
@@ -783,21 +862,47 @@ fn servers_to_check_signatures(
 /// third-party invite.
 ///
 /// Returns an error if the object has not the expected format of an `m.room.member` event.
-fn is_invite_via_third_party_id(object: &CanonicalJsonObject) -> Result<bool, Error> {
-    let Some(CanonicalJsonValue::String(raw_type)) = object.get("type") else {
-        return Err(JsonError::not_of_type("type", JsonType::String));
+fn is_invite_via_third_party_id(object: &CanonicalJsonObject) -> Result<bool, JsonError> {
+    let raw_type = match object.get("type") {
+        Some(CanonicalJsonValue::String(raw_type)) => raw_type,
+        Some(value) => {
+            return Err(JsonError::InvalidType {
+                path: "type".to_owned(),
+                expected: CanonicalJsonType::String,
+                found: value.json_type(),
+            });
+        }
+        None => return Err(JsonError::MissingField { path: "type".to_owned() }),
     };
 
     if raw_type != "m.room.member" {
         return Ok(false);
     }
 
-    let Some(CanonicalJsonValue::Object(content)) = object.get("content") else {
-        return Err(JsonError::not_of_type("content", JsonType::Object));
+    let content = match object.get("content") {
+        Some(CanonicalJsonValue::Object(content)) => content,
+        Some(value) => {
+            return Err(JsonError::InvalidType {
+                path: "content".to_owned(),
+                expected: CanonicalJsonType::Object,
+                found: value.json_type(),
+            });
+        }
+        None => return Err(JsonError::MissingField { path: "content".to_owned() }),
     };
 
-    let Some(CanonicalJsonValue::String(membership)) = content.get("membership") else {
-        return Err(JsonError::not_of_type("membership", JsonType::String));
+    let membership = match content.get("membership") {
+        Some(CanonicalJsonValue::String(membership)) => membership,
+        Some(value) => {
+            return Err(JsonError::InvalidType {
+                path: "content.membership".to_owned(),
+                expected: CanonicalJsonType::String,
+                found: value.json_type(),
+            });
+        }
+        None => {
+            return Err(JsonError::MissingField { path: "content.membership".to_owned() });
+        }
     };
 
     if membership != "invite" {
@@ -806,7 +911,11 @@ fn is_invite_via_third_party_id(object: &CanonicalJsonObject) -> Result<bool, Er
 
     match content.get("third_party_invite") {
         Some(CanonicalJsonValue::Object(_)) => Ok(true),
+        Some(value) => Err(JsonError::InvalidType {
+            path: "content.third_party_invite".to_owned(),
+            expected: CanonicalJsonType::Object,
+            found: value.json_type(),
+        }),
         None => Ok(false),
-        _ => Err(JsonError::not_of_type("third_party_invite", JsonType::Object)),
     }
 }
