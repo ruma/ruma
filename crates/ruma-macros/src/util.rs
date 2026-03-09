@@ -363,12 +363,6 @@ pub(crate) enum SerdeMetaItem {
 
     /// `default`.
     Default,
-
-    /// `rename`.
-    Rename,
-
-    /// `alias`.
-    Alias,
 }
 
 impl SerdeMetaItem {
@@ -377,8 +371,6 @@ impl SerdeMetaItem {
         match self {
             Self::Flatten => "flatten",
             Self::Default => "default",
-            Self::Rename => "rename",
-            Self::Alias => "alias",
         }
     }
 }

@@ -1,15 +1,17 @@
-use ruma_common::room_version_rules::RedactionRules;
-use serde::Serialize;
+use ruma_common::{
+    OwnedTransactionId, TransactionId, room_version_rules::RedactionRules, serde::CanBeEmpty,
+};
+use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
     EphemeralRoomEventContent, EphemeralRoomEventType, EventContentFromType,
     GlobalAccountDataEventContent, GlobalAccountDataEventType, MessageLikeEventContent,
-    MessageLikeEventType, MessageLikeUnsigned, PossiblyRedactedStateEventContent, RedactContent,
-    RedactedMessageLikeEventContent, RedactedStateEventContent, RoomAccountDataEventContent,
-    RoomAccountDataEventType, StateEventContent, StateEventType, StaticStateEventContent,
-    ToDeviceEventContent, ToDeviceEventType,
+    MessageLikeEventType, RedactContent, RedactedMessageLikeEventContent,
+    RoomAccountDataEventContent, RoomAccountDataEventType, StateEventContent, StateEventType,
+    StaticStateEventContent, ToDeviceEventContent, ToDeviceEventType,
 };
+use crate::EventUnsignedData;
 
 macro_rules! custom_event_content {
     ($i:ident, $evt:ident) => {
@@ -90,21 +92,34 @@ impl StaticStateEventContent for CustomStateEventContent {
     // Like `StateUnsigned`, but without `prev_content`.
     // We don't care about `prev_content` since we'd only store the event type that is the same
     // as in the content.
-    type Unsigned = MessageLikeUnsigned<CustomMessageLikeEventContent>;
-    type PossiblyRedacted = Self;
+    type Unsigned = CustomStateUnsigned;
 }
-impl PossiblyRedactedStateEventContent for CustomStateEventContent {
-    type StateKey = String;
 
-    fn event_type(&self) -> StateEventType {
-        self.event_type[..].into()
+/// Like `StateUnsigned`, but with the minimal set of fields that we actually need.
+#[derive(Clone, Debug, Default, Deserialize)]
+#[non_exhaustive]
+pub struct CustomStateUnsigned {
+    /// The client-supplied transaction ID, if the client being given the event is the same one
+    /// which sent it.
+    transaction_id: Option<OwnedTransactionId>,
+
+    /// The event that redacted this event, if any.
+    redacted_because: Option<serde::de::IgnoredAny>,
+}
+
+impl CanBeEmpty for CustomStateUnsigned {
+    fn is_empty(&self) -> bool {
+        true
     }
 }
-impl RedactedStateEventContent for CustomStateEventContent {
-    type StateKey = String;
 
-    fn event_type(&self) -> StateEventType {
-        self.event_type[..].into()
+impl EventUnsignedData for CustomStateUnsigned {
+    fn transaction_id(&self) -> Option<&TransactionId> {
+        self.transaction_id.as_deref()
+    }
+
+    fn is_redacted(&self) -> bool {
+        self.redacted_because.is_some()
     }
 }
 

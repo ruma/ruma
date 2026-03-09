@@ -18,7 +18,8 @@ pub struct RoomTopicEventContent {
     ///
     /// This SHOULD duplicate the content of the `text/plain` representation in `topic_block` if
     /// any exists.
-    pub topic: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub topic: Option<String>,
 
     /// Textual representation of the room topic in different mimetypes.
     ///
@@ -35,13 +36,13 @@ pub struct RoomTopicEventContent {
 impl RoomTopicEventContent {
     /// Creates a new `RoomTopicEventContent` with the given plain text topic.
     pub fn new(topic: String) -> Self {
-        Self { topic_block: TopicContentBlock::plain(topic.clone()), topic }
+        Self { topic_block: TopicContentBlock::plain(topic.clone()), topic: Some(topic) }
     }
 
     /// Convenience constructor to create a new HTML topic with a plain text fallback.
     pub fn html(plain: impl Into<String>, html: impl Into<String>) -> Self {
         let plain = plain.into();
-        Self { topic: plain.clone(), topic_block: TopicContentBlock::html(plain, html) }
+        Self { topic: Some(plain.clone()), topic_block: TopicContentBlock::html(plain, html) }
     }
 
     /// Convenience constructor to create a topic from Markdown.
@@ -51,7 +52,7 @@ impl RoomTopicEventContent {
     #[cfg(feature = "markdown")]
     pub fn markdown(topic: impl AsRef<str> + Into<String>) -> Self {
         let plain = topic.as_ref().to_owned();
-        Self { topic: plain, topic_block: TopicContentBlock::markdown(topic) }
+        Self { topic: Some(plain), topic_block: TopicContentBlock::markdown(topic) }
     }
 }
 
@@ -161,7 +162,7 @@ mod tests {
         });
 
         let content = from_json_value::<RoomTopicEventContent>(json).unwrap();
-        assert_eq!(content.topic, "Hot Topic");
+        assert_eq!(content.topic.as_deref(), Some("Hot Topic"));
         assert_eq!(content.topic_block.text.find_html(), Some("<strong>Hot</strong> Topic"));
         assert_eq!(content.topic_block.text.find_plain(), Some("Hot Topic"));
 
@@ -169,7 +170,7 @@ mod tests {
             r#"{"topic":"Hot Topic","m.topic":{"m.text":[{"body":"Hot Topic"}]}}"#,
         )
         .unwrap();
-        assert_eq!(content.topic, "Hot Topic");
+        assert_eq!(content.topic.as_deref(), Some("Hot Topic"));
         assert_eq!(content.topic_block.text.find_html(), None);
         assert_eq!(content.topic_block.text.find_plain(), Some("Hot Topic"));
     }
@@ -208,7 +209,7 @@ mod tests {
         });
 
         let content = from_json_value::<RoomTopicEventContent>(json).unwrap();
-        assert_eq!(content.topic, "Hot Topic");
+        assert_eq!(content.topic.as_deref(), Some("Hot Topic"));
         assert_eq!(content.topic_block.text.find_html(), None);
         assert_eq!(content.topic_block.text.find_plain(), None);
 
@@ -216,7 +217,7 @@ mod tests {
             r#"{"topic":"Hot Topic","m.topic":[{"body":"Hot Topic"}]}"#,
         )
         .unwrap();
-        assert_eq!(content.topic, "Hot Topic");
+        assert_eq!(content.topic.as_deref(), Some("Hot Topic"));
         assert_eq!(content.topic_block.text.find_html(), None);
         assert_eq!(content.topic_block.text.find_plain(), None);
     }

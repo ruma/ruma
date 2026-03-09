@@ -60,15 +60,16 @@ impl CommonEventKind {
             ],
             Self::State => &[
                 EventVariation::None,
-                EventVariation::Original,
-                EventVariation::Redacted,
                 EventVariation::Sync,
-                EventVariation::OriginalSync,
-                EventVariation::RedactedSync,
                 EventVariation::Stripped,
                 EventVariation::Initial,
             ],
         }
+    }
+
+    /// Get the name of the `*EventType` enum for this kind.
+    pub(super) fn to_event_type_enum(self) -> syn::Ident {
+        format_ident!("{self}Type")
     }
 }
 
@@ -210,9 +211,6 @@ pub(super) enum EventContentTraitVariation {
     /// An event content that was redacted.
     Redacted,
 
-    /// An event content that might have been redacted.
-    PossiblyRedacted,
-
     /// Static data about an event content that wasn't redacted.
     Static,
 }
@@ -222,7 +220,6 @@ impl fmt::Display for EventContentTraitVariation {
         match self {
             Self::Original => Ok(()),
             Self::Redacted => write!(f, "Redacted"),
-            Self::PossiblyRedacted => write!(f, "PossiblyRedacted"),
             Self::Static => write!(f, "Static"),
         }
     }
