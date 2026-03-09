@@ -331,6 +331,9 @@ impl AnySyncTimelineEvent {
 
         /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
         pub fn transaction_id(&self) -> Option<&TransactionId>;
+
+        /// Returns whether this event is in its redacted form or not.
+        pub fn is_redacted(&self) -> bool;
     }
 
     /// Returns this event's `type`.
