@@ -70,6 +70,11 @@ impl CommonEventKind {
             ],
         }
     }
+
+    /// Get the name of the `*EventType` enum for this kind.
+    pub(super) fn to_event_type_enum(self) -> syn::Ident {
+        format_ident!("{self}Type")
+    }
 }
 
 impl fmt::Display for CommonEventKind {

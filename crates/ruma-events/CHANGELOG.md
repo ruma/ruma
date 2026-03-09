@@ -54,6 +54,24 @@ Improvements:
 - Add `AnySyncTimelineEvent::is_redacted()` helper.
 - Add `PossiblyRedactedSpace(Child/Parent)EventContent::is_valid()` to check the
   validity of the event content according to the Matrix specification.
+- Add a convenience `event_type()` helper on event structs which allows to
+  access the event type from the inner `*EventContent` type without requiring to
+  have a trait in scope. It is added to the following structs:
+  - `EphemeralRoomEvent`
+  - `GlobalAccountDataEvent`
+  - `InitialStateEvent`
+  - `OriginalMessageLikeEvent`
+  - `OriginalStateEvent`
+  - `OriginalSyncMessageLikeEvent`
+  - `OriginalSyncStateEvent`
+  - `RedactedMessageLikeEvent`
+  - `RedactedStateEvent`
+  - `RedactedSyncMessageLikeEvent`
+  - `RedactedSyncStateEvent`
+  - `RoomAccountDataEvent`
+  - `StrippedStateEvent`
+  - `SyncEphemeralRoomEvent`
+  - `ToDeviceEvent`
 
 # 0.32.1
 
