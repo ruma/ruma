@@ -13,6 +13,12 @@ rust-version = { workspace = true }
 [package.metadata.docs.rs]
 all-features = true
 
+[package.metadata.cargo-machete]
+ignored = [
+    # Only used to enable the `js` feature for WASM.
+    "getrandom",
+]
+
 [features]
 # These feature gates exist only for the tests. Disabling them results in a
 # compile error.
