@@ -40,6 +40,19 @@ impl SpaceParentEventContent {
     }
 }
 
+impl PossiblyRedactedSpaceParentEventContent {
+    /// Whether this `PossiblyRedactedSpaceParentEventContent` is valid according to the Matrix
+    /// specification.
+    ///
+    /// The room in the state key of the event should only be considered a parent space of this room
+    /// if this returns `true`.
+    ///
+    /// Returns `false` if the `via` field is `None`.
+    pub fn is_valid(&self) -> bool {
+        self.via.is_some()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_server_name};
