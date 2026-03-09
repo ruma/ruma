@@ -65,6 +65,19 @@ impl SpaceChildEventContent {
     }
 }
 
+impl PossiblyRedactedSpaceChildEventContent {
+    /// Whether this `PossiblyRedactedSpaceChildEventContent` is valid according to the Matrix
+    /// specification.
+    ///
+    /// The room in the state key of the event should only be considered a child of this space
+    /// if this returns `true`.
+    ///
+    /// Returns `false` if the `via` field is `None`.
+    pub fn is_valid(&self) -> bool {
+        self.via.is_some()
+    }
+}
+
 /// An `m.space.child` event represented as a Stripped State Event with an added `origin_server_ts`
 /// key.
 #[derive(Clone, Debug, Event)]
