@@ -74,7 +74,9 @@ pub enum CiCmd {
     /// Run all lints that don't need compilation
     Lint,
     /// Check sorting of dependencies (lint)
-    Dependencies,
+    SortedDependencies,
+    /// Check unused dependencies (lint)
+    UnusedDependencies,
     /// Check spec links point to a recent version (lint)
     SpecLinks,
     /// Check all cargo features of sub-crates can be enabled from ruma (lint)
@@ -135,7 +137,8 @@ impl CiTask {
             Some(CiCmd::ClippyAll) => self.clippy_with_features(RumaFeatures::Compat)?,
             Some(CiCmd::ClippyBenches) => self.clippy_benches()?,
             Some(CiCmd::Lint) => self.lint()?,
-            Some(CiCmd::Dependencies) => self.dependencies()?,
+            Some(CiCmd::SortedDependencies) => self.sorted_dependencies()?,
+            Some(CiCmd::UnusedDependencies) => self.unused_dependencies()?,
             Some(CiCmd::SpecLinks) => check_spec_links(&self.project_root().join("crates"))?,
             Some(CiCmd::ReexportFeatures) => check_reexport_features(&self.project_metadata)?,
             Some(CiCmd::Typos) => self.typos()?,
@@ -378,7 +381,9 @@ impl CiTask {
     /// Run all lints that don't need compilation.
     fn lint(&self) -> Result<()> {
         // Check dependencies being sorted
-        let dependencies_res = self.dependencies();
+        let sorted_dependencies_res = self.sorted_dependencies();
+        // Check unused dependencies
+        let unused_dependencies_res = self.unused_dependencies();
         // Check that all links point to the same version of the spec
         let spec_links_res = check_spec_links(&self.project_root().join("crates"));
         // Check that all cargo features of sub-crates can be enabled from ruma.
@@ -386,11 +391,15 @@ impl CiTask {
         // Check whether there are unused cargo features.
         let unused_features_res = check_unused_features(&self.sh, &self.project_metadata);
 
-        dependencies_res.and(spec_links_res).and(reexport_features_res).and(unused_features_res)
+        sorted_dependencies_res
+            .and(unused_dependencies_res)
+            .and(spec_links_res)
+            .and(reexport_features_res)
+            .and(unused_features_res)
     }
 
     /// Check the sorting of dependencies with the nightly version.
-    fn dependencies(&self) -> Result<()> {
+    fn sorted_dependencies(&self) -> Result<()> {
         if cmd!(&self.sh, "cargo sort --version").run().is_err() {
             return Err(
                 "Could not find cargo-sort. Install it by running `cargo install cargo-sort`"
@@ -407,6 +416,19 @@ impl CiTask {
         )
         .run()
         .map_err(Into::into)
+    }
+
+    /// Check unused dependencies with cargo-machete.
+    fn unused_dependencies(&self) -> Result<()> {
+        if cmd!(&self.sh, "cargo machete --version").run().is_err() {
+            return Err(
+                "Could not find cargo-machete. Install it by running `cargo install cargo-machete`"
+                    .into(),
+            );
+        }
+        cmd!(&self.sh, "rustup run {NIGHTLY} cargo machete --with-metadata")
+            .run()
+            .map_err(Into::into)
     }
 
     /// Check the typos.
