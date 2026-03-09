@@ -15,12 +15,13 @@ use crate::util::{RumaEvents, RumaEventsReexport, to_camel_case};
 pub(crate) fn expand_event(input: syn::DeriveInput) -> syn::Result<TokenStream> {
     let event = Event::parse(input)?;
 
+    let accessors_impl = event.expand_accessors_impl();
     let deserialize_impl = event.expand_deserialize_impl();
     let sync_from_and_into_full = event.expand_sync_from_and_into_full();
-
     let eq_and_ord_impl = event.expand_eq_and_ord_impl();
 
     Ok(quote! {
+        #accessors_impl
         #deserialize_impl
         #sync_from_and_into_full
         #eq_and_ord_impl
@@ -49,6 +50,28 @@ struct Event {
 }
 
 impl Event {
+    /// Generate convenience accessors for this struct.
+    fn expand_accessors_impl(&self) -> Option<TokenStream> {
+        // Don't generate these accessors for special event types.
+        let kind = self.kind.common_kind()?;
+
+        let ruma_events = &self.ruma_events;
+        let ident = &self.ident;
+        let (impl_generics, ty_gen, where_clause) = self.generics.split_for_impl();
+
+        let event_type_enum = kind.to_event_type_enum();
+
+        Some(quote! {
+            #[automatically_derived]
+            impl #impl_generics #ident #ty_gen #where_clause {
+                /// Get the event's type.
+                pub fn event_type(&self) -> #ruma_events::#event_type_enum {
+                    self.content.event_type()
+                }
+            }
+        })
+    }
+
     /// Generate the `serde::Deserialize` implementation for this struct.
     fn expand_deserialize_impl(&self) -> TokenStream {
         let ruma_events = &self.ruma_events;
