@@ -1890,7 +1890,6 @@ dependencies = [
  "ruma-push-gateway-api",
  "ruma-signatures",
  "ruma-state-res",
- "serde",
  "web-time",
 ]
 
