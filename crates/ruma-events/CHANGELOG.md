@@ -51,6 +51,7 @@ Improvements:
 - Add support for to-device event for pushing secrets, according to MSC4385.
 - Add support for video/audio call intent according to MSC4075 as part of the 
   `RtcNotificationEventContent` new `call_intent` field.
+- Add `AnySyncTimelineEvent::is_redacted()` helper.
 
 # 0.32.1
 
