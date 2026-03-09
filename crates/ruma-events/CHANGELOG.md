@@ -52,6 +52,8 @@ Improvements:
 - Add support for video/audio call intent according to MSC4075 as part of the 
   `RtcNotificationEventContent` new `call_intent` field.
 - Add `AnySyncTimelineEvent::is_redacted()` helper.
+- Add `PossiblyRedactedSpace(Child/Parent)EventContent::is_valid()` to check the
+  validity of the event content according to the Matrix specification.
 
 # 0.32.1
 
