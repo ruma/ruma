@@ -106,6 +106,7 @@ impl EventContentEnumVariation<'_> {
         let variant_attrs = &self.variant_attrs;
         let variant_docs = &self.variant_docs;
         let event_content_types = &self.event_content_types;
+        let custom_content_struct = &self.custom_content_struct;
 
         let event_content_from_type_impl = self.expand_content_enum_event_content_from_type_impl();
         let event_content_kind_trait_impl =
@@ -131,9 +132,7 @@ impl EventContentEnumVariation<'_> {
                 )*
                 #[doc(hidden)]
                 #[serde(serialize_with = #serialize_custom_event_error_path)]
-                _Custom {
-                    event_type: crate::PrivOwnedStr,
-                },
+                _Custom(#ruma_events::_custom::#custom_content_struct),
             }
 
             #event_content_from_type_impl
@@ -154,6 +153,7 @@ impl EventContentEnumVariation<'_> {
         let event_attrs = &self.variant_attrs;
         let event_content_types = &self.event_content_types;
         let event_type_string_match_arms = &self.event_type_string_match_arms;
+        let custom_content_struct = &self.custom_content_struct;
 
         let deserialize_event_contents = self.events.iter().zip(event_content_types.iter()).map(
             |(event, event_content_type)| {
@@ -187,11 +187,9 @@ impl EventContentEnumVariation<'_> {
                             },
                         )*
                         _ => {
-                            Ok(Self::_Custom {
-                                event_type: crate::PrivOwnedStr(
-                                    ::std::convert::From::from(event_type.to_owned())
-                                )
-                            })
+                            Ok(Self::_Custom(
+                                #ruma_events::_custom::#custom_content_struct::from_parts(event_type, json)?
+                            ))
                         }
                     }
                 }
@@ -228,7 +226,7 @@ impl EventContentEnumVariation<'_> {
                             #( #variant_attrs )*
                             Self::#variants(content) => content.event_type(),
                         )*
-                        Self::_Custom { event_type } => ::std::convert::From::from(&event_type.0[..]),
+                        Self::_Custom(content) => content.event_type(),
                     }
                 }
             }
@@ -275,9 +273,6 @@ impl EventContentEnumVariation<'_> {
         let variants = &self.variants;
         let variant_attrs = &self.variant_attrs;
 
-        let event_content_kind_trait =
-            self.kind.to_content_kind_trait(self.variation.to_event_content_trait());
-
         match (self.kind, self.variation, event_variation) {
             (
                 EventEnumKind::State | EventEnumKind::MessageLike,
@@ -295,17 +290,7 @@ impl EventContentEnumVariation<'_> {
                                 }
                             )*
                             Self::_Custom(event) => event.as_original().map(|ev| {
-                                #ident::_Custom {
-                                    event_type: crate::PrivOwnedStr(
-                                        ::std::convert::From::from(
-                                            ::std::string::ToString::to_string(
-                                                &#ruma_events::#event_content_kind_trait::event_type(
-                                                    &ev.content,
-                                                ),
-                                            ),
-                                        ),
-                                    ),
-                                }
+                                #ident::_Custom(ev.content.clone())
                             }),
                         }
                     }
@@ -344,14 +329,13 @@ impl EventContentEnumVariation<'_> {
                                     }
                                 },
                             )*
-                            Self::_Custom(event) => #ident::_Custom {
-                                event_type: crate::PrivOwnedStr(
-                                    ::std::convert::From::from(
-                                        ::std::string::ToString::to_string(
-                                            &event.event_type()
-                                        )
-                                    ),
-                                ),
+                            Self::_Custom(event) => match event {
+                                #ruma_events::#event_struct::Original(ev) => {
+                                    #ident::_Custom(ev.content.clone())
+                                }
+                                #ruma_events::#event_struct::Redacted(ev) => {
+                                    #ident::_Custom(ev.content.clone())
+                                }
                             },
                         }
                     }
@@ -366,15 +350,7 @@ impl EventContentEnumVariation<'_> {
                                 #( #variant_attrs )*
                                 Self::#variants(event) => #ident::#variants(event.content.clone()),
                             )*
-                            Self::_Custom(event) => #ident::_Custom {
-                                event_type: crate::PrivOwnedStr(
-                                    ::std::convert::From::from(
-                                        ::std::string::ToString::to_string(
-                                            &#ruma_events::#event_content_kind_trait::event_type(&event.content)
-                                        )
-                                    ),
-                                ),
-                            },
+                            Self::_Custom(event) => #ident::_Custom(event.content.clone()),
                         }
                     }
                 }
@@ -430,6 +406,10 @@ impl EventContentChangeEnum<'_> {
         let variant_attrs = &self.variant_attrs;
         let variant_docs = &self.variant_docs;
         let event_content_types = &self.event_content_types;
+        let custom_content_struct = &self.custom_content_struct;
+
+        let event_content_kind_trait =
+            self.kind.to_content_kind_trait(EventContentTraitVariation::Original);
 
         quote! {
             #( #attrs )*
@@ -443,10 +423,7 @@ impl EventContentChangeEnum<'_> {
                     #variants(#ruma_events::StateEventContentChange<#event_content_types>),
                 )*
                 #[doc(hidden)]
-                _Custom {
-                    event_type: crate::PrivOwnedStr,
-                    redacted: bool,
-                },
+                _Custom(#ruma_events::_custom::#custom_content_struct),
             }
 
             impl #ident {
@@ -457,7 +434,9 @@ impl EventContentChangeEnum<'_> {
                             #( #variant_attrs )*
                             Self::#variants(content) => content.event_type(),
                         )*
-                        Self::_Custom { event_type, .. } => ::std::convert::From::from(&event_type.0[..]),
+                        Self::_Custom(content) => {
+                            #ruma_events::#event_content_kind_trait::event_type(content)
+                        }
                     }
                 }
             }
@@ -474,11 +453,6 @@ impl EventContentChangeEnum<'_> {
         let ident = &self.ident;
         let variants = &self.variants;
         let variant_attrs = &self.variant_attrs;
-
-        let original_event_content_kind_trait =
-            self.kind.to_content_kind_trait(EventContentTraitVariation::Original);
-        let redacted_event_content_kind_trait_name =
-            self.kind.to_content_kind_trait(EventContentTraitVariation::Redacted);
 
         quote! {
             /// Returns the content change of this state event.
@@ -502,28 +476,10 @@ impl EventContentChangeEnum<'_> {
                     )*
                     Self::_Custom(event) => match event {
                         #ruma_events::#event_enum::Original(ev) => {
-                            #ident::_Custom {
-                                event_type: crate::PrivOwnedStr(
-                                    ::std::string::ToString::to_string(
-                                        &#ruma_events::#original_event_content_kind_trait::event_type(
-                                            &ev.content,
-                                        ),
-                                    ).into_boxed_str(),
-                                ),
-                                redacted: false,
-                            }
+                            #ident::_Custom(ev.content.clone())
                         }
                         #ruma_events::#event_enum::Redacted(ev) => {
-                            #ident::_Custom {
-                                event_type: crate::PrivOwnedStr(
-                                    ::std::string::ToString::to_string(
-                                        &#ruma_events::#redacted_event_content_kind_trait_name::event_type(
-                                            &ev.content,
-                                        ),
-                                    ).into_boxed_str(),
-                                ),
-                                redacted: true,
-                            }
+                            #ident::_Custom(ev.content.clone())
                         }
                     },
                 }
