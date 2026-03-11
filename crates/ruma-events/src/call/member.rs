@@ -436,25 +436,84 @@ mod tests {
             None,
         );
 
-        insta::assert_json_snapshot!(call_member_ev);
+        let json = json!({
+              "application": "m.call",
+              "call_id": "",
+              "scope": "m.room",
+              "m.call.intent": "audio",
+              "device_id": "THIS_DEVICE",
+              "foci_preferred": [
+                {
+                  "type": "livekit",
+                  "livekit_alias": "room1",
+                  "livekit_service_url": "https://livekit1.com"
+                }
+              ],
+              "focus_active": {
+                "type": "livekit",
+                "focus_selection": "oldest_membership"
+              },
+              "expires": 14400000
+        });
+
+        let ev_content: CallMemberEventContent = serde_json::from_value(json).unwrap();
+        assert_eq!(
+            serde_json::to_string(&ev_content).unwrap(),
+            serde_json::to_string(&call_member_ev).unwrap()
+        );
     }
 
     #[test]
     #[cfg(feature = "unstable-msc4075")]
     fn deserialize_application() {
-        let app = Application::Call(CallApplicationContent {
-            call_id: "".to_owned(),
-            scope: CallScope::Room,
-            call_intent: Some(CallIntent::Audio),
-        });
-        insta::assert_json_snapshot!(app);
+        let test_cases = vec![
+            (
+                Application::Call(CallApplicationContent {
+                    call_id: "".to_owned(),
+                    scope: CallScope::Room,
+                    call_intent: None,
+                }),
+                json!({
+                  "application": "m.call",
+                  "call_id": "",
+                  "scope": "m.room",
+                }),
+            ),
+            (
+                Application::Call(CallApplicationContent {
+                    call_id: "".to_owned(),
+                    scope: CallScope::Room,
+                    call_intent: Some(CallIntent::Audio),
+                }),
+                json!({
+                  "application": "m.call",
+                  "call_id": "",
+                  "scope": "m.room",
+                  "m.call.intent": "audio"
+                }),
+            ),
+            (
+                Application::Call(CallApplicationContent {
+                    call_id: "xxxx".to_owned(),
+                    scope: CallScope::User,
+                    call_intent: Some(CallIntent::Video),
+                }),
+                json!({
+                  "application": "m.call",
+                  "call_id": "xxxx",
+                  "scope": "m.user",
+                  "m.call.intent": "video"
+                }),
+            ),
+        ];
 
-        let app2 = Application::Call(CallApplicationContent {
-            call_id: "foo".to_owned(),
-            scope: CallScope::User,
-            call_intent: Some(CallIntent::Video),
-        });
-        insta::assert_json_snapshot!(app2);
+        for (model, jon) in test_cases {
+            let app: Application = serde_json::from_value(jon).unwrap();
+            assert_eq!(
+                serde_json::to_string(&app).unwrap(),
+                serde_json::to_string(&model).unwrap()
+            );
+        }
     }
 
     #[test]
