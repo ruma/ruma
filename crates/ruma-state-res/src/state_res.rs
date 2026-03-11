@@ -25,7 +25,7 @@ use crate::{
         RoomCreateEvent, RoomMemberEvent, RoomPowerLevelsEvent, RoomPowerLevelsIntField,
         power_levels::RoomPowerLevelsEventOptionExt,
     },
-    utils::RoomIdExt,
+    utils::{RoomIdExt, event_id_set::EventIdSet},
 };
 
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
@@ -71,9 +71,9 @@ pub fn resolve<'a, E, MapsIter>(
     auth_rules: &AuthorizationRules,
     state_res_rules: &StateResolutionV2Rules,
     state_maps: impl IntoIterator<IntoIter = MapsIter>,
-    auth_chains: Vec<HashSet<E::Id>>,
+    auth_chains: Vec<EventIdSet<E::Id>>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
-    fetch_conflicted_state_subgraph: impl Fn(&StateMap<Vec<E::Id>>) -> Option<HashSet<E::Id>>,
+    fetch_conflicted_state_subgraph: impl Fn(&StateMap<Vec<E::Id>>) -> Option<EventIdSet<E::Id>>,
 ) -> Result<StateMap<E::Id>>
 where
     E: Event + Clone,
@@ -107,12 +107,12 @@ where
 
         conflicted_state_subgraph
     } else {
-        HashSet::new()
+        EventIdSet::new()
     };
 
     // The full conflicted set is the union of the conflicted state set and the auth difference,
     // and since v12, the conflicted state subgraph.
-    let full_conflicted_set: HashSet<_> = auth_difference(auth_chains)
+    let full_conflicted_set: EventIdSet<_> = auth_difference(auth_chains)
         .chain(conflicted_state_set.into_values().flatten())
         .chain(conflicted_state_subgraph)
         // Don't honor events we cannot "verify"
@@ -155,7 +155,7 @@ where
 
     // 3. Take all remaining events that weren’t picked in step 1 and order them by the mainline
     //    ordering based on the power level in the partially resolved state obtained in step 2.
-    let sorted_power_events_set = sorted_power_events.into_iter().collect::<HashSet<_>>();
+    let sorted_power_events_set = sorted_power_events.into_iter().collect::<EventIdSet<_>>();
     let remaining_events = full_conflicted_set
         .iter()
         .filter(|&id| !sorted_power_events_set.contains(id.borrow()))
@@ -262,9 +262,9 @@ where
 /// ## Returns
 ///
 /// Returns an iterator over all the event IDs that are not present in all the auth chains.
-fn auth_difference<Id>(auth_chains: Vec<HashSet<Id>>) -> impl Iterator<Item = Id>
+fn auth_difference<Id>(auth_chains: Vec<EventIdSet<Id>>) -> impl Iterator<Item = Id>
 where
-    Id: Eq + Hash,
+    Id: Eq + Hash + Borrow<EventId>,
 {
     let num_sets = auth_chains.len();
 
@@ -295,7 +295,7 @@ where
 #[instrument(skip_all)]
 fn sort_power_events<E: Event>(
     conflicted_power_events: Vec<E::Id>,
-    full_conflicted_set: &HashSet<E::Id>,
+    full_conflicted_set: &EventIdSet<E::Id>,
     rules: &AuthorizationRules,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> Result<Vec<E::Id>> {
@@ -381,7 +381,7 @@ fn sort_power_events<E: Event>(
 /// Returns the ordered list of event IDs from earliest to latest.
 #[instrument(skip_all)]
 pub fn reverse_topological_power_sort<Id, F>(
-    graph: &HashMap<Id, HashSet<Id>>,
+    graph: &HashMap<Id, EventIdSet<Id>>,
     event_details_fn: F,
 ) -> Result<Vec<Id>>
 where
@@ -856,9 +856,9 @@ fn mainline_position<E: Event>(
 /// Add the event with the given event ID and all the events in its auth chain that are in the full
 /// conflicted set to the graph.
 fn add_event_and_auth_chain_to_graph<E: Event>(
-    graph: &mut HashMap<E::Id, HashSet<E::Id>>,
+    graph: &mut HashMap<E::Id, EventIdSet<E::Id>>,
     event_id: E::Id,
-    full_conflicted_set: &HashSet<E::Id>,
+    full_conflicted_set: &EventIdSet<E::Id>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) {
     let mut state = vec![event_id];
