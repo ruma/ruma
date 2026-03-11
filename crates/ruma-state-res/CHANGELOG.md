@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Breaking:
+
+- `resolve()` and `reverse_topological_power_sort()` now take
+  `EventIdSet<E::Id>`s rather than `HashSet<E::Id>`. This is an opaque set type
+  that will allow to optimize the backing implementation in the future.
+
 ## 0.15.0
 
 Breaking:

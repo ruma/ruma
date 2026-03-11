@@ -1,5 +1,5 @@
 use js_int::{int, uint};
-use maplit::{hashmap, hashset};
+use maplit::hashmap;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, RoomVersionId, owned_event_id,
     room_version_rules::AuthorizationRules,
@@ -8,7 +8,7 @@ use ruma_events::StateEventType;
 use test_log::test;
 
 use super::{StateMap, is_power_event};
-use crate::test_utils::RoomTimelineFactory;
+use crate::{test_utils::RoomTimelineFactory, utils::event_id_set::EventIdSet};
 
 #[test]
 fn test_sort_power_events() {
@@ -70,11 +70,11 @@ fn test_mainline_sort() {
 #[test]
 fn test_reverse_topological_power_sort() {
     let graph = hashmap! {
-        owned_event_id!("$l") => hashset![owned_event_id!("$o")],
-        owned_event_id!("$m") => hashset![owned_event_id!("$n"), owned_event_id!("$o")],
-        owned_event_id!("$n") => hashset![owned_event_id!("$o")],
-        owned_event_id!("$o") => hashset![], // "o" has zero outgoing edges but 4 incoming edges
-        owned_event_id!("$p") => hashset![owned_event_id!("$o")],
+        owned_event_id!("$l") => EventIdSet::from([owned_event_id!("$o")]),
+        owned_event_id!("$m") => EventIdSet::from([owned_event_id!("$n"), owned_event_id!("$o")]),
+        owned_event_id!("$n") => EventIdSet::from([owned_event_id!("$o")]),
+        owned_event_id!("$o") => EventIdSet::new(), // "o" has zero outgoing edges but 4 incoming edges
+        owned_event_id!("$p") => EventIdSet::from([owned_event_id!("$o")]),
     };
 
     let sorted = crate::reverse_topological_power_sort(&graph, |_id| {

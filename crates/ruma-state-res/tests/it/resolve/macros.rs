@@ -1,6 +1,6 @@
 use std::{
     cmp::Ordering,
-    collections::{BTreeSet, HashMap, HashSet},
+    collections::{BTreeSet, HashMap},
     error::Error,
     fs,
     ops::Deref,
@@ -13,7 +13,9 @@ use ruma_common::{
     room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
 };
 use ruma_events::{StateEventType, TimelineEventType};
-use ruma_state_res::{Event, StateMap, events::RoomCreateEvent, resolve};
+use ruma_state_res::{
+    Event, StateMap, events::RoomCreateEvent, resolve, utils::event_id_set::EventIdSet,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::{
     from_str as from_json_str, to_string_pretty as to_json_string_pretty,
@@ -217,7 +219,7 @@ pub(super) fn test_resolve_state_maps(state_maps_paths: &[&str], pdus_paths: &[&
 
     let mut auth_chain_sets = Vec::new();
     for state_map in &state_maps {
-        let mut auth_chain = HashSet::new();
+        let mut auth_chain = EventIdSet::new();
 
         for event_id in state_map.values() {
             let pdu = pdus_map
@@ -434,7 +436,7 @@ where
 
     let auth_chain_from_state_map =
         |state_map: &StateMap<OwnedEventId>| -> Result<_, Box<dyn Error>> {
-            let mut auth_chain_sets = HashSet::new();
+            let mut auth_chain_sets = EventIdSet::new();
 
             for event_id in state_map.values() {
                 let pdu = pdus_map.get(event_id).expect("every pdu should be available");
@@ -544,8 +546,8 @@ where
 /// # Panic
 ///
 /// Panics if `pdus_map` does not contain a PDU that appears in the auth chain of `pdu`.
-fn pdu_auth_chain(pdu: &Pdu, pdus_map: &HashMap<OwnedEventId, Pdu>) -> HashSet<OwnedEventId> {
-    let mut auth_chain = HashSet::new();
+fn pdu_auth_chain(pdu: &Pdu, pdus_map: &HashMap<OwnedEventId, Pdu>) -> EventIdSet<OwnedEventId> {
+    let mut auth_chain = EventIdSet::new();
     let mut stack = pdu.auth_events().cloned().collect::<Vec<_>>();
 
     while let Some(event_id) = stack.pop() {
@@ -568,15 +570,15 @@ fn pdu_auth_chain(pdu: &Pdu, pdus_map: &HashMap<OwnedEventId, Pdu>) -> HashSet<O
 fn conflicted_state_subgraph(
     conflicted_state_set: &StateMap<Vec<OwnedEventId>>,
     pdus_map: &HashMap<OwnedEventId, Pdu>,
-) -> Option<HashSet<OwnedEventId>> {
-    let conflicted_event_ids: HashSet<_> =
+) -> Option<EventIdSet<OwnedEventId>> {
+    let conflicted_event_ids: EventIdSet<_> =
         conflicted_state_set.values().flatten().cloned().collect();
-    let mut conflicted_state_subgraph = HashSet::new();
+    let mut conflicted_state_subgraph = EventIdSet::new();
 
     let mut stack = vec![conflicted_event_ids.iter().cloned().collect::<Vec<_>>()];
     let mut path = Vec::new();
 
-    let mut seen_events = HashSet::new();
+    let mut seen_events = EventIdSet::new();
 
     let next_event = |stack: &mut Vec<Vec<_>>, path: &mut Vec<_>| {
         while stack.last().is_some_and(|s| s.is_empty()) {
