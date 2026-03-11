@@ -453,7 +453,7 @@ mod tests {
                 "type": "livekit",
                 "focus_selection": "oldest_membership"
               },
-              "expires": 14400000
+              "expires": 14_400_000
         });
 
         let ev_content: CallMemberEventContent = serde_json::from_value(json).unwrap();
