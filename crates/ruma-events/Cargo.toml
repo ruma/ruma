@@ -108,6 +108,7 @@ criterion = { workspace = true, optional = true }
 [dev-dependencies]
 assert_matches2 = { workspace = true }
 assign = { workspace = true }
+insta = { workspace = true }
 maplit = { workspace = true }
 trybuild = "1.0.71"
 

@@ -269,14 +269,15 @@ mod tests {
     use crate::{
         AnyStateEvent, StateEvent,
         call::member::{EmptyMembershipData, FocusSelection, SessionMembershipData},
+        rtc::notification::CallIntent,
     };
 
     fn create_call_member_legacy_event_content() -> CallMemberEventContent {
         CallMemberEventContent::new_legacy(vec![LegacyMembershipData {
-            application: Application::Call(CallApplicationContent {
-                call_id: "123456".to_owned(),
-                scope: CallScope::Room,
-            }),
+            application: Application::Call(CallApplicationContent::new(
+                "123456".to_owned(),
+                CallScope::Room,
+            )),
             device_id: owned_device_id!("ABCDE"),
             expires: Duration::from_secs(3600),
             foci_active: vec![Focus::Livekit(LivekitFocus {
@@ -290,10 +291,7 @@ mod tests {
 
     fn create_call_member_event_content() -> CallMemberEventContent {
         CallMemberEventContent::new(
-            Application::Call(CallApplicationContent {
-                call_id: "123456".to_owned(),
-                scope: CallScope::Room,
-            }),
+            Application::Call(CallApplicationContent::new("123456".to_owned(), CallScope::Room)),
             owned_device_id!("ABCDE"),
             ActiveFocus::Livekit(ActiveLivekitFocus {
                 focus_selection: FocusSelection::OldestMembership,
@@ -372,10 +370,7 @@ mod tests {
     #[test]
     fn deserialize_call_member_event_content() {
         let call_member_ev = CallMemberEventContent::new(
-            Application::Call(CallApplicationContent {
-                call_id: "123456".to_owned(),
-                scope: CallScope::Room,
-            }),
+            Application::Call(CallApplicationContent::new("123456".to_owned(), CallScope::Room)),
             owned_device_id!("THIS_DEVICE"),
             ActiveFocus::Livekit(ActiveLivekitFocus {
                 focus_selection: FocusSelection::OldestMembership,
@@ -421,13 +416,55 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "unstable-msc4075")]
+    fn deserialize_event_with_call_intent() {
+        let call_member_ev = CallMemberEventContent::new(
+            Application::Call(CallApplicationContent {
+                call_id: "".to_owned(),
+                scope: CallScope::Room,
+                call_intent: Some(CallIntent::Audio),
+            }),
+            owned_device_id!("THIS_DEVICE"),
+            ActiveFocus::Livekit(ActiveLivekitFocus {
+                focus_selection: FocusSelection::OldestMembership,
+            }),
+            vec![Focus::Livekit(LivekitFocus {
+                alias: "room1".to_owned(),
+                service_url: "https://livekit1.com".to_owned(),
+            })],
+            None,
+            None,
+        );
+
+        insta::assert_json_snapshot!(call_member_ev);
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-msc4075")]
+    fn deserialize_application() {
+        let app = Application::Call(CallApplicationContent {
+            call_id: "".to_owned(),
+            scope: CallScope::Room,
+            call_intent: Some(CallIntent::Audio),
+        });
+        insta::assert_json_snapshot!(app);
+
+        let app2 = Application::Call(CallApplicationContent {
+            call_id: "foo".to_owned(),
+            scope: CallScope::User,
+            call_intent: Some(CallIntent::Video),
+        });
+        insta::assert_json_snapshot!(app2);
+    }
+
+    #[test]
     fn deserialize_legacy_call_member_event_content() {
         let call_member_ev = CallMemberEventContent::new_legacy(vec![
             LegacyMembershipData {
-                application: Application::Call(CallApplicationContent {
-                    call_id: "123456".to_owned(),
-                    scope: CallScope::Room,
-                }),
+                application: Application::Call(CallApplicationContent::new(
+                    "123456".to_owned(),
+                    CallScope::Room,
+                )),
                 device_id: owned_device_id!("THIS_DEVICE"),
                 expires: Duration::from_secs(3600),
                 foci_active: vec![Focus::Livekit(LivekitFocus {
@@ -438,10 +475,10 @@ mod tests {
                 created_ts: None,
             },
             LegacyMembershipData {
-                application: Application::Call(CallApplicationContent {
-                    call_id: "".to_owned(),
-                    scope: CallScope::Room,
-                }),
+                application: Application::Call(CallApplicationContent::new(
+                    "".to_owned(),
+                    CallScope::Room,
+                )),
                 device_id: owned_device_id!("OTHER_DEVICE"),
                 expires: Duration::from_secs(3600),
                 foci_active: vec![Focus::Livekit(LivekitFocus {
@@ -547,10 +584,10 @@ mod tests {
         assert_eq!(member_event.room_id, room_id);
         assert_eq!(member_event.origin_server_ts, TS(js_int::UInt::new(111).unwrap()));
         let membership = SessionMembershipData {
-            application: Application::Call(CallApplicationContent {
-                call_id: "".to_owned(),
-                scope: CallScope::Room,
-            }),
+            application: Application::Call(CallApplicationContent::new(
+                "".to_owned(),
+                CallScope::Room,
+            )),
             device_id: owned_device_id!("THIS_DEVICE"),
             foci_preferred: [Focus::Livekit(LivekitFocus {
                 alias: "room1".to_owned(),

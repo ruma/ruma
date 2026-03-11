@@ -1975,6 +1975,7 @@ dependencies = [
  "assign",
  "criterion",
  "indexmap",
+ "insta",
  "js_int",
  "js_option",
  "language-tags",
