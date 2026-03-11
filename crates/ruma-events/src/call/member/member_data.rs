@@ -312,9 +312,7 @@ pub struct CallApplicationContent {
     pub scope: CallScope,
 
     /// The call intent
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(default)]
-    #[serde(rename = "m.call.intent")]
+    #[serde(rename = "m.call.intent", default, skip_serializing_if = "Option::is_none")]
     #[cfg(feature = "unstable-msc4075")]
     pub call_intent: Option<CallIntent>,
 }
