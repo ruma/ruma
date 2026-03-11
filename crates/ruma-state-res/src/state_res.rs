@@ -25,7 +25,7 @@ use crate::{
         RoomCreateEvent, RoomMemberEvent, RoomPowerLevelsEvent, RoomPowerLevelsIntField,
         power_levels::RoomPowerLevelsEventOptionExt,
     },
-    utils::{RoomIdExt, event_id_set::EventIdSet},
+    utils::{RoomIdExt, event_id_map::EventIdMap, event_id_set::EventIdSet},
 };
 
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
@@ -268,7 +268,7 @@ where
 {
     let num_sets = auth_chains.len();
 
-    let mut id_counts: HashMap<Id, usize> = HashMap::new();
+    let mut id_counts: EventIdMap<Id, usize> = EventIdMap::new();
     for id in auth_chains.into_iter().flatten() {
         *id_counts.entry(id).or_default() += 1;
     }
@@ -303,7 +303,7 @@ fn sort_power_events<E: Event>(
 
     // A representation of the DAG, a map of event ID to its list of auth events that are in the
     // full conflicted set.
-    let mut graph = HashMap::new();
+    let mut graph = EventIdMap::new();
 
     // Fill the graph.
     for event_id in conflicted_power_events {
@@ -315,7 +315,7 @@ fn sort_power_events<E: Event>(
     }
 
     // The map of event ID to the power level of the sender of the event.
-    let mut event_to_power_level = HashMap::new();
+    let mut event_to_power_level = EventIdMap::new();
     // We need to know the creator in case of missing power levels. Given that it's the same for all
     // the events in the room, we will just load it for the first event and reuse it.
     let creators_lock = OnceLock::new();
@@ -381,7 +381,7 @@ fn sort_power_events<E: Event>(
 /// Returns the ordered list of event IDs from earliest to latest.
 #[instrument(skip_all)]
 pub fn reverse_topological_power_sort<Id, F>(
-    graph: &HashMap<Id, EventIdSet<Id>>,
+    graph: &EventIdMap<Id, EventIdSet<Id>>,
     event_details_fn: F,
 ) -> Result<Vec<Id>>
 where
@@ -757,7 +757,7 @@ fn mainline_sort<E: Event>(
         .rev()
         .enumerate()
         .map(|(idx, event_id)| ((*event_id).clone(), idx))
-        .collect::<HashMap<_, _>>();
+        .collect::<EventIdMap<_, _>>();
 
     let mut order_map = HashMap::new();
     for event_id in events.iter() {
@@ -821,7 +821,7 @@ fn mainline_sort<E: Event>(
 /// chain of the event was not found.
 fn mainline_position<E: Event>(
     event: E,
-    mainline_map: &HashMap<E::Id, usize>,
+    mainline_map: &EventIdMap<E::Id, usize>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> Result<usize> {
     let mut current_event = Some(event);
@@ -856,7 +856,7 @@ fn mainline_position<E: Event>(
 /// Add the event with the given event ID and all the events in its auth chain that are in the full
 /// conflicted set to the graph.
 fn add_event_and_auth_chain_to_graph<E: Event>(
-    graph: &mut HashMap<E::Id, EventIdSet<E::Id>>,
+    graph: &mut EventIdMap<E::Id, EventIdSet<E::Id>>,
     event_id: E::Id,
     full_conflicted_set: &EventIdSet<E::Id>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
@@ -878,7 +878,7 @@ fn add_event_and_auth_chain_to_graph<E: Event>(
             // If the auth event ID is in the full conflicted set…
             if full_conflicted_set.contains(auth_event_id.borrow()) {
                 // If the auth event ID is not in the graph, we need to check its auth events later.
-                if !graph.contains_key(auth_event_id.borrow()) {
+                if !graph.contains_event_id(auth_event_id.borrow()) {
                     state.push(auth_event_id.to_owned());
                 }
 

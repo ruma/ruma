@@ -2,6 +2,7 @@
 
 use ruma_common::{EventId, IdParseError, OwnedEventId, RoomId};
 
+pub mod event_id_map;
 pub mod event_id_set;
 
 /// Convenience extension trait for [`RoomId`].

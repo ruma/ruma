@@ -34,7 +34,6 @@ criterion = { workspace = true, optional = true }
 [dev-dependencies]
 assert_matches2 = { workspace = true }
 insta = { workspace = true }
-maplit = { workspace = true }
 similar = { workspace = true }
 test-log = { version = "0.2", default-features = false, features = ["trace"] }
 
