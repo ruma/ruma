@@ -7,6 +7,9 @@ Breaking:
 - `resolve()` and `reverse_topological_power_sort()` now take
   `EventIdSet<E::Id>`s rather than `HashSet<E::Id>`. This is an opaque set type
   that will allow to optimize the backing implementation in the future.
+- `reverse_topological_power_sort()` now takes an `EventIdMap<E::Id, _>` rather
+  than a `HashMap<E::Id, _>`. This is an opaque map type that will allow to
+  optimize the backing implementation in the future.
 
 ## 0.15.0
 
