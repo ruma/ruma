@@ -311,7 +311,7 @@ pub struct CallApplicationContent {
     /// Who owns/joins/controls (can modify) the call.
     pub scope: CallScope,
 
-    /// The call intent
+    /// The call intent.
     #[serde(rename = "m.call.intent", default, skip_serializing_if = "Option::is_none")]
     #[cfg(feature = "unstable-msc4075")]
     pub call_intent: Option<CallIntent>,
