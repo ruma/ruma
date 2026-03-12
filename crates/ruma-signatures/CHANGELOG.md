@@ -35,6 +35,9 @@ Breaking changes:
   - `verify_canonical_json_bytes()`
   - `verify_event()`
   - `verify_json()`
+- When verifying the signatures on a JSON object, signatures of keys that are
+  not in the key map are ignored rather than returning an error. The
+  `VerificationError::PublicKeyNotFound` variant was removed.
 
 Improvements:
 

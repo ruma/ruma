@@ -297,6 +297,11 @@ fn verify_canonical_json_for_entity(
 
     let mut checked = false;
     for (key_id, signature) in signature_set {
+        // If the key is not in the map of public keys, ignore.
+        let Some(public_key) = public_keys.get(key_id) else {
+            continue;
+        };
+
         // If we cannot parse the key ID, ignore.
         let Ok(parsed_key_id) = <&SigningKeyId<AnyKeyName>>::try_from(key_id.as_str()) else {
             continue;
@@ -305,13 +310,6 @@ fn verify_canonical_json_for_entity(
         // If the signature uses an unknown algorithm, ignore.
         let Some(verifier) = verifier_from_algorithm(&parsed_key_id.algorithm()) else {
             continue;
-        };
-
-        let Some(public_key) = public_keys.get(key_id) else {
-            return Err(VerificationError::PublicKeyNotFound {
-                entity: entity_id.to_owned(),
-                key_id: key_id.clone(),
-            });
         };
 
         let CanonicalJsonValue::String(signature) = signature else {
