@@ -138,17 +138,21 @@ pub(super) fn test_resolve_batches(pdus_paths: &[&str]) -> String {
     let (pdu_batches, auth_rules, state_res_rules) = load_pdus_and_room_version_rules(pdus_paths);
 
     // Resolve PDUs iteratively, using the ordering of `prev_events`.
+    tracing::info!("Starting iterative state resolution");
     let iteratively_resolved_state = resolve_iteratively(
         pdu_batches.iter().flat_map(|x| x.iter()),
         &auth_rules,
         &state_res_rules,
     )
     .expect("iterative state resolution should succeed");
+    tracing::info!(?iteratively_resolved_state, "Finished iterative state resolution");
 
     // Resolve PDUs in batches by file.
+    tracing::info!("Starting batches state resolution");
     let mut pdus_map = HashMap::new();
     let mut batched_resolved_state = None;
     for pdus in &pdu_batches {
+        tracing::info!(batch = ?pdus.iter().map(|pdu| pdu.event_id()).collect::<Vec<_>>(), "resolve_batch");
         batched_resolved_state = Some(
             resolve_batch(
                 pdus,
@@ -162,8 +166,10 @@ pub(super) fn test_resolve_batches(pdus_paths: &[&str]) -> String {
     }
     let batched_resolved_state =
         batched_resolved_state.expect("batched state resolution should have run at least once");
+    tracing::info!(?batched_resolved_state, "Finished batched state resolution");
 
     // Resolve all PDUs in a single step.
+    tracing::info!("Starting atomic state resolution");
     let atomic_resolved_state = resolve_batch(
         pdu_batches.iter().flat_map(|x| x.iter()),
         &auth_rules,
@@ -172,6 +178,7 @@ pub(super) fn test_resolve_batches(pdus_paths: &[&str]) -> String {
         None,
     )
     .expect("atomic state resolution should succeed");
+    tracing::info!(?atomic_resolved_state, "Finished atomic state resolution");
 
     let iteratively_resolved_state =
         state_map_to_json_string(iteratively_resolved_state, &pdus_map);
@@ -488,6 +495,7 @@ where
         let mut auth_chain_at_event = auth_chain_before_event.clone();
         auth_chain_at_event.extend(pdu_auth_chain(current_pdu, &pdus_map));
 
+        tracing::info!(?event_id, "resolve state at event");
         let state_at_event = resolve(
             auth_rules,
             state_res_rules,
@@ -518,6 +526,7 @@ where
     let mut leaf_states = Vec::new();
     let mut auth_chain_sets = Vec::new();
 
+    tracing::info!(?leaves, "resolve leaves states");
     for leaf in leaves {
         let state_at_event = state_at_events.get(&leaf).expect("states at all events are known");
         let auth_chain_at_event = auth_chain_from_state_map(state_at_event)?;

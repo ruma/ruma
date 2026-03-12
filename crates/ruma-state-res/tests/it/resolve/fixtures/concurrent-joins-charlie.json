@@ -1,0 +1,22 @@
+[
+  {
+    "event_id": "$00-m-room-member-join-charlie",
+    "room_id": "!room:example.com",
+    "sender": "@charlie:example.com",
+    "type": "m.room.member",
+    "content": {
+      "displayname": "charlie",
+      "membership": "join"
+    },
+    "state_key": "@charlie:example.com",
+    "origin_server_ts": 8,
+    "prev_events": [
+      "$01-m-room-power_levels"
+    ],
+    "auth_events": [
+      "$00-m-room-create",
+      "$01-m-room-power_levels",
+      "$00-m-room-join_rules"
+    ]
+  }
+]
