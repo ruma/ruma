@@ -353,7 +353,7 @@ fn verify_event_check_signatures_for_sender_is_allowed_with_unknown_algorithms_i
 }
 
 #[test]
-fn verify_event_fails_with_missing_key_when_event_is_signed_multiple_times_by_same_entity() {
+fn verify_event_succeeds_when_missing_key_and_event_is_signed_multiple_times_by_same_entity() {
     let key_pair_sender = generate_key_pair("1");
     let secondary_key_pair_sender = generate_key_pair("2");
     let mut signed_event = serde_json::from_str(
@@ -382,14 +382,45 @@ fn verify_event_fails_with_missing_key_when_event_is_signed_multiple_times_by_sa
     let mut public_key_map = BTreeMap::new();
     add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
 
-    let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionRules::V6);
+    let verification = verify_event(&public_key_map, &signed_event, &RoomVersionRules::V6).unwrap();
+    assert_eq!(verification, Verified::Signatures);
+}
 
+#[test]
+fn verify_event_fails_when_missing_key_and_event_is_signed_once_by_entity() {
+    let key_pair_sender = generate_key_pair("1");
+    let secondary_key_pair_sender = generate_key_pair("2");
+    let mut signed_event = serde_json::from_str(
+        r#"{
+                "auth_events": [],
+                "content": {},
+                "depth": 3,
+                "hashes": {
+                    "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+                },
+                "origin": "domain",
+                "origin_server_ts": 1000000,
+                "prev_events": [],
+                "room_id": "!x:domain",
+                "sender": "@name:domain-sender",
+                "type": "X",
+                "unsigned": {
+                    "age_ts": 1000000
+                }
+            }"#,
+    )
+    .unwrap();
+    sign_json("domain-sender", &secondary_key_pair_sender, &mut signed_event).unwrap();
+
+    let mut public_key_map = BTreeMap::new();
+    add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
+
+    let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionRules::V6);
     assert_matches!(
         verification_result,
-        Err(VerificationError::PublicKeyNotFound { entity, key_id })
+        Err(VerificationError::NoSupportedSignatureForEntity(entity))
     );
     assert_eq!(entity, "domain-sender");
-    assert_eq!(key_id, "ed25519:2");
 }
 
 #[test]
