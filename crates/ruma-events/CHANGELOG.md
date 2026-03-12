@@ -72,6 +72,8 @@ Improvements:
   - `StrippedStateEvent`
   - `SyncEphemeralRoomEvent`
   - `ToDeviceEvent`
+- Add support for reading `m.call.intent` inside rtc membership events, 
+  see `MembershipData::call_intent()`.
 
 # 0.32.1
 

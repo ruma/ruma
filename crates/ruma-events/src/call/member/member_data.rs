@@ -12,6 +12,8 @@ use tracing::warn;
 
 use super::focus::{ActiveFocus, ActiveLivekitFocus, Focus};
 use crate::PrivOwnedStr;
+#[cfg(feature = "unstable-msc4075")]
+use crate::rtc::notification::CallIntent;
 
 /// The data object that contains the information for one membership.
 ///
@@ -70,6 +72,13 @@ impl MembershipData<'_> {
             MembershipData::Legacy(data) => &data.foci_active,
             MembershipData::Session(data) => &data.foci_preferred,
         }
+    }
+
+    /// The current call intent (audio or video).
+    #[cfg(feature = "unstable-msc4075")]
+    pub fn call_intent(&self) -> Option<&CallIntent> {
+        as_variant!(self.application(), Application::Call)
+            .and_then(|call| call.call_intent.as_ref())
     }
 
     /// The application of the membership is "m.call" and the scope is "m.room".
@@ -301,6 +310,11 @@ pub struct CallApplicationContent {
 
     /// Who owns/joins/controls (can modify) the call.
     pub scope: CallScope,
+
+    /// The call intent.
+    #[serde(rename = "m.call.intent", default, skip_serializing_if = "Option::is_none")]
+    #[cfg(feature = "unstable-msc4075")]
+    pub call_intent: Option<CallIntent>,
 }
 
 impl CallApplicationContent {
@@ -312,7 +326,25 @@ impl CallApplicationContent {
     ///   the same call. Does not need to be a uuid. `""` is used for room scoped calls.
     /// * `scope` - Who owns/joins/controls (can modify) the call.
     pub fn new(call_id: String, scope: CallScope) -> Self {
-        Self { call_id, scope }
+        Self {
+            call_id,
+            scope,
+            #[cfg(feature = "unstable-msc4075")]
+            call_intent: None,
+        }
+    }
+
+    /// Initialize a [`CallApplicationContent`] with a call intent.
+    ///
+    /// # Arguments
+    ///
+    /// * `call_id` - An identifier for calls. All members using the same `call_id` will end up in
+    ///   the same call. Does not need to be a uuid. `""` is used for room scoped calls.
+    /// * `scope` - Who owns/joins/controls (can modify) the call.
+    /// * `call_intent` - Indication of whether the call is an "audio" or "video"(+audio) call.
+    #[cfg(feature = "unstable-msc4075")]
+    pub fn new_with_intent(call_id: String, scope: CallScope, call_intent: CallIntent) -> Self {
+        Self { call_id, scope, call_intent: Some(call_intent) }
     }
 }
 
