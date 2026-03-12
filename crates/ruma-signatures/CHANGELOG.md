@@ -1,5 +1,11 @@
 # [unreleased]
 
+Breaking changes:
+
+- When verifying the signatures on a JSON object, signatures of keys that are
+  not in the key map are ignored rather than returning an error. The
+  `VerificationError::PublicKeyNotFound` variant was removed.
+
 Improvements:
 
 - Get a better error message when verifying a signature with a public key that
