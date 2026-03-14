@@ -1,5 +1,41 @@
 # [unreleased]
 
+Breaking changes:
+
+- Refactor and improve the variants of `JsonError`:
+  - `NotOfType` and `NotMultiplesOfType` were merged into a single `InvalidType`
+    variant and provide more details about the invalid field.
+  - `JsonFieldMissingFromObject` was renamed to `MissingField` an provides the
+    full path of the missing field.
+- The methods on `Ed25519KeyPair` use a separate error enum named
+  `Ed25519KeyPairParseError`.
+  - `Error::DerParse` is now `Ed25519KeyPairParseError::Pkcs8`.
+  - `ParseError::DerivedPublicKeyDoesNotMatchParsedKey` is now
+    `Ed25519KeyPairParseError::PublicKeyMismatch`.
+  - `ParseError::Oid` is now `Ed25519KeyPairParseError::InvalidOid`.
+  - `ParseError::SecretKey` is now `Ed25519KeyPairParseError::InvalidSecretKey`.
+- The error variants returned specifically when verifying an ed25519 signature
+  use a separate error enum named `Ed25519VerificationError`, which is exposed
+  as `VerificationError::Ed25519`.
+  - `ParseError::PublicKey` is now
+    `Ed25519VerificationError::InvalidPublicKey`.
+  - `ParseError::Signature` is now
+    `Ed25519VerificationError::InvalidSignatureLength`.
+  - `VerificationError::Signature` is now
+    `Ed25519VerificationError::SignatureVerification`.
+- `Error::PduSize` is now `JsonError::PduTooLarge` allowing the following
+  functions to return `JsonError` as an error type:
+  - `canonical_json()`
+  - `reference_hash()`
+  - `content_hash()`
+  - `sign_json()`
+  - `hash_and_sign_event()`
+- The remaining variants of `Error` and `ParseError` were merged into
+  `VerificationError`. This is now the error type returned by:
+  - `verify_canonical_json_bytes()`
+  - `verify_event()`
+  - `verify_json()`
+
 Improvements:
 
 - Get a better error message when verifying a signature with a public key that

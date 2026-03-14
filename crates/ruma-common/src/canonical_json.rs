@@ -11,7 +11,7 @@ mod value;
 
 pub use self::{
     serializer::Serializer,
-    value::{CanonicalJsonObject, CanonicalJsonValue},
+    value::{CanonicalJsonObject, CanonicalJsonType, CanonicalJsonValue},
 };
 #[doc(inline)]
 pub use crate::assert_to_canonical_json_eq;
@@ -72,27 +72,33 @@ impl serde::ser::Error for CanonicalJsonError {
 #[derive(Debug)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum RedactionError {
-    /// The field `field` is not of the correct type `of_type` ([`JsonType`]).
-    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-    NotOfType {
-        /// The field name.
-        field: String,
-        /// The expected JSON type.
-        of_type: JsonType,
+    /// The field at `path` was expected to be of type `expected`, but was received as `found`.
+    InvalidType {
+        /// The path of the invalid field.
+        path: String,
+
+        /// The type that was expected.
+        expected: CanonicalJsonType,
+
+        /// The type that was found.
+        found: CanonicalJsonType,
     },
 
-    /// The given required field is missing from a JSON object.
-    JsonFieldMissingFromObject(String),
+    /// A required field is missing from a JSON object.
+    MissingField {
+        /// The path of the missing field.
+        path: String,
+    },
 }
 
 impl fmt::Display for RedactionError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            RedactionError::NotOfType { field, of_type } => {
-                write!(f, "Value in {field:?} must be a JSON {of_type:?}")
+            RedactionError::InvalidType { path, expected, found } => {
+                write!(f, "invalid type at `{path}`: expected {expected:?}, found {found:?}")
             }
-            RedactionError::JsonFieldMissingFromObject(field) => {
-                write!(f, "JSON object must contain the field {field:?}")
+            RedactionError::MissingField { path } => {
+                write!(f, "missing field: `{path}`")
             }
         }
     }
@@ -100,17 +106,7 @@ impl fmt::Display for RedactionError {
 
 impl std::error::Error for RedactionError {}
 
-impl RedactionError {
-    fn not_of_type(target: &str, of_type: JsonType) -> Self {
-        Self::NotOfType { field: target.to_owned(), of_type }
-    }
-
-    fn field_missing_from_object(target: &str) -> Self {
-        Self::JsonFieldMissingFromObject(target.to_owned())
-    }
-}
-
-/// A JSON type enum for [`RedactionError`] variants.
+/// The possible types of a JSON value.
 #[derive(Debug)]
 #[allow(clippy::exhaustive_enums)]
 pub enum JsonType {
@@ -225,13 +221,23 @@ pub fn redact_in_place(
         Some(CanonicalJsonValue::String(event_type)) => {
             retained_event_content_keys(event_type.as_ref(), rules)
         }
-        Some(_) => return Err(RedactionError::not_of_type("type", JsonType::String)),
-        None => return Err(RedactionError::field_missing_from_object("type")),
+        Some(value) => {
+            return Err(RedactionError::InvalidType {
+                path: "type".to_owned(),
+                expected: CanonicalJsonType::String,
+                found: value.json_type(),
+            });
+        }
+        None => return Err(RedactionError::MissingField { path: "type".to_owned() }),
     };
 
     if let Some(content_value) = event.get_mut("content") {
         let CanonicalJsonValue::Object(content) = content_value else {
-            return Err(RedactionError::not_of_type("content", JsonType::Object));
+            return Err(RedactionError::InvalidType {
+                path: "content".to_owned(),
+                expected: CanonicalJsonType::Object,
+                found: content_value.json_type(),
+            });
         };
 
         retained_event_content_keys.apply(rules, content)?;
@@ -362,7 +368,11 @@ fn is_room_member_content_key_retained(
         }
         "third_party_invite" if rules.keep_room_member_third_party_invite_signed => {
             let Some(third_party_invite) = value.as_object_mut() else {
-                return Err(RedactionError::not_of_type("third_party_invite", JsonType::Object));
+                return Err(RedactionError::InvalidType {
+                    path: "content.third_party_invite".to_owned(),
+                    expected: CanonicalJsonType::Object,
+                    found: value.json_type(),
+                });
             };
 
             third_party_invite.retain(|key, _| key == "signed");
