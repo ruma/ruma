@@ -1,107 +1,88 @@
-use std::collections::{HashMap, HashSet};
-
 use js_int::{int, uint};
 use maplit::{hashmap, hashset};
-use rand::seq::SliceRandom;
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, OwnedEventId, room_version_rules::AuthorizationRules,
+    MilliSecondsSinceUnixEpoch, RoomVersionId, owned_event_id,
+    room_version_rules::AuthorizationRules,
 };
 use ruma_events::StateEventType;
 use test_log::test;
 
-use super::{EventTypeExt, StateMap, is_power_event};
-use crate::{
-    Event,
-    test_utils::{INITIAL_EVENTS, event_id},
-};
+use super::{StateMap, is_power_event};
+use crate::test_utils::RoomTimelineFactory;
 
-fn test_event_sort() {
-    let events = INITIAL_EVENTS();
+#[test]
+fn test_sort_power_events() {
+    // Because we use the keys and values of a `HashMap` to get the events to sort, their order
+    // before sorting changes every time, so let's run this several times.
+    for _ in 0..20 {
+        let factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
-    let event_map = events
-        .values()
-        .map(|ev| (ev.event_type().with_state_key(ev.state_key().unwrap()), ev.clone()))
-        .collect::<StateMap<_>>();
+        let power_events = factory
+            .pdus()
+            .values()
+            .filter(|pdu| is_power_event(pdu))
+            .map(|pdu| pdu.event_id.clone())
+            .collect();
+        let full_conflicted_set = factory.pdus().keys().cloned().collect();
 
-    let auth_chain: HashSet<OwnedEventId> = HashSet::new();
-
-    let power_events = event_map
-        .values()
-        .filter(|&pdu| is_power_event(&**pdu))
-        .map(|pdu| pdu.event_id.clone())
-        .collect::<Vec<_>>();
-
-    let sorted_power_events =
-        super::sort_power_events(power_events, &auth_chain, &AuthorizationRules::V6, |id| {
-            events.get(id).cloned()
-        })
+        let sorted_events = super::sort_power_events(
+            power_events,
+            &full_conflicted_set,
+            &AuthorizationRules::V6,
+            factory.get_fn(),
+        )
         .unwrap();
 
-    let resolved_power = super::iterative_auth_checks(
-        &AuthorizationRules::V6,
-        &sorted_power_events,
-        HashMap::new(), // unconflicted events
-        |id| events.get(id).cloned(),
-    )
-    .expect("iterative auth check failed on resolved events");
-
-    // don't remove any events so we know it sorts them all correctly
-    let mut events_to_sort = events.keys().cloned().collect::<Vec<_>>();
-
-    events_to_sort.shuffle(&mut rand::thread_rng());
-
-    let power_level =
-        resolved_power.get(&(StateEventType::RoomPowerLevels, "".to_owned())).cloned();
-
-    let sorted_event_ids =
-        super::mainline_sort(&events_to_sort, power_level, |id| events.get(id).cloned()).unwrap();
-
-    assert_eq!(
-        vec![
-            "$CREATE:foo",
-            "$IMA:foo",
-            "$IPOWER:foo",
-            "$IJR:foo",
-            "$IMB:foo",
-            "$IMC:foo",
-            "$START:foo",
-            "$END:foo"
-        ],
-        sorted_event_ids.iter().map(|id| id.to_string()).collect::<Vec<_>>()
-    );
+        assert_eq!(
+            sorted_events,
+            ["$room-create", "$room-member-alice-join", "$room-power-levels", "$room-join-rules"]
+        );
+    }
 }
 
 #[test]
-fn test_sort() {
+fn test_mainline_sort() {
+    // Because we use the keys and values of a `HashMap` to get the events to sort, their order
+    // before sorting changes every time, so let's run this several times.
     for _ in 0..20 {
-        // since we shuffle the eventIds before we sort them introducing randomness
-        // seems like we should test this a few times
-        test_event_sort();
+        let factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V10);
+
+        let events = factory.pdus().keys().cloned().collect::<Vec<_>>();
+        let power_level =
+            factory.state_event_id(&StateEventType::RoomPowerLevels, "").unwrap().clone();
+
+        let sorted_events =
+            super::mainline_sort(&events, Some(power_level), factory.get_fn()).unwrap();
+
+        assert_eq!(
+            sorted_events,
+            [
+                "$room-create",
+                "$room-member-alice-join",
+                "$room-power-levels",
+                "$room-join-rules",
+                "$room-member-bob-join"
+            ]
+        );
     }
 }
 
 #[test]
 fn test_reverse_topological_power_sort() {
     let graph = hashmap! {
-        event_id("l") => hashset![event_id("o")],
-        event_id("m") => hashset![event_id("n"), event_id("o")],
-        event_id("n") => hashset![event_id("o")],
-        event_id("o") => hashset![], // "o" has zero outgoing edges but 4 incoming edges
-        event_id("p") => hashset![event_id("o")],
+        owned_event_id!("$l") => hashset![owned_event_id!("$o")],
+        owned_event_id!("$m") => hashset![owned_event_id!("$n"), owned_event_id!("$o")],
+        owned_event_id!("$n") => hashset![owned_event_id!("$o")],
+        owned_event_id!("$o") => hashset![], // "o" has zero outgoing edges but 4 incoming edges
+        owned_event_id!("$p") => hashset![owned_event_id!("$o")],
     };
 
-    let res = crate::reverse_topological_power_sort(&graph, |_id| {
+    let sorted = crate::reverse_topological_power_sort(&graph, |_id| {
         Ok((int!(0).into(), MilliSecondsSinceUnixEpoch(uint!(0))))
     })
     .unwrap();
 
-    assert_eq!(
-        vec!["o", "l", "n", "m", "p"],
-        res.iter()
-            .map(ToString::to_string)
-            .map(|s| s.replace('$', "").replace(":foo", ""))
-            .collect::<Vec<_>>()
-    );
+    assert_eq!(sorted, ["$o", "$l", "$n", "$m", "$p"],);
 }
 
 macro_rules! state_set {
