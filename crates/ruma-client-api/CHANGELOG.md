@@ -69,6 +69,7 @@ Improvements:
   and data of the algorithm can be accessed via the `algorithm()` and
   `auth_data()` methods respectively.
 - `RegistrationKind` and `LoginType` can now represent custom values.
+- Add `M_USER_LIMIT_EXCEEDED` error code according to MSC4335.
 
 # 0.22.1
 
