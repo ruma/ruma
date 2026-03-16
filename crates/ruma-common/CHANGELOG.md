@@ -15,6 +15,8 @@ Breaking changes:
   preferred.
 - `EventId::new()` was renamed to `EventId::new_v1()`, since it works only for
   the first format of event IDs.
+- The struct variants of `PushCondition` are now tuple variants containing a
+  non-exhaustive struct.
 
 Improvements:
 
