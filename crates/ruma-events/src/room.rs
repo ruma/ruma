@@ -116,13 +116,15 @@ pub struct ImageInfo {
     #[serde(rename = "xyz.amorgan.thumbhash", skip_serializing_if = "Option::is_none")]
     pub thumbhash: Option<Base64>,
 
-    /// Whether the image is animated.
+    /// If this flag is `true`, the original image SHOULD be assumed to be animated. If this flag
+    /// is `false`, the original image SHOULD be assumed to NOT be animated.
     ///
-    /// This uses the unstable prefix in [MSC4230].
+    /// If a sending client is unable to determine whether an image is animated, it SHOULD leave
+    /// the flag unset.
     ///
-    /// [MSC4230]: https://github.com/matrix-org/matrix-spec-proposals/pull/4230
-    #[cfg(feature = "unstable-msc4230")]
-    #[serde(rename = "org.matrix.msc4230.is_animated", skip_serializing_if = "Option::is_none")]
+    /// Receiving clients MAY use this flag to optimize whether to download the original image
+    /// rather than a thumbnail if it is animated, but they SHOULD NOT trust this flag.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_animated: Option<bool>,
 }
 
