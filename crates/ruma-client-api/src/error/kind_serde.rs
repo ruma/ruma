@@ -13,6 +13,7 @@ use super::{
     LimitExceededErrorData, ResourceLimitExceededErrorData, RetryAfter, UnknownTokenErrorData,
     WrongRoomKeysVersionErrorData,
 };
+use crate::error::UserLimitExceededErrorData;
 
 enum Field<'de> {
     ErrorCode,
@@ -23,6 +24,8 @@ enum Field<'de> {
     Status,
     Body,
     CurrentVersion,
+    InfoUri,
+    CanUpgrade,
     Other(Cow<'de, str>),
 }
 
@@ -37,6 +40,8 @@ impl<'de> Field<'de> {
             "status" => Self::Status,
             "body" => Self::Body,
             "current_version" => Self::CurrentVersion,
+            "info_uri" => Self::InfoUri,
+            "can_upgrade" => Self::CanUpgrade,
             _ => Self::Other(s),
         }
     }
@@ -103,6 +108,8 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
         let mut status = None;
         let mut body = None;
         let mut current_version = None;
+        let mut info_uri = None;
+        let mut can_upgrade = None;
         let mut data = JsonObject::new();
 
         macro_rules! set_field {
@@ -128,6 +135,8 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             (@variant_containing status) => { ErrorCode::BadStatus };
             (@variant_containing body) => { ErrorCode::BadStatus };
             (@variant_containing current_version) => { ErrorCode::WrongRoomKeysVersion };
+            (@variant_containing info_uri) => { ErrorCode::UserLimitExceeded };
+            (@variant_containing can_upgrade) => { ErrorCode::UserLimitExceeded };
             (@inner $field:ident) => {
                 {
                     if $field.is_some() {
@@ -148,6 +157,8 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                 Field::Status => set_field!(status),
                 Field::Body => set_field!(body),
                 Field::CurrentVersion => set_field!(current_version),
+                Field::InfoUri => set_field!(info_uri),
+                Field::CanUpgrade => set_field!(can_upgrade),
                 Field::Other(other) => match data.entry(other.into_owned()) {
                     Entry::Vacant(v) => {
                         v.insert(map.next_value()?);
@@ -254,6 +265,19 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrorCode::UrlNotSet => ErrorKind::UrlNotSet,
             ErrorCode::UserDeactivated => ErrorKind::UserDeactivated,
             ErrorCode::UserInUse => ErrorKind::UserInUse,
+            ErrorCode::UserLimitExceeded => {
+                ErrorKind::UserLimitExceeded(UserLimitExceededErrorData {
+                    info_uri: from_json_value(
+                        info_uri.ok_or_else(|| de::Error::missing_field("info_uri"))?,
+                    )
+                    .map_err(de::Error::custom)?,
+                    can_upgrade: can_upgrade
+                        .map(from_json_value)
+                        .transpose()
+                        .map_err(de::Error::custom)?
+                        .unwrap_or_default(),
+                })
+            }
             ErrorCode::UserLocked => ErrorKind::UserLocked,
             ErrorCode::UserSuspended => ErrorKind::UserSuspended,
             ErrorCode::WeakPassword => ErrorKind::WeakPassword,
@@ -315,6 +339,13 @@ impl Serialize for ErrorKind {
             Self::UnknownToken(UnknownTokenErrorData { soft_logout: true }) | Self::UserLocked => {
                 st.serialize_entry("soft_logout", &true)?;
             }
+            Self::UserLimitExceeded(UserLimitExceededErrorData { info_uri, can_upgrade }) => {
+                st.serialize_entry("info_uri", info_uri)?;
+
+                if *can_upgrade {
+                    st.serialize_entry("can_upgrade", can_upgrade)?;
+                }
+            }
             Self::WrongRoomKeysVersion(WrongRoomKeysVersionErrorData { current_version }) => {
                 st.serialize_entry("current_version", current_version)?;
             }
@@ -323,7 +354,61 @@ impl Serialize for ErrorKind {
                     st.serialize_entry(k, v)?;
                 }
             }
-            _ => {}
+            Self::AppserviceLoginUnsupported
+            | Self::BadAlias
+            | Self::BadJson
+            | Self::BadState
+            | Self::CannotLeaveServerNoticeRoom
+            | Self::CannotOverwriteMedia
+            | Self::CaptchaInvalid
+            | Self::CaptchaNeeded
+            | Self::ConnectionFailed
+            | Self::ConnectionTimeout
+            | Self::DuplicateAnnotation
+            | Self::Exclusive
+            | Self::Forbidden
+            | Self::GuestAccessForbidden
+            | Self::InvalidParam
+            | Self::InvalidRoomState
+            | Self::InvalidUsername
+            | Self::InviteBlocked
+            | Self::LimitExceeded(LimitExceededErrorData {
+                retry_after: None | Some(RetryAfter::DateTime(_)),
+            })
+            | Self::MissingParam
+            | Self::MissingToken
+            | Self::NotFound
+            | Self::NotJson
+            | Self::NotYetUploaded
+            | Self::RoomInUse
+            | Self::ServerNotTrusted
+            | Self::ThreepidAuthFailed
+            | Self::ThreepidDenied
+            | Self::ThreepidInUse
+            | Self::ThreepidMediumNotSupported
+            | Self::ThreepidNotFound
+            | Self::TokenIncorrect
+            | Self::TooLarge
+            | Self::UnableToAuthorizeJoin
+            | Self::UnableToGrantJoin
+            | Self::Unauthorized
+            | Self::Unknown
+            | Self::UnknownToken(UnknownTokenErrorData { soft_logout: false })
+            | Self::Unrecognized
+            | Self::UnsupportedRoomVersion
+            | Self::UrlNotSet
+            | Self::UserDeactivated
+            | Self::UserInUse
+            | Self::UserSuspended
+            | Self::WeakPassword => {}
+            #[cfg(feature = "unstable-msc4306")]
+            Self::ConflictingUnsubscription => {}
+            #[cfg(feature = "unstable-msc4306")]
+            Self::NotInThread => {}
+            #[cfg(feature = "unstable-msc3843")]
+            Self::Unactionable => {}
+            #[cfg(feature = "unstable-msc4186")]
+            Self::UnknownPos => {}
         }
         st.end()
     }
