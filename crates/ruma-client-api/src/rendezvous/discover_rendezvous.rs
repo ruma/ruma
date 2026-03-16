@@ -17,7 +17,7 @@ pub mod unstable {
         rate_limited: true,
         authentication: AccessTokenOptional,
         history: {
-            unstable("io.element.msc4388") => "/_matrix/client/unstable/io.element.msc4388/rendezvous",
+            unstable => "/_matrix/client/unstable/io.element.msc4388/rendezvous",
         }
     }
 
