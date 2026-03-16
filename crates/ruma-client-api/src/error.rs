@@ -366,6 +366,14 @@ pub enum ErrorKind {
     /// The desired user ID is already taken.
     UserInUse,
 
+    /// `M_USER_LIMIT_EXCEEDED`
+    ///
+    /// The request cannot be completed because the user has exceeded (or the request would cause
+    /// them to exceed) a limit associated with their account. For example, a user may have reached
+    /// their allocated storage quota, reached a maximum number of allowed rooms, devices, or other
+    /// account-scoped resources, or exceeded usage limits for specific features.
+    UserLimitExceeded(UserLimitExceededErrorData),
+
     /// `M_USER_LOCKED`
     ///
     /// The account has been [locked] and cannot be used at this time.
@@ -457,6 +465,7 @@ impl ErrorKind {
             ErrorKind::UrlNotSet => ErrorCode::UrlNotSet,
             ErrorKind::UserDeactivated => ErrorCode::UserDeactivated,
             ErrorKind::UserInUse => ErrorCode::UserInUse,
+            ErrorKind::UserLimitExceeded(_) => ErrorCode::UserLimitExceeded,
             ErrorKind::UserLocked => ErrorCode::UserLocked,
             ErrorKind::UserSuspended => ErrorCode::UserSuspended,
             ErrorKind::WeakPassword => ErrorCode::WeakPassword,
@@ -550,6 +559,33 @@ impl UnknownTokenErrorData {
     /// Construct a new `UnknownTokenErrorData` with `soft_logout` set to `false`.
     pub fn new() -> Self {
         Self::default()
+    }
+}
+
+/// Data for the `M_USER_LIMIT_EXCEEDED` [`ErrorKind`].
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct UserLimitExceededErrorData {
+    /// A URI that the client can present to the user to provide more context on the encountered
+    /// limit and, if applicable, guidance on how to increase the limit.
+    ///
+    /// The homeserver MAY return different values depending on the type of limit reached.
+    pub info_uri: String,
+
+    /// Whether the specific limit encountered can be increased.
+    ///
+    /// If `true`, it indicates that the specific limit encountered can be increased, for example
+    /// by upgrading the user’s account tier. If `false`, the limit is a hard limit that cannot be
+    /// increased.
+    ///
+    /// Defaults to `false`.
+    pub can_upgrade: bool,
+}
+
+impl UserLimitExceededErrorData {
+    /// Construct a new `UserLimitExceededErrorData` with the given URI.
+    pub fn new(info_uri: String) -> Self {
+        Self { info_uri, can_upgrade: false }
     }
 }
 
@@ -920,6 +956,14 @@ pub enum ErrorCode {
     ///
     /// The desired user ID is already taken.
     UserInUse,
+
+    /// `M_USER_LIMIT_EXCEEDED`
+    ///
+    /// The request cannot be completed because the user has exceeded (or the request would cause
+    /// them to exceed) a limit associated with their account. For example, a user may have reached
+    /// their allocated storage quota, reached a maximum number of allowed rooms, devices, or other
+    /// account-scoped resources, or exceeded usage limits for specific features.
+    UserLimitExceeded,
 
     /// `M_USER_LOCKED`
     ///

@@ -82,6 +82,7 @@ Improvements:
   MSC4341 / Matrix 1.18.
 - Add support for the Policy Server public key information endpoint, according
   to MSC4284 / Matrix 1.18.
+- Add `M_USER_LIMIT_EXCEEDED` error code according to MSC4335.
 
 # 0.22.1
 
