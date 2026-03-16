@@ -74,6 +74,8 @@ Improvements:
   - `ToDeviceEvent`
 - Add support for reading `m.call.intent` inside rtc membership events, 
   see `MembershipData::call_intent()`.
+- Stabilize the `is_animated` flag for image messages and sticker events,
+  according to MSC4230.
 
 # 0.32.1
 
