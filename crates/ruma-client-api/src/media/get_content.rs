@@ -12,7 +12,7 @@ pub mod v3 {
     use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
     use ruma_common::{
         IdParseError, MxcUri, OwnedServerName,
-        api::{auth_scheme::NoAuthentication, request, response},
+        api::{auth_scheme::NoAccessToken, request, response},
         http_headers::ContentDisposition,
         metadata,
     };
@@ -22,7 +22,7 @@ pub mod v3 {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: NoAuthentication,
+        authentication: NoAccessToken,
         history: {
             1.0 => "/_matrix/media/r0/download/{server_name}/{media_id}",
             1.1 => "/_matrix/media/v3/download/{server_name}/{media_id}",

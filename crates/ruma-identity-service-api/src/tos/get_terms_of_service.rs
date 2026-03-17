@@ -10,7 +10,7 @@ pub mod v2 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{auth_scheme::NoAuthentication, request, response},
+        api::{auth_scheme::NoAccessToken, request, response},
         metadata,
     };
     use serde::{Deserialize, Serialize};
@@ -18,7 +18,7 @@ pub mod v2 {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: NoAuthentication,
+        authentication: NoAccessToken,
         history: {
             1.0 => "/_matrix/identity/v2/terms",
         }

@@ -40,13 +40,38 @@ pub trait AuthScheme: Sized {
 }
 
 /// No authentication is performed.
-///
-/// This type accepts a [`SendAccessToken`] as input to be able to send it regardless of whether it
-/// is required.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct NoAuthentication;
 
 impl AuthScheme for NoAuthentication {
+    type Input<'a> = ();
+    type AddAuthenticationError = std::convert::Infallible;
+    type Output = ();
+    type ExtractAuthenticationError = std::convert::Infallible;
+
+    fn add_authentication<T: AsRef<[u8]>>(
+        _request: &mut http::Request<T>,
+        _input: (),
+    ) -> Result<(), Self::AddAuthenticationError> {
+        Ok(())
+    }
+
+    /// Since this endpoint doesn't expect any authentication, this is a noop.
+    fn extract_authentication<T: AsRef<[u8]>>(
+        _request: &http::Request<T>,
+    ) -> Result<(), Self::ExtractAuthenticationError> {
+        Ok(())
+    }
+}
+
+/// No authentication is performed on an API that usually relies on access tokens.
+///
+/// Contrary to [`NoAuthentication`], this type accepts a [`SendAccessToken`] as input to be able to
+/// send it regardless of whether it is required.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct NoAccessToken;
+
+impl AuthScheme for NoAccessToken {
     type Input<'a> = SendAccessToken<'a>;
     type AddAuthenticationError = header::InvalidHeaderValue;
     type Output = ();

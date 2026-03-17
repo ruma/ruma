@@ -2,7 +2,7 @@ use assert_matches2::assert_matches;
 use http::header;
 use ruma_common::api::auth_scheme::{
     AccessToken, AccessTokenOptional, AppserviceToken, AppserviceTokenOptional, AuthScheme,
-    NoAuthentication, SendAccessToken,
+    NoAccessToken, NoAuthentication, SendAccessToken,
 };
 
 const TOKEN: &str = "token";
@@ -21,7 +21,10 @@ fn send_access_token_none() {
     let input = SendAccessToken::None;
     let mut request = http_request();
 
-    NoAuthentication::add_authentication(&mut request, input).unwrap();
+    NoAuthentication::add_authentication(&mut request, ()).unwrap();
+    assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), None);
+
+    NoAccessToken::add_authentication(&mut request, input).unwrap();
     assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), None);
 
     AccessToken::add_authentication(&mut request, input).unwrap_err();
@@ -40,7 +43,10 @@ fn send_access_token_if_required() {
     let input = SendAccessToken::IfRequired(TOKEN);
     let mut request = http_request();
 
-    NoAuthentication::add_authentication(&mut request, input).unwrap();
+    NoAuthentication::add_authentication(&mut request, ()).unwrap();
+    assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), None);
+
+    NoAccessToken::add_authentication(&mut request, input).unwrap();
     assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), None);
 
     AccessToken::add_authentication(&mut request, input).unwrap();
@@ -62,7 +68,10 @@ fn send_access_token_always() {
     let input = SendAccessToken::Always(TOKEN);
     let mut request = http_request();
 
-    NoAuthentication::add_authentication(&mut request, input).unwrap();
+    NoAuthentication::add_authentication(&mut request, ()).unwrap();
+    assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), None);
+
+    NoAccessToken::add_authentication(&mut request, input).unwrap();
     assert_matches!(request.headers_mut().remove(header::AUTHORIZATION), Some(value));
     assert_eq!(value, HEADER_VALUE);
 
@@ -88,7 +97,10 @@ fn send_access_token_appservice() {
     let input = SendAccessToken::Appservice(TOKEN);
     let mut request = http_request();
 
-    NoAuthentication::add_authentication(&mut request, input).unwrap();
+    NoAuthentication::add_authentication(&mut request, ()).unwrap();
+    assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), None);
+
+    NoAccessToken::add_authentication(&mut request, input).unwrap();
     assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), None);
 
     AccessToken::add_authentication(&mut request, input).unwrap();
@@ -126,6 +138,11 @@ fn extract_authentication_bearer() {
     NoAuthentication::extract_authentication(&request_with_valid_header).unwrap();
     NoAuthentication::extract_authentication(&request_with_invalid_scheme).unwrap();
     NoAuthentication::extract_authentication(&request_with_query).unwrap();
+
+    NoAccessToken::extract_authentication(&request_without_token).unwrap();
+    NoAccessToken::extract_authentication(&request_with_valid_header).unwrap();
+    NoAccessToken::extract_authentication(&request_with_invalid_scheme).unwrap();
+    NoAccessToken::extract_authentication(&request_with_query).unwrap();
 
     AccessToken::extract_authentication(&request_without_token).unwrap_err();
     let token = AccessToken::extract_authentication(&request_with_valid_header).unwrap();

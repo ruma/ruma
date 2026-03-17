@@ -28,14 +28,14 @@ pub mod v3 {
     use std::time::Duration;
 
     use ruma_common::{
-        api::{auth_scheme::NoAuthentication, request, response},
+        api::{auth_scheme::NoAccessToken, request, response},
         metadata,
     };
 
     metadata! {
         method: POST,
         rate_limited: true,
-        authentication: NoAuthentication,
+        authentication: NoAccessToken,
         history: {
             unstable => "/_matrix/client/unstable/org.matrix.msc2918/refresh",
             1.3 => "/_matrix/client/v3/refresh",

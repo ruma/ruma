@@ -6,7 +6,7 @@ use ruma_common::{
     api::{
         IncomingRequest, IncomingResponse, MatrixVersion, OutgoingRequest, OutgoingResponse,
         SupportedVersions,
-        auth_scheme::{NoAuthentication, SendAccessToken},
+        auth_scheme::NoAuthentication,
         error::{
             DeserializationError, FromHttpRequestError, FromHttpResponseError,
             HeaderDeserializationError,
@@ -56,11 +56,7 @@ fn request_serde() {
 
     let mut http_req = req
         .clone()
-        .try_into_http_request::<Vec<u8>>(
-            "https://homeserver.tld",
-            SendAccessToken::None,
-            Cow::Owned(supported),
-        )
+        .try_into_http_request::<Vec<u8>>("https://homeserver.tld", (), Cow::Owned(supported))
         .unwrap();
     assert_matches!(http_req.headers().get(LOCATION), Some(_));
     assert_matches!(http_req.headers().get(CONTENT_DISPOSITION), Some(_));

@@ -12,7 +12,7 @@ use ruma_common::{
     api::{
         EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata, OutgoingRequest,
         OutgoingResponse, SupportedVersions,
-        auth_scheme::{NoAuthentication, SendAccessToken},
+        auth_scheme::NoAuthentication,
         error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError},
         path_builder::{StablePathSelector, VersionHistory},
     },
@@ -64,7 +64,7 @@ impl OutgoingRequest for Request {
     fn try_into_http_request<T: Default + BufMut>(
         self,
         base_url: &str,
-        _access_token: SendAccessToken<'_>,
+        _input: (),
         considering: Cow<'_, SupportedVersions>,
     ) -> Result<http::Request<T>, IntoHttpError> {
         let url = Self::make_endpoint_url(considering, base_url, &[&self.room_alias], "")?;

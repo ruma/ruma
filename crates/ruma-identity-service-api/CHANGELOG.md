@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+- The endpoints that were using the `NoAuthentication` authentication scheme now
+  use `NoAccessToken`.
+
 # 0.13.0
 
 Breaking changes:

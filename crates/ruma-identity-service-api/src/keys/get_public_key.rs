@@ -9,7 +9,7 @@ pub mod v2 {
 
     use ruma_common::{
         OwnedServerSigningKeyId,
-        api::{auth_scheme::NoAuthentication, request, response},
+        api::{auth_scheme::NoAccessToken, request, response},
         metadata,
         third_party_invite::IdentityServerBase64PublicKey,
     };
@@ -17,7 +17,7 @@ pub mod v2 {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: NoAuthentication,
+        authentication: NoAccessToken,
         history: {
             1.0 => "/_matrix/identity/v2/pubkey/{key_id}",
         }
