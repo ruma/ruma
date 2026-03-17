@@ -17,7 +17,7 @@ pub mod v3 {
 
     use ruma_common::{
         OwnedUserId,
-        api::{Metadata, auth_scheme::NoAuthentication, path_builder::VersionHistory},
+        api::{Metadata, auth_scheme::NoAccessToken, path_builder::VersionHistory},
         metadata,
     };
 
@@ -26,7 +26,7 @@ pub mod v3 {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: NoAuthentication,
+        authentication: NoAccessToken,
         // History valid for fields that existed in Matrix 1.0, i.e. `displayname` and `avatar_url`.
         history: {
             unstable("uk.tcpip.msc4133") => "/_matrix/client/unstable/uk.tcpip.msc4133/profile/{user_id}/{field}",

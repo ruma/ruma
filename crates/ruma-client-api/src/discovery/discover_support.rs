@@ -6,7 +6,7 @@
 
 use ruma_common::{
     OwnedUserId,
-    api::{auth_scheme::NoAuthentication, request, response},
+    api::{auth_scheme::NoAccessToken, request, response},
     metadata,
     serde::StringEnum,
 };
@@ -17,7 +17,7 @@ use crate::PrivOwnedStr;
 metadata! {
     method: GET,
     rate_limited: false,
-    authentication: NoAuthentication,
+    authentication: NoAccessToken,
     path: "/.well-known/matrix/support",
 }
 

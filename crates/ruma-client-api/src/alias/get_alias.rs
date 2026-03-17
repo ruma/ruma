@@ -9,14 +9,14 @@ pub mod v3 {
 
     use ruma_common::{
         OwnedRoomAliasId, OwnedRoomId, OwnedServerName,
-        api::{auth_scheme::NoAuthentication, request, response},
+        api::{auth_scheme::NoAccessToken, request, response},
         metadata,
     };
 
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: NoAuthentication,
+        authentication: NoAccessToken,
         history: {
             1.0 => "/_matrix/client/r0/directory/room/{room_alias}",
             1.1 => "/_matrix/client/v3/directory/room/{room_alias}",

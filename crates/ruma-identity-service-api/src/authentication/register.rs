@@ -11,7 +11,7 @@ pub mod v2 {
 
     use ruma_common::{
         OwnedServerName,
-        api::{auth_scheme::NoAuthentication, request, response},
+        api::{auth_scheme::NoAccessToken, request, response},
         authentication::TokenType,
         metadata,
     };
@@ -19,7 +19,7 @@ pub mod v2 {
     metadata! {
         method: POST,
         rate_limited: false,
-        authentication: NoAuthentication,
+        authentication: NoAccessToken,
         history: {
             1.0 => "/_matrix/identity/v2/account/register",
         }

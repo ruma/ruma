@@ -2,7 +2,6 @@ use std::borrow::Cow;
 
 use ruma_common::api::{
     MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SupportedVersions,
-    auth_scheme::SendAccessToken,
 };
 
 mod get {
@@ -60,11 +59,7 @@ fn empty_post_request_http_repr() {
         SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
 
     let http_req = req
-        .try_into_http_request::<Vec<u8>>(
-            "https://homeserver.tld",
-            SendAccessToken::None,
-            Cow::Owned(supported),
-        )
+        .try_into_http_request::<Vec<u8>>("https://homeserver.tld", (), Cow::Owned(supported))
         .unwrap();
 
     // Empty POST requests should contain an empty dictionary as a body...
@@ -77,11 +72,7 @@ fn empty_get_request_http_repr() {
         SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
 
     let http_req = req
-        .try_into_http_request::<Vec<u8>>(
-            "https://homeserver.tld",
-            SendAccessToken::None,
-            Cow::Owned(supported),
-        )
+        .try_into_http_request::<Vec<u8>>("https://homeserver.tld", (), Cow::Owned(supported))
         .unwrap();
 
     // ... but GET requests' bodies should be empty.

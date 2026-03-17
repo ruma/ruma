@@ -8,7 +8,7 @@ use ruma_common::{
     api::{
         AppserviceUserIdentity, IncomingRequest as _, MatrixVersion, OutgoingRequest as _,
         OutgoingRequestAppserviceExt, SupportedVersions,
-        auth_scheme::{NoAuthentication, SendAccessToken},
+        auth_scheme::{NoAccessToken, SendAccessToken},
         request, response,
     },
     metadata, owned_user_id, user_id,
@@ -17,7 +17,7 @@ use ruma_common::{
 metadata! {
     method: POST,
     rate_limited: false,
-    authentication: NoAuthentication,
+    authentication: NoAccessToken,
     history: {
         unstable => "/_matrix/foo/{bar}/{user}",
     }
@@ -147,7 +147,7 @@ mod without_query {
         OwnedUserId,
         api::{
             AppserviceUserIdentity, MatrixVersion, OutgoingRequestAppserviceExt, SupportedVersions,
-            auth_scheme::{NoAuthentication, SendAccessToken},
+            auth_scheme::{NoAccessToken, SendAccessToken},
             request, response,
         },
         metadata, owned_user_id, user_id,
@@ -156,7 +156,7 @@ mod without_query {
     metadata! {
         method: POST,
         rate_limited: false,
-        authentication: NoAuthentication,
+        authentication: NoAccessToken,
         history: {
             unstable => "/_matrix/foo/{bar}/{user}",
         }

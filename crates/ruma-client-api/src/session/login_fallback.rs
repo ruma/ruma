@@ -6,14 +6,14 @@
 
 use ruma_common::{
     OwnedDeviceId,
-    api::{auth_scheme::NoAuthentication, request},
+    api::{auth_scheme::NoAccessToken, request},
     metadata,
 };
 
 metadata! {
     method: GET,
     rate_limited: false,
-    authentication: NoAuthentication,
+    authentication: NoAccessToken,
     path: "/_matrix/static/client/login/",
 }
 

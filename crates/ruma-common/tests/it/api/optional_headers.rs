@@ -5,9 +5,7 @@ use http::header::{CONTENT_DISPOSITION, LOCATION};
 use ruma_common::{
     api::{
         IncomingRequest, IncomingResponse, MatrixVersion, OutgoingRequest, OutgoingResponse,
-        SupportedVersions,
-        auth_scheme::{NoAuthentication, SendAccessToken},
-        request, response,
+        SupportedVersions, auth_scheme::NoAuthentication, request, response,
     },
     http_headers::{ContentDisposition, ContentDispositionType},
     metadata,
@@ -48,11 +46,7 @@ fn request_serde_no_header() {
 
     let http_req = req
         .clone()
-        .try_into_http_request::<Vec<u8>>(
-            "https://homeserver.tld",
-            SendAccessToken::None,
-            Cow::Owned(supported),
-        )
+        .try_into_http_request::<Vec<u8>>("https://homeserver.tld", (), Cow::Owned(supported))
         .unwrap();
     assert_matches!(http_req.headers().get(LOCATION), None);
     assert_matches!(http_req.headers().get(CONTENT_DISPOSITION), None);
@@ -76,11 +70,7 @@ fn request_serde_with_header() {
 
     let mut http_req = req
         .clone()
-        .try_into_http_request::<Vec<u8>>(
-            "https://homeserver.tld",
-            SendAccessToken::None,
-            Cow::Owned(supported),
-        )
+        .try_into_http_request::<Vec<u8>>("https://homeserver.tld", (), Cow::Owned(supported))
         .unwrap();
     assert_matches!(http_req.headers().get(LOCATION), Some(_));
     assert_matches!(http_req.headers().get(CONTENT_DISPOSITION), Some(_));

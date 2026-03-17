@@ -6,8 +6,7 @@ use http::header::{CONTENT_TYPE, Entry, LOCATION};
 use ruma_common::{
     api::{
         MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SupportedVersions,
-        auth_scheme::{NoAuthentication, SendAccessToken},
-        request, response,
+        auth_scheme::NoAuthentication, request, response,
     },
     metadata,
 };
@@ -62,11 +61,7 @@ fn request_content_type_override() {
         SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
 
     let mut http_req = req
-        .try_into_http_request::<Vec<u8>>(
-            "https://homeserver.tld",
-            SendAccessToken::None,
-            Cow::Owned(supported),
-        )
+        .try_into_http_request::<Vec<u8>>("https://homeserver.tld", (), Cow::Owned(supported))
         .unwrap();
 
     assert_eq!(

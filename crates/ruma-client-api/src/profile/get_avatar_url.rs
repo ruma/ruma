@@ -9,14 +9,14 @@ pub mod v3 {
 
     use ruma_common::{
         OwnedMxcUri, OwnedUserId,
-        api::{auth_scheme::NoAuthentication, request, response},
+        api::{auth_scheme::NoAccessToken, request, response},
         metadata,
     };
 
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: NoAuthentication,
+        authentication: NoAccessToken,
         history: {
             1.0 => "/_matrix/client/r0/profile/{user_id}/avatar_url",
             1.1 => "/_matrix/client/v3/profile/{user_id}/avatar_url",

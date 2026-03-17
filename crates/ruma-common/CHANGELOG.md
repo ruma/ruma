@@ -15,6 +15,11 @@ Breaking changes:
   preferred.
 - `EventId::new()` was renamed to `EventId::new_v1()`, since it works only for
   the first format of event IDs.
+- The `NoAuthentication` authentication scheme doesn't take a `SendAccessToken`
+  as input anymore, because it doesn't make sense to be able to send access
+  tokens for APIs that don't use them as a form of authentication. The new
+  `NoAccessToken` authentication scheme should be used instead for APIs that
+  rely on access tokens as a form of authentication.
 
 Improvements:
 

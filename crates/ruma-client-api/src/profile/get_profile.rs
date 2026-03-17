@@ -11,7 +11,7 @@ pub mod v3 {
 
     use ruma_common::{
         OwnedUserId,
-        api::{auth_scheme::NoAuthentication, request, response},
+        api::{auth_scheme::NoAccessToken, request, response},
         metadata,
     };
     use serde_json::Value as JsonValue;
@@ -21,7 +21,7 @@ pub mod v3 {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: NoAuthentication,
+        authentication: NoAccessToken,
         history: {
             1.0 => "/_matrix/client/r0/profile/{user_id}",
             1.1 => "/_matrix/client/v3/profile/{user_id}",

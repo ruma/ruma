@@ -13,7 +13,7 @@ pub mod v1 {
 
     use ruma_common::{
         DeviceId,
-        api::{auth_scheme::NoAuthentication, request, response},
+        api::{auth_scheme::NoAccessToken, request, response},
         metadata,
         serde::{Raw, StringEnum},
     };
@@ -25,7 +25,7 @@ pub mod v1 {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: NoAuthentication,
+        authentication: NoAccessToken,
         history: {
             unstable => "/_matrix/client/unstable/org.matrix.msc2965/auth_metadata",
             1.15 => "/_matrix/client/v1/auth_metadata",

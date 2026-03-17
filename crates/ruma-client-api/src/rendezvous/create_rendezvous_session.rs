@@ -12,7 +12,7 @@ pub mod unstable_msc4108 {
     #[cfg(feature = "client")]
     use ruma_common::api::error::FromHttpResponseError;
     use ruma_common::{
-        api::{auth_scheme::NoAuthentication, error::HeaderDeserializationError},
+        api::{auth_scheme::NoAccessToken, error::HeaderDeserializationError},
         metadata,
     };
     use serde::{Deserialize, Serialize};
@@ -22,7 +22,7 @@ pub mod unstable_msc4108 {
     metadata! {
         method: POST,
         rate_limited: true,
-        authentication: NoAuthentication,
+        authentication: NoAccessToken,
         history: {
             unstable("org.matrix.msc4108") => "/_matrix/client/unstable/org.matrix.msc4108/rendezvous",
         }

@@ -40,6 +40,8 @@ Breaking changes:
 - `Typing::Yes` now holds a non-exhaustive struct rather than a `Duration`, to
   potentially allow to add more fields in the future without it being a breaking
   change.
+- The endpoints that were using the `NoAuthentication` authentication scheme now
+  use `NoAccessToken`.
 
 Bug fixes:
 

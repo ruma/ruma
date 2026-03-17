@@ -10,14 +10,14 @@ pub mod v3 {
     use js_int::UInt;
     use ruma_common::{
         OwnedClientSecret, OwnedSessionId,
-        api::{auth_scheme::NoAuthentication, request, response},
+        api::{auth_scheme::NoAccessToken, request, response},
         metadata,
     };
 
     metadata! {
         method: POST,
         rate_limited: false,
-        authentication: NoAuthentication,
+        authentication: NoAccessToken,
         history: {
             1.0 => "/_matrix/client/r0/account/password/msisdn/requestToken",
             1.1 => "/_matrix/client/v3/account/password/msisdn/requestToken",
