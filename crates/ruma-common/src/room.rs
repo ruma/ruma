@@ -22,6 +22,14 @@ pub enum RoomType {
     #[ruma_enum(rename = "m.space")]
     Space,
 
+    /// Defines the room as a call.
+    ///
+    /// This uses the unstable prefix in
+    /// [MSC3417](https://github.com/matrix-org/matrix-spec-proposals/pull/3417).
+    #[cfg(feature = "unstable-msc3417")]
+    #[ruma_enum(rename = "org.matrix.msc3417.call")]
+    Call,
+
     /// Defines the room as a custom type.
     #[doc(hidden)]
     _Custom(PrivOwnedStr),

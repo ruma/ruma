@@ -56,8 +56,6 @@ pub struct RoomCreateEventContent {
     pub predecessor: Option<PreviousRoom>,
 
     /// The room type.
-    ///
-    /// This is currently only used for spaces.
     #[serde(skip_serializing_if = "Option::is_none", rename = "type")]
     pub room_type: Option<RoomType>,
 
@@ -216,6 +214,30 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "unstable-msc3417")]
+    fn call_serialization() {
+        #[allow(deprecated)]
+        let content = RoomCreateEventContent {
+            creator: Some(owned_user_id!("@carl:example.com")),
+            federate: false,
+            room_version: RoomVersionId::V4,
+            predecessor: None,
+            room_type: Some(RoomType::Call),
+            additional_creators: Vec::new(),
+        };
+
+        assert_to_canonical_json_eq!(
+            content,
+            json!({
+                "creator": "@carl:example.com",
+                "m.federate": false,
+                "room_version": "4",
+                "type": "org.matrix.msc3417.call",
+            }),
+        );
+    }
+
+    #[test]
     #[allow(deprecated)]
     fn deserialization() {
         let json = json!({
@@ -248,6 +270,25 @@ mod tests {
         assert_eq!(content.room_version, RoomVersionId::V4);
         assert_matches!(content.predecessor, None);
         assert_eq!(content.room_type, Some(RoomType::Space));
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-msc3417")]
+    #[allow(deprecated)]
+    fn call_deserialization() {
+        let json = json!({
+            "creator": "@carl:example.com",
+            "m.federate": true,
+            "room_version": "4",
+            "type": "org.matrix.msc3417.call"
+        });
+
+        let content = from_json_value::<RoomCreateEventContent>(json).unwrap();
+        assert_eq!(content.creator.unwrap(), "@carl:example.com");
+        assert!(content.federate);
+        assert_eq!(content.room_version, RoomVersionId::V4);
+        assert_matches!(content.predecessor, None);
+        assert_eq!(content.room_type, Some(RoomType::Call));
     }
 
     #[test]
