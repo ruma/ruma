@@ -39,6 +39,8 @@ Improvements:
   reallocate when possible.
 - Add `EventId::new_v2_or_v3()` to construct event IDs formats which are based
   on the event reference hash.
+- Add `RoomType::Call` & `RoomTypeFilter::Call` to support MSC3417 behind
+  `unstable-msc3417`
 
 # 0.17.1
 

@@ -32,6 +32,7 @@ rand = ["dep:rand", "dep:getrandom", "dep:uuid"]
 
 unstable-msc2666 = []
 unstable-msc2870 = []
+unstable-msc3417 = []
 unstable-msc3768 = []
 unstable-msc3930 = []
 unstable-msc3931 = []

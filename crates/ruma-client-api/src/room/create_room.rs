@@ -157,8 +157,6 @@ pub mod v3 {
         pub predecessor: Option<PreviousRoom>,
 
         /// The room type.
-        ///
-        /// This is currently only used for spaces.
         #[serde(skip_serializing_if = "Option::is_none", rename = "type")]
         pub room_type: Option<RoomType>,
     }

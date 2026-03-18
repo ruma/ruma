@@ -238,6 +238,12 @@ pub enum RoomTypeFilter {
     /// A space.
     Space,
 
+    /// A call room as specified in [MSC3417].
+    ///
+    /// [MSC3417]: <https://github.com/matrix-org/matrix-spec-proposals/pull/3417>
+    #[cfg(feature = "unstable-msc3417")]
+    Call,
+
     /// A custom room type.
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
@@ -251,6 +257,8 @@ impl RoomTypeFilter {
         match self {
             RoomTypeFilter::Default => None,
             RoomTypeFilter::Space => Some("m.space"),
+            #[cfg(feature = "unstable-msc3417")]
+            RoomTypeFilter::Call => Some("org.matrix.msc3417.call"),
             RoomTypeFilter::_Custom(s) => Some(&s.0),
         }
     }
@@ -265,6 +273,8 @@ where
             None => Self::Default,
             Some(s) => match s.as_ref() {
                 "m.space" => Self::Space,
+                #[cfg(feature = "unstable-msc3417")]
+                "org.matrix.msc3417.call" => Self::Call,
                 _ => Self::_Custom(PrivOwnedStr(s.into())),
             },
         }
@@ -277,6 +287,8 @@ impl From<Option<RoomType>> for RoomTypeFilter {
             None => Self::Default,
             Some(s) => match s {
                 RoomType::Space => Self::Space,
+                #[cfg(feature = "unstable-msc3417")]
+                RoomType::Call => Self::Call,
                 _ => Self::from(Some(s.as_str())),
             },
         }
@@ -296,6 +308,14 @@ mod tests {
         let test = RoomType::Space;
         let other: RoomTypeFilter = RoomTypeFilter::from(Some(test));
         assert_eq!(other, RoomTypeFilter::Space);
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-msc3417")]
+    fn test_from_call_room_type() {
+        let test = RoomType::Call;
+        let other: RoomTypeFilter = RoomTypeFilter::from(Some(test));
+        assert_eq!(other, RoomTypeFilter::Call);
     }
 
     #[test]
@@ -387,6 +407,19 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "unstable-msc3417")]
+    fn serialize_filter_call_room_types() {
+        let filter = Filter {
+            generic_search_term: None,
+            room_types: vec![RoomTypeFilter::Default, RoomTypeFilter::Call],
+        };
+        assert_to_canonical_json_eq!(
+            filter,
+            json!({ "room_types": [null, "org.matrix.msc3417.call"] }),
+        );
+    }
+
+    #[test]
     fn deserialize_filter_room_types() {
         let json = json!({ "room_types": [null, "m.space", "custom_type"] });
         let filter = from_json_value::<Filter>(json).unwrap();
@@ -395,5 +428,16 @@ mod tests {
         assert_eq!(filter.room_types[1], RoomTypeFilter::Space);
         assert_matches!(&filter.room_types[2], RoomTypeFilter::_Custom(_));
         assert_eq!(filter.room_types[2].as_str(), Some("custom_type"));
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-msc3417")]
+    fn deserialize_filter_call_room_types() {
+        let json = json!({ "room_types": [null, "m.space", "org.matrix.msc3417.call"] });
+        let filter = from_json_value::<Filter>(json).unwrap();
+        assert_eq!(filter.room_types.len(), 3);
+        assert_eq!(filter.room_types[0], RoomTypeFilter::Default);
+        assert_eq!(filter.room_types[1], RoomTypeFilter::Space);
+        assert_matches!(&filter.room_types[2], RoomTypeFilter::Call);
     }
 }
