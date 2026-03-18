@@ -27,7 +27,6 @@ impl<'de> Deserialize<'de> for AuthorizationServerMetadata {
             code_challenge_methods_supported,
             account_management_uri,
             account_management_actions_supported,
-            #[cfg(feature = "unstable-msc4108")]
             device_authorization_endpoint,
             prompt_values_supported,
         } = helper;
@@ -102,7 +101,6 @@ impl<'de> Deserialize<'de> for AuthorizationServerMetadata {
             code_challenge_methods_supported,
             account_management_uri,
             account_management_actions_supported,
-            #[cfg(feature = "unstable-msc4108")]
             device_authorization_endpoint,
             prompt_values_supported,
         })
@@ -123,7 +121,6 @@ struct AuthorizationServerMetadataDeHelper {
     account_management_uri: Option<Url>,
     #[serde(default)]
     account_management_actions_supported: BTreeSet<AccountManagementAction>,
-    #[cfg(feature = "unstable-msc4108")]
     device_authorization_endpoint: Option<Url>,
     #[serde(default)]
     prompt_values_supported: Vec<Prompt>,
@@ -224,7 +221,6 @@ mod tests {
                 .contains(&AccountManagementAction::CrossSigningReset)
         );
 
-        #[cfg(feature = "unstable-msc4108")]
         assert_eq!(
             metadata.device_authorization_endpoint.as_ref().map(Url::as_str),
             Some("https://server.local/device")
@@ -267,7 +263,6 @@ mod tests {
         assert_eq!(metadata.account_management_uri, None);
         assert_eq!(metadata.account_management_actions_supported.len(), 0);
 
-        #[cfg(feature = "unstable-msc4108")]
         assert_eq!(metadata.device_authorization_endpoint, None);
     }
 
@@ -358,7 +353,6 @@ mod tests {
                 .contains(&AccountManagementAction::from("custom"))
         );
 
-        #[cfg(feature = "unstable-msc4108")]
         assert_eq!(
             metadata.device_authorization_endpoint.as_ref().map(Url::as_str),
             Some("https://server.local/device")

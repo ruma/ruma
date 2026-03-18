@@ -71,6 +71,8 @@ Improvements:
   and data of the algorithm can be accessed via the `algorithm()` and
   `auth_data()` methods respectively.
 - `RegistrationKind` and `LoginType` can now represent custom values.
+- Stabilize support for the OAuth 2.0 Device Authorization Grant, according to
+  MSC4341.
 
 # 0.22.1
 
