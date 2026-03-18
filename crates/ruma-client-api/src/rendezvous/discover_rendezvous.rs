@@ -34,12 +34,15 @@ pub mod unstable {
 
     #[response(error = crate::Error)]
     /// Response type for the `GET` `rendezvous` endpoint.
-    pub struct Response {}
+    pub struct Response {
+        /// True if the requester is able to use the create session endpoint, false otherwise.
+        pub create_available: bool,
+    }
 
     impl Response {
         /// Creates a new `Response`.
-        pub fn new() -> Self {
-            Self {}
+        pub fn new(create_available: bool) -> Self {
+            Self { create_available }
         }
     }
 }
