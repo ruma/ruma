@@ -2,16 +2,14 @@
 //!
 //! [MSC3551]: https://github.com/matrix-org/matrix-spec-proposals/pull/3551
 
-use std::collections::BTreeMap;
-
 use js_int::UInt;
-use ruma_common::{OwnedMxcUri, serde::Base64};
+use ruma_common::OwnedMxcUri;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::{
     message::TextContentBlock,
-    room::{EncryptedFile, EncryptedFileInfo, message::Relation},
+    room::{EncryptedFile, EncryptedFileHashes, EncryptedFileInfo, message::Relation},
 };
 
 /// The payload for an extensible file message.
@@ -182,12 +180,12 @@ pub struct EncryptedContent {
     /// A map from an algorithm name to a hash of the ciphertext.
     ///
     /// Clients should support the SHA-256 hash, which uses the key sha256.
-    pub hashes: BTreeMap<String, Base64>,
+    pub hashes: EncryptedFileHashes,
 }
 
 impl EncryptedContent {
     /// Construct a new `EncryptedContent` with the given encryption info and hashes.
-    pub fn new(info: EncryptedFileInfo, hashes: BTreeMap<String, Base64>) -> Self {
+    pub fn new(info: EncryptedFileInfo, hashes: EncryptedFileHashes) -> Self {
         Self { info, hashes }
     }
 }

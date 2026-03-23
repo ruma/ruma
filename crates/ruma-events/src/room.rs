@@ -2,7 +2,11 @@
 //!
 //! This module also contains types shared by events in its child namespaces.
 
-use std::{collections::BTreeMap, fmt};
+use std::{
+    collections::{BTreeMap, btree_map},
+    fmt,
+    ops::Deref,
+};
 
 use as_variant::as_variant;
 use js_int::UInt;
@@ -13,8 +17,11 @@ use ruma_common::{
         base64::{Standard, UrlSafe},
     },
 };
+use ruma_macros::StringEnum;
 use serde::{Deserialize, Serialize, de};
 use zeroize::Zeroize;
+
+use crate::PrivOwnedStr;
 
 pub mod aliases;
 pub mod avatar;
@@ -181,17 +188,13 @@ pub struct EncryptedFile {
 
     /// A map from an algorithm name to a hash of the ciphertext.
     ///
-    /// Clients should support the SHA-256 hash, which uses the key sha256.
-    pub hashes: BTreeMap<String, Base64>,
+    /// Clients should support the SHA-256 hash.
+    pub hashes: EncryptedFileHashes,
 }
 
 impl EncryptedFile {
     /// Construct a new `EncryptedFile` with the given URL, encryption info and hashes.
-    pub fn new(
-        url: OwnedMxcUri,
-        info: EncryptedFileInfo,
-        hashes: BTreeMap<String, Base64>,
-    ) -> Self {
+    pub fn new(url: OwnedMxcUri, info: EncryptedFileInfo, hashes: EncryptedFileHashes) -> Self {
         Self { url, info, hashes }
     }
 }
@@ -281,16 +284,132 @@ pub struct CustomEncryptedFileInfo {
     data: JsonObject,
 }
 
+/// A map of [`EncryptedFileHashAlgorithm`] to the associated [`EncryptedFileHash`].
+///
+/// This type is used to ensure that a supported [`EncryptedFileHash`] always matches the
+/// appropriate [`EncryptedFileHashAlgorithm`].
+#[derive(Clone, Debug, Default)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct EncryptedFileHashes(BTreeMap<EncryptedFileHashAlgorithm, EncryptedFileHash>);
+
+impl EncryptedFileHashes {
+    /// Construct an empty `EncryptedFileHashes`.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Construct an `EncryptedFileHashes` that includes the given SHA-256 hash.
+    pub fn with_sha256(hash: [u8; 32]) -> Self {
+        std::iter::once(EncryptedFileHash::Sha256(Base64::new(hash))).collect()
+    }
+
+    /// Insert the given [`EncryptedFileHash`].
+    ///
+    /// If a map with the same [`EncryptedFileHashAlgorithm`] was already present, it is returned.
+    pub fn insert(&mut self, hash: EncryptedFileHash) -> Option<EncryptedFileHash> {
+        self.0.insert(hash.algorithm(), hash)
+    }
+}
+
+impl Deref for EncryptedFileHashes {
+    type Target = BTreeMap<EncryptedFileHashAlgorithm, EncryptedFileHash>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl FromIterator<EncryptedFileHash> for EncryptedFileHashes {
+    fn from_iter<T: IntoIterator<Item = EncryptedFileHash>>(iter: T) -> Self {
+        Self(iter.into_iter().map(|hash| (hash.algorithm(), hash)).collect())
+    }
+}
+
+impl Extend<EncryptedFileHash> for EncryptedFileHashes {
+    fn extend<T: IntoIterator<Item = EncryptedFileHash>>(&mut self, iter: T) {
+        self.0.extend(iter.into_iter().map(|hash| (hash.algorithm(), hash)));
+    }
+}
+
+impl IntoIterator for EncryptedFileHashes {
+    type Item = EncryptedFileHash;
+    type IntoIter = btree_map::IntoValues<EncryptedFileHashAlgorithm, EncryptedFileHash>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_values()
+    }
+}
+
+/// An algorithm used to generate the hash of an [`EncryptedFile`].
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, StringEnum)]
+#[ruma_enum(rename_all = "lowercase")]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub enum EncryptedFileHashAlgorithm {
+    /// The SHA-256 algorithm
+    Sha256,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
+
+/// The hash of an encrypted file's ciphertext.
+#[derive(Clone, Debug)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub enum EncryptedFileHash {
+    /// A hash computed with the SHA-256 algorithm.
+    Sha256(Base64<Standard, [u8; 32]>),
+
+    #[doc(hidden)]
+    _Custom(CustomEncryptedFileHash),
+}
+
+impl EncryptedFileHash {
+    /// The key that was used to group this map.
+    pub fn algorithm(&self) -> EncryptedFileHashAlgorithm {
+        match self {
+            Self::Sha256(_) => EncryptedFileHashAlgorithm::Sha256,
+            Self::_Custom(custom) => custom.algorithm.as_str().into(),
+        }
+    }
+
+    /// Get a reference to the decoded bytes of the hash.
+    pub fn as_bytes(&self) -> &[u8] {
+        match self {
+            Self::Sha256(hash) => hash.as_bytes(),
+            Self::_Custom(custom) => custom.hash.as_bytes(),
+        }
+    }
+
+    /// Get the decoded bytes of the hash.
+    pub fn into_bytes(self) -> Vec<u8> {
+        match self {
+            Self::Sha256(hash) => hash.into_inner().into(),
+            Self::_Custom(custom) => custom.hash.into_inner(),
+        }
+    }
+}
+
+/// A map of results grouped by custom key type.
+#[doc(hidden)]
+#[derive(Clone, Debug)]
+pub struct CustomEncryptedFileHash {
+    /// The algorithm that was used to generate the hash.
+    algorithm: String,
+
+    /// The hash.
+    hash: Base64,
+}
+
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeMap;
-
     use assert_matches2::assert_matches;
     use ruma_common::owned_mxc_uri;
     use serde::Deserialize;
     use serde_json::{from_value as from_json_value, json};
 
     use super::{EncryptedFile, MediaSource, V2EncryptedFileInfo};
+    use crate::room::EncryptedFileHashes;
 
     #[derive(Deserialize)]
     struct MsgWithAttachment {
@@ -307,7 +426,7 @@ mod tests {
             "file": EncryptedFile::new(
                 owned_mxc_uri!("mxc://localhost/encryptedfile"),
                 V2EncryptedFileInfo::encode([0;32], [1;16]).into(),
-                BTreeMap::new(),
+                EncryptedFileHashes::new(),
             ),
             "url": "mxc://localhost/file",
         }))

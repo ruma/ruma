@@ -1,9 +1,12 @@
-use std::borrow::Cow;
+use std::{borrow::Cow, collections::BTreeMap};
 
 use ruma_common::serde::Base64;
-use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de, ser::SerializeMap};
 
-use super::V2EncryptedFileInfo;
+use super::{
+    CustomEncryptedFileHash, EncryptedFileHash, EncryptedFileHashAlgorithm, EncryptedFileHashes,
+    V2EncryptedFileInfo,
+};
 
 impl<'de> Deserialize<'de> for V2EncryptedFileInfo {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -111,4 +114,52 @@ struct JsonWebKey<'a> {
     /// Must be `true`. This is a
     /// [W3C extension](https://w3c.github.io/webcrypto/#iana-section-jwk).
     ext: bool,
+}
+
+impl Serialize for EncryptedFileHashes {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut s = serializer.serialize_map(Some(self.len()))?;
+
+        for hash in self.values() {
+            match hash {
+                EncryptedFileHash::Sha256(hash) => {
+                    s.serialize_entry(&EncryptedFileHashAlgorithm::Sha256, hash)?;
+                }
+                EncryptedFileHash::_Custom(CustomEncryptedFileHash { algorithm, hash }) => {
+                    s.serialize_entry(algorithm, hash)?;
+                }
+            }
+        }
+
+        s.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for EncryptedFileHashes {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let map_by_key = BTreeMap::<EncryptedFileHashAlgorithm, String>::deserialize(deserializer)?;
+
+        map_by_key
+            .into_iter()
+            .map(|(algorithm, hash)| {
+                Ok(match algorithm {
+                    EncryptedFileHashAlgorithm::Sha256 => {
+                        EncryptedFileHash::Sha256(Base64::parse(hash).map_err(de::Error::custom)?)
+                    }
+                    EncryptedFileHashAlgorithm::_Custom(s) => {
+                        EncryptedFileHash::_Custom(CustomEncryptedFileHash {
+                            algorithm: s.0.into(),
+                            hash: Base64::parse(hash).map_err(de::Error::custom)?,
+                        })
+                    }
+                })
+            })
+            .collect()
+    }
 }

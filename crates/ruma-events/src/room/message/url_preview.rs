@@ -126,18 +126,18 @@ mod tests {
     use assert_matches2::assert_matches;
     use assign::assign;
     use js_int::uint;
-    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_mxc_uri, serde::Base64};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_mxc_uri};
     use ruma_events::room::message::{MessageType, RoomMessageEventContent};
     use serde_json::{from_value as from_json_value, json};
 
     use super::{super::text::TextMessageEventContent, *};
-    use crate::room::{EncryptedFile, V2EncryptedFileInfo};
+    use crate::room::{EncryptedFile, EncryptedFileHashes, V2EncryptedFileInfo};
 
     fn encrypted_file() -> EncryptedFile {
         EncryptedFile::new(
             owned_mxc_uri!("mxc://localhost/encryptedfile"),
             V2EncryptedFileInfo::encode([0; 32], [1; 16]).into(),
-            [("sha256".to_owned(), Base64::new(vec![2; 32]))].into(),
+            EncryptedFileHashes::with_sha256([2; 32]),
         )
     }
 

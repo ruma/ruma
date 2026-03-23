@@ -40,7 +40,7 @@ mod tests {
     use serde_json::json;
 
     use super::ToDeviceRoomKeyBundleEventContent;
-    use crate::room::{EncryptedFile, V2EncryptedFileInfo};
+    use crate::room::{EncryptedFile, EncryptedFileHash, V2EncryptedFileInfo};
 
     #[test]
     fn serialization() {
@@ -53,11 +53,10 @@ mod tests {
                     Base64::parse("w+sE15fzSc0AAAAAAAAAAA").unwrap(),
                 )
                 .into(),
-                [(
-                    "sha256".to_owned(),
+                std::iter::once(EncryptedFileHash::Sha256(
                     Base64::parse("fdSLu/YkRx3Wyh3KQabP3rd6+SFiKg5lsJZQHtkSAYA").unwrap(),
-                )]
-                .into(),
+                ))
+                .collect(),
             ),
         };
 

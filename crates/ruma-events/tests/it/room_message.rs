@@ -14,7 +14,7 @@ use ruma_events::{
     Mentions,
     key::verification::VerificationMethod,
     room::{
-        EncryptedFile, EncryptedFileInfo, MediaSource, V2EncryptedFileInfo,
+        EncryptedFile, EncryptedFileHash, EncryptedFileInfo, MediaSource, V2EncryptedFileInfo,
         message::{
             AddMentions, AudioMessageEventContent, EmoteMessageEventContent,
             FileMessageEventContent, FormattedBody, ForwardThread, ImageMessageEventContent,
@@ -549,11 +549,10 @@ fn file_msgtype_encrypted_content_serialization() {
                     Base64::parse("S22dq3NAX8wAAAAAAAAAAA").unwrap(),
                 )
                 .into(),
-                [(
-                    "sha256".to_owned(),
+                std::iter::once(EncryptedFileHash::Sha256(
                     Base64::parse("aWOHudBnDkJ9IwaR1Nd8XKoI7DOrqDTwt6xDPfVGN6Q").unwrap(),
-                )]
-                .into(),
+                ))
+                .collect(),
             ),
         )));
 
