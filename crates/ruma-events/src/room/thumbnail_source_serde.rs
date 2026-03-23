@@ -55,7 +55,7 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use serde_json::json;
 
-    use crate::room::{EncryptedFile, MediaSource, V2EncryptedFileInfo};
+    use crate::room::{EncryptedFile, EncryptedFileHash, MediaSource, V2EncryptedFileInfo};
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
     struct ThumbnailSourceTest {
@@ -152,11 +152,10 @@ mod tests {
                     Base64::parse("S22dq3NAX8wAAAAAAAAAAA").unwrap(),
                 )
                 .into(),
-                [(
-                    "sha256".to_owned(),
+                std::iter::once(EncryptedFileHash::Sha256(
                     Base64::parse("aWOHudBnDkJ9IwaR1Nd8XKoI7DOrqDTwt6xDPfVGN6Q").unwrap(),
-                )]
-                .into(),
+                ))
+                .collect(),
             )))),
         };
 

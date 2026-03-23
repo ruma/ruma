@@ -32,6 +32,9 @@ Breaking changes:
   and to hide fields that should be set to a constant value to have a stricter
   validation during construction and deserialization. Now that there are fewer
   fields, this type can be constructed with `EncryptedFile::new()`.
+  - Similarly, the `hashes` field uses a stricter `EncryptedFileHashes` map type
+    to ensure that a decoded hash has the appropriate format for the algorithm
+    in the key.
   - `EncryptedFileInit`, `JsonWebKey` and `JsonWebKeyInit` were removed.
   - The same changes were applied to the unstable `EncryptedContent`.
   
