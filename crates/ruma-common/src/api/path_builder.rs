@@ -159,18 +159,16 @@ impl VersionHistory {
         removed: Option<MatrixVersion>,
     ) -> Self {
         const fn check_path_args_equal(first: &'static str, second: &'static str) {
-            let mut second_iter = string::split(second, "/").next();
+            let mut second_iter = string::split(second, "/");
 
             iter::for_each!(first_s in string::split(first, '/') => {
                 if let Some(first_arg) = extract_endpoint_path_segment_variable(first_s) {
                     let second_next_arg: Option<&'static str> = loop {
-                        let Some((second_s, second_n_iter)) = second_iter else {
+                        let Some(second_s) = second_iter.next() else {
                             break None;
                         };
 
                         let maybe_second_arg = extract_endpoint_path_segment_variable(second_s);
-
-                        second_iter = second_n_iter.next();
 
                         if let Some(second_arg) = maybe_second_arg {
                             break Some(second_arg);
@@ -188,11 +186,10 @@ impl VersionHistory {
             });
 
             // If second iterator still has some values, empty first.
-            while let Some((second_s, second_n_iter)) = second_iter {
+            while let Some(second_s) = second_iter.next() {
                 if extract_endpoint_path_segment_variable(second_s).is_some() {
                     panic!("counts of endpoint path segment variables do not match");
                 }
-                second_iter = second_n_iter.next();
             }
         }
 
