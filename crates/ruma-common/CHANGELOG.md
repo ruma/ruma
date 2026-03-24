@@ -41,6 +41,9 @@ Improvements:
   on the event reference hash.
 - Add `RoomType::Call` & `RoomTypeFilter::Call` to support MSC3417 behind
   `unstable-msc3417`
+- It is now possible to use `Base64::parse` when the inner `B` "bytes" type is
+  an array, and the inner bytes can be accessed without consuming the wrapper
+  type with `Base64::as_inner()`.
 
 # 0.17.1
 
