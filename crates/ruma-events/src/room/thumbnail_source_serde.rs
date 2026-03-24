@@ -51,11 +51,11 @@ where
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use ruma_common::{owned_mxc_uri, serde::Base64};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_mxc_uri, serde::Base64};
     use serde::{Deserialize, Serialize};
     use serde_json::json;
 
-    use crate::room::{EncryptedFileInit, JsonWebKeyInit, MediaSource};
+    use crate::room::{EncryptedFile, MediaSource, V2EncryptedFileInfo};
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
     struct ThumbnailSourceTest {
@@ -145,36 +145,29 @@ mod tests {
     #[test]
     fn serialize_encrypted() {
         let request = ThumbnailSourceTest {
-            source: Some(MediaSource::Encrypted(Box::new(
-                EncryptedFileInit {
-                    url: owned_mxc_uri!("mxc://notareal.hs/abcdef"),
-                    key: JsonWebKeyInit {
-                        kty: "oct".to_owned(),
-                        key_ops: vec!["encrypt".to_owned(), "decrypt".to_owned()],
-                        alg: "A256CTR".to_owned(),
-                        k: Base64::parse("TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A").unwrap(),
-                        ext: true,
-                    }
-                    .into(),
-                    iv: Base64::parse("S22dq3NAX8wAAAAAAAAAAA").unwrap(),
-                    hashes: [(
-                        "sha256".to_owned(),
-                        Base64::parse("aWOHudBnDkJ9IwaR1Nd8XKoI7DOrqDTwt6xDPfVGN6Q").unwrap(),
-                    )]
-                    .into(),
-                    v: "v2".to_owned(),
-                }
+            source: Some(MediaSource::Encrypted(Box::new(EncryptedFile::new(
+                owned_mxc_uri!("mxc://notareal.hs/abcdef"),
+                V2EncryptedFileInfo::new(
+                    Base64::parse("TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A").unwrap(),
+                    Base64::parse("S22dq3NAX8wAAAAAAAAAAA").unwrap(),
+                )
                 .into(),
-            ))),
+                [(
+                    "sha256".to_owned(),
+                    Base64::parse("aWOHudBnDkJ9IwaR1Nd8XKoI7DOrqDTwt6xDPfVGN6Q").unwrap(),
+                )]
+                .into(),
+            )))),
         };
-        assert_eq!(
-            serde_json::to_value(&request).unwrap(),
+
+        assert_to_canonical_json_eq!(
+            request,
             json!({
                 "thumbnail_file": {
                     "url": "mxc://notareal.hs/abcdef",
                     "key": {
                         "kty": "oct",
-                        "key_ops": ["encrypt", "decrypt"],
+                        "key_ops": ["decrypt", "encrypt"],
                         "alg": "A256CTR",
                         "k": "TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A",
                         "ext": true

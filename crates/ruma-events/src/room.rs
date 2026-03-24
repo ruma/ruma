@@ -2,12 +2,16 @@
 //!
 //! This module also contains types shared by events in its child namespaces.
 
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, fmt};
 
+use as_variant::as_variant;
 use js_int::UInt;
 use ruma_common::{
     OwnedMxcUri,
-    serde::{Base64, base64::UrlSafe},
+    serde::{
+        Base64, JsonObject,
+        base64::{Standard, UrlSafe},
+    },
 };
 use serde::{Deserialize, Serialize, de};
 use zeroize::Zeroize;
@@ -17,6 +21,7 @@ pub mod avatar;
 pub mod canonical_alias;
 pub mod create;
 pub mod encrypted;
+mod encrypted_file_serde;
 pub mod encryption;
 pub mod guest_access;
 pub mod history_visibility;
@@ -164,162 +169,116 @@ impl ThumbnailInfo {
 }
 
 /// A file sent to a room with end-to-end encryption enabled.
-///
-/// To create an instance of this type, first create a `EncryptedFileInit` and convert it via
-/// `EncryptedFile::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct EncryptedFile {
     /// The URL to the file.
     pub url: OwnedMxcUri,
 
-    /// A [JSON Web Key](https://tools.ietf.org/html/rfc7517#appendix-A.3) object.
-    pub key: JsonWebKey,
+    /// Information about the encryption of the file.
+    #[serde(flatten)]
+    pub info: EncryptedFileInfo,
 
-    /// The 128-bit unique counter block used by AES-CTR, encoded as unpadded base64.
-    pub iv: Base64,
-
-    /// A map from an algorithm name to a hash of the ciphertext, encoded as unpadded base64.
+    /// A map from an algorithm name to a hash of the ciphertext.
     ///
     /// Clients should support the SHA-256 hash, which uses the key sha256.
     pub hashes: BTreeMap<String, Base64>,
-
-    /// Version of the encrypted attachments protocol.
-    ///
-    /// Must be `v2`.
-    pub v: String,
 }
 
-/// Initial set of fields of `EncryptedFile`.
-///
-/// This struct will not be updated even if additional fields are added to `EncryptedFile` in a new
-/// (non-breaking) release of the Matrix specification.
-#[derive(Debug)]
-#[allow(clippy::exhaustive_structs)]
-pub struct EncryptedFileInit {
-    /// The URL to the file.
-    pub url: OwnedMxcUri,
-
-    /// A [JSON Web Key](https://tools.ietf.org/html/rfc7517#appendix-A.3) object.
-    pub key: JsonWebKey,
-
-    /// The 128-bit unique counter block used by AES-CTR, encoded as unpadded base64.
-    pub iv: Base64,
-
-    /// A map from an algorithm name to a hash of the ciphertext, encoded as unpadded base64.
-    ///
-    /// Clients should support the SHA-256 hash, which uses the key sha256.
-    pub hashes: BTreeMap<String, Base64>,
-
-    /// Version of the encrypted attachments protocol.
-    ///
-    /// Must be `v2`.
-    pub v: String,
-}
-
-impl From<EncryptedFileInit> for EncryptedFile {
-    fn from(init: EncryptedFileInit) -> Self {
-        let EncryptedFileInit { url, key, iv, hashes, v } = init;
-        Self { url, key, iv, hashes, v }
+impl EncryptedFile {
+    /// Construct a new `EncryptedFile` with the given URL, encryption info and hashes.
+    pub fn new(
+        url: OwnedMxcUri,
+        info: EncryptedFileInfo,
+        hashes: BTreeMap<String, Base64>,
+    ) -> Self {
+        Self { url, info, hashes }
     }
 }
 
-/// A [JSON Web Key](https://tools.ietf.org/html/rfc7517#appendix-A.3) object.
-///
-/// To create an instance of this type, first create a `JsonWebKeyInit` and convert it via
-/// `JsonWebKey::from` / `.into()`.
-#[derive(Clone, Deserialize, Serialize)]
+/// Information about the encryption of a file.
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct JsonWebKey {
-    /// Key type.
-    ///
-    /// Must be `oct`.
-    pub kty: String,
+#[serde(tag = "v", rename_all = "lowercase")]
+pub enum EncryptedFileInfo {
+    /// Information about a file encrypted using version 2 of the attachment encryption protocol.
+    V2(V2EncryptedFileInfo),
 
-    /// Key operations.
-    ///
-    /// Must at least contain `encrypt` and `decrypt`.
-    pub key_ops: Vec<String>,
-
-    /// Algorithm.
-    ///
-    /// Must be `A256CTR`.
-    pub alg: String,
-
-    /// The key, encoded as url-safe unpadded base64.
-    pub k: Base64<UrlSafe>,
-
-    /// Extractable.
-    ///
-    /// Must be `true`. This is a
-    /// [W3C extension](https://w3c.github.io/webcrypto/#iana-section-jwk).
-    pub ext: bool,
+    #[doc(hidden)]
+    #[serde(untagged)]
+    _Custom(CustomEncryptedFileInfo),
 }
 
-impl std::fmt::Debug for JsonWebKey {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("JsonWebKey")
-            .field("kty", &self.kty)
-            .field("key_ops", &self.key_ops)
-            .field("alg", &self.alg)
-            .field("ext", &self.ext)
-            .finish_non_exhaustive()
+impl EncryptedFileInfo {
+    /// Get the version of the attachment encryption protocol.
+    ///
+    /// This matches the `v` field in the serialized data.
+    pub fn version(&self) -> &str {
+        match self {
+            Self::V2(_) => "v2",
+            Self::_Custom(info) => &info.v,
+        }
+    }
+
+    /// Get the data of the attachment encryption protocol, if it doesn't match one of the known
+    /// variants.
+    pub fn custom_data(&self) -> Option<&JsonObject> {
+        as_variant!(self, Self::_Custom(info) => &info.data)
     }
 }
 
-impl Drop for JsonWebKey {
+impl From<V2EncryptedFileInfo> for EncryptedFileInfo {
+    fn from(value: V2EncryptedFileInfo) -> Self {
+        Self::V2(value)
+    }
+}
+
+/// A file encrypted with the AES-CTR algorithm with a 256-bit key.
+#[derive(Clone)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct V2EncryptedFileInfo {
+    /// The 256-bit key used to encrypt or decrypt the file.
+    pub k: Base64<UrlSafe, [u8; 32]>,
+
+    /// The 128-bit unique counter block used by AES-CTR.
+    pub iv: Base64<Standard, [u8; 16]>,
+}
+
+impl V2EncryptedFileInfo {
+    /// Construct a new `V2EncryptedFileInfo` with the given encoded key and initialization vector.
+    pub fn new(k: Base64<UrlSafe, [u8; 32]>, iv: Base64<Standard, [u8; 16]>) -> Self {
+        Self { k, iv }
+    }
+
+    /// Construct a new `V2EncryptedFileInfo` by base64-encoding the given key and initialization
+    /// vector bytes.
+    pub fn encode(k: [u8; 32], iv: [u8; 16]) -> Self {
+        Self::new(Base64::new(k), Base64::new(iv))
+    }
+}
+
+impl fmt::Debug for V2EncryptedFileInfo {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("V2EncryptedFileInfo").finish_non_exhaustive()
+    }
+}
+
+impl Drop for V2EncryptedFileInfo {
     fn drop(&mut self) {
         self.k.zeroize();
     }
 }
 
-/// Initial set of fields of `JsonWebKey`.
-///
-/// This struct will not be updated even if additional fields are added to `JsonWebKey` in a new
-/// (non-breaking) release of the Matrix specification.
-#[allow(clippy::exhaustive_structs)]
-pub struct JsonWebKeyInit {
-    /// Key type.
-    ///
-    /// Must be `oct`.
-    pub kty: String,
+/// Information about a file encrypted using a custom version of the attachment encryption protocol.
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomEncryptedFileInfo {
+    /// The version of the protocol.
+    v: String,
 
-    /// Key operations.
-    ///
-    /// Must at least contain `encrypt` and `decrypt`.
-    pub key_ops: Vec<String>,
-
-    /// Algorithm.
-    ///
-    /// Must be `A256CTR`.
-    pub alg: String,
-
-    /// The key, encoded as url-safe unpadded base64.
-    pub k: Base64<UrlSafe>,
-
-    /// Extractable.
-    ///
-    /// Must be `true`. This is a
-    /// [W3C extension](https://w3c.github.io/webcrypto/#iana-section-jwk).
-    pub ext: bool,
-}
-
-impl std::fmt::Debug for JsonWebKeyInit {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("JsonWebKeyInit")
-            .field("kty", &self.kty)
-            .field("key_ops", &self.key_ops)
-            .field("alg", &self.alg)
-            .field("ext", &self.ext)
-            .finish_non_exhaustive()
-    }
-}
-
-impl From<JsonWebKeyInit> for JsonWebKey {
-    fn from(init: JsonWebKeyInit) -> Self {
-        let JsonWebKeyInit { kty, key_ops, alg, k, ext } = init;
-        Self { kty, key_ops, alg, k, ext }
-    }
+    /// Extra data about the encryption.
+    #[serde(flatten)]
+    data: JsonObject,
 }
 
 #[cfg(test)]
@@ -327,11 +286,11 @@ mod tests {
     use std::collections::BTreeMap;
 
     use assert_matches2::assert_matches;
-    use ruma_common::{owned_mxc_uri, serde::Base64};
+    use ruma_common::owned_mxc_uri;
     use serde::Deserialize;
     use serde_json::{from_value as from_json_value, json};
 
-    use super::{EncryptedFile, JsonWebKey, MediaSource};
+    use super::{EncryptedFile, MediaSource, V2EncryptedFileInfo};
 
     #[derive(Deserialize)]
     struct MsgWithAttachment {
@@ -341,41 +300,15 @@ mod tests {
         source: MediaSource,
     }
 
-    fn dummy_jwt() -> JsonWebKey {
-        JsonWebKey {
-            kty: "oct".to_owned(),
-            key_ops: vec!["encrypt".to_owned(), "decrypt".to_owned()],
-            alg: "A256CTR".to_owned(),
-            k: Base64::new(vec![0; 64]),
-            ext: true,
-        }
-    }
-
-    fn encrypted_file() -> EncryptedFile {
-        EncryptedFile {
-            url: owned_mxc_uri!("mxc://localhost/encryptedfile"),
-            key: dummy_jwt(),
-            iv: Base64::new(vec![0; 64]),
-            hashes: BTreeMap::new(),
-            v: "v2".to_owned(),
-        }
-    }
-
     #[test]
     fn prefer_encrypted_attachment_over_plain() {
         let msg: MsgWithAttachment = from_json_value(json!({
             "body": "",
-            "url": "mxc://localhost/file",
-            "file": encrypted_file(),
-        }))
-        .unwrap();
-
-        assert_matches!(msg.source, MediaSource::Encrypted(_));
-
-        // As above, but with the file field before the url field
-        let msg: MsgWithAttachment = from_json_value(json!({
-            "body": "",
-            "file": encrypted_file(),
+            "file": EncryptedFile::new(
+                owned_mxc_uri!("mxc://localhost/encryptedfile"),
+                V2EncryptedFileInfo::encode([0;32], [1;16]).into(),
+                BTreeMap::new(),
+            ),
             "url": "mxc://localhost/file",
         }))
         .unwrap();

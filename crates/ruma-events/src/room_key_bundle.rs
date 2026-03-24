@@ -34,40 +34,35 @@ impl ToDeviceRoomKeyBundleEventContent {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeMap;
-
-    use ruma_common::{owned_mxc_uri, owned_room_id, serde::Base64};
+    use ruma_common::{
+        canonical_json::assert_to_canonical_json_eq, owned_mxc_uri, owned_room_id, serde::Base64,
+    };
     use serde_json::json;
 
     use super::ToDeviceRoomKeyBundleEventContent;
-    use crate::room::{EncryptedFile, JsonWebKey};
+    use crate::room::{EncryptedFile, V2EncryptedFileInfo};
 
     #[test]
     fn serialization() {
         let content = ToDeviceRoomKeyBundleEventContent {
             room_id: owned_room_id!("!testroomid:example.org"),
-            file: EncryptedFile {
-                url: owned_mxc_uri!("mxc://example.org/FHyPlCeYUSFFxlgbQYZmoEoe"),
-                key: JsonWebKey {
-                    kty: "A256CTR".to_owned(),
-                    key_ops: vec!["encrypt".to_owned(), "decrypt".to_owned()],
-                    alg: "A256CTR".to_owned(),
-                    k: Base64::parse("aWF6-32KGYaC3A_FEUCk1Bt0JA37zP0wrStgmdCaW-0").unwrap(),
-                    ext: true,
-                },
-                iv: Base64::parse("w+sE15fzSc0AAAAAAAAAAA").unwrap(),
-                hashes: BTreeMap::from([(
+            file: EncryptedFile::new(
+                owned_mxc_uri!("mxc://example.org/FHyPlCeYUSFFxlgbQYZmoEoe"),
+                V2EncryptedFileInfo::new(
+                    Base64::parse("aWF6-32KGYaC3A_FEUCk1Bt0JA37zP0wrStgmdCaW-0").unwrap(),
+                    Base64::parse("w+sE15fzSc0AAAAAAAAAAA").unwrap(),
+                )
+                .into(),
+                [(
                     "sha256".to_owned(),
                     Base64::parse("fdSLu/YkRx3Wyh3KQabP3rd6+SFiKg5lsJZQHtkSAYA").unwrap(),
-                )]),
-                v: "v2".to_owned(),
-            },
+                )]
+                .into(),
+            ),
         };
 
-        let serialized = serde_json::to_value(content).unwrap();
-
-        assert_eq!(
-            serialized,
+        assert_to_canonical_json_eq!(
+            content,
             json!({
                 "room_id": "!testroomid:example.org",
                 "file": {
@@ -77,8 +72,8 @@ mod tests {
                         "alg": "A256CTR",
                         "ext": true,
                         "k": "aWF6-32KGYaC3A_FEUCk1Bt0JA37zP0wrStgmdCaW-0",
-                        "key_ops": ["encrypt","decrypt"],
-                        "kty": "A256CTR"
+                        "key_ops": ["decrypt", "encrypt"],
+                        "kty": "oct"
                     },
                     "iv": "w+sE15fzSc0AAAAAAAAAAA",
                     "hashes": {
@@ -86,7 +81,6 @@ mod tests {
                     }
                 }
             }),
-            "The serialized value should match the declared JSON Value"
         );
     }
 }

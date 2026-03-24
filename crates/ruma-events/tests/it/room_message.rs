@@ -14,7 +14,7 @@ use ruma_events::{
     Mentions,
     key::verification::VerificationMethod,
     room::{
-        EncryptedFileInit, JsonWebKeyInit, MediaSource,
+        EncryptedFile, EncryptedFileInfo, MediaSource, V2EncryptedFileInfo,
         message::{
             AddMentions, AudioMessageEventContent, EmoteMessageEventContent,
             FileMessageEventContent, FormattedBody, ForwardThread, ImageMessageEventContent,
@@ -542,25 +542,19 @@ fn file_msgtype_encrypted_content_serialization() {
     let message_event_content =
         RoomMessageEventContent::new(MessageType::File(FileMessageEventContent::encrypted(
             "Upload: my_file.txt".to_owned(),
-            EncryptedFileInit {
-                url: owned_mxc_uri!("mxc://notareal.hs/file"),
-                key: JsonWebKeyInit {
-                    kty: "oct".to_owned(),
-                    key_ops: vec!["encrypt".to_owned(), "decrypt".to_owned()],
-                    alg: "A256CTR".to_owned(),
-                    k: Base64::parse("TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A").unwrap(),
-                    ext: true,
-                }
+            EncryptedFile::new(
+                owned_mxc_uri!("mxc://notareal.hs/file"),
+                V2EncryptedFileInfo::new(
+                    Base64::parse("TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A").unwrap(),
+                    Base64::parse("S22dq3NAX8wAAAAAAAAAAA").unwrap(),
+                )
                 .into(),
-                iv: Base64::parse("S22dq3NAX8wAAAAAAAAAAA").unwrap(),
-                hashes: [(
+                [(
                     "sha256".to_owned(),
                     Base64::parse("aWOHudBnDkJ9IwaR1Nd8XKoI7DOrqDTwt6xDPfVGN6Q").unwrap(),
                 )]
                 .into(),
-                v: "v2".to_owned(),
-            }
-            .into(),
+            ),
         )));
 
     assert_to_canonical_json_eq!(
@@ -571,7 +565,7 @@ fn file_msgtype_encrypted_content_serialization() {
                 "url": "mxc://notareal.hs/file",
                 "key": {
                     "kty": "oct",
-                    "key_ops": ["encrypt", "decrypt"],
+                    "key_ops": ["decrypt", "encrypt"],
                     "alg": "A256CTR",
                     "k": "TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A",
                     "ext": true
@@ -611,7 +605,7 @@ fn file_msgtype_encrypted_content_deserialization() {
             "url": "mxc://notareal.hs/file",
             "key": {
                 "kty": "oct",
-                "key_ops": ["encrypt", "decrypt"],
+                "key_ops": ["decrypt", "encrypt"],
                 "alg": "A256CTR",
                 "k": "TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A",
                 "ext": true
@@ -630,6 +624,36 @@ fn file_msgtype_encrypted_content_deserialization() {
     assert_eq!(content.body, "Upload: my_file.txt");
     assert_matches!(content.source, MediaSource::Encrypted(encrypted_file));
     assert_eq!(encrypted_file.url, "mxc://notareal.hs/file");
+    assert_matches!(encrypted_file.info, EncryptedFileInfo::V2(_));
+}
+
+#[test]
+fn file_msgtype_custom_encrypted_content_deserialization() {
+    let json_data = json!({
+        "body": "Upload: my_file.txt",
+        "file": {
+            "url": "mxc://notareal.hs/file",
+            "key": "TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A",
+            "iv": "S22dq3NAX8wAAAAAAAAAAA",
+            "hashes": {
+                "sha256": "aWOHudBnDkJ9IwaR1Nd8XKoI7DOrqDTwt6xDPfVGN6Q"
+            },
+            "v": "local.custom.version",
+        },
+        "msgtype": "m.file",
+    });
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    assert_matches!(event_content.msgtype, MessageType::File(content));
+    assert_eq!(content.body, "Upload: my_file.txt");
+    assert_matches!(content.source, MediaSource::Encrypted(encrypted_file));
+    assert_eq!(encrypted_file.url, "mxc://notareal.hs/file");
+    assert_eq!(encrypted_file.info.version(), "local.custom.version");
+    let encryption_data = encrypted_file.info.custom_data().unwrap();
+    assert_eq!(
+        encryption_data.get("key").unwrap().as_str(),
+        Some("TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A")
+    );
 }
 
 #[test]
