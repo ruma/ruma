@@ -123,8 +123,6 @@ impl UrlPreview {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeMap;
-
     use assert_matches2::assert_matches;
     use assign::assign;
     use js_int::uint;
@@ -133,28 +131,14 @@ mod tests {
     use serde_json::{from_value as from_json_value, json};
 
     use super::{super::text::TextMessageEventContent, *};
-    use crate::room::{EncryptedFile, JsonWebKey};
-
-    fn dummy_jwt() -> JsonWebKey {
-        JsonWebKey {
-            kty: "oct".to_owned(),
-            key_ops: vec!["encrypt".to_owned(), "decrypt".to_owned()],
-            alg: "A256CTR".to_owned(),
-            k: Base64::new(vec![0; 64]),
-            ext: true,
-        }
-    }
+    use crate::room::{EncryptedFile, V2EncryptedFileInfo};
 
     fn encrypted_file() -> EncryptedFile {
-        let mut hashes: BTreeMap<String, Base64> = BTreeMap::new();
-        hashes.insert("sha256".to_owned(), Base64::new(vec![1; 10]));
-        EncryptedFile {
-            url: owned_mxc_uri!("mxc://localhost/encryptedfile"),
-            key: dummy_jwt(),
-            iv: Base64::new(vec![1; 12]),
-            hashes,
-            v: "v2".to_owned(),
-        }
+        EncryptedFile::new(
+            owned_mxc_uri!("mxc://localhost/encryptedfile"),
+            V2EncryptedFileInfo::encode([0; 32], [1; 16]).into(),
+            [("sha256".to_owned(), Base64::new(vec![2; 32]))].into(),
+        )
     }
 
     #[test]
@@ -176,17 +160,14 @@ mod tests {
             json!({
                 "beeper:image:encryption": {
                     "hashes" : {
-                        "sha256": "AQEBAQEBAQEBAQ",
+                        "sha256": "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI",
                     },
-                    "iv": "AQEBAQEBAQEBAQEB",
+                    "iv": "AQEBAQEBAQEBAQEBAQEBAQ",
                     "key": {
                         "alg": "A256CTR",
                         "ext": true,
-                        "k": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                        "key_ops": [
-                            "encrypt",
-                            "decrypt"
-                        ],
+                        "k": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                        "key_ops": ["decrypt", "encrypt"],
                         "kty": "oct",
                     },
                     "v": "v2",
@@ -241,17 +222,14 @@ mod tests {
                         "matched_url": "https://matrix.org/",
                         "beeper:image:encryption": {
                             "hashes" : {
-                                "sha256": "AQEBAQEBAQEBAQ",
+                                "sha256": "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI",
                             },
-                            "iv": "AQEBAQEBAQEBAQEB",
+                            "iv": "AQEBAQEBAQEBAQEBAQEBAQ",
                             "key": {
                                 "alg": "A256CTR",
                                 "ext": true,
-                                "k": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                                "key_ops": [
-                                    "encrypt",
-                                    "decrypt"
-                                ],
+                                "k": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                                "key_ops": ["decrypt", "encrypt"],
                                 "kty": "oct",
                             },
                             "v": "v2",
@@ -448,7 +426,7 @@ mod tests {
                     "og:image:width": 800,
                     "beeper:image:encryption": {
                         "key": {
-                            "k": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                            "k": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
                             "alg": "A256CTR",
                             "ext": true,
                             "kty": "oct",
@@ -457,9 +435,9 @@ mod tests {
                                 "decrypt"
                             ]
                         },
-                        "iv": "AQEBAQEBAQEBAQEB",
+                        "iv": "AQEBAQEBAQEBAQEBAQEBAQ",
                         "hashes": {
-                            "sha256": "AQEBAQEBAQEBAQ"
+                            "sha256": "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI",
                         },
                         "v": "v2",
                         "url": "mxc://beeper.com/53207ac52ce3e2c722bb638987064bfdc0cc257b"

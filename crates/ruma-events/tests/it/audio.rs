@@ -15,10 +15,10 @@ use ruma_events::audio::Amplitude;
 use ruma_events::{
     AnyMessageLikeEvent, MessageLikeEvent,
     audio::{AudioDetailsContentBlock, AudioEventContent},
-    file::{EncryptedContentInit, FileContentBlock},
+    file::{EncryptedContent, FileContentBlock},
     message::TextContentBlock,
     relation::Reply,
-    room::{JsonWebKeyInit, message::Relation},
+    room::{V2EncryptedFileInfo, message::Relation},
 };
 use serde_json::{from_value as from_json_value, json};
 
@@ -62,24 +62,18 @@ fn encrypted_content_serialization() {
         FileContentBlock::encrypted(
             owned_mxc_uri!("mxc://notareal.hs/abcdef"),
             "my_sound.ogg".to_owned(),
-            EncryptedContentInit {
-                key: JsonWebKeyInit {
-                    kty: "oct".to_owned(),
-                    key_ops: vec!["encrypt".to_owned(), "decrypt".to_owned()],
-                    alg: "A256CTR".to_owned(),
-                    k: Base64::parse("TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A").unwrap(),
-                    ext: true,
-                }
+            EncryptedContent::new(
+                V2EncryptedFileInfo::new(
+                    Base64::parse("TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A").unwrap(),
+                    Base64::parse("S22dq3NAX8wAAAAAAAAAAA").unwrap(),
+                )
                 .into(),
-                iv: Base64::parse("S22dq3NAX8wAAAAAAAAAAA").unwrap(),
-                hashes: [(
+                [(
                     "sha256".to_owned(),
                     Base64::parse("aWOHudBnDkJ9IwaR1Nd8XKoI7DOrqDTwt6xDPfVGN6Q").unwrap(),
                 )]
                 .into(),
-                v: "v2".to_owned(),
-            }
-            .into(),
+            ),
         ),
     );
 
@@ -94,7 +88,7 @@ fn encrypted_content_serialization() {
                 "name": "my_sound.ogg",
                 "key": {
                     "kty": "oct",
-                    "key_ops": ["encrypt", "decrypt"],
+                    "key_ops": ["decrypt", "encrypt"],
                     "alg": "A256CTR",
                     "k": "TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A",
                     "ext": true
