@@ -1,6 +1,7 @@
 # [unreleased]
 
 - The `canonical-json` feature was removed.
+- Bump MSRV to 1.89
 
 # 0.14.1
 
