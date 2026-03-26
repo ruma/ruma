@@ -1,10 +1,11 @@
 ---
-source: crates/ruma-state-res/tests/it/resolve/snapshot_tests.rs
+source: crates/ruma-state-res/tests/it/resolve.rs
+assertion_line: 105
 description: Resolved state
 ---
 [
   {
-    "kind": "m.room.create",
+    "type": "m.room.create",
     "state_key": "",
     "event_id": "$00-m-room-create",
     "content": {
@@ -13,15 +14,15 @@ description: Resolved state
     }
   },
   {
-    "kind": "m.room.guest_access",
+    "type": "m.room.guest_access",
     "state_key": "",
     "event_id": "$00-m-room-guest_access",
     "content": {
-      "guest_access": "can_join"
+      "guest_access": "forbidden"
     }
   },
   {
-    "kind": "m.room.history_visibility",
+    "type": "m.room.history_visibility",
     "state_key": "",
     "event_id": "$00-m-room-history_visibility",
     "content": {
@@ -29,15 +30,15 @@ description: Resolved state
     }
   },
   {
-    "kind": "m.room.join_rules",
+    "type": "m.room.join_rules",
     "state_key": "",
     "event_id": "$01-m-room-join_rules",
     "content": {
-      "join_rule": "public"
+      "join_rule": "invite"
     }
   },
   {
-    "kind": "m.room.member",
+    "type": "m.room.member",
     "state_key": "@alice:example.com",
     "event_id": "$00-m-room-member-join-alice",
     "content": {
@@ -46,12 +47,22 @@ description: Resolved state
     }
   },
   {
-    "kind": "m.room.power_levels",
+    "type": "m.room.member",
+    "state_key": "@bob:example.com",
+    "event_id": "$00-m-room-member-join-bob",
+    "content": {
+      "displayname": "bob",
+      "membership": "join"
+    }
+  },
+  {
+    "type": "m.room.power_levels",
     "state_key": "",
-    "event_id": "$00-m-room-power_levels",
+    "event_id": "$02-m-room-power_levels",
     "content": {
       "users": {
-        "@alice:example.com": 100
+        "@alice:example.com": 100,
+        "@bob:example.com": 50
       }
     }
   }

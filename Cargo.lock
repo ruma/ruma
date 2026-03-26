@@ -1143,7 +1143,6 @@ checksum = "46fdb647ebde000f43b5b53f773c30cf9b0cb4300453208713fa38b2c70935a0"
 dependencies = [
  "console",
  "once_cell",
- "serde",
  "similar",
 ]
 
@@ -2078,12 +2077,11 @@ dependencies = [
 name = "ruma-state-res"
 version = "0.15.0"
 dependencies = [
- "as_variant",
+ "assert_matches2",
  "criterion",
  "insta",
  "js_int",
  "maplit",
- "rand",
  "ruma-common",
  "ruma-events",
  "ruma-signatures",

@@ -1,0 +1,25 @@
+[
+  {
+    "event_id": "$02-m-room-power_levels-bob",
+    "room_id": "!room:example.com",
+    "sender": "@bob:example.com",
+    "type": "m.room.power_levels",
+    "content": {
+      "users": {
+        "@alice:example.com": 100,
+        "@bob:example.com": 50
+      },
+      "users_default": -1
+    },
+    "state_key": "",
+    "origin_server_ts": 8,
+    "prev_events": [
+      "$01-m-room-power_levels"
+    ],
+    "auth_events": [
+      "$00-m-room-create",
+      "$01-m-room-power_levels",
+      "$00-m-room-member-join-bob"
+    ]
+  }
+]

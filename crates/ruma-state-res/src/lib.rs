@@ -56,8 +56,9 @@ mod event_auth;
 mod event_format;
 pub mod events;
 mod state_res;
-#[cfg(test)]
-mod test_utils;
+#[cfg(any(test, feature = "__criterion"))]
+#[doc(hidden)]
+pub mod test_utils;
 mod utils;
 
 pub use self::{
