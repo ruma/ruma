@@ -176,6 +176,11 @@ impl EventEnumKind {
         format_ident!("{variation}{self}Content")
     }
 
+    /// Get the name of the `Custom{kind}Content` type for this kind.
+    fn to_custom_content_ident(self) -> syn::Ident {
+        format_ident!("Custom{self}Content")
+    }
+
     /// Get the list of variations for an event type (struct or enum) for this kind.
     fn event_variations(self) -> &'static [EventVariation] {
         if let Some(common_kind) = self.common_kind() {

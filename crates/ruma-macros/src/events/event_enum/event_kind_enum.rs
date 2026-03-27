@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 use proc_macro2::{Span, TokenStream};
-use quote::{format_ident, quote};
+use quote::quote;
 
 mod content;
 
@@ -34,6 +34,9 @@ pub(super) struct EventEnum<'a> {
 
     /// The name of the `*EventType` enum for this kind.
     event_type_enum: syn::Ident,
+
+    /// The name of the `Custom*EventContent` struct for this kind.
+    custom_content_struct: syn::Ident,
 }
 
 impl<'a> EventEnum<'a> {
@@ -51,6 +54,7 @@ impl<'a> EventEnum<'a> {
 
         let kind = data.kind;
         let event_type_enum = kind.to_event_type_enum();
+        let custom_content_struct = kind.to_custom_content_ident();
 
         Self {
             data,
@@ -60,6 +64,7 @@ impl<'a> EventEnum<'a> {
             variant_docs,
             event_type_string_match_arms,
             event_type_enum,
+            custom_content_struct,
         }
     }
 }
@@ -169,15 +174,13 @@ impl<'a> EventEnumVariation<'a> {
         let variant_attrs = &self.variant_attrs;
         let variant_docs = &self.variant_docs;
         let event_types = &self.event_types;
-
-        let kind = self.kind;
-        let custom_content_ty = format_ident!("Custom{kind}Content");
+        let custom_content_struct = &self.custom_content_struct;
 
         let deserialize_impl = self.expand_deserialize_impl();
         let field_accessor_impl = self.expand_accessor_methods(event_content_enums);
         let from_impl = self.expand_from_impl(ident, event_types);
         let json_castable_impl =
-            expand_json_castable_impl(ident, kind, self.variation, ruma_events);
+            expand_json_castable_impl(ident, self.kind, self.variation, ruma_events);
         let from_sync_into_full = self.expand_from_sync_into_full();
 
         quote! {
@@ -195,7 +198,7 @@ impl<'a> EventEnumVariation<'a> {
                 #[doc(hidden)]
                 _Custom(
                     #ruma_events::#event_struct<
-                        #ruma_events::_custom::#custom_content_ty
+                        #ruma_events::_custom::#custom_content_struct
                     >,
                 ),
             }
