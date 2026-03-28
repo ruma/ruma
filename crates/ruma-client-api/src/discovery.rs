@@ -1,6 +1,7 @@
 //! Server discovery endpoints.
 
 pub mod discover_homeserver;
+pub mod discover_policy_server;
 pub mod discover_support;
 pub mod get_authorization_server_metadata;
 pub mod get_capabilities;

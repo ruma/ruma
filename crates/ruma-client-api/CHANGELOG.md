@@ -75,6 +75,8 @@ Improvements:
 - `RegistrationKind` and `LoginType` can now represent custom values.
 - Stabilize support for the OAuth 2.0 Device Authorization Grant, according to
   MSC4341 / Matrix 1.18.
+- Add support for the Policy Server public key information endpoint, according
+  to MSC4284 / Matrix 1.18.
 
 # 0.22.1
 
