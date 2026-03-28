@@ -197,6 +197,7 @@ event_enum! {
         "m.room.member" => super::room::member,
         "m.room.name" => super::room::name,
         "m.room.pinned_events" => super::room::pinned_events,
+        "m.room.policy" => super::room::policy,
         "m.room.power_levels" => super::room::power_levels,
         "m.room.server_acl" => super::room::server_acl,
         "m.room.third_party_invite" => super::room::third_party_invite,
