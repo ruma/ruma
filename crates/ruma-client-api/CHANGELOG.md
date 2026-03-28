@@ -35,8 +35,8 @@ Breaking changes:
   - `WrongRoomKeysVersion`, and its `current_version` field is now required and
     its serialization was fixed.
 - Remove the `score` field from `report_content::v3::Request` according to
-  MSC4277. `report_content::v3::Request::new()` now only takes a room ID and an
-  event ID.
+  MSC4277 / Matrix 1.18. `report_content::v3::Request::new()` now only takes a
+  room ID and an event ID.
 - `Typing::Yes` now holds a non-exhaustive struct rather than a `Duration`, to
   potentially allow to add more fields in the future without it being a breaking
   change.
@@ -51,11 +51,12 @@ Bug fixes:
 
 Improvements:
 
-- Add the `M_TOKEN_INCORRECT` error code according to MSC4183.
-- Add the `m.forget_forced_upon_leave` capability, according to MSC4267.
+- Add the `M_TOKEN_INCORRECT` error code according to MSC4183 / Matrix 1.18.
+- Add the `m.forget_forced_upon_leave` capability, according to MSC4267 / Matrix
+  1.18.
 - Stabilize support for the OAuth 2.0 account management URL, according to
-  MSC4191. The `AccountManagementAction` variants that were replaced when the
-  MSC was stabilized now have an `Unstable` prefix.
+  MSC4191 / Matrix 1.18. The `AccountManagementAction` variants that were
+  replaced when the MSC was stabilized now have an `Unstable` prefix.
   - `AuthorizationServerMetadata` has helper methods to work with both stable
     and unstable account management actions:
     `is_account_management_action_supported()` allows to check whether either of
@@ -64,15 +65,16 @@ Improvements:
     URL including the proper version of the action, depending on what the server
     advertises.
 - Add support for updated rendezvous session from MSC4388 behind `unstable-msc4388`.
-- Stabilize support for the `M_INVITE_BLOCKED` error code, according to MSC4380.
-- Stabilize support for OAuth 2.0 aware clients, according to MSC3824. Unstable
-  support was dropped entirely.
+- Stabilize support for the `M_INVITE_BLOCKED` error code, according to MSC4380
+  / Matrix 1.18.
+- Stabilize support for OAuth 2.0 aware clients, according to MSC3824 / Matrix
+  1.18. Unstable support was dropped entirely.
 - `BackupAlgorithm` can be deserialized from unsupported algorithms. The name
   and data of the algorithm can be accessed via the `algorithm()` and
   `auth_data()` methods respectively.
 - `RegistrationKind` and `LoginType` can now represent custom values.
 - Stabilize support for the OAuth 2.0 Device Authorization Grant, according to
-  MSC4341.
+  MSC4341 / Matrix 1.18.
 
 # 0.22.1
 

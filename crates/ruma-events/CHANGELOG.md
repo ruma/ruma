@@ -53,12 +53,13 @@ Improvements:
   for all state events.
 - Implement `RedactContent for PossiblyRedacted*EventContent` for all state
   events. 
-- Add support for the recently used emoji account data, according to MSC4356.
-- Stabilize support for invite blocking, according to MSC4380. Since the format
-  of the account data changed, the previous event content struct as well as its
-  variants in `AnyGlobalAccountDataEvent(Content)` are now prefixed with
-  `Unstable`. The new `InvitePermissionConfigEventContent` struct uses the new
-  format with a `default_action` field instead of `block_all`.
+- Add support for the recently used emoji account data, according to MSC4356 /
+  Matrix 1.18.
+- Stabilize support for invite blocking, according to MSC4380 / Matrix 1.18.
+  Since the format of the account data changed, the previous event content
+  struct as well as its variants in `AnyGlobalAccountDataEvent(Content)` are now
+  prefixed with `Unstable`. The new `InvitePermissionConfigEventContent` struct
+  uses the new format with a `default_action` field instead of `block_all`.
 - Add support for to-device event for pushing secrets, according to MSC4385.
 - Add support for video/audio call intent according to MSC4075 as part of the 
   `RtcNotificationEventContent` new `call_intent` field.
@@ -86,7 +87,7 @@ Improvements:
 - Add support for reading `m.call.intent` inside rtc membership events, 
   see `MembershipData::call_intent()`.
 - Stabilize the `is_animated` flag for image messages and sticker events,
-  according to MSC4230.
+  according to MSC4230 / Matrix 1.18.
 
 # 0.32.1
 
