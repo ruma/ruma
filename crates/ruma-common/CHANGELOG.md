@@ -29,11 +29,11 @@ Improvements:
   `to_canonical_value()`.
 - Add the `assert_to_canonical_json_eq!` macro that can be used in tests to
   check the canonical JSON serialization of a type against its expected value.
-- Add crate-internal into_raw() / from_raw() helpers for IdDst owned IDs and
-  use them in OwnedRoomId / OwnedRoomAliasId <-> OwnedRoomOrAliasId
+- Add crate-internal `into_raw()` / `from_raw()` helpers for `IdDst` owned IDs
+  and use them in `OwnedRoomId` / `OwnedRoomAliasId` <-> `OwnedRoomOrAliasId`
   conversions.
-- Use raw ownership transfer for conversions from OwnedDeviceId and
-  OwnedBase64PublicKey to OwnedBase64PublicKeyOrDeviceId.
+- Use raw ownership transfer for conversions from `OwnedDeviceId` and
+  `OwnedBase64PublicKey` to `OwnedBase64PublicKeyOrDeviceId`.
 - Identifier types implement `(Try)From<Box<str>>`, `(Try)From<Cow<'a, str>>`
   and `PartialEq<Cow<'a, str>>` and conversions between owned types try not to
   reallocate when possible.
