@@ -1,6 +1,6 @@
 //! Types for the [`m.invite_permission_config`] account data.
 //!
-//! [`m.invite_permission_config`]: https://github.com/matrix-org/matrix-spec-proposals/pull/4380
+//! [`m.invite_permission_config`]: https://spec.matrix.org/latest/client-server-api/#minvite_permission_config
 
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
@@ -11,7 +11,7 @@ use crate::PrivOwnedStr;
 ///
 /// Controls whether invites to this account are permitted.
 ///
-/// [`m.invite_permission_config`]: https://github.com/matrix-org/matrix-spec-proposals/pull/4380
+/// [`m.invite_permission_config`]: https://spec.matrix.org/latest/client-server-api/#minvite_permission_config
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(
