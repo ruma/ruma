@@ -88,6 +88,8 @@ Improvements:
   see `MembershipData::call_intent()`.
 - Stabilize the `is_animated` flag for image messages and sticker events,
   according to MSC4230 / Matrix 1.18.
+- Add support for the `m.room.policy` state event, according to MSC4284 / Matrix
+  1.18.
 
 # 0.32.1
 

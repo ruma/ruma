@@ -39,6 +39,7 @@ pub mod member;
 pub mod message;
 pub mod name;
 pub mod pinned_events;
+pub mod policy;
 pub mod power_levels;
 pub mod redaction;
 pub mod server_acl;
