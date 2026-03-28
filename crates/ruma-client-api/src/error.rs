@@ -1166,7 +1166,7 @@ impl FromHttpResponseErrorExt for FromHttpResponseError<Error> {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
+    use assert_matches2::assert_let;
     use ruma_common::api::{EndpointError, OutgoingResponse};
     use serde_json::{
         Value as JsonValue, from_slice as from_json_slice, from_value as from_json_value, json,
@@ -1199,9 +1199,9 @@ mod tests {
         }))
         .expect("We should be able to deserialize a wrong room keys version error");
 
-        assert_matches!(
-            deserialized.kind,
-            ErrorKind::WrongRoomKeysVersion(WrongRoomKeysVersionErrorData { current_version })
+        assert_let!(
+            ErrorKind::WrongRoomKeysVersion(WrongRoomKeysVersionErrorData { current_version }) =
+                deserialized.kind
         );
         assert_eq!(current_version, "42");
         assert_eq!(deserialized.message, "Wrong backup version.");
@@ -1222,12 +1222,11 @@ mod tests {
         let error = Error::from_http_response(response);
 
         assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
-        assert_matches!(
-            error.body,
+        assert_let!(
             ErrorBody::Standard(StandardErrorBody {
                 kind: ErrorKind::LimitExceeded(LimitExceededErrorData { retry_after: None }),
                 message
-            })
+            }) = error.body
         );
         assert_eq!(message, "Too many requests");
     }
@@ -1248,16 +1247,15 @@ mod tests {
         let error = Error::from_http_response(response);
 
         assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
-        assert_matches!(
-            error.body,
+        assert_let!(
             ErrorBody::Standard(StandardErrorBody {
                 kind: ErrorKind::LimitExceeded(LimitExceededErrorData {
                     retry_after: Some(retry_after)
                 }),
                 message
-            })
+            }) = error.body
         );
-        assert_matches!(retry_after, RetryAfter::Delay(delay));
+        assert_let!(RetryAfter::Delay(delay) = retry_after);
         assert_eq!(delay.as_millis(), 2000);
         assert_eq!(message, "Too many requests");
     }
@@ -1278,16 +1276,15 @@ mod tests {
         let error = Error::from_http_response(response);
 
         assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
-        assert_matches!(
-            error.body,
+        assert_let!(
             ErrorBody::Standard(StandardErrorBody {
                 kind: ErrorKind::LimitExceeded(LimitExceededErrorData {
                     retry_after: Some(retry_after)
                 }),
                 message
-            })
+            }) = error.body
         );
-        assert_matches!(retry_after, RetryAfter::Delay(delay));
+        assert_let!(RetryAfter::Delay(delay) = retry_after);
         assert_eq!(delay.as_millis(), 2000);
         assert_eq!(message, "Too many requests");
     }
@@ -1308,16 +1305,15 @@ mod tests {
         let error = Error::from_http_response(response);
 
         assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
-        assert_matches!(
-            error.body,
+        assert_let!(
             ErrorBody::Standard(StandardErrorBody {
                 kind: ErrorKind::LimitExceeded(LimitExceededErrorData {
                     retry_after: Some(retry_after)
                 }),
                 message
-            })
+            }) = error.body
         );
-        assert_matches!(retry_after, RetryAfter::DateTime(time));
+        assert_let!(RetryAfter::DateTime(time) = retry_after);
         assert_eq!(time.duration_since(UNIX_EPOCH).unwrap().as_secs(), 1_431_704_061);
         assert_eq!(message, "Too many requests");
     }
@@ -1339,16 +1335,15 @@ mod tests {
         let error = Error::from_http_response(response);
 
         assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
-        assert_matches!(
-            error.body,
+        assert_let!(
             ErrorBody::Standard(StandardErrorBody {
                 kind: ErrorKind::LimitExceeded(LimitExceededErrorData {
                     retry_after: Some(retry_after)
                 }),
                 message
-            })
+            }) = error.body
         );
-        assert_matches!(retry_after, RetryAfter::Delay(delay));
+        assert_let!(RetryAfter::Delay(delay) = retry_after);
         assert_eq!(delay.as_millis(), 2000);
         assert_eq!(message, "Too many requests");
     }
@@ -1471,8 +1466,8 @@ mod tests {
         .unwrap();
 
         assert_eq!(deserialized.kind.errcode().as_str(), "LOCAL_DEV_ERROR");
-        assert_matches!(deserialized.kind.custom_json_data(), Some(json_data));
-        assert_matches!(json_data.get("foo"), Some(JsonValue::String(foo)));
+        let json_data = deserialized.kind.custom_json_data().unwrap();
+        assert_let!(Some(JsonValue::String(foo)) = json_data.get("foo"));
         assert_eq!(foo, "bar");
         assert_eq!(deserialized.message, "You are using the homeserver in local dev mode.");
     }
