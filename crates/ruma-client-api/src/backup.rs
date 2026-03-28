@@ -210,7 +210,7 @@ impl From<EncryptedSessionDataInit> for EncryptedSessionData {
 mod tests {
     use std::borrow::Cow;
 
-    use assert_matches2::assert_matches;
+    use assert_matches2::{assert_let, assert_matches};
     use ruma_common::{
         SigningKeyAlgorithm, SigningKeyId, canonical_json::assert_to_canonical_json_eq,
         owned_user_id, serde::Base64,
@@ -242,18 +242,15 @@ mod tests {
         );
         assert_to_canonical_json_eq!(BackupAlgorithm::from(backup_algorithm), json.clone());
 
-        assert_matches!(
-            from_json_value(json),
-            Ok(BackupAlgorithm::MegolmBackupV1Curve25519AesSha2(auth_data))
+        assert_let!(
+            Ok(BackupAlgorithm::MegolmBackupV1Curve25519AesSha2(auth_data)) = from_json_value(json)
         );
         assert_eq!(auth_data.public_key.as_bytes(), b"abcdef");
-        assert_matches!(
-            auth_data.signatures.get(&owned_user_id!("@alice:example.org")),
-            Some(user_signatures)
-        );
+        let user_signatures =
+            auth_data.signatures.get(&owned_user_id!("@alice:example.org")).unwrap();
 
         let mut user_signatures_iter = user_signatures.iter();
-        assert_matches!(user_signatures_iter.next(), Some((key_id, signature)));
+        let (key_id, signature) = user_signatures_iter.next().unwrap();
         assert_eq!(key_id, "ed25519:DEVICEID");
         assert_eq!(signature, "signature");
         assert_matches!(user_signatures_iter.next(), None);
@@ -271,14 +268,14 @@ mod tests {
             },
         });
 
-        assert_matches!(from_json_value::<BackupAlgorithm>(json.clone()), Ok(backup_algorithm));
+        assert_let!(Ok(backup_algorithm) = from_json_value::<BackupAlgorithm>(json.clone()));
         assert_eq!(backup_algorithm.algorithm(), "local.dev.unknown_algorithm");
-        assert_matches!(backup_algorithm.auth_data(), Cow::Borrowed(auth_data));
+        assert_let!(Cow::Borrowed(auth_data) = backup_algorithm.auth_data());
 
-        assert_matches!(auth_data.get("foo"), Some(JsonValue::String(foo)));
+        assert_let!(Some(JsonValue::String(foo)) = auth_data.get("foo"));
         assert_eq!(foo, "bar");
-        assert_matches!(auth_data.get("signatures"), Some(JsonValue::Object(signatures)));
-        assert_matches!(signatures.get("ed25519:DEVICEID"), Some(JsonValue::String(signature)));
+        assert_let!(Some(JsonValue::Object(signatures)) = auth_data.get("signatures"));
+        assert_let!(Some(JsonValue::String(signature)) = signatures.get("ed25519:DEVICEID"));
         assert_eq!(signature, "signature");
 
         assert_to_canonical_json_eq!(backup_algorithm, json);

@@ -1,4 +1,4 @@
-use assert_matches2::assert_matches;
+use assert_matches2::assert_let;
 use ruma_appservice_api::Registration;
 
 #[test]
@@ -58,7 +58,7 @@ fn registration_with_optional_url() {
           aliases: []
           rooms: []
         "#;
-    assert_matches!(serde_yaml::from_str(registration_config).unwrap(), Registration { url, .. });
+    assert_let!(Registration { url, .. } = serde_yaml::from_str(registration_config).unwrap());
     assert_eq!(url, None);
 }
 

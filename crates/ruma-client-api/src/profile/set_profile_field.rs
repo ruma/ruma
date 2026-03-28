@@ -277,7 +277,7 @@ mod tests_client {
 
 #[cfg(all(test, feature = "server"))]
 mod tests_server {
-    use assert_matches2::assert_matches;
+    use assert_matches2::assert_let;
     use ruma_common::api::IncomingRequest;
     use serde_json::{json, to_vec as to_json_vec};
 
@@ -302,7 +302,7 @@ mod tests_server {
         .unwrap();
 
         assert_eq!(request.user_id, "@alice:localhost");
-        assert_matches!(request.value, ProfileFieldValue::DisplayName(display_name));
+        assert_let!(ProfileFieldValue::DisplayName(display_name) = request.value);
         assert_eq!(display_name, "Alice");
     }
 

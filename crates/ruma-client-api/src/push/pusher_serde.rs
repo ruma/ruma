@@ -79,7 +79,7 @@ impl<'de> Deserialize<'de> for PusherKind {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
+    use assert_matches2::assert_let;
     use ruma_common::{
         canonical_json::assert_to_canonical_json_eq, push::HttpPusherData, serde::JsonObject,
     };
@@ -172,7 +172,7 @@ mod tests {
             "data": {},
         });
 
-        assert_matches!(from_json_value(json).unwrap(), PusherKind::Email(data));
+        assert_let!(PusherKind::Email(data) = from_json_value(json).unwrap());
         assert!(data.data.is_empty());
 
         // With custom data fields.
@@ -183,9 +183,9 @@ mod tests {
             },
         });
 
-        assert_matches!(from_json_value(json).unwrap(), PusherKind::Email(data));
+        assert_let!(PusherKind::Email(data) = from_json_value(json).unwrap());
         assert_eq!(data.data.len(), 1);
-        assert_matches!(data.data.get("custom_key"), Some(JsonValue::String(custom_value)));
+        assert_let!(Some(JsonValue::String(custom_value)) = data.data.get("custom_key"));
         assert_eq!(custom_value, "value");
     }
 
@@ -199,7 +199,7 @@ mod tests {
             },
         });
 
-        assert_matches!(from_json_value(json).unwrap(), PusherKind::Http(data));
+        assert_let!(PusherKind::Http(data) = from_json_value(json).unwrap());
         assert_eq!(data.url, "http://localhost");
         assert_eq!(data.format, None);
         assert!(data.data.is_empty());
@@ -213,9 +213,9 @@ mod tests {
             },
         });
 
-        assert_matches!(from_json_value(json).unwrap(), PusherKind::Http(data));
+        assert_let!(PusherKind::Http(data) = from_json_value(json).unwrap());
         assert_eq!(data.data.len(), 1);
-        assert_matches!(data.data.get("custom_key"), Some(JsonValue::String(custom_value)));
+        assert_let!(Some(JsonValue::String(custom_value)) = data.data.get("custom_key"));
         assert_eq!(custom_value, "value");
     }
 
@@ -226,7 +226,7 @@ mod tests {
             "data": {}
         });
 
-        assert_matches!(from_json_value(json).unwrap(), PusherKind::_Custom(custom));
+        assert_let!(PusherKind::_Custom(custom) = from_json_value(json).unwrap());
         assert_eq!(custom.kind, "my.custom.kind");
         assert!(custom.data.is_empty());
     }

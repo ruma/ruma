@@ -326,7 +326,7 @@ pub mod v1 {
 
     #[cfg(test)]
     mod tests {
-        use assert_matches2::assert_matches;
+        use assert_matches2::assert_let;
         use js_int::uint;
         use ruma_common::{
             MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id,
@@ -391,7 +391,7 @@ pub mod v1 {
             });
 
             let data = from_json_value::<EphemeralData>(typing_json.clone()).unwrap();
-            assert_matches!(&data, EphemeralData::Typing(typing));
+            assert_let!(EphemeralData::Typing(typing) = &data);
             assert_eq!(typing.room_id, room_id);
             assert_eq!(typing.content.user_ids, &[user_id.to_owned()]);
 
@@ -413,7 +413,7 @@ pub mod v1 {
             });
 
             let data = from_json_value::<EphemeralData>(receipt_json.clone()).unwrap();
-            assert_matches!(&data, EphemeralData::Receipt(receipt));
+            assert_let!(EphemeralData::Receipt(receipt) = &data);
             assert_eq!(receipt.room_id, room_id);
             let event_receipts = receipt.content.get(event_id).unwrap();
             let event_read_receipts = event_receipts.get(&ReceiptType::Read).unwrap();
@@ -436,7 +436,7 @@ pub mod v1 {
             });
 
             let data = from_json_value::<EphemeralData>(presence_json.clone()).unwrap();
-            assert_matches!(&data, EphemeralData::Presence(presence));
+            assert_let!(EphemeralData::Presence(presence) = &data);
             assert_eq!(presence.sender, user_id);
             assert_eq!(presence.content.currently_active, Some(false));
 
