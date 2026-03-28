@@ -107,7 +107,7 @@ pub mod v3 {
 
     #[cfg(test)]
     mod tests {
-        use assert_matches2::assert_matches;
+        use assert_matches2::assert_let;
         use ruma_common::thirdparty::Medium;
         use serde_json::{from_value as from_json_value, json};
 
@@ -119,9 +119,8 @@ pub mod v3 {
                 from_json_value::<InvitationRecipient>(json!({ "user_id": "@carl:example.org" }))
                     .unwrap();
 
-            assert_matches!(
-                incoming,
-                InvitationRecipient::UserId(InviteUserId { user_id, reason: None })
+            assert_let!(
+                InvitationRecipient::UserId(InviteUserId { user_id, reason: None }) = incoming
             );
             assert_eq!(user_id, "@carl:example.org");
         }
@@ -136,7 +135,7 @@ pub mod v3 {
             }))
             .unwrap();
 
-            assert_matches!(incoming, InvitationRecipient::ThirdPartyId(third_party_id));
+            assert_let!(InvitationRecipient::ThirdPartyId(third_party_id) = incoming);
 
             assert_eq!(third_party_id.id_server, "example.org");
             assert_eq!(third_party_id.id_access_token, "abcdefghijklmnop");

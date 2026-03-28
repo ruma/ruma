@@ -1,4 +1,4 @@
-use assert_matches2::assert_matches;
+use assert_matches2::{assert_let, assert_matches};
 use ruma_common::{
     canonical_json::assert_to_canonical_json_eq, owned_device_id, owned_event_id, serde::Raw,
 };
@@ -67,7 +67,7 @@ fn content_no_relation_deserialization() {
 
     let content = from_json_value::<RoomEncryptedEventContent>(json).unwrap();
 
-    assert_matches!(content.scheme, EncryptedEventScheme::MegolmV1AesSha2(encrypted_content));
+    assert_let!(EncryptedEventScheme::MegolmV1AesSha2(encrypted_content) = content.scheme);
     assert_eq!(encrypted_content.session_id, "IkwqWxT2zy3DI1E/zM2Wq+CE8tr3eEpsxsVGjGrMPdw");
     assert_eq!(
         encrypted_content.ciphertext,
@@ -144,7 +144,7 @@ fn content_reply_deserialization() {
 
     let content = from_json_value::<RoomEncryptedEventContent>(json).unwrap();
 
-    assert_matches!(content.scheme, EncryptedEventScheme::MegolmV1AesSha2(encrypted_content));
+    assert_let!(EncryptedEventScheme::MegolmV1AesSha2(encrypted_content) = content.scheme);
     assert_eq!(encrypted_content.session_id, "IkwqWxT2zy3DI1E/zM2Wq+CE8tr3eEpsxsVGjGrMPdw");
     assert_eq!(
         encrypted_content.ciphertext,
@@ -156,7 +156,7 @@ fn content_reply_deserialization() {
         lDl5mzVO3tPnJMKZ0hn+AF"
     );
 
-    assert_matches!(content.relates_to, Some(Relation::Reply(reply)));
+    assert_let!(Some(Relation::Reply(reply)) = content.relates_to);
     assert_eq!(reply.in_reply_to.event_id, "$replied_to_event");
 }
 
@@ -172,7 +172,7 @@ fn content_reply_serialization_roundtrip() {
     let deser_content = json_content.deserialize().unwrap();
 
     assert_matches!(deser_content.scheme, EncryptedEventScheme::MegolmV1AesSha2(_));
-    assert_matches!(deser_content.relates_to, Some(Relation::Reply(reply)));
+    assert_let!(Some(Relation::Reply(reply)) = deser_content.relates_to);
     assert_eq!(reply.in_reply_to.event_id, event_id);
 }
 
@@ -225,7 +225,7 @@ fn content_replacement_deserialization() {
 
     let content = from_json_value::<RoomEncryptedEventContent>(json).unwrap();
 
-    assert_matches!(content.scheme, EncryptedEventScheme::MegolmV1AesSha2(encrypted_content));
+    assert_let!(EncryptedEventScheme::MegolmV1AesSha2(encrypted_content) = content.scheme);
     assert_eq!(encrypted_content.session_id, "IkwqWxT2zy3DI1E/zM2Wq+CE8tr3eEpsxsVGjGrMPdw");
     assert_eq!(
         encrypted_content.ciphertext,
@@ -237,7 +237,7 @@ fn content_replacement_deserialization() {
         lDl5mzVO3tPnJMKZ0hn+AF"
     );
 
-    assert_matches!(content.relates_to, Some(Relation::Replacement(replacement)));
+    assert_let!(Some(Relation::Replacement(replacement)) = content.relates_to);
     assert_eq!(replacement.event_id, "$replaced_event");
 }
 
@@ -253,7 +253,7 @@ fn content_replacement_serialization_roundtrip() {
     let deser_content = json_content.deserialize().unwrap();
 
     assert_matches!(deser_content.scheme, EncryptedEventScheme::MegolmV1AesSha2(_));
-    assert_matches!(deser_content.relates_to, Some(Relation::Replacement(deser_replacement)));
+    assert_let!(Some(Relation::Replacement(deser_replacement)) = deser_content.relates_to);
     assert_eq!(deser_replacement.event_id, replacement.event_id);
 }
 
@@ -306,7 +306,7 @@ fn content_reference_deserialization() {
 
     let content = from_json_value::<RoomEncryptedEventContent>(json).unwrap();
 
-    assert_matches!(content.scheme, EncryptedEventScheme::MegolmV1AesSha2(encrypted_content));
+    assert_let!(EncryptedEventScheme::MegolmV1AesSha2(encrypted_content) = content.scheme);
     assert_eq!(encrypted_content.session_id, "IkwqWxT2zy3DI1E/zM2Wq+CE8tr3eEpsxsVGjGrMPdw");
     assert_eq!(
         encrypted_content.ciphertext,
@@ -318,7 +318,7 @@ fn content_reference_deserialization() {
         lDl5mzVO3tPnJMKZ0hn+AF"
     );
 
-    assert_matches!(content.relates_to, Some(Relation::Reference(reference)));
+    assert_let!(Some(Relation::Reference(reference)) = content.relates_to);
     assert_eq!(reference.event_id, "$referenced_event");
 }
 
@@ -334,7 +334,7 @@ fn content_reference_serialization_roundtrip() {
     let deser_content = json_content.deserialize().unwrap();
 
     assert_matches!(deser_content.scheme, EncryptedEventScheme::MegolmV1AesSha2(_));
-    assert_matches!(deser_content.relates_to, Some(Relation::Reference(deser_reference)));
+    assert_let!(Some(Relation::Reference(deser_reference)) = deser_content.relates_to);
     assert_eq!(deser_reference.event_id, reference.event_id);
 }
 
@@ -397,7 +397,7 @@ fn content_thread_deserialization() {
 
     let content = from_json_value::<RoomEncryptedEventContent>(json).unwrap();
 
-    assert_matches!(content.scheme, EncryptedEventScheme::MegolmV1AesSha2(encrypted_content));
+    assert_let!(EncryptedEventScheme::MegolmV1AesSha2(encrypted_content) = content.scheme);
     assert_eq!(encrypted_content.session_id, "IkwqWxT2zy3DI1E/zM2Wq+CE8tr3eEpsxsVGjGrMPdw");
     assert_eq!(
         encrypted_content.ciphertext,
@@ -409,7 +409,7 @@ fn content_thread_deserialization() {
         lDl5mzVO3tPnJMKZ0hn+AF"
     );
 
-    assert_matches!(content.relates_to, Some(Relation::Thread(thread)));
+    assert_let!(Some(Relation::Thread(thread)) = content.relates_to);
     assert_eq!(thread.event_id, "$thread_root");
     assert_eq!(thread.in_reply_to.unwrap().event_id, "$prev_event");
     assert!(!thread.is_falling_back);
@@ -425,7 +425,7 @@ fn content_thread_serialization_roundtrip() {
     let deser_content = json_content.deserialize().unwrap();
 
     assert_matches!(deser_content.scheme, EncryptedEventScheme::MegolmV1AesSha2(_));
-    assert_matches!(deser_content.relates_to, Some(Relation::Thread(deser_thread)));
+    assert_let!(Some(Relation::Thread(deser_thread)) = deser_content.relates_to);
     assert_eq!(deser_thread.event_id, thread.event_id);
     assert_eq!(deser_thread.in_reply_to.unwrap().event_id, thread.in_reply_to.unwrap().event_id);
     assert_eq!(deser_thread.is_falling_back, thread.is_falling_back);
@@ -485,7 +485,7 @@ fn content_annotation_deserialization() {
 
     let content = from_json_value::<RoomEncryptedEventContent>(json).unwrap();
 
-    assert_matches!(content.scheme, EncryptedEventScheme::MegolmV1AesSha2(encrypted_content));
+    assert_let!(EncryptedEventScheme::MegolmV1AesSha2(encrypted_content) = content.scheme);
     assert_eq!(encrypted_content.session_id, "IkwqWxT2zy3DI1E/zM2Wq+CE8tr3eEpsxsVGjGrMPdw");
     assert_eq!(
         encrypted_content.ciphertext,
@@ -497,7 +497,7 @@ fn content_annotation_deserialization() {
         lDl5mzVO3tPnJMKZ0hn+AF"
     );
 
-    assert_matches!(content.relates_to, Some(Relation::Annotation(annotation)));
+    assert_let!(Some(Relation::Annotation(annotation)) = content.relates_to);
     assert_eq!(annotation.event_id, "$annotated_event");
     assert_eq!(annotation.key, "some_key");
 }
@@ -514,7 +514,7 @@ fn content_annotation_serialization_roundtrip() {
     let deser_content = json_content.deserialize().unwrap();
 
     assert_matches!(deser_content.scheme, EncryptedEventScheme::MegolmV1AesSha2(_));
-    assert_matches!(deser_content.relates_to, Some(Relation::Annotation(deser_annotation)));
+    assert_let!(Some(Relation::Annotation(deser_annotation)) = deser_content.relates_to);
     assert_eq!(deser_annotation.event_id, annotation.event_id);
     assert_eq!(deser_annotation.key, annotation.key);
 }
@@ -542,7 +542,7 @@ fn custom_relation_deserialization() {
 
     let content = from_json_value::<RoomEncryptedEventContent>(content_json).unwrap();
 
-    assert_matches!(content.scheme, EncryptedEventScheme::MegolmV1AesSha2(encrypted_content));
+    assert_let!(EncryptedEventScheme::MegolmV1AesSha2(encrypted_content) = content.scheme);
     assert_eq!(encrypted_content.session_id, "IkwqWxT2zy3DI1E/zM2Wq+CE8tr3eEpsxsVGjGrMPdw");
     assert_eq!(
         encrypted_content.ciphertext,

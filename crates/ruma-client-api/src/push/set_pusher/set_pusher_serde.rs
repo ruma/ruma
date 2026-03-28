@@ -67,7 +67,7 @@ impl<'de> Deserialize<'de> for PusherAction {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
+    use assert_matches2::{assert_let, assert_matches};
     use ruma_common::canonical_json::assert_to_canonical_json_eq;
     use serde_json::{from_value as from_json_value, json};
 
@@ -131,7 +131,7 @@ mod tests {
             "data": {}
         });
 
-        assert_matches!(from_json_value(json).unwrap(), PusherAction::Post(post_data));
+        assert_let!(PusherAction::Post(post_data) = from_json_value(json).unwrap());
         assert!(!post_data.append);
 
         let pusher = post_data.pusher;
@@ -152,7 +152,7 @@ mod tests {
             "kind": null,
         });
 
-        assert_matches!(from_json_value(json).unwrap(), PusherAction::Delete(ids));
+        assert_let!(PusherAction::Delete(ids) = from_json_value(json).unwrap());
         assert_eq!(ids.pushkey, "abcdef");
         assert_eq!(ids.app_id, "my.matrix.app");
     }

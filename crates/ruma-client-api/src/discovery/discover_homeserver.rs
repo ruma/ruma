@@ -233,7 +233,7 @@ pub struct CustomRtcFocusInfo {
 #[cfg(test)]
 mod tests {
     #[cfg(feature = "unstable-msc4143")]
-    use assert_matches2::assert_matches;
+    use assert_matches2::assert_let;
     #[cfg(feature = "unstable-msc4143")]
     use ruma_common::canonical_json::assert_to_canonical_json_eq;
     #[cfg(feature = "unstable-msc4143")]
@@ -255,7 +255,7 @@ mod tests {
         let focus: RtcFocusInfo = from_json_value(json).unwrap();
 
         // Then it should be recognized as a LiveKit focus with the correct service URL.
-        assert_matches!(focus, RtcFocusInfo::LiveKit(info));
+        assert_let!(RtcFocusInfo::LiveKit(info) = focus);
         assert_eq!(info.service_url, "https://livekit.example.com");
     }
 
