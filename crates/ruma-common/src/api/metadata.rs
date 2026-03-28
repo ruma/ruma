@@ -769,6 +769,14 @@ pub enum FeatureFlag {
     #[ruma_enum(rename = "org.matrix.simplified_msc3575")]
     Msc4186,
 
+    /// `uk.timedout.msc4323` ([MSC])
+    ///
+    /// Suspend and lock endpoints.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4323
+    #[ruma_enum(rename = "uk.timedout.msc4323")]
+    Msc4323,
+
     /// `org.matrix.msc4380_invite_permission_config` ([MSC])
     ///
     /// Invite Blocking.
