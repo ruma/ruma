@@ -63,6 +63,8 @@ Improvements:
   type with `Base64::as_inner()`.
 - Add `MatrixVersion::V1_18`.
 - `CanonicalJsonValue::json_type()` allows to get the `JsonType` of a value.
+- Add `FeatureFlag::Msc4323`, the unstable feature flag for the user suspension
+  and locking endpoints, according to MSC4323.
 
 # 0.17.1
 
