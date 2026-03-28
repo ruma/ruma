@@ -45,6 +45,8 @@ Improvements:
   an array, and the inner bytes can be accessed without consuming the wrapper
   type with `Base64::as_inner()`.
 - Add `MatrixVersion::V1_18`.
+- Add `FeatureFlag::Msc4323`, the unstable feature flag for the user suspension
+  and locking endpoints, according to MSC4323.
 
 # 0.17.1
 
