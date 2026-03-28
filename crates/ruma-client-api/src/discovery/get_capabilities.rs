@@ -141,6 +141,17 @@ pub mod v3 {
         )]
         pub forget_forced_upon_leave: ForgetForcedUponLeaveCapability,
 
+        /// Capability to indicate if the user can perform account moderation actions via [server
+        /// administration] endpoints.
+        ///
+        /// [server administration]: https://spec.matrix.org/latest/client-server-api/#server-administration
+        #[serde(
+            rename = "m.account_moderation",
+            default,
+            skip_serializing_if = "AccountModerationCapability::is_default"
+        )]
+        pub account_moderation: AccountModerationCapability,
+
         /// Any other custom capabilities that the server supports outside of the specification,
         /// labeled using the Java package naming convention and stored as arbitrary JSON values.
         #[serde(flatten)]
@@ -174,6 +185,7 @@ pub mod v3 {
                 "m.forget_forced_upon_leave" => {
                     Some(Cow::Owned(serialize(&self.forget_forced_upon_leave)))
                 }
+                "m.account_moderation" => Some(Cow::Owned(serialize(&self.account_moderation))),
                 _ => self.custom_capabilities.get(capability).map(Cow::Borrowed),
             }
         }
@@ -195,6 +207,9 @@ pub mod v3 {
                 "m.get_login_token" => self.get_login_token = from_json_value(value)?,
                 "m.forget_forced_upon_leave" => {
                     self.forget_forced_upon_leave = from_json_value(value)?;
+                }
+                "m.account_moderation" => {
+                    self.account_moderation = from_json_value(value)?;
                 }
                 _ => {
                     self.custom_capabilities.insert(capability.to_owned(), value);
@@ -457,6 +472,32 @@ pub mod v3 {
         /// Returns whether all fields have their default value.
         pub fn is_default(&self) -> bool {
             !self.enabled
+        }
+    }
+
+    /// Information about the `m.account_moderation` capability.
+    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct AccountModerationCapability {
+        /// Whether the user can suspend a user via `PUT /admin/suspend/{userId}`.
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        pub suspend: bool,
+
+        /// Whether the user can lock a user via `PUT /admin/lock/{userId}`.
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        pub lock: bool,
+    }
+
+    impl AccountModerationCapability {
+        /// Creates a new `AccountModerationCapability` with the given suspend and lock
+        /// capabilities.
+        pub fn new(suspend: bool, lock: bool) -> Self {
+            Self { suspend, lock }
+        }
+
+        /// Returns whether all fields have their default value.
+        pub fn is_default(&self) -> bool {
+            !self.suspend && !self.lock
         }
     }
 }
