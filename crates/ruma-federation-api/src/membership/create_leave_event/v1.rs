@@ -1,6 +1,6 @@
 //! `/v1/` ([spec])
 //!
-//! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1send_leaveroomideventid
+//! [spec]: https://spec.matrix.org/v1.17/server-server-api/#put_matrixfederationv1send_leaveroomideventid
 
 use ruma_common::{
     OwnedEventId, OwnedRoomId,
