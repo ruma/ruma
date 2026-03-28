@@ -175,9 +175,9 @@ pub mod v3 {
 
         /// Whether this flow is preferred over other flows.
         ///
-        /// If this is `true`, [OAuth 2.0 aware] clients must only offer this flow to the user.
+        /// If this is `true`, [OAuth 2.0 aware clients] must only offer this flow to the user.
         ///
-        /// [OAuth 2.0 aware]: https://github.com/matrix-org/matrix-spec-proposals/pull/3824
+        /// [OAuth 2.0 aware clients]: https://spec.matrix.org/latest/client-server-api/#oauth-20-aware-clients
         #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub oauth_aware_preferred: bool,
     }

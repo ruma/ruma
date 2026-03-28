@@ -435,7 +435,9 @@ pub mod v3 {
         }
     }
 
-    /// Information about the `m.forget_forced_upon_leave` capability.
+    /// Information about the [`m.forget_forced_upon_leave`] capability.
+    ///
+    /// [`m.forget_forced_upon_leave`]: https://spec.matrix.org/latest/client-server-api/#mforget_forced_upon_leave-capability
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct ForgetForcedUponLeaveCapability {
