@@ -21,6 +21,7 @@ pub mod event;
 pub mod keys;
 pub mod membership;
 pub mod openid;
+pub mod policy;
 pub mod query;
 pub mod room;
 pub mod space;

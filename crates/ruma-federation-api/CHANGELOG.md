@@ -1,5 +1,10 @@
 # [unreleased]
 
+Improvements:
+
+- Add the Policy Server event signing endpoint, according to MSC4284 / Matrix
+  1.18.
+
 # 0.13.1
 
 Bug fixes:
