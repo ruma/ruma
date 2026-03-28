@@ -44,6 +44,7 @@ Improvements:
 - It is now possible to use `Base64::parse` when the inner `B` "bytes" type is
   an array, and the inner bytes can be accessed without consuming the wrapper
   type with `Base64::as_inner()`.
+- Add `MatrixVersion::V1_18`.
 
 # 0.17.1
 
