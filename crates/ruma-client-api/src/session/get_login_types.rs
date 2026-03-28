@@ -319,7 +319,7 @@ pub mod v3 {
 
     #[cfg(test)]
     mod tests {
-        use assert_matches2::assert_matches;
+        use assert_matches2::{assert_let, assert_matches};
         use ruma_common::{canonical_json::assert_to_canonical_json_eq, mxc_uri};
         use serde::{Deserialize, Serialize};
         use serde_json::{Value as JsonValue, from_value as from_json_value, json};
@@ -357,7 +357,7 @@ pub mod v3 {
             }))
             .unwrap();
             assert_eq!(wrapper.flows.len(), 1);
-            assert_matches!(&wrapper.flows[0], LoginType::_Custom(custom));
+            assert_let!(LoginType::_Custom(custom) = &wrapper.flows[0]);
             assert_eq!(custom.type_, "io.ruma.custom");
             assert_eq!(custom.data.len(), 1);
             assert_eq!(custom.data.get("color"), Some(&JsonValue::from("green")));
@@ -388,9 +388,9 @@ pub mod v3 {
             assert_eq!(wrapper.flows.len(), 1);
             let flow = &wrapper.flows[0];
 
-            assert_matches!(
-                flow,
-                LoginType::Sso(SsoLoginType { identity_providers, oauth_aware_preferred: false })
+            assert_let!(
+                LoginType::Sso(SsoLoginType { identity_providers, oauth_aware_preferred: false }) =
+                    flow
             );
             assert_eq!(identity_providers.len(), 2);
 

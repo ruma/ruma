@@ -244,7 +244,7 @@ impl OutgoingResponse for UiaaResponse {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
+    use assert_matches2::{assert_let, assert_matches};
     use ruma_common::serde::JsonObject;
     use serde_json::{from_value as from_json_value, json};
 
@@ -287,7 +287,7 @@ mod tests {
             Ok(Some(_))
         );
 
-        assert_matches!(info.params::<LoginTermsParams>(&AuthType::Terms), Ok(Some(params)));
+        assert_let!(Ok(Some(params)) = info.params::<LoginTermsParams>(&AuthType::Terms));
         assert_eq!(params.policies.len(), 1);
 
         let policy = params.policies.get("privacy").unwrap();
@@ -328,11 +328,11 @@ mod tests {
         });
 
         let info = from_json_value::<UiaaInfo>(stable_json).unwrap();
-        assert_matches!(info.params::<OAuthParams>(&AuthType::OAuth), Ok(Some(params)));
+        assert_let!(Ok(Some(params)) = info.params::<OAuthParams>(&AuthType::OAuth));
         assert_eq!(params.url, url);
 
         let info = from_json_value::<UiaaInfo>(unstable_json).unwrap();
-        assert_matches!(info.params::<OAuthParams>(&AuthType::OAuth), Ok(Some(params)));
+        assert_let!(Ok(Some(params)) = info.params::<OAuthParams>(&AuthType::OAuth));
         assert_eq!(params.url, url);
     }
 }

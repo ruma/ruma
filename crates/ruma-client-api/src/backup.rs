@@ -268,7 +268,7 @@ mod tests {
             },
         });
 
-        assert_let!(Ok(backup_algorithm) = from_json_value::<BackupAlgorithm>(json.clone()));
+        let backup_algorithm = from_json_value::<BackupAlgorithm>(json.clone()).unwrap();
         assert_eq!(backup_algorithm.algorithm(), "local.dev.unknown_algorithm");
         assert_let!(Cow::Borrowed(auth_data) = backup_algorithm.auth_data());
 

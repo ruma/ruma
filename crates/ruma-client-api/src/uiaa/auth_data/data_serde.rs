@@ -141,7 +141,7 @@ impl<'de> Deserialize<'de> for UserIdentifier {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
+    use assert_matches2::assert_let;
     use ruma_common::canonical_json::assert_to_canonical_json_eq;
     use serde_json::{from_value as from_json_value, json};
 
@@ -203,7 +203,7 @@ mod tests {
             "type": "m.id.user",
             "user": "@user:notareal.hs",
         });
-        assert_matches!(from_json_value(json), Ok(UserIdentifier::UserIdOrLocalpart(user)));
+        assert_let!(Ok(UserIdentifier::UserIdOrLocalpart(user)) = from_json_value(json));
         assert_eq!(user, "@user:notareal.hs");
 
         let json = json!({
@@ -211,7 +211,7 @@ mod tests {
             "country": "33",
             "phone": "0102030405",
         });
-        assert_matches!(from_json_value(json), Ok(UserIdentifier::PhoneNumber { country, phone }));
+        assert_let!(Ok(UserIdentifier::PhoneNumber { country, phone }) = from_json_value(json));
         assert_eq!(country, "33");
         assert_eq!(phone, "0102030405");
 
@@ -220,7 +220,7 @@ mod tests {
             "medium": "email",
             "address": "me@myprovider.net",
         });
-        assert_matches!(from_json_value(json), Ok(UserIdentifier::Email { address }));
+        assert_let!(Ok(UserIdentifier::Email { address }) = from_json_value(json));
         assert_eq!(address, "me@myprovider.net");
 
         let json = json!({
@@ -228,7 +228,7 @@ mod tests {
             "medium": "msisdn",
             "address": "330102030405",
         });
-        assert_matches!(from_json_value(json), Ok(UserIdentifier::Msisdn { number }));
+        assert_let!(Ok(UserIdentifier::Msisdn { number }) = from_json_value(json));
         assert_eq!(number, "330102030405");
 
         let json = json!({
