@@ -9,12 +9,10 @@ use xshell::Shell;
 use crate::{Metadata, NIGHTLY, Result, bench::BenchPackage, cargo::FeatureFilter, cmd};
 
 mod reexport_features;
-mod spec_links;
 mod unused_features;
 
-use reexport_features::check_reexport_features;
-use spec_links::check_spec_links;
-use unused_features::check_unused_features;
+use self::{reexport_features::check_reexport_features, unused_features::check_unused_features};
+use crate::spec_links::SpecLinksCheckTask;
 
 // Keep in sync with README.md, the root Cargo.toml and .github/workflows/ci.yml
 const MSRV: &str = "1.89";
@@ -139,7 +137,9 @@ impl CiTask {
             Some(CiCmd::Lint) => self.lint()?,
             Some(CiCmd::SortedDependencies) => self.sorted_dependencies()?,
             Some(CiCmd::UnusedDependencies) => self.unused_dependencies()?,
-            Some(CiCmd::SpecLinks) => check_spec_links(&self.project_root().join("crates"))?,
+            Some(CiCmd::SpecLinks) => {
+                SpecLinksCheckTask::new().run(&self.project_metadata.crates_path())?;
+            }
             Some(CiCmd::ReexportFeatures) => check_reexport_features(&self.project_metadata)?,
             Some(CiCmd::Typos) => self.typos()?,
             Some(CiCmd::UnusedFeatures) => check_unused_features(&self.sh, &self.project_metadata)?,
@@ -385,7 +385,7 @@ impl CiTask {
         // Check unused dependencies
         let unused_dependencies_res = self.unused_dependencies();
         // Check that all links point to the same version of the spec
-        let spec_links_res = check_spec_links(&self.project_root().join("crates"));
+        let spec_links_res = SpecLinksCheckTask::new().run(&self.project_metadata.crates_path());
         // Check that all cargo features of sub-crates can be enabled from ruma.
         let reexport_features_res = check_reexport_features(&self.project_metadata);
         // Check whether there are unused cargo features.
