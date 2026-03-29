@@ -1,6 +1,6 @@
 //! `/v1/` ([spec])
 //!
-//! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1mediadownloadmediaid
+//! [spec]: https://spec.matrix.org/v1.18/server-server-api/#get_matrixfederationv1mediadownloadmediaid
 
 use std::time::Duration;
 

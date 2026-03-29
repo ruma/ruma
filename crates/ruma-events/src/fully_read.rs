@@ -1,6 +1,6 @@
 //! Types for the [`m.fully_read`] event.
 //!
-//! [`m.fully_read`]: https://spec.matrix.org/latest/client-server-api/#mfully_read
+//! [`m.fully_read`]: https://spec.matrix.org/v1.18/client-server-api/#mfully_read
 
 use ruma_common::OwnedEventId;
 use ruma_macros::EventContent;

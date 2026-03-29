@@ -9,8 +9,8 @@ pub mod v3 {
     //! [by their Matrix identifier][spec-mxid], and one to invite a user
     //! [by their third party identifier][spec-3pid].
     //!
-    //! [spec-mxid]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3roomsroomidinvite
-    //! [spec-3pid]: https://spec.matrix.org/latest/client-server-api/#thirdparty_post_matrixclientv3roomsroomidinvite
+    //! [spec-mxid]: https://spec.matrix.org/v1.18/client-server-api/#post_matrixclientv3roomsroomidinvite
+    //! [spec-3pid]: https://spec.matrix.org/v1.18/client-server-api/#thirdparty_post_matrixclientv3roomsroomidinvite
 
     use ruma_common::{
         OwnedRoomId, OwnedUserId,

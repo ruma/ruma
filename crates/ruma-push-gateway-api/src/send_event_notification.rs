@@ -5,7 +5,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/push-gateway-api/#post_matrixpushv1notify
+    //! [spec]: https://spec.matrix.org/v1.18/push-gateway-api/#post_matrixpushv1notify
 
     use js_int::{UInt, uint};
     use ruma_common::{

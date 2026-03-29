@@ -1,6 +1,6 @@
 //! Types for the [`m.room.message`] event.
 //!
-//! [`m.room.message`]: https://spec.matrix.org/latest/client-server-api/#mroommessage
+//! [`m.room.message`]: https://spec.matrix.org/v1.18/client-server-api/#mroommessage
 
 use std::borrow::Cow;
 
@@ -82,7 +82,7 @@ pub struct RoomMessageEventContent {
 
     /// Information about [related messages].
     ///
-    /// [related messages]: https://spec.matrix.org/latest/client-server-api/#forming-relationships-between-events
+    /// [related messages]: https://spec.matrix.org/v1.18/client-server-api/#forming-relationships-between-events
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation<RoomMessageEventContentWithoutRelation>>,
 
@@ -94,7 +94,7 @@ pub struct RoomMessageEventContent {
     /// beforehand to avoid re-triggering notifications for users that were already mentioned in
     /// the original event.
     ///
-    /// [mentions]: https://spec.matrix.org/latest/client-server-api/#user-and-room-mentions
+    /// [mentions]: https://spec.matrix.org/v1.18/client-server-api/#user-and-room-mentions
     #[serde(rename = "m.mentions", skip_serializing_if = "Option::is_none")]
     pub mentions: Option<Mentions>,
 }
@@ -160,7 +160,7 @@ impl RoomMessageEventContent {
     ///
     /// If `AddMentions::Yes` is used, the `sender` in the metadata is added as a user mention.
     ///
-    /// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
+    /// [rich reply]: https://spec.matrix.org/v1.18/client-server-api/#rich-replies
     #[track_caller]
     pub fn make_reply_to<'a>(
         self,
@@ -184,7 +184,7 @@ impl RoomMessageEventContent {
     ///
     /// If `AddMentions::Yes` is used, the `sender` in the metadata is added as a user mention.
     ///
-    /// [thread]: https://spec.matrix.org/latest/client-server-api/#threading
+    /// [thread]: https://spec.matrix.org/v1.18/client-server-api/#threading
     pub fn make_for_thread<'a>(
         self,
         metadata: impl Into<ReplyMetadata<'a>>,
@@ -211,7 +211,7 @@ impl RoomMessageEventContent {
     ///
     /// Panics if `self` has a `formatted_body` with a format other than HTML.
     ///
-    /// [replacement]: https://spec.matrix.org/latest/client-server-api/#event-replacements
+    /// [replacement]: https://spec.matrix.org/v1.18/client-server-api/#event-replacements
     #[track_caller]
     pub fn make_replacement(self, metadata: impl Into<ReplacementMetadata>) -> Self {
         self.without_relation().make_replacement(metadata)
@@ -226,7 +226,7 @@ impl RoomMessageEventContent {
     /// This should be called before methods that add a relation, like [`Self::make_reply_to()`] and
     /// [`Self::make_replacement()`], for the mentions to be correctly set.
     ///
-    /// [mentions]: https://spec.matrix.org/latest/client-server-api/#user-and-room-mentions
+    /// [mentions]: https://spec.matrix.org/v1.18/client-server-api/#user-and-room-mentions
     pub fn add_mentions(mut self, mentions: Mentions) -> Self {
         self.mentions.get_or_insert_with(Mentions::new).add(mentions);
         self
@@ -264,8 +264,8 @@ impl RoomMessageEventContent {
     ///
     /// This method is only effective on text, notice and emote messages.
     ///
-    /// [tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
-    /// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
+    /// [tags and attributes]: https://spec.matrix.org/v1.18/client-server-api/#mroommessage-msgtypes
+    /// [rich reply]: https://spec.matrix.org/v1.18/client-server-api/#rich-replies
     #[cfg(feature = "html")]
     pub fn sanitize(
         &mut self,
@@ -304,7 +304,7 @@ pub enum ForwardThread {
     /// This should be set if your client doesn't render threads (see the [info
     /// box for clients which are acutely aware of threads]).
     ///
-    /// [info box for clients which are acutely aware of threads]: https://spec.matrix.org/latest/client-server-api/#fallback-for-unthreaded-clients
+    /// [info box for clients which are acutely aware of threads]: https://spec.matrix.org/v1.18/client-server-api/#fallback-for-unthreaded-clients
     Yes,
 
     /// Create a reply in the main conversation even if the original message is in a thread.
@@ -338,14 +338,14 @@ pub enum ReplyWithinThread {
     ///
     /// Create a [reply within the thread].
     ///
-    /// [reply within the thread]: https://spec.matrix.org/latest/client-server-api/#replies-within-threads
+    /// [reply within the thread]: https://spec.matrix.org/v1.18/client-server-api/#replies-within-threads
     Yes,
 
     /// This is not a reply.
     ///
     /// Create a regular message in the thread, with a [fallback for unthreaded clients].
     ///
-    /// [fallback for unthreaded clients]: https://spec.matrix.org/latest/client-server-api/#fallback-for-unthreaded-clients
+    /// [fallback for unthreaded clients]: https://spec.matrix.org/v1.18/client-server-api/#fallback-for-unthreaded-clients
     No,
 }
 
@@ -408,7 +408,7 @@ pub enum MessageType {
 impl MessageType {
     /// Creates a new `MessageType`.
     ///
-    /// The `msgtype` and `body` are required fields as defined by [the `m.room.message` spec](https://spec.matrix.org/latest/client-server-api/#mroommessage).
+    /// The `msgtype` and `body` are required fields as defined by [the `m.room.message` spec](https://spec.matrix.org/v1.18/client-server-api/#mroommessage).
     /// Additionally it's possible to add arbitrary key/value pairs to the event content for custom
     /// events through the `data` map.
     ///
@@ -580,8 +580,8 @@ impl MessageType {
     ///
     /// This method is only effective on text, notice and emote messages.
     ///
-    /// [tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
-    /// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
+    /// [tags and attributes]: https://spec.matrix.org/v1.18/client-server-api/#mroommessage-msgtypes
+    /// [rich reply]: https://spec.matrix.org/v1.18/client-server-api/#rich-replies
     #[cfg(feature = "html")]
     pub fn sanitize(
         &mut self,
@@ -764,8 +764,8 @@ impl FormattedBody {
     ///
     /// Returns the sanitized HTML if the format is `MessageFormat::Html`.
     ///
-    /// [tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
-    /// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
+    /// [tags and attributes]: https://spec.matrix.org/v1.18/client-server-api/#mroommessage-msgtypes
+    /// [rich reply]: https://spec.matrix.org/v1.18/client-server-api/#rich-replies
     #[cfg(feature = "html")]
     pub fn sanitize_html(
         &mut self,

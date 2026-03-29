@@ -272,7 +272,7 @@ pub trait Metadata: Sized {
 /// Every new version denotes stable support for endpoints in a *relatively* backwards-compatible
 /// manner.
 ///
-/// Matrix has a deprecation policy, read more about it here: <https://spec.matrix.org/latest/#deprecation-policy>.
+/// Matrix has a deprecation policy, read more about it here: <https://spec.matrix.org/v1.18/#deprecation-policy>.
 ///
 /// Ruma keeps track of when endpoints are added, deprecated, and removed. It'll automatically
 /// select the right endpoint stability variation to use depending on which Matrix versions you
@@ -296,7 +296,7 @@ pub enum MatrixVersion {
     ///
     /// The other APIs are not supported because they do not have a `GET /versions` endpoint.
     ///
-    /// See <https://spec.matrix.org/latest/#legacy-versioning>.
+    /// See <https://spec.matrix.org/v1.18/#legacy-versioning>.
     V1_0,
 
     /// Version 1.1 of the Matrix specification, released in Q4 2021.

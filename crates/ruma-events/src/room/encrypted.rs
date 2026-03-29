@@ -1,6 +1,6 @@
 //! Types for the [`m.room.encrypted`] event.
 //!
-//! [`m.room.encrypted`]: https://spec.matrix.org/latest/client-server-api/#mroomencrypted
+//! [`m.room.encrypted`]: https://spec.matrix.org/v1.18/client-server-api/#mroomencrypted
 
 use std::{borrow::Cow, collections::BTreeMap};
 
@@ -175,7 +175,7 @@ impl From<RelationWithoutReplacement> for Relation {
 /// struct doesn't store the new content, since that is part of the encrypted content of an
 /// `m.room.encrypted` events.
 ///
-/// [replaces another event]: https://spec.matrix.org/latest/client-server-api/#event-replacements
+/// [replaces another event]: https://spec.matrix.org/v1.18/client-server-api/#event-replacements
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "rel_type", rename = "m.replace")]

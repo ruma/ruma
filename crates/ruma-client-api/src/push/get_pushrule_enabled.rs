@@ -5,7 +5,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3pushrulesglobalkindruleidenabled
+    //! [spec]: https://spec.matrix.org/v1.18/client-server-api/#get_matrixclientv3pushrulesglobalkindruleidenabled
 
     use ruma_common::{
         api::{auth_scheme::AccessToken, request, response},

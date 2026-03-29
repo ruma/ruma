@@ -5,7 +5,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3usersuseridreport
+    //! [spec]: https://spec.matrix.org/v1.18/client-server-api/#post_matrixclientv3usersuseridreport
 
     use ruma_common::{
         OwnedUserId,

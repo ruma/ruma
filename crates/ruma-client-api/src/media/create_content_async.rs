@@ -5,7 +5,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixmediav3uploadservernamemediaid
+    //! [spec]: https://spec.matrix.org/v1.18/client-server-api/#put_matrixmediav3uploadservernamemediaid
 
     use http::header::CONTENT_TYPE;
     use ruma_common::{

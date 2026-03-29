@@ -66,7 +66,7 @@ impl FileMessageEventContent {
         Self { info: info.into(), ..self }
     }
 
-    /// Computes the filename for the file as defined by the [spec](https://spec.matrix.org/latest/client-server-api/#media-captions).
+    /// Computes the filename for the file as defined by the [spec](https://spec.matrix.org/v1.18/client-server-api/#media-captions).
     ///
     /// This differs from the `filename` field as this method falls back to the `body` field when
     /// the `filename` field is not set.
@@ -74,7 +74,7 @@ impl FileMessageEventContent {
         self.filename.as_deref().unwrap_or(&self.body)
     }
 
-    /// Returns the caption of the media file as defined by the [spec](https://spec.matrix.org/latest/client-server-api/#media-captions).
+    /// Returns the caption of the media file as defined by the [spec](https://spec.matrix.org/v1.18/client-server-api/#media-captions).
     ///
     /// In short, this is the `body` field if the `filename` field exists and has a different value,
     /// otherwise the media file does not have a caption.
@@ -82,7 +82,7 @@ impl FileMessageEventContent {
         caption(&self.body, self.filename.as_deref())
     }
 
-    /// Returns the formatted caption of the media file as defined by the [spec](https://spec.matrix.org/latest/client-server-api/#media-captions).
+    /// Returns the formatted caption of the media file as defined by the [spec](https://spec.matrix.org/v1.18/client-server-api/#media-captions).
     ///
     /// This is the same as `caption`, but returns the formatted body instead of the plain body.
     pub fn formatted_caption(&self) -> Option<&FormattedBody> {

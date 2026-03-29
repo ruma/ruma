@@ -1,6 +1,6 @@
 //! `/v2/` ([spec])
 //!
-//! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv2inviteroomideventid
+//! [spec]: https://spec.matrix.org/v1.18/server-server-api/#put_matrixfederationv2inviteroomideventid
 
 #[cfg(feature = "unstable-msc4125")]
 use ruma_common::OwnedServerName;

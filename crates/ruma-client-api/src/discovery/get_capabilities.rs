@@ -3,12 +3,12 @@
 //! Get information about the server's supported feature set and other relevant capabilities
 //! ([spec]).
 //!
-//! [spec]: https://spec.matrix.org/latest/client-server-api/#capabilities-negotiation
+//! [spec]: https://spec.matrix.org/v1.18/client-server-api/#capabilities-negotiation
 
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3capabilities
+    //! [spec]: https://spec.matrix.org/v1.18/client-server-api/#get_matrixclientv3capabilities
 
     use std::{borrow::Cow, collections::BTreeMap};
 
@@ -145,7 +145,7 @@ pub mod v3 {
         /// Capability to indicate if the user can perform account moderation actions via [server
         /// administration] endpoints.
         ///
-        /// [server administration]: https://spec.matrix.org/latest/client-server-api/#server-administration
+        /// [server administration]: https://spec.matrix.org/v1.18/client-server-api/#server-administration
         #[serde(
             rename = "m.account_moderation",
             default,
@@ -453,7 +453,7 @@ pub mod v3 {
 
     /// Information about the [`m.forget_forced_upon_leave`] capability.
     ///
-    /// [`m.forget_forced_upon_leave`]: https://spec.matrix.org/latest/client-server-api/#mforget_forced_upon_leave-capability
+    /// [`m.forget_forced_upon_leave`]: https://spec.matrix.org/v1.18/client-server-api/#mforget_forced_upon_leave-capability
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct ForgetForcedUponLeaveCapability {

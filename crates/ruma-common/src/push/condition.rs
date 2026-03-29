@@ -179,7 +179,7 @@ impl From<ThreadSubscriptionConditionData> for PushCondition {
 pub struct EventMatchConditionData {
     /// The [dot-separated path] of the property of the event to match.
     ///
-    /// [dot-separated path]: https://spec.matrix.org/latest/appendices/#dot-separated-property-paths
+    /// [dot-separated path]: https://spec.matrix.org/v1.18/appendices/#dot-separated-property-paths
     pub key: String,
 
     /// The glob-style pattern to match against.
@@ -347,7 +347,7 @@ impl RoomVersionFeature {
 pub struct EventPropertyIsConditionData {
     /// The [dot-separated path] of the property of the event to match.
     ///
-    /// [dot-separated path]: https://spec.matrix.org/latest/appendices/#dot-separated-property-paths
+    /// [dot-separated path]: https://spec.matrix.org/v1.18/appendices/#dot-separated-property-paths
     pub key: String,
 
     /// The value to match against.
@@ -376,7 +376,7 @@ impl EventPropertyIsConditionData {
 pub struct EventPropertyContainsConditionData {
     /// The [dot-separated path] of the property of the event to match.
     ///
-    /// [dot-separated path]: https://spec.matrix.org/latest/appendices/#dot-separated-property-paths
+    /// [dot-separated path]: https://spec.matrix.org/v1.18/appendices/#dot-separated-property-paths
     pub key: String,
 
     /// The value to match against.

@@ -1,6 +1,6 @@
 //! Types for the [`m.room.server_acl`] event.
 //!
-//! [`m.room.server_acl`]: https://spec.matrix.org/latest/client-server-api/#mroomserver_acl
+//! [`m.room.server_acl`]: https://spec.matrix.org/v1.18/client-server-api/#mroomserver_acl
 
 use ruma_common::ServerName;
 use ruma_macros::EventContent;

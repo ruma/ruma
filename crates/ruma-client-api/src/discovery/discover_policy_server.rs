@@ -5,8 +5,8 @@
 //! Note that this endpoint is not necessarily handled by the homeserver or Policy Server. It may be
 //! served by another webserver.
 //!
-//! [spec]: https://spec.matrix.org/latest/client-server-api/#getwell-knownmatrixpolicy_server
-//! [Policy Server]: https://spec.matrix.org/latest/client-server-api/#policy-servers
+//! [spec]: https://spec.matrix.org/v1.18/client-server-api/#getwell-knownmatrixpolicy_server
+//! [Policy Server]: https://spec.matrix.org/v1.18/client-server-api/#policy-servers
 
 use std::collections::BTreeMap;
 

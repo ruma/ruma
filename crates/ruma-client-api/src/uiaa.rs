@@ -1,6 +1,6 @@
 //! Module for [User-Interactive Authentication API][uiaa] types.
 //!
-//! [uiaa]: https://spec.matrix.org/latest/client-server-api/#user-interactive-authentication-api
+//! [uiaa]: https://spec.matrix.org/v1.18/client-server-api/#user-interactive-authentication-api
 
 use std::{borrow::Cow, fmt, marker::PhantomData};
 

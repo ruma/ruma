@@ -5,7 +5,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/client-server-api/#peeking_get_matrixclientv3events
+    //! [spec]: https://spec.matrix.org/v1.18/client-server-api/#peeking_get_matrixclientv3events
 
     use std::time::Duration;
 

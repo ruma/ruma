@@ -1,6 +1,6 @@
 //! Common types for the [`m.room.power_levels` event][power_levels].
 //!
-//! [power_levels]: https://spec.matrix.org/latest/client-server-api/#mroompower_levels
+//! [power_levels]: https://spec.matrix.org/v1.18/client-server-api/#mroompower_levels
 
 use js_int::{Int, int};
 use ruma_macros::StringEnum;

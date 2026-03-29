@@ -1,6 +1,6 @@
 //! Types for the [`m.room_key.withheld`] event.
 //!
-//! [`m.room_key.withheld`]: https://spec.matrix.org/latest/client-server-api/#mroom_keywithheld
+//! [`m.room_key.withheld`]: https://spec.matrix.org/v1.18/client-server-api/#mroom_keywithheld
 
 use std::borrow::Cow;
 
@@ -18,7 +18,7 @@ use crate::PrivOwnedStr;
 ///
 /// Typically encrypted as an `m.room.encrypted` event, then sent as a to-device event.
 ///
-/// [`m.room_key.withheld`]: https://spec.matrix.org/latest/client-server-api/#mroom_keywithheld
+/// [`m.room_key.withheld`]: https://spec.matrix.org/v1.18/client-server-api/#mroom_keywithheld
 #[derive(Clone, Debug, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room_key.withheld", kind = ToDevice)]

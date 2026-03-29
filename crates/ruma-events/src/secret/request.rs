@@ -1,6 +1,6 @@
 //! Types for the [`m.secret.request`] event.
 //!
-//! [`m.secret.request`]: https://spec.matrix.org/latest/client-server-api/#msecretrequest
+//! [`m.secret.request`]: https://spec.matrix.org/v1.18/client-server-api/#msecretrequest
 
 use ruma_common::{OwnedDeviceId, OwnedTransactionId, serde::StringEnum};
 use ruma_macros::EventContent;

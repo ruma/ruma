@@ -134,7 +134,7 @@ pub use ruma_state_res as state_res;
 /// (De)serializable types for various [Matrix APIs][apis] requests and responses and abstractions
 /// for them.
 ///
-/// [apis]: https://spec.matrix.org/latest/#matrix-apis
+/// [apis]: https://spec.matrix.org/v1.18/#matrix-apis
 #[cfg(feature = "api")]
 pub mod api {
     #[cfg(any(feature = "appservice-api-c", feature = "appservice-api-s"))]

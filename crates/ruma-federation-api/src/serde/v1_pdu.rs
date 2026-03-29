@@ -1,7 +1,7 @@
 //! A module to deserialize a response from incorrectly specified endpoint:
 //!
 //! - [PUT /_matrix/federation/v1/send_join/{roomId}/{eventId}](https://spec.matrix.org/v1.17/server-server-api/#put_matrixfederationv1send_joinroomideventid)
-//! - [PUT /_matrix/federation/v1/invite/{roomId}/{eventId}](https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1inviteroomideventid)
+//! - [PUT /_matrix/federation/v1/invite/{roomId}/{eventId}](https://spec.matrix.org/v1.18/server-server-api/#put_matrixfederationv1inviteroomideventid)
 //! - [PUT /_matrix/federation/v1/send_leave/{roomId}/{eventId}](https://spec.matrix.org/v1.17/server-server-api/#put_matrixfederationv1send_leaveroomideventid)
 //!
 //! For more information, see this [GitHub issue][issue].

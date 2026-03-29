@@ -1,6 +1,6 @@
 //! Types for the [`m.key.verification.cancel`] event.
 //!
-//! [`m.key.verification.cancel`]: https://spec.matrix.org/latest/client-server-api/#mkeyverificationcancel
+//! [`m.key.verification.cancel`]: https://spec.matrix.org/v1.18/client-server-api/#mkeyverificationcancel
 
 use ruma_common::{OwnedTransactionId, serde::StringEnum};
 use ruma_macros::EventContent;

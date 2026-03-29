@@ -8,7 +8,7 @@ use crate::serde::{Base64, Base64DecodeError, base64::Standard};
 /// This string is validated using the set `[a-zA-Z0-9+/=]`, but it is not validated to be decodable
 /// as base64. This type is provided simply for its semantic value.
 ///
-/// [cross-signing]: https://spec.matrix.org/latest/client-server-api/#cross-signing
+/// [cross-signing]: https://spec.matrix.org/v1.18/client-server-api/#cross-signing
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(validate = ruma_identifiers_validation::base64_public_key::validate)]

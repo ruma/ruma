@@ -1,6 +1,6 @@
 //! `/v2/` ([spec])
 //!
-//! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv2send_joinroomideventid
+//! [spec]: https://spec.matrix.org/v1.18/server-server-api/#put_matrixfederationv2send_joinroomideventid
 
 use ruma_common::{
     OwnedEventId, OwnedRoomId,
@@ -48,7 +48,7 @@ pub struct Request {
     /// the response `state` field, and include the auth chains for these membership events in
     /// the response `auth_chain` field.
     ///
-    /// [Client-Server `/sync` response]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3sync
+    /// [Client-Server `/sync` response]: https://spec.matrix.org/v1.18/client-server-api/#get_matrixclientv3sync
     #[ruma_api(query)]
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub omit_members: bool,

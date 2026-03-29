@@ -12,7 +12,7 @@ mod params_serde;
 ///
 /// See [the spec] for how to use this.
 ///
-/// [the spec]: https://spec.matrix.org/latest/client-server-api/#terms-of-service-at-registration
+/// [the spec]: https://spec.matrix.org/v1.18/client-server-api/#terms-of-service-at-registration
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct LoginTermsParams {
@@ -72,7 +72,7 @@ impl PolicyTranslation {
 
 /// Parameters for an [OAuth 2.0-based] UIAA flow.
 ///
-/// [OAuth 2.0-based]: https://spec.matrix.org/latest/client-server-api/#oauth-authentication
+/// [OAuth 2.0-based]: https://spec.matrix.org/v1.18/client-server-api/#oauth-authentication
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct OAuthParams {

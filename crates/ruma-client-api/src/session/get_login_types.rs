@@ -6,7 +6,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3login
+    //! [spec]: https://spec.matrix.org/v1.18/client-server-api/#get_matrixclientv3login
 
     use std::borrow::Cow;
 
@@ -177,7 +177,7 @@ pub mod v3 {
         ///
         /// If this is `true`, [OAuth 2.0 aware clients] must only offer this flow to the user.
         ///
-        /// [OAuth 2.0 aware clients]: https://spec.matrix.org/latest/client-server-api/#oauth-20-aware-clients
+        /// [OAuth 2.0 aware clients]: https://spec.matrix.org/v1.18/client-server-api/#oauth-20-aware-clients
         #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub oauth_aware_preferred: bool,
     }

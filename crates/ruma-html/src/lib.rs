@@ -12,7 +12,7 @@
 //! * `matrix` - Allow to convert HTML elements data into enums with variants for elements and
 //!   attributes [suggested by the Matrix Specification][spec].
 //!
-//! [spec]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
+//! [spec]: https://spec.matrix.org/v1.18/client-server-api/#mroommessage-msgtypes
 
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
@@ -27,7 +27,7 @@ pub use self::{helpers::*, html::*, sanitizer_config::*};
 
 /// What [HTML elements and attributes] should be kept by the sanitizer.
 ///
-/// [HTML elements and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
+/// [HTML elements and attributes]: https://spec.matrix.org/v1.18/client-server-api/#mroommessage-msgtypes
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[allow(clippy::exhaustive_enums)]
 pub enum HtmlSanitizerMode {

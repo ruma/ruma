@@ -1,6 +1,6 @@
 //! `/v1/` ([spec])
 //!
-//! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv1inviteroomideventid
+//! [spec]: https://spec.matrix.org/v1.18/server-server-api/#put_matrixfederationv1inviteroomideventid
 
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName, OwnedUserId,

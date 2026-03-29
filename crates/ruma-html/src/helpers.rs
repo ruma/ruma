@@ -8,8 +8,8 @@ use crate::{Html, HtmlSanitizerMode, SanitizerConfig};
 ///
 /// It can also optionally remove the [rich reply] fallback.
 ///
-/// [tags and attributes]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
-/// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
+/// [tags and attributes]: https://spec.matrix.org/v1.18/client-server-api/#mroommessage-msgtypes
+/// [rich reply]: https://spec.matrix.org/v1.18/client-server-api/#rich-replies
 pub fn sanitize_html(
     s: &str,
     mode: HtmlSanitizerMode,
@@ -29,7 +29,7 @@ pub fn sanitize_html(
 
 /// Whether to remove the [rich reply] fallback while sanitizing.
 ///
-/// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
+/// [rich reply]: https://spec.matrix.org/v1.18/client-server-api/#rich-replies
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[allow(clippy::exhaustive_enums)]
 pub enum RemoveReplyFallback {
@@ -45,7 +45,7 @@ pub enum RemoveReplyFallback {
 /// Due to the fact that the HTML is parsed, note that malformed HTML and comments will be stripped
 /// from the output.
 ///
-/// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
+/// [rich reply]: https://spec.matrix.org/v1.18/client-server-api/#rich-replies
 pub fn remove_html_reply_fallback(s: &str) -> String {
     let config = SanitizerConfig::new().remove_reply_fallback();
     sanitize_inner(s, &config)

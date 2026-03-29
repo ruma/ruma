@@ -10,7 +10,7 @@
 //! successful response. Such types can then be used by client code to make requests, and by server
 //! code to fulfill those requests.
 //!
-//! [apis]: https://spec.matrix.org/latest/#matrix-apis
+//! [apis]: https://spec.matrix.org/v1.18/#matrix-apis
 
 use std::{convert::TryInto as _, error::Error as StdError};
 
@@ -411,7 +411,7 @@ pub enum Direction {
 
 /// Data to [assert the identity] of an appservice virtual user.
 ///
-/// [assert the identity]: https://spec.matrix.org/latest/application-service-api/#identity-assertion
+/// [assert the identity]: https://spec.matrix.org/v1.18/application-service-api/#identity-assertion
 #[derive(Debug, Clone, Copy, Default, Serialize)]
 #[non_exhaustive]
 pub struct AppserviceUserIdentity<'a> {

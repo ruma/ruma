@@ -13,7 +13,7 @@ use crate::{
 /// This represents the different actions that should be taken when a rule is matched, and
 /// controls how notifications are delivered to the client.
 ///
-/// See [the spec](https://spec.matrix.org/latest/client-server-api/#actions) for details.
+/// See [the spec](https://spec.matrix.org/v1.18/client-server-api/#actions) for details.
 #[derive(Clone, Debug)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum Action {

@@ -16,7 +16,7 @@ use serde::Serialize;
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3createroom
+    //! [spec]: https://spec.matrix.org/v1.18/client-server-api/#post_matrixclientv3createroom
 
     use assign::assign;
     use ruma_common::{

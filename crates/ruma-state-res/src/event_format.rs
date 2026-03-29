@@ -7,17 +7,17 @@ use serde_json::to_string as to_json_string;
 
 /// The [maximum size allowed] for a PDU.
 ///
-/// [maximum size allowed]: https://spec.matrix.org/latest/client-server-api/#size-limits
+/// [maximum size allowed]: https://spec.matrix.org/v1.18/client-server-api/#size-limits
 const MAX_PDU_BYTES: usize = 65_535;
 
 /// The [maximum length allowed] for the `prev_events` array of a PDU.
 ///
-/// [maximum length allowed]: https://spec.matrix.org/latest/rooms/v1/#event-format
+/// [maximum length allowed]: https://spec.matrix.org/v1.18/rooms/v1/#event-format
 const MAX_PREV_EVENTS_LENGTH: usize = 20;
 
 /// The [maximum length allowed] for the `auth_events` array of a PDU.
 ///
-/// [maximum length allowed]: https://spec.matrix.org/latest/rooms/v1/#event-format
+/// [maximum length allowed]: https://spec.matrix.org/v1.18/rooms/v1/#event-format
 const MAX_AUTH_EVENTS_LENGTH: usize = 10;
 
 /// Check that the given canonicalized PDU respects the event format of the room version and the
@@ -39,8 +39,8 @@ const MAX_AUTH_EVENTS_LENGTH: usize = 10;
 ///
 /// Returns an `Err(_)` if the JSON is malformed or if the PDU doesn't pass the checks.
 ///
-/// [size limits]: https://spec.matrix.org/latest/client-server-api/#size-limits
-/// [checks performed on receipt of a PDU]: https://spec.matrix.org/latest/server-server-api/#checks-performed-on-receipt-of-a-pdu
+/// [size limits]: https://spec.matrix.org/v1.18/client-server-api/#size-limits
+/// [checks performed on receipt of a PDU]: https://spec.matrix.org/v1.18/server-server-api/#checks-performed-on-receipt-of-a-pdu
 pub fn check_pdu_format(pdu: &CanonicalJsonObject, rules: &EventFormatRules) -> Result<(), String> {
     // Check the PDU size, it must occur on the full PDU with signatures.
     let json =

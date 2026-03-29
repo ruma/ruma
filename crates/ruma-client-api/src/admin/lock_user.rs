@@ -11,7 +11,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv1adminlockuserid
+    //! [spec]: https://spec.matrix.org/v1.18/client-server-api/#put_matrixclientv1adminlockuserid
 
     use ruma_common::{
         OwnedUserId,

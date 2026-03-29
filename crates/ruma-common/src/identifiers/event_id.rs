@@ -51,8 +51,8 @@ use super::{IdParseError, ServerName};
 /// );
 /// ```
 ///
-/// [event ID]: https://spec.matrix.org/latest/appendices/#event-ids
-/// [room versions]: https://spec.matrix.org/latest/rooms/#complete-list-of-room-versions
+/// [event ID]: https://spec.matrix.org/v1.18/appendices/#event-ids
+/// [room versions]: https://spec.matrix.org/v1.18/rooms/
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(validate = ruma_identifiers_validation::event_id::validate)]

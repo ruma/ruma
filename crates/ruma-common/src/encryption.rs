@@ -1,6 +1,6 @@
 //! Common types for [encryption] related tasks.
 //!
-//! [encryption]: https://spec.matrix.org/latest/client-server-api/#end-to-end-encryption
+//! [encryption]: https://spec.matrix.org/v1.18/client-server-api/#end-to-end-encryption
 
 use std::collections::BTreeMap;
 
@@ -117,7 +117,7 @@ pub enum OneTimeKey {
 
 /// A [cross-signing] key.
 ///
-/// [cross-signing]: https://spec.matrix.org/latest/client-server-api/#cross-signing
+/// [cross-signing]: https://spec.matrix.org/v1.18/client-server-api/#cross-signing
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct CrossSigningKey {

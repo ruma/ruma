@@ -22,7 +22,7 @@ pub mod ready;
 pub mod request;
 pub mod start;
 
-// For these two constants, see <https://spec.matrix.org/latest/client-server-api/#key-verification-framework>
+// For these two constants, see <https://spec.matrix.org/v1.18/client-server-api/#key-verification-framework>
 /// The amount of time after which a verification request should be ignored, relative to its
 /// `origin_server_ts` (for in-room events) or its `timestamp` (for to-device events).
 ///

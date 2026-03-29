@@ -5,7 +5,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/application-service-api/#put_matrixappv1transactionstxnid
+    //! [spec]: https://spec.matrix.org/v1.18/application-service-api/#put_matrixappv1transactionstxnid
 
     use std::borrow::Cow;
     #[cfg(feature = "unstable-msc3202")]

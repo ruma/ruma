@@ -1,6 +1,6 @@
 //! Types for the [`m.call.negotiate`] event.
 //!
-//! [`m.call.negotiate`]: https://spec.matrix.org/latest/client-server-api/#mcallnegotiate
+//! [`m.call.negotiate`]: https://spec.matrix.org/v1.18/client-server-api/#mcallnegotiate
 
 use std::collections::BTreeMap;
 

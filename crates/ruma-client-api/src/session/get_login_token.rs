@@ -5,7 +5,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv1loginget_token
+    //! [spec]: https://spec.matrix.org/v1.18/client-server-api/#post_matrixclientv1loginget_token
 
     use std::time::Duration;
 

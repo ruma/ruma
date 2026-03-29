@@ -61,7 +61,7 @@ pub trait KeyName: AsRef<str> {
 /// According to the spec, localparts can consist of any legal non-surrogate Unicode code points
 /// except for `:` and `NUL` (`U+0000`).
 ///
-/// [allowed over federation]: https://spec.matrix.org/latest/appendices/#historical-user-ids
+/// [allowed over federation]: https://spec.matrix.org/v1.18/appendices/#historical-user-ids
 pub fn localpart_is_backwards_compatible(localpart: &str) -> Result<(), Error> {
     let is_invalid = localpart.contains([':', '\0']);
     if is_invalid { Err(Error::InvalidCharacters) } else { Ok(()) }

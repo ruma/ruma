@@ -113,7 +113,7 @@ impl SanitizerConfig {
     ///
     /// This is the same as calling `SanitizerConfig::with_mode(HtmlSanitizerMode::Strict)`.
     ///
-    /// [suggested in the Matrix specification]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
+    /// [suggested in the Matrix specification]: https://spec.matrix.org/v1.18/client-server-api/#mroommessage-msgtypes
     pub fn strict() -> Self {
         Self::with_mode(HtmlSanitizerMode::Strict)
     }
@@ -133,7 +133,7 @@ impl SanitizerConfig {
     ///
     /// This is the same as calling `SanitizerConfig::with_mode(HtmlSanitizerMode::Compat)`.
     ///
-    /// [listed in the Matrix specification]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
+    /// [listed in the Matrix specification]: https://spec.matrix.org/v1.18/client-server-api/#mroommessage-msgtypes
     pub fn compat() -> Self {
         Self::with_mode(HtmlSanitizerMode::Compat)
     }
@@ -184,7 +184,7 @@ impl SanitizerConfig {
     /// Removing elements has a higher priority than ignoring or allowing. So if this settings is
     /// set, `mx-reply` will always be removed.
     ///
-    /// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
+    /// [rich reply]: https://spec.matrix.org/v1.18/client-server-api/#rich-replies
     pub fn remove_reply_fallback(mut self) -> Self {
         self.remove_reply_fallback = true;
         self

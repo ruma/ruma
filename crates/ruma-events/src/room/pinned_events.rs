@@ -1,6 +1,6 @@
 //! Types for the [`m.room.pinned_events`] event.
 //!
-//! [`m.room.pinned_events`]: https://spec.matrix.org/latest/client-server-api/#mroompinned_events
+//! [`m.room.pinned_events`]: https://spec.matrix.org/v1.18/client-server-api/#mroompinned_events
 
 use ruma_common::OwnedEventId;
 use ruma_macros::EventContent;

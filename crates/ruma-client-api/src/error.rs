@@ -41,9 +41,9 @@ pub enum ErrorKind {
     /// [legacy authentication API] in a way that is not supported by the homeserver, because the
     /// server only supports the [OAuth 2.0 API].
     ///
-    /// [`m.login.application_service`]: https://spec.matrix.org/latest/application-service-api/#server-admin-style-permissions
-    /// [legacy authentication API]: https://spec.matrix.org/latest/client-server-api/#legacy-api
-    /// [OAuth 2.0 API]: https://spec.matrix.org/latest/client-server-api/#oauth-20-api
+    /// [`m.login.application_service`]: https://spec.matrix.org/v1.18/application-service-api/#server-admin-style-permissions
+    /// [legacy authentication API]: https://spec.matrix.org/v1.18/client-server-api/#legacy-api
+    /// [OAuth 2.0 API]: https://spec.matrix.org/v1.18/client-server-api/#oauth-20-api
     AppserviceLoginUnsupported,
 
     /// `M_BAD_ALIAS`
@@ -51,7 +51,7 @@ pub enum ErrorKind {
     /// One or more [room aliases] within the `m.room.canonical_alias` event do not point to the
     /// room ID for which the state event is to be sent to.
     ///
-    /// [room aliases]: https://spec.matrix.org/latest/client-server-api/#room-aliases
+    /// [room aliases]: https://spec.matrix.org/v1.18/client-server-api/#room-aliases
     BadAlias,
 
     /// `M_BAD_JSON`
@@ -75,7 +75,7 @@ pub enum ErrorKind {
     ///
     /// The user is unable to reject an invite to join the [server notices] room.
     ///
-    /// [server notices]: https://spec.matrix.org/latest/client-server-api/#server-notices
+    /// [server notices]: https://spec.matrix.org/v1.18/client-server-api/#server-notices
     CannotLeaveServerNoticeRoom,
 
     /// `M_CANNOT_OVERWRITE_MEDIA`
@@ -118,7 +118,7 @@ pub enum ErrorKind {
     ///
     /// The request is an attempt to send a [duplicate annotation].
     ///
-    /// [duplicate annotation]: https://spec.matrix.org/latest/client-server-api/#avoiding-duplicate-annotations
+    /// [duplicate annotation]: https://spec.matrix.org/v1.18/client-server-api/#avoiding-duplicate-annotations
     DuplicateAnnotation,
 
     /// `M_EXCLUSIVE`
@@ -136,7 +136,7 @@ pub enum ErrorKind {
     ///
     /// The room or resource does not permit [guests] to access it.
     ///
-    /// [guests]: https://spec.matrix.org/latest/client-server-api/#guest-access
+    /// [guests]: https://spec.matrix.org/v1.18/client-server-api/#guest-access
     GuestAccessForbidden,
 
     /// `M_INCOMPATIBLE_ROOM_VERSION`
@@ -174,7 +174,7 @@ pub enum ErrorKind {
     /// The request has been refused due to [rate limiting]: too many requests have been sent in a
     /// short period of time.
     ///
-    /// [rate limiting]: https://spec.matrix.org/latest/client-server-api/#rate-limiting
+    /// [rate limiting]: https://spec.matrix.org/v1.18/client-server-api/#rate-limiting
     LimitExceeded(LimitExceededErrorData),
 
     /// `M_MISSING_PARAM`
@@ -186,7 +186,7 @@ pub enum ErrorKind {
     ///
     /// No [access token] was specified for the request, but one is required.
     ///
-    /// [access token]: https://spec.matrix.org/latest/client-server-api/#client-authentication
+    /// [access token]: https://spec.matrix.org/v1.18/client-server-api/#client-authentication
     MissingToken,
 
     /// `M_NOT_FOUND`
@@ -228,7 +228,7 @@ pub enum ErrorKind {
     /// The [room alias] specified in the [`create_room`] request is already taken.
     ///
     /// [`create_room`]: crate::room::create_room
-    /// [room alias]: https://spec.matrix.org/latest/client-server-api/#room-aliases
+    /// [room alias]: https://spec.matrix.org/v1.18/client-server-api/#room-aliases
     RoomInUse,
 
     /// `M_SERVER_NOT_TRUSTED`
@@ -241,7 +241,7 @@ pub enum ErrorKind {
     ///
     /// Authentication could not be performed on the [third-party identifier].
     ///
-    /// [third-party identifier]: https://spec.matrix.org/latest/client-server-api/#adding-account-administrative-contact-information
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
     ThreepidAuthFailed,
 
     /// `M_THREEPID_DENIED`
@@ -249,28 +249,28 @@ pub enum ErrorKind {
     /// The server does not permit this [third-party identifier]. This may happen if the server
     /// only permits, for example, email addresses from a particular domain.
     ///
-    /// [third-party identifier]: https://spec.matrix.org/latest/client-server-api/#adding-account-administrative-contact-information
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
     ThreepidDenied,
 
     /// `M_THREEPID_IN_USE`
     ///
     /// The [third-party identifier] is already in use by another user.
     ///
-    /// [third-party identifier]: https://spec.matrix.org/latest/client-server-api/#adding-account-administrative-contact-information
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
     ThreepidInUse,
 
     /// `M_THREEPID_MEDIUM_NOT_SUPPORTED`
     ///
     /// The homeserver does not support adding a [third-party identifier] of the given medium.
     ///
-    /// [third-party identifier]: https://spec.matrix.org/latest/client-server-api/#adding-account-administrative-contact-information
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
     ThreepidMediumNotSupported,
 
     /// `M_THREEPID_NOT_FOUND`
     ///
     /// No account matching the given [third-party identifier] could be found.
     ///
-    /// [third-party identifier]: https://spec.matrix.org/latest/client-server-api/#adding-account-administrative-contact-information
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
     ThreepidNotFound,
 
     /// `M_TOKEN_INCORRECT`
@@ -289,7 +289,7 @@ pub enum ErrorKind {
     /// This can happen if the homeserver does not know about any of the rooms listed as
     /// conditions, for example.
     ///
-    /// [restricted]: https://spec.matrix.org/latest/client-server-api/#restricted-rooms
+    /// [restricted]: https://spec.matrix.org/v1.18/client-server-api/#restricted-rooms
     UnableToAuthorizeJoin,
 
     /// `M_UNABLE_TO_GRANT_JOIN`
@@ -299,7 +299,7 @@ pub enum ErrorKind {
     /// of [restricted rooms], but the resident server would be unable to meet the authorization
     /// rules.
     ///
-    /// [restricted rooms]: https://spec.matrix.org/latest/client-server-api/#restricted-rooms
+    /// [restricted rooms]: https://spec.matrix.org/v1.18/client-server-api/#restricted-rooms
     UnableToGrantJoin,
 
     /// `M_UNACTIONABLE`
@@ -332,7 +332,7 @@ pub enum ErrorKind {
     ///
     /// The [access or refresh token] specified was not recognized.
     ///
-    /// [access or refresh token]: https://spec.matrix.org/latest/client-server-api/#client-authentication
+    /// [access or refresh token]: https://spec.matrix.org/v1.18/client-server-api/#client-authentication
     UnknownToken(UnknownTokenErrorData),
 
     /// `M_UNRECOGNIZED`
@@ -378,21 +378,21 @@ pub enum ErrorKind {
     ///
     /// The account has been [locked] and cannot be used at this time.
     ///
-    /// [locked]: https://spec.matrix.org/latest/client-server-api/#account-locking
+    /// [locked]: https://spec.matrix.org/v1.18/client-server-api/#account-locking
     UserLocked,
 
     /// `M_USER_SUSPENDED`
     ///
     /// The account has been [suspended] and can only be used for limited actions at this time.
     ///
-    /// [suspended]: https://spec.matrix.org/latest/client-server-api/#account-suspension
+    /// [suspended]: https://spec.matrix.org/v1.18/client-server-api/#account-suspension
     UserSuspended,
 
     /// `M_WEAK_PASSWORD`
     ///
     /// The password was [rejected] by the server for being too weak.
     ///
-    /// [rejected]: https://spec.matrix.org/latest/client-server-api/#password-management
+    /// [rejected]: https://spec.matrix.org/v1.18/client-server-api/#password-management
     WeakPassword,
 
     /// `M_WRONG_ROOM_KEYS_VERSION`
@@ -400,7 +400,7 @@ pub enum ErrorKind {
     /// The version of the [room keys backup] provided in the request does not match the current
     /// backup version.
     ///
-    /// [room keys backup]: https://spec.matrix.org/latest/client-server-api/#server-side-key-backups
+    /// [room keys backup]: https://spec.matrix.org/v1.18/client-server-api/#server-side-key-backups
     WrongRoomKeysVersion(WrongRoomKeysVersionErrorData),
 
     #[doc(hidden)]
@@ -551,7 +551,7 @@ pub struct UnknownTokenErrorData {
     /// re-authentication but the session is not invalidated. The client can acquire a new
     /// access token by specifying the device ID it is already using to the login API.
     ///
-    /// [soft logout]: https://spec.matrix.org/latest/client-server-api/#soft-logout
+    /// [soft logout]: https://spec.matrix.org/v1.18/client-server-api/#soft-logout
     pub soft_logout: bool,
 }
 
@@ -618,7 +618,7 @@ pub struct CustomErrorKind {
 
 /// The possible [error codes] defined in the Matrix spec.
 ///
-/// [error codes]: https://spec.matrix.org/latest/client-server-api/#standard-error-response
+/// [error codes]: https://spec.matrix.org/v1.18/client-server-api/#standard-error-response
 #[derive(Clone, StringEnum)]
 #[non_exhaustive]
 #[ruma_enum(rename_all(prefix = "M_", rule = "SCREAMING_SNAKE_CASE"))]
@@ -630,9 +630,9 @@ pub enum ErrorCode {
     /// [legacy authentication API] in a way that is not supported by the homeserver, because the
     /// server only supports the [OAuth 2.0 API].
     ///
-    /// [`m.login.application_service`]: https://spec.matrix.org/latest/application-service-api/#server-admin-style-permissions
-    /// [legacy authentication API]: https://spec.matrix.org/latest/client-server-api/#legacy-api
-    /// [OAuth 2.0 API]: https://spec.matrix.org/latest/client-server-api/#oauth-20-api
+    /// [`m.login.application_service`]: https://spec.matrix.org/v1.18/application-service-api/#server-admin-style-permissions
+    /// [legacy authentication API]: https://spec.matrix.org/v1.18/client-server-api/#legacy-api
+    /// [OAuth 2.0 API]: https://spec.matrix.org/v1.18/client-server-api/#oauth-20-api
     AppserviceLoginUnsupported,
 
     /// `M_BAD_ALIAS`
@@ -640,7 +640,7 @@ pub enum ErrorCode {
     /// One or more [room aliases] within the `m.room.canonical_alias` event do not point to the
     /// room ID for which the state event is to be sent to.
     ///
-    /// [room aliases]: https://spec.matrix.org/latest/client-server-api/#room-aliases
+    /// [room aliases]: https://spec.matrix.org/v1.18/client-server-api/#room-aliases
     BadAlias,
 
     /// `M_BAD_JSON`
@@ -664,7 +664,7 @@ pub enum ErrorCode {
     ///
     /// The user is unable to reject an invite to join the [server notices] room.
     ///
-    /// [server notices]: https://spec.matrix.org/latest/client-server-api/#server-notices
+    /// [server notices]: https://spec.matrix.org/v1.18/client-server-api/#server-notices
     CannotLeaveServerNoticeRoom,
 
     /// `M_CANNOT_OVERWRITE_MEDIA`
@@ -708,7 +708,7 @@ pub enum ErrorCode {
     ///
     /// The request is an attempt to send a [duplicate annotation].
     ///
-    /// [duplicate annotation]: https://spec.matrix.org/latest/client-server-api/#avoiding-duplicate-annotations
+    /// [duplicate annotation]: https://spec.matrix.org/v1.18/client-server-api/#avoiding-duplicate-annotations
     DuplicateAnnotation,
 
     /// `M_EXCLUSIVE`
@@ -726,7 +726,7 @@ pub enum ErrorCode {
     ///
     /// The room or resource does not permit [guests] to access it.
     ///
-    /// [guests]: https://spec.matrix.org/latest/client-server-api/#guest-access
+    /// [guests]: https://spec.matrix.org/v1.18/client-server-api/#guest-access
     GuestAccessForbidden,
 
     /// `M_INCOMPATIBLE_ROOM_VERSION`
@@ -767,7 +767,7 @@ pub enum ErrorCode {
     /// The request has been refused due to [rate limiting]: too many requests have been sent in a
     /// short period of time.
     ///
-    /// [rate limiting]: https://spec.matrix.org/latest/client-server-api/#rate-limiting
+    /// [rate limiting]: https://spec.matrix.org/v1.18/client-server-api/#rate-limiting
     LimitExceeded,
 
     /// `M_MISSING_PARAM`
@@ -779,7 +779,7 @@ pub enum ErrorCode {
     ///
     /// No [access token] was specified for the request, but one is required.
     ///
-    /// [access token]: https://spec.matrix.org/latest/client-server-api/#client-authentication
+    /// [access token]: https://spec.matrix.org/v1.18/client-server-api/#client-authentication
     MissingToken,
 
     /// `M_NOT_FOUND`
@@ -822,7 +822,7 @@ pub enum ErrorCode {
     /// The [room alias] specified in the [`create_room`] request is already taken.
     ///
     /// [`create_room`]: crate::room::create_room
-    /// [room alias]: https://spec.matrix.org/latest/client-server-api/#room-aliases
+    /// [room alias]: https://spec.matrix.org/v1.18/client-server-api/#room-aliases
     RoomInUse,
 
     /// `M_SERVER_NOT_TRUSTED`
@@ -835,7 +835,7 @@ pub enum ErrorCode {
     ///
     /// Authentication could not be performed on the [third-party identifier].
     ///
-    /// [third-party identifier]: https://spec.matrix.org/latest/client-server-api/#adding-account-administrative-contact-information
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
     ThreepidAuthFailed,
 
     /// `M_THREEPID_DENIED`
@@ -843,28 +843,28 @@ pub enum ErrorCode {
     /// The server does not permit this [third-party identifier]. This may happen if the server
     /// only permits, for example, email addresses from a particular domain.
     ///
-    /// [third-party identifier]: https://spec.matrix.org/latest/client-server-api/#adding-account-administrative-contact-information
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
     ThreepidDenied,
 
     /// `M_THREEPID_IN_USE`
     ///
     /// The [third-party identifier] is already in use by another user.
     ///
-    /// [third-party identifier]: https://spec.matrix.org/latest/client-server-api/#adding-account-administrative-contact-information
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
     ThreepidInUse,
 
     /// `M_THREEPID_MEDIUM_NOT_SUPPORTED`
     ///
     /// The homeserver does not support adding a [third-party identifier] of the given medium.
     ///
-    /// [third-party identifier]: https://spec.matrix.org/latest/client-server-api/#adding-account-administrative-contact-information
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
     ThreepidMediumNotSupported,
 
     /// `M_THREEPID_NOT_FOUND`
     ///
     /// No account matching the given [third-party identifier] could be found.
     ///
-    /// [third-party identifier]: https://spec.matrix.org/latest/client-server-api/#adding-account-administrative-contact-information
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
     ThreepidNotFound,
 
     /// `M_TOKEN_INCORRECT`
@@ -883,7 +883,7 @@ pub enum ErrorCode {
     /// This can happen if the homeserver does not know about any of the rooms listed as
     /// conditions, for example.
     ///
-    /// [restricted]: https://spec.matrix.org/latest/client-server-api/#restricted-rooms
+    /// [restricted]: https://spec.matrix.org/v1.18/client-server-api/#restricted-rooms
     #[ruma_enum(rename = "M_UNABLE_TO_AUTHORISE_JOIN")]
     UnableToAuthorizeJoin,
 
@@ -894,7 +894,7 @@ pub enum ErrorCode {
     /// of [restricted rooms], but the resident server would be unable to meet the authorization
     /// rules.
     ///
-    /// [restricted rooms]: https://spec.matrix.org/latest/client-server-api/#restricted-rooms
+    /// [restricted rooms]: https://spec.matrix.org/v1.18/client-server-api/#restricted-rooms
     UnableToGrantJoin,
 
     /// `M_UNACTIONABLE`
@@ -927,7 +927,7 @@ pub enum ErrorCode {
     ///
     /// The [access or refresh token] specified was not recognized.
     ///
-    /// [access or refresh token]: https://spec.matrix.org/latest/client-server-api/#client-authentication
+    /// [access or refresh token]: https://spec.matrix.org/v1.18/client-server-api/#client-authentication
     UnknownToken,
 
     /// `M_UNRECOGNIZED`
@@ -969,21 +969,21 @@ pub enum ErrorCode {
     ///
     /// The account has been [locked] and cannot be used at this time.
     ///
-    /// [locked]: https://spec.matrix.org/latest/client-server-api/#account-locking
+    /// [locked]: https://spec.matrix.org/v1.18/client-server-api/#account-locking
     UserLocked,
 
     /// `M_USER_SUSPENDED`
     ///
     /// The account has been [suspended] and can only be used for limited actions at this time.
     ///
-    /// [suspended]: https://spec.matrix.org/latest/client-server-api/#account-suspension
+    /// [suspended]: https://spec.matrix.org/v1.18/client-server-api/#account-suspension
     UserSuspended,
 
     /// `M_WEAK_PASSWORD`
     ///
     /// The password was [rejected] by the server for being too weak.
     ///
-    /// [rejected]: https://spec.matrix.org/latest/client-server-api/#password-management
+    /// [rejected]: https://spec.matrix.org/v1.18/client-server-api/#password-management
     WeakPassword,
 
     /// `M_WRONG_ROOM_KEYS_VERSION`
@@ -991,7 +991,7 @@ pub enum ErrorCode {
     /// The version of the [room keys backup] provided in the request does not match the current
     /// backup version.
     ///
-    /// [room keys backup]: https://spec.matrix.org/latest/client-server-api/#server-side-key-backups
+    /// [room keys backup]: https://spec.matrix.org/v1.18/client-server-api/#server-side-key-backups
     WrongRoomKeysVersion,
 
     #[doc(hidden)]

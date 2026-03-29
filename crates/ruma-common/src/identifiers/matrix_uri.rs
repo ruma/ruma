@@ -257,7 +257,7 @@ impl From<(&RoomAliasId, &EventId)> for MatrixId {
 /// Get the URI through its `Display` implementation (i.e. by interpolating it
 /// in a formatting macro or via `.to_string()`).
 ///
-/// [`matrix.to` URI]: https://spec.matrix.org/latest/appendices/#matrixto-navigation
+/// [`matrix.to` URI]: https://spec.matrix.org/v1.18/appendices/#matrixto-navigation
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MatrixToUri {
     id: MatrixId,
@@ -442,7 +442,7 @@ impl From<Box<str>> for UriAction {
 /// Get the URI through its `Display` implementation (i.e. by interpolating it
 /// in a formatting macro or via `.to_string()`).
 ///
-/// [`matrix:` URI]: https://spec.matrix.org/latest/appendices/#matrix-uri-scheme
+/// [`matrix:` URI]: https://spec.matrix.org/v1.18/appendices/#matrix-uri-scheme
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MatrixUri {
     id: MatrixId,

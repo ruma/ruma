@@ -7,7 +7,7 @@ mod serde;
 pub mod v1 {
     //! `v1` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv1auth_metadata
+    //! [spec]: https://spec.matrix.org/v1.18/client-server-api/#get_matrixclientv1auth_metadata
 
     use std::collections::BTreeSet;
 
@@ -147,13 +147,13 @@ pub mod v1 {
         /// URL where the user is able to access the account management capabilities of the
         /// authorization server ([spec]).
         ///
-        /// [spec]: https://spec.matrix.org/latest/client-server-api/#account-management-url-discovery
+        /// [spec]: https://spec.matrix.org/v1.18/client-server-api/#account-management-url-discovery
         #[serde(skip_serializing_if = "Option::is_none")]
         pub account_management_uri: Option<Url>,
 
         /// List of actions that the account management URL supports ([spec]).
         ///
-        /// [spec]: https://spec.matrix.org/latest/client-server-api/#account-management-url-discovery
+        /// [spec]: https://spec.matrix.org/v1.18/client-server-api/#account-management-url-discovery
         #[serde(skip_serializing_if = "BTreeSet::is_empty")]
         pub account_management_actions_supported: BTreeSet<AccountManagementAction>,
 
@@ -458,7 +458,7 @@ pub mod v1 {
     #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
     ///
     /// [MSC4191]: https://github.com/matrix-org/matrix-spec-proposals/pull/4191
-    /// [action]: https://spec.matrix.org/latest/client-server-api/#account-management-url-actions
+    /// [action]: https://spec.matrix.org/v1.18/client-server-api/#account-management-url-actions
     #[derive(Clone, StringEnum)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum AccountManagementAction {
@@ -513,7 +513,7 @@ pub mod v1 {
         ///
         /// Servers should use this action in the URL of the [`m.oauth`] UIA type.
         ///
-        /// [`m.oauth`]: https://spec.matrix.org/latest/client-server-api/#oauth-authentication
+        /// [`m.oauth`]: https://spec.matrix.org/v1.18/client-server-api/#oauth-authentication
         #[ruma_enum(rename = "org.matrix.cross_signing_reset")]
         CrossSigningReset,
 
@@ -524,7 +524,7 @@ pub mod v1 {
     /// The [action] that the user wishes to do at the account management URL with its associated
     /// data.
     ///
-    /// [action]: https://spec.matrix.org/latest/client-server-api/#account-management-url-actions
+    /// [action]: https://spec.matrix.org/v1.18/client-server-api/#account-management-url-actions
     #[derive(Debug, Clone)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum AccountManagementActionData<'a> {

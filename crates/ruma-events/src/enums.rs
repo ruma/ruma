@@ -16,7 +16,7 @@ use super::room::encrypted;
 /// Event types that servers should send as [stripped state] to help clients identify a room when
 /// they can't access the full room state.
 ///
-/// [stripped state]: https://spec.matrix.org/latest/client-server-api/#stripped-state
+/// [stripped state]: https://spec.matrix.org/v1.18/client-server-api/#stripped-state
 pub const RECOMMENDED_STRIPPED_STATE_EVENT_TYPES: &[StateEventType] = &[
     StateEventType::RoomCreate,
     StateEventType::RoomName,

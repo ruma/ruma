@@ -1,6 +1,6 @@
 //! Types for the [`m.room_key_request`] event.
 //!
-//! [`m.room_key_request`]: https://spec.matrix.org/latest/client-server-api/#mroom_key_request
+//! [`m.room_key_request`]: https://spec.matrix.org/v1.18/client-server-api/#mroom_key_request
 
 use ruma_common::{
     EventEncryptionAlgorithm, OwnedDeviceId, OwnedRoomId, OwnedTransactionId, serde::StringEnum,

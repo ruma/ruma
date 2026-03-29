@@ -1,6 +1,6 @@
 //! Types for the [`m.call.hangup`] event.
 //!
-//! [`m.call.hangup`]: https://spec.matrix.org/latest/client-server-api/#mcallhangup
+//! [`m.call.hangup`]: https://spec.matrix.org/v1.18/client-server-api/#mcallhangup
 
 use ruma_common::{OwnedVoipId, VoipVersionId, serde::StringEnum};
 use ruma_macros::EventContent;

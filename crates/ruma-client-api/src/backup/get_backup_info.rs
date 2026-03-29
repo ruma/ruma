@@ -6,7 +6,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3room_keysversionversion
+    //! [spec]: https://spec.matrix.org/v1.18/client-server-api/#get_matrixclientv3room_keysversionversion
 
     use js_int::UInt;
     use ruma_common::{
