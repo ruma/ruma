@@ -1,6 +1,6 @@
 //! Common types for the [presence module][presence].
 //!
-//! [presence]: https://spec.matrix.org/latest/client-server-api/#presence
+//! [presence]: https://spec.matrix.org/v1.18/client-server-api/#presence
 
 use crate::{PrivOwnedStr, serde::StringEnum};
 

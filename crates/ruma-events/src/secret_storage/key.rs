@@ -1,6 +1,6 @@
 //! Types for the [`m.secret_storage.key.*`] event.
 //!
-//! [`m.secret_storage.key.*`]: https://spec.matrix.org/latest/client-server-api/#key-storage
+//! [`m.secret_storage.key.*`]: https://spec.matrix.org/v1.18/client-server-api/#key-storage
 
 use std::borrow::Cow;
 

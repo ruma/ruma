@@ -15,7 +15,7 @@ pub use self::profile_field_value_serde::ProfileFieldValueVisitor;
 
 /// The possible fields of a user's [profile].
 ///
-/// [profile]: https://spec.matrix.org/latest/client-server-api/#profiles
+/// [profile]: https://spec.matrix.org/v1.18/client-server-api/#profiles
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
@@ -38,7 +38,7 @@ pub enum ProfileFieldName {
 
 /// The possible values of a field of a user's [profile].
 ///
-/// [profile]: https://spec.matrix.org/latest/client-server-api/#profiles
+/// [profile]: https://spec.matrix.org/v1.18/client-server-api/#profiles
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]

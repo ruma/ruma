@@ -1,6 +1,6 @@
 //! Types for the [`m.space.child`] event.
 //!
-//! [`m.space.child`]: https://spec.matrix.org/latest/client-server-api/#mspacechild
+//! [`m.space.child`]: https://spec.matrix.org/v1.18/client-server-api/#mspacechild
 
 use std::{cmp::Ordering, ops::Deref};
 
@@ -132,7 +132,7 @@ impl JsonCastable<JsonObject> for HierarchySpaceChildEvent {}
 /// This trait can be used to sort a slice using `.sort_by(SpaceChildOrd::cmp_space_child)`. It is
 /// also possible to use [`SpaceChildOrdHelper`] to sort the events in a `BTreeMap` or a `BTreeSet`.
 ///
-/// [ordering children within a space]: https://spec.matrix.org/latest/client-server-api/#ordering-of-children-within-a-space
+/// [ordering children within a space]: https://spec.matrix.org/v1.18/client-server-api/#ordering-of-children-within-a-space
 pub trait SpaceChildOrd {
     #[doc(hidden)]
     fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_>;
@@ -140,7 +140,7 @@ pub trait SpaceChildOrd {
     /// Return an [`Ordering`] between `self` and `other`, using the algorithm for [ordering
     /// children within a space].
     ///
-    /// [ordering children within a space]: https://spec.matrix.org/latest/client-server-api/#ordering-of-children-within-a-space
+    /// [ordering children within a space]: https://spec.matrix.org/v1.18/client-server-api/#ordering-of-children-within-a-space
     fn cmp_space_child(&self, other: &impl SpaceChildOrd) -> Ordering {
         self.space_child_ord_fields().cmp(&other.space_child_ord_fields())
     }
@@ -149,7 +149,7 @@ pub trait SpaceChildOrd {
 /// Fields necessary to implement `Ord` for space child events using the algorithm for [ordering
 /// children within a space].
 ///
-/// [ordering children within a space]: https://spec.matrix.org/latest/client-server-api/#ordering-of-children-within-a-space
+/// [ordering children within a space]: https://spec.matrix.org/v1.18/client-server-api/#ordering-of-children-within-a-space
 #[doc(hidden)]
 #[derive(PartialEq, Eq)]
 pub struct SpaceChildOrdFields<'a> {
@@ -265,7 +265,7 @@ impl SpaceChildOrd for HierarchySpaceChildEvent {
 ///
 /// This type can be use with `BTreeMap` or `BTreeSet` to order space child events.
 ///
-/// [ordering children within a space]: https://spec.matrix.org/latest/client-server-api/#ordering-of-children-within-a-space
+/// [ordering children within a space]: https://spec.matrix.org/v1.18/client-server-api/#ordering-of-children-within-a-space
 #[derive(Debug, Clone)]
 #[allow(clippy::exhaustive_structs)]
 pub struct SpaceChildOrdHelper<T: SpaceChildOrd>(pub T);

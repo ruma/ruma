@@ -7,7 +7,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/server-server-api/#put_matrixfederationv13pidonbind
+    //! [spec]: https://spec.matrix.org/v1.18/server-server-api/#put_matrixfederationv13pidonbind
 
     use ruma_common::{
         OwnedRoomId, OwnedUserId,

@@ -6,7 +6,7 @@ use serde::{Serialize, de::DeserializeOwned};
 /// Trait implemented by types representing a field in a user's [profile] having a statically-known
 /// name.
 ///
-/// [profile]: https://spec.matrix.org/latest/client-server-api/#profiles
+/// [profile]: https://spec.matrix.org/v1.18/client-server-api/#profiles
 pub trait StaticProfileField {
     /// The type for the value of the field.
     type Value: Sized + Serialize + DeserializeOwned;

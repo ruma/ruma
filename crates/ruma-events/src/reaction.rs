@@ -1,6 +1,6 @@
 //! Types for the [`m.reaction`] event.
 //!
-//! [`m.reaction`]: https://spec.matrix.org/latest/client-server-api/#mreaction
+//! [`m.reaction`]: https://spec.matrix.org/v1.18/client-server-api/#mreaction
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

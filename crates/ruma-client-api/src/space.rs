@@ -2,7 +2,7 @@
 //!
 //! See the [Matrix specification][spec] for more details about spaces.
 //!
-//! [spec]: https://spec.matrix.org/latest/client-server-api/#spaces
+//! [spec]: https://spec.matrix.org/v1.18/client-server-api/#spaces
 
 use ruma_common::{
     room::RoomSummary,

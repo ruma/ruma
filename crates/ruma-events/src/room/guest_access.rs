@@ -1,6 +1,6 @@
 //! Types for the [`m.room.guest_access`] event.
 //!
-//! [`m.room.guest_access`]: https://spec.matrix.org/latest/client-server-api/#mroomguest_access
+//! [`m.room.guest_access`]: https://spec.matrix.org/v1.18/client-server-api/#mroomguest_access
 
 use ruma_common::serde::StringEnum;
 use ruma_macros::EventContent;

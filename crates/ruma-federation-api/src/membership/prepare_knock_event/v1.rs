@@ -1,6 +1,6 @@
 //! `/v1/` ([spec])
 //!
-//! [spec]: https://spec.matrix.org/latest/server-server-api/#get_matrixfederationv1make_knockroomiduserid
+//! [spec]: https://spec.matrix.org/v1.18/server-server-api/#get_matrixfederationv1make_knockroomiduserid
 
 use ruma_common::{
     OwnedRoomId, OwnedUserId, RoomVersionId,

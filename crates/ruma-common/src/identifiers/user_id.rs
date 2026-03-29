@@ -16,7 +16,7 @@ use super::{IdParseError, MatrixToUri, MatrixUri, ServerName, matrix_uri::UriAct
 /// assert_eq!(<&UserId>::try_from("@carl:example.com").unwrap(), "@carl:example.com");
 /// ```
 ///
-/// [user ID]: https://spec.matrix.org/latest/appendices/#user-identifiers
+/// [user ID]: https://spec.matrix.org/v1.18/appendices/#user-identifiers
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(validate = ruma_identifiers_validation::user_id::validate)]
@@ -87,7 +87,7 @@ impl UserId {
     /// This should be used to validate newly created user IDs as historical user IDs are
     /// deprecated.
     ///
-    /// [strict grammar]: https://spec.matrix.org/latest/appendices/#user-identifiers
+    /// [strict grammar]: https://spec.matrix.org/v1.18/appendices/#user-identifiers
     pub fn validate_strict(&self) -> Result<(), IdParseError> {
         let is_fully_conforming = self.validate_fully_conforming()?;
 
@@ -102,7 +102,7 @@ impl UserId {
     /// Contrary to [`UserId::is_historical()`] this method also includes user IDs that conform to
     /// the latest grammar.
     ///
-    /// [historical grammar]: https://spec.matrix.org/latest/appendices/#historical-user-ids
+    /// [historical grammar]: https://spec.matrix.org/v1.18/appendices/#historical-user-ids
     pub fn validate_historical(&self) -> Result<(), IdParseError> {
         self.validate_fully_conforming()?;
         Ok(())
@@ -113,7 +113,7 @@ impl UserId {
     /// A [historical user ID] is one that doesn't conform to the latest specification of the user
     /// ID grammar but is still accepted because it was previously allowed.
     ///
-    /// [historical user ID]: https://spec.matrix.org/latest/appendices/#historical-user-ids
+    /// [historical user ID]: https://spec.matrix.org/v1.18/appendices/#historical-user-ids
     pub fn is_historical(&self) -> bool {
         self.validate_fully_conforming().is_ok_and(|is_fully_conforming| !is_fully_conforming)
     }

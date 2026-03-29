@@ -1,6 +1,6 @@
 //! Constructors for [predefined push rules].
 //!
-//! [predefined push rules]: https://spec.matrix.org/latest/client-server-api/#predefined-rules
+//! [predefined push rules]: https://spec.matrix.org/v1.18/client-server-api/#predefined-rules
 
 use ruma_macros::StringEnum;
 
@@ -20,7 +20,7 @@ impl Ruleset {
     /// - `user_id`: the user for which to generate the default rules. Some rules depend on the
     ///   user's ID (for instance those to send notifications when they are mentioned).
     ///
-    /// [predefined push rules]: https://spec.matrix.org/latest/client-server-api/#predefined-rules
+    /// [predefined push rules]: https://spec.matrix.org/v1.18/client-server-api/#predefined-rules
     pub fn server_default(user_id: &UserId) -> Self {
         Self {
             override_: [
@@ -248,7 +248,7 @@ impl ConditionalPushRule {
 
     /// Matches [reactions] to a message.
     ///
-    /// [reactions]: https://spec.matrix.org/latest/client-server-api/#event-annotations-and-reactions
+    /// [reactions]: https://spec.matrix.org/v1.18/client-server-api/#event-annotations-and-reactions
     pub fn reaction() -> Self {
         Self {
             actions: vec![],
@@ -264,7 +264,7 @@ impl ConditionalPushRule {
 
     /// Matches [room server ACLs].
     ///
-    /// [room server ACLs]: https://spec.matrix.org/latest/client-server-api/#server-access-control-lists-acls-for-rooms
+    /// [room server ACLs]: https://spec.matrix.org/v1.18/client-server-api/#server-access-control-lists-acls-for-rooms
     pub fn server_acl() -> Self {
         Self {
             actions: vec![],
@@ -280,7 +280,7 @@ impl ConditionalPushRule {
 
     /// Matches [event replacements].
     ///
-    /// [event replacements]: https://spec.matrix.org/latest/client-server-api/#event-replacements
+    /// [event replacements]: https://spec.matrix.org/v1.18/client-server-api/#event-replacements
     pub fn suppress_edits() -> Self {
         Self {
             actions: vec![],

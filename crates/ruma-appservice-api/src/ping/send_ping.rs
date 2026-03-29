@@ -53,7 +53,7 @@ pub mod unstable {
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/application-service-api/#post_matrixappv1ping
+    //! [spec]: https://spec.matrix.org/v1.18/application-service-api/#post_matrixappv1ping
 
     use ruma_common::{
         OwnedTransactionId,

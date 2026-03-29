@@ -10,7 +10,7 @@ use crate::Error;
 /// Returns `Ok(())` if the order passes validation, or an error if the order doesn't respect
 /// the rules from the spec, as it cannot be used for ordering.
 ///
-/// [`m.space.child`]: https://spec.matrix.org/latest/client-server-api/#mspacechild
+/// [`m.space.child`]: https://spec.matrix.org/v1.18/client-server-api/#mspacechild
 pub fn validate(s: &str) -> Result<(), Error> {
     if s.len() > 50 {
         return Err(Error::MaximumLengthExceeded);

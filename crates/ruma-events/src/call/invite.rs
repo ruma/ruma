@@ -1,6 +1,6 @@
 //! Types for the [`m.call.invite`] event.
 //!
-//! [`m.call.invite`]: https://spec.matrix.org/latest/client-server-api/#mcallinvite
+//! [`m.call.invite`]: https://spec.matrix.org/v1.18/client-server-api/#mcallinvite
 
 use std::collections::BTreeMap;
 

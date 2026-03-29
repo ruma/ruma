@@ -1,6 +1,6 @@
 //! Types for the [`m.marked_unread`] event.
 //!
-//! [`m.marked_unread`]: https://spec.matrix.org/latest/client-server-api/#unread-markers
+//! [`m.marked_unread`]: https://spec.matrix.org/v1.18/client-server-api/#unread-markers
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};

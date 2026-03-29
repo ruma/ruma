@@ -1,6 +1,6 @@
 //! Types to work with HTML elements and attributes [suggested by the Matrix Specification][spec].
 //!
-//! [spec]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
+//! [spec]: https://spec.matrix.org/v1.18/client-server-api/#mroommessage-msgtypes
 
 use std::collections::BTreeSet;
 
@@ -21,7 +21,7 @@ const CLASS_LANGUAGE_PREFIX: &str = "language-";
 /// by [`MatrixElement::Other`] and unsupported attributes are listed in the `attrs` field.
 ///
 /// [`ElementData`]: crate::ElementData
-/// [spec]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
+/// [spec]: https://spec.matrix.org/v1.18/client-server-api/#mroommessage-msgtypes
 #[derive(Debug, Clone)]
 #[allow(clippy::exhaustive_structs)]
 pub struct MatrixElementData {
@@ -48,7 +48,7 @@ impl MatrixElementData {
 ///
 /// Suggested attributes are represented as optional fields on the variants structs.
 ///
-/// [spec]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
+/// [spec]: https://spec.matrix.org/v1.18/client-server-api/#mroommessage-msgtypes
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum MatrixElement {
@@ -214,7 +214,7 @@ pub enum MatrixElement {
 
     /// [`mx-reply`], a Matrix rich reply fallback element.
     ///
-    /// [`mx-reply`]: https://spec.matrix.org/latest/client-server-api/#rich-replies
+    /// [`mx-reply`]: https://spec.matrix.org/v1.18/client-server-api/#rich-replies
     MatrixReply,
 
     /// An HTML element that is not in the suggested list.
@@ -594,7 +594,7 @@ pub struct SpanData {
     /// The value is the reason of the spoiler. If the string is empty, this is a spoiler
     /// without a reason.
     ///
-    /// [spoiler message]: https://spec.matrix.org/latest/client-server-api/#spoiler-messages
+    /// [spoiler message]: https://spec.matrix.org/v1.18/client-server-api/#spoiler-messages
     pub spoiler: Option<StrTendril>,
 
     /// `data-mx-maths`, an inline Matrix [mathematical message].
@@ -604,7 +604,7 @@ pub struct SpanData {
     /// If this attribute is present, the content of the span is the fallback representation of the
     /// mathematical notation.
     ///
-    /// [mathematical message]: https://spec.matrix.org/latest/client-server-api/#mathematical-messages
+    /// [mathematical message]: https://spec.matrix.org/v1.18/client-server-api/#mathematical-messages
     /// [LaTeX]: https://www.latex-project.org/
     pub maths: Option<StrTendril>,
 
@@ -764,7 +764,7 @@ pub struct DivData {
     /// If this attribute is present, the content of the div is the fallback representation of the
     /// mathematical notation.
     ///
-    /// [mathematical message]: https://spec.matrix.org/latest/client-server-api/#mathematical-messages
+    /// [mathematical message]: https://spec.matrix.org/v1.18/client-server-api/#mathematical-messages
     /// [LaTeX]: https://www.latex-project.org/
     pub maths: Option<StrTendril>,
 }

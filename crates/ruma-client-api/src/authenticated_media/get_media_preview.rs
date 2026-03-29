@@ -5,7 +5,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/client-server-api/#get_matrixclientv1mediapreview_url
+    //! [spec]: https://spec.matrix.org/v1.18/client-server-api/#get_matrixclientv1mediapreview_url
 
     use ruma_common::{
         MilliSecondsSinceUnixEpoch,

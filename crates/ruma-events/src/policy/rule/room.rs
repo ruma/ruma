@@ -1,6 +1,6 @@
 //! Types for the [`m.policy.rule.room`] event.
 //!
-//! [`m.policy.rule.room`]: https://spec.matrix.org/latest/client-server-api/#mpolicyruleroom
+//! [`m.policy.rule.room`]: https://spec.matrix.org/v1.18/client-server-api/#mpolicyruleroom
 
 use ruma_common::room_version_rules::RedactionRules;
 use ruma_macros::EventContent;

@@ -5,7 +5,7 @@
 pub mod v2 {
     //! `/v2/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/identity-service-api/#get_matrixidentityv2validatemsisdnsubmittoken
+    //! [spec]: https://spec.matrix.org/v1.18/identity-service-api/#get_matrixidentityv2validatemsisdnsubmittoken
 
     use ruma_common::{
         OwnedClientSecret, OwnedSessionId,

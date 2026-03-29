@@ -6,7 +6,7 @@ use crate::PrivOwnedStr;
 
 /// The algorithms for the [device keys] defined in the Matrix spec.
 ///
-/// [device keys]: https://spec.matrix.org/latest/client-server-api/#device-keys
+/// [device keys]: https://spec.matrix.org/v1.18/client-server-api/#device-keys
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, StringEnum)]
 #[non_exhaustive]
@@ -67,7 +67,7 @@ pub enum KeyDerivationAlgorithm {
 
 /// The algorithms for [one-time and fallback keys] defined in the Matrix spec.
 ///
-/// [one-time and fallback keys]: https://spec.matrix.org/latest/client-server-api/#one-time-and-fallback-keys
+/// [one-time and fallback keys]: https://spec.matrix.org/v1.18/client-server-api/#one-time-and-fallback-keys
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, StringEnum)]
 #[non_exhaustive]

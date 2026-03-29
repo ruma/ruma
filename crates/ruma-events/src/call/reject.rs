@@ -1,6 +1,6 @@
 //! Types for the [`m.call.reject`] event.
 //!
-//! [`m.call.reject`]: https://spec.matrix.org/latest/client-server-api/#mcallreject
+//! [`m.call.reject`]: https://spec.matrix.org/v1.18/client-server-api/#mcallreject
 
 use ruma_common::{OwnedVoipId, VoipVersionId};
 use ruma_macros::EventContent;

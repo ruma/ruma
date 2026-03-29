@@ -10,12 +10,12 @@
 //! Whether a signature is required by a Policy Server further depends on whether the room has
 //! enabled a Policy Server.
 //!
-//! [Policy Server]: https://spec.matrix.org/latest/server-server-api/#policy-servers
+//! [Policy Server]: https://spec.matrix.org/v1.18/server-server-api/#policy-servers
 
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/server-server-api/#post_matrixpolicyv1sign
+    //! [spec]: https://spec.matrix.org/v1.18/server-server-api/#post_matrixpolicyv1sign
 
     use ruma_common::{
         OwnedServerName, ServerName, ServerSignatures as ServerSignaturesMap,

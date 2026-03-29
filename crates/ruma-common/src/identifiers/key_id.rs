@@ -15,12 +15,12 @@ use super::{
 /// A key algorithm and key name delimited by a colon.
 ///
 /// Examples of the use of this struct are [`DeviceKeyId`], which identifies a Ed25519 or Curve25519
-/// [device key](https://spec.matrix.org/latest/client-server-api/#device-keys), and
+/// [device key](https://spec.matrix.org/v1.18/client-server-api/#device-keys), and
 /// [`CrossSigningKeyId`], which identifies a user's
-/// [cross signing key](https://spec.matrix.org/latest/client-server-api/#cross-signing).
+/// [cross signing key](https://spec.matrix.org/v1.18/client-server-api/#cross-signing).
 ///
 /// This format of identifier is often used in the `signatures` field of
-/// [signed JSON](https://spec.matrix.org/latest/appendices/#signing-details)
+/// [signed JSON](https://spec.matrix.org/v1.18/appendices/#signing-details)
 /// where it is referred to as a "signing key identifier".
 ///
 /// This struct is rarely used directly - instead you should expect to use one of the type aliases
@@ -118,54 +118,54 @@ pub type OwnedServerSigningKeyId = OwnedSigningKeyId<ServerSigningKeyVersion>;
 
 /// Algorithm + key name for [device signing keys].
 ///
-/// [device signing keys]: https://spec.matrix.org/latest/client-server-api/#device-keys
+/// [device signing keys]: https://spec.matrix.org/v1.18/client-server-api/#device-keys
 pub type DeviceSigningKeyId = SigningKeyId<DeviceId>;
 
 /// Algorithm + key name for [device signing] keys.
 ///
-/// [device signing keys]: https://spec.matrix.org/latest/client-server-api/#device-keys
+/// [device signing keys]: https://spec.matrix.org/v1.18/client-server-api/#device-keys
 pub type OwnedDeviceSigningKeyId = OwnedSigningKeyId<DeviceId>;
 
 /// Algorithm + key name for [cross-signing] keys.
 ///
-/// [cross-signing]: https://spec.matrix.org/latest/client-server-api/#cross-signing
+/// [cross-signing]: https://spec.matrix.org/v1.18/client-server-api/#cross-signing
 pub type CrossSigningKeyId = SigningKeyId<Base64PublicKey>;
 
 /// Algorithm + key name for [cross-signing] keys.
 ///
-/// [cross-signing]: https://spec.matrix.org/latest/client-server-api/#cross-signing
+/// [cross-signing]: https://spec.matrix.org/v1.18/client-server-api/#cross-signing
 pub type OwnedCrossSigningKeyId = OwnedSigningKeyId<Base64PublicKey>;
 
 /// Algorithm + key name for [cross-signing] or [device signing] keys.
 ///
-/// [cross-signing]: https://spec.matrix.org/latest/client-server-api/#cross-signing
-/// [device signing]: https://spec.matrix.org/latest/client-server-api/#device-keys
+/// [cross-signing]: https://spec.matrix.org/v1.18/client-server-api/#cross-signing
+/// [device signing]: https://spec.matrix.org/v1.18/client-server-api/#device-keys
 pub type CrossSigningOrDeviceSigningKeyId = SigningKeyId<Base64PublicKeyOrDeviceId>;
 
 /// Algorithm + key name for [cross-signing] or [device signing] keys.
 ///
-/// [cross-signing]: https://spec.matrix.org/latest/client-server-api/#cross-signing
-/// [device signing]: https://spec.matrix.org/latest/client-server-api/#device-keys
+/// [cross-signing]: https://spec.matrix.org/v1.18/client-server-api/#cross-signing
+/// [device signing]: https://spec.matrix.org/v1.18/client-server-api/#device-keys
 pub type OwnedCrossSigningOrDeviceSigningKeyId = OwnedSigningKeyId<Base64PublicKeyOrDeviceId>;
 
 /// Algorithm + key name for [device keys].
 ///
-/// [device keys]: https://spec.matrix.org/latest/client-server-api/#device-keys
+/// [device keys]: https://spec.matrix.org/v1.18/client-server-api/#device-keys
 pub type DeviceKeyId = KeyId<DeviceKeyAlgorithm, DeviceId>;
 
 /// Algorithm + key name for [device keys].
 ///
-/// [device keys]: https://spec.matrix.org/latest/client-server-api/#device-keys
+/// [device keys]: https://spec.matrix.org/v1.18/client-server-api/#device-keys
 pub type OwnedDeviceKeyId = OwnedKeyId<DeviceKeyAlgorithm, DeviceId>;
 
 /// Algorithm + key name for [one-time and fallback keys].
 ///
-/// [one-time and fallback keys]: https://spec.matrix.org/latest/client-server-api/#one-time-and-fallback-keys
+/// [one-time and fallback keys]: https://spec.matrix.org/v1.18/client-server-api/#one-time-and-fallback-keys
 pub type OneTimeKeyId = KeyId<OneTimeKeyAlgorithm, OneTimeKeyName>;
 
 /// Algorithm + key name for [one-time and fallback keys].
 ///
-/// [one-time and fallback keys]: https://spec.matrix.org/latest/client-server-api/#one-time-and-fallback-keys
+/// [one-time and fallback keys]: https://spec.matrix.org/v1.18/client-server-api/#one-time-and-fallback-keys
 pub type OwnedOneTimeKeyId = OwnedKeyId<OneTimeKeyAlgorithm, OneTimeKeyName>;
 
 // The following impls are usually derived using the std macros.

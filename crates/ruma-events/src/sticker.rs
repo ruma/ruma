@@ -1,6 +1,6 @@
 //! Types for the [`m.sticker`] event.
 //!
-//! [`m.sticker`]: https://spec.matrix.org/latest/client-server-api/#msticker
+//! [`m.sticker`]: https://spec.matrix.org/v1.18/client-server-api/#msticker
 
 use ruma_common::OwnedMxcUri;
 use ruma_macros::EventContent;

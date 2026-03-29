@@ -97,7 +97,7 @@ pub struct RoomEventFilter {
     ///
     /// Only applies to the [`sync_events`] endpoint.
     ///
-    /// [per-thread notification counts]: https://spec.matrix.org/latest/client-server-api/#receiving-notifications
+    /// [per-thread notification counts]: https://spec.matrix.org/v1.18/client-server-api/#receiving-notifications
     /// [`sync_events`]: crate::sync::sync_events
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub unread_thread_notifications: bool,
@@ -120,7 +120,7 @@ impl RoomEventFilter {
     ///
     /// Redundant membership events are disabled.
     ///
-    /// [room member lazy-loading]: https://spec.matrix.org/latest/client-server-api/#lazy-loading-room-members
+    /// [room member lazy-loading]: https://spec.matrix.org/v1.18/client-server-api/#lazy-loading-room-members
     pub fn with_lazy_loading() -> Self {
         Self {
             lazy_load_options: LazyLoadOptions::Enabled { include_redundant_members: false },
@@ -203,7 +203,7 @@ impl RoomFilter {
     ///
     /// Redundant membership events are disabled.
     ///
-    /// [room member lazy-loading]: https://spec.matrix.org/latest/client-server-api/#lazy-loading-room-members
+    /// [room member lazy-loading]: https://spec.matrix.org/v1.18/client-server-api/#lazy-loading-room-members
     pub fn with_lazy_loading() -> Self {
         Self { state: RoomEventFilter::with_lazy_loading(), ..Default::default() }
     }
@@ -335,7 +335,7 @@ impl FilterDefinition {
     ///
     /// Redundant membership events are disabled.
     ///
-    /// [room member lazy-loading]: https://spec.matrix.org/latest/client-server-api/#lazy-loading-room-members
+    /// [room member lazy-loading]: https://spec.matrix.org/v1.18/client-server-api/#lazy-loading-room-members
     pub fn with_lazy_loading() -> Self {
         Self { room: RoomFilter::with_lazy_loading(), ..Default::default() }
     }

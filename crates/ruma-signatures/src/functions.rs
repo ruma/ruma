@@ -28,7 +28,7 @@ use crate::{
 
 /// The [maximum size allowed] for a PDU.
 ///
-/// [maximum size allowed]: https://spec.matrix.org/latest/client-server-api/#size-limits
+/// [maximum size allowed]: https://spec.matrix.org/v1.18/client-server-api/#size-limits
 const MAX_PDU_BYTES: usize = 65_535;
 
 /// The fields to remove from a JSON object when converting JSON into the "canonical" form.
@@ -151,7 +151,7 @@ where
 
 /// Converts an event into the [canonical] string form.
 ///
-/// [canonical]: https://spec.matrix.org/latest/appendices/#canonical-json
+/// [canonical]: https://spec.matrix.org/v1.18/appendices/#canonical-json
 ///
 /// # Parameters
 ///
@@ -271,7 +271,7 @@ pub fn verify_json(
 ///
 /// Returns an error if verification fails.
 ///
-/// [checking signatures]: https://spec.matrix.org/latest/appendices/#checking-for-a-signature
+/// [checking signatures]: https://spec.matrix.org/v1.18/appendices/#checking-for-a-signature
 fn verify_canonical_json_for_entity(
     entity_id: &str,
     public_key_map: &PublicKeyMap,
@@ -778,7 +778,7 @@ fn canonical_json_with_fields_to_remove(
 /// - For room versions that support restricted join rules, if it's a join event with a
 ///   `join_authorised_via_users_server`, add the server of that user.
 ///
-/// [validating signatures on received events]: https://spec.matrix.org/latest/server-server-api/#validating-hashes-and-signatures-on-received-events
+/// [validating signatures on received events]: https://spec.matrix.org/v1.18/server-server-api/#validating-hashes-and-signatures-on-received-events
 fn servers_to_check_signatures(
     object: &CanonicalJsonObject,
     rules: &SignaturesRules,

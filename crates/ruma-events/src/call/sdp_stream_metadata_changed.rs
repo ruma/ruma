@@ -1,6 +1,6 @@
 //! Types for the [`m.call.sdp_stream_metadata_changed`] event.
 //!
-//! [`m.call.sdp_stream_metadata_changed`]: https://spec.matrix.org/latest/client-server-api/#mcallsdp_stream_metadata_changed
+//! [`m.call.sdp_stream_metadata_changed`]: https://spec.matrix.org/v1.18/client-server-api/#mcallsdp_stream_metadata_changed
 
 use std::collections::BTreeMap;
 

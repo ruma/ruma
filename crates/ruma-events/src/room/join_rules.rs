@@ -1,6 +1,6 @@
 //! Types for the [`m.room.join_rules`] event.
 //!
-//! [`m.room.join_rules`]: https://spec.matrix.org/latest/client-server-api/#mroomjoin_rules
+//! [`m.room.join_rules`]: https://spec.matrix.org/v1.18/client-server-api/#mroomjoin_rules
 
 pub use ruma_common::room::{AllowRule, JoinRule, Restricted};
 use ruma_common::{

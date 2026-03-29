@@ -1,6 +1,6 @@
 //! `/v3/` ([spec])
 //!
-//! [spec]: https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3keysclaim
+//! [spec]: https://spec.matrix.org/v1.18/client-server-api/#post_matrixclientv3keysclaim
 
 use std::{collections::BTreeMap, time::Duration};
 

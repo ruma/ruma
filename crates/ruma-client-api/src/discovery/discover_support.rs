@@ -1,6 +1,6 @@
 //! `GET /.well-known/matrix/support` ([spec])
 //!
-//! [spec]: https://spec.matrix.org/latest/client-server-api/#getwell-knownmatrixsupport
+//! [spec]: https://spec.matrix.org/v1.18/client-server-api/#getwell-knownmatrixsupport
 //!
 //! Get server admin contact and support page of a homeserver's domain.
 

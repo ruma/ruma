@@ -7,7 +7,7 @@ use super::{IdParseError, KeyName};
 /// One-time and fallback key names in Matrix are completely opaque character sequences. This
 /// type is provided simply for its semantic value.
 ///
-/// [one-time or fallback key]: https://spec.matrix.org/latest/client-server-api/#one-time-and-fallback-keys
+/// [one-time or fallback key]: https://spec.matrix.org/v1.18/client-server-api/#one-time-and-fallback-keys
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 pub struct OneTimeKeyName(str);

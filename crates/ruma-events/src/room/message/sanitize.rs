@@ -2,7 +2,7 @@
 
 /// Remove the [rich reply] fallback of the given plain text string.
 ///
-/// [rich reply]: https://spec.matrix.org/latest/client-server-api/#rich-replies
+/// [rich reply]: https://spec.matrix.org/v1.18/client-server-api/#rich-replies
 pub fn remove_plain_reply_fallback(mut s: &str) -> &str {
     // A reply fallback must begin with a mention of the original sender between `<` and `>`, and
     // emotes add `*` as a prefix. If there is no newline, removing the detected fallback would

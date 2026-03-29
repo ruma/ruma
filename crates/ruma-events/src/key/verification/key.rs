@@ -1,6 +1,6 @@
 //! Types for the [`m.key.verification.key`] event.
 //!
-//! [`m.key.verification.key`]: https://spec.matrix.org/latest/client-server-api/#mkeyverificationkey
+//! [`m.key.verification.key`]: https://spec.matrix.org/v1.18/client-server-api/#mkeyverificationkey
 
 use ruma_common::{OwnedTransactionId, serde::Base64};
 use ruma_macros::EventContent;

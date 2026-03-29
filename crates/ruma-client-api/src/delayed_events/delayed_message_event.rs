@@ -47,7 +47,7 @@ pub mod unstable {
         ///
         /// It will be used by the server to ensure idempotency of requests.
         ///
-        /// [access token is refreshed]: https://spec.matrix.org/latest/client-server-api/#refreshing-access-tokens
+        /// [access token is refreshed]: https://spec.matrix.org/v1.18/client-server-api/#refreshing-access-tokens
         #[ruma_api(path)]
         pub txn_id: OwnedTransactionId,
 

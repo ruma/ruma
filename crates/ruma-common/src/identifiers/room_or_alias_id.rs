@@ -27,8 +27,8 @@ use super::{OwnedRoomAliasId, OwnedRoomId, RoomAliasId, RoomId, server_name::Ser
 /// For example, `<&RoomId>::try_from(room_or_alias_id)` returns either `Ok(room_id)` or
 /// `Err(room_alias_id)`.
 ///
-/// [room ID]: https://spec.matrix.org/latest/appendices/#room-ids
-/// [room alias ID]: https://spec.matrix.org/latest/appendices/#room-aliases
+/// [room ID]: https://spec.matrix.org/v1.18/appendices/#room-ids
+/// [room alias ID]: https://spec.matrix.org/v1.18/appendices/#room-aliases
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(validate = ruma_identifiers_validation::room_id_or_alias_id::validate)]

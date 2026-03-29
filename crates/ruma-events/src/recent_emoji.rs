@@ -1,6 +1,6 @@
 //! Types for the [`m.recent_emoji`] account data event.
 //!
-//! [`m.recent_emoji`]: https://spec.matrix.org/latest/client-server-api/#mrecent_emoji
+//! [`m.recent_emoji`]: https://spec.matrix.org/v1.18/client-server-api/#mrecent_emoji
 
 use js_int::{UInt, uint};
 use ruma_macros::EventContent;
@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 /// The content of an [`m.recent_emoji`] event.
 ///
-/// [`m.recent_emoji`]: https://spec.matrix.org/latest/client-server-api/#mrecent_emoji
+/// [`m.recent_emoji`]: https://spec.matrix.org/v1.18/client-server-api/#mrecent_emoji
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.recent_emoji", kind = GlobalAccountData)]

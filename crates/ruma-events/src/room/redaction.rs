@@ -1,6 +1,6 @@
 //! Types for the [`m.room.redaction`] event.
 //!
-//! [`m.room.redaction`]: https://spec.matrix.org/latest/client-server-api/#mroomredaction
+//! [`m.room.redaction`]: https://spec.matrix.org/v1.18/client-server-api/#mroomredaction
 
 use as_variant::as_variant;
 use js_int::Int;
@@ -459,7 +459,7 @@ pub struct RoomRedactionUnsigned {
 
     /// [Bundled aggregations] of related child events.
     ///
-    /// [Bundled aggregations]: https://spec.matrix.org/latest/client-server-api/#aggregations-of-child-events
+    /// [Bundled aggregations]: https://spec.matrix.org/v1.18/client-server-api/#aggregations-of-child-events
     #[serde(rename = "m.relations", default)]
     pub relations: BundledMessageLikeRelations<OriginalSyncRoomRedactionEvent>,
 }

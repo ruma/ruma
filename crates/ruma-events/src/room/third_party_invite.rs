@@ -1,6 +1,6 @@
 //! Types for the [`m.room.third_party_invite`] event.
 //!
-//! [`m.room.third_party_invite`]: https://spec.matrix.org/latest/client-server-api/#mroomthird_party_invite
+//! [`m.room.third_party_invite`]: https://spec.matrix.org/v1.18/client-server-api/#mroomthird_party_invite
 
 use ruma_common::third_party_invite::IdentityServerBase64PublicKey;
 use ruma_macros::EventContent;

@@ -322,7 +322,7 @@ pub struct ElementData {
 impl ElementData {
     /// Convert this element data to typed data as [suggested by the Matrix Specification][spec].
     ///
-    /// [spec]: https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
+    /// [spec]: https://spec.matrix.org/v1.18/client-server-api/#mroommessage-msgtypes
     #[cfg(feature = "matrix")]
     pub fn to_matrix(&self) -> matrix::MatrixElementData {
         matrix::MatrixElementData::parse(&self.name, &self.attrs.borrow())

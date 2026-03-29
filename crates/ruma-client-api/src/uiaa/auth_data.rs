@@ -202,7 +202,7 @@ impl fmt::Debug for AuthData {
 ///
 /// See [the spec] for how to use this.
 ///
-/// [the spec]: https://spec.matrix.org/latest/client-server-api/#password-based
+/// [the spec]: https://spec.matrix.org/v1.18/client-server-api/#password-based
 #[derive(Clone, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.password")]
@@ -238,7 +238,7 @@ impl fmt::Debug for Password {
 ///
 /// See [the spec] for how to use this.
 ///
-/// [the spec]: https://spec.matrix.org/latest/client-server-api/#google-recaptcha
+/// [the spec]: https://spec.matrix.org/v1.18/client-server-api/#google-recaptcha
 #[derive(Clone, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.recaptcha")]
@@ -268,7 +268,7 @@ impl fmt::Debug for ReCaptcha {
 ///
 /// See [the spec] for how to use this.
 ///
-/// [the spec]: https://spec.matrix.org/latest/client-server-api/#email-based-identity--homeserver
+/// [the spec]: https://spec.matrix.org/v1.18/client-server-api/#email-based-identity--homeserver
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.email.identity")]
@@ -285,7 +285,7 @@ pub struct EmailIdentity {
 ///
 /// See [the spec] for how to use this.
 ///
-/// [the spec]: https://spec.matrix.org/latest/client-server-api/#phone-numbermsisdn-based-identity--homeserver
+/// [the spec]: https://spec.matrix.org/v1.18/client-server-api/#phone-numbermsisdn-based-identity--homeserver
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.msisdn")]
@@ -302,7 +302,7 @@ pub struct Msisdn {
 ///
 /// See [the spec] for how to use this.
 ///
-/// [the spec]: https://spec.matrix.org/latest/client-server-api/#dummy-auth
+/// [the spec]: https://spec.matrix.org/v1.18/client-server-api/#dummy-auth
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.dummy")]
@@ -322,7 +322,7 @@ impl Dummy {
 ///
 /// See [the spec] for how to use this.
 ///
-/// [the spec]: https://spec.matrix.org/latest/client-server-api/#token-authenticated-registration
+/// [the spec]: https://spec.matrix.org/v1.18/client-server-api/#token-authenticated-registration
 #[derive(Clone, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.registration_token")]
@@ -352,7 +352,7 @@ impl fmt::Debug for RegistrationToken {
 ///
 /// See [the spec] for how to use this.
 ///
-/// [the spec]: https://spec.matrix.org/latest/client-server-api/#fallback
+/// [the spec]: https://spec.matrix.org/v1.18/client-server-api/#fallback
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct FallbackAcknowledgement {
@@ -373,7 +373,7 @@ impl FallbackAcknowledgement {
 ///
 /// See [the spec] for how to use this.
 ///
-/// [the spec]: https://spec.matrix.org/latest/client-server-api/#terms-of-service-at-registration
+/// [the spec]: https://spec.matrix.org/v1.18/client-server-api/#terms-of-service-at-registration
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.terms")]
@@ -391,7 +391,7 @@ impl Terms {
 
 /// Data for an [OAuth 2.0-based] UIAA flow.
 ///
-/// [OAuth 2.0-based]: https://spec.matrix.org/latest/client-server-api/#oauth-authentication
+/// [OAuth 2.0-based]: https://spec.matrix.org/v1.18/client-server-api/#oauth-authentication
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type", rename = "m.oauth")]

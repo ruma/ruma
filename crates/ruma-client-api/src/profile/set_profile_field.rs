@@ -9,7 +9,7 @@ pub mod v3 {
     //! it will only work with homeservers advertising support for the proper unstable feature or
     //! a version compatible with Matrix 1.16.
     //!
-    //! [spec]: https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3profileuseridkeyname
+    //! [spec]: https://spec.matrix.org/v1.18/client-server-api/#put_matrixclientv3profileuseridkeyname
     //! [`set_avatar_url`]: crate::profile::set_avatar_url
     //! [`set_display_name`]: crate::profile::set_display_name
 

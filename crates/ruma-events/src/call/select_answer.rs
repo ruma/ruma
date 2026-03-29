@@ -1,6 +1,6 @@
 //! Types for the [`m.call.select_answer`] event.
 //!
-//! [`m.call.select_answer`]: https://spec.matrix.org/latest/client-server-api/#mcallselect_answer
+//! [`m.call.select_answer`]: https://spec.matrix.org/v1.18/client-server-api/#mcallselect_answer
 
 use ruma_common::{OwnedVoipId, VoipVersionId};
 use ruma_macros::EventContent;

@@ -5,7 +5,7 @@
 pub mod v2 {
     //! `/v2/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/latest/identity-service-api/#post_matrixidentityv23pidbind
+    //! [spec]: https://spec.matrix.org/v1.18/identity-service-api/#post_matrixidentityv23pidbind
 
     use ruma_common::{
         MilliSecondsSinceUnixEpoch, OwnedClientSecret, OwnedSessionId, OwnedUserId,

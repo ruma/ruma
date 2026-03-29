@@ -2,7 +2,7 @@ use crate::{Error, ID_MAX_BYTES, localpart_is_backwards_compatible, parse_id};
 
 /// Validate a [user ID] as used by clients.
 ///
-/// [user ID]: https://spec.matrix.org/latest/appendices/#user-identifiers
+/// [user ID]: https://spec.matrix.org/v1.18/appendices/#user-identifiers
 pub fn validate(s: &str) -> Result<(), Error> {
     let colon_idx = parse_id(s, b'@')?;
     let localpart = &s[1..colon_idx];
@@ -14,7 +14,7 @@ pub fn validate(s: &str) -> Result<(), Error> {
 
 /// Validate a [user ID] to follow the spec recommendations when generating them.
 ///
-/// [user ID]: https://spec.matrix.org/latest/appendices/#user-identifiers
+/// [user ID]: https://spec.matrix.org/v1.18/appendices/#user-identifiers
 pub fn validate_strict(s: &str) -> Result<(), Error> {
     // Since the length check can be disabled with `compat-arbitrary-length-ids`, check it again
     // here.
@@ -37,13 +37,13 @@ pub fn validate_strict(s: &str) -> Result<(), Error> {
 /// Returns an `Err` for invalid user ID localparts, `Ok(false)` for historical user ID localparts
 /// and `Ok(true)` for fully conforming user ID localparts.
 ///
-/// [user ID]: https://spec.matrix.org/latest/appendices/#user-identifiers
+/// [user ID]: https://spec.matrix.org/v1.18/appendices/#user-identifiers
 pub fn localpart_is_fully_conforming(localpart: &str) -> Result<bool, Error> {
     if localpart.is_empty() {
         return Err(Error::Empty);
     }
 
-    // See https://spec.matrix.org/latest/appendices/#user-identifiers
+    // See https://spec.matrix.org/v1.18/appendices/#user-identifiers
     let is_fully_conforming = localpart
         .bytes()
         .all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'z' | b'-' | b'.' | b'=' | b'_' | b'/' | b'+'));
@@ -51,7 +51,7 @@ pub fn localpart_is_fully_conforming(localpart: &str) -> Result<bool, Error> {
     if !is_fully_conforming {
         // If it's not fully conforming, check if it contains characters that are also disallowed
         // for historical user IDs, or is empty. If that's the case, return an error.
-        // See https://spec.matrix.org/latest/appendices/#historical-user-ids
+        // See https://spec.matrix.org/v1.18/appendices/#historical-user-ids
         let is_invalid_historical = localpart.bytes().any(|b| b < 0x21 || b == b':' || b > 0x7E);
 
         if is_invalid_historical {

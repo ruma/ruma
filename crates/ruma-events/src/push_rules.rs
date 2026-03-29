@@ -1,6 +1,6 @@
 //! Types for the [`m.push_rules`] event.
 //!
-//! [`m.push_rules`]: https://spec.matrix.org/latest/client-server-api/#mpush_rules
+//! [`m.push_rules`]: https://spec.matrix.org/v1.18/client-server-api/#mpush_rules
 
 use ruma_common::push::Ruleset;
 use ruma_macros::EventContent;
