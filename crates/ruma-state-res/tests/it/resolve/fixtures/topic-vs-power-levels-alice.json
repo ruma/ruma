@@ -1,0 +1,43 @@
+[
+  {
+    "event_id": "$00-m-room-topic-alice",
+    "room_id": "!room:example.com",
+    "sender": "@alice:example.com",
+    "type": "m.room.topic",
+    "content": {
+      "topic": "Room managed by Alice"
+    },
+    "state_key": "",
+    "origin_server_ts": 8,
+    "prev_events": [
+      "$01-m-room-power_levels"
+    ],
+    "auth_events": [
+      "$00-m-room-create",
+      "$01-m-room-power_levels",
+      "$00-m-room-member-join-alice"
+    ]
+  },
+  {
+    "event_id": "$02-m-room-power_levels-alice",
+    "room_id": "!room:example.com",
+    "sender": "@alice:example.com",
+    "type": "m.room.power_levels",
+    "content": {
+      "users": {
+        "@alice:example.com": 100,
+        "@bob:example.com": 0
+      }
+    },
+    "state_key": "",
+    "origin_server_ts": 9,
+    "prev_events": [
+      "$00-m-room-topic-alice"
+    ],
+    "auth_events": [
+      "$00-m-room-create",
+      "$01-m-room-power_levels",
+      "$00-m-room-member-join-alice"
+    ]
+  }
+]

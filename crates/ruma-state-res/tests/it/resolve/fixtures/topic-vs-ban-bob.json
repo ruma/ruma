@@ -1,0 +1,21 @@
+[
+  {
+    "event_id": "$01-m-room-topic",
+    "room_id": "!room:example.com",
+    "sender": "@bob:example.com",
+    "type": "m.room.topic",
+    "content": {
+      "topic": "Room managed by Bob"
+    },
+    "state_key": "",
+    "origin_server_ts": 8,
+    "prev_events": [
+      "$00-m-room-topic"
+    ],
+    "auth_events": [
+      "$00-m-room-create",
+      "$01-m-room-power_levels",
+      "$00-m-room-member-join-bob"
+    ]
+  }
+]
