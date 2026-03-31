@@ -1,0 +1,22 @@
+[
+  {
+    "event_id": "$00-m-room-member-join-ella",
+    "room_id": "!room:example.com",
+    "sender": "@ella:example.com",
+    "type": "m.room.member",
+    "content": {
+      "displayname": "ella",
+      "membership": "join"
+    },
+    "state_key": "@ella:example.com",
+    "origin_server_ts": 9,
+    "prev_events": [
+      "$02-m-room-power_levels"
+    ],
+    "auth_events": [
+      "$00-m-room-create",
+      "$02-m-room-power_levels",
+      "$00-m-room-join_rules"
+    ]
+  }
+]

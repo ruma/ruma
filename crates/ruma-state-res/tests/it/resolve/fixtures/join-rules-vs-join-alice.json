@@ -1,0 +1,21 @@
+[
+  {
+    "event_id": "$01-m-room-join_rules",
+    "room_id": "!room:example.com",
+    "sender": "@alice:example.com",
+    "type": "m.room.join_rules",
+    "content": {
+      "join_rule": "invite"
+    },
+    "state_key": "",
+    "origin_server_ts": 9,
+    "prev_events": [
+      "$02-m-room-power_levels"
+    ],
+    "auth_events": [
+      "$00-m-room-create",
+      "$02-m-room-power_levels",
+      "$00-m-room-member-join-alice"
+    ]
+  }
+]
