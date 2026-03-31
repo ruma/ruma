@@ -82,177 +82,6 @@ macro_rules! snapshot_test_contrived_states {
     };
 }
 
-/// A persistent data unit.
-#[derive(Deserialize, Clone)]
-struct Pdu {
-    event_id: OwnedEventId,
-    room_id: Option<OwnedRoomId>,
-    sender: OwnedUserId,
-    origin_server_ts: MilliSecondsSinceUnixEpoch,
-    #[serde(rename = "type")]
-    event_type: TimelineEventType,
-    content: Box<RawJsonValue>,
-    state_key: Option<String>,
-    prev_events: Vec<OwnedEventId>,
-    auth_events: Vec<OwnedEventId>,
-    redacts: Option<OwnedEventId>,
-    #[serde(default)]
-    rejected: bool,
-}
-
-impl Event for Pdu {
-    type Id = OwnedEventId;
-
-    fn event_id(&self) -> &Self::Id {
-        &self.event_id
-    }
-
-    fn room_id(&self) -> Option<&RoomId> {
-        self.room_id.as_deref()
-    }
-
-    fn sender(&self) -> &UserId {
-        &self.sender
-    }
-
-    fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch {
-        self.origin_server_ts
-    }
-
-    fn event_type(&self) -> &TimelineEventType {
-        &self.event_type
-    }
-
-    fn content(&self) -> &RawJsonValue {
-        &self.content
-    }
-
-    fn state_key(&self) -> Option<&str> {
-        self.state_key.as_deref()
-    }
-
-    fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
-        Box::new(self.prev_events.iter())
-    }
-
-    fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
-        Box::new(self.auth_events.iter())
-    }
-
-    fn redacts(&self) -> Option<&Self::Id> {
-        self.redacts.as_ref()
-    }
-
-    fn rejected(&self) -> bool {
-        self.rejected
-    }
-}
-
-/// Extract `.content.room_version` from a PDU.
-#[derive(Deserialize)]
-struct ExtractRoomVersion {
-    room_version: RoomVersionId,
-}
-
-/// Type describing a resolved state event.
-#[derive(Serialize)]
-pub(super) struct ResolvedStateEvent {
-    #[serde(rename = "type")]
-    event_type: StateEventType,
-    state_key: String,
-    event_id: OwnedEventId,
-
-    // Ignored in `PartialEq` and `Ord` because we don't want to consider it while sorting.
-    content: JsonValue,
-}
-
-impl PartialEq for ResolvedStateEvent {
-    fn eq(&self, other: &Self) -> bool {
-        self.event_type == other.event_type
-            && self.state_key == other.state_key
-            && self.event_id == other.event_id
-    }
-}
-
-impl Eq for ResolvedStateEvent {}
-
-impl Ord for ResolvedStateEvent {
-    fn cmp(&self, other: &Self) -> Ordering {
-        Ordering::Equal
-            .then(self.event_type.cmp(&other.event_type))
-            .then(self.state_key.cmp(&other.state_key))
-            .then(self.event_id.cmp(&other.event_id))
-    }
-}
-
-impl PartialOrd for ResolvedStateEvent {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-/// Information to be captured in snapshot assertions
-pub(super) struct Snapshots {
-    /// The resolved state of the room.
-    pub(super) resolved_state: BTreeSet<ResolvedStateEvent>,
-}
-
-fn snapshot_test_prelude(
-    paths: &[&str],
-) -> (Vec<Vec<Pdu>>, AuthorizationRules, StateResolutionV2Rules) {
-    let pdu_batches = paths
-        .iter()
-        .map(|x| {
-            from_json_str(
-                &fs::read_to_string(FIXTURES_PATH.join(x))
-                    .expect("should be able to read JSON file of PDUs"),
-            )
-            .expect("should be able to deserialize JSON file of PDUs")
-        })
-        .collect::<Vec<Vec<Pdu>>>();
-
-    let room_version_id = {
-        let first_pdu = pdu_batches
-            .first()
-            .expect("there should be at least one file of PDUs")
-            .first()
-            .expect("there should be at least one PDU in the first file");
-
-        assert_eq!(
-            first_pdu.event_type,
-            TimelineEventType::RoomCreate,
-            "the first PDU in the first file should be an m.room.create event",
-        );
-
-        from_json_str::<ExtractRoomVersion>(first_pdu.content.get())
-            .expect("the m.room.create PDU's content should be valid")
-            .room_version
-    };
-    let rules = room_version_id.rules().expect("room version should be supported");
-    let auth_rules = rules.authorization;
-    let state_res_rules =
-        rules.state_res.v2_rules().expect("resolve only supports state resolution version 2");
-
-    (pdu_batches, auth_rules, *state_res_rules)
-}
-
-/// Reshape the data a bit to make the diff and snapshots easier to compare.
-fn reshape(
-    pdus_by_id: &HashMap<OwnedEventId, Pdu>,
-    x: StateMap<OwnedEventId>,
-) -> Result<BTreeSet<ResolvedStateEvent>, JsonError> {
-    x.into_iter()
-        .map(|((event_type, state_key), event_id)| {
-            Ok(ResolvedStateEvent {
-                event_type,
-                state_key,
-                content: to_json_value(pdus_by_id[&event_id].content())?,
-                event_id,
-            })
-        })
-        .collect()
-}
-
 /// Test a list of JSON files containing a list of PDUs and return the results.
 ///
 /// State resolution is run both atomically for all PDUs and in batches of PDUs by file.
@@ -400,6 +229,45 @@ pub(super) fn test_contrived_states(pdus_paths: &[&str], state_sets_paths: &[&st
         resolved_state: reshape(&pdus_by_id, resolved_state)
             .expect("should be able to reshape atomic resolved state"),
     }
+}
+
+fn snapshot_test_prelude(
+    paths: &[&str],
+) -> (Vec<Vec<Pdu>>, AuthorizationRules, StateResolutionV2Rules) {
+    let pdu_batches = paths
+        .iter()
+        .map(|x| {
+            from_json_str(
+                &fs::read_to_string(FIXTURES_PATH.join(x))
+                    .expect("should be able to read JSON file of PDUs"),
+            )
+            .expect("should be able to deserialize JSON file of PDUs")
+        })
+        .collect::<Vec<Vec<Pdu>>>();
+
+    let room_version_id = {
+        let first_pdu = pdu_batches
+            .first()
+            .expect("there should be at least one file of PDUs")
+            .first()
+            .expect("there should be at least one PDU in the first file");
+
+        assert_eq!(
+            first_pdu.event_type,
+            TimelineEventType::RoomCreate,
+            "the first PDU in the first file should be an m.room.create event",
+        );
+
+        from_json_str::<ExtractRoomVersion>(first_pdu.content.get())
+            .expect("the m.room.create PDU's content should be valid")
+            .room_version
+    };
+    let rules = room_version_id.rules().expect("room version should be supported");
+    let auth_rules = rules.authorization;
+    let state_res_rules =
+        rules.state_res.v2_rules().expect("resolve only supports state resolution version 2");
+
+    (pdu_batches, auth_rules, *state_res_rules)
 }
 
 /// Perform state resolution on a batch of PDUs.
@@ -710,4 +578,136 @@ fn conflicted_state_subgraph_dfs(
     }
 
     Some(conflicted_state_subgraph)
+}
+
+/// A persistent data unit.
+#[derive(Deserialize, Clone)]
+struct Pdu {
+    event_id: OwnedEventId,
+    room_id: Option<OwnedRoomId>,
+    sender: OwnedUserId,
+    origin_server_ts: MilliSecondsSinceUnixEpoch,
+    #[serde(rename = "type")]
+    event_type: TimelineEventType,
+    content: Box<RawJsonValue>,
+    state_key: Option<String>,
+    prev_events: Vec<OwnedEventId>,
+    auth_events: Vec<OwnedEventId>,
+    redacts: Option<OwnedEventId>,
+    #[serde(default)]
+    rejected: bool,
+}
+
+impl Event for Pdu {
+    type Id = OwnedEventId;
+
+    fn event_id(&self) -> &Self::Id {
+        &self.event_id
+    }
+
+    fn room_id(&self) -> Option<&RoomId> {
+        self.room_id.as_deref()
+    }
+
+    fn sender(&self) -> &UserId {
+        &self.sender
+    }
+
+    fn origin_server_ts(&self) -> MilliSecondsSinceUnixEpoch {
+        self.origin_server_ts
+    }
+
+    fn event_type(&self) -> &TimelineEventType {
+        &self.event_type
+    }
+
+    fn content(&self) -> &RawJsonValue {
+        &self.content
+    }
+
+    fn state_key(&self) -> Option<&str> {
+        self.state_key.as_deref()
+    }
+
+    fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
+        Box::new(self.prev_events.iter())
+    }
+
+    fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
+        Box::new(self.auth_events.iter())
+    }
+
+    fn redacts(&self) -> Option<&Self::Id> {
+        self.redacts.as_ref()
+    }
+
+    fn rejected(&self) -> bool {
+        self.rejected
+    }
+}
+
+/// Extract `.content.room_version` from a PDU.
+#[derive(Deserialize)]
+struct ExtractRoomVersion {
+    room_version: RoomVersionId,
+}
+
+/// Reshape the data a bit to make the diff and snapshots easier to compare.
+fn reshape(
+    pdus_by_id: &HashMap<OwnedEventId, Pdu>,
+    x: StateMap<OwnedEventId>,
+) -> Result<BTreeSet<ResolvedStateEvent>, JsonError> {
+    x.into_iter()
+        .map(|((event_type, state_key), event_id)| {
+            Ok(ResolvedStateEvent {
+                event_type,
+                state_key,
+                content: to_json_value(pdus_by_id[&event_id].content())?,
+                event_id,
+            })
+        })
+        .collect()
+}
+
+/// Type describing a resolved state event.
+#[derive(Serialize)]
+pub(super) struct ResolvedStateEvent {
+    #[serde(rename = "type")]
+    event_type: StateEventType,
+    state_key: String,
+    event_id: OwnedEventId,
+
+    // Ignored in `PartialEq` and `Ord` because we don't want to consider it while sorting.
+    content: JsonValue,
+}
+
+impl PartialEq for ResolvedStateEvent {
+    fn eq(&self, other: &Self) -> bool {
+        self.event_type == other.event_type
+            && self.state_key == other.state_key
+            && self.event_id == other.event_id
+    }
+}
+
+impl Eq for ResolvedStateEvent {}
+
+impl Ord for ResolvedStateEvent {
+    fn cmp(&self, other: &Self) -> Ordering {
+        Ordering::Equal
+            .then(self.event_type.cmp(&other.event_type))
+            .then(self.state_key.cmp(&other.state_key))
+            .then(self.event_id.cmp(&other.event_id))
+    }
+}
+
+impl PartialOrd for ResolvedStateEvent {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+/// Information to be captured in snapshot assertions
+pub(super) struct Snapshots {
+    /// The resolved state of the room.
+    pub(super) resolved_state: BTreeSet<ResolvedStateEvent>,
 }
