@@ -9,16 +9,15 @@ use std::{
 };
 
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId, RoomVersionId,
-    UserId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId,
+    RoomVersionId, UserId,
     room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
 };
 use ruma_events::{StateEventType, TimelineEventType};
 use ruma_state_res::{Event, StateMap, resolve};
 use serde::{Deserialize, Serialize};
 use serde_json::{
-    Error as JsonError, Value as JsonValue, from_str as from_json_str,
-    to_string_pretty as to_json_string_pretty, to_value as to_json_value,
+    from_str as from_json_str, to_string_pretty as to_json_string_pretty,
     value::RawValue as RawJsonValue,
 };
 use similar::{Algorithm, udiff::unified_diff};
@@ -36,9 +35,7 @@ macro_rules! snapshot_test {
     ($name:ident, $paths:expr $(,)?) => {
         #[test_log::test]
         fn $name() {
-            let crate::resolve::macros::Snapshots {
-                resolved_state,
-            } = crate::resolve::macros::test_resolve(&$paths);
+            let resolved_state = crate::resolve::macros::test_resolve(&$paths);
 
             insta::with_settings!({
                 description => "Resolved state",
@@ -47,7 +44,7 @@ macro_rules! snapshot_test {
                 prepend_module_to_snapshot => false,
                 snapshot_suffix => "resolved_state",
             }, {
-                insta::assert_json_snapshot!(&resolved_state);
+                insta::assert_snapshot!(resolved_state);
             });
         }
     };
@@ -65,9 +62,7 @@ macro_rules! snapshot_test_contrived_states {
     ($name:ident, $pdus_path:expr, $state_set_paths:expr $(,)?) => {
         #[test_log::test]
         fn $name() {
-            let crate::resolve::macros::Snapshots {
-                resolved_state,
-            } = crate::resolve::macros::test_contrived_states(&$pdus_path, &$state_set_paths);
+            let resolved_state = crate::resolve::macros::test_contrived_states(&$pdus_path, &$state_set_paths);
 
             insta::with_settings!({
                 description => "Resolved state",
@@ -76,8 +71,27 @@ macro_rules! snapshot_test_contrived_states {
                 prepend_module_to_snapshot => false,
                 snapshot_suffix => "resolved_state",
             }, {
-                insta::assert_json_snapshot!(&resolved_state);
+                insta::assert_snapshot!(resolved_state);
             });
+        }
+    };
+}
+
+/// Asserts that two strings are equal and prints a diff if they are not.
+///
+/// # Arguments
+///
+/// * `lhs_name` - The name for the left-hand side string.
+/// * `lhs` - The left-hand side string.
+/// * `rhs_name` - The name for the right-hand side string.
+/// * `rhs` - The right-hand side string.
+macro_rules! assert_eq_diff {
+    ($lhs_name:literal => $lhs:expr, $rhs_name:literal => $rhs:expr $(,)?) => {
+        if $lhs != $rhs {
+            let diff =
+                unified_diff(Algorithm::default(), &$lhs, &$rhs, 3, Some(($lhs_name, $rhs_name)));
+
+            panic!("Assertion {} == {} failed:\n{diff}", $lhs_name, $rhs_name);
         }
     };
 }
@@ -85,7 +99,11 @@ macro_rules! snapshot_test_contrived_states {
 /// Test a list of JSON files containing a list of PDUs and return the results.
 ///
 /// State resolution is run both atomically for all PDUs and in batches of PDUs by file.
-pub(super) fn test_resolve(paths: &[&str]) -> Snapshots {
+///
+/// # Returns
+///
+/// Returns the pretty-printed JSON serialization of the resolved state.
+pub(super) fn test_resolve(paths: &[&str]) -> String {
     let (pdu_batches, auth_rules, state_res_rules) = snapshot_test_prelude(paths);
 
     // Resolve PDUs iteratively, using the ordering of `prev_events`.
@@ -124,46 +142,30 @@ pub(super) fn test_resolve(paths: &[&str]) -> Snapshots {
     )
     .expect("atomic state resolution should succeed");
 
-    let iteratively_resolved_state = reshape(&pdus_by_id, iteratively_resolved_state)
-        .expect("should be able to reshape iteratively resolved state");
-    let batched_resolved_state = reshape(&pdus_by_id, batched_resolved_state)
-        .expect("should be able to reshape batched resolved state");
-    let atomic_resolved_state = reshape(&pdus_by_id, atomic_resolved_state)
-        .expect("should be able to reshape atomic resolved state");
+    let iteratively_resolved_state =
+        state_map_to_json_string(iteratively_resolved_state, &pdus_by_id);
+    let batched_resolved_state = state_map_to_json_string(batched_resolved_state, &pdus_by_id);
+    let atomic_resolved_state = state_map_to_json_string(atomic_resolved_state, &pdus_by_id);
 
-    let assert_states_match = |first_resolved_state: &BTreeSet<ResolvedStateEvent>,
-                               second_resolved_state: &BTreeSet<ResolvedStateEvent>,
-                               first_name: &str,
-                               second_name: &str| {
-        if first_resolved_state != second_resolved_state {
-            let diff = unified_diff(
-                Algorithm::default(),
-                &to_json_string_pretty(first_resolved_state)
-                    .expect("should be able to serialize first resolved state"),
-                &to_json_string_pretty(second_resolved_state)
-                    .expect("should be able to serialize second resolved state"),
-                3,
-                Some((first_name, second_name)),
-            );
-
-            panic!("{first_name} and {second_name} results should match; but they differ:\n{diff}");
-        }
-    };
-
-    assert_states_match(
-        &iteratively_resolved_state,
-        &batched_resolved_state,
-        "iterative",
-        "batched",
+    assert_eq_diff!(
+        "iterative" => iteratively_resolved_state,
+        "batched" => batched_resolved_state,
     );
-    assert_states_match(&batched_resolved_state, &atomic_resolved_state, "batched", "atomic");
+    assert_eq_diff!(
+        "batched" => batched_resolved_state,
+        "atomic" => atomic_resolved_state,
+    );
 
-    Snapshots { resolved_state: iteratively_resolved_state }
+    iteratively_resolved_state
 }
 
 /// Test a list of JSON files containing a list of PDUs and a list of JSON files containing the
 /// event IDs that form a contrived state and return the results.
-pub(super) fn test_contrived_states(pdus_paths: &[&str], state_sets_paths: &[&str]) -> Snapshots {
+///
+/// # Returns
+///
+/// Returns the pretty-printed JSON serialization of the resolved state.
+pub(super) fn test_contrived_states(pdus_paths: &[&str], state_sets_paths: &[&str]) -> String {
     let (pdu_batches, auth_rules, state_res_rules) = snapshot_test_prelude(pdus_paths);
 
     let pdus = pdu_batches.into_iter().flat_map(|x| x.into_iter()).collect::<Vec<_>>();
@@ -225,10 +227,7 @@ pub(super) fn test_contrived_states(pdus_paths: &[&str], state_sets_paths: &[&st
     )
     .expect("atomic state resolution should succeed");
 
-    Snapshots {
-        resolved_state: reshape(&pdus_by_id, resolved_state)
-            .expect("should be able to reshape atomic resolved state"),
-    }
+    state_map_to_json_string(resolved_state, &pdus_by_id)
 }
 
 fn snapshot_test_prelude(
@@ -652,62 +651,56 @@ struct ExtractRoomVersion {
     room_version: RoomVersionId,
 }
 
-/// Reshape the data a bit to make the diff and snapshots easier to compare.
-fn reshape(
-    pdus_by_id: &HashMap<OwnedEventId, Pdu>,
-    x: StateMap<OwnedEventId>,
-) -> Result<BTreeSet<ResolvedStateEvent>, JsonError> {
-    x.into_iter()
-        .map(|((event_type, state_key), event_id)| {
-            Ok(ResolvedStateEvent {
-                event_type,
-                state_key,
-                content: to_json_value(pdus_by_id[&event_id].content())?,
-                event_id,
-            })
-        })
-        .collect()
-}
-
 /// Type describing a resolved state event.
 #[derive(Serialize)]
-pub(super) struct ResolvedStateEvent {
+struct ResolvedStateEvent<'a> {
     #[serde(rename = "type")]
-    event_type: StateEventType,
-    state_key: String,
-    event_id: OwnedEventId,
+    event_type: &'a StateEventType,
+    state_key: &'a str,
+    event_id: &'a EventId,
 
     // Ignored in `PartialEq` and `Ord` because we don't want to consider it while sorting.
-    content: JsonValue,
+    content: &'a RawJsonValue,
 }
 
-impl PartialEq for ResolvedStateEvent {
+impl PartialEq for ResolvedStateEvent<'_> {
     fn eq(&self, other: &Self) -> bool {
-        self.event_type == other.event_type
-            && self.state_key == other.state_key
-            && self.event_id == other.event_id
+        self.event_type == other.event_type && self.state_key == other.state_key
     }
 }
 
-impl Eq for ResolvedStateEvent {}
+impl Eq for ResolvedStateEvent<'_> {}
 
-impl Ord for ResolvedStateEvent {
+impl Ord for ResolvedStateEvent<'_> {
     fn cmp(&self, other: &Self) -> Ordering {
-        Ordering::Equal
-            .then(self.event_type.cmp(&other.event_type))
-            .then(self.state_key.cmp(&other.state_key))
-            .then(self.event_id.cmp(&other.event_id))
+        self.event_type.cmp(other.event_type).then_with(|| self.state_key.cmp(other.state_key))
     }
 }
 
-impl PartialOrd for ResolvedStateEvent {
+impl PartialOrd for ResolvedStateEvent<'_> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-/// Information to be captured in snapshot assertions
-pub(super) struct Snapshots {
-    /// The resolved state of the room.
-    pub(super) resolved_state: BTreeSet<ResolvedStateEvent>,
+/// Serialize the given [`StateMap`] to a pretty-printed JSON string.
+///
+/// This prints the state map as a JSON array of PDUs sorted by event type and state key. The PDUs
+/// are pretty printed using a simplified format containing only the `event_id`, `type`, `state_key`
+/// and `content` fields.
+fn state_map_to_json_string(
+    state_map: StateMap<OwnedEventId>,
+    pdus_map: &HashMap<OwnedEventId, Pdu>,
+) -> String {
+    let resolved_state = state_map
+        .iter()
+        .map(|((event_type, state_key), event_id)| ResolvedStateEvent {
+            event_type,
+            state_key,
+            content: &pdus_map[event_id].content,
+            event_id,
+        })
+        .collect::<BTreeSet<_>>();
+
+    to_json_string_pretty(&resolved_state).expect("resolved state serialization should succeed")
 }
