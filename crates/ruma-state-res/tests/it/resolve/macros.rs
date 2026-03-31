@@ -90,7 +90,7 @@ struct Pdu {
     sender: OwnedUserId,
     origin_server_ts: MilliSecondsSinceUnixEpoch,
     #[serde(rename = "type")]
-    kind: TimelineEventType,
+    event_type: TimelineEventType,
     content: Box<RawJsonValue>,
     state_key: Option<String>,
     prev_events: Vec<OwnedEventId>,
@@ -120,7 +120,7 @@ impl Event for Pdu {
     }
 
     fn event_type(&self) -> &TimelineEventType {
-        &self.kind
+        &self.event_type
     }
 
     fn content(&self) -> &RawJsonValue {
@@ -157,7 +157,8 @@ struct ExtractRoomVersion {
 /// Type describing a resolved state event.
 #[derive(Serialize)]
 pub(super) struct ResolvedStateEvent {
-    kind: StateEventType,
+    #[serde(rename = "type")]
+    event_type: StateEventType,
     state_key: String,
     event_id: OwnedEventId,
 
@@ -167,7 +168,7 @@ pub(super) struct ResolvedStateEvent {
 
 impl PartialEq for ResolvedStateEvent {
     fn eq(&self, other: &Self) -> bool {
-        self.kind == other.kind
+        self.event_type == other.event_type
             && self.state_key == other.state_key
             && self.event_id == other.event_id
     }
@@ -178,7 +179,7 @@ impl Eq for ResolvedStateEvent {}
 impl Ord for ResolvedStateEvent {
     fn cmp(&self, other: &Self) -> Ordering {
         Ordering::Equal
-            .then(self.kind.cmp(&other.kind))
+            .then(self.event_type.cmp(&other.event_type))
             .then(self.state_key.cmp(&other.state_key))
             .then(self.event_id.cmp(&other.event_id))
     }
@@ -218,7 +219,7 @@ fn snapshot_test_prelude(
             .expect("there should be at least one PDU in the first file");
 
         assert_eq!(
-            first_pdu.kind,
+            first_pdu.event_type,
             TimelineEventType::RoomCreate,
             "the first PDU in the first file should be an m.room.create event",
         );
@@ -241,9 +242,9 @@ fn reshape(
     x: StateMap<OwnedEventId>,
 ) -> Result<BTreeSet<ResolvedStateEvent>, JsonError> {
     x.into_iter()
-        .map(|((kind, state_key), event_id)| {
+        .map(|((event_type, state_key), event_id)| {
             Ok(ResolvedStateEvent {
-                kind,
+                event_type,
                 state_key,
                 content: to_json_value(pdus_by_id[&event_id].content())?,
                 event_id,
