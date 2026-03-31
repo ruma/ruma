@@ -44,6 +44,7 @@ macro_rules! snapshot_test {
             insta::with_settings!({
                 description => "Resolved state",
                 omit_expression => true,
+                prepend_module_to_snapshot => false,
                 snapshot_suffix => "resolved_state",
             }, {
                 insta::assert_json_snapshot!(&resolved_state);
@@ -71,6 +72,7 @@ macro_rules! snapshot_test_contrived_states {
             insta::with_settings!({
                 description => "Resolved state",
                 omit_expression => true,
+                prepend_module_to_snapshot => false,
                 snapshot_suffix => "resolved_state",
             }, {
                 insta::assert_json_snapshot!(&resolved_state);
