@@ -25,7 +25,8 @@ use serde_json::{
 };
 use similar::{Algorithm, udiff::unified_diff};
 
-static FIXTURES_PATH: LazyLock<&'static Path> = LazyLock::new(|| Path::new("tests/it/fixtures"));
+static FIXTURES_PATH: LazyLock<&'static Path> =
+    LazyLock::new(|| Path::new("tests/it/resolve/fixtures"));
 
 /// Create a new snapshot test.
 ///
