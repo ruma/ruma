@@ -32,10 +32,10 @@ use crate::{
 ///
 /// # Parameters
 ///
-/// * `public_key_map`: A map from entity identifiers to a map from key identifiers to public keys.
-///   Generally, entity identifiers are server names—the host/IP/port of a homeserver (e.g.
-///   "example.com") for which a signature must be verified. Key identifiers for each server (e.g.
-///   "ed25519:1") then map to their respective public keys.
+/// * `public_key_map`: A map from server name to a map from key identifier to public signing key.
+///   [`required_server_signatures_to_verify_event()`] can be called to get the list of servers that
+///   must appear in this map. If any of those servers is missing, this function will return a
+///   [`VerificationError::NoPublicKeysForEntity`] error.
 /// * `object`: The JSON object of the event that was signed.
 /// * `room_version`: The version of the event's room.
 ///
@@ -136,7 +136,7 @@ pub fn verify_event(
         None => return Err(JsonError::MissingField { path: "signatures".to_owned() }.into()),
     };
 
-    let servers_to_check = servers_to_check_signatures(object, &rules.signatures)?;
+    let servers_to_check = required_server_signatures_to_verify_event(object, &rules.signatures)?;
     let canonical_json = canonical_json(&redacted)?;
 
     for entity_id in servers_to_check {
@@ -426,18 +426,18 @@ where
     verifier.verify_json(public_key, signature, canonical_json).map_err(Into::into)
 }
 
-/// Extracts the server names to check signatures for given event.
+/// Get the list of servers whose signature must be checked to verify the given event.
 ///
-/// Respects the rules for [validating signatures on received events] for populating the result:
+/// Applies the rules for [validating signatures on received events] for populating the list:
 ///
-/// - Add the server of the sender, except if it's an invite event that results from a third-party
+/// - Add the server of the `sender`, except if it's an invite event that results from a third-party
 ///   invite.
 /// - For room versions 1 and 2, add the server of the `event_id`.
 /// - For room versions that support restricted join rules, if it's a join event with a
 ///   `join_authorised_via_users_server`, add the server of that user.
 ///
 /// [validating signatures on received events]: https://spec.matrix.org/v1.18/server-server-api/#validating-hashes-and-signatures-on-received-events
-fn servers_to_check_signatures(
+pub fn required_server_signatures_to_verify_event(
     object: &CanonicalJsonObject,
     rules: &SignaturesRules,
 ) -> Result<BTreeSet<OwnedServerName>, VerificationError> {

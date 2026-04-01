@@ -45,6 +45,9 @@ Improvements:
 
 - Get a better error message when verifying a signature with a public key that
   has the wrong length.
+- Make `required_server_signatures_to_verify_event()` public, for homeservers to
+  get the list of servers whose public keys they need to provide to
+  `verify_event()`.
 
 # 0.19.0
 

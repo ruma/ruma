@@ -10,7 +10,8 @@ use ruma_common::{
 use serde_json::json;
 
 use super::{
-    canonical_json, servers_to_check_signatures, verify_canonical_json_bytes, verify_event,
+    canonical_json, required_server_signatures_to_verify_event, verify_canonical_json_bytes,
+    verify_event,
 };
 use crate::{
     KeyPair, PublicKeyMap, PublicKeySet, VerificationError, Verified,
@@ -469,7 +470,7 @@ fn verify_event_with_single_key_with_unknown_algorithm_should_not_accept_event()
 }
 
 #[test]
-fn servers_to_check_signatures_message() {
+fn required_server_signatures_to_verify_event_message() {
     let message_event_json = json!({
         "event_id": "$event_id:domain-event",
         "auth_events": [
@@ -500,19 +501,21 @@ fn servers_to_check_signatures_message() {
     let object = serde_json::from_value(message_event_json).unwrap();
 
     // Check for room v1.
-    let servers = servers_to_check_signatures(&object, &SignaturesRules::V1).unwrap();
+    let servers =
+        required_server_signatures_to_verify_event(&object, &SignaturesRules::V1).unwrap();
     assert_eq!(servers.len(), 2);
     assert!(servers.contains(server_name!("domain-sender")));
     assert!(servers.contains(server_name!("domain-event")));
 
     // Check for room v3.
-    let servers = servers_to_check_signatures(&object, &SignaturesRules::V3).unwrap();
+    let servers =
+        required_server_signatures_to_verify_event(&object, &SignaturesRules::V3).unwrap();
     assert_eq!(servers.len(), 1);
     assert!(servers.contains(server_name!("domain-sender")));
 }
 
 #[test]
-fn servers_to_check_signatures_invite_via_third_party() {
+fn required_server_signatures_to_verify_event_invite_via_third_party() {
     let message_event_json = json!({
         "event_id": "$event_id:domain-event",
         "auth_events": [
@@ -544,17 +547,19 @@ fn servers_to_check_signatures_invite_via_third_party() {
     let object = serde_json::from_value(message_event_json).unwrap();
 
     // Check for room v1.
-    let servers = servers_to_check_signatures(&object, &SignaturesRules::V1).unwrap();
+    let servers =
+        required_server_signatures_to_verify_event(&object, &SignaturesRules::V1).unwrap();
     assert_eq!(servers.len(), 1);
     assert!(servers.contains(server_name!("domain-event")));
 
     // Check for room v3.
-    let servers = servers_to_check_signatures(&object, &SignaturesRules::V3).unwrap();
+    let servers =
+        required_server_signatures_to_verify_event(&object, &SignaturesRules::V3).unwrap();
     assert_eq!(servers.len(), 0);
 }
 
 #[test]
-fn servers_to_check_signatures_restricted() {
+fn required_server_signatures_to_verify_event_restricted() {
     let message_event_json = json!({
         "event_id": "$event_id:domain-event",
         "auth_events": [
@@ -586,18 +591,21 @@ fn servers_to_check_signatures_restricted() {
     let object = serde_json::from_value(message_event_json).unwrap();
 
     // Check for room v1.
-    let servers = servers_to_check_signatures(&object, &SignaturesRules::V1).unwrap();
+    let servers =
+        required_server_signatures_to_verify_event(&object, &SignaturesRules::V1).unwrap();
     assert_eq!(servers.len(), 2);
     assert!(servers.contains(server_name!("domain-sender")));
     assert!(servers.contains(server_name!("domain-event")));
 
     // Check for room v3.
-    let servers = servers_to_check_signatures(&object, &SignaturesRules::V3).unwrap();
+    let servers =
+        required_server_signatures_to_verify_event(&object, &SignaturesRules::V3).unwrap();
     assert_eq!(servers.len(), 1);
     assert!(servers.contains(server_name!("domain-sender")));
 
     // Check for room v8.
-    let servers = servers_to_check_signatures(&object, &SignaturesRules::V8).unwrap();
+    let servers =
+        required_server_signatures_to_verify_event(&object, &SignaturesRules::V8).unwrap();
     assert_eq!(servers.len(), 2);
     assert!(servers.contains(server_name!("domain-sender")));
     assert!(servers.contains(server_name!("domain-authorize-user")));
