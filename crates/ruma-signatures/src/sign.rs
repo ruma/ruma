@@ -1,8 +1,7 @@
 use std::{borrow::Cow, collections::BTreeMap, mem};
 
 use ruma_common::{
-    AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, IdParseError, OwnedSigningKeyId,
-    SigningKeyAlgorithm, SigningKeyId,
+    AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, OwnedSigningKeyId, SigningKeyAlgorithm,
     canonical_json::{CanonicalJsonType, redact},
     room_version_rules::RedactionRules,
     serde::{Base64, base64::Standard},
@@ -287,18 +286,10 @@ impl Signature {
     ///
     /// # Parameters
     ///
-    /// * `id`: A key identifier, e.g. `ed25519:1`.
-    /// * `bytes`: The digital signature, as a series of bytes.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if:
-    ///
-    /// * The key ID is malformed.
-    pub fn new(id: &str, bytes: &[u8]) -> Result<Self, IdParseError> {
-        let key_id = SigningKeyId::<AnyKeyName>::parse(id)?;
-
-        Ok(Self { key_id, signature: bytes.to_vec() })
+    /// * `key_id`: A key identifier, e.g. `ed25519:1`.
+    /// * `signature`: The digital signature, as a series of bytes.
+    pub fn new(key_id: OwnedSigningKeyId<AnyKeyName>, signature: Vec<u8>) -> Self {
+        Self { key_id, signature }
     }
 
     /// The algorithm used to generate the signature.
@@ -346,20 +337,15 @@ mod tests {
 
     #[test]
     fn valid_key_id() {
-        let signature = Signature::new("ed25519:abcdef", &[]).unwrap();
+        let signature = Signature::new("ed25519:abcdef".try_into().unwrap(), vec![]);
         assert_eq!(signature.algorithm(), SigningKeyAlgorithm::Ed25519);
         assert_eq!(signature.version(), "abcdef");
     }
 
     #[test]
     fn unknown_key_id_algorithm() {
-        let signature = Signature::new("foobar:abcdef", &[]).unwrap();
+        let signature = Signature::new("foobar:abcdef".try_into().unwrap(), vec![]);
         assert_eq!(signature.algorithm().as_str(), "foobar");
         assert_eq!(signature.version(), "abcdef");
-    }
-
-    #[test]
-    fn invalid_key_id_format() {
-        Signature::new("ed25519", &[]).unwrap_err();
     }
 }

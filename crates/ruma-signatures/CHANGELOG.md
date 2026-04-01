@@ -40,6 +40,8 @@ Breaking changes:
   `VerificationError::PublicKeyNotFound` variant was removed.
 - `Ed25519KeyPair` was moved under the new `ed25519` module with its error
   types.
+- `Signature::new()` takes an `OwnedSigningKeyId<AnyKeyName>` and a `Vec<u8>`
+  and is now infallible.
 
 Improvements:
 
