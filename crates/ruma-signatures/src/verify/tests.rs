@@ -88,7 +88,7 @@ fn verify_event_does_not_check_signatures_invite_via_third_party_id() {
             }"#
         ).unwrap();
 
-    let public_key_map = BTreeMap::new();
+    let public_key_map = PublicKeyMap::new();
     let verification = verify_event(&public_key_map, &signed_event, &RoomVersionRules::V6).unwrap();
 
     assert_eq!(verification, Verified::Signatures);
@@ -233,10 +233,13 @@ fn verification_fails_if_required_keys_are_not_given() {
     sign_json("domain-sender", &key_pair_sender, &mut signed_event).unwrap();
 
     // Verify with an empty public key map should fail due to missing public keys
-    let public_key_map = BTreeMap::new();
+    let public_key_map = PublicKeyMap::new();
     let verification_result = verify_event(&public_key_map, &signed_event, &RoomVersionRules::V6);
 
-    assert_matches!(verification_result, Err(VerificationError::NoPublicKeysForEntity(entity)));
+    assert_matches!(
+        verification_result,
+        Err(VerificationError::NoSupportedSignatureForEntity(entity))
+    );
     assert_eq!(entity, "domain-sender");
 }
 
