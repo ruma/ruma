@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Improvements:
+
+- The `IdDst` macro generates `Borrow<str>` implementations for the borrowed and
+  owned identifier structs.
+
 ## 0.18.0
 
 Breaking changes:
