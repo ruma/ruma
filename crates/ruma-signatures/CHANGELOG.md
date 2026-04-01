@@ -43,6 +43,9 @@ Breaking changes:
   and is now infallible.
 - `canonical_json()` was renamed to `to_canonical_json_string_for_signing()` to
   clarify that is is not to be used outside of the signing/verifying context.
+- `verify_event()` and `verify_json()` take a type implementing
+  `FetchEntityPublicSigningKey`. It allows to use other types than
+  `PublicKeyMap` that might have better optimizations.
 
 Improvements:
 
