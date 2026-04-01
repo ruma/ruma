@@ -60,10 +60,6 @@ pub enum VerificationError {
     #[error("Could not find signatures for entity {0:?}")]
     NoSignaturesForEntity(String),
 
-    /// The public keys for an entity cannot be found in the public keys map.
-    #[error("Could not find public keys for entity {0:?}")]
-    NoPublicKeysForEntity(String),
-
     /// No signature with a supported algorithm was found for the given entity.
     #[error("Could not find supported signature for entity {0:?}")]
     NoSupportedSignatureForEntity(String),

@@ -67,9 +67,9 @@ pub use self::{
     hash::{content_hash, reference_hash},
     sign::{KeyPair, Signature, hash_and_sign_event, sign_json},
     verify::{
-        PublicKeyMap, PublicKeySet, Verified, required_server_signatures_to_verify_event,
-        to_canonical_json_string_for_signing, verify_canonical_json_bytes, verify_event,
-        verify_json,
+        FetchEntityPublicSigningKey, PublicKeyMap, PublicKeySet, Verified,
+        required_server_signatures_to_verify_event, to_canonical_json_string_for_signing,
+        verify_canonical_json_bytes, verify_event, verify_json,
     },
 };
 
@@ -94,6 +94,7 @@ mod tests {
         Ed25519KeyPair, hash_and_sign_event, sign_json, to_canonical_json_string_for_signing,
         verify_event, verify_json,
     };
+    use crate::PublicKeyMap;
 
     fn pkcs8() -> Vec<u8> {
         const ENCODED: &str = "\
@@ -225,7 +226,7 @@ mod tests {
         let mut signature_set = BTreeMap::new();
         signature_set.insert("ed25519:1".into(), public_key_string());
 
-        let mut public_key_map = BTreeMap::new();
+        let mut public_key_map = PublicKeyMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
         verify_json(&public_key_map, &value).unwrap();
@@ -262,7 +263,7 @@ mod tests {
         let mut signature_set = BTreeMap::new();
         signature_set.insert("ed25519:1".into(), public_key_string());
 
-        let mut public_key_map = BTreeMap::new();
+        let mut public_key_map = PublicKeyMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
         verify_json(&public_key_map, &value).unwrap();
@@ -281,7 +282,7 @@ mod tests {
         let mut signature_set = BTreeMap::new();
         signature_set.insert("ed25519:1".into(), public_key_string());
 
-        let mut public_key_map = BTreeMap::new();
+        let mut public_key_map = PublicKeyMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
         verify_json(&public_key_map, &value).unwrap_err();
@@ -351,7 +352,7 @@ mod tests {
         let mut signature_set = BTreeMap::new();
         signature_set.insert("ed25519:1".into(), public_key_string());
 
-        let mut public_key_map = BTreeMap::new();
+        let mut public_key_map = PublicKeyMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
         let value = from_json_str(

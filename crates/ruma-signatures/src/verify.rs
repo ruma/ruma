@@ -32,21 +32,18 @@ use crate::{
 ///
 /// # Parameters
 ///
-/// * `public_key_map`: A map from server name to a map from key identifier to public signing key.
+/// * `fetch_public_keys`: A type to get the public signing keys of servers by key ID.
 ///   [`required_server_signatures_to_verify_event()`] can be called to get the list of servers that
-///   must appear in this map. If any of those servers is missing, this function will return a
-///   [`VerificationError::NoPublicKeysForEntity`] error.
+///   must appear in this map.
 /// * `object`: The JSON object of the event that was signed.
 /// * `room_version`: The version of the event's room.
 ///
 /// # Examples
 ///
 /// ```rust
-/// # use std::collections::BTreeMap;
-/// # use ruma_common::RoomVersionId;
-/// # use ruma_common::serde::Base64;
-/// # use ruma_signatures::{verify_event, Verified};
-/// #
+/// use ruma_common::{RoomVersionId, serde::Base64};
+/// use ruma_signatures::{PublicKeyMap, PublicKeySet, Verified, verify_event};
+///
 /// const PUBLIC_KEY: &[u8] = b"XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
 ///
 /// // Deserialize an event from JSON.
@@ -72,13 +69,13 @@ use crate::{
 ///         "unsigned": {
 ///             "age_ts": 1000000
 ///         }
-///     }"#
-/// ).unwrap();
+///     }"#,
+/// )?;
 ///
 /// // Create the `PublicKeyMap` that will inform `verify_json` which signatures to verify.
-/// let mut public_key_set = BTreeMap::new();
-/// public_key_set.insert("ed25519:1".into(), Base64::parse(PUBLIC_KEY.to_owned()).unwrap());
-/// let mut public_key_map = BTreeMap::new();
+/// let mut public_key_set = PublicKeySet::new();
+/// public_key_set.insert("ed25519:1".into(), Base64::parse(PUBLIC_KEY.to_owned())?);
+/// let mut public_key_map = PublicKeyMap::new();
 /// public_key_map.insert("domain".into(), public_key_set);
 ///
 /// // Get the redaction rules for the version of the current room.
@@ -86,12 +83,12 @@ use crate::{
 ///     RoomVersionId::V6.rules().expect("The rules should be known for a supported room version");
 ///
 /// // Verify at least one signature for each entity in `public_key_map`.
-/// let verification_result = verify_event(&public_key_map, &object, &rules);
-/// assert!(verification_result.is_ok());
-/// assert_eq!(verification_result.unwrap(), Verified::All);
+/// let verification_result = verify_event(&public_key_map, &object, &rules)?;
+/// assert_eq!(verification_result, Verified::All);
+/// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 pub fn verify_event(
-    public_key_map: &PublicKeyMap,
+    fetch_public_keys: &impl FetchEntityPublicSigningKey,
     object: &CanonicalJsonObject,
     rules: &RoomVersionRules,
 ) -> Result<Verified, VerificationError> {
@@ -107,7 +104,7 @@ pub fn verify_event(
     for entity_id in servers_to_check {
         verify_canonical_json_for_entity(
             entity_id.as_str(),
-            public_key_map,
+            fetch_public_keys,
             signature_map,
             canonical_json.as_bytes(),
         )?;
@@ -135,10 +132,7 @@ pub fn verify_event(
 ///
 /// # Parameters
 ///
-/// * `public_key_map`: A map from entity identifiers to a map from key identifiers to public keys.
-///   Generally, entity identifiers are server names — the host/IP/port of a homeserver (e.g.
-///   `example.com`) for which a signature must be verified. Key identifiers for each server (e.g.
-///   `ed25519:1`) then map to their respective public keys.
+/// * `fetch_public_keys`: A type to get the public signing keys of entities by key ID.
 /// * `object`: The JSON object that was signed.
 ///
 /// # Errors
@@ -147,10 +141,9 @@ pub fn verify_event(
 ///
 /// # Examples
 ///
-/// ```rust
-/// use std::collections::BTreeMap;
-///
+/// ```
 /// use ruma_common::serde::Base64;
+/// use ruma_signatures::{PublicKeyMap, PublicKeySet, verify_json};
 ///
 /// const PUBLIC_KEY: &[u8] = b"XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
 ///
@@ -162,20 +155,21 @@ pub fn verify_event(
 ///                 "ed25519:1": "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"
 ///             }
 ///         }
-///     }"#
-/// ).unwrap();
+///     }"#,
+/// )?;
 ///
 /// // Create the `PublicKeyMap` that will inform `verify_json` which signatures to verify.
-/// let mut public_key_set = BTreeMap::new();
-/// public_key_set.insert("ed25519:1".into(), Base64::parse(PUBLIC_KEY.to_owned()).unwrap());
-/// let mut public_key_map = BTreeMap::new();
+/// let mut public_key_set = PublicKeySet::new();
+/// public_key_set.insert("ed25519:1".into(), Base64::parse(PUBLIC_KEY.to_owned())?);
+/// let mut public_key_map = PublicKeyMap::new();
 /// public_key_map.insert("domain".into(), public_key_set);
 ///
 /// // Verify at least one signature for each entity in `public_key_map`.
-/// assert!(ruma_signatures::verify_json(&public_key_map, &object).is_ok());
+/// assert!(verify_json(&public_key_map, &object).is_ok());
+/// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 pub fn verify_json(
-    public_key_map: &PublicKeyMap,
+    fetch_public_keys: &impl FetchEntityPublicSigningKey,
     object: &CanonicalJsonObject,
 ) -> Result<(), VerificationError> {
     let signature_map = object.get_as_required_object("signatures", "signatures")?;
@@ -184,7 +178,7 @@ pub fn verify_json(
     for entity_id in signature_map.keys() {
         verify_canonical_json_for_entity(
             entity_id,
-            public_key_map,
+            fetch_public_keys,
             signature_map,
             canonical_json.as_bytes(),
         )?;
@@ -277,7 +271,7 @@ pub(crate) fn to_canonical_json_string_with_fields_to_remove(
 /// # Parameters
 ///
 /// * `entity_id`: The entity to check the signatures for.
-/// * `public_key_map`: A map from entity identifiers to a map from key identifiers to public keys.
+/// * `fetch_public_keys`: A type to get the public signing keys of servers by key ID.
 /// * `signature_map`: The map of signatures from the signed JSON object.
 /// * `canonical_json`: The signed canonical JSON bytes. Can be obtained by calling
 ///   [`to_canonical_json_string_for_signing()`].
@@ -289,7 +283,7 @@ pub(crate) fn to_canonical_json_string_with_fields_to_remove(
 /// [checking signatures]: https://spec.matrix.org/v1.18/appendices/#checking-for-a-signature
 fn verify_canonical_json_for_entity(
     entity_id: &str,
-    public_key_map: &PublicKeyMap,
+    fetch_public_keys: &impl FetchEntityPublicSigningKey,
     signature_map: &CanonicalJsonObject,
     canonical_json: &[u8],
 ) -> Result<(), VerificationError> {
@@ -297,14 +291,10 @@ fn verify_canonical_json_for_entity(
         .get_as_object(entity_id, format!("signatures.{entity_id}"))?
         .ok_or_else(|| VerificationError::NoSignaturesForEntity(entity_id.to_owned()))?;
 
-    let public_keys = public_key_map
-        .get(entity_id)
-        .ok_or_else(|| VerificationError::NoPublicKeysForEntity(entity_id.to_owned()))?;
-
     let mut checked = false;
     for (key_id, signature) in signature_set {
         // If the key is not in the map of public keys, ignore.
-        let Some(public_key) = public_keys.get(key_id) else {
+        let Some(public_key) = fetch_public_keys.public_signing_key(entity_id, key_id) else {
             continue;
         };
 
@@ -334,12 +324,7 @@ fn verify_canonical_json_for_entity(
             }
         })?;
 
-        verify_canonical_json_with(
-            &verifier,
-            public_key.as_bytes(),
-            signature.as_bytes(),
-            canonical_json,
-        )?;
+        verify_canonical_json_with(&verifier, public_key, signature.as_bytes(), canonical_json)?;
         checked = true;
     }
 
@@ -521,3 +506,28 @@ pub type PublicKeyMap = BTreeMap<String, PublicKeySet>;
 ///
 /// This is represented as a map from key ID to base64-encoded signature.
 pub type PublicKeySet = BTreeMap<String, Base64>;
+
+/// A trait implemented by types that allow to get the public signing keys for a given entity.
+pub trait FetchEntityPublicSigningKey {
+    /// Get the bytes of the public signing key with the given ID for the given entity.
+    fn public_signing_key(&self, entity: &str, key_id: &str) -> Option<&[u8]>;
+}
+
+impl<T> FetchEntityPublicSigningKey for &T
+where
+    T: FetchEntityPublicSigningKey,
+{
+    fn public_signing_key(&self, entity: &str, key_id: &str) -> Option<&[u8]> {
+        (*self).public_signing_key(entity, key_id)
+    }
+}
+
+impl<Entity, KeyId> FetchEntityPublicSigningKey for BTreeMap<Entity, BTreeMap<KeyId, Base64>>
+where
+    Entity: std::borrow::Borrow<str> + Ord,
+    KeyId: std::borrow::Borrow<str> + Ord,
+{
+    fn public_signing_key(&self, entity: &str, key_id: &str) -> Option<&[u8]> {
+        self.get(entity)?.get(key_id).map(Base64::as_bytes)
+    }
+}
