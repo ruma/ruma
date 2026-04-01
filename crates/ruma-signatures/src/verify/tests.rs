@@ -10,8 +10,8 @@ use ruma_common::{
 use serde_json::json;
 
 use super::{
-    canonical_json, required_server_signatures_to_verify_event, verify_canonical_json_bytes,
-    verify_event,
+    required_server_signatures_to_verify_event, to_canonical_json_string_for_signing,
+    verify_canonical_json_bytes, verify_event,
 };
 use crate::{
     Ed25519KeyPair, Ed25519VerificationError, KeyPair, PublicKeyMap, PublicKeySet,
@@ -617,7 +617,7 @@ fn verify_canonical_json_bytes_success() {
         "bat": "baz",
     }))
     .unwrap();
-    let canonical_json = canonical_json(&json).unwrap();
+    let canonical_json = to_canonical_json_string_for_signing(&json).unwrap();
 
     let key_pair = generate_key_pair("1");
     let signature = key_pair.sign(canonical_json.as_bytes());
@@ -638,7 +638,7 @@ fn verify_canonical_json_bytes_unsupported_algorithm() {
         "bat": "baz",
     }))
     .unwrap();
-    let canonical_json = canonical_json(&json).unwrap();
+    let canonical_json = to_canonical_json_string_for_signing(&json).unwrap();
 
     let key_pair = generate_key_pair("1");
     let signature = key_pair.sign(canonical_json.as_bytes());
@@ -660,7 +660,7 @@ fn verify_canonical_json_bytes_wrong_key() {
         "bat": "baz",
     }))
     .unwrap();
-    let canonical_json = canonical_json(&json).unwrap();
+    let canonical_json = to_canonical_json_string_for_signing(&json).unwrap();
 
     let valid_key_pair = generate_key_pair("1");
     let signature = valid_key_pair.sign(canonical_json.as_bytes());
@@ -705,5 +705,5 @@ fn canonical_json_complex() {
     let canonical = r#"{"auth":{"mxid":"@john.doe:example.com","profile":{"display_name":"John Doe","three_pids":[{"address":"john.doe@example.org","medium":"email"},{"address":"123456789","medium":"msisdn"}]},"success":true}}"#;
 
     assert_let!(CanonicalJsonValue::Object(object) = CanonicalJsonValue::try_from(data).unwrap());
-    assert_eq!(canonical_json(&object).unwrap(), canonical);
+    assert_eq!(to_canonical_json_string_for_signing(&object).unwrap(), canonical);
 }

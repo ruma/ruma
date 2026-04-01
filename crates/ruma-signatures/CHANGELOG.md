@@ -25,7 +25,7 @@ Breaking changes:
     `Ed25519VerificationError::SignatureVerification`.
 - `Error::PduSize` is now `JsonError::PduTooLarge` allowing the following
   functions to return `JsonError` as an error type:
-  - `canonical_json()`
+  - `to_canonical_json_string_for_signing()`
   - `reference_hash()`
   - `content_hash()`
   - `sign_json()`
@@ -42,6 +42,8 @@ Breaking changes:
   types.
 - `Signature::new()` takes an `OwnedSigningKeyId<AnyKeyName>` and a `Vec<u8>`
   and is now infallible.
+- `canonical_json()` was renamed to `to_canonical_json_string_for_signing()` to
+  clarify that is is not to be used outside of the signing/verifying context.
 
 Improvements:
 

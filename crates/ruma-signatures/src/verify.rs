@@ -137,7 +137,7 @@ pub fn verify_event(
     };
 
     let servers_to_check = required_server_signatures_to_verify_event(object, &rules.signatures)?;
-    let canonical_json = canonical_json(&redacted)?;
+    let canonical_json = to_canonical_json_string_for_signing(&redacted)?;
 
     for entity_id in servers_to_check {
         verify_canonical_json_for_entity(
@@ -226,7 +226,7 @@ pub fn verify_json(
         None => return Err(JsonError::MissingField { path: "signatures".to_owned() }.into()),
     };
 
-    let canonical_json = canonical_json(object)?;
+    let canonical_json = to_canonical_json_string_for_signing(object)?;
 
     for entity_id in signature_map.keys() {
         verify_canonical_json_for_entity(
@@ -252,7 +252,7 @@ pub fn verify_json(
 /// * `public_key`: The raw bytes of the public key used to sign the JSON.
 /// * `signature`: The raw bytes of the signature.
 /// * `canonical_json`: The signed canonical JSON bytes. Can be obtained by calling
-///   [`canonical_json()`].
+///   [`to_canonical_json_string_for_signing()`].
 ///
 /// # Errors
 ///
@@ -280,26 +280,31 @@ pub fn verify_canonical_json_bytes(
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
+/// use ruma_signatures::to_canonical_json_string_for_signing;
+///
 /// let input = r#"{
 ///     "本": 2,
 ///     "日": 1
 /// }"#;
 ///
-/// let object = serde_json::from_str(input).unwrap();
-/// let canonical = ruma_signatures::canonical_json(&object).unwrap();
+/// let object = serde_json::from_str(input)?;
+/// let canonical = to_canonical_json_string_for_signing(&object)?;
 ///
 /// assert_eq!(canonical, r#"{"日":1,"本":2}"#);
+/// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 ///
 /// [signing]: https://spec.matrix.org/v1.18/appendices/#signing-details
 /// [canonical JSON]: https://spec.matrix.org/v1.18/appendices/#canonical-json
-pub fn canonical_json(object: &CanonicalJsonObject) -> Result<String, JsonError> {
-    canonical_json_with_fields_to_remove(object, FIELDS_TO_REMOVE_FOR_SIGNING)
+pub fn to_canonical_json_string_for_signing(
+    object: &CanonicalJsonObject,
+) -> Result<String, JsonError> {
+    to_canonical_json_string_with_fields_to_remove(object, FIELDS_TO_REMOVE_FOR_SIGNING)
 }
 
 /// Serialize the given JSON object to the canonical JSON form without the given fields.
-pub(crate) fn canonical_json_with_fields_to_remove(
+pub(crate) fn to_canonical_json_string_with_fields_to_remove(
     object: &CanonicalJsonObject,
     fields: &[&str],
 ) -> Result<String, JsonError> {
@@ -322,7 +327,7 @@ pub(crate) fn canonical_json_with_fields_to_remove(
 /// * `public_key_map`: A map from entity identifiers to a map from key identifiers to public keys.
 /// * `signature_map`: The map of signatures from the signed JSON object.
 /// * `canonical_json`: The signed canonical JSON bytes. Can be obtained by calling
-///   [`canonical_json()`].
+///   [`to_canonical_json_string_for_signing()`].
 ///
 /// # Errors
 ///
@@ -409,7 +414,7 @@ fn verify_canonical_json_for_entity(
 /// * `public_key`: The raw bytes of the public key used to sign the JSON.
 /// * `signature`: The raw bytes of the signature.
 /// * `canonical_json`: The signed canonical JSON bytes. Can be obtained by calling
-///   [`canonical_json()`].
+///   [`to_canonical_json_string_for_signing()`].
 ///
 /// # Errors
 ///
