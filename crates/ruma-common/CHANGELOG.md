@@ -66,6 +66,8 @@ Improvements:
 - `CanonicalJsonValue::json_type()` allows to get the `JsonType` of a value.
 - Add `FeatureFlag::Msc4323`, the unstable feature flag for the user suspension
   and locking endpoints, according to MSC4323.
+- The `IdDst` macro generates `Borrow<str>` implementations for the borrowed and
+  owned identifier structs.
 
 # 0.17.1
 
