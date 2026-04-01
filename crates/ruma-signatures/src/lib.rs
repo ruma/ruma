@@ -55,8 +55,8 @@ pub use self::{
     hash::{content_hash, reference_hash},
     sign::{KeyPair, Signature, hash_and_sign_event, sign_json},
     verify::{
-        PublicKeyMap, PublicKeySet, Verified, canonical_json,
-        required_server_signatures_to_verify_event, verify_canonical_json_bytes, verify_event,
+        PublicKeyMap, PublicKeySet, Verified, required_server_signatures_to_verify_event,
+        to_canonical_json_string_for_signing, verify_canonical_json_bytes, verify_event,
         verify_json,
     },
 };
@@ -79,8 +79,8 @@ mod tests {
     use serde_json::{from_str as from_json_str, to_string as to_json_string};
 
     use super::{
-        canonical_json, ed25519::Ed25519KeyPair, hash_and_sign_event, sign_json, verify_event,
-        verify_json,
+        ed25519::Ed25519KeyPair, hash_and_sign_event, sign_json,
+        to_canonical_json_string_for_signing, verify_event, verify_json,
     };
 
     fn pkcs8() -> Vec<u8> {
@@ -100,7 +100,7 @@ mod tests {
     /// Convenience for converting a string of JSON into its canonical form.
     fn test_canonical_json(input: &str) -> String {
         let object = from_json_str(input).unwrap();
-        canonical_json(&object).unwrap()
+        to_canonical_json_string_for_signing(&object).unwrap()
     }
 
     #[test]

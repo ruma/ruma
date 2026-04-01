@@ -7,7 +7,7 @@ use ruma_common::{
 };
 use sha2::{Digest, Sha256};
 
-use crate::{JsonError, verify::canonical_json_with_fields_to_remove};
+use crate::{JsonError, verify::to_canonical_json_string_with_fields_to_remove};
 
 /// The [maximum size allowed] for a PDU.
 ///
@@ -35,7 +35,8 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["signatures", "unsigned"];
 ///
 /// [content hash]: https://spec.matrix.org/v1.18/server-server-api/#calculating-the-content-hash-for-an-event
 pub fn content_hash(object: &CanonicalJsonObject) -> Result<Base64<Standard, [u8; 32]>, JsonError> {
-    let json = canonical_json_with_fields_to_remove(object, CONTENT_HASH_FIELDS_TO_REMOVE)?;
+    let json =
+        to_canonical_json_string_with_fields_to_remove(object, CONTENT_HASH_FIELDS_TO_REMOVE)?;
 
     if json.len() > MAX_PDU_BYTES {
         return Err(JsonError::PduTooLarge);
@@ -77,8 +78,10 @@ pub fn reference_hash(
 ) -> Result<String, JsonError> {
     let redacted_value = redact(object.clone(), &rules.redaction, None)?;
 
-    let json =
-        canonical_json_with_fields_to_remove(&redacted_value, REFERENCE_HASH_FIELDS_TO_REMOVE)?;
+    let json = to_canonical_json_string_with_fields_to_remove(
+        &redacted_value,
+        REFERENCE_HASH_FIELDS_TO_REMOVE,
+    )?;
 
     if json.len() > MAX_PDU_BYTES {
         return Err(JsonError::PduTooLarge);
