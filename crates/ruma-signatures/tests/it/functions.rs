@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use ruma_common::{
     ServerSigningKeyId, SigningKeyAlgorithm, room_version_rules::RoomVersionRules, serde::Base64,
 };
-use ruma_signatures::{Ed25519KeyPair, PublicKeyMap, Verified, sign_json, verify_event};
+use ruma_signatures::{PublicKeyMap, Verified, ed25519::Ed25519KeyPair, sign_json, verify_event};
 
 static PKCS8_ED25519_DER: &[u8] = include_bytes!("./keys/ed25519.der");
 

@@ -5,7 +5,7 @@ use ruma_common::{
 };
 use thiserror::Error;
 
-use crate::Ed25519VerificationError;
+use crate::ed25519::Ed25519VerificationError;
 
 /// All errors related to JSON validation/parsing.
 #[derive(Debug, Error)]

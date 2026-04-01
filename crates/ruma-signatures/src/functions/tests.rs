@@ -14,8 +14,8 @@ use super::{
     verify_event,
 };
 use crate::{
-    Ed25519KeyPair, Ed25519VerificationError, KeyPair, PublicKeyMap, PublicKeySet,
-    VerificationError, Verified,
+    KeyPair, PublicKeyMap, PublicKeySet, VerificationError, Verified,
+    ed25519::{Ed25519KeyPair, Ed25519VerificationError},
 };
 
 fn generate_key_pair(name: &str) -> Ed25519KeyPair {

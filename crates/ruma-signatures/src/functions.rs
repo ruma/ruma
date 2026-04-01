@@ -72,7 +72,7 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["signatures", "unsigned"];
 /// let document: Base64 = Base64::parse(PKCS8).unwrap();
 ///
 /// // Create an Ed25519 key pair.
-/// let key_pair = ruma_signatures::Ed25519KeyPair::from_der(
+/// let key_pair = ruma_signatures::ed25519::Ed25519KeyPair::from_der(
 ///     document.as_bytes(),
 ///     "1".into(), // The "version" of the key.
 /// )
@@ -500,7 +500,7 @@ pub fn reference_hash(
 ///
 /// ```rust
 /// # use ruma_common::{RoomVersionId, serde::base64::Base64};
-/// # use ruma_signatures::{hash_and_sign_event, Ed25519KeyPair};
+/// # use ruma_signatures::{hash_and_sign_event, ed25519::Ed25519KeyPair};
 /// #
 /// const PKCS8: &str = "\
 ///     MFECAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\

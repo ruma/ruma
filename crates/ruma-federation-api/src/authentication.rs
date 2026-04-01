@@ -11,7 +11,7 @@ use ruma_common::{
     http_headers::quote_ascii_string_if_required,
     serde::{Base64, Base64DecodeError},
 };
-use ruma_signatures::{Ed25519KeyPair, KeyPair, PublicKeyMap};
+use ruma_signatures::{KeyPair, PublicKeyMap, ed25519::Ed25519KeyPair};
 use thiserror::Error;
 use tracing::debug;
 

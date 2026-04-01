@@ -12,7 +12,7 @@ use ruma_federation_api::{
     authentication::{ServerSignatures, ServerSignaturesInput},
     transactions::send_transaction_message,
 };
-use ruma_signatures::{Ed25519KeyPair, PublicKeyMap, PublicKeySet};
+use ruma_signatures::{PublicKeyMap, PublicKeySet, ed25519::Ed25519KeyPair};
 
 static PKCS8_ED25519_DER: &[u8] =
     include_bytes!("../../../ruma-signatures/tests/it/keys/ed25519.der");

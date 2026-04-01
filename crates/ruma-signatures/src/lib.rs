@@ -56,11 +56,12 @@ pub use self::{
         canonical_json, content_hash, hash_and_sign_event, reference_hash, sign_json,
         verify_canonical_json_bytes, verify_event, verify_json,
     },
-    keys::{Ed25519KeyPair, Ed25519KeyPairParseError, KeyPair, PublicKeyMap, PublicKeySet},
+    keys::{KeyPair, PublicKeyMap, PublicKeySet},
     signatures::Signature,
-    verification::{Ed25519VerificationError, Verified},
+    verification::Verified,
 };
 
+pub mod ed25519;
 mod error;
 mod functions;
 mod keys;
@@ -79,7 +80,8 @@ mod tests {
     use serde_json::{from_str as from_json_str, to_string as to_json_string};
 
     use super::{
-        Ed25519KeyPair, canonical_json, hash_and_sign_event, sign_json, verify_event, verify_json,
+        canonical_json, ed25519::Ed25519KeyPair, hash_and_sign_event, sign_json, verify_event,
+        verify_json,
     };
 
     fn pkcs8() -> Vec<u8> {
