@@ -44,37 +44,7 @@ pub fn redact_in_place(
     rules: &RedactionRules,
     redacted_because: Option<RedactedBecause>,
 ) -> Result<(), RedactionError> {
-    // Get the content keys here even if they're only needed inside the branch below, because we
-    // can't teach rust that this is a disjoint borrow with `get_mut("content")`.
-    let retained_event_content_keys = match event.get("type") {
-        Some(CanonicalJsonValue::String(event_type)) => {
-            retained_event_content_keys(event_type.as_ref(), rules)
-        }
-        Some(value) => {
-            return Err(RedactionError::InvalidType {
-                path: "type".to_owned(),
-                expected: CanonicalJsonType::String,
-                found: value.json_type(),
-            });
-        }
-        None => return Err(RedactionError::MissingField { path: "type".to_owned() }),
-    };
-
-    if let Some(content_value) = event.get_mut("content") {
-        let CanonicalJsonValue::Object(content) = content_value else {
-            return Err(RedactionError::InvalidType {
-                path: "content".to_owned(),
-                expected: CanonicalJsonType::Object,
-                found: content_value.json_type(),
-            });
-        };
-
-        retained_event_content_keys.apply(rules, content)?;
-    }
-
-    let retained_event_keys =
-        RetainedKeys::some(|rules, key, _value| Ok(is_event_key_retained(rules, key)));
-    retained_event_keys.apply(rules, event)?;
+    retained_event_keys(event)?.apply(rules, event);
 
     if let Some(redacted_because) = redacted_because {
         let unsigned = CanonicalJsonObject::from_iter([(
@@ -95,8 +65,8 @@ pub fn redact_content_in_place(
     content: &mut CanonicalJsonObject,
     rules: &RedactionRules,
     event_type: impl AsRef<str>,
-) -> Result<(), RedactionError> {
-    retained_event_content_keys(event_type.as_ref(), rules).apply(rules, content)
+) {
+    retained_event_content_keys(event_type.as_ref(), rules).apply(rules, content);
 }
 
 /// The value to put in `unsigned.redacted_because`.
@@ -158,10 +128,29 @@ impl fmt::Display for RedactionError {
 
 impl std::error::Error for RedactionError {}
 
-/// A function that takes redaction rules, a key and its value, and returns whether the field
-/// should be retained.
-type RetainKeyFn =
-    dyn Fn(&RedactionRules, &str, &mut CanonicalJsonValue) -> Result<bool, RedactionError>;
+/// A function that takes redaction rules and a key and returns whether the field should be
+/// retained.
+type RetainKeyFn = dyn Fn(&RedactionRules, &str) -> RetainKey;
+
+/// Whether a key should be retained.
+enum RetainKey {
+    /// The key should be retained.
+    Yes {
+        /// The rules to apply to the child keys if the value of this key is an object.
+        ///
+        /// If the value is an object and this is `None`, the default is [`RetainedKeys::All`].
+        child_retained_keys: Option<RetainedKeys>,
+    },
+
+    /// The key should be redacted.
+    No,
+}
+
+impl From<bool> for RetainKey {
+    fn from(value: bool) -> Self {
+        if value { Self::Yes { child_retained_keys: None } } else { Self::No }
+    }
+}
 
 /// Keys to retain on an object.
 enum RetainedKeys {
@@ -179,44 +168,58 @@ impl RetainedKeys {
     /// Construct a `RetainedKeys::Some(_)` with the given function.
     fn some<F>(retain_key_fn: F) -> Self
     where
-        F: Fn(&RedactionRules, &str, &mut CanonicalJsonValue) -> Result<bool, RedactionError>
-            + 'static,
+        F: Fn(&RedactionRules, &str) -> RetainKey + Clone + 'static,
     {
         Self::Some(Box::new(retain_key_fn))
     }
 
     /// Apply this `RetainedKeys` on the given object.
-    fn apply(
-        &self,
-        rules: &RedactionRules,
-        object: &mut CanonicalJsonObject,
-    ) -> Result<(), RedactionError> {
+    fn apply(&self, rules: &RedactionRules, object: &mut CanonicalJsonObject) {
         match self {
             Self::All => {}
-            Self::Some(allow_field_fn) => {
+            Self::Some(retain_key_fn) => {
                 let old_object = mem::take(object);
 
                 for (key, mut value) in old_object {
-                    if allow_field_fn(rules, &key, &mut value)? {
+                    if let RetainKey::Yes { child_retained_keys } = retain_key_fn(rules, &key) {
+                        if let Some(child_retained_keys) = child_retained_keys
+                            && let CanonicalJsonValue::Object(child_object) = &mut value
+                        {
+                            child_retained_keys.apply(rules, child_object);
+                        }
+
                         object.insert(key, value);
                     }
                 }
             }
             Self::None => object.clear(),
         }
-
-        Ok(())
     }
 }
 
 /// Get the given keys should be retained at the top level of an event.
-fn is_event_key_retained(rules: &RedactionRules, key: &str) -> bool {
-    match key {
-        "event_id" | "type" | "room_id" | "sender" | "state_key" | "content" | "hashes"
-        | "signatures" | "depth" | "prev_events" | "auth_events" | "origin_server_ts" => true,
-        "origin" | "membership" | "prev_state" => rules.keep_origin_membership_prev_state,
-        _ => false,
-    }
+fn retained_event_keys(event: &CanonicalJsonObject) -> Result<RetainedKeys, RedactionError> {
+    let event_type = match event.get("type") {
+        Some(CanonicalJsonValue::String(event_type)) => event_type.clone(),
+        Some(value) => {
+            return Err(RedactionError::InvalidType {
+                path: "type".to_owned(),
+                expected: CanonicalJsonType::String,
+                found: value.json_type(),
+            });
+        }
+        None => return Err(RedactionError::MissingField { path: "type".to_owned() }),
+    };
+
+    Ok(RetainedKeys::some(move |rules, key| match key {
+        "content" => RetainKey::Yes {
+            child_retained_keys: Some(retained_event_content_keys(&event_type, rules)),
+        },
+        "event_id" | "type" | "room_id" | "sender" | "state_key" | "hashes" | "signatures"
+        | "depth" | "prev_events" | "auth_events" | "origin_server_ts" => true.into(),
+        "origin" | "membership" | "prev_state" => rules.keep_origin_membership_prev_state.into(),
+        _ => false.into(),
+    }))
 }
 
 /// Get the keys that should be retained in the `content` of an event with the given type.
@@ -224,52 +227,35 @@ fn retained_event_content_keys(event_type: &str, rules: &RedactionRules) -> Reta
     match event_type {
         "m.room.member" => RetainedKeys::some(is_room_member_content_key_retained),
         "m.room.create" => room_create_content_retained_keys(rules),
-        "m.room.join_rules" => RetainedKeys::some(|rules, key, _value| {
-            is_room_join_rules_content_key_retained(rules, key)
-        }),
-        "m.room.power_levels" => RetainedKeys::some(|rules, key, _value| {
-            is_room_power_levels_content_key_retained(rules, key)
-        }),
-        "m.room.history_visibility" => RetainedKeys::some(|_rules, key, _value| {
-            is_room_history_visibility_content_key_retained(key)
-        }),
+        "m.room.join_rules" => RetainedKeys::some(is_room_join_rules_content_key_retained),
+        "m.room.power_levels" => RetainedKeys::some(is_room_power_levels_content_key_retained),
+        "m.room.history_visibility" => {
+            RetainedKeys::some(|_rules, key| is_room_history_visibility_content_key_retained(key))
+        }
         "m.room.redaction" => room_redaction_content_retained_keys(rules),
         "m.room.aliases" => room_aliases_content_retained_keys(rules),
         #[cfg(feature = "unstable-msc2870")]
-        "m.room.server_acl" => RetainedKeys::some(|rules, key, _value| {
-            is_room_server_acl_content_key_retained(rules, key)
-        }),
+        "m.room.server_acl" => RetainedKeys::some(is_room_server_acl_content_key_retained),
         _ => RetainedKeys::None,
     }
 }
 
 /// Whether the given key in the `content` of an `m.room.member` event is retained after redaction.
-fn is_room_member_content_key_retained(
-    rules: &RedactionRules,
-    key: &str,
-    value: &mut CanonicalJsonValue,
-) -> Result<bool, RedactionError> {
-    Ok(match key {
-        "membership" => true,
+fn is_room_member_content_key_retained(rules: &RedactionRules, key: &str) -> RetainKey {
+    match key {
+        "membership" => true.into(),
         "join_authorised_via_users_server" => {
-            rules.keep_room_member_join_authorised_via_users_server
+            rules.keep_room_member_join_authorised_via_users_server.into()
         }
         "third_party_invite" if rules.keep_room_member_third_party_invite_signed => {
-            let Some(third_party_invite) = value.as_object_mut() else {
-                return Err(RedactionError::InvalidType {
-                    path: "content.third_party_invite".to_owned(),
-                    expected: CanonicalJsonType::Object,
-                    found: value.json_type(),
-                });
-            };
-
-            third_party_invite.retain(|key, _| key == "signed");
-
-            // Keep the field only if it's not empty.
-            !third_party_invite.is_empty()
+            RetainKey::Yes {
+                child_retained_keys: Some(RetainedKeys::some(|_rules, key| {
+                    (key == "signed").into()
+                })),
+            }
         }
-        _ => false,
-    })
+        _ => false.into(),
+    }
 }
 
 /// Get the retained keys in the `content` of an `m.room.create` event.
@@ -277,47 +263,43 @@ fn room_create_content_retained_keys(rules: &RedactionRules) -> RetainedKeys {
     if rules.keep_room_create_content {
         RetainedKeys::All
     } else {
-        RetainedKeys::some(|_rules, field, _value| Ok(field == "creator"))
+        RetainedKeys::some(|_rules, field| (field == "creator").into())
     }
 }
 
 /// Whether the given key in the `content` of an `m.room.join_rules` event is retained after
 /// redaction.
-fn is_room_join_rules_content_key_retained(
-    rules: &RedactionRules,
-    key: &str,
-) -> Result<bool, RedactionError> {
-    Ok(match key {
+fn is_room_join_rules_content_key_retained(rules: &RedactionRules, key: &str) -> RetainKey {
+    match key {
         "join_rule" => true,
         "allow" => rules.keep_room_join_rules_allow,
         _ => false,
-    })
+    }
+    .into()
 }
 
 /// Whether the given key in the `content` of an `m.room.power_levels` event is retained after
 /// redaction.
-fn is_room_power_levels_content_key_retained(
-    rules: &RedactionRules,
-    key: &str,
-) -> Result<bool, RedactionError> {
-    Ok(match key {
+fn is_room_power_levels_content_key_retained(rules: &RedactionRules, key: &str) -> RetainKey {
+    match key {
         "ban" | "events" | "events_default" | "kick" | "redact" | "state_default" | "users"
         | "users_default" => true,
         "invite" => rules.keep_room_power_levels_invite,
         _ => false,
-    })
+    }
+    .into()
 }
 
 /// Whether the given key in the `content` of an `m.room.history_visibility` event is retained after
 /// redaction.
-fn is_room_history_visibility_content_key_retained(key: &str) -> Result<bool, RedactionError> {
-    Ok(key == "history_visibility")
+fn is_room_history_visibility_content_key_retained(key: &str) -> RetainKey {
+    (key == "history_visibility").into()
 }
 
 /// Get the retained keys in the `content` of an `m.room.redaction` event.
 fn room_redaction_content_retained_keys(rules: &RedactionRules) -> RetainedKeys {
     if rules.keep_room_redaction_redacts {
-        RetainedKeys::some(|_rules, field, _value| Ok(field == "redacts"))
+        RetainedKeys::some(|_rules, field| (field == "redacts").into())
     } else {
         RetainedKeys::None
     }
@@ -326,7 +308,7 @@ fn room_redaction_content_retained_keys(rules: &RedactionRules) -> RetainedKeys 
 /// Get the retained keys in the `content` of an `m.room.aliases` event.
 fn room_aliases_content_retained_keys(rules: &RedactionRules) -> RetainedKeys {
     if rules.keep_room_aliases_aliases {
-        RetainedKeys::some(|_rules, field, _value| Ok(field == "aliases"))
+        RetainedKeys::some(|_rules, field| (field == "aliases").into())
     } else {
         RetainedKeys::None
     }
@@ -335,16 +317,14 @@ fn room_aliases_content_retained_keys(rules: &RedactionRules) -> RetainedKeys {
 /// Whether the given key in the `content` of an `m.room.server_acl` event is retained after
 /// redaction.
 #[cfg(feature = "unstable-msc2870")]
-fn is_room_server_acl_content_key_retained(
-    rules: &RedactionRules,
-    key: &str,
-) -> Result<bool, RedactionError> {
-    Ok(match key {
+fn is_room_server_acl_content_key_retained(rules: &RedactionRules, key: &str) -> RetainKey {
+    match key {
         "allow" | "deny" | "allow_ip_literals" => {
             rules.keep_room_server_acl_allow_deny_allow_ip_literals
         }
         _ => false,
-    })
+    }
+    .into()
 }
 
 #[cfg(test)]
