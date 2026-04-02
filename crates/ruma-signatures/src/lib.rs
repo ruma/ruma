@@ -56,8 +56,9 @@ pub use self::{
     sign::{KeyPair, Signature, hash_and_sign_event, sign_json},
     verify::{
         FetchEntityPublicSigningKey, PublicKeyMap, PublicKeySet, Verified,
-        required_server_signatures_to_verify_event, to_canonical_json_string_for_signing,
-        verify_canonical_json_bytes, verify_event, verify_json,
+        VerifyEventPublicSigningKeys, required_server_signatures_to_verify_event,
+        to_canonical_json_string_for_signing, verify_canonical_json_bytes, verify_event,
+        verify_json,
     },
 };
 
@@ -79,7 +80,7 @@ mod tests {
     use serde_json::{from_str as from_json_str, to_string as to_json_string};
 
     use super::{
-        ed25519::Ed25519KeyPair, hash_and_sign_event, sign_json,
+        VerifyEventPublicSigningKeys, ed25519::Ed25519KeyPair, hash_and_sign_event, sign_json,
         to_canonical_json_string_for_signing, verify_event, verify_json,
     };
     use crate::PublicKeyMap;
@@ -368,6 +369,11 @@ mod tests {
             }"#
         ).unwrap();
 
-        verify_event(&public_key_map, &value, &RoomVersionRules::V5).unwrap();
+        verify_event(
+            VerifyEventPublicSigningKeys::new(&public_key_map),
+            &value,
+            &RoomVersionRules::V5,
+        )
+        .unwrap();
     }
 }

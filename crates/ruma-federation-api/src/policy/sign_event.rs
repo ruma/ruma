@@ -23,6 +23,7 @@ pub mod v1 {
         api::{request, response},
         metadata,
     };
+    use ruma_events::room::policy::RoomPolicyEventContent;
     use serde_json::value::RawValue as RawJsonValue;
 
     use crate::authentication::ServerSignatures as ServerSignaturesAuth;
@@ -63,16 +64,15 @@ pub mod v1 {
     }
 
     impl Response {
-        /// The signing key ID that must be used by the Policy Server for the ed25519 signature.
-        pub const POLICY_SERVER_ED25519_SIGNING_KEY_ID: &str = "ed25519:policy_server";
-
         /// Creates a new `Response` with the given Policy Server name and event signature.
         pub fn new(server_name: OwnedServerName, ed25519_signature: String) -> Self {
             Self {
                 signatures: ServerSignaturesMap::from_iter(std::iter::once((
                     server_name,
-                    SigningKeyId::parse(Self::POLICY_SERVER_ED25519_SIGNING_KEY_ID)
-                        .expect("Policy Server default ed25519 signing key ID should be valid"),
+                    SigningKeyId::parse(
+                        RoomPolicyEventContent::POLICY_SERVER_ED25519_SIGNING_KEY_ID,
+                    )
+                    .expect("Policy Server default ed25519 signing key ID should be valid"),
                     ed25519_signature,
                 ))),
             }
@@ -84,7 +84,7 @@ pub mod v1 {
                 .get(server_name)?
                 .get(
                     <&SigningKeyId<ServerSigningKeyVersion>>::try_from(
-                        Self::POLICY_SERVER_ED25519_SIGNING_KEY_ID,
+                        RoomPolicyEventContent::POLICY_SERVER_ED25519_SIGNING_KEY_ID,
                     )
                     .expect("Policy Server default ed25519 signing key ID should be valid"),
                 )

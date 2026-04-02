@@ -9,6 +9,7 @@ use ruma_common::{
     room_version_rules::{RoomVersionRules, SignaturesRules},
     serde::{Base64, base64::Standard},
 };
+use ruma_events::room::policy::RoomPolicyEventContent;
 use serde_json::to_string as to_json_string;
 
 #[cfg(test)]
@@ -32,20 +33,25 @@ use crate::{
 ///
 /// # Parameters
 ///
-/// * `fetch_public_keys`: A type to get the public signing keys of servers by key ID.
-///   [`required_server_signatures_to_verify_event()`] can be called to get the list of servers that
-///   must appear in this map.
+/// * `public_keys`: A type to get the public signing keys of servers that must have signed the
+///   event.
 /// * `object`: The JSON object of the event that was signed.
 /// * `room_version`: The version of the event's room.
 ///
 /// # Examples
 ///
-/// ```rust
-/// use ruma_common::{RoomVersionId, serde::Base64};
-/// use ruma_signatures::{PublicKeyMap, PublicKeySet, Verified, verify_event};
+/// ```
+/// use ruma_signatures::{
+///     PublicKeyMap, Verified, VerifyEventPublicSigningKeys, verify_event,
+///     required_server_signatures_to_verify_event
+/// };
 ///
-/// const PUBLIC_KEY: &[u8] = b"XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
-///
+/// # const PUBLIC_KEY: &[u8] = b"XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
+/// # let fetch_public_keys = |domain: &ruma_common::ServerName|  {
+/// #   ruma_signatures::PublicKeySet::from([("ed25519:1".into(), ruma_common::serde::Base64::parse(PUBLIC_KEY.to_owned()).unwrap())])
+/// # };
+/// # let room_version_rules = || { ruma_common::room_version_rules::RoomVersionRules::V6 };
+/// #
 /// // Deserialize an event from JSON.
 /// let object = serde_json::from_str(
 ///     r#"{
@@ -69,42 +75,53 @@ use crate::{
 ///         "unsigned": {
 ///             "age_ts": 1000000
 ///         }
-///     }"#,
+///     }"#
 /// )?;
 ///
-/// // Create the `PublicKeyMap` that will inform `verify_json` which signatures to verify.
-/// let mut public_key_set = PublicKeySet::new();
-/// public_key_set.insert("ed25519:1".into(), Base64::parse(PUBLIC_KEY.to_owned())?);
+/// // Get the rules for the version of the current room.
+/// let rules = room_version_rules();
+///
+/// // Create the `PublicKeyMap` that contains the public keys of the servers that must sign the event.
 /// let mut public_key_map = PublicKeyMap::new();
-/// public_key_map.insert("domain".into(), public_key_set);
 ///
-/// // Get the redaction rules for the version of the current room.
-/// let rules =
-///     RoomVersionId::V6.rules().expect("The rules should be known for a supported room version");
+/// for server in required_server_signatures_to_verify_event(&object, &rules.signatures)? {
+///     let public_key_set = fetch_public_keys(&server);
+///     public_key_map.insert(server.into(), public_key_set);
+/// }
 ///
-/// // Verify at least one signature for each entity in `public_key_map`.
-/// let verification_result = verify_event(&public_key_map, &object, &rules)?;
+/// // Verify the required signatures on the event.
+/// let verification_result =
+///     verify_event(VerifyEventPublicSigningKeys::new(&public_key_map), &object, &rules)?;
 /// assert_eq!(verification_result, Verified::All);
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
-pub fn verify_event(
-    fetch_public_keys: &impl FetchEntityPublicSigningKey,
+pub fn verify_event<T: FetchEntityPublicSigningKey>(
+    public_keys: VerifyEventPublicSigningKeys<'_, T>,
     object: &CanonicalJsonObject,
     rules: &RoomVersionRules,
 ) -> Result<Verified, VerificationError> {
     let redacted = redact(object.clone(), &rules.redaction, None)?;
+    let canonical_json = to_canonical_json_string_for_signing(&redacted)?;
 
     let hashes = object.get_as_required_object("hashes", "hashes")?;
     let hash = hashes.get_as_required_string("sha256", "hashes.sha256")?;
     let signature_map = object.get_as_required_object("signatures", "signatures")?;
 
+    if let Some(room_policy) = public_keys.room_policy {
+        verify_event_policy_server_signature(
+            room_policy,
+            object,
+            signature_map,
+            canonical_json.as_bytes(),
+        )?;
+    }
+
     let servers_to_check = required_server_signatures_to_verify_event(object, &rules.signatures)?;
-    let canonical_json = to_canonical_json_string_for_signing(&redacted)?;
 
     for entity_id in servers_to_check {
         verify_canonical_json_for_entity(
             entity_id.as_str(),
-            fetch_public_keys,
+            public_keys.fetch_homeserver_public_keys,
             signature_map,
             canonical_json.as_bytes(),
         )?;
@@ -119,6 +136,37 @@ pub fn verify_event(
     }
 
     Ok(Verified::Signatures)
+}
+
+/// Verify that the event has a valid signature from the given policy server.
+///
+/// If the event is an `m.room.policy` event with an empty `state_key` string, this function
+/// succeeds without checking the signature.
+///
+/// For other cases, this returns an error if the signature is missing or invalid.
+fn verify_event_policy_server_signature(
+    room_policy: &RoomPolicyEventContent,
+    object: &CanonicalJsonObject,
+    signature_map: &CanonicalJsonObject,
+    canonical_json: &[u8],
+) -> Result<(), VerificationError> {
+    let event_type = object.get_as_required_string("type", "type")?;
+
+    if event_type == "m.room.policy"
+        && object
+            .get_as_required_string("state_key", "state_key")
+            .is_ok_and(|state_key| state_key.is_empty())
+    {
+        // Don't check the policy server signature.
+        return Ok(());
+    }
+
+    verify_canonical_json_for_entity(
+        room_policy.via.as_str(),
+        room_policy,
+        signature_map,
+        canonical_json,
+    )
 }
 
 /// Uses a set of public keys to verify a signed JSON object.
@@ -529,5 +577,50 @@ where
 {
     fn public_signing_key(&self, entity: &str, key_id: &str) -> Option<&[u8]> {
         self.get(entity)?.get(key_id).map(Base64::as_bytes)
+    }
+}
+
+impl FetchEntityPublicSigningKey for RoomPolicyEventContent {
+    fn public_signing_key(&self, entity: &str, key_id: &str) -> Option<&[u8]> {
+        if entity != self.via
+            || key_id != RoomPolicyEventContent::POLICY_SERVER_ED25519_SIGNING_KEY_ID
+        {
+            return None;
+        }
+
+        self.public_keys.get(&SigningKeyAlgorithm::Ed25519).map(Base64::as_bytes)
+    }
+}
+
+/// Type to get the public signing keys necessary to verify the signatures on an event.
+#[derive(Debug, Clone, Copy)]
+#[non_exhaustive]
+pub struct VerifyEventPublicSigningKeys<'a, T: FetchEntityPublicSigningKey> {
+    /// Type to get the public signing keys of homeservers that are required to sign the event.
+    ///
+    /// [`required_server_signatures_to_verify_event()`] can be called to get the list of servers
+    /// that will be accessed in [`verify_event()`].
+    pub fetch_homeserver_public_keys: &'a T,
+
+    /// The `m.room.policy` event content for the [policy server enabled in the room], if any.
+    ///
+    /// If this is set, all events will be checked to have a signature by the policy server, except
+    /// `m.room.policy` events with an empty `state_key` string.
+    ///
+    /// [policy server enabled in the room]: https://spec.matrix.org/v1.18/server-server-api/#determining-if-a-policy-server-is-enabled-in-a-room
+    pub room_policy: Option<&'a RoomPolicyEventContent>,
+}
+
+impl<'a, T: FetchEntityPublicSigningKey> VerifyEventPublicSigningKeys<'a, T> {
+    /// Construct a new `VerifyEventPublicSigningKeys` with the given type to get the public signing
+    /// keys of homeservers.
+    pub fn new(fetch_homeserver_public_keys: &'a T) -> Self {
+        Self { fetch_homeserver_public_keys, room_policy: None }
+    }
+
+    /// Set the policy server in the current state of the room.
+    pub fn with_room_policy(mut self, room_policy: Option<&'a RoomPolicyEventContent>) -> Self {
+        self.room_policy = room_policy;
+        self
     }
 }

@@ -24,6 +24,7 @@ memchr = { version = "2.4", optional = true }
 pkcs8 = { version = "0.10.0", features = ["alloc"] }
 rand = { workspace = true }
 ruma-common = { workspace = true }
+ruma-events = { workspace = true }
 serde_json = { workspace = true }
 sha2 = "0.10.6"
 thiserror = { workspace = true }

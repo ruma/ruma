@@ -3,7 +3,10 @@ use std::collections::BTreeMap;
 use ruma_common::{
     ServerSigningKeyId, SigningKeyAlgorithm, room_version_rules::RoomVersionRules, serde::Base64,
 };
-use ruma_signatures::{PublicKeyMap, Verified, ed25519::Ed25519KeyPair, sign_json, verify_event};
+use ruma_signatures::{
+    PublicKeyMap, Verified, VerifyEventPublicSigningKeys, ed25519::Ed25519KeyPair, sign_json,
+    verify_event,
+};
 
 static PKCS8_ED25519_DER: &[u8] = include_bytes!("./keys/ed25519.der");
 
@@ -50,7 +53,12 @@ fn verify_event_check_signatures_for_authorized_user() {
     let mut public_key_map = BTreeMap::new();
     add_key_to_map(&mut public_key_map, "domain-sender", &keypair);
 
-    let verification = verify_event(&public_key_map, &signed_event, &RoomVersionRules::V9).unwrap();
+    let verification = verify_event(
+        VerifyEventPublicSigningKeys::new(&public_key_map),
+        &signed_event,
+        &RoomVersionRules::V9,
+    )
+    .unwrap();
 
     assert_eq!(verification, Verified::Signatures);
 
