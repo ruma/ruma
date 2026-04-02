@@ -37,6 +37,7 @@ Breaking changes:
     invalid field.
   - `JsonFieldMissingFromObject` was renamed to `MissingField` an provides the
     full path of the missing field.
+- `redact_content_in_place()` is now infallible.
 
 Improvements:
 
