@@ -12,6 +12,8 @@ Breaking changes:
     implementations.
 - The `compat-empty-string-null` cargo feature was removed because it is now
   unused.
+- The `create_join_event::v1` and `create_leave_event::v1` endpoints were
+  removed, according to MSC4376 / Matrix 1.18.
 
 Improvements:
 

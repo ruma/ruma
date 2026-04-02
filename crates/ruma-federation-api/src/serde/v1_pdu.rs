@@ -74,35 +74,27 @@ where
 
 #[cfg(all(test, feature = "client"))]
 mod tests_client {
-    use assert_matches2::assert_matches;
-    use serde_json::json;
+    use serde_json::{Value as JsonValue, json};
 
     use super::deserialize;
-    #[allow(deprecated)]
-    use crate::membership::create_join_event::v1::RoomState;
 
     #[test]
     fn deserialize_response() {
-        let response = json!([
-            200,
-            {
-                "auth_chain": [],
-                "state": []
-            }
-        ]);
+        let content = json!({
+            "auth_chain": [],
+            "state": []
+        });
+        let json = json!([200, content]);
 
-        #[allow(deprecated)]
-        let RoomState { auth_chain, state, event } = deserialize(response).unwrap();
-        assert_matches!(auth_chain.as_slice(), []);
-        assert_matches!(state.as_slice(), []);
-        assert_matches!(event, None);
+        let deserialized = deserialize::<JsonValue, _>(json).unwrap();
+        assert_eq!(deserialized, content);
     }
 
     #[test]
     fn too_short_array() {
         let json = json!([200]);
         #[allow(deprecated)]
-        let failed_room_state = deserialize::<RoomState, _>(json);
+        let failed_room_state = deserialize::<JsonValue, _>(json);
         assert_eq!(
             failed_room_state.unwrap_err().to_string(),
             "invalid length 1, expected a two-element list in the response"
@@ -117,7 +109,7 @@ mod tests_client {
             "state": []
         });
         #[allow(deprecated)]
-        let failed_room_state = deserialize::<RoomState, _>(json);
+        let failed_room_state = deserialize::<JsonValue, _>(json);
 
         assert_eq!(
             failed_room_state.unwrap_err().to_string(),
@@ -127,12 +119,14 @@ mod tests_client {
 
     #[test]
     fn too_long_array() {
-        let json = json!([200, { "auth_chain": [], "state": [] }, 200]);
-        #[allow(deprecated)]
-        let RoomState { auth_chain, state, event } = deserialize(json).unwrap();
-        assert_matches!(auth_chain.as_slice(), []);
-        assert_matches!(state.as_slice(), []);
-        assert_matches!(event, None);
+        let content = json!({
+            "auth_chain": [],
+            "state": []
+        });
+        let json = json!([200, content, 200]);
+
+        let deserialized = deserialize::<JsonValue, _>(json).unwrap();
+        assert_eq!(deserialized, content);
     }
 }
 
@@ -141,24 +135,16 @@ mod tests_server {
     use serde_json::json;
 
     use super::serialize;
-    #[allow(deprecated)]
-    use crate::membership::create_join_event::v1::RoomState;
 
     #[test]
     fn serialize_response() {
-        #[allow(deprecated)]
-        let room_state = RoomState { auth_chain: Vec::new(), state: Vec::new(), event: None };
+        let content = json!({
+            "auth_chain": [],
+            "state": []
+        });
 
-        let serialized = serialize(&room_state, serde_json::value::Serializer).unwrap();
-        let expected = json!(
-            [
-                200,
-                {
-                    "auth_chain": [],
-                    "state": []
-                }
-            ]
-        );
+        let serialized = serialize(&content, serde_json::value::Serializer).unwrap();
+        let expected = json!([200, content]);
 
         assert_eq!(serialized, expected);
     }
