@@ -86,7 +86,11 @@ pub struct Contact {
     pub matrix_id: Option<OwnedUserId>,
 
     /// An optional URI leading to a PGP key that may be used to encrypt messages sent to the
-    /// contact. See MSC4439 for details.
+    /// contact.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4439].
+    ///
+    /// [MSC4439]: https://github.com/matrix-org/matrix-spec-proposals/pull/4439
     #[cfg(feature = "unstable-msc4439")]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "dev.zirco.msc4439.pgp_key")]
