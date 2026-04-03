@@ -25,7 +25,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_location_for_room_alias` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The Matrix room alias to look up.
         #[ruma_api(query)]
@@ -33,7 +33,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_location_for_room_alias` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// List of matched third party locations.
         #[ruma_api(body)]

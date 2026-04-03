@@ -24,7 +24,7 @@ pub mod v3 {
     }
 
     /// Request type for the `report_content` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// Room in which the event to be reported is located.
         #[ruma_api(path)]
@@ -40,7 +40,7 @@ pub mod v3 {
     }
 
     /// Response type for the `report_content` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {}
 

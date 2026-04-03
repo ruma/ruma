@@ -24,7 +24,7 @@ pub mod v3 {
     }
 
     /// Request type for the `delete_tag` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The user whose tag will be deleted.
         #[ruma_api(path)]
@@ -40,7 +40,7 @@ pub mod v3 {
     }
 
     /// Response type for the `delete_tag` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {}
 

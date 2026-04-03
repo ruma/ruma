@@ -29,7 +29,7 @@ pub mod unstable {
     }
 
     /// Request type for the `PUT` `dehydrated_device` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The unique ID of the device.
         pub device_id: OwnedDeviceId,
@@ -54,7 +54,7 @@ pub mod unstable {
     }
 
     /// Response type for the `upload_keys` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The unique ID of the device.
         pub device_id: OwnedDeviceId,

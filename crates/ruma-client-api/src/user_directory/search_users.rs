@@ -27,7 +27,7 @@ pub mod v3 {
     }
 
     /// Request type for the `search_users` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The term to search for.
         pub search_term: String,
@@ -48,7 +48,7 @@ pub mod v3 {
     }
 
     /// Response type for the `search_users` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// Ordered by rank and then whether or not profile info is available.
         pub results: Vec<User>,

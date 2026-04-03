@@ -26,7 +26,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_member_events` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The room to get the member events for.
         #[ruma_api(path)]
@@ -58,7 +58,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_member_events` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// A list of member events.
         pub chunk: Vec<Raw<RoomMemberEvent>>,

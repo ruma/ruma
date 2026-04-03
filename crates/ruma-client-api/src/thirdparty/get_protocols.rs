@@ -26,12 +26,12 @@ pub mod v3 {
     }
 
     /// Request type for the `get_protocols` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {}
 
     /// Response type for the `get_protocols` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// Metadata about protocols supported by the homeserver.
         #[ruma_api(body)]

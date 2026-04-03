@@ -26,7 +26,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_room_visibility` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The ID of the room of which to request the visibility.
         #[ruma_api(path)]
@@ -34,7 +34,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_room_visibility` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// Visibility of the room.
         pub visibility: Visibility,

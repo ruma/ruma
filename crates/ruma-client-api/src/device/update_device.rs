@@ -26,7 +26,7 @@ pub mod v3 {
     }
 
     /// Request type for the `update_device` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The device to update or create.
         #[ruma_api(path)]
@@ -40,7 +40,7 @@ pub mod v3 {
     }
 
     /// Response type for the `update_device` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {}
 

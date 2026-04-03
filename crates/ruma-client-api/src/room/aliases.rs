@@ -25,7 +25,7 @@ pub mod v3 {
     }
 
     /// Request type for the `aliases` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The room ID to get aliases of.
         #[ruma_api(path)]
@@ -33,7 +33,7 @@ pub mod v3 {
     }
 
     /// Response type for the `aliases` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The server's local aliases on the room.
         pub aliases: Vec<OwnedRoomAliasId>,

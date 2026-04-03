@@ -24,12 +24,12 @@ pub mod v1 {
     }
 
     /// Request type for the `create_mxc_uri` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {}
 
     /// Response type for the `create_mxc_uri` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The MXC URI for the about to be uploaded content.
         pub content_uri: OwnedMxcUri,

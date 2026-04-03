@@ -25,7 +25,7 @@ pub mod v3 {
     }
 
     /// Request type for the `delete_profile_field` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The user whose profile will be updated.
         #[ruma_api(path)]
@@ -44,7 +44,7 @@ pub mod v3 {
     }
 
     /// Response type for the `delete_profile_field` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {}
 

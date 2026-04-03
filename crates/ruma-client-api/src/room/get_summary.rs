@@ -26,7 +26,7 @@ pub mod v1 {
     }
 
     /// Request type for the `get_summary` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// Alias or ID of the room to be summarized.
         #[ruma_api(path)]
@@ -99,7 +99,7 @@ pub mod v1 {
 
     #[cfg(feature = "client")]
     impl ruma_common::api::IncomingResponse for Response {
-        type EndpointError = crate::Error;
+        type EndpointError = ruma_common::api::error::Error;
 
         fn try_from_http_response<T: AsRef<[u8]>>(
             response: http::Response<T>,

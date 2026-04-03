@@ -24,7 +24,7 @@ pub mod v1 {
     }
 
     /// Request type for the `get_event_by_timestamp` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The ID of the room the event is in.
         #[ruma_api(path)]
@@ -40,7 +40,7 @@ pub mod v1 {
     }
 
     /// Response type for the `get_event_by_timestamp` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The ID of the event found.
         pub event_id: OwnedEventId,

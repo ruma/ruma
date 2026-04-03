@@ -27,7 +27,7 @@ pub mod v3 {
     }
 
     /// Request type for the `create_message_event` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The room to send the event to.
         #[ruma_api(path)]
@@ -66,7 +66,7 @@ pub mod v3 {
     }
 
     /// Response type for the `create_message_event` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// A unique identifier for the event.
         pub event_id: OwnedEventId,

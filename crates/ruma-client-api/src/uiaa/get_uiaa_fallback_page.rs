@@ -25,7 +25,7 @@ pub mod v3 {
     }
 
     /// Request type for the `authorize_fallback` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The type name (`m.login.dummy`, etc.) of the UIAA stage to get a fallback page for.
         #[ruma_api(path)]
@@ -102,7 +102,7 @@ pub mod v3 {
 
     #[cfg(feature = "client")]
     impl ruma_common::api::IncomingResponse for Response {
-        type EndpointError = crate::Error;
+        type EndpointError = ruma_common::api::error::Error;
 
         fn try_from_http_response<T: AsRef<[u8]>>(
             response: http::Response<T>,

@@ -24,12 +24,12 @@ pub mod v3 {
     }
 
     /// Request type for the `joined_rooms` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {}
 
     /// Response type for the `joined_rooms` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// A list of the rooms the user is in, i.e. the ID of each room in
         /// which the user has joined membership.

@@ -23,7 +23,7 @@ pub mod unstable {
     }
 
     /// Request type for the `mutual_rooms` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The user to search mutual rooms for.
         #[ruma_api(query)]
@@ -37,7 +37,7 @@ pub mod unstable {
     }
 
     /// Response type for the `mutual_rooms` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// A list of rooms the user is in together with the authenticated user.
         pub joined: Vec<OwnedRoomId>,

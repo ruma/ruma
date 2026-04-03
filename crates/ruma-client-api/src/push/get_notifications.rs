@@ -29,7 +29,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_notifications` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {
         /// Pagination token given to retrieve the next set of events.
@@ -52,7 +52,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_notifications` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The token to supply in the from param of the next /notifications request in order to
         /// request more events.

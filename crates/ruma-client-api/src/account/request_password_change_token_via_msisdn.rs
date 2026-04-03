@@ -25,7 +25,7 @@ pub mod v3 {
     }
 
     /// Request type for the `request_password_change_token_via_msisdn` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// Client-generated secret string used to protect this session.
         pub client_secret: OwnedClientSecret,
@@ -45,7 +45,7 @@ pub mod v3 {
     }
 
     /// Response type for the `request_password_change_token_via_msisdn` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The session identifier given by the identity server.
         pub sid: OwnedSessionId,

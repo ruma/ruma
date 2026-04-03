@@ -46,7 +46,7 @@ pub mod v3 {
     }
 
     /// Request type for the `create_room` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {
         /// Extra keys to be added to the content of the `m.room.create`.
@@ -110,7 +110,7 @@ pub mod v3 {
     }
 
     /// Response type for the `create_room` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The created room's ID.
         pub room_id: OwnedRoomId,

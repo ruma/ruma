@@ -26,7 +26,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_state_events` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The room to look up the state for.
         #[ruma_api(path)]
@@ -34,7 +34,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_state_events` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// If the user is a member of the room this will be the current state of the room as a
         /// list of events.

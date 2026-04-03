@@ -26,7 +26,7 @@ pub mod v1 {
     }
 
     /// Request type for the `get_media_preview` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// URL to get a preview of.
         #[ruma_api(query)]
@@ -39,7 +39,7 @@ pub mod v1 {
     }
 
     /// Response type for the `get_media_preview` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {
         /// OpenGraph-like data for the URL.

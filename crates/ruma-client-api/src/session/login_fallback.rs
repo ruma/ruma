@@ -18,7 +18,7 @@ metadata! {
 }
 
 /// Request type for the `login_fallback` endpoint.
-#[request(error = crate::Error)]
+#[request]
 #[derive(Default)]
 pub struct Request {
     /// ID of the client device.
@@ -73,7 +73,7 @@ impl ruma_common::api::OutgoingResponse for Response {
 
 #[cfg(feature = "client")]
 impl ruma_common::api::IncomingResponse for Response {
-    type EndpointError = crate::Error;
+    type EndpointError = ruma_common::api::error::Error;
 
     fn try_from_http_response<T: AsRef<[u8]>>(
         response: http::Response<T>,

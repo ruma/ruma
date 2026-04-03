@@ -30,7 +30,7 @@ pub mod v1 {
     }
 
     /// Request type for the `lock_user` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The user to change the locked status of.
         #[ruma_api(path)]
@@ -41,7 +41,7 @@ pub mod v1 {
     }
 
     /// Response type for the `lock_user` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// Whether the target account is locked.
         pub locked: bool,

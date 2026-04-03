@@ -26,7 +26,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_device` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The device to retrieve.
         #[ruma_api(path)]
@@ -34,7 +34,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_device` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// Information about the device.
         #[ruma_api(body)]

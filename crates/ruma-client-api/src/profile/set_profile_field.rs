@@ -15,7 +15,7 @@ pub mod v3 {
 
     use ruma_common::{
         OwnedUserId,
-        api::{auth_scheme::AccessToken, response},
+        api::{auth_scheme::AccessToken, error::Error, response},
         metadata,
         profile::ProfileFieldValue,
     };
@@ -52,7 +52,7 @@ pub mod v3 {
 
     #[cfg(feature = "client")]
     impl ruma_common::api::OutgoingRequest for Request {
-        type EndpointError = crate::Error;
+        type EndpointError = Error;
         type IncomingResponse = Response;
 
         fn try_into_http_request<T: Default + bytes::BufMut + AsRef<[u8]>>(
@@ -94,7 +94,7 @@ pub mod v3 {
 
     #[cfg(feature = "server")]
     impl ruma_common::api::IncomingRequest for Request {
-        type EndpointError = crate::Error;
+        type EndpointError = Error;
         type OutgoingResponse = Response;
 
         fn try_from_http_request<B, S>(
@@ -127,7 +127,7 @@ pub mod v3 {
     }
 
     /// Response type for the `set_profile_field` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {}
 

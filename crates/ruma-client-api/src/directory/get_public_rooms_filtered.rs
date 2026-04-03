@@ -26,7 +26,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_public_rooms_filtered` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {
         /// The server to fetch the public room lists from.
@@ -54,7 +54,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_public_rooms_filtered` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {
         /// A paginated chunk of public rooms.
