@@ -6,16 +6,16 @@ use std::{borrow::Cow, fmt, marker::PhantomData};
 
 use bytes::BufMut;
 use ruma_common::{
-    api::{EndpointError, OutgoingResponse, error::IntoHttpError},
+    api::{
+        EndpointError, OutgoingResponse,
+        error::{Error as MatrixError, IntoHttpError, StandardErrorBody},
+    },
     serde::StringEnum,
 };
 use serde::{Deserialize, Deserializer, Serialize, de};
 use serde_json::{from_slice as from_json_slice, value::RawValue as RawJsonValue};
 
-use crate::{
-    PrivOwnedStr,
-    error::{Error as MatrixError, StandardErrorBody},
-};
+use crate::PrivOwnedStr;
 
 mod auth_data;
 mod auth_params;

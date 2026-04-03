@@ -34,11 +34,11 @@ help: the trait `OutgoingResponse` is not implemented for `Response`
    |
 27 | pub struct Response {
    | ^^^^^^^^^^^^^^^^^^^
-help: the trait `OutgoingResponse` is implemented for `Error`
+help: the trait `OutgoingResponse` is implemented for `ruma_common::api::error::Error`
   --> src/api/error.rs
    |
    | impl OutgoingResponse for Error {
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: required by a bound in `ruma_common::api::IncomingRequest::OutgoingResponse`
   --> src/api.rs
    |

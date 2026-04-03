@@ -49,6 +49,9 @@ Breaking changes:
   `ruma_common::profile`.
 - The `http_headers` module was merged into the `http_headers` module of
   `ruma-common`.
+- The `error` module was merged into the `api::error` module of `ruma-common`,
+  with the `Error` and `ErrorBody` types merged in the corresponding types of
+  `ruma-common`.
 
 Bug fixes:
 

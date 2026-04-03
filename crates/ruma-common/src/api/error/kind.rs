@@ -63,9 +63,8 @@ pub enum ErrorKind {
 
     /// `M_CANNOT_OVERWRITE_MEDIA`
     ///
-    /// The [`create_content_async`] endpoint was called with a media ID that already has content.
-    ///
-    /// [`create_content_async`]: crate::media::create_content_async
+    /// The `PUT /_matrix/media/*/upload/{serverName}/{mediaId}` endpoint was called with a media ID
+    /// that already has content.
     CannotOverwriteMedia,
 
     /// `M_CAPTCHA_INVALID`
@@ -135,10 +134,9 @@ pub enum ErrorKind {
 
     /// `M_INVALID_ROOM_STATE`
     ///
-    /// The initial state implied by the parameters to the [`create_room`] request is invalid, e.g.
-    /// the user's `power_level` is set below that necessary to set the room name.
-    ///
-    /// [`create_room`]: crate::room::create_room
+    /// The initial state implied by the parameters to the `POST /_matrix/client/*/createRoom`
+    /// request is invalid, e.g. the user's `power_level` is set below that necessary to set the
+    /// room name.
     InvalidRoomState,
 
     /// `M_INVALID_USERNAME`
@@ -193,10 +191,8 @@ pub enum ErrorKind {
 
     /// `M_NOT_YET_UPLOADED`
     ///
-    /// An `mxc:` URI generated with the [`create_mxc_uri`] endpoint was used and the content is
-    /// not yet available.
-    ///
-    /// [`create_mxc_uri`]: crate::media::create_mxc_uri
+    /// An `mxc:` URI generated with the `POST /_matrix/media/*/create` endpoint was used and the
+    /// content is not yet available.
     NotYetUploaded,
 
     /// `M_RESOURCE_LIMIT_EXCEEDED`
@@ -208,9 +204,9 @@ pub enum ErrorKind {
 
     /// `M_ROOM_IN_USE`
     ///
-    /// The [room alias] specified in the [`create_room`] request is already taken.
+    /// The [room alias] specified in the `POST /_matrix/client/*/createRoom` request is already
+    /// taken.
     ///
-    /// [`create_room`]: crate::room::create_room
     /// [room alias]: https://spec.matrix.org/v1.18/client-server-api/#room-aliases
     RoomInUse,
 
@@ -329,9 +325,8 @@ pub enum ErrorKind {
 
     /// `M_UNSUPPORTED_ROOM_VERSION`
     ///
-    /// The request to [`create_room`] used a room version that the server does not support.
-    ///
-    /// [`create_room`]: crate::room::create_room
+    /// The request to `POST /_matrix/client/*/createRoom` used a room version that the server does
+    /// not support.
     UnsupportedRoomVersion,
 
     /// `M_URL_NOT_SET`
@@ -690,9 +685,8 @@ pub enum ErrorCode {
 
     /// `M_CANNOT_OVERWRITE_MEDIA`
     ///
-    /// The [`create_content_async`] endpoint was called with a media ID that already has content.
-    ///
-    /// [`create_content_async`]: crate::media::create_content_async
+    /// The `PUT /_matrix/media/*/upload/{serverName}/{mediaId}` endpoint was called with a media ID
+    /// that already has content.
     CannotOverwriteMedia,
 
     /// `M_CAPTCHA_INVALID`
@@ -763,10 +757,9 @@ pub enum ErrorCode {
 
     /// `M_INVALID_ROOM_STATE`
     ///
-    /// The initial state implied by the parameters to the [`create_room`] request is invalid, e.g.
-    /// the user's `power_level` is set below that necessary to set the room name.
-    ///
-    /// [`create_room`]: crate::room::create_room
+    /// The initial state implied by the parameters to the `POST /_matrix/client/*/createRoom`
+    /// request is invalid, e.g. the user's `power_level` is set below that necessary to set the
+    /// room name.
     InvalidRoomState,
 
     /// `M_INVALID_USERNAME`
@@ -825,10 +818,8 @@ pub enum ErrorCode {
 
     /// `M_NOT_YET_UPLOADED`
     ///
-    /// An `mxc:` URI generated with the [`create_mxc_uri`] endpoint was used and the content is
-    /// not yet available.
-    ///
-    /// [`create_mxc_uri`]: crate::media::create_mxc_uri
+    /// An `mxc:` URI generated with the `POST /_matrix/media/*/create` endpoint was used and the
+    /// content is not yet available.
     NotYetUploaded,
 
     /// `M_RESOURCE_LIMIT_EXCEEDED`
@@ -840,9 +831,9 @@ pub enum ErrorCode {
 
     /// `M_ROOM_IN_USE`
     ///
-    /// The [room alias] specified in the [`create_room`] request is already taken.
+    /// The [room alias] specified in the `POST /_matrix/client/*/createRoom` request is already
+    /// taken.
     ///
-    /// [`create_room`]: crate::room::create_room
     /// [room alias]: https://spec.matrix.org/v1.18/client-server-api/#room-aliases
     RoomInUse,
 
