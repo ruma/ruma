@@ -2,11 +2,10 @@
 
 Breaking changes:
 
-- Refactor and improve the variants of `JsonError`:
-  - `NotOfType` and `NotMultiplesOfType` were merged into a single `InvalidType`
-    variant and provide more details about the invalid field.
-  - `JsonFieldMissingFromObject` was renamed to `MissingField` an provides the
-    full path of the missing field.
+- Refactor and improve the variants of `JsonError`: `NotOfType`,
+  `NotMultiplesOfType` and `JsonFieldMissingFromObject` were merged into a
+  single `Field` variant that uses the `CanonicalJsonFieldError` enum from
+  `ruma-common`.
 - The methods on `Ed25519KeyPair` use a separate error enum named
   `Ed25519KeyPairParseError`.
   - `Error::DerParse` is now `Ed25519KeyPairParseError::Pkcs8`.
