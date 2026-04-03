@@ -59,7 +59,6 @@ unstable-msc4439 = []
 as_variant = { workspace = true }
 assign = { workspace = true }
 bytes = { workspace = true }
-date_header = "1.0.5"
 http = { workspace = true }
 js_int = { workspace = true, features = ["serde"] }
 js_option = { workspace = true }

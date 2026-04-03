@@ -159,7 +159,7 @@ pub mod unstable_msc4108 {
                     .get(&header)
                     .ok_or_else(|| HeaderDeserializationError::MissingHeader(header.to_string()))?;
 
-                let date = crate::http_headers::http_date_to_system_time(date)?;
+                let date = ruma_common::http_headers::http_date_to_system_time(date)?;
 
                 Ok(date)
             };
@@ -185,12 +185,13 @@ pub mod unstable_msc4108 {
             self,
         ) -> Result<http::Response<T>, ruma_common::api::error::IntoHttpError> {
             use http::header::{CACHE_CONTROL, PRAGMA};
+            use ruma_common::http_headers::system_time_to_http_date;
 
             let body = ResponseBody { url: self.url };
             let body = ruma_common::serde::json_to_buf(&body)?;
 
-            let expires = crate::http_headers::system_time_to_http_date(&self.expires)?;
-            let last_modified = crate::http_headers::system_time_to_http_date(&self.last_modified)?;
+            let expires = system_time_to_http_date(&self.expires)?;
+            let last_modified = system_time_to_http_date(&self.last_modified)?;
 
             Ok(http::Response::builder()
                 .status(http::StatusCode::OK)
