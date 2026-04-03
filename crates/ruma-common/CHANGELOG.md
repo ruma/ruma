@@ -32,10 +32,10 @@ Breaking changes:
 - `JsonType` was renamed to `CanonicalJsonType` to reflect that it only
   represents the possible types of a `CanonicalJsonValue`. It can also be
   accessed with `CanonicalJsonValue::json_type()`.
-- Refactor and improve the variants of `RedactionError`:
+- `RedactionError` was renamed to `CanonicalJsonFieldError`.
   - `NotOfType` was renamed to `InvalidType` and provides more details about the
     invalid field.
-  - `JsonFieldMissingFromObject` was renamed to `MissingField` an provides the
+  - `JsonFieldMissingFromObject` was renamed to `Missing` an provides the
     full path of the missing field.
 - `redact_content_in_place()` is now infallible.
 
@@ -68,6 +68,8 @@ Improvements:
   and locking endpoints, according to MSC4323.
 - The `IdDst` macro generates `Borrow<str>` implementations for the borrowed and
   owned identifier structs.
+- Add `CanonicalJsonObjectExt` as a helper trait to extract fields from a
+  `CanonicalJsonObject`.
 
 # 0.17.1
 

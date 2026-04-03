@@ -2,7 +2,7 @@ use std::{borrow::Cow, collections::BTreeMap, mem};
 
 use ruma_common::{
     AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, OwnedSigningKeyId, SigningKeyAlgorithm,
-    canonical_json::{CanonicalJsonType, redact},
+    canonical_json::{CanonicalJsonFieldError, CanonicalJsonObjectExt, CanonicalJsonType, redact},
     room_version_rules::RedactionRules,
     serde::{Base64, base64::Standard},
 };
@@ -124,24 +124,10 @@ where
 {
     let hash = content_hash(object)?;
 
-    let hashes_value = object
-        .entry("hashes".to_owned())
-        .or_insert_with(|| CanonicalJsonValue::Object(BTreeMap::new()));
+    let hashes = object.get_as_object_or_insert_default("hashes", "hashes")?;
+    hashes.insert("sha256".into(), CanonicalJsonValue::String(hash.encode()));
 
-    match hashes_value {
-        CanonicalJsonValue::Object(hashes) => {
-            hashes.insert("sha256".into(), CanonicalJsonValue::String(hash.encode()))
-        }
-        _ => {
-            return Err(JsonError::InvalidType {
-                path: "hashes".to_owned(),
-                expected: CanonicalJsonType::Object,
-                found: hashes_value.json_type(),
-            });
-        }
-    };
-
-    let mut redacted = redact(object.clone(), redaction_rules, None).map_err(JsonError::from)?;
+    let mut redacted = redact(object.clone(), redaction_rules, None)?;
 
     sign_json(entity_id, key_pair, &mut redacted)?;
 
@@ -217,11 +203,12 @@ where
     let (signatures_key, mut signature_map) = match object.remove_entry("signatures") {
         Some((key, CanonicalJsonValue::Object(signatures))) => (Cow::Owned(key), signatures),
         Some((_, value)) => {
-            return Err(JsonError::InvalidType {
+            return Err(CanonicalJsonFieldError::InvalidType {
                 path: "signatures".to_owned(),
                 expected: CanonicalJsonType::Object,
                 found: value.json_type(),
-            });
+            }
+            .into());
         }
         None => (Cow::Borrowed("signatures"), BTreeMap::new()),
     };
@@ -229,24 +216,14 @@ where
     let maybe_unsigned_entry = object.remove_entry("unsigned");
 
     // Get the canonical JSON string.
-    let json = to_json_string(object).map_err(JsonError::Serde)?;
+    let json = to_json_string(object)?;
 
     // Sign the canonical JSON string.
     let signature = key_pair.sign(json.as_bytes());
 
     // Insert the new signature in the map we pulled out (or created) previously.
     let signature_set = signature_map
-        .entry(entity_id.to_owned())
-        .or_insert_with(|| CanonicalJsonValue::Object(BTreeMap::new()));
-
-    let CanonicalJsonValue::Object(signature_set) = signature_set else {
-        return Err(JsonError::InvalidType {
-            path: format!("signatures.{entity_id}"),
-            expected: CanonicalJsonType::Object,
-            found: signature_set.json_type(),
-        });
-    };
-
+        .get_as_object_or_insert_default(entity_id.to_owned(), format!("signatures.{entity_id}"))?;
     signature_set.insert(signature.id(), CanonicalJsonValue::String(signature.base64()));
 
     // Put `signatures` and `unsigned` back in.
