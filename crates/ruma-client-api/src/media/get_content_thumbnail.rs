@@ -15,11 +15,9 @@ pub mod v3 {
     use ruma_common::{
         IdParseError, MxcUri, OwnedServerName,
         api::{auth_scheme::NoAccessToken, request, response},
-        http_headers::ContentDisposition,
+        http_headers::{CROSS_ORIGIN_RESOURCE_POLICY, ContentDisposition},
         metadata,
     };
-
-    use crate::http_headers::CROSS_ORIGIN_RESOURCE_POLICY;
 
     metadata! {
         method: GET,

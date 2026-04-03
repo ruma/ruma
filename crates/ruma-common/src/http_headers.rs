@@ -2,15 +2,17 @@
 
 use std::borrow::Cow;
 
+use http::{HeaderValue, header::HeaderName};
+use web_time::{Duration, SystemTime, UNIX_EPOCH};
+
 mod content_disposition;
 mod rfc8187;
-
-use http::HeaderValue;
 
 pub use self::content_disposition::{
     ContentDisposition, ContentDispositionParseError, ContentDispositionType, TokenString,
     TokenStringParseError,
 };
+use crate::api::error::{HeaderDeserializationError, HeaderSerializationError};
 
 /// The `application/json` media type as a [`HeaderValue`].
 pub const APPLICATION_JSON: HeaderValue = HeaderValue::from_static("application/json");
@@ -18,6 +20,12 @@ pub const APPLICATION_JSON: HeaderValue = HeaderValue::from_static("application/
 /// The `application/octet-stream` media type as a [`HeaderValue`].
 pub const APPLICATION_OCTET_STREAM: HeaderValue =
     HeaderValue::from_static("application/octet-stream");
+
+/// The [`Cross-Origin-Resource-Policy`] HTTP response header.
+///
+/// [`Cross-Origin-Resource-Policy`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy
+pub const CROSS_ORIGIN_RESOURCE_POLICY: HeaderName =
+    HeaderName::from_static("cross-origin-resource-policy");
 
 /// Whether the given byte is a [`token` char].
 ///
@@ -110,4 +118,31 @@ pub fn unescape_string(s: &str) -> String {
             !is_escaped
         })
         .collect()
+}
+
+/// Convert as `SystemTime` to a HTTP date header value.
+pub fn system_time_to_http_date(
+    time: &SystemTime,
+) -> Result<HeaderValue, HeaderSerializationError> {
+    let mut buffer = [0; 29];
+
+    let duration =
+        time.duration_since(UNIX_EPOCH).map_err(|_| HeaderSerializationError::InvalidHttpDate)?;
+    date_header::format(duration.as_secs(), &mut buffer)
+        .map_err(|_| HeaderSerializationError::InvalidHttpDate)?;
+
+    Ok(HeaderValue::from_bytes(&buffer).expect("date_header should produce a valid header value"))
+}
+
+/// Convert a header value representing a HTTP date to a `SystemTime`.
+pub fn http_date_to_system_time(
+    value: &HeaderValue,
+) -> Result<SystemTime, HeaderDeserializationError> {
+    let bytes = value.as_bytes();
+
+    let ts = date_header::parse(bytes).map_err(|_| HeaderDeserializationError::InvalidHttpDate)?;
+
+    UNIX_EPOCH
+        .checked_add(Duration::from_secs(ts))
+        .ok_or(HeaderDeserializationError::InvalidHttpDate)
 }

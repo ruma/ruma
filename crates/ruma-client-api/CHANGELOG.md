@@ -47,6 +47,8 @@ Breaking changes:
   - `UserIdentifier::UserIdOrLocalpart` was renamed to `UserIdentifier::Matrix`.
 - The `ProfileFieldName` and `ProfileFieldValue` enums were moved to
   `ruma_common::profile`.
+- The `http_headers` module was merged into the `http_headers` module of
+  `ruma-common`.
 
 Bug fixes:
 

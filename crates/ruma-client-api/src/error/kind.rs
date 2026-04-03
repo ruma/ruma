@@ -4,14 +4,12 @@ use as_variant::as_variant;
 use ruma_common::{
     RoomVersionId,
     api::error::{HeaderDeserializationError, HeaderSerializationError},
+    http_headers::{http_date_to_system_time, system_time_to_http_date},
     serde::{JsonObject, StringEnum},
 };
 use web_time::{Duration, SystemTime};
 
-use crate::{
-    PrivOwnedStr,
-    http_headers::{http_date_to_system_time, system_time_to_http_date},
-};
+use crate::PrivOwnedStr;
 
 /// An enum for the error kind.
 ///
