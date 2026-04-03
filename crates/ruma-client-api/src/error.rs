@@ -6,7 +6,7 @@ use as_variant::as_variant;
 use bytes::{BufMut, Bytes};
 use ruma_common::api::{
     EndpointError, OutgoingResponse,
-    error::{FromHttpResponseError, IntoHttpError, MatrixErrorBody},
+    error::{ErrorBody as MatrixErrorBody, FromHttpResponseError, IntoHttpError},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{Value as JsonValue, from_slice as from_json_slice};

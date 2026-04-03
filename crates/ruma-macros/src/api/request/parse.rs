@@ -166,11 +166,9 @@ impl RequestAttrs {
         Err(meta.error("unsupported `request` attribute"))
     }
 
-    /// The error type that was set on the request, or the default value which is `MatrixError`.
+    /// The error type that was set on the request, or the default value which is `Error`.
     pub(super) fn error_ty_or_default(&self, ruma_common: &RumaCommon) -> syn::Type {
-        self.error_ty
-            .clone()
-            .unwrap_or_else(|| parse_quote! { #ruma_common::api::error::MatrixError })
+        self.error_ty.clone().unwrap_or_else(|| parse_quote! { #ruma_common::api::error::Error })
     }
 }
 
