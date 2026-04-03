@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use assert_matches2::assert_matches;
+use assert_matches2::{assert_let, assert_matches};
 use ruma_common::{
     CanonicalJsonValue, ServerSigningKeyId, SigningKeyAlgorithm,
     room_version_rules::{RoomVersionRules, SignaturesRules},
@@ -10,12 +10,12 @@ use ruma_common::{
 use serde_json::json;
 
 use super::{
-    canonical_json, servers_to_check_signatures, sign_json, verify_canonical_json_bytes,
-    verify_event,
+    canonical_json, servers_to_check_signatures, verify_canonical_json_bytes, verify_event,
 };
 use crate::{
     KeyPair, PublicKeyMap, PublicKeySet, VerificationError, Verified,
     ed25519::{Ed25519KeyPair, Ed25519VerificationError},
+    sign_json,
 };
 
 fn generate_key_pair(name: &str) -> Ed25519KeyPair {
@@ -44,37 +44,6 @@ fn add_invalid_key_to_map(public_key_map: &mut PublicKeyMap, name: &str, pair: &
     );
 
     sender_key_map.insert(version.to_string(), encoded_public_key);
-}
-
-#[test]
-fn canonical_json_complex() {
-    let data = json!({
-        "auth": {
-            "success": true,
-            "mxid": "@john.doe:example.com",
-            "profile": {
-                "display_name": "John Doe",
-                "three_pids": [
-                    {
-                        "medium": "email",
-                        "address": "john.doe@example.org"
-                    },
-                    {
-                        "medium": "msisdn",
-                        "address": "123456789"
-                    }
-                ]
-            }
-        }
-    });
-
-    let canonical = r#"{"auth":{"mxid":"@john.doe:example.com","profile":{"display_name":"John Doe","three_pids":[{"address":"john.doe@example.org","medium":"email"},{"address":"123456789","medium":"msisdn"}]},"success":true}}"#;
-
-    let CanonicalJsonValue::Object(object) = CanonicalJsonValue::try_from(data).unwrap() else {
-        unreachable!();
-    };
-
-    assert_eq!(canonical_json(&object).unwrap(), canonical);
 }
 
 #[test]
@@ -702,4 +671,32 @@ fn verify_canonical_json_bytes_wrong_key() {
         err,
         VerificationError::Ed25519(Ed25519VerificationError::SignatureVerification(_))
     );
+}
+
+#[test]
+fn canonical_json_complex() {
+    let data = json!({
+        "auth": {
+            "success": true,
+            "mxid": "@john.doe:example.com",
+            "profile": {
+                "display_name": "John Doe",
+                "three_pids": [
+                    {
+                        "medium": "email",
+                        "address": "john.doe@example.org"
+                    },
+                    {
+                        "medium": "msisdn",
+                        "address": "123456789"
+                    }
+                ]
+            }
+        }
+    });
+
+    let canonical = r#"{"auth":{"mxid":"@john.doe:example.com","profile":{"display_name":"John Doe","three_pids":[{"address":"john.doe@example.org","medium":"email"},{"address":"123456789","medium":"msisdn"}]},"success":true}}"#;
+
+    assert_let!(CanonicalJsonValue::Object(object) = CanonicalJsonValue::try_from(data).unwrap());
+    assert_eq!(canonical_json(&object).unwrap(), canonical);
 }

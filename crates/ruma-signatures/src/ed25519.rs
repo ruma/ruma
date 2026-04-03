@@ -13,7 +13,7 @@ use pkcs8::{
 use ruma_common::{SigningKeyAlgorithm, SigningKeyId};
 use thiserror::Error;
 
-use crate::{KeyPair, Signature, verification::Verifier};
+use crate::{KeyPair, Signature, verify::Verifier};
 
 #[cfg(feature = "ring-compat")]
 mod compat;

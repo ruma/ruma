@@ -52,21 +52,19 @@ pub use ruma_common::{IdParseError, SigningKeyAlgorithm};
 
 pub use self::{
     error::{JsonError, VerificationError},
-    functions::{
-        canonical_json, content_hash, hash_and_sign_event, reference_hash, sign_json,
-        verify_canonical_json_bytes, verify_event, verify_json,
+    hash::{content_hash, reference_hash},
+    sign::{KeyPair, Signature, hash_and_sign_event, sign_json},
+    verify::{
+        PublicKeyMap, PublicKeySet, Verified, canonical_json, verify_canonical_json_bytes,
+        verify_event, verify_json,
     },
-    keys::{KeyPair, PublicKeyMap, PublicKeySet},
-    signatures::Signature,
-    verification::Verified,
 };
 
 pub mod ed25519;
 mod error;
-mod functions;
-mod keys;
-mod signatures;
-mod verification;
+mod hash;
+mod sign;
+mod verify;
 
 #[cfg(test)]
 mod tests {
