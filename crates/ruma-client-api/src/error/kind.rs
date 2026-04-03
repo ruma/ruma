@@ -1,0 +1,1022 @@
+use std::str::FromStr;
+
+use as_variant::as_variant;
+use ruma_common::{
+    RoomVersionId,
+    api::error::{HeaderDeserializationError, HeaderSerializationError},
+    serde::{JsonObject, StringEnum},
+};
+use web_time::{Duration, SystemTime};
+
+use crate::{
+    PrivOwnedStr,
+    http_headers::{http_date_to_system_time, system_time_to_http_date},
+};
+
+/// An enum for the error kind.
+///
+/// Items may contain additional information.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+// Please keep the variants sorted alphabetically.
+pub enum ErrorKind {
+    /// `M_APPSERVICE_LOGIN_UNSUPPORTED`
+    ///
+    /// An application service used the [`m.login.application_service`] type an endpoint from the
+    /// [legacy authentication API] in a way that is not supported by the homeserver, because the
+    /// server only supports the [OAuth 2.0 API].
+    ///
+    /// [`m.login.application_service`]: https://spec.matrix.org/v1.18/application-service-api/#server-admin-style-permissions
+    /// [legacy authentication API]: https://spec.matrix.org/v1.18/client-server-api/#legacy-api
+    /// [OAuth 2.0 API]: https://spec.matrix.org/v1.18/client-server-api/#oauth-20-api
+    AppserviceLoginUnsupported,
+
+    /// `M_BAD_ALIAS`
+    ///
+    /// One or more [room aliases] within the `m.room.canonical_alias` event do not point to the
+    /// room ID for which the state event is to be sent to.
+    ///
+    /// [room aliases]: https://spec.matrix.org/v1.18/client-server-api/#room-aliases
+    BadAlias,
+
+    /// `M_BAD_JSON`
+    ///
+    /// The request contained valid JSON, but it was malformed in some way, e.g. missing required
+    /// keys, invalid values for keys.
+    BadJson,
+
+    /// `M_BAD_STATE`
+    ///
+    /// The state change requested cannot be performed, such as attempting to unban a user who is
+    /// not banned.
+    BadState,
+
+    /// `M_BAD_STATUS`
+    ///
+    /// The application service returned a bad status.
+    BadStatus(BadStatusErrorData),
+
+    /// `M_CANNOT_LEAVE_SERVER_NOTICE_ROOM`
+    ///
+    /// The user is unable to reject an invite to join the [server notices] room.
+    ///
+    /// [server notices]: https://spec.matrix.org/v1.18/client-server-api/#server-notices
+    CannotLeaveServerNoticeRoom,
+
+    /// `M_CANNOT_OVERWRITE_MEDIA`
+    ///
+    /// The [`create_content_async`] endpoint was called with a media ID that already has content.
+    ///
+    /// [`create_content_async`]: crate::media::create_content_async
+    CannotOverwriteMedia,
+
+    /// `M_CAPTCHA_INVALID`
+    ///
+    /// The Captcha provided did not match what was expected.
+    CaptchaInvalid,
+
+    /// `M_CAPTCHA_NEEDED`
+    ///
+    /// A Captcha is required to complete the request.
+    CaptchaNeeded,
+
+    /// `M_CONFLICTING_UNSUBSCRIPTION`
+    ///
+    /// Part of [MSC4306]: an automatic thread subscription has been skipped by the server, because
+    /// the user unsubsubscribed after the indicated subscribed-to event.
+    ///
+    /// [MSC4306]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
+    #[cfg(feature = "unstable-msc4306")]
+    ConflictingUnsubscription,
+
+    /// `M_CONNECTION_FAILED`
+    ///
+    /// The connection to the application service failed.
+    ConnectionFailed,
+
+    /// `M_CONNECTION_TIMEOUT`
+    ///
+    /// The connection to the application service timed out.
+    ConnectionTimeout,
+
+    /// `M_DUPLICATE_ANNOTATION`
+    ///
+    /// The request is an attempt to send a [duplicate annotation].
+    ///
+    /// [duplicate annotation]: https://spec.matrix.org/v1.18/client-server-api/#avoiding-duplicate-annotations
+    DuplicateAnnotation,
+
+    /// `M_EXCLUSIVE`
+    ///
+    /// The resource being requested is reserved by an application service, or the application
+    /// service making the request has not created the resource.
+    Exclusive,
+
+    /// `M_FORBIDDEN`
+    ///
+    /// Forbidden access, e.g. joining a room without permission, failed login.
+    Forbidden,
+
+    /// `M_GUEST_ACCESS_FORBIDDEN`
+    ///
+    /// The room or resource does not permit [guests] to access it.
+    ///
+    /// [guests]: https://spec.matrix.org/v1.18/client-server-api/#guest-access
+    GuestAccessForbidden,
+
+    /// `M_INCOMPATIBLE_ROOM_VERSION`
+    ///
+    /// The client attempted to join a room that has a version the server does not support.
+    IncompatibleRoomVersion(IncompatibleRoomVersionErrorData),
+
+    /// `M_INVALID_PARAM`
+    ///
+    /// A parameter that was specified has the wrong value. For example, the server expected an
+    /// integer and instead received a string.
+    InvalidParam,
+
+    /// `M_INVALID_ROOM_STATE`
+    ///
+    /// The initial state implied by the parameters to the [`create_room`] request is invalid, e.g.
+    /// the user's `power_level` is set below that necessary to set the room name.
+    ///
+    /// [`create_room`]: crate::room::create_room
+    InvalidRoomState,
+
+    /// `M_INVALID_USERNAME`
+    ///
+    /// The desired user name is not valid.
+    InvalidUsername,
+
+    /// `M_INVITE_BLOCKED`
+    ///
+    /// The invite was interdicted by moderation tools or configured access controls without having
+    /// been witnessed by the invitee.
+    InviteBlocked,
+
+    /// `M_LIMIT_EXCEEDED`
+    ///
+    /// The request has been refused due to [rate limiting]: too many requests have been sent in a
+    /// short period of time.
+    ///
+    /// [rate limiting]: https://spec.matrix.org/v1.18/client-server-api/#rate-limiting
+    LimitExceeded(LimitExceededErrorData),
+
+    /// `M_MISSING_PARAM`
+    ///
+    /// A required parameter was missing from the request.
+    MissingParam,
+
+    /// `M_MISSING_TOKEN`
+    ///
+    /// No [access token] was specified for the request, but one is required.
+    ///
+    /// [access token]: https://spec.matrix.org/v1.18/client-server-api/#client-authentication
+    MissingToken,
+
+    /// `M_NOT_FOUND`
+    ///
+    /// No resource was found for this request.
+    NotFound,
+
+    /// `M_NOT_IN_THREAD`
+    ///
+    /// Part of [MSC4306]: an automatic thread subscription was set to an event ID that isn't part
+    /// of the subscribed-to thread.
+    ///
+    /// [MSC4306]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
+    #[cfg(feature = "unstable-msc4306")]
+    NotInThread,
+
+    /// `M_NOT_JSON`
+    ///
+    /// The request did not contain valid JSON.
+    NotJson,
+
+    /// `M_NOT_YET_UPLOADED`
+    ///
+    /// An `mxc:` URI generated with the [`create_mxc_uri`] endpoint was used and the content is
+    /// not yet available.
+    ///
+    /// [`create_mxc_uri`]: crate::media::create_mxc_uri
+    NotYetUploaded,
+
+    /// `M_RESOURCE_LIMIT_EXCEEDED`
+    ///
+    /// The request cannot be completed because the homeserver has reached a resource limit imposed
+    /// on it. For example, a homeserver held in a shared hosting environment may reach a resource
+    /// limit if it starts using too much memory or disk space.
+    ResourceLimitExceeded(ResourceLimitExceededErrorData),
+
+    /// `M_ROOM_IN_USE`
+    ///
+    /// The [room alias] specified in the [`create_room`] request is already taken.
+    ///
+    /// [`create_room`]: crate::room::create_room
+    /// [room alias]: https://spec.matrix.org/v1.18/client-server-api/#room-aliases
+    RoomInUse,
+
+    /// `M_SERVER_NOT_TRUSTED`
+    ///
+    /// The client's request used a third-party server, e.g. identity server, that this server does
+    /// not trust.
+    ServerNotTrusted,
+
+    /// `M_THREEPID_AUTH_FAILED`
+    ///
+    /// Authentication could not be performed on the [third-party identifier].
+    ///
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
+    ThreepidAuthFailed,
+
+    /// `M_THREEPID_DENIED`
+    ///
+    /// The server does not permit this [third-party identifier]. This may happen if the server
+    /// only permits, for example, email addresses from a particular domain.
+    ///
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
+    ThreepidDenied,
+
+    /// `M_THREEPID_IN_USE`
+    ///
+    /// The [third-party identifier] is already in use by another user.
+    ///
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
+    ThreepidInUse,
+
+    /// `M_THREEPID_MEDIUM_NOT_SUPPORTED`
+    ///
+    /// The homeserver does not support adding a [third-party identifier] of the given medium.
+    ///
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
+    ThreepidMediumNotSupported,
+
+    /// `M_THREEPID_NOT_FOUND`
+    ///
+    /// No account matching the given [third-party identifier] could be found.
+    ///
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
+    ThreepidNotFound,
+
+    /// `M_TOKEN_INCORRECT`
+    ///
+    /// The token that the user entered to validate the session is incorrect.
+    TokenIncorrect,
+
+    /// `M_TOO_LARGE`
+    ///
+    /// The request or entity was too large.
+    TooLarge,
+
+    /// `M_UNABLE_TO_AUTHORISE_JOIN`
+    ///
+    /// The room is [restricted] and none of the conditions can be validated by the homeserver.
+    /// This can happen if the homeserver does not know about any of the rooms listed as
+    /// conditions, for example.
+    ///
+    /// [restricted]: https://spec.matrix.org/v1.18/client-server-api/#restricted-rooms
+    UnableToAuthorizeJoin,
+
+    /// `M_UNABLE_TO_GRANT_JOIN`
+    ///
+    /// A different server should be attempted for the join. This is typically because the resident
+    /// server can see that the joining user satisfies one or more conditions, such as in the case
+    /// of [restricted rooms], but the resident server would be unable to meet the authorization
+    /// rules.
+    ///
+    /// [restricted rooms]: https://spec.matrix.org/v1.18/client-server-api/#restricted-rooms
+    UnableToGrantJoin,
+
+    /// `M_UNACTIONABLE`
+    ///
+    /// The server does not want to handle the [federated report].
+    ///
+    /// [federated report]: https://github.com/matrix-org/matrix-spec-proposals/pull/3843
+    #[cfg(feature = "unstable-msc3843")]
+    Unactionable,
+
+    /// `M_UNAUTHORIZED`
+    ///
+    /// The request was not correctly authorized. Usually due to login failures.
+    Unauthorized,
+
+    /// `M_UNKNOWN`
+    ///
+    /// An unknown error has occurred.
+    Unknown,
+
+    /// `M_UNKNOWN_POS`
+    ///
+    /// The sliding sync ([MSC4186]) connection was expired by the server.
+    ///
+    /// [MSC4186]: https://github.com/matrix-org/matrix-spec-proposals/pull/4186
+    #[cfg(feature = "unstable-msc4186")]
+    UnknownPos,
+
+    /// `M_UNKNOWN_TOKEN`
+    ///
+    /// The [access or refresh token] specified was not recognized.
+    ///
+    /// [access or refresh token]: https://spec.matrix.org/v1.18/client-server-api/#client-authentication
+    UnknownToken(UnknownTokenErrorData),
+
+    /// `M_UNRECOGNIZED`
+    ///
+    /// The server did not understand the request.
+    ///
+    /// This is expected to be returned with a 404 HTTP status code if the endpoint is not
+    /// implemented or a 405 HTTP status code if the endpoint is implemented, but the incorrect
+    /// HTTP method is used.
+    Unrecognized,
+
+    /// `M_UNSUPPORTED_ROOM_VERSION`
+    ///
+    /// The request to [`create_room`] used a room version that the server does not support.
+    ///
+    /// [`create_room`]: crate::room::create_room
+    UnsupportedRoomVersion,
+
+    /// `M_URL_NOT_SET`
+    ///
+    /// The application service doesn't have a URL configured.
+    UrlNotSet,
+
+    /// `M_USER_DEACTIVATED`
+    ///
+    /// The user ID associated with the request has been deactivated.
+    UserDeactivated,
+
+    /// `M_USER_IN_USE`
+    ///
+    /// The desired user ID is already taken.
+    UserInUse,
+
+    /// `M_USER_LIMIT_EXCEEDED`
+    ///
+    /// The request cannot be completed because the user has exceeded (or the request would cause
+    /// them to exceed) a limit associated with their account. For example, a user may have reached
+    /// their allocated storage quota, reached a maximum number of allowed rooms, devices, or other
+    /// account-scoped resources, or exceeded usage limits for specific features.
+    UserLimitExceeded(UserLimitExceededErrorData),
+
+    /// `M_USER_LOCKED`
+    ///
+    /// The account has been [locked] and cannot be used at this time.
+    ///
+    /// [locked]: https://spec.matrix.org/v1.18/client-server-api/#account-locking
+    UserLocked,
+
+    /// `M_USER_SUSPENDED`
+    ///
+    /// The account has been [suspended] and can only be used for limited actions at this time.
+    ///
+    /// [suspended]: https://spec.matrix.org/v1.18/client-server-api/#account-suspension
+    UserSuspended,
+
+    /// `M_WEAK_PASSWORD`
+    ///
+    /// The password was [rejected] by the server for being too weak.
+    ///
+    /// [rejected]: https://spec.matrix.org/v1.18/client-server-api/#password-management
+    WeakPassword,
+
+    /// `M_WRONG_ROOM_KEYS_VERSION`
+    ///
+    /// The version of the [room keys backup] provided in the request does not match the current
+    /// backup version.
+    ///
+    /// [room keys backup]: https://spec.matrix.org/v1.18/client-server-api/#server-side-key-backups
+    WrongRoomKeysVersion(WrongRoomKeysVersionErrorData),
+
+    #[doc(hidden)]
+    _Custom(CustomErrorKind),
+}
+
+impl ErrorKind {
+    /// Get the [`ErrorCode`] for this `ErrorKind`.
+    pub fn errcode(&self) -> ErrorCode {
+        match self {
+            ErrorKind::AppserviceLoginUnsupported => ErrorCode::AppserviceLoginUnsupported,
+            ErrorKind::BadAlias => ErrorCode::BadAlias,
+            ErrorKind::BadJson => ErrorCode::BadJson,
+            ErrorKind::BadState => ErrorCode::BadState,
+            ErrorKind::BadStatus(_) => ErrorCode::BadStatus,
+            ErrorKind::CannotLeaveServerNoticeRoom => ErrorCode::CannotLeaveServerNoticeRoom,
+            ErrorKind::CannotOverwriteMedia => ErrorCode::CannotOverwriteMedia,
+            ErrorKind::CaptchaInvalid => ErrorCode::CaptchaInvalid,
+            ErrorKind::CaptchaNeeded => ErrorCode::CaptchaNeeded,
+            #[cfg(feature = "unstable-msc4306")]
+            ErrorKind::ConflictingUnsubscription => ErrorCode::ConflictingUnsubscription,
+            ErrorKind::ConnectionFailed => ErrorCode::ConnectionFailed,
+            ErrorKind::ConnectionTimeout => ErrorCode::ConnectionTimeout,
+            ErrorKind::DuplicateAnnotation => ErrorCode::DuplicateAnnotation,
+            ErrorKind::Exclusive => ErrorCode::Exclusive,
+            ErrorKind::Forbidden => ErrorCode::Forbidden,
+            ErrorKind::GuestAccessForbidden => ErrorCode::GuestAccessForbidden,
+            ErrorKind::IncompatibleRoomVersion(_) => ErrorCode::IncompatibleRoomVersion,
+            ErrorKind::InvalidParam => ErrorCode::InvalidParam,
+            ErrorKind::InvalidRoomState => ErrorCode::InvalidRoomState,
+            ErrorKind::InvalidUsername => ErrorCode::InvalidUsername,
+            ErrorKind::InviteBlocked => ErrorCode::InviteBlocked,
+            ErrorKind::LimitExceeded(_) => ErrorCode::LimitExceeded,
+            ErrorKind::MissingParam => ErrorCode::MissingParam,
+            ErrorKind::MissingToken => ErrorCode::MissingToken,
+            ErrorKind::NotFound => ErrorCode::NotFound,
+            #[cfg(feature = "unstable-msc4306")]
+            ErrorKind::NotInThread => ErrorCode::NotInThread,
+            ErrorKind::NotJson => ErrorCode::NotJson,
+            ErrorKind::NotYetUploaded => ErrorCode::NotYetUploaded,
+            ErrorKind::ResourceLimitExceeded(_) => ErrorCode::ResourceLimitExceeded,
+            ErrorKind::RoomInUse => ErrorCode::RoomInUse,
+            ErrorKind::ServerNotTrusted => ErrorCode::ServerNotTrusted,
+            ErrorKind::ThreepidAuthFailed => ErrorCode::ThreepidAuthFailed,
+            ErrorKind::ThreepidDenied => ErrorCode::ThreepidDenied,
+            ErrorKind::ThreepidInUse => ErrorCode::ThreepidInUse,
+            ErrorKind::ThreepidMediumNotSupported => ErrorCode::ThreepidMediumNotSupported,
+            ErrorKind::ThreepidNotFound => ErrorCode::ThreepidNotFound,
+            ErrorKind::TokenIncorrect => ErrorCode::TokenIncorrect,
+            ErrorKind::TooLarge => ErrorCode::TooLarge,
+            ErrorKind::UnableToAuthorizeJoin => ErrorCode::UnableToAuthorizeJoin,
+            ErrorKind::UnableToGrantJoin => ErrorCode::UnableToGrantJoin,
+            #[cfg(feature = "unstable-msc3843")]
+            ErrorKind::Unactionable => ErrorCode::Unactionable,
+            ErrorKind::Unauthorized => ErrorCode::Unauthorized,
+            ErrorKind::Unknown => ErrorCode::Unknown,
+            #[cfg(feature = "unstable-msc4186")]
+            ErrorKind::UnknownPos => ErrorCode::UnknownPos,
+            ErrorKind::UnknownToken(_) => ErrorCode::UnknownToken,
+            ErrorKind::Unrecognized => ErrorCode::Unrecognized,
+            ErrorKind::UnsupportedRoomVersion => ErrorCode::UnsupportedRoomVersion,
+            ErrorKind::UrlNotSet => ErrorCode::UrlNotSet,
+            ErrorKind::UserDeactivated => ErrorCode::UserDeactivated,
+            ErrorKind::UserInUse => ErrorCode::UserInUse,
+            ErrorKind::UserLimitExceeded(_) => ErrorCode::UserLimitExceeded,
+            ErrorKind::UserLocked => ErrorCode::UserLocked,
+            ErrorKind::UserSuspended => ErrorCode::UserSuspended,
+            ErrorKind::WeakPassword => ErrorCode::WeakPassword,
+            ErrorKind::WrongRoomKeysVersion(_) => ErrorCode::WrongRoomKeysVersion,
+            ErrorKind::_Custom(CustomErrorKind { errcode, .. }) => errcode.as_str().into(),
+        }
+    }
+
+    /// Get the JSON data for this `ErrorKind`, if it uses a custom error code.
+    pub fn custom_json_data(&self) -> Option<&JsonObject> {
+        as_variant!(self, Self::_Custom(error_kind) => &error_kind.data)
+    }
+}
+
+/// Data for the `M_BAD_STATUS` [`ErrorKind`].
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct BadStatusErrorData {
+    /// The HTTP status code of the response.
+    pub status: Option<http::StatusCode>,
+
+    /// The body of the response.
+    pub body: Option<String>,
+}
+
+impl BadStatusErrorData {
+    /// Construct a new empty `BadStatusErrorData`.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+/// Data for the `M_INCOMPATIBLE_ROOM_VERSION` [`ErrorKind`].
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct IncompatibleRoomVersionErrorData {
+    /// The room's version.
+    pub room_version: RoomVersionId,
+}
+
+impl IncompatibleRoomVersionErrorData {
+    /// Construct a new `IncompatibleRoomVersionErrorData` with the given room version.
+    pub fn new(room_version: RoomVersionId) -> Self {
+        Self { room_version }
+    }
+}
+
+/// Data for the `M_LIMIT_EXCEEDED` [`ErrorKind`].
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct LimitExceededErrorData {
+    /// How long a client should wait before they can try again.
+    pub retry_after: Option<RetryAfter>,
+}
+
+impl LimitExceededErrorData {
+    /// Construct a new empty `LimitExceededErrorData`.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+/// How long a client should wait before it tries again.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(clippy::exhaustive_enums)]
+pub enum RetryAfter {
+    /// The client should wait for the given duration.
+    ///
+    /// This variant should be preferred for backwards compatibility, as it will also populate the
+    /// `retry_after_ms` field in the body of the response.
+    Delay(Duration),
+    /// The client should wait for the given date and time.
+    DateTime(SystemTime),
+}
+
+impl TryFrom<&http::HeaderValue> for RetryAfter {
+    type Error = HeaderDeserializationError;
+
+    fn try_from(value: &http::HeaderValue) -> Result<Self, Self::Error> {
+        if value.as_bytes().iter().all(|b| b.is_ascii_digit()) {
+            // It should be a duration.
+            Ok(Self::Delay(Duration::from_secs(u64::from_str(value.to_str()?)?)))
+        } else {
+            // It should be a date.
+            Ok(Self::DateTime(http_date_to_system_time(value)?))
+        }
+    }
+}
+
+impl TryFrom<&RetryAfter> for http::HeaderValue {
+    type Error = HeaderSerializationError;
+
+    fn try_from(value: &RetryAfter) -> Result<Self, Self::Error> {
+        match value {
+            RetryAfter::Delay(duration) => Ok(duration.as_secs().into()),
+            RetryAfter::DateTime(time) => system_time_to_http_date(time),
+        }
+    }
+}
+
+/// Data for the `M_RESOURCE_LIMIT_EXCEEDED` [`ErrorKind`].
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct ResourceLimitExceededErrorData {
+    /// A URI giving a contact method for the server administrator.
+    pub admin_contact: String,
+}
+
+impl ResourceLimitExceededErrorData {
+    /// Construct a new `ResourceLimitExceededErrorData` with the given admin contact URI.
+    pub fn new(admin_contact: String) -> Self {
+        Self { admin_contact }
+    }
+}
+
+/// Data for the `M_UNKNOWN_TOKEN` [`ErrorKind`].
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct UnknownTokenErrorData {
+    /// If this is `true`, the client is in a "[soft logout]" state, i.e. the server requires
+    /// re-authentication but the session is not invalidated. The client can acquire a new
+    /// access token by specifying the device ID it is already using to the login API.
+    ///
+    /// [soft logout]: https://spec.matrix.org/v1.18/client-server-api/#soft-logout
+    pub soft_logout: bool,
+}
+
+impl UnknownTokenErrorData {
+    /// Construct a new `UnknownTokenErrorData` with `soft_logout` set to `false`.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+/// Data for the `M_USER_LIMIT_EXCEEDED` [`ErrorKind`].
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct UserLimitExceededErrorData {
+    /// A URI that the client can present to the user to provide more context on the encountered
+    /// limit and, if applicable, guidance on how to increase the limit.
+    ///
+    /// The homeserver MAY return different values depending on the type of limit reached.
+    pub info_uri: String,
+
+    /// Whether the specific limit encountered can be increased.
+    ///
+    /// If `true`, it indicates that the specific limit encountered can be increased, for example
+    /// by upgrading the user’s account tier. If `false`, the limit is a hard limit that cannot be
+    /// increased.
+    ///
+    /// Defaults to `false`.
+    pub can_upgrade: bool,
+}
+
+impl UserLimitExceededErrorData {
+    /// Construct a new `UserLimitExceededErrorData` with the given URI.
+    pub fn new(info_uri: String) -> Self {
+        Self { info_uri, can_upgrade: false }
+    }
+}
+
+/// Data for the `M_WRONG_ROOM_KEYS_VERSION` [`ErrorKind`].
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct WrongRoomKeysVersionErrorData {
+    /// The currently active backup version.
+    pub current_version: String,
+}
+
+impl WrongRoomKeysVersionErrorData {
+    /// Construct a new `WrongRoomKeysVersionErrorData` with the given current active backup
+    /// version.
+    pub fn new(current_version: String) -> Self {
+        Self { current_version }
+    }
+}
+
+/// A custom error kind.
+#[doc(hidden)]
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct CustomErrorKind {
+    /// The error code.
+    pub(super) errcode: String,
+
+    /// The data for the error.
+    pub(super) data: JsonObject,
+}
+
+/// The possible [error codes] defined in the Matrix spec.
+///
+/// [error codes]: https://spec.matrix.org/v1.18/client-server-api/#standard-error-response
+#[derive(Clone, StringEnum)]
+#[non_exhaustive]
+#[ruma_enum(rename_all(prefix = "M_", rule = "SCREAMING_SNAKE_CASE"))]
+// Please keep the variants sorted alphabetically.
+pub enum ErrorCode {
+    /// `M_APPSERVICE_LOGIN_UNSUPPORTED`
+    ///
+    /// An application service used the [`m.login.application_service`] type an endpoint from the
+    /// [legacy authentication API] in a way that is not supported by the homeserver, because the
+    /// server only supports the [OAuth 2.0 API].
+    ///
+    /// [`m.login.application_service`]: https://spec.matrix.org/v1.18/application-service-api/#server-admin-style-permissions
+    /// [legacy authentication API]: https://spec.matrix.org/v1.18/client-server-api/#legacy-api
+    /// [OAuth 2.0 API]: https://spec.matrix.org/v1.18/client-server-api/#oauth-20-api
+    AppserviceLoginUnsupported,
+
+    /// `M_BAD_ALIAS`
+    ///
+    /// One or more [room aliases] within the `m.room.canonical_alias` event do not point to the
+    /// room ID for which the state event is to be sent to.
+    ///
+    /// [room aliases]: https://spec.matrix.org/v1.18/client-server-api/#room-aliases
+    BadAlias,
+
+    /// `M_BAD_JSON`
+    ///
+    /// The request contained valid JSON, but it was malformed in some way, e.g. missing required
+    /// keys, invalid values for keys.
+    BadJson,
+
+    /// `M_BAD_STATE`
+    ///
+    /// The state change requested cannot be performed, such as attempting to unban a user who is
+    /// not banned.
+    BadState,
+
+    /// `M_BAD_STATUS`
+    ///
+    /// The application service returned a bad status.
+    BadStatus,
+
+    /// `M_CANNOT_LEAVE_SERVER_NOTICE_ROOM`
+    ///
+    /// The user is unable to reject an invite to join the [server notices] room.
+    ///
+    /// [server notices]: https://spec.matrix.org/v1.18/client-server-api/#server-notices
+    CannotLeaveServerNoticeRoom,
+
+    /// `M_CANNOT_OVERWRITE_MEDIA`
+    ///
+    /// The [`create_content_async`] endpoint was called with a media ID that already has content.
+    ///
+    /// [`create_content_async`]: crate::media::create_content_async
+    CannotOverwriteMedia,
+
+    /// `M_CAPTCHA_INVALID`
+    ///
+    /// The Captcha provided did not match what was expected.
+    CaptchaInvalid,
+
+    /// `M_CAPTCHA_NEEDED`
+    ///
+    /// A Captcha is required to complete the request.
+    CaptchaNeeded,
+
+    /// `M_CONFLICTING_UNSUBSCRIPTION`
+    ///
+    /// Part of [MSC4306]: an automatic thread subscription has been skipped by the server, because
+    /// the user unsubsubscribed after the indicated subscribed-to event.
+    ///
+    /// [MSC4306]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
+    #[cfg(feature = "unstable-msc4306")]
+    #[ruma_enum(rename = "IO.ELEMENT.MSC4306.M_CONFLICTING_UNSUBSCRIPTION")]
+    ConflictingUnsubscription,
+
+    /// `M_CONNECTION_FAILED`
+    ///
+    /// The connection to the application service failed.
+    ConnectionFailed,
+
+    /// `M_CONNECTION_TIMEOUT`
+    ///
+    /// The connection to the application service timed out.
+    ConnectionTimeout,
+
+    /// `M_DUPLICATE_ANNOTATION`
+    ///
+    /// The request is an attempt to send a [duplicate annotation].
+    ///
+    /// [duplicate annotation]: https://spec.matrix.org/v1.18/client-server-api/#avoiding-duplicate-annotations
+    DuplicateAnnotation,
+
+    /// `M_EXCLUSIVE`
+    ///
+    /// The resource being requested is reserved by an application service, or the application
+    /// service making the request has not created the resource.
+    Exclusive,
+
+    /// `M_FORBIDDEN`
+    ///
+    /// Forbidden access, e.g. joining a room without permission, failed login.
+    Forbidden,
+
+    /// `M_GUEST_ACCESS_FORBIDDEN`
+    ///
+    /// The room or resource does not permit [guests] to access it.
+    ///
+    /// [guests]: https://spec.matrix.org/v1.18/client-server-api/#guest-access
+    GuestAccessForbidden,
+
+    /// `M_INCOMPATIBLE_ROOM_VERSION`
+    ///
+    /// The client attempted to join a room that has a version the server does not support.
+    IncompatibleRoomVersion,
+
+    /// `M_INVALID_PARAM`
+    ///
+    /// A parameter that was specified has the wrong value. For example, the server expected an
+    /// integer and instead received a string.
+    InvalidParam,
+
+    /// `M_INVALID_ROOM_STATE`
+    ///
+    /// The initial state implied by the parameters to the [`create_room`] request is invalid, e.g.
+    /// the user's `power_level` is set below that necessary to set the room name.
+    ///
+    /// [`create_room`]: crate::room::create_room
+    InvalidRoomState,
+
+    /// `M_INVALID_USERNAME`
+    ///
+    /// The desired user name is not valid.
+    InvalidUsername,
+
+    /// `M_INVITE_BLOCKED`
+    ///
+    /// The invite was interdicted by moderation tools or configured access controls without having
+    /// been witnessed by the invitee.
+    ///
+    /// Unstable prefix intentionally shared with MSC4155 for compatibility.
+    #[ruma_enum(alias = "ORG.MATRIX.MSC4155.INVITE_BLOCKED")]
+    InviteBlocked,
+
+    /// `M_LIMIT_EXCEEDED`
+    ///
+    /// The request has been refused due to [rate limiting]: too many requests have been sent in a
+    /// short period of time.
+    ///
+    /// [rate limiting]: https://spec.matrix.org/v1.18/client-server-api/#rate-limiting
+    LimitExceeded,
+
+    /// `M_MISSING_PARAM`
+    ///
+    /// A required parameter was missing from the request.
+    MissingParam,
+
+    /// `M_MISSING_TOKEN`
+    ///
+    /// No [access token] was specified for the request, but one is required.
+    ///
+    /// [access token]: https://spec.matrix.org/v1.18/client-server-api/#client-authentication
+    MissingToken,
+
+    /// `M_NOT_FOUND`
+    ///
+    /// No resource was found for this request.
+    NotFound,
+
+    /// `M_NOT_IN_THREAD`
+    ///
+    /// Part of [MSC4306]: an automatic thread subscription was set to an event ID that isn't part
+    /// of the subscribed-to thread.
+    ///
+    /// [MSC4306]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
+    #[cfg(feature = "unstable-msc4306")]
+    #[ruma_enum(rename = "IO.ELEMENT.MSC4306.M_NOT_IN_THREAD")]
+    NotInThread,
+
+    /// `M_NOT_JSON`
+    ///
+    /// The request did not contain valid JSON.
+    NotJson,
+
+    /// `M_NOT_YET_UPLOADED`
+    ///
+    /// An `mxc:` URI generated with the [`create_mxc_uri`] endpoint was used and the content is
+    /// not yet available.
+    ///
+    /// [`create_mxc_uri`]: crate::media::create_mxc_uri
+    NotYetUploaded,
+
+    /// `M_RESOURCE_LIMIT_EXCEEDED`
+    ///
+    /// The request cannot be completed because the homeserver has reached a resource limit imposed
+    /// on it. For example, a homeserver held in a shared hosting environment may reach a resource
+    /// limit if it starts using too much memory or disk space.
+    ResourceLimitExceeded,
+
+    /// `M_ROOM_IN_USE`
+    ///
+    /// The [room alias] specified in the [`create_room`] request is already taken.
+    ///
+    /// [`create_room`]: crate::room::create_room
+    /// [room alias]: https://spec.matrix.org/v1.18/client-server-api/#room-aliases
+    RoomInUse,
+
+    /// `M_SERVER_NOT_TRUSTED`
+    ///
+    /// The client's request used a third-party server, e.g. identity server, that this server does
+    /// not trust.
+    ServerNotTrusted,
+
+    /// `M_THREEPID_AUTH_FAILED`
+    ///
+    /// Authentication could not be performed on the [third-party identifier].
+    ///
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
+    ThreepidAuthFailed,
+
+    /// `M_THREEPID_DENIED`
+    ///
+    /// The server does not permit this [third-party identifier]. This may happen if the server
+    /// only permits, for example, email addresses from a particular domain.
+    ///
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
+    ThreepidDenied,
+
+    /// `M_THREEPID_IN_USE`
+    ///
+    /// The [third-party identifier] is already in use by another user.
+    ///
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
+    ThreepidInUse,
+
+    /// `M_THREEPID_MEDIUM_NOT_SUPPORTED`
+    ///
+    /// The homeserver does not support adding a [third-party identifier] of the given medium.
+    ///
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
+    ThreepidMediumNotSupported,
+
+    /// `M_THREEPID_NOT_FOUND`
+    ///
+    /// No account matching the given [third-party identifier] could be found.
+    ///
+    /// [third-party identifier]: https://spec.matrix.org/v1.18/client-server-api/#adding-account-administrative-contact-information
+    ThreepidNotFound,
+
+    /// `M_TOKEN_INCORRECT`
+    ///
+    /// The token that the user entered to validate the session is incorrect.
+    TokenIncorrect,
+
+    /// `M_TOO_LARGE`
+    ///
+    /// The request or entity was too large.
+    TooLarge,
+
+    /// `M_UNABLE_TO_AUTHORISE_JOIN`
+    ///
+    /// The room is [restricted] and none of the conditions can be validated by the homeserver.
+    /// This can happen if the homeserver does not know about any of the rooms listed as
+    /// conditions, for example.
+    ///
+    /// [restricted]: https://spec.matrix.org/v1.18/client-server-api/#restricted-rooms
+    #[ruma_enum(rename = "M_UNABLE_TO_AUTHORISE_JOIN")]
+    UnableToAuthorizeJoin,
+
+    /// `M_UNABLE_TO_GRANT_JOIN`
+    ///
+    /// A different server should be attempted for the join. This is typically because the resident
+    /// server can see that the joining user satisfies one or more conditions, such as in the case
+    /// of [restricted rooms], but the resident server would be unable to meet the authorization
+    /// rules.
+    ///
+    /// [restricted rooms]: https://spec.matrix.org/v1.18/client-server-api/#restricted-rooms
+    UnableToGrantJoin,
+
+    /// `M_UNACTIONABLE`
+    ///
+    /// The server does not want to handle the [federated report].
+    ///
+    /// [federated report]: https://github.com/matrix-org/matrix-spec-proposals/pull/3843
+    #[cfg(feature = "unstable-msc3843")]
+    Unactionable,
+
+    /// `M_UNAUTHORIZED`
+    ///
+    /// The request was not correctly authorized. Usually due to login failures.
+    Unauthorized,
+
+    /// `M_UNKNOWN`
+    ///
+    /// An unknown error has occurred.
+    Unknown,
+
+    /// `M_UNKNOWN_POS`
+    ///
+    /// The sliding sync ([MSC4186]) connection was expired by the server.
+    ///
+    /// [MSC4186]: https://github.com/matrix-org/matrix-spec-proposals/pull/4186
+    #[cfg(feature = "unstable-msc4186")]
+    UnknownPos,
+
+    /// `M_UNKNOWN_TOKEN`
+    ///
+    /// The [access or refresh token] specified was not recognized.
+    ///
+    /// [access or refresh token]: https://spec.matrix.org/v1.18/client-server-api/#client-authentication
+    UnknownToken,
+
+    /// `M_UNRECOGNIZED`
+    ///
+    /// The server did not understand the request.
+    ///
+    /// This is expected to be returned with a 404 HTTP status code if the endpoint is not
+    /// implemented or a 405 HTTP status code if the endpoint is implemented, but the incorrect
+    /// HTTP method is used.
+    Unrecognized,
+
+    /// `M_UNSUPPORTED_ROOM_VERSION`
+    UnsupportedRoomVersion,
+
+    /// `M_URL_NOT_SET`
+    ///
+    /// The application service doesn't have a URL configured.
+    UrlNotSet,
+
+    /// `M_USER_DEACTIVATED`
+    ///
+    /// The user ID associated with the request has been deactivated.
+    UserDeactivated,
+
+    /// `M_USER_IN_USE`
+    ///
+    /// The desired user ID is already taken.
+    UserInUse,
+
+    /// `M_USER_LIMIT_EXCEEDED`
+    ///
+    /// The request cannot be completed because the user has exceeded (or the request would cause
+    /// them to exceed) a limit associated with their account. For example, a user may have reached
+    /// their allocated storage quota, reached a maximum number of allowed rooms, devices, or other
+    /// account-scoped resources, or exceeded usage limits for specific features.
+    UserLimitExceeded,
+
+    /// `M_USER_LOCKED`
+    ///
+    /// The account has been [locked] and cannot be used at this time.
+    ///
+    /// [locked]: https://spec.matrix.org/v1.18/client-server-api/#account-locking
+    UserLocked,
+
+    /// `M_USER_SUSPENDED`
+    ///
+    /// The account has been [suspended] and can only be used for limited actions at this time.
+    ///
+    /// [suspended]: https://spec.matrix.org/v1.18/client-server-api/#account-suspension
+    UserSuspended,
+
+    /// `M_WEAK_PASSWORD`
+    ///
+    /// The password was [rejected] by the server for being too weak.
+    ///
+    /// [rejected]: https://spec.matrix.org/v1.18/client-server-api/#password-management
+    WeakPassword,
+
+    /// `M_WRONG_ROOM_KEYS_VERSION`
+    ///
+    /// The version of the [room keys backup] provided in the request does not match the current
+    /// backup version.
+    ///
+    /// [room keys backup]: https://spec.matrix.org/v1.18/client-server-api/#server-side-key-backups
+    WrongRoomKeysVersion,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}

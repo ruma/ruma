@@ -11,9 +11,8 @@ use serde_json::{from_value as from_json_value, map::Entry};
 use super::{
     BadStatusErrorData, CustomErrorKind, ErrorCode, ErrorKind, IncompatibleRoomVersionErrorData,
     LimitExceededErrorData, ResourceLimitExceededErrorData, RetryAfter, UnknownTokenErrorData,
-    WrongRoomKeysVersionErrorData,
+    UserLimitExceededErrorData, WrongRoomKeysVersionErrorData,
 };
-use crate::error::UserLimitExceededErrorData;
 
 enum Field<'de> {
     ErrorCode,
