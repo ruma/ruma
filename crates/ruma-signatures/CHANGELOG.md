@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- Refactor the variants of `JsonError`: `InvalidType` and `JsonFieldMissingFromObject` were merged
+  into a single `Field` variant that uses the `CanonicalJsonFieldError` enum from `ruma-common`.
+
 ## 0.20.0
 
 Breaking changes:
