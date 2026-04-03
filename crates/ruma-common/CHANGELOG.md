@@ -70,6 +70,8 @@ Improvements:
   owned identifier structs.
 - Add `CanonicalJsonObjectExt` as a helper trait to extract fields from a
   `CanonicalJsonObject`.
+- Add `canonical_json::RedactingSerializer` to serialize a `CanonicalJsonObject`
+  while redacting it on the fly.
 
 # 0.17.1
 

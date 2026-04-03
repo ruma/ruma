@@ -1,5 +1,8 @@
 use std::mem;
 
+mod serializer;
+
+pub use self::serializer::RedactingSerializer;
 use super::{
     CanonicalJsonFieldError, CanonicalJsonObject, CanonicalJsonObjectExt, CanonicalJsonValue,
 };
@@ -135,6 +138,15 @@ impl RetainedKeys {
         F: Fn(&RedactionRules, &str) -> RetainKey + Clone + 'static,
     {
         Self::Some(Box::new(retain_key_fn))
+    }
+
+    /// Whether the given key should be retained.
+    fn should_retain_key(&self, rules: &RedactionRules, key: &str) -> RetainKey {
+        match self {
+            Self::All => true.into(),
+            Self::Some(retain_key_fn) => retain_key_fn(rules, key),
+            Self::None => false.into(),
+        }
     }
 
     /// Apply this `RetainedKeys` on the given object.

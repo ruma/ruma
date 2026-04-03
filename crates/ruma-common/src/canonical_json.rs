@@ -12,7 +12,8 @@ mod value;
 
 pub use self::{
     redaction::{
-        RedactedBecause, RedactionEvent, redact, redact_content_in_place, redact_in_place,
+        RedactedBecause, RedactingSerializer, RedactionEvent, redact, redact_content_in_place,
+        redact_in_place,
     },
     serializer::Serializer,
     value::{CanonicalJsonObject, CanonicalJsonType, CanonicalJsonValue},
