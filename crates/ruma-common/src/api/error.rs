@@ -10,32 +10,32 @@ use thiserror::Error;
 
 use super::{EndpointError, MatrixVersion, OutgoingResponse};
 
-/// A general-purpose Matrix error type consisting of an HTTP status code and a JSON body.
+/// A general-purpose error type consisting of an HTTP status code and a JSON body.
 ///
 /// Note that individual `ruma-*-api` crates may provide more specific error types.
 #[allow(clippy::exhaustive_structs)]
 #[derive(Clone, Debug)]
-pub struct MatrixError {
+pub struct Error {
     /// The http response's status code.
     pub status_code: http::StatusCode,
 
     /// The http response's body.
-    pub body: MatrixErrorBody,
+    pub body: ErrorBody,
 }
 
-impl fmt::Display for MatrixError {
+impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let status_code = self.status_code.as_u16();
         match &self.body {
-            MatrixErrorBody::Json(json) => write!(f, "[{status_code}] {json}"),
-            MatrixErrorBody::NotJson { .. } => write!(f, "[{status_code}] <non-json bytes>"),
+            ErrorBody::Json(json) => write!(f, "[{status_code}] {json}"),
+            ErrorBody::NotJson { .. } => write!(f, "[{status_code}] <non-json bytes>"),
         }
     }
 }
 
-impl StdError for MatrixError {}
+impl StdError for Error {}
 
-impl OutgoingResponse for MatrixError {
+impl OutgoingResponse for Error {
     fn try_into_http_response<T: Default + BufMut>(
         self,
     ) -> Result<http::Response<T>, IntoHttpError> {
@@ -43,10 +43,10 @@ impl OutgoingResponse for MatrixError {
             .header(http::header::CONTENT_TYPE, crate::http_headers::APPLICATION_JSON)
             .status(self.status_code)
             .body(match self.body {
-                MatrixErrorBody::Json(json) => crate::serde::json_to_buf(&json)?,
-                MatrixErrorBody::NotJson { .. } => {
+                ErrorBody::Json(json) => crate::serde::json_to_buf(&json)?,
+                ErrorBody::NotJson { .. } => {
                     return Err(IntoHttpError::Json(serde::ser::Error::custom(
-                        "attempted to serialize MatrixErrorBody::NotJson",
+                        "attempted to serialize ErrorBody::NotJson",
                     )));
                 }
             })
@@ -54,10 +54,10 @@ impl OutgoingResponse for MatrixError {
     }
 }
 
-impl EndpointError for MatrixError {
+impl EndpointError for Error {
     fn from_http_response<T: AsRef<[u8]>>(response: http::Response<T>) -> Self {
         let status_code = response.status();
-        let body = MatrixErrorBody::from_bytes(response.body().as_ref());
+        let body = ErrorBody::from_bytes(response.body().as_ref());
         Self { status_code, body }
     }
 }
@@ -65,7 +65,7 @@ impl EndpointError for MatrixError {
 /// The body of an error response.
 #[derive(Clone, Debug)]
 #[allow(clippy::exhaustive_enums)]
-pub enum MatrixErrorBody {
+pub enum ErrorBody {
     /// A JSON body, as intended.
     Json(JsonValue),
 
@@ -79,12 +79,12 @@ pub enum MatrixErrorBody {
     },
 }
 
-impl MatrixErrorBody {
-    /// Create a `MatrixErrorBody` from the given HTTP body bytes.
+impl ErrorBody {
+    /// Create a `ErrorBody` from the given HTTP body bytes.
     pub fn from_bytes(body_bytes: &[u8]) -> Self {
         match from_json_slice(body_bytes) {
-            Ok(json) => MatrixErrorBody::Json(json),
-            Err(e) => MatrixErrorBody::NotJson {
+            Ok(json) => ErrorBody::Json(json),
+            Err(e) => ErrorBody::NotJson {
                 bytes: Bytes::copy_from_slice(body_bytes),
                 deserialization_error: Arc::new(e),
             },

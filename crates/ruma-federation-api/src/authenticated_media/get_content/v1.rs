@@ -65,7 +65,7 @@ impl Response {
 
 #[cfg(feature = "client")]
 impl ruma_common::api::IncomingResponse for Response {
-    type EndpointError = ruma_common::api::error::MatrixError;
+    type EndpointError = ruma_common::api::error::Error;
 
     fn try_from_http_response<T: AsRef<[u8]>>(
         http_response: http::Response<T>,
@@ -78,7 +78,7 @@ impl ruma_common::api::IncomingResponse for Response {
             Ok(Self { metadata, content })
         } else {
             Err(ruma_common::api::error::FromHttpResponseError::Server(
-                ruma_common::api::error::MatrixError::from_http_response(http_response),
+                ruma_common::api::error::Error::from_http_response(http_response),
             ))
         }
     }

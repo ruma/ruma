@@ -5,7 +5,7 @@ use ruma_common::{
     api::{
         IncomingResponse, OutgoingResponse,
         auth_scheme::NoAuthentication,
-        error::{FromHttpResponseError, IntoHttpError, MatrixError},
+        error::{Error, FromHttpResponseError, IntoHttpError},
         request,
     },
     metadata,
@@ -31,11 +31,11 @@ pub struct Request {
 pub struct Response;
 
 impl IncomingResponse for Response {
-    type EndpointError = MatrixError;
+    type EndpointError = Error;
 
     fn try_from_http_response<T: AsRef<[u8]>>(
         _: http::Response<T>,
-    ) -> Result<Self, FromHttpResponseError<MatrixError>> {
+    ) -> Result<Self, FromHttpResponseError<Error>> {
         todo!()
     }
 }
