@@ -25,7 +25,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_media_config` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     #[deprecated = "\
         Since Matrix 1.11, clients should use `authenticated_media::get_media_config::v1::Request` \
@@ -34,7 +34,7 @@ pub mod v3 {
     pub struct Request {}
 
     /// Response type for the `get_media_config` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// Maximum size of upload in bytes.
         #[serde(rename = "m.upload.size")]

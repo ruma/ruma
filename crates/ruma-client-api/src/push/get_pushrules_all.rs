@@ -24,12 +24,12 @@ pub mod v3 {
     }
 
     /// Request type for the `get_pushrules_all` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {}
 
     /// Response type for the `get_pushrules_all` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The global ruleset.
         pub global: Ruleset,

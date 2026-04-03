@@ -24,7 +24,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_avatar_url` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The user whose avatar URL will be retrieved.
         #[ruma_api(path)]
@@ -32,7 +32,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_avatar_url` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {
         /// The user's avatar URL, if set.

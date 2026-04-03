@@ -24,7 +24,7 @@ pub mod v3 {
     }
 
     /// Request type for the `delete_alias` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The room alias to remove.
         #[ruma_api(path)]
@@ -32,7 +32,7 @@ pub mod v3 {
     }
 
     /// Response type for the `delete_alias` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {}
 

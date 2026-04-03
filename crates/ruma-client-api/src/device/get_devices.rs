@@ -25,12 +25,12 @@ pub mod v3 {
     }
 
     /// Request type for the `get_devices` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {}
 
     /// Response type for the `get_devices` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// A list of all registered devices for this user
         pub devices: Vec<Device>,

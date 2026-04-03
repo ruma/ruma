@@ -34,7 +34,7 @@ pub mod v3 {
     }
 
     /// Request type for the `login` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The authentication mechanism.
         #[serde(flatten)]
@@ -58,7 +58,7 @@ pub mod v3 {
     }
 
     /// Response type for the `login` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The fully-qualified Matrix ID that has been registered.
         pub user_id: OwnedUserId,

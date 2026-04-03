@@ -29,7 +29,7 @@ pub mod v3 {
     }
 
     /// Request type for the `upload_keys` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {
         /// Identity keys for the device.
@@ -48,7 +48,7 @@ pub mod v3 {
     }
 
     /// Response type for the `upload_keys` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// For each key algorithm, the number of unclaimed one-time keys of that
         /// type currently held on the server for this device.

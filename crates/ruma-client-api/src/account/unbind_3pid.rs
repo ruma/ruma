@@ -26,7 +26,7 @@ pub mod v3 {
     }
 
     /// Request type for the `unbind_3pid` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// Identity server to unbind from.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -40,7 +40,7 @@ pub mod v3 {
     }
 
     /// Response type for the `unbind_3pid` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// Result of unbind operation.
         pub id_server_unbind_result: ThirdPartyIdRemovalStatus,

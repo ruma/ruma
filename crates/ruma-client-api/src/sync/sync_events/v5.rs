@@ -34,7 +34,7 @@ metadata! {
 }
 
 /// Request type for the `/sync` endpoint.
-#[request(error = crate::Error)]
+#[request]
 #[derive(Default)]
 pub struct Request {
     /// A point in time to continue a sync from.
@@ -448,7 +448,7 @@ pub mod request {
 }
 
 /// Response type for the `/sync` endpoint.
-#[response(error = crate::Error)]
+#[response]
 pub struct Response {
     /// Matches the `txn_id` sent by the request (see [`Request::txn_id`]).
     #[serde(skip_serializing_if = "Option::is_none")]

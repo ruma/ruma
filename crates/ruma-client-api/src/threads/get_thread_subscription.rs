@@ -23,7 +23,7 @@ pub mod unstable {
     }
 
     /// Request type for the `get_thread_subscription` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The room ID where the thread is located.
         #[ruma_api(path)]
@@ -35,7 +35,7 @@ pub mod unstable {
     }
 
     /// Response type for the `get_thread_subscription` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// Whether the subscription was made automatically by a client, not by manual user choice.
         pub automatic: bool,

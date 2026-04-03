@@ -33,12 +33,12 @@ pub mod v1 {
     }
 
     /// Request type for the `auth_metadata` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {}
 
     /// Response type for the `auth_metadata` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The authorization server metadata as defined in [RFC 8414].
         ///

@@ -29,7 +29,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_media_content_as_filename` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[deprecated = "\
         Since Matrix 1.11, clients should use `authenticated_media::get_content_as_filename::v1::Request` \
         instead if the homeserver supports it.\
@@ -79,7 +79,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_media_content_as_filename` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The content that was previously uploaded.
         #[ruma_api(raw_body)]

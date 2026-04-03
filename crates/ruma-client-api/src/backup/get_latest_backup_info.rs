@@ -33,12 +33,12 @@ pub mod v3 {
     }
 
     /// Request type for the `get_latest_backup_info` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {}
 
     /// Response type for the `get_latest_backup_info` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[ruma_api(manual_body_serde)]
     pub struct Response {
         /// The algorithm used for storing backups.

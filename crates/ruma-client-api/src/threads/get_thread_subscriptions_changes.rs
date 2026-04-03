@@ -27,7 +27,7 @@ pub mod unstable {
     }
 
     /// Request type for the `get_thread_subscriptions_changes` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The direction to use for pagination.
         ///
@@ -102,7 +102,7 @@ pub mod unstable {
     }
 
     /// Response type for the `get_thread_subscriptions_changes` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// New thread subscriptions.
         #[serde(skip_serializing_if = "BTreeMap::is_empty")]

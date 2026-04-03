@@ -31,7 +31,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_content_thumbnail` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[deprecated = "\
         Since Matrix 1.11, clients should use `authenticated_media::get_content_thumbnail::v1::Request` \
         instead if the homeserver supports it.\
@@ -103,7 +103,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_content_thumbnail` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// A thumbnail of the requested content.
         #[ruma_api(raw_body)]

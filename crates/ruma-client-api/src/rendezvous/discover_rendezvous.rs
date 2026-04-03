@@ -22,7 +22,7 @@ pub mod unstable {
     }
 
     /// Request type for the `GET` `rendezvous` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {}
 
     impl Request {
@@ -32,7 +32,7 @@ pub mod unstable {
         }
     }
 
-    #[response(error = crate::Error)]
+    #[response]
     /// Response type for the `GET` `rendezvous` endpoint.
     pub struct Response {
         /// True if the requester is able to use the create session endpoint, false otherwise.

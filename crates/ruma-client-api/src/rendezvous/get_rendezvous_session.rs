@@ -24,7 +24,7 @@ pub mod unstable {
     }
 
     /// Request type for the `GET` `rendezvous` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The ID of the rendezvous session to get.
         #[ruma_api(path)]
@@ -38,7 +38,7 @@ pub mod unstable {
         }
     }
 
-    #[response(error = crate::Error)]
+    #[response]
     /// Response type for the `GET` `rendezvous` endpoint.
     pub struct Response {
         /// The current sequence token for the session.

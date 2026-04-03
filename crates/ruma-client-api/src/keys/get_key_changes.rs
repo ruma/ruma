@@ -24,7 +24,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_key_changes` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The desired start point of the list.
         ///
@@ -41,7 +41,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_key_changes` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The Matrix User IDs of all users who updated their device identity keys.
         pub changed: Vec<OwnedUserId>,

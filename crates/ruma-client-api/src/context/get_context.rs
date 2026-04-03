@@ -29,7 +29,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_context` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The room to get events from.
         #[ruma_api(path)]
@@ -60,7 +60,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_context` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {
         /// A token that can be used to paginate backwards with.

@@ -23,7 +23,7 @@ pub mod v1 {
     }
 
     /// Request type for the `check_registration_token_validity` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The registration token to check the validity of.
         #[ruma_api(query)]
@@ -31,7 +31,7 @@ pub mod v1 {
     }
 
     /// Response type for the `check_registration_token_validity` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// A flag to indicate that the registration token is valid.
         pub valid: bool,

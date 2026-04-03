@@ -22,7 +22,7 @@ pub mod unstable {
     }
 
     /// Request type for the `DELETE` `rendezvous` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The ID of the rendezvous session to delete.
         #[ruma_api(path)]
@@ -37,7 +37,7 @@ pub mod unstable {
     }
 
     /// Response type for the `DELETE` `rendezvous` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {}
 

@@ -36,7 +36,7 @@ metadata! {
 }
 
 /// Request type for the `sync` endpoint.
-#[request(error = crate::Error)]
+#[request]
 #[derive(Default)]
 pub struct Request {
     /// A filter represented either as its full JSON definition or the ID of a saved filter.
@@ -81,7 +81,7 @@ pub struct Request {
 }
 
 /// Response type for the `sync` endpoint.
-#[response(error = crate::Error)]
+#[response]
 pub struct Response {
     /// The batch token to supply in the `since` param of the next `/sync` request.
     pub next_batch: String,

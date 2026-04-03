@@ -31,7 +31,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_current_state` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The room to get the data of.
         #[ruma_api(path)]
@@ -46,7 +46,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_current_state` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The private data that this user has attached to this room.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]

@@ -29,7 +29,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_keys` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {
         /// The time (in milliseconds) to wait when downloading keys from remote servers.
@@ -49,7 +49,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_keys` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {
         /// If any remote homeservers could not be reached, they are recorded here.

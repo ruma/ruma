@@ -24,12 +24,12 @@ pub mod v3 {
     }
 
     /// Request type for the `get_3pids` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {}
 
     /// Response type for the `get_3pids` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// A list of third party identifiers the homeserver has associated with the user's
         /// account.

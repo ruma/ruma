@@ -17,7 +17,7 @@ pub mod v3 {
 
     use ruma_common::{
         OwnedUserId,
-        api::{Metadata, auth_scheme::NoAccessToken, path_builder::VersionHistory},
+        api::{Metadata, auth_scheme::NoAccessToken, error::Error, path_builder::VersionHistory},
         metadata,
         profile::{ProfileFieldName, ProfileFieldValue},
     };
@@ -61,7 +61,7 @@ pub mod v3 {
 
     #[cfg(feature = "client")]
     impl ruma_common::api::OutgoingRequest for Request {
-        type EndpointError = crate::Error;
+        type EndpointError = Error;
         type IncomingResponse = Response;
 
         fn try_into_http_request<T: Default + bytes::BufMut + AsRef<[u8]>>(
@@ -96,7 +96,7 @@ pub mod v3 {
 
     #[cfg(feature = "server")]
     impl ruma_common::api::IncomingRequest for Request {
-        type EndpointError = crate::Error;
+        type EndpointError = Error;
         type OutgoingResponse = Response;
 
         fn try_from_http_request<B, S>(
@@ -155,7 +155,7 @@ pub mod v3 {
 
     #[cfg(feature = "client")]
     impl<F: StaticProfileField> ruma_common::api::OutgoingRequest for RequestStatic<F> {
-        type EndpointError = crate::Error;
+        type EndpointError = Error;
         type IncomingResponse = ResponseStatic<F>;
 
         fn try_into_http_request<T: Default + bytes::BufMut + AsRef<[u8]>>(
@@ -189,7 +189,7 @@ pub mod v3 {
 
     #[cfg(feature = "client")]
     impl ruma_common::api::IncomingResponse for Response {
-        type EndpointError = crate::Error;
+        type EndpointError = Error;
 
         fn try_from_http_response<T: AsRef<[u8]>>(
             response: http::Response<T>,
@@ -253,7 +253,7 @@ pub mod v3 {
 
     #[cfg(feature = "client")]
     impl<F: StaticProfileField> ruma_common::api::IncomingResponse for ResponseStatic<F> {
-        type EndpointError = crate::Error;
+        type EndpointError = Error;
 
         fn try_from_http_response<T: AsRef<[u8]>>(
             response: http::Response<T>,

@@ -28,7 +28,7 @@ pub mod v1 {
     }
 
     /// Request type for the `get_relating_events_with_rel_type` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The ID of the room containing the parent event.
         #[ruma_api(path)]
@@ -97,7 +97,7 @@ pub mod v1 {
     }
 
     /// Response type for the `get_relating_events_with_rel_type` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The paginated child events which point to the parent.
         ///

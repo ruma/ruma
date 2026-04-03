@@ -27,7 +27,7 @@ pub mod v1 {
     }
 
     /// Request type for the `hierarchy` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The room ID of the space to get a hierarchy for.
         #[ruma_api(path)]
@@ -61,7 +61,7 @@ pub mod v1 {
     }
 
     /// Response type for the `hierarchy` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {
         /// A token to supply to from to keep paginating the responses.

@@ -12,7 +12,10 @@ pub mod unstable_msc4108 {
     #[cfg(feature = "client")]
     use ruma_common::api::error::FromHttpResponseError;
     use ruma_common::{
-        api::{auth_scheme::NoAccessToken, error::HeaderDeserializationError},
+        api::{
+            auth_scheme::NoAccessToken,
+            error::{Error, HeaderDeserializationError},
+        },
         metadata,
     };
     use serde::{Deserialize, Serialize};
@@ -38,7 +41,7 @@ pub mod unstable_msc4108 {
 
     #[cfg(feature = "client")]
     impl ruma_common::api::OutgoingRequest for Request {
-        type EndpointError = crate::Error;
+        type EndpointError = Error;
         type IncomingResponse = Response;
 
         fn try_into_http_request<T: Default + bytes::BufMut>(
@@ -65,7 +68,7 @@ pub mod unstable_msc4108 {
 
     #[cfg(feature = "server")]
     impl ruma_common::api::IncomingRequest for Request {
-        type EndpointError = crate::Error;
+        type EndpointError = Error;
         type OutgoingResponse = Response;
 
         fn try_from_http_request<B, S>(
@@ -140,7 +143,7 @@ pub mod unstable_msc4108 {
 
     #[cfg(feature = "client")]
     impl ruma_common::api::IncomingResponse for Response {
-        type EndpointError = crate::Error;
+        type EndpointError = Error;
 
         fn try_from_http_response<T: AsRef<[u8]>>(
             response: http::Response<T>,
@@ -228,7 +231,7 @@ pub mod unstable_msc4388 {
     }
 
     /// Request type for the `POST` `rendezvous` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// Data up to maximum size allowed by the server.
         pub data: String,
@@ -242,7 +245,7 @@ pub mod unstable_msc4388 {
     }
 
     /// Response type for the `POST` `rendezvous` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The ID of the created rendezvous session.
         pub id: String,

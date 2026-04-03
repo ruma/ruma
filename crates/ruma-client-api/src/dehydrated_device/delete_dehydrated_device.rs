@@ -23,11 +23,11 @@ pub mod unstable {
     }
 
     /// Request type for the `DELETE` `dehydrated_device` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {}
 
     /// Request type for the `DELETE` `dehydrated_device` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The unique ID of the device that was deleted.
         pub device_id: OwnedDeviceId,

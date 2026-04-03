@@ -29,7 +29,7 @@ pub mod unstable {
     }
     /// Request type for the [`delayed_message_event`](crate::delayed_events::delayed_message_event)
     /// endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The room to send the event to.
         #[ruma_api(path)]
@@ -62,7 +62,7 @@ pub mod unstable {
 
     /// Response type for the
     /// [`delayed_message_event`](crate::delayed_events::delayed_message_event) endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The `delay_id` generated for this delayed event. Used to interact with delayed events.
         pub delay_id: String,

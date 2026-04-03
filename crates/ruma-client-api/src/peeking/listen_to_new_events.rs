@@ -28,7 +28,7 @@ pub mod v3 {
     }
 
     /// Request type for the `listen_to_new_events` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The token to stream from.
         ///
@@ -59,7 +59,7 @@ pub mod v3 {
     }
 
     /// Response type for the `listen_to_new_events` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {
         /// An array of new events.

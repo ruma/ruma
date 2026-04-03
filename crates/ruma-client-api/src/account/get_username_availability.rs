@@ -23,7 +23,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_username_availability` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The username to check the availability of.
         #[ruma_api(query)]
@@ -31,7 +31,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_username_availability` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// A flag to indicate that the username is available.
         /// This should always be true when the server replies with 200 OK.

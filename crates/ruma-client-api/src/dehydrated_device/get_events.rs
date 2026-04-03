@@ -25,7 +25,7 @@ pub mod unstable {
     }
 
     /// Request type for the `dehydrated_device/{device_id}/events` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The unique ID of the device for which we would like to fetch events.
         #[ruma_api(path)]
@@ -39,7 +39,7 @@ pub mod unstable {
     }
 
     /// Request type for the `dehydrated_device/{device_id}/events` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The batch token to supply in the `since` param of the next `/events` request. Will be
         /// none if no further events can be found.

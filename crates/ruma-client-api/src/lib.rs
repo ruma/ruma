@@ -58,6 +58,4 @@ pub mod uiaa;
 pub mod user_directory;
 pub mod voip;
 
-pub use ruma_common::api::error::Error;
-
 ruma_common::priv_owned_str!();

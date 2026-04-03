@@ -29,7 +29,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_message_events` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The room to get events from.
         #[ruma_api(path)]
@@ -77,7 +77,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_message_events` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {
         /// The token the pagination starts from.

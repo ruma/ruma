@@ -29,7 +29,7 @@ pub mod v1 {
     }
 
     /// Request type for the `get_thread_roots` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The room ID where the thread roots are located.
         #[ruma_api(path)]
@@ -57,7 +57,7 @@ pub mod v1 {
     }
 
     /// Response type for the `get_thread_roots` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The thread roots, ordered by the `latest_event` in each event's aggregation bundle.
         ///

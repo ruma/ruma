@@ -28,7 +28,7 @@ pub mod v3 {
     }
 
     /// Request type for the `set_pusher` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The action to take.
         #[ruma_api(body)]
@@ -36,7 +36,7 @@ pub mod v3 {
     }
 
     /// Response type for the `set_pusher` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {}
 

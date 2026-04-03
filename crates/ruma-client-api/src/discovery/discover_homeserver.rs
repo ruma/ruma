@@ -27,12 +27,12 @@ metadata! {
 }
 
 /// Request type for the `client_well_known` endpoint.
-#[request(error = crate::Error)]
+#[request]
 #[derive(Default)]
 pub struct Request {}
 
 /// Response type for the `client_well_known` endpoint.
-#[response(error = crate::Error)]
+#[response]
 pub struct Response {
     /// Information about the homeserver to connect to.
     #[serde(rename = "m.homeserver")]

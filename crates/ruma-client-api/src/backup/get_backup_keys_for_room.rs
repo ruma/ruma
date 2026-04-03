@@ -30,7 +30,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_backup_keys_for_room` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The backup version to retrieve keys from.
         #[ruma_api(query)]
@@ -42,7 +42,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_backup_keys_for_room` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// A map of session IDs to key data.
         pub sessions: BTreeMap<String, Raw<KeyBackupData>>,

@@ -38,12 +38,12 @@ pub mod v3 {
     }
 
     /// Request type for the `get_capabilities` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {}
 
     /// Response type for the `get_capabilities` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The capabilities the server supports
         pub capabilities: Capabilities,

@@ -27,7 +27,7 @@ pub mod v3 {
     }
 
     /// Request type for the `delete_backup_keys` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The backup version from which to delete keys.
         #[ruma_api(query)]
@@ -35,7 +35,7 @@ pub mod v3 {
     }
 
     /// Response type for the `delete_backup_keys` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// An opaque string representing stored keys in the backup.
         ///
