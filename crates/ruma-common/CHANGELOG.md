@@ -2,10 +2,16 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- `RedactionError` was renamed to `CanonicalJsonFieldError` and its `MissingField` variant was
+  renamed to `Missing`.
+
 Improvements:
 
 - The `IdDst` macro generates `Borrow<str>` implementations for the borrowed and
   owned identifier structs.
+- Add `CanonicalJsonObjectExt` as a helper trait to extract fields from a `CanonicalJsonObject`.
 
 ## 0.18.0
 
