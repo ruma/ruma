@@ -38,6 +38,8 @@ Breaking changes:
 - When verifying the signatures on a JSON object, signatures of keys that are
   not in the key map are ignored rather than returning an error. The
   `VerificationError::PublicKeyNotFound` variant was removed.
+- `Ed25519KeyPair` was moved under the new `ed25519` module with its error
+  types.
 
 Improvements:
 
