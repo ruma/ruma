@@ -2,11 +2,10 @@
 
 Breaking changes:
 
-- Refactor and improve the variants of `JsonError`:
-  - `NotOfType` and `NotMultiplesOfType` were merged into a single `InvalidType`
-    variant and provide more details about the invalid field.
-  - `JsonFieldMissingFromObject` was renamed to `MissingField` an provides the
-    full path of the missing field.
+- Refactor and improve the variants of `JsonError`: `NotOfType`,
+  `NotMultiplesOfType` and `JsonFieldMissingFromObject` were merged into a
+  single `Field` variant that uses the `CanonicalJsonFieldError` enum from
+  `ruma-common`.
 - The methods on `Ed25519KeyPair` use a separate error enum named
   `Ed25519KeyPairParseError`.
   - `Error::DerParse` is now `Ed25519KeyPairParseError::Pkcs8`.
@@ -25,7 +24,7 @@ Breaking changes:
     `Ed25519VerificationError::SignatureVerification`.
 - `Error::PduSize` is now `JsonError::PduTooLarge` allowing the following
   functions to return `JsonError` as an error type:
-  - `canonical_json()`
+  - `to_canonical_json_string_for_signing()`
   - `reference_hash()`
   - `content_hash()`
   - `sign_json()`
@@ -38,11 +37,30 @@ Breaking changes:
 - When verifying the signatures on a JSON object, signatures of keys that are
   not in the key map are ignored rather than returning an error. The
   `VerificationError::PublicKeyNotFound` variant was removed.
+- `Ed25519KeyPair` was moved under the new `ed25519` module with its error
+  types.
+- `Signature::new()` takes an `OwnedSigningKeyId<AnyKeyName>` and a `Vec<u8>`
+  and is now infallible.
+- `canonical_json()` was renamed to `to_canonical_json_string_for_signing()` to
+  clarify that is is not to be used outside of the signing/verifying context.
+- `verify_event()` takes a type implementing `FetchEntityPublicSigningKey`. It
+  allows to use other types than `PublicKeyMap` that might have better
+  optimizations.
+- `verify_event()` supports checking the signature from the policy server
+  enabled in the room. It takes a `VerifyEventPublicSigningKeys` instead of a
+  `PublicKeyMap`.
+- The `hash_and_sign_event()` was split into two functions `hash_event()` and
+  `sign_event()`. That is because only the server that created the event needs
+  to add the content hash to it, but some servers might need to add an extra
+  signature to an existing event, like policy servers.
 
 Improvements:
 
 - Get a better error message when verifying a signature with a public key that
   has the wrong length.
+- Make `required_server_signatures_to_verify_event()` public, for homeservers to
+  get the list of servers whose public keys they need to provide to
+  `verify_event()`.
 
 # 0.19.0
 

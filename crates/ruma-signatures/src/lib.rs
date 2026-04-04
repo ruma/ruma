@@ -42,8 +42,9 @@
 //! Homeservers are required to generate hashes of event contents as well as signing events before
 //! exchanging them with other homeservers. Although the algorithm for hashing and signing an event
 //! is more complicated than for signing arbitrary JSON, the interface to a user of ruma-signatures
-//! is the same. To hash and sign an event, use the [`hash_and_sign_event()`] function. See the
-//! documentation of this function for more details and a full example of use.
+//! is the same. To add the content hash to an event use [`hash_event()`], and to sign an event use
+//! [`sign_event()`]. See the documentation of theses functions for more details and examples of
+//! use.
 //!
 //! # Verifying signatures and hashes
 //!
@@ -62,21 +63,23 @@
 pub use ruma_common::{IdParseError, SigningKeyAlgorithm};
 
 pub use self::{
+    ed25519::{Ed25519KeyPair, Ed25519KeyPairParseError, Ed25519VerificationError},
     error::{JsonError, VerificationError},
-    functions::{
-        canonical_json, content_hash, hash_and_sign_event, reference_hash, sign_json,
-        verify_canonical_json_bytes, verify_event, verify_json,
+    hash::{content_hash, hash_event, reference_hash},
+    sign::{KeyPair, Signature, sign_event, sign_json},
+    verify::{
+        FetchEntityPublicSigningKey, PublicKeyMap, PublicKeySet, Verified,
+        VerifyEventPublicSigningKeys, required_server_signatures_to_verify_event,
+        to_canonical_json_string_for_signing, verify_canonical_json_bytes, verify_event,
+        verify_json,
     },
-    keys::{Ed25519KeyPair, Ed25519KeyPairParseError, KeyPair, PublicKeyMap, PublicKeySet},
-    signatures::Signature,
-    verification::{Ed25519VerificationError, Verified},
 };
 
+mod ed25519;
 mod error;
-mod functions;
-mod keys;
-mod signatures;
-mod verification;
+mod hash;
+mod sign;
+mod verify;
 
 #[cfg(test)]
 mod tests {
@@ -90,8 +93,10 @@ mod tests {
     use serde_json::{from_str as from_json_str, to_string as to_json_string};
 
     use super::{
-        Ed25519KeyPair, canonical_json, hash_and_sign_event, sign_json, verify_event, verify_json,
+        Ed25519KeyPair, VerifyEventPublicSigningKeys, hash_event, sign_event, sign_json,
+        to_canonical_json_string_for_signing, verify_event, verify_json,
     };
+    use crate::PublicKeyMap;
 
     fn pkcs8() -> Vec<u8> {
         const ENCODED: &str = "\
@@ -110,7 +115,7 @@ mod tests {
     /// Convenience for converting a string of JSON into its canonical form.
     fn test_canonical_json(input: &str) -> String {
         let object = from_json_str(input).unwrap();
-        canonical_json(&object).unwrap()
+        to_canonical_json_string_for_signing(&object).unwrap()
     }
 
     #[test]
@@ -223,7 +228,7 @@ mod tests {
         let mut signature_set = BTreeMap::new();
         signature_set.insert("ed25519:1".into(), public_key_string());
 
-        let mut public_key_map = BTreeMap::new();
+        let mut public_key_map = PublicKeyMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
         verify_json(&public_key_map, &value).unwrap();
@@ -260,7 +265,7 @@ mod tests {
         let mut signature_set = BTreeMap::new();
         signature_set.insert("ed25519:1".into(), public_key_string());
 
-        let mut public_key_map = BTreeMap::new();
+        let mut public_key_map = PublicKeyMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
         verify_json(&public_key_map, &value).unwrap();
@@ -279,7 +284,7 @@ mod tests {
         let mut signature_set = BTreeMap::new();
         signature_set.insert("ed25519:1".into(), public_key_string());
 
-        let mut public_key_map = BTreeMap::new();
+        let mut public_key_map = PublicKeyMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
         verify_json(&public_key_map, &value).unwrap_err();
@@ -307,7 +312,8 @@ mod tests {
         }"#;
 
         let mut object = from_json_str(json).unwrap();
-        hash_and_sign_event("domain", &key_pair, &mut object, &RedactionRules::V1).unwrap();
+        hash_event(&mut object).unwrap();
+        sign_event("domain", &key_pair, &mut object, &RedactionRules::V1).unwrap();
 
         assert_eq!(
             to_json_string(&object).unwrap(),
@@ -336,7 +342,8 @@ mod tests {
         }"#;
 
         let mut object = from_json_str(json).unwrap();
-        hash_and_sign_event("domain", &key_pair, &mut object, &RedactionRules::V1).unwrap();
+        hash_event(&mut object).unwrap();
+        sign_event("domain", &key_pair, &mut object, &RedactionRules::V1).unwrap();
 
         assert_eq!(
             to_json_string(&object).unwrap(),
@@ -349,7 +356,7 @@ mod tests {
         let mut signature_set = BTreeMap::new();
         signature_set.insert("ed25519:1".into(), public_key_string());
 
-        let mut public_key_map = BTreeMap::new();
+        let mut public_key_map = PublicKeyMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
         let value = from_json_str(
@@ -377,6 +384,11 @@ mod tests {
             }"#
         ).unwrap();
 
-        verify_event(&public_key_map, &value, &RoomVersionRules::V5).unwrap();
+        verify_event(
+            VerifyEventPublicSigningKeys::new(&public_key_map),
+            &value,
+            &RoomVersionRules::V5,
+        )
+        .unwrap();
     }
 }
