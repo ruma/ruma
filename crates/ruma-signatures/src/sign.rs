@@ -8,23 +8,24 @@ use ruma_common::{
 };
 use serde_json::to_string as to_json_string;
 
-use crate::{JsonError, content_hash};
+use crate::JsonError;
 
 /// The fields to remove from a JSON object when serializing it for signing.
 pub(crate) static FIELDS_TO_REMOVE_FOR_SIGNING: &[&str] = &["signatures", "unsigned"];
 
-/// Hashes and signs an event and adds the hash and signature to objects under the keys `hashes` and
-/// `signatures`, respectively.
+/// Compute and add the [signature] of the given event.
 ///
-/// If `hashes` and/or `signatures` are already present, the new data will be appended to the
-/// existing data.
+/// This adds or overwrites the signature for the given entity and key in the `signatures` object of
+/// the event.
+///
+/// When creating a new event, [`hash_event()`](crate::hash_event) should be called first.
 ///
 /// # Parameters
 ///
 /// * `entity_id`: The identifier of the entity creating the signature. Generally this means a
 ///   homeserver, e.g. "example.com".
-/// * `key_pair`: A cryptographic key pair used to sign the event.
-/// * `object`: A JSON object to be hashed and signed according to the Matrix specification.
+/// * `key_pair`: The cryptographic key pair used to sign the event.
+/// * `object`: The event to be signed according to the Matrix specification.
 /// * `redaction_rules`: The redaction rules for the version of the event's room.
 ///
 /// # Errors
@@ -32,88 +33,81 @@ pub(crate) static FIELDS_TO_REMOVE_FOR_SIGNING: &[&str] = &["signatures", "unsig
 /// Returns an error if:
 ///
 /// * `object` contains a field called `content` that is not a JSON object.
-/// * `object` contains a field called `hashes` that is not a JSON object.
 /// * `object` contains a field called `signatures` that is not a JSON object.
 /// * `object` is missing the `type` field or the field is not a JSON string.
 ///
 /// # Examples
 ///
 /// ```rust
-/// # use ruma_common::{RoomVersionId, serde::base64::Base64};
-/// # use ruma_signatures::{hash_and_sign_event, Ed25519KeyPair};
+/// use ruma_common::CanonicalJsonObject;
+/// use ruma_signatures::sign_event;
+/// # use ruma_common::serde::Base64;
 /// #
-/// const PKCS8: &str = "\
-///     MFECAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
-///     tA0T+6tgSEA3TPraTczVkDPTRaX4K+AfUuyx7Mzq1UafTXypnl0t2k\
-/// ";
-///
-/// let document: Base64 = Base64::parse(PKCS8).unwrap();
-///
-/// // Create an Ed25519 key pair.
-/// let key_pair = Ed25519KeyPair::from_der(
-///     document.as_bytes(),
-///     "1".into(), // The "version" of the key.
-/// )
-/// .unwrap();
+/// # const PKCS8: &str = "\
+/// #     MFECAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
+/// #     tA0T+6tgSEA3TPraTczVkDPTRaX4K+AfUuyx7Mzq1UafTXypnl0t2k\
+/// # ";
+/// # let der: Base64 = Base64::parse(PKCS8)?;
+/// # let key_pair = ruma_signatures::Ed25519KeyPair::from_der(
+/// #    der.as_bytes(),
+/// #    "1".into(), // The "version" of the key.
+/// # )?;
+/// # let room_version_rules = || { ruma_common::room_version_rules::RoomVersionRules::V6 };
 ///
 /// // Deserialize an event from JSON.
-/// let mut object = serde_json::from_str(
+/// let mut event = serde_json::from_str(
 ///     r#"{
 ///         "room_id": "!x:domain",
 ///         "sender": "@a:domain",
 ///         "origin": "domain",
 ///         "origin_server_ts": 1000000,
-///         "signatures": {},
-///         "hashes": {},
 ///         "type": "X",
 ///         "content": {},
 ///         "prev_events": [],
 ///         "auth_events": [],
 ///         "depth": 3,
-///         "unsigned": {
-///             "age_ts": 1000000
+///         "hashes": {
+///             "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
 ///         }
 ///     }"#,
-/// )
-/// .unwrap();
+/// )?;
 ///
 /// // Get the rules for the version of the current room.
-/// let rules =
-///     RoomVersionId::V1.rules().expect("The rules should be known for a supported room version");
+/// let rules = room_version_rules();
 ///
-/// // Hash and sign the JSON with the key pair.
-/// assert!(hash_and_sign_event("domain", &key_pair, &mut object, &rules.redaction).is_ok());
+/// // Sign the event with the key pair.
+/// sign_event("domain", &key_pair, &mut event, &rules.redaction)?;
+///
+/// // The signature was added.
+/// assert_eq!(
+///     event,
+///     serde_json::from_str::<CanonicalJsonObject>(
+///         r#"{
+///             "room_id": "!x:domain",
+///             "sender": "@a:domain",
+///             "origin": "domain",
+///             "origin_server_ts": 1000000,
+///             "type": "X",
+///             "content": {},
+///             "prev_events": [],
+///             "auth_events": [],
+///             "depth": 3,
+///             "hashes": {
+///                 "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+///             },
+///             "signatures": {
+///                 "domain": {
+///                     "ed25519:1": "PxOFMn6ORll8PFSQp0IRF6037MEZt3Mfzu/ROiT/gb/ccs1G+f6Ddoswez4KntLPBI3GKCGIkhctiK37JOy2Aw"
+///                 }
+///             }
+///         }"#,
+///     )?
+/// );
+/// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 ///
-/// This will modify the JSON from the structure shown to a structure like this:
-///
-/// ```json
-/// {
-///     "auth_events": [],
-///     "content": {},
-///     "depth": 3,
-///     "hashes": {
-///         "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
-///     },
-///     "origin": "domain",
-///     "origin_server_ts": 1000000,
-///     "prev_events": [],
-///     "room_id": "!x:domain",
-///     "sender": "@a:domain",
-///     "signatures": {
-///         "domain": {
-///             "ed25519:1": "KxwGjPSDEtvnFgU00fwFz+l6d2pJM6XBIaMEn81SXPTRl16AqLAYqfIReFGZlHi5KLjAWbOoMszkwsQma+lYAg"
-///         }
-///     },
-///     "type": "X",
-///     "unsigned": {
-///         "age_ts": 1000000
-///     }
-/// }
-/// ```
-///
-/// Notice the addition of `hashes` and `signatures`.
-pub fn hash_and_sign_event<K>(
+/// [signature]: https://spec.matrix.org/v1.18/server-server-api/#signing-events
+pub fn sign_event<K>(
     entity_id: &str,
     key_pair: &K,
     object: &mut CanonicalJsonObject,
@@ -122,11 +116,6 @@ pub fn hash_and_sign_event<K>(
 where
     K: KeyPair,
 {
-    let hash = content_hash(object)?;
-
-    let hashes = object.get_as_object_or_insert_default("hashes", "hashes")?;
-    hashes.insert("sha256".into(), CanonicalJsonValue::String(hash.encode()));
-
     let mut redacted = redact(object.clone(), redaction_rules, None)?;
 
     sign_json(entity_id, key_pair, &mut redacted)?;
