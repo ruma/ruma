@@ -1,43 +1,54 @@
-use std::{collections::HashSet, sync::Arc};
+use std::collections::HashSet;
 
-use as_variant::as_variant;
 use js_int::int;
-use ruma_common::room_version_rules::AuthorizationRules;
-use ruma_events::{TimelineEventType, room::power_levels::UserPowerLevel};
-use serde_json::{
-    Value as JsonValue, json,
-    value::{Map as JsonMap, to_raw_value as to_raw_json_value},
+use ruma_common::{
+    UserId, owned_event_id, room_version_rules::AuthorizationRules, serde::JsonObject,
 };
+use ruma_events::{TimelineEventType, room::power_levels::UserPowerLevel};
+use serde_json::{Value as JsonValue, json};
 use test_log::test;
 use tracing::info;
 
 use crate::{
     event_auth::check_room_power_levels,
     events::RoomPowerLevelsEvent,
-    test_utils::{PduEvent, alice, bob, to_pdu_event, zara},
+    test_utils::{Pdu, UserFactory},
 };
 
-/// The default `m.room.power_levels` event when creating a public room.
-pub(super) fn default_room_power_levels() -> RoomPowerLevelsEvent<Arc<PduEvent>> {
-    RoomPowerLevelsEvent::new(to_pdu_event(
-        "IPOWER",
-        alice(),
+/// The default `m.room.power_levels` event content when creating a room with the given
+/// authorization rules.
+fn initial_room_power_levels_content(
+    authorization_rules: &AuthorizationRules,
+    creator: &UserId,
+) -> JsonObject {
+    let mut content = JsonObject::new();
+
+    if !authorization_rules.explicitly_privilege_room_creators {
+        let users = JsonObject::from_iter([(creator.to_string(), 100.into())]);
+        content.insert("users".to_owned(), users.into());
+    }
+
+    content
+}
+
+/// The default `m.room.power_levels` PDU when creating a room with the given authorization rules.
+fn initial_room_power_levels(authorization_rules: &AuthorizationRules) -> Pdu {
+    let creator = UserFactory::Alice.user_id();
+    let content = initial_room_power_levels_content(authorization_rules, &creator);
+
+    Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-initial"),
+        creator,
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&json!({ "users": { alice(): 100 } })).unwrap(),
-        &["CREATE", "IMA"],
-        &["IMA"],
-    ))
+        String::new(),
+        content,
+    )
 }
 
 #[test]
 fn not_int_or_string_int_in_content() {
-    let original_content = json!({
-        "users": { alice(): 100 },
-    });
-    let original_content_object = as_variant!(original_content, JsonValue::Object).unwrap();
-
-    let current_room_power_levels_event = Some(default_room_power_levels());
+    let current_room_power_levels_event = initial_room_power_levels(&AuthorizationRules::V6);
+    let creator = current_room_power_levels_event.sender.clone();
 
     let int_fields =
         &["users_default", "events_default", "state_default", "ban", "redact", "kick", "invite"];
@@ -49,30 +60,28 @@ fn not_int_or_string_int_in_content() {
         for (is_string, is_int) in combinations {
             info!(?field, ?is_string, ?is_int, "checking field");
 
-            let value = match (is_string, is_int) {
+            let value: JsonValue = match (is_string, is_int) {
                 (true, false) => "foo".into(),
                 (true, true) => "50".into(),
                 (false, true) => 50.into(),
                 _ => unreachable!(),
             };
 
-            let mut content_object = original_content_object.clone();
-            content_object.insert((*field).to_owned(), value);
+            let mut content = initial_room_power_levels_content(&AuthorizationRules::V6, &creator);
+            content.insert((*field).to_owned(), value.clone());
 
-            let incoming_event = to_pdu_event(
-                "IPOWER2",
-                alice(),
+            let pdu = Pdu::with_minimal_state_fields(
+                owned_event_id!("$room-power-levels-field"),
+                creator.clone(),
                 TimelineEventType::RoomPowerLevels,
-                Some(""),
-                to_raw_json_value(&content_object).unwrap(),
-                &["CREATE", "IMA", "IPOWER"],
-                &["IPOWER"],
+                String::new(),
+                content,
             );
 
             // String that is not a number is not accepted.
             let v6_result = check_room_power_levels(
-                RoomPowerLevelsEvent::new(&incoming_event),
-                current_room_power_levels_event.clone(),
+                RoomPowerLevelsEvent::new(&pdu),
+                Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
                 &AuthorizationRules::V6,
                 int!(100).into(),
                 &HashSet::new(),
@@ -81,20 +90,31 @@ fn not_int_or_string_int_in_content() {
             if *is_int {
                 v6_result.unwrap();
             } else {
-                v6_result.unwrap_err();
+                assert_eq!(
+                    v6_result.unwrap_err(),
+                    format!(
+                        "unexpected format of `{field}` field in `content` of `m.room.power_levels` event: invalid digit found in string"
+                    )
+                );
             }
 
             // String is not accepted.
             let v10_result = check_room_power_levels(
-                RoomPowerLevelsEvent::new(&incoming_event),
-                current_room_power_levels_event.clone(),
+                RoomPowerLevelsEvent::new(&pdu),
+                Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
                 &AuthorizationRules::V10,
                 int!(100).into(),
                 &HashSet::new(),
             );
 
             if *is_string {
-                v10_result.unwrap_err();
+                assert_eq!(
+                    v10_result.unwrap_err(),
+                    format!(
+                        "unexpected format of `{field}` field in `content` of `m.room.power_levels` event: invalid type: string \"{}\", expected i64",
+                        value.as_str().unwrap()
+                    )
+                );
             } else {
                 v10_result.unwrap();
             }
@@ -104,12 +124,8 @@ fn not_int_or_string_int_in_content() {
 
 #[test]
 fn not_int_or_string_int_in_events() {
-    let original_content = json!({
-        "users": { alice(): 100 },
-    });
-    let original_content_object = as_variant!(original_content, JsonValue::Object).unwrap();
-
-    let current_room_power_levels_event = Some(default_room_power_levels());
+    let current_room_power_levels_event = initial_room_power_levels(&AuthorizationRules::V6);
+    let creator = current_room_power_levels_event.sender.clone();
 
     // Tuples of (is_string, is_int) booleans.
     let combinations = &[(true, false), (true, true), (false, true)];
@@ -117,32 +133,30 @@ fn not_int_or_string_int_in_events() {
     for (is_string, is_int) in combinations {
         info!(?is_string, ?is_int, "checking field");
 
-        let value = match (is_string, is_int) {
+        let value: JsonValue = match (is_string, is_int) {
             (true, false) => "foo".into(),
             (true, true) => "50".into(),
             (false, true) => 50.into(),
             _ => unreachable!(),
         };
-        let mut events_object = JsonMap::new();
-        events_object.insert("bar".to_owned(), value);
+        let mut events = JsonObject::new();
+        events.insert("bar".to_owned(), value.clone());
 
-        let mut content_object = original_content_object.clone();
-        content_object.insert("events".to_owned(), events_object.into());
+        let mut content = initial_room_power_levels_content(&AuthorizationRules::V6, &creator);
+        content.insert("events".to_owned(), events.into());
 
-        let incoming_event = to_pdu_event(
-            "IPOWER2",
-            alice(),
+        let pdu = Pdu::with_minimal_state_fields(
+            owned_event_id!("$room-power-levels-events"),
+            creator.clone(),
             TimelineEventType::RoomPowerLevels,
-            Some(""),
-            to_raw_json_value(&content_object).unwrap(),
-            &["CREATE", "IMA", "IPOWER"],
-            &["IPOWER"],
+            String::new(),
+            content,
         );
 
         // String that is not a number is not accepted.
         let v6_result = check_room_power_levels(
-            RoomPowerLevelsEvent::new(&incoming_event),
-            current_room_power_levels_event.clone(),
+            RoomPowerLevelsEvent::new(&pdu),
+            Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
             &AuthorizationRules::V6,
             int!(100).into(),
             &HashSet::new(),
@@ -151,20 +165,29 @@ fn not_int_or_string_int_in_events() {
         if *is_int {
             v6_result.unwrap();
         } else {
-            v6_result.unwrap_err();
+            assert_eq!(
+                v6_result.unwrap_err(),
+                "unexpected format of `events` field in `content` of `m.room.power_levels` event: invalid digit found in string"
+            );
         }
 
         // String is not accepted.
         let v10_result = check_room_power_levels(
-            RoomPowerLevelsEvent::new(&incoming_event),
-            current_room_power_levels_event.clone(),
+            RoomPowerLevelsEvent::new(&pdu),
+            Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
             &AuthorizationRules::V10,
             int!(100).into(),
             &HashSet::new(),
         );
 
         if *is_string {
-            v10_result.unwrap_err();
+            assert_eq!(
+                v10_result.unwrap_err(),
+                format!(
+                    "unexpected format of `events` field in `content` of `m.room.power_levels` event: invalid type: string \"{}\", expected i64",
+                    value.as_str().unwrap()
+                )
+            );
         } else {
             v10_result.unwrap();
         }
@@ -173,12 +196,8 @@ fn not_int_or_string_int_in_events() {
 
 #[test]
 fn not_int_or_string_int_in_notifications() {
-    let original_content = json!({
-        "users": { alice(): 100 },
-    });
-    let original_content_object = as_variant!(original_content, JsonValue::Object).unwrap();
-
-    let current_room_power_levels_event = Some(default_room_power_levels());
+    let current_room_power_levels_event = initial_room_power_levels(&AuthorizationRules::V6);
+    let creator = current_room_power_levels_event.sender.clone();
 
     // Tuples of (is_string, is_int) booleans.
     let combinations = &[(true, false), (true, true), (false, true)];
@@ -186,32 +205,30 @@ fn not_int_or_string_int_in_notifications() {
     for (is_string, is_int) in combinations {
         info!(?is_string, ?is_int, "checking field");
 
-        let value = match (is_string, is_int) {
+        let value: JsonValue = match (is_string, is_int) {
             (true, false) => "foo".into(),
             (true, true) => "50".into(),
             (false, true) => 50.into(),
             _ => unreachable!(),
         };
-        let mut notifications_object = JsonMap::new();
-        notifications_object.insert("room".to_owned(), value);
+        let mut notifications = JsonObject::new();
+        notifications.insert("room".to_owned(), value.clone());
 
-        let mut content_object = original_content_object.clone();
-        content_object.insert("notifications".to_owned(), notifications_object.into());
+        let mut content = initial_room_power_levels_content(&AuthorizationRules::V6, &creator);
+        content.insert("notifications".to_owned(), notifications.into());
 
-        let incoming_event = to_pdu_event(
-            "IPOWER2",
-            alice(),
+        let pdu = Pdu::with_minimal_state_fields(
+            owned_event_id!("$room-power-levels-notifications"),
+            creator.clone(),
             TimelineEventType::RoomPowerLevels,
-            Some(""),
-            to_raw_json_value(&content_object).unwrap(),
-            &["CREATE", "IMA", "IPOWER"],
-            &["IPOWER"],
+            String::new(),
+            content,
         );
 
         // String that is not a number is not accepted.
         let v6_result = check_room_power_levels(
-            RoomPowerLevelsEvent::new(&incoming_event),
-            current_room_power_levels_event.clone(),
+            RoomPowerLevelsEvent::new(&pdu),
+            Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
             &AuthorizationRules::V6,
             int!(100).into(),
             &HashSet::new(),
@@ -220,20 +237,29 @@ fn not_int_or_string_int_in_notifications() {
         if *is_int {
             v6_result.unwrap();
         } else {
-            v6_result.unwrap_err();
+            assert_eq!(
+                v6_result.unwrap_err(),
+                "unexpected format of `notifications` field in `content` of `m.room.power_levels` event: invalid digit found in string"
+            );
         }
 
         // String is not accepted.
         let v10_result = check_room_power_levels(
-            RoomPowerLevelsEvent::new(&incoming_event),
-            current_room_power_levels_event.clone(),
+            RoomPowerLevelsEvent::new(&pdu),
+            Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
             &AuthorizationRules::V10,
             int!(100).into(),
             &HashSet::new(),
         );
 
         if *is_string {
-            v10_result.unwrap_err();
+            assert_eq!(
+                v10_result.unwrap_err(),
+                format!(
+                    "unexpected format of `notifications` field in `content` of `m.room.power_levels` event: invalid type: string \"{}\", expected i64",
+                    value.as_str().unwrap()
+                )
+            );
         } else {
             v10_result.unwrap();
         }
@@ -242,45 +268,40 @@ fn not_int_or_string_int_in_notifications() {
 
 #[test]
 fn not_user_id_in_users() {
-    let content = json!({
-        "users": {
-            alice(): 100,
-            "spambot": -1,
-        },
-    });
-    let incoming_event = to_pdu_event(
-        "IPOWER2",
-        alice(),
+    let current_room_power_levels_event = initial_room_power_levels(&AuthorizationRules::V6);
+    let creator = current_room_power_levels_event.sender.clone();
+
+    let pdu = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-spambot"),
+        creator.clone(),
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&content).unwrap(),
-        &["CREATE", "IMA", "IPOWER"],
-        &["IPOWER"],
+        String::new(),
+        json!({
+            "users": {
+                creator: 100,
+                "spambot": -1,
+            },
+        }),
     );
 
-    let current_room_power_levels_event = Some(default_room_power_levels());
-
     // Key that is not a user ID is not accepted.
-    check_room_power_levels(
-        RoomPowerLevelsEvent::new(&incoming_event),
-        current_room_power_levels_event,
-        &AuthorizationRules::V6,
-        int!(100).into(),
-        &HashSet::new(),
-    )
-    .unwrap_err();
+    assert_eq!(
+        check_room_power_levels(
+            RoomPowerLevelsEvent::new(pdu),
+            Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
+            &AuthorizationRules::V6,
+            int!(100).into(),
+            &HashSet::new(),
+        )
+        .unwrap_err(),
+        "unexpected format of `users` field in `content` of `m.room.power_levels` event: leading sigil is incorrect or missing"
+    );
 }
 
 #[test]
 fn not_int_or_string_int_in_users() {
-    let original_content = json!({
-        "users": {
-            alice(): 100,
-        },
-    });
-    let original_content_object = as_variant!(original_content, JsonValue::Object).unwrap();
-
-    let current_room_power_levels_event = Some(default_room_power_levels());
+    let current_room_power_levels_event = initial_room_power_levels(&AuthorizationRules::V6);
+    let creator = current_room_power_levels_event.sender.clone();
 
     // Tuples of (is_string, is_int) booleans.
     let combinations = &[(true, false), (true, true), (false, true)];
@@ -288,31 +309,29 @@ fn not_int_or_string_int_in_users() {
     for (is_string, is_int) in combinations {
         info!(?is_string, ?is_int, "checking field");
 
-        let value = match (is_string, is_int) {
+        let value: JsonValue = match (is_string, is_int) {
             (true, false) => "foo".into(),
             (true, true) => "50".into(),
             (false, true) => 50.into(),
             _ => unreachable!(),
         };
 
-        let mut content_object = original_content_object.clone();
-        let users_object = content_object.get_mut("users").unwrap().as_object_mut().unwrap();
-        users_object.insert("@bar:baz".to_owned(), value);
+        let mut content = initial_room_power_levels_content(&AuthorizationRules::V6, &creator);
+        let users = content.get_mut("users").unwrap().as_object_mut().unwrap();
+        users.insert("@bar:baz".to_owned(), value.clone());
 
-        let incoming_event = to_pdu_event(
-            "IPOWER2",
-            alice(),
+        let incoming_event = Pdu::with_minimal_state_fields(
+            owned_event_id!("$room-power-levels-bar"),
+            creator.clone(),
             TimelineEventType::RoomPowerLevels,
-            Some(""),
-            to_raw_json_value(&content_object).unwrap(),
-            &["CREATE", "IMA", "IPOWER"],
-            &["IPOWER"],
+            String::new(),
+            content,
         );
 
         // String that is not a number is not accepted.
         let v6_result = check_room_power_levels(
             RoomPowerLevelsEvent::new(&incoming_event),
-            current_room_power_levels_event.clone(),
+            Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
             &AuthorizationRules::V6,
             int!(100).into(),
             &HashSet::new(),
@@ -321,20 +340,29 @@ fn not_int_or_string_int_in_users() {
         if *is_int {
             v6_result.unwrap();
         } else {
-            v6_result.unwrap_err();
+            assert_eq!(
+                v6_result.unwrap_err(),
+                "unexpected format of `users` field in `content` of `m.room.power_levels` event: invalid digit found in string"
+            );
         }
 
         // String is not accepted.
         let v10_result = check_room_power_levels(
             RoomPowerLevelsEvent::new(&incoming_event),
-            current_room_power_levels_event.clone(),
+            Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
             &AuthorizationRules::V10,
             int!(100).into(),
             &HashSet::new(),
         );
 
         if *is_string {
-            v10_result.unwrap_err();
+            assert_eq!(
+                v10_result.unwrap_err(),
+                format!(
+                    "unexpected format of `users` field in `content` of `m.room.power_levels` event: invalid type: string \"{}\", expected i64",
+                    value.as_str().unwrap()
+                )
+            );
         } else {
             v10_result.unwrap();
         }
@@ -343,27 +371,10 @@ fn not_int_or_string_int_in_users() {
 
 #[test]
 fn first_power_levels_event() {
-    let content = json!({
-        "users": {
-            alice(): 100,
-        },
-    });
-    let incoming_event = to_pdu_event(
-        "IPOWER",
-        alice(),
-        TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&content).unwrap(),
-        &["CREATE", "IMA"],
-        &["IMA"],
-    );
-
-    let current_room_power_levels_event = None::<RoomPowerLevelsEvent<PduEvent>>;
-
     // First power levels event is accepted.
     check_room_power_levels(
-        RoomPowerLevelsEvent::new(&incoming_event),
-        current_room_power_levels_event,
+        RoomPowerLevelsEvent::new(&initial_room_power_levels(&AuthorizationRules::V6)),
+        None::<RoomPowerLevelsEvent<&Pdu>>,
         &AuthorizationRules::V6,
         int!(100).into(),
         &HashSet::new(),
@@ -373,13 +384,16 @@ fn first_power_levels_event() {
 
 #[test]
 fn change_content_level_with_current_higher_power_level() {
-    let original_content = json!({
-        "users": {
-            alice(): 100,
-            bob(): 40,
-        },
-    });
-    let original_content_object = as_variant!(original_content, JsonValue::Object).unwrap();
+    let alice_id = UserFactory::Alice.user_id();
+    let bob_id = UserFactory::Bob.user_id();
+
+    let original_content = JsonObject::from_iter([(
+        "users".to_owned(),
+        json!({
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
+        }),
+    )]);
 
     let int_fields =
         &["users_default", "events_default", "state_default", "ban", "redact", "kick", "invite"];
@@ -390,52 +404,55 @@ fn change_content_level_with_current_higher_power_level() {
         let current_value = 60;
         let incoming_value = 40;
 
-        let mut current_content_object = original_content_object.clone();
-        current_content_object.insert((*field).to_owned(), current_value.into());
+        let mut current_content = original_content.clone();
+        current_content.insert((*field).to_owned(), current_value.into());
 
-        let current_room_power_levels_event = to_pdu_event(
-            "IPOWER",
-            alice(),
+        let current_room_power_levels_event = Pdu::with_minimal_state_fields(
+            owned_event_id!("$room-power-levels-current"),
+            alice_id.clone(),
             TimelineEventType::RoomPowerLevels,
-            Some(""),
-            to_raw_json_value(&current_content_object).unwrap(),
-            &["CREATE", "IMA"],
-            &["IMA"],
+            String::new(),
+            current_content,
         );
 
-        let mut incoming_content_object = original_content_object.clone();
-        incoming_content_object.insert((*field).to_owned(), incoming_value.into());
-        let incoming_event = to_pdu_event(
-            "IPOWER2",
-            bob(),
+        let mut incoming_content = original_content.clone();
+        incoming_content.insert((*field).to_owned(), incoming_value.into());
+
+        let pdu = Pdu::with_minimal_state_fields(
+            owned_event_id!("$room-power-levels-field"),
+            bob_id.clone(),
             TimelineEventType::RoomPowerLevels,
-            Some(""),
-            to_raw_json_value(&incoming_content_object).unwrap(),
-            &["CREATE", "IMA", "IPOWER"],
-            &["IPOWER"],
+            String::new(),
+            incoming_content,
         );
 
         // Cannot change from a power level that is higher than the user.
-        check_room_power_levels(
-            RoomPowerLevelsEvent::new(&incoming_event),
-            Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
-            &AuthorizationRules::V6,
-            int!(40).into(),
-            &HashSet::new(),
-        )
-        .unwrap_err();
+        assert_eq!(
+            check_room_power_levels(
+                RoomPowerLevelsEvent::new(&pdu),
+                Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
+                &AuthorizationRules::V6,
+                int!(40).into(),
+                &HashSet::new(),
+            )
+            .unwrap_err(),
+            format!("sender does not have enough power to change the power level of `{field}`")
+        );
     }
 }
 
 #[test]
 fn change_content_level_with_new_higher_power_level() {
-    let original_content = json!({
-        "users": {
-            alice(): 100,
-            bob(): 40,
-        },
-    });
-    let original_content_object = as_variant!(original_content, JsonValue::Object).unwrap();
+    let alice_id = UserFactory::Alice.user_id();
+    let bob_id = UserFactory::Bob.user_id();
+
+    let original_content = JsonObject::from_iter([(
+        "users".to_owned(),
+        json!({
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
+        }),
+    )]);
 
     let int_fields =
         &["users_default", "events_default", "state_default", "ban", "redact", "kick", "invite"];
@@ -446,52 +463,55 @@ fn change_content_level_with_new_higher_power_level() {
         let current_value = 40;
         let incoming_value = 60;
 
-        let mut current_content_object = original_content_object.clone();
-        current_content_object.insert((*field).to_owned(), current_value.into());
+        let mut current_content = original_content.clone();
+        current_content.insert((*field).to_owned(), current_value.into());
 
-        let current_room_power_levels_event = to_pdu_event(
-            "IPOWER",
-            alice(),
+        let current_room_power_levels_event = Pdu::with_minimal_state_fields(
+            owned_event_id!("$room-power-levels-current"),
+            alice_id.clone(),
             TimelineEventType::RoomPowerLevels,
-            Some(""),
-            to_raw_json_value(&current_content_object).unwrap(),
-            &["CREATE", "IMA"],
-            &["IMA"],
+            String::new(),
+            current_content,
         );
 
-        let mut incoming_content_object = original_content_object.clone();
-        incoming_content_object.insert((*field).to_owned(), incoming_value.into());
-        let incoming_event = to_pdu_event(
-            "IPOWER2",
-            bob(),
+        let mut incoming_content = original_content.clone();
+        incoming_content.insert((*field).to_owned(), incoming_value.into());
+
+        let pdu = Pdu::with_minimal_state_fields(
+            owned_event_id!("$room-power-levels-field"),
+            bob_id.clone(),
             TimelineEventType::RoomPowerLevels,
-            Some(""),
-            to_raw_json_value(&incoming_content_object).unwrap(),
-            &["CREATE", "IMA", "IPOWER"],
-            &["IPOWER"],
+            String::new(),
+            incoming_content,
         );
 
         // Cannot change to a power level that is higher than the user.
-        check_room_power_levels(
-            RoomPowerLevelsEvent::new(&incoming_event),
-            Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
-            &AuthorizationRules::V6,
-            int!(40).into(),
-            &HashSet::new(),
-        )
-        .unwrap_err();
+        assert_eq!(
+            check_room_power_levels(
+                RoomPowerLevelsEvent::new(&pdu),
+                Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
+                &AuthorizationRules::V6,
+                int!(40).into(),
+                &HashSet::new(),
+            )
+            .unwrap_err(),
+            format!("sender does not have enough power to change the power level of `{field}`")
+        );
     }
 }
 
 #[test]
 fn change_content_level_with_same_power_level() {
-    let original_content = json!({
-        "users": {
-            alice(): 100,
-            bob(): 40,
-        },
-    });
-    let original_content_object = as_variant!(original_content, JsonValue::Object).unwrap();
+    let alice_id = UserFactory::Alice.user_id();
+    let bob_id = UserFactory::Bob.user_id();
+
+    let original_content = JsonObject::from_iter([(
+        "users".to_owned(),
+        json!({
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
+        }),
+    )]);
 
     let int_fields =
         &["users_default", "events_default", "state_default", "ban", "redact", "kick", "invite"];
@@ -502,35 +522,32 @@ fn change_content_level_with_same_power_level() {
         let current_value = 30;
         let incoming_value = 40;
 
-        let mut current_content_object = original_content_object.clone();
-        current_content_object.insert((*field).to_owned(), current_value.into());
+        let mut current_content = original_content.clone();
+        current_content.insert((*field).to_owned(), current_value.into());
 
-        let current_room_power_levels_event = to_pdu_event(
-            "IPOWER",
-            alice(),
+        let current_room_power_levels_event = Pdu::with_minimal_state_fields(
+            owned_event_id!("$room-power-levels-current"),
+            alice_id.clone(),
             TimelineEventType::RoomPowerLevels,
-            Some(""),
-            to_raw_json_value(&current_content_object).unwrap(),
-            &["CREATE", "IMA"],
-            &["IMA"],
+            String::new(),
+            current_content,
         );
 
-        let mut incoming_content_object = original_content_object.clone();
-        incoming_content_object.insert((*field).to_owned(), incoming_value.into());
-        let incoming_event = to_pdu_event(
-            "IPOWER2",
-            bob(),
+        let mut incoming_content = original_content.clone();
+        incoming_content.insert((*field).to_owned(), incoming_value.into());
+
+        let pdu = Pdu::with_minimal_state_fields(
+            owned_event_id!("$room-power-levels-field"),
+            bob_id.clone(),
             TimelineEventType::RoomPowerLevels,
-            Some(""),
-            to_raw_json_value(&incoming_content_object).unwrap(),
-            &["CREATE", "IMA", "IPOWER"],
-            &["IPOWER"],
+            String::new(),
+            incoming_content,
         );
 
         // Can change a power level that is the same or lower than the user.
         check_room_power_levels(
-            RoomPowerLevelsEvent::new(&incoming_event),
-            Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
+            RoomPowerLevelsEvent::new(&pdu),
+            Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
             &AuthorizationRules::V6,
             int!(40).into(),
             &HashSet::new(),
@@ -541,150 +558,153 @@ fn change_content_level_with_same_power_level() {
 
 #[test]
 fn change_events_level_with_current_higher_power_level() {
+    let alice_id = UserFactory::Alice.user_id();
+    let bob_id = UserFactory::Bob.user_id();
+
     let current_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
         },
         "events": {
             "foo": 60,
         },
     });
-    let current_room_power_levels_event = to_pdu_event(
-        "IPOWER",
-        alice(),
+    let current_room_power_levels_event = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-current"),
+        alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&current_content).unwrap(),
-        &["CREATE", "IMA"],
-        &["IMA"],
+        String::new(),
+        current_content,
     );
 
     let incoming_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
         },
         "events": {
             "foo": 40,
         },
     });
-    let incoming_event = to_pdu_event(
-        "IPOWER2",
-        bob(),
+    let pdu = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-incoming"),
+        bob_id,
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&incoming_content).unwrap(),
-        &["CREATE", "IMA", "IPOWER"],
-        &["IPOWER"],
+        String::new(),
+        incoming_content,
     );
 
     // Cannot change from a power level that is higher than the user.
-    check_room_power_levels(
-        RoomPowerLevelsEvent::new(&incoming_event),
-        Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
-        &AuthorizationRules::V6,
-        int!(40).into(),
-        &HashSet::new(),
-    )
-    .unwrap_err();
+    assert_eq!(
+        check_room_power_levels(
+            RoomPowerLevelsEvent::new(&pdu),
+            Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
+            &AuthorizationRules::V6,
+            int!(40).into(),
+            &HashSet::new(),
+        )
+        .unwrap_err(),
+        "sender does not have enough power to change the `foo` event type power level"
+    );
 }
 
 #[test]
 fn change_events_level_with_new_higher_power_level() {
+    let alice_id = UserFactory::Alice.user_id();
+    let bob_id = UserFactory::Bob.user_id();
+
     let current_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
         },
         "events": {
             "foo": 30,
         },
     });
-    let current_room_power_levels_event = to_pdu_event(
-        "IPOWER",
-        alice(),
+    let current_room_power_levels_event = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-current"),
+        alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&current_content).unwrap(),
-        &["CREATE", "IMA"],
-        &["IMA"],
+        String::new(),
+        current_content,
     );
 
     let incoming_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
         },
         "events": {
             "foo": 60,
         },
     });
-    let incoming_event = to_pdu_event(
-        "IPOWER2",
-        bob(),
+    let pdu = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-incoming"),
+        bob_id,
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&incoming_content).unwrap(),
-        &["CREATE", "IMA", "IPOWER"],
-        &["IPOWER"],
+        String::new(),
+        incoming_content,
     );
 
     // Cannot change to a power level that is higher than the user.
-    check_room_power_levels(
-        RoomPowerLevelsEvent::new(&incoming_event),
-        Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
-        &AuthorizationRules::V6,
-        int!(40).into(),
-        &HashSet::new(),
-    )
-    .unwrap_err();
+    assert_eq!(
+        check_room_power_levels(
+            RoomPowerLevelsEvent::new(&pdu),
+            Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
+            &AuthorizationRules::V6,
+            int!(40).into(),
+            &HashSet::new(),
+        )
+        .unwrap_err(),
+        "sender does not have enough power to change the `foo` event type power level"
+    );
 }
 
 #[test]
 fn change_events_level_with_same_power_level() {
+    let alice_id = UserFactory::Alice.user_id();
+    let bob_id = UserFactory::Bob.user_id();
+
     let current_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
         },
         "events": {
             "foo": 40,
         },
     });
-    let current_room_power_levels_event = to_pdu_event(
-        "IPOWER",
-        alice(),
+    let current_room_power_levels_event = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-current"),
+        alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&current_content).unwrap(),
-        &["CREATE", "IMA"],
-        &["IMA"],
+        String::new(),
+        current_content,
     );
 
     let incoming_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
         },
         "events": {
             "foo": 10,
         },
     });
-    let incoming_event = to_pdu_event(
-        "IPOWER2",
-        bob(),
+    let pdu = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-incoming"),
+        bob_id,
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&incoming_content).unwrap(),
-        &["CREATE", "IMA", "IPOWER"],
-        &["IPOWER"],
+        String::new(),
+        incoming_content,
     );
 
     // Can change a power level that is the same or lower than the user.
     check_room_power_levels(
-        RoomPowerLevelsEvent::new(&incoming_event),
-        Some(RoomPowerLevelsEvent::new(current_room_power_levels_event)),
+        RoomPowerLevelsEvent::new(&pdu),
+        Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V6,
         int!(40).into(),
         &HashSet::new(),
@@ -694,47 +714,46 @@ fn change_events_level_with_same_power_level() {
 
 #[test]
 fn change_notifications_level_with_current_higher_power_level() {
+    let alice_id = UserFactory::Alice.user_id();
+    let bob_id = UserFactory::Bob.user_id();
+
     let current_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
         },
         "notifications": {
             "room": 60,
         },
     });
-    let current_room_power_levels_event = to_pdu_event(
-        "IPOWER",
-        alice(),
+    let current_room_power_levels_event = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-current"),
+        alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&current_content).unwrap(),
-        &["CREATE", "IMA"],
-        &["IMA"],
+        String::new(),
+        current_content,
     );
 
     let incoming_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
         },
         "notifications": {
             "room": 40,
         },
     });
-    let incoming_event = to_pdu_event(
-        "IPOWER2",
-        bob(),
+    let pdu = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-incoming"),
+        bob_id,
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&incoming_content).unwrap(),
-        &["CREATE", "IMA", "IPOWER"],
-        &["IPOWER"],
+        String::new(),
+        incoming_content,
     );
 
     // Notifications are not checked before v6.
     check_room_power_levels(
-        RoomPowerLevelsEvent::new(&incoming_event),
+        RoomPowerLevelsEvent::new(&pdu),
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V3,
         int!(40).into(),
@@ -743,59 +762,61 @@ fn change_notifications_level_with_current_higher_power_level() {
     .unwrap();
 
     // Cannot change from a power level that is higher than the user.
-    check_room_power_levels(
-        RoomPowerLevelsEvent::new(&incoming_event),
-        Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
-        &AuthorizationRules::V6,
-        int!(40).into(),
-        &HashSet::new(),
-    )
-    .unwrap_err();
+    assert_eq!(
+        check_room_power_levels(
+            RoomPowerLevelsEvent::new(&pdu),
+            Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
+            &AuthorizationRules::V6,
+            int!(40).into(),
+            &HashSet::new(),
+        )
+        .unwrap_err(),
+        "sender does not have enough power to change the `room` notification power level"
+    );
 }
 
 #[test]
 fn change_notifications_level_with_new_higher_power_level() {
+    let alice_id = UserFactory::Alice.user_id();
+    let bob_id = UserFactory::Bob.user_id();
+
     let current_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
         },
         "notifications": {
             "room": 30,
         },
     });
-    let current_room_power_levels_event = to_pdu_event(
-        "IPOWER",
-        alice(),
+    let current_room_power_levels_event = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-current"),
+        alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&current_content).unwrap(),
-        &["CREATE", "IMA"],
-        &["IMA"],
+        String::new(),
+        current_content,
     );
 
     let incoming_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
         },
         "notifications": {
             "room": 60,
         },
     });
-    let incoming_event = to_pdu_event(
-        "IPOWER2",
-        bob(),
+    let pdu = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-incoming"),
+        bob_id,
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&incoming_content).unwrap(),
-        &["CREATE", "IMA", "IPOWER"],
-        &["IPOWER"],
+        String::new(),
+        incoming_content,
     );
 
     // Notifications are not checked before v6.
     check_room_power_levels(
-        RoomPowerLevelsEvent::new(&incoming_event),
+        RoomPowerLevelsEvent::new(&pdu),
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V3,
         int!(40).into(),
@@ -804,59 +825,61 @@ fn change_notifications_level_with_new_higher_power_level() {
     .unwrap();
 
     // Cannot change to a power level that is higher than the user.
-    check_room_power_levels(
-        RoomPowerLevelsEvent::new(&incoming_event),
-        Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
-        &AuthorizationRules::V6,
-        int!(40).into(),
-        &HashSet::new(),
-    )
-    .unwrap_err();
+    assert_eq!(
+        check_room_power_levels(
+            RoomPowerLevelsEvent::new(&pdu),
+            Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
+            &AuthorizationRules::V6,
+            int!(40).into(),
+            &HashSet::new(),
+        )
+        .unwrap_err(),
+        "sender does not have enough power to change the `room` notification power level"
+    );
 }
 
 #[test]
 fn change_notifications_level_with_same_power_level() {
+    let alice_id = UserFactory::Alice.user_id();
+    let bob_id = UserFactory::Bob.user_id();
+
     let current_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
         },
         "notifications": {
             "room": 30,
         },
     });
-    let current_room_power_levels_event = to_pdu_event(
-        "IPOWER",
-        alice(),
+    let current_room_power_levels_event = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-current"),
+        alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&current_content).unwrap(),
-        &["CREATE", "IMA"],
-        &["IMA"],
+        String::new(),
+        current_content,
     );
 
     let incoming_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
         },
         "notifications": {
             "room": 31,
         },
     });
-    let incoming_event = to_pdu_event(
-        "IPOWER2",
-        bob(),
+    let pdu = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-incoming"),
+        bob_id,
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&incoming_content).unwrap(),
-        &["CREATE", "IMA", "IPOWER"],
-        &["IPOWER"],
+        String::new(),
+        incoming_content,
     );
 
     // Notifications are not checked before v6.
     check_room_power_levels(
-        RoomPowerLevelsEvent::new(&incoming_event),
+        RoomPowerLevelsEvent::new(&pdu),
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V3,
         int!(40).into(),
@@ -866,7 +889,7 @@ fn change_notifications_level_with_same_power_level() {
 
     // Can change a power level that is the same or lower than the user.
     check_room_power_levels(
-        RoomPowerLevelsEvent::new(&incoming_event),
+        RoomPowerLevelsEvent::new(&pdu),
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V6,
         int!(40).into(),
@@ -877,136 +900,142 @@ fn change_notifications_level_with_same_power_level() {
 
 #[test]
 fn change_other_user_level_with_current_higher_power_level() {
+    let alice_id = UserFactory::Alice.user_id();
+    let bob_id = UserFactory::Bob.user_id();
+    let zara_id = UserFactory::Zara.user_id();
+
     let current_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
-            zara(): 70,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
+            zara_id.to_string(): 70,
         },
     });
-    let current_room_power_levels_event = to_pdu_event(
-        "IPOWER",
-        alice(),
+    let current_room_power_levels_event = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-current"),
+        alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&current_content).unwrap(),
-        &["CREATE", "IMA"],
-        &["IMA"],
+        String::new(),
+        current_content,
     );
 
     let incoming_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
         },
     });
-    let incoming_event = to_pdu_event(
-        "IPOWER2",
-        bob(),
+    let pdu = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-incoming"),
+        bob_id,
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&incoming_content).unwrap(),
-        &["CREATE", "IMA", "IPOWER"],
-        &["IPOWER"],
+        String::new(),
+        incoming_content,
     );
 
     // Cannot change from a power level that is higher than the user.
-    check_room_power_levels(
-        RoomPowerLevelsEvent::new(&incoming_event),
-        Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
-        &AuthorizationRules::V6,
-        int!(40).into(),
-        &HashSet::new(),
-    )
-    .unwrap_err();
+    assert_eq!(
+        check_room_power_levels(
+            RoomPowerLevelsEvent::new(&pdu),
+            Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
+            &AuthorizationRules::V6,
+            int!(40).into(),
+            &HashSet::new(),
+        )
+        .unwrap_err(),
+        "sender does not have enough power to change `@zara:other.local`'s  power level"
+    );
 }
 
 #[test]
 fn change_other_user_level_with_new_higher_power_level() {
+    let alice_id = UserFactory::Alice.user_id();
+    let bob_id = UserFactory::Bob.user_id();
+    let zara_id = UserFactory::Zara.user_id();
+
     let current_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
-            zara(): 10,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
+            zara_id.to_string(): 10,
         },
     });
-    let current_room_power_levels_event = to_pdu_event(
-        "IPOWER",
-        alice(),
+    let current_room_power_levels_event = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-current"),
+        alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&current_content).unwrap(),
-        &["CREATE", "IMA"],
-        &["IMA"],
+        String::new(),
+        current_content,
     );
 
     let incoming_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
-            zara(): 45,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
+            zara_id.to_string(): 45,
         },
     });
-    let incoming_event = to_pdu_event(
-        "IPOWER2",
-        bob(),
+    let pdu = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-incoming"),
+        bob_id,
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&incoming_content).unwrap(),
-        &["CREATE", "IMA", "IPOWER"],
-        &["IPOWER"],
+        String::new(),
+        incoming_content,
     );
 
     // Cannot change to a power level that is higher than the user.
-    check_room_power_levels(
-        RoomPowerLevelsEvent::new(&incoming_event),
-        Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
-        &AuthorizationRules::V6,
-        int!(40).into(),
-        &HashSet::new(),
-    )
-    .unwrap_err();
+    assert_eq!(
+        check_room_power_levels(
+            RoomPowerLevelsEvent::new(&pdu),
+            Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
+            &AuthorizationRules::V6,
+            int!(40).into(),
+            &HashSet::new(),
+        )
+        .unwrap_err(),
+        "sender does not have enough power to change `@zara:other.local`'s  power level"
+    );
 }
 
 #[test]
 fn change_other_user_level_with_same_power_level() {
+    let alice_id = UserFactory::Alice.user_id();
+    let bob_id = UserFactory::Bob.user_id();
+    let zara_id = UserFactory::Zara.user_id();
+
     let current_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
-            zara(): 20,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
+            zara_id.to_string(): 20,
         },
     });
-    let current_room_power_levels_event = to_pdu_event(
-        "IPOWER",
-        alice(),
+    let current_room_power_levels_event = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-current"),
+        alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&current_content).unwrap(),
-        &["CREATE", "IMA"],
-        &["IMA"],
+        String::new(),
+        current_content,
     );
 
     let incoming_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
-            zara(): 40,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
+            zara_id.to_string(): 40,
         },
     });
-    let incoming_event = to_pdu_event(
-        "IPOWER2",
-        bob(),
+    let pdu = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-incoming"),
+        bob_id,
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&incoming_content).unwrap(),
-        &["CREATE", "IMA", "IPOWER"],
-        &["IPOWER"],
+        String::new(),
+        incoming_content,
     );
 
     // Can change a power level that is the same or lower than the user.
     check_room_power_levels(
-        RoomPowerLevelsEvent::new(&incoming_event),
+        RoomPowerLevelsEvent::new(&pdu),
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V6,
         int!(40).into(),
@@ -1017,86 +1046,87 @@ fn change_other_user_level_with_same_power_level() {
 
 #[test]
 fn change_own_user_level_to_new_higher_power_level() {
+    let alice_id = UserFactory::Alice.user_id();
+    let bob_id = UserFactory::Bob.user_id();
+
     let current_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
         },
     });
-    let current_room_power_levels_event = to_pdu_event(
-        "IPOWER",
-        alice(),
+    let current_room_power_levels_event = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-current"),
+        alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&current_content).unwrap(),
-        &["CREATE", "IMA"],
-        &["IMA"],
+        String::new(),
+        current_content,
     );
 
     let incoming_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 100,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 100,
         },
     });
-    let incoming_event = to_pdu_event(
-        "IPOWER2",
-        bob(),
+    let pdu = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-incoming"),
+        bob_id,
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&incoming_content).unwrap(),
-        &["CREATE", "IMA", "IPOWER"],
-        &["IPOWER"],
+        String::new(),
+        incoming_content,
     );
 
     // Cannot change to a power level that is higher than the user.
-    check_room_power_levels(
-        RoomPowerLevelsEvent::new(&incoming_event),
-        Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
-        &AuthorizationRules::V6,
-        int!(40).into(),
-        &HashSet::new(),
-    )
-    .unwrap_err();
+    assert_eq!(
+        check_room_power_levels(
+            RoomPowerLevelsEvent::new(&pdu),
+            Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
+            &AuthorizationRules::V6,
+            int!(40).into(),
+            &HashSet::new(),
+        )
+        .unwrap_err(),
+        "sender does not have enough power to change `@bob:matrix.local`'s  power level"
+    );
 }
 
 #[test]
 fn change_own_user_level_to_lower_power_level() {
+    let alice_id = UserFactory::Alice.user_id();
+    let bob_id = UserFactory::Bob.user_id();
+
     let current_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 40,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 40,
         },
     });
-    let current_room_power_levels_event = to_pdu_event(
-        "IPOWER",
-        alice(),
+    let current_room_power_levels_event = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-current"),
+        alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&current_content).unwrap(),
-        &["CREATE", "IMA"],
-        &["IMA"],
+        String::new(),
+        current_content,
     );
 
     let incoming_content = json!({
         "users": {
-            alice(): 100,
-            bob(): 20,
+            alice_id.to_string(): 100,
+            bob_id.to_string(): 20,
         },
     });
-    let incoming_event = to_pdu_event(
-        "IPOWER2",
-        bob(),
+    let pdu = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-incoming"),
+        bob_id,
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&incoming_content).unwrap(),
-        &["CREATE", "IMA", "IPOWER"],
-        &["IPOWER"],
+        String::new(),
+        incoming_content,
     );
 
     // Can change own power level to a lower level than the user.
     check_room_power_levels(
-        RoomPowerLevelsEvent::new(&incoming_event),
+        RoomPowerLevelsEvent::new(&pdu),
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V6,
         int!(40).into(),
@@ -1107,40 +1137,39 @@ fn change_own_user_level_to_lower_power_level() {
 
 #[test]
 fn creator_has_infinite_power() {
+    let alice_id = UserFactory::Alice.user_id();
+    let bob_id = UserFactory::Bob.user_id();
+
     let current_content = json!({
         "users": {
-            bob(): i64::from(js_int::Int::MAX),
+            bob_id.to_string(): js_int::Int::MAX,
         },
     });
-    let current_room_power_levels_event = to_pdu_event(
-        "IPOWER",
-        alice(),
+    let current_room_power_levels_event = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-current"),
+        alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&current_content).unwrap(),
-        &["CREATE", "IMA"],
-        &["IMA"],
+        String::new(),
+        current_content,
     );
 
     let incoming_content = json!({
         "users": {
-            bob(): 0,
+            bob_id.to_string(): 0,
         },
     });
-    let incoming_event = to_pdu_event(
-        "IPOWER2",
-        alice(),
+    let pdu = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-incoming"),
+        alice_id,
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&incoming_content).unwrap(),
-        &["CREATE", "IMA", "IPOWER"],
-        &["IPOWER"],
+        String::new(),
+        incoming_content,
     );
 
     // Room creator has infinite power level, and hence can change the power level of any other
     // user.
     check_room_power_levels(
-        RoomPowerLevelsEvent::new(&incoming_event),
+        RoomPowerLevelsEvent::new(&pdu),
         Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
         &AuthorizationRules::V12,
         UserPowerLevel::Infinite,
@@ -1151,44 +1180,46 @@ fn creator_has_infinite_power() {
 
 #[test]
 fn dont_allow_creator_in_users_field() {
+    let alice_id = UserFactory::Alice.user_id();
+    let bob_id = UserFactory::Bob.user_id();
+
     let current_content = json!({
         "users": {
-            bob(): 40,
+            bob_id.to_string(): 40,
         },
     });
-    let current_room_power_levels_event = to_pdu_event(
-        "IPOWER",
-        alice(),
+    let current_room_power_levels_event = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-current"),
+        alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&current_content).unwrap(),
-        &["CREATE", "IMA"],
-        &["IMA"],
+        String::new(),
+        current_content,
     );
 
     let incoming_content = json!({
         "users": {
-            alice(): 10,
-            bob(): 40,
+            alice_id.to_string(): 10,
+            bob_id.to_string(): 40,
         },
     });
-    let incoming_event = to_pdu_event(
-        "IPOWER2",
-        alice(),
+    let pdu = Pdu::with_minimal_state_fields(
+        owned_event_id!("$room-power-levels-incoming"),
+        alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
-        Some(""),
-        to_raw_json_value(&incoming_content).unwrap(),
-        &["CREATE", "IMA", "IPOWER"],
-        &["IPOWER"],
+        String::new(),
+        incoming_content,
     );
 
     // Room creator cannot be in the `users` field of the power levels event
-    check_room_power_levels(
-        RoomPowerLevelsEvent::new(&incoming_event),
-        Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
-        &AuthorizationRules::V12,
-        UserPowerLevel::Infinite,
-        &HashSet::from_iter([alice().to_owned()]),
-    )
-    .unwrap_err();
+    assert_eq!(
+        check_room_power_levels(
+            RoomPowerLevelsEvent::new(&pdu),
+            Some(RoomPowerLevelsEvent::new(&current_room_power_levels_event)),
+            &AuthorizationRules::V12,
+            UserPowerLevel::Infinite,
+            &HashSet::from_iter([alice_id]),
+        )
+        .unwrap_err(),
+        "creator user IDs are not allowed in the `users` field"
+    );
 }

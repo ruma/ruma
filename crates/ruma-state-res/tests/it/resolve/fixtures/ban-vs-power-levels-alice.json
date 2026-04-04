@@ -1,0 +1,22 @@
+[
+  {
+    "event_id": "$00-m-room-member-ban-bob",
+    "room_id": "!room:example.com",
+    "sender": "@alice:example.com",
+    "type": "m.room.member",
+    "content": {
+      "membership": "ban"
+    },
+    "state_key": "@bob:example.com",
+    "origin_server_ts": 8,
+    "prev_events": [
+      "$01-m-room-power_levels"
+    ],
+    "auth_events": [
+      "$00-m-room-create",
+      "$01-m-room-power_levels",
+      "$00-m-room-member-join-alice",
+      "$00-m-room-member-join-bob"
+    ]
+  }
+]

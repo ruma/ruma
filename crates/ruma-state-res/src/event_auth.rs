@@ -320,6 +320,7 @@ pub fn check_state_dependent_auth_rules<E: Event>(
 
     // Since v1, if the sender's current membership state is not join, reject.
     let sender_membership = fetch_state.user_membership(sender)?;
+    tracing::info!(?sender_membership);
 
     if sender_membership != MembershipState::Join {
         return Err("sender's membership is not `join`".to_owned());

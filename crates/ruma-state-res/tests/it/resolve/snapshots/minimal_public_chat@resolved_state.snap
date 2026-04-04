@@ -1,0 +1,69 @@
+---
+source: crates/ruma-state-res/tests/it/resolve.rs
+assertion_line: 11
+description: Resolved state
+---
+[
+  {
+    "type": "m.room.create",
+    "state_key": "",
+    "event_id": "$00-m-room-create",
+    "content": {
+      "creator": "@alice:example.com",
+      "room_version": "10"
+    }
+  },
+  {
+    "type": "m.room.guest_access",
+    "state_key": "",
+    "event_id": "$00-m-room-guest_access",
+    "content": {
+      "guest_access": "forbidden"
+    }
+  },
+  {
+    "type": "m.room.history_visibility",
+    "state_key": "",
+    "event_id": "$00-m-room-history_visibility",
+    "content": {
+      "history_visibility": "shared"
+    }
+  },
+  {
+    "type": "m.room.join_rules",
+    "state_key": "",
+    "event_id": "$00-m-room-join_rules",
+    "content": {
+      "join_rule": "public"
+    }
+  },
+  {
+    "type": "m.room.member",
+    "state_key": "@alice:example.com",
+    "event_id": "$00-m-room-member-join-alice",
+    "content": {
+      "displayname": "alice",
+      "membership": "join"
+    }
+  },
+  {
+    "type": "m.room.member",
+    "state_key": "@bob:example.com",
+    "event_id": "$00-m-room-member-join-bob",
+    "content": {
+      "displayname": "bob",
+      "membership": "join"
+    }
+  },
+  {
+    "type": "m.room.power_levels",
+    "state_key": "",
+    "event_id": "$01-m-room-power_levels",
+    "content": {
+      "users": {
+        "@alice:example.com": 100,
+        "@bob:example.com": 50
+      }
+    }
+  }
+]

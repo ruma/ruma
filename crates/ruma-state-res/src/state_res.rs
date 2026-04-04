@@ -676,7 +676,7 @@ fn iterative_auth_checks<E: Event + Clone>(
             }
             Err(error) => {
                 // Don't add this event to the state.
-                warn!("event failed the authentication check: {error}");
+                warn!(event_id = ?event.event_id(), "event failed the authentication check: {error}");
             }
         }
 
