@@ -1,7 +1,7 @@
 use base64::{Engine, alphabet};
 use ruma_common::{
-    CanonicalJsonObject,
-    canonical_json::redact,
+    CanonicalJsonObject, CanonicalJsonValue,
+    canonical_json::{CanonicalJsonObjectExt, redact},
     room_version_rules::{EventIdFormatVersion, RoomVersionRules},
     serde::{Base64, base64::Standard},
 };
@@ -19,6 +19,77 @@ static CONTENT_HASH_FIELDS_TO_REMOVE: &[&str] = &["hashes", "signatures", "unsig
 
 /// The fields to remove from a JSON object when creating a reference hash of an event.
 static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["signatures", "unsigned"];
+
+/// Compute and add the [content hash] to the given event.
+///
+/// This adds or overwrites the `sha256` key in the `hashes` object of the event.
+///
+/// This should only be called when creating a new event.
+///
+/// # Parameters
+///
+/// * `object`: A JSON object to be hashed according to the Matrix specification.
+///
+/// # Errors
+///
+/// Returns an error if the `hashes` key is present and is not an object.
+///
+/// # Examples
+///
+/// ```
+/// use ruma_common::CanonicalJsonObject;
+/// use ruma_signatures::hash_event;
+///
+/// // Deserialize an event from JSON.
+/// let mut event = serde_json::from_str(
+///     r#"{
+///         "room_id": "!x:domain",
+///         "sender": "@a:domain",
+///         "origin": "domain",
+///         "origin_server_ts": 1000000,
+///         "type": "X",
+///         "content": {},
+///         "prev_events": [],
+///         "auth_events": [],
+///         "depth": 3
+///     }"#,
+/// )?;
+///
+/// // Hash the JSON.
+/// hash_event(&mut event)?;
+///
+/// // The hash was added.
+/// assert_eq!(
+///     event,
+///     serde_json::from_str::<CanonicalJsonObject>(
+///         r#"{
+///             "room_id": "!x:domain",
+///             "sender": "@a:domain",
+///             "origin": "domain",
+///             "origin_server_ts": 1000000,
+///             "type": "X",
+///             "content": {},
+///             "prev_events": [],
+///             "auth_events": [],
+///             "depth": 3,
+///             "hashes": {
+///                 "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+///             }
+///         }"#,
+///     )?
+/// );
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
+///
+/// [content hash]: https://spec.matrix.org/v1.18/server-server-api/#calculating-the-content-hash-for-an-event
+pub fn hash_event(object: &mut CanonicalJsonObject) -> Result<(), JsonError> {
+    let hash = content_hash(object)?;
+
+    let hashes = object.get_as_object_or_insert_default("hashes", "hashes")?;
+    hashes.insert("sha256".into(), CanonicalJsonValue::String(hash.encode()));
+
+    Ok(())
+}
 
 /// Computes the [content hash] of the given event.
 ///
@@ -51,6 +122,9 @@ pub fn content_hash(object: &CanonicalJsonObject) -> Result<Base64<Standard, [u8
 ///
 /// The reference hash of an event covers the essential fields of an event, including content
 /// hashes.
+///
+/// When creating a new event, [`hash_event()`] must be called before this function to add the
+/// content hash.
 ///
 /// Returns the hash as a base64-encoded string, without padding. The correct character set is used
 /// depending on the room version:

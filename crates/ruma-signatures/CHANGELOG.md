@@ -49,6 +49,10 @@ Breaking changes:
 - `verify_event()` supports checking the signature from the policy server
   enabled in the room. It takes a `VerifyEventPublicSigningKeys` instead of a
   `PublicKeyMap`.
+- The `hash_and_sign_event()` was split into two functions `hash_event()` and
+  `sign_event()`. That is because only the server that created the event needs
+  to add the content hash to it, but some servers might need to add an extra
+  signature to an existing event, like policy servers.
 
 Improvements:
 
