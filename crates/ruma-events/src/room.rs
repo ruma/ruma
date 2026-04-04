@@ -23,7 +23,6 @@ use zeroize::Zeroize;
 
 use crate::PrivOwnedStr;
 
-pub mod aliases;
 pub mod avatar;
 pub mod canonical_alias;
 pub mod create;

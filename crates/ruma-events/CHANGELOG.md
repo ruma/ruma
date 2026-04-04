@@ -37,7 +37,9 @@ Breaking changes:
     in the key.
   - `EncryptedFileInit`, `JsonWebKey` and `JsonWebKeyInit` were removed.
   - The same changes were applied to the unstable `EncryptedContent`.
-  
+- Remove support for the `m.room.aliases` event type. It was removed from the
+  specification in Matrix Client-Server API r0.6.1. `m.room.canonical_alias`
+  should be used instead.
 
 Bug fixes:
 

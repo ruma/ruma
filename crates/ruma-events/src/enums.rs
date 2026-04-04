@@ -181,7 +181,6 @@ event_enum! {
         "m.policy.rule.room" => super::policy::rule::room,
         "m.policy.rule.server" => super::policy::rule::server,
         "m.policy.rule.user" => super::policy::rule::user,
-        "m.room.aliases" => super::room::aliases,
         "m.room.avatar" => super::room::avatar,
         "m.room.canonical_alias" => super::room::canonical_alias,
         "m.room.create" => super::room::create,

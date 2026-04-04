@@ -1,75 +1,67 @@
-use assert_matches2::assert_matches;
+use assert_matches2::{assert_let, assert_matches};
 use js_int::uint;
-use ruma_common::{MilliSecondsSinceUnixEpoch, mxc_uri, room_alias_id, serde::CanBeEmpty};
-use ruma_events::{
-    AnyStateEvent, AnySyncStateEvent, AnyTimelineEvent, StateEvent, SyncStateEvent,
-    room::aliases::RoomAliasesEventContent,
-};
-use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+use ruma_common::{MilliSecondsSinceUnixEpoch, mxc_uri, serde::CanBeEmpty};
+use ruma_events::{AnyStateEvent, AnySyncStateEvent, AnyTimelineEvent, StateEvent, SyncStateEvent};
+use serde_json::{from_value as from_json_value, json};
 
-fn aliases_event_with_prev_content() -> JsonValue {
-    json!({
+#[test]
+fn deserialize_room_name_with_prev_content() {
+    let json = json!({
         "content": {
-            "aliases": ["#somewhere:localhost"],
+            "name": "Somewhere",
         },
         "event_id": "$h29iv0s8:example.com",
         "origin_server_ts": 1,
         "room_id": "!roomid:room.com",
         "sender": "@carl:example.com",
-        "state_key": "room.com",
-        "type": "m.room.aliases",
+        "state_key": "",
+        "type": "m.room.name",
         "unsigned": {
             "prev_content": {
-                "aliases": ["#inner:localhost"],
+                "name": "Here",
             },
         },
-    })
-}
-
-#[test]
-fn deserialize_aliases_content() {
-    let json_data = json!({
-        "aliases": ["#somewhere:localhost"],
     });
 
-    let content = from_json_value::<RoomAliasesEventContent>(json_data).unwrap();
-    assert_eq!(content.aliases, vec![room_alias_id!("#somewhere:localhost")]);
-}
-
-#[test]
-fn deserialize_aliases_with_prev_content() {
-    let json_data = aliases_event_with_prev_content();
-
-    assert_matches!(
-        from_json_value::<AnyStateEvent>(json_data),
-        Ok(AnyStateEvent::RoomAliases(StateEvent::Original(ev)))
-    );
-    assert_eq!(ev.content.aliases, vec![room_alias_id!("#somewhere:localhost")]);
+    assert_let!(Ok(AnyStateEvent::RoomName(StateEvent::Original(ev))) = from_json_value(json));
+    assert_eq!(ev.content.name, "Somewhere");
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
     assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
     assert_eq!(ev.room_id, "!roomid:room.com");
     assert_eq!(ev.sender, "@carl:example.com");
 
     let prev_content = ev.unsigned.prev_content.unwrap();
-    assert_eq!(prev_content.aliases.unwrap(), vec![room_alias_id!("#inner:localhost")]);
+    assert_eq!(prev_content.name.as_deref(), Some("Here"));
 }
 
 #[test]
-fn deserialize_aliases_sync_with_room_id() {
-    // The same JSON can be used to create a sync event, it just ignores the `room_id` field
-    let json_data = aliases_event_with_prev_content();
+fn deserialize_sync_room_name_with_prev_content() {
+    let json = json!({
+        "content": {
+            "name": "Somewhere",
+        },
+        "event_id": "$h29iv0s8:example.com",
+        "origin_server_ts": 1,
+        "sender": "@carl:example.com",
+        "state_key": "",
+        "type": "m.room.name",
+        "unsigned": {
+            "prev_content": {
+                "name": "Here",
+            },
+        },
+    });
 
-    assert_matches!(
-        from_json_value::<AnySyncStateEvent>(json_data),
-        Ok(AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(ev)))
+    assert_let!(
+        Ok(AnySyncStateEvent::RoomName(SyncStateEvent::Original(ev))) = from_json_value(json)
     );
-    assert_eq!(ev.content.aliases, vec![room_alias_id!("#somewhere:localhost")]);
+    assert_eq!(ev.content.name, "Somewhere");
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
     assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
     assert_eq!(ev.sender, "@carl:example.com");
 
     let prev_content = ev.unsigned.prev_content.unwrap();
-    assert_eq!(prev_content.aliases.unwrap(), vec![room_alias_id!("#inner:localhost")]);
+    assert_eq!(prev_content.name.as_deref(), Some("Here"));
 }
 
 #[test]
@@ -156,20 +148,36 @@ fn deserialize_member_event_with_top_level_membership_field() {
 
 #[test]
 fn deserialize_full_event_convert_to_sync() {
-    let json_data = aliases_event_with_prev_content();
+    let json = json!({
+        "content": {
+            "topic": "We welcome everybody",
+        },
+        "event_id": "$h29iv0s8:example.com",
+        "origin_server_ts": 1,
+        "room_id": "!roomid:room.com",
+        "sender": "@carl:example.com",
+        "state_key": "",
+        "type": "m.room.topic",
+        "unsigned": {
+            "prev_content": {
+                "topic": "No one is welcome here",
+            },
+        },
+    });
 
-    let full_ev: AnyStateEvent = from_json_value(json_data).unwrap();
-    assert_matches!(
-        AnySyncStateEvent::from(full_ev),
-        AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(sync_ev))
+    let full_ev: AnyStateEvent = from_json_value(json).unwrap();
+    assert_matches!(&full_ev, AnyStateEvent::RoomTopic(StateEvent::Original(_)));
+    assert_let!(
+        AnySyncStateEvent::RoomTopic(SyncStateEvent::Original(sync_ev)) =
+            AnySyncStateEvent::from(full_ev)
     );
 
-    assert_eq!(sync_ev.content.aliases, vec![room_alias_id!("#somewhere:localhost")]);
+    assert_eq!(sync_ev.content.topic, "We welcome everybody");
     assert_eq!(sync_ev.event_id, "$h29iv0s8:example.com");
     assert_eq!(sync_ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
     assert_eq!(
-        sync_ev.unsigned.prev_content.unwrap().aliases.unwrap(),
-        vec![room_alias_id!("#inner:localhost")]
+        sync_ev.unsigned.prev_content.unwrap().topic.as_deref(),
+        Some("No one is welcome here")
     );
     assert_eq!(sync_ev.sender, "@carl:example.com");
 }

@@ -2,15 +2,12 @@ use std::collections::BTreeMap;
 
 use js_int::{int, uint};
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, ServerSignatures, owned_event_id, owned_room_alias_id,
-    owned_room_id, room_version_rules::AuthorizationRules, user_id,
+    MilliSecondsSinceUnixEpoch, ServerSignatures, owned_event_id, owned_room_id,
+    room_version_rules::AuthorizationRules, user_id,
 };
 use ruma_events::{
     TimelineEventType,
-    room::{
-        aliases::RoomAliasesEventContent, message::RoomMessageEventContent,
-        redaction::RoomRedactionEventContent,
-    },
+    room::{message::RoomMessageEventContent, redaction::RoomRedactionEventContent},
 };
 use serde_json::{json, value::to_raw_value as to_raw_json_value};
 use test_log::test;
@@ -373,12 +370,11 @@ fn room_aliases_no_state_key() {
     let incoming_event = to_pdu_event(
         "ALIASES",
         alice(),
-        TimelineEventType::RoomAliases,
+        "m.room.aliases".into(),
         None,
-        to_raw_json_value(&RoomAliasesEventContent::new(vec![
-            owned_room_alias_id!("#room:foo"),
-            owned_room_alias_id!("#room_alt:foo"),
-        ]))
+        to_raw_json_value(&json!({
+            "aliases": ["#room:foo", "#room_alt:foo"],
+        }))
         .unwrap(),
         &["CREATE", "IJR", "IPOWER"],
         &["IMB"],
@@ -402,12 +398,11 @@ fn room_aliases_other_server() {
     let incoming_event = to_pdu_event(
         "ALIASES",
         alice(),
-        TimelineEventType::RoomAliases,
+        "m.room.aliases".into(),
         Some("bar"),
-        to_raw_json_value(&RoomAliasesEventContent::new(vec![
-            owned_room_alias_id!("#room:bar"),
-            owned_room_alias_id!("#room_alt:bar"),
-        ]))
+        to_raw_json_value(&json!({
+            "aliases": ["#room:foo", "#room_alt:foo"],
+        }))
         .unwrap(),
         &["CREATE", "IJR", "IPOWER"],
         &["IMB"],
@@ -431,12 +426,11 @@ fn room_aliases_same_server() {
     let incoming_event = to_pdu_event(
         "ALIASES",
         alice(),
-        TimelineEventType::RoomAliases,
+        "m.room.aliases".into(),
         Some("foo"),
-        to_raw_json_value(&RoomAliasesEventContent::new(vec![
-            owned_room_alias_id!("#room:foo"),
-            owned_room_alias_id!("#room_alt:foo"),
-        ]))
+        to_raw_json_value(&json!({
+            "aliases": ["#room:foo", "#room_alt:foo"],
+        }))
         .unwrap(),
         &["CREATE", "IJR", "IPOWER"],
         &["IMB"],

@@ -295,9 +295,7 @@ pub fn check_state_dependent_auth_rules<E: Event>(
     let sender = incoming_event.sender();
 
     // v1-v5, if type is m.room.aliases:
-    if rules.special_case_room_aliases
-        && *incoming_event.event_type() == TimelineEventType::RoomAliases
-    {
+    if rules.special_case_room_aliases && *incoming_event.event_type() == "m.room.aliases".into() {
         debug!("starting m.room.aliases check");
         // v1-v5, if event has no state_key, reject.
         //
