@@ -24,9 +24,7 @@ pub mod delayed_events;
 pub mod device;
 pub mod directory;
 pub mod discovery;
-pub mod error;
 pub mod filter;
-pub mod http_headers;
 pub mod keys;
 pub mod knock;
 pub mod media;
@@ -59,7 +57,5 @@ pub mod typing;
 pub mod uiaa;
 pub mod user_directory;
 pub mod voip;
-
-pub use error::Error;
 
 ruma_common::priv_owned_str!();

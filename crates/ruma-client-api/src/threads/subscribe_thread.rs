@@ -23,7 +23,7 @@ pub mod unstable {
     }
 
     /// Request type for the `subscribe_thread` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The room ID where the thread is located.
         #[ruma_api(path)]
@@ -40,7 +40,7 @@ pub mod unstable {
     }
 
     /// Response type for the `subscribe_thread` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {}
 
     impl Request {

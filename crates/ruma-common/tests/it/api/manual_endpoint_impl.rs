@@ -13,7 +13,7 @@ use ruma_common::{
         EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata, OutgoingRequest,
         OutgoingResponse, SupportedVersions,
         auth_scheme::NoAuthentication,
-        error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError},
+        error::{Error, FromHttpRequestError, FromHttpResponseError, IntoHttpError},
         path_builder::{StablePathSelector, VersionHistory},
     },
 };
@@ -58,7 +58,7 @@ impl Metadata for Request {
 }
 
 impl OutgoingRequest for Request {
-    type EndpointError = MatrixError;
+    type EndpointError = Error;
     type IncomingResponse = Response;
 
     fn try_into_http_request<T: Default + BufMut>(
@@ -84,7 +84,7 @@ impl OutgoingRequest for Request {
 }
 
 impl IncomingRequest for Request {
-    type EndpointError = MatrixError;
+    type EndpointError = Error;
     type OutgoingResponse = Response;
 
     fn try_from_http_request<B, S>(
@@ -120,15 +120,15 @@ struct RequestBody {
 pub struct Response;
 
 impl IncomingResponse for Response {
-    type EndpointError = MatrixError;
+    type EndpointError = Error;
 
     fn try_from_http_response<T: AsRef<[u8]>>(
         http_response: http::Response<T>,
-    ) -> Result<Self, FromHttpResponseError<MatrixError>> {
+    ) -> Result<Self, FromHttpResponseError<Error>> {
         if http_response.status().as_u16() < 400 {
             Ok(Response)
         } else {
-            Err(FromHttpResponseError::Server(MatrixError::from_http_response(http_response)))
+            Err(FromHttpResponseError::Server(Error::from_http_response(http_response)))
         }
     }
 }

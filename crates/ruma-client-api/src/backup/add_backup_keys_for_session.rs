@@ -29,7 +29,7 @@ pub mod v3 {
     }
 
     /// Request type for the `add_backup_keys_for_session` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The backup version to add keys to.
         ///
@@ -51,7 +51,7 @@ pub mod v3 {
     }
 
     /// Response type for the `add_backup_keys_for_session` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// An opaque string representing stored keys in the backup.
         ///

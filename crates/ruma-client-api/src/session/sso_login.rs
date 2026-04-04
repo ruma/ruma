@@ -24,7 +24,7 @@ pub mod v3 {
     }
 
     /// Request type for the `sso_login` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// URL to which the homeserver should return the user after completing
         /// authentication with the SSO identity provider.
@@ -39,7 +39,7 @@ pub mod v3 {
     }
 
     /// Response type for the `sso_login` endpoint.
-    #[response(error = crate::Error, status = FOUND)]
+    #[response(status = FOUND)]
     pub struct Response {
         /// Redirect URL to the SSO identity provider.
         #[ruma_api(header = LOCATION)]

@@ -148,7 +148,7 @@ fn try_from_multipart_mixed_response<T: AsRef<[u8]>>(
     http_response: http::Response<T>,
 ) -> Result<
     (ContentMetadata, FileOrLocation),
-    ruma_common::api::error::FromHttpResponseError<ruma_common::api::error::MatrixError>,
+    ruma_common::api::error::FromHttpResponseError<ruma_common::api::error::Error>,
 > {
     use ruma_common::api::error::{HeaderDeserializationError, MultipartMixedDeserializationError};
 

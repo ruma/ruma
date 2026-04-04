@@ -24,12 +24,12 @@ pub mod v3 {
     }
 
     /// Request type for the `whoami` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {}
 
     /// Response type for the `whoami` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The id of the user that owns the access token.
         pub user_id: OwnedUserId,

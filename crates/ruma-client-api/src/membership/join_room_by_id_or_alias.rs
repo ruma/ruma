@@ -9,7 +9,7 @@ pub mod v3 {
 
     use ruma_common::{
         OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName,
-        api::{auth_scheme::AccessToken, response},
+        api::{auth_scheme::AccessToken, error::Error, response},
         metadata,
     };
 
@@ -82,7 +82,7 @@ pub mod v3 {
 
     #[cfg(feature = "client")]
     impl ruma_common::api::OutgoingRequest for Request {
-        type EndpointError = crate::Error;
+        type EndpointError = Error;
         type IncomingResponse = Response;
 
         fn try_into_http_request<T: Default + bytes::BufMut + AsRef<[u8]>>(
@@ -133,7 +133,7 @@ pub mod v3 {
 
     #[cfg(feature = "server")]
     impl ruma_common::api::IncomingRequest for Request {
-        type EndpointError = crate::Error;
+        type EndpointError = Error;
         type OutgoingResponse = Response;
 
         fn try_from_http_request<B, S>(
@@ -174,7 +174,7 @@ pub mod v3 {
     }
 
     /// Response type for the `join_room_by_id_or_alias` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The room that the user joined.
         pub room_id: OwnedRoomId,

@@ -38,6 +38,12 @@ Breaking changes:
   - `JsonFieldMissingFromObject` was renamed to `MissingField` an provides the
     full path of the missing field.
 - `redact_content_in_place()` is now infallible.
+- `MatrixError` and `MatrixErrorBody` were renamed to `Error` and `ErrorBody`
+  respectively. The `Matrix` prefix is redundant in a crate about the Matrix
+  protocol.
+- The `error` module from `ruma-client-api` was merged into the `api::error`
+  module. `Error` is now non-exhaustive and `ErrorBody` has a new `Standard`
+  variant.
 
 Improvements:
 

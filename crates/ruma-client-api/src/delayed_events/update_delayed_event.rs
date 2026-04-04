@@ -43,7 +43,7 @@ pub mod unstable {
     }
     /// Request type for the [`update_delayed_event`](crate::delayed_events::update_delayed_event)
     /// endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The delay id that we want to update.
         #[ruma_api(path)]
@@ -61,7 +61,7 @@ pub mod unstable {
 
     /// Response type for the [`update_delayed_event`](crate::delayed_events::update_delayed_event)
     /// endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {}
     impl Response {
         /// Creates a new empty response for the

@@ -1,32 +1,15 @@
-//! Errors that can be sent from the homeserver.
-
-use std::{fmt, str::FromStr, sync::Arc};
+use std::str::FromStr;
 
 use as_variant::as_variant;
-use bytes::{BufMut, Bytes};
 use ruma_common::{
     RoomVersionId,
-    api::{
-        EndpointError, OutgoingResponse,
-        error::{
-            FromHttpResponseError, HeaderDeserializationError, HeaderSerializationError,
-            IntoHttpError, MatrixErrorBody,
-        },
-    },
+    api::error::{HeaderDeserializationError, HeaderSerializationError},
+    http_headers::{http_date_to_system_time, system_time_to_http_date},
     serde::{JsonObject, StringEnum},
 };
-use serde::{Deserialize, Serialize};
-use serde_json::{Value as JsonValue, from_slice as from_json_slice};
 use web_time::{Duration, SystemTime};
 
-use crate::{
-    PrivOwnedStr,
-    http_headers::{http_date_to_system_time, system_time_to_http_date},
-};
-
-/// Deserialize and Serialize implementations for ErrorKind.
-/// Separate module because it's a lot of code.
-mod kind_serde;
+use crate::PrivOwnedStr;
 
 /// An enum for the error kind.
 ///
@@ -80,9 +63,8 @@ pub enum ErrorKind {
 
     /// `M_CANNOT_OVERWRITE_MEDIA`
     ///
-    /// The [`create_content_async`] endpoint was called with a media ID that already has content.
-    ///
-    /// [`create_content_async`]: crate::media::create_content_async
+    /// The `PUT /_matrix/media/*/upload/{serverName}/{mediaId}` endpoint was called with a media ID
+    /// that already has content.
     CannotOverwriteMedia,
 
     /// `M_CAPTCHA_INVALID`
@@ -152,10 +134,9 @@ pub enum ErrorKind {
 
     /// `M_INVALID_ROOM_STATE`
     ///
-    /// The initial state implied by the parameters to the [`create_room`] request is invalid, e.g.
-    /// the user's `power_level` is set below that necessary to set the room name.
-    ///
-    /// [`create_room`]: crate::room::create_room
+    /// The initial state implied by the parameters to the `POST /_matrix/client/*/createRoom`
+    /// request is invalid, e.g. the user's `power_level` is set below that necessary to set the
+    /// room name.
     InvalidRoomState,
 
     /// `M_INVALID_USERNAME`
@@ -210,10 +191,8 @@ pub enum ErrorKind {
 
     /// `M_NOT_YET_UPLOADED`
     ///
-    /// An `mxc:` URI generated with the [`create_mxc_uri`] endpoint was used and the content is
-    /// not yet available.
-    ///
-    /// [`create_mxc_uri`]: crate::media::create_mxc_uri
+    /// An `mxc:` URI generated with the `POST /_matrix/media/*/create` endpoint was used and the
+    /// content is not yet available.
     NotYetUploaded,
 
     /// `M_RESOURCE_LIMIT_EXCEEDED`
@@ -225,9 +204,9 @@ pub enum ErrorKind {
 
     /// `M_ROOM_IN_USE`
     ///
-    /// The [room alias] specified in the [`create_room`] request is already taken.
+    /// The [room alias] specified in the `POST /_matrix/client/*/createRoom` request is already
+    /// taken.
     ///
-    /// [`create_room`]: crate::room::create_room
     /// [room alias]: https://spec.matrix.org/v1.18/client-server-api/#room-aliases
     RoomInUse,
 
@@ -346,9 +325,8 @@ pub enum ErrorKind {
 
     /// `M_UNSUPPORTED_ROOM_VERSION`
     ///
-    /// The request to [`create_room`] used a room version that the server does not support.
-    ///
-    /// [`create_room`]: crate::room::create_room
+    /// The request to `POST /_matrix/client/*/createRoom` used a room version that the server does
+    /// not support.
     UnsupportedRoomVersion,
 
     /// `M_URL_NOT_SET`
@@ -528,6 +506,44 @@ impl LimitExceededErrorData {
     }
 }
 
+/// How long a client should wait before it tries again.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(clippy::exhaustive_enums)]
+pub enum RetryAfter {
+    /// The client should wait for the given duration.
+    ///
+    /// This variant should be preferred for backwards compatibility, as it will also populate the
+    /// `retry_after_ms` field in the body of the response.
+    Delay(Duration),
+    /// The client should wait for the given date and time.
+    DateTime(SystemTime),
+}
+
+impl TryFrom<&http::HeaderValue> for RetryAfter {
+    type Error = HeaderDeserializationError;
+
+    fn try_from(value: &http::HeaderValue) -> Result<Self, Self::Error> {
+        if value.as_bytes().iter().all(|b| b.is_ascii_digit()) {
+            // It should be a duration.
+            Ok(Self::Delay(Duration::from_secs(u64::from_str(value.to_str()?)?)))
+        } else {
+            // It should be a date.
+            Ok(Self::DateTime(http_date_to_system_time(value)?))
+        }
+    }
+}
+
+impl TryFrom<&RetryAfter> for http::HeaderValue {
+    type Error = HeaderSerializationError;
+
+    fn try_from(value: &RetryAfter) -> Result<Self, Self::Error> {
+        match value {
+            RetryAfter::Delay(duration) => Ok(duration.as_secs().into()),
+            RetryAfter::DateTime(time) => system_time_to_http_date(time),
+        }
+    }
+}
+
 /// Data for the `M_RESOURCE_LIMIT_EXCEEDED` [`ErrorKind`].
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
@@ -610,10 +626,10 @@ impl WrongRoomKeysVersionErrorData {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CustomErrorKind {
     /// The error code.
-    errcode: String,
+    pub(super) errcode: String,
 
     /// The data for the error.
-    data: JsonObject,
+    pub(super) data: JsonObject,
 }
 
 /// The possible [error codes] defined in the Matrix spec.
@@ -669,9 +685,8 @@ pub enum ErrorCode {
 
     /// `M_CANNOT_OVERWRITE_MEDIA`
     ///
-    /// The [`create_content_async`] endpoint was called with a media ID that already has content.
-    ///
-    /// [`create_content_async`]: crate::media::create_content_async
+    /// The `PUT /_matrix/media/*/upload/{serverName}/{mediaId}` endpoint was called with a media ID
+    /// that already has content.
     CannotOverwriteMedia,
 
     /// `M_CAPTCHA_INVALID`
@@ -742,10 +757,9 @@ pub enum ErrorCode {
 
     /// `M_INVALID_ROOM_STATE`
     ///
-    /// The initial state implied by the parameters to the [`create_room`] request is invalid, e.g.
-    /// the user's `power_level` is set below that necessary to set the room name.
-    ///
-    /// [`create_room`]: crate::room::create_room
+    /// The initial state implied by the parameters to the `POST /_matrix/client/*/createRoom`
+    /// request is invalid, e.g. the user's `power_level` is set below that necessary to set the
+    /// room name.
     InvalidRoomState,
 
     /// `M_INVALID_USERNAME`
@@ -804,10 +818,8 @@ pub enum ErrorCode {
 
     /// `M_NOT_YET_UPLOADED`
     ///
-    /// An `mxc:` URI generated with the [`create_mxc_uri`] endpoint was used and the content is
-    /// not yet available.
-    ///
-    /// [`create_mxc_uri`]: crate::media::create_mxc_uri
+    /// An `mxc:` URI generated with the `POST /_matrix/media/*/create` endpoint was used and the
+    /// content is not yet available.
     NotYetUploaded,
 
     /// `M_RESOURCE_LIMIT_EXCEEDED`
@@ -819,9 +831,9 @@ pub enum ErrorCode {
 
     /// `M_ROOM_IN_USE`
     ///
-    /// The [room alias] specified in the [`create_room`] request is already taken.
+    /// The [room alias] specified in the `POST /_matrix/client/*/createRoom` request is already
+    /// taken.
     ///
-    /// [`create_room`]: crate::room::create_room
     /// [room alias]: https://spec.matrix.org/v1.18/client-server-api/#room-aliases
     RoomInUse,
 
@@ -996,523 +1008,4 @@ pub enum ErrorCode {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
-}
-
-/// The body of a Matrix Client API error.
-#[derive(Debug, Clone)]
-#[allow(clippy::exhaustive_enums)]
-pub enum ErrorBody {
-    /// A JSON body with the fields expected for Client API errors.
-    Standard(StandardErrorBody),
-
-    /// A JSON body with an unexpected structure.
-    Json(JsonValue),
-
-    /// A response body that is not valid JSON.
-    NotJson {
-        /// The raw bytes of the response body.
-        bytes: Bytes,
-
-        /// The error from trying to deserialize the bytes as JSON.
-        deserialization_error: Arc<serde_json::Error>,
-    },
-}
-
-/// A JSON body with the fields expected for Client API errors.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct StandardErrorBody {
-    /// A value which can be used to handle an error message.
-    #[serde(flatten)]
-    pub kind: ErrorKind,
-
-    /// A human-readable error message, usually a sentence explaining what went wrong.
-    #[serde(rename = "error")]
-    pub message: String,
-}
-
-impl StandardErrorBody {
-    /// Construct a new `StandardErrorBody` with the given kind and message.
-    pub fn new(kind: ErrorKind, message: String) -> Self {
-        Self { kind, message }
-    }
-}
-
-/// A Matrix Error
-#[derive(Debug, Clone)]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct Error {
-    /// The http status code.
-    pub status_code: http::StatusCode,
-
-    /// The http response's body.
-    pub body: ErrorBody,
-}
-
-impl Error {
-    /// Constructs a new `Error` with the given status code and body.
-    ///
-    /// This is equivalent to calling `body.into_error(status_code)`.
-    pub fn new(status_code: http::StatusCode, body: ErrorBody) -> Self {
-        Self { status_code, body }
-    }
-
-    /// If `self` is a server error in the `errcode` + `error` format expected
-    /// for client-server API endpoints, returns the error kind (`errcode`).
-    pub fn error_kind(&self) -> Option<&ErrorKind> {
-        as_variant!(&self.body, ErrorBody::Standard(StandardErrorBody { kind, .. }) => kind)
-    }
-}
-
-impl EndpointError for Error {
-    fn from_http_response<T: AsRef<[u8]>>(response: http::Response<T>) -> Self {
-        let status = response.status();
-
-        let body_bytes = &response.body().as_ref();
-        let error_body: ErrorBody = match from_json_slice::<StandardErrorBody>(body_bytes) {
-            Ok(mut standard_body) => {
-                let headers = response.headers();
-
-                if let ErrorKind::LimitExceeded(LimitExceededErrorData { retry_after }) =
-                    &mut standard_body.kind
-                {
-                    // The Retry-After header takes precedence over the retry_after_ms field in
-                    // the body.
-                    if let Some(Ok(retry_after_header)) =
-                        headers.get(http::header::RETRY_AFTER).map(RetryAfter::try_from)
-                    {
-                        *retry_after = Some(retry_after_header);
-                    }
-                }
-
-                ErrorBody::Standard(standard_body)
-            }
-            Err(_) => match MatrixErrorBody::from_bytes(body_bytes) {
-                MatrixErrorBody::Json(json) => ErrorBody::Json(json),
-                MatrixErrorBody::NotJson { bytes, deserialization_error, .. } => {
-                    ErrorBody::NotJson { bytes, deserialization_error }
-                }
-            },
-        };
-
-        error_body.into_error(status)
-    }
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let status_code = self.status_code.as_u16();
-        match &self.body {
-            ErrorBody::Standard(StandardErrorBody { kind, message }) => {
-                let errcode = kind.errcode();
-                write!(f, "[{status_code} / {errcode}] {message}")
-            }
-            ErrorBody::Json(json) => write!(f, "[{status_code}] {json}"),
-            ErrorBody::NotJson { .. } => write!(f, "[{status_code}] <non-json bytes>"),
-        }
-    }
-}
-
-impl std::error::Error for Error {}
-
-impl ErrorBody {
-    /// Convert the ErrorBody into an Error by adding the http status code.
-    ///
-    /// This is equivalent to calling `Error::new(status_code, self)`.
-    pub fn into_error(self, status_code: http::StatusCode) -> Error {
-        Error { status_code, body: self }
-    }
-}
-
-impl OutgoingResponse for Error {
-    fn try_into_http_response<T: Default + BufMut>(
-        self,
-    ) -> Result<http::Response<T>, IntoHttpError> {
-        let mut builder = http::Response::builder()
-            .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
-            .status(self.status_code);
-
-        // Add data in headers.
-        if let Some(ErrorKind::LimitExceeded(LimitExceededErrorData {
-            retry_after: Some(retry_after),
-        })) = self.error_kind()
-        {
-            let header_value = http::HeaderValue::try_from(retry_after)?;
-            builder = builder.header(http::header::RETRY_AFTER, header_value);
-        }
-
-        builder
-            .body(match self.body {
-                ErrorBody::Standard(standard_body) => {
-                    ruma_common::serde::json_to_buf(&standard_body)?
-                }
-                ErrorBody::Json(json) => ruma_common::serde::json_to_buf(&json)?,
-                ErrorBody::NotJson { .. } => {
-                    return Err(IntoHttpError::Json(serde::ser::Error::custom(
-                        "attempted to serialize ErrorBody::NotJson",
-                    )));
-                }
-            })
-            .map_err(Into::into)
-    }
-}
-
-/// How long a client should wait before it tries again.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[allow(clippy::exhaustive_enums)]
-pub enum RetryAfter {
-    /// The client should wait for the given duration.
-    ///
-    /// This variant should be preferred for backwards compatibility, as it will also populate the
-    /// `retry_after_ms` field in the body of the response.
-    Delay(Duration),
-    /// The client should wait for the given date and time.
-    DateTime(SystemTime),
-}
-
-impl TryFrom<&http::HeaderValue> for RetryAfter {
-    type Error = HeaderDeserializationError;
-
-    fn try_from(value: &http::HeaderValue) -> Result<Self, Self::Error> {
-        if value.as_bytes().iter().all(|b| b.is_ascii_digit()) {
-            // It should be a duration.
-            Ok(Self::Delay(Duration::from_secs(u64::from_str(value.to_str()?)?)))
-        } else {
-            // It should be a date.
-            Ok(Self::DateTime(http_date_to_system_time(value)?))
-        }
-    }
-}
-
-impl TryFrom<&RetryAfter> for http::HeaderValue {
-    type Error = HeaderSerializationError;
-
-    fn try_from(value: &RetryAfter) -> Result<Self, Self::Error> {
-        match value {
-            RetryAfter::Delay(duration) => Ok(duration.as_secs().into()),
-            RetryAfter::DateTime(time) => system_time_to_http_date(time),
-        }
-    }
-}
-
-/// Extension trait for `FromHttpResponseError<ruma_client_api::Error>`.
-pub trait FromHttpResponseErrorExt {
-    /// If `self` is a server error in the `errcode` + `error` format expected
-    /// for client-server API endpoints, returns the error kind (`errcode`).
-    fn error_kind(&self) -> Option<&ErrorKind>;
-}
-
-impl FromHttpResponseErrorExt for FromHttpResponseError<Error> {
-    fn error_kind(&self) -> Option<&ErrorKind> {
-        as_variant!(self, Self::Server)?.error_kind()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use assert_matches2::assert_let;
-    use ruma_common::api::{EndpointError, OutgoingResponse};
-    use serde_json::{
-        Value as JsonValue, from_slice as from_json_slice, from_value as from_json_value, json,
-    };
-    use web_time::{Duration, UNIX_EPOCH};
-
-    use super::{
-        Error, ErrorBody, ErrorKind, LimitExceededErrorData, RetryAfter, StandardErrorBody,
-        WrongRoomKeysVersionErrorData,
-    };
-
-    #[test]
-    fn deserialize_forbidden() {
-        let deserialized: StandardErrorBody = from_json_value(json!({
-            "errcode": "M_FORBIDDEN",
-            "error": "You are not authorized to ban users in this room.",
-        }))
-        .unwrap();
-
-        assert_eq!(deserialized.kind, ErrorKind::Forbidden);
-        assert_eq!(deserialized.message, "You are not authorized to ban users in this room.");
-    }
-
-    #[test]
-    fn deserialize_wrong_room_key_version() {
-        let deserialized: StandardErrorBody = from_json_value(json!({
-            "current_version": "42",
-            "errcode": "M_WRONG_ROOM_KEYS_VERSION",
-            "error": "Wrong backup version."
-        }))
-        .expect("We should be able to deserialize a wrong room keys version error");
-
-        assert_let!(
-            ErrorKind::WrongRoomKeysVersion(WrongRoomKeysVersionErrorData { current_version }) =
-                deserialized.kind
-        );
-        assert_eq!(current_version, "42");
-        assert_eq!(deserialized.message, "Wrong backup version.");
-    }
-
-    #[test]
-    fn deserialize_limit_exceeded_no_retry_after() {
-        let response = http::Response::builder()
-            .status(http::StatusCode::TOO_MANY_REQUESTS)
-            .body(
-                serde_json::to_string(&json!({
-                    "errcode": "M_LIMIT_EXCEEDED",
-                    "error": "Too many requests",
-                }))
-                .unwrap(),
-            )
-            .unwrap();
-        let error = Error::from_http_response(response);
-
-        assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
-        assert_let!(
-            ErrorBody::Standard(StandardErrorBody {
-                kind: ErrorKind::LimitExceeded(LimitExceededErrorData { retry_after: None }),
-                message
-            }) = error.body
-        );
-        assert_eq!(message, "Too many requests");
-    }
-
-    #[test]
-    fn deserialize_limit_exceeded_retry_after_body() {
-        let response = http::Response::builder()
-            .status(http::StatusCode::TOO_MANY_REQUESTS)
-            .body(
-                serde_json::to_string(&json!({
-                    "errcode": "M_LIMIT_EXCEEDED",
-                    "error": "Too many requests",
-                    "retry_after_ms": 2000,
-                }))
-                .unwrap(),
-            )
-            .unwrap();
-        let error = Error::from_http_response(response);
-
-        assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
-        assert_let!(
-            ErrorBody::Standard(StandardErrorBody {
-                kind: ErrorKind::LimitExceeded(LimitExceededErrorData {
-                    retry_after: Some(retry_after)
-                }),
-                message
-            }) = error.body
-        );
-        assert_let!(RetryAfter::Delay(delay) = retry_after);
-        assert_eq!(delay.as_millis(), 2000);
-        assert_eq!(message, "Too many requests");
-    }
-
-    #[test]
-    fn deserialize_limit_exceeded_retry_after_header_delay() {
-        let response = http::Response::builder()
-            .status(http::StatusCode::TOO_MANY_REQUESTS)
-            .header(http::header::RETRY_AFTER, "2")
-            .body(
-                serde_json::to_string(&json!({
-                    "errcode": "M_LIMIT_EXCEEDED",
-                    "error": "Too many requests",
-                }))
-                .unwrap(),
-            )
-            .unwrap();
-        let error = Error::from_http_response(response);
-
-        assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
-        assert_let!(
-            ErrorBody::Standard(StandardErrorBody {
-                kind: ErrorKind::LimitExceeded(LimitExceededErrorData {
-                    retry_after: Some(retry_after)
-                }),
-                message
-            }) = error.body
-        );
-        assert_let!(RetryAfter::Delay(delay) = retry_after);
-        assert_eq!(delay.as_millis(), 2000);
-        assert_eq!(message, "Too many requests");
-    }
-
-    #[test]
-    fn deserialize_limit_exceeded_retry_after_header_datetime() {
-        let response = http::Response::builder()
-            .status(http::StatusCode::TOO_MANY_REQUESTS)
-            .header(http::header::RETRY_AFTER, "Fri, 15 May 2015 15:34:21 GMT")
-            .body(
-                serde_json::to_string(&json!({
-                    "errcode": "M_LIMIT_EXCEEDED",
-                    "error": "Too many requests",
-                }))
-                .unwrap(),
-            )
-            .unwrap();
-        let error = Error::from_http_response(response);
-
-        assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
-        assert_let!(
-            ErrorBody::Standard(StandardErrorBody {
-                kind: ErrorKind::LimitExceeded(LimitExceededErrorData {
-                    retry_after: Some(retry_after)
-                }),
-                message
-            }) = error.body
-        );
-        assert_let!(RetryAfter::DateTime(time) = retry_after);
-        assert_eq!(time.duration_since(UNIX_EPOCH).unwrap().as_secs(), 1_431_704_061);
-        assert_eq!(message, "Too many requests");
-    }
-
-    #[test]
-    fn deserialize_limit_exceeded_retry_after_header_over_body() {
-        let response = http::Response::builder()
-            .status(http::StatusCode::TOO_MANY_REQUESTS)
-            .header(http::header::RETRY_AFTER, "2")
-            .body(
-                serde_json::to_string(&json!({
-                    "errcode": "M_LIMIT_EXCEEDED",
-                    "error": "Too many requests",
-                    "retry_after_ms": 3000,
-                }))
-                .unwrap(),
-            )
-            .unwrap();
-        let error = Error::from_http_response(response);
-
-        assert_eq!(error.status_code, http::StatusCode::TOO_MANY_REQUESTS);
-        assert_let!(
-            ErrorBody::Standard(StandardErrorBody {
-                kind: ErrorKind::LimitExceeded(LimitExceededErrorData {
-                    retry_after: Some(retry_after)
-                }),
-                message
-            }) = error.body
-        );
-        assert_let!(RetryAfter::Delay(delay) = retry_after);
-        assert_eq!(delay.as_millis(), 2000);
-        assert_eq!(message, "Too many requests");
-    }
-
-    #[test]
-    fn serialize_limit_exceeded_retry_after_none() {
-        let error = Error::new(
-            http::StatusCode::TOO_MANY_REQUESTS,
-            ErrorBody::Standard(StandardErrorBody {
-                kind: ErrorKind::LimitExceeded(LimitExceededErrorData { retry_after: None }),
-                message: "Too many requests".to_owned(),
-            }),
-        );
-
-        let response = error.try_into_http_response::<Vec<u8>>().unwrap();
-
-        assert_eq!(response.status(), http::StatusCode::TOO_MANY_REQUESTS);
-        assert_eq!(response.headers().get(http::header::RETRY_AFTER), None);
-
-        let json_body: JsonValue = from_json_slice(response.body()).unwrap();
-        assert_eq!(
-            json_body,
-            json!({
-                "errcode": "M_LIMIT_EXCEEDED",
-                "error": "Too many requests",
-            })
-        );
-    }
-
-    #[test]
-    fn serialize_limit_exceeded_retry_after_delay() {
-        let error = Error::new(
-            http::StatusCode::TOO_MANY_REQUESTS,
-            ErrorBody::Standard(StandardErrorBody {
-                kind: ErrorKind::LimitExceeded(LimitExceededErrorData {
-                    retry_after: Some(RetryAfter::Delay(Duration::from_secs(3))),
-                }),
-                message: "Too many requests".to_owned(),
-            }),
-        );
-
-        let response = error.try_into_http_response::<Vec<u8>>().unwrap();
-
-        assert_eq!(response.status(), http::StatusCode::TOO_MANY_REQUESTS);
-        let retry_after_header = response.headers().get(http::header::RETRY_AFTER).unwrap();
-        assert_eq!(retry_after_header.to_str().unwrap(), "3");
-
-        let json_body: JsonValue = from_json_slice(response.body()).unwrap();
-        assert_eq!(
-            json_body,
-            json!({
-                "errcode": "M_LIMIT_EXCEEDED",
-                "error": "Too many requests",
-                "retry_after_ms": 3000,
-            })
-        );
-    }
-
-    #[test]
-    fn serialize_limit_exceeded_retry_after_datetime() {
-        let error = Error::new(
-            http::StatusCode::TOO_MANY_REQUESTS,
-            ErrorBody::Standard(StandardErrorBody {
-                kind: ErrorKind::LimitExceeded(LimitExceededErrorData {
-                    retry_after: Some(RetryAfter::DateTime(
-                        UNIX_EPOCH + Duration::from_secs(1_431_704_061),
-                    )),
-                }),
-                message: "Too many requests".to_owned(),
-            }),
-        );
-
-        let response = error.try_into_http_response::<Vec<u8>>().unwrap();
-
-        assert_eq!(response.status(), http::StatusCode::TOO_MANY_REQUESTS);
-        let retry_after_header = response.headers().get(http::header::RETRY_AFTER).unwrap();
-        assert_eq!(retry_after_header.to_str().unwrap(), "Fri, 15 May 2015 15:34:21 GMT");
-
-        let json_body: JsonValue = from_json_slice(response.body()).unwrap();
-        assert_eq!(
-            json_body,
-            json!({
-                "errcode": "M_LIMIT_EXCEEDED",
-                "error": "Too many requests",
-            })
-        );
-    }
-
-    #[test]
-    fn serialize_user_locked() {
-        let error = Error::new(
-            http::StatusCode::UNAUTHORIZED,
-            ErrorBody::Standard(StandardErrorBody {
-                kind: ErrorKind::UserLocked,
-                message: "This account has been locked".to_owned(),
-            }),
-        );
-
-        let response = error.try_into_http_response::<Vec<u8>>().unwrap();
-
-        assert_eq!(response.status(), http::StatusCode::UNAUTHORIZED);
-        let json_body: JsonValue = from_json_slice(response.body()).unwrap();
-        assert_eq!(
-            json_body,
-            json!({
-                "errcode": "M_USER_LOCKED",
-                "error": "This account has been locked",
-                "soft_logout": true,
-            })
-        );
-    }
-
-    #[test]
-    fn deserialize_custom_error_kind() {
-        let deserialized: StandardErrorBody = from_json_value(json!({
-            "errcode": "LOCAL_DEV_ERROR",
-            "error": "You are using the homeserver in local dev mode.",
-            "foo": "bar",
-        }))
-        .unwrap();
-
-        assert_eq!(deserialized.kind.errcode().as_str(), "LOCAL_DEV_ERROR");
-        let json_data = deserialized.kind.custom_json_data().unwrap();
-        assert_let!(Some(JsonValue::String(foo)) = json_data.get("foo"));
-        assert_eq!(foo, "bar");
-        assert_eq!(deserialized.message, "You are using the homeserver in local dev mode.");
-    }
 }

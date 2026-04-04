@@ -26,7 +26,7 @@ pub mod v3 {
     }
 
     /// Request type for the `create_backup_version` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The algorithm used for storing backups.
         #[ruma_api(body)]
@@ -34,7 +34,7 @@ pub mod v3 {
     }
 
     /// Response type for the `create_backup_version` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The backup version.
         pub version: String,

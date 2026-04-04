@@ -27,7 +27,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_presence` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The user whose presence state will be retrieved.
         #[ruma_api(path)]
@@ -35,7 +35,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_presence` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The state message for this user if one was set.
         #[serde(skip_serializing_if = "Option::is_none")]

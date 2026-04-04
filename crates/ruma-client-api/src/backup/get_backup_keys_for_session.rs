@@ -28,7 +28,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_backup_keys_for_session` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The backup version to retrieve keys from.
         #[ruma_api(query)]
@@ -44,7 +44,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_backup_keys_for_session` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// Information about the requested backup key.
         #[ruma_api(body)]

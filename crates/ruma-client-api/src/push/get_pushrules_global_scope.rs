@@ -24,12 +24,12 @@ pub mod v3 {
     }
 
     /// Request type for the `get_pushrules_global_scope` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {}
 
     /// Response type for the `get_pushrules_global_scope` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The global ruleset.
         #[ruma_api(body)]

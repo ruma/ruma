@@ -27,7 +27,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_user_info` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The user to look up.
         #[ruma_api(path)]
@@ -35,7 +35,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_user_info` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {
         /// The Matrix user ID of the user.

@@ -24,7 +24,7 @@ pub mod v3 {
     }
 
     /// Request type for the `redact_event` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The ID of the room of the event to redact.
         #[ruma_api(path)]
@@ -52,7 +52,7 @@ pub mod v3 {
     }
 
     /// Response type for the `redact_event` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The ID of the redacted event.
         pub event_id: OwnedEventId,

@@ -25,12 +25,12 @@ metadata! {
 }
 
 /// Request type for the `discover_policy_server` endpoint.
-#[request(error = crate::Error)]
+#[request]
 #[derive(Default)]
 pub struct Request {}
 
 /// Response type for the `discover_policy_server` endpoint.
-#[response(error = crate::Error)]
+#[response]
 pub struct Response {
     /// The public keys for the Policy Server.
     ///

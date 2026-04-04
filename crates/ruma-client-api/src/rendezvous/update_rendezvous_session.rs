@@ -22,7 +22,7 @@ pub mod unstable {
     }
 
     /// Request type for the `PUT` `rendezvous` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The ID of the rendezvous session to update.
         #[ruma_api(path)]
@@ -44,7 +44,7 @@ pub mod unstable {
     }
 
     /// Response type for the `PUT` `rendezvous` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {
         /// The new sequence token for the session.

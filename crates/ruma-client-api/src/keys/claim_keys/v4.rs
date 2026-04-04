@@ -23,7 +23,7 @@ metadata! {
 }
 
 /// Request type for the `claim_keys` endpoint.
-#[request(error = crate::Error)]
+#[request]
 pub struct Request {
     /// The time (in milliseconds) to wait when downloading keys from remote servers.
     /// 10 seconds is the recommended default.
@@ -39,7 +39,7 @@ pub struct Request {
 }
 
 /// Response type for the `claim_keys` endpoint.
-#[response(error = crate::Error)]
+#[response]
 pub struct Response {
     /// If any remote homeservers could not be reached, they are recorded here.
     ///

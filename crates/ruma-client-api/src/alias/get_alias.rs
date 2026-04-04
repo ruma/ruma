@@ -24,7 +24,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_alias` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The room alias.
         #[ruma_api(path)]
@@ -32,7 +32,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_alias` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The room ID for this room alias.
         pub room_id: OwnedRoomId,

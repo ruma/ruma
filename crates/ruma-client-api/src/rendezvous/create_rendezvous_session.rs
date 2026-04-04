@@ -12,7 +12,10 @@ pub mod unstable_msc4108 {
     #[cfg(feature = "client")]
     use ruma_common::api::error::FromHttpResponseError;
     use ruma_common::{
-        api::{auth_scheme::NoAccessToken, error::HeaderDeserializationError},
+        api::{
+            auth_scheme::NoAccessToken,
+            error::{Error, HeaderDeserializationError},
+        },
         metadata,
     };
     use serde::{Deserialize, Serialize};
@@ -38,7 +41,7 @@ pub mod unstable_msc4108 {
 
     #[cfg(feature = "client")]
     impl ruma_common::api::OutgoingRequest for Request {
-        type EndpointError = crate::Error;
+        type EndpointError = Error;
         type IncomingResponse = Response;
 
         fn try_into_http_request<T: Default + bytes::BufMut>(
@@ -65,7 +68,7 @@ pub mod unstable_msc4108 {
 
     #[cfg(feature = "server")]
     impl ruma_common::api::IncomingRequest for Request {
-        type EndpointError = crate::Error;
+        type EndpointError = Error;
         type OutgoingResponse = Response;
 
         fn try_from_http_request<B, S>(
@@ -140,7 +143,7 @@ pub mod unstable_msc4108 {
 
     #[cfg(feature = "client")]
     impl ruma_common::api::IncomingResponse for Response {
-        type EndpointError = crate::Error;
+        type EndpointError = Error;
 
         fn try_from_http_response<T: AsRef<[u8]>>(
             response: http::Response<T>,
@@ -159,7 +162,7 @@ pub mod unstable_msc4108 {
                     .get(&header)
                     .ok_or_else(|| HeaderDeserializationError::MissingHeader(header.to_string()))?;
 
-                let date = crate::http_headers::http_date_to_system_time(date)?;
+                let date = ruma_common::http_headers::http_date_to_system_time(date)?;
 
                 Ok(date)
             };
@@ -185,12 +188,13 @@ pub mod unstable_msc4108 {
             self,
         ) -> Result<http::Response<T>, ruma_common::api::error::IntoHttpError> {
             use http::header::{CACHE_CONTROL, PRAGMA};
+            use ruma_common::http_headers::system_time_to_http_date;
 
             let body = ResponseBody { url: self.url };
             let body = ruma_common::serde::json_to_buf(&body)?;
 
-            let expires = crate::http_headers::system_time_to_http_date(&self.expires)?;
-            let last_modified = crate::http_headers::system_time_to_http_date(&self.last_modified)?;
+            let expires = system_time_to_http_date(&self.expires)?;
+            let last_modified = system_time_to_http_date(&self.last_modified)?;
 
             Ok(http::Response::builder()
                 .status(http::StatusCode::OK)
@@ -227,7 +231,7 @@ pub mod unstable_msc4388 {
     }
 
     /// Request type for the `POST` `rendezvous` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// Data up to maximum size allowed by the server.
         pub data: String,
@@ -241,7 +245,7 @@ pub mod unstable_msc4388 {
     }
 
     /// Response type for the `POST` `rendezvous` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The ID of the created rendezvous session.
         pub id: String,

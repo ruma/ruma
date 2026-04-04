@@ -27,7 +27,7 @@ pub mod v1 {
     }
 
     /// Request type for the `transports` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {}
 
@@ -39,7 +39,7 @@ pub mod v1 {
     }
 
     /// Response type for the `transports` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {
         /// The RTC transports advertised by the homeserver.

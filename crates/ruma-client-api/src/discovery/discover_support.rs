@@ -22,12 +22,12 @@ metadata! {
 }
 
 /// Request type for the `discover_support` endpoint.
-#[request(error = crate::Error)]
+#[request]
 #[derive(Default)]
 pub struct Request {}
 
 /// Response type for the `discover_support` endpoint.
-#[response(error = crate::Error)]
+#[response]
 pub struct Response {
     /// Ways to contact the server administrator.
     ///

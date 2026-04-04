@@ -27,7 +27,7 @@ pub mod v3 {
     }
 
     /// Request type for the `request_openid_token` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// User ID of authenticated user.
         #[ruma_api(path)]
@@ -35,7 +35,7 @@ pub mod v3 {
     }
 
     /// Response type for the `request_openid_token` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// Access token for verifying user's identity.
         pub access_token: String,

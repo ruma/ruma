@@ -29,7 +29,7 @@ pub mod v1 {
     }
 
     /// Request type for the `is_user_suspended` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The user to look up.
         #[ruma_api(path)]
@@ -37,7 +37,7 @@ pub mod v1 {
     }
 
     /// Response type for the `is_user_suspended` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// Whether the target account is suspended.
         pub suspended: bool,

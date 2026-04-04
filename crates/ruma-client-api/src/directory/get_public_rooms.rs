@@ -26,7 +26,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_public_rooms` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {
         /// Limit for the number of results to return.
@@ -48,7 +48,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_public_rooms` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// A paginated chunk of public rooms.
         pub chunk: Vec<PublicRoomsChunk>,

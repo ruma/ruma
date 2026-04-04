@@ -25,12 +25,12 @@ pub mod v3 {
     }
 
     /// Request type for the `turn_server_info` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {}
 
     /// Response type for the `turn_server_info` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The username to use.
         pub username: String,

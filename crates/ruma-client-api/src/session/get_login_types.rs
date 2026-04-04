@@ -32,12 +32,12 @@ pub mod v3 {
     }
 
     /// Request type for the `get_login_types` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[derive(Default)]
     pub struct Request {}
 
     /// Response type for the `get_login_types` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The homeserver's supported login types.
         pub flows: Vec<LoginType>,

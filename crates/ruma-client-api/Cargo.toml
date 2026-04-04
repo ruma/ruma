@@ -41,7 +41,6 @@ unstable-msc2448 = []
 unstable-msc2654 = []
 unstable-msc3488 = []
 unstable-msc3814 = []
-unstable-msc3843 = []
 unstable-msc3983 = []
 unstable-msc4108 = ["ruma-common/unstable-msc4108"]
 unstable-msc4121 = []
@@ -59,7 +58,6 @@ unstable-msc4439 = []
 as_variant = { workspace = true }
 assign = { workspace = true }
 bytes = { workspace = true }
-date_header = "1.0.5"
 http = { workspace = true }
 js_int = { workspace = true, features = ["serde"] }
 js_option = { workspace = true }

@@ -29,7 +29,7 @@ pub mod v3 {
     }
 
     /// Request type for the `send_event_to_device` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// Type of event being sent to each device.
         #[ruma_api(path)]
@@ -55,7 +55,7 @@ pub mod v3 {
     }
 
     /// Response type for the `send_event_to_device` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     #[derive(Default)]
     pub struct Response {}
 

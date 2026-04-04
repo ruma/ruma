@@ -26,7 +26,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_filter` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     pub struct Request {
         /// The user ID to download a filter for.
         #[ruma_api(path)]
@@ -38,7 +38,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_filter` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The filter definition.
         #[ruma_api(body)]

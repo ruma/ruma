@@ -13,11 +13,9 @@ pub mod v3 {
     use ruma_common::{
         IdParseError, MxcUri, OwnedServerName,
         api::{auth_scheme::NoAccessToken, request, response},
-        http_headers::ContentDisposition,
+        http_headers::{CROSS_ORIGIN_RESOURCE_POLICY, ContentDisposition},
         metadata,
     };
-
-    use crate::http_headers::CROSS_ORIGIN_RESOURCE_POLICY;
 
     metadata! {
         method: GET,
@@ -31,7 +29,7 @@ pub mod v3 {
     }
 
     /// Request type for the `get_media_content` endpoint.
-    #[request(error = crate::Error)]
+    #[request]
     #[deprecated = "\
         Since Matrix 1.11, clients should use `authenticated_media::get_content::v1::Request` \
         instead if the homeserver supports it.\
@@ -77,7 +75,7 @@ pub mod v3 {
     }
 
     /// Response type for the `get_media_content` endpoint.
-    #[response(error = crate::Error)]
+    #[response]
     pub struct Response {
         /// The content that was previously uploaded.
         #[ruma_api(raw_body)]
