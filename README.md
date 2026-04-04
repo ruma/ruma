@@ -44,6 +44,13 @@ You can also find a small number of examples in our dedicated
 
 Ruma 0.14.0 supports all events and REST endpoints of Matrix 1.16.
 
+Only room versions enforcing canonical JSON (introduced with room version 6) are
+supported. Room versions 1 through 5 are supported on a best effort basis, but a
+missing feature or an incompatibility with a homeserver implementation are not
+considered bugs. Clients should be able to work with those room versions,
+granted parts of the room might break in some unconventional cases, but
+homeservers based on Ruma **should not** advertise support for them.
+
 Various changes from in-progress or finished MSCs are also implemented, gated
 behind the `unstable-mscXXXX` (where `XXXX` is the MSC number) Cargo features.
 

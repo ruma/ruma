@@ -5,6 +5,18 @@
 //! When creating or receiving a PDU (or event), a server must check whether it is valid and how it
 //! affects the room state. The purpose of this crate is to provide functions that solve that.
 //!
+//! # Supported room versions
+//!
+//! Only room versions enforcing [canonical JSON] (introduced with [room version 6]) are supported.
+//!
+//! Room versions 1 through 5 are supported on a best effort basis:
+//!
+//! * The authorization rules should work for most events but some unconventional JSON encoding of
+//!   values might fail to deserialize while still considered to be valid by other implementations.
+//! * The [state resolution algorithm from room version 1][state-res-v1] is not implemented.
+//!
+//! Homeservers using this crate **should not** advertise support for those room versions.
+//!
 //! # Checks performed on receipt of a PDU
 //!
 //! This crate used with [ruma-signatures] should allow to perform all the [necessary checks on
@@ -45,6 +57,9 @@
 //! The types from ruma-events are still appropriate to be used to create a new event, or to
 //! validate an event received from a client.
 //!
+//! [canonical JSON]: https://spec.matrix.org/v1.18/appendices/#canonical-json
+//! [room version 6]: https://spec.matrix.org/v1.18/rooms/v6/
+//! [state-res-v1]: https://spec.matrix.org/v1.18/rooms/v1/#state-resolution
 //! [ruma-signatures]: https://crates.io/crates/ruma-signatures
 //! [necessary checks on receipt of a PDU]: https://spec.matrix.org/v1.18/server-server-api/#checks-performed-on-receipt-of-a-pdu
 //! [ruma-events]: https://crates.io/crates/ruma-events

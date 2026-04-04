@@ -2,8 +2,40 @@
 #![doc(html_logo_url = "https://ruma.dev/images/logo.png")]
 //! Types and traits for working with the [Matrix](https://matrix.org) protocol.
 //!
-//! This crate re-exports things from all of the other ruma crates so you don't
-//! have to manually keep all the versions in sync.
+//! # Getting started
+//!
+//! If you want to build a Matrix client or bot, have a look at [matrix-rust-sdk](https://github.com/matrix-org/matrix-rust-sdk#readme).
+//! It builds on Ruma and includes handling of state storage, end-to-end encryption and many other
+//! useful things.
+//!
+//! For homeservers, bridges and harder-to-categorize software that works with Matrix, you're at the
+//! right place. To get started, add `ruma` to your dependencies:
+//!
+//! ```toml
+//! # crates.io release
+//! ruma = { version = "0.17.0", features = ["..."] }
+//! # git dependency
+//! ruma = { git = "https://github.com/ruma/ruma", branch = "main", features = ["..."] }
+//! ```
+//!
+//! You can find a low level Matrix client in the [ruma-client repository](https://github.com/ruma/ruma-client).
+//!
+//! You can also find a small number of examples in our dedicated [ruma-examples repository](https://github.com/ruma/ruma-examples).
+//!
+//! # Status
+//!
+//! Ruma supports all events and REST endpoints of Matrix 1.17.
+//!
+//! Only room versions enforcing canonical JSON (introduced with room version 6) are supported. Room
+//! versions 1 through 5 are supported on a best effort basis, but a missing feature or an
+//! incompatibility with a homeserver implementation are not considered bugs. Clients should be able
+//! to work with those room versions, granted parts of the room might break in some unconventional
+//! cases, but homeservers based on Ruma **should not** advertise support for them.
+//!
+//! # Features
+//!
+//! This crate re-exports things from all of the other ruma crates so you don't have to manually
+//! keep all the versions in sync.
 //!
 //! Which crates are re-exported can be configured through cargo features.
 //!
@@ -14,7 +46,7 @@
 //! > in the serialized representation, as the Matrix specification has a mix of British and
 //! > American English.
 //!
-//! # API features
+//! ## API features
 //!
 //! Depending on which parts of Matrix are relevant to you, activate the following features:
 //!
@@ -29,7 +61,7 @@
 //!   * `client-api-c` -- The Client-Server API optimized for the client side.
 //!   * `client-api-s` -- The Client-Server API optimized for the server side.
 //!
-//! # Compatibility features
+//! ## Compatibility features
 //!
 //! By default, the ruma crates are only able to handle strictly spec-compliant data and behaviour.
 //! However, due to the fact that Matrix is federated, that it is used by various implementations
@@ -44,7 +76,7 @@
 //! Each cargo feature is documented briefly in the cargo manifest of the crate, and more thoroughly
 //! where the feature applies.
 //!
-//! # Convenience features
+//! ## Convenience features
 //!
 //! These features are only useful if you want to use a method that requires it:
 //!
@@ -54,7 +86,7 @@
 //!   * `html-matrix` -- Enables the `matrix` feature of `ruma-html` to parse HTML elements data to
 //!     typed data as suggested by the Matrix Specification.
 //!
-//! # Unstable features
+//! ## Unstable features
 //!
 //! By using these features, you opt out of all semver guarantees Ruma otherwise provides:
 //!
@@ -63,7 +95,7 @@
 //! * `unstable-uniffi` -- Enables UniFFI bindings by adding conditional `uniffi` derives to _some_
 //!   types. This feature is currently a work in progress and, thus, unstable.
 //!
-//! # Common features
+//! ## Common features
 //!
 //! These submodules are usually activated by the API features when needed:
 //!
