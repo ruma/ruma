@@ -24,6 +24,14 @@
 //! In JSON representations, both signatures and hashes appear as base64-encoded strings, usually
 //! using the standard character set, without padding.
 //!
+//! # Supported room versions
+//!
+//! Only room versions enforcing [canonical JSON] (introduced with [room version 6]) are supported.
+//!
+//! Room versions 1 through 5 are unsupported because the rules for the JSON encoding of events
+//! before signing or hashing them is unspecified. Homeservers using this crate **should not**
+//! advertise support for those room versions.
+//!
 //! # Signing and hashing
 //!
 //! To sign an arbitrary JSON object, use the [`sign_json()`] function. See the documentation of
@@ -45,6 +53,9 @@
 //! To verify a signature on arbitrary JSON, use the [`verify_json()`] function. To verify the
 //! signatures and hashes on an event, use the [`verify_event()`] function. See the documentation
 //! for these respective functions for more details and full examples of use.
+//!
+//! [canonical JSON]: https://spec.matrix.org/v1.18/appendices/#canonical-json
+//! [room version 6]: https://spec.matrix.org/v1.18/rooms/v6/
 
 #![warn(missing_docs)]
 
