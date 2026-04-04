@@ -1,16 +1,16 @@
-use assert_matches2::assert_matches;
+use assert_matches2::{assert_let, assert_matches};
 use js_int::int;
-use ruma_common::{room_alias_id, serde::test::serde_json_eq};
+use ruma_common::serde::test::serde_json_eq;
 use ruma_events::{
-    AnyMessageLikeEvent, AnyStateEvent, AnySyncEphemeralRoomEvent, AnySyncMessageLikeEvent,
-    AnySyncStateEvent, AnySyncTimelineEvent, AnyTimelineEvent, EphemeralRoomEventType,
-    GlobalAccountDataEventType, MessageLikeEvent, MessageLikeEventType, OriginalMessageLikeEvent,
-    OriginalStateEvent, OriginalSyncMessageLikeEvent, OriginalSyncStateEvent,
-    RoomAccountDataEventType, StateEvent, StateEventType, SyncMessageLikeEvent, SyncStateEvent,
-    ToDeviceEventType,
+    AnyMessageLikeEvent, AnyPossiblyRedactedStateEventContent, AnyStateEvent,
+    AnySyncEphemeralRoomEvent, AnySyncMessageLikeEvent, AnySyncStateEvent, AnySyncTimelineEvent,
+    AnyTimelineEvent, EmptyStateKey, EphemeralRoomEventType, GlobalAccountDataEventType,
+    MessageLikeEvent, MessageLikeEventType, OriginalMessageLikeEvent, OriginalStateEvent,
+    OriginalSyncMessageLikeEvent, OriginalSyncStateEvent, RoomAccountDataEventType, StateEvent,
+    StateEventType, SyncMessageLikeEvent, SyncStateEvent, ToDeviceEventType,
     room::{
-        aliases::RoomAliasesEventContent,
         message::{MessageType, RoomMessageEventContent},
+        name::RoomNameEventContent,
         power_levels::RoomPowerLevelsEventContent,
     },
 };
@@ -47,39 +47,6 @@ fn message_event_sync() -> JsonValue {
         "origin_server_ts": 1,
         "sender": "@example:localhost",
         "type": "m.room.message",
-        "unsigned": {
-            "age": 1
-        }
-    })
-}
-
-fn aliases_event() -> JsonValue {
-    json!({
-        "content": {
-            "aliases": ["#somewhere:localhost"]
-        },
-        "event_id": "$152037280074GZeOm:localhost",
-        "origin_server_ts": 1,
-        "sender": "@example:localhost",
-        "state_key": "room.com",
-        "room_id": "!room:room.com",
-        "type": "m.room.aliases",
-        "unsigned": {
-            "age": 1
-        }
-    })
-}
-
-fn aliases_event_sync() -> JsonValue {
-    json!({
-        "content": {
-            "aliases": ["#somewhere:localhost"]
-        },
-        "event_id": "$152037280074GZeOm:localhost",
-        "origin_server_ts": 1,
-        "sender": "@example:localhost",
-        "state_key": "example.com",
-        "type": "m.room.aliases",
         "unsigned": {
             "age": 1
         }
@@ -155,17 +122,41 @@ fn message_event_sync_deserialization() {
 }
 
 #[test]
-fn aliases_event_sync_deserialization() {
-    let json_data = aliases_event_sync();
+fn room_name_event_sync_deserialization() {
+    let json = json!({
+        "content": {
+            "name": "Somewhere"
+        },
+        "event_id": "$152037280074GZeOm:localhost",
+        "origin_server_ts": 1,
+        "sender": "@example:localhost",
+        "state_key": "",
+        "type": "m.room.name",
+        "unsigned": {
+            "age": 1
+        }
+    });
 
-    assert_matches!(
-        from_json_value::<AnySyncTimelineEvent>(json_data),
-        Ok(AnySyncTimelineEvent::State(state_event))
-    );
+    // Deserialize as timeline enum.
+    assert_let!(Ok(AnySyncTimelineEvent::State(state_event)) = from_json_value(json.clone()));
     assert!(!state_event.is_redacted());
+    assert_eq!(state_event.state_key(), "");
+    assert_eq!(state_event.event_id(), "$152037280074GZeOm:localhost");
+    assert_eq!(state_event.sender(), "@example:localhost");
+    assert_eq!(state_event.event_type(), StateEventType::RoomName);
+    assert_let!(AnySyncStateEvent::RoomName(SyncStateEvent::Original(event)) = &state_event);
+    assert_eq!(event.content.name, "Somewhere");
+    assert_let!(AnyPossiblyRedactedStateEventContent::RoomName(content) = state_event.content());
+    assert_eq!(content.name.as_deref(), Some("Somewhere"));
 
-    assert_matches!(state_event, AnySyncStateEvent::RoomAliases(SyncStateEvent::Original(ev)));
-    assert_eq!(ev.content.aliases, vec![room_alias_id!("#somewhere:localhost")]);
+    // Deserialize as state enum.
+    assert_let!(Ok(AnySyncStateEvent::RoomName(state_event)) = from_json_value(json));
+    assert_matches!(state_event.state_key(), EmptyStateKey);
+    assert_eq!(state_event.event_id(), "$152037280074GZeOm:localhost");
+    assert_eq!(state_event.sender(), "@example:localhost");
+    assert_eq!(state_event.event_type(), StateEventType::RoomName);
+    assert_let!(Some(event) = state_event.as_original());
+    assert_eq!(event.content.name, "Somewhere");
 }
 
 #[test]
@@ -201,23 +192,49 @@ fn message_event_serialization() {
 }
 
 #[test]
-fn alias_event_deserialization() {
-    let json_data = aliases_event();
+fn room_name_event_deserialization() {
+    let json = json!({
+        "content": {
+            "name": "Somewhere"
+        },
+        "event_id": "$152037280074GZeOm:localhost",
+        "origin_server_ts": 1,
+        "sender": "@example:localhost",
+        "state_key": "",
+        "room_id": "!room:room.com",
+        "type": "m.room.name",
+        "unsigned": {
+            "age": 1
+        }
+    });
 
-    assert_matches!(
-        from_json_value::<AnyTimelineEvent>(json_data),
-        Ok(AnyTimelineEvent::State(event))
-    );
-    assert!(!event.is_redacted());
-
-    assert_matches!(
-        event,
-        AnyStateEvent::RoomAliases(StateEvent::Original(OriginalStateEvent {
-            content: RoomAliasesEventContent { aliases, .. },
+    // Deserialize as timeline enum.
+    assert_let!(Ok(AnyTimelineEvent::State(state_event)) = from_json_value(json.clone()));
+    assert!(!state_event.is_redacted());
+    assert_eq!(state_event.state_key(), "");
+    assert_eq!(state_event.room_id(), "!room:room.com");
+    assert_eq!(state_event.event_id(), "$152037280074GZeOm:localhost");
+    assert_eq!(state_event.sender(), "@example:localhost");
+    assert_eq!(state_event.event_type(), StateEventType::RoomName);
+    assert_let!(
+        AnyStateEvent::RoomName(StateEvent::Original(OriginalStateEvent {
+            content: RoomNameEventContent { name, .. },
             ..
-        }))
+        })) = &state_event
     );
-    assert_eq!(aliases, vec![room_alias_id!("#somewhere:localhost")]);
+    assert_eq!(name, "Somewhere");
+    assert_let!(AnyPossiblyRedactedStateEventContent::RoomName(content) = state_event.content());
+    assert_eq!(content.name.as_deref(), Some("Somewhere"));
+
+    // Deserialize as state enum.
+    assert_let!(Ok(AnyStateEvent::RoomName(state_event)) = from_json_value(json));
+    assert_matches!(state_event.state_key(), EmptyStateKey);
+    assert_eq!(state_event.room_id(), "!room:room.com");
+    assert_eq!(state_event.event_id(), "$152037280074GZeOm:localhost");
+    assert_eq!(state_event.sender(), "@example:localhost");
+    assert_eq!(state_event.event_type(), StateEventType::RoomName);
+    assert_let!(Some(event) = state_event.as_original());
+    assert_eq!(event.content.name, "Somewhere");
 }
 
 #[test]
@@ -238,25 +255,6 @@ fn custom_state_event_deserialization() {
     );
     assert!(!state_ev.is_redacted());
     assert_eq!(state_ev.event_id(), "$h29iv0s8:example.com");
-}
-
-#[test]
-fn alias_event_field_access() {
-    let json_data = aliases_event();
-
-    assert_matches!(
-        from_json_value::<AnyTimelineEvent>(json_data.clone()),
-        Ok(AnyTimelineEvent::State(state_event))
-    );
-    assert_eq!(state_event.state_key(), "room.com");
-    assert_eq!(state_event.room_id(), "!room:room.com");
-    assert_eq!(state_event.event_id(), "$152037280074GZeOm:localhost");
-    assert_eq!(state_event.sender(), "@example:localhost");
-
-    let deser = from_json_value::<AnyStateEvent>(json_data).unwrap();
-    assert_matches!(&deser, AnyStateEvent::RoomAliases(StateEvent::Original(ev)));
-    assert_eq!(ev.content.aliases, vec![room_alias_id!("#somewhere:localhost")]);
-    assert_eq!(deser.event_type().to_string(), "m.room.aliases");
 }
 
 #[test]

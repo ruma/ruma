@@ -1,15 +1,16 @@
-use assert_matches2::assert_matches;
+use assert_matches2::{assert_let, assert_matches};
 use ruma_common::{
     canonical_json::assert_to_canonical_json_eq, room_version_rules::RedactionRules,
 };
 use ruma_events::{
-    AnyMessageLikeEvent, AnySyncMessageLikeEvent, AnySyncStateEvent, AnySyncTimelineEvent,
-    AnyTimelineEvent, EventContentFromType, MessageLikeEvent, RedactContent, SyncMessageLikeEvent,
-    SyncStateEvent,
+    AnyMessageLikeEvent, AnyPossiblyRedactedStateEventContent, AnyStateEvent,
+    AnySyncMessageLikeEvent, AnySyncStateEvent, AnySyncTimelineEvent, AnyTimelineEvent,
+    EmptyStateKey, EventContentFromType, MessageLikeEvent, RedactContent, RedactedStateEvent,
+    RedactedSyncStateEvent, StateEvent, StateEventType, SyncMessageLikeEvent, SyncStateEvent,
     room::{
-        aliases::RedactedRoomAliasesEventContent,
         create::{RedactedRoomCreateEventContent, RoomCreateEventContent},
         message::{RedactedRoomMessageEventContent, RoomMessageEventContent},
+        name::RedactedRoomNameEventContent,
         redaction::RoomRedactionEventContent,
     },
 };
@@ -37,40 +38,80 @@ fn serialize_redacted_message_event_content() {
 }
 
 #[test]
-fn serialize_empty_redacted_aliases_event_content() {
-    assert_to_canonical_json_eq!(RedactedRoomAliasesEventContent::default(), json!({}));
-}
-
-#[test]
-fn redacted_aliases_event_serialize_with_content() {
-    assert_to_canonical_json_eq!(
-        RedactedRoomAliasesEventContent::new_v1(vec![]),
-        json!({ "aliases": [] }),
-    );
-}
-
-#[test]
-fn deserialize_redacted_state() {
-    let redacted = json!({
+fn deserialize_redacted_room_name() {
+    let json = json!({
         "content": {},
         "event_id": "$h29iv0s8:example.com",
         "room_id": "!roomid:room.com",
         "origin_server_ts": 1,
         "sender": "@carl:example.com",
-        "state_key": "hello",
+        "state_key": "",
         "unsigned": unsigned(),
-        "type": "m.room.aliases",
+        "type": "m.room.name",
     });
 
-    assert_matches!(
-        from_json_value::<AnySyncTimelineEvent>(redacted),
-        Ok(AnySyncTimelineEvent::State(event))
+    // Deserialize as timeline enum.
+    assert_let!(Ok(AnyTimelineEvent::State(state_event)) = from_json_value(json.clone()));
+    assert!(state_event.is_redacted());
+    assert_eq!(state_event.state_key(), "");
+    assert_eq!(state_event.room_id(), "!roomid:room.com");
+    assert_eq!(state_event.event_id(), "$h29iv0s8:example.com");
+    assert_eq!(state_event.sender(), "@carl:example.com");
+    assert_eq!(state_event.event_type(), StateEventType::RoomName);
+    assert_let!(
+        AnyStateEvent::RoomName(StateEvent::Redacted(RedactedStateEvent {
+            content: RedactedRoomNameEventContent { .. },
+            ..
+        })) = &state_event
     );
-    assert!(event.is_redacted());
+    assert_let!(AnyPossiblyRedactedStateEventContent::RoomName(content) = state_event.content());
+    assert_eq!(content.name.as_deref(), None);
 
-    assert_matches!(event, AnySyncStateEvent::RoomAliases(SyncStateEvent::Redacted(redacted)));
-    assert_eq!(redacted.event_id, "$h29iv0s8:example.com");
-    assert_eq!(redacted.content.aliases, None);
+    // Deserialize as state enum.
+    assert_let!(Ok(AnyStateEvent::RoomName(state_event)) = from_json_value(json));
+    assert_matches!(state_event.state_key(), EmptyStateKey);
+    assert_eq!(state_event.room_id(), "!roomid:room.com");
+    assert_eq!(state_event.event_id(), "$h29iv0s8:example.com");
+    assert_eq!(state_event.sender(), "@carl:example.com");
+    assert_eq!(state_event.event_type(), StateEventType::RoomName);
+    assert_matches!(state_event.as_original(), None);
+}
+
+#[test]
+fn deserialize_redacted_sync_room_name() {
+    let json = json!({
+        "content": {},
+        "event_id": "$h29iv0s8:example.com",
+        "origin_server_ts": 1,
+        "sender": "@carl:example.com",
+        "state_key": "",
+        "unsigned": unsigned(),
+        "type": "m.room.name",
+    });
+
+    // Deserialize as timeline enum.
+    assert_let!(Ok(AnySyncTimelineEvent::State(state_event)) = from_json_value(json.clone()));
+    assert!(state_event.is_redacted());
+    assert_eq!(state_event.state_key(), "");
+    assert_eq!(state_event.event_id(), "$h29iv0s8:example.com");
+    assert_eq!(state_event.sender(), "@carl:example.com");
+    assert_eq!(state_event.event_type(), StateEventType::RoomName);
+    assert_let!(
+        AnySyncStateEvent::RoomName(SyncStateEvent::Redacted(RedactedSyncStateEvent {
+            content: RedactedRoomNameEventContent { .. },
+            ..
+        })) = &state_event
+    );
+    assert_let!(AnyPossiblyRedactedStateEventContent::RoomName(content) = state_event.content());
+    assert_eq!(content.name.as_deref(), None);
+
+    // Deserialize as state enum.
+    assert_let!(Ok(AnySyncStateEvent::RoomName(state_event)) = from_json_value(json));
+    assert_matches!(state_event.state_key(), EmptyStateKey);
+    assert_eq!(state_event.event_id(), "$h29iv0s8:example.com");
+    assert_eq!(state_event.sender(), "@carl:example.com");
+    assert_eq!(state_event.event_type(), StateEventType::RoomName);
+    assert_matches!(state_event.as_original(), None);
 }
 
 #[test]
