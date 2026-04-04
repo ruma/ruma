@@ -34,8 +34,9 @@
 //! Homeservers are required to generate hashes of event contents as well as signing events before
 //! exchanging them with other homeservers. Although the algorithm for hashing and signing an event
 //! is more complicated than for signing arbitrary JSON, the interface to a user of ruma-signatures
-//! is the same. To hash and sign an event, use the [`hash_and_sign_event()`] function. See the
-//! documentation of this function for more details and a full example of use.
+//! is the same. To add the content hash to an event use [`hash_event()`], and to sign an event use
+//! [`sign_event()`]. See the documentation of theses functions for more details and examples of
+//! use.
 //!
 //! # Verifying signatures and hashes
 //!
@@ -52,8 +53,8 @@ pub use ruma_common::{IdParseError, SigningKeyAlgorithm};
 
 pub use self::{
     error::{JsonError, VerificationError},
-    hash::{content_hash, reference_hash},
-    sign::{KeyPair, Signature, hash_and_sign_event, sign_json},
+    hash::{content_hash, hash_event, reference_hash},
+    sign::{KeyPair, Signature, sign_event, sign_json},
     verify::{
         FetchEntityPublicSigningKey, PublicKeyMap, PublicKeySet, Verified,
         VerifyEventPublicSigningKeys, required_server_signatures_to_verify_event,
@@ -80,7 +81,7 @@ mod tests {
     use serde_json::{from_str as from_json_str, to_string as to_json_string};
 
     use super::{
-        VerifyEventPublicSigningKeys, ed25519::Ed25519KeyPair, hash_and_sign_event, sign_json,
+        VerifyEventPublicSigningKeys, ed25519::Ed25519KeyPair, hash_event, sign_event, sign_json,
         to_canonical_json_string_for_signing, verify_event, verify_json,
     };
     use crate::PublicKeyMap;
@@ -299,7 +300,8 @@ mod tests {
         }"#;
 
         let mut object = from_json_str(json).unwrap();
-        hash_and_sign_event("domain", &key_pair, &mut object, &RedactionRules::V1).unwrap();
+        hash_event(&mut object).unwrap();
+        sign_event("domain", &key_pair, &mut object, &RedactionRules::V1).unwrap();
 
         assert_eq!(
             to_json_string(&object).unwrap(),
@@ -328,7 +330,8 @@ mod tests {
         }"#;
 
         let mut object = from_json_str(json).unwrap();
-        hash_and_sign_event("domain", &key_pair, &mut object, &RedactionRules::V1).unwrap();
+        hash_event(&mut object).unwrap();
+        sign_event("domain", &key_pair, &mut object, &RedactionRules::V1).unwrap();
 
         assert_eq!(
             to_json_string(&object).unwrap(),
