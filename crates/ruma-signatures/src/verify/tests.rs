@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use assert_matches2::assert_matches;
+use assert_matches2::{assert_let, assert_matches};
 use ruma_common::{
     CanonicalJsonValue, ServerSigningKeyId, SigningKeyAlgorithm,
     room_version_rules::{RoomVersionRules, SignaturesRules},
@@ -10,12 +10,12 @@ use ruma_common::{
 use serde_json::json;
 
 use super::{
-    canonical_json, servers_to_check_signatures, sign_json, verify_canonical_json_bytes,
-    verify_event,
+    required_server_signatures_to_verify_event, to_canonical_json_string_for_signing,
+    verify_canonical_json_bytes, verify_event,
 };
 use crate::{
     Ed25519KeyPair, Ed25519VerificationError, KeyPair, PublicKeyMap, PublicKeySet,
-    VerificationError, Verified,
+    VerificationError, Verified, sign_json,
 };
 
 fn generate_key_pair(name: &str) -> Ed25519KeyPair {
@@ -44,37 +44,6 @@ fn add_invalid_key_to_map(public_key_map: &mut PublicKeyMap, name: &str, pair: &
     );
 
     sender_key_map.insert(version.to_string(), encoded_public_key);
-}
-
-#[test]
-fn canonical_json_complex() {
-    let data = json!({
-        "auth": {
-            "success": true,
-            "mxid": "@john.doe:example.com",
-            "profile": {
-                "display_name": "John Doe",
-                "three_pids": [
-                    {
-                        "medium": "email",
-                        "address": "john.doe@example.org"
-                    },
-                    {
-                        "medium": "msisdn",
-                        "address": "123456789"
-                    }
-                ]
-            }
-        }
-    });
-
-    let canonical = r#"{"auth":{"mxid":"@john.doe:example.com","profile":{"display_name":"John Doe","three_pids":[{"address":"john.doe@example.org","medium":"email"},{"address":"123456789","medium":"msisdn"}]},"success":true}}"#;
-
-    let CanonicalJsonValue::Object(object) = CanonicalJsonValue::try_from(data).unwrap() else {
-        unreachable!();
-    };
-
-    assert_eq!(canonical_json(&object).unwrap(), canonical);
 }
 
 #[test]
@@ -500,7 +469,7 @@ fn verify_event_with_single_key_with_unknown_algorithm_should_not_accept_event()
 }
 
 #[test]
-fn servers_to_check_signatures_message() {
+fn required_server_signatures_to_verify_event_message() {
     let message_event_json = json!({
         "event_id": "$event_id:domain-event",
         "auth_events": [
@@ -531,19 +500,21 @@ fn servers_to_check_signatures_message() {
     let object = serde_json::from_value(message_event_json).unwrap();
 
     // Check for room v1.
-    let servers = servers_to_check_signatures(&object, &SignaturesRules::V1).unwrap();
+    let servers =
+        required_server_signatures_to_verify_event(&object, &SignaturesRules::V1).unwrap();
     assert_eq!(servers.len(), 2);
     assert!(servers.contains(server_name!("domain-sender")));
     assert!(servers.contains(server_name!("domain-event")));
 
     // Check for room v3.
-    let servers = servers_to_check_signatures(&object, &SignaturesRules::V3).unwrap();
+    let servers =
+        required_server_signatures_to_verify_event(&object, &SignaturesRules::V3).unwrap();
     assert_eq!(servers.len(), 1);
     assert!(servers.contains(server_name!("domain-sender")));
 }
 
 #[test]
-fn servers_to_check_signatures_invite_via_third_party() {
+fn required_server_signatures_to_verify_event_invite_via_third_party() {
     let message_event_json = json!({
         "event_id": "$event_id:domain-event",
         "auth_events": [
@@ -575,17 +546,19 @@ fn servers_to_check_signatures_invite_via_third_party() {
     let object = serde_json::from_value(message_event_json).unwrap();
 
     // Check for room v1.
-    let servers = servers_to_check_signatures(&object, &SignaturesRules::V1).unwrap();
+    let servers =
+        required_server_signatures_to_verify_event(&object, &SignaturesRules::V1).unwrap();
     assert_eq!(servers.len(), 1);
     assert!(servers.contains(server_name!("domain-event")));
 
     // Check for room v3.
-    let servers = servers_to_check_signatures(&object, &SignaturesRules::V3).unwrap();
+    let servers =
+        required_server_signatures_to_verify_event(&object, &SignaturesRules::V3).unwrap();
     assert_eq!(servers.len(), 0);
 }
 
 #[test]
-fn servers_to_check_signatures_restricted() {
+fn required_server_signatures_to_verify_event_restricted() {
     let message_event_json = json!({
         "event_id": "$event_id:domain-event",
         "auth_events": [
@@ -617,18 +590,21 @@ fn servers_to_check_signatures_restricted() {
     let object = serde_json::from_value(message_event_json).unwrap();
 
     // Check for room v1.
-    let servers = servers_to_check_signatures(&object, &SignaturesRules::V1).unwrap();
+    let servers =
+        required_server_signatures_to_verify_event(&object, &SignaturesRules::V1).unwrap();
     assert_eq!(servers.len(), 2);
     assert!(servers.contains(server_name!("domain-sender")));
     assert!(servers.contains(server_name!("domain-event")));
 
     // Check for room v3.
-    let servers = servers_to_check_signatures(&object, &SignaturesRules::V3).unwrap();
+    let servers =
+        required_server_signatures_to_verify_event(&object, &SignaturesRules::V3).unwrap();
     assert_eq!(servers.len(), 1);
     assert!(servers.contains(server_name!("domain-sender")));
 
     // Check for room v8.
-    let servers = servers_to_check_signatures(&object, &SignaturesRules::V8).unwrap();
+    let servers =
+        required_server_signatures_to_verify_event(&object, &SignaturesRules::V8).unwrap();
     assert_eq!(servers.len(), 2);
     assert!(servers.contains(server_name!("domain-sender")));
     assert!(servers.contains(server_name!("domain-authorize-user")));
@@ -641,7 +617,7 @@ fn verify_canonical_json_bytes_success() {
         "bat": "baz",
     }))
     .unwrap();
-    let canonical_json = canonical_json(&json).unwrap();
+    let canonical_json = to_canonical_json_string_for_signing(&json).unwrap();
 
     let key_pair = generate_key_pair("1");
     let signature = key_pair.sign(canonical_json.as_bytes());
@@ -662,7 +638,7 @@ fn verify_canonical_json_bytes_unsupported_algorithm() {
         "bat": "baz",
     }))
     .unwrap();
-    let canonical_json = canonical_json(&json).unwrap();
+    let canonical_json = to_canonical_json_string_for_signing(&json).unwrap();
 
     let key_pair = generate_key_pair("1");
     let signature = key_pair.sign(canonical_json.as_bytes());
@@ -684,7 +660,7 @@ fn verify_canonical_json_bytes_wrong_key() {
         "bat": "baz",
     }))
     .unwrap();
-    let canonical_json = canonical_json(&json).unwrap();
+    let canonical_json = to_canonical_json_string_for_signing(&json).unwrap();
 
     let valid_key_pair = generate_key_pair("1");
     let signature = valid_key_pair.sign(canonical_json.as_bytes());
@@ -702,4 +678,32 @@ fn verify_canonical_json_bytes_wrong_key() {
         err,
         VerificationError::Ed25519(Ed25519VerificationError::SignatureVerification(_))
     );
+}
+
+#[test]
+fn canonical_json_complex() {
+    let data = json!({
+        "auth": {
+            "success": true,
+            "mxid": "@john.doe:example.com",
+            "profile": {
+                "display_name": "John Doe",
+                "three_pids": [
+                    {
+                        "medium": "email",
+                        "address": "john.doe@example.org"
+                    },
+                    {
+                        "medium": "msisdn",
+                        "address": "123456789"
+                    }
+                ]
+            }
+        }
+    });
+
+    let canonical = r#"{"auth":{"mxid":"@john.doe:example.com","profile":{"display_name":"John Doe","three_pids":[{"address":"john.doe@example.org","medium":"email"},{"address":"123456789","medium":"msisdn"}]},"success":true}}"#;
+
+    assert_let!(CanonicalJsonValue::Object(object) = CanonicalJsonValue::try_from(data).unwrap());
+    assert_eq!(to_canonical_json_string_for_signing(&object).unwrap(), canonical);
 }

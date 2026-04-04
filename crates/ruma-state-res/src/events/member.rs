@@ -4,7 +4,7 @@ use std::ops::Deref;
 
 use ruma_common::{CanonicalJsonObject, OwnedUserId, serde::from_raw_json_value};
 use ruma_events::room::member::MembershipState;
-use ruma_signatures::canonical_json;
+use ruma_signatures::to_canonical_json_string_for_signing;
 use serde::Deserialize;
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -179,7 +179,7 @@ impl ThirdPartyInvite {
 
     /// The `signed` object as canonical JSON string to verify the signatures.
     pub(crate) fn signed_canonical_json(&self) -> Result<String, String> {
-        canonical_json(&self.signed).map_err(|error| {
+        to_canonical_json_string_for_signing(&self.signed).map_err(|error| {
             format!("invalid `third_party_invite.signed` field in `m.room.member` event: {error}")
         })
     }
