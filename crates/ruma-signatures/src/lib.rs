@@ -42,8 +42,10 @@
 //! Homeservers are required to generate hashes of event contents as well as signing events before
 //! exchanging them with other homeservers. Although the algorithm for hashing and signing an event
 //! is more complicated than for signing arbitrary JSON, the interface to a user of ruma-signatures
-//! is the same. To hash and sign an event, use the [`hash_and_sign_event()`] function. See the
-//! documentation of this function for more details and a full example of use.
+//! is the same. To add the content hash to an event use [`add_content_hash_to_event()`], and to
+//! sign an event use [`sign_event()`]. Both steps can be done at once by calling
+//! [`hash_and_sign_event()`] instead. See the documentation of theses functions for more details
+//! and examples of use.
 //!
 //! # Verifying signatures and hashes
 //!
@@ -64,8 +66,8 @@ pub use ruma_common::{IdParseError, SigningKeyAlgorithm};
 pub use self::{
     ed25519::{Ed25519KeyPair, Ed25519KeyPairParseError, Ed25519VerificationError},
     error::{JsonError, VerificationError},
-    hash::{content_hash, reference_hash},
-    sign::{KeyPair, Signature, hash_and_sign_event, sign_json},
+    hash::{add_content_hash_to_event, content_hash, reference_hash},
+    sign::{KeyPair, Signature, hash_and_sign_event, sign_event, sign_json},
     verify::{
         PublicKeyMap, PublicKeySet, Verified, required_server_signatures_to_verify_event,
         to_canonical_json_string_for_signing, verify_canonical_json_bytes, verify_event,
