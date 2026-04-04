@@ -1,12 +1,9 @@
-use std::{borrow::Cow, collections::BTreeMap, mem};
-
 use ruma_common::{
     AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, OwnedSigningKeyId, SigningKeyAlgorithm,
-    canonical_json::{CanonicalJsonFieldError, CanonicalJsonObjectExt, CanonicalJsonType, redact},
+    canonical_json::{CanonicalJsonFieldError, CanonicalJsonObjectExt, RedactingSerializer},
     room_version_rules::RedactionRules,
     serde::{Base64, base64::Standard},
 };
-use serde_json::to_string as to_json_string;
 
 use crate::JsonError;
 
@@ -116,13 +113,13 @@ pub fn sign_event<K>(
 where
     K: KeyPair,
 {
-    let mut redacted = redact(object.clone(), redaction_rules, None)?;
+    let json = RedactingSerializer::new()
+        .rules(redaction_rules)
+        .custom_redacted_root_fields(FIELDS_TO_REMOVE_FOR_SIGNING)
+        .serialize(object)?;
+    let signature = key_pair.sign(json.as_bytes());
 
-    sign_json(entity_id, key_pair, &mut redacted)?;
-
-    object.insert("signatures".into(), mem::take(redacted.get_mut("signatures").unwrap()));
-
-    Ok(())
+    Ok(insert_signature(object, entity_id, signature)?)
 }
 
 /// Signs an arbitrary JSON object and adds the signature to an object under the key `signatures`.
@@ -189,38 +186,27 @@ pub fn sign_json<K>(
 where
     K: KeyPair,
 {
-    let (signatures_key, mut signature_map) = match object.remove_entry("signatures") {
-        Some((key, CanonicalJsonValue::Object(signatures))) => (Cow::Owned(key), signatures),
-        Some((_, value)) => {
-            return Err(CanonicalJsonFieldError::InvalidType {
-                path: "signatures".to_owned(),
-                expected: CanonicalJsonType::Object,
-                found: value.json_type(),
-            }
-            .into());
-        }
-        None => (Cow::Borrowed("signatures"), BTreeMap::new()),
-    };
-
-    let maybe_unsigned_entry = object.remove_entry("unsigned");
-
-    // Get the canonical JSON string.
-    let json = to_json_string(object)?;
-
-    // Sign the canonical JSON string.
+    let json = RedactingSerializer::new()
+        .custom_redacted_root_fields(FIELDS_TO_REMOVE_FOR_SIGNING)
+        .serialize(object)?;
     let signature = key_pair.sign(json.as_bytes());
 
-    // Insert the new signature in the map we pulled out (or created) previously.
-    let signature_set = signature_map
-        .get_as_object_or_insert_default(entity_id.to_owned(), format!("signatures.{entity_id}"))?;
-    signature_set.insert(signature.id(), CanonicalJsonValue::String(signature.base64()));
+    Ok(insert_signature(object, entity_id, signature)?)
+}
 
-    // Put `signatures` and `unsigned` back in.
-    object.insert(signatures_key.into(), CanonicalJsonValue::Object(signature_map));
+/// Insert the given signature from the given entity in the given object.
+///
+/// Returns an error if object is malformed.
+fn insert_signature(
+    object: &mut CanonicalJsonObject,
+    entity_id: &str,
+    signature: Signature,
+) -> Result<(), CanonicalJsonFieldError> {
+    let signatures = object.get_as_object_or_insert_default("signatures", "signatures")?;
 
-    if let Some((k, v)) = maybe_unsigned_entry {
-        object.insert(k, v);
-    }
+    let entity_signatures_set =
+        signatures.get_as_object_or_insert_default(entity_id, format!("signatures.{entity_id}"))?;
+    entity_signatures_set.insert(signature.id(), CanonicalJsonValue::String(signature.base64()));
 
     Ok(())
 }

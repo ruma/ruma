@@ -5,12 +5,13 @@ use std::collections::{BTreeMap, BTreeSet};
 use ruma_common::{
     AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, IdParseError, OwnedEventId,
     OwnedServerName, SigningKeyAlgorithm, SigningKeyId, UserId,
-    canonical_json::{CanonicalJsonFieldError, CanonicalJsonObjectExt, CanonicalJsonType, redact},
+    canonical_json::{
+        CanonicalJsonFieldError, CanonicalJsonObjectExt, CanonicalJsonType, RedactingSerializer,
+    },
     room_version_rules::{RoomVersionRules, SignaturesRules},
     serde::{Base64, base64::Standard},
 };
 use ruma_events::room::policy::RoomPolicyEventContent;
-use serde_json::to_string as to_json_string;
 
 #[cfg(test)]
 mod tests;
@@ -100,8 +101,10 @@ pub fn verify_event<T: FetchEntityPublicSigningKey>(
     object: &CanonicalJsonObject,
     rules: &RoomVersionRules,
 ) -> Result<Verified, VerificationError> {
-    let redacted = redact(object.clone(), &rules.redaction, None)?;
-    let canonical_json = to_canonical_json_string_for_signing(&redacted)?;
+    let canonical_json = RedactingSerializer::new()
+        .rules(&rules.redaction)
+        .custom_redacted_root_fields(FIELDS_TO_REMOVE_FOR_SIGNING)
+        .serialize(object)?;
 
     let hashes = object.get_as_required_object("hashes", "hashes")?;
     let hash = hashes.get_as_required_string("sha256", "hashes.sha256")?;
@@ -221,7 +224,9 @@ pub fn verify_json(
     object: &CanonicalJsonObject,
 ) -> Result<(), VerificationError> {
     let signature_map = object.get_as_required_object("signatures", "signatures")?;
-    let canonical_json = to_canonical_json_string_for_signing(object)?;
+    let canonical_json = RedactingSerializer::new()
+        .custom_redacted_root_fields(FIELDS_TO_REMOVE_FOR_SIGNING)
+        .serialize(object)?;
 
     for entity_id in signature_map.keys() {
         verify_canonical_json_for_entity(
@@ -295,21 +300,9 @@ pub fn verify_canonical_json_bytes(
 pub fn to_canonical_json_string_for_signing(
     object: &CanonicalJsonObject,
 ) -> Result<String, JsonError> {
-    to_canonical_json_string_with_fields_to_remove(object, FIELDS_TO_REMOVE_FOR_SIGNING)
-}
-
-/// Serialize the given JSON object to the canonical JSON form without the given fields.
-pub(crate) fn to_canonical_json_string_with_fields_to_remove(
-    object: &CanonicalJsonObject,
-    fields: &[&str],
-) -> Result<String, JsonError> {
-    let mut owned_object = object.clone();
-
-    for field in fields {
-        owned_object.remove(*field);
-    }
-
-    to_json_string(&owned_object).map_err(Into::into)
+    Ok(RedactingSerializer::new()
+        .custom_redacted_root_fields(FIELDS_TO_REMOVE_FOR_SIGNING)
+        .serialize(object)?)
 }
 
 /// Uses a set of public keys to verify signed canonical JSON bytes for a given entity.
