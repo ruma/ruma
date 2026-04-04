@@ -12,7 +12,7 @@ mod value;
 
 pub use self::{
     redaction::{
-        RedactedBecause, RedactionError, RedactionEvent, redact, redact_content_in_place,
+        RedactedBecause, RedactingSerializer, RedactionEvent, redact, redact_content_in_place,
         redact_in_place,
     },
     serializer::Serializer,
@@ -118,6 +118,243 @@ pub enum JsonType {
     /// JSON Null.
     Null,
 }
+
+/// Helper trait to interact with a [`CanonicalJsonObject`].
+pub trait CanonicalJsonObjectExt {
+    /// Get the given field as an object.
+    ///
+    /// # Parameters
+    ///
+    /// * `field`: The name of the field to access.
+    /// * `path`: The full path of the field that will be used in errors. This can be different than
+    ///   the `field`, to clarify if this is a field nested under several objects.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the field is invalid.
+    fn get_as_object(
+        &self,
+        field: &str,
+        path: impl Into<String>,
+    ) -> Result<Option<&CanonicalJsonObject>, CanonicalJsonFieldError>;
+
+    /// Get the given required field as an object.
+    ///
+    /// # Parameters
+    ///
+    /// * `field`: The name of the field to access.
+    /// * `path`: The full path of the field that will be used in errors. This can be different than
+    ///   the `field`, to clarify if this is a field nested under several objects.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the field is missing or invalid.
+    fn get_as_required_object(
+        &self,
+        field: &str,
+        path: impl Into<String>,
+    ) -> Result<&CanonicalJsonObject, CanonicalJsonFieldError> {
+        let path = path.into();
+        self.get_as_object(field, &path)?.ok_or(CanonicalJsonFieldError::Missing { path })
+    }
+
+    /// Get the given field as a mutable object.
+    ///
+    /// # Parameters
+    ///
+    /// * `field`: The name of the field to access.
+    /// * `path`: The full path of the field that will be used in errors. This can be different than
+    ///   the `field`, to clarify if this is a field nested under several objects.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the field is invalid.
+    fn get_as_object_mut(
+        &mut self,
+        field: &str,
+        path: impl Into<String>,
+    ) -> Result<Option<&mut CanonicalJsonObject>, CanonicalJsonFieldError>;
+
+    /// Get the given required field as a mutable object.
+    ///
+    /// # Parameters
+    ///
+    /// * `field`: The name of the field to access.
+    /// * `path`: The full path of the field that will be used in errors. This can be different than
+    ///   the `field`, to clarify if this is a field nested under several objects.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the field is missing or invalid.
+    fn get_as_required_object_mut(
+        &mut self,
+        field: &str,
+        path: impl Into<String>,
+    ) -> Result<&mut CanonicalJsonObject, CanonicalJsonFieldError> {
+        let path = path.into();
+        self.get_as_object_mut(field, &path)?.ok_or(CanonicalJsonFieldError::Missing { path })
+    }
+
+    /// Get the given required field as a mutable object or insert it if it is missing.
+    ///
+    /// # Parameters
+    ///
+    /// * `field`: The name of the field to access.
+    /// * `path`: The full path of the field that will be used in errors. This can be different than
+    ///   the `field`, to clarify if this is a field nested under several objects.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the field is already be present but invalid.
+    fn get_as_object_or_insert_default(
+        &mut self,
+        field: impl Into<String>,
+        path: impl Into<String>,
+    ) -> Result<&mut CanonicalJsonObject, CanonicalJsonFieldError>;
+
+    /// Get the given field as a string.
+    ///
+    /// # Parameters
+    ///
+    /// * `field`: The name of the field to access.
+    /// * `path`: The full path of the field that will be used in errors. This can be different than
+    ///   the `field`, to clarify if this is a field nested under several objects.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the field is invalid.
+    fn get_as_string(
+        &self,
+        field: &str,
+        path: impl Into<String>,
+    ) -> Result<Option<&str>, CanonicalJsonFieldError>;
+
+    /// Get the given required field as a string.
+    ///
+    /// # Parameters
+    ///
+    /// * `field`: The name of the field to access.
+    /// * `path`: The full path of the field that will be used in errors. This can be different than
+    ///   the `field`, to clarify if this is a field nested under several objects.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the field is missing or invalid.
+    fn get_as_required_string(
+        &self,
+        field: &str,
+        path: impl Into<String>,
+    ) -> Result<&str, CanonicalJsonFieldError> {
+        let path = path.into();
+        self.get_as_string(field, &path)?.ok_or(CanonicalJsonFieldError::Missing { path })
+    }
+}
+
+impl CanonicalJsonObjectExt for CanonicalJsonObject {
+    fn get_as_object(
+        &self,
+        field: &str,
+        path: impl Into<String>,
+    ) -> Result<Option<&CanonicalJsonObject>, CanonicalJsonFieldError> {
+        match self.get(field) {
+            Some(CanonicalJsonValue::Object(object)) => Ok(Some(object)),
+            Some(value) => Err(CanonicalJsonFieldError::InvalidType {
+                path: path.into(),
+                expected: CanonicalJsonType::Object,
+                found: value.json_type(),
+            }),
+            None => Ok(None),
+        }
+    }
+
+    fn get_as_object_mut(
+        &mut self,
+        field: &str,
+        path: impl Into<String>,
+    ) -> Result<Option<&mut CanonicalJsonObject>, CanonicalJsonFieldError> {
+        match self.get_mut(field) {
+            Some(CanonicalJsonValue::Object(object)) => Ok(Some(object)),
+            Some(value) => Err(CanonicalJsonFieldError::InvalidType {
+                path: path.into(),
+                expected: CanonicalJsonType::Object,
+                found: value.json_type(),
+            }),
+            None => Ok(None),
+        }
+    }
+
+    fn get_as_object_or_insert_default(
+        &mut self,
+        field: impl Into<String>,
+        path: impl Into<String>,
+    ) -> Result<&mut CanonicalJsonObject, CanonicalJsonFieldError> {
+        let value = self
+            .entry(field.into())
+            .or_insert_with(|| CanonicalJsonValue::Object(Default::default()));
+        match value {
+            CanonicalJsonValue::Object(object) => Ok(object),
+            value => Err(CanonicalJsonFieldError::InvalidType {
+                path: path.into(),
+                expected: CanonicalJsonType::String,
+                found: value.json_type(),
+            }),
+        }
+    }
+
+    fn get_as_string(
+        &self,
+        field: &str,
+        path: impl Into<String>,
+    ) -> Result<Option<&str>, CanonicalJsonFieldError> {
+        match self.get(field) {
+            Some(CanonicalJsonValue::String(string)) => Ok(Some(string)),
+            Some(value) => Err(CanonicalJsonFieldError::InvalidType {
+                path: path.into(),
+                expected: CanonicalJsonType::String,
+                found: value.json_type(),
+            }),
+            None => Ok(None),
+        }
+    }
+}
+
+/// Errors that can happen when trying to access a field from a [`CanonicalJsonObject`].
+#[derive(Debug)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub enum CanonicalJsonFieldError {
+    /// The field at `path` was expected to be of type `expected`, but was received as `found`.
+    InvalidType {
+        /// The path of the invalid field.
+        path: String,
+
+        /// The type that was expected.
+        expected: CanonicalJsonType,
+
+        /// The type that was found.
+        found: CanonicalJsonType,
+    },
+
+    /// A required field is missing from a JSON object.
+    Missing {
+        /// The path of the missing field.
+        path: String,
+    },
+}
+
+impl fmt::Display for CanonicalJsonFieldError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidType { path, expected, found } => {
+                write!(f, "invalid type at `{path}`: expected {expected:?}, found {found:?}")
+            }
+            Self::Missing { path } => {
+                write!(f, "missing field: `{path}`")
+            }
+        }
+    }
+}
+
+impl std::error::Error for CanonicalJsonFieldError {}
 
 #[cfg(test)]
 mod tests {

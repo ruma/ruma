@@ -1,6 +1,11 @@
-use std::{fmt, mem};
+use std::mem;
 
-use super::value::{CanonicalJsonObject, CanonicalJsonType, CanonicalJsonValue};
+mod serializer;
+
+pub use self::serializer::RedactingSerializer;
+use super::{
+    CanonicalJsonFieldError, CanonicalJsonObject, CanonicalJsonObjectExt, CanonicalJsonValue,
+};
 use crate::{room_version_rules::RedactionRules, serde::Raw};
 
 /// Redacts an event using the rules specified in the Matrix client-server specification.
@@ -31,7 +36,7 @@ pub fn redact(
     mut object: CanonicalJsonObject,
     rules: &RedactionRules,
     redacted_because: Option<RedactedBecause>,
-) -> Result<CanonicalJsonObject, RedactionError> {
+) -> Result<CanonicalJsonObject, CanonicalJsonFieldError> {
     redact_in_place(&mut object, rules, redacted_because)?;
     Ok(object)
 }
@@ -43,7 +48,7 @@ pub fn redact_in_place(
     event: &mut CanonicalJsonObject,
     rules: &RedactionRules,
     redacted_because: Option<RedactedBecause>,
-) -> Result<(), RedactionError> {
+) -> Result<(), CanonicalJsonFieldError> {
     retained_event_keys(event)?.apply(rules, event);
 
     if let Some(redacted_because) = redacted_because {
@@ -90,44 +95,6 @@ impl RedactedBecause {
 /// Marker trait for redaction events.
 pub trait RedactionEvent {}
 
-/// Errors that can happen in redaction.
-#[derive(Debug)]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub enum RedactionError {
-    /// The field at `path` was expected to be of type `expected`, but was received as `found`.
-    InvalidType {
-        /// The path of the invalid field.
-        path: String,
-
-        /// The type that was expected.
-        expected: CanonicalJsonType,
-
-        /// The type that was found.
-        found: CanonicalJsonType,
-    },
-
-    /// A required field is missing from a JSON object.
-    MissingField {
-        /// The path of the missing field.
-        path: String,
-    },
-}
-
-impl fmt::Display for RedactionError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            RedactionError::InvalidType { path, expected, found } => {
-                write!(f, "invalid type at `{path}`: expected {expected:?}, found {found:?}")
-            }
-            RedactionError::MissingField { path } => {
-                write!(f, "missing field: `{path}`")
-            }
-        }
-    }
-}
-
-impl std::error::Error for RedactionError {}
-
 /// A function that takes redaction rules and a key and returns whether the field should be
 /// retained.
 type RetainKeyFn = dyn Fn(&RedactionRules, &str) -> RetainKey;
@@ -173,6 +140,15 @@ impl RetainedKeys {
         Self::Some(Box::new(retain_key_fn))
     }
 
+    /// Whether the given key should be retained.
+    fn should_retain_key(&self, rules: &RedactionRules, key: &str) -> RetainKey {
+        match self {
+            Self::All => true.into(),
+            Self::Some(retain_key_fn) => retain_key_fn(rules, key),
+            Self::None => false.into(),
+        }
+    }
+
     /// Apply this `RetainedKeys` on the given object.
     fn apply(&self, rules: &RedactionRules, object: &mut CanonicalJsonObject) {
         match self {
@@ -198,18 +174,10 @@ impl RetainedKeys {
 }
 
 /// Get the given keys should be retained at the top level of an event.
-fn retained_event_keys(event: &CanonicalJsonObject) -> Result<RetainedKeys, RedactionError> {
-    let event_type = match event.get("type") {
-        Some(CanonicalJsonValue::String(event_type)) => event_type.clone(),
-        Some(value) => {
-            return Err(RedactionError::InvalidType {
-                path: "type".to_owned(),
-                expected: CanonicalJsonType::String,
-                found: value.json_type(),
-            });
-        }
-        None => return Err(RedactionError::MissingField { path: "type".to_owned() }),
-    };
+fn retained_event_keys(
+    event: &CanonicalJsonObject,
+) -> Result<RetainedKeys, CanonicalJsonFieldError> {
+    let event_type = event.get_as_required_string("type", "type")?.to_owned();
 
     Ok(RetainedKeys::some(move |rules, key| match key {
         "content" => RetainKey::Yes {

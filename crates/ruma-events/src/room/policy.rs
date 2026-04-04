@@ -34,6 +34,9 @@ pub struct RoomPolicyEventContent {
 }
 
 impl RoomPolicyEventContent {
+    /// The signing key ID that must be used by the Policy Server for the ed25519 signature.
+    pub const POLICY_SERVER_ED25519_SIGNING_KEY_ID: &str = "ed25519:policy_server";
+
     /// Creates a new `RoomPolicyEventContent` with the given server name and ed25519 public key.
     pub fn new(via: OwnedServerName, ed25519_public_key: Base64) -> Self {
         Self { via, public_keys: [(SigningKeyAlgorithm::Ed25519, ed25519_public_key)].into() }

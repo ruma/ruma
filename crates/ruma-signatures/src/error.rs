@@ -1,11 +1,9 @@
 use ruma_common::{
-    IdParseError,
-    canonical_json::{CanonicalJsonType, RedactionError},
-    serde::Base64DecodeError,
+    IdParseError, canonical_json::CanonicalJsonFieldError, serde::Base64DecodeError,
 };
 use thiserror::Error;
 
-use crate::Ed25519VerificationError;
+use crate::ed25519::Ed25519VerificationError;
 
 /// All errors related to JSON validation/parsing.
 #[derive(Debug, Error)]
@@ -15,42 +13,13 @@ pub enum JsonError {
     #[error("PDU is larger than maximum of 65535 bytes")]
     PduTooLarge,
 
-    /// The field at `path` was expected to be of type `expected`, but was received as `found`.
-    #[error("invalid type at `{path}`: expected {expected:?}, found {found:?}")]
-    InvalidType {
-        /// The path of the invalid field.
-        path: String,
-
-        /// The type that was expected.
-        expected: CanonicalJsonType,
-
-        /// The type that was found.
-        found: CanonicalJsonType,
-    },
-
-    /// A required field is missing from a JSON object.
-    #[error("missing field: `{path}`")]
-    MissingField {
-        /// The path of the missing field.
-        path: String,
-    },
+    /// A field is missing or invalid.
+    #[error(transparent)]
+    Field(#[from] CanonicalJsonFieldError),
 
     /// A more generic JSON error from [`serde_json`].
     #[error(transparent)]
     Serde(#[from] serde_json::Error),
-}
-
-impl From<RedactionError> for JsonError {
-    fn from(err: RedactionError) -> Self {
-        match err {
-            RedactionError::InvalidType { path, expected, found } => {
-                JsonError::InvalidType { path, expected, found }
-            }
-            RedactionError::MissingField { path } => JsonError::MissingField { path },
-            #[allow(unreachable_patterns)]
-            _ => unreachable!(),
-        }
-    }
 }
 
 /// Errors relating to verification of signatures.
@@ -59,7 +28,7 @@ impl From<RedactionError> for JsonError {
 pub enum VerificationError {
     /// The JSON to check is invalid.
     #[error("Invalid JSON: {0}")]
-    Json(#[from] JsonError),
+    Json(JsonError),
 
     /// Parsing a base64-encoded signature failed.
     #[error("Could not parse base64-encoded signature at `path`: {source}")]
@@ -91,10 +60,6 @@ pub enum VerificationError {
     #[error("Could not find signatures for entity {0:?}")]
     NoSignaturesForEntity(String),
 
-    /// The public keys for an entity cannot be found in the public keys map.
-    #[error("Could not find public keys for entity {0:?}")]
-    NoPublicKeysForEntity(String),
-
     /// No signature with a supported algorithm was found for the given entity.
     #[error("Could not find supported signature for entity {0:?}")]
     NoSupportedSignatureForEntity(String),
@@ -102,4 +67,13 @@ pub enum VerificationError {
     /// Error verifying an ed25519 signature.
     #[error(transparent)]
     Ed25519(#[from] Ed25519VerificationError),
+}
+
+impl<T> From<T> for VerificationError
+where
+    T: Into<JsonError>,
+{
+    fn from(value: T) -> Self {
+        Self::Json(value.into())
+    }
 }
