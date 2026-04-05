@@ -225,11 +225,11 @@ impl Package {
             ..self.version.clone()
         };
 
-        let (update, title_start) = if let Some(pos) = changelog.find(&format!("# {version}\n")) {
+        let (update, title_start) = if let Some(pos) = changelog.find(&format!("## {version}\n")) {
             (false, pos)
         } else if update
-            && (changelog.starts_with(&format!("# {version} (unreleased)\n"))
-                || changelog.starts_with("# [unreleased]\n"))
+            && (changelog.starts_with(&format!("## {version} (unreleased)\n"))
+                || changelog.starts_with("## [unreleased]\n"))
         {
             (true, 0)
         } else {
@@ -243,7 +243,7 @@ impl Package {
             }
         };
 
-        let changes_end = match changelog[changes_start..].find("\n# ") {
+        let changes_end = match changelog[changes_start..].find("\n## ") {
             Some(p) => changes_start + p,
             None => changelog.len(),
         };
@@ -255,7 +255,7 @@ impl Package {
 
         if update {
             let rest = &changelog[changes_end..];
-            let changelog = format!("# [unreleased]\n\n# {}\n\n{changes}\n{rest}", self.version);
+            let changelog = format!("## [unreleased]\n\n## {}\n\n{changes}\n{rest}", self.version);
 
             sh.write_file(&changelog_path, changelog)?;
         }
