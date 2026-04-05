@@ -1,5 +1,3 @@
-use std::collections::{HashMap, HashSet};
-
 use js_int::{UInt, uint};
 use ruma_common::{
     EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomVersionId,
@@ -12,7 +10,11 @@ use ruma_events::{StateEventType, TimelineEventType};
 use serde_json::{json, to_value as to_json_value};
 
 use super::{Pdu, default_room_id};
-use crate::{StateMap, auth_types_for_event, events::RoomCreateEvent};
+use crate::{
+    StateMap, auth_types_for_event,
+    events::RoomCreateEvent,
+    utils::{event_id_map::EventIdMap, event_id_set::EventIdSet},
+};
 
 /// A helper type to build a room timeline.
 ///
@@ -40,7 +42,7 @@ pub struct RoomTimelineFactory {
     server_ts: UInt,
 
     /// The PDUs in the room.
-    pdus: HashMap<OwnedEventId, Pdu>,
+    pdus: EventIdMap<OwnedEventId, Pdu>,
 
     /// The ordered list of PDUs in the timeline.
     ///
@@ -95,7 +97,7 @@ impl RoomTimelineFactory {
     }
 
     /// Get a reference to map of PDUs.
-    pub fn pdus(&self) -> &HashMap<OwnedEventId, Pdu> {
+    pub fn pdus(&self) -> &EventIdMap<OwnedEventId, Pdu> {
         &self.pdus
     }
 
@@ -161,8 +163,8 @@ impl RoomTimelineFactory {
     /// Get the full auth chain for the given state map.
     ///
     /// Panics if an event in the auth chain is missing from the map of PDUs.
-    pub fn full_auth_chain(&self, state_map: &StateMap<OwnedEventId>) -> HashSet<OwnedEventId> {
-        let mut auth_chain = HashSet::new();
+    pub fn full_auth_chain(&self, state_map: &StateMap<OwnedEventId>) -> EventIdSet<OwnedEventId> {
+        let mut auth_chain = EventIdSet::new();
         let mut stack = state_map.values().cloned().collect::<Vec<_>>();
 
         while let Some(event_id) = stack.pop() {
@@ -171,7 +173,7 @@ impl RoomTimelineFactory {
             stack.extend(
                 pdu.auth_events
                     .iter()
-                    .filter(|auth_event_id| !auth_chain.contains(*auth_event_id))
+                    .filter(|auth_event_id| !auth_chain.contains(auth_event_id))
                     .cloned(),
             );
 
@@ -229,7 +231,7 @@ impl RoomTimelineFactory {
 
         self.timeline.push(event_id.clone());
 
-        self.pdus.entry(event_id).insert_entry(pdu).into_mut()
+        self.pdus.entry(event_id).insert_entry(pdu)
     }
 
     /// Create an `m.room.member` event prepared to be added to the timeline.

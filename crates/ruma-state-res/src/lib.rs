@@ -74,7 +74,7 @@ mod state_res;
 #[cfg(any(test, feature = "__criterion"))]
 #[doc(hidden)]
 pub mod test_utils;
-mod utils;
+pub mod utils;
 
 pub use self::{
     error::{Error, Result},

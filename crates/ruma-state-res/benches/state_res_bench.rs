@@ -9,7 +9,6 @@
 
 use criterion::{Criterion, criterion_group, criterion_main};
 use js_int::{int, uint};
-use maplit::{hashmap, hashset};
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, RoomVersionId, owned_event_id,
     room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
@@ -21,17 +20,22 @@ use ruma_state_res::{
         PublicChatInitialPdu, RoomMemberPduContent, RoomPowerLevelsPduContent, RoomTimelineFactory,
         UserFactory,
     },
+    utils::{event_id_map::EventIdMap, event_id_set::EventIdSet},
 };
 
 fn reverse_topological_power_sort(c: &mut Criterion) {
     c.bench_function("reverse_topological_power_sort", |b| {
-        let graph = hashmap! {
-            owned_event_id!("$l") => hashset![owned_event_id!("$o")],
-            owned_event_id!("$m") => hashset![owned_event_id!("$n"), owned_event_id!("$o")],
-            owned_event_id!("$n") => hashset![owned_event_id!("$o")],
-            owned_event_id!("$o") => hashset![], // "o" has zero outgoing edges but 4 incoming edges
-            owned_event_id!("$p") => hashset![owned_event_id!("$o")],
-        };
+        let graph = EventIdMap::from([
+            (owned_event_id!("$l"), EventIdSet::from([owned_event_id!("$o")])),
+            (
+                owned_event_id!("$m"),
+                EventIdSet::from([owned_event_id!("$n"), owned_event_id!("$o")]),
+            ),
+            (owned_event_id!("$n"), EventIdSet::from([owned_event_id!("$o")])),
+            (owned_event_id!("$o"), EventIdSet::new()), /* "o" has zero outgoing edges but 4
+                                                         * incoming edges */
+            (owned_event_id!("$p"), EventIdSet::from([owned_event_id!("$o")])),
+        ]);
         b.iter(|| {
             let _ = state_res::reverse_topological_power_sort(&graph, |_id| {
                 Ok((int!(0).into(), MilliSecondsSinceUnixEpoch(uint!(0))))

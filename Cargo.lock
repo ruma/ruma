@@ -2081,7 +2081,6 @@ dependencies = [
  "criterion",
  "insta",
  "js_int",
- "maplit",
  "ruma-common",
  "ruma-events",
  "ruma-signatures",
