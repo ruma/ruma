@@ -13,6 +13,6 @@ Which crates are re-exported can be configured through cargo features.
 Depending on which parts of Matrix are relevant to you, activate the
 following features:
 
-* `client-api` for the client-server API
-* `federation-api` for the server-server (federation) API
-* `appservice-api` for the application service API
+- `client-api` for the client-server API
+- `federation-api` for the server-server (federation) API
+- `appservice-api` for the application service API

@@ -1,0 +1,33 @@
+cache = false
+
+[per-file-ignores]
+"crates/ruma-common/src/doc/*.md" = ["first-line-heading"]
+"crates/ruma-client-api/src/doc/*.md" = ["first-line-heading"]
+"crates/ruma-events/src/doc/*.md" = ["first-line-heading"]
+"crates/ruma-macros/src/doc/*.md" = ["first-line-heading"]
+
+[code-block-style]
+style = "fenced"
+
+[code-fence-style]
+style = "backtick"
+
+[emphasis-style]
+style = "underscore"
+
+[heading-style]
+style = "atx"
+
+[line-length]
+line-length = 100
+code-blocks = false
+tables = false
+
+[ol-prefix]
+style = "ordered"
+
+[strong-style]
+style = "asterisk"
+
+[ul-style]
+style = "dash"

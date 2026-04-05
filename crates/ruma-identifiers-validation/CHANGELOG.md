@@ -1,15 +1,17 @@
-# [unreleased]
+# Changelog
+
+## [unreleased]
 
 Bug fixes:
 
 - Reject server names with an empty host and only a port in
   `server_name::validate()` (e.g. `:8448`).
 
-# 0.12.0
+## 0.12.0
 
 - Bump MSRV to 1.88
 
-# 0.11.0
+## 0.11.0
 
 Breaking changes:
 
@@ -39,13 +41,13 @@ Improvements:
   clarification in the spec.
 - Add `space_child_order::validate`.
 
-# 0.10.1
+## 0.10.1
 
 Improvements:
 
 - Upgrade `thiserror` to 2.0.0.
 
-# 0.10.0
+## 0.10.0
 
 Breaking changes:
 
@@ -62,7 +64,7 @@ Improvements:
 - Add `server_signing_key_version::validate`.
 - Add `base64_public_key::validate`.
 
-# 0.9.5
+## 0.9.5
 
 Bug fixes:
 
@@ -74,11 +76,11 @@ Improvements:
 
 - Point links to the Matrix 1.10 specification
 
-# 0.9.4
+## 0.9.4
 
 Yanked because it was created from the wrong branch
 
-# 0.9.3
+## 0.9.3
 
 Improvements:
 
@@ -91,7 +93,7 @@ Improvements:
 
 [MSC4051]: https://github.com/matrix-org/matrix-spec-proposals/pull/4051
 
-# 0.9.2
+## 0.9.2
 
 Bug fixes:
 
@@ -105,96 +107,96 @@ Improvements:
 - Add `compat-arbitrary-length-ids` Cargo feature for opting out of 255-byte
   length check for all ID types
 
-# 0.9.1
+## 0.9.1
 
 Improvements:
 
-* Update links to the latest version of the Matrix spec
+- Update links to the latest version of the Matrix spec
 
-# 0.9.0
+## 0.9.0
 
 Breaking changes:
 
-* Remove `room_name` module
-  * Room name size limits were never enforced, so they are now just regular
+- Remove `room_name` module
+  - Room name size limits were never enforced, so they are now just regular
     `String`s in Ruma ([Spec change removing the size limit][spec])
 
 [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/3669
 
-# 0.8.1
+## 0.8.1
 
 Improvements:
 
-* Remove unused dependency on `url`
+- Remove unused dependency on `url`
 
-# 0.8.0
+## 0.8.0
 
 Breaking changes:
 
-* Rework the `Error` type (merge / rename variants)
+- Rework the `Error` type (merge / rename variants)
 
-# 0.7.0
+## 0.7.0
 
 Improvements:
 
-* Add more `Error` variants
+- Add more `Error` variants
 
-# 0.6.0
+## 0.6.0
 
 Breaking changes:
 
-* Most validation functions no longer return the colon position on success
+- Most validation functions no longer return the colon position on success
 
 Improvements:
 
-* Add `mxc_uri` validation
+- Add `mxc_uri` validation
 
-# 0.5.0
-
-Breaking changes:
-
-* Make `Error` type non-exhaustive
-
-# 0.4.0
+## 0.5.0
 
 Breaking changes:
 
-* Fix a typo in a public function name: `user_id::localpart_is_fully_conforming`
+- Make `Error` type non-exhaustive
 
-# 0.3.0
+## 0.4.0
 
 Breaking changes:
 
-* Remove the `serde` feature
+- Fix a typo in a public function name: `user_id::localpart_is_fully_conforming`
 
-# 0.2.4
+## 0.3.0
+
+Breaking changes:
+
+- Remove the `serde` feature
+
+## 0.2.4
 
 Improvements:
 
-* Restore the `serde` feature which was accidentally removed in a patch release
+- Restore the `serde` feature which was accidentally removed in a patch release
 
-# 0.2.3
+## 0.2.3
 
 Improvements:
 
-* Add a `compat` feature
-  * Under this feature, more user IDs are accepted that exist in the while but are not
+- Add a `compat` feature
+  - Under this feature, more user IDs are accepted that exist in the while but are not
     spec-compliant
 
-# 0.2.2
+## 0.2.2
 
 Improvements:
 
-* Add verification of `mxc://` URIs
+- Add verification of `mxc://` URIs
 
-# 0.2.1
+## 0.2.1
 
 Improvements:
 
-* Drop unused dependencies
+- Drop unused dependencies
 
-# 0.2.0
+## 0.2.0
 
 Breaking changes:
 
-* Remove `key_algorithms` module (moved to ruma-identifiers as `crypto_algorithms`)
+- Remove `key_algorithms` module (moved to ruma-identifiers as `crypto_algorithms`)
