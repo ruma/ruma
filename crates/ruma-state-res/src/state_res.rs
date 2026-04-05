@@ -372,9 +372,8 @@ fn sort_power_events<E: Event>(
 ///
 /// * `graph` - The graph to sort. A map of event ID to its auth events that are in the full
 ///   conflicted set.
-///
-/// * `event_details_fn` - Function to obtain a (power level, origin_server_ts) of an event for
-///   breaking ties.
+/// * `event_details_fn` - Function to obtain a `(power level, origin_server_ts)` tuple of an event
+///   for breaking ties.
 ///
 /// ## Returns
 ///
@@ -389,13 +388,13 @@ where
     Id: Clone + Eq + Ord + Hash + Borrow<EventId>,
 {
     #[derive(PartialEq, Eq)]
-    struct TieBreaker<'a, Id> {
+    struct TieBreaker<Id> {
         power_level: UserPowerLevel,
         origin_server_ts: MilliSecondsSinceUnixEpoch,
-        event_id: &'a Id,
+        event_id: Id,
     }
 
-    impl<Id> Ord for TieBreaker<'_, Id>
+    impl<Id> Ord for TieBreaker<Id>
     where
         Id: Ord,
     {
@@ -405,11 +404,11 @@ where
                 .power_level
                 .cmp(&self.power_level)
                 .then(self.origin_server_ts.cmp(&other.origin_server_ts))
-                .then(self.event_id.cmp(other.event_id))
+                .then(self.event_id.cmp(&other.event_id))
         }
     }
 
-    impl<Id> PartialOrd for TieBreaker<'_, Id>
+    impl<Id> PartialOrd for TieBreaker<Id>
     where
         Id: Ord,
     {
@@ -422,53 +421,59 @@ where
     // an incoming edge to its auth events.
 
     // Map of event to the list of events in its auth events.
-    let mut outgoing_edges_map = graph.clone();
-
+    let mut outgoing_edges_map = EventIdMap::<_, EventIdSet<_>>::new();
     // Map of event to the list of events that reference it in its auth events.
-    let mut incoming_edges_map: HashMap<_, HashSet<_>> = HashMap::new();
+    let mut incoming_edges_map = EventIdMap::<_, EventIdSet<_>>::new();
+    // List of events with an outdegree of zero. Use a BinaryHeap to keep the events sorted.
+    let mut heap = BinaryHeap::new();
 
-    // Vec of events that have an outdegree of zero (no outgoing edges), i.e. the oldest events.
-    let mut zero_outdegrees = Vec::new();
-
-    // Populate the list of events with an outdegree of zero, and the map of incoming edges.
     for (event_id, outgoing_edges) in graph {
         if outgoing_edges.is_empty() {
             let (power_level, origin_server_ts) = event_details_fn(event_id.borrow())?;
 
             // `Reverse` because `BinaryHeap` sorts largest -> smallest and we need
             // smallest -> largest.
-            zero_outdegrees.push(Reverse(TieBreaker { power_level, origin_server_ts, event_id }));
-        }
+            heap.push(Reverse(TieBreaker {
+                power_level,
+                origin_server_ts,
+                event_id: event_id.clone(),
+            }));
+        } else {
+            for auth_event_id in outgoing_edges {
+                incoming_edges_map
+                    .entry(auth_event_id.borrow())
+                    .or_default()
+                    .insert(event_id.borrow());
+            }
 
-        incoming_edges_map.entry(event_id).or_default();
-
-        for auth_event_id in outgoing_edges {
-            incoming_edges_map.entry(auth_event_id).or_default().insert(event_id);
+            outgoing_edges_map
+                .insert(event_id.clone(), outgoing_edges.iter().map(Borrow::borrow).collect());
         }
     }
 
-    // Use a BinaryHeap to keep the events with an outdegree of zero sorted.
-    let mut heap = BinaryHeap::from(zero_outdegrees);
+    // The final list of sorted event IDs.
     let mut sorted = vec![];
 
     // Apply Kahn's algorithm.
     // https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm
-    while let Some(Reverse(item)) = heap.pop() {
-        let event_id = item.event_id;
+    while let Some(Reverse(TieBreaker { event_id, .. })) = heap.pop() {
+        for parent_id in incoming_edges_map.remove(event_id.borrow()).into_iter().flatten() {
+            let parent_has_zero_outdegrees = {
+                let outgoing_edges = outgoing_edges_map
+                    .get_mut(parent_id)
+                    .expect("outgoing edges map should have a key for all event IDs");
 
-        for &parent_id in incoming_edges_map
-            .get(event_id)
-            .expect("event ID in heap should also be in incoming edges map")
-        {
-            let outgoing_edges = outgoing_edges_map
-                .get_mut(parent_id.borrow())
-                .expect("outgoing edges map should have a key for all event IDs");
-
-            outgoing_edges.remove(event_id.borrow());
+                outgoing_edges.remove(event_id.borrow());
+                outgoing_edges.is_empty()
+            };
 
             // Push on the heap once all the outgoing edges have been removed.
-            if outgoing_edges.is_empty() {
-                let (power_level, origin_server_ts) = event_details_fn(parent_id.borrow())?;
+            if parent_has_zero_outdegrees {
+                let (power_level, origin_server_ts) = event_details_fn(parent_id)?;
+                let (parent_id, _) = outgoing_edges_map
+                    .remove_entry(parent_id)
+                    .expect("outgoing edges map should have a key for all event IDs");
+
                 heap.push(Reverse(TieBreaker {
                     power_level,
                     origin_server_ts,
@@ -477,7 +482,7 @@ where
             }
         }
 
-        sorted.push(event_id.clone());
+        sorted.push(event_id);
     }
 
     Ok(sorted)
