@@ -4,27 +4,26 @@
 
 You need to have valid tokens to create the releases and publish the crates:
 
-* a non-expired GitHub access token with the proper permissions set up in
+- a non-expired GitHub access token with the proper permissions set up in
   `/xtask/config.toml`.
-* a non-expired [crates.io token](https://crates.io/settings/tokens) with the
+- a non-expired [crates.io token](https://crates.io/settings/tokens) with the
   `publish-update` scope and that it is enrolled with `cargo login`
- 
 
 Releasing one of the crates is very simple since it is entirely automated.
 The only thing you have to do is to run
 
-```
+```sh
 cargo xtask release {crate} {version}
 ```
 
 The `xtask` script will then take care of
 
-* updating all affected `Cargo.toml`s
-* adding a new version header to the changelog
-* collecting the changes from the changelog
-* creating a release commit
-* publishing the new release to [crates.io](https://crates.io/)
-* creating a release tag and GitHub release if applicable
+- updating all affected `Cargo.toml`s
+- adding a new version header to the changelog
+- collecting the changes from the changelog
+- creating a release commit
+- publishing the new release to [crates.io](https://crates.io/)
+- creating a release tag and GitHub release if applicable
 
 If some part of `cargo xtask release` fails, for example because of internet
 connectivity issues, you can run the exact same command again to retry. Steps
@@ -39,7 +38,11 @@ all dependents.
 
 ![crate dependencies](./workspace_deps.png)
 
-<small><code>cargo depgraph --all-features --dedup-transitive-deps --workspace-only --build-deps --exclude xtask | dot -Tpng > contrib/workspace_deps.png</code></small>
+To update the graph:
+
+```sh
+cargo depgraph --all-features --dedup-transitive-deps --workspace-only --build-deps --exclude xtask | dot -Tpng > contrib/workspace_deps.png
+```
 
 ## Other repositories
 

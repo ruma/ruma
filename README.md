@@ -1,4 +1,4 @@
-# Ruma – Your home in Matrix.
+# Ruma – Your home in Matrix
 
 A set of [Rust] crates (libraries) for interacting with the [Matrix] chat
 network.

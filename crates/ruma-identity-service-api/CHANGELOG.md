@@ -1,11 +1,13 @@
-# [unreleased]
+# Changelog
+
+## [unreleased]
 
 Breaking changes:
 
 - The endpoints that were using the `NoAuthentication` authentication scheme now
   use `NoAccessToken`.
 
-# 0.13.0
+## 0.13.0
 
 Breaking changes:
 
@@ -13,7 +15,7 @@ Breaking changes:
   `VersionHistory` as `Metadata::PathBuilder`. Making a request doesn't require
   to provide a dummy `SupportedVersions` anymore.
 
-# 0.12.0
+## 0.12.0
 
 Breaking changes:
 
@@ -30,13 +32,13 @@ Improvements:
 - Implement `From<store_invitation::v2::Response>` for
   `RoomThirdPartyEventContent`.
 
-# 0.11.1
+## 0.11.1
 
 Improvements:
 
 - Add `get_supported_versions::Response::as_supported_versions()`.
 
-# 0.11.0
+## 0.11.0
 
 Improvements:
 
@@ -46,14 +48,14 @@ Improvements:
   variable, or inside `.cargo/config.toml`. It can also be enabled by setting
   the `RUMA_UNSTABLE_EXHAUSTIVE_TYPES` environment variable.
 
-# 0.10.0
+## 0.10.0
 
 Breaking changes:
 
 - Change type of `client_secret` field in `ThreePidOwnershipProof`
   from `Box<ClientSecret>` to `OwnedClientSecret`
 
-# 0.9.0
+## 0.9.0
 
 Breaking changes:
 
@@ -63,70 +65,70 @@ Improvements:
 
 - The type returned by `get_supported_versions::known_versions()` was simplified
 
-# 0.8.0
+## 0.8.0
 
 Breaking changes:
 
-* Fix the format of the keys in `invitation::store_invitation::v2::PublicKeys` according to a spec
+- Fix the format of the keys in `invitation::store_invitation::v2::PublicKeys` according to a spec
   clarification
 
-# 0.7.1
+## 0.7.1
 
 Improvements:
 
-* Update links to the latest version of the Matrix spec
+- Update links to the latest version of the Matrix spec
 
-# 0.7.0
+## 0.7.0
 
 No changes for this version
 
-# 0.6.0
+## 0.6.0
 
 Breaking changes:
 
-* Upgrade dependencies
+- Upgrade dependencies
 
-# 0.5.0
+## 0.5.0
 
 Breaking changes:
 
-* Rename `status` to `discovery`
+- Rename `status` to `discovery`
 
 Improvements:
 
-* Add `room_type` to `store_invitation::Request` according to MSC3288
-* Add `discovery::get_supported_versions` according to MSC2320
+- Add `room_type` to `store_invitation::Request` according to MSC3288
+- Add `discovery::get_supported_versions` according to MSC2320
 
-# 0.4.0
-
-Breaking changes:
-
-* Borrow `mxid` in `invitation::sign_invitation_ed25519::v2::Request`
-
-# 0.3.0
+## 0.4.0
 
 Breaking changes:
 
-* Upgrade dependencies
+- Borrow `mxid` in `invitation::sign_invitation_ed25519::v2::Request`
+
+## 0.3.0
+
+Breaking changes:
+
+- Upgrade dependencies
 
 Improvements:
 
-* Add more endpoints:
-  
+- Add more endpoints:
+
   ```rust
   association::unbind_3pid::v2,
   invitation::store_invitation::v2
   ```
 
-# 0.2.0
+## 0.2.0
 
 Breaking changes:
 
-* Make `tos::get_terms_of_service::v2::Policies` non-exhaustive
+- Make `tos::get_terms_of_service::v2::Policies` non-exhaustive
 
 Improvements:
 
-* Add more endpoints:
+- Add more endpoints:
 
   ```rust
   association::{
@@ -136,15 +138,16 @@ Improvements:
   invitation::sign_invitation_ed25519::v2,
   ```
 
-# 0.1.0
+## 0.1.0
 
 Breaking changes:
 
-* Upgrade public dependencies
+- Upgrade public dependencies
 
 Improvements:
 
-* Add more endpoints:
+- Add more endpoints:
+
   ```rust
   association::{
       email::{
@@ -174,7 +177,7 @@ Improvements:
   }
   ```
 
-# 0.0.1
+## 0.0.1
 
 Initial release with the following endpoints:
 

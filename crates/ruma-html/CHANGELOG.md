@@ -1,31 +1,33 @@
-# [unreleased]
+# Changelog
+
+## [unreleased]
 
 Breaking changes:
 
 - Upgrade html5ever to `0.39.0`
 
-# 0.6.0
+## 0.6.0
 
 Breaking changes:
 
 - Upgrade html5ever to `0.35.0`
 
-# 0.5.0
+## 0.5.0
 
 Upgrade `ruma-common` to 0.16.0.
 
-# 0.4.1
+## 0.4.1
 
 Improvements:
 
 - Add unstable support for the `data-mx-external-payment-details` attribute for
   spans, according to MSC4286.
 
-# 0.4.0
+## 0.4.0
 
 Upgrade `ruma-common` to 0.15.0.
 
-# 0.3.0
+## 0.3.0
 
 Breaking Changes:
 
@@ -36,13 +38,13 @@ Breaking Changes:
   - `Html::sanitize()` and `Html::sanitize_with()` take a non-mutable reference.
   - `NodeRef` and `Children` are now owned types and no longer implement `Copy`.
   - `NodeData::Text`'s inner string and the `attrs` field of `ElementData` are
-    now wrapped in `RefCell`s. 
+    now wrapped in `RefCell`s.
 
 Improvements:
 
 - Add support for mathematical messages, according to MSC2191 / Matrix 1.11
 
-# 0.2.0
+## 0.2.0
 
 Breaking Changes:
 
@@ -59,6 +61,6 @@ Improvements:
   elements and attributes suggested by the Matrix Specification, behind the
   `matrix` cargo feature.
 
-# 0.1.0
+## 0.1.0
 
 Initial release
