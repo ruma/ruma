@@ -83,6 +83,8 @@ pub enum CiCmd {
     Typos,
     /// Check whether there are unused cargo features (lint)
     UnusedFeatures,
+    /// Lint markdown files with rumdl (lint)
+    Markdown,
 }
 
 /// Task to run CI tests.
@@ -143,6 +145,7 @@ impl CiTask {
             Some(CiCmd::ReexportFeatures) => check_reexport_features(&self.project_metadata)?,
             Some(CiCmd::Typos) => self.typos()?,
             Some(CiCmd::UnusedFeatures) => check_unused_features(&self.sh, &self.project_metadata)?,
+            Some(CiCmd::Markdown) => self.markdown()?,
             None => {
                 self.msrv()
                     .and(self.stable())
@@ -390,12 +393,15 @@ impl CiTask {
         let reexport_features_res = check_reexport_features(&self.project_metadata);
         // Check whether there are unused cargo features.
         let unused_features_res = check_unused_features(&self.sh, &self.project_metadata);
+        // Check Markdown files.
+        let markdown_res = self.markdown();
 
         sorted_dependencies_res
             .and(unused_dependencies_res)
             .and(spec_links_res)
             .and(reexport_features_res)
             .and(unused_features_res)
+            .and(markdown_res)
     }
 
     /// Check the sorting of dependencies with the nightly version.
@@ -439,6 +445,14 @@ impl CiTask {
             );
         }
         cmd!(&self.sh, "typos").run().map_err(Into::into)
+    }
+
+    /// Check Markdown files.
+    fn markdown(&self) -> Result<()> {
+        if cmd!(&self.sh, "rumdl --version").run().is_err() {
+            return Err("Could not find rumdl. Install it by running `cargo install rumdl`".into());
+        }
+        cmd!(&self.sh, "rumdl check .").run().map_err(Into::into)
     }
 }
 

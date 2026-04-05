@@ -34,15 +34,10 @@ jobs:
       - name: Check spelling
         uses: crate-ci/typos@v1.44.0
 
-      - name: Install cargo-sort
+      - name: Install cargo-sort, cargo-machete and rumdl
         uses: taiki-e/install-action@v2
         with:
-          tool: cargo-sort@2.1.1
-
-      - name: Install cargo-machete
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-machete@0.9.1
+          tool: cargo-sort@2.1.1,cargo-machete@0.9.1,rumdl@0.1.67
 
       - name: Get xtask
         uses: actions/cache@v5
