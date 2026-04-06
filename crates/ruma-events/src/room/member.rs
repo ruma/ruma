@@ -107,6 +107,15 @@ pub struct RoomMemberEventContent {
     #[serde(rename = "join_authorised_via_users_server")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub join_authorized_via_users_server: Option<OwnedUserId>,
+
+    /// Flag indicating all of this user's events should be redacted.
+    #[cfg(feature = "unstable-msc4293")]
+    #[serde(
+        default,
+        rename = "org.matrix.msc4293.redact_events",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub redact_events: Option<bool>,
 }
 
 impl RoomMemberEventContent {
@@ -122,6 +131,8 @@ impl RoomMemberEventContent {
             blurhash: None,
             reason: None,
             join_authorized_via_users_server: None,
+            #[cfg(feature = "unstable-msc4293")]
+            redact_events: None,
         }
     }
 
@@ -233,6 +244,15 @@ pub struct PossiblyRedactedRoomMemberEventContent {
     #[serde(rename = "join_authorised_via_users_server")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub join_authorized_via_users_server: Option<OwnedUserId>,
+
+    /// Flag indicating all of this user's events should be redacted.
+    #[cfg(feature = "unstable-msc4293")]
+    #[serde(
+        default,
+        rename = "org.matrix.msc4293.redact_events",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub redact_events: Option<bool>,
 }
 
 impl PossiblyRedactedRoomMemberEventContent {
@@ -248,6 +268,8 @@ impl PossiblyRedactedRoomMemberEventContent {
             blurhash: None,
             reason: None,
             join_authorized_via_users_server: None,
+            #[cfg(feature = "unstable-msc4293")]
+            redact_events: None,
         }
     }
 
@@ -313,6 +335,8 @@ impl RedactContent for PossiblyRedactedRoomMemberEventContent {
             #[cfg(feature = "unstable-msc2448")]
             blurhash: None,
             reason: None,
+            #[cfg(feature = "unstable-msc4293")]
+            redact_events: None,
         }
     }
 }
@@ -329,6 +353,8 @@ impl From<RoomMemberEventContent> for PossiblyRedactedRoomMemberEventContent {
             blurhash,
             reason,
             join_authorized_via_users_server,
+            #[cfg(feature = "unstable-msc4293")]
+            redact_events,
         } = value;
 
         Self {
@@ -341,6 +367,8 @@ impl From<RoomMemberEventContent> for PossiblyRedactedRoomMemberEventContent {
             blurhash,
             reason,
             join_authorized_via_users_server,
+            #[cfg(feature = "unstable-msc4293")]
+            redact_events,
         }
     }
 }
@@ -363,6 +391,8 @@ impl From<RedactedRoomMemberEventContent> for PossiblyRedactedRoomMemberEventCon
             blurhash: None,
             reason: None,
             join_authorized_via_users_server,
+            #[cfg(feature = "unstable-msc4293")]
+            redact_events: None,
         }
     }
 }
