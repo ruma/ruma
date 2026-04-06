@@ -36,6 +36,14 @@ pub mod v3 {
         /// The reason for banning the user.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub reason: Option<String>,
+
+        /// A flag indicating whether all the user's events should be immediately redacted.
+        #[cfg(feature = "unstable-msc4293")]
+        #[serde(
+            rename = "org.matrix.msc4293.redact_events",
+            skip_serializing_if = "Option::is_none"
+        )]
+        pub redact_events: Option<bool>,
     }
 
     /// Response type for the `ban_user` endpoint.
@@ -46,7 +54,13 @@ pub mod v3 {
     impl Request {
         /// Creates a new `Request` with the given room id and room id.
         pub fn new(room_id: OwnedRoomId, user_id: OwnedUserId) -> Self {
-            Self { room_id, user_id, reason: None }
+            Self {
+                room_id,
+                user_id,
+                reason: None,
+                #[cfg(feature = "unstable-msc4293")]
+                redact_events: None,
+            }
         }
     }
 
