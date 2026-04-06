@@ -1,6 +1,6 @@
 # Changelog
 
-## [unreleased]
+## Unreleased
 
 - The `canonical-json` feature was removed.
 - Bump MSRV to 1.89
