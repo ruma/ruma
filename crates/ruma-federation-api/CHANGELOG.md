@@ -21,6 +21,7 @@ Improvements:
 
 - Add the Policy Server event signing endpoint, according to MSC4284 / Matrix
   1.18.
+- Add unstable support for MSC4447.
 
 ## 0.13.1
 
