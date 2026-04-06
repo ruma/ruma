@@ -113,9 +113,9 @@ pub struct RoomMemberEventContent {
     #[serde(
         default,
         rename = "org.matrix.msc4293.redact_events",
-        skip_serializing_if = "Option::is_none"
+        skip_serializing_if = "ruma_common::serde::is_default"
     )]
-    pub redact_events: Option<bool>,
+    pub redact_events: bool,
 }
 
 impl RoomMemberEventContent {
@@ -132,7 +132,7 @@ impl RoomMemberEventContent {
             reason: None,
             join_authorized_via_users_server: None,
             #[cfg(feature = "unstable-msc4293")]
-            redact_events: None,
+            redact_events: false,
         }
     }
 
@@ -246,13 +246,17 @@ pub struct PossiblyRedactedRoomMemberEventContent {
     pub join_authorized_via_users_server: Option<OwnedUserId>,
 
     /// Flag indicating all of this user's events should be redacted.
+    ///
+    /// This uses the unstable prefix defined in [MSC4293].
+    ///
+    /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
     #[cfg(feature = "unstable-msc4293")]
     #[serde(
         default,
         rename = "org.matrix.msc4293.redact_events",
-        skip_serializing_if = "Option::is_none"
+        skip_serializing_if = "ruma_common::serde::is_default"
     )]
-    pub redact_events: Option<bool>,
+    pub redact_events: bool,
 }
 
 impl PossiblyRedactedRoomMemberEventContent {
@@ -269,7 +273,7 @@ impl PossiblyRedactedRoomMemberEventContent {
             reason: None,
             join_authorized_via_users_server: None,
             #[cfg(feature = "unstable-msc4293")]
-            redact_events: None,
+            redact_events: false,
         }
     }
 
@@ -336,7 +340,7 @@ impl RedactContent for PossiblyRedactedRoomMemberEventContent {
             blurhash: None,
             reason: None,
             #[cfg(feature = "unstable-msc4293")]
-            redact_events: None,
+            redact_events: false,
         }
     }
 }
@@ -392,7 +396,7 @@ impl From<RedactedRoomMemberEventContent> for PossiblyRedactedRoomMemberEventCon
             reason: None,
             join_authorized_via_users_server,
             #[cfg(feature = "unstable-msc4293")]
-            redact_events: None,
+            redact_events: false,
         }
     }
 }
