@@ -92,6 +92,8 @@ Improvements:
   according to MSC4230 / Matrix 1.18.
 - Add support for the `m.room.policy` state event, according to MSC4284 / Matrix
   1.18.
+- Add support for MSC4293 `redact_events` field to `RoomMemberEventContent`,
+  gated behind `unstable-msc4293`.
 
 # 0.32.1
 
