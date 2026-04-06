@@ -229,7 +229,7 @@ impl Package {
             (false, pos)
         } else if update
             && (changelog.starts_with(&format!("## {version} (unreleased)\n"))
-                || changelog.starts_with("## [unreleased]\n"))
+                || changelog.starts_with("## Unreleased\n"))
         {
             (true, 0)
         } else {
@@ -255,7 +255,7 @@ impl Package {
 
         if update {
             let rest = &changelog[changes_end..];
-            let changelog = format!("## [unreleased]\n\n## {}\n\n{changes}\n{rest}", self.version);
+            let changelog = format!("## Unreleased\n\n## {}\n\n{changes}\n{rest}", self.version);
 
             sh.write_file(&changelog_path, changelog)?;
         }

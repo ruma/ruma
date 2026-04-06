@@ -1,6 +1,6 @@
 # Changelog
 
-## [unreleased]
+## Unreleased
 
 ## 0.15.0
 
