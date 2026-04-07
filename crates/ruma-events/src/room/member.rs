@@ -480,6 +480,23 @@ impl RoomMemberEvent {
             Self::Redacted(ev) => &ev.content.membership,
         }
     }
+
+    /// Determines whether the user's events should be redacted based on their membership.
+    ///
+    /// Using [MSC4293], if `redact_events` is `true`, the sender is different to the state key,
+    /// and the membership is `ban` or `leave` (kick), `true` is returned. Otherwise, the flag
+    /// should be ignored, and `false` is returned.
+    ///
+    /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
+    pub fn should_redact_events(&self) -> bool {
+        if let Self::Original(ev) = self {
+            ev.content.redact_events
+                && self.state_key().to_string() != self.sender().to_string()
+                && matches!(ev.content.membership, MembershipState::Ban | MembershipState::Leave)
+        } else {
+            false
+        }
+    }
 }
 
 impl SyncRoomMemberEvent {
@@ -488,6 +505,23 @@ impl SyncRoomMemberEvent {
         match self {
             Self::Original(ev) => &ev.content.membership,
             Self::Redacted(ev) => &ev.content.membership,
+        }
+    }
+
+    /// Determines whether the user's events should be redacted based on their membership.
+    ///
+    /// Using [MSC4293], if `redact_events` is `true`, the sender is different to the state key,
+    /// and the membership is `ban` or `leave` (kick), `true` is returned. Otherwise, the flag
+    /// should be ignored, and `false` is returned.
+    ///
+    /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
+    pub fn should_redact_events(&self) -> bool {
+        if let Self::Original(ev) = self {
+            ev.content.redact_events
+                && self.state_key().to_string() != self.sender().to_string()
+                && matches!(ev.content.membership, MembershipState::Ban | MembershipState::Leave)
+        } else {
+            false
         }
     }
 }
@@ -658,6 +692,19 @@ impl OriginalRoomMemberEvent {
     pub fn membership_change(&self) -> MembershipChange<'_> {
         membership_change(self.details(), self.prev_details(), &self.sender, &self.state_key)
     }
+
+    /// Determines whether the user's events should be redacted based on their membership.
+    ///
+    /// Using [MSC4293], if `redact_events` is `true`, the sender is different to the state key,
+    /// and the membership is `ban` or `leave` (kick), `true` is returned. Otherwise, the flag
+    /// should be ignored, and `false` is returned.
+    ///
+    /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
+    pub fn should_redact_events(&self) -> bool {
+        self.content.redact_events
+            && self.state_key.to_string() != self.sender.to_string()
+            && matches!(self.content.membership, MembershipState::Ban | MembershipState::Leave)
+    }
 }
 
 impl RedactedRoomMemberEvent {
@@ -683,6 +730,18 @@ impl RedactedRoomMemberEvent {
         prev_details: Option<MembershipDetails<'a>>,
     ) -> MembershipChange<'a> {
         membership_change(self.details(), prev_details, &self.sender, &self.state_key)
+    }
+
+    /// Determines whether the user's events should be redacted based on their membership.
+    ///
+    /// Using [MSC4293], if `redact_events` is `true`, the sender is different to the state key,
+    /// and the membership is `ban` or `leave` (kick), `true` is returned. Otherwise, the flag
+    /// should be ignored, and `false` is returned.
+    ///
+    /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
+    pub fn should_redact_events(&self) -> bool {
+        // Redacted room member events lack the redact_events flag - see proposal.
+        false
     }
 }
 
@@ -714,6 +773,19 @@ impl OriginalSyncRoomMemberEvent {
     pub fn membership_change(&self) -> MembershipChange<'_> {
         membership_change(self.details(), self.prev_details(), &self.sender, &self.state_key)
     }
+
+    /// Determines whether the user's events should be redacted based on their membership.
+    ///
+    /// Using [MSC4293], if `redact_events` is `true`, the sender is different to the state key,
+    /// and the membership is `ban` or `leave` (kick), `true` is returned. Otherwise, the flag
+    /// should be ignored, and `false` is returned.
+    ///
+    /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
+    pub fn should_redact_events(&self) -> bool {
+        self.content.redact_events
+            && self.state_key.to_string() != self.sender.to_string()
+            && matches!(self.content.membership, MembershipState::Ban | MembershipState::Leave)
+    }
 }
 
 impl RedactedSyncRoomMemberEvent {
@@ -740,6 +812,18 @@ impl RedactedSyncRoomMemberEvent {
     ) -> MembershipChange<'a> {
         membership_change(self.details(), prev_details, &self.sender, &self.state_key)
     }
+
+    /// Determines whether the user's events should be redacted based on their membership.
+    ///
+    /// Using [MSC4293], if `redact_events` is `true`, the sender is different to the state key,
+    /// and the membership is `ban` or `leave` (kick), `true` is returned. Otherwise, the flag
+    /// should be ignored, and `false` is returned.
+    ///
+    /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
+    pub fn should_redact_events(&self) -> bool {
+        // Redacted room member events lack the redact_events flag - see proposal.
+        false
+    }
 }
 
 impl StrippedRoomMemberEvent {
@@ -765,6 +849,18 @@ impl StrippedRoomMemberEvent {
         prev_details: Option<MembershipDetails<'a>>,
     ) -> MembershipChange<'a> {
         membership_change(self.details(), prev_details, &self.sender, &self.state_key)
+    }
+
+    /// Determines whether the user's events should be redacted based on their membership.
+    ///
+    /// Using [MSC4293], if `redact_events` is `true`, the sender is different to the state key,
+    /// and the membership is `ban` or `leave` (kick), `true` is returned. Otherwise, the flag
+    /// should be ignored, and `false` is returned.
+    ///
+    /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
+    pub fn should_redact_events(&self) -> bool {
+        // Stripped room member events lack the redact_events flag.
+        false
     }
 }
 
