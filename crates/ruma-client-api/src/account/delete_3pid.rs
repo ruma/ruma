@@ -52,4 +52,11 @@ pub mod v3 {
             Self { id_server: None, medium, address }
         }
     }
+
+    impl Response {
+        /// Creates a new `Response` with the given unbind result.
+        pub fn new(id_server_unbind_result: ThirdPartyIdRemovalStatus) -> Self {
+            Self { id_server_unbind_result }
+        }
+    }
 }

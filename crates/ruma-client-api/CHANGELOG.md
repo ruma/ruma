@@ -60,6 +60,7 @@ Bug fixes:
 - In the `search::search_events::v3` module, fix the deserialization of:
   - `Criteria` when the `filter` field is omitted.
   - `SearchResult` when the `context` field is omitted.
+- Add a `new()` method to `account::delete_3pid::v3::Response`, allowing it to be constructed.
 
 Improvements:
 
