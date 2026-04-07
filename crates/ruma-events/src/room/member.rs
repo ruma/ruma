@@ -491,7 +491,7 @@ impl RoomMemberEvent {
     pub fn should_redact_events(&self) -> bool {
         if let Self::Original(ev) = self {
             ev.content.redact_events
-                && self.state_key().to_string() != self.sender().to_string()
+                && *self.state_key() != *self.sender()
                 && matches!(ev.content.membership, MembershipState::Ban | MembershipState::Leave)
         } else {
             false
@@ -518,7 +518,7 @@ impl SyncRoomMemberEvent {
     pub fn should_redact_events(&self) -> bool {
         if let Self::Original(ev) = self {
             ev.content.redact_events
-                && self.state_key().to_string() != self.sender().to_string()
+                && *self.state_key() != *self.sender()
                 && matches!(ev.content.membership, MembershipState::Ban | MembershipState::Leave)
         } else {
             false
@@ -702,7 +702,7 @@ impl OriginalRoomMemberEvent {
     /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
     pub fn should_redact_events(&self) -> bool {
         self.content.redact_events
-            && self.state_key.to_string() != self.sender.to_string()
+            && self.state_key != self.sender
             && matches!(self.content.membership, MembershipState::Ban | MembershipState::Leave)
     }
 }
@@ -783,7 +783,7 @@ impl OriginalSyncRoomMemberEvent {
     /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
     pub fn should_redact_events(&self) -> bool {
         self.content.redact_events
-            && self.state_key.to_string() != self.sender.to_string()
+            && self.state_key != self.sender
             && matches!(self.content.membership, MembershipState::Ban | MembershipState::Leave)
     }
 }
