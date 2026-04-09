@@ -49,6 +49,9 @@ Bug fixes:
 
 Improvements:
 
+- Support `m.key_backup` account data from
+  [MSC4287](https://github.com/matrix-org/matrix-spec-proposals/pull/4287)
+  via a `KeyBackupEventContent` struct.
 - Add `AnyPossiblyRedactedStateEventContent`, an enum containing all the
   possibly redacted state event contents.
   - Add `AnyStrippedStateEvent::content()` to access only the content of the

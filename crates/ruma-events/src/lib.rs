@@ -167,6 +167,7 @@ pub mod image;
 pub mod image_pack;
 pub mod invite_permission_config;
 pub mod key;
+pub mod key_backup;
 #[cfg(feature = "unstable-msc3488")]
 pub mod location;
 pub mod marked_unread;
