@@ -36,6 +36,18 @@ pub mod v3 {
         /// The reason for kicking the user.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub reason: Option<String>,
+
+        /// A flag indicating whether all the user's events should be immediately redacted.
+        ///
+        /// This uses the unstable prefix defined in [MSC4293].
+        ///
+        /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
+        #[cfg(feature = "unstable-msc4293")]
+        #[serde(
+            rename = "org.matrix.msc4293.redact_events",
+            skip_serializing_if = "ruma_common::serde::is_default"
+        )]
+        pub redact_events: bool,
     }
 
     /// Response type for the `kick_user` endpoint.
@@ -46,7 +58,13 @@ pub mod v3 {
     impl Request {
         /// Creates a new `Request` with the given room id and room id.
         pub fn new(room_id: OwnedRoomId, user_id: OwnedUserId) -> Self {
-            Self { room_id, user_id, reason: None }
+            Self {
+                room_id,
+                user_id,
+                reason: None,
+                #[cfg(feature = "unstable-msc4293")]
+                redact_events: false,
+            }
         }
     }
 

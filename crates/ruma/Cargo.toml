@@ -185,6 +185,7 @@ unstable-msc4268 = ["ruma-events?/unstable-msc4268"]
 unstable-msc4274 = ["ruma-events?/unstable-msc4274"]
 unstable-msc4278 = ["ruma-events?/unstable-msc4278"]
 unstable-msc4286 = ["ruma-html?/unstable-msc4286"]
+unstable-msc4293 = ["ruma-client-api?/unstable-msc4293", "ruma-events?/unstable-msc4293"]
 # Thread subscription support.
 unstable-msc4306 = ["ruma-common/unstable-msc4306", "ruma-client-api?/unstable-msc4306"]
 unstable-msc4308 = ["ruma-client-api?/unstable-msc4308"]
