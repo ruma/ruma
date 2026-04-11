@@ -4,11 +4,10 @@
 
 Breaking changes:
 
-- Refactor and improve the variants of `JsonError`:
-  - `NotOfType` and `NotMultiplesOfType` were merged into a single `InvalidType`
-    variant and provide more details about the invalid field.
-  - `JsonFieldMissingFromObject` was renamed to `MissingField` an provides the
-    full path of the missing field.
+- Refactor and improve the variants of `JsonError`: `NotOfType`,
+  `NotMultiplesOfType` and `JsonFieldMissingFromObject` were merged into a
+  single `Field` variant that uses the `CanonicalJsonFieldError` enum from
+  `ruma-common`.
 - The methods on `Ed25519KeyPair` use a separate error enum named
   `Ed25519KeyPairParseError`.
   - `Error::DerParse` is now `Ed25519KeyPairParseError::Pkcs8`.
@@ -46,6 +45,16 @@ Breaking changes:
   and is now infallible.
 - `canonical_json()` was renamed to `to_canonical_json_string_for_signing()` to
   clarify that is is not to be used outside of the signing/verifying context.
+- `verify_event()` takes a type implementing `FetchEntityPublicSigningKey`. It
+  allows to use other types than `PublicKeyMap` that might have better
+  optimizations.
+- `verify_event()` supports checking the signature from the policy server
+  enabled in the room. It takes a `VerifyEventPublicSigningKeys` instead of a
+  `PublicKeyMap`.
+- The `hash_and_sign_event()` was split into two functions `hash_event()` and
+  `sign_event()`. That is because only the server that created the event needs
+  to add the content hash to it, but some servers might need to add an extra
+  signature to an existing event, like policy servers.
 
 Improvements:
 

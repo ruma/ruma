@@ -5,10 +5,11 @@ use std::collections::{BTreeMap, BTreeSet};
 use ruma_common::{
     AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, IdParseError, OwnedEventId,
     OwnedServerName, SigningKeyAlgorithm, SigningKeyId, UserId,
-    canonical_json::{CanonicalJsonType, redact},
+    canonical_json::{CanonicalJsonFieldError, CanonicalJsonObjectExt, CanonicalJsonType, redact},
     room_version_rules::{RoomVersionRules, SignaturesRules},
     serde::{Base64, base64::Standard},
 };
+use ruma_events::room::policy::RoomPolicyEventContent;
 use serde_json::to_string as to_json_string;
 
 #[cfg(test)]
@@ -32,23 +33,25 @@ use crate::{
 ///
 /// # Parameters
 ///
-/// * `public_key_map`: A map from server name to a map from key identifier to public signing key.
-///   [`required_server_signatures_to_verify_event()`] can be called to get the list of servers that
-///   must appear in this map. If any of those servers is missing, this function will return a
-///   [`VerificationError::NoPublicKeysForEntity`] error.
+/// * `public_keys`: A type to get the public signing keys of servers that must have signed the
+///   event.
 /// * `object`: The JSON object of the event that was signed.
 /// * `room_version`: The version of the event's room.
 ///
 /// # Examples
 ///
-/// ```rust
-/// # use std::collections::BTreeMap;
-/// # use ruma_common::RoomVersionId;
-/// # use ruma_common::serde::Base64;
-/// # use ruma_signatures::{verify_event, Verified};
-/// #
-/// const PUBLIC_KEY: &[u8] = b"XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
+/// ```
+/// use ruma_signatures::{
+///     PublicKeyMap, Verified, VerifyEventPublicSigningKeys, verify_event,
+///     required_server_signatures_to_verify_event
+/// };
 ///
+/// # const PUBLIC_KEY: &[u8] = b"XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
+/// # let fetch_public_keys = |domain: &ruma_common::ServerName|  {
+/// #   ruma_signatures::PublicKeySet::from([("ed25519:1".into(), ruma_common::serde::Base64::parse(PUBLIC_KEY.to_owned()).unwrap())])
+/// # };
+/// # let room_version_rules = || { ruma_common::room_version_rules::RoomVersionRules::V6 };
+/// #
 /// // Deserialize an event from JSON.
 /// let object = serde_json::from_str(
 ///     r#"{
@@ -73,76 +76,52 @@ use crate::{
 ///             "age_ts": 1000000
 ///         }
 ///     }"#
-/// ).unwrap();
+/// )?;
 ///
-/// // Create the `PublicKeyMap` that will inform `verify_json` which signatures to verify.
-/// let mut public_key_set = BTreeMap::new();
-/// public_key_set.insert("ed25519:1".into(), Base64::parse(PUBLIC_KEY.to_owned()).unwrap());
-/// let mut public_key_map = BTreeMap::new();
-/// public_key_map.insert("domain".into(), public_key_set);
+/// // Get the rules for the version of the current room.
+/// let rules = room_version_rules();
 ///
-/// // Get the redaction rules for the version of the current room.
-/// let rules =
-///     RoomVersionId::V6.rules().expect("The rules should be known for a supported room version");
+/// // Create the `PublicKeyMap` that contains the public keys of the servers that must sign the event.
+/// let mut public_key_map = PublicKeyMap::new();
 ///
-/// // Verify at least one signature for each entity in `public_key_map`.
-/// let verification_result = verify_event(&public_key_map, &object, &rules);
-/// assert!(verification_result.is_ok());
-/// assert_eq!(verification_result.unwrap(), Verified::All);
+/// for server in required_server_signatures_to_verify_event(&object, &rules.signatures)? {
+///     let public_key_set = fetch_public_keys(&server);
+///     public_key_map.insert(server.into(), public_key_set);
+/// }
+///
+/// // Verify the required signatures on the event.
+/// let verification_result =
+///     verify_event(VerifyEventPublicSigningKeys::new(&public_key_map), &object, &rules)?;
+/// assert_eq!(verification_result, Verified::All);
+/// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
-pub fn verify_event(
-    public_key_map: &PublicKeyMap,
+pub fn verify_event<T: FetchEntityPublicSigningKey>(
+    public_keys: VerifyEventPublicSigningKeys<'_, T>,
     object: &CanonicalJsonObject,
     rules: &RoomVersionRules,
 ) -> Result<Verified, VerificationError> {
-    let redacted = redact(object.clone(), &rules.redaction, None).map_err(JsonError::from)?;
+    let redacted = redact(object.clone(), &rules.redaction, None)?;
+    let canonical_json = to_canonical_json_string_for_signing(&redacted)?;
 
-    let hashes = match object.get("hashes") {
-        Some(CanonicalJsonValue::Object(hashes)) => hashes,
-        Some(value) => {
-            return Err(JsonError::InvalidType {
-                path: "hashes".to_owned(),
-                expected: CanonicalJsonType::Object,
-                found: value.json_type(),
-            }
-            .into());
-        }
-        None => return Err(JsonError::MissingField { path: "hashes".to_owned() }.into()),
-    };
+    let hashes = object.get_as_required_object("hashes", "hashes")?;
+    let hash = hashes.get_as_required_string("sha256", "hashes.sha256")?;
+    let signature_map = object.get_as_required_object("signatures", "signatures")?;
 
-    let hash = match hashes.get("sha256") {
-        Some(CanonicalJsonValue::String(hash)) => hash,
-        Some(value) => {
-            return Err(JsonError::InvalidType {
-                path: "hashes.sha256".to_owned(),
-                expected: CanonicalJsonType::String,
-                found: value.json_type(),
-            }
-            .into());
-        }
-        None => return Err(JsonError::MissingField { path: "hashes.sha256".to_owned() }.into()),
-    };
-
-    let signature_map = match object.get("signatures") {
-        Some(CanonicalJsonValue::Object(signatures)) => signatures,
-        Some(value) => {
-            return Err(JsonError::InvalidType {
-                path: "signatures".to_owned(),
-                expected: CanonicalJsonType::Object,
-                found: value.json_type(),
-            }
-            .into());
-        }
-        None => return Err(JsonError::MissingField { path: "signatures".to_owned() }.into()),
-    };
+    if let Some(room_policy) = public_keys.room_policy {
+        verify_event_policy_server_signature(
+            room_policy,
+            object,
+            signature_map,
+            canonical_json.as_bytes(),
+        )?;
+    }
 
     let servers_to_check = required_server_signatures_to_verify_event(object, &rules.signatures)?;
-    let canonical_json = to_canonical_json_string_for_signing(&redacted)?;
 
     for entity_id in servers_to_check {
         verify_canonical_json_for_entity(
             entity_id.as_str(),
-            public_key_map,
+            public_keys.fetch_homeserver_public_keys,
             signature_map,
             canonical_json.as_bytes(),
         )?;
@@ -159,6 +138,37 @@ pub fn verify_event(
     Ok(Verified::Signatures)
 }
 
+/// Verify that the event has a valid signature from the given policy server.
+///
+/// If the event is an `m.room.policy` event with an empty `state_key` string, this function
+/// succeeds without checking the signature.
+///
+/// For other cases, this returns an error if the signature is missing or invalid.
+fn verify_event_policy_server_signature(
+    room_policy: &RoomPolicyEventContent,
+    object: &CanonicalJsonObject,
+    signature_map: &CanonicalJsonObject,
+    canonical_json: &[u8],
+) -> Result<(), VerificationError> {
+    let event_type = object.get_as_required_string("type", "type")?;
+
+    if event_type == "m.room.policy"
+        && object
+            .get_as_required_string("state_key", "state_key")
+            .is_ok_and(|state_key| state_key.is_empty())
+    {
+        // Don't check the policy server signature.
+        return Ok(());
+    }
+
+    verify_canonical_json_for_entity(
+        room_policy.via.as_str(),
+        room_policy,
+        signature_map,
+        canonical_json,
+    )
+}
+
 /// Uses a set of public keys to verify a signed JSON object.
 ///
 /// Signatures using an unsupported algorithm are ignored, but each entity must have at least one
@@ -170,10 +180,7 @@ pub fn verify_event(
 ///
 /// # Parameters
 ///
-/// * `public_key_map`: A map from entity identifiers to a map from key identifiers to public keys.
-///   Generally, entity identifiers are server names — the host/IP/port of a homeserver (e.g.
-///   `example.com`) for which a signature must be verified. Key identifiers for each server (e.g.
-///   `ed25519:1`) then map to their respective public keys.
+/// * `fetch_public_keys`: A type to get the public signing keys of entities by key ID.
 /// * `object`: The JSON object that was signed.
 ///
 /// # Errors
@@ -182,10 +189,9 @@ pub fn verify_event(
 ///
 /// # Examples
 ///
-/// ```rust
-/// use std::collections::BTreeMap;
-///
+/// ```
 /// use ruma_common::serde::Base64;
+/// use ruma_signatures::{PublicKeyMap, PublicKeySet, verify_json};
 ///
 /// const PUBLIC_KEY: &[u8] = b"XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
 ///
@@ -197,41 +203,30 @@ pub fn verify_event(
 ///                 "ed25519:1": "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"
 ///             }
 ///         }
-///     }"#
-/// ).unwrap();
+///     }"#,
+/// )?;
 ///
 /// // Create the `PublicKeyMap` that will inform `verify_json` which signatures to verify.
-/// let mut public_key_set = BTreeMap::new();
-/// public_key_set.insert("ed25519:1".into(), Base64::parse(PUBLIC_KEY.to_owned()).unwrap());
-/// let mut public_key_map = BTreeMap::new();
+/// let mut public_key_set = PublicKeySet::new();
+/// public_key_set.insert("ed25519:1".into(), Base64::parse(PUBLIC_KEY.to_owned())?);
+/// let mut public_key_map = PublicKeyMap::new();
 /// public_key_map.insert("domain".into(), public_key_set);
 ///
 /// // Verify at least one signature for each entity in `public_key_map`.
-/// assert!(ruma_signatures::verify_json(&public_key_map, &object).is_ok());
+/// assert!(verify_json(&public_key_map, &object).is_ok());
+/// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 pub fn verify_json(
-    public_key_map: &PublicKeyMap,
+    fetch_public_keys: &impl FetchEntityPublicSigningKey,
     object: &CanonicalJsonObject,
 ) -> Result<(), VerificationError> {
-    let signature_map = match object.get("signatures") {
-        Some(CanonicalJsonValue::Object(signatures)) => signatures,
-        Some(value) => {
-            return Err(JsonError::InvalidType {
-                path: "signatures".to_owned(),
-                expected: CanonicalJsonType::Object,
-                found: value.json_type(),
-            }
-            .into());
-        }
-        None => return Err(JsonError::MissingField { path: "signatures".to_owned() }.into()),
-    };
-
+    let signature_map = object.get_as_required_object("signatures", "signatures")?;
     let canonical_json = to_canonical_json_string_for_signing(object)?;
 
     for entity_id in signature_map.keys() {
         verify_canonical_json_for_entity(
             entity_id,
-            public_key_map,
+            fetch_public_keys,
             signature_map,
             canonical_json.as_bytes(),
         )?;
@@ -324,7 +319,7 @@ pub(crate) fn to_canonical_json_string_with_fields_to_remove(
 /// # Parameters
 ///
 /// * `entity_id`: The entity to check the signatures for.
-/// * `public_key_map`: A map from entity identifiers to a map from key identifiers to public keys.
+/// * `fetch_public_keys`: A type to get the public signing keys of servers by key ID.
 /// * `signature_map`: The map of signatures from the signed JSON object.
 /// * `canonical_json`: The signed canonical JSON bytes. Can be obtained by calling
 ///   [`to_canonical_json_string_for_signing()`].
@@ -336,31 +331,18 @@ pub(crate) fn to_canonical_json_string_with_fields_to_remove(
 /// [checking signatures]: https://spec.matrix.org/v1.18/appendices/#checking-for-a-signature
 fn verify_canonical_json_for_entity(
     entity_id: &str,
-    public_key_map: &PublicKeyMap,
+    fetch_public_keys: &impl FetchEntityPublicSigningKey,
     signature_map: &CanonicalJsonObject,
     canonical_json: &[u8],
 ) -> Result<(), VerificationError> {
-    let signature_set = match signature_map.get(entity_id) {
-        Some(CanonicalJsonValue::Object(set)) => set,
-        Some(value) => {
-            return Err(JsonError::InvalidType {
-                path: format!("signatures.{entity_id}"),
-                expected: CanonicalJsonType::Object,
-                found: value.json_type(),
-            }
-            .into());
-        }
-        None => return Err(VerificationError::NoSignaturesForEntity(entity_id.to_owned())),
-    };
-
-    let public_keys = public_key_map
-        .get(entity_id)
-        .ok_or_else(|| VerificationError::NoPublicKeysForEntity(entity_id.to_owned()))?;
+    let signature_set = signature_map
+        .get_as_object(entity_id, format!("signatures.{entity_id}"))?
+        .ok_or_else(|| VerificationError::NoSignaturesForEntity(entity_id.to_owned()))?;
 
     let mut checked = false;
     for (key_id, signature) in signature_set {
         // If the key is not in the map of public keys, ignore.
-        let Some(public_key) = public_keys.get(key_id) else {
+        let Some(public_key) = fetch_public_keys.public_signing_key(entity_id, key_id) else {
             continue;
         };
 
@@ -375,7 +357,7 @@ fn verify_canonical_json_for_entity(
         };
 
         let CanonicalJsonValue::String(signature) = signature else {
-            return Err(JsonError::InvalidType {
+            return Err(CanonicalJsonFieldError::InvalidType {
                 path: format!("signatures.{entity_id}.{key_id}"),
                 expected: CanonicalJsonType::String,
                 found: signature.json_type(),
@@ -390,12 +372,7 @@ fn verify_canonical_json_for_entity(
             }
         })?;
 
-        verify_canonical_json_with(
-            &verifier,
-            public_key.as_bytes(),
-            signature.as_bytes(),
-            canonical_json,
-        )?;
+        verify_canonical_json_with(&verifier, public_key, signature.as_bytes(), canonical_json)?;
         checked = true;
     }
 
@@ -449,68 +426,43 @@ pub fn required_server_signatures_to_verify_event(
     let mut servers_to_check = BTreeSet::new();
 
     if !is_invite_via_third_party_id(object)? {
-        match object.get("sender") {
-            Some(CanonicalJsonValue::String(raw_sender)) => {
-                let user_id = <&UserId>::try_from(raw_sender.as_str()).map_err(|source| {
-                    VerificationError::ParseIdentifier { identifier_type: "user ID", source }
-                })?;
+        let sender = object.get_as_required_string("sender", "sender")?;
+        let user_id = <&UserId>::try_from(sender).map_err(|source| {
+            VerificationError::ParseIdentifier { identifier_type: "user ID", source }
+        })?;
 
-                servers_to_check.insert(user_id.server_name().to_owned());
-            }
-            Some(value) => {
-                return Err(JsonError::InvalidType {
-                    path: "sender".to_owned(),
-                    expected: CanonicalJsonType::String,
-                    found: value.json_type(),
-                }
-                .into());
-            }
-            _ => return Err(JsonError::MissingField { path: "sender".to_owned() }.into()),
-        }
+        servers_to_check.insert(user_id.server_name().to_owned());
     }
 
     if rules.check_event_id_server {
-        match object.get("event_id") {
-            Some(CanonicalJsonValue::String(raw_event_id)) => {
-                let event_id: OwnedEventId = raw_event_id.parse().map_err(|source| {
-                    VerificationError::ParseIdentifier { identifier_type: "event ID", source }
-                })?;
+        let raw_event_id = object.get_as_required_string("event_id", "event_id")?;
+        let event_id: OwnedEventId = raw_event_id.parse().map_err(|source| {
+            VerificationError::ParseIdentifier { identifier_type: "event ID", source }
+        })?;
 
-                let server_name =
-                    event_id.server_name().map(ToOwned::to_owned).ok_or_else(|| {
-                        VerificationError::ParseIdentifier {
-                            identifier_type: "event ID",
-                            source: IdParseError::InvalidServerName,
-                        }
-                    })?;
+        let server_name = event_id.server_name().map(ToOwned::to_owned).ok_or_else(|| {
+            VerificationError::ParseIdentifier {
+                identifier_type: "event ID",
+                source: IdParseError::InvalidServerName,
+            }
+        })?;
 
-                servers_to_check.insert(server_name);
-            }
-            Some(value) => {
-                return Err(JsonError::InvalidType {
-                    path: "event_id".to_owned(),
-                    expected: CanonicalJsonType::String,
-                    found: value.json_type(),
-                }
-                .into());
-            }
-            _ => {
-                return Err(JsonError::MissingField { path: "event_id".to_owned() }.into());
-            }
-        }
+        servers_to_check.insert(server_name);
     }
 
     if rules.check_join_authorised_via_users_server
         && let Some(authorized_user) = object
             .get("content")
             .and_then(|c| c.as_object())
-            .and_then(|c| c.get("join_authorised_via_users_server"))
+            .map(|c| {
+                c.get_as_string(
+                    "join_authorised_via_users_server",
+                    "content.join_authorised_via_users_server",
+                )
+            })
+            .transpose()?
+            .flatten()
     {
-        let authorized_user = authorized_user.as_str().ok_or_else(|| JsonError::InvalidType {
-            path: "content.join_authorised_via_users_server".to_owned(),
-            expected: CanonicalJsonType::String,
-            found: authorized_user.json_type(),
-        })?;
         let authorized_user = <&UserId>::try_from(authorized_user).map_err(|source| {
             VerificationError::ParseIdentifier { identifier_type: "user ID", source }
         })?;
@@ -526,61 +478,20 @@ pub fn required_server_signatures_to_verify_event(
 ///
 /// Returns an error if the object has not the expected format of an `m.room.member` event.
 fn is_invite_via_third_party_id(object: &CanonicalJsonObject) -> Result<bool, JsonError> {
-    let raw_type = match object.get("type") {
-        Some(CanonicalJsonValue::String(raw_type)) => raw_type,
-        Some(value) => {
-            return Err(JsonError::InvalidType {
-                path: "type".to_owned(),
-                expected: CanonicalJsonType::String,
-                found: value.json_type(),
-            });
-        }
-        None => return Err(JsonError::MissingField { path: "type".to_owned() }),
-    };
+    let event_type = object.get_as_required_string("type", "type")?;
 
-    if raw_type != "m.room.member" {
+    if event_type != "m.room.member" {
         return Ok(false);
     }
 
-    let content = match object.get("content") {
-        Some(CanonicalJsonValue::Object(content)) => content,
-        Some(value) => {
-            return Err(JsonError::InvalidType {
-                path: "content".to_owned(),
-                expected: CanonicalJsonType::Object,
-                found: value.json_type(),
-            });
-        }
-        None => return Err(JsonError::MissingField { path: "content".to_owned() }),
-    };
-
-    let membership = match content.get("membership") {
-        Some(CanonicalJsonValue::String(membership)) => membership,
-        Some(value) => {
-            return Err(JsonError::InvalidType {
-                path: "content.membership".to_owned(),
-                expected: CanonicalJsonType::String,
-                found: value.json_type(),
-            });
-        }
-        None => {
-            return Err(JsonError::MissingField { path: "content.membership".to_owned() });
-        }
-    };
+    let content = object.get_as_required_object("content", "content")?;
+    let membership = content.get_as_required_string("membership", "content.membership")?;
 
     if membership != "invite" {
         return Ok(false);
     }
 
-    match content.get("third_party_invite") {
-        Some(CanonicalJsonValue::Object(_)) => Ok(true),
-        Some(value) => Err(JsonError::InvalidType {
-            path: "content.third_party_invite".to_owned(),
-            expected: CanonicalJsonType::Object,
-            found: value.json_type(),
-        }),
-        None => Ok(false),
-    }
+    Ok(content.get_as_object("third_party_invite", "content.third_party_invite")?.is_some())
 }
 
 /// A digital signature verifier.
@@ -643,3 +554,73 @@ pub type PublicKeyMap = BTreeMap<String, PublicKeySet>;
 ///
 /// This is represented as a map from key ID to base64-encoded signature.
 pub type PublicKeySet = BTreeMap<String, Base64>;
+
+/// A trait implemented by types that allow to get the public signing keys for a given entity.
+pub trait FetchEntityPublicSigningKey {
+    /// Get the bytes of the public signing key with the given ID for the given entity.
+    fn public_signing_key(&self, entity: &str, key_id: &str) -> Option<&[u8]>;
+}
+
+impl<T> FetchEntityPublicSigningKey for &T
+where
+    T: FetchEntityPublicSigningKey,
+{
+    fn public_signing_key(&self, entity: &str, key_id: &str) -> Option<&[u8]> {
+        (*self).public_signing_key(entity, key_id)
+    }
+}
+
+impl<Entity, KeyId> FetchEntityPublicSigningKey for BTreeMap<Entity, BTreeMap<KeyId, Base64>>
+where
+    Entity: std::borrow::Borrow<str> + Ord,
+    KeyId: std::borrow::Borrow<str> + Ord,
+{
+    fn public_signing_key(&self, entity: &str, key_id: &str) -> Option<&[u8]> {
+        self.get(entity)?.get(key_id).map(Base64::as_bytes)
+    }
+}
+
+impl FetchEntityPublicSigningKey for RoomPolicyEventContent {
+    fn public_signing_key(&self, entity: &str, key_id: &str) -> Option<&[u8]> {
+        if entity != self.via
+            || key_id != RoomPolicyEventContent::POLICY_SERVER_ED25519_SIGNING_KEY_ID
+        {
+            return None;
+        }
+
+        self.public_keys.get(&SigningKeyAlgorithm::Ed25519).map(Base64::as_bytes)
+    }
+}
+
+/// Type to get the public signing keys necessary to verify the signatures on an event.
+#[derive(Debug, Clone, Copy)]
+#[non_exhaustive]
+pub struct VerifyEventPublicSigningKeys<'a, T: FetchEntityPublicSigningKey> {
+    /// Type to get the public signing keys of homeservers that are required to sign the event.
+    ///
+    /// [`required_server_signatures_to_verify_event()`] can be called to get the list of servers
+    /// that will be accessed in [`verify_event()`].
+    pub fetch_homeserver_public_keys: &'a T,
+
+    /// The `m.room.policy` event content for the [policy server enabled in the room], if any.
+    ///
+    /// If this is set, all events will be checked to have a signature by the policy server, except
+    /// `m.room.policy` events with an empty `state_key` string.
+    ///
+    /// [policy server enabled in the room]: https://spec.matrix.org/v1.18/server-server-api/#determining-if-a-policy-server-is-enabled-in-a-room
+    pub room_policy: Option<&'a RoomPolicyEventContent>,
+}
+
+impl<'a, T: FetchEntityPublicSigningKey> VerifyEventPublicSigningKeys<'a, T> {
+    /// Construct a new `VerifyEventPublicSigningKeys` with the given type to get the public signing
+    /// keys of homeservers.
+    pub fn new(fetch_homeserver_public_keys: &'a T) -> Self {
+        Self { fetch_homeserver_public_keys, room_policy: None }
+    }
+
+    /// Set the policy server in the current state of the room.
+    pub fn with_room_policy(mut self, room_policy: Option<&'a RoomPolicyEventContent>) -> Self {
+        self.room_policy = room_policy;
+        self
+    }
+}
