@@ -9,6 +9,8 @@ use ruma_common::{
 };
 use web_time::{Duration, SystemTime};
 
+#[cfg(feature = "unstable-msc4406")]
+use crate::OwnedUserId;
 use crate::PrivOwnedStr;
 
 /// An enum for the error kind.
@@ -209,6 +211,14 @@ pub enum ErrorKind {
     ///
     /// [room alias]: https://spec.matrix.org/v1.18/client-server-api/#room-aliases
     RoomInUse,
+
+    /// `M_SENDER_IGNORED`
+    ///
+    /// The sender of the requested event is ignored by the requesting user. ([MSC])
+    ///
+    /// [MSC]: https://github.com/nexy7574/matrix-spec-proposals/blob/nexy7574/m_sender_ignored/proposals/4406-m-sender-ignored.md
+    #[cfg(feature = "unstable-msc4406")]
+    SenderIgnored(SenderIgnoredErrorData),
 
     /// `M_SERVER_NOT_TRUSTED`
     ///
@@ -421,6 +431,8 @@ impl ErrorKind {
             ErrorKind::NotYetUploaded => ErrorCode::NotYetUploaded,
             ErrorKind::ResourceLimitExceeded(_) => ErrorCode::ResourceLimitExceeded,
             ErrorKind::RoomInUse => ErrorCode::RoomInUse,
+            #[cfg(feature = "unstable-msc4406")]
+            ErrorKind::SenderIgnored(_) => ErrorCode::SenderIgnored,
             ErrorKind::ServerNotTrusted => ErrorCode::ServerNotTrusted,
             ErrorKind::ThreepidAuthFailed => ErrorCode::ThreepidAuthFailed,
             ErrorKind::ThreepidDenied => ErrorCode::ThreepidDenied,
@@ -556,6 +568,23 @@ impl ResourceLimitExceededErrorData {
     /// Construct a new `ResourceLimitExceededErrorData` with the given admin contact URI.
     pub fn new(admin_contact: String) -> Self {
         Self { admin_contact }
+    }
+}
+
+/// Data for the `M_SENDER_IGNORED` [`ErrorKind`].
+#[cfg(feature = "unstable-msc4406")]
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct SenderIgnoredErrorData {
+    /// The user who sent the ignored event.
+    pub sender: Option<OwnedUserId>,
+}
+
+#[cfg(feature = "unstable-msc4406")]
+impl SenderIgnoredErrorData {
+    /// Construct a new `SenderIgnoredErrorData` with the given sender user.
+    pub fn new(sender: Option<OwnedUserId>) -> Self {
+        Self { sender }
     }
 }
 
@@ -836,6 +865,15 @@ pub enum ErrorCode {
     ///
     /// [room alias]: https://spec.matrix.org/v1.18/client-server-api/#room-aliases
     RoomInUse,
+
+    /// `M_SENDER_IGNORED`
+    ///
+    /// The sender of the requested event is ignored by the requesting user. ([MSC])
+    ///
+    /// [MSC]: https://github.com/nexy7574/matrix-spec-proposals/blob/nexy7574/m_sender_ignored/proposals/4406-m-sender-ignored.md
+    #[cfg(feature = "unstable-msc4406")]
+    #[ruma_enum(rename = "UK.TIMEDOUT.MSC4406.SENDER_IGNORED")]
+    SenderIgnored,
 
     /// `M_SERVER_NOT_TRUSTED`
     ///

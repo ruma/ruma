@@ -13,6 +13,8 @@ use super::{
     LimitExceededErrorData, ResourceLimitExceededErrorData, RetryAfter, UnknownTokenErrorData,
     UserLimitExceededErrorData, WrongRoomKeysVersionErrorData,
 };
+#[cfg(feature = "unstable-msc4406")]
+use crate::{OwnedUserId, api::error::SenderIgnoredErrorData};
 
 enum Field<'de> {
     ErrorCode,
@@ -25,6 +27,8 @@ enum Field<'de> {
     CurrentVersion,
     InfoUri,
     CanUpgrade,
+    #[cfg(feature = "unstable-msc4406")]
+    Sender,
     Other(Cow<'de, str>),
 }
 
@@ -41,6 +45,8 @@ impl<'de> Field<'de> {
             "current_version" => Self::CurrentVersion,
             "info_uri" => Self::InfoUri,
             "can_upgrade" => Self::CanUpgrade,
+            #[cfg(feature = "unstable-msc4406")]
+            "sender" => Self::Sender,
             _ => Self::Other(s),
         }
     }
@@ -109,6 +115,8 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
         let mut current_version = None;
         let mut info_uri = None;
         let mut can_upgrade = None;
+        #[cfg(feature = "unstable-msc4406")]
+        let mut sender = None;
         let mut data = JsonObject::new();
 
         macro_rules! set_field {
@@ -136,6 +144,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             (@variant_containing current_version) => { ErrorCode::WrongRoomKeysVersion };
             (@variant_containing info_uri) => { ErrorCode::UserLimitExceeded };
             (@variant_containing can_upgrade) => { ErrorCode::UserLimitExceeded };
+            (@variant_containing sender) => { ErrorCode::SenderIgnored };
             (@inner $field:ident) => {
                 {
                     if $field.is_some() {
@@ -158,6 +167,8 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                 Field::CurrentVersion => set_field!(current_version),
                 Field::InfoUri => set_field!(info_uri),
                 Field::CanUpgrade => set_field!(can_upgrade),
+                #[cfg(feature = "unstable-msc4406")]
+                Field::Sender => set_field!(sender),
                 Field::Other(other) => match data.entry(other.into_owned()) {
                     Entry::Vacant(v) => {
                         v.insert(map.next_value()?);
@@ -236,6 +247,14 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                 })
             }
             ErrorCode::RoomInUse => ErrorKind::RoomInUse,
+            #[cfg(feature = "unstable-msc4406")]
+            ErrorCode::SenderIgnored => ErrorKind::SenderIgnored(SenderIgnoredErrorData {
+                sender: sender
+                    .map(from_json_value::<Option<OwnedUserId>>)
+                    .transpose()
+                    .map_err(de::Error::custom)?
+                    .flatten(),
+            }),
             ErrorCode::ServerNotTrusted => ErrorKind::ServerNotTrusted,
             ErrorCode::ThreepidAuthFailed => ErrorKind::ThreepidAuthFailed,
             ErrorCode::ThreepidDenied => ErrorKind::ThreepidDenied,
@@ -347,6 +366,12 @@ impl Serialize for ErrorKind {
             }
             Self::WrongRoomKeysVersion(WrongRoomKeysVersionErrorData { current_version }) => {
                 st.serialize_entry("current_version", current_version)?;
+            }
+            #[cfg(feature = "unstable-msc4406")]
+            Self::SenderIgnored(SenderIgnoredErrorData { sender }) => {
+                if let Some(sender) = sender {
+                    st.serialize_entry("sender", sender)?;
+                }
             }
             Self::_Custom(CustomErrorKind { data, .. }) => {
                 for (k, v) in data {
