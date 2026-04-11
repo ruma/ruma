@@ -74,6 +74,7 @@ Improvements:
 - `CanonicalJsonValue::json_type()` allows to get the `JsonType` of a value.
 - Add `FeatureFlag::Msc4323`, the unstable feature flag for the user suspension
   and locking endpoints, according to MSC4323.
+- Add unstable support for MSC4406.
 
 ## 0.17.1
 
