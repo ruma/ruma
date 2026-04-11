@@ -216,7 +216,7 @@ pub enum ErrorKind {
     ///
     /// The sender of the requested event is ignored by the requesting user. ([MSC])
     ///
-    /// [MSC]: https://github.com/nexy7574/matrix-spec-proposals/blob/nexy7574/m_sender_ignored/proposals/4406-m-sender-ignored.md
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4406
     #[cfg(feature = "unstable-msc4406")]
     SenderIgnored(SenderIgnoredErrorData),
 
@@ -573,7 +573,7 @@ impl ResourceLimitExceededErrorData {
 
 /// Data for the `M_SENDER_IGNORED` [`ErrorKind`].
 #[cfg(feature = "unstable-msc4406")]
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SenderIgnoredErrorData {
     /// The user who sent the ignored event.
@@ -582,9 +582,14 @@ pub struct SenderIgnoredErrorData {
 
 #[cfg(feature = "unstable-msc4406")]
 impl SenderIgnoredErrorData {
+    /// Construct a new empty `SenderIgnoredErrorData`.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     /// Construct a new `SenderIgnoredErrorData` with the given sender user.
-    pub fn new(sender: Option<OwnedUserId>) -> Self {
-        Self { sender }
+    pub fn with_sender(sender: OwnedUserId) -> Self {
+        Self { sender: Some(sender) }
     }
 }
 
@@ -870,7 +875,7 @@ pub enum ErrorCode {
     ///
     /// The sender of the requested event is ignored by the requesting user. ([MSC])
     ///
-    /// [MSC]: https://github.com/nexy7574/matrix-spec-proposals/blob/nexy7574/m_sender_ignored/proposals/4406-m-sender-ignored.md
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4406
     #[cfg(feature = "unstable-msc4406")]
     #[ruma_enum(rename = "UK.TIMEDOUT.MSC4406.SENDER_IGNORED")]
     SenderIgnored,
