@@ -422,7 +422,7 @@ where
     // an incoming edge to its auth events.
 
     // Map of event to the list of events in its auth events.
-    let mut outgoing_edges_map = graph.clone();
+    let mut outgoing_edges_map: HashMap<_, HashSet<_>> = HashMap::new();
 
     // Map of event to the list of events that reference it in its auth events.
     let mut incoming_edges_map: HashMap<_, HashSet<_>> = HashMap::new();
@@ -430,7 +430,8 @@ where
     // Vec of events that have an outdegree of zero (no outgoing edges), i.e. the oldest events.
     let mut zero_outdegrees = Vec::new();
 
-    // Populate the list of events with an outdegree of zero, and the map of incoming edges.
+    // Populate the list of events with an outdegree of zero, and the maps of incoming and outgoing
+    // edges with the graph.
     for (event_id, outgoing_edges) in graph {
         if outgoing_edges.is_empty() {
             let (power_level, origin_server_ts) = event_details_fn(event_id.borrow())?;
@@ -442,6 +443,9 @@ where
             for auth_event_id in outgoing_edges {
                 incoming_edges_map.entry(auth_event_id).or_default().insert(event_id);
             }
+
+            outgoing_edges_map
+                .insert(event_id.clone(), outgoing_edges.iter().map(Borrow::borrow).collect());
         }
     }
 
