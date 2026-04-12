@@ -1,4 +1,4 @@
-//! GET /_matrix/federation/v1/query/edutypes
+//! GET `/_matrix/federation/*/query/edutypes`
 //!
 //! Determine what types of EDUs a server wishes to receive.
 
@@ -30,9 +30,11 @@ pub mod unstable {
         /// Whether presence EDUs should be sent/received
         #[serde(rename = "m.presence", default = "ruma_common::serde::default_true")]
         pub presence: bool,
+
         /// Whether read receipt EDUs should be sent/received
         #[serde(rename = "m.receipt", default = "ruma_common::serde::default_true")]
         pub receipt: bool,
+
         /// Whether typing EDUs should be sent/received
         #[serde(rename = "m.typing", default = "ruma_common::serde::default_true")]
         pub typing: bool,
@@ -46,7 +48,7 @@ pub mod unstable {
     }
 
     impl Response {
-        /// Creates a new `Response` with default EDU flags.
+        /// Creates a new `Response` with all EDU flags set to `true`.
         pub fn new() -> Self {
             Self::default()
         }
