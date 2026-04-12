@@ -389,13 +389,13 @@ where
     Id: Clone + Eq + Ord + Hash + Borrow<EventId>,
 {
     #[derive(PartialEq, Eq)]
-    struct TieBreaker<'a, Id> {
+    struct TieBreaker<Id> {
         power_level: UserPowerLevel,
         origin_server_ts: MilliSecondsSinceUnixEpoch,
-        event_id: &'a Id,
+        event_id: Id,
     }
 
-    impl<Id> Ord for TieBreaker<'_, Id>
+    impl<Id> Ord for TieBreaker<Id>
     where
         Id: Ord,
     {
@@ -405,11 +405,11 @@ where
                 .power_level
                 .cmp(&self.power_level)
                 .then(self.origin_server_ts.cmp(&other.origin_server_ts))
-                .then(self.event_id.cmp(other.event_id))
+                .then(self.event_id.cmp(&other.event_id))
         }
     }
 
-    impl<Id> PartialOrd for TieBreaker<'_, Id>
+    impl<Id> PartialOrd for TieBreaker<Id>
     where
         Id: Ord,
     {
@@ -438,7 +438,11 @@ where
 
             // `Reverse` because `BinaryHeap` sorts largest -> smallest and we need
             // smallest -> largest.
-            zero_outdegrees.push(Reverse(TieBreaker { power_level, origin_server_ts, event_id }));
+            zero_outdegrees.push(Reverse(TieBreaker {
+                power_level,
+                origin_server_ts,
+                event_id: event_id.clone(),
+            }));
         } else {
             for auth_event_id in outgoing_edges {
                 incoming_edges_map.entry(auth_event_id).or_default().insert(event_id);
@@ -455,19 +459,26 @@ where
 
     // Apply Kahn's algorithm.
     // https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm
-    while let Some(Reverse(item)) = heap.pop() {
-        let event_id = item.event_id;
+    while let Some(Reverse(TieBreaker { event_id, .. })) = heap.pop() {
+        for &parent_id in incoming_edges_map.get(&event_id).into_iter().flatten() {
+            let parent_has_zero_outdegrees = {
+                let outgoing_edges = outgoing_edges_map.get_mut(parent_id.borrow()).expect(
+                    "outgoing edges map should have a key for all event IDs with outgoing edges",
+                );
 
-        for &parent_id in incoming_edges_map.get(event_id).into_iter().flatten() {
-            let outgoing_edges = outgoing_edges_map
-                .get_mut(parent_id.borrow())
-                .expect("outgoing edges map should have a key for all event IDs");
-
-            outgoing_edges.remove(event_id.borrow());
+                outgoing_edges.remove(event_id.borrow());
+                outgoing_edges.is_empty()
+            };
 
             // Push on the heap once all the outgoing edges have been removed.
-            if outgoing_edges.is_empty() {
+            if parent_has_zero_outdegrees {
                 let (power_level, origin_server_ts) = event_details_fn(parent_id.borrow())?;
+                // Because the parent has no more outgoing edges, we can remove its entry from the
+                // outgoing edges map to get the owned event ID used for the key.
+                let (parent_id, _) = outgoing_edges_map
+                    .remove_entry(parent_id.borrow())
+                    .expect("outgoing edges map should have a key for all event IDs");
+
                 heap.push(Reverse(TieBreaker {
                     power_level,
                     origin_server_ts,
@@ -476,7 +487,7 @@ where
             }
         }
 
-        sorted.push(event_id.clone());
+        sorted.push(event_id);
     }
 
     Ok(sorted)
