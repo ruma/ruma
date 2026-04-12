@@ -428,7 +428,8 @@ where
     let mut incoming_edges_map: HashMap<_, HashSet<_>> = HashMap::new();
 
     // Vec of events that have an outdegree of zero (no outgoing edges), i.e. the oldest events.
-    let mut zero_outdegrees = Vec::new();
+    // Use a BinaryHeap to keep the events sorted.
+    let mut heap = BinaryHeap::new();
 
     // Populate the list of events with an outdegree of zero, and the maps of incoming and outgoing
     // edges with the graph.
@@ -438,7 +439,7 @@ where
 
             // `Reverse` because `BinaryHeap` sorts largest -> smallest and we need
             // smallest -> largest.
-            zero_outdegrees.push(Reverse(TieBreaker {
+            heap.push(Reverse(TieBreaker {
                 power_level,
                 origin_server_ts,
                 event_id: event_id.clone(),
@@ -453,8 +454,6 @@ where
         }
     }
 
-    // Use a BinaryHeap to keep the events with an outdegree of zero sorted.
-    let mut heap = BinaryHeap::from(zero_outdegrees);
     let mut sorted = vec![];
 
     // Apply Kahn's algorithm.
