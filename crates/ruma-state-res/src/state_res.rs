@@ -422,10 +422,10 @@ where
     // an incoming edge to its auth events.
 
     // Map of event to the list of events in its auth events.
-    let mut outgoing_edges_map: HashMap<_, HashSet<_>> = HashMap::new();
+    let mut outgoing_edges_map: EventIdMap<_, EventIdSet<_>> = EventIdMap::new();
 
     // Map of event to the list of events that reference it in its auth events.
-    let mut incoming_edges_map: HashMap<_, HashSet<_>> = HashMap::new();
+    let mut incoming_edges_map: EventIdMap<_, EventIdSet<_>> = EventIdMap::new();
 
     // Vec of events that have an outdegree of zero (no outgoing edges), i.e. the oldest events.
     // Use a BinaryHeap to keep the events sorted.
@@ -446,7 +446,10 @@ where
             }));
         } else {
             for auth_event_id in outgoing_edges {
-                incoming_edges_map.entry(auth_event_id).or_default().insert(event_id);
+                incoming_edges_map
+                    .entry(auth_event_id.borrow())
+                    .or_default()
+                    .insert(event_id.borrow());
             }
 
             outgoing_edges_map
@@ -459,9 +462,9 @@ where
     // Apply Kahn's algorithm.
     // https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm
     while let Some(Reverse(TieBreaker { event_id, .. })) = heap.pop() {
-        for &parent_id in incoming_edges_map.get(&event_id).into_iter().flatten() {
+        for &parent_id in incoming_edges_map.get(event_id.borrow()).into_iter().flatten() {
             let parent_has_zero_outdegrees = {
-                let outgoing_edges = outgoing_edges_map.get_mut(parent_id.borrow()).expect(
+                let outgoing_edges = outgoing_edges_map.get_mut(parent_id).expect(
                     "outgoing edges map should have a key for all event IDs with outgoing edges",
                 );
 
@@ -471,11 +474,11 @@ where
 
             // Push on the heap once all the outgoing edges have been removed.
             if parent_has_zero_outdegrees {
-                let (power_level, origin_server_ts) = event_details_fn(parent_id.borrow())?;
+                let (power_level, origin_server_ts) = event_details_fn(parent_id)?;
                 // Because the parent has no more outgoing edges, we can remove its entry from the
                 // outgoing edges map to get the owned event ID used for the key.
                 let (parent_id, _) = outgoing_edges_map
-                    .remove_entry(parent_id.borrow())
+                    .remove_entry(parent_id)
                     .expect("outgoing edges map should have a key for all event IDs");
 
                 heap.push(Reverse(TieBreaker {
