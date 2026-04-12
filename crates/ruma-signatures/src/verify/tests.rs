@@ -19,9 +19,9 @@ use crate::{
 };
 
 fn generate_key_pair(name: &str) -> Ed25519KeyPair {
-    let key_content = Ed25519KeyPair::generate().unwrap();
+    let key_content = Ed25519KeyPair::generate();
     Ed25519KeyPair::from_der(&key_content, name.to_owned())
-        .unwrap_or_else(|_| panic!("{:?}", &key_content))
+        .unwrap_or_else(|_| panic!("{key_content:?}"))
 }
 
 fn add_key_to_map(public_key_map: &mut PublicKeyMap, name: &str, pair: &Ed25519KeyPair) {

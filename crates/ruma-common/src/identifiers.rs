@@ -81,9 +81,9 @@ mod voip_version_id;
 /// Generates a random identifier localpart.
 #[cfg(feature = "rand")]
 fn generate_localpart(length: usize) -> Box<str> {
-    use rand::Rng as _;
-    rand::thread_rng()
-        .sample_iter(&rand::distributions::Alphanumeric)
+    use rand::RngExt as _;
+    rand::rng()
+        .sample_iter(&rand::distr::Alphanumeric)
         .map(char::from)
         .take(length)
         .collect::<String>()
