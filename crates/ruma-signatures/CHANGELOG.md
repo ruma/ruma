@@ -46,6 +46,8 @@ Breaking changes:
   and is now infallible.
 - `canonical_json()` was renamed to `to_canonical_json_string_for_signing()` to
   clarify that is is not to be used outside of the signing/verifying context.
+- Update `Ed25519KeyPair::generate` to return bytes directly, not a `Result`
+  - The previous implementation should have never returned an `Err` anyways
 
 Improvements:
 

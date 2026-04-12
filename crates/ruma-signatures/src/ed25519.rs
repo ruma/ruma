@@ -10,6 +10,7 @@ use ed25519_dalek::{
 use pkcs8::{
     DecodePrivateKey, EncodePrivateKey, ObjectIdentifier, PrivateKeyInfo, der::zeroize::Zeroizing,
 };
+use rand::TryCryptoRng;
 use ruma_common::{SigningKeyAlgorithm, SigningKeyId};
 use thiserror::Error;
 
@@ -134,12 +135,12 @@ impl Ed25519KeyPair {
     ///
     /// Returns a `Vec<u8>` representing a DER-encoded PKCS#8 v2 document (with public key).
     ///
-    /// # Errors
+    /// # Panics
     ///
-    /// Returns an error if the generation failed.
-    pub fn generate() -> Result<Zeroizing<Vec<u8>>, Ed25519KeyPairParseError> {
-        let signing_key = SigningKey::generate(&mut rand::rngs::OsRng);
-        Ok(signing_key.to_pkcs8_der()?.to_bytes())
+    /// Panics if the system RNG returns an error.
+    pub fn generate() -> Zeroizing<Vec<u8>> {
+        let signing_key = generate_signing_key(&mut rand::rngs::SysRng).unwrap();
+        signing_key.to_pkcs8_der().unwrap().to_bytes()
     }
 
     /// Returns the version string for this keypair.
@@ -151,6 +152,14 @@ impl Ed25519KeyPair {
     pub fn public_key(&self) -> [u8; PUBLIC_KEY_LENGTH] {
         self.signing_key.verifying_key().to_bytes()
     }
+}
+
+// Copy of SigningKey::generate, updated to use `TryCryptoRng`
+// from current rand instead of the old `CryptoRngCore`.
+fn generate_signing_key<R: TryCryptoRng + ?Sized>(csprng: &mut R) -> Result<SigningKey, R::Error> {
+    let mut secret = SecretKey::default();
+    csprng.try_fill_bytes(&mut secret)?;
+    Ok(SigningKey::from_bytes(&secret))
 }
 
 impl KeyPair for Ed25519KeyPair {
@@ -291,7 +300,8 @@ mod tests {
 
     #[test]
     fn generate_key() {
-        Ed25519KeyPair::generate().unwrap();
+        // Should not panic.
+        Ed25519KeyPair::generate();
     }
 
     #[test]
