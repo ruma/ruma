@@ -438,12 +438,10 @@ where
             // `Reverse` because `BinaryHeap` sorts largest -> smallest and we need
             // smallest -> largest.
             zero_outdegrees.push(Reverse(TieBreaker { power_level, origin_server_ts, event_id }));
-        }
-
-        incoming_edges_map.entry(event_id).or_default();
-
-        for auth_event_id in outgoing_edges {
-            incoming_edges_map.entry(auth_event_id).or_default().insert(event_id);
+        } else {
+            for auth_event_id in outgoing_edges {
+                incoming_edges_map.entry(auth_event_id).or_default().insert(event_id);
+            }
         }
     }
 
@@ -456,10 +454,7 @@ where
     while let Some(Reverse(item)) = heap.pop() {
         let event_id = item.event_id;
 
-        for &parent_id in incoming_edges_map
-            .get(event_id)
-            .expect("event ID in heap should also be in incoming edges map")
-        {
+        for &parent_id in incoming_edges_map.get(event_id).into_iter().flatten() {
             let outgoing_edges = outgoing_edges_map
                 .get_mut(parent_id.borrow())
                 .expect("outgoing edges map should have a key for all event IDs");
