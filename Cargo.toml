@@ -35,7 +35,7 @@ ruma-push-gateway-api = { version = "0.13.0", path = "crates/ruma-push-gateway-a
 ruma-signatures = { version = "0.19.0", path = "crates/ruma-signatures" }
 ruma-state-res = { version = "0.15.0", path = "crates/ruma-state-res" }
 serde = { version = "1.0.164", features = ["derive"] }
-serde_html_form = "0.2.0"
+serde_html_form = "0.4.0"
 serde_json = "1.0.87"
 similar = "2.6.0"
 thiserror = "2.0.0"
