@@ -75,6 +75,7 @@ Improvements:
 - Add `FeatureFlag::Msc4323`, the unstable feature flag for the user suspension
   and locking endpoints, according to MSC4323.
 - Add unstable support for MSC4406.
+- Add `as_str()` and `data()` methods to `AllowRule`.
 
 ## 0.17.1
 
