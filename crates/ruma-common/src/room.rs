@@ -1,6 +1,6 @@
 //! Common types for rooms.
 
-use std::{borrow::Cow, collections::BTreeMap};
+use std::borrow::Cow;
 
 use as_variant::as_variant;
 use js_int::UInt;
@@ -197,13 +197,42 @@ pub enum AllowRule {
     RoomMembership(RoomMembership),
 
     #[doc(hidden)]
-    _Custom(Box<CustomAllowRule>),
+    _Custom(CustomAllowRule),
 }
 
 impl AllowRule {
     /// Constructs an `AllowRule` with membership of the room with the given id as its predicate.
     pub fn room_membership(room_id: OwnedRoomId) -> Self {
         Self::RoomMembership(RoomMembership::new(room_id))
+    }
+
+    /// Returns the string name of this `AllowRule`.
+    pub fn as_str(&self) -> &str {
+        match self {
+            AllowRule::RoomMembership(_) => "m.room_membership",
+            AllowRule::_Custom(CustomAllowRule { rule_type, .. }) => rule_type,
+        }
+    }
+
+    /// Returns the associated data of this `AllowRule`.
+    ///
+    /// The returned JSON object won't contain the `rule_type` field, use
+    /// [`.as_str()`](Self::as_str) to access that.
+    ///
+    /// Prefer to use the public variants of `AllowRule` where possible; this method is meant to
+    /// be used for custom allow rules only.
+    pub fn data(&self) -> Cow<'_, JsonObject> {
+        fn serialize<T: Serialize>(obj: &T) -> JsonObject {
+            match serde_json::to_value(obj).expect("join rule serialization should succeed") {
+                JsonValue::Object(obj) => obj,
+                _ => panic!("all message types should serialize to objects"),
+            }
+        }
+
+        match self {
+            AllowRule::RoomMembership(membership) => Cow::Owned(serialize(membership)),
+            Self::_Custom(custom) => Cow::Borrowed(&custom.data),
+        }
     }
 }
 
@@ -227,10 +256,13 @@ impl RoomMembership {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct CustomAllowRule {
+    /// The type of the allow rule.
     #[serde(rename = "type")]
     rule_type: String,
+
+    /// The remaining data.
     #[serde(flatten)]
-    extra: BTreeMap<String, JsonValue>,
+    data: JsonObject,
 }
 
 impl<'de> Deserialize<'de> for AllowRule {
@@ -609,8 +641,6 @@ impl From<Restricted> for RestrictedSummary {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeMap;
-
     use assert_matches2::assert_matches;
     use js_int::uint;
     use ruma_common::{OwnedRoomId, owned_room_id};
@@ -620,7 +650,7 @@ mod tests {
         AllowRule, CustomAllowRule, JoinRule, JoinRuleSummary, Restricted, RestrictedSummary,
         RoomMembership, RoomSummary,
     };
-    use crate::assert_to_canonical_json_eq;
+    use crate::{assert_to_canonical_json_eq, serde::JsonObject};
 
     #[test]
     fn deserialize_summary_no_join_rule() {
@@ -810,13 +840,13 @@ mod tests {
             restricted.allow,
             &[
                 AllowRule::room_membership(owned_room_id!("!mods:example.org")),
-                AllowRule::_Custom(Box::new(CustomAllowRule {
+                AllowRule::_Custom(CustomAllowRule {
                     rule_type: "org.example.custom".into(),
-                    extra: BTreeMap::from([(
-                        "org.example.minimum_role".into(),
+                    data: JsonObject::from_iter([(
+                        "org.example.minimum_role".to_owned(),
                         "developer".into()
-                    )])
-                }))
+                    )]),
+                })
             ]
         );
     }
