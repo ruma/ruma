@@ -105,6 +105,7 @@ where
 
 /// Shorthand for `<&DeviceId>::from`.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! device_id {
     ($s:expr) => {
         <&$crate::DeviceId as ::std::convert::From<_>>::from($s)
@@ -113,6 +114,7 @@ macro_rules! device_id {
 
 /// Shorthand for `OwnedDeviceId::from`.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! owned_device_id {
     ($s:expr) => {
         <$crate::OwnedDeviceId as ::std::convert::From<_>>::from($s)
@@ -129,6 +131,7 @@ pub mod __private_macros {
 
 /// Compile-time checked [`EventId`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! event_id {
     ($s:literal) => {
         $crate::__private_macros::event_id!($crate, $s)
@@ -137,6 +140,7 @@ macro_rules! event_id {
 
 /// Compile-time checked [`OwnedEventId`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! owned_event_id {
     ($s:literal) => {
         $crate::event_id!($s).to_owned()
@@ -145,6 +149,7 @@ macro_rules! owned_event_id {
 
 /// Compile-time checked [`RoomAliasId`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! room_alias_id {
     ($s:literal) => {
         $crate::__private_macros::room_alias_id!($crate, $s)
@@ -153,6 +158,7 @@ macro_rules! room_alias_id {
 
 /// Compile-time checked [`OwnedRoomAliasId`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! owned_room_alias_id {
     ($s:literal) => {
         $crate::room_alias_id!($s).to_owned()
@@ -161,6 +167,7 @@ macro_rules! owned_room_alias_id {
 
 /// Compile-time checked [`RoomId`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! room_id {
     ($s:literal) => {
         $crate::__private_macros::room_id!($crate, $s)
@@ -169,6 +176,7 @@ macro_rules! room_id {
 
 /// Compile-time checked [`OwnedRoomId`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! owned_room_id {
     ($s:literal) => {
         $crate::room_id!($s).to_owned()
@@ -177,6 +185,7 @@ macro_rules! owned_room_id {
 
 /// Compile-time checked [`RoomVersionId`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! room_version_id {
     ($s:literal) => {
         $crate::__private_macros::room_version_id!($crate, $s)
@@ -185,6 +194,7 @@ macro_rules! room_version_id {
 
 /// Compile-time checked [`ServerSigningKeyVersion`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! server_signing_key_version {
     ($s:literal) => {
         $crate::__private_macros::server_signing_key_version!($crate, $s)
@@ -193,6 +203,7 @@ macro_rules! server_signing_key_version {
 
 /// Compile-time checked [`OwnedServerSigningKeyVersion`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! owned_server_signing_key_version {
     ($s:literal) => {
         $crate::server_signing_key_version!($s).to_owned()
@@ -201,6 +212,7 @@ macro_rules! owned_server_signing_key_version {
 
 /// Compile-time checked [`ServerName`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! server_name {
     ($s:literal) => {
         $crate::__private_macros::server_name!($crate, $s)
@@ -209,6 +221,7 @@ macro_rules! server_name {
 
 /// Compile-time checked [`OwnedServerName`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! owned_server_name {
     ($s:literal) => {
         $crate::server_name!($s).to_owned()
@@ -217,6 +230,7 @@ macro_rules! owned_server_name {
 
 /// Compile-time checked [`SessionId`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! session_id {
     ($s:literal) => {{
         const SESSION_ID: &$crate::SessionId = match $crate::SessionId::_priv_const_new($s) {
@@ -230,6 +244,7 @@ macro_rules! session_id {
 
 /// Compile-time checked [`OwnedSessionId`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! owned_session_id {
     ($s:literal) => {
         $crate::session_id!($s).to_owned()
@@ -238,6 +253,7 @@ macro_rules! owned_session_id {
 
 /// Compile-time checked [`MxcUri`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! mxc_uri {
     ($s:literal) => {
         $crate::__private_macros::mxc_uri!($crate, $s)
@@ -246,6 +262,7 @@ macro_rules! mxc_uri {
 
 /// Compile-time checked [`OwnedMxcUri`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! owned_mxc_uri {
     ($s:literal) => {
         $crate::mxc_uri!($s).to_owned()
@@ -254,6 +271,7 @@ macro_rules! owned_mxc_uri {
 
 /// Compile-time checked [`UserId`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! user_id {
     ($s:literal) => {
         $crate::__private_macros::user_id!($crate, $s)
@@ -262,6 +280,7 @@ macro_rules! user_id {
 
 /// Compile-time checked [`OwnedUserId`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! owned_user_id {
     ($s:literal) => {
         $crate::user_id!($s).to_owned()
@@ -270,6 +289,7 @@ macro_rules! owned_user_id {
 
 /// Compile-time checked [`Base64PublicKey`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! base64_public_key {
     ($s:literal) => {
         $crate::__private_macros::base64_public_key!($crate, $s)
@@ -278,6 +298,7 @@ macro_rules! base64_public_key {
 
 /// Compile-time checked [`OwnedBase64PublicKey`] construction.
 #[macro_export]
+#[rust_analyzer::macro_style(parentheses)]
 macro_rules! owned_base64_public_key {
     ($s:literal) => {
         $crate::base64_public_key!($s).to_owned()
