@@ -207,7 +207,7 @@ impl AllowRule {
     }
 
     /// Returns the string name of this `AllowRule`.
-    pub fn as_str(&self) -> &str {
+    pub fn rule_type(&self) -> &str {
         match self {
             AllowRule::RoomMembership(_) => "m.room_membership",
             AllowRule::_Custom(CustomAllowRule { rule_type, .. }) => rule_type,
@@ -216,8 +216,8 @@ impl AllowRule {
 
     /// Returns the associated data of this `AllowRule`.
     ///
-    /// The returned JSON object won't contain the `rule_type` field, use
-    /// [`.as_str()`](Self::as_str) to access that.
+    /// The returned JSON object won't contain the `type` field, use
+    /// [`Self::rule_type`] to access that.
     ///
     /// Prefer to use the public variants of `AllowRule` where possible; this method is meant to
     /// be used for custom allow rules only.
