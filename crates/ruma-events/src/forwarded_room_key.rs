@@ -47,10 +47,10 @@ pub struct ToDeviceForwardedRoomKeyEventContent {
     /// Used to mark key if allowed for shared history.
     ///
     /// Defaults to `false`.
-    #[cfg(feature = "unstable-msc3061")]
     #[serde(
         default,
-        rename = "org.matrix.msc3061.shared_history",
+        alias = "org.matrix.msc3061.shared_history",
+        rename = "m.shared_history",
         skip_serializing_if = "ruma_common::serde::is_default"
     )]
     pub shared_history: bool,
@@ -104,7 +104,6 @@ impl From<ToDeviceForwardedRoomKeyEventContentInit> for ToDeviceForwardedRoomKey
             session_key: init.session_key,
             sender_claimed_ed25519_key: init.sender_claimed_ed25519_key,
             forwarding_curve25519_key_chain: init.forwarding_curve25519_key_chain,
-            #[cfg(feature = "unstable-msc3061")]
             shared_history: false,
         }
     }

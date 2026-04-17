@@ -21,7 +21,6 @@ unstable-msc2448 = []
 unstable-msc2545 = []
 unstable-msc2747 = []
 unstable-msc2867 = []
-unstable-msc3061 = []
 unstable-msc3230 = []
 unstable-msc3245 = ["unstable-msc3246"]
 # Support the m.room.message fallback fields from the first version of MSC3245,
