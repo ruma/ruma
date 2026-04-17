@@ -4,6 +4,14 @@
 
 Improvements:
 
+- The `unstable-msc4268` and `unstable-msc3061` features were removed and
+  MSC4268 features are included unconditionally, since the MSC was merged into
+  the spec:
+  - We now use the stable identifiers for the `m.shared_history` property in
+    `ToDeviceRoomKeyEventContent` and `ToDeviceForwardedRoomKeyEventContent`.
+  - We now use the stable identifier for `m.room_key_bundle` to-device events.
+  - `RoomKeyWithheldCode` and `RoomKeyWithheldCodeInfo` both gained new variants
+    called `HistoryNotShared`.
 - Add `replaces_state` field to `StateUnsigned`, due to a clarification in the Matrix spec.
 - Stabilize image packs:
   - `RoomImagePackEventContent` uses its stable `m.room.image_pack` type and was moved under
