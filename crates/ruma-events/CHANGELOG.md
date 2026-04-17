@@ -4,6 +4,8 @@
 
 Breaking changes:
 
+- `RoomKeyWithheldCode` and `RoomKeyWithheldCodeInfo` both gained new variants
+  called `HistoryNotShared` as specified in MSC4268.
 - `PossiblyRedactedRoomMemberEventContent` is no longer a type alias for
   `RoomMemberEventContent`. It would previously fail to deserialize if the
   `third_party_invite` field was redacted as the `display_name` field was

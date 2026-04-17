@@ -115,6 +115,12 @@ pub enum RoomKeyWithheldCodeInfo {
     #[serde(rename = "m.no_olm")]
     NoOlm,
 
+    /// `m.history_not_shared`
+    ///
+    /// The megolm session does not have the `shared_history` flag set.
+    #[serde(rename = "m.history_not_shared")]
+    HistoryNotShared,
+
     #[doc(hidden)]
     #[serde(untagged)]
     _Custom(Box<CustomRoomKeyWithheldCodeInfo>),
@@ -129,6 +135,7 @@ impl RoomKeyWithheldCodeInfo {
             Self::Unauthorized(_) => RoomKeyWithheldCode::Unauthorized,
             Self::Unavailable(_) => RoomKeyWithheldCode::Unavailable,
             Self::NoOlm => RoomKeyWithheldCode::NoOlm,
+            Self::HistoryNotShared => RoomKeyWithheldCode::HistoryNotShared,
             Self::_Custom(info) => info.code.as_str().into(),
         }
     }
@@ -223,6 +230,11 @@ pub enum RoomKeyWithheldCode {
     ///
     /// An olm session could not be established.
     NoOlm,
+
+    /// `m.history_not_shared`
+    ///
+    /// The megolm session does not have the `shared_history` flag set.
+    HistoryNotShared,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
