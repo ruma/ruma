@@ -63,7 +63,7 @@ impl ToDeviceRoomKeyEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_room_id};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_room_id, room_id};
     use serde_json::json;
 
     use super::ToDeviceRoomKeyEventContent;
@@ -102,5 +102,26 @@ mod tests {
                 "org.matrix.msc3061.shared_history": true,
             })
         );
+    }
+
+    #[test]
+    fn deserialization() {
+        let content_json = json!({
+            "algorithm": "m.megolm.v1.aes-sha2",
+            "room_id": "!r:example.org",
+            "session_id": "Sess6",
+            "session_key": "SessK",
+            "org.matrix.msc3061.shared_history": true,
+        });
+
+        let content: ToDeviceRoomKeyEventContent = serde_json::from_value(content_json).unwrap();
+
+        assert_eq!(content.algorithm, EventEncryptionAlgorithm::MegolmV1AesSha2);
+        assert_eq!(content.room_id, room_id!("!r:example.org"));
+        assert_eq!(content.session_id, "Sess6");
+        assert_eq!(content.session_key, "SessK");
+
+        #[cfg(feature = "unstable-msc3061")]
+        assert!(content.shared_history);
     }
 }
