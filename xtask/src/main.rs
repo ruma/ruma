@@ -16,7 +16,7 @@ use serde_json::from_str as from_json_str;
 use xshell::Shell;
 
 // Keep in sync with version in `rust-toolchain.toml` and `.github/workflows/ci.yml`
-const NIGHTLY: &str = "nightly-2026-03-06";
+const NIGHTLY: &str = "nightly-2026-04-17";
 
 mod bench;
 mod cargo;
