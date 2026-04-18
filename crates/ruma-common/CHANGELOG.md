@@ -76,6 +76,7 @@ Improvements:
   and locking endpoints, according to MSC4323.
 - Add unstable support for MSC4406.
 - Add `rule_type()` and `data()` methods to `AllowRule`.
+- Implement `PartialEq` and `Eq` on `CrossSigningKey` and `Signatures`.
 
 ## 0.17.1
 

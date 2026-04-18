@@ -27,7 +27,7 @@ pub type EntitySignatures<K> = BTreeMap<OwnedSigningKeyId<K>, String>;
 ///     "YbJva03ihSj5mPk+CHMJKUKlCXCPFXjXOK6VqBnN9nA2evksQcTGn6hwQfrgRHIDDXO2le49x7jnWJHMJrJoBQ";
 /// signatures.insert_signature(server_name, key_identifier, signature.into());
 /// ```
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(
     transparent,
     bound(serialize = "E: Serialize", deserialize = "E: serde::de::DeserializeOwned")
