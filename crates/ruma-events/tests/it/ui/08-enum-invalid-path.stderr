@@ -1,4 +1,4 @@
-error[E0433]: failed to resolve: could not find `not` in `ruma_events`
+error[E0433]: cannot find `not` in `ruma_events`
   --> tests/it/ui/08-enum-invalid-path.rs:10:40
    |
 10 |         "m.not.a.path" => ruma_events::not::a::path,
