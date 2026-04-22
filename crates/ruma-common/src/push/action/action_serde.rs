@@ -1,6 +1,7 @@
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de, ser::SerializeStruct};
+use serde_json::value::RawValue as RawJsonValue;
 
-use super::{Action, CustomActionData, CustomTweak, HighlightTweakValue, Tweak};
+use super::{Action, CustomActionData, HighlightTweakValue, Tweak};
 
 impl<'de> Deserialize<'de> for Action {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -31,7 +32,13 @@ impl<'de> Deserialize<'de> for Tweak {
     where
         D: Deserializer<'de>,
     {
-        let CustomTweak { set_tweak, value } = CustomTweak::deserialize(deserializer)?;
+        #[derive(Deserialize)]
+        struct TweakDeHelper {
+            set_tweak: String,
+            value: Option<Box<RawJsonValue>>,
+        }
+
+        let TweakDeHelper { set_tweak, value } = TweakDeHelper::deserialize(deserializer)?;
         Self::new(set_tweak, value).map_err(de::Error::custom)
     }
 }

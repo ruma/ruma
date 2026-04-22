@@ -24,11 +24,11 @@ Breaking changes:
   rely on access tokens as a form of authentication.
 - It is no longer possible to construct custom `Action` types directly through
   the hidden `_Custom` variant. They should be constructed with `Action::new()`
-  and their data should be accessed with `Action::custom_data()`.
+  and their data should be accessed with `Action::data()`.
 - The `Tweak` type uses stronger enum types for its variants, and the `Custom`
   variant is now hidden and cannot be constructed directly. It should be
   constructed with `Tweak::new()` and its data should be accessed with
-  `Tweak::set_tweak()` and `Tweak::custom_value()`.
+  `Tweak::set_tweak()` and `Tweak::value()`.
 - The struct variants of `PushCondition` are now tuple variants containing a
   non-exhaustive struct.
 - `JsonType` was renamed to `CanonicalJsonType` to reflect that it only
