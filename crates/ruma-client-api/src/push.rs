@@ -303,7 +303,7 @@ impl EmailPusherData {
 }
 
 #[doc(hidden)]
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug)]
 #[non_exhaustive]
 pub struct CustomPusherData {
     kind: String,

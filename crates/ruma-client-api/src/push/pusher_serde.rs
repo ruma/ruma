@@ -2,7 +2,7 @@ use ruma_common::serde::from_raw_json_value;
 use serde::{Deserialize, Serialize, de, ser::SerializeStruct};
 use serde_json::value::RawValue as RawJsonValue;
 
-use super::{Pusher, PusherIds, PusherKind};
+use super::{CustomPusherData, Pusher, PusherIds, PusherKind};
 
 #[derive(Debug, Deserialize)]
 struct PusherDeHelper {
@@ -72,7 +72,7 @@ impl<'de> Deserialize<'de> for PusherKind {
         match kind.as_ref() {
             "http" => from_raw_json_value(&data).map(Self::Http),
             "email" => from_raw_json_value(&data).map(Self::Email),
-            _ => from_raw_json_value(&json).map(Self::_Custom),
+            _ => Ok(Self::_Custom(CustomPusherData { kind, data: from_raw_json_value(&data)? })),
         }
     }
 }

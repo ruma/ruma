@@ -7,8 +7,9 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.18/client-server-api/#post_matrixclientv3login
 
-    use std::{fmt, time::Duration};
+    use std::{borrow::Cow, fmt, time::Duration};
 
+    use as_variant::as_variant;
     use ruma_common::{
         OwnedDeviceId, OwnedServerName, OwnedUserId,
         api::{auth_scheme::AppserviceTokenOptional, request, response},
@@ -177,8 +178,38 @@ pub mod v3 {
                 "m.login.application_service" => {
                     Self::ApplicationService(serde_json::from_value(JsonValue::Object(data))?)
                 }
-                _ => Self::_Custom(CustomLoginInfo { login_type: login_type.into(), extra: data }),
+                _ => Self::_Custom(CustomLoginInfo { login_type: login_type.into(), data }),
             })
+        }
+
+        /// The type of this `LoginInfo`.
+        pub fn login_type(&self) -> &str {
+            match self {
+                LoginInfo::Password(_) => "m.login.password",
+                LoginInfo::Token(_) => "m.login.token",
+                LoginInfo::ApplicationService(_) => "m.login.application_service",
+                LoginInfo::_Custom(c) => &c.login_type,
+            }
+        }
+
+        /// The data of this `LoginInfo`.
+        ///
+        /// Prefer to use the public variants of `LoginInfo` where possible; this method is meant to
+        /// be used for unsupported login types only.
+        pub fn data(&self) -> Cow<'_, JsonObject> {
+            fn serialize<T: Serialize>(obj: &T) -> JsonObject {
+                match serde_json::to_value(obj).expect("login info serialization to succeed") {
+                    JsonValue::Object(obj) => obj,
+                    _ => panic!("all login info variants must serialize to objects"),
+                }
+            }
+
+            match self {
+                Self::Password(d) => Cow::Owned(serialize(d)),
+                Self::Token(d) => Cow::Owned(serialize(d)),
+                Self::ApplicationService(d) => Cow::Owned(serialize(d)),
+                Self::_Custom(c) => Cow::Borrowed(&c.data),
+            }
         }
     }
 
@@ -205,17 +236,25 @@ pub mod v3 {
 
             // FIXME: Would be better to use serde_json::value::RawValue, but that would require
             // implementing Deserialize manually for Request, bc. `#[serde(flatten)]` breaks things.
-            let json = JsonValue::deserialize(deserializer)?;
+            let mut data = JsonObject::deserialize(deserializer)?;
 
             let login_type =
-                json["type"].as_str().ok_or_else(|| de::Error::missing_field("type"))?;
+                data["type"].as_str().ok_or_else(|| de::Error::missing_field("type"))?;
             match login_type {
-                "m.login.password" => from_json_value(json).map(Self::Password),
-                "m.login.token" => from_json_value(json).map(Self::Token),
+                "m.login.password" => from_json_value(data.into()).map(Self::Password),
+                "m.login.token" => from_json_value(data.into()).map(Self::Token),
                 "m.login.application_service" => {
-                    from_json_value(json).map(Self::ApplicationService)
+                    from_json_value(data.into()).map(Self::ApplicationService)
                 }
-                _ => from_json_value(json).map(Self::_Custom),
+                _ => {
+                    let login_type = as_variant!(
+                        data.remove("type")
+                            .expect("we already checked that the object has a type field"),
+                        JsonValue::String
+                    )
+                    .expect("we already checked that the type field is a string");
+                    Ok(Self::_Custom(CustomLoginInfo { login_type, data }))
+                }
             }
         }
     }
@@ -327,18 +366,18 @@ pub mod v3 {
     }
 
     #[doc(hidden)]
-    #[derive(Clone, Deserialize, Serialize)]
+    #[derive(Clone, Serialize)]
     #[non_exhaustive]
     pub struct CustomLoginInfo {
         #[serde(rename = "type")]
         login_type: String,
         #[serde(flatten)]
-        extra: JsonObject,
+        data: JsonObject,
     }
 
     impl fmt::Debug for CustomLoginInfo {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            let Self { login_type, extra: _ } = self;
+            let Self { login_type, data: _ } = self;
             f.debug_struct("CustomLoginInfo")
                 .field("login_type", login_type)
                 .finish_non_exhaustive()
@@ -398,6 +437,7 @@ pub mod v3 {
     #[cfg(test)]
     mod tests {
         use assert_matches2::assert_matches;
+        use ruma_common::canonical_json::assert_to_canonical_json_eq;
         use serde_json::{from_value as from_json_value, json};
 
         use super::{LoginInfo, Token};
@@ -430,6 +470,23 @@ pub mod v3 {
                 LoginInfo::Token(Token { token })
             );
             assert_eq!(token, "1234567890abcdef");
+        }
+
+        #[test]
+        fn login_info_serialize_roundtrip() {
+            let json = json!({
+                "type": "local.dev.custom",
+                "identifier": "dGhpcy5pcy5tZQ",
+            });
+
+            let login_info = from_json_value::<LoginInfo>(json.clone()).unwrap();
+
+            assert_eq!(login_info.login_type(), "local.dev.custom");
+            let data = login_info.data();
+            assert_eq!(data.len(), 1);
+            assert_eq!(data.get("identifier").unwrap().as_str(), Some("dGhpcy5pcy5tZQ"));
+
+            assert_to_canonical_json_eq!(login_info, json);
         }
 
         #[test]

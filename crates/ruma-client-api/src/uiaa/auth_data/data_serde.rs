@@ -2,14 +2,19 @@
 
 use std::borrow::Cow;
 
-use ruma_common::{serde::from_raw_json_value, thirdparty::Medium};
+use as_variant::as_variant;
+use ruma_common::{
+    serde::{JsonObject, from_raw_json_value},
+    thirdparty::Medium,
+};
 use serde::{Deserialize, Deserializer, Serialize, de};
-use serde_json::value::RawValue as RawJsonValue;
+use serde_json::{Value as JsonValue, value::RawValue as RawJsonValue};
 
 use super::{
     AuthData, CustomThirdPartyUserIdentifier, EmailUserIdentifier, MsisdnUserIdentifier,
     UserIdentifier,
 };
+use crate::uiaa::{CustomAuthData, CustomUserIdentifier};
 
 impl<'de> Deserialize<'de> for AuthData {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -24,9 +29,7 @@ impl<'de> Deserialize<'de> for AuthData {
             auth_type: Option<Cow<'a, str>>,
         }
 
-        let auth_type = serde_json::from_str::<ExtractType<'_>>(json.get())
-            .map_err(de::Error::custom)?
-            .auth_type;
+        let ExtractType { auth_type } = from_raw_json_value(&json)?;
 
         match auth_type.as_deref() {
             Some("m.login.password") => from_raw_json_value(&json).map(Self::Password),
@@ -42,7 +45,19 @@ impl<'de> Deserialize<'de> for AuthData {
                 from_raw_json_value(&json).map(Self::OAuth)
             }
             None => from_raw_json_value(&json).map(Self::FallbackAcknowledgement),
-            Some(_) => from_raw_json_value(&json).map(Self::_Custom),
+            Some(_) => {
+                let mut data = from_raw_json_value::<JsonObject, _>(&json)?;
+                let auth_type = as_variant!(
+                    data.remove("type").expect("we already checked that the type field is present"),
+                    JsonValue::String
+                )
+                .expect("we already checked that the type is a string");
+                let session = data
+                    .remove("session")
+                    .and_then(|session| as_variant!(session, JsonValue::String));
+
+                Ok(Self::_Custom(CustomAuthData { auth_type, session, data }))
+            }
         }
     }
 }
@@ -73,7 +88,16 @@ impl<'de> Deserialize<'de> for UserIdentifier {
                     _ => Ok(Self::_CustomThirdParty(id)),
                 }
             }
-            _ => from_raw_json_value(&json).map(Self::_Custom),
+            _ => {
+                let mut data = from_raw_json_value::<JsonObject, _>(&json)?;
+                let identifier_type = as_variant!(
+                    data.remove("type").expect("we already checked that the type field is present"),
+                    JsonValue::String
+                )
+                .expect("we already checked that the type is a string");
+
+                Ok(Self::_Custom(CustomUserIdentifier { identifier_type, data }))
+            }
         }
     }
 }
@@ -147,12 +171,12 @@ mod tests {
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
     use crate::uiaa::{
-        EmailUserIdentifier, MatrixUserIdentifier, MsisdnUserIdentifier, PhoneNumberUserIdentifier,
-        UserIdentifier,
+        AuthData, EmailUserIdentifier, MatrixUserIdentifier, MsisdnUserIdentifier,
+        PhoneNumberUserIdentifier, UserIdentifier,
     };
 
     #[test]
-    fn serialize() {
+    fn serialize_user_identifier() {
         assert_to_canonical_json_eq!(
             UserIdentifier::Matrix(MatrixUserIdentifier::new("@user:notareal.hs".to_owned())),
             json!({
@@ -202,7 +226,7 @@ mod tests {
     }
 
     #[test]
-    fn deserialize() {
+    fn deserialize_user_identifier() {
         let json = json!({
             "type": "m.id.user",
             "user": "@user:notareal.hs",
@@ -250,7 +274,7 @@ mod tests {
     }
 
     #[test]
-    fn custom_identifier_roundtrip() {
+    fn custom_user_identifier_roundtrip() {
         let json = json!({
             "type": "local.dev.identifier",
             "foo": "bar",
@@ -258,10 +282,29 @@ mod tests {
 
         let id = from_json_value::<UserIdentifier>(json.clone()).unwrap();
         assert_eq!(id.identifier_type(), "local.dev.identifier");
-        let data = id.custom_identifier_data().unwrap();
+        let data = &*id.data();
         assert_let!(Some(JsonValue::String(foo)) = data.get("foo"));
         assert_eq!(foo, "bar");
 
         assert_to_canonical_json_eq!(id, json);
+    }
+
+    #[test]
+    fn custom_auth_data_roundtrip() {
+        let json = json!({
+            "type": "local.dev.auth",
+            "session": "abcdef",
+            "foo": "bar",
+        });
+
+        let auth_data = from_json_value::<AuthData>(json.clone()).unwrap();
+        assert_eq!(auth_data.auth_type().unwrap().as_str(), "local.dev.auth");
+        assert_eq!(auth_data.session(), Some("abcdef"));
+        let data = auth_data.data();
+        assert_eq!(data.len(), 1);
+        assert_let!(Some(JsonValue::String(foo)) = data.get("foo"));
+        assert_eq!(foo, "bar");
+
+        assert_to_canonical_json_eq!(auth_data, json);
     }
 }

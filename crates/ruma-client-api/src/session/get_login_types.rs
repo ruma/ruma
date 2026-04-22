@@ -95,9 +95,10 @@ pub mod v3 {
                 "m.login.token" => Self::Token(from_json_object(data)?),
                 "m.login.sso" => Self::Sso(from_json_object(data)?),
                 "m.login.application_service" => Self::ApplicationService(from_json_object(data)?),
-                _ => {
-                    Self::_Custom(Box::new(CustomLoginType { type_: login_type.to_owned(), data }))
-                }
+                _ => Self::_Custom(Box::new(CustomLoginType {
+                    login_type: login_type.to_owned(),
+                    data,
+                })),
             })
         }
 
@@ -108,7 +109,7 @@ pub mod v3 {
                 Self::Token(_) => "m.login.token",
                 Self::Sso(_) => "m.login.sso",
                 Self::ApplicationService(_) => "m.login.application_service",
-                Self::_Custom(c) => &c.type_,
+                Self::_Custom(c) => &c.login_type,
             }
         }
 
@@ -266,34 +267,31 @@ pub mod v3 {
 
     /// A custom login payload.
     #[doc(hidden)]
-    #[derive(Clone, Debug, Deserialize, Serialize)]
+    #[derive(Clone, Debug, Serialize)]
     #[allow(clippy::exhaustive_structs)]
     pub struct CustomLoginType {
-        /// A custom type
-        ///
-        /// This field is named `type_` instead of `type` because the latter is a reserved
-        /// keyword in Rust.
+        /// The custom type.
         #[serde(rename = "type")]
-        pub type_: String,
+        login_type: String,
 
-        /// Remaining type content
+        /// Remaining content.
         #[serde(flatten)]
-        pub data: JsonObject,
+        data: JsonObject,
     }
 
     mod login_type_serde {
-        use ruma_common::serde::from_raw_json_value;
+        use ruma_common::serde::{JsonObject, from_raw_json_value};
         use serde::{Deserialize, de};
         use serde_json::value::RawValue as RawJsonValue;
 
-        use super::LoginType;
+        use super::{CustomLoginType, LoginType};
 
         /// Helper struct to determine the type from a `serde_json::value::RawValue`
         #[derive(Debug, Deserialize)]
         struct LoginTypeDeHelper {
             /// The login type field
             #[serde(rename = "type")]
-            type_: String,
+            login_type: String,
         }
 
         impl<'de> Deserialize<'de> for LoginType {
@@ -302,16 +300,21 @@ pub mod v3 {
                 D: de::Deserializer<'de>,
             {
                 let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-                let LoginTypeDeHelper { type_ } = from_raw_json_value(&json)?;
+                let LoginTypeDeHelper { login_type } = from_raw_json_value(&json)?;
 
-                Ok(match type_.as_ref() {
+                Ok(match login_type.as_ref() {
                     "m.login.password" => Self::Password(from_raw_json_value(&json)?),
                     "m.login.token" => Self::Token(from_raw_json_value(&json)?),
                     "m.login.sso" => Self::Sso(from_raw_json_value(&json)?),
                     "m.login.application_service" => {
                         Self::ApplicationService(from_raw_json_value(&json)?)
                     }
-                    _ => Self::_Custom(from_raw_json_value(&json)?),
+                    _ => {
+                        let mut data = from_raw_json_value::<JsonObject, _>(&json)?;
+                        data.remove("type");
+
+                        Self::_Custom(CustomLoginType { login_type, data }.into())
+                    }
                 })
             }
         }
@@ -346,21 +349,24 @@ pub mod v3 {
         }
 
         #[test]
-        fn deserialize_custom_login_type() {
-            let wrapper = from_json_value::<Wrapper>(json!({
+        fn custom_login_type_serialize_roundtrip() {
+            let json = json!({
                 "flows": [
                     {
                         "type": "io.ruma.custom",
                         "color": "green",
                     }
                 ],
-            }))
-            .unwrap();
+            });
+
+            let wrapper = from_json_value::<Wrapper>(json.clone()).unwrap();
             assert_eq!(wrapper.flows.len(), 1);
             assert_let!(LoginType::_Custom(custom) = &wrapper.flows[0]);
-            assert_eq!(custom.type_, "io.ruma.custom");
+            assert_eq!(custom.login_type, "io.ruma.custom");
             assert_eq!(custom.data.len(), 1);
             assert_eq!(custom.data.get("color"), Some(&JsonValue::from("green")));
+
+            assert_to_canonical_json_eq!(wrapper, json);
         }
 
         #[test]
