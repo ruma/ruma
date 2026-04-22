@@ -12,7 +12,7 @@ use ruma_common::{
 };
 use ruma_events::{AnyToDeviceEventContent, ToDeviceEventType, receipt::Receipt};
 use serde::{Deserialize, Serialize, de};
-use serde_json::{Value as JsonValue, value::RawValue as RawJsonValue};
+use serde_json::value::RawValue as RawJsonValue;
 
 /// Type for passing ephemeral data to homeservers.
 #[derive(Clone, Debug, Serialize)]
@@ -49,14 +49,8 @@ pub enum Edu {
     SigningKeyUpdate(SigningKeyUpdateContent),
 
     #[doc(hidden)]
-    _Custom(JsonValue),
-}
-
-#[derive(Debug, Deserialize)]
-struct EduDeHelper {
-    /// The message type field
-    edu_type: String,
-    content: Box<RawJsonValue>,
+    #[serde(untagged)]
+    _Custom(CustomEdu),
 }
 
 impl<'de> Deserialize<'de> for Edu {
@@ -64,6 +58,12 @@ impl<'de> Deserialize<'de> for Edu {
     where
         D: de::Deserializer<'de>,
     {
+        #[derive(Debug, Deserialize)]
+        struct EduDeHelper {
+            edu_type: String,
+            content: Box<RawJsonValue>,
+        }
+
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
         let EduDeHelper { edu_type, content } = from_raw_json_value(&json)?;
 
@@ -74,7 +74,7 @@ impl<'de> Deserialize<'de> for Edu {
             "m.device_list_update" => Self::DeviceListUpdate(from_raw_json_value(&content)?),
             "m.direct_to_device" => Self::DirectToDevice(from_raw_json_value(&content)?),
             "m.signing_key_update" => Self::SigningKeyUpdate(from_raw_json_value(&content)?),
-            _ => Self::_Custom(from_raw_json_value(&content)?),
+            _ => Self::_Custom(CustomEdu { edu_type, content }),
         })
     }
 }
@@ -310,6 +310,17 @@ impl SigningKeyUpdateContent {
     pub fn new(user_id: OwnedUserId) -> Self {
         Self { user_id, master_key: None, self_signing_key: None }
     }
+}
+
+/// An unsupported EDU type.
+#[doc(hidden)]
+#[derive(Clone, Debug, Serialize)]
+pub struct CustomEdu {
+    /// The type of EDU.
+    edu_type: String,
+
+    /// The content of the EDU.
+    content: Box<RawJsonValue>,
 }
 
 #[cfg(test)]
