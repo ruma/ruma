@@ -71,6 +71,7 @@ event_enum! {
         #[ruma_enum(ident = ImagePackRooms, alias = "m.image_pack.rooms")]
         "im.ponies.emote_rooms" => super::image_pack,
         "m.recent_emoji" => super::recent_emoji,
+        "m.key_backup" => super::key_backup,
     }
 
     /// Any room account data event.
