@@ -6,6 +6,7 @@ use serde::{Deserialize, Deserializer};
 use serde_json::{Value as JsonValue, value::RawValue as RawJsonValue};
 
 use super::{InReplyTo, Relation, Reply, Thread};
+use crate::relation::CustomRelation;
 
 impl<'de> Deserialize<'de> for Relation {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -27,7 +28,7 @@ impl<'de> Deserialize<'de> for Relation {
             (_, Some("m.reference")) => Relation::Reference(from_raw_json_value(&json)?),
             (_, Some("m.replace")) => Relation::Replacement(from_raw_json_value(&json)?),
             (Some(in_reply_to), _) => Relation::Reply(Reply { in_reply_to }),
-            _ => Relation::_Custom(from_raw_json_value(&json)?),
+            _ => Relation::_Custom(CustomRelation(from_raw_json_value(&json)?)),
         };
 
         Ok(rel)

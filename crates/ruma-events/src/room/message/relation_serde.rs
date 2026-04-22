@@ -55,7 +55,7 @@ where
             if let Some(in_reply_to) = in_reply_to {
                 Relation::Reply(Reply { in_reply_to })
             } else {
-                Relation::_Custom(c)
+                Relation::_Custom(CustomRelation(c))
             }
         }
     };
@@ -99,7 +99,7 @@ pub(crate) struct RelatesToDeHelper {
 #[serde(untagged)]
 pub(crate) enum RelationDeHelper {
     Known(KnownRelationDeHelper),
-    Unknown(CustomRelation),
+    Unknown(JsonObject),
 }
 
 #[derive(Deserialize)]

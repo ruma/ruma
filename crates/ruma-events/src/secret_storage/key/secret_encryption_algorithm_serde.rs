@@ -1,3 +1,4 @@
+use ruma_common::serde::JsonObject;
 use serde::{Deserialize, Serialize, de};
 
 use super::{
@@ -9,7 +10,7 @@ use super::{
 #[serde(untagged)]
 enum SecretStorageEncryptionAlgorithmDeHelper {
     Known(KnownSecretStorageEncryptionAlgorithmDeHelper),
-    Unknown(CustomSecretEncryptionAlgorithm),
+    Unknown(UnknownSecretStorageEncryptionAlgorithmDeHelper),
 }
 
 #[derive(Deserialize)]
@@ -17,6 +18,16 @@ enum SecretStorageEncryptionAlgorithmDeHelper {
 enum KnownSecretStorageEncryptionAlgorithmDeHelper {
     #[serde(rename = "m.secret_storage.v1.aes-hmac-sha2")]
     V1AesHmacSha2(SecretStorageV1AesHmacSha2Properties),
+}
+
+#[derive(Deserialize)]
+struct UnknownSecretStorageEncryptionAlgorithmDeHelper {
+    /// The encryption algorithm to be used for the key.
+    algorithm: String,
+
+    /// Algorithm-specific properties.
+    #[serde(flatten)]
+    properties: JsonObject,
 }
 
 impl<'de> Deserialize<'de> for SecretStorageEncryptionAlgorithm {
@@ -32,7 +43,9 @@ impl<'de> Deserialize<'de> for SecretStorageEncryptionAlgorithm {
                     Self::V1AesHmacSha2(p)
                 }
             },
-            SecretStorageEncryptionAlgorithmDeHelper::Unknown(c) => Self::_Custom(c),
+            SecretStorageEncryptionAlgorithmDeHelper::Unknown(
+                UnknownSecretStorageEncryptionAlgorithmDeHelper { algorithm, properties },
+            ) => Self::_Custom(CustomSecretEncryptionAlgorithm { algorithm, properties }),
         })
     }
 }
@@ -49,13 +62,13 @@ impl Serialize for SecretStorageEncryptionAlgorithm {
     where
         S: serde::Serializer,
     {
-        let algorithm = self.algorithm();
         match self {
             Self::V1AesHmacSha2(properties) => {
+                let algorithm = self.algorithm();
                 SecretStorageEncryptionAlgorithmSerHelper { algorithm, properties }
                     .serialize(serializer)
             }
-            Self::_Custom(properties) => {
+            Self::_Custom(CustomSecretEncryptionAlgorithm { algorithm, properties }) => {
                 SecretStorageEncryptionAlgorithmSerHelper { algorithm, properties }
                     .serialize(serializer)
             }

@@ -1,16 +1,17 @@
 //! `Deserialize` implementation for RoomMessageEventContent and MessageType.
 
-use ruma_common::serde::from_raw_json_value;
+use as_variant::as_variant;
+use ruma_common::serde::{JsonObject, from_raw_json_value};
 use serde::{Deserialize, de};
-use serde_json::value::RawValue as RawJsonValue;
+use serde_json::{Value as JsonValue, value::RawValue as RawJsonValue};
 
 #[cfg(feature = "unstable-msc4274")]
-use super::gallery::GalleryItemType;
+use super::gallery::{CustomGalleryItemContent, GalleryItemType};
 use super::{
     MessageType, RoomMessageEventContent, RoomMessageEventContentWithoutRelation,
     relation_serde::deserialize_relation,
 };
-use crate::Mentions;
+use crate::{Mentions, room::message::CustomMessageContent};
 
 impl<'de> Deserialize<'de> for RoomMessageEventContent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -75,7 +76,16 @@ impl<'de> Deserialize<'de> for MessageType {
             "m.text" => Self::Text(from_raw_json_value(&json)?),
             "m.video" => Self::Video(from_raw_json_value(&json)?),
             "m.key.verification.request" => Self::VerificationRequest(from_raw_json_value(&json)?),
-            _ => Self::_Custom(from_raw_json_value(&json)?),
+            _ => {
+                let mut data = from_raw_json_value::<JsonObject, _>(&json)?;
+                data.remove("msgtype");
+                let body = data
+                    .remove("body")
+                    .and_then(|value| as_variant!(value, JsonValue::String))
+                    .ok_or_else(|| de::Error::missing_field("body"))?;
+
+                Self::_Custom(CustomMessageContent { msgtype, body, data })
+            }
         })
     }
 }
@@ -102,7 +112,16 @@ impl<'de> Deserialize<'de> for GalleryItemType {
             "m.file" => Self::File(from_raw_json_value(&json)?),
             "m.image" => Self::Image(from_raw_json_value(&json)?),
             "m.video" => Self::Video(from_raw_json_value(&json)?),
-            _ => Self::_Custom(from_raw_json_value(&json)?),
+            _ => {
+                let mut data = from_raw_json_value::<JsonObject, _>(&json)?;
+                data.remove("itemtype");
+                let body = data
+                    .remove("body")
+                    .and_then(|value| as_variant!(value, JsonValue::String))
+                    .ok_or_else(|| de::Error::missing_field("body"))?;
+
+                Self::_Custom(CustomGalleryItemContent { itemtype, body, data })
+            }
         })
     }
 }

@@ -402,7 +402,7 @@ pub enum MessageType {
     /// A custom message.
     #[doc(hidden)]
     #[serde(untagged)]
-    _Custom(CustomEventContent),
+    _Custom(CustomMessageContent),
 }
 
 impl MessageType {
@@ -444,7 +444,7 @@ impl MessageType {
             "m.key.verification.request" => {
                 Self::VerificationRequest(deserialize_variant(body, data)?)
             }
-            _ => Self::_Custom(CustomEventContent { msgtype: msgtype.to_owned(), body, data }),
+            _ => Self::_Custom(CustomMessageContent { msgtype: msgtype.to_owned(), body, data }),
         })
     }
 
@@ -780,8 +780,8 @@ impl FormattedBody {
 
 /// The payload for a custom message event.
 #[doc(hidden)]
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct CustomEventContent {
+#[derive(Clone, Debug, Serialize)]
+pub struct CustomMessageContent {
     /// A custom msgtype.
     msgtype: String,
 

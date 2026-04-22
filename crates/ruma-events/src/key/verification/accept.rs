@@ -2,12 +2,16 @@
 //!
 //! [`m.key.verification.accept`]: https://spec.matrix.org/v1.18/client-server-api/#mkeyverificationaccept
 
-use std::collections::BTreeMap;
+use std::borrow::Cow;
 
-use ruma_common::{OwnedTransactionId, serde::Base64};
+use as_variant::as_variant;
+use ruma_common::{
+    OwnedTransactionId,
+    serde::{Base64, JsonObject},
+};
 use ruma_macros::EventContent;
-use serde::{Deserialize, Serialize};
-use serde_json::Value as JsonValue;
+use serde::{Deserialize, Deserializer, Serialize, de};
+use serde_json::{Value as JsonValue, from_value as from_json_value};
 
 use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
@@ -64,7 +68,7 @@ impl KeyVerificationAcceptEventContent {
 }
 
 /// An enum representing the different method specific `m.key.verification.accept` content.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(untagged)]
 pub enum AcceptMethod {
@@ -73,20 +77,82 @@ pub enum AcceptMethod {
 
     /// Any unknown accept method.
     #[doc(hidden)]
-    _Custom(_CustomContent),
+    _Custom(_CustomAcceptMethodContent),
+}
+
+impl AcceptMethod {
+    /// The value of the `method` field.
+    pub fn method(&self) -> &str {
+        match self {
+            Self::SasV1(_) => "m.sas.v1",
+            Self::_Custom(c) => &c.method,
+        }
+    }
+
+    /// The data of this `AcceptMethod`.
+    ///
+    /// The returned JSON object won't contain the `method` field, use [`.method()`][Self::method]
+    /// to access it.
+    ///
+    /// Prefer to use the public variants of `AcceptMethod` where possible; this method is meant to
+    /// be used for custom methods only.
+    pub fn data(&self) -> Cow<'_, JsonObject> {
+        fn serialize<T: Serialize>(obj: T) -> JsonObject {
+            match serde_json::to_value(obj).expect("accept method serialization to succeed") {
+                JsonValue::Object(mut obj) => {
+                    obj.remove("method");
+                    obj
+                }
+                _ => panic!("all accept method variants must serialize to objects"),
+            }
+        }
+
+        match self {
+            Self::SasV1(c) => Cow::Owned(serialize(c)),
+            Self::_Custom(c) => Cow::Borrowed(&c.data),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for AcceptMethod {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let mut data = JsonObject::deserialize(deserializer)?;
+
+        let method = data
+            .get("method")
+            .and_then(|value| as_variant!(value, JsonValue::String))
+            .ok_or_else(|| de::Error::missing_field("method"))?;
+
+        match method.as_ref() {
+            "m.sas.v1" => from_json_value(data.into()).map(Self::SasV1),
+            _ => {
+                let method = as_variant!(
+                    data.remove("method")
+                        .expect("we already checked that the method field is present"),
+                    JsonValue::String
+                )
+                .expect("we already checked that the method is a string");
+
+                Ok(Self::_Custom(_CustomAcceptMethodContent { method, data }))
+            }
+        }
+        .map_err(de::Error::custom)
+    }
 }
 
 /// Method specific content of a unknown key verification method.
 #[doc(hidden)]
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[allow(clippy::exhaustive_structs)]
-pub struct _CustomContent {
+#[derive(Clone, Debug, Serialize)]
+pub struct _CustomAcceptMethodContent {
     /// The name of the method.
-    pub method: String,
+    method: String,
 
     /// The additional fields that the method contains.
     #[serde(flatten)]
-    pub data: BTreeMap<String, JsonValue>,
+    data: JsonObject,
 }
 
 /// The payload of an `m.key.verification.accept` event using the `m.sas.v1` method.
@@ -162,9 +228,7 @@ impl From<SasV1ContentInit> for SasV1Content {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeMap;
-
-    use assert_matches2::assert_matches;
+    use assert_matches2::{assert_let, assert_matches};
     use ruma_common::{
         canonical_json::assert_to_canonical_json_eq,
         event_id,
@@ -173,14 +237,14 @@ mod tests {
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
     use super::{
-        _CustomContent, AcceptMethod, HashAlgorithm, KeyAgreementProtocol,
-        KeyVerificationAcceptEventContent, MessageAuthenticationCode, SasV1Content,
-        ShortAuthenticationString, ToDeviceKeyVerificationAcceptEventContent,
+        AcceptMethod, HashAlgorithm, KeyAgreementProtocol, KeyVerificationAcceptEventContent,
+        MessageAuthenticationCode, SasV1Content, ShortAuthenticationString,
+        ToDeviceKeyVerificationAcceptEventContent,
     };
     use crate::{ToDeviceEvent, relation::Reference};
 
     #[test]
-    fn serialization() {
+    fn to_device_serialization() {
         let key_verification_accept_content = ToDeviceKeyVerificationAcceptEventContent {
             transaction_id: "456".into(),
             method: AcceptMethod::SasV1(SasV1Content {
@@ -202,25 +266,6 @@ mod tests {
                 "hash": "sha256",
                 "message_authentication_code": "hkdf-hmac-sha256.v2",
                 "short_authentication_string": ["decimal"],
-            }),
-        );
-
-        let key_verification_accept_content = ToDeviceKeyVerificationAcceptEventContent {
-            transaction_id: "456".into(),
-            method: AcceptMethod::_Custom(_CustomContent {
-                method: "m.sas.custom".to_owned(),
-                data: vec![("test".to_owned(), JsonValue::from("field"))]
-                    .into_iter()
-                    .collect::<BTreeMap<String, JsonValue>>(),
-            }),
-        };
-
-        assert_to_canonical_json_eq!(
-            key_verification_accept_content,
-            json!({
-                "transaction_id": "456",
-                "method": "m.sas.custom",
-                "test": "field",
             }),
         );
     }
@@ -258,7 +303,7 @@ mod tests {
     }
 
     #[test]
-    fn deserialization() {
+    fn to_device_deserialization() {
         let json = json!({
             "transaction_id": "456",
             "commitment": "aGVsbG8",
@@ -305,26 +350,6 @@ mod tests {
         assert_eq!(sas.key_agreement_protocol, KeyAgreementProtocol::Curve25519);
         assert_eq!(sas.message_authentication_code, MessageAuthenticationCode::HkdfHmacSha256V2);
         assert_eq!(sas.short_authentication_string, vec![ShortAuthenticationString::Decimal]);
-
-        let json = json!({
-            "content": {
-                "from_device": "123",
-                "transaction_id": "456",
-                "method": "m.sas.custom",
-                "test": "field",
-            },
-            "type": "m.key.verification.accept",
-            "sender": "@example:localhost",
-        });
-
-        let ev = from_json_value::<ToDeviceEvent<ToDeviceKeyVerificationAcceptEventContent>>(json)
-            .unwrap();
-        assert_eq!(ev.content.transaction_id, "456");
-        assert_eq!(ev.sender, "@example:localhost");
-
-        assert_matches!(ev.content.method, AcceptMethod::_Custom(custom));
-        assert_eq!(custom.method, "m.sas.custom");
-        assert_eq!(custom.data.get("test"), Some(&JsonValue::from("field")));
     }
 
     #[test]
@@ -374,5 +399,26 @@ mod tests {
 
         assert_matches!(deser_content.method, AcceptMethod::SasV1(_));
         assert_eq!(deser_content.relates_to.event_id, event_id);
+    }
+
+    #[test]
+    fn custom_to_device_serialization_roundtrip() {
+        let json = json!({
+            "transaction_id": "456",
+            "method": "m.sas.custom",
+            "test": "field",
+        });
+
+        let content =
+            from_json_value::<ToDeviceKeyVerificationAcceptEventContent>(json.clone()).unwrap();
+
+        assert_eq!(content.transaction_id, "456");
+        assert_eq!(content.method.method(), "m.sas.custom");
+        let data = &*content.method.data();
+        assert_eq!(data.len(), 1);
+        assert_let!(Some(JsonValue::String(value)) = data.get("test"));
+        assert_eq!(value, "field");
+
+        assert_to_canonical_json_eq!(content, json);
     }
 }

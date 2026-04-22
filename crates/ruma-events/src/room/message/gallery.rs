@@ -59,7 +59,7 @@ pub enum GalleryItemType {
     /// A custom item.
     #[doc(hidden)]
     #[serde(untagged)]
-    _Custom(CustomEventContent),
+    _Custom(CustomGalleryItemContent),
 }
 
 impl GalleryItemType {
@@ -91,7 +91,11 @@ impl GalleryItemType {
             "m.file" => Self::File(deserialize_variant(body, data)?),
             "m.image" => Self::Image(deserialize_variant(body, data)?),
             "m.video" => Self::Video(deserialize_variant(body, data)?),
-            _ => Self::_Custom(CustomEventContent { itemtype: itemtype.to_owned(), body, data }),
+            _ => Self::_Custom(CustomGalleryItemContent {
+                itemtype: itemtype.to_owned(),
+                body,
+                data,
+            }),
         })
     }
 
@@ -145,17 +149,17 @@ impl GalleryItemType {
     }
 }
 
-/// The payload for a custom item type.
+/// The payload for a custom gallery item type.
 #[doc(hidden)]
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct CustomEventContent {
+#[derive(Clone, Debug, Serialize)]
+pub struct CustomGalleryItemContent {
     /// A custom itemtype.
-    itemtype: String,
+    pub(super) itemtype: String,
 
     /// The message body.
-    body: String,
+    pub(super) body: String,
 
     /// Remaining event content.
     #[serde(flatten)]
-    data: JsonObject,
+    pub(super) data: JsonObject,
 }

@@ -159,7 +159,7 @@ impl SecretStorageV1AesHmacSha2Properties {
 
 /// The payload for a custom secret encryption algorithm.
 #[doc(hidden)]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct CustomSecretEncryptionAlgorithm {
     /// The encryption algorithm to be used for the key.
     algorithm: String,
@@ -171,7 +171,7 @@ pub struct CustomSecretEncryptionAlgorithm {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
+    use assert_matches2::{assert_let, assert_matches};
     use js_int::uint;
     use ruma_common::{
         KeyDerivationAlgorithm, canonical_json::assert_to_canonical_json_eq, serde::Base64,
@@ -407,23 +407,28 @@ mod tests {
     }
 
     #[test]
-    fn custom_algorithm_key_description_deserialization() {
-        let json = to_raw_json_value(&json!({
+    fn custom_algorithm_serialization_roundtrip() {
+        let content_json = json!({
             "name": "my_key",
             "algorithm": "io.ruma.custom_alg",
             "io.ruma.custom_prop1": "YWJjZGVmZ2hpamtsbW5vcA",
-            "io.ruma.custom_prop2": "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U"
-        }))
-        .unwrap();
+            "io.ruma.custom_prop2": "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U",
+        });
+        let event_json = json!({
+            "type": "m.secret_storage.key.my_key_id",
+            "content": content_json,
+        });
 
-        let content =
-            SecretStorageKeyEventContent::from_parts("m.secret_storage.key.test", &json).unwrap();
-        assert_eq!(content.name.unwrap(), "my_key");
-        assert_matches!(content.passphrase, None);
+        assert_let!(
+            Ok(AnyGlobalAccountDataEvent::SecretStorageKey(event)) = from_json_value(event_json)
+        );
+        let content = &event.content;
 
-        let algorithm = content.algorithm;
-        assert_eq!(algorithm.algorithm(), "io.ruma.custom_alg");
-        let properties = algorithm.properties();
+        assert_eq!(content.key_id, "my_key_id");
+        assert_eq!(content.name.as_deref(), Some("my_key"));
+        assert_matches!(content.passphrase.as_ref(), None);
+        assert_eq!(content.algorithm.algorithm(), "io.ruma.custom_alg");
+        let properties = &*content.algorithm.properties();
         assert_eq!(properties.len(), 2);
         assert_eq!(
             properties.get("io.ruma.custom_prop1").unwrap().as_str(),
@@ -433,5 +438,7 @@ mod tests {
             properties.get("io.ruma.custom_prop2").unwrap().as_str(),
             Some("aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U")
         );
+
+        assert_to_canonical_json_eq!(content, content_json);
     }
 }
