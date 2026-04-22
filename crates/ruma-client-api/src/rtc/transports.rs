@@ -9,13 +9,15 @@ pub mod v1 {
 
     use std::borrow::Cow;
 
+    #[cfg(feature = "unstable-msc4195")]
+    use ruma_common::serde::from_raw_json_value;
     use ruma_common::{
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::JsonObject,
     };
-    use serde::{Deserialize, Serialize, de::DeserializeOwned};
-    use serde_json::Value as JsonValue;
+    use serde::{Deserialize, Deserializer, Serialize, de::DeserializeOwned};
+    use serde_json::{Value as JsonValue, value::RawValue as RawJsonValue};
 
     metadata! {
         method: GET,
@@ -57,7 +59,7 @@ pub mod v1 {
     ///
     /// This type can hold arbitrary RTC transports. Their data can be accessed with
     /// [`transport_type()`](Self::transport_type) and [`data()`](Self::data()).
-    #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+    #[derive(Clone, Debug, Serialize, PartialEq, Eq)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     #[serde(tag = "type")]
     pub enum RtcTransport {
@@ -128,6 +130,33 @@ pub mod v1 {
         }
     }
 
+    impl<'de> Deserialize<'de> for RtcTransport {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            #[derive(Deserialize)]
+            struct RtcTransportDeHelper {
+                #[serde(rename = "type")]
+                transport_type: String,
+            }
+
+            let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+            let RtcTransportDeHelper { transport_type } = from_raw_json_value(&json)?;
+
+            Ok(match transport_type.as_ref() {
+                #[cfg(feature = "unstable-msc4195")]
+                "livekit_multi_sfu" => Self::LivekitMultiSfu(from_raw_json_value(&json)?),
+                _ => {
+                    let mut data = from_raw_json_value::<JsonObject, _>(&json)?;
+                    data.remove("type");
+
+                    Self::_Custom(CustomRtcTransport { transport_type, data })
+                }
+            })
+        }
+    }
+
     /// A LiveKit multi-SFU transport.
     #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
@@ -170,7 +199,7 @@ pub mod v1 {
 
     /// Information about an unsupported RTC transport.
     #[doc(hidden)]
-    #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+    #[derive(Clone, Debug, Serialize, PartialEq, Eq)]
     pub struct CustomRtcTransport {
         /// The type of RTC transport.
         #[serde(rename = "type")]

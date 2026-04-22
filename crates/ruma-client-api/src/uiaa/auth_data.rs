@@ -2,7 +2,6 @@
 
 use std::{borrow::Cow, fmt};
 
-use as_variant::as_variant;
 use ruma_common::{
     OwnedClientSecret, OwnedSessionId, OwnedUserId, serde::JsonObject, thirdparty::Medium,
 };
@@ -93,9 +92,7 @@ impl AuthData {
             "m.oauth" | "org.matrix.cross_signing_reset" => {
                 Self::OAuth(deserialize_variant(session, data)?)
             }
-            _ => {
-                Self::_Custom(CustomAuthData { auth_type: auth_type.into(), session, extra: data })
-            }
+            _ => Self::_Custom(CustomAuthData { auth_type: auth_type.into(), session, data }),
         })
     }
 
@@ -175,7 +172,7 @@ impl AuthData {
             Self::Dummy(_) | Self::FallbackAcknowledgement(_) | Self::Terms(_) | Self::OAuth(_) => {
                 Cow::Owned(JsonObject::default())
             }
-            Self::_Custom(c) => Cow::Borrowed(&c.extra),
+            Self::_Custom(c) => Cow::Borrowed(&c.data),
         }
     }
 }
@@ -409,7 +406,7 @@ impl OAuth {
 
 /// Data for an unsupported authentication type.
 #[doc(hidden)]
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Serialize)]
 #[non_exhaustive]
 pub struct CustomAuthData {
     /// The type of authentication.
@@ -421,12 +418,12 @@ pub struct CustomAuthData {
 
     /// Extra data.
     #[serde(flatten)]
-    extra: JsonObject,
+    data: JsonObject,
 }
 
 impl fmt::Debug for CustomAuthData {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let Self { auth_type, session, extra: _ } = self;
+        let Self { auth_type, session, data: _ } = self;
         f.debug_struct("CustomAuthData")
             .field("auth_type", auth_type)
             .field("session", session)
@@ -494,12 +491,32 @@ impl UserIdentifier {
         }
     }
 
-    /// Returns the associated data if this is a custom identifier type.
+    /// Returns the associated data of the identifier.
     ///
     /// The returned JSON object won't contain the `type` field, use
     /// [`.identifier_type()`][Self::identifier_type] to access it.
-    pub fn custom_identifier_data(&self) -> Option<&JsonObject> {
-        as_variant!(self, Self::_Custom).map(|id| &id.data)
+    ///
+    /// Prefer to use the public variants of `UserIdentifier` where possible; this method is meant
+    /// to be used for custom identifier types only.
+    pub fn data(&self) -> Cow<'_, JsonObject> {
+        fn serialize<T: Serialize>(obj: &T) -> JsonObject {
+            match serde_json::to_value(obj).expect("user identifier serialization to succeed") {
+                JsonValue::Object(mut obj) => {
+                    obj.remove("type");
+                    obj
+                }
+                _ => panic!("all user identifiers must serialize to objects"),
+            }
+        }
+
+        match self {
+            Self::Matrix(i) => Cow::Owned(serialize(i)),
+            Self::Email(i) => Cow::Owned(serialize(i)),
+            Self::Msisdn(i) => Cow::Owned(serialize(i)),
+            Self::PhoneNumber(i) => Cow::Owned(serialize(i)),
+            Self::_CustomThirdParty(i) => Cow::Owned(serialize(i)),
+            Self::_Custom(i) => Cow::Borrowed(&i.data),
+        }
     }
 }
 
@@ -638,7 +655,7 @@ pub struct CustomThirdPartyUserIdentifier {
 
 /// Data for a custom identifier type.
 #[doc(hidden)]
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct CustomUserIdentifier {
     /// The type of the identifier.
     #[serde(rename = "type")]

@@ -20,10 +20,10 @@ use std::{borrow::Cow, collections::BTreeMap};
 use js_int::UInt;
 use ruma_common::{
     CrossSigningOrDeviceSignatures,
-    serde::{Base64, JsonObject, Raw},
+    serde::{Base64, JsonObject, Raw, from_raw_json_value},
 };
-use serde::{Deserialize, Serialize};
-use serde_json::Value as JsonValue;
+use serde::{Deserialize, Deserializer, Serialize};
+use serde_json::{Value as JsonValue, value::RawValue as RawJsonValue};
 
 /// A wrapper around a mapping of session IDs to key data.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -41,7 +41,7 @@ impl RoomKeyBackup {
 }
 
 /// The algorithm used for storing backups.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize)]
 #[serde(tag = "algorithm", content = "auth_data")]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum BackupAlgorithm {
@@ -82,6 +82,32 @@ impl BackupAlgorithm {
     }
 }
 
+impl<'de> Deserialize<'de> for BackupAlgorithm {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct BackupAlgorithmDeHelper {
+            algorithm: String,
+            auth_data: Box<RawJsonValue>,
+        }
+
+        let BackupAlgorithmDeHelper { algorithm, auth_data } =
+            BackupAlgorithmDeHelper::deserialize(deserializer)?;
+
+        Ok(match algorithm.as_ref() {
+            "m.megolm_backup.v1.curve25519-aes-sha2" => {
+                Self::MegolmBackupV1Curve25519AesSha2(from_raw_json_value(&auth_data)?)
+            }
+            _ => Self::_Custom(CustomBackupAlgorithm {
+                algorithm,
+                auth_data: from_raw_json_value(&auth_data)?,
+            }),
+        })
+    }
+}
+
 impl From<MegolmBackupV1Curve25519AesSha2AuthData> for BackupAlgorithm {
     fn from(value: MegolmBackupV1Curve25519AesSha2AuthData) -> Self {
         Self::MegolmBackupV1Curve25519AesSha2(value)
@@ -108,7 +134,7 @@ impl MegolmBackupV1Curve25519AesSha2AuthData {
 
 /// The payload for a custom backup algorithm.
 #[doc(hidden)]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct CustomBackupAlgorithm {
     /// The backup algorithm.
     algorithm: String,
