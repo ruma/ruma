@@ -338,7 +338,7 @@ pub enum RelationType {
 
 /// The payload for a custom relation.
 #[doc(hidden)]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[serde(transparent)]
 pub struct CustomRelation(pub(super) JsonObject);
 

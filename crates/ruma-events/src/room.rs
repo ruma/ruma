@@ -3,12 +3,12 @@
 //! This module also contains types shared by events in its child namespaces.
 
 use std::{
+    borrow::Cow,
     collections::{BTreeMap, btree_map},
     fmt,
     ops::Deref,
 };
 
-use as_variant::as_variant;
 use js_int::UInt;
 use ruma_common::{
     OwnedMxcUri,
@@ -19,6 +19,7 @@ use ruma_common::{
 };
 use ruma_macros::StringEnum;
 use serde::{Deserialize, Serialize, de};
+use serde_json::Value as JsonValue;
 use zeroize::Zeroize;
 
 use crate::PrivOwnedStr;
@@ -200,7 +201,7 @@ impl EncryptedFile {
 }
 
 /// Information about the encryption of a file.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "v", rename_all = "lowercase")]
 pub enum EncryptedFileInfo {
@@ -223,10 +224,28 @@ impl EncryptedFileInfo {
         }
     }
 
-    /// Get the data of the attachment encryption protocol, if it doesn't match one of the known
-    /// variants.
-    pub fn custom_data(&self) -> Option<&JsonObject> {
-        as_variant!(self, Self::_Custom(info) => &info.data)
+    /// Get the data of the attachment encryption protocol.
+    ///
+    /// The returned JSON object won't contain the `v` field, use [`.version()`][Self::version] to
+    /// access it.
+    ///
+    /// Prefer to use the public variants of `EncryptedFileInfo` where possible; this method is
+    /// meant to be used for custom versions only.
+    pub fn data(&self) -> Cow<'_, JsonObject> {
+        fn serialize<T: Serialize>(obj: &T) -> JsonObject {
+            match serde_json::to_value(obj).expect("encrypted file info serialization to succeed") {
+                JsonValue::Object(mut obj) => {
+                    obj.remove("body");
+                    obj
+                }
+                _ => panic!("all encrypted file info variants must serialize to objects"),
+            }
+        }
+
+        match self {
+            Self::V2(i) => Cow::Owned(serialize(i)),
+            Self::_Custom(i) => Cow::Borrowed(&i.data),
+        }
     }
 }
 
@@ -274,7 +293,7 @@ impl Drop for V2EncryptedFileInfo {
 
 /// Information about a file encrypted using a custom version of the attachment encryption protocol.
 #[doc(hidden)]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct CustomEncryptedFileInfo {
     /// The version of the protocol.
     v: String,

@@ -2,9 +2,14 @@
 //!
 //! [`m.secret.request`]: https://spec.matrix.org/v1.18/client-server-api/#msecretrequest
 
-use ruma_common::{OwnedDeviceId, OwnedTransactionId, serde::StringEnum};
+use as_variant::as_variant;
+use ruma_common::{
+    OwnedDeviceId, OwnedTransactionId,
+    serde::{JsonObject, StringEnum},
+};
 use ruma_macros::EventContent;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de};
+use serde_json::{Value as JsonValue, from_value as from_json_value};
 
 use crate::{GlobalAccountDataEventType, PrivOwnedStr};
 
@@ -45,7 +50,7 @@ impl ToDeviceSecretRequestEventContent {
 }
 
 /// Action for an `m.secret.request` event.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "action", rename_all = "snake_case")]
 pub enum RequestAction {
@@ -68,6 +73,27 @@ impl RequestAction {
             Self::RequestCancellation => "request_cancellation",
             Self::_Custom(custom) => &custom.action,
         }
+    }
+}
+
+impl<'de> Deserialize<'de> for RequestAction {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let mut json = JsonObject::deserialize(deserializer)?;
+
+        let action = json
+            .remove("action")
+            .and_then(|value| as_variant!(value, JsonValue::String))
+            .ok_or_else(|| de::Error::missing_field("action"))?;
+
+        match action.as_ref() {
+            "request" => from_json_value(json.into()).map(Self::Request),
+            "request_cancellation" => Ok(Self::RequestCancellation),
+            _ => Ok(Self::_Custom(CustomRequestAction { action })),
+        }
+        .map_err(de::Error::custom)
     }
 }
 
@@ -125,7 +151,7 @@ impl From<SecretName> for GlobalAccountDataEventType {
 
 /// A custom [`RequestAction`].
 #[doc(hidden)]
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct CustomRequestAction {
     /// The action of the request.
     action: String,

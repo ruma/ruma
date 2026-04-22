@@ -26,54 +26,27 @@ use ruma_events::{
 };
 use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
-macro_rules! json_object {
-    ( $($tt:tt)+ ) => {
-        match serde_json::json!({ $($tt)+ }) {
-            serde_json::value::Value::Object(map) => map,
-            _ => panic!("Not a JSON object"),
-        }
-    }
-}
-
 #[test]
-fn custom_msgtype_serialization() {
-    let json_data = json_object! {
-        "custom_field": "baba",
-        "another_one": "abab",
-    };
-    let custom_msgtype =
-        MessageType::new("my_custom_msgtype", "my message body".into(), json_data).unwrap();
-
-    assert_to_canonical_json_eq!(
-        custom_msgtype,
-        json!({
-            "msgtype": "my_custom_msgtype",
-            "body": "my message body",
-            "custom_field": "baba",
-            "another_one": "abab",
-        })
-    );
-}
-
-#[test]
-fn custom_msgtype_deserialization() {
-    let json_data = json!({
+fn custom_msgtype_serialization_roundtrip() {
+    let json = json!({
         "msgtype": "my_custom_msgtype",
         "body": "my custom message",
         "custom_field": "baba",
         "another_one": "abab",
     });
 
-    let expected_json_data = json_object! {
-        "custom_field": "baba",
-        "another_one": "abab",
-    };
+    let msg: MessageType = from_json_value(json.clone()).unwrap();
+    assert_eq!(msg.msgtype(), "my_custom_msgtype");
+    assert_eq!(msg.body(), "my custom message");
+    assert_eq!(
+        JsonValue::Object(msg.data().into_owned()),
+        json!({
+            "custom_field": "baba",
+            "another_one": "abab",
+        })
+    );
 
-    let custom_event: MessageType = from_json_value(json_data).unwrap();
-
-    assert_eq!(custom_event.msgtype(), "my_custom_msgtype");
-    assert_eq!(custom_event.body(), "my custom message");
-    assert_eq!(custom_event.data(), Cow::Owned(expected_json_data));
+    assert_to_canonical_json_eq!(msg, json);
 }
 
 #[test]
@@ -648,7 +621,7 @@ fn file_msgtype_custom_encrypted_content_deserialization() {
     assert_matches!(content.source, MediaSource::Encrypted(encrypted_file));
     assert_eq!(encrypted_file.url, "mxc://notareal.hs/file");
     assert_eq!(encrypted_file.info.version(), "local.custom.version");
-    let encryption_data = encrypted_file.info.custom_data().unwrap();
+    let encryption_data = &*encrypted_file.info.data();
     assert_eq!(
         encryption_data.get("key").unwrap().as_str(),
         Some("TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A")
@@ -718,47 +691,10 @@ fn gallery_msgtype_deserialization_with_image() {
 
 #[test]
 #[cfg(feature = "unstable-msc4274")]
-fn gallery_msgtype_serialization_with_custom_itemtype() {
-    let message_event_content =
-        RoomMessageEventContent::new(MessageType::Gallery(GalleryMessageEventContent::new(
-            "My photos from [FOSDEM 2025](https://fosdem.org/2025/)".to_owned(),
-            Some(FormattedBody::html(
-                "My photos from <a href=\"https://fosdem.org/2025/\">FOSDEM 2025</a>",
-            )),
-            vec![
-                GalleryItemType::new(
-                    "my_custom_itemtype",
-                    "my message body".into(),
-                    json_object! {
-                        "custom_field": "baba",
-                        "another_one": "abab",
-                    },
-                )
-                .unwrap(),
-            ],
-        )));
+fn gallery_msgtype_custom_itemtype_serialization_roundtrip() {
+    use assert_matches2::assert_let;
 
-    assert_to_canonical_json_eq!(
-        message_event_content,
-        json!({
-            "body": "My photos from [FOSDEM 2025](https://fosdem.org/2025/)",
-            "formatted_body": "My photos from <a href=\"https://fosdem.org/2025/\">FOSDEM 2025</a>",
-            "format": "org.matrix.custom.html",
-            "itemtypes": [{
-                "body": "my message body",
-                "custom_field": "baba",
-                "another_one": "abab",
-                "itemtype": "my_custom_itemtype",
-            }],
-            "msgtype": "dm.filament.gallery",
-        })
-    );
-}
-
-#[test]
-#[cfg(feature = "unstable-msc4274")]
-fn gallery_msgtype_deserialization_with_custom_itemtype() {
-    let json_data = json!({
+    let json = json!({
         "body": "My photos from [FOSDEM 2025](https://fosdem.org/2025/)",
         "formatted_body": "My photos from <a href=\"https://fosdem.org/2025/\">FOSDEM 2025</a>",
         "format": "org.matrix.custom.html",
@@ -771,23 +707,26 @@ fn gallery_msgtype_deserialization_with_custom_itemtype() {
         "msgtype": "dm.filament.gallery",
     });
 
-    let expected_json_data = json_object! {
-        "custom_field": "baba",
-        "another_one": "abab",
-    };
-
-    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::Gallery(content));
+    let event_content = from_json_value::<RoomMessageEventContent>(json.clone()).unwrap();
+    assert_let!(MessageType::Gallery(content) = &event_content.msgtype);
     assert_eq!(content.body, "My photos from [FOSDEM 2025](https://fosdem.org/2025/)");
     assert_eq!(
-        content.formatted.unwrap().body,
+        content.formatted.as_ref().unwrap().body,
         "My photos from <a href=\"https://fosdem.org/2025/\">FOSDEM 2025</a>"
     );
-    assert_matches!(&content.itemtypes.len(), 1);
+    assert_eq!(content.itemtypes.len(), 1);
     let itemtype = content.itemtypes.first().unwrap();
     assert_eq!(itemtype.itemtype(), "my_custom_itemtype");
     assert_eq!(itemtype.body(), "my message body");
-    assert_eq!(itemtype.data(), Cow::Owned(expected_json_data));
+    assert_eq!(
+        JsonValue::Object(itemtype.data().into_owned()),
+        json!({
+            "custom_field": "baba",
+            "another_one": "abab",
+        })
+    );
+
+    assert_to_canonical_json_eq!(event_content, json);
 }
 
 #[test]

@@ -1,12 +1,34 @@
 use std::{borrow::Cow, collections::BTreeMap};
 
-use ruma_common::serde::Base64;
+use as_variant::as_variant;
+use ruma_common::serde::{Base64, JsonObject};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de, ser::SerializeMap};
+use serde_json::{Value as JsonValue, from_value as from_json_value};
 
 use super::{
-    CustomEncryptedFileHash, EncryptedFileHash, EncryptedFileHashAlgorithm, EncryptedFileHashes,
-    V2EncryptedFileInfo,
+    CustomEncryptedFileHash, CustomEncryptedFileInfo, EncryptedFileHash,
+    EncryptedFileHashAlgorithm, EncryptedFileHashes, EncryptedFileInfo, V2EncryptedFileInfo,
 };
+
+impl<'de> Deserialize<'de> for EncryptedFileInfo {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let mut data = JsonObject::deserialize(deserializer)?;
+
+        let v = data
+            .remove("v")
+            .and_then(|value| as_variant!(value, JsonValue::String))
+            .ok_or_else(|| de::Error::missing_field("v"))?;
+
+        match v.as_ref() {
+            "v2" => from_json_value(data.into()).map(Self::V2),
+            _ => Ok(Self::_Custom(CustomEncryptedFileInfo { v, data })),
+        }
+        .map_err(de::Error::custom)
+    }
+}
 
 impl<'de> Deserialize<'de> for V2EncryptedFileInfo {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

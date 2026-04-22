@@ -4,13 +4,14 @@
 
 use std::borrow::Cow;
 
+use as_variant::as_variant;
 use ruma_common::{
     EventEncryptionAlgorithm, OwnedRoomId,
     serde::{Base64, JsonObject, from_raw_json_value},
 };
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize, de};
-use serde_json::value::RawValue as RawJsonValue;
+use serde_json::{Value as JsonValue, value::RawValue as RawJsonValue};
 
 use crate::PrivOwnedStr;
 
@@ -154,7 +155,24 @@ impl<'de> Deserialize<'de> for RoomKeyWithheldCodeInfo {
             "m.unauthorised" => Self::Unauthorized(from_raw_json_value(&json)?),
             "m.unavailable" => Self::Unavailable(from_raw_json_value(&json)?),
             "m.no_olm" => Self::NoOlm,
-            _ => Self::_Custom(from_raw_json_value(&json)?),
+            _ => {
+                let mut data = from_raw_json_value::<JsonObject, _>(&json)?;
+
+                // Probably due to the `#[serde(flatten)]` attribute, we deserialize fields that
+                // should be caught by `ToDeviceRoomKeyWithheldEventContent`. Let's remove them to
+                // fix re-serialization.
+                data.remove("algorithm");
+                data.remove("sender_key");
+                data.remove("reason");
+
+                let code = as_variant!(
+                    data.remove("code").expect("we already checked that the code field is present"),
+                    JsonValue::String
+                )
+                .expect("we already checked that the code is a string");
+
+                Self::_Custom(CustomRoomKeyWithheldCodeInfo { code, data }.into())
+            }
         })
     }
 }
@@ -179,7 +197,7 @@ impl RoomKeyWithheldSessionData {
 
 /// The payload for a custom room key withheld code.
 #[doc(hidden)]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct CustomRoomKeyWithheldCodeInfo {
     /// A custom code.
     code: String,
@@ -235,7 +253,7 @@ mod tests {
         EventEncryptionAlgorithm, canonical_json::assert_to_canonical_json_eq, owned_room_id,
         serde::Base64,
     };
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+    use serde_json::{from_value as from_json_value, json};
 
     use super::{
         RoomKeyWithheldCodeInfo, RoomKeyWithheldSessionData, ToDeviceRoomKeyWithheldEventContent,
@@ -335,6 +353,6 @@ mod tests {
         let content = from_json_value::<ToDeviceRoomKeyWithheldEventContent>(json.clone()).unwrap();
         assert_eq!(content.code.code().as_str(), "dev.ruma.custom_code");
 
-        assert_eq!(to_json_value(&content).unwrap(), json);
+        assert_to_canonical_json_eq!(content, json);
     }
 }
