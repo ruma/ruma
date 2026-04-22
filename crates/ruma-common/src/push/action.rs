@@ -1,7 +1,9 @@
+use std::borrow::Cow;
+
 use as_variant::as_variant;
 use ruma_macros::StringEnum;
 use serde::{Deserialize, Serialize, de};
-use serde_json::value::RawValue as RawJsonValue;
+use serde_json::{Value as JsonValue, value::RawValue as RawJsonValue};
 
 mod action_serde;
 
@@ -88,15 +90,30 @@ impl Action {
         as_variant!(self, Action::SetTweak(Tweak::Sound(sound)) => sound)
     }
 
-    /// Access the data if this is a custom action.
-    pub fn custom_data(&self) -> Option<&CustomActionData> {
-        as_variant!(self, Self::_Custom).map(|action| &action.0)
+    /// Access the data of this action.
+    pub fn data(&self) -> Cow<'_, CustomActionData> {
+        fn serialize<T: Serialize>(obj: T) -> JsonObject {
+            match serde_json::to_value(obj).expect("action serialization to succeed") {
+                JsonValue::Object(obj) => obj,
+                _ => panic!("action variant must serialize to object"),
+            }
+        }
+
+        match self {
+            Self::Notify => Cow::Owned(CustomActionData::String("notify".to_owned())),
+            #[cfg(feature = "unstable-msc3768")]
+            Self::NotifyInApp => {
+                Cow::Owned(CustomActionData::String("org.matrix.msc3768.notify_in_app".to_owned()))
+            }
+            Self::SetTweak(t) => Cow::Owned(CustomActionData::Object(serialize(t))),
+            Self::_Custom(c) => Cow::Borrowed(&c.0),
+        }
     }
 }
 
 /// A custom action.
 #[doc(hidden)]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 #[serde(transparent)]
 pub struct CustomAction(CustomActionData);
 
@@ -169,9 +186,25 @@ impl Tweak {
         }
     }
 
-    /// Access the value, if it is a custom tweak.
-    pub fn custom_value(&self) -> Option<&RawJsonValue> {
-        as_variant!(self, Self::_Custom).and_then(|tweak| tweak.value.as_deref())
+    /// Access the value of this tweak.
+    ///
+    /// Prefer to use the public variants of `Tweak` where possible; this method is meant to
+    /// be used for custom tweaks only.
+    pub fn value(&self) -> Option<Cow<'_, RawJsonValue>> {
+        fn serialize<T: Serialize>(val: &T) -> Box<RawJsonValue> {
+            RawJsonValue::from_string(
+                serde_json::to_string(val).expect("tweak serialization to succeed"),
+            )
+            .expect("serialized tweak should be valid JSON")
+        }
+
+        match self {
+            Tweak::Sound(s) => Some(Cow::Owned(serialize(s))),
+            Tweak::Highlight(h) => {
+                Some(Cow::Owned(serialize(&matches!(h, HighlightTweakValue::Yes))))
+            }
+            Tweak::_Custom(c) => c.value.as_deref().map(Cow::Borrowed),
+        }
     }
 }
 
@@ -224,7 +257,7 @@ impl From<bool> for HighlightTweakValue {
 
 /// A custom tweak.
 #[doc(hidden)]
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct CustomTweak {
     /// The kind of the custom tweak.
     set_tweak: String,
@@ -236,11 +269,11 @@ pub struct CustomTweak {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
-    use serde_json::{from_value as from_json_value, json};
+    use assert_matches2::{assert_let, assert_matches};
+    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
     use super::{Action, HighlightTweakValue, SoundTweakValue, Tweak};
-    use crate::assert_to_canonical_json_eq;
+    use crate::{assert_to_canonical_json_eq, push::action::CustomActionData};
 
     #[test]
     fn serialize_notify() {
@@ -332,5 +365,35 @@ mod tests {
             from_json_value::<Action>(json!({ "set_tweak": "highlight" })),
             Ok(Action::SetTweak(Tweak::Highlight(HighlightTweakValue::Yes)))
         );
+    }
+
+    #[test]
+    fn custom_tweak_serialize_roundtrip() {
+        let json = json!({ "set_tweak": "dev.local.tweak", "value": "rainbow" });
+        let tweak = from_json_value::<Tweak>(json.clone()).unwrap();
+
+        assert_eq!(tweak.set_tweak(), "dev.local.tweak");
+        assert_eq!(tweak.value().unwrap().get(), r#""rainbow""#);
+
+        assert_to_canonical_json_eq!(tweak, json);
+    }
+
+    #[test]
+    fn custom_action_serialize_roundtrip() {
+        // String action.
+        let json = json!("dev.local.action");
+        let action = from_json_value::<Action>(json.clone()).unwrap();
+        assert_let!(CustomActionData::String(value) = &*action.data());
+        assert_eq!(value, "dev.local.action");
+        assert_to_canonical_json_eq!(action, json);
+
+        // Object action.
+        let json = json!({ "dev.local.action": "rainbow" });
+        let action = from_json_value::<Action>(json.clone()).unwrap();
+        assert_let!(CustomActionData::Object(value) = &*action.data());
+        assert_eq!(value.len(), 1);
+        assert_let!(Some(JsonValue::String(s)) = value.get("dev.local.action"));
+        assert_eq!(s, "rainbow");
+        assert_to_canonical_json_eq!(action, json);
     }
 }

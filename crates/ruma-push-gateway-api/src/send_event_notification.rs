@@ -291,9 +291,7 @@ pub mod v1 {
                     Tweak::Sound(value) => map.serialize_entry("sound", value)?,
                     Tweak::_Custom(_) => map.serialize_entry(
                         &item.set_tweak(),
-                        &item
-                            .custom_value()
-                            .expect("Tweak::_Custom variant should return a custom value"),
+                        &item.value().expect("Tweak::_Custom variant should return a custom value"),
                     )?,
                     _ => unreachable!("variant added to Tweak not covered by _Custom"),
                 }

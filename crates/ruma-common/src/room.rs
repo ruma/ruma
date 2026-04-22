@@ -68,6 +68,7 @@ pub enum JoinRule {
     Public,
 
     #[doc(hidden)]
+    #[serde(untagged)]
     _Custom(CustomJoinRule),
 }
 
@@ -140,13 +141,10 @@ impl<'de> Deserialize<'de> for JoinRule {
         #[derive(Deserialize)]
         struct ExtractType<'a> {
             #[serde(borrow)]
-            join_rule: Option<Cow<'a, str>>,
+            join_rule: Cow<'a, str>,
         }
 
-        let join_rule = serde_json::from_str::<ExtractType<'_>>(json.get())
-            .map_err(de::Error::custom)?
-            .join_rule
-            .ok_or_else(|| de::Error::missing_field("join_rule"))?;
+        let ExtractType { join_rule } = from_raw_json_value(&json)?;
 
         match join_rule.as_ref() {
             "invite" => Ok(Self::Invite),
@@ -155,14 +153,24 @@ impl<'de> Deserialize<'de> for JoinRule {
             "restricted" => from_raw_json_value(&json).map(Self::Restricted),
             "knock_restricted" => from_raw_json_value(&json).map(Self::KnockRestricted),
             "public" => Ok(Self::Public),
-            _ => from_raw_json_value(&json).map(Self::_Custom),
+            _ => {
+                let mut data = from_raw_json_value::<JsonObject, _>(&json)?;
+                let join_rule = as_variant!(
+                    data.remove("join_rule")
+                        .expect("we already checked that the join_rule field is present"),
+                    JsonValue::String
+                )
+                .expect("we already checked that the join rule is a string");
+
+                Ok(Self::_Custom(CustomJoinRule { join_rule, data }))
+            }
         }
     }
 }
 
 /// The payload for an unsupported join rule.
 #[doc(hidden)]
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct CustomJoinRule {
     /// The kind of join rule.
     join_rule: String,
@@ -253,7 +261,7 @@ impl RoomMembership {
 }
 
 #[doc(hidden)]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct CustomAllowRule {
     /// The type of the allow rule.
@@ -276,18 +284,24 @@ impl<'de> Deserialize<'de> for AllowRule {
         #[derive(Deserialize)]
         struct ExtractType<'a> {
             #[serde(borrow, rename = "type")]
-            rule_type: Option<Cow<'a, str>>,
+            rule_type: Cow<'a, str>,
         }
 
         // Get the value of `type` if present.
-        let rule_type = serde_json::from_str::<ExtractType<'_>>(json.get())
-            .map_err(de::Error::custom)?
-            .rule_type;
+        let ExtractType { rule_type } = from_raw_json_value(&json)?;
 
-        match rule_type.as_deref() {
-            Some("m.room_membership") => from_raw_json_value(&json).map(Self::RoomMembership),
-            Some(_) => from_raw_json_value(&json).map(Self::_Custom),
-            None => Err(de::Error::missing_field("type")),
+        match rule_type.as_ref() {
+            "m.room_membership" => from_raw_json_value(&json).map(Self::RoomMembership),
+            _ => {
+                let mut data = from_raw_json_value::<JsonObject, _>(&json)?;
+                let rule_type = as_variant!(
+                    data.remove("type").expect("we already checked that the type field is present"),
+                    JsonValue::String
+                )
+                .expect("we already checked that the type is a string");
+
+                Ok(Self::_Custom(CustomAllowRule { rule_type, data }))
+            }
         }
     }
 }
@@ -641,10 +655,10 @@ impl From<Restricted> for RestrictedSummary {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
+    use assert_matches2::{assert_let, assert_matches};
     use js_int::uint;
     use ruma_common::{OwnedRoomId, owned_room_id};
-    use serde_json::{from_value as from_json_value, json};
+    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
     use super::{
         AllowRule, CustomAllowRule, JoinRule, JoinRuleSummary, Restricted, RestrictedSummary,
@@ -774,6 +788,23 @@ mod tests {
     }
 
     #[test]
+    fn custom_join_rule_serialize_roundtrip() {
+        let json = json!({
+            "join_rule": "local.dev.unicorns",
+            "rainbows": true,
+        });
+
+        let join_rule = from_json_value::<JoinRule>(json.clone()).unwrap();
+        assert_eq!(join_rule.kind().as_str(), "local.dev.unicorns");
+        let data = &*join_rule.data();
+        assert_eq!(data.len(), 1);
+        assert_let!(Some(JsonValue::Bool(value)) = data.get("rainbows"));
+        assert!(value);
+
+        assert_to_canonical_json_eq!(join_rule, json);
+    }
+
+    #[test]
     fn join_rule_to_join_rule_summary() {
         assert_eq!(JoinRuleSummary::Invite, JoinRule::Invite.into());
         assert_eq!(JoinRuleSummary::Knock, JoinRule::Knock.into());
@@ -799,10 +830,16 @@ mod tests {
 
     #[test]
     fn roundtrip_custom_allow_rule() {
-        let json = r#"{"type":"org.msc9000.something","foo":"bar"}"#;
-        let allow_rule: AllowRule = serde_json::from_str(json).unwrap();
-        assert_matches!(&allow_rule, AllowRule::_Custom(_));
-        assert_eq!(serde_json::to_string(&allow_rule).unwrap(), json);
+        let json = json!({ "type": "org.msc9000.something", "foo": "bar"});
+
+        let allow_rule: AllowRule = from_json_value(json.clone()).unwrap();
+        assert_eq!(allow_rule.rule_type(), "org.msc9000.something");
+        let data = &*allow_rule.data();
+        assert_eq!(data.len(), 1);
+        assert_let!(Some(JsonValue::String(value)) = data.get("foo"));
+        assert_eq!(value, "bar");
+
+        assert_to_canonical_json_eq!(allow_rule, json);
     }
 
     #[test]

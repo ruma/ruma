@@ -1,13 +1,14 @@
 use std::{
-    collections::BTreeMap, future::Future, ops::RangeBounds, pin::Pin, str::FromStr, sync::Arc,
+    borrow::Cow, collections::BTreeMap, future::Future, ops::RangeBounds, pin::Pin, str::FromStr,
+    sync::Arc,
 };
 
-use as_variant::as_variant;
 use js_int::{Int, UInt};
 use regex::bytes::Regex;
 #[cfg(feature = "unstable-msc3931")]
 use ruma_macros::StringEnum;
 use serde::{Deserialize, Serialize};
+use serde_json::Value as JsonValue;
 use wildmatch::WildMatch;
 
 use crate::{
@@ -19,6 +20,7 @@ use crate::{
 #[cfg(feature = "unstable-msc3931")]
 use crate::{PrivOwnedStr, RoomVersionId};
 
+mod condition_serde;
 mod flattened_json;
 mod room_member_count_is;
 
@@ -28,7 +30,7 @@ pub use self::{
 };
 
 /// A condition that must apply for an associated push rule's action to be taken.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum PushCondition {
@@ -90,9 +92,35 @@ impl PushCondition {
         }
     }
 
-    /// The data, if this is a custom condition.
-    pub fn custom_data(&self) -> Option<&JsonObject> {
-        as_variant!(self, Self::_Custom).map(|condition| &condition.data)
+    /// The data of this `PushCondition`.
+    ///
+    /// The returned JSON object won't contain the `kind` field, use [`.kind()`][Self::kind] to
+    /// access it.
+    ///
+    /// Prefer to use the public variants of `PushCondition` where possible; this method is meant to
+    /// be used for custom conditions only.
+    pub fn data(&self) -> Cow<'_, JsonObject> {
+        fn serialize<T: Serialize>(obj: T) -> JsonObject {
+            match serde_json::to_value(obj).expect("push condition serialization to succeed") {
+                JsonValue::Object(obj) => obj,
+                _ => panic!("all push condition variants must serialize to objects"),
+            }
+        }
+
+        match self {
+            Self::EventMatch(c) => Cow::Owned(serialize(c)),
+            #[allow(deprecated)]
+            Self::ContainsDisplayName => Cow::Owned(JsonObject::new()),
+            Self::RoomMemberCount(c) => Cow::Owned(serialize(c)),
+            Self::SenderNotificationPermission(c) => Cow::Owned(serialize(c)),
+            #[cfg(feature = "unstable-msc3931")]
+            Self::RoomVersionSupports(c) => Cow::Owned(serialize(c)),
+            Self::EventPropertyIs(c) => Cow::Owned(serialize(c)),
+            Self::EventPropertyContains(c) => Cow::Owned(serialize(c)),
+            #[cfg(feature = "unstable-msc4306")]
+            Self::ThreadSubscription(c) => Cow::Owned(serialize(c)),
+            Self::_Custom(c) => Cow::Borrowed(&c.data),
+        }
     }
 
     /// Check if this condition applies to the event.
@@ -455,7 +483,7 @@ impl ThreadSubscriptionConditionData {
 
 /// An unknown push condition.
 #[doc(hidden)]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[allow(clippy::exhaustive_structs)]
 pub struct _CustomPushCondition {
     /// The kind of the condition.
@@ -1445,15 +1473,18 @@ mod tests {
 
     #[test]
     fn custom_condition_roundtrip() {
-        let json_data = json!({
+        let json = json!({
             "kind": "local_dev_custom",
             "foo": "bar"
         });
 
-        let condition = from_json_value::<PushCondition>(json_data).unwrap();
+        let condition = from_json_value::<PushCondition>(json.clone()).unwrap();
         assert_eq!(condition.kind(), "local_dev_custom");
-        assert_matches!(condition.custom_data(), Some(data));
+        let data = condition.data();
+        assert_eq!(data.len(), 1);
         assert_matches!(data.get("foo"), Some(JsonValue::String(foo)));
         assert_eq!(foo, "bar");
+
+        assert_to_canonical_json_eq!(condition, json);
     }
 }

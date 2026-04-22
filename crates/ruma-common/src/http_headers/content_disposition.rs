@@ -8,6 +8,7 @@ use super::{
     is_tchar, is_token, quote_ascii_string_if_required, rfc8187, sanitize_for_ascii_quoted_string,
     unescape_string,
 };
+use crate::PrivOwnedStr;
 
 /// The value of a `Content-Disposition` HTTP header.
 ///
@@ -348,7 +349,7 @@ pub enum ContentDispositionType {
     Attachment,
 
     #[doc(hidden)]
-    _Custom(TokenString),
+    _Custom(PrivOwnedStr),
 }
 
 impl ContentDispositionType {
@@ -365,7 +366,7 @@ impl From<TokenString> for ContentDispositionType {
         } else if value.eq_ignore_ascii_case("attachment") {
             Self::Attachment
         } else {
-            Self::_Custom(value)
+            Self::_Custom(PrivOwnedStr(value.0))
         }
     }
 }
@@ -379,7 +380,7 @@ impl<'a> TryFrom<&'a [u8]> for ContentDispositionType {
         } else if value.eq_ignore_ascii_case(b"attachment") {
             Ok(Self::Attachment)
         } else {
-            TokenString::try_from(value).map(Self::_Custom)
+            TokenString::try_from(value).map(Into::into)
         }
     }
 }
