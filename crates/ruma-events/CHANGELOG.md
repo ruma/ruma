@@ -46,6 +46,7 @@ Breaking changes:
 Bug fixes:
 
 - Fix a double `msgtype` in a `m.location` event.
+- Do not serialize `name` in `SecretStorageKeyEventContent` when its value is `None`.
 
 Improvements:
 

@@ -68,6 +68,7 @@ pub struct SecretStorageKeyEventContent {
     pub key_id: String,
 
     /// The name of the key.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
 
     /// The encryption algorithm used for this key.
