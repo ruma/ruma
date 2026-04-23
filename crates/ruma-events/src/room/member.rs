@@ -488,6 +488,7 @@ impl RoomMemberEvent {
     /// should be ignored, and `false` is returned.
     ///
     /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
+    #[cfg(feature = "unstable-msc4293")]
     pub fn should_redact_events(&self) -> bool {
         if let Self::Original(ev) = self { ev.should_redact_events() } else { false }
     }
@@ -509,6 +510,7 @@ impl SyncRoomMemberEvent {
     /// should be ignored, and `false` is returned.
     ///
     /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
+    #[cfg(feature = "unstable-msc4293")]
     pub fn should_redact_events(&self) -> bool {
         if let Self::Original(ev) = self { ev.should_redact_events() } else { false }
     }
@@ -688,6 +690,7 @@ impl OriginalRoomMemberEvent {
     /// should be ignored, and `false` is returned.
     ///
     /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
+    #[cfg(feature = "unstable-msc4293")]
     pub fn should_redact_events(&self) -> bool {
         self.content.redact_events
             && self.state_key != self.sender
@@ -727,6 +730,7 @@ impl RedactedRoomMemberEvent {
     /// should be ignored, and `false` is returned.
     ///
     /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
+    #[cfg(feature = "unstable-msc4293")]
     pub fn should_redact_events(&self) -> bool {
         // Redacted room member events lack the redact_events flag - see proposal.
         false
@@ -769,6 +773,7 @@ impl OriginalSyncRoomMemberEvent {
     /// should be ignored, and `false` is returned.
     ///
     /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
+    #[cfg(feature = "unstable-msc4293")]
     pub fn should_redact_events(&self) -> bool {
         self.content.redact_events
             && self.state_key != self.sender
@@ -808,6 +813,7 @@ impl RedactedSyncRoomMemberEvent {
     /// should be ignored, and `false` is returned.
     ///
     /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
+    #[cfg(feature = "unstable-msc4293")]
     pub fn should_redact_events(&self) -> bool {
         // Redacted room member events lack the redact_events flag - see proposal.
         false
@@ -846,6 +852,7 @@ impl StrippedRoomMemberEvent {
     /// should be ignored, and `false` is returned.
     ///
     /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
+    #[cfg(feature = "unstable-msc4293")]
     pub fn should_redact_events(&self) -> bool {
         // Stripped room member events lack the redact_events flag.
         false
