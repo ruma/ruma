@@ -489,11 +489,7 @@ impl RoomMemberEvent {
     ///
     /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
     pub fn should_redact_events(&self) -> bool {
-        if let Self::Original(ev) = self {
-            ev.should_redact_events()
-        } else {
-            false
-        }
+        if let Self::Original(ev) = self { ev.should_redact_events() } else { false }
     }
 }
 
@@ -514,11 +510,7 @@ impl SyncRoomMemberEvent {
     ///
     /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
     pub fn should_redact_events(&self) -> bool {
-        if let Self::Original(ev) = self {
-            ev.should_redact_events()
-        } else {
-            false
-        }
+        if let Self::Original(ev) = self { ev.should_redact_events() } else { false }
     }
 }
 
