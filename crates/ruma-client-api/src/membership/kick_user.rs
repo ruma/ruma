@@ -44,6 +44,7 @@ pub mod v3 {
         /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
         #[cfg(feature = "unstable-msc4293")]
         #[serde(
+            default,
             rename = "org.matrix.msc4293.redact_events",
             skip_serializing_if = "ruma_common::serde::is_default"
         )]
