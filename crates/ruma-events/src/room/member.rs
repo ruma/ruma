@@ -490,9 +490,7 @@ impl RoomMemberEvent {
     /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
     pub fn should_redact_events(&self) -> bool {
         if let Self::Original(ev) = self {
-            ev.content.redact_events
-                && *self.state_key() != *self.sender()
-                && matches!(ev.content.membership, MembershipState::Ban | MembershipState::Leave)
+            ev.should_redact_events()
         } else {
             false
         }
@@ -517,9 +515,7 @@ impl SyncRoomMemberEvent {
     /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
     pub fn should_redact_events(&self) -> bool {
         if let Self::Original(ev) = self {
-            ev.content.redact_events
-                && *self.state_key() != *self.sender()
-                && matches!(ev.content.membership, MembershipState::Ban | MembershipState::Leave)
+            ev.should_redact_events()
         } else {
             false
         }
