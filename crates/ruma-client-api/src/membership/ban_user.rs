@@ -45,6 +45,7 @@ pub mod v3 {
         #[cfg(feature = "unstable-msc4293")]
         #[serde(
             rename = "org.matrix.msc4293.redact_events",
+            default,
             skip_serializing_if = "ruma_common::serde::is_default"
         )]
         pub redact_events: bool,
