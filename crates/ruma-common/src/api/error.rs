@@ -37,8 +37,7 @@ impl Error {
         Self { status_code, body }
     }
 
-    /// If `self` is a server error in the `errcode` + `error` format expected
-    /// for client-server API endpoints, returns the error kind (`errcode`).
+    /// If this is an error with a [`StandardErrorBody`], returns the [`ErrorKind`].
     pub fn error_kind(&self) -> Option<&ErrorKind> {
         as_variant!(&self.body, ErrorBody::Standard(StandardErrorBody { kind, .. }) => kind)
     }
