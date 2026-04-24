@@ -77,6 +77,9 @@ Improvements:
 - Add unstable support for MSC4406.
 - Add `rule_type()` and `data()` methods to `AllowRule`.
 - Implement `PartialEq` and `Eq` on `CrossSigningKey` and `Signatures`.
+- Add `Error::is_endpoint_not_implemented()` helper method to check if it
+  matches the expected format for endpoints that are not implemented by the
+  homeserver.
 
 ## 0.17.1
 
