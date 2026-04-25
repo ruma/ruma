@@ -855,7 +855,9 @@ impl StrippedRoomMemberEvent {
     #[cfg(feature = "unstable-msc4293")]
     pub fn should_redact_events(&self) -> bool {
         // Stripped room member events lack the redact_events flag.
-        false
+        self.content.redact_events
+            && self.state_key != self.sender
+            && matches!(self.content.membership, MembershipState::Ban | MembershipState::Leave)
     }
 }
 
