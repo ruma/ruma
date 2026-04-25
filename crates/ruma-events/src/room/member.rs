@@ -854,7 +854,6 @@ impl StrippedRoomMemberEvent {
     /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
     #[cfg(feature = "unstable-msc4293")]
     pub fn should_redact_events(&self) -> bool {
-        // Stripped room member events lack the redact_events flag.
         self.content.redact_events
             && self.state_key != self.sender
             && matches!(self.content.membership, MembershipState::Ban | MembershipState::Leave)
