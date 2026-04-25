@@ -95,6 +95,8 @@ Improvements:
   MSC4323 / Matrix 1.18.
 - Add support for reading PGP keys from `.well-known/matrix/support`, according
   to MSC4439.
+- Add support for MSC4293 `redact_events` field to `ban_user::v3::Request` and
+  `kick_user::v3::Request`, gated behind `unstable-msc4293`.
 
 ## 0.22.1
 
