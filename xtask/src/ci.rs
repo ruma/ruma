@@ -69,22 +69,27 @@ pub enum CiCmd {
     ClippyAll,
     /// Lint all benchmarks with clippy (nightly)
     ClippyBenches,
-    /// Run all lints that don't need compilation
+    /// Run all lints that don't need compilation. This is equivalent to calling both the lint-tools
+    /// and lint-custom commands.
     Lint,
-    /// Check sorting of dependencies (lint)
+    /// Run all lints that don't need compilation and rely on external tools.
+    LintTools,
+    /// Check sorting of dependencies with cargo-sort (lint-tools)
     SortedDependencies,
-    /// Check unused dependencies (lint)
+    /// Check unused dependencies with cargo-machete (lint-tools)
     UnusedDependencies,
-    /// Check spec links point to a recent version (lint)
-    SpecLinks,
-    /// Check all cargo features of sub-crates can be enabled from ruma (lint)
-    ReexportFeatures,
-    /// Check typos
+    /// Check typos (lint-tools)
     Typos,
-    /// Check whether there are unused cargo features (lint)
-    UnusedFeatures,
-    /// Lint markdown files with rumdl (lint)
+    /// Lint markdown files with rumdl (lint-tools)
     Markdown,
+    /// Run all lints that don't need compilation and rely on custom scripts.
+    LintCustom,
+    /// Check spec links point to a recent version (lint-custom)
+    SpecLinks,
+    /// Check all cargo features of sub-crates can be enabled from ruma (lint-custom)
+    ReexportFeatures,
+    /// Check whether there are unused cargo features (lint-custom)
+    UnusedFeatures,
 }
 
 /// Task to run CI tests.
@@ -137,21 +142,19 @@ impl CiTask {
             Some(CiCmd::ClippyAll) => self.clippy_with_features(RumaFeatures::Compat)?,
             Some(CiCmd::ClippyBenches) => self.clippy_benches()?,
             Some(CiCmd::Lint) => self.lint()?,
+            Some(CiCmd::LintTools) => self.lint_tools()?,
             Some(CiCmd::SortedDependencies) => self.sorted_dependencies()?,
             Some(CiCmd::UnusedDependencies) => self.unused_dependencies()?,
+            Some(CiCmd::Typos) => self.typos()?,
+            Some(CiCmd::Markdown) => self.markdown()?,
+            Some(CiCmd::LintCustom) => self.lint_custom()?,
             Some(CiCmd::SpecLinks) => {
                 SpecLinksCheckTask::new().run(&self.project_metadata.crates_path())?;
             }
             Some(CiCmd::ReexportFeatures) => check_reexport_features(&self.project_metadata)?,
-            Some(CiCmd::Typos) => self.typos()?,
             Some(CiCmd::UnusedFeatures) => check_unused_features(&self.sh, &self.project_metadata)?,
-            Some(CiCmd::Markdown) => self.markdown()?,
             None => {
-                self.msrv()
-                    .and(self.stable())
-                    .and(self.nightly())
-                    .and(self.lint())
-                    .and(self.typos())?;
+                self.msrv().and(self.stable()).and(self.nightly()).and(self.lint())?;
             }
         }
 
@@ -383,28 +386,27 @@ impl CiTask {
 
     /// Run all lints that don't need compilation.
     fn lint(&self) -> Result<()> {
-        // Check dependencies being sorted
+        let tools_res = self.lint_tools();
+        let custom_res = self.lint_custom();
+
+        tools_res.and(custom_res)
+    }
+
+    /// Run all lints that don't need compilation and rely on external tools.
+    fn lint_tools(&self) -> Result<()> {
+        // Check dependencies being sorted.
         let sorted_dependencies_res = self.sorted_dependencies();
-        // Check unused dependencies
+        // Check unused dependencies.
         let unused_dependencies_res = self.unused_dependencies();
-        // Check that all links point to the same version of the spec
-        let spec_links_res = SpecLinksCheckTask::new().run(&self.project_metadata.crates_path());
-        // Check that all cargo features of sub-crates can be enabled from ruma.
-        let reexport_features_res = check_reexport_features(&self.project_metadata);
-        // Check whether there are unused cargo features.
-        let unused_features_res = check_unused_features(&self.sh, &self.project_metadata);
+        // Check for typos.
+        let typos_res = self.typos();
         // Check Markdown files.
         let markdown_res = self.markdown();
 
-        sorted_dependencies_res
-            .and(unused_dependencies_res)
-            .and(spec_links_res)
-            .and(reexport_features_res)
-            .and(unused_features_res)
-            .and(markdown_res)
+        sorted_dependencies_res.and(unused_dependencies_res).and(typos_res).and(markdown_res)
     }
 
-    /// Check the sorting of dependencies with the nightly version.
+    /// Check the sorting of dependencies with cargo-sort.
     fn sorted_dependencies(&self) -> Result<()> {
         if cmd!(&self.sh, "cargo sort --version").run().is_err() {
             return Err(
@@ -415,7 +417,7 @@ impl CiTask {
         cmd!(
             &self.sh,
             "
-            rustup run {NIGHTLY} cargo sort
+            cargo sort
                 --workspace --grouped --check
                 --order package,lib,features,dependencies,target,dev-dependencies,build-dependencies
             "
@@ -432,9 +434,7 @@ impl CiTask {
                     .into(),
             );
         }
-        cmd!(&self.sh, "rustup run {NIGHTLY} cargo machete --with-metadata")
-            .run()
-            .map_err(Into::into)
+        cmd!(&self.sh, "cargo machete --with-metadata").run().map_err(Into::into)
     }
 
     /// Check the typos.
@@ -453,6 +453,18 @@ impl CiTask {
             return Err("Could not find rumdl. Install it by running `cargo install rumdl`".into());
         }
         cmd!(&self.sh, "rumdl check .").run().map_err(Into::into)
+    }
+
+    /// Run all lints that don't need compilation.
+    fn lint_custom(&self) -> Result<()> {
+        // Check that all links point to the same version of the spec
+        let spec_links_res = SpecLinksCheckTask::new().run(&self.project_metadata.crates_path());
+        // Check that all cargo features of sub-crates can be enabled from ruma.
+        let reexport_features_res = check_reexport_features(&self.project_metadata);
+        // Check whether there are unused cargo features.
+        let unused_features_res = check_unused_features(&self.sh, &self.project_metadata);
+
+        spec_links_res.and(reexport_features_res).and(unused_features_res)
     }
 }
 

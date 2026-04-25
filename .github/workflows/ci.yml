@@ -18,26 +18,15 @@ jobs:
 
   style:
     name: Style
+    uses: ./.github/workflows/style.yml
+
+  style-custom:
+    name: Style / Custom Scripts
     needs: xtask
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
-
-      - name: Install rust nightly toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ env.NIGHTLY }}
-
-      - uses: Swatinem/rust-cache@v2
-
-      - name: Check spelling
-        uses: crate-ci/typos@v1.44.0
-
-      - name: Install cargo-sort, cargo-machete and rumdl
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-sort@2.1.1,cargo-machete@0.9.1,rumdl@0.1.67
 
       - name: Get xtask
         uses: actions/cache@v5
@@ -46,7 +35,7 @@ jobs:
           key: xtask-${{ hashFiles('Cargo.toml', 'xtask/src/**', 'xtask/Cargo.toml') }}
 
       - name: Run lints
-        run: target/debug/xtask ci lint
+        run: target/debug/xtask ci lint-custom
 
   msrv:
     name: Minimum Supported Rust Version / ${{ matrix.name }}
