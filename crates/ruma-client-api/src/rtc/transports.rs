@@ -9,12 +9,10 @@ pub mod v1 {
 
     use std::borrow::Cow;
 
-    #[cfg(feature = "unstable-msc4195")]
-    use ruma_common::serde::from_raw_json_value;
     use ruma_common::{
         api::{auth_scheme::AccessToken, request, response},
         metadata,
-        serde::JsonObject,
+        serde::{JsonObject, from_raw_json_value},
     };
     use serde::{Deserialize, Deserializer, Serialize, de::DeserializeOwned};
     use serde_json::{Value as JsonValue, value::RawValue as RawJsonValue};
