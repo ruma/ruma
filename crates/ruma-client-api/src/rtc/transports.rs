@@ -142,7 +142,7 @@ pub mod v1 {
             let json = Box::<RawJsonValue>::deserialize(deserializer)?;
             let RtcTransportDeHelper { transport_type } = from_raw_json_value(&json)?;
 
-            Ok(match transport_type.as_ref() {
+            Ok(match transport_type.as_str() {
                 #[cfg(feature = "unstable-msc4195")]
                 "livekit_multi_sfu" => Self::LivekitMultiSfu(from_raw_json_value(&json)?),
                 _ => {
