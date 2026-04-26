@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.14.0
+
 Breaking changes:
 
 - Add support for extended profile fields to `get_profile_information` endpoint.
