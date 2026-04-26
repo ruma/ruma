@@ -2281,7 +2281,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-state-res"
-version = "0.15.0"
+version = "0.16.0"
 dependencies = [
  "assert_matches2",
  "criterion",

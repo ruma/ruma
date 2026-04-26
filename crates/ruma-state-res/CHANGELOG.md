@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.16.0
+
 Breaking:
 
 - `resolve()` and `reverse_topological_power_sort()` now take
