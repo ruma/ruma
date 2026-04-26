@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.20.0
+
 Breaking changes:
 
 - Refactor and improve the variants of `JsonError`:
