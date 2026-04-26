@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.23.0
+
 Breaking changes:
 
 - The `power_level_content_override` field of `create_room::v3::Request` use a
