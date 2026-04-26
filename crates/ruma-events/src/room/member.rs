@@ -3,6 +3,8 @@
 //! [`m.room.member`]: https://spec.matrix.org/v1.18/client-server-api/#mroommember
 
 use js_int::Int;
+#[cfg(feature = "unstable-msc4293")]
+use ruma_common::canonical_json::RedactionEvent;
 use ruma_common::{
     OwnedMxcUri, OwnedTransactionId, OwnedUserId, ServerSignatures, UserId,
     room_version_rules::RedactionRules,
@@ -915,6 +917,18 @@ impl CanBeEmpty for RoomMemberUnsigned {
             && self.relations.is_empty()
     }
 }
+
+#[cfg(feature = "unstable-msc4293")]
+impl RedactionEvent for OriginalRoomMemberEvent {}
+
+#[cfg(feature = "unstable-msc4293")]
+impl RedactionEvent for OriginalSyncRoomMemberEvent {}
+
+#[cfg(feature = "unstable-msc4293")]
+impl RedactionEvent for RoomMemberEvent {}
+
+#[cfg(feature = "unstable-msc4293")]
+impl RedactionEvent for SyncRoomMemberEvent {}
 
 #[cfg(test)]
 mod tests {

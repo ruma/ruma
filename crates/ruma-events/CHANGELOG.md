@@ -42,6 +42,9 @@ Breaking changes:
 - Remove support for the `m.room.aliases` event type. It was removed from the
   specification in Matrix Client-Server API r0.6.1. `m.room.canonical_alias`
   should be used instead.
+- The `redacted_because` field of `RedactedUnsigned` is now a `Raw<AnyRedactionEvent>`. It is an
+  enum that allows to deserialize other event types than `m.room.redaction`.
+  - Add unstable support for `m.room.member` in `redacted_because`, according to MSC4293.
 
 Bug fixes:
 
