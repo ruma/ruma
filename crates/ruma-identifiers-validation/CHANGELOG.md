@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.12.1
+
 Bug fixes:
 
 - Reject server names with an empty host and only a port in

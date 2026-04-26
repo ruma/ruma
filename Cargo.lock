@@ -2220,7 +2220,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-identifiers-validation"
-version = "0.12.0"
+version = "0.12.1"
 dependencies = [
  "js_int",
  "thiserror 2.0.16",
