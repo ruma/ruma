@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.18.0
+
 Breaking changes:
 
 - The variants of `CanonicalJsonError` variants changed.
