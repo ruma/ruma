@@ -227,11 +227,11 @@ impl Package {
 
         let (update, title_start) = if let Some(pos) = changelog.find(&format!("## {version}\n")) {
             (false, pos)
-        } else if update
-            && (changelog.starts_with(&format!("## {version} (unreleased)\n"))
-                || changelog.starts_with("## Unreleased\n"))
+        } else if update && let Some(pos) = changelog.find(&format!("## {version} (unreleased)\n"))
         {
-            (true, 0)
+            (true, pos)
+        } else if update && let Some(pos) = changelog.find("## Unreleased\n") {
+            (true, pos)
         } else {
             return Err("Could not find version title in changelog".into());
         };
@@ -255,7 +255,8 @@ impl Package {
 
         if update {
             let rest = &changelog[changes_end..];
-            let changelog = format!("## Unreleased\n\n## {}\n\n{changes}\n{rest}", self.version);
+            let changelog =
+                format!("# Changelog\n\n## Unreleased\n\n## {}\n\n{changes}\n{rest}", self.version);
 
             sh.write_file(&changelog_path, changelog)?;
         }
