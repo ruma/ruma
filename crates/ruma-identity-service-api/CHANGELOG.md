@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.14.0
+
 Breaking changes:
 
 - The endpoints that were using the `NoAuthentication` authentication scheme now
