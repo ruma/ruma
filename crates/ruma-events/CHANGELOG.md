@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.33.0
+
 Breaking changes:
 
 - `PossiblyRedactedRoomMemberEventContent` is no longer a type alias for
