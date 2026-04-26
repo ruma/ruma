@@ -13,7 +13,7 @@
 //!
 //! ```toml
 //! # crates.io release
-//! ruma = { version = "0.17.0", features = ["..."] }
+//! ruma = { version = "0.15.0", features = ["..."] }
 //! # git dependency
 //! ruma = { git = "https://github.com/ruma/ruma", branch = "main", features = ["..."] }
 //! ```
@@ -24,7 +24,7 @@
 //!
 //! # Status
 //!
-//! Ruma supports all events and REST endpoints of Matrix 1.17.
+//! Ruma supports all events and REST endpoints of Matrix 1.18.
 //!
 //! Only room versions enforcing canonical JSON (introduced with room version 6) are supported. Room
 //! versions 1 through 5 are supported on a best effort basis, but a missing feature or an

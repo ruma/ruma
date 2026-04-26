@@ -2,8 +2,22 @@
 
 ## Unreleased
 
+## 0.15.0
+
 - The `canonical-json` feature was removed.
 - Bump MSRV to 1.89
+
+Please refer to the changelogs of:
+
+- ruma-client-api 0.23.0
+- ruma-common 0.18.0
+- ruma-events 0.33.0
+- ruma-federation-api 0.14.0
+- ruma-html 0.7.0
+- ruma-identifiers-validation 0.12.1
+- ruma-identity-service-api 0.14.0
+- ruma-signatures 0.20.0
+- ruma-state-res 0.16.0
 
 ## 0.14.1
 
