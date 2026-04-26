@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.14.0
+
+Breaking changes:
+
+- Upgrade ruma-common and ruma-events
+
 ## 0.13.0
 
 Breaking changes:

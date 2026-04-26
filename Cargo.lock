@@ -2253,7 +2253,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-push-gateway-api"
-version = "0.13.0"
+version = "0.14.0"
 dependencies = [
  "js_int",
  "ruma-common",
