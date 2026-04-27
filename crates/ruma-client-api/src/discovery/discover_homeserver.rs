@@ -8,18 +8,16 @@
 use std::borrow::Cow;
 
 #[cfg(feature = "unstable-msc4143")]
-use ruma_common::serde::{JsonObject, from_raw_json_value};
+use ruma_common::serde::JsonObject;
 use ruma_common::{
     api::{auth_scheme::NoAccessToken, request, response},
     metadata,
 };
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "unstable-msc4143")]
-use serde::{Deserializer, de::DeserializeOwned};
+use serde::{Deserializer, de, de::DeserializeOwned};
 #[cfg(feature = "unstable-msc4143")]
 use serde_json::Value as JsonValue;
-#[cfg(feature = "unstable-msc4143")]
-use serde_json::value::RawValue as RawJsonValue;
 
 metadata! {
     method: GET,
@@ -214,24 +212,19 @@ impl<'de> Deserialize<'de> for RtcFocusInfo {
     where
         D: Deserializer<'de>,
     {
-        #[derive(Deserialize)]
-        struct RtcFocusInfoDeHelper {
-            #[serde(rename = "type")]
-            focus_type: String,
+        use as_variant::as_variant;
+
+        let mut data = JsonObject::deserialize(deserializer)?;
+        let focus_type = data
+            .remove("type")
+            .and_then(|value| as_variant!(value, JsonValue::String))
+            .ok_or_else(|| de::Error::missing_field("type"))?;
+
+        match focus_type.as_ref() {
+            "livekit" => serde_json::from_value(data.into()).map(Self::LiveKit),
+            _ => Ok(Self::_Custom(CustomRtcFocusInfo { focus_type, data })),
         }
-
-        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let RtcFocusInfoDeHelper { focus_type } = from_raw_json_value(&json)?;
-
-        Ok(match focus_type.as_ref() {
-            "livekit" => Self::LiveKit(from_raw_json_value(&json)?),
-            _ => {
-                let mut data = from_raw_json_value::<JsonObject, _>(&json)?;
-                data.remove("type");
-
-                Self::_Custom(CustomRtcFocusInfo { focus_type, data })
-            }
-        })
+        .map_err(de::Error::custom)
     }
 }
 

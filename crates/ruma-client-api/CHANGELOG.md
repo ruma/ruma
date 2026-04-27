@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+Bug fixes:
+
+- Fix the deserialization of `RtcFocusInfo` when used with `#[serde(flatten)]`.
+
 ## 0.23.0
 
 Breaking changes:
