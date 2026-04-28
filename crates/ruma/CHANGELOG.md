@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.15.1
+
+Refer to the changelogs of:
+
+- ruma-client-api 0.23.1
+
 ## 0.15.0
 
 - The `canonical-json` feature was removed.
