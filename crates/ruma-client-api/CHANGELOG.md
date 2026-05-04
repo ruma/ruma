@@ -9,6 +9,13 @@ Improvements:
   LiveKit tag changes from `livekit_multi_sfu` to `livekit` on
   `/rtc/transports`.
 - Add unstable support for MSC4466 "Altering profile change propagation".
+- Add unstable support for [MSC4383] (Client-Server Discovery of Server
+  Version) behind the `unstable-msc4383` Cargo feature. The new `server`
+  field on `discovery::get_supported_versions::Response` carries the
+  homeserver implementation name and version, mirroring the federation
+  `/version` payload.
+
+[MSC4383]: https://github.com/matrix-org/matrix-spec-proposals/pull/4383
 
 ## 0.23.1
 
