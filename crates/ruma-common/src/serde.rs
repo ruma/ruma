@@ -143,6 +143,27 @@ where
     deserializer.deserialize_seq(SkipInvalid(PhantomData))
 }
 
+/// Deserialize a `Raw<T>` and reject any value whose top-level JSON shape is
+/// not an object. Use as `#[serde(deserialize_with =
+/// "ruma_common::serde::deserialize_raw_object")]` on request body fields where the Matrix spec
+/// mandates an object (e.g., `Raw<EventContent>` for `/_matrix/client/.../send` endpoints).
+pub fn deserialize_raw_object<'de, T, D>(deserializer: D) -> Result<Raw<T>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    use serde::de::Error;
+
+    let raw = <Raw<T> as Deserialize>::deserialize(deserializer)?;
+    if !raw.json().get().trim_start().starts_with('{') {
+        return Err(D::Error::invalid_type(
+            de::Unexpected::Other("non-object value"),
+            &"a JSON object",
+        ));
+    }
+
+    Ok(raw)
+}
+
 pub use ruma_macros::{
     _FakeDeriveSerde, AsRefStr, AsStrAsRefStr, DebugAsRefStr, DeserializeFromCowStr,
     DisplayAsRefStr, EqAsRefStr, FromString, OrdAsRefStr, SerializeAsRefStr, StringEnum,
