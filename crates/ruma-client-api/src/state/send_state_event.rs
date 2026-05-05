@@ -181,16 +181,9 @@ pub mod v3 {
             let request_query: RequestQuery =
                 serde_html_form::from_str(request.uri().query().unwrap_or(""))?;
 
-            let body: Raw<AnyStateEventContent> = serde_json::from_slice(request.body().as_ref())?;
-            if !body.json().get().trim_start().starts_with('{') {
-                return Err(ruma_common::api::error::DeserializationError::Json(
-                    serde::de::Error::invalid_type(
-                        serde::de::Unexpected::Other("non-object value"),
-                        &"a JSON object",
-                    ),
-                )
-                .into());
-            }
+            let body: Raw<AnyStateEventContent> = ruma_common::serde::deserialize_raw_object(
+                &mut serde_json::Deserializer::from_slice(request.body().as_ref()),
+            )?;
 
             Ok(Self { room_id, event_type, state_key, body, timestamp: request_query.timestamp })
         }
