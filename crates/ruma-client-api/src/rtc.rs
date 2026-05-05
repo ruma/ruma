@@ -11,33 +11,33 @@ use serde::{Deserialize, Serialize};
 
 pub mod transports;
 
-/// Information about a specific MatrixRTC focus.
+/// Information about a specific MatrixRTC transport.
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type")]
 pub enum RtcTransport {
-    /// A LiveKit RTC focus.
+    /// A LiveKit RTC transport.
     #[cfg(feature = "unstable-msc4195")]
     #[serde(rename = "livekit")]
     LiveKit(LiveKitRtcTransport),
 
-    /// A custom RTC focus.
+    /// A custom RTC transport.
     #[doc(hidden)]
     #[serde(untagged)]
     _Custom(CustomRtcTransport),
 }
 
 impl RtcTransport {
-    /// A constructor to create a custom RTC focus.
+    /// A constructor to create a custom RTC transport.
     ///
-    /// Prefer to use the public variants of `RtcFocusInfo` where possible; this constructor is
-    /// meant to be used for unsupported focus types only and does not allow setting arbitrary data
-    /// for supported ones.
+    /// Prefer to use the public variants of `RtcTransport` where possible; this constructor is
+    /// meant to be used for unsupported transport types only and does not allow setting arbitrary
+    /// data for supported ones.
     ///
     /// # Errors
     ///
-    /// Returns an error if the `focus_type` is known and serialization of `data` to the
-    /// corresponding `RtcFocusInfo` variant fails.
+    /// Returns an error if the `transport_type` is known and serialization of `data` to the
+    /// corresponding `RtcTransport` variant fails.
     pub fn new(transport_type: &str, data: JsonObject) -> serde_json::Result<Self> {
         #[cfg(feature = "unstable-msc4195")]
         fn deserialize_variant<T: DeserializeOwned>(obj: JsonObject) -> serde_json::Result<T> {
@@ -57,7 +57,7 @@ impl RtcTransport {
     }
 
     #[cfg(feature = "unstable-msc4195")]
-    /// Creates a new `RtcTransportInfo::LiveKit`.
+    /// Creates a new `RtcTransport::LiveKit`.
     pub fn livekit(service_url: String) -> Self {
         Self::LiveKit(LiveKitRtcTransport { service_url })
     }
@@ -76,16 +76,17 @@ impl RtcTransport {
     /// The returned JSON object won't contain the `type` field, please use
     /// [`.transport_type()`][Self::transport_type] to access that.
     ///
-    /// Prefer to use the public variants of `RtcFocusInfo` where possible; this method is meant to
-    /// be used for custom focus types only.
+    /// Prefer to use the public variants of `RtcTransport` where possible; this method is meant
+    /// to be used for custom transport types only.
     pub fn data(&self) -> Cow<'_, JsonObject> {
         #[cfg(feature = "unstable-msc4195")]
         fn serialize<T: Serialize>(object: &T) -> JsonObject {
             use serde_json::Value as JsonValue;
 
-            match serde_json::to_value(object).expect("rtc focus type serialization to succeed") {
+            match serde_json::to_value(object).expect("rtc transport type serialization to succeed")
+            {
                 JsonValue::Object(object) => object,
-                _ => panic!("all rtc focus types must serialize to objects"),
+                _ => panic!("all rtc transport types must serialize to objects"),
             }
         }
 
@@ -111,11 +112,11 @@ pub struct LiveKitRtcTransport {
 #[doc(hidden)]
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct CustomRtcTransport {
-    /// The type of RTC focus.
+    /// The type of RTC transport.
     #[serde(rename = "type")]
     transport_type: String,
 
-    /// Remaining RTC focus data.
+    /// Remaining RTC transport data.
     #[serde(flatten)]
     data: JsonObject,
 }
