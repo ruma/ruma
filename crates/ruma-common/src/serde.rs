@@ -143,10 +143,11 @@ where
     deserializer.deserialize_seq(SkipInvalid(PhantomData))
 }
 
-/// Deserialize a `Raw<T>` and reject any value whose top-level JSON shape is
-/// not an object. Use as `#[serde(deserialize_with =
-/// "ruma_common::serde::deserialize_raw_object")]` on request body fields where the Matrix spec
-/// mandates an object (e.g., `Raw<EventContent>` for `/_matrix/client/.../send` endpoints).
+/// Deserialize a `Raw<T>` and reject any value whose top-level JSON shape is not an object.
+///
+/// Use as `#[serde(deserialize_with = "ruma_common::serde::deserialize_raw_object")]` wherever
+/// the Matrix spec mandates an object (e.g., `Raw<EventContent>` on the body of
+/// `/_matrix/client/.../send` endpoints, or on inner fields, response fields, etc.).
 pub fn deserialize_raw_object<'de, T, D>(deserializer: D) -> Result<Raw<T>, D::Error>
 where
     D: Deserializer<'de>,
