@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Improvements:
+
+- Unify `RtcFocusInfo` and `RtcTransport`, and align the field, method
+  and variant names with the "transport" terminology of MSC4195. The
+  LiveKit tag changes from `livekit_multi_sfu` to `livekit` on
+  `/rtc/transports`.
+
 ## 0.23.1
 
 Bug fixes:
