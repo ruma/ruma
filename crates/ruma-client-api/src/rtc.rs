@@ -5,14 +5,12 @@
 use std::borrow::Cow;
 
 use ruma_common::serde::JsonObject;
-#[cfg(feature = "unstable-msc4195")]
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 pub mod transports;
 
 /// Information about a specific MatrixRTC transport.
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type")]
 pub enum RtcTransport {
@@ -27,6 +25,30 @@ pub enum RtcTransport {
     _Custom(CustomRtcTransport),
 }
 
+impl<'de> Deserialize<'de> for RtcTransport {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        use serde::de::Error;
+
+        let mut obj = JsonObject::deserialize(deserializer)?;
+        let transport_type = match obj.remove("type") {
+            Some(serde_json::Value::String(s)) => s,
+            Some(_) => return Err(D::Error::custom("`type` must be a string")),
+            None => return Err(D::Error::missing_field("type")),
+        };
+
+        Ok(match transport_type.as_str() {
+            #[cfg(feature = "unstable-msc4195")]
+            "livekit" => Self::LiveKit(
+                serde_json::from_value(serde_json::Value::Object(obj)).map_err(D::Error::custom)?,
+            ),
+            _ => Self::_Custom(CustomRtcTransport { transport_type, data: obj }),
+        })
+    }
+}
+
 impl RtcTransport {
     /// A constructor to create a custom RTC transport.
     ///
@@ -39,16 +61,9 @@ impl RtcTransport {
     /// Returns an error if the `transport_type` is known and serialization of `data` to the
     /// corresponding `RtcTransport` variant fails.
     pub fn new(transport_type: &str, data: JsonObject) -> serde_json::Result<Self> {
-        #[cfg(feature = "unstable-msc4195")]
-        fn deserialize_variant<T: DeserializeOwned>(obj: JsonObject) -> serde_json::Result<T> {
-            use serde_json::Value as JsonValue;
-
-            serde_json::from_value(JsonValue::Object(obj))
-        }
-
         Ok(match transport_type {
             #[cfg(feature = "unstable-msc4195")]
-            "livekit" => Self::LiveKit(deserialize_variant(data)?),
+            "livekit" => Self::LiveKit(serde_json::from_value(serde_json::Value::Object(data))?),
             _ => Self::_Custom(CustomRtcTransport {
                 transport_type: transport_type.to_owned(),
                 data,
@@ -109,8 +124,12 @@ pub struct LiveKitRtcTransport {
 }
 
 /// Information about a custom RTC transport.
+///
+/// This type does not implement `Deserialize` to prevent users from
+/// constructing the `_Custom` variant of [`RtcTransport`] for a known `type`.
+/// Deserialize through [`RtcTransport`] instead.
 #[doc(hidden)]
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
 pub struct CustomRtcTransport {
     /// The type of RTC transport.
     #[serde(rename = "type")]
