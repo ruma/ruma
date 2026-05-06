@@ -181,7 +181,9 @@ pub mod v3 {
             let request_query: RequestQuery =
                 serde_html_form::from_str(request.uri().query().unwrap_or(""))?;
 
-            let body = serde_json::from_slice(request.body().as_ref())?;
+            let body: Raw<AnyStateEventContent> = ruma_common::serde::deserialize_raw_object(
+                &mut serde_json::Deserializer::from_slice(request.body().as_ref()),
+            )?;
 
             Ok(Self { room_id, event_type, state_key, body, timestamp: request_query.timestamp })
         }

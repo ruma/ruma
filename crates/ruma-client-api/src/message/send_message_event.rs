@@ -51,6 +51,7 @@ pub mod v3 {
 
         /// The event content to send.
         #[ruma_api(body)]
+        #[serde(deserialize_with = "ruma_common::serde::deserialize_raw_object")]
         pub body: Raw<AnyMessageLikeEventContent>,
 
         /// Timestamp to use for the `origin_server_ts` of the event.
