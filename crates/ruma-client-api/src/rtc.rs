@@ -123,6 +123,21 @@ pub struct LiveKitRtcTransport {
     pub service_url: String,
 }
 
+#[cfg(feature = "unstable-msc4195")]
+impl LiveKitRtcTransport {
+    /// Creates a new `LiveKitRtcTransport` with the given service URL.
+    pub fn new(service_url: String) -> Self {
+        Self { service_url }
+    }
+}
+
+#[cfg(feature = "unstable-msc4195")]
+impl From<LiveKitRtcTransport> for RtcTransport {
+    fn from(value: LiveKitRtcTransport) -> Self {
+        Self::LiveKit(value)
+    }
+}
+
 /// Information about a custom RTC transport.
 ///
 /// This type does not implement `Deserialize` to prevent users from
@@ -170,6 +185,18 @@ mod tests {
         assert_eq!(*transport.data().as_ref(), transport_data);
         assert_eq!(to_json_value(&transport).unwrap(), json);
         assert_eq!(from_json_value::<RtcTransport>(json).unwrap(), transport);
+    }
+
+    #[cfg(feature = "unstable-msc4195")]
+    #[test]
+    fn livekit_transport_new_and_from_impl() {
+        use super::LiveKitRtcTransport;
+
+        let url = "http://livekit.local/".to_owned();
+        let inner = LiveKitRtcTransport::new(url.clone());
+        let transport = RtcTransport::from(inner);
+        assert_eq!(transport.transport_type(), "livekit");
+        assert_eq!(transport, RtcTransport::livekit(url));
     }
 
     #[cfg(feature = "unstable-msc4195")]
