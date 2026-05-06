@@ -7,13 +7,14 @@ pub mod unstable {
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4437
 
-    use ruma_common::profile::{ProfileFieldName, ProfileFieldValue};
+    use std::collections::BTreeMap;
+
     use ruma_common::{
         OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
+        profile::{ProfileFieldName, ProfileFieldValue},
     };
-    use std::collections::BTreeMap;
 
     metadata! {
         method: PUT,
