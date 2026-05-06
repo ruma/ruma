@@ -12,8 +12,8 @@ pub mod unstable {
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
-    use serde_json::Value as JsonValue;
     use std::collections::BTreeMap;
+    use ruma_common::profile::{ProfileFieldName, ProfileFieldValue};
 
     metadata! {
         method: PUT,
@@ -33,7 +33,7 @@ pub mod unstable {
 
         /// The new profile for the user.
         #[ruma_api(body)]
-        pub data: BTreeMap<String, JsonValue>,
+        pub data: BTreeMap<ProfileFieldName, ProfileFieldValue>,
     }
 
     /// Response type for the `set_profile` endpoint.
@@ -43,7 +43,7 @@ pub mod unstable {
 
     impl Request {
         /// Creates a new `Request` with the given user ID and profile data.
-        pub fn new(user_id: OwnedUserId, data: BTreeMap<String, JsonValue>) -> Self {
+        pub fn new(user_id: OwnedUserId, data: BTreeMap<ProfileFieldName, ProfileFieldValue>) -> Self {
             Self { user_id, data }
         }
     }
