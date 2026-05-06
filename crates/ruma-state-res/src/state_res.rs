@@ -3,6 +3,7 @@ use std::{
     cmp::{Ordering, Reverse},
     collections::{BinaryHeap, HashMap, HashSet},
     hash::Hash,
+    num::NonZero,
     sync::OnceLock,
 };
 
@@ -764,11 +765,18 @@ fn mainline_sort<E: Event>(
         // tasks can make progress
     }
 
+    // Real positions are 1..=N. `mainline_position` returns `None` for events
+    // without a mainline ancestor, and `Option<NonZero<_>>` orders `None`
+    // before any `Some(_)`, so no-PL events sort before all chain-rooted ones
+    // under the ascending sort below.
     let mainline_map = mainline
         .iter()
         .rev()
         .enumerate()
-        .map(|(idx, event_id)| ((*event_id).clone(), idx))
+        .map(|(idx, event_id)| {
+            let position = NonZero::new(idx + 1).expect("idx + 1 is non-zero");
+            ((*event_id).clone(), position)
+        })
         .collect::<EventIdMap<_, _>>();
 
     let mut order_map = HashMap::new();
@@ -829,13 +837,14 @@ fn mainline_sort<E: Event>(
 ///
 /// ## Returns
 ///
-/// Returns the mainline position of the event, or an `Err(_)` if one of the events in the auth
+/// Returns the mainline position of the event (`Some` for events whose auth chain reaches the
+/// mainline, `None` for the spec's `i = ∞` case), or an `Err(_)` if one of the events in the auth
 /// chain of the event was not found.
 fn mainline_position<E: Event>(
     event: E,
-    mainline_map: &EventIdMap<E::Id, usize>,
+    mainline_map: &EventIdMap<E::Id, NonZero<usize>>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
-) -> Result<usize> {
+) -> Result<Option<NonZero<usize>>> {
     let mut current_event = Some(event);
 
     while let Some(event) = current_event {
@@ -844,7 +853,7 @@ fn mainline_position<E: Event>(
 
         // If the current event is in the mainline map, return its position.
         if let Some(position) = mainline_map.get(event_id.borrow()) {
-            return Ok(*position);
+            return Ok(Some(*position));
         }
 
         current_event = None;
@@ -861,8 +870,8 @@ fn mainline_position<E: Event>(
         }
     }
 
-    // Did not find a power level event so we default to zero.
-    Ok(0)
+    // No power-levels ancestor in the auth chain.
+    Ok(None)
 }
 
 /// Add the event with the given event ID and all the events in its auth chain that are in the full
