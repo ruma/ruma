@@ -1856,3 +1856,84 @@ fn knock_after_join() {
         "cannot knock if user is banned, invited or joined"
     );
 }
+
+#[test]
+fn knock_public_join_rule_v7() {
+    let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V7);
+
+    let pdu = factory.create_room_member(
+        owned_event_id!("$room-member-zara-knock"),
+        UserFactory::Zara.user_id(),
+        RoomMemberPduContent::Knock,
+    );
+
+    // v7-v9: only `knock` is accepted; `public` must reject.
+    assert_eq!(
+        check_room_member(
+            RoomMemberEvent::new(pdu),
+            &AuthorizationRules::V7,
+            factory.room_create_pdu(),
+            factory.state_event_fn(),
+        )
+        .unwrap_err(),
+        "join rule is not set to knock or knock_restricted, knocking is not allowed"
+    );
+}
+
+#[test]
+fn knock_invite_join_rule_v8() {
+    let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V8);
+
+    factory.add_room_join_rules(
+        owned_event_id!("$room-join-rules-invite"),
+        UserFactory::Alice.user_id(),
+        JoinRule::Invite,
+    );
+
+    let pdu = factory.create_room_member(
+        owned_event_id!("$room-member-zara-knock"),
+        UserFactory::Zara.user_id(),
+        RoomMemberPduContent::Knock,
+    );
+
+    // v7-v9: `invite` is not a knock-supporting join rule.
+    assert_eq!(
+        check_room_member(
+            RoomMemberEvent::new(pdu),
+            &AuthorizationRules::V8,
+            factory.room_create_pdu(),
+            factory.state_event_fn(),
+        )
+        .unwrap_err(),
+        "join rule is not set to knock or knock_restricted, knocking is not allowed"
+    );
+}
+
+#[test]
+fn knock_knock_restricted_join_rule_v8() {
+    let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V8);
+
+    factory.add_room_join_rules(
+        owned_event_id!("$room-join-rules-knock-restricted"),
+        UserFactory::Alice.user_id(),
+        JoinRule::KnockRestricted(Restricted::new(vec![])),
+    );
+
+    let pdu = factory.create_room_member(
+        owned_event_id!("$room-member-zara-knock"),
+        UserFactory::Zara.user_id(),
+        RoomMemberPduContent::Knock,
+    );
+
+    // knock_restricted does not exist before v10.
+    assert_eq!(
+        check_room_member(
+            RoomMemberEvent::new(pdu),
+            &AuthorizationRules::V8,
+            factory.room_create_pdu(),
+            factory.state_event_fn(),
+        )
+        .unwrap_err(),
+        "join rule is not set to knock or knock_restricted, knocking is not allowed"
+    );
+}
