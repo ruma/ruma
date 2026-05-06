@@ -465,9 +465,10 @@ fn check_room_member_knock<E: Event>(
     // v7-v9, if the join_rule is anything other than knock, reject.
     // Since v10, if the join_rule is anything other than knock or knock_restricted,
     // reject.
-    if join_rule != JoinRuleKind::Knock
-        && (rules.knock_restricted_join_rule && !matches!(join_rule, JoinRuleKind::KnockRestricted))
-    {
+    let supports_knock = matches!(join_rule, JoinRuleKind::Knock)
+        || (rules.knock_restricted_join_rule && matches!(join_rule, JoinRuleKind::KnockRestricted));
+
+    if !supports_knock {
         return Err(
             "join rule is not set to knock or knock_restricted, knocking is not allowed".to_owned()
         );

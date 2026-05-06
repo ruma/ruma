@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Bug fixes:
+
+- Fix `m.room.member` authorization for events with `knock` membership in
+  room versions 7-9. The check that the join rule supports knocking was
+  unreachable, so any non-knock join rule was accepted.
+
 ## 0.16.0
 
 Breaking:
