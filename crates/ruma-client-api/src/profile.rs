@@ -18,6 +18,8 @@ pub mod get_profile_field;
 mod profile_field_serde;
 pub mod set_avatar_url;
 pub mod set_display_name;
+#[cfg(feature = "unstable-msc4437")]
+pub mod set_profile;
 pub mod set_profile_field;
 mod static_profile_field;
 
