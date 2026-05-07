@@ -9,8 +9,9 @@ Bug fixes:
   unreachable, so any non-knock join rule was accepted.
 - Fix `mainline_sort` collision between events with no power-levels ancestor in
   their auth chain and events whose deepest power-levels ancestor is the oldest
-  in the mainline. Real positions are now 1-based; 0 is reserved as the
-  no-mainline-ancestor sentinel and sorts before all chain-rooted events.
+  in the mainline. Mainline positions are now `Option<NonZero<usize>>`, with
+  `None` representing the no-mainline-ancestor case and sorting before all
+  chain-rooted events.
 
 ## 0.16.0
 

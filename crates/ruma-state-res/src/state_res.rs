@@ -765,10 +765,12 @@ fn mainline_sort<E: Event>(
         // tasks can make progress
     }
 
-    // Real positions are 1..=N. `mainline_position` returns `None` for events
-    // without a mainline ancestor, and `Option<NonZero<_>>` orders `None`
-    // before any `Some(_)`, so no-PL events sort before all chain-rooted ones
-    // under the ascending sort below.
+    // The reverse iterator inverts the spec convention: position 1 is the
+    // deepest mainline event and N is the current power-levels event, where
+    // the spec uses 0 for the most recent and ∞ for no ancestor. With
+    // `Option<NonZero<usize>>`, ascending sort by `(position,
+    // origin_server_ts, event_id)` matches the spec mainline ordering, with
+    // no-ancestor events (`None`) first.
     let mainline_map = mainline
         .iter()
         .rev()
@@ -837,9 +839,13 @@ fn mainline_sort<E: Event>(
 ///
 /// ## Returns
 ///
-/// Returns the mainline position of the event (`Some` for events whose auth chain reaches the
-/// mainline, `None` for the spec's `i = ∞` case), or an `Err(_)` if one of the events in the auth
+/// Returns the mainline position of the event, or an `Err(_)` if one of the events in the auth
 /// chain of the event was not found.
+///
+/// `None` is returned for the spec's `i = ∞` case (no power-levels ancestor in the auth chain).
+/// The position is the reverse of the spec encoding: `1` is the deepest mainline event and `N`
+/// the current power-levels event. Ascending sort by `(position, origin_server_ts, event_id)`
+/// then matches the spec mainline ordering.
 fn mainline_position<E: Event>(
     event: E,
     mainline_map: &EventIdMap<E::Id, NonZero<usize>>,
