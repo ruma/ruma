@@ -7,6 +7,11 @@ Bug fixes:
 - Fix `m.room.member` authorization for events with `knock` membership in
   room versions 7-9. The check that the join rule supports knocking was
   unreachable, so any non-knock join rule was accepted.
+- Fix `mainline_sort` collision between events with no power-levels ancestor in
+  their auth chain and events whose deepest power-levels ancestor is the oldest
+  in the mainline. Mainline positions are now `Option<NonZero<usize>>`, with
+  `None` representing the no-mainline-ancestor case and sorting before all
+  chain-rooted events.
 
 ## 0.16.0
 
