@@ -16,6 +16,8 @@ pub mod get_profile;
 pub mod get_profile_field;
 #[cfg(feature = "client")]
 mod profile_field_serde;
+#[cfg(feature = "unstable-msc4437")]
+pub mod replace_profile;
 pub mod set_avatar_url;
 pub mod set_display_name;
 pub mod set_profile_field;
