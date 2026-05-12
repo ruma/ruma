@@ -13,6 +13,9 @@ pub mod v3 {
         metadata,
     };
 
+    #[cfg(feature = "unstable-msc4466")]
+    use crate::profile::PropagateTo;
+
     metadata! {
         method: PUT,
         rate_limited: true,
@@ -33,6 +36,13 @@ pub mod v3 {
         /// The new display name for the user.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub displayname: Option<String>,
+
+        /// The propagation mode to use for this profile update.
+        #[cfg(feature = "unstable-msc4466")]
+        #[ruma_api(query)]
+        #[serde(rename = "computer.gingershaped.msc4466.propagate_to")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        pub propagate_to: PropagateTo,
     }
 
     /// Response type for the `set_display_name` endpoint.
@@ -44,7 +54,12 @@ pub mod v3 {
         /// Creates a new `Request` with the given user ID and display name.
         #[deprecated = "Use the set_profile_field endpoint instead."]
         pub fn new(user_id: OwnedUserId, displayname: Option<String>) -> Self {
-            Self { user_id, displayname }
+            Self {
+                user_id,
+                displayname,
+                #[cfg(feature = "unstable-msc4466")]
+                propagate_to: PropagateTo::default(),
+            }
         }
     }
 

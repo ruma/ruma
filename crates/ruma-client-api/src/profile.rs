@@ -9,6 +9,11 @@ use ruma_common::{
     profile::ProfileFieldName,
 };
 
+#[cfg(feature = "unstable-msc4466")]
+use crate::PrivOwnedStr;
+#[cfg(feature = "unstable-msc4466")]
+use ruma_common::serde::StringEnum;
+
 pub mod delete_profile_field;
 pub mod get_avatar_url;
 pub mod get_display_name;
@@ -43,4 +48,30 @@ const EXTENDED_PROFILE_FIELD_HISTORY: VersionHistory = VersionHistory::new(
 #[cfg(feature = "client")]
 fn field_existed_before_extended_profiles(field_name: &ProfileFieldName) -> bool {
     matches!(field_name, ProfileFieldName::AvatarUrl | ProfileFieldName::DisplayName)
+}
+
+/// Controls which rooms the server should send an updated `m.room.member` event in
+/// when changing `displayname` or `avatar_url` in a user's profile. Defined by [MSC4466][1].
+///
+/// [1]: https://github.com/matrix-org/matrix-spec-proposals/pull/4466
+#[cfg(feature = "unstable-msc4466")]
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, Default, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub enum PropagateTo {
+    /// The server must send a `m.room.member` event in all of the user's
+    /// joined rooms.
+    #[default]
+    All,
+
+    /// The server must only send a `m.room.member` event in rooms where the profile
+    /// field being updated does _not_ differ from its value in the user's global profile data.
+    Unchanged,
+
+    /// The server must not send a `m.room.member` event to any rooms.
+    None,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
 }
