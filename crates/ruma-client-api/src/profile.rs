@@ -1,5 +1,7 @@
 //! Endpoints for user profiles.
 
+#[cfg(feature = "unstable-msc4466")]
+use ruma_common::serde::StringEnum;
 #[cfg(feature = "client")]
 use ruma_common::{
     api::{
@@ -11,8 +13,6 @@ use ruma_common::{
 
 #[cfg(feature = "unstable-msc4466")]
 use crate::PrivOwnedStr;
-#[cfg(feature = "unstable-msc4466")]
-use ruma_common::serde::StringEnum;
 
 pub mod delete_profile_field;
 pub mod get_avatar_url;
