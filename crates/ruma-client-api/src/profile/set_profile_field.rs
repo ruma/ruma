@@ -20,6 +20,9 @@ pub mod v3 {
         profile::ProfileFieldValue,
     };
 
+    #[cfg(feature = "unstable-msc4466")]
+    use crate::profile::PropagateTo;
+
     metadata! {
         method: PUT,
         rate_limited: true,
@@ -41,12 +44,22 @@ pub mod v3 {
 
         /// The value of the profile field to set.
         pub value: ProfileFieldValue,
+
+        /// The propagation mode to use for this profile update. Only applicable if the field
+        /// being set is `displayname` or `avatar_url`.
+        #[cfg(feature = "unstable-msc4466")]
+        pub propagate_to: PropagateTo,
     }
 
     impl Request {
         /// Creates a new `Request` with the given user ID, field and value.
         pub fn new(user_id: OwnedUserId, value: ProfileFieldValue) -> Self {
-            Self { user_id, value }
+            Self {
+                user_id,
+                value,
+                #[cfg(feature = "unstable-msc4466")]
+                propagate_to: PropagateTo::default(),
+            }
         }
     }
 
@@ -67,14 +80,24 @@ pub mod v3 {
 
             let field = self.value.field_name();
 
+            let query_string = serde_html_form::to_string(RequestQuery {
+                #[cfg(feature = "unstable-msc4466")]
+                propagate_to: self.propagate_to,
+            })?;
+
             let url = if field_existed_before_extended_profiles(&field) {
-                Self::make_endpoint_url(considering, base_url, &[&self.user_id, &field], "")?
+                Self::make_endpoint_url(
+                    considering,
+                    base_url,
+                    &[&self.user_id, &field],
+                    &query_string,
+                )?
             } else {
                 crate::profile::EXTENDED_PROFILE_FIELD_HISTORY.make_endpoint_url(
                     considering,
                     base_url,
                     &[&self.user_id, &field],
-                    "",
+                    &query_string,
                 )?
             };
 
@@ -122,7 +145,17 @@ pub mod v3 {
                 .deserialize_map(ProfileFieldValueVisitor::new(Some(field.clone())))?
                 .ok_or_else(|| serde_json::Error::custom(format!("missing field `{field}`")))?;
 
-            Ok(Request { user_id, value })
+            let RequestQuery {
+                #[cfg(feature = "unstable-msc4466")]
+                propagate_to,
+            } = serde_html_form::from_str(request.uri().query().unwrap_or(""))?;
+
+            Ok(Request {
+                user_id,
+                value,
+                #[cfg(feature = "unstable-msc4466")]
+                propagate_to,
+            })
         }
     }
 
@@ -136,6 +169,16 @@ pub mod v3 {
         pub fn new() -> Self {
             Self {}
         }
+    }
+
+    #[derive(Debug)]
+    #[cfg_attr(feature = "client", derive(serde::Serialize))]
+    #[cfg_attr(feature = "server", derive(serde::Deserialize))]
+    struct RequestQuery {
+        #[cfg(feature = "unstable-msc4466")]
+        #[serde(rename = "computer.gingershaped.msc4466.propagate_to")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        propagate_to: PropagateTo,
     }
 }
 

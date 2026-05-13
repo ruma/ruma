@@ -13,6 +13,9 @@ pub mod v3 {
         metadata,
     };
 
+    #[cfg(feature = "unstable-msc4466")]
+    use crate::profile::PropagateTo;
+
     metadata! {
         method: PUT,
         rate_limited: true,
@@ -61,6 +64,13 @@ pub mod v3 {
         #[cfg(feature = "unstable-msc2448")]
         #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
         pub blurhash: Option<String>,
+
+        /// The propagation mode to use for this profile update.
+        #[cfg(feature = "unstable-msc4466")]
+        #[ruma_api(query)]
+        #[serde(rename = "computer.gingershaped.msc4466.propagate_to")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        pub propagate_to: PropagateTo,
     }
 
     /// Response type for the `set_avatar_url` endpoint.
@@ -77,6 +87,8 @@ pub mod v3 {
                 avatar_url,
                 #[cfg(feature = "unstable-msc2448")]
                 blurhash: None,
+                #[cfg(feature = "unstable-msc4466")]
+                propagate_to: PropagateTo::default(),
             }
         }
     }
