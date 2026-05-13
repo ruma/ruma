@@ -14,6 +14,9 @@ pub mod v3 {
         profile::ProfileFieldName,
     };
 
+    #[cfg(feature = "unstable-msc4466")]
+    use crate::profile::PropagateTo;
+
     metadata! {
         method: DELETE,
         rate_limited: true,
@@ -34,12 +37,24 @@ pub mod v3 {
         /// The profile field to delete.
         #[ruma_api(path)]
         pub field: ProfileFieldName,
+
+        /// The propagation mode to use for this profile update.
+        #[cfg(feature = "unstable-msc4466")]
+        #[ruma_api(query)]
+        #[serde(rename = "computer.gingershaped.msc4466.propagate_to")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        pub propagate_to: PropagateTo,
     }
 
     impl Request {
         /// Creates a new `Request` with the given user ID and field.
         pub fn new(user_id: OwnedUserId, field: ProfileFieldName) -> Self {
-            Self { user_id, field }
+            Self {
+                user_id,
+                field,
+                #[cfg(feature = "unstable-msc4466")]
+                propagate_to: PropagateTo::default(),
+            }
         }
     }
 
