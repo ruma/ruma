@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+Bug fixes:
+
+- Export `AnyRedactionEvent`.
+
 ## 0.33.0
 
 Breaking changes:
