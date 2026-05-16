@@ -10,6 +10,14 @@ Bug fixes:
 
 Breaking changes:
 
+- The `unstable-msc4268` and `unstable-msc3061` features were removed and
+  MSC4268 features are included unconditionally, since the MSC was merged into
+  the spec:
+  - We now use the stable identifiers for the `m.shared_history` property in
+    `ToDeviceRoomKeyEventContent` and `ToDeviceForwardedRoomKeyEventContent`.
+  - We now use the stable identifier for `m.room_key_bundle` to-device events.
+  - `RoomKeyWithheldCode` and `RoomKeyWithheldCodeInfo` both gained new variants
+    called `HistoryNotShared`.
 - `PossiblyRedactedRoomMemberEventContent` is no longer a type alias for
   `RoomMemberEventContent`. It would previously fail to deserialize if the
   `third_party_invite` field was redacted as the `display_name` field was
