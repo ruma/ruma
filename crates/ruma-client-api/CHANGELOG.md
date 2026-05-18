@@ -9,6 +9,7 @@ Improvements:
   LiveKit tag changes from `livekit_multi_sfu` to `livekit` on
   `/rtc/transports`.
 - Add unstable support for MSC4466 "Altering profile change propagation".
+- Add unstable support for MSC4472 deprecated room version stability type.
 
 ## 0.23.1
 

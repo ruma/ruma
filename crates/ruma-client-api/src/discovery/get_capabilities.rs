@@ -301,6 +301,11 @@ pub mod v3 {
         /// Support for the given version is unstable.
         Unstable,
 
+        /// Support for the given version is deprecated.
+        #[cfg(feature = "unstable-msc4472")]
+        #[ruma_enum(rename = "uk.timedout.msc4472.deprecated")]
+        Deprecated,
+
         #[doc(hidden)]
         _Custom(PrivOwnedStr),
     }
