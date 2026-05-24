@@ -155,6 +155,8 @@ pub mod dummy;
 pub mod emote;
 #[cfg(feature = "unstable-msc3956")]
 pub mod encrypted;
+#[cfg(feature = "unstable-msc4471")]
+pub mod event_stream;
 #[cfg(feature = "unstable-msc3551")]
 pub mod file;
 pub mod forwarded_room_key;

@@ -6,6 +6,10 @@ Bug fixes:
 
 - Export `AnyRedactionEvent`.
 
+Improvements:
+
+- Add unstable support for event streams, according to MSC4471.
+
 ## 0.33.0
 
 Breaking changes:

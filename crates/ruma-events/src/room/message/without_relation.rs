@@ -86,7 +86,13 @@ impl RoomMessageEventContentWithoutRelation {
         relates_to: Option<Relation<RoomMessageEventContentWithoutRelation>>,
     ) -> RoomMessageEventContent {
         let Self { msgtype, mentions } = self;
-        RoomMessageEventContent { msgtype, relates_to, mentions }
+        RoomMessageEventContent {
+            msgtype,
+            relates_to,
+            mentions,
+            #[cfg(feature = "unstable-msc4471")]
+            stream: None,
+        }
     }
 
     /// Turns `self` into a [rich reply] to the message using the given metadata.
@@ -266,6 +272,12 @@ impl From<RoomMessageEventContent> for RoomMessageEventContentWithoutRelation {
 impl From<RoomMessageEventContentWithoutRelation> for RoomMessageEventContent {
     fn from(value: RoomMessageEventContentWithoutRelation) -> Self {
         let RoomMessageEventContentWithoutRelation { msgtype, mentions } = value;
-        Self { msgtype, relates_to: None, mentions }
+        Self {
+            msgtype,
+            relates_to: None,
+            mentions,
+            #[cfg(feature = "unstable-msc4471")]
+            stream: None,
+        }
     }
 }

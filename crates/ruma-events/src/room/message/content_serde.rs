@@ -11,6 +11,8 @@ use super::{
     MessageType, RoomMessageEventContent, RoomMessageEventContentWithoutRelation,
     relation_serde::deserialize_relation,
 };
+#[cfg(feature = "unstable-msc4471")]
+use crate::event_stream::StreamDescriptor;
 use crate::{Mentions, room::message::CustomMessageContent};
 
 impl<'de> Deserialize<'de> for RoomMessageEventContent {
@@ -24,8 +26,16 @@ impl<'de> Deserialize<'de> for RoomMessageEventContent {
         let relates_to = deserialize_relation(&mut deserializer).map_err(de::Error::custom)?;
 
         let MentionsDeHelper { mentions } = from_raw_json_value(&json)?;
+        #[cfg(feature = "unstable-msc4471")]
+        let StreamDescriptorDeHelper { stream } = from_raw_json_value(&json)?;
 
-        Ok(Self { msgtype: from_raw_json_value(&json)?, relates_to, mentions })
+        Ok(Self {
+            msgtype: from_raw_json_value(&json)?,
+            relates_to,
+            mentions,
+            #[cfg(feature = "unstable-msc4471")]
+            stream,
+        })
     }
 }
 
@@ -46,6 +56,13 @@ impl<'de> Deserialize<'de> for RoomMessageEventContentWithoutRelation {
 struct MentionsDeHelper {
     #[serde(rename = "m.mentions")]
     mentions: Option<Mentions>,
+}
+
+#[cfg(feature = "unstable-msc4471")]
+#[derive(Deserialize)]
+struct StreamDescriptorDeHelper {
+    #[serde(rename = "org.matrix.msc4471.stream")]
+    stream: Option<StreamDescriptor>,
 }
 
 /// Helper struct to determine the msgtype from a `serde_json::value::RawValue`
