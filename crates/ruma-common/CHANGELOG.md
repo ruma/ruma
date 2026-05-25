@@ -12,6 +12,8 @@ Improvements:
 - The `IdDst` macro generates `Borrow<str>` implementations for the borrowed and
   owned identifier structs.
 - Add `CanonicalJsonObjectExt` as a helper trait to extract fields from a `CanonicalJsonObject`.
+- Implement `TryFrom` trait and `checked_add` method for working with
+  `MilliSecondsSinceUnixEpoch` and rust time types.
 
 ## 0.18.0
 
