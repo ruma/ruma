@@ -408,6 +408,13 @@ pub enum Direction {
     Forward,
 }
 
+impl Direction {
+    /// method for providing forward as the default direction to serde instead
+    pub fn forward() -> Self {
+        Self::Forward
+    }
+}
+
 /// Data to [assert the identity] of an appservice virtual user.
 ///
 /// [assert the identity]: https://spec.matrix.org/v1.18/application-service-api/#identity-assertion

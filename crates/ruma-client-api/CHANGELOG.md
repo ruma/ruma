@@ -25,8 +25,10 @@ Improvements:
   field on `discovery::get_supported_versions::Response` carries the
   homeserver implementation name and version, mirroring the federation
   `/version` payload.
+- Update unstable support for [MSC4140] "Cancellable delayed events".
 
 [MSC4383]: https://github.com/matrix-org/matrix-spec-proposals/pull/4383
+[MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 
 ## 0.23.1
 
