@@ -12,6 +12,8 @@ Breaking changes:
 Bug fixes:
 
 - Export `AnyRedactionEvent`.
+- Added a `AnyTimelineEventContent` enum which may contain either
+  a `StateEventContent` or a `MessageLIkeEventContent`
 
 Improvements:
 

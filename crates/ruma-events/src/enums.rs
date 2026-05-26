@@ -1,6 +1,6 @@
 use ruma_common::{
     EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, RoomId, TransactionId, UserId,
-    serde::from_raw_json_value,
+    serde::{JsonCastable, from_raw_json_value},
 };
 #[cfg(feature = "unstable-msc3381")]
 use ruma_events::{
@@ -8,7 +8,7 @@ use ruma_events::{
     room::encrypted::Replacement,
 };
 use ruma_macros::{EventEnumFromEvent, event_enum};
-use serde::{Deserialize, de};
+use serde::{Deserialize, Serialize, de};
 use serde_json::value::RawValue as RawJsonValue;
 
 use super::room::encrypted;
@@ -371,6 +371,36 @@ impl From<AnyTimelineEvent> for AnySyncTimelineEvent {
         }
     }
 }
+
+/// Any room event content.
+#[allow(clippy::large_enum_variant, clippy::exhaustive_enums)]
+#[derive(Clone, Debug, EventEnumFromEvent, Serialize)]
+#[serde(untagged)]
+pub enum AnyTimelineEventContent {
+    /// Any message-like event content.
+    MessageLike(AnyMessageLikeEventContent),
+
+    /// Any state event content.
+    State(AnyStateEventContent),
+}
+
+impl AnyTimelineEventContent {
+    /// Get the event's type
+    pub fn event_type(&self) -> TimelineEventType {
+        match self {
+            Self::MessageLike(content) => {
+                <AnyMessageLikeEventContent as crate::MessageLikeEventContent>::event_type(content)
+                    .into()
+            }
+            Self::State(content) => {
+                <AnyStateEventContent as crate::StateEventContent>::event_type(content).into()
+            }
+        }
+    }
+}
+
+impl JsonCastable<AnyTimelineEventContent> for AnyMessageLikeEventContent {}
+impl JsonCastable<AnyTimelineEventContent> for AnyStateEventContent {}
 
 #[derive(Deserialize)]
 #[allow(clippy::exhaustive_structs)]
