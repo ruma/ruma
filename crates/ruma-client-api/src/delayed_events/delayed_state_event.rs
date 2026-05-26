@@ -1,6 +1,12 @@
 //! `PUT /_matrix/client/*/rooms/{roomId}/state/{eventType}/{txnId}`
 //!
-//! Send a delayed state event (a scheduled state event) to a room. [MSC](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)
+//! Send a delayed state event (a scheduled state event) to a room.
+//!
+//! This endpoint implements a previous iteration of MSC4140 at commit [`3ee73ab`].
+//! At the time of writing, this matches the current implementation of Synapse but the latest
+//! iteration of the MSC uses the `send_delayed_event` endpoint instead.
+//!
+//! [`3ee73ab`]: https://github.com/matrix-org/matrix-spec-proposals/blob/3ee73abe5f81252b00877cfb5db941ee9aa6c18d/proposals/4140-delayed-events-futures.md
 
 pub mod unstable {
     //! `msc4140` ([MSC])
@@ -105,7 +111,7 @@ pub mod unstable {
 
     impl Response {
         /// Creates a new `Response` with the tokens required to control the delayed event using the
-        /// [`crate::delayed_events::update_delayed_event::unstable::Request`] request.
+        /// [`crate::delayed_events::update_delayed_event::unstable_v1::Request`] request.
         pub fn new(delay_id: String) -> Self {
             Self { delay_id }
         }

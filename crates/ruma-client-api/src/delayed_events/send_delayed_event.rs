@@ -1,17 +1,13 @@
-//! `PUT /_matrix/client/*/rooms/{roomId}/send/{eventType}/{txnId}`
+//! `PUT /_matrix/client/*/rooms/{roomId}/delayed_event/{eventType}/{txnId}`
 //!
 //! Send a delayed event (a scheduled message) to a room.
-//!
-//! This endpoint implements a previous iteration of MSC4140 at commit [`3ee73ab`].
-//! At the time of writing, this matches the current implementation of Synapse but the latest
-//! iteration of the MSC uses the `send_delayed_event` endpoint instead.
-//!
-//! [`3ee73ab`]: https://github.com/matrix-org/matrix-spec-proposals/blob/3ee73abe5f81252b00877cfb5db941ee9aa6c18d/proposals/4140-delayed-events-futures.md
 
 pub mod unstable {
     //! `msc4140` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+
+    use std::time::Duration;
 
     use ruma_common::{
         OwnedRoomId, OwnedTransactionId,
@@ -19,21 +15,17 @@ pub mod unstable {
         metadata,
         serde::Raw,
     };
-    use ruma_events::{AnyMessageLikeEventContent, MessageLikeEventContent, MessageLikeEventType};
-    use serde_json::value::to_raw_value as to_raw_json_value;
-
-    use crate::delayed_events::DelayParameters;
+    use ruma_events::{AnyTimelineEventContent, TimelineEventType};
 
     metadata! {
         method: PUT,
-        rate_limited: false,
+        rate_limited: true,
         authentication: AccessToken,
         history: {
-            // We use the unstable prefix for the delay query parameter but the stable v3 endpoint.
-            unstable => "/_matrix/client/v3/rooms/{room_id}/send/{event_type}/{txn_id}",
+            unstable("org.matrix.msc4140") => "/_matrix/client/unstable/org.matrix.msc4140/rooms/{room_id}/delayed_event/{event_type}/{txn_id}",
         }
     }
-    /// Request type for the [`delayed_message_event`](crate::delayed_events::delayed_message_event)
+    /// Request type for the [`send_delayed_event`](crate::delayed_events::send_delayed_event)
     /// endpoint.
     #[request]
     pub struct Request {
@@ -43,7 +35,7 @@ pub mod unstable {
 
         /// The type of event to send.
         #[ruma_api(path)]
-        pub event_type: MessageLikeEventType,
+        pub event_type: TimelineEventType,
 
         /// The transaction ID for this event.
         ///
@@ -57,17 +49,20 @@ pub mod unstable {
         #[ruma_api(path)]
         pub txn_id: OwnedTransactionId,
 
-        /// The timeout duration for this delayed event.
-        #[ruma_api(query_all)]
-        pub delay_parameters: DelayParameters,
+        /// The duration that the server should wait before sending this event
+        #[serde(with = "ruma_common::serde::duration::ms")]
+        pub delay: Duration,
+
+        /// The State Key if the event is a state event, nothing otherwise
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub state_key: Option<String>,
 
         /// The event content to send.
-        #[ruma_api(body)]
-        pub body: Raw<AnyMessageLikeEventContent>,
+        pub content: Raw<AnyTimelineEventContent>,
     }
 
     /// Response type for the
-    /// [`delayed_message_event`](crate::delayed_events::delayed_message_event) endpoint.
+    /// [`send_delayed_event`](crate::delayed_events::send_delayed_event) endpoint.
     #[response]
     pub struct Response {
         /// The `delay_id` generated for this delayed event. Used to interact with delayed events.
@@ -82,47 +77,47 @@ pub mod unstable {
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`::serde::Serialize`] implementation can fail.
-        pub fn new<T>(
+        pub fn new(
             room_id: OwnedRoomId,
             txn_id: OwnedTransactionId,
-            delay_parameters: DelayParameters,
-            content: &T,
-        ) -> serde_json::Result<Self>
-        where
-            T: MessageLikeEventContent,
-        {
+            delay: Duration,
+            state_key: Option<String>,
+            content: &AnyTimelineEventContent,
+        ) -> serde_json::Result<Self> {
             Ok(Self {
                 room_id,
                 txn_id,
                 event_type: content.event_type(),
-                delay_parameters,
-                body: Raw::from_json(to_raw_json_value(content)?),
+                state_key,
+                delay,
+                content: Raw::new(content)?,
             })
         }
 
         /// Creates a new `Request` with the given room id, transaction id, event type,
         /// `delay_parameters` and raw event content.
         pub fn new_raw(
+            event_type: TimelineEventType,
             room_id: OwnedRoomId,
             txn_id: OwnedTransactionId,
-            event_type: MessageLikeEventType,
-            delay_parameters: DelayParameters,
-            body: Raw<AnyMessageLikeEventContent>,
-        ) -> Self {
-            Self { room_id, event_type, txn_id, delay_parameters, body }
+            delay: Duration,
+            state_key: Option<String>,
+            content: Raw<AnyTimelineEventContent>,
+        ) -> serde_json::Result<Self> {
+            Ok(Self { room_id, txn_id, event_type, state_key, delay, content })
         }
     }
 
     impl Response {
         /// Creates a new `Response` with the tokens required to control the delayed event using the
-        /// [`crate::delayed_events::update_delayed_event::unstable_v1::Request`] request.
+        /// [`crate::delayed_events::update_delayed_event::unstable_v2::Request`] request.
         pub fn new(delay_id: String) -> Self {
             Self { delay_id }
         }
     }
 
     #[cfg(all(test, feature = "client"))]
-    mod tests {
+    mod client_tests {
         use std::borrow::Cow;
 
         use ruma_common::{
@@ -131,15 +126,14 @@ pub mod unstable {
             },
             owned_room_id,
         };
-        use ruma_events::room::message::RoomMessageEventContent;
+        use ruma_events::{AnyMessageLikeEventContent, room::message::RoomMessageEventContent};
         use serde_json::{Value as JsonValue, json};
         use web_time::Duration;
 
         use super::Request;
-        use crate::delayed_events::delayed_message_event::unstable::DelayParameters;
 
         #[test]
-        fn serialize_delayed_message_request() {
+        fn serialize_send_delayed_event_request() {
             let room_id = owned_room_id!("!roomid:example.org");
             let supported = SupportedVersions {
                 versions: [MatrixVersion::V1_1].into(),
@@ -149,8 +143,10 @@ pub mod unstable {
             let req = Request::new(
                 room_id,
                 "1234".into(),
-                DelayParameters::Timeout { timeout: Duration::from_millis(103) },
-                &RoomMessageEventContent::text_plain("test"),
+                Duration::from_millis(103),
+                None,
+                &AnyMessageLikeEventContent::from(RoomMessageEventContent::text_plain("test"))
+                    .into(),
             )
             .unwrap();
             let request: http::Request<Vec<u8>> = req
@@ -162,13 +158,54 @@ pub mod unstable {
                 .unwrap();
             let (parts, body) = request.into_parts();
             assert_eq!(
-                "https://homeserver.tld/_matrix/client/v3/rooms/!roomid:example.org/send/m.room.message/1234?org.matrix.msc4140.delay=103",
+                "https://homeserver.tld/_matrix/client/unstable/org.matrix.msc4140/rooms/!roomid:example.org/delayed_event/m.room.message/1234",
                 parts.uri.to_string()
             );
             assert_eq!("PUT", parts.method.to_string());
             assert_eq!(
-                json!({"msgtype":"m.text","body":"test"}),
+                json!({"content":{"msgtype":"m.text","body":"test"}, "delay": 103}),
                 serde_json::from_str::<JsonValue>(std::str::from_utf8(&body).unwrap()).unwrap()
+            );
+        }
+    }
+
+    #[cfg(all(test, feature = "server"))]
+    mod server_tests {
+
+        use std::time::Duration;
+
+        use ruma_common::{OwnedTransactionId, api::IncomingRequest, owned_room_id};
+        use serde_json::json;
+
+        use super::Request;
+
+        #[test]
+        fn deserialize_send_delayed_events_request() {
+            let uri = http::Uri::builder()
+                .scheme("https")
+                .authority("matrix.org")
+                .path_and_query(
+                    "/_matrix/client/unstable/org.matrix.msc4140/rooms/!roomid:example.org/delayed_event/m.room.message/5678",
+                )
+                .build()
+                .unwrap();
+
+            let body = json!({"content":{"msgtype":"m.text","body":"test"}, "delay": 103});
+
+            let req = Request::try_from_http_request(
+                http::Request::builder().method("PUT").uri(uri).body(body.to_string()).unwrap(),
+                &["!roomid:example.org", "m.room.message", "5678"],
+            )
+            .unwrap();
+
+            assert_eq!(req.room_id, owned_room_id!("!roomid:example.org"));
+            assert_eq!(req.event_type, "m.room.message".into());
+            assert_eq!(req.txn_id, OwnedTransactionId::from("5678"));
+            assert_eq!(req.delay, Duration::from_millis(103));
+            assert_eq!(req.state_key, None);
+            assert_eq!(
+                serde_json::from_str::<serde_json::Value>(req.content.json().get()).unwrap(),
+                json!({"msgtype":"m.text","body":"test"}),
             );
         }
     }
