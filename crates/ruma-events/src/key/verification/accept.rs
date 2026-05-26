@@ -4,14 +4,13 @@
 
 use std::borrow::Cow;
 
-use as_variant::as_variant;
 use ruma_common::{
     OwnedTransactionId,
     serde::{Base64, JsonObject},
 };
 use ruma_macros::EventContent;
-use serde::{Deserialize, Deserializer, Serialize, de};
-use serde_json::{Value as JsonValue, from_value as from_json_value};
+use serde::{Deserialize, Serialize};
+use serde_json::Value as JsonValue;
 
 use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
@@ -68,7 +67,7 @@ impl KeyVerificationAcceptEventContent {
 }
 
 /// An enum representing the different method specific `m.key.verification.accept` content.
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(untagged)]
 pub enum AcceptMethod {
@@ -81,18 +80,7 @@ pub enum AcceptMethod {
 }
 
 impl AcceptMethod {
-    /// The value of the `method` field.
-    pub fn method(&self) -> &str {
-        match self {
-            Self::SasV1(_) => "m.sas.v1",
-            Self::_Custom(c) => &c.method,
-        }
-    }
-
     /// The data of this `AcceptMethod`.
-    ///
-    /// The returned JSON object won't contain the `method` field, use [`.method()`][Self::method]
-    /// to access it.
     ///
     /// Prefer to use the public variants of `AcceptMethod` where possible; this method is meant to
     /// be used for custom methods only.
@@ -114,42 +102,10 @@ impl AcceptMethod {
     }
 }
 
-impl<'de> Deserialize<'de> for AcceptMethod {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let mut data = JsonObject::deserialize(deserializer)?;
-
-        let method = data
-            .get("method")
-            .and_then(|value| as_variant!(value, JsonValue::String))
-            .ok_or_else(|| de::Error::missing_field("method"))?;
-
-        match method.as_ref() {
-            "m.sas.v1" => from_json_value(data.into()).map(Self::SasV1),
-            _ => {
-                let method = as_variant!(
-                    data.remove("method")
-                        .expect("we already checked that the method field is present"),
-                    JsonValue::String
-                )
-                .expect("we already checked that the method is a string");
-
-                Ok(Self::_Custom(_CustomAcceptMethodContent { method, data }))
-            }
-        }
-        .map_err(de::Error::custom)
-    }
-}
-
 /// Method specific content of a unknown key verification method.
 #[doc(hidden)]
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct _CustomAcceptMethodContent {
-    /// The name of the method.
-    method: String,
-
     /// The additional fields that the method contains.
     #[serde(flatten)]
     data: JsonObject,
@@ -158,7 +114,6 @@ pub struct _CustomAcceptMethodContent {
 /// The payload of an `m.key.verification.accept` event using the `m.sas.v1` method.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[serde(rename = "m.sas.v1", tag = "method")]
 pub struct SasV1Content {
     /// The key agreement protocol the device is choosing to use, out of the
     /// options in the `m.key.verification.start` message.
@@ -260,7 +215,6 @@ mod tests {
             key_verification_accept_content,
             json!({
                 "transaction_id": "456",
-                "method": "m.sas.v1",
                 "commitment": "aGVsbG8",
                 "key_agreement_protocol": "curve25519",
                 "hash": "sha256",
@@ -288,7 +242,6 @@ mod tests {
         assert_to_canonical_json_eq!(
             key_verification_accept_content,
             json!({
-                "method": "m.sas.v1",
                 "commitment": "aGVsbG8",
                 "key_agreement_protocol": "curve25519",
                 "hash": "sha256",
@@ -307,7 +260,6 @@ mod tests {
         let json = json!({
             "transaction_id": "456",
             "commitment": "aGVsbG8",
-            "method": "m.sas.v1",
             "hash": "sha256",
             "key_agreement_protocol": "curve25519",
             "message_authentication_code": "hkdf-hmac-sha256.v2",
@@ -329,7 +281,6 @@ mod tests {
             "content": {
                 "commitment": "aGVsbG8",
                 "transaction_id": "456",
-                "method": "m.sas.v1",
                 "key_agreement_protocol": "curve25519",
                 "hash": "sha256",
                 "message_authentication_code": "hkdf-hmac-sha256.v2",
@@ -356,7 +307,6 @@ mod tests {
     fn in_room_deserialization() {
         let json = json!({
             "commitment": "aGVsbG8",
-            "method": "m.sas.v1",
             "hash": "sha256",
             "key_agreement_protocol": "curve25519",
             "message_authentication_code": "hkdf-hmac-sha256.v2",
@@ -405,7 +355,6 @@ mod tests {
     fn custom_to_device_serialization_roundtrip() {
         let json = json!({
             "transaction_id": "456",
-            "method": "m.sas.custom",
             "test": "field",
         });
 
@@ -413,7 +362,6 @@ mod tests {
             from_json_value::<ToDeviceKeyVerificationAcceptEventContent>(json.clone()).unwrap();
 
         assert_eq!(content.transaction_id, "456");
-        assert_eq!(content.method.method(), "m.sas.custom");
         let data = &*content.method.data();
         assert_eq!(data.len(), 1);
         assert_let!(Some(JsonValue::String(value)) = data.get("test"));

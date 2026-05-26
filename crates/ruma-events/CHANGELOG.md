@@ -4,6 +4,8 @@
 
 Bug fixes:
 
+- Fix the deserialization of the `AcceptMethod` enum. The deserialization
+  mistakenly required a `method` field.
 - Export `AnyRedactionEvent`.
 
 ## 0.33.0
