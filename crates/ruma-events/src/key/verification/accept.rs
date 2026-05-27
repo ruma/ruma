@@ -10,7 +10,7 @@ use ruma_common::{
 };
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
-use serde_json::Value as JsonValue;
+use serde_json::{Value as JsonValue, from_value as from_json_value};
 
 use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
@@ -67,7 +67,7 @@ impl KeyVerificationAcceptEventContent {
 }
 
 /// An enum representing the different method specific `m.key.verification.accept` content.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(untagged)]
 pub enum AcceptMethod {
@@ -99,6 +99,20 @@ impl AcceptMethod {
             Self::SasV1(c) => Cow::Owned(serialize(c)),
             Self::_Custom(c) => Cow::Borrowed(&c.data),
         }
+    }
+}
+
+impl<'de> Deserialize<'de> for AcceptMethod {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let data = JsonObject::deserialize(deserializer)?;
+
+        Ok(match from_json_value(data.clone().into()) {
+            Ok(sas_v1_content) => AcceptMethod::SasV1(sas_v1_content),
+            Err(_) => AcceptMethod::_Custom(_CustomAcceptMethodContent { data }),
+        })
     }
 }
 
