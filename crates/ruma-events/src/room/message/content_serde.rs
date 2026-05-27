@@ -12,7 +12,7 @@ use super::{
     relation_serde::deserialize_relation,
 };
 #[cfg(feature = "unstable-msc4471")]
-use crate::event_stream::StreamDescriptor;
+use crate::stream::StreamDescriptor;
 use crate::{Mentions, room::message::CustomMessageContent};
 
 impl<'de> Deserialize<'de> for RoomMessageEventContent {

@@ -155,8 +155,6 @@ pub mod dummy;
 pub mod emote;
 #[cfg(feature = "unstable-msc3956")]
 pub mod encrypted;
-#[cfg(feature = "unstable-msc4471")]
-pub mod event_stream;
 #[cfg(feature = "unstable-msc3551")]
 pub mod file;
 pub mod forwarded_room_key;
@@ -200,6 +198,8 @@ pub mod space;
 #[cfg(feature = "unstable-msc3230")]
 pub mod space_order;
 pub mod sticker;
+#[cfg(feature = "unstable-msc4471")]
+pub mod stream;
 pub mod tag;
 pub mod typing;
 #[cfg(feature = "unstable-msc3553")]

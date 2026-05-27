@@ -19,7 +19,7 @@ use tracing::warn;
 #[cfg(feature = "html")]
 use self::sanitize::remove_plain_reply_fallback;
 #[cfg(feature = "unstable-msc4471")]
-use crate::event_stream::StreamDescriptor;
+use crate::stream::StreamDescriptor;
 use crate::{Mentions, PrivOwnedStr, relation::Thread};
 
 mod audio;

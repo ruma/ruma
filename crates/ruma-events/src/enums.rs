@@ -245,13 +245,13 @@ event_enum! {
         "io.element.msc4385.secret.push" => super::secret::push,
         #[cfg(feature = "unstable-msc4471")]
         #[ruma_enum(alias = "m.stream.subscribe")]
-        "org.matrix.msc4471.stream.subscribe" => super::event_stream,
+        "org.matrix.msc4471.stream.subscribe" => super::stream::subscribe,
         #[cfg(feature = "unstable-msc4471")]
         #[ruma_enum(alias = "m.stream.cancel")]
-        "org.matrix.msc4471.stream.cancel" => super::event_stream,
+        "org.matrix.msc4471.stream.cancel" => super::stream::cancel,
         #[cfg(feature = "unstable-msc4471")]
         #[ruma_enum(alias = "m.stream.update")]
-        "org.matrix.msc4471.stream.update" => super::event_stream,
+        "org.matrix.msc4471.stream.update" => super::stream::update,
     }
 }
 
