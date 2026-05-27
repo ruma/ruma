@@ -126,6 +126,31 @@ mod tests {
     }
 
     #[test]
+    fn cancel_code_deserialization() {
+        for (s, expected) in [
+            ("m.unknown_stream", StreamCancelCode::UnknownStream),
+            ("m.invalid_subscription", StreamCancelCode::InvalidSubscription),
+            ("m.forbidden", StreamCancelCode::Forbidden),
+            ("m.limit_exceeded", StreamCancelCode::LimitExceeded),
+            ("m.user_cancelled", StreamCancelCode::UserCancelled),
+        ] {
+            let code = from_json_value::<StreamCancelCode>(json!(s)).unwrap();
+            assert_eq!(code, expected);
+        }
+    }
+
+    #[test]
+    fn unknown_m_namespace_cancel_code_goes_to_custom() {
+        let code = from_json_value::<StreamCancelCode>(json!("m.future_code")).unwrap();
+        assert_to_canonical_json_eq!(code, json!("m.future_code"));
+        assert_ne!(code, StreamCancelCode::UnknownStream);
+        assert_ne!(code, StreamCancelCode::InvalidSubscription);
+        assert_ne!(code, StreamCancelCode::Forbidden);
+        assert_ne!(code, StreamCancelCode::LimitExceeded);
+        assert_ne!(code, StreamCancelCode::UserCancelled);
+    }
+
+    #[test]
     fn custom_cancel_code_round_trips() {
         let code = from_json_value::<StreamCancelCode>(json!("io.example.custom_reason")).unwrap();
         assert_to_canonical_json_eq!(code, json!("io.example.custom_reason"));
@@ -136,6 +161,24 @@ mod tests {
         let event = json!({
             "sender": "@alice:example.org",
             "type": "org.matrix.msc4471.stream.cancel",
+            "content": {
+                "room_id": "!room:example.org",
+                "event_id": "$event:example.org",
+                "subscriber_device_id": "SUBSCRIBERDEVICE",
+                "code": "m.user_cancelled",
+            },
+        });
+
+        let event = from_json_value::<AnyToDeviceEvent>(event).unwrap();
+        assert_matches!(event, AnyToDeviceEvent::StreamCancel(ToDeviceEvent { content, .. }));
+        assert_eq!(content.code, StreamCancelCode::UserCancelled);
+    }
+
+    #[test]
+    fn any_to_device_cancel_stable_alias() {
+        let event = json!({
+            "sender": "@alice:example.org",
+            "type": "m.stream.cancel",
             "content": {
                 "room_id": "!room:example.org",
                 "event_id": "$event:example.org",

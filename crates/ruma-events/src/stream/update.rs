@@ -115,6 +115,35 @@ mod tests {
     }
 
     #[test]
+    fn replace_update_seq_zero_round_trip() {
+        let content = ToDeviceStreamUpdateEventContent::new(
+            owned_room_id!("!room:example.org"),
+            owned_event_id!("$event:example.org"),
+            uint!(0),
+            StreamUpdateOperation::Replace(StreamUpdateContent::new("hello".to_owned())),
+        );
+
+        assert_to_canonical_json_eq!(
+            content,
+            json!({
+                "room_id": "!room:example.org",
+                "event_id": "$event:example.org",
+                "seq": 0,
+                "op": "replace",
+                "content": {
+                    "body": "hello",
+                },
+            })
+        );
+
+        let deserialized: ToDeviceStreamUpdateEventContent =
+            Raw::new(&content).unwrap().deserialize().unwrap();
+        assert_eq!(deserialized.seq, uint!(0));
+        assert_matches!(deserialized.operation, StreamUpdateOperation::Replace(payload));
+        assert_eq!(payload.body, "hello");
+    }
+
+    #[test]
     fn append_update_round_trip() {
         let content = ToDeviceStreamUpdateEventContent::new(
             owned_room_id!("!room:example.org"),
@@ -142,6 +171,28 @@ mod tests {
         let event = json!({
             "sender": "@alice:example.org",
             "type": "org.matrix.msc4471.stream.update",
+            "content": {
+                "room_id": "!room:example.org",
+                "event_id": "$event:example.org",
+                "seq": 1,
+                "op": "replace",
+                "content": {
+                    "body": "hello",
+                },
+            },
+        });
+
+        let event = from_json_value::<AnyToDeviceEvent>(event).unwrap();
+        assert_matches!(event, AnyToDeviceEvent::StreamUpdate(ToDeviceEvent { content, .. }));
+        assert_matches!(content.operation, StreamUpdateOperation::Replace(payload));
+        assert_eq!(payload.body, "hello");
+    }
+
+    #[test]
+    fn any_to_device_update_stable_alias() {
+        let event = json!({
+            "sender": "@alice:example.org",
+            "type": "m.stream.update",
             "content": {
                 "room_id": "!room:example.org",
                 "event_id": "$event:example.org",

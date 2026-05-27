@@ -100,10 +100,39 @@ mod tests {
     }
 
     #[test]
+    fn subscribe_resync_default_deserializes_false() {
+        let json = json!({
+            "room_id": "!room:example.org",
+            "event_id": "$event:example.org",
+            "subscriber_device_id": "SUBSCRIBERDEVICE",
+        });
+
+        let content = from_json_value::<ToDeviceStreamSubscribeEventContent>(json).unwrap();
+        assert!(!content.resync);
+    }
+
+    #[test]
     fn any_to_device_subscribe() {
         let event = json!({
             "sender": "@alice:example.org",
             "type": "org.matrix.msc4471.stream.subscribe",
+            "content": {
+                "room_id": "!room:example.org",
+                "event_id": "$event:example.org",
+                "subscriber_device_id": "SUBSCRIBERDEVICE",
+            },
+        });
+
+        let event = from_json_value::<AnyToDeviceEvent>(event).unwrap();
+        assert_matches!(event, AnyToDeviceEvent::StreamSubscribe(ToDeviceEvent { content, .. }));
+        assert!(!content.resync);
+    }
+
+    #[test]
+    fn any_to_device_subscribe_stable_alias() {
+        let event = json!({
+            "sender": "@alice:example.org",
+            "type": "m.stream.subscribe",
             "content": {
                 "room_id": "!room:example.org",
                 "event_id": "$event:example.org",
