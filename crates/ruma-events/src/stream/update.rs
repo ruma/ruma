@@ -1,5 +1,8 @@
 //! Types for the `m.stream.update` to-device event ([MSC4471]).
 //!
+//! After applying a stream update, clients should render the transient body
+//! and ignore any current `formatted_body`.
+//!
 //! [MSC4471]: https://github.com/matrix-org/matrix-spec-proposals/pull/4471
 
 use js_int::UInt;
@@ -26,6 +29,9 @@ pub struct ToDeviceStreamUpdateEventContent {
 
     /// A monotonically increasing sequence number for this subscriber
     /// device's view of the stream.
+    ///
+    /// Clients should ignore updates whose `seq` is less than or equal to the
+    /// latest sequence number already applied for this stream.
     pub seq: UInt,
 
     /// The update operation.

@@ -24,6 +24,9 @@ pub struct ToDeviceStreamSubscribeEventContent {
     pub event_id: OwnedEventId,
 
     /// The subscriber device which should receive updates.
+    ///
+    /// The device must belong to the subscribing user; the publisher verifies
+    /// this before accepting the subscription.
     pub subscriber_device_id: OwnedDeviceId,
 
     /// If `true`, request a fresh `replace` operation rather than continuing from the current
