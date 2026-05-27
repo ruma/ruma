@@ -25,9 +25,11 @@ impl<'de> Deserialize<'de> for RoomMessageEventContent {
         let mut deserializer = serde_json::Deserializer::from_str(json.get());
         let relates_to = deserialize_relation(&mut deserializer).map_err(de::Error::custom)?;
 
-        let MentionsDeHelper { mentions } = from_raw_json_value(&json)?;
-        #[cfg(feature = "unstable-msc4471")]
-        let StreamDescriptorDeHelper { stream } = from_raw_json_value(&json)?;
+        let MentionsDeHelper {
+            mentions,
+            #[cfg(feature = "unstable-msc4471")]
+            stream,
+        } = from_raw_json_value(&json)?;
 
         Ok(Self {
             msgtype: from_raw_json_value(&json)?,
@@ -46,7 +48,7 @@ impl<'de> Deserialize<'de> for RoomMessageEventContentWithoutRelation {
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
 
-        let MentionsDeHelper { mentions } = from_raw_json_value(&json)?;
+        let MentionsDeHelper { mentions, .. } = from_raw_json_value(&json)?;
 
         Ok(Self { msgtype: from_raw_json_value(&json)?, mentions })
     }
@@ -56,11 +58,8 @@ impl<'de> Deserialize<'de> for RoomMessageEventContentWithoutRelation {
 struct MentionsDeHelper {
     #[serde(rename = "m.mentions")]
     mentions: Option<Mentions>,
-}
 
-#[cfg(feature = "unstable-msc4471")]
-#[derive(Deserialize)]
-struct StreamDescriptorDeHelper {
+    #[cfg(feature = "unstable-msc4471")]
     #[serde(rename = "org.matrix.msc4471.stream")]
     stream: Option<StreamDescriptor>,
 }
