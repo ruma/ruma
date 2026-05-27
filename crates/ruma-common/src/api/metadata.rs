@@ -29,6 +29,9 @@ use crate::{PrivOwnedStr, RoomVersionId, api::error::IntoHttpError, serde::slice
 ///   Its value must be a `bool`.
 /// * `authentication` - The type of authentication that is required for the endpoint, according to
 ///   the specification. The type must be in scope and implement [`AuthScheme`].
+/// * `required_scopes` - The OAuth scopes which are required to access this endpoint, for clients
+///   authenticated using the [OAuth 2.0 API](https://spec.matrix.org/v1.18/client-server-api/#oauth-20-api).
+///   Its value must be an array of [`OAuthScope`]s. It defaults to `[OAuthScope::FullAccess]`.
 ///
 /// And either of the following fields to define the path(s) of the endpoint.
 ///
@@ -90,7 +93,7 @@ use crate::{PrivOwnedStr, RoomVersionId, api::error::IntoHttpError, serde::slice
 ///
 /// ```
 /// use ruma_common::{
-///     api::auth_scheme::{AccessToken, NoAuthentication},
+///     api::{auth_scheme::{AccessToken, NoAuthentication}, OAuthScope},
 ///     metadata,
 /// };
 ///
@@ -103,6 +106,8 @@ use crate::{PrivOwnedStr, RoomVersionId, api::error::IntoHttpError, serde::slice
 ///     method: GET,
 ///     rate_limited: true,
 ///     authentication: AccessToken,
+///     // unnecessary here because that's the default
+///     required_scopes: [OAuthScope::FullAccess],
 ///
 ///     history: {
 ///         unstable => "/_matrix/unstable/org.bar.msc9000/baz",
@@ -147,6 +152,10 @@ macro_rules! metadata {
     };
 
     ( @field rate_limited: $rate_limited:literal ) => { const RATE_LIMITED: bool = $rate_limited; };
+
+    ( @field required_scopes: [$( $scope:literal ),+ $(,)?] ) => {
+        const REQUIRED_SCOPES: &[$crate::api::OAuthScope] = &[$($scope)+];
+    };
 
     ( @field authentication: $scheme:path ) => {
         type Authentication = $scheme;
@@ -223,6 +232,15 @@ pub trait Metadata: Sized {
 
     /// Whether or not this endpoint is rate limited by the server.
     const RATE_LIMITED: bool;
+
+    /// The OAuth scopes which grant access to this endpoint.
+    /// 
+    /// Clients which authenticated using the [OAuth 2.0 API] may only use this endpoint
+    /// if they requested _any one_ of the scopes in this array. For most endpoints,
+    /// this is only [`OAuthScope::FullAccess`].
+    /// 
+    /// [OAuth 2.0 API]: https://spec.matrix.org/v1.18/client-server-api/#oauth-20-api
+    const REQUIRED_SCOPES: &[OAuthScope] = &[OAuthScope::FullAccess];
 
     /// What authentication scheme the server uses for this endpoint.
     type Authentication: AuthScheme;
@@ -784,6 +802,24 @@ pub enum FeatureFlag {
     /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4380
     #[ruma_enum(rename = "org.matrix.msc4380")]
     Msc4380,
+
+    #[doc(hidden)]
+    _Custom(PrivOwnedStr),
+}
+
+/// An OAuth scope which grants access to some client-server API endpoints.
+/// 
+/// This enum does _not_ include the [device ID scope], which isn't really a scope (as it doesn't grant access
+/// to anything) but instead a way to reserve a specific device ID.
+/// 
+/// [device ID scope]: https://spec.matrix.org/v1.18/client-server-api/#device-id-allocation
+#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
+#[derive(Clone, StringEnum, Hash)]
+#[non_exhaustive]
+pub enum OAuthScope {
+    /// Full access to all endpoints of the client-server API, unless explicitly noted.
+    #[ruma_enum(rename = "urn:matrix:client:api:*", alias = "urn:matrix:org.matrix.msc2967.client:api:*")]
+    FullAccess,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),

@@ -257,7 +257,7 @@ pub mod error;
 mod metadata;
 pub mod path_builder;
 
-pub use self::metadata::{FeatureFlag, MatrixVersion, Metadata, SupportedVersions};
+pub use self::metadata::{FeatureFlag, MatrixVersion, Metadata, OAuthScope, SupportedVersions};
 
 /// A request type for a Matrix API endpoint, used for sending requests.
 pub trait OutgoingRequest: Metadata + Clone {
