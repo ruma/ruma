@@ -48,9 +48,18 @@ impl<'de> Deserialize<'de> for RoomMessageEventContentWithoutRelation {
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
 
-        let MentionsDeHelper { mentions, .. } = from_raw_json_value(&json)?;
+        let MentionsDeHelper {
+            mentions,
+            #[cfg(feature = "unstable-msc4471")]
+            stream,
+        } = from_raw_json_value(&json)?;
 
-        Ok(Self { msgtype: from_raw_json_value(&json)?, mentions })
+        Ok(Self {
+            msgtype: from_raw_json_value(&json)?,
+            mentions,
+            #[cfg(feature = "unstable-msc4471")]
+            stream,
+        })
     }
 }
 

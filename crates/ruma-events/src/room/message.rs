@@ -266,12 +266,17 @@ impl RoomMessageEventContent {
     ///
     /// [`Replacement`]: crate::relation::Replacement
     pub fn apply_replacement(&mut self, new_content: RoomMessageEventContentWithoutRelation) {
-        let RoomMessageEventContentWithoutRelation { msgtype, mentions } = new_content;
+        let RoomMessageEventContentWithoutRelation {
+            msgtype,
+            mentions,
+            #[cfg(feature = "unstable-msc4471")]
+            stream,
+        } = new_content;
         self.msgtype = msgtype;
         self.mentions = mentions;
         #[cfg(feature = "unstable-msc4471")]
         {
-            self.stream = None;
+            self.stream = stream;
         }
     }
 

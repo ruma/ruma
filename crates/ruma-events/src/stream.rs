@@ -71,7 +71,7 @@ mod tests {
     }
 
     #[test]
-    fn replacement_strips_descriptor() {
+    fn replacement_drops_stream() {
         let mut content = RoomMessageEventContent::text_plain("Hello");
         content.stream = Some(StreamDescriptor::new(owned_device_id!("DEVICEID")));
 
@@ -83,6 +83,29 @@ mod tests {
             json!({
                 "msgtype": "m.text",
                 "body": "Done",
+            })
+        );
+    }
+
+    #[test]
+    fn replacement_keeps_stream() {
+        let mut content = RoomMessageEventContent::text_plain("Hello");
+        content.stream = Some(StreamDescriptor::new(owned_device_id!("DEVICEONE")));
+
+        let mut new_content = RoomMessageEventContentWithoutRelation::text_plain("world");
+        new_content.stream = Some(StreamDescriptor::new(owned_device_id!("DEVICETWO")));
+        content.apply_replacement(new_content);
+
+        let stream = content.stream.as_ref().unwrap();
+        assert_eq!(stream.device_id, "DEVICETWO");
+        assert_to_canonical_json_eq!(
+            content,
+            json!({
+                "msgtype": "m.text",
+                "body": "world",
+                "org.matrix.msc4471.stream": {
+                    "device_id": "DEVICETWO",
+                },
             })
         );
     }
