@@ -47,7 +47,7 @@ impl ToDeviceStreamUpdateEventContent {
 }
 
 /// A stream update operation.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "op", content = "content", rename_all = "snake_case")]
 pub enum StreamUpdateOperation {
@@ -59,7 +59,7 @@ pub enum StreamUpdateOperation {
 }
 
 /// The payload of a message-like stream update.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct StreamUpdateContent {
     /// Text for the operation.

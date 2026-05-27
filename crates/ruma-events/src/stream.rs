@@ -16,7 +16,7 @@ pub mod update;
 /// See [MSC4471] for the proposal.
 ///
 /// [MSC4471]: https://github.com/matrix-org/matrix-spec-proposals/pull/4471
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct StreamDescriptor {
     /// The publisher device, owned by the sender of the room event containing the descriptor.
