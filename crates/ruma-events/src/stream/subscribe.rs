@@ -9,10 +9,6 @@ use serde::{Deserialize, Serialize};
 /// The content of a to-device `m.stream.subscribe` event.
 ///
 /// Sent by a subscriber device to the publisher device named in a stream descriptor.
-///
-/// This uses the unstable prefix defined in [MSC4471].
-///
-/// [MSC4471]: https://github.com/matrix-org/matrix-spec-proposals/pull/4471
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(

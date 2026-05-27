@@ -11,10 +11,6 @@ use crate::PrivOwnedStr;
 /// The content of a to-device `m.stream.cancel` event.
 ///
 /// Sent by either side of a subscription to cancel it.
-///
-/// This uses the unstable prefix defined in [MSC4471].
-///
-/// [MSC4471]: https://github.com/matrix-org/matrix-spec-proposals/pull/4471
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(
