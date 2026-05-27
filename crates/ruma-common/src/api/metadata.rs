@@ -93,7 +93,10 @@ use crate::{PrivOwnedStr, RoomVersionId, api::error::IntoHttpError, serde::slice
 ///
 /// ```
 /// use ruma_common::{
-///     api::{auth_scheme::{AccessToken, NoAuthentication}, OAuthScope},
+///     api::{
+///         OAuthScope,
+///         auth_scheme::{AccessToken, NoAuthentication},
+///     },
 ///     metadata,
 /// };
 ///
@@ -234,11 +237,11 @@ pub trait Metadata: Sized {
     const RATE_LIMITED: bool;
 
     /// The OAuth scopes which grant access to this endpoint.
-    /// 
+    ///
     /// Clients which authenticated using the [OAuth 2.0 API] may only use this endpoint
     /// if they requested _any one_ of the scopes in this array. For most endpoints,
     /// this is only [`OAuthScope::FullAccess`].
-    /// 
+    ///
     /// [OAuth 2.0 API]: https://spec.matrix.org/v1.18/client-server-api/#oauth-20-api
     const REQUIRED_SCOPES: &[OAuthScope] = &[OAuthScope::FullAccess];
 
@@ -804,9 +807,9 @@ pub enum FeatureFlag {
     Msc4380,
 
     /// `org.continuwuity.msc4484.unstable` ([MSC])
-    /// 
+    ///
     /// Server administration OAuth scope.
-    /// 
+    ///
     /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4484
     #[ruma_enum(rename = "org.continuwuity.msc4484.unstable")]
     Msc4484,
@@ -816,21 +819,24 @@ pub enum FeatureFlag {
 }
 
 /// An OAuth scope which grants access to some client-server API endpoints.
-/// 
-/// This enum does _not_ include the [device ID scope], which isn't really a scope (as it doesn't grant access
-/// to anything) but instead a way to reserve a specific device ID.
-/// 
+///
+/// This enum does _not_ include the [device ID scope], which isn't really a scope (as it doesn't
+/// grant access to anything) but instead a way to reserve a specific device ID.
+///
 /// [device ID scope]: https://spec.matrix.org/v1.18/client-server-api/#device-id-allocation
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, StringEnum, Hash)]
 #[non_exhaustive]
 pub enum OAuthScope {
     /// Full access to all endpoints of the client-server API, unless explicitly noted.
-    #[ruma_enum(rename = "urn:matrix:client:api:*", alias = "urn:matrix:org.matrix.msc2967.client:api:*")]
+    #[ruma_enum(
+        rename = "urn:matrix:client:api:*",
+        alias = "urn:matrix:org.matrix.msc2967.client:api:*"
+    )]
     FullAccess,
 
     /// Access to the endpoints in the [Server Administration] module.
-    /// 
+    ///
     /// [Server Administration]: https://spec.matrix.org/v1.18/client-server-api/#server-administration
     #[cfg(feature = "unstable-msc4484")]
     #[ruma_enum(rename = "urn:matrix:client:cc.c10y.msc4484.server_administration")]
