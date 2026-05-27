@@ -153,8 +153,8 @@ macro_rules! metadata {
 
     ( @field rate_limited: $rate_limited:literal ) => { const RATE_LIMITED: bool = $rate_limited; };
 
-    ( @field required_scopes: [$( $scope:literal ),+ $(,)?] ) => {
-        const REQUIRED_SCOPES: &[$crate::api::OAuthScope] = &[$($scope)+];
+    ( @field required_scopes: [$( $scope:expr ),+ $(,)?] ) => {
+        const REQUIRED_SCOPES: &[$crate::api::OAuthScope] = &[$($scope,)+];
     };
 
     ( @field authentication: $scheme:path ) => {
@@ -803,6 +803,14 @@ pub enum FeatureFlag {
     #[ruma_enum(rename = "org.matrix.msc4380")]
     Msc4380,
 
+    /// `org.continuwuity.msc4484.unstable` ([MSC])
+    /// 
+    /// Server administration OAuth scope.
+    /// 
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4484
+    #[ruma_enum(rename = "org.continuwuity.msc4484.unstable")]
+    Msc4484,
+
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
@@ -820,6 +828,13 @@ pub enum OAuthScope {
     /// Full access to all endpoints of the client-server API, unless explicitly noted.
     #[ruma_enum(rename = "urn:matrix:client:api:*", alias = "urn:matrix:org.matrix.msc2967.client:api:*")]
     FullAccess,
+
+    /// Access to the endpoints in the [Server Administration] module.
+    /// 
+    /// [Server Administration]: https://spec.matrix.org/v1.18/client-server-api/#server-administration
+    #[cfg(feature = "unstable-msc4484")]
+    #[ruma_enum(rename = "urn:matrix:client:cc.c10y.msc4484.server_administration")]
+    ServerAdministration,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),

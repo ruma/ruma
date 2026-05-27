@@ -15,7 +15,7 @@ pub mod v1 {
 
     use ruma_common::{
         OwnedUserId,
-        api::{auth_scheme::AccessToken, request, response},
+        api::{OAuthScope, auth_scheme::AccessToken, request, response},
         metadata,
     };
 
@@ -23,6 +23,12 @@ pub mod v1 {
         method: PUT,
         rate_limited: false,
         authentication: AccessToken,
+        required_scopes: [
+            #[cfg(not(feature = "unstable-msc4484"))]
+            OAuthScope::FullAccess,
+            #[cfg(feature = "unstable-msc4484")]
+            OAuthScope::ServerAdministration,
+        ],
         history: {
             unstable("uk.timedout.msc4323") => "/_matrix/client/unstable/uk.timedout.msc4323/admin/lock/{user_id}",
             1.18 => "/_matrix/client/v1/admin/lock/{user_id}",
