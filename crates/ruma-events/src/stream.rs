@@ -2,7 +2,8 @@
 //!
 //! [MSC4471]: https://github.com/matrix-org/matrix-spec-proposals/pull/4471
 
-use js_int::UInt;
+use std::time::Duration;
+
 use ruma_common::OwnedDeviceId;
 use serde::{Deserialize, Serialize};
 
@@ -23,8 +24,12 @@ pub struct StreamDescriptor {
 
     /// The lifetime of the descriptor in milliseconds, counted from the room
     /// event's `origin_server_ts`.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub expiry_ms: Option<UInt>,
+    #[serde(
+        with = "ruma_common::serde::duration::opt_ms",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub expiry_ms: Option<Duration>,
 }
 
 impl StreamDescriptor {
@@ -36,7 +41,8 @@ impl StreamDescriptor {
 
 #[cfg(test)]
 mod tests {
-    use js_int::uint;
+    use std::time::Duration;
+
     use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_device_id, serde::Raw};
     use serde_json::json;
 
@@ -48,7 +54,7 @@ mod tests {
         let mut content = RoomMessageEventContent::text_plain("Hello");
         content.stream = Some(StreamDescriptor {
             device_id: owned_device_id!("DEVICEID"),
-            expiry_ms: Some(uint!(1_800_000)),
+            expiry_ms: Some(Duration::from_millis(1_800_000)),
         });
 
         assert_to_canonical_json_eq!(
@@ -67,7 +73,7 @@ mod tests {
         let deserialized: RoomMessageEventContent = raw.deserialize().unwrap();
         let stream = deserialized.stream.unwrap();
         assert_eq!(stream.device_id, "DEVICEID");
-        assert_eq!(stream.expiry_ms, Some(uint!(1_800_000)));
+        assert_eq!(stream.expiry_ms, Some(Duration::from_millis(1_800_000)));
     }
 
     #[test]
