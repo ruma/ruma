@@ -9,10 +9,12 @@ pub mod v2 {
 
     use ruma_common::{
         OwnedUserId, ServerSignatures,
-        api::{auth_scheme::IdentityServiceToken, request, response},
+        api::{request, response},
         metadata,
         serde::Base64,
     };
+
+    use crate::IdentityServiceToken;
 
     metadata! {
         method: POST,

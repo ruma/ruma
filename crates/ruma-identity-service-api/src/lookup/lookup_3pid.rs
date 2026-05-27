@@ -11,11 +11,11 @@ pub mod v2 {
 
     use ruma_common::{
         OwnedUserId,
-        api::{auth_scheme::IdentityServiceToken, request, response},
+        api::{request, response},
         metadata,
     };
 
-    use crate::lookup::IdentifierHashingAlgorithm;
+    use crate::{IdentityServiceToken, lookup::IdentifierHashingAlgorithm};
 
     metadata! {
         method: POST,

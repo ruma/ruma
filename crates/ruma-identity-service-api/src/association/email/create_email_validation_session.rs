@@ -10,9 +10,11 @@ pub mod v2 {
     use js_int::UInt;
     use ruma_common::{
         OwnedClientSecret, OwnedSessionId,
-        api::{auth_scheme::IdentityServiceToken, request, response},
+        api::{request, response},
         metadata,
     };
+
+    use crate::IdentityServiceToken;
 
     metadata! {
         method: POST,

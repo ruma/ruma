@@ -160,8 +160,13 @@ macro_rules! metadata {
 
     ( @field rate_limited: $rate_limited:literal ) => { const RATE_LIMITED: bool = $rate_limited; };
 
-    ( @field required_scopes: [$( $scope:literal ),+ $(,)?] ) => {
-        const REQUIRED_SCOPES: &[$crate::api::OAuthScope] = &[$($scope)+];
+    ( @field required_scopes: [$( $scope:expr ),+ $(,)?] ) => {
+        fn required_scopes() -> &'static [$crate::api::OAuthClientScope]
+        where
+            Self::Authentication: $crate::api::auth_scheme::ScopedAuthScheme
+        {
+            &[$($scope,)+]
+        }
     };
 
     ( @field authentication: $scheme:path ) => {
@@ -280,11 +285,11 @@ pub trait Metadata: Sized {
     /// that implements the [`ScopedAuthScheme`] marker trait.
     ///
     /// [OAuth 2.0 API]: https://spec.matrix.org/v1.18/client-server-api/#oauth-20-api
-    fn required_scopes() -> &'static [OAuthScope] where Self::Authentication: ScopedAuthScheme,
+    fn required_scopes() -> &'static [OAuthClientScope] where Self::Authentication: ScopedAuthScheme,
     {
         // TODO: In the future this could possibly be converted into a generic associated constant
         // once those are stabilized. See https://github.com/rust-lang/rust/issues/113521.
-        &[OAuthScope::FullAccess]
+        &[OAuthClientScope::ApiFullAccess]
     }
 
     /// The list of path parameters in the metadata.
@@ -818,6 +823,14 @@ pub enum FeatureFlag {
     #[ruma_enum(rename = "org.matrix.msc4380")]
     Msc4380,
 
+    /// `org.continuwuity.msc4484.unstable` ([MSC])
+    /// 
+    /// Server administration OAuth scope.
+    /// 
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4484
+    #[ruma_enum(rename = "org.continuwuity.msc4484.unstable")]
+    Msc4484,
+
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
@@ -831,13 +844,20 @@ pub enum FeatureFlag {
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, StringEnum, Hash)]
 #[non_exhaustive]
-pub enum OAuthScope {
+pub enum OAuthClientScope {
     /// Full access to all endpoints of the client-server API, unless explicitly noted.
     #[ruma_enum(
         rename = "urn:matrix:client:api:*",
         alias = "urn:matrix:org.matrix.msc2967.client:api:*"
     )]
-    FullAccess,
+    ApiFullAccess,
+
+    /// Access to the endpoints in the [Server Administration] module.
+    /// 
+    /// [Server Administration]: https://spec.matrix.org/v1.18/client-server-api/#server-administration
+    #[cfg(feature = "unstable-msc4484")]
+    #[ruma_enum(rename = "urn:matrix:client:cc.c10y.msc4484.server_administration")]
+    ServerAdministration,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),

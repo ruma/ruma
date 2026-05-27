@@ -10,11 +10,13 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{auth_scheme::HomeserverToken, request, response},
+        api::{request, response},
         metadata,
         thirdparty::{Protocol, ProtocolInstance, ProtocolInstanceInit},
     };
     use serde::{Deserialize, Serialize};
+
+    use crate::HomeserverToken;
 
     metadata! {
         method: GET,

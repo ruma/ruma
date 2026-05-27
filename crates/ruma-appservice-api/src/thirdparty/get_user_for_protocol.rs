@@ -11,10 +11,12 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{auth_scheme::HomeserverToken, request, response},
+        api::{request, response},
         metadata,
         thirdparty::User,
     };
+
+    use crate::HomeserverToken;
 
     metadata! {
         method: GET,

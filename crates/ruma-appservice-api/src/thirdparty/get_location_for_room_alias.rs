@@ -9,10 +9,12 @@ pub mod v1 {
 
     use ruma_common::{
         OwnedRoomAliasId,
-        api::{auth_scheme::HomeserverToken, request, response},
+        api::{request, response},
         metadata,
         thirdparty::Location,
     };
+
+    use crate::HomeserverToken;
 
     metadata! {
         method: GET,
