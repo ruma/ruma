@@ -9,9 +9,11 @@ pub mod v2 {
 
     use ruma_common::{
         OwnedClientSecret, OwnedSessionId,
-        api::{auth_scheme::IdentityServiceToken, request, response},
+        api::{request, response},
         metadata,
     };
+
+    use crate::IdentityServiceToken;
 
     metadata! {
         method: GET,

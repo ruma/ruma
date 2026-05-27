@@ -9,7 +9,7 @@ pub mod v2 {
 
     use ruma_common::{
         OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, OwnedUserId,
-        api::{auth_scheme::IdentityServiceToken, request, response},
+        api::{request, response},
         metadata,
         room::RoomType,
         third_party_invite::IdentityServerBase64PublicKey,
@@ -17,6 +17,8 @@ pub mod v2 {
     };
     use ruma_events::room::third_party_invite::RoomThirdPartyInviteEventContent;
     use serde::{Deserialize, Serialize, ser::SerializeSeq};
+
+    use crate::IdentityServiceToken;
 
     metadata! {
         method: POST,

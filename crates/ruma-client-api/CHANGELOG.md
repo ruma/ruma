@@ -42,6 +42,7 @@ Improvements:
   homeserver implementation name and version, mirroring the federation
   `/version` payload.
 - Update unstable support for [MSC4140] "Cancellable delayed events".
+- Add unstable support for MSC4484 "Server Administration OAuth Scope".
 
 [MSC4383]: https://github.com/matrix-org/matrix-spec-proposals/pull/4383
 [MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140

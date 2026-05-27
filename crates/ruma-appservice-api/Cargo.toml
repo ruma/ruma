@@ -27,6 +27,7 @@ ruma-common = { workspace = true, features = ["api"] }
 ruma-events = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+http = { workspace = true }
 
 [dev-dependencies]
 assert_matches2 = { workspace = true }

@@ -9,9 +9,11 @@ pub mod v1 {
 
     use ruma_common::{
         OwnedUserId,
-        api::{auth_scheme::HomeserverToken, request, response},
+        api::{request, response},
         metadata,
     };
+
+    use crate::HomeserverToken;
 
     metadata! {
         method: GET,

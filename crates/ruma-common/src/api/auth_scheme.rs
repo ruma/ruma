@@ -235,68 +235,9 @@ impl AuthScheme for AppserviceTokenOptional {
     }
 }
 
-/// Authentication is required, and can only be performed by a homeserver sending a request to an appservice,
-/// by including a homeserver access token in the `Authentication` http header, or an `access_token` query parameter.
-/// 
-/// Using the query parameter is deprecated since Matrix 1.11.
-#[derive(Debug, Clone, Copy, Default)]
-pub struct HomeserverToken;
-
-impl AuthScheme for HomeserverToken {
-    type Input<'a> = &'a str;
-    type AddAuthenticationError = header::InvalidHeaderValue;
-    // The homeserver token.
-    type Output = String;
-    type ExtractAuthenticationError = ExtractTokenError;
-
-    fn add_authentication<T: AsRef<[u8]>>(
-        request: &mut http::Request<T>,
-        access_token: Self::Input<'_>,
-    ) -> Result<(), Self::AddAuthenticationError>
-    {
-        add_access_token_as_authorization_header(request.headers_mut(), access_token)
-    }
-
-    fn extract_authentication<T: AsRef<[u8]>>(
-        request: &http::Request<T>,
-    ) -> Result<Self::Output, Self::ExtractAuthenticationError>
-    {
-        extract_bearer_or_query_token(request)?.ok_or(ExtractTokenError::MissingAccessToken)
-    }
-}
-
-/// Authentication is required by including an identity server access token in the
-/// `Authentication` http header, or an `access_token` query parameter.
-/// 
-/// Using the query parameter is deprecated since Matrix 1.11.
-#[derive(Debug, Clone, Copy, Default)]
-pub struct IdentityServiceToken;
-
-impl AuthScheme for IdentityServiceToken {
-    type Input<'a> = &'a str;
-    type AddAuthenticationError = header::InvalidHeaderValue;
-    // The identity service token.
-    type Output = String;
-    type ExtractAuthenticationError = ExtractTokenError;
-
-    fn add_authentication<T: AsRef<[u8]>>(
-        request: &mut http::Request<T>,
-        access_token: Self::Input<'_>,
-    ) -> Result<(), Self::AddAuthenticationError>
-    {
-        add_access_token_as_authorization_header(request.headers_mut(), access_token)
-    }
-
-    fn extract_authentication<T: AsRef<[u8]>>(
-        request: &http::Request<T>,
-    ) -> Result<Self::Output, Self::ExtractAuthenticationError>
-    {
-        extract_bearer_or_query_token(request)?.ok_or(ExtractTokenError::MissingAccessToken)
-    }
-}
 
 /// Add the given access token as an `Authorization` HTTP header to the given map.
-fn add_access_token_as_authorization_header(
+pub fn add_access_token_as_authorization_header(
     headers: &mut HeaderMap,
     token: &str,
 ) -> Result<(), header::InvalidHeaderValue> {
@@ -306,7 +247,7 @@ fn add_access_token_as_authorization_header(
 
 /// Extract the access token from the `Authorization` HTTP header or the query string of the given
 /// request.
-fn extract_bearer_or_query_token<T>(
+pub fn extract_bearer_or_query_token<T>(
     request: &http::Request<T>,
 ) -> Result<Option<String>, ExtractTokenError> {
     if let Some(token) = extract_bearer_token_from_authorization_header(request.headers())? {
@@ -321,7 +262,7 @@ fn extract_bearer_or_query_token<T>(
 }
 
 /// Extract the value of the `Authorization` HTTP header with a `Bearer` scheme.
-fn extract_bearer_token_from_authorization_header(
+pub fn extract_bearer_token_from_authorization_header(
     headers: &HeaderMap,
 ) -> Result<Option<String>, ExtractTokenError> {
     const EXPECTED_START: &str = "bearer ";
@@ -342,7 +283,7 @@ fn extract_bearer_token_from_authorization_header(
 }
 
 /// Extract the `access_token` from the given query string.
-fn extract_access_token_from_query(
+pub fn extract_access_token_from_query(
     query: &str,
 ) -> Result<Option<String>, serde_html_form::de::Error> {
     #[derive(Deserialize)]

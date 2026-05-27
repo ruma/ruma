@@ -8,9 +8,11 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/v1.18/identity-service-api/#post_matrixidentityv2terms
 
     use ruma_common::{
-        api::{auth_scheme::IdentityServiceToken, request, response},
+        api::{request, response},
         metadata,
     };
+
+    use crate::IdentityServiceToken;
 
     metadata! {
         method: POST,

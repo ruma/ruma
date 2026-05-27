@@ -9,9 +9,11 @@ pub mod unstable {
 
     use ruma_common::{
         OwnedTransactionId,
-        api::{auth_scheme::HomeserverToken, request, response},
+        api::{request, response},
         metadata,
     };
+
+    use crate::HomeserverToken;
 
     metadata! {
         method: POST,
