@@ -13,6 +13,8 @@ Improvements:
 - Add `M_CONCURRENT_WRITE` error code, used by [MSC4438].
 - Add `canonical_json::RedactingSerializer` to serialize a `CanonicalJsonObject`
   while redacting it on the fly.
+- Add `required_scopes` function to `Metadata` and accompanying `required_scopes` syntax
+  to `metadata!` macro, to allow request structs to define what OAuth 2.0 scopes they require.
 
 [MSC4438]: https://github.com/matrix-org/matrix-spec-proposals/pull/4438
 
