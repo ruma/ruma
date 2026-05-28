@@ -3,7 +3,7 @@
 use std::ops::Deref;
 
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{format_ident, quote};
 
 use super::{EventEnumData, EventEnumKind};
 use crate::util::{RumaEvents, RumaEventsReexport};
@@ -275,6 +275,22 @@ impl EventTypeEnum<'_> {
             }
         });
 
+        fn to_snake_case(ident: String) -> String {
+            let mut s = String::with_capacity(ident.len());
+
+            for (i, ch) in ident.char_indices() {
+                if i > 0 && ch.is_uppercase() {
+                    s.push('_');
+                }
+
+                s.push(ch.to_ascii_lowercase());
+            }
+
+            s
+        }
+
+        let ident_from_str = format_ident!("{}_from_string", to_snake_case(ident.to_string()));
+
         quote! {
             #[allow(deprecated)]
             impl ::std::convert::From<&::std::primitive::str> for #ident {
@@ -295,12 +311,9 @@ impl EventTypeEnum<'_> {
 
             #[cfg(feature = "unstable-uniffi")]
             #[uniffi::export]
-            impl #ident {
-                /// Construct a variant of the enum from a string.
-                #[uniffi::constructor]
-                pub fn from_string(s: ::std::string::String) -> Self {
-                    s.into()
-                }
+            /// Construct a variant of the enum from a string.
+            fn #ident_from_str(s: ::std::string::String) -> #ident {
+                s.into()
             }
 
             #[allow(deprecated)]
