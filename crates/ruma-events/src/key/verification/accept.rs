@@ -118,7 +118,7 @@ impl<'de> Deserialize<'de> for AcceptMethod {
 
 /// Method specific content of a unknown key verification method.
 #[doc(hidden)]
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct _CustomAcceptMethodContent {
     /// The additional fields that the method contains.
     #[serde(flatten)]
