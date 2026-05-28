@@ -3,9 +3,13 @@
 use std::borrow::Cow;
 
 use ruma_macros::StringEnum;
+#[cfg(feature = "unstable-msc4426")]
+use serde::Deserialize;
 use serde::Serialize;
 use serde_json::{Value as JsonValue, from_value as from_json_value, to_value as to_json_value};
 
+#[cfg(feature = "unstable-msc4426")]
+use crate::SecondsSinceUnixEpoch;
 use crate::{OwnedMxcUri, PrivOwnedStr};
 
 mod profile_field_value_serde;
@@ -32,6 +36,20 @@ pub enum ProfileFieldName {
     #[ruma_enum(rename = "m.tz")]
     TimeZone,
 
+    /// The user's current status.
+    ///
+    /// This uses the unstable prefix defined in [MSC4426](https://github.com/matrix-org/matrix-spec-proposals/pull/4426).
+    #[cfg(feature = "unstable-msc4426")]
+    #[ruma_enum(rename = "org.matrix.msc4426.status")]
+    Status,
+
+    /// The user's call indicator.
+    ///
+    /// This uses the unstable prefix defined in [MSC4426](https://github.com/matrix-org/matrix-spec-proposals/pull/4426).
+    #[cfg(feature = "unstable-msc4426")]
+    #[ruma_enum(rename = "org.matrix.msc4426.call")]
+    Call,
+
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
@@ -53,6 +71,20 @@ pub enum ProfileFieldValue {
     /// The user's time zone.
     #[serde(rename = "m.tz")]
     TimeZone(String),
+
+    /// The user's current status.
+    ///
+    /// This uses the unstable prefix defined in [MSC4426](https://github.com/matrix-org/matrix-spec-proposals/pull/4426).
+    #[cfg(feature = "unstable-msc4426")]
+    #[serde(rename = "org.matrix.msc4426.status")]
+    Status(StatusProfileField),
+
+    /// The user's call indicator.
+    ///
+    /// This uses the unstable prefix defined in [MSC4426](https://github.com/matrix-org/matrix-spec-proposals/pull/4426).
+    #[cfg(feature = "unstable-msc4426")]
+    #[serde(rename = "org.matrix.msc4426.call")]
+    Call(CallProfileField),
 
     #[doc(hidden)]
     #[serde(untagged)]
@@ -85,6 +117,10 @@ impl ProfileFieldValue {
             Self::AvatarUrl(_) => ProfileFieldName::AvatarUrl,
             Self::DisplayName(_) => ProfileFieldName::DisplayName,
             Self::TimeZone(_) => ProfileFieldName::TimeZone,
+            #[cfg(feature = "unstable-msc4426")]
+            Self::Status(_) => ProfileFieldName::Status,
+            #[cfg(feature = "unstable-msc4426")]
+            Self::Call(_) => ProfileFieldName::Call,
             Self::_Custom(CustomProfileFieldValue { field, .. }) => field.as_str().into(),
         }
     }
@@ -104,9 +140,48 @@ impl ProfileFieldValue {
             Self::TimeZone(value) => {
                 Cow::Owned(to_json_value(value).expect("value should serialize successfully"))
             }
+            #[cfg(feature = "unstable-msc4426")]
+            Self::Status(value) => {
+                Cow::Owned(to_json_value(value).expect("value should serialize successfully"))
+            }
+            #[cfg(feature = "unstable-msc4426")]
+            Self::Call(value) => {
+                Cow::Owned(to_json_value(value).expect("value should serialize successfully"))
+            }
             Self::_Custom(c) => Cow::Borrowed(&c.value),
         }
     }
+}
+
+/// A text-only field describing the user’s current state, along with an emoji.
+///
+/// The emoji can be useful as a compact summary, or just for fun.
+#[cfg(feature = "unstable-msc4426")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct StatusProfileField {
+    /// The user’s chosen status text.
+    ///
+    /// Limited to 256 bytes. Does not support HTML.
+    pub text: String,
+
+    /// The user’s chosen status emoji.
+    ///
+    /// Limited to 32 bytes.
+    pub emoji: String,
+}
+
+/// An indicator that the user is currently in a call, and optionally how long they’ve been in the
+/// call.
+#[cfg(feature = "unstable-msc4426")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct CallProfileField {
+    /// The time that the user joined the call.
+    ///
+    /// This allows users to see how long someone has been in a call.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub call_joined_ts: Option<SecondsSinceUnixEpoch>,
 }
 
 /// A custom value for a user's profile field.
@@ -126,6 +201,10 @@ mod tests {
     use serde_json::{from_value as from_json_value, json};
 
     use super::ProfileFieldValue;
+    #[cfg(feature = "unstable-msc4426")]
+    use super::{CallProfileField, StatusProfileField};
+    #[cfg(feature = "unstable-msc4426")]
+    use crate::SecondsSinceUnixEpoch;
 
     #[test]
     fn serialize_profile_field_value() {
@@ -167,5 +246,52 @@ mod tests {
         // Error if the object is empty.
         let json = json!({});
         from_json_value::<ProfileFieldValue>(json).unwrap_err();
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-msc4426")]
+    fn serialize_profile_status() {
+        // Status.
+        let value = ProfileFieldValue::Status(StatusProfileField {
+            text: "Away".to_owned(),
+            emoji: "🌴".to_owned(),
+        });
+        assert_to_canonical_json_eq!(
+            value,
+            json!({ "org.matrix.msc4426.status": { "text": "Away", "emoji": "🌴" } })
+        );
+
+        // Call.
+        let value = ProfileFieldValue::Call(CallProfileField {
+            call_joined_ts: Some(SecondsSinceUnixEpoch(1_770_140_640.try_into().unwrap())),
+        });
+        assert_to_canonical_json_eq!(
+            value,
+            json!({ "org.matrix.msc4426.call": { "call_joined_ts": 1_770_140_640 } })
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-msc4426")]
+    fn deserialize_profile_status() {
+        // Status.
+        let json =
+            json!({ "org.matrix.msc4426.status": { "text": "Be right back", "emoji": "☕️" } });
+        assert_eq!(
+            from_json_value::<ProfileFieldValue>(json).unwrap(),
+            ProfileFieldValue::Status(StatusProfileField {
+                text: "Be right back".to_owned(),
+                emoji: "☕️".to_owned(),
+            })
+        );
+
+        // Call.
+        let json = json!({ "org.matrix.msc4426.call": { "call_joined_ts": 1_168_380_060 } });
+        assert_eq!(
+            from_json_value::<ProfileFieldValue>(json).unwrap(),
+            ProfileFieldValue::Call(CallProfileField {
+                call_joined_ts: Some(SecondsSinceUnixEpoch(1_168_380_060.try_into().unwrap())),
+            })
+        );
     }
 }

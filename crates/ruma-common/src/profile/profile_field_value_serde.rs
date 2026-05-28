@@ -54,6 +54,10 @@ impl<'de> de::Visitor<'de> for ProfileFieldValueVisitor {
             ProfileFieldName::AvatarUrl => ProfileFieldValue::AvatarUrl(map.next_value()?),
             ProfileFieldName::DisplayName => ProfileFieldValue::DisplayName(map.next_value()?),
             ProfileFieldName::TimeZone => ProfileFieldValue::TimeZone(map.next_value()?),
+            #[cfg(feature = "unstable-msc4426")]
+            ProfileFieldName::Status => ProfileFieldValue::Status(map.next_value()?),
+            #[cfg(feature = "unstable-msc4426")]
+            ProfileFieldName::Call => ProfileFieldValue::Call(map.next_value()?),
             ProfileFieldName::_Custom(field) => {
                 ProfileFieldValue::_Custom(CustomProfileFieldValue {
                     field: field.0.into(),

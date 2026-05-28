@@ -20,6 +20,7 @@ Improvements:
 - Add `CanonicalJsonObjectExt` as a helper trait to extract fields from a `CanonicalJsonObject`.
 - Implement `TryFrom` trait and `checked_add` method for working with
   `MilliSecondsSinceUnixEpoch` and rust time types.
+- Add support for MSC4426 (User Status Profile Fields).
 
 ## 0.18.0
 
