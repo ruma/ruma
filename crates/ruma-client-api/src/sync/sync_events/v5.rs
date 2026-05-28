@@ -218,6 +218,11 @@ pub mod request {
         )]
         pub thread_subscriptions: ThreadSubscriptions,
 
+        /// Configure the profiles extension.
+        #[cfg(feature = "unstable-msc4262")]
+        #[serde(default, skip_serializing_if = "Profiles::is_empty")]
+        pub profiles: Profiles,
+
         /// Extensions may add further fields to the list.
         #[serde(flatten)]
         other: BTreeMap<String, serde_json::Value>,
@@ -226,12 +231,24 @@ pub mod request {
     impl Extensions {
         /// Whether all fields are empty or `None`.
         pub fn is_empty(&self) -> bool {
-            self.to_device.is_empty()
+            let mut empty = self.to_device.is_empty()
                 && self.e2ee.is_empty()
                 && self.account_data.is_empty()
                 && self.receipts.is_empty()
                 && self.typing.is_empty()
-                && self.other.is_empty()
+                && self.other.is_empty();
+
+            #[cfg(feature = "unstable-msc4308")]
+            {
+                empty = empty && self.thread_subscriptions.is_empty();
+            }
+
+            #[cfg(feature = "unstable-msc4262")]
+            {
+                empty = empty && self.profiles.is_empty();
+            }
+
+            empty
         }
     }
 
@@ -314,7 +331,7 @@ pub mod request {
         }
     }
 
-    /// Account-data extension .
+    /// Account-data extension.
     ///
     /// Not yet part of the spec proposal. Taken from the reference implementation
     /// <https://github.com/matrix-org/sliding-sync/blob/main/sync3/extensions/account_data.go>
@@ -445,6 +462,54 @@ pub mod request {
             self.enabled.is_none() && self.limit.is_none()
         }
     }
+
+    /// User profiles extension.
+    ///
+    /// Specified as part of [MSC4262](https://github.com/matrix-org/matrix-spec-proposals/pull/4262).
+    #[cfg(feature = "unstable-msc4262")]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct Profiles {
+        /// Activate or deactivate this extension.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub enabled: Option<bool>,
+
+        /// List of list names for which user profiles should be enabled.
+        ///
+        /// If not defined, will be enabled for *all* the lists appearing in the
+        /// request. If defined and empty, will be disabled for all the lists.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub lists: Option<Vec<String>>,
+
+        /// List of room names for which user profiles should be enabled.
+        ///
+        /// If not defined, will be enabled for *all* the rooms appearing in the
+        /// room subscriptions. If defined and empty, will be disabled for all
+        /// the rooms.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub rooms: Option<Vec<ExtensionRoomConfig>>,
+
+        /// Optional filter to control which profile fields to receive updates for. If omitted, all
+        /// profile field updates are included.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub fields: Option<Vec<ruma_common::profile::ProfileFieldName>>,
+
+        /// Optional flag to control whether the initial sync includes recent historical profile
+        /// changes:
+        ///
+        /// If false (default), only current profile states are sent on initial sync.
+        /// If true, the server may include recent profile changes that occurred before the sync.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub include_history: Option<bool>,
+    }
+
+    #[cfg(feature = "unstable-msc4262")]
+    impl Profiles {
+        /// Whether all fields are empty or `None`.
+        pub fn is_empty(&self) -> bool {
+            self.enabled.is_none()
+        }
+    }
 }
 
 /// Response type for the `/sync` endpoint.
@@ -489,6 +554,8 @@ pub mod response {
     use ruma_common::OneTimeKeyAlgorithm;
     #[cfg(feature = "unstable-msc4308")]
     use ruma_common::OwnedEventId;
+    #[cfg(feature = "unstable-msc4262")]
+    use ruma_common::profile::UserProfile;
     use ruma_events::{
         AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent, AnyStrippedStateEvent,
         AnyToDeviceEvent, receipt::SyncReceiptEvent, typing::SyncTypingEvent,
@@ -650,6 +717,11 @@ pub mod response {
             rename = "io.element.msc4308.thread_subscriptions"
         )]
         pub thread_subscriptions: ThreadSubscriptions,
+
+        /// Profiles extension response.
+        #[cfg(feature = "unstable-msc4262")]
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty", rename = "users")]
+        pub profiles: BTreeMap<OwnedUserId, UserProfile>,
     }
 
     impl Extensions {
@@ -657,11 +729,23 @@ pub mod response {
         ///
         /// True if neither to-device, e2ee nor account data are to be found.
         pub fn is_empty(&self) -> bool {
-            self.to_device.is_none()
+            let mut empty = self.to_device.is_none()
                 && self.e2ee.is_empty()
                 && self.account_data.is_empty()
                 && self.receipts.is_empty()
-                && self.typing.is_empty()
+                && self.typing.is_empty();
+
+            #[cfg(feature = "unstable-msc4308")]
+            {
+                empty = empty && self.thread_subscriptions.is_empty();
+            }
+
+            #[cfg(feature = "unstable-msc4262")]
+            {
+                empty = empty && self.profiles.is_empty();
+            }
+
+            empty
         }
     }
 
