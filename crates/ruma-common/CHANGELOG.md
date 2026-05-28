@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+Bug fixes:
+- Properly check the room type filter in `ruma_common::directory::Filter`'s `is_empty` function.
+
 Breaking changes:
 
 - `RedactionError` was renamed to `CanonicalJsonFieldError` and its `MissingField` variant was

@@ -201,7 +201,7 @@ impl Filter {
 
     /// Returns `true` if the filter is empty.
     pub fn is_empty(&self) -> bool {
-        self.generic_search_term.is_none()
+        self.generic_search_term.is_none() && self.room_types.is_empty()
     }
 }
 
