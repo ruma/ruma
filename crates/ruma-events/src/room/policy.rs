@@ -10,6 +10,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::EmptyStateKey;
 
+/// The signing key ID that must be used by a Policy Server for its ed25519 signature.
+pub const POLICY_SERVER_ED25519_SIGNING_KEY_ID: &str = "ed25519:policy_server";
+
 /// The content of an [`m.room.policy`] event.
 ///
 /// A [Policy Server] configuration.
