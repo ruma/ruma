@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- Fix the deserialization of the `AcceptMethod` enum. The deserialization
+  mistakenly required a `method` field.
+
 Bug fixes:
 
 - Export `AnyRedactionEvent`.
