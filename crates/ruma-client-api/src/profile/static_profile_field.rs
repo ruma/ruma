@@ -1,6 +1,8 @@
 #![allow(clippy::exhaustive_structs)]
 
 use ruma_common::OwnedMxcUri;
+#[cfg(feature = "unstable-msc4426")]
+use ruma_common::profile::{CallProfileField, StatusProfileField};
 use serde::{Serialize, de::DeserializeOwned};
 
 /// Trait implemented by types representing a field in a user's [profile] having a statically-known
@@ -40,4 +42,26 @@ pub struct TimeZone;
 impl StaticProfileField for TimeZone {
     type Value = String;
     const NAME: &str = "m.tz";
+}
+
+/// The user's current status.
+#[cfg(feature = "unstable-msc4426")]
+#[derive(Debug, Clone, Copy)]
+pub struct Status;
+
+#[cfg(feature = "unstable-msc4426")]
+impl StaticProfileField for Status {
+    type Value = StatusProfileField;
+    const NAME: &str = "org.matrix.msc4426.status";
+}
+
+/// The user's call indicator.
+#[cfg(feature = "unstable-msc4426")]
+#[derive(Debug, Clone, Copy)]
+pub struct Call;
+
+#[cfg(feature = "unstable-msc4426")]
+impl StaticProfileField for Call {
+    type Value = CallProfileField;
+    const NAME: &str = "org.matrix.msc4426.call";
 }
