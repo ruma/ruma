@@ -4,6 +4,8 @@ use super::{
     AddMentions, ForwardThread, MessageType, Relation, ReplacementMetadata, ReplyMetadata,
     ReplyWithinThread, RoomMessageEventContent,
 };
+#[cfg(feature = "unstable-msc4471")]
+use crate::stream::StreamDescriptor;
 use crate::{
     Mentions,
     relation::{InReplyTo, Replacement, Reply, Thread},
@@ -24,12 +26,24 @@ pub struct RoomMessageEventContentWithoutRelation {
     /// [mentions]: https://spec.matrix.org/v1.18/client-server-api/#user-and-room-mentions
     #[serde(rename = "m.mentions", skip_serializing_if = "Option::is_none")]
     pub mentions: Option<Mentions>,
+
+    /// See [`RoomMessageEventContent::stream`].
+    ///
+    /// [`RoomMessageEventContent::stream`]: super::RoomMessageEventContent::stream
+    #[cfg(feature = "unstable-msc4471")]
+    #[serde(rename = "org.matrix.msc4471.stream", skip_serializing_if = "Option::is_none")]
+    pub stream: Option<StreamDescriptor>,
 }
 
 impl RoomMessageEventContentWithoutRelation {
     /// Creates a new `RoomMessageEventContentWithoutRelation` with the given `MessageType`.
     pub fn new(msgtype: MessageType) -> Self {
-        Self { msgtype, mentions: None }
+        Self {
+            msgtype,
+            mentions: None,
+            #[cfg(feature = "unstable-msc4471")]
+            stream: None,
+        }
     }
 
     /// A constructor to create a plain text message.
@@ -85,8 +99,19 @@ impl RoomMessageEventContentWithoutRelation {
         self,
         relates_to: Option<Relation<RoomMessageEventContentWithoutRelation>>,
     ) -> RoomMessageEventContent {
-        let Self { msgtype, mentions } = self;
-        RoomMessageEventContent { msgtype, relates_to, mentions }
+        let Self {
+            msgtype,
+            mentions,
+            #[cfg(feature = "unstable-msc4471")]
+            stream,
+        } = self;
+        RoomMessageEventContent {
+            msgtype,
+            relates_to,
+            mentions,
+            #[cfg(feature = "unstable-msc4471")]
+            stream,
+        }
     }
 
     /// Turns `self` into a [rich reply] to the message using the given metadata.
@@ -226,6 +251,8 @@ impl RoomMessageEventContentWithoutRelation {
             new_content: RoomMessageEventContentWithoutRelation {
                 msgtype: self.msgtype.clone(),
                 mentions,
+                #[cfg(feature = "unstable-msc4471")]
+                stream: self.stream.clone(),
             },
         });
 
@@ -258,14 +285,36 @@ impl From<MessageType> for RoomMessageEventContentWithoutRelation {
 
 impl From<RoomMessageEventContent> for RoomMessageEventContentWithoutRelation {
     fn from(value: RoomMessageEventContent) -> Self {
-        let RoomMessageEventContent { msgtype, mentions, .. } = value;
-        Self { msgtype, mentions }
+        let RoomMessageEventContent {
+            msgtype,
+            mentions,
+            #[cfg(feature = "unstable-msc4471")]
+            stream,
+            ..
+        } = value;
+        Self {
+            msgtype,
+            mentions,
+            #[cfg(feature = "unstable-msc4471")]
+            stream,
+        }
     }
 }
 
 impl From<RoomMessageEventContentWithoutRelation> for RoomMessageEventContent {
     fn from(value: RoomMessageEventContentWithoutRelation) -> Self {
-        let RoomMessageEventContentWithoutRelation { msgtype, mentions } = value;
-        Self { msgtype, relates_to: None, mentions }
+        let RoomMessageEventContentWithoutRelation {
+            msgtype,
+            mentions,
+            #[cfg(feature = "unstable-msc4471")]
+            stream,
+        } = value;
+        Self {
+            msgtype,
+            relates_to: None,
+            mentions,
+            #[cfg(feature = "unstable-msc4471")]
+            stream,
+        }
     }
 }

@@ -18,6 +18,8 @@ use tracing::warn;
 
 #[cfg(feature = "html")]
 use self::sanitize::remove_plain_reply_fallback;
+#[cfg(feature = "unstable-msc4471")]
+use crate::stream::StreamDescriptor;
 use crate::{Mentions, PrivOwnedStr, relation::Thread};
 
 mod audio;
@@ -97,12 +99,27 @@ pub struct RoomMessageEventContent {
     /// [mentions]: https://spec.matrix.org/v1.18/client-server-api/#user-and-room-mentions
     #[serde(rename = "m.mentions", skip_serializing_if = "Option::is_none")]
     pub mentions: Option<Mentions>,
+
+    /// A descriptor advertising a live event stream for this message.
+    ///
+    /// This uses the unstable prefix defined in [MSC4471].
+    ///
+    /// [MSC4471]: https://github.com/matrix-org/matrix-spec-proposals/pull/4471
+    #[cfg(feature = "unstable-msc4471")]
+    #[serde(rename = "org.matrix.msc4471.stream", skip_serializing_if = "Option::is_none")]
+    pub stream: Option<StreamDescriptor>,
 }
 
 impl RoomMessageEventContent {
     /// Create a `RoomMessageEventContent` with the given `MessageType`.
     pub fn new(msgtype: MessageType) -> Self {
-        Self { msgtype, relates_to: None, mentions: None }
+        Self {
+            msgtype,
+            relates_to: None,
+            mentions: None,
+            #[cfg(feature = "unstable-msc4471")]
+            stream: None,
+        }
     }
 
     /// A constructor to create a plain text message.
@@ -249,9 +266,18 @@ impl RoomMessageEventContent {
     ///
     /// [`Replacement`]: crate::relation::Replacement
     pub fn apply_replacement(&mut self, new_content: RoomMessageEventContentWithoutRelation) {
-        let RoomMessageEventContentWithoutRelation { msgtype, mentions } = new_content;
+        let RoomMessageEventContentWithoutRelation {
+            msgtype,
+            mentions,
+            #[cfg(feature = "unstable-msc4471")]
+            stream,
+        } = new_content;
         self.msgtype = msgtype;
         self.mentions = mentions;
+        #[cfg(feature = "unstable-msc4471")]
+        {
+            self.stream = stream;
+        }
     }
 
     /// Sanitize this message.
