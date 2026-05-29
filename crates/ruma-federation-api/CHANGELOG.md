@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- The `policy::sign_event::v1::Response::POLICY_SERVER_ED25519_SIGNING_KEY_ID` associated constant
+  was moved as `ruma_events::room::policy::POLICY_SERVER_ED25519_SIGNING_KEY_ID`.
+
 ## 0.14.0
 
 Breaking changes:

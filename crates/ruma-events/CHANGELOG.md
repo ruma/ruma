@@ -14,6 +14,7 @@ Bug fixes:
 Improvements:
 
 - Add unstable support for event streams, according to MSC4471.
+- Expose the signing key ID that must be used by a Policy Server for its ed25519 signature.
 
 ## 0.33.0
 
