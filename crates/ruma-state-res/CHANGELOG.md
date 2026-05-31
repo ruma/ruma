@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.17.0
+
+Breaking changes:
+
+- Upgrade ruma-common, ruma-events and ruma-signatures
+
 Bug fixes:
 
 - Fix `m.room.member` authorization for events with `knock` membership in
