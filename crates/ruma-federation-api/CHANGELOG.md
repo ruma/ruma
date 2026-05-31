@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.15.0
+
 Breaking changes:
 
 - The `policy::sign_event::v1::Response::POLICY_SERVER_ED25519_SIGNING_KEY_ID` associated constant
