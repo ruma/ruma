@@ -48,7 +48,7 @@ impl RoomAliasId {
     ///
     /// If `join` is `true`, a click on the URI should join the room.
     pub fn matrix_uri(&self, join: bool) -> MatrixUri {
-        MatrixUri::new(self.into(), Vec::new(), Some(UriAction::Join).filter(|_| join))
+        MatrixUri::new(self.into(), Vec::new(), join.then_some(UriAction::Join))
     }
 
     /// Create a `matrix:` URI for an event scoped under this room alias ID.

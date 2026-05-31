@@ -152,7 +152,7 @@ impl UserId {
     /// );
     /// ```
     pub fn matrix_uri(&self, chat: bool) -> MatrixUri {
-        MatrixUri::new(self.into(), Vec::new(), Some(UriAction::Chat).filter(|_| chat))
+        MatrixUri::new(self.into(), Vec::new(), chat.then_some(UriAction::Chat))
     }
 
     fn colon_idx(&self) -> usize {
