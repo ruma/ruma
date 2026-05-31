@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 0.16.0
+
+Refer to the changelogs of:
+
+- ruma-client-api 0.24.0
+- ruma-common 0.19.0
+- ruma-events 0.34.0
+- ruma-federation-api 0.15.0
+- ruma-signatures 0.21.0
+- ruma-state-res 0.17.0
+
 ## 0.15.1
 
 Refer to the changelogs of:
