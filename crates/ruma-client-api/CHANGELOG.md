@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.24.0
+
+Breaking changes:
+
+- Upgrade ruma-common and ruma-events
+
 Improvements:
 
 - Unify `RtcFocusInfo` and `RtcTransport`, and align the field, method
