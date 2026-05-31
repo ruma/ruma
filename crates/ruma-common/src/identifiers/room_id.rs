@@ -170,7 +170,7 @@ impl RoomId {
     /// );
     /// ```
     pub fn matrix_uri(&self, join: bool) -> MatrixUri {
-        MatrixUri::new(self.into(), vec![], Some(UriAction::Join).filter(|_| join))
+        MatrixUri::new(self.into(), vec![], join.then_some(UriAction::Join))
     }
 
     /// Create a `matrix:` URI for this room ID with a list of servers that should know it.
@@ -206,7 +206,7 @@ impl RoomId {
         MatrixUri::new(
             self.into(),
             via.into_iter().map(Into::into).collect(),
-            Some(UriAction::Join).filter(|_| join),
+            join.then_some(UriAction::Join),
         )
     }
 

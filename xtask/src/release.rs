@@ -116,7 +116,7 @@ impl ReleaseTask {
             true
         } else if !ask_yes_no(&format!(
             "Package is already version {}. Skip creating a commit and continue?",
-            &self.version
+            self.version
         ))? {
             return Ok(());
         } else {
