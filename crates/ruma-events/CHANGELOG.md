@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.34.0
+
 Breaking changes:
 
 - Fix the deserialization of the `AcceptMethod` enum. The deserialization
