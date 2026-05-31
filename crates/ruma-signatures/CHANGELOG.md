@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.21.0
+
 Breaking changes:
 
 - Refactor the variants of `JsonError`: `InvalidType` and `JsonFieldMissingFromObject` were merged
