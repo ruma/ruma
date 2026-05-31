@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.19.0
+
 Bug fixes:
 
 - Properly check the room type filter in `ruma_common::directory::Filter`'s `is_empty` function.

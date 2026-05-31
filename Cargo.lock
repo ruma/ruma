@@ -2119,7 +2119,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-common"
-version = "0.18.0"
+version = "0.19.0"
 dependencies = [
  "as_variant",
  "assert_matches2",
@@ -2238,7 +2238,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-macros"
-version = "0.18.0"
+version = "0.19.0"
 dependencies = [
  "as_variant",
  "cfg-if",
