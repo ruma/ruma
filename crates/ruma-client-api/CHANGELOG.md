@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Improvements:
+
+- `profile::get_profile` is now using `ruma_common::profile::UserProfile` for its underlying data
+  storage.
+
 ## 0.24.0
 
 Breaking changes:

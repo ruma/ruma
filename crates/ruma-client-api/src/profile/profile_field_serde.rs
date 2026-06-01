@@ -1,13 +1,14 @@
 use std::fmt;
 
+use ruma_common::profile::StaticProfileField;
 use serde::de;
 
 /// Helper type to deserialize any type that implements [`StaticProfileField`].
-pub(super) struct StaticProfileFieldVisitor<F: super::StaticProfileField>(
+pub(super) struct StaticProfileFieldVisitor<F: StaticProfileField>(
     pub(super) std::marker::PhantomData<F>,
 );
 
-impl<'de, F: super::StaticProfileField> de::Visitor<'de> for StaticProfileFieldVisitor<F> {
+impl<'de, F: StaticProfileField> de::Visitor<'de> for StaticProfileFieldVisitor<F> {
     type Value = Option<F::Value>;
 
     fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {

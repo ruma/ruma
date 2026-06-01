@@ -1,15 +1,12 @@
 //! Endpoints for user profiles.
 
+#[cfg(feature = "client")]
+use ruma_common::api::{
+    MatrixVersion,
+    path_builder::{StablePathSelector, VersionHistory},
+};
 #[cfg(feature = "unstable-msc4466")]
 use ruma_common::serde::StringEnum;
-#[cfg(feature = "client")]
-use ruma_common::{
-    api::{
-        MatrixVersion,
-        path_builder::{StablePathSelector, VersionHistory},
-    },
-    profile::ProfileFieldName,
-};
 
 #[cfg(feature = "unstable-msc4466")]
 use crate::PrivOwnedStr;
@@ -24,10 +21,8 @@ mod profile_field_serde;
 pub mod set_avatar_url;
 pub mod set_display_name;
 pub mod set_profile_field;
-mod static_profile_field;
-pub mod user_profile;
 
-pub use self::static_profile_field::*;
+pub use ruma_common::profile::*;
 
 /// Endpoint version history valid only for profile fields that didn't exist before Matrix 1.16.
 #[cfg(feature = "client")]

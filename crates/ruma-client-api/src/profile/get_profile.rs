@@ -13,11 +13,9 @@ pub mod v3 {
         OwnedUserId,
         api::{auth_scheme::NoAccessToken, request, response},
         metadata,
-        profile::{ProfileFieldName, ProfileFieldValue},
+        profile::{ProfileFieldName, ProfileFieldValue, StaticProfileField, UserProfile},
     };
     use serde_json::Value as JsonValue;
-
-    use crate::profile::{StaticProfileField, user_profile::UserProfile};
 
     metadata! {
         method: GET,
