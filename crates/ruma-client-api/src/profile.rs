@@ -25,6 +25,7 @@ pub mod set_avatar_url;
 pub mod set_display_name;
 pub mod set_profile_field;
 mod static_profile_field;
+pub mod user_profile;
 
 pub use self::static_profile_field::*;
 

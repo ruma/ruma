@@ -7,7 +7,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.18/client-server-api/#get_matrixclientv3profileuserid
 
-    use std::collections::{BTreeMap, btree_map};
+    use std::collections::btree_map;
 
     use ruma_common::{
         OwnedUserId,
@@ -17,7 +17,7 @@ pub mod v3 {
     };
     use serde_json::Value as JsonValue;
 
-    use crate::profile::StaticProfileField;
+    use crate::profile::{StaticProfileField, user_profile::UserProfile};
 
     metadata! {
         method: GET,
@@ -43,7 +43,7 @@ pub mod v3 {
     pub struct Response {
         /// The profile data.
         #[ruma_api(body)]
-        data: BTreeMap<String, JsonValue>,
+        pub data: UserProfile,
     }
 
     impl Request {
@@ -72,7 +72,7 @@ pub mod v3 {
         pub fn get_static<F: StaticProfileField>(
             &self,
         ) -> Result<Option<F::Value>, serde_json::Error> {
-            self.data.get(F::NAME).map(|value| serde_json::from_value(value.clone())).transpose()
+            self.data.get_static::<F>()
         }
 
         /// Gets an iterator over the fields of the profile.
@@ -82,25 +82,31 @@ pub mod v3 {
 
         /// Sets a field to the given value.
         pub fn set(&mut self, field: String, value: JsonValue) {
-            self.data.insert(field, value);
+            self.data.set(field, value);
+        }
+    }
+
+    impl From<UserProfile> for Response {
+        fn from(value: UserProfile) -> Self {
+            Self { data: value }
         }
     }
 
     impl FromIterator<(String, JsonValue)> for Response {
         fn from_iter<T: IntoIterator<Item = (String, JsonValue)>>(iter: T) -> Self {
-            Self { data: iter.into_iter().collect() }
+            Self { data: UserProfile::from_iter(iter) }
         }
     }
 
     impl FromIterator<(ProfileFieldName, JsonValue)> for Response {
         fn from_iter<T: IntoIterator<Item = (ProfileFieldName, JsonValue)>>(iter: T) -> Self {
-            iter.into_iter().map(|(field, value)| (field.as_str().to_owned(), value)).collect()
+            Self { data: UserProfile::from_iter(iter) }
         }
     }
 
     impl FromIterator<ProfileFieldValue> for Response {
         fn from_iter<T: IntoIterator<Item = ProfileFieldValue>>(iter: T) -> Self {
-            iter.into_iter().map(|value| (value.field_name(), value.value().into_owned())).collect()
+            Self { data: UserProfile::from_iter(iter) }
         }
     }
 
@@ -112,15 +118,13 @@ pub mod v3 {
 
     impl Extend<(ProfileFieldName, JsonValue)> for Response {
         fn extend<T: IntoIterator<Item = (ProfileFieldName, JsonValue)>>(&mut self, iter: T) {
-            self.extend(iter.into_iter().map(|(field, value)| (field.as_str().to_owned(), value)));
+            self.data.extend(iter);
         }
     }
 
     impl Extend<ProfileFieldValue> for Response {
         fn extend<T: IntoIterator<Item = ProfileFieldValue>>(&mut self, iter: T) {
-            self.extend(
-                iter.into_iter().map(|value| (value.field_name(), value.value().into_owned())),
-            );
+            self.data.extend(iter);
         }
     }
 
