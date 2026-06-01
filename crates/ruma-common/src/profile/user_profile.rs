@@ -2,11 +2,10 @@
 
 use std::collections::{BTreeMap, btree_map};
 
-use ruma_common::profile::{ProfileFieldName, ProfileFieldValue};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
-use crate::profile::static_profile_field::StaticProfileField;
+use super::{ProfileFieldName, ProfileFieldValue, static_profile_field::StaticProfileField};
 
 /// All the profile information for a user.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

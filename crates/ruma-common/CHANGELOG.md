@@ -5,6 +5,7 @@
 Improvements:
 
 - Add `From` conversions between `MatrixToUri` and `MatrixUri`.
+- Extract a common `UserProfile` type out of `ruma_client_api::profile::get_profile`.
 
 ## 0.19.0
 

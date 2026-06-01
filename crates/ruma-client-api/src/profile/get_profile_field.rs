@@ -19,10 +19,8 @@ pub mod v3 {
         OwnedUserId,
         api::{Metadata, auth_scheme::NoAccessToken, error::Error, path_builder::VersionHistory},
         metadata,
-        profile::{ProfileFieldName, ProfileFieldValue},
+        profile::{ProfileFieldName, ProfileFieldValue, StaticProfileField},
     };
-
-    use crate::profile::StaticProfileField;
 
     metadata! {
         method: GET,

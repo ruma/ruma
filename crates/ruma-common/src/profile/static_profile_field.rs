@@ -1,3 +1,5 @@
+//! Types for common user profile fields.
+
 #![allow(clippy::exhaustive_structs)]
 
 use ruma_common::OwnedMxcUri;
