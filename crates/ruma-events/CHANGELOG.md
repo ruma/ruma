@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add `From` conversions between `MatrixToUri` and `MatrixUri`
+
 ## 0.34.0
 
 Breaking changes:
