@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-Breaking changes:
+Improvements:
 
 - Remove support for MSC4373, as the MSC is now closed.
 
