@@ -5,6 +5,8 @@
 Improvements:
 
 - Remove support for MSC4373, as the MSC is now closed.
+- `query::get_profile_information` is now using `ruma_common::profile::UserProfile` for its
+  underlying data storage.
 
 ## 0.15.0
 
