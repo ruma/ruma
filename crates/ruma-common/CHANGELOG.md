@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+Improvements:
+
+- Add `From` conversions between `MatrixToUri` and `MatrixUri`.
+
 ## 0.19.0
 
 Bug fixes:

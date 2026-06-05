@@ -538,6 +538,18 @@ impl FromStr for MatrixUri {
     }
 }
 
+impl From<MatrixUri> for MatrixToUri {
+    fn from(value: MatrixUri) -> Self {
+        Self { id: value.id, via: value.via }
+    }
+}
+
+impl From<MatrixToUri> for MatrixUri {
+    fn from(value: MatrixToUri) -> Self {
+        Self { id: value.id, via: value.via, action: None }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
