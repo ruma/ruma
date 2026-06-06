@@ -26,7 +26,11 @@ use crate::{
         RoomCreateEvent, RoomMemberEvent, RoomPowerLevelsEvent, RoomPowerLevelsIntField,
         power_levels::RoomPowerLevelsEventOptionExt,
     },
-    utils::{RoomIdExt, event_id_map::EventIdMap, event_id_set::EventIdSet},
+    utils::{
+        RoomIdExt,
+        event_id_map::{EventIdMap, EventIdMapEntryRef},
+        event_id_set::EventIdSet,
+    },
 };
 
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
@@ -464,11 +468,15 @@ where
     // https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm
     while let Some(Reverse(TieBreaker { event_id, .. })) = heap.pop() {
         for &parent_id in incoming_edges_map.get(event_id.borrow()).into_iter().flatten() {
-            let parent_has_zero_outdegrees = {
-                let outgoing_edges = outgoing_edges_map.get_mut(parent_id).expect(
-                    "outgoing edges map should have a key for all event IDs with outgoing edges",
+            let EventIdMapEntryRef::Occupied(mut outgoing_edges_entry) =
+                outgoing_edges_map.entry_ref(parent_id)
+            else {
+                unreachable!(
+                    "outgoing edges map should have a key for all event IDs with outgoing edges"
                 );
-
+            };
+            let parent_has_zero_outdegrees = {
+                let outgoing_edges = outgoing_edges_entry.get_mut();
                 outgoing_edges.remove(event_id.borrow());
                 outgoing_edges.is_empty()
             };
@@ -478,9 +486,7 @@ where
                 let (power_level, origin_server_ts) = event_details_fn(parent_id)?;
                 // Because the parent has no more outgoing edges, we can remove its entry from the
                 // outgoing edges map to get the owned event ID used for the key.
-                let (parent_id, _) = outgoing_edges_map
-                    .remove_entry(parent_id)
-                    .expect("outgoing edges map should have a key for all event IDs");
+                let (parent_id, _) = outgoing_edges_entry.remove_entry();
 
                 heap.push(Reverse(TieBreaker {
                     power_level,

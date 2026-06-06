@@ -1,4 +1,5 @@
 //! A map of event IDs to a type `V`.
+#![expect(missing_docs)] // FIXME: get rid of this before un-drafting the PR
 
 use std::{borrow::Borrow, hash::Hash, iter::FusedIterator, ops::Index};
 
@@ -88,6 +89,13 @@ where
     /// Gets the given event ID's corresponding entry in the map for in-place manipulation.
     pub fn entry(&mut self, event_id: E) -> EventIdMapEntry<'_, E, V> {
         EventIdMapEntry(self.0.entry(event_id))
+    }
+
+    pub fn entry_ref<'a, 'b>(
+        &'a mut self,
+        event_id: &'b EventId,
+    ) -> EventIdMapEntryRef<'a, 'b, E, V> {
+        EventIdMapEntryRef::new(self.0.entry_ref(event_id))
     }
 
     /// Inserts a key-value pair into the map.
@@ -405,3 +413,42 @@ impl<'a, E: Borrow<EventId> + Hash, V: Default> EventIdMapEntry<'a, E, V> {
         self.0.or_default()
     }
 }
+
+#[derive(Debug)]
+#[allow(clippy::exhaustive_enums)]
+pub enum EventIdMapEntryRef<'map, 'key, E: Borrow<EventId>, V> {
+    Occupied(OccupiedEntry<'map, E, V>),
+    Vacant(VacantEntryRef<'map, 'key, E, V>),
+}
+
+impl<'map, 'key, E: Borrow<EventId>, V> EventIdMapEntryRef<'map, 'key, E, V> {
+    fn new(entry: hash_map::EntryRef<'map, 'key, E, EventId, V, DefaultHashBuilder>) -> Self {
+        match entry {
+            hash_map::EntryRef::Occupied(o) => Self::Occupied(OccupiedEntry(o)),
+            hash_map::EntryRef::Vacant(v) => Self::Vacant(VacantEntryRef(v)),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct OccupiedEntry<'a, E: Borrow<EventId>, V>(hash_map::OccupiedEntry<'a, E, V>);
+
+impl<'a, E: Borrow<EventId>, V> OccupiedEntry<'a, E, V> {
+    pub fn get_mut(&mut self) -> &mut V {
+        self.0.get_mut()
+    }
+
+    pub fn remove(self) -> V {
+        self.0.remove()
+    }
+
+    pub fn remove_entry(self) -> (E, V) {
+        self.0.remove_entry()
+    }
+}
+
+#[derive(Debug)]
+#[expect(dead_code)] // to be fixed by adding methods, if ever useful
+pub struct VacantEntryRef<'map, 'key, E: Borrow<EventId>, V>(
+    hash_map::VacantEntryRef<'map, 'key, E, EventId, V, DefaultHashBuilder>,
+);
