@@ -1,18 +1,13 @@
 //! A map of event IDs to a type `V`.
 
-use std::{
-    borrow::Borrow,
-    collections::{HashMap, hash_map},
-    hash::Hash,
-    iter::FusedIterator,
-    ops::Index,
-};
+use std::{borrow::Borrow, hash::Hash, iter::FusedIterator, ops::Index};
 
+use hashbrown::{DefaultHashBuilder, HashMap, hash_map};
 use ruma_common::EventId;
 
 /// A map of event IDs to a type `V`.
 #[derive(Clone, Debug)]
-pub struct EventIdMap<E: Borrow<EventId>, V>(HashMap<E, V>);
+pub struct EventIdMap<E, V>(HashMap<E, V>);
 
 impl<E: Borrow<EventId>, V> EventIdMap<E, V> {
     /// Create an empty `EventIdMap`.
@@ -374,9 +369,9 @@ impl<E, V> FusedIterator for EventIdMapIntoValues<E, V> {}
 
 /// A view into a single entry in an [`EventIdMap`].
 #[derive(Debug)]
-pub struct EventIdMapEntry<'a, E: Borrow<EventId>, V>(hash_map::Entry<'a, E, V>);
+pub struct EventIdMapEntry<'a, E, V>(hash_map::Entry<'a, E, V, DefaultHashBuilder>);
 
-impl<'a, E: Borrow<EventId>, V> EventIdMapEntry<'a, E, V> {
+impl<'a, E: Borrow<EventId> + Hash, V> EventIdMapEntry<'a, E, V> {
     /// Ensures a value is in the entry by inserting the default if empty, and returns a mutable
     /// reference to the value in the entry.
     pub fn or_insert(self, default: V) -> &'a mut V {
@@ -399,11 +394,11 @@ impl<'a, E: Borrow<EventId>, V> EventIdMapEntry<'a, E, V> {
 
     /// Sets the value of the entry, and returns a mutable reference to the value.
     pub fn insert_entry(self, value: V) -> &'a mut V {
-        self.0.insert_entry(value).into_mut()
+        self.0.insert(value).into_mut()
     }
 }
 
-impl<'a, E: Borrow<EventId>, V: Default> EventIdMapEntry<'a, E, V> {
+impl<'a, E: Borrow<EventId> + Hash, V: Default> EventIdMapEntry<'a, E, V> {
     /// Ensures a value is in the entry by inserting the default value if empty, and returns a
     /// mutable reference to the value in the entry.
     pub fn or_default(self) -> &'a mut V {
