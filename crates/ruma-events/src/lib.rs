@@ -187,7 +187,6 @@ pub mod recent_emoji;
 pub mod relation;
 pub mod room;
 pub mod room_key;
-#[cfg(feature = "unstable-msc4268")]
 pub mod room_key_bundle;
 pub mod room_key_request;
 #[cfg(feature = "unstable-msc4310")]
