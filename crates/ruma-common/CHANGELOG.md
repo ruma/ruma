@@ -26,7 +26,7 @@ Improvements:
 - Implement `TryFrom` trait and `checked_add` method for working with
   `MilliSecondsSinceUnixEpoch` and rust time types.
 - Add support for MSC4426 (User Status Profile Fields).
-- Add `REQUIRED_SCOPES` associated constant to `Metadata` and accompanying `required_scopes` syntax
+- Add `required_scopes` function to `Metadata` and accompanying `required_scopes` syntax
   to `metadata!` macro, to allow request structs to define what OAuth 2.0 scopes they require.
 
 ## 0.18.0

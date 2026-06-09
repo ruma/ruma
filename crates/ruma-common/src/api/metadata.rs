@@ -10,7 +10,11 @@ use http::Method;
 use ruma_macros::StringEnum;
 
 use super::{auth_scheme::AuthScheme, error::UnknownVersionError, path_builder::PathBuilder};
-use crate::{PrivOwnedStr, RoomVersionId, api::error::IntoHttpError, serde::slice_to_buf};
+use crate::{
+    PrivOwnedStr, RoomVersionId,
+    api::{auth_scheme::ScopedAuthScheme, error::IntoHttpError},
+    serde::slice_to_buf,
+};
 
 /// Convenient constructor for [`Metadata`] implementation.
 ///
@@ -157,7 +161,12 @@ macro_rules! metadata {
     ( @field rate_limited: $rate_limited:literal ) => { const RATE_LIMITED: bool = $rate_limited; };
 
     ( @field required_scopes: [$( $scope:expr ),+ $(,)?] ) => {
-        const REQUIRED_SCOPES: &[$crate::api::OAuthScope] = &[$($scope,)+];
+        fn required_scopes<'a>() -> &'static [$crate::api::OAuthScope]
+        where
+            <Self::Authentication as $crate::api::auth_scheme::AuthScheme>::Input<'a>: $crate::api::auth_scheme::ScopedAuthScheme
+        {
+            &[$($scope,)+]
+        }
     };
 
     ( @field authentication: $scheme:path ) => {
@@ -236,15 +245,6 @@ pub trait Metadata: Sized {
     /// Whether or not this endpoint is rate limited by the server.
     const RATE_LIMITED: bool;
 
-    /// The OAuth scopes which grant access to this endpoint.
-    ///
-    /// Clients which authenticated using the [OAuth 2.0 API] may only use this endpoint
-    /// if they requested _any one_ of the scopes in this array. For most endpoints,
-    /// this is only [`OAuthScope::FullAccess`].
-    ///
-    /// [OAuth 2.0 API]: https://spec.matrix.org/v1.18/client-server-api/#oauth-20-api
-    const REQUIRED_SCOPES: &[OAuthScope] = &[OAuthScope::FullAccess];
-
     /// What authentication scheme the server uses for this endpoint.
     type Authentication: AuthScheme;
 
@@ -273,6 +273,25 @@ pub trait Metadata: Sized {
         query_string: &str,
     ) -> Result<String, IntoHttpError> {
         Self::PATH_BUILDER.make_endpoint_url(path_builder_input, base_url, path_args, query_string)
+    }
+
+    /// The OAuth scopes which grant access to this endpoint.
+    ///
+    /// Clients which authenticated using the [OAuth 2.0 API] may only use this endpoint
+    /// if they requested _any one_ of the scopes in the returned slice. For most endpoints,
+    /// this is only [`OAuthScope::FullAccess`].
+    ///
+    /// This function is only defined for request structs with an authentication scheme
+    /// that implements the [`ScopedAuthScheme`] marker trait.
+    ///
+    /// [OAuth 2.0 API]: https://spec.matrix.org/v1.18/client-server-api/#oauth-20-api
+    fn required_scopes<'a>() -> &'static [OAuthScope]
+    where
+        <Self::Authentication as AuthScheme>::Input<'a>: ScopedAuthScheme,
+    {
+        // TODO: In the future this could possibly be converted into a generic associated constant
+        // once those are stabilized. See https://github.com/rust-lang/rust/issues/113521.
+        &[OAuthScope::FullAccess]
     }
 
     /// The list of path parameters in the metadata.
