@@ -161,9 +161,9 @@ macro_rules! metadata {
     ( @field rate_limited: $rate_limited:literal ) => { const RATE_LIMITED: bool = $rate_limited; };
 
     ( @field required_scopes: [$( $scope:expr ),+ $(,)?] ) => {
-        fn required_scopes<'a>() -> &'static [$crate::api::OAuthScope]
+        fn required_scopes() -> &'static [$crate::api::OAuthScope]
         where
-            <Self::Authentication as $crate::api::auth_scheme::AuthScheme>::Input<'a>: $crate::api::auth_scheme::ScopedAuthScheme
+            Self::Authentication: $crate::api::auth_scheme::ScopedAuthScheme
         {
             &[$($scope,)+]
         }
@@ -285,9 +285,7 @@ pub trait Metadata: Sized {
     /// that implements the [`ScopedAuthScheme`] marker trait.
     ///
     /// [OAuth 2.0 API]: https://spec.matrix.org/v1.18/client-server-api/#oauth-20-api
-    fn required_scopes<'a>() -> &'static [OAuthScope]
-    where
-        <Self::Authentication as AuthScheme>::Input<'a>: ScopedAuthScheme,
+    fn required_scopes() -> &'static [OAuthScope] where Self::Authentication: ScopedAuthScheme,
     {
         // TODO: In the future this could possibly be converted into a generic associated constant
         // once those are stabilized. See https://github.com/rust-lang/rust/issues/113521.
