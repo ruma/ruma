@@ -39,6 +39,13 @@ pub trait AuthScheme: Sized {
     ) -> Result<Self::Output, Self::ExtractAuthenticationError>;
 }
 
+/// A marker trait indicating that endpoints which use this auth scheme
+/// require clients authenticated using the [OAuth 2.0 API] to request
+/// certain scopes. See [`super::Metadata::required_scopes`] for more information.
+///
+/// [OAuth 2.0 API]: https://spec.matrix.org/v1.18/client-server-api/#oauth-20-api
+pub trait ScopedAuthScheme: AuthScheme {}
+
 /// No authentication is performed.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct NoAuthentication;
@@ -127,6 +134,8 @@ impl AuthScheme for AccessToken {
     }
 }
 
+impl ScopedAuthScheme for AccessToken {}
+
 /// Authentication is optional, and it is performed by including an access token in the
 /// `Authentication` http header, or an `access_token` query parameter.
 ///
@@ -158,6 +167,8 @@ impl AuthScheme for AccessTokenOptional {
         extract_bearer_or_query_token(request)
     }
 }
+
+impl ScopedAuthScheme for AccessTokenOptional {}
 
 /// Authentication is required, and can only be performed for appservices, by including an
 /// appservice access token in the `Authentication` http header, or `access_token` query

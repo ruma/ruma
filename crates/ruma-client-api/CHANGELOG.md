@@ -27,6 +27,7 @@ Improvements:
   `/version` payload.
 
 [MSC4383]: https://github.com/matrix-org/matrix-spec-proposals/pull/4383
+- Add unstable support for MSC4484 "Server Administration OAuth Scope".
 
 ## 0.23.1
 
