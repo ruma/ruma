@@ -7,13 +7,13 @@ pub mod v1 {
     //!
     //! [spec]: https://spec.matrix.org/v1.18/server-server-api/#get_matrixfederationv1queryprofile
 
-    use std::collections::{BTreeMap, btree_map};
+    use std::collections::btree_map;
 
     use ruma_common::{
         OwnedUserId,
         api::{request, response},
         metadata,
-        profile::{ProfileFieldName, ProfileFieldValue},
+        profile::{Profile, ProfileFieldName, ProfileFieldValue},
     };
     use serde_json::Value as JsonValue;
 
@@ -48,17 +48,16 @@ pub mod v1 {
 
     /// Response type for the `get_profile_information` endpoint.
     #[response]
-    #[derive(Default)]
     pub struct Response {
         /// The profile data.
         #[ruma_api(body)]
-        data: BTreeMap<String, JsonValue>,
+        data: Profile,
     }
 
     impl Response {
         /// Creates a new empty `Response`.
         pub fn new() -> Self {
-            Self::default()
+            Self { data: Profile::new() }
         }
 
         /// Returns the value of the given profile field.
