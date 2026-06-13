@@ -2274,6 +2274,7 @@ dependencies = [
  "pkcs8",
  "rand 0.10.1",
  "ruma-common",
+ "ruma-events",
  "serde_json",
  "sha2",
  "thiserror 2.0.16",

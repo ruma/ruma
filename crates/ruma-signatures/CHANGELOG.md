@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Improvements:
+
+- Add `verify_policy_server_signature()` as a helper method to check the signature of the policy
+  server that is configured in the state of the room.
+
 ## 0.21.0
 
 Breaking changes:
