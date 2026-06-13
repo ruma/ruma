@@ -7,13 +7,12 @@ pub mod unstable {
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4437
 
-    use std::collections::BTreeMap;
 
     use ruma_common::{
         OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
+        profile::Profile,
         metadata,
-        profile::{ProfileFieldName, ProfileFieldValue},
     };
 
     metadata! {
@@ -34,7 +33,7 @@ pub mod unstable {
 
         /// The new complete profile for the user.
         #[ruma_api(body)]
-        pub data: BTreeMap<ProfileFieldName, ProfileFieldValue>,
+        pub data: Profile,
     }
 
     /// Response type for the `replace_profile` endpoint.
@@ -46,7 +45,7 @@ pub mod unstable {
         /// Creates a new `Request` with the given user ID and profile data.
         pub fn new(
             user_id: OwnedUserId,
-            data: BTreeMap<ProfileFieldName, ProfileFieldValue>,
+            data: Profile,
         ) -> Self {
             Self { user_id, data }
         }

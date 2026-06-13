@@ -7,7 +7,7 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.18/client-server-api/#get_matrixclientv3profileuserid
 
-    use std::collections::{BTreeMap, btree_map};
+    use std::collections::btree_map;
 
     use ruma_common::{
         OwnedUserId,
@@ -16,7 +16,7 @@ pub mod v3 {
         profile::{ProfileFieldName, ProfileFieldValue},
     };
     use serde_json::Value as JsonValue;
-
+    use ruma_common::profile::Profile;
     use crate::profile::StaticProfileField;
 
     metadata! {
@@ -39,11 +39,10 @@ pub mod v3 {
 
     /// Response type for the `get_profile` endpoint.
     #[response]
-    #[derive(Default)]
     pub struct Response {
         /// The profile data.
         #[ruma_api(body)]
-        data: BTreeMap<String, JsonValue>,
+        data: Profile,
     }
 
     impl Request {
@@ -56,7 +55,7 @@ pub mod v3 {
     impl Response {
         /// Creates a new empty `Response`.
         pub fn new() -> Self {
-            Self::default()
+            Self { data: Profile::new() }
         }
 
         /// Returns the value of the given profile field.

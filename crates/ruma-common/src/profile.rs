@@ -1,7 +1,7 @@
 //! Common types for user profile endpoints.
 
 use std::borrow::Cow;
-use std::collections::HashMap;
+use std::collections::{btree_map, BTreeMap};
 use ruma_macros::StringEnum;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value as JsonValue, from_value as from_json_value, to_value as to_json_value};
@@ -122,25 +122,22 @@ pub struct CustomProfileFieldValue {
 
 /// Represents a user's whole profile.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct Profile(HashMap<String, JsonValue>);
+pub struct Profile(BTreeMap<String, JsonValue>);
 
 impl Profile {
     /// Creates a new, empty profile.
     pub fn new() -> Self {
-        Profile(HashMap::new())
+        Profile(BTreeMap::new())
     }
 
     /// Inserts a field and its value into the profile.
-    pub fn insert(&mut self, field: ProfileFieldValue) {
-        self.0.insert(field.field_name().as_str().to_owned(), field.value().into_owned());
+    pub fn insert(&mut self, field: String, value: JsonValue) {
+        self.0.insert(field, value);
     }
 
-    /// Gets a single field, returning its value.
-    ///
-    /// If there is no field with the given key, None is returned.
-    /// If the field exists, but there is an error deserializing it, Some(Err(...)) is returned.
-    pub fn get(&self, field: &str) -> Option<serde_json::Result<ProfileFieldValue>> {
-        self.0.get(field).map(|value| ProfileFieldValue::new(field, value.to_owned()))
+    /// Gets a single field, returning its raw value.
+    pub fn get(&self, field: &str) -> Option<&JsonValue> {
+        self.0.get(field)
     }
 
     /// Removes a single field from the profile.
@@ -163,9 +160,56 @@ impl Profile {
         self.0.is_empty()
     }
 
-    /// Returns an iterator over the fields of the profile in no defined order.
-    pub fn iter(&self) -> impl Iterator<Item = (&String, &JsonValue)> {
+    /// Iterates over the values in the profile.
+    pub fn iter(&self) -> btree_map::Iter<'_, String, JsonValue> {
         self.0.iter()
+    }
+}
+
+impl FromIterator<(String, JsonValue)> for Profile {
+    fn from_iter<T: IntoIterator<Item = (String, JsonValue)>>(iter: T) -> Self {
+        Self(iter.into_iter().collect())
+    }
+}
+
+impl FromIterator<(ProfileFieldName, JsonValue)> for Profile {
+    fn from_iter<T: IntoIterator<Item = (ProfileFieldName, JsonValue)>>(iter: T) -> Self {
+        iter.into_iter().map(|(field, value)| (field.as_str().to_owned(), value)).collect()
+    }
+}
+
+impl FromIterator<ProfileFieldValue> for Profile {
+    fn from_iter<T: IntoIterator<Item = ProfileFieldValue>>(iter: T) -> Self {
+        iter.into_iter().map(|value| (value.field_name(), value.value().into_owned())).collect()
+    }
+}
+
+impl Extend<(String, JsonValue)> for Profile {
+    fn extend<T: IntoIterator<Item = (String, JsonValue)>>(&mut self, iter: T) {
+        self.0.extend(iter);
+    }
+}
+
+impl Extend<(ProfileFieldName, JsonValue)> for Profile {
+    fn extend<T: IntoIterator<Item = (ProfileFieldName, JsonValue)>>(&mut self, iter: T) {
+        self.extend(iter.into_iter().map(|(field, value)| (field.as_str().to_owned(), value)));
+    }
+}
+
+impl Extend<ProfileFieldValue> for Profile {
+    fn extend<T: IntoIterator<Item = ProfileFieldValue>>(&mut self, iter: T) {
+        self.extend(
+            iter.into_iter().map(|value| (value.field_name(), value.value().into_owned())),
+        );
+    }
+}
+
+impl IntoIterator for Profile {
+    type Item = (String, JsonValue);
+    type IntoIter = btree_map::IntoIter<String, JsonValue>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
     }
 }
 
@@ -224,24 +268,23 @@ mod tests {
         let profile = from_json_value::<Profile>(json).unwrap();
 
         assert_eq!(profile.len(), 3);
-        let avatar_url = profile.get("avatar_url").expect("avatar_url should not be None").unwrap();
-        assert_eq!(avatar_url.field_name().as_str(), "avatar_url");
-        assert_eq!(avatar_url.value().as_str(), Some("mxc://localhost/abcdef"));
-        let displayname = profile.get("display_name").expect("display_name should not be None").unwrap();
-        assert_eq!(displayname.field_name().as_str(), "display_name");
-        assert_eq!(displayname.value().as_str(), Some("Alice"));
-        let custom_field = profile.get("io.ruma.custom_field").expect("io.ruma.custom_field should not be None").unwrap();
-        assert_eq!(custom_field.field_name().as_str(), "io.ruma.custom_field");
-        assert_to_canonical_json_eq!(custom_field.value().into_owned(), json!({"key": "value"}));
+        let avatar_url = profile.get("avatar_url").unwrap();
+        assert_eq!(avatar_url.as_str(), Some("mxc://localhost/abcdef"));
+
+        let displayname = profile.get("display_name").unwrap();
+        assert_eq!(displayname.as_str(), Some("Alice"));
+
+        let custom_field = profile.get("io.ruma.custom_field").unwrap();
+        assert_to_canonical_json_eq!(custom_field, json!({"key": "value"}));
     }
 
     #[test]
     fn serialize_custom_profile() {
         let mut profile = Profile::new();
-        profile.insert(ProfileFieldValue::DisplayName("Alice".to_owned()));
-        profile.insert(ProfileFieldValue::TimeZone("Etc/UTC".to_owned()));
-        profile.insert(ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef")));
-        profile.insert(ProfileFieldValue::new("io.ruma.custom_field", json!({"key": "value"})).unwrap());
+        profile.insert("displayname".to_owned(), "Alice".into());
+        profile.insert("m.tz".to_owned(), "Etc/UTC".into());
+        profile.insert("avatar_url".to_owned(), "mxc://localhost/abcdef".into());
+        profile.insert("io.ruma.custom_field".to_owned(), json!({"key": "value"}));
 
         assert_to_canonical_json_eq!(profile, json!({
             "displayname": "Alice",
