@@ -7,12 +7,11 @@ pub mod unstable {
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4437
 
-
     use ruma_common::{
         OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
-        profile::Profile,
         metadata,
+        profile::Profile,
     };
 
     metadata! {
@@ -43,10 +42,7 @@ pub mod unstable {
 
     impl Request {
         /// Creates a new `Request` with the given user ID and profile data.
-        pub fn new(
-            user_id: OwnedUserId,
-            data: Profile,
-        ) -> Self {
+        pub fn new(user_id: OwnedUserId, data: Profile) -> Self {
             Self { user_id, data }
         }
     }

@@ -13,10 +13,10 @@ pub mod v3 {
         OwnedUserId,
         api::{auth_scheme::NoAccessToken, request, response},
         metadata,
-        profile::{ProfileFieldName, ProfileFieldValue},
+        profile::{Profile, ProfileFieldName, ProfileFieldValue},
     };
     use serde_json::Value as JsonValue;
-    use ruma_common::profile::Profile;
+
     use crate::profile::StaticProfileField;
 
     metadata! {

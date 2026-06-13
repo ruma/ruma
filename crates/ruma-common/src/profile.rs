@@ -1,7 +1,10 @@
 //! Common types for user profile endpoints.
 
-use std::borrow::Cow;
-use std::collections::{btree_map, BTreeMap};
+use std::{
+    borrow::Cow,
+    collections::{BTreeMap, btree_map},
+};
+
 use ruma_macros::StringEnum;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value as JsonValue, from_value as from_json_value, to_value as to_json_value};
@@ -198,9 +201,7 @@ impl Extend<(ProfileFieldName, JsonValue)> for Profile {
 
 impl Extend<ProfileFieldValue> for Profile {
     fn extend<T: IntoIterator<Item = ProfileFieldValue>>(&mut self, iter: T) {
-        self.extend(
-            iter.into_iter().map(|value| (value.field_name(), value.value().into_owned())),
-        );
+        self.extend(iter.into_iter().map(|value| (value.field_name(), value.value().into_owned())));
     }
 }
 
@@ -286,11 +287,14 @@ mod tests {
         profile.insert("avatar_url".to_owned(), "mxc://localhost/abcdef".into());
         profile.insert("io.ruma.custom_field".to_owned(), json!({"key": "value"}));
 
-        assert_to_canonical_json_eq!(profile, json!({
-            "displayname": "Alice",
-            "m.tz": "Etc/UTC",
-            "avatar_url": "mxc://localhost/abcdef",
-            "io.ruma.custom_field": {"key": "value"}
-        }));
+        assert_to_canonical_json_eq!(
+            profile,
+            json!({
+                "displayname": "Alice",
+                "m.tz": "Etc/UTC",
+                "avatar_url": "mxc://localhost/abcdef",
+                "io.ruma.custom_field": {"key": "value"}
+            })
+        );
     }
 }
