@@ -71,7 +71,7 @@ pub use self::{
     verify::{
         PublicKeyMap, PublicKeySet, Verified, required_server_signatures_to_verify_event,
         to_canonical_json_string_for_signing, verify_canonical_json_bytes, verify_event,
-        verify_json,
+        verify_json, verify_policy_server_signature,
     },
 };
 

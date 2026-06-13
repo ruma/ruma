@@ -2,11 +2,12 @@ use std::collections::BTreeMap;
 
 use assert_matches2::{assert_let, assert_matches};
 use ruma_common::{
-    CanonicalJsonValue, ServerSigningKeyId, SigningKeyAlgorithm,
+    CanonicalJsonValue, ServerSigningKeyId, SigningKeyAlgorithm, owned_server_name,
     room_version_rules::{RoomVersionRules, SignaturesRules},
     serde::Base64,
     server_name,
 };
+use ruma_events::room::policy::RoomPolicyEventContent;
 use serde_json::json;
 
 use super::{
@@ -15,7 +16,7 @@ use super::{
 };
 use crate::{
     Ed25519KeyPair, Ed25519VerificationError, KeyPair, PublicKeyMap, PublicKeySet,
-    VerificationError, Verified, sign_json,
+    VerificationError, Verified, sign_json, verify_policy_server_signature,
 };
 
 fn generate_key_pair(name: &str) -> Ed25519KeyPair {
@@ -706,4 +707,169 @@ fn canonical_json_complex() {
 
     assert_let!(CanonicalJsonValue::Object(object) = CanonicalJsonValue::try_from(data).unwrap());
     assert_eq!(to_canonical_json_string_for_signing(&object).unwrap(), canonical);
+}
+
+#[test]
+fn verify_policy_server_signature_succeeds_with_signature_from_policy_server() {
+    let key_pair_sender = generate_key_pair("1");
+    let key_pair_policy_server = generate_key_pair("policy_server");
+    let mut signed_event = serde_json::from_str(
+        r#"{
+            "auth_events": [],
+            "content": {},
+            "depth": 3,
+            "hashes": {
+                "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+            },
+            "origin": "domain",
+            "origin_server_ts": 1000000,
+            "prev_events": [],
+            "room_id": "!x:domain",
+            "sender": "@name:domain-sender",
+            "type": "X",
+            "unsigned": {
+                "age_ts": 1000000
+            }
+        }"#,
+    )
+    .unwrap();
+    sign_json("domain-sender", &key_pair_sender, &mut signed_event).unwrap();
+    sign_json("domain-policy-server", &key_pair_policy_server, &mut signed_event).unwrap();
+
+    let mut public_key_map = BTreeMap::new();
+    add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
+
+    let room_policy = RoomPolicyEventContent::new(
+        owned_server_name!("domain-policy-server"),
+        Base64::new(key_pair_policy_server.public_key().to_vec()),
+    );
+
+    let verification_result =
+        verify_policy_server_signature(&room_policy, &signed_event, &RoomVersionRules::V6);
+    assert_matches!(verification_result, Ok(()));
+}
+
+#[test]
+fn verify_policy_server_signature_fails_with_invalid_signature_from_policy_server() {
+    let key_pair_sender = generate_key_pair("1");
+    let key_pair_policy_server = generate_key_pair("policy_server");
+    let second_key_pair_policy_server = generate_key_pair("policy_server");
+    let mut signed_event = serde_json::from_str(
+        r#"{
+            "auth_events": [],
+            "content": {},
+            "depth": 3,
+            "hashes": {
+                "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+            },
+            "origin": "domain",
+            "origin_server_ts": 1000000,
+            "prev_events": [],
+            "room_id": "!x:domain",
+            "sender": "@name:domain-sender",
+            "type": "X",
+            "unsigned": {
+                "age_ts": 1000000
+            }
+        }"#,
+    )
+    .unwrap();
+    sign_json("domain-sender", &key_pair_sender, &mut signed_event).unwrap();
+    sign_json("domain-policy-server", &key_pair_policy_server, &mut signed_event).unwrap();
+
+    let mut public_key_map = BTreeMap::new();
+    add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
+
+    let room_policy = RoomPolicyEventContent::new(
+        owned_server_name!("domain-policy-server"),
+        Base64::new(second_key_pair_policy_server.public_key().to_vec()),
+    );
+
+    let verification_result =
+        verify_policy_server_signature(&room_policy, &signed_event, &RoomVersionRules::V6);
+    assert_matches!(
+        verification_result,
+        Err(VerificationError::Ed25519(Ed25519VerificationError::SignatureVerification(_)))
+    );
+}
+
+#[test]
+fn verify_policy_server_signature_fails_with_missing_signature_from_policy_server() {
+    let key_pair_sender = generate_key_pair("1");
+    let key_pair_policy_server = generate_key_pair("policy_server");
+    let mut signed_event = serde_json::from_str(
+        r#"{
+            "auth_events": [],
+            "content": {},
+            "depth": 3,
+            "hashes": {
+                "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+            },
+            "origin": "domain",
+            "origin_server_ts": 1000000,
+            "prev_events": [],
+            "room_id": "!x:domain",
+            "sender": "@name:domain-sender",
+            "type": "X",
+            "unsigned": {
+                "age_ts": 1000000
+            }
+        }"#,
+    )
+    .unwrap();
+    sign_json("domain-sender", &key_pair_sender, &mut signed_event).unwrap();
+
+    let mut public_key_map = BTreeMap::new();
+    add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
+
+    let room_policy = RoomPolicyEventContent::new(
+        owned_server_name!("domain-policy-server"),
+        Base64::new(key_pair_policy_server.public_key().to_vec()),
+    );
+
+    let verification_result =
+        verify_policy_server_signature(&room_policy, &signed_event, &RoomVersionRules::V6);
+    assert_let!(Err(VerificationError::NoSignaturesForEntity(domain)) = verification_result);
+    assert_eq!(domain, "domain-policy-server");
+}
+
+#[test]
+fn verify_policy_server_signature_succeeds_with_missing_signature_from_policy_server_on_room_policy_event()
+ {
+    let key_pair_sender = generate_key_pair("1");
+    let key_pair_policy_server = generate_key_pair("policy_server");
+    let mut signed_event = serde_json::from_str(
+        r#"{
+            "auth_events": [],
+            "content": {},
+            "depth": 3,
+            "hashes": {
+                "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+            },
+            "origin": "domain",
+            "origin_server_ts": 1000000,
+            "prev_events": [],
+            "room_id": "!x:domain",
+            "sender": "@name:domain-sender",
+            "type": "m.room.policy",
+            "state_key": "",
+            "unsigned": {
+                "age_ts": 1000000
+            }
+        }"#,
+    )
+    .unwrap();
+    sign_json("domain-sender", &key_pair_sender, &mut signed_event).unwrap();
+
+    let mut public_key_map = BTreeMap::new();
+    add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
+
+    let room_policy = RoomPolicyEventContent::new(
+        owned_server_name!("domain-policy-server"),
+        Base64::new(key_pair_policy_server.public_key().to_vec()),
+    );
+
+    let verification_result =
+        verify_policy_server_signature(&room_policy, &signed_event, &RoomVersionRules::V6);
+    assert_matches!(verification_result, Ok(()));
 }
