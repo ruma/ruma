@@ -9,7 +9,7 @@ pub mod v1 {
 
     use ruma_common::{
         OwnedRoomAliasId,
-        api::{auth_scheme::AccessToken, request, response},
+        api::{auth_scheme::HomeserverToken, request, response},
         metadata,
         thirdparty::Location,
     };
@@ -17,7 +17,7 @@ pub mod v1 {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: AccessToken,
+        authentication: HomeserverToken,
         path: "/_matrix/app/v1/thirdparty/location",
     }
 

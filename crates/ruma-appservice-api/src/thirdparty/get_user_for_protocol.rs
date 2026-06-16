@@ -11,7 +11,7 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        api::{auth_scheme::AccessToken, request, response},
+        api::{auth_scheme::HomeserverToken, request, response},
         metadata,
         thirdparty::User,
     };
@@ -19,7 +19,7 @@ pub mod v1 {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: AccessToken,
+        authentication: HomeserverToken,
         path: "/_matrix/app/v1/thirdparty/user/{protocol}",
     }
 

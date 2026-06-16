@@ -8,14 +8,14 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/v1.18/identity-service-api/#post_matrixidentityv2terms
 
     use ruma_common::{
-        api::{auth_scheme::AccessToken, request, response},
+        api::{auth_scheme::IdentityServiceToken, request, response},
         metadata,
     };
 
     metadata! {
         method: POST,
         rate_limited: false,
-        authentication: AccessToken,
+        authentication: IdentityServiceToken,
         history: {
             1.0 => "/_matrix/identity/v2/terms",
         }

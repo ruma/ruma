@@ -10,7 +10,7 @@ pub mod v2 {
     use ruma_common::{
         MilliSecondsSinceUnixEpoch, OwnedClientSecret, OwnedSessionId, OwnedUserId,
         ServerSignatures,
-        api::{auth_scheme::AccessToken, request, response},
+        api::{auth_scheme::IdentityServiceToken, request, response},
         metadata,
         thirdparty::Medium,
     };
@@ -18,7 +18,7 @@ pub mod v2 {
     metadata! {
         method: POST,
         rate_limited: false,
-        authentication: AccessToken,
+        authentication: IdentityServiceToken,
         history: {
             1.0 => "/_matrix/identity/v2/3pid/bind",
         }
