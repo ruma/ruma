@@ -9,7 +9,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/v1.18/identity-service-api/#get_matrixidentityv2hash_details
 
     use ruma_common::{
-        api::{auth_scheme::AccessToken, request, response},
+        api::{auth_scheme::IdentityServiceToken, request, response},
         metadata,
     };
 
@@ -18,7 +18,7 @@ pub mod v2 {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: AccessToken,
+        authentication: IdentityServiceToken,
         history: {
             1.0 => "/_matrix/identity/v2/hash_details",
         }

@@ -9,7 +9,7 @@ pub mod v2 {
 
     use ruma_common::{
         OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, OwnedUserId,
-        api::{auth_scheme::AccessToken, request, response},
+        api::{auth_scheme::IdentityServiceToken, request, response},
         metadata,
         room::RoomType,
         third_party_invite::IdentityServerBase64PublicKey,
@@ -21,7 +21,7 @@ pub mod v2 {
     metadata! {
         method: POST,
         rate_limited: false,
-        authentication: AccessToken,
+        authentication: IdentityServiceToken,
         history: {
             1.0 => "/_matrix/identity/v2/store-invite",
         }

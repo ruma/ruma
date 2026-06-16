@@ -10,7 +10,7 @@ pub mod v2 {
     use js_int::UInt;
     use ruma_common::{
         OwnedClientSecret, OwnedSessionId,
-        api::{auth_scheme::AccessToken, request, response},
+        api::{auth_scheme::IdentityServiceToken, request, response},
         metadata,
         thirdparty::Medium,
     };
@@ -18,7 +18,7 @@ pub mod v2 {
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: AccessToken,
+        authentication: IdentityServiceToken,
         history: {
             1.0 => "/_matrix/identity/v2/3pid/getValidated3pid/",
         }

@@ -19,7 +19,7 @@ pub mod v1 {
     use ruma_common::{OwnedDeviceId, OwnedUserId};
     use ruma_common::{
         OwnedTransactionId,
-        api::{auth_scheme::AccessToken, request, response},
+        api::{auth_scheme::HomeserverToken, request, response},
         metadata,
         serde::{JsonObject, Raw, from_raw_json_value},
     };
@@ -36,7 +36,7 @@ pub mod v1 {
     metadata! {
         method: PUT,
         rate_limited: false,
-        authentication: AccessToken,
+        authentication: HomeserverToken,
         path: "/_matrix/app/v1/transactions/{txn_id}",
     }
 
