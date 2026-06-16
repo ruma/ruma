@@ -202,6 +202,8 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrorCode::CannotOverwriteMedia => ErrorKind::CannotOverwriteMedia,
             ErrorCode::CaptchaInvalid => ErrorKind::CaptchaInvalid,
             ErrorCode::CaptchaNeeded => ErrorKind::CaptchaNeeded,
+            #[cfg(feature = "unstable-msc4388")]
+            ErrorCode::ConcurrentWrite => ErrorKind::ConcurrentWrite,
             #[cfg(feature = "unstable-msc4306")]
             ErrorCode::ConflictingUnsubscription => ErrorKind::ConflictingUnsubscription,
             ErrorCode::ConnectionFailed => ErrorKind::ConnectionFailed,
@@ -433,6 +435,8 @@ impl Serialize for ErrorKind {
             Self::Unactionable => {}
             #[cfg(feature = "unstable-msc4186")]
             Self::UnknownPos => {}
+            #[cfg(feature = "unstable-msc4388")]
+            Self::ConcurrentWrite => {}
         }
         st.end()
     }

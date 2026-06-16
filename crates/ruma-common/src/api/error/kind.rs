@@ -79,6 +79,13 @@ pub enum ErrorKind {
     /// A Captcha is required to complete the request.
     CaptchaNeeded,
 
+    /// `M_CONCURRENT_WRITE`
+    ///
+    /// The sequence token provided when updating a rendezvous session
+    /// does not match the current sequence token.
+    #[cfg(feature = "unstable-msc4388")]
+    ConcurrentWrite,
+
     /// `M_CONFLICTING_UNSUBSCRIPTION`
     ///
     /// Part of [MSC4306]: an automatic thread subscription has been skipped by the server, because
@@ -408,6 +415,8 @@ impl ErrorKind {
             ErrorKind::CannotOverwriteMedia => ErrorCode::CannotOverwriteMedia,
             ErrorKind::CaptchaInvalid => ErrorCode::CaptchaInvalid,
             ErrorKind::CaptchaNeeded => ErrorCode::CaptchaNeeded,
+            #[cfg(feature = "unstable-msc4388")]
+            ErrorKind::ConcurrentWrite => ErrorCode::ConcurrentWrite,
             #[cfg(feature = "unstable-msc4306")]
             ErrorKind::ConflictingUnsubscription => ErrorCode::ConflictingUnsubscription,
             ErrorKind::ConnectionFailed => ErrorCode::ConnectionFailed,
@@ -732,6 +741,14 @@ pub enum ErrorCode {
     ///
     /// A Captcha is required to complete the request.
     CaptchaNeeded,
+
+    /// `M_CONCURRENT_WRITE`
+    ///
+    /// The sequence token provided when updating a rendezvous session
+    /// does not match the current sequence token.
+    #[cfg(feature = "unstable-msc4388")]
+    #[ruma_enum(rename = "IO_ELEMENT_MSC4388_CONCURRENT_WRITE")]
+    ConcurrentWrite,
 
     /// `M_CONFLICTING_UNSUBSCRIPTION`
     ///
