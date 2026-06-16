@@ -1,5 +1,5 @@
 //! Types of harmful content, as defined by [MSC4456].
-//! 
+//!
 //! [MSC4456]: https://github.com/matrix-org/matrix-spec-proposals/pull/4456
 
 use ruma_macros::StringEnum;
@@ -10,7 +10,7 @@ use crate::PrivOwnedStr;
 #[derive(Clone, StringEnum)]
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[non_exhaustive]
-#[allow(missing_docs)]
+#[allow(missing_docs, clippy::enum_variant_names)]
 pub enum Harm {
     // m.spam
     #[ruma_enum(rename = "org.matrix.msc4456.spam")]
@@ -30,7 +30,7 @@ pub enum Harm {
     #[ruma_enum(rename = "org.matrix.msc4456.adult.sexual_abuse")]
     SexualAbuse,
     #[ruma_enum(rename = "org.matrix.msc4456.adult.ncii")]
-    NCII,
+    Ncii,
     #[ruma_enum(rename = "org.matrix.msc4456.adult.deepfake")]
     Deepfake,
     #[ruma_enum(rename = "org.matrix.msc4456.adult.animal_sexual_abuse")]
@@ -67,12 +67,12 @@ pub enum Harm {
     HumanTrafficking,
     #[ruma_enum(rename = "org.matrix.msc4456.violence.domestic")]
     DomesticViolence,
-    
+
     // m.child_safety
     #[ruma_enum(rename = "org.matrix.msc4456.child_safety")]
     ChildSafety,
     #[ruma_enum(rename = "org.matrix.msc4456.child_safety.csam")]
-    CSAM,
+    Csam,
     #[ruma_enum(rename = "org.matrix.msc4456.child_safety.grooming")]
     Grooming,
     #[ruma_enum(rename = "org.matrix.msc4456.child_safety.privacy_violation")]

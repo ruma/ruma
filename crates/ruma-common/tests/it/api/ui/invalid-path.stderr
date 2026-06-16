@@ -17,7 +17,8 @@ note: inside `SinglePath::new`
 note: inside `path_builder::check_path_is_valid`
   --> $RUST/core/src/panic.rs
    |
-   = note: the failure occurred here
+   |         $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
    |
   ::: src/api/path_builder.rs
    |
@@ -50,7 +51,8 @@ note: inside `VersionHistory::new`
 note: inside `path_builder::check_path_is_valid`
   --> $RUST/core/src/panic.rs
    |
-   = note: the failure occurred here
+   |         $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
    |
   ::: src/api/path_builder.rs
    |
@@ -82,7 +84,8 @@ note: inside `SinglePath::new`
 note: inside `path_builder::check_path_is_valid`
   --> $RUST/core/src/panic.rs
    |
-   = note: the failure occurred here
+   |         $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
    |
   ::: src/api/path_builder.rs
    |
@@ -115,7 +118,8 @@ note: inside `VersionHistory::new`
 note: inside `path_builder::check_path_is_valid`
   --> $RUST/core/src/panic.rs
    |
-   = note: the failure occurred here
+   |         $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
    |
   ::: src/api/path_builder.rs
    |
@@ -147,7 +151,8 @@ note: inside `SinglePath::new`
 note: inside `extract_endpoint_path_segment_variable`
   --> $RUST/core/src/panic.rs
    |
-   = note: the failure occurred here
+   |         $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
    |
   ::: src/api/path_builder.rs
    |
@@ -185,7 +190,8 @@ note: inside `VersionHistory::new::check_path_args_equal`
 note: inside `extract_endpoint_path_segment_variable`
   --> $RUST/core/src/panic.rs
    |
-   = note: the failure occurred here
+   |         $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
    |
   ::: src/api/path_builder.rs
    |
@@ -285,7 +291,8 @@ note: inside `SinglePath::new`
 note: inside `extract_endpoint_path_segment_variable`
    --> $RUST/core/src/panic.rs
     |
-    = note: the failure occurred here
+    |         $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
     |
    ::: src/api/path_builder.rs
     |
@@ -323,7 +330,8 @@ note: inside `VersionHistory::new::check_path_args_equal`
 note: inside `extract_endpoint_path_segment_variable`
    --> $RUST/core/src/panic.rs
     |
-    = note: the failure occurred here
+    |         $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
     |
    ::: src/api/path_builder.rs
     |
