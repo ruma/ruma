@@ -47,6 +47,8 @@ unstable-msc4306 = []
 unstable-msc4406 = []
 # User Status Profile Fields.
 unstable-msc4426 = []
+# Harms taxonomy
+unstable-msc4456 = []
 
 # Allow IDs to exceed 255 bytes.
 compat-arbitrary-length-ids = ["ruma-identifiers-validation/compat-arbitrary-length-ids"]

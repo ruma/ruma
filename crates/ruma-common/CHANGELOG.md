@@ -6,6 +6,9 @@ Improvements:
 
 - Add `From` conversions between `MatrixToUri` and `MatrixUri`.
 - Extract a common `UserProfile` type out of `ruma_client_api::profile::get_profile`.
+- Add unstable support for the harm taxonomy specified by [MSC4456].
+
+[MSC4456]: https://github.com/matrix-org/matrix-spec-proposals/pull/4456
 
 ## 0.19.0
 

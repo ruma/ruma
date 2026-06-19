@@ -23,6 +23,8 @@ pub mod authentication;
 pub mod canonical_json;
 pub mod directory;
 pub mod encryption;
+#[cfg(feature = "unstable-msc4456")]
+pub mod harm;
 #[cfg(feature = "api")]
 pub mod http_headers;
 mod identifiers;

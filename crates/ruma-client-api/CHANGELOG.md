@@ -6,6 +6,9 @@ Improvements:
 
 - `profile::get_profile` is now using `ruma_common::profile::UserProfile` for its underlying data
   storage.
+- Add unstable support for [MSC4457] "Generic reporting API".
+
+[MSC4457]: https://github.com/matrix-org/matrix-spec-proposals/pull/4457
 
 ## 0.24.0
 
