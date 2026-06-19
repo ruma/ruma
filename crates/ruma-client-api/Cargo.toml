@@ -55,7 +55,6 @@ unstable-msc4306 = []
 unstable-msc4308 = []
 unstable-msc4383 = []
 unstable-msc4388 = []
-unstable-msc4426 = ["ruma-common/unstable-msc4426"]
 unstable-msc4439 = []
 unstable-msc4466 = []
 
