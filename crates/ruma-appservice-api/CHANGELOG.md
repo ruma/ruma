@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- All appservice API routes now use the new `HomeserverToken` auth scheme struct.
+
 ## 0.16.0
 
 Breaking changes:

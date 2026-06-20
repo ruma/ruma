@@ -6,6 +6,8 @@ Improvements:
 
 - Add `From` conversions between `MatrixToUri` and `MatrixUri`.
 - Extract a common `UserProfile` type out of `ruma_client_api::profile::get_profile`.
+- Add `required_scopes` function to `Metadata` and accompanying `required_scopes` syntax
+  to `metadata!` macro, to allow request structs to define what OAuth 2.0 scopes they require.
 
 ## 0.19.0
 
