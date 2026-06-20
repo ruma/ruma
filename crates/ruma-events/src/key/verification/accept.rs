@@ -148,9 +148,9 @@ pub struct SasV1Content {
     /// message.
     pub short_authentication_string: Vec<ShortAuthenticationString>,
 
-    /// The hash (encoded as unpadded base64) of the concatenation of the
-    /// device's ephemeral public key (encoded as unpadded base64) and the
-    /// canonical JSON representation of the `m.key.verification.start` message.
+    /// The hash (encoded as unpadded base64) of the concatenation of the device's ephemeral public
+    /// key (encoded as unpadded base64) and the canonical JSON representation of the `content` of
+    /// the `m.key.verification.start` message.
     pub commitment: Base64,
 }
 
