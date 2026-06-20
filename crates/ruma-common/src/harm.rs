@@ -16,91 +16,91 @@ pub enum Harm {
     #[ruma_enum(rename = "org.matrix.msc4456.spam")]
     Spam,
     #[ruma_enum(rename = "org.matrix.msc4456.spam.fraud")]
-    Fraud,
+    SpamFraud,
     #[ruma_enum(rename = "org.matrix.msc4456.spam.impersonation")]
-    Impersonation,
+    SpamImpersonation,
     #[ruma_enum(rename = "org.matrix.msc4456.spam.election_interference")]
-    ElectionInterference,
+    SpamElectionInterference,
     #[ruma_enum(rename = "org.matrix.msc4456.spam.flooding")]
-    Flooding,
+    SpamFlooding,
 
     // m.adult
     #[ruma_enum(rename = "org.matrix.msc4456.adult")]
     Adult,
     #[ruma_enum(rename = "org.matrix.msc4456.adult.sexual_abuse")]
-    SexualAbuse,
+    AdultSexualAbuse,
     #[ruma_enum(rename = "org.matrix.msc4456.adult.ncii")]
-    Ncii,
+    AdultNcii,
     #[ruma_enum(rename = "org.matrix.msc4456.adult.deepfake")]
-    Deepfake,
+    AdultDeepfake,
     #[ruma_enum(rename = "org.matrix.msc4456.adult.animal_sexual_abuse")]
-    AnimalSexualAbuse,
+    AdultAnimalSexualAbuse,
     #[ruma_enum(rename = "org.matrix.msc4456.adult.sexual_violence")]
-    SexualViolence,
+    AdultSexualViolence,
 
     // m.harassment
     #[ruma_enum(rename = "org.matrix.msc4456.harassment")]
     Harassment,
     #[ruma_enum(rename = "org.matrix.msc4456.harassment.trolling")]
-    Trolling,
+    HarassmentTrolling,
     #[ruma_enum(rename = "org.matrix.msc4456.harassment.targeted")]
-    TargetedHarassment,
+    HarassmentTargeted,
     #[ruma_enum(rename = "org.matrix.msc4456.harassment.hate")]
-    Hate,
+    HarassmentHate,
     #[ruma_enum(rename = "org.matrix.msc4456.harassment.doxxing")]
-    Doxxing,
+    HarassmentDoxxing,
 
     // m.violence
     #[ruma_enum(rename = "org.matrix.msc4456.violence")]
     Violence,
     #[ruma_enum(rename = "org.matrix.msc4456.violence.animal_welfare")]
-    AnimalWelfare,
+    ViolenceAnimalWelfare,
     #[ruma_enum(rename = "org.matrix.msc4456.violence.threats")]
-    Threats,
+    ViolenceThreats,
     #[ruma_enum(rename = "org.matrix.msc4456.violence.graphic")]
-    Graphic,
+    ViolenceGraphic,
     #[ruma_enum(rename = "org.matrix.msc4456.violence.glorification")]
-    GlorificationOfViolence,
+    ViolenceGlorification,
     #[ruma_enum(rename = "org.matrix.msc4456.violence.extremism")]
-    Extremism,
+    ViolenceExtremism,
     #[ruma_enum(rename = "org.matrix.msc4456.violence.human_trafficking")]
-    HumanTrafficking,
+    ViolenceHumanTrafficking,
     #[ruma_enum(rename = "org.matrix.msc4456.violence.domestic")]
-    DomesticViolence,
+    ViolenceDomestic,
 
     // m.child_safety
     #[ruma_enum(rename = "org.matrix.msc4456.child_safety")]
     ChildSafety,
     #[ruma_enum(rename = "org.matrix.msc4456.child_safety.csam")]
-    Csam,
+    ChildSafetyCsam,
     #[ruma_enum(rename = "org.matrix.msc4456.child_safety.grooming")]
-    Grooming,
+    ChildSafetyGrooming,
     #[ruma_enum(rename = "org.matrix.msc4456.child_safety.privacy_violation")]
-    ChildPrivacyViolation,
+    ChildSafetyPrivacyViolation,
     #[ruma_enum(rename = "org.matrix.msc4456.child_safety.harassment")]
-    ChildHarassment,
+    ChildSafetyHarassment,
 
     // m.danger
     #[ruma_enum(rename = "org.matrix.msc4456.danger")]
     Danger,
     #[ruma_enum(rename = "org.matrix.msc4456.danger.self_harm")]
-    SelfHarm,
+    DangerSelfHarm,
     #[ruma_enum(rename = "org.matrix.msc4456.danger.eating_disorder")]
-    EatingDisorder,
+    DangerEatingDisorder,
     #[ruma_enum(rename = "org.matrix.msc4456.danger.challenges")]
-    Challenges,
+    DangerChallenges,
     #[ruma_enum(rename = "org.matrix.msc4456.danger.substance_abuse")]
-    SubstanceAbuse,
+    DangerSubstanceAbuse,
 
     // m.tos
     #[ruma_enum(rename = "org.matrix.msc4456.tos")]
     TermsOfService,
     #[ruma_enum(rename = "org.matrix.msc4456.tos.hacking")]
-    Hacking,
+    TermsOfServiceHacking,
     #[ruma_enum(rename = "org.matrix.msc4456.tos.prohibited")]
-    ProhibitedItems,
+    TermsOfServiceProhibitedItems,
     #[ruma_enum(rename = "org.matrix.msc4456.tos.ban_evasion")]
-    BanEvasion,
+    TermsOfServiceBanEvasion,
 
     // m.other
     #[ruma_enum(rename = "org.matrix.msc4456.other")]
