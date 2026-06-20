@@ -746,6 +746,10 @@ pub enum ErrorCode {
     ///
     /// The sequence token provided when updating a rendezvous session
     /// does not match the current sequence token.
+    ///
+    /// This uses the unstable prefix defined in [MSC4388].
+    ///
+    /// [MSC4388]: https://github.com/matrix-org/matrix-spec-proposals/pull/4388
     #[cfg(feature = "unstable-msc4388")]
     #[ruma_enum(rename = "IO_ELEMENT_MSC4388_CONCURRENT_WRITE")]
     ConcurrentWrite,
