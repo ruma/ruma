@@ -76,6 +76,9 @@ pub struct StateUnsigned<C: PossiblyRedactedStateEventContent> {
     /// which sent it.
     pub transaction_id: Option<OwnedTransactionId>,
 
+    /// The event ID of the state event replaced by this event.
+    pub replaces_state: Option<OwnedEventId>,
+
     /// Optional previous content of the event.
     pub prev_content: Option<C>,
 
@@ -89,7 +92,13 @@ pub struct StateUnsigned<C: PossiblyRedactedStateEventContent> {
 impl<C: PossiblyRedactedStateEventContent> StateUnsigned<C> {
     /// Create a new `Unsigned` with fields set to `None`.
     pub fn new() -> Self {
-        Self { age: None, transaction_id: None, prev_content: None, relations: Default::default() }
+        Self {
+            age: None,
+            transaction_id: None,
+            replaces_state: None,
+            prev_content: None,
+            relations: Default::default(),
+        }
     }
 }
 
