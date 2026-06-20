@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+Improvements:
+
+- Add `replaces_state` field to `StateUnsigned`, due to a clarification in the Matrix spec.
+
 ## 0.34.0
 
 Breaking changes:
