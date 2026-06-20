@@ -54,7 +54,7 @@ unstable-msc4293 = ["ruma-events/unstable-msc4293"]
 unstable-msc4306 = []
 unstable-msc4308 = []
 unstable-msc4383 = []
-unstable-msc4388 = []
+unstable-msc4388 = ["ruma-common/unstable-msc4388"]
 unstable-msc4439 = []
 unstable-msc4466 = []
 

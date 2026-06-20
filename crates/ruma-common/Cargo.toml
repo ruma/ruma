@@ -43,6 +43,8 @@ unstable-msc4140 = []
 unstable-msc4186 = []
 # Thread subscriptions.
 unstable-msc4306 = []
+# Secure out-of-band channel for QR code sign in
+unstable-msc4388 = []
 # M_SENDER_IGNORED
 unstable-msc4406 = []
 # User Status Profile Fields.

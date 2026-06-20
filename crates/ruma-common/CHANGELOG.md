@@ -6,6 +6,9 @@ Improvements:
 
 - Add `From` conversions between `MatrixToUri` and `MatrixUri`.
 - Extract a common `UserProfile` type out of `ruma_client_api::profile::get_profile`.
+- Add `M_CONCURRENT_WRITE` error code, used by [MSC4438].
+
+[MSC4438]: https://github.com/matrix-org/matrix-spec-proposals/pull/4470
 
 ## 0.19.0
 
