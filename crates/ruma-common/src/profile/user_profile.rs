@@ -41,6 +41,20 @@ impl UserProfile {
     pub fn set(&mut self, field: String, value: JsonValue) {
         self.0.insert(field, value);
     }
+
+    /// Merges a profile that contains updates (such as from a sync response) with this
+    /// profile.
+    ///
+    /// This operation preserves omitted values and removes null values.
+    pub fn merge(&mut self, profile_update: UserProfile) {
+        for (field, value) in profile_update {
+            if value.is_null() {
+                self.0.remove(&field);
+            } else {
+                self.0.insert(field, value);
+            }
+        }
+    }
 }
 
 impl FromIterator<(String, JsonValue)> for UserProfile {
@@ -85,5 +99,59 @@ impl IntoIterator for UserProfile {
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
+    }
+}
+
+#[cfg(test)]
+#[cfg(feature = "unstable-msc4426")]
+mod tests {
+    use serde_json::{Value as JsonValue, json};
+
+    use crate::{
+        owned_mxc_uri,
+        profile::{
+            AvatarUrl, Call, CallProfileField, DisplayName, ProfileFieldValue, Status,
+            StatusProfileField, UserProfile,
+        },
+    };
+
+    #[test]
+    fn merge_profile() {
+        let mut profile = UserProfile::from_iter([
+            ProfileFieldValue::DisplayName("Alice".to_owned()),
+            ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef")),
+            ProfileFieldValue::Status(StatusProfileField {
+                text: "Working".to_owned(),
+                emoji: "🧑‍💻".to_owned(),
+            }),
+        ]);
+
+        let profile_update = UserProfile::from_iter([
+            ("avatar_url".to_owned(), JsonValue::Null),
+            ("org.matrix.msc4426.status".to_owned(), json!({ "text": "Holiday", "emoji": "🏖️"})),
+            ("org.matrix.msc4426.call".to_owned(), json!({})),
+        ]);
+
+        profile.merge(profile_update.clone());
+
+        assert_eq!(
+            profile.get_static::<DisplayName>().unwrap().unwrap(),
+            "Alice".to_owned(),
+            "The display name should be preserved."
+        );
+        assert!(
+            profile.get_static::<AvatarUrl>().unwrap().is_none(),
+            "The avatar should be removed."
+        );
+        assert_eq!(
+            profile.get_static::<Status>().unwrap().unwrap(),
+            StatusProfileField { text: "Holiday".to_owned(), emoji: "🏖️".to_owned() },
+            "The status should be updated."
+        );
+        assert_eq!(
+            profile.get_static::<Call>().unwrap().unwrap(),
+            CallProfileField { call_joined_ts: None },
+            "The call indicator should be set."
+        );
     }
 }
