@@ -7,6 +7,8 @@ Improvements:
 - `profile::get_profile` is now using `ruma_common::profile::UserProfile` for its underlying data
   storage.
 - Add support for MSC4262 (Profile Updates Sliding Sync Extension).
+- Added new `unstable-compat-lax-syncv5-deser` feature, which allows the `name` and `avatar` fields
+  for rooms and hero users to be ignored during deserialization if they have an invalid format.
 
 ## 0.24.0
 

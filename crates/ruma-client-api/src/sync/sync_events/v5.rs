@@ -585,11 +585,25 @@ pub mod response {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Room {
         /// The name as calculated by the server.
+        ///
+        /// If the `unstable-compat-lax-syncv5-deser` feature is enabled,
+        /// this field is ignored if its deserialization fails.
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(
+            feature = "unstable-compat-lax-syncv5-deser",
+            serde(default, deserialize_with = "ruma_common::serde::default_on_error")
+        )]
         pub name: Option<String>,
 
         /// The avatar.
+        ///
+        /// If the `unstable-compat-lax-syncv5-deser` feature is enabled,
+        /// this field is ignored if its deserialization fails.
         #[serde(default, skip_serializing_if = "JsOption::is_undefined")]
+        #[cfg_attr(
+            feature = "unstable-compat-lax-syncv5-deser",
+            serde(deserialize_with = "ruma_common::serde::default_on_error")
+        )]
         pub avatar: JsOption<OwnedMxcUri>,
 
         /// Whether it is an initial response.
@@ -670,11 +684,25 @@ pub mod response {
         pub user_id: OwnedUserId,
 
         /// The name.
+        ///
+        /// If the `unstable-compat-lax-syncv5-deser` feature is enabled,
+        /// this field is ignored if its deserialization fails.
         #[serde(rename = "displayname", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(
+            feature = "unstable-compat-lax-syncv5-deser",
+            serde(default, deserialize_with = "ruma_common::serde::default_on_error")
+        )]
         pub name: Option<String>,
 
         /// The avatar.
+        ///
+        /// If the `unstable-compat-lax-syncv5-deser` feature is enabled,
+        /// this field is ignored if its deserialization fails.
         #[serde(rename = "avatar_url", skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(
+            feature = "unstable-compat-lax-syncv5-deser",
+            serde(default, deserialize_with = "ruma_common::serde::default_on_error")
+        )]
         pub avatar: Option<OwnedMxcUri>,
     }
 
@@ -914,5 +942,38 @@ mod tests {
             serde_json::from_str::<ExtensionRoomConfig>(r#""!foo:bar.baz""#).unwrap(),
             ExtensionRoomConfig::Room(owned_room_id!("!foo:bar.baz"))
         );
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-compat-lax-syncv5-deser")]
+    fn deserialize_room_ignores_invalid_string_fields() {
+        use super::response::Room;
+
+        let room: Room = serde_json::from_str(
+            r#"{
+                "name": {},
+                "avatar": {},
+                "heroes": [{ "user_id": "@alice:localhost", "displayname": {}, "avatar_url": {} }]
+            }"#,
+        )
+        .unwrap();
+
+        assert_eq!(room.name, None);
+        assert!(room.avatar.is_undefined());
+        let hero = &room.heroes.unwrap()[0];
+        assert_eq!(hero.name, None);
+        assert_eq!(hero.avatar, None);
+
+        // Valid values are still kept.
+        let room: Room = serde_json::from_str(
+            r#"{ "name": "Room", "avatar": "mxc://localhost/a", "heroes": [{ "user_id": "@alice:localhost", "displayname": "Alice", "avatar_url": "mxc://localhost/b" }] }"#,
+        )
+        .unwrap();
+
+        assert_eq!(room.name.as_deref(), Some("Room"));
+        assert_eq!(room.avatar.into_option().unwrap().as_str(), "mxc://localhost/a");
+        let hero = &room.heroes.unwrap()[0];
+        assert_eq!(hero.name.as_deref(), Some("Alice"));
+        assert_eq!(hero.avatar.as_ref().unwrap().as_str(), "mxc://localhost/b");
     }
 }

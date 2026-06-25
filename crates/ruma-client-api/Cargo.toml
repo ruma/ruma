@@ -36,6 +36,13 @@ compat-get-3pids = []
 # since that's what Synapse sends.
 compat-upload-signatures = []
 
+# unstable: by using any of the below features, you opt out of all semver guarantees
+#           that Ruma otherwise provides!
+
+# Allow name and avatar fields for rooms and hero users (in a sync v5 response)
+# to be ignored if they have an invalid format and their deserialization fails.
+unstable-compat-lax-syncv5-deser = ["unstable-msc4186"]
+
 unstable-msc2666 = ["ruma-common/unstable-msc2666"]
 unstable-msc2448 = []
 unstable-msc2654 = []
