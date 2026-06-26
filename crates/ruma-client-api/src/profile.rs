@@ -32,7 +32,10 @@ const EXTENDED_PROFILE_FIELD_HISTORY: VersionHistory = VersionHistory::new(
         "/_matrix/client/unstable/uk.tcpip.msc4133/profile/{user_id}/{field}",
     )],
     &[(
-        StablePathSelector::Version(MatrixVersion::V1_16),
+        StablePathSelector::FeatureAndVersion {
+            feature: "uk.tcpip.msc4133.stable",
+            version: MatrixVersion::V1_16,
+        },
         "/_matrix/client/v3/profile/{user_id}/{field}",
     )],
     None,

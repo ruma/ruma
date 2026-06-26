@@ -9,6 +9,10 @@ Improvements:
 - Add support for MSC4262 (Profile Updates Sliding Sync Extension).
 - Added new `unstable-compat-lax-syncv5-deser` feature, which allows the `name` and `avatar` fields
   for rooms and hero users to be ignored during deserialization if they have an invalid format.
+- Route the MSC4133 extended profile field endpoints (`set_profile_field`, `get_profile_field`,
+  `delete_profile_field`) to the stable `/v3/profile/{user}/{field}` path when a homeserver
+  advertises the `uk.tcpip.msc4133.stable` unstable feature, even if it has not yet advertised
+  Matrix v1.16 in its `/versions` response.
 
 ## 0.24.0
 
