@@ -5,6 +5,8 @@ use std::collections::{BTreeMap, btree_map};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
+#[cfg(feature = "unstable-msc4262")]
+use super::UserProfileUpdate;
 use super::{ProfileFieldName, ProfileFieldValue, static_profile_field::StaticProfileField};
 
 /// All the profile information for a user.
@@ -46,7 +48,8 @@ impl UserProfile {
     /// profile.
     ///
     /// This operation preserves omitted values and removes null values.
-    pub fn merge(&mut self, profile_update: UserProfile) {
+    #[cfg(feature = "unstable-msc4262")]
+    pub fn merge(&mut self, profile_update: UserProfileUpdate) {
         for (field, value) in profile_update {
             if value.is_null() {
                 self.0.remove(&field);
@@ -103,7 +106,7 @@ impl IntoIterator for UserProfile {
 }
 
 #[cfg(test)]
-#[cfg(feature = "unstable-msc4426")]
+#[cfg(all(feature = "unstable-msc4262", feature = "unstable-msc4426"))]
 mod tests {
     use serde_json::{Value as JsonValue, json};
 
@@ -111,7 +114,7 @@ mod tests {
         owned_mxc_uri,
         profile::{
             AvatarUrl, Call, CallProfileField, DisplayName, ProfileFieldValue, Status,
-            StatusProfileField, UserProfile,
+            StatusProfileField, UserProfile, UserProfileUpdate,
         },
     };
 
@@ -126,7 +129,7 @@ mod tests {
             }),
         ]);
 
-        let profile_update = UserProfile::from_iter([
+        let profile_update = UserProfileUpdate::from_iter([
             ("avatar_url".to_owned(), JsonValue::Null),
             ("org.matrix.msc4426.status".to_owned(), json!({ "text": "Holiday", "emoji": "🏖️"})),
             ("org.matrix.msc4426.call".to_owned(), json!({})),

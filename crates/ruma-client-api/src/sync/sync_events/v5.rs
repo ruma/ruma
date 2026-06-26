@@ -555,7 +555,7 @@ pub mod response {
     #[cfg(feature = "unstable-msc4308")]
     use ruma_common::OwnedEventId;
     #[cfg(feature = "unstable-msc4262")]
-    use ruma_common::profile::UserProfile;
+    use ruma_common::profile::UserProfileUpdate;
     use ruma_events::{
         AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent, AnyStrippedStateEvent,
         AnyToDeviceEvent, receipt::SyncReceiptEvent, typing::SyncTypingEvent,
@@ -721,7 +721,7 @@ pub mod response {
         /// Profiles extension response.
         #[cfg(feature = "unstable-msc4262")]
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty", rename = "users")]
-        pub profiles: BTreeMap<OwnedUserId, UserProfile>,
+        pub profiles: BTreeMap<OwnedUserId, UserProfileUpdate>,
     }
 
     impl Extensions {

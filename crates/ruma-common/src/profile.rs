@@ -15,9 +15,13 @@ use crate::{OwnedMxcUri, PrivOwnedStr};
 mod profile_field_value_serde;
 mod static_profile_field;
 mod user_profile;
+#[cfg(feature = "unstable-msc4262")]
+mod user_profile_update;
 
 #[doc(hidden)]
 pub use self::profile_field_value_serde::ProfileFieldValueVisitor;
+#[cfg(feature = "unstable-msc4262")]
+pub use self::user_profile_update::*;
 pub use self::{static_profile_field::*, user_profile::*};
 
 /// The possible fields of a user's [profile].
