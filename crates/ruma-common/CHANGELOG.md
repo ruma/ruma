@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+Bug fixes:
+
+- Add `StatusProfileField::new()` and `CallProfileField::new()` constructors for MSC4426
+
 Improvements:
 
 - Add `From` conversions between `MatrixToUri` and `MatrixUri`.

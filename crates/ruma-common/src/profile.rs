@@ -174,10 +174,18 @@ pub struct StatusProfileField {
     pub emoji: String,
 }
 
+#[cfg(feature = "unstable-msc4426")]
+impl StatusProfileField {
+    /// Creates a new `StatusProfileField` with the given text and emoji.
+    pub fn new(text: String, emoji: String) -> Self {
+        Self { text, emoji }
+    }
+}
+
 /// An indicator that the user is currently in a call, and optionally how long they’ve been in the
 /// call.
 #[cfg(feature = "unstable-msc4426")]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub struct CallProfileField {
     /// The time that the user joined the call.
@@ -185,6 +193,14 @@ pub struct CallProfileField {
     /// This allows users to see how long someone has been in a call.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub call_joined_ts: Option<SecondsSinceUnixEpoch>,
+}
+
+#[cfg(feature = "unstable-msc4426")]
+impl CallProfileField {
+    /// Creates a new `CallProfileField` with default values.
+    pub fn new() -> Self {
+        Self::default()
+    }
 }
 
 /// A custom value for a user's profile field.
@@ -255,19 +271,17 @@ mod tests {
     #[cfg(feature = "unstable-msc4426")]
     fn serialize_profile_status() {
         // Status.
-        let value = ProfileFieldValue::Status(StatusProfileField {
-            text: "Away".to_owned(),
-            emoji: "🌴".to_owned(),
-        });
+        let value =
+            ProfileFieldValue::Status(StatusProfileField::new("Away".to_owned(), "🌴".to_owned()));
         assert_to_canonical_json_eq!(
             value,
             json!({ "org.matrix.msc4426.status": { "text": "Away", "emoji": "🌴" } })
         );
 
         // Call.
-        let value = ProfileFieldValue::Call(CallProfileField {
-            call_joined_ts: Some(SecondsSinceUnixEpoch(1_770_140_640.try_into().unwrap())),
-        });
+        let mut call = CallProfileField::new();
+        call.call_joined_ts = Some(SecondsSinceUnixEpoch(1_770_140_640.try_into().unwrap()));
+        let value = ProfileFieldValue::Call(call);
         assert_to_canonical_json_eq!(
             value,
             json!({ "org.matrix.msc4426.call": { "call_joined_ts": 1_770_140_640 } })
@@ -282,19 +296,20 @@ mod tests {
             json!({ "org.matrix.msc4426.status": { "text": "Be right back", "emoji": "☕️" } });
         assert_eq!(
             from_json_value::<ProfileFieldValue>(json).unwrap(),
-            ProfileFieldValue::Status(StatusProfileField {
-                text: "Be right back".to_owned(),
-                emoji: "☕️".to_owned(),
-            })
+            ProfileFieldValue::Status(StatusProfileField::new(
+                "Be right back".to_owned(),
+                "☕️".to_owned(),
+            ))
         );
 
         // Call.
         let json = json!({ "org.matrix.msc4426.call": { "call_joined_ts": 1_168_380_060 } });
+        let mut expected_call = CallProfileField::new();
+        expected_call.call_joined_ts =
+            Some(SecondsSinceUnixEpoch(1_168_380_060.try_into().unwrap()));
         assert_eq!(
             from_json_value::<ProfileFieldValue>(json).unwrap(),
-            ProfileFieldValue::Call(CallProfileField {
-                call_joined_ts: Some(SecondsSinceUnixEpoch(1_168_380_060.try_into().unwrap())),
-            })
+            ProfileFieldValue::Call(expected_call)
         );
     }
 }
