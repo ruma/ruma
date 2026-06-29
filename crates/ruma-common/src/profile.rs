@@ -185,7 +185,7 @@ impl StatusProfileField {
 /// An indicator that the user is currently in a call, and optionally how long they’ve been in the
 /// call.
 #[cfg(feature = "unstable-msc4426")]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub struct CallProfileField {
     /// The time that the user joined the call.
@@ -197,9 +197,9 @@ pub struct CallProfileField {
 
 #[cfg(feature = "unstable-msc4426")]
 impl CallProfileField {
-    /// Creates a new `CallProfileField` with the given optional join timestamp.
-    pub fn new(call_joined_ts: Option<SecondsSinceUnixEpoch>) -> Self {
-        Self { call_joined_ts }
+    /// Creates a new `CallProfileField` with default values.
+    pub fn new() -> Self {
+        Self::default()
     }
 }
 
@@ -279,9 +279,9 @@ mod tests {
         );
 
         // Call.
-        let value = ProfileFieldValue::Call(CallProfileField::new(Some(SecondsSinceUnixEpoch(
-            1_770_140_640.try_into().unwrap(),
-        ))));
+        let mut call = CallProfileField::new();
+        call.call_joined_ts = Some(SecondsSinceUnixEpoch(1_770_140_640.try_into().unwrap()));
+        let value = ProfileFieldValue::Call(call);
         assert_to_canonical_json_eq!(
             value,
             json!({ "org.matrix.msc4426.call": { "call_joined_ts": 1_770_140_640 } })
@@ -304,11 +304,12 @@ mod tests {
 
         // Call.
         let json = json!({ "org.matrix.msc4426.call": { "call_joined_ts": 1_168_380_060 } });
+        let mut expected_call = CallProfileField::new();
+        expected_call.call_joined_ts =
+            Some(SecondsSinceUnixEpoch(1_168_380_060.try_into().unwrap()));
         assert_eq!(
             from_json_value::<ProfileFieldValue>(json).unwrap(),
-            ProfileFieldValue::Call(CallProfileField::new(Some(SecondsSinceUnixEpoch(
-                1_168_380_060.try_into().unwrap(),
-            ))))
+            ProfileFieldValue::Call(expected_call)
         );
     }
 }
