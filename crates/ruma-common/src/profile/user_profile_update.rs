@@ -9,7 +9,7 @@ use super::{ProfileFieldName, ProfileFieldValue, static_profile_field::StaticPro
 
 /// An update to the profile information for a user.
 ///
-/// This type is not supposed to be used directly, but merged into a UserProfile.
+/// This type is not supposed to be used directly, but merged into a [`UserProfile`](super::UserProfile).
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct UserProfileUpdate(BTreeMap<String, JsonValue>);

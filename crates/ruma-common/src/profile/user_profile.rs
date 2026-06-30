@@ -135,7 +135,7 @@ mod tests {
             ("org.matrix.msc4426.call".to_owned(), json!({})),
         ]);
 
-        profile.merge(profile_update.clone());
+        profile.merge(profile_update);
 
         assert_eq!(
             profile.get_static::<DisplayName>().unwrap().unwrap(),
