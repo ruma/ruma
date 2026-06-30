@@ -1,18 +1,14 @@
 //! A map of event IDs to a type `V`.
+#![expect(missing_docs)] // FIXME: get rid of this before un-drafting the PR
 
-use std::{
-    borrow::Borrow,
-    collections::{HashMap, hash_map},
-    hash::Hash,
-    iter::FusedIterator,
-    ops::Index,
-};
+use std::{borrow::Borrow, hash::Hash, iter::FusedIterator, ops::Index};
 
+use hashbrown::{DefaultHashBuilder, HashMap, hash_map};
 use ruma_common::EventId;
 
 /// A map of event IDs to a type `V`.
 #[derive(Clone, Debug)]
-pub struct EventIdMap<E: Borrow<EventId>, V>(HashMap<E, V>);
+pub struct EventIdMap<E, V>(HashMap<E, V>);
 
 impl<E: Borrow<EventId>, V> EventIdMap<E, V> {
     /// Create an empty `EventIdMap`.
@@ -93,6 +89,13 @@ where
     /// Gets the given event ID's corresponding entry in the map for in-place manipulation.
     pub fn entry(&mut self, event_id: E) -> EventIdMapEntry<'_, E, V> {
         EventIdMapEntry(self.0.entry(event_id))
+    }
+
+    pub fn entry_ref<'a, 'b>(
+        &'a mut self,
+        event_id: &'b EventId,
+    ) -> EventIdMapEntryRef<'a, 'b, E, V> {
+        EventIdMapEntryRef::new(self.0.entry_ref(event_id))
     }
 
     /// Inserts a key-value pair into the map.
@@ -374,9 +377,9 @@ impl<E, V> FusedIterator for EventIdMapIntoValues<E, V> {}
 
 /// A view into a single entry in an [`EventIdMap`].
 #[derive(Debug)]
-pub struct EventIdMapEntry<'a, E: Borrow<EventId>, V>(hash_map::Entry<'a, E, V>);
+pub struct EventIdMapEntry<'a, E, V>(hash_map::Entry<'a, E, V, DefaultHashBuilder>);
 
-impl<'a, E: Borrow<EventId>, V> EventIdMapEntry<'a, E, V> {
+impl<'a, E: Borrow<EventId> + Hash, V> EventIdMapEntry<'a, E, V> {
     /// Ensures a value is in the entry by inserting the default if empty, and returns a mutable
     /// reference to the value in the entry.
     pub fn or_insert(self, default: V) -> &'a mut V {
@@ -399,14 +402,53 @@ impl<'a, E: Borrow<EventId>, V> EventIdMapEntry<'a, E, V> {
 
     /// Sets the value of the entry, and returns a mutable reference to the value.
     pub fn insert_entry(self, value: V) -> &'a mut V {
-        self.0.insert_entry(value).into_mut()
+        self.0.insert(value).into_mut()
     }
 }
 
-impl<'a, E: Borrow<EventId>, V: Default> EventIdMapEntry<'a, E, V> {
+impl<'a, E: Borrow<EventId> + Hash, V: Default> EventIdMapEntry<'a, E, V> {
     /// Ensures a value is in the entry by inserting the default value if empty, and returns a
     /// mutable reference to the value in the entry.
     pub fn or_default(self) -> &'a mut V {
         self.0.or_default()
     }
 }
+
+#[derive(Debug)]
+#[allow(clippy::exhaustive_enums)]
+pub enum EventIdMapEntryRef<'map, 'key, E: Borrow<EventId>, V> {
+    Occupied(OccupiedEntry<'map, E, V>),
+    Vacant(VacantEntryRef<'map, 'key, E, V>),
+}
+
+impl<'map, 'key, E: Borrow<EventId>, V> EventIdMapEntryRef<'map, 'key, E, V> {
+    fn new(entry: hash_map::EntryRef<'map, 'key, E, EventId, V, DefaultHashBuilder>) -> Self {
+        match entry {
+            hash_map::EntryRef::Occupied(o) => Self::Occupied(OccupiedEntry(o)),
+            hash_map::EntryRef::Vacant(v) => Self::Vacant(VacantEntryRef(v)),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct OccupiedEntry<'a, E: Borrow<EventId>, V>(hash_map::OccupiedEntry<'a, E, V>);
+
+impl<'a, E: Borrow<EventId>, V> OccupiedEntry<'a, E, V> {
+    pub fn get_mut(&mut self) -> &mut V {
+        self.0.get_mut()
+    }
+
+    pub fn remove(self) -> V {
+        self.0.remove()
+    }
+
+    pub fn remove_entry(self) -> (E, V) {
+        self.0.remove_entry()
+    }
+}
+
+#[derive(Debug)]
+#[expect(dead_code)] // to be fixed by adding methods, if ever useful
+pub struct VacantEntryRef<'map, 'key, E: Borrow<EventId>, V>(
+    hash_map::VacantEntryRef<'map, 'key, E, EventId, V, DefaultHashBuilder>,
+);
