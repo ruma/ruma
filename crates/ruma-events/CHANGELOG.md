@@ -5,6 +5,8 @@
 Improvements:
 
 - Add `replaces_state` field to `StateUnsigned`, due to a clarification in the Matrix spec.
+- Add support for [MSC4495: Selective Presence](https://github.com/matrix-org/matrix-spec-proposals/pull/4495)
+  and its events (`m.room.presence_sharing`, `m.presence.sharing`, and `m.presence.prompted`)
 
 ## 0.34.0
 

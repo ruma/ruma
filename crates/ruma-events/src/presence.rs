@@ -2,6 +2,11 @@
 //!
 //! The only content valid for this event is `PresenceEventContent`.
 
+#[cfg(feature = "unstable-msc4495")]
+pub mod prompted;
+#[cfg(feature = "unstable-msc4495")]
+pub mod sharing;
+
 use js_int::UInt;
 use ruma_common::{OwnedMxcUri, OwnedUserId, presence::PresenceState};
 use serde::{Deserialize, Serialize};
