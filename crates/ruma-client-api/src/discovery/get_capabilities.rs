@@ -153,6 +153,17 @@ pub mod v3 {
         )]
         pub account_moderation: AccountModerationCapability,
 
+        /// Capability to indicate if the server utilizes [MSC4495 Selective Presence][MSC4495].
+        ///
+        /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
+        #[cfg(feature = "unstable-msc4495")]
+        #[serde(
+            rename = "org.continuwuity.presence_v2.msc4495.selective_presence",
+            default,
+            skip_serializing_if = "SelectivePresenceCapability::is_default"
+        )]
+        pub selective_presence: SelectivePresenceCapability,
+
         /// Any other custom capabilities that the server supports outside of the specification,
         /// labeled using the Java package naming convention and stored as arbitrary JSON values.
         #[serde(flatten)]
@@ -499,6 +510,28 @@ pub mod v3 {
         /// Returns whether all fields have their default value.
         pub fn is_default(&self) -> bool {
             !self.suspend && !self.lock
+        }
+    }
+
+    /// Information about the `org.continuwuity.presence_v2.msc4495.selective_presence` capability.
+    #[cfg(feature = "unstable-msc4495")]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct SelectivePresenceCapability {
+        /// Whether the server supports selective presence.
+        pub enabled: bool,
+    }
+
+    #[cfg(feature = "unstable-msc4495")]
+    impl SelectivePresenceCapability {
+        /// Creates a new `SelectivePresenceCapability` with the given enabled flag.
+        pub fn new(enabled: bool) -> Self {
+            Self { enabled }
+        }
+
+        /// Returns whether all fields have their default value.
+        pub fn is_default(&self) -> bool {
+            !self.enabled
         }
     }
 }

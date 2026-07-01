@@ -13,6 +13,8 @@ Improvements:
   `delete_profile_field`) to the stable `/v3/profile/{user}/{field}` path when a homeserver
   advertises the `uk.tcpip.msc4133.stable` unstable feature, even if it has not yet advertised
   Matrix v1.16 in its `/versions` response.
+- Add support for [MSC4495: Selective Presence](https://github.com/matrix-org/matrix-spec-proposals/pull/4495)'s
+  `m.selective_presence` capability.
 
 ## 0.24.0
 
