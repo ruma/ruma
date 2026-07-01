@@ -2,6 +2,8 @@
 
 use std::collections::BTreeMap;
 
+#[cfg(feature = "unstable-msc4495")]
+use js_int::Int;
 use js_int::UInt;
 use ruma_common::{
     OwnedDeviceId, OwnedEventId, OwnedRoomId, OwnedTransactionId, OwnedUserId,
@@ -94,6 +96,26 @@ impl PresenceContent {
     }
 }
 
+/// A list of added or removed users in a user's presence recipient list.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[cfg(feature = "unstable-msc4495")]
+pub struct PresenceRecipientListUpdates {
+    /// A list of users that have been added to the recipient list.
+    pub add: Vec<OwnedUserId>,
+
+    /// A list of users that have been removed from the recipient list.
+    pub delete: Vec<OwnedUserId>,
+}
+
+#[cfg(feature = "unstable-msc4495")]
+impl PresenceRecipientListUpdates {
+    /// Creates a new `PresenceRecipientListUpdates` with the given added and removed users.
+    pub fn new(add: Vec<OwnedUserId>, delete: Vec<OwnedUserId>) -> Self {
+        Self { add, delete }
+    }
+}
+
 /// An update to the presence of a user.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
@@ -116,6 +138,38 @@ pub struct PresenceUpdate {
     /// Defaults to false.
     #[serde(default)]
     pub currently_active: bool,
+
+    /// Changes to the user's presence recipient list since the last EDU was sent, if any.
+    ///
+    /// This field will only be present if `prev_id` is also present.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4495].
+    ///
+    /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
+    #[cfg(feature = "unstable-msc4495")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub recipients: Option<PresenceRecipientListUpdates>,
+
+    /// The stream ID of the user's current presence recipient list.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4495].
+    ///
+    /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
+    #[cfg(feature = "unstable-msc4495")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stream_id: Option<Int>,
+
+    /// The prior stream ID in the user's presence delta stream, if any.
+    ///
+    /// If this field does not match the most recently seen `stream_id`, the presence list should
+    /// be re-fetched.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4495].
+    ///
+    /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
+    #[cfg(feature = "unstable-msc4495")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prev_id: Option<Int>,
 }
 
 impl PresenceUpdate {
@@ -127,6 +181,12 @@ impl PresenceUpdate {
             last_active_ago: last_activity,
             status_msg: None,
             currently_active: false,
+            #[cfg(feature = "unstable-msc4495")]
+            recipients: None,
+            #[cfg(feature = "unstable-msc4495")]
+            stream_id: None,
+            #[cfg(feature = "unstable-msc4495")]
+            prev_id: None,
         }
     }
 }
@@ -327,7 +387,9 @@ pub struct CustomEdu {
 mod tests {
     use assert_matches2::assert_matches;
     use js_int::uint;
-    use ruma_common::{room_id, user_id};
+    use ruma_common::{
+        canonical_json::assert_to_canonical_json_eq, presence::PresenceState, room_id, user_id,
+    };
     use ruma_events::ToDeviceEventType;
     use serde_json::json;
 
@@ -549,5 +611,90 @@ mod tests {
         assert!(content.self_signing_key.is_some());
 
         assert_eq!(serde_json::to_value(&edu).unwrap(), json);
+    }
+
+    #[test]
+    fn presence_edu() {
+        let json = json!({
+            "content": {
+                "push": [
+                    {
+                        "user_id": "@alice:example.com",
+                        "presence": "online",
+                        "currently_active": true,
+                        "last_active_ago": 1000,
+                        "status_msg": "Making cupcakes"
+                    }
+                ]
+            },
+            "edu_type": "m.presence"
+        });
+
+        let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
+        assert_matches!(&edu, Edu::Presence(content));
+        assert_eq!(content.push.len(), 1);
+        let presence_update = &content.push[0];
+        assert_eq!(presence_update.user_id, "@alice:example.com");
+        assert_eq!(presence_update.presence, PresenceState::Online);
+        assert!(presence_update.currently_active);
+        assert_eq!(presence_update.last_active_ago, uint!(1000));
+        assert_eq!(presence_update.status_msg.as_deref(), Some("Making cupcakes"));
+        #[cfg(feature = "unstable-msc4495")]
+        {
+            assert!(presence_update.recipients.is_none());
+            assert!(presence_update.stream_id.is_none());
+            assert!(presence_update.prev_id.is_none());
+        }
+
+        assert_to_canonical_json_eq!(edu, json);
+    }
+
+    #[cfg(feature = "unstable-msc4495")]
+    #[test]
+    fn msc4495_presence_edu() {
+        use js_int::int;
+
+        use crate::transactions::edu::PresenceRecipientListUpdates;
+
+        let json = json!({
+            "content": {
+                "push": [
+                    {
+                        "user_id": "@alice:example.com",
+                        "presence": "online",
+                        "currently_active": true,
+                        "last_active_ago": 1000,
+                        "status_msg": "Making cupcakes",
+                        "stream_id": 321,
+                        "prev_id": 123,
+                        "recipients": {
+                            "add": ["@bob:example.com"],
+                            "delete": ["@charlie:example.com"]
+                        }
+                    }
+                ]
+            },
+            "edu_type": "m.presence"
+        });
+
+        let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
+        assert_matches!(&edu, Edu::Presence(content));
+        assert_eq!(content.push.len(), 1);
+        let presence_update = &content.push[0];
+        assert_eq!(presence_update.user_id, "@alice:example.com");
+        assert_eq!(presence_update.presence, PresenceState::Online);
+        assert!(presence_update.currently_active);
+        assert_eq!(presence_update.last_active_ago, uint!(1000));
+        assert_eq!(presence_update.status_msg.as_deref(), Some("Making cupcakes"));
+        assert_eq!(presence_update.stream_id, Some(int!(321)));
+        assert_eq!(presence_update.prev_id, Some(int!(123)));
+        assert_matches!(
+            &presence_update.recipients,
+            Some(PresenceRecipientListUpdates { add, delete })
+        );
+        assert_eq!(add.len(), 1);
+        assert_eq!(delete.len(), 1);
+
+        assert_to_canonical_json_eq!(edu, json);
     }
 }

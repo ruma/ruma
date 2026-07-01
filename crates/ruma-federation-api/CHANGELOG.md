@@ -7,6 +7,8 @@ Improvements:
 - Remove support for MSC4373, as the MSC is now closed.
 - `query::get_profile_information` is now using `ruma_common::profile::UserProfile` for its
   underlying data storage.
+- Add experimental support for [MSC4495: Selective Presence](https://github.com/matrix-org/matrix-spec-proposals/pull/4495)'s
+  `get_presence_recipients` endpoint, alongside its updates to the `m.presence` EDU.
 
 ## 0.15.0
 
