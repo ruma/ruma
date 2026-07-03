@@ -5,6 +5,19 @@
 Improvements:
 
 - Add `replaces_state` field to `StateUnsigned`, due to a clarification in the Matrix spec.
+- Stabilize image packs:
+  - `RoomImagePackEventContent` uses its stable `m.room.image_pack` type and was moved under
+    `ruma_events::room::image_pack` to match the namespacing of the type. `PackImage` was renamed to
+    `ImagePackImage` and `PackInfo` was renamed to `ImagePackMeta`, to match the names in the Matrix
+    spec. The `pack` field of `RoomImagePackEventContent` is no longer optional but is not
+    serialized if the `ImagePackMeta` is empty and deserializes to its default value if it is
+    missing.
+  - `ImagePackRoomsEventContent` uses its stable `m.image_pack.rooms` type and was moved under
+    `ruma_events::image_pack::rooms` to match the namespacing of the type. `ImagePackRoomContent`
+    was renamed to `RoomImagePackMeta`.
+  - `ruma_events::image_pack::AccountImagePackEventContent` was removed because it was no longer
+    part of the MSC.
+  - The `unstable-msc2545` cargo feature was removed.
 
 ## 0.34.0
 
