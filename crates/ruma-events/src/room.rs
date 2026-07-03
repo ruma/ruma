@@ -32,6 +32,7 @@ mod encrypted_file_serde;
 pub mod encryption;
 pub mod guest_access;
 pub mod history_visibility;
+pub mod image_pack;
 pub mod join_rules;
 #[cfg(feature = "unstable-msc4334")]
 pub mod language;
