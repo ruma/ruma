@@ -209,7 +209,8 @@ impl Rooms {
 
     /// Returns true if there is no update in any room.
     pub fn is_empty(&self) -> bool {
-        self.leave.is_empty() && self.join.is_empty() && self.invite.is_empty()
+        let Self { leave, join, invite, knock } = self;
+        leave.is_empty() && join.is_empty() && invite.is_empty() && knock.is_empty()
     }
 }
 
@@ -1012,10 +1013,10 @@ mod server_tests {
         presence::PresenceState,
         serde::Raw,
     };
-    use ruma_events::AnySyncStateEvent;
+    use ruma_events::{AnyStrippedStateEvent, AnySyncStateEvent};
     use serde_json::{Value as JsonValue, from_slice as from_json_slice, json};
 
-    use super::{Filter, JoinedRoom, LeftRoom, Request, Response, State};
+    use super::{Filter, JoinedRoom, KnockedRoom, LeftRoom, Request, Response, State};
 
     fn sync_state_event() -> Raw<AnySyncStateEvent> {
         Raw::new(&json!({
@@ -1281,6 +1282,49 @@ mod server_tests {
                     "leave": {
                         left_room_id: {
                             "state_after": {
+                                "events": [
+                                    event,
+                                ],
+                            },
+                        },
+                    },
+                },
+            })
+        );
+    }
+
+    #[test]
+    fn serialize_response_knocked_room() {
+        let knocked_room_id = owned_room_id!("!knocked:localhost");
+        let event: Raw<AnyStrippedStateEvent> = Raw::new(&json!({
+            "content": {
+              "avatar_url": "mxc://example.org/SEsfnsuifSDFSSEF",
+              "displayname": "Alice Margatroid",
+              "membership": "join",
+            },
+            "sender": "@alice:example.org",
+            "state_key": "@alice:example.org",
+            "type": "m.room.member",
+        }))
+        .unwrap()
+        .cast_unchecked();
+
+        let mut response = Response::new("aaa".to_owned());
+
+        let mut knocked_room = KnockedRoom::new();
+        knocked_room.knock_state.events.push(event.clone());
+        response.rooms.knock.insert(knocked_room_id.clone(), knocked_room);
+
+        let http_response = response.try_into_http_response::<Vec<u8>>().unwrap();
+
+        assert_eq!(
+            from_json_slice::<JsonValue>(http_response.body()).unwrap(),
+            json!({
+                "next_batch": "aaa",
+                "rooms": {
+                    "knock": {
+                        knocked_room_id: {
+                            "knock_state": {
                                 "events": [
                                     event,
                                 ],
