@@ -226,11 +226,12 @@ pub mod v3 {
 
         /// Returns whether all fields are `None` or an empty list.
         pub fn is_empty(&self) -> bool {
-            self.end.is_none()
-                && self.events_after.is_empty()
-                && self.events_before.is_empty()
-                && self.profile_info.is_empty()
-                && self.start.is_none()
+            let Self { end, events_after, events_before, profile_info, start } = self;
+            end.is_none()
+                && events_after.is_empty()
+                && events_before.is_empty()
+                && profile_info.is_empty()
+                && start.is_none()
         }
     }
 
@@ -250,7 +251,8 @@ pub mod v3 {
 
         /// Returns whether `key` is `None`.
         pub fn is_empty(&self) -> bool {
-            self.key.is_none()
+            let Self { key } = self;
+            key.is_none()
         }
     }
 
@@ -287,7 +289,8 @@ pub mod v3 {
 
         /// Returns `true` if all fields are empty.
         pub fn is_empty(&self) -> bool {
-            self.group_by.is_empty()
+            let Self { group_by } = self;
+            group_by.is_empty()
         }
     }
 
@@ -388,12 +391,13 @@ pub mod v3 {
 
         /// Returns `true` if all fields are empty / `None`.
         pub fn is_empty(&self) -> bool {
-            self.count.is_none()
-                && self.groups.is_empty()
-                && self.next_batch.is_none()
-                && self.results.is_empty()
-                && self.state.is_empty()
-                && self.highlights.is_empty()
+            let Self { count, groups, next_batch, results, state, highlights } = self;
+            count.is_none()
+                && groups.is_empty()
+                && next_batch.is_none()
+                && results.is_empty()
+                && state.is_empty()
+                && highlights.is_empty()
         }
     }
 
@@ -522,7 +526,8 @@ pub mod v3 {
 
         /// Returns `true` if all fields are empty / `None`.
         pub fn is_empty(&self) -> bool {
-            self.next_batch.is_none() && self.order.is_none() && self.results.is_empty()
+            let Self { next_batch, order, results } = self;
+            next_batch.is_none() && order.is_none() && results.is_empty()
         }
     }
 
@@ -553,7 +558,8 @@ pub mod v3 {
 
         /// Returns `true` if all fields are empty / `None`.
         pub fn is_empty(&self) -> bool {
-            self.context.is_empty() && self.rank.is_none() && self.result.is_none()
+            let Self { context, rank, result } = self;
+            context.is_empty() && rank.is_none() && result.is_none()
         }
     }
 
@@ -585,7 +591,8 @@ pub mod v3 {
 
         /// Returns `true` if all fields are `None`.
         pub fn is_empty(&self) -> bool {
-            self.avatar_url.is_none() && self.displayname.is_none()
+            let Self { avatar_url, displayname } = self;
+            avatar_url.is_none() && displayname.is_none()
         }
     }
 }

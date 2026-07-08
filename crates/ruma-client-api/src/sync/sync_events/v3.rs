@@ -240,7 +240,8 @@ impl LeftRoom {
 
     /// Returns true if there are updates in the room.
     pub fn is_empty(&self) -> bool {
-        self.timeline.is_empty() && self.state.is_empty() && self.account_data.is_empty()
+        let Self { timeline, state, account_data } = self;
+        timeline.is_empty() && state.is_empty() && account_data.is_empty()
     }
 }
 
@@ -311,19 +312,31 @@ impl JoinedRoom {
 
     /// Returns true if there are no updates in the room.
     pub fn is_empty(&self) -> bool {
-        let is_empty = self.summary.is_empty()
-            && self.unread_notifications.is_empty()
-            && self.unread_thread_notifications.is_empty()
-            && self.timeline.is_empty()
-            && self.state.is_empty()
-            && self.account_data.is_empty()
-            && self.ephemeral.is_empty();
+        let Self {
+            summary,
+            unread_notifications,
+            unread_thread_notifications,
+            timeline,
+            state,
+            account_data,
+            ephemeral,
+            #[cfg(feature = "unstable-msc2654")]
+            unread_count,
+        } = self;
 
         #[cfg(not(feature = "unstable-msc2654"))]
-        return is_empty;
-
+        let unread_count_is_none = true;
         #[cfg(feature = "unstable-msc2654")]
-        return is_empty && self.unread_count.is_none();
+        let unread_count_is_none = unread_count.is_none();
+
+        summary.is_empty()
+            && unread_notifications.is_empty()
+            && unread_thread_notifications.is_empty()
+            && timeline.is_empty()
+            && state.is_empty()
+            && account_data.is_empty()
+            && ephemeral.is_empty()
+            && unread_count_is_none
     }
 }
 
@@ -344,7 +357,8 @@ impl KnockedRoom {
 
     /// Whether there are updates for this room.
     pub fn is_empty(&self) -> bool {
-        self.knock_state.is_empty()
+        let Self { knock_state } = self;
+        knock_state.is_empty()
     }
 }
 
@@ -371,7 +385,8 @@ impl KnockState {
 
     /// Whether there are stripped state updates in this room.
     pub fn is_empty(&self) -> bool {
-        self.events.is_empty()
+        let Self { events } = self;
+        events.is_empty()
     }
 }
 
@@ -405,7 +420,8 @@ impl Timeline {
     /// A `Timeline` is considered non-empty if it has at least one event, a
     /// `prev_batch` value, or `limited` is `true`.
     pub fn is_empty(&self) -> bool {
-        !self.limited && self.prev_batch.is_none() && self.events.is_empty()
+        let Self { limited, prev_batch, events } = self;
+        !limited && prev_batch.is_none() && events.is_empty()
     }
 }
 
@@ -471,7 +487,8 @@ impl StateEvents {
 
     /// Returns true if there are no state updates.
     pub fn is_empty(&self) -> bool {
-        self.events.is_empty()
+        let Self { events } = self;
+        events.is_empty()
     }
 
     /// Creates a `State` with events
@@ -503,7 +520,8 @@ impl GlobalAccountData {
 
     /// Returns true if there are no global account data updates.
     pub fn is_empty(&self) -> bool {
-        self.events.is_empty()
+        let Self { events } = self;
+        events.is_empty()
     }
 }
 
@@ -524,7 +542,8 @@ impl RoomAccountData {
 
     /// Returns true if there are no room account data updates.
     pub fn is_empty(&self) -> bool {
-        self.events.is_empty()
+        let Self { events } = self;
+        events.is_empty()
     }
 }
 
@@ -545,7 +564,8 @@ impl Ephemeral {
 
     /// Returns true if there are no ephemeral event updates.
     pub fn is_empty(&self) -> bool {
-        self.events.is_empty()
+        let Self { events } = self;
+        events.is_empty()
     }
 }
 
@@ -580,9 +600,8 @@ impl RoomSummary {
 
     /// Returns true if there are no room summary updates.
     pub fn is_empty(&self) -> bool {
-        self.heroes.is_empty()
-            && self.joined_member_count.is_none()
-            && self.invited_member_count.is_none()
+        let Self { heroes, joined_member_count, invited_member_count } = self;
+        heroes.is_empty() && joined_member_count.is_none() && invited_member_count.is_none()
     }
 }
 
@@ -603,7 +622,8 @@ impl InvitedRoom {
 
     /// Returns true if there are no updates to this room.
     pub fn is_empty(&self) -> bool {
-        self.invite_state.is_empty()
+        let Self { invite_state } = self;
+        invite_state.is_empty()
     }
 }
 
@@ -630,7 +650,8 @@ impl InviteState {
 
     /// Returns true if there are no state updates.
     pub fn is_empty(&self) -> bool {
-        self.events.is_empty()
+        let Self { events } = self;
+        events.is_empty()
     }
 }
 
@@ -657,7 +678,8 @@ impl Presence {
 
     /// Returns true if there are no presence updates.
     pub fn is_empty(&self) -> bool {
-        self.events.is_empty()
+        let Self { events } = self;
+        events.is_empty()
     }
 }
 
@@ -678,7 +700,8 @@ impl ToDevice {
 
     /// Returns true if there are no to-device events.
     pub fn is_empty(&self) -> bool {
-        self.events.is_empty()
+        let Self { events } = self;
+        events.is_empty()
     }
 }
 
