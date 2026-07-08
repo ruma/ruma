@@ -15,6 +15,8 @@ pub mod v3 {
         metadata,
         serde::Raw,
     };
+    #[cfg(feature = "unstable-msc4354")]
+    use ruma_events::sticky::StickyDurationMs;
     use ruma_events::{AnyStateEventContent, StateEventContent, StateEventType};
     use serde_json::value::to_raw_value as to_raw_json_value;
 
@@ -52,6 +54,16 @@ pub mod v3 {
         ///
         /// [timestamp massaging]: https://spec.matrix.org/v1.18/application-service-api/#timestamp-massaging
         pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
+
+        /// The duration to stick the event for.
+        ///
+        /// Valid values are the integer range 0-3600000 (1 hour).
+        /// The presence of this field indicates that the event should be sticky, this
+        /// will give this event additional delivery guarantees.
+        ///
+        /// See [MSC4354 sticky events](https://github.com/matrix-org/matrix-spec-proposals/pull/4354).
+        #[cfg(feature = "unstable-msc4354")]
+        pub sticky_duration_ms: Option<StickyDurationMs>,
     }
 
     impl Request {
@@ -77,6 +89,8 @@ pub mod v3 {
                 event_type: content.event_type(),
                 body: Raw::from_json(to_raw_json_value(content)?),
                 timestamp: None,
+                #[cfg(feature = "unstable-msc4354")]
+                sticky_duration_ms: None,
             })
         }
 
@@ -88,7 +102,15 @@ pub mod v3 {
             state_key: String,
             body: Raw<AnyStateEventContent>,
         ) -> Self {
-            Self { room_id, event_type, state_key, body, timestamp: None }
+            Self {
+                room_id,
+                event_type,
+                state_key,
+                body,
+                timestamp: None,
+                #[cfg(feature = "unstable-msc4354")]
+                sticky_duration_ms: None,
+            }
         }
     }
 
@@ -119,8 +141,11 @@ pub mod v3 {
         ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
             use ruma_common::api::{Metadata, auth_scheme::AuthScheme};
 
-            let query_string =
-                serde_html_form::to_string(RequestQuery { timestamp: self.timestamp })?;
+            let query_string = serde_html_form::to_string(RequestQuery {
+                timestamp: self.timestamp,
+                #[cfg(feature = "unstable-msc4354")]
+                sticky_duration_ms: self.sticky_duration_ms,
+            })?;
 
             let mut http_request = http::Request::builder()
                 .method(Self::METHOD)
@@ -185,7 +210,15 @@ pub mod v3 {
                 &mut serde_json::Deserializer::from_slice(request.body().as_ref()),
             )?;
 
-            Ok(Self { room_id, event_type, state_key, body, timestamp: request_query.timestamp })
+            Ok(Self {
+                room_id,
+                event_type,
+                state_key,
+                body,
+                timestamp: request_query.timestamp,
+                #[cfg(feature = "unstable-msc4354")]
+                sticky_duration_ms: request_query.sticky_duration_ms,
+            })
         }
     }
 
@@ -197,22 +230,30 @@ pub mod v3 {
         /// Timestamp to use for the `origin_server_ts` of the event.
         #[serde(rename = "ts", skip_serializing_if = "Option::is_none")]
         timestamp: Option<MilliSecondsSinceUnixEpoch>,
-    }
 
-    #[cfg(feature = "client")]
+        #[cfg(feature = "unstable-msc4354")]
+        #[serde(
+            skip_serializing_if = "Option::is_none",
+            rename = "org.matrix.msc4354.sticky_duration_ms"
+        )]
+        pub sticky_duration_ms: Option<StickyDurationMs>,
+    }
+}
+
+#[cfg(all(test, feature = "client"))]
+mod tests {
+    use std::borrow::Cow;
+
+    use ruma_common::{
+        api::{MatrixVersion, OutgoingRequest, SupportedVersions, auth_scheme::SendAccessToken},
+        owned_room_id,
+    };
+    use ruma_events::{EmptyStateKey, room::name::RoomNameEventContent};
+
+    use crate::state::send_state_event::v3::Request;
+
     #[test]
     fn serialize() {
-        use std::borrow::Cow;
-
-        use ruma_common::{
-            api::{
-                MatrixVersion, OutgoingRequest as _, SupportedVersions,
-                auth_scheme::SendAccessToken,
-            },
-            owned_room_id,
-        };
-        use ruma_events::{EmptyStateKey, room::name::RoomNameEventContent};
-
         let supported = SupportedVersions {
             versions: [MatrixVersion::V1_1].into(),
             features: Default::default(),
@@ -236,5 +277,36 @@ pub mod v3 {
             req.uri(),
             "https://server.tld/_matrix/client/v3/rooms/!room:server.tld/state/m.room.name/"
         );
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-msc4354")]
+    fn test_send_sticky_state_serialize() {
+        use ruma_events::sticky::StickyDurationMs;
+
+        let supported = SupportedVersions {
+            versions: [MatrixVersion::V1_1].into(),
+            features: Default::default(),
+        };
+
+        // This used to panic in make_endpoint_url because of a mismatch in the path parameter count
+        let mut req = Request::new(
+            owned_room_id!("!room:server.tld"),
+            &EmptyStateKey,
+            &RoomNameEventContent::new("Test room".to_owned()),
+        )
+        .unwrap();
+
+        req.sticky_duration_ms = Some(StickyDurationMs::new_clamped(1_000_u32));
+
+        let http_req = req
+            .try_into_http_request::<Vec<u8>>(
+                "https://server.tld",
+                SendAccessToken::IfRequired("access_token"),
+                Cow::Owned(supported),
+            )
+            .unwrap();
+
+        assert_eq!(http_req.uri().query().unwrap(), "org.matrix.msc4354.sticky_duration_ms=1000");
     }
 }

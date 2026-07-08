@@ -18,6 +18,8 @@ Improvements:
   `delete_profile_field`) to the stable `/v3/profile/{user}/{field}` path when a homeserver
   advertises the `uk.tcpip.msc4133.stable` unstable feature, even if it has not yet advertised
   Matrix v1.16 in its `/versions` response.
+- Add unstable support for [MSC4354](https://github.com/matrix-org/matrix-spec-proposals/pull/4354) Sticky Events behind the `unstable-msc4354` feature flag.
+  Adds a `sticky_duration_ms` query parameter to `send_message_event` / `send_state_event`.
 
 ## 0.24.0
 
