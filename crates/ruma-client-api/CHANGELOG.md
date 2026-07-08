@@ -4,8 +4,8 @@
 
 Bug fixes:
 
-- In the `sync_events::v3` module, fix the deserialization of `Response` when only the `knock`
-  field was non-empty
+- In the `sync_events::v3` module, fix the serialization of `Response` when only the `knock`
+  field was non-empty.
 
 Improvements:
 
