@@ -51,6 +51,8 @@ unstable-msc4293 = []
 unstable-msc4310 = []
 unstable-msc4319 = []
 unstable-msc4334 = ["dep:language-tags"]
+# Sticky Events
+unstable-msc4354 = []
 unstable-msc4359 = []
 unstable-msc4362 = []
 unstable-msc4380 = []

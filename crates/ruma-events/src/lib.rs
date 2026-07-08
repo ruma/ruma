@@ -197,6 +197,8 @@ pub mod space;
 #[cfg(feature = "unstable-msc3230")]
 pub mod space_order;
 pub mod sticker;
+#[cfg(feature = "unstable-msc4354")]
+pub mod sticky;
 #[cfg(feature = "unstable-msc4471")]
 pub mod stream;
 pub mod tag;
