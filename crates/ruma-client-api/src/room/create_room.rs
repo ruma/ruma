@@ -189,7 +189,11 @@ pub mod v3 {
 
         /// Returns whether all fields have their default value.
         pub fn is_empty(&self) -> bool {
-            self.federate && self.predecessor.is_none() && self.room_type.is_none()
+            let Self { additional_creators, federate, predecessor, room_type } = self;
+            additional_creators.is_empty()
+                && *federate
+                && predecessor.is_none()
+                && room_type.is_none()
         }
     }
 
