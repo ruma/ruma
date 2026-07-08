@@ -32,7 +32,8 @@ impl UnreadNotificationsCount {
 
     /// Returns true if there are no notification count updates.
     pub fn is_empty(&self) -> bool {
-        self.highlight_count.is_none() && self.notification_count.is_none()
+        let Self { highlight_count, notification_count } = self;
+        highlight_count.is_none() && notification_count.is_none()
     }
 }
 
@@ -59,6 +60,7 @@ impl DeviceLists {
 
     /// Returns true if there are no device list updates.
     pub fn is_empty(&self) -> bool {
-        self.changed.is_empty() && self.left.is_empty()
+        let Self { changed, left } = self;
+        changed.is_empty() && left.is_empty()
     }
 }

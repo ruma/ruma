@@ -153,7 +153,8 @@ pub mod v1 {
 
         /// Returns true if there are no device list updates.
         pub fn is_empty(&self) -> bool {
-            self.changed.is_empty() && self.left.is_empty()
+            let Self { changed, left } = self;
+            changed.is_empty() && left.is_empty()
         }
     }
 
