@@ -18,6 +18,7 @@ Improvements:
   - `ruma_events::image_pack::AccountImagePackEventContent` was removed because it was no longer
     part of the MSC.
   - The `unstable-msc2545` cargo feature was removed.
+- Add unstable support for [MSC4354](https://github.com/matrix-org/matrix-spec-proposals/pull/4354) Sticky Events behind the `unstable-msc4354` feature flag.
 
 ## 0.34.0
 
