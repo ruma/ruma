@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Bug fixes:
+
+- In the `sync_events::v3` module, fix the deserialization of `Response` when only the `knock`
+  field was non-empty
+
 Improvements:
 
 - `profile::get_profile` is now using `ruma_common::profile::UserProfile` for its underlying data
