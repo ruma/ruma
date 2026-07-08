@@ -6,6 +6,8 @@ Bug fixes:
 
 - In the `sync_events::v3` module, fix the serialization of `Response` when only the `knock`
   field was non-empty.
+- In the `room::create_room::v3` module, fix the serialization of `CreationContent` when only
+  the `additional_creators` field was non-empty.
 
 Improvements:
 
