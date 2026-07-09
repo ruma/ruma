@@ -19,6 +19,7 @@ Improvements:
     part of the MSC.
   - The `unstable-msc2545` cargo feature was removed.
 - Add unstable support for [MSC4354](https://github.com/matrix-org/matrix-spec-proposals/pull/4354) Sticky Events behind the `unstable-msc4354` feature flag.
+- Add the `zeroize(mut self)` method on identifiers, which will call the `zeroize` crate.
 
 ## 0.34.0
 

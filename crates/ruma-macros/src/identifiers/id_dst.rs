@@ -21,6 +21,7 @@ pub(crate) fn expand_id_dst(input: syn::ItemStruct) -> syn::Result<TokenStream> 
     let fallible_from_str_impls = id_dst.expand_fallible_from_str_impls();
     let infallible_from_str_impls = id_dst.expand_infallible_from_str_impls();
     let partial_eq_impls = id_dst.expand_partial_eq_impls();
+    let zeroize_impl = id_dst.expand_zeroize_impl();
 
     Ok(quote! {
         #as_str_and_bytes_impls
@@ -30,6 +31,7 @@ pub(crate) fn expand_id_dst(input: syn::ItemStruct) -> syn::Result<TokenStream> 
         #fallible_from_str_impls
         #infallible_from_str_impls
         #partial_eq_impls
+        #zeroize_impl
     })
 }
 
@@ -714,6 +716,58 @@ impl IdDst {
         ]
         .into_iter()
         .collect()
+    }
+
+    /// Generate the `zeroize` method for an owned type.
+    fn expand_zeroize_impl(&self) -> TokenStream {
+        let impl_generics = &self.impl_generics;
+
+        let owned_ident = &self.owned_ident;
+        let owned_id = &self.types.owned_id;
+        let parse_doc_header = format!(
+            "Securely zero memory (aka [zeroize](https://en.wikipedia.org/wiki/Zeroisation)) of `{owned_ident}`."
+        );
+
+        let box_str_cfg = &self.storage_cfg.box_str;
+        let arc_str_cfg = &self.storage_cfg.arc_str;
+
+        quote! {
+            #[automatically_derived]
+            impl #impl_generics #owned_id {
+                #[doc = #parse_doc_header]
+                ///
+                /// This method zeroizes this type by writing zeros in its
+                /// memory location before freeing it. It internally uses
+                /// [the `zeroize` crate][`zeroize`]. Note that this type
+                /// doesn't implement the `zeroize::Zeroize` trait because the
+                /// `Zeroize::zeroize` method takes a `&mut self`, which means
+                /// we could put this type into an inconsistent state if it is
+                /// used after calling that method. Instead, this method takes
+                /// ownership of the type, ensuring it's impossible to misuse
+                /// it.
+                ///
+                /// # Implementation details
+                ///
+                /// If the `ruma_identifiers_storage` configuration is
+                /// set to `Arc`, this type will be zeroized if and only if
+                /// [`Arc::get_mut`] returns `Some` reference, i.e. if there is no
+                /// other `Arc` or `Weak` pointers to this same location.
+                ///
+                /// [`zeroize`]: https://docs.rs/zeroize/
+                /// [`Arc::get_mut`]: https://doc.rust-lang.org/std/sync/struct.Arc.html#method.get_mut
+                pub fn zeroize(mut self) {
+                    #box_str_cfg
+                    { ::zeroize::Zeroize::zeroize(&mut self.inner); }
+
+                    #arc_str_cfg
+                    {
+                        if let Some(value) = ::std::sync::Arc::get_mut(&mut self.inner) {
+                            ::zeroize::Zeroize::zeroize(value);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
