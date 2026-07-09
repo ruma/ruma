@@ -14,6 +14,8 @@ Improvements:
 - Add `canonical_json::RedactingSerializer` to serialize a `CanonicalJsonObject`
   while redacting it on the fly.
 - Add `MatrixVersion::V1_19`.
+- Add the `zeroize(mut self)` method on identifiers, which will call the
+  `zeroize` crate.
 
 [MSC4438]: https://github.com/matrix-org/matrix-spec-proposals/pull/4438
 

@@ -344,4 +344,12 @@ mod tests {
         assert!(id_str.starts_with('!'));
         assert_eq!(&id_str[1..], reference_hash);
     }
+
+    #[test]
+    fn zeroize() {
+        let room_id = <&RoomId>::try_from("!room_id").expect("Failed to create RoomId.").to_owned();
+        assert_eq!(room_id.as_str(), "!room_id");
+
+        room_id.zeroize();
+    }
 }
