@@ -6,6 +6,8 @@ use ruma_common::{OwnedEventId, serde::from_raw_json_value};
 use serde::{Deserialize, Deserializer};
 use serde_json::value::RawValue as RawJsonValue;
 
+#[cfg(feature = "unstable-msc4354")]
+use super::Sticky;
 use super::{
     Ephemeral, JoinedRoom, LeftRoom, RoomAccountData, RoomSummary, State, StateEvents, Timeline,
     UnreadNotificationsCount,
@@ -71,6 +73,9 @@ struct JoinedRoomDeHelper {
     account_data: RoomAccountData,
     #[serde(default)]
     ephemeral: Ephemeral,
+    #[cfg(feature = "unstable-msc4354")]
+    #[serde(rename = "msc4354_sticky", default)]
+    sticky: Sticky,
     #[cfg(feature = "unstable-msc2654")]
     #[serde(rename = "org.matrix.msc2654.unread_count")]
     unread_count: Option<UInt>,
@@ -91,6 +96,8 @@ impl<'de> Deserialize<'de> for JoinedRoom {
             timeline,
             account_data,
             ephemeral,
+            #[cfg(feature = "unstable-msc4354")]
+            sticky,
             #[cfg(feature = "unstable-msc2654")]
             unread_count,
         } = from_raw_json_value(&json)?;
@@ -103,6 +110,8 @@ impl<'de> Deserialize<'de> for JoinedRoom {
             state,
             account_data,
             ephemeral,
+            #[cfg(feature = "unstable-msc4354")]
+            sticky,
             #[cfg(feature = "unstable-msc2654")]
             unread_count,
         })

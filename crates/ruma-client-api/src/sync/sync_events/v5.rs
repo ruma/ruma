@@ -223,6 +223,15 @@ pub mod request {
         #[serde(default, skip_serializing_if = "Profiles::is_empty")]
         pub profiles: Profiles,
 
+        /// Configure the sticky events extension.
+        #[cfg(feature = "unstable-msc4480")]
+        #[serde(
+            default,
+            skip_serializing_if = "StickyEvents::is_empty",
+            rename = "org.matrix.msc4354.sticky_events"
+        )]
+        pub sticky_events: StickyEvents,
+
         /// Extensions may add further fields to the list.
         #[serde(flatten)]
         other: BTreeMap<String, serde_json::Value>,
@@ -246,6 +255,11 @@ pub mod request {
             #[cfg(feature = "unstable-msc4262")]
             {
                 empty = empty && self.profiles.is_empty();
+            }
+
+            #[cfg(feature = "unstable-msc4480")]
+            {
+                empty = empty && self.sticky_events.is_empty();
             }
 
             empty
@@ -307,6 +321,36 @@ pub mod request {
     }
 
     impl ToDevice {
+        /// Whether all fields are empty or `None`.
+        pub fn is_empty(&self) -> bool {
+            self.enabled.is_none() && self.limit.is_none() && self.since.is_none()
+        }
+    }
+
+    /// Sticky events extension configuration.
+    ///
+    /// According to [MSC4480](https://github.com/matrix-org/matrix-spec-proposals/pull/4480).
+    #[cfg(feature = "unstable-msc4480")]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct StickyEvents {
+        /// Activate or deactivate this extension.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub enabled: Option<bool>,
+
+        /// Maximum number of sticky events to return per response.
+        ///
+        /// Defaults to 100 (server-side) and the server may override it to a lower value.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub limit: Option<UInt>,
+
+        /// Return sticky events since this token only.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub since: Option<String>,
+    }
+
+    #[cfg(feature = "unstable-msc4480")]
+    impl StickyEvents {
         /// Whether all fields are empty or `None`.
         pub fn is_empty(&self) -> bool {
             self.enabled.is_none() && self.limit.is_none() && self.since.is_none()
@@ -750,6 +794,15 @@ pub mod response {
         #[cfg(feature = "unstable-msc4262")]
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty", rename = "users")]
         pub profiles: BTreeMap<OwnedUserId, UserProfileUpdate>,
+
+        /// Sticky events extension response.
+        #[cfg(feature = "unstable-msc4480")]
+        #[serde(
+            default,
+            skip_serializing_if = "StickyEvents::is_empty",
+            rename = "org.matrix.msc4354.sticky_events"
+        )]
+        pub sticky_events: StickyEvents,
     }
 
     impl Extensions {
@@ -773,6 +826,11 @@ pub mod response {
                 empty = empty && self.profiles.is_empty();
             }
 
+            #[cfg(feature = "unstable-msc4480")]
+            {
+                empty = empty && self.sticky_events.is_empty();
+            }
+
             empty
         }
     }
@@ -789,6 +847,42 @@ pub mod response {
         /// The to-device events.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub events: Vec<Raw<AnyToDeviceEvent>>,
+    }
+
+    /// Sticky events extension response.
+    ///
+    /// According to [MSC4480](https://github.com/matrix-org/matrix-spec-proposals/pull/4480).
+    #[cfg(feature = "unstable-msc4480")]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct StickyEvents {
+        /// The token to supply in the `since` param of the next request.
+        ///
+        /// Set when there are changes.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub next_batch: Option<String>,
+
+        /// The sticky events, grouped by room.
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        pub rooms: BTreeMap<OwnedRoomId, StickyEventsRoom>,
+    }
+
+    #[cfg(feature = "unstable-msc4480")]
+    impl StickyEvents {
+        /// Whether the extension data is empty.
+        pub fn is_empty(&self) -> bool {
+            self.next_batch.is_none() && self.rooms.is_empty()
+        }
+    }
+
+    /// Sticky events for a single room in the sticky events extension response.
+    #[cfg(feature = "unstable-msc4480")]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct StickyEventsRoom {
+        /// The sticky events for this room.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub events: Vec<Raw<AnySyncTimelineEvent>>,
     }
 
     /// E2EE extension response.
@@ -942,6 +1036,48 @@ mod tests {
             serde_json::from_str::<ExtensionRoomConfig>(r#""!foo:bar.baz""#).unwrap(),
             ExtensionRoomConfig::Room(owned_room_id!("!foo:bar.baz"))
         );
+    }
+
+    #[cfg(feature = "unstable-msc4480")]
+    #[test]
+    fn sticky_events_extension_serde() {
+        use super::{request, response};
+
+        // The request extension serializes under the unstable extension key.
+        let mut extensions = request::Extensions::default();
+        extensions.sticky_events =
+            request::StickyEvents { enabled: Some(true), ..Default::default() };
+        assert_eq!(
+            serde_json::to_value(&extensions).unwrap(),
+            serde_json::json!({ "org.matrix.msc4354.sticky_events": { "enabled": true } })
+        );
+
+        // The response extension and its per-room sticky events deserialize.
+        let response: response::Extensions = serde_json::from_value(serde_json::json!({
+            "org.matrix.msc4354.sticky_events": {
+                "next_batch": "s123",
+                "rooms": {
+                    "!room:example.com": {
+                        "events": [{
+                            "content": { "body": "sticky", "msgtype": "m.text" },
+                            "event_id": "$1:example.com",
+                            "origin_server_ts": 1,
+                            "sender": "@alice:example.com",
+                            "type": "m.room.message",
+                            "msc4354_sticky": {
+                                "duration_ms": 300_000
+                            },
+                        }]
+                    }
+                }
+            }
+        }))
+        .unwrap();
+
+        assert_eq!(response.sticky_events.next_batch.as_deref(), Some("s123"));
+        assert_eq!(response.sticky_events.rooms.len(), 1);
+        let room = response.sticky_events.rooms.values().next().unwrap();
+        assert_eq!(room.events.len(), 1);
     }
 
     #[test]

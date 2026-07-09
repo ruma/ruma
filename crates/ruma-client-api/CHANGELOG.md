@@ -22,6 +22,8 @@ Improvements:
   Matrix v1.16 in its `/versions` response.
 - Add unstable support for [MSC4354](https://github.com/matrix-org/matrix-spec-proposals/pull/4354) Sticky Events behind the `unstable-msc4354` feature flag.
   Adds a `sticky_duration_ms` query parameter to `send_message_event` / `send_state_event`.
+- Add sticky event sync extension, for v3 and v5 [MSC4480](https://github.com/matrix-org/matrix-spec-proposals/pull/4480)
+  Sliding Sync Sticky Events extension behind the `unstable-msc4480` feature flag.
 
 ## 0.24.0
 

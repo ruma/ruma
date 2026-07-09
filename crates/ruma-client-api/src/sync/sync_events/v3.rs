@@ -294,6 +294,13 @@ pub struct JoinedRoom {
     #[serde(skip_serializing_if = "Ephemeral::is_empty")]
     pub ephemeral: Ephemeral,
 
+    /// The sticky events in the room that aren't recorded in the timeline of the room.
+    ///
+    /// See [MSC4354](https://github.com/matrix-org/matrix-spec-proposals/pull/4354).
+    #[cfg(feature = "unstable-msc4354")]
+    #[serde(rename = "msc4354_sticky", skip_serializing_if = "Sticky::is_empty")]
+    pub sticky: Sticky,
+
     /// The number of unread events since the latest read receipt.
     ///
     /// This uses the unstable prefix in [MSC2654].
@@ -320,6 +327,8 @@ impl JoinedRoom {
             state,
             account_data,
             ephemeral,
+            #[cfg(feature = "unstable-msc4354")]
+            sticky,
             #[cfg(feature = "unstable-msc2654")]
             unread_count,
         } = self;
@@ -329,14 +338,19 @@ impl JoinedRoom {
         #[cfg(feature = "unstable-msc2654")]
         let unread_count_is_none = unread_count.is_none();
 
-        summary.is_empty()
+        let is_empty = summary.is_empty()
             && unread_notifications.is_empty()
             && unread_thread_notifications.is_empty()
             && timeline.is_empty()
             && state.is_empty()
             && account_data.is_empty()
             && ephemeral.is_empty()
-            && unread_count_is_none
+            && unread_count_is_none;
+
+        #[cfg(feature = "unstable-msc4354")]
+        let is_empty = is_empty && sticky.is_empty();
+
+        is_empty
     }
 }
 
@@ -569,6 +583,32 @@ impl Ephemeral {
     }
 }
 
+/// Sticky events in the room that aren't recorded in the timeline of the room.
+///
+/// See [MSC4354](https://github.com/matrix-org/matrix-spec-proposals/pull/4354).
+#[cfg(feature = "unstable-msc4354")]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct Sticky {
+    /// A list of sticky events.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub events: Vec<Raw<AnySyncTimelineEvent>>,
+}
+
+#[cfg(feature = "unstable-msc4354")]
+impl Sticky {
+    /// Creates an empty `Sticky`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Returns true if there are no sticky events.
+    pub fn is_empty(&self) -> bool {
+        let Self { events } = self;
+        events.is_empty()
+    }
+}
+
 /// Information about room for rendering to clients.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
@@ -707,8 +747,10 @@ impl ToDevice {
 
 #[cfg(test)]
 mod tests {
+    use assert_matches2::assert_let;
     use assign::assign;
     use ruma_common::canonical_json::assert_to_canonical_json_eq;
+    use ruma_events::{AnySyncMessageLikeEvent, AnySyncTimelineEvent, SyncMessageLikeEvent};
     use serde_json::{from_value as from_json_value, json};
 
     use super::Timeline;
@@ -728,6 +770,59 @@ mod tests {
         let timeline_default_deserialized =
             from_json_value::<Timeline>(json!({ "events": [] })).unwrap();
         assert!(!timeline_default_deserialized.limited);
+    }
+
+    #[cfg(feature = "unstable-msc4354")]
+    #[test]
+    fn joined_room_sticky_section_serde() {
+        use serde_json::to_value as to_json_value;
+
+        use super::JoinedRoom;
+
+        fn sticky_event() -> serde_json::Value {
+            json!({
+                "content": { "body": "sticky", "msgtype": "m.text" },
+                "event_id": "$1:example.com",
+                "origin_server_ts": 1,
+                "sender": "@alice:example.com",
+                "type": "m.room.message",
+                "msc4354_sticky": {
+                    "duration_ms": 300_000
+                },
+                "unsigned": { "sticky_duration_ttl_ms": 258_113 }
+            })
+        }
+
+        // The unstable `msc4354_sticky` section is deserialized into `sticky`.
+        let joined_room = from_json_value::<JoinedRoom>(json!({
+            "msc4354_sticky": { "events": [sticky_event()] }
+        }))
+        .unwrap();
+        assert_eq!(joined_room.sticky.events.len(), 1);
+
+        // A server sending both the stable and unstable keys must not error (no serde
+        // `alias` is used); the unstable key wins.
+        let joined_room = from_json_value::<JoinedRoom>(json!({
+            "sticky": { "events": [] },
+            "msc4354_sticky": { "events": [sticky_event()] },
+        }))
+        .unwrap();
+        assert_eq!(joined_room.sticky.events.len(), 1);
+        let event_raw = joined_room.sticky.events.first().unwrap();
+
+        assert_let!(
+            AnySyncTimelineEvent::MessageLike(AnySyncMessageLikeEvent::RoomMessage(
+                SyncMessageLikeEvent::Original(ev)
+            )) = event_raw.deserialize().unwrap()
+        );
+
+        let duration = ev.sticky.map(|s| s.duration_ms.get());
+        assert_eq!(duration, Some(300_000));
+
+        // Serialization uses the unstable key.
+        let serialized = to_json_value(&joined_room).unwrap();
+        assert!(serialized.get("msc4354_sticky").is_some());
+        assert!(serialized.get("sticky").is_none());
     }
 }
 
