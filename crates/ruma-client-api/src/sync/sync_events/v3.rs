@@ -747,10 +747,8 @@ impl ToDevice {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_let;
     use assign::assign;
     use ruma_common::canonical_json::assert_to_canonical_json_eq;
-    use ruma_events::{AnySyncMessageLikeEvent, AnySyncTimelineEvent, SyncMessageLikeEvent};
     use serde_json::{from_value as from_json_value, json};
 
     use super::Timeline;
@@ -775,6 +773,8 @@ mod tests {
     #[cfg(feature = "unstable-msc4354")]
     #[test]
     fn joined_room_sticky_section_serde() {
+        use assert_matches2::assert_let;
+        use ruma_events::{AnySyncMessageLikeEvent, AnySyncTimelineEvent, SyncMessageLikeEvent};
         use serde_json::to_value as to_json_value;
 
         use super::JoinedRoom;
