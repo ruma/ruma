@@ -12,7 +12,8 @@ error[E0080]: evaluation panicked: no endpoint paths supplied
 note: inside `VersionHistory::new`
   --> $RUST/core/src/panic.rs
    |
-   = note: the failure occurred here
+   |         $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
    |
   ::: src/api/path_builder.rs
    |
@@ -45,7 +46,8 @@ note: inside `VersionHistory::new`
 note: inside `VersionHistory::new::check_path_args_equal`
   --> $RUST/core/src/panic.rs
    |
-   = note: the failure occurred here
+   |         $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
    |
   ::: src/api/path_builder.rs
    |
@@ -78,7 +80,8 @@ note: inside `VersionHistory::new`
 note: inside `VersionHistory::new::check_path_args_equal`
   --> $RUST/core/src/panic.rs
    |
-   = note: the failure occurred here
+   |         $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
    |
   ::: src/api/path_builder.rs
    |
@@ -105,7 +108,8 @@ error[E0080]: evaluation panicked: defined deprecated version while no stable pa
 note: inside `VersionHistory::new`
   --> $RUST/core/src/panic.rs
    |
-   = note: the failure occurred here
+   |         $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
    |
   ::: src/api/path_builder.rs
    |
@@ -132,7 +136,8 @@ error[E0080]: evaluation panicked: deprecated version is equal to latest stable 
 note: inside `VersionHistory::new`
   --> $RUST/core/src/panic.rs
    |
-   = note: the failure occurred here
+   |         $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
    |
   ::: src/api/path_builder.rs
    |
@@ -159,7 +164,8 @@ error[E0080]: evaluation panicked: defined removed version while no deprecated v
 note: inside `VersionHistory::new`
   --> $RUST/core/src/panic.rs
    |
-   = note: the failure occurred here
+   |         $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
    |
   ::: src/api/path_builder.rs
    |
@@ -186,7 +192,8 @@ error[E0080]: evaluation panicked: removed version is equal to deprecated versio
 note: inside `VersionHistory::new`
    --> $RUST/core/src/panic.rs
     |
-    = note: the failure occurred here
+    |         $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
     |
    ::: src/api/path_builder.rs
     |
@@ -213,7 +220,8 @@ error[E0080]: evaluation panicked: duplicate matrix version in stable paths
 note: inside `VersionHistory::new`
    --> $RUST/core/src/panic.rs
     |
-    = note: the failure occurred here
+    |         $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
     |
    ::: src/api/path_builder.rs
     |
@@ -240,7 +248,8 @@ error[E0080]: evaluation panicked: stable paths are not in ascending order
 note: inside `VersionHistory::new`
    --> $RUST/core/src/panic.rs
     |
-    = note: the failure occurred here
+    |         $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
     |
    ::: src/api/path_builder.rs
     |

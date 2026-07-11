@@ -10,14 +10,16 @@ pub mod v2 {
     use js_int::UInt;
     use ruma_common::{
         OwnedClientSecret, OwnedSessionId,
-        api::{auth_scheme::AccessToken, request, response},
+        api::{request, response},
         metadata,
     };
+
+    use crate::IdentityServiceToken;
 
     metadata! {
         method: POST,
         rate_limited: false,
-        authentication: AccessToken,
+        authentication: IdentityServiceToken,
         history: {
             1.0 => "/_matrix/identity/v2/validate/email/requestToken",
         }

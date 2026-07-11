@@ -22,6 +22,7 @@ js_int = { workspace = true, features = ["serde"] }
 ruma-common = { workspace = true, features = ["api"] }
 ruma-events = { workspace = true }
 serde = { workspace = true }
+http = { workspace = true }
 
 [lints]
 workspace = true
