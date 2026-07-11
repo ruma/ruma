@@ -394,8 +394,9 @@ impl Body {
                 // A response always returns a JSON body.
                 MacroKind::Response => quote! { #ruma_common::serde::slice_to_buf(b"{}") },
             },
-            BodyFields::JsonFields(_) => self.expand_serialize_json(kind, ruma_common),
-            BodyFields::JsonAll(_) => self.expand_serialize_json(kind, ruma_common),
+            BodyFields::JsonFields(_) | BodyFields::JsonAll(_) => {
+                self.expand_serialize_json(kind, ruma_common)
+            }
             BodyFields::Raw(field) => {
                 let ident = field.ident();
                 quote! { #ruma_common::serde::slice_to_buf(&#ident) }
