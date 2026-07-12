@@ -68,7 +68,7 @@ impl Request {
                         &mut #request,
                         authentication_input
                     )
-                        .map_err(|error| #ruma_common::api::error::IntoHttpError::Authentication(error.into()))?;
+                        .map_err(#ruma_common::api::error::IntoHttpError::authentication)?;
 
                     Ok(#request)
                 }

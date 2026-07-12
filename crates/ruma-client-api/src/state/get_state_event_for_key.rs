@@ -148,9 +148,8 @@ pub mod v3 {
                 )?)
                 .body(T::default())?;
 
-            Self::Authentication::add_authentication(&mut http_request, access_token).map_err(
-                |error| ruma_common::api::error::IntoHttpError::Authentication(error.into()),
-            )?;
+            Self::Authentication::add_authentication(&mut http_request, access_token)
+                .map_err(ruma_common::api::error::IntoHttpError::authentication)?;
 
             Ok(http_request)
         }

@@ -235,6 +235,15 @@ pub enum IntoHttpError {
     Http(#[from] http::Error),
 }
 
+impl IntoHttpError {
+    /// Construct an [`Authentication`](Self::Authentication) error from the given underlying error.
+    pub fn authentication(
+        error: impl Into<Box<dyn std::error::Error + Send + Sync + 'static>>,
+    ) -> Self {
+        Self::Authentication(error.into())
+    }
+}
+
 impl From<http::header::InvalidHeaderValue> for IntoHttpError {
     fn from(value: http::header::InvalidHeaderValue) -> Self {
         Self::Header(value.into())
