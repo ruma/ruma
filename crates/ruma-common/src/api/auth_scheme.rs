@@ -34,7 +34,7 @@ pub trait AuthScheme: Sized {
     ///
     /// Returns an error if the endpoint requires authentication but the request doesn't provide it,
     /// or if the output fails to deserialize to the proper format.
-    fn extract_authentication<T: AsRef<[u8]>>(
+    fn extract_authentication<T>(
         request: &http::Request<T>,
     ) -> Result<Self::Output, Self::ExtractAuthenticationError>;
 }
@@ -57,7 +57,7 @@ impl AuthScheme for NoAuthentication {
     }
 
     /// Since this endpoint doesn't expect any authentication, this is a noop.
-    fn extract_authentication<T: AsRef<[u8]>>(
+    fn extract_authentication<T>(
         _request: &http::Request<T>,
     ) -> Result<(), Self::ExtractAuthenticationError> {
         Ok(())
@@ -89,7 +89,7 @@ impl AuthScheme for NoAccessToken {
     }
 
     /// Since this endpoint doesn't expect any authentication, this is a noop.
-    fn extract_authentication<T: AsRef<[u8]>>(
+    fn extract_authentication<T>(
         _request: &http::Request<T>,
     ) -> Result<(), Self::ExtractAuthenticationError> {
         Ok(())
@@ -120,7 +120,7 @@ impl AuthScheme for AccessToken {
         Ok(add_access_token_as_authorization_header(request.headers_mut(), token)?)
     }
 
-    fn extract_authentication<T: AsRef<[u8]>>(
+    fn extract_authentication<T>(
         request: &http::Request<T>,
     ) -> Result<String, Self::ExtractAuthenticationError> {
         extract_bearer_or_query_token(request)?.ok_or(ExtractTokenError::MissingAccessToken)
@@ -152,7 +152,7 @@ impl AuthScheme for AccessTokenOptional {
         Ok(())
     }
 
-    fn extract_authentication<T: AsRef<[u8]>>(
+    fn extract_authentication<T>(
         request: &http::Request<T>,
     ) -> Result<Option<String>, Self::ExtractAuthenticationError> {
         extract_bearer_or_query_token(request)
@@ -184,7 +184,7 @@ impl AuthScheme for AppserviceToken {
         Ok(add_access_token_as_authorization_header(request.headers_mut(), token)?)
     }
 
-    fn extract_authentication<T: AsRef<[u8]>>(
+    fn extract_authentication<T>(
         request: &http::Request<T>,
     ) -> Result<String, Self::ExtractAuthenticationError> {
         extract_bearer_or_query_token(request)?.ok_or(ExtractTokenError::MissingAccessToken)
@@ -217,7 +217,7 @@ impl AuthScheme for AppserviceTokenOptional {
         Ok(())
     }
 
-    fn extract_authentication<T: AsRef<[u8]>>(
+    fn extract_authentication<T>(
         request: &http::Request<T>,
     ) -> Result<Option<String>, Self::ExtractAuthenticationError> {
         extract_bearer_or_query_token(request)
