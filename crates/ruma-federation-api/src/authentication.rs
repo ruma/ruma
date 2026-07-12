@@ -39,7 +39,7 @@ impl AuthScheme for ServerSignatures {
         Ok(())
     }
 
-    fn extract_authentication<T: AsRef<[u8]>>(
+    fn extract_authentication<T>(
         request: &http::Request<T>,
     ) -> Result<Self::Output, Self::ExtractAuthenticationError> {
         let value = request
