@@ -7,6 +7,8 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#post_matrixclientv3logoutall
 
+    #[cfg(feature = "client")]
+    use ruma_common::api::EmptyBody;
     use ruma_common::{
         api::{auth_scheme::AccessToken, error::Error, response},
         metadata,
@@ -36,24 +38,21 @@ pub mod v3 {
 
     #[cfg(feature = "client")]
     impl ruma_common::api::OutgoingRequest for Request {
+        type Body = EmptyBody;
         type EndpointError = Error;
         type IncomingResponse = Response;
 
-        fn try_into_http_request<T: Default + bytes::BufMut + AsRef<[u8]>>(
+        fn try_into_http_request_inner(
             self,
             base_url: &str,
-            access_token: ruma_common::api::auth_scheme::SendAccessToken<'_>,
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
-        ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
-            use ruma_common::api::{Metadata, auth_scheme::AuthScheme};
+        ) -> Result<http::Request<EmptyBody>, ruma_common::api::error::IntoHttpError> {
+            use ruma_common::api::Metadata;
 
             let url = Self::make_endpoint_url(considering, base_url, &[], "")?;
 
-            let mut http_request =
-                http::Request::builder().method(Self::METHOD).uri(url).body(T::default())?;
-
-            Self::Authentication::add_authentication(&mut http_request, access_token)
-                .map_err(ruma_common::api::error::IntoHttpError::authentication)?;
+            let http_request =
+                http::Request::builder().method(Self::METHOD).uri(url).body(EmptyBody)?;
 
             Ok(http_request)
         }

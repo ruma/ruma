@@ -83,7 +83,7 @@ pub mod unstable_v2 {
         use std::borrow::Cow;
 
         use ruma_common::api::{
-            MatrixVersion, OutgoingRequest, SupportedVersions, auth_scheme::SendAccessToken,
+            MatrixVersion, OutgoingRequestExt as _, SupportedVersions, auth_scheme::SendAccessToken,
         };
         use serde_json::{Value as JsonValue, json};
 

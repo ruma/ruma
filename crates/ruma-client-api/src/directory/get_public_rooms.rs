@@ -91,7 +91,7 @@ pub mod v3 {
 
             use ruma_common::{
                 api::{
-                    MatrixVersion, OutgoingRequest as _, SupportedVersions,
+                    MatrixVersion, OutgoingRequestExt as _, SupportedVersions,
                     auth_scheme::SendAccessToken,
                 },
                 owned_server_name,

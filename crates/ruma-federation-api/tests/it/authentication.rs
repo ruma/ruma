@@ -3,7 +3,7 @@
 use js_int::uint;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch,
-    api::{OutgoingRequest, auth_scheme::AuthScheme},
+    api::{OutgoingRequestExt as _, auth_scheme::AuthScheme},
     owned_server_name,
     serde::Base64,
     server_name,

@@ -15,6 +15,7 @@
 use std::{convert::TryInto as _, error::Error as StdError};
 
 use bytes::BufMut;
+pub use ruma_macros::OutgoingBodyJson;
 /// Generates [`OutgoingRequest`] and [`IncomingRequest`] implementations.
 ///
 /// The `OutgoingRequest` impl is feature-gated behind `cfg(feature = "client")`.
@@ -253,20 +254,55 @@ pub use crate::metadata;
 use crate::{DeviceId, UserId};
 
 pub mod auth_scheme;
+mod body;
 pub mod error;
 mod metadata;
 pub mod path_builder;
 
-pub use self::metadata::{FeatureFlag, MatrixVersion, Metadata, SupportedVersions};
+pub use self::{
+    body::{BytesBody, EmptyBody, OutgoingBody},
+    metadata::{FeatureFlag, MatrixVersion, Metadata, SupportedVersions},
+};
 
 /// A request type for a Matrix API endpoint, used for sending requests.
 pub trait OutgoingRequest: Metadata + Clone {
+    /// HTTP body type pre-serialization.
+    type Body: OutgoingBody;
+
     /// A type capturing the expected error conditions the server can return.
     type EndpointError: EndpointError;
 
     /// Response type returned when the request is successful.
     type IncomingResponse: IncomingResponse<EndpointError = Self::EndpointError>;
 
+    /// Tries to convert this request into an `http::Request`.
+    ///
+    /// The endpoints path will be appended to the given `base_url`, for example
+    /// `https://matrix.org`. Since all paths begin with a slash, it is not necessary for the
+    /// `base_url` to have a trailing slash. If it has one however, it will be ignored.
+    ///
+    /// ## Errors
+    ///
+    /// This method can return an error in the following cases:
+    ///
+    /// * On endpoints that have several versions for the path, when there are no supported versions
+    ///   for the endpoint, i.e. when [`PathBuilder::make_endpoint_url()`] returns an error.
+    /// * If the request serialization fails, which should only happen in case of bugs in Ruma.
+    ///
+    /// [`AuthScheme::add_authentication()`]: auth_scheme::AuthScheme::add_authentication
+    /// [`PathBuilder::make_endpoint_url()`]: path_builder::PathBuilder::make_endpoint_url
+    fn try_into_http_request_inner(
+        self,
+        base_url: &str,
+        path_builder_input: <Self::PathBuilder as path_builder::PathBuilder>::Input<'_>,
+    ) -> Result<http::Request<Self::Body>, IntoHttpError>;
+}
+
+/// Convenience functionality on top of [`OutgoingRequest`].
+pub trait OutgoingRequestExt: OutgoingRequest
+where
+    IntoHttpError: From<<Self::Body as OutgoingBody>::Error>,
+{
     /// Tries to convert this request into an `http::Request`.
     ///
     /// The endpoints path will be appended to the given `base_url`, for example
@@ -290,7 +326,24 @@ pub trait OutgoingRequest: Metadata + Clone {
         base_url: &str,
         authentication_input: <Self::Authentication as auth_scheme::AuthScheme>::Input<'_>,
         path_builder_input: <Self::PathBuilder as path_builder::PathBuilder>::Input<'_>,
-    ) -> Result<http::Request<T>, IntoHttpError>;
+    ) -> Result<http::Request<T>, IntoHttpError> {
+        let (parts, body) =
+            self.try_into_http_request_inner(base_url, path_builder_input)?.into_parts();
+        let mut request = http::Request::from_parts(parts, body.try_into_buf()?);
+
+        <Self::Authentication as auth_scheme::AuthScheme>::add_authentication(
+            &mut request,
+            authentication_input,
+        )
+        .map_err(IntoHttpError::authentication)?;
+
+        Ok(request)
+    }
+}
+
+impl<T: OutgoingRequest> OutgoingRequestExt for T where
+    IntoHttpError: From<<Self::Body as OutgoingBody>::Error>
+{
 }
 
 /// A response type for a Matrix API endpoint, used for receiving responses.
@@ -311,6 +364,7 @@ pub trait IncomingResponse: Sized {
 /// these methods with the Client-Server API.
 pub trait OutgoingRequestAppserviceExt: OutgoingRequest
 where
+    IntoHttpError: From<<Self::Body as OutgoingBody>::Error>,
     for<'a> Self::Authentication:
         auth_scheme::AuthScheme<Input<'a> = auth_scheme::SendAccessToken<'a>>,
 {
@@ -332,9 +386,11 @@ where
     }
 }
 
-impl<T: OutgoingRequest> OutgoingRequestAppserviceExt for T where
+impl<T: OutgoingRequest> OutgoingRequestAppserviceExt for T
+where
+    IntoHttpError: From<<Self::Body as OutgoingBody>::Error>,
     for<'a> Self::Authentication:
-        auth_scheme::AuthScheme<Input<'a> = auth_scheme::SendAccessToken<'a>>
+        auth_scheme::AuthScheme<Input<'a> = auth_scheme::SendAccessToken<'a>>,
 {
 }
 

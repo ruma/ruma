@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- `OutgoingRequest::try_into_http_request` has been moved to a new `OutgoingRequestExt` trait
+  that is automatically implemented for any `T: OutgoingRequest`
+  - Implementors of `OutgoingRequest` now instead have to provide the new `type Body`
+    and `fn try_into_http_request_inner`
+
 Bug fixes:
 
 - Add `StatusProfileField::new()` and `CallProfileField::new()` constructors for MSC4426

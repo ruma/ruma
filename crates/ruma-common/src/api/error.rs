@@ -244,6 +244,12 @@ impl IntoHttpError {
     }
 }
 
+impl From<std::convert::Infallible> for IntoHttpError {
+    fn from(value: std::convert::Infallible) -> Self {
+        match value {}
+    }
+}
+
 impl From<http::header::InvalidHeaderValue> for IntoHttpError {
     fn from(value: http::header::InvalidHeaderValue) -> Self {
         Self::Header(value.into())

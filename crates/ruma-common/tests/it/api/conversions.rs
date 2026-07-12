@@ -6,8 +6,8 @@ use http::header::CONTENT_TYPE;
 use ruma_common::{
     OwnedUserId,
     api::{
-        AppserviceUserIdentity, IncomingRequest as _, MatrixVersion, OutgoingRequest as _,
-        OutgoingRequestAppserviceExt, SupportedVersions,
+        AppserviceUserIdentity, IncomingRequest as _, MatrixVersion, OutgoingRequestAppserviceExt,
+        OutgoingRequestExt as _, SupportedVersions,
         auth_scheme::{NoAccessToken, SendAccessToken},
         request, response,
     },

@@ -10,12 +10,13 @@ use http::{header::CONTENT_TYPE, method::Method};
 use ruma_common::{
     OwnedRoomAliasId, OwnedRoomId,
     api::{
-        EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata, OutgoingRequest,
-        OutgoingResponse, SupportedVersions,
+        EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata, OutgoingBody,
+        OutgoingRequest, OutgoingResponse, SupportedVersions,
         auth_scheme::NoAuthentication,
         error::{Error, FromHttpRequestError, FromHttpResponseError, IntoHttpError},
         path_builder::{StablePathSelector, VersionHistory},
     },
+    serde::json_to_buf,
 };
 use serde::{Deserialize, Serialize};
 
@@ -58,15 +59,15 @@ impl Metadata for Request {
 }
 
 impl OutgoingRequest for Request {
+    type Body = RequestBody;
     type EndpointError = Error;
     type IncomingResponse = Response;
 
-    fn try_into_http_request<T: Default + BufMut>(
+    fn try_into_http_request_inner(
         self,
         base_url: &str,
-        _input: (),
         considering: Cow<'_, SupportedVersions>,
-    ) -> Result<http::Request<T>, IntoHttpError> {
+    ) -> Result<http::Request<RequestBody>, IntoHttpError> {
         let url = Self::make_endpoint_url(considering, base_url, &[&self.room_alias], "")?;
 
         let request_body = RequestBody { room_id: self.room_id };
@@ -74,7 +75,7 @@ impl OutgoingRequest for Request {
         let http_request = http::Request::builder()
             .method(Self::METHOD)
             .uri(url)
-            .body(ruma_common::serde::json_to_buf(&request_body)?)
+            .body(request_body)
             // this cannot fail because we don't give user-supplied data to any of the
             // builder methods
             .unwrap();
@@ -111,8 +112,16 @@ impl IncomingRequest for Request {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct RequestBody {
+pub struct RequestBody {
     room_id: OwnedRoomId,
+}
+
+impl OutgoingBody for RequestBody {
+    type Error = serde_json::Error;
+
+    fn try_into_buf<T: Default + BufMut + AsRef<[u8]>>(self) -> serde_json::Result<T> {
+        json_to_buf(&self)
+    }
 }
 
 /// The response to a request to create a new room alias.

@@ -10,7 +10,7 @@ pub mod unstable_msc4108 {
 
     use http::header::{CONTENT_TYPE, ETAG, EXPIRES, LAST_MODIFIED};
     #[cfg(feature = "client")]
-    use ruma_common::api::error::FromHttpResponseError;
+    use ruma_common::api::{BytesBody, error::FromHttpResponseError};
     use ruma_common::{
         api::{
             auth_scheme::NoAccessToken,
@@ -41,28 +41,27 @@ pub mod unstable_msc4108 {
 
     #[cfg(feature = "client")]
     impl ruma_common::api::OutgoingRequest for Request {
+        type Body = BytesBody;
         type EndpointError = Error;
         type IncomingResponse = Response;
 
-        fn try_into_http_request<T: Default + bytes::BufMut>(
+        fn try_into_http_request_inner(
             self,
             base_url: &str,
-            _: ruma_common::api::auth_scheme::SendAccessToken<'_>,
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
-        ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
+        ) -> Result<http::Request<BytesBody>, ruma_common::api::error::IntoHttpError> {
             use http::header::CONTENT_LENGTH;
             use ruma_common::api::Metadata;
 
             let url = Self::make_endpoint_url(considering, base_url, &[], "")?;
-            let body = self.content.as_bytes();
-            let content_length = body.len();
+            let content_length = self.content.len();
 
             Ok(http::Request::builder()
                 .method(Self::METHOD)
                 .uri(url)
                 .header(CONTENT_TYPE, "text/plain")
                 .header(CONTENT_LENGTH, content_length)
-                .body(ruma_common::serde::slice_to_buf(body))?)
+                .body(BytesBody(self.content.into()))?)
         }
     }
 

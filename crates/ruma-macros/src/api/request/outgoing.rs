@@ -10,8 +10,12 @@ use crate::{
 impl Request {
     /// Generate the `ruma_common::api::OutgoingRequest` implementation for this request struct.
     pub fn expand_outgoing(&self, ruma_common: &RumaCommon) -> TokenStream {
-        let bytes = ruma_common.reexported(RumaCommonReexport::Bytes);
         let http = ruma_common.reexported(RumaCommonReexport::Http);
+
+        let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
+        let ident = &self.ident;
+        let error_ty = &self.error_ty;
+        let request = KIND.as_variable_ident();
 
         let path_fields = self.path.expand_fields();
         let path_idents = self.path.0.iter().map(|field| field.ident());
@@ -22,27 +26,23 @@ impl Request {
         let headers_serialize = self.headers.expand_serialize(KIND, &self.body, ruma_common, &http);
         let headers_fields = self.headers.expand_fields();
 
-        let body_serialize = self.body.expand_serialize(KIND, ruma_common);
+        let body_type = self.body.type_name(KIND, ruma_common, ident);
+        let body_expr = self.body.body_expr(KIND, ruma_common);
         let body_fields = self.body.expand_fields();
-
-        let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
-        let ident = &self.ident;
-        let error_ty = &self.error_ty;
-        let request = KIND.as_variable_ident();
 
         quote! {
             #[automatically_derived]
             #[cfg(feature = "client")]
             impl #impl_generics #ruma_common::api::OutgoingRequest for #ident #ty_generics #where_clause {
+                type Body = #body_type;
                 type EndpointError = #error_ty;
                 type IncomingResponse = Response;
 
-                fn try_into_http_request<T: ::std::default::Default + #bytes::BufMut + ::std::convert::AsRef<[::std::primitive::u8]>>(
+                fn try_into_http_request_inner(
                     self,
                     base_url: &::std::primitive::str,
-                    authentication_input: <<Self as #ruma_common::api::Metadata>::Authentication as #ruma_common::api::auth_scheme::AuthScheme>::Input<'_>,
                     path_builder_input: <<Self as #ruma_common::api::Metadata>::PathBuilder as #ruma_common::api::path_builder::PathBuilder>::Input<'_>,
-                ) -> ::std::result::Result<#http::Request<T>, #ruma_common::api::error::IntoHttpError> {
+                ) -> ::std::result::Result<#http::Request<Self::Body>, #ruma_common::api::error::IntoHttpError> {
                     let Self {
                         #path_fields
                         #query_fields
@@ -60,15 +60,9 @@ impl Request {
                             &[ #( &#path_idents ),* ],
                             &request_query_string,
                         )?)
-                        .body(#body_serialize)?;
+                        .body(#body_expr)?;
 
                     #headers_serialize
-
-                    <<Self as #ruma_common::api::Metadata>::Authentication as #ruma_common::api::auth_scheme::AuthScheme>::add_authentication(
-                        &mut #request,
-                        authentication_input
-                    )
-                        .map_err(#ruma_common::api::error::IntoHttpError::authentication)?;
 
                     Ok(#request)
                 }

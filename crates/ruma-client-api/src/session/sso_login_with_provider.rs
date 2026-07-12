@@ -75,7 +75,7 @@ pub mod v3 {
         use std::borrow::Cow;
 
         use ruma_common::api::{
-            MatrixVersion, OutgoingRequest as _, SupportedVersions, auth_scheme::SendAccessToken,
+            MatrixVersion, OutgoingRequestExt as _, SupportedVersions, auth_scheme::SendAccessToken,
         };
 
         use super::Request;
