@@ -15,6 +15,8 @@ pub mod v3 {
 
     use std::marker::PhantomData;
 
+    #[cfg(feature = "client")]
+    use ruma_common::api::EmptyBody;
     use ruma_common::{
         OwnedUserId,
         api::{Metadata, auth_scheme::NoAccessToken, error::Error, path_builder::VersionHistory},
@@ -59,16 +61,16 @@ pub mod v3 {
 
     #[cfg(feature = "client")]
     impl ruma_common::api::OutgoingRequest for Request {
+        type Body = EmptyBody;
         type EndpointError = Error;
         type IncomingResponse = Response;
 
-        fn try_into_http_request<T: Default + bytes::BufMut + AsRef<[u8]>>(
+        fn try_into_http_request_inner(
             self,
             base_url: &str,
-            access_token: ruma_common::api::auth_scheme::SendAccessToken<'_>,
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
-        ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
-            use ruma_common::api::{auth_scheme::AuthScheme, path_builder::PathBuilder};
+        ) -> Result<http::Request<EmptyBody>, ruma_common::api::error::IntoHttpError> {
+            use ruma_common::api::path_builder::PathBuilder;
 
             use crate::profile::field_existed_before_extended_profiles;
 
@@ -83,10 +85,8 @@ pub mod v3 {
                 )?
             };
 
-            let mut http_request =
-                http::Request::builder().method(Self::METHOD).uri(url).body(T::default())?;
-
-            Self::Authentication::add_authentication(&mut http_request, access_token)?;
+            let http_request =
+                http::Request::builder().method(Self::METHOD).uri(url).body(EmptyBody)?;
 
             Ok(http_request)
         }
@@ -153,20 +153,17 @@ pub mod v3 {
 
     #[cfg(feature = "client")]
     impl<F: StaticProfileField> ruma_common::api::OutgoingRequest for RequestStatic<F> {
+        type Body = EmptyBody;
         type EndpointError = Error;
         type IncomingResponse = ResponseStatic<F>;
 
-        fn try_into_http_request<T: Default + bytes::BufMut + AsRef<[u8]>>(
+        fn try_into_http_request_inner(
             self,
             base_url: &str,
-            access_token: ruma_common::api::auth_scheme::SendAccessToken<'_>,
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
-        ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
-            Request::new(self.user_id, F::NAME.into()).try_into_http_request(
-                base_url,
-                access_token,
-                considering,
-            )
+        ) -> Result<http::Request<EmptyBody>, ruma_common::api::error::IntoHttpError> {
+            Request::new(self.user_id, F::NAME.into())
+                .try_into_http_request_inner(base_url, considering)
         }
     }
 
@@ -290,7 +287,9 @@ mod tests_client {
     fn serialize_request() {
         use std::borrow::Cow;
 
-        use ruma_common::api::{OutgoingRequest, SupportedVersions, auth_scheme::SendAccessToken};
+        use ruma_common::api::{
+            OutgoingRequestExt as _, SupportedVersions, auth_scheme::SendAccessToken,
+        };
 
         // Profile field that existed in Matrix 1.0.
         let avatar_url_request =

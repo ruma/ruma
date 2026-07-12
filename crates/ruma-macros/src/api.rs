@@ -5,6 +5,7 @@ use std::{env, fs, path::Path, sync::OnceLock};
 use proc_macro2::Span;
 use serde::{Deserialize, de::IgnoredAny};
 
+pub mod body;
 mod common;
 pub mod request;
 pub mod response;

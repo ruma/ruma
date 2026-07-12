@@ -605,7 +605,7 @@ mod tests {
     use js_int::uint;
     use ruma_common::{
         api::{
-            IncomingRequest, IncomingResponse, OutgoingRequest, OutgoingResponse,
+            IncomingRequest, IncomingResponse, OutgoingRequestExt as _, OutgoingResponse,
             SupportedVersions, auth_scheme::SendAccessToken,
         },
         event_id, room_id,

@@ -833,7 +833,7 @@ mod client_tests {
     use ruma_common::{
         RoomVersionId,
         api::{
-            IncomingResponse as _, MatrixVersion, OutgoingRequest as _, SupportedVersions,
+            IncomingResponse as _, MatrixVersion, OutgoingRequestExt as _, SupportedVersions,
             auth_scheme::SendAccessToken,
         },
         event_id, room_id, user_id,

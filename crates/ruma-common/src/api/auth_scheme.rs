@@ -110,7 +110,7 @@ impl AuthScheme for AccessToken {
     type Output = String;
     type ExtractAuthenticationError = ExtractTokenError;
 
-    fn add_authentication<T: AsRef<[u8]>>(
+    fn add_authentication<T>(
         request: &mut http::Request<T>,
         access_token: SendAccessToken<'_>,
     ) -> Result<(), Self::AddAuthenticationError> {

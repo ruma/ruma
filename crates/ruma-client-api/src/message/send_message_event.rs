@@ -152,7 +152,9 @@ mod tests {
     use std::borrow::Cow;
 
     use ruma_common::{
-        api::{MatrixVersion, OutgoingRequest, SupportedVersions, auth_scheme::SendAccessToken},
+        api::{
+            MatrixVersion, OutgoingRequestExt as _, SupportedVersions, auth_scheme::SendAccessToken,
+        },
         owned_room_id,
         serde::Raw,
     };

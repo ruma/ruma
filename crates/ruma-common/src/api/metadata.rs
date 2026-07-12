@@ -276,7 +276,7 @@ pub trait Metadata: Sized {
 ///
 /// Ruma keeps track of when endpoints are added, deprecated, and removed. It'll automatically
 /// select the right endpoint stability variation to use depending on which Matrix versions you
-/// pass to [`try_into_http_request`](super::OutgoingRequest::try_into_http_request), see its
+/// pass to [`try_into_http_request`](super::OutgoingRequestExt::try_into_http_request), see its
 /// respective documentation for more information.
 ///
 /// The `PartialOrd` and `Ord` implementations of this type sort the variants by release date. A

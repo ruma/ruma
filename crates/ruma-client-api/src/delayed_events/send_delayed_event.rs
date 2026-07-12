@@ -122,7 +122,8 @@ pub mod unstable {
 
         use ruma_common::{
             api::{
-                MatrixVersion, OutgoingRequest, SupportedVersions, auth_scheme::SendAccessToken,
+                MatrixVersion, OutgoingRequestExt as _, SupportedVersions,
+                auth_scheme::SendAccessToken,
             },
             owned_room_id,
         };

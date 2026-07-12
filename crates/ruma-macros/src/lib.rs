@@ -26,6 +26,7 @@ mod util;
 
 use self::{
     api::{
+        body::expand_derive_outgoing_body_json,
         request::{expand_derive_request, expand_request},
         response::{expand_derive_response, expand_response},
     },
@@ -798,6 +799,13 @@ pub fn derive_request(input: TokenStream) -> TokenStream {
 pub fn derive_response(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input);
     expand_derive_response(input).unwrap_or_else(syn::Error::into_compile_error).into()
+}
+
+/// Implement `OutgoingBody` in terms of `ruma_common::serde::json_to_buf`.
+#[proc_macro_derive(OutgoingBodyJson)]
+pub fn derive_outgoing_body_json(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input);
+    expand_derive_outgoing_body_json(input).into()
 }
 
 /// A derive macro that generates no code, but registers the ruma_api attribute so both

@@ -5,7 +5,7 @@ use std::borrow::Cow;
 use http::header::{CONTENT_TYPE, Entry, LOCATION};
 use ruma_common::{
     api::{
-        MatrixVersion, OutgoingRequest as _, OutgoingResponse as _, SupportedVersions,
+        MatrixVersion, OutgoingRequestExt as _, OutgoingResponse as _, SupportedVersions,
         auth_scheme::NoAuthentication, request, response,
     },
     metadata,

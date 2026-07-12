@@ -58,46 +58,52 @@ pub mod v3 {
         }
     }
 
+    #[doc(hidden)]
+    // attribute will go away when we update IncomingRequest to also use RequestBody
+    #[cfg_attr(not(feature = "client"), expect(dead_code))]
+    pub struct RequestBody(NewPushRule);
+
+    #[cfg(feature = "client")]
+    impl ruma_common::api::OutgoingBody for RequestBody {
+        type Error = serde_json::Error;
+
+        fn try_into_buf<T: Default + bytes::BufMut + AsRef<[u8]>>(self) -> serde_json::Result<T> {
+            match self.0 {
+                NewPushRule::Override(r) | NewPushRule::Underride(r) => {
+                    let body =
+                        ConditionalRequestBody { actions: r.actions, conditions: r.conditions };
+                    ruma_common::serde::json_to_buf(&body)
+                }
+                NewPushRule::Content(r) => {
+                    let body = PatternedRequestBody { actions: r.actions, pattern: r.pattern };
+                    ruma_common::serde::json_to_buf(&body)
+                }
+                NewPushRule::Room(r) => {
+                    let body = SimpleRequestBody { actions: r.actions };
+                    ruma_common::serde::json_to_buf(&body)
+                }
+                NewPushRule::Sender(r) => {
+                    let body = SimpleRequestBody { actions: r.actions };
+                    ruma_common::serde::json_to_buf(&body)
+                }
+                #[cfg(not(ruma_unstable_exhaustive_types))]
+                _ => unreachable!("variant added to NewPushRule not serializable to request body"),
+            }
+        }
+    }
+
     #[cfg(feature = "client")]
     impl ruma_common::api::OutgoingRequest for Request {
+        type Body = RequestBody;
         type EndpointError = Error;
         type IncomingResponse = Response;
 
-        fn try_into_http_request<T: Default + bytes::BufMut + AsRef<[u8]>>(
+        fn try_into_http_request_inner(
             self,
             base_url: &str,
-            access_token: ruma_common::api::auth_scheme::SendAccessToken<'_>,
             considering: std::borrow::Cow<'_, ruma_common::api::SupportedVersions>,
-        ) -> Result<http::Request<T>, ruma_common::api::error::IntoHttpError> {
-            use ruma_common::api::{Metadata, auth_scheme::AuthScheme};
-
-            fn serialize_rule<T: Default + bytes::BufMut>(
-                rule: NewPushRule,
-            ) -> serde_json::Result<T> {
-                match rule {
-                    NewPushRule::Override(r) | NewPushRule::Underride(r) => {
-                        let body =
-                            ConditionalRequestBody { actions: r.actions, conditions: r.conditions };
-                        ruma_common::serde::json_to_buf(&body)
-                    }
-                    NewPushRule::Content(r) => {
-                        let body = PatternedRequestBody { actions: r.actions, pattern: r.pattern };
-                        ruma_common::serde::json_to_buf(&body)
-                    }
-                    NewPushRule::Room(r) => {
-                        let body = SimpleRequestBody { actions: r.actions };
-                        ruma_common::serde::json_to_buf(&body)
-                    }
-                    NewPushRule::Sender(r) => {
-                        let body = SimpleRequestBody { actions: r.actions };
-                        ruma_common::serde::json_to_buf(&body)
-                    }
-                    #[cfg(not(ruma_unstable_exhaustive_types))]
-                    _ => unreachable!(
-                        "variant added to NewPushRule not serializable to request body"
-                    ),
-                }
-            }
+        ) -> Result<http::Request<RequestBody>, ruma_common::api::error::IntoHttpError> {
+            use ruma_common::api::Metadata;
 
             let query_string = serde_html_form::to_string(RequestQuery {
                 before: self.before,
@@ -111,14 +117,11 @@ pub mod v3 {
                 &query_string,
             )?;
 
-            let mut http_request = http::Request::builder()
+            let http_request = http::Request::builder()
                 .method(Self::METHOD)
                 .uri(url)
                 .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
-                .body(serialize_rule(self.rule)?)?;
-
-            Self::Authentication::add_authentication(&mut http_request, access_token)
-                .map_err(ruma_common::api::error::IntoHttpError::authentication)?;
+                .body(RequestBody(self.rule))?;
 
             Ok(http_request)
         }

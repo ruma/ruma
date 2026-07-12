@@ -178,7 +178,7 @@ pub mod v3 {
         use js_int::uint;
         use ruma_common::{
             api::{
-                Direction, MatrixVersion, OutgoingRequest, SupportedVersions,
+                Direction, MatrixVersion, OutgoingRequestExt as _, SupportedVersions,
                 auth_scheme::SendAccessToken,
             },
             owned_room_id,
