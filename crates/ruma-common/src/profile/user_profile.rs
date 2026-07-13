@@ -44,17 +44,16 @@ impl UserProfile {
         self.0.insert(field, value);
     }
 
-    /// Merges a profile that contains updates (such as from a sync response) with this
-    /// profile.
-    ///
-    /// This operation preserves omitted values and removes null values.
+    /// Applies the changes from a [`UserProfileUpdate`] to this profile.
     #[cfg(feature = "unstable-msc4262")]
-    pub fn merge(&mut self, profile_update: UserProfileUpdate) {
-        for (field, value) in profile_update {
-            if value.is_null() {
-                self.0.remove(&field);
-            } else {
-                self.0.insert(field, value);
+    pub fn apply(&mut self, profile_update: UserProfileUpdate) {
+        for (field, value) in profile_update.updated {
+            self.0.insert(field.to_string(), value);
+        }
+
+        if let Some(removed) = profile_update.removed {
+            for field in removed {
+                self.0.remove(field.as_str());
             }
         }
     }
@@ -108,18 +107,18 @@ impl IntoIterator for UserProfile {
 #[cfg(test)]
 #[cfg(all(feature = "unstable-msc4262", feature = "unstable-msc4426"))]
 mod tests {
-    use serde_json::{Value as JsonValue, json};
+    use serde_json::json;
 
     use crate::{
         owned_mxc_uri,
         profile::{
-            AvatarUrl, Call, CallProfileField, DisplayName, ProfileFieldValue, Status,
-            StatusProfileField, UserProfile, UserProfileUpdate,
+            AvatarUrl, Call, CallProfileField, DisplayName, ProfileFieldName, ProfileFieldValue,
+            Status, StatusProfileField, UserProfile, UserProfileUpdate,
         },
     };
 
     #[test]
-    fn merge_profile() {
+    fn apply_profile_update() {
         let mut profile = UserProfile::from_iter([
             ProfileFieldValue::DisplayName("Alice".to_owned()),
             ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef")),
@@ -129,13 +128,14 @@ mod tests {
             }),
         ]);
 
-        let profile_update = UserProfileUpdate::from_iter([
-            ("avatar_url".to_owned(), JsonValue::Null),
-            ("org.matrix.msc4426.status".to_owned(), json!({ "text": "Holiday", "emoji": "🏖️"})),
-            ("org.matrix.msc4426.call".to_owned(), json!({})),
-        ]);
+        let mut profile_update = UserProfileUpdate::new();
+        profile_update.removed = Some(vec![ProfileFieldName::AvatarUrl]);
+        profile_update
+            .updated
+            .insert(ProfileFieldName::Status, json!({ "text": "Holiday", "emoji": "🏖️"}));
+        profile_update.updated.insert(ProfileFieldName::Call, json!({}));
 
-        profile.merge(profile_update);
+        profile.apply(profile_update);
 
         assert_eq!(
             profile.get_static::<DisplayName>().unwrap().unwrap(),
