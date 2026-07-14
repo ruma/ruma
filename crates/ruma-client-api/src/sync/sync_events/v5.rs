@@ -1017,11 +1017,8 @@ pub mod response {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Profiles {
         /// Profile updates keyed by user ID.
-        ///
-        /// A value of `None` for a particular user is a signal to the client that they may stop
-        /// tracking this user, as they have left all shared rooms.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub users: BTreeMap<OwnedUserId, Option<UserProfileUpdate>>,
+        pub users: BTreeMap<OwnedUserId, UserProfileUpdate>,
     }
 
     #[cfg(feature = "unstable-msc4262")]

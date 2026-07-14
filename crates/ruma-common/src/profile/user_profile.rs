@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 #[cfg(feature = "unstable-msc4262")]
-use super::UserProfileUpdate;
+use super::UserProfileChanges;
 use super::{ProfileFieldName, ProfileFieldValue, static_profile_field::StaticProfileField};
 
 /// All the profile information for a user.
@@ -44,14 +44,14 @@ impl UserProfile {
         self.0.insert(field, value);
     }
 
-    /// Applies the changes from a [`UserProfileUpdate`] to this profile.
+    /// Applies the changes from a [`UserProfileChanges`] to this profile.
     #[cfg(feature = "unstable-msc4262")]
-    pub fn apply(&mut self, profile_update: UserProfileUpdate) {
-        for (field, value) in profile_update.updated {
+    pub fn apply(&mut self, changes: UserProfileChanges) {
+        for (field, value) in changes.updated {
             self.0.insert(field.to_string(), value);
         }
 
-        if let Some(removed) = profile_update.removed {
+        if let Some(removed) = changes.removed {
             for field in removed {
                 self.0.remove(field.as_str());
             }
@@ -113,7 +113,7 @@ mod tests {
         owned_mxc_uri,
         profile::{
             AvatarUrl, Call, CallProfileField, DisplayName, ProfileFieldName, ProfileFieldValue,
-            Status, StatusProfileField, UserProfile, UserProfileUpdate,
+            Status, StatusProfileField, UserProfile, UserProfileChanges,
         },
     };
 
@@ -128,7 +128,7 @@ mod tests {
             }),
         ]);
 
-        let mut profile_update = UserProfileUpdate::new();
+        let mut profile_update = UserProfileChanges::new();
         profile_update.removed = Some(vec![ProfileFieldName::AvatarUrl]);
         profile_update
             .updated
