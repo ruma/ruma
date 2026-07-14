@@ -45,7 +45,7 @@ uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "e5f4821410be
 url = { version = "2.5.0" }
 web-time = "1.1.0"
 wildmatch = "2.6.1"
-zeroize = "1.8.1"
+zeroize = "1.9.0"
 
 [workspace.lints.rust]
 rust_2018_idioms = { level = "warn", priority = -1 }
