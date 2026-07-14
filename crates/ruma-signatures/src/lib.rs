@@ -56,8 +56,8 @@
 //! signatures and hashes on an event, use the [`verify_event()`] function. See the documentation
 //! for these respective functions for more details and full examples of use.
 //!
-//! [canonical JSON]: https://spec.matrix.org/v1.18/appendices/#canonical-json
-//! [room version 6]: https://spec.matrix.org/v1.18/rooms/v6/
+//! [canonical JSON]: https://spec.matrix.org/v1.19/appendices/#canonical-json
+//! [room version 6]: https://spec.matrix.org/v1.19/rooms/v6/
 
 #![warn(missing_docs)]
 

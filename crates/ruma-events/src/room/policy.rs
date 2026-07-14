@@ -1,6 +1,6 @@
 //! Types for the [`m.room.policy`] event.
 //!
-//! [`m.room.policy`]: https://spec.matrix.org/v1.18/client-server-api/#mroompolicy
+//! [`m.room.policy`]: https://spec.matrix.org/v1.19/client-server-api/#mroompolicy
 
 use std::collections::BTreeMap;
 
@@ -19,8 +19,8 @@ pub const POLICY_SERVER_ED25519_SIGNING_KEY_ID: &str = "ed25519:policy_server";
 ///
 /// If invalid or not set, the room does not use a Policy Server.
 ///
-/// [`m.room.policy`]: https://spec.matrix.org/v1.18/client-server-api/#mroompolicy
-/// [Policy Server]: https://spec.matrix.org/v1.18/client-server-api/#policy-servers
+/// [`m.room.policy`]: https://spec.matrix.org/v1.19/client-server-api/#mroompolicy
+/// [Policy Server]: https://spec.matrix.org/v1.19/client-server-api/#policy-servers
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room.policy", kind = State, state_key_type = EmptyStateKey)]

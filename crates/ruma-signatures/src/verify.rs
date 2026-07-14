@@ -299,8 +299,8 @@ pub fn verify_canonical_json_bytes(
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 ///
-/// [signing]: https://spec.matrix.org/v1.18/appendices/#signing-details
-/// [canonical JSON]: https://spec.matrix.org/v1.18/appendices/#canonical-json
+/// [signing]: https://spec.matrix.org/v1.19/appendices/#signing-details
+/// [canonical JSON]: https://spec.matrix.org/v1.19/appendices/#canonical-json
 pub fn to_canonical_json_string_for_signing(
     object: &CanonicalJsonObject,
 ) -> Result<String, JsonError> {
@@ -325,7 +325,7 @@ pub fn to_canonical_json_string_for_signing(
 ///
 /// Returns an error if verification fails.
 ///
-/// [checking signatures]: https://spec.matrix.org/v1.18/appendices/#checking-for-a-signature
+/// [checking signatures]: https://spec.matrix.org/v1.19/appendices/#checking-for-a-signature
 fn verify_canonical_json_for_entity(
     entity_id: &str,
     fetch_public_keys: &impl FetchEntityPublicSigningKey,
@@ -415,7 +415,7 @@ where
 /// - For room versions that support restricted join rules, if it's a join event with a
 ///   `join_authorised_via_users_server`, add the server of that user.
 ///
-/// [validating signatures on received events]: https://spec.matrix.org/v1.18/server-server-api/#validating-hashes-and-signatures-on-received-events
+/// [validating signatures on received events]: https://spec.matrix.org/v1.19/server-server-api/#validating-hashes-and-signatures-on-received-events
 pub fn required_server_signatures_to_verify_event(
     object: &CanonicalJsonObject,
     rules: &SignaturesRules,

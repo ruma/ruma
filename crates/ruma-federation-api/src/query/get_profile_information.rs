@@ -5,7 +5,7 @@
 pub mod v1 {
     //! `/v1/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.18/server-server-api/#get_matrixfederationv1queryprofile
+    //! [spec]: https://spec.matrix.org/v1.19/server-server-api/#get_matrixfederationv1queryprofile
 
     use std::collections::btree_map;
 
