@@ -22,6 +22,7 @@ Improvements:
   Matrix v1.16 in its `/versions` response.
 - Add unstable support for [MSC4354](https://github.com/matrix-org/matrix-spec-proposals/pull/4354) Sticky Events behind the `unstable-msc4354` feature flag.
   Adds a `sticky_duration_ms` query parameter to `send_message_event` / `send_state_event`.
+- Stabilize support for [MSC2666](https://github.com/matrix-org/matrix-spec-proposals/pull/2666) (Get rooms in common with another user).
 
 ## 0.24.0
 
