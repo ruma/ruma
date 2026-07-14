@@ -27,7 +27,7 @@ use crate::room_version_rules::RoomVersionRules;
 /// string representations, which have no special meaning. To check the compatibility between
 /// room versions, one should use the [`RoomVersionRules`] instead.
 ///
-/// [room version]: https://spec.matrix.org/v1.18/rooms/
+/// [room version]: https://spec.matrix.org/v1.19/rooms/
 #[derive(Clone, Debug, PartialEq, Eq, Hash, DisplayAsRefStr)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum RoomVersionId {

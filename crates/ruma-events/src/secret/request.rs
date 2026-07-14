@@ -1,6 +1,6 @@
 //! Types for the [`m.secret.request`] event.
 //!
-//! [`m.secret.request`]: https://spec.matrix.org/v1.18/client-server-api/#msecretrequest
+//! [`m.secret.request`]: https://spec.matrix.org/v1.19/client-server-api/#msecretrequest
 
 use as_variant::as_variant;
 use ruma_common::{

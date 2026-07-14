@@ -1,6 +1,6 @@
 //! Types for the [`m.secret.send`] event.
 //!
-//! [`m.secret.send`]: https://spec.matrix.org/v1.18/client-server-api/#msecretsend
+//! [`m.secret.send`]: https://spec.matrix.org/v1.19/client-server-api/#msecretsend
 
 use std::fmt;
 
