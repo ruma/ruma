@@ -13,6 +13,7 @@ Improvements:
 - Add `M_CONCURRENT_WRITE` error code, used by [MSC4438].
 - Add `canonical_json::RedactingSerializer` to serialize a `CanonicalJsonObject`
   while redacting it on the fly.
+- Add `MatrixVersion::V1_19`.
 
 [MSC4438]: https://github.com/matrix-org/matrix-spec-proposals/pull/4438
 
