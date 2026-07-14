@@ -81,7 +81,7 @@ impl SpecLink {
     const URL_PREFIX: &str = "https://spec.matrix.org/";
 
     /// The version that spec links should use.
-    const PREFERRED_VERSION: &str = "v1.18";
+    const PREFERRED_VERSION: &str = "v1.19";
 
     /// URLs that are allowed to use a different spec version than
     /// [`PREFERRED_VERSION`](Self::PREFERRED_VERSION).

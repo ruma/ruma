@@ -207,7 +207,7 @@ impl From<ThreadSubscriptionConditionData> for PushCondition {
 pub struct EventMatchConditionData {
     /// The [dot-separated path] of the property of the event to match.
     ///
-    /// [dot-separated path]: https://spec.matrix.org/v1.18/appendices/#dot-separated-property-paths
+    /// [dot-separated path]: https://spec.matrix.org/v1.19/appendices/#dot-separated-property-paths
     pub key: String,
 
     /// The glob-style pattern to match against.
@@ -375,7 +375,7 @@ impl RoomVersionFeature {
 pub struct EventPropertyIsConditionData {
     /// The [dot-separated path] of the property of the event to match.
     ///
-    /// [dot-separated path]: https://spec.matrix.org/v1.18/appendices/#dot-separated-property-paths
+    /// [dot-separated path]: https://spec.matrix.org/v1.19/appendices/#dot-separated-property-paths
     pub key: String,
 
     /// The value to match against.
@@ -404,7 +404,7 @@ impl EventPropertyIsConditionData {
 pub struct EventPropertyContainsConditionData {
     /// The [dot-separated path] of the property of the event to match.
     ///
-    /// [dot-separated path]: https://spec.matrix.org/v1.18/appendices/#dot-separated-property-paths
+    /// [dot-separated path]: https://spec.matrix.org/v1.19/appendices/#dot-separated-property-paths
     pub key: String,
 
     /// The value to match against.
@@ -1029,7 +1029,7 @@ mod tests {
         assert!(!"m".matches_word("[[:alpha:]]?"));
         assert!("[[:alpha:]]!".matches_word("[[:alpha:]]?"));
 
-        // From the spec: <https://spec.matrix.org/v1.18/client-server-api/#conditions-1>
+        // From the spec: <https://spec.matrix.org/v1.19/client-server-api/#conditions-1>
         assert!("An example event.".matches_word("ex*ple"));
         assert!("exple".matches_word("ex*ple"));
         assert!("An exciting triple-whammy".matches_word("ex*ple"));
@@ -1078,7 +1078,7 @@ mod tests {
         assert!("".matches_pattern("*", false));
         assert!(!"foo".matches_pattern("", false));
 
-        // From the spec: <https://spec.matrix.org/v1.18/client-server-api/#conditions-1>
+        // From the spec: <https://spec.matrix.org/v1.19/client-server-api/#conditions-1>
         assert!("Lunch plans".matches_pattern("lunc?*", false));
         assert!("LUNCH".matches_pattern("lunc?*", false));
         assert!(!" lunch".matches_pattern("lunc?*", false));

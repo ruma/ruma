@@ -219,7 +219,7 @@ where
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 ///
-/// [signature]: https://spec.matrix.org/v1.18/server-server-api/#signing-events
+/// [signature]: https://spec.matrix.org/v1.19/server-server-api/#signing-events
 pub fn sign_event<K>(
     entity_id: &str,
     key_pair: &K,

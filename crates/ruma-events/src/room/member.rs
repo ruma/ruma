@@ -1,6 +1,6 @@
 //! Types for the [`m.room.member`] event.
 //!
-//! [`m.room.member`]: https://spec.matrix.org/v1.18/client-server-api/#mroommember
+//! [`m.room.member`]: https://spec.matrix.org/v1.19/client-server-api/#mroommember
 
 use js_int::Int;
 #[cfg(feature = "unstable-msc4293")]
@@ -160,7 +160,7 @@ impl RoomMemberEventContent {
     ///
     /// Check [the specification][spec] for details.
     ///
-    /// [spec]: https://spec.matrix.org/v1.18/client-server-api/#mroommember
+    /// [spec]: https://spec.matrix.org/v1.19/client-server-api/#mroommember
     pub fn membership_change<'a>(
         &'a self,
         prev_details: Option<MembershipDetails<'a>>,
@@ -301,7 +301,7 @@ impl PossiblyRedactedRoomMemberEventContent {
     ///
     /// Check [the specification][spec] for details.
     ///
-    /// [spec]: https://spec.matrix.org/v1.18/client-server-api/#mroommember
+    /// [spec]: https://spec.matrix.org/v1.19/client-server-api/#mroommember
     pub fn membership_change<'a>(
         &'a self,
         prev_details: Option<MembershipDetails<'a>>,
@@ -450,7 +450,7 @@ impl RedactedRoomMemberEventContent {
     ///
     /// Check [the specification][spec] for details.
     ///
-    /// [spec]: https://spec.matrix.org/v1.18/client-server-api/#mroommember
+    /// [spec]: https://spec.matrix.org/v1.19/client-server-api/#mroommember
     pub fn membership_change<'a>(
         &'a self,
         prev_details: Option<MembershipDetails<'a>>,
@@ -680,7 +680,7 @@ impl OriginalRoomMemberEvent {
     ///
     /// Check [the specification][spec] for details.
     ///
-    /// [spec]: https://spec.matrix.org/v1.18/client-server-api/#mroommember
+    /// [spec]: https://spec.matrix.org/v1.19/client-server-api/#mroommember
     pub fn membership_change(&self) -> MembershipChange<'_> {
         membership_change(self.details(), self.prev_details(), &self.sender, &self.state_key)
     }
@@ -717,7 +717,7 @@ impl RedactedRoomMemberEvent {
     ///
     /// Check [the specification][spec] for details.
     ///
-    /// [spec]: https://spec.matrix.org/v1.18/client-server-api/#mroommember
+    /// [spec]: https://spec.matrix.org/v1.19/client-server-api/#mroommember
     pub fn membership_change<'a>(
         &'a self,
         prev_details: Option<MembershipDetails<'a>>,
@@ -763,7 +763,7 @@ impl OriginalSyncRoomMemberEvent {
     ///
     /// Check [the specification][spec] for details.
     ///
-    /// [spec]: https://spec.matrix.org/v1.18/client-server-api/#mroommember
+    /// [spec]: https://spec.matrix.org/v1.19/client-server-api/#mroommember
     pub fn membership_change(&self) -> MembershipChange<'_> {
         membership_change(self.details(), self.prev_details(), &self.sender, &self.state_key)
     }
@@ -800,7 +800,7 @@ impl RedactedSyncRoomMemberEvent {
     ///
     /// Check [the specification][spec] for details.
     ///
-    /// [spec]: https://spec.matrix.org/v1.18/client-server-api/#mroommember
+    /// [spec]: https://spec.matrix.org/v1.19/client-server-api/#mroommember
     pub fn membership_change<'a>(
         &'a self,
         prev_details: Option<MembershipDetails<'a>>,
@@ -839,7 +839,7 @@ impl StrippedRoomMemberEvent {
     ///
     /// Check [the specification][spec] for details.
     ///
-    /// [spec]: https://spec.matrix.org/v1.18/client-server-api/#mroommember
+    /// [spec]: https://spec.matrix.org/v1.19/client-server-api/#mroommember
     pub fn membership_change<'a>(
         &'a self,
         prev_details: Option<MembershipDetails<'a>>,
@@ -891,7 +891,7 @@ pub struct RoomMemberUnsigned {
 
     /// [Bundled aggregations] of related child events.
     ///
-    /// [Bundled aggregations]: https://spec.matrix.org/v1.18/client-server-api/#aggregations-of-child-events
+    /// [Bundled aggregations]: https://spec.matrix.org/v1.19/client-server-api/#aggregations-of-child-events
     #[serde(rename = "m.relations", default)]
     pub relations: BundledStateRelations,
 }

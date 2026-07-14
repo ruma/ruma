@@ -35,7 +35,7 @@ pub struct MessageLikeUnsigned<C: MessageLikeEventContent> {
 
     /// [Bundled aggregations] of related child events.
     ///
-    /// [Bundled aggregations]: https://spec.matrix.org/v1.18/client-server-api/#aggregations-of-child-events
+    /// [Bundled aggregations]: https://spec.matrix.org/v1.19/client-server-api/#aggregations-of-child-events
     #[serde(rename = "m.relations", default)]
     pub relations: BundledMessageLikeRelations<OriginalSyncMessageLikeEvent<C>>,
 
@@ -107,7 +107,7 @@ pub struct StateUnsigned<C: PossiblyRedactedStateEventContent> {
 
     /// [Bundled aggregations] of related child events.
     ///
-    /// [Bundled aggregations]: https://spec.matrix.org/v1.18/client-server-api/#aggregations-of-child-events
+    /// [Bundled aggregations]: https://spec.matrix.org/v1.19/client-server-api/#aggregations-of-child-events
     #[serde(rename = "m.relations", default)]
     pub relations: BundledStateRelations,
 

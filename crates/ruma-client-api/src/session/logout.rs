@@ -5,7 +5,7 @@
 pub mod v3 {
     //! `/v3/` ([spec])
     //!
-    //! [spec]: https://spec.matrix.org/v1.18/client-server-api/#post_matrixclientv3logout
+    //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#post_matrixclientv3logout
 
     use ruma_common::{
         api::{auth_scheme::AccessToken, error::Error, response},
