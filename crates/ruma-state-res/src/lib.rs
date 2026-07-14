@@ -57,11 +57,11 @@
 //! The types from ruma-events are still appropriate to be used to create a new event, or to
 //! validate an event received from a client.
 //!
-//! [canonical JSON]: https://spec.matrix.org/v1.18/appendices/#canonical-json
-//! [room version 6]: https://spec.matrix.org/v1.18/rooms/v6/
-//! [state-res-v1]: https://spec.matrix.org/v1.18/rooms/v1/#state-resolution
+//! [canonical JSON]: https://spec.matrix.org/v1.19/appendices/#canonical-json
+//! [room version 6]: https://spec.matrix.org/v1.19/rooms/v6/
+//! [state-res-v1]: https://spec.matrix.org/v1.19/rooms/v1/#state-resolution
 //! [ruma-signatures]: https://crates.io/crates/ruma-signatures
-//! [necessary checks on receipt of a PDU]: https://spec.matrix.org/v1.18/server-server-api/#checks-performed-on-receipt-of-a-pdu
+//! [necessary checks on receipt of a PDU]: https://spec.matrix.org/v1.19/server-server-api/#checks-performed-on-receipt-of-a-pdu
 //! [ruma-events]: https://crates.io/crates/ruma-events
 
 #![warn(missing_docs)]

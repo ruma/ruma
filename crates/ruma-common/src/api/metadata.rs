@@ -272,7 +272,7 @@ pub trait Metadata: Sized {
 /// Every new version denotes stable support for endpoints in a *relatively* backwards-compatible
 /// manner.
 ///
-/// Matrix has a deprecation policy, read more about it here: <https://spec.matrix.org/v1.18/#deprecation-policy>.
+/// Matrix has a deprecation policy, read more about it here: <https://spec.matrix.org/v1.19/#deprecation-policy>.
 ///
 /// Ruma keeps track of when endpoints are added, deprecated, and removed. It'll automatically
 /// select the right endpoint stability variation to use depending on which Matrix versions you
@@ -296,7 +296,7 @@ pub enum MatrixVersion {
     ///
     /// The other APIs are not supported because they do not have a `GET /versions` endpoint.
     ///
-    /// See <https://spec.matrix.org/v1.18/#legacy-versioning>.
+    /// See <https://spec.matrix.org/v1.19/#legacy-versioning>.
     V1_0,
 
     /// Version 1.1 of the Matrix specification, released in Q4 2021.
@@ -386,7 +386,7 @@ pub enum MatrixVersion {
 
     /// Version 1.18 of the Matrix specification, released in Q1 2026.
     ///
-    /// See <https://spec.matrix.org/v1.18/>.
+    /// See <https://spec.matrix.org/v1.19/>.
     V1_18,
 
     /// Version 1.19 of the Matrix specification, released in Q2 2026.
@@ -628,7 +628,7 @@ impl MatrixVersion {
             MatrixVersion::V1_16
             // <https://spec.matrix.org/v1.17/rooms/#complete-list-of-room-versions>
             | MatrixVersion::V1_17
-            // <https://spec.matrix.org/v1.18/rooms/#complete-list-of-room-versions>
+            // <https://spec.matrix.org/v1.19/rooms/#complete-list-of-room-versions>
             | MatrixVersion::V1_18
             // <https://spec.matrix.org/v1.19/rooms/#complete-list-of-room-versions>
             | MatrixVersion::V1_19 => RoomVersionId::V12,
