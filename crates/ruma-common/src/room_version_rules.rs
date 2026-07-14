@@ -288,7 +288,7 @@ impl StateResolutionV2Rules {
 /// This type can be constructed from one of its constants (like [`AuthorizationRules::V1`]), or by
 /// constructing a [`RoomVersionRules`] first and using the `authorization` field.
 ///
-/// [authorization rules]: https://spec.matrix.org/v1.19/server-server-api/#authorization-rules
+/// [authorization rules]: https://spec.matrix.org/v1.19/server-server-api/#authorisation-rules
 #[derive(Debug, Clone)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct AuthorizationRules {
@@ -301,7 +301,7 @@ pub struct AuthorizationRules {
     /// Whether to apply special authorization rules for `m.room.aliases` events ([spec]), disabled
     /// since room version 6.
     ///
-    /// [spec]: https://spec.matrix.org/v1.19/rooms/v6/#authorization-rules
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v6/#authorisation-rules
     pub special_case_room_aliases: bool,
 
     /// Whether to strictly enforce [canonical JSON] ([spec]), introduced in room version 6.
@@ -317,25 +317,25 @@ pub struct AuthorizationRules {
     /// Whether to check the `notifications` field when checking `m.room.power_levels` events
     /// ([spec]), introduced in room version 6.
     ///
-    /// [spec]: https://spec.matrix.org/v1.19/rooms/v6/#authorization-rules
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v6/#authorisation-rules
     pub limit_notifications_power_levels: bool,
 
     /// Whether to allow the `knock` membership for `m.room.member` events and the `knock` join
     /// rule for `m.room.join_rules` events ([spec]), introduced in room version 7.
     ///
-    /// [spec]: https://spec.matrix.org/v1.19/rooms/v7/#authorization-rules
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v7/#authorisation-rules
     pub knocking: bool,
 
     /// Whether to allow the `restricted` join rule for `m.room.join_rules` events ([spec]),
     /// introduced in room version 8.
     ///
-    /// [spec]: https://spec.matrix.org/v1.19/rooms/v8/#authorization-rules
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v8/#authorisation-rules
     pub restricted_join_rule: bool,
 
     /// Whether to allow the `knock_restricted` join rule for `m.room.join_rules` events ([spec]),
     /// introduced in room version 10.
     ///
-    /// [spec]: https://spec.matrix.org/v1.19/rooms/v10/#authorization-rules
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v10/#authorisation-rules
     pub knock_restricted_join_rule: bool,
 
     /// Whether to enforce that power levels values in `m.room.power_levels` events be integers
@@ -366,7 +366,7 @@ pub struct AuthorizationRules {
 impl AuthorizationRules {
     /// Authorization rules as introduced in room version 1 ([spec]).
     ///
-    /// [spec]: https://spec.matrix.org/v1.19/rooms/v1/#authorization-rules
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v1/#authorisation-rules
     pub const V1: Self = Self {
         special_case_room_redaction: true,
         special_case_room_aliases: true,
@@ -384,12 +384,12 @@ impl AuthorizationRules {
 
     /// Authorization rules with tweaks introduced in room version 3 ([spec]).
     ///
-    /// [spec]: https://spec.matrix.org/v1.19/rooms/v3/#authorization-rules
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v3/#authorisation-rules
     pub const V3: Self = Self { special_case_room_redaction: false, ..Self::V1 };
 
     /// Authorization rules with tweaks introduced in room version 6 ([spec]).
     ///
-    /// [spec]: https://spec.matrix.org/v1.19/rooms/v6/#authorization-rules
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v6/#authorisation-rules
     pub const V6: Self = Self {
         special_case_room_aliases: false,
         strict_canonical_json: true,
@@ -399,23 +399,23 @@ impl AuthorizationRules {
 
     /// Authorization rules with tweaks introduced in room version 7 ([spec]).
     ///
-    /// [spec]: https://spec.matrix.org/v1.19/rooms/v7/#authorization-rules
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v7/#authorisation-rules
     pub const V7: Self = Self { knocking: true, ..Self::V6 };
 
     /// Authorization rules with tweaks introduced in room version 8 ([spec]).
     ///
-    /// [spec]: https://spec.matrix.org/v1.19/rooms/v8/#authorization-rules
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v8/#authorisation-rules
     pub const V8: Self = Self { restricted_join_rule: true, ..Self::V7 };
 
     /// Authorization rules with tweaks introduced in room version 10 ([spec]).
     ///
-    /// [spec]: https://spec.matrix.org/v1.19/rooms/v10/#authorization-rules
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v10/#authorisation-rules
     pub const V10: Self =
         Self { knock_restricted_join_rule: true, integer_power_levels: true, ..Self::V8 };
 
     /// Authorization rules with tweaks introduced in room version 11 ([spec]).
     ///
-    /// [spec]: https://spec.matrix.org/v1.19/rooms/v11/#authorization-rules
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v11/#authorisation-rules
     pub const V11: Self = Self { use_room_create_sender: true, ..Self::V10 };
 
     /// Authorization rules with tweaks introduced in room version 12.
@@ -569,7 +569,7 @@ pub struct SignaturesRules {
     /// Whether to check the server of the `join_authorised_via_users_server` field in the
     /// `content` of `m.room.member` events ([spec]), introduced in room version 8.
     ///
-    /// [spec]: https://spec.matrix.org/v1.19/rooms/v8/#authorization-rules
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v8/#authorisation-rules
     pub check_join_authorised_via_users_server: bool,
 }
 

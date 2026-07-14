@@ -139,7 +139,7 @@ pub fn auth_types_for_event(
 ///
 /// If the check fails, this returns an `Err(_)` with a description of the check that failed.
 ///
-/// [authorization rules]: https://spec.matrix.org/v1.19/server-server-api/#authorization-rules
+/// [authorization rules]: https://spec.matrix.org/v1.19/server-server-api/#authorisation-rules
 #[instrument(skip_all, fields(event_id = incoming_event.event_id().borrow().as_str()))]
 pub fn check_state_independent_auth_rules<E: Event>(
     rules: &AuthorizationRules,
@@ -262,7 +262,7 @@ pub fn check_state_independent_auth_rules<E: Event>(
 ///
 /// If the check fails, this returns an `Err(_)` with a description of the check that failed.
 ///
-/// [authorization rules]: https://spec.matrix.org/v1.19/server-server-api/#authorization-rules
+/// [authorization rules]: https://spec.matrix.org/v1.19/server-server-api/#authorisation-rules
 /// [checks on receipt of a PDU]: https://spec.matrix.org/v1.19/server-server-api/#checks-performed-on-receipt-of-a-pdu
 #[instrument(skip_all, fields(event_id = incoming_event.event_id().borrow().as_str()))]
 pub fn check_state_dependent_auth_rules<E: Event>(
