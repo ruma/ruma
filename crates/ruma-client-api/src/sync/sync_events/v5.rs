@@ -1041,14 +1041,16 @@ mod tests {
     #[cfg(feature = "unstable-msc4480")]
     #[test]
     fn sticky_events_extension_serde() {
+        use ruma_common::assert_to_canonical_json_eq;
+
         use super::{request, response};
 
         // The request extension serializes under the unstable extension key.
         let mut extensions = request::Extensions::default();
         extensions.sticky_events =
             request::StickyEvents { enabled: Some(true), ..Default::default() };
-        assert_eq!(
-            serde_json::to_value(&extensions).unwrap(),
+        assert_to_canonical_json_eq!(
+            extensions,
             serde_json::json!({ "org.matrix.msc4354.sticky_events": { "enabled": true } })
         );
 

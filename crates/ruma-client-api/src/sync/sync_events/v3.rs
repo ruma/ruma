@@ -338,19 +338,20 @@ impl JoinedRoom {
         #[cfg(feature = "unstable-msc2654")]
         let unread_count_is_none = unread_count.is_none();
 
-        let is_empty = summary.is_empty()
+        #[cfg(not(feature = "unstable-msc4354"))]
+        let sticky_is_empty = true;
+        #[cfg(feature = "unstable-msc4354")]
+        let sticky_is_empty = sticky.is_empty();
+
+        summary.is_empty()
             && unread_notifications.is_empty()
             && unread_thread_notifications.is_empty()
             && timeline.is_empty()
             && state.is_empty()
             && account_data.is_empty()
             && ephemeral.is_empty()
-            && unread_count_is_none;
-
-        #[cfg(feature = "unstable-msc4354")]
-        let is_empty = is_empty && sticky.is_empty();
-
-        is_empty
+            && unread_count_is_none
+            && sticky_is_empty
     }
 }
 
@@ -779,23 +780,21 @@ mod tests {
 
         use super::JoinedRoom;
 
-        fn sticky_event() -> serde_json::Value {
-            json!({
-                "content": { "body": "sticky", "msgtype": "m.text" },
-                "event_id": "$1:example.com",
-                "origin_server_ts": 1,
-                "sender": "@alice:example.com",
-                "type": "m.room.message",
-                "msc4354_sticky": {
-                    "duration_ms": 300_000
-                },
-                "unsigned": { "sticky_duration_ttl_ms": 258_113 }
-            })
-        }
+        let sticky_event = json!({
+            "content": { "body": "sticky", "msgtype": "m.text" },
+            "event_id": "$1:example.com",
+            "origin_server_ts": 1,
+            "sender": "@alice:example.com",
+            "type": "m.room.message",
+            "msc4354_sticky": {
+                "duration_ms": 300_000
+            },
+            "unsigned": { "sticky_duration_ttl_ms": 258_113 }
+        });
 
         // The unstable `msc4354_sticky` section is deserialized into `sticky`.
         let joined_room = from_json_value::<JoinedRoom>(json!({
-            "msc4354_sticky": { "events": [sticky_event()] }
+            "msc4354_sticky": { "events": [sticky_event] }
         }))
         .unwrap();
         assert_eq!(joined_room.sticky.events.len(), 1);
@@ -804,7 +803,7 @@ mod tests {
         // `alias` is used); the unstable key wins.
         let joined_room = from_json_value::<JoinedRoom>(json!({
             "sticky": { "events": [] },
-            "msc4354_sticky": { "events": [sticky_event()] },
+            "msc4354_sticky": { "events": [sticky_event] },
         }))
         .unwrap();
         assert_eq!(joined_room.sticky.events.len(), 1);
