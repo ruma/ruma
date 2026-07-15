@@ -55,8 +55,8 @@ pub struct UserProfileChanges {
     pub updated: BTreeMap<ProfileFieldName, JsonValue>,
 
     /// Fields that have been removed from the profile.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub removed: Option<Vec<ProfileFieldName>>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub removed: Vec<ProfileFieldName>,
 }
 
 impl UserProfileChanges {

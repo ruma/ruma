@@ -51,10 +51,8 @@ impl UserProfile {
             self.0.insert(field.to_string(), value);
         }
 
-        if let Some(removed) = changes.removed {
-            for field in removed {
-                self.0.remove(field.as_str());
-            }
+        for field in changes.removed {
+            self.0.remove(field.as_str());
         }
     }
 }
@@ -107,6 +105,8 @@ impl IntoIterator for UserProfile {
 #[cfg(test)]
 #[cfg(all(feature = "unstable-msc4262", feature = "unstable-msc4426"))]
 mod tests {
+    use std::collections::BTreeMap;
+
     use serde_json::json;
 
     use crate::{
@@ -129,11 +129,11 @@ mod tests {
         ]);
 
         let mut profile_update = UserProfileChanges::new();
-        profile_update.removed = Some(vec![ProfileFieldName::AvatarUrl]);
-        profile_update
-            .updated
-            .insert(ProfileFieldName::Status, json!({ "text": "Holiday", "emoji": "🏖️"}));
-        profile_update.updated.insert(ProfileFieldName::Call, json!({}));
+        profile_update.removed = vec![ProfileFieldName::AvatarUrl];
+        profile_update.updated = BTreeMap::from([
+            (ProfileFieldName::Status, json!({ "text": "Holiday", "emoji": "🏖️"})),
+            (ProfileFieldName::Call, json!({})),
+        ]);
 
         profile.apply(profile_update);
 
