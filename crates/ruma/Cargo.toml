@@ -208,6 +208,7 @@ unstable-msc4426 = ["ruma-common/unstable-msc4426"]
 unstable-msc4439 = ["ruma-client-api?/unstable-msc4439"]
 unstable-msc4466 = ["ruma-client-api?/unstable-msc4466"]
 unstable-msc4471 = ["ruma-events?/unstable-msc4471"]
+unstable-msc4480 = ["unstable-msc4354", "ruma-client-api?/unstable-msc4480"]
 unstable-uniffi = ["ruma-events?/unstable-uniffi"]
 
 [dependencies]
