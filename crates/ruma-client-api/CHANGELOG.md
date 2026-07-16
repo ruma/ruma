@@ -24,6 +24,11 @@ Improvements:
   the `unstable-msc4354` feature flag. Adds a `sticky_duration_ms` query parameter to `send_message_event`
   and `send_state_event` as well as sync v3 support. Add sync extension v5 behind the `unstable-msc4480`
   feature flag as per [MSC4480](https://github.com/matrix-org/matrix-spec-proposals/pull/4480).
+- The `Profiles` sliding sync extension request no longer contains an `include_history` field as
+  this was removed from the MSC.
+- The `Profiles` sliding sync extension response data is wrapped in a `users` field instead of
+  being decoded directly. The profile updates now use a `UserProfileUpdate` enum to signal if the
+  profile changed or should be dropped.
 
 ## 0.24.0
 
