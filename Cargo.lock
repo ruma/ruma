@@ -2074,7 +2074,7 @@ dependencies = [
  "quote",
  "ruma-identifiers-validation",
  "serde",
- "syn 2.0.119",
+ "syn 3.0.3",
  "toml 1.1.4+spec-1.1.0",
 ]
 
