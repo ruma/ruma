@@ -181,8 +181,9 @@ pub(crate) struct PrivateField<'a>(pub(crate) &'a Field);
 
 impl ToTokens for PrivateField<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let Field { attrs, vis: _, mutability, ident, colon_token, ty } = self.0;
-        assert_eq!(*mutability, syn::FieldMutability::None);
+        let Field { attrs, vis: _, ident, colon_token, ty, modifiers, default } = self.0;
+        modifiers.require_empty().unwrap();
+        assert!(default.is_none());
 
         for attr in attrs {
             attr.to_tokens(tokens);
