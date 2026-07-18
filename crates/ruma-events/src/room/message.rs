@@ -262,6 +262,11 @@ impl RoomMessageEventContent {
         self.msgtype.body()
     }
 
+    /// Get the thread relation from this content, if any.
+    pub fn thread(&self) -> Option<&Thread> {
+        self.relates_to.as_ref().and_then(as_variant!(Relation::Thread))
+    }
+
     /// Apply the given new content from a [`Replacement`] to this message.
     ///
     /// [`Replacement`]: crate::relation::Replacement
@@ -313,11 +318,6 @@ impl RoomMessageEventContent {
         }
 
         self.into()
-    }
-
-    /// Get the thread relation from this content, if any.
-    fn thread(&self) -> Option<&Thread> {
-        self.relates_to.as_ref().and_then(|relates_to| as_variant!(relates_to, Relation::Thread))
     }
 }
 
