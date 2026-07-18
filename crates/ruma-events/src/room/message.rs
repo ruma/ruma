@@ -628,19 +628,13 @@ impl MessageType {
     }
 
     fn make_replacement_body(&mut self) {
-        let empty_formatted_body = || FormattedBody::html(String::new());
-
+        // Only prefix an existing formatted_body. Inserting an empty one for plain-text
+        // edits made clients that prefer formatted_body show just "*" (#2536).
         let (body, formatted) = {
             match self {
-                MessageType::Emote(m) => {
-                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
-                }
-                MessageType::Notice(m) => {
-                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
-                }
-                MessageType::Text(m) => {
-                    (&mut m.body, Some(m.formatted.get_or_insert_with(empty_formatted_body)))
-                }
+                MessageType::Emote(m) => (&mut m.body, m.formatted.as_mut()),
+                MessageType::Notice(m) => (&mut m.body, m.formatted.as_mut()),
+                MessageType::Text(m) => (&mut m.body, m.formatted.as_mut()),
                 MessageType::Audio(m) => (&mut m.body, None),
                 MessageType::File(m) => (&mut m.body, None),
                 #[cfg(feature = "unstable-msc4274")]

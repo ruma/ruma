@@ -459,6 +459,35 @@ fn make_replacement() {
 }
 
 #[test]
+fn make_replacement_plain_text_keeps_formatted_none() {
+    let content = RoomMessageEventContent::text_plain("This is an edited message.");
+
+    let original_message_json = json!({
+        "content": {
+            "body": "Hello, World!",
+            "msgtype": "m.text",
+        },
+        "event_id": "$143273582443PhrSn",
+        "origin_server_ts": 134_829_848,
+        "room_id": "!roomid:notareal.hs",
+        "sender": "@user:notareal.hs",
+        "type": "m.room.message",
+    });
+    let original_message: OriginalSyncRoomMessageEvent =
+        from_json_value(original_message_json).unwrap();
+
+    let content = content.make_replacement(&original_message);
+
+    assert_matches!(
+        content.msgtype,
+        MessageType::Text(TextMessageEventContent { body, formatted, .. })
+    );
+    assert_eq!(body, "* This is an edited message.");
+    // A plain-text message should not gain a formatted_body from the edit fallback.
+    assert!(formatted.is_none());
+}
+
+#[test]
 fn audio_msgtype_serialization() {
     let message_event_content =
         RoomMessageEventContent::new(MessageType::Audio(AudioMessageEventContent::plain(
