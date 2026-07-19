@@ -399,7 +399,7 @@ pub enum ErrorKind {
     WrongRoomKeysVersion(WrongRoomKeysVersionErrorData),
 
     #[doc(hidden)]
-    _Custom(CustomErrorKind),
+    _Custom(Box<CustomErrorKind>),
 }
 
 impl ErrorKind {
@@ -469,7 +469,7 @@ impl ErrorKind {
             ErrorKind::UserSuspended => ErrorCode::UserSuspended,
             ErrorKind::WeakPassword => ErrorCode::WeakPassword,
             ErrorKind::WrongRoomKeysVersion(_) => ErrorCode::WrongRoomKeysVersion,
-            ErrorKind::_Custom(CustomErrorKind { errcode, .. }) => errcode.as_str().into(),
+            ErrorKind::_Custom(kind) => kind.errcode.as_str().into(),
         }
     }
 
@@ -1072,4 +1072,18 @@ pub enum ErrorCode {
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ErrorKind;
+
+    #[test]
+    fn test_error_kind_type_size() {
+        // There is no strict requirement for this type to be 40 bytes or smaller,
+        // but it's been optimized by hand (Boxing the `_Custom` variant)
+        // and it would be nice to keep track of any regressions.
+        let size = size_of::<ErrorKind>();
+        assert!(size <= 40, "size_of::<ErrorKind>() has regressed, is now {size}");
+    }
 }

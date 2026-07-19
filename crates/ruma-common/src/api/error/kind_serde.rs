@@ -311,7 +311,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                 })
             }
             ErrorCode::_Custom(errcode) => {
-                ErrorKind::_Custom(CustomErrorKind { errcode: errcode.0.into(), data })
+                ErrorKind::_Custom(Box::new(CustomErrorKind { errcode: errcode.0.into(), data }))
             }
         })
     }
@@ -375,8 +375,8 @@ impl Serialize for ErrorKind {
                     st.serialize_entry("sender", sender)?;
                 }
             }
-            Self::_Custom(CustomErrorKind { data, .. }) => {
-                for (k, v) in data {
+            Self::_Custom(kind) => {
+                for (k, v) in &kind.data {
                     st.serialize_entry(k, v)?;
                 }
             }
