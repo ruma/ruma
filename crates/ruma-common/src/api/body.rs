@@ -2,12 +2,12 @@ use std::convert::Infallible;
 
 use bytes::BufMut;
 
-use crate::serde::slice_to_buf;
+use crate::{api::error::IntoHttpError, serde::slice_to_buf};
 
 /// HTTP message body pre-serialization.
 pub trait OutgoingBody {
     /// The type of error that can happen in `try_info_buf`.
-    type Error;
+    type Error: Into<IntoHttpError>;
 
     /// Turn `self` into a byte buffer (copying a raw body or serializing a JSON one).
     fn try_into_buf<T: Default + BufMut + AsRef<[u8]>>(self) -> Result<T, Self::Error>;

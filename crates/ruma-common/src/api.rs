@@ -299,10 +299,7 @@ pub trait OutgoingRequest: Metadata + Clone {
 }
 
 /// Convenience functionality on top of [`OutgoingRequest`].
-pub trait OutgoingRequestExt: OutgoingRequest
-where
-    IntoHttpError: From<<Self::Body as OutgoingBody>::Error>,
-{
+pub trait OutgoingRequestExt: OutgoingRequest {
     /// Tries to convert this request into an `http::Request`.
     ///
     /// The endpoints path will be appended to the given `base_url`, for example
@@ -329,7 +326,8 @@ where
     ) -> Result<http::Request<T>, IntoHttpError> {
         let (parts, body) =
             self.try_into_http_request_inner(base_url, path_builder_input)?.into_parts();
-        let mut request = http::Request::from_parts(parts, body.try_into_buf()?);
+        let mut request =
+            http::Request::from_parts(parts, body.try_into_buf().map_err(Into::into)?);
 
         <Self::Authentication as auth_scheme::AuthScheme>::add_authentication(
             &mut request,
@@ -341,10 +339,7 @@ where
     }
 }
 
-impl<T: OutgoingRequest> OutgoingRequestExt for T where
-    IntoHttpError: From<<Self::Body as OutgoingBody>::Error>
-{
-}
+impl<T: OutgoingRequest> OutgoingRequestExt for T {}
 
 /// A response type for a Matrix API endpoint, used for receiving responses.
 pub trait IncomingResponse: Sized {
@@ -364,7 +359,6 @@ pub trait IncomingResponse: Sized {
 /// these methods with the Client-Server API.
 pub trait OutgoingRequestAppserviceExt: OutgoingRequest
 where
-    IntoHttpError: From<<Self::Body as OutgoingBody>::Error>,
     for<'a> Self::Authentication:
         auth_scheme::AuthScheme<Input<'a> = auth_scheme::SendAccessToken<'a>>,
 {
@@ -386,11 +380,9 @@ where
     }
 }
 
-impl<T: OutgoingRequest> OutgoingRequestAppserviceExt for T
-where
-    IntoHttpError: From<<Self::Body as OutgoingBody>::Error>,
+impl<T: OutgoingRequest> OutgoingRequestAppserviceExt for T where
     for<'a> Self::Authentication:
-        auth_scheme::AuthScheme<Input<'a> = auth_scheme::SendAccessToken<'a>>,
+        auth_scheme::AuthScheme<Input<'a> = auth_scheme::SendAccessToken<'a>>
 {
 }
 
