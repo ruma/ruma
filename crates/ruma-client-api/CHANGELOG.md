@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- `UiaaInfo`s field `auth_error` from `Option<StandardErrorBody>` to `Option<Box<StandardErrorBody>>`
+  (this saves a couple bytes when the field is not set, and gets rid of a default-warn clippy
+  lint that was showing up in ruma-client and matrix-sdk)
+
 Bug fixes:
 
 - In the `sync_events::v3` module, fix the serialization of `Response` when only the `knock`
