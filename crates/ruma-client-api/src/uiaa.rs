@@ -97,7 +97,7 @@ pub struct UiaaInfo {
 
     /// Authentication-related errors for previous request returned by homeserver.
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    pub auth_error: Option<StandardErrorBody>,
+    pub auth_error: Option<Box<StandardErrorBody>>,
 }
 
 impl UiaaInfo {
