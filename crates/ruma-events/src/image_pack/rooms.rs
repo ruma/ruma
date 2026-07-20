@@ -1,4 +1,6 @@
-//! Types for the `m.image_pack.rooms` account data.
+//! Types for the [`m.image_pack.rooms`] account data.
+//!
+//! [`m.image_pack.rooms`]: https://spec.matrix.org/v1.19/client-server-api/#mimage_packrooms
 
 use std::collections::BTreeMap;
 
@@ -6,15 +8,19 @@ use ruma_common::OwnedRoomId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-/// The content of an `m.image_pack.rooms` event.
+/// The content of an [`m.image_pack.rooms`] event.
+///
+/// [`m.image_pack.rooms`]: https://spec.matrix.org/v1.19/client-server-api/#mimage_packrooms
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.image_pack.rooms", kind = GlobalAccountData)]
 pub struct ImagePackRoomsEventContent {
     /// A map of room ID to a map of state key to an empty object.
     ///
-    /// Each entry references a specific `m.room.image_pack` state event that the user has enabled
-    /// globally.
+    /// Each entry references a specific [`m.room.image_pack`] state event that the user has
+    /// enabled globally.
+    ///
+    /// [`m.room.image_pack`]: https://spec.matrix.org/v1.19/client-server-api/#mroomimage_pack
     pub rooms: BTreeMap<OwnedRoomId, BTreeMap<String, RoomImagePackMeta>>,
 }
 

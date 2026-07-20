@@ -1,4 +1,6 @@
-//! Types for `m.room.image_pack` event.
+//! Types for [`m.room.image_pack`] event.
+//!
+//! [`m.room.image_pack`]: https://spec.matrix.org/v1.19/client-server-api/#mroomimage_pack
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -8,9 +10,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::{PrivOwnedStr, room::ImageInfo};
 
-/// The content of an `m.room.image_pack` event.
+/// The content of an [`m.room.image_pack`] event.
 ///
 /// The state key is the unique identifier for the image pack.
+///
+/// [`m.room.image_pack`]: https://spec.matrix.org/v1.19/client-server-api/#mroomimage_pack
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.room.image_pack", kind = State, state_key_type = String)]
@@ -35,7 +39,7 @@ impl RoomImagePackEventContent {
     }
 }
 
-/// An image object in a image pack.
+/// An image object in an image pack.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ImagePackImage {

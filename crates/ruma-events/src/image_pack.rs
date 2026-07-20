@@ -1,5 +1,5 @@
-//! Types for image packs in Matrix ([MSC2545]).
+//! Types for [image packs].
 //!
-//! [MSC2545]: https://github.com/matrix-org/matrix-spec-proposals/pull/2545
+//! [image packs]: https://spec.matrix.org/v1.19/client-server-api/#image-packs
 
 pub mod rooms;
