@@ -1,13 +1,13 @@
 //! Types for the [`m.key_backup`] account data event.
 //!
-//! [`m.key_backup`]: https://github.com/matrix-org/matrix-spec-proposals/pull/4287
+//! [`m.key_backup`]: https://spec.matrix.org/v1.19/client-server-api/#mkey_backup
 
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 /// The content of an [`m.key_backup`] event.
 ///
-/// [`m.key_backup`]: https://github.com/matrix-org/matrix-spec-proposals/pull/4287
+/// [`m.key_backup`]: https://spec.matrix.org/v1.19/client-server-api/#mkey_backup
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(type = "m.key_backup", kind = GlobalAccountData)]
