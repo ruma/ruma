@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 #[cfg(feature = "unstable-msc4262")]
-use super::UserProfileUpdate;
+use super::UserProfileChanges;
 use super::{ProfileFieldName, ProfileFieldValue, static_profile_field::StaticProfileField};
 
 /// All the profile information for a user.
@@ -44,18 +44,15 @@ impl UserProfile {
         self.0.insert(field, value);
     }
 
-    /// Merges a profile that contains updates (such as from a sync response) with this
-    /// profile.
-    ///
-    /// This operation preserves omitted values and removes null values.
+    /// Applies the changes from a [`UserProfileChanges`] to this profile.
     #[cfg(feature = "unstable-msc4262")]
-    pub fn merge(&mut self, profile_update: UserProfileUpdate) {
-        for (field, value) in profile_update {
-            if value.is_null() {
-                self.0.remove(&field);
-            } else {
-                self.0.insert(field, value);
-            }
+    pub fn apply(&mut self, changes: UserProfileChanges) {
+        for (field, value) in changes.updated {
+            self.0.insert(field.to_string(), value);
+        }
+
+        for field in changes.removed {
+            self.0.remove(field.as_str());
         }
     }
 }
@@ -108,18 +105,20 @@ impl IntoIterator for UserProfile {
 #[cfg(test)]
 #[cfg(all(feature = "unstable-msc4262", feature = "unstable-msc4426"))]
 mod tests {
-    use serde_json::{Value as JsonValue, json};
+    use std::collections::BTreeMap;
+
+    use serde_json::json;
 
     use crate::{
         owned_mxc_uri,
         profile::{
-            AvatarUrl, Call, CallProfileField, DisplayName, ProfileFieldValue, Status,
-            StatusProfileField, UserProfile, UserProfileUpdate,
+            AvatarUrl, Call, CallProfileField, DisplayName, ProfileFieldName, ProfileFieldValue,
+            Status, StatusProfileField, UserProfile, UserProfileChanges,
         },
     };
 
     #[test]
-    fn merge_profile() {
+    fn apply_profile_update() {
         let mut profile = UserProfile::from_iter([
             ProfileFieldValue::DisplayName("Alice".to_owned()),
             ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef")),
@@ -129,13 +128,14 @@ mod tests {
             }),
         ]);
 
-        let profile_update = UserProfileUpdate::from_iter([
-            ("avatar_url".to_owned(), JsonValue::Null),
-            ("org.matrix.msc4426.status".to_owned(), json!({ "text": "Holiday", "emoji": "🏖️"})),
-            ("org.matrix.msc4426.call".to_owned(), json!({})),
+        let mut profile_update = UserProfileChanges::new();
+        profile_update.removed = vec![ProfileFieldName::AvatarUrl];
+        profile_update.updated = BTreeMap::from([
+            (ProfileFieldName::Status, json!({ "text": "Holiday", "emoji": "🏖️"})),
+            (ProfileFieldName::Call, json!({})),
         ]);
 
-        profile.merge(profile_update);
+        profile.apply(profile_update);
 
         assert_eq!(
             profile.get_static::<DisplayName>().unwrap().unwrap(),

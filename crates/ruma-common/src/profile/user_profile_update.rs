@@ -1,92 +1,86 @@
 //! An update to the profile information for a user.
 
-use std::collections::{BTreeMap, btree_map};
+use std::collections::BTreeMap;
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value as JsonValue;
 
-use super::{ProfileFieldName, ProfileFieldValue, static_profile_field::StaticProfileField};
+use super::{ProfileFieldName, ProfileFieldValue, StaticProfileField};
 
-/// An update to the profile information for a user.
+/// An update to a user's profile.
+#[derive(Clone, Debug)]
+#[non_exhaustive]
+pub enum UserProfileUpdate {
+    /// The user's profile has been updated with the included changes.
+    Updated(UserProfileChanges),
+
+    /// This user no longer needs to be tracked as they have left all shared rooms.
+    Dropped,
+}
+
+impl<'d> Deserialize<'d> for UserProfileUpdate {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'d>,
+    {
+        Option::<UserProfileChanges>::deserialize(deserializer).map(|value| match value {
+            Some(changes) => Self::Updated(changes),
+            None => Self::Dropped,
+        })
+    }
+}
+
+impl Serialize for UserProfileUpdate {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            Self::Updated(changes) => serializer.serialize_some(changes),
+            Self::Dropped => serializer.serialize_none(),
+        }
+    }
+}
+
+/// A collection of changes to be applied to a user's profile.
 ///
-/// This type is not supposed to be used directly, but merged into a
-/// [`UserProfile`](super::UserProfile).
+/// This type is not supposed to be used directly, but applied to an existing
+/// [`UserProfile`](super::UserProfile). If a profile doesn't exist, the changes should be applied
+/// to an empty one.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct UserProfileUpdate(BTreeMap<String, JsonValue>);
+#[non_exhaustive]
+pub struct UserProfileChanges {
+    /// Fields that have been newly set, or updated.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub updated: BTreeMap<ProfileFieldName, JsonValue>,
 
-impl UserProfileUpdate {
+    /// Fields that have been removed from the profile.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub removed: Vec<ProfileFieldName>,
+}
+
+impl UserProfileChanges {
     /// Creates a new empty `UserProfileUpdate`.
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Returns the value of the given profile field.
-    pub fn get(&self, field: &str) -> Option<&JsonValue> {
-        self.0.get(field)
-    }
-
-    /// Returns the value of the given [`StaticProfileField`].
+    /// Returns the updated value of the given [`StaticProfileField`].
     ///
-    /// Returns `Ok(Some(_))` if the field is present and the value was deserialized
-    /// successfully, `Ok(None)` if the field is not set, or an error if deserialization of the
-    /// value failed.
-    pub fn get_static<F: StaticProfileField>(&self) -> Result<Option<F::Value>, serde_json::Error> {
-        self.0.get(F::NAME).map(|value| serde_json::from_value(value.clone())).transpose()
+    /// Returns `Ok(Some(_))` if an update to the field is included and the value was deserialized
+    /// successfully, `Ok(None)` if the field update is not included, or an error if deserialization
+    /// of the value failed.
+    pub fn get_updated_static<F: StaticProfileField>(
+        &self,
+    ) -> Result<Option<F::Value>, serde_json::Error> {
+        self.updated
+            .get(&ProfileFieldName::from(F::NAME))
+            .map(|value| serde_json::from_value(value.clone()))
+            .transpose()
     }
 
-    /// Gets an iterator over the fields of the profile.
-    pub fn iter(&self) -> btree_map::Iter<'_, String, JsonValue> {
-        self.0.iter()
-    }
-
-    /// Sets a field to the given value.
-    pub fn set(&mut self, field: String, value: JsonValue) {
-        self.0.insert(field, value);
-    }
-}
-
-impl FromIterator<(String, JsonValue)> for UserProfileUpdate {
-    fn from_iter<T: IntoIterator<Item = (String, JsonValue)>>(iter: T) -> Self {
-        Self(iter.into_iter().collect())
-    }
-}
-
-impl FromIterator<(ProfileFieldName, JsonValue)> for UserProfileUpdate {
-    fn from_iter<T: IntoIterator<Item = (ProfileFieldName, JsonValue)>>(iter: T) -> Self {
-        iter.into_iter().map(|(field, value)| (field.as_str().to_owned(), value)).collect()
-    }
-}
-
-impl FromIterator<ProfileFieldValue> for UserProfileUpdate {
-    fn from_iter<T: IntoIterator<Item = ProfileFieldValue>>(iter: T) -> Self {
-        iter.into_iter().map(|value| (value.field_name(), value.value().into_owned())).collect()
-    }
-}
-
-impl Extend<(String, JsonValue)> for UserProfileUpdate {
-    fn extend<T: IntoIterator<Item = (String, JsonValue)>>(&mut self, iter: T) {
-        self.0.extend(iter);
-    }
-}
-
-impl Extend<(ProfileFieldName, JsonValue)> for UserProfileUpdate {
-    fn extend<T: IntoIterator<Item = (ProfileFieldName, JsonValue)>>(&mut self, iter: T) {
-        self.extend(iter.into_iter().map(|(field, value)| (field.as_str().to_owned(), value)));
-    }
-}
-
-impl Extend<ProfileFieldValue> for UserProfileUpdate {
-    fn extend<T: IntoIterator<Item = ProfileFieldValue>>(&mut self, iter: T) {
-        self.extend(iter.into_iter().map(|value| (value.field_name(), value.value().into_owned())));
-    }
-}
-
-impl IntoIterator for UserProfileUpdate {
-    type Item = (String, JsonValue);
-    type IntoIter = btree_map::IntoIter<String, JsonValue>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
+    /// Inserts an update for the supplied profile field value.
+    pub fn insert_updated_value(&mut self, value: ProfileFieldValue) {
+        self.updated.insert(value.field_name(), value.value().into_owned());
     }
 }

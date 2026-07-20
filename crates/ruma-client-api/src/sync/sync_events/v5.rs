@@ -220,7 +220,11 @@ pub mod request {
 
         /// Configure the profiles extension.
         #[cfg(feature = "unstable-msc4262")]
-        #[serde(default, skip_serializing_if = "Profiles::is_empty")]
+        #[serde(
+            default,
+            skip_serializing_if = "Profiles::is_empty",
+            rename = "org.matrix.msc4262.profiles"
+        )]
         pub profiles: Profiles,
 
         /// Configure the sticky events extension.
@@ -537,14 +541,6 @@ pub mod request {
         /// profile field updates are included.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub fields: Option<Vec<ruma_common::profile::ProfileFieldName>>,
-
-        /// Optional flag to control whether the initial sync includes recent historical profile
-        /// changes:
-        ///
-        /// If false (default), only current profile states are sent on initial sync.
-        /// If true, the server may include recent profile changes that occurred before the sync.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub include_history: Option<bool>,
     }
 
     #[cfg(feature = "unstable-msc4262")]
@@ -792,8 +788,12 @@ pub mod response {
 
         /// Profiles extension response.
         #[cfg(feature = "unstable-msc4262")]
-        #[serde(default, skip_serializing_if = "BTreeMap::is_empty", rename = "users")]
-        pub profiles: BTreeMap<OwnedUserId, UserProfileUpdate>,
+        #[serde(
+            default,
+            skip_serializing_if = "Profiles::is_empty",
+            rename = "org.matrix.msc4262.profiles"
+        )]
+        pub profiles: Profiles,
 
         /// Sticky events extension response.
         #[cfg(feature = "unstable-msc4480")]
@@ -1006,6 +1006,26 @@ pub mod response {
         /// Whether all fields are empty or `None`.
         pub fn is_empty(&self) -> bool {
             self.subscribed.is_empty() && self.unsubscribed.is_empty() && self.prev_batch.is_none()
+        }
+    }
+
+    /// Profiles extension response.
+    ///
+    /// Specified as part of [MSC4262](https://github.com/matrix-org/matrix-spec-proposals/pull/4262).
+    #[cfg(feature = "unstable-msc4262")]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct Profiles {
+        /// Profile updates keyed by user ID.
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        pub users: BTreeMap<OwnedUserId, UserProfileUpdate>,
+    }
+
+    #[cfg(feature = "unstable-msc4262")]
+    impl Profiles {
+        /// Whether all fields are empty or `None`.
+        pub fn is_empty(&self) -> bool {
+            self.users.is_empty()
         }
     }
 }

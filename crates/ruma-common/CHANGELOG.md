@@ -23,6 +23,10 @@ Improvements:
 - Add `MatrixVersion::V1_19`.
 - Add the `zeroize(mut self)` method on identifiers, which will call the
   `zeroize` crate.
+- `UserProfileUpdate` has been replaced with `UserProfileChanges` and a new `UserProfileUpdate`
+  enum has been introduced to either wrap the changes or signal that the stored profile should be
+  dropped.
+- `UserProfile::merge` has been renamed to `UserProfile::apply`.
 
 [MSC4438]: https://github.com/matrix-org/matrix-spec-proposals/pull/4438
 
