@@ -144,8 +144,8 @@ fn try_into_multipart_mixed_response<T: Default + bytes::BufMut>(
 /// Deserialize the given metadata and content from a `http::Response` with a `multipart/mixed`
 /// body.
 #[cfg(feature = "client")]
-fn try_from_multipart_mixed_response<T: AsRef<[u8]>>(
-    http_response: http::Response<T>,
+fn try_from_multipart_mixed_response(
+    http_response: http::Response<&[u8]>,
 ) -> Result<
     (ContentMetadata, FileOrLocation),
     ruma_common::api::error::FromHttpResponseError<ruma_common::api::error::Error>,
@@ -177,7 +177,7 @@ fn try_from_multipart_mixed_response<T: AsRef<[u8]>>(
         .as_bytes();
 
     // Split the body with the boundary.
-    let body = http_response.body().as_ref();
+    let body = http_response.body();
 
     let mut full_boundary = Vec::with_capacity(boundary.len() + 4);
     full_boundary.extend_from_slice(b"\r\n--");
@@ -321,9 +321,11 @@ mod tests {
             content_disposition: Some(content_disposition.clone()),
         });
 
-        let response =
+        let (parts, body) =
             try_into_multipart_mixed_response::<Vec<u8>>(&outgoing_metadata, &outgoing_content)
-                .unwrap();
+                .unwrap()
+                .into_parts();
+        let response = http::Response::from_parts(parts, body.as_slice());
 
         let (_incoming_metadata, incoming_content) =
             try_from_multipart_mixed_response(response).unwrap();
@@ -348,9 +350,11 @@ mod tests {
             content_disposition: Some(content_disposition.clone()),
         });
 
-        let response =
+        let (parts, body) =
             try_into_multipart_mixed_response::<Vec<u8>>(&outgoing_metadata, &outgoing_content)
-                .unwrap();
+                .unwrap()
+                .into_parts();
+        let response = http::Response::from_parts(parts, body.as_slice());
 
         let (_incoming_metadata, incoming_content) =
             try_from_multipart_mixed_response(response).unwrap();
@@ -368,9 +372,11 @@ mod tests {
         let outgoing_metadata = ContentMetadata::new();
         let outgoing_content = FileOrLocation::Location(location.to_owned());
 
-        let response =
+        let (parts, body) =
             try_into_multipart_mixed_response::<Vec<u8>>(&outgoing_metadata, &outgoing_content)
-                .unwrap();
+                .unwrap()
+                .into_parts();
+        let response = http::Response::from_parts(parts, body.as_slice());
 
         let (_incoming_metadata, incoming_content) =
             try_from_multipart_mixed_response(response).unwrap();
@@ -382,56 +388,56 @@ mod tests {
     #[test]
     fn multipart_mixed_deserialize_invalid() {
         // Missing boundary in headers.
-        let body = "\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\n\r\nsome plain text\r\n--abcdef--";
+        let body = b"\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\n\r\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed")
-            .body(body)
+            .body(body.as_slice())
             .unwrap();
 
         try_from_multipart_mixed_response(response).unwrap_err();
 
         // Wrong boundary.
-        let body = "\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\n\r\nsome plain text\r\n--abcdef--";
+        let body = b"\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\n\r\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=012345")
-            .body(body)
+            .body(body.as_slice())
             .unwrap();
 
         try_from_multipart_mixed_response(response).unwrap_err();
 
         // Missing boundary in body.
         let body =
-            "\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\n\r\nsome plain text";
+            b"\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\n\r\nsome plain text";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
-            .body(body)
+            .body(body.as_slice())
             .unwrap();
 
         try_from_multipart_mixed_response(response).unwrap_err();
 
         // Missing header and content empty line separator in body part.
-        let body = "\r\n--abcdef\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\n\r\nsome plain text\r\n--abcdef--";
+        let body = b"\r\n--abcdef\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\n\r\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
-            .body(body)
+            .body(body.as_slice())
             .unwrap();
 
         try_from_multipart_mixed_response(response).unwrap_err();
 
         // Control character in header.
-        let body = "\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\nContent-Disposition: inline; filename=\"my\nfile\"\r\nsome plain text\r\n--abcdef--";
+        let body = b"\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\nContent-Disposition: inline; filename=\"my\nfile\"\r\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
-            .body(body)
+            .body(body.as_slice())
             .unwrap();
 
         try_from_multipart_mixed_response(response).unwrap_err();
 
         // Boundary without CRLF with preamble.
-        let body = "foo--abcdef\r\n\r\n{}\r\n--abcdef\r\n\r\nsome plain text\r\n--abcdef--";
+        let body = b"foo--abcdef\r\n\r\n{}\r\n--abcdef\r\n\r\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
-            .body(body)
+            .body(body.as_slice())
             .unwrap();
 
         try_from_multipart_mixed_response(response).unwrap_err();
@@ -440,10 +446,10 @@ mod tests {
     #[test]
     fn multipart_mixed_deserialize_valid() {
         // Simple.
-        let body = "\r\n--abcdef\r\ncontent-type: application/json\r\n\r\n{}\r\n--abcdef\r\ncontent-type: text/plain\r\n\r\nsome plain text\r\n--abcdef--";
+        let body = b"\r\n--abcdef\r\ncontent-type: application/json\r\n\r\n{}\r\n--abcdef\r\ncontent-type: text/plain\r\n\r\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
-            .body(body)
+            .body(body.as_slice())
             .unwrap();
 
         let (_metadata, content) = try_from_multipart_mixed_response(response).unwrap();
@@ -454,10 +460,10 @@ mod tests {
         assert_eq!(file_content.content_disposition, None);
 
         // Case-insensitive headers.
-        let body = "\r\n--abcdef\r\nCONTENT-type: application/json\r\n\r\n{}\r\n--abcdef\r\nCONTENT-TYPE: text/plain\r\ncoNtenT-disPosItioN: attachment; filename=my_file.txt\r\n\r\nsome plain text\r\n--abcdef--";
+        let body = b"\r\n--abcdef\r\nCONTENT-type: application/json\r\n\r\n{}\r\n--abcdef\r\nCONTENT-TYPE: text/plain\r\ncoNtenT-disPosItioN: attachment; filename=my_file.txt\r\n\r\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
-            .body(body)
+            .body(body.as_slice())
             .unwrap();
 
         let (_metadata, content) = try_from_multipart_mixed_response(response).unwrap();
@@ -470,10 +476,10 @@ mod tests {
         assert_eq!(content_disposition.filename.unwrap(), "my_file.txt");
 
         // Extra whitespace.
-        let body = "   \r\n--abcdef\r\ncontent-type:   application/json   \r\n\r\n {} \r\n--abcdef\r\ncontent-type: text/plain  \r\n\r\nsome plain text\r\n--abcdef--  ";
+        let body = b"   \r\n--abcdef\r\ncontent-type:   application/json   \r\n\r\n {} \r\n--abcdef\r\ncontent-type: text/plain  \r\n\r\nsome plain text\r\n--abcdef--  ";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
-            .body(body)
+            .body(body.as_slice())
             .unwrap();
 
         let (_metadata, content) = try_from_multipart_mixed_response(response).unwrap();
@@ -484,10 +490,10 @@ mod tests {
         assert_eq!(file_content.content_disposition, None);
 
         // Missing CR except in boundaries.
-        let body = "\r\n--abcdef\ncontent-type: application/json\n\n{}\r\n--abcdef\ncontent-type: text/plain  \n\nsome plain text\r\n--abcdef--";
+        let body = b"\r\n--abcdef\ncontent-type: application/json\n\n{}\r\n--abcdef\ncontent-type: text/plain  \n\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
-            .body(body)
+            .body(body.as_slice())
             .unwrap();
 
         let (_metadata, content) = try_from_multipart_mixed_response(response).unwrap();
@@ -498,10 +504,10 @@ mod tests {
         assert_eq!(file_content.content_disposition, None);
 
         // No leading CRLF (and no preamble)
-        let body = "--abcdef\r\n\r\n{}\r\n--abcdef\r\n\r\nsome plain text\r\n--abcdef--";
+        let body = b"--abcdef\r\n\r\n{}\r\n--abcdef\r\n\r\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
-            .body(body)
+            .body(body.as_slice())
             .unwrap();
 
         let (_metadata, content) = try_from_multipart_mixed_response(response).unwrap();
@@ -514,10 +520,10 @@ mod tests {
         // Boundary text in preamble, but no leading CRLF, so it should be
         // ignored.
         let body =
-            "foo--abcdef\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\n\r\nsome plain text\r\n--abcdef--";
+            b"foo--abcdef\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\n\r\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
-            .body(body)
+            .body(body.as_slice())
             .unwrap();
 
         let (_metadata, content) = try_from_multipart_mixed_response(response).unwrap();
@@ -528,10 +534,10 @@ mod tests {
         assert_eq!(file_content.content_disposition, None);
 
         // No body part headers.
-        let body = "\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\n\r\nsome plain text\r\n--abcdef--";
+        let body = b"\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\n\r\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
-            .body(body)
+            .body(body.as_slice())
             .unwrap();
 
         let (_metadata, content) = try_from_multipart_mixed_response(response).unwrap();
@@ -545,7 +551,7 @@ mod tests {
         let body = "\r\n--abcdef\r\ncontent-type: application/json\r\n\r\n{}\r\n--abcdef\r\ncontent-type: text/plain\r\ncontent-disposition: inline; filename=\"ȵ⌾Ⱦԩ💈Ňɠ\"\r\n\r\nsome plain text\r\n--abcdef--";
         let response = http::Response::builder()
             .header(http::header::CONTENT_TYPE, "multipart/mixed; boundary=abcdef")
-            .body(body)
+            .body(body.as_bytes())
             .unwrap();
 
         let (_metadata, content) = try_from_multipart_mixed_response(response).unwrap();
