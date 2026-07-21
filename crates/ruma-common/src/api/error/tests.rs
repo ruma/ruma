@@ -41,15 +41,14 @@ fn deserialize_wrong_room_key_version() {
 
 #[test]
 fn deserialize_limit_exceeded_no_retry_after() {
+    let body = json!({
+        "errcode": "M_LIMIT_EXCEEDED",
+        "error": "Too many requests",
+    })
+    .to_string();
     let response = http::Response::builder()
         .status(http::StatusCode::TOO_MANY_REQUESTS)
-        .body(
-            serde_json::to_string(&json!({
-                "errcode": "M_LIMIT_EXCEEDED",
-                "error": "Too many requests",
-            }))
-            .unwrap(),
-        )
+        .body(body.as_bytes())
         .unwrap();
     let error = Error::from_http_response(response);
 
@@ -65,16 +64,15 @@ fn deserialize_limit_exceeded_no_retry_after() {
 
 #[test]
 fn deserialize_limit_exceeded_retry_after_body() {
+    let body = json!({
+        "errcode": "M_LIMIT_EXCEEDED",
+        "error": "Too many requests",
+        "retry_after_ms": 2000,
+    })
+    .to_string();
     let response = http::Response::builder()
         .status(http::StatusCode::TOO_MANY_REQUESTS)
-        .body(
-            serde_json::to_string(&json!({
-                "errcode": "M_LIMIT_EXCEEDED",
-                "error": "Too many requests",
-                "retry_after_ms": 2000,
-            }))
-            .unwrap(),
-        )
+        .body(body.as_bytes())
         .unwrap();
     let error = Error::from_http_response(response);
 
@@ -94,16 +92,15 @@ fn deserialize_limit_exceeded_retry_after_body() {
 
 #[test]
 fn deserialize_limit_exceeded_retry_after_header_delay() {
+    let body = json!({
+        "errcode": "M_LIMIT_EXCEEDED",
+        "error": "Too many requests",
+    })
+    .to_string();
     let response = http::Response::builder()
         .status(http::StatusCode::TOO_MANY_REQUESTS)
         .header(http::header::RETRY_AFTER, "2")
-        .body(
-            serde_json::to_string(&json!({
-                "errcode": "M_LIMIT_EXCEEDED",
-                "error": "Too many requests",
-            }))
-            .unwrap(),
-        )
+        .body(body.as_bytes())
         .unwrap();
     let error = Error::from_http_response(response);
 
@@ -123,16 +120,15 @@ fn deserialize_limit_exceeded_retry_after_header_delay() {
 
 #[test]
 fn deserialize_limit_exceeded_retry_after_header_datetime() {
+    let body = json!({
+        "errcode": "M_LIMIT_EXCEEDED",
+        "error": "Too many requests",
+    })
+    .to_string();
     let response = http::Response::builder()
         .status(http::StatusCode::TOO_MANY_REQUESTS)
         .header(http::header::RETRY_AFTER, "Fri, 15 May 2015 15:34:21 GMT")
-        .body(
-            serde_json::to_string(&json!({
-                "errcode": "M_LIMIT_EXCEEDED",
-                "error": "Too many requests",
-            }))
-            .unwrap(),
-        )
+        .body(body.as_bytes())
         .unwrap();
     let error = Error::from_http_response(response);
 
@@ -152,17 +148,16 @@ fn deserialize_limit_exceeded_retry_after_header_datetime() {
 
 #[test]
 fn deserialize_limit_exceeded_retry_after_header_over_body() {
+    let body = json!({
+        "errcode": "M_LIMIT_EXCEEDED",
+        "error": "Too many requests",
+        "retry_after_ms": 3000,
+    })
+    .to_string();
     let response = http::Response::builder()
         .status(http::StatusCode::TOO_MANY_REQUESTS)
         .header(http::header::RETRY_AFTER, "2")
-        .body(
-            serde_json::to_string(&json!({
-                "errcode": "M_LIMIT_EXCEEDED",
-                "error": "Too many requests",
-                "retry_after_ms": 3000,
-            }))
-            .unwrap(),
-        )
+        .body(body.as_bytes())
         .unwrap();
     let error = Error::from_http_response(response);
 
