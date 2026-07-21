@@ -98,7 +98,9 @@ fn response_serde() {
     let res =
         Response { stuff: location.to_owned(), content_disposition: content_disposition.clone() };
 
-    let mut http_res = res.clone().try_into_http_response::<Vec<u8>>().unwrap();
+    let (parts, body) = res.clone().try_into_http_response::<Vec<u8>>().unwrap().into_parts();
+    let mut http_res = http::Response::from_parts(parts, body.as_slice());
+
     assert_matches!(http_res.headers().get(LOCATION), Some(_));
     assert_matches!(http_res.headers().get(CONTENT_DISPOSITION), Some(_));
 
