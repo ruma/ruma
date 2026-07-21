@@ -67,7 +67,7 @@ impl Response {
 
 #[cfg(all(test, feature = "client"))]
 mod tests {
-    use ruma_common::{OwnedRoomId, api::IncomingResponse};
+    use ruma_common::{OwnedRoomId, api::IncomingResponseExt as _};
     use serde_json::json;
 
     use super::Response;

@@ -171,7 +171,7 @@ mod tests {
     #[test]
     #[cfg(feature = "client")]
     fn deserialize_response() {
-        use ruma_common::api::IncomingResponse;
+        use ruma_common::api::IncomingResponseExt as _;
 
         use crate::profile::{AvatarUrl, DisplayName};
 

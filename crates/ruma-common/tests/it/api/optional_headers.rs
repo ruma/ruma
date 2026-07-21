@@ -4,7 +4,7 @@ use assert_matches2::assert_matches;
 use http::header::{CONTENT_DISPOSITION, LOCATION};
 use ruma_common::{
     api::{
-        IncomingRequest, IncomingResponse, MatrixVersion, OutgoingRequestExt as _,
+        IncomingRequest, IncomingResponseExt as _, MatrixVersion, OutgoingRequestExt as _,
         OutgoingResponse, SupportedVersions, auth_scheme::NoAuthentication, request, response,
     },
     http_headers::{ContentDisposition, ContentDispositionType},

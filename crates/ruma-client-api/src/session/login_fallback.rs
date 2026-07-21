@@ -75,17 +75,9 @@ impl ruma_common::api::OutgoingResponse for Response {
 impl ruma_common::api::IncomingResponse for Response {
     type EndpointError = ruma_common::api::error::Error;
 
-    fn try_from_http_response(
+    fn try_from_http_response_inner(
         response: http::Response<&[u8]>,
-    ) -> Result<Self, ruma_common::api::error::FromHttpResponseError<Self::EndpointError>> {
-        use ruma_common::api::{EndpointError, error::FromHttpResponseError};
-
-        if response.status().as_u16() >= 400 {
-            return Err(FromHttpResponseError::Server(Self::EndpointError::from_http_response(
-                response,
-            )));
-        }
-
+    ) -> Result<Self, ruma_common::api::error::DeserializationError> {
         let body = response.into_body().to_owned();
         Ok(Self { body })
     }

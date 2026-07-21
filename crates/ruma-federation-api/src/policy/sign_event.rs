@@ -118,7 +118,7 @@ mod tests {
     #[cfg(feature = "client")]
     #[test]
     fn deserialize_response() {
-        use ruma_common::{api::IncomingResponse, server_name};
+        use ruma_common::{api::IncomingResponseExt as _, server_name};
         use serde_json::json;
 
         let body = json!({

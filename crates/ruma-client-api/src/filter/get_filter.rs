@@ -64,7 +64,7 @@ pub mod v3 {
         #[cfg(feature = "client")]
         #[test]
         fn deserialize_response() {
-            use ruma_common::api::IncomingResponse;
+            use ruma_common::api::IncomingResponseExt as _;
 
             let res = super::Response::try_from_http_response(
                 http::Response::builder().body(b"{}" as &[u8]).unwrap(),

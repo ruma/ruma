@@ -10,7 +10,7 @@ pub mod unstable_msc4108 {
 
     use http::header::{CONTENT_TYPE, ETAG, EXPIRES, LAST_MODIFIED};
     #[cfg(feature = "client")]
-    use ruma_common::api::{BytesBody, error::FromHttpResponseError};
+    use ruma_common::api::{BytesBody, error::DeserializationError};
     use ruma_common::{
         api::{
             auth_scheme::NoAccessToken,
@@ -144,18 +144,10 @@ pub mod unstable_msc4108 {
     impl ruma_common::api::IncomingResponse for Response {
         type EndpointError = Error;
 
-        fn try_from_http_response(
+        fn try_from_http_response_inner(
             response: http::Response<&[u8]>,
-        ) -> Result<Self, FromHttpResponseError<Self::EndpointError>> {
-            use ruma_common::api::EndpointError;
-
-            if response.status().as_u16() >= 400 {
-                return Err(FromHttpResponseError::Server(
-                    Self::EndpointError::from_http_response(response),
-                ));
-            }
-
-            let get_date = |header: http::HeaderName| -> Result<SystemTime, FromHttpResponseError<Self::EndpointError>> {
+        ) -> Result<Self, DeserializationError> {
+            let get_date = |header: http::HeaderName| -> Result<SystemTime, DeserializationError> {
                 let date = response
                     .headers()
                     .get(&header)
