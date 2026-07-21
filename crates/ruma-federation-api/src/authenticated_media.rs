@@ -146,10 +146,7 @@ fn try_into_multipart_mixed_response<T: Default + bytes::BufMut>(
 #[cfg(feature = "client")]
 fn try_from_multipart_mixed_response(
     http_response: http::Response<&[u8]>,
-) -> Result<
-    (ContentMetadata, FileOrLocation),
-    ruma_common::api::error::FromHttpResponseError<ruma_common::api::error::Error>,
-> {
+) -> Result<(ContentMetadata, FileOrLocation), ruma_common::api::error::DeserializationError> {
     use ruma_common::api::error::{HeaderDeserializationError, MultipartMixedDeserializationError};
 
     // First, get the boundary from the content type header.

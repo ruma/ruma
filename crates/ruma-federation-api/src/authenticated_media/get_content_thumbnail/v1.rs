@@ -102,20 +102,12 @@ impl Response {
 impl ruma_common::api::IncomingResponse for Response {
     type EndpointError = ruma_common::api::error::Error;
 
-    fn try_from_http_response(
+    fn try_from_http_response_inner(
         http_response: http::Response<&[u8]>,
-    ) -> Result<Self, ruma_common::api::error::FromHttpResponseError<Self::EndpointError>> {
-        use ruma_common::api::EndpointError;
-
-        if http_response.status().as_u16() < 400 {
-            let (metadata, content) =
-                crate::authenticated_media::try_from_multipart_mixed_response(http_response)?;
-            Ok(Self { metadata, content })
-        } else {
-            Err(ruma_common::api::error::FromHttpResponseError::Server(
-                ruma_common::api::error::Error::from_http_response(http_response),
-            ))
-        }
+    ) -> Result<Self, ruma_common::api::error::DeserializationError> {
+        let (metadata, content) =
+            crate::authenticated_media::try_from_multipart_mixed_response(http_response)?;
+        Ok(Self { metadata, content })
     }
 }
 

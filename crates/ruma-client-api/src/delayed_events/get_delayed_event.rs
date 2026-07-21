@@ -123,7 +123,8 @@ pub mod unstable {
 
         use js_int::UInt;
         use ruma_common::{
-            MilliSecondsSinceUnixEpoch, api::IncomingResponse, owned_event_id, owned_room_id,
+            MilliSecondsSinceUnixEpoch, api::IncomingResponseExt as _, owned_event_id,
+            owned_room_id,
         };
         use ruma_events::TimelineEventType;
         use serde_json::{Value as JsonValue, json};

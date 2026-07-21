@@ -186,18 +186,11 @@ pub mod v3 {
     impl ruma_common::api::IncomingResponse for Response {
         type EndpointError = Error;
 
-        fn try_from_http_response(
+        fn try_from_http_response_inner(
             response: http::Response<&[u8]>,
-        ) -> Result<Self, ruma_common::api::error::FromHttpResponseError<Self::EndpointError>>
-        {
-            use ruma_common::{api::EndpointError, profile::ProfileFieldValueVisitor};
+        ) -> Result<Self, ruma_common::api::error::DeserializationError> {
+            use ruma_common::profile::ProfileFieldValueVisitor;
             use serde::Deserializer;
-
-            if response.status().as_u16() >= 400 {
-                return Err(ruma_common::api::error::FromHttpResponseError::Server(
-                    Self::EndpointError::from_http_response(response),
-                ));
-            }
 
             let mut de = serde_json::Deserializer::from_slice(response.body());
             let value = de.deserialize_map(ProfileFieldValueVisitor::new(None))?;
@@ -250,20 +243,12 @@ pub mod v3 {
     impl<F: StaticProfileField> ruma_common::api::IncomingResponse for ResponseStatic<F> {
         type EndpointError = Error;
 
-        fn try_from_http_response(
+        fn try_from_http_response_inner(
             response: http::Response<&[u8]>,
-        ) -> Result<Self, ruma_common::api::error::FromHttpResponseError<Self::EndpointError>>
-        {
-            use ruma_common::api::EndpointError;
+        ) -> Result<Self, ruma_common::api::error::DeserializationError> {
             use serde::de::Deserializer;
 
             use crate::profile::profile_field_serde::StaticProfileFieldVisitor;
-
-            if response.status().as_u16() >= 400 {
-                return Err(ruma_common::api::error::FromHttpResponseError::Server(
-                    Self::EndpointError::from_http_response(response),
-                ));
-            }
 
             let value = serde_json::Deserializer::from_slice(response.into_body())
                 .deserialize_map(StaticProfileFieldVisitor(PhantomData::<F>))?;
@@ -368,7 +353,7 @@ mod tests_client {
 
     #[test]
     fn deserialize_response() {
-        use ruma_common::api::IncomingResponse;
+        use ruma_common::api::IncomingResponseExt as _;
 
         let body = json!({
             "custom_field": "value",
@@ -392,7 +377,7 @@ mod tests_client {
         value: Option<ProfileFieldValue>,
     ) -> Result<R::IncomingResponse, ruma_common::api::error::FromHttpResponseError<R::EndpointError>>
     {
-        use ruma_common::api::IncomingResponse;
+        use ruma_common::api::IncomingResponseExt as _;
 
         let body =
             value.map(|value| to_json_vec(&value).unwrap()).unwrap_or_else(|| b"{}".to_vec());

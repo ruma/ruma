@@ -104,27 +104,15 @@ pub mod v3 {
     impl ruma_common::api::IncomingResponse for Response {
         type EndpointError = ruma_common::api::error::Error;
 
-        fn try_from_http_response(
+        fn try_from_http_response_inner(
             response: http::Response<&[u8]>,
-        ) -> Result<Self, ruma_common::api::error::FromHttpResponseError<Self::EndpointError>>
-        {
-            use ruma_common::api::{
-                EndpointError,
-                error::{DeserializationError, FromHttpResponseError, HeaderDeserializationError},
-            };
-
-            if response.status().as_u16() >= 400 {
-                return Err(FromHttpResponseError::Server(
-                    Self::EndpointError::from_http_response(response),
-                ));
-            }
+        ) -> Result<Self, ruma_common::api::error::DeserializationError> {
+            use ruma_common::api::error::HeaderDeserializationError;
 
             if response.status() == http::StatusCode::FOUND {
                 let Some(location) = response.headers().get(http::header::LOCATION) else {
-                    return Err(DeserializationError::Header(
-                        HeaderDeserializationError::MissingHeader(
-                            http::header::LOCATION.to_string(),
-                        ),
+                    return Err(HeaderDeserializationError::MissingHeader(
+                        http::header::LOCATION.to_string(),
                     )
                     .into());
                 };
@@ -142,7 +130,7 @@ pub mod v3 {
     mod tests_client {
         use assert_matches2::assert_let;
         use http::header::{CONTENT_TYPE, LOCATION};
-        use ruma_common::api::IncomingResponse;
+        use ruma_common::api::IncomingResponseExt as _;
 
         use super::Response;
 

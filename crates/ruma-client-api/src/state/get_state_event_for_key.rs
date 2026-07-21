@@ -211,7 +211,7 @@ pub mod v3 {
 
 #[cfg(all(test, feature = "client"))]
 mod tests {
-    use ruma_common::api::IncomingResponse;
+    use ruma_common::api::IncomingResponseExt as _;
     use ruma_events::room::name::RoomNameEventContent;
     use serde_json::json;
 

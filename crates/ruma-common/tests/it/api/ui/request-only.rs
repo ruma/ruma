@@ -5,7 +5,7 @@ use ruma_common::{
     api::{
         IncomingResponse, OutgoingResponse,
         auth_scheme::NoAuthentication,
-        error::{Error, FromHttpResponseError, IntoHttpError},
+        error::{DeserializationError, Error, IntoHttpError},
         request,
     },
     metadata,
@@ -33,7 +33,7 @@ pub struct Response;
 impl IncomingResponse for Response {
     type EndpointError = Error;
 
-    fn try_from_http_response(_: http::Response<T>) -> Result<Self, FromHttpResponseError<Error>> {
+    fn try_from_http_response_inner(_: http::Response<T>) -> Result<Self, DeserializationError> {
         todo!()
     }
 }
