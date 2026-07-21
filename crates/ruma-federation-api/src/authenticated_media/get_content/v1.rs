@@ -67,8 +67,8 @@ impl Response {
 impl ruma_common::api::IncomingResponse for Response {
     type EndpointError = ruma_common::api::error::Error;
 
-    fn try_from_http_response<T: AsRef<[u8]>>(
-        http_response: http::Response<T>,
+    fn try_from_http_response(
+        http_response: http::Response<&[u8]>,
     ) -> Result<Self, ruma_common::api::error::FromHttpResponseError<Self::EndpointError>> {
         use ruma_common::api::EndpointError;
 

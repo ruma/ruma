@@ -347,8 +347,8 @@ pub trait IncomingResponse: Sized {
     type EndpointError: EndpointError;
 
     /// Tries to convert the given `http::Response` into this response type.
-    fn try_from_http_response<T: AsRef<[u8]>>(
-        response: http::Response<T>,
+    fn try_from_http_response(
+        response: http::Response<&[u8]>,
     ) -> Result<Self, FromHttpResponseError<Self::EndpointError>>;
 }
 

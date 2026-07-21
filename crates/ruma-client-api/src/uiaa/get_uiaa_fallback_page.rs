@@ -104,8 +104,8 @@ pub mod v3 {
     impl ruma_common::api::IncomingResponse for Response {
         type EndpointError = ruma_common::api::error::Error;
 
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
+        fn try_from_http_response(
+            response: http::Response<&[u8]>,
         ) -> Result<Self, ruma_common::api::error::FromHttpResponseError<Self::EndpointError>>
         {
             use ruma_common::api::{
@@ -133,7 +133,7 @@ pub mod v3 {
                 return Ok(Self::Redirect(Redirect { url: url.to_owned() }));
             }
 
-            let body = response.into_body().as_ref().to_owned();
+            let body = response.into_body().to_owned();
             Ok(Self::Html(HtmlPage { body }))
         }
     }
@@ -153,7 +153,7 @@ pub mod v3 {
             let http_response = http::Response::builder()
                 .status(http::StatusCode::FOUND)
                 .header(LOCATION, "http://localhost/redirect")
-                .body(Vec::<u8>::new())
+                .body(b"".as_slice())
                 .unwrap();
 
             let response = Response::try_from_http_response(http_response).unwrap();
@@ -168,7 +168,7 @@ pub mod v3 {
             let http_response = http::Response::builder()
                 .status(http::StatusCode::OK)
                 .header(CONTENT_TYPE, "text/html; charset=utf-8")
-                .body(b"<h1>My Page</h1>")
+                .body(b"<h1>My Page</h1>".as_slice())
                 .unwrap();
 
             let response = Response::try_from_http_response(http_response).unwrap();

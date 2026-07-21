@@ -99,7 +99,8 @@ fn request_serde_with_header() {
 fn response_serde_no_header() {
     let res = Response { stuff: None, content_disposition: None };
 
-    let http_res = res.clone().try_into_http_response::<Vec<u8>>().unwrap();
+    let (parts, body) = res.clone().try_into_http_response::<Vec<u8>>().unwrap().into_parts();
+    let http_res = http::Response::from_parts(parts, body.as_slice());
     assert_matches!(http_res.headers().get(LOCATION), None);
     assert_matches!(http_res.headers().get(CONTENT_DISPOSITION), None);
 
@@ -118,7 +119,8 @@ fn response_serde_with_header() {
         content_disposition: Some(content_disposition.clone()),
     };
 
-    let mut http_res = res.clone().try_into_http_response::<Vec<u8>>().unwrap();
+    let (parts, body) = res.clone().try_into_http_response::<Vec<u8>>().unwrap().into_parts();
+    let mut http_res = http::Response::from_parts(parts, body.as_slice());
     assert_matches!(http_res.headers().get(LOCATION), Some(_));
     assert_matches!(http_res.headers().get(CONTENT_DISPOSITION), Some(_));
 

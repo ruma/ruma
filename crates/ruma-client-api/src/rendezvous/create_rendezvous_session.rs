@@ -144,8 +144,8 @@ pub mod unstable_msc4108 {
     impl ruma_common::api::IncomingResponse for Response {
         type EndpointError = Error;
 
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
+        fn try_from_http_response(
+            response: http::Response<&[u8]>,
         ) -> Result<Self, FromHttpResponseError<Self::EndpointError>> {
             use ruma_common::api::EndpointError;
 
@@ -175,7 +175,7 @@ pub mod unstable_msc4108 {
             let expires = get_date(EXPIRES)?;
             let last_modified = get_date(LAST_MODIFIED)?;
 
-            let body: ResponseBody = serde_json::from_slice(response.body().as_ref())?;
+            let body: ResponseBody = serde_json::from_slice(response.body())?;
 
             Ok(Self { url: body.url, etag, expires, last_modified })
         }

@@ -701,10 +701,11 @@ mod tests {
                     ]
                 }
             }
-        });
+        })
+        .to_string();
         let result_event_id = event_id!("$144429830826TWwbB:localhost");
 
-        let http_request = http::Response::new(to_json_vec(&body).unwrap());
+        let http_request = http::Response::new(body.as_bytes());
         let response = Response::try_from_http_response(http_request).unwrap();
 
         let results = &response.search_categories.room_events;

@@ -119,8 +119,8 @@ impl Response {
 impl ruma_common::api::IncomingResponse for Response {
     type EndpointError = <super::v1::Response as ruma_common::api::IncomingResponse>::EndpointError;
 
-    fn try_from_http_response<T: AsRef<[u8]>>(
-        http_response: http::Response<T>,
+    fn try_from_http_response(
+        http_response: http::Response<&[u8]>,
     ) -> Result<Self, ruma_common::api::error::FromHttpResponseError<Self::EndpointError>> {
         // Reuse the custom deserialization.
         Ok(super::v1::Response::try_from_http_response(http_response)?.into())

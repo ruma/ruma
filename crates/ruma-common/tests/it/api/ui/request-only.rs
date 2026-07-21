@@ -33,9 +33,7 @@ pub struct Response;
 impl IncomingResponse for Response {
     type EndpointError = Error;
 
-    fn try_from_http_response<T: AsRef<[u8]>>(
-        _: http::Response<T>,
-    ) -> Result<Self, FromHttpResponseError<Error>> {
+    fn try_from_http_response(_: http::Response<T>) -> Result<Self, FromHttpResponseError<Error>> {
         todo!()
     }
 }

@@ -26,8 +26,8 @@ impl Response {
             impl #ruma_common::api::IncomingResponse for #ident {
                 type EndpointError = #error_ty;
 
-                fn try_from_http_response<T: ::std::convert::AsRef<[::std::primitive::u8]>>(
-                    #src: #http::Response<T>,
+                fn try_from_http_response(
+                    #src: #http::Response<&[::std::primitive::u8]>,
                 ) -> ::std::result::Result<
                     Self,
                     #ruma_common::api::error::FromHttpResponseError<#error_ty>,

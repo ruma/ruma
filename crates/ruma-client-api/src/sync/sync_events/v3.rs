@@ -839,7 +839,7 @@ mod client_tests {
         event_id, room_id, user_id,
     };
     use ruma_events::AnyStrippedStateEvent;
-    use serde_json::{Value as JsonValue, json, to_vec as to_json_vec};
+    use serde_json::{Value as JsonValue, json};
 
     use super::{Filter, PresenceState, Request, Response, State};
 
@@ -932,8 +932,9 @@ mod client_tests {
                     },
                 },
             },
-        });
-        let http_response = http::Response::new(to_json_vec(&body).unwrap());
+        })
+        .to_string();
+        let http_response = http::Response::new(body.as_bytes());
 
         let response = Response::try_from_http_response(http_response).unwrap();
         assert_eq!(response.next_batch, "a00");
@@ -973,9 +974,10 @@ mod client_tests {
                     },
                 },
             },
-        });
+        })
+        .to_string();
 
-        let http_response = http::Response::new(to_json_vec(&body).unwrap());
+        let http_response = http::Response::new(body.as_bytes());
 
         let response = Response::try_from_http_response(http_response).unwrap();
         assert_eq!(response.next_batch, "aaa");
@@ -1017,9 +1019,10 @@ mod client_tests {
                     },
                 },
             },
-        });
+        })
+        .to_string();
 
-        let http_response = http::Response::new(to_json_vec(&body).unwrap());
+        let http_response = http::Response::new(body.as_bytes());
 
         let response = Response::try_from_http_response(http_response).unwrap();
         assert_eq!(response.next_batch, "aaa");
@@ -1054,9 +1057,10 @@ mod client_tests {
                     },
                 },
             },
-        });
+        })
+        .to_string();
 
-        let http_response = http::Response::new(to_json_vec(&body).unwrap());
+        let http_response = http::Response::new(body.as_bytes());
 
         let response = Response::try_from_http_response(http_response).unwrap();
         assert_eq!(response.next_batch, "aaa");
@@ -1100,9 +1104,10 @@ mod client_tests {
                     },
                 },
             },
-        });
+        })
+        .to_string();
 
-        let http_response = http::Response::new(to_json_vec(&body).unwrap());
+        let http_response = http::Response::new(body.as_bytes());
 
         let response = Response::try_from_http_response(http_response).unwrap();
         assert_eq!(response.next_batch, "aaa");

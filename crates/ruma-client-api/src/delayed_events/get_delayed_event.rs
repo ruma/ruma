@@ -147,10 +147,11 @@ pub mod unstable {
             })
             .to_string();
 
-            let res =
-                Response::try_from_http_response(http::Response::builder().body(body).unwrap())
-                    .unwrap()
-                    .delayed_event;
+            let res = Response::try_from_http_response(
+                http::Response::builder().body(body.as_bytes()).unwrap(),
+            )
+            .unwrap()
+            .delayed_event;
 
             let content = json!({
                 "topic": "test topic"

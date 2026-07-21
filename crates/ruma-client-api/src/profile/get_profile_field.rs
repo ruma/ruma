@@ -186,8 +186,8 @@ pub mod v3 {
     impl ruma_common::api::IncomingResponse for Response {
         type EndpointError = Error;
 
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
+        fn try_from_http_response(
+            response: http::Response<&[u8]>,
         ) -> Result<Self, ruma_common::api::error::FromHttpResponseError<Self::EndpointError>>
         {
             use ruma_common::{api::EndpointError, profile::ProfileFieldValueVisitor};
@@ -199,7 +199,7 @@ pub mod v3 {
                 ));
             }
 
-            let mut de = serde_json::Deserializer::from_slice(response.body().as_ref());
+            let mut de = serde_json::Deserializer::from_slice(response.body());
             let value = de.deserialize_map(ProfileFieldValueVisitor::new(None))?;
             de.end()?;
 
@@ -250,8 +250,8 @@ pub mod v3 {
     impl<F: StaticProfileField> ruma_common::api::IncomingResponse for ResponseStatic<F> {
         type EndpointError = Error;
 
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
+        fn try_from_http_response(
+            response: http::Response<&[u8]>,
         ) -> Result<Self, ruma_common::api::error::FromHttpResponseError<Self::EndpointError>>
         {
             use ruma_common::api::EndpointError;
@@ -265,7 +265,7 @@ pub mod v3 {
                 ));
             }
 
-            let value = serde_json::Deserializer::from_slice(response.into_body().as_ref())
+            let value = serde_json::Deserializer::from_slice(response.into_body())
                 .deserialize_map(StaticProfileFieldVisitor(PhantomData::<F>))?;
 
             Ok(Self { value })
@@ -370,19 +370,19 @@ mod tests_client {
     fn deserialize_response() {
         use ruma_common::api::IncomingResponse;
 
-        let body = to_json_vec(&json!({
+        let body = json!({
             "custom_field": "value",
-        }))
-        .unwrap();
+        })
+        .to_string();
 
-        let response = Response::try_from_http_response(http::Response::new(body)).unwrap();
+        let response =
+            Response::try_from_http_response(http::Response::new(body.as_bytes())).unwrap();
         let value = response.value.unwrap();
         assert_eq!(value.field_name().as_str(), "custom_field");
         assert_eq!(value.value().as_str().unwrap(), "value");
 
-        let empty_body = to_json_vec(&json!({})).unwrap();
-
-        let response = Response::try_from_http_response(http::Response::new(empty_body)).unwrap();
+        let response =
+            Response::try_from_http_response(http::Response::new(b"{}".as_slice())).unwrap();
         assert!(response.value.is_none());
     }
 
@@ -396,7 +396,7 @@ mod tests_client {
 
         let body =
             value.map(|value| to_json_vec(&value).unwrap()).unwrap_or_else(|| b"{}".to_vec());
-        R::IncomingResponse::try_from_http_response(http::Response::new(body))
+        R::IncomingResponse::try_from_http_response(http::Response::new(body.as_slice()))
     }
 
     #[test]

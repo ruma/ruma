@@ -172,30 +172,31 @@ mod tests {
     #[cfg(feature = "client")]
     fn deserialize_response() {
         use ruma_common::api::IncomingResponse;
-        use serde_json::to_vec as to_json_vec;
 
         use crate::profile::{AvatarUrl, DisplayName};
 
         // Values are set.
-        let body = to_json_vec(&json!({
+        let body = json!({
             "avatar_url": "mxc://localhost/abcdef",
             "displayname": "Alice",
             "custom_field": "value",
-        }))
-        .unwrap();
+        })
+        .to_string();
 
-        let response = Response::try_from_http_response(http::Response::new(body)).unwrap();
+        let response =
+            Response::try_from_http_response(http::Response::new(body.as_bytes())).unwrap();
         assert_eq!(response.get_static::<AvatarUrl>().unwrap().unwrap(), "mxc://localhost/abcdef");
         assert_eq!(response.get_static::<DisplayName>().unwrap().unwrap(), "Alice");
         assert_eq!(response.get("custom_field").unwrap().as_str().unwrap(), "value");
 
         // Values are missing or null.
-        let body = to_json_vec(&json!({
+        let body = json!({
             "custom_field": null,
-        }))
-        .unwrap();
+        })
+        .to_string();
 
-        let response = Response::try_from_http_response(http::Response::new(body)).unwrap();
+        let response =
+            Response::try_from_http_response(http::Response::new(body.as_bytes())).unwrap();
         assert_eq!(response.get_static::<AvatarUrl>().unwrap(), None);
         assert_eq!(response.get_static::<DisplayName>().unwrap(), None);
         assert!(response.get("custom_field").unwrap().is_null());
