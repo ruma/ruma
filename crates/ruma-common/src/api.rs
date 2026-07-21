@@ -439,7 +439,7 @@ pub trait EndpointError: OutgoingResponse + StdError + Sized + Send + 'static {
     ///
     /// This will always return `Err` variant when no `error` field is defined in
     /// the `ruma_api` macro.
-    fn from_http_response<T: AsRef<[u8]>>(response: http::Response<T>) -> Self;
+    fn from_http_response(response: http::Response<&[u8]>) -> Self;
 }
 
 /// The direction to return events from.
