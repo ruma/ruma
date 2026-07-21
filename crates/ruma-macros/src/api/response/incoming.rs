@@ -26,22 +26,9 @@ impl Response {
             impl #ruma_common::api::IncomingResponse for #ident {
                 type EndpointError = #error_ty;
 
-                fn try_from_http_response(
+                fn try_from_http_response_inner(
                     #src: #http::Response<&[::std::primitive::u8]>,
-                ) -> ::std::result::Result<
-                    Self,
-                    #ruma_common::api::error::FromHttpResponseError<#error_ty>,
-                > {
-                    if #src.status().as_u16() >= 400 {
-                        return ::std::result::Result::Err(
-                            #ruma_common::api::error::FromHttpResponseError::Server(
-                                <#error_ty as #ruma_common::api::EndpointError>::from_http_response(
-                                    #src,
-                                )
-                            )
-                        );
-                    }
-
+                ) -> ::std::result::Result<Self, #ruma_common::api::error::DeserializationError> {
                     #headers_parse
                     #body_parse
 

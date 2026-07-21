@@ -10,10 +10,10 @@ use http::{header::CONTENT_TYPE, method::Method};
 use ruma_common::{
     OwnedRoomAliasId, OwnedRoomId,
     api::{
-        EndpointError, IncomingRequest, IncomingResponse, MatrixVersion, Metadata, OutgoingBody,
-        OutgoingRequest, OutgoingResponse, SupportedVersions,
+        IncomingRequest, IncomingResponse, MatrixVersion, Metadata, OutgoingBody, OutgoingRequest,
+        OutgoingResponse, SupportedVersions,
         auth_scheme::NoAuthentication,
-        error::{Error, FromHttpRequestError, FromHttpResponseError, IntoHttpError},
+        error::{DeserializationError, Error, FromHttpRequestError, IntoHttpError},
         path_builder::{StablePathSelector, VersionHistory},
     },
     serde::json_to_buf,
@@ -131,14 +131,10 @@ pub struct Response;
 impl IncomingResponse for Response {
     type EndpointError = Error;
 
-    fn try_from_http_response(
-        http_response: http::Response<&[u8]>,
-    ) -> Result<Self, FromHttpResponseError<Error>> {
-        if http_response.status().as_u16() < 400 {
-            Ok(Response)
-        } else {
-            Err(FromHttpResponseError::Server(Error::from_http_response(http_response)))
-        }
+    fn try_from_http_response_inner(
+        _http_response: http::Response<&[u8]>,
+    ) -> Result<Self, DeserializationError> {
+        Ok(Response)
     }
 }
 

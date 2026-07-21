@@ -101,21 +101,14 @@ pub mod v1 {
     impl ruma_common::api::IncomingResponse for Response {
         type EndpointError = ruma_common::api::error::Error;
 
-        fn try_from_http_response(
+        fn try_from_http_response_inner(
             response: http::Response<&[u8]>,
-        ) -> Result<Self, ruma_common::api::error::FromHttpResponseError<Self::EndpointError>>
-        {
-            use ruma_common::{api::EndpointError, serde::from_raw_json_value};
+        ) -> Result<Self, ruma_common::api::error::DeserializationError> {
+            use ruma_common::serde::from_raw_json_value;
 
             #[derive(serde::Deserialize)]
             struct ResponseDeHelper {
                 membership: Option<MembershipState>,
-            }
-
-            if response.status().as_u16() >= 400 {
-                return Err(ruma_common::api::error::FromHttpResponseError::Server(
-                    Self::EndpointError::from_http_response(response),
-                ));
             }
 
             let raw_json =
@@ -131,7 +124,7 @@ pub mod v1 {
 
 #[cfg(all(test, feature = "client"))]
 mod tests {
-    use ruma_common::api::IncomingResponse;
+    use ruma_common::api::IncomingResponseExt as _;
     use ruma_events::room::member::MembershipState;
     use serde_json::json;
 

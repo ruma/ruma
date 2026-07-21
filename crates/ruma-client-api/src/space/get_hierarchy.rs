@@ -91,7 +91,7 @@ pub mod v1 {
 
 #[cfg(all(test, feature = "client"))]
 mod tests {
-    use ruma_common::api::IncomingResponse;
+    use ruma_common::api::IncomingResponseExt as _;
     use serde_json::json;
 
     use super::v1::Response;
