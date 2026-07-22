@@ -41,6 +41,8 @@ pub const RECOMMENDED_TRANSFERABLE_STATE_EVENT_TYPES: &[StateEventType] = &[
     StateEventType::RoomHistoryVisibility,
     StateEventType::RoomJoinRules,
     StateEventType::RoomPowerLevels,
+    #[cfg(feature = "unstable-msc4495")]
+    StateEventType::RoomPresenceSharing,
 ];
 
 event_enum! {
@@ -67,6 +69,12 @@ event_enum! {
         "io.element.msc4278.media_preview_config" => super::media_preview_config,
         "m.recent_emoji" => super::recent_emoji,
         "m.key_backup" => super::key_backup,
+        #[cfg(feature = "unstable-msc4495")]
+        #[ruma_enum(ident = PresenceSharing)]
+        "org.continuwuity.presence_v2.msc4495.presence.sharing" => super::presence::sharing,
+        #[cfg(feature = "unstable-msc4495")]
+        #[ruma_enum(ident = PresencePrompted)]
+        "org.continuwuity.presence_v2.msc4495.presence.prompted" => super::presence::prompted,
     }
 
     /// Any room account data event.
@@ -199,6 +207,9 @@ event_enum! {
         "m.room.third_party_invite" => super::room::third_party_invite,
         "m.room.tombstone" => super::room::tombstone,
         "m.room.topic" => super::room::topic,
+        #[cfg(feature = "unstable-msc4495")]
+        #[ruma_enum(alias = "m.room.presence_sharing")]
+        "org.continuwuity.presence_v2.msc4495.room.presence_sharing" => super::room::presence_sharing,
         "m.space.child" => super::space::child,
         "m.space.parent" => super::space::parent,
         #[cfg(feature = "unstable-msc3489")]
