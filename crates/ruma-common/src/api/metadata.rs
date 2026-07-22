@@ -796,6 +796,15 @@ pub enum FeatureFlag {
     #[ruma_enum(rename = "org.matrix.msc4380")]
     Msc4380,
 
+    /// `org.continuwuity.presence_v2.msc4495` ([MSC])
+    ///
+    /// Selective Presence.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
+    #[cfg(feature = "unstable-msc4495")]
+    #[ruma_enum(rename = "org.continuwuity.presence_v2.msc4495")]
+    Msc4495,
+
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
