@@ -22,6 +22,10 @@ Improvements:
 - Add the `zeroize(mut self)` method on identifiers, which will call the `zeroize` crate.
 - Add `RoomMessageEventContent::thread` accessor.
 
+Bug fixes:
+
+- Avoid creating empty formatted body fields when editing plain text message events.
+
 ## 0.34.0
 
 Breaking changes:
