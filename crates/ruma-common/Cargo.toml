@@ -51,6 +51,8 @@ unstable-msc4388 = []
 unstable-msc4406 = []
 # User Status Profile Fields.
 unstable-msc4426 = []
+# Selective Presence
+unstable-msc4495 = []
 
 # Allow IDs to exceed 255 bytes.
 compat-arbitrary-length-ids = ["ruma-identifiers-validation/compat-arbitrary-length-ids"]
