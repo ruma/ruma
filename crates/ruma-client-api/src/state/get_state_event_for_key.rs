@@ -211,9 +211,9 @@ pub mod v3 {
 
 #[cfg(all(test, feature = "client"))]
 mod tests {
-    use ruma_common::api::IncomingResponse;
+    use ruma_common::api::IncomingResponseExt as _;
     use ruma_events::room::name::RoomNameEventContent;
-    use serde_json::{json, to_vec as to_json_vec};
+    use serde_json::json;
 
     use super::v3::Response;
 
@@ -221,8 +221,9 @@ mod tests {
     fn deserialize_response() {
         let body = json!({
             "name": "Nice room 🙂"
-        });
-        let response = http::Response::new(to_json_vec(&body).unwrap());
+        })
+        .to_string();
+        let response = http::Response::new(body.as_bytes());
 
         let response = Response::try_from_http_response(response).unwrap();
         let content =

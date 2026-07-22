@@ -123,7 +123,8 @@ pub mod unstable {
 
         use js_int::UInt;
         use ruma_common::{
-            MilliSecondsSinceUnixEpoch, api::IncomingResponse, owned_event_id, owned_room_id,
+            MilliSecondsSinceUnixEpoch, api::IncomingResponseExt as _, owned_event_id,
+            owned_room_id,
         };
         use ruma_events::TimelineEventType;
         use serde_json::{Value as JsonValue, json};
@@ -147,10 +148,11 @@ pub mod unstable {
             })
             .to_string();
 
-            let res =
-                Response::try_from_http_response(http::Response::builder().body(body).unwrap())
-                    .unwrap()
-                    .delayed_event;
+            let res = Response::try_from_http_response(
+                http::Response::builder().body(body.as_bytes()).unwrap(),
+            )
+            .unwrap()
+            .delayed_event;
 
             let content = json!({
                 "topic": "test topic"

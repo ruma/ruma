@@ -118,14 +118,16 @@ mod tests {
     #[cfg(feature = "client")]
     #[test]
     fn deserialize_response() {
-        use ruma_common::{api::IncomingResponse, server_name};
-        use serde_json::{json, to_vec as to_json_vec};
+        use ruma_common::{api::IncomingResponseExt as _, server_name};
+        use serde_json::json;
 
-        let http_response = http::Response::new(to_json_vec(&json!({
+        let body = json!({
             "policy.example.org": {
                 "ed25519:policy_server": "zLFxllD0pbBuBpfHh8NuHNaICpReF/PAOpUQTsw+bFGKiGfDNAsnhcP7pbrmhhpfbOAxIdLraQLeeiXBryLmBw",
             },
-        })).unwrap());
+        })
+        .to_string();
+        let http_response = http::Response::new(body.as_bytes());
 
         let response = Response::try_from_http_response(http_response).unwrap();
 

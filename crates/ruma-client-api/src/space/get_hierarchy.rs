@@ -91,8 +91,8 @@ pub mod v1 {
 
 #[cfg(all(test, feature = "client"))]
 mod tests {
-    use ruma_common::api::IncomingResponse;
-    use serde_json::{json, to_vec as to_json_vec};
+    use ruma_common::api::IncomingResponseExt as _;
+    use serde_json::json;
 
     use super::v1::Response;
 
@@ -122,10 +122,12 @@ mod tests {
                     ],
                 },
             ],
-        });
-        let response = http::Response::new(to_json_vec(&body).unwrap());
+        })
+        .to_string();
 
+        let response = http::Response::new(body.as_bytes());
         let response = Response::try_from_http_response(response).unwrap();
+
         let room = &response.rooms[0];
         assert_eq!(room.summary.room_id, "!room:localhost");
         let space_child = room.children_state[0].deserialize().unwrap();

@@ -259,6 +259,7 @@ pub mod error;
 mod metadata;
 pub mod path_builder;
 
+use self::error::DeserializationError;
 pub use self::{
     body::{BytesBody, EmptyBody, OutgoingBody},
     metadata::{FeatureFlag, MatrixVersion, Metadata, SupportedVersions},
@@ -347,10 +348,30 @@ pub trait IncomingResponse: Sized {
     type EndpointError: EndpointError;
 
     /// Tries to convert the given `http::Response` into this response type.
-    fn try_from_http_response<T: AsRef<[u8]>>(
-        response: http::Response<T>,
-    ) -> Result<Self, FromHttpResponseError<Self::EndpointError>>;
+    ///
+    /// Only called for successful responses (HTTP status code < 400).
+    fn try_from_http_response_inner(
+        response: http::Response<&[u8]>,
+    ) -> Result<Self, DeserializationError>;
 }
+
+/// Convenience functionality on top of [`IncomingResponse`].
+pub trait IncomingResponseExt: IncomingResponse {
+    /// Tries to convert the given `http::Response` into this response type.
+    fn try_from_http_response(
+        response: http::Response<&[u8]>,
+    ) -> Result<Self, FromHttpResponseError<Self::EndpointError>> {
+        if response.status().as_u16() >= 400 {
+            return Err(FromHttpResponseError::Server(Self::EndpointError::from_http_response(
+                response,
+            )));
+        }
+
+        Self::try_from_http_response_inner(response).map_err(Into::into)
+    }
+}
+
+impl<T: IncomingResponse> IncomingResponseExt for T {}
 
 /// An extension to [`OutgoingRequest`] which provides Appservice specific methods.
 ///
@@ -439,7 +460,7 @@ pub trait EndpointError: OutgoingResponse + StdError + Sized + Send + 'static {
     ///
     /// This will always return `Err` variant when no `error` field is defined in
     /// the `ruma_api` macro.
-    fn from_http_response<T: AsRef<[u8]>>(response: http::Response<T>) -> Self;
+    fn from_http_response(response: http::Response<&[u8]>) -> Self;
 }
 
 /// The direction to return events from.

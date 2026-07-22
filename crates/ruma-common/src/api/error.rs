@@ -107,10 +107,10 @@ impl OutgoingResponse for Error {
 }
 
 impl EndpointError for Error {
-    fn from_http_response<T: AsRef<[u8]>>(response: http::Response<T>) -> Self {
+    fn from_http_response(response: http::Response<&[u8]>) -> Self {
         let status = response.status();
 
-        let body_bytes = &response.body().as_ref();
+        let body_bytes = response.body();
         let error_body: ErrorBody = match from_json_slice::<StandardErrorBody>(body_bytes) {
             Ok(mut standard_body) => {
                 let headers = response.headers();

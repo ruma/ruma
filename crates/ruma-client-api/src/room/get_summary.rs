@@ -101,26 +101,18 @@ pub mod v1 {
     impl ruma_common::api::IncomingResponse for Response {
         type EndpointError = ruma_common::api::error::Error;
 
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, ruma_common::api::error::FromHttpResponseError<Self::EndpointError>>
-        {
-            use ruma_common::{api::EndpointError, serde::from_raw_json_value};
+        fn try_from_http_response_inner(
+            response: http::Response<&[u8]>,
+        ) -> Result<Self, ruma_common::api::error::DeserializationError> {
+            use ruma_common::serde::from_raw_json_value;
 
             #[derive(serde::Deserialize)]
             struct ResponseDeHelper {
                 membership: Option<MembershipState>,
             }
 
-            if response.status().as_u16() >= 400 {
-                return Err(ruma_common::api::error::FromHttpResponseError::Server(
-                    Self::EndpointError::from_http_response(response),
-                ));
-            }
-
-            let raw_json = serde_json::from_slice::<Box<serde_json::value::RawValue>>(
-                response.body().as_ref(),
-            )?;
+            let raw_json =
+                serde_json::from_slice::<Box<serde_json::value::RawValue>>(response.body())?;
             let summary = from_raw_json_value::<RoomSummary, serde_json::Error>(&raw_json)?;
             let membership =
                 from_raw_json_value::<ResponseDeHelper, serde_json::Error>(&raw_json)?.membership;
@@ -132,9 +124,9 @@ pub mod v1 {
 
 #[cfg(all(test, feature = "client"))]
 mod tests {
-    use ruma_common::api::IncomingResponse;
+    use ruma_common::api::IncomingResponseExt as _;
     use ruma_events::room::member::MembershipState;
-    use serde_json::{json, to_vec as to_json_vec};
+    use serde_json::json;
 
     use super::v1::Response;
 
@@ -148,10 +140,11 @@ mod tests {
             "join_rule": "restricted",
             "allowed_room_ids": ["!otherroom:localhost"],
             "membership": "invite",
-        });
-        let response = http::Response::new(to_json_vec(&body).unwrap());
-
+        })
+        .to_string();
+        let response = http::Response::new(body.as_bytes());
         let response = Response::try_from_http_response(response).unwrap();
+
         assert_eq!(response.summary.room_id, "!room:localhost");
         assert_eq!(response.membership, Some(MembershipState::Invite));
     }
