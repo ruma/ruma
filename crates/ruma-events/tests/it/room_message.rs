@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use assert_matches2::assert_matches;
+use assert_matches2::{assert_let, assert_matches};
 use ruma_common::{
     OwnedDeviceId,
     canonical_json::assert_to_canonical_json_eq,
@@ -456,6 +456,35 @@ fn make_replacement() {
     let formatted = formatted.unwrap();
     assert_eq!(formatted.body, "* This is <em>an edited</em> message.");
     assert_matches!(content.mentions, None);
+}
+
+#[test]
+fn make_replacement_plain_text_no_reply() {
+    let content = RoomMessageEventContent::text_plain("This is an edited message.");
+
+    let original_message_json = json!({
+        "content": {
+            "body": "Hello, World!",
+            "msgtype": "m.text",
+        },
+        "event_id": "$143273582443PhrSn",
+        "origin_server_ts": 134_829_848,
+        "room_id": "!roomid:notareal.hs",
+        "sender": "@user:notareal.hs",
+        "type": "m.room.message",
+    });
+    let original_message: OriginalSyncRoomMessageEvent =
+        from_json_value(original_message_json).unwrap();
+
+    let content = content.make_replacement(&original_message);
+
+    assert_let!(
+        MessageType::Text(TextMessageEventContent { body, formatted, .. }) = &content.msgtype
+    );
+    assert_eq!(body, "* This is an edited message.");
+    // A plain-text message should not gain a formatted_body from the edit
+    // fallback.
+    assert_matches!(formatted, None);
 }
 
 #[test]
