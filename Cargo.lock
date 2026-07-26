@@ -2231,6 +2231,7 @@ dependencies = [
 name = "ruma-identity-service-api"
 version = "0.15.0"
 dependencies = [
+ "http",
  "js_int",
  "ruma-common",
  "ruma-events",
