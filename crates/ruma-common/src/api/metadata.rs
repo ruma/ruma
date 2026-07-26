@@ -836,6 +836,14 @@ pub enum FeatureFlag {
     #[ruma_enum(rename = "org.matrix.msc4380")]
     Msc4380,
 
+    /// `org.continuwuity.msc4484.unstable` ([MSC])
+    ///
+    /// Server administration OAuth scope.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4484
+    #[ruma_enum(rename = "org.continuwuity.msc4484.unstable")]
+    Msc4484,
+
     /// `org.continuwuity.presence_v2.msc4495` ([MSC])
     ///
     /// Selective Presence.
@@ -865,6 +873,13 @@ pub enum OAuthClientScope {
         alias = "urn:matrix:org.matrix.msc2967.client:api:*"
     )]
     ApiFullAccess,
+
+    /// Access to the endpoints in the [Server Administration] module.
+    ///
+    /// [Server Administration]: https://spec.matrix.org/v1.19/client-server-api/#server-administration
+    #[cfg(feature = "unstable-msc4484")]
+    #[ruma_enum(rename = "urn:matrix:client:cc.c10y.msc4484.server_administration")]
+    ServerAdministration,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),

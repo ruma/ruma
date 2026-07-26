@@ -35,6 +35,9 @@ Improvements:
 - The `Profiles` sliding sync extension response data is wrapped in a `users` field instead of
   being decoded directly. The profile updates now use a `UserProfileUpdate` enum to signal if the
   profile changed or should be dropped.
+- Add unstable support for [MSC4484] "Server Administration OAuth Scope".
+
+[MSC4484]: https://github.com/matrix-org/matrix-spec-proposals/pull/4484
 
 ## 0.24.0
 
