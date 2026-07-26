@@ -3,9 +3,9 @@
 use as_variant::as_variant;
 use proc_macro2::Span;
 use quote::{format_ident, quote};
-use syn::meta::ParseNestedMeta;
+use syn::{meta::ParseNestedMeta, parse_quote};
 
-use super::{IdDst, StorageCfg, Types};
+use super::{IdDst, OwnedId, Types};
 use crate::util::RumaCommon;
 
 impl IdDst {
@@ -57,18 +57,21 @@ impl IdDst {
         let impl_generics = quote! { #impl_generics };
 
         let ident = input.ident;
+        let id_type = parse_quote! { #ident #type_generics };
         let owned_ident = format_ident!("Owned{ident}");
-        let types = Types::new(&ident, &owned_ident, type_generics);
+        let owned_id_type = parse_quote! { #owned_ident #type_generics };
+
+        let owned_id = OwnedId::new(owned_ident, owned_id_type);
 
         Ok(Self {
             ident,
-            owned_ident,
+            id_type,
             generics,
             impl_generics,
             validate,
             str_field_index,
-            types,
-            storage_cfg: StorageCfg::new(),
+            owned_id,
+            types: Types::new(),
             ruma_common: RumaCommon::new(),
         })
     }
