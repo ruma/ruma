@@ -18,6 +18,7 @@ client = []
 server = []
 
 [dependencies]
+http = { workspace = true }
 js_int = { workspace = true, features = ["serde"] }
 ruma-common = { workspace = true, features = ["api"] }
 ruma-events = { workspace = true }
