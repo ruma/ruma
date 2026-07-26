@@ -30,7 +30,6 @@ api = ["dep:date_header", "dep:http", "dep:konst"]
 js = ["getrandom?/wasm_js", "uuid?/js"]
 rand = ["dep:rand", "dep:getrandom", "dep:uuid"]
 
-unstable-msc2666 = []
 unstable-msc2870 = []
 unstable-msc3417 = []
 unstable-msc3768 = []
