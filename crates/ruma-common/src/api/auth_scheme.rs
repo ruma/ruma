@@ -225,7 +225,7 @@ impl AuthScheme for AppserviceTokenOptional {
 }
 
 /// Add the given access token as an `Authorization` HTTP header to the given map.
-fn add_access_token_as_authorization_header(
+pub fn add_access_token_as_authorization_header(
     headers: &mut HeaderMap,
     token: &str,
 ) -> Result<(), header::InvalidHeaderValue> {
@@ -235,7 +235,7 @@ fn add_access_token_as_authorization_header(
 
 /// Extract the access token from the `Authorization` HTTP header or the query string of the given
 /// request.
-fn extract_bearer_or_query_token<T>(
+pub fn extract_bearer_or_query_token<T>(
     request: &http::Request<T>,
 ) -> Result<Option<String>, ExtractTokenError> {
     if let Some(token) = extract_bearer_token_from_authorization_header(request.headers())? {

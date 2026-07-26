@@ -22,6 +22,7 @@ unstable-msc3202 = []
 unstable-msc4203 = []
 
 [dependencies]
+http = { workspace = true }
 js_int = { workspace = true, features = ["serde"] }
 ruma-common = { workspace = true, features = ["api"] }
 ruma-events = { workspace = true }
