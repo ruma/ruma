@@ -6,32 +6,36 @@ use syn::parse_quote;
 
 use crate::util::{RumaCommon, RumaCommonReexport};
 
+mod owned_id;
 mod parse;
+
+use self::owned_id::OwnedId;
 
 /// Generate the `Owned` version of an identifier and various trait implementations.
 pub(crate) fn expand_id_dst(input: syn::ItemStruct) -> syn::Result<TokenStream> {
     let id_dst = IdDst::parse(input)?;
 
-    let id = &id_dst.types.id;
-
     let as_str_and_bytes_impls = id_dst.expand_as_str_and_bytes_impls();
-    let to_string_impls = id_dst.expand_to_string_impls(id);
+    let id_to_string_impls = id_dst.expand_to_string_impls(&id_dst.id_type);
     let unchecked_from_str_impls = id_dst.expand_unchecked_from_str_impls();
-    let owned_id_struct = id_dst.expand_owned_id_struct();
     let fallible_from_str_impls = id_dst.expand_fallible_from_str_impls();
     let infallible_from_str_impls = id_dst.expand_infallible_from_str_impls();
     let partial_eq_impls = id_dst.expand_partial_eq_impls();
-    let zeroize_impl = id_dst.expand_zeroize_impl();
+
+    let owned_id_struct = id_dst.owned_id.expand_struct(&id_dst);
+    let owned_id_to_string_impls = id_dst.expand_to_string_impls(&id_dst.owned_id.id_type);
+    let id_from_into_owned_impls = id_dst.expand_id_from_into_owned_impls();
 
     Ok(quote! {
         #as_str_and_bytes_impls
-        #to_string_impls
+        #id_to_string_impls
         #unchecked_from_str_impls
         #owned_id_struct
+        #owned_id_to_string_impls
+        #id_from_into_owned_impls
         #fallible_from_str_impls
         #infallible_from_str_impls
         #partial_eq_impls
-        #zeroize_impl
     })
 }
 
@@ -40,8 +44,8 @@ struct IdDst {
     /// The name of the borrowed type.
     ident: syn::Ident,
 
-    /// The name of the owned type.
-    owned_ident: syn::Ident,
+    /// The borrowed type with generics, if any.
+    id_type: syn::Type,
 
     /// The generics on the borrowed type.
     generics: syn::Generics,
@@ -57,11 +61,11 @@ struct IdDst {
     /// This is assumed to be the last field of the tuple struct.
     str_field_index: syn::Index,
 
+    /// Data about the owned type.
+    owned_id: OwnedId,
+
     /// Common types.
     types: Types,
-
-    /// `#[cfg]` attributes for the supported internal representations.
-    storage_cfg: StorageCfg,
 
     /// The path to use imports from the ruma-common crate.
     ruma_common: RumaCommon,
@@ -78,7 +82,7 @@ impl IdDst {
         let str = &self.types.str;
         let bytes = &self.types.bytes;
         let string = &self.types.string;
-        let id = &self.types.id;
+        let id = &self.id_type;
 
         let as_str_docs = format!("Extracts a string slice from this `{ident}`.");
         let as_bytes_docs = format!("Extracts a byte slice from this `{ident}`.");
@@ -140,7 +144,7 @@ impl IdDst {
         let impl_generics = &self.impl_generics;
 
         let str = &self.types.str;
-        let id = &self.types.id;
+        let id = &self.id_type;
 
         quote! {
             #[automatically_derived]
@@ -152,209 +156,15 @@ impl IdDst {
         }
     }
 
-    /// Generate the `Owned{ident}` type and its implementations.
-    fn expand_owned_id_struct(&self) -> TokenStream {
+    /// Expand conversions of the borrowed type from and to the owned type.
+    fn expand_id_from_into_owned_impls(&self) -> TokenStream {
         let ident = &self.ident;
-        let owned_ident = &self.owned_ident;
-        let generics = &self.generics;
+        let id = &self.id_type;
+        let owned_ident = &self.owned_id.ident;
+        let owned_id = &self.owned_id.id_type;
         let impl_generics = &self.impl_generics;
 
-        let str = &self.types.str;
-        let box_str = &self.types.box_str;
-        let arc_str = &self.types.arc_str;
-        let string = &self.types.string;
-        let bytes = &self.types.bytes;
-        let id = &self.types.id;
-        let owned_id = &self.types.owned_id;
-
-        let box_str_cfg = &self.storage_cfg.box_str;
-        let arc_str_cfg = &self.storage_cfg.arc_str;
-
-        let (phantom_decl, phantom_ctor) = if self.generics.params.is_empty() {
-            None
-        } else {
-            let phantom_data = quote! { ::std::marker::PhantomData };
-            let generic_types = generics.type_params().map(|param| &param.ident);
-
-            Some((
-                quote! { phantom: #phantom_data<( #(#generic_types,)* )>, },
-                quote! { phantom: #phantom_data, },
-            ))
-        }
-        .unzip();
-
-        let doc_header = format!("Owned variant of [`{ident}`]");
-
-        let to_string_impls = self.expand_to_string_impls(owned_id);
-
-        // Implement `into_inner()` and `from_inner_unchecked()` methods behind the given `cfg`
-        // attribute for all the inner representations.
-        let from_into_inner_cfg_impl = |cfg: &syn::Attribute, inner: &syn::Type| {
-            quote! {
-                /// Consumes this identifier and returns its inner data.
-                #cfg
-                pub(super) fn into_inner(self) -> #inner {
-                    self.inner
-                }
-
-                /// Converts the inner data to this identifier, without checking that it is valid.
-                ///
-                /// # Safety
-                ///
-                /// This function is unsafe because it does not check that the data passed to it is
-                /// valid for this identifier. If this constraint is violated, it may cause memory
-                /// unsafety issues with future users of this type.
-                #cfg
-                pub(super) unsafe fn from_inner_unchecked(inner: #inner) -> Self {
-                    Self {
-                        inner,
-                        #phantom_ctor
-                    }
-                }
-            }
-        };
-        let from_into_inner_impls = [(box_str_cfg, box_str), (arc_str_cfg, arc_str)]
-            .into_iter()
-            .map(|(cfg, inner)| from_into_inner_cfg_impl(cfg, inner));
-
         quote! {
-            #[doc = #doc_header]
-            ///
-            /// ## Inner representation
-            ///
-            /// By default, this type uses a `Box<str>` internally. The inner representation can be selected at
-            /// compile time by using one of the following supported values:
-            ///
-            /// * `Arc` -- Use an `Arc<str>`.
-            ///
-            /// The selected value can be set by using the `ruma_identifiers_storage` compile-time `cfg` setting.
-            /// This setting can be configured using the `RUSTFLAGS` environment variable at build time, like this:
-            ///
-            /// ```shell
-            /// RUSTFLAGS="--cfg ruma_identifiers_storage=\"{value}\""
-            /// ```
-            ///
-            /// Or in `.cargo/config.toml`:
-            ///
-            /// ```toml
-            /// # General setting for all targets, overridden by per-target `rustflags` setting if set.
-            /// [build]
-            /// rustflags = ["--cfg", "ruma_identifiers_storage=\"{value}\""]
-            ///
-            /// # Per-target setting.
-            /// [target.<triple/cfg>]
-            /// rustflags = ["--cfg", "ruma_identifiers_storage=\"{value}\""]
-            /// ```
-            ///
-            /// This setting can also be configured using the `RUMA_IDENTIFIERS_STORAGE` environment variable at
-            /// compile time, which has the benefit of not requiring to re-compile the whole dependency chain
-            /// when the value is changed, like this:
-            ///
-            /// ```shell
-            /// RUMA_IDENTIFIERS_STORAGE="{value}"
-            /// ```
-            pub struct #owned_ident #generics {
-                #box_str_cfg
-                inner: #box_str,
-                #arc_str_cfg
-                inner: #arc_str,
-                #phantom_decl
-            }
-
-            #[automatically_derived]
-            impl #impl_generics #owned_id {
-                pub(super) fn from_str_unchecked(s: &#str) -> Self {
-                    Self {
-                        #box_str_cfg
-                        inner: s.into(),
-                        #arc_str_cfg
-                        inner: s.into(),
-                        #phantom_ctor
-                    }
-                }
-
-                pub(super) fn from_box_str_unchecked(s: #box_str) -> Self {
-                    Self {
-                        #box_str_cfg
-                        inner: s,
-                        #arc_str_cfg
-                        inner: s.into(),
-                        #phantom_ctor
-                    }
-                }
-
-                pub(super) fn from_string_unchecked(s: #string) -> Self {
-                    Self {
-                        #box_str_cfg
-                        inner: s.into(),
-                        #arc_str_cfg
-                        inner: s.into(),
-                        #phantom_ctor
-                    }
-                }
-
-                /// Access the inner string without going through the borrowed type.
-                pub(super) fn as_inner_str(&self) -> &#str {
-                    #box_str_cfg
-                    { &self.inner }
-                    #arc_str_cfg
-                    { &self.inner }
-                }
-
-                /// Access the inner bytes without going through the borrowed type.
-                pub(super) fn as_inner_bytes(&self) -> &#bytes {
-                    #box_str_cfg
-                    { self.inner.as_bytes() }
-                    #arc_str_cfg
-                    { self.inner.as_bytes() }
-                }
-
-                #( #from_into_inner_impls )*
-            }
-
-            #[automatically_derived]
-            impl #impl_generics ::std::clone::Clone for #owned_id {
-                fn clone(&self) -> Self {
-                    unsafe { Self::from_inner_unchecked(self.inner.clone()) }
-                }
-            }
-
-            #[automatically_derived]
-            impl #impl_generics ::std::cmp::PartialEq for #owned_id {
-                fn eq(&self, other: &Self) -> bool {
-                    self.inner.eq(&other.inner)
-                }
-            }
-
-            #[automatically_derived]
-            impl #impl_generics ::std::cmp::Eq for #owned_id {}
-
-            #[automatically_derived]
-            impl #impl_generics ::std::cmp::PartialOrd for #owned_id {
-                fn partial_cmp(&self, other: &Self) -> Option<::std::cmp::Ordering> {
-                    Some(self.cmp(other))
-                }
-            }
-
-            #[automatically_derived]
-            impl #impl_generics ::std::cmp::Ord for #owned_id {
-                fn cmp(&self, other: &Self) -> ::std::cmp::Ordering {
-                    self.inner.cmp(&other.inner)
-                }
-            }
-
-            #[automatically_derived]
-            impl #impl_generics ::std::hash::Hash for #owned_id {
-                fn hash<H>(&self, state: &mut H)
-                where
-                    H: ::std::hash::Hasher,
-                {
-                    self.as_inner_str().hash(state)
-                }
-            }
-
-            #to_string_impls
-
             #[automatically_derived]
             impl #impl_generics ::std::ops::Deref for #owned_id {
                 type Target = #id;
@@ -372,30 +182,9 @@ impl IdDst {
             }
 
             #[automatically_derived]
-            impl #impl_generics ::std::borrow::Borrow<#str> for #owned_id {
-                fn borrow(&self) -> &#str {
-                    self.as_inner_str()
-                }
-            }
-
-            #[automatically_derived]
             impl #impl_generics ::std::convert::AsRef<#id> for #owned_id {
                 fn as_ref(&self) -> &#id {
                     #ident::from_borrowed_unchecked(self.as_inner_str())
-                }
-            }
-
-            #[automatically_derived]
-            impl #impl_generics ::std::convert::AsRef<#str> for #owned_id {
-                fn as_ref(&self) -> &#str {
-                    self.as_inner_str()
-                }
-            }
-
-            #[automatically_derived]
-            impl #impl_generics ::std::convert::AsRef<#bytes> for #owned_id {
-                fn as_ref(&self) -> &#bytes {
-                    self.as_inner_bytes()
                 }
             }
 
@@ -414,26 +203,6 @@ impl IdDst {
                     id.to_owned()
                 }
             }
-
-            #[automatically_derived]
-            impl #impl_generics ::std::convert::From<#owned_id> for #box_str {
-                fn from(id: #owned_id) -> Self {
-                    #box_str_cfg
-                    { id.inner }
-                    #arc_str_cfg
-                    { id.inner.as_ref().into() }
-                }
-            }
-
-            #[automatically_derived]
-            impl #impl_generics ::std::convert::From<#owned_id> for #string {
-                fn from(id: #owned_id) -> Self {
-                    #box_str_cfg
-                    { id.inner.into() }
-                    #arc_str_cfg
-                    { id.inner.as_ref().into() }
-                }
-            }
         }
     }
 
@@ -445,7 +214,7 @@ impl IdDst {
         let validate = self.validate.as_ref()?;
 
         let ident = &self.ident;
-        let owned_ident = &self.owned_ident;
+        let owned_ident = &self.owned_id.ident;
         let generic_params = &self.generics.params;
         let impl_generics = &self.impl_generics;
 
@@ -459,8 +228,8 @@ impl IdDst {
         let box_str = &self.types.box_str;
         let string = &self.types.string;
         let cow_str = &self.types.cow_str;
-        let id = &self.types.id;
-        let owned_id = &self.types.owned_id;
+        let id = &self.id_type;
+        let owned_id = &self.owned_id.id_type;
 
         Some(quote! {
             #[automatically_derived]
@@ -564,7 +333,7 @@ impl IdDst {
         }
 
         let ident = &self.ident;
-        let owned_ident = &self.owned_ident;
+        let owned_ident = &self.owned_id.ident;
         let impl_generics = &self.impl_generics;
         let generic_params = &self.generics.params;
 
@@ -573,8 +342,8 @@ impl IdDst {
         let box_str = &self.types.box_str;
         let string = &self.types.string;
         let cow_str = &self.types.cow_str;
-        let id = &self.types.id;
-        let owned_id = &self.types.owned_id;
+        let id = &self.id_type;
+        let owned_id = &self.owned_id.id_type;
 
         let ruma_common = &self.ruma_common;
         let serde = ruma_common.reexported(RumaCommonReexport::Serde);
@@ -632,7 +401,7 @@ impl IdDst {
         })
     }
 
-    /// Generate `std::fmt::Display`, `std::fmt::Debug` or `serde::Serialize` traits
+    /// Generate `std::fmt::Display`, `std::fmt::Debug` and `serde::Serialize` traits
     /// implementations, using it's `.as_str()` function.
     fn expand_to_string_impls(&self, ty: &syn::Type) -> TokenStream {
         let serde = self.ruma_common.reexported(RumaCommonReexport::Serde);
@@ -675,8 +444,8 @@ impl IdDst {
         let str = &self.types.str;
         let string = &self.types.string;
         let cow_str = &self.types.cow_str;
-        let id = &self.types.id;
-        let owned_id = &self.types.owned_id;
+        let id = &self.id_type;
+        let owned_id = &self.owned_id.id_type;
 
         let ref_id: syn::Type = parse_quote! { &#id };
         let ref_str: syn::Type = parse_quote! { &#str };
@@ -717,58 +486,6 @@ impl IdDst {
         .into_iter()
         .collect()
     }
-
-    /// Generate the `zeroize` method for an owned type.
-    fn expand_zeroize_impl(&self) -> TokenStream {
-        let impl_generics = &self.impl_generics;
-
-        let owned_ident = &self.owned_ident;
-        let owned_id = &self.types.owned_id;
-        let parse_doc_header = format!(
-            "Securely zero memory (aka [zeroize](https://en.wikipedia.org/wiki/Zeroisation)) of `{owned_ident}`."
-        );
-
-        let box_str_cfg = &self.storage_cfg.box_str;
-        let arc_str_cfg = &self.storage_cfg.arc_str;
-
-        quote! {
-            #[automatically_derived]
-            impl #impl_generics #owned_id {
-                #[doc = #parse_doc_header]
-                ///
-                /// This method zeroizes this type by writing zeros in its
-                /// memory location before freeing it. It internally uses
-                /// [the `zeroize` crate][`zeroize`]. Note that this type
-                /// doesn't implement the `zeroize::Zeroize` trait because the
-                /// `Zeroize::zeroize` method takes a `&mut self`, which means
-                /// we could put this type into an inconsistent state if it is
-                /// used after calling that method. Instead, this method takes
-                /// ownership of the type, ensuring it's impossible to misuse
-                /// it.
-                ///
-                /// # Implementation details
-                ///
-                /// If the `ruma_identifiers_storage` configuration is
-                /// set to `Arc`, this type will be zeroized if and only if
-                /// [`Arc::get_mut`] returns `Some` reference, i.e. if there is no
-                /// other `Arc` or `Weak` pointers to this same location.
-                ///
-                /// [`zeroize`]: https://docs.rs/zeroize/
-                /// [`Arc::get_mut`]: https://doc.rust-lang.org/std/sync/struct.Arc.html#method.get_mut
-                pub fn zeroize(mut self) {
-                    #box_str_cfg
-                    { ::zeroize::Zeroize::zeroize(&mut self.inner); }
-
-                    #arc_str_cfg
-                    {
-                        if let Some(value) = ::std::sync::Arc::get_mut(&mut self.inner) {
-                            ::zeroize::Zeroize::zeroize(value);
-                        }
-                    }
-                }
-            }
-        }
-    }
 }
 
 /// Common types.
@@ -793,24 +510,12 @@ struct Types {
 
     /// `[u8]`.
     bytes: syn::Type,
-
-    /// `{id}`, the identifier type with generics, if any.
-    id: syn::Type,
-
-    /// `{owned_id}`, the owned identifier type with generics, if any.
-    owned_id: syn::Type,
 }
 
 impl Types {
-    fn new(
-        ident: &syn::Ident,
-        owned_ident: &syn::Ident,
-        type_generics: syn::TypeGenerics<'_>,
-    ) -> Self {
+    fn new() -> Self {
         let str = parse_quote! { ::std::primitive::str };
         let cow = parse_quote! { ::std::borrow::Cow };
-
-        let id = parse_quote! { #ident #type_generics };
 
         Self {
             box_str: parse_quote! { ::std::boxed::Box<#str> },
@@ -820,28 +525,6 @@ impl Types {
             bytes: parse_quote! { [::std::primitive::u8] },
             str,
             cow,
-            id,
-            owned_id: parse_quote! { #owned_ident #type_generics },
-        }
-    }
-}
-
-/// `#[cfg]` attributes for the supported internal representations.
-struct StorageCfg {
-    /// Attribute for the default internal representation, `Box<str>`.
-    box_str: syn::Attribute,
-
-    /// Attribute for the `Arc<str>` internal representation.
-    arc_str: syn::Attribute,
-}
-
-impl StorageCfg {
-    fn new() -> Self {
-        let key = quote! { ruma_identifiers_storage };
-
-        Self {
-            box_str: parse_quote! { #[cfg(not(#key = "Arc"))] },
-            arc_str: parse_quote! { #[cfg(#key = "Arc")] },
         }
     }
 }
