@@ -1,11 +1,14 @@
+#[cfg(any(feature = "client", feature = "server"))]
 use std::collections::BTreeMap;
 
+#[cfg(any(feature = "client", feature = "server"))]
 use ruma_common::OwnedEventId;
 #[cfg(feature = "client")]
 use serde::de::{Deserializer, MapAccess, Visitor};
 #[cfg(feature = "server")]
 use serde::ser::{SerializeMap, Serializer};
 
+#[cfg(any(feature = "client", feature = "server"))]
 #[cfg_attr(feature = "client", derive(serde::Deserialize))]
 #[cfg_attr(feature = "server", derive(serde::Serialize))]
 struct WrappedError {

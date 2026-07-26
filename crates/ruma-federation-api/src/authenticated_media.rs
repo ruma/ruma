@@ -9,6 +9,7 @@ pub mod get_content;
 pub mod get_content_thumbnail;
 
 /// The `multipart/mixed` mime "essence".
+#[cfg(any(feature = "client", feature = "server"))]
 const MULTIPART_MIXED: &str = "multipart/mixed";
 /// The maximum number of headers to parse in a body part.
 #[cfg(feature = "client")]
