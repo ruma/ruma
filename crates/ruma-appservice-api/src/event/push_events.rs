@@ -19,7 +19,7 @@ pub mod v1 {
     use ruma_common::{OwnedDeviceId, OwnedUserId};
     use ruma_common::{
         OwnedTransactionId,
-        api::{auth_scheme::AccessToken, request, response},
+        api::{request, response},
         metadata,
         serde::{JsonObject, Raw, from_raw_json_value},
     };
@@ -33,10 +33,12 @@ pub mod v1 {
     use serde::{Deserialize, Deserializer, Serialize};
     use serde_json::value::{RawValue as RawJsonValue, Value as JsonValue};
 
+    use crate::HomeserverToken;
+
     metadata! {
         method: PUT,
         rate_limited: false,
-        authentication: AccessToken,
+        authentication: HomeserverToken,
         path: "/_matrix/app/v1/transactions/{txn_id}",
     }
 
@@ -341,7 +343,7 @@ pub mod v1 {
         #[cfg(feature = "client")]
         #[test]
         fn request_contains_events_field() {
-            use ruma_common::api::{OutgoingRequestExt as _, auth_scheme::SendAccessToken};
+            use ruma_common::api::OutgoingRequestExt as _;
 
             let dummy_event_json = json!({
                 "type": "m.room.message",
@@ -358,11 +360,7 @@ pub mod v1 {
             let events = vec![dummy_event];
 
             let req = super::Request::new("any_txn_id".into(), events)
-                .try_into_http_request::<Vec<u8>>(
-                    "https://homeserver.tld",
-                    SendAccessToken::IfRequired("auth_tok"),
-                    (),
-                )
+                .try_into_http_request::<Vec<u8>>("https://homeserver.tld", "auth_tok", ())
                 .unwrap();
             let json_body: serde_json::Value = serde_json::from_slice(req.body()).unwrap();
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- All identity service API routes now use the new `IdentityServiceToken` auth scheme struct.
+
 ## 0.15.0
 
 Breaking changes:

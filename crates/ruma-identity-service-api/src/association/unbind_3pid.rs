@@ -9,16 +9,18 @@ pub mod v2 {
 
     use ruma_common::{
         OwnedClientSecret, OwnedSessionId, OwnedUserId,
-        api::{auth_scheme::AccessToken, request, response},
+        api::{request, response},
         metadata,
         thirdparty::Medium,
     };
     use serde::{Deserialize, Serialize};
 
+    use crate::IdentityServiceToken;
+
     metadata! {
         method: POST,
         rate_limited: false,
-        authentication: AccessToken,
+        authentication: IdentityServiceToken,
         history: {
             1.0 => "/_matrix/identity/v2/3pid/unbind",
         }

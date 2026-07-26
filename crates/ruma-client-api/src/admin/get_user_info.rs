@@ -11,7 +11,7 @@ pub mod v3 {
 
     use ruma_common::{
         MilliSecondsSinceUnixEpoch, OwnedUserId,
-        api::{auth_scheme::AccessToken, request, response},
+        api::{OAuthClientScope, auth_scheme::AccessToken, request, response},
         metadata,
     };
     use serde::{Deserialize, Serialize};
@@ -20,6 +20,12 @@ pub mod v3 {
         method: GET,
         rate_limited: false,
         authentication: AccessToken,
+        required_scopes: [
+            #[cfg(not(feature = "unstable-msc4484"))]
+            OAuthClientScope::ApiFullAccess,
+            #[cfg(feature = "unstable-msc4484")]
+            OAuthClientScope::ServerAdministration,
+        ],
         history: {
             1.0 => "/_matrix/client/r0/admin/whois/{user_id}",
             1.1 => "/_matrix/client/v3/admin/whois/{user_id}",
