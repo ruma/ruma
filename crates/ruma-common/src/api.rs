@@ -262,7 +262,7 @@ pub mod path_builder;
 use self::error::DeserializationError;
 pub use self::{
     body::{BytesBody, EmptyBody, OutgoingBody},
-    metadata::{FeatureFlag, MatrixVersion, Metadata, SupportedVersions},
+    metadata::{FeatureFlag, MatrixVersion, Metadata, OAuthClientScope, SupportedVersions},
 };
 
 /// A request type for a Matrix API endpoint, used for sending requests.
