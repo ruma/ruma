@@ -1,4 +1,4 @@
-//! `GET /_matrix/client/*/user/mutual_rooms/{user_id}`
+//! `GET /_matrix/client/*/mutual_rooms/{user_id}`
 //!
 //! Get mutual rooms with another user.
 
@@ -111,6 +111,7 @@ pub mod v1 {
     #[response]
     pub struct Response {
         /// The total number of rooms the user is in together with the authenticated user.
+        ///
         /// This is unaffected by batching.
         pub count: UInt,
 
@@ -129,19 +130,19 @@ pub mod v1 {
         }
 
         /// Creates a new `Request` with the given user id, together with a batch token.
-        pub fn with_token(user_id: OwnedUserId, token: String) -> Self {
+        pub fn with_batch_token(user_id: OwnedUserId, token: String) -> Self {
             Self { user_id, from: Some(token) }
         }
     }
 
     impl Response {
-        /// Creates a `Response` with the given room ids.
+        /// Creates a `Response` with the given count and room IDs.
         pub fn new(count: UInt, joined: Vec<OwnedRoomId>) -> Self {
             Self { count, joined, next_batch: None }
         }
 
-        /// Creates a `Response` with the given room ids, together with a batch token.
-        pub fn with_token(count: UInt, joined: Vec<OwnedRoomId>, token: String) -> Self {
+        /// Creates a `Response` with the given count and room IDs, together with a batch token.
+        pub fn with_batch_token(count: UInt, joined: Vec<OwnedRoomId>, token: String) -> Self {
             Self { count, joined, next_batch: Some(token) }
         }
     }
