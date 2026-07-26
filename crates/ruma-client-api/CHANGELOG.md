@@ -43,8 +43,10 @@ Improvements:
   profile changed or should be dropped.
 - Stabilize support for [MSC2666](https://github.com/matrix-org/matrix-spec-proposals/pull/2666) (Get rooms in common with another user).
 - Add support for [MSC1763] (Configurable per-room message retention periods).
+- Add unstable support for [MSC4484] "Server Administration OAuth Scope".
 
 [MSC1763]: https://github.com/matrix-org/matrix-spec-proposals/pull/1763
+[MSC4484]: https://github.com/matrix-org/matrix-spec-proposals/pull/4484
 
 ## 0.24.0
 
