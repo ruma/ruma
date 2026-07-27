@@ -1,4 +1,4 @@
-//! `GET /_matrix/client/*/mutual_rooms/{user_id}`
+//! `GET /_matrix/client/*/mutual_rooms`
 //!
 //! Get mutual rooms with another user.
 
