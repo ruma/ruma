@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- Export nothing from the crate if neither the `client` nor the `server` feature is active, because
+  the crate is not useful without them.
+
 Improvements:
 
 - Remove support for MSC4373, as the MSC is now closed.
