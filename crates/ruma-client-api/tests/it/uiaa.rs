@@ -1,5 +1,3 @@
-#![cfg(any(feature = "client", feature = "server"))]
-
 use assert_matches2::assert_matches;
 use assign::assign;
 use ruma_client_api::uiaa::{

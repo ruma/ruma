@@ -60,7 +60,7 @@ pub mod v3 {
         }
     }
 
-    #[cfg(all(test, any(feature = "client", feature = "server")))]
+    #[cfg(test)]
     mod tests {
         #[cfg(feature = "server")]
         #[test]
