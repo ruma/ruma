@@ -715,9 +715,16 @@ pub enum FeatureFlag {
     /// Get rooms in common with another user.
     ///
     /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2666
-    #[cfg(feature = "unstable-msc2666")]
     #[ruma_enum(rename = "uk.half-shot.msc2666.query_mutual_rooms")]
     Msc2666,
+
+    /// `uk.half-shot.msc2666.query_mutual_rooms.stable` ([MSC])
+    ///
+    /// Get rooms in common with another user. (stable version)
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2666
+    #[ruma_enum(rename = "uk.half-shot.msc2666.query_mutual_rooms.stable")]
+    Msc2666Stable,
 
     /// `org.matrix.msc3030` ([MSC])
     ///
