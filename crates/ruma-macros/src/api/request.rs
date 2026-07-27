@@ -222,7 +222,6 @@ impl RequestQuery {
 
         Some(quote! {
             /// Data in the request's query string.
-            #[cfg(any(feature = "client", feature = "server"))]
             #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
             #[cfg_attr(feature = "client", derive(#serde::Serialize))]
             #[cfg_attr(feature = "server", derive(#serde::Deserialize))]
