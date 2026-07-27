@@ -347,7 +347,6 @@ impl Body {
         Some(quote! {
             /// Data in the request body.
             #[doc(hidden)]
-            #[cfg(any(feature = "client", feature = "server"))]
             #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
             #[cfg_attr(feature = #outgoing_body_feature, derive(#ruma_macros::OutgoingBodyJson))]
             #extra_attrs
