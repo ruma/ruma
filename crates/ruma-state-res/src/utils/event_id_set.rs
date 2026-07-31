@@ -1,13 +1,8 @@
 //! A set of event IDs.
 
-use std::{
-    borrow::Borrow,
-    collections::{HashSet, hash_set},
-    fmt,
-    hash::{Hash, RandomState},
-    iter::FusedIterator,
-};
+use std::{borrow::Borrow, fmt, hash::Hash, iter::FusedIterator};
 
+use hashbrown::{DefaultHashBuilder, HashSet, hash_set};
 use ruma_common::EventId;
 
 /// A set of event IDs.
@@ -203,7 +198,7 @@ impl<E> FusedIterator for EventIdSetIntoIter<E> {}
 
 /// A lazy iterator producing elements in the intersection of [`EventIdSet`]s.
 #[derive(Clone)]
-pub struct EventIdSetIntersection<'a, E>(hash_set::Intersection<'a, E, RandomState>);
+pub struct EventIdSetIntersection<'a, E>(hash_set::Intersection<'a, E, DefaultHashBuilder>);
 
 impl<'a, E> fmt::Debug for EventIdSetIntersection<'a, E>
 where

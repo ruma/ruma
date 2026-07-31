@@ -30,6 +30,7 @@ tracing = { workspace = true }
 
 # dev-dependencies can't be optional, so this is a regular dependency
 criterion = { workspace = true, optional = true }
+hashbrown = "0.17.1"
 
 [dev-dependencies]
 assert_matches2 = { workspace = true }
