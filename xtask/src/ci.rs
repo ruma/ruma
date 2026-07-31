@@ -31,10 +31,14 @@ pub enum CiCmd {
     MsrvAll,
     /// Check ruma crate with default features (msrv)
     MsrvRuma,
-    /// Check ruma-identifiers with `ruma_identifiers_storage="Box"`
-    MsrvOwnedIdBox,
-    /// Check ruma-identifiers with `ruma_identifiers_storage="Arc"`
-    MsrvOwnedIdArc,
+    /// Check ruma-common crate with default features and optional `ruma_identifiers_storage` cfg
+    /// attribute (msrv)
+    MsrvIdentifiers {
+        /// The value of the `ruma_identifiers_storage` cfg attribute.
+        ///
+        /// If this is not set, the default internal representation will be checked.
+        ruma_identifiers_storage: Option<String>,
+    },
     /// Run all the tasks that use the stable version
     Stable,
     /// Check all crates with all features (stable)
@@ -118,12 +122,13 @@ impl CiTask {
     pub(crate) fn run(self) -> Result<()> {
         let _p = self.sh.push_dir(self.project_root());
 
-        match self.cmd {
+        match &self.cmd {
             Some(CiCmd::Msrv) => self.msrv()?,
             Some(CiCmd::MsrvAll) => self.msrv_all()?,
             Some(CiCmd::MsrvRuma) => self.msrv_ruma()?,
-            Some(CiCmd::MsrvOwnedIdBox) => self.msrv_owned_id_box()?,
-            Some(CiCmd::MsrvOwnedIdArc) => self.msrv_owned_id_arc()?,
+            Some(CiCmd::MsrvIdentifiers { ruma_identifiers_storage }) => {
+                self.msrv_identifiers(ruma_identifiers_storage.as_deref())?;
+            }
             Some(CiCmd::Stable) => self.stable()?,
             Some(CiCmd::StableAll) => self.stable_all()?,
             Some(CiCmd::StableCommon) => self.stable_common()?,
@@ -309,20 +314,17 @@ impl CiTask {
         .map_err(Into::into)
     }
 
-    /// Check ruma-common with `ruma_identifiers_storage="Box"`
-    fn msrv_owned_id_box(&self) -> Result<()> {
-        cmd!(&self.sh, "rustup run {MSRV} cargo check -p ruma-common")
-            .env("RUSTFLAGS", "--cfg=ruma_identifiers_storage=\"Box\"")
-            .run()
-            .map_err(Into::into)
-    }
+    /// Check ruma-common with default features and the given `ruma_identifiers_storage` cfg
+    /// attribute.
+    fn msrv_identifiers(&self, ruma_identifiers_storage: Option<&str>) -> Result<()> {
+        let mut cmd = cmd!(&self.sh, "rustup run {MSRV} cargo check -p ruma-common");
 
-    /// Check ruma-common with `ruma_identifiers_storage="Arc"`
-    fn msrv_owned_id_arc(&self) -> Result<()> {
-        cmd!(&self.sh, "rustup run {MSRV} cargo check -p ruma-common")
-            .env("RUSTFLAGS", "--cfg=ruma_identifiers_storage=\"Arc\"")
-            .run()
-            .map_err(Into::into)
+        if let Some(value) = ruma_identifiers_storage {
+            let rustflags = format!("--cfg=ruma_identifiers_storage=\"{value}\"");
+            cmd = cmd.env("RUSTFLAGS", rustflags);
+        }
+
+        cmd.run().map_err(Into::into)
     }
 
     /// Lint default features with clippy with the nightly version.
