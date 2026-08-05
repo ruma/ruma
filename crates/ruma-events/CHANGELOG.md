@@ -22,8 +22,10 @@ Improvements:
 - Add the `zeroize(mut self)` method on identifiers, which will call the `zeroize` crate.
 - Add `RoomMessageEventContent::thread` accessor.
 - Add experimental support for [MSC4495] (Selective Presence).
+- Add experimental support for [MSC4494] (Membership-based invite blocking).
 
 [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
+[MSC4494]: https://github.com/matrix-org/matrix-spec-proposals/pull/4494
 
 Bug fixes:
 
