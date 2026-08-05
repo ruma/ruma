@@ -23,7 +23,9 @@ Improvements:
 - Add `RoomMessageEventContent::thread` accessor.
 - Add experimental support for [MSC4495] (Selective Presence).
 - Add experimental support for [MSC4494] (Membership-based invite blocking).
+- Add support for [MSC1763] (Configurable per-room message retention periods).
 
+[MSC1763]: https://github.com/matrix-org/matrix-spec-proposals/pull/1763
 [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
 [MSC4494]: https://github.com/matrix-org/matrix-spec-proposals/pull/4494
 

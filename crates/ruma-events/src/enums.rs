@@ -203,6 +203,9 @@ event_enum! {
         "m.room.pinned_events" => super::room::pinned_events,
         "m.room.policy" => super::room::policy,
         "m.room.power_levels" => super::room::power_levels,
+        #[cfg(feature = "unstable-msc1763")]
+        #[ruma_enum(alias = "m.room.retention")]
+        "org.matrix.msc1763.retention" => super::room::retention,
         "m.room.server_acl" => super::room::server_acl,
         "m.room.third_party_invite" => super::room::third_party_invite,
         "m.room.tombstone" => super::room::tombstone,
