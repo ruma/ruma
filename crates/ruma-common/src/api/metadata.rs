@@ -812,6 +812,15 @@ pub enum FeatureFlag {
     #[ruma_enum(rename = "org.continuwuity.presence_v2.msc4495")]
     Msc4495,
 
+    /// `uk.timedout.msc4494` ([MSC])
+    ///
+    /// Membership-based invite blocking
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4494
+    #[cfg(feature = "unstable-msc4494")]
+    #[ruma_enum(rename = "uk.timedout.msc4494")]
+    Msc4494,
+
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
