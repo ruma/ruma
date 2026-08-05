@@ -51,6 +51,10 @@ pub enum InvitePermissionAction {
     /// Reject the invite.
     Block,
 
+    /// Reject the invite if no non-public rooms are shared between the sender and recipient.
+    #[ruma_enum(rename = "uk.timedout.msc4494.deny_public")]
+    DenyPublic,
+
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
