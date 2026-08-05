@@ -36,6 +36,11 @@ Improvements:
   being decoded directly. The profile updates now use a `UserProfileUpdate` enum to signal if the
   profile changed or should be dropped.
 - Stabilize support for [MSC2666](https://github.com/matrix-org/matrix-spec-proposals/pull/2666) (Get rooms in common with another user).
+- Update the unstable implementation of MSC2666 to match the unstable implementation in Synapse:
+  - The `batch_token` field of the `Request` was renamed to `from`.
+  - The `next_batch_token` field of the `Response` was renamed to `next_batch`.
+  - The `with_token` methods of both `Request` and `Response` were renamed to `with_batch_token`,
+    to make it clearer which token we are talking about.
 
 ## 0.24.0
 
