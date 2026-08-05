@@ -52,6 +52,7 @@ pub enum InvitePermissionAction {
     Block,
 
     /// Reject the invite if no non-public rooms are shared between the sender and recipient.
+    #[cfg(feature = "unstable-msc4494")]
     #[ruma_enum(rename = "uk.timedout.msc4494.deny_public")]
     DenyPublic,
 
