@@ -17,6 +17,7 @@ all-features = true
 html = ["dep:ruma-html"]
 markdown = ["dep:pulldown-cmark"]
 
+unstable-msc1763 = []
 unstable-msc1767 = []
 unstable-msc2448 = []
 unstable-msc2747 = []

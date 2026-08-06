@@ -43,6 +43,7 @@ compat-upload-signatures = []
 # to be ignored if they have an invalid format and their deserialization fails.
 unstable-compat-lax-syncv5-deser = ["unstable-msc4186"]
 
+unstable-msc1763 = ["ruma-events/unstable-msc1763"]
 unstable-msc2448 = []
 unstable-msc2654 = []
 unstable-msc3488 = []
