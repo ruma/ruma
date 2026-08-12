@@ -43,6 +43,8 @@ pub mod relations;
 #[cfg(any(feature = "unstable-msc4108", feature = "unstable-msc4388"))]
 pub mod rendezvous;
 pub mod reporting;
+#[cfg(feature = "unstable-msc1763")]
+pub mod retention;
 pub mod room;
 #[cfg(feature = "unstable-msc4143")]
 pub mod rtc;
