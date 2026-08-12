@@ -9,6 +9,12 @@ Breaking changes:
 - The `shared_history` field of `ToDeviceForwardedRoomKeyEventContent` was removed, since it is
   not part of the Matrix spec.
 
+Improvements:
+
+- Add unstable support for [MSC4527] (State event power levels).
+
+[MSC4527]: https://github.com/matrix-org/matrix-spec-proposals/pull/4527
+
 ## 0.35.1
 
 Bug fixes:
