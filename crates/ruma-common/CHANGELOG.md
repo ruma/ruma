@@ -14,6 +14,9 @@ Improvements:
 
 - Add unstable support for [MSC4363] "OAuth step up authentication".
 - Add `remove` function to `UserProfile` to remove keys from the profile.
+- Add unstable support for [MSC4527] (State event power levels).
+
+[MSC4527]: https://github.com/matrix-org/matrix-spec-proposals/pull/4527
 
 ## 0.20.1
 

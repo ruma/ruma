@@ -252,6 +252,8 @@ fn is_room_power_levels_content_key_retained(rules: &RedactionRules, key: &str) 
     match key {
         "ban" | "events" | "events_default" | "kick" | "redact" | "state_default" | "users"
         | "users_default" => true,
+        #[cfg(feature = "unstable-msc4527")]
+        "state" => rules.keep_room_power_levels_state,
         "invite" => rules.keep_room_power_levels_invite,
         _ => false,
     }

@@ -73,6 +73,12 @@ pub enum RoomVersionId {
     #[cfg(feature = "unstable-msc2870")]
     MSC2870,
 
+    /// `dev.zirco.msc4527.v1` ([MSC4527]).
+    ///
+    /// [MSC4527]: https://github.com/matrix-org/matrix-spec-proposals/pull/4527
+    #[cfg(feature = "unstable-msc4527")]
+    MSC4527,
+
     #[doc(hidden)]
     _Custom(CustomRoomVersion),
 }
@@ -97,6 +103,8 @@ impl RoomVersionId {
             Self::V12 => "12",
             #[cfg(feature = "unstable-msc2870")]
             Self::MSC2870 => "org.matrix.msc2870",
+            #[cfg(feature = "unstable-msc4527")]
+            Self::MSC4527 => "dev.zirco.msc4527.v1",
             Self::_Custom(version) => version.as_str(),
         }
     }
@@ -126,6 +134,8 @@ impl RoomVersionId {
             Self::V12 => RoomVersionRules::V12,
             #[cfg(feature = "unstable-msc2870")]
             Self::MSC2870 => RoomVersionRules::MSC2870,
+            #[cfg(feature = "unstable-msc4527")]
+            Self::MSC4527 => RoomVersionRules::MSC4527,
             Self::_Custom(_) => return None,
         })
     }
@@ -212,6 +222,8 @@ where
         "12" => RoomVersionId::V12,
         #[cfg(feature = "unstable-msc2870")]
         "org.matrix.msc2870" => RoomVersionId::MSC2870,
+        #[cfg(feature = "unstable-msc4527")]
+        "dev.zirco.msc4527.v1" => RoomVersionId::MSC4527,
         custom => {
             ruma_identifiers_validation::room_version_id::validate(custom)?;
             RoomVersionId::_Custom(CustomRoomVersion(room_version_id.into()))
