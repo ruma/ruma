@@ -36,6 +36,9 @@ Improvements:
   being decoded directly. The profile updates now use a `UserProfileUpdate` enum to signal if the
   profile changed or should be dropped.
 - Stabilize support for [MSC2666](https://github.com/matrix-org/matrix-spec-proposals/pull/2666) (Get rooms in common with another user).
+- Add support for [MSC1763] (Configurable per-room message retention periods).
+
+[MSC1763]: https://github.com/matrix-org/matrix-spec-proposals/pull/1763
 
 ## 0.24.0
 
