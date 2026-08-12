@@ -112,9 +112,9 @@ pub mod v1 {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "server"))]
 mod tests {
-    use ruma_common::{api::IncomingRequest as _, room_id};
+    use ruma_common::{api::IncomingRequest, room_id};
 
     use super::v1::{IncludeThreads, Request};
 
