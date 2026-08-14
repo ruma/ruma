@@ -14,7 +14,8 @@ Bug fixes:
   field was non-empty.
 - In the `room::create_room::v3` module, fix the serialization of `CreationContent` when only
   the `additional_creators` field was non-empty.
-- In the `threads::get_threads::v1` module, fix the deserialization of `Request` when `include` parameter is omitted
+- In the `threads::get_threads::v1` module, fix the deserialization of `Request` 
+  when `include` parameter is omitted
 
 Improvements:
 
