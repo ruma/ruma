@@ -19,14 +19,14 @@ ring-compat = ["dep:memchr"]
 
 [dependencies]
 base64 = { workspace = true }
-ed25519-dalek = { version = "2.0.0", features = ["pkcs8"] }
+ed25519-dalek = { version = "3.0.0", features = ["alloc", "pkcs8"] }
 memchr = { version = "2.4", optional = true }
-pkcs8 = { version = "0.10.0", features = ["alloc"] }
+pkcs8 = { version = "0.11.0", features = ["alloc"] }
 rand = { workspace = true, features = ["sys_rng"] }
 ruma-common = { workspace = true }
 ruma-events = { workspace = true }
 serde_json = { workspace = true }
-sha2 = "0.10.6"
+sha2 = "0.11.0"
 thiserror = { workspace = true }
 
 [dev-dependencies]
