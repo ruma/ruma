@@ -100,7 +100,7 @@ impl Ed25519KeyPair {
     }
 
     /// Constructs a key pair from [`pkcs8::PrivateKeyInfoRef`].
-    pub fn from_pkcs8_oak(
+    pub fn from_pkcs8(
         oak: PrivateKeyInfoRef<'_>,
         version: String,
     ) -> Result<Self, Ed25519KeyPairParseError> {
@@ -110,14 +110,6 @@ impl Ed25519KeyPair {
             oak.public_key.and_then(|key| key.as_bytes()),
             version,
         )
-    }
-
-    /// Constructs a key pair from [`pkcs8::PrivateKeyInfoRef`].
-    pub fn from_pkcs8_pki(
-        oak: PrivateKeyInfoRef<'_>,
-        version: String,
-    ) -> Result<Self, Ed25519KeyPairParseError> {
-        Self::new(oak.algorithm.oid, oak.private_key.as_ref(), None, version)
     }
 
     /// PKCS#8's "private key" is not yet actually the entire key,

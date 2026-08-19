@@ -5,7 +5,10 @@
 Breaking changes:
 
 - Upgrade `ed25519-dalek` and `pkcs8` crates
-  - `Ed25519KeyPair::from_pkcs8_(oak/pki)()` take a `PrivateKeyInfoRef`.
+  - `Ed25519KeyPair::from_pkcs8()` takes a `PrivateKeyInfoRef`.
+- `Ed25519KeyPair::from_pkcs8_oak()` was renamed to `Ed25519KeyPair::from_pkcs8()`.
+- `Ed25519KeyPair::from_pkcs8_pki()` was removed. `Ed25519KeyPair::from_pkcs8()` can be used
+  instead.
 
 Improvements:
 
