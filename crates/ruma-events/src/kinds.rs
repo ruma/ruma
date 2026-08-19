@@ -33,6 +33,14 @@ impl<C: GlobalAccountDataEventContent> GlobalAccountDataEvent<C> {
     pub fn new(content: C) -> Self {
         Self { content }
     }
+
+    #[doc(hidden)]
+    pub fn map<U: GlobalAccountDataEventContent>(
+        self,
+        f: impl FnOnce(C) -> U,
+    ) -> GlobalAccountDataEvent<U> {
+        GlobalAccountDataEvent { content: f(self.content) }
+    }
 }
 
 impl<C: GlobalAccountDataEventContent> Serialize for GlobalAccountDataEvent<C> {
@@ -61,6 +69,14 @@ impl<C: RoomAccountDataEventContent> RoomAccountDataEvent<C> {
     /// Construct a new `RoomAccountDataEvent` with the given content.
     pub fn new(content: C) -> Self {
         Self { content }
+    }
+
+    #[doc(hidden)]
+    pub fn map<U: RoomAccountDataEventContent>(
+        self,
+        f: impl FnOnce(C) -> U,
+    ) -> RoomAccountDataEvent<U> {
+        RoomAccountDataEvent { content: f(self.content) }
     }
 }
 
@@ -93,6 +109,14 @@ impl<C: EphemeralRoomEventContent> EphemeralRoomEvent<C> {
     /// Construct a new `EphemeralRoomEvent` with the given content and room ID.
     pub fn new(room_id: OwnedRoomId, content: C) -> Self {
         Self { content, room_id }
+    }
+
+    #[doc(hidden)]
+    pub fn map<U: EphemeralRoomEventContent>(
+        self,
+        f: impl FnOnce(C) -> U,
+    ) -> EphemeralRoomEvent<U> {
+        EphemeralRoomEvent { content: f(self.content), room_id: self.room_id }
     }
 }
 
@@ -128,6 +152,14 @@ impl<C: EphemeralRoomEventContent> SyncEphemeralRoomEvent<C> {
     /// Construct a new `SyncEphemeralRoomEvent` with the given content and room ID.
     pub fn new(content: C) -> Self {
         Self { content }
+    }
+
+    #[doc(hidden)]
+    pub fn map<U: EphemeralRoomEventContent>(
+        self,
+        f: impl FnOnce(C) -> U,
+    ) -> SyncEphemeralRoomEvent<U> {
+        SyncEphemeralRoomEvent { content: f(self.content) }
     }
 }
 
@@ -176,6 +208,25 @@ pub struct OriginalMessageLikeEvent<C: MessageLikeEventContent> {
     #[cfg(feature = "unstable-msc4354")]
     #[ruma_event(default, default_on_error, rename = "msc4354_sticky")]
     pub sticky: Option<StickyObject>,
+}
+
+impl<C: MessageLikeEventContent> OriginalMessageLikeEvent<C> {
+    #[doc(hidden)]
+    pub fn map<U: MessageLikeEventContent>(
+        self,
+        f: impl Fn(C) -> U + Copy,
+    ) -> OriginalMessageLikeEvent<U> {
+        OriginalMessageLikeEvent {
+            content: f(self.content),
+            event_id: self.event_id,
+            sender: self.sender,
+            origin_server_ts: self.origin_server_ts,
+            room_id: self.room_id,
+            unsigned: self.unsigned.map(&f),
+            #[cfg(feature = "unstable-msc4354")]
+            sticky: self.sticky,
+        }
+    }
 }
 
 impl<C: MessageLikeEventContent> JsonCastable<OriginalSyncMessageLikeEvent<C>>
@@ -227,6 +278,24 @@ pub struct OriginalSyncMessageLikeEvent<C: MessageLikeEventContent> {
     #[cfg(feature = "unstable-msc4354")]
     #[ruma_event(default, default_on_error, rename = "msc4354_sticky")]
     pub sticky: Option<StickyObject>,
+}
+
+impl<C: MessageLikeEventContent> OriginalSyncMessageLikeEvent<C> {
+    #[doc(hidden)]
+    pub fn map<U: MessageLikeEventContent>(
+        self,
+        f: impl Fn(C) -> U + Copy,
+    ) -> OriginalSyncMessageLikeEvent<U> {
+        OriginalSyncMessageLikeEvent {
+            content: f(self.content),
+            event_id: self.event_id,
+            sender: self.sender,
+            origin_server_ts: self.origin_server_ts,
+            unsigned: self.unsigned.map(&f),
+            #[cfg(feature = "unstable-msc4354")]
+            sticky: self.sticky,
+        }
+    }
 }
 
 impl<C: MessageLikeEventContent + RedactContent> OriginalSyncMessageLikeEvent<C>
@@ -423,6 +492,26 @@ pub struct OriginalStateEvent<C: StaticStateEventContent> {
     pub sticky: Option<StickyObject>,
 }
 
+impl<C: StaticStateEventContent> OriginalStateEvent<C> {
+    #[doc(hidden)]
+    pub fn map<U: StaticStateEventContent<StateKey = C::StateKey, Unsigned = C::Unsigned>>(
+        self,
+        f: impl FnOnce(C) -> U,
+    ) -> OriginalStateEvent<U> {
+        OriginalStateEvent {
+            content: f(self.content),
+            event_id: self.event_id,
+            sender: self.sender,
+            origin_server_ts: self.origin_server_ts,
+            room_id: self.room_id,
+            state_key: self.state_key,
+            unsigned: self.unsigned,
+            #[cfg(feature = "unstable-msc4354")]
+            sticky: self.sticky,
+        }
+    }
+}
+
 impl<C: StaticStateEventContent> JsonCastable<OriginalSyncStateEvent<C>> for OriginalStateEvent<C> {}
 
 impl<C: StaticStateEventContent + RedactContent> JsonCastable<StateEvent<C>>
@@ -486,6 +575,25 @@ pub struct OriginalSyncStateEvent<C: StaticStateEventContent> {
     pub sticky: Option<StickyObject>,
 }
 
+impl<C: StaticStateEventContent> OriginalSyncStateEvent<C> {
+    #[doc(hidden)]
+    pub fn map<U: StaticStateEventContent<StateKey = C::StateKey, Unsigned = C::Unsigned>>(
+        self,
+        f: impl FnOnce(C) -> U,
+    ) -> OriginalSyncStateEvent<U> {
+        OriginalSyncStateEvent {
+            content: f(self.content),
+            event_id: self.event_id,
+            sender: self.sender,
+            origin_server_ts: self.origin_server_ts,
+            state_key: self.state_key,
+            unsigned: self.unsigned,
+            #[cfg(feature = "unstable-msc4354")]
+            sticky: self.sticky,
+        }
+    }
+}
+
 impl<C: StaticStateEventContent + RedactContent> JsonCastable<SyncStateEvent<C>>
     for OriginalSyncStateEvent<C>
 where
@@ -532,6 +640,24 @@ pub struct StrippedStateEvent<C: PossiblyRedactedStateEventContent> {
     pub unsigned: Option<Raw<crate::StateUnsigned<C>>>,
 }
 
+impl<C: PossiblyRedactedStateEventContent> StrippedStateEvent<C> {
+    #[doc(hidden)]
+    pub fn map<U: PossiblyRedactedStateEventContent<StateKey = C::StateKey>>(
+        self,
+        f: impl FnOnce(C) -> U,
+    ) -> StrippedStateEvent<U> {
+        StrippedStateEvent {
+            content: f(self.content),
+            sender: self.sender,
+            state_key: self.state_key,
+            #[cfg(feature = "unstable-msc4319")]
+            origin_server_ts: self.origin_server_ts,
+            #[cfg(feature = "unstable-msc4319")]
+            unsigned: self.unsigned.map(Raw::cast_unchecked),
+        }
+    }
+}
+
 impl<C: PossiblyRedactedStateEventContent> JsonCastable<JsonObject> for StrippedStateEvent<C> {}
 
 /// A minimal state event, used for creating a new room.
@@ -559,6 +685,14 @@ impl<C: StaticStateEventContent> InitialStateEvent<C> {
     /// [`with_empty_state_key()`](Self::with_empty_state_key) can be used instead.
     pub fn new(state_key: C::StateKey, content: C) -> Self {
         Self { content, state_key }
+    }
+
+    #[doc(hidden)]
+    pub fn map<U: StaticStateEventContent<StateKey = C::StateKey>>(
+        self,
+        f: impl FnOnce(C) -> U,
+    ) -> InitialStateEvent<U> {
+        InitialStateEvent { content: f(self.content), state_key: self.state_key }
     }
 
     /// Create a new `InitialStateEvent` for an event type with an empty state key.
@@ -793,6 +927,11 @@ impl<C: ToDeviceEventContent> ToDeviceEvent<C> {
     /// Construct a new `ToDeviceEvent` with the given content and sender.
     pub fn new(sender: OwnedUserId, content: C) -> Self {
         Self { content, sender }
+    }
+
+    #[doc(hidden)]
+    pub fn map<U: ToDeviceEventContent>(self, f: impl FnOnce(C) -> U) -> ToDeviceEvent<U> {
+        ToDeviceEvent { content: f(self.content), sender: self.sender }
     }
 }
 

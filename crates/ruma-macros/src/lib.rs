@@ -47,7 +47,7 @@ use self::{
 };
 
 /// Generates enums to represent the various Matrix event types.
-/// 
+///
 /// This macro should only be used inside `ruma-events`.
 ///
 /// # Generated types
