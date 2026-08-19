@@ -5,7 +5,8 @@ use http::header::{CONTENT_DISPOSITION, LOCATION};
 use ruma_common::{
     api::{
         IncomingRequest, IncomingResponseExt as _, MatrixVersion, OutgoingRequestExt as _,
-        OutgoingResponse, SupportedVersions, auth_scheme::NoAuthentication, request, response,
+        OutgoingResponseExt as _, SupportedVersions, auth_scheme::NoAuthentication, request,
+        response,
     },
     http_headers::{ContentDisposition, ContentDispositionType},
     metadata,

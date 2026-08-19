@@ -4,6 +4,8 @@
 
 use std::ops::Deref;
 
+#[cfg(feature = "server")]
+use ruma_common::api::OutgoingBody;
 #[cfg(feature = "client")]
 use ruma_common::api::error::HeaderDeserializationError;
 use ruma_common::http_headers::ContentDisposition;
@@ -150,8 +152,9 @@ impl Deref for MultipartMixedBoundary {
 }
 
 /// A `multipart/mixed` response body.
+#[doc(hidden)]
 #[derive(Debug, Clone)]
-struct ResponseBody {
+pub struct ResponseBody {
     metadata: ContentMetadata,
     content: FileOrLocation,
     // This field is never read when deserializing.
@@ -168,10 +171,21 @@ impl ResponseBody {
         Self { metadata, content, boundary: MultipartMixedBoundary::new() }
     }
 
-    /// Serialize this `ResponseBody` into a buffer.
-    fn try_into_buf<T: Default + bytes::BufMut>(
+    /// Convert this `ResponseBody` into an `http::Response<ResponseBody>`.
+    fn try_into_http_response(
         self,
-    ) -> Result<T, ruma_common::api::error::IntoHttpError> {
+    ) -> Result<http::Response<Self>, ruma_common::api::error::IntoHttpError> {
+        let content_type = self.boundary.content_type();
+
+        Ok(http::Response::builder().header(http::header::CONTENT_TYPE, content_type).body(self)?)
+    }
+}
+
+#[cfg(feature = "server")]
+impl OutgoingBody for ResponseBody {
+    type Error = ruma_common::api::error::IntoHttpError;
+
+    fn try_into_buf<T: Default + bytes::BufMut>(self) -> Result<T, Self::Error> {
         use std::io::Write as _;
 
         let mut body_writer = T::default().writer();
@@ -228,17 +242,6 @@ impl ResponseBody {
         boundary.write_end(&mut body_writer);
 
         Ok(body_writer.into_inner())
-    }
-
-    /// Serialize this `ResponseBody` into an `http::Response`.
-    fn try_into_http_response<T: Default + bytes::BufMut>(
-        self,
-    ) -> Result<http::Response<T>, ruma_common::api::error::IntoHttpError> {
-        let content_type = self.boundary.content_type();
-
-        Ok(http::Response::builder()
-            .header(http::header::CONTENT_TYPE, content_type)
-            .body(self.try_into_buf()?)?)
     }
 }
 
@@ -383,7 +386,10 @@ fn parse_multipart_body_part(
 #[cfg(all(test, feature = "client", feature = "server"))]
 mod tests {
     use assert_matches2::assert_matches;
-    use ruma_common::http_headers::{ContentDisposition, ContentDispositionType};
+    use ruma_common::{
+        api::OutgoingBody,
+        http_headers::{ContentDisposition, ContentDispositionType},
+    };
 
     use super::{Content, ContentMetadata, FileOrLocation, ResponseBody};
 
@@ -402,9 +408,10 @@ mod tests {
         });
 
         let (parts, body) = ResponseBody::new(outgoing_metadata, outgoing_content)
-            .try_into_http_response::<Vec<u8>>()
+            .try_into_http_response()
             .unwrap()
             .into_parts();
+        let body = body.try_into_buf::<Vec<u8>>().unwrap();
         let response = http::Response::from_parts(parts, body.as_slice());
 
         let ResponseBody { content: incoming_content, .. } =
@@ -431,9 +438,10 @@ mod tests {
         });
 
         let (parts, body) = ResponseBody::new(outgoing_metadata, outgoing_content)
-            .try_into_http_response::<Vec<u8>>()
+            .try_into_http_response()
             .unwrap()
             .into_parts();
+        let body = body.try_into_buf::<Vec<u8>>().unwrap();
         let response = http::Response::from_parts(parts, body.as_slice());
 
         let ResponseBody { content: incoming_content, .. } =
@@ -453,9 +461,10 @@ mod tests {
         let outgoing_content = FileOrLocation::Location(location.to_owned());
 
         let (parts, body) = ResponseBody::new(outgoing_metadata, outgoing_content)
-            .try_into_http_response::<Vec<u8>>()
+            .try_into_http_response()
             .unwrap()
             .into_parts();
+        let body = body.try_into_buf::<Vec<u8>>().unwrap();
         let response = http::Response::from_parts(parts, body.as_slice());
 
         let ResponseBody { content: incoming_content, .. } =

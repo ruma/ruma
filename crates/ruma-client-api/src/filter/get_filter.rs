@@ -76,7 +76,7 @@ pub mod v3 {
         #[cfg(feature = "server")]
         #[test]
         fn serialize_response() {
-            use ruma_common::api::OutgoingResponse;
+            use ruma_common::api::OutgoingResponseExt as _;
 
             use crate::filter::FilterDefinition;
 

@@ -5,7 +5,7 @@ use http::header::{CONTENT_DISPOSITION, LOCATION};
 use ruma_common::{
     api::{
         IncomingRequest, IncomingResponseExt as _, MatrixVersion, OutgoingRequestExt as _,
-        OutgoingResponse, SupportedVersions,
+        OutgoingResponseExt as _, SupportedVersions,
         auth_scheme::NoAuthentication,
         error::{
             DeserializationError, FromHttpRequestError, FromHttpResponseError,

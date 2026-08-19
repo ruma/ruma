@@ -444,15 +444,32 @@ pub trait IncomingRequest: Metadata {
 }
 
 /// A request type for a Matrix API endpoint, used for sending responses.
-pub trait OutgoingResponse {
+pub trait OutgoingResponse: Sized {
+    /// HTTP body type pre-serialization.
+    type Body: OutgoingBody;
+
     /// Tries to convert this response into an `http::Response`.
     ///
-    /// This method should only fail when when invalid header values are specified. It may also
-    /// fail with a serialization error in case of bugs in Ruma though.
-    fn try_into_http_response<T: Default + BufMut>(
-        self,
-    ) -> Result<http::Response<T>, IntoHttpError>;
+    /// This method should only fail when invalid header values are specified. It may also fail with
+    /// a serialization error in case of bugs in Ruma though.
+    fn try_into_http_response_inner(self) -> Result<http::Response<Self::Body>, IntoHttpError>;
 }
+
+/// A request type for a Matrix API endpoint, used for sending responses.
+pub trait OutgoingResponseExt: OutgoingResponse {
+    /// Tries to convert this response into an `http::Response`.
+    ///
+    /// This method should only fail when invalid header values are specified. It may also fail with
+    /// a serialization error in case of bugs in Ruma though.
+    fn try_into_http_response<T: Default + BufMut + AsRef<[u8]>>(
+        self,
+    ) -> Result<http::Response<T>, IntoHttpError> {
+        let (parts, body) = self.try_into_http_response_inner()?.into_parts();
+        Ok(http::Response::from_parts(parts, body.try_into_buf().map_err(Into::into)?))
+    }
+}
+
+impl<T: OutgoingResponse> OutgoingResponseExt for T {}
 
 /// Gives users the ability to define their own serializable / deserializable errors.
 pub trait EndpointError: OutgoingResponse + StdError + Sized + Send + 'static {

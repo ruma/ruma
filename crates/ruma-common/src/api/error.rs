@@ -5,7 +5,8 @@
 use std::{error::Error as StdError, fmt, num::ParseIntError, sync::Arc};
 
 use as_variant::as_variant;
-use bytes::{BufMut, Bytes};
+use bytes::Bytes;
+use ruma_macros::OutgoingBodyJson;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value as JsonValue, from_slice as from_json_slice};
 use thiserror::Error;
@@ -74,9 +75,9 @@ impl fmt::Display for Error {
 impl StdError for Error {}
 
 impl OutgoingResponse for Error {
-    fn try_into_http_response<T: Default + BufMut>(
-        self,
-    ) -> Result<http::Response<T>, IntoHttpError> {
+    type Body = ErrorResponseBody;
+
+    fn try_into_http_response_inner(self) -> Result<http::Response<Self::Body>, IntoHttpError> {
         let mut builder = http::Response::builder()
             .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
             .status(self.status_code);
@@ -90,19 +91,7 @@ impl OutgoingResponse for Error {
             builder = builder.header(http::header::RETRY_AFTER, header_value);
         }
 
-        builder
-            .body(match self.body {
-                ErrorBody::Standard(standard_body) => {
-                    ruma_common::serde::json_to_buf(&standard_body)?
-                }
-                ErrorBody::Json(json) => ruma_common::serde::json_to_buf(&json)?,
-                ErrorBody::NotJson { .. } => {
-                    return Err(IntoHttpError::Json(serde::ser::Error::custom(
-                        "attempted to serialize ErrorBody::NotJson",
-                    )));
-                }
-            })
-            .map_err(Into::into)
+        builder.body(ErrorResponseBody(self.body)).map_err(Into::into)
     }
 }
 
@@ -188,6 +177,29 @@ impl StandardErrorBody {
     /// Construct a new `StandardErrorBody` with the given kind and message.
     pub fn new(kind: ErrorKind, message: String) -> Self {
         Self { kind, message }
+    }
+}
+
+/// Helper type for the serialization of an [`ErrorBody`] as an HTTP response body.
+///
+/// This is a wrapper around `ErrorBody` that cannot implement `Serialize` and `Deserialize` because
+/// part of its serialization might occur in the HTTP headers.
+#[doc(hidden)]
+#[derive(OutgoingBodyJson)]
+pub struct ErrorResponseBody(ErrorBody);
+
+impl Serialize for ErrorResponseBody {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match &self.0 {
+            ErrorBody::Standard(standard_body) => standard_body.serialize(serializer),
+            ErrorBody::Json(json) => json.serialize(serializer),
+            ErrorBody::NotJson { .. } => {
+                Err(serde::ser::Error::custom("attempted to serialize ErrorBody::NotJson"))
+            }
+        }
     }
 }
 
