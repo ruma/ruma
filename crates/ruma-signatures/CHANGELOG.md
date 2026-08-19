@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- Upgrade `ed25519-dalek` and `pkcs8` crates
+  - `Ed25519KeyPair::from_pkcs8_(oak/pki)()` take a `PrivateKeyInfoRef`.
+
 Improvements:
 
 - Add `verify_policy_server_signature()` as a helper method to check the signature of the policy

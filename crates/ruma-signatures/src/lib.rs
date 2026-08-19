@@ -85,7 +85,7 @@ mod verify;
 mod tests {
     use std::collections::BTreeMap;
 
-    use pkcs8::{PrivateKeyInfo, der::Decode};
+    use pkcs8::{PrivateKeyInfoRef, der::Decode};
     use ruma_common::{
         room_version_rules::{RedactionRules, RoomVersionRules},
         serde::{Base64, base64::Standard},
@@ -108,7 +108,14 @@ mod tests {
 
     /// Convenience method for getting the public key as a string
     fn public_key_string() -> Base64 {
-        Base64::new(PrivateKeyInfo::from_der(&pkcs8()).unwrap().public_key.unwrap().to_owned())
+        Base64::new(
+            PrivateKeyInfoRef::from_der(&pkcs8())
+                .unwrap()
+                .public_key
+                .unwrap()
+                .raw_bytes()
+                .to_owned(),
+        )
     }
 
     /// Convenience for converting a string of JSON into its canonical form.
