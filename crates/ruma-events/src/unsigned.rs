@@ -62,6 +62,7 @@ impl<C: MessageLikeEventContent> MessageLikeUnsigned<C> {
         }
     }
 
+    /// Maps the content type of nested relations while preserving unsigned fields.
     #[doc(hidden)]
     pub fn map<U: MessageLikeEventContent>(
         self,

@@ -34,6 +34,7 @@ impl<C: GlobalAccountDataEventContent> GlobalAccountDataEvent<C> {
         Self { content }
     }
 
+    /// Maps the event content using while preserving event metadata.
     #[doc(hidden)]
     pub fn map<U: GlobalAccountDataEventContent>(
         self,
@@ -71,6 +72,7 @@ impl<C: RoomAccountDataEventContent> RoomAccountDataEvent<C> {
         Self { content }
     }
 
+    /// Maps the event content using while preserving event metadata.
     #[doc(hidden)]
     pub fn map<U: RoomAccountDataEventContent>(
         self,
@@ -111,6 +113,7 @@ impl<C: EphemeralRoomEventContent> EphemeralRoomEvent<C> {
         Self { content, room_id }
     }
 
+    /// Maps the event content using while preserving event metadata.
     #[doc(hidden)]
     pub fn map<U: EphemeralRoomEventContent>(
         self,
@@ -154,6 +157,7 @@ impl<C: EphemeralRoomEventContent> SyncEphemeralRoomEvent<C> {
         Self { content }
     }
 
+    /// Maps the event content using while preserving event metadata.
     #[doc(hidden)]
     pub fn map<U: EphemeralRoomEventContent>(
         self,
@@ -210,6 +214,7 @@ pub struct OriginalMessageLikeEvent<C: MessageLikeEventContent> {
     pub sticky: Option<StickyObject>,
 }
 
+/// Maps the event content using while preserving event metadata.
 impl<C: MessageLikeEventContent> OriginalMessageLikeEvent<C> {
     #[doc(hidden)]
     pub fn map<U: MessageLikeEventContent>(
@@ -280,6 +285,7 @@ pub struct OriginalSyncMessageLikeEvent<C: MessageLikeEventContent> {
     pub sticky: Option<StickyObject>,
 }
 
+/// Maps the event content using while preserving event metadata.
 impl<C: MessageLikeEventContent> OriginalSyncMessageLikeEvent<C> {
     #[doc(hidden)]
     pub fn map<U: MessageLikeEventContent>(
@@ -492,6 +498,7 @@ pub struct OriginalStateEvent<C: StaticStateEventContent> {
     pub sticky: Option<StickyObject>,
 }
 
+/// Maps the event content using while preserving event metadata.
 impl<C: StaticStateEventContent> OriginalStateEvent<C> {
     #[doc(hidden)]
     pub fn map<U: StaticStateEventContent<StateKey = C::StateKey, Unsigned = C::Unsigned>>(
@@ -575,6 +582,7 @@ pub struct OriginalSyncStateEvent<C: StaticStateEventContent> {
     pub sticky: Option<StickyObject>,
 }
 
+/// Maps the event content using while preserving event metadata.
 impl<C: StaticStateEventContent> OriginalSyncStateEvent<C> {
     #[doc(hidden)]
     pub fn map<U: StaticStateEventContent<StateKey = C::StateKey, Unsigned = C::Unsigned>>(
@@ -640,6 +648,7 @@ pub struct StrippedStateEvent<C: PossiblyRedactedStateEventContent> {
     pub unsigned: Option<Raw<crate::StateUnsigned<C>>>,
 }
 
+/// Maps the event content using while preserving event metadata.
 impl<C: PossiblyRedactedStateEventContent> StrippedStateEvent<C> {
     #[doc(hidden)]
     pub fn map<U: PossiblyRedactedStateEventContent<StateKey = C::StateKey>>(
@@ -687,6 +696,7 @@ impl<C: StaticStateEventContent> InitialStateEvent<C> {
         Self { content, state_key }
     }
 
+    /// Maps the event content using while preserving event metadata.
     #[doc(hidden)]
     pub fn map<U: StaticStateEventContent<StateKey = C::StateKey>>(
         self,
@@ -929,6 +939,7 @@ impl<C: ToDeviceEventContent> ToDeviceEvent<C> {
         Self { content, sender }
     }
 
+    /// Maps the event content using while preserving event metadata.
     #[doc(hidden)]
     pub fn map<U: ToDeviceEventContent>(self, f: impl FnOnce(C) -> U) -> ToDeviceEvent<U> {
         ToDeviceEvent { content: f(self.content), sender: self.sender }

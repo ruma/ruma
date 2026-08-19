@@ -279,6 +279,7 @@ impl<E> BundledMessageLikeRelations<E> {
         BundledMessageLikeRelations { replace, has_invalid_replacement, thread, reference }
     }
 
+    /// Maps the event type of bundled replacement relations using the given closure.
     #[doc(hidden)]
     pub fn map<O>(self, f: impl Fn(E) -> O) -> BundledMessageLikeRelations<O> {
         BundledMessageLikeRelations {
