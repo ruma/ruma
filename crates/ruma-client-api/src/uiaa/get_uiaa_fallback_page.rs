@@ -82,20 +82,43 @@ pub mod v3 {
         }
     }
 
+    #[doc(hidden)]
+    #[allow(clippy::exhaustive_enums)]
+    pub enum ResponseBody {
+        Redirect,
+        Html(HtmlPage),
+    }
+
+    #[cfg(feature = "server")]
+    impl ruma_common::api::OutgoingBody for ResponseBody {
+        type Error = ruma_common::api::error::IntoHttpError;
+
+        fn try_into_buf<T: Default + bytes::BufMut + AsRef<[u8]>>(self) -> Result<T, Self::Error> {
+            let body = match self {
+                Self::Redirect => Vec::new(),
+                Self::Html(HtmlPage { body }) => body,
+            };
+
+            Ok(ruma_common::api::BytesBody(body).try_into_buf()?)
+        }
+    }
+
     #[cfg(feature = "server")]
     impl ruma_common::api::OutgoingResponse for Response {
-        fn try_into_http_response<T: Default + bytes::BufMut>(
+        type Body = ResponseBody;
+
+        fn try_into_http_response_inner(
             self,
-        ) -> Result<http::Response<T>, ruma_common::api::error::IntoHttpError> {
+        ) -> Result<http::Response<Self::Body>, ruma_common::api::error::IntoHttpError> {
             match self {
                 Response::Redirect(Redirect { url }) => Ok(http::Response::builder()
                     .status(http::StatusCode::FOUND)
                     .header(http::header::LOCATION, url)
-                    .body(T::default())?),
-                Response::Html(HtmlPage { body }) => Ok(http::Response::builder()
+                    .body(ResponseBody::Redirect)?),
+                Response::Html(html) => Ok(http::Response::builder()
                     .status(http::StatusCode::OK)
                     .header(http::header::CONTENT_TYPE, "text/html; charset=utf-8")
-                    .body(ruma_common::serde::slice_to_buf(&body))?),
+                    .body(ResponseBody::Html(html))?),
             }
         }
     }
@@ -168,7 +191,7 @@ pub mod v3 {
     #[cfg(all(test, feature = "server"))]
     mod tests_server {
         use http::header::{CONTENT_TYPE, LOCATION};
-        use ruma_common::api::OutgoingResponse;
+        use ruma_common::api::OutgoingResponseExt as _;
 
         use super::Response;
 

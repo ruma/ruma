@@ -98,7 +98,7 @@ mod tests {
     #[cfg(feature = "server")]
     #[test]
     fn construct_and_serialize_response() {
-        use ruma_common::{api::OutgoingResponse, owned_server_name};
+        use ruma_common::{api::OutgoingResponseExt as _, owned_server_name};
         use serde_json::{Value as JsonValue, from_slice as from_json_slice, json};
 
         let response = Response::new(owned_server_name!("policy.example.org"), "zLFxllD0pbBuBpfHh8NuHNaICpReF/PAOpUQTsw+bFGKiGfDNAsnhcP7pbrmhhpfbOAxIdLraQLeeiXBryLmBw".to_owned());

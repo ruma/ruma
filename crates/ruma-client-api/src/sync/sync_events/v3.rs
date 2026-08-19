@@ -1130,7 +1130,7 @@ mod server_tests {
 
     use assert_matches2::assert_matches;
     use ruma_common::{
-        api::{IncomingRequest as _, OutgoingResponse as _},
+        api::{IncomingRequest as _, OutgoingResponseExt as _},
         owned_room_id,
         presence::PresenceState,
         serde::Raw,

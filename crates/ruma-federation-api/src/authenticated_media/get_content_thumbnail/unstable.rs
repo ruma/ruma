@@ -10,7 +10,7 @@ use ruma_common::{
     media::Method,
 };
 
-use crate::authenticated_media::{ContentMetadata, FileOrLocation};
+use crate::authenticated_media::{ContentMetadata, FileOrLocation, ResponseBody};
 
 /// Request type for the `get_content_thumbnail` endpoint.
 #[request]
@@ -122,18 +122,20 @@ impl ruma_common::api::IncomingResponse for Response {
     fn try_from_http_response_inner(
         http_response: http::Response<&[u8]>,
     ) -> Result<Self, ruma_common::api::error::DeserializationError> {
-        // Reuse the custom deserialization.
-        Ok(super::v1::Response::try_from_http_response_inner(http_response)?.into())
+        let ResponseBody { metadata, content, .. } =
+            ResponseBody::try_from_http_response(http_response)?;
+        Ok(Self { metadata, content })
     }
 }
 
 #[cfg(feature = "server")]
 impl ruma_common::api::OutgoingResponse for Response {
-    fn try_into_http_response<T: Default + bytes::BufMut>(
+    type Body = ResponseBody;
+
+    fn try_into_http_response_inner(
         self,
-    ) -> Result<http::Response<T>, ruma_common::api::error::IntoHttpError> {
-        // Reuse the custom serialization.
-        super::v1::Response::from(self).try_into_http_response()
+    ) -> Result<http::Response<Self::Body>, ruma_common::api::error::IntoHttpError> {
+        ResponseBody::new(self.metadata, self.content).try_into_http_response()
     }
 }
 

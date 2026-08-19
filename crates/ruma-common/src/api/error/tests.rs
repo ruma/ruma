@@ -1,5 +1,5 @@
 use assert_matches2::assert_let;
-use ruma_common::api::{EndpointError, OutgoingResponse};
+use ruma_common::api::{EndpointError, OutgoingResponseExt as _};
 use serde_json::{
     Value as JsonValue, from_slice as from_json_slice, from_value as from_json_value, json,
 };

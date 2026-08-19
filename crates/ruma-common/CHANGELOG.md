@@ -8,6 +8,10 @@ Breaking changes:
   that is automatically implemented for any `T: OutgoingRequest`
   - Implementors of `OutgoingRequest` now instead have to provide the new `type Body`
     and `fn try_into_http_request_inner`
+- `OutgoingResponse::try_into_http_response` has been moved to a new `OutgoingResponseExt` trait
+  that is automatically implemented for any `T: OutgoingResponse`
+  - Implementors of `OutgoingResponse` now instead have to provide the new `type Body`
+    and `fn try_into_http_response_inner`
 
 Bug fixes:
 

@@ -182,6 +182,42 @@ pub mod v3 {
         }
     }
 
+    #[doc(hidden)]
+    #[derive(ruma_common::serde::_FakeDeriveSerde)]
+    #[cfg_attr(feature = "server", derive(ruma_common::api::OutgoingBodyJson))]
+    #[serde(transparent)]
+    pub struct ResponseBody(Option<ProfileFieldValue>);
+
+    #[cfg(feature = "server")]
+    impl serde::Serialize for ResponseBody {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer,
+        {
+            use ruma_common::serde::JsonObject;
+
+            if let Some(value) = &self.0 {
+                value.serialize(serializer)
+            } else {
+                JsonObject::new().serialize(serializer)
+            }
+        }
+    }
+
+    #[cfg(feature = "client")]
+    impl<'de> serde::Deserialize<'de> for ResponseBody {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: serde::Deserializer<'de>,
+        {
+            use ruma_common::profile::ProfileFieldValueVisitor;
+
+            let value = deserializer.deserialize_map(ProfileFieldValueVisitor::new(None))?;
+
+            Ok(Self(value))
+        }
+    }
+
     #[cfg(feature = "client")]
     impl ruma_common::api::IncomingResponse for Response {
         type EndpointError = Error;
@@ -189,36 +225,22 @@ pub mod v3 {
         fn try_from_http_response_inner(
             response: http::Response<&[u8]>,
         ) -> Result<Self, ruma_common::api::error::DeserializationError> {
-            use ruma_common::profile::ProfileFieldValueVisitor;
-            use serde::Deserializer;
-
-            let mut de = serde_json::Deserializer::from_slice(response.body());
-            let value = de.deserialize_map(ProfileFieldValueVisitor::new(None))?;
-            de.end()?;
-
+            let ResponseBody(value) = serde_json::from_slice(response.body())?;
             Ok(Self { value })
         }
     }
 
     #[cfg(feature = "server")]
     impl ruma_common::api::OutgoingResponse for Response {
-        fn try_into_http_response<T: Default + bytes::BufMut>(
+        type Body = ResponseBody;
+
+        fn try_into_http_response_inner(
             self,
-        ) -> Result<http::Response<T>, ruma_common::api::error::IntoHttpError> {
-            use ruma_common::serde::JsonObject;
-
-            let body = self
-                .value
-                .as_ref()
-                .map(|value| ruma_common::serde::json_to_buf(value))
-                .unwrap_or_else(||
-                   // Send an empty object.
-                    ruma_common::serde::json_to_buf(&JsonObject::new()))?;
-
+        ) -> Result<http::Response<Self::Body>, ruma_common::api::error::IntoHttpError> {
             Ok(http::Response::builder()
                 .status(http::StatusCode::OK)
                 .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
-                .body(body)?)
+                .body(ResponseBody(self.value))?)
         }
     }
 
@@ -439,7 +461,7 @@ mod tests_server {
 
     #[test]
     fn serialize_response() {
-        use ruma_common::api::OutgoingResponse;
+        use ruma_common::api::OutgoingResponseExt;
 
         let response =
             Response::new(ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef")));

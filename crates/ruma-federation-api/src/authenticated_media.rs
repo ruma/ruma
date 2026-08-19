@@ -2,6 +2,12 @@
 //!
 //! [MSC3916]: https://github.com/matrix-org/matrix-spec-proposals/pull/3916
 
+use std::ops::Deref;
+
+#[cfg(feature = "server")]
+use ruma_common::api::OutgoingBody;
+#[cfg(feature = "client")]
+use ruma_common::api::error::HeaderDeserializationError;
 use ruma_common::http_headers::ContentDisposition;
 use serde::{Deserialize, Serialize};
 
@@ -70,189 +76,272 @@ impl Content {
     }
 }
 
-/// Serialize the given metadata and content into a `http::Response` `multipart/mixed` body.
-///
-/// Returns a tuple containing the boundary used
+/// A boundary in a `multipart/mixed` body.
+#[derive(Debug, Clone)]
+struct MultipartMixedBoundary(String);
+
 #[cfg(feature = "server")]
-fn try_into_multipart_mixed_response<T: Default + bytes::BufMut>(
-    metadata: &ContentMetadata,
-    content: &FileOrLocation,
-) -> Result<http::Response<T>, ruma_common::api::error::IntoHttpError> {
-    use std::io::Write as _;
+impl MultipartMixedBoundary {
+    /// Generate a new random boundary.
+    fn new() -> Self {
+        use rand::RngExt as _;
 
-    use rand::RngExt as _;
-
-    let boundary = rand::rng()
-        .sample_iter(&rand::distr::Alphanumeric)
-        .map(char::from)
-        .take(GENERATED_BOUNDARY_LENGTH)
-        .collect::<String>();
-
-    let mut body_writer = T::default().writer();
-
-    // Add first boundary separator and header for the metadata.
-    let _ = write!(
-        body_writer,
-        "\r\n--{boundary}\r\n{}: {}\r\n\r\n",
-        http::header::CONTENT_TYPE,
-        mime::APPLICATION_JSON
-    );
-
-    // Add serialized metadata.
-    serde_json::to_writer(&mut body_writer, metadata)?;
-
-    // Add second boundary separator.
-    let _ = write!(body_writer, "\r\n--{boundary}\r\n");
-
-    // Add content.
-    match content {
-        FileOrLocation::File(content) => {
-            // Add headers.
-            let content_type =
-                content.content_type.as_deref().unwrap_or(mime::APPLICATION_OCTET_STREAM.as_ref());
-            let _ = write!(body_writer, "{}: {content_type}\r\n", http::header::CONTENT_TYPE);
-
-            if let Some(content_disposition) = &content.content_disposition {
-                let _ = write!(
-                    body_writer,
-                    "{}: {content_disposition}\r\n",
-                    http::header::CONTENT_DISPOSITION
-                );
-            }
-
-            // Add empty line separator after headers.
-            let _ = body_writer.write_all(b"\r\n");
-
-            // Add bytes.
-            let _ = body_writer.write_all(&content.file);
-        }
-        FileOrLocation::Location(location) => {
-            // Only add location header and empty line separator.
-            let _ = write!(body_writer, "{}: {location}\r\n\r\n", http::header::LOCATION);
-        }
+        Self(
+            rand::rng()
+                .sample_iter(&rand::distr::Alphanumeric)
+                .map(char::from)
+                .take(GENERATED_BOUNDARY_LENGTH)
+                .collect(),
+        )
     }
 
-    // Add final boundary.
-    let _ = write!(body_writer, "\r\n--{boundary}--");
+    /// Get the value of the `Content-Type` HTTP header for this boundary.
+    fn content_type(&self) -> String {
+        format!("{MULTIPART_MIXED}; boundary={}", self.0)
+    }
 
-    let content_type = format!("{MULTIPART_MIXED}; boundary={boundary}");
-    let body = body_writer.into_inner();
+    /// Write this boundary as a separator between parts of the body.
+    fn write_separator(&self, buf: &mut impl std::io::Write) {
+        let _ = write!(buf, "\r\n--{}\r\n", self.0);
+    }
 
-    Ok(http::Response::builder().header(http::header::CONTENT_TYPE, content_type).body(body)?)
+    /// Write this boundary at the end of the body.
+    fn write_end(&self, buf: &mut impl std::io::Write) {
+        let _ = write!(buf, "\r\n--{}", self.0);
+    }
 }
 
-/// Deserialize the given metadata and content from a `http::Response` with a `multipart/mixed`
-/// body.
 #[cfg(feature = "client")]
-fn try_from_multipart_mixed_response(
-    http_response: http::Response<&[u8]>,
-) -> Result<(ContentMetadata, FileOrLocation), ruma_common::api::error::DeserializationError> {
-    use ruma_common::api::error::{HeaderDeserializationError, MultipartMixedDeserializationError};
+impl MultipartMixedBoundary {
+    /// Parse the boundary in the headers of the given `http::Response`.
+    fn parse_http_response_headers(
+        http_response: &http::Response<&[u8]>,
+    ) -> Result<Self, HeaderDeserializationError> {
+        let body_content_type = http_response
+            .headers()
+            .get(http::header::CONTENT_TYPE)
+            .ok_or_else(|| HeaderDeserializationError::MissingHeader("Content-Type".to_owned()))?
+            .to_str()?
+            .parse::<mime::Mime>()
+            .map_err(|e| HeaderDeserializationError::InvalidHeader(e.into()))?;
 
-    // First, get the boundary from the content type header.
-    let body_content_type = http_response
-        .headers()
-        .get(http::header::CONTENT_TYPE)
-        .ok_or_else(|| HeaderDeserializationError::MissingHeader("Content-Type".to_owned()))?
-        .to_str()?
-        .parse::<mime::Mime>()
-        .map_err(|e| HeaderDeserializationError::InvalidHeader(e.into()))?;
-
-    if !body_content_type.essence_str().eq_ignore_ascii_case(MULTIPART_MIXED) {
-        return Err(HeaderDeserializationError::InvalidHeaderValue {
-            header: "Content-Type".to_owned(),
-            expected: MULTIPART_MIXED.to_owned(),
-            unexpected: body_content_type.essence_str().to_owned(),
+        if !body_content_type.essence_str().eq_ignore_ascii_case(MULTIPART_MIXED) {
+            return Err(HeaderDeserializationError::InvalidHeaderValue {
+                header: "Content-Type".to_owned(),
+                expected: MULTIPART_MIXED.to_owned(),
+                unexpected: body_content_type.essence_str().to_owned(),
+            });
         }
-        .into());
+
+        Ok(Self(
+            body_content_type
+                .get_param("boundary")
+                .ok_or(HeaderDeserializationError::MissingMultipartBoundary)?
+                .as_str()
+                .to_owned(),
+        ))
+    }
+}
+
+impl Deref for MultipartMixedBoundary {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+/// A `multipart/mixed` response body.
+#[doc(hidden)]
+#[derive(Debug, Clone)]
+pub struct ResponseBody {
+    metadata: ContentMetadata,
+    content: FileOrLocation,
+    // This field is never read when deserializing.
+    #[cfg_attr(not(feature = "server"), expect(dead_code))]
+    boundary: MultipartMixedBoundary,
+}
+
+#[cfg(feature = "server")]
+impl ResponseBody {
+    /// Construct a `ResponseBody` with the given metadata and content.
+    ///
+    /// The boundary is generated randomly.
+    fn new(metadata: ContentMetadata, content: FileOrLocation) -> Self {
+        Self { metadata, content, boundary: MultipartMixedBoundary::new() }
     }
 
-    let boundary = body_content_type
-        .get_param("boundary")
-        .ok_or(HeaderDeserializationError::MissingMultipartBoundary)?
-        .as_str()
-        .as_bytes();
+    /// Convert this `ResponseBody` into an `http::Response<ResponseBody>`.
+    fn try_into_http_response(
+        self,
+    ) -> Result<http::Response<Self>, ruma_common::api::error::IntoHttpError> {
+        let content_type = self.boundary.content_type();
 
-    // Split the body with the boundary.
-    let body = http_response.body();
-
-    let mut full_boundary = Vec::with_capacity(boundary.len() + 4);
-    full_boundary.extend_from_slice(b"\r\n--");
-    full_boundary.extend_from_slice(boundary);
-    let full_boundary_no_crlf = full_boundary.strip_prefix(b"\r\n").unwrap();
-
-    let mut boundaries = memchr::memmem::find_iter(body, &full_boundary);
-
-    let metadata_start = if body.starts_with(full_boundary_no_crlf) {
-        // If there is no preamble before the first boundary, it may omit the
-        // preceding CRLF.
-        full_boundary_no_crlf.len()
-    } else {
-        boundaries.next().ok_or_else(|| MultipartMixedDeserializationError::MissingBodyParts {
-            expected: 2,
-            found: 0,
-        })? + full_boundary.len()
-    };
-    let metadata_end = boundaries.next().ok_or_else(|| {
-        MultipartMixedDeserializationError::MissingBodyParts { expected: 2, found: 0 }
-    })?;
-
-    let (_raw_metadata_headers, serialized_metadata) =
-        parse_multipart_body_part(body, metadata_start, metadata_end)?;
-
-    // Don't search for anything in the headers, just deserialize the content that should be JSON.
-    let metadata = serde_json::from_slice(serialized_metadata)?;
-
-    // Look at the part containing the media content now.
-    let content_start = metadata_end + full_boundary.len();
-    let content_end = boundaries.next().ok_or_else(|| {
-        MultipartMixedDeserializationError::MissingBodyParts { expected: 2, found: 1 }
-    })?;
-
-    let (raw_content_headers, file) = parse_multipart_body_part(body, content_start, content_end)?;
-
-    // Parse the headers to retrieve the content type and content disposition.
-    let mut content_headers = [httparse::EMPTY_HEADER; MAX_HEADERS_COUNT];
-    httparse::parse_headers(raw_content_headers, &mut content_headers)
-        .map_err(|e| MultipartMixedDeserializationError::InvalidHeader(e.into()))?;
-
-    let mut location = None;
-    let mut content_type = None;
-    let mut content_disposition = None;
-    for header in content_headers {
-        if header.name.is_empty() {
-            // This is a empty header, we have reached the end of the parsed headers.
-            break;
-        }
-
-        if header.name == http::header::LOCATION {
-            location = Some(
-                String::from_utf8(header.value.to_vec())
-                    .map_err(|e| MultipartMixedDeserializationError::InvalidHeader(e.into()))?,
-            );
-
-            // This is the only header we need, stop parsing.
-            break;
-        } else if header.name == http::header::CONTENT_TYPE {
-            content_type = Some(
-                String::from_utf8(header.value.to_vec())
-                    .map_err(|e| MultipartMixedDeserializationError::InvalidHeader(e.into()))?,
-            );
-        } else if header.name == http::header::CONTENT_DISPOSITION {
-            content_disposition = Some(
-                ContentDisposition::try_from(header.value)
-                    .map_err(|e| MultipartMixedDeserializationError::InvalidHeader(e.into()))?,
-            );
-        }
+        Ok(http::Response::builder().header(http::header::CONTENT_TYPE, content_type).body(self)?)
     }
+}
 
-    let content = if let Some(location) = location {
-        FileOrLocation::Location(location)
-    } else {
-        FileOrLocation::File(Content { file: file.to_owned(), content_type, content_disposition })
-    };
+#[cfg(feature = "server")]
+impl OutgoingBody for ResponseBody {
+    type Error = ruma_common::api::error::IntoHttpError;
 
-    Ok((metadata, content))
+    fn try_into_buf<T: Default + bytes::BufMut>(self) -> Result<T, Self::Error> {
+        use std::io::Write as _;
+
+        let mut body_writer = T::default().writer();
+        let Self { metadata, content, boundary } = &self;
+
+        // Add first boundary separator.
+        boundary.write_separator(&mut body_writer);
+
+        // Add headers for the metadata.
+        let _ = write!(
+            body_writer,
+            "{}: {}\r\n\r\n",
+            http::header::CONTENT_TYPE,
+            mime::APPLICATION_JSON
+        );
+
+        // Add serialized metadata.
+        serde_json::to_writer(&mut body_writer, metadata)?;
+
+        // Add second boundary separator.
+        boundary.write_separator(&mut body_writer);
+
+        // Add content.
+        match content {
+            FileOrLocation::File(content) => {
+                // Add headers.
+                let content_type = content
+                    .content_type
+                    .as_deref()
+                    .unwrap_or(mime::APPLICATION_OCTET_STREAM.as_ref());
+                let _ = write!(body_writer, "{}: {content_type}\r\n", http::header::CONTENT_TYPE);
+
+                if let Some(content_disposition) = &content.content_disposition {
+                    let _ = write!(
+                        body_writer,
+                        "{}: {content_disposition}\r\n",
+                        http::header::CONTENT_DISPOSITION
+                    );
+                }
+
+                // Add empty line separator after headers.
+                let _ = body_writer.write_all(b"\r\n");
+
+                // Add bytes.
+                let _ = body_writer.write_all(&content.file);
+            }
+            FileOrLocation::Location(location) => {
+                // Only add location header and empty line separator.
+                let _ = write!(body_writer, "{}: {location}\r\n\r\n", http::header::LOCATION);
+            }
+        }
+
+        // Add final boundary.
+        boundary.write_end(&mut body_writer);
+
+        Ok(body_writer.into_inner())
+    }
+}
+
+#[cfg(feature = "client")]
+impl ResponseBody {
+    /// Deserialize a `ResponseBody` from the given `http::Response`.
+    fn try_from_http_response(
+        http_response: http::Response<&[u8]>,
+    ) -> Result<Self, ruma_common::api::error::DeserializationError> {
+        use ruma_common::api::error::MultipartMixedDeserializationError;
+
+        // First, get the boundary.
+        let boundary = MultipartMixedBoundary::parse_http_response_headers(&http_response)?;
+
+        // Split the body with the boundary.
+        let body = http_response.body();
+
+        let mut full_boundary = Vec::with_capacity(boundary.len() + 4);
+        full_boundary.extend_from_slice(b"\r\n--");
+        full_boundary.extend_from_slice(boundary.as_bytes());
+        let full_boundary_no_crlf = full_boundary.strip_prefix(b"\r\n").unwrap();
+
+        let mut boundaries = memchr::memmem::find_iter(body, &full_boundary);
+
+        let metadata_start = if body.starts_with(full_boundary_no_crlf) {
+            // If there is no preamble before the first boundary, it may omit the
+            // preceding CRLF.
+            full_boundary_no_crlf.len()
+        } else {
+            boundaries.next().ok_or_else(|| {
+                MultipartMixedDeserializationError::MissingBodyParts { expected: 2, found: 0 }
+            })? + full_boundary.len()
+        };
+        let metadata_end = boundaries.next().ok_or_else(|| {
+            MultipartMixedDeserializationError::MissingBodyParts { expected: 2, found: 0 }
+        })?;
+
+        let (_raw_metadata_headers, serialized_metadata) =
+            parse_multipart_body_part(body, metadata_start, metadata_end)?;
+
+        // Don't search for anything in the headers, just deserialize the content that should be
+        // JSON.
+        let metadata = serde_json::from_slice(serialized_metadata)?;
+
+        // Look at the part containing the media content now.
+        let content_start = metadata_end + full_boundary.len();
+        let content_end = boundaries.next().ok_or_else(|| {
+            MultipartMixedDeserializationError::MissingBodyParts { expected: 2, found: 1 }
+        })?;
+
+        let (raw_content_headers, file) =
+            parse_multipart_body_part(body, content_start, content_end)?;
+
+        // Parse the headers to retrieve the content type and content disposition.
+        let mut content_headers = [httparse::EMPTY_HEADER; MAX_HEADERS_COUNT];
+        httparse::parse_headers(raw_content_headers, &mut content_headers)
+            .map_err(|e| MultipartMixedDeserializationError::InvalidHeader(e.into()))?;
+
+        let mut location = None;
+        let mut content_type = None;
+        let mut content_disposition = None;
+        for header in content_headers {
+            if header.name.is_empty() {
+                // This is a empty header, we have reached the end of the parsed headers.
+                break;
+            }
+
+            if header.name == http::header::LOCATION {
+                location =
+                    Some(String::from_utf8(header.value.to_vec()).map_err(|e| {
+                        MultipartMixedDeserializationError::InvalidHeader(e.into())
+                    })?);
+
+                // This is the only header we need, stop parsing.
+                break;
+            } else if header.name == http::header::CONTENT_TYPE {
+                content_type =
+                    Some(String::from_utf8(header.value.to_vec()).map_err(|e| {
+                        MultipartMixedDeserializationError::InvalidHeader(e.into())
+                    })?);
+            } else if header.name == http::header::CONTENT_DISPOSITION {
+                content_disposition =
+                    Some(ContentDisposition::try_from(header.value).map_err(|e| {
+                        MultipartMixedDeserializationError::InvalidHeader(e.into())
+                    })?);
+            }
+        }
+
+        let content = if let Some(location) = location {
+            FileOrLocation::Location(location)
+        } else {
+            FileOrLocation::File(Content {
+                file: file.to_owned(),
+                content_type,
+                content_disposition,
+            })
+        };
+
+        Ok(Self { metadata, content, boundary })
+    }
 }
 
 /// Parse the multipart body part in the given bytes, starting and ending at the given positions.
@@ -297,12 +386,12 @@ fn parse_multipart_body_part(
 #[cfg(all(test, feature = "client", feature = "server"))]
 mod tests {
     use assert_matches2::assert_matches;
-    use ruma_common::http_headers::{ContentDisposition, ContentDispositionType};
-
-    use super::{
-        Content, ContentMetadata, FileOrLocation, try_from_multipart_mixed_response,
-        try_into_multipart_mixed_response,
+    use ruma_common::{
+        api::OutgoingBody,
+        http_headers::{ContentDisposition, ContentDispositionType},
     };
+
+    use super::{Content, ContentMetadata, FileOrLocation, ResponseBody};
 
     #[test]
     fn multipart_mixed_content_ascii_filename_conversions() {
@@ -318,14 +407,15 @@ mod tests {
             content_disposition: Some(content_disposition.clone()),
         });
 
-        let (parts, body) =
-            try_into_multipart_mixed_response::<Vec<u8>>(&outgoing_metadata, &outgoing_content)
-                .unwrap()
-                .into_parts();
+        let (parts, body) = ResponseBody::new(outgoing_metadata, outgoing_content)
+            .try_into_http_response()
+            .unwrap()
+            .into_parts();
+        let body = body.try_into_buf::<Vec<u8>>().unwrap();
         let response = http::Response::from_parts(parts, body.as_slice());
 
-        let (_incoming_metadata, incoming_content) =
-            try_from_multipart_mixed_response(response).unwrap();
+        let ResponseBody { content: incoming_content, .. } =
+            ResponseBody::try_from_http_response(response).unwrap();
 
         assert_matches!(incoming_content, FileOrLocation::File(incoming_content));
         assert_eq!(incoming_content.file, file);
@@ -347,14 +437,15 @@ mod tests {
             content_disposition: Some(content_disposition.clone()),
         });
 
-        let (parts, body) =
-            try_into_multipart_mixed_response::<Vec<u8>>(&outgoing_metadata, &outgoing_content)
-                .unwrap()
-                .into_parts();
+        let (parts, body) = ResponseBody::new(outgoing_metadata, outgoing_content)
+            .try_into_http_response()
+            .unwrap()
+            .into_parts();
+        let body = body.try_into_buf::<Vec<u8>>().unwrap();
         let response = http::Response::from_parts(parts, body.as_slice());
 
-        let (_incoming_metadata, incoming_content) =
-            try_from_multipart_mixed_response(response).unwrap();
+        let ResponseBody { content: incoming_content, .. } =
+            ResponseBody::try_from_http_response(response).unwrap();
 
         assert_matches!(incoming_content, FileOrLocation::File(incoming_content));
         assert_eq!(incoming_content.file, file);
@@ -369,14 +460,15 @@ mod tests {
         let outgoing_metadata = ContentMetadata::new();
         let outgoing_content = FileOrLocation::Location(location.to_owned());
 
-        let (parts, body) =
-            try_into_multipart_mixed_response::<Vec<u8>>(&outgoing_metadata, &outgoing_content)
-                .unwrap()
-                .into_parts();
+        let (parts, body) = ResponseBody::new(outgoing_metadata, outgoing_content)
+            .try_into_http_response()
+            .unwrap()
+            .into_parts();
+        let body = body.try_into_buf::<Vec<u8>>().unwrap();
         let response = http::Response::from_parts(parts, body.as_slice());
 
-        let (_incoming_metadata, incoming_content) =
-            try_from_multipart_mixed_response(response).unwrap();
+        let ResponseBody { content: incoming_content, .. } =
+            ResponseBody::try_from_http_response(response).unwrap();
 
         assert_matches!(incoming_content, FileOrLocation::Location(incoming_location));
         assert_eq!(incoming_location, location);
@@ -391,7 +483,7 @@ mod tests {
             .body(body.as_slice())
             .unwrap();
 
-        try_from_multipart_mixed_response(response).unwrap_err();
+        ResponseBody::try_from_http_response(response).unwrap_err();
 
         // Wrong boundary.
         let body = b"\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\n\r\nsome plain text\r\n--abcdef--";
@@ -400,7 +492,7 @@ mod tests {
             .body(body.as_slice())
             .unwrap();
 
-        try_from_multipart_mixed_response(response).unwrap_err();
+        ResponseBody::try_from_http_response(response).unwrap_err();
 
         // Missing boundary in body.
         let body =
@@ -410,7 +502,7 @@ mod tests {
             .body(body.as_slice())
             .unwrap();
 
-        try_from_multipart_mixed_response(response).unwrap_err();
+        ResponseBody::try_from_http_response(response).unwrap_err();
 
         // Missing header and content empty line separator in body part.
         let body = b"\r\n--abcdef\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\n\r\nsome plain text\r\n--abcdef--";
@@ -419,7 +511,7 @@ mod tests {
             .body(body.as_slice())
             .unwrap();
 
-        try_from_multipart_mixed_response(response).unwrap_err();
+        ResponseBody::try_from_http_response(response).unwrap_err();
 
         // Control character in header.
         let body = b"\r\n--abcdef\r\n\r\n{}\r\n--abcdef\r\nContent-Type: text/plain\r\nContent-Disposition: inline; filename=\"my\nfile\"\r\nsome plain text\r\n--abcdef--";
@@ -428,7 +520,7 @@ mod tests {
             .body(body.as_slice())
             .unwrap();
 
-        try_from_multipart_mixed_response(response).unwrap_err();
+        ResponseBody::try_from_http_response(response).unwrap_err();
 
         // Boundary without CRLF with preamble.
         let body = b"foo--abcdef\r\n\r\n{}\r\n--abcdef\r\n\r\nsome plain text\r\n--abcdef--";
@@ -437,7 +529,7 @@ mod tests {
             .body(body.as_slice())
             .unwrap();
 
-        try_from_multipart_mixed_response(response).unwrap_err();
+        ResponseBody::try_from_http_response(response).unwrap_err();
     }
 
     #[test]
@@ -449,7 +541,7 @@ mod tests {
             .body(body.as_slice())
             .unwrap();
 
-        let (_metadata, content) = try_from_multipart_mixed_response(response).unwrap();
+        let ResponseBody { content, .. } = ResponseBody::try_from_http_response(response).unwrap();
 
         assert_matches!(content, FileOrLocation::File(file_content));
         assert_eq!(file_content.file, b"some plain text");
@@ -463,7 +555,7 @@ mod tests {
             .body(body.as_slice())
             .unwrap();
 
-        let (_metadata, content) = try_from_multipart_mixed_response(response).unwrap();
+        let ResponseBody { content, .. } = ResponseBody::try_from_http_response(response).unwrap();
 
         assert_matches!(content, FileOrLocation::File(file_content));
         assert_eq!(file_content.file, b"some plain text");
@@ -479,7 +571,7 @@ mod tests {
             .body(body.as_slice())
             .unwrap();
 
-        let (_metadata, content) = try_from_multipart_mixed_response(response).unwrap();
+        let ResponseBody { content, .. } = ResponseBody::try_from_http_response(response).unwrap();
 
         assert_matches!(content, FileOrLocation::File(file_content));
         assert_eq!(file_content.file, b"some plain text");
@@ -493,7 +585,7 @@ mod tests {
             .body(body.as_slice())
             .unwrap();
 
-        let (_metadata, content) = try_from_multipart_mixed_response(response).unwrap();
+        let ResponseBody { content, .. } = ResponseBody::try_from_http_response(response).unwrap();
 
         assert_matches!(content, FileOrLocation::File(file_content));
         assert_eq!(file_content.file, b"some plain text");
@@ -507,7 +599,7 @@ mod tests {
             .body(body.as_slice())
             .unwrap();
 
-        let (_metadata, content) = try_from_multipart_mixed_response(response).unwrap();
+        let ResponseBody { content, .. } = ResponseBody::try_from_http_response(response).unwrap();
 
         assert_matches!(content, FileOrLocation::File(file_content));
         assert_eq!(file_content.file, b"some plain text");
@@ -523,7 +615,7 @@ mod tests {
             .body(body.as_slice())
             .unwrap();
 
-        let (_metadata, content) = try_from_multipart_mixed_response(response).unwrap();
+        let ResponseBody { content, .. } = ResponseBody::try_from_http_response(response).unwrap();
 
         assert_matches!(content, FileOrLocation::File(file_content));
         assert_eq!(file_content.file, b"some plain text");
@@ -537,7 +629,7 @@ mod tests {
             .body(body.as_slice())
             .unwrap();
 
-        let (_metadata, content) = try_from_multipart_mixed_response(response).unwrap();
+        let ResponseBody { content, .. } = ResponseBody::try_from_http_response(response).unwrap();
 
         assert_matches!(content, FileOrLocation::File(file_content));
         assert_eq!(file_content.file, b"some plain text");
@@ -551,7 +643,7 @@ mod tests {
             .body(body.as_bytes())
             .unwrap();
 
-        let (_metadata, content) = try_from_multipart_mixed_response(response).unwrap();
+        let ResponseBody { content, .. } = ResponseBody::try_from_http_response(response).unwrap();
 
         assert_matches!(content, FileOrLocation::File(file_content));
         assert_eq!(file_content.file, b"some plain text");

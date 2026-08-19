@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use ruma_common::api::{
-    MatrixVersion, OutgoingRequestExt as _, OutgoingResponse as _, SupportedVersions,
+    MatrixVersion, OutgoingRequestExt as _, OutgoingResponseExt as _, SupportedVersions,
 };
 
 mod get {

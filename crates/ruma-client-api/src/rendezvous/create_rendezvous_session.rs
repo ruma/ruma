@@ -18,7 +18,6 @@ pub mod unstable_msc4108 {
         },
         metadata,
     };
-    use serde::{Deserialize, Serialize};
     use url::Url;
     use web_time::SystemTime;
 
@@ -135,8 +134,11 @@ pub mod unstable_msc4108 {
         pub last_modified: SystemTime,
     }
 
-    #[derive(Serialize, Deserialize)]
-    struct ResponseBody {
+    #[doc(hidden)]
+    #[derive(ruma_common::serde::_FakeDeriveSerde)]
+    #[cfg_attr(feature = "server", derive(serde::Serialize, ruma_common::api::OutgoingBodyJson))]
+    #[cfg_attr(feature = "client", derive(serde::Deserialize))]
+    pub struct ResponseBody {
         url: Url,
     }
 
@@ -175,14 +177,15 @@ pub mod unstable_msc4108 {
 
     #[cfg(feature = "server")]
     impl ruma_common::api::OutgoingResponse for Response {
-        fn try_into_http_response<T: Default + bytes::BufMut>(
+        type Body = ResponseBody;
+
+        fn try_into_http_response_inner(
             self,
-        ) -> Result<http::Response<T>, ruma_common::api::error::IntoHttpError> {
+        ) -> Result<http::Response<Self::Body>, ruma_common::api::error::IntoHttpError> {
             use http::header::{CACHE_CONTROL, PRAGMA};
             use ruma_common::http_headers::system_time_to_http_date;
 
             let body = ResponseBody { url: self.url };
-            let body = ruma_common::serde::json_to_buf(&body)?;
 
             let expires = system_time_to_http_date(&self.expires)?;
             let last_modified = system_time_to_http_date(&self.last_modified)?;

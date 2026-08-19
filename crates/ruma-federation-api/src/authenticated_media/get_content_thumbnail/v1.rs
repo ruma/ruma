@@ -8,7 +8,7 @@ use js_int::UInt;
 use ruma_common::{api::request, media::Method, metadata};
 
 use crate::{
-    authenticated_media::{ContentMetadata, FileOrLocation},
+    authenticated_media::{ContentMetadata, FileOrLocation, ResponseBody},
     authentication::ServerSignatures,
 };
 
@@ -105,17 +105,19 @@ impl ruma_common::api::IncomingResponse for Response {
     fn try_from_http_response_inner(
         http_response: http::Response<&[u8]>,
     ) -> Result<Self, ruma_common::api::error::DeserializationError> {
-        let (metadata, content) =
-            crate::authenticated_media::try_from_multipart_mixed_response(http_response)?;
+        let ResponseBody { metadata, content, .. } =
+            ResponseBody::try_from_http_response(http_response)?;
         Ok(Self { metadata, content })
     }
 }
 
 #[cfg(feature = "server")]
 impl ruma_common::api::OutgoingResponse for Response {
-    fn try_into_http_response<T: Default + bytes::BufMut>(
+    type Body = ResponseBody;
+
+    fn try_into_http_response_inner(
         self,
-    ) -> Result<http::Response<T>, ruma_common::api::error::IntoHttpError> {
-        crate::authenticated_media::try_into_multipart_mixed_response(&self.metadata, &self.content)
+    ) -> Result<http::Response<Self::Body>, ruma_common::api::error::IntoHttpError> {
+        ResponseBody::new(self.metadata, self.content).try_into_http_response()
     }
 }

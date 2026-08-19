@@ -145,7 +145,9 @@ mod tests {
     #[test]
     #[cfg(feature = "server")]
     fn serialize_response() {
-        use ruma_common::{api::OutgoingResponse, owned_mxc_uri, profile::ProfileFieldValue};
+        use ruma_common::{
+            api::OutgoingResponseExt as _, owned_mxc_uri, profile::ProfileFieldValue,
+        };
         use serde_json::{Value as JsonValue, from_slice as from_json_slice};
 
         let response = [

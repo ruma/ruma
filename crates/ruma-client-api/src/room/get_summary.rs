@@ -75,24 +75,50 @@ pub mod v1 {
         }
     }
 
-    #[cfg(feature = "server")]
-    impl ruma_common::api::OutgoingResponse for Response {
-        fn try_into_http_response<T: Default + bytes::BufMut>(
-            self,
-        ) -> Result<http::Response<T>, ruma_common::api::error::IntoHttpError> {
-            #[derive(serde::Serialize)]
-            struct ResponseSerHelper {
-                #[serde(flatten)]
-                summary: RoomSummary,
-                #[serde(skip_serializing_if = "Option::is_none")]
+    #[doc(hidden)]
+    #[derive(ruma_common::serde::_FakeDeriveSerde)]
+    #[cfg_attr(feature = "server", derive(serde::Serialize, ruma_common::api::OutgoingBodyJson))]
+    pub struct ResponseBody {
+        #[serde(flatten)]
+        summary: RoomSummary,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        membership: Option<MembershipState>,
+    }
+
+    #[cfg(feature = "client")]
+    impl<'de> serde::Deserialize<'de> for ResponseBody {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: serde::Deserializer<'de>,
+        {
+            use ruma_common::serde::from_raw_json_value;
+            use serde_json::value::RawValue as RawJsonValue;
+
+            #[derive(serde::Deserialize)]
+            struct ResponseBodyDeHelper {
                 membership: Option<MembershipState>,
             }
 
-            let body = ResponseSerHelper { summary: self.summary, membership: self.membership };
+            let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+            let summary = from_raw_json_value(&json)?;
+            let membership = from_raw_json_value::<ResponseBodyDeHelper, _>(&json)?.membership;
+
+            Ok(Self { membership, summary })
+        }
+    }
+
+    #[cfg(feature = "server")]
+    impl ruma_common::api::OutgoingResponse for Response {
+        type Body = ResponseBody;
+
+        fn try_into_http_response_inner(
+            self,
+        ) -> Result<http::Response<Self::Body>, ruma_common::api::error::IntoHttpError> {
+            let Self { summary, membership } = self;
 
             http::Response::builder()
                 .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
-                .body(ruma_common::serde::json_to_buf(&body)?)
+                .body(ResponseBody { summary, membership })
                 .map_err(Into::into)
         }
     }
@@ -104,19 +130,7 @@ pub mod v1 {
         fn try_from_http_response_inner(
             response: http::Response<&[u8]>,
         ) -> Result<Self, ruma_common::api::error::DeserializationError> {
-            use ruma_common::serde::from_raw_json_value;
-
-            #[derive(serde::Deserialize)]
-            struct ResponseDeHelper {
-                membership: Option<MembershipState>,
-            }
-
-            let raw_json =
-                serde_json::from_slice::<Box<serde_json::value::RawValue>>(response.body())?;
-            let summary = from_raw_json_value::<RoomSummary, serde_json::Error>(&raw_json)?;
-            let membership =
-                from_raw_json_value::<ResponseDeHelper, serde_json::Error>(&raw_json)?.membership;
-
+            let ResponseBody { summary, membership } = serde_json::from_slice(response.body())?;
             Ok(Self { summary, membership })
         }
     }

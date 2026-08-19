@@ -60,7 +60,7 @@ pub mod v3 {
     #[cfg(all(test, feature = "server"))]
     mod server_tests {
         use assign::assign;
-        use ruma_common::api::OutgoingResponse;
+        use ruma_common::api::OutgoingResponseExt as _;
         use ruma_events::tag::{TagInfo, Tags};
         use serde_json::json;
 

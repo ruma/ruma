@@ -3,7 +3,7 @@
 
 use http::StatusCode;
 use ruma_common::{
-    api::{OutgoingResponse as _, auth_scheme::NoAuthentication, request, response},
+    api::{OutgoingResponseExt as _, auth_scheme::NoAuthentication, request, response},
     metadata,
 };
 
