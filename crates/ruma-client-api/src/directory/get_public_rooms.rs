@@ -126,7 +126,7 @@ pub mod v3 {
         #[cfg(feature = "server")]
         #[test]
         fn construct_response_from_refs() {
-            use ruma_common::api::OutgoingResponse as _;
+            use ruma_common::api::OutgoingResponseExt as _;
 
             let res = super::Response {
                 chunk: vec![],

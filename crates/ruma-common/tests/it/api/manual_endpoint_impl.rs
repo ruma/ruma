@@ -10,8 +10,8 @@ use http::{header::CONTENT_TYPE, method::Method};
 use ruma_common::{
     OwnedRoomAliasId, OwnedRoomId,
     api::{
-        IncomingRequest, IncomingResponse, MatrixVersion, Metadata, OutgoingBody, OutgoingRequest,
-        OutgoingResponse, SupportedVersions,
+        EmptyBody, IncomingRequest, IncomingResponse, MatrixVersion, Metadata, OutgoingBody,
+        OutgoingRequest, OutgoingResponse, SupportedVersions,
         auth_scheme::NoAuthentication,
         error::{DeserializationError, Error, FromHttpRequestError, IntoHttpError},
         path_builder::{StablePathSelector, VersionHistory},
@@ -139,12 +139,12 @@ impl IncomingResponse for Response {
 }
 
 impl OutgoingResponse for Response {
-    fn try_into_http_response<T: Default + BufMut>(
-        self,
-    ) -> Result<http::Response<T>, IntoHttpError> {
+    type Body = EmptyBody<false>;
+
+    fn try_into_http_response_inner(self) -> Result<http::Response<Self::Body>, IntoHttpError> {
         let response = http::Response::builder()
             .header(CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
-            .body(ruma_common::serde::slice_to_buf(b"{}"))
+            .body(EmptyBody)
             .unwrap();
 
         Ok(response)

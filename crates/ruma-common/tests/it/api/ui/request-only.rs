@@ -1,9 +1,8 @@
 #![allow(unexpected_cfgs)]
 
-use bytes::BufMut;
 use ruma_common::{
     api::{
-        IncomingResponse, OutgoingResponse,
+        EmptyBody, IncomingResponse, OutgoingResponse,
         auth_scheme::NoAuthentication,
         error::{DeserializationError, Error, IntoHttpError},
         request,
@@ -41,9 +40,9 @@ impl IncomingResponse for Response {
 }
 
 impl OutgoingResponse for Response {
-    fn try_into_http_response<T: Default + BufMut>(
-        self,
-    ) -> Result<http::Response<T>, IntoHttpError> {
+    type Body = EmptyBody<false>;
+
+    fn try_into_http_response_inner(self) -> Result<http::Response<Self::Body>, IntoHttpError> {
         todo!()
     }
 }

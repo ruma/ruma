@@ -7,8 +7,8 @@ use std::{borrow::Cow, fmt, marker::PhantomData};
 use bytes::BufMut;
 use ruma_common::{
     api::{
-        EndpointError, OutgoingResponse,
-        error::{Error as MatrixError, IntoHttpError, StandardErrorBody},
+        EndpointError, OutgoingBody, OutgoingBodyJson, OutgoingResponse,
+        error::{Error as MatrixError, ErrorResponseBody, IntoHttpError, StandardErrorBody},
     },
     serde::StringEnum,
 };
@@ -75,7 +75,7 @@ pub enum AuthType {
 
 /// Information about available authentication flows and status for User-Interactive Authenticiation
 /// API.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, OutgoingBodyJson)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct UiaaInfo {
     /// List of authentication flows available for this endpoint.
@@ -228,17 +228,37 @@ impl EndpointError for UiaaResponse {
 impl std::error::Error for UiaaResponse {}
 
 impl OutgoingResponse for UiaaResponse {
-    fn try_into_http_response<T: Default + BufMut>(
-        self,
-    ) -> Result<http::Response<T>, IntoHttpError> {
-        match self {
+    type Body = ResponseBody;
+
+    fn try_into_http_response_inner(self) -> Result<http::Response<Self::Body>, IntoHttpError> {
+        Ok(match self {
             UiaaResponse::AuthResponse(authentication_info) => http::Response::builder()
                 .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
                 .status(http::StatusCode::UNAUTHORIZED)
-                .body(ruma_common::serde::json_to_buf(&authentication_info)?)
-                .map_err(Into::into),
-            UiaaResponse::MatrixError(error) => error.try_into_http_response(),
-        }
+                .body(ResponseBody::AuthResponse(authentication_info))?,
+            UiaaResponse::MatrixError(error) => {
+                let (parts, body) = error.try_into_http_response_inner()?.into_parts();
+                http::Response::from_parts(parts, ResponseBody::MatrixError(body))
+            }
+        })
+    }
+}
+
+#[doc(hidden)]
+#[allow(clippy::exhaustive_enums)]
+pub enum ResponseBody {
+    AuthResponse(UiaaInfo),
+    MatrixError(ErrorResponseBody),
+}
+
+impl OutgoingBody for ResponseBody {
+    type Error = IntoHttpError;
+
+    fn try_into_buf<T: Default + BufMut + AsRef<[u8]>>(self) -> Result<T, Self::Error> {
+        Ok(match self {
+            Self::AuthResponse(uiaa_info) => uiaa_info.try_into_buf()?,
+            Self::MatrixError(error_response_body) => error_response_body.try_into_buf()?,
+        })
     }
 }
 

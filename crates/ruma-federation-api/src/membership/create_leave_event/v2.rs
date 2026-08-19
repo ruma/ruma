@@ -57,7 +57,7 @@ impl Response {
 
 #[cfg(all(test, feature = "server"))]
 mod tests {
-    use ruma_common::api::OutgoingResponse;
+    use ruma_common::api::OutgoingResponseExt as _;
 
     use super::Response;
 

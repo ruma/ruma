@@ -113,9 +113,11 @@ impl ruma_common::api::IncomingResponse for Response {
 
 #[cfg(feature = "server")]
 impl ruma_common::api::OutgoingResponse for Response {
-    fn try_into_http_response<T: Default + bytes::BufMut>(
+    type Body = ResponseBody;
+
+    fn try_into_http_response_inner(
         self,
-    ) -> Result<http::Response<T>, ruma_common::api::error::IntoHttpError> {
+    ) -> Result<http::Response<Self::Body>, ruma_common::api::error::IntoHttpError> {
         ResponseBody::new(self.metadata, self.content).try_into_http_response()
     }
 }
