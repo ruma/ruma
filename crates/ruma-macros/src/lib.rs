@@ -185,7 +185,6 @@ use self::{
 ///     }
 /// }
 /// ```
-/// 
 #[doc(hidden)]
 #[proc_macro]
 pub fn event_enum(input: TokenStream) -> TokenStream {
