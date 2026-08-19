@@ -1,9 +1,8 @@
 use ruma_common::room_version_rules::RedactionRules;
 use serde::Serialize;
-use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
-    EphemeralRoomEventContent, EphemeralRoomEventType, EventContentFromType,
+    EphemeralRoomEventContent, EphemeralRoomEventType,
     GlobalAccountDataEventContent, GlobalAccountDataEventType, MessageLikeEventContent,
     MessageLikeEventType, MessageLikeUnsigned, PossiblyRedactedStateEventContent, RedactContent,
     RedactedMessageLikeEventContent, RedactedStateEventContent, RoomAccountDataEventContent,
@@ -21,12 +20,6 @@ macro_rules! custom_event_content {
         pub struct $i {
             #[serde(skip)]
             event_type: Box<str>,
-        }
-
-        impl EventContentFromType for $i {
-            fn from_parts(event_type: &str, _content: &RawJsonValue) -> serde_json::Result<Self> {
-                Ok(Self { event_type: event_type.into() })
-            }
         }
     };
 }
