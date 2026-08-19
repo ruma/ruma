@@ -278,6 +278,17 @@ impl<E> BundledMessageLikeRelations<E> {
         let replace = replace.map(|r| Box::new(f(*r)));
         BundledMessageLikeRelations { replace, has_invalid_replacement, thread, reference }
     }
+
+    /// Maps the event type of bundled replacement relations using the given closure.
+    #[doc(hidden)]
+    pub fn map<O>(self, f: impl Fn(E) -> O) -> BundledMessageLikeRelations<O> {
+        BundledMessageLikeRelations {
+            replace: self.replace.map(|b| Box::new(f(*b))),
+            has_invalid_replacement: self.has_invalid_replacement,
+            thread: self.thread,
+            reference: self.reference,
+        }
+    }
 }
 
 impl<E> Default for BundledMessageLikeRelations<E> {

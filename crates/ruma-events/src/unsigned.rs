@@ -61,6 +61,21 @@ impl<C: MessageLikeEventContent> MessageLikeUnsigned<C> {
             sticky_duration_ttl_ms: None,
         }
     }
+
+    /// Maps the content type of nested relations while preserving unsigned fields.
+    #[doc(hidden)]
+    pub fn map<U: MessageLikeEventContent>(
+        self,
+        f: &(impl Fn(C) -> U + ?Sized),
+    ) -> MessageLikeUnsigned<U> {
+        MessageLikeUnsigned {
+            age: self.age,
+            transaction_id: self.transaction_id,
+            relations: self.relations.map(|ev| ev.map(f)),
+            #[cfg(feature = "unstable-msc4354")]
+            sticky_duration_ttl_ms: self.sticky_duration_ttl_ms,
+        }
+    }
 }
 
 impl<C: MessageLikeEventContent> Default for MessageLikeUnsigned<C> {

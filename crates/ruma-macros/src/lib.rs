@@ -48,6 +48,8 @@ use self::{
 
 /// Generates enums to represent the various Matrix event types.
 ///
+/// This macro should only be used inside `ruma-events`.
+///
 /// # Generated types
 ///
 /// This generates the following enums for each kind:
@@ -183,6 +185,7 @@ use self::{
 ///     }
 /// }
 /// ```
+#[doc(hidden)]
 #[proc_macro]
 pub fn event_enum(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as EventEnumInput);

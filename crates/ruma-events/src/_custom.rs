@@ -1,6 +1,5 @@
 use ruma_common::room_version_rules::RedactionRules;
 use serde::Serialize;
-use serde_json::value::RawValue as RawJsonValue;
 
 use super::{
     EphemeralRoomEventContent, EphemeralRoomEventType, EventContentFromType,
@@ -24,7 +23,10 @@ macro_rules! custom_event_content {
         }
 
         impl EventContentFromType for $i {
-            fn from_parts(event_type: &str, _content: &RawJsonValue) -> serde_json::Result<Self> {
+            fn from_parts(
+                event_type: &str,
+                _content: &serde_json::value::RawValue,
+            ) -> serde_json::Result<Self> {
                 Ok(Self { event_type: event_type.into() })
             }
         }
