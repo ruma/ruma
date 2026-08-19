@@ -30,7 +30,15 @@ pub mod unstable {
 
     /// Request type for the `GET` `retention/configuration` endpoint.
     #[request]
+    #[derive(Default)]
     pub struct Request {}
+
+    impl Request {
+        /// Creates an empty `Request`.
+        pub fn new() -> Self {
+            Self {}
+        }
+    }
 
     /// Response type for the `GET` `retention/configuration` endpoint.
     #[response]
@@ -40,6 +48,16 @@ pub mod unstable {
 
         /// Limits to apply to policies defined by m.room.retention state events.
         pub limits: RetentionLimits,
+    }
+
+    impl Response {
+        /// Creates a new `Response` with the given policies and limits.
+        pub fn new(
+            policies: BTreeMap<RoomIdOrAllRooms, RoomRetentionEventContent>,
+            limits: RetentionLimits,
+        ) -> Self {
+            Self { policies, limits }
+        }
     }
 
     /// Struct describing limits to apply to policies defined by `m.room.retention` state events.
