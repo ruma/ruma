@@ -81,7 +81,7 @@ impl<'de> Deserialize<'de> for StickyDurationMs {
             }
         }
 
-        deserializer.deserialize_any(StickyDurationMsVisitor)
+        deserializer.deserialize_u32(StickyDurationMsVisitor)
     }
 }
 
@@ -130,6 +130,20 @@ mod tests {
     }
 
     #[test]
+    fn deserialize_sticky_string_err() {
+        let raw = r#""3000""#;
+        let res: Result<StickyDurationMs, _> = serde_json::from_str(raw);
+        assert!(res.is_err());
+
+        let err = res.unwrap_err();
+        assert!(
+            err.to_string().contains(
+                "invalid type: string \"3000\", expected an integer in the range 0-3600000"
+            )
+        );
+    }
+
+    #[test]
     fn deserialize_sticky_neg_err() {
         let raw = "-1";
         let res: Result<StickyDurationMs, _> = serde_json::from_str(raw);
@@ -150,6 +164,13 @@ mod tests {
         let ser = r#"{"duration_ms":78000}"#;
         let sticky_object: StickyObject = serde_json::from_str(ser).unwrap();
         assert_eq!(sticky_object.duration_ms.get(), 78_000_u32);
+    }
+
+    #[test]
+    fn serialize_sticky_object() {
+        let sticky_object = StickyObject { duration_ms: StickyDurationMs::new_clamped(78_000_u32) };
+        let ser = serde_json::to_string(&sticky_object).unwrap();
+        assert_eq!(ser, r#"{"duration_ms":78000}"#);
     }
 
     #[test]

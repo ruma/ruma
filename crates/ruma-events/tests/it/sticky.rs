@@ -60,6 +60,31 @@ fn deserialize_sticky_event() {
 }
 
 #[test]
+fn deserialize_sticky_event_with_string_duration_is_ignored() {
+    let json_data = json!({
+        "content": {
+            "body": "Hello, but sticky",
+            "msgtype": "m.text",
+        },
+        "event_id": "$h29iv0s8:example.com",
+        "origin_server_ts": 1,
+        "room_id": "!roomid:room.com",
+        "sender": "@alice:example.com",
+        "type": "m.room.message",
+        "msc4354_sticky": {
+            "duration_ms": "3600000"
+        }
+    });
+
+    assert_matches!(
+        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
+        AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(message_event))
+    );
+
+    assert!(message_event.sticky.is_none());
+}
+
+#[test]
 fn deserialize_sticky_top_level_support_server_sends_both_stable_unstable() {
     let json_data = json!({
         "content": {
