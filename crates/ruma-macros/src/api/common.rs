@@ -406,9 +406,7 @@ impl Body {
 
         quote! {
             let body: #body_ident = {
-                let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
-                    #src.body(),
-                );
+                let body = *#src.body();
 
                 #serde_json::from_slice(match body {
                     // If the body is completely empty, pretend it is an empty JSON object instead.

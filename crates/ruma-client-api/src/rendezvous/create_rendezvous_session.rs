@@ -69,19 +69,13 @@ pub mod unstable_msc4108 {
         type EndpointError = Error;
         type OutgoingResponse = Response;
 
-        fn try_from_http_request<B, S>(
-            request: http::Request<B>,
-            _path_args: &[S],
-        ) -> Result<Self, ruma_common::api::error::FromHttpRequestError>
-        where
-            B: AsRef<[u8]>,
-            S: AsRef<str>,
-        {
+        fn try_from_http_request_inner(
+            request: http::Request<&[u8]>,
+            _path_args: &[&str],
+        ) -> Result<Self, ruma_common::api::error::FromHttpRequestError> {
             const EXPECTED_CONTENT_TYPE: &str = "text/plain";
 
             use ruma_common::api::error::DeserializationError;
-
-            Self::check_request_method(request.method())?;
 
             let content_type = request
                 .headers()
@@ -98,7 +92,7 @@ pub mod unstable_msc4108 {
                 }
                 .into())
             } else {
-                let body = request.into_body().as_ref().to_vec();
+                let body = request.into_body().to_vec();
                 let content = String::from_utf8(body)
                     .map_err(|e| DeserializationError::Utf8(e.utf8_error()))?;
 

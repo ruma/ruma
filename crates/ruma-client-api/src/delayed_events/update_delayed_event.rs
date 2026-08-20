@@ -121,7 +121,7 @@ pub mod unstable_v2 {
     #[cfg(all(test, feature = "server"))]
     mod server_tests {
 
-        use ruma_common::api::IncomingRequest;
+        use ruma_common::api::IncomingRequestExt as _;
 
         use super::{Request, UpdateAction};
 
@@ -137,7 +137,7 @@ pub mod unstable_v2 {
                 .unwrap();
 
             let req = Request::try_from_http_request(
-                http::Request::builder().method("POST").uri(uri).body("").unwrap(),
+                http::Request::builder().method("POST").uri(uri).body(&[] as &[u8]).unwrap(),
                 &["a_delay_id", "send"],
             )
             .unwrap();
