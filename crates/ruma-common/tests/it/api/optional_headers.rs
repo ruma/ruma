@@ -4,7 +4,7 @@ use assert_matches2::assert_matches;
 use http::header::{CONTENT_DISPOSITION, LOCATION};
 use ruma_common::{
     api::{
-        IncomingRequest, IncomingResponseExt as _, MatrixVersion, OutgoingRequestExt as _,
+        IncomingRequestExt as _, IncomingResponseExt as _, MatrixVersion, OutgoingRequestExt as _,
         OutgoingResponseExt as _, SupportedVersions, auth_scheme::NoAuthentication, request,
         response,
     },
@@ -52,7 +52,9 @@ fn request_serde_no_header() {
     assert_matches!(http_req.headers().get(LOCATION), None);
     assert_matches!(http_req.headers().get(CONTENT_DISPOSITION), None);
 
-    let req2 = Request::try_from_http_request::<_, &str>(http_req, &[]).unwrap();
+    let (parts, body) = http_req.into_parts();
+    let http_req = http::Request::from_parts(parts, body.as_slice());
+    let req2 = Request::try_from_http_request(http_req, &[]).unwrap();
     assert_eq!(req2.location, None);
     assert_eq!(req2.content_disposition, None);
 }
@@ -76,7 +78,9 @@ fn request_serde_with_header() {
     assert_matches!(http_req.headers().get(LOCATION), Some(_));
     assert_matches!(http_req.headers().get(CONTENT_DISPOSITION), Some(_));
 
-    let req2 = Request::try_from_http_request::<_, &str>(http_req.clone(), &[]).unwrap();
+    let (parts, body) = http_req.clone().into_parts();
+    let http_req2 = http::Request::from_parts(parts, body.as_slice());
+    let req2 = Request::try_from_http_request(http_req2, &[]).unwrap();
     assert_eq!(req2.location.unwrap(), location);
     assert_eq!(req2.content_disposition.unwrap(), content_disposition);
 
@@ -84,14 +88,18 @@ fn request_serde_with_header() {
     http_req.headers_mut().remove(LOCATION).unwrap();
     http_req.headers_mut().remove(CONTENT_DISPOSITION).unwrap();
 
-    let req3 = Request::try_from_http_request::<_, &str>(http_req.clone(), &[]).unwrap();
+    let (parts, body) = http_req.clone().into_parts();
+    let http_req3 = http::Request::from_parts(parts, body.as_slice());
+    let req3 = Request::try_from_http_request(http_req3, &[]).unwrap();
     assert_eq!(req3.location, None);
     assert_eq!(req3.content_disposition, None);
 
     // Try setting invalid header.
     http_req.headers_mut().insert(CONTENT_DISPOSITION, ";".try_into().unwrap());
 
-    let req4 = Request::try_from_http_request::<_, &str>(http_req, &[]).unwrap();
+    let (parts, body) = http_req.into_parts();
+    let http_req4 = http::Request::from_parts(parts, body.as_slice());
+    let req4 = Request::try_from_http_request(http_req4, &[]).unwrap();
     assert_eq!(req4.location, None);
     assert_eq!(req4.content_disposition, None);
 }

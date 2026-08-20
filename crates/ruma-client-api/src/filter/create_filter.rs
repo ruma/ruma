@@ -65,7 +65,7 @@ pub mod v3 {
         #[cfg(feature = "server")]
         #[test]
         fn deserialize_request() {
-            use ruma_common::api::IncomingRequest as _;
+            use ruma_common::api::IncomingRequestExt as _;
 
             use super::Request;
 

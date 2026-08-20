@@ -1130,7 +1130,7 @@ mod server_tests {
 
     use assert_matches2::assert_matches;
     use ruma_common::{
-        api::{IncomingRequest as _, OutgoingResponseExt as _},
+        api::{IncomingRequestExt as _, OutgoingResponseExt as _},
         owned_room_id,
         presence::PresenceState,
         serde::Raw,
@@ -1179,7 +1179,7 @@ mod server_tests {
 
         let req = Request::try_from_http_request(
             http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
-            &[] as &[String],
+            &[],
         )
         .unwrap();
 
@@ -1202,7 +1202,7 @@ mod server_tests {
 
         let req = Request::try_from_http_request(
             http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
-            &[] as &[String],
+            &[],
         )
         .unwrap();
 
@@ -1228,7 +1228,7 @@ mod server_tests {
 
         let req = Request::try_from_http_request(
             http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
-            &[] as &[String],
+            &[],
         )
         .unwrap();
 

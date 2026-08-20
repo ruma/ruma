@@ -241,7 +241,7 @@ pub mod unstable {
 
         use std::time::Duration;
 
-        use ruma_common::{OwnedTransactionId, api::IncomingRequest, owned_room_id};
+        use ruma_common::{OwnedTransactionId, api::IncomingRequestExt as _, owned_room_id};
         use serde_json::json;
 
         use super::Request;
@@ -260,7 +260,11 @@ pub mod unstable {
             let body = json!({"content":{"msgtype":"m.text","body":"test"}, "delay": 103});
 
             let req = Request::try_from_http_request(
-                http::Request::builder().method("PUT").uri(uri).body(body.to_string()).unwrap(),
+                http::Request::builder()
+                    .method("PUT")
+                    .uri(uri)
+                    .body(body.to_string().as_bytes())
+                    .unwrap(),
                 &["!roomid:example.org", "m.room.message", "5678"],
             )
             .unwrap();
@@ -293,7 +297,11 @@ pub mod unstable {
             let body = json!({"content":{"msgtype":"m.text","body":"test"}, "delay": 103});
 
             let req = Request::try_from_http_request(
-                http::Request::builder().method("PUT").uri(uri).body(body.to_string()).unwrap(),
+                http::Request::builder()
+                    .method("PUT")
+                    .uri(uri)
+                    .body(body.to_string().as_bytes())
+                    .unwrap(),
                 &["!roomid:example.org", "m.room.message", "5678"],
             )
             .unwrap();

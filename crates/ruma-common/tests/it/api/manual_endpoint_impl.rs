@@ -88,24 +88,16 @@ impl IncomingRequest for Request {
     type EndpointError = Error;
     type OutgoingResponse = Response;
 
-    fn try_from_http_request<B, S>(
-        request: http::Request<B>,
-        path_args: &[S],
-    ) -> Result<Self, FromHttpRequestError>
-    where
-        B: AsRef<[u8]>,
-        S: AsRef<str>,
-    {
-        Self::check_request_method(request.method())?;
-
+    fn try_from_http_request_inner(
+        request: http::Request<&[u8]>,
+        path_args: &[&str],
+    ) -> Result<Self, FromHttpRequestError> {
         let (room_alias,) = Deserialize::deserialize(serde::de::value::SeqDeserializer::<
             _,
             serde::de::value::Error,
-        >::new(
-            path_args.iter().map(::std::convert::AsRef::as_ref),
-        ))?;
+        >::new(path_args.iter().copied()))?;
 
-        let request_body: RequestBody = serde_json::from_slice(request.body().as_ref())?;
+        let request_body: RequestBody = serde_json::from_slice(request.into_body())?;
 
         Ok(Request { room_id: request_body.room_id, room_alias })
     }

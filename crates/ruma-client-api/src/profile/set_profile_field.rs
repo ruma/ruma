@@ -125,28 +125,20 @@ pub mod v3 {
         type EndpointError = Error;
         type OutgoingResponse = Response;
 
-        fn try_from_http_request<B, S>(
-            request: http::Request<B>,
-            path_args: &[S],
-        ) -> Result<Self, ruma_common::api::error::FromHttpRequestError>
-        where
-            B: AsRef<[u8]>,
-            S: AsRef<str>,
-        {
+        fn try_from_http_request_inner(
+            request: http::Request<&[u8]>,
+            path_args: &[&str],
+        ) -> Result<Self, ruma_common::api::error::FromHttpRequestError> {
             use ruma_common::profile::{ProfileFieldName, ProfileFieldValueVisitor};
             use serde::de::{Deserializer, Error as _};
-
-            Self::check_request_method(request.method())?;
 
             let (user_id, field): (OwnedUserId, ProfileFieldName) =
                 serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
                     _,
                     serde::de::value::Error,
-                >::new(
-                    path_args.iter().map(::std::convert::AsRef::as_ref),
-                ))?;
+                >::new(path_args.iter().copied()))?;
 
-            let value = serde_json::Deserializer::from_slice(request.body().as_ref())
+            let value = serde_json::Deserializer::from_slice(request.body())
                 .deserialize_map(ProfileFieldValueVisitor::new(Some(field.clone())))?
                 .ok_or_else(|| serde_json::Error::custom(format!("missing field `{field}`")))?;
 
@@ -326,7 +318,7 @@ mod tests_client {
 #[cfg(all(test, feature = "server"))]
 mod tests_server {
     use assert_matches2::assert_let;
-    use ruma_common::{api::IncomingRequest, profile::ProfileFieldValue};
+    use ruma_common::{api::IncomingRequestExt as _, profile::ProfileFieldValue};
     use serde_json::{json, to_vec as to_json_vec};
 
     use super::v3::Request;
@@ -342,7 +334,7 @@ mod tests_server {
             http::Request::put(
                 "http://localhost/_matrix/client/v3/profile/@alice:localhost/displayname",
             )
-            .body(body)
+            .body(body.as_slice())
             .unwrap(),
             &["@alice:localhost", "displayname"],
         )
@@ -364,7 +356,7 @@ mod tests_server {
             http::Request::put(
                 "http://localhost/_matrix/client/v3/profile/@alice:localhost/displayname",
             )
-            .body(body)
+            .body(body.as_slice())
             .unwrap(),
             &["@alice:localhost", "displayname"],
         )
