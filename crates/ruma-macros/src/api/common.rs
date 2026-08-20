@@ -405,18 +405,12 @@ impl Body {
         let body_fields = expand_fields_as_list(fields);
 
         quote! {
-            let body: #body_ident = {
-                let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
-                    #src.body(),
-                );
-
-                #serde_json::from_slice(match body {
-                    // If the body is completely empty, pretend it is an empty JSON object instead.
-                    // This allows bodies with only optional fields to be deserialized in that case.
-                    [] => b"{}",
-                    b => b,
-                })?
-            };
+            let body: #body_ident = #serde_json::from_slice(match *#src.body() {
+                // If the body is completely empty, pretend it is an empty JSON object instead.
+                // This allows bodies with only optional fields to be deserialized in that case.
+                [] => b"{}",
+                b => b,
+            })?;
 
             let #body_ident {
                 #body_fields

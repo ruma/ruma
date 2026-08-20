@@ -133,23 +133,15 @@ pub mod v3 {
         type EndpointError = Error;
         type OutgoingResponse = Response;
 
-        fn try_from_http_request<B, S>(
-            request: http::Request<B>,
-            path_args: &[S],
-        ) -> Result<Self, ruma_common::api::error::FromHttpRequestError>
-        where
-            B: AsRef<[u8]>,
-            S: AsRef<str>,
-        {
-            Self::check_request_method(request.method())?;
-
+        fn try_from_http_request_inner(
+            request: http::Request<&[u8]>,
+            path_args: &[&str],
+        ) -> Result<Self, ruma_common::api::error::DeserializationError> {
             let (room_id_or_alias,) =
                 serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
                     _,
                     serde::de::value::Error,
-                >::new(
-                    path_args.iter().map(::std::convert::AsRef::as_ref),
-                ))?;
+                >::new(path_args.iter().copied()))?;
 
             let request_query: RequestQuery =
                 serde_html_form::from_str(request.uri().query().unwrap_or(""))?;
@@ -159,7 +151,7 @@ pub mod v3 {
                 request_query.via
             };
 
-            let body: RequestBody = serde_json::from_slice(request.body().as_ref())?;
+            let body: RequestBody = serde_json::from_slice(request.body())?;
 
             Ok(Self {
                 room_id_or_alias,
@@ -246,7 +238,7 @@ pub mod v3 {
 
     #[cfg(all(test, feature = "server"))]
     mod tests_server {
-        use ruma_common::{api::IncomingRequest as _, owned_server_name};
+        use ruma_common::{api::IncomingRequestExt as _, owned_server_name};
 
         use super::Request;
 

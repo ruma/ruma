@@ -114,7 +114,7 @@ pub mod v1 {
 
 #[cfg(all(test, feature = "server"))]
 mod tests {
-    use ruma_common::{api::IncomingRequest, room_id};
+    use ruma_common::{api::IncomingRequestExt as _, room_id};
 
     use super::v1::{IncludeThreads, Request};
 
@@ -125,7 +125,7 @@ mod tests {
         let http_req = http::Request::builder()
             .method(http::Method::GET)
             .uri("/_matrix/client/v1/rooms/!room:example.com/threads")
-            .body(Vec::<u8>::new())
+            .body(&[] as &[u8])
             .unwrap();
 
         let req = Request::try_from_http_request(http_req, &["!room:example.com"]).unwrap();
@@ -142,7 +142,7 @@ mod tests {
         let http_req = http::Request::builder()
             .method(http::Method::GET)
             .uri("/_matrix/client/v1/rooms/!room:example.com/threads?include=participated")
-            .body(Vec::<u8>::new())
+            .body(&[] as &[u8])
             .unwrap();
 
         let req = Request::try_from_http_request(http_req, &["!room:example.com"]).unwrap();
