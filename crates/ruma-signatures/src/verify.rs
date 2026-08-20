@@ -150,6 +150,11 @@ pub fn verify_policy_server_signature(
     object: &CanonicalJsonObject,
     rules: &RoomVersionRules,
 ) -> Result<(), VerificationError> {
+    let Some(via) = room_policy.via.as_ref() else {
+        // There is no policy server in the room, don't check the policy server signature.
+        return Ok(());
+    };
+
     let event_type = object.get_as_required_string("type", "type")?;
 
     if event_type == RoomPolicyEventContent::TYPE
@@ -168,7 +173,7 @@ pub fn verify_policy_server_signature(
         .serialize(object)?;
 
     verify_canonical_json_for_entity(
-        room_policy.via.as_str(),
+        via.as_str(),
         room_policy,
         signature_map,
         canonical_json.as_bytes(),
@@ -582,7 +587,7 @@ impl FetchEntityPublicSigningKey for RoomPolicyEventContent {
         entity: &str,
         key_id: &str,
     ) -> Result<Option<&[u8]>, VerificationError> {
-        if entity != self.via {
+        if self.via.as_ref().is_none_or(|via| entity != via) {
             return Err(VerificationError::NoPublicKeysForEntity(entity.to_owned()));
         }
 
