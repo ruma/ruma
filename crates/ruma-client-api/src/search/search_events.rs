@@ -605,7 +605,7 @@ mod tests {
     use js_int::uint;
     use ruma_common::{
         api::{
-            IncomingRequest, IncomingResponseExt as _, OutgoingRequestExt as _,
+            IncomingRequestExt as _, IncomingResponseExt as _, OutgoingRequestExt as _,
             OutgoingResponseExt as _, SupportedVersions, auth_scheme::SendAccessToken,
         },
         event_id, room_id,
@@ -633,10 +633,13 @@ mod tests {
             }
         });
 
-        let http_request = http::Request::post("http://localhost/_matrix/client/v3/search")
-            .body(to_json_vec(&body).unwrap())
-            .unwrap();
-        let request = Request::try_from_http_request(http_request, &[] as &[&str]).unwrap();
+        let request = Request::try_from_http_request(
+            http::Request::post("http://localhost/_matrix/client/v3/search")
+                .body(to_json_vec(&body).unwrap().as_slice())
+                .unwrap(),
+            &[],
+        )
+        .unwrap();
 
         let criteria = request.search_categories.room_events.as_ref().unwrap();
         assert_eq!(criteria.groupings.group_by.len(), 1);

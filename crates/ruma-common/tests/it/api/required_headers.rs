@@ -4,7 +4,7 @@ use assert_matches2::assert_matches;
 use http::header::{CONTENT_DISPOSITION, LOCATION};
 use ruma_common::{
     api::{
-        IncomingRequest, IncomingResponseExt as _, MatrixVersion, OutgoingRequestExt as _,
+        IncomingRequestExt as _, IncomingResponseExt as _, MatrixVersion, OutgoingRequestExt as _,
         OutgoingResponseExt as _, SupportedVersions,
         auth_scheme::NoAuthentication,
         error::{
@@ -61,7 +61,9 @@ fn request_serde() {
     assert_matches!(http_req.headers().get(LOCATION), Some(_));
     assert_matches!(http_req.headers().get(CONTENT_DISPOSITION), Some(_));
 
-    let req2 = Request::try_from_http_request::<_, &str>(http_req.clone(), &[]).unwrap();
+    let (parts, body) = http_req.clone().into_parts();
+    let http_req2 = http::Request::from_parts(parts, body.as_slice());
+    let req2 = Request::try_from_http_request(http_req2, &[]).unwrap();
     assert_eq!(req2.location, location);
     assert_eq!(req2.content_disposition, content_disposition);
 
@@ -69,7 +71,9 @@ fn request_serde() {
     http_req.headers_mut().remove(LOCATION).unwrap();
     http_req.headers_mut().remove(CONTENT_DISPOSITION).unwrap();
 
-    let err = Request::try_from_http_request::<_, &str>(http_req.clone(), &[]).unwrap_err();
+    let (parts, body) = http_req.clone().into_parts();
+    let http_req3 = http::Request::from_parts(parts, body.as_slice());
+    let err = Request::try_from_http_request(http_req3, &[]).unwrap_err();
     assert_matches!(
         err,
         FromHttpRequestError::Deserialization(DeserializationError::Header(
@@ -81,7 +85,9 @@ fn request_serde() {
     http_req.headers_mut().insert(LOCATION, location.try_into().unwrap());
     http_req.headers_mut().insert(CONTENT_DISPOSITION, ";".try_into().unwrap());
 
-    let err = Request::try_from_http_request::<_, &str>(http_req, &[]).unwrap_err();
+    let (parts, body) = http_req.into_parts();
+    let http_req4 = http::Request::from_parts(parts, body.as_slice());
+    let err = Request::try_from_http_request(http_req4, &[]).unwrap_err();
     assert_matches!(
         err,
         FromHttpRequestError::Deserialization(DeserializationError::Header(

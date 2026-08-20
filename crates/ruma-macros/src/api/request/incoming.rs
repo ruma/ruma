@@ -35,16 +35,11 @@ impl Request {
                 type EndpointError = #error_ty;
                 type OutgoingResponse = Response;
 
-                fn try_from_http_request<B, S>(
-                    #request: #http::Request<B>,
-                    path_args: &[S],
-                ) -> ::std::result::Result<Self, #ruma_common::api::error::FromHttpRequestError>
-                where
-                    B: ::std::convert::AsRef<[::std::primitive::u8]>,
-                    S: ::std::convert::AsRef<::std::primitive::str>,
+                fn try_from_http_request_inner(
+                    #request: #http::Request<&[::std::primitive::u8]>,
+                    path_args: &[&::std::primitive::str],
+                ) -> ::std::result::Result<Self, #ruma_common::api::error::DeserializationError>
                 {
-                    <Self as #ruma_common::api::IncomingRequest>::check_request_method(#request.method())?;
-
                     #path_parse
                     #query_parse
                     #headers_parse
@@ -75,7 +70,7 @@ impl RequestPath {
         Some(quote! {
             let (#fields) = #serde::Deserialize::deserialize(
                 #serde::de::value::SeqDeserializer::<_, #serde::de::value::Error>::new(
-                    path_args.iter().map(::std::convert::AsRef::as_ref)
+                    path_args.iter().copied()
                 )
             )?;
         })

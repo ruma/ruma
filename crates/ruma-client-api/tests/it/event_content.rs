@@ -3,14 +3,14 @@
 use assert_matches2::assert_matches;
 use ruma_client_api::{message::send_message_event, state::send_state_event};
 use ruma_common::api::{
-    IncomingRequest as _,
+    IncomingRequestExt as _,
     error::{DeserializationError, FromHttpRequestError},
 };
 
 const ROOM_ID: &str = "!room:server.tld";
 
-fn http_put(uri: &str, body: &[u8]) -> http::Request<Vec<u8>> {
-    http::Request::builder().method(http::Method::PUT).uri(uri).body(body.to_vec()).unwrap()
+fn http_put<'a>(uri: &str, body: &'a [u8]) -> http::Request<&'a [u8]> {
+    http::Request::builder().method(http::Method::PUT).uri(uri).body(body).unwrap()
 }
 
 fn assert_non_object_rejected(err: FromHttpRequestError) {

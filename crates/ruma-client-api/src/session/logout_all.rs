@@ -63,16 +63,10 @@ pub mod v3 {
         type EndpointError = Error;
         type OutgoingResponse = Response;
 
-        fn try_from_http_request<B, S>(
-            request: http::Request<B>,
-            _path_args: &[S],
-        ) -> Result<Self, ruma_common::api::error::FromHttpRequestError>
-        where
-            B: AsRef<[u8]>,
-            S: AsRef<str>,
-        {
-            Self::check_request_method(request.method())?;
-
+        fn try_from_http_request_inner(
+            _request: http::Request<&[u8]>,
+            _path_args: &[&str],
+        ) -> Result<Self, ruma_common::api::error::DeserializationError> {
             Ok(Self {})
         }
     }

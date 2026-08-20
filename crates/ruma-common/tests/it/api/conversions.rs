@@ -6,8 +6,8 @@ use http::header::CONTENT_TYPE;
 use ruma_common::{
     OwnedUserId,
     api::{
-        AppserviceUserIdentity, IncomingRequest as _, MatrixVersion, OutgoingRequestAppserviceExt,
-        OutgoingRequestExt as _, SupportedVersions,
+        AppserviceUserIdentity, IncomingRequestExt as _, MatrixVersion,
+        OutgoingRequestAppserviceExt, OutgoingRequestExt as _, SupportedVersions,
         auth_scheme::{NoAccessToken, SendAccessToken},
         request, response,
     },
@@ -69,14 +69,16 @@ fn request_serde() {
     let supported =
         SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
 
-    let http_req = req
+    let (parts, body) = req
         .clone()
         .try_into_http_request::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
             Cow::Owned(supported),
         )
-        .unwrap();
+        .unwrap()
+        .into_parts();
+    let http_req = http::Request::from_parts(parts, body.as_slice());
     let req2 = Request::try_from_http_request(http_req, &["barVal", "@bazme:ruma.io"]).unwrap();
 
     assert_eq!(req.hello, req2.hello);
