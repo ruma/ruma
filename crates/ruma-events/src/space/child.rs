@@ -26,6 +26,9 @@ use crate::{StateEvent, SyncStateEvent};
 #[ruma_event(type = "m.space.child", kind = State, state_key_type = OwnedRoomId)]
 pub struct SpaceChildEventContent {
     /// List of candidate servers that can be used to join the room.
+    ///
+    /// When absent, the child relationship is removed.
+    #[serde(default)]
     pub via: Vec<OwnedServerName>,
 
     /// Provide a default ordering of siblings in the room list.
@@ -72,9 +75,9 @@ impl PossiblyRedactedSpaceChildEventContent {
     /// The room in the state key of the event should only be considered a child of this space
     /// if this returns `true`.
     ///
-    /// Returns `false` if the `via` field is `None`.
+    /// Returns `false` if there are no candidate servers.
     pub fn is_valid(&self) -> bool {
-        self.via.is_some()
+        !self.via.is_empty()
     }
 }
 
@@ -336,6 +339,15 @@ mod tests {
         let content = SpaceChildEventContent { via: vec![], order: None, suggested: false };
 
         assert_to_canonical_json_eq!(content, json!({ "via": [] }));
+    }
+
+    #[test]
+    fn space_child_removal_deserialization() {
+        let content = from_json_value::<SpaceChildEventContent>(json!({})).unwrap();
+
+        assert!(content.via.is_empty());
+        assert_eq!(content.order, None);
+        assert!(!content.suggested);
     }
 
     #[test]
