@@ -314,7 +314,7 @@ mod tests {
 
 #[cfg(all(test, feature = "server", feature = "unstable-msc4354"))]
 mod server_tests {
-    use ruma_common::{api::IncomingRequest, owned_room_id};
+    use ruma_common::{api::IncomingRequestExt as _, owned_room_id};
 
     use super::v3::Request;
 
@@ -325,7 +325,7 @@ mod server_tests {
             .uri(
                 "/_matrix/client/v3/rooms/!roomid:example.org/state/m.room.name/?org.matrix.msc4354.sticky_duration_ms=123456",
             )
-            .body(r#"{"name":"A room"}"#)
+            .body(br#"{"name":"A room"}"# as &[u8])
             .unwrap();
 
         let request =
