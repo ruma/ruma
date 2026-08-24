@@ -20,7 +20,7 @@ macro_rules! custom_event_content {
         #[allow(clippy::exhaustive_structs)]
         pub struct $i {
             #[serde(skip)]
-            event_type: Box<str>,
+            pub(crate) event_type: Box<str>,
         }
 
         impl EventContentFromType for $i {
