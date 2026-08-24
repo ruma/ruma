@@ -189,3 +189,30 @@ mod tests {
         );
     }
 }
+
+#[cfg(all(test, feature = "server", feature = "unstable-msc4354"))]
+mod server_tests {
+    use ruma_common::{api::IncomingRequest, owned_room_id};
+
+    use super::v3::Request;
+
+    #[test]
+    fn deserialize_sticky_duration() {
+        let request = http::Request::builder()
+            .method("PUT")
+            .uri(
+                "/_matrix/client/v3/rooms/!roomid:example.org/send/m.room.message/0000?org.matrix.msc4354.sticky_duration_ms=123456",
+            )
+            .body(r#"{"body":"Hello"}"#)
+            .unwrap();
+
+        let request = Request::try_from_http_request(
+            request,
+            &["!roomid:example.org", "m.room.message", "0000"],
+        )
+        .unwrap();
+
+        assert_eq!(request.room_id, owned_room_id!("!roomid:example.org"));
+        assert_eq!(request.sticky_duration_ms.map(|duration| duration.get()), Some(123_456));
+    }
+}
