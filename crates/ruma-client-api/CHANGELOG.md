@@ -43,8 +43,12 @@ Improvements:
   profile changed or should be dropped.
 - Stabilize support for [MSC2666](https://github.com/matrix-org/matrix-spec-proposals/pull/2666) (Get rooms in common with another user).
 - Add support for [MSC1763] (Configurable per-room message retention periods).
+- Add unstable support for the `rtc::livekit::get_token` and
+  `rtc::livekit::delegate_delayed_leave` endpoints from [MSC4195], behind the
+  `unstable-msc4195` feature.
 
 [MSC1763]: https://github.com/matrix-org/matrix-spec-proposals/pull/1763
+[MSC4195]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
 
 ## 0.24.0
 
