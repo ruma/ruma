@@ -12,6 +12,14 @@ Breaking changes:
   that is automatically implemented for any `T: OutgoingResponse`
   - Implementors of `OutgoingResponse` now instead have to provide the new `type Body`
     and `fn try_into_http_response_inner`
+- `IncomingRequest::try_from_http_request` has been moved to a new `IncomingRequestExt` trait
+  that is automatically implemented for any `T: IncomingRequest`
+  - Implementors of `IncomingRequest` now instead have to provide the
+    `fn try_from_http_request_inner`
+  - The generics were removed from `try_from_http_request`, the body of the request is a `&[u8]` and
+    the path args is a `&[&str]`.
+  - `IncomingRequest::check_request_method` was removed, this check is part of
+    `IncomingRequestExt::try_from_http_request`.
 
 Bug fixes:
 

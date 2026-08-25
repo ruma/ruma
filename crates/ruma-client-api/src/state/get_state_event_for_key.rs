@@ -159,16 +159,10 @@ pub mod v3 {
         type EndpointError = Error;
         type OutgoingResponse = Response;
 
-        fn try_from_http_request<B, S>(
-            request: http::Request<B>,
-            path_args: &[S],
-        ) -> Result<Self, ruma_common::api::error::FromHttpRequestError>
-        where
-            B: AsRef<[u8]>,
-            S: AsRef<str>,
-        {
-            Self::check_request_method(request.method())?;
-
+        fn try_from_http_request_inner(
+            request: http::Request<&[u8]>,
+            path_args: &[&str],
+        ) -> Result<Self, ruma_common::api::error::DeserializationError> {
             // FIXME: find a way to make this if-else collapse with serde recognizing trailing
             // Option
             let (room_id, event_type, state_key): (OwnedRoomId, StateEventType, String) =
@@ -177,7 +171,7 @@ pub mod v3 {
                         _,
                         serde::de::value::Error,
                     >::new(
-                        path_args.iter().map(::std::convert::AsRef::as_ref),
+                        path_args.iter().copied()
                     ))?
                 } else {
                     let (a, b) =
@@ -185,7 +179,7 @@ pub mod v3 {
                             _,
                             serde::de::value::Error,
                         >::new(
-                            path_args.iter().map(::std::convert::AsRef::as_ref),
+                            path_args.iter().copied()
                         ))?;
 
                     (a, b, "".into())

@@ -9,14 +9,16 @@ pub mod v1 {
 
     use ruma_common::{
         OwnedRoomAliasId,
-        api::{auth_scheme::AccessToken, request, response},
+        api::{request, response},
         metadata,
     };
+
+    use crate::HomeserverToken;
 
     metadata! {
         method: GET,
         rate_limited: false,
-        authentication: AccessToken,
+        authentication: HomeserverToken,
         path: "/_matrix/app/v1/rooms/{room_alias}",
     }
 
