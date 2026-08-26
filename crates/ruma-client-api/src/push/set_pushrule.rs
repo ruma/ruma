@@ -59,8 +59,7 @@ pub mod v3 {
     }
 
     #[doc(hidden)]
-    // attribute will go away when we update IncomingRequest to also use RequestBody
-    #[cfg_attr(not(feature = "client"), expect(dead_code))]
+    #[cfg(feature = "client")]
     pub struct RequestBody(NewPushRule);
 
     #[cfg(feature = "client")]
