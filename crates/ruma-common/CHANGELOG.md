@@ -20,6 +20,13 @@ Breaking changes:
     the path args is a `&[&str]`.
   - `IncomingRequest::check_request_method` was removed, this check is part of
     `IncomingRequestExt::try_from_http_request`.
+- `IncomingResponse::try_from_http_response` has been moved to a new `IncomingResponseExt` trait
+  that is automatically implemented for any `T: IncomingResponse`.
+  - Implementors of `IncomingResponse` now instead have to provide the
+    `fn try_from_http_response_inner` which should only perform the deserialization of the
+    response type.
+  - The generic parameter was removed from `try_from_http_response`, the body of the response is a
+    `&[u8]`.
 
 Bug fixes:
 
