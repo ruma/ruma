@@ -23,11 +23,6 @@ macro_rules! custom_event_content {
             pub(crate) event_type: Box<str>,
         }
 
-        impl EventContentFromType for $i {
-            fn from_parts(event_type: &str, _content: &RawJsonValue) -> serde_json::Result<Self> {
-                Ok(Self { event_type: event_type.into() })
-            }
-        }
     };
 }
 
@@ -78,6 +73,64 @@ impl RedactedMessageLikeEventContent for CustomMessageLikeEventContent {
     }
 }
 
+#[doc(hidden)]
+#[derive(Clone, Debug, Serialize)]
+#[allow(clippy::exhaustive_structs)]
+pub struct CustomMessageLikeEventContentDeHelper {
+    #[serde(skip)]
+    pub(crate) event_type: Box<str>,
+}
+
+// This helper keeps the state unsigned data deserializable without exposing the construction
+// on the custom event content types.
+impl EventContentFromType for CustomMessageLikeEventContentDeHelper {
+    fn from_parts(event_type: &str, _: &RawJsonValue) -> serde_json::Result<Self> {
+        Ok(Self { event_type: event_type.into() })
+    }
+}
+impl MessageLikeEventContent for CustomMessageLikeEventContentDeHelper {
+    fn event_type(&self) -> MessageLikeEventType {
+        self.event_type[..].into()
+    }
+}
+impl RedactedMessageLikeEventContent for CustomMessageLikeEventContentDeHelper {
+    fn event_type(&self) -> MessageLikeEventType {
+        self.event_type[..].into()
+    }
+}
+impl RedactContent for CustomMessageLikeEventContentDeHelper {
+    type Redacted = Self;
+
+    fn redact(self, _: &RedactionRules) -> Self {
+        self
+    }
+}
+impl StateEventContent for CustomMessageLikeEventContentDeHelper {
+    type StateKey = String;
+
+    fn event_type(&self) -> StateEventType {
+        self.event_type[..].into()
+    }
+}
+impl StaticStateEventContent for CustomMessageLikeEventContentDeHelper {
+    type Unsigned = MessageLikeUnsigned<Self>;
+    type PossiblyRedacted = Self;
+}
+impl PossiblyRedactedStateEventContent for CustomMessageLikeEventContentDeHelper {
+    type StateKey = String;
+
+    fn event_type(&self) -> StateEventType {
+        self.event_type[..].into()
+    }
+}
+impl RedactedStateEventContent for CustomMessageLikeEventContentDeHelper {
+    type StateKey = String;
+
+    fn event_type(&self) -> StateEventType {
+        self.event_type[..].into()
+    }
+}
+
 custom_room_event_content!(CustomStateEventContent, StateEventType);
 impl StateEventContent for CustomStateEventContent {
     type StateKey = String;
@@ -90,7 +143,7 @@ impl StaticStateEventContent for CustomStateEventContent {
     // Like `StateUnsigned`, but without `prev_content`.
     // We don't care about `prev_content` since we'd only store the event type that is the same
     // as in the content.
-    type Unsigned = MessageLikeUnsigned<CustomMessageLikeEventContent>;
+    type Unsigned = MessageLikeUnsigned<CustomMessageLikeEventContentDeHelper>;
     type PossiblyRedacted = Self;
 }
 impl PossiblyRedactedStateEventContent for CustomStateEventContent {

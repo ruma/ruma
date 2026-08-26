@@ -40,7 +40,8 @@ Improvements:
 Bug fixes:
 
 - Avoid creating empty formatted body fields when editing plain text message events.
-- Hide `EventContentFromType` from public API and restrict `event_enum!` macro visibility
+- Prevent custom event content types used by `_Custom` event variants from implementing
+  `EventContentFromType`.
 
 ## 0.34.0
 

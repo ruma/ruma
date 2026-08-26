@@ -16,7 +16,7 @@ use self::{
 use super::common::{
     CommonEventField, CommonEventKind, EventContentTraitVariation, EventTypes, EventVariation,
 };
-use crate::util::RumaEvents;
+use crate::util::{RumaEvents, RumaEventsReexport};
 
 /// Generates enums to represent the various Matrix event types.
 pub(crate) fn expand_event_enum(input: EventEnumInput) -> TokenStream {
@@ -26,6 +26,7 @@ pub(crate) fn expand_event_enum(input: EventEnumInput) -> TokenStream {
     let mut timeline_data = None;
 
     for data in &event_enums_data {
+        tokens.extend(expand_custom_content(data.kind, &ruma_events));
         tokens.extend(
             EventEnum::new(data, &ruma_events)
                 .expand()
@@ -80,6 +81,83 @@ pub(crate) fn expand_event_enum(input: EventEnumInput) -> TokenStream {
     );
 
     tokens
+}
+
+/// Generate a private content type so custom events can be deserialized without making the
+/// public `Custom*EventContent` types implement `EventContentFromType`.
+fn expand_custom_content(kind: EventEnumKind, ruma_events: &RumaEvents) -> TokenStream {
+    let serde = ruma_events.reexported(RumaEventsReexport::Serde);
+    let serde_json = ruma_events.reexported(RumaEventsReexport::SerdeJson);
+    let ident = kind.to_custom_content_ident();
+    let event_type = kind.to_event_type_enum();
+    let trait_ident = kind.to_content_kind_trait(EventContentTraitVariation::Original);
+    let event_type_impl = quote! {
+        fn event_type(&self) -> #ruma_events::#event_type {
+            self.event_type[..].into()
+        }
+    };
+
+    let extra = match kind {
+        EventEnumKind::MessageLike => quote! {
+            impl #ruma_events::RedactedMessageLikeEventContent for #ident {
+                #event_type_impl
+            }
+            impl #ruma_events::RedactContent for #ident {
+                type Redacted = Self;
+                fn redact(self, _: &#ruma_events::RedactionRules) -> Self { self }
+            }
+        },
+        EventEnumKind::State => quote! {
+            impl #ruma_events::MessageLikeEventContent for #ident {
+                fn event_type(&self) -> #ruma_events::MessageLikeEventType {
+                    self.event_type[..].into()
+                }
+            }
+            impl #ruma_events::RedactContent for #ident {
+                type Redacted = Self;
+                fn redact(self, _: &#ruma_events::RedactionRules) -> Self { self }
+            }
+            impl #ruma_events::RedactedStateEventContent for #ident {
+                type StateKey = String;
+                #event_type_impl
+            }
+            impl #ruma_events::PossiblyRedactedStateEventContent for #ident {
+                type StateKey = String;
+                #event_type_impl
+            }
+            impl #ruma_events::StaticStateEventContent for #ident {
+                type Unsigned = #ruma_events::MessageLikeUnsigned<Self>;
+                type PossiblyRedacted = Self;
+            }
+        },
+        _ => quote! {},
+    };
+
+    let state_key = (kind == EventEnumKind::State).then(|| quote! { type StateKey = String; });
+
+    quote! {
+        // This helper is local to the generated event enum and is not part of its public API.
+        #[derive(Clone, Debug, #serde::Serialize)]
+        struct #ident {
+            #[serde(skip)]
+            event_type: Box<str>,
+        }
+
+        impl #ruma_events::EventContentFromType for #ident {
+            fn from_parts(event_type: &str, _: &#serde_json::value::RawValue)
+                -> #serde_json::Result<Self>
+            {
+                Ok(Self { event_type: event_type.into() })
+            }
+        }
+
+        impl #ruma_events::#trait_ident for #ident {
+            #state_key
+            #event_type_impl
+        }
+
+        #extra
+    }
 }
 
 /// The parsed `event_enum!` macro.

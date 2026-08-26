@@ -196,11 +196,7 @@ impl<'a> EventEnumVariation<'a> {
                 )*
                 /// An event not defined by the Matrix specification
                 #[doc(hidden)]
-                _Custom(
-                    #ruma_events::#event_struct<
-                        #ruma_events::_custom::#custom_content_struct
-                    >,
-                ),
+                _Custom(#ruma_events::#event_struct<#custom_content_struct>),
             }
 
             #deserialize_impl
