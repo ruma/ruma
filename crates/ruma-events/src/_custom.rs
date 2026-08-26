@@ -22,7 +22,6 @@ macro_rules! custom_event_content {
             #[serde(skip)]
             pub(crate) event_type: Box<str>,
         }
-
     };
 }
 
