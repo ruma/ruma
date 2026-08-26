@@ -45,6 +45,7 @@ Improvements:
 - Add support for [MSC1763] (Configurable per-room message retention periods).
 - Add unstable support for [MSC4484] "Server Administration OAuth Scope".
 - Update the unstable implementation of MSC2666 to match the unstable implementation in Synapse:
+  - The endpoint module was renamed to `get_mutual_rooms`.
   - The `batch_token` field of the `Request` was renamed to `from`.
   - The `next_batch_token` field of the `Response` was renamed to `next_batch`.
   - The `with_token` methods of both `Request` and `Response` were renamed to `with_batch_token`,
