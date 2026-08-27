@@ -84,33 +84,33 @@ pub mod v3 {
 
             use crate::profile::field_existed_before_extended_profiles;
 
-            let field = self.value.field_name();
+            let Self {
+                user_id,
+                value,
+                #[cfg(feature = "unstable-msc4466")]
+                propagate_to,
+            } = self;
+
+            let field = value.field_name();
 
             let query_string = serde_html_form::to_string(RequestQuery {
                 #[cfg(feature = "unstable-msc4466")]
-                propagate_to: self.propagate_to,
+                propagate_to,
             })?;
 
             let url = if field_existed_before_extended_profiles(&field) {
-                Self::make_endpoint_url(
-                    considering,
-                    base_url,
-                    &[&self.user_id, &field],
-                    &query_string,
-                )?
+                Self::make_endpoint_url(considering, base_url, &[&user_id, &field], &query_string)?
             } else {
                 crate::profile::EXTENDED_PROFILE_FIELD_HISTORY.make_endpoint_url(
                     considering,
                     base_url,
-                    &[&self.user_id, &field],
+                    &[&user_id, &field],
                     &query_string,
                 )?
             };
 
-            let http_request = http::Request::builder()
-                .method(Self::METHOD)
-                .uri(url)
-                .body(RequestBody(self.value))?;
+            let http_request =
+                http::Request::builder().method(Self::METHOD).uri(url).body(RequestBody(value))?;
 
             Ok(http_request)
         }
