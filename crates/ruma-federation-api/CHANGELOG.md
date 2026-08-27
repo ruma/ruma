@@ -6,6 +6,10 @@ Breaking changes:
 
 - Export nothing from the crate if neither the `client` nor the `server` feature is active, because
   the crate is not useful without them.
+- `XMatrix` doesn't implement `headers::Credentials` anymore, removing the dependency on the
+  `headers` crate. The authentication scheme can be extracted directly from an `http::Request` with
+  the `XMatrix::extract_from_http_headers()` method, or with the
+  `AuthScheme::extract_authentication()` implementation of `ServerSignatures`.
 
 Improvements:
 
