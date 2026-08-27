@@ -3,7 +3,7 @@
 use std::{fmt, str::FromStr};
 
 use headers::authorization::Credentials;
-use http::HeaderValue;
+use http::{HeaderMap, HeaderValue};
 use http_auth::ChallengeParser;
 use ruma_common::{
     CanonicalJsonObject, IdParseError, OwnedServerName, OwnedServerSigningKeyId, ServerName,
@@ -42,11 +42,7 @@ impl AuthScheme for ServerSignatures {
     fn extract_authentication<T>(
         request: &http::Request<T>,
     ) -> Result<Self::Output, Self::ExtractAuthenticationError> {
-        let value = request
-            .headers()
-            .get(http::header::AUTHORIZATION)
-            .ok_or(XMatrixExtractError::MissingAuthorizationHeader)?;
-        Ok(value.try_into()?)
+        XMatrix::extract_from_http_headers(request.headers())
     }
 }
 
@@ -169,6 +165,19 @@ impl XMatrix {
             key: key.ok_or_else(|| XMatrixParseError::MissingParameter("key".to_owned()))?,
             sig: sig.ok_or_else(|| XMatrixParseError::MissingParameter("sig".to_owned()))?,
         })
+    }
+
+    /// Try to extract an `X-Matrix` authentication scheme from the given HTTP headers.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the `Authorization` header is not found in the map, or if the scheme
+    /// could not be parsed.
+    pub fn extract_from_http_headers(headers: &HeaderMap) -> Result<Self, XMatrixExtractError> {
+        let value = headers
+            .get(http::header::AUTHORIZATION)
+            .ok_or(XMatrixExtractError::MissingAuthorizationHeader)?;
+        Ok(value.try_into()?)
     }
 
     /// Construct the canonical JSON object representation of the request to sign for the `XMatrix`
