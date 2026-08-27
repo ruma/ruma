@@ -13,6 +13,8 @@ Improvements:
 - `query::get_profile_information` is now using `ruma_common::profile::UserProfile` for its
   underlying data storage.
 - Add experimental support for [MSC4495] (Selective Presence).
+- Add `XMatrix::extract_from_http_headers()`, a helper to extract the authentication scheme from
+  the headers of an `http::Request`.
 
 [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
 
