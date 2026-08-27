@@ -2,7 +2,6 @@
 
 use std::{fmt, str::FromStr};
 
-use headers::authorization::Credentials;
 use http::{HeaderMap, HeaderValue};
 use http_auth::ChallengeParser;
 use ruma_common::{
@@ -95,6 +94,10 @@ pub struct XMatrix {
 }
 
 impl XMatrix {
+    /// The `auth-scheme` token used by the `X-Matrix` authentication scheme in the `Authorization`
+    /// HTTP header.
+    pub const AUTH_SCHEME: &'static str = "X-Matrix";
+
     /// Construct a new X-Matrix Authorization header.
     pub fn new(
         origin: OwnedServerName,
@@ -113,7 +116,7 @@ impl XMatrix {
         for challenge in parser {
             let challenge = challenge?;
 
-            if challenge.scheme.eq_ignore_ascii_case(XMatrix::SCHEME) {
+            if challenge.scheme.eq_ignore_ascii_case(XMatrix::AUTH_SCHEME) {
                 xmatrix = Some(challenge);
                 break;
             }
@@ -274,7 +277,7 @@ impl fmt::Display for XMatrix {
         let sig = sig.encode();
         let sig = quote_ascii_string_if_required(&sig);
 
-        write!(f, r#"{} "#, Self::SCHEME)?;
+        write!(f, r#"{} "#, Self::AUTH_SCHEME)?;
 
         if let Some(destination) = destination {
             let destination = quote_ascii_string_if_required(destination.as_str());
@@ -304,18 +307,6 @@ impl TryFrom<&HeaderValue> for XMatrix {
 impl From<&XMatrix> for HeaderValue {
     fn from(value: &XMatrix) -> Self {
         value.to_string().try_into().expect("header format is static")
-    }
-}
-
-impl Credentials for XMatrix {
-    const SCHEME: &'static str = "X-Matrix";
-
-    fn decode(value: &HeaderValue) -> Option<Self> {
-        value.try_into().ok()
-    }
-
-    fn encode(&self) -> HeaderValue {
-        self.into()
     }
 }
 
@@ -399,7 +390,7 @@ pub enum XMatrixVerificationError {
 
 #[cfg(test)]
 mod tests {
-    use headers::{HeaderValue, authorization::Credentials};
+    use http::header::HeaderValue;
     use ruma_common::{OwnedServerName, serde::Base64};
 
     use super::XMatrix;
@@ -421,7 +412,7 @@ mod tests {
         let credentials = XMatrix { origin, destination: None, key, sig };
 
         assert_eq!(
-            credentials.encode(),
+            credentials.to_string(),
             "X-Matrix key=\"ed25519:key1\",origin=origin.hs.example.com,sig=dGVzdA"
         );
     }
@@ -444,7 +435,7 @@ mod tests {
         let credentials = XMatrix::new(origin, destination, key, sig);
 
         assert_eq!(
-            credentials.encode(),
+            credentials.to_string(),
             "X-Matrix destination=destination.hs.example.com,key=\"ed25519:key1\",origin=origin.hs.example.com,sig=dGVzdA"
         );
     }
@@ -467,7 +458,7 @@ mod tests {
         let credentials = XMatrix { origin, destination: None, key, sig };
 
         assert_eq!(
-            credentials.encode(),
+            credentials.to_string(),
             r#"X-Matrix key="abc\"def\\:ghi",origin="example.com:1234",sig=dGVzdA"#
         );
     }
