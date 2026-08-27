@@ -138,14 +138,16 @@ pub mod v3 {
         ) -> Result<http::Request<EmptyBody>, ruma_common::api::error::IntoHttpError> {
             use ruma_common::api::Metadata;
 
-            let query_string = serde_html_form::to_string(RequestQuery { format: self.format })?;
+            let Self { room_id, event_type, state_key, format } = self;
+
+            let query_string = serde_html_form::to_string(RequestQuery { format })?;
 
             let http_request = http::Request::builder()
                 .method(Self::METHOD)
                 .uri(Self::make_endpoint_url(
                     considering,
                     base_url,
-                    &[&self.room_id, &self.event_type, &self.state_key],
+                    &[&room_id, &event_type, &state_key],
                     &query_string,
                 )?)
                 .body(EmptyBody)?;

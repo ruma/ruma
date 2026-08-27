@@ -52,15 +52,17 @@ pub mod unstable_msc4108 {
             use http::header::CONTENT_LENGTH;
             use ruma_common::api::Metadata;
 
+            let Self { content } = self;
+
             let url = Self::make_endpoint_url(considering, base_url, &[], "")?;
-            let content_length = self.content.len();
+            let content_length = content.len();
 
             Ok(http::Request::builder()
                 .method(Self::METHOD)
                 .uri(url)
                 .header(CONTENT_TYPE, "text/plain")
                 .header(CONTENT_LENGTH, content_length)
-                .body(BytesBody(self.content.into()))?)
+                .body(BytesBody(content.into()))?)
         }
     }
 
