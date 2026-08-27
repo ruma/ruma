@@ -135,7 +135,8 @@ impl ruma_common::api::OutgoingResponse for Response {
     fn try_into_http_response_inner(
         self,
     ) -> Result<http::Response<Self::Body>, ruma_common::api::error::IntoHttpError> {
-        Ok(http::Response::new(ResponseBody::new(self.metadata, self.content)))
+        let Self { metadata, content } = self;
+        Ok(http::Response::new(ResponseBody::new(metadata, content)))
     }
 }
 
