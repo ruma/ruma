@@ -231,10 +231,12 @@ pub mod v3 {
         fn try_into_http_response_inner(
             self,
         ) -> Result<http::Response<Self::Body>, ruma_common::api::error::IntoHttpError> {
+            let Self { value } = self;
+
             Ok(http::Response::builder()
                 .status(http::StatusCode::OK)
                 .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
-                .body(ResponseBody(self.value))?)
+                .body(ResponseBody(value))?)
         }
     }
 
