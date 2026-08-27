@@ -108,22 +108,19 @@ pub mod v3 {
         ) -> Result<http::Request<RequestBody>, ruma_common::api::error::IntoHttpError> {
             use ruma_common::api::Metadata;
 
-            let query_string = serde_html_form::to_string(RequestQuery {
-                before: self.before,
-                after: self.after,
-            })?;
+            let Self { rule, before, after } = self;
+
+            let query_string = serde_html_form::to_string(RequestQuery { before, after })?;
 
             let url = Self::make_endpoint_url(
                 considering,
                 base_url,
-                &[&self.rule.kind(), &self.rule.rule_id()],
+                &[&rule.kind(), &rule.rule_id()],
                 &query_string,
             )?;
 
-            let http_request = http::Request::builder()
-                .method(Self::METHOD)
-                .uri(url)
-                .body(RequestBody(self.rule))?;
+            let http_request =
+                http::Request::builder().method(Self::METHOD).uri(url).body(RequestBody(rule))?;
 
             Ok(http_request)
         }
