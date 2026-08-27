@@ -183,7 +183,6 @@ use self::{
 ///     }
 /// }
 /// ```
-#[doc(hidden)]
 #[proc_macro]
 pub fn event_enum(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as EventEnumInput);
