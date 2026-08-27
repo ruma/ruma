@@ -27,6 +27,8 @@ Breaking changes:
     response type.
   - The generic parameter was removed from `try_from_http_response`, the body of the response is a
     `&[u8]`.
+- Remove `Metadata::empty_request_body()`. It is now unused and the types implementing
+  `OutgoingBody` should be used instead.
 
 Bug fixes:
 

@@ -5,7 +5,6 @@ use std::{
     str::FromStr,
 };
 
-use bytes::BufMut;
 use http::Method;
 use ruma_macros::StringEnum;
 
@@ -13,7 +12,6 @@ use super::{auth_scheme::AuthScheme, error::UnknownVersionError, path_builder::P
 use crate::{
     PrivOwnedStr, RoomVersionId,
     api::{auth_scheme::ClientScopedAuthScheme, error::IntoHttpError},
-    serde::slice_to_buf,
 };
 
 /// Convenient constructor for [`Metadata`] implementation.
@@ -253,17 +251,6 @@ pub trait Metadata: Sized {
 
     /// All info pertaining to an endpoint's path.
     const PATH_BUILDER: Self::PathBuilder;
-
-    /// Returns an empty request body for this Matrix request.
-    ///
-    /// For `GET` requests, it returns an entirely empty buffer, for others it returns an empty JSON
-    /// object (`{}`).
-    fn empty_request_body<B>() -> B
-    where
-        B: Default + BufMut,
-    {
-        if Self::METHOD == Method::GET { Default::default() } else { slice_to_buf(b"{}") }
-    }
 
     /// Generate the endpoint URL for this endpoint.
     fn make_endpoint_url(
