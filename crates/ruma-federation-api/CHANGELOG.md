@@ -10,6 +10,11 @@ Breaking changes:
   `headers` crate. The authentication scheme can be extracted directly from an `http::Request` with
   the `XMatrix::extract_from_http_headers()` method, or with the
   `AuthScheme::extract_authentication()` implementation of `ServerSignatures`.
+- `XMatrix::try_from_http_request()` was renamed to `XMatrix::sign_http_request()` to clarify how it
+  is constructed from an HTTP request.
+- `XMatrix::verify_request()` was renamed to `XMatrix::verify_http_request()` for consistency with
+  other method names.
+- `ServerSignaturesInput` was renamed to `XMatrixSigningInput`.
 
 Improvements:
 
