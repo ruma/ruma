@@ -39,6 +39,11 @@ pub trait Event {
     // Requires GATs to avoid boxing (and TAIT for making it convenient).
     fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_>;
 
+    /// The state events before this event.
+    // Requires GATs to avoid boxing (and TAIT for making it convenient).
+    #[cfg(feature = "unstable-msc4242")]
+    fn prev_state_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_>;
+
     /// All the authenticating events for this event.
     // Requires GATs to avoid boxing (and TAIT for making it convenient).
     fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_>;
@@ -83,6 +88,11 @@ impl<T: Event> Event for &T {
 
     fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
         (*self).prev_events()
+    }
+
+    #[cfg(feature = "unstable-msc4242")]
+    fn prev_state_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
+        (*self).prev_state_events()
     }
 
     fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
@@ -131,6 +141,11 @@ impl<T: Event> Event for Arc<T> {
 
     fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
         (**self).prev_events()
+    }
+
+    #[cfg(feature = "unstable-msc4242")]
+    fn prev_state_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
+        (**self).prev_state_events()
     }
 
     fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {

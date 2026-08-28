@@ -684,6 +684,11 @@ impl Event for Pdu {
         Box::new(self.prev_events.iter())
     }
 
+    #[cfg(feature = "unstable-msc4242")]
+    fn prev_state_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
+        Box::new(std::iter::empty())
+    }
+
     fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
         Box::new(self.auth_events.iter())
     }

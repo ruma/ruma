@@ -18,6 +18,9 @@ all-features = true
 # Private feature used for benchmarks.
 __criterion = ["dep:criterion"]
 
+# State DAGs
+unstable-msc4242 = ["ruma-common/unstable-msc4242"]
+
 [dependencies]
 js_int = { workspace = true }
 ruma-common = { workspace = true }

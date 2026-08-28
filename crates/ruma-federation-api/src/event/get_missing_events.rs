@@ -50,6 +50,14 @@ pub mod v1 {
 
         /// The event IDs to retrieve the previous events for.
         pub latest_events: Vec<OwnedEventId>,
+
+        /// Whether to traverse the state DAG instead of the room DAG. Added by [MSC4242].
+        /// 
+        /// [MSC4242]: https://github.com/matrix-org/matrix-spec-proposals/pull/4242
+        #[cfg(feature = "unstable-msc4242")]
+        #[serde(rename = "org.matrix.msc4242.state_dag")]
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        pub state_dag: bool,
     }
 
     /// Response type for the `get_missing_events` endpoint.
@@ -73,6 +81,8 @@ pub mod v1 {
                 min_depth: UInt::default(),
                 earliest_events,
                 latest_events,
+                #[cfg(feature = "unstable-msc4242")]    
+                state_dag: bool::default(),
             }
         }
     }

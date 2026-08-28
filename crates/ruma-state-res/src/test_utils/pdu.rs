@@ -40,6 +40,13 @@ pub struct Pdu {
     /// made this event.
     pub prev_events: BTreeSet<OwnedEventId>,
 
+    /// Event IDs for the most recent state events in the room that the homeserver was aware of when it
+    /// made this event. ([MSC4242])
+    /// 
+    /// [MSC4242]: https://github.com/matrix-org/matrix-spec-proposals/pull/4242
+    #[cfg(feature = "unstable-msc4242")]
+    pub prev_state_events: BTreeSet<OwnedEventId>,
+
     /// Event IDs for the authorization events that would allow this event to be in the room.
     pub auth_events: BTreeSet<OwnedEventId>,
 
@@ -77,6 +84,8 @@ impl Pdu {
             state_key: None,
             content,
             prev_events: BTreeSet::new(),
+            #[cfg(feature = "unstable-msc4242")]
+            prev_state_events: BTreeSet::new(),
             auth_events: BTreeSet::new(),
             redacts: None,
             rejected: false,
@@ -148,6 +157,11 @@ impl Event for Pdu {
 
     fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
         Box::new(self.prev_events.iter())
+    }
+
+    #[cfg(feature = "unstable-msc4242")]
+    fn prev_state_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
+        Box::new(self.prev_state_events.iter())
     }
 
     fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
