@@ -170,8 +170,42 @@ pub fn check_state_independent_auth_rules<E: Event>(
         return Err("missing `room_id` field for event".to_owned());
     };
 
+    // For MSC4242, considering prev_state_events:
+    #[cfg(feature = "unstable-msc4242")]
+    {
+        for prev_state_event_id in incoming_event.prev_state_events() {
+            let event_id = prev_state_event_id.borrow();
+
+            let Some(state_event) = fetch_event(event_id) else {
+                return Err(format!("failed to find prev state event {event_id}"));
+            };
+
+            // The prev state event must be in the same room as the incoming event.
+            if state_event.room_id().is_none_or(|state_room_id| state_room_id != room_id) {
+                return Err(format!("prev state event {event_id} not in the same room"));
+            }
+
+            // The prev state event must have a state key to be a state event.
+            if state_event.state_key().is_none() {
+                return Err(format!("prev state event {event_id} is not a state event"));
+            }
+
+            // The prev state event must not have been rejected.
+            if state_event.rejected() {
+                return Err(format!("prev state event {event_id} is rejected"));
+            }
+        }
+    }
+
     let mut seen_auth_types: HashSet<(TimelineEventType, String)> =
         HashSet::with_capacity(expected_auth_types.len());
+
+    // For MSC4242, we can skip most auth event checks because the auth events
+    // are calculated by the local server and therefore trustworthy.
+    let lenient_auth_event_checks = cfg_select! {
+        feature = "unstable-msc4242" => rules.auth_events_are_calculated,
+        _ => false,
+    };
 
     // Since v1, considering auth_events:
     for auth_event_id in incoming_event.auth_events() {
@@ -181,30 +215,33 @@ pub fn check_state_independent_auth_rules<E: Event>(
             return Err(format!("failed to find auth event {event_id}"));
         };
 
-        // The auth event must be in the same room as the incoming event.
-        if auth_event.room_id().is_none_or(|auth_room_id| auth_room_id != room_id) {
-            return Err(format!("auth event {event_id} not in the same room"));
-        }
-
         let event_type = auth_event.event_type();
         let state_key = auth_event
             .state_key()
             .ok_or_else(|| format!("auth event {event_id} has no `state_key`"))?;
         let key = (event_type.clone(), state_key.to_owned());
 
-        // Since v1, if there are duplicate entries for a given type and state_key pair, reject.
-        if seen_auth_types.contains(&key) {
-            return Err(format!(
-                "duplicate auth event {event_id} for ({event_type}, {state_key}) pair"
-            ));
-        }
-
-        // Since v1, if there are entries whose type and state_key don’t match those specified by
-        // the auth events selection algorithm described in the server specification, reject.
-        if !expected_auth_types.contains(&key) {
-            return Err(format!(
-                "unexpected auth event {event_id} with ({event_type}, {state_key}) pair"
-            ));
+        // These checks are removed by MSC4242.
+        if !lenient_auth_event_checks {
+            // The auth event must be in the same room as the incoming event.
+            if auth_event.room_id().is_none_or(|auth_room_id| auth_room_id != room_id) {
+                return Err(format!("auth event {event_id} not in the same room"));
+            }
+    
+            // Since v1, if there are duplicate entries for a given type and state_key pair, reject.
+            if seen_auth_types.contains(&key) {
+                return Err(format!(
+                    "duplicate auth event {event_id} for ({event_type}, {state_key}) pair"
+                ));
+            }
+    
+            // Since v1, if there are entries whose type and state_key don’t match those specified by
+            // the auth events selection algorithm described in the server specification, reject.
+            if !expected_auth_types.contains(&key) {
+                return Err(format!(
+                    "unexpected auth event {event_id} with ({event_type}, {state_key}) pair"
+                ));
+            }
         }
 
         // Since v1, if there are entries which were themselves rejected under the checks performed
@@ -431,6 +468,14 @@ fn check_room_create(
 
         if room_id_server_name != room_create_event.sender().server_name() {
             return Err("invalid `room_id` field in `m.room.create` event: server name does not match sender's server name".into());
+        }
+    }
+
+    // For MSC4242, if it has any `prev_state_events`, reject.
+    #[cfg(feature = "unstable-msc4242")]
+    {
+        if rules.check_prev_state_events && room_create_event.prev_state_events().next().is_some() {
+            return Err("`m.room.create` event cannot have previous state events".into());
         }
     }
 

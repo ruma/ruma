@@ -53,7 +53,9 @@ Improvements:
 - Add `required_client_scopes` function to `Metadata` and accompanying `required_client_scopes` syntax
   to `metadata!` macro, to allow request structs to define what OAuth 2.0 scopes they require.
 - Add unstable support for [MSC4484] "Server Administration OAuth Scope".
+- Add unstable room version for [MSC4242] "State DAGs".
 
+[MSC4242]: https://github.com/matrix-org/matrix-spec-proposals/pull/4242
 [MSC4438]: https://github.com/matrix-org/matrix-spec-proposals/pull/4438
 [MSC4484]: https://github.com/matrix-org/matrix-spec-proposals/pull/4484
 [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495

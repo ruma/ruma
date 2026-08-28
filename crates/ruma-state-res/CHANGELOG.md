@@ -19,6 +19,12 @@ Bug fixes:
   `None` representing the no-mainline-ancestor case and sorting before all
   chain-rooted events.
 
+Improvements:
+
+- Add unstable support for [MSC4242] "State DAGs".
+
+[MSC4242]: https://github.com/matrix-org/matrix-spec-proposals/pull/4242
+
 ## 0.16.0
 
 Breaking:
