@@ -38,6 +38,11 @@ pub enum CiCmd {
         ///
         /// If this is not set, the default internal representation will be checked.
         ruma_identifiers_storage: Option<String>,
+
+        /// Comma-separated list of features of ruma-common to enable on top of the default
+        /// features.
+        #[arg(long, short = 'F')]
+        features: Option<String>,
     },
     /// Run all the tasks that use the stable version
     Stable,
@@ -126,8 +131,8 @@ impl CiTask {
             Some(CiCmd::Msrv) => self.msrv()?,
             Some(CiCmd::MsrvAll) => self.msrv_all()?,
             Some(CiCmd::MsrvRuma) => self.msrv_ruma()?,
-            Some(CiCmd::MsrvIdentifiers { ruma_identifiers_storage }) => {
-                self.msrv_identifiers(ruma_identifiers_storage.as_deref())?;
+            Some(CiCmd::MsrvIdentifiers { ruma_identifiers_storage, features }) => {
+                self.msrv_identifiers(ruma_identifiers_storage.as_deref(), features.as_deref())?;
             }
             Some(CiCmd::Stable) => self.stable()?,
             Some(CiCmd::StableAll) => self.stable_all()?,
@@ -316,12 +321,20 @@ impl CiTask {
 
     /// Check ruma-common with default features and the given `ruma_identifiers_storage` cfg
     /// attribute.
-    fn msrv_identifiers(&self, ruma_identifiers_storage: Option<&str>) -> Result<()> {
+    fn msrv_identifiers(
+        &self,
+        ruma_identifiers_storage: Option<&str>,
+        features: Option<&str>,
+    ) -> Result<()> {
         let mut cmd = cmd!(&self.sh, "rustup run {MSRV} cargo check -p ruma-common");
 
         if let Some(value) = ruma_identifiers_storage {
             let rustflags = format!("--cfg=ruma_identifiers_storage=\"{value}\"");
             cmd = cmd.env("RUSTFLAGS", rustflags);
+        }
+
+        if let Some(features) = features {
+            cmd = cmd.args(["--features", features]);
         }
 
         cmd.run().map_err(Into::into)
