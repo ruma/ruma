@@ -9,6 +9,7 @@ exclude = [
 
 [advisories]
 version = 2
+yanked = "deny"
 
 [licenses]
 version = 2
