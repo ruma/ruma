@@ -63,6 +63,8 @@ impl IdDst {
 
         let owned_id = OwnedId::new(owned_ident, owned_id_type);
 
+        let ruma_common = RumaCommon::new();
+
         Ok(Self {
             ident,
             id_type,
@@ -71,8 +73,8 @@ impl IdDst {
             validate,
             str_field_index,
             owned_id,
-            types: Types::new(),
-            ruma_common: RumaCommon::new(),
+            types: Types::new(&ruma_common),
+            ruma_common,
         })
     }
 }

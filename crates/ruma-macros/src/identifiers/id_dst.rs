@@ -510,19 +510,25 @@ struct Types {
 
     /// `[u8]`.
     bytes: syn::Type,
+
+    /// `triomphe::ThinArc<(), u8>`.
+    thin_arc_bytes: syn::Type,
 }
 
 impl Types {
-    fn new() -> Self {
+    fn new(ruma_common: &RumaCommon) -> Self {
         let str = parse_quote! { ::std::primitive::str };
+        let byte = quote! { ::std::primitive::u8 };
         let cow = parse_quote! { ::std::borrow::Cow };
+        let triomphe = ruma_common.reexported(RumaCommonReexport::Triomphe);
 
         Self {
             box_str: parse_quote! { ::std::boxed::Box<#str> },
             arc_str: parse_quote! { ::std::sync::Arc<#str> },
             string: parse_quote! { ::std::string::String },
             cow_str: parse_quote! { #cow<'a, #str> },
-            bytes: parse_quote! { [::std::primitive::u8] },
+            bytes: parse_quote! { [#byte] },
+            thin_arc_bytes: parse_quote! { #triomphe::ThinArc<(), #byte> },
             str,
             cow,
         }

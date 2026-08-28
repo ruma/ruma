@@ -445,11 +445,11 @@ pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
 
 /// Generate methods and trait impl's for DST identifier type.
 ///
-/// This macro generates an `Owned*` wrapper type for the identifier type. This wrapper type is
-/// variable, by default it'll use [`Box`], but it can be changed at compile time
-/// by setting `--cfg=ruma_identifiers_storage=...` using `RUSTFLAGS` or `.cargo/config.toml` (under
-/// `[build]` -> `rustflags = ["..."]`). Currently the only supported value is `Arc`, that uses
-/// [`Arc`](std::sync::Arc) as a wrapper type.
+/// This macro generates an `Owned*` type for the identifier type. The internal representation of
+/// the owned type is variable, by default it'll use a `Box<str>`, but it can be changed at compile
+/// time by setting `--cfg=ruma_identifiers_storage=...` using `RUSTFLAGS` or `.cargo/config.toml`
+/// (under `[build]` -> `rustflags = ["..."]`). The supported values for this setting are listed in
+/// the docs of the owned type.
 ///
 /// This macro implements:
 ///
