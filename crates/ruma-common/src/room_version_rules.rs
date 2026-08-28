@@ -156,6 +156,16 @@ impl RoomVersionRules {
         redaction: RedactionRules::MSC2870,
         ..Self::V11
     };
+
+    /// Rules for room vesion `org.matrix.msc4242.12` ([MSC4242]).
+    /// 
+    /// [MSC2870]: https://github.com/matrix-org/matrix-spec-proposals/pull/4242
+    #[cfg(feature = "unstable-msc4242")]
+    pub const MSC4242: Self = Self {
+        disposition: RoomVersionDisposition::Unstable,
+        authorization: AuthorizationRules::MSC4242,
+        ..Self::V12
+    };
 }
 
 /// The stability of a room version.
@@ -361,6 +371,19 @@ pub struct AuthorizationRules {
     /// Whether to use the event ID of the `m.room.create` event of the room as the room ID,
     /// introduced in room version 12.
     pub room_create_event_id_as_room_id: bool,
+
+    /// Whether to check the event's `prev_state_events` field. Introduced by [MSC4242].
+    /// 
+    /// [MSC4242]: https://github.com/matrix-org/matrix-spec-proposals/pull/4242
+    #[cfg(feature = "unstable-msc4242")]
+    pub check_prev_state_events: bool,
+
+    /// Whether the event's `auth_events` were calculated by the server
+    /// and therefore require fewer validity checks. Introduced by [MSC4242].
+    /// 
+    /// [MSC4242]: https://github.com/matrix-org/matrix-spec-proposals/pull/4242
+    #[cfg(feature = "unstable-msc4242")]
+    pub auth_events_are_calculated: bool,
 }
 
 impl AuthorizationRules {
@@ -380,6 +403,8 @@ impl AuthorizationRules {
         explicitly_privilege_room_creators: false,
         additional_room_creators: false,
         room_create_event_id_as_room_id: false,
+        check_prev_state_events: false,
+        auth_events_are_calculated: false,
     };
 
     /// Authorization rules with tweaks introduced in room version 3 ([spec]).
@@ -424,6 +449,16 @@ impl AuthorizationRules {
         additional_room_creators: true,
         room_create_event_id_as_room_id: true,
         ..Self::V11
+    };
+
+    /// Authorization rules with tweaks introduced by [MSC4242].
+    ///
+    /// [MSC4242]: https://github.com/matrix-org/matrix-spec-proposals/pull/4242
+    #[cfg(feature = "unstable-msc4242")]
+    pub const MSC4242: Self = Self {
+        check_prev_state_events: true,
+        auth_events_are_calculated: true,
+        ..Self::V12
     };
 }
 
