@@ -56,6 +56,9 @@ jobs:
           - name: Check identifiers with Arc storage
             cmd: msrv-identifiers Arc
 
+          - name: Check identifiers with ThinArc storage
+            cmd: msrv-identifiers --features triomphe ThinArc
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
