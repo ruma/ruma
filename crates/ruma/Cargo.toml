@@ -49,6 +49,9 @@ markdown = ["ruma-events?/markdown"]
 html = ["dep:ruma-html", "ruma-events?/html"]
 html-matrix = ["html", "ruma-html/matrix"]
 
+# Internal representations for identifiers generated with the IdDst macro.
+triomphe = ["ruma-common/triomphe"]
+
 # Everything except compat, js and unstable features
 full = [
     "api",
