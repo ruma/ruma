@@ -16,6 +16,7 @@ type Result<T, E = MxcUriError> = std::result::Result<T, E>;
 /// [MXC URI]: https://spec.matrix.org/v1.19/client-server-api/#matrix-content-mxc-uris
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
+#[ruma_id(smallvec_inline_bytes = 60)]
 pub struct MxcUri(str);
 
 impl MxcUri {
