@@ -16,6 +16,7 @@ pub mod unstable_msc4108 {
             auth_scheme::NoAccessToken,
             error::{DeserializationError, Error, HeaderDeserializationError},
         },
+        http_headers::TEXT_PLAIN,
         metadata,
     };
     use url::Url;
@@ -58,7 +59,7 @@ pub mod unstable_msc4108 {
             Ok(http::Request::builder()
                 .method(Self::METHOD)
                 .uri(url)
-                .header(CONTENT_TYPE, "text/plain")
+                .header(CONTENT_TYPE, TEXT_PLAIN)
                 .header(CONTENT_LENGTH, content_length)
                 .body(BytesBody(self.content.into()))?)
         }
@@ -73,20 +74,19 @@ pub mod unstable_msc4108 {
             request: http::Request<&[u8]>,
             _path_args: &[&str],
         ) -> Result<Self, DeserializationError> {
-            const EXPECTED_CONTENT_TYPE: &str = "text/plain";
-
             let content_type = request
                 .headers()
                 .get(CONTENT_TYPE)
                 .ok_or(HeaderDeserializationError::MissingHeader(CONTENT_TYPE.to_string()))?;
 
-            let content_type = content_type.to_str()?;
-
-            if content_type != EXPECTED_CONTENT_TYPE {
+            if content_type != TEXT_PLAIN {
                 Err(HeaderDeserializationError::InvalidHeaderValue {
                     header: CONTENT_TYPE.to_string(),
-                    expected: EXPECTED_CONTENT_TYPE.to_owned(),
-                    unexpected: content_type.to_owned(),
+                    expected: TEXT_PLAIN
+                        .to_str()
+                        .expect("expected content type should be a valid static string")
+                        .to_owned(),
+                    unexpected: content_type.to_str()?.to_owned(),
                 }
                 .into())
             } else {
