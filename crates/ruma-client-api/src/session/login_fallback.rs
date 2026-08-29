@@ -66,10 +66,12 @@ impl ruma_common::api::OutgoingResponse for Response {
     fn try_into_http_response_inner(
         self,
     ) -> Result<http::Response<Self::Body>, ruma_common::api::error::IntoHttpError> {
+        let Self { body } = self;
+
         Ok(http::Response::builder()
             .status(http::StatusCode::OK)
             .header(http::header::CONTENT_TYPE, "text/html")
-            .body(ruma_common::api::BytesBody(self.body))?)
+            .body(ruma_common::api::BytesBody(body))?)
     }
 }
 

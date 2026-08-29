@@ -74,13 +74,15 @@ pub mod v3 {
 
             use crate::profile::field_existed_before_extended_profiles;
 
-            let url = if field_existed_before_extended_profiles(&self.field) {
-                Self::make_endpoint_url(considering, base_url, &[&self.user_id, &self.field], "")?
+            let Self { user_id, field } = self;
+
+            let url = if field_existed_before_extended_profiles(&field) {
+                Self::make_endpoint_url(considering, base_url, &[&user_id, &field], "")?
             } else {
                 crate::profile::EXTENDED_PROFILE_FIELD_HISTORY.make_endpoint_url(
                     considering,
                     base_url,
-                    &[&self.user_id, &self.field],
+                    &[&user_id, &field],
                     "",
                 )?
             };
@@ -229,10 +231,12 @@ pub mod v3 {
         fn try_into_http_response_inner(
             self,
         ) -> Result<http::Response<Self::Body>, ruma_common::api::error::IntoHttpError> {
+            let Self { value } = self;
+
             Ok(http::Response::builder()
                 .status(http::StatusCode::OK)
                 .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
-                .body(ResponseBody(self.value))?)
+                .body(ResponseBody(value))?)
         }
     }
 

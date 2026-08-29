@@ -52,15 +52,17 @@ pub mod unstable_msc4108 {
             use http::header::CONTENT_LENGTH;
             use ruma_common::api::Metadata;
 
+            let Self { content } = self;
+
             let url = Self::make_endpoint_url(considering, base_url, &[], "")?;
-            let content_length = self.content.len();
+            let content_length = content.len();
 
             Ok(http::Request::builder()
                 .method(Self::METHOD)
                 .uri(url)
                 .header(CONTENT_TYPE, "text/plain")
                 .header(CONTENT_LENGTH, content_length)
-                .body(BytesBody(self.content.into()))?)
+                .body(BytesBody(content.into()))?)
         }
     }
 
@@ -161,9 +163,9 @@ pub mod unstable_msc4108 {
             let expires = get_date(EXPIRES)?;
             let last_modified = get_date(LAST_MODIFIED)?;
 
-            let body: ResponseBody = serde_json::from_slice(response.body())?;
+            let ResponseBody { url } = serde_json::from_slice(response.body())?;
 
-            Ok(Self { url: body.url, etag, expires, last_modified })
+            Ok(Self { url, etag, expires, last_modified })
         }
     }
 
@@ -177,17 +179,19 @@ pub mod unstable_msc4108 {
             use http::header::{CACHE_CONTROL, PRAGMA};
             use ruma_common::http_headers::system_time_to_http_date;
 
-            let body = ResponseBody { url: self.url };
+            let Self { url, etag, expires, last_modified } = self;
 
-            let expires = system_time_to_http_date(&self.expires)?;
-            let last_modified = system_time_to_http_date(&self.last_modified)?;
+            let body = ResponseBody { url };
+
+            let expires = system_time_to_http_date(&expires)?;
+            let last_modified = system_time_to_http_date(&last_modified)?;
 
             Ok(http::Response::builder()
                 .status(http::StatusCode::OK)
                 .header(CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
                 .header(PRAGMA, "no-cache")
                 .header(CACHE_CONTROL, "no-store")
-                .header(ETAG, self.etag)
+                .header(ETAG, etag)
                 .header(EXPIRES, expires)
                 .header(LAST_MODIFIED, last_modified)
                 .body(body)?)
