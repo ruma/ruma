@@ -92,6 +92,7 @@ ruma-macros = { workspace = true }
 serde = { workspace = true }
 serde_html_form = { workspace = true }
 serde_json = { workspace = true, features = ["raw_value"] }
+smallvec = { version = "1.15.2", features = ["const_generics", "union"], optional = true }
 thiserror = { workspace = true }
 time = "0.3.47"
 tracing = { workspace = true, features = ["attributes"] }

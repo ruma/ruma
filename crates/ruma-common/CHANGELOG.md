@@ -53,8 +53,11 @@ Improvements:
 - Add `required_client_scopes` function to `Metadata` and accompanying `required_client_scopes` syntax
   to `metadata!` macro, to allow request structs to define what OAuth 2.0 scopes they require.
 - Add unstable support for [MSC4484] "Server Administration OAuth Scope".
-- `ruma_identifiers_storage` supports a new `ThinArc` value. It uses `triomphe::ThinArc<(), u8>` as
-  internal representation for the owned identifier types, and requires the `triomphe` cargo feature.
+- `ruma_identifiers_storage` supports new values:
+  - `ThinArc` uses `triomphe::ThinArc<(), u8>` as internal representation for the owned identifier
+    types, and requires the `triomphe` cargo feature.
+  - `SmallVec` uses `smallvec::SmallVec<[u8; N]>` as internal representation for the owned identifier
+    types, and requires the `smallvec` cargo feature.
 
 [MSC4438]: https://github.com/matrix-org/matrix-spec-proposals/pull/4438
 [MSC4484]: https://github.com/matrix-org/matrix-spec-proposals/pull/4484

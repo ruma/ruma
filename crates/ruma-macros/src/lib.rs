@@ -463,9 +463,11 @@ pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
 ///
 /// # Attributes
 ///
-/// * `#[ruma_api(validate = PATH)]`: the path to a function to validate the string during parsing
+/// * `#[ruma_id(validate = PATH)]`: the path to a function to validate the string during parsing
 ///   and deserialization. By default, the types implement `From` string types, when this is set
 ///   they implement `TryFrom`.
+/// * `#[ruma_id(smallvec_inline_bytes = USIZE)]`: the size of the inline array for the `SmallVec`
+///   inner representation. If this is not provided the default inline size is `32`.
 ///
 /// # Examples
 ///
@@ -474,7 +476,7 @@ pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
 /// use ruma_macros::IdDst;
 ///
 /// #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
-/// #[ruma_id(validate = ruma_identifiers_validation::user_id::validate)]
+/// #[ruma_id(validate = ruma_identifiers_validation::user_id::validate, smallvec_inline_bytes = 40)]
 /// pub struct UserId(str);
 /// ```
 #[proc_macro_derive(IdDst, attributes(ruma_id))]

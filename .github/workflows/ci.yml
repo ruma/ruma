@@ -59,6 +59,9 @@ jobs:
           - name: Check identifiers with ThinArc storage
             cmd: msrv-identifiers --features triomphe ThinArc
 
+          - name: Check identifiers with SmallVec storage
+            cmd: msrv-identifiers --features smallvec SmallVec
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
