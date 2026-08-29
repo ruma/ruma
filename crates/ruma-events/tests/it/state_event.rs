@@ -1,7 +1,7 @@
 use assert_matches2::{assert_let, assert_matches};
 use js_int::uint;
 use ruma_common::{MilliSecondsSinceUnixEpoch, mxc_uri, serde::CanBeEmpty};
-use ruma_events::{AnyStateEvent, AnySyncStateEvent, AnyTimelineEvent, StateEvent, SyncStateEvent};
+use ruma_events::{AnyStateEvent, AnySyncStateEvent, AnyTimelineEvent};
 use serde_json::{from_value as from_json_value, json};
 
 #[test]
@@ -23,8 +23,8 @@ fn deserialize_room_name_with_prev_content() {
         },
     });
 
-    assert_let!(Ok(AnyStateEvent::RoomName(StateEvent::Original(ev))) = from_json_value(json));
-    assert_eq!(ev.content.name, "Somewhere");
+    assert_let!(Ok(AnyStateEvent::RoomName(ev)) = from_json_value(json));
+    assert_eq!(ev.content.name.as_deref(), Some("Somewhere"));
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
     assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
     assert_eq!(ev.room_id, "!roomid:room.com");
@@ -52,10 +52,8 @@ fn deserialize_sync_room_name_with_prev_content() {
         },
     });
 
-    assert_let!(
-        Ok(AnySyncStateEvent::RoomName(SyncStateEvent::Original(ev))) = from_json_value(json)
-    );
-    assert_eq!(ev.content.name, "Somewhere");
+    assert_let!(Ok(AnySyncStateEvent::RoomName(ev)) = from_json_value(json));
+    assert_eq!(ev.content.name.as_deref(), Some("Somewhere"));
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
     assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
     assert_eq!(ev.sender, "@carl:example.com");
@@ -91,10 +89,7 @@ fn deserialize_avatar_without_prev_content() {
         "type": "m.room.avatar"
     });
 
-    assert_matches!(
-        from_json_value::<AnyStateEvent>(json_data),
-        Ok(AnyStateEvent::RoomAvatar(StateEvent::Original(ev)))
-    );
+    assert_matches!(from_json_value::<AnyStateEvent>(json_data), Ok(AnyStateEvent::RoomAvatar(ev)));
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
     assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
     assert_eq!(ev.room_id, "!roomid:room.com");
@@ -138,7 +133,7 @@ fn deserialize_member_event_with_top_level_membership_field() {
 
     assert_matches!(
         from_json_value::<AnyTimelineEvent>(json_data),
-        Ok(AnyTimelineEvent::State(AnyStateEvent::RoomMember(StateEvent::Original(ev))))
+        Ok(AnyTimelineEvent::State(AnyStateEvent::RoomMember(ev)))
     );
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
     assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
@@ -166,13 +161,10 @@ fn deserialize_full_event_convert_to_sync() {
     });
 
     let full_ev: AnyStateEvent = from_json_value(json).unwrap();
-    assert_matches!(&full_ev, AnyStateEvent::RoomTopic(StateEvent::Original(_)));
-    assert_let!(
-        AnySyncStateEvent::RoomTopic(SyncStateEvent::Original(sync_ev)) =
-            AnySyncStateEvent::from(full_ev)
-    );
+    assert_matches!(&full_ev, AnyStateEvent::RoomTopic(_));
+    assert_let!(AnySyncStateEvent::RoomTopic(sync_ev) = AnySyncStateEvent::from(full_ev));
 
-    assert_eq!(sync_ev.content.topic, "We welcome everybody");
+    assert_eq!(sync_ev.content.topic.as_deref(), Some("We welcome everybody"));
     assert_eq!(sync_ev.event_id, "$h29iv0s8:example.com");
     assert_eq!(sync_ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
     assert_eq!(

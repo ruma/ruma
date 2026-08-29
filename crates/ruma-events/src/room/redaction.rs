@@ -6,7 +6,7 @@ use as_variant::as_variant;
 use js_int::Int;
 use ruma_common::{
     EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedTransactionId,
-    OwnedUserId, RoomId, UserId,
+    OwnedUserId, RoomId, TransactionId, UserId,
     canonical_json::RedactionEvent,
     room_version_rules::RedactionRules,
     serde::{CanBeEmpty, JsonCastable, JsonObject},
@@ -16,8 +16,8 @@ use serde::{Deserialize, Serialize};
 use tracing::error;
 
 use crate::{
-    BundledMessageLikeRelations, MessageLikeEventContent, MessageLikeEventType, RedactContent,
-    RedactedMessageLikeEventContent, RedactedUnsigned, StaticEventContent,
+    BundledMessageLikeRelations, EventUnsignedData, MessageLikeEventContent, MessageLikeEventType,
+    RedactContent, RedactedMessageLikeEventContent, RedactedUnsigned, StaticEventContent,
 };
 
 mod event_serde;
@@ -485,6 +485,16 @@ impl CanBeEmpty for RoomRedactionUnsigned {
     /// could still have been present but contained none of the known fields.
     fn is_empty(&self) -> bool {
         self.age.is_none() && self.transaction_id.is_none() && self.relations.is_empty()
+    }
+}
+
+impl EventUnsignedData for RoomRedactionUnsigned {
+    fn transaction_id(&self) -> Option<&TransactionId> {
+        self.transaction_id.as_deref()
+    }
+
+    fn is_redacted(&self) -> bool {
+        false
     }
 }
 

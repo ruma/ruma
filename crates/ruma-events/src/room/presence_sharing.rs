@@ -46,13 +46,14 @@ pub enum PresenceSharingHint {
 #[ruma_event(type = "org.continuwuity.presence_v2.msc4495.room.presence_sharing", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomPresenceSharingEventContent {
     /// The room's presence sharing hint.
-    pub presence_sharing: PresenceSharingHint,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub presence_sharing: Option<PresenceSharingHint>,
 }
 
 impl RoomPresenceSharingEventContent {
     /// Creates a new `RoomPresenceSharingEventContent` with the given hint.
     pub fn new(hint: PresenceSharingHint) -> Self {
-        Self { presence_sharing: hint }
+        Self { presence_sharing: Some(hint) }
     }
 }
 
@@ -62,12 +63,11 @@ mod tests {
     use serde_json::{from_value as from_json_value, json};
 
     use super::{PresenceSharingHint, RoomPresenceSharingEventContent};
-    use crate::OriginalStateEvent;
+    use crate::StateEvent;
 
     #[test]
     fn serialization() {
-        let content =
-            RoomPresenceSharingEventContent { presence_sharing: PresenceSharingHint::Forbid };
+        let content = RoomPresenceSharingEventContent::new(PresenceSharingHint::Forbid);
 
         assert_to_canonical_json_eq!(
             content,
@@ -92,11 +92,11 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<OriginalStateEvent<RoomPresenceSharingEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomPresenceSharingEventContent>>(json_data)
                 .unwrap()
                 .content
                 .presence_sharing,
-            PresenceSharingHint::Suggest
+            Some(PresenceSharingHint::Suggest)
         );
     }
 }

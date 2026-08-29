@@ -1,6 +1,6 @@
 //! Functions to generate `Any*EventContent` enums.
 
-use std::{collections::BTreeMap, ops::Deref};
+use std::ops::Deref;
 
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
@@ -8,7 +8,7 @@ use quote::{format_ident, quote};
 use crate::{
     events::{
         common::{EventContentTraitVariation, EventVariation},
-        event_enum::{EventContentVariation, EventEnum, EventEnumKind},
+        event_enum::{EventEnum, EventEnumKind},
     },
     util::RumaEventsReexport,
 };
@@ -17,8 +17,8 @@ use crate::{
 pub(super) struct EventContentEnums<'a> {
     inner: &'a EventEnum<'a>,
 
-    /// Enums matching an `EventContentVariation`.
-    enums: BTreeMap<EventContentVariation, EventContentEnumVariation<'a>>,
+    /// The `Any*EventContent` enum, if any.
+    any_enum: Option<EventContentEnum<'a>>,
 
     /// The special `AnyStateEventContentChange` enum.
     change: Option<EventContentChangeEnum<'a>>,
@@ -27,27 +27,17 @@ pub(super) struct EventContentEnums<'a> {
 impl<'a> EventContentEnums<'a> {
     /// Construct an `EventContentEnums` with the given event enum data.
     pub(super) fn new(inner: &'a EventEnum<'a>) -> Self {
-        Self { inner, enums: BTreeMap::new(), change: None }
+        Self { inner, any_enum: None, change: None }
     }
 
-    /// Get the `EventContentEnumVariation` matching the given event variation, if possible.
+    /// Get the [`EventContentEnum`].
     ///
-    /// If the event variation is supported but the corresponding `EventContentEnumVariation`
-    /// doesn't exist in this list, it is created.
-    pub(super) fn get_or_create(
-        &mut self,
-        event_variation: EventVariation,
-    ) -> Option<&EventContentEnumVariation<'a>> {
-        let variation = EventContentVariation::from_event_variation(event_variation)?;
-
-        Some(
-            self.enums
-                .entry(variation)
-                .or_insert_with(|| EventContentEnumVariation::new(self.inner, variation)),
-        )
+    /// If it doesn't exist in this list, it is created.
+    pub(super) fn any_enum(&mut self) -> &EventContentEnum<'a> {
+        self.any_enum.get_or_insert_with(|| EventContentEnum::new(self.inner))
     }
 
-    /// Get the `EventContentChangeEnum`.
+    /// Get the [`EventContentChangeEnum`].
     ///
     /// If it doesn't exist in this list, it is created.
     pub(super) fn event_content_change_enum(&mut self) -> &EventContentChangeEnum<'a> {
@@ -56,21 +46,18 @@ impl<'a> EventContentEnums<'a> {
 
     /// Expand the event content enums in this list.
     pub(super) fn expand(&self) -> TokenStream {
-        self.enums
-            .values()
-            .map(EventContentEnumVariation::expand)
+        self.any_enum
+            .iter()
+            .map(EventContentEnum::expand)
             .chain(self.change.iter().map(EventContentChangeEnum::expand))
             .collect()
     }
 }
 
 /// The data for an `Any*EventContent` enum.
-pub(super) struct EventContentEnumVariation<'a> {
+pub(super) struct EventContentEnum<'a> {
     /// The event enum data.
     inner: &'a EventEnum<'a>,
-
-    /// The variation of this enum.
-    variation: EventContentVariation,
 
     /// The name of this enum.
     ident: syn::Ident,
@@ -79,22 +66,17 @@ pub(super) struct EventContentEnumVariation<'a> {
     event_content_types: Vec<syn::Path>,
 }
 
-impl<'a> EventContentEnumVariation<'a> {
-    fn new(inner: &'a EventEnum<'a>, variation: EventContentVariation) -> Self {
+impl<'a> EventContentEnum<'a> {
+    fn new(inner: &'a EventEnum<'a>) -> Self {
         let kind = inner.kind;
         let event_content_types =
-            inner.events.iter().map(|event| event.to_event_content_path(kind, variation)).collect();
+            inner.events.iter().map(|event| event.to_event_content_path(kind)).collect();
 
-        Self {
-            inner,
-            variation,
-            ident: format_ident!("Any{variation}{kind}Content"),
-            event_content_types,
-        }
+        Self { inner, ident: format_ident!("Any{kind}Content"), event_content_types }
     }
 }
 
-impl EventContentEnumVariation<'_> {
+impl EventContentEnum<'_> {
     /// Generate this `Any*EventContent` enum.
     fn expand(&self) -> TokenStream {
         let ruma_events = self.ruma_events;
@@ -208,7 +190,7 @@ impl EventContentEnumVariation<'_> {
         let variant_attrs = &self.variant_attrs;
 
         let event_content_kind_trait =
-            self.kind.to_content_kind_trait(self.variation.to_event_content_trait());
+            self.kind.to_content_kind_trait(EventContentTraitVariation::Original);
         let extra_event_content_impl = (self.kind == EventEnumKind::State).then(|| {
             quote! {
                 type StateKey = String;
@@ -262,104 +244,80 @@ impl EventContentEnumVariation<'_> {
     }
 
     /// Generate the accessors on an event enum to get the event content.
-    pub(super) fn expand_content_accessors(
-        &self,
-        event_variation: EventVariation,
-        event_struct: &syn::Ident,
-    ) -> TokenStream {
-        let ruma_events = self.ruma_events;
-
+    pub(super) fn expand_content_accessors(&self, event_variation: EventVariation) -> TokenStream {
         let ident = &self.ident;
         let variants = &self.variants;
         let variant_attrs = &self.variant_attrs;
 
-        match (self.kind, self.variation, event_variation) {
-            (
-                EventEnumKind::State | EventEnumKind::MessageLike,
-                EventContentVariation::Original,
-                EventVariation::None | EventVariation::Sync,
-            ) => {
-                quote! {
-                    /// Returns the content for this event if it is not redacted, or `None` if it is.
-                    pub fn original_content(&self) -> Option<#ident> {
-                        match self {
-                            #(
-                                #( #variant_attrs )*
-                                Self::#variants(event) => {
-                                    event.as_original().map(|ev| #ident::#variants(ev.content.clone()))
-                                }
-                            )*
-                            Self::_Custom(event) => event.as_original().map(|ev| {
-                                #ident::_Custom(ev.content.clone())
-                            }),
-                        }
+        if matches!(self.kind, EventEnumKind::MessageLike) {
+            quote! {
+                /// Returns the content for this event if it is not redacted, or `None` if it is.
+                pub fn original_content(&self) -> Option<#ident> {
+                    match self {
+                        #(
+                            #( #variant_attrs )*
+                            Self::#variants(event) => {
+                                event.as_original().map(|ev| #ident::#variants(ev.content.clone()))
+                            }
+                        )*
+                        Self::_Custom(event) => event.as_original().map(|ev| {
+                            #ident::_Custom(ev.content.clone())
+                        }),
                     }
+                }
 
+                /// Returns whether this event is redacted.
+                pub fn is_redacted(&self) -> bool {
+                    match self {
+                        #(
+                            #( #variant_attrs )*
+                            Self::#variants(event) => {
+                                event.as_original().is_none()
+                            }
+                        )*
+                        Self::_Custom(event) => event.as_original().is_none(),
+                    }
+                }
+            }
+        } else {
+            let is_redacted_impl = (matches!(self.kind, EventEnumKind::State)
+                && matches!(event_variation, EventVariation::None | EventVariation::Sync))
+            .then(|| {
+                quote! {
                     /// Returns whether this event is redacted.
                     pub fn is_redacted(&self) -> bool {
                         match self {
                             #(
                                 #( #variant_attrs )*
                                 Self::#variants(event) => {
-                                    event.as_original().is_none()
+                                    event.is_redacted()
                                 }
                             )*
-                            Self::_Custom(event) => event.as_original().is_none(),
+                            Self::_Custom(event) => event.is_redacted(),
                         }
                     }
                 }
-            }
-            (
-                EventEnumKind::State,
-                EventContentVariation::PossiblyRedacted,
-                EventVariation::None | EventVariation::Sync,
-            ) => {
-                quote! {
-                    /// Returns the content for this event.
-                    pub fn content(&self) -> #ident {
-                        match self {
-                            #(
-                                #( #variant_attrs )*
-                                Self::#variants(event) => match event {
-                                    #ruma_events::#event_struct::Original(ev) => {
-                                        #ident::#variants(ev.content.clone().into())
-                                    }
-                                    #ruma_events::#event_struct::Redacted(ev) => {
-                                        #ident::#variants(ev.content.clone().into())
-                                    }
-                                },
-                            )*
-                            Self::_Custom(event) => match event {
-                                #ruma_events::#event_struct::Original(ev) => {
-                                    #ident::_Custom(ev.content.clone())
-                                }
-                                #ruma_events::#event_struct::Redacted(ev) => {
-                                    #ident::_Custom(ev.content.clone())
-                                }
-                            },
-                        }
+            });
+
+            quote! {
+                /// Returns the content for this event.
+                pub fn content(&self) -> #ident {
+                    match self {
+                        #(
+                            #( #variant_attrs )*
+                            Self::#variants(event) => #ident::#variants(event.content.clone()),
+                        )*
+                        Self::_Custom(event) => #ident::_Custom(event.content.clone()),
                     }
                 }
-            }
-            _ => {
-                quote! {
-                    /// Returns the content for this event.
-                    pub fn content(&self) -> #ident {
-                        match self {
-                            #(
-                                #( #variant_attrs )*
-                                Self::#variants(event) => #ident::#variants(event.content.clone()),
-                            )*
-                            Self::_Custom(event) => #ident::_Custom(event.content.clone()),
-                        }
-                    }
-                }
+
+                #is_redacted_impl
             }
         }
     }
 }
 
-impl<'a> Deref for EventContentEnumVariation<'a> {
+impl<'a> Deref for EventContentEnum<'a> {
     type Target = EventEnum<'a>;
 
     fn deref(&self) -> &Self::Target {
@@ -384,11 +342,8 @@ impl<'a> EventContentChangeEnum<'a> {
     fn new(inner: &'a EventEnum<'a>) -> Self {
         let ident = syn::Ident::new("AnyStateEventContentChange", Span::call_site());
         let kind = inner.kind;
-        let event_content_types = inner
-            .events
-            .iter()
-            .map(|event| event.to_event_content_path(kind, EventContentVariation::Original))
-            .collect();
+        let event_content_types =
+            inner.events.iter().map(|event| event.to_event_content_path(kind)).collect();
 
         Self { inner, ident, event_content_types }
     }
@@ -432,7 +387,7 @@ impl EventContentChangeEnum<'_> {
                     match self {
                         #(
                             #( #variant_attrs )*
-                            Self::#variants(content) => content.event_type(),
+                            Self::#variants(event) => #ruma_events::#event_content_kind_trait::event_type(&event.content),
                         )*
                         Self::_Custom(content) => {
                             #ruma_events::#event_content_kind_trait::event_type(content)
@@ -444,10 +399,7 @@ impl EventContentChangeEnum<'_> {
     }
 
     /// Generate the accessors on an event enum to get the event content.
-    ///
-    /// `event_enum` is the name of the `*StateEvent` enum containing the `Original` and `Redacted`
-    /// variants, used by each variant of the `Any*StateEvent` enum.
-    pub(super) fn expand_content_accessors(&self, event_enum: &syn::Ident) -> TokenStream {
+    pub(super) fn expand_content_accessors(&self) -> TokenStream {
         let ruma_events = self.ruma_events;
 
         let ident = &self.ident;
@@ -460,28 +412,16 @@ impl EventContentChangeEnum<'_> {
                 match self {
                     #(
                         #( #variant_attrs )*
-                        Self::#variants(event) => match event {
-                            #ruma_events::#event_enum::Original(ev) => #ident::#variants(
-                                #ruma_events::StateEventContentChange::Original {
-                                    content: ev.content.clone(),
-                                    prev_content: ev.unsigned.prev_content.clone()
+                        Self::#variants(event) => {
+                            #ident::#variants(
+                                #ruma_events::StateEventContentChange {
+                                    content: event.content.clone(),
+                                    prev_content: event.unsigned.prev_content.clone()
                                 }
-                            ),
-                            #ruma_events::#event_enum::Redacted(ev) => #ident::#variants(
-                                #ruma_events::StateEventContentChange::Redacted(
-                                    ev.content.clone()
-                                )
-                            ),
-                        },
+                            )
+                        }
                     )*
-                    Self::_Custom(event) => match event {
-                        #ruma_events::#event_enum::Original(ev) => {
-                            #ident::_Custom(ev.content.clone())
-                        }
-                        #ruma_events::#event_enum::Redacted(ev) => {
-                            #ident::_Custom(ev.content.clone())
-                        }
-                    },
+                    Self::_Custom(event) => #ident::_Custom(event.content.clone()),
                 }
             }
         }
