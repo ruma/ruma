@@ -24,6 +24,9 @@ pub const APPLICATION_OCTET_STREAM: HeaderValue =
 /// The `text/plain` media type as a [`HeaderValue`].
 pub const TEXT_PLAIN: HeaderValue = HeaderValue::from_static("text/plain");
 
+/// The `text/html; charset=utf-8` media type as a [`HeaderValue`].
+pub const TEXT_HTML_UTF8: HeaderValue = HeaderValue::from_static("text/html; charset=utf-8");
+
 /// The [`Cross-Origin-Resource-Policy`] HTTP response header.
 ///
 /// [`Cross-Origin-Resource-Policy`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy

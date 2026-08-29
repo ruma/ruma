@@ -117,7 +117,7 @@ pub mod v3 {
                     .body(ResponseBody::Redirect)?),
                 Response::Html(html) => Ok(http::Response::builder()
                     .status(http::StatusCode::OK)
-                    .header(http::header::CONTENT_TYPE, "text/html; charset=utf-8")
+                    .header(http::header::CONTENT_TYPE, ruma_common::http_headers::TEXT_HTML_UTF8)
                     .body(ResponseBody::Html(html))?),
             }
         }
@@ -178,7 +178,7 @@ pub mod v3 {
 
             let http_response = http::Response::builder()
                 .status(http::StatusCode::OK)
-                .header(CONTENT_TYPE, "text/html; charset=utf-8")
+                .header(CONTENT_TYPE, ruma_common::http_headers::TEXT_HTML_UTF8)
                 .body(b"<h1>My Page</h1>".as_slice())
                 .unwrap();
 
@@ -217,8 +217,8 @@ pub mod v3 {
 
             assert_eq!(http_response.status(), http::StatusCode::OK);
             assert_eq!(
-                http_response.headers().get(CONTENT_TYPE).unwrap().to_str().unwrap(),
-                "text/html; charset=utf-8"
+                http_response.headers().get(CONTENT_TYPE).unwrap(),
+                ruma_common::http_headers::TEXT_HTML_UTF8
             );
             assert_eq!(http_response.into_body(), b"<h1>My Page</h1>");
         }

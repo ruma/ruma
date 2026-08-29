@@ -68,7 +68,7 @@ impl ruma_common::api::OutgoingResponse for Response {
     ) -> Result<http::Response<Self::Body>, ruma_common::api::error::IntoHttpError> {
         Ok(http::Response::builder()
             .status(http::StatusCode::OK)
-            .header(http::header::CONTENT_TYPE, "text/html")
+            .header(http::header::CONTENT_TYPE, ruma_common::http_headers::TEXT_HTML_UTF8)
             .body(ruma_common::api::BytesBody(self.body))?)
     }
 }

@@ -58,7 +58,9 @@ Improvements:
     types, and requires the `triomphe` cargo feature.
   - `SmallVec` uses `smallvec::SmallVec<[u8; N]>` as internal representation for the owned identifier
     types, and requires the `smallvec` cargo feature.
-- Add `http_headers::TEXT_PLAIN` for the `text/plain` media type.
+- In the `http_headers` module, add:
+  - `TEXT_PLAIN` for the `text/plain` media type.
+  - `TEXT_HTML_UTF8` for the `text/html; charset=utf-8` media type.
 
 [MSC4438]: https://github.com/matrix-org/matrix-spec-proposals/pull/4438
 [MSC4484]: https://github.com/matrix-org/matrix-spec-proposals/pull/4484
