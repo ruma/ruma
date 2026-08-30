@@ -12,10 +12,9 @@ use serde_json::value::RawValue as RawJsonValue;
 use super::{
     AnyInitialStateEvent, EmptyStateKey, EphemeralRoomEventContent, EventContentFromType,
     GlobalAccountDataEventContent, MessageLikeEventContent, MessageLikeEventType,
-    MessageLikeUnsigned, PossiblyRedactedStateEventContent, RedactContent,
-    RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
-    RedactionDeHelper, RoomAccountDataEventContent, StateEventType, StaticStateEventContent,
-    ToDeviceEventContent,
+    MessageLikeUnsigned, RedactContent, RedactedMessageLikeEventContent, RedactedStateEventContent,
+    RedactedUnsigned, RedactionDeHelper, RoomAccountDataEventContent, StateEventType,
+    StaticStateEventContent, ToDeviceEventContent,
 };
 #[cfg(feature = "unstable-msc4354")]
 use crate::sticky::StickyObject;
@@ -439,12 +438,7 @@ where
 {
 }
 
-impl<C: StaticStateEventContent> JsonCastable<StrippedStateEvent<C::PossiblyRedacted>>
-    for OriginalStateEvent<C>
-where
-    C::PossiblyRedacted: PossiblyRedactedStateEventContent,
-{
-}
+impl<C: StaticStateEventContent> JsonCastable<StrippedStateEvent<C>> for OriginalStateEvent<C> {}
 
 impl<C: StaticStateEventContent> JsonCastable<JsonObject> for OriginalStateEvent<C> {}
 
@@ -493,19 +487,14 @@ where
 {
 }
 
-impl<C: StaticStateEventContent> JsonCastable<StrippedStateEvent<C::PossiblyRedacted>>
-    for OriginalSyncStateEvent<C>
-where
-    C::PossiblyRedacted: PossiblyRedactedStateEventContent,
-{
-}
+impl<C: StaticStateEventContent> JsonCastable<StrippedStateEvent<C>> for OriginalSyncStateEvent<C> {}
 
 impl<C: StaticStateEventContent> JsonCastable<JsonObject> for OriginalSyncStateEvent<C> {}
 
 /// A stripped-down state event, used for previews of rooms the user has been invited to.
 #[derive(Clone, Debug, Event)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct StrippedStateEvent<C: PossiblyRedactedStateEventContent> {
+pub struct StrippedStateEvent<C: StaticStateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -532,7 +521,7 @@ pub struct StrippedStateEvent<C: PossiblyRedactedStateEventContent> {
     pub unsigned: Option<Raw<crate::StateUnsigned<C>>>,
 }
 
-impl<C: PossiblyRedactedStateEventContent> JsonCastable<JsonObject> for StrippedStateEvent<C> {}
+impl<C: StaticStateEventContent> JsonCastable<JsonObject> for StrippedStateEvent<C> {}
 
 /// A minimal state event, used for creating a new room.
 #[derive(Clone, Debug, Event)]
@@ -735,11 +724,10 @@ impl<C: StaticStateEventContent + RedactContent> JsonCastable<SyncStateEvent<C>>
 {
 }
 
-impl<C: StaticStateEventContent + RedactContent>
-    JsonCastable<StrippedStateEvent<C::PossiblyRedacted>> for StateEvent<C>
+impl<C: StaticStateEventContent + RedactContent> JsonCastable<StrippedStateEvent<C>>
+    for StateEvent<C>
 where
     C::Redacted: RedactedStateEventContent,
-    C::PossiblyRedacted: PossiblyRedactedStateEventContent,
 {
 }
 
@@ -765,11 +753,10 @@ where
     Redacted(RedactedSyncStateEvent<C::Redacted>),
 }
 
-impl<C: StaticStateEventContent + RedactContent>
-    JsonCastable<StrippedStateEvent<C::PossiblyRedacted>> for SyncStateEvent<C>
+impl<C: StaticStateEventContent + RedactContent> JsonCastable<StrippedStateEvent<C>>
+    for SyncStateEvent<C>
 where
     C::Redacted: RedactedStateEventContent,
-    C::PossiblyRedacted: PossiblyRedactedStateEventContent,
 {
 }
 
@@ -871,7 +858,7 @@ pub enum StateEventContentChange<C: StaticStateEventContent + RedactContent> {
         content: C,
 
         /// Previous content of the room state.
-        prev_content: Option<C::PossiblyRedacted>,
+        prev_content: Option<C>,
     },
 
     /// Redacted content of the event.

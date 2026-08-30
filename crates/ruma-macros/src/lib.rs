@@ -197,8 +197,8 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 ///
 /// * `{kind}EventContent`
 /// * `StaticEventContent`
-/// * `StaticStateEventContent`, `RedactContent`, `PossiblyRedactedStateEventContent` and
-///   `RedactedStateEventContent`, for the `State` kind.
+/// * `StaticStateEventContent`, `RedactContent` and `RedactedStateEventContent`, for the `State`
+///   kind.
 ///
 /// # Generated types
 ///
@@ -335,12 +335,6 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 /// If the kind requires a `Redacted{}EventContent` type and/or a `RedactContent` implementation and
 /// it is not possible to generate them with the macro, setting this attribute prevents the macro
 /// from trying to generate them. The type and/or trait must be implemented manually.
-///
-/// ### `custom_possibly_redacted`
-///
-/// If the kind requires a `PossiblyRedacted{}EventContent` trait and it is not possible to generate
-/// it with the macro, setting this attribute prevents the macro from trying to generate it. The
-/// trait must be implemented manually.
 ///
 /// ### `without_relation`
 ///

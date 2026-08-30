@@ -276,20 +276,6 @@ impl<'a> EventEnumVariation<'a> {
                 )*
                 Self::_Custom(event) => event.event_type(),
             }
-        } else if self.variation == EventVariation::Stripped {
-            let possibly_redacted_event_content_kind_trait =
-                self.kind.to_content_kind_trait(EventContentTraitVariation::PossiblyRedacted);
-
-            quote! {
-                #(
-                    #( #variant_attrs )*
-                    Self::#variants(event) =>
-                        #ruma_events::#possibly_redacted_event_content_kind_trait::event_type(&event.content),
-                )*
-                Self::_Custom(event) => ::std::convert::From::from(
-                    #ruma_events::#possibly_redacted_event_content_kind_trait::event_type(&event.content),
-                ),
-            }
         } else {
             let original_event_content_kind_trait =
                 self.kind.to_content_kind_trait(EventContentTraitVariation::Original);

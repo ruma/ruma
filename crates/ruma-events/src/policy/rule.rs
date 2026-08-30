@@ -35,7 +35,7 @@ impl PolicyRuleEventContent {
         Self { entity: Some(entity), recommendation: Some(recommendation), reason: Some(reason) }
     }
 
-    /// Creates an empty `PossiblyRedactedPolicyRuleEventContent`.
+    /// Creates an empty `PolicyRuleEventContent`.
     pub(crate) fn empty() -> Self {
         Self { entity: None, recommendation: None, reason: None }
     }

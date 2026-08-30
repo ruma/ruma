@@ -120,16 +120,14 @@ impl EventWithBounds {
             | EventVariation::Sync
             | EventVariation::Original
             | EventVariation::OriginalSync
-            | EventVariation::Initial => {
+            | EventVariation::Initial
+            | EventVariation::Stripped => {
                 // `State` event structs have a `StaticStateEventContent` bound.
                 if kind == EventEnumKind::State {
                     kind.to_content_kind_trait(EventContentTraitVariation::Static)
                 } else {
                     kind.to_content_kind_trait(EventContentTraitVariation::Original)
                 }
-            }
-            EventVariation::Stripped => {
-                kind.to_content_kind_trait(EventContentTraitVariation::PossiblyRedacted)
             }
             EventVariation::Redacted | EventVariation::RedactedSync => {
                 kind.to_content_kind_trait(EventContentTraitVariation::Redacted)
