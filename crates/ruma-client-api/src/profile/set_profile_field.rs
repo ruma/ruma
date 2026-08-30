@@ -110,7 +110,6 @@ pub mod v3 {
             let http_request = http::Request::builder()
                 .method(Self::METHOD)
                 .uri(url)
-                .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
                 .body(RequestBody(self.value))?;
 
             Ok(http_request)

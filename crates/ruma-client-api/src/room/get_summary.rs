@@ -116,10 +116,7 @@ pub mod v1 {
         ) -> Result<http::Response<Self::Body>, ruma_common::api::error::IntoHttpError> {
             let Self { summary, membership } = self;
 
-            http::Response::builder()
-                .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
-                .body(ResponseBody { summary, membership })
-                .map_err(Into::into)
+            http::Response::builder().body(ResponseBody { summary, membership }).map_err(Into::into)
         }
     }
 

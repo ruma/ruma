@@ -118,7 +118,6 @@ pub mod v3 {
                     &[&self.room_id_or_alias],
                     &query_string,
                 )?)
-                .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
                 .body(RequestBody {
                     third_party_signed: self.third_party_signed,
                     reason: self.reason,
