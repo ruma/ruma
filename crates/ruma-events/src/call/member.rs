@@ -17,9 +17,7 @@ use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedDeviceId, room_version_rules:
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    PrivOwnedStr, RedactContent, RedactedStateEventContent, StateEventType, StaticEventContent,
-};
+use crate::{PrivOwnedStr, RedactContent, RedactedStateEventContent, StateEventType};
 
 /// The member state event for a MatrixRTC session.
 ///
@@ -198,30 +196,6 @@ impl RedactedStateEventContent for CallMemberEventContent {
 
     fn event_type(&self) -> StateEventType {
         StateEventType::CallMember
-    }
-}
-
-/// The Redacted version of [`CallMemberEventContent`].
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[allow(clippy::exhaustive_structs)]
-pub struct RedactedCallMemberEventContent {}
-
-impl RedactedStateEventContent for RedactedCallMemberEventContent {
-    type StateKey = CallMemberStateKey;
-
-    fn event_type(&self) -> StateEventType {
-        StateEventType::CallMember
-    }
-}
-
-impl StaticEventContent for RedactedCallMemberEventContent {
-    const TYPE: &'static str = CallMemberEventContent::TYPE;
-    type IsPrefix = <CallMemberEventContent as StaticEventContent>::IsPrefix;
-}
-
-impl From<RedactedCallMemberEventContent> for CallMemberEventContent {
-    fn from(_value: RedactedCallMemberEventContent) -> Self {
-        Self::new_empty(None)
     }
 }
 

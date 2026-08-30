@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     AnyStrippedStateEvent, BundledStateRelations, PrivOwnedStr, RedactContent,
-    RedactedStateEventContent, StateEventType, StaticEventContent,
+    RedactedStateEventContent, StateEventType,
 };
 
 mod change;
@@ -202,101 +202,6 @@ impl RedactedStateEventContent for RoomMemberEventContent {
     fn event_type(&self) -> StateEventType {
         StateEventType::RoomMember
     }
-}
-
-impl From<RedactedRoomMemberEventContent> for RoomMemberEventContent {
-    fn from(value: RedactedRoomMemberEventContent) -> Self {
-        let RedactedRoomMemberEventContent {
-            membership,
-            third_party_invite,
-            join_authorized_via_users_server,
-        } = value;
-
-        Self {
-            avatar_url: None,
-            displayname: None,
-            is_direct: None,
-            membership,
-            third_party_invite: third_party_invite.map(Into::into),
-            #[cfg(feature = "unstable-msc2448")]
-            blurhash: None,
-            reason: None,
-            join_authorized_via_users_server,
-            #[cfg(feature = "unstable-msc4293")]
-            redact_events: false,
-        }
-    }
-}
-
-/// A member event that has been redacted.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct RedactedRoomMemberEventContent {
-    /// The membership state of this user.
-    pub membership: MembershipState,
-
-    /// If this member event is the successor to a third party invitation, this field will
-    /// contain information about that invitation.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub third_party_invite: Option<RedactedThirdPartyInvite>,
-
-    /// An arbitrary user who has the power to issue invites.
-    ///
-    /// This is redacted in room versions 8 and below. It is used for validating
-    /// joins when the join rule is restricted.
-    #[serde(rename = "join_authorised_via_users_server", skip_serializing_if = "Option::is_none")]
-    pub join_authorized_via_users_server: Option<OwnedUserId>,
-}
-
-impl RedactedRoomMemberEventContent {
-    /// Create a `RedactedRoomMemberEventContent` with the given membership.
-    pub fn new(membership: MembershipState) -> Self {
-        Self { membership, third_party_invite: None, join_authorized_via_users_server: None }
-    }
-
-    /// Obtain the details about this event that are required to calculate a membership change.
-    ///
-    /// This is required when you want to calculate the change a redacted `m.room.member` event
-    /// made.
-    pub fn details(&self) -> MembershipDetails<'_> {
-        MembershipDetails { avatar_url: None, displayname: None, membership: &self.membership }
-    }
-
-    /// Helper function for membership change.
-    ///
-    /// Since redacted events don't have `unsigned.prev_content`, you have to pass the `.details()`
-    /// of the previous `m.room.member` event manually (if there is a previous `m.room.member`
-    /// event).
-    ///
-    /// This also requires data from the full event:
-    ///
-    /// * The sender of the event,
-    /// * The state key of the event.
-    ///
-    /// Check [the specification][spec] for details.
-    ///
-    /// [spec]: https://spec.matrix.org/v1.19/client-server-api/#mroommember
-    pub fn membership_change<'a>(
-        &'a self,
-        prev_details: Option<MembershipDetails<'a>>,
-        sender: &UserId,
-        state_key: &UserId,
-    ) -> MembershipChange<'a> {
-        membership_change(self.details(), prev_details, sender, state_key)
-    }
-}
-
-impl RedactedStateEventContent for RedactedRoomMemberEventContent {
-    type StateKey = OwnedUserId;
-
-    fn event_type(&self) -> StateEventType {
-        StateEventType::RoomMember
-    }
-}
-
-impl StaticEventContent for RedactedRoomMemberEventContent {
-    const TYPE: &'static str = RoomMemberEventContent::TYPE;
-    type IsPrefix = <RoomMemberEventContent as StaticEventContent>::IsPrefix;
 }
 
 impl RoomMemberEvent {
