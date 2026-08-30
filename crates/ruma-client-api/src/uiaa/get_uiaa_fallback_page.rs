@@ -93,6 +93,13 @@ pub mod v3 {
     impl ruma_common::api::OutgoingBody for ResponseBody {
         type Error = ruma_common::api::error::IntoHttpError;
 
+        fn content_type(&self) -> Option<http::HeaderValue> {
+            match self {
+                Self::Redirect => None,
+                Self::Html(_) => Some(ruma_common::http_headers::TEXT_HTML_UTF8),
+            }
+        }
+
         fn try_into_buf<T: Default + bytes::BufMut + AsRef<[u8]>>(self) -> Result<T, Self::Error> {
             let body = match self {
                 Self::Redirect => Vec::new(),
@@ -117,7 +124,6 @@ pub mod v3 {
                     .body(ResponseBody::Redirect)?),
                 Response::Html(html) => Ok(http::Response::builder()
                     .status(http::StatusCode::OK)
-                    .header(http::header::CONTENT_TYPE, ruma_common::http_headers::TEXT_HTML_UTF8)
                     .body(ResponseBody::Html(html))?),
             }
         }

@@ -161,7 +161,6 @@ pub mod v3 {
                     &[&self.room_id, &self.event_type, &self.state_key],
                     &query_string,
                 )?)
-                .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
                 .body(RequestBody(self.body))?;
 
             Ok(http_request)

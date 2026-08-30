@@ -231,7 +231,6 @@ pub mod v3 {
         ) -> Result<http::Response<Self::Body>, ruma_common::api::error::IntoHttpError> {
             Ok(http::Response::builder()
                 .status(http::StatusCode::OK)
-                .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
                 .body(ResponseBody(self.value))?)
         }
     }

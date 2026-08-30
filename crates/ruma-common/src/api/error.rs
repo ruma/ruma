@@ -78,9 +78,7 @@ impl OutgoingResponse for Error {
     type Body = ErrorResponseBody;
 
     fn try_into_http_response_inner(self) -> Result<http::Response<Self::Body>, IntoHttpError> {
-        let mut builder = http::Response::builder()
-            .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
-            .status(self.status_code);
+        let mut builder = http::Response::builder().status(self.status_code);
 
         // Add data in headers.
         if let Some(ErrorKind::LimitExceeded(LimitExceededErrorData {
