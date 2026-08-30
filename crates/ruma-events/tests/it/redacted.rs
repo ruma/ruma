@@ -8,9 +8,9 @@ use ruma_events::{
     EmptyStateKey, EventContentFromType, MessageLikeEvent, RedactContent, RedactedStateEvent,
     RedactedSyncStateEvent, StateEvent, StateEventType, SyncMessageLikeEvent, SyncStateEvent,
     room::{
-        create::{RedactedRoomCreateEventContent, RoomCreateEventContent},
+        create::RoomCreateEventContent,
         message::{RedactedRoomMessageEventContent, RoomMessageEventContent},
-        name::RedactedRoomNameEventContent,
+        name::RoomNameEventContent,
         redaction::RoomRedactionEventContent,
     },
 };
@@ -60,7 +60,7 @@ fn deserialize_redacted_room_name() {
     assert_eq!(state_event.event_type(), StateEventType::RoomName);
     assert_let!(
         AnyStateEvent::RoomName(StateEvent::Redacted(RedactedStateEvent {
-            content: RedactedRoomNameEventContent { .. },
+            content: RoomNameEventContent { .. },
             ..
         })) = &state_event
     );
@@ -98,7 +98,7 @@ fn deserialize_redacted_sync_room_name() {
     assert_eq!(state_event.event_type(), StateEventType::RoomName);
     assert_let!(
         AnySyncStateEvent::RoomName(SyncStateEvent::Redacted(RedactedSyncStateEvent {
-            content: RedactedRoomNameEventContent { .. },
+            content: RoomNameEventContent { .. },
             ..
         })) = &state_event
     );
@@ -276,9 +276,6 @@ fn redact_state_content() {
     let raw_json = to_raw_json_value(&json).unwrap();
     let content = RoomCreateEventContent::from_parts("m.room.create", &raw_json).unwrap();
 
-    assert_matches!(
-        content.redact(&RedactionRules::V6),
-        RedactedRoomCreateEventContent { creator, .. }
-    );
+    assert_matches!(content.redact(&RedactionRules::V6), RoomCreateEventContent { creator, .. });
     assert_eq!(creator.unwrap(), "@carl:example.com");
 }

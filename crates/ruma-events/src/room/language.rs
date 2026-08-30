@@ -16,13 +16,14 @@ use crate::EmptyStateKey;
 #[ruma_event(type = "org.matrix.msc4334.room.language", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomLanguageEventContent {
     /// The language of the room.
-    pub language: LanguageTag,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub language: Option<LanguageTag>,
 }
 
 impl RoomLanguageEventContent {
     /// Create a new `RoomLanguageEventContent` with the given language.
     pub fn new(language: LanguageTag) -> Self {
-        Self { language }
+        Self { language: Some(language) }
     }
 }
 
@@ -36,7 +37,7 @@ mod tests {
 
     #[test]
     fn serialization() {
-        let content = RoomLanguageEventContent { language: LanguageTag::parse("fr").unwrap() };
+        let content = RoomLanguageEventContent::new(LanguageTag::parse("fr").unwrap());
 
         assert_to_canonical_json_eq!(
             content,
@@ -65,7 +66,7 @@ mod tests {
                 .unwrap()
                 .content
                 .language,
-            LanguageTag::parse("fr").unwrap()
+            Some(LanguageTag::parse("fr").unwrap())
         );
     }
 }

@@ -6,56 +6,30 @@ use ruma_common::room_version_rules::RedactionRules;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use super::{PolicyRuleEventContent, PossiblyRedactedPolicyRuleEventContent};
-use crate::{PossiblyRedactedStateEventContent, RedactContent, StateEventType, StaticEventContent};
+use super::PolicyRuleEventContent;
+use crate::{RedactContent, RedactedStateEventContent};
 
 /// The content of an `m.policy.rule.room` event.
 ///
 /// This event type is used to apply rules to room entities.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[allow(clippy::exhaustive_structs)]
-#[ruma_event(type = "m.policy.rule.room", kind = State, state_key_type = String, custom_possibly_redacted)]
+#[ruma_event(type = "m.policy.rule.room", kind = State, state_key_type = String, custom_redacted)]
 pub struct PolicyRuleRoomEventContent(pub PolicyRuleEventContent);
 
-/// The possibly redacted form of [`PolicyRuleRoomEventContent`].
-///
-/// This type is used when it's not obvious whether the content is redacted or not.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[allow(clippy::exhaustive_structs)]
-pub struct PossiblyRedactedPolicyRuleRoomEventContent(pub PossiblyRedactedPolicyRuleEventContent);
-
-impl PossiblyRedactedStateEventContent for PossiblyRedactedPolicyRuleRoomEventContent {
-    type StateKey = String;
-
-    fn event_type(&self) -> StateEventType {
-        StateEventType::PolicyRuleRoom
-    }
-}
-
-impl StaticEventContent for PossiblyRedactedPolicyRuleRoomEventContent {
-    const TYPE: &'static str = PolicyRuleRoomEventContent::TYPE;
-    type IsPrefix = <PolicyRuleRoomEventContent as StaticEventContent>::IsPrefix;
-}
-
-impl RedactContent for PossiblyRedactedPolicyRuleRoomEventContent {
+impl RedactContent for PolicyRuleRoomEventContent {
     type Redacted = Self;
 
     fn redact(self, _rules: &RedactionRules) -> Self::Redacted {
-        Self(PossiblyRedactedPolicyRuleEventContent::empty())
+        Self(PolicyRuleEventContent::empty())
     }
 }
 
-impl From<PolicyRuleRoomEventContent> for PossiblyRedactedPolicyRuleRoomEventContent {
-    fn from(value: PolicyRuleRoomEventContent) -> Self {
-        let PolicyRuleRoomEventContent(policy) = value;
-        Self(policy.into())
-    }
-}
+impl RedactedStateEventContent for PolicyRuleRoomEventContent {
+    type StateKey = String;
 
-impl From<RedactedPolicyRuleRoomEventContent> for PossiblyRedactedPolicyRuleRoomEventContent {
-    fn from(value: RedactedPolicyRuleRoomEventContent) -> Self {
-        let RedactedPolicyRuleRoomEventContent {} = value;
-        Self(PossiblyRedactedPolicyRuleEventContent::empty())
+    fn event_type(&self) -> crate::StateEventType {
+        crate::StateEventType::PolicyRuleRoom
     }
 }
 
@@ -69,11 +43,11 @@ mod tests {
 
     #[test]
     fn serialization() {
-        let content = PolicyRuleRoomEventContent(PolicyRuleEventContent {
-            entity: "#*:example.org".into(),
-            reason: "undesirable content".into(),
-            recommendation: Recommendation::Ban,
-        });
+        let content = PolicyRuleRoomEventContent(PolicyRuleEventContent::new(
+            "#*:example.org".into(),
+            Recommendation::Ban,
+            "undesirable content".into(),
+        ));
 
         assert_to_canonical_json_eq!(
             content,

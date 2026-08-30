@@ -142,7 +142,7 @@ impl RoomPowerLevelsEventContent {
 }
 
 impl RedactContent for RoomPowerLevelsEventContent {
-    type Redacted = RedactedRoomPowerLevelsEventContent;
+    type Redacted = Self;
 
     fn redact(self, rules: &RedactionRules) -> Self::Redacted {
         let Self {
@@ -160,7 +160,7 @@ impl RedactContent for RoomPowerLevelsEventContent {
 
         let invite = if rules.keep_room_power_levels_invite { invite } else { int!(0) };
 
-        RedactedRoomPowerLevelsEventContent {
+        Self {
             ban,
             events,
             events_default,
@@ -170,7 +170,16 @@ impl RedactContent for RoomPowerLevelsEventContent {
             state_default,
             users,
             users_default,
+            notifications: NotificationPowerLevels::default(),
         }
+    }
+}
+
+impl RedactedStateEventContent for RoomPowerLevelsEventContent {
+    type StateKey = EmptyStateKey;
+
+    fn event_type(&self) -> StateEventType {
+        StateEventType::RoomPowerLevels
     }
 }
 
@@ -316,7 +325,7 @@ impl RedactedStateEventContent for RedactedRoomPowerLevelsEventContent {
     }
 }
 
-impl From<RedactedRoomPowerLevelsEventContent> for PossiblyRedactedRoomPowerLevelsEventContent {
+impl From<RedactedRoomPowerLevelsEventContent> for RoomPowerLevelsEventContent {
     fn from(value: RedactedRoomPowerLevelsEventContent) -> Self {
         let RedactedRoomPowerLevelsEventContent {
             ban,

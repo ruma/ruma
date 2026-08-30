@@ -26,7 +26,8 @@ use crate::{StateEvent, SyncStateEvent};
 #[ruma_event(type = "m.space.child", kind = State, state_key_type = OwnedRoomId)]
 pub struct SpaceChildEventContent {
     /// List of candidate servers that can be used to join the room.
-    pub via: Vec<OwnedServerName>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub via: Option<Vec<OwnedServerName>>,
 
     /// Provide a default ordering of siblings in the room list.
     ///
@@ -61,13 +62,10 @@ pub struct SpaceChildEventContent {
 impl SpaceChildEventContent {
     /// Creates a new `SpaceChildEventContent` with the given routing servers.
     pub fn new(via: Vec<OwnedServerName>) -> Self {
-        Self { via, order: None, suggested: false }
+        Self { via: Some(via), order: None, suggested: false }
     }
-}
 
-impl PossiblyRedactedSpaceChildEventContent {
-    /// Whether this `PossiblyRedactedSpaceChildEventContent` is valid according to the Matrix
-    /// specification.
+    /// Whether this `SpaceChildEventContent` is valid according to the Matrix specification.
     ///
     /// The room in the state key of the event should only be considered a child of this space
     /// if this returns `true`.
@@ -316,11 +314,8 @@ mod tests {
 
     #[test]
     fn space_child_serialization() {
-        let content = SpaceChildEventContent {
-            via: vec![owned_server_name!("example.com")],
-            order: Some(SpaceChildOrder::parse("uwu").unwrap()),
-            suggested: false,
-        };
+        let mut content = SpaceChildEventContent::new(vec![owned_server_name!("example.com")]);
+        content.order = Some(SpaceChildOrder::parse("uwu").unwrap());
 
         assert_to_canonical_json_eq!(
             content,
@@ -333,7 +328,7 @@ mod tests {
 
     #[test]
     fn space_child_empty_serialization() {
-        let content = SpaceChildEventContent { via: vec![], order: None, suggested: false };
+        let content = SpaceChildEventContent::new(vec![]);
 
         assert_to_canonical_json_eq!(content, json!({ "via": [] }));
     }
@@ -350,7 +345,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order.unwrap(), "aaa");
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via.unwrap(), &[via]);
 
         // Not a string.
         let json = json!({
@@ -360,7 +355,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order, None);
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via.unwrap(), &[via]);
 
         // Empty string.
         let json = json!({
@@ -370,7 +365,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order.unwrap(), "");
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via.unwrap(), &[via]);
 
         // String too long.
         let order = repeat_n('a', 60).collect::<String>();
@@ -381,7 +376,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order, None);
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via.unwrap(), &[via]);
 
         // Invalid character.
         let json = json!({
@@ -391,7 +386,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order, None);
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via.unwrap(), &[via]);
     }
 
     #[test]
@@ -412,7 +407,7 @@ mod tests {
         assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1_629_413_349)));
         assert_eq!(ev.sender, "@alice:example.org");
         assert_eq!(ev.state_key, "!a:example.org");
-        assert_eq!(ev.content.via, ["example.org"]);
+        assert_eq!(ev.content.via.unwrap(), ["example.org"]);
         assert_eq!(ev.content.order, None);
         assert!(!ev.content.suggested);
     }

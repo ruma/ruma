@@ -11,7 +11,7 @@ use syn::{
 use super::{EventContent, EventContentField, EventContentKind};
 use crate::{
     events::common::{CommonEventKind, EventType, EventTypes},
-    util::{ParseNestedMetaExt, RumaEvents, SerdeMetaItem, StructFieldExt},
+    util::{ParseNestedMetaExt, RumaEvents},
 };
 
 impl EventContent {
@@ -144,39 +144,43 @@ impl EventContent {
             ));
         }
 
-        if self.kind.should_generate_possibly_redacted() {
-            if self
+        if self.kind.should_generate_redact_content_self_impl() {
+            let Some(fields) = self
                 .fields
                 .as_ref()
-                .is_none_or(|fields| fields.iter().any(|field| field.inner.ident.is_none()))
-            {
+                .filter(|fields| !fields.iter().any(|field| field.inner.ident.is_none()))
+            else {
                 return Err(syn::Error::new(
                     Span::call_site(),
-                    "To generate a possibly redacted event content, \
+                    "To generate a `RedactContent` implementation, \
                      the event content type needs to be a struct with named fields. \
-                     Disable this with the `custom_possibly_redacted` attribute",
+                     Disable this with the `custom_redacted` attribute",
                 ));
-            }
+            };
 
-            if let Some(fields) = &self.fields
-                && let Some(field_with_unsupported_serde_attribute) = fields.iter().find(|field| {
-                    if field.keep_in_possibly_redacted() {
-                        return false;
-                    }
+            let mut unsupported_fields =
+                fields.iter().filter(|field| !field.is_supported_for_redact_content());
+            let first_unsupported_field = unsupported_fields.next();
 
-                    field.inner.serde_meta_items().any(|serde_meta| {
-                        serde_meta != SerdeMetaItem::Rename && serde_meta != SerdeMetaItem::Alias
-                    })
-                })
-            {
-                return Err(syn::Error::new_spanned(
-                    field_with_unsupported_serde_attribute,
-                    "To generate a possibly redacted event content, \
-                     the fields that are redacted must either use the `default` \
-                     serde attribute with any other attribute, or only the \
-                     following serde attributes: `rename` or `alias`. \
-                     Disable this with the `custom_possibly_redacted` attribute",
-                ));
+            if let Some(field) = first_unsupported_field {
+                fn unsupported_redact_content_field_error(field: &EventContentField) -> syn::Error {
+                    syn::Error::new_spanned(
+                        field,
+                        "To generate a `RedactContent` implementation, \
+                         the fields must have a `#[ruma_event(skip_redaction)]` attribute, \
+                         a `#[serde(default)]` attribute, or be an `Option<_>`. \
+                         Disable this error with a `custom_redacted` attribute on the struct",
+                    )
+                }
+
+                // Collect all the field errors on the struct.
+                let error = unsupported_redact_content_field_error(field);
+                let error = unsupported_fields.fold(error, |mut error, field| {
+                    error.combine(unsupported_redact_content_field_error(field));
+                    error
+                });
+
+                return Err(error);
             }
         }
 

@@ -14,8 +14,8 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AnyStrippedStateEvent, BundledStateRelations, PossiblyRedactedStateEventContent, PrivOwnedStr,
-    RedactContent, RedactedStateEventContent, StateEventType, StaticEventContent,
+    AnyStrippedStateEvent, BundledStateRelations, PrivOwnedStr, RedactContent,
+    RedactedStateEventContent, StateEventType, StaticEventContent,
 };
 
 mod change;
@@ -51,7 +51,6 @@ pub use self::change::{Change, MembershipChange, MembershipDetails};
     state_key_type = OwnedUserId,
     unsigned_type = RoomMemberUnsigned,
     custom_redacted,
-    custom_possibly_redacted,
 )]
 pub struct RoomMemberEventContent {
     /// The avatar URL for this user, if any.
@@ -111,6 +110,10 @@ pub struct RoomMemberEventContent {
     pub join_authorized_via_users_server: Option<OwnedUserId>,
 
     /// Flag indicating all of this user's events should be redacted.
+    ///
+    /// This uses the unstable prefix defined in [MSC4293].
+    ///
+    /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
     #[cfg(feature = "unstable-msc4293")]
     #[serde(
         default,
@@ -172,147 +175,28 @@ impl RoomMemberEventContent {
 }
 
 impl RedactContent for RoomMemberEventContent {
-    type Redacted = RedactedRoomMemberEventContent;
+    type Redacted = Self;
 
-    fn redact(self, rules: &RedactionRules) -> RedactedRoomMemberEventContent {
-        RedactedRoomMemberEventContent {
-            membership: self.membership,
-            third_party_invite: self.third_party_invite.and_then(|i| i.redact(rules)),
-            join_authorized_via_users_server: self
-                .join_authorized_via_users_server
-                .filter(|_| rules.keep_room_member_join_authorised_via_users_server),
-        }
-    }
-}
-
-/// The possibly redacted form of [`RoomMemberEventContent`].
-///
-/// This type is used when it's not obvious whether the content is redacted or not.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct PossiblyRedactedRoomMemberEventContent {
-    /// The avatar URL for this user, if any.
-    ///
-    /// This is added by the homeserver. If you activate the `compat-empty-string-null` feature,
-    /// this field being an empty string in JSON will result in `None` here during deserialization.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(
-        feature = "compat-empty-string-null",
-        serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
-    )]
-    pub avatar_url: Option<OwnedMxcUri>,
-
-    /// The display name for this user, if any.
-    ///
-    /// This is added by the homeserver.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub displayname: Option<String>,
-
-    /// Flag indicating whether the room containing this event was created with the intention of
-    /// being a direct chat.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_direct: Option<bool>,
-
-    /// The membership state of this user.
-    pub membership: MembershipState,
-
-    /// If this member event is the successor to a third party invitation, this field will
-    /// contain information about that invitation.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub third_party_invite: Option<PossiblyRedactedThirdPartyInvite>,
-
-    /// The [BlurHash](https://blurha.sh) for the avatar pointed to by `avatar_url`.
-    ///
-    /// This uses the unstable prefix in
-    /// [MSC2448](https://github.com/matrix-org/matrix-spec-proposals/pull/2448).
-    #[cfg(feature = "unstable-msc2448")]
-    #[serde(rename = "xyz.amorgan.blurhash", skip_serializing_if = "Option::is_none")]
-    pub blurhash: Option<String>,
-
-    /// User-supplied text for why their membership has changed.
-    ///
-    /// For kicks and bans, this is typically the reason for the kick or ban. For other membership
-    /// changes, this is a way for the user to communicate their intent without having to send a
-    /// message to the room, such as in a case where Bob rejects an invite from Alice about an
-    /// upcoming concert, but can't make it that day.
-    ///
-    /// Clients are not recommended to show this reason to users when receiving an invite due to
-    /// the potential for spam and abuse. Hiding the reason behind a button or other component
-    /// is recommended.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason: Option<String>,
-
-    /// Arbitrarily chosen `UserId` (MxID) of a local user who can send an invite.
-    #[serde(rename = "join_authorised_via_users_server")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub join_authorized_via_users_server: Option<OwnedUserId>,
-
-    /// Flag indicating all of this user's events should be redacted.
-    ///
-    /// This uses the unstable prefix defined in [MSC4293].
-    ///
-    /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
-    #[cfg(feature = "unstable-msc4293")]
-    #[serde(
-        default,
-        rename = "org.matrix.msc4293.redact_events",
-        skip_serializing_if = "ruma_common::serde::is_default"
-    )]
-    pub redact_events: bool,
-}
-
-impl PossiblyRedactedRoomMemberEventContent {
-    /// Creates a new `PossiblyRedactedRoomMemberEventContent` with the given membership state.
-    pub fn new(membership: MembershipState) -> Self {
+    fn redact(self, rules: &RedactionRules) -> Self {
         Self {
-            membership,
             avatar_url: None,
             displayname: None,
             is_direct: None,
-            third_party_invite: None,
+            membership: self.membership,
+            third_party_invite: self.third_party_invite.and_then(|i| i.redact(rules)),
             #[cfg(feature = "unstable-msc2448")]
             blurhash: None,
             reason: None,
-            join_authorized_via_users_server: None,
+            join_authorized_via_users_server: self
+                .join_authorized_via_users_server
+                .filter(|_| rules.keep_room_member_join_authorised_via_users_server),
             #[cfg(feature = "unstable-msc4293")]
             redact_events: false,
         }
     }
-
-    /// Obtain the details about this event that are required to calculate a membership change.
-    ///
-    /// This is required when you want to calculate the change a redacted `m.room.member` event
-    /// made.
-    pub fn details(&self) -> MembershipDetails<'_> {
-        MembershipDetails {
-            avatar_url: self.avatar_url.as_deref(),
-            displayname: self.displayname.as_deref(),
-            membership: &self.membership,
-        }
-    }
-
-    /// Helper function for membership change.
-    ///
-    /// This requires data from the full event:
-    ///
-    /// * The previous details computed from `event.unsigned.prev_content`,
-    /// * The sender of the event,
-    /// * The state key of the event.
-    ///
-    /// Check [the specification][spec] for details.
-    ///
-    /// [spec]: https://spec.matrix.org/v1.19/client-server-api/#mroommember
-    pub fn membership_change<'a>(
-        &'a self,
-        prev_details: Option<MembershipDetails<'a>>,
-        sender: &UserId,
-        state_key: &UserId,
-    ) -> MembershipChange<'a> {
-        membership_change(self.details(), prev_details, sender, state_key)
-    }
 }
 
-impl PossiblyRedactedStateEventContent for PossiblyRedactedRoomMemberEventContent {
+impl RedactedStateEventContent for RoomMemberEventContent {
     type StateKey = OwnedUserId;
 
     fn event_type(&self) -> StateEventType {
@@ -320,66 +204,7 @@ impl PossiblyRedactedStateEventContent for PossiblyRedactedRoomMemberEventConten
     }
 }
 
-impl StaticEventContent for PossiblyRedactedRoomMemberEventContent {
-    const TYPE: &'static str = RoomMemberEventContent::TYPE;
-    type IsPrefix = <RoomMemberEventContent as StaticEventContent>::IsPrefix;
-}
-
-impl RedactContent for PossiblyRedactedRoomMemberEventContent {
-    type Redacted = Self;
-
-    fn redact(self, rules: &RedactionRules) -> Self {
-        Self {
-            membership: self.membership,
-            third_party_invite: self.third_party_invite.and_then(|i| i.redact(rules)),
-            join_authorized_via_users_server: self
-                .join_authorized_via_users_server
-                .filter(|_| rules.keep_room_member_join_authorised_via_users_server),
-            avatar_url: None,
-            displayname: None,
-            is_direct: None,
-            #[cfg(feature = "unstable-msc2448")]
-            blurhash: None,
-            reason: None,
-            #[cfg(feature = "unstable-msc4293")]
-            redact_events: false,
-        }
-    }
-}
-
-impl From<RoomMemberEventContent> for PossiblyRedactedRoomMemberEventContent {
-    fn from(value: RoomMemberEventContent) -> Self {
-        let RoomMemberEventContent {
-            avatar_url,
-            displayname,
-            is_direct,
-            membership,
-            third_party_invite,
-            #[cfg(feature = "unstable-msc2448")]
-            blurhash,
-            reason,
-            join_authorized_via_users_server,
-            #[cfg(feature = "unstable-msc4293")]
-            redact_events,
-        } = value;
-
-        Self {
-            avatar_url,
-            displayname,
-            is_direct,
-            membership,
-            third_party_invite: third_party_invite.map(Into::into),
-            #[cfg(feature = "unstable-msc2448")]
-            blurhash,
-            reason,
-            join_authorized_via_users_server,
-            #[cfg(feature = "unstable-msc4293")]
-            redact_events,
-        }
-    }
-}
-
-impl From<RedactedRoomMemberEventContent> for PossiblyRedactedRoomMemberEventContent {
+impl From<RedactedRoomMemberEventContent> for RoomMemberEventContent {
     fn from(value: RedactedRoomMemberEventContent) -> Self {
         let RedactedRoomMemberEventContent {
             membership,
@@ -549,47 +374,6 @@ pub enum MembershipState {
 pub struct ThirdPartyInvite {
     /// A name which can be displayed to represent the user instead of their third party
     /// identifier.
-    pub display_name: String,
-
-    /// A block of content which has been signed, which servers can use to verify the event.
-    ///
-    /// Clients should ignore this.
-    pub signed: Raw<SignedContent>,
-}
-
-impl ThirdPartyInvite {
-    /// Creates a new `ThirdPartyInvite` with the given display name and signed content.
-    pub fn new(display_name: String, signed: Raw<SignedContent>) -> Self {
-        Self { display_name, signed }
-    }
-
-    /// Transform `self` into a redacted form (removing most or all fields) according to the spec.
-    ///
-    /// Returns `None` if the field for this object was redacted according to the given
-    /// [`RedactionRules`], otherwise returns the redacted form.
-    fn redact(self, rules: &RedactionRules) -> Option<RedactedThirdPartyInvite> {
-        rules
-            .keep_room_member_third_party_invite_signed
-            .then_some(RedactedThirdPartyInvite { signed: self.signed })
-    }
-}
-
-/// Redacted information about a third party invitation.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct RedactedThirdPartyInvite {
-    /// A block of content which has been signed, which servers can use to verify the event.
-    ///
-    /// Clients should ignore this.
-    pub signed: Raw<SignedContent>,
-}
-
-/// Possibly redacted information about a third party invitation.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct PossiblyRedactedThirdPartyInvite {
-    /// A name which can be displayed to represent the user instead of their third party
-    /// identifier.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub display_name: Option<String>,
 
@@ -599,9 +383,8 @@ pub struct PossiblyRedactedThirdPartyInvite {
     pub signed: Raw<SignedContent>,
 }
 
-impl PossiblyRedactedThirdPartyInvite {
-    /// Creates a new `PossiblyRedactedThirdPartyInvite` with the given display name and signed
-    /// content.
+impl ThirdPartyInvite {
+    /// Creates a new `ThirdPartyInvite` with the given display name and signed content.
     pub fn new(display_name: String, signed: Raw<SignedContent>) -> Self {
         Self { display_name: Some(display_name), signed }
     }
@@ -617,14 +400,17 @@ impl PossiblyRedactedThirdPartyInvite {
     }
 }
 
-impl From<ThirdPartyInvite> for PossiblyRedactedThirdPartyInvite {
-    fn from(value: ThirdPartyInvite) -> Self {
-        let ThirdPartyInvite { display_name, signed } = value;
-        Self { display_name: Some(display_name), signed }
-    }
+/// Redacted information about a third party invitation.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct RedactedThirdPartyInvite {
+    /// A block of content which has been signed, which servers can use to verify the event.
+    ///
+    /// Clients should ignore this.
+    pub signed: Raw<SignedContent>,
 }
 
-impl From<RedactedThirdPartyInvite> for PossiblyRedactedThirdPartyInvite {
+impl From<RedactedThirdPartyInvite> for ThirdPartyInvite {
     fn from(value: RedactedThirdPartyInvite) -> Self {
         let RedactedThirdPartyInvite { signed } = value;
         Self { display_name: None, signed }
@@ -668,7 +454,7 @@ impl OriginalRoomMemberEvent {
     /// Get a reference to the `prev_content` in unsigned, if it exists.
     ///
     /// Shorthand for `event.unsigned.prev_content.as_ref()`
-    pub fn prev_content(&self) -> Option<&PossiblyRedactedRoomMemberEventContent> {
+    pub fn prev_content(&self) -> Option<&RoomMemberEventContent> {
         self.unsigned.prev_content.as_ref()
     }
 
@@ -751,7 +537,7 @@ impl OriginalSyncRoomMemberEvent {
     /// Get a reference to the `prev_content` in unsigned, if it exists.
     ///
     /// Shorthand for `event.unsigned.prev_content.as_ref()`
-    pub fn prev_content(&self) -> Option<&PossiblyRedactedRoomMemberEventContent> {
+    pub fn prev_content(&self) -> Option<&RoomMemberEventContent> {
         self.unsigned.prev_content.as_ref()
     }
 
@@ -878,7 +664,7 @@ pub struct RoomMemberUnsigned {
     pub transaction_id: Option<OwnedTransactionId>,
 
     /// Optional previous content of the event.
-    pub prev_content: Option<PossiblyRedactedRoomMemberEventContent>,
+    pub prev_content: Option<RoomMemberEventContent>,
 
     /// Stripped state events to assist the receiver in identifying the room when receiving an
     /// invite.
@@ -1059,7 +845,7 @@ mod tests {
         assert_eq!(ev.content.membership, MembershipState::Invite);
 
         let third_party_invite = ev.content.third_party_invite.unwrap();
-        assert_eq!(third_party_invite.display_name, "alice");
+        assert_eq!(third_party_invite.display_name.as_deref(), Some("alice"));
         let signed = third_party_invite.signed.deserialize().unwrap();
         assert_eq!(signed.mxid, "@alice:example.org");
         assert_eq!(signed.signatures.len(), 1);
