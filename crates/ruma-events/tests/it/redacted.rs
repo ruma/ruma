@@ -3,10 +3,10 @@ use ruma_common::{
     canonical_json::assert_to_canonical_json_eq, room_version_rules::RedactionRules,
 };
 use ruma_events::{
-    AnyMessageLikeEvent, AnyPossiblyRedactedStateEventContent, AnyStateEvent,
-    AnySyncMessageLikeEvent, AnySyncStateEvent, AnySyncTimelineEvent, AnyTimelineEvent,
-    EmptyStateKey, EventContentFromType, MessageLikeEvent, RedactContent, RedactedStateEvent,
-    RedactedSyncStateEvent, StateEvent, StateEventType, SyncMessageLikeEvent, SyncStateEvent,
+    AnyMessageLikeEvent, AnyStateEvent, AnyStateEventContent, AnySyncMessageLikeEvent,
+    AnySyncStateEvent, AnySyncTimelineEvent, AnyTimelineEvent, EmptyStateKey, EventContentFromType,
+    MessageLikeEvent, RedactContent, RedactedStateEvent, RedactedSyncStateEvent, StateEvent,
+    StateEventType, SyncMessageLikeEvent, SyncStateEvent,
     room::{
         create::RoomCreateEventContent,
         message::{RedactedRoomMessageEventContent, RoomMessageEventContent},
@@ -64,7 +64,7 @@ fn deserialize_redacted_room_name() {
             ..
         })) = &state_event
     );
-    assert_let!(AnyPossiblyRedactedStateEventContent::RoomName(content) = state_event.content());
+    assert_let!(AnyStateEventContent::RoomName(content) = state_event.content());
     assert_eq!(content.name.as_deref(), None);
 
     // Deserialize as state enum.
@@ -102,7 +102,7 @@ fn deserialize_redacted_sync_room_name() {
             ..
         })) = &state_event
     );
-    assert_let!(AnyPossiblyRedactedStateEventContent::RoomName(content) = state_event.content());
+    assert_let!(AnyStateEventContent::RoomName(content) = state_event.content());
     assert_eq!(content.name.as_deref(), None);
 
     // Deserialize as state enum.

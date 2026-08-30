@@ -2,10 +2,10 @@ use assert_matches2::{assert_let, assert_matches};
 use js_int::int;
 use ruma_common::serde::test::serde_json_eq;
 use ruma_events::{
-    AnyMessageLikeEvent, AnyPossiblyRedactedStateEventContent, AnyStateEvent,
-    AnySyncEphemeralRoomEvent, AnySyncMessageLikeEvent, AnySyncStateEvent, AnySyncTimelineEvent,
-    AnyTimelineEvent, EmptyStateKey, EphemeralRoomEventType, GlobalAccountDataEventType,
-    MessageLikeEvent, MessageLikeEventType, OriginalMessageLikeEvent, OriginalStateEvent,
+    AnyMessageLikeEvent, AnyStateEvent, AnyStateEventContent, AnySyncEphemeralRoomEvent,
+    AnySyncMessageLikeEvent, AnySyncStateEvent, AnySyncTimelineEvent, AnyTimelineEvent,
+    EmptyStateKey, EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEvent,
+    MessageLikeEventType, OriginalMessageLikeEvent, OriginalStateEvent,
     OriginalSyncMessageLikeEvent, OriginalSyncStateEvent, RoomAccountDataEventType, StateEvent,
     StateEventType, SyncMessageLikeEvent, SyncStateEvent, ToDeviceEventType,
     room::{
@@ -146,7 +146,7 @@ fn room_name_event_sync_deserialization() {
     assert_eq!(state_event.event_type(), StateEventType::RoomName);
     assert_let!(AnySyncStateEvent::RoomName(SyncStateEvent::Original(event)) = &state_event);
     assert_eq!(event.content.name.as_deref(), Some("Somewhere"));
-    assert_let!(AnyPossiblyRedactedStateEventContent::RoomName(content) = state_event.content());
+    assert_let!(AnyStateEventContent::RoomName(content) = state_event.content());
     assert_eq!(content.name.as_deref(), Some("Somewhere"));
 
     // Deserialize as state enum.
@@ -223,7 +223,7 @@ fn room_name_event_deserialization() {
         })) = &state_event
     );
     assert_eq!(name.as_deref(), Some("Somewhere"));
-    assert_let!(AnyPossiblyRedactedStateEventContent::RoomName(content) = state_event.content());
+    assert_let!(AnyStateEventContent::RoomName(content) = state_event.content());
     assert_eq!(content.name.as_deref(), Some("Somewhere"));
 
     // Deserialize as state enum.

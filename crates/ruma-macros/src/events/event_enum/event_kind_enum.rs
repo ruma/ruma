@@ -306,7 +306,7 @@ impl<'a> EventEnumVariation<'a> {
             }
         };
 
-        let content_accessor = self.expand_content_accessors(event_content_enums);
+        let content_accessors = self.expand_content_accessors(event_content_enums);
         let field_accessors = self.expand_event_field_accessors();
         let state_key_accessor = self.expand_state_key_accessor();
         let relations_accessor = self.expand_relations_accessor();
@@ -320,7 +320,7 @@ impl<'a> EventEnumVariation<'a> {
                     match self { #event_type_match_arms }
                 }
 
-                #content_accessor
+                #content_accessors
                 #( #field_accessors )*
                 #relations_accessor
                 #state_key_accessor
@@ -337,24 +337,20 @@ impl<'a> EventEnumVariation<'a> {
     ///   bool` for kinds and variations that return `true` in
     ///   [`maybe_redacted()`](Self::maybe_redacted). It also generates `pub fn content(&self) ->
     ///   FullContentEnum` for state events.
-    /// * An empty `TokenStream` for the stripped variation.
     /// * `pub fn content(&self) -> ContentEnum` for the others.
     fn expand_content_accessors(
         &self,
         event_content_enums: &mut EventContentEnums<'a>,
-    ) -> Option<TokenStream> {
+    ) -> TokenStream {
         let mut tokens = event_content_enums
-            .get_or_create(self.variation)?
+            .any_enum()
             .expand_content_accessors(self.variation, &self.event_struct);
 
-        // Generate the `AnyPossiblyRedactedStateEventContent` and `AnyStateEventContentChange`
-        // accessors for state enums that contain `Original` and `Redacted` variants.
-        if matches!(self.kind, EventEnumKind::State) && self.maybe_redacted() {
-            tokens.extend(event_content_enums.get_or_create(EventVariation::Stripped).map(
-                |event_content_enum| {
-                    event_content_enum.expand_content_accessors(self.variation, &self.event_struct)
-                },
-            ));
+        // Generate the `AnyStateEventContentChange` accessors for state enums that contain
+        // unsigned data.
+        if matches!(self.kind, EventEnumKind::State)
+            && matches!(self.variation, EventVariation::None | EventVariation::Sync)
+        {
             tokens.extend(
                 event_content_enums
                     .event_content_change_enum()
@@ -362,7 +358,7 @@ impl<'a> EventEnumVariation<'a> {
             );
         }
 
-        Some(tokens)
+        tokens
     }
 
     /// Generate accessors for the [`EventField`]s that are present for this enum.
