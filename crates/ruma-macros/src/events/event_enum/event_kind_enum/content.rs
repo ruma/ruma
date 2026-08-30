@@ -83,7 +83,7 @@ impl<'a> EventContentEnumVariation<'a> {
     fn new(inner: &'a EventEnum<'a>, variation: EventContentVariation) -> Self {
         let kind = inner.kind;
         let event_content_types =
-            inner.events.iter().map(|event| event.to_event_content_path(kind, variation)).collect();
+            inner.events.iter().map(|event| event.to_event_content_path(kind)).collect();
 
         Self {
             inner,
@@ -384,11 +384,8 @@ impl<'a> EventContentChangeEnum<'a> {
     fn new(inner: &'a EventEnum<'a>) -> Self {
         let ident = syn::Ident::new("AnyStateEventContentChange", Span::call_site());
         let kind = inner.kind;
-        let event_content_types = inner
-            .events
-            .iter()
-            .map(|event| event.to_event_content_path(kind, EventContentVariation::Original))
-            .collect();
+        let event_content_types =
+            inner.events.iter().map(|event| event.to_event_content_path(kind)).collect();
 
         Self { inner, ident, event_content_types }
     }

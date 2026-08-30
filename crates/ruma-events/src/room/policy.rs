@@ -28,17 +28,22 @@ pub struct RoomPolicyEventContent {
     /// The server name to use as a Policy Server.
     ///
     /// MUST have a joined user in the room.
-    pub via: OwnedServerName,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub via: Option<OwnedServerName>,
 
     /// The public keys for the Policy Server.
     ///
     /// MUST contain at least `ed25519`.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub public_keys: BTreeMap<SigningKeyAlgorithm, Base64>,
 }
 
 impl RoomPolicyEventContent {
     /// Creates a new `RoomPolicyEventContent` with the given server name and ed25519 public key.
     pub fn new(via: OwnedServerName, ed25519_public_key: Base64) -> Self {
-        Self { via, public_keys: [(SigningKeyAlgorithm::Ed25519, ed25519_public_key)].into() }
+        Self {
+            via: Some(via),
+            public_keys: [(SigningKeyAlgorithm::Ed25519, ed25519_public_key)].into(),
+        }
     }
 }

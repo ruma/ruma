@@ -146,7 +146,7 @@ fn room_name_event_sync_deserialization() {
     assert_eq!(state_event.sender(), "@example:localhost");
     assert_eq!(state_event.event_type(), StateEventType::RoomName);
     assert_let!(AnySyncStateEvent::RoomName(SyncStateEvent::Original(event)) = &state_event);
-    assert_eq!(event.content.name, "Somewhere");
+    assert_eq!(event.content.name.as_deref(), Some("Somewhere"));
     assert_let!(AnyPossiblyRedactedStateEventContent::RoomName(content) = state_event.content());
     assert_eq!(content.name.as_deref(), Some("Somewhere"));
 
@@ -157,7 +157,7 @@ fn room_name_event_sync_deserialization() {
     assert_eq!(state_event.sender(), "@example:localhost");
     assert_eq!(state_event.event_type(), StateEventType::RoomName);
     assert_let!(Some(event) = state_event.as_original());
-    assert_eq!(event.content.name, "Somewhere");
+    assert_eq!(event.content.name.as_deref(), Some("Somewhere"));
 }
 
 #[test]
@@ -221,7 +221,7 @@ fn room_name_event_deserialization() {
             ..
         })) = &state_event
     );
-    assert_eq!(name, "Somewhere");
+    assert_eq!(name.as_deref(), Some("Somewhere"));
     assert_let!(AnyPossiblyRedactedStateEventContent::RoomName(content) = state_event.content());
     assert_eq!(content.name.as_deref(), Some("Somewhere"));
 
@@ -233,7 +233,7 @@ fn room_name_event_deserialization() {
     assert_eq!(state_event.sender(), "@example:localhost");
     assert_eq!(state_event.event_type(), StateEventType::RoomName);
     assert_let!(Some(event) = state_event.as_original());
-    assert_eq!(event.content.name, "Somewhere");
+    assert_eq!(event.content.name.as_deref(), Some("Somewhere"));
 }
 
 #[test]

@@ -10,5 +10,5 @@ fn deserialize_initial_state_event() {
     }))
     .unwrap();
     assert_let!(AnyInitialStateEvent::RoomName(ev) = ev);
-    assert_eq!(ev.content.name, "foo");
+    assert_eq!(ev.content.name.as_deref(), Some("foo"));
 }

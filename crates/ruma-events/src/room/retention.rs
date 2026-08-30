@@ -10,7 +10,7 @@ use js_int::UInt;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{EmptyStateKey, PossiblyRedactedStateEventContent, StateEventType};
+use crate::EmptyStateKey;
 
 /// The content of an `m.room.retention` state event.
 ///
@@ -22,7 +22,7 @@ use crate::{EmptyStateKey, PossiblyRedactedStateEventContent, StateEventType};
 /// [MSC1763]: https://github.com/matrix-org/matrix-spec-proposals/pull/1763
 #[derive(Clone, Debug, Default, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[ruma_event(type = "org.matrix.msc1763.retention", kind = State, state_key_type = EmptyStateKey, custom_possibly_redacted)]
+#[ruma_event(type = "org.matrix.msc1763.retention", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomRetentionEventContent {
     /// The minimum amount of time messages should be kept on the homeserver.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -173,26 +173,6 @@ impl<'de> Deserialize<'de> for RoomRetentionEventContent {
                     .to_owned(),
             ))
         }
-    }
-}
-
-/// The PossiblyRedacted version of [`RoomRetentionEventContent`].
-///
-/// Since the event has only optional fields it's already compatible with the redacted version of
-/// the state event content.
-pub type PossiblyRedactedRoomRetentionEventContent = RoomRetentionEventContent;
-
-impl PossiblyRedactedStateEventContent for PossiblyRedactedRoomRetentionEventContent {
-    type StateKey = EmptyStateKey;
-
-    fn event_type(&self) -> StateEventType {
-        StateEventType::RoomRetention
-    }
-}
-
-impl From<RedactedRoomRetentionEventContent> for PossiblyRedactedRoomRetentionEventContent {
-    fn from(_value: RedactedRoomRetentionEventContent) -> Self {
-        Self { min_lifetime: None, max_lifetime: None }
     }
 }
 

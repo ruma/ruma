@@ -48,10 +48,18 @@ impl RoomJoinRulesEventContent {
 }
 
 impl RedactContent for RoomJoinRulesEventContent {
-    type Redacted = RedactedRoomJoinRulesEventContent;
+    type Redacted = Self;
 
     fn redact(self, _rules: &RedactionRules) -> Self::Redacted {
-        RedactedRoomJoinRulesEventContent { join_rule: self.join_rule }
+        self
+    }
+}
+
+impl RedactedStateEventContent for RoomJoinRulesEventContent {
+    type StateKey = <RoomJoinRulesEventContent as StateEventContent>::StateKey;
+
+    fn event_type(&self) -> StateEventType {
+        StateEventType::RoomJoinRules
     }
 }
 
@@ -101,7 +109,7 @@ impl<'de> Deserialize<'de> for RedactedRoomJoinRulesEventContent {
 
 impl JsonCastable<JsonObject> for RedactedRoomJoinRulesEventContent {}
 
-impl From<RedactedRoomJoinRulesEventContent> for PossiblyRedactedRoomJoinRulesEventContent {
+impl From<RedactedRoomJoinRulesEventContent> for RoomJoinRulesEventContent {
     fn from(value: RedactedRoomJoinRulesEventContent) -> Self {
         let RedactedRoomJoinRulesEventContent { join_rule } = value;
         Self { join_rule }

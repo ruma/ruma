@@ -25,7 +25,7 @@ fn deserialize_room_name_with_prev_content() {
     });
 
     assert_let!(Ok(AnyStateEvent::RoomName(StateEvent::Original(ev))) = from_json_value(json));
-    assert_eq!(ev.content.name, "Somewhere");
+    assert_eq!(ev.content.name.as_deref(), Some("Somewhere"));
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
     assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
     assert_eq!(ev.room_id, "!roomid:room.com");
@@ -78,7 +78,7 @@ fn deserialize_sync_room_name_with_prev_content() {
     assert_let!(
         Ok(AnySyncStateEvent::RoomName(SyncStateEvent::Original(ev))) = from_json_value(json)
     );
-    assert_eq!(ev.content.name, "Somewhere");
+    assert_eq!(ev.content.name.as_deref(), Some("Somewhere"));
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
     assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
     assert_eq!(ev.sender, "@carl:example.com");
@@ -217,7 +217,7 @@ fn deserialize_full_event_convert_to_sync() {
             AnySyncStateEvent::from(full_ev)
     );
 
-    assert_eq!(sync_ev.content.topic, "We welcome everybody");
+    assert_eq!(sync_ev.content.topic.as_deref(), Some("We welcome everybody"));
     assert_eq!(sync_ev.event_id, "$h29iv0s8:example.com");
     assert_eq!(sync_ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
     assert_eq!(

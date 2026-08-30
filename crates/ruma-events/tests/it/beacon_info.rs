@@ -127,7 +127,7 @@ fn beacon_info_start_event_content_deserialization() {
 
     assert_eq!(event_content.description.as_deref(), Some("Kylie's live location"));
     assert!(event_content.live);
-    assert_eq!(event_content.ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
+    assert_eq!(event_content.ts, Some(MilliSecondsSinceUnixEpoch(uint!(1_636_829_458))));
     assert_eq!(event_content.timeout, Duration::from_secs(60));
     assert_eq!(event_content.asset.type_, AssetType::Self_);
 }
@@ -149,7 +149,7 @@ fn state_event_deserialization() {
     assert_let!(AnyStateEvent::BeaconInfo(StateEvent::Original(ev)) = event);
 
     assert_eq!(ev.content.description.as_deref(), Some("Kylie's live location"));
-    assert_eq!(ev.content.ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
+    assert_eq!(ev.content.ts, Some(MilliSecondsSinceUnixEpoch(uint!(1_636_829_458))));
     assert_eq!(ev.content.timeout, Duration::from_secs(60));
     assert_eq!(ev.content.asset.type_, AssetType::Self_);
     assert!(ev.content.live);

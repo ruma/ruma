@@ -98,7 +98,7 @@ impl RoomCreateEventContent {
 }
 
 impl RedactContent for RoomCreateEventContent {
-    type Redacted = RedactedRoomCreateEventContent;
+    type Redacted = Self;
 
     fn redact(self, rules: &RedactionRules) -> Self::Redacted {
         #[allow(deprecated)]
