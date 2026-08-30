@@ -197,7 +197,7 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 ///
 /// * `{kind}EventContent`
 /// * `StaticEventContent`
-/// * `StaticStateEventContent`, `PossiblyRedactedStateEventContent` and
+/// * `StaticStateEventContent`, `RedactContent`, `PossiblyRedactedStateEventContent` and
 ///   `RedactedStateEventContent`, for the `State` kind.
 ///
 /// # Generated types
@@ -210,9 +210,9 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 /// Some kinds can generate a modified clone of the event content type. For instance, for an event
 /// content type named `FooEventContent`:
 ///
-/// * `RedactedFooEventContent`: the redacted form of the event content, for the `MessageLike` and
-///   `State` kinds. It also generates the `RedactContent` implementation which applies the
-///   redaction algorithm according to the Matrix specification.
+/// * `RedactedFooEventContent`: the redacted form of the event content, for the `MessageLike` kind.
+///   It also generates the `RedactContent` implementation which applies the redaction algorithm
+///   according to the Matrix specification.
 ///
 ///   The generated type implements `Redacted{Kind}EventContent`, `StaticEventContent`, `Serialize`
 ///   and `Deserialize`.
@@ -332,9 +332,9 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 ///
 /// ### `custom_redacted`
 ///
-/// If the kind requires a `Redacted{}EventContent` type and a `RedactContent` implementation and it
-/// is not possible to generate them with the macro, setting this attribute prevents the macro from
-/// trying to generate them. The type and trait must be implemented manually.
+/// If the kind requires a `Redacted{}EventContent` type and/or a `RedactContent` implementation and
+/// it is not possible to generate them with the macro, setting this attribute prevents the macro
+/// from trying to generate them. The type and/or trait must be implemented manually.
 ///
 /// ### `custom_possibly_redacted`
 ///
