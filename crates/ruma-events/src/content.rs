@@ -122,15 +122,6 @@ pub trait StaticStateEventContent: StateEventContent {
     type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + DeserializeOwned + EventUnsignedData;
 }
 
-/// Content of a redacted state event.
-pub trait RedactedStateEventContent: Sized + Serialize {
-    /// The type of the event's `state_key` field.
-    type StateKey: AsRef<str> + Clone + fmt::Debug + DeserializeOwned + Serialize;
-
-    /// Get the event's type, like `m.room.name`.
-    fn event_type(&self) -> StateEventType;
-}
-
 /// Content of a to-device event.
 pub trait ToDeviceEventContent: Sized + Serialize {
     /// Get the event's type, like `m.room_key`.

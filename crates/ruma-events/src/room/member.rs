@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     AnyRedactionEvent, AnyStrippedStateEvent, BundledStateRelations, EventUnsignedData,
-    PrivOwnedStr, RedactContent, RedactedStateEventContent, StateEventType,
+    PrivOwnedStr, RedactContent,
 };
 
 mod change;
@@ -193,14 +193,6 @@ impl RedactContent for RoomMemberEventContent {
             #[cfg(feature = "unstable-msc4293")]
             redact_events: false,
         }
-    }
-}
-
-impl RedactedStateEventContent for RoomMemberEventContent {
-    type StateKey = OwnedUserId;
-
-    fn event_type(&self) -> StateEventType {
-        StateEventType::RoomMember
     }
 }
 

@@ -14,9 +14,8 @@ use super::{
     EphemeralRoomEventContent, EphemeralRoomEventType, EventContentFromType,
     GlobalAccountDataEventContent, GlobalAccountDataEventType, MessageLikeEventContent,
     MessageLikeEventType, RedactContent, RedactedMessageLikeEventContent,
-    RedactedStateEventContent, RoomAccountDataEventContent, RoomAccountDataEventType,
-    StateEventContent, StateEventType, StaticStateEventContent, ToDeviceEventContent,
-    ToDeviceEventType,
+    RoomAccountDataEventContent, RoomAccountDataEventType, StateEventContent, StateEventType,
+    StaticStateEventContent, ToDeviceEventContent, ToDeviceEventType,
 };
 use crate::{AnyRedactionEvent, BundledStateRelations, EventUnsignedData};
 
@@ -97,13 +96,6 @@ impl StateEventContent for CustomStateEventContent {
 }
 impl StaticStateEventContent for CustomStateEventContent {
     type Unsigned = CustomStateUnsigned;
-}
-impl RedactedStateEventContent for CustomStateEventContent {
-    type StateKey = String;
-
-    fn event_type(&self) -> StateEventType {
-        self.event_type[..].into()
-    }
 }
 
 /// Extra information about a custom state event that is not incorporated into the event's hash.

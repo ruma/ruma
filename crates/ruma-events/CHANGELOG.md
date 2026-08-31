@@ -15,6 +15,7 @@ Breaking changes:
   - The bound on `StrippedStateEvent` is now `StaticStateEventContent`
   - The `custom_possibly_redacted` attribute is no longer supported for the `EventContent` derive
     macro.  
+- The `RedactedStateEventContent` trait was removed.
 - The `compat-optional` cargo feature was removed because it is no longer used.
 - The `(Sync)StateEvent` and `StateEventContentChange` types are now structs instead of enums.
   - Most of the field accessors on those types were removed because the fields are directly

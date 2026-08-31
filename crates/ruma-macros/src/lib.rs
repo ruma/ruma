@@ -197,8 +197,7 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 ///
 /// * `{kind}EventContent`
 /// * `StaticEventContent`
-/// * `StaticStateEventContent`, `RedactContent` and `RedactedStateEventContent`, for the `State`
-///   kind.
+/// * `StaticStateEventContent` and `RedactContent`, for the `State` kind.
 ///
 /// # Generated types
 ///

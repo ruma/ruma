@@ -9,7 +9,7 @@ use ruma_common::{
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::{EmptyStateKey, RedactContent, RedactedStateEventContent, StateEventType};
+use crate::{EmptyStateKey, RedactContent};
 
 /// The content of an `m.room.create` event.
 ///
@@ -140,14 +140,6 @@ impl PreviousRoom {
 /// Used to default the `room_version` field to room version 1.
 fn default_room_version_id() -> RoomVersionId {
     RoomVersionId::V1
-}
-
-impl RedactedStateEventContent for RoomCreateEventContent {
-    type StateKey = EmptyStateKey;
-
-    fn event_type(&self) -> StateEventType {
-        StateEventType::RoomCreate
-    }
 }
 
 #[cfg(test)]

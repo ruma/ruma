@@ -7,7 +7,7 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use super::PolicyRuleEventContent;
-use crate::{RedactContent, RedactedStateEventContent};
+use crate::RedactContent;
 
 /// The content of an `m.policy.rule.server` event.
 ///
@@ -22,13 +22,5 @@ impl RedactContent for PolicyRuleServerEventContent {
 
     fn redact(self, _rules: &RedactionRules) -> Self::Redacted {
         Self(PolicyRuleEventContent::empty())
-    }
-}
-
-impl RedactedStateEventContent for PolicyRuleServerEventContent {
-    type StateKey = String;
-
-    fn event_type(&self) -> crate::StateEventType {
-        crate::StateEventType::PolicyRuleServer
     }
 }
