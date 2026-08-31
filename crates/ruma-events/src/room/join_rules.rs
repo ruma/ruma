@@ -3,17 +3,11 @@
 //! [`m.room.join_rules`]: https://spec.matrix.org/v1.19/client-server-api/#mroomjoin_rules
 
 pub use ruma_common::room::{AllowRule, JoinRule, Restricted};
-use ruma_common::{
-    room_version_rules::RedactionRules,
-    serde::{JsonCastable, JsonObject},
-};
+use ruma_common::room_version_rules::RedactionRules;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize, de};
 
-use crate::{
-    EmptyStateKey, RedactContent, RedactedStateEventContent, StateEventContent, StateEventType,
-    StaticEventContent,
-};
+use crate::{EmptyStateKey, RedactContent};
 
 /// The content of an `m.room.join_rules` event.
 ///
@@ -48,10 +42,10 @@ impl RoomJoinRulesEventContent {
 }
 
 impl RedactContent for RoomJoinRulesEventContent {
-    type Redacted = RedactedRoomJoinRulesEventContent;
+    type Redacted = Self;
 
     fn redact(self, _rules: &RedactionRules) -> Self::Redacted {
-        RedactedRoomJoinRulesEventContent { join_rule: self.join_rule }
+        self
     }
 }
 
@@ -65,66 +59,17 @@ impl<'de> Deserialize<'de> for RoomJoinRulesEventContent {
     }
 }
 
-impl JsonCastable<RedactedRoomJoinRulesEventContent> for RoomJoinRulesEventContent {}
-
-/// The redacted form of [`RoomJoinRulesEventContent`].
-#[derive(Clone, Debug, Serialize)]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct RedactedRoomJoinRulesEventContent {
-    /// The type of rules used for users wishing to join this room.
-    #[serde(flatten)]
-    pub join_rule: JoinRule,
-}
-
-impl StaticEventContent for RedactedRoomJoinRulesEventContent {
-    const TYPE: &'static str = RoomJoinRulesEventContent::TYPE;
-    type IsPrefix = <RoomJoinRulesEventContent as StaticEventContent>::IsPrefix;
-}
-
-impl RedactedStateEventContent for RedactedRoomJoinRulesEventContent {
-    type StateKey = <RoomJoinRulesEventContent as StateEventContent>::StateKey;
-
-    fn event_type(&self) -> StateEventType {
-        StateEventType::RoomJoinRules
-    }
-}
-
-impl<'de> Deserialize<'de> for RedactedRoomJoinRulesEventContent {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: de::Deserializer<'de>,
-    {
-        let join_rule = JoinRule::deserialize(deserializer)?;
-        Ok(Self { join_rule })
-    }
-}
-
-impl JsonCastable<JsonObject> for RedactedRoomJoinRulesEventContent {}
-
-impl From<RedactedRoomJoinRulesEventContent> for PossiblyRedactedRoomJoinRulesEventContent {
-    fn from(value: RedactedRoomJoinRulesEventContent) -> Self {
-        let RedactedRoomJoinRulesEventContent { join_rule } = value;
-        Self { join_rule }
-    }
-}
-
 impl RoomJoinRulesEvent {
     /// Obtain the join rule, regardless of whether this event is redacted.
     pub fn join_rule(&self) -> &JoinRule {
-        match self {
-            Self::Original(ev) => &ev.content.join_rule,
-            Self::Redacted(ev) => &ev.content.join_rule,
-        }
+        &self.content.join_rule
     }
 }
 
 impl SyncRoomJoinRulesEvent {
     /// Obtain the join rule, regardless of whether this event is redacted.
     pub fn join_rule(&self) -> &JoinRule {
-        match self {
-            Self::Original(ev) => &ev.content.join_rule,
-            Self::Redacted(ev) => &ev.content.join_rule,
-        }
+        &self.content.join_rule
     }
 }
 
@@ -134,11 +79,7 @@ mod tests {
     use ruma_common::owned_room_id;
     use serde_json::json;
 
-    use super::{
-        AllowRule, JoinRule, OriginalSyncRoomJoinRulesEvent, RedactedRoomJoinRulesEventContent,
-        RoomJoinRulesEventContent,
-    };
-    use crate::room::join_rules::RedactedSyncRoomJoinRulesEvent;
+    use super::{AllowRule, JoinRule, RoomJoinRulesEventContent, SyncRoomJoinRulesEvent};
 
     #[test]
     fn deserialize_content() {
@@ -146,9 +87,6 @@ mod tests {
 
         let event: RoomJoinRulesEventContent = serde_json::from_str(json).unwrap();
         assert_matches!(event, RoomJoinRulesEventContent { join_rule: JoinRule::Public });
-
-        let event: RedactedRoomJoinRulesEventContent = serde_json::from_str(json).unwrap();
-        assert_matches!(event, RedactedRoomJoinRulesEventContent { join_rule: JoinRule::Public });
     }
 
     #[test]
@@ -168,16 +106,6 @@ mod tests {
         }"#;
 
         let event: RoomJoinRulesEventContent = serde_json::from_str(json).unwrap();
-        assert_matches!(event.join_rule, JoinRule::Restricted(restricted));
-        assert_eq!(
-            restricted.allow,
-            &[
-                AllowRule::room_membership(owned_room_id!("!mods:example.org")),
-                AllowRule::room_membership(owned_room_id!("!users:example.org"))
-            ]
-        );
-
-        let event: RedactedRoomJoinRulesEventContent = serde_json::from_str(json).unwrap();
         assert_matches!(event.join_rule, JoinRule::Restricted(restricted));
         assert_eq!(
             restricted.allow,
@@ -207,7 +135,7 @@ mod tests {
             "event_id": "$0ACb9KSPlT3al3kikyRYvFhMqXPP9ZcQOBrsdIuh58U"
         }"#;
 
-        assert_matches!(serde_json::from_str::<OriginalSyncRoomJoinRulesEvent>(json), Ok(_));
+        assert_matches!(serde_json::from_str::<SyncRoomJoinRulesEvent>(json), Ok(_));
     }
 
     #[test]
@@ -238,7 +166,7 @@ mod tests {
             "event_id": "$0ACb9KSPlT3al3kikyRYvFhMqXPP9ZcQOBrsdIuh58U"
         }"#;
 
-        assert_matches!(serde_json::from_str::<RedactedSyncRoomJoinRulesEvent>(json), Ok(_));
+        assert_matches!(serde_json::from_str::<SyncRoomJoinRulesEvent>(json), Ok(_));
     }
 
     #[test]
