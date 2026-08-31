@@ -17,7 +17,7 @@ use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedDeviceId, room_version_rules:
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
 
-use crate::{PrivOwnedStr, RedactContent, RedactedStateEventContent, StateEventType};
+use crate::{PrivOwnedStr, RedactContent};
 
 /// The member state event for a MatrixRTC session.
 ///
@@ -188,14 +188,6 @@ impl RedactContent for CallMemberEventContent {
 
     fn redact(self, _rules: &RedactionRules) -> Self::Redacted {
         Self::Empty(EmptyMembershipData { leave_reason: None })
-    }
-}
-
-impl RedactedStateEventContent for CallMemberEventContent {
-    type StateKey = CallMemberStateKey;
-
-    fn event_type(&self) -> StateEventType {
-        StateEventType::CallMember
     }
 }
 

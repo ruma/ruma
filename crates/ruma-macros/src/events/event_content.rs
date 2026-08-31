@@ -181,9 +181,6 @@ impl EventContent {
             }
         });
 
-        let redacted_event_content_impl =
-            self.expand_event_content_kind_trait_impl(EventContentTraitVariation::Redacted, ident);
-
         Some(quote! {
             #[automatically_derived]
             impl #ruma_events::RedactContent for #ident {
@@ -199,8 +196,6 @@ impl EventContent {
                     }
                 }
             }
-
-            #redacted_event_content_impl
         })
     }
 

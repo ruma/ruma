@@ -7,9 +7,7 @@ use ruma_common::room_version_rules::RedactionRules;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize, de};
 
-use crate::{
-    EmptyStateKey, RedactContent, RedactedStateEventContent, StateEventContent, StateEventType,
-};
+use crate::{EmptyStateKey, RedactContent};
 
 /// The content of an `m.room.join_rules` event.
 ///
@@ -48,14 +46,6 @@ impl RedactContent for RoomJoinRulesEventContent {
 
     fn redact(self, _rules: &RedactionRules) -> Self::Redacted {
         self
-    }
-}
-
-impl RedactedStateEventContent for RoomJoinRulesEventContent {
-    type StateKey = <RoomJoinRulesEventContent as StateEventContent>::StateKey;
-
-    fn event_type(&self) -> StateEventType {
-        StateEventType::RoomJoinRules
     }
 }
 
