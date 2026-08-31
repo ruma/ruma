@@ -214,7 +214,7 @@ pub use self::{
     relation::{BundledMessageLikeRelations, BundledStateRelations},
     state_key::EmptyStateKey,
     unsigned::{
-        AnyRedactionEvent, MessageLikeUnsigned, RedactedUnsigned, StateUnsigned,
+        AnyRedactionEvent, EventUnsignedData, MessageLikeUnsigned, RedactedUnsigned, StateUnsigned,
         UnsignedRoomRedactionEvent,
     },
 };

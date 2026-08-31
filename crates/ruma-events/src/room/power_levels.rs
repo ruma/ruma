@@ -196,10 +196,7 @@ impl RoomPowerLevelsEvent {
         rules: &AuthorizationRules,
         creators: Vec<OwnedUserId>,
     ) -> RoomPowerLevels {
-        match self {
-            Self::Original(ev) => RoomPowerLevels::new(ev.content.clone().into(), rules, creators),
-            Self::Redacted(ev) => RoomPowerLevels::new(ev.content.clone().into(), rules, creators),
-        }
+        RoomPowerLevels::new(self.content.clone().into(), rules, creators)
     }
 }
 
@@ -210,10 +207,7 @@ impl SyncRoomPowerLevelsEvent {
         rules: &AuthorizationRules,
         creators: Vec<OwnedUserId>,
     ) -> RoomPowerLevels {
-        match self {
-            Self::Original(ev) => RoomPowerLevels::new(ev.content.clone().into(), rules, creators),
-            Self::Redacted(ev) => RoomPowerLevels::new(ev.content.clone().into(), rules, creators),
-        }
+        RoomPowerLevels::new(self.content.clone().into(), rules, creators)
     }
 }
 

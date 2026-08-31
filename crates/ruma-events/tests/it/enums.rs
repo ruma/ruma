@@ -5,9 +5,9 @@ use ruma_events::{
     AnyMessageLikeEvent, AnyStateEvent, AnyStateEventContent, AnySyncEphemeralRoomEvent,
     AnySyncMessageLikeEvent, AnySyncStateEvent, AnySyncTimelineEvent, AnyTimelineEvent,
     EmptyStateKey, EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEvent,
-    MessageLikeEventType, OriginalMessageLikeEvent, OriginalStateEvent,
-    OriginalSyncMessageLikeEvent, OriginalSyncStateEvent, RoomAccountDataEventType, StateEvent,
-    StateEventType, SyncMessageLikeEvent, SyncStateEvent, ToDeviceEventType,
+    MessageLikeEventType, OriginalMessageLikeEvent, OriginalSyncMessageLikeEvent,
+    RoomAccountDataEventType, StateEvent, StateEventType, SyncMessageLikeEvent, SyncStateEvent,
+    ToDeviceEventType,
     room::{
         member::{MembershipState, RoomMemberEventContent},
         message::{MessageType, RoomMessageEventContent},
@@ -89,12 +89,10 @@ fn power_event_sync_deserialization() {
     });
 
     assert_let!(
-        Ok(AnySyncTimelineEvent::State(AnySyncStateEvent::RoomPowerLevels(
-            SyncStateEvent::Original(OriginalSyncStateEvent {
-                content: RoomPowerLevelsEventContent { ban, .. },
-                ..
-            })
-        ))) = from_json_value::<AnySyncTimelineEvent>(json_data)
+        Ok(AnySyncTimelineEvent::State(AnySyncStateEvent::RoomPowerLevels(SyncStateEvent {
+            content: RoomPowerLevelsEventContent { ban, .. },
+            ..
+        }))) = from_json_value::<AnySyncTimelineEvent>(json_data)
     );
     assert_eq!(ban, int!(50));
 }
@@ -145,19 +143,18 @@ fn room_name_event_sync_deserialization() {
     assert_eq!(state_event.event_id(), "$152037280074GZeOm:localhost");
     assert_eq!(state_event.sender(), "@example:localhost");
     assert_eq!(state_event.event_type(), StateEventType::RoomName);
-    assert_let!(AnySyncStateEvent::RoomName(SyncStateEvent::Original(event)) = &state_event);
+    assert_let!(AnySyncStateEvent::RoomName(event) = &state_event);
     assert_eq!(event.content.name.as_deref(), Some("Somewhere"));
     assert_let!(AnyStateEventContent::RoomName(content) = state_event.content());
     assert_eq!(content.name.as_deref(), Some("Somewhere"));
 
     // Deserialize as state enum.
     assert_let!(Ok(AnySyncStateEvent::RoomName(state_event)) = from_json_value(json));
-    assert_matches!(state_event.state_key(), EmptyStateKey);
-    assert_eq!(state_event.event_id(), "$152037280074GZeOm:localhost");
-    assert_eq!(state_event.sender(), "@example:localhost");
+    assert_matches!(state_event.state_key, EmptyStateKey);
+    assert_eq!(state_event.event_id, "$152037280074GZeOm:localhost");
+    assert_eq!(state_event.sender, "@example:localhost");
     assert_eq!(state_event.event_type(), StateEventType::RoomName);
-    assert_let!(Some(event) = state_event.as_original());
-    assert_eq!(event.content.name.as_deref(), Some("Somewhere"));
+    assert_eq!(state_event.content.name.as_deref(), Some("Somewhere"));
 }
 
 #[test]
@@ -216,10 +213,8 @@ fn room_name_event_deserialization() {
     assert_eq!(state_event.sender(), "@example:localhost");
     assert_eq!(state_event.event_type(), StateEventType::RoomName);
     assert_let!(
-        AnyStateEvent::RoomName(StateEvent::Original(OriginalStateEvent {
-            content: RoomNameEventContent { name, .. },
-            ..
-        })) = &state_event
+        AnyStateEvent::RoomName(StateEvent { content: RoomNameEventContent { name, .. }, .. }) =
+            &state_event
     );
     assert_eq!(name.as_deref(), Some("Somewhere"));
     assert_let!(AnyStateEventContent::RoomName(content) = state_event.content());
@@ -227,13 +222,12 @@ fn room_name_event_deserialization() {
 
     // Deserialize as state enum.
     assert_let!(Ok(AnyStateEvent::RoomName(state_event)) = from_json_value(json));
-    assert_matches!(state_event.state_key(), EmptyStateKey);
-    assert_eq!(state_event.room_id(), "!room:room.com");
-    assert_eq!(state_event.event_id(), "$152037280074GZeOm:localhost");
-    assert_eq!(state_event.sender(), "@example:localhost");
+    assert_matches!(state_event.state_key, EmptyStateKey);
+    assert_eq!(state_event.room_id, "!room:room.com");
+    assert_eq!(state_event.event_id, "$152037280074GZeOm:localhost");
+    assert_eq!(state_event.sender, "@example:localhost");
     assert_eq!(state_event.event_type(), StateEventType::RoomName);
-    assert_let!(Some(event) = state_event.as_original());
-    assert_eq!(event.content.name.as_deref(), Some("Somewhere"));
+    assert_eq!(state_event.content.name.as_deref(), Some("Somewhere"));
 }
 
 #[test]
@@ -388,10 +382,7 @@ fn unsigned_membership_any_redacted_state() {
     json["state_key"] = json!("");
 
     let event = from_json_value::<AnySyncTimelineEvent>(json).unwrap();
-    assert_matches!(
-        event,
-        AnySyncTimelineEvent::State(AnySyncStateEvent::RoomName(SyncStateEvent::Redacted(_)))
-    );
+    assert_matches!(event, AnySyncTimelineEvent::State(AnySyncStateEvent::RoomName(_)));
     assert_eq!(event.unsigned_membership(), Some(&MembershipState::Ban));
 }
 
@@ -404,10 +395,7 @@ fn unsigned_membership_any_redacted_room_redaction() {
     );
 
     let event = from_json_value::<AnySyncMessageLikeEvent>(json).unwrap();
-    assert_matches!(
-        event,
-        AnySyncMessageLikeEvent::RoomRedaction(SyncRoomRedactionEvent::Redacted(_))
-    );
+    assert_matches!(event, AnySyncMessageLikeEvent::RoomRedaction(_));
     assert_eq!(event.unsigned_membership(), Some(&MembershipState::Knock));
 }
 
@@ -445,9 +433,8 @@ fn unsigned_membership_typed_state() {
     let event = from_json_value::<SyncStateEvent<RoomMemberEventContent>>(original).unwrap();
     // `membership()` is the membership in the content, for the user in the `state_key`.
     assert_eq!(*event.membership(), MembershipState::Join);
-    assert_let!(SyncStateEvent::Original(ev) = event);
-    assert_eq!(ev.unsigned.membership, Some(MembershipState::Invite));
-    assert!(!ev.unsigned.is_empty());
+    assert_eq!(event.unsigned.membership, Some(MembershipState::Invite));
+    assert!(!event.unsigned.is_empty());
 
     let mut original = timeline_event_with_unsigned(
         "m.room.name",
@@ -456,9 +443,8 @@ fn unsigned_membership_typed_state() {
     );
     original["state_key"] = json!("");
     let event = from_json_value::<SyncStateEvent<RoomNameEventContent>>(original).unwrap();
-    assert_let!(SyncStateEvent::Original(ev) = event);
-    assert_eq!(ev.unsigned.membership, Some(MembershipState::Join));
-    assert!(!ev.unsigned.is_empty());
+    assert_eq!(event.unsigned.membership, Some(MembershipState::Join));
+    assert!(!event.unsigned.is_empty());
 
     let mut redacted = timeline_event_with_unsigned(
         "m.room.name",
@@ -468,8 +454,7 @@ fn unsigned_membership_typed_state() {
     redacted["state_key"] = json!("");
     redacted["room_id"] = json!("!room:localhost");
     let event = from_json_value::<StateEvent<RoomNameEventContent>>(redacted).unwrap();
-    assert_let!(StateEvent::Redacted(ev) = event);
-    assert_eq!(ev.unsigned.membership, Some(MembershipState::Ban));
+    assert_eq!(event.unsigned.membership, Some(MembershipState::Ban));
 }
 
 #[test]

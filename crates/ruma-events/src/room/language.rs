@@ -33,7 +33,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json};
 
     use super::RoomLanguageEventContent;
-    use crate::{OriginalStateEvent, room::language::LanguageTag};
+    use crate::{StateEvent, room::language::LanguageTag};
 
     #[test]
     fn serialization() {
@@ -62,7 +62,7 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<OriginalStateEvent<RoomLanguageEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomLanguageEventContent>>(json_data)
                 .unwrap()
                 .content
                 .language,

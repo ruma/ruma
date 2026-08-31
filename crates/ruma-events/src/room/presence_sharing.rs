@@ -63,7 +63,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json};
 
     use super::{PresenceSharingHint, RoomPresenceSharingEventContent};
-    use crate::OriginalStateEvent;
+    use crate::StateEvent;
 
     #[test]
     fn serialization() {
@@ -92,7 +92,7 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<OriginalStateEvent<RoomPresenceSharingEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomPresenceSharingEventContent>>(json_data)
                 .unwrap()
                 .content
                 .presence_sharing,

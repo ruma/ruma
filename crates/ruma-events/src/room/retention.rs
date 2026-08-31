@@ -183,7 +183,7 @@ mod tests {
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
     use super::*;
-    use crate::OriginalStateEvent;
+    use crate::StateEvent;
 
     fn raw_json(
         min_lifetime: impl Into<Option<UInt>>,
@@ -207,7 +207,7 @@ mod tests {
     fn deserialization() {
         let json_data = raw_json(None, None);
         let RoomRetentionEventContent { max_lifetime, min_lifetime, .. } =
-            from_json_value::<OriginalStateEvent<RoomRetentionEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomRetentionEventContent>>(json_data)
                 .expect("No lifetimes should deserliaze")
                 .content;
 
@@ -216,7 +216,7 @@ mod tests {
 
         let json_data = raw_json(uint!(10), None);
         let RoomRetentionEventContent { max_lifetime, min_lifetime, .. } =
-            from_json_value::<OriginalStateEvent<RoomRetentionEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomRetentionEventContent>>(json_data)
                 .expect("A min lifetime and no max lifetime should deserialize")
                 .content;
 
@@ -225,7 +225,7 @@ mod tests {
 
         let json_data = raw_json(uint!(10), uint!(10));
         let RoomRetentionEventContent { max_lifetime, min_lifetime, .. } =
-            from_json_value::<OriginalStateEvent<RoomRetentionEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomRetentionEventContent>>(json_data)
                 .expect("Setting both lifetimes, should still deserialize")
                 .content;
 
@@ -233,7 +233,7 @@ mod tests {
         assert_eq!(max_lifetime, Some(uint!(10)));
 
         let json_data = raw_json(uint!(20), uint!(10));
-        from_json_value::<OriginalStateEvent<RoomRetentionEventContent>>(json_data).expect_err(
+        from_json_value::<StateEvent<RoomRetentionEventContent>>(json_data).expect_err(
             "If the max lifetime is smaller than the min lifetime, we should fail to deserialize",
         );
     }

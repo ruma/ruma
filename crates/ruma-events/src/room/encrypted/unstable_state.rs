@@ -31,7 +31,7 @@ mod tests {
     use strass::assert_let;
 
     use crate::{
-        AnyStateEvent, StateEvent,
+        AnyStateEvent,
         room::encrypted::{
             EncryptedEventScheme, MegolmV1AesSha2ContentInit,
             unstable_state::StateRoomEncryptedEventContent,
@@ -99,7 +99,7 @@ mod tests {
         });
         let event = from_json_value::<AnyStateEvent>(json_data).unwrap();
 
-        assert_let!(AnyStateEvent::RoomEncrypted(StateEvent::Original(ev)) = event);
+        assert_let!(AnyStateEvent::RoomEncrypted(ev) = event);
 
         assert_let!(Some(EncryptedEventScheme::MegolmV1AesSha2(scheme)) = ev.content.scheme);
         assert_eq!(scheme.ciphertext, "ciphertext");

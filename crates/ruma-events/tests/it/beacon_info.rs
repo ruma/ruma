@@ -6,9 +6,7 @@ use js_int::uint;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, serde::CanBeEmpty,
 };
-use ruma_events::{
-    AnyStateEvent, StateEvent, beacon_info::BeaconInfoEventContent, location::AssetType,
-};
+use ruma_events::{AnyStateEvent, beacon_info::BeaconInfoEventContent, location::AssetType};
 use serde_json::{from_value as from_json_value, json};
 use strass::assert_let;
 
@@ -146,7 +144,7 @@ fn state_event_deserialization() {
 
     let event = from_json_value::<AnyStateEvent>(json_data).unwrap();
 
-    assert_let!(AnyStateEvent::BeaconInfo(StateEvent::Original(ev)) = event);
+    assert_let!(AnyStateEvent::BeaconInfo(ev) = event);
 
     assert_eq!(ev.content.description.as_deref(), Some("Kylie's live location"));
     assert_eq!(ev.content.ts, Some(MilliSecondsSinceUnixEpoch(uint!(1_636_829_458))));

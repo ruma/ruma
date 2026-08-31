@@ -33,20 +33,14 @@ impl RoomGuestAccessEventContent {
 impl RoomGuestAccessEvent {
     /// Obtain the guest access policy, regardless of whether this event is redacted.
     pub fn guest_access(&self) -> &GuestAccess {
-        match self {
-            Self::Original(ev) => &ev.content.guest_access,
-            Self::Redacted(_) => &GuestAccess::Forbidden,
-        }
+        &self.content.guest_access
     }
 }
 
 impl SyncRoomGuestAccessEvent {
     /// Obtain the guest access policy, regardless of whether this event is redacted.
     pub fn guest_access(&self) -> &GuestAccess {
-        match self {
-            Self::Original(ev) => &ev.content.guest_access,
-            Self::Redacted(_) => &GuestAccess::Forbidden,
-        }
+        &self.content.guest_access
     }
 }
 

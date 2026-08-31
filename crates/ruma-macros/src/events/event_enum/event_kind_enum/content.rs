@@ -244,13 +244,7 @@ impl EventContentEnum<'_> {
     }
 
     /// Generate the accessors on an event enum to get the event content.
-    pub(super) fn expand_content_accessors(
-        &self,
-        event_variation: EventVariation,
-        event_struct: &syn::Ident,
-    ) -> TokenStream {
-        let ruma_events = self.ruma_events;
-
+    pub(super) fn expand_content_accessors(&self, event_variation: EventVariation) -> TokenStream {
         let ident = &self.ident;
         let variants = &self.variants;
         let variant_attrs = &self.variant_attrs;
@@ -287,48 +281,24 @@ impl EventContentEnum<'_> {
                     }
                 }
             }
-            (EventEnumKind::State, EventVariation::None | EventVariation::Sync) => {
-                quote! {
-                    /// Returns the content for this event.
-                    pub fn content(&self) -> #ident {
-                        match self {
-                            #(
-                                #( #variant_attrs )*
-                                Self::#variants(event) => match event {
-                                    #ruma_events::#event_struct::Original(ev) => {
-                                        #ident::#variants(ev.content.clone())
-                                    }
-                                    #ruma_events::#event_struct::Redacted(ev) => {
-                                        #ident::#variants(ev.content.clone())
-                                    }
-                                },
-                            )*
-                            Self::_Custom(event) => match event {
-                                #ruma_events::#event_struct::Original(ev) => {
-                                    #ident::_Custom(ev.content.clone())
-                                }
-                                #ruma_events::#event_struct::Redacted(ev) => {
-                                    #ident::_Custom(ev.content.clone())
-                                }
-                            },
-                        }
-                    }
-
-                    /// Returns whether this event is redacted.
-                    pub fn is_redacted(&self) -> bool {
-                        match self {
-                            #(
-                                #( #variant_attrs )*
-                                Self::#variants(event) => {
-                                    event.as_original().is_none()
-                                }
-                            )*
-                            Self::_Custom(event) => event.as_original().is_none(),
-                        }
-                    }
-                }
-            }
             _ => {
+                let is_redacted_impl = (matches!(self.kind, EventEnumKind::State)
+                    && matches!(event_variation, EventVariation::None | EventVariation::Sync))
+                .then(|| {
+                    quote! {
+                        /// Returns whether this event is redacted.
+                        pub fn is_redacted(&self) -> bool {
+                            match self {
+                                #(
+                                    #( #variant_attrs )*
+                                    Self::#variants(event) => event.is_redacted(),
+                                )*
+                                Self::_Custom(event) => event.is_redacted(),
+                            }
+                        }
+                    }
+                });
+
                 quote! {
                     /// Returns the content for this event.
                     pub fn content(&self) -> #ident {
@@ -340,6 +310,8 @@ impl EventContentEnum<'_> {
                             Self::_Custom(event) => #ident::_Custom(event.content.clone()),
                         }
                     }
+
+                    #is_redacted_impl
                 }
             }
         }
@@ -428,10 +400,7 @@ impl EventContentChangeEnum<'_> {
     }
 
     /// Generate the accessors on an event enum to get the event content.
-    ///
-    /// `event_enum` is the name of the `*StateEvent` enum containing the `Original` and `Redacted`
-    /// variants, used by each variant of the `Any*StateEvent` enum.
-    pub(super) fn expand_content_accessors(&self, event_enum: &syn::Ident) -> TokenStream {
+    pub(super) fn expand_content_accessors(&self) -> TokenStream {
         let ruma_events = self.ruma_events;
 
         let ident = &self.ident;
@@ -444,27 +413,17 @@ impl EventContentChangeEnum<'_> {
                 match self {
                     #(
                         #( #variant_attrs )*
-                        Self::#variants(event) => match event {
-                            #ruma_events::#event_enum::Original(ev) => #ident::#variants(
-                                #ruma_events::StateEventContentChange::Original {
-                                    content: ev.content.clone(),
-                                    prev_content: ev.unsigned.prev_content.clone()
+                        Self::#variants(event) => {
+                            #ident::#variants(
+                                #ruma_events::StateEventContentChange {
+                                    content: event.content.clone(),
+                                    prev_content: event.unsigned.prev_content.clone()
                                 }
-                            ),
-                            #ruma_events::#event_enum::Redacted(ev) => #ident::#variants(
-                                #ruma_events::StateEventContentChange::Redacted(
-                                    ev.content.clone()
-                                )
-                            ),
-                        },
+                            )
+                        }
                     )*
-                    Self::_Custom(event) => match event {
-                        #ruma_events::#event_enum::Original(ev) => {
-                            #ident::_Custom(ev.content.clone())
-                        }
-                        #ruma_events::#event_enum::Redacted(ev) => {
-                            #ident::_Custom(ev.content.clone())
-                        }
+                    Self::_Custom(event) => {
+                        #ident::_Custom(event.content.clone())
                     },
                 }
             }

@@ -41,7 +41,7 @@ mod test {
     use strass::assert_let;
 
     use super::*;
-    use crate::{AnyStateEvent, StateEvent};
+    use crate::AnyStateEvent;
 
     #[test]
     fn deserialize() {
@@ -64,7 +64,7 @@ mod test {
         let event = from_json_value::<AnyStateEvent>(data)
             .expect("We should be able to deserialize the member hints event");
 
-        assert_let!(AnyStateEvent::MemberHints(StateEvent::Original(event)) = event);
+        assert_let!(AnyStateEvent::MemberHints(event) = event);
 
         assert!(event.content.service_members.contains(user_id));
 
@@ -85,7 +85,7 @@ mod test {
         let event = from_json_value::<AnyStateEvent>(data)
             .expect("We should be able to deserialize the member hints event");
 
-        assert_let!(AnyStateEvent::MemberHints(StateEvent::Original(event)) = event);
+        assert_let!(AnyStateEvent::MemberHints(event) = event);
 
         assert!(event.content.service_members.contains(user_id));
     }
