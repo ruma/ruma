@@ -149,6 +149,7 @@ pub trait ToDeviceEventContent: Sized + Serialize {
 }
 
 /// Event content that can be deserialized with its event type.
+#[doc(hidden)]
 pub trait EventContentFromType: Sized {
     /// Constructs this event content from the given event type and JSON.
     fn from_parts(event_type: &str, content: &RawJsonValue) -> serde_json::Result<Self>;

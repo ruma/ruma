@@ -40,6 +40,8 @@ Improvements:
 Bug fixes:
 
 - Avoid creating empty formatted body fields when editing plain text message events.
+- Prevent custom event content types used by `_Custom` event variants from implementing
+  `EventContentFromType`.
 
 ## 0.34.0
 
