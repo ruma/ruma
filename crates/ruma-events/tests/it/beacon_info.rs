@@ -8,9 +8,7 @@ use ruma_common::{
     MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id, room_id,
     serde::CanBeEmpty, user_id,
 };
-use ruma_events::{
-    AnyStateEvent, StateEvent, beacon_info::BeaconInfoEventContent, location::AssetType,
-};
+use ruma_events::{AnyStateEvent, beacon_info::BeaconInfoEventContent, location::AssetType};
 use serde_json::{from_value as from_json_value, json};
 
 fn get_beacon_info_event_content(
@@ -147,7 +145,7 @@ fn state_event_deserialization() {
 
     let event = from_json_value::<AnyStateEvent>(json_data).unwrap();
 
-    assert_matches!(event, AnyStateEvent::BeaconInfo(StateEvent::Original(ev)));
+    assert_matches!(event, AnyStateEvent::BeaconInfo(ev));
 
     assert_eq!(ev.content.description, Some("Kylie's live location".to_owned()));
     assert_eq!(ev.content.ts, Some(MilliSecondsSinceUnixEpoch(uint!(1_636_829_458))));

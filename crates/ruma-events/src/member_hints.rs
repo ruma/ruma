@@ -65,7 +65,6 @@ mod test {
             .expect("We should be able to deserialize the member hints event");
 
         assert_matches!(event, AnyStateEvent::MemberHints(event));
-        assert_matches!(event, crate::StateEvent::Original(event));
 
         assert!(event.content.service_members.contains(user_id));
 
@@ -87,7 +86,6 @@ mod test {
             .expect("We should be able to deserialize the member hints event");
 
         assert_matches!(event, AnyStateEvent::MemberHints(event));
-        assert_matches!(event, crate::StateEvent::Original(event));
 
         assert!(event.content.service_members.contains(user_id));
     }

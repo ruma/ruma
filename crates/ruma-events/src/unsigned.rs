@@ -3,7 +3,8 @@ use std::time::Duration;
 
 use js_int::Int;
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedTransactionId, OwnedUserId, UserId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedTransactionId, OwnedUserId,
+    TransactionId, UserId,
     serde::{CanBeEmpty, Raw},
 };
 use serde::{Deserialize, de::DeserializeOwned};
@@ -16,6 +17,18 @@ use super::{
 use crate::{StaticStateEventContent, TimelineEventType};
 
 mod redacted_because_serde;
+
+/// Extra information about an event that is not signed nor incorporated into the event's hash.
+pub trait EventUnsignedData {
+    /// The client-supplied transaction ID, if the client being given the event is the same one
+    /// which sent it.
+    fn transaction_id(&self) -> Option<&TransactionId>;
+
+    /// Whether the event was redacted.
+    ///
+    /// This should return `true` when the unsigned data has a `redacted_because` field that is set.
+    fn is_redacted(&self) -> bool;
+}
 
 /// Extra information about a message event that is not incorporated into the event's hash.
 #[derive(Clone, Debug, Deserialize)]
@@ -84,6 +97,16 @@ impl<C: MessageLikeEventContent> CanBeEmpty for MessageLikeUnsigned<C> {
     }
 }
 
+impl<C: MessageLikeEventContent> EventUnsignedData for MessageLikeUnsigned<C> {
+    fn transaction_id(&self) -> Option<&TransactionId> {
+        self.transaction_id.as_deref()
+    }
+
+    fn is_redacted(&self) -> bool {
+        false
+    }
+}
+
 /// Extra information about a state event that is not incorporated into the event's hash.
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
@@ -111,6 +134,9 @@ pub struct StateUnsigned<C: StaticStateEventContent> {
     #[serde(rename = "m.relations", default)]
     pub relations: BundledStateRelations,
 
+    /// The event that redacted this event, if any.
+    pub redacted_because: Option<Raw<AnyRedactionEvent>>,
+
     /// Milliseconds remaining until this sticky event expires.
     ///
     /// Only present in `/sync` responses for sticky events. See [MSC4354].
@@ -131,6 +157,7 @@ impl<C: StaticStateEventContent> StateUnsigned<C> {
             replaces_state: None,
             prev_content: None,
             relations: Default::default(),
+            redacted_because: None,
             #[cfg(feature = "unstable-msc4354")]
             sticky_duration_ttl_ms: None,
         }
@@ -147,7 +174,8 @@ impl<C: StaticStateEventContent> CanBeEmpty for StateUnsigned<C> {
         let empty = self.age.is_none()
             && self.transaction_id.is_none()
             && self.prev_content.is_none()
-            && self.relations.is_empty();
+            && self.relations.is_empty()
+            && self.redacted_because.is_none();
         #[cfg(feature = "unstable-msc4354")]
         let empty = empty && self.sticky_duration_ttl_ms.is_none();
         empty
@@ -157,6 +185,16 @@ impl<C: StaticStateEventContent> CanBeEmpty for StateUnsigned<C> {
 impl<C: StaticStateEventContent> Default for StateUnsigned<C> {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl<C: StaticStateEventContent> EventUnsignedData for StateUnsigned<C> {
+    fn transaction_id(&self) -> Option<&TransactionId> {
+        self.transaction_id.as_deref()
+    }
+
+    fn is_redacted(&self) -> bool {
+        self.redacted_because.is_some()
     }
 }
 
@@ -172,6 +210,16 @@ impl RedactedUnsigned {
     /// Create a new `RedactedUnsigned` with the given redaction event.
     pub fn new(redacted_because: Raw<AnyRedactionEvent>) -> Self {
         Self { redacted_because }
+    }
+}
+
+impl EventUnsignedData for RedactedUnsigned {
+    fn transaction_id(&self) -> Option<&TransactionId> {
+        None
+    }
+
+    fn is_redacted(&self) -> bool {
+        true
     }
 }
 
@@ -208,7 +256,7 @@ impl AnyRedactionEvent {
         match self {
             Self::RoomRedaction(e) => e.origin_server_ts,
             #[cfg(feature = "unstable-msc4293")]
-            Self::RoomMember(e) => e.origin_server_ts(),
+            Self::RoomMember(e) => e.origin_server_ts,
             Self::_Custom(e) => e.origin_server_ts,
         }
     }
@@ -218,7 +266,7 @@ impl AnyRedactionEvent {
         match self {
             Self::RoomRedaction(e) => &e.event_id,
             #[cfg(feature = "unstable-msc4293")]
-            Self::RoomMember(e) => e.event_id(),
+            Self::RoomMember(e) => &e.event_id,
             Self::_Custom(e) => &e.event_id,
         }
     }
@@ -228,7 +276,7 @@ impl AnyRedactionEvent {
         match self {
             Self::RoomRedaction(e) => &e.sender,
             #[cfg(feature = "unstable-msc4293")]
-            Self::RoomMember(e) => e.sender(),
+            Self::RoomMember(e) => &e.sender,
             Self::_Custom(e) => &e.sender,
         }
     }

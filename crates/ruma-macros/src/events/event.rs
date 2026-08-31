@@ -61,6 +61,17 @@ impl Event {
 
         let event_type_enum = kind.to_event_type_enum();
 
+        let is_redacted_impl = (matches!(kind, CommonEventKind::State)
+            && matches!(self.variation, EventVariation::None | EventVariation::Sync))
+        .then(|| {
+            quote! {
+                /// Whether this event is redacted.
+                pub fn is_redacted(&self) -> bool {
+                    #ruma_events::EventUnsignedData::is_redacted(&self.unsigned)
+                }
+            }
+        });
+
         Some(quote! {
             #[automatically_derived]
             impl #impl_generics #ident #ty_gen #where_clause {
@@ -68,6 +79,8 @@ impl Event {
                 pub fn event_type(&self) -> #ruma_events::#event_type_enum {
                     self.content.event_type()
                 }
+
+                #is_redacted_impl
             }
         })
     }

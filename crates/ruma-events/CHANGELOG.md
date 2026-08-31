@@ -16,6 +16,14 @@ Breaking changes:
   - The `custom_possibly_redacted` attribute is no longer supported for the `EventContent` derive
     macro.  
 - The `compat-optional` cargo feature was removed because it is no longer used.
+- The `(Sync)StateEvent` and `StateEventContentChange` types are now structs instead of enums.
+  - Most of the field accessors on those types were removed because the fields are directly
+    accessible now.
+  - The `(Original/Redacted)(Sync)StateEvent` structs were removed.
+  - The `(Original/Redacted)(Sync)*Event` type aliases were removed for state events.
+  - The `Unsigned` associated type in `StaticStateEventContent` has an extra bound for a new trait
+    `EventUnsignedData` allowing to access common fields in the `unsigned` object.
+  - `StateUnsigned` and `RoomMemberUnsigned` now have a `redacted_because` field.
 
 Improvements:
 

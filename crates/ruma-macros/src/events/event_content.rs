@@ -285,8 +285,7 @@ impl EventContent {
     ) -> TokenStream {
         let event_content_kind_trait_impl =
             self.expand_event_content_kind_trait_impl(variation.into(), ident);
-        let static_state_event_content_impl =
-            self.expand_static_state_event_content_impl(variation, ident);
+        let static_state_event_content_impl = self.expand_static_state_event_content_impl(ident);
         let event_content_from_type_impl = self.expand_event_content_from_type_impl(ident, fields);
 
         quote! {
@@ -343,20 +342,11 @@ impl EventContent {
 
     /// Generate the `ruma_events::StaticStateEventContent` trait implementation for this kind and
     /// the given variation with the given ident, if it needs one.
-    fn expand_static_state_event_content_impl(
-        &self,
-        variation: EventContentVariation,
-        ident: &syn::Ident,
-    ) -> Option<TokenStream> {
+    fn expand_static_state_event_content_impl(&self, ident: &syn::Ident) -> Option<TokenStream> {
         let EventContentKind::State { unsigned_type, .. } = &self.kind else {
             // Only the `State` kind can implement this trait.
             return None;
         };
-
-        if variation != EventContentVariation::Original {
-            // Only the original variation can implement this trait.
-            return None;
-        }
 
         let ruma_events = &self.ruma_events;
 

@@ -159,7 +159,7 @@ impl<'a> EventEnumVariation<'a> {
 
     /// Whether the content in the variants of this enum can be redacted.
     fn maybe_redacted(&self) -> bool {
-        self.kind.is_timeline()
+        matches!(self.kind, EventEnumKind::MessageLike)
             && matches!(self.variation, EventVariation::None | EventVariation::Sync)
     }
 
@@ -328,20 +328,15 @@ impl<'a> EventEnumVariation<'a> {
         &self,
         event_content_enums: &mut EventContentEnums<'a>,
     ) -> TokenStream {
-        let mut tokens = event_content_enums
-            .any_enum()
-            .expand_content_accessors(self.variation, &self.event_struct);
+        let mut tokens = event_content_enums.any_enum().expand_content_accessors(self.variation);
 
         // Generate the `AnyStateEventContentChange` accessors for state enums that contain
         // unsigned data.
         if matches!(self.kind, EventEnumKind::State)
             && matches!(self.variation, EventVariation::None | EventVariation::Sync)
         {
-            tokens.extend(
-                event_content_enums
-                    .event_content_change_enum()
-                    .expand_content_accessors(&self.event_struct),
-            );
+            tokens
+                .extend(event_content_enums.event_content_change_enum().expand_content_accessors());
         }
 
         tokens
@@ -447,30 +442,56 @@ impl<'a> EventEnumVariation<'a> {
 
     /// Generate an accessor for the `unsigned.transaction_id` field for this enum, if present.
     fn expand_transaction_id_accessor(&self) -> Option<TokenStream> {
-        if !self.maybe_redacted() {
+        if !self.kind.is_timeline()
+            || !matches!(self.variation, EventVariation::None | EventVariation::Sync)
+        {
             return None;
         }
 
+        let ruma_events = &self.ruma_events;
         let ruma_common = self.ruma_events.ruma_common();
         let variants = &self.variants;
         let variant_attrs = &self.variant_attrs;
 
-        Some(quote! {
-            /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
-            pub fn transaction_id(&self) -> Option<&#ruma_common::TransactionId> {
-                match self {
-                    #(
-                        #( #variant_attrs )*
-                        Self::#variants(event) => {
-                            event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_deref())
+        match self.kind {
+            EventEnumKind::State => Some(quote! {
+                /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
+                pub fn transaction_id(&self) -> Option<&#ruma_common::TransactionId> {
+                    match self {
+                        #(
+                            #( #variant_attrs )*
+                            Self::#variants(event) => {
+                                #ruma_events::EventUnsignedData::transaction_id(&event.unsigned)
+                            }
+                        )*
+                        Self::_Custom(event) => {
+                            #ruma_events::EventUnsignedData::transaction_id(&event.unsigned)
                         }
-                    )*
-                    Self::_Custom(event) => {
-                        event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_deref())
                     }
                 }
-            }
-        })
+            }),
+            EventEnumKind::MessageLike => Some(quote! {
+                /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
+                pub fn transaction_id(&self) -> Option<&#ruma_common::TransactionId> {
+                    match self {
+                        #(
+                            #( #variant_attrs )*
+                            Self::#variants(event) => {
+                                event.as_original().and_then(|ev| #ruma_events::EventUnsignedData::transaction_id(&ev.unsigned))
+                            }
+                        )*
+                        Self::_Custom(event) => {
+                            event.as_original().and_then(|ev| #ruma_events::EventUnsignedData::transaction_id(&ev.unsigned))
+                        }
+                    }
+                }
+            }),
+            EventEnumKind::GlobalAccountData
+            | EventEnumKind::RoomAccountData
+            | EventEnumKind::EphemeralRoom
+            | EventEnumKind::Timeline
+            | EventEnumKind::ToDevice => None,
+        }
     }
 
     /// Implement `From<Any*Event>` and `.into_full_event()` for this enum, if this is a sync

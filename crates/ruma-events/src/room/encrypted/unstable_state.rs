@@ -34,7 +34,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json};
 
     use crate::{
-        AnyStateEvent, StateEvent,
+        AnyStateEvent,
         room::encrypted::{
             EncryptedEventScheme, MegolmV1AesSha2ContentInit,
             unstable_state::StateRoomEncryptedEventContent,
@@ -102,7 +102,7 @@ mod tests {
         });
         let event = from_json_value::<AnyStateEvent>(json_data).unwrap();
 
-        assert_matches!(event, AnyStateEvent::RoomEncrypted(StateEvent::Original(ev)));
+        assert_matches!(event, AnyStateEvent::RoomEncrypted(ev));
 
         assert_matches!(ev.content.scheme, Some(EncryptedEventScheme::MegolmV1AesSha2(scheme)));
         assert_eq!(scheme.ciphertext, "ciphertext");

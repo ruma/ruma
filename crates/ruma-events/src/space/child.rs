@@ -12,8 +12,6 @@ use ruma_common::{
 use ruma_macros::{Event, EventContent};
 use serde::{Deserialize, Serialize};
 
-use crate::{StateEvent, SyncStateEvent};
-
 /// The content of an `m.space.child` event.
 ///
 /// The admins of a space can advertise rooms and subspaces for their space by setting
@@ -116,11 +114,7 @@ impl PartialOrd for HierarchySpaceChildEvent {
 
 impl JsonCastable<HierarchySpaceChildEvent> for SpaceChildEvent {}
 
-impl JsonCastable<HierarchySpaceChildEvent> for OriginalSpaceChildEvent {}
-
 impl JsonCastable<HierarchySpaceChildEvent> for SyncSpaceChildEvent {}
-
-impl JsonCastable<HierarchySpaceChildEvent> for OriginalSyncSpaceChildEvent {}
 
 impl JsonCastable<JsonObject> for HierarchySpaceChildEvent {}
 
@@ -198,53 +192,23 @@ where
     }
 }
 
-impl SpaceChildOrd for OriginalSpaceChildEvent {
-    fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
-        SpaceChildOrdFields::new(
-            self.content.order.as_deref(),
-            self.origin_server_ts,
-            &self.state_key,
-        )
-    }
-}
-
-impl SpaceChildOrd for RedactedSpaceChildEvent {
-    fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
-        SpaceChildOrdFields::new(None, self.origin_server_ts, &self.state_key)
-    }
-}
-
 impl SpaceChildOrd for SpaceChildEvent {
     fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
-        match self {
-            StateEvent::Original(original) => original.space_child_ord_fields(),
-            StateEvent::Redacted(redacted) => redacted.space_child_ord_fields(),
-        }
-    }
-}
-
-impl SpaceChildOrd for OriginalSyncSpaceChildEvent {
-    fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
         SpaceChildOrdFields::new(
             self.content.order.as_deref(),
             self.origin_server_ts,
             &self.state_key,
         )
-    }
-}
-
-impl SpaceChildOrd for RedactedSyncSpaceChildEvent {
-    fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
-        SpaceChildOrdFields::new(None, self.origin_server_ts, &self.state_key)
     }
 }
 
 impl SpaceChildOrd for SyncSpaceChildEvent {
     fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
-        match self {
-            SyncStateEvent::Original(original) => original.space_child_ord_fields(),
-            SyncStateEvent::Redacted(redacted) => redacted.space_child_ord_fields(),
-        }
+        SpaceChildOrdFields::new(
+            self.content.order.as_deref(),
+            self.origin_server_ts,
+            &self.state_key,
+        )
     }
 }
 

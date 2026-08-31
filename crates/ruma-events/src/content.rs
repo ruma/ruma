@@ -8,6 +8,7 @@ use super::{
     EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEventType,
     RoomAccountDataEventType, StateEventType, ToDeviceEventType,
 };
+use crate::EventUnsignedData;
 
 /// Extension trait for [`Raw<T>`].
 pub trait RawExt<T: EventContentFromType> {
@@ -118,7 +119,7 @@ pub trait StateEventContent: Sized + Serialize {
 /// Content of a non-redacted state event with a corresponding unsigned type.
 pub trait StaticStateEventContent: StateEventContent {
     /// The type of the event's `unsigned` field.
-    type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + DeserializeOwned;
+    type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + DeserializeOwned + EventUnsignedData;
 }
 
 /// Content of a redacted state event.

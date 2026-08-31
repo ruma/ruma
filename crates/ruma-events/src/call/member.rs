@@ -235,7 +235,7 @@ mod tests {
         },
     };
     use crate::{
-        AnyStateEvent, StateEvent,
+        AnyStateEvent,
         call::member::{EmptyMembershipData, FocusSelection, SessionMembershipData},
         rtc::notification::CallIntent,
     };
@@ -597,10 +597,7 @@ mod tests {
     fn deserialize_member_event_helper(state_key: &str) {
         let ev = member_event_json(state_key);
 
-        assert_matches!(
-            from_json_value(ev),
-            Ok(AnyStateEvent::CallMember(StateEvent::Original(member_event)))
-        );
+        assert_matches!(from_json_value(ev), Ok(AnyStateEvent::CallMember(member_event)));
 
         let event_id = OwnedEventId::try_from("$3qfxjGYSu4sL25FtR0ep6vePOc").unwrap();
         let sender = OwnedUserId::try_from("@user:example.org").unwrap();

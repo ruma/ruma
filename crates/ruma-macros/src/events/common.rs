@@ -60,11 +60,7 @@ impl CommonEventKind {
             ],
             Self::State => &[
                 EventVariation::None,
-                EventVariation::Original,
-                EventVariation::Redacted,
                 EventVariation::Sync,
-                EventVariation::OriginalSync,
-                EventVariation::RedactedSync,
                 EventVariation::Stripped,
                 EventVariation::Initial,
             ],

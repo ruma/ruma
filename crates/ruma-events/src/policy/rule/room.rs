@@ -38,7 +38,7 @@ mod tests {
     use ruma_common::{canonical_json::assert_to_canonical_json_eq, serde::Raw};
     use serde_json::{from_value as from_json_value, json};
 
-    use super::{OriginalPolicyRuleRoomEvent, PolicyRuleRoomEventContent};
+    use super::{PolicyRuleRoomEvent, PolicyRuleRoomEventContent};
     use crate::policy::rule::{PolicyRuleEventContent, Recommendation};
 
     #[test]
@@ -78,6 +78,6 @@ mod tests {
             }
         });
 
-        from_json_value::<Raw<OriginalPolicyRuleRoomEvent>>(json).unwrap().deserialize().unwrap();
+        from_json_value::<Raw<PolicyRuleRoomEvent>>(json).unwrap().deserialize().unwrap();
     }
 }

@@ -256,13 +256,13 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 /// * `type SyncFooEvent = Sync{Kind}Event<FooEventContent>`: an event received via the `/sync` API,
 ///   for the `MessageLike`, `State` and `EphemeralRoom` kinds
 /// * `type OriginalFooEvent = Original{Kind}Event<FooEventContent>`, a non-redacted event, for the
-///   `MessageLike` and `State` kinds
+///   `MessageLike` kind
 /// * `type OriginalSyncFooEvent = OriginalSync{Kind}Event<FooEventContent>`, a non-redacted event
-///   received via the `/sync` API, for the `MessageLike` and `State` kinds
+///   received via the `/sync` API, for the `MessageLike` kind
 /// * `type RedactedFooEvent = Redacted{Kind}Event<RedactedFooEventContent>`, a redacted event, for
-///   the `MessageLike` and `State` kinds
+///   the `MessageLike` kind
 /// * `type RedactedSyncFooEvent = RedactedSync{Kind}Event<RedactedFooEventContent>`, a redacted
-///   event received via the `/sync` API, for the `MessageLike` and `State` kinds
+///   event received via the `/sync` API, for the `MessageLike` kind
 /// * `type InitialFooEvent = InitialStateEvent<FooEventContent>`, an event sent during room
 ///   creation, for the `State` kind
 /// * `type StrippedFooEvent = StrippedStateEvent<FooEventContent>`, an event that is in a room

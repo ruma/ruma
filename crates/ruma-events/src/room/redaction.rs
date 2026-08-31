@@ -16,8 +16,8 @@ use serde::{Deserialize, Serialize};
 use tracing::error;
 
 use crate::{
-    BundledMessageLikeRelations, MessageLikeEventContent, MessageLikeEventType, RedactContent,
-    RedactedMessageLikeEventContent, RedactedUnsigned, StaticEventContent,
+    BundledMessageLikeRelations, EventUnsignedData, MessageLikeEventContent, MessageLikeEventType,
+    RedactContent, RedactedMessageLikeEventContent, RedactedUnsigned, StaticEventContent,
 };
 
 mod event_serde;
@@ -485,6 +485,16 @@ impl CanBeEmpty for RoomRedactionUnsigned {
     /// could still have been present but contained none of the known fields.
     fn is_empty(&self) -> bool {
         self.age.is_none() && self.transaction_id.is_none() && self.relations.is_empty()
+    }
+}
+
+impl EventUnsignedData for RoomRedactionUnsigned {
+    fn transaction_id(&self) -> Option<&ruma_common::TransactionId> {
+        self.transaction_id.as_deref()
+    }
+
+    fn is_redacted(&self) -> bool {
+        false
     }
 }
 

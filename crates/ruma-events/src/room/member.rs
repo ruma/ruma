@@ -14,8 +14,8 @@ use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AnyStrippedStateEvent, BundledStateRelations, PrivOwnedStr, RedactContent,
-    RedactedStateEventContent, StateEventType,
+    AnyRedactionEvent, AnyStrippedStateEvent, BundledStateRelations, EventUnsignedData,
+    PrivOwnedStr, RedactContent, RedactedStateEventContent, StateEventType,
 };
 
 mod change;
@@ -204,50 +204,6 @@ impl RedactedStateEventContent for RoomMemberEventContent {
     }
 }
 
-impl RoomMemberEvent {
-    /// Obtain the membership state, regardless of whether this event is redacted.
-    pub fn membership(&self) -> &MembershipState {
-        match self {
-            Self::Original(ev) => &ev.content.membership,
-            Self::Redacted(ev) => &ev.content.membership,
-        }
-    }
-
-    /// Determines whether the user's events should be redacted based on their membership.
-    ///
-    /// Using [MSC4293], if `redact_events` is `true`, the sender is different to the state key,
-    /// and the membership is `ban` or `leave` (kick), `true` is returned. Otherwise, the flag
-    /// should be ignored, and `false` is returned.
-    ///
-    /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
-    #[cfg(feature = "unstable-msc4293")]
-    pub fn should_redact_events(&self) -> bool {
-        if let Self::Original(ev) = self { ev.should_redact_events() } else { false }
-    }
-}
-
-impl SyncRoomMemberEvent {
-    /// Obtain the membership state, regardless of whether this event is redacted.
-    pub fn membership(&self) -> &MembershipState {
-        match self {
-            Self::Original(ev) => &ev.content.membership,
-            Self::Redacted(ev) => &ev.content.membership,
-        }
-    }
-
-    /// Determines whether the user's events should be redacted based on their membership.
-    ///
-    /// Using [MSC4293], if `redact_events` is `true`, the sender is different to the state key,
-    /// and the membership is `ban` or `leave` (kick), `true` is returned. Otherwise, the flag
-    /// should be ignored, and `false` is returned.
-    ///
-    /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
-    #[cfg(feature = "unstable-msc4293")]
-    pub fn should_redact_events(&self) -> bool {
-        if let Self::Original(ev) = self { ev.should_redact_events() } else { false }
-    }
-}
-
 /// The membership state of a user.
 #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
 #[derive(Clone, StringEnum)]
@@ -347,7 +303,12 @@ impl SignedContent {
     }
 }
 
-impl OriginalRoomMemberEvent {
+impl RoomMemberEvent {
+    /// Obtain the membership state, regardless of whether this event is redacted.
+    pub fn membership(&self) -> &MembershipState {
+        &self.content.membership
+    }
+
     /// Obtain the details about this event that are required to calculate a membership change.
     ///
     /// This is required when you want to calculate the change a redacted `m.room.member` event
@@ -391,46 +352,12 @@ impl OriginalRoomMemberEvent {
     }
 }
 
-impl RedactedRoomMemberEvent {
-    /// Obtain the details about this event that are required to calculate a membership change.
-    ///
-    /// This is required when you want to calculate the change a redacted `m.room.member` event
-    /// made.
-    pub fn details(&self) -> MembershipDetails<'_> {
-        self.content.details()
+impl SyncRoomMemberEvent {
+    /// Obtain the membership state, regardless of whether this event is redacted.
+    pub fn membership(&self) -> &MembershipState {
+        &self.content.membership
     }
 
-    /// Helper function for membership change.
-    ///
-    /// Since redacted events don't have `unsigned.prev_content`, you have to pass the `.details()`
-    /// of the previous `m.room.member` event manually (if there is a previous `m.room.member`
-    /// event).
-    ///
-    /// Check [the specification][spec] for details.
-    ///
-    /// [spec]: https://spec.matrix.org/v1.19/client-server-api/#mroommember
-    pub fn membership_change<'a>(
-        &'a self,
-        prev_details: Option<MembershipDetails<'a>>,
-    ) -> MembershipChange<'a> {
-        membership_change(self.details(), prev_details, &self.sender, &self.state_key)
-    }
-
-    /// Determines whether the user's events should be redacted based on their membership.
-    ///
-    /// Using [MSC4293], if `redact_events` is `true`, the sender is different to the state key,
-    /// and the membership is `ban` or `leave` (kick), `true` is returned. Otherwise, the flag
-    /// should be ignored, and `false` is returned.
-    ///
-    /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
-    #[cfg(feature = "unstable-msc4293")]
-    pub fn should_redact_events(&self) -> bool {
-        // Redacted room member events lack the redact_events flag - see proposal.
-        false
-    }
-}
-
-impl OriginalSyncRoomMemberEvent {
     /// Obtain the details about this event that are required to calculate a membership change.
     ///
     /// This is required when you want to calculate the change a redacted `m.room.member` event
@@ -471,45 +398,6 @@ impl OriginalSyncRoomMemberEvent {
         self.content.redact_events
             && self.state_key != self.sender
             && matches!(self.content.membership, MembershipState::Ban | MembershipState::Leave)
-    }
-}
-
-impl RedactedSyncRoomMemberEvent {
-    /// Obtain the details about this event that are required to calculate a membership change.
-    ///
-    /// This is required when you want to calculate the change a redacted `m.room.member` event
-    /// made.
-    pub fn details(&self) -> MembershipDetails<'_> {
-        self.content.details()
-    }
-
-    /// Helper function for membership change.
-    ///
-    /// Since redacted events don't have `unsigned.prev_content`, you have to pass the `.details()`
-    /// of the previous `m.room.member` event manually (if there is a previous `m.room.member`
-    /// event).
-    ///
-    /// Check [the specification][spec] for details.
-    ///
-    /// [spec]: https://spec.matrix.org/v1.19/client-server-api/#mroommember
-    pub fn membership_change<'a>(
-        &'a self,
-        prev_details: Option<MembershipDetails<'a>>,
-    ) -> MembershipChange<'a> {
-        membership_change(self.details(), prev_details, &self.sender, &self.state_key)
-    }
-
-    /// Determines whether the user's events should be redacted based on their membership.
-    ///
-    /// Using [MSC4293], if `redact_events` is `true`, the sender is different to the state key,
-    /// and the membership is `ban` or `leave` (kick), `true` is returned. Otherwise, the flag
-    /// should be ignored, and `false` is returned.
-    ///
-    /// [MSC4293]: https://github.com/matrix-org/matrix-spec-proposals/pull/4293
-    #[cfg(feature = "unstable-msc4293")]
-    pub fn should_redact_events(&self) -> bool {
-        // Redacted room member events lack the redact_events flag - see proposal.
-        false
     }
 }
 
@@ -585,6 +473,9 @@ pub struct RoomMemberUnsigned {
     /// [Bundled aggregations]: https://spec.matrix.org/v1.19/client-server-api/#aggregations-of-child-events
     #[serde(rename = "m.relations", default)]
     pub relations: BundledStateRelations,
+
+    /// The event that redacted this event, if any.
+    pub redacted_because: Option<Raw<AnyRedactionEvent>>,
 }
 
 impl RoomMemberUnsigned {
@@ -609,11 +500,15 @@ impl CanBeEmpty for RoomMemberUnsigned {
     }
 }
 
-#[cfg(feature = "unstable-msc4293")]
-impl RedactionEvent for OriginalRoomMemberEvent {}
+impl EventUnsignedData for RoomMemberUnsigned {
+    fn transaction_id(&self) -> Option<&ruma_common::TransactionId> {
+        self.transaction_id.as_deref()
+    }
 
-#[cfg(feature = "unstable-msc4293")]
-impl RedactionEvent for OriginalSyncRoomMemberEvent {}
+    fn is_redacted(&self) -> bool {
+        self.redacted_because.is_some()
+    }
+}
 
 #[cfg(feature = "unstable-msc4293")]
 impl RedactionEvent for RoomMemberEvent {}
@@ -633,7 +528,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json};
 
     use super::{MembershipState, RoomMemberEventContent};
-    use crate::OriginalStateEvent;
+    use crate::StateEvent;
 
     #[test]
     fn serde_with_no_prev_content() {
@@ -649,7 +544,7 @@ mod tests {
             "state_key": "@carl:example.com"
         });
 
-        let ev = from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap();
+        let ev = from_json_value::<StateEvent<RoomMemberEventContent>>(json).unwrap();
         assert_eq!(ev.event_id, "$h29iv0s8:example.com");
         assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
         assert_eq!(ev.room_id, "!n8f893n9:example.com");
@@ -683,7 +578,7 @@ mod tests {
             },
         });
 
-        let ev = from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap();
+        let ev = from_json_value::<StateEvent<RoomMemberEventContent>>(json).unwrap();
         assert_eq!(ev.event_id, "$h29iv0s8:example.com");
         assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
         assert_eq!(ev.room_id, "!n8f893n9:example.com");
@@ -733,7 +628,7 @@ mod tests {
             "state_key": "@alice:example.org"
         });
 
-        let ev = from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap();
+        let ev = from_json_value::<StateEvent<RoomMemberEventContent>>(json).unwrap();
         assert_eq!(ev.event_id, "$143273582443PhrSn:example.org");
         assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(233)));
         assert_eq!(ev.room_id, "!jEsUZKDJdhlrceRyVU:example.org");
@@ -801,7 +696,7 @@ mod tests {
             },
         });
 
-        let ev = from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap();
+        let ev = from_json_value::<StateEvent<RoomMemberEventContent>>(json).unwrap();
         assert_eq!(ev.event_id, "$143273582443PhrSn:example.org");
         assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(233)));
         assert_eq!(ev.room_id, "!jEsUZKDJdhlrceRyVU:example.org");
@@ -856,7 +751,7 @@ mod tests {
             "state_key": "@carl:example.com"
         });
 
-        let ev = from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap();
+        let ev = from_json_value::<StateEvent<RoomMemberEventContent>>(json).unwrap();
         assert_eq!(ev.event_id, "$h29iv0s8:example.com");
         assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
         assert_eq!(ev.room_id, "!n8f893n9:example.com");

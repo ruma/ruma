@@ -5,9 +5,9 @@ use ruma_events::{
     AnyMessageLikeEvent, AnyStateEvent, AnyStateEventContent, AnySyncEphemeralRoomEvent,
     AnySyncMessageLikeEvent, AnySyncStateEvent, AnySyncTimelineEvent, AnyTimelineEvent,
     EmptyStateKey, EphemeralRoomEventType, GlobalAccountDataEventType, MessageLikeEvent,
-    MessageLikeEventType, OriginalMessageLikeEvent, OriginalStateEvent,
-    OriginalSyncMessageLikeEvent, OriginalSyncStateEvent, RoomAccountDataEventType, StateEvent,
-    StateEventType, SyncMessageLikeEvent, SyncStateEvent, ToDeviceEventType,
+    MessageLikeEventType, OriginalMessageLikeEvent, OriginalSyncMessageLikeEvent,
+    RoomAccountDataEventType, StateEvent, StateEventType, SyncMessageLikeEvent, SyncStateEvent,
+    ToDeviceEventType,
     room::{
         message::{MessageType, RoomMessageEventContent},
         name::RoomNameEventContent,
@@ -87,12 +87,10 @@ fn power_event_sync_deserialization() {
 
     assert_matches!(
         from_json_value::<AnySyncTimelineEvent>(json_data),
-        Ok(AnySyncTimelineEvent::State(AnySyncStateEvent::RoomPowerLevels(
-            SyncStateEvent::Original(OriginalSyncStateEvent {
-                content: RoomPowerLevelsEventContent { ban, .. },
-                ..
-            },)
-        ),))
+        Ok(AnySyncTimelineEvent::State(AnySyncStateEvent::RoomPowerLevels(SyncStateEvent {
+            content: RoomPowerLevelsEventContent { ban, .. },
+            ..
+        },),))
     );
     assert_eq!(ban, int!(50));
 }
@@ -144,19 +142,18 @@ fn room_name_event_sync_deserialization() {
     assert_eq!(state_event.event_id(), "$152037280074GZeOm:localhost");
     assert_eq!(state_event.sender(), "@example:localhost");
     assert_eq!(state_event.event_type(), StateEventType::RoomName);
-    assert_let!(AnySyncStateEvent::RoomName(SyncStateEvent::Original(event)) = &state_event);
+    assert_let!(AnySyncStateEvent::RoomName(event) = &state_event);
     assert_eq!(event.content.name.as_deref(), Some("Somewhere"));
     assert_let!(AnyStateEventContent::RoomName(content) = state_event.content());
     assert_eq!(content.name.as_deref(), Some("Somewhere"));
 
     // Deserialize as state enum.
     assert_let!(Ok(AnySyncStateEvent::RoomName(state_event)) = from_json_value(json));
-    assert_matches!(state_event.state_key(), EmptyStateKey);
-    assert_eq!(state_event.event_id(), "$152037280074GZeOm:localhost");
-    assert_eq!(state_event.sender(), "@example:localhost");
+    assert_matches!(state_event.state_key, EmptyStateKey);
+    assert_eq!(state_event.event_id, "$152037280074GZeOm:localhost");
+    assert_eq!(state_event.sender, "@example:localhost");
     assert_eq!(state_event.event_type(), StateEventType::RoomName);
-    assert_let!(Some(event) = state_event.as_original());
-    assert_eq!(event.content.name.as_deref(), Some("Somewhere"));
+    assert_eq!(state_event.content.name.as_deref(), Some("Somewhere"));
 }
 
 #[test]
@@ -217,10 +214,8 @@ fn room_name_event_deserialization() {
     assert_eq!(state_event.sender(), "@example:localhost");
     assert_eq!(state_event.event_type(), StateEventType::RoomName);
     assert_let!(
-        AnyStateEvent::RoomName(StateEvent::Original(OriginalStateEvent {
-            content: RoomNameEventContent { name, .. },
-            ..
-        })) = &state_event
+        AnyStateEvent::RoomName(StateEvent { content: RoomNameEventContent { name, .. }, .. }) =
+            &state_event
     );
     assert_eq!(name.as_deref(), Some("Somewhere"));
     assert_let!(AnyStateEventContent::RoomName(content) = state_event.content());
@@ -228,13 +223,12 @@ fn room_name_event_deserialization() {
 
     // Deserialize as state enum.
     assert_let!(Ok(AnyStateEvent::RoomName(state_event)) = from_json_value(json));
-    assert_matches!(state_event.state_key(), EmptyStateKey);
-    assert_eq!(state_event.room_id(), "!room:room.com");
-    assert_eq!(state_event.event_id(), "$152037280074GZeOm:localhost");
-    assert_eq!(state_event.sender(), "@example:localhost");
+    assert_matches!(state_event.state_key, EmptyStateKey);
+    assert_eq!(state_event.room_id, "!room:room.com");
+    assert_eq!(state_event.event_id, "$152037280074GZeOm:localhost");
+    assert_eq!(state_event.sender, "@example:localhost");
     assert_eq!(state_event.event_type(), StateEventType::RoomName);
-    assert_let!(Some(event) = state_event.as_original());
-    assert_eq!(event.content.name.as_deref(), Some("Somewhere"));
+    assert_eq!(state_event.content.name.as_deref(), Some("Somewhere"));
 }
 
 #[test]

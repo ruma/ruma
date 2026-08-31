@@ -32,7 +32,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json};
 
     use super::RoomNameEventContent;
-    use crate::OriginalStateEvent;
+    use crate::StateEvent;
 
     #[test]
     fn serialization() {
@@ -61,7 +61,7 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<OriginalStateEvent<RoomNameEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomNameEventContent>>(json_data)
                 .unwrap()
                 .content
                 .name
