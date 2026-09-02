@@ -40,6 +40,8 @@ Improvements:
 Bug fixes:
 
 - Avoid creating empty formatted body fields when editing plain text message events.
+- Deserialize the empty `m.space.child` and `m.space.parent` event contents used to remove space
+  relationships.
 
 ## 0.34.0
 

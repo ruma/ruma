@@ -18,6 +18,9 @@ use serde::{Deserialize, Serialize};
 #[ruma_event(type = "m.space.parent", kind = State, state_key_type = OwnedRoomId)]
 pub struct SpaceParentEventContent {
     /// List of candidate servers that can be used to join the room.
+    ///
+    /// When absent, the parent relationship is removed.
+    #[serde(default)]
     pub via: Vec<OwnedServerName>,
 
     /// Determines whether this is the main parent for the space.
@@ -47,16 +50,16 @@ impl PossiblyRedactedSpaceParentEventContent {
     /// The room in the state key of the event should only be considered a parent space of this room
     /// if this returns `true`.
     ///
-    /// Returns `false` if the `via` field is `None`.
+    /// Returns `false` if there are no candidate servers.
     pub fn is_valid(&self) -> bool {
-        self.via.is_some()
+        !self.via.is_empty()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_server_name};
-    use serde_json::json;
+    use serde_json::{from_value as from_json_value, json};
 
     use super::SpaceParentEventContent;
 
@@ -81,5 +84,13 @@ mod tests {
         let content = SpaceParentEventContent { via: vec![], canonical: false };
 
         assert_to_canonical_json_eq!(content, json!({ "via": [] }));
+    }
+
+    #[test]
+    fn space_parent_removal_deserialization() {
+        let content = from_json_value::<SpaceParentEventContent>(json!({})).unwrap();
+
+        assert!(content.via.is_empty());
+        assert!(!content.canonical);
     }
 }
