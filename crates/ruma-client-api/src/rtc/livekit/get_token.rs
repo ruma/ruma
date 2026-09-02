@@ -63,7 +63,7 @@ pub mod v1 {
     }
 
     impl Response {
-        /// Creates a new `Response` with the given JWT and SFU URL.
+        /// Creates a new `Response` with the given JWT token. The corresponding SFU url is already known via the request params.
         pub fn new(jwt: String) -> Self {
             Self { jwt }
         }
