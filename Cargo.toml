@@ -12,7 +12,7 @@ rust-version = "1.89"
 as_variant = "1.2.0"
 assert_matches2 = "0.1.0"
 assign = "1.1.1"
-base64 = "0.22.0"
+base64 = "0.23.0"
 bytes = "1.11.1"
 criterion = "0.8.2"
 http = "1.1.0"
@@ -41,7 +41,7 @@ similar = "2.6.0"
 thiserror = "2.0.0"
 toml = { version = "1.1.0", default-features = false, features = ["parse", "serde"] }
 tracing = { version = "0.1.37", default-features = false, features = ["std"] }
-uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "e5f4821410bea19e71984ea5e06a7bc8b11ed9e5", version = "0.31.0", default-features = false, features = ["wasm-unstable-single-threaded"] }
+uniffi = { version = "0.32.0", default-features = false, features = ["wasm-unstable-single-threaded"] }
 url = { version = "2.5.0" }
 web-time = "1.1.0"
 wildmatch = "2.6.1"
@@ -52,7 +52,7 @@ rust_2018_idioms = { level = "warn", priority = -1 }
 semicolon_in_expressions_from_macros = "warn"
 unexpected_cfgs = { level = "warn", check-cfg = [
     # used by the IdDst macro
-    'cfg(ruma_identifiers_storage, values("Arc"))',
+    'cfg(ruma_identifiers_storage, values("Arc", "SmallVec", "ThinArc"))',
     # set all types as exhaustive
     'cfg(ruma_unstable_exhaustive_types)',
 ] }

@@ -6,6 +6,15 @@ Breaking changes:
 
 - Export nothing from the crate if neither the `client` nor the `server` feature is active, because
   the crate is not useful without them.
+- `XMatrix` doesn't implement `headers::Credentials` anymore, removing the dependency on the
+  `headers` crate. The authentication scheme can be extracted directly from an `http::Request` with
+  the `XMatrix::extract_from_http_headers()` method, or with the
+  `AuthScheme::extract_authentication()` implementation of `ServerSignatures`.
+- `XMatrix::try_from_http_request()` was renamed to `XMatrix::sign_http_request()` to clarify how it
+  is constructed from an HTTP request.
+- `XMatrix::verify_request()` was renamed to `XMatrix::verify_http_request()` for consistency with
+  other method names.
+- `ServerSignaturesInput` was renamed to `XMatrixSigningInput`.
 
 Improvements:
 
@@ -15,6 +24,8 @@ Improvements:
 - `query::get_profile_information` is now using `ruma_common::profile::UserProfile` for its
   underlying data storage.
 - Add experimental support for [MSC4495] (Selective Presence).
+- Add `XMatrix::extract_from_http_headers()`, a helper to extract the authentication scheme from
+  the headers of an `http::Request`.
 
 [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
 

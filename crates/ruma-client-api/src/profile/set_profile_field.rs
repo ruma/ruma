@@ -64,12 +64,9 @@ pub mod v3 {
     }
 
     #[doc(hidden)]
-    #[derive(ruma_common::serde::_FakeDeriveSerde)]
-    #[cfg_attr(feature = "client", derive(serde::Serialize, ruma_common::api::OutgoingBodyJson))]
-    #[cfg_attr(feature = "server", derive(serde::Deserialize))]
+    #[cfg(feature = "client")]
+    #[derive(serde::Serialize, ruma_common::api::OutgoingBodyJson)]
     #[serde(transparent)]
-    // attribute will go away when we update IncomingRequest to also use RequestBody
-    #[cfg_attr(not(feature = "client"), expect(dead_code))]
     pub struct RequestBody(ProfileFieldValue);
 
     #[cfg(feature = "client")]
@@ -113,7 +110,6 @@ pub mod v3 {
             let http_request = http::Request::builder()
                 .method(Self::METHOD)
                 .uri(url)
-                .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
                 .body(RequestBody(self.value))?;
 
             Ok(http_request)

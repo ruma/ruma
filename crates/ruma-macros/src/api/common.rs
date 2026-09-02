@@ -119,28 +119,13 @@ impl Headers {
     pub(super) fn expand_serialize(
         &self,
         kind: MacroKind,
-        body: &Body,
-        ruma_common: &RumaCommon,
         http: &TokenStream,
     ) -> Option<TokenStream> {
-        let mut serialize = TokenStream::new();
-
-        // If there is no `CONTENT_TYPE` header, add one if necessary.
-        let content_type: syn::Ident = parse_quote!(CONTENT_TYPE);
-        if !self.0.contains_key(&content_type)
-            && let Some(content_type) = body.content_type(kind)
-        {
-            serialize.extend(quote! {
-                headers.insert(
-                    #http::header::CONTENT_TYPE,
-                    #ruma_common::http_headers::#content_type,
-                );
-            });
-        }
-
-        if serialize.is_empty() && self.0.is_empty() {
+        if self.0.is_empty() {
             return None;
         }
+
+        let mut serialize = TokenStream::new();
 
         for (header_name, field) in &self.0 {
             let ident = field.ident();
@@ -280,28 +265,6 @@ impl Body {
                 kind.as_struct_ident(StructSuffix::Body).into_token_stream()
             }
             BodyFields::Raw(_) => quote! { #ruma_common::api::BytesBody },
-        }
-    }
-
-    /// The content type of the body, if it can be determined.
-    ///
-    /// Returns a `const` from `ruma_common::http_headers`.
-    fn content_type(&self, kind: MacroKind) -> Option<syn::Ident> {
-        match &self.fields {
-            BodyFields::Empty if matches!(kind, MacroKind::Request) => {
-                // If there are no body fields, the request body might be empty (not `{}`), so the
-                // `application/json` content-type would be wrong. It may also cause problems with
-                // CORS policies that don't allow the `Content-Type` header (for things such as
-                // `.well-known` that are commonly handled by something else than a
-                // homeserver). However, a server should always return a JSON body.
-                None
-            }
-            BodyFields::Empty | BodyFields::JsonFields(_) | BodyFields::JsonAll(_) => {
-                Some(parse_quote! { APPLICATION_JSON })
-            }
-            // This might not be the actual content type, but this is a better default than
-            // `application/json` when sending raw data.
-            BodyFields::Raw(_) => Some(parse_quote! { APPLICATION_OCTET_STREAM }),
         }
     }
 

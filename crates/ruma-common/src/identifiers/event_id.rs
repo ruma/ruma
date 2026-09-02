@@ -55,7 +55,7 @@ use super::{IdParseError, ServerName};
 /// [room versions]: https://spec.matrix.org/v1.19/rooms/
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
-#[ruma_id(validate = ruma_identifiers_validation::event_id::validate)]
+#[ruma_id(validate = ruma_identifiers_validation::event_id::validate, smallvec_inline_bytes = 48)]
 pub struct EventId(str);
 
 impl EventId {

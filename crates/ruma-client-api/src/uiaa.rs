@@ -233,7 +233,6 @@ impl OutgoingResponse for UiaaResponse {
     fn try_into_http_response_inner(self) -> Result<http::Response<Self::Body>, IntoHttpError> {
         Ok(match self {
             UiaaResponse::AuthResponse(authentication_info) => http::Response::builder()
-                .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
                 .status(http::StatusCode::UNAUTHORIZED)
                 .body(ResponseBody::AuthResponse(authentication_info))?,
             UiaaResponse::MatrixError(error) => {
@@ -253,6 +252,10 @@ pub enum ResponseBody {
 
 impl OutgoingBody for ResponseBody {
     type Error = IntoHttpError;
+
+    fn content_type(&self) -> Option<http::HeaderValue> {
+        Some(ruma_common::http_headers::APPLICATION_JSON)
+    }
 
     fn try_into_buf<T: Default + BufMut + AsRef<[u8]>>(self) -> Result<T, Self::Error> {
         Ok(match self {

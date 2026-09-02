@@ -107,7 +107,6 @@ pub mod v3 {
                     &[&self.room_id_or_alias],
                     &query_string,
                 )?)
-                .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
                 .body(RequestBody { reason: self.reason })?;
 
             Ok(http_request)

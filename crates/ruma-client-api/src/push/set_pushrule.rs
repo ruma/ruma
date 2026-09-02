@@ -59,13 +59,16 @@ pub mod v3 {
     }
 
     #[doc(hidden)]
-    // attribute will go away when we update IncomingRequest to also use RequestBody
-    #[cfg_attr(not(feature = "client"), expect(dead_code))]
+    #[cfg(feature = "client")]
     pub struct RequestBody(NewPushRule);
 
     #[cfg(feature = "client")]
     impl ruma_common::api::OutgoingBody for RequestBody {
         type Error = serde_json::Error;
+
+        fn content_type(&self) -> Option<http::HeaderValue> {
+            Some(ruma_common::http_headers::APPLICATION_JSON)
+        }
 
         fn try_into_buf<T: Default + bytes::BufMut + AsRef<[u8]>>(self) -> serde_json::Result<T> {
             match self.0 {
@@ -120,7 +123,6 @@ pub mod v3 {
             let http_request = http::Request::builder()
                 .method(Self::METHOD)
                 .uri(url)
-                .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
                 .body(RequestBody(self.rule))?;
 
             Ok(http_request)

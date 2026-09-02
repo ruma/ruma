@@ -9,6 +9,14 @@ pub trait OutgoingBody {
     /// The type of error that can happen in `try_info_buf`.
     type Error: Into<IntoHttpError>;
 
+    /// The value for the `Content-Type` HTTP header for this body, if there is one.
+    ///
+    /// This is the value set if the request or response type does not set one dynamically, for
+    /// example with the `#[ruma_api(header = CONTENT_TYPE)]` attribute.
+    ///
+    /// If this is `None`, no `Content-Type` HTTP header is added.
+    fn content_type(&self) -> Option<http::HeaderValue>;
+
     /// Turn `self` into a byte buffer (copying a raw body or serializing a JSON one).
     fn try_into_buf<T: Default + BufMut + AsRef<[u8]>>(self) -> Result<T, Self::Error>;
 }
@@ -24,6 +32,10 @@ pub struct EmptyBody<const TRULY_EMPTY: bool = true>;
 impl<const TRULY_EMPTY: bool> OutgoingBody for EmptyBody<TRULY_EMPTY> {
     type Error = Infallible;
 
+    fn content_type(&self) -> Option<http::HeaderValue> {
+        if TRULY_EMPTY { None } else { Some(crate::http_headers::APPLICATION_JSON) }
+    }
+
     fn try_into_buf<T: Default + BufMut + AsRef<[u8]>>(self) -> Result<T, Infallible> {
         if TRULY_EMPTY { Ok(Default::default()) } else { Ok(slice_to_buf(b"{}")) }
     }
@@ -35,6 +47,10 @@ pub struct BytesBody(pub Vec<u8>);
 
 impl OutgoingBody for BytesBody {
     type Error = Infallible;
+
+    fn content_type(&self) -> Option<http::HeaderValue> {
+        Some(crate::http_headers::APPLICATION_OCTET_STREAM)
+    }
 
     fn try_into_buf<T: Default + BufMut + AsRef<[u8]>>(self) -> Result<T, Infallible> {
         Ok(slice_to_buf(&self.0))

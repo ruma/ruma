@@ -129,12 +129,9 @@ pub mod v3 {
     }
 
     #[doc(hidden)]
-    #[derive(ruma_common::serde::_FakeDeriveSerde)]
-    #[cfg_attr(feature = "client", derive(serde::Serialize, ruma_common::api::OutgoingBodyJson))]
-    #[cfg_attr(feature = "server", derive(serde::Deserialize))]
+    #[cfg(feature = "client")]
+    #[derive(serde::Serialize, ruma_common::api::OutgoingBodyJson)]
     #[serde(transparent)]
-    // attribute will go away when we update IncomingRequest to also use RequestBody
-    #[cfg_attr(not(feature = "client"), expect(dead_code))]
     pub struct RequestBody(Raw<AnyStateEventContent>);
 
     #[cfg(feature = "client")]
@@ -164,7 +161,6 @@ pub mod v3 {
                     &[&self.room_id, &self.event_type, &self.state_key],
                     &query_string,
                 )?)
-                .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
                 .body(RequestBody(self.body))?;
 
             Ok(http_request)
@@ -314,7 +310,7 @@ mod tests {
 
 #[cfg(all(test, feature = "server", feature = "unstable-msc4354"))]
 mod server_tests {
-    use ruma_common::{api::IncomingRequest, owned_room_id};
+    use ruma_common::{api::IncomingRequestExt as _, owned_room_id};
 
     use super::v3::Request;
 
@@ -325,7 +321,7 @@ mod server_tests {
             .uri(
                 "/_matrix/client/v3/rooms/!roomid:example.org/state/m.room.name/?org.matrix.msc4354.sticky_duration_ms=123456",
             )
-            .body(r#"{"name":"A room"}"#)
+            .body(br#"{"name":"A room"}"# as &[u8])
             .unwrap();
 
         let request =

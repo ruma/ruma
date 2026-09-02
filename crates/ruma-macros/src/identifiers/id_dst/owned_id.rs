@@ -1,10 +1,13 @@
 //! Types and functions to handle the identifiers internal storage representations.
 
+use std::borrow::Cow;
+
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::parse_quote;
 
 use super::{IdDst, Types};
+use crate::util::{RumaCommon, RumaCommonReexport};
 
 /// Data for the owned variant of an identifier.
 pub(super) struct OwnedId {
@@ -14,14 +17,17 @@ pub(super) struct OwnedId {
     /// The owned type with generics, if any.
     pub(super) id_type: syn::Type,
 
+    /// The size of the inline array for the `SmallVec` inner representation.
+    pub(super) smallvec_inline_bytes: usize,
+
     /// `#[cfg]` attributes for the internal storage representations.
     storage_attrs: StorageCfgAttributes,
 }
 
 impl OwnedId {
     /// Construct a new `OwnedId`.
-    pub(super) fn new(ident: syn::Ident, id_type: syn::Type) -> Self {
-        Self { ident, id_type, storage_attrs: StorageCfgAttributes::new() }
+    pub(super) fn new(ident: syn::Ident, id_type: syn::Type, smallvec_inline_bytes: usize) -> Self {
+        Self { ident, id_type, smallvec_inline_bytes, storage_attrs: StorageCfgAttributes::new() }
     }
 
     /// Expand an implementation for all the internal storage representations by calling the given
@@ -53,6 +59,7 @@ impl OwnedId {
         let generics = &id_dst.generics;
         let impl_generics = &id_dst.impl_generics;
         let types = &id_dst.types;
+        let ruma_common = &id_dst.ruma_common;
 
         let str = &types.str;
         let box_str = &types.box_str;
@@ -61,7 +68,8 @@ impl OwnedId {
 
         // Expanded code to access the inner field.
         let self_inner_field = quote! { self.inner };
-        let id_inner_field = quote! { id.inner };
+        let id_var = quote! { id };
+        let id_inner_field = quote! { #id_var.inner };
         // The name of the string variable when constructing an identifier from a string.
         let string_var = syn::Ident::new("s", Span::call_site());
 
@@ -79,8 +87,11 @@ impl OwnedId {
         .unzip();
 
         let doc_header = format!("Owned variant of [`{}`].", id_dst.ident);
-        let doc_values =
-            StorageCfgValue::ALL.iter().map(StorageCfgValue::doc).collect::<Vec<_>>().join("\n* ");
+        let doc_values = StorageCfgValue::ALL
+            .iter()
+            .map(|value| StorageCfgValue::doc(value, self))
+            .collect::<Vec<_>>()
+            .join("\n* ");
 
         let inner_types_decl = self.expand_for_each_storage_value(|value| {
             let inner_type = value.inner_type(types);
@@ -88,19 +99,19 @@ impl OwnedId {
         });
 
         let from_str_impls = self.expand_for_each_storage_value(|value| {
-            let expanded = value.expand_from_str_impl(&string_var);
+            let expanded = value.expand_from_str_impl(&string_var, types);
             quote! { inner: #expanded, }
         });
         let from_box_str_impls = self.expand_for_each_storage_value(|value| {
-            let expanded = value.expand_from_box_str_impl(&string_var);
+            let expanded = value.expand_from_box_str_impl(&string_var, types);
             quote! { inner: #expanded, }
         });
         let from_string_impls = self.expand_for_each_storage_value(|value| {
-            let expanded = value.expand_from_string_impl(&string_var);
+            let expanded = value.expand_from_string_impl(&string_var, types);
             quote! { inner: #expanded, }
         });
         let as_str_impls = self.expand_for_each_storage_value(|value| {
-            let expanded = value.expand_as_str_impl(&self_inner_field);
+            let expanded = value.expand_as_str_impl(&self_inner_field, types);
             quote! { { #expanded } }
         });
         let as_bytes_impls = self.expand_for_each_storage_value(|value| {
@@ -141,15 +152,17 @@ impl OwnedId {
         let zeroize_doc_header = format!(
             "Securely zero memory (aka [zeroize](https://en.wikipedia.org/wiki/Zeroisation)) of `{owned_ident}`."
         );
-        let zeroize_impls = self
-            .expand_for_each_storage_value(|value| value.expand_zeroize_impl(&self_inner_field));
+        let zeroize_impls = self.expand_for_each_storage_value(|value| {
+            let expanded = value.expand_zeroize_impl(&self_inner_field, ruma_common);
+            quote! { { #expanded } }
+        });
 
         let into_box_str_impls = self.expand_for_each_storage_value(|value| {
-            let expanded = value.expand_into_box_str_impl(&id_inner_field);
+            let expanded = value.expand_into_box_str_impl(&id_var, &id_inner_field);
             quote! { { #expanded } }
         });
         let into_string_impls = self.expand_for_each_storage_value(|value| {
-            let expanded = value.expand_into_string_impl(&id_inner_field);
+            let expanded = value.expand_into_string_impl(&id_var, &id_inner_field, types);
             quote! { { #expanded } }
         });
 
@@ -244,13 +257,11 @@ impl OwnedId {
                 ///
                 /// # Implementation details
                 ///
-                /// If the `ruma_identifiers_storage` configuration is
-                /// set to `Arc`, this type will be zeroized if and only if
-                /// [`Arc::get_mut`] returns `Some` reference, i.e. if there is no
-                /// other `Arc` or `Weak` pointers to this same location.
+                /// If the `ruma_identifiers_storage` configuration is set to
+                /// `Arc` or `ThinArc`, this type will be zeroized if and only if
+                /// there is no other strong or weak reference to this same location.
                 ///
                 /// [`zeroize`]: https://docs.rs/zeroize/
-                /// [`Arc::get_mut`]: https://doc.rust-lang.org/std/sync/struct.Arc.html#method.get_mut
                 pub fn zeroize(mut self) {
                     #zeroize_impls
                 }
@@ -342,27 +353,56 @@ enum StorageCfgValue {
 
     /// `Arc`, the `Arc<str>` internal representation.
     Arc,
+
+    /// `ThinArc`, the `triomphe::ThinArc<(), u8>` internal representation.
+    ThinArc,
+
+    /// `SmallVec`, the `smallvec::SmallVec<[u8; N]>` internal representation.
+    SmallVec,
 }
 
 impl StorageCfgValue {
     /// All the possible values.
-    const ALL: &'static [StorageCfgValue] = &[StorageCfgValue::Default, StorageCfgValue::Arc];
+    const ALL: &'static [Self] = &[Self::Default, Self::Arc, Self::ThinArc, Self::SmallVec];
+
+    /// The string representation for this value.
+    ///
+    /// Returns `None` for the `Default` variant.
+    fn as_str(&self) -> Option<&'static str> {
+        Some(match self {
+            Self::Default => None?,
+            Self::Arc => "Arc",
+            Self::ThinArc => "ThinArc",
+            Self::SmallVec => "SmallVec",
+        })
+    }
 
     /// The `#[cfg]` attribute for this value.
     fn cfg_attr<'a>(&self, attrs: &'a StorageCfgAttributes) -> &'a syn::Attribute {
         match self {
             Self::Default => &attrs.default,
             Self::Arc => &attrs.arc,
+            Self::ThinArc => &attrs.thin_arc,
+            Self::SmallVec => &attrs.small_vec,
         }
     }
 
     /// The docs for this value.
     ///
     /// This should be a doc string that looks like `` `{value}` -- Use a `{type}`.``.
-    fn doc(&self) -> &'static str {
+    fn doc(&self, owned_id: &OwnedId) -> Cow<'static, str> {
         match self {
-            Self::Default => "",
-            Self::Arc => "`Arc` -- Use an `Arc<str>`.",
+            Self::Default => Cow::Borrowed(""),
+            Self::Arc => Cow::Borrowed("`Arc` -- Use an `Arc<str>`."),
+            Self::ThinArc => Cow::Borrowed(
+                "`ThinArc` -- Use a `triomphe::ThinArc<(), u8>`. \
+                 Requires the `triomphe` cargo feature.",
+            ),
+            Self::SmallVec => Cow::Owned(format!(
+                "`SmallVec` -- Use a `smallvec::SmallVec<[u8; {}]>`. \
+                 Requires the `smallvec` cargo feature.",
+                owned_id.smallvec_inline_bytes
+            )),
         }
     }
 
@@ -371,43 +411,94 @@ impl StorageCfgValue {
         match self {
             Self::Default => &types.box_str,
             Self::Arc => &types.arc_str,
+            Self::ThinArc => &types.thin_arc_bytes,
+            Self::SmallVec => &types.small_vec_bytes,
         }
     }
 
     /// Expand the implementation to convert a `&str` to the inner type.
-    fn expand_from_str_impl(&self, string_var: &syn::Ident) -> TokenStream {
+    fn expand_from_str_impl(&self, string_var: &syn::Ident, types: &Types) -> TokenStream {
         match self {
             Self::Default | Self::Arc => quote! {
                 #string_var.into()
             },
+            Self::ThinArc => {
+                let thin_arc_bytes = &types.thin_arc_bytes;
+                quote! {
+                    <#thin_arc_bytes>::from_header_and_slice((), #string_var.as_bytes())
+                }
+            }
+            Self::SmallVec => {
+                let small_vec_bytes = &types.small_vec_bytes;
+                quote! {
+                    <#small_vec_bytes>::from_slice(#string_var.as_bytes())
+                }
+            }
         }
     }
 
     /// Expand the implementation to convert a `Box<str>` to the inner type.
-    fn expand_from_box_str_impl(&self, string_var: &syn::Ident) -> TokenStream {
+    fn expand_from_box_str_impl(&self, string_var: &syn::Ident, types: &Types) -> TokenStream {
         match self {
             Self::Default => quote! { #string_var },
             Self::Arc => quote! {
                 #string_var.into()
             },
+            Self::ThinArc => {
+                let thin_arc_bytes = &types.thin_arc_bytes;
+                quote! {
+                    <#thin_arc_bytes>::from_header_and_slice((), #string_var.as_bytes())
+                }
+            }
+            Self::SmallVec => {
+                let str = &types.str;
+                let small_vec_bytes = &types.small_vec_bytes;
+                quote! {
+                    <#small_vec_bytes>::from_vec(#str::into_boxed_bytes(#string_var).into())
+                }
+            }
         }
     }
 
     /// Expand the implementation to convert a `String` to the inner type.
-    fn expand_from_string_impl(&self, string_var: &syn::Ident) -> TokenStream {
+    fn expand_from_string_impl(&self, string_var: &syn::Ident, types: &Types) -> TokenStream {
         match self {
             Self::Default | Self::Arc => quote! {
                 #string_var.into()
             },
+            Self::ThinArc => {
+                let thin_arc_bytes = &types.thin_arc_bytes;
+                quote! {
+                    <#thin_arc_bytes>::from_header_and_slice((), #string_var.as_bytes())
+                }
+            }
+            Self::SmallVec => {
+                let small_vec_bytes = &types.small_vec_bytes;
+                quote! {
+                    <#small_vec_bytes>::from_vec(#string_var.into_bytes())
+                }
+            }
         }
     }
 
     /// Expand the implementation to access the inner type as a `&str`.
-    fn expand_as_str_impl(&self, inner_field: &TokenStream) -> TokenStream {
+    fn expand_as_str_impl(&self, inner_field: &TokenStream, types: &Types) -> TokenStream {
         match self {
             Self::Default | Self::Arc => quote! {
                 &#inner_field
             },
+            Self::ThinArc => {
+                let str = &types.str;
+                quote! {
+                    unsafe { #str::from_utf8_unchecked(&#inner_field.slice) }
+                }
+            }
+            Self::SmallVec => {
+                let str = &types.str;
+                quote! {
+                    unsafe { #str::from_utf8_unchecked(&#inner_field) }
+                }
+            }
         }
     }
 
@@ -417,11 +508,21 @@ impl StorageCfgValue {
             Self::Default | Self::Arc => quote! {
                 #inner_field.as_bytes()
             },
+            Self::ThinArc => quote! {
+                &#inner_field.slice
+            },
+            Self::SmallVec => quote! {
+                &#inner_field
+            },
         }
     }
 
     /// Expand the implementation to zeroize the inner type.
-    fn expand_zeroize_impl(&self, inner_field: &TokenStream) -> TokenStream {
+    fn expand_zeroize_impl(
+        &self,
+        inner_field: &TokenStream,
+        ruma_common: &RumaCommon,
+    ) -> TokenStream {
         match self {
             Self::Default => quote! {
                 ::zeroize::Zeroize::zeroize(&mut #inner_field);
@@ -431,26 +532,59 @@ impl StorageCfgValue {
                     ::zeroize::Zeroize::zeroize(value);
                 }
             },
+            Self::ThinArc => {
+                let triomphe = ruma_common.reexported(RumaCommonReexport::Triomphe);
+                quote! {
+                    #inner_field.with_arc_mut(|this| {
+                        if let Some(value) = #triomphe::Arc::get_mut(this) {
+                            ::zeroize::Zeroize::zeroize(value.slice_mut());
+                        }
+                    })
+                }
+            }
+            Self::SmallVec => quote! {
+                ::zeroize::Zeroize::zeroize(#inner_field.as_mut_slice());
+            },
         }
     }
 
     /// Expand the implementation to convert the inner type to a `Box<str>`.
-    fn expand_into_box_str_impl(&self, inner_field: &TokenStream) -> TokenStream {
+    fn expand_into_box_str_impl(
+        &self,
+        id_var: &TokenStream,
+        inner_field: &TokenStream,
+    ) -> TokenStream {
         match self {
             Self::Default => quote! { #inner_field },
-            Self::Arc => quote! {
-                #inner_field.as_ref().into()
+            Self::Arc | Self::ThinArc => quote! {
+                #id_var.as_inner_str().into()
             },
+            Self::SmallVec => {
+                quote! {
+                    unsafe { ::std::str::from_boxed_utf8_unchecked(#inner_field.into_boxed_slice()) }
+                }
+            }
         }
     }
 
     /// Expand the implementation to convert the inner type to a `String`.
-    fn expand_into_string_impl(&self, inner_field: &TokenStream) -> TokenStream {
+    fn expand_into_string_impl(
+        &self,
+        id_var: &TokenStream,
+        inner_field: &TokenStream,
+        types: &Types,
+    ) -> TokenStream {
         match self {
             Self::Default => quote! { #inner_field.into() },
-            Self::Arc => quote! {
-                #inner_field.as_ref().into()
+            Self::Arc | Self::ThinArc => quote! {
+                #id_var.as_inner_str().into()
             },
+            Self::SmallVec => {
+                let string = &types.string;
+                quote! {
+                    unsafe { #string::from_utf8_unchecked(#inner_field.into_vec()) }
+                }
+            }
         }
     }
 }
@@ -462,15 +596,30 @@ struct StorageCfgAttributes {
 
     /// Attribute for the `Arc` value.
     arc: syn::Attribute,
+
+    /// Attribute for the `SmallVec` value.
+    small_vec: syn::Attribute,
+
+    /// Attribute for the `ThinArc` value.
+    thin_arc: syn::Attribute,
 }
 
 impl StorageCfgAttributes {
     fn new() -> Self {
         let key = quote! { ruma_identifiers_storage };
 
+        let all_values = StorageCfgValue::ALL.iter().filter_map(StorageCfgValue::as_str);
+
+        let value_to_attribute = |value: StorageCfgValue| {
+            let value_str = value.as_str().expect("should not be StorageCfgValue::Default");
+            parse_quote! { #[cfg(#key = #value_str)] }
+        };
+
         Self {
-            default: parse_quote! { #[cfg(not(#key = "Arc"))] },
-            arc: parse_quote! { #[cfg(#key = "Arc")] },
+            default: parse_quote! { #[cfg(not(any(#( #key = #all_values ),*)))] },
+            arc: value_to_attribute(StorageCfgValue::Arc),
+            small_vec: value_to_attribute(StorageCfgValue::SmallVec),
+            thin_arc: value_to_attribute(StorageCfgValue::ThinArc),
         }
     }
 }

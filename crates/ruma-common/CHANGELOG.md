@@ -20,6 +20,15 @@ Breaking changes:
     the path args is a `&[&str]`.
   - `IncomingRequest::check_request_method` was removed, this check is part of
     `IncomingRequestExt::try_from_http_request`.
+- `IncomingResponse::try_from_http_response` has been moved to a new `IncomingResponseExt` trait
+  that is automatically implemented for any `T: IncomingResponse`.
+  - Implementors of `IncomingResponse` now instead have to provide the
+    `fn try_from_http_response_inner` which should only perform the deserialization of the
+    response type.
+  - The generic parameter was removed from `try_from_http_response`, the body of the response is a
+    `&[u8]`.
+- Remove `Metadata::empty_request_body()`. It is now unused and the types implementing
+  `OutgoingBody` should be used instead.
 
 Bug fixes:
 
@@ -41,8 +50,20 @@ Improvements:
 - `UserProfile::merge` has been renamed to `UserProfile::apply`.
 - Add experimental support for [MSC4495] (Selective Presence).
 - Add experimental support for [MSC4494] (Membership-based invite blocking).
+- Add `required_client_scopes` function to `Metadata` and accompanying `required_client_scopes` syntax
+  to `metadata!` macro, to allow request structs to define what OAuth 2.0 scopes they require.
+- Add unstable support for [MSC4484] "Server Administration OAuth Scope".
+- `ruma_identifiers_storage` supports new values:
+  - `ThinArc` uses `triomphe::ThinArc<(), u8>` as internal representation for the owned identifier
+    types, and requires the `triomphe` cargo feature.
+  - `SmallVec` uses `smallvec::SmallVec<[u8; N]>` as internal representation for the owned identifier
+    types, and requires the `smallvec` cargo feature.
+- In the `http_headers` module, add:
+  - `TEXT_PLAIN` for the `text/plain` media type.
+  - `TEXT_HTML_UTF8` for the `text/html; charset=utf-8` media type.
 
 [MSC4438]: https://github.com/matrix-org/matrix-spec-proposals/pull/4438
+[MSC4484]: https://github.com/matrix-org/matrix-spec-proposals/pull/4484
 [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
 [MSC4494]: https://github.com/matrix-org/matrix-spec-proposals/pull/4494
 
