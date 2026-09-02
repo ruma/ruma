@@ -18,6 +18,8 @@ Breaking changes:
 
 Improvements:
 
+- Add unstable support for the `rtc::livekit::get_token` endpoint from MSC4195, behind the
+  `unstable-msc4195` feature.
 - Remove support for MSC4373, as the MSC is now closed.
 - `query::get_profile_information` is now using `ruma_common::profile::UserProfile` for its
   underlying data storage.

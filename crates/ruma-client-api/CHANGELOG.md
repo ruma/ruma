@@ -50,9 +50,13 @@ Improvements:
   - The `next_batch_token` field of the `Response` was renamed to `next_batch`.
   - The `with_token` methods of both `Request` and `Response` were renamed to `with_batch_token`,
     to make it clearer which token we are talking about.
+- Add unstable support for the `rtc::livekit::get_token` and
+  `rtc::livekit::delegate_delayed_leave` endpoints from [MSC4195], behind the
+  `unstable-msc4195` feature.
 
 [MSC1763]: https://github.com/matrix-org/matrix-spec-proposals/pull/1763
 [MSC4484]: https://github.com/matrix-org/matrix-spec-proposals/pull/4484
+[MSC4195]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
 
 ## 0.24.0
 
