@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.20.0
+
 Breaking changes:
 
 - `OutgoingRequest::try_into_http_request` has been moved to a new `OutgoingRequestExt` trait
