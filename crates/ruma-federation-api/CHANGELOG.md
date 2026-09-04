@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.16.0
+
 Breaking changes:
 
 - Export nothing from the crate if neither the `client` nor the `server` feature is active, because
