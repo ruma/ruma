@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.18.0
+
+Breaking changes:
+
+- Upgrade ruma-common, ruma-events and ruma-signatures
+
 ## 0.17.0
 
 Breaking changes:
