@@ -1883,7 +1883,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-client-api"
-version = "0.24.0"
+version = "0.25.0"
 dependencies = [
  "as_variant",
  "assert_matches2",

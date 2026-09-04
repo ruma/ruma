@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.25.0
+
 Breaking changes:
 
 - `UiaaInfo`s field `auth_error` from `Option<StandardErrorBody>` to `Option<Box<StandardErrorBody>>`
