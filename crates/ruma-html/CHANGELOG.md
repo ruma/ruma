@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.9.0
+
+Breaking changes:
+
+- Upgrade ruma-common to 0.20.0.
+
 ## 0.8.0
 
 Breaking changes:
