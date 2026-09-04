@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.35.0
+
+Bug fixes:
+
+- Avoid creating empty formatted body fields when editing plain text message events.
+
 Improvements:
 
 - The `unstable-msc4268` and `unstable-msc3061` features were removed and
@@ -36,10 +42,6 @@ Improvements:
 [MSC1763]: https://github.com/matrix-org/matrix-spec-proposals/pull/1763
 [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
 [MSC4494]: https://github.com/matrix-org/matrix-spec-proposals/pull/4494
-
-Bug fixes:
-
-- Avoid creating empty formatted body fields when editing plain text message events.
 
 ## 0.34.0
 
