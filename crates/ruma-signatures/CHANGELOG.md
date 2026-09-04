@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.22.0
+
 Breaking changes:
 
 - Upgrade `ed25519-dalek` and `pkcs8` crates
