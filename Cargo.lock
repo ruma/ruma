@@ -1869,7 +1869,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-appservice-api"
-version = "0.16.0"
+version = "0.17.0"
 dependencies = [
  "assert_matches2",
  "http",
