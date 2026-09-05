@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Bug fixes:
+
+- In the `session::login::v3` module, the `identity_server` field is no longer
+  serialized when it is `Option::None`.
+
 ## 0.25.0
 
 Breaking changes:

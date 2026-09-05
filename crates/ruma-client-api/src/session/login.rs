@@ -393,7 +393,7 @@ pub mod v3 {
         pub homeserver: HomeserverInfo,
 
         /// Information about the identity server to connect to.
-        #[serde(rename = "m.identity_server")]
+        #[serde(rename = "m.identity_server", skip_serializing_if = "Option::is_none")]
         pub identity_server: Option<IdentityServerInfo>,
     }
 
