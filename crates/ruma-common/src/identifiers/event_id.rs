@@ -103,19 +103,14 @@ impl EventId {
     /// "localpart" that precedes the homeserver. For later formats, this is the entire ID without
     /// the leading `$` sigil.
     pub fn localpart(&self) -> &str {
-        let idx = self.colon_idx().unwrap_or_else(|| self.as_str().len());
-        &self.as_str()[1..idx]
+        super::find_localpart(self.as_str())
     }
 
     /// Returns the server name of the event ID.
     ///
     /// Only applicable to events in the original format as used by Matrix room versions 1 and 2.
     pub fn server_name(&self) -> Option<&ServerName> {
-        self.colon_idx().map(|idx| ServerName::from_borrowed_unchecked(&self.as_str()[idx + 1..]))
-    }
-
-    fn colon_idx(&self) -> Option<usize> {
-        self.as_str().find(':')
+        super::find_server_name_unchecked(self.as_str())
     }
 }
 
