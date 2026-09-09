@@ -267,7 +267,9 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                         max_age: max_age
                             .map(from_json_value::<UInt>)
                             .transpose()
-                            .map_err(de::Error::custom)?,
+                            .map_err(de::Error::custom)?
+                            .map(Into::into)
+                            .map(Duration::from_secs),
                         scope: scope
                             .as_ref()
                             .and_then(|value| value.as_str())
@@ -414,7 +416,10 @@ impl Serialize for ErrorKind {
                 }
 
                 if let Some(max_age) = max_age {
-                    st.serialize_entry("org.matrix.msc4363.max_age", max_age)?;
+                    st.serialize_entry(
+                        "org.matrix.msc4363.max_age",
+                        &UInt::try_from(max_age.as_secs()).map_err(ser::Error::custom)?,
+                    )?;
                 }
 
                 if !scope.is_empty() {
@@ -569,7 +574,7 @@ mod tests {
     #[test]
     #[cfg(feature = "unstable-msc4363")]
     fn deserialize_insufficient_user_authentication() {
-        use js_int::uint;
+        use std::time::Duration;
 
         use crate::api::{OAuthClientScope, error::InsufficientUserAuthenticationErrorData};
 
@@ -587,7 +592,7 @@ mod tests {
             ErrorKind::InsufficientUserAuthentication(Box::new(
                 InsufficientUserAuthenticationErrorData {
                     acr_values: vec!["urn:example:foo".to_owned(), "urn:example:bar".to_owned()],
-                    max_age: Some(uint!(300)),
+                    max_age: Some(Duration::from_secs(300)),
                     scope: [OAuthClientScope::ApiFullAccess, "urn:example:xyzzy".into()]
                         .into_iter()
                         .collect()
@@ -599,7 +604,8 @@ mod tests {
     #[test]
     #[cfg(feature = "unstable-msc4363")]
     fn serialize_insufficient_user_authentication() {
-        use js_int::uint;
+        use std::time::Duration;
+
         use serde_json::to_value as to_json_value;
 
         use crate::api::{OAuthClientScope, error::InsufficientUserAuthenticationErrorData};
@@ -607,7 +613,7 @@ mod tests {
         let serialized = to_json_value(ErrorKind::InsufficientUserAuthentication(Box::new(
             InsufficientUserAuthenticationErrorData {
                 acr_values: vec!["urn:example:foo".to_owned(), "urn:example:bar".to_owned()],
-                max_age: Some(uint!(300)),
+                max_age: Some(Duration::from_secs(300)),
                 scope: [OAuthClientScope::ApiFullAccess, "urn:example:xyzzy".into()]
                     .into_iter()
                     .collect(),
