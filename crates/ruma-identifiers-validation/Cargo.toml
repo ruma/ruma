@@ -18,6 +18,9 @@ compat-arbitrary-length-ids = []
 # Don't validate the version in `server_signing_key_version::validate`.
 compat-server-signing-key-version = []
 
+# OAuth step up authentication
+unstable-msc4363 = []
+
 [dependencies]
 js_int = { workspace = true }
 thiserror = { workspace = true }
