@@ -281,7 +281,7 @@ impl IdDst {
 
                 fn try_from(s: #box_str) -> ::std::result::Result<Self, Self::Error> {
                     #validate(&s)?;
-                    ::std::result::Result::Ok(#owned_ident::from_box_str_unchecked(s))
+                    ::std::result::Result::Ok(Self::from_box_str_unchecked(s))
                 }
             }
 
@@ -291,7 +291,7 @@ impl IdDst {
 
                 fn try_from(s: #string) -> ::std::result::Result<Self, Self::Error> {
                     #validate(&s)?;
-                    ::std::result::Result::Ok(#owned_ident::from_string_unchecked(s))
+                    ::std::result::Result::Ok(Self::from_string_unchecked(s))
                 }
             }
 
@@ -333,7 +333,6 @@ impl IdDst {
         }
 
         let ident = &self.ident;
-        let owned_ident = &self.owned_id.ident;
         let impl_generics = &self.impl_generics;
         let generic_params = &self.generics.params;
 
@@ -359,21 +358,21 @@ impl IdDst {
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<&#str> for #owned_id {
                 fn from(s: &#str) -> Self {
-                    #owned_ident::from_str_unchecked(s)
+                    Self::from_str_unchecked(s)
                 }
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<#box_str> for #owned_id {
                 fn from(s: #box_str) -> Self {
-                    #owned_ident::from_box_str_unchecked(s)
+                    Self::from_box_str_unchecked(s)
                 }
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<#string> for #owned_id {
                 fn from(s: #string) -> Self {
-                    #owned_ident::from_string_unchecked(s)
+                    Self::from_string_unchecked(s)
                 }
             }
 
