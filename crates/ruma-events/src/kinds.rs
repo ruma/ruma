@@ -907,14 +907,17 @@ where
 macro_rules! impl_possibly_redacted_event {
     (
         $ty:ident ( $content_trait:ident, $redacted_content_trait:ident, $event_type:ident )
-        $( where C::Redacted: $trait:ident<StateKey = C::StateKey>, )?
+        $( where
+           C::Unsigned: $unsigned_trait:path,
+           C::Redacted: $redacted_extra_trait:ident<StateKey = C::StateKey>,
+        )?
         { $($extra:tt)* }
     ) => {
         impl<C> $ty<C>
         where
             C: $content_trait + RedactContent,
             C::Redacted: $redacted_content_trait,
-            $( C::Redacted: $trait<StateKey = C::StateKey>, )?
+            $( C::Redacted: $redacted_extra_trait<StateKey = C::StateKey>, )?
         {
             /// Returns the `type` of this event.
             pub fn event_type(&self) -> $event_type {
@@ -956,7 +959,10 @@ macro_rules! impl_possibly_redacted_event {
         where
             C: $content_trait + EventContentFromType + RedactContent,
             C::Redacted: $redacted_content_trait + EventContentFromType,
-            $( C::Redacted: $trait<StateKey = C::StateKey>, )?
+            $(
+                C::Unsigned: $unsigned_trait,
+                C::Redacted: $redacted_extra_trait<StateKey = C::StateKey>,
+            )?
         {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -1016,6 +1022,7 @@ impl_possibly_redacted_event!(
 impl_possibly_redacted_event!(
     StateEvent(StaticStateEventContent, RedactedStateEventContent, StateEventType)
     where
+        C::Unsigned: serde::de::DeserializeOwned,
         C::Redacted: RedactedStateEventContent<StateKey = C::StateKey>,
     {
         /// Returns this event's `room_id` field.
@@ -1044,6 +1051,7 @@ impl_possibly_redacted_event!(
 impl_possibly_redacted_event!(
     SyncStateEvent(StaticStateEventContent, RedactedStateEventContent, StateEventType)
     where
+        C::Unsigned: serde::de::DeserializeOwned,
         C::Redacted: RedactedStateEventContent<StateKey = C::StateKey>,
     {
         /// Returns this event's `state_key` field.

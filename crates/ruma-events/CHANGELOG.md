@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- The `DeserializeOwned` bound on the `StaticStateEventContent::Unsigned` associated type is only
+  required when using the `Deserialize` implementation of `Original(Sync)StateEvent`.
+
 ## 0.35.0
 
 Bug fixes:

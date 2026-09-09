@@ -121,7 +121,7 @@ pub trait StaticStateEventContent: StateEventContent {
     type PossiblyRedacted: PossiblyRedactedStateEventContent;
 
     /// The type of the event's `unsigned` field.
-    type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty + DeserializeOwned;
+    type Unsigned: Clone + fmt::Debug + Default + CanBeEmpty;
 }
 
 /// Content of a redacted state event.
