@@ -284,7 +284,7 @@ mod tests {
         assert_eq!(
             serde_json::from_str::<OwnedRoomId>(r#""!29fhd83h92h0:example.com""#)
                 .expect("Failed to convert JSON to RoomId"),
-            <&RoomId>::try_from("!29fhd83h92h0:example.com").expect("Failed to create RoomId.")
+            "!29fhd83h92h0:example.com"
         );
     }
 
@@ -348,7 +348,7 @@ mod tests {
     #[test]
     fn zeroize() {
         let room_id = <&RoomId>::try_from("!room_id").expect("Failed to create RoomId.").to_owned();
-        assert_eq!(room_id.as_str(), "!room_id");
+        assert_eq!(room_id, "!room_id");
 
         room_id.zeroize();
     }

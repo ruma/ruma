@@ -102,7 +102,7 @@ mod tests {
         assert_eq!(
             serde_json::from_str::<OwnedRoomAliasId>(r##""#ruma:example.com""##)
                 .expect("Failed to convert JSON to RoomAliasId"),
-            <&RoomAliasId>::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
+            "#ruma:example.com"
         );
     }
 

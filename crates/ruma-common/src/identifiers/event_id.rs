@@ -205,7 +205,7 @@ mod tests {
         assert_eq!(
             serde_json::from_str::<OwnedEventId>(r#""$39hvsi03hlne:example.com""#)
                 .expect("Failed to convert JSON to EventId"),
-            <&EventId>::try_from("$39hvsi03hlne:example.com").expect("Failed to create EventId.")
+            "$39hvsi03hlne:example.com"
         );
     }
 
@@ -216,8 +216,7 @@ mod tests {
                 r#""$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk""#
             )
             .expect("Failed to convert JSON to EventId"),
-            <&EventId>::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk")
-                .expect("Failed to create EventId.")
+            "$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk"
         );
     }
 
@@ -228,8 +227,7 @@ mod tests {
                 r#""$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg""#
             )
             .expect("Failed to convert JSON to EventId"),
-            <&EventId>::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg")
-                .expect("Failed to create EventId.")
+            "$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg"
         );
     }
 

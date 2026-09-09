@@ -218,7 +218,7 @@ mod tests {
         assert_eq!(
             serde_json::from_str::<OwnedRoomOrAliasId>(r##""#ruma:example.com""##)
                 .expect("Failed to convert JSON to RoomAliasId"),
-            <&RoomOrAliasId>::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
+            "#ruma:example.com"
         );
     }
 
@@ -227,8 +227,7 @@ mod tests {
         assert_eq!(
             serde_json::from_str::<OwnedRoomOrAliasId>(r#""!29fhd83h92h0:example.com""#)
                 .expect("Failed to convert JSON to RoomId"),
-            <&RoomOrAliasId>::try_from("!29fhd83h92h0:example.com")
-                .expect("Failed to create RoomAliasId.")
+            "!29fhd83h92h0:example.com"
         );
     }
 }

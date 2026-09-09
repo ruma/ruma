@@ -66,19 +66,19 @@ mod tests {
     #[test]
     fn create_device_id_from_str() {
         let ref_id: &DeviceId = "abcdefgh".into();
-        assert_eq!(ref_id.as_str(), "abcdefgh");
+        assert_eq!(ref_id, "abcdefgh");
     }
 
     #[test]
     fn create_boxed_device_id_from_str() {
         let box_id: OwnedDeviceId = "12345678".into();
-        assert_eq!(box_id.as_str(), "12345678");
+        assert_eq!(box_id, "12345678");
     }
 
     #[test]
     fn create_device_id_from_box() {
         let box_str: Box<str> = "ijklmnop".into();
         let device_id: OwnedDeviceId = box_str.into();
-        assert_eq!(device_id.as_str(), "ijklmnop");
+        assert_eq!(device_id, "ijklmnop");
     }
 }

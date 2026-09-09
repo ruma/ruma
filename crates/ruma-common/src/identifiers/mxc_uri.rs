@@ -103,7 +103,7 @@ mod tests {
         let mxc = serde_json::from_str::<OwnedMxcUri>(r#""mxc://server/1234id""#)
             .expect("Failed to convert JSON to MxcUri");
 
-        assert_eq!(mxc.as_str(), "mxc://server/1234id");
+        assert_eq!(mxc, "mxc://server/1234id");
         assert!(mxc.is_valid());
         assert_eq!(
             mxc.parts(),

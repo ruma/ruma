@@ -74,7 +74,7 @@ mod tests {
         let device_id: OwnedDeviceId = "MYDEVICE".into();
         let mixed: OwnedBase64PublicKeyOrDeviceId = device_id.into();
 
-        assert_eq!(mixed.as_str(), "MYDEVICE");
+        assert_eq!(mixed, "MYDEVICE");
     }
 
     #[test]
@@ -83,6 +83,6 @@ mod tests {
             "base64+master+public+key".try_into().unwrap();
         let mixed: OwnedBase64PublicKeyOrDeviceId = base64_public_key.into();
 
-        assert_eq!(mixed.as_str(), "base64+master+public+key");
+        assert_eq!(mixed, "base64+master+public+key");
     }
 }
