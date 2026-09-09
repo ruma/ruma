@@ -23,12 +23,12 @@ pub struct RoomAliasId(str);
 impl RoomAliasId {
     /// Returns the room's alias.
     pub fn alias(&self) -> &str {
-        &self.as_str()[1..self.colon_idx()]
+        super::find_localpart(self.as_str())
     }
 
     /// Returns the server name of the room alias ID.
     pub fn server_name(&self) -> &ServerName {
-        ServerName::from_borrowed_unchecked(&self.as_str()[self.colon_idx() + 1..])
+        super::find_server_name_unchecked(self.as_str()).expect("room alias should contain a colon")
     }
 
     /// Create a `matrix.to` URI for this room alias ID.
@@ -57,10 +57,6 @@ impl RoomAliasId {
     #[deprecated = "Use `RoomId::matrix_event_uri` instead."]
     pub fn matrix_event_uri(&self, ev_id: impl Into<OwnedEventId>) -> MatrixUri {
         MatrixUri::new((self.to_owned(), ev_id.into()).into(), Vec::new(), None)
-    }
-
-    fn colon_idx(&self) -> usize {
-        self.as_str().find(':').unwrap()
     }
 }
 

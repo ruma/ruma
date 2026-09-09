@@ -90,6 +90,35 @@ fn generate_localpart(length: usize) -> Box<str> {
         .into_boxed_str()
 }
 
+/// Find the localpart in the given identifier string.
+///
+/// This function expects the string to start with a sigil and the localpart to be the part between
+/// the sigil and the first colon. If there is no colon, the full string after the sigil is assumed
+/// to be the localpart.
+fn find_localpart(s: &str) -> &str {
+    let without_sigil = &s[1..];
+    without_sigil.find(':').map(|idx| &without_sigil[..idx]).unwrap_or(without_sigil)
+}
+
+/// Find the server name in the given identifier string and return it as a `&str`.
+///
+/// This function expects the server name to be the part of the string after the first colon.
+///
+/// Returns `None` if there is no colon in the string.
+fn find_server_name_str(s: &str) -> Option<&str> {
+    s.find(':').map(|idx| &s[idx + 1..])
+}
+
+/// Find the server name from the given identifier string an return it as a `ServerName`.
+///
+/// This function expects the server name to be the part of the string after the first colon, and
+/// that it was already validated.
+///
+/// Returns `None` if there is no colon in the string.
+fn find_server_name_unchecked(s: &str) -> Option<&ServerName> {
+    find_server_name_str(s).map(ServerName::from_borrowed_unchecked)
+}
+
 /// Deserializes any type of id using the provided `TryFrom` implementation.
 ///
 /// This is a helper function to reduce the boilerplate of the `Deserialize` implementations.

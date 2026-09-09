@@ -1,12 +1,12 @@
 //! Matrix room identifiers.
 
 use ruma_macros::IdDst;
+use tracing::warn;
 
 use super::{
     IdParseError, MatrixToUri, MatrixUri, OwnedEventId, OwnedServerName, ServerName,
     matrix_uri::UriAction,
 };
-use crate::RoomOrAliasId;
 
 /// A Matrix [room ID].
 ///
@@ -75,7 +75,7 @@ impl RoomId {
     ///
     /// [`RoomIdFormatVersion::V1`]: crate::room_version_rules::RoomIdFormatVersion::V1
     pub fn server_name(&self) -> Option<&ServerName> {
-        <&RoomOrAliasId>::from(self).server_name()
+        find_server_name(self.as_str())
     }
 
     /// Create a `matrix.to` URI for this room ID.
@@ -237,6 +237,24 @@ impl RoomId {
             None,
         )
     }
+}
+
+/// Find the server name from the given room ID string and return it as a `ServerName`.
+///
+/// This function expects the server name to be the part of the string after the first colon, and
+/// this part of the string is validated.
+///
+/// Returns `None` if there is no colon in the string or if the server name is invalid. If the
+/// server name is invalid a warning is logged.
+pub(super) fn find_server_name(s: &str) -> Option<&ServerName> {
+    let server_name = super::find_server_name_str(s)?;
+
+    server_name
+        .try_into()
+        .inspect_err(|e| {
+            warn!(server_name, "Room ID contains colon but no valid server name afterwards: {e}",);
+        })
+        .ok()
 }
 
 #[cfg(test)]
