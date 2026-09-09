@@ -60,12 +60,12 @@ impl UserId {
 
     /// Returns the user's localpart.
     pub fn localpart(&self) -> &str {
-        &self.as_str()[1..self.colon_idx()]
+        super::find_localpart(self.as_str())
     }
 
     /// Returns the server name of the user ID.
     pub fn server_name(&self) -> &ServerName {
-        ServerName::from_borrowed_unchecked(&self.as_str()[self.colon_idx() + 1..])
+        super::find_server_name_unchecked(self.as_str()).expect("user ID should contain a colon")
     }
 
     /// Validate this user ID against the strict or historical grammar.
@@ -153,10 +153,6 @@ impl UserId {
     /// ```
     pub fn matrix_uri(&self, chat: bool) -> MatrixUri {
         MatrixUri::new(self.into(), Vec::new(), chat.then_some(UriAction::Chat))
-    }
-
-    fn colon_idx(&self) -> usize {
-        self.as_str().find(':').unwrap()
     }
 }
 

@@ -3,7 +3,6 @@
 use std::hint::unreachable_unchecked;
 
 use ruma_macros::IdDst;
-use tracing::warn;
 
 use super::{OwnedRoomAliasId, OwnedRoomId, RoomAliasId, RoomId, server_name::ServerName};
 
@@ -37,20 +36,9 @@ pub struct RoomOrAliasId(str);
 impl RoomOrAliasId {
     /// Returns the server name of the room (alias) ID.
     pub fn server_name(&self) -> Option<&ServerName> {
-        let colon_idx = self.as_str().find(':')?;
-        let server_name = &self.as_str()[colon_idx + 1..];
-        match server_name.try_into() {
-            Ok(parsed) => Some(parsed),
-            // Room aliases are verified to contain a server name at parse time
-            Err(e) => {
-                warn!(
-                    target: "ruma_common::identifiers::room_id",
-                    server_name,
-                    "Room ID contains colon but no valid server name afterwards: {e}",
-                );
-                None
-            }
-        }
+        // We can use the room ID function because the server name in a room alias is already
+        // validated.
+        super::room_id::find_server_name(self.as_str())
     }
 
     /// Whether this is a room id (starts with `'!'`)
