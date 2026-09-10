@@ -10,12 +10,15 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#get_matrixclientv3capabilities
 
-    use std::{borrow::Cow, collections::BTreeMap};
+    use std::{
+        borrow::Cow,
+        collections::{BTreeMap, BTreeSet},
+    };
 
     use maplit::btreemap;
     use ruma_common::{
         RoomVersionId,
-        api::{auth_scheme::AccessToken, request, response},
+        api::{OAuthClientScope, auth_scheme::AccessToken, request, response},
         metadata,
         profile::ProfileFieldName,
         serde::StringEnum,
@@ -152,6 +155,17 @@ pub mod v3 {
             skip_serializing_if = "AccountModerationCapability::is_default"
         )]
         pub account_moderation: AccountModerationCapability,
+
+        /// Capability to indicate if the user can perform administrative actions. ([MSC4540])
+        ///
+        /// [MSC4540]: https://github.com/matrix-org/matrix-spec-proposals/pull/4540
+        #[cfg(feature = "unstable-msc4540")]
+        #[serde(
+            rename = "org.continuwuity.msc4540.admin",
+            default,
+            skip_serializing_if = "Option::is_none"
+        )]
+        pub admin: Option<AdminCapability>,
 
         /// Any other custom capabilities that the server supports outside of the specification,
         /// labeled using the Java package naming convention and stored as arbitrary JSON values.
@@ -499,6 +513,58 @@ pub mod v3 {
         /// Returns whether all fields have their default value.
         pub fn is_default(&self) -> bool {
             !self.suspend && !self.lock
+        }
+    }
+
+    /// Information about the `m.admin` capability. ([MSC4540])
+    ///
+    /// [MSC4540]: https://github.com/matrix-org/matrix-spec-proposals/pull/4540
+    #[cfg(feature = "unstable-msc4540")]
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    #[serde(untagged)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub enum AdminCapability {
+        /// Admin capability for devices using legacy authentication.
+        Legacy {
+            /// Whether the device may access administrative functionality.
+            legacy_access: bool,
+        },
+
+        /// Admin capability for devices using OAuth authentication.
+        OAuth {
+            /// The scopes the device may request to access administrative functionality.
+            allowed_scopes: BTreeSet<OAuthClientScope>,
+        },
+    }
+
+    #[cfg(feature = "unstable-msc4540")]
+    impl AdminCapability {
+        /// Create a new [`AdminCapability`] for a legacy device.
+        pub fn new_legacy(legacy_access: bool) -> Self {
+            Self::Legacy { legacy_access }
+        }
+
+        /// Create a new [`AdminCapability`] for an OAuth device.
+        pub fn new_oauth(allowed_scopes: BTreeSet<OAuthClientScope>) -> Self {
+            Self::OAuth { allowed_scopes }
+        }
+
+        /// Returns whether the capability indicates that the authenticated user
+        /// is able to access some administrative functionality.
+        pub fn is_admin(&self) -> bool {
+            match self {
+                Self::Legacy { legacy_access } => *legacy_access,
+                Self::OAuth { allowed_scopes } => !allowed_scopes.is_empty(),
+            }
+        }
+
+        /// Returns whether the admin functionality gated by a particular scope
+        /// is available to the authenticated user.
+        pub fn scope_allowed(&self, scope: &OAuthClientScope) -> bool {
+            match self {
+                Self::Legacy { .. } => true,
+                Self::OAuth { allowed_scopes } => allowed_scopes.contains(scope),
+            }
         }
     }
 }
