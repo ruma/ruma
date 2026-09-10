@@ -10,12 +10,13 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#get_matrixclientv3capabilities
 
-    use std::{
-        borrow::Cow,
-        collections::BTreeMap,
-    };
+    #[cfg(feature = "unstable-msc4540")]
+    use std::collections::BTreeSet;
+    use std::{borrow::Cow, collections::BTreeMap};
 
     use maplit::btreemap;
+    #[cfg(feature = "unstable-msc4540")]
+    use ruma_common::api::OAuthClientScope;
     use ruma_common::{
         RoomVersionId,
         api::{auth_scheme::AccessToken, request, response},
@@ -27,12 +28,6 @@ pub mod v3 {
     use serde_json::{
         Value as JsonValue, from_value as from_json_value, to_value as to_json_value,
     };
-
-    #[cfg(feature = "unstable-msc4540")]
-    use std::collections::BTreeSet;
-    #[cfg(feature = "unstable-msc4540")]
-    use ruma_common::api::OAuthClientScope;
-    
 
     use crate::PrivOwnedStr;
 
