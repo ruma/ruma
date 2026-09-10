@@ -12,13 +12,13 @@ pub mod v3 {
 
     use std::{
         borrow::Cow,
-        collections::{BTreeMap, BTreeSet},
+        collections::BTreeMap,
     };
 
     use maplit::btreemap;
     use ruma_common::{
         RoomVersionId,
-        api::{OAuthClientScope, auth_scheme::AccessToken, request, response},
+        api::{auth_scheme::AccessToken, request, response},
         metadata,
         profile::ProfileFieldName,
         serde::StringEnum,
@@ -27,6 +27,12 @@ pub mod v3 {
     use serde_json::{
         Value as JsonValue, from_value as from_json_value, to_value as to_json_value,
     };
+
+    #[cfg(feature = "unstable-msc4540")]
+    use std::collections::BTreeSet;
+    #[cfg(feature = "unstable-msc4540")]
+    use ruma_common::api::OAuthClientScope;
+    
 
     use crate::PrivOwnedStr;
 
