@@ -75,6 +75,9 @@ event_enum! {
         #[cfg(feature = "unstable-msc4495")]
         #[ruma_enum(ident = PresencePrompted)]
         "org.continuwuity.presence_v2.msc4495.presence.prompted" => super::presence::prompted,
+        #[cfg(feature = "unstable-msc4532")]
+        #[ruma_enum(ident = PresencePersistent)]
+        "org.continuwuity.presence_v2.msc4532.presence.persistent" => super::presence::persistent,
     }
 
     /// Any room account data event.
