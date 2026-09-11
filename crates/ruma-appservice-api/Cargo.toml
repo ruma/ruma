@@ -20,6 +20,7 @@ server = []
 
 unstable-msc3202 = []
 unstable-msc4203 = []
+unstable-msc4532 = ["ruma-common/unstable-msc4532", "ruma-events/unstable-msc4532"]
 
 [dependencies]
 http = { workspace = true }
