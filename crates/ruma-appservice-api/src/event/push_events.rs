@@ -422,24 +422,51 @@ pub mod v1 {
             assert_to_canonical_json_eq!(data, receipt_json);
 
             // Test m.presence serde.
-            let presence_json = json!({
-                "type": "m.presence",
-                "sender": user_id,
-                "content": {
-                    "avatar_url": "mxc://localhost/wefuiwegh8742w",
-                    "currently_active": false,
-                    "last_active_ago": 785,
-                    "presence": "online",
-                    "status_msg": "Making cupcakes",
-                },
-            });
+            #[cfg(not(feature = "unstable-msc4532"))]
+            {
+                let presence_json = json!({
+                    "type": "m.presence",
+                    "sender": user_id,
+                    "content": {
+                        "avatar_url": "mxc://localhost/wefuiwegh8742w",
+                        "currently_active": false,
+                        "last_active_ago": 785,
+                        "presence": "online",
+                        "status_msg": "Making cupcakes",
+                    },
+                });
 
-            let data = from_json_value::<EphemeralData>(presence_json.clone()).unwrap();
-            assert_let!(EphemeralData::Presence(presence) = &data);
-            assert_eq!(presence.sender, user_id);
-            assert_eq!(presence.content.currently_active, Some(false));
+                let data = from_json_value::<EphemeralData>(presence_json.clone()).unwrap();
+                assert_let!(EphemeralData::Presence(presence) = &data);
+                assert_eq!(presence.sender, user_id);
+                assert_eq!(presence.content.currently_active, Some(false));
 
-            assert_to_canonical_json_eq!(data, presence_json);
+                assert_to_canonical_json_eq!(data, presence_json);
+            }
+            #[cfg(feature = "unstable-msc4532")]
+            {
+                let presence_json = json!({
+                    "type": "m.presence",
+                    "sender": user_id,
+                    "content": {
+                        "avatar_url": "mxc://localhost/wefuiwegh8742w",
+                        "currently_active": false,
+                        "last_active_ago": 785,
+                        "presence": "online",
+                        "status_msg": "Making cupcakes",
+                        "org.continuwuity.presence_v2.msc4532.status": {
+                            "msg": "Making cupcakes"
+                        },
+                    },
+                });
+
+                let data = from_json_value::<EphemeralData>(presence_json.clone()).unwrap();
+                assert_let!(EphemeralData::Presence(presence) = &data);
+                assert_eq!(presence.sender, user_id);
+                assert_eq!(presence.content.currently_active, Some(false));
+
+                assert_to_canonical_json_eq!(data, presence_json);
+            }
 
             // Test custom serde.
             let custom_json = json!({
