@@ -78,6 +78,22 @@ pub struct Request {
     #[ruma_api(query)]
     pub set_presence: PresenceState,
 
+    /// Whether to use [MSC4532]'s revised presence states (if the server supports them).
+    ///
+    /// Defaults to `false`.
+    ///
+    /// This uses the unstable prefix defined in [MSC4532].
+    ///
+    /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+    #[cfg(feature = "unstable-msc4532")]
+    #[serde(
+        default,
+        skip_serializing_if = "ruma_common::serde::is_default",
+        rename = "org.continuwuity.presence_v2.msc4532.revised_presence"
+    )]
+    #[ruma_api(query)]
+    pub revised_presence: bool,
+
     /// Lists of rooms we are interested by, represented by ranges.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub lists: BTreeMap<String, request::List>,

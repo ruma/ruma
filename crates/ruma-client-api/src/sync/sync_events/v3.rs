@@ -64,6 +64,22 @@ pub struct Request {
     #[ruma_api(query)]
     pub set_presence: PresenceState,
 
+    /// Whether to use [MSC4532]'s revised presence states (if the server supports them).
+    ///
+    /// Defaults to `false`.
+    ///
+    /// This uses the unstable prefix defined in [MSC4532].
+    ///
+    /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+    #[cfg(feature = "unstable-msc4532")]
+    #[serde(
+        default,
+        skip_serializing_if = "ruma_common::serde::is_default",
+        rename = "org.continuwuity.presence_v2.msc4532.revised_presence"
+    )]
+    #[ruma_api(query)]
+    pub revised_presence: bool,
+
     /// The maximum time to poll in milliseconds before returning this request.
     #[serde(
         with = "ruma_common::serde::duration::opt_ms",
@@ -875,6 +891,8 @@ mod client_tests {
             set_presence: PresenceState::Offline,
             timeout: Some(Duration::from_millis(30000)),
             use_state_after: true,
+            #[cfg(feature = "unstable-msc4532")]
+            revised_presence: true,
         }
         .try_into_http_request(
             "https://homeserver.tld",
@@ -893,6 +911,8 @@ mod client_tests {
         assert!(query.contains("set_presence=offline"));
         assert!(query.contains("timeout=30000"));
         assert!(query.contains("use_state_after=true"));
+        #[cfg(feature = "unstable-msc4532")]
+        assert!(query.contains("revised_presence=true"));
     }
 
     #[test]
