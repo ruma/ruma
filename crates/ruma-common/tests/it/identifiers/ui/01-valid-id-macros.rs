@@ -24,5 +24,6 @@ fn main() {
         _ = ruma_common::room_alias_id_ref!("#alias:server.tld");
         _ = ruma_common::room_id_ref!("!1234567890:matrix.org");
         _ = ruma_common::server_name_ref!("myserver.fish");
+        _ = ruma_common::server_signing_key_version_ref!("Abc_1");
     }
 }

@@ -38,7 +38,7 @@ pub use self::{
     room_or_alias_id::RoomOrAliasId,
     room_version_id::RoomVersionId,
     server_name::ServerName,
-    server_signing_key_version::{OwnedServerSigningKeyVersion, ServerSigningKeyVersion},
+    server_signing_key_version::ServerSigningKeyVersion,
     session_id::{OwnedSessionId, SessionId},
     signatures::{
         CrossSigningOrDeviceSignatures, DeviceSignatures, EntitySignatures, ServerSignatures,
@@ -224,6 +224,10 @@ pub mod __private_macros {
 
         pub static SERVER_NAME_INTERNER: LazyLock<IdInterner<crate::ServerName>> =
             LazyLock::new(IdInterner::new);
+
+        pub static SERVER_SIGNING_KEY_VERSION_INTERNER: LazyLock<
+            IdInterner<crate::ServerSigningKeyVersion>,
+        > = LazyLock::new(IdInterner::new);
     }
 }
 
@@ -318,11 +322,20 @@ macro_rules! server_signing_key_version {
     };
 }
 
-/// Compile-time checked [`OwnedServerSigningKeyVersion`] construction.
+/// Compile-time checked `&'static ServerSigningKeyVersion` construction.
+///
+/// This macro is a helper to ease the transition after the change of [`ServerSigningKeyVersion`]
+/// from a dynamically sized type to an owned type. It has the side effect of interning and leaking
+/// the identifier so it SHOULD NOT be used in code that runs in production.
+///
+/// This is behind the `unstable-identifier-ref-macros` cargo feature to allow us to remove this
+/// macro at any time without it being a breaking change.
 #[macro_export]
-macro_rules! owned_server_signing_key_version {
+#[cfg(feature = "unstable-identifier-ref-macros")]
+macro_rules! server_signing_key_version_ref {
     ($s:literal) => {
-        $crate::server_signing_key_version!($s).to_owned()
+        $crate::__private_macros::id_interner::SERVER_SIGNING_KEY_VERSION_INTERNER
+            .get_or_insert_with($s, || $crate::server_signing_key_version!($s))
     };
 }
 

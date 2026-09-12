@@ -16,10 +16,14 @@ pub type EntitySignatures<K> = BTreeMap<SigningKeyId<K>, String>;
 /// Map of all signatures, grouped by entity.
 ///
 /// ```
-/// # use ruma_common::{server_name, server_signing_key_version, ServerSigningKeyId, Signatures, SigningKeyAlgorithm};
+/// use ruma_common::{
+///     ServerSigningKeyId, Signatures, SigningKeyAlgorithm, server_name,
+///     server_signing_key_version,
+/// };
+///
 /// let key_identifier = ServerSigningKeyId::from_parts(
 ///     SigningKeyAlgorithm::Ed25519,
-///     server_signing_key_version!("1")
+///     &server_signing_key_version!("1"),
 /// );
 /// let mut signatures = Signatures::new();
 /// let server_name = server_name!("example.org");
@@ -164,7 +168,7 @@ mod tests {
         };
         let key_identifier = ServerSigningKeyId::from_parts(
             SigningKeyAlgorithm::Ed25519,
-            server_signing_key_version!("1"),
+            &server_signing_key_version!("1"),
         );
         let mut signatures = Signatures::new();
         let server_name = server_name!("example.org");
