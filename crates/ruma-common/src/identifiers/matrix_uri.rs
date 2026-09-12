@@ -9,7 +9,7 @@ use ruma_identifiers_validation::{
 };
 use url::Url;
 
-use super::{EventId, OwnedUserId, RoomAliasId, RoomId, RoomOrAliasId, ServerName, UserId};
+use super::{EventId, RoomAliasId, RoomId, RoomOrAliasId, ServerName, UserId};
 use crate::{PrivOwnedStr, percent_encode::PATH_PERCENT_ENCODE_SET};
 
 const MATRIX_TO_BASE_URL: &str = "https://matrix.to/#/";
@@ -26,7 +26,7 @@ pub enum MatrixId {
     RoomAlias(RoomAliasId),
 
     /// A user ID.
-    User(OwnedUserId),
+    User(UserId),
 
     /// An event ID.
     ///
@@ -201,8 +201,8 @@ impl From<&RoomAliasId> for MatrixId {
     }
 }
 
-impl From<OwnedUserId> for MatrixId {
-    fn from(user_id: OwnedUserId) -> Self {
+impl From<UserId> for MatrixId {
+    fn from(user_id: UserId) -> Self {
         Self::User(user_id)
     }
 }
@@ -556,10 +556,7 @@ mod tests {
     };
 
     use super::{MatrixId, MatrixToUri, MatrixUri};
-    use crate::{
-        event_id, matrix_uri::UriAction, owned_user_id, room_alias_id, room_id, server_name,
-        user_id,
-    };
+    use crate::{event_id, matrix_uri::UriAction, room_alias_id, room_id, server_name, user_id};
 
     #[test]
     fn display_matrixtouri() {
@@ -607,7 +604,7 @@ mod tests {
     fn parse_valid_matrixid_with_sigil() {
         assert_eq!(
             MatrixId::parse_with_sigil("@user:imaginary.hs").expect("Failed to create MatrixId."),
-            MatrixId::User(owned_user_id!("@user:imaginary.hs"))
+            MatrixId::User(user_id!("@user:imaginary.hs"))
         );
         assert_eq!(
             MatrixId::parse_with_sigil("!roomid:imaginary.hs").expect("Failed to create MatrixId."),
@@ -654,7 +651,7 @@ mod tests {
         // Starting with a slash
         assert_eq!(
             MatrixId::parse_with_sigil("/@user:imaginary.hs").expect("Failed to create MatrixId."),
-            MatrixId::User(owned_user_id!("@user:imaginary.hs"))
+            MatrixId::User(user_id!("@user:imaginary.hs"))
         );
         // Ending with a slash
         assert_eq!(
@@ -734,7 +731,7 @@ mod tests {
     fn parse_matrixtouri_valid_uris() {
         let matrix_to = MatrixToUri::parse("https://matrix.to/#/%40jplatte%3Anotareal.hs")
             .expect("Failed to create MatrixToUri.");
-        assert_eq!(*matrix_to.id(), owned_user_id!("@jplatte:notareal.hs").into());
+        assert_eq!(*matrix_to.id(), user_id!("@jplatte:notareal.hs").into());
 
         let matrix_to = MatrixToUri::parse("https://matrix.to/#/%23ruma%3Anotareal.hs")
             .expect("Failed to create MatrixToUri.");
@@ -772,7 +769,7 @@ mod tests {
     fn parse_matrixtouri_valid_uris_not_urlencoded() {
         let matrix_to = MatrixToUri::parse("https://matrix.to/#/@jplatte:notareal.hs")
             .expect("Failed to create MatrixToUri.");
-        assert_eq!(*matrix_to.id(), owned_user_id!("@jplatte:notareal.hs").into());
+        assert_eq!(*matrix_to.id(), user_id!("@jplatte:notareal.hs").into());
 
         let matrix_to = MatrixToUri::parse("https://matrix.to/#/#ruma:notareal.hs")
             .expect("Failed to create MatrixToUri.");
@@ -903,12 +900,12 @@ mod tests {
     fn parse_valid_matrixid_with_type() {
         assert_eq!(
             MatrixId::parse_with_type("u/user:imaginary.hs").expect("Failed to create MatrixId."),
-            MatrixId::User(owned_user_id!("@user:imaginary.hs"))
+            MatrixId::User(user_id!("@user:imaginary.hs"))
         );
         assert_eq!(
             MatrixId::parse_with_type("user/user:imaginary.hs")
                 .expect("Failed to create MatrixId."),
-            MatrixId::User(owned_user_id!("@user:imaginary.hs"))
+            MatrixId::User(user_id!("@user:imaginary.hs"))
         );
         assert_eq!(
             MatrixId::parse_with_type("roomid/roomid:imaginary.hs")
@@ -969,7 +966,7 @@ mod tests {
         // Starting with a slash
         assert_eq!(
             MatrixId::parse_with_type("/u/user:imaginary.hs").expect("Failed to create MatrixId."),
-            MatrixId::User(owned_user_id!("@user:imaginary.hs"))
+            MatrixId::User(user_id!("@user:imaginary.hs"))
         );
         // Ending with a slash
         assert_eq!(
@@ -1011,12 +1008,12 @@ mod tests {
     fn parse_matrixuri_valid_uris() {
         let matrix_uri =
             MatrixUri::parse("matrix:u/jplatte:notareal.hs").expect("Failed to create MatrixUri.");
-        assert_eq!(*matrix_uri.id(), owned_user_id!("@jplatte:notareal.hs").into());
+        assert_eq!(*matrix_uri.id(), user_id!("@jplatte:notareal.hs").into());
         assert_eq!(matrix_uri.action(), None);
 
         let matrix_uri = MatrixUri::parse("matrix:u/jplatte:notareal.hs?action=chat")
             .expect("Failed to create MatrixUri.");
-        assert_eq!(*matrix_uri.id(), owned_user_id!("@jplatte:notareal.hs").into());
+        assert_eq!(*matrix_uri.id(), user_id!("@jplatte:notareal.hs").into());
         assert_eq!(matrix_uri.action(), Some(&UriAction::Chat));
 
         let matrix_uri =

@@ -3,7 +3,7 @@
 //!
 //! [MSC3489]: https://github.com/matrix-org/matrix-spec-proposals/pull/3489
 
-use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedUserId};
+use ruma_common::{MilliSecondsSinceUnixEpoch, UserId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 use web_time::{Duration, SystemTime};
@@ -14,7 +14,7 @@ use crate::location::AssetContent;
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[ruma_event(
-    type = "org.matrix.msc3672.beacon_info", alias = "m.beacon_info", kind = State, state_key_type = OwnedUserId
+    type = "org.matrix.msc3672.beacon_info", alias = "m.beacon_info", kind = State, state_key_type = UserId
 )]
 pub struct BeaconInfoEventContent {
     /// The description of the location.

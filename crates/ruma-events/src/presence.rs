@@ -8,7 +8,7 @@ pub mod prompted;
 pub mod sharing;
 
 use js_int::UInt;
-use ruma_common::{MxcUri, OwnedUserId, presence::PresenceState};
+use ruma_common::{MxcUri, UserId, presence::PresenceState};
 use serde::{Deserialize, Serialize};
 
 /// Presence event.
@@ -20,7 +20,7 @@ pub struct PresenceEvent {
     pub content: PresenceEventContent,
 
     /// Contains the fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 }
 
 /// Informs the room of members presence.

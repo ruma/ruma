@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     CrossSigningKeyId, CrossSigningOrDeviceSignatures, DeviceId, DeviceKeyId, DeviceSignatures,
-    EventEncryptionAlgorithm, OwnedUserId, PrivOwnedStr,
+    EventEncryptionAlgorithm, PrivOwnedStr, UserId,
     serde::{Base64, StringEnum},
 };
 
@@ -19,7 +19,7 @@ pub struct DeviceKeys {
     /// The ID of the user the device belongs to.
     ///
     /// Must match the user ID used when logging in.
-    pub user_id: OwnedUserId,
+    pub user_id: UserId,
 
     /// The ID of the device these keys belong to.
     ///
@@ -45,7 +45,7 @@ impl DeviceKeys {
     /// Creates a new `DeviceKeys` from the given user id, device id, algorithms, keys and
     /// signatures.
     pub fn new(
-        user_id: OwnedUserId,
+        user_id: UserId,
         device_id: DeviceId,
         algorithms: Vec<EventEncryptionAlgorithm>,
         keys: BTreeMap<DeviceKeyId, String>,
@@ -122,7 +122,7 @@ pub enum OneTimeKey {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct CrossSigningKey {
     /// The ID of the user the key belongs to.
-    pub user_id: OwnedUserId,
+    pub user_id: UserId,
 
     /// What the key is used for.
     pub usage: Vec<KeyUsage>,
@@ -146,7 +146,7 @@ pub struct CrossSigningKey {
 impl CrossSigningKey {
     /// Creates a new `CrossSigningKey` with the given user ID, usage, keys and signatures.
     pub fn new(
-        user_id: OwnedUserId,
+        user_id: UserId,
         usage: Vec<KeyUsage>,
         keys: BTreeMap<CrossSigningKeyId, String>,
         signatures: CrossSigningOrDeviceSignatures,

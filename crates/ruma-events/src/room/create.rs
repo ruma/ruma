@@ -3,7 +3,7 @@
 //! [`m.room.create`]: https://spec.matrix.org/v1.19/client-server-api/#mroomcreate
 
 use ruma_common::{
-    EventId, OwnedUserId, RoomId, RoomVersionId, room::RoomType, room_version_rules::RedactionRules,
+    EventId, RoomId, RoomVersionId, UserId, room::RoomType, room_version_rules::RedactionRules,
 };
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -27,7 +27,7 @@ pub struct RoomCreateEventContent {
     /// 11.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[deprecated = "Since Matrix 1.8. This field was removed in Room version 11, clients should use the event's sender instead"]
-    pub creator: Option<OwnedUserId>,
+    pub creator: Option<UserId>,
 
     /// Whether or not this room's data should be transferred to other homeservers.
     #[serde(
@@ -61,13 +61,13 @@ pub struct RoomCreateEventContent {
     /// Additional room creators, considered to have "infinite" power level, in room version 12
     /// onwards.
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
-    pub additional_creators: Vec<OwnedUserId>,
+    pub additional_creators: Vec<UserId>,
 }
 
 impl RoomCreateEventContent {
     /// Creates a new `RoomCreateEventContent` with the given creator, as required for room versions
     /// 1 through 10.
-    pub fn new_v1(creator: OwnedUserId) -> Self {
+    pub fn new_v1(creator: UserId) -> Self {
         #[allow(deprecated)]
         Self {
             creator: Some(creator),
@@ -162,7 +162,7 @@ impl RedactedStateEventContent for RedactedRoomCreateEventContent {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use ruma_common::{RoomVersionId, canonical_json::assert_to_canonical_json_eq, owned_user_id};
+    use ruma_common::{RoomVersionId, canonical_json::assert_to_canonical_json_eq, user_id};
     use serde_json::{from_value as from_json_value, json};
 
     use super::{RoomCreateEventContent, RoomType};
@@ -171,7 +171,7 @@ mod tests {
     fn serialization() {
         #[allow(deprecated)]
         let content = RoomCreateEventContent {
-            creator: Some(owned_user_id!("@carl:example.com")),
+            creator: Some(user_id!("@carl:example.com")),
             federate: false,
             room_version: RoomVersionId::V4,
             predecessor: None,
@@ -193,7 +193,7 @@ mod tests {
     fn space_serialization() {
         #[allow(deprecated)]
         let content = RoomCreateEventContent {
-            creator: Some(owned_user_id!("@carl:example.com")),
+            creator: Some(user_id!("@carl:example.com")),
             federate: false,
             room_version: RoomVersionId::V4,
             predecessor: None,
@@ -217,7 +217,7 @@ mod tests {
     fn call_serialization() {
         #[allow(deprecated)]
         let content = RoomCreateEventContent {
-            creator: Some(owned_user_id!("@carl:example.com")),
+            creator: Some(user_id!("@carl:example.com")),
             federate: false,
             room_version: RoomVersionId::V4,
             predecessor: None,

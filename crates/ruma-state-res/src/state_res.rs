@@ -8,7 +8,7 @@ use std::{
 };
 
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedUserId,
+    EventId, MilliSecondsSinceUnixEpoch, UserId,
     room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
 };
 use ruma_events::{
@@ -522,7 +522,7 @@ where
 fn power_level_for_sender<E: Event>(
     event_id: &EventId,
     rules: &AuthorizationRules,
-    creators_lock: &OnceLock<HashSet<OwnedUserId>>,
+    creators_lock: &OnceLock<HashSet<UserId>>,
     fetch_event: impl Fn(&EventId) -> Option<E>,
 ) -> std::result::Result<UserPowerLevel, String> {
     let event = fetch_event(event_id);

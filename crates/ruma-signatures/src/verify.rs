@@ -424,11 +424,11 @@ pub fn required_server_signatures_to_verify_event(
 
     if !is_invite_via_third_party_id(object)? {
         let sender = object.get_as_required_string("sender", "sender")?;
-        let user_id = <&UserId>::try_from(sender).map_err(|source| {
+        let user_id = UserId::try_from(sender).map_err(|source| {
             VerificationError::ParseIdentifier { identifier_type: "user ID", source }
         })?;
 
-        servers_to_check.insert(user_id.server_name().to_owned());
+        servers_to_check.insert(user_id.server_name());
     }
 
     if rules.check_event_id_server {
@@ -459,11 +459,11 @@ pub fn required_server_signatures_to_verify_event(
             .transpose()?
             .flatten()
     {
-        let authorized_user = <&UserId>::try_from(authorized_user).map_err(|source| {
+        let authorized_user = UserId::try_from(authorized_user).map_err(|source| {
             VerificationError::ParseIdentifier { identifier_type: "user ID", source }
         })?;
 
-        servers_to_check.insert(authorized_user.server_name().to_owned());
+        servers_to_check.insert(authorized_user.server_name());
     }
 
     Ok(servers_to_check)

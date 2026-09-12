@@ -11,7 +11,7 @@ pub mod v3 {
 
     use as_variant::as_variant;
     use ruma_common::{
-        DeviceId, OwnedUserId, ServerName,
+        DeviceId, ServerName, UserId,
         api::{auth_scheme::AppserviceTokenOptional, request, response},
         metadata,
         serde::JsonObject,
@@ -62,7 +62,7 @@ pub mod v3 {
     #[response]
     pub struct Response {
         /// The fully-qualified Matrix ID that has been registered.
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// An access token for the account.
         pub access_token: String,
@@ -127,7 +127,7 @@ pub mod v3 {
     impl Response {
         /// Creates a new `Response` with the given user ID, access token and device ID.
         #[allow(deprecated)]
-        pub fn new(user_id: OwnedUserId, access_token: String, device_id: DeviceId) -> Self {
+        pub fn new(user_id: UserId, access_token: String, device_id: DeviceId) -> Self {
             Self {
                 user_id,
                 access_token,

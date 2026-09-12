@@ -254,7 +254,7 @@ mod tests {
 
     use assert_matches2::assert_matches;
     use ruma_common::{
-        EventId, MilliSecondsSinceUnixEpoch as TS, OwnedUserId, RoomId, device_id, user_id,
+        EventId, MilliSecondsSinceUnixEpoch as TS, RoomId, UserId, device_id, user_id,
     };
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
@@ -634,7 +634,7 @@ mod tests {
         );
 
         let event_id = EventId::try_from("$3qfxjGYSu4sL25FtR0ep6vePOc").unwrap();
-        let sender = OwnedUserId::try_from("@user:example.org").unwrap();
+        let sender = UserId::try_from("@user:example.org").unwrap();
         let room_id = RoomId::try_from("!1234:example.org").unwrap();
         assert_eq!(member_event.state_key.as_ref(), state_key);
         assert_eq!(member_event.event_id, event_id);
@@ -774,10 +774,10 @@ mod tests {
             from_json_value::<AnyStateEvent>(member_event_json("@noserverpart:_suffix")).is_err()
         );
 
-        let user_id = user_id!("@username:example.org").as_str();
+        let user_id = user_id!("@username:example.org");
         let device_id = device_id!("VALID_DEVICE_ID");
 
-        let parse_result = from_json_value::<AnyStateEvent>(member_event_json(user_id));
+        let parse_result = from_json_value::<AnyStateEvent>(member_event_json(user_id.as_str()));
         assert_matches!(parse_result, Ok(_));
         assert_matches!(
             from_json_value::<AnyStateEvent>(member_event_json(&format!("{user_id}_{device_id}"))),

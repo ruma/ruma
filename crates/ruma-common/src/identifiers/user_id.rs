@@ -2,7 +2,7 @@
 
 pub use ruma_identifiers_validation::user_id::localpart_is_fully_conforming;
 use ruma_identifiers_validation::{ID_MAX_BYTES, localpart_is_backwards_compatible};
-use ruma_macros::IdDst;
+use ruma_macros::ruma_id;
 
 use super::{IdParseError, MatrixToUri, MatrixUri, ServerName, matrix_uri::UriAction};
 
@@ -13,24 +13,21 @@ use super::{IdParseError, MatrixToUri, MatrixUri, ServerName, matrix_uri::UriAct
 ///
 /// ```
 /// # use ruma_common::UserId;
-/// assert_eq!(<&UserId>::try_from("@carl:example.com").unwrap(), "@carl:example.com");
+/// assert_eq!(UserId::try_from("@carl:example.com").unwrap(), "@carl:example.com");
 /// ```
 ///
 /// [user ID]: https://spec.matrix.org/v1.19/appendices/#user-identifiers
-#[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(validate = ruma_identifiers_validation::user_id::validate, smallvec_inline_bytes = 40)]
-pub struct UserId(str);
+pub struct UserId;
 
 impl UserId {
     /// Attempts to generate a `UserId` for the given origin server with a localpart consisting of
     /// 12 random ASCII characters.
     ///
-    /// The generated `OwnedUserId` is guaranteed to pass [`UserId::validate_strict()`].
+    /// The generated `UserId` is guaranteed to pass [`UserId::validate_strict()`].
     #[cfg(feature = "rand")]
-    #[allow(clippy::new_ret_no_self)]
-    pub fn new(server_name: &ServerName) -> OwnedUserId {
-        OwnedUserId::from_string_unchecked(format!(
+    pub fn new(server_name: &ServerName) -> Self {
+        Self::from_string_unchecked(format!(
             "@{}:{}",
             super::generate_localpart(12).to_lowercase(),
             server_name
@@ -47,14 +44,14 @@ impl UserId {
     pub fn parse_with_server_name(
         id: impl AsRef<str>,
         server_name: &ServerName,
-    ) -> Result<OwnedUserId, IdParseError> {
+    ) -> Result<Self, IdParseError> {
         let id_str = id.as_ref();
 
         if id_str.starts_with('@') {
             Self::parse(id)
         } else {
             localpart_is_backwards_compatible(id_str)?;
-            Ok(OwnedUserId::from_string_unchecked(format!("@{id_str}:{server_name}")))
+            Ok(Self::from_string_unchecked(format!("@{id_str}:{server_name}")))
         }
     }
 
@@ -158,12 +155,12 @@ impl UserId {
 
 #[cfg(test)]
 mod tests {
-    use super::{OwnedUserId, UserId};
+    use super::UserId;
     use crate::{IdParseError, server_name};
 
     #[test]
     fn valid_user_id_from_str() {
-        let user_id = <&UserId>::try_from("@carl:example.com").expect("Failed to create UserId.");
+        let user_id = UserId::try_from("@carl:example.com").expect("Failed to create UserId.");
         assert_eq!(user_id, "@carl:example.com");
         assert_eq!(user_id.localpart(), "carl");
         assert_eq!(user_id.server_name(), "example.com");
@@ -204,7 +201,7 @@ mod tests {
         let user_id_str = "@τ:example.com";
         let server_name = server_name!("example.com");
 
-        let user_id = <&UserId>::try_from(user_id_str).unwrap();
+        let user_id = UserId::try_from(user_id_str).unwrap();
         assert_eq!(user_id, user_id_str);
         assert_eq!(user_id.localpart(), localpart);
         assert_eq!(user_id.server_name(), server_name);
@@ -236,8 +233,7 @@ mod tests {
 
     #[test]
     fn valid_historical_user_id() {
-        let user_id =
-            <&UserId>::try_from("@a%b[irc]:example.com").expect("Failed to create UserId.");
+        let user_id = UserId::try_from("@a%b[irc]:example.com").expect("Failed to create UserId.");
         assert_eq!(user_id, "@a%b[irc]:example.com");
         assert_eq!(user_id.localpart(), "a%b[irc]");
         assert_eq!(user_id.server_name(), "example.com");
@@ -274,7 +270,7 @@ mod tests {
 
     #[test]
     fn uppercase_user_id() {
-        let user_id = <&UserId>::try_from("@CARL:example.com").expect("Failed to create UserId.");
+        let user_id = UserId::try_from("@CARL:example.com").expect("Failed to create UserId.");
         assert_eq!(user_id, "@CARL:example.com");
         assert!(user_id.is_historical());
         user_id.validate_historical().unwrap();
@@ -301,7 +297,7 @@ mod tests {
     fn serialize_valid_user_id() {
         assert_eq!(
             serde_json::to_string(
-                <&UserId>::try_from("@carl:example.com").expect("Failed to create UserId.")
+                &UserId::try_from("@carl:example.com").expect("Failed to create UserId.")
             )
             .expect("Failed to convert UserId to JSON."),
             r#""@carl:example.com""#
@@ -311,7 +307,7 @@ mod tests {
     #[test]
     fn deserialize_valid_user_id() {
         assert_eq!(
-            serde_json::from_str::<OwnedUserId>(r#""@carl:example.com""#)
+            serde_json::from_str::<UserId>(r#""@carl:example.com""#)
                 .expect("Failed to convert JSON to UserId"),
             "@carl:example.com"
         );
@@ -320,22 +316,21 @@ mod tests {
     #[test]
     fn valid_user_id_with_explicit_standard_port() {
         assert_eq!(
-            <&UserId>::try_from("@carl:example.com:443").expect("Failed to create UserId."),
+            UserId::try_from("@carl:example.com:443").expect("Failed to create UserId."),
             "@carl:example.com:443"
         );
     }
 
     #[test]
     fn valid_user_id_with_non_standard_port() {
-        let user_id =
-            <&UserId>::try_from("@carl:example.com:5000").expect("Failed to create UserId.");
+        let user_id = UserId::try_from("@carl:example.com:5000").expect("Failed to create UserId.");
         assert_eq!(user_id, "@carl:example.com:5000");
         assert!(!user_id.is_historical());
     }
 
     #[test]
     fn invalid_characters_in_user_id_localpart() {
-        let user_id = <&UserId>::try_from("@te\nst:example.com").unwrap();
+        let user_id = UserId::try_from("@te\nst:example.com").unwrap();
         assert_eq!(user_id.validate_historical().unwrap_err(), IdParseError::InvalidCharacters);
         assert_eq!(user_id.validate_strict().unwrap_err(), IdParseError::InvalidCharacters);
     }
@@ -343,25 +338,25 @@ mod tests {
     #[test]
     fn missing_user_id_sigil() {
         assert_eq!(
-            <&UserId>::try_from("carl:example.com").unwrap_err(),
+            UserId::try_from("carl:example.com").unwrap_err(),
             IdParseError::MissingLeadingSigil
         );
     }
 
     #[test]
     fn missing_user_id_delimiter() {
-        assert_eq!(<&UserId>::try_from("@carl").unwrap_err(), IdParseError::MissingColon);
+        assert_eq!(UserId::try_from("@carl").unwrap_err(), IdParseError::MissingColon);
     }
 
     #[test]
     fn invalid_user_id_host() {
-        assert_eq!(<&UserId>::try_from("@carl:/").unwrap_err(), IdParseError::InvalidServerName);
+        assert_eq!(UserId::try_from("@carl:/").unwrap_err(), IdParseError::InvalidServerName);
     }
 
     #[test]
     fn invalid_user_id_port() {
         assert_eq!(
-            <&UserId>::try_from("@carl:example.com:notaport").unwrap_err(),
+            UserId::try_from("@carl:example.com:notaport").unwrap_err(),
             IdParseError::InvalidServerName
         );
     }

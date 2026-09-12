@@ -7,7 +7,7 @@ use std::{collections::BTreeMap, time::Duration};
 use as_variant::as_variant;
 use js_int::UInt;
 use ruma_common::{
-    EventId, OneTimeKeyAlgorithm, OwnedUserId, RoomId,
+    EventId, OneTimeKeyAlgorithm, RoomId, UserId,
     api::{auth_scheme::AccessToken, request, response},
     metadata,
     presence::PresenceState,
@@ -618,7 +618,7 @@ pub struct RoomSummary {
     ///
     /// Required if room name or canonical aliases are not set or empty.
     #[serde(rename = "m.heroes", default, skip_serializing_if = "Vec::is_empty")]
-    pub heroes: Vec<OwnedUserId>,
+    pub heroes: Vec<UserId>,
 
     /// Number of users whose membership status is `join`.
     /// Required if field has changed since last sync; otherwise, it may be

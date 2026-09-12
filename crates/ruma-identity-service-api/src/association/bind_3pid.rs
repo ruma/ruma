@@ -8,7 +8,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/v1.19/identity-service-api/#post_matrixidentityv23pidbind
 
     use ruma_common::{
-        ClientSecret, MilliSecondsSinceUnixEpoch, OwnedUserId, ServerSignatures, SessionId,
+        ClientSecret, MilliSecondsSinceUnixEpoch, ServerSignatures, SessionId, UserId,
         api::{request, response},
         metadata,
         thirdparty::Medium,
@@ -35,7 +35,7 @@ pub mod v2 {
         pub client_secret: ClientSecret,
 
         /// The Matrix user ID to associate with the 3PIDs.
-        pub mxid: OwnedUserId,
+        pub mxid: UserId,
     }
 
     /// Response type for the `bind_3pid` endpoint.
@@ -48,7 +48,7 @@ pub mod v2 {
         pub medium: Medium,
 
         /// The Matrix user ID associated with the 3PID.
-        pub mxid: OwnedUserId,
+        pub mxid: UserId,
 
         /// A UNIX timestamp before which the association is not known to be valid.
         pub not_before: MilliSecondsSinceUnixEpoch,
@@ -66,7 +66,7 @@ pub mod v2 {
 
     impl Request {
         /// Creates a `Request` with the given session ID, client secret and Matrix user ID.
-        pub fn new(sid: SessionId, client_secret: ClientSecret, mxid: OwnedUserId) -> Self {
+        pub fn new(sid: SessionId, client_secret: ClientSecret, mxid: UserId) -> Self {
             Self { sid, client_secret, mxid }
         }
     }
@@ -77,7 +77,7 @@ pub mod v2 {
         pub fn new(
             address: String,
             medium: Medium,
-            mxid: OwnedUserId,
+            mxid: UserId,
             not_before: MilliSecondsSinceUnixEpoch,
             not_after: MilliSecondsSinceUnixEpoch,
             ts: MilliSecondsSinceUnixEpoch,

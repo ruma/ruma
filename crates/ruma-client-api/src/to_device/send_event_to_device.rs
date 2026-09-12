@@ -10,7 +10,7 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        OwnedUserId, TransactionId,
+        TransactionId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -81,5 +81,5 @@ pub mod v3 {
     ///
     /// Represented as a map of `{ user-ids => { device-ids => message-content } }`.
     pub type Messages =
-        BTreeMap<OwnedUserId, BTreeMap<DeviceIdOrAllDevices, Raw<AnyToDeviceEventContent>>>;
+        BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, Raw<AnyToDeviceEventContent>>>;
 }

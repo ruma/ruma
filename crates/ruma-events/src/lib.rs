@@ -109,7 +109,7 @@ uniffi::setup_scaffolding!();
 
 use std::collections::BTreeSet;
 
-use ruma_common::{EventEncryptionAlgorithm, OwnedUserId, room_version_rules::RedactionRules};
+use ruma_common::{EventEncryptionAlgorithm, UserId, room_version_rules::RedactionRules};
 use serde::{Deserialize, Serialize, Serializer, de::IgnoredAny};
 
 // Needs to be public for trybuild tests
@@ -277,7 +277,7 @@ pub struct Mentions {
     ///
     /// Defaults to an empty `BTreeSet`.
     #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
-    pub user_ids: BTreeSet<OwnedUserId>,
+    pub user_ids: BTreeSet<UserId>,
 
     /// Whether the whole room is mentioned.
     ///
@@ -293,7 +293,7 @@ impl Mentions {
     }
 
     /// Create a `Mentions` for the given user IDs.
-    pub fn with_user_ids(user_ids: impl IntoIterator<Item = OwnedUserId>) -> Self {
+    pub fn with_user_ids(user_ids: impl IntoIterator<Item = UserId>) -> Self {
         Self { user_ids: BTreeSet::from_iter(user_ids), ..Default::default() }
     }
 

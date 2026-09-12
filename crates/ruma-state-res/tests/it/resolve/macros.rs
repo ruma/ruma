@@ -3,7 +3,7 @@ use std::{
 };
 
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, RoomId, UserId,
+    EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId,
     room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
 };
 use ruma_events::{StateEventType, TimelineEventType};
@@ -635,7 +635,7 @@ fn conflicted_state_subgraph(
 struct Pdu {
     event_id: EventId,
     room_id: Option<RoomId>,
-    sender: OwnedUserId,
+    sender: UserId,
     origin_server_ts: MilliSecondsSinceUnixEpoch,
     #[serde(rename = "type")]
     event_type: TimelineEventType,

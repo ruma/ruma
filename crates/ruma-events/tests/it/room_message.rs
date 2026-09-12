@@ -4,7 +4,7 @@ use assert_matches2::{assert_let, assert_matches};
 use ruma_common::{
     DeviceId,
     canonical_json::assert_to_canonical_json_eq,
-    device_id, mxc_uri, owned_user_id,
+    device_id, mxc_uri,
     serde::{Base64, Raw},
     user_id,
 };
@@ -244,7 +244,7 @@ fn verification_request_msgtype_deserialization() {
 
 #[test]
 fn verification_request_msgtype_serialization() {
-    let user_id = owned_user_id!("@example2:localhost");
+    let user_id = user_id!("@example2:localhost");
     let device_id = device_id!("XOWLHHFSWM");
     let body = "@example:localhost is requesting to verify your key, ...".to_owned();
 
@@ -385,9 +385,9 @@ fn reply_thread_serialization_roundtrip() {
 
 #[test]
 fn reply_add_mentions() {
-    let user = owned_user_id!("@user:example.org");
-    let friend = owned_user_id!("@friend:example.org");
-    let other_friend = owned_user_id!("@other_friend:example.org");
+    let user = user_id!("@user:example.org");
+    let friend = user_id!("@friend:example.org");
+    let other_friend = user_id!("@other_friend:example.org");
 
     let first_message = from_json_value::<OriginalRoomMessageEvent>(json!({
         "content": {
@@ -980,8 +980,8 @@ fn video_msgtype_deserialization() {
 
 #[test]
 fn add_mentions_then_make_replacement() {
-    let alice = owned_user_id!("@alice:localhost");
-    let bob = owned_user_id!("@bob:localhost");
+    let alice = user_id!("@alice:localhost");
+    let bob = user_id!("@bob:localhost");
     let original_message_json = json!({
         "content": {
             "body": "Hello, World!",
@@ -1017,8 +1017,8 @@ fn add_mentions_then_make_replacement() {
 fn add_first_mentions_then_make_replacement() {
     // Like `add_mentions_then_make_replacement`, but the initial event doesn't have
     // mentions.
-    let alice = owned_user_id!("@alice:localhost");
-    let bob = owned_user_id!("@bob:localhost");
+    let alice = user_id!("@alice:localhost");
+    let bob = user_id!("@bob:localhost");
     let original_message_json = json!({
         "content": {
             "body": "Hello, World!",
@@ -1049,8 +1049,8 @@ fn add_first_mentions_then_make_replacement() {
 
 #[test]
 fn make_replacement_then_add_mentions() {
-    let alice = owned_user_id!("@alice:localhost");
-    let bob = owned_user_id!("@bob:localhost");
+    let alice = user_id!("@alice:localhost");
+    let bob = user_id!("@bob:localhost");
     let original_message_json = json!({
         "content": {
             "body": "Hello, World!",

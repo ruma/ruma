@@ -14,7 +14,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#put_matrixclientv1adminsuspenduserid
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{OAuthClientScope, auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -40,7 +40,7 @@ pub mod v1 {
     pub struct Request {
         /// The user to change the suspended status of.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// Whether to suspend the target account.
         pub suspended: bool,
@@ -55,7 +55,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID and suspended status.
-        pub fn new(user_id: OwnedUserId, suspended: bool) -> Self {
+        pub fn new(user_id: UserId, suspended: bool) -> Self {
             Self { user_id, suspended }
         }
     }

@@ -2,7 +2,7 @@
 
 use std::{borrow::Cow, fmt};
 
-use ruma_common::{ClientSecret, OwnedUserId, SessionId, serde::JsonObject, thirdparty::Medium};
+use ruma_common::{ClientSecret, SessionId, UserId, serde::JsonObject, thirdparty::Medium};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::Value as JsonValue;
 
@@ -518,14 +518,14 @@ impl UserIdentifier {
     }
 }
 
-impl From<OwnedUserId> for UserIdentifier {
-    fn from(id: OwnedUserId) -> Self {
+impl From<UserId> for UserIdentifier {
+    fn from(id: UserId) -> Self {
         Self::Matrix(id.into())
     }
 }
 
-impl From<&OwnedUserId> for UserIdentifier {
-    fn from(id: &OwnedUserId) -> Self {
+impl From<&UserId> for UserIdentifier {
+    fn from(id: &UserId) -> Self {
         Self::Matrix(id.into())
     }
 }
@@ -570,14 +570,14 @@ impl MatrixUserIdentifier {
     }
 }
 
-impl From<OwnedUserId> for MatrixUserIdentifier {
-    fn from(id: OwnedUserId) -> Self {
+impl From<UserId> for MatrixUserIdentifier {
+    fn from(id: UserId) -> Self {
         Self::new(id.into())
     }
 }
 
-impl From<&OwnedUserId> for MatrixUserIdentifier {
-    fn from(id: &OwnedUserId) -> Self {
+impl From<&UserId> for MatrixUserIdentifier {
+    fn from(id: &UserId) -> Self {
         Self::new(id.as_str().to_owned())
     }
 }

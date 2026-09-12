@@ -4,7 +4,7 @@
 //!
 //! [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
 
-use ruma_common::{OwnedUserId, RoomId};
+use ruma_common::{RoomId, UserId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -19,7 +19,7 @@ use serde::{Deserialize, Serialize};
 pub struct PresencePromptedEventContent {
     /// The list of users that have previously had the presence sharing prompt displayed.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub users: Vec<OwnedUserId>,
+    pub users: Vec<UserId>,
 
     /// The list of rooms that have previously had the presence sharing prompt displayed.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -28,14 +28,14 @@ pub struct PresencePromptedEventContent {
 
 impl PresencePromptedEventContent {
     /// Creates a new `PresencePromptedEventContent` with the given users and rooms.
-    pub fn new(users: Vec<OwnedUserId>, rooms: Vec<RoomId>) -> Self {
+    pub fn new(users: Vec<UserId>, rooms: Vec<RoomId>) -> Self {
         Self { users, rooms }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_user_id, room_id};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, room_id, user_id};
     use serde_json::{from_value as from_json_value, json};
 
     use super::PresencePromptedEventContent;
@@ -43,10 +43,7 @@ mod tests {
     #[test]
     fn serialization() {
         let content = PresencePromptedEventContent {
-            users: vec![
-                owned_user_id!("@alice:example.com"),
-                owned_user_id!("@mallory:example.com"),
-            ],
+            users: vec![user_id!("@alice:example.com"), user_id!("@mallory:example.com")],
             rooms: vec![room_id!("!family-group-chat")],
         };
 

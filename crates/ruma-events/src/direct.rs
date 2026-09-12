@@ -74,7 +74,7 @@ mod tests {
         let rooms = vec![room_id!("!1:ruma.io")];
         let mail_rooms = vec![room_id!("!3:ruma.io")];
 
-        content.insert(alice.into(), rooms.clone());
+        content.insert(alice.clone().into(), rooms.clone());
         content.insert(alice_mail.into(), mail_rooms.clone());
 
         let json_data = json!({
@@ -94,7 +94,7 @@ mod tests {
 
         let json_data = json!({
             "content": {
-                alice: rooms,
+                alice.as_str(): rooms,
                 alice_mail: mail_rooms,
             },
             "type": "m.direct"
@@ -102,7 +102,7 @@ mod tests {
 
         let event: DirectEvent = from_json_value(json_data).unwrap();
 
-        let direct_rooms = event.content.get(<&DirectUserIdentifier>::from(alice)).unwrap();
+        let direct_rooms = event.content.get(<&DirectUserIdentifier>::from(&alice)).unwrap();
         assert!(direct_rooms.contains(&rooms[0]));
         assert!(direct_rooms.contains(&rooms[1]));
 

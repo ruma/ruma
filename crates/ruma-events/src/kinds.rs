@@ -1,6 +1,6 @@
 use as_variant::as_variant;
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, RoomId, UserId,
+    EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId,
     encryption::DeviceKeys,
     room_version_rules::RedactionRules,
     serde::{JsonCastable, JsonObject, Raw, from_raw_json_value},
@@ -159,7 +159,7 @@ pub struct OriginalMessageLikeEvent<C: MessageLikeEventContent> {
     pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// Timestamp on the originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -213,7 +213,7 @@ pub struct OriginalSyncMessageLikeEvent<C: MessageLikeEventContent> {
     pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// Timestamp on the originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -261,7 +261,7 @@ pub struct RedactedMessageLikeEvent<C: RedactedMessageLikeEventContent> {
     pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// Timestamp on the originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -308,7 +308,7 @@ pub struct RedactedSyncMessageLikeEvent<C: RedactedMessageLikeEventContent> {
     pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// Timestamp on the originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -396,7 +396,7 @@ pub struct OriginalStateEvent<C: StaticStateEventContent> {
     pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// Timestamp on the originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -462,7 +462,7 @@ pub struct OriginalSyncStateEvent<C: StaticStateEventContent> {
     pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// Timestamp on the originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -510,7 +510,7 @@ pub struct StrippedStateEvent<C: PossiblyRedactedStateEventContent> {
     pub content: C,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// A unique key which defines the overwriting semantics for this piece of room state.
     ///
@@ -632,7 +632,7 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
     pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// Timestamp on the originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -687,7 +687,7 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// Timestamp on the originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -786,12 +786,12 @@ pub struct ToDeviceEvent<C: ToDeviceEventContent> {
     pub content: C,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 }
 
 impl<C: ToDeviceEventContent> ToDeviceEvent<C> {
     /// Construct a new `ToDeviceEvent` with the given content and sender.
-    pub fn new(sender: OwnedUserId, content: C) -> Self {
+    pub fn new(sender: UserId, content: C) -> Self {
         Self { content, sender }
     }
 }
@@ -819,10 +819,10 @@ pub struct DecryptedOlmV1Event<C: MessageLikeEventContent> {
     pub content: C,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// The fully-qualified ID of the intended recipient this event.
-    pub recipient: OwnedUserId,
+    pub recipient: UserId,
 
     /// The recipient's ed25519 key.
     pub recipient_keys: OlmV1Keys,

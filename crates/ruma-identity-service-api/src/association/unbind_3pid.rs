@@ -8,7 +8,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/v1.19/identity-service-api/#post_matrixidentityv23pidunbind
 
     use ruma_common::{
-        ClientSecret, OwnedUserId, SessionId,
+        ClientSecret, SessionId, UserId,
         api::{request, response},
         metadata,
         thirdparty::Medium,
@@ -37,7 +37,7 @@ pub mod v2 {
         pub threepid_ownership_proof: Option<ThreePidOwnershipProof>,
 
         /// The Matrix user ID to remove from the 3PIDs.
-        pub mxid: OwnedUserId,
+        pub mxid: UserId,
 
         /// The 3PID to remove.
         ///
@@ -55,7 +55,7 @@ pub mod v2 {
         /// Creates a `Request` with the given Session ID, client secret, Matrix user ID and 3PID.
         pub fn new(
             threepid_ownership_proof: Option<ThreePidOwnershipProof>,
-            mxid: OwnedUserId,
+            mxid: UserId,
             threepid: ThirdPartyId,
         ) -> Self {
             Self { threepid_ownership_proof, mxid, threepid }

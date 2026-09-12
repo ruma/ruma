@@ -11,7 +11,7 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        MxcUri, OwnedUserId, RoomId,
+        MxcUri, RoomId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -40,7 +40,7 @@ pub mod v3 {
     pub struct Response {
         /// A list of the rooms the user is in, i.e.
         /// the ID of each room in which the user has joined membership.
-        pub joined: BTreeMap<OwnedUserId, RoomMember>,
+        pub joined: BTreeMap<UserId, RoomMember>,
     }
 
     impl Request {
@@ -52,7 +52,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given joined rooms.
-        pub fn new(joined: BTreeMap<OwnedUserId, RoomMember>) -> Self {
+        pub fn new(joined: BTreeMap<UserId, RoomMember>) -> Self {
             Self { joined }
         }
     }

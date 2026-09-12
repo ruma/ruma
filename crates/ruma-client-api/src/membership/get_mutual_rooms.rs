@@ -8,7 +8,7 @@ pub mod unstable {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2666
 
     use ruma_common::{
-        OwnedUserId, RoomId,
+        RoomId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -27,7 +27,7 @@ pub mod unstable {
     pub struct Request {
         /// The user to search mutual rooms for.
         #[ruma_api(query)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The `next_batch` token returned from a previous response, to get the next batch of
         /// rooms.
@@ -49,12 +49,12 @@ pub mod unstable {
 
     impl Request {
         /// Creates a new `Request` with the given user id.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id, from: None }
         }
 
         /// Creates a new `Request` with the given user id, together with a batch token.
-        pub fn with_batch_token(user_id: OwnedUserId, token: String) -> Self {
+        pub fn with_batch_token(user_id: UserId, token: String) -> Self {
             Self { user_id, from: Some(token) }
         }
     }
@@ -79,7 +79,7 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        OwnedUserId, RoomId,
+        RoomId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -98,7 +98,7 @@ pub mod v1 {
     pub struct Request {
         /// The user to search mutual rooms for.
         #[ruma_api(query)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The `next_batch` returned from a previous response, to get the next batch of
         /// rooms.
@@ -125,12 +125,12 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given user id.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id, from: None }
         }
 
         /// Creates a new `Request` with the given user id, together with a batch token.
-        pub fn with_batch_token(user_id: OwnedUserId, token: String) -> Self {
+        pub fn with_batch_token(user_id: UserId, token: String) -> Self {
             Self { user_id, from: Some(token) }
         }
     }

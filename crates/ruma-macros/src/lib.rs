@@ -597,7 +597,7 @@ pub fn mxc_uri(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn user_id(input: TokenStream) -> TokenStream {
     let id_ctor = parse_macro_input!(input as IdentifierConstructor);
-    id_ctor.validate_and_expand_str_conversion("&UserId", user_id::validate).into()
+    id_ctor.validate_and_expand_str_conversion("UserId", user_id::validate).into()
 }
 
 /// Compile-time checked `Base64PublicKey` construction.
