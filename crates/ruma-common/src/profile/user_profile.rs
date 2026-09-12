@@ -110,7 +110,7 @@ mod tests {
     use serde_json::json;
 
     use crate::{
-        owned_mxc_uri,
+        mxc_uri,
         profile::{
             AvatarUrl, Call, CallProfileField, DisplayName, ProfileFieldName, ProfileFieldValue,
             Status, StatusProfileField, UserProfile, UserProfileChanges,
@@ -121,7 +121,7 @@ mod tests {
     fn apply_profile_update() {
         let mut profile = UserProfile::from_iter([
             ProfileFieldValue::DisplayName("Alice".to_owned()),
-            ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef")),
+            ProfileFieldValue::AvatarUrl(mxc_uri!("mxc://localhost/abcdef")),
             ProfileFieldValue::Status(StatusProfileField {
                 text: "Working".to_owned(),
                 emoji: "🧑‍💻".to_owned(),

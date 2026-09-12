@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.15/client-server-api/#get_matrixclientv3profileuseridavatar_url
 
     use ruma_common::{
-        OwnedMxcUri, OwnedUserId,
+        MxcUri, OwnedUserId,
         api::{auth_scheme::NoAccessToken, request, response},
         metadata,
     };
@@ -44,7 +44,7 @@ pub mod v3 {
             feature = "compat-empty-string-null",
             serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
         )]
-        pub avatar_url: Option<OwnedMxcUri>,
+        pub avatar_url: Option<MxcUri>,
 
         /// The [BlurHash](https://blurha.sh) for the avatar pointed to by `avatar_url`.
         ///
@@ -65,7 +65,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given avatar URL.
-        pub fn new(avatar_url: Option<OwnedMxcUri>) -> Self {
+        pub fn new(avatar_url: Option<MxcUri>) -> Self {
             Self {
                 avatar_url,
                 #[cfg(feature = "unstable-msc2448")]

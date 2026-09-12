@@ -10,7 +10,7 @@ pub mod v3 {
     use http::header::ACCEPT_LANGUAGE;
     use js_int::{UInt, uint};
     use ruma_common::{
-        OwnedMxcUri, OwnedUserId,
+        MxcUri, OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -100,7 +100,7 @@ pub mod v3 {
             feature = "compat-empty-string-null",
             serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
         )]
-        pub avatar_url: Option<OwnedMxcUri>,
+        pub avatar_url: Option<MxcUri>,
     }
 
     impl User {

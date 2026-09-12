@@ -31,7 +31,7 @@ pub use self::{
         DeviceSigningKeyId, KeyAlgorithm, KeyId, OneTimeKeyId, ServerSigningKeyId, SigningKeyId,
     },
     matrix_uri::{MatrixToUri, MatrixUri},
-    mxc_uri::{MxcUri, OwnedMxcUri},
+    mxc_uri::MxcUri,
     one_time_key_name::{OneTimeKeyName, OwnedOneTimeKeyName},
     room_alias_id::{OwnedRoomAliasId, RoomAliasId},
     room_id::{OwnedRoomId, RoomId},
@@ -212,6 +212,9 @@ pub mod __private_macros {
 
         pub static EVENT_ID_INTERNER: LazyLock<IdInterner<crate::EventId>> =
             LazyLock::new(IdInterner::new);
+
+        pub static MXC_URI_INTERNER: LazyLock<IdInterner<crate::MxcUri>> =
+            LazyLock::new(IdInterner::new);
     }
 }
 
@@ -341,11 +344,20 @@ macro_rules! mxc_uri {
     };
 }
 
-/// Compile-time checked [`OwnedMxcUri`] construction.
+/// Compile-time checked `&'static MxcUri` construction.
+///
+/// This macro is a helper to ease the transition after the change of [`MxcUri`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier so it SHOULD NOT be used in code that runs in production.
+///
+/// This is behind the `unstable-identifier-ref-macros` cargo feature to allow us to remove this
+/// macro at any time without it being a breaking change.
 #[macro_export]
-macro_rules! owned_mxc_uri {
+#[cfg(feature = "unstable-identifier-ref-macros")]
+macro_rules! mxc_uri_ref {
     ($s:literal) => {
-        $crate::mxc_uri!($s).to_owned()
+        $crate::__private_macros::id_interner::MXC_URI_INTERNER
+            .get_or_insert_with($s, || $crate::mxc_uri!($s))
     };
 }
 

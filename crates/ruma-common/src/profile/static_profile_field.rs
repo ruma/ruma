@@ -2,7 +2,7 @@
 
 #![allow(clippy::exhaustive_structs)]
 
-use ruma_common::OwnedMxcUri;
+use ruma_common::MxcUri;
 #[cfg(feature = "unstable-msc4426")]
 use ruma_common::profile::{CallProfileField, StatusProfileField};
 use serde::{Serialize, de::DeserializeOwned};
@@ -24,7 +24,7 @@ pub trait StaticProfileField {
 pub struct AvatarUrl;
 
 impl StaticProfileField for AvatarUrl {
-    type Value = OwnedMxcUri;
+    type Value = MxcUri;
     const NAME: &str = "avatar_url";
 }
 

@@ -20,6 +20,9 @@ Breaking changes:
     `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static EventId`.
   - `OwnedKeyId` was renamed to `KeyId`, and all its type aliases lost the `Owned` prefix too.
   - `OwnedAnyKeyName` was renamed to `AnyKeyName`.
+  - `OwnedMxcUri` was renamed to `MxcUri`. The `mxc_uri!` macro now returns an `MxcUri`, the
+    `owned_mxc_uri!` macro was removed and the `mxc_uri_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static MxcUri`.
 
 Improvements:
 

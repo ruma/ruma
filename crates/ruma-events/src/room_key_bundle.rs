@@ -35,7 +35,7 @@ impl ToDeviceRoomKeyBundleEventContent {
 #[cfg(test)]
 mod tests {
     use ruma_common::{
-        canonical_json::assert_to_canonical_json_eq, owned_mxc_uri, owned_room_id, serde::Base64,
+        canonical_json::assert_to_canonical_json_eq, mxc_uri, owned_room_id, serde::Base64,
     };
     use serde_json::json;
 
@@ -47,7 +47,7 @@ mod tests {
         let content = ToDeviceRoomKeyBundleEventContent {
             room_id: owned_room_id!("!testroomid:example.org"),
             file: EncryptedFile::new(
-                owned_mxc_uri!("mxc://example.org/FHyPlCeYUSFFxlgbQYZmoEoe"),
+                mxc_uri!("mxc://example.org/FHyPlCeYUSFFxlgbQYZmoEoe"),
                 V2EncryptedFileInfo::new(
                     Base64::parse("aWF6-32KGYaC3A_FEUCk1Bt0JA37zP0wrStgmdCaW-0").unwrap(),
                     Base64::parse("w+sE15fzSc0AAAAAAAAAAA").unwrap(),

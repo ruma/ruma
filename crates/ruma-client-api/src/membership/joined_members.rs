@@ -11,7 +11,7 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        OwnedMxcUri, OwnedRoomId, OwnedUserId,
+        MxcUri, OwnedRoomId, OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -74,7 +74,7 @@ pub mod v3 {
             feature = "compat-empty-string-null",
             serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
         )]
-        pub avatar_url: Option<OwnedMxcUri>,
+        pub avatar_url: Option<MxcUri>,
     }
 
     impl RoomMember {
@@ -99,10 +99,7 @@ pub mod v3 {
             }))
             .unwrap();
             assert_eq!(member.display_name.as_deref(), Some("alice"));
-            assert_eq!(
-                member.avatar_url.as_deref(),
-                Some(mxc_uri!("mxc://localhost/wefuiwegh8742w"))
-            );
+            assert_eq!(member.avatar_url, Some(mxc_uri!("mxc://localhost/wefuiwegh8742w")));
 
             #[cfg(feature = "compat-empty-string-null")]
             {
