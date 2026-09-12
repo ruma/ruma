@@ -10,7 +10,7 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        OwnedDeviceId, OwnedUserId,
+        DeviceId, OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
         encryption::{CrossSigningKey, DeviceKeys},
         metadata,
@@ -75,7 +75,7 @@ pub mod v3 {
         }
 
         /// Add the given device keys.
-        pub fn add_device_keys(&mut self, device_id: OwnedDeviceId, device_keys: Raw<DeviceKeys>) {
+        pub fn add_device_keys(&mut self, device_id: DeviceId, device_keys: Raw<DeviceKeys>) {
             self.0.insert(device_id.as_str().into(), device_keys.into_json());
         }
 

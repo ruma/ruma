@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#get_matrixclientv3accountwhoami
 
     use ruma_common::{
-        OwnedDeviceId, OwnedUserId,
+        DeviceId, OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -36,7 +36,7 @@ pub mod v3 {
 
         /// The device ID associated with the access token, if any.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub device_id: Option<OwnedDeviceId>,
+        pub device_id: Option<DeviceId>,
 
         /// If `true`, the user is a guest user.
         #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]

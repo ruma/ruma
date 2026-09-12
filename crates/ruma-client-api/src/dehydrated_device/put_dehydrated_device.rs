@@ -10,7 +10,7 @@ pub mod unstable {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        OwnedDeviceId, OwnedOneTimeKeyId,
+        DeviceId, OwnedOneTimeKeyId,
         api::{auth_scheme::AccessToken, request, response},
         encryption::{DeviceKeys, OneTimeKey},
         metadata,
@@ -32,7 +32,7 @@ pub mod unstable {
     #[request]
     pub struct Request {
         /// The unique ID of the device.
-        pub device_id: OwnedDeviceId,
+        pub device_id: DeviceId,
 
         /// The display name of the device.
         pub initial_device_display_name: Option<String>,
@@ -57,13 +57,13 @@ pub mod unstable {
     #[response]
     pub struct Response {
         /// The unique ID of the device.
-        pub device_id: OwnedDeviceId,
+        pub device_id: DeviceId,
     }
 
     impl Request {
         /// Creates a new Request.
         pub fn new(
-            device_id: OwnedDeviceId,
+            device_id: DeviceId,
             device_data: Raw<DehydratedDeviceData>,
             device_keys: Raw<DeviceKeys>,
         ) -> Self {
@@ -80,7 +80,7 @@ pub mod unstable {
 
     impl Response {
         /// Creates a new `Response` with the given one time key counts.
-        pub fn new(device_id: OwnedDeviceId) -> Self {
+        pub fn new(device_id: DeviceId) -> Self {
             Self { device_id }
         }
     }

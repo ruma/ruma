@@ -10,7 +10,7 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        OwnedDeviceId, OwnedUserId,
+        DeviceId, OwnedUserId,
         api::{request, response},
         encryption::{CrossSigningKey, DeviceKeys},
         metadata,
@@ -32,7 +32,7 @@ pub mod v1 {
         /// The keys to be downloaded.
         ///
         /// Gives all keys for a given user if the list of device ids is empty.
-        pub device_keys: BTreeMap<OwnedUserId, Vec<OwnedDeviceId>>,
+        pub device_keys: BTreeMap<OwnedUserId, Vec<DeviceId>>,
     }
 
     /// Response type for the `get_keys` endpoint.
@@ -40,7 +40,7 @@ pub mod v1 {
     #[derive(Default)]
     pub struct Response {
         /// Keys from the queried devices.
-        pub device_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Raw<DeviceKeys>>>,
+        pub device_keys: BTreeMap<OwnedUserId, BTreeMap<DeviceId, Raw<DeviceKeys>>>,
 
         /// Information on the master cross-signing keys of the queried users.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
@@ -53,7 +53,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` asking for the given device keys.
-        pub fn new(device_keys: BTreeMap<OwnedUserId, Vec<OwnedDeviceId>>) -> Self {
+        pub fn new(device_keys: BTreeMap<OwnedUserId, Vec<DeviceId>>) -> Self {
             Self { device_keys }
         }
     }
@@ -61,7 +61,7 @@ pub mod v1 {
     impl Response {
         /// Creates a new `Response` with the given device keys.
         pub fn new(
-            device_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Raw<DeviceKeys>>>,
+            device_keys: BTreeMap<OwnedUserId, BTreeMap<DeviceId, Raw<DeviceKeys>>>,
         ) -> Self {
             Self { device_keys, ..Default::default() }
         }

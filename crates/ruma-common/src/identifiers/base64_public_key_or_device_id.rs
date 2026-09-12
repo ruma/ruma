@@ -1,6 +1,6 @@
 use ruma_macros::ruma_id;
 
-use super::{Base64PublicKey, IdParseError, KeyName, OwnedDeviceId};
+use super::{Base64PublicKey, DeviceId, IdParseError, KeyName};
 
 /// A Matrix ID that can be either a [`DeviceId`] or a [`Base64PublicKey`].
 ///
@@ -30,8 +30,8 @@ impl KeyName for Base64PublicKeyOrDeviceId {
     }
 }
 
-impl From<OwnedDeviceId> for Base64PublicKeyOrDeviceId {
-    fn from(value: OwnedDeviceId) -> Self {
+impl From<DeviceId> for Base64PublicKeyOrDeviceId {
+    fn from(value: DeviceId) -> Self {
         unsafe { Self::from_inner_unchecked(value.into_inner()) }
     }
 }
@@ -45,11 +45,11 @@ impl From<Base64PublicKey> for Base64PublicKeyOrDeviceId {
 #[cfg(test)]
 mod tests {
     use super::Base64PublicKeyOrDeviceId;
-    use crate::{Base64PublicKey, OwnedDeviceId};
+    use crate::{Base64PublicKey, DeviceId};
 
     #[test]
     fn convert_owned_device_id_to_base64_public_key_or_device_id() {
-        let device_id: OwnedDeviceId = "MYDEVICE".into();
+        let device_id: DeviceId = "MYDEVICE".into();
         let mixed: Base64PublicKeyOrDeviceId = device_id.into();
 
         assert_eq!(mixed, "MYDEVICE");

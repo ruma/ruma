@@ -35,7 +35,7 @@ use super::{
 ///
 /// let k = DeviceKeyId::parse("ed25519:1").unwrap();
 /// assert_eq!(k.algorithm().as_str(), "ed25519");
-/// assert_eq!(k.key_name(), "1");
+/// assert_eq!(k.owned_key_name(), "1");
 /// ```
 ///
 /// To construct a colon-separated identifier from its parts:
@@ -43,7 +43,7 @@ use super::{
 /// ```
 /// use ruma_common::{DeviceKeyAlgorithm, DeviceKeyId};
 ///
-/// let k = DeviceKeyId::from_parts(DeviceKeyAlgorithm::Curve25519, "MYDEVICE".into());
+/// let k = DeviceKeyId::from_parts(DeviceKeyAlgorithm::Curve25519, &"MYDEVICE".into());
 /// assert_eq!(k.as_str(), "curve25519:MYDEVICE");
 /// ```
 #[repr(transparent)]
@@ -82,15 +82,6 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
     }
 
     /// Returns the key name of the key ID - the part that comes after the colon.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ruma_common::{DeviceKeyId, device_id};
-    ///
-    /// let k = DeviceKeyId::parse("ed25519:DEV1").unwrap();
-    /// assert_eq!(k.key_name(), device_id!("DEV1"));
-    /// ```
     pub fn key_name<'a>(&'a self) -> &'a K
     where
         &'a K: TryFrom<&'a str>,
@@ -100,6 +91,15 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
     }
 
     /// Returns the owned key name of the key ID - the part that comes after the colon.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ruma_common::{DeviceKeyId, device_id};
+    ///
+    /// let k = DeviceKeyId::parse("ed25519:DEV1").unwrap();
+    /// assert_eq!(k.owned_key_name(), device_id!("DEV1"));
+    /// ```
     pub fn owned_key_name(&self) -> K
     where
         K: for<'a> TryFrom<&'a str>,
@@ -237,14 +237,14 @@ mod tests {
     fn algorithm_and_key_name_are_correctly_extracted() {
         let key_id = DeviceKeyId::parse("ed25519:MYDEVICE").expect("Should parse correctly");
         assert_eq!(key_id.algorithm().as_str(), "ed25519");
-        assert_eq!(key_id.key_name(), "MYDEVICE");
+        assert_eq!(key_id.owned_key_name(), "MYDEVICE");
     }
 
     #[test]
     fn empty_key_name_is_correctly_extracted() {
         let key_id = DeviceKeyId::parse("ed25519:").expect("Should parse correctly");
         assert_eq!(key_id.algorithm().as_str(), "ed25519");
-        assert_eq!(key_id.key_name(), "");
+        assert_eq!(key_id.owned_key_name(), "");
     }
 
     #[test]

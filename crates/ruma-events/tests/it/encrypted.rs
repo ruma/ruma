@@ -1,7 +1,7 @@
 use assert_matches2::{assert_let, assert_matches};
 use ruma_common::{
     canonical_json::assert_to_canonical_json_eq,
-    owned_device_id, owned_event_id, owned_mxc_uri,
+    device_id, owned_event_id, owned_mxc_uri,
     serde::{Base64, Raw},
 };
 use ruma_events::{
@@ -27,7 +27,7 @@ fn encrypted_scheme() -> EncryptedEventScheme {
                         lDl5mzVO3tPnJMKZ0hn+AF"
                 .to_owned(),
             sender_key: "aV9BpqYFqJpKYmgERyGv/6QyKMcgLqxM05V0gvzg9Yk".to_owned(),
-            device_id: owned_device_id!("DEVICE"),
+            device_id: device_id!("DEVICE"),
             session_id: "IkwqWxT2zy3DI1E/zM2Wq+CE8tr3eEpsxsVGjGrMPdw".to_owned(),
         }
         .into(),

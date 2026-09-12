@@ -23,7 +23,7 @@ pub use self::{
         DeviceKeyAlgorithm, EventEncryptionAlgorithm, KeyDerivationAlgorithm, OneTimeKeyAlgorithm,
         SigningKeyAlgorithm,
     },
-    device_id::{DeviceId, OwnedDeviceId},
+    device_id::DeviceId,
     direct_user_identifier::{DirectUserIdentifier, OwnedDirectUserIdentifier},
     event_id::{EventId, OwnedEventId},
     key_id::{
@@ -134,19 +134,28 @@ where
     })
 }
 
-/// Shorthand for `<&DeviceId>::from`.
+/// Shorthand for `DeviceId::from`.
 #[macro_export]
 macro_rules! device_id {
     ($s:expr) => {
-        <&$crate::DeviceId as ::std::convert::From<_>>::from($s)
+        <$crate::DeviceId as ::std::convert::From<_>>::from($s)
     };
 }
 
-/// Shorthand for `OwnedDeviceId::from`.
+/// `&'static DeviceId` construction.
+///
+/// This macro is a helper to ease the transition after the change of [`DeviceId`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier so it SHOULD NOT be used in code that runs in production.
+///
+/// This is behind the `unstable-identifier-ref-macros` cargo feature to allow us to remove this
+/// macro at any time without it being a breaking change.
 #[macro_export]
-macro_rules! owned_device_id {
-    ($s:expr) => {
-        <$crate::OwnedDeviceId as ::std::convert::From<_>>::from($s)
+#[cfg(feature = "unstable-identifier-ref-macros")]
+macro_rules! device_id_ref {
+    ($s:literal) => {
+        $crate::__private_macros::id_interner::DEVICE_ID_INTERNER
+            .get_or_insert_with($s, || $crate::device_id!($s))
     };
 }
 
@@ -199,6 +208,9 @@ pub mod __private_macros {
         }
 
         pub static BASE64_PUBLIC_KEY_INTERNER: LazyLock<IdInterner<crate::Base64PublicKey>> =
+            LazyLock::new(IdInterner::new);
+
+        pub static DEVICE_ID_INTERNER: LazyLock<IdInterner<crate::DeviceId>> =
             LazyLock::new(IdInterner::new);
     }
 }
