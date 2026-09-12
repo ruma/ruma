@@ -264,7 +264,7 @@ mod tests {
             MegolmBackupV1Curve25519AesSha2AuthData::new(Base64::new(b"abcdef".to_vec()));
         backup_algorithm.signatures.insert_signature(
             owned_user_id!("@alice:example.org"),
-            SigningKeyId::from_parts(SigningKeyAlgorithm::Ed25519, "DEVICEID".into()),
+            SigningKeyId::from_parts(SigningKeyAlgorithm::Ed25519, &"DEVICEID".into()),
             "signature".to_owned(),
         );
         assert_to_canonical_json_eq!(BackupAlgorithm::from(backup_algorithm), json.clone());
