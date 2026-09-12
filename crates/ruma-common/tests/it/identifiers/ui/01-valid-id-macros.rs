@@ -13,16 +13,19 @@ fn main() {
     _ = ruma_common::session_id!("Sessi0n");
     _ = ruma_common::user_id!("@user:ruma.io");
 
-    _ = ruma_common::owned_base64_public_key!("acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk");
-    _ = ruma_common::owned_device_id!("DEVICE");
-    _ = ruma_common::owned_event_id!("$39hvsi03hlne:example.com");
-    _ = ruma_common::owned_event_id!("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk");
-    _ = ruma_common::owned_mxc_uri!("mxc://myserver.fish/sdfdsfsdfsdfgsdfsd");
-    _ = ruma_common::owned_room_alias_id!("#alias:server.tld");
-    _ = ruma_common::owned_server_name!("myserver.fish");
-    _ = ruma_common::owned_server_signing_key_version!("Abc_1");
-    _ = ruma_common::owned_session_id!("Sessi0n");
-    _ = ruma_common::owned_user_id!("@user:ruma.io");
+    #[cfg(feature = "unstable-identifier-owned-macros")]
+    {
+        _ = ruma_common::owned_base64_public_key!("acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk");
+        _ = ruma_common::owned_device_id!("DEVICE");
+        _ = ruma_common::owned_event_id!("$39hvsi03hlne:example.com");
+        _ = ruma_common::owned_event_id!("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk");
+        _ = ruma_common::owned_mxc_uri!("mxc://myserver.fish/sdfdsfsdfsdfgsdfsd");
+        _ = ruma_common::owned_room_alias_id!("#alias:server.tld");
+        _ = ruma_common::owned_server_name!("myserver.fish");
+        _ = ruma_common::owned_server_signing_key_version!("Abc_1");
+        _ = ruma_common::owned_session_id!("Sessi0n");
+        _ = ruma_common::owned_user_id!("@user:ruma.io");
+    }
 
     #[cfg(feature = "unstable-identifier-ref-macros")]
     {

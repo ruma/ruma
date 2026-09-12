@@ -16,7 +16,7 @@ use serde::de::{self, Deserializer, Unexpected};
 
 #[doc(inline)]
 pub use self::{
-    base64_public_key::{Base64PublicKey, OwnedBase64PublicKey},
+    base64_public_key::Base64PublicKey,
     base64_public_key_or_device_id::{Base64PublicKeyOrDeviceId, OwnedBase64PublicKeyOrDeviceId},
     client_secret::{ClientSecret, OwnedClientSecret},
     crypto_algorithms::{
@@ -140,9 +140,55 @@ pub mod __private_macros {
         base64_public_key, event_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
         server_signing_key_version, user_id,
     };
+
+    #[cfg(feature = "unstable-identifier-ref-macros")]
+    pub mod id_interner {
+        use std::sync::LazyLock;
+
+        /// Type used to intern identifiers, used in macros to return a static reference.
+        #[doc(hidden)]
+        pub struct IdInterner<T: 'static> {
+            // Map of the static string wrapped by the identifier to the identifier static
+            // reference.
+            #[allow(clippy::disallowed_types)]
+            inner: std::sync::RwLock<std::collections::HashMap<&'static str, &'static T>>,
+        }
+
+        impl<T: 'static> IdInterner<T> {
+            /// Construct an empty `IdInterner`.
+            fn new() -> Self {
+                Self { inner: Default::default() }
+            }
+
+            /// Get the identifier matching the given key or create it with the given function.
+            pub fn get_or_insert_with<F>(&self, key: &'static str, f: F) -> &'static T
+            where
+                F: FnOnce() -> T,
+            {
+                // First, acquire a read lock to check if the identifier exists in the map.
+                if let Some(id) = self.inner.read().expect("lock should never be poisoned").get(key)
+                {
+                    return id;
+                }
+
+                // It is not in the map, acquire a write lock to add it.
+                self.inner
+                    .write()
+                    .expect("lock should never be poisoned")
+                    .entry(key)
+                    .or_insert_with(|| {
+                        let id = f();
+                        Box::leak(Box::new(id))
+                    })
+            }
+        }
+
+        pub static BASE64_PUBLIC_KEY_INTERNER: LazyLock<IdInterner<crate::Base64PublicKey>> =
+            LazyLock::new(IdInterner::new);
+    }
 }
 
-/// Compile-time checked [`&'static Base64PublicKey`][Base64PublicKey] construction.
+/// Compile-time checked [`Base64PublicKey`] construction.
 #[macro_export]
 macro_rules! base64_public_key {
     ($s:literal) => {
@@ -152,26 +198,34 @@ macro_rules! base64_public_key {
 
 /// Compile-time checked [`&'static Base64PublicKey`][Base64PublicKey] construction.
 ///
-/// This is currently equivalent to [`base64_public_key!`]. However there is a plan to remove
-/// identifier DST types, so that other macro's return type will change while this macro is
-/// guaranteed to keep its return type. This macro allows to ease the transition for the expected
-/// change by allowing to migrate tests in advance.
+/// This macro is a helper to ease the transition after the change of [`Base64PublicKey`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier.
 ///
-/// This is behind an unstable cargo feature because it is likely to be removed soon after the DST
-/// identifier type removal.
+/// This is behind an unstable cargo feature because it is likely to be removed in a future
+/// non-breaking release.
 #[cfg(feature = "unstable-identifier-ref-macros")]
 #[macro_export]
 macro_rules! base64_public_key_ref {
     ($s:literal) => {
-        $crate::base64_public_key!($s)
+        $crate::__private_macros::id_interner::BASE64_PUBLIC_KEY_INTERNER
+            .get_or_insert_with($s, || $crate::base64_public_key!($s))
     };
 }
 
-/// Compile-time checked [`OwnedBase64PublicKey`] construction.
+/// Compile-time checked [`Base64PublicKey`] construction.
+///
+/// This is currently equivalent to [`base64_public_key!`]. This is kept for backwards compatibility
+/// to ease the transition after the change of [`Base64PublicKey`] from a dynamically sized type to
+/// an owned type.
+///
+/// This is behind an unstable cargo feature because it is likely to be removed in a future
+/// non-breaking release.
+#[cfg(feature = "unstable-identifier-owned-macros")]
 #[macro_export]
 macro_rules! owned_base64_public_key {
     ($s:literal) => {
-        $crate::base64_public_key!($s).to_owned()
+        $crate::base64_public_key!($s)
     };
 }
 

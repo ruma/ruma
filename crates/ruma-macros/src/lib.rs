@@ -598,7 +598,7 @@ pub fn user_id(input: TokenStream) -> TokenStream {
 pub fn base64_public_key(input: TokenStream) -> TokenStream {
     let id_ctor = parse_macro_input!(input as IdentifierConstructor);
     id_ctor
-        .validate_and_expand_str_conversion("&Base64PublicKey", base64_public_key::validate)
+        .validate_and_expand_str_conversion("Base64PublicKey", base64_public_key::validate)
         .into()
 }
 
