@@ -17,7 +17,7 @@ use serde::de::{self, Deserializer, Unexpected};
 #[doc(inline)]
 pub use self::{
     base64_public_key::Base64PublicKey,
-    base64_public_key_or_device_id::{Base64PublicKeyOrDeviceId, OwnedBase64PublicKeyOrDeviceId},
+    base64_public_key_or_device_id::Base64PublicKeyOrDeviceId,
     client_secret::{ClientSecret, OwnedClientSecret},
     crypto_algorithms::{
         DeviceKeyAlgorithm, EventEncryptionAlgorithm, KeyDerivationAlgorithm, OneTimeKeyAlgorithm,
