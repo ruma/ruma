@@ -9,7 +9,7 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        ClientSecret, OwnedSessionId,
+        ClientSecret, SessionId,
         api::{auth_scheme::NoAccessToken, request, response},
         metadata,
     };
@@ -52,7 +52,7 @@ pub mod v3 {
     #[response]
     pub struct Response {
         /// The session identifier given by the identity server.
-        pub sid: OwnedSessionId,
+        pub sid: SessionId,
 
         /// URL to submit validation token to.
         ///
@@ -78,7 +78,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given session identifier.
-        pub fn new(sid: OwnedSessionId) -> Self {
+        pub fn new(sid: SessionId) -> Self {
             Self { sid, submit_url: None }
         }
     }

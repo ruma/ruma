@@ -10,6 +10,7 @@ fn main() {
     _ = ruma_common::room_version_id!("1-custom");
     _ = ruma_common::server_name!("myserver.fish");
     _ = ruma_common::server_signing_key_version!("Abc_1");
+    _ = ruma_common::session_id!("my_session_id");
     _ = ruma_common::user_id!("@user:ruma.io");
 
     _ = ruma_common::owned_user_id!("@user:ruma.io");
@@ -25,5 +26,6 @@ fn main() {
         _ = ruma_common::room_id_ref!("!1234567890:matrix.org");
         _ = ruma_common::server_name_ref!("myserver.fish");
         _ = ruma_common::server_signing_key_version_ref!("Abc_1");
+        _ = ruma_common::session_id_ref!("my_session_id");
     }
 }

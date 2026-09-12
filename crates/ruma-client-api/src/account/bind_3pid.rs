@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#post_matrixclientv3account3pidbind
 
     use ruma_common::{
-        ClientSecret, OwnedSessionId,
+        ClientSecret, SessionId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -37,7 +37,7 @@ pub mod v3 {
         pub identity_server_info: IdentityServerInfo,
 
         /// The session identifier given by the identity server.
-        pub sid: OwnedSessionId,
+        pub sid: SessionId,
     }
 
     /// Response type for the `bind_3pid` endpoint.
@@ -51,7 +51,7 @@ pub mod v3 {
         pub fn new(
             client_secret: ClientSecret,
             identity_server_info: IdentityServerInfo,
-            sid: OwnedSessionId,
+            sid: SessionId,
         ) -> Self {
             Self { client_secret, identity_server_info, sid }
         }

@@ -41,6 +41,9 @@ Breaking changes:
     `owned_server_signing_key_version!` macro was removed and the `server_signing_key_version_ref!`
     macro behind the `unstable-identifier-ref-macros` cargo feature allows to construct a
     `&'static ServerSigningKeyVersion`.
+  - `OwnedSessionId` was renamed to `SessionId`. The `session_id!` macro now returns a `SessionId`,
+    the `owned_session_id!` macro was removed and the `session_id_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static SessionId`.
 
 Improvements:
 
