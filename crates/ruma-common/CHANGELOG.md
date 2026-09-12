@@ -24,6 +24,10 @@ Breaking changes:
     `owned_mxc_uri!` macro was removed and the `mxc_uri_ref!` macro behind the
     `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static MxcUri`.
   - `OwnedOneTimeKeyName` was renamed to `OneTimeKeyName`.
+  - `OwnedRoomAliasId` was renamed to `RoomAliasId`. The `room_alias_id!` macro now returns a
+    `RoomAliasId`, the `owned_room_alias_id!` macro was removed and the `room_alias_id_ref!` macro
+    behind the `unstable-identifier-ref-macros` cargo feature allows to construct a
+    `&'static RoomAliasId`.
 
 Improvements:
 

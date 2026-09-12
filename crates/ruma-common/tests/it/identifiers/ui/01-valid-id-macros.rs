@@ -21,5 +21,6 @@ fn main() {
         _ = ruma_common::event_id_ref!("$39hvsi03hlne:example.com");
         _ = ruma_common::event_id_ref!("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk");
         _ = ruma_common::mxc_uri_ref!("mxc://myserver.fish/sdfdsfsdfsdfgsdfsd");
+        _ = ruma_common::room_alias_id_ref!("#alias:server.tld");
     }
 }

@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#get_matrixclientv3directoryroomroomalias
 
     use ruma_common::{
-        OwnedRoomAliasId, OwnedRoomId, OwnedServerName,
+        OwnedRoomId, OwnedServerName, RoomAliasId,
         api::{auth_scheme::NoAccessToken, request, response},
         metadata,
     };
@@ -28,7 +28,7 @@ pub mod v3 {
     pub struct Request {
         /// The room alias.
         #[ruma_api(path)]
-        pub room_alias: OwnedRoomAliasId,
+        pub room_alias: RoomAliasId,
     }
 
     /// Response type for the `get_alias` endpoint.
@@ -43,7 +43,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room alias id.
-        pub fn new(room_alias: OwnedRoomAliasId) -> Self {
+        pub fn new(room_alias: RoomAliasId) -> Self {
             Self { room_alias }
         }
     }
