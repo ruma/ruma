@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- The `Base64PublicKey` dynamically sized type was removed and the `OwnedBase64PublicKey` type was
+  renamed to `Base64PublicKey`. The `base64_public_key!` macro now returns a `Base64PublicKey`, the
+  `owned_base64_public_key!` macro was removed and the `base64_public_key_ref!` macro behind the
+  `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static Base64PublicKey`.
+
 Improvements:
 
 - The `(Owned)DirectUserIdentifier` types were imported from ruma-events. Converting between an
