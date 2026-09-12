@@ -99,6 +99,14 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
             .unwrap_or_else(|_| unreachable!())
     }
 
+    /// Returns the owned key name of the key ID - the part that comes after the colon.
+    pub fn owned_key_name(&self) -> K
+    where
+        K: for<'a> TryFrom<&'a str>,
+    {
+        K::try_from(&self.as_str()[(self.colon_idx() + 1)..]).unwrap_or_else(|_| unreachable!())
+    }
+
     fn colon_idx(&self) -> usize {
         self.as_str().find(':').unwrap()
     }
