@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#put_matrixclientv3roomsroomidredacteventidtxnid
 
     use ruma_common::{
-        EventId, OwnedRoomId, OwnedTransactionId,
+        EventId, OwnedTransactionId, RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -28,7 +28,7 @@ pub mod v3 {
     pub struct Request {
         /// The ID of the room of the event to redact.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The ID of the event to redact.
         #[ruma_api(path)]
@@ -60,7 +60,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room ID, event ID and transaction ID.
-        pub fn new(room_id: OwnedRoomId, event_id: EventId, txn_id: OwnedTransactionId) -> Self {
+        pub fn new(room_id: RoomId, event_id: EventId, txn_id: OwnedTransactionId) -> Self {
             Self { room_id, event_id, txn_id, reason: None }
         }
     }

@@ -28,6 +28,9 @@ Breaking changes:
     `RoomAliasId`, the `owned_room_alias_id!` macro was removed and the `room_alias_id_ref!` macro
     behind the `unstable-identifier-ref-macros` cargo feature allows to construct a
     `&'static RoomAliasId`.
+  - `OwnedRoomId` was renamed to `RoomId`. The `room_id!` macro now returns a `RoomId`, the
+    `owned_room_id!` macro was removed and the `room_id_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static RoomId`.
 
 Improvements:
 

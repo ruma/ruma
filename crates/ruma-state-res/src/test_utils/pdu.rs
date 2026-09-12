@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 
 use js_int::uint;
-use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedUserId, RoomId, UserId};
+use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, RoomId, UserId};
 use ruma_events::TimelineEventType;
 use serde::{Deserialize, Serialize};
 use serde_json::value::{RawValue as RawJsonValue, to_raw_value as to_raw_json_value};
@@ -15,7 +15,7 @@ pub struct Pdu {
     pub event_id: EventId,
 
     /// The room the event belongs to.
-    pub room_id: Option<OwnedRoomId>,
+    pub room_id: Option<RoomId>,
 
     /// The ID of the user who sent the event.
     pub sender: OwnedUserId,
@@ -121,7 +121,7 @@ impl Event for Pdu {
     }
 
     fn room_id(&self) -> Option<&RoomId> {
-        self.room_id.as_deref()
+        self.room_id.as_ref()
     }
 
     fn sender(&self) -> &UserId {

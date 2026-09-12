@@ -5,8 +5,7 @@
 use as_variant::as_variant;
 use js_int::Int;
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedTransactionId, OwnedUserId, RoomId,
-    UserId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedTransactionId, OwnedUserId, RoomId, UserId,
     canonical_json::RedactionEvent,
     room_version_rules::RedactionRules,
     serde::{CanBeEmpty, JsonCastable, JsonObject},
@@ -72,7 +71,7 @@ pub struct OriginalRoomRedactionEvent {
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: RoomRedactionUnsigned,
@@ -119,7 +118,7 @@ pub struct RedactedRoomRedactionEvent {
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The ID of the room associated with this event.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: RedactedUnsigned,
@@ -160,7 +159,7 @@ pub struct OriginalSyncRoomRedactionEvent {
 
 impl OriginalSyncRoomRedactionEvent {
     /// Convert this sync event into a full event, one with a `room_id` field.
-    pub fn into_full_event(self, room_id: OwnedRoomId) -> OriginalRoomRedactionEvent {
+    pub fn into_full_event(self, room_id: RoomId) -> OriginalRoomRedactionEvent {
         let Self { content, redacts, event_id, sender, origin_server_ts, unsigned } = self;
 
         OriginalRoomRedactionEvent {
@@ -385,7 +384,7 @@ impl SyncRoomRedactionEvent {
     }
 
     /// Convert this sync event into a full event (one with a `room_id` field).
-    pub fn into_full_event(self, room_id: OwnedRoomId) -> RoomRedactionEvent {
+    pub fn into_full_event(self, room_id: RoomId) -> RoomRedactionEvent {
         match self {
             Self::Original(ev) => RoomRedactionEvent::Original(ev.into_full_event(room_id)),
             Self::Redacted(ev) => RoomRedactionEvent::Redacted(ev.into_full_event(room_id)),

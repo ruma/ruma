@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::OwnedRoomId;
+use ruma_common::RoomId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -35,8 +35,8 @@ impl FromIterator<DoNotDisturbRoomKey> for DoNotDisturbEventContent {
     }
 }
 
-impl FromIterator<OwnedRoomId> for DoNotDisturbEventContent {
-    fn from_iter<T: IntoIterator<Item = OwnedRoomId>>(iter: T) -> Self {
+impl FromIterator<RoomId> for DoNotDisturbEventContent {
+    fn from_iter<T: IntoIterator<Item = RoomId>>(iter: T) -> Self {
         iter.into_iter().map(DoNotDisturbRoomKey::SingleRoom).collect()
     }
 }
@@ -47,8 +47,8 @@ impl Extend<DoNotDisturbRoomKey> for DoNotDisturbEventContent {
     }
 }
 
-impl Extend<OwnedRoomId> for DoNotDisturbEventContent {
-    fn extend<T: IntoIterator<Item = OwnedRoomId>>(&mut self, iter: T) {
+impl Extend<RoomId> for DoNotDisturbEventContent {
+    fn extend<T: IntoIterator<Item = RoomId>>(&mut self, iter: T) {
         self.extend(iter.into_iter().map(DoNotDisturbRoomKey::SingleRoom));
     }
 }
@@ -65,7 +65,7 @@ pub enum DoNotDisturbRoomKey {
 
     /// Match a single room based on its room ID.
     #[serde(untagged)]
-    SingleRoom(OwnedRoomId),
+    SingleRoom(RoomId),
 }
 
 /// Details about a room in "Do not Disturb" mode.
@@ -87,7 +87,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     use assert_matches2::assert_matches;
-    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_room_id};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, room_id};
     use serde_json::{from_value as from_json_value, json};
 
     use super::DoNotDisturbEventContent;
@@ -96,7 +96,7 @@ mod tests {
     #[test]
     fn serialization_with_single_room() {
         let do_not_disturb_room_list: DoNotDisturbEventContent =
-            vec![owned_room_id!("!foo:bar.baz")].into_iter().collect();
+            vec![room_id!("!foo:bar.baz")].into_iter().collect();
 
         assert_to_canonical_json_eq!(
             do_not_disturb_room_list,
@@ -142,7 +142,7 @@ mod tests {
         );
         assert_eq!(
             ev.content.rooms.keys().collect::<Vec<_>>(),
-            vec![&DoNotDisturbRoomKey::SingleRoom(owned_room_id!("!foo:bar.baz"))]
+            vec![&DoNotDisturbRoomKey::SingleRoom(room_id!("!foo:bar.baz"))]
         );
     }
 

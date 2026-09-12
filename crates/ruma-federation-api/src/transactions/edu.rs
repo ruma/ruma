@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use js_int::Int;
 use js_int::UInt;
 use ruma_common::{
-    DeviceId, EventId, OwnedRoomId, OwnedTransactionId, OwnedUserId,
+    DeviceId, EventId, OwnedTransactionId, OwnedUserId, RoomId,
     encryption::{CrossSigningKey, DeviceKeys},
     presence::PresenceState,
     serde::{Raw, from_raw_json_value},
@@ -202,12 +202,12 @@ impl PresenceUpdate {
 pub struct ReceiptContent {
     /// Receipts for a particular room.
     #[serde(flatten)]
-    pub receipts: BTreeMap<OwnedRoomId, ReceiptMap>,
+    pub receipts: BTreeMap<RoomId, ReceiptMap>,
 }
 
 impl ReceiptContent {
     /// Creates a new `ReceiptContent`.
-    pub fn new(receipts: BTreeMap<OwnedRoomId, ReceiptMap>) -> Self {
+    pub fn new(receipts: BTreeMap<RoomId, ReceiptMap>) -> Self {
         Self { receipts }
     }
 }
@@ -251,7 +251,7 @@ impl ReceiptData {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct TypingContent {
     /// The room where the user's typing status has been updated.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The user ID that has had their typing status changed.
     pub user_id: OwnedUserId,
@@ -262,7 +262,7 @@ pub struct TypingContent {
 
 impl TypingContent {
     /// Creates a new `TypingContent`.
-    pub fn new(room_id: OwnedRoomId, user_id: OwnedUserId, typing: bool) -> Self {
+    pub fn new(room_id: RoomId, user_id: OwnedUserId, typing: bool) -> Self {
         Self { room_id, user_id, typing }
     }
 }
@@ -513,7 +513,7 @@ mod tests {
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
         assert_matches!(&edu, Edu::Receipt(ReceiptContent { receipts }));
-        assert!(receipts.get(room_id!("!some_room:example.org")).is_some());
+        assert!(receipts.get(&room_id!("!some_room:example.org")).is_some());
 
         assert_eq!(serde_json::to_value(&edu).unwrap(), json);
     }

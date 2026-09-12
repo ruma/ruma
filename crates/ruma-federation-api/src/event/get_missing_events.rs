@@ -9,7 +9,7 @@ pub mod v1 {
 
     use js_int::{UInt, uint};
     use ruma_common::{
-        EventId, OwnedRoomId,
+        EventId, RoomId,
         api::{request, response},
         metadata,
     };
@@ -29,7 +29,7 @@ pub mod v1 {
     pub struct Request {
         /// The room ID to search in.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The maximum number of events to retrieve.
         ///
@@ -63,7 +63,7 @@ pub mod v1 {
     impl Request {
         /// Creates a new `Request` for events in the given room with the given constraints.
         pub fn new(
-            room_id: OwnedRoomId,
+            room_id: RoomId,
             earliest_events: Vec<EventId>,
             latest_events: Vec<EventId>,
         ) -> Self {

@@ -10,7 +10,7 @@ pub mod v3 {
     use std::borrow::Borrow;
 
     use ruma_common::{
-        EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId,
+        EventId, MilliSecondsSinceUnixEpoch, RoomId,
         api::{auth_scheme::AccessToken, error::Error, response},
         metadata,
         serde::Raw,
@@ -35,7 +35,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
         /// The room to set the state in.
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The type of event to send.
         pub event_type: StateEventType,
@@ -73,11 +73,7 @@ pub mod v3 {
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
-        pub fn new<T, K>(
-            room_id: OwnedRoomId,
-            state_key: &K,
-            content: &T,
-        ) -> serde_json::Result<Self>
+        pub fn new<T, K>(room_id: RoomId, state_key: &K, content: &T) -> serde_json::Result<Self>
         where
             T: StateEventContent,
             T::StateKey: Borrow<K>,
@@ -97,7 +93,7 @@ pub mod v3 {
         /// Creates a new `Request` with the given room id, event type, state key and raw event
         /// content.
         pub fn new_raw(
-            room_id: OwnedRoomId,
+            room_id: RoomId,
             event_type: StateEventType,
             state_key: String,
             body: Raw<AnyStateEventContent>,
@@ -188,25 +184,24 @@ pub mod v3 {
         ) -> Result<Self, ruma_common::api::error::DeserializationError> {
             // FIXME: find a way to make this if-else collapse with serde recognizing trailing
             // Option
-            let (room_id, event_type, state_key): (OwnedRoomId, StateEventType, String) =
-                if path_args.len() == 3 {
-                    serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
-                        _,
-                        serde::de::value::Error,
-                    >::new(
-                        path_args.iter().copied()
-                    ))?
-                } else {
-                    let (a, b) =
-                        serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
-                            _,
-                            serde::de::value::Error,
-                        >::new(
-                            path_args.iter().copied()
-                        ))?;
+            let (room_id, event_type, state_key): (RoomId, StateEventType, String) = if path_args
+                .len()
+                == 3
+            {
+                serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
+                    _,
+                    serde::de::value::Error,
+                >::new(path_args.iter().copied()))?
+            } else {
+                let (a, b) = serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
+                    _,
+                    serde::de::value::Error,
+                >::new(
+                    path_args.iter().copied()
+                ))?;
 
-                    (a, b, "".into())
-                };
+                (a, b, "".into())
+            };
 
             let RequestQuery {
                 timestamp,
@@ -256,7 +251,7 @@ mod tests {
         api::{
             MatrixVersion, OutgoingRequestExt as _, SupportedVersions, auth_scheme::SendAccessToken,
         },
-        owned_room_id,
+        room_id,
     };
     use ruma_events::{EmptyStateKey, room::name::RoomNameEventContent};
 
@@ -271,7 +266,7 @@ mod tests {
 
         // This used to panic in make_endpoint_url because of a mismatch in the path parameter count
         let req = Request::new(
-            owned_room_id!("!room:server.tld"),
+            room_id!("!room:server.tld"),
             &EmptyStateKey,
             &RoomNameEventContent::new("Test room".to_owned()),
         )
@@ -301,7 +296,7 @@ mod tests {
 
         // This used to panic in make_endpoint_url because of a mismatch in the path parameter count
         let mut req = Request::new(
-            owned_room_id!("!room:server.tld"),
+            room_id!("!room:server.tld"),
             &EmptyStateKey,
             &RoomNameEventContent::new("Test room".to_owned()),
         )
@@ -323,7 +318,7 @@ mod tests {
 
 #[cfg(all(test, feature = "server", feature = "unstable-msc4354"))]
 mod server_tests {
-    use ruma_common::{api::IncomingRequestExt as _, owned_room_id};
+    use ruma_common::{api::IncomingRequestExt as _, room_id};
 
     use super::v3::Request;
 
@@ -341,7 +336,7 @@ mod server_tests {
             Request::try_from_http_request(request, &["!roomid:example.org", "m.room.name", ""])
                 .unwrap();
 
-        assert_eq!(request.room_id, owned_room_id!("!roomid:example.org"));
+        assert_eq!(request.room_id, room_id!("!roomid:example.org"));
         assert_eq!(request.sticky_duration_ms.map(|duration| duration.get()), Some(123_456));
     }
 }

@@ -17,7 +17,7 @@ pub mod v3 {
     use as_variant::as_variant;
     use js_int::{UInt, uint};
     use ruma_common::{
-        EventId, MxcUri, OwnedRoomId, OwnedUserId,
+        EventId, MxcUri, OwnedUserId, RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::{Raw, StringEnum},
@@ -375,7 +375,7 @@ pub mod v3 {
         ///
         /// This is included if the request had the `include_state` key set with a value of `true`.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub state: BTreeMap<OwnedRoomId, Vec<Raw<AnyStateEvent>>>,
+        pub state: BTreeMap<RoomId, Vec<Raw<AnyStateEvent>>>,
 
         /// List of words which should be highlighted, useful for stemming which may
         /// change the query terms.
@@ -457,7 +457,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum ResultGroupMap {
         /// Results grouped by room ID.
-        RoomId(BTreeMap<OwnedRoomId, ResultGroup>),
+        RoomId(BTreeMap<RoomId, ResultGroup>),
 
         /// Results grouped by sender.
         Sender(BTreeMap<OwnedUserId, ResultGroup>),
@@ -720,7 +720,7 @@ mod tests {
         );
         assert_eq!(room_id_group_map.len(), 1);
         let room_id_group =
-            room_id_group_map.get(room_id!("!qPewotXpIctQySfjSy:localhost")).unwrap();
+            room_id_group_map.get(&room_id!("!qPewotXpIctQySfjSy:localhost")).unwrap();
         assert_eq!(room_id_group.results, std::slice::from_ref(&result_event_id));
         assert_eq!(results.highlights, &["martians", "men"]);
         assert_eq!(results.next_batch.as_deref(), Some("5FdgFsd234dfgsdfFD"));

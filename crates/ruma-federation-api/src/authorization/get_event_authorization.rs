@@ -8,7 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.19/server-server-api/#get_matrixfederationv1event_authroomideventid
 
     use ruma_common::{
-        EventId, OwnedRoomId,
+        EventId, RoomId,
         api::{request, response},
         metadata,
     };
@@ -28,7 +28,7 @@ pub mod v1 {
     pub struct Request {
         /// The room ID to get the auth chain for.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The event ID to get the auth chain for.
         #[ruma_api(path)]
@@ -45,7 +45,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given room id and event id.
-        pub fn new(room_id: OwnedRoomId, event_id: EventId) -> Self {
+        pub fn new(room_id: RoomId, event_id: EventId) -> Self {
             Self { room_id, event_id }
         }
     }

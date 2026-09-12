@@ -3,7 +3,7 @@
 //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3030
 
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId,
+    EventId, MilliSecondsSinceUnixEpoch, RoomId,
     api::{Direction, Metadata, path_builder::SinglePath, request, response},
 };
 
@@ -12,7 +12,7 @@ use ruma_common::{
 pub struct Request {
     /// The ID of the room the event is in.
     #[ruma_api(path)]
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The timestamp to search from.
     #[ruma_api(query)]
@@ -25,7 +25,7 @@ pub struct Request {
 
 impl Request {
     /// Creates a new `Request` with the given room ID, timestamp and direction.
-    pub fn new(room_id: OwnedRoomId, ts: MilliSecondsSinceUnixEpoch, dir: Direction) -> Self {
+    pub fn new(room_id: RoomId, ts: MilliSecondsSinceUnixEpoch, dir: Direction) -> Self {
         Self { room_id, ts, dir }
     }
 }

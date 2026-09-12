@@ -1,6 +1,6 @@
 use js_int::{UInt, uint};
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedUserId, RoomVersionId, event_id,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, RoomId, RoomVersionId, event_id,
     owned_user_id,
     room::JoinRule,
     room_version_rules::{AuthorizationRules, RoomVersionRules},
@@ -31,7 +31,7 @@ use crate::{
 /// Every PDU in the factory can be modified after creation if needed.
 pub struct RoomTimelineFactory {
     /// The ID of the room.
-    room_id: OwnedRoomId,
+    room_id: RoomId,
 
     /// The rules for the current room version.
     rules: RoomVersionRules,

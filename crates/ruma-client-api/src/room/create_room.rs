@@ -20,7 +20,7 @@ pub mod v3 {
 
     use assign::assign;
     use ruma_common::{
-        OwnedRoomId, OwnedUserId, RoomVersionId,
+        OwnedUserId, RoomId, RoomVersionId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         room::RoomType,
@@ -113,7 +113,7 @@ pub mod v3 {
     #[response]
     pub struct Response {
         /// The created room's ID.
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
     }
 
     impl Request {
@@ -125,7 +125,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given room id.
-        pub fn new(room_id: OwnedRoomId) -> Self {
+        pub fn new(room_id: RoomId) -> Self {
             Self { room_id }
         }
     }

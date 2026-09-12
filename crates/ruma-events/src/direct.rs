@@ -7,7 +7,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use ruma_common::OwnedRoomId;
+use ruma_common::RoomId;
 pub use ruma_common::{DirectUserIdentifier, OwnedDirectUserIdentifier};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -21,10 +21,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.direct", kind = GlobalAccountData)]
-pub struct DirectEventContent(pub BTreeMap<OwnedDirectUserIdentifier, Vec<OwnedRoomId>>);
+pub struct DirectEventContent(pub BTreeMap<OwnedDirectUserIdentifier, Vec<RoomId>>);
 
 impl Deref for DirectEventContent {
-    type Target = BTreeMap<OwnedDirectUserIdentifier, Vec<OwnedRoomId>>;
+    type Target = BTreeMap<OwnedDirectUserIdentifier, Vec<RoomId>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -38,18 +38,18 @@ impl DerefMut for DirectEventContent {
 }
 
 impl IntoIterator for DirectEventContent {
-    type Item = (OwnedDirectUserIdentifier, Vec<OwnedRoomId>);
-    type IntoIter = btree_map::IntoIter<OwnedDirectUserIdentifier, Vec<OwnedRoomId>>;
+    type Item = (OwnedDirectUserIdentifier, Vec<RoomId>);
+    type IntoIter = btree_map::IntoIter<OwnedDirectUserIdentifier, Vec<RoomId>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
     }
 }
 
-impl FromIterator<(OwnedDirectUserIdentifier, Vec<OwnedRoomId>)> for DirectEventContent {
+impl FromIterator<(OwnedDirectUserIdentifier, Vec<RoomId>)> for DirectEventContent {
     fn from_iter<T>(iter: T) -> Self
     where
-        T: IntoIterator<Item = (OwnedDirectUserIdentifier, Vec<OwnedRoomId>)>,
+        T: IntoIterator<Item = (OwnedDirectUserIdentifier, Vec<RoomId>)>,
     {
         Self(BTreeMap::from_iter(iter))
     }
@@ -60,7 +60,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        DirectUserIdentifier, canonical_json::assert_to_canonical_json_eq, owned_room_id, user_id,
+        DirectUserIdentifier, canonical_json::assert_to_canonical_json_eq, room_id, user_id,
     };
     use serde_json::{from_value as from_json_value, json};
 
@@ -71,8 +71,8 @@ mod tests {
         let mut content = DirectEventContent(BTreeMap::new());
         let alice = user_id!("@alice:ruma.io");
         let alice_mail = "alice@ruma.io";
-        let rooms = vec![owned_room_id!("!1:ruma.io")];
-        let mail_rooms = vec![owned_room_id!("!3:ruma.io")];
+        let rooms = vec![room_id!("!1:ruma.io")];
+        let mail_rooms = vec![room_id!("!3:ruma.io")];
 
         content.insert(alice.into(), rooms.clone());
         content.insert(alice_mail.into(), mail_rooms.clone());
@@ -89,8 +89,8 @@ mod tests {
     fn deserialization() {
         let alice = user_id!("@alice:ruma.io");
         let alice_mail = "alice@ruma.io";
-        let rooms = vec![owned_room_id!("!1:ruma.io"), owned_room_id!("!2:ruma.io")];
-        let mail_rooms = vec![owned_room_id!("!3:ruma.io")];
+        let rooms = vec![room_id!("!1:ruma.io"), room_id!("!2:ruma.io")];
+        let mail_rooms = vec![room_id!("!3:ruma.io")];
 
         let json_data = json!({
             "content": {
