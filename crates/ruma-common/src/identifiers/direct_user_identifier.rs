@@ -1,51 +1,33 @@
-use ruma_macros::IdDst;
+use ruma_macros::ruma_id;
 
 use super::{IdParseError, UserId};
 
-/// An user identifier, it can be a [`UserId`] or a third-party identifier
-/// like an email or a phone number.
+/// A user identifier, it can be a [`UserId`] or a third-party identifier like an email or a phone
+/// number.
 ///
-/// There is no validation on this type, any string is allowed,
-/// but you can use `as_user_id` or `into_user_id` to try to get an [`UserId`].
-#[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
+/// There is no validation on this type, any string is allowed, but you can use
+/// [`into_user_id()`](Self::into_user_id) to try to get a [`UserId`].
 #[ruma_id(smallvec_inline_bytes = 40)]
-pub struct DirectUserIdentifier(str);
+pub struct DirectUserIdentifier;
 
 impl DirectUserIdentifier {
     /// Get this `DirectUserIdentifier` as a [`UserId`] if it is one.
     pub fn as_user_id(&self) -> Option<UserId> {
         self.try_into().ok()
     }
-}
 
-impl OwnedDirectUserIdentifier {
-    /// Get this `OwnedDirectUserIdentifier` as a [`UserId`] if it is one.
-    pub fn as_user_id(&self) -> Option<UserId> {
-        self.try_into().ok()
-    }
-
-    /// Convert this `OwnedDirectUserIdentifier` to a [`UserId`] if it is one.
+    /// Convert this `DirectUserIdentifier` to a [`UserId`] if it is one.
     pub fn into_user_id(self) -> Option<UserId> {
         self.try_into().ok()
     }
 }
 
-impl TryFrom<OwnedDirectUserIdentifier> for UserId {
+impl TryFrom<DirectUserIdentifier> for UserId {
     type Error = IdParseError;
 
-    fn try_from(value: OwnedDirectUserIdentifier) -> Result<Self, Self::Error> {
+    fn try_from(value: DirectUserIdentifier) -> Result<Self, Self::Error> {
         ruma_identifiers_validation::user_id::validate(value.as_str())?;
         Ok(unsafe { Self::from_inner_unchecked(value.into_inner()) })
-    }
-}
-
-impl TryFrom<&OwnedDirectUserIdentifier> for UserId {
-    type Error = IdParseError;
-
-    fn try_from(value: &OwnedDirectUserIdentifier) -> Result<Self, Self::Error> {
-        ruma_identifiers_validation::user_id::validate(value.as_str())?;
-        Ok(unsafe { Self::from_inner_unchecked(value.clone().into_inner()) })
     }
 }
 
@@ -53,37 +35,20 @@ impl TryFrom<&DirectUserIdentifier> for UserId {
     type Error = IdParseError;
 
     fn try_from(value: &DirectUserIdentifier) -> Result<Self, Self::Error> {
-        value.as_str().try_into()
+        ruma_identifiers_validation::user_id::validate(value.as_str())?;
+        Ok(unsafe { Self::from_inner_unchecked(value.clone().into_inner()) })
     }
 }
 
-impl From<UserId> for OwnedDirectUserIdentifier {
+impl From<UserId> for DirectUserIdentifier {
     fn from(value: UserId) -> Self {
         unsafe { Self::from_inner_unchecked(value.into_inner()) }
     }
 }
 
-impl From<&UserId> for OwnedDirectUserIdentifier {
+impl From<&UserId> for DirectUserIdentifier {
     fn from(value: &UserId) -> Self {
         unsafe { Self::from_inner_unchecked(value.clone().into_inner()) }
-    }
-}
-
-impl<'a> From<&'a UserId> for &'a DirectUserIdentifier {
-    fn from(value: &'a UserId) -> Self {
-        DirectUserIdentifier::from_borrowed_unchecked(value.as_str())
-    }
-}
-
-impl PartialEq<&UserId> for &DirectUserIdentifier {
-    fn eq(&self, other: &&UserId) -> bool {
-        self.as_str().eq(other.as_str())
-    }
-}
-
-impl PartialEq<&DirectUserIdentifier> for &UserId {
-    fn eq(&self, other: &&DirectUserIdentifier) -> bool {
-        other.as_str().eq(self.as_str())
     }
 }
 
@@ -99,26 +64,26 @@ impl PartialEq<&DirectUserIdentifier> for UserId {
     }
 }
 
-impl PartialEq<&UserId> for OwnedDirectUserIdentifier {
+impl PartialEq<&UserId> for DirectUserIdentifier {
     fn eq(&self, other: &&UserId) -> bool {
         self.as_str().eq(other.as_str())
     }
 }
 
-impl PartialEq<OwnedDirectUserIdentifier> for &UserId {
-    fn eq(&self, other: &OwnedDirectUserIdentifier) -> bool {
+impl PartialEq<DirectUserIdentifier> for &UserId {
+    fn eq(&self, other: &DirectUserIdentifier) -> bool {
         other.as_str().eq(self.as_str())
     }
 }
 
-impl PartialEq<UserId> for OwnedDirectUserIdentifier {
+impl PartialEq<UserId> for DirectUserIdentifier {
     fn eq(&self, other: &UserId) -> bool {
         self.as_str().eq(other.as_str())
     }
 }
 
-impl PartialEq<OwnedDirectUserIdentifier> for UserId {
-    fn eq(&self, other: &OwnedDirectUserIdentifier) -> bool {
+impl PartialEq<DirectUserIdentifier> for UserId {
+    fn eq(&self, other: &DirectUserIdentifier) -> bool {
         other.as_str().eq(self.as_str())
     }
 }
@@ -127,35 +92,30 @@ impl PartialEq<OwnedDirectUserIdentifier> for UserId {
 mod tests {
     use serde_json::{from_value as from_json_value, to_value as to_json_value};
 
-    use super::{DirectUserIdentifier, OwnedDirectUserIdentifier};
+    use super::DirectUserIdentifier;
     use crate::{UserId, user_id};
 
     #[test]
     fn user_id_conversion() {
-        let alice_direct_uid = <&DirectUserIdentifier>::from("@alice:ruma.io");
+        let alice_direct_uid = DirectUserIdentifier::from("@alice:ruma.io");
         let alice_owned_user_id: UserId = alice_direct_uid
-            .to_owned()
+            .clone()
             .try_into()
             .expect("@alice:ruma.io should be convertible into a Matrix user ID");
         assert_eq!(alice_direct_uid, alice_owned_user_id);
 
-        let alice_direct_uid_mail = <&DirectUserIdentifier>::from("alice@ruma.io");
-        UserId::try_from(alice_direct_uid_mail.to_owned())
+        let alice_direct_uid_mail = DirectUserIdentifier::from("alice@ruma.io");
+        UserId::try_from(alice_direct_uid_mail.clone())
             .expect_err("alice@ruma.io should not be convertible into a Matrix user ID");
 
         let alice_user_id = user_id!("@alice:ruma.io");
-        let alice_direct_uid_mail: &DirectUserIdentifier = (&alice_user_id).into();
-        assert_eq!(alice_direct_uid_mail, alice_user_id);
-        assert_eq!(alice_user_id, alice_direct_uid_mail);
-
-        let alice_user_id = user_id!("@alice:ruma.io");
-        let alice_direct_uid_mail: OwnedDirectUserIdentifier = alice_user_id.clone().into();
+        let alice_direct_uid_mail: DirectUserIdentifier = alice_user_id.clone().into();
         assert_eq!(alice_direct_uid_mail, alice_user_id);
         assert_eq!(alice_user_id, alice_direct_uid_mail);
 
         let alice_user_id = user_id!("@alice:ruma.io");
         let alice_user_id_json = to_json_value(&alice_user_id).unwrap();
-        let alice_direct_uid_mail: OwnedDirectUserIdentifier =
+        let alice_direct_uid_mail: DirectUserIdentifier =
             from_json_value(alice_user_id_json).unwrap();
         assert_eq!(alice_user_id, alice_direct_uid_mail);
     }

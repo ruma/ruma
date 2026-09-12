@@ -7,8 +7,8 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
+pub use ruma_common::DirectUserIdentifier;
 use ruma_common::RoomId;
-pub use ruma_common::{DirectUserIdentifier, OwnedDirectUserIdentifier};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -21,10 +21,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.direct", kind = GlobalAccountData)]
-pub struct DirectEventContent(pub BTreeMap<OwnedDirectUserIdentifier, Vec<RoomId>>);
+pub struct DirectEventContent(pub BTreeMap<DirectUserIdentifier, Vec<RoomId>>);
 
 impl Deref for DirectEventContent {
-    type Target = BTreeMap<OwnedDirectUserIdentifier, Vec<RoomId>>;
+    type Target = BTreeMap<DirectUserIdentifier, Vec<RoomId>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -38,18 +38,18 @@ impl DerefMut for DirectEventContent {
 }
 
 impl IntoIterator for DirectEventContent {
-    type Item = (OwnedDirectUserIdentifier, Vec<RoomId>);
-    type IntoIter = btree_map::IntoIter<OwnedDirectUserIdentifier, Vec<RoomId>>;
+    type Item = (DirectUserIdentifier, Vec<RoomId>);
+    type IntoIter = btree_map::IntoIter<DirectUserIdentifier, Vec<RoomId>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
     }
 }
 
-impl FromIterator<(OwnedDirectUserIdentifier, Vec<RoomId>)> for DirectEventContent {
+impl FromIterator<(DirectUserIdentifier, Vec<RoomId>)> for DirectEventContent {
     fn from_iter<T>(iter: T) -> Self
     where
-        T: IntoIterator<Item = (OwnedDirectUserIdentifier, Vec<RoomId>)>,
+        T: IntoIterator<Item = (DirectUserIdentifier, Vec<RoomId>)>,
     {
         Self(BTreeMap::from_iter(iter))
     }
@@ -102,12 +102,12 @@ mod tests {
 
         let event: DirectEvent = from_json_value(json_data).unwrap();
 
-        let direct_rooms = event.content.get(<&DirectUserIdentifier>::from(&alice)).unwrap();
+        let direct_rooms = event.content.get(&DirectUserIdentifier::from(&alice)).unwrap();
         assert!(direct_rooms.contains(&rooms[0]));
         assert!(direct_rooms.contains(&rooms[1]));
 
         let email_direct_rooms =
-            event.content.get(<&DirectUserIdentifier>::from(alice_mail)).unwrap();
+            event.content.get(&DirectUserIdentifier::from(alice_mail)).unwrap();
         assert!(email_direct_rooms.contains(&mail_rooms[0]));
     }
 }
