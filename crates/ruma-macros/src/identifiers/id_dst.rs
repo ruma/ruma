@@ -4,7 +4,10 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::parse_quote;
 
-use crate::util::{RumaCommon, RumaCommonReexport};
+use crate::{
+    identifiers::Types,
+    util::{RumaCommon, RumaCommonReexport},
+};
 
 mod owned_id;
 mod parse;
@@ -484,60 +487,5 @@ impl IdDst {
         ]
         .into_iter()
         .collect()
-    }
-}
-
-/// Common types.
-struct Types {
-    /// `str`.
-    str: syn::Type,
-
-    /// `Cow`.
-    cow: syn::Type,
-
-    /// `Box<str>`.
-    box_str: syn::Type,
-
-    /// `Arc<str>`.
-    arc_str: syn::Type,
-
-    /// `String`.
-    string: syn::Type,
-
-    /// `Cow<'a, str>`.
-    cow_str: syn::Type,
-
-    /// `[u8]`.
-    bytes: syn::Type,
-
-    /// `triomphe::ThinArc<(), u8>`.
-    thin_arc_bytes: syn::Type,
-
-    /// `smallvec::SmallVec<[u8; N]`.
-    small_vec_bytes: syn::Type,
-}
-
-impl Types {
-    fn new(ruma_common: &RumaCommon, owned_id: &OwnedId) -> Self {
-        let str = parse_quote! { ::std::primitive::str };
-        let byte = quote! { ::std::primitive::u8 };
-        let cow = parse_quote! { ::std::borrow::Cow };
-
-        let triomphe = ruma_common.reexported(RumaCommonReexport::Triomphe);
-        let smallvec = ruma_common.reexported(RumaCommonReexport::Smallvec);
-
-        let smallvec_inline_bytes = owned_id.smallvec_inline_bytes;
-
-        Self {
-            box_str: parse_quote! { ::std::boxed::Box<#str> },
-            arc_str: parse_quote! { ::std::sync::Arc<#str> },
-            string: parse_quote! { ::std::string::String },
-            cow_str: parse_quote! { #cow<'a, #str> },
-            bytes: parse_quote! { [#byte] },
-            thin_arc_bytes: parse_quote! { #triomphe::ThinArc<(), #byte> },
-            small_vec_bytes: parse_quote! { #smallvec::SmallVec<[#byte; #smallvec_inline_bytes]> },
-            str,
-            cow,
-        }
     }
 }
