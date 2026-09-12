@@ -14,7 +14,7 @@ pub mod unstable {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 
     use ruma_common::{
-        OwnedTransactionId, RoomId,
+        RoomId, TransactionId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -55,7 +55,7 @@ pub mod unstable {
         ///
         /// [access token is refreshed]: https://spec.matrix.org/v1.19/client-server-api/#refreshing-access-tokens
         #[ruma_api(path)]
-        pub txn_id: OwnedTransactionId,
+        pub txn_id: TransactionId,
 
         /// The timeout duration for this delayed event.
         #[ruma_api(query_all)]
@@ -84,7 +84,7 @@ pub mod unstable {
         /// `T`s [`::serde::Serialize`] implementation can fail.
         pub fn new<T>(
             room_id: RoomId,
-            txn_id: OwnedTransactionId,
+            txn_id: TransactionId,
             delay_parameters: DelayParameters,
             content: &T,
         ) -> serde_json::Result<Self>
@@ -104,7 +104,7 @@ pub mod unstable {
         /// `delay_parameters` and raw event content.
         pub fn new_raw(
             room_id: RoomId,
-            txn_id: OwnedTransactionId,
+            txn_id: TransactionId,
             event_type: MessageLikeEventType,
             delay_parameters: DelayParameters,
             body: Raw<AnyMessageLikeEventContent>,

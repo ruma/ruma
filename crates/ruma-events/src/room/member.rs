@@ -6,7 +6,7 @@ use js_int::Int;
 #[cfg(feature = "unstable-msc4293")]
 use ruma_common::canonical_json::RedactionEvent;
 use ruma_common::{
-    MxcUri, OwnedTransactionId, OwnedUserId, ServerSignatures, UserId,
+    MxcUri, OwnedUserId, ServerSignatures, TransactionId, UserId,
     room_version_rules::RedactionRules,
     serde::{CanBeEmpty, Raw, StringEnum},
 };
@@ -875,7 +875,7 @@ pub struct RoomMemberUnsigned {
 
     /// The client-supplied transaction ID, if the client being given the event is the same one
     /// which sent it.
-    pub transaction_id: Option<OwnedTransactionId>,
+    pub transaction_id: Option<TransactionId>,
 
     /// Optional previous content of the event.
     pub prev_content: Option<PossiblyRedactedRoomMemberEventContent>,

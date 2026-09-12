@@ -2,7 +2,7 @@
 //!
 //! [`m.key.verification.ready`]: https://spec.matrix.org/v1.19/client-server-api/#mkeyverificationready
 
-use ruma_common::{DeviceId, OwnedTransactionId};
+use ruma_common::{DeviceId, TransactionId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -27,7 +27,7 @@ pub struct ToDeviceKeyVerificationReadyEventContent {
     /// Must be unique with respect to the devices involved. Must be the same as the
     /// `transaction_id` given in the `m.key.verification.request` from a
     /// request.
-    pub transaction_id: OwnedTransactionId,
+    pub transaction_id: TransactionId,
 }
 
 impl ToDeviceKeyVerificationReadyEventContent {
@@ -36,7 +36,7 @@ impl ToDeviceKeyVerificationReadyEventContent {
     pub fn new(
         from_device: DeviceId,
         methods: Vec<VerificationMethod>,
-        transaction_id: OwnedTransactionId,
+        transaction_id: TransactionId,
     ) -> Self {
         Self { from_device, methods, transaction_id }
     }

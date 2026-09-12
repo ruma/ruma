@@ -5,7 +5,7 @@
 use as_variant::as_variant;
 use js_int::Int;
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedTransactionId, OwnedUserId, RoomId, UserId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, RoomId, TransactionId, UserId,
     canonical_json::RedactionEvent,
     room_version_rules::RedactionRules,
     serde::{CanBeEmpty, JsonCastable, JsonObject},
@@ -454,7 +454,7 @@ pub struct RoomRedactionUnsigned {
 
     /// The client-supplied transaction ID, if the client being given the event is the same one
     /// which sent it.
-    pub transaction_id: Option<OwnedTransactionId>,
+    pub transaction_id: Option<TransactionId>,
 
     /// [Bundled aggregations] of related child events.
     ///

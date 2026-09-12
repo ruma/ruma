@@ -18,7 +18,7 @@ pub mod v1 {
     #[cfg(any(feature = "unstable-msc3202", feature = "unstable-msc4203"))]
     use ruma_common::{DeviceId, OwnedUserId};
     use ruma_common::{
-        OwnedTransactionId,
+        TransactionId,
         api::{request, response},
         metadata,
         serde::{JsonObject, Raw, from_raw_json_value},
@@ -49,7 +49,7 @@ pub mod v1 {
         ///
         /// Homeservers generate these IDs and they are used to ensure idempotency of results.
         #[ruma_api(path)]
-        pub txn_id: OwnedTransactionId,
+        pub txn_id: TransactionId,
 
         /// A list of events.
         pub events: Vec<Raw<AnyTimelineEvent>>,
@@ -106,7 +106,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates an `Request` with the given transaction ID and list of events.
-        pub fn new(txn_id: OwnedTransactionId, events: Vec<Raw<AnyTimelineEvent>>) -> Request {
+        pub fn new(txn_id: TransactionId, events: Vec<Raw<AnyTimelineEvent>>) -> Request {
             Request {
                 txn_id,
                 events,

@@ -5,7 +5,7 @@
 use std::borrow::Cow;
 
 use ruma_common::{
-    OwnedTransactionId,
+    TransactionId,
     serde::{Base64, JsonObject},
 };
 use ruma_macros::EventContent;
@@ -27,7 +27,7 @@ pub struct ToDeviceKeyVerificationAcceptEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the `m.key.verification.start` message.
-    pub transaction_id: OwnedTransactionId,
+    pub transaction_id: TransactionId,
 
     /// The method specific content.
     #[serde(flatten)]
@@ -37,7 +37,7 @@ pub struct ToDeviceKeyVerificationAcceptEventContent {
 impl ToDeviceKeyVerificationAcceptEventContent {
     /// Creates a new `ToDeviceKeyVerificationAcceptEventContent` with the given transaction ID and
     /// method-specific content.
-    pub fn new(transaction_id: OwnedTransactionId, method: AcceptMethod) -> Self {
+    pub fn new(transaction_id: TransactionId, method: AcceptMethod) -> Self {
         Self { transaction_id, method }
     }
 }
