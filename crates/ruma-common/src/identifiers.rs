@@ -14,6 +14,8 @@ pub use ruma_identifiers_validation::{
 };
 use serde::de::{self, Deserializer, Unexpected};
 
+#[cfg(feature = "unstable-msc4363")]
+pub use self::acr::{Acr, OwnedAcr};
 #[doc(inline)]
 pub use self::{
     base64_public_key::{Base64PublicKey, OwnedBase64PublicKey},
@@ -56,6 +58,8 @@ pub use self::{
 pub mod matrix_uri;
 pub mod user_id;
 
+#[cfg(feature = "unstable-msc4363")]
+mod acr;
 mod base64_public_key;
 mod base64_public_key_or_device_id;
 mod client_secret;

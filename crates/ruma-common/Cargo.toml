@@ -44,6 +44,8 @@ unstable-msc4186 = []
 unstable-msc4262 = []
 # Thread subscriptions.
 unstable-msc4306 = []
+# OAuth step up authentication
+unstable-msc4363 = ["ruma-identifiers-validation/unstable-msc4363"]
 # Secure out-of-band channel for QR code sign in
 unstable-msc4388 = []
 # M_SENDER_IGNORED

@@ -1,3 +1,5 @@
+#[cfg(feature = "unstable-msc4363")]
+use std::collections::BTreeSet;
 use std::str::FromStr;
 
 use as_variant::as_variant;
@@ -12,6 +14,8 @@ use web_time::{Duration, SystemTime};
 #[cfg(feature = "unstable-msc4406")]
 use crate::OwnedUserId;
 use crate::PrivOwnedStr;
+#[cfg(feature = "unstable-msc4363")]
+use crate::{OwnedAcr, api::OAuthClientScope};
 
 /// An enum for the error kind.
 ///
@@ -134,6 +138,15 @@ pub enum ErrorKind {
     ///
     /// The client attempted to join a room that has a version the server does not support.
     IncompatibleRoomVersion(IncompatibleRoomVersionErrorData),
+
+    /// `M_INSUFFICIENT_USER_AUTHENTICATION`
+    ///
+    /// The client needs to reauthenticate with the OAuth authorization server to use
+    /// this endpoint. ([MSC4363])
+    ///
+    /// [MSC4363]: https://github.com/matrix-org/matrix-spec-proposals/pull/4363
+    #[cfg(feature = "unstable-msc4363")]
+    InsufficientUserAuthentication(Box<InsufficientUserAuthenticationErrorData>),
 
     /// `M_INVALID_PARAM`
     ///
@@ -426,6 +439,10 @@ impl ErrorKind {
             ErrorKind::Forbidden => ErrorCode::Forbidden,
             ErrorKind::GuestAccessForbidden => ErrorCode::GuestAccessForbidden,
             ErrorKind::IncompatibleRoomVersion(_) => ErrorCode::IncompatibleRoomVersion,
+            #[cfg(feature = "unstable-msc4363")]
+            ErrorKind::InsufficientUserAuthentication(_) => {
+                ErrorCode::InsufficientUserAuthentication
+            }
             ErrorKind::InvalidParam => ErrorCode::InvalidParam,
             ErrorKind::InvalidRoomState => ErrorCode::InvalidRoomState,
             ErrorKind::InvalidUsername => ErrorCode::InvalidUsername,
@@ -509,6 +526,30 @@ impl IncompatibleRoomVersionErrorData {
     /// Construct a new `IncompatibleRoomVersionErrorData` with the given room version.
     pub fn new(room_version: RoomVersionId) -> Self {
         Self { room_version }
+    }
+}
+
+/// Data for the `M_INSUFFICIENT_USER_AUTHENTICATION` [`ErrorKind`].
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[cfg(feature = "unstable-msc4363")]
+pub struct InsufficientUserAuthenticationErrorData {
+    /// The ACR values to supply to the auth server.
+    pub acr_values: Vec<OwnedAcr>,
+
+    /// The maximum number of seconds since the last authentication
+    /// until authentication must be performed again.
+    pub max_age: Option<Duration>,
+
+    /// The scopes required to access the resource.
+    pub scope: BTreeSet<OAuthClientScope>,
+}
+
+#[cfg(feature = "unstable-msc4363")]
+impl InsufficientUserAuthenticationErrorData {
+    /// Construct a new empty `InsufficientUserAuthenticationErrorData`.
+    pub fn new() -> Self {
+        Self::default()
     }
 }
 
@@ -803,6 +844,16 @@ pub enum ErrorCode {
     ///
     /// The client attempted to join a room that has a version the server does not support.
     IncompatibleRoomVersion,
+
+    /// `M_INSUFFICIENT_USER_AUTHENTICATION`
+    ///
+    /// The client needs to reauthenticate with the OAuth authorization server to use
+    /// this endpoint. ([MSC4363])
+    ///
+    /// [MSC4363]: https://github.com/matrix-org/matrix-spec-proposals/pull/4363
+    #[cfg(feature = "unstable-msc4363")]
+    #[ruma_enum(alias = "org.matrix.msc4363.M_INSUFFICIENT_USER_AUTHENTICATION")]
+    InsufficientUserAuthentication,
 
     /// `M_INVALID_PARAM`
     ///

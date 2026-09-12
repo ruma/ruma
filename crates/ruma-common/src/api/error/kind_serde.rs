@@ -6,6 +6,8 @@ use serde::{
     de::{self, Deserialize, Deserializer, MapAccess, Visitor},
     ser::{self, Serialize, SerializeMap, Serializer},
 };
+#[cfg(feature = "unstable-msc4363")]
+use serde_json::Value as JsonValue;
 use serde_json::{from_value as from_json_value, map::Entry};
 
 use super::{
@@ -13,6 +15,8 @@ use super::{
     LimitExceededErrorData, ResourceLimitExceededErrorData, RetryAfter, UnknownTokenErrorData,
     UserLimitExceededErrorData, WrongRoomKeysVersionErrorData,
 };
+#[cfg(feature = "unstable-msc4363")]
+use crate::api::{OAuthClientScope, error::InsufficientUserAuthenticationErrorData};
 #[cfg(feature = "unstable-msc4406")]
 use crate::{OwnedUserId, api::error::SenderIgnoredErrorData};
 
@@ -29,6 +33,12 @@ enum Field<'de> {
     CanUpgrade,
     #[cfg(feature = "unstable-msc4406")]
     Sender,
+    #[cfg(feature = "unstable-msc4363")]
+    AcrValues,
+    #[cfg(feature = "unstable-msc4363")]
+    MaxAge,
+    #[cfg(feature = "unstable-msc4363")]
+    Scope,
     Other(Cow<'de, str>),
 }
 
@@ -47,6 +57,12 @@ impl<'de> Field<'de> {
             "can_upgrade" => Self::CanUpgrade,
             #[cfg(feature = "unstable-msc4406")]
             "sender" => Self::Sender,
+            #[cfg(feature = "unstable-msc4363")]
+            "org.matrix.msc4363.acr_values" => Self::AcrValues,
+            #[cfg(feature = "unstable-msc4363")]
+            "org.matrix.msc4363.max_age" => Self::MaxAge,
+            #[cfg(feature = "unstable-msc4363")]
+            "org.matrix.msc4363.scope" => Self::Scope,
             _ => Self::Other(s),
         }
     }
@@ -118,6 +134,12 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
         #[cfg(feature = "unstable-msc4406")]
         let mut sender = None;
         let mut data = JsonObject::new();
+        #[cfg(feature = "unstable-msc4363")]
+        let mut acr_values: Option<JsonValue> = None;
+        #[cfg(feature = "unstable-msc4363")]
+        let mut max_age = None;
+        #[cfg(feature = "unstable-msc4363")]
+        let mut scope: Option<JsonValue> = None;
 
         macro_rules! set_field {
             (errcode) => {
@@ -145,6 +167,9 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             (@variant_containing info_uri) => { ErrorCode::UserLimitExceeded };
             (@variant_containing can_upgrade) => { ErrorCode::UserLimitExceeded };
             (@variant_containing sender) => { ErrorCode::SenderIgnored };
+            (@variant_containing acr_values) => { ErrorCode::InsufficientUserAuthentication };
+            (@variant_containing max_age) => { ErrorCode::InsufficientUserAuthentication };
+            (@variant_containing scope) => { ErrorCode::InsufficientUserAuthentication };
             (@inner $field:ident) => {
                 {
                     if $field.is_some() {
@@ -169,6 +194,12 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                 Field::CanUpgrade => set_field!(can_upgrade),
                 #[cfg(feature = "unstable-msc4406")]
                 Field::Sender => set_field!(sender),
+                #[cfg(feature = "unstable-msc4363")]
+                Field::AcrValues => set_field!(acr_values),
+                #[cfg(feature = "unstable-msc4363")]
+                Field::MaxAge => set_field!(max_age),
+                #[cfg(feature = "unstable-msc4363")]
+                Field::Scope => set_field!(scope),
                 Field::Other(other) => match data.entry(other.into_owned()) {
                     Entry::Vacant(v) => {
                         v.insert(map.next_value()?);
@@ -219,6 +250,54 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                     )
                     .map_err(de::Error::custom)?,
                 })
+            }
+            #[cfg(feature = "unstable-msc4363")]
+            ErrorCode::InsufficientUserAuthentication => {
+                use crate::{
+                    Acr,
+                    api::{OAuthClientScope, error::InsufficientUserAuthenticationErrorData},
+                };
+
+                ErrorKind::InsufficientUserAuthentication(Box::new(
+                    InsufficientUserAuthenticationErrorData {
+                        acr_values: acr_values
+                            .as_ref()
+                            .map(|value| {
+                                value.as_str().ok_or_else(|| {
+                                    de::Error::invalid_type(
+                                        de::Unexpected::Other("json value"),
+                                        &"a string",
+                                    )
+                                })
+                            })
+                            .transpose()?
+                            .map(|value| value.split(" ").map(Acr::parse).collect())
+                            .transpose()
+                            .map_err(de::Error::custom)?
+                            .unwrap_or_default(),
+                        max_age: max_age
+                            .map(from_json_value::<UInt>)
+                            .transpose()
+                            .map_err(de::Error::custom)?
+                            .map(Into::into)
+                            .map(Duration::from_secs),
+                        scope: scope
+                            .as_ref()
+                            .map(|value| {
+                                value.as_str().ok_or_else(|| {
+                                    de::Error::invalid_type(
+                                        de::Unexpected::Other("json value"),
+                                        &"a string",
+                                    )
+                                })
+                            })
+                            .transpose()?
+                            .map(|value| value.split(" ").map(OAuthClientScope::try_from).collect())
+                            .transpose()
+                            .map_err(de::Error::custom)?
+                            .unwrap_or_default(),
+                    },
+                ))
             }
             ErrorCode::InvalidParam => ErrorKind::InvalidParam,
             ErrorCode::InvalidRoomState => ErrorKind::InvalidRoomState,
@@ -344,6 +423,31 @@ impl Serialize for ErrorKind {
             }
             Self::IncompatibleRoomVersion(IncompatibleRoomVersionErrorData { room_version }) => {
                 st.serialize_entry("room_version", room_version)?;
+            }
+            #[cfg(feature = "unstable-msc4363")]
+            Self::InsufficientUserAuthentication(data) => {
+                let InsufficientUserAuthenticationErrorData { acr_values, max_age, scope } =
+                    &**data;
+
+                if !acr_values.is_empty() {
+                    st.serialize_entry("org.matrix.msc4363.acr_values", &acr_values.join(" "))?;
+                }
+
+                if let Some(max_age) = max_age {
+                    st.serialize_entry(
+                        "org.matrix.msc4363.max_age",
+                        &UInt::try_from(max_age.as_secs()).map_err(ser::Error::custom)?,
+                    )?;
+                }
+
+                if !scope.is_empty() {
+                    st.serialize_entry(
+                        "org.matrix.msc4363.scope",
+                        // TODO: use interleave() here to collect directly into a String if it ever
+                        // becomes stable
+                        &scope.iter().map(OAuthClientScope::as_str).collect::<Vec<_>>().join(" "),
+                    )?;
+                }
             }
             Self::LimitExceeded(LimitExceededErrorData {
                 retry_after: Some(RetryAfter::Delay(duration)),
@@ -478,6 +582,76 @@ mod tests {
             deserialized,
             ErrorKind::IncompatibleRoomVersion(IncompatibleRoomVersionErrorData {
                 room_version: room_version_id!("7")
+            })
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-msc4363")]
+    fn deserialize_insufficient_user_authentication() {
+        use std::time::Duration;
+
+        use crate::api::{OAuthClientScope, error::InsufficientUserAuthenticationErrorData};
+
+        let deserialized: ErrorKind = from_json_value(json!({
+            "errcode": "M_INSUFFICIENT_USER_AUTHENTICATION",
+            "error": "…",
+            "org.matrix.msc4363.acr_values": "urn:example:foo urn:example:bar",
+            "org.matrix.msc4363.max_age": 300,
+            "org.matrix.msc4363.scope": "urn:matrix:client:api:* urn:example:xyzzy"
+        }))
+        .unwrap();
+
+        assert_eq!(
+            deserialized,
+            ErrorKind::InsufficientUserAuthentication(Box::new(
+                InsufficientUserAuthenticationErrorData {
+                    acr_values: vec![
+                        "urn:example:foo".parse().unwrap(),
+                        "urn:example:bar".parse().unwrap()
+                    ],
+                    max_age: Some(Duration::from_secs(300)),
+                    scope: [
+                        OAuthClientScope::ApiFullAccess,
+                        "urn:example:xyzzy".try_into().unwrap()
+                    ]
+                    .into_iter()
+                    .collect()
+                }
+            ))
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-msc4363")]
+    fn serialize_insufficient_user_authentication() {
+        use std::time::Duration;
+
+        use serde_json::to_value as to_json_value;
+
+        use crate::api::{OAuthClientScope, error::InsufficientUserAuthenticationErrorData};
+
+        let serialized = to_json_value(ErrorKind::InsufficientUserAuthentication(Box::new(
+            InsufficientUserAuthenticationErrorData {
+                acr_values: vec![
+                    "urn:example:foo".parse().unwrap(),
+                    "urn:example:bar".parse().unwrap(),
+                ],
+                max_age: Some(Duration::from_secs(300)),
+                scope: [OAuthClientScope::ApiFullAccess, "urn:example:xyzzy".try_into().unwrap()]
+                    .into_iter()
+                    .collect(),
+            },
+        )))
+        .unwrap();
+
+        assert_eq!(
+            serialized,
+            json!({
+                "errcode": "M_INSUFFICIENT_USER_AUTHENTICATION",
+                "org.matrix.msc4363.acr_values": "urn:example:foo urn:example:bar",
+                "org.matrix.msc4363.max_age": 300,
+                "org.matrix.msc4363.scope": "urn:example:xyzzy urn:matrix:client:api:*"
             })
         );
     }
