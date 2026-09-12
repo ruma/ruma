@@ -1,8 +1,6 @@
 use ruma_macros::IdDst;
 
-use super::{
-    Base64PublicKey, DeviceId, IdParseError, KeyName, OwnedBase64PublicKey, OwnedDeviceId,
-};
+use super::{Base64PublicKey, DeviceId, IdParseError, KeyName, OwnedDeviceId};
 
 /// A Matrix ID that can be either a [`DeviceId`] or a [`Base64PublicKey`].
 ///
@@ -58,8 +56,8 @@ impl<'a> From<&'a Base64PublicKey> for &'a Base64PublicKeyOrDeviceId {
     }
 }
 
-impl From<OwnedBase64PublicKey> for OwnedBase64PublicKeyOrDeviceId {
-    fn from(value: OwnedBase64PublicKey) -> Self {
+impl From<Base64PublicKey> for OwnedBase64PublicKeyOrDeviceId {
+    fn from(value: Base64PublicKey) -> Self {
         unsafe { Self::from_inner_unchecked(value.into_inner()) }
     }
 }
@@ -67,7 +65,7 @@ impl From<OwnedBase64PublicKey> for OwnedBase64PublicKeyOrDeviceId {
 #[cfg(test)]
 mod tests {
     use super::OwnedBase64PublicKeyOrDeviceId;
-    use crate::{OwnedBase64PublicKey, OwnedDeviceId};
+    use crate::{Base64PublicKey, OwnedDeviceId};
 
     #[test]
     fn convert_owned_device_id_to_owned_base64_public_key_or_device_id() {
@@ -79,8 +77,7 @@ mod tests {
 
     #[test]
     fn convert_owned_base64_public_key_to_owned_base64_public_key_or_device_id() {
-        let base64_public_key: OwnedBase64PublicKey =
-            "base64+master+public+key".try_into().unwrap();
+        let base64_public_key: Base64PublicKey = "base64+master+public+key".try_into().unwrap();
         let mixed: OwnedBase64PublicKeyOrDeviceId = base64_public_key.into();
 
         assert_eq!(mixed, "base64+master+public+key");
