@@ -3,7 +3,7 @@
 use std::{borrow::Cow, fmt};
 
 use ruma_common::{
-    OwnedClientSecret, OwnedSessionId, OwnedUserId, serde::JsonObject, thirdparty::Medium,
+    ClientSecret, OwnedSessionId, OwnedUserId, serde::JsonObject, thirdparty::Medium,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::Value as JsonValue;
@@ -674,7 +674,7 @@ pub struct ThirdpartyIdCredentials {
     pub sid: OwnedSessionId,
 
     /// Identity server (or homeserver) client secret.
-    pub client_secret: OwnedClientSecret,
+    pub client_secret: ClientSecret,
 
     /// Identity server URL.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -687,7 +687,7 @@ pub struct ThirdpartyIdCredentials {
 
 impl ThirdpartyIdCredentials {
     /// Creates a new `ThirdpartyIdCredentials` with the given session ID and client secret.
-    pub fn new(sid: OwnedSessionId, client_secret: OwnedClientSecret) -> Self {
+    pub fn new(sid: OwnedSessionId, client_secret: ClientSecret) -> Self {
         Self { sid, client_secret, id_server: None, id_access_token: None }
     }
 }

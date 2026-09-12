@@ -9,7 +9,7 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        OwnedClientSecret, OwnedSessionId,
+        ClientSecret, OwnedSessionId,
         api::{auth_scheme::NoAccessToken, request, response},
         metadata,
     };
@@ -30,7 +30,7 @@ pub mod v3 {
     #[request]
     pub struct Request {
         /// Client-generated secret string used to protect this session.
-        pub client_secret: OwnedClientSecret,
+        pub client_secret: ClientSecret,
 
         /// The email address.
         pub email: String,
@@ -71,7 +71,7 @@ pub mod v3 {
     impl Request {
         /// Creates a new `Request` with the client secret, email and send-attempt counter.
         #[allow(deprecated)]
-        pub fn new(client_secret: OwnedClientSecret, email: String, send_attempt: UInt) -> Self {
+        pub fn new(client_secret: ClientSecret, email: String, send_attempt: UInt) -> Self {
             Self { client_secret, email, send_attempt, next_link: None, identity_server_info: None }
         }
     }

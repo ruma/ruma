@@ -11,6 +11,7 @@ Breaking changes:
     `base64_public_key_ref!` macro behind the `unstable-identifier-ref-macros` cargo feature allows
     to construct a `&'static Base64PublicKey`.
   - `OwnedBase64PublicKeyOrDeviceId` was renamed to `Base64PublicKeyOrDeviceId`.
+  - `OwnedClientSecret` was renamed to `ClientSecret`.
 
 Improvements:
 

@@ -9,7 +9,7 @@ pub mod v3 {
 
     use js_int::UInt;
     use ruma_common::{
-        OwnedClientSecret, OwnedSessionId,
+        ClientSecret, OwnedSessionId,
         api::{auth_scheme::NoAccessToken, request, response},
         metadata,
     };
@@ -30,7 +30,7 @@ pub mod v3 {
     #[request]
     pub struct Request {
         /// Client-generated secret string used to protect this session.
-        pub client_secret: OwnedClientSecret,
+        pub client_secret: ClientSecret,
 
         /// Two-letter ISO 3166 country code for the phone number.
         pub country: String,
@@ -76,7 +76,7 @@ pub mod v3 {
         /// send-attempt counter.
         #[allow(deprecated)]
         pub fn new(
-            client_secret: OwnedClientSecret,
+            client_secret: ClientSecret,
             country: String,
             phone_number: String,
             send_attempt: UInt,
