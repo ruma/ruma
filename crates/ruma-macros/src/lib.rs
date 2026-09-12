@@ -37,8 +37,8 @@ use self::{
         event_enum_from_event::expand_event_enum_from_event,
     },
     identifiers::{
-        RumaIdAttrs, constructor::IdentifierConstructor, id_dst::expand_id_dst,
-        ruma_id::expand_ruma_id,
+        constructor::IdentifierConstructor,
+        ruma_id::{expand_ruma_id, parse::RumaIdAttrs},
     },
     serde::{
         as_str_as_ref_str::expand_as_str_as_ref_str, debug_as_ref_str::expand_debug_as_ref_str,
@@ -339,7 +339,7 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 ///
 /// The type of the state key of the event, required and only supported if the kind is `State`. This
 /// type should be a string type like `String`, `EmptyStateKey` or an identifier type generated with
-/// the `IdDst` or `ruma_id` macros.
+/// the `ruma_id` macro.
 ///
 /// ### `unsigned_type = UnsignedType`
 ///
@@ -444,48 +444,6 @@ pub fn derive_event(input: TokenStream) -> TokenStream {
 pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     expand_event_enum_from_event(input).unwrap_or_else(syn::Error::into_compile_error).into()
-}
-
-/// Generate methods and trait impl's for DST identifier type.
-///
-/// This macro generates an `Owned*` type for the identifier type. The internal representation of
-/// the owned type is variable, by default it'll use a `Box<str>`, but it can be changed at compile
-/// time by setting `--cfg=ruma_identifiers_storage=...` using `RUSTFLAGS` or `.cargo/config.toml`
-/// (under `[build]` -> `rustflags = ["..."]`). The supported values for this setting are listed in
-/// the docs of the owned type.
-///
-/// This macro implements:
-///
-/// * Conversions to and from string types, `AsRef<[u8]>` and `AsRef<str>`, as well as `as_str()`
-///   and `as_bytes()` methods. The borrowed type can be converted from a borrowed string without
-///   allocation.
-/// * Conversions to and from borrowed and owned type.
-/// * `Deref`, `AsRef` and `Borrow` to the borrowed type for the owned type.
-/// * `PartialEq` implementations for testing equality with string types and owned and borrowed
-///   types.
-///
-/// # Attributes
-///
-/// * `#[ruma_id(validate = PATH)]`: the path to a function to validate the string during parsing
-///   and deserialization. By default, the types implement `From` string types, when this is set
-///   they implement `TryFrom`.
-/// * `#[ruma_id(smallvec_inline_bytes = USIZE)]`: the size of the inline array for the `SmallVec`
-///   inner representation. If this is not provided the default inline size is `32`.
-///
-/// # Examples
-///
-/// ```ignore
-/// # // HACK: This is "ignore" because of cyclical dependency drama.
-/// use ruma_macros::IdDst;
-///
-/// #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
-/// #[ruma_id(validate = ruma_identifiers_validation::user_id::validate, smallvec_inline_bytes = 40)]
-/// pub struct UserId(str);
-/// ```
-#[proc_macro_derive(IdDst, attributes(ruma_id))]
-pub fn derive_id_dst(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as ItemStruct);
-    expand_id_dst(input).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 /// Generate the inner representation, methods and trait implementations for an identifier type.
