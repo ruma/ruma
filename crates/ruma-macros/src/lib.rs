@@ -36,7 +36,10 @@ use self::{
         event_enum::{EventEnumInput, expand_event_enum},
         event_enum_from_event::expand_event_enum_from_event,
     },
-    identifiers::{constructor::IdentifierConstructor, id_dst::expand_id_dst},
+    identifiers::{
+        RumaIdAttrs, constructor::IdentifierConstructor, id_dst::expand_id_dst,
+        ruma_id::expand_ruma_id,
+    },
     serde::{
         as_str_as_ref_str::expand_as_str_as_ref_str, debug_as_ref_str::expand_debug_as_ref_str,
         deserialize_from_cow_str::expand_deserialize_from_cow_str,
@@ -336,7 +339,7 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 ///
 /// The type of the state key of the event, required and only supported if the kind is `State`. This
 /// type should be a string type like `String`, `EmptyStateKey` or an identifier type generated with
-/// the `IdDst` macro.
+/// the `IdDst` or `ruma_id` macros.
 ///
 /// ### `unsigned_type = UnsignedType`
 ///
@@ -483,6 +486,48 @@ pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
 pub fn derive_id_dst(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ItemStruct);
     expand_id_dst(input).unwrap_or_else(syn::Error::into_compile_error).into()
+}
+
+/// Generate the inner representation, methods and trait implementations for an identifier type.
+///
+/// This macro generates the inner representation for the identifier type. This inner representation
+/// is variable, by default it'll use `Box<str>`, but it can be changed at compile time by setting
+/// `--cfg=ruma_identifiers_storage=...` using `RUSTFLAGS` or `.cargo/config.toml` (under
+/// `[build]` -> `rustflags = ["..."]`). Currently the only supported value is `Arc`, that uses
+/// `Arc<str>` as an inner representation.
+///
+/// This macro implements:
+///
+/// * `AsRef<[u8]>` and `AsRef<str>`, as well as `as_str()` and `as_bytes()` methods.
+/// * Conversions to and from string types, as well as `PartialEq` implementations for testing
+///   equality with string types.
+///
+/// # Attributes
+///
+/// * `#[ruma_id(validate = PATH)]`: the path to a function to validate the string during parsing
+///   and deserialization. By default, the types implement `From` string types, when this is set
+///   they implement `TryFrom` and `FromStr`.
+/// * `#[ruma_id(smallvec_inline_bytes = USIZE)]`: the size of the inline array for the `SmallVec`
+///   inner representation. If this is not provided the default inline size is `32`.
+///
+/// # Examples
+///
+/// ```ignore
+/// # // HACK: This is "ignore" because of cyclical dependency drama.
+/// use ruma_macros::ruma_id;
+///
+/// #[ruma_id(validate = ruma_identifiers_validation::user_id::validate; smallvec_inline_bytes = 40)]
+/// pub struct UserId;
+/// ```
+#[proc_macro_attribute]
+pub fn ruma_id(args: TokenStream, item: TokenStream) -> TokenStream {
+    let mut attrs = RumaIdAttrs::default();
+    let attrs_parser = syn::meta::parser(|meta| attrs.try_merge(meta));
+    parse_macro_input!(args with attrs_parser);
+
+    let item = parse_macro_input!(item as ItemStruct);
+
+    expand_ruma_id(attrs, item).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 /// Compile-time checked `EventId` construction.

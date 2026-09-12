@@ -3,18 +3,18 @@
 use as_variant::as_variant;
 use proc_macro2::Span;
 use quote::{format_ident, quote};
-use syn::{meta::ParseNestedMeta, parse_quote};
+use syn::parse_quote;
 
-use super::{IdDst, OwnedId, Types};
-use crate::util::RumaCommon;
-
-/// The default size of the inline array for the `SmallVec` inner representation.
-const SMALLVEC_INLINE_BYTES_DEFAULT: usize = 32;
+use super::{IdDst, OwnedId};
+use crate::{
+    identifiers::{RumaIdAttrs, SMALLVEC_INLINE_BYTES_DEFAULT, Types},
+    util::RumaCommon,
+};
 
 impl IdDst {
     /// Parse the given `IdDst` macro input.
     pub(super) fn parse(input: syn::ItemStruct) -> syn::Result<Self> {
-        let mut id_dst_attrs = IdDstAttrs::default();
+        let mut id_dst_attrs = RumaIdAttrs::default();
 
         for attr in &input.attrs {
             if !attr.path().is_ident("ruma_id") {
@@ -24,7 +24,7 @@ impl IdDst {
             attr.parse_nested_meta(|meta| id_dst_attrs.try_merge(meta))?;
         }
 
-        let IdDstAttrs { validate, smallvec_inline_bytes } = id_dst_attrs;
+        let RumaIdAttrs { validate, smallvec_inline_bytes } = id_dst_attrs;
 
         if validate.is_none() && !input.generics.params.is_empty() {
             return Err(syn::Error::new(
@@ -68,7 +68,7 @@ impl IdDst {
 
         let owned_id = OwnedId::new(owned_ident, owned_id_type, smallvec_inline_bytes);
         let ruma_common = RumaCommon::new();
-        let types = Types::new(&ruma_common, &owned_id);
+        let types = Types::new(&ruma_common, smallvec_inline_bytes);
 
         Ok(Self {
             ident,
@@ -81,63 +81,5 @@ impl IdDst {
             types,
             ruma_common,
         })
-    }
-}
-
-/// The parsed attributes of the [`IdDst`].
-#[derive(Default)]
-struct IdDstAttrs {
-    /// The path to the function to use to validate the identifier.
-    validate: Option<syn::Path>,
-
-    /// The size of the inline array for the `SmallVec` inner representation.
-    smallvec_inline_bytes: Option<usize>,
-}
-
-impl IdDstAttrs {
-    /// Set the path to the function to use to validate the identifier.
-    ///
-    /// Returns an error if it is already set.
-    fn set_validate(&mut self, validate: syn::Path, meta: &ParseNestedMeta<'_>) -> syn::Result<()> {
-        if self.validate.is_some() {
-            return Err(meta.error("cannot have multiple values for `validate` attribute"));
-        }
-
-        self.validate = Some(validate);
-        Ok(())
-    }
-
-    /// Set the size of the inline array for the `SmallVec` inner representation.
-    ///
-    /// Returns an error if it is already set or if the value doesn't fit into a `usize`.
-    fn set_smallvec_inline_bytes(
-        &mut self,
-        inline_bytes: syn::LitInt,
-        meta: &ParseNestedMeta<'_>,
-    ) -> syn::Result<()> {
-        if self.smallvec_inline_bytes.is_some() {
-            return Err(
-                meta.error("cannot have multiple values for `smallvec_inline_bytes` attribute")
-            );
-        }
-
-        self.smallvec_inline_bytes = Some(inline_bytes.base10_parse()?);
-        Ok(())
-    }
-
-    /// Try to parse the given meta item and merge it into this `IdDstAttrs`.
-    ///
-    /// Returns an error if an unknown `ruma_id` attribute is encountered, or if an attribute
-    /// that accepts a single value appears several times.
-    fn try_merge(&mut self, meta: ParseNestedMeta<'_>) -> syn::Result<()> {
-        if meta.path.is_ident("validate") {
-            return self.set_validate(meta.value()?.parse()?, &meta);
-        }
-
-        if meta.path.is_ident("smallvec_inline_bytes") {
-            return self.set_smallvec_inline_bytes(meta.value()?.parse()?, &meta);
-        }
-
-        Err(meta.error("unsupported `ruma_id` attribute"))
     }
 }
