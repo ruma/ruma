@@ -44,6 +44,7 @@ Breaking changes:
   - `OwnedSessionId` was renamed to `SessionId`. The `session_id!` macro now returns a `SessionId`,
     the `owned_session_id!` macro was removed and the `session_id_ref!` macro behind the
     `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static SessionId`.
+  - `OwnedSpaceChildOrder` was renamed to `SpaceChildOrder`.
 
 Improvements:
 
