@@ -9,7 +9,7 @@ pub mod v2 {
 
     use js_int::UInt;
     use ruma_common::{
-        OwnedClientSecret, OwnedSessionId,
+        ClientSecret, OwnedSessionId,
         api::{request, response},
         metadata,
         thirdparty::Medium,
@@ -35,7 +35,7 @@ pub mod v2 {
 
         /// The client secret passed to the `requestToken` call.
         #[ruma_api(query)]
-        pub client_secret: OwnedClientSecret,
+        pub client_secret: ClientSecret,
     }
 
     /// Response type for the `check_3pid_validity` endpoint.
@@ -53,7 +53,7 @@ pub mod v2 {
 
     impl Request {
         /// Creates a `Request` with the given Session ID and client secret.
-        pub fn new(sid: OwnedSessionId, client_secret: OwnedClientSecret) -> Self {
+        pub fn new(sid: OwnedSessionId, client_secret: ClientSecret) -> Self {
             Self { sid, client_secret }
         }
     }

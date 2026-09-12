@@ -8,8 +8,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/v1.19/identity-service-api/#post_matrixidentityv23pidbind
 
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch, OwnedClientSecret, OwnedSessionId, OwnedUserId,
-        ServerSignatures,
+        ClientSecret, MilliSecondsSinceUnixEpoch, OwnedSessionId, OwnedUserId, ServerSignatures,
         api::{request, response},
         metadata,
         thirdparty::Medium,
@@ -33,7 +32,7 @@ pub mod v2 {
         pub sid: OwnedSessionId,
 
         /// The client secret passed to the `requestToken` call.
-        pub client_secret: OwnedClientSecret,
+        pub client_secret: ClientSecret,
 
         /// The Matrix user ID to associate with the 3PIDs.
         pub mxid: OwnedUserId,
@@ -67,11 +66,7 @@ pub mod v2 {
 
     impl Request {
         /// Creates a `Request` with the given session ID, client secret and Matrix user ID.
-        pub fn new(
-            sid: OwnedSessionId,
-            client_secret: OwnedClientSecret,
-            mxid: OwnedUserId,
-        ) -> Self {
+        pub fn new(sid: OwnedSessionId, client_secret: ClientSecret, mxid: OwnedUserId) -> Self {
             Self { sid, client_secret, mxid }
         }
     }

@@ -8,7 +8,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/v1.19/identity-service-api/#post_matrixidentityv23pidunbind
 
     use ruma_common::{
-        OwnedClientSecret, OwnedSessionId, OwnedUserId,
+        ClientSecret, OwnedSessionId, OwnedUserId,
         api::{request, response},
         metadata,
         thirdparty::Medium,
@@ -98,12 +98,12 @@ pub mod v2 {
         pub sid: OwnedSessionId,
 
         /// The client secret passed to the `requestToken` call.
-        pub client_secret: OwnedClientSecret,
+        pub client_secret: ClientSecret,
     }
 
     impl ThreePidOwnershipProof {
         /// Creates a new `ThreePidOwnershipProof` with the given session ID and client secret.
-        pub fn new(sid: OwnedSessionId, client_secret: OwnedClientSecret) -> Self {
+        pub fn new(sid: OwnedSessionId, client_secret: ClientSecret) -> Self {
             Self { sid, client_secret }
         }
     }
