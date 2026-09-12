@@ -47,7 +47,7 @@ pub use self::{
     space_child_order::SpaceChildOrder,
     transaction_id::TransactionId,
     user_id::UserId,
-    voip_id::{OwnedVoipId, VoipId},
+    voip_id::VoipId,
     voip_version_id::VoipVersionId,
 };
 
