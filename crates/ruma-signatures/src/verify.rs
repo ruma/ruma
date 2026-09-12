@@ -344,7 +344,7 @@ fn verify_canonical_json_for_entity(
         };
 
         // If we cannot parse the key ID, ignore.
-        let Ok(parsed_key_id) = <&SigningKeyId<AnyKeyName>>::try_from(key_id.as_str()) else {
+        let Ok(parsed_key_id) = <SigningKeyId<AnyKeyName>>::try_from(key_id.as_str()) else {
             continue;
         };
 

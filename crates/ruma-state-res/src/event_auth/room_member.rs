@@ -311,7 +311,7 @@ fn check_third_party_invite<E: Event>(
         // verified from a public key.
 
         for (key_id, signature_value) in entity_signatures {
-            let Ok(parsed_key_id) = <&SigningKeyId<AnyKeyName>>::try_from(key_id.as_str()) else {
+            let Ok(parsed_key_id) = <SigningKeyId<AnyKeyName>>::try_from(key_id.as_str()) else {
                 continue;
             };
             let algorithm = parsed_key_id.algorithm();

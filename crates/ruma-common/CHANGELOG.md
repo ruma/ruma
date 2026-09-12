@@ -18,6 +18,12 @@ Breaking changes:
   - `OwnedEventId` was renamed to `EventId`. The `event_id!` macro now returns an `EventId`, the
     `owned_event_id!` macro was removed and the `event_id_ref!` macro behind the
     `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static EventId`.
+  - `OwnedKeyId` was renamed to `KeyId`, and all its type aliases lost the `Owned` prefix too.
+  - `OwnedAnyKeyName` was renamed to `AnyKeyName`.
+
+Improvements:
+
+- Add `KeyId::key_name_str()` to access the key name of a key ID as a `&str`.
 
 Improvements:
 
