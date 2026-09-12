@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#post_matrixclientv3knockroomidoralias
 
     use ruma_common::{
-        OwnedRoomOrAliasId, OwnedServerName, RoomId,
+        OwnedServerName, RoomId, RoomOrAliasId,
         api::{auth_scheme::AccessToken, error::Error, response},
         metadata,
     };
@@ -28,7 +28,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
         /// The room the user should knock on.
-        pub room_id_or_alias: OwnedRoomOrAliasId,
+        pub room_id_or_alias: RoomOrAliasId,
 
         /// The reason for joining a room.
         pub reason: Option<String>,
@@ -148,7 +148,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room ID or alias.
-        pub fn new(room_id_or_alias: OwnedRoomOrAliasId) -> Self {
+        pub fn new(room_id_or_alias: RoomOrAliasId) -> Self {
             Self { room_id_or_alias, reason: None, via: vec![] }
         }
     }

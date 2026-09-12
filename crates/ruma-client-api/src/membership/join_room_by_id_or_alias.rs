@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#post_matrixclientv3joinroomidoralias
 
     use ruma_common::{
-        OwnedRoomOrAliasId, OwnedServerName, RoomId,
+        OwnedServerName, RoomId, RoomOrAliasId,
         api::{auth_scheme::AccessToken, error::Error, response},
         metadata,
     };
@@ -30,7 +30,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
         /// The room where the user should be invited.
-        pub room_id_or_alias: OwnedRoomOrAliasId,
+        pub room_id_or_alias: RoomOrAliasId,
 
         /// The signature of a `m.third_party_invite` token to prove that this user owns a third
         /// party identity which has been invited to the room.
@@ -160,7 +160,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room ID or alias ID.
-        pub fn new(room_id_or_alias: OwnedRoomOrAliasId) -> Self {
+        pub fn new(room_id_or_alias: RoomOrAliasId) -> Self {
             Self { room_id_or_alias, via: vec![], third_party_signed: None, reason: None }
         }
     }

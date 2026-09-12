@@ -9,10 +9,7 @@ use ruma_identifiers_validation::{
 };
 use url::Url;
 
-use super::{
-    EventId, OwnedRoomOrAliasId, OwnedServerName, OwnedUserId, RoomAliasId, RoomId, RoomOrAliasId,
-    UserId,
-};
+use super::{EventId, OwnedServerName, OwnedUserId, RoomAliasId, RoomId, RoomOrAliasId, UserId};
 use crate::{PrivOwnedStr, percent_encode::PATH_PERCENT_ENCODE_SET};
 
 const MATRIX_TO_BASE_URL: &str = "https://matrix.to/#/";
@@ -35,7 +32,7 @@ pub enum MatrixId {
     ///
     /// Constructing this variant from an `RoomAliasId` is deprecated, because room aliases
     /// are mutable, so the URI might break after a while.
-    Event(OwnedRoomOrAliasId, EventId),
+    Event(RoomOrAliasId, EventId),
 }
 
 impl MatrixId {
@@ -216,8 +213,8 @@ impl From<&UserId> for MatrixId {
     }
 }
 
-impl From<(OwnedRoomOrAliasId, EventId)> for MatrixId {
-    fn from(ids: (OwnedRoomOrAliasId, EventId)) -> Self {
+impl From<(RoomOrAliasId, EventId)> for MatrixId {
+    fn from(ids: (RoomOrAliasId, EventId)) -> Self {
         Self::Event(ids.0, ids.1)
     }
 }
